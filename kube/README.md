@@ -23,3 +23,12 @@ Currently services are exposed via NodePort since that requires minimal overhead
 1. create a release version in github
 2. wait for quay to build the new version
 3. deploy with kube:  `kubectl --kubeconfig=kubeconfig set image deployment/portal-deployment portal=quay.io/cdis/data-portal:$version_number`
+
+### Scale the cluster
+To scale up the kubernete cluster, you can use aws autoscaling group directly
+```
+aws autoscaling describe-auto-scaling-groups | grep AutoScalingGroupName
+            "AutoScalingGroupName": "dev-cluster-Controlplane-OEZYUCELKJ4N-Controllers-1819W9DZ2W08V", 
+            "AutoScalingGroupName": "dev-cluster-Controlplane-OEZYUCELKJ4N-Etcd0-WD58TDTH03PT", 
+            "AutoScalingGroupName": "dev-cluster-Nodepool2-Z1Y7UPYSD17I-Workers-IAR1O6I28D6V", 
+aws autoscaling update-auto-scaling-group --auto-scaling-group-name dev-cluster-Nodepool2-Z1Y7UPYSD17I-Workers-IAR1O6I28D6V --desired-capacity 4 --min-size 4 --max-size 4`
