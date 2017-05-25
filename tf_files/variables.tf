@@ -1,8 +1,4 @@
-variable "key_name" {
-    default = "admin"
-}
 variable "vpc_name" {
-    default = "test"
 }
 variable "aws_access_key" {
 }
