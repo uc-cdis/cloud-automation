@@ -141,6 +141,13 @@ resource "aws_route_table" "private" {
     }
 }
 
+resource "aws_route_table" "private_2" {
+    vpc_id = "${aws_vpc.main.id}"
+
+    tags {
+        Name = "private_2"
+    }
+}
 resource "aws_route_table_association" "public" {
     subnet_id = "${aws_subnet.public.id}"
     route_table_id = "${aws_route_table.public.id}"
@@ -152,10 +159,14 @@ resource "aws_route_table_association" "private" {
     route_table_id = "${aws_route_table.private.id}"
 }
 
+resource "aws_route_table_association" "private_2" {
+    subnet_id = "${aws_subnet.private_2.id}"
+    route_table_id = "${aws_route_table.private_2.id}"
+}
 
 resource "aws_subnet" "public" {
     vpc_id = "${aws_vpc.main.id}"
-    cidr_block = "172.16.1.0/24"
+    cidr_block = "172.16.0.0/24"
     map_public_ip_on_launch = true
     tags {
         Name = "public"
@@ -171,11 +182,19 @@ resource "aws_subnet" "private" {
     }
 }
 
+resource "aws_subnet" "private_2" {
+    vpc_id = "${aws_vpc.main.id}"
+    cidr_block = "172.16.4.0/22"
+    map_public_ip_on_launch = false
+    tags {
+        Name = "private_2"
+    }
+}
+
 resource "aws_instance" "login" {
     ami = "${var.login_ami}"
     subnet_id = "${aws_subnet.public.id}"
     instance_type = "t2.micro"
-    key_name = "${var.key_name}"
     monitoring = true
     security_groups = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
     tags {
@@ -187,7 +206,6 @@ resource "aws_instance" "proxy" {
     ami = "${var.proxy_ami}"
     subnet_id = "${aws_subnet.public.id}"
     instance_type = "t2.micro"
-    key_name = "${var.key_name}"
     monitoring = true
     security_groups = ["${aws_security_group.proxy.id}","${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
     tags {
