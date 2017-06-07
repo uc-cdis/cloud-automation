@@ -1,6 +1,6 @@
 # Configuration for setting up a kubernete cluster inside an existing VPC private subnet
 
-### Manual Prerequisites
+## Manual Prerequisites
 
 - need to have less than 5 eips
 - need to do route53 manually 
@@ -10,19 +10,104 @@
 - follow direction in [coreos](https://coreos.com/kubernetes/docs/latest/kubernetes-on-aws-render.html)
 
 
-### Step to start a service
-1. configure secrets needed
-2. configure deployment
-3. create pods by deployment file
+## Step to start a service
+In order to start a service that uses confidential information in container with Kubernetes, we should go through following steps:
+1. create secrets needed
+2. create deployment
+3. mount secrets into the container
 4. create service for the pods
 
-### Expose a service externally
-Currently services are exposed via NodePort since that requires minimal overhead and we are not using a huge cluster that needs load balance. We setup the NodePort and open this port in the security group inbound rule, then we have a reverseproxy outside of the kube cluster which proxy all traffics to services.
+### Create secrets
+Secret is the way in which Kubernetes uses to manage the confidential information such as `ssh_key`, private setting containing `username`, `password` of a `database`, or a `service`. Run the following command with `SECRET_NAME` is the name of secret entry managed by kubernetes, `OUTPUT_FILE` is the file name that you expect to see in the container, and `PATH_TO_INPUT_FILE` is path to the input of that secret.
+```
+kubectl --kubeconfig=kubeconfig create secret generic SECRET_NAME --from-file=OUTPUT_FILE=PATH_TO_INPUT_FILE
+```
 
-### Release a new version of data-portal
+### Create deployment
+There are multiple way to create a deployment in kubernetes. The simplest way is:
 1. create a release version in github
 2. wait for quay to build the new version
 3. deploy with kube:  `kubectl --kubeconfig=kubeconfig set image deployment/portal-deployment portal=quay.io/cdis/data-portal:$version_number`
+
+But, a service (i.e. deployment) usually need more complicated configuration. So, we often define it in a file.
+1. create a release version in github
+2. wait for quay to build the new version
+3. define deployment in a file.
+4. run the following command to create the deployment defined in that file in Kubernetes.
+```
+kubectl --kubeconfig=kubeconfig create -f PATH_TO_DEFINITION_FILE
+```
+
+Below is an example of a deployment definition file:
+```
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: userapi-deployment
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: userapi
+    spec:
+      containers:
+      - name: userapi
+        image: quay.io/cdis/user-api:0.1.0
+        ports:
+        - containerPort: 80
+      imagePullSecrets:
+        - name: philloooo-pull-secret
+```
+
+Having the container running, we can access to the container by the following command:
+```
+kubectl --kubeconfig=kubeconfig exec -ti POD_NAME -c CONTAINER_NAME /bin/bash
+```
+
+We can also retrieve all the log traced from the container to the pod by:
+```
+kubectl --kubeconfig=kubeconfig logs POD_NAME
+```
+
+Use `kubectl --kubeconfig=kubeconfig apply -f PATH_TO_CONFIG_FILE` to update a running deployment.
+
+### Mount secrets to container
+Secrets are passed to container in the initial phase by mounting as a volume. We can include the mounted secrets into the definition file as the following example:
+```
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: userapi-deployment
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: userapi
+    spec:
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "userapi-secret"
+      containers:
+      - name: userapi
+        image: quay.io/cdis/user-api:0.1.0
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/user-api/local_settings.py"
+            subPath: local_settings.py
+      imagePullSecrets:
+        - name: philloooo-pull-secret
+```
+
+In this example, we want the `local_settings.py` to be located in the same directory with running script. We need to specify two keys (`mountPath` and `subPath`) in each entry of `volumeMounts`. In particular, `mountPath` is the fullpath contains also the name of file, while `subPath` is the file name.
+
+## Expose a service externally
+Currently services are exposed via NodePort since that requires minimal overhead and we are not using a huge cluster that needs load balance. We setup the NodePort and open this port in the security group inbound rule, then we have a reverseproxy outside of the kube cluster which proxy all traffics to services.
 
 ### Scale the cluster
 To scale up the kubernete cluster, you can use aws autoscaling group directly

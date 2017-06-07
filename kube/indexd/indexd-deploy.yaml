@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1 
+kind: Deployment
+metadata:
+  name: indexd-deployment
+spec:
+  replicas: 2 
+  template:
+    metadata:
+      labels:
+        app: indexd
+    spec:
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "indexd-secret"
+      containers:
+      - name: indexd
+        image: quay.io/cdis/indexd:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/indexd/local_settings.py"
+            subPath: local_settings.py
+      imagePullSecrets:
+        - name: philloooo-pull-secret
+
