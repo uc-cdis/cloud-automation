@@ -23,22 +23,8 @@ Secret is the way in which Kubernetes uses to manage the confidential informatio
 kubectl --kubeconfig=kubeconfig create secret generic SECRET_NAME --from-file=OUTPUT_FILE=PATH_TO_INPUT_FILE
 ```
 
-### Create deployment
-There are multiple way to create a deployment in kubernetes. The simplest way is:
-1. create a release version in github
-2. wait for quay to build the new version
-3. deploy with kube:  `kubectl --kubeconfig=kubeconfig set image deployment/portal-deployment portal=quay.io/cdis/data-portal:$version_number`
-
-But, a service (i.e. deployment) usually need more complicated configuration. So, we often define it in a file.
-1. create a release version in github
-2. wait for quay to build the new version
-3. define deployment in a file.
-4. run the following command to create the deployment defined in that file in Kubernetes.
-```
-kubectl --kubeconfig=kubeconfig create -f PATH_TO_DEFINITION_FILE
-```
-
-Below is an example of a deployment definition file:
+### Create deployment/service
+A deployment or service is usually defined in a configuration. The example below shows how to configure to userapi service.
 ```
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -60,6 +46,11 @@ spec:
         - name: philloooo-pull-secret
 ```
 
+Run the following command to create the deployment defined in that file in Kubernetes.
+```
+kubectl --kubeconfig=kubeconfig create -f PATH_TO_DEFINITION_FILE
+```
+
 Having the container running, we can access to the container by the following command:
 ```
 kubectl --kubeconfig=kubeconfig exec -ti POD_NAME -c CONTAINER_NAME /bin/bash
@@ -70,10 +61,11 @@ We can also retrieve all the log traced from the container to the pod by:
 kubectl --kubeconfig=kubeconfig logs POD_NAME
 ```
 
-Use `kubectl --kubeconfig=kubeconfig apply -f PATH_TO_CONFIG_FILE` to update a running deployment.
+Use `kubectl --kubeconfig=kubeconfig apply -f PATH_TO_CONFIG_FILE` to update a running deployment. Set `save-config` flag to `true` if the configuration of current object is intended to save in its annotation.
 
 ### Mount secrets to container
 Secrets are passed to container in the initial phase by mounting as a volume. We can include the mounted secrets into the definition file as the following example:
+
 ```
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -105,6 +97,14 @@ spec:
 ```
 
 In this example, we want the `local_settings.py` to be located in the same directory with running script. We need to specify two keys (`mountPath` and `subPath`) in each entry of `volumeMounts`. In particular, `mountPath` is the fullpath contains also the name of file, while `subPath` is the file name.
+
+### Release a new version of a service
+1. create a release version in github
+2. wait for quay to build the new version.
+3. deploy with kube:  `kubectl --kubeconfig=kubeconfig set image deployment/portal-deployment portal=quay.io/cdis/data-portal:$version_number`
+
+## Expose a service internally with DNS
+Domain name should be used to point to a service. Domain name is only recognized at the Pod level, not the Node level.  It means that we need to access to either pod or container to see other container/pod by its domain name.
 
 ## Expose a service externally
 Currently services are exposed via NodePort since that requires minimal overhead and we are not using a huge cluster that needs load balance. We setup the NodePort and open this port in the security group inbound rule, then we have a reverseproxy outside of the kube cluster which proxy all traffics to services.
