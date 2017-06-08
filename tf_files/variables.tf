@@ -10,3 +10,9 @@ variable "proxy_ami" {
 }
 variable "base_ami" {
 }
+variable "db_name" {
+}
+variable "db_username" {
+}
+variable "db_password" {
+}

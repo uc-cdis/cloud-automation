@@ -196,9 +196,20 @@ resource "aws_instance" "login" {
     subnet_id = "${aws_subnet.public.id}"
     instance_type = "t2.micro"
     monitoring = true
-    security_groups = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
     tags {
         Name = "Login Node"
+    }
+}
+
+resource "aws_instance" "kube_provisioner" {
+    ami = "${var.login_ami}"
+    subnet_id = "${aws_subnet.private.id}"
+    instance_type = "t2.micro"
+    monitoring = true
+    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    tags {
+        Name = "Kube Provisioner"
     }
 }
 
@@ -207,10 +218,24 @@ resource "aws_instance" "proxy" {
     subnet_id = "${aws_subnet.public.id}"
     instance_type = "t2.micro"
     monitoring = true
-    security_groups = ["${aws_security_group.proxy.id}","${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
+    vpc_security_group_ids = ["${aws_security_group.proxy.id}","${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
     tags {
         Name = "HTTP Proxy"
     }
+}
+
+resource "aws_db_instance" "default" {
+    allocated_storage    = 10
+    storage_type         = "gp2"
+    engine               = "postgresql"
+    engine_version       = "9.5.3"
+    instance_class       = "db.t1.micro"
+    name                 = "${var.db_name}"
+    username             = "${var.db_username}"
+    password             = "${var.db_password}"
+    db_subnet_group_name = "${aws_subnet.private.id}"
+    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    parameter_group_name = "default.mysql5.6"
 }
 
 resource "aws_route53_zone" "main" {
