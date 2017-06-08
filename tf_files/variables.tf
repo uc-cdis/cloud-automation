@@ -16,3 +16,6 @@ variable "db_username" {
 }
 variable "db_password" {
 }
+variable "db_instance" {
+    default = "db.t1.micro"
+}
