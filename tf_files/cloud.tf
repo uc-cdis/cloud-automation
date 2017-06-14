@@ -43,6 +43,18 @@ resource "aws_security_group" "login-ssh" {
   }
 }
 
+resource "aws_security_group" "kube-worker" {
+  name = "kube-worker"
+  description = "security group that open ports to vpc, this needs to be attached to kube worker"
+  vpc_id = "${aws_vpc.main.id}"
+  ingress {
+      from_port = 30000
+      to_port = 30100
+      protocol = "TCP"
+      cidr_blocks = ["172.16.0.0/16"]
+  }
+}
+
 resource "aws_security_group" "local" {
   name = "local"
   description = "security group that only allow internal tcp traffics"
