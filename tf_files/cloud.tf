@@ -133,9 +133,21 @@ resource "aws_route_table" "public" {
     }
 }
 
+resource "aws_eip" "nat" {
+    vpc = true
+}
+
+resource "aws_nat_gateway" "gw" {
+    allocation_id = "${aws_eip.nat.id}"
+    subnet_id     = "${aws_subnet.public.id}"
+}
+
 resource "aws_route_table" "private" {
     vpc_id = "${aws_vpc.main.id}"
-
+    route {
+        cidr_block = "0.0.0.0/0"
+        nat_gateway_id = "${aws_nat_gateway.gw.id}"
+    }
     tags {
         Name = "private"
     }
@@ -176,6 +188,7 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
     vpc_id = "${aws_vpc.main.id}"
     cidr_block = "172.16.16.0/20"
+    availability_zone = "${data.aws_availability_zones.available.names[0]}"
     map_public_ip_on_launch = false 
     tags {
         Name = "private"
@@ -191,6 +204,26 @@ resource "aws_subnet" "private_2" {
     }
 }
 
+resource "aws_subnet" "private_3" {
+    vpc_id = "${aws_vpc.main.id}"
+    cidr_block = "172.16.8.0/21"
+    availability_zone = "${data.aws_availability_zones.available.names[1]}"
+    map_public_ip_on_launch = false
+    tags {
+        Name = "private_3"
+    }
+}
+
+resource "aws_db_subnet_group" "private_group" {
+    name = "private_group"
+    subnet_ids = ["${aws_subnet.private.id}", "${aws_subnet.private_3.id}"]
+
+    tags {
+        Name = "Private subnet group"
+    }
+    description = "Private subnet group"
+}
+
 resource "aws_instance" "login" {
     ami = "${var.login_ami}"
     subnet_id = "${aws_subnet.public.id}"
@@ -202,6 +235,66 @@ resource "aws_instance" "login" {
     }
 }
 
+resource "aws_db_instance" "db_userapi" {
+    allocated_storage    = "${var.db_size}"
+    identifier           = "userapidb"
+    storage_type         = "gp2"
+    engine               = "postgres"
+    engine_version       = "9.5.6"
+    instance_class       = "${var.db_instance}"
+    name                 = "${var.db_name}_userapi"
+    username             = "userapi_user"
+    password             = "${var.db_password_userapi}"
+    db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
+    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+}
+
+resource "aws_db_instance" "db_gdcapi" {
+    allocated_storage    = "${var.db_size}"
+    identifier           = "gdcapidb"
+    storage_type         = "gp2"
+    engine               = "postgres"
+    engine_version       = "9.5.6"
+    instance_class       = "${var.db_instance}"
+    name                 = "${var.db_name}_gdcapi"
+    username             = "gdcapi_user"
+    password             = "${var.db_password_gdcapi}"
+    db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
+    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+}
+
+resource "aws_db_instance" "db_indexd" {
+    allocated_storage    = "${var.db_size}"
+    identifier           = "indexddb"
+    storage_type         = "gp2"
+    engine               = "postgres"
+    engine_version       = "9.5.6"
+    instance_class       = "${var.db_instance}"
+    name                 = "${var.db_name}_indexd"
+    username             = "indexd_user"
+    password             = "${var.db_password_indexd}"
+    db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
+    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+}
+
+data "template_file" "creds" {
+    template = "${file("creds.tpl")}"
+    vars {
+        userapi_host = "${aws_db_instance.db_userapi.address}"
+        userapi_user = "${aws_db_instance.db_userapi.username}"
+        userapi_pwd = "${aws_db_instance.db_userapi.password}"
+        userapi_db = "${aws_db_instance.db_userapi.name}"
+        gdcapi_host = "${aws_db_instance.db_gdcapi.address}"
+        gdcapi_user = "${aws_db_instance.db_gdcapi.username}"
+        gdcapi_pwd = "${aws_db_instance.db_gdcapi.password}"
+        gdcapi_db = "${aws_db_instance.db_gdcapi.name}"
+        indexd_host = "${aws_db_instance.db_indexd.address}"
+        indexd_user = "${aws_db_instance.db_indexd.username}"
+        indexd_pwd = "${aws_db_instance.db_indexd.password}"
+        indexd_db = "${aws_db_instance.db_indexd.name}"
+    }
+}
+
 resource "aws_instance" "kube_provisioner" {
     ami = "${var.login_ami}"
     subnet_id = "${aws_subnet.private.id}"
@@ -210,6 +303,20 @@ resource "aws_instance" "kube_provisioner" {
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     tags {
         Name = "Kube Provisioner"
+    }
+    provisioner "file" {
+        content = "${data.template_file.creds.rendered}"
+        destination = "/home/ubuntu/creds.json"
+    }
+    provisioner "file" {
+        source = "script-kube.sh"
+        destination = "/home/ubuntu/creds.json"
+    }
+    provisioner "remote-exec" {
+        inline = [
+            "puppet apply",
+            "consul join ${aws_instance.web.private_ip}",
+        ]
     }
 }
 
@@ -224,29 +331,16 @@ resource "aws_instance" "proxy" {
     }
 }
 
-resource "aws_db_instance" "default" {
-    allocated_storage    = 10
-    storage_type         = "gp2"
-    engine               = "postgresql"
-    engine_version       = "9.5.3"
-    instance_class       = "${var.db_instance}"
-    name                 = "${var.db_name}"
-    username             = "${var.db_username}"
-    password             = "${var.db_password}"
-    db_subnet_group_name = "${aws_subnet.private.id}"
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
-    parameter_group_name = "default.mysql5.6"
-}
-
 resource "aws_route53_zone" "main" {
     name = "internal.io"
     comment = "internal dns server"
     vpc_id = "${aws_vpc.main.id}"
 }
+
 resource "aws_route53_record" "www" {
-   zone_id = "${aws_route53_zone.main.zone_id}"
-   name = "cloud-proxy"
-   type = "A"
-   ttl = "300"
-   records = ["${aws_instance.proxy.private_ip}"]
+    zone_id = "${aws_route53_zone.main.zone_id}"
+    name = "cloud-proxy"
+    type = "A"
+    ttl = "300"
+    records = ["${aws_instance.proxy.private_ip}"]
 }
