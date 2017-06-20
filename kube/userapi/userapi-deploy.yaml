@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: userapi-deployment
 spec:
-  replicas: 2 
+  replicas: 1 
   template:
     metadata:
       labels:
@@ -13,6 +13,9 @@ spec:
         - name: config-volume
           secret:
             secretName: "userapi-secret"
+        - name: userapi-yaml
+          configMap:
+            name: userapi
       containers:
       - name: userapi
         image: quay.io/cdis/user-api:0.1.0
@@ -23,6 +26,9 @@ spec:
             readOnly: true
             mountPath: "/var/www/user-api/local_settings.py"
             subPath: local_settings.py
+          - name: "userapi-yaml"
+            mountPath: "/var/www/user-api/user.yaml"
+            subPath: user.yaml
       imagePullSecrets:
-        - name: philloooo-pull-secret
+        - name: cdis-devservices-pull-secret
 

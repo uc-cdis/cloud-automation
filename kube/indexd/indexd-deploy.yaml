@@ -22,7 +22,7 @@ spec:
           - name: "config-volume"
             readOnly: true
             mountPath: "/var/www/indexd/local_settings.py"
-            subPath: local_settings.py
+            subPath: "local_settings.py"
       imagePullSecrets:
-        - name: philloooo-pull-secret
+        - name: cdis-devservices-pull-secret
 

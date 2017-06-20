@@ -1,0 +1,37 @@
+cloud_providers: {}
+
+groups: {}
+
+users:
+  cdis:
+    admin: True
+  phillis.tt@gmail.com:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  curroortuno@gmail.com:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  thanhnd.fit@gmail.com:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  razorm@gmail.com:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  dmiller5191@gmail.com:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  walt@occ-data.org:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']

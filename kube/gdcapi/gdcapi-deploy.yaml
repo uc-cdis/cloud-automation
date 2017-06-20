@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1 
+kind: Deployment
+metadata:
+  name: gdcapi-deployment
+spec:
+  replicas: 1 
+  template:
+    metadata:
+      labels:
+        app: gdcapi
+    spec:
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "gdcapi-secret"
+      containers:
+        - name: gdcapi
+          image: quay.io/cdis/gdcapi:feat_hmac
+          ports:
+          - containerPort: 80
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/gdcapi/wsgi.py"
+              subPath: "wsgi.py"
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: cdis-devservices-pull-secret
+

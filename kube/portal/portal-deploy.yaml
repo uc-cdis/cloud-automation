@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: portal-deployment
 spec:
-  replicas: 2 
+  replicas: 1 
   template:
     metadata:
       labels:
@@ -11,8 +11,8 @@ spec:
     spec:
       containers:
       - name: portal
-        image: quay.io/cdis/data-portal:fix_docker 
+        image: quay.io/cdis/data-portal:master 
         ports:
         - containerPort: 80
       imagePullSecrets:
-        - name: philloooo-pull-secret
+        - name: cdis-devservices-pull-secret
