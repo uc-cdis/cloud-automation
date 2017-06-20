@@ -324,12 +324,6 @@ resource "aws_instance" "kube_provisioner" {
         source = "script-kube.sh"
         destination = "/home/ubuntu/creds.json"
     }
-    provisioner "remote-exec" {
-        inline = [
-            "puppet apply",
-            "consul join ${aws_instance.web.private_ip}",
-        ]
-    }
 }
 
 resource "aws_instance" "proxy" {
