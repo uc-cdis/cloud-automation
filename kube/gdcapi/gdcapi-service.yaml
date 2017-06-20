@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: gdcapi-service
+spec:
+  selector:
+    app: gdcapi
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80 
+      nodePort: 30004 
+  type: NodePort
+
