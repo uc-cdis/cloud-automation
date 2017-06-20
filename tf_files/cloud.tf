@@ -90,8 +90,6 @@ resource "aws_security_group" "webservice" {
       protocol = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
   }
-
-
 }
 
 
@@ -310,13 +308,25 @@ resource "aws_instance" "kube_provisioner" {
     }
     provisioner "file" {
         source = "script-kube.sh"
-        destination = "/home/ubuntu/creds.json"
+        destination = "/home/ubuntu/provisioning.sh"
     }
-    provisioner "remote-exec" {
-        inline = [
-            "puppet apply",
-            "consul join ${aws_instance.web.private_ip}",
-        ]
+}
+
+data "template_file" "reverse_proxy" {
+    template = "${file("api_reverse_proxy.conf")}"
+    vars {
+        host_name = "${var.host_name}"
+    }
+}
+
+resource "aws_instance" "reverse_proxy" {
+    ami = "${var.login_ami}"
+    subnet_id = "${aws_subnet.public.id}"
+    instance_type = "t2.micro"
+    monitoring = true
+    vpc_security_group_ids = ["${aws_security_group.webservice.id}"]
+    tags {
+        Name = "Reverse proxy"
     }
 }
 

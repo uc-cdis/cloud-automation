@@ -1,11 +1,11 @@
 {
     "userapi": {
-        "db_host": ${userapi_host}, 
-        "db_username": ${userapi_user}, 
-        "db_password": ${userapi_pwd}, 
-        "db_database": ${userapi_db}, 
-        "hostnane": "", 
-        "google_client_secret": "",  
+        "db_host": ${userapi_host},
+        "db_username": ${userapi_user},
+        "db_password": ${userapi_pwd},
+        "db_database": ${userapi_db},
+        "hostnane": "",
+        "google_client_secret": "",
         "google_client_id": ""
     }, 
     "gdcapi": {

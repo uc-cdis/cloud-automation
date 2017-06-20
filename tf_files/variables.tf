@@ -24,3 +24,6 @@ variable "db_password_indexd" {
 variable "db_instance" {
     default = "db.t2.micro"
 }
+variable "host_name" {
+    default= "data.bloodpac.org"
+}
