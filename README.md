@@ -1,6 +1,14 @@
 # aws-terraform
 store terraform configuration files for bringing up VPCs
 
+## Prerequisites
+
+You need to build the amis using [images](https://github.com/uc-cdis/images).
+Required images (build them in order):
+- images/base.json (after finished, fill the [source_ami](https://github.com/uc-cdis/images/blob/master/variables.example.json#L4) withi this ami ID)
+- images/client.json
+- images/squid_image
+
 ## Bring up environment using terraform
 In order to use terraform first you need to download the [binary](https://www.terraform.io/downloads.html). The credentials are stored in variables.tf, you can export the credential to environment variables. To test how it works, `cd` to `test_tf` folder, then run following to create a vpc.
 
