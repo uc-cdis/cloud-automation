@@ -11,7 +11,7 @@ externalDNSName: controller.internal.io
 
 keyName: automation_dev
 sshAuthorizedKeys:
-${kube_additional_keys}
+  ${kube_additional_keys}
 
 region: us-east-1
 

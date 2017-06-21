@@ -24,6 +24,20 @@ variable "db_password_indexd" {
 variable "db_instance" {
     default = "db.t2.micro"
 }
-variable "host_name" {
-    default= "data.bloodpac.org"
+variable "hostname" {
+    default= "dev.bionimbus.org"
+}
+variable "kube_ssh_key" {
+}
+/* A list of ssh keys that will be added to
+   kubernete nodes, Example:
+   '- ssh-rsa XXXX\n - ssh-rsa XXX' */
+variable "kube_additional_keys" {
+    default = ""
+}
+variable "kube_bucket" {
+}
+variable "google_client_id" {
+}
+variable "google_client_secret" {
 }
