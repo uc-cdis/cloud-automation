@@ -13,8 +13,6 @@ variable "base_ami" {
 variable "db_size"{
     default = 10
 }
-variable "db_name" {
-}
 variable "db_password_userapi" {
 }
 variable "db_password_gdcapi" {
@@ -40,4 +38,11 @@ variable "kube_bucket" {
 variable "google_client_id" {
 }
 variable "google_client_secret" {
+}
+# 32 alphanumeric characters
+variable "hmac_encryption_key" {
+}
+
+# password for write access to indexd
+variable "gdcapi_indexd_password" {
 }

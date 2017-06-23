@@ -47,18 +47,24 @@ resource "aws_security_group" "login-ssh" {
 }
 
 resource "aws_security_group" "kube-worker" {
-  name = "kube-worker"
-  description = "security group that open ports to vpc, this needs to be attached to kube worker"
-  vpc_id = "${aws_vpc.main.id}"
-  ingress {
-      from_port = 30000
-      to_port = 30100
-      protocol = "TCP"
-      cidr_blocks = ["172.16.0.0/16"]
-  }
-  tags {
-    Environment = "${var.vpc_name}"
-  }
+    name = "kube-worker"
+    description = "security group that open ports to vpc, this needs to be attached to kube worker"
+    vpc_id = "${aws_vpc.main.id}"
+    ingress {
+        from_port = 30000
+        to_port = 30100
+        protocol = "TCP"
+        cidr_blocks = ["172.16.0.0/16"]
+    }
+    ingress {
+        from_port = 443
+        to_port = 443
+        protocol = "TCP"
+        cidr_blocks = ["${aws_instance.kube_provisioner.private_ip}/32"]
+    }
+    tags {
+        Environment = "${var.vpc_name}"
+    }
 }
 
 resource "aws_security_group" "local" {
@@ -98,13 +104,13 @@ resource "aws_security_group" "webservice" {
       protocol = "-1"
       cidr_blocks = ["172.16.0.0/16"]
   }
-  egress {
+  ingress {
       from_port = 443
       to_port = 443
       protocol = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
   }
-  egress {
+  ingress {
       from_port = 80
       to_port = 80
       protocol = "tcp"
@@ -169,9 +175,17 @@ resource "aws_eip" "login" {
   vpc = true
 }
 
+resource "aws_eip" "revproxy" {
+  vpc = true
+}
 resource "aws_eip_association" "login_eip" {
     instance_id = "${aws_instance.login.id}"
     allocation_id = "${aws_eip.login.id}"
+}
+
+resource "aws_eip_association" "revproxy_eip" {
+    instance_id = "${aws_instance.reverse_proxy.id}"
+    allocation_id = "${aws_eip.revproxy.id}"
 }
 
 resource "aws_nat_gateway" "gw" {
@@ -334,22 +348,24 @@ resource "aws_db_instance" "db_indexd" {
 }
 
 data "template_file" "cluster" {
-    template = "${file("cluster.yaml")}"
+    template = "${file("configs/cluster.yaml")}"
     vars {
         cluster_name = "${var.vpc_name}"
         kms_key = "${aws_kms_key.kube_key.arn}"
         route_table_id = "${aws_route_table.private.id}"
-        vpc_id ="{aws_vpc.main.id}"
+        vpc_id ="${aws_vpc.main.id}"
         vpc_cidr = "${aws_vpc.main.cidr_block}"
         subnet_id = "${aws_subnet.private.id}"
         subnet_cidr = "${aws_subnet.private.cidr_block}"
         subnet_zone = "${aws_subnet.private.availability_zone}"
         nat_id = "${aws_nat_gateway.gw.id}"
+        security_group_id = "${aws_security_group.kube-worker.id}"
         kube_additional_keys = "${var.kube_additional_keys}"
+        hosted_zone = "${aws_route53_zone.main.id}"
     }
 }
 data "template_file" "creds" {
-    template = "${file("creds.tpl")}"
+    template = "${file("configs/creds.tpl")}"
     vars {
         userapi_host = "${aws_db_instance.db_userapi.address}"
         userapi_user = "${aws_db_instance.db_userapi.username}"
@@ -366,19 +382,28 @@ data "template_file" "creds" {
         hostname = "${var.hostname}"
         google_client_secret = "${var.google_client_secret}"
         google_client_id = "${var.google_client_id}"
+        hmac_encryption_key = "${var.hmac_encryption_key}"
+        gdcapi_indexd_password = "${var.gdcapi_indexd_password}"
     }
 }
 
 data "template_file" "kube_up" {
-    template = "${file("kube-up.sh")}"
+    template = "${file("configs/kube-up.sh")}"
     vars {
         vpc_name = "${var.vpc_name}"
         s3_bucket = "${var.kube_bucket}"
     }
 }
 
+data "template_file" "kube_services" {
+    template = "${file("configs/kube-services.sh")}"
+    vars {
+        vpc_name = "${var.vpc_name}"
+        s3_bucket = "${var.kube_bucket}"
+    }
+}
 data "template_file" "aws_creds" {
-    template = "${file("aws_credentials")}"
+    template = "${file("configs/aws_credentials")}"
     vars {
         access_key = "${var.aws_access_key}"
         secret_key = "${var.aws_secret_key}"
@@ -408,13 +433,22 @@ resource "null_resource" "config_setup" {
         command = "echo \"${data.template_file.kube_up.rendered}\" > ${var.vpc_name}_output/kube-up.sh"
     }
     provisioner "local-exec" {
+        command = "echo \"${data.template_file.kube_services.rendered}\" > ${var.vpc_name}_output/kube-services.sh"
+    }
+    provisioner "local-exec" {
         command = "echo \"${data.template_file.aws_creds.rendered}\" > ${var.vpc_name}_output/credentials"
+    }
+    provisioner "local-exec" {
+        command = "echo '${data.template_file.reverse_proxy.rendered}' > ${var.vpc_name}_output/proxy.conf"
+    }
+    provisioner "local-exec" {
+        command = "cp configs/revproxy-setup.sh configs/render_creds.py ${var.vpc_name}_output/"
     }
 
 }
 
 data "template_file" "reverse_proxy" {
-    template = "${file("api_reverse_proxy.conf")}"
+    template = "${file("configs/api_reverse_proxy.conf")}"
     vars {
         hostname = "${var.hostname}"
     }

@@ -15,7 +15,7 @@ spec:
             secretName: "gdcapi-secret"
       containers:
         - name: gdcapi
-          image: quay.io/cdis/gdcapi:feat_hmac
+          image: quay.io/cdis/gdcapi:fix_oauth
           ports:
           - containerPort: 80
           volumeMounts:

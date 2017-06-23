@@ -11,7 +11,7 @@ externalDNSName: controller.internal.io
 
 keyName: automation_dev
 sshAuthorizedKeys:
-${kube_additional_keys}
+  ${kube_additional_keys}
 
 region: us-east-1
 
@@ -50,5 +50,12 @@ subnets:
     availabilityZone: "${subnet_zone}"
     natGateway:
       id: "${nat_id}"
+    securityGroupIds:
+      - ${security_group_id}
 
 mapPublicIPs: false
+
+stackTags:
+  Environment: ${cluster_name}
+hostedZoneId: ${hosted_zone}
+createRecordSet: true
