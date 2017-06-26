@@ -1,0 +1,61 @@
+# Unique name of Kubernetes cluster. In order to deploy
+# more than one cluster into the same AWS account, this
+# name must not conflict with an existing cluster.
+clusterName: ${cluster_name}
+
+# DNS name routable to the Kubernetes controller nodes
+# from worker nodes and external clients. Configure the options
+# below if you'd like kube-aws to create a Route53 record sets/hosted zones
+# for you.  Otherwise the deployer is responsible for making this name routable
+externalDNSName: controller.internal.io
+
+keyName: automation_dev
+sshAuthorizedKeys:
+  ${kube_additional_keys}
+
+region: us-east-1
+
+kmsKeyArn: "${kms_key}"
+
+worker:
+  nodePools:
+    - # Name of this node pool. Must be unique among all the node pools in this cluster
+      name: nodepool
+      subnets:
+        - name: private
+
+controller:
+  subnets:
+  - name: private
+  loadBalancer:
+    private: true
+
+etcd:
+  subnets:
+  - name: private
+
+routeTableId: ${route_table_id}
+# CIDR for Kubernetes VPC. If vpcId is specified, must match the CIDR of existing vpc.
+# vpcCIDR: "10.0.0.0/16"
+vpcId: ${vpc_id}
+vpcCIDR: ${vpc_cidr}
+
+# CIDR for Kubernetes subnet when placing nodes in a single availability zone (not highly-available) Leave commented out for multi availability zone setting and use the below `subnets` section instead.
+# instanceCIDR: "10.0.0.0/24"
+subnets:
+  - name: private
+    #private: true
+    id: "${subnet_id}"
+    instanceCIDR: "${subnet_cidr}"
+    availabilityZone: "${subnet_zone}"
+    natGateway:
+      id: "${nat_id}"
+    securityGroupIds:
+      - ${security_group_id}
+
+mapPublicIPs: false
+
+stackTags:
+  Environment: ${cluster_name}
+hostedZoneId: ${hosted_zone}
+createRecordSet: true

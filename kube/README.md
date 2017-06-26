@@ -2,15 +2,21 @@
 
 ## Manual Prerequisites
 
-- need to have less than 5 eips
-- need to do route53 manually 
-- need to add security group for the bootstrap VM to controller's security group for https access
-- setup S3 bucket for stack templates
-- setup KMS key
-- follow direction in [coreos](https://coreos.com/kubernetes/docs/latest/kubernetes-on-aws-render.html)
+- need to have at least 1 eips
+- need to get the credential from quay.io for [cdis-devservices robot](https://quay.io/organization/cdis?tab=robots)
 
+## Steps to start all services
+1. Copy the ${cluster}_output folder to the kube.internal.io (Kubernete provisioner)
+2. Run kube-up.sh
+3. [Upgrade kubenete](https://github.com/uc-cdis/cloud-automation/blob/master/kube/README.md#upgrade-kubernete) to 16.4 if the version is still the broken 16.3
+4. Get quay creds in prerequisites 2 to ${cluster}/cdis-devservices-secret.yml
+5. Run kube-services.sh
+6. Register your kubernete worker nodes as `kubenode.internal.io` in your route53
+7. Adjust the security group for kubernete workers to allow TCP port `30000-30100` inbound traffic from `172.16.0.0/16`
+7. Copy the `revproxy-setup.sh` and `proxy.conf` in the ${cluster}_output directory to `revproxy.internal.io` and run the `revproxy-setup.sh` script.
+8. Setup DNS for your revproxy node to your hostname, or edit /etc/hosts file locally to point to the elastic ip of your revproxy node. Then you should be able to browse to the portal through the hostname you setup.
 
-## Step to start a service
+## Steps to start a new service
 In order to start a service that uses confidential information in container with Kubernetes, we should go through following steps:
 1. create secrets needed
 2. create deployment
@@ -113,7 +119,33 @@ Currently services are exposed via NodePort since that requires minimal overhead
 To scale up the kubernete cluster, you can use aws autoscaling group directly
 ```
 aws autoscaling describe-auto-scaling-groups | grep AutoScalingGroupName
-            "AutoScalingGroupName": "dev-cluster-Controlplane-OEZYUCELKJ4N-Controllers-1819W9DZ2W08V", 
-            "AutoScalingGroupName": "dev-cluster-Controlplane-OEZYUCELKJ4N-Etcd0-WD58TDTH03PT", 
-            "AutoScalingGroupName": "dev-cluster-Nodepool2-Z1Y7UPYSD17I-Workers-IAR1O6I28D6V", 
+            "AutoScalingGroupName": "dev-cluster-Controlplane-OEZYUCELKJ4N-Controllers-1819W9DZ2W08V",
+            "AutoScalingGroupName": "dev-cluster-Controlplane-OEZYUCELKJ4N-Etcd0-WD58TDTH03PT",
+            "AutoScalingGroupName": "dev-cluster-Nodepool2-Z1Y7UPYSD17I-Workers-IAR1O6I28D6V",
 aws autoscaling update-auto-scaling-group --auto-scaling-group-name dev-cluster-Nodepool2-Z1Y7UPYSD17I-Workers-IAR1O6I28D6V --desired-capacity 4 --min-size 4 --max-size 4`
+```
+
+### Upgrade kubernete
+To upgrade kubernete, you can follow the instruction [here](sed -i s/1.6.3/1.6.4/g /run/systemd/system/kubelet.service)
+But basically, you need to ssh onto nodes via `ssh core@$ip_address`, and run:
+```
+sudo su
+old_version='1.6.3'
+new_version='1.6.4'
+sed -i s/$old_version/$new_version/g /run/systemd/system/kubelet.service
+systemctl daemon-reload
+systemctl restart kubelet.service
+
+sed -i s/$old_version/$new_version/g /etc/kubernetes/manifests/*
+```
+It will take a minute to install the new containers and reload
+
+### Accessing kubernete dashboard
+To access the kubernete api/ui, you can start a proxy on the kube provisioner VM:
+```
+kubectl --kubeconfig=kubeconfig proxy --port 9090
+```
+Then you can do ssh port forward from your laptop:
+```
+ssh -L9090:localhost:9090 -N kube_provisioner_vm
+```

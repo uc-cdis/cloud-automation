@@ -20,7 +20,7 @@ config['SIGNPOST'] = {
     'version': 'v0',
     'auth': ('gdcapi', '{{indexd_password}}'),
 }
-config["FAKE_AUTH"] = True
+config["FAKE_AUTH"] = False
 config["PSQLGRAPH"] = {
     'host': '{{db_host}}',
     'user': "{{db_username}}",
@@ -29,7 +29,7 @@ config["PSQLGRAPH"] = {
 }
 
 config['HMAC_ENCRYPTION_KEY'] = '{{hmac_key}}'
-config['PSQL_USER_DB_CONNECTION'] = 'postgresql://{{userapi_user}}:{{userapi_password}}@{{userapi_host}}:5432/{{userapi_database}}'
+config['PSQL_USER_DB_CONNECTION'] = 'postgresql://{{userapi_username}}:{{userapi_password}}@{{userapi_host}}:5432/{{userapi_database}}'
 
 
 config['OAUTH2'] = {

@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: userapi-deployment
 spec:
-  replicas: 1 
+  replicas: 1
   template:
     metadata:
       labels:
@@ -18,7 +18,7 @@ spec:
             name: userapi
       containers:
       - name: userapi
-        image: quay.io/cdis/user-api:0.1.0
+        image: quay.io/cdis/user-api:0.1.1
         ports:
         - containerPort: 80
         volumeMounts:
