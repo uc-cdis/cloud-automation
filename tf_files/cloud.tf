@@ -236,6 +236,8 @@ resource "aws_subnet" "public" {
     tags {
         Name = "public"
         Environment = "${var.vpc_name}"
+        KubernetesCluster = "${var.vpc_name}",
+        kubernetes.io/role/elb
     }
 }
 
@@ -243,7 +245,7 @@ resource "aws_subnet" "private" {
     vpc_id = "${aws_vpc.main.id}"
     cidr_block = "172.16.16.0/20"
     availability_zone = "${data.aws_availability_zones.available.names[0]}"
-    map_public_ip_on_launch = false 
+    map_public_ip_on_launch = false
     tags {
         Name = "private"
         Environment = "${var.vpc_name}"
@@ -364,6 +366,7 @@ data "template_file" "cluster" {
         hosted_zone = "${aws_route53_zone.main.id}"
     }
 }
+
 data "template_file" "creds" {
     template = "${file("configs/creds.tpl")}"
     vars {
@@ -402,6 +405,7 @@ data "template_file" "kube_services" {
         s3_bucket = "${var.kube_bucket}"
     }
 }
+
 data "template_file" "aws_creds" {
     template = "${file("configs/aws_credentials")}"
     vars {
@@ -518,6 +522,7 @@ resource "aws_route53_record" "kube_provisioner" {
     ttl = "300"
     records = ["${aws_instance.kube_provisioner.private_ip}"]
 }
+
 resource "aws_kms_key" "kube_key" {
     description = "encryption/decryption key for kubernete"
     enable_key_rotation = true
@@ -530,6 +535,7 @@ resource "aws_key_pair" "automation_dev" {
     key_name = "automation_dev"
     public_key = "${var.kube_ssh_key}"
 }
+
 resource "aws_s3_bucket" "kube_bucket" {
   bucket = "${var.kube_bucket}"
   acl    = "private"
@@ -538,4 +544,20 @@ resource "aws_s3_bucket" "kube_bucket" {
     Name        = "${var.kube_bucket}"
     Environment = "${var.vpc_name}"
   }
+}
+
+resource "aws_elb" "elb" {
+    subnets = ["${aws_subnet.public.id}"]
+
+    listener {
+        instance_port     = 443
+        instance_protocol = "TCP"
+        lb_port           = 80
+        lb_protocol       = "TCP"
+    }
+
+    tags {
+        KubernetesCluster = "${var.vpc_name}",
+        kubernetes.io/role/elb
+    }
 }
