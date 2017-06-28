@@ -236,8 +236,8 @@ resource "aws_subnet" "public" {
     tags {
         Name = "public"
         Environment = "${var.vpc_name}"
-        KubernetesCluster = "${var.vpc_name}",
-        kubernetes.io/role/elb
+        KubernetesCluster = "${var.vpc_name}"
+        "kubernetes.io/role/elb" = ""
     }
 }
 
@@ -557,7 +557,8 @@ resource "aws_elb" "elb" {
     }
 
     tags {
+        Environment = "${var.vpc_name}"
         KubernetesCluster = "${var.vpc_name}",
-        kubernetes.io/role/elb
+        "kubernetes.io/role/elb" = ""
     }
 }
