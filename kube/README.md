@@ -149,3 +149,16 @@ Then you can do ssh port forward from your laptop:
 ```
 ssh -L9090:localhost:9090 -N kube_provisioner_vm
 ```
+
+### Services
+#### [userapi](https://github.com/uc-cdis/user-api)
+The authentication and authorization provider.
+#### [gdcapi](https://github.com/uc-cdis/gdcapi/)
+API for submitting and query graph data model that stores the metadata for this cluster.
+#### [indexd](https://github.com/LabAdvComp/indexd)
+ID service that tracks all data blobs in different storage locations
+### [data-portal](https://github.com/uc-cdis/data-portal)
+Portal to browse and submit metadata.
+### [kafka](https://github.com/uc-cdis/kubernetes-kafka)
+Kafka cluster that support different data streams for the system.
+
