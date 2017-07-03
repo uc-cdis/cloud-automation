@@ -29,6 +29,18 @@ Secret is the way in which Kubernetes uses to manage the confidential informatio
 kubectl --kubeconfig=kubeconfig create secret generic SECRET_NAME --from-file=OUTPUT_FILE=PATH_TO_INPUT_FILE
 ```
 
+### Update secrets or configMaps
+To update a secret or config map, you can delete and recreate it.
+```
+kubectl --kubeconfig=kubeconfig delete configmap userapi
+kubectl --kubeconfig=kubeconfig create configmap userapi --from-file=apis_configs/user.yaml
+```
+
+There is currently no way for deployments to recognize that a secret or configmap is updated, but you can enforce a rolling update by doing a patch:
+```
+kubectl --kubeconfig=kubeconfig patch deployment $deployment_name -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+
+```
 ### Create deployment/service
 A deployment or service is usually defined in a configuration. The example below shows how to configure to userapi service.
 ```
