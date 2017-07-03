@@ -168,4 +168,5 @@ ID service that tracks all data blobs in different storage locations
 Portal to browse and submit metadata.
 ### [kafka](https://github.com/uc-cdis/kubernetes-kafka)
 Kafka cluster that support different data streams for the system.
-
+### [elk](https://github.com/uc-cdis/kubernetes-elk)
+Elasticsearch-Logstash-Kibana pod for log aggregation using filebeat.
