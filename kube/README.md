@@ -8,7 +8,7 @@
 ## Steps to start all services
 1. Copy the ${cluster}_output folder to the kube.internal.io (Kubernete provisioner)
 2. Run kube-up.sh
-3. [Upgrade kubenete](https://github.com/uc-cdis/cloud-automation/blob/master/kube/README.md#upgrade-kubernete) to 16.4 if the version is still the broken 16.3
+3. [Upgrade kubenete](https://github.com/uc-cdis/cloud-automation/blob/master/kube/README.md#upgrade-kubernete) to 1.7.0 if the version is still the broken 1.6.3
 4. Get quay creds in prerequisites 2 to ${cluster}/cdis-devservices-secret.yml
 5. Run kube-services.sh
 6. Register your kubernete worker nodes as `kubenode.internal.io` in your route53
@@ -126,12 +126,19 @@ aws autoscaling update-auto-scaling-group --auto-scaling-group-name dev-cluster-
 ```
 
 ### Upgrade kubernete
-To upgrade kubernete, you can follow the instruction [here](sed -i s/1.6.3/1.6.4/g /run/systemd/system/kubelet.service)
+To upgrade kubectl on current VM, you can download the latest one and replace the binary.
+```
+curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
+
+```
+To upgrade kubernete, you can follow the instruction [here](https://coreos.com/kubernetes/docs/latest/kubernetes-upgrade.html)
 But basically, you need to ssh onto nodes via `ssh core@$ip_address`, and run:
 ```
 sudo su
-old_version='1.6.3'
-new_version='1.6.4'
+old_version='1.6.4'
+new_version='1.7.0'
 sed -i s/$old_version/$new_version/g /run/systemd/system/kubelet.service
 systemctl daemon-reload
 systemctl restart kubelet.service
