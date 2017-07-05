@@ -4,3 +4,6 @@
 [submodule "kube/services/elk"]
 	path = kube/services/elk
 	url = git@github.com:uc-cdis/kubernetes-elk.git
+[submodule "kube/services/autoscaler"]
+	path = kube/services/autoscaler
+	url = https://github.com/uc-cdis/kubernetes-autoscaler.git
