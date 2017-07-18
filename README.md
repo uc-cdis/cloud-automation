@@ -6,13 +6,17 @@ store terraform configuration files for bringing up VPCs
 #### Create customized AMI
 You need to build the amis using [images](https://github.com/uc-cdis/images). Make sure that your ssh key is added in [authorized_keys](https://github.com/uc-cdis/images/blob/master/configs/authorized_keys) before you build those amis.
 Required images (build them in order):
-- images/base.json (after finished, fill the [source_ami](https://github.com/uc-cdis/images/blob/master/variables.example.json#L4) withi this ami ID)
+- images/base_image.json (after finished, fill the [source_ami](https://github.com/uc-cdis/images/blob/master/variables.example.json#L4) withi this ami ID)
 - images/client.json
-- images/squid_image
+- images/squid_image.json
 
 #### Configure credentials
-- Register an oauth2 client in [google account](https://console.developers.google.com/) with the hostname you will use,
-and the redirect_uri should be `hostname + '/user/login/google/login/'`. Make sure your Google+ API is enabled by visiting https://console.developers.google.com/apis/api/plus.googleapis.com/overview
+- [Create a Google project](https://console.developers.google.com/projectcreate?previousPage=%2Fprojectselector%2Fapis%2Fapi%2Fplus.googleapis.com%2Foverview) with the project name you want to use.
+- Enable the Google+ API after you create your project, the link above should take you there after project creation.
+- Click "Create Credentials" choose the "Google+ API", then choose "Web server" as API from, and choose "User data" as the data being accessed.
+- For the "Authorized JavaScript Origins" enter just the hostname like `https://data.examplecommons.org`.
+- For the "Authorized redirect URIs" enter `hostname + '/user/login/google/login/'` so for example `https://data.examplecommons.org/user/login/google/login/`.
+- Download your credentials with contain the `client_id` and `client_secret`.
 - Copy the [variables.template](https://github.com/uc-cdis/cloud-automation/blob/7bfeda73571d2841894470c9fd11027ed8cadd07/tf_files/variables.template) file to somewhere secure and fill it with creds
 
 

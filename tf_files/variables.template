@@ -1,3 +1,4 @@
+# VPC name is also used for DB name, so only alphanumeric characters
 vpc_name=""
 
 aws_access_key=""
@@ -18,7 +19,8 @@ hostname="https://www.example.com"
 kube_ssh_key="ssh-rsa XXXX"
 
 # additional keys
-kube_additional_keys="- \"ssh-rsa XXXX\"\n  - \"ssh-rsa XXXX\""
+# format like kube_additional_keys="- \"ssh-rsa XXXX\"\n  - \"ssh-rsa XXXX\""
+kube_additional_keys=""
 
 # S3 bucket for storing kube states
 kube_bucket=""
