@@ -55,8 +55,6 @@ subnets:
     id: "${subnet_id}"
     instanceCIDR: "${subnet_cidr}"
     availabilityZone: "${subnet_zone}"
-    natGateway:
-      id: "${nat_id}"
     securityGroupIds:
       - ${security_group_id}
 
