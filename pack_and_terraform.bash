@@ -29,12 +29,14 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
 		rm packer.zip
 	fi
 
-	read -n 1 -p "Replace CDIS default authorized_keys (y/n)? " REPLACEKEYS
+	read -n 1 -p "Replace CDIS default authorized_keys (yes/append/no)? " REPLACEKEYS
 	[ -z "$REPLACEKEYS" ] && answer="No"
 	echo
 
 	if echo "$REPLACEKEYS" | grep -iq "^y"; then
 		echo $SSHKEY >images/configs/authorized_keys
+	elif echo "$REPLACEKEYS" | grep -iq "^a"; then
+		echo $SSHKEY >>images/configs/authorized_keys
 	fi
 
 	cp images/variables.example.json ../packer_variables.json
@@ -117,11 +119,15 @@ if echo "$RUNTF" | grep -iq "^y"; then
 	echo "Your HMAC encryption key is: $HMAC"
 	sed -i '' -e "s/hmac_encryption_key=\"\"/hmac_encryption_key=\"$HMAC\"/g" ../tf_variables
 
-	DBPASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
-        echo "Your DB password is: $DBPASS"
-	sed -i '' -e "s/db_password_userapi=\"\"/db_password_userapi=\"$DBPASS\"/g" ../tf_variables
-	sed -i '' -e "s/db_password_gdcapi=\"\"/db_password_gdcapi=\"$DBPASS\"/g" ../tf_variables
-	sed -i '' -e "s/db_password_indexd=\"\"/db_password_indexd=\"$DBPASS\"/g" ../tf_variables
+	USERAPIDBPASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
+        echo "Your User API DB password is: $USERAPIDBPASS"
+	GDCAPIDBPASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
+        echo "Your GDC API DB password is: $GDCAPIDBPASS"
+	INDEXDDBPASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
+        echo "Your IndexD DB password is: $INDEXDDBPASS"
+	sed -i '' -e "s/db_password_userapi=\"\"/db_password_userapi=\"$USERAPIDBPASS\"/g" ../tf_variables
+	sed -i '' -e "s/db_password_gdcapi=\"\"/db_password_gdcapi=\"$GDCAPIDBPASS\"/g" ../tf_variables
+	sed -i '' -e "s/db_password_indexd=\"\"/db_password_indexd=\"$INDEXDDBPASS\"/g" ../tf_variables
 
 	INDEXD=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
         echo "Your indexd write password is: $INDEXD"
