@@ -5,6 +5,10 @@
 read -p "Enter your AWS ACCESS key: " AWS_ACCESS_KEY
 read -p "Enter your AWS SECRET key: " AWS_SECRET_KEY
 
+read -p "Enter your github username: " GITHUB
+SSHKEY=`curl -s https://github.com/$GITHUB.keys | tail -1`
+echo "Got key for $GITHUB: $SSHKEY"
+
 read -n 1 -p "Build packer images (y/n)? " BUILDPACKER
 [ -z "$BUILDPACKER" ] && answer="No"
 echo 
@@ -23,6 +27,14 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
 		curl -o packer.zip https://releases.hashicorp.com/packer/1.0.3/packer_1.0.3_darwin_amd64.zip
 		unzip packer.zip
 		rm packer.zip
+	fi
+
+	read -n 1 -p "Replace CDIS default authorized_keys (y/n)? " REPLACEKEYS
+	[ -z "$REPLACEKEYS" ] && answer="No"
+	echo
+
+	if echo "$REPLACEKEYS" | grep -iq "^y"; then
+		echo $SSHKEY >images/configs/authorized_keys
 	fi
 
 	cp images/variables.example.json ../packer_variables.json
@@ -88,10 +100,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
 	read -p "Enter your desired kube bucket name: " BUCKET
 	sed -i '' -e "s/kube_bucket=\"\"/kube_bucket=\"$BUCKET\"/g" ../tf_variables
 
-	read -p "Enter your github username: " GITHUB
-	SSHKEY=`curl -s https://github.com/$GITHUB.keys | tail -1`
-	echo "Got key for $GITHUB: $SSHKEY"
-        sed -i '' -e "s#kube_ssh_key=\"ssh-rsa XXXX\"#kube_ssh_key=\"$SSHKEY\"#g" ../tf_variables
+	sed -i '' -e "s#kube_ssh_key=\"ssh-rsa XXXX\"#kube_ssh_key=\"$SSHKEY\"#g" ../tf_variables
 
 	ADDSSHKEY=`curl -s https://github.com/philloooo.keys | tail -1`
 	echo "Phillis' key is: $ADDSSHKEY"

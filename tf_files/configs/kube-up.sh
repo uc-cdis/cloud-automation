@@ -10,7 +10,7 @@ mkdir ~/${vpc_name}
 mv credentials ~/.aws
 cp cluster.yaml ~/${vpc_name}
 
-wget https://github.com/kubernetes-incubator/kube-aws/releases/download/v0.9.7-rc.2/kube-aws-linux-amd64.tar.gz
+wget https://github.com/kubernetes-incubator/kube-aws/releases/download/v0.9.7/kube-aws-linux-amd64.tar.gz
 tar -zxvf kube-aws-linux-amd64.tar.gz
 sudo mv linux-amd64/kube-aws /usr/bin
 rm kube-aws-linux-amd64.tar.gz
@@ -30,7 +30,7 @@ kube-aws render
 kube-aws validate --s3-uri s3://${s3_bucket}
 kube-aws up --s3-uri s3://${s3_bucket}
 
-wget https://storage.googleapis.com/kubernetes-release/release/v1.6.4/bin/linux/amd64/kubectl
+wget https://storage.googleapis.com/kubernetes-release/release/v1.7.0/bin/linux/amd64/kubectl
 chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
 
