@@ -113,7 +113,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
         sed -i '' -e "s/google_client_secret=\"\"/google_client_secret=\"$CLIENTSECRET\"/g" ../tf_variables
 
 	export LC_CTYPE=C
-	HMAC=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
+	HMAC=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | base64`
 	echo "Your HMAC encryption key is: $HMAC"
 	sed -i '' -e "s/hmac_encryption_key=\"\"/hmac_encryption_key=\"$HMAC\"/g" ../tf_variables
 

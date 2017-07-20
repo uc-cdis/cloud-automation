@@ -33,7 +33,7 @@ kube-aws render
 kube-aws validate --s3-uri s3://${s3_bucket}
 kube-aws up --s3-uri s3://${s3_bucket}
 
-wget https://storage.googleapis.com/kubernetes-release/release/v1.7.0/bin/linux/amd64/kubectl
+wget https://storage.googleapis.com/kubernetes-release/release/v1.7.1/bin/linux/amd64/kubectl
 chmod +x kubectl
 sudo mv kubectl /usr/local/bin/
 
