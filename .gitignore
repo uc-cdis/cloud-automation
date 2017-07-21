@@ -2,3 +2,7 @@ tf_files/*output/*
 tf_files/terraform.tfstate
 tf_files/terraform.tfstate.backup
 client/*
+images/*
+packer
+terraform
+*.lock*
