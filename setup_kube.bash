@@ -9,11 +9,16 @@ OUTPUT_DIR=`ls -d *_output | head -1`
 echo "Working with $OUTPUT_DIR"
 VPCNAME=`echo $OUTPUT_DIR | cut -d_ -f1`
 
+if [ ! -f $OUTPUT_DIR/cdis-devservices-secret.yml ]; then
+	echo "Please provide cdis-devservices-secret.yml in $OUTPUT_DIR before proceeding"
+	exit
+fi
+
 cp ../bin/kube-aws $OUTPUT_DIR/.
 
 set -e
 scp -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" -r $OUTPUT_DIR ubuntu@kube.internal.io:/home/ubuntu/.
-ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $OUTPUT_DIR && chmod +x kube-up.sh && ./kube-up.sh"
+#ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $OUTPUT_DIR && chmod +x kube-up.sh && ./kube-up.sh"
 ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $OUTPUT_DIR && mv cdis-devservices-secret.yml ../$VPCNAME/. && chmod +x kube-services.sh && ./kube-services.sh"
 
 read -n 1 -p "Set up kubenode.internal.io in your route53 before proceeding, ok? " DNSSETUP

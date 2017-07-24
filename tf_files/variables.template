@@ -13,7 +13,7 @@ base_ami=""
 
 db_size=10
 
-hostname="https://www.example.com"
+hostname="www.example.com"
 
 # ssh key to be added to kube nodes
 kube_ssh_key="ssh-rsa XXXX"
