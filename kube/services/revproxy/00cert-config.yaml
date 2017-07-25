@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: revproxy-cert 
+  namespace: default 
+data:
+  revproxy_cert: $REVPROXY_CERT

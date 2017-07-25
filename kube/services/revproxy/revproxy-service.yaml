@@ -1,0 +1,23 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: revproxy-service
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http 
+    # would be much better if annotation can use configmap, so I don't need to use envsubst
+    # to parameterize it
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: $ARN 
+spec:
+  selector:
+    app: revproxy
+  ports:
+    - protocol: TCP 
+      port: 443 
+      targetPort: 80 
+      name: https
+    # right now kubernete make them both https for the elb protocol, has to manually fix it after you apply this file
+    - protocol: TCP 
+      port: 80 
+      targetPort: 80 
+      name: http
+  type: LoadBalancer 

@@ -249,6 +249,7 @@ resource "aws_subnet" "private" {
     tags {
         Name = "private"
         Environment = "${var.vpc_name}"
+        KubernetesCluster = "${var.vpc_name}"
     }
 }
 

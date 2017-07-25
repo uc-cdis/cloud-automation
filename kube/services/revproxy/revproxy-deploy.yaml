@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1 
+kind: Deployment
+metadata:
+  name: revproxy-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: revproxy
+    spec:
+      volumes:
+        - name: revproxy-conf
+          configMap:
+            name: revproxy-nginx-conf
+      containers:
+      - name: revproxy
+        image: nginx 
+        command:
+          - /usr/sbin/nginx
+          - -g
+          - 'daemon off;'
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: "revproxy-conf"
+            readOnly: true
+            mountPath: "/etc/nginx/nginx.conf"
+            subPath: nginx.conf 
+      imagePullSecrets:
+        - name: cdis-devservices-pull-secret
+
