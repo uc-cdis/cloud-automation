@@ -9,16 +9,8 @@ OUTPUT_DIR=`ls -d *_output | head -1`
 echo "Working with $OUTPUT_DIR"
 VPCNAME=`echo $OUTPUT_DIR | cut -d_ -f1`
 
-# Destroy services
-ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPCNAME && kubectl --kubeconfig=kubeconfig delete -f services/portal/portal-deploy.yaml"
-ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPCNAME && kubectl --kubeconfig=kubeconfig delete -f services/userapi/userapi-deploy.yaml"
-ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPCNAME && kubectl --kubeconfig=kubeconfig delete -f services/indexd/indexd-deploy.yaml"
-ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPCNAME && kubectl --kubeconfig=kubeconfig delete -f services/gdcapi/gdcapi-deploy.yaml"
-
-ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPCNAME && kubectl --kubeconfig=kubeconfig delete -f services/userapi/userapi-service.yaml"
-ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPCNAME && kubectl --kubeconfig=kubeconfig delete -f services/portal/portal-service.yaml"
-ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPCNAME && kubectl --kubeconfig=kubeconfig delete -f services/indexd/indexd-service.yaml"
-ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPCNAME && kubectl --kubeconfig=kubeconfig delete -f services/gdcapi/gdcapi-service.yaml"
+# Destroy namespaces
+ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPCNAME && kubectl --kubeconfig=kubeconfig delete namespace --all"
 
 # Destroy kube
 
