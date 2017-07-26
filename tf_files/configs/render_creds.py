@@ -123,7 +123,7 @@ def setup_userapi_database(creds_file, kube_config):
     create_oauth = ' '.join(
         command + [
             '--', USERAPI_GDCAPI_SETUP
-            .format(data['hostname']+'/api/v0/oauth2/authorize')])
+            .format('https://'+data['hostname']+'/api/v0/oauth2/authorize')])
     (stdout, stderr) = run_command(create_oauth)
     print 'Creating gdcapi oauth2 client'
     print stdout

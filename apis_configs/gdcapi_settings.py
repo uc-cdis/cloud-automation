@@ -36,8 +36,8 @@ config['OAUTH2'] = {
     'client_id': '{{oauth2_client_id}}',
     'client_secret': '{{oauth2_client_secret}}',
     'internal_oauth_provider': 'http://userapi-service.default/oauth2/',
-    'oauth_provider': '{{hostname}}/user/oauth2/', 
-    'redirect_uri': '{{hostname}}/api/v0/oauth2/authorize'
+    'oauth_provider': 'https://{{hostname}}/user/oauth2/', 
+    'redirect_uri': 'https://{{hostname}}/api/v0/oauth2/authorize'
 }
 config['USER_API'] = 'http://userapi-service.default/'
 app_init(app)

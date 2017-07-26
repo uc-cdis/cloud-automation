@@ -33,7 +33,7 @@ OPENID_CONNECT = {
     'google': {
         'client_id': '{{google_client_id}}',
         'client_secret': '{{google_client_secret}}',
-        'redirect_url': HOSTNAME + '/user/login/google/login/',
+        'redirect_url': 'https://' + HOSTNAME + '/user/login/google/login/',
     }
 }
 

@@ -43,3 +43,7 @@ kubectl --kubeconfig=kubeconfig apply -f services/userapi/userapi-service.yaml
 kubectl --kubeconfig=kubeconfig apply -f services/portal/portal-service.yaml
 kubectl --kubeconfig=kubeconfig apply -f services/indexd/indexd-service.yaml
 kubectl --kubeconfig=kubeconfig apply -f services/gdcapi/gdcapi-service.yaml
+
+echo
+echo "Worker node IPs:"
+kubectl --kubeconfig=kubeconfig get nodes --output=jsonpath='{range .items[*]}{.status.addresses[?(@.type=="InternalIP")].address} {.spec.taints} {"\n"}{end}' | grep -v "NoSchedule"

@@ -2,10 +2,16 @@
 # Right now this script guides you through the process
 # of running Packer & Terraform
 
-read -p "Enter your AWS ACCESS key: " AWS_ACCESS_KEY
-read -p "Enter your AWS SECRET key: " AWS_SECRET_KEY
+if [ -z "$AWS_ACCESS_KEY" ]; then
+	read -p "Enter your AWS ACCESS key: " AWS_ACCESS_KEY
+fi
+if [ -z "$AWS_SECRET_KEY" ]; then
+	read -p "Enter your AWS SECRET key: " AWS_SECRET_KEY
+fi
 
-read -p "Enter your github username: " GITHUB
+if [ -z "$GITHUB" ]; then
+	read -p "Enter your github username: " GITHUB
+fi
 SSHKEY=`curl -s https://github.com/$GITHUB.keys | tail -1`
 echo "Got key for $GITHUB: $SSHKEY"
 
@@ -78,7 +84,9 @@ if echo "$RUNTF" | grep -iq "^y"; then
 	sed -i '' -e "s/aws_access_key=\"\"/aws_access_key=\"$AWS_ACCESS_KEY\"/g" ../tf_variables	
 	sed -i '' -e "s/aws_secret_key=\"\"/aws_secret_key=\"$AWS_SECRET_KEY\"/g" ../tf_variables
 
-	read -p "Enter your VPC name (only alphanumeric characters): " VPC_NAME
+	if [ -z "$VPCNAME" ]; then
+		read -p "Enter your VPC name (only alphanumeric characters): " VPC_NAME
+	fi
 	sed -i '' -e "s/vpc_name=\"\"/vpc_name=\"$VPC_NAME\"/g" ../tf_variables
 
 	if [ -z "$SOURCE_AMI" ]; then
@@ -96,10 +104,14 @@ if echo "$RUNTF" | grep -iq "^y"; then
         fi
 	sed -i '' -e "s/proxy_ami=\"\"/proxy_ami=\"$PROXY_AMI\"/g" ../tf_variables
 
-	read -p "Enter your hostname name like https://www.example.com: " CHOSTNAME
-	sed -i '' -e "s#hostname=\"https://www.example.com\"#hostname=\"$CHOSTNAME\"#g" ../tf_variables
+	if [ -z "$CHOSTNAME" ]; then
+		read -p "Enter your hostname name like www.example.com: " CHOSTNAME
+	fi
+	sed -i '' -e "s#hostname=\"www.example.com\"#hostname=\"$CHOSTNAME\"#g" ../tf_variables
 
-	read -p "Enter your desired kube bucket name: " BUCKET
+	if [ -z "$BUCKET" ]; then
+		read -p "Enter your desired kube bucket name: " BUCKET
+	fi
 	sed -i '' -e "s/kube_bucket=\"\"/kube_bucket=\"$BUCKET\"/g" ../tf_variables
 
 	sed -i '' -e "s#kube_ssh_key=\"ssh-rsa XXXX\"#kube_ssh_key=\"$SSHKEY\"#g" ../tf_variables
@@ -108,10 +120,14 @@ if echo "$RUNTF" | grep -iq "^y"; then
 	echo "Phillis' key is: $ADDSSHKEY"
 	sed -i '' -e "s#kube_additional_keys=\"\"#kube_additional_keys=\"- \\\\\"$ADDSSHKEY\\\\\"\\\\n\"#g" ../tf_variables
 
-	read -p "Enter your Google OAuth2 Client ID: " CLIENTID
+	if [ -z "$CLIENTID" ]; then
+		read -p "Enter your Google OAuth2 Client ID: " CLIENTID
+	fi
         sed -i '' -e "s/google_client_id=\"\"/google_client_id=\"$CLIENTID\"/g" ../tf_variables
 
-	read -p "Enter your Google OAuth2 Client Secret: " CLIENTSECRET
+	if [ -z "$CLIENTSECRET" ]; then
+		read -p "Enter your Google OAuth2 Client Secret: " CLIENTSECRET
+	fi
         sed -i '' -e "s/google_client_secret=\"\"/google_client_secret=\"$CLIENTSECRET\"/g" ../tf_variables
 
 	export LC_CTYPE=C

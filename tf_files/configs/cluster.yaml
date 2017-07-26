@@ -17,10 +17,17 @@ region: us-east-1
 
 kmsKeyArn: "${kms_key}"
 
+addons:
+  clusterAutoscaler:
+    enabled: true
+
 worker:
   nodePools:
     - # Name of this node pool. Must be unique among all the node pools in this cluster
       name: nodepool
+      autoscaling:
+        clusterAutoscaler:
+          enabled: true
       subnets:
         - name: private
 

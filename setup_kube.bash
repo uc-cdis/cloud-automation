@@ -9,6 +9,11 @@ OUTPUT_DIR=`ls -d *_output | head -1`
 echo "Working with $OUTPUT_DIR"
 VPCNAME=`echo $OUTPUT_DIR | cut -d_ -f1`
 
+if [ ! -f $OUTPUT_DIR/cdis-devservices-secret.yml ]; then
+	echo "Please provide cdis-devservices-secret.yml in $OUTPUT_DIR before proceeding"
+	exit
+fi
+
 cp ../bin/kube-aws $OUTPUT_DIR/.
 
 set -e

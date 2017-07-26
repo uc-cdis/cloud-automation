@@ -442,13 +442,20 @@ resource "null_resource" "config_setup" {
         command = "echo '${data.template_file.reverse_proxy.rendered}' > ${var.vpc_name}_output/proxy.conf"
     }
     provisioner "local-exec" {
-        command = "cp configs/revproxy-setup.sh configs/render_creds.py ${var.vpc_name}_output/"
+        command = "echo '${data.template_file.reverse_proxy_setup.rendered}' > ${var.vpc_name}_output/revproxy-setup.sh"
     }
 
 }
 
 data "template_file" "reverse_proxy" {
     template = "${file("configs/api_reverse_proxy.conf")}"
+    vars {
+        hostname = "${var.hostname}"
+    }
+}
+
+data "template_file" "reverse_proxy_setup" {
+    template = "${file("configs/revproxy-setup.sh")}"
     vars {
         hostname = "${var.hostname}"
     }
