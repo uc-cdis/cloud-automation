@@ -7,8 +7,5 @@ Right now all services external facing go through this reverse proxy as they ser
 - kubectl apply -f 10nginx-config.yaml
 - kubectl apply -f services/revproxy/revproxy-deployment.yaml
 - ./apply_service
-
-_Right now there are a lot of features not supported in kubernete, these need to be automated when they support them_
-- change the load balancer settings in AWS to use "Listeners->Cipher for port 443->ELBSecurityPolicy-TLS-1-2-2017-01" 
-- change the subnets to add the private subnet
-- change the port 80 listen to use http protocol "Listensers->Edit->Load Balancer Protocol for port 80 -> HTTP"
+- change the load balancer settings in AWS to use "Listeners->Cipher for port 443->ELBSecurityPolicy-TLS-1-2-2017-01" [issue 151](https://github.com/kubernetes/kubernetes/issues/43744)
+- update DNS to point to your ELB

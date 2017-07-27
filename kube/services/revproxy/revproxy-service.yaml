@@ -4,9 +4,10 @@ metadata:
   name: revproxy-service
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http 
-    # would be much better if annotation can use configmap, so I don't need to use envsubst
-    # to parameterize it
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: $ARN 
+    # this is not supported yet
+    service.beta.kubernetes.io/aws-load-balancer-security-policy: "ELBSecurityPolicy-TLS-1-2-2017-01"
 spec:
   selector:
     app: revproxy
