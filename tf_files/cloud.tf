@@ -218,7 +218,10 @@ resource "aws_route_table_association" "public" {
     route_table_id = "${aws_route_table.public.id}"
 }
 
-
+resource "aws_route_table_association" "public_kube" {
+    subnet_id = "${aws_subnet.public_kube.id}"
+    route_table_id = "${aws_route_table.public.id}"
+}
 resource "aws_route_table_association" "private" {
     subnet_id = "${aws_subnet.private.id}"
     route_table_id = "${aws_route_table.private.id}"
@@ -233,12 +236,15 @@ resource "aws_subnet" "public" {
     vpc_id = "${aws_vpc.main.id}"
     cidr_block = "172.16.0.0/24"
     map_public_ip_on_launch = true
-    tags {
-        Name = "public"
-        Environment = "${var.vpc_name}"
-        KubernetesCluster = "${var.vpc_name}"
-        "kubernetes.io/role/elb" = ""
-    }
+    tags = "${map("Name", "public", "Environment", var.vpc_name)}"
+}
+
+resource "aws_subnet" "public_kube" {
+    vpc_id = "${aws_vpc.main.id}"
+    cidr_block = "172.16.1.0/24"
+    map_public_ip_on_launch = true
+    availability_zone = "${data.aws_availability_zones.available.names[0]}"
+    tags = "${map("Name", "public_kube", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "")}"
 }
 
 resource "aws_subnet" "private" {
@@ -246,11 +252,7 @@ resource "aws_subnet" "private" {
     cidr_block = "172.16.16.0/20"
     availability_zone = "${data.aws_availability_zones.available.names[0]}"
     map_public_ip_on_launch = false
-    tags {
-        Name = "private"
-        Environment = "${var.vpc_name}"
-        KubernetesCluster = "${var.vpc_name}"
-    }
+    tags = "${map("Name", "private", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
 }
 
 resource "aws_subnet" "private_2" {
@@ -545,21 +547,4 @@ resource "aws_s3_bucket" "kube_bucket" {
     Name        = "${var.kube_bucket}"
     Environment = "${var.vpc_name}"
   }
-}
-
-resource "aws_elb" "elb" {
-    subnets = ["${aws_subnet.public.id}"]
-
-    listener {
-        instance_port     = 443
-        instance_protocol = "TCP"
-        lb_port           = 80
-        lb_protocol       = "TCP"
-    }
-
-    tags {
-        Environment = "${var.vpc_name}"
-        KubernetesCluster = "${var.vpc_name}",
-        "kubernetes.io/role/elb" = ""
-    }
 }
