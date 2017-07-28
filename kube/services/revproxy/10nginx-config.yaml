@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: revproxy-nginx-conf
+  namespace: default 
+data:
+  nginx.conf: |
+      user www-data;
+      worker_processes 4;
+        
+      pid /run/nginx.pid;
+      
+      events {
+      	worker_connections 768;
+      	# multi_accept on;
+      }
+      
+      http {
+      
+      	##
+      	# Basic Settings
+      	##
+      
+      	sendfile on;
+      	tcp_nopush on;
+      	tcp_nodelay on;
+      	keepalive_timeout 65;
+      	types_hash_max_size 2048;
+      	# server_tokens off;
+      
+      	# server_names_hash_bucket_size 64;
+      	# server_name_in_redirect off;
+      
+      	include /etc/nginx/mime.types;
+      	default_type application/octet-stream;
+      
+      	##
+      	# Logging Settings
+      	##
+      
+      	access_log /dev/stdout;
+      	error_log /dev/stderr;
+      
+      	##
+      	# Gzip Settings
+      	##
+      
+      	gzip on;
+      	gzip_disable "msie6";
+      
+              ##
+      	# Proxy Settings
+      	##
+      	server {
+      		listen 80;
+      		server_tokens off;
+      		add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+      		add_header X-Frame-Options "SAMEORIGIN";
+      		if ($http_x_forwarded_proto = "http") { rewrite ^/(.*)$ https://$host$request_uri permanent; }
+      		location / {
+      		    proxy_pass http://portal-service.default/;
+      		}
+      		location /index {
+      		    proxy_pass http://indexd-service.default/;
+      		}
+      		location /user {
+      		    proxy_pass http://userapi-service.default/;
+      		}
+      		location /api {
+      		    proxy_next_upstream off;
+      		    proxy_pass http://gdcapi-service.default/;
+      		}
+      	}
+      }

@@ -1,0 +1,11 @@
+#!/bin/bash
+scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
+
+echo "ARN for created certificate in AWS Certificate Manager:"
+read arn
+export REVPROXY_CERT=$arn
+if [[ ! -z $arn  ]]; then
+    envsubst < $scriptDir/00cert-config.yaml | kubectl apply -f -
+else
+    echo 'arn not provided'
+fi

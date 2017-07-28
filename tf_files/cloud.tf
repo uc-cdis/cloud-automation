@@ -218,7 +218,10 @@ resource "aws_route_table_association" "public" {
     route_table_id = "${aws_route_table.public.id}"
 }
 
-
+resource "aws_route_table_association" "public_kube" {
+    subnet_id = "${aws_subnet.public_kube.id}"
+    route_table_id = "${aws_route_table.public.id}"
+}
 resource "aws_route_table_association" "private" {
     subnet_id = "${aws_subnet.private.id}"
     route_table_id = "${aws_route_table.private.id}"
@@ -233,21 +236,23 @@ resource "aws_subnet" "public" {
     vpc_id = "${aws_vpc.main.id}"
     cidr_block = "172.16.0.0/24"
     map_public_ip_on_launch = true
-    tags {
-        Name = "public"
-        Environment = "${var.vpc_name}"
-    }
+    tags = "${map("Name", "public", "Environment", var.vpc_name)}"
+}
+
+resource "aws_subnet" "public_kube" {
+    vpc_id = "${aws_vpc.main.id}"
+    cidr_block = "172.16.1.0/24"
+    map_public_ip_on_launch = true
+    availability_zone = "${data.aws_availability_zones.available.names[0]}"
+    tags = "${map("Name", "public_kube", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "")}"
 }
 
 resource "aws_subnet" "private" {
     vpc_id = "${aws_vpc.main.id}"
     cidr_block = "172.16.16.0/20"
     availability_zone = "${data.aws_availability_zones.available.names[0]}"
-    map_public_ip_on_launch = false 
-    tags {
-        Name = "private"
-        Environment = "${var.vpc_name}"
-    }
+    map_public_ip_on_launch = false
+    tags = "${map("Name", "private", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
 }
 
 resource "aws_subnet" "private_2" {
@@ -364,6 +369,7 @@ data "template_file" "cluster" {
         hosted_zone = "${aws_route53_zone.main.id}"
     }
 }
+
 data "template_file" "creds" {
     template = "${file("configs/creds.tpl")}"
     vars {
@@ -402,6 +408,7 @@ data "template_file" "kube_services" {
         s3_bucket = "${var.kube_bucket}"
     }
 }
+
 data "template_file" "aws_creds" {
     template = "${file("configs/aws_credentials")}"
     vars {
@@ -518,6 +525,7 @@ resource "aws_route53_record" "kube_provisioner" {
     ttl = "300"
     records = ["${aws_instance.kube_provisioner.private_ip}"]
 }
+
 resource "aws_kms_key" "kube_key" {
     description = "encryption/decryption key for kubernete"
     enable_key_rotation = true
@@ -530,6 +538,7 @@ resource "aws_key_pair" "automation_dev" {
     key_name = "automation_dev"
     public_key = "${var.kube_ssh_key}"
 }
+
 resource "aws_s3_bucket" "kube_bucket" {
   bucket = "${var.kube_bucket}"
   acl    = "private"
