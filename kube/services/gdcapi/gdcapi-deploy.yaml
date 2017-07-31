@@ -15,7 +15,7 @@ spec:
             secretName: "gdcapi-secret"
       containers:
         - name: gdcapi
-          image: quay.io/cdis/gdcapi:fix_oauth
+          image: quay.io/cdis/gdcapi:master
           ports:
           - containerPort: 80
           volumeMounts:
@@ -24,6 +24,10 @@ spec:
               mountPath: "/var/www/gdcapi/wsgi.py"
               subPath: "wsgi.py"
           imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 0.8
+              memory: 512Mi
       imagePullSecrets:
         - name: cdis-devservices-pull-secret
 

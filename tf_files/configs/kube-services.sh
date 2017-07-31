@@ -25,6 +25,7 @@ kubectl create configmap userapi --from-file=apis_configs/user.yaml
 kubectl create secret generic userapi-secret --from-file=local_settings.py=./apis_configs/userapi_settings.py
 kubectl create secret generic indexd-secret --from-file=local_settings.py=./apis_configs/indexd_settings.py
 
+kubectl apply -f 00configmap.yaml
 kubectl apply -f services/portal/portal-deploy.yaml
 kubectl apply -f services/userapi/userapi-deploy.yaml
 kubectl apply -f services/indexd/indexd-deploy.yaml
