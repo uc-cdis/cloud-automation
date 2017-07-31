@@ -401,6 +401,14 @@ data "template_file" "kube_up" {
     }
 }
 
+data "template_file" "configmap" {
+    template = "${file("configs/00configmap.yaml")}"
+    vars {
+        vpc_name = "${var.vpc_name}"
+        hostname = "${var.hostname}"
+    }
+}
+
 data "template_file" "kube_services" {
     template = "${file("configs/kube-services.sh")}"
     vars {
@@ -441,6 +449,9 @@ resource "null_resource" "config_setup" {
     }
     provisioner "local-exec" {
         command = "echo \"${data.template_file.kube_services.rendered}\" > ${var.vpc_name}_output/kube-services.sh"
+    }
+    provisioner "local-exec" {
+        command = "echo \"${data.template_file.configmap.rendered}\" > ${var.vpc_name}_output/00configmap.yaml"
     }
     provisioner "local-exec" {
         command = "echo \"${data.template_file.aws_creds.rendered}\" > ${var.vpc_name}_output/credentials"

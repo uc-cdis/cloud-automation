@@ -9,6 +9,7 @@ mkdir ~/.aws
 mkdir ~/${vpc_name}
 mv credentials ~/.aws
 cp cluster.yaml ~/${vpc_name}
+cp 00configmap.yaml ~/${vpc_name}
 
 #wget https://github.com/kubernetes-incubator/kube-aws/releases/download/v0.9.7/kube-aws-linux-amd64.tar.gz
 #tar -zxvf kube-aws-linux-amd64.tar.gz
