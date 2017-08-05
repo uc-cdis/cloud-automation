@@ -272,7 +272,7 @@ resource "aws_subnet" "private_3" {
 }
 
 resource "aws_db_subnet_group" "private_group" {
-    name = "private_group"
+    name = "${var.vpc_name}_private_group"
     subnet_ids = ["${aws_subnet.private.id}", "${aws_subnet.private_3.id}"]
 
     tags {
@@ -541,7 +541,7 @@ resource "aws_kms_key" "kube_key" {
 }
 
 resource "aws_key_pair" "automation_dev" {
-    key_name = "automation_dev"
+    key_name = "${var.vpc_name}_automation_dev"
     public_key = "${var.kube_ssh_key}"
 }
 
