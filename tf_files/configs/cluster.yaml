@@ -44,8 +44,8 @@ etcd:
 routeTableId: ${route_table_id}
 # CIDR for Kubernetes VPC. If vpcId is specified, must match the CIDR of existing vpc.
 # vpcCIDR: "10.0.0.0/16"
-vpcId: ${vpc_id}
-vpcCIDR: ${vpc_cidr}
+vpc:
+  id: ${vpc_id}
 
 # CIDR for Kubernetes subnet when placing nodes in a single availability zone (not highly-available) Leave commented out for multi availability zone setting and use the below `subnets` section instead.
 # instanceCIDR: "10.0.0.0/24"
@@ -55,8 +55,6 @@ subnets:
     id: "${subnet_id}"
     instanceCIDR: "${subnet_cidr}"
     availabilityZone: "${subnet_zone}"
-    natGateway:
-      id: "${nat_id}"
     securityGroupIds:
       - ${security_group_id}
 

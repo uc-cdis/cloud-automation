@@ -5,8 +5,8 @@ export https_proxy=http://cloud-proxy.internal.io:3128
 
 sudo -E apt-get update
 sudo -E apt-get install -y git
-mkdir ~/.aws
-mkdir ~/${vpc_name}
+mkdir -p ~/.aws
+mkdir -p ~/${vpc_name}
 mv credentials ~/.aws
 cp cluster.yaml ~/${vpc_name}
 cp 00configmap.yaml ~/${vpc_name}

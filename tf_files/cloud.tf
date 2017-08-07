@@ -188,16 +188,11 @@ resource "aws_eip_association" "revproxy_eip" {
     allocation_id = "${aws_eip.revproxy.id}"
 }
 
-resource "aws_nat_gateway" "gw" {
-  allocation_id = "${aws_eip.nat.id}"
-  subnet_id     = "${aws_subnet.public.id}"
-}
-
 resource "aws_route_table" "private" {
     vpc_id = "${aws_vpc.main.id}"
     route {
         cidr_block = "0.0.0.0/0"
-        nat_gateway_id = "${aws_nat_gateway.gw.id}"
+        instance_id = "${aws_instance.proxy.id}"
     }
     tags {
         Name = "private"
@@ -277,7 +272,7 @@ resource "aws_subnet" "private_3" {
 }
 
 resource "aws_db_subnet_group" "private_group" {
-    name = "private_group"
+    name = "${var.vpc_name}_private_group"
     subnet_ids = ["${aws_subnet.private.id}", "${aws_subnet.private_3.id}"]
 
     tags {
@@ -363,7 +358,6 @@ data "template_file" "cluster" {
         subnet_id = "${aws_subnet.private.id}"
         subnet_cidr = "${aws_subnet.private.cidr_block}"
         subnet_zone = "${aws_subnet.private.availability_zone}"
-        nat_id = "${aws_nat_gateway.gw.id}"
         security_group_id = "${aws_security_group.kube-worker.id}"
         kube_additional_keys = "${var.kube_additional_keys}"
         hosted_zone = "${aws_route53_zone.main.id}"
@@ -499,6 +493,7 @@ resource "aws_instance" "proxy" {
     subnet_id = "${aws_subnet.public.id}"
     instance_type = "t2.micro"
     monitoring = true
+    source_dest_check = false
     vpc_security_group_ids = ["${aws_security_group.proxy.id}","${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
     tags {
         Name = "HTTP Proxy"
@@ -546,7 +541,7 @@ resource "aws_kms_key" "kube_key" {
 }
 
 resource "aws_key_pair" "automation_dev" {
-    key_name = "automation_dev"
+    key_name = "${var.vpc_name}_automation_dev"
     public_key = "${var.kube_ssh_key}"
 }
 

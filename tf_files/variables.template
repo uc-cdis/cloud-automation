@@ -1,48 +1,48 @@
 # VPC name is also used for DB name, so only alphanumeric characters
-vpc_name=""
+vpc_name="$VPC_NAME"
 
-aws_access_key=""
+aws_access_key="$AWS_ACCESS_KEY"
 
-aws_secret_key=""
+aws_secret_key="$AWS_SECRET_KEY"
 
-login_ami=""
+login_ami="$LOGIN_AMI"
 
-proxy_ami=""
+proxy_ami="$PROXY_AMI"
 
-base_ami=""
+base_ami="$BASE_AMI"
 
 db_size=10
 
-hostname="www.example.com"
+hostname="$CHOSTNAME"
 
 # ssh key to be added to kube nodes
-kube_ssh_key="ssh-rsa XXXX"
+kube_ssh_key="$SSHKEY"
 
 # additional keys
 # format like kube_additional_keys="- \"ssh-rsa XXXX\"\n  - \"ssh-rsa XXXX\""
-kube_additional_keys=""
+kube_additional_keys="- \"${ADDSSHKEY}\""
 
 # S3 bucket for storing kube states
-kube_bucket=""
+kube_bucket="$BUCKET"
 
-google_client_secret=""
-google_client_id=""
+google_client_secret="$CLIENTSECRET"
+google_client_id="$CLIENTID"
 
 
 # Following variables can be randomly generated passwords
 
 # base64 encoded 32 alphanumeric characters
 # cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | base64
-hmac_encryption_key=""
+hmac_encryption_key="$HMAC"
 
 # don't use ( ) " ' { } < > @ in password
-db_password_userapi=""
+db_password_userapi="$USERAPIDBPASS"
 
-db_password_gdcapi=""
+db_password_gdcapi="$GDCAPIDBPASS"
 
-db_password_indexd=""
+db_password_indexd="$INDEXDDBPASS"
 
 db_instance="db.t2.micro"
 
 # password for write access to indexd
-gdcapi_indexd_password=""
+gdcapi_indexd_password="$INDEXD"

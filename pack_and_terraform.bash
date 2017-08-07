@@ -1,10 +1,18 @@
 #!/bin/bash
 # Right now this script guides you through the process
 # of running Packer & Terraform
-
+unamestr=`uname`
+if [[ "$unamestr" == 'Darwin' ]]; then
+    export PATH=${PATH}:/usr/local/opt/gettext/bin
+    if [[ ! -x "$(command -v envsubst)" ]]; then
+	echo "need envsubst to run this script, please install gettext"
+	exit 1
+    fi
+fi
 if [ -z "$AWS_ACCESS_KEY" ]; then
 	read -p "Enter your AWS ACCESS key: " AWS_ACCESS_KEY
 fi
+
 if [ -z "$AWS_SECRET_KEY" ]; then
 	read -p "Enter your AWS SECRET key: " AWS_SECRET_KEY
 fi
@@ -17,7 +25,7 @@ echo "Got key for $GITHUB: $SSHKEY"
 
 read -n 1 -p "Build packer images (y/n)? " BUILDPACKER
 [ -z "$BUILDPACKER" ] && answer="No"
-echo 
+echo
 
 if echo "$BUILDPACKER" | grep -iq "^y"; then
 
@@ -79,61 +87,50 @@ if echo "$RUNTF" | grep -iq "^y"; then
 		rm terraform.zip
 	fi
 
-	cp tf_files/variables.template ../tf_variables
-
-	sed -i '' -e "s/aws_access_key=\"\"/aws_access_key=\"$AWS_ACCESS_KEY\"/g" ../tf_variables	
-	sed -i '' -e "s/aws_secret_key=\"\"/aws_secret_key=\"$AWS_SECRET_KEY\"/g" ../tf_variables
-
-	if [ -z "$VPCNAME" ]; then
+	if [ -z "$VPC_NAME" ]; then
 		read -p "Enter your VPC name (only alphanumeric characters): " VPC_NAME
 	fi
-	sed -i '' -e "s/vpc_name=\"\"/vpc_name=\"$VPC_NAME\"/g" ../tf_variables
+
+    echo $HOME/.creds/$VPC_NAME
+    creds_dir=$HOME/.creds/$VPC_NAME
+    mkdir -p $creds_dir
+
 
 	if [ -z "$SOURCE_AMI" ]; then
 		read -p "Enter your base ami: " SOURCE_AMI
 	fi
-	sed -i '' -e "s/base_ami=\"\"/base_ami=\"$SOURCE_AMI\"/g" ../tf_variables
 
 	if [ -z "$CLIENT_AMI" ]; then
                 read -p "Enter your client ami: " CLIENT_AMI
         fi
-	sed -i '' -e "s/login_ami=\"\"/login_ami=\"$CLIENT_AMI\"/g" ../tf_variables
 
 	if [ -z "$PROXY_AMI" ]; then
                 read -p "Enter your proxy ami: " PROXY_AMI
         fi
-	sed -i '' -e "s/proxy_ami=\"\"/proxy_ami=\"$PROXY_AMI\"/g" ../tf_variables
 
 	if [ -z "$CHOSTNAME" ]; then
 		read -p "Enter your hostname name like www.example.com: " CHOSTNAME
 	fi
-	sed -i '' -e "s#hostname=\"www.example.com\"#hostname=\"$CHOSTNAME\"#g" ../tf_variables
 
 	if [ -z "$BUCKET" ]; then
 		read -p "Enter your desired kube bucket name: " BUCKET
 	fi
-	sed -i '' -e "s/kube_bucket=\"\"/kube_bucket=\"$BUCKET\"/g" ../tf_variables
 
-	sed -i '' -e "s#kube_ssh_key=\"ssh-rsa XXXX\"#kube_ssh_key=\"$SSHKEY\"#g" ../tf_variables
 
 	ADDSSHKEY=`curl -s https://github.com/philloooo.keys | tail -1`
 	echo "Phillis' key is: $ADDSSHKEY"
-	sed -i '' -e "s#kube_additional_keys=\"\"#kube_additional_keys=\"- \\\\\"$ADDSSHKEY\\\\\"\\\\n\"#g" ../tf_variables
 
 	if [ -z "$CLIENTID" ]; then
 		read -p "Enter your Google OAuth2 Client ID: " CLIENTID
 	fi
-        sed -i '' -e "s/google_client_id=\"\"/google_client_id=\"$CLIENTID\"/g" ../tf_variables
 
 	if [ -z "$CLIENTSECRET" ]; then
 		read -p "Enter your Google OAuth2 Client Secret: " CLIENTSECRET
 	fi
-        sed -i '' -e "s/google_client_secret=\"\"/google_client_secret=\"$CLIENTSECRET\"/g" ../tf_variables
 
 	export LC_CTYPE=C
 	HMAC=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | base64`
 	echo "Your HMAC encryption key is: $HMAC"
-	sed -i '' -e "s/hmac_encryption_key=\"\"/hmac_encryption_key=\"$HMAC\"/g" ../tf_variables
 
 	USERAPIDBPASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
         echo "Your User API DB password is: $USERAPIDBPASS"
@@ -141,16 +138,28 @@ if echo "$RUNTF" | grep -iq "^y"; then
         echo "Your GDC API DB password is: $GDCAPIDBPASS"
 	INDEXDDBPASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
         echo "Your IndexD DB password is: $INDEXDDBPASS"
-	sed -i '' -e "s/db_password_userapi=\"\"/db_password_userapi=\"$USERAPIDBPASS\"/g" ../tf_variables
-	sed -i '' -e "s/db_password_gdcapi=\"\"/db_password_gdcapi=\"$GDCAPIDBPASS\"/g" ../tf_variables
-	sed -i '' -e "s/db_password_indexd=\"\"/db_password_indexd=\"$INDEXDDBPASS\"/g" ../tf_variables
-
 	INDEXD=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
         echo "Your indexd write password is: $INDEXD"
-	sed -i '' -e "s/gdcapi_indexd_password=\"\"/gdcapi_indexd_password=\"$INDEXD\"/g" ../tf_variables
 
 	cd tf_files
-	../terraform plan -var-file=../../tf_variables
-	../terraform apply -var-file=../../tf_variables
-	
+    	AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
+        AWS_SECRET_KEY=$AWS_SECRET_KEY \
+        VPC_NAME=$VPC_NAME \
+        LOGIN_AMI=$CLIENT_AMI \
+        PROXY_AMI=$PROXY_AMI \
+        BASE_AMI=$SOURCE_AMI \
+        CHOSTNAME=$CHOSTNAME \
+        SSHKEY=$SSHKEY \
+        ADDSSHKEY=$SSHKEY \
+        BUCKET=$BUCKET \
+        CLIENTSECRET=$CLIENTSECRET \
+        CLIENTID=$CLIENTID \
+        HMAC=$HMAC \
+        USERAPIDBPASS=$USERAPIDBPASS \
+        INDEXDDBPASS=$INDEXDDBPASS \
+        GDCAPIDBPASS=$GDCAPIDBPASS \
+        INDEXD=$INDEXD \
+        envsubst < variables.template >$creds_dir/tf_variables
+	../terraform plan -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
+	../terraform apply -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
 fi
