@@ -68,6 +68,10 @@ data:
       		}
       		location /api {
       		    proxy_next_upstream off;
+                    # Forward the host and set Subdir header so api
+                    # knows the original request path for hmac signing
+      		    proxy_set_header   Host $host;
+      		    proxy_set_header   Subdir /api;
       		    proxy_pass http://gdcapi-service.default/;
       		}
       	}
