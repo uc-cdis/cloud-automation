@@ -351,6 +351,7 @@ data "template_file" "cluster" {
     template = "${file("configs/cluster.yaml")}"
     vars {
         cluster_name = "${var.vpc_name}"
+        aws_region = "${var.aws_region}"
         kms_key = "${aws_kms_key.kube_key.arn}"
         route_table_id = "${aws_route_table.private.id}"
         vpc_id ="${aws_vpc.main.id}"

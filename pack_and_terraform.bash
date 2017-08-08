@@ -9,6 +9,10 @@ if [[ "$unamestr" == 'Darwin' ]]; then
 	exit 1
     fi
 fi
+if [ -z "$AWS_REGION" ]; then
+        read -p "Enter your AWS region (default: us-east-1): " AWS_REGION
+	[ -z "$AWS_REGION" ] && AWS_REGION="us-east-1"
+fi
 if [ -z "$AWS_ACCESS_KEY" ]; then
 	read -p "Enter your AWS ACCESS key: " AWS_ACCESS_KEY
 fi
@@ -142,6 +146,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
         echo "Your indexd write password is: $INDEXD"
 
 	cd tf_files
+	AWS_REGION=$AWS_REGION \
     	AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
         AWS_SECRET_KEY=$AWS_SECRET_KEY \
         VPC_NAME=$VPC_NAME \
