@@ -58,6 +58,7 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
 	fi
 
 	cp images/variables.example.json ../packer_variables.json
+	sed -i '' -e "s/\"aws_region\": \"\"/\"aws_region\": \"$AWS_REGION\"/g" ../packer_variables.json
 	sed -i '' -e "s/\"aws_access_key\": \"\"/\"aws_access_key\": \"$AWS_ACCESS_KEY\"/g" ../packer_variables.json
 	sed -i '' -e "s/\"aws_secret_key\": \"\"/\"aws_secret_key\": \"$AWS_SECRET_KEY\"/g" ../packer_variables.json
 
