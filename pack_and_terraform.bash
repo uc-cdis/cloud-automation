@@ -48,7 +48,7 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
 	fi
 
 	if [ -z "$AWS_INSTANCE_TYPE" ]; then
-        	read -p "Enter your AWS instance type (default: m3.medium): " AWS_INSTANCE_TYPE
+        	read -p "Enter your AWS instance type for creating packer images only (default: m3.medium): " AWS_INSTANCE_TYPE
         	[ -z "$AWS_INSTANCE_TYPE" ] && AWS_INSTANCE_TYPE="m3.medium"
 	fi
 
