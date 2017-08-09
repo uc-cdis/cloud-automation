@@ -1,6 +1,8 @@
 # VPC name is also used for DB name, so only alphanumeric characters
 vpc_name="$VPC_NAME"
 
+aws_region="$AWS_REGION"
+
 aws_access_key="$AWS_ACCESS_KEY"
 
 aws_secret_key="$AWS_SECRET_KEY"
