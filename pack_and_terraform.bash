@@ -9,6 +9,10 @@ if [[ "$unamestr" == 'Darwin' ]]; then
 	exit 1
     fi
 fi
+if [ -z "$AWS_REGION" ]; then
+        read -p "Enter your AWS region (default: us-east-1): " AWS_REGION
+	[ -z "$AWS_REGION" ] && AWS_REGION="us-east-1"
+fi
 if [ -z "$AWS_ACCESS_KEY" ]; then
 	read -p "Enter your AWS ACCESS key: " AWS_ACCESS_KEY
 fi
@@ -43,6 +47,11 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
 		rm packer.zip
 	fi
 
+	if [ -z "$AWS_INSTANCE_TYPE" ]; then
+        	read -p "Enter your AWS instance type for creating packer images only (default: m3.medium): " AWS_INSTANCE_TYPE
+        	[ -z "$AWS_INSTANCE_TYPE" ] && AWS_INSTANCE_TYPE="m3.medium"
+	fi
+
 	read -n 1 -p "Replace CDIS default authorized_keys (yes/append/no)? " REPLACEKEYS
 	[ -z "$REPLACEKEYS" ] && answer="No"
 	echo
@@ -54,6 +63,8 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
 	fi
 
 	cp images/variables.example.json ../packer_variables.json
+	sed -i '' -e "s/\"aws_region\": \"\"/\"aws_region\": \"$AWS_REGION\"/g" ../packer_variables.json
+	sed -i '' -e "s/\"aws_instance_type\": \"\"/\"aws_instance_type\": \"$AWS_INSTANCE_TYPE\"/g" ../packer_variables.json
 	sed -i '' -e "s/\"aws_access_key\": \"\"/\"aws_access_key\": \"$AWS_ACCESS_KEY\"/g" ../packer_variables.json
 	sed -i '' -e "s/\"aws_secret_key\": \"\"/\"aws_secret_key\": \"$AWS_SECRET_KEY\"/g" ../packer_variables.json
 
@@ -142,6 +153,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
         echo "Your indexd write password is: $INDEXD"
 
 	cd tf_files
+	AWS_REGION=$AWS_REGION \
     	AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
         AWS_SECRET_KEY=$AWS_SECRET_KEY \
         VPC_NAME=$VPC_NAME \

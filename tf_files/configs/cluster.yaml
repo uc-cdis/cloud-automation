@@ -13,7 +13,7 @@ keyName: automation_dev
 sshAuthorizedKeys:
   ${kube_additional_keys}
 
-region: us-east-1
+region: "${aws_region}"
 
 kmsKeyArn: "${kms_key}"
 
