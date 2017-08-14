@@ -29,6 +29,8 @@ kubectl apply -f 00configmap.yaml
 kubectl apply -f services/portal/portal-deploy.yaml
 kubectl apply -f services/userapi/userapi-deploy.yaml
 kubectl apply -f services/indexd/indexd-deploy.yaml
+kubectl apply -f services/revproxy/00nginx-config.yaml
+kubectl apply -f services/revproxy/revproxy-deploy.yaml
 
 cd ~/${vpc_name}_output; python render_creds.py userapi_db
 python render_creds.py  secrets
@@ -45,6 +47,7 @@ kubectl apply -f services/userapi/userapi-service.yaml
 kubectl apply -f services/portal/portal-service.yaml
 kubectl apply -f services/indexd/indexd-service.yaml
 kubectl apply -f services/gdcapi/gdcapi-service.yaml
+./services/revproxy/apply_service
 
 cat >>~/.bashrc << EOF
 export KUBECONFIG=~/${vpc_name}/kubeconfig
@@ -55,4 +58,4 @@ EOF
 
 echo
 echo "Worker node IPs:"
-kubectl --kubeconfig=kubeconfig get nodes --output=jsonpath='{range .items[*]}{.status.addresses[?(@.type=="InternalIP")].address} {.spec.taints} {"\n"}{end}' | grep -v "NoSchedule"
+kubectl  get nodes --output=jsonpath='{range .items[*]}{.status.addresses[?(@.type=="InternalIP")].address} {.spec.taints} {"\n"}{end}' | grep -v NoSchedule

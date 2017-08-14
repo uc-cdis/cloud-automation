@@ -9,7 +9,7 @@ clusterName: ${cluster_name}
 # for you.  Otherwise the deployer is responsible for making this name routable
 externalDNSName: controller.internal.io
 
-keyName: automation_dev
+keyName: ${key_name}
 sshAuthorizedKeys:
   ${kube_additional_keys}
 

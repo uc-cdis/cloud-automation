@@ -6,3 +6,4 @@ metadata:
 data:
   environment: ${vpc_name}
   hostname: ${hostname}
+  revproxy_arn: ${revproxy_arn}
