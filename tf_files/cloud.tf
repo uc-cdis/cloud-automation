@@ -20,9 +20,15 @@ resource "aws_vpc" "main" {
     }
 }
 
-resource "aws_vpc_endpoint" "vpc_endpoint" {
+data "aws_vpc_endpoint_service" "s3" {
+    service = "s3"
+}
+
+resource "aws_vpc_endpoint" "private-s3" {
     vpc_id = "${aws_vpc.main.id}"
     service_name = "com.amazonaws.us-east-1.s3"
+    service_name = "${data.aws_vpc_endpoint_service.s3.service_name}"
+    route_table_ids = ["${aws_route_table.private.id}"]
 }
 
 resource "aws_internet_gateway" "gw" {
