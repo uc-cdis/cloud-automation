@@ -1,7 +1,7 @@
 #!/bin/bash
 scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
 
-export ARN=$(kubectl get configmap revproxy-cert --output=jsonpath='{.data.revproxy_cert}')
+export ARN=$(kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
 if [[ ! -z $ARN ]]; then
   envsubst <$scriptDir/revproxy-service.yaml | kubectl apply -f -
 

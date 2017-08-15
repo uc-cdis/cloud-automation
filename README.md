@@ -12,6 +12,9 @@ store terraform configuration files for bringing up VPCs
 - Download your credentials with contain the `client_id` and `client_secret`.
 - Copy the [variables.template](https://github.com/uc-cdis/cloud-automation/blob/7bfeda73571d2841894470c9fd11027ed8cadd07/tf_files/variables.template) file to somewhere secure and fill it with creds
 
+#### Configure certificate for your domain
+For AWS, use the certificate manager to either import the certs or request admin for the domain to allow AWS to generate certs. The domain should match the hostname you configured in Google.
+
 #### Using the automated scripts
 We have two scripts to guide you through the setup process. You will need your AWS credentials, Google project credentials, an idea of what domain you want to use, and a github username to complete the setup process.
 ```

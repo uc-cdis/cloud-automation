@@ -102,7 +102,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
 		read -p "Enter your VPC name (only alphanumeric characters): " VPC_NAME
 	fi
 
-    echo $HOME/.creds/$VPC_NAME
+    echo "Your configuration for this VPC will be saved to $HOME/.creds/$VPC_NAME"
     creds_dir=$HOME/.creds/$VPC_NAME
     mkdir -p $creds_dir
 
@@ -122,6 +122,12 @@ if echo "$RUNTF" | grep -iq "^y"; then
 	if [ -z "$CHOSTNAME" ]; then
 		read -p "Enter your hostname name like www.example.com: " CHOSTNAME
 	fi
+    echo "You need to create a certificate in AWS Certificate Manager with imported certs or the admin for the site need to approve aws create it."
+    read -p "This needs to be done to make following process working. Done? [y/n] " CONFIGURED_CERT
+
+    if [ "$CONFIGURED_CERT" != "y" ]; then
+        exit 1
+    fi
 
 	if [ -z "$BUCKET" ]; then
 		read -p "Enter your desired kube bucket name: " BUCKET
