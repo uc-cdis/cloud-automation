@@ -20,6 +20,11 @@ resource "aws_vpc" "main" {
     }
 }
 
+resource "aws_vpc_endpoint" "vpc_endpoint" {
+    vpc_id = "${aws_vpc.main.id}"
+    service_name = "com.amazonaws.us-east-1.s3"
+}
+
 resource "aws_internet_gateway" "gw" {
     vpc_id = "${aws_vpc.main.id}"
 }
