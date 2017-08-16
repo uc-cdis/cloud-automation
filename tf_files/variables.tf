@@ -45,6 +45,8 @@ variable "google_client_secret" {
 variable "hmac_encryption_key" {
 }
 
+variable "gdcapi_secret_key" {
+}
 # password for write access to indexd
 variable "gdcapi_indexd_password" {
 }

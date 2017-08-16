@@ -130,6 +130,7 @@ data "template_file" "creds" {
         google_client_secret = "${var.google_client_secret}"
         google_client_id = "${var.google_client_id}"
         hmac_encryption_key = "${var.hmac_encryption_key}"
+        gdcapi_secret_key = "${var.gdcapi_secret_key}"
         gdcapi_indexd_password = "${var.gdcapi_indexd_password}"
     }
 }
