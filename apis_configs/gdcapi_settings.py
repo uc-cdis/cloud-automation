@@ -29,6 +29,7 @@ config["PSQLGRAPH"] = {
 }
 
 config['HMAC_ENCRYPTION_KEY'] = '{{hmac_key}}'
+config['FLASK_SECRET_KEY'] = '{{gdcapi_secret_key}}'
 config['PSQL_USER_DB_CONNECTION'] = 'postgresql://{{userapi_username}}:{{userapi_password}}@{{userapi_host}}:5432/{{userapi_database}}'
 
 
