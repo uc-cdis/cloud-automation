@@ -146,16 +146,20 @@ if echo "$RUNTF" | grep -iq "^y"; then
 	fi
 
 	export LC_CTYPE=C
-	HMAC=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | base64`
+	HMAC=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | base64`
 	echo "Your HMAC encryption key is: $HMAC"
 
-	USERAPIDBPASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
+
+	GDCAPI_SECRET=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 50 | head -n 1`
+	echo "Your gdcapi flask secret key is: $GDCAPI_SECRET"
+
+	USERAPIDBPASS=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
         echo "Your User API DB password is: $USERAPIDBPASS"
-	GDCAPIDBPASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
+	GDCAPIDBPASS=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
         echo "Your GDC API DB password is: $GDCAPIDBPASS"
-	INDEXDDBPASS=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
+	INDEXDDBPASS=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
         echo "Your IndexD DB password is: $INDEXDDBPASS"
-	INDEXD=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
+	INDEXD=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
         echo "Your indexd write password is: $INDEXD"
 
 	cd tf_files
@@ -173,6 +177,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
         CLIENTSECRET=$CLIENTSECRET \
         CLIENTID=$CLIENTID \
         HMAC=$HMAC \
+        GDCAPI_SECRET=$GDCAPI_SECRET \
         USERAPIDBPASS=$USERAPIDBPASS \
         INDEXDDBPASS=$INDEXDDBPASS \
         GDCAPIDBPASS=$GDCAPIDBPASS \

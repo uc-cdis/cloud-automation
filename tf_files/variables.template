@@ -37,6 +37,8 @@ google_client_id="$CLIENTID"
 # cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | base64
 hmac_encryption_key="$HMAC"
 
+gdcapi_secret_key="$GDCAPI_SECRET"
+
 # don't use ( ) " ' { } < > @ in password
 db_password_userapi="$USERAPIDBPASS"
 
