@@ -107,11 +107,16 @@ if echo "$RUNTF" | grep -iq "^y"; then
     mkdir -p $creds_dir
 
 	if [ -z "$AWS_S3_ACCESS_KEY" ]; then
-		read -p "Enter your access key to S3 bucket: " AWS_S3_ACCESS_KEY
+		read -p "Enter your access key to S3 bucket for saving terraform state: " AWS_S3_ACCESS_KEY
 	fi
 
 	if [ -z "$AWS_S3_SECRET_KEY" ]; then
-		read -p "Enter your secret key to S3 bucket: " AWS_S3_SECRET_KEY
+		read -p "Enter your secret key to S3 bucket for saving terraform state: " AWS_S3_SECRET_KEY
+	fi
+
+	if [ -z "$AWS_S3_REGION" ]; then
+			read -p "Enter your AWS region for S3 bucket that saves terraform state (default: us-east-1): " AWS_S3_REGION
+		[ -z "$AWS_S3_REGION" ] && AWS_S3_REGION="us-east-1"
 	fi
 
 	if [ -z "$SOURCE_AMI" ]; then
@@ -172,6 +177,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
 	cd tf_files
 	AWS_S3_ACCESS_KEY=$AWS_S3_ACCESS_KEY \
     	AWS_S3_SECRET_KEY=$AWS_S3_SECRET_KEY \
+		AWS_S3_REGION=$AWS_S3_REGION \
         KEY_TO_STATE=cdis-terraform-$VPC_NAME/terraform.tfstate \
         envsubst < terraform.tfvars >$creds_dir/terraform.tfvars
 	../terraform init -backend-config=$creds_dir/terraform.tfvars
