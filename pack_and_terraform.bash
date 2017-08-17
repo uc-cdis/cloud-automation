@@ -29,7 +29,7 @@ function packer_build_image() {
 function set_packer_variable() {
     # In the $PACKER_VARIABLES file, change the value of the empty variable $1
     # to the value "$2".
-    sed -i '' -e "s/\"$1\": \"\"/\"$1\": \"$2\"/g" $PACKER_VARIABLES
+    sed -i '' -e "s|\"$1\": \"\"|\"$1\": \"$2\"|g" $PACKER_VARIABLES
 }
 
 unamestr=`uname`
