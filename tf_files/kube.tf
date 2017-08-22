@@ -88,7 +88,7 @@ resource "aws_db_instance" "db_indexd" {
 }
 
 data "aws_acm_certificate" "api" {
-  domain   = "${var.hostname}"
+  domain   = "${var.aws_cert_name}"
   statuses = ["ISSUED"]
 }
 

@@ -63,10 +63,10 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
 	fi
 
 	cp images/variables.example.json ../packer_variables.json
-	sed -i '' -e "s/\"aws_region\": \"\"/\"aws_region\": \"$AWS_REGION\"/g" ../packer_variables.json
-	sed -i '' -e "s/\"aws_instance_type\": \"\"/\"aws_instance_type\": \"$AWS_INSTANCE_TYPE\"/g" ../packer_variables.json
-	sed -i '' -e "s/\"aws_access_key\": \"\"/\"aws_access_key\": \"$AWS_ACCESS_KEY\"/g" ../packer_variables.json
-	sed -i '' -e "s/\"aws_secret_key\": \"\"/\"aws_secret_key\": \"$AWS_SECRET_KEY\"/g" ../packer_variables.json
+	sed -i '' -e "s|\\\"aws_region\\\": \\\"\\\"|\\\"aws_region\\\": \\\"$AWS_REGION\\\"|g" ../packer_variables.json
+	sed -i '' -e "s|\\\"aws_instance_type\\\": \\\"\\\"|\\\"aws_instance_type\": \\\"$AWS_INSTANCE_TYPE\\\"|g" ../packer_variables.json
+	sed -i '' -e "s|\\\"aws_access_key\\\": \\\"\\\"|\\\"aws_access_key\": \\\"$AWS_ACCESS_KEY\\\"|g" ../packer_variables.json
+	sed -i '' -e "s|\\\"aws_secret_key\\\": \\\"\\\"|\\\"aws_secret_key\": \\\"$AWS_SECRET_KEY\\\"|g" ../packer_variables.json
 
 
 	cd images
@@ -87,7 +87,7 @@ fi
 
 read -n 1 -p "Run terraform (y/n)? " RUNTF
 [ -z "$RUNTF" ] && answer="No"
-echo 
+echo
 
 if echo "$RUNTF" | grep -iq "^y"; then
 
@@ -106,6 +106,18 @@ if echo "$RUNTF" | grep -iq "^y"; then
     creds_dir=$HOME/.creds/$VPC_NAME
     mkdir -p $creds_dir
 
+	if [ -z "$AWS_S3_ACCESS_KEY" ]; then
+		read -p "Enter your access key to S3 bucket for saving terraform state: " AWS_S3_ACCESS_KEY
+	fi
+
+	if [ -z "$AWS_S3_SECRET_KEY" ]; then
+		read -p "Enter your secret key to S3 bucket for saving terraform state: " AWS_S3_SECRET_KEY
+	fi
+
+	if [ -z "$AWS_S3_REGION" ]; then
+			read -p "Enter your AWS region for S3 bucket that saves terraform state (default: us-east-1): " AWS_S3_REGION
+		[ -z "$AWS_S3_REGION" ] && AWS_S3_REGION="us-east-1"
+	fi
 
 	if [ -z "$SOURCE_AMI" ]; then
 		read -p "Enter your base ami: " SOURCE_AMI
@@ -124,6 +136,10 @@ if echo "$RUNTF" | grep -iq "^y"; then
 	fi
     echo "You need to create a certificate in AWS Certificate Manager with imported certs or the admin for the site need to approve aws create it."
     read -p "This needs to be done to make following process working. Done? [y/n] " CONFIGURED_CERT
+
+    if [ -z "$AWS_CERT_NAME" ]; then
+        read -p "Enter the domain name for the AWS certificate: " AWS_CERT_NAME
+    fi
 
     if [ "$CONFIGURED_CERT" != "y" ]; then
         exit 1
@@ -163,9 +179,17 @@ if echo "$RUNTF" | grep -iq "^y"; then
         echo "Your indexd write password is: $INDEXD"
 
 	cd tf_files
+	AWS_S3_ACCESS_KEY=$AWS_S3_ACCESS_KEY \
+    	AWS_S3_SECRET_KEY=$AWS_S3_SECRET_KEY \
+		AWS_S3_REGION=$AWS_S3_REGION \
+        KEY_TO_STATE=cdis-terraform-$VPC_NAME/terraform.tfstate \
+        envsubst < terraform.tfvars >$creds_dir/terraform.tfvars
+	../terraform init -backend-config=$creds_dir/terraform.tfvars
+
 	AWS_REGION=$AWS_REGION \
     	AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
         AWS_SECRET_KEY=$AWS_SECRET_KEY \
+        AWS_CERT_NAME=$AWS_CERT_NAME \
         VPC_NAME=$VPC_NAME \
         LOGIN_AMI=$CLIENT_AMI \
         PROXY_AMI=$PROXY_AMI \

@@ -18,6 +18,7 @@
         "db_username": "${gdcapi_user}",
         "db_password": "${gdcapi_pwd}",
         "db_database": "${gdcapi_db}",
+        "gdcapi_secret_key": "${gdcapi_secret_key}",
         "hmac_key": "${hmac_encryption_key}",
         "indexd_password": "${gdcapi_indexd_password}",
         "hostname": "${hostname}"

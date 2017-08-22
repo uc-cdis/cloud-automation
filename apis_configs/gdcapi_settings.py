@@ -1,12 +1,5 @@
-from gdcapi.api import app
+from gdcapi.api import app, app_init
 from os import environ
-# the below could be replaced with `from gcapi.api import app_init`,
-# it's here only for extreme backwards compatibility and should
-# someday be removed
-try:
-    from gdcapi.run import app_with_fake_auth as app_init 
-except:
-    from gdcapi.api import db_init as app_init
 
 config = app.config
 

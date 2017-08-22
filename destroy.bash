@@ -15,10 +15,9 @@ echo "Working with $OUTPUT_DIR"
 # Destroy namespaces
 ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPC_NAME; export KUBECONFIG=kubeconfig; kubectl delete namespace --all; kubectl delete deployments --all; kubectl delete services --all"
 
-
 # Destroy kube
-
 ssh -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" ubuntu@kube.internal.io "cd $VPC_NAME && http_proxy=http://cloud-proxy.internal.io:3128 https_proxy=http://cloud-proxy.internal.io:3128 no_proxy=.internal.io kube-aws destroy "
 
 # Destroy terraform
-../terraform destroy -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
+../terraform init -backend-config=$creds_dir/terraform.tfvars
+../terraform destroy -var-file=$creds_dir/tf_variables
