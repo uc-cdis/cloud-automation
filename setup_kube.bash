@@ -5,6 +5,8 @@ if [ -z "$VPC_NAME" ]; then
 fi
 
 cd tf_files
+# Make sure terraform is using correct configuration before pull.
+../terraform init -backend-config=$creds_dir/terraform.tfvars
 LOGIN_NODE=$(terraform state pull | grep -A20 "aws_eip.login" | grep "public_ip" | head -1 | sed 's/[ \",]//g' | cut -d: -f2)
 echo "Working with Login Node: $LOGIN_NODE"
 
@@ -12,8 +14,8 @@ OUTPUT_DIR=${VPC_NAME}_output
 echo "Working with $OUTPUT_DIR"
 
 if [ ! -f $OUTPUT_DIR/cdis-devservices-secret.yml ]; then
-	echo "Please provide cdis-devservices-secret.yml in tf_files/$OUTPUT_DIR before proceeding"
-	exit
+    echo "Please provide cdis-devservices-secret.yml in tf_files/$OUTPUT_DIR before proceeding"
+    exit
 fi
 
 cp ../bin/kube-aws $OUTPUT_DIR/.

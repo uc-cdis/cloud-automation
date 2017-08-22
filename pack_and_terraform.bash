@@ -87,7 +87,7 @@ fi
 
 read -n 1 -p "Run terraform (y/n)? " RUNTF
 [ -z "$RUNTF" ] && answer="No"
-echo 
+echo
 
 if echo "$RUNTF" | grep -iq "^y"; then
 
@@ -138,7 +138,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
     read -p "This needs to be done to make following process working. Done? [y/n] " CONFIGURED_CERT
 
     if [ -z "$AWS_CERT_NAME" ]; then
-        read -p "Enter the certificate name: " AWS_CERT_NAME
+        read -p "Enter the domain name for the AWS certificate: " AWS_CERT_NAME
     fi
 
     if [ "$CONFIGURED_CERT" != "y" ]; then
