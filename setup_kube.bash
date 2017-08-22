@@ -6,7 +6,7 @@ fi
 
 cd tf_files
 # Make sure terraform is using correct configuration before pull.
-../terraform init -backend-config=$creds_dir/terraform.tfvars
+../terraform init -backend-config=$HOME/.creds/$VPC_NAME/terraform.tfvars
 LOGIN_NODE=$(terraform state pull | grep -A20 "aws_eip.login" | grep "public_ip" | head -1 | sed 's/[ \",]//g' | cut -d: -f2)
 echo "Working with Login Node: $LOGIN_NODE"
 
