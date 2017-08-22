@@ -1,6 +1,6 @@
 terraform {
     backend "s3" {
-        bucket = "cdis-terraform-state"
+        bucket = "cdis-terraform-states"
     }
 }
 
