@@ -6,6 +6,8 @@ variable "aws_access_key" {
 }
 variable "aws_secret_key" {
 }
+variable "aws_cert_name" {
+}
 variable "login_ami" {
 }
 variable "proxy_ami" {

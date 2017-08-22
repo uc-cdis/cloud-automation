@@ -1,6 +1,7 @@
 terraform {
     backend "s3" {
-        bucket = "cdis-terraform-state"
+        bucket = "cdis-terraform-states"
+        encrypt = "true"
     }
 }
 
@@ -26,7 +27,7 @@ resource "aws_vpc_endpoint" "private-s3" {
     vpc_id = "${aws_vpc.main.id}"
     service_name = "com.amazonaws.us-east-1.s3"
     service_name = "${data.aws_vpc_endpoint_service.s3.service_name}"
-    route_table_ids = ["${aws_route_table.private.id}"]
+    route_table_ids = ["${aws_route_table.private.id}", "${aws_route_table.private_2.id}"]
 }
 
 resource "aws_internet_gateway" "gw" {

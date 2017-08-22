@@ -4,10 +4,8 @@ if [ -z "$VPC_NAME" ]; then
     read -p "Enter your VPC name (only alphanumeric characters): " VPC_NAME
 fi
 
-creds_dir=$HOME/.creds/$VPC_NAME
-
 cd tf_files
-LOGIN_NODE=`grep -A20 "aws_eip.login" $creds_dir/terraform.tfstate | grep "public_ip" | head -1 | sed 's/[ \",]//g' | cut -d: -f2`
+LOGIN_NODE=$(terraform state pull | grep -A20 "aws_eip.login" | grep "public_ip" | head -1 | sed 's/[ \",]//g' | cut -d: -f2)
 echo "Working with Login Node: $LOGIN_NODE"
 
 OUTPUT_DIR=${VPC_NAME}_output
