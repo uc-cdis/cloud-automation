@@ -1,8 +1,6 @@
 terraform {
     backend "s3" {
-        bucket = "cdis-terraform-state"
-        key    = "cdis-vpc/terraform.tfstate"
-        region = "us-east-1"
+        bucket = "cdis-terraform-states"
     }
 }
 
