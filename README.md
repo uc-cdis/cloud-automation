@@ -33,7 +33,6 @@ Required images (build them in order):
 - images/client.json
 - images/squid_image.json
 
-
 ## Bring up environment using terraform
 In order to use terraform first you need to download the [binary](https://www.terraform.io/downloads.html). You should only bring up the stack after you filled all the creds in the previous step.
 

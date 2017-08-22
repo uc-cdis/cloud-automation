@@ -19,18 +19,15 @@ cp 00configmap.yaml ~/${vpc_name}
 chmod +x kube-aws
 sudo mv kube-aws /usr/bin
 
+cd $HOME
+git clone https://github.com/uc-cdis/cloud-automation.git 2>/dev/null || cd cloud-automation && git pull
 
-cd ~
-git clone https://github.com/uc-cdis/cloud-automation.git
+ln -fs $HOME/cloud-automation/kube/services $HOME/${vpc_name}/services
 
-
-ln -s ~/cloud-automation/kube/services ~/${vpc_name}/services
-
-
-cd ${vpc_name}
+cd $HOME/${vpc_name}
 
 kube-aws render credentials --generate-ca
-kube-aws render
+kube-aws render || true
 kube-aws validate --s3-uri s3://${s3_bucket}
 kube-aws up --s3-uri s3://${s3_bucket}
 

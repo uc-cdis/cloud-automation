@@ -7,6 +7,8 @@ aws_access_key="$AWS_ACCESS_KEY"
 
 aws_secret_key="$AWS_SECRET_KEY"
 
+aws_cert_name="$AWS_CERT_NAME"
+
 login_ami="$LOGIN_AMI"
 
 proxy_ami="$PROXY_AMI"

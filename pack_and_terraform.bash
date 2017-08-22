@@ -63,10 +63,10 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
 	fi
 
 	cp images/variables.example.json ../packer_variables.json
-	sed -i '' -e "s/\"aws_region\": \"\"/\"aws_region\": \"$AWS_REGION\"/g" ../packer_variables.json
-	sed -i '' -e "s/\"aws_instance_type\": \"\"/\"aws_instance_type\": \"$AWS_INSTANCE_TYPE\"/g" ../packer_variables.json
-	sed -i '' -e "s/\"aws_access_key\": \"\"/\"aws_access_key\": \"$AWS_ACCESS_KEY\"/g" ../packer_variables.json
-	sed -i '' -e "s/\"aws_secret_key\": \"\"/\"aws_secret_key\": \"$AWS_SECRET_KEY\"/g" ../packer_variables.json
+	sed -i '' -e "s|\\\"aws_region\\\": \\\"\\\"|\\\"aws_region\\\": \\\"$AWS_REGION\\\"|g" ../packer_variables.json
+	sed -i '' -e "s|\\\"aws_instance_type\\\": \\\"\\\"|\\\"aws_instance_type\": \\\"$AWS_INSTANCE_TYPE\\\"|g" ../packer_variables.json
+	sed -i '' -e "s|\\\"aws_access_key\\\": \\\"\\\"|\\\"aws_access_key\": \\\"$AWS_ACCESS_KEY\\\"|g" ../packer_variables.json
+	sed -i '' -e "s|\\\"aws_secret_key\\\": \\\"\\\"|\\\"aws_secret_key\": \\\"$AWS_SECRET_KEY\\\"|g" ../packer_variables.json
 
 
 	cd images
@@ -125,6 +125,10 @@ if echo "$RUNTF" | grep -iq "^y"; then
     echo "You need to create a certificate in AWS Certificate Manager with imported certs or the admin for the site need to approve aws create it."
     read -p "This needs to be done to make following process working. Done? [y/n] " CONFIGURED_CERT
 
+    if [ -z "$AWS_CERT_NAME" ]; then
+        read -p "Enter the certificate name: " AWS_CERT_NAME
+    fi
+
     if [ "$CONFIGURED_CERT" != "y" ]; then
         exit 1
     fi
@@ -166,6 +170,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
 	AWS_REGION=$AWS_REGION \
     	AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
         AWS_SECRET_KEY=$AWS_SECRET_KEY \
+        AWS_CERT_NAME=$AWS_CERT_NAME \
         VPC_NAME=$VPC_NAME \
         LOGIN_AMI=$CLIENT_AMI \
         PROXY_AMI=$PROXY_AMI \
