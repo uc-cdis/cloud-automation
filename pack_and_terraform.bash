@@ -26,12 +26,6 @@ function packer_build_image() {
     echo "$packer_output" | egrep 'artifact,0,id' | rev | cut -d ',' -f 1 | rev | cut -d ':' -f 2
 }
 
-function set_packer_variable() {
-    # In the $PACKER_VARIABLES file, change the value of the empty variable $1
-    # to the value "$2".
-    sed -i '' -e "s|\"$1\": \"\"|\"$1\": \"$2\"|g" $PACKER_VARIABLES
-}
-
 unamestr=`uname`
 if [[ "$unamestr" == 'Darwin' ]]; then
     export PATH=${PATH}:/usr/local/opt/gettext/bin
@@ -93,17 +87,24 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
         echo $SSHKEY >>images/configs/authorized_keys
     fi
 
-    cp $IMAGES/variables.example.json $PACKER_VARIABLES
-    set_packer_variable aws_region $AWS_REGION
-    set_packer_variable aws_instance_type $AWS_INSTANCE_TYPE
-    set_packer_variable aws_access_key $AWS_ACCESS_KEY
-    set_packer_variable aws_secret_key $AWS_SECRET_KEY
+    # SOURCE_AMI is set after building the base image, so leave the variable
+    # there for a second envsubst.
+    AWS_REGION=$AWS_REGION \
+        AWS_INSTANCE_TYPE=$AWS_INSTANCE_TYPE \
+        AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
+        AWS_SECRET_KEY=$AWS_SECRET_KEY \
+        SOURCE_AMI='$SOURCE_AMI' \
+        envsubst < $IMAGES/variables.json.template >$PACKER_VARIABLES
 
     echo "Building packer base image"
     SOURCE_AMI="$(packer_build_image base_image.json)"
     [ $? == 1 ] && exit 1;
     echo "Base ami is $SOURCE_AMI"
-    set_packer_variable source_ami $SOURCE_AMI
+    # Fill in the source_ami packer variable. (Note that the packer variables
+    # file can't be read from and redirected to in the same step.)
+    SOURCE_AMI=$SOURCE_AMI \
+        envsubst < $PACKER_VARIABLES >tmp
+    mv tmp $PACKER_VARIABLES
 
     echo "Building packer client image"
     CLIENT_AMI="$(packer_build_image client.json)"
