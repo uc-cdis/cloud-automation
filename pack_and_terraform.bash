@@ -7,7 +7,7 @@ IMAGES="images"
 
 function random_alphanumeric() {
     # Generate a random string of alphanumeric characters of length $1.
-    base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w $1 | head -n 1
+    base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c $1
 }
 
 function packer_build_image() {
