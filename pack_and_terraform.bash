@@ -1,28 +1,53 @@
 #!/bin/bash
 # Right now this script guides you through the process
 # of running Packer & Terraform
+
+PACKER_VARIABLES="../packer_variables.json"
+IMAGES="images"
+
+function random_alphanumeric() {
+    # Generate a random string of alphanumeric characters of length $1.
+    base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c $1
+}
+
+function packer_build_image() {
+    # Attempt to build the image file $1 using packer. If this runs into errors,
+    # print the error output from packer and exit 1. Otherwise, return the ID of
+    # the Amazon Machine Image (AMI) built.
+    cd $IMAGES
+    packer_output="$(../packer build --var-file ../$PACKER_VARIABLES -machine-readable images/$1)"
+    packer_errors="$(echo "$packer_output" | egrep '^.*,.*,.*,error' | cut -d ',' -f 5-)"
+    if [[ -n $packer_errors ]]; then
+        echo "packer failed to build image: $1" >&2
+        echo -e "$packer_errors" >&2
+        exit 1
+    fi
+    cd ..
+    echo "$packer_output" | egrep 'artifact,0,id' | rev | cut -d ',' -f 1 | rev | cut -d ':' -f 2
+}
+
 unamestr=`uname`
 if [[ "$unamestr" == 'Darwin' ]]; then
     export PATH=${PATH}:/usr/local/opt/gettext/bin
     if [[ ! -x "$(command -v envsubst)" ]]; then
-	echo "need envsubst to run this script, please install gettext"
-	exit 1
+        echo "need envsubst to run this script, please install gettext"
+        exit 1
     fi
 fi
 if [ -z "$AWS_REGION" ]; then
-        read -p "Enter your AWS region (default: us-east-1): " AWS_REGION
-	[ -z "$AWS_REGION" ] && AWS_REGION="us-east-1"
+    read -p "Enter your AWS region (default: us-east-1): " AWS_REGION
+    [ -z "$AWS_REGION" ] && AWS_REGION="us-east-1"
 fi
 if [ -z "$AWS_ACCESS_KEY" ]; then
-	read -p "Enter your AWS ACCESS key: " AWS_ACCESS_KEY
+    read -p "Enter your AWS ACCESS key: " AWS_ACCESS_KEY
 fi
 
 if [ -z "$AWS_SECRET_KEY" ]; then
-	read -p "Enter your AWS SECRET key: " AWS_SECRET_KEY
+    read -p "Enter your AWS SECRET key: " AWS_SECRET_KEY
 fi
 
 if [ -z "$GITHUB" ]; then
-	read -p "Enter your github username: " GITHUB
+    read -p "Enter your github username: " GITHUB
 fi
 SSHKEY=`curl -s https://github.com/$GITHUB.keys | tail -1`
 echo "Got key for $GITHUB: $SSHKEY"
@@ -33,55 +58,63 @@ echo
 
 if echo "$BUILDPACKER" | grep -iq "^y"; then
 
-	# Get the info to create AMIs
-	if [ ! -d "images" ]; then
-		echo "Cloning AMI base configurations"
-		git clone https://github.com/uc-cdis/images.git
-	fi
+    # Get the info to create AMIs
+    if [ ! -d "images" ]; then
+        echo "Cloning AMI base configurations"
+        git clone https://github.com/uc-cdis/images.git
+    fi
 
-	# Get packer to create AMIs
-	if [ ! -f "packer" ]; then
-		echo "Grabbing packer executable"
-		curl -o packer.zip https://releases.hashicorp.com/packer/1.0.3/packer_1.0.3_darwin_amd64.zip
-		unzip packer.zip
-		rm packer.zip
-	fi
+    # Get packer to create AMIs
+    if [ ! -f "packer" ]; then
+        echo "Grabbing packer executable"
+        curl -o packer.zip https://releases.hashicorp.com/packer/1.0.3/packer_1.0.3_darwin_amd64.zip
+        unzip packer.zip
+        rm packer.zip
+    fi
 
-	if [ -z "$AWS_INSTANCE_TYPE" ]; then
-        	read -p "Enter your AWS instance type for creating packer images only (default: m3.medium): " AWS_INSTANCE_TYPE
-        	[ -z "$AWS_INSTANCE_TYPE" ] && AWS_INSTANCE_TYPE="m3.medium"
-	fi
+    if [ -z "$AWS_INSTANCE_TYPE" ]; then
+        read -p "Enter your AWS instance type for creating packer images only (default: m3.medium): " AWS_INSTANCE_TYPE
+        [ -z "$AWS_INSTANCE_TYPE" ] && AWS_INSTANCE_TYPE="m3.medium"
+    fi
 
-	read -n 1 -p "Replace CDIS default authorized_keys (yes/append/no)? " REPLACEKEYS
-	[ -z "$REPLACEKEYS" ] && answer="No"
-	echo
+    read -n 1 -p "Replace CDIS default authorized_keys (yes/append/no)? " REPLACEKEYS
+    [ -z "$REPLACEKEYS" ] && answer="No"
+    echo
 
-	if echo "$REPLACEKEYS" | grep -iq "^y"; then
-		echo $SSHKEY >images/configs/authorized_keys
-	elif echo "$REPLACEKEYS" | grep -iq "^a"; then
-		echo $SSHKEY >>images/configs/authorized_keys
-	fi
+    if echo "$REPLACEKEYS" | grep -iq "^y"; then
+        echo $SSHKEY >images/configs/authorized_keys
+    elif echo "$REPLACEKEYS" | grep -iq "^a"; then
+        echo $SSHKEY >>images/configs/authorized_keys
+    fi
 
-	cp images/variables.example.json ../packer_variables.json
-	sed -i '' -e "s|\\\"aws_region\\\": \\\"\\\"|\\\"aws_region\\\": \\\"$AWS_REGION\\\"|g" ../packer_variables.json
-	sed -i '' -e "s|\\\"aws_instance_type\\\": \\\"\\\"|\\\"aws_instance_type\": \\\"$AWS_INSTANCE_TYPE\\\"|g" ../packer_variables.json
-	sed -i '' -e "s|\\\"aws_access_key\\\": \\\"\\\"|\\\"aws_access_key\": \\\"$AWS_ACCESS_KEY\\\"|g" ../packer_variables.json
-	sed -i '' -e "s|\\\"aws_secret_key\\\": \\\"\\\"|\\\"aws_secret_key\": \\\"$AWS_SECRET_KEY\\\"|g" ../packer_variables.json
+    # SOURCE_AMI is set after building the base image, so leave the variable
+    # there for a second envsubst.
+    AWS_REGION=$AWS_REGION \
+        AWS_INSTANCE_TYPE=$AWS_INSTANCE_TYPE \
+        AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
+        AWS_SECRET_KEY=$AWS_SECRET_KEY \
+        SOURCE_AMI='$SOURCE_AMI' \
+        envsubst < $IMAGES/variables.json.template >$PACKER_VARIABLES
 
+    echo "Building packer base image"
+    SOURCE_AMI="$(packer_build_image base_image.json)"
+    [ $? == 1 ] && exit 1;
+    echo "Base ami is $SOURCE_AMI"
+    # Fill in the source_ami packer variable. (Note that the packer variables
+    # file can't be read from and redirected to in the same step.)
+    SOURCE_AMI=$SOURCE_AMI \
+        envsubst < $PACKER_VARIABLES >tmp
+    mv tmp $PACKER_VARIABLES
 
-	cd images
-	echo "Building packer base image"
-	SOURCE_AMI=`../packer build --var-file ../../packer_variables.json -machine-readable images/base_image.json | egrep 'artifact,0,id' | rev | cut -f1 -d, | rev | cut -d: -f 2`
-	echo "Base ami is $SOURCE_AMI"
-	sed -i '' -e "s/\"source_ami\": \"\"/\"source_ami\": \"$SOURCE_AMI\"/g" ../../packer_variables.json
+    echo "Building packer client image"
+    CLIENT_AMI="$(packer_build_image client.json)"
+    [ $? == 1 ] && exit 1;
+    echo "Client ami is $CLIENT_AMI"
 
-	echo "Building packer client image"
-	CLIENT_AMI=`../packer build --var-file ../../packer_variables.json -machine-readable images/client.json | egrep 'artifact,0,id' | rev | cut -f1 -d, | rev | cut -d: -f 2`
-	echo "Client ami is $CLIENT_AMI"
-	echo "Building packer squid image"
-	PROXY_AMI=`../packer build --var-file ../../packer_variables.json -machine-readable images/squid_image.json | egrep 'artifact,0,id' | rev | cut -f1 -d, | rev | cut -d: -f 2`
-	echo "Proxy ami is $PROXY_AMI"
-	cd ..
+    echo "Building packer squid image"
+    PROXY_AMI="$(packer_build_image squid_image.json)"
+    [ $? == 1 ] && exit 1;
+    echo "Proxy ami is $PROXY_AMI"
 
 fi
 
@@ -91,16 +124,16 @@ echo
 
 if echo "$RUNTF" | grep -iq "^y"; then
 
-	if [ ! -f "terraform" ]; then
-		echo "Grabbing terraform executable"
-		curl -o terraform.zip https://releases.hashicorp.com/terraform/0.9.11/terraform_0.9.11_darwin_amd64.zip
-		unzip terraform.zip
-		rm terraform.zip
-	fi
+    if [ ! -f "terraform" ]; then
+        echo "Grabbing terraform executable"
+        curl -o terraform.zip https://releases.hashicorp.com/terraform/0.9.11/terraform_0.9.11_darwin_amd64.zip
+        unzip terraform.zip
+        rm terraform.zip
+    fi
 
-	if [ -z "$VPC_NAME" ]; then
-		read -p "Enter your VPC name (only alphanumeric characters): " VPC_NAME
-	fi
+    if [ -z "$VPC_NAME" ]; then
+        read -p "Enter your VPC name (only alphanumeric characters): " VPC_NAME
+    fi
 
     echo "Your configuration for this VPC will be saved to $HOME/.creds/$VPC_NAME"
     creds_dir=$HOME/.creds/$VPC_NAME
@@ -119,21 +152,21 @@ if echo "$RUNTF" | grep -iq "^y"; then
 		[ -z "$AWS_S3_REGION" ] && AWS_S3_REGION="us-east-1"
 	fi
 
-	if [ -z "$SOURCE_AMI" ]; then
-		read -p "Enter your base ami: " SOURCE_AMI
-	fi
+    if [ -z "$SOURCE_AMI" ]; then
+        read -p "Enter your base ami: " SOURCE_AMI
+    fi
 
-	if [ -z "$CLIENT_AMI" ]; then
-                read -p "Enter your client ami: " CLIENT_AMI
-        fi
+    if [ -z "$CLIENT_AMI" ]; then
+        read -p "Enter your client ami: " CLIENT_AMI
+    fi
 
-	if [ -z "$PROXY_AMI" ]; then
-                read -p "Enter your proxy ami: " PROXY_AMI
-        fi
+    if [ -z "$PROXY_AMI" ]; then
+        read -p "Enter your proxy ami: " PROXY_AMI
+    fi
 
-	if [ -z "$CHOSTNAME" ]; then
-		read -p "Enter your hostname name like www.example.com: " CHOSTNAME
-	fi
+    if [ -z "$CHOSTNAME" ]; then
+        read -p "Enter your hostname name like www.example.com: " CHOSTNAME
+    fi
     echo "You need to create a certificate in AWS Certificate Manager with imported certs or the admin for the site need to approve aws create it."
     read -p "This needs to be done to make following process working. Done? [y/n] " CONFIGURED_CERT
 
@@ -145,39 +178,23 @@ if echo "$RUNTF" | grep -iq "^y"; then
         exit 1
     fi
 
-	if [ -z "$BUCKET" ]; then
-		read -p "Enter your desired kube bucket name: " BUCKET
-	fi
+    if [ -z "$BUCKET" ]; then
+        read -p "Enter your desired kube bucket name: " BUCKET
+    fi
 
 
-	ADDSSHKEY=`curl -s https://github.com/philloooo.keys | tail -1`
-	echo "Phillis' key is: $ADDSSHKEY"
+    ADDSSHKEY=`curl -s https://github.com/philloooo.keys | tail -1`
+    echo "Phillis' key is: $ADDSSHKEY"
 
-	if [ -z "$CLIENTID" ]; then
-		read -p "Enter your Google OAuth2 Client ID: " CLIENTID
-	fi
+    if [ -z "$CLIENTID" ]; then
+        read -p "Enter your Google OAuth2 Client ID: " CLIENTID
+    fi
 
-	if [ -z "$CLIENTSECRET" ]; then
-		read -p "Enter your Google OAuth2 Client Secret: " CLIENTSECRET
-	fi
+    if [ -z "$CLIENTSECRET" ]; then
+        read -p "Enter your Google OAuth2 Client Secret: " CLIENTSECRET
+    fi
 
-	export LC_CTYPE=C
-	HMAC=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | base64`
-	echo "Your HMAC encryption key is: $HMAC"
-
-
-	GDCAPI_SECRET=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 50 | head -n 1`
-	echo "Your gdcapi flask secret key is: $GDCAPI_SECRET"
-
-	USERAPIDBPASS=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
-        echo "Your User API DB password is: $USERAPIDBPASS"
-	GDCAPIDBPASS=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
-        echo "Your GDC API DB password is: $GDCAPIDBPASS"
-	INDEXDDBPASS=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
-        echo "Your IndexD DB password is: $INDEXDDBPASS"
-	INDEXD=`base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1`
-        echo "Your indexd write password is: $INDEXD"
-
+<<<<<<< 0de6d69e545d5a855d575c46870ee69a1348e2d9
 	cd tf_files
 	AWS_S3_ACCESS_KEY=$AWS_S3_ACCESS_KEY \
     	AWS_S3_SECRET_KEY=$AWS_S3_SECRET_KEY \
@@ -188,6 +205,24 @@ if echo "$RUNTF" | grep -iq "^y"; then
 
 	AWS_REGION=$AWS_REGION \
     	AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
+=======
+    export LC_CTYPE=C
+    HMAC="$(random_alphanumeric 32 | base64)"
+    echo "Your HMAC encryption key is: $HMAC"
+    GDCAPI_SECRET="$(random_alphanumeric 50)"
+    echo "Your gdcapi flask secret key is: $GDCAPI_SECRET"
+    USERAPIDBPASS="$(random_alphanumeric 32)"
+    echo "Your User API DB password is: $USERAPIDBPASS"
+    GDCAPIDBPASS="$(random_alphanumeric 32)"
+    echo "Your GDC API DB password is: $GDCAPIDBPASS"
+    INDEXDDBPASS="$(random_alphanumeric 32)"
+    echo "Your IndexD DB password is: $INDEXDDBPASS"
+    INDEXD="$(random_alphanumeric 32)"
+    echo "Your indexd write password is: $INDEXD"
+
+    AWS_REGION=$AWS_REGION \
+        AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
+>>>>>>> fix(script): clean up pack_and_terraform.bash
         AWS_SECRET_KEY=$AWS_SECRET_KEY \
         AWS_CERT_NAME=$AWS_CERT_NAME \
         VPC_NAME=$VPC_NAME \
@@ -206,7 +241,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
         INDEXDDBPASS=$INDEXDDBPASS \
         GDCAPIDBPASS=$GDCAPIDBPASS \
         INDEXD=$INDEXD \
-        envsubst < variables.template >$creds_dir/tf_variables
-	../terraform plan -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
-	../terraform apply -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
+        envsubst < tf_files/variables.template >$creds_dir/tf_variables
+    ./terraform plan -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
+    ./terraform apply -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
 fi
