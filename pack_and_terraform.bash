@@ -139,18 +139,18 @@ if echo "$RUNTF" | grep -iq "^y"; then
     creds_dir=$HOME/.creds/$VPC_NAME
     mkdir -p $creds_dir
 
-	if [ -z "$AWS_S3_ACCESS_KEY" ]; then
-		read -p "Enter your access key to S3 bucket for saving terraform state: " AWS_S3_ACCESS_KEY
-	fi
+    if [ -z "$AWS_S3_ACCESS_KEY" ]; then
+        read -p "Enter your access key to S3 bucket for saving terraform state: " AWS_S3_ACCESS_KEY
+    fi
 
-	if [ -z "$AWS_S3_SECRET_KEY" ]; then
-		read -p "Enter your secret key to S3 bucket for saving terraform state: " AWS_S3_SECRET_KEY
-	fi
+    if [ -z "$AWS_S3_SECRET_KEY" ]; then
+        read -p "Enter your secret key to S3 bucket for saving terraform state: " AWS_S3_SECRET_KEY
+    fi
 
-	if [ -z "$AWS_S3_REGION" ]; then
-			read -p "Enter your AWS region for S3 bucket that saves terraform state (default: us-east-1): " AWS_S3_REGION
-		[ -z "$AWS_S3_REGION" ] && AWS_S3_REGION="us-east-1"
-	fi
+    if [ -z "$AWS_S3_REGION" ]; then
+        read -p "Enter your AWS region for S3 bucket that saves terraform state (default: us-east-1): " AWS_S3_REGION
+        [ -z "$AWS_S3_REGION" ] && AWS_S3_REGION="us-east-1"
+    fi
 
     if [ -z "$SOURCE_AMI" ]; then
         read -p "Enter your base ami: " SOURCE_AMI
@@ -182,7 +182,6 @@ if echo "$RUNTF" | grep -iq "^y"; then
         read -p "Enter your desired kube bucket name: " BUCKET
     fi
 
-
     ADDSSHKEY=`curl -s https://github.com/philloooo.keys | tail -1`
     echo "Phillis' key is: $ADDSSHKEY"
 
@@ -194,18 +193,6 @@ if echo "$RUNTF" | grep -iq "^y"; then
         read -p "Enter your Google OAuth2 Client Secret: " CLIENTSECRET
     fi
 
-<<<<<<< 0de6d69e545d5a855d575c46870ee69a1348e2d9
-	cd tf_files
-	AWS_S3_ACCESS_KEY=$AWS_S3_ACCESS_KEY \
-    	AWS_S3_SECRET_KEY=$AWS_S3_SECRET_KEY \
-		AWS_S3_REGION=$AWS_S3_REGION \
-        KEY_TO_STATE=cdis-terraform-$VPC_NAME/terraform.tfstate \
-        envsubst < terraform.tfvars >$creds_dir/terraform.tfvars
-	../terraform init -backend-config=$creds_dir/terraform.tfvars
-
-	AWS_REGION=$AWS_REGION \
-    	AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
-=======
     export LC_CTYPE=C
     HMAC="$(random_alphanumeric 32 | base64)"
     echo "Your HMAC encryption key is: $HMAC"
@@ -222,7 +209,6 @@ if echo "$RUNTF" | grep -iq "^y"; then
 
     AWS_REGION=$AWS_REGION \
         AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
->>>>>>> fix(script): clean up pack_and_terraform.bash
         AWS_SECRET_KEY=$AWS_SECRET_KEY \
         AWS_CERT_NAME=$AWS_CERT_NAME \
         VPC_NAME=$VPC_NAME \
