@@ -4,9 +4,9 @@ if [ -z "$VPC_NAME" ]; then
     read -p "Enter your VPC name (only alphanumeric characters): " VPC_NAME
 fi
 
-cd tf_files
+cd tf_files/aws
 # Make sure terraform is using correct configuration before pull.
-../terraform init -backend-config=$HOME/.creds/$VPC_NAME/terraform.tfvars
+../../terraform init -backend-config=$HOME/.creds/$VPC_NAME/terraform.tfvars
 LOGIN_NODE=$(terraform state pull | grep -A20 "aws_eip.login" | grep "public_ip" | head -1 | sed 's/[ \",]//g' | cut -d: -f2)
 echo "Working with Login Node: $LOGIN_NODE"
 
@@ -18,7 +18,7 @@ if [ ! -f $OUTPUT_DIR/cdis-devservices-secret.yml ]; then
     exit
 fi
 
-cp ../bin/kube-aws $OUTPUT_DIR/.
+cp ../../bin/kube-aws $OUTPUT_DIR/.
 
 set -e
 scp -o "ProxyCommand ssh ubuntu@$LOGIN_NODE nc %h %p" -r $OUTPUT_DIR ubuntu@kube.internal.io:/home/ubuntu/.
