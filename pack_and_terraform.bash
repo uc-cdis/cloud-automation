@@ -182,7 +182,6 @@ if echo "$RUNTF" | grep -iq "^y"; then
         read -p "Enter your desired kube bucket name: " BUCKET
     fi
 
-
     ADDSSHKEY=`curl -s https://github.com/philloooo.keys | tail -1`
     echo "Phillis' key is: $ADDSSHKEY"
 
