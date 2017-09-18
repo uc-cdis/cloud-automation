@@ -28,7 +28,7 @@ resource "aws_vpc_endpoint" "private-s3" {
     vpc_id = "${aws_vpc.main.id}"
     service_name = "com.amazonaws.us-east-1.s3"
     service_name = "${data.aws_vpc_endpoint_service.s3.service_name}"
-    route_table_ids = ["${aws_route_table.private.id}", "${aws_route_table.private_2.id}"]
+    route_table_ids = ["${aws_route_table.private_kube.id}", "${aws_route_table.private_user.id}"]
 }
 
 resource "aws_internet_gateway" "gw" {
@@ -190,24 +190,24 @@ resource "aws_eip_association" "login_eip" {
     allocation_id = "${aws_eip.login.id}"
 }
 
-resource "aws_route_table" "private" {
+resource "aws_route_table" "private_kube" {
     vpc_id = "${aws_vpc.main.id}"
     route {
         cidr_block = "0.0.0.0/0"
         instance_id = "${aws_instance.proxy.id}"
     }
     tags {
-        Name = "private"
+        Name = "private_kube"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
 }
 
-resource "aws_route_table" "private_2" {
+resource "aws_route_table" "private_user" {
     vpc_id = "${aws_vpc.main.id}"
 
     tags {
-        Name = "private_2"
+        Name = "private_user"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
@@ -218,50 +218,50 @@ resource "aws_route_table_association" "public" {
 }
 
 
-resource "aws_route_table_association" "private" {
-    subnet_id = "${aws_subnet.private.id}"
-    route_table_id = "${aws_route_table.private.id}"
+resource "aws_route_table_association" "private_kube" {
+    subnet_id = "${aws_subnet.private_kube.id}"
+    route_table_id = "${aws_route_table.private_kube.id}"
 }
 
-resource "aws_route_table_association" "private_2" {
-    subnet_id = "${aws_subnet.private_2.id}"
-    route_table_id = "${aws_route_table.private_2.id}"
+resource "aws_route_table_association" "private_user" {
+    subnet_id = "${aws_subnet.private_user.id}"
+    route_table_id = "${aws_route_table.private_user.id}"
 }
 
 resource "aws_subnet" "public" {
     vpc_id = "${aws_vpc.main.id}"
-    cidr_block = "172.${var.vpc_octet}.0.0/24"
+    cidr_block = "172.${var.vpc_octet}.128.0/24"
     map_public_ip_on_launch = true
     tags = "${map("Name", "public", "Organization", "Basic Service", "Environment", var.vpc_name)}"
 }
 
 
-resource "aws_subnet" "private" {
+resource "aws_subnet" "private_kube" {
     vpc_id = "${aws_vpc.main.id}"
-    cidr_block = "172.${var.vpc_octet}.16.0/20"
+    cidr_block = "172.${var.vpc_octet}.36.0/22"
     availability_zone = "${data.aws_availability_zones.available.names[0]}"
     map_public_ip_on_launch = false
-    tags = "${map("Name", "private", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
+    tags = "${map("Name", "private_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
 }
 
-resource "aws_subnet" "private_2" {
+resource "aws_subnet" "private_user" {
     vpc_id = "${aws_vpc.main.id}"
-    cidr_block = "172.${var.vpc_octet}.4.0/22"
+    cidr_block = "172.${var.vpc_octet}.32.0/22"
     map_public_ip_on_launch = false
     tags {
-        Name = "private_2"
+        Name = "private_user"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
 }
 
-resource "aws_subnet" "private_3" {
+resource "aws_subnet" "private_db_alt" {
     vpc_id = "${aws_vpc.main.id}"
-    cidr_block = "172.${var.vpc_octet}.8.0/21"
+    cidr_block = "172.${var.vpc_octet}.40.0/22"
     availability_zone = "${data.aws_availability_zones.available.names[1]}"
     map_public_ip_on_launch = false
     tags {
-        Name = "private_3"
+        Name = "private_db_alt"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
@@ -269,7 +269,7 @@ resource "aws_subnet" "private_3" {
 
 resource "aws_db_subnet_group" "private_group" {
     name = "${var.vpc_name}_private_group"
-    subnet_ids = ["${aws_subnet.private.id}", "${aws_subnet.private_3.id}"]
+    subnet_ids = ["${aws_subnet.private_kube.id}", "${aws_subnet.private_db_alt.id}"]
 
     tags {
         Name = "Private subnet group"
