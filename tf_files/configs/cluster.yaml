@@ -62,5 +62,6 @@ mapPublicIPs: false
 
 stackTags:
   Environment: ${cluster_name}
+  Organization: "Basic Service"
 hostedZoneId: ${hosted_zone}
 createRecordSet: true

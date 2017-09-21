@@ -7,7 +7,7 @@ resource "aws_security_group" "kube-worker" {
         from_port = 30000
         to_port = 30100
         protocol = "TCP"
-        cidr_blocks = ["172.16.0.0/16"]
+        cidr_blocks = ["172.${var.vpc_octet}.0.0/16"]
     }
     ingress {
         from_port = 443
@@ -17,6 +17,7 @@ resource "aws_security_group" "kube-worker" {
     }
     tags {
         Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
     }
 }
 
@@ -27,10 +28,10 @@ resource "aws_route_table_association" "public_kube" {
 
 resource "aws_subnet" "public_kube" {
     vpc_id = "${aws_vpc.main.id}"
-    cidr_block = "172.16.1.0/24"
+    cidr_block = "172.${var.vpc_octet}.129.0/24"
     map_public_ip_on_launch = true
     availability_zone = "${data.aws_availability_zones.available.names[0]}"
-    tags = "${map("Name", "public_kube", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "")}"
+    tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "")}"
 }
 
 
@@ -49,6 +50,7 @@ resource "aws_db_instance" "db_userapi" {
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     tags {
         Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
     }
 }
 
@@ -66,7 +68,9 @@ resource "aws_db_instance" "db_gdcapi" {
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     tags {
         Environment = "${var.vpc_name}"
-    }   vpc_security_group_ids = ["${aws_security_group.local.id}"]
+        Organization = "Basic Service"
+    }
+    vpc_security_group_ids = ["${aws_security_group.local.id}"]
 }
 
 resource "aws_db_instance" "db_indexd" {
@@ -84,6 +88,7 @@ resource "aws_db_instance" "db_indexd" {
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     tags {
         Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
     }
 }
 
@@ -93,18 +98,18 @@ data "aws_acm_certificate" "api" {
 }
 
 data "template_file" "cluster" {
-    template = "${file("configs/cluster.yaml")}"
+    template = "${file("../configs/cluster.yaml")}"
     vars {
         cluster_name = "${var.vpc_name}"
         key_name = "${aws_key_pair.automation_dev.key_name}"
         aws_region = "${var.aws_region}"
         kms_key = "${aws_kms_key.kube_key.arn}"
-        route_table_id = "${aws_route_table.private.id}"
+        route_table_id = "${aws_route_table.private_kube.id}"
         vpc_id ="${aws_vpc.main.id}"
         vpc_cidr = "${aws_vpc.main.cidr_block}"
-        subnet_id = "${aws_subnet.private.id}"
-        subnet_cidr = "${aws_subnet.private.cidr_block}"
-        subnet_zone = "${aws_subnet.private.availability_zone}"
+        subnet_id = "${aws_subnet.private_kube.id}"
+        subnet_cidr = "${aws_subnet.private_kube.cidr_block}"
+        subnet_zone = "${aws_subnet.private_kube.availability_zone}"
         security_group_id = "${aws_security_group.kube-worker.id}"
         kube_additional_keys = "${var.kube_additional_keys}"
         hosted_zone = "${aws_route53_zone.main.id}"
@@ -112,7 +117,7 @@ data "template_file" "cluster" {
 }
 
 data "template_file" "creds" {
-    template = "${file("configs/creds.tpl")}"
+    template = "${file("../configs/creds.tpl")}"
     vars {
         userapi_host = "${aws_db_instance.db_userapi.address}"
         userapi_user = "${aws_db_instance.db_userapi.username}"
@@ -136,7 +141,7 @@ data "template_file" "creds" {
 }
 
 data "template_file" "kube_up" {
-    template = "${file("configs/kube-up.sh")}"
+    template = "${file("../configs/kube-up.sh")}"
     vars {
         vpc_name = "${var.vpc_name}"
         s3_bucket = "${var.kube_bucket}"
@@ -144,7 +149,7 @@ data "template_file" "kube_up" {
 }
 
 data "template_file" "configmap" {
-    template = "${file("configs/00configmap.yaml")}"
+    template = "${file("../configs/00configmap.yaml")}"
     vars {
         vpc_name = "${var.vpc_name}"
         hostname = "${var.hostname}"
@@ -153,7 +158,7 @@ data "template_file" "configmap" {
 }
 
 data "template_file" "kube_services" {
-    template = "${file("configs/kube-services.sh")}"
+    template = "${file("../configs/kube-services.sh")}"
     vars {
         vpc_name = "${var.vpc_name}"
         s3_bucket = "${var.kube_bucket}"
@@ -161,7 +166,7 @@ data "template_file" "kube_services" {
 }
 
 data "template_file" "aws_creds" {
-    template = "${file("configs/aws_credentials")}"
+    template = "${file("../configs/aws_credentials")}"
     vars {
         access_key = "${var.aws_access_key}"
         secret_key = "${var.aws_secret_key}"
@@ -169,13 +174,14 @@ data "template_file" "aws_creds" {
 }
 resource "aws_instance" "kube_provisioner" {
     ami = "${var.login_ami}"
-    subnet_id = "${aws_subnet.private.id}"
+    subnet_id = "${aws_subnet.private_kube.id}"
     instance_type = "t2.micro"
     monitoring = true
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     tags {
         Name = "Kube Provisioner"
         Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
     }
 }
 
@@ -200,7 +206,7 @@ resource "null_resource" "config_setup" {
         command = "echo \"${data.template_file.aws_creds.rendered}\" > ${var.vpc_name}_output/credentials"
     }
     provisioner "local-exec" {
-        command = "cp configs/render_creds.py ${var.vpc_name}_output/"
+        command = "cp ../configs/render_creds.py ${var.vpc_name}_output/"
     }
 }
 
@@ -217,6 +223,7 @@ resource "aws_kms_key" "kube_key" {
     enable_key_rotation = true
     tags {
         Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
     }
 }
 
@@ -232,5 +239,6 @@ resource "aws_s3_bucket" "kube_bucket" {
   tags {
     Name        = "${var.kube_bucket}"
     Environment = "${var.vpc_name}"
+    Organization = "Basic Service"
   }
 }

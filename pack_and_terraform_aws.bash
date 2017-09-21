@@ -53,7 +53,7 @@ SSHKEY=`curl -s https://github.com/$GITHUB.keys | tail -1`
 echo "Got key for $GITHUB: $SSHKEY"
 
 read -n 1 -p "Build packer images (y/n)? " BUILDPACKER
-[ -z "$BUILDPACKER" ] && answer="No"
+[ -z "$BUILDPACKER" ] && BUILDPACKER="No"
 echo
 
 if echo "$BUILDPACKER" | grep -iq "^y"; then
@@ -78,7 +78,7 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
     fi
 
     read -n 1 -p "Replace CDIS default authorized_keys (yes/append/no)? " REPLACEKEYS
-    [ -z "$REPLACEKEYS" ] && answer="No"
+    [ -z "$REPLACEKEYS" ] && REPLACEKEYS="No"
     echo
 
     if echo "$REPLACEKEYS" | grep -iq "^y"; then
@@ -119,20 +119,25 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
 fi
 
 read -n 1 -p "Run terraform (y/n)? " RUNTF
-[ -z "$RUNTF" ] && answer="No"
+[ -z "$RUNTF" ] && RUNTF="No"
 echo
 
 if echo "$RUNTF" | grep -iq "^y"; then
 
     if [ ! -f "terraform" ]; then
         echo "Grabbing terraform executable"
-        curl -o terraform.zip https://releases.hashicorp.com/terraform/0.9.11/terraform_0.9.11_darwin_amd64.zip
+        curl -o terraform.zip https://releases.hashicorp.com/terraform/0.10.4/terraform_0.10.4_darwin_amd64.zip
         unzip terraform.zip
         rm terraform.zip
     fi
 
     if [ -z "$VPC_NAME" ]; then
         read -p "Enter your VPC name (only alphanumeric characters): " VPC_NAME
+    fi
+
+    if [ -z "$VPC_OCTET" ]; then
+        read -p "Enter your VPC subnet octet (between 16 to 31) which will make the internal network 172.X (default: 16): " VPC_OCTET
+        [ -z "$VPC_OCTET" ] && VPC_OCTET="16"
     fi
 
     echo "Your configuration for this VPC will be saved to $HOME/.creds/$VPC_NAME"
@@ -150,6 +155,11 @@ if echo "$RUNTF" | grep -iq "^y"; then
     if [ -z "$AWS_S3_REGION" ]; then
         read -p "Enter your AWS region for S3 bucket that saves terraform state (default: us-east-1): " AWS_S3_REGION
         [ -z "$AWS_S3_REGION" ] && AWS_S3_REGION="us-east-1"
+    fi
+
+    if [ -z "$AWS_S3_BUCKET" ]; then
+        read -p "Enter your bucket name for S3 bucket that saves terraform state (default: cdis-terraform-states): " AWS_S3_BUCKET
+        [ -z "$AWS_S3_BUCKET" ] && AWS_S3_BUCKET="cdis-terraform-states"
     fi
 
     if [ -z "$SOURCE_AMI" ]; then
@@ -212,6 +222,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
         AWS_SECRET_KEY=$AWS_SECRET_KEY \
         AWS_CERT_NAME=$AWS_CERT_NAME \
         VPC_NAME=$VPC_NAME \
+        VPC_OCTET=$VPC_OCTET \
         LOGIN_AMI=$CLIENT_AMI \
         PROXY_AMI=$PROXY_AMI \
         BASE_AMI=$SOURCE_AMI \
@@ -227,7 +238,9 @@ if echo "$RUNTF" | grep -iq "^y"; then
         INDEXDDBPASS=$INDEXDDBPASS \
         GDCAPIDBPASS=$GDCAPIDBPASS \
         INDEXD=$INDEXD \
-        envsubst < tf_files/variables.template >$creds_dir/tf_variables
-    ./terraform plan -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
-    ./terraform apply -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
+        envsubst < tf_files/aws/variables.template >$creds_dir/tf_variables
+    cd tf_files/aws
+    ../../terraform init
+    ../../terraform plan -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
+    ../../terraform apply -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
 fi

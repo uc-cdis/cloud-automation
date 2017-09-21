@@ -3,6 +3,7 @@ set -e
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy=.internal.io
+export DEBIAN_FRONTEND=noninteractive
 
 sudo -E apt-get update
 sudo -E apt-get install -y python-dev python-pip
