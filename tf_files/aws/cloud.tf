@@ -1,6 +1,5 @@
 terraform {
     backend "s3" {
-        bucket = "cdis-terraform-states"
         encrypt = "true"
     }
 }

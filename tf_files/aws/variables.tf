@@ -1,5 +1,7 @@
 variable "vpc_name" {
 }
+variable "vpc_octet" {
+}
 variable "aws_region" {
 }
 variable "aws_access_key" {

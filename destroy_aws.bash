@@ -5,7 +5,7 @@ if [ -z "$VPC_NAME" ]; then
 fi
 creds_dir=$HOME/.creds/$VPC_NAME
 cd tf_files/aws
-LOGIN_NODE=`grep -A20 "aws_eip.login" $creds_dir/terraform.tfstate | grep "public_ip" | head -1 | sed 's/[ \",]//g' | cut -d: -f2`
+LOGIN_NODE=$(../../terraform state pull | grep -A20 "aws_eip.login" | grep "public_ip" | head -1 | sed 's/[ \",]//g' | cut -d: -f2)
 
 echo "Working with Login Node: $LOGIN_NODE"
 

@@ -104,12 +104,12 @@ data "template_file" "cluster" {
         key_name = "${aws_key_pair.automation_dev.key_name}"
         aws_region = "${var.aws_region}"
         kms_key = "${aws_kms_key.kube_key.arn}"
-        route_table_id = "${aws_route_table.private.id}"
+        route_table_id = "${aws_route_table.private_kube.id}"
         vpc_id ="${aws_vpc.main.id}"
         vpc_cidr = "${aws_vpc.main.cidr_block}"
-        subnet_id = "${aws_subnet.private.id}"
-        subnet_cidr = "${aws_subnet.private.cidr_block}"
-        subnet_zone = "${aws_subnet.private.availability_zone}"
+        subnet_id = "${aws_subnet.private_kube.id}"
+        subnet_cidr = "${aws_subnet.private_kube.cidr_block}"
+        subnet_zone = "${aws_subnet.private_kube.availability_zone}"
         security_group_id = "${aws_security_group.kube-worker.id}"
         kube_additional_keys = "${var.kube_additional_keys}"
         hosted_zone = "${aws_route53_zone.main.id}"
@@ -174,7 +174,7 @@ data "template_file" "aws_creds" {
 }
 resource "aws_instance" "kube_provisioner" {
     ami = "${var.login_ami}"
-    subnet_id = "${aws_subnet.private.id}"
+    subnet_id = "${aws_subnet.private_kube.id}"
     instance_type = "t2.micro"
     monitoring = true
     vpc_security_group_ids = ["${aws_security_group.local.id}"]

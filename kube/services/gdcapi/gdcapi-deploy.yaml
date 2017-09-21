@@ -20,7 +20,7 @@ spec:
             secretName: "gdcapi-secret"
       containers:
         - name: gdcapi
-          image: quay.io/cdis/gdcapi:master
+          image: quay.io/cdis/gdcapi:develop
           ports:
           - containerPort: 80
           volumeMounts:

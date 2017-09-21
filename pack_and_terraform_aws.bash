@@ -119,7 +119,7 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
 fi
 
 read -n 1 -p "Run terraform (y/n)? " RUNTF
-[ -z "$RUNTF" ] && answer="No"
+[ -z "$RUNTF" ] && RUNTF="No"
 echo
 
 if echo "$RUNTF" | grep -iq "^y"; then
@@ -154,6 +154,11 @@ if echo "$RUNTF" | grep -iq "^y"; then
     if [ -z "$AWS_S3_REGION" ]; then
         read -p "Enter your AWS region for S3 bucket that saves terraform state (default: us-east-1): " AWS_S3_REGION
         [ -z "$AWS_S3_REGION" ] && AWS_S3_REGION="us-east-1"
+    fi
+
+    if [ -z "$AWS_S3_BUCKET" ]; then
+        read -p "Enter your bucket name for S3 bucket that saves terraform state (default: cdis-terraform-states): " AWS_S3_BUCKET
+        [ -z "$AWS_S3_BUCKET" ] && AWS_S3_BUCKET="cdis-terraform-states"
     fi
 
     if [ -z "$SOURCE_AMI" ]; then
@@ -233,6 +238,8 @@ if echo "$RUNTF" | grep -iq "^y"; then
         GDCAPIDBPASS=$GDCAPIDBPASS \
         INDEXD=$INDEXD \
         envsubst < tf_files/aws/variables.template >$creds_dir/tf_variables
-    ./terraform plan -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
-    ./terraform apply -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
+    cd tf_files/aws
+    ../../terraform init
+    ../../terraform plan -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
+    ../../terraform apply -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
 fi

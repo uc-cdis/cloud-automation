@@ -2,6 +2,7 @@
 set -e
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
+export DEBIAN_FRONTEND=noninteractive
 
 sudo -E apt-get update
 sudo -E apt-get install -y git
