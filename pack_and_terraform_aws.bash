@@ -53,7 +53,7 @@ SSHKEY=`curl -s https://github.com/$GITHUB.keys | tail -1`
 echo "Got key for $GITHUB: $SSHKEY"
 
 read -n 1 -p "Build packer images (y/n)? " BUILDPACKER
-[ -z "$BUILDPACKER" ] && answer="No"
+[ -z "$BUILDPACKER" ] && BUILDPACKER="No"
 echo
 
 if echo "$BUILDPACKER" | grep -iq "^y"; then
@@ -78,7 +78,7 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
     fi
 
     read -n 1 -p "Replace CDIS default authorized_keys (yes/append/no)? " REPLACEKEYS
-    [ -z "$REPLACEKEYS" ] && answer="No"
+    [ -z "$REPLACEKEYS" ] && REPLACEKEYS="No"
     echo
 
     if echo "$REPLACEKEYS" | grep -iq "^y"; then
@@ -136,7 +136,8 @@ if echo "$RUNTF" | grep -iq "^y"; then
     fi
 
     if [ -z "$VPC_OCTET" ]; then
-        read -p "Enter your VPC subnet octet (between 16 to 31) which will make the internal network 172.X: " VPC_OCTET
+        read -p "Enter your VPC subnet octet (between 16 to 31) which will make the internal network 172.X (default: 16): " VPC_OCTET
+        [ -z "$VPC_OCTET" ] && VPC_OCTET="16"
     fi
 
     echo "Your configuration for this VPC will be saved to $HOME/.creds/$VPC_NAME"
