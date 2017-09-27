@@ -44,11 +44,11 @@ data:
       	##
       	# Gzip Settings
       	##
+        gzip on;
+        gzip_disable "msie6";
+        gzip_types application/json application/javascript;
       
-      	gzip on;
-      	gzip_disable "msie6";
-      
-              ##
+        ##
       	# Proxy Settings
       	##
       	server {
