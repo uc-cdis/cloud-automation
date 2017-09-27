@@ -21,14 +21,15 @@ spec:
         - containerPort: 80
         command:
           - /bin/bash
-          - -c
-          - npm run-script schema https://$(HOSTNAME)/api/v0/submission/getschema; /usr/sbin/nginx -g 'daemon off;'
+          - ./dockerStart.sh
         env:
           - name: HOSTNAME 
             valueFrom:
               configMapKeyRef:
                 name: global 
                 key: hostname 
+          - name: APP 
+            value: dev
         imagePullPolicy: Always
       imagePullSecrets:
         - name: cdis-devservices-pull-secret
