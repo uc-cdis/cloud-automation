@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1 
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: portal-deployment
@@ -23,13 +23,17 @@ spec:
           - /bin/bash
           - ./dockerStart.sh
         env:
-          - name: HOSTNAME 
+          - name: HOSTNAME
             valueFrom:
               configMapKeyRef:
-                name: global 
-                key: hostname 
-          - name: APP 
+                name: global
+                key: hostname
+          - name: APP
             value: dev
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
         imagePullPolicy: Always
       imagePullSecrets:
         - name: cdis-devservices-pull-secret
