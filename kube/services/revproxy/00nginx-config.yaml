@@ -46,7 +46,7 @@ data:
       	##
         gzip on;
         gzip_disable "msie6";
-        gzip_types application/json application/javascript;
+        gzip_types application/javascript;
       
         ##
       	# Proxy Settings
