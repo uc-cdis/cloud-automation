@@ -30,7 +30,7 @@ kube_ssh_key="$SSHKEY"
 kube_additional_keys="- \"${ADDSSHKEY}\""
 
 # S3 bucket for storing kube states
-kube_bucket="$BUCKET"
+kube_bucket="$KUBEBUCKET"
 
 google_client_secret="$CLIENTSECRET"
 google_client_id="$CLIENTID"
@@ -50,6 +50,12 @@ db_password_userapi="$USERAPIDBPASS"
 db_password_gdcapi="$GDCAPIDBPASS"
 
 db_password_indexd="$INDEXDDBPASS"
+
+userapi_snapshot="$USERAPISNAPSHOT"
+
+gdcapi_snapshot="$GDCAPISNAPSHOT"
+
+indexd_snapshot="$INDEXDSNAPSHOT"
 
 db_instance="db.t2.micro"
 

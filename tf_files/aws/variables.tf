@@ -30,6 +30,12 @@ variable "db_password_gdcapi" {
 }
 variable "db_password_indexd" {
 }
+variable "userapi_snapshot" {
+}
+variable "gdcapi_snapshot" {
+}
+variable "indexd_snapshot" {
+}
 variable "db_instance" {
     default = "db.t2.micro"
 }

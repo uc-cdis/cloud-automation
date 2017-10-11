@@ -57,6 +57,3 @@ if [ -f ~/cloud-automation/kube/kubes.sh ]; then
 fi
 EOF
 
-echo
-echo "Worker node IPs:"
-kubectl  get nodes --output=jsonpath='{range .items[*]}{.status.addresses[?(@.type=="InternalIP")].address} {.spec.taints} {"\n"}{end}' | grep -v NoSchedule

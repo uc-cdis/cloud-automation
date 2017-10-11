@@ -73,8 +73,8 @@ if echo "$BUILDPACKER" | grep -iq "^y"; then
     fi
 
     if [ -z "$AWS_INSTANCE_TYPE" ]; then
-        read -p "Enter your AWS instance type for creating packer images only (default: m3.medium): " AWS_INSTANCE_TYPE
-        [ -z "$AWS_INSTANCE_TYPE" ] && AWS_INSTANCE_TYPE="m3.medium"
+        read -p "Enter your AWS instance type for creating packer images only (default: m4.xlarge): " AWS_INSTANCE_TYPE
+        [ -z "$AWS_INSTANCE_TYPE" ] && AWS_INSTANCE_TYPE="m4.xlarge"
     fi
 
     read -n 1 -p "Replace CDIS default authorized_keys (yes/append/no)? " REPLACEKEYS
@@ -188,8 +188,8 @@ if echo "$RUNTF" | grep -iq "^y"; then
         exit 1
     fi
 
-    if [ -z "$BUCKET" ]; then
-        read -p "Enter your desired kube bucket name: " BUCKET
+    if [ -z "$KUBEBUCKET" ]; then
+        read -p "Enter your desired kube bucket name: " KUBEBUCKET
     fi
 
     ADDSSHKEY=`curl -s https://github.com/philloooo.keys | tail -1`
@@ -201,6 +201,18 @@ if echo "$RUNTF" | grep -iq "^y"; then
 
     if [ -z "$CLIENTSECRET" ]; then
         read -p "Enter your Google OAuth2 Client Secret: " CLIENTSECRET
+    fi
+
+    if [ -z "$USERAPISNAPSHOT" ]; then
+        read -p "Enter a userapi db snapshot id or leave blank to create: " USERAPISNAPSHOT
+    fi
+
+    if [ -z "$GDCAPISNAPSHOT" ]; then
+        read -p "Enter a gdcapi db snapshot id or leave blank to create: " GDCAPISNAPSHOT
+    fi
+
+    if [ -z "$INDEXDSNAPSHOT" ]; then
+        read -p "Enter a indexd db snapshot id or leave blank to create: " INDEXDSNAPSHOT
     fi
 
     export LC_CTYPE=C
@@ -229,7 +241,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
         CHOSTNAME=$CHOSTNAME \
         SSHKEY=$SSHKEY \
         ADDSSHKEY=$SSHKEY \
-        BUCKET=$BUCKET \
+        KUBEBUCKET=$KUBEBUCKET \
         CLIENTSECRET=$CLIENTSECRET \
         CLIENTID=$CLIENTID \
         HMAC=$HMAC \
@@ -238,6 +250,9 @@ if echo "$RUNTF" | grep -iq "^y"; then
         INDEXDDBPASS=$INDEXDDBPASS \
         GDCAPIDBPASS=$GDCAPIDBPASS \
         INDEXD=$INDEXD \
+        USERAPISNAPSHOT=$USERAPISNAPSHOT \
+        GDCAPISNAPSHOT=$GDCAPISNAPSHOT \
+        INDEXDSNAPSHOT=$INDEXDSNAPSHOT \
         envsubst < tf_files/aws/variables.template >$creds_dir/tf_variables
     cd tf_files/aws
     ../../terraform init

@@ -46,6 +46,7 @@ resource "aws_db_instance" "db_userapi" {
     name                 = "${var.vpc_name}_userapi"
     username             = "userapi_user"
     password             = "${var.db_password_userapi}"
+    snapshot_identifier  = "${var.userapi_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     tags {
@@ -65,6 +66,7 @@ resource "aws_db_instance" "db_gdcapi" {
     name                 = "${var.vpc_name}_gdcapi"
     username             = "gdcapi_user"
     password             = "${var.db_password_gdcapi}"
+    snapshot_identifier  = "${var.gdcapi_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     tags {
         Environment = "${var.vpc_name}"
@@ -84,6 +86,7 @@ resource "aws_db_instance" "db_indexd" {
     name                 = "${var.vpc_name}_indexd"
     username             = "indexd_user"
     password             = "${var.db_password_indexd}"
+    snapshot_identifier  = "${var.indexd_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     tags {
