@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1 
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: portal-deployment
@@ -21,14 +21,19 @@ spec:
         - containerPort: 80
         command:
           - /bin/bash
-          - -c
-          - npm run-script schema https://$(HOSTNAME)/api/v0/submission/getschema; /usr/sbin/nginx -g 'daemon off;'
+          - ./dockerStart.sh
         env:
-          - name: HOSTNAME 
+          - name: HOSTNAME
             valueFrom:
               configMapKeyRef:
-                name: global 
-                key: hostname 
+                name: global
+                key: hostname
+          - name: APP
+            value: dev
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
         imagePullPolicy: Always
       imagePullSecrets:
         - name: cdis-devservices-pull-secret
