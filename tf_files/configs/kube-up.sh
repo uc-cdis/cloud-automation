@@ -21,7 +21,8 @@ chmod +x kube-aws
 sudo mv kube-aws /usr/bin
 
 cd ~
-git clone https://github.com/uc-cdis/cloud-automation.git 2>/dev/null || cd cloud-automation && git pull
+git clone https://github.com/uc-cdis/cloud-automation.git 2>/dev/null || true
+cd cloud-automation && git pull
 
 ln -fs ~/cloud-automation/kube/services ~/${vpc_name}/services
 
