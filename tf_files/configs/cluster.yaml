@@ -38,6 +38,7 @@ controller:
     private: true
 
 etcd:
+  encrypted: true
   subnets:
   - name: private
 
