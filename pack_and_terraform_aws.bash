@@ -147,21 +147,33 @@ if echo "$RUNTF" | grep -iq "^y"; then
     if [ -z "$AWS_S3_ACCESS_KEY" ]; then
         read -p "Enter your access key to S3 bucket for saving terraform state: " AWS_S3_ACCESS_KEY
     fi
+    # Terraform variable: 
+    #  https://www.terraform.io/docs/configuration/environment-variables.html#tf_var_name
+    export TF_VAR_access_key="${AWS_S3_ACCESS_KEY}"
 
     if [ -z "$AWS_S3_SECRET_KEY" ]; then
         read -p "Enter your secret key to S3 bucket for saving terraform state: " AWS_S3_SECRET_KEY
     fi
+    # Terraform variable: 
+    #  https://www.terraform.io/docs/configuration/environment-variables.html#tf_var_name
+    export TF_VAR_secret_key="${AWS_S3_SECRET_KEY}"
 
     if [ -z "$AWS_S3_REGION" ]; then
         read -p "Enter your AWS region for S3 bucket that saves terraform state (default: us-east-1): " AWS_S3_REGION
         [ -z "$AWS_S3_REGION" ] && AWS_S3_REGION="us-east-1"
     fi
+    # Terraform variable: 
+    #  https://www.terraform.io/docs/configuration/environment-variables.html#tf_var_name
+    export TF_VAR_region="${AWS_S3_REGION}"
 
     if [ -z "$AWS_S3_BUCKET" ]; then
         read -p "Enter your bucket name for S3 bucket that saves terraform state (default: cdis-terraform-states): " AWS_S3_BUCKET
         [ -z "$AWS_S3_BUCKET" ] && AWS_S3_BUCKET="cdis-terraform-states"
     fi
-
+    # Terraform variable: 
+    #  https://www.terraform.io/docs/configuration/environment-variables.html#tf_var_name
+    export TF_VAR_bucket="${AWS_S3_BUCKET}"
+    
     if [ -z "$SOURCE_AMI" ]; then
         read -p "Enter your base ami: " SOURCE_AMI
     fi
