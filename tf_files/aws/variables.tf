@@ -15,6 +15,8 @@ variable "aws_cert_name" {
 }
 variable "login_ami" {
 }
+variable "kube_ami" {
+}
 variable "proxy_ami" {
 }
 variable "base_ami" {

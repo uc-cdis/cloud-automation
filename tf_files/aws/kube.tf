@@ -173,7 +173,7 @@ data "template_file" "aws_creds" {
     }
 }
 resource "aws_instance" "kube_provisioner" {
-    ami = "${var.login_ami}"
+    ami = "${var.kube_ami}"
     subnet_id = "${aws_subnet.private_kube.id}"
     instance_type = "t2.micro"
     monitoring = true
