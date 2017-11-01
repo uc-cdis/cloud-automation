@@ -38,7 +38,8 @@ controller:
     private: true
 
 etcd:
-  encrypted: true
+  dataVolume:
+    encrypted: true
   subnets:
   - name: private
 
