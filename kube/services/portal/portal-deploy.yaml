@@ -8,7 +8,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -17,6 +17,13 @@ spec:
       containers:
       - name: portal
         image: quay.io/cdis/data-portal:master
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
         ports:
         - containerPort: 80
         command:

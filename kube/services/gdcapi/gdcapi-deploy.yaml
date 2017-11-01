@@ -8,7 +8,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -21,6 +21,13 @@ spec:
       containers:
         - name: gdcapi
           image: quay.io/cdis/gdcapi:develop
+          livenessProbe:
+            httpGet:
+              path: /_status
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 30
           ports:
           - containerPort: 80
           volumeMounts:
