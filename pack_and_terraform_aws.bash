@@ -229,6 +229,7 @@ if echo "$RUNTF" | grep -iq "^y"; then
     INDEXD="$(random_alphanumeric 32)"
     echo "Your indexd write password is: $INDEXD"
 
+    cd tf_files/aws
     AWS_REGION=$AWS_REGION \
         AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
         AWS_SECRET_KEY=$AWS_SECRET_KEY \
@@ -253,9 +254,14 @@ if echo "$RUNTF" | grep -iq "^y"; then
         USERAPISNAPSHOT=$USERAPISNAPSHOT \
         GDCAPISNAPSHOT=$GDCAPISNAPSHOT \
         INDEXDSNAPSHOT=$INDEXDSNAPSHOT \
-        envsubst < tf_files/aws/variables.template >$creds_dir/tf_variables
-    cd tf_files/aws
-    ../../terraform init
+        envsubst < variables.template >$creds_dir/tf_variables
+    AWS_S3_ACCESS_KEY=$AWS_S3_ACCESS_KEY \
+    	AWS_S3_SECRET_KEY=$AWS_S3_SECRET_KEY \
+		AWS_S3_REGION=$AWS_S3_REGION \
+        AWS_S3_BUCKET=$AWS_S3_BUCKET \
+        KEY_TO_STATE=cdis-terraform-$VPC_NAME/terraform.tfstate \
+        envsubst < terraform.tfvars >$creds_dir/terraform.tfvars
+	../../terraform init -backend-config=$creds_dir/terraform.tfvars
     ../../terraform plan -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
     ../../terraform apply -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
 fi
