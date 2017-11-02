@@ -1,0 +1,24 @@
+#!groovy
+
+pipeline {
+  agent any
+
+  stages {
+    stage('BuildArchive'){
+      steps {
+        echo "BuildZip $env.JENKINS_HOME"
+        sh "tar cvJf backup.tar.xz --exclude '$env.JENKINS_HOME/jobs/[^/]*/builds/*' --exclude '$env.JENKINS_HOME/jobs/[^/]*/last*' --exclude '$env.JENKINS_HOME/workspace' --exclude '$env.JENKINS_HOME/jobs/[^/]*/workspace/'  $env.JENKINS_HOME"
+      }
+    }
+    stage('UploadToS3') {
+      steps {
+        echo 'Upload to S3!'
+      }
+    }
+    stage('Cleanup') {
+      steps {
+        echo 'Cleanup!'
+      }
+    }
+  }
+}
