@@ -1,8 +1,11 @@
 variable "vpc_name" {
+    default = "Commons1"
 }
 variable "vpc_octet" {
+    default = 16
 }
 variable "aws_region" {
+    default = "us-east-1"
 }
 variable "aws_access_key" {
 }
@@ -11,6 +14,8 @@ variable "aws_secret_key" {
 variable "aws_cert_name" {
 }
 variable "login_ami" {
+}
+variable "kube_ami" {
 }
 variable "proxy_ami" {
 }
@@ -40,6 +45,7 @@ variable "kube_additional_keys" {
     default = ""
 }
 variable "kube_bucket" {
+    default = "kube_bucket"
 }
 variable "google_client_id" {
 }

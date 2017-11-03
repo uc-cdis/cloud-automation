@@ -98,7 +98,7 @@ data "aws_acm_certificate" "api" {
 }
 
 data "template_file" "cluster" {
-    template = "${file("../configs/cluster.yaml")}"
+    template = "${file("${path.module}/../configs/cluster.yaml")}"
     vars {
         cluster_name = "${var.vpc_name}"
         key_name = "${aws_key_pair.automation_dev.key_name}"
@@ -117,7 +117,7 @@ data "template_file" "cluster" {
 }
 
 data "template_file" "creds" {
-    template = "${file("../configs/creds.tpl")}"
+    template = "${file("${path.module}/../configs/creds.tpl")}"
     vars {
         userapi_host = "${aws_db_instance.db_userapi.address}"
         userapi_user = "${aws_db_instance.db_userapi.username}"
@@ -141,7 +141,7 @@ data "template_file" "creds" {
 }
 
 data "template_file" "kube_up" {
-    template = "${file("../configs/kube-up.sh")}"
+    template = "${file("${path.module}/../configs/kube-up.sh")}"
     vars {
         vpc_name = "${var.vpc_name}"
         s3_bucket = "${var.kube_bucket}"
@@ -149,7 +149,7 @@ data "template_file" "kube_up" {
 }
 
 data "template_file" "configmap" {
-    template = "${file("../configs/00configmap.yaml")}"
+    template = "${file("${path.module}/../configs/00configmap.yaml")}"
     vars {
         vpc_name = "${var.vpc_name}"
         hostname = "${var.hostname}"
@@ -158,7 +158,7 @@ data "template_file" "configmap" {
 }
 
 data "template_file" "kube_services" {
-    template = "${file("../configs/kube-services.sh")}"
+    template = "${file("${path.module}/../configs/kube-services.sh")}"
     vars {
         vpc_name = "${var.vpc_name}"
         s3_bucket = "${var.kube_bucket}"
@@ -166,14 +166,14 @@ data "template_file" "kube_services" {
 }
 
 data "template_file" "aws_creds" {
-    template = "${file("../configs/aws_credentials")}"
+    template = "${file("${path.module}/../configs/aws_credentials")}"
     vars {
         access_key = "${var.aws_access_key}"
         secret_key = "${var.aws_secret_key}"
     }
 }
 resource "aws_instance" "kube_provisioner" {
-    ami = "${var.login_ami}"
+    ami = "${var.kube_ami}"
     subnet_id = "${aws_subnet.private_kube.id}"
     instance_type = "t2.micro"
     monitoring = true
@@ -206,7 +206,7 @@ resource "null_resource" "config_setup" {
         command = "echo \"${data.template_file.aws_creds.rendered}\" > ${var.vpc_name}_output/credentials"
     }
     provisioner "local-exec" {
-        command = "cp ../configs/render_creds.py ${var.vpc_name}_output/"
+        command = "cp ${path.module}/../configs/render_creds.py ${var.vpc_name}_output/"
     }
 }
 

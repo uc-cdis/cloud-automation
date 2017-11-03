@@ -1,0 +1,26 @@
+#!groovy
+
+pipeline {
+  agent any
+
+  stages {
+    stage('BuildArchive'){
+      steps {
+        echo "BuildArchive $env.JENKINS_HOME"
+        sh "tar cvJf backup.tar.xz --exclude '$env.JENKINS_HOME/jobs/[^/]*/builds/*' --exclude '$env.JENKINS_HOME/jobs/[^/]*/last*' --exclude '$env.JENKINS_HOME/workspace' --exclude '$env.JENKINS_HOME/jobs/[^/]*/workspace/'  $env.JENKINS_HOME"
+      }
+    }
+    stage('UploadToS3') {
+      steps {
+        echo 'Upload to S3!'
+        sh 'aws s3 cp --sse AES256 backup.tar.xz s3://cdis-terraform-state/JenkinsBackup/backup.$(date +%u).tar.xz'
+      }
+    }
+    stage('Cleanup') {
+      steps {
+        echo 'Cleanup!'
+        sh 'rm -f backup.tar.xz'
+      }
+    }
+  }
+}
