@@ -43,9 +43,10 @@ resource "aws_db_instance" "db_userapi" {
     skip_final_snapshot  = true
     engine_version       = "9.5.6"
     instance_class       = "${var.db_instance}"
-    name                 = "${var.vpc_name}_userapi"
+    name                 = "userapi"
     username             = "userapi_user"
     password             = "${var.db_password_userapi}"
+    snapshot_identifier  = "${var.userapi_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     tags {
@@ -62,9 +63,10 @@ resource "aws_db_instance" "db_gdcapi" {
     skip_final_snapshot  = true
     engine_version       = "9.5.6"
     instance_class       = "${var.db_instance}"
-    name                 = "${var.vpc_name}_gdcapi"
+    name                 = "gdcapi"
     username             = "gdcapi_user"
     password             = "${var.db_password_gdcapi}"
+    snapshot_identifier  = "${var.gdcapi_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     tags {
         Environment = "${var.vpc_name}"
@@ -81,9 +83,10 @@ resource "aws_db_instance" "db_indexd" {
     skip_final_snapshot  = true
     engine_version       = "9.5.6"
     instance_class       = "${var.db_instance}"
-    name                 = "${var.vpc_name}_indexd"
+    name                 = "indexd"
     username             = "indexd_user"
     password             = "${var.db_password_indexd}"
+    snapshot_identifier  = "${var.indexd_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     tags {
@@ -137,6 +140,8 @@ data "template_file" "creds" {
         hmac_encryption_key = "${var.hmac_encryption_key}"
         gdcapi_secret_key = "${var.gdcapi_secret_key}"
         gdcapi_indexd_password = "${var.gdcapi_indexd_password}"
+        gdcapi_oauth2_client_id = "${var.gdcapi_oauth2_client_id}"
+        gdcapi_oauth2_client_secret = "${var.gdcapi_oauth2_client_secret}"
     }
 }
 
@@ -162,6 +167,8 @@ data "template_file" "kube_services" {
     vars {
         vpc_name = "${var.vpc_name}"
         s3_bucket = "${var.kube_bucket}"
+        userapi_snapshot = "${var.userapi_snapshot}"
+        gdcapi_snapshot = "${var.gdcapi_snapshot}"
     }
 }
 

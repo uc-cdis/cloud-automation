@@ -30,6 +30,12 @@ variable "db_password_gdcapi" {
 }
 variable "db_password_indexd" {
 }
+variable "userapi_snapshot" {
+}
+variable "gdcapi_snapshot" {
+}
+variable "indexd_snapshot" {
+}
 variable "db_instance" {
     default = "db.t2.micro"
 }
@@ -59,4 +65,10 @@ variable "gdcapi_secret_key" {
 }
 # password for write access to indexd
 variable "gdcapi_indexd_password" {
+}
+# gdcapi's oauth2 client id(userapi as oauth2 provider)
+variable "gdcapi_oauth2_client_id" {
+}
+# gdcapi's oauth2 client secret
+variable "gdcapi_oauth2_client_secret" {
 }
