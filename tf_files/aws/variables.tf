@@ -66,3 +66,9 @@ variable "gdcapi_secret_key" {
 # password for write access to indexd
 variable "gdcapi_indexd_password" {
 }
+# gdcapi's oauth2 client id(userapi as oauth2 provider)
+variable "gdcapi_oauth2_client_id" {
+}
+# gdcapi's oauth2 client secret
+variable "gdcapi_oauth2_client_secret" {
+}

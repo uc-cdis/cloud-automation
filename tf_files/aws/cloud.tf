@@ -176,10 +176,6 @@ resource "aws_route_table" "public" {
     }
 }
 
-resource "aws_eip" "nat" {
-  vpc = true
-}
-
 resource "aws_eip" "login" {
   vpc = true
 }

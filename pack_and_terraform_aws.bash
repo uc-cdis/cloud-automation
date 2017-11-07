@@ -2,8 +2,8 @@
 # Right now this script guides you through the process
 # of running Packer & Terraform
 
-PACKER_VARIABLES="../packer_variables.json"
-IMAGES="images"
+packer_variables="../packer_variables.json"
+images="images"
 
 function random_alphanumeric() {
     # Generate a random string of alphanumeric characters of length $1.
@@ -14,8 +14,8 @@ function packer_build_image() {
     # Attempt to build the image file $1 using packer. If this runs into errors,
     # print the error output from packer and exit 1. Otherwise, return the ID of
     # the Amazon Machine Image (AMI) built.
-    cd $IMAGES
-    packer_output="$(../packer build --var-file ../$PACKER_VARIABLES -machine-readable images/$1)"
+    cd $images
+    packer_output="$(../packer build --var-file ../$packer_variables -machine-readable images/$1)"
     packer_errors="$(echo "$packer_output" | egrep '^.*,.*,.*,error' | cut -d ',' -f 5-)"
     if [[ -n $packer_errors ]]; then
         echo "packer failed to build image: $1" >&2
@@ -34,232 +34,270 @@ if [[ "$unamestr" == 'Darwin' ]]; then
         exit 1
     fi
 fi
-if [ -z "$AWS_REGION" ]; then
-    read -p "Enter your AWS region (default: us-east-1): " AWS_REGION
-    [ -z "$AWS_REGION" ] && AWS_REGION="us-east-1"
-fi
-if [ -z "$AWS_ACCESS_KEY" ]; then
-    read -p "Enter your AWS ACCESS key: " AWS_ACCESS_KEY
-fi
 
-if [ -z "$AWS_SECRET_KEY" ]; then
-    read -p "Enter your AWS SECRET key: " AWS_SECRET_KEY
-fi
-
-if [ -z "$GITHUB" ]; then
-    read -p "Enter your github username: " GITHUB
-fi
-SSHKEY=`curl -s https://github.com/$GITHUB.keys | tail -1`
-echo "Got key for $GITHUB: $SSHKEY"
-
-read -n 1 -p "Build packer images (y/n)? " BUILDPACKER
-[ -z "$BUILDPACKER" ] && BUILDPACKER="No"
+read -n 1 -p "create vpc with inherited vars from old vpc (y/n)? " migrate_vpc
+[ -z "$migrate_vpc" ] && migrate_vpc="no"
 echo
 
-if echo "$BUILDPACKER" | grep -iq "^y"; then
+if echo "$migrate_vpc" | grep -iq "^y"; then
+  . ./migrate_vpc.bash
+fi
+if [ -z "$aws_region" ]; then
+    read -p "Enter your AWS region (default: us-east-1): " aws_region
+    [ -z "$aws_region" ] && aws_region="us-east-1"
+fi
+if [ -z "$aws_access_key" ]; then
+    read -p "Enter your AWS ACCESS key: " aws_access_key
+fi
 
-    # Get the info to create AMIs
+if [ -z "$aws_secret_key" ]; then
+    read -p "Enter your AWS SECRET key: " aws_secret_key
+fi
+
+if [ -z "$kube_ssh_key" ]; then
+    if [ -z "$github" ]; then
+        read -p "enter your github username: " github
+    fi
+    kube_ssh_key=`curl -s https://github.com/$github.keys | tail -1`
+    echo "got key for $github: $kube_ssh_key"
+fi
+read -n 1 -p "build packer images (y/n)? " buildpacker
+[ -z "$buildpacker" ] && buildpacker="no"
+echo
+
+if echo "$buildpacker" | grep -iq "^y"; then
+
+    # get the info to create amis
     if [ ! -d "images" ]; then
-        echo "Cloning AMI base configurations"
+        echo "cloning ami base configurations"
         git clone https://github.com/uc-cdis/images.git
     fi
 
-    # Get packer to create AMIs
+    # get packer to create amis
     if [ ! -f "packer" ]; then
-        echo "Grabbing packer executable"
+        echo "grabbing packer executable"
         curl -o packer.zip https://releases.hashicorp.com/packer/1.0.3/packer_1.0.3_darwin_amd64.zip
         unzip packer.zip
         rm packer.zip
     fi
 
-    if [ -z "$AWS_INSTANCE_TYPE" ]; then
-        read -p "Enter your AWS instance type for creating packer images only (default: m4.xlarge): " AWS_INSTANCE_TYPE
-        [ -z "$AWS_INSTANCE_TYPE" ] && AWS_INSTANCE_TYPE="m4.xlarge"
+    if [ -z "$aws_instance_type" ]; then
+        read -p "enter your aws instance type for creating packer images only (default: m4.xlarge): " aws_instance_type
+        [ -z "$aws_instance_type" ] && aws_instance_type="m4.xlarge"
     fi
 
-    read -n 1 -p "Replace CDIS default authorized_keys (yes/append/no)? " REPLACEKEYS
-    [ -z "$REPLACEKEYS" ] && REPLACEKEYS="No"
+    read -n 1 -p "replace cdis default authorized_keys (yes/append/no)? " replacekeys
+    [ -z "$replacekeys" ] && replacekeys="no"
     echo
 
-    if echo "$REPLACEKEYS" | grep -iq "^y"; then
-        echo $SSHKEY >images/configs/authorized_keys
-    elif echo "$REPLACEKEYS" | grep -iq "^a"; then
-        echo $SSHKEY >>images/configs/authorized_keys
+    if echo "$replacekeys" | grep -iq "^y"; then
+        echo $kube_ssh_key >images/configs/authorized_keys
+    elif echo "$replacekeys" | grep -iq "^a"; then
+        echo $kube_ssh_key >>images/configs/authorized_keys
     fi
 
-    # SOURCE_AMI is set after building the base image, so leave the variable
+    # source_ami is set after building the base image, so leave the variable
     # there for a second envsubst.
-    AWS_REGION=$AWS_REGION \
-        AWS_INSTANCE_TYPE=$AWS_INSTANCE_TYPE \
-        AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
-        AWS_SECRET_KEY=$AWS_SECRET_KEY \
-        SOURCE_AMI='$SOURCE_AMI' \
-        envsubst < $IMAGES/variables.json.template >$PACKER_VARIABLES
+    aws_region=$aws_region \
+        aws_instance_type=$aws_instance_type \
+        aws_access_key=$aws_access_key \
+        aws_secret_key=$aws_secret_key \
+        source_ami='$source_ami' \
+        envsubst < $images/variables.json.template >$packer_variables
 
-    echo "Building packer base image"
-    SOURCE_AMI="$(packer_build_image base_image.json)"
+    echo "building packer base image"
+    source_ami="$(packer_build_image base_image.json)"
     [ $? == 1 ] && exit 1;
-    echo "Base ami is $SOURCE_AMI"
-    # Fill in the source_ami packer variable. (Note that the packer variables
+    echo "base ami is $source_ami"
+    # fill in the source_ami packer variable. (note that the packer variables
     # file can't be read from and redirected to in the same step.)
-    SOURCE_AMI=$SOURCE_AMI \
-        envsubst < $PACKER_VARIABLES >tmp
-    mv tmp $PACKER_VARIABLES
+    source_ami=$source_ami \
+        envsubst < $packer_variables >tmp
 
-    echo "Building packer client image"
-    CLIENT_AMI="$(packer_build_image client.json)"
-    [ $? == 1 ] && exit 1;
-    echo "Client ami is $CLIENT_AMI"
 
-    echo "Building packer squid image"
-    PROXY_AMI="$(packer_build_image squid_image.json)"
+    mv tmp $packer_variables
+
+    echo "building packer client image"
+    client_ami="$(packer_build_image client.json)"
     [ $? == 1 ] && exit 1;
-    echo "Proxy ami is $PROXY_AMI"
+    echo "client ami is $client_ami"
+
+    echo "building packer squid image"
+    proxy_ami="$(packer_build_image squid_image.json)"
+    [ $? == 1 ] && exit 1;
+    echo "proxy ami is $proxy_ami"
+
+
+    base_ami=$source_ami
+    login_ami=$client_ami
 
 fi
 
-read -n 1 -p "Run terraform (y/n)? " RUNTF
-[ -z "$RUNTF" ] && RUNTF="No"
+read -n 1 -p "run terraform (y/n)? " runtf
+[ -z "$runtf" ] && runtf="no"
 echo
 
-if echo "$RUNTF" | grep -iq "^y"; then
+if echo "$runtf" | grep -iq "^y"; then
 
     if [ ! -f "terraform" ]; then
-        echo "Grabbing terraform executable"
+        echo "grabbing terraform executable"
         curl -o terraform.zip https://releases.hashicorp.com/terraform/0.10.4/terraform_0.10.4_darwin_amd64.zip
         unzip terraform.zip
         rm terraform.zip
     fi
 
-    if [ -z "$VPC_NAME" ]; then
-        read -p "Enter your VPC name (only alphanumeric characters): " VPC_NAME
+    if [ -z "$vpc_name" ]; then
+        read -p "enter your vpc name (only alphanumeric characters): " vpc_name
     fi
 
-    if [ -z "$VPC_OCTET" ]; then
-        read -p "Enter your VPC subnet octet (between 16 to 31) which will make the internal network 172.X (default: 16): " VPC_OCTET
-        [ -z "$VPC_OCTET" ] && VPC_OCTET="16"
+    if [ -z "$vpc_octet" ]; then
+        read -p "enter your vpc subnet octet (between 16 to 31) which will make the internal network 172.x (default: 16): " vpc_octet
+        [ -z "$vpc_octet" ] && vpc_octet="16"
     fi
 
-    echo "Your configuration for this VPC will be saved to $HOME/.creds/$VPC_NAME"
-    creds_dir=$HOME/.creds/$VPC_NAME
+    echo "your configuration for this vpc will be saved to $HOME/.creds/$vpc_name"
+    creds_dir=$HOME/.creds/$vpc_name
     mkdir -p $creds_dir
 
-    if [ -z "$AWS_S3_ACCESS_KEY" ]; then
-        read -p "Enter your access key to S3 bucket for saving terraform state: " AWS_S3_ACCESS_KEY
+    if [ -z "$aws_s3_access_key" ]; then
+        read -p "enter your access key to s3 bucket for saving terraform state: " aws_s3_access_key
     fi
 
-    if [ -z "$AWS_S3_SECRET_KEY" ]; then
-        read -p "Enter your secret key to S3 bucket for saving terraform state: " AWS_S3_SECRET_KEY
+    if [ -z "$aws_s3_secret_key" ]; then
+        read -p "enter your secret key to s3 bucket for saving terraform state: " aws_s3_secret_key
     fi
 
-    if [ -z "$AWS_S3_REGION" ]; then
-        read -p "Enter your AWS region for S3 bucket that saves terraform state (default: us-east-1): " AWS_S3_REGION
-        [ -z "$AWS_S3_REGION" ] && AWS_S3_REGION="us-east-1"
+    if [ -z "$aws_s3_region" ]; then
+        read -p "enter your aws region for s3 bucket that saves terraform state (default: us-east-1): " aws_s3_region
+        [ -z "$aws_s3_region" ] && aws_s3_region="us-east-1"
     fi
 
-    if [ -z "$AWS_S3_BUCKET" ]; then
-        read -p "Enter your bucket name for S3 bucket that saves terraform state (default: cdis-terraform-states): " AWS_S3_BUCKET
-        [ -z "$AWS_S3_BUCKET" ] && AWS_S3_BUCKET="cdis-terraform-states"
+    if [ -z "$aws_s3_bucket" ]; then
+        read -p "enter your bucket name for s3 bucket that saves terraform state (default: cdis-terraform-states): " aws_s3_bucket
+        [ -z "$aws_s3_bucket" ] && aws_s3_bucket="cdis-terraform-states"
     fi
 
-    if [ -z "$SOURCE_AMI" ]; then
-        read -p "Enter your base ami: " SOURCE_AMI
+    if [ -z "$base_ami" ]; then
+        read -p "enter your base ami: " base_ami
     fi
 
-    if [ -z "$CLIENT_AMI" ]; then
-        read -p "Enter your client ami: " CLIENT_AMI
+    if [ -z "$login_ami" ]; then
+        read -p "enter your client ami: " login_ami
     fi
 
-    if [ -z "$PROXY_AMI" ]; then
-        read -p "Enter your proxy ami: " PROXY_AMI
+    if [ -z "$proxy_ami" ]; then
+        read -p "enter your proxy ami: " proxy_ami
     fi
 
-    if [ -z "$CHOSTNAME" ]; then
-        read -p "Enter your hostname name like www.example.com: " CHOSTNAME
+    if [ -z "$hostname" ]; then
+        read -p "enter your hostname name like www.example.com: " hostname
     fi
-    echo "You need to create a certificate in AWS Certificate Manager with imported certs or the admin for the site need to approve aws create it."
-    read -p "This needs to be done to make following process working. Done? [y/n] " CONFIGURED_CERT
+    echo "you need to create a certificate in aws certificate manager with imported certs or the admin for the site need to approve aws create it."
+    read -p "this needs to be done to make following process working. done? [y/n] " configured_cert
 
-    if [ -z "$AWS_CERT_NAME" ]; then
-        read -p "Enter the domain name for the AWS certificate: " AWS_CERT_NAME
+    if [ -z "$aws_cert_name" ]; then
+        read -p "enter the domain name for the aws certificate: " aws_cert_name
     fi
 
-    if [ "$CONFIGURED_CERT" != "y" ]; then
+    if [ "$configured_cert" != "y" ]; then
         exit 1
     fi
 
-    if [ -z "$KUBEBUCKET" ]; then
-        read -p "Enter your desired kube bucket name: " KUBEBUCKET
+    if [ -z "$kube_bucket" ]; then
+        read -p "enter your desired kube bucket name: " kube_bucket
     fi
 
-    ADDSSHKEY=`curl -s https://github.com/philloooo.keys | tail -1`
-    echo "Phillis' key is: $ADDSSHKEY"
-
-    if [ -z "$CLIENTID" ]; then
-        read -p "Enter your Google OAuth2 Client ID: " CLIENTID
+    if [ -z "$addsshkey" ]; then
+        addsshkey=`curl -s https://github.com/philloooo.keys | tail -1`
+        echo "phillis' key is: $addsshkey"
     fi
 
-    if [ -z "$CLIENTSECRET" ]; then
-        read -p "Enter your Google OAuth2 Client Secret: " CLIENTSECRET
+    if [ -z "$google_client_id" ]; then
+        read -p "enter your google oauth2 client id: " google_client_id
     fi
 
-    if [ -z "$USERAPISNAPSHOT" ]; then
-        read -p "Enter a userapi db snapshot id or leave blank to create: " USERAPISNAPSHOT
+    if [ -z "$google_client_secret" ]; then
+        read -p "enter your google oauth2 client secret: " google_client_secret
     fi
 
-    if [ -z "$GDCAPISNAPSHOT" ]; then
-        read -p "Enter a gdcapi db snapshot id or leave blank to create: " GDCAPISNAPSHOT
+    if [ -z "$userapi_snapshot" ]; then
+        read -p "enter a userapi db snapshot id or leave blank to create: " userapi_snapshot
     fi
 
-    if [ -z "$INDEXDSNAPSHOT" ]; then
-        read -p "Enter a indexd db snapshot id or leave blank to create: " INDEXDSNAPSHOT
+    if [ -z "$gdcapi_snapshot" ]; then
+        read -p "enter a gdcapi db snapshot id or leave blank to create: " gdcapi_snapshot
+    fi
+
+    if [ -z "$indexd_snapshot" ]; then
+        read -p "enter a indexd db snapshot id or leave blank to create: " indexd_snapshot
     fi
 
     export LC_CTYPE=C
-    HMAC="$(random_alphanumeric 32 | base64)"
-    echo "Your HMAC encryption key is: $HMAC"
-    GDCAPI_SECRET="$(random_alphanumeric 50)"
-    echo "Your gdcapi flask secret key is: $GDCAPI_SECRET"
-    USERAPIDBPASS="$(random_alphanumeric 32)"
-    echo "Your User API DB password is: $USERAPIDBPASS"
-    GDCAPIDBPASS="$(random_alphanumeric 32)"
-    echo "Your GDC API DB password is: $GDCAPIDBPASS"
-    INDEXDDBPASS="$(random_alphanumeric 32)"
-    echo "Your IndexD DB password is: $INDEXDDBPASS"
-    INDEXD="$(random_alphanumeric 32)"
-    echo "Your indexd write password is: $INDEXD"
 
+    if [ -z "$hmac_encryption_key" ]; then
+        hmac_encryption_key="$(random_alphanumeric 32 | base64)"
+        echo "your hmac encryption key is: $hmac_encryption_key"
+    fi
+    if [ -z "$gdcapi_secret_key" ]; then
+        gdcapi_secret_key="$(random_alphanumeric 50)"
+        echo "your gdcapi flask secret key is: $gdcapi_secret_key"
+    fi
+    if [ -z "$db_password_userapi" ]; then
+        db_password_userapi="$(random_alphanumeric 32)"
+        echo "your user api db password is: $db_password_userapi"
+    fi
+    if [ -z "$db_password_gdcapi" ]; then
+        db_password_gdcapi="$(random_alphanumeric 32)"
+        echo "your gdc api db password is: $db_password_gdcapi"
+    fi
+    if [ -z "$db_password_indexd" ]; then
+        db_password_indexd="$(random_alphanumeric 32)"
+        echo "your indexd db password is: $db_password_indexd"
+    fi
+    if [ -z "$gdcapi_indexd_password" ]; then
+        gdcapi_indexd_password="$(random_alphanumeric 32)"
+        echo "your indexd write password is: $gdcapi_indexd_password"
+    fi
+
+    pwd
     cd tf_files/aws
-    AWS_REGION=$AWS_REGION \
-        AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
-        AWS_SECRET_KEY=$AWS_SECRET_KEY \
-        AWS_CERT_NAME=$AWS_CERT_NAME \
-        VPC_NAME=$VPC_NAME \
-        VPC_OCTET=$VPC_OCTET \
-        LOGIN_AMI=$CLIENT_AMI \
-        PROXY_AMI=$PROXY_AMI \
-        BASE_AMI=$SOURCE_AMI \
-        CHOSTNAME=$CHOSTNAME \
-        SSHKEY=$SSHKEY \
-        ADDSSHKEY=$SSHKEY \
-        KUBEBUCKET=$KUBEBUCKET \
-        CLIENTSECRET=$CLIENTSECRET \
-        CLIENTID=$CLIENTID \
-        HMAC=$HMAC \
-        GDCAPI_SECRET=$GDCAPI_SECRET \
-        USERAPIDBPASS=$USERAPIDBPASS \
-        INDEXDDBPASS=$INDEXDDBPASS \
-        GDCAPIDBPASS=$GDCAPIDBPASS \
-        INDEXD=$INDEXD \
-        USERAPISNAPSHOT=$USERAPISNAPSHOT \
-        GDCAPISNAPSHOT=$GDCAPISNAPSHOT \
-        INDEXDSNAPSHOT=$INDEXDSNAPSHOT \
+    aws_region=$aws_region \
+        aws_access_key=$aws_access_key \
+        aws_secret_key=$aws_secret_key \
+        aws_cert_name=$aws_cert_name \
+        vpc_name=$vpc_name \
+        vpc_octet=$vpc_octet \
+        login_ami=$login_ami \
+        proxy_ami=$proxy_ami \
+        base_ami=$base_ami \
+        hostname=$hostname \
+        kube_ssh_key=$kube_ssh_key \
+        addsshkey=$addsshkey \
+        kube_bucket=$kube_bucket \
+        google_client_secret=$google_client_secret \
+        google_client_id=$google_client_id \
+        hmac_encryption_key=$hmac_encryption_key \
+        gdcapi_secret_key=$gdcapi_secret_key \
+        db_password_userapi=$db_password_userapi \
+        db_password_indexd=$db_password_indexd \
+        db_password_gdcapi=$db_password_gdcapi \
+        gdcapi_indexd_password=$gdcapi_indexd_password \
+        userapi_snapshot=$userapi_snapshot \
+        gdcapi_snapshot=$gdcapi_snapshot \
+        indexd_snapshot=$indexd_snapshot \
+        aws_s3_access_key=$aws_s3_access_key \
+    	aws_s3_secret_key=$aws_s3_secret_key \
+		aws_s3_region=$aws_s3_region \
+        aws_s3_bucket=$aws_s3_bucket \
+        key_to_state=cdis-terraform-$vpc_name/terraform.tfstate \
+        gdcapi_oauth2_client_secret=$gdcapi_oauth2_client_secret \
+        gdcapi_oauth2_client_id=$gdcapi_oauth2_client_id \
         envsubst < variables.template >$creds_dir/tf_variables
-    AWS_S3_ACCESS_KEY=$AWS_S3_ACCESS_KEY \
-    	AWS_S3_SECRET_KEY=$AWS_S3_SECRET_KEY \
-		AWS_S3_REGION=$AWS_S3_REGION \
-        AWS_S3_BUCKET=$AWS_S3_BUCKET \
-        KEY_TO_STATE=cdis-terraform-$VPC_NAME/terraform.tfstate \
+    aws_s3_access_key=$aws_s3_access_key \
+    	aws_s3_secret_key=$aws_s3_secret_key \
+		aws_s3_region=$aws_s3_region \
+        aws_s3_bucket=$aws_s3_bucket \
+        key_to_state=cdis-terraform-$vpc_name/terraform.tfstate \
         envsubst < terraform.tfvars >$creds_dir/terraform.tfvars
 	../../terraform init -backend-config=$creds_dir/terraform.tfvars
     ../../terraform plan -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate

@@ -33,15 +33,17 @@ kubectl apply -f services/indexd/indexd-deploy.yaml
 kubectl apply -f services/revproxy/00nginx-config.yaml
 kubectl apply -f services/revproxy/revproxy-deploy.yaml
 
+if [ -z "${userapi_snapshot}" ]; then
 cd ~/${vpc_name}_output; python render_creds.py userapi_db
 python render_creds.py  secrets
-
+fi
 
 cd ~/${vpc_name}; kubectl create secret generic gdcapi-secret --from-file=wsgi.py=./apis_configs/gdcapi_settings.py
 kubectl apply -f services/gdcapi/gdcapi-deploy.yaml
 
-
+if [ -z "${gdcapi_snapshot}" ]; then
 cd ~/${vpc_name}_output; python render_creds.py gdcapi_db
+fi
 
 cd ~/${vpc_name}
 kubectl apply -f services/userapi/userapi-service.yaml

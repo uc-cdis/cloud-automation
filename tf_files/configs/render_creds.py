@@ -193,6 +193,18 @@ def render_from_template(service, data, result_dir):
         f.write(template.render(**data))
 
 
+def dump_creds(creds_file):
+    with open(creds_file,'r') as f:
+        creds = json.load(f)
+    print (
+        "gdcapi_oauth2_client_id={}\n"
+        "gdcapi_oauth2_client_secret={}\n"
+        .format(creds['gdcapi']['oauth2_client_id'],
+                creds['gdcapi']['oauth2_client_secret'])
+    )
+
+
+
 if __name__ == '__main__':
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     project_dir = re.sub(r'_output$', '', cur_dir)
@@ -212,6 +224,10 @@ if __name__ == '__main__':
     gdcapi_parser = subparsers.add_parser(
         'gdcapi_db', help='setup gdcapi database')
 
+
+    dump_parser = subparsers.add_parser(
+        'dump_creds', help='dump oauth2 creds needed for migration')
+
     args = parser.parse_args()
     if args.sp_name == 'secrets':
         result_dir = os.path.join(project_dir, 'apis_configs')
@@ -224,3 +240,5 @@ if __name__ == '__main__':
         setup_userapi_database(creds_file, kubeconfig)
     elif args.sp_name == 'gdcapi_db':
         setup_gdcapi_database(creds_file, kubeconfig)
+    elif args.sp_name == 'dump_creds':
+        dump_creds(creds_file)

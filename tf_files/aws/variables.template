@@ -1,63 +1,73 @@
-# VPC name is also used for DB name, so only alphanumeric characters
-vpc_name="$VPC_NAME"
+# vpc name is also used for db name, so only alphanumeric characters
+vpc_name="$vpc_name"
 
-vpc_octet="$VPC_OCTET"
+vpc_octet="$vpc_octet"
 
-aws_region="$AWS_REGION"
+aws_region="$aws_region"
 
-aws_access_key="$AWS_ACCESS_KEY"
+aws_access_key="$aws_access_key"
 
-aws_secret_key="$AWS_SECRET_KEY"
+aws_secret_key="$aws_secret_key"
 
-aws_cert_name="$AWS_CERT_NAME"
+aws_cert_name="$aws_cert_name"
 
-login_ami="$LOGIN_AMI"
-kube_ami="$LOGIN_AMI"
+login_ami="$login_ami"
 
-proxy_ami="$PROXY_AMI"
+kube_ami="$login_ami"
 
-base_ami="$BASE_AMI"
+proxy_ami="$proxy_ami"
+
+base_ami="$base_ami"
 
 db_size=10
 
-hostname="$CHOSTNAME"
+hostname="$hostname"
 
 # ssh key to be added to kube nodes
-kube_ssh_key="$SSHKEY"
+kube_ssh_key="$kube_ssh_key"
 
 # additional keys
-# format like kube_additional_keys="- \"ssh-rsa XXXX\"\n  - \"ssh-rsa XXXX\""
-kube_additional_keys="- \"${ADDSSHKEY}\""
+# format like kube_additional_keys="- \"ssh-rsa xxxx\"\n  - \"ssh-rsa xxxx\""
+kube_additional_keys="- \"${addsshkey}\""
 
-# S3 bucket for storing kube states
-kube_bucket="$KUBEBUCKET"
+# s3 bucket for storing kube states
+kube_bucket="$kube_bucket"
 
-google_client_secret="$CLIENTSECRET"
-google_client_id="$CLIENTID"
+google_client_secret="$google_client_secret"
+google_client_id="$google_client_id"
 
 
-# Following variables can be randomly generated passwords
+# following variables can be randomly generated passwords
 
 # base64 encoded 32 alphanumeric characters
-# cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | base64
-hmac_encryption_key="$HMAC"
+# cat /dev/urandom | tr -dc 'a-za-z0-9' | fold -w 32 | head -n 1 | base64
+hmac_encryption_key="$hmac_encryption_key"
 
-gdcapi_secret_key="$GDCAPI_SECRET"
+gdcapi_secret_key="$gdcapi_secret_key"
 
 # don't use ( ) " ' { } < > @ in password
-db_password_userapi="$USERAPIDBPASS"
+db_password_userapi="$db_password_userapi"
 
-db_password_gdcapi="$GDCAPIDBPASS"
+db_password_gdcapi="$db_password_gdcapi"
 
-db_password_indexd="$INDEXDDBPASS"
+db_password_indexd="$db_password_indexd"
 
-userapi_snapshot="$USERAPISNAPSHOT"
+userapi_snapshot="$userapi_snapshot"
 
-gdcapi_snapshot="$GDCAPISNAPSHOT"
+gdcapi_snapshot="$gdcapi_snapshot"
 
-indexd_snapshot="$INDEXDSNAPSHOT"
+indexd_snapshot="$indexd_snapshot"
 
 db_instance="db.t2.micro"
 
 # password for write access to indexd
-gdcapi_indexd_password="$INDEXD"
+gdcapi_indexd_password="$gdcapi_indexd_password"
+
+gdcapi_oauth2_client_id="$gdcapi_oauth2_client_id"
+gdcapi_oauth2_client_secret="$gdcapi_oauth2_client_secret"
+# variables for s3 backend init
+aws_s3_access_key="$aws_s3_access_key"
+aws_s3_secret_key="$aws_s3_secret_key"
+key_to_state="$key_to_state"
+aws_s3_region="$aws_s3_region"
+aws_s3_bucket="$aws_s3_bucket"
