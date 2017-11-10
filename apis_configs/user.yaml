@@ -35,3 +35,19 @@ users:
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
+  reuben@frickjack.com:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  reubenonrye@uchicago.edu:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  rudyardrichter@uchicago.edu:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  

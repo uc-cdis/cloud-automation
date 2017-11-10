@@ -11,68 +11,99 @@ data:
       pid /run/nginx.pid;
       
       events {
-      	worker_connections 768;
-      	# multi_accept on;
+        worker_connections 768;
+        # multi_accept on;
       }
       
       http {
+        ##
+        # Basic Settings
+        ##
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        # server_tokens off;
       
-      	##
-      	# Basic Settings
-      	##
+        # server_names_hash_bucket_size 64;
+        # server_name_in_redirect off;
       
-      	sendfile on;
-      	tcp_nopush on;
-      	tcp_nodelay on;
-      	keepalive_timeout 65;
-      	types_hash_max_size 2048;
-      	# server_tokens off;
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
       
-      	# server_names_hash_bucket_size 64;
-      	# server_name_in_redirect off;
+        ##
+        # Logging Settings
+        ##
       
-      	include /etc/nginx/mime.types;
-      	default_type application/octet-stream;
+        access_log /dev/stdout;
+        error_log /dev/stderr;
       
-      	##
-      	# Logging Settings
-      	##
-      
-      	access_log /dev/stdout;
-      	error_log /dev/stderr;
-      
-      	##
-      	# Gzip Settings
-      	##
+        ##
+        # Gzip Settings
+        ##
         gzip on;
         gzip_disable "msie6";
         gzip_types application/javascript;
       
         ##
-      	# Proxy Settings
-      	##
-      	server {
-      		listen 80;
-      		server_tokens off;
-      		add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
-      		add_header X-Frame-Options "SAMEORIGIN";
-      		if ($http_x_forwarded_proto = "http") { rewrite ^/(.*)$ https://$host$request_uri permanent; }
-      		location / {
-      		    proxy_pass http://portal-service.default/;
-      		}
-      		location /index {
-      		    proxy_pass http://indexd-service.default/;
-      		}
-      		location /user {
-      		    proxy_pass http://userapi-service.default/;
-      		}
-      		location /api {
-      		    proxy_next_upstream off;
-                    # Forward the host and set Subdir header so api
-                    # knows the original request path for hmac signing
-      		    proxy_set_header   Host $host;
-      		    proxy_set_header   Subdir /api;
-      		    proxy_pass http://gdcapi-service.default/;
-      		}
-      	}
+        # Proxy Settings
+        ##
+        server {
+            listen 80;
+            server_tokens off;
+            add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
+            add_header X-Frame-Options "SAMEORIGIN";
+            if ($http_x_forwarded_proto = "http") { rewrite ^/(.*)$ https://$host$request_uri permanent; }
+            location / {
+                proxy_pass http://portal-service.default/;
+            }
+            location /index {
+                proxy_pass http://indexd-service.default/;
+            }
+            location /user {
+                proxy_pass http://userapi-service.default/;
+            }
+            location /api {
+                proxy_next_upstream off;
+                        # Forward the host and set Subdir header so api
+                        # knows the original request path for hmac signing
+                proxy_set_header   Host $host;
+                proxy_set_header   Subdir /api;
+                proxy_pass http://gdcapi-service.default/;
+            }
+            location /jenkins {
+                # From:
+                #    https://wiki.jenkins.io/display/JENKINS/Jenkins+behind+an+NGinX+reverse+proxy
+                # Convert inbound WAN requests for https://domain.tld/jenkins/ to 
+                # local network requests for http://10.0.0.100:8080/jenkins/
+                proxy_pass http://jenkins-service.default/jenkins/;
+                
+                # Rewrite HTTPS requests from WAN to HTTP requests on LAN
+                proxy_redirect http:// https://;
+        
+                # The following settings from https://wiki.jenkins-ci.org/display/JENKINS/Running+Hudson+behind+Nginx
+                sendfile off;
+        
+                proxy_set_header   Host             $host:$server_port;
+                proxy_set_header   X-Real-IP        $remote_addr;
+                proxy_set_header   X-Forwarded-For  $proxy_add_x_forwarded_for;
+                proxy_max_temp_file_size 0;
+        
+                #this is the maximum upload size
+                client_max_body_size       10m;
+                client_body_buffer_size    128k;
+        
+                proxy_connect_timeout      90;
+                proxy_send_timeout         90;
+                proxy_read_timeout         90;
+        
+                proxy_temp_file_write_size 64k;
+        
+                # Required for new HTTP-based CLI
+                proxy_http_version 1.1;
+                proxy_request_buffering off;
+                proxy_buffering off; # Required for HTTP-based CLI to work over SSL
+            }
+        }
       }

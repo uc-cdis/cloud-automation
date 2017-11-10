@@ -52,7 +52,6 @@ to destroy the whole stack.
 - Login node. This VM opens  port 22 to the world and is the entry point for ssh access to the cloud.
 - HTTP/HTTPS proxy node(cloud-proxy.internal.io). This proxies all HTTP/HTTPS traffic for internal VMs.
 - Kubernete provisioner VM (kube.internal.io). This is the VM to use [kube-aws](https://github.com/kubernetes-incubator/kube-aws) to setup the kubernete cluster. kube-aws can be run anywhere, but since we want to setup our k8 cluster inside the private subnet, we have to provision it also inside the same subnet. Since terraform doesn't support ssh access through head node, the needed scripts to setup this node are copied to tf_files/${vpc_name}_output directory, and you need to copy the directory to this VM and follow the [instruction](https://github.com/uc-cdis/cloud-automation/blob/master/kube/README.md) to setup this VM.
-- API reverse proxy node(revproxy.internal.io). This is the current single reverse proxy VM for Gen 3 stack apis. This should later be migrated to ELB. Since terraform doesn't support ssh access through head node, the needed scripts to setup this node are copied to tf_files/${vpc_name}_output directory, and you need to copy `proxy.conf` and `revproxy-setup.sh` to this VM and run the setup script after the kubernete cluster is up.
 
 ## Working inside VPC
 1. Load your ssh key pair in EC2 -> Key Pairs dashboard.
