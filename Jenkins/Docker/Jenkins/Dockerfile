@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:latest
+FROM jenkins/jenkins:2.89
 
 USER root
 
@@ -19,7 +19,7 @@ RUN rm -r /tmp/kubernetes /tmp/kubernetes-client-linux-amd64.tar.gz
 
 # add our custom start script
 COPY jenkins.sh /opt/cdis/bin/jenkins.sh
-RUN chmod -R a+rX /opt/cdis
+RUN chmod -R a+rx /opt/cdis
 ENTRYPOINT ["/bin/tini", "--", "/opt/cdis/bin/jenkins.sh"]
 
 USER jenkins

@@ -7,7 +7,7 @@ pipeline {
     stage('BuildArchive'){
       steps {
         echo "BuildArchive $env.JENKINS_HOME"
-        sh "tar cvJf backup.tar.xz --exclude '$env.JENKINS_HOME/jobs/[^/]*/builds/*' --exclude '$env.JENKINS_HOME/jobs/[^/]*/last*' --exclude '$env.JENKINS_HOME/workspace' --exclude '$env.JENKINS_HOME/jobs/[^/]*/workspace/'  $env.JENKINS_HOME"
+        sh "tar cvJf backup.tar.xz --exclude '$env.JENKINS_HOME/jobs/[^/]*/builds/*' --exclude '$env.JENKINS_HOME/jobs/[^/]*/last*' --exclude '$env.JENKINS_HOME/workspace' --exclude '$env.JENKINS_HOME/war' --exclude '$env.JENKINS_HOME/jobs/[^/]*/workspace/'  $env.JENKINS_HOME"
       }
     }
     stage('UploadToS3') {
