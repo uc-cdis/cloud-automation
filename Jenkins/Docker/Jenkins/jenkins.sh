@@ -12,7 +12,7 @@ if [ "$JENKINS_HOME" = "/tmp/var/jenkins_home" ]; then
   exit 1
 fi
 
-if [ ! -d "$JENKINS_HOME/jobs" ]; then
+if [ ! -d "$JENKINS_HOME/jobs" ]; then # restore from s3 is necessary
   if [ -d "$JENKINS_HOME" ]; then
     # download latest backup from S3 - collected via Pipelines/Backup :-)
     latestFile="$(aws s3 ls s3://cdis-terraform-state/JenkinsBackup/ | sort | tail -1 | awk '{ print $4}')"

@@ -14,12 +14,15 @@ spec:
       labels:
         app: jenkins
     spec:
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: jenkins
         image: quay.io/cdis/jenkins:latest
         livenessProbe:
           httpGet:
-            path: /jenkins/login
+            path: /login
             port: 8080
           initialDelaySeconds: 30
           periodSeconds: 60
@@ -32,8 +35,6 @@ spec:
               configMapKeyRef:
                 name: global
                 key: hostname
-          - name: JENKINS_OPTS
-            value: --prefix=/jenkins
           - name: AWS_DEFAULT_REGION
             value: us-east-1
           - name: AWS_ACCESS_KEY_ID
@@ -46,11 +47,17 @@ spec:
               secretKeyRef:
                 name: jenkins-secret
                 key: aws_secret_access_key
-
         readinessProbe:
           httpGet:
-            path: /jenkins/login
+            path: /login
             port: 8080
         imagePullPolicy: Always
+        volumeMounts:
+        - name: datadir
+          mountPath: /var/jenkins_home
+      volumes:
+      - name: datadir
+        persistentVolumeClaim:
+          claimName: datadir-jenkins  
       imagePullSecrets:
         - name: cdis-devservices-pull-secret
