@@ -42,4 +42,15 @@ pipeline {
       }
     }
   }
+  post {
+    success {
+      slackSend color: 'good', message: 'Jenkins TerraformPlanOnly pipeline succeeded'
+    }
+    failure {
+      slackSend color: 'bad', message: 'Jenkins TerraformPlanOnly pipeline failed'
+    }
+    unstable {
+      slackSend color: 'bad', message: 'Jenkins TerraformPlanOnly pipeline unstable'
+    }
+  }
 }
