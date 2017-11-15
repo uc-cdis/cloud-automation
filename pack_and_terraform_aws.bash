@@ -98,11 +98,11 @@ if echo "$buildpacker" | grep -iq "^y"; then
 
     # source_ami is set after building the base image, so leave the variable
     # there for a second envsubst.
-    aws_region=$aws_region \
-        aws_instance_type=$aws_instance_type \
-        aws_access_key=$aws_access_key \
-        aws_secret_key=$aws_secret_key \
-        source_ami='$source_ami' \
+    AWS_REGION=$aws_region \
+        AWS_INSTANCE_TYPE=$aws_instance_type \
+        AWS_ACCESS_KEY=$aws_access_key \
+        AWS_SECRET_KEY=$aws_secret_key \
+        SOURCE_AMI='$source_ami' \
         envsubst < $images/variables.json.template >$packer_variables
 
     echo "building packer base image"
@@ -195,12 +195,12 @@ if echo "$runtf" | grep -iq "^y"; then
     echo "you need to create a certificate in aws certificate manager with imported certs or the admin for the site need to approve aws create it."
     read -p "this needs to be done to make following process working. done? [y/n] " configured_cert
 
-    if [ -z "$aws_cert_name" ]; then
-        read -p "enter the domain name for the aws certificate: " aws_cert_name
-    fi
-
     if [ "$configured_cert" != "y" ]; then
         exit 1
+    fi
+
+    if [ -z "$aws_cert_name" ]; then
+        read -p "enter the domain name for the aws certificate: " aws_cert_name
     fi
 
     if [ -z "$kube_bucket" ]; then
