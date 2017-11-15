@@ -4,6 +4,7 @@ metadata:
   name: jenkins-deployment
 spec:
   replicas: 1
+  revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -19,7 +20,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: jenkins
-        image: quay.io/cdis/jenkins:latest
+        image: quay.io/cdis/jenkins:1.0.0
         livenessProbe:
           httpGet:
             path: /login
