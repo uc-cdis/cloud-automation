@@ -2,8 +2,9 @@ FROM jenkins/jenkins:2.89
 
 USER root
 
+ENV DEBIAN_FRONTEND=noninteractive
 # install python and pip and aws cli
-RUN apt-get update && apt-get install -y python python-setuptools python-dev build-essential zip unzip && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y apt-utils python python-setuptools python-dev build-essential zip unzip && rm -rf /var/lib/apt/lists/*
 RUN easy_install pip
 RUN pip install awscli --upgrade
 

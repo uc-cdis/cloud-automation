@@ -12,15 +12,23 @@ if [ "$JENKINS_HOME" = "/tmp/var/jenkins_home" ]; then
   exit 1
 fi
 
+if [ -z "$JENKINS_S3_PATH" ]; then
+  JENKINS_S3_PATH="s3://cdis-terraform-state/JenkinsBackup"
+fi
+
 if [ ! -d "$JENKINS_HOME/jobs" ]; then # restore from s3 is necessary
   if [ -d "$JENKINS_HOME" ]; then
     # download latest backup from S3 - collected via Pipelines/Backup :-)
-    latestFile="$(aws s3 ls s3://cdis-terraform-state/JenkinsBackup/ | sort | tail -1 | awk '{ print $4}')"
-    S3PATH="s3://cdis-terraform-state/JenkinsBackup/$latestFile"
-    echo "Downloading $S3PATH"
-    aws s3 cp "$S3PATH" /tmp/backup.tar.xz
-    tar xvf /tmp/backup.tar.xz -C /tmp
-    mv /tmp/var/jenkins_home/* "$JENKINS_HOME/"
+    latestFile="$(aws s3 ls $JENKINS_S3_PATH/ | sort | grep .tar.xz | tail -1 | awk '{ print $4}')"
+    if [ ! -z "$latestFile" ]; then
+      S3PATH="$JENKINS_S3_PATH/$latestFile"
+      echo "Downloading $S3PATH"
+      aws s3 cp "$S3PATH" /tmp/backup.tar.xz
+      tar xvf /tmp/backup.tar.xz -C /tmp
+      mv /tmp/var/jenkins_home/* "$JENKINS_HOME/"
+    else
+      echo "No backups found under $JENKINS_S3_PATH"
+    fi
   else
     echo "Jenkins home not in expected location: /var/jenkins_home"
   fi
