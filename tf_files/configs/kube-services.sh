@@ -69,9 +69,24 @@ if [ "$KUBE_JENKINS" = "enabled" ]; then
   if [ -z "$aws_access_key_id" -o -z "$aws_secret_access_key" ]; then
     echo "WARNING: skipping Jenkins secret generation - not configuring jenkins"
   else
-    kubectl create secret generic jenkins-secret "--from-literal=aws_access_key_id=$aws_access_key_id" "--from-literal=aws_secret_access_key=$aws_secret_access_key"
+    
+    openssl genrsa -out credentials/jenkins.key 2048
+    openssl req -new -key credentials/jenkins.key -out credentials/jenkins.csr -subj '/CN=jenkins/O=cdis'
+    openssl x509 -req -in credentials/jenkins.csr -CA credentials/ca.pem -CAkey credentials/ca-key.pem -CAcreateserial -out credentials/jenkins.crt -days 500
+    
+    kubectl config set-credentials jenkins --client-certificate=credentials/jenkins.crt --client-key=credentials/jenkins.key 
+    kubectl config set-context jenkins-context --cluster=kube-aws-planxplanetv1-cluster  --namespace=default --user=jenkins
+
+    cp kubeconfig kubeconfig_jenkins
+    sed -i 's/current-context: .*/current-context: jenkins-context/' kubeconfig_jenkins
+    
+    kubectl apply -f services/jenkins/role-devops.yaml
+    kubectl apply -f services/jenkins/rolebinding-devops.yaml
+    
+    kubectl create secret generic jenkins-secret "--from-literal=aws_access_key_id=$aws_access_key_id" "--from-literal=aws_secret_access_key=$aws_secret_access_key" --from-file=kubeconfig=kubeconfig_jenkins --from-file=ca.pem=credentials/ca.pem --from-file=jenkins.crt=credentials/jenkins.crt --from-file=jenkins.key=credentials/jenkins.key
     kubectl apply -f services/jenkins/jenkins-deploy.yaml
     kubectl apply -f services/jenkins/jenkins-service.yaml
+
   fi
 fi
 
