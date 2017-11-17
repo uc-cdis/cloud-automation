@@ -107,6 +107,27 @@ Then you can do ssh port forward from your laptop:
 ssh -L9090:localhost:9090 -N kube_provisioner_vm
 ```
 
+### Setting up users and roles
+
+K8s 1.6.+ includes RBAC support for both user and service accounts, but the RBAC plugin is 
+not enabled by default in the latest stable kube-aws release - the next stable release of kube-aws [(v0.9.9)](https://github.com/kubernetes-incubator/kube-aws/releases) will
+[enable RBAC enforcement by default](https://github.com/kubernetes-incubator/kube-aws/issues/655).
+
+* [service accounts](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) are intended for use by pods running on the cluster.
+   If not otherwise specified a pod is automatically associated with the 'default' service account.  (https://kubernetes.io/docs/admin/authorization/rbac/#upgrading-from-15).
+    * [service accounts administration guide](https://kubernetes.io/docs/admin/service-accounts-admin/)
+    * [linking pods with service accounts](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/)
+    * [k8s built in secrets management](https://kubernetes.io/docs/concepts/configuration/secret/#built-in-secrets) automatically handles injecting service account credentials into pods
+    * [upgrading non-RBAC clusters](https://kubernetes.io/docs/admin/authorization/rbac/#upgrading-from-15) - the current kube-aws 'default' service account currently grants admin privileges on the cluster to all services - v0.9.9 will enable RBAC
+    by default with reasonble roles for the different core services.
+
+* user accounts 
+    * k8s supports multiple [approaches to authentication](https://kubernetes.io/docs/admin/authentication/)
+    * [k8s RBAC](https://kubernetes.io/docs/admin/authorization/rbac/) is one way to restrict how an authenticated user can access k8s
+    * k8s also supports [ABAC](https://kubernetes.io/docs/admin/authorization/abac/) (attribute based acess control)
+    * [this page](https://docs.bitnami.com/kubernetes/how-to/configure-rbac-in-your-kubernetes-cluster/#use-case-1-create-user-with-limited-namespace-access) walks through creating a user account authenticated via a TLS certificate and associated with an RBAC role
+  
+
 ### Services
 #### [userapi](https://github.com/uc-cdis/user-api)
 The authentication and authorization provider.
@@ -123,6 +144,7 @@ Elasticsearch-Logstash-Kibana pod for log aggregation using filebeat.
 
 ### bash functions
 There are some helper functions in [kubes.sh](https://github.com/uc-cdis/cloud-automation/blob/master/kube/kubes.sh) for k8s related operations.
+
 #### patch_kube
 `patch_kube $DEPLOYMENT_NAME` to let k8s recycle pods when there is no change.
 

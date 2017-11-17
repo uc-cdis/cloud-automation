@@ -15,6 +15,7 @@ spec:
       labels:
         app: jenkins
     spec:
+      serviceAccountName: jenkins-service
       securityContext:
         runAsUser: 1000
         fsGroup: 1000
@@ -56,28 +57,9 @@ spec:
         volumeMounts:
         - name: datadir
           mountPath: /var/jenkins_home
-        - name: "kubeconfig-volume"
-          readOnly: true
-          mountPath: "/var/jenkins_home/.kube/config"
-          subPath: "kubeconfig"
-        - name: "kubeconfig-volume"
-          readOnly: true
-          mountPath: "/var/jenkins_home/.kube/credentials/ca.pem"
-          subPath: "ca.pem"
-        - name: "kubeconfig-volume"
-          readOnly: true
-          mountPath: "/var/jenkins_home/.kube/credentials/jenkins.crt"
-          subPath: "jenkins.crt"
-        - name: "kubeconfig-volume"
-          readOnly: true
-          mountPath: "/var/jenkins_home/.kube/credentials/jenkins.key"
-          subPath: "jenkins.key"
       volumes:
       - name: datadir
         persistentVolumeClaim:
           claimName: datadir-jenkins
-      - name: kubeconfig-volume
-        secret:
-          secretName: "jenkins-secret"  
       imagePullSecrets:
         - name: cdis-devservices-pull-secret

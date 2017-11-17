@@ -4,8 +4,8 @@ metadata:
   name: devops-binding
   namespace: default
 subjects:
-- kind: User
-  name: jenkins
+- kind: ServiceAccount
+  name: jenkins-service
   apiGroup: ""
 roleRef:
   kind: Role
