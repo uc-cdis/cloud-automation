@@ -189,7 +189,7 @@ data "template_file" "aws_creds" {
     }
 }
 resource "aws_instance" "kube_provisioner" {
-    ami = "${var.kube_ami}"
+    ami = "${aws_ami_copy.login_ami.id}"
     subnet_id = "${aws_subnet.private_kube.id}"
     instance_type = "t2.micro"
     monitoring = true
@@ -198,6 +198,9 @@ resource "aws_instance" "kube_provisioner" {
         Name = "Kube Provisioner"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
+    }
+    lifecycle {
+        ignore_changes = ["ami"]
     }
 }
 
