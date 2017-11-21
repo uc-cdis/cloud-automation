@@ -44,13 +44,13 @@ pipeline {
   }
   post {
     success {
-      slackSend color: 'good', message: 'Jenkins TerraformPlanOnly pipeline succeeded'
+      slackSend color: 'good', message: 'Jenkins uc-cdis/cloud-automation pipeline succeeded'
     }
     failure {
-      slackSend color: 'bad', message: 'Jenkins TerraformPlanOnly pipeline failed'
+      slackSend color: 'bad', message: 'Jenkins uc-cdis/cloud-automation pipeline failed'
     }
     unstable {
-      slackSend color: 'bad', message: 'Jenkins TerraformPlanOnly pipeline unstable'
+      slackSend color: 'bad', message: 'Jenkins uc-cdis/cloud-automation pipeline unstable'
     }
   }
 }
