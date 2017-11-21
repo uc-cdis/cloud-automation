@@ -50,4 +50,15 @@ users:
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
+  avantol@uchicago.edu:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  chris.g.meyer@gmail.com:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+
   
