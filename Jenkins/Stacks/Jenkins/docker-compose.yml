@@ -1,0 +1,16 @@
+version: "3.3"
+
+services:
+ jenkins:
+    image: quay.io/cdis/jenkins
+    env_file:
+      - jenkins.env
+    ports:
+      - "7090:8080"
+    volumes:
+      - "jenkins_data:/var/jenkins_home"
+      - "./Share:/mnt/DockerHost"
+      - "./Secrets:/mnt/Secrets"
+ 
+volumes:
+  jenkins_data:

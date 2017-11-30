@@ -7,6 +7,7 @@ terraform {
 provider "aws" {
     access_key = "${var.aws_access_key}"
     secret_key = "${var.aws_secret_key}"
+    region = "${var.aws_region}"
 }
 
 resource "aws_vpc" "main" {
@@ -173,10 +174,6 @@ resource "aws_route_table" "public" {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
-}
-
-resource "aws_eip" "nat" {
-  vpc = true
 }
 
 resource "aws_eip" "login" {

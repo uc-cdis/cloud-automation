@@ -1,8 +1,11 @@
 variable "vpc_name" {
+    default = "Commons1"
 }
 variable "vpc_octet" {
+    default = 16
 }
 variable "aws_region" {
+    default = "us-east-1"
 }
 variable "aws_access_key" {
 }
@@ -11,6 +14,8 @@ variable "aws_secret_key" {
 variable "aws_cert_name" {
 }
 variable "login_ami" {
+}
+variable "kube_ami" {
 }
 variable "proxy_ami" {
 }
@@ -24,6 +29,12 @@ variable "db_password_userapi" {
 variable "db_password_gdcapi" {
 }
 variable "db_password_indexd" {
+}
+variable "userapi_snapshot" {
+}
+variable "gdcapi_snapshot" {
+}
+variable "indexd_snapshot" {
 }
 variable "db_instance" {
     default = "db.t2.micro"
@@ -40,6 +51,7 @@ variable "kube_additional_keys" {
     default = ""
 }
 variable "kube_bucket" {
+    default = "kube_bucket"
 }
 variable "google_client_id" {
 }
@@ -53,4 +65,10 @@ variable "gdcapi_secret_key" {
 }
 # password for write access to indexd
 variable "gdcapi_indexd_password" {
+}
+# gdcapi's oauth2 client id(userapi as oauth2 provider)
+variable "gdcapi_oauth2_client_id" {
+}
+# gdcapi's oauth2 client secret
+variable "gdcapi_oauth2_client_secret" {
 }
