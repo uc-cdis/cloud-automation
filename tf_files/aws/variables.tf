@@ -72,3 +72,7 @@ variable "gdcapi_oauth2_client_id" {
 # gdcapi's oauth2 client secret
 variable "gdcapi_oauth2_client_secret" {
 }
+# id of AWS account that owns the public AMI's
+variable "ami_account_id" {
+    default = "707767160287"
+}

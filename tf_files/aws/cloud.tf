@@ -280,10 +280,10 @@ data "aws_ami" "public_login_ami" {
 
   filter {
     name   = "name"
-    values = ["ubuntu16-client-1.0.0-*"]
+    values = ["ubuntu16-client-1.0.1-*"]
   }
 
-  owners     = ["707767160287"]
+  owners     = ["${var.ami_account_id}"]
 }
 
 data "aws_ami" "public_squid_ami" {
@@ -291,10 +291,10 @@ data "aws_ami" "public_squid_ami" {
 
   filter {
     name   = "name"
-    values = ["ubuntu16-squid-1.0.0-*"]
+    values = ["ubuntu16-squid-1.0.1-*"]
   }
 
-  owners     = ["707767160287"]
+  owners     = ["${var.ami_account_id}"]
 }
 
 resource "aws_ami_copy" "login_ami" {
