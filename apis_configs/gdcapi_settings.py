@@ -29,10 +29,10 @@ config['PSQL_USER_DB_CONNECTION'] = 'postgresql://{{userapi_username}}:{{userapi
 config['OAUTH2'] = {
     'client_id': '{{oauth2_client_id}}',
     'client_secret': '{{oauth2_client_secret}}',
-    'internal_oauth_provider': 'http://userapi-service.default/oauth2/',
+    'internal_oauth_provider': 'http://fence-service.default/oauth2/',
     'oauth_provider': 'https://{{hostname}}/user/oauth2/', 
     'redirect_uri': 'https://{{hostname}}/api/v0/oauth2/authorize'
 }
-config['USER_API'] = 'http://userapi-service.default/'
+config['USER_API'] = 'http://fence-service.default/'
 app_init(app)
 application = app

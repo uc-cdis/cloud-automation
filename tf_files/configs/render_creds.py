@@ -219,7 +219,7 @@ if __name__ == '__main__':
         'secrets', help='render secrets for k8')
 
     db_parser = subparsers.add_parser(
-        'userapi_db', help='setup userapi database')
+        'fence_db', help='setup userapi database')
 
     gdcapi_parser = subparsers.add_parser(
         'gdcapi_db', help='setup gdcapi database')
@@ -236,7 +236,7 @@ if __name__ == '__main__':
             os.mkdir(result_dir)
 
         render_creds(creds_file, result_dir)
-    elif args.sp_name == 'userapi_db':
+    elif args.sp_name == 'fence_db':
         setup_userapi_database(creds_file, kubeconfig)
     elif args.sp_name == 'gdcapi_db':
         setup_gdcapi_database(creds_file, kubeconfig)

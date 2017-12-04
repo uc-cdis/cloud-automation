@@ -134,7 +134,7 @@ data "template_file" "creds" {
         userapi_host = "${aws_db_instance.db_userapi.address}"
         userapi_user = "${aws_db_instance.db_userapi.username}"
         userapi_pwd = "${aws_db_instance.db_userapi.password}"
-        userapi_db = "${aws_db_instance.db_userapi.name}"
+        fence_db = "${aws_db_instance.db_userapi.name}"
         gdcapi_host = "${aws_db_instance.db_gdcapi.address}"
         gdcapi_user = "${aws_db_instance.db_gdcapi.username}"
         gdcapi_pwd = "${aws_db_instance.db_gdcapi.password}"
