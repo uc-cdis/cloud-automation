@@ -7,10 +7,8 @@ export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy=127.0.0.1,localhost,.internal.io
 export DEBIAN_FRONTEND=noninteractive
 
-cd $(dirname "$0")
-
 sudo -E apt-get update
-sudo -E apt-get install -y git
+sudo -E apt-get install -y git python-pip
 sudo -E pip install awscli --upgrade
 
 mkdir -p ~/.aws
