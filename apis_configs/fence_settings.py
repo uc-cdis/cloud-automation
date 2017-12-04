@@ -1,7 +1,8 @@
 from boto.s3.connection import OrdinaryCallingFormat
+
 DB = 'postgresql://{{db_username}}:{{db_password}}@{{db_host}}:5432/{{db_database}}'
 
-MOCK_AUTH = False 
+MOCK_AUTH = False
 MOCK_STORAGE = True
 
 EMAIL_SERVER = 'localhost'
@@ -41,4 +42,4 @@ HTTP_PROXY = {
     'host': 'cloud-proxy.internal.io',
     'port': 3128
 }
-STORAGE_CREDENTIALS = {} 
+STORAGE_CREDENTIALS = {}
