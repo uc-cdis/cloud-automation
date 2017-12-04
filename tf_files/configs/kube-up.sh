@@ -9,6 +9,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 sudo -E apt-get update
 sudo -E apt-get install -y git python-pip
+sudo -E pip install --upgrade pip
 sudo -E pip install awscli --upgrade
 
 mkdir -p ~/.aws
