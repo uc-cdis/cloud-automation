@@ -2,7 +2,7 @@
 set -e
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
-export no_proxy=.internal.io
+export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
 export DEBIAN_FRONTEND=noninteractive
 
 sudo -E apt-get update
@@ -26,6 +26,7 @@ kubectl create configmap userapi --from-file=apis_configs/user.yaml
 kubectl create secret generic userapi-secret --from-file=local_settings.py=./apis_configs/userapi_settings.py
 kubectl create secret generic indexd-secret --from-file=local_settings.py=./apis_configs/indexd_settings.py
 
+
 kubectl apply -f 00configmap.yaml
 kubectl apply -f services/portal/portal-deploy.yaml
 kubectl apply -f services/userapi/userapi-deploy.yaml
@@ -33,16 +34,19 @@ kubectl apply -f services/indexd/indexd-deploy.yaml
 kubectl apply -f services/revproxy/00nginx-config.yaml
 kubectl apply -f services/revproxy/revproxy-deploy.yaml
 
-if [ -z "${userapi_snapshot}" ]; then
-cd ~/${vpc_name}_output; python render_creds.py userapi_db
-python render_creds.py  secrets
+if [ -z '"${userapi_snapshot}"' ]; then
+  cd ~/${vpc_name}_output; 
+  python render_creds.py userapi_db
+  python render_creds.py  secrets
 fi
 
-cd ~/${vpc_name}; kubectl create secret generic gdcapi-secret --from-file=wsgi.py=./apis_configs/gdcapi_settings.py
+cd ~/${vpc_name};
+kubectl create secret generic gdcapi-secret --from-file=wsgi.py=./apis_configs/gdcapi_settings.py
 kubectl apply -f services/gdcapi/gdcapi-deploy.yaml
 
-if [ -z "${gdcapi_snapshot}" ]; then
-cd ~/${vpc_name}_output; python render_creds.py gdcapi_db
+if [ -z '"${gdcapi_snapshot}"' ]; then
+  cd ~/${vpc_name}_output; 
+  python render_creds.py gdcapi_db
 fi
 
 cd ~/${vpc_name}
@@ -53,9 +57,13 @@ kubectl apply -f services/gdcapi/gdcapi-service.yaml
 ./services/revproxy/apply_service
 
 cat >>~/.bashrc << EOF
+export http_proxy=http://cloud-proxy.internal.io:3128
+export https_proxy=http://cloud-proxy.internal.io:3128
+export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
+
 export KUBECONFIG=~/${vpc_name}/kubeconfig
+
 if [ -f ~/cloud-automation/kube/kubes.sh ]; then
     . ~/cloud-automation/kube/kubes.sh
 fi
 EOF
-

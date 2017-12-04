@@ -1,0 +1,65 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: jenkins-deployment
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      serviceAccountName: jenkins-service
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: jenkins
+        image: quay.io/cdis/jenkins:1.0.0
+        livenessProbe:
+          httpGet:
+            path: /login
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        ports:
+        - containerPort: 8080
+        env:
+          - name: HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: hostname
+          - name: AWS_DEFAULT_REGION
+            value: us-east-1
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: jenkins-secret
+                key: aws_access_key_id
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: jenkins-secret
+                key: aws_secret_access_key
+        readinessProbe:
+          httpGet:
+            path: /login
+            port: 8080
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: datadir
+          mountPath: /var/jenkins_home
+      volumes:
+      - name: datadir
+        persistentVolumeClaim:
+          claimName: datadir-jenkins
+      imagePullSecrets:
+        - name: cdis-devservices-pull-secret

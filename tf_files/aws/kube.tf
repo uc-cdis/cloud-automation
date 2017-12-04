@@ -53,6 +53,9 @@ resource "aws_db_instance" "db_userapi" {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
+    lifecycle {
+        ignore_changes = ["identifier", "name"]
+    }
 }
 
 resource "aws_db_instance" "db_gdcapi" {
@@ -73,6 +76,9 @@ resource "aws_db_instance" "db_gdcapi" {
         Organization = "Basic Service"
     }
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    lifecycle {
+        ignore_changes = ["identifier", "name"]
+    }
 }
 
 resource "aws_db_instance" "db_indexd" {
@@ -92,6 +98,9 @@ resource "aws_db_instance" "db_indexd" {
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
+    }
+    lifecycle {
+        ignore_changes = ["identifier", "name"]
     }
 }
 
@@ -180,7 +189,7 @@ data "template_file" "aws_creds" {
     }
 }
 resource "aws_instance" "kube_provisioner" {
-    ami = "${var.kube_ami}"
+    ami = "${aws_ami_copy.login_ami.id}"
     subnet_id = "${aws_subnet.private_kube.id}"
     instance_type = "t2.micro"
     monitoring = true
@@ -189,6 +198,9 @@ resource "aws_instance" "kube_provisioner" {
         Name = "Kube Provisioner"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
+    }
+    lifecycle {
+        ignore_changes = ["ami"]
     }
 }
 
