@@ -1,8 +1,8 @@
 {
-    "userapi": {
-        "db_host": "${userapi_host}",
-        "db_username": "${userapi_user}",
-        "db_password": "${userapi_pwd}",
+    "fence": {
+        "db_host": "${fence_host}",
+        "db_username": "${fence_user}",
+        "db_password": "${fence_pwd}",
         "db_database": "${fence_db}",
         "hostname": "${hostname}",
         "google_client_secret": "${google_client_secret}",
@@ -10,10 +10,10 @@
         "hmac_key": "${hmac_encryption_key}"
     },
     "gdcapi": {
-        "userapi_host": "${userapi_host}",
-        "userapi_username": "${userapi_user}",
-        "userapi_password": "${userapi_pwd}",
-        "userapi_database": "${fence_db}",
+        "fence_host": "${fence_host}",
+        "fence_username": "${fence_user}",
+        "fence_password": "${fence_pwd}",
+        "fence_database": "${fence_db}",
         "db_host": "${gdcapi_host}",
         "db_username": "${gdcapi_user}",
         "db_password": "${gdcapi_pwd}",

@@ -31,8 +31,8 @@ kubectl create secret generic SECRET_NAME --from-file=OUTPUT_FILE=PATH_TO_INPUT_
 ### Update secrets or configMaps
 To update a secret or config map, you can delete and recreate it.
 ```
-kubectl delete configmap userapi
-kubectl create configmap userapi --from-file=apis_configs/user.yaml
+kubectl delete configmap fence
+kubectl create configmap fence --from-file=apis_configs/user.yaml
 ```
 
 There is currently no way for deployments to recognize that a secret or configmap is updated, but you can enforce a rolling update by doing a patch:
@@ -65,7 +65,7 @@ kubectl logs --tail=20 POD_NAME -f
 Use `kubectl apply -f PATH_TO_CONFIG_FILE` to update a running deployment. Set `save-config` flag to `true` if the configuration of current object is intended to save in its annotation.
 
 ### Mount secrets to container
-Secrets are passed to container in the initial phase by mounting as a volume. We can include the mounted secrets into the definition file as [this example](https://github.com/uc-cdis/cloud-automation/blob/master/kube/services/userapi/userapi-deploy.yaml#L25-L28)
+Secrets are passed to container in the initial phase by mounting as a volume. We can include the mounted secrets into the definition file as [this example](https://github.com/uc-cdis/cloud-automation/blob/master/kube/services/fence/fence-deploy.yaml#L25-L28)
 
 In this example, we want the `local_settings.py` to be located in the same directory with running script. We need to specify two keys (`mountPath` and `subPath`) in each entry of `volumeMounts`. In particular, `mountPath` is the fullpath contains also the name of file, while `subPath` is the file name.
 
@@ -184,7 +184,7 @@ not enabled by default in the latest stable kube-aws release - the next stable r
   
 
 ### Services
-#### [userapi](https://github.com/uc-cdis/user-api)
+#### [fence](https://github.com/uc-cdis/fence)
 The authentication and authorization provider.
 #### [gdcapi](https://github.com/uc-cdis/gdcapi/)
 API for submitting and query graph data model that stores the metadata for this cluster.

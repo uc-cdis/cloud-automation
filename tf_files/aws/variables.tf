@@ -13,30 +13,20 @@ variable "aws_secret_key" {
 }
 variable "aws_cert_name" {
 }
-variable "login_ami" {
-}
-variable "kube_ami" {
-}
-variable "proxy_ami" {
-}
-variable "base_ami" {
-}
 variable "db_size"{
     default = 10
 }
 variable "db_password_fence" {
+    default = ""
 }
 variable "db_password_userapi" {
+    default = ""
 }
 variable "db_password_gdcapi" {
 }
 variable "db_password_indexd" {
 }
-
 variable "fence_snapshot" {
-    default = ""
-}
-variable "userapi_snapshot" {
     default = ""
 }
 variable "gdcapi_snapshot" {
@@ -75,7 +65,7 @@ variable "gdcapi_secret_key" {
 # password for write access to indexd
 variable "gdcapi_indexd_password" {
 }
-# gdcapi's oauth2 client id(userapi as oauth2 provider)
+# gdcapi's oauth2 client id(fence as oauth2 provider)
 variable "gdcapi_oauth2_client_id" {
 }
 # gdcapi's oauth2 client secret

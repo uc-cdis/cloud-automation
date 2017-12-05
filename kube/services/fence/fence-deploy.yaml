@@ -30,7 +30,7 @@ spec:
             secretName: "service-ca"
       containers:
       - name: fence
-        image: quay.io/cdis/fence:latest
+        image: quay.io/cdis/fence:feat_jwt
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
