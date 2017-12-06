@@ -14,7 +14,7 @@ sudo -E pip install awscli --upgrade
 
 mkdir -p ~/.aws
 mkdir -p ~/${vpc_name}
-mv credentials ~/.aws
+#mv credentials ~/.aws
 cp cluster.yaml ~/${vpc_name}
 cp 00configmap.yaml ~/${vpc_name}
 
@@ -47,5 +47,10 @@ cd ~/${vpc_name}
 /usr/local/bin/kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
 /usr/local/bin/kube-aws up --s3-uri "s3://${s3_bucket}/${vpc_name}"
 
-export no_proxy=.internal.io
 kubectl --kubeconfig=kubeconfig get nodes
+
+# backup the setup
+backup=~/backup.`date +%Y%m%d`.tar.xz
+tar -C "~/" -cvJf "${backup}" --exclude="${vpc_name}/services" "${vpc_name}"
+aws s3 cp ${backup} s3://${s3_bucket}/$backup
+/bin/rm "${backup}"

@@ -154,11 +154,13 @@ data "template_file" "creds" {
     }
 }
 
-data "template_file" "kube_up" {
-    template = "${file("${path.module}/../configs/kube-up.sh")}"
+data "template_file" "kube_vars" {
+    template = "${file("${path.module}/../configs/kube-vars.sh")}"
     vars {
         vpc_name = "${var.vpc_name}"
         s3_bucket = "${var.kube_bucket}"
+        userapi_snapshot = "${var.userapi_snapshot}"
+        gdcapi_snapshot = "${var.gdcapi_snapshot}"
     }
 }
 
@@ -171,29 +173,46 @@ data "template_file" "configmap" {
     }
 }
 
-data "template_file" "kube_services" {
-    template = "${file("${path.module}/../configs/kube-services.sh")}"
-    vars {
-        vpc_name = "${var.vpc_name}"
-        s3_bucket = "${var.kube_bucket}"
-        userapi_snapshot = "${var.userapi_snapshot}"
-        gdcapi_snapshot = "${var.gdcapi_snapshot}"
-    }
+
+resource "aws_iam_role" "kube_provisioner" {
+  name = "${var.vpc_name}_kube_provisioner"
+  path = "/"
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
 }
 
-data "template_file" "aws_creds" {
-    template = "${file("${path.module}/../configs/aws_credentials")}"
-    vars {
-        access_key = "${var.aws_access_key}"
-        secret_key = "${var.aws_secret_key}"
-    }
+resource "aws_iam_role_policy" "kube_provisioner" {
+    name = "${var.vpc_name}_kube_provisioner"
+    policy = "${data.aws_iam_policy_document.kube_provisioner.json}"
+    role = "${aws_iam_role.kube_provisioner.id}"
 }
+
+
+resource "aws_iam_instance_profile" "kube_provisioner" {
+  name  = "${var.vpc_name}_kube_provisioner"
+  role = "${aws_iam_role.kube_provisioner.id}"
+}
+
 resource "aws_instance" "kube_provisioner" {
     ami = "${aws_ami_copy.login_ami.id}"
     subnet_id = "${aws_subnet.private_kube.id}"
     instance_type = "t2.micro"
     monitoring = true
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    iam_instance_profile = "${aws_iam_instance_profile.kube_provisioner.name}"
     tags {
         Name = "Kube Provisioner"
         Environment = "${var.vpc_name}"
@@ -213,16 +232,13 @@ resource "null_resource" "config_setup" {
         command = "echo \"${data.template_file.cluster.rendered}\" > ${var.vpc_name}_output/cluster.yaml"
     }
     provisioner "local-exec" {
-        command = "echo \"${data.template_file.kube_up.rendered}\" > ${var.vpc_name}_output/kube-up.sh"
+        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-up.sh\" > ${var.vpc_name}_output/kube-up.sh"
     }
     provisioner "local-exec" {
-        command = "echo \"${data.template_file.kube_services.rendered}\" > ${var.vpc_name}_output/kube-services.sh"
+        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-services.sh\" > ${var.vpc_name}_output/kube-services.sh"
     }
     provisioner "local-exec" {
         command = "echo \"${data.template_file.configmap.rendered}\" > ${var.vpc_name}_output/00configmap.yaml"
-    }
-    provisioner "local-exec" {
-        command = "echo \"${data.template_file.aws_creds.rendered}\" > ${var.vpc_name}_output/credentials"
     }
     provisioner "local-exec" {
         command = "cp ${path.module}/../configs/render_creds.py ${var.vpc_name}_output/"

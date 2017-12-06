@@ -1,5 +1,7 @@
 #!/bin/bash
+
 set -e
+
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
@@ -34,7 +36,7 @@ kubectl apply -f services/indexd/indexd-deploy.yaml
 kubectl apply -f services/revproxy/00nginx-config.yaml
 kubectl apply -f services/revproxy/revproxy-deploy.yaml
 
-if [ -z '"${userapi_snapshot}"' ]; then
+if [ -z "${userapi_snapshot}" ]; then
   cd ~/${vpc_name}_output; 
   python render_creds.py userapi_db
   python render_creds.py  secrets
@@ -44,7 +46,7 @@ cd ~/${vpc_name};
 kubectl create secret generic gdcapi-secret --from-file=wsgi.py=./apis_configs/gdcapi_settings.py
 kubectl apply -f services/gdcapi/gdcapi-deploy.yaml
 
-if [ -z '"${gdcapi_snapshot}"' ]; then
+if [ -z "${gdcapi_snapshot}" ]; then
   cd ~/${vpc_name}_output; 
   python render_creds.py gdcapi_db
 fi
