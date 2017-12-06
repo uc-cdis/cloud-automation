@@ -1,0 +1,13 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: worker-binding
+  namespace: workspace
+subjects:
+- kind: User
+  name: worker
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: worker
+  apiGroup: ""
