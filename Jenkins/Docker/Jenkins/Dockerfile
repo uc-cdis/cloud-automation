@@ -9,7 +9,7 @@ RUN easy_install pip
 RUN pip install awscli --upgrade
 
 # install terraform
-RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.0/terraform_0.11.0_linux_amd64.zip
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.1/terraform_0.11.1_linux_amd64.zip
 RUN unzip /tmp/terraform.zip -d /usr/local/bin; /bin/rm /tmp/terraform.zip
 
 # install packer
