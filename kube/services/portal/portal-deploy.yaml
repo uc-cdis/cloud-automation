@@ -15,6 +15,13 @@ spec:
       labels:
         app: portal
     spec:
+      volumes:
+      - name: cert-volume
+        secret:
+          secretName: "cert-portal-service"
+      - name: ca-volume
+        secret:
+          secretName: "service-ca"
       containers:
       - name: portal
         image: quay.io/cdis/data-portal:master
@@ -38,6 +45,19 @@ spec:
                 key: hostname
           - name: APP
             value: dev
+        volumeMounts:
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.crt"
+            subPath: "service.crt"
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.key"
+            subPath: "service.key"
+          - name: "ca-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/cdis-ca.crt"
+            subPath: "ca.pem"
         readinessProbe:
           httpGet:
             path: /

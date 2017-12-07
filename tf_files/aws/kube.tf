@@ -232,10 +232,10 @@ resource "null_resource" "config_setup" {
         command = "echo \"${data.template_file.cluster.rendered}\" > ${var.vpc_name}_output/cluster.yaml"
     }
     provisioner "local-exec" {
-        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-up.sh\" > ${var.vpc_name}_output/kube-up.sh"
+        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-up-body.sh\" > ${var.vpc_name}_output/kube-up.sh"
     }
     provisioner "local-exec" {
-        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-services.sh\" > ${var.vpc_name}_output/kube-services.sh"
+        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-certs.sh\" \"${path.module}/../configs/kube-services-body.sh\" > ${var.vpc_name}_output/kube-services.sh"
     }
     provisioner "local-exec" {
         command = "echo \"${data.template_file.configmap.rendered}\" > ${var.vpc_name}_output/00configmap.yaml"

@@ -22,6 +22,12 @@ spec:
         - name: userapi-yaml
           configMap:
             name: userapi
+        - name: cert-volume
+          secret:
+            secretName: "cert-userapi-service"
+        - name: ca-volume
+          secret:
+            secretName: "service-ca"
       containers:
       - name: userapi
         image: quay.io/cdis/user-api:latest
@@ -43,6 +49,18 @@ spec:
           - name: "userapi-yaml"
             mountPath: "/var/www/user-api/user.yaml"
             subPath: user.yaml
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.crt"
+            subPath: "service.crt"
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.key"
+            subPath: "service.key"
+          - name: "ca-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/cdis-ca.crt"
+            subPath: "ca.pem"
       imagePullSecrets:
         - name: cdis-devservices-pull-secret
 

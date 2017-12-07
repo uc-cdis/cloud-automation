@@ -9,4 +9,3 @@ vpc_name='${vpc_name}'
 userapi_snapshot='${userapi_snapshot}'
 s3_bucket='${s3_bucket}'
 gdcapi_snapshot='${gdcapi_snapshot}'
-service_list=(indexd portal sheepdog peregrine)
