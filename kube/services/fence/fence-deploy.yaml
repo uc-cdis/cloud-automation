@@ -19,6 +19,12 @@ spec:
         - name: config-volume
           secret:
             secretName: "fence-secret"
+        - name: jwt-private-key
+          secret:
+            secretName: "fence-jwt-private-key"
+        - name: jwt-public-key
+          secret:
+            secretName: "fence-jwt-public-key"
         - name: fence-yaml
           configMap:
             name: fence
@@ -62,5 +68,11 @@ spec:
             readOnly: true
             mountPath: "/mnt/ssl/cdis-ca.crt"
             subPath: "ca.pem"
+          - name: "jwt-private-key"
+            readOnly: true
+            mountPath: "/fence/keys/jwt_private_key.pem"
+          - name: "jwt-public-key"
+            readOnly: true
+            mountPath: "/fence/keys/jwt_public_key.pem"
       imagePullSecrets:
         - name: cdis-devservices-pull-secret
