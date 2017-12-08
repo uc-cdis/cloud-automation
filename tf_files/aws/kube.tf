@@ -214,7 +214,7 @@ resource "aws_instance" "kube_provisioner" {
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     iam_instance_profile = "${aws_iam_instance_profile.kube_provisioner.name}"
     tags {
-        Name = "Kube Provisioner"
+        Name = "${var.vpc_name} Kube Provisioner"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }

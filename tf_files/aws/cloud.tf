@@ -329,7 +329,7 @@ resource "aws_instance" "login" {
     monitoring = true
     vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
     tags {
-        Name = "Login Node"
+        Name = "${var.vpc_name} Login Node"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
@@ -346,7 +346,7 @@ resource "aws_instance" "proxy" {
     source_dest_check = false
     vpc_security_group_ids = ["${aws_security_group.proxy.id}","${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
     tags {
-        Name = "HTTP Proxy"
+        Name = "${var.vpc_name} HTTP Proxy"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }

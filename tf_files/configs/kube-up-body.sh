@@ -11,7 +11,7 @@ set -e
 
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
-export no_proxy=127.0.0.1,localhost,.internal.io
+export no_proxy=127.0.0.1,localhost,169.254.169.254,.internal.io
 export DEBIAN_FRONTEND=noninteractive
 
 sudo -E apt-get update
@@ -57,7 +57,7 @@ cd ~/${vpc_name}
 kubectl --kubeconfig=kubeconfig get nodes
 
 # backup the setup
-backup=~/backup.`date +%Y%m%d`.tar.xz
-tar -C "~/" -cvJf "${backup}" --exclude="${vpc_name}/services" "${vpc_name}"
-aws s3 cp ${backup} s3://${s3_bucket}/$backup
-/bin/rm "${backup}"
+backup="backup_${vpc_name}.$(date +%Y%m%d).tar.xz"
+tar -C ~/ -cvJf ~/"${backup}" --exclude="${vpc_name}/services" "${vpc_name}"
+aws s3 cp --sse AES256 ~/"${backup}" s3://${s3_bucket}/$backup
+/bin/rm ~/"${backup}"

@@ -43,6 +43,9 @@ data "aws_iam_policy_document" "kube_provisioner" {
         "kms:List*",
         "kms:TagResource",
         "kms:UntagResource",
+        "kms:EnableKeyRotation",
+        "kms:Encrypt",
+        "kms:Decrypt",
         "iam:ListGroups",
         "iam:ListRoles",
         "iam:ListUsers",
@@ -164,6 +167,12 @@ data "aws_iam_policy_document" "kube_provisioner" {
     statement {
       effect = "Allow"
       actions = [ "s3:*" ]
+      resources = [ "*" ]
+    }
+
+    statement {
+      effect = "Allow"
+      actions = [ "cloudformation:*" ]
       resources = [ "*" ]
     }
 

@@ -18,6 +18,15 @@ if [ ! -f credentials/ca.pem ]; then
   echo "No ./credentials/ca.pem CA root certificate - run this script from within ~/VPC_NAME"
 fi
 
+if [ -z "${KUBECONFIG}" ]; then
+  if [ -f ./kubeconfig ]; then
+    export KUBECONFIG=./kubeconfig
+  else
+    echo "ERROR: KUBECONFIG not configured - bailing out"
+    exit 1
+  fi
+fi
+
 if [ ! -f "credentials/${userName}.crt" ]; then
   echo "Creating credentials/${userName}.crt"
   #

@@ -10,6 +10,20 @@
 
 set -e
 
+#
+# This is a little goofy.
+# The script assumes ~/vpc_name exists with
+# a kubeconfig file and ./services/ folder
+#
+if [ ! -z "${vpc_name}" ]; then
+  if [ ! -f ~/"${vpc_name}/kubeconfig" ]; then
+    echo "ERROR: expected ~/${vpc_name}/kubeconfig to exist - bailing out"
+    exit 1
+  fi
+  cd ~/"${vpc_name}"
+  export KUBECONFIG=~/"${vpc_name}/kubeconfig"
+fi
+
 if [ ! -d ./services ]; then
   echo "ERROR: No ./services/ folder - launch from ~/VPC_NAME/ - bailing out"
   exit 1
@@ -21,9 +35,6 @@ if [ ! -f ./credentials/ca.pem ]; then
 fi
 
 if [ -z "${KUBECONFIG}" ]; then
-  if [ ! -z "${vpc_name}" ]; then
-    export KUBECONFIG=~/${vpc_name}/kubeconfig
-  fi
   if [ -f ./kubeconfig ]; then
     export KUBECONFIG=./kubeconfig
   else

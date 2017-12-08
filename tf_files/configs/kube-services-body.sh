@@ -13,14 +13,19 @@ export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
 export DEBIAN_FRONTEND=noninteractive
 
-sudo -E apt-get update
-sudo -E apt-get install -y python-dev python-pip
-sudo -E pip install jinja2
-
 if [ -z "${vpc_name}" ]; then
   echo "ERROR: vpc_name variable not set - bailing out"
   exit 1
 fi
+
+if [ ! -f ~/"${vpc_name}/cdis-devservices-secret.yml" ]; then
+  echo "ERROR: you forgot to setup ~/${vpc_name}/cdis-devservices-secret.yml - doh!"
+  exit 1
+fi
+
+sudo -E apt-get update
+sudo -E apt-get install -y python-dev python-pip
+sudo -E pip install jinja2
 
 mkdir -p ~/${vpc_name}/apis_configs
 
