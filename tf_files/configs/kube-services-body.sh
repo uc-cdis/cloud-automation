@@ -42,13 +42,14 @@ rm cdis-devservices-secret.yml
 
 # Generate RSA private and public keys.
 # TODO: generalize to list of key names?
-openssl genrsa -out jwt_private_key.pem 2048
-openssl rsa -in jwt_private_key.pem -pubout -out jwt_public_key.pem
+mkdir jwt-keys
+openssl genrsa -out jwt-keys/jwt_private_key.pem 2048
+openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
 
 kubectl create configmap fence --from-file=apis_configs/user.yaml
 
 kubectl create secret generic fence-secret --from-file=local_settings.py=./apis_configs/fence_settings.py
-kubectl create secret generic fence-jwt-keys --from-file=./jwt_private_key.pem
+kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
 kubectl create secret generic indexd-secret --from-file=local_settings.py=./apis_configs/indexd_settings.py
 
 kubectl apply -f 00configmap.yaml
