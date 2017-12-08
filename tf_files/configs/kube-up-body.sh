@@ -2,7 +2,7 @@
 #
 # Prep and run kube-aws to deploy the k8s cluster.
 #
-# Note that kube.tf cat's this file into ${vpc_name}_output/kube-services.sh,
+# Note that kube.tf cat's this file into ${vpc_name}_output/kube-up.sh,
 # but can also run this standalone if the environment is
 # properly configured.
 #
