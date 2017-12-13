@@ -155,7 +155,7 @@ data "template_file" "creds" {
 }
 
 data "template_file" "kube_vars" {
-    template = "${file("${path.module}/../configs/kube-vars.sh")}"
+    template = "${file("${path.module}/../configs/kube-vars.sh.tpl")}"
     vars {
         vpc_name = "${var.vpc_name}"
         s3_bucket = "${var.kube_bucket}"
