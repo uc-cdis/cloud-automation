@@ -37,6 +37,7 @@ spec:
             timeoutSeconds: 30
           ports:
           - containerPort: 80
+          - containerPort: 443
           volumeMounts:
             - name: "config-volume"
               readOnly: true
