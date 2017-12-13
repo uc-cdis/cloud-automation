@@ -24,17 +24,26 @@ variable "base_ami" {
 variable "db_size"{
     default = 10
 }
+variable "db_password_fence" {
+}
 variable "db_password_userapi" {
 }
 variable "db_password_gdcapi" {
 }
 variable "db_password_indexd" {
 }
+
+variable "fence_snapshot" {
+    default = ""
+}
 variable "userapi_snapshot" {
+    default = ""
 }
 variable "gdcapi_snapshot" {
+    default = ""
 }
 variable "indexd_snapshot" {
+    default = ""
 }
 variable "db_instance" {
     default = "db.t2.micro"

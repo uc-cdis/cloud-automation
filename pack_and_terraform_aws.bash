@@ -61,8 +61,15 @@ if [ -z "$kube_ssh_key" ]; then
     kube_ssh_key=`curl -s https://github.com/$github.keys | tail -1`
     echo "got key for $github: $kube_ssh_key"
 fi
-read -n 1 -p "build packer images (y/n)? " buildpacker
-[ -z "$buildpacker" ] && buildpacker="no"
+
+#
+# Terraform now copies new public ubuntu16 images for the VPC -
+# building the old ubuntu14 images is no longer necessary ...
+#
+buildpacker=no
+
+#read -n 1 -p "build packer images (y/n)? " buildpacker
+#[ -z "$buildpacker" ] && buildpacker="no"
 echo
 
 if echo "$buildpacker" | grep -iq "^y"; then
@@ -140,8 +147,12 @@ echo
 if echo "$runtf" | grep -iq "^y"; then
 
     if [ ! -f "terraform" ]; then
-        echo "grabbing terraform executable"
-        curl -o terraform.zip https://releases.hashicorp.com/terraform/0.10.4/terraform_0.10.4_darwin_amd64.zip
+        tfUrl=https://releases.hashicorp.com/terraform/0.11.1/terraform_0.11.1_linux_amd64.zip
+        if [ "linux-gnu" != "$OSTYPE" ]; then
+          tfUrl=https://releases.hashicorp.com/terraform/0.11.1/terraform_0.11.1_darwin_amd64.zip
+        fi
+        echo "grabbing terraform executable from $tfUrl"
+        curl -o terraform.zip $tfUrl
         unzip terraform.zip
         rm terraform.zip
     fi

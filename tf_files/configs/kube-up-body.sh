@@ -1,10 +1,17 @@
 #!/bin/bash
+#
+# Prep and run kube-aws to deploy the k8s cluster.
+#
+# Note that kube.tf cat's this file into ${vpc_name}_output/kube-up.sh,
+# but can also run this standalone if the environment is
+# properly configured.
+#
 
 set -e
 
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
-export no_proxy=127.0.0.1,localhost,.internal.io
+export no_proxy=127.0.0.1,localhost,169.254.169.254,.internal.io
 export DEBIAN_FRONTEND=noninteractive
 
 sudo -E apt-get update
@@ -14,7 +21,7 @@ sudo -E pip install awscli --upgrade
 
 mkdir -p ~/.aws
 mkdir -p ~/${vpc_name}
-mv credentials ~/.aws
+#mv credentials ~/.aws
 cp cluster.yaml ~/${vpc_name}
 cp 00configmap.yaml ~/${vpc_name}
 
@@ -47,5 +54,10 @@ cd ~/${vpc_name}
 /usr/local/bin/kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
 /usr/local/bin/kube-aws up --s3-uri "s3://${s3_bucket}/${vpc_name}"
 
-export no_proxy=.internal.io
 kubectl --kubeconfig=kubeconfig get nodes
+
+# backup the setup
+backup="backup_${vpc_name}.$(date +%Y%m%d).tar.xz"
+tar -C ~/ -cvJf ~/"${backup}" --exclude="${vpc_name}/services" "${vpc_name}"
+aws s3 cp --sse AES256 ~/"${backup}" s3://${s3_bucket}/$backup
+/bin/rm ~/"${backup}"

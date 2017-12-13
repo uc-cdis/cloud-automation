@@ -4,12 +4,12 @@ USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 # install python and pip and aws cli
-RUN apt-get update && apt-get install -y apt-utils python python-setuptools python-dev build-essential zip unzip && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y apt-utils python python-setuptools python-dev build-essential zip unzip jq && rm -rf /var/lib/apt/lists/*
 RUN easy_install pip
 RUN pip install awscli --upgrade
 
 # install terraform
-RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.0/terraform_0.11.0_linux_amd64.zip
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.1/terraform_0.11.1_linux_amd64.zip
 RUN unzip /tmp/terraform.zip -d /usr/local/bin; /bin/rm /tmp/terraform.zip
 
 # install packer

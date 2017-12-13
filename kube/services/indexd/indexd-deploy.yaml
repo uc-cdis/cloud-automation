@@ -19,6 +19,12 @@ spec:
         - name: config-volume
           secret:
             secretName: "indexd-secret"
+        - name: cert-volume
+          secret:
+            secretName: "cert-indexd-service"
+        - name: ca-volume
+          secret:
+            secretName: "service-ca"
       containers:
       - name: indexd
         image: quay.io/cdis/indexd:latest
@@ -32,11 +38,24 @@ spec:
           timeoutSeconds: 30
         ports:
         - containerPort: 80
+        - containerPort: 443
         volumeMounts:
           - name: "config-volume"
             readOnly: true
             mountPath: "/var/www/indexd/local_settings.py"
             subPath: "local_settings.py"
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.crt"
+            subPath: "service.crt"
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.key"
+            subPath: "service.key"
+          - name: "ca-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/cdis-ca.crt"
+            subPath: "ca.pem"
       imagePullSecrets:
         - name: cdis-devservices-pull-secret
 

@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# Little helper for re-applying the jenkins_service.yaml
+# that fills in the $ARN for the SSL cert to attach
+# to the ELB
+#
 
 scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
 

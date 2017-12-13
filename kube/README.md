@@ -18,7 +18,7 @@
 
 ## Steps to start a new service
 In order to start a service that uses confidential information in container with Kubernetes, we should go through following steps:
-1. create secrets needed
+1. create secrets needed - including SSL certs
 2. create deployment with secrets mounted
 3. create service for the pods
 
@@ -75,7 +75,51 @@ Domain name should be used to point to a service. Domain name is only recognized
 ## Expose a service externally
 Currently services are exposed via NodePort since that requires minimal overhead and we are not using a huge cluster that needs load balance. We setup the NodePort and open this port in the security group inbound rule, then we have a reverseproxy outside of the kube cluster which proxy all traffics to services.
 
-### Upgrade kubernete
+## SSL certs
+The `cloud_automation/tf_files/configs/kube-certs.sh` script generates a SSL cert using the k8s cluster certificate
+authority (kube-aws saves CA keys in the `./credentials` folder on the k8s provisioner under `~/${vpc_name}`) 
+for every CDIS service found by
+`grep -h 'name:' ./services/*/*service.yaml` (ie. `cloud_automation/kube/services/...`) 
+when run on the k8s provisioner in the `~/${vpc_name}` folder, and creates k8s secrets for the service's SSL service certificate and key,
+and the CA certificate.  
+
+At any time you can run `bash ~/cloud-automation/tf_files/configs/kube-certs.sh` within `~/VPC_NAME` on the k8s provisioner
+to create certificates and secrets for any services that do not already have a certificate in `~/VPC_NAME/credentials/`.
+The `kube-services.sh` script also runs `kube-certs.sh` (kube-certs is actually embedded in kube-services) when setting up
+the Gen3 k8s resources the first time.
+
+The k8s deployment (yaml definition) associated with a service "BLA" can be extended to mount the SSL secret
+associated with the service with configuration like this:
+```
+
+volumes:
+    - name: cert-volume
+        secret:
+        secretName: "cert-BLA-service"
+    - name: ca-volume
+        secret:
+        secretName: "service-ca"
+
+...
+volumeMounts:
+    - name: "cert-volume"
+        readOnly: true
+        mountPath: "/mnt/ssl/service.crt"
+        subPath: "service.crt"
+    - name: "cert-volume"
+        readOnly: true
+        mountPath: "/mnt/ssl/service.key"
+        subPath: "service.key"
+    - name: "ca-volume"
+        readOnly: true
+        mountPath: "/mnt/ssl/cdis-ca.crt"
+        subPath: "ca.pem"
+
+```
+
+A container running client code that communicates with a service over SSL should add the CA certificate to the container's trust store (so the client will accept that the service has a valid SSL endpoint) following a procedure similar to [this](https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line) depending on the nature of the container's image.
+
+### Upgrade kubernetes
 To upgrade kubectl on current VM, you can download the latest one and replace the binary.
 ```
 curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
@@ -108,6 +152,17 @@ ssh -L9090:localhost:9090 -N kube_provisioner_vm
 ```
 
 ### Setting up users and roles
+
+The kube/services/workspace/deploy_workspace.sh script creates a k8s 'worker' user and kubeconfig authenticated via a client certificate
+that has basic access to the 'workspace' namespace.  The script and accompanying workspace/*.yaml files
+illustrate how we can setup a role with limitted access to the k8s cluster for doing things like deploying jupiter notebooks
+onto the cluster or whatever.  The kube-services.sh does not run the workspace/ script by default, but you can
+run it at any time to create the worker user (and accomponying certificate, role, kubeconfig, ...) like this
+(assuming the KUBECONFIG environment is properly initialized):
+```
+cd ~/VPC_NAME
+bash services/workspace/deploy_workspace.sh
+```
 
 K8s 1.6.+ includes RBAC support for both user and service accounts, but the RBAC plugin is 
 not enabled by default in the latest stable kube-aws release - the next stable release of kube-aws [(v0.9.9)](https://github.com/kubernetes-incubator/kube-aws/releases) will

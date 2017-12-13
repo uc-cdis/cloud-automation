@@ -23,5 +23,18 @@ else
   kubectl apply -f services/jenkins/rolebinding-devops.yaml
   
   kubectl apply -f services/jenkins/jenkins-deploy.yaml
+
+  #
+  # Get the ARN of the SSL certificate for the commons -
+  # We'll optimistically assume it's a wildcard cert that
+  # is appropriate to also attach to the jenkins ELB
+  #
+  export ARN=$(kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
+  if [[ ! -z $ARN ]]; then
+    envsubst <services/jenkins/jenkins-service.yaml | kubectl apply -f -
+  else
+    echo "Global configmap not configured"
+  fi
+
   kubectl apply -f services/jenkins/jenkins-service.yaml
 fi
