@@ -235,6 +235,10 @@ if echo "$runtf" | grep -iq "^y"; then
         read -p "enter a fence db snapshot id or leave blank to create: " fence_snapshot
     fi
 
+    if [ -z "$userapi_snapshot" ]; then
+        read -p "enter a userapi db snapshot id or leave blank to create: " userapi_snapshot
+    fi
+
     if [ -z "$gdcapi_snapshot" ]; then
         read -p "enter a gdcapi db snapshot id or leave blank to create: " gdcapi_snapshot
     fi
@@ -256,6 +260,10 @@ if echo "$runtf" | grep -iq "^y"; then
     if [ -z "$db_password_fence" ]; then
         db_password_fence="$(random_alphanumeric 32)"
         echo "your user api db password is: $db_password_fence"
+    fi
+    if [ -z "$db_password_userapi" ]; then
+        db_password_userapi="$(random_alphanumeric 32)"
+        echo "your user api db password is: $db_password_userapi"
     fi
     if [ -z "$db_password_gdcapi" ]; then
         db_password_gdcapi="$(random_alphanumeric 32)"
@@ -290,10 +298,12 @@ if echo "$runtf" | grep -iq "^y"; then
         hmac_encryption_key=$hmac_encryption_key \
         gdcapi_secret_key=$gdcapi_secret_key \
         db_password_fence=$db_password_fence \
+        db_password_userapi=$db_password_userapi \
         db_password_indexd=$db_password_indexd \
         db_password_gdcapi=$db_password_gdcapi \
         gdcapi_indexd_password=$gdcapi_indexd_password \
         fence_snapshot=$fence_snapshot \
+        userapi_snapshot=$userapi_snapshot \
         gdcapi_snapshot=$gdcapi_snapshot \
         indexd_snapshot=$indexd_snapshot \
         aws_s3_access_key=$aws_s3_access_key \
