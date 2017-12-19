@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: userapi-deployment
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: userapi
+    spec:
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "userapi-secret"
+        - name: userapi-yaml
+          configMap:
+            name: userapi
+      containers:
+      - name: userapi
+        image: quay.io/cdis/user-api:latest
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/user-api/local_settings.py"
+            subPath: local_settings.py
+          - name: "userapi-yaml"
+            mountPath: "/var/www/user-api/user.yaml"
+            subPath: user.yaml
+      imagePullSecrets:
+        - name: cdis-devservices-pull-secret
+
