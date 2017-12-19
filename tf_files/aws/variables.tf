@@ -22,6 +22,8 @@ variable "db_password_fence" {
 variable "db_password_userapi" {
     default = ""
 }
+variable "db_password_userapi" {
+}
 variable "db_password_gdcapi" {
 }
 variable "db_password_indexd" {

@@ -34,7 +34,6 @@ resource "aws_subnet" "public_kube" {
     tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "")}"
 }
 
-
 resource "aws_db_instance" "db_fence" {
     allocated_storage    = "${var.db_size}"
     identifier           = "${var.vpc_name}-fencedb"
@@ -47,6 +46,29 @@ resource "aws_db_instance" "db_fence" {
     username             = "fence_user"
     password             = "${var.db_password_fence}"
     snapshot_identifier  = "${var.fence_snapshot}"
+    db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
+    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    tags {
+        Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
+    }
+    lifecycle {
+        ignore_changes = ["identifier", "name"]
+    }
+}
+
+resource "aws_db_instance" "db_userapi" {
+    allocated_storage    = "${var.db_size}"
+    identifier           = "${var.vpc_name}-userapidb"
+    storage_type         = "gp2"
+    engine               = "postgres"
+    skip_final_snapshot  = true
+    engine_version       = "9.5.6"
+    instance_class       = "${var.db_instance}"
+    name                 = "userapi"
+    username             = "userapi_user"
+    password             = "${var.db_password_userapi}"
+    snapshot_identifier  = "${var.userapi_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     tags {
@@ -135,6 +157,10 @@ data "template_file" "creds" {
         fence_user = "${aws_db_instance.db_fence.username}"
         fence_pwd = "${aws_db_instance.db_fence.password}"
         fence_db = "${aws_db_instance.db_fence.name}"
+        userapi_host = "${aws_db_instance.db_userapi.address}"
+        userapi_user = "${aws_db_instance.db_userapi.username}"
+        userapi_pwd = "${aws_db_instance.db_userapi.password}"
+        userapi_db = "${aws_db_instance.db_userapi.name}"
         gdcapi_host = "${aws_db_instance.db_gdcapi.address}"
         gdcapi_user = "${aws_db_instance.db_gdcapi.username}"
         gdcapi_pwd = "${aws_db_instance.db_gdcapi.password}"

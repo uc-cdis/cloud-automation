@@ -48,11 +48,15 @@ gdcapi_secret_key="$gdcapi_secret_key"
 # don't use ( ) " ' { } < > @ in password
 db_password_fence="$db_password_fence"
 
+db_password_userapi="$db_password_userapi"
+
 db_password_gdcapi="$db_password_gdcapi"
 
 db_password_indexd="$db_password_indexd"
 
 fence_snapshot="$fence_snapshot"
+
+userapi_snapshot="$userapi_snapshot"
 
 gdcapi_snapshot="$gdcapi_snapshot"
 

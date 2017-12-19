@@ -9,6 +9,16 @@
         "google_client_id": "${google_client_id}",
         "hmac_key": "${hmac_encryption_key}"
     },
+    "userapi": {
+        "db_host": "${userapi_host}",
+        "db_username": "${userapi_user}",
+        "db_password": "${userapi_pwd}",
+        "db_database": "${userapi_db}",
+        "hostname": "${hostname}",
+        "google_client_secret": "${google_client_secret}",
+        "google_client_id": "${google_client_id}",
+        "hmac_key": "${hmac_encryption_key}"
+    },
     "gdcapi": {
         "fence_host": "${fence_host}",
         "fence_username": "${fence_user}",
