@@ -34,13 +34,18 @@ resource "aws_subnet" "public_kube" {
     tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "")}"
 }
 
+#
+# Only create db_fence if var.db_password_fence is set.
+# Sort of a hack during userapi to fence switch over.
+#
 resource "aws_db_instance" "db_fence" {
+    count = "${var.db_password_fence != "" ? 1 : 0}"
     allocated_storage    = "${var.db_size}"
     identifier           = "${var.vpc_name}-fencedb"
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.5.6"
+    engine_version       = "9.6.5"
     instance_class       = "${var.db_instance}"
     name                 = "fence"
     username             = "fence_user"
@@ -53,22 +58,26 @@ resource "aws_db_instance" "db_fence" {
         Organization = "Basic Service"
     }
     lifecycle {
-        ignore_changes = ["identifier", "name"]
+        ignore_changes = ["identifier", "name", "engine_version"]
     }
 }
 
+#
+# Only create db_userapi if var.db_password_userapi is set
+# Sort of a hack during userapi to fence switch over.
+#
 resource "aws_db_instance" "db_userapi" {
+    count = "${var.db_password_userapi != "" ? 1 : 0}"
     allocated_storage    = "${var.db_size}"
     identifier           = "${var.vpc_name}-userapidb"
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.5.6"
+    engine_version       = "9.6.5"
     instance_class       = "${var.db_instance}"
     name                 = "userapi"
     username             = "userapi_user"
     password             = "${var.db_password_userapi}"
-    snapshot_identifier  = "${var.userapi_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     tags {
@@ -76,7 +85,7 @@ resource "aws_db_instance" "db_userapi" {
         Organization = "Basic Service"
     }
     lifecycle {
-        ignore_changes = ["identifier", "name"]
+        ignore_changes = ["identifier", "name", "engine_version", "snapshot_identifier"]
     }
 }
 
@@ -86,7 +95,7 @@ resource "aws_db_instance" "db_gdcapi" {
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.5.6"
+    engine_version       = "9.6.5"
     instance_class       = "${var.db_instance}"
     name                 = "gdcapi"
     username             = "gdcapi_user"
@@ -99,7 +108,7 @@ resource "aws_db_instance" "db_gdcapi" {
     }
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     lifecycle {
-        ignore_changes = ["identifier", "name"]
+        ignore_changes = ["identifier", "name", "engine_version"]
     }
 }
 
@@ -109,7 +118,7 @@ resource "aws_db_instance" "db_indexd" {
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.5.6"
+    engine_version       = "9.6.5"
     instance_class       = "${var.db_instance}"
     name                 = "indexd"
     username             = "indexd_user"
@@ -122,7 +131,7 @@ resource "aws_db_instance" "db_indexd" {
         Organization = "Basic Service"
     }
     lifecycle {
-        ignore_changes = ["identifier", "name"]
+        ignore_changes = ["identifier", "name", "engine_version"]
     }
 }
 
@@ -150,17 +159,29 @@ data "template_file" "cluster" {
     }
 }
 
+data "aws_db_instance" "userapi" {
+  db_instance_identifier = "${var.db_password_userapi != "" ? "${var.vpc_name}-userapidb" : "${var.vpc_name}-fencedb"}"
+}
+
+data "aws_db_instance" "fence" {
+  db_instance_identifier = "${var.db_password_fence != "" ? "${var.vpc_name}-fencedb" : "${var.vpc_name}-userapidb"}"
+}
+
+#
+# Note - we normally either have a userapi or a fence database - not both.
+# Once userapi is completely retired, then we can get rid of these userapi vs fence checks.
+#
 data "template_file" "creds" {
     template = "${file("${path.module}/../configs/creds.tpl")}"
     vars {
-        fence_host = "${aws_db_instance.db_fence.address}"
-        fence_user = "${aws_db_instance.db_fence.username}"
-        fence_pwd = "${aws_db_instance.db_fence.password}"
-        fence_db = "${aws_db_instance.db_fence.name}"
-        userapi_host = "${aws_db_instance.db_userapi.address}"
-        userapi_user = "${aws_db_instance.db_userapi.username}"
-        userapi_pwd = "${aws_db_instance.db_userapi.password}"
-        userapi_db = "${aws_db_instance.db_userapi.name}"
+        fence_host = "${data.aws_db_instance.fence.address}"
+        fence_user = "${var.db_password_fence != "" ? "fence_user" : "userapi_user"}"
+        fence_pwd = "${var.db_password_fence != "" ? var.db_password_fence : var.db_password_userapi}"
+        fence_db = "${data.aws_db_instance.fence.db_name}"
+        userapi_host = "${data.aws_db_instance.userapi.address}"
+        userapi_user = "${var.db_password_userapi != "" ? "userapi_user" : "fence_user"}"
+        userapi_pwd = "${var.db_password_userapi != "" ? var.db_password_userapi : var.db_password_fence}"
+        userapi_db = "${data.aws_db_instance.userapi.db_name}"
         gdcapi_host = "${aws_db_instance.db_gdcapi.address}"
         gdcapi_user = "${aws_db_instance.db_gdcapi.username}"
         gdcapi_pwd = "${aws_db_instance.db_gdcapi.password}"
@@ -185,7 +206,7 @@ data "template_file" "kube_vars" {
     vars {
         vpc_name = "${var.vpc_name}"
         s3_bucket = "${var.kube_bucket}"
-        userapi_snapshot = "${var.userapi_snapshot}"
+        fence_snapshot = "${var.fence_snapshot}"
         gdcapi_snapshot = "${var.gdcapi_snapshot}"
     }
 }
@@ -198,7 +219,6 @@ data "template_file" "configmap" {
         revproxy_arn = "${data.aws_acm_certificate.api.arn}"
     }
 }
-
 
 resource "aws_iam_role" "kube_provisioner" {
   name = "${var.vpc_name}_kube_provisioner"
@@ -250,6 +270,13 @@ resource "aws_instance" "kube_provisioner" {
 }
 
 resource "null_resource" "config_setup" {
+    triggers {
+      creds_change = "${data.template_file.creds.rendered}"
+      vars_change = "${data.template_file.kube_vars.rendered}"
+      config_change = "${data.template_file.configmap.rendered}"
+      cluster_change = "${data.template_file.cluster.rendered}"
+    }
+
     provisioner "local-exec" {
         command = "mkdir ${var.vpc_name}_output; echo '${data.template_file.creds.rendered}' >${var.vpc_name}_output/creds.json"
     }
@@ -261,7 +288,7 @@ resource "null_resource" "config_setup" {
         command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-up-body.sh\" > ${var.vpc_name}_output/kube-up.sh"
     }
     provisioner "local-exec" {
-        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-certs.sh\" \"${path.module}/../configs/kube-services-body.sh\" > ${var.vpc_name}_output/kube-services.sh"
+        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-setup-certs.sh\" \"${path.module}/../configs/kube-services-body.sh\" \"${path.module}/../configs/kube-setup-fence.sh\" > ${var.vpc_name}_output/kube-services.sh"
     }
     provisioner "local-exec" {
         command = "echo \"${data.template_file.configmap.rendered}\" > ${var.vpc_name}_output/00configmap.yaml"

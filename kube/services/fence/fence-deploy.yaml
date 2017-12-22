@@ -33,11 +33,11 @@ spec:
             secretName: "service-ca"
       containers:
       - name: fence
-        image: quay.io/cdis/fence:feat_jwt
+        image: quay.io/cdis/fence:master
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
-            path: /_status
+            path: /jwt/keys
             port: 80
           initialDelaySeconds: 30
           periodSeconds: 60

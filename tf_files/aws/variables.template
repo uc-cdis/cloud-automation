@@ -11,14 +11,6 @@ aws_secret_key="$aws_secret_key"
 
 aws_cert_name="$aws_cert_name"
 
-login_ami="$login_ami"
-
-kube_ami="$login_ami"
-
-proxy_ami="$proxy_ami"
-
-base_ami="$base_ami"
-
 db_size=10
 
 hostname="$hostname"
@@ -55,8 +47,6 @@ db_password_gdcapi="$db_password_gdcapi"
 db_password_indexd="$db_password_indexd"
 
 fence_snapshot="$fence_snapshot"
-
-userapi_snapshot="$userapi_snapshot"
 
 gdcapi_snapshot="$gdcapi_snapshot"
 
