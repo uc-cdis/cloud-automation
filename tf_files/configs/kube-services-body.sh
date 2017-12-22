@@ -23,8 +23,8 @@ if [ ! -f ~/"${vpc_name}/cdis-devservices-secret.yml" ]; then
   exit 1
 fi
 
-sudo -E apt-get update
-sudo -E apt-get install -y python-dev python-pip
+sudo -E apt update
+sudo -E apt install -y python-dev python-pip jq
 sudo -E pip install jinja2
 
 mkdir -p ~/${vpc_name}/apis_configs
