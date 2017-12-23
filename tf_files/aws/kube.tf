@@ -159,29 +159,25 @@ data "template_file" "cluster" {
     }
 }
 
-data "aws_db_instance" "userapi" {
-  db_instance_identifier = "${var.db_password_userapi != "" ? "${var.vpc_name}-userapidb" : "${var.vpc_name}-fencedb"}"
-}
-
-data "aws_db_instance" "fence" {
-  db_instance_identifier = "${var.db_password_fence != "" ? "${var.vpc_name}-fencedb" : "${var.vpc_name}-userapidb"}"
-}
-
 #
 # Note - we normally either have a userapi or a fence database - not both.
 # Once userapi is completely retired, then we can get rid of these userapi vs fence checks.
 #
+# Note: using coalescelist/splat trick described here:
+#      https://github.com/coreos/tectonic-installer/blob/master/modules/aws/vpc/vpc.tf
+#      https://github.com/hashicorp/terraform/issues/11566
+#
 data "template_file" "creds" {
     template = "${file("${path.module}/../configs/creds.tpl")}"
     vars {
-        fence_host = "${data.aws_db_instance.fence.address}"
+        fence_host = "${join(" ", coalescelist(aws_db_instance.db_fence.*.address, aws_db_instance.db_userapi.*.address))}"
         fence_user = "${var.db_password_fence != "" ? "fence_user" : "userapi_user"}"
         fence_pwd = "${var.db_password_fence != "" ? var.db_password_fence : var.db_password_userapi}"
-        fence_db = "${data.aws_db_instance.fence.db_name}"
-        userapi_host = "${data.aws_db_instance.userapi.address}"
+        fence_db = "${join(" ", coalescelist(aws_db_instance.db_fence.*.name, aws_db_instance.db_userapi.*.name))}"
+        userapi_host = "${join(" ", coalescelist(aws_db_instance.db_userapi.*.address, aws_db_instance.db_fence.*.address))}"
         userapi_user = "${var.db_password_userapi != "" ? "userapi_user" : "fence_user"}"
         userapi_pwd = "${var.db_password_userapi != "" ? var.db_password_userapi : var.db_password_fence}"
-        userapi_db = "${data.aws_db_instance.userapi.db_name}"
+        userapi_db = "${join(" ", coalescelist(aws_db_instance.db_userapi.*.name, aws_db_instance.db_fence.*.name))}"
         gdcapi_host = "${aws_db_instance.db_gdcapi.address}"
         gdcapi_user = "${aws_db_instance.db_gdcapi.username}"
         gdcapi_pwd = "${aws_db_instance.db_gdcapi.password}"
