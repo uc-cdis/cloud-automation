@@ -44,13 +44,28 @@ fi
 kubectl apply -f services/fence/fence-deploy.yaml
 
 if [[ -z "${fence_snapshot}" && "${create_fence_db}" = "true" && ( ! -f .rendered_fence_db ) ]]; then
+  #
+  # This stuff is not necessary when migrating an existing VPC from userapi to fence ...
+  #
   cd ~/${vpc_name}_output;
   #
   # This crazy command actually does a kubectl -exec into the fence pod to
   # intialize the db ...
   #
   python render_creds.py fence_db
+  # Fence sets up the gdcapi oauth2 client-id and secret stuff ...
+  python render_creds.py secrets
   cd ~/${vpc_name}
+
+  # Update the gdcapi secret with the oath2 data saved to creds.json by render_creds above,
+  # and redeploy gdcapi if necessary ...
+  if kubectl get secrets/gdcapi-secret > /dev/null 2>&1; then
+    kubectl delete secrets/gdcapi-secret
+  fi
+  kubectl create secret generic gdcapi-secret --from-file=wsgi.py=./apis_configs/gdcapi_settings.py
+  if kubectl get deployments/gdcapi-deployment > /dev/null 2>&1; then
+    kubectl patch deployment gdcapi-deployment -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+  fi
   # try to avoid doing this block more than once ...
   touch .rendered_fence_db
 fi

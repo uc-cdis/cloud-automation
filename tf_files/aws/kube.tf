@@ -265,6 +265,7 @@ resource "aws_instance" "kube_provisioner" {
     }
 }
 
+
 resource "null_resource" "config_setup" {
     triggers {
       creds_change = "${data.template_file.creds.rendered}"
