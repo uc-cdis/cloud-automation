@@ -17,7 +17,10 @@ fi
 if [ -z "$aws_access_key_id" -o -z "$aws_secret_access_key" ]; then
   echo 'WARNING: not configuring jenkins - could not extract secrets from ~/.aws/credentials'
 else
-  kubectl create secret generic jenkins-secret "--from-literal=aws_access_key_id=$aws_access_key_id" "--from-literal=aws_secret_access_key=$aws_secret_access_key"
+  if ! kubectl get secrets/jenkins-secret > /dev/null 2>&1; then
+    # make it easy to rerun deploy_jenkins.sh
+    kubectl create secret generic jenkins-secret "--from-literal=aws_access_key_id=$aws_access_key_id" "--from-literal=aws_secret_access_key=$aws_secret_access_key"
+  fi
   kubectl apply -f services/jenkins/serviceaccount.yaml
   kubectl apply -f services/jenkins/role-devops.yaml
   kubectl apply -f services/jenkins/rolebinding-devops.yaml
@@ -35,6 +38,4 @@ else
   else
     echo "Global configmap not configured"
   fi
-
-  kubectl apply -f services/jenkins/jenkins-service.yaml
 fi

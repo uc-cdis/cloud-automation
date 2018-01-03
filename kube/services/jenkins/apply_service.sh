@@ -2,7 +2,10 @@
 #
 # Little helper for re-applying the jenkins_service.yaml
 # that fills in the $ARN for the SSL cert to attach
-# to the ELB
+# to the ELB.
+# This assumes that the SSL cert identified by the global configmap revproxy_arn
+# is a wildcard cert for simplicity - otherwise you'll have to setup
+# another cert for jenkins.domain or whatever.
 #
 
 scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")

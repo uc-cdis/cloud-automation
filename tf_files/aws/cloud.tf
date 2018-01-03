@@ -180,6 +180,10 @@ resource "aws_eip" "login" {
   vpc = true
 }
 
+output "login_ip" {
+  value = "${aws_eip.login.public_ip}"
+}
+
 
 resource "aws_eip_association" "login_eip" {
     instance_id = "${aws_instance.login.id}"

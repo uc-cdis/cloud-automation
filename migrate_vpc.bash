@@ -25,10 +25,10 @@ source $HOME/.creds/$VPC_NAME/tf_variables
 # Clear variables we know definitely won't be reused
 vpc_name=""
 kube_bucket=""
-db_password_userapi=""
+db_password_fence=""
 db_password_gdcapi=""
 db_password_indexd=""
-userapi_snapshot=""
+fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
 

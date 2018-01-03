@@ -188,18 +188,6 @@ if echo "$runtf" | grep -iq "^y"; then
         [ -z "$aws_s3_bucket" ] && aws_s3_bucket="cdis-terraform-states"
     fi
 
-    if [ -z "$base_ami" ]; then
-        read -p "enter your base ami: " base_ami
-    fi
-
-    if [ -z "$login_ami" ]; then
-        read -p "enter your client ami: " login_ami
-    fi
-
-    if [ -z "$proxy_ami" ]; then
-        read -p "enter your proxy ami: " proxy_ami
-    fi
-
     if [ -z "$hostname" ]; then
         read -p "enter your hostname name like www.example.com: " hostname
     fi
@@ -231,8 +219,8 @@ if echo "$runtf" | grep -iq "^y"; then
         read -p "enter your google oauth2 client secret: " google_client_secret
     fi
 
-    if [ -z "$userapi_snapshot" ]; then
-        read -p "enter a userapi db snapshot id or leave blank to create: " userapi_snapshot
+    if [ -z "$fence_snapshot" ]; then
+        read -p "enter a fence db snapshot id or leave blank to create: " fence_snapshot
     fi
 
     if [ -z "$gdcapi_snapshot" ]; then
@@ -253,9 +241,9 @@ if echo "$runtf" | grep -iq "^y"; then
         gdcapi_secret_key="$(random_alphanumeric 50)"
         echo "your gdcapi flask secret key is: $gdcapi_secret_key"
     fi
-    if [ -z "$db_password_userapi" ]; then
-        db_password_userapi="$(random_alphanumeric 32)"
-        echo "your user api db password is: $db_password_userapi"
+    if [ -z "$db_password_fence" ]; then
+        db_password_fence="$(random_alphanumeric 32)"
+        echo "your user api db password is: $db_password_fence"
     fi
     if [ -z "$db_password_gdcapi" ]; then
         db_password_gdcapi="$(random_alphanumeric 32)"
@@ -278,9 +266,6 @@ if echo "$runtf" | grep -iq "^y"; then
         aws_cert_name=$aws_cert_name \
         vpc_name=$vpc_name \
         vpc_octet=$vpc_octet \
-        login_ami=$login_ami \
-        proxy_ami=$proxy_ami \
-        base_ami=$base_ami \
         hostname=$hostname \
         kube_ssh_key=$kube_ssh_key \
         addsshkey=$addsshkey \
@@ -289,28 +274,31 @@ if echo "$runtf" | grep -iq "^y"; then
         google_client_id=$google_client_id \
         hmac_encryption_key=$hmac_encryption_key \
         gdcapi_secret_key=$gdcapi_secret_key \
+        db_password_fence=$db_password_fence \
         db_password_userapi=$db_password_userapi \
         db_password_indexd=$db_password_indexd \
         db_password_gdcapi=$db_password_gdcapi \
         gdcapi_indexd_password=$gdcapi_indexd_password \
-        userapi_snapshot=$userapi_snapshot \
+        fence_snapshot=$fence_snapshot \
         gdcapi_snapshot=$gdcapi_snapshot \
         indexd_snapshot=$indexd_snapshot \
         aws_s3_access_key=$aws_s3_access_key \
-    	aws_s3_secret_key=$aws_s3_secret_key \
-		aws_s3_region=$aws_s3_region \
+    	  aws_s3_secret_key=$aws_s3_secret_key \
+		    aws_s3_region=$aws_s3_region \
         aws_s3_bucket=$aws_s3_bucket \
         key_to_state=cdis-terraform-$vpc_name/terraform.tfstate \
         gdcapi_oauth2_client_secret=$gdcapi_oauth2_client_secret \
         gdcapi_oauth2_client_id=$gdcapi_oauth2_client_id \
         envsubst < variables.template >$creds_dir/tf_variables
+
     aws_s3_access_key=$aws_s3_access_key \
-    	aws_s3_secret_key=$aws_s3_secret_key \
-		aws_s3_region=$aws_s3_region \
+    	  aws_s3_secret_key=$aws_s3_secret_key \
+		    aws_s3_region=$aws_s3_region \
         aws_s3_bucket=$aws_s3_bucket \
         key_to_state=cdis-terraform-$vpc_name/terraform.tfstate \
         envsubst < terraform.tfvars >$creds_dir/terraform.tfvars
-	../../terraform init -backend-config=$creds_dir/terraform.tfvars
+	  
+    ../../terraform init -backend-config=$creds_dir/terraform.tfvars
     ../../terraform plan -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
     ../../terraform apply -var-file=$creds_dir/tf_variables -state=$creds_dir/terraform.tfstate
 fi
