@@ -74,8 +74,8 @@ spec:
         persistentVolumeClaim:
           claimName: datadir-jenkins
       - name: cert-volume
-          secret:
-            secretName: "cert-jenkins-service"
+        secret:
+          secretName: "cert-jenkins-service"
       - name: ca-volume
         secret:
           secretName: "service-ca"
