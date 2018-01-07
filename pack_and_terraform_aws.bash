@@ -227,6 +227,14 @@ if echo "$runtf" | grep -iq "^y"; then
         read -p "enter a gdcapi db snapshot id or leave blank to create: " gdcapi_snapshot
     fi
 
+    if [ -z "$peregrine_snapshot" ]; then
+        read -p "enter a peregrine db snapshot id or leave blank to create: " peregrine_snapshot
+    fi
+
+    if [ -z "$sheepdog_snapshot" ]; then
+        read -p "enter a sheepdog db snapshot id or leave blank to create: " sheepdog_snapshot
+    fi
+
     if [ -z "$indexd_snapshot" ]; then
         read -p "enter a indexd db snapshot id or leave blank to create: " indexd_snapshot
     fi
@@ -281,6 +289,8 @@ if echo "$runtf" | grep -iq "^y"; then
         gdcapi_indexd_password=$gdcapi_indexd_password \
         fence_snapshot=$fence_snapshot \
         gdcapi_snapshot=$gdcapi_snapshot \
+        peregrine_snapshot=$peregrine_snapshot \
+        sheepdog_snapshot=$sheepdog_snapshot \
         indexd_snapshot=$indexd_snapshot \
         aws_s3_access_key=$aws_s3_access_key \
     	  aws_s3_secret_key=$aws_s3_secret_key \

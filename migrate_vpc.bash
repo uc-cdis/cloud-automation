@@ -27,9 +27,13 @@ vpc_name=""
 kube_bucket=""
 db_password_fence=""
 db_password_gdcapi=""
+db_password_pererine=""
+db_password_sheepdog=""
 db_password_indexd=""
 fence_snapshot=""
 gdcapi_snapshot=""
+peregine_snapshot=""
+sheepdog_snapshot=""
 indexd_snapshot=""
 
 cd $curdir

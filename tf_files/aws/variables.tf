@@ -24,12 +24,22 @@ variable "db_password_userapi" {
 }
 variable "db_password_gdcapi" {
 }
+variable "db_password_peregrine" {
+}
+variable "db_password_sheepdog" {
+}
 variable "db_password_indexd" {
 }
 variable "fence_snapshot" {
     default = ""
 }
 variable "gdcapi_snapshot" {
+    default = ""
+}
+variable "peregrine_snapshot" {
+    default = ""
+}
+variable "sheepdog_snapshot" {
     default = ""
 }
 variable "indexd_snapshot" {
@@ -62,6 +72,7 @@ variable "hmac_encryption_key" {
 
 variable "gdcapi_secret_key" {
 }
+
 # password for write access to indexd
 variable "gdcapi_indexd_password" {
 }

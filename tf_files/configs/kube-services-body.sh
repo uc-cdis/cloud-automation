@@ -78,6 +78,8 @@ fi
 kubectl apply -f services/portal/portal-service.yaml
 kubectl apply -f services/indexd/indexd-service.yaml
 kubectl apply -f services/gdcapi/gdcapi-service.yaml
+kubectl apply -f services/peregrine/peregrine-service.yaml
+kubectl apply -f services/sheepdog/sheepdog-service.yaml
 ./services/revproxy/apply_service
 
 if ! grep kubes.sh ~/.bashrc > /dev/null; then

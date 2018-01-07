@@ -115,6 +115,52 @@ resource "aws_db_instance" "db_gdcapi" {
     }
 }
 
+resource "aws_db_instance" "db_peregrine" {
+    allocated_storage    = "${var.db_size}"
+    identifier           = "${var.vpc_name}-peregrinedb"
+    storage_type         = "gp2"
+    engine               = "postgres"
+    skip_final_snapshot  = true
+    engine_version       = "9.5.6"
+    instance_class       = "${var.db_instance}"
+    name                 = "peregrine"
+    username             = "peregrine_user"
+    password             = "${var.db_password_peregrine}"
+    snapshot_identifier  = "${var.peregrine_snapshot}"
+    db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
+    tags {
+        Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
+    }
+    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    lifecycle {
+        ignore_changes = ["identifier", "name"]
+    }
+}
+
+resource "aws_db_instance" "db_sheepdog" {
+    allocated_storage    = "${var.db_size}"
+    identifier           = "${var.vpc_name}-sheepdogdb"
+    storage_type         = "gp2"
+    engine               = "postgres"
+    skip_final_snapshot  = true
+    engine_version       = "9.5.6"
+    instance_class       = "${var.db_instance}"
+    name                 = "sheepdog"
+    username             = "sheepdog_user"
+    password             = "${var.db_password_sheepdog}"
+    snapshot_identifier  = "${var.sheepdog_snapshot}"
+    db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
+    tags {
+        Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
+    }
+    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    lifecycle {
+        ignore_changes = ["identifier", "name"]
+    }
+}
+
 resource "aws_db_instance" "db_indexd" {
     allocated_storage    = "${var.db_size}"
     identifier           = "${var.vpc_name}-indexddb"
@@ -228,6 +274,14 @@ data "template_file" "creds" {
         gdcapi_user = "${aws_db_instance.db_gdcapi.username}"
         gdcapi_pwd = "${aws_db_instance.db_gdcapi.password}"
         gdcapi_db = "${aws_db_instance.db_gdcapi.name}"
+        peregrine_host = "${aws_db_instance.db_peregrine.address}"
+        peregrine_user = "${aws_db_instance.db_peregrine.username}"
+        peregrine_pwd = "${aws_db_instance.db_peregrine.password}"
+        peregrine_db = "${aws_db_instance.db_peregrine.name}"
+        sheepdog_host = "${aws_db_instance.db_sheepdog.address}"
+        sheepdog_user = "${aws_db_instance.db_sheepdog.username}"
+        sheepdog_pwd = "${aws_db_instance.db_sheepdog.password}"
+        sheepdog_db = "${aws_db_instance.db_sheepdog.name}"
         indexd_host = "${aws_db_instance.db_indexd.address}"
         indexd_user = "${aws_db_instance.db_indexd.username}"
         indexd_pwd = "${aws_db_instance.db_indexd.password}"
