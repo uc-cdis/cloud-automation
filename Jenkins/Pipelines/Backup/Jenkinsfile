@@ -25,7 +25,7 @@ pipeline {
   }
   post {
     success {
-      slackSend color: 'good', message: 'Jenkins backup pipeline succeeded'
+      echo 'Jenkins backup pipeline succeeded'
     }
     failure {
       slackSend color: 'bad', message: 'Jenkins backup pipeline failed'

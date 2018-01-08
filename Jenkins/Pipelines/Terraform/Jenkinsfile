@@ -56,7 +56,7 @@ pipeline {
   }
   post {
     success {
-      slackSend color: 'good', message: 'Jenkins Terraform pipeline succeeded'
+      echo 'Jenkins Terraform pipeline succeeded'
     }
     failure {
       slackSend color: 'bad', message: 'Jenkins Terraform pipeline failed'
