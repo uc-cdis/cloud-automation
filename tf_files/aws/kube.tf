@@ -376,7 +376,6 @@ resource "aws_s3_bucket" "kube_bucket" {
 
   tags {
     Name        = "${var.kube_bucket}"
-    Environment = "${var.vpc_name}"
     Organization = "Basic Service"
   }
   lifecycle {
