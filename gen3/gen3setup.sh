@@ -8,16 +8,10 @@ export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/tmp/gen3-$USER"}
 export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
 
 #
-# Flag defaults - set to "true" or "false", 
-# so $FLAG runs the true/false command
+# Flag values - cleared on each call to 'gen3'
 #
-GEN3_DRY_RUN=${GEN3_DRY_RUN:-"false"};
-GEN3_VERBOSE=${GEN3_VERBOSE:-false};
-
-# Flag values
-GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN}
-GEN3_VERBOSE_FLAG=${GEN3_VERBOSE}
-
+GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN:-"false"}
+GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
 
 #
 # Little helper to gen3_run to set gen3 workon environment variables
@@ -42,13 +36,17 @@ gen3_workon() {
   export GEN3_PROFILE="$1"
   export GEN3_VPC="$2"
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_VPC}"
-  PS1='\u@\h:\w-gen3/'"${GEN3_PROFILE}/${GEN3_VPC}"'$ '
+  export AWS_PROFILE="$GEN3_PROFILE"
+  PS1='\u@\h:'"gen3/${GEN3_PROFILE}/${GEN3_VPC}"':\w$ '
   return 0
 }
 
 gen3_run() {
   local COMMAND
   local SCRIPT
+  local SCRIPT_FOLDER
+  
+  SCRIPT_FOLDER="$GEN3_HOME/gen3/bin"
   COMMAND=$1
   SCRIPT=""
   shift
@@ -56,20 +54,29 @@ gen3_run() {
   "help")
     SCRIPT=usage.sh
     ;;
-  "status")
-    SCRIPT=status.sh
-    ;;
   "workon")
     gen3_workon $@ && SCRIPT=workon.sh
     ;;
+  "cd")
+    if [[ $1 = "home" ]]; then
+      cd $GEN3_HOME
+    else
+      cd $GEN3_WORKDIR
+    fi
+    SCRIPT=""
+    ;;
   *)
-    echo "ERROR unknown command $COMMAND"
-    SCRIPT=usage.sh
+    if [[ -f "$SCRIPT_FOLDER/${COMMAND}.sh" ]]; then
+      SCRIPT="${COMMAND}.sh"
+    else
+      echo "ERROR unknown command $COMMAND"
+      SCRIPT=usage.sh
+    fi
     ;;
   esac
 
   if [[ ! -z "$SCRIPT" ]]; then
-    local SCRIPT_PATH="$GEN3_HOME/gen3/bin/$SCRIPT"
+    local SCRIPT_PATH="$SCRIPT_FOLDER/$SCRIPT"
     if [[ ! -f "$SCRIPT_PATH" ]]; then
       echo "ERROR - internal bug - $SCRIPT_PATH does not exist"
       return 1
@@ -83,6 +90,9 @@ gen3() {
     echo "ERROR $GEN3_HOME/gen3/bin does not exist"
     return
   fi
+  GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN:-"false"}
+  GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
+
   # Remove leading flags (start with '-')
   while [[ $1 =~ ^-+.+ ]]; do
     case $1 in
