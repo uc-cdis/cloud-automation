@@ -15,6 +15,7 @@ S3_TERRAFORM="cdis-terraform-state"
 #
 umask 0077
 
-if [[ $1 =~ ^-+help$ ]]; then
+if [[ $1 =~ ^-*help$ ]]; then
   help
+  exit 0
 fi

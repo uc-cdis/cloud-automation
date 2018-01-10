@@ -15,6 +15,7 @@ source "$GEN3_HOME/gen3/bin/common.sh"
 #
 # Create any missing files
 #
+mkdir -p -m 0700 "$GEN3_WORKDIR/backups"
 
 #
 # aws_provider.tfvars - this has the secret keys that
@@ -22,7 +23,7 @@ source "$GEN3_HOME/gen3/bin/common.sh"
 #     https://www.terraform.io/docs/providers/aws/
 #
 if [[ ! -f "$GEN3_WORKDIR/aws_provider.tfvars" ]]; then
-  echo "Creting aws_provider.tfvars"
+  echo "Creating $GEN3_WORKDIR/aws_provider.tfvars"
   cat - > "$GEN3_WORKDIR/aws_provider.tfvars" <<EOM
 aws_access_key = "$(aws configure get "$GEN3_PROFILE.aws_access_key_id")"
 aws_secret_key = "$(aws configure get "$GEN3_PROFILE.aws_secret_access_key")"
@@ -36,7 +37,7 @@ fi
 #     https://www.terraform.io/docs/backends/types/s3.html
 #
 if [[ ! -f "$GEN3_WORKDIR/aws_backend.tfvars" ]]; then
-  echo "Creting aws_backend.tfvars"
+  echo "Creating $GEN3_WORKDIR/aws_backend.tfvars"
   cat - > "$GEN3_WORKDIR/aws_backend.tfvars" <<EOM
 access_key = "$(aws configure get "$GEN3_PROFILE.aws_access_key_id")"
 secret_key = "$(aws configure get "$GEN3_PROFILE.aws_secret_access_key")"
@@ -94,6 +95,20 @@ region = "$(aws configure get "$GEN3_PROFILE.region")"
 EOM
 }
 
+README.md() {
+  cat - <<EOM
+# TL;DR
+
+Any special notes about $GEN3_VPC
+
+## Useful commands
+
+* gen3 help
+* gen3 tfoutput ssh_config >> ~/.ssh/config
+* rsync -rtvOz ${GEN3_VPC}_output/ k8s_${GEN3_VPC}/${GEN3_VPC}_output
+
+EOM
+}
 
 #
 # Generate an initial config.tfvars file with intelligent defaults
@@ -154,7 +169,7 @@ EOB
 EOM
 }
 
-for fileName in config.tfvars backend.tfvars; do
+for fileName in config.tfvars backend.tfvars README.md; do
   filePath="${GEN3_WORKDIR}/$fileName"
   if [[ ! -f "$filePath" ]]; then
     refreshFromS3 "$fileName"
