@@ -7,6 +7,10 @@ export XDG_DATA_HOME=${XDG_DATA_HOME:-~/.local/share}
 export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/tmp/gen3-$USER"}
 export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
 
+if [[ ! -d "$XDG_RUNTIME_DIR" ]]; then
+  mkdir -p "$XDG_RUNTIME_DIR"
+fi
+
 #
 # Flag values - cleared on each call to 'gen3'
 #
@@ -96,7 +100,7 @@ gen3() {
   # Remove leading flags (start with '-')
   while [[ $1 =~ ^-+.+ ]]; do
     case $1 in
-    "--dry-run")
+    "--dryrun")
       GEN3_DRY_RUN_FLAG=true
       ;;
     "--verbose")

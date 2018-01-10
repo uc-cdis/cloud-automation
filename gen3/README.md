@@ -32,7 +32,7 @@ gen3 [flags] command [command options]
 
 gen3 [flags] command
 
-* --dry-run
+* --dryrun
 * --verbose
 
 Ex:
@@ -40,7 +40,7 @@ Ex:
 *  
 ```
 gen3 workon accountname vpcname
-gen3 --dry-run refresh
+gen3 --dryrun refresh
 ```
 
 ### gen3 workon aws-profile-name vpc-name
