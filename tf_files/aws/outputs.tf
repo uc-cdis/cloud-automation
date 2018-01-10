@@ -99,7 +99,6 @@ data "template_file" "creds" {
     }
 }
 
-
 data "template_file" "kube_vars" {
     template = "${file("${path.module}/../configs/kube-vars.sh.tpl")}"
     vars {
@@ -166,5 +165,4 @@ resource "null_resource" "config_setup" {
         command = "cp ${path.module}/../configs/render_creds.py ${var.vpc_name}_output/"
     }
 }
-
 
