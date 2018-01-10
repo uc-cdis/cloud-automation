@@ -186,6 +186,7 @@ data "aws_acm_certificate" "api" {
   statuses = ["ISSUED"]
 }
 
+<<<<<<< a9a300ef159e4bf63d1d863a10590a2c13f28720
 data "template_file" "cluster" {
     template = "${file("${path.module}/../configs/cluster.yaml")}"
     vars {
@@ -267,6 +268,8 @@ data "template_file" "configmap" {
     }
 }
 
+=======
+>>>>>>> chore(outputs.tf): more terraform outputs
 resource "aws_iam_role" "kube_provisioner" {
   name = "${var.vpc_name}_kube_provisioner"
   path = "/"
@@ -317,6 +320,7 @@ resource "aws_instance" "kube_provisioner" {
 }
 
 
+<<<<<<< a9a300ef159e4bf63d1d863a10590a2c13f28720
 resource "null_resource" "config_setup" {
     triggers {
       creds_change = "${data.template_file.creds.rendered}"
@@ -348,6 +352,8 @@ resource "null_resource" "config_setup" {
     }
 }
 
+=======
+>>>>>>> chore(outputs.tf): more terraform outputs
 resource "aws_route53_record" "kube_provisioner" {
     zone_id = "${aws_route53_zone.main.zone_id}"
     name = "kube"
@@ -379,7 +385,11 @@ resource "aws_s3_bucket" "kube_bucket" {
     Organization = "Basic Service"
   }
   lifecycle {
+<<<<<<< a9a300ef159e4bf63d1d863a10590a2c13f28720
     # allow same bucket between stacks
     ignore_changes = ["tags"]
+=======
+      ignore_changes = ["tags"]
+>>>>>>> chore(outputs.tf): more terraform outputs
   }
 }

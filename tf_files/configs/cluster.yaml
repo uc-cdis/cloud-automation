@@ -11,7 +11,7 @@ externalDNSName: controller.internal.io
 
 keyName: ${key_name}
 sshAuthorizedKeys:
-  ${kube_additional_keys}
+${kube_additional_keys}
 
 region: "${aws_region}"
 
