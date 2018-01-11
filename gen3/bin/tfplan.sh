@@ -8,16 +8,22 @@ EOM
   return 0
 }
 
-if [[ ! -f "$GEN3_HOME/gen3/bin/common.sh" ]]; then
-  echo "ERROR: no $GEN3_HOME/gen3/bin/common.sh"
+if [[ ! -f "$GEN3_HOME/gen3/lib/common.sh" ]]; then
+  echo "ERROR: no $GEN3_HOME/gen3/lib/common.sh"
   exit 1
 fi
 
-source "$GEN3_HOME/gen3/bin/common.sh"
+source "$GEN3_HOME/gen3/lib/common.sh"
 
 cd $GEN3_WORKDIR
 /bin/rm -f plan.terraform
+echo "Running terraform plan --var-file ./config.tfvars -var-file ./aws_provider.tfvars -out plan.terraform $GEN3_HOME/tf_files/aws/"
 terraform plan --var-file ./config.tfvars -var-file ./aws_provider.tfvars -out plan.terraform "$GEN3_HOME/tf_files/aws/" 2>&1 | tee plan.log
+let exitCode=${PIPESTATUS[0]}
+if [[ $exitCode -ne 0 ]]; then
+  echo -e "${RED_COLOR}non zero exit code from terraform plan: ${exitCode}${DEFAULT_COLOR}"
+  exit $exitCode
+fi
 
 if ! grep 'No changes' plan.log; then
   cat - <<EOM

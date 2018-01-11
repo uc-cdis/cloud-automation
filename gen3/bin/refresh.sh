@@ -3,8 +3,8 @@
 # the files in S3 after backing up the local files.
 #
 
-if [[ ! -f "$GEN3_HOME/gen3/bin/common.sh" ]]; then
-  echo "ERROR: no $GEN3_HOME/gen3/bin/common.sh"
+if [[ ! -f "$GEN3_HOME/gen3/lib/common.sh" ]]; then
+  echo "ERROR: no $GEN3_HOME/gen3/lib/common.sh"
   exit 1
 fi
 
@@ -14,12 +14,12 @@ help() {
   Supports dry run.
   Ex:
     gen3 workon profile vpc
-    gen3 --dry-run refresh
+    gen3 --dryrun refresh
 EOM
   exit 0
 }
 
-source "$GEN3_HOME/gen3/bin/common.sh"
+source "$GEN3_HOME/gen3/lib/common.sh"
 
 mkdir -p -m 0700 "$GEN3_WORKDIR/backups"
 
@@ -42,7 +42,7 @@ refresh_file() {
 
   if [[ -f "$filePath" ]]; then
     # make a backup
-    fileMd5=$(md5sum  ~/.bashrc | awk '{ print $1 }')
+    fileMd5=$(md5sum  "$filePath" | awk '{ print $1 }')
     fileBackup="$GEN3_WORKDIR/backups/${fileName}.${fileMd5}"
     echo "Backing up $fileName to $fileBackup"
     $GEN3_DRY_RUN || cp $filePath "$fileBackup"
@@ -59,6 +59,8 @@ refresh_file() {
   return 0
 }
 
-for fileName in config.tfvars backend.tfvars; do
+for fileName in config.tfvars backend.tfvars README.md; do
   refresh_file $fileName
 done
+
+exit 0

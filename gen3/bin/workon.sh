@@ -2,15 +2,20 @@
 # Helper script for 'gen3 workon' - see ../README.md and ../gen3setup.sh
 #
 
-if [[ ! -f "$GEN3_HOME/gen3/bin/common.sh" ]]; then
-  echo "ERROR: no $GEN3_HOME/gen3/bin/common.sh"
+if [[ ! -f "$GEN3_HOME/gen3/lib/common.sh" ]]; then
+  echo "ERROR: no $GEN3_HOME/gen3/lib/common.sh"
+  exit 1
 fi
 
 help() {
+  cat - <<EOM
+  Use: gen3 workon aws-profile vpc-name
+     Prepares a local workspace to run terraform and other devops tools.
+EOM
   return 0
 }
 
-source "$GEN3_HOME/gen3/bin/common.sh"
+source "$GEN3_HOME/gen3/lib/common.sh"
 
 #
 # Create any missing files

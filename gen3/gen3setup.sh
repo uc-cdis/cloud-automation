@@ -41,58 +41,64 @@ gen3_workon() {
   export GEN3_VPC="$2"
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_VPC}"
   export AWS_PROFILE="$GEN3_PROFILE"
-  PS1='\u@\h:'"gen3/${GEN3_PROFILE}/${GEN3_VPC}"':\w$ '
+  PS1="gen3/${GEN3_PROFILE}/${GEN3_VPC}:$GEN3_PS1_OLD"
   return 0
 }
 
 gen3_run() {
-  local COMMAND
-  local SCRIPT
-  local SCRIPT_FOLDER
+  local command
+  local scriptName
+  local scriptFolder
+  local resultCode
   
-  SCRIPT_FOLDER="$GEN3_HOME/gen3/bin"
-  COMMAND=$1
-  SCRIPT=""
+  let resultCode=0
+  scriptFolder="$GEN3_HOME/gen3/bin"
+  command=$1
+  scriptName=""
   shift
-  case $COMMAND in
+  case $command in
   "help")
-    SCRIPT=usage.sh
+    scriptName=usage.sh
     ;;
   "workon")
-    gen3_workon $@ && SCRIPT=workon.sh
+    gen3_workon $@ && scriptName=workon.sh
     ;;
   "cd")
     if [[ $1 = "home" ]]; then
       cd $GEN3_HOME
+      let resultCode=$?
     else
       cd $GEN3_WORKDIR
+      let resultCode=$?
     fi
-    SCRIPT=""
+    scriptName=""
     ;;
   *)
-    if [[ -f "$SCRIPT_FOLDER/${COMMAND}.sh" ]]; then
-      SCRIPT="${COMMAND}.sh"
+    if [[ -f "$scriptFolder/${command}.sh" ]]; then
+      scriptName="${command}.sh"
     else
-      echo "ERROR unknown command $COMMAND"
-      SCRIPT=usage.sh
+      echo "ERROR unknown command $command"
+      scriptName=usage.sh
     fi
     ;;
   esac
 
-  if [[ ! -z "$SCRIPT" ]]; then
-    local SCRIPT_PATH="$SCRIPT_FOLDER/$SCRIPT"
-    if [[ ! -f "$SCRIPT_PATH" ]]; then
-      echo "ERROR - internal bug - $SCRIPT_PATH does not exist"
+  if [[ ! -z "$scriptName" ]]; then
+    local scriptPath="$scriptFolder/$scriptName"
+    if [[ ! -f "$scriptPath" ]]; then
+      echo "ERROR - internal bug - $scriptPath does not exist"
       return 1
     fi
-    GEN3_DRY_RUN=$GEN3_DRY_RUN_FLAG GEN3_VERBOSE=$GEN3_VERBOSE_FLAG bash "$GEN3_HOME/gen3/bin/$SCRIPT" $@
+    GEN3_DRY_RUN=$GEN3_DRY_RUN_FLAG GEN3_VERBOSE=$GEN3_VERBOSE_FLAG bash "$GEN3_HOME/gen3/bin/$scriptName" $@
+    return $?
   fi
+  return $resultCode
 }
 
 gen3() {
   if [[ ! -d "$GEN3_HOME/gen3/bin" ]]; then
     echo "ERROR $GEN3_HOME/gen3/bin does not exist"
-    return
+    return 1
   fi
   GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN:-"false"}
   GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
