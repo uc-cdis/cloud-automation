@@ -9,6 +9,10 @@ if [[ -z "$GEN3_PROFILE" || -z "$GEN3_VPC" || -z "$GEN3_WORKDIR" || -z "$GEN3_HO
 fi
 # Terraform state bucket
 S3_TERRAFORM="cdis-terraform-state"
+# vt100 escape sequences - don't forget to pass -e to 'echo -e'
+RED_COLOR="\e[31m"
+DEFAULT_COLOR="\e[39m"
+GREEN_COLOR="\e[32m"
 
 #
 # This folder holds secrets, so lock it down permissions wise ...
@@ -19,3 +23,4 @@ if [[ $1 =~ ^-*help$ ]]; then
   help
   exit 0
 fi
+  

@@ -8,12 +8,12 @@ EOM
   return 0
 }
 
-if [[ ! -f "$GEN3_HOME/gen3/bin/common.sh" ]]; then
-  echo "ERROR: no $GEN3_HOME/gen3/bin/common.sh"
+if [[ ! -f "$GEN3_HOME/gen3/lib/common.sh" ]]; then
+  echo "ERROR: no $GEN3_HOME/gen3/lib/common.sh"
   exit 1
 fi
 
-source "$GEN3_HOME/gen3/bin/common.sh"
+source "$GEN3_HOME/gen3/lib/common.sh"
 
 cd $GEN3_WORKDIR
 if [[ ! -f plan.terraform ]]; then

@@ -23,6 +23,9 @@ fi
 ```
 
 * open a new shell
+* setup AWS profiles for each account that you interact with in ~/.aws/credentials and ~/.aws/config -
+    [https://docs.aws.amazon.com/cli/latest/userguide/cli-multiple-profiles.html](https://docs.aws.amazon.com/cli/latest/userguide/cli-multiple-profiles.html)
+
 
 ## gen3 cli
 
@@ -35,12 +38,23 @@ gen3 [flags] command
 * --dryrun
 * --verbose
 
-Ex:
-
-*  
 ```
-gen3 workon accountname vpcname
-gen3 --dryrun refresh
+ex:$ gen3 workon accountname vpcname
+ex:$ gen3 --dryrun refresh
+```
+
+### gen3 help
+
+Show this README.
+You can also run `gen3 COMMAND help` for most commands:
+
+```
+ex: $ gen3 tfapply help
+  gen3 tfapply:
+    Run 'terraform apply' in the current workspace, and backup config.tfvars, backend.tfvars, and README.md.  
+    A typical command line is:
+       terraform apply plan.terraform
+
 ```
 
 ### gen3 workon aws-profile-name vpc-name
@@ -74,6 +88,18 @@ The tasks performed include:
 * setup the *cdis-terraform-state* S3 bucket if necessary
 * run `terraform init` if necessary
    
+### gen3 status
+
+List the variables associated with the current gen3 workspace - ex:
+
+```
+$ gen3 status
+GEN3_PROFILE=cdis-test
+GEN3_VPC=planxplanetv1
+GEN3_WORKDIR=/home/reuben/.local/share/gen3/cdis-test/planxplanetv1
+GEN3_HOME=/home/reuben/Code/PlanX/cloud-automation
+AWS_PROFILE=cdis-test
+```
 
 ### gen3 refresh
 
@@ -89,6 +115,7 @@ You'll usually want to refresh your workspace when you return to it after some t
 ```
 ex:$ gen3 cd workspace
 ex:$ gen3 cd home
+ex:$ gen3 cd  # defaults to workspace
 ```
 
 This is just a little shortcut to 'cd' the shell to $GEN3_HOME
@@ -114,6 +141,31 @@ Apply the last plan from `gen3 tfplan`, and perform supporting tasks:
 * auto-generate entries for ~/.ssh/config if not already present
 * rsync the terraform generated _output/ scripts to the k8s provisioner
 
+### gen3 tfoutput
+
+A wrapper around [terraform output](https://www.terraform.io/intro/getting-started/outputs.html).  Ex:
+
+```
+$ gen3 tfoutput ssh_config
+Host login.planxplanetv1
+   ServerAliveInterval 120
+   HostName XX.XXX.XXX.XXX
+   User ubuntu
+   ForwardAgent yes
+
+Host k8s.planxplanetv1
+   ServerAliveInterval 120
+   HostName 172.XX.XX.XX
+   User ubuntu
+   ForwardAgent yes
+   ProxyCommand ssh ubuntu@login.planxplanetv1 nc %h %p 2> /dev/null
+
+```
+
+### gen3 testsuite
+
+Run the test suite.  Requires a 'cdis-test' profile.
+
 ### gen3 kube-up
 
 Not yet implemented 
@@ -126,18 +178,47 @@ Not yet implemented
 
 Not yet implemented 
 
-### gen3 ssh nodename
+## Migrating existing commons to gen3
 
-Not yet implemented 
+The gen3 tools expect the terraform variable files (config.tfvars and backend.tfvars)
+to exist under
+```
+    s3://cdis-terraform-state/${GEN3_VPC}/
+```
+Those variable files do not include aws credentials - gen3 will harvest those
+from your local aws profile to another set of local aws_*.tfvars files that are not 
+backed up to S3.
 
-## gen3 development
+Here is one strategy for migration:
+* `gen3 workon profile-name vpc-name`
 
-Not yet implemented 
+This will create a local workspace with config.tfvars and backend.tfvars
+files generated from a template that auto-generates new passwords, etc.
+It will also auto-create the 'cdis-terraform-state' S3 bucket if it does not
+yet exist.
 
-### Test suite
+* `gen3 cd`
 
-Not yet implemented 
+This will cd your shell into the workspace folder.
 
-### Dry run 
+* Update config.tfvars and backend.tfvars with appropriate values
+* `gen3 tfplan`
+* `gen3 tfapply`
 
-Not yet implemented 
+Only tfapply if the plan is not destructive.
+The tfapply will automatically backup the local config.tfvars, backend.tfvars, and README.md to S3.
+
+* Optionally - update backend.tfvars, so that terraform stores its S3 state in the same folder as config.tfvars, then run `terraform init` to move the state, and gen3 tfplan; gen3 tfapply; to sync everything up with s3 - ex:
+```
+$ cat backend.tfvars 
+bucket = "cdis-terraform-state"
+encrypt = "true"
+key = "gen3test"
+region = "us-east-1"
+
+$ terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_HOME/tf_files/aws/"
+$ gen3 tfplan
+# Note: tfplan should propose no resource changes.
+#   Still run tfapply to sync up the state in S3.
+$ gen3 tfapply
+```
