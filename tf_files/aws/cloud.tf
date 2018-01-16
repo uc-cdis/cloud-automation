@@ -1,6 +1,11 @@
 terraform {
     backend "s3" {
         encrypt = "true"
+        bucket = "cdis-terraform-state"
+        key    = "giang-pla.net/v1/terraform.tfstate"
+        region = "us-east-1"
+        access_key = "AKIAISEYWWHPC5Z74NCA"
+        secret_key = "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"
     }
 }
 

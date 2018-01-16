@@ -62,24 +62,9 @@ kubectl apply -f services/revproxy/00nginx-config.yaml
 kubectl apply -f services/revproxy/revproxy-deploy.yaml
 
 cd ~/${vpc_name};
-if ! kubectl get secrets/gdcapi-secret > /dev/null 2>&1; then
-  kubectl create secret generic gdcapi-secret --from-file=wsgi.py=./apis_configs/gdcapi_settings.py
-fi
-
-kubectl apply -f services/gdcapi/gdcapi-deploy.yaml
-
-if [[ -z "${gdcapi_snapshot}" && ( ! -f .rendered_gdcapi_db ) ]]; then
-  cd ~/${vpc_name}_output; 
-  python render_creds.py gdcapi_db
-  cd ~/${vpc_name}
-  touch .rendered_gdcapi_db
-fi
 
 kubectl apply -f services/portal/portal-service.yaml
 kubectl apply -f services/indexd/indexd-service.yaml
-kubectl apply -f services/gdcapi/gdcapi-service.yaml
-kubectl apply -f services/peregrine/peregrine-service.yaml
-kubectl apply -f services/sheepdog/sheepdog-service.yaml
 ./services/revproxy/apply_service
 
 if ! grep kubes.sh ~/.bashrc > /dev/null; then

@@ -19,22 +19,33 @@
         "google_client_id": "${google_client_id}",
         "hmac_key": "${hmac_encryption_key}"
     },
-    "gdcapi": {
+    "sheepdog": {
         "fence_host": "${fence_host}",
         "fence_username": "${fence_user}",
         "fence_password": "${fence_pwd}",
         "fence_database": "${fence_db}",
         "db_host": "${gdcapi_host}",
-        "db_username": "${gdcapi_user}",
-        "db_password": "${gdcapi_pwd}",
+        "db_username": "${sheepdog_user}",
+        "db_password": "${sheepdog_pwd}",
         "db_database": "${gdcapi_db}",
         "gdcapi_secret_key": "${gdcapi_secret_key}",
-        "hmac_key": "${hmac_encryption_key}",
         "indexd_password": "${gdcapi_indexd_password}",
-        "hostname": "${hostname}",
-        "oauth2_client_id": "${gdcapi_oauth2_client_id}",
-        "oauth2_client_secret": "${gdcapi_oauth2_client_secret}"
+        "hostname": "${hostname}"
     },
+    "peregrine": {
+        "fence_host": "${fence_host}",
+        "fence_username": "${fence_user}",
+        "fence_password": "${fence_pwd}",
+        "fence_database": "${fence_db}",
+        "db_host": "${gdcapi_host}",
+        "db_username": "${peregrine_user}",
+        "db_password": "${peregrine_pwd}",
+        "db_database": "${gdcapi_db}",
+        "gdcapi_secret_key": "${gdcapi_secret_key}",
+        "hostname": "${hostname}"
+    },
+
+    
     "indexd": {
         "db_host": "${indexd_host}",
         "db_username": "${indexd_user}",
