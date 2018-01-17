@@ -95,7 +95,7 @@ backend.tfvars() {
   cat - <<EOM
 bucket = "$GEN3_S3_BUCKET"
 encrypt = "true"
-key = "$GEN3_VPC"
+key = "$GEN3_VPC/terraform.tfstate"
 region = "$(aws configure get "$GEN3_PROFILE.region")"
 EOM
 }
