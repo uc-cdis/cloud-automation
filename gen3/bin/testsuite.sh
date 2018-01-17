@@ -1,7 +1,10 @@
 help() {
   cat - <<EOM
-  gen3 testsuite:
+  gen3 testsuite [--profile profilename]:
     Run the gen3 helpers through a test suite in the 'cdis-test gen3test' workspace
+    --profile profilename - overrides the default 'cdis-test' profile
+
+  Note that the 'tfoutput' test will fail if the profile does not map to the 'cdis-test' account.
 EOM
   return 0
 }
@@ -16,6 +19,15 @@ echo "Running gen3 test suite"
 TEST_PROFILE="cdis-test"
 TEST_VPC="gen3test"
 TEST_ACCOUNT=707767160287
+
+if [[ $1 =~ ^-*profile ]]; then
+  TEST_PROFILE="$2"
+  if [[ -z "$TEST_PROFILE" ]]; then
+    echo -e "ERROR: Invalid profile"
+    exit 1
+  fi
+fi
+
 echo "Switching to '$TEST_PROFILE $TEST_VPC' workspace in test process"
 source "$GEN3_HOME/gen3/gen3setup.sh"
 gen3 workon $TEST_PROFILE $TEST_VPC
@@ -63,14 +75,14 @@ test_refresh() {
 test_tfplan() {
   gen3 cd
   # terraform plan fails if it can't lookup the cert for the commons in the account
-  sed -i .bak 's/YOUR.CERT.NAME/*.planx-pla.net/g' config.tfvars
+  sed -i.bak 's/YOUR.CERT.NAME/*.planx-pla.net/g' config.tfvars
   gen3 tfplan; because $? "tfplan should run even with some invalid config variables"
   [[ -f "$GEN3_WORKDIR/plan.terraform" ]]; because $? "'gen3 tfplan' generates a plan.terraform file used by 'gen3 tfapply'"
 }
 
 test_tfoutput() {
   # Test runs in a subshell, so we won't stay in the planxplanetv1 workspace
-  gen3 workon cdis-test planxplanetv1; because $? "planxplanetv1 has some state to run tfoutput against"
+  gen3 workon "${TEST_PROFILE}" planxplanetv1; because $? "planxplanetv1 has some state to run tfoutput against"
   gen3 tfoutput; because $? "tfoutput should run successfully against planxplanetv1"
   vpcName=$(gen3 tfoutput vpc_name)
   [[ $vpcName = $GEN3_VPC ]]; because $? "tfoutput vpc_name works: $vpcName =? $GEN3_VPC"

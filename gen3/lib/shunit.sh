@@ -7,7 +7,6 @@
 #
 
 XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/tmp}
-SHUNIT_FOLDER=$(mktemp -p $XDG_RUNTIME_DIR)
 
 #
 # Internal helper to clear variables
