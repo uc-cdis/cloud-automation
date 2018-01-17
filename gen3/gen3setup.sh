@@ -41,6 +41,8 @@ gen3_workon() {
   export GEN3_VPC="$2"
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_VPC}"
   export AWS_PROFILE="$GEN3_PROFILE"
+  # S3 bucket where we save terraform state, etc
+  export GEN3_S3_BUCKET="cdis-terraform-state.${GEN3_PROFILE}.gen3"
   PS1="gen3/${GEN3_PROFILE}/${GEN3_VPC}:$GEN3_PS1_OLD"
   return 0
 }

@@ -85,6 +85,9 @@ shunit_summary() {
   let SHUNIT_TEST_SUCCESS="$SHUNIT_TEST_COUNT-$SHUNIT_TEST_FAIL";
   if [[ $SHUNIT_TEST_FAIL -gt 0 ]]; then
     echo -e "\n\n\e[31mSome tests failed\e[39m"
+    cat - <<EOM
+Failed tests: $SHUNIT_FAILED_TESTS
+EOM
   else
     echo -e "\n\n\e[32mAll tests succeeded\e[39m"
   fi
@@ -94,10 +97,8 @@ Passed: $SHUNIT_TEST_SUCCESS
 Failed: $SHUNIT_TEST_FAIL
 Total : $SHUNIT_TEST_COUNT
 
-Failed tests: $SHUNIT_FAILED_TESTS
-
 EOM
-
+  
   shunit_clear  
 }
 

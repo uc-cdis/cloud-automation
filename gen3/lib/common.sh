@@ -3,12 +3,10 @@
 # that other bin/ scripts can 'source'
 #
 
-if [[ -z "$GEN3_PROFILE" || -z "$GEN3_VPC" || -z "$GEN3_WORKDIR" || -z "$GEN3_HOME" ]]; then
+if [[ -z "$GEN3_PROFILE" || -z "$GEN3_VPC" || -z "$GEN3_WORKDIR" || -z "$GEN3_HOME" || -z "$GEN3_S3_BUCKET" ]]; then
   echo "Must define runtime environment: GEN3_PROFILE, GEN3_VPC, GEN3_WORKDIR, GEN3_HOME"
   exit 1
 fi
-# Terraform state bucket
-S3_TERRAFORM="cdis-terraform-state"
 # vt100 escape sequences - don't forget to pass -e to 'echo -e'
 RED_COLOR="\e[31m"
 DEFAULT_COLOR="\e[39m"
