@@ -191,7 +191,7 @@ for fileName in config.tfvars backend.tfvars README.md; do
 done
 
 cd "$GEN3_WORKDIR"
-bucketCheckFlag=".tmp_bucketcheckflag"
+bucketCheckFlag=".tmp_bucketcheckflag2"
 if [[ ! -f "$bucketCheckFlag" ]]; then
   echo "initializing terraform"
   echo "checking if $GEN3_S3_BUCKET bucket exists"

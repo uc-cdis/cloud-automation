@@ -41,8 +41,14 @@ gen3_workon() {
   export GEN3_VPC="$2"
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_VPC}"
   export AWS_PROFILE="$GEN3_PROFILE"
+  AWS_ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
   # S3 bucket where we save terraform state, etc
-  export GEN3_S3_BUCKET="cdis-terraform-state.${GEN3_PROFILE}.gen3"
+  if [[ -z "$AWS_ACCOUNT_ID" ]]; then
+    echo "Error: unable to determine AWS_ACCOUNT_ID via: aws sts get-caller-identity | jq -r .Account"
+    export GEN3_S3_BUCKET=""
+  else
+    export GEN3_S3_BUCKET="cdis-terraform-state.account-${AWS_ACCOUNT_ID}.gen3"
+  fi
   PS1="gen3/${GEN3_PROFILE}/${GEN3_VPC}:$GEN3_PS1_OLD"
   return 0
 }
