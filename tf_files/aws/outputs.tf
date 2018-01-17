@@ -13,7 +13,7 @@ output "aws_region" {
 }
 
 output "login_ip" {
-  value = "${aws_eip.login.public_ip}"
+  value = "${module.cdis_vpc.login_ip}"
 }
 
 output "vpc_name" {
@@ -46,14 +46,14 @@ data "template_file" "cluster" {
         aws_region = "${var.aws_region}"
         kms_key = "${aws_kms_key.kube_key.arn}"
         route_table_id = "${aws_route_table.private_kube.id}"
-        vpc_id ="${aws_vpc.main.id}"
-        vpc_cidr = "${aws_vpc.main.cidr_block}"
+        vpc_id ="${module.cdis_vpc.vpc_id}"
+        vpc_cidr = "${module.cdis_vpc.vpc_cidr_block}"
         subnet_id = "${aws_subnet.private_kube.id}"
         subnet_cidr = "${aws_subnet.private_kube.cidr_block}"
         subnet_zone = "${aws_subnet.private_kube.availability_zone}"
         security_group_id = "${aws_security_group.kube-worker.id}"
         kube_additional_keys = "${var.kube_additional_keys}"
-        hosted_zone = "${aws_route53_zone.main.id}"
+        hosted_zone = "${module.cdis_vpc.zone_id}"
     }
 }
 
@@ -113,7 +113,7 @@ data "template_file" "ssh_config" {
     template = "${file("${path.module}/../configs/ssh_config.tpl")}"
     vars {
         vpc_name = "${var.vpc_name}"
-        login_public_ip = "${aws_eip.login.public_ip}"
+        login_public_ip = "${module.cdis_vpc.login_ip}"
         k8s_ip = "${aws_instance.kube_provisioner.private_ip}"
     }
 }

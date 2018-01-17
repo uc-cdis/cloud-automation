@@ -2,7 +2,7 @@
 resource "aws_security_group" "kube-worker" {
     name = "kube-worker"
     description = "security group that open ports to vpc, this needs to be attached to kube worker"
-    vpc_id = "${aws_vpc.main.id}"
+    vpc_id = "${module.cdis_vpc.vpc_id}"
     ingress {
         from_port = 30000
         to_port = 30100
@@ -23,11 +23,11 @@ resource "aws_security_group" "kube-worker" {
 
 resource "aws_route_table_association" "public_kube" {
     subnet_id = "${aws_subnet.public_kube.id}"
-    route_table_id = "${aws_route_table.public.id}"
+    route_table_id = "module.cdis_vpc.public_route_table_id"
 }
 
 resource "aws_subnet" "public_kube" {
-    vpc_id = "${aws_vpc.main.id}"
+    vpc_id = "${module.cdis_vpc.vpc_id}"
     cidr_block = "172.${var.vpc_octet}.129.0/24"
     map_public_ip_on_launch = true
     availability_zone = "${data.aws_availability_zones.available.names[0]}"
@@ -53,7 +53,7 @@ resource "aws_db_instance" "db_fence" {
     password             = "${var.db_password_fence}"
     snapshot_identifier  = "${var.fence_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -81,7 +81,7 @@ resource "aws_db_instance" "db_userapi" {
     username             = "userapi_user"
     password             = "${var.db_password_userapi}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -109,7 +109,7 @@ resource "aws_db_instance" "db_gdcapi" {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     lifecycle {
         ignore_changes = ["identifier", "name", "engine_version", "username", "password"]
     }
@@ -129,7 +129,7 @@ resource "aws_db_instance" "db_indexd" {
     password             = "${var.db_password_indexd}"
     snapshot_identifier  = "${var.indexd_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -218,11 +218,11 @@ resource "aws_iam_instance_profile" "kube_provisioner" {
 }
 
 resource "aws_instance" "kube_provisioner" {
-    ami = "${aws_ami_copy.login_ami.id}"
+    ami = "${module.cdis_vpc.login_ami_id}"
     subnet_id = "${aws_subnet.private_kube.id}"
     instance_type = "t2.micro"
     monitoring = true
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     iam_instance_profile = "${aws_iam_instance_profile.kube_provisioner.name}"
     tags {
         Name = "${var.vpc_name} Kube Provisioner"
@@ -236,7 +236,7 @@ resource "aws_instance" "kube_provisioner" {
 
 
 resource "aws_route53_record" "kube_provisioner" {
-    zone_id = "${aws_route53_zone.main.zone_id}"
+    zone_id = "${module.cdis_vpc.zone_zid}"
     name = "kube"
     type = "A"
     ttl = "300"
