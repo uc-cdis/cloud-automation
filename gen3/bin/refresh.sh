@@ -38,7 +38,7 @@ refresh_file() {
     return 1
   fi
   filePath="$GEN3_WORKDIR/$fileName"
-  s3Path="s3://$S3_TERRAFORM/$GEN3_VPC/$fileName"
+  s3Path="s3://$GEN3_S3_BUCKET/$GEN3_VPC/$fileName"
 
   if [[ -f "$filePath" ]]; then
     # make a backup

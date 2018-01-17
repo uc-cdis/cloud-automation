@@ -70,7 +70,7 @@ refreshFromS3() {
     echo "Ignoring S3 refresh for file that already exists: $fileName"
     return 1
   fi
-  s3Path="s3://${S3_TERRAFORM}/${GEN3_VPC}/${fileName}"
+  s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_VPC}/${fileName}"
   aws s3 cp "$s3Path" "$filePath" > /dev/null 2>&1
   if [[ ! -f "$filePath" ]]; then
     echo "No data at $s3Path"
@@ -93,7 +93,7 @@ function random_alphanumeric() {
 #
 backend.tfvars() {
   cat - <<EOM
-bucket = "cdis-terraform-state"
+bucket = "$GEN3_S3_BUCKET"
 encrypt = "true"
 key = "$GEN3_VPC"
 region = "$(aws configure get "$GEN3_PROFILE.region")"
@@ -130,9 +130,6 @@ db_size=10
 
 hostname="YOUR.API.HOSTNAME"
 
-# ssh key to be added to kube nodes
-kube_ssh_key="$(cat ~/.ssh/id_rsa.pub | sed 's/\s*$//')"
-
 google_client_secret="YOUR.GOOGLE.SECRET"
 google_client_id="YOUR.GOOGLE.CLIENT"
 
@@ -157,6 +154,12 @@ gdcapi_indexd_password="$(random_alphanumeric 32)"
 fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
+
+# S3 bucket for kube-aws cloud-formation
+kube_bucket="kube_bucket.${GEN3_VPC}.gen3"
+
+# ssh key to be added to kube nodes
+kube_ssh_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
 
 kube_additional_keys = <<EOB
   - '"ssh-dss AAAAB3NzaC1kc3MAAACBAPfnMD7+UvFnOaQF00Xn636M1IiGKb7XkxJlQfq7lgyzWroUMwXFKODlbizgtoLmYToy0I4fUdiT4x22XrHDY+scco+3aDq+Nug+jaKqCkq+7Ms3owtProd0Jj6AWCFW+PPs0tGJiObieci4YqQavB299yFNn+jusIrDsqlrUf7xAAAAFQCi4wno2jigjedM/hFoEFiBR/wdlwAAAIBl6vTMb2yDtipuDflqZdA5f6rtlx4p+Dmclw8jz9iHWmjyE4KvADGDTy34lhle5r3UIou5o3TzxVtfy00Rvyd2aa4QscFiX5jZHQYnbIwwlQzguCiF/gtYNCIZit2B+R1p2XTR8URY7CWOTex4X4Lc88UEsM6AgXIpJ5KKn1pK2gAAAIAJD8p4AeJtnimJTKBdahjcRdDDedD3qTf8lr3g81K2uxxsLOudweYSZ1oFwP7RnZQK+vVE8uHhpkmfsy1wKCHrz/vLFAQfI47JDX33yZmBLtHjjfmYDdKVn36XKZ5XrO66vcbX2Jav9Hlqb6w/nekBx2nbJaZnHwlAp70RU13gyQ== renukarya@Renukas-MacBook-Pro.local"'
@@ -188,11 +191,12 @@ for fileName in config.tfvars backend.tfvars README.md; do
 done
 
 cd "$GEN3_WORKDIR"
-if [[ ! -d "$GEN3_WORKDIR/.terraform" ]]; then
+bucketCheckFlag=".tmp_bucketcheckflag"
+if [[ ! -f "$bucketCheckFlag" ]]; then
   echo "initializing terraform"
-  echo "checking if $S3_TERRAFORM bucket exists"
-  if ! aws s3 ls "s3://$S3_TERRAFORM" > /dev/null 2>&1; then
-    echo "Creating $S3_TERRAFORM bucket"
+  echo "checking if $GEN3_S3_BUCKET bucket exists"
+  if ! aws s3 ls "s3://$GEN3_S3_BUCKET" > /dev/null 2>&1; then
+    echo "Creating $GEN3_S3_BUCKET bucket"
     echo "NOTE: please verify that aws profile region matches backend.tfvars region:"
     echo "  aws profile region: $(aws configure get $GEN3_PROFILE.region)"
     echo "  terraform backend region: $(cat *backend.tfvars | grep region)"
@@ -209,9 +213,13 @@ if [[ ! -d "$GEN3_WORKDIR/.terraform" ]]; then
   }
 EOM
 )
-    aws s3api create-bucket --acl private --bucket "$S3_TERRAFORM"
+    aws s3api create-bucket --acl private --bucket "$GEN3_S3_BUCKET"
     sleep 5 # Avoid race conditions
-    aws s3api put-bucket-encryption --bucket "$S3_TERRAFORM" --server-side-encryption-configuration "$S3_POLICY"
+    if aws s3api put-bucket-encryption --bucket "$GEN3_S3_BUCKET" --server-side-encryption-configuration "$S3_POLICY"; then
+      touch "$bucketCheckFlag"
+    fi
+  else
+    touch "$bucketCheckFlag"
   fi
 fi
 

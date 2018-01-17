@@ -85,7 +85,7 @@ The tasks performed include:
        * assumes ~/.ssh/id_rsa.pub
           is the user a good key to access the bastion host
 * fi
-* setup the *cdis-terraform-state* S3 bucket if necessary
+* setup the *cdis-terraform-state.profile-name.gen3* S3 bucket if necessary
 * run `terraform init` if necessary
    
 ### gen3 status
@@ -98,7 +98,19 @@ GEN3_PROFILE=cdis-test
 GEN3_VPC=planxplanetv1
 GEN3_WORKDIR=/home/reuben/.local/share/gen3/cdis-test/planxplanetv1
 GEN3_HOME=/home/reuben/Code/PlanX/cloud-automation
+GEN3_S3_BUCKET=cdis-terraform-state.cdis-test.gen3
 AWS_PROFILE=cdis-test
+```
+
+### gen3 ls
+
+List workspaces that have been worked on locally - ex:
+
+```
+$ gen3 ls
+local workspaces under /home/reuben/.local/share/gen3
+cdis-test    gen3test
+cdis-test    planxplanetv1
 ```
 
 ### gen3 refresh
@@ -183,7 +195,7 @@ Not yet implemented
 The gen3 tools expect the terraform variable files (config.tfvars and backend.tfvars)
 to exist under
 ```
-    s3://cdis-terraform-state/${GEN3_VPC}/
+    s3://${GEN3_S3_BUCKET}/${GEN3_VPC}/
 ```
 Those variable files do not include aws credentials - gen3 will harvest those
 from your local aws profile to another set of local aws_*.tfvars files that are not 
@@ -194,8 +206,8 @@ Here is one strategy for migration:
 
 This will create a local workspace with config.tfvars and backend.tfvars
 files generated from a template that auto-generates new passwords, etc.
-It will also auto-create the 'cdis-terraform-state' S3 bucket if it does not
-yet exist.
+It will also auto-create the GEN3_S3_BUCKET (defaults to cdis-terraform-state.profile-name.gen3)
+S3 bucket if it does not yet exist.
 
 * `gen3 cd`
 
@@ -211,7 +223,7 @@ The tfapply will automatically backup the local config.tfvars, backend.tfvars, a
 * Optionally - update backend.tfvars, so that terraform stores its S3 state in the same folder as config.tfvars, then run `terraform init` to move the state, and gen3 tfplan; gen3 tfapply; to sync everything up with s3 - ex:
 ```
 $ cat backend.tfvars 
-bucket = "cdis-terraform-state"
+bucket = "cdis-terraform-state.cdis-test.gen3"
 encrypt = "true"
 key = "gen3test"
 region = "us-east-1"
