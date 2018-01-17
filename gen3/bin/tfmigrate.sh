@@ -44,7 +44,23 @@ renameDb=(
   "aws_security_group.proxy"
 )
 
+DRYRUN=""
+if $GEN3_DRY_RUN; then
+  DRYRUN="--dryrun"
+fi
+
+s3Source="s3://$GEN3_S3_BUCKET/${GEN3_VPC}/terraform.tfstate"
+s3Dest="s3://$GEN3_S3_BUCKET/${GEN3_VPC}/terraform.tfstate.bak"
+echo "Backing up terraform state from $s3Source to $s3Dest"
+
+if ! aws s3 cp $DRYRUN "$s3Source" "$s3Dest"; then
+  echo "ERROR: backup failed - bailing out without migrating terraform state"
+  exit 1
+fi
+
 for oldName in "${renameDb[@]}"; do 
   echo $oldName
-  newName=""
+  newName="module.cdis_vpc.${oldName}"
+  echo "$DRYRUN terraform state mv $oldName $newName"
+  $GEN3_DRY_RUN && terraform state mv "$oldName" "$newName"
 done
