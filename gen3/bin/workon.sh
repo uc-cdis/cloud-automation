@@ -213,5 +213,7 @@ EOM
     sleep 5 # Avoid race conditions
     aws s3api put-bucket-encryption --bucket "$S3_TERRAFORM" --server-side-encryption-configuration "$S3_POLICY"
   fi
-  terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_HOME/tf_files/aws/"
 fi
+
+echo "Running terraform init ..."
+terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_HOME/tf_files/aws/"
