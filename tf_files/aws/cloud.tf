@@ -307,8 +307,12 @@ resource "aws_ami_copy" "login_ami" {
     Name = "login"
   }
   lifecycle {
-    # user can 'taint' this resource to force an update when new ami's become available
-    ignore_changes = ["source_ami_id"]
+      #
+      # Do not force update when new ami becomes available.
+      # We still need to improve our mechanism for tracking .ssh/authorized_keys
+      # User can use 'terraform state taint' to trigger update.
+      #
+      ignore_changes = ["source_ami_id"]
   }
 }
 
@@ -323,8 +327,12 @@ resource "aws_ami_copy" "squid_ami" {
     Name = "login"
   }
   lifecycle {
-    # user can 'taint' this resource to force an update when new ami's become available
-    ignore_changes = ["source_ami_id"]
+      #
+      # Do not force update when new ami becomes available.
+      # We still need to improve our mechanism for tracking .ssh/authorized_keys
+      # User can use 'terraform state taint' to trigger update.
+      #
+      ignore_changes = ["source_ami_id"]
   }
 }
 
