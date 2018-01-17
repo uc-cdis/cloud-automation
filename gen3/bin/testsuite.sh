@@ -48,7 +48,7 @@ test_refresh() {
   gen3 refresh; because $? "refresh should be harmless in test workspace"
   gen3 cd && [[ $(pwd) = "$GEN3_WORKDIR" ]]; because $? "gen3 cd should put us into the workspace"
   for fileName in README.md config.tfvars backend.tfvars; do
-    hashStr=$(md5sum $fileName | awk '{ print $1 }')
+    hashStr=$($MD5 $fileName | awk '{ print $1 }')
     backupPath="backups/${fileName}.${hashStr}"
     [[ -f $backupPath ]]; because $? "gen3 refresh should back $fileName to $backupPath"
   done
@@ -57,7 +57,7 @@ test_refresh() {
 test_tfplan() {
   gen3 cd
   # terraform plan fails if it can't lookup the cert for the commons in the account
-  sed -i 's/YOUR.CERT.NAME/*.planx-pla.net/g' config.tfvars
+  sed -i .bak 's/YOUR.CERT.NAME/*.planx-pla.net/g' config.tfvars
   gen3 tfplan; because $? "tfplan should run even with some invalid config variables"
   [[ -f "$GEN3_WORKDIR/plan.terraform" ]]; because $? "'gen3 tfplan' generates a plan.terraform file used by 'gen3 tfapply'"
 }

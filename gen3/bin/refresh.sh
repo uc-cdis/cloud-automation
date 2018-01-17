@@ -42,7 +42,7 @@ refresh_file() {
 
   if [[ -f "$filePath" ]]; then
     # make a backup
-    fileMd5=$(md5sum  "$filePath" | awk '{ print $1 }')
+    fileMd5=$($MD5  "$filePath" | awk '{ print $1 }')
     fileBackup="$GEN3_WORKDIR/backups/${fileName}.${fileMd5}"
     echo "Backing up $fileName to $fileBackup"
     $GEN3_DRY_RUN || cp $filePath "$fileBackup"
