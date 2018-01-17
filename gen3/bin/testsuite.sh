@@ -15,6 +15,7 @@ fi
 echo "Running gen3 test suite"
 TEST_PROFILE="cdis-test"
 TEST_VPC="gen3test"
+TEST_ACCOUNT=707767160287
 echo "Switching to '$TEST_PROFILE $TEST_VPC' workspace in test process"
 source "$GEN3_HOME/gen3/gen3setup.sh"
 gen3 workon $TEST_PROFILE $TEST_VPC
@@ -32,7 +33,7 @@ test_workspace() {
   gen3 workon $TEST_PROFILE $TEST_VPC; because $? "Calling gen3 workon multiple times should be harmless"
   [[ $GEN3_PROFILE = $TEST_PROFILE ]]; because $? "gen3 workon sets the GEN3_PROFILE env variable: $GEN3_PROFILE"
   [[ $GEN3_VPC = $TEST_VPC ]]; because $? "gen3 workon sets the GEN3_VPC env variable: $GEN3_VPC"
-  [[ $GEN3_S3_BUCKET = "cdis-terraform-state.${TEST_PROFILE}.gen3" ]]; because $? "gen3 workon sets the GEN3_S3_BUCKET env variable: $GEN3_S3_BUCKET"
+  [[ $GEN3_S3_BUCKET = "cdis-terraform-state.account-${TEST_ACCOUNT}.gen3" ]]; because $? "gen3 workon sets the GEN3_S3_BUCKET env variable: $GEN3_S3_BUCKET"
   [[ (! -z $GEN3_WORKDIR) && -d $GEN3_WORKDIR ]]; because $? "gen3 workon sets the GEN3_WORKDIR env variable, and initializes the folder: $GEN3_WORKDIR"
   [[ $(stat -c %a $GEN3_WORKDIR) = "700" ]]; because $? "gen3 workon sets the GEN3_WORKDIR to mode 0700, because secrets are in there"
   gen3 cd && [[ $(pwd) = "$GEN3_WORKDIR" ]]; because $? "gen3 cd should take us to the workspace by default: $(pwd) =? $GEN3_WORKDIR"
