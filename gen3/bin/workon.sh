@@ -187,9 +187,9 @@ for fileName in config.tfvars backend.tfvars README.md; do
   fi
 done
 
+cd "$GEN3_WORKDIR"
 if [[ ! -d "$GEN3_WORKDIR/.terraform" ]]; then
   echo "initializing terraform"
-  cd "$GEN3_WORKDIR"
   echo "checking if $S3_TERRAFORM bucket exists"
   if ! aws s3 ls "s3://$S3_TERRAFORM" > /dev/null 2>&1; then
     echo "Creating $S3_TERRAFORM bucket"

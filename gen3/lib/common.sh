@@ -26,6 +26,6 @@ fi
 
 # MacOS has 'md5', linux has 'md5sum'
 MD5=md5
-if [[ $(uname -o) == "GNU/Linux" ]]; then
+if [[ $(uname -s) == "Linux" ]]; then
   MD5=md5sum
 fi
