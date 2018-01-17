@@ -63,4 +63,8 @@ for fileName in config.tfvars backend.tfvars README.md; do
   refresh_file $fileName
 done
 
+echo "Running terraform init ..."
+cd "$GEN3_WORKDIR"
+terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_HOME/tf_files/aws/"
+
 exit 0
