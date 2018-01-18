@@ -41,8 +41,8 @@ spec:
           volumeMounts:
             - name: "config-volume"
               readOnly: true
-              mountPath: "/var/www/sheepdog/local_settings.py"
-              subPath: "local_settings.py"
+              mountPath: "/var/www/sheepdog/wsgi.py"
+              subPath: "wsgi.py"
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"
