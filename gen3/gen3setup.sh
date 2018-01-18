@@ -41,6 +41,7 @@ gen3_workon() {
   export GEN3_VPC="$2"
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_VPC}"
   export AWS_PROFILE="$GEN3_PROFILE"
+
   AWS_ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
   # S3 bucket where we save terraform state, etc
   if [[ -z "$AWS_ACCOUNT_ID" ]]; then
@@ -49,6 +50,13 @@ gen3_workon() {
   else
     export GEN3_S3_BUCKET="cdis-terraform-state.account-${AWS_ACCOUNT_ID}.gen3"
   fi
+
+  # terraform stack - based on VPC name
+  export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws"
+  if [[ "$GEN3_VPC" =~ _user$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_user_vpc"
+  fi
+
   PS1="gen3/${GEN3_PROFILE}/${GEN3_VPC}:$GEN3_PS1_OLD"
   return 0
 }
