@@ -115,11 +115,20 @@ Any special notes about $GEN3_VPC
 EOM
 }
 
+
 #
 # Generate an initial config.tfvars file with intelligent defaults
 # where possible.
 #
 config.tfvars() {
+  if [[ "$GEN3_VPC" =~ _user$ ]]; then
+    # user vpc is simpler ...
+    cat - <<EOM
+vpc_name="$GEN3_VPC"
+EOM
+    return 0
+  fi
+  # else ...
   cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
 vpc_name="$GEN3_VPC"
@@ -226,4 +235,4 @@ EOM
 fi
 
 echo "Running terraform init ..."
-terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_HOME/tf_files/aws/"
+terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"

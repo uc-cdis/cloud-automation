@@ -65,6 +65,6 @@ done
 
 echo "Running terraform init ..."
 cd "$GEN3_WORKDIR"
-terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_HOME/tf_files/aws/"
+terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 exit 0

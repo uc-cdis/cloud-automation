@@ -190,7 +190,7 @@ Not yet implemented
 
 Not yet implemented 
 
-## Migrating existing commons to gen3
+## Migrating existing AWS commons to gen3
 
 The gen3 tools expect the terraform variable files (config.tfvars and backend.tfvars)
 to exist under
@@ -228,9 +228,20 @@ encrypt = "true"
 key = "gen3test"
 region = "us-east-1"
 
-$ terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_HOME/tf_files/aws/"
+#
+# gen3 workon ... will run 'terraform init' - which will in turn prompt you to migrate the 
+# if it has changed 
+#
+
+$ gen3 workon cdis-test gen3test
 $ gen3 tfplan
 # Note: tfplan should propose no resource changes.
 #   Still run tfapply to sync up the state in S3.
 $ gen3 tfapply
 ```
+
+## VPC naming conventions
+
+The *gen3* tools follow these VPC naming conventions to determine which terraform stack to build in the VPC.
+* a VPC name that ends in '_user' is a user VPC (for user VM's) on AWS defined by the resources in `cloud-automation/tf_files/aws_user_vpc`
+* every other VPC name is a commons VPC on AWS defined by resources in `cloud-automation/tf_files/aws`

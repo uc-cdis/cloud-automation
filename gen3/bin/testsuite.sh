@@ -66,6 +66,17 @@ test_workspace() {
     [[ -f $fileName ]]; because $? "gen3 workon ensures we have a $fileName with AWS secrets - local copy || generated with aws cli"
   done
   [[ ! -z "$MD5" ]]; because $? "commons.sh sets MD5 to $MD5"
+
+  if [[ "$TEST_VPC" =~ _user$ ]]; then
+    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws_user_vpc" ]]; because $? "_user VPCs should use the ./aws_user_vpc resources"
+  else
+    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws" ]]; because $? "non-_user VPCs should use the ./aws resources"
+  fi
+}
+
+test_user_workspace() {
+  TEST_VPC="${TEST_VPC}_user"
+  test_workspace
 }
 
 test_trash() {
@@ -116,6 +127,7 @@ test_tfoutput() {
 
 shunit_runtest "test_semver"
 shunit_runtest "test_workspace"
+shunit_runtest "test_user_workspace"
 shunit_runtest "test_trash"
 shunit_runtest "test_refresh"
 shunit_runtest "test_tfplan"
