@@ -55,10 +55,17 @@ test_workspace() {
   for fileName in aws_provider.tfvars aws_backend.tfvars; do
     [[ -f $fileName ]]; because $? "gen3 workon ensures we have a $fileName with AWS secrets - local copy || generated with aws cli"
   done
+  [[ ! -z "$MD5" ]]; because $? "commons.sh sets MD5 to $MD5"
 }
 
 test_ls() {
   gen3 ls | grep -e "${TEST_PROFILE} \s*${TEST_VPC}"; because $? "gen3 ls should include test workspace in result: $TEST_PROFILE $TEST_VPC"
+}
+
+test_semver() {
+  semver_ge "1.1.1" "1.1.0"; because $? "1.1.1 -ge 1.1.0"
+  ! semver_ge "1.1.0" "1.1.1"; because $? "! 1.1.0 -ge 1.1.1"
+  semver_ge "2.0.0" "1.10.22"; because $? "2.0.0 -ge 1.10.22"
 }
 
 test_refresh() {
@@ -88,6 +95,7 @@ test_tfoutput() {
   [[ $vpcName = $GEN3_VPC ]]; because $? "tfoutput vpc_name works: $vpcName =? $GEN3_VPC"
 }
 
+shunit_runtest "test_semver"
 shunit_runtest "test_workspace"
 shunit_runtest "test_refresh"
 shunit_runtest "test_tfplan"
