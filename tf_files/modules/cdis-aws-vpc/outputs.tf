@@ -37,3 +37,18 @@ output "gateway_id" {
 output "security_group_local_id" {
   value = "${aws_security_group.local.id}"
 }
+
+
+output "ssh_config" {
+  value = "${data.template_file.ssh_config.rendered}"
+}
+
+#-------------------------------------------
+
+data "template_file" "ssh_config" {
+    template = "${file("${path.module}/ssh_config.tpl")}"
+    vars {
+        vpc_name = "${var.vpc_name}"
+        login_public_ip = "${aws_eip.login.public_ip}"
+    }
+}
