@@ -78,9 +78,12 @@ shunit_runtest() {
 
 #
 # Output as simple summary of tests run so far
+# @return 0 if all tests have been successful, 1 otherwise
 #
 shunit_summary() {
+  local failCount
   local SHUNIT_TEST_SUCCESS
+  let failCount=$SHUNIT_TEST_FAIL
   let SHUNIT_TEST_SUCCESS="$SHUNIT_TEST_COUNT-$SHUNIT_TEST_FAIL";
   if [[ $SHUNIT_TEST_FAIL -gt 0 ]]; then
     echo -e "\n\n\e[31mSome tests failed\e[39m"
@@ -98,7 +101,8 @@ Total : $SHUNIT_TEST_COUNT
 
 EOM
   
-  shunit_clear  
+  shunit_clear
+  return $failCount
 }
 
 # 
