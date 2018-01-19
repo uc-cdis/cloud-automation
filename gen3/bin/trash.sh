@@ -27,6 +27,12 @@ if [[ ! "$1" =~ ^-*apply ]]; then
   exit 1
 fi
 
+
+if [[ ! -d "$GEN3_WORKDIR" ]]; then
+  echo "ERROR: $GEN3_WORKDIR does not exist"
+  exit 1
+fi
+
 destFolder="${GEN3_TRASH}/${GEN3_PROFILE}-${GEN3_VPC}.$(date +%s)"
 echo "$DRY_RUN_STR mv $GEN3_WORKDIR $destFolder"
 if ! $GEN3_DRY_RUN; then

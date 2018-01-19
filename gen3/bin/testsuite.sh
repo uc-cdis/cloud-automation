@@ -58,6 +58,15 @@ test_workspace() {
   [[ ! -z "$MD5" ]]; because $? "commons.sh sets MD5 to $MD5"
 }
 
+test_trash() {
+  gen3 workon $TEST_PROFILE $TEST_VPC; because $? "Calling gen3 workon multiple times should be harmless"
+  [[ -d $GEN3_WORKDIR ]]; because $? "gen3 workon should create $GEN3_WORKDIR"
+  gen3 trash --apply; because $? "gen3 trash should mv a workspace to the trash"
+  [[ ! -d $GEN3_WORKDIR ]]; because $? "the workdir should be gone after trash - $GEN3_WORKDIR"
+  gen3 workon $TEST_PROFILE $TEST_VPC; because $? "Calling gen3 workon after trash should recreate a workspace"
+  [[ -d $GEN3_WORKDIR ]]; because $? "gen3 workon should create $GEN3_WORKDIR"
+}
+
 test_ls() {
   gen3 ls | grep -e "${TEST_PROFILE} \s*${TEST_VPC}"; because $? "gen3 ls should include test workspace in result: $TEST_PROFILE $TEST_VPC"
 }
@@ -97,6 +106,7 @@ test_tfoutput() {
 
 shunit_runtest "test_semver"
 shunit_runtest "test_workspace"
+shunit_runtest "test_trash"
 shunit_runtest "test_refresh"
 shunit_runtest "test_tfplan"
 shunit_runtest "test_tfoutput"
