@@ -83,11 +83,6 @@ if [[ $(uname -s) == "Linux" ]]; then
   MD5=md5sum
 fi
 
-if [[ ! -d "$GEN3_WORKDIR" ]]; then
-  echo "ERROR: $GEN3_WORKDIR does not exist"
-  exit 1
-fi
-
 # Little string to prepend to info messages
 DRY_RUN_STR=""
 if $GEN3_DRY_RUN; then DRY_RUN_STR="--dryrun"; fi
