@@ -41,6 +41,11 @@ pipeline {
         }
       }
     }
+    stage('gen3 helper test suite') {
+      steps {
+        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/testsuite.sh'
+      }
+    }
   }
   post {
     success {

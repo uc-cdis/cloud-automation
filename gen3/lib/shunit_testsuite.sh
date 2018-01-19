@@ -35,7 +35,22 @@ test_runtest() {
   [[ $SHUNIT_TEST_COUNT -eq 0 && $SHUNIT_TEST_FAIL -eq 0 && $SHUNIT_FAILED_TESTS = "" ]]; because $? "shunit_summary clears counters"
 }
 
+test_summary() {
+  # drop into a subshell, so shunit_summary doesn't clear the counters
+  ! (
+    shunit_clear
+    shunit_runtest "test_fail"
+    shunit_summary
+  ); because $? "shunit_summary should have non-zero result if any tests failed"
+  (
+    shunit_clear
+    shunit_runtest "test_assert"
+    shunit_summary
+  ); because $? "shunit_summary should have zero result if all tests pass" 
+}
+
 shunit_runtest "test_assert"
 shunit_runtest "test_runtest"
+shunit_runtest "test_summary"
 shunit_summary
 
