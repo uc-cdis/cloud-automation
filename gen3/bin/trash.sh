@@ -20,7 +20,7 @@ fi
 source "$GEN3_HOME/gen3/lib/common.sh"
 
 GEN3_TRASH="$XDG_DATA_HOME/gen3/.trash"
-mkdir -p "$GEN3_TRASH"
+mkdir -p -m 0700 "$GEN3_TRASH"
 
 if [[ ! "$1" =~ ^-*apply ]]; then
   help
