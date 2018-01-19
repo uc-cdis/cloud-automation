@@ -8,10 +8,8 @@ variable "aws_region" {
     default = "us-east-1"
 }
 variable "aws_access_key" {
-    default = "AKIAISEYWWHPC5Z74NCA"
 }
 variable "aws_secret_key" {
-    default = "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"
 }
 variable "aws_cert_name" {
 }

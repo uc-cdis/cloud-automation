@@ -1,11 +1,6 @@
 terraform {
     backend "s3" {
         encrypt = "true"
-        bucket = "cdis-terraform-state"
-        key    = "giang-pla.net/v1/terraform.tfstate"
-        region = "us-east-1"
-        access_key = "AKIAISEYWWHPC5Z74NCA"
-        secret_key = "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"
     }
 }
 
@@ -316,6 +311,10 @@ resource "aws_ami_copy" "login_ami" {
   tags {
     Name = "login"
   }
+  lifecycle {
+    # user can 'taint' this resource to force an update when new ami's become available
+    ignore_changes = ["source_ami_id"]
+  }
 }
 
 resource "aws_ami_copy" "squid_ami" {
@@ -327,6 +326,10 @@ resource "aws_ami_copy" "squid_ami" {
 
   tags {
     Name = "login"
+  }
+  lifecycle {
+    # user can 'taint' this resource to force an update when new ami's become available
+    ignore_changes = ["source_ami_id"]
   }
 }
 

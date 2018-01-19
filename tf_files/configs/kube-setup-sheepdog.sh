@@ -23,7 +23,7 @@ python render_creds.py secrets
 cd ~/${vpc_name}
 
 if ! kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
-  kubectl create secret generic sheepdog-secret --from-file=local_settings.py=./apis_configs/sheepdog_settings.py
+  kubectl create secret generic sheepdog-secret --from-file=wsgi.py=./apis_configs/sheepdog_settings.py
 fi
 
 kubectl apply -f services/sheepdog/sheepdog-deploy.yaml

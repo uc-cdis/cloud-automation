@@ -23,7 +23,7 @@ python render_creds.py secrets
 cd ~/${vpc_name}
 
 if ! kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
-  kubectl create secret generic peregrine-secret --from-file=local_settings.py=./apis_configs/peregrine_settings.py
+  kubectl create secret generic peregrine-secret --from-file=wsgi.py=./apis_configs/peregrine_settings.py
 fi
 
 kubectl apply -f services/peregrine/peregrine-deploy.yaml

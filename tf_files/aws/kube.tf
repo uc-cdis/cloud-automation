@@ -318,7 +318,7 @@ resource "aws_instance" "kube_provisioner" {
 }
 
 
-resource "null_resource" "config_setup2" {
+resource "null_resource" "config_setup" {
     triggers {
       creds_change = "${data.template_file.creds.rendered}"
       vars_change = "${data.template_file.kube_vars.rendered}"
@@ -379,5 +379,9 @@ resource "aws_s3_bucket" "kube_bucket" {
     Name        = "${var.kube_bucket}"
     Environment = "${var.vpc_name}"
     Organization = "Basic Service"
+  }
+  lifecycle {
+    # allow same bucket between stacks
+    ignore_changes = ["tags"]
   }
 }
