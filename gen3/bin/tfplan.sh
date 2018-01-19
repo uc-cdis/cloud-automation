@@ -24,7 +24,7 @@ fi
 
 cd $GEN3_WORKDIR
 /bin/rm -f plan.terraform
-echo "Running terraform plan $destroyFlag --var-file ./config.tfvars -var-file ./aws_provider.tfvars -out plan.terraform $GEN3_HOME/tf_files/aws/"
+echo "Running terraform plan $destroyFlag --var-file ./config.tfvars -var-file ./aws_provider.tfvars -out plan.terraform $GEN3_TFSCRIPT_FOLDER/"
 terraform plan $destroyFlag --var-file ./config.tfvars -var-file ./aws_provider.tfvars -out plan.terraform "$GEN3_TFSCRIPT_FOLDER/" 2>&1 | tee plan.log
 let exitCode=${PIPESTATUS[0]}
 if [[ $exitCode -ne 0 ]]; then

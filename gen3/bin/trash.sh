@@ -27,7 +27,6 @@ if [[ ! "$1" =~ ^-*apply ]]; then
   exit 1
 fi
 
-
 if [[ ! -d "$GEN3_WORKDIR" ]]; then
   echo "ERROR: $GEN3_WORKDIR does not exist"
   exit 1
