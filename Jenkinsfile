@@ -7,6 +7,7 @@ pipeline {
     stage('FetchCode'){
       steps {
         checkout scm
+        sh '/bin/rm -rf Secrets SecretsNoPlan'
         dir('Secrets') {
             sh 'aws s3 cp s3://cdis-terraform-state/planx-pla.net/v1/config.tfvars config.tfvars'
             sh 'aws s3 cp s3://cdis-terraform-state/planx-pla.net/v1/backend.tfvars backend.tfvars'
@@ -15,7 +16,6 @@ pipeline {
     }
     stage('Prep') {
       steps {
-        sh '/bin/rm -rf Secrets SecretsNoPlan'
         dir('Secrets') {
           sh 'terraform init -backend-config access_key=$AWS_ACCESS_KEY_ID -backend-config secret_key=$AWS_SECRET_ACCESS_KEY -backend-config backend.tfvars ../tf_files/aws'
         }
