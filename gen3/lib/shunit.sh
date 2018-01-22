@@ -30,9 +30,9 @@ shunit_test_summary() {
   local SHUNIT_ASSERT_SUCCESS
   let SHUNIT_ASSERT_SUCCESS=$SHUNIT_ASSERT_COUNT-$SHUNIT_ASSERT_FAIL;
   if [[ $SHUNIT_ASSERT_FAIL -gt 0 ]]; then
-    echo -e "\n\n\e[31mTest Failed - $SHUNIT_CURRENT_TEST\e[39m"
+    echo -e "\n\n\x1B[31mTest Failed - $SHUNIT_CURRENT_TEST\x1B[39m"
   else
-    echo -e "\n\n\e[32mTest Success - $SHUNIT_CURRENT_TEST\e[39m"
+    echo -e "\n\n\x1B[32mTest Success - $SHUNIT_CURRENT_TEST\x1B[39m"
   fi
   cat - <<EOM
 Assertions:
@@ -86,12 +86,12 @@ shunit_summary() {
   let failCount=$SHUNIT_TEST_FAIL
   let SHUNIT_TEST_SUCCESS="$SHUNIT_TEST_COUNT-$SHUNIT_TEST_FAIL";
   if [[ $SHUNIT_TEST_FAIL -gt 0 ]]; then
-    echo -e "\n\n\e[31mSome tests failed\e[39m"
+    echo -e "\n\n\x1B[31mSome tests failed\x1B[39m"
     cat - <<EOM
 Failed tests: $SHUNIT_FAILED_TESTS
 EOM
   else
-    echo -e "\n\n\e[32mAll tests succeeded\e[39m"
+    echo -e "\n\n\x1B[32mAll tests succeeded\x1B[39m"
   fi
   cat - <<EOM
 Test Result Summary:
@@ -117,11 +117,11 @@ shunit_because() {
   let SHUNIT_ASSERT_COUNT+=1
   if [[ $exitCode != 0 ]]; then
     let SHUNIT_ASSERT_FAIL+=1
-    echo -e "\n\e[31m$SHUNIT_CURRENT_TEST - Assertion failed:\e[39m $2"
+    echo -e "\n\x1B[31m$SHUNIT_CURRENT_TEST - Assertion failed:\x1B[39m $2"
     shunit_test_summary
     exit 1
   fi
-  echo -e "\e[32m$SHUNIT_CURRENT_TEST - Assertion passed:\e[39m $2"
+  echo -e "\x1B[32m$SHUNIT_CURRENT_TEST - Assertion passed:\x1B[39m $2"
   return 0
 }
 
