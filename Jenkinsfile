@@ -7,7 +7,7 @@ pipeline {
     stage('FetchCode'){
       steps {
         checkout scm
-        sh '/bin/rm -rf Secrets SecretsNoPlan'
+        sh '/bin/rm -rf Secrets SecretsNoPlan dataHome'
         dir('Secrets') {
             sh 'aws s3 cp s3://cdis-terraform-state/planx-pla.net/v1/config.tfvars config.tfvars'
             sh 'aws s3 cp s3://cdis-terraform-state/planx-pla.net/v1/backend.tfvars backend.tfvars'
