@@ -40,6 +40,16 @@ fi
 source "$GEN3_HOME/gen3/lib/common.sh"
 source "$GEN3_HOME/gen3/lib/shunit.sh"
 
+#
+# Little macos/linux stat wrapper
+#
+file_mode() {
+  if [[ $(uname -s) == 'Linux' ]]; then
+    stat -c %a "$1"
+  else
+    stat -f %p "$1"
+  fi
+}
 
 test_workspace() {
   gen3 workon $TEST_PROFILE $TEST_VPC; because $? "Calling gen3 workon multiple times should be harmless"
