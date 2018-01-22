@@ -63,9 +63,9 @@ if [[ -z "$GEN3_PROFILE" || -z "$GEN3_VPC" || -z "$GEN3_WORKDIR" || -z "$GEN3_HO
 fi
 
 # vt100 escape sequences - don't forget to pass -e to 'echo -e'
-RED_COLOR="\e[31m"
-DEFAULT_COLOR="\e[39m"
-GREEN_COLOR="\e[32m"
+RED_COLOR="\x1B[31m"
+DEFAULT_COLOR="\x1B[39m"
+GREEN_COLOR="\x1B[32m"
 
 #
 # This folder holds secrets, so lock it down permissions wise ...
