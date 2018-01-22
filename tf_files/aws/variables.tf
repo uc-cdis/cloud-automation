@@ -20,9 +20,12 @@ variable "db_password_fence" {
     default = ""
 }
 variable "db_password_userapi" {
+    # userapi now deprecated in favor of fence
     default = ""
 }
 variable "db_password_gdcapi" {
+    # gdcapi now deprecated in favor of sheepdog + peregrine
+    default = ""
 }
 variable "db_password_peregrine" {
 }
@@ -78,9 +81,13 @@ variable "gdcapi_indexd_password" {
 }
 # gdcapi's oauth2 client id(fence as oauth2 provider)
 variable "gdcapi_oauth2_client_id" {
+  # oauth handshake should not be necessary - uses fence access token
+  default = ""
 }
 # gdcapi's oauth2 client secret
 variable "gdcapi_oauth2_client_secret" {
+  # oauth handshake should not be necessary - uses fence access token
+  default = ""
 }
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {

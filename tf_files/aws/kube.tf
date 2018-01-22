@@ -101,8 +101,8 @@ resource "aws_db_instance" "db_gdcapi" {
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "gdcapi"
-    username             = "gdcapi_user"
-    password             = "${var.db_password_gdcapi}"
+    username             = "sheepdog"
+    password             = "${var.db_password_sheepdog}"
     snapshot_identifier  = "${var.gdcapi_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     tags {
@@ -111,11 +111,9 @@ resource "aws_db_instance" "db_gdcapi" {
     }
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     lifecycle {
-        ignore_changes = ["identifier", "name", "engine_version"]
+        ignore_changes = ["identifier", "name", "engine_version", "username", "password"]
     }
 }
-
-
 
 resource "aws_db_instance" "db_indexd" {
     allocated_storage    = "${var.db_size}"

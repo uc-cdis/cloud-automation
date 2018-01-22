@@ -43,6 +43,13 @@ fi
 
 kubectl apply -f services/fence/fence-deploy.yaml
 
+#
+# Note: the 'create_fence_db' flag is set in
+#   kube-services.sh
+#   The assumption here is that we only create the db once -
+#   when we run 'kube-services.sh' at cluster init time.
+#   This setup block is not necessary when migrating an existing userapi commons to fence.
+#
 if [[ -z "${fence_snapshot}" && "${create_fence_db}" = "true" && ( ! -f .rendered_fence_db ) ]]; then
   #
   # This stuff is not necessary when migrating an existing VPC from userapi to fence ...
