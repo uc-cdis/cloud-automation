@@ -30,7 +30,9 @@
         "db_database": "${gdcapi_db}",
         "gdcapi_secret_key": "${gdcapi_secret_key}",
         "indexd_password": "${gdcapi_indexd_password}",
-        "hostname": "${hostname}"
+        "hostname": "${hostname}",
+        "oauth2_client_id": "${gdcapi_oauth2_client_id}",
+        "oauth2_client_secret": "${gdcapi_oauth2_client_secret}"
     },
     "peregrine": {
         "fence_host": "${fence_host}",

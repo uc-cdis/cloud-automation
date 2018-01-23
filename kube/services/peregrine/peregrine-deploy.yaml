@@ -21,7 +21,7 @@ spec:
             secretName: "peregrine-secret"
       containers:
         - name: peregrine
-          image: quay.io/cdis/peregrine:feat_graphql
+          image: quay.io/cdis/peregrine:master
           ports:
           - containerPort: 80
           volumeMounts:

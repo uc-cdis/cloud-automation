@@ -18,6 +18,7 @@ export DEBIAN_FRONTEND=noninteractive
 # that terraform appends to kube-services.sh
 #
 create_fence_db="true"
+create_gdcapi_db="true"
 
 if [ -z "${vpc_name}" ]; then
   echo "ERROR: vpc_name variable not set - bailing out"
