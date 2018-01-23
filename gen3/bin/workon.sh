@@ -143,6 +143,8 @@ gdcapi_secret_key="$(random_alphanumeric 50)"
 db_password_fence="$(random_alphanumeric 32)"
 
 db_password_gdcapi="$(random_alphanumeric 32)"
+db_password_sheepdog="$(random_alphanumeric 32)"
+db_password_peregrine="$(random_alphanumeric 32)"
 
 db_password_indexd="$(random_alphanumeric 32)"
 
