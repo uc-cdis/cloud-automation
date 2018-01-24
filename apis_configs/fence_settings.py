@@ -29,7 +29,6 @@ HMAC_ENCRYPTION_KEY = '{{hmac_key}}'
 
 
 HOSTNAME = '{{hostname}}'
-HOST_NAME = '{{hostname}}'
 
 OPENID_CONNECT = {
     'google': {
