@@ -39,8 +39,7 @@ data:
       
       	##
       	# Logging Settings
-      	##
-      
+      	##      
       	access_log /dev/stdout;
       	error_log /dev/stderr;
       
@@ -66,6 +65,21 @@ data:
           set $access_token "";
           if ($cookie_access_token) {
               set $access_token "Bearer $cookie_access_token";
+          }
+          
+          #
+          # CSRF check
+          # This block requires a csrftoken for all POST requests.
+          #
+          set $csrf_check "fail";
+          if ($cookie_csrftoken = $http_x_csrf_token) {
+            set $csrf_check "ok-$cookie_csrftoken";
+          }
+          if ($request_method != "POST") {
+            set $csrf_check "ok-$request_method";
+          }
+          if ($csrf_check !~ ^ok-\S.+$) {
+            return 403 "failed csrf check";
           }
 
           #
