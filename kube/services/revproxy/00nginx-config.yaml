@@ -63,6 +63,19 @@ data:
           # DNS resolver required to resolve dynamic hostnames, btw - kubedns may not support ipv6
           resolver kube-dns.kube-system.svc.cluster.local ipv6=off;
           
+          set $access_token "";
+          if ($cookie_access_token) {
+              set $access_token "Bearer $cookie_access_token";
+          }
+
+          #
+          # Note - need to repeat this line in location blocks that call proxy_set_header,
+          #   as nginx proxy module inherits proxy_set_header if and only if current level does
+          #   not set headers ... http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header
+          #
+          proxy_set_header   Authorization "$access_token";
+          #add_header X-debug-auth "$access_token"; #- only do this for quick and dirty client-side debugging
+          
           location / {
               set $portal_service http://portal-service.default.svc.cluster.local;
               if ($cookie_portal_service ~ ^[\w-]+$) {
@@ -88,6 +101,7 @@ data:
               # knows the original request path for hmac signing
               proxy_set_header   Host $host;
               proxy_set_header   Subdir /api;
+              proxy_set_header   Authorization "$access_token";
               proxy_connect_timeout 300;
               proxy_send_timeout 300;
               proxy_read_timeout 300;
@@ -100,6 +114,7 @@ data:
               # knows the original request path for hmac signing
               proxy_set_header   Host $host;
               proxy_set_header   Subdir /api;
+              proxy_set_header   Authorization "$access_token";
               proxy_connect_timeout 300;
               proxy_send_timeout 300;
               proxy_read_timeout 300;
