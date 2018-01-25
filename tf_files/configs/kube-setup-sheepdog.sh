@@ -26,6 +26,12 @@ if ! kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
   kubectl create secret generic sheepdog-secret --from-file=wsgi.py=./apis_configs/sheepdog_settings.py
 fi
 
+if [[ -z "$(kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')" ]]; then
+  echo "ERROR: configmaps/global does not include dictionary_url"
+  echo "... update and apply ${vpc_name}/00configmap.json, then retry this script"
+  exit 1
+fi
+
 kubectl apply -f services/sheepdog/sheepdog-deploy.yaml
 
 #
@@ -38,7 +44,7 @@ if ! psql --help > /dev/null; then
   sudo -E apt install -y postgresql-client
 fi
 if ! jq --help > /dev/null; then
-export DEBIAN_FRONTEND=noninteractive
+  export DEBIAN_FRONTEND=noninteractive
   sudo -E apt install -y jq
 fi
 

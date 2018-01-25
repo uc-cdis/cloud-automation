@@ -33,6 +33,9 @@ variable "db_password_sheepdog" {
 }
 variable "db_password_indexd" {
 }
+variable "dictionary_url" {
+  # ex: dev dictionary is at: https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json
+}
 variable "fence_snapshot" {
     default = ""
 }

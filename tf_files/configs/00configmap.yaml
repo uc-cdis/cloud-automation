@@ -7,3 +7,4 @@ data:
   environment: ${vpc_name}
   hostname: ${hostname}
   revproxy_arn: ${revproxy_arn}
+  dictionary_url: ${dictionary_url}

@@ -29,9 +29,11 @@ USERAPI_GDCAPI_SETUP = (
 )
 
 # setup gdcapi database
+# datamodel_postgres_admin uses DICTIONARY_URL environment variable if set,
+# and it is set in sheepdog ...
 #
 GDCAPI_DB_SETUP = (
-    "gdc_postgres_admin graph-create "
+    "datamodel_postgres_admin graph-create "
     " -U '{username}' -P '{password}' -H '{host}' -D '{database}'"
 )
 GDCAPI_TRANSACTION_LOGS = (

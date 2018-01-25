@@ -78,6 +78,10 @@ data:
           location /user {
               proxy_pass http://fence-service/;
           }
+          location /api/v0/submission/getschema {
+              proxy_next_upstream off;
+              proxy_pass http://peregrine-service/v0/submission/graphql;
+          }
           location /api/v0/submission/graphql {
               proxy_next_upstream off;
               # Forward the host and set Subdir header so api

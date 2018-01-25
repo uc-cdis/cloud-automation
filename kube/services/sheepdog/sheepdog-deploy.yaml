@@ -38,6 +38,12 @@ spec:
           ports:
           - containerPort: 80
           - containerPort: 443
+          env:
+          - name: DICTIONARY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: dictionary_url
           volumeMounts:
             - name: "config-volume"
               readOnly: true

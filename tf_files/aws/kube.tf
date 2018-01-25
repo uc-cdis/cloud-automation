@@ -263,6 +263,7 @@ data "template_file" "configmap" {
         vpc_name = "${var.vpc_name}"
         hostname = "${var.hostname}"
         revproxy_arn = "${data.aws_acm_certificate.api.arn}"
+        dictionary_url = "${var.dictionary_url}"
     }
 }
 
