@@ -46,7 +46,7 @@ resource "aws_db_instance" "db_fence" {
     engine               = "postgres"
     skip_final_snapshot  = true
     engine_version       = "9.6.5"
-    db_parameter_groups  = ["${aws_db_parameter_group.rds-cdis-pg.id}"]
+    parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "fence"
     username             = "fence_user"
@@ -75,7 +75,7 @@ resource "aws_db_instance" "db_userapi" {
     engine               = "postgres"
     skip_final_snapshot  = true
     engine_version       = "9.6.5"
-    db_parameter_groups  = ["${aws_db_parameter_group.rds-cdis-pg.id}"]
+    parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "userapi"
     username             = "userapi_user"
@@ -98,7 +98,7 @@ resource "aws_db_instance" "db_gdcapi" {
     engine               = "postgres"
     skip_final_snapshot  = true
     engine_version       = "9.6.5"
-    db_parameter_groups  = ["${aws_db_parameter_group.rds-cdis-pg.id}"]
+    parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "gdcapi"
     username             = "gdcapi_user"
@@ -122,7 +122,7 @@ resource "aws_db_instance" "db_indexd" {
     engine               = "postgres"
     skip_final_snapshot  = true
     engine_version       = "9.6.5"
-    db_parameter_groups  = ["${aws_db_parameter_group.rds-cdis-pg.id}"]
+    parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "indexd"
     username             = "indexd_user"
