@@ -1,0 +1,26 @@
+#!groovy
+
+pipeline {
+  agent any
+
+  stages {
+    stage('List pods'){
+      steps {
+        script {
+          summary = sh script: "kubectl get pods", returnStdout: true
+          imageInfo = sh script: 'kubectl get pods -o yaml | awk \'{ print $2 }\' | grep -e \'^quay.io\' | sort -u', returnStdout: true
+          message = "https://jenkins.planx-pla.net/job/$env.JOB_NAME/\nJenkins KubeCheck result: \n" + summary + "\n" + imageInfo
+          echo message
+        }
+      }
+    }
+  }
+  post {
+    failure {
+      slackSend color: 'bad', message: "https://jenkins.planx-pla.net/job/$env.JOB_NAME/\nKubeCheck pipeline failed"
+    }
+    unstable {
+      slackSend color: 'bad', message: "https://jenkins.planx-pla.net/job/$env.JOB_NAME/\nKubeCheck pipeline unstable"
+    }
+  }
+}

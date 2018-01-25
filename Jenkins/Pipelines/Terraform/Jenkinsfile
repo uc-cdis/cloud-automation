@@ -6,6 +6,7 @@ pipeline {
   stages {
     stage('FetchCode'){
       steps {
+        //git url: "https://github.com/uc-cdis/cloud-automation.git", branch: 'fix/Jenkins'
         checkout scm
         dir('Secrets') {
             sh 'aws s3 cp s3://cdis-terraform-state/planx-pla.net/v1/config.tfvars config.tfvars'
@@ -16,12 +17,12 @@ pipeline {
     stage('Prep') {
       steps {
         dir('Secrets') {
-          sh 'terraform init -backend-config /mnt/Secrets/terraform/aws.backend.tfvars -backend-config backend.tfvars ../tf_files/aws'
+          sh 'terraform init -backend-config access_key=$AWS_ACCESS_KEY_ID -backend-config secret_key=$AWS_SECRET_ACCESS_KEY -backend-config backend.tfvars ../tf_files/aws'
         }
         dir('SecretsNoPlan') {
           sh 'cp ../Secrets/*.tfvars .'
           sh 'echo \'key = "noplan/terraform.tfstate"\' > noplan.tfvars'
-          sh 'terraform init -backend-config /mnt/Secrets/terraform/aws.backend.tfvars -backend-config backend.tfvars --backend-config noplan.tfvars ../tf_files/aws'
+          sh 'terraform init -backend-config access_key=$AWS_ACCESS_KEY_ID -backend-config secret_key=$AWS_SECRET_ACCESS_KEY -backend-config backend.tfvars --backend-config noplan.tfvars ../tf_files/aws'
         }
       }
     }
@@ -29,7 +30,7 @@ pipeline {
       steps {
         dir('SecretsNoPlan') {
           echo 'Planning - no state ...'
-          sh 'terraform plan --var-file /mnt/Secrets/terraform/aws.tfvars --var-file config.tfvars ../tf_files/aws'
+          sh 'terraform plan --var aws_access_key=$AWS_ACCESS_KEY_ID --var aws_secret_key=$AWS_SECRET_ACCESS_KEY --var-file config.tfvars ../tf_files/aws'
         }
       }
     }
@@ -37,7 +38,7 @@ pipeline {
       steps {
         dir('Secrets') {
           echo 'Planning ...'
-          sh 'terraform plan --var-file /mnt/Secrets/terraform/aws.tfvars --var-file config.tfvars -out plan.terraform ../tf_files/aws'
+          sh 'terraform plan --var aws_access_key=$AWS_ACCESS_KEY_ID --var aws_secret_key=$AWS_SECRET_ACCESS_KEY --var-file config.tfvars -out plan.terraform ../tf_files/aws'
         }
       }
     }
@@ -51,6 +52,17 @@ pipeline {
           sh 'terraform apply plan.terraform'
         }
       }
+    }
+  }
+  post {
+    success {
+      echo 'Jenkins Terraform pipeline succeeded'
+    }
+    failure {
+      slackSend color: 'bad', message: 'Jenkins Terraform pipeline failed'
+    }
+    unstable {
+      slackSend color: 'bad', message: 'Jenkins Terraform pipeline unstable'
     }
   }
 }

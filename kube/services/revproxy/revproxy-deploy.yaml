@@ -4,6 +4,7 @@ metadata:
   name: revproxy-deployment
 spec:
   replicas: 1
+  revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -18,6 +19,12 @@ spec:
         - name: revproxy-conf
           configMap:
             name: revproxy-nginx-conf
+        - name: cert-volume
+          secret:
+            secretName: "cert-revproxy-service"
+        - name: ca-volume
+          secret:
+            secretName: "service-ca"
       containers:
       - name: revproxy
         image: nginx
@@ -27,11 +34,24 @@ spec:
           - 'daemon off;'
         ports:
         - containerPort: 80
+        - containerPort: 443
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true
             mountPath: "/etc/nginx/nginx.conf"
             subPath: nginx.conf
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.crt"
+            subPath: "service.crt"
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.key"
+            subPath: "service.key"
+          - name: "ca-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/cdis-ca.crt"
+            subPath: "ca.pem"
       imagePullSecrets:
         - name: cdis-devservices-pull-secret
 

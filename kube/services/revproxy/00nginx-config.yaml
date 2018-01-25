@@ -1,3 +1,7 @@
+#
+# Note: apply this file via apply_config to fill in the DNS
+#   resolver required for cookie-based routing to canary/test services
+#
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -19,8 +23,7 @@ data:
       
       	##
       	# Basic Settings
-      	##
-      
+      	##   
       	sendfile on;
       	tcp_nopush on;
       	tcp_nodelay on;
@@ -57,22 +60,31 @@ data:
       		add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
       		add_header X-Frame-Options "SAMEORIGIN";
       		if ($http_x_forwarded_proto = "http") { rewrite ^/(.*)$ https://$host$request_uri permanent; }
-      		location / {
-      		    proxy_pass http://portal-service.default/;
-      		}
-      		location /index {
-      		    proxy_pass http://indexd-service.default/;
-      		}
-      		location /user {
-      		    proxy_pass http://userapi-service.default/;
-      		}
-      		location /api {
-      		    proxy_next_upstream off;
-                    # Forward the host and set Subdir header so api
-                    # knows the original request path for hmac signing
-      		    proxy_set_header   Host $host;
-      		    proxy_set_header   Subdir /api;
-      		    proxy_pass http://gdcapi-service.default/;
-      		}
+          # DNS resolver required to resolve dynamic hostnames, btw - kubedns may not support ipv6
+          resolver kube-dns.kube-system.svc.cluster.local ipv6=off;
+          
+          location / {
+              set $portal_service http://portal-service.default.svc.cluster.local;
+              if ($cookie_portal_service ~ ^[\w-]+$) {
+                  # support accessing portal-service in another k8s namespace
+                  set $portal_service http://portal-service.$cookie_portal_service.svc.cluster.local;
+                  add_header X-debug-portal "$portal_service" always;
+              } 
+              proxy_pass $portal_service;
+          }
+          location /index {
+              proxy_pass http://indexd-service/;
+          }
+          location /user {
+              proxy_pass http://fence-service/;
+          }
+          location /api {
+              proxy_next_upstream off;
+              # Forward the host and set Subdir header so api
+              # knows the original request path for hmac signing
+              proxy_set_header   Host $host;
+              proxy_set_header   Subdir /api;
+              proxy_pass http://gdcapi-service/;
+          }
       	}
       }

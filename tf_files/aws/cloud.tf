@@ -180,6 +180,10 @@ resource "aws_eip" "login" {
   vpc = true
 }
 
+output "login_ip" {
+  value = "${aws_eip.login.public_ip}"
+}
+
 
 resource "aws_eip_association" "login_eip" {
     instance_id = "${aws_instance.login.id}"
@@ -275,32 +279,81 @@ resource "aws_db_subnet_group" "private_group" {
     description = "Private subnet group"
 }
 
+data "aws_ami" "public_login_ami" {
+  most_recent      = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu16-client-1.0.1-*"]
+  }
+
+  owners     = ["${var.ami_account_id}"]
+}
+
+data "aws_ami" "public_squid_ami" {
+  most_recent      = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu16-squid-1.0.1-*"]
+  }
+
+  owners     = ["${var.ami_account_id}"]
+}
+
+resource "aws_ami_copy" "login_ami" {
+  name              = "ub16-client-crypt-${var.vpc_name}-1.0.0"
+  description       = "A copy of ubuntu16-client-1.0.0"
+  source_ami_id     = "${data.aws_ami.public_login_ami.id}"
+  source_ami_region = "us-east-1"
+  encrypted = true
+
+  tags {
+    Name = "login"
+  }
+}
+
+resource "aws_ami_copy" "squid_ami" {
+  name              = "ub16-squid-crypt-${var.vpc_name}-1.0.0"
+  description       = "A copy of ubuntu16-squid-1.0.0"
+  source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
+  source_ami_region = "us-east-1"
+  encrypted = true
+
+  tags {
+    Name = "login"
+  }
+}
+
+
 resource "aws_instance" "login" {
-    ami = "${var.login_ami}"
+    ami = "${aws_ami_copy.login_ami.id}"
     subnet_id = "${aws_subnet.public.id}"
     instance_type = "t2.micro"
     monitoring = true
     vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
     tags {
-        Name = "Login Node"
+        Name = "${var.vpc_name} Login Node"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
+    }
+    lifecycle {
+        ignore_changes = ["ami"]
     }
 }
 
 resource "aws_instance" "proxy" {
-    ami = "${var.proxy_ami}"
+    ami = "${aws_ami_copy.squid_ami.id}"
     subnet_id = "${aws_subnet.public.id}"
     instance_type = "t2.micro"
     monitoring = true
     source_dest_check = false
     vpc_security_group_ids = ["${aws_security_group.proxy.id}","${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
     tags {
-        Name = "HTTP Proxy"
+        Name = "${var.vpc_name} HTTP Proxy"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
-
 }
 
 resource "aws_route53_zone" "main" {

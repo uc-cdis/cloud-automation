@@ -4,6 +4,7 @@ metadata:
   name: gdcapi-deployment
 spec:
   replicas: 1
+  revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -18,6 +19,12 @@ spec:
         - name: config-volume
           secret:
             secretName: "gdcapi-secret"
+        - name: cert-volume
+          secret:
+            secretName: "cert-gdcapi-service"
+        - name: ca-volume
+          secret:
+            secretName: "service-ca"
       containers:
         - name: gdcapi
           image: quay.io/cdis/gdcapi:develop
@@ -30,11 +37,24 @@ spec:
             timeoutSeconds: 30
           ports:
           - containerPort: 80
+          - containerPort: 443
           volumeMounts:
             - name: "config-volume"
               readOnly: true
               mountPath: "/var/www/gdcapi/wsgi.py"
               subPath: "wsgi.py"
+            - name: "cert-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/service.crt"
+              subPath: "service.crt"
+            - name: "cert-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/service.key"
+              subPath: "service.key"
+            - name: "ca-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/cdis-ca.crt"
+              subPath: "ca.pem"
           imagePullPolicy: Always
           resources:
             limits:

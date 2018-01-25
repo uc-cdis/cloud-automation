@@ -1,0 +1,19 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: jenkins-service
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http 
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: $ARN
+    # this is not supported yet
+    service.beta.kubernetes.io/aws-load-balancer-security-policy: "ELBSecurityPolicy-TLS-1-2-2017-01" 
+spec:
+  selector:
+    app: jenkins
+  ports:
+    - protocol: TCP 
+      port: 443 
+      targetPort: 8080
+      name: https
+  type: LoadBalancer 

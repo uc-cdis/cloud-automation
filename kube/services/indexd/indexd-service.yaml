@@ -9,6 +9,10 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80 
-      nodePort: 30002 
+      name: http
+    - protocol: TCP 
+      port: 443 
+      targetPort: 443
+      name: https
   type: NodePort
 

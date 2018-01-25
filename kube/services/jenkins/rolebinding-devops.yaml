@@ -1,0 +1,14 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: devops-binding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: jenkins-service
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: devops
+  apiGroup: ""
+

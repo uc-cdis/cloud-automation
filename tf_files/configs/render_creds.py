@@ -20,12 +20,12 @@ USERAPI_DB_SETUP = (
 
 # setup user and permissions
 USERAPI_USER_SETUP = (
-    'userapi-create create /var/www/user-api/user.yaml'
+    'fence-create create /var/www/fence/user.yaml'
 )
 
 # setup oauth2 client for gdcapi
 USERAPI_GDCAPI_SETUP = (
-    'userapi-create client-create --client gdcapi --urls {} --username cdis'
+    'fence-create client-create --client gdcapi --urls {} --username cdis'
 )
 
 # setup gdcapi database
@@ -98,26 +98,26 @@ def setup_index_user(creds_file, kube_config):
     print run_command(create_user)[0]
 
 
-def setup_userapi_database(creds_file, kube_config):
+def setup_fence_database(creds_file, kube_config):
     setup_index_user(creds_file, kube_config)
     creds = get_creds(creds_file)
-    data = creds['userapi']
-    pod = get_pod(kube_config, 'userapi')
+    data = creds['fence']
+    pod = get_pod(kube_config, 'fence')
 
-    command = get_base_command(kube_config, pod, 'userapi')
+    command = get_base_command(kube_config, pod, 'fence')
     create_db = command + [
         '--',
         USERAPI_DB_SETUP
         .format(data['db_username'],
                 data['db_password'],
                 data['db_host'], data['db_database'])]
-    print 'Setting up userapi database'
+    print 'Setting up fence database'
     print run_command(create_db)[0]
 
     create_users = ' '.join(
         command + [
             '--', USERAPI_USER_SETUP])
-    print 'Creating users in userapi db'
+    print 'Creating users in fence db'
     print run_command(create_users)[0]
 
     create_oauth = ' '.join(
@@ -171,7 +171,7 @@ def render_creds(creds_file, result_dir):
     with open(creds_file, 'r') as f:
         creds = json.load(f)
 
-    for service in ['userapi', 'gdcapi', 'indexd']:
+    for service in ['fence', 'gdcapi', 'indexd']:
             render_from_template(service, creds[service], result_dir)
 
 
@@ -219,7 +219,7 @@ if __name__ == '__main__':
         'secrets', help='render secrets for k8')
 
     db_parser = subparsers.add_parser(
-        'userapi_db', help='setup userapi database')
+        'fence_db', help='setup fence database')
 
     gdcapi_parser = subparsers.add_parser(
         'gdcapi_db', help='setup gdcapi database')
@@ -236,8 +236,8 @@ if __name__ == '__main__':
             os.mkdir(result_dir)
 
         render_creds(creds_file, result_dir)
-    elif args.sp_name == 'userapi_db':
-        setup_userapi_database(creds_file, kubeconfig)
+    elif args.sp_name == 'fence_db':
+        setup_fence_database(creds_file, kubeconfig)
     elif args.sp_name == 'gdcapi_db':
         setup_gdcapi_database(creds_file, kubeconfig)
     elif args.sp_name == 'dump_creds':
