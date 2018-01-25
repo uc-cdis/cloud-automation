@@ -46,6 +46,7 @@ resource "aws_db_instance" "db_fence" {
     engine               = "postgres"
     skip_final_snapshot  = true
     engine_version       = "9.6.5"
+    db_parameter_groups  = ["${aws_db_parameter_group.rds-cdis-pg.id}"]
     instance_class       = "${var.db_instance}"
     name                 = "fence"
     username             = "fence_user"
@@ -74,6 +75,7 @@ resource "aws_db_instance" "db_userapi" {
     engine               = "postgres"
     skip_final_snapshot  = true
     engine_version       = "9.6.5"
+    db_parameter_groups  = ["${aws_db_parameter_group.rds-cdis-pg.id}"]
     instance_class       = "${var.db_instance}"
     name                 = "userapi"
     username             = "userapi_user"
@@ -96,6 +98,7 @@ resource "aws_db_instance" "db_gdcapi" {
     engine               = "postgres"
     skip_final_snapshot  = true
     engine_version       = "9.6.5"
+    db_parameter_groups  = ["${aws_db_parameter_group.rds-cdis-pg.id}"]
     instance_class       = "${var.db_instance}"
     name                 = "gdcapi"
     username             = "gdcapi_user"
@@ -119,6 +122,7 @@ resource "aws_db_instance" "db_indexd" {
     engine               = "postgres"
     skip_final_snapshot  = true
     engine_version       = "9.6.5"
+    db_parameter_groups  = ["${aws_db_parameter_group.rds-cdis-pg.id}"]
     instance_class       = "${var.db_instance}"
     name                 = "indexd"
     username             = "indexd_user"
@@ -133,6 +137,37 @@ resource "aws_db_instance" "db_indexd" {
     lifecycle {
         ignore_changes = ["identifier", "name", "engine_version"]
     }
+}
+
+resource "aws_db_parameter_group" "rds-cdis-pg" {
+  name   = "rds-cdis-pg"
+  family = "postgres9.6"
+
+  parameter {
+    name  = "cpu_index_tuple_cost"
+    value = "0.000005"
+  }
+
+  parameter {
+    name  = "cpu_tuple_cost"
+    value = "0.7"
+  }
+
+  parameter {
+    name  = "log_duration"
+    value = "1"
+  }
+  
+  parameter {
+    name  = "log_min_duration_statement"
+    value = "0"
+  }
+
+  parameter {
+    name  = "random_page_cost"
+    value = "0.7"
+  }
+
 }
 
 data "aws_acm_certificate" "api" {
