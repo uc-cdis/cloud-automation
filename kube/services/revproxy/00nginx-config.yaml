@@ -80,7 +80,7 @@ data:
           }
           location /api/v0/submission/getschema {
               proxy_next_upstream off;
-              proxy_pass http://peregrine-service/v0/submission/graphql;
+              proxy_pass http://peregrine-service/v0/submission/getschema;
           }
           location /api/v0/submission/graphql {
               proxy_next_upstream off;
