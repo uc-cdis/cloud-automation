@@ -9,9 +9,9 @@
 
 set -e
 
-export http_proxy=http://cloud-proxy.internal.io:3128
-export https_proxy=http://cloud-proxy.internal.io:3128
-export no_proxy=127.0.0.1,localhost,169.254.169.254,.internal.io
+export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
+export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
+export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
 export DEBIAN_FRONTEND=noninteractive
 
 sudo -E apt-get update
