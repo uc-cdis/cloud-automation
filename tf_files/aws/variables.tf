@@ -84,14 +84,10 @@ variable "gdcapi_indexd_password" {
 }
 # gdcapi's oauth2 client id(fence as oauth2 provider)
 variable "gdcapi_oauth2_client_id" {
-  # oauth handshake should not be necessary - uses fence access token
-  default = ""
 }
 
 # gdcapi's oauth2 client secret
 variable "gdcapi_oauth2_client_secret" {
-  # oauth handshake should not be necessary - uses fence access token
-  default = ""
 }
 
 # id of AWS account that owns the public AMI's
