@@ -139,30 +139,41 @@ resource "aws_db_instance" "db_indexd" {
     }
 }
 
+# See https://www.postgresql.org/docs/9.6/static/runtime-config-logging.html
+# and https://www.postgresql.org/docs/9.6/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE
+# for detail parameter descriptions
+
 resource "aws_db_parameter_group" "rds-cdis-pg" {
   name   = "rds-cdis-pg"
   family = "postgres9.6"
 
+# make index searches cheaper per row
   parameter {
     name  = "cpu_index_tuple_cost"
     value = "0.000005"
   }
 
+# raise cost of search per row to be closer to read cost
+# suggested for SSD backed disks
   parameter {
     name  = "cpu_tuple_cost"
     value = "0.7"
   }
 
+# Log the duration of each SQL statement
   parameter {
     name  = "log_duration"
     value = "1"
   }
   
+# Log statements above this duration
+# 0 = everything
   parameter {
     name  = "log_min_duration_statement"
     value = "0"
   }
 
+# lower cost of random reads from disk because we use SSDs
   parameter {
     name  = "random_page_cost"
     value = "0.7"
