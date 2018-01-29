@@ -27,7 +27,7 @@ spec:
             secretName: "service-ca"
       containers:
         - name: sheepdog
-          image: quay.io/cdis/sheepdog:feat_deployment
+          image: quay.io/cdis/sheepdog:master
           livenessProbe:
             httpGet:
               path: /_status
