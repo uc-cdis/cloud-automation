@@ -63,15 +63,28 @@ data:
           resolver kube-dns.kube-system.svc.cluster.local ipv6=off;
           
           set $access_token "";
+          set $csrf_check "ok-tokenauth";
           if ($cookie_access_token) {
-              set $access_token "Bearer $cookie_access_token";
+              set $access_token "bearer $cookie_access_token";
+              # cookie auth requires csrf check
+              set $csrf_check="fail"
           }
+          if ($http_authorization) {
+              set $access_token "$http_authorization";
+          }
+
+          #
+          # Note - need to repeat this line in location blocks that call proxy_set_header,
+          #   as nginx proxy module inherits proxy_set_header if and only if current level does
+          #   not set headers ... http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header
+          #
+          proxy_set_header   Authorization "$access_token";
+          #add_header X-debug-auth "$access_token"; #- only do this for quick and dirty client-side debugging
           
           #
           # CSRF check
           # This block requires a csrftoken for all POST requests.
           #
-          set $csrf_check "fail";
           if ($cookie_csrftoken = $http_x_csrf_token) {
             set $csrf_check "ok-$cookie_csrftoken";
           }
@@ -82,13 +95,6 @@ data:
             return 403 "failed csrf check";
           }
 
-          #
-          # Note - need to repeat this line in location blocks that call proxy_set_header,
-          #   as nginx proxy module inherits proxy_set_header if and only if current level does
-          #   not set headers ... http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header
-          #
-          proxy_set_header   Authorization "$access_token";
-          #add_header X-debug-auth "$access_token"; #- only do this for quick and dirty client-side debugging
           
           location / {
               set $portal_service http://portal-service.default.svc.cluster.local;
