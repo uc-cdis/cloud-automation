@@ -33,7 +33,7 @@ USERAPI_GDCAPI_SETUP = (
 # and it is set in sheepdog ...
 #
 GDCAPI_DB_SETUP = (
-    "datamodel_postgres_admin graph-create "
+    "datamodel_postgres_admin create-all "
     " -U '{username}' -P '{password}' -H '{host}' -D '{database}'"
 )
 GDCAPI_TRANSACTION_LOGS = (
