@@ -50,6 +50,10 @@ fence_snapshot="$fence_snapshot"
 
 gdcapi_snapshot="$gdcapi_snapshot"
 
+peregrine_snapshot="$peregrine_snapshot"
+
+sheepdog_snapshot="$sheepdog_snapshot"
+
 indexd_snapshot="$indexd_snapshot"
 
 db_instance="db.t2.micro"

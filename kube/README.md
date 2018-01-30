@@ -5,22 +5,77 @@
 - need to have at least 1 eips
 - need to get the credential from quay.io for [cdis-devservices robot](https://quay.io/organization/cdis?tab=robots)
 
-## Steps to start all services
+## Steps to start all services on a new k8s cluster in AWS
 1. Copy the ${cluster}_output folder to the kube.internal.io (Kubernete provisioner)
-2. Run kube-up.sh
-3. [Upgrade kubenete](https://github.com/uc-cdis/cloud-automation/blob/master/kube/README.md#upgrade-kubernete) to 1.7.0 if the version is still the broken 1.6.3
+2. ssh to kube.internal.io (gen3 tfoutput ssh_config or terraform output gives the `~/.ssh/config` entries), and `$ cd ~/${cluster}_output`
+3. Run kube-up.sh
 4. Get quay creds in prerequisites 2 to ${cluster}/cdis-devservices-secret.yml
 5. Run kube-services.sh
-6. Register your kubernete worker nodes as `kubenode.internal.io` in your route53
-7. Adjust the security group for kubernete workers to allow TCP port `30000-30100` inbound traffic from `172.16.0.0/16`
-7. Copy the `revproxy-setup.sh` and `proxy.conf` in the ${cluster}_output directory to `revproxy.internal.io` and run the `revproxy-setup.sh` script.
-8. Setup DNS for your revproxy node to your hostname, or edit /etc/hosts file locally to point to the elastic ip of your revproxy node. Then you should be able to browse to the portal through the hostname you setup.
+6. Optional - register your kubernete worker nodes as `kubenode.internal.io` in your route53
 
-## Steps to start a new service
+
+## Steps to start a new service in an existing commons
 In order to start a service that uses confidential information in container with Kubernetes, we should go through following steps:
-1. create secrets needed - including SSL certs
-2. create deployment with secrets mounted
-3. create service for the pods
+1. rerun terraform, and copy the latest `${cluster}_output` up to kube.internal.io  If you do not run terraform for some reason, then you can often just update `${cluster_output}` on kube.internal.io by hand:
+    * Copy the latest version of `render_creds.py` to `~/${cluster}_output`:
+    ```
+    $ cd ~/cloud-automation
+    $ git pull
+    $ cp tf_files/configs/render_creds.py ~/${cluster}_output/render_creds.py
+    ```
+    * Update `~/${cluster}_output/creds.json` with any new creds required
+    * Add a *dictionary_url* property to `~/${cluster}/00configmap.yaml` if necessary, and `kubectl apply -f 00configmap.yaml`
+2. login to the k8s provisioner, cd into the cluster data folder, and export the vpc_name environment variable (which some helper scripts look for) 
+```
+$ ssh kube_internal.io; cd ~/${cluster}; export vpc_name="${cluster}"
+```
+3. update the local copy of cloud-automation (which `kube-services.sh` checked out when the cluster was first setup): 
+```
+$ cd ~/cloud-automation; git pull
+```
+4. create secrets needed - including SSL certs (see the helper scripts just below)
+3. create deployment with secrets mounted
+4. create services for the pods
+
+The following helper scripts exist.  They are configured to be safe to run multiple times:
+* Setup SSL certs and corresponding k8s secrets for all services:
+```
+$ export vpc_name="theName"
+$ cd ~/${vpc_name}
+$ bash ~/cloud-automation/tf_files/configs/kube-setup-certs.sh
+```
+* Deply *fence* - fence will connect to the existing *userapi* database if the database variables are properly configured in `creds.json`.  This script will also update the *gdcapi* configuration, but will not restart *gdcapi*, so you'll need to roll the *gdcapi* pod to kick it to start using fence.  Similarly - this script does not update the reverse proxy to point at *fence* instead of *userapi*.
+```
+$ export vpc_name="theName"
+$ bash ~/cloud-automation/tf_files/configs/kube-setup-fence.sh
+$ echo verify fence is healthy 
+$ kubectl get pods; kubectl logs fence-deployment-pod
+$ patch_kube gdcapi-deployment
+$ cd ~/${vpc_name}
+$ cat - <<EOM
+Verify that services/revproxy/00nginx-config.yaml mounts fence,
+and does not yet mount sheepdog and peregrine.  You can edit
+that file by hand to restore the gdcapi proxy 
+EOM
+$ sudo apt install jq --upgrade
+$ kubectl get configmaps/revproxy-nginx-conf -o json | jq -r '.data["nginx.conf"]'
+$ kubectl apply -f services/revproxy/00nginx-config.yaml
+$ patch_kube revproxy-deployment 
+```
+* Deploy *sheepdog* and *peregrine* - replacing an existing *gdcapi-service* deployment.  These scripts also generate the supporting k8s secrets for the *sheepdog* and *peregrine* services (use *kube-setup-certs.sh* to setup the certs - see above).  Move the commons to *fence* (from *userapi*) before moving to *sheepdog* and *peregrin*.  As with *fence* - the following helper script first deploys *sheepdog* and *peregrine* services alongside *gdcapi*, and updating the reverse proxy to using the new services is a separate step
+```
+$ export vpc_name="theName"
+$ echo You probably need to re-apply the 00configmap.yaml with the dictionary_url variable
+$ kubectl apply -f 00configmap.yaml
+$ kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}'
+$ bash ~/cloud-automation/tf_files/configs/kube-setup-sheepdog.sh
+$ bash ~/cloud-automation/tf_files/configs/kube-setup-peregrine.sh
+$ echo verify sheepdog and peregrine are healthy 
+$ kubectl get pods; kubectl logs ...
+$ kubectl apply -f services/revproxy/00nginx-config.yaml
+$ patch_kube revproxy-deployment
+```
+
 
 ### Create secrets
 Secret is the way in which Kubernetes uses to manage the confidential information such as `ssh_key`, private setting containing `username`, `password` of a `database`, or a `service`. Run the following command with `SECRET_NAME` is the name of secret entry managed by kubernetes, `OUTPUT_FILE` is the file name that you expect to see in the container, and `PATH_TO_INPUT_FILE` is path to the input of that secret.
@@ -186,8 +241,10 @@ not enabled by default in the latest stable kube-aws release - the next stable r
 ### Services
 #### [fence](https://github.com/uc-cdis/fence)
 The authentication and authorization provider.
-#### [gdcapi](https://github.com/uc-cdis/gdcapi/)
-API for submitting and query graph data model that stores the metadata for this cluster.
+#### [sheepdog](https://github.com/uc-cdis/sheepdog/)
+API for submitting data model that stores the metadata for this cluster.
+#### [peregrine](https://github.com/uc-cdis/peregrine/)
+API for querying graph data model that stores the metadata for this cluster.
 #### [indexd](https://github.com/LabAdvComp/indexd)
 ID service that tracks all data blobs in different storage locations
 #### [data-portal](https://github.com/uc-cdis/data-portal)

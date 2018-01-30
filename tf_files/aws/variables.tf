@@ -20,16 +20,32 @@ variable "db_password_fence" {
     default = ""
 }
 variable "db_password_userapi" {
+    # userapi now deprecated in favor of fence
     default = ""
 }
 variable "db_password_gdcapi" {
+    # gdcapi now deprecated in favor of sheepdog + peregrine
+    default = ""
+}
+variable "db_password_peregrine" {
+}
+variable "db_password_sheepdog" {
 }
 variable "db_password_indexd" {
+}
+variable "dictionary_url" {
+  # ex: dev dictionary is at: https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json
 }
 variable "fence_snapshot" {
     default = ""
 }
 variable "gdcapi_snapshot" {
+    default = ""
+}
+variable "peregrine_snapshot" {
+    default = ""
+}
+variable "sheepdog_snapshot" {
     default = ""
 }
 variable "indexd_snapshot" {
@@ -62,15 +78,18 @@ variable "hmac_encryption_key" {
 
 variable "gdcapi_secret_key" {
 }
+
 # password for write access to indexd
 variable "gdcapi_indexd_password" {
 }
 # gdcapi's oauth2 client id(fence as oauth2 provider)
 variable "gdcapi_oauth2_client_id" {
 }
+
 # gdcapi's oauth2 client secret
 variable "gdcapi_oauth2_client_secret" {
 }
+
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
     default = "707767160287"

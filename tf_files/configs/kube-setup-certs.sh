@@ -51,7 +51,7 @@ if ! kubectl get secret service-ca > /dev/null 2>&1; then
   kubectl create secret generic "service-ca" --from-file=ca.pem=credentials/ca.pem
 fi
 for name in $service_list; do
-    if [ ! -f "credentials/${name}.crt" ]; then
+    if !([[ -f "credentials/${name}.crt" && -f "credentials/${name}.key" ]] && kubectl get secrets "cert-$name" 2>&1 > /dev/null); then
       DOMAIN="${name}.default"   # k8s internal DNS domain ...
       SUBJ="/countryName=US/stateOrProvinceName=IL/localityName=Chicago/organizationName=CDIS/organizationalUnitName=Software/commonName=${DOMAIN}/emailAddress=cdis@uchicago.edu"
       echo "Generating certificate for $name"

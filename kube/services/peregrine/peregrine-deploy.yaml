@@ -1,0 +1,63 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: peregrine-deployment
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: peregrine
+    spec:
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "peregrine-secret"
+        - name: cert-volume
+          secret:
+            secretName: "cert-peregrine-service"
+        - name: ca-volume
+          secret:
+            secretName: "service-ca"
+      containers:
+        - name: peregrine
+          image: quay.io/cdis/peregrine:master
+          ports:
+          - containerPort: 80
+          - containerPort: 443
+          env:
+          - name: DICTIONARY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: dictionary_url
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/peregrine/wsgi.py"
+              subPath: "wsgi.py"
+            - name: "cert-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/service.crt"
+              subPath: "service.crt"
+            - name: "cert-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/service.key"
+              subPath: "service.key"
+            - name: "ca-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/cdis-ca.crt"
+              subPath: "ca.pem"
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 0.8
+              memory: 2048Mi
+      imagePullSecrets:
+        - name: cdis-devservices-pull-secret

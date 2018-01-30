@@ -8,9 +8,9 @@
 #
 set -e
 
-export http_proxy=http://cloud-proxy.internal.io:3128
-export https_proxy=http://cloud-proxy.internal.io:3128
-export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
+export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
+export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
+export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
 export DEBIAN_FRONTEND=noninteractive
 
 #
@@ -18,14 +18,10 @@ export DEBIAN_FRONTEND=noninteractive
 # that terraform appends to kube-services.sh
 #
 create_fence_db="true"
+create_gdcapi_db="true"
 
 if [ -z "${vpc_name}" ]; then
   echo "ERROR: vpc_name variable not set - bailing out"
-  exit 1
-fi
-
-if [ ! -f ~/"${vpc_name}/cdis-devservices-secret.yml" ]; then
-  echo "ERROR: you forgot to setup ~/${vpc_name}/cdis-devservices-secret.yml - doh!"
   exit 1
 fi
 
@@ -35,17 +31,27 @@ sudo -E pip install jinja2
 
 mkdir -p ~/${vpc_name}/apis_configs
 
+#
+# Setup the files that will become secrets in ~/$vpc_name/apis_configs
+#
 cd ~/${vpc_name}_output
 python render_creds.py secrets
-
 cp ~/cloud-automation/apis_configs/user.yaml ~/${vpc_name}/apis_configs
 
 cd ~/${vpc_name}
 
 export KUBECONFIG=~/${vpc_name}/kubeconfig
 
-if [[ -f cdis-devservices-secret.yml ]]; then
+if ! kubectl get secrets/cdis-devservices-pull-secret 2>&1 > /dev/null; then
+  echo "Creating k8s quay secret"
+
+  if [ ! -f ~/"${vpc_name}/cdis-devservices-secret.yml" ]; then
+    echo "ERROR: you forgot to setup ~/${vpc_name}/cdis-devservices-secret.yml - doh!"
+    exit 1
+  fi
+
   kubectl create -f cdis-devservices-secret.yml
+  # don't leave this file laying around ...
   rm cdis-devservices-secret.yml
 fi
 
@@ -62,27 +68,14 @@ kubectl apply -f services/revproxy/00nginx-config.yaml
 kubectl apply -f services/revproxy/revproxy-deploy.yaml
 
 cd ~/${vpc_name};
-if ! kubectl get secrets/gdcapi-secret > /dev/null 2>&1; then
-  kubectl create secret generic gdcapi-secret --from-file=wsgi.py=./apis_configs/gdcapi_settings.py
-fi
-
-kubectl apply -f services/gdcapi/gdcapi-deploy.yaml
-
-if [[ -z "${gdcapi_snapshot}" && ( ! -f .rendered_gdcapi_db ) ]]; then
-  cd ~/${vpc_name}_output; 
-  python render_creds.py gdcapi_db
-  cd ~/${vpc_name}
-  touch .rendered_gdcapi_db
-fi
 
 kubectl apply -f services/portal/portal-service.yaml
 kubectl apply -f services/indexd/indexd-service.yaml
-kubectl apply -f services/gdcapi/gdcapi-service.yaml
 ./services/revproxy/apply_service
 
 if ! grep kubes.sh ~/.bashrc > /dev/null; then
-
-cat >>~/.bashrc << EOF
+  echo "Adding variables to ~/.bashrc"
+  cat >>~/.bashrc << EOF
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
@@ -93,5 +86,4 @@ if [ -f ~/cloud-automation/kube/kubes.sh ]; then
     . ~/cloud-automation/kube/kubes.sh
 fi
 EOF
-
 fi

@@ -39,8 +39,7 @@ data:
       
       	##
       	# Logging Settings
-      	##
-      
+      	##      
       	access_log /dev/stdout;
       	error_log /dev/stderr;
       
@@ -63,6 +62,40 @@ data:
           # DNS resolver required to resolve dynamic hostnames, btw - kubedns may not support ipv6
           resolver kube-dns.kube-system.svc.cluster.local ipv6=off;
           
+          set $access_token "";
+          set $csrf_check "ok-tokenauth";
+          if ($cookie_access_token) {
+              set $access_token "bearer $cookie_access_token";
+              # cookie auth requires csrf check
+              set $csrf_check="fail"
+          }
+          if ($http_authorization) {
+              set $access_token "$http_authorization";
+          }
+
+          #
+          # Note - need to repeat this line in location blocks that call proxy_set_header,
+          #   as nginx proxy module inherits proxy_set_header if and only if current level does
+          #   not set headers ... http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header
+          #
+          proxy_set_header   Authorization "$access_token";
+          #add_header X-debug-auth "$access_token"; #- only do this for quick and dirty client-side debugging
+          
+          #
+          # CSRF check
+          # This block requires a csrftoken for all POST requests.
+          #
+          if ($cookie_csrftoken = $http_x_csrf_token) {
+            set $csrf_check "ok-$cookie_csrftoken";
+          }
+          if ($request_method != "POST") {
+            set $csrf_check "ok-$request_method";
+          }
+          if ($csrf_check !~ ^ok-\S.+$) {
+            return 403 "failed csrf check";
+          }
+
+          
           location / {
               set $portal_service http://portal-service.default.svc.cluster.local;
               if ($cookie_portal_service ~ ^[\w-]+$) {
@@ -78,13 +111,36 @@ data:
           location /user {
               proxy_pass http://fence-service/;
           }
+          location /api/v0/submission/getschema {
+              proxy_next_upstream off;
+              proxy_pass http://peregrine-service/v0/submission/getschema;
+          }
+          location /api/v0/submission/graphql {
+              proxy_next_upstream off;
+              # Forward the host and set Subdir header so api
+              # knows the original request path for hmac signing
+              proxy_set_header   Host $host;
+              proxy_set_header   Subdir /api;
+              proxy_set_header   Authorization "$access_token";
+              proxy_connect_timeout 300;
+              proxy_send_timeout 300;
+              proxy_read_timeout 300;
+              send_timeout 300;
+              proxy_pass http://peregrine-service/v0/submission/graphql;
+          }
           location /api {
               proxy_next_upstream off;
               # Forward the host and set Subdir header so api
               # knows the original request path for hmac signing
               proxy_set_header   Host $host;
               proxy_set_header   Subdir /api;
-              proxy_pass http://gdcapi-service/;
+              proxy_set_header   Authorization "$access_token";
+              proxy_connect_timeout 300;
+              proxy_send_timeout 300;
+              proxy_read_timeout 300;
+              send_timeout 300;
+              proxy_pass http://sheepdog-service/;
+              #proxy_pass http://gdcapi-service/;
           }
       	}
       }

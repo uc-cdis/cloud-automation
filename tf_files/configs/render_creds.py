@@ -29,13 +29,15 @@ USERAPI_GDCAPI_SETUP = (
 )
 
 # setup gdcapi database
+# datamodel_postgres_admin uses DICTIONARY_URL environment variable if set,
+# and it is set in sheepdog ...
 #
 GDCAPI_DB_SETUP = (
-    "gdc_postgres_admin graph-create "
+    "datamodel_postgres_admin create-all "
     " -U '{username}' -P '{password}' -H '{host}' -D '{database}'"
 )
 GDCAPI_TRANSACTION_LOGS = (
-    "python /gdcapi/bin/setup_transactionlogs.py  "
+    "python /sheepdog/bin/setup_transactionlogs.py  "
     "--user {username}  --password '{password}' "
     "--host '{host}' --database '{database}'"
 )
@@ -86,7 +88,7 @@ def get_base_command(kube_config, pod, service):
 
 def setup_index_user(creds_file, kube_config):
     creds = get_creds(creds_file)
-    data = creds['gdcapi']
+    data = creds['sheepdog']
     pod = get_pod(kube_config, 'indexd')
     if not pod:
         print 'no pod found'
@@ -134,8 +136,8 @@ def setup_fence_database(creds_file, kube_config):
         print stderr
         return
 
-    creds['gdcapi']['oauth2_client_id'] = client_id
-    creds['gdcapi']['oauth2_client_secret'] = client_secret
+    creds['sheepdog']['oauth2_client_id'] = client_id
+    creds['sheepdog']['oauth2_client_secret'] = client_secret
     update_creds(creds_file, creds)
 
 
@@ -151,13 +153,13 @@ def run_command(command):
 
 def setup_gdcapi_database(creds_file, kube_config):
     creds = get_creds(creds_file)
-    data = creds['gdcapi']
-    pod = get_pod(kube_config, 'gdcapi')
-    command = get_base_command(kube_config, pod, 'gdcapi')
+    data = creds['sheepdog']
+    pod = get_pod(kube_config, 'sheepdog')
+    command = get_base_command(kube_config, pod, 'sheepdog')
     create_db = ' '.join(command + ["--", GDCAPI_DB_SETUP.format(
         username=data['db_username'], password=data['db_password'],
         host=data['db_host'], database=data['db_database'])])
-    print 'Setting up gdcapi database' 
+    print 'Setting up gdcapi database (used by both sheepdog and peregrine)' 
     print run_command(create_db)[0]
 
     create_tl = ' '.join(command + ["--", GDCAPI_TRANSACTION_LOGS.format(
@@ -171,7 +173,7 @@ def render_creds(creds_file, result_dir):
     with open(creds_file, 'r') as f:
         creds = json.load(f)
 
-    for service in ['fence', 'gdcapi', 'indexd']:
+    for service in ['fence', 'sheepdog', 'peregrine', 'indexd']:
             render_from_template(service, creds[service], result_dir)
 
 

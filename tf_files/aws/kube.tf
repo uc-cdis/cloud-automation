@@ -101,8 +101,8 @@ resource "aws_db_instance" "db_gdcapi" {
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "gdcapi"
-    username             = "gdcapi_user"
-    password             = "${var.db_password_gdcapi}"
+    username             = "sheepdog"
+    password             = "${var.db_password_sheepdog}"
     snapshot_identifier  = "${var.gdcapi_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     tags {
@@ -111,7 +111,7 @@ resource "aws_db_instance" "db_gdcapi" {
     }
     vpc_security_group_ids = ["${aws_security_group.local.id}"]
     lifecycle {
-        ignore_changes = ["identifier", "name", "engine_version"]
+        ignore_changes = ["identifier", "name", "engine_version", "username", "password"]
     }
 }
 
@@ -228,6 +228,10 @@ data "template_file" "creds" {
         gdcapi_user = "${aws_db_instance.db_gdcapi.username}"
         gdcapi_pwd = "${aws_db_instance.db_gdcapi.password}"
         gdcapi_db = "${aws_db_instance.db_gdcapi.name}"
+        peregrine_user = "peregrine"
+        peregrine_pwd = "${var.db_password_peregrine}"
+        sheepdog_user = "sheepdog"
+        sheepdog_pwd = "${var.db_password_sheepdog}"
         indexd_host = "${aws_db_instance.db_indexd.address}"
         indexd_user = "${aws_db_instance.db_indexd.username}"
         indexd_pwd = "${aws_db_instance.db_indexd.password}"
@@ -259,6 +263,7 @@ data "template_file" "configmap" {
         vpc_name = "${var.vpc_name}"
         hostname = "${var.hostname}"
         revproxy_arn = "${data.aws_acm_certificate.api.arn}"
+        dictionary_url = "${var.dictionary_url}"
     }
 }
 
@@ -330,9 +335,11 @@ resource "null_resource" "config_setup" {
     provisioner "local-exec" {
         command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-up-body.sh\" > ${var.vpc_name}_output/kube-up.sh"
     }
+
     provisioner "local-exec" {
-        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-setup-certs.sh\" \"${path.module}/../configs/kube-services-body.sh\" \"${path.module}/../configs/kube-setup-fence.sh\" > ${var.vpc_name}_output/kube-services.sh"
+        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-setup-certs.sh\" \"${path.module}/../configs/kube-services-body.sh\" \"${path.module}/../configs/kube-setup-fence.sh\" \"${path.module}/../configs/kube-setup-sheepdog.sh\" \"${path.module}/../configs/kube-setup-peregrine.sh\" > ${var.vpc_name}_output/kube-services.sh"
     }
+
     provisioner "local-exec" {
         command = "echo \"${data.template_file.configmap.rendered}\" > ${var.vpc_name}_output/00configmap.yaml"
     }
@@ -371,5 +378,9 @@ resource "aws_s3_bucket" "kube_bucket" {
     Name        = "${var.kube_bucket}"
     Environment = "${var.vpc_name}"
     Organization = "Basic Service"
+  }
+  lifecycle {
+    # allow same bucket between stacks
+    ignore_changes = ["tags"]
   }
 }
