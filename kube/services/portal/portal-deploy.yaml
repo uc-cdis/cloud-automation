@@ -40,10 +40,7 @@ spec:
           - ./dockerStart.sh
         env:
           - name: HOSTNAME
-            valueFrom:
-              configMapKeyRef:
-                name: global
-                key: hostname
+            value: revproxy-service
           - name: APP
             value: dev
         volumeMounts:
