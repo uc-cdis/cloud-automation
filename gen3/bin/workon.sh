@@ -121,6 +121,8 @@ EOM
 # where possible.
 #
 config.tfvars() {
+  local commonsName
+
   if [[ "$GEN3_VPC" =~ _user$ ]]; then
     # user vpc is simpler ...
     cat - <<EOM
@@ -128,10 +130,25 @@ vpc_name="$GEN3_VPC"
 EOM
     return 0
   fi
+
+  # else ...
+  if [[ "$GEN3_VPC" =~ _snapshot$ ]]; then
+    # rds snapshot vpc is simpler ...
+    commonsName=$(echo "$GEN3_VPC" | sed 's/_snapshot$//')
+    cat - <<EOM
+vpc_name="${commonsName}"
+indexd_rds_id="${commonsName}-indexddb"
+fence_rds_id="${commonsName}-fencedb"
+sheepdog_rds_id="${commonsName}-gdcapidb"
+EOM
+    return 0
+  fi
+
   # else ...
   cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
 vpc_name="$GEN3_VPC"
+dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 
 aws_cert_name="YOUR.CERT.NAME"
 

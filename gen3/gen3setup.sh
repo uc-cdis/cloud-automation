@@ -55,6 +55,8 @@ gen3_workon() {
   export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws"
   if [[ "$GEN3_VPC" =~ _user$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_user_vpc"
+  elif [[ "$GEN3_VPC" =~ _snapshot$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_rds_snapshot"
   fi
 
   PS1="gen3/${GEN3_PROFILE}/${GEN3_VPC}:$GEN3_PS1_OLD"
