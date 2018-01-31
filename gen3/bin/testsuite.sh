@@ -69,13 +69,20 @@ test_workspace() {
 
   if [[ "$TEST_VPC" =~ _user$ ]]; then
     [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws_user_vpc" ]]; because $? "_user VPCs should use the ./aws_user_vpc resources"
+  elif [[ "$TEST_VPC" =~ _snapshot$ ]]; then
+    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws_rds_snapshot" ]]; because $? "_snapshot VPCs should use the ./aws_rds_snapshot resources"
   else
-    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws" ]]; because $? "non-_user VPCs should use the ./aws resources"
+    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws" ]]; because $? "non-_user|snapshot VPCs should use the ./aws resources"
   fi
 }
 
 test_user_workspace() {
   TEST_VPC="${TEST_VPC}_user"
+  test_workspace
+}
+
+test_snapshot_workspace() {
+  TEST_VPC="${TEST_VPC}_snapshot"
   test_workspace
 }
 
@@ -128,6 +135,7 @@ test_tfoutput() {
 shunit_runtest "test_semver"
 shunit_runtest "test_workspace"
 shunit_runtest "test_user_workspace"
+shunit_runtest "test_snapshot_workspace"
 shunit_runtest "test_trash"
 shunit_runtest "test_refresh"
 shunit_runtest "test_tfplan"

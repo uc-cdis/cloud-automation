@@ -36,6 +36,18 @@ output "ssh_config" {
   value = "${data.template_file.ssh_config.rendered}"
 }
 
+output "indexd_rds_id" {
+  value = "${aws_db_instance.db_indexd.id}"
+}
+
+output "fence_rds_id" {
+  value = "${join(" ", coalescelist(aws_db_instance.db_userapi.*.id, aws_db_instance.db_fence.*.id))}"
+}
+
+output "gdcapi_rds_id" {
+  value = "${aws_db_instance.db_gdcapi.id}"
+}
+
 #-----------------------------
 
 data "template_file" "cluster" {

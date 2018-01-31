@@ -62,5 +62,5 @@ for oldName in "${renameDb[@]}"; do
   echo $oldName
   newName="module.cdis_vpc.${oldName}"
   echo "$DRYRUN terraform state mv $oldName $newName"
-  $GEN3_DRY_RUN && terraform state mv "$oldName" "$newName"
+  $GEN3_DRY_RUN || terraform state mv "$oldName" "$newName"
 done
