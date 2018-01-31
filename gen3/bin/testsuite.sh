@@ -73,6 +73,10 @@ test_workspace() {
     [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws_rds_snapshot" ]]; because $? "_snapshot VPCs should use the ./aws_rds_snapshot resources"
   else
     [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws" ]]; because $? "non-_user|snapshot VPCs should use the ./aws resources"
+    for fileName in README.md creds.json 00configmap.yaml render_creds.py kube-services.sh; do
+      filePath="onprem_scripts/$fileName"
+      [[ -f $filePath ]]; because $? "gen3 workon ensures we have a $filePath generated from template"
+    done
   fi
 }
 

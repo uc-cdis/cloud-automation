@@ -292,7 +292,7 @@ EOM
     echo "onprem_scripts/creds.json already exists ..."
   fi
   if [[ ! -f onprem_scripts/00configmap.yaml ]]; then
-    cat "$GEN3_HOME/tf_files/configs/00configmap.yaml" > onprem_scripts/creds.json
+    cat "$GEN3_HOME/tf_files/configs/00configmap.yaml" > onprem_scripts/00configmap.yaml
   else
     echo "onprem_scripts/00configmap.yaml already exists ..."
   fi
