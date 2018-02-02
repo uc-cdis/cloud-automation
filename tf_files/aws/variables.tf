@@ -65,9 +65,6 @@ variable "kube_ssh_key" {
 variable "kube_additional_keys" {
     default = ""
 }
-variable "kube_bucket" {
-    default = "kube_bucket"
-}
 variable "google_client_id" {
 }
 variable "google_client_secret" {

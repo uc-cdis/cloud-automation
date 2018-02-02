@@ -199,9 +199,6 @@ fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
 
-# S3 bucket for kube-aws cloud-formation
-kube_bucket="kube_bucket.${GEN3_VPC}.gen3"
-
 # ssh key to be added to kube nodes
 kube_ssh_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
 

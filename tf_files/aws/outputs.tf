@@ -115,7 +115,7 @@ data "template_file" "kube_vars" {
     template = "${file("${path.module}/../configs/kube-vars.sh.tpl")}"
     vars {
         vpc_name = "${var.vpc_name}"
-        s3_bucket = "${var.kube_bucket}"
+        s3_bucket = "kube_bucket.${var.vpc_name}.gen3"
         fence_snapshot = "${var.fence_snapshot}"
         gdcapi_snapshot = "${var.gdcapi_snapshot}"
     }

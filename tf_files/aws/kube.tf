@@ -259,11 +259,12 @@ resource "aws_key_pair" "automation_dev" {
 
 resource "aws_s3_bucket" "kube_bucket" {
   # S3 buckets are in a global namespace, so dns style naming
-  bucket = "${var.kube_bucket}.${var.vpc_name}.gen3"
+  bucket = "kube_bucket.${var.vpc_name}.gen3"
   acl    = "private"
 
   tags {
-    Name        = "${var.kube_bucket}"
+    Name        = "kube_bucket.${var.vpc_name}.gen3"
+    Environment = "${var.vpc_name}"
     Organization = "Basic Service"
   }
   lifecycle {
