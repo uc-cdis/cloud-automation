@@ -15,6 +15,7 @@ spec:
       labels:
         app: gdcapi
     spec:
+      automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:

@@ -15,6 +15,7 @@ spec:
       labels:
         app: portal
     spec:
+      automountServiceAccountToken: false
       volumes:
       - name: cert-volume
         secret:
