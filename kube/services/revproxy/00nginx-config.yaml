@@ -67,7 +67,7 @@ data:
           if ($cookie_access_token) {
               set $access_token "bearer $cookie_access_token";
               # cookie auth requires csrf check
-              set $csrf_check="fail";
+              set $csrf_check "fail";
           }
           if ($http_authorization) {
               set $access_token "$http_authorization";
