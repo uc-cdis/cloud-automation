@@ -143,6 +143,7 @@ config.tfvars() {
     # user vpc is simpler ...
     cat - <<EOM
 vpc_name="$GEN3_VPC"
+vpc_octet=GET_A_UNIQUE_VPC_172_OCTET
 EOM
     return 0
   fi
@@ -164,6 +165,7 @@ EOM
   cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
 vpc_name="$GEN3_VPC"
+vpc_octet=GET_A_UNIQUE_VPC_172_OCTET
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 
 aws_cert_name="YOUR.CERT.NAME"

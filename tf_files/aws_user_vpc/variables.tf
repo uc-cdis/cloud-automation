@@ -2,7 +2,7 @@ variable "vpc_name" {
     default = "Commons1"
 }
 variable "vpc_octet" {
-    default = 15
+    default = 14
 }
 variable "aws_region" {
     default = "us-east-1"

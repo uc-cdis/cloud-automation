@@ -20,6 +20,10 @@ output "vpc_name" {
   value = "${var.vpc_name}"
 }
 
+output "vpc_cidr_block" {
+  value = "${module.cdis_vpc.vpc_cidr_block}"
+}
+
 output "k8s_cluster" {
   value = "${data.template_file.cluster.rendered}"
 }
