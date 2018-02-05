@@ -7,7 +7,7 @@ resource "aws_security_group" "kube-worker" {
         from_port = 30000
         to_port = 30100
         protocol = "TCP"
-        cidr_blocks = ["172.${var.vpc_octet}.0.0/16"]
+        cidr_blocks = ["172.24.${var.vpc_octet}.0/20"]
     }
     ingress {
         from_port = 443
@@ -28,7 +28,7 @@ resource "aws_route_table_association" "public_kube" {
 
 resource "aws_subnet" "public_kube" {
     vpc_id = "${module.cdis_vpc.vpc_id}"
-    cidr_block = "172.${var.vpc_octet}.129.0/24"
+    cidr_block = "172.24.${var.vpc_octet + 5}.0/24"
     map_public_ip_on_launch = true
     availability_zone = "${data.aws_availability_zones.available.names[0]}"
     tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "")}"

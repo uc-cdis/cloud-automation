@@ -38,13 +38,13 @@ resource "aws_security_group" "local" {
       from_port = 0
       to_port = 0
       protocol = "-1"
-      cidr_blocks = ["172.${var.vpc_octet}.0.0/16"]
+      cidr_blocks = ["172.24.${var.vpc_octet}.0/20"]
   }
   egress {
       from_port = 0
       to_port = 0
       protocol = "-1"
-      cidr_blocks = ["172.${var.vpc_octet}.0.0/16"]
+      cidr_blocks = ["172.24.${var.vpc_octet}.0/20"]
   }
   tags {
     Environment = "${var.vpc_name}"
@@ -60,13 +60,13 @@ resource "aws_security_group" "webservice" {
       from_port = 0
       to_port = 0
       protocol = "-1"
-      cidr_blocks = ["172.${var.vpc_octet}.0.0/16"]
+      cidr_blocks = ["172.24.${var.vpc_octet}.0/20"]
   }
   egress {
       from_port = 0
       to_port = 0
       protocol = "-1"
-      cidr_blocks = ["172.${var.vpc_octet}.0.0/16"]
+      cidr_blocks = ["172.24.${var.vpc_octet}.0/20"]
   }
   ingress {
       from_port = 443
@@ -113,7 +113,7 @@ resource "aws_security_group" "proxy" {
       from_port = 0
       to_port = 3128
       protocol = "TCP"
-      cidr_blocks = ["172.${var.vpc_octet}.0.0/16"]
+      cidr_blocks = ["172.24.${var.vpc_octet}.0/24"]
   }
   tags {
     Environment = "${var.vpc_name}"
