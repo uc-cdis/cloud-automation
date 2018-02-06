@@ -1,3 +1,7 @@
+# kube-aws config
+#    https://kubernetes-incubator.github.io/kube-aws/
+#    https://github.com/kubernetes-incubator/kube-aws/blob/master/core/controlplane/config/templates/cluster.yaml
+#
 # Unique name of Kubernetes cluster. In order to deploy
 # more than one cluster into the same AWS account, this
 # name must not conflict with an existing cluster.
@@ -25,6 +29,9 @@ worker:
   nodePools:
     - # Name of this node pool. Must be unique among all the node pools in this cluster
       name: nodepool
+      autoScalingGroup:
+         minSize: 1
+         maxSize: 4
       autoscaling:
         clusterAutoscaler:
           enabled: true
