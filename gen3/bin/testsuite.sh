@@ -1,10 +1,10 @@
 help() {
   cat - <<EOM
   gen3 testsuite [--profile profilename]:
-    Run the gen3 helpers through a test suite in the 'cdis-test gen3test' workspace
-    --profile profilename - overrides the default 'cdis-test' profile
+    Run the gen3 helpers through a test suite in the 'cdistest gen3test' workspace
+    --profile profilename - overrides the default 'cdistest' profile
 
-  Note that the 'tfoutput' test will fail if the profile does not map to the 'cdis-test' account.
+  Note that the 'tfoutput' test will fail if the profile does not map to the 'cdistest' account.
 EOM
   return 0
 }
@@ -16,7 +16,7 @@ if [[ $1 =~ ^-*help$ ]]; then
 fi
 
 echo "Running gen3 test suite"
-TEST_PROFILE="cdis-test"
+TEST_PROFILE="cdistest"
 TEST_VPC="gen3test"
 TEST_ACCOUNT=707767160287
 
@@ -124,6 +124,7 @@ test_tfplan() {
   gen3 cd
   # terraform plan fails if it can't lookup the cert for the commons in the account
   sed -i.bak 's/YOUR.CERT.NAME/*.planx-pla.net/g' config.tfvars
+  sed -i.bak 's/GET_A_UNIQUE_VPC_172_OCTET/64/g' config.tfvars
   gen3 tfplan; because $? "tfplan should run even with some invalid config variables"
   [[ -f "$GEN3_WORKDIR/plan.terraform" ]]; because $? "'gen3 tfplan' generates a plan.terraform file used by 'gen3 tfapply'"
 }

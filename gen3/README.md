@@ -60,7 +60,7 @@ ex: $ gen3 tfapply help
 ### gen3 workon aws-profile-name vpc-name
 
 ```
-ex:$ gen3 workon cdis-test plaxplanetv1
+ex:$ gen3 workon cdistest plaxplanetv1
 ```
 
 Enter (and initialize if necessary) a local workspace for working with the VPC with the given VPC under the AWS account accessible with admin credentials
@@ -94,12 +94,12 @@ List the variables associated with the current gen3 workspace - ex:
 
 ```
 $ gen3 status
-GEN3_PROFILE=cdis-test
+GEN3_PROFILE=cdistest
 GEN3_VPC=planxplanetv1
-GEN3_WORKDIR=/home/reuben/.local/share/gen3/cdis-test/planxplanetv1
+GEN3_WORKDIR=/home/reuben/.local/share/gen3/cdistest/planxplanetv1
 GEN3_HOME=/home/reuben/Code/PlanX/cloud-automation
-GEN3_S3_BUCKET=cdis-terraform-state.cdis-test.gen3
-AWS_PROFILE=cdis-test
+GEN3_S3_BUCKET=cdis-terraform-state.cdistest.gen3
+AWS_PROFILE=cdistest
 ```
 
 ### gen3 ls
@@ -109,8 +109,8 @@ List workspaces that have been worked on locally - ex:
 ```
 $ gen3 ls
 local workspaces under /home/reuben/.local/share/gen3
-cdis-test    gen3test
-cdis-test    planxplanetv1
+cdistest    gen3test
+cdistest    planxplanetv1
 ```
 
 ### gen3 refresh
@@ -176,7 +176,7 @@ Host k8s.planxplanetv1
 
 ### gen3 testsuite
 
-Run the test suite.  Requires a 'cdis-test' profile.
+Run the test suite.  Requires a 'cdistest' profile.
 
 ### gen3 kube-up
 
@@ -223,7 +223,7 @@ The tfapply will automatically backup the local config.tfvars, backend.tfvars, a
 * Optionally - update backend.tfvars, so that terraform stores its S3 state in the same folder as config.tfvars, then run `terraform init` to move the state, and gen3 tfplan; gen3 tfapply; to sync everything up with s3 - ex:
 ```
 $ cat backend.tfvars 
-bucket = "cdis-terraform-state.cdis-test.gen3"
+bucket = "cdis-terraform-state.cdistest.gen3"
 encrypt = "true"
 key = "gen3test"
 region = "us-east-1"
@@ -233,7 +233,7 @@ region = "us-east-1"
 # if it has changed 
 #
 
-$ gen3 workon cdis-test gen3test
+$ gen3 workon cdistest gen3test
 $ gen3 tfplan
 # Note: tfplan should propose no resource changes.
 #   Still run tfapply to sync up the state in S3.
