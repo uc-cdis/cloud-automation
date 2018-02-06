@@ -113,7 +113,7 @@ resource "aws_security_group" "proxy" {
       from_port = 0
       to_port = 3128
       protocol = "TCP"
-      cidr_blocks = ["172.24.${var.vpc_octet}.0/24"]
+      cidr_blocks = ["172.24.${var.vpc_octet}.0/20"]
   }
   tags {
     Environment = "${var.vpc_name}"
