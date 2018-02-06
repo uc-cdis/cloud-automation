@@ -67,9 +67,10 @@ data:
           if ($cookie_access_token) {
               set $access_token "bearer $cookie_access_token";
               # cookie auth requires csrf check
-              set $csrf_check="fail"
+              set $csrf_check "fail";
           }
           if ($http_authorization) {
+              # Authorization header is present - prefer that token over cookie token
               set $access_token "$http_authorization";
           }
 
@@ -94,7 +95,6 @@ data:
           if ($csrf_check !~ ^ok-\S.+$) {
             return 403 "failed csrf check";
           }
-
           
           location / {
               set $portal_service http://portal-service.default.svc.cluster.local;
@@ -102,20 +102,36 @@ data:
                   # support accessing portal-service in another k8s namespace
                   set $portal_service http://portal-service.$cookie_portal_service.svc.cluster.local;
                   add_header X-debug-portal "$portal_service" always;
-              } 
+              }
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
+              
               proxy_pass $portal_service;
           }
           location /index {
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
               proxy_pass http://indexd-service/;
           }
           location /user {
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
               proxy_pass http://fence-service/;
           }
           location /api/v0/submission/getschema {
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
               proxy_next_upstream off;
               proxy_pass http://peregrine-service/v0/submission/getschema;
           }
           location /api/v0/submission/graphql {
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
               proxy_next_upstream off;
               # Forward the host and set Subdir header so api
               # knows the original request path for hmac signing
@@ -129,6 +145,9 @@ data:
               proxy_pass http://peregrine-service/v0/submission/graphql;
           }
           location /api {
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
               proxy_next_upstream off;
               # Forward the host and set Subdir header so api
               # knows the original request path for hmac signing
