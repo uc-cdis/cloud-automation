@@ -45,7 +45,7 @@ resource "aws_db_instance" "db_fence" {
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.6.5"
+    engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "fence"
@@ -74,7 +74,7 @@ resource "aws_db_instance" "db_userapi" {
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.6.5"
+    engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "userapi"
@@ -97,7 +97,7 @@ resource "aws_db_instance" "db_gdcapi" {
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.6.5"
+    engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "gdcapi"
@@ -121,7 +121,7 @@ resource "aws_db_instance" "db_indexd" {
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.6.5"
+    engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "indexd"
