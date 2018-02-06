@@ -23,7 +23,7 @@ resource "aws_security_group" "kube-worker" {
 
 resource "aws_route_table_association" "public_kube" {
     subnet_id = "${aws_subnet.public_kube.id}"
-    route_table_id = "module.cdis_vpc.public_route_table_id"
+    route_table_id = "${module.cdis_vpc.public_route_table_id}"
 }
 
 resource "aws_subnet" "public_kube" {
