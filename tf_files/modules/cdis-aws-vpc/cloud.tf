@@ -27,6 +27,16 @@ resource "aws_internet_gateway" "gw" {
     }
 }
 
+resource "aws_nat_gateway" "nat_gw" {
+    allocation_id = "${aws_eip.nat_gw.id}"
+    subnet_id     = "${aws_subnet.public.id}"
+    tags {
+        Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
+    }
+}
+
+
 resource "aws_route_table" "public" {
     vpc_id = "${aws_vpc.main.id}"
     route {
@@ -45,6 +55,11 @@ resource "aws_eip" "login" {
   vpc = true
 }
 
+
+resource "aws_eip" "nat_gw" {
+  vpc = true
+}
+
 resource "aws_eip_association" "login_eip" {
     instance_id = "${aws_instance.login.id}"
     allocation_id = "${aws_eip.login.id}"
@@ -55,6 +70,10 @@ resource "aws_route_table" "private_user" {
     route {
         cidr_block = "0.0.0.0/0"
         instance_id = "${aws_instance.proxy.id}"
+    }
+    route {
+        cidr_block = "54.224.0.0/12"
+        nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
     }
     tags {
         Name = "private_user"

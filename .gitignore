@@ -9,4 +9,4 @@ Secrets/
 terraform
 *.lock*
 *.env
-
+*~
