@@ -176,6 +176,39 @@ resource "aws_ami_copy" "squid_ami" {
 }
 
 
+resource "aws_iam_role" "cluster_logging_cloudwatch" {
+  name = "${var.vpc_name}_cluster_logging_cloudwatch"
+  path = "/"
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
+    name = "${var.vpc_name}_cluster_logging_cloudwatch"
+    policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
+    role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+}
+
+
+resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
+  name  = "${var.vpc_name}_cluster_logging_cloudwatch"
+  role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+}
+
+
 resource "aws_instance" "login" {
     ami = "${aws_ami_copy.login_ami.id}"
     subnet_id = "${aws_subnet.public.id}"
@@ -183,6 +216,7 @@ resource "aws_instance" "login" {
     monitoring = true
     key_name = "${var.ssh_key_name}"
     vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
+    iam_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
     tags {
         Name = "${var.vpc_name} Login Node"
         Environment = "${var.vpc_name}"
@@ -201,6 +235,7 @@ resource "aws_instance" "proxy" {
     source_dest_check = false
     key_name = "${var.ssh_key_name}"
     vpc_security_group_ids = ["${aws_security_group.proxy.id}","${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
+    iam_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
     tags {
         Name = "${var.vpc_name} HTTP Proxy"
         Environment = "${var.vpc_name}"
