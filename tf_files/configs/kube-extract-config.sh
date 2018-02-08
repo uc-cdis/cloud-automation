@@ -55,6 +55,7 @@ function random_alphanumeric() {
 }
 
 kubectl get configmaps/global -o yaml > 00configmap.yaml
+  
 # Note that legacy commons may not have the dictonary_url set ...
 hostname=$(kubectl get configmaps/global -o=jsonpath='{.data.hostname}')
 dictionaryUrl=$(kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')
@@ -69,6 +70,12 @@ if kubectl get secrets/jwt-keys > /dev/null 2>&1; then
 fi
 
 mkdir -p -m 0700 apis_configs
+if kubectl get configmaps/fence > /dev/null 2>&1; then
+  kubectl get configmaps/fence -o yaml > apis_configs/user.yaml
+else
+  kubectl get configmaps/userapi -o yaml > apis_configs/user.yaml
+fi
+
 if kubectl get secrets/indexd-secret > /dev/null 2>&1; then
   kubectl get secrets/indexd-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > apis_configs/indexd_settings.py
   indexdDbPassword=$(grep ^psw apis_configs/indexd_settings.py | awk '{ print $3 }' | sed "s/^'//" | sed "s/'\$//")
@@ -79,7 +86,7 @@ fencePyFile=""
 if kubectl get secrets/fence-secret > /dev/null 2>&1; then
   fencePyFile=apis_configs/fence_settings.py
   kubectl get secrets/fence-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > "${fencePyFile}"
-elif kubectl get secrets/userapi-secret 2>&1 /dev/null; then
+elif kubectl get secrets/userapi-secret > /dev/null 2>&1; then
   fencePyFile=apis_configs/userapi_settings.py
   kubectl get secrets/userapi-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > "${fencePyFile}"
 fi

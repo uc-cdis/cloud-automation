@@ -44,7 +44,6 @@ resource "aws_db_instance" "db_fence" {
     identifier           = "${var.vpc_name}-fencedb"
     storage_type         = "gp2"
     engine               = "postgres"
-    skip_final_snapshot  = true
     engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
@@ -54,6 +53,8 @@ resource "aws_db_instance" "db_fence" {
     snapshot_identifier  = "${var.fence_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
+    allow_major_version_upgrade = true
+    final_snapshot_identifier = "${var.vpc_name}-fencedb"
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -73,7 +74,6 @@ resource "aws_db_instance" "db_userapi" {
     identifier           = "${var.vpc_name}-userapidb"
     storage_type         = "gp2"
     engine               = "postgres"
-    skip_final_snapshot  = true
     engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
@@ -82,6 +82,8 @@ resource "aws_db_instance" "db_userapi" {
     password             = "${var.db_password_userapi}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
+    allow_major_version_upgrade = true
+    final_snapshot_identifier = "${var.vpc_name}-userapidb"
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -96,7 +98,6 @@ resource "aws_db_instance" "db_gdcapi" {
     identifier           = "${var.vpc_name}-gdcapidb"
     storage_type         = "gp2"
     engine               = "postgres"
-    skip_final_snapshot  = true
     engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
@@ -105,11 +106,13 @@ resource "aws_db_instance" "db_gdcapi" {
     password             = "${var.db_password_sheepdog}"
     snapshot_identifier  = "${var.gdcapi_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
+    allow_major_version_upgrade = true
+    final_snapshot_identifier = "${var.vpc_name}-gdcapidb"
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
-    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     lifecycle {
         ignore_changes = ["identifier", "name", "engine_version", "username", "password"]
     }
@@ -120,7 +123,6 @@ resource "aws_db_instance" "db_indexd" {
     identifier           = "${var.vpc_name}-indexddb"
     storage_type         = "gp2"
     engine               = "postgres"
-    skip_final_snapshot  = true
     engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
@@ -130,6 +132,8 @@ resource "aws_db_instance" "db_indexd" {
     snapshot_identifier  = "${var.indexd_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
+    allow_major_version_upgrade = true
+    final_snapshot_identifier = "${var.vpc_name}-indexddb"
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"

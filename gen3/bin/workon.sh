@@ -165,6 +165,10 @@ EOM
   cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
 vpc_name="$GEN3_VPC"
+#
+# for vpc_octet see https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md
+#  CIDR becomes 172.24.{vpc_octet}.0/20
+#
 vpc_octet=GET_A_UNIQUE_VPC_172_OCTET
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 
