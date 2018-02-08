@@ -2,12 +2,12 @@
 resource "aws_security_group" "kube-worker" {
     name = "kube-worker"
     description = "security group that open ports to vpc, this needs to be attached to kube worker"
-    vpc_id = "${aws_vpc.main.id}"
+    vpc_id = "${module.cdis_vpc.vpc_id}"
     ingress {
         from_port = 30000
         to_port = 30100
         protocol = "TCP"
-        cidr_blocks = ["172.${var.vpc_octet}.0.0/16"]
+        cidr_blocks = ["172.24.${var.vpc_octet}.0/20"]
     }
     ingress {
         from_port = 443
@@ -23,12 +23,12 @@ resource "aws_security_group" "kube-worker" {
 
 resource "aws_route_table_association" "public_kube" {
     subnet_id = "${aws_subnet.public_kube.id}"
-    route_table_id = "${aws_route_table.public.id}"
+    route_table_id = "${module.cdis_vpc.public_route_table_id}"
 }
 
 resource "aws_subnet" "public_kube" {
-    vpc_id = "${aws_vpc.main.id}"
-    cidr_block = "172.${var.vpc_octet}.129.0/24"
+    vpc_id = "${module.cdis_vpc.vpc_id}"
+    cidr_block = "172.24.${var.vpc_octet + 4}.0/24"
     map_public_ip_on_launch = true
     availability_zone = "${data.aws_availability_zones.available.names[0]}"
     tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "")}"
@@ -45,7 +45,7 @@ resource "aws_db_instance" "db_fence" {
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.6.5"
+    engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "fence"
@@ -53,7 +53,7 @@ resource "aws_db_instance" "db_fence" {
     password             = "${var.db_password_fence}"
     snapshot_identifier  = "${var.fence_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -74,14 +74,14 @@ resource "aws_db_instance" "db_userapi" {
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.6.5"
+    engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "userapi"
     username             = "userapi_user"
     password             = "${var.db_password_userapi}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -97,7 +97,7 @@ resource "aws_db_instance" "db_gdcapi" {
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.6.5"
+    engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "gdcapi"
@@ -109,7 +109,7 @@ resource "aws_db_instance" "db_gdcapi" {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     lifecycle {
         ignore_changes = ["identifier", "name", "engine_version", "username", "password"]
     }
@@ -121,7 +121,7 @@ resource "aws_db_instance" "db_indexd" {
     storage_type         = "gp2"
     engine               = "postgres"
     skip_final_snapshot  = true
-    engine_version       = "9.6.5"
+    engine_version       = "9.6.6"
     parameter_group_name = "${aws_db_parameter_group.rds-cdis-pg.name}"
     instance_class       = "${var.db_instance}"
     name                 = "indexd"
@@ -129,7 +129,7 @@ resource "aws_db_instance" "db_indexd" {
     password             = "${var.db_password_indexd}"
     snapshot_identifier  = "${var.indexd_snapshot}"
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -144,7 +144,7 @@ resource "aws_db_instance" "db_indexd" {
 # for detail parameter descriptions
 
 resource "aws_db_parameter_group" "rds-cdis-pg" {
-  name   = "rds-cdis-pg"
+  name   = "${var.vpc_name}-rds-cdis-pg"
   family = "postgres9.6"
 
 # make index searches cheaper per row
@@ -178,93 +178,11 @@ resource "aws_db_parameter_group" "rds-cdis-pg" {
     name  = "random_page_cost"
     value = "0.7"
   }
-
 }
 
 data "aws_acm_certificate" "api" {
   domain   = "${var.aws_cert_name}"
   statuses = ["ISSUED"]
-}
-
-data "template_file" "cluster" {
-    template = "${file("${path.module}/../configs/cluster.yaml")}"
-    vars {
-        cluster_name = "${var.vpc_name}"
-        key_name = "${aws_key_pair.automation_dev.key_name}"
-        aws_region = "${var.aws_region}"
-        kms_key = "${aws_kms_key.kube_key.arn}"
-        route_table_id = "${aws_route_table.private_kube.id}"
-        vpc_id ="${aws_vpc.main.id}"
-        vpc_cidr = "${aws_vpc.main.cidr_block}"
-        subnet_id = "${aws_subnet.private_kube.id}"
-        subnet_cidr = "${aws_subnet.private_kube.cidr_block}"
-        subnet_zone = "${aws_subnet.private_kube.availability_zone}"
-        security_group_id = "${aws_security_group.kube-worker.id}"
-        kube_additional_keys = "${var.kube_additional_keys}"
-        hosted_zone = "${aws_route53_zone.main.id}"
-    }
-}
-
-#
-# Note - we normally either have a userapi or a fence database - not both.
-# Once userapi is completely retired, then we can get rid of these userapi vs fence checks.
-#
-# Note: using coalescelist/splat trick described here:
-#      https://github.com/coreos/tectonic-installer/blob/master/modules/aws/vpc/vpc.tf
-#      https://github.com/hashicorp/terraform/issues/11566
-#
-data "template_file" "creds" {
-    template = "${file("${path.module}/../configs/creds.tpl")}"
-    vars {
-        fence_host = "${join(" ", coalescelist(aws_db_instance.db_fence.*.address, aws_db_instance.db_userapi.*.address))}"
-        fence_user = "${var.db_password_fence != "" ? "fence_user" : "userapi_user"}"
-        fence_pwd = "${var.db_password_fence != "" ? var.db_password_fence : var.db_password_userapi}"
-        fence_db = "${join(" ", coalescelist(aws_db_instance.db_fence.*.name, aws_db_instance.db_userapi.*.name))}"
-        userapi_host = "${join(" ", coalescelist(aws_db_instance.db_userapi.*.address, aws_db_instance.db_fence.*.address))}"
-        userapi_user = "${var.db_password_userapi != "" ? "userapi_user" : "fence_user"}"
-        userapi_pwd = "${var.db_password_userapi != "" ? var.db_password_userapi : var.db_password_fence}"
-        userapi_db = "${join(" ", coalescelist(aws_db_instance.db_userapi.*.name, aws_db_instance.db_fence.*.name))}"
-        gdcapi_host = "${aws_db_instance.db_gdcapi.address}"
-        gdcapi_user = "${aws_db_instance.db_gdcapi.username}"
-        gdcapi_pwd = "${aws_db_instance.db_gdcapi.password}"
-        gdcapi_db = "${aws_db_instance.db_gdcapi.name}"
-        peregrine_user = "peregrine"
-        peregrine_pwd = "${var.db_password_peregrine}"
-        sheepdog_user = "sheepdog"
-        sheepdog_pwd = "${var.db_password_sheepdog}"
-        indexd_host = "${aws_db_instance.db_indexd.address}"
-        indexd_user = "${aws_db_instance.db_indexd.username}"
-        indexd_pwd = "${aws_db_instance.db_indexd.password}"
-        indexd_db = "${aws_db_instance.db_indexd.name}"
-        hostname = "${var.hostname}"
-        google_client_secret = "${var.google_client_secret}"
-        google_client_id = "${var.google_client_id}"
-        hmac_encryption_key = "${var.hmac_encryption_key}"
-        gdcapi_secret_key = "${var.gdcapi_secret_key}"
-        gdcapi_indexd_password = "${var.gdcapi_indexd_password}"
-        gdcapi_oauth2_client_id = "${var.gdcapi_oauth2_client_id}"
-        gdcapi_oauth2_client_secret = "${var.gdcapi_oauth2_client_secret}"
-    }
-}
-
-data "template_file" "kube_vars" {
-    template = "${file("${path.module}/../configs/kube-vars.sh.tpl")}"
-    vars {
-        vpc_name = "${var.vpc_name}"
-        s3_bucket = "${var.kube_bucket}"
-        fence_snapshot = "${var.fence_snapshot}"
-        gdcapi_snapshot = "${var.gdcapi_snapshot}"
-    }
-}
-
-data "template_file" "configmap" {
-    template = "${file("${path.module}/../configs/00configmap.yaml")}"
-    vars {
-        vpc_name = "${var.vpc_name}"
-        hostname = "${var.hostname}"
-        revproxy_arn = "${data.aws_acm_certificate.api.arn}"
-        dictionary_url = "${var.dictionary_url}"
-    }
 }
 
 resource "aws_iam_role" "kube_provisioner" {
@@ -300,11 +218,11 @@ resource "aws_iam_instance_profile" "kube_provisioner" {
 }
 
 resource "aws_instance" "kube_provisioner" {
-    ami = "${aws_ami_copy.login_ami.id}"
+    ami = "${module.cdis_vpc.login_ami_id}"
     subnet_id = "${aws_subnet.private_kube.id}"
     instance_type = "t2.micro"
     monitoring = true
-    vpc_security_group_ids = ["${aws_security_group.local.id}"]
+    vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     iam_instance_profile = "${aws_iam_instance_profile.kube_provisioner.name}"
     tags {
         Name = "${var.vpc_name} Kube Provisioner"
@@ -317,39 +235,8 @@ resource "aws_instance" "kube_provisioner" {
 }
 
 
-resource "null_resource" "config_setup" {
-    triggers {
-      creds_change = "${data.template_file.creds.rendered}"
-      vars_change = "${data.template_file.kube_vars.rendered}"
-      config_change = "${data.template_file.configmap.rendered}"
-      cluster_change = "${data.template_file.cluster.rendered}"
-    }
-
-    provisioner "local-exec" {
-        command = "mkdir ${var.vpc_name}_output; echo '${data.template_file.creds.rendered}' >${var.vpc_name}_output/creds.json"
-    }
-
-    provisioner "local-exec" {
-        command = "echo \"${data.template_file.cluster.rendered}\" > ${var.vpc_name}_output/cluster.yaml"
-    }
-    provisioner "local-exec" {
-        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-up-body.sh\" > ${var.vpc_name}_output/kube-up.sh"
-    }
-
-    provisioner "local-exec" {
-        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-setup-certs.sh\" \"${path.module}/../configs/kube-services-body.sh\" \"${path.module}/../configs/kube-setup-fence.sh\" \"${path.module}/../configs/kube-setup-sheepdog.sh\" \"${path.module}/../configs/kube-setup-peregrine.sh\" > ${var.vpc_name}_output/kube-services.sh"
-    }
-
-    provisioner "local-exec" {
-        command = "echo \"${data.template_file.configmap.rendered}\" > ${var.vpc_name}_output/00configmap.yaml"
-    }
-    provisioner "local-exec" {
-        command = "cp ${path.module}/../configs/render_creds.py ${var.vpc_name}_output/"
-    }
-}
-
 resource "aws_route53_record" "kube_provisioner" {
-    zone_id = "${aws_route53_zone.main.zone_id}"
+    zone_id = "${module.cdis_vpc.zone_zid}"
     name = "kube"
     type = "A"
     ttl = "300"
@@ -371,16 +258,17 @@ resource "aws_key_pair" "automation_dev" {
 }
 
 resource "aws_s3_bucket" "kube_bucket" {
-  bucket = "${var.kube_bucket}"
+  # S3 buckets are in a global namespace, so dns style naming
+  bucket = "kube_bucket.${var.vpc_name}.gen3"
   acl    = "private"
 
   tags {
-    Name        = "${var.kube_bucket}"
+    Name        = "kube_bucket.${var.vpc_name}.gen3"
     Environment = "${var.vpc_name}"
     Organization = "Basic Service"
   }
   lifecycle {
     # allow same bucket between stacks
-    ignore_changes = ["tags"]
+    ignore_changes = ["tags", "bucket"]
   }
 }

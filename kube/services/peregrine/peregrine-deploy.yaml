@@ -15,6 +15,7 @@ spec:
       labels:
         app: peregrine
     spec:
+      automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:

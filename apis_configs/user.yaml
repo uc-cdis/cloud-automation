@@ -60,5 +60,9 @@ users:
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
-
+  giangbui0816@gmail.com:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
   

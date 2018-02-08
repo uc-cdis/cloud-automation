@@ -16,6 +16,19 @@ if [ -z "$JENKINS_S3_PATH" ]; then
   JENKINS_S3_PATH="s3://cdis-terraform-state/JenkinsBackup"
 fi
 
+# Setup ~/.aws to support cloud-automation/gen3 
+mkdir -p ~/.aws
+cat - > ~/.aws/config <<EOM
+[profile jenkins]
+output = json
+region = us-east-1
+EOM
+cat - > ~/.aws/credentials <<EOM
+[jenkins]
+aws_access_key_id = $AWS_ACCESS_KEY_ID
+aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+EOM
+
 if [ ! -d "$JENKINS_HOME/jobs" ]; then # restore from s3 is necessary
   if [ -d "$JENKINS_HOME" ]; then
     # download latest backup from S3 - collected via Pipelines/Backup :-)

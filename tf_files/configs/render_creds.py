@@ -58,7 +58,7 @@ def get_creds(creds_file):
 def get_pod(kube_config, service):
     while (True):
         r = sp.Popen([
-            '/usr/local/bin/kubectl',
+            'kubectl',
             '--kubeconfig={}'.format(kube_config),
             'get',
             'pods'], stdout=sp.PIPE, stderr=sp.PIPE)
@@ -80,7 +80,7 @@ def get_pod(kube_config, service):
 
 def get_base_command(kube_config, pod, service):
     command = [
-        '/usr/local/bin/kubectl',
+        'kubectl',
         '--kubeconfig={}'.format(kube_config),
         'exec', pod, '-c', service]
     return command

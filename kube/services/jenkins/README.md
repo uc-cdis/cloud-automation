@@ -10,7 +10,7 @@ The Jenkins deployment includes:
 * AWS secrets, so jenkins can test 'terraform' and back itself up to S3 and whatever.
   You'll have to supply ~/.aws/credentials to kube-setup-jenkins.sh for a Jenkins IAM
   user with sufficient permissions for Jenkins and terraform to do their thing.
-  The following attached policies work in the AWS cdis-test account:
+  The following attached policies work in the AWS cdistest account:
     * AmazonRDSFullAccess
     * AmazonEC2FullAccess
     * IAMFullAccess

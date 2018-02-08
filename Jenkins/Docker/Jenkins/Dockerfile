@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.95
+FROM jenkins/jenkins:2.102
 
 USER root
 
@@ -9,7 +9,7 @@ RUN easy_install pip
 RUN pip install awscli --upgrade
 
 # install terraform
-RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.1/terraform_0.11.1_linux_amd64.zip
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.2/terraform_0.11.2_linux_amd64.zip
 RUN unzip /tmp/terraform.zip -d /usr/local/bin; /bin/rm /tmp/terraform.zip
 
 # install packer
@@ -25,6 +25,6 @@ RUN rm -r /tmp/kubernetes /tmp/kubernetes-client-linux-amd64.tar.gz
 # add our custom start script
 COPY jenkins.sh /opt/cdis/bin/jenkins.sh
 RUN chmod -R a+rx /opt/cdis
-ENTRYPOINT ["/bin/tini", "--", "/opt/cdis/bin/jenkins.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/opt/cdis/bin/jenkins.sh"]
 
 USER jenkins

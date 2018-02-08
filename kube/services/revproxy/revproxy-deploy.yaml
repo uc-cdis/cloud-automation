@@ -15,6 +15,7 @@ spec:
       labels:
         app: revproxy
     spec:
+      automountServiceAccountToken: false
       volumes:
         - name: revproxy-conf
           configMap:

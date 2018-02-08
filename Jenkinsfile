@@ -7,6 +7,7 @@ pipeline {
     stage('FetchCode'){
       steps {
         checkout scm
+        sh '/bin/rm -rf Secrets SecretsNoPlan dataHome'
         dir('Secrets') {
             sh 'aws s3 cp s3://cdis-terraform-state/planx-pla.net/v1/config.tfvars config.tfvars'
             sh 'aws s3 cp s3://cdis-terraform-state/planx-pla.net/v1/backend.tfvars backend.tfvars'
@@ -39,6 +40,11 @@ pipeline {
           echo 'Planning ...'
           sh 'terraform plan --var aws_access_key=$AWS_ACCESS_KEY_ID --var aws_secret_key=$AWS_SECRET_ACCESS_KEY --var-file config.tfvars -out plan.terraform ../tf_files/aws'
         }
+      }
+    }
+    stage('gen3 helper test suite') {
+      steps {
+        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/testsuite.sh --profile jenkins'
       }
     }
   }
