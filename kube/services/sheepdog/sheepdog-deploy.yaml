@@ -67,6 +67,4 @@ spec:
             limits:
               cpu: 0.8
               memory: 512Mi
-      imagePullSecrets:
-        - name: cdis-devservices-pull-secret
 

@@ -79,5 +79,3 @@ spec:
       - name: ca-volume
         secret:
           secretName: "service-ca"
-      imagePullSecrets:
-        - name: cdis-devservices-pull-secret

@@ -42,19 +42,6 @@ cd ~/${vpc_name}
 
 export KUBECONFIG=~/${vpc_name}/kubeconfig
 
-if ! kubectl get secrets/cdis-devservices-pull-secret 2>&1 > /dev/null; then
-  echo "Creating k8s quay secret"
-
-  if [ ! -f ~/"${vpc_name}/cdis-devservices-secret.yml" ]; then
-    echo "ERROR: you forgot to setup ~/${vpc_name}/cdis-devservices-secret.yml - doh!"
-    exit 1
-  fi
-
-  kubectl create -f cdis-devservices-secret.yml
-  # don't leave this file laying around ...
-  rm cdis-devservices-secret.yml
-fi
-
 # Note: look into 'kubectl replace' if you need to replace a secret
 if ! kubectl get secrets/indexd-secret > /dev/null 2>&1; then
   kubectl create secret generic indexd-secret --from-file=local_settings.py=./apis_configs/indexd_settings.py
@@ -64,14 +51,11 @@ kubectl apply -f 00configmap.yaml
 
 kubectl apply -f services/portal/portal-deploy.yaml
 kubectl apply -f services/indexd/indexd-deploy.yaml
-kubectl apply -f services/revproxy/00nginx-config.yaml
-kubectl apply -f services/revproxy/revproxy-deploy.yaml
 
 cd ~/${vpc_name};
 
 kubectl apply -f services/portal/portal-service.yaml
 kubectl apply -f services/indexd/indexd-service.yaml
-./services/revproxy/apply_service
 
 if ! grep kubes.sh ~/.bashrc > /dev/null; then
   echo "Adding variables to ~/.bashrc"
