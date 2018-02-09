@@ -228,13 +228,14 @@ resource "aws_instance" "kube_provisioner" {
     monitoring = true
     vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     iam_instance_profile = "${aws_iam_instance_profile.kube_provisioner.name}"
+    key_name = "${module.cdis_vpc.ssh_key_name}"
     tags {
         Name = "${var.vpc_name} Kube Provisioner"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
     lifecycle {
-        ignore_changes = ["ami"]
+        ignore_changes = ["ami", "key_name"]
     }
 }
 

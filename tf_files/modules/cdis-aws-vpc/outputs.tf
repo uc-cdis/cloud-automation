@@ -43,6 +43,10 @@ output "ssh_config" {
   value = "${data.template_file.ssh_config.rendered}"
 }
 
+output "ssh_key_name" {
+  value = "${var.ssh_key_name}"
+}
+
 #-------------------------------------------
 
 data "template_file" "ssh_config" {
