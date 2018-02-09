@@ -15,6 +15,7 @@ module "cdis_vpc" {
   source = "../modules/cdis-aws-vpc"
   vpc_octet = "${var.vpc_octet}"
   vpc_name = "${var.vpc_name}"
+  ssh_key_name = "${aws_key_pair.automation_dev.key_name}"
 }
 
 

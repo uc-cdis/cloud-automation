@@ -143,7 +143,12 @@ config.tfvars() {
     # user vpc is simpler ...
     cat - <<EOM
 vpc_name="$GEN3_VPC"
+#
+# for vpc_octet see https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md
+#  CIDR becomes 172.24.{vpc_octet}.0/20
+#
 vpc_octet=GET_A_UNIQUE_VPC_172_OCTET
+ssh_public_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
 EOM
     return 0
   fi
@@ -165,6 +170,10 @@ EOM
   cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
 vpc_name="$GEN3_VPC"
+#
+# for vpc_octet see https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md
+#  CIDR becomes 172.24.{vpc_octet}.0/20
+#
 vpc_octet=GET_A_UNIQUE_VPC_172_OCTET
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 
@@ -201,7 +210,7 @@ fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
 
-# ssh key to be added to kube nodes
+# ssh key to be added to VMs and kube nodes
 kube_ssh_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
 
 kube_additional_keys = <<EOB

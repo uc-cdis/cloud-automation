@@ -53,6 +53,4 @@ spec:
             readOnly: true
             mountPath: "/mnt/ssl/cdis-ca.crt"
             subPath: "ca.pem"
-      imagePullSecrets:
-        - name: cdis-devservices-pull-secret
 

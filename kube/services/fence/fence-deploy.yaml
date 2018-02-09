@@ -69,5 +69,3 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
-      imagePullSecrets:
-        - name: cdis-devservices-pull-secret

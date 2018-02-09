@@ -65,7 +65,7 @@ for user in sheepdog peregrine; do
       psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "CREATE USER $new_db_user WITH PASSWORD '$new_db_password';"
       psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $new_db_user;"
       if [[ "$new_db_user" =~ ^sheepdog ]]; then
-        psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "GRANT ALL ON ALL TABLES IN SCHEMA pubic TO $new_db_user;"
+        psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "GRANT ALL ON ALL TABLES IN SCHEMA public TO $new_db_user;"
       fi
     fi
   fi

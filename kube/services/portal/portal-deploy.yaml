@@ -62,5 +62,3 @@ spec:
             path: /
             port: 80
         imagePullPolicy: Always
-      imagePullSecrets:
-        - name: cdis-devservices-pull-secret

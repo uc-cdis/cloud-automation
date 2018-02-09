@@ -162,6 +162,7 @@ resource "aws_instance" "login" {
     subnet_id = "${aws_subnet.public.id}"
     instance_type = "t2.micro"
     monitoring = true
+    key_name = "${var.ssh_key_name}"
     vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
     tags {
         Name = "${var.vpc_name} Login Node"
@@ -169,7 +170,7 @@ resource "aws_instance" "login" {
         Organization = "Basic Service"
     }
     lifecycle {
-        ignore_changes = ["ami"]
+        ignore_changes = ["ami", "key_name"]
     }
 }
 
@@ -179,11 +180,15 @@ resource "aws_instance" "proxy" {
     instance_type = "t2.micro"
     monitoring = true
     source_dest_check = false
+    key_name = "${var.ssh_key_name}"
     vpc_security_group_ids = ["${aws_security_group.proxy.id}","${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
     tags {
         Name = "${var.vpc_name} HTTP Proxy"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
+    }
+    lifecycle {
+        ignore_changes = ["ami", "key_name"]
     }
 }
 

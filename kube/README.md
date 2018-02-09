@@ -1,17 +1,11 @@
 # Configuration for setting up a kubernete cluster inside an existing VPC private subnet
 
-## Manual Prerequisites
-
-- need to have at least 1 eips
-- need to get the credential from quay.io for [cdis-devservices robot](https://quay.io/organization/cdis?tab=robots)
-
 ## Steps to start all services on a new k8s cluster in AWS
 1. Copy the ${cluster}_output folder to the kube.internal.io (Kubernete provisioner)
 2. ssh to kube.internal.io (gen3 tfoutput ssh_config or terraform output gives the `~/.ssh/config` entries), and `$ cd ~/${cluster}_output`
 3. Run kube-up.sh
-4. Get quay creds in prerequisites 2 to ${cluster}/cdis-devservices-secret.yml
-5. Run kube-services.sh
-6. Optional - register your kubernete worker nodes as `kubenode.internal.io` in your route53
+4. Run kube-services.sh
+5. Optional - register your kubernete worker nodes as `kubenode.internal.io` in your route53
 
 
 ## Steps to start a new service in an existing commons
