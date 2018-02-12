@@ -36,7 +36,7 @@ config['OAUTH2'] = {
     'client_kwargs': {
         'redirect_uri': 'https://{{hostname}}/api/v0/oauth2/authorize',
         'scope': 'openid data user',
-    }
+    },
     # deprecated key values, should be removed after all commons use new oidc
     'internal_oauth_provider': 'http://fence-service/oauth2/',
     'oauth_provider': 'https://{{hostname}}/user/oauth2/',
