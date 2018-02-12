@@ -87,10 +87,15 @@ data:
           # This block requires a csrftoken for all POST requests.
           #
           if ($cookie_csrftoken = $http_x_csrf_token) {
+            # this will fail further below if cookie_csrftoken is empty
             set $csrf_check "ok-$cookie_csrftoken";
           }
           if ($request_method != "POST") {
             set $csrf_check "ok-$request_method";
+          }
+          if ($cookie_access_token = "") {
+            # do this again here b/c empty cookie_csrftoken == empty http_x_csrf_token - ugh  
+            set $csrf_check "ok-tokenauth";
           }
           if ($csrf_check !~ ^ok-\S.+$) {
             return 403 "failed csrf check";
