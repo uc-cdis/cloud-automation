@@ -29,6 +29,7 @@ HMAC_ENCRYPTION_KEY = '{{hmac_key}}'
 
 
 HOSTNAME = '{{hostname}}'
+BASE_URL = 'https://{{hostname}}'
 
 OPENID_CONNECT = {
     'google': {
