@@ -39,8 +39,11 @@ data:
       
       	##
       	# Logging Settings
-      	##      
-      	access_log /dev/stdout;
+      	##
+        log_format aws   '$http_x_forwarded_for - $remote_user [$time_local] '
+                    '"$request" $status $body_bytes_sent '
+                    '"$http_referer" "$http_user_agent"';
+      	access_log /dev/stdout aws;
       	error_log /dev/stderr;
       
       	##
