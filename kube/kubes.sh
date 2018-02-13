@@ -11,6 +11,10 @@ get_pod() {
     echo $pod
 }
 
+get_pods() {
+  kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep "$1"
+}
+
 update_config() {
     kubectl delete configmap $1
     kubectl create configmap $1 --from-file $2
