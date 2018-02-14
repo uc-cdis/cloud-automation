@@ -7,6 +7,13 @@
 
 set -e
 
+export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
+export RENDER_CREDS="${G3AUTOHOME}/tf_files/configs/render_creds.py"
+
+if [ ! -f "${RENDER_CREDS}" ]; then
+  echo "ERROR: ${RENDER_CREDS} does not exist"
+fi
+
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-fence.sh vpc_name"
@@ -18,7 +25,7 @@ if [ ! -d ~/"${vpc_name}" ]; then
 fi
 
 cd ~/${vpc_name}_output
-python render_creds.py secrets
+python "${RENDER_CREDS}" secrets
 
 cd ~/${vpc_name}
 # Generate RSA private and public keys.
@@ -59,9 +66,9 @@ if [[ -z "${fence_snapshot}" && "${create_fence_db}" = "true" && ( ! -f .rendere
   # This crazy command actually does a kubectl -exec into the fence pod to
   # intialize the db ...
   #
-  python render_creds.py fence_db
+  python "${RENDER_CREDS}" fence_db
   # Fence sets up the gdcapi oauth2 client-id and secret stuff ...
-  python render_creds.py secrets
+  python "${RENDER_CREDS}" secrets
   cd ~/${vpc_name}
 
   # try to avoid doing this block more than once ...

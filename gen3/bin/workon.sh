@@ -280,7 +280,7 @@ terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.t
 # Generate some k8s helper scripts for on-prem deployments
 if ! [[ "$GEN3_VPC" =~ _user$ && "$GEN3_VPC" =~ _snapshot$ ]]; then
   mkdir -p -m 0700 onprem_scripts
-  cat - "$GEN3_HOME/tf_files/configs/kube-setup-certs.sh" "$GEN3_HOME/tf_files/configs/kube-services-body.sh" "$GEN3_HOME/tf_files/configs/kube-setup-fence.sh" "$GEN3_HOME/tf_files/configs/kube-setup-sheepdog.sh" "$GEN3_HOME/tf_files/configs/kube-setup-peregrine.sh" > onprem_scripts/kube-services.sh <<EOM
+  cat - "$GEN3_HOME/tf_files/configs/kube-services-body.sh" > onprem_scripts/kube-services.sh <<EOM
 #!/bin/bash
 #
 # Terraform template concatenated with kube-services.sh and kube-up.sh in kube.tf
@@ -292,7 +292,6 @@ vpc_name='${GEN3_VPC}'
 
 EOM
 
-  cat "$GEN3_HOME/tf_files/configs/render_creds.py" > onprem_scripts/render_creds.py
   if [[ ! -f onprem_scripts/creds.json ]]; then
     cat "$GEN3_HOME/tf_files/configs/creds.tpl" > onprem_scripts/creds.json
   else
