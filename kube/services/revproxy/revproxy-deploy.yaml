@@ -46,6 +46,10 @@ spec:
             readOnly: true
             mountPath: "/etc/nginx/nginx.conf"
             subPath: nginx.conf
+          - name: "revproxy-conf"
+            readOnly: true
+            mountPath: "/etc/nginx/userid.js"
+            subPath: userid.js
           - name: "cert-volume"
             readOnly: true
             mountPath: "/mnt/ssl/service.crt"

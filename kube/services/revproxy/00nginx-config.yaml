@@ -8,12 +8,72 @@ metadata:
   name: revproxy-nginx-conf
   namespace: default 
 data:
+  userid.js: |
+      /** global supporting atob polyfill below */
+      var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+
+      /**
+       * base64 decode polyfill from 
+       *     https://github.com/davidchambers/Base64.js/blob/master/base64.js
+       */
+      function atob(input) {
+        var str = String(input).replace(/[=]+$/, ''); // #31: ExtendScript bad parse of /=
+        if (str.length % 4 == 1) {
+          return input;
+        }
+        for (
+          // initialize result and counters
+          var bc = 0, bs, buffer, idx = 0, output = '';
+          // get next character
+          buffer = str.charAt(idx++);
+          // character found in table? initialize bit storage and add its ascii value;
+          ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
+            // and if not first of each 4 characters,
+            // convert the first 8 bits to one ascii character
+            bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
+        ) {
+          // try to find character in table (0-63, not found => -1)
+          buffer = chars.indexOf(buffer);
+        }
+        return output;
+      }
+
+      /**
+       * nginscript helper for parsing user out of JWT tokens.
+       * We appear to have access to the 'access_token' variable
+       * defined in nginx.conf when this function runs via 'js_set'.
+       * see https://www.nginx.com/blog/introduction-nginscript/
+       * 
+       * @param {*} req 
+       * @param {*} res 
+       */
+      function userid(req, res) {
+        var token = req.variables["access_token"];
+        var user = "unknown@unknown";
+
+        if (token) {
+          user = token;
+          var raw = atob((token.split('.')[1] || "").replace('-', '+').replace('_', '/'));
+          if (raw) {
+            try {
+              var data = JSON.parse(raw);
+              if (data && data.context && data.context.user && data.context.user.name) {
+                user = data.context.user.name;
+              }
+            } catch (err) {}
+          }
+        }
+        return user;
+      }
+
   nginx.conf: |
       user www-data;
       worker_processes 4;
         
       pid /run/nginx.pid;
       
+      load_module modules/ngx_http_js_module.so;
+
       events {
       	worker_connections 768;
       	# multi_accept on;
@@ -34,13 +94,20 @@ data:
       	# server_names_hash_bucket_size 64;
       	# server_name_in_redirect off;
       
-      	include /etc/nginx/mime.types;
-      	default_type application/octet-stream;
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
       
+        ##
+        # Note - nginscript js_set, etc get processed
+        #   on demand: https://www.nginx.com/blog/introduction-nginscript/  
+        #
+        js_include userid.js;
+        js_set $userid userid;
+
       	##
       	# Logging Settings
       	##
-        log_format aws   '$http_x_forwarded_for - $remote_user [$time_local] '
+        log_format aws   '$http_x_forwarded_for - $userid [$time_local] '
                     '"$request" $status $body_bytes_sent '
                     '"$http_referer" "$http_user_agent"';
       	access_log /dev/stdout aws;
@@ -52,7 +119,7 @@ data:
         gzip on;
         gzip_disable "msie6";
         gzip_types application/javascript;
-      
+        
         ##
       	# Proxy Settings
       	##
@@ -84,6 +151,7 @@ data:
           #
           proxy_set_header   Authorization "$access_token";
           proxy_set_header   X-Forwarded-For "$http_x_forwarded_for";
+          proxy_set_header   X-UserId "$userid";
           #add_header X-debug-auth "$access_token"; #- only do this for quick and dirty client-side debugging
           
           #
@@ -122,18 +190,21 @@ data:
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
+
               proxy_pass http://indexd-service/;
           }
           location /user {
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
+
               proxy_pass http://fence-service/;
           }
           location /api/v0/submission/getschema {
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
+
               proxy_next_upstream off;
               proxy_pass http://peregrine-service/v0/submission/getschema;
           }
@@ -141,6 +212,7 @@ data:
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
+
               proxy_next_upstream off;
               # Forward the host and set Subdir header so api
               # knows the original request path for hmac signing
@@ -148,6 +220,7 @@ data:
               proxy_set_header   Subdir /api;
               proxy_set_header   Authorization "$access_token";
               proxy_set_header   X-Forwarded-For "$http_x_forwarded_for";
+              proxy_set_header   X-UserId "$userid";
               proxy_connect_timeout 300;
               proxy_send_timeout 300;
               proxy_read_timeout 300;
@@ -158,6 +231,7 @@ data:
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
+
               proxy_next_upstream off;
               # Forward the host and set Subdir header so api
               # knows the original request path for hmac signing
@@ -165,6 +239,7 @@ data:
               proxy_set_header   Subdir /api;
               proxy_set_header   Authorization "$access_token";
               proxy_set_header   X-Forwarded-For "$http_x_forwarded_for";
+              proxy_set_header   X-UserId "$userid";
               proxy_connect_timeout 300;
               proxy_send_timeout 300;
               proxy_read_timeout 300;
