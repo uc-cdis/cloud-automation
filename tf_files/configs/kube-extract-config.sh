@@ -71,9 +71,9 @@ fi
 
 mkdir -p -m 0700 apis_configs
 if kubectl get configmaps/fence > /dev/null 2>&1; then
-  kubectl get configmaps/fence -o yaml > apis_configs/user.yaml
+  kubectl get configmaps/fence -o json | jq -r '.data["user.yaml"]' > apis_configs/user.yaml
 else
-  kubectl get configmaps/userapi -o yaml > apis_configs/user.yaml
+  kubectl get configmaps/userapi -o json | jq -r '.data["user.yaml"]' > apis_configs/user.yaml
 fi
 
 if kubectl get secrets/indexd-secret > /dev/null 2>&1; then
