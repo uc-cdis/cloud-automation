@@ -33,6 +33,11 @@ spec:
           - /usr/sbin/nginx
           - -g
           - 'daemon off;'
+        livenessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 30
         ports:
         - containerPort: 80
         - containerPort: 443
