@@ -188,7 +188,7 @@ data:
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
 
-              proxy_pass http://fence-service;
+              proxy_pass http://fence-service/;
           }
           location /api/v0/submission/getschema {
               if ($cookie_csrftoken = "") {
@@ -217,7 +217,7 @@ data:
               send_timeout 300;
               proxy_pass http://peregrine-service/v0/submission/graphql;
           }
-          location /api {
+          location /api/ {
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
@@ -234,7 +234,7 @@ data:
               proxy_send_timeout 300;
               proxy_read_timeout 300;
               send_timeout 300;
-              proxy_pass http://sheepdog-service;
+              proxy_pass http://sheepdog-service/;
           }
       	}
       }
