@@ -33,6 +33,11 @@ spec:
           - /usr/sbin/nginx
           - -g
           - 'daemon off;'
+        livenessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 30
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -41,6 +46,10 @@ spec:
             readOnly: true
             mountPath: "/etc/nginx/nginx.conf"
             subPath: nginx.conf
+          - name: "revproxy-conf"
+            readOnly: true
+            mountPath: "/etc/nginx/userid.js"
+            subPath: userid.js
           - name: "cert-volume"
             readOnly: true
             mountPath: "/mnt/ssl/service.crt"

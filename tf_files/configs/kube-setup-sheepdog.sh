@@ -7,6 +7,13 @@
 
 set -e
 
+export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
+export RENDER_CREDS="${G3AUTOHOME}/tf_files/configs/render_creds.py"
+
+if [ ! -f "${RENDER_CREDS}" ]; then
+  echo "ERROR: ${RENDER_CREDS} does not exist"
+fi
+
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-sheepdog.sh vpc_name"
@@ -18,7 +25,7 @@ if [ ! -d ~/"${vpc_name}" ]; then
 fi
 
 cd ~/${vpc_name}_output
-python render_creds.py secrets
+python "${RENDER_CREDS}" secrets
 
 cd ~/${vpc_name}
 
@@ -82,7 +89,7 @@ cd ~/${vpc_name}
 #
 if [[ -z "${gdcapi_snapshot}" && "${create_gdcapi_db}" = "true" && ( ! -f .rendered_gdcapi_db ) ]]; then
   cd ~/${vpc_name}_output; 
-  python render_creds.py gdcapi_db
+  python "${RENDER_CREDS}" gdcapi_db
   cd ~/${vpc_name}
   # Avoid doing this more than once ...
   touch .rendered_gdcapi_db

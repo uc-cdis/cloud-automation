@@ -11,12 +11,6 @@
 ## Steps to start a new service in an existing commons
 In order to start a service that uses confidential information in container with Kubernetes, we should go through following steps:
 1. rerun terraform, and copy the latest `${cluster}_output` up to kube.internal.io  If you do not run terraform for some reason, then you can often just update `${cluster_output}` on kube.internal.io by hand:
-    * Copy the latest version of `render_creds.py` to `~/${cluster}_output`:
-    ```
-    $ cd ~/cloud-automation
-    $ git pull
-    $ cp tf_files/configs/render_creds.py ~/${cluster}_output/render_creds.py
-    ```
     * Update `~/${cluster}_output/creds.json` with any new creds required
     * Add a *dictionary_url* property to `~/${cluster}/00configmap.yaml` if necessary, and `kubectl apply -f 00configmap.yaml`
 2. login to the k8s provisioner, cd into the cluster data folder, and export the vpc_name environment variable (which some helper scripts look for) 
@@ -31,7 +25,14 @@ $ cd ~/cloud-automation; git pull
 3. create deployment with secrets mounted
 4. create services for the pods
 
-The following helper scripts exist.  They are configured to be safe to run multiple times:
+The following helper scripts exist.  They are configured to be safe to run multiple times.
+* The kube-services-body.sh script runs each of the following scripts in the proper order:
+```
+$ export vpc_name="theName"
+$ cd ~/${vpc_name}
+$ bash ~/cloud-automation/tf_files/configs/kube-services-body.sh
+```
+
 * Setup SSL certs and corresponding k8s secrets for all services:
 ```
 $ export vpc_name="theName"
@@ -42,19 +43,6 @@ $ bash ~/cloud-automation/tf_files/configs/kube-setup-certs.sh
 ```
 $ export vpc_name="theName"
 $ bash ~/cloud-automation/tf_files/configs/kube-setup-fence.sh
-$ echo verify fence is healthy 
-$ kubectl get pods; kubectl logs fence-deployment-pod
-$ patch_kube gdcapi-deployment
-$ cd ~/${vpc_name}
-$ cat - <<EOM
-Verify that services/revproxy/00nginx-config.yaml mounts fence,
-and does not yet mount sheepdog and peregrine.  You can edit
-that file by hand to restore the gdcapi proxy 
-EOM
-$ sudo apt install jq --upgrade
-$ kubectl get configmaps/revproxy-nginx-conf -o json | jq -r '.data["nginx.conf"]'
-$ kubectl apply -f services/revproxy/00nginx-config.yaml
-$ patch_kube revproxy-deployment 
 ```
 * Deploy *sheepdog* and *peregrine* - replacing an existing *gdcapi-service* deployment.  These scripts also generate the supporting k8s secrets for the *sheepdog* and *peregrine* services (use *kube-setup-certs.sh* to setup the certs - see above).  Move the commons to *fence* (from *userapi*) before moving to *sheepdog* and *peregrin*.  As with *fence* - the following helper script first deploys *sheepdog* and *peregrine* services alongside *gdcapi*, and updating the reverse proxy to using the new services is a separate step
 ```

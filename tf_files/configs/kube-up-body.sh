@@ -34,12 +34,9 @@ rm -r linux-amd64
 #chmod +x kube-aws
 #sudo mv kube-aws /usr/bin
 
-wget https://dl.k8s.io/v1.7.10/kubernetes-client-linux-amd64.tar.gz
-tar xvfz kubernetes-client-linux-amd64.tar.gz
-chmod -R a+rX kubernetes/client/bin
-sudo mv kubernetes/client/bin/kube* /usr/local/bin/
-rm kubernetes-client-linux-amd64.tar.gz
-rm -r kubernetes
+curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+chmod a+rx kubectl
+sudo mv kubectl /usr/local/bin/
 
 cd ~
 git clone https://github.com/uc-cdis/cloud-automation.git 2>/dev/null || true

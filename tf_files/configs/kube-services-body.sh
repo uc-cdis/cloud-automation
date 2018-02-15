@@ -12,6 +12,12 @@ export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
 export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
 export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
 export DEBIAN_FRONTEND=noninteractive
+export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
+export RENDER_CREDS="${G3AUTOHOME}/tf_files/configs/render_creds.py"
+
+if [ ! -f "${RENDER_CREDS}" ]; then
+  echo "ERROR: ${RENDER_CREDS} does not exist"
+fi
 
 #
 # Set a flag for the kube-setup-fence fragment
@@ -31,11 +37,13 @@ sudo -E pip install jinja2
 
 mkdir -p ~/${vpc_name}/apis_configs
 
+source "${G3AUTOHOME}/tf_files/configs/kube-setup-certs.sh"
+
 #
 # Setup the files that will become secrets in ~/$vpc_name/apis_configs
 #
 cd ~/${vpc_name}_output
-python render_creds.py secrets
+python "${RENDER_CREDS}" secrets
 cp ~/cloud-automation/apis_configs/user.yaml ~/${vpc_name}/apis_configs
 
 cd ~/${vpc_name}
@@ -56,6 +64,18 @@ cd ~/${vpc_name};
 
 kubectl apply -f services/portal/portal-service.yaml
 kubectl apply -f services/indexd/indexd-service.yaml
+
+source "${G3AUTOHOME}/tf_files/configs/kube-setup-fence.sh"
+source "${G3AUTOHOME}/tf_files/configs/kube-setup-sheepdog.sh"
+source "${G3AUTOHOME}/tf_files/configs/kube-setup-peregrine.sh"
+source "${G3AUTOHOME}/tf_files/configs/kube-setup-revproxy.sh"
+
+cat - <<EOM
+INFO: delete the portal pod if necessary to force a restart - 
+   portal will not come up cleanly until after the reverse proxy
+   services is fully up.
+
+EOM
 
 if ! grep kubes.sh ~/.bashrc > /dev/null; then
   echo "Adding variables to ~/.bashrc"

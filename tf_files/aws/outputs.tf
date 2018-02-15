@@ -171,14 +171,11 @@ resource "null_resource" "config_setup" {
     }
 
     provisioner "local-exec" {
-        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-setup-certs.sh\" \"${path.module}/../configs/kube-services-body.sh\" \"${path.module}/../configs/kube-setup-fence.sh\" \"${path.module}/../configs/kube-setup-sheepdog.sh\" \"${path.module}/../configs/kube-setup-peregrine.sh\" \"${path.module}/../configs/kube-setup-revproxy.sh\" > ${var.vpc_name}_output/kube-services.sh"
+        command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-services-body.sh\" > ${var.vpc_name}_output/kube-services.sh"
     }
 
     provisioner "local-exec" {
         command = "echo \"${data.template_file.configmap.rendered}\" > ${var.vpc_name}_output/00configmap.yaml"
-    }
-    provisioner "local-exec" {
-        command = "cp ${path.module}/../configs/render_creds.py ${var.vpc_name}_output/"
     }
 }
 

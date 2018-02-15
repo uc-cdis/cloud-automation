@@ -208,10 +208,10 @@ def dump_creds(creds_file):
 
 
 if __name__ == '__main__':
-    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    cur_dir = os.getcwd()
     project_dir = re.sub(r'_output$', '', cur_dir)
 
-    creds_file = os.path.join(cur_dir, 'creds.json')
+    creds_file = os.path.join(project_dir + '_output', 'creds.json')
     kubeconfig = os.path.join(project_dir, 'kubeconfig')
 
     parser = argparse.ArgumentParser()
