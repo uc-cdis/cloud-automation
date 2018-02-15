@@ -49,7 +49,7 @@ data:
        */
       function userid(req, res) {
         var token = req.variables["access_token"];
-        var user = "unknown@unknown";
+        var user = "uid:null,unknown@unknown";
 
         if (token) {
           user = token;
@@ -57,9 +57,11 @@ data:
           if (raw) {
             try {
               var data = JSON.parse(raw);
-              if (data && data.context && data.context.user && data.context.user.name) {
-                user = data.context.user.name;
-              }
+              if (data) {
+                if (data.context && data.context.user && data.context.user.name) {
+                  user = "uid:" + data.sub + "," + data.context.user.name;
+                }
+              } 
             } catch (err) {}
           }
         }
