@@ -74,3 +74,7 @@ stackTags:
   Organization: "Basic Service"
 hostedZoneId: ${hosted_zone}
 createRecordSet: true
+
+cloudWatchLogging:
+  enabled: true
+  retentionInDays: 7

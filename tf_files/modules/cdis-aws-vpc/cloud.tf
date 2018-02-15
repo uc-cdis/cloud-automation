@@ -118,7 +118,7 @@ data "aws_ami" "public_login_ami" {
 
   filter {
     name   = "name"
-    values = ["ubuntu16-client-1.0.1-*"]
+    values = ["ubuntu16-client-1.0.2-*"]
   }
 
   owners     = ["${var.ami_account_id}"]
@@ -129,15 +129,15 @@ data "aws_ami" "public_squid_ami" {
 
   filter {
     name   = "name"
-    values = ["ubuntu16-squid-1.0.1-*"]
+    values = ["ubuntu16-squid-1.0.2-*"]
   }
 
   owners     = ["${var.ami_account_id}"]
 }
 
 resource "aws_ami_copy" "login_ami" {
-  name              = "ub16-client-crypt-${var.vpc_name}-1.0.0"
-  description       = "A copy of ubuntu16-client-1.0.0"
+  name              = "ub16-client-crypt-${var.vpc_name}-1.0.2"
+  description       = "A copy of ubuntu16-client-1.0.2"
   source_ami_id     = "${data.aws_ami.public_login_ami.id}"
   source_ami_region = "us-east-1"
   encrypted = true
@@ -156,8 +156,8 @@ resource "aws_ami_copy" "login_ami" {
 }
 
 resource "aws_ami_copy" "squid_ami" {
-  name              = "ub16-squid-crypt-${var.vpc_name}-1.0.0"
-  description       = "A copy of ubuntu16-squid-1.0.0"
+  name              = "ub16-squid-crypt-${var.vpc_name}-1.0.2"
+  description       = "A copy of ubuntu16-squid-1.0.2"
   source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
   source_ami_region = "us-east-1"
   encrypted = true
@@ -225,6 +225,26 @@ resource "aws_instance" "login" {
     lifecycle {
         ignore_changes = ["ami", "key_name"]
     }
+    user_data = <<EOF
+#!/bin/bash 
+cat >> /var/awslog/etc/awslogs.conf <<EOM
+[general]
+state_file = /var/awslogs/state/agent-state
+[auth.log]
+datetime_format = %b %d %H:%M:%S
+file = /var/log/auth.log
+buffer_duration = 5000
+log_stream_name = {hostname}-{instance_id}
+initial_position = start_of_file
+time_zone = LOCAL
+log_group_name = auth
+EOM
+
+curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone > /tmp/EC2_AVAIL_ZONE
+python /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c /var/awslog/etc/awslogs.conf
+systemctl enable awslogs
+
+EOF
 }
 
 resource "aws_instance" "proxy" {
@@ -241,6 +261,30 @@ resource "aws_instance" "proxy" {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
+    user_data = <<EOF
+#!/bin/bash
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
+[general]
+state_file = /var/awslogs/state/agent-state
+[auth.log]
+datetime_format = %b %d %H:%M:%S
+file = /var/log/auth.log
+buffer_duration = 5000
+log_stream_name = {hostname}-{instance_id}
+initial_position = start_of_file
+time_zone = LOCAL
+log_group_name = auth
+[squid/access.log]
+log_group_name = squid_access_logs
+log_stream_name = {hostname}-{instance_id}
+file = /var/log/squid/access.log*
+EOM
+
+curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone > /tmp/EC2_AVAIL_ZONE
+python /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c /var/awslog/etc/awslogs.conf
+systemctl enable awslogs
+
+EOF
     lifecycle {
         ignore_changes = ["ami", "key_name"]
     }

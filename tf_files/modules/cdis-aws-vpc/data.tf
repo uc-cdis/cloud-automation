@@ -12,6 +12,4 @@ data "aws_iam_policy_document" "cluster_logging_cloudwatch" {
         effect = "Allow"
         resources = [ "*" ]
     }
-
-    
 }
