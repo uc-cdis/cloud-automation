@@ -1,6 +1,6 @@
 # TL;DR
 
-Fluentd would let us send containers and kubelet logs to cloudwatch
+Fluentd would let us send containers and kubelet logs to cloudwatch.
 
 # Some details
 
