@@ -20,16 +20,12 @@ spec:
         effect: NoSchedule
       containers:
       - name: fluentd
-        image: fluent/fluentd-kubernetes-daemonset:v0.12.33-debian-cloudwatch
+        image: fluent/fluentd-kubernetes-daemonset:cloudwatch
         env:
           - name:  LOG_GROUP_NAME
-            value: "fluentd"
+            value: "LGN"
           - name: AWS_REGION
             value: "us-east-1"
-          - name: AWS_ACCESS_KEY_ID
-            value: ""
-          - name: AWS_SECRET_ACCESS_KEY
-            value: ""
         resources:
           limits:
             memory: 200Mi
