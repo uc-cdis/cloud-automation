@@ -37,6 +37,11 @@ worker:
           enabled: true
       subnets:
         - name: private
+      iam:
+        role:
+          name: ${cluster_name}
+          managedPolicies:
+            - arn: "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
 
 controller:
   subnets:
@@ -78,3 +83,7 @@ createRecordSet: true
 cloudWatchLogging:
   enabled: true
   retentionInDays: 7
+  localStreaming:
+    enabled: true
+    filter:  `{ $.priority = "CRIT" || $.priority = "WARNING" && $.transport = "journal" && $.systemdUnit = "init.scope" }`
+    interval: 60

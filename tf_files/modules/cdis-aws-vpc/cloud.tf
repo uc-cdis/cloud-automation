@@ -227,23 +227,23 @@ resource "aws_instance" "login" {
     }
     user_data = <<EOF
 #!/bin/bash 
-cat >> /var/awslog/etc/awslogs.conf <<EOM
+cat > /var/awslogs/etc/awslogs.conf <<EOM
 [general]
 state_file = /var/awslogs/state/agent-state
 [auth.log]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/auth.log
 buffer_duration = 5000
-log_stream_name = {hostname}-{instance_id}
+log_stream_name = login_node-{hostname}-{instance_id}
 initial_position = start_of_file
 time_zone = LOCAL
-log_group_name = auth
+log_group_name = ${var.vpc_name}
 EOM
 
 curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-python /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c /var/awslog/etc/awslogs.conf
+python /tmp/awslogs-agent-setup.py --region=\$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c /tmp/awslogs.conf
 systemctl enable awslogs
-
+systemctl start awslogs
 EOF
 }
 
@@ -263,27 +263,27 @@ resource "aws_instance" "proxy" {
     }
     user_data = <<EOF
 #!/bin/bash
-cat >> /var/awslogs/etc/awslogs.conf <<EOM
+cat > /var/awslogs/etc/awslogs.conf <<EOM
 [general]
 state_file = /var/awslogs/state/agent-state
 [auth.log]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/auth.log
 buffer_duration = 5000
-log_stream_name = {hostname}-{instance_id}
+log_stream_name = http_proxy_auth-{hostname}-{instance_id}
 initial_position = start_of_file
 time_zone = LOCAL
-log_group_name = auth
+log_group_name = ${var.vpc_name} 
 [squid/access.log]
-log_group_name = squid_access_logs
-log_stream_name = {hostname}-{instance_id}
+log_group_name = ${var.vpc_name}
+log_stream_name = http_proxy_squid_access-{hostname}-{instance_id}
 file = /var/log/squid/access.log*
 EOM
 
 curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-python /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c /var/awslog/etc/awslogs.conf
+python /tmp/awslogs-agent-setup.py --region=\$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c /tmp/awslogs.conf
 systemctl enable awslogs
-
+systemctl start awslogs
 EOF
     lifecycle {
         ignore_changes = ["ami", "key_name"]

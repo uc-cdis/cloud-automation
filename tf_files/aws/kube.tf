@@ -236,23 +236,24 @@ resource "aws_instance" "kube_provisioner" {
     }
     user_data = <<EOF
 #!/bin/bash
-cat > /var/awslog/etc/awslogs.conf <<EOM
+cat > /var/awslogs/etc/awslogs.conf <<EOM
 [general]
 state_file = /var/awslogs/state/agent-state
 [auth.log]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/auth.log
 buffer_duration = 5000
-log_stream_name = {hostname}-{instance_id}
+log_stream_name = kube_provisioner-auth-{hostname}-{instance_id}
 initial_position = start_of_file
 time_zone = LOCAL
-log_group_name = auth
+log_group_name = ${var.vpc_name}
 EOM
 
+echo "something" > /tmp/something
 curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-python /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c /var/awslog/etc/awslogs.conf
+python /tmp/awslogs-agent-setup.py --region=\$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c /tmp/awslogs.conf
 systemctl enable awslogs
-
+systemctl start awslogs
 EOF
     lifecycle {
         ignore_changes = ["ami", "key_name"]
