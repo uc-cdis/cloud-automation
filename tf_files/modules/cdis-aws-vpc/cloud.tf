@@ -145,14 +145,14 @@ resource "aws_ami_copy" "login_ami" {
   tags {
     Name = "login"
   }
-  lifecycle {
+  #lifecycle {
       #
       # Do not force update when new ami becomes available.
       # We still need to improve our mechanism for tracking .ssh/authorized_keys
       # User can use 'terraform state taint' to trigger update.
       #
-      ignore_changes = ["source_ami_id"]
-  }
+  #    ignore_changes = ["source_ami_id"]
+  #}
 }
 
 resource "aws_ami_copy" "squid_ami" {
@@ -165,14 +165,14 @@ resource "aws_ami_copy" "squid_ami" {
   tags {
     Name = "login"
   }
-  lifecycle {
+  #lifecycle {
       #
       # Do not force update when new ami becomes available.
       # We still need to improve our mechanism for tracking .ssh/authorized_keys
       # User can use 'terraform state taint' to trigger update.
       #
-      ignore_changes = ["source_ami_id"]
-  }
+  #    ignore_changes = ["source_ami_id"]
+  #}
 }
 
 
@@ -222,28 +222,25 @@ resource "aws_instance" "login" {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
-    lifecycle {
-        ignore_changes = ["ami", "key_name"]
-    }
+    #lifecycle {
+    #    ignore_changes = ["ami", "key_name"]
+    #}
     user_data = <<EOF
 #!/bin/bash 
-cat > /var/awslogs/etc/awslogs.conf <<EOM
-[general]
-state_file = /var/awslogs/state/agent-state
-[auth.log]
+sed -i 's/SERVER/login_node-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'${var.vpc_name}'/g' /var/awslogs/etc/awslogs.conf
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
+[syslog]
 datetime_format = %b %d %H:%M:%S
-file = /var/log/auth.log
-buffer_duration = 5000
-log_stream_name = login_node-{hostname}-{instance_id}
-initial_position = start_of_file
+file = /var/log/syslog
+log_stream_name = login_node-syslog-{hostname}-{instance_id}
 time_zone = LOCAL
 log_group_name = ${var.vpc_name}
 EOM
 
-curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-python /tmp/awslogs-agent-setup.py --region=\$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c /tmp/awslogs.conf
+chmod 755 /etc/init.d/awslogs
 systemctl enable awslogs
-systemctl start awslogs
+systemctl restart awslogs
 EOF
 }
 
@@ -263,31 +260,28 @@ resource "aws_instance" "proxy" {
     }
     user_data = <<EOF
 #!/bin/bash
-cat > /var/awslogs/etc/awslogs.conf <<EOM
-[general]
-state_file = /var/awslogs/state/agent-state
-[auth.log]
+sed -i 's/SERVER/http_proxy-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'${var.vpc_name}'/g' /var/awslogs/etc/awslogs.conf
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
+[syslog]
 datetime_format = %b %d %H:%M:%S
-file = /var/log/auth.log
-buffer_duration = 5000
-log_stream_name = http_proxy_auth-{hostname}-{instance_id}
-initial_position = start_of_file
+file = /var/log/syslog
+log_stream_name = http_proxy-syslog-{hostname}-{instance_id}
 time_zone = LOCAL
-log_group_name = ${var.vpc_name} 
+log_group_name = ${var.vpc_name}
 [squid/access.log]
 log_group_name = ${var.vpc_name}
-log_stream_name = http_proxy_squid_access-{hostname}-{instance_id}
+log_stream_name = http_proxy-squid_access-{hostname}-{instance_id}
 file = /var/log/squid/access.log*
 EOM
 
-curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-python /tmp/awslogs-agent-setup.py --region=\$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c /tmp/awslogs.conf
+chmod 755 /etc/init.d/awslogs
 systemctl enable awslogs
-systemctl start awslogs
+systemctl restart awslogs
 EOF
-    lifecycle {
-        ignore_changes = ["ami", "key_name"]
-    }
+    #lifecycle {
+    #    ignore_changes = ["ami", "key_name"]
+    #}
 }
 
 resource "aws_route53_zone" "main" {
