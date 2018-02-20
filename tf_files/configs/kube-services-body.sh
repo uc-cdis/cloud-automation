@@ -44,7 +44,11 @@ source "${G3AUTOHOME}/tf_files/configs/kube-setup-certs.sh"
 #
 cd ~/${vpc_name}_output
 python "${RENDER_CREDS}" secrets
-cp ~/cloud-automation/apis_configs/user.yaml ~/${vpc_name}/apis_configs
+
+if [[ ! -f ~/${vpc_name}/apis_configs/user.yaml ]]; then
+  # user database for accessing the commons ...
+  cp ~/cloud-automation/apis_configs/user.yaml ~/${vpc_name}/apis_configs/
+fi
 
 cd ~/${vpc_name}
 
