@@ -80,10 +80,10 @@ stackTags:
 hostedZoneId: ${hosted_zone}
 createRecordSet: true
 
-cloudWatchLogging:
-  enabled: true
-  retentionInDays: 7
-  localStreaming:
-    enabled: true
-    filter:  `{ $.priority = "CRIT" || $.priority = "WARNING" && $.transport = "journal" && $.systemdUnit = "init.scope" }`
-    interval: 60
+#cloudWatchLogging:
+#  enabled: true
+#  retentionInDays: 7
+#  localStreaming:
+#    enabled: true
+#    filter:  `{ $.priority = "CRIT" || $.priority = "WARNING" && $.transport = "journal" && $.systemdUnit = "init.scope" }`
+#    interval: 60
