@@ -55,8 +55,8 @@ AWS_CREDENTIALS = {}
 # { bucket_name: credential_identifie }
 S3_BUCKETS = {}
 
-if os.path.exists('s3_credentials.json'):
-    with open('s3_credentials.json', 'r') as f:
+if os.path.exists('fence_credentials.json'):
+    with open('fence_credentials.json', 'r') as f:
         data = json.load(f)
         AWS_CREDENTIALS = data['AWS_CREDENTIALS']
         S3_BUCKETS = data['S3_BUCKETS']
