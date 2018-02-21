@@ -44,3 +44,9 @@ HTTP_PROXY = {
     'port': 3128
 }
 STORAGE_CREDENTIALS = {}
+
+ENABLED_IDENTITY_PROVIDERS = {
+#    'fence',
+    'google',
+#    'shib',
+}
