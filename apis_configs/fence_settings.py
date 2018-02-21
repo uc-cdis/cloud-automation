@@ -55,13 +55,17 @@ AWS_CREDENTIALS = {}
 # { bucket_name: credential_identifie }
 S3_BUCKETS = {}
 
-if os.path.exists('fence_credentials.json'):
-    with open('fence_credentials.json', 'r') as f:
+dir_path = os.path.dirname(os.path.realpath(__file__))
+fence_creds = os.path.join(dir_path, 'fence_credentials.json')
+if os.path.exists(fence_creds):
+    with open(fence_creds, 'r') as f:
         data = json.load(f)
         AWS_CREDENTIALS = data['AWS_CREDENTIALS']
         S3_BUCKETS = data['S3_BUCKETS']
         DEFAULT_LOGIN_URL = data['DEFAULT_LOGIN_URL']
         OPENID_CONNECT.update(data['OPENID_CONNECT'])
+        OIDC_ISSUER = data['OIDC_ISSUER']
+        ENABLED_IDENTITY_PROVIDERS = data['ENABLED_IDENTITY_PROVIDERS']
 
 DEFAULT_LOGIN_URL_REDIRECT_PARAM = 'redirect'
 

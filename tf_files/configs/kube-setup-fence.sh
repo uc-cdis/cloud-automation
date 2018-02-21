@@ -44,11 +44,13 @@ if ! kubectl get secrets/fence-secret > /dev/null 2>&1; then
   kubectl create secret generic fence-secret --from-file=local_settings.py=./apis_configs/fence_settings.py
 fi
 
-if [ -f "./apis_configs/fence_credentials.json" ]; then
-  kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
-else
-  # default empty credential
-  kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=$DIR/fence_credentials.json
+if ! kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
+  if [ -f "./apis_configs/fence_credentials.json" ]; then
+    kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
+  else
+    # default empty credential
+    kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=$DIR/fence_credentials.json
+  fi
 fi
 
 
