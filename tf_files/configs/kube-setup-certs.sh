@@ -21,8 +21,9 @@ if [ ! -z "${vpc_name}" ]; then
     exit 1
   fi
   cd ~/"${vpc_name}"
-  export KUBECONFIG=~/"${vpc_name}/kubeconfig"
 fi
+
+export KUBECONFIG=${KUBECONFIG:-~/${vpc_name}/kubeconfig}
 
 if [ ! -d ./services ]; then
   echo "ERROR: No ./services/ folder - launch from ~/VPC_NAME/ - bailing out"
@@ -51,7 +52,7 @@ if ! kubectl get secret service-ca > /dev/null 2>&1; then
   kubectl create secret generic "service-ca" --from-file=ca.pem=credentials/ca.pem
 fi
 for name in $service_list; do
-    if !([[ -f "credentials/${name}.crt" && -f "credentials/${name}.key" ]] && kubectl get secrets "cert-$name" 2>&1 > /dev/null); then
+    if !([[ -f "credentials/${name}.crt" && -f "credentials/${name}.key" ]]); then
       DOMAIN="${name}"   # k8s internal DNS domain ...
       SUBJ="/countryName=US/stateOrProvinceName=IL/localityName=Chicago/organizationName=CDIS/organizationalUnitName=Software/commonName=${DOMAIN}/emailAddress=cdis@uchicago.edu"
       echo "Generating certificate for $name"
@@ -59,8 +60,11 @@ for name in $service_list; do
       openssl req -new -key "credentials/$name.key" -out "credentials/$name.csr" -subj "$SUBJ"
 
       openssl x509 -req -in "credentials/$name.csr" -CA credentials/ca.pem -CAkey credentials/ca-key.pem -CAcreateserial -out "credentials/${name}.crt" -days 500
-      kubectl create secret generic "cert-$name" "--from-file=service.crt=credentials/${name}.crt" "--from-file=service.key=credentials/${name}.key"
     else
       echo "Certificate already exists credentials/${name}.crt"
+    fi
+    # may need to create the secret in a different namespace ...
+    if ! kubectl get secrets "cert-$name" 2>&1 > /dev/null; then
+      kubectl create secret generic "cert-$name" "--from-file=service.crt=credentials/${name}.crt" "--from-file=service.key=credentials/${name}.key"
     fi
 done

@@ -47,19 +47,25 @@ python "${RENDER_CREDS}" secrets
 
 if [[ ! -f ~/${vpc_name}/apis_configs/user.yaml ]]; then
   # user database for accessing the commons ...
-  cp ~/cloud-automation/apis_configs/user.yaml ~/${vpc_name}/apis_configs/
+  cp "${G3AUTOHOME}/apis_configs/user.yaml" ~/${vpc_name}/apis_configs/
 fi
 
 cd ~/${vpc_name}
 
-export KUBECONFIG=~/${vpc_name}/kubeconfig
+export KUBECONFIG=${KUBECONFIG:-~/${vpc_name}/kubeconfig}
+kubeContext=$(kubectl config view -o=jsonpath='{.current-context}')
+kubeNamespace=$(kubectl config view -o json | jq --arg contextName "${kubeContext}" -r '.contexts[] | select( .name==$contextName ) | .context.namespace')
 
 # Note: look into 'kubectl replace' if you need to replace a secret
 if ! kubectl get secrets/indexd-secret > /dev/null 2>&1; then
   kubectl create secret generic indexd-secret --from-file=local_settings.py=./apis_configs/indexd_settings.py
 fi
 
-kubectl apply -f 00configmap.yaml
+if [[ "$kubeNamespace" == "default" ]]; then
+  kubectl apply -f 00configmap.yaml
+else
+  sed 's/hostname:[ a-zA-Z0-9]*\.\(.*\)/hostname: '"$kubeNamespace"'.\1/' < 00configmap.yaml | kubectl apply -f -
+fi
 
 kubectl apply -f services/portal/portal-deploy.yaml
 kubectl apply -f services/indexd/indexd-deploy.yaml
