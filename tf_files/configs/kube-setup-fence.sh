@@ -14,6 +14,7 @@ if [ ! -f "${RENDER_CREDS}" ]; then
   echo "ERROR: ${RENDER_CREDS} does not exist"
 fi
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-fence.sh vpc_name"
@@ -23,7 +24,6 @@ if [ ! -d ~/"${vpc_name}" ]; then
   echo "~/${vpc_name} does not exist"
   exit 1
 fi
-
 cd ~/${vpc_name}_output
 python "${RENDER_CREDS}" secrets
 
@@ -43,6 +43,14 @@ fi
 if ! kubectl get secrets/fence-secret > /dev/null 2>&1; then
   kubectl create secret generic fence-secret --from-file=local_settings.py=./apis_configs/fence_settings.py
 fi
+
+if [ -f "./apis_configs/s3_credentials.json" ]; then
+  kubectl create secret generic fence-s3-secret --from-file=s3_credentials.json=./apis_configs/s3_credentials.json
+else
+  # default empty credential
+  kubectl create secret generic fence-s3-secret --from-file=s3_credentials.json=$DIR/s3_credentials.json
+fi
+
 
 if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
   kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
