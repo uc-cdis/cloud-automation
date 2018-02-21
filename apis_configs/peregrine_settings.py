@@ -27,7 +27,7 @@ config['PSQL_USER_DB_CONNECTION'] = 'postgresql://{{fence_username}}:{{fence_pas
 
 config['DICTIONARY_URL'] = environ.get('DICTIONARY_URL','https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json')
 
-config['OIDC_ISSUER'] = 'https://{{hostname}}'
+config['OIDC_ISSUER'] = 'https://{{hostname}}/user'
 
 config['OAUTH2'] = {
     'client_id': '{{oauth2_client_id}}',

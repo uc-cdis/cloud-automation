@@ -19,9 +19,9 @@ spec:
         - name: config-volume
           secret:
             secretName: "fence-secret"
-        - name: s3-secret-volume
+        - name: json-secret-volume
           secret:
-            secretName: "fence-s3-secret"
+            secretName: "fence-json-secret"
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
@@ -53,10 +53,10 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
             subPath: local_settings.py
-          - name: "s3-secret-volume"
+          - name: "json-secret-volume"
             readOnly: true
-            mountPath: "/var/www/fence/s3_credentials.json"
-            subPath: s3_credentials.json
+            mountPath: "/var/www/fence/fence_credentials.json"
+            subPath: fence_credentials.json
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml

@@ -32,7 +32,7 @@ HMAC_ENCRYPTION_KEY = '{{hmac_key}}'
 
 
 HOSTNAME = '{{hostname}}'
-BASE_URL = 'https://{{hostname}}'
+BASE_URL = 'https://{{hostname}}/user'
 
 OPENID_CONNECT = {
     'google': {
@@ -58,7 +58,11 @@ S3_BUCKETS = {}
 if os.path.exists('s3_credentials.json'):
     with open('s3_credentials.json', 'r') as f:
         data = json.load(f)
-        AWS_CREDENTIALS = data['aws_credentials']
-        S3_BUCKETS = data['s3_buckets']
+        AWS_CREDENTIALS = data['AWS_CREDENTIALS']
+        S3_BUCKETS = data['S3_BUCKETS']
+        DEFAULT_LOGIN_URL = data['DEFAULT_LOGIN_URL']
+        OPENID_CONNECT.update(data['OPENID_CONNECT'])
+
+DEFAULT_LOGIN_URL_REDIRECT_PARAM = 'redirect'
 
 INDEXD = 'http://indexd-service.default/'
