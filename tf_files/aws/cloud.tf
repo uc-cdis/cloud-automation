@@ -37,6 +37,7 @@ resource "aws_route_table" "private_kube" {
         instance_id = "${module.cdis_vpc.proxy_id}"
     }
     route {
+        # cloudwatch logs route
         cidr_block = "54.224.0.0/12"
         nat_gateway_id = "${module.cdis_vpc.nat_gw_id}"
     }

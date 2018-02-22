@@ -251,9 +251,9 @@ chmod 755 /etc/init.d/awslogs
 systemctl enable awslogs
 systemctl restart awslogs
 EOF
-    #lifecycle {
-    #    ignore_changes = ["ami", "key_name"]
-    #}
+    lifecycle {
+        ignore_changes = ["ami", "key_name"]
+    }
 }
 
 

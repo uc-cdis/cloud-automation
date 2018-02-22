@@ -164,7 +164,7 @@ resource "null_resource" "config_setup" {
     }
 
     provisioner "local-exec" {
-        command = "echo \"${data.template_file.cluster.rendered}\" > ${var.vpc_name}_output/cluster.yaml"
+        command = "echo '${data.template_file.cluster.rendered}' > ${var.vpc_name}_output/cluster.yaml"
     }
     provisioner "local-exec" {
         command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-up-body.sh\" > ${var.vpc_name}_output/kube-up.sh"

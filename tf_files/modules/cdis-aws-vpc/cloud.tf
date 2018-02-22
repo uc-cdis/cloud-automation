@@ -72,6 +72,7 @@ resource "aws_route_table" "private_user" {
         instance_id = "${aws_instance.proxy.id}"
     }
     route {
+        # cloudwatch logs route
         cidr_block = "54.224.0.0/12"
         nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
     }
@@ -145,14 +146,14 @@ resource "aws_ami_copy" "login_ami" {
   tags {
     Name = "login"
   }
-  #lifecycle {
+  lifecycle {
       #
       # Do not force update when new ami becomes available.
       # We still need to improve our mechanism for tracking .ssh/authorized_keys
       # User can use 'terraform state taint' to trigger update.
       #
-  #    ignore_changes = ["source_ami_id"]
-  #}
+      ignore_changes = ["source_ami_id"]
+  }
 }
 
 resource "aws_ami_copy" "squid_ami" {
@@ -165,14 +166,14 @@ resource "aws_ami_copy" "squid_ami" {
   tags {
     Name = "login"
   }
-  #lifecycle {
+  lifecycle {
       #
       # Do not force update when new ami becomes available.
       # We still need to improve our mechanism for tracking .ssh/authorized_keys
       # User can use 'terraform state taint' to trigger update.
       #
-  #    ignore_changes = ["source_ami_id"]
-  #}
+      ignore_changes = ["source_ami_id"]
+  }
 }
 
 
@@ -222,9 +223,9 @@ resource "aws_instance" "login" {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
-    #lifecycle {
-    #    ignore_changes = ["ami", "key_name"]
-    #}
+    lifecycle {
+        ignore_changes = ["ami", "key_name"]
+    }
     user_data = <<EOF
 #!/bin/bash 
 sed -i 's/SERVER/login_node-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
@@ -279,9 +280,9 @@ chmod 755 /etc/init.d/awslogs
 systemctl enable awslogs
 systemctl restart awslogs
 EOF
-    #lifecycle {
-    #    ignore_changes = ["ami", "key_name"]
-    #}
+    lifecycle {
+        ignore_changes = ["ami", "key_name"]
+    }
 }
 
 resource "aws_route53_zone" "main" {

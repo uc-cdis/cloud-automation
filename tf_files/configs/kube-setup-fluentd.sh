@@ -7,7 +7,7 @@ set -e
 
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
-   echo "Usage: bash kube-setup-revproxy.sh vpc_name"
+   echo "Usage: bash kube-setup-fluentd.sh vpc_name"
    exit 1
 fi
 if [ ! -d ~/"${vpc_name}" ]; then
