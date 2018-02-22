@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: revproxy-deployment
 spec:
-  replicas: 1
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate

@@ -95,8 +95,14 @@ data "aws_iam_policy_document" "kube_provisioner" {
             "sns:ListSubscriptions",
             "sns:ListTopics",
             "sns:Publish",
+            "logs:DescribeLogGroups",
             "logs:DescribeLogStreams",
             "logs:GetLogEvents",
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+            "logs:PutRetentionPolicy",
+            "logs:TagLogGroup"
         ]
         effect = "Allow"
         resources = [ "*" ]

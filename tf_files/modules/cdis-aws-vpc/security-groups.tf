@@ -44,7 +44,8 @@ resource "aws_security_group" "local" {
       from_port = 0
       to_port = 0
       protocol = "-1"
-      cidr_blocks = ["172.24.${var.vpc_octet}.0/20"]
+      # 54.224.0.0/12 logs.us-east-1.amazonaws.com
+      cidr_blocks = ["172.24.${var.vpc_octet}.0/20","54.224.0.0/12"]
   }
   tags {
     Environment = "${var.vpc_name}"

@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: userapi-deployment
 spec:
-  replicas: 2
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate

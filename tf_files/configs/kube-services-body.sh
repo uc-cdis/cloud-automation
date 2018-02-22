@@ -44,7 +44,11 @@ source "${G3AUTOHOME}/tf_files/configs/kube-setup-certs.sh"
 #
 cd ~/${vpc_name}_output
 python "${RENDER_CREDS}" secrets
-cp ~/cloud-automation/apis_configs/user.yaml ~/${vpc_name}/apis_configs
+
+if [[ ! -f ~/${vpc_name}/apis_configs/user.yaml ]]; then
+  # user database for accessing the commons ...
+  cp ~/cloud-automation/apis_configs/user.yaml ~/${vpc_name}/apis_configs/
+fi
 
 cd ~/${vpc_name}
 
@@ -69,6 +73,7 @@ source "${G3AUTOHOME}/tf_files/configs/kube-setup-fence.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-sheepdog.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-peregrine.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-revproxy.sh"
+source "${G3AUTOHOME}/tf_files/configs/kube-setup-fluentd.sh"
 
 cat - <<EOM
 INFO: delete the portal pod if necessary to force a restart - 

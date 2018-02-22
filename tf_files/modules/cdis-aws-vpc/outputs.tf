@@ -38,6 +38,9 @@ output "security_group_local_id" {
   value = "${aws_security_group.local.id}"
 }
 
+output "nat_gw_id" {
+  value = "${aws_nat_gateway.nat_gw.id}"
+}
 
 output "ssh_config" {
   value = "${data.template_file.ssh_config.rendered}"

@@ -27,6 +27,16 @@ resource "aws_internet_gateway" "gw" {
     }
 }
 
+resource "aws_nat_gateway" "nat_gw" {
+    allocation_id = "${aws_eip.nat_gw.id}"
+    subnet_id     = "${aws_subnet.public.id}"
+    tags {
+        Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
+    }
+}
+
+
 resource "aws_route_table" "public" {
     vpc_id = "${aws_vpc.main.id}"
     route {
@@ -45,6 +55,11 @@ resource "aws_eip" "login" {
   vpc = true
 }
 
+
+resource "aws_eip" "nat_gw" {
+  vpc = true
+}
+
 resource "aws_eip_association" "login_eip" {
     instance_id = "${aws_instance.login.id}"
     allocation_id = "${aws_eip.login.id}"
@@ -55,6 +70,11 @@ resource "aws_route_table" "private_user" {
     route {
         cidr_block = "0.0.0.0/0"
         instance_id = "${aws_instance.proxy.id}"
+    }
+    route {
+        # cloudwatch logs route
+        cidr_block = "54.224.0.0/12"
+        nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
     }
     tags {
         Name = "private_user"
@@ -99,7 +119,7 @@ data "aws_ami" "public_login_ami" {
 
   filter {
     name   = "name"
-    values = ["ubuntu16-client-1.0.1-*"]
+    values = ["ubuntu16-client-1.0.2-*"]
   }
 
   owners     = ["${var.ami_account_id}"]
@@ -110,15 +130,15 @@ data "aws_ami" "public_squid_ami" {
 
   filter {
     name   = "name"
-    values = ["ubuntu16-squid-1.0.1-*"]
+    values = ["ubuntu16-squid-1.0.2-*"]
   }
 
   owners     = ["${var.ami_account_id}"]
 }
 
 resource "aws_ami_copy" "login_ami" {
-  name              = "ub16-client-crypt-${var.vpc_name}-1.0.0"
-  description       = "A copy of ubuntu16-client-1.0.0"
+  name              = "ub16-client-crypt-${var.vpc_name}-1.0.2"
+  description       = "A copy of ubuntu16-client-1.0.2"
   source_ami_id     = "${data.aws_ami.public_login_ami.id}"
   source_ami_region = "us-east-1"
   encrypted = true
@@ -137,8 +157,8 @@ resource "aws_ami_copy" "login_ami" {
 }
 
 resource "aws_ami_copy" "squid_ami" {
-  name              = "ub16-squid-crypt-${var.vpc_name}-1.0.0"
-  description       = "A copy of ubuntu16-squid-1.0.0"
+  name              = "ub16-squid-crypt-${var.vpc_name}-1.0.2"
+  description       = "A copy of ubuntu16-squid-1.0.2"
   source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
   source_ami_region = "us-east-1"
   encrypted = true
@@ -157,6 +177,39 @@ resource "aws_ami_copy" "squid_ami" {
 }
 
 
+resource "aws_iam_role" "cluster_logging_cloudwatch" {
+  name = "${var.vpc_name}_cluster_logging_cloudwatch"
+  path = "/"
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
+    name = "${var.vpc_name}_cluster_logging_cloudwatch"
+    policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
+    role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+}
+
+
+resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
+  name  = "${var.vpc_name}_cluster_logging_cloudwatch"
+  role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+}
+
+
 resource "aws_instance" "login" {
     ami = "${aws_ami_copy.login_ami.id}"
     subnet_id = "${aws_subnet.public.id}"
@@ -164,6 +217,7 @@ resource "aws_instance" "login" {
     monitoring = true
     key_name = "${var.ssh_key_name}"
     vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
+    iam_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
     tags {
         Name = "${var.vpc_name} Login Node"
         Environment = "${var.vpc_name}"
@@ -172,6 +226,23 @@ resource "aws_instance" "login" {
     lifecycle {
         ignore_changes = ["ami", "key_name"]
     }
+    user_data = <<EOF
+#!/bin/bash 
+sed -i 's/SERVER/login_node-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'${var.vpc_name}'/g' /var/awslogs/etc/awslogs.conf
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
+[syslog]
+datetime_format = %b %d %H:%M:%S
+file = /var/log/syslog
+log_stream_name = login_node-syslog-{hostname}-{instance_id}
+time_zone = LOCAL
+log_group_name = ${var.vpc_name}
+EOM
+
+chmod 755 /etc/init.d/awslogs
+systemctl enable awslogs
+systemctl restart awslogs
+EOF
 }
 
 resource "aws_instance" "proxy" {
@@ -182,11 +253,33 @@ resource "aws_instance" "proxy" {
     source_dest_check = false
     key_name = "${var.ssh_key_name}"
     vpc_security_group_ids = ["${aws_security_group.proxy.id}","${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
+    iam_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
     tags {
         Name = "${var.vpc_name} HTTP Proxy"
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
+    user_data = <<EOF
+#!/bin/bash
+sed -i 's/SERVER/http_proxy-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'${var.vpc_name}'/g' /var/awslogs/etc/awslogs.conf
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
+[syslog]
+datetime_format = %b %d %H:%M:%S
+file = /var/log/syslog
+log_stream_name = http_proxy-syslog-{hostname}-{instance_id}
+time_zone = LOCAL
+log_group_name = ${var.vpc_name}
+[squid/access.log]
+log_group_name = ${var.vpc_name}
+log_stream_name = http_proxy-squid_access-{hostname}-{instance_id}
+file = /var/log/squid/access.log*
+EOM
+
+chmod 755 /etc/init.d/awslogs
+systemctl enable awslogs
+systemctl restart awslogs
+EOF
     lifecycle {
         ignore_changes = ["ami", "key_name"]
     }

@@ -9,4 +9,5 @@ Secrets/
 terraform
 *.lock*
 *.env
-
+*~
+*.swp

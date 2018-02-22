@@ -234,6 +234,23 @@ resource "aws_instance" "kube_provisioner" {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
     }
+    user_data = <<EOF
+#!/bin/bash
+sed -i 's/SERVER/kube_provisioner-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'${var.vpc_name}'/g' /var/awslogs/etc/awslogs.conf
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
+[syslog]
+datetime_format = %b %d %H:%M:%S
+file = /var/log/syslog
+log_stream_name = kube_provisioner-syslog-{hostname}-{instance_id}
+time_zone = LOCAL
+log_group_name = ${var.vpc_name}
+EOM
+
+chmod 755 /etc/init.d/awslogs
+systemctl enable awslogs
+systemctl restart awslogs
+EOF
     lifecycle {
         ignore_changes = ["ami", "key_name"]
     }

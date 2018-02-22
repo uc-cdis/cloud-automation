@@ -36,6 +36,11 @@ resource "aws_route_table" "private_kube" {
         cidr_block = "0.0.0.0/0"
         instance_id = "${module.cdis_vpc.proxy_id}"
     }
+    route {
+        # cloudwatch logs route
+        cidr_block = "54.224.0.0/12"
+        nat_gateway_id = "${module.cdis_vpc.nat_gw_id}"
+    }
     tags {
         Name = "private_kube"
         Environment = "${var.vpc_name}"
@@ -56,7 +61,6 @@ resource "aws_subnet" "private_kube" {
     map_public_ip_on_launch = false
     tags = "${map("Name", "private_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
 }
-
 
 resource "aws_subnet" "private_db_alt" {
     vpc_id = "${module.cdis_vpc.vpc_id}"

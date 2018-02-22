@@ -15,46 +15,79 @@ export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
 export DEBIAN_FRONTEND=noninteractive
 
 sudo -E apt-get update
-sudo -E apt-get install -y git python-pip
+sudo -E apt-get install -y git python-dev python-pip jq
 sudo -E pip install --upgrade pip
 sudo -E pip install awscli --upgrade
+# pip creates ~/.cache, and owner is screwed up ...
+sudo chown -R "${USER}:" ~/.cache
+
+if ! which kube-aws > /dev/null 2>&1; then
+  echo "Installing kube-aws"
+  wget https://github.com/kubernetes-incubator/kube-aws/releases/download/v0.9.8/kube-aws-linux-amd64.tar.gz
+  tar -zxvf kube-aws-linux-amd64.tar.gz
+  chmod -R a+rX linux-amd64
+  sudo mv linux-amd64/kube-aws /usr/local/bin
+  rm kube-aws-linux-amd64.tar.gz
+  rm -r linux-amd64
+  #chmod +x kube-aws
+  #sudo mv kube-aws /usr/bin
+fi
+
+if ! which kubectl > /dev/null 2>&1; then
+  echo "Installing kubectl"
+  curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+  chmod a+rx kubectl
+  sudo mv kubectl /usr/local/bin/
+fi
+
+if [[ ! -d ~/cloud-automation ]]; then
+  cd ~
+  git clone https://github.com/uc-cdis/cloud-automation.git 2>/dev/null || true
+fi
+
+vpc_name=${vpc_name:-$1}
+s3_bucket=${s3_bucket:-$2}
+
+if [[ -z "${vpc_name}" || -z "${s3_bucket}" ]]; then
+   echo "Usage: bash kube-up.sh vpc_name s3_bucket"
+   exit 1
+fi
+if [[ ! -d ~/"${vpc_name}_output" ]]; then
+  echo "~/${vpc_name}_output does not exist"
+  exit 1
+fi
 
 mkdir -p ~/.aws
 mkdir -p ~/${vpc_name}
 #mv credentials ~/.aws
-cp cluster.yaml ~/${vpc_name}
-cp 00configmap.yaml ~/${vpc_name}
+cd ~/"${vpc_name}_output"
 
-wget https://github.com/kubernetes-incubator/kube-aws/releases/download/v0.9.8/kube-aws-linux-amd64.tar.gz
-tar -zxvf kube-aws-linux-amd64.tar.gz
-chmod -R a+rX linux-amd64
-sudo mv linux-amd64/kube-aws /usr/local/bin
-rm kube-aws-linux-amd64.tar.gz
-rm -r linux-amd64
-#chmod +x kube-aws
-#sudo mv kube-aws /usr/bin
+for fileName in cluster.yaml 00configmap.yaml; do
+  if [[ ! -f ~/"${vpc_name}/cluster.yaml" ]]; then
+    cp cluster.yaml ~/${vpc_name}/
+  else
+    echo "Using existing ~/${vpc_name}/cluster.yaml"
+  fi
+done
 
-curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-chmod a+rx kubectl
-sudo mv kubectl /usr/local/bin/
-
-cd ~
-git clone https://github.com/uc-cdis/cloud-automation.git 2>/dev/null || true
-cd cloud-automation && git pull
-
-ln -fs ~/cloud-automation/kube/services ~/${vpc_name}/services
+if [[ ! -f ~/"${vpc_name}/cluster.yaml" ]]; then
+  cp 00configmap.yaml ~/${vpc_name}
+else
+  echo "Using existing ~/${vpc_name}/00configmap.yaml"
+fi
 
 cd ~/${vpc_name}
+ln -fs ~/cloud-automation/kube/services ~/${vpc_name}/services
 
-/usr/local/bin/kube-aws render credentials --generate-ca
-/usr/local/bin/kube-aws render || true
-/usr/local/bin/kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
-/usr/local/bin/kube-aws up --s3-uri "s3://${s3_bucket}/${vpc_name}"
+
+if [[ ! -d ./credentials ]]; then
+  kube-aws render credentials --generate-ca
+fi
+kube-aws render || true
+kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
+kube-aws up --s3-uri "s3://${s3_bucket}/${vpc_name}"
 
 kubectl --kubeconfig=kubeconfig get nodes
 
-# backup the setup
-backup="backup_${vpc_name}.$(date +%Y%m%d).tar.xz"
-tar -C ~/ -cvJf ~/"${backup}" --exclude="${vpc_name}/services" "${vpc_name}"
-aws s3 cp --sse AES256 ~/"${backup}" s3://${s3_bucket}/$backup
-/bin/rm ~/"${backup}"
+# Back everything up to s3
+source ~/cloud-automation/tf_files/configs/kube-backup.sh

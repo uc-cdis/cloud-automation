@@ -6,6 +6,16 @@ patch_kube() {
     kubectl patch deployment $1 -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 }
 
+# 
+# Patch replicas
+patch_kreps() {
+  if [[ -z "$1" || -z "$2" ]]; then
+    echo "patch_kreps deployment-name replica-count"
+    return 1
+  fi
+  kubectl patch deployment $1 -p  '{"spec":{"replicas":'$2'}}'
+}
+
 get_pod() {
     pod=$(kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep -m 1 $1)
     echo $pod

@@ -9,7 +9,7 @@ clusterName: ${cluster_name}
 
 # DNS name routable to the Kubernetes controller nodes
 # from worker nodes and external clients. Configure the options
-# below if you'd like kube-aws to create a Route53 record sets/hosted zones
+# below if you would like kube-aws to create a Route53 record sets/hosted zones
 # for you.  Otherwise the deployer is responsible for making this name routable
 externalDNSName: controller.internal.io
 
@@ -37,6 +37,11 @@ worker:
           enabled: true
       subnets:
         - name: private
+      iam:
+        role:
+          name: ${cluster_name}
+          managedPolicies:
+            - arn: "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
 
 controller:
   subnets:
@@ -74,3 +79,11 @@ stackTags:
   Organization: "Basic Service"
 hostedZoneId: ${hosted_zone}
 createRecordSet: true
+
+#cloudWatchLogging:
+#  enabled: true
+#  retentionInDays: 7
+#  localStreaming:
+#    enabled: true
+#    filter:  `{ $.priority = "CRIT" || $.priority = "WARNING" && $.transport = "journal" && $.systemdUnit = "init.scope" }`
+#    interval: 60
