@@ -66,6 +66,8 @@ if os.path.exists(fence_creds):
         OPENID_CONNECT.update(data['OPENID_CONNECT'])
         OIDC_ISSUER = data['OIDC_ISSUER']
         ENABLED_IDENTITY_PROVIDERS = data['ENABLED_IDENTITY_PROVIDERS']
+        APP_NAME = data['APP_NAME']
+        HTTP_PROXY = data['HTTP_PROXY']
 
 DEFAULT_LOGIN_URL_REDIRECT_PARAM = 'redirect'
 

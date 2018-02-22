@@ -36,7 +36,7 @@ spec:
             secretName: "service-ca"
       containers:
       - name: fence
-        image: quay.io/cdis/fence:fix_shib
+        image: quay.io/cdis/fence:master
         env:
           - name: PYTHONPATH
             value: /var/www/fence

@@ -46,9 +46,11 @@ fi
 
 if ! kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
   if [ -f "./apis_configs/fence_credentials.json" ]; then
+    echo "create fence-json-secret using current creds file"
     kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
   else
     # default empty credential
+    echo "create fence-json-secret using default creds file"
     kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=$DIR/fence_credentials.json
   fi
 fi
