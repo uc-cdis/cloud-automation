@@ -36,6 +36,10 @@ variable "db_password_indexd" {
 variable "dictionary_url" {
   # ex: dev dictionary is at: https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json
 }
+variable "portal_app" {
+  # passed through to portal's APP environment to customize for environment
+  default = "dev"
+}
 variable "fence_snapshot" {
     default = ""
 }

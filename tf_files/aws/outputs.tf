@@ -141,6 +141,7 @@ data "template_file" "configmap" {
         hostname = "${var.hostname}"
         revproxy_arn = "${data.aws_acm_certificate.api.arn}"
         dictionary_url = "${var.dictionary_url}"
+        portal_app = "${var.portal_app}"
     }
 }
 

@@ -7,3 +7,4 @@ data:
   hostname: ${hostname}
   revproxy_arn: ${revproxy_arn}
   dictionary_url: ${dictionary_url}
+  portal_app: ${portal_app}
