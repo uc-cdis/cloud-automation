@@ -46,7 +46,18 @@ HTTP_PROXY = {
 STORAGE_CREDENTIALS = {}
 
 ENABLED_IDENTITY_PROVIDERS = {
-#    'fence',
-    'google',
-#    'shib',
+    # ID for which of the providers to default to.
+    'default': 'google',
+    # Information for identity providers.
+    'providers': {
+    #    'fence': {
+    #        'name': 'Fence Multi-Tenant OAuth',
+    #    },
+        'google': {
+            'name': 'Google OAuth',
+        },
+     #   'shibboleth': {
+     #       'name': 'NIH Login',
+     #   },
+    },
 }
