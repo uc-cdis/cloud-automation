@@ -19,6 +19,9 @@ spec:
         - name: config-volume
           secret:
             secretName: "fence-secret"
+        - name: json-secret-volume
+          secret:
+            secretName: "fence-json-secret"
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
@@ -34,6 +37,9 @@ spec:
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -50,6 +56,10 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
             subPath: local_settings.py
+          - name: "json-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_credentials.json"
+            subPath: fence_credentials.json
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml

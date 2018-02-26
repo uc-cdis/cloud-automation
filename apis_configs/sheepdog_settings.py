@@ -24,7 +24,7 @@ config["PSQLGRAPH"] = {
 config['HMAC_ENCRYPTION_KEY'] = '{{hmac_key}}'
 config['FLASK_SECRET_KEY'] = '{{gdcapi_secret_key}}'
 config['PSQL_USER_DB_CONNECTION'] = 'postgresql://{{fence_username}}:{{fence_password}}@{{fence_host}}:5432/{{fence_database}}'
-config['OIDC_ISSUER'] = 'https://{{hostname}}'
+config['OIDC_ISSUER'] = 'https://{{hostname}}/user'
 
 config['OAUTH2'] = {
     'client_id': '{{oauth2_client_id}}',

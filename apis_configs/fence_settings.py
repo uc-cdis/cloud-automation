@@ -1,4 +1,7 @@
 from boto.s3.connection import OrdinaryCallingFormat
+import json
+import os
+
 
 DB = 'postgresql://{{db_username}}:{{db_password}}@{{db_host}}:5432/{{db_database}}'
 
@@ -29,7 +32,7 @@ HMAC_ENCRYPTION_KEY = '{{hmac_key}}'
 
 
 HOSTNAME = '{{hostname}}'
-BASE_URL = 'https://{{hostname}}'
+BASE_URL = 'https://{{hostname}}/user'
 
 OPENID_CONNECT = {
     'google': {
@@ -44,20 +47,28 @@ HTTP_PROXY = {
     'port': 3128
 }
 STORAGE_CREDENTIALS = {}
+# aws_credentials should be a dict looks like:
+# { identifier: { 'aws_access_key_id': 'XXX', 'aws_secret_access_key': 'XXX' }}
+AWS_CREDENTIALS = {}
 
-ENABLED_IDENTITY_PROVIDERS = {
-    # ID for which of the providers to default to.
-    'default': 'google',
-    # Information for identity providers.
-    'providers': {
-    #    'fence': {
-    #        'name': 'Fence Multi-Tenant OAuth',
-    #    },
-        'google': {
-            'name': 'Google OAuth',
-        },
-     #   'shibboleth': {
-     #       'name': 'NIH Login',
-     #   },
-    },
-}
+# s3_buckets should be a dict looks like:
+# { bucket_name: credential_identifie }
+S3_BUCKETS = {}
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+fence_creds = os.path.join(dir_path, 'fence_credentials.json')
+if os.path.exists(fence_creds):
+    with open(fence_creds, 'r') as f:
+        data = json.load(f)
+        AWS_CREDENTIALS = data['AWS_CREDENTIALS']
+        S3_BUCKETS = data['S3_BUCKETS']
+        DEFAULT_LOGIN_URL = data['DEFAULT_LOGIN_URL']
+        OPENID_CONNECT.update(data['OPENID_CONNECT'])
+        OIDC_ISSUER = data['OIDC_ISSUER']
+        ENABLED_IDENTITY_PROVIDERS = data['ENABLED_IDENTITY_PROVIDERS']
+        APP_NAME = data['APP_NAME']
+        HTTP_PROXY = data['HTTP_PROXY']
+
+DEFAULT_LOGIN_URL_REDIRECT_PARAM = 'redirect'
+
+INDEXD = 'http://indexd-service.default/'
