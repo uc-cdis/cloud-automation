@@ -176,14 +176,14 @@ data:
           location / {
               proxy_pass http://portal-service;
           }
-          location /index {
+          location /index/ {
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
 
-              proxy_pass http://indexd-service;
+              proxy_pass http://indexd-service/;
           }
-          location /user {
+          location /user/ {
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
