@@ -42,7 +42,10 @@ spec:
           - name: HOSTNAME
             value: revproxy-service
           - name: APP
-            value: dev
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: portal_app
         volumeMounts:
           - name: "cert-volume"
             readOnly: true

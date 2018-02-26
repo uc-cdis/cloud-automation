@@ -14,12 +14,13 @@ export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
 export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
 export DEBIAN_FRONTEND=noninteractive
 
+# -E passes through *_proxy environment
 sudo -E apt-get update
-sudo -E apt-get install -y git python-dev python-pip jq
-sudo -E pip install --upgrade pip
-sudo -E pip install awscli --upgrade
-# pip creates ~/.cache, and owner is screwed up ...
-sudo chown -R "${USER}:" ~/.cache
+sudo -E apt-get install -y git python-dev python-pip jq postgresql-client
+sudo -E XDG_CACHE_HOME=/var/cache pip install --upgrade pip
+sudo -E XDG_CACHE_HOME=/var/cache pip install awscli --upgrade
+# jinja2 needed by render_creds.py
+sudo -E XDG_CACHE_HOME=/var/cache pip install jinja2
 
 if ! which kube-aws > /dev/null 2>&1; then
   echo "Installing kube-aws"
@@ -63,18 +64,12 @@ mkdir -p ~/${vpc_name}
 cd ~/"${vpc_name}_output"
 
 for fileName in cluster.yaml 00configmap.yaml; do
-  if [[ ! -f ~/"${vpc_name}/cluster.yaml" ]]; then
-    cp cluster.yaml ~/${vpc_name}/
+  if [[ ! -f ~/"${vpc_name}/${fileName}" ]]; then
+    cp ${fileName} ~/${vpc_name}/
   else
-    echo "Using existing ~/${vpc_name}/cluster.yaml"
+    echo "Using existing ~/${vpc_name}/${fileName}"
   fi
 done
-
-if [[ ! -f ~/"${vpc_name}/cluster.yaml" ]]; then
-  cp 00configmap.yaml ~/${vpc_name}
-else
-  echo "Using existing ~/${vpc_name}/00configmap.yaml"
-fi
 
 cd ~/${vpc_name}
 ln -fs ~/cloud-automation/kube/services ~/${vpc_name}/services

@@ -14,26 +14,40 @@ export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
 export DEBIAN_FRONTEND=noninteractive
 export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
 export RENDER_CREDS="${G3AUTOHOME}/tf_files/configs/render_creds.py"
+vpc_name=${vpc_name:-$1}
 
 if [ ! -f "${RENDER_CREDS}" ]; then
   echo "ERROR: ${RENDER_CREDS} does not exist"
 fi
-
-#
-# Set a flag for the kube-setup-fence fragment
-# that terraform appends to kube-services.sh
-#
-create_fence_db="true"
-create_gdcapi_db="true"
 
 if [ -z "${vpc_name}" ]; then
   echo "ERROR: vpc_name variable not set - bailing out"
   exit 1
 fi
 
-sudo -E apt update
-sudo -E apt install -y python-dev python-pip jq
-sudo -E pip install jinja2
+#
+# Set a flag for the kube-setup-fence.sh and kube-setup-sheepdog.sh fragments
+# (invoked below) to trigger db initialization if not already done
+# (based on the presence of a .rendered_X file which kube-setup-X generate).
+#
+if [[ ! -f ~/"${vpc_name}/.rendered_fence_db" ]]; then
+  create_fence_db="true"
+fi
+if [[ ! -f ~/"${vpc_name}/.rendered_gdcapi_db" ]]; then
+  create_gdcapi_db="true"
+fi
+
+if [[ "ubuntu" == "$USER" ]]; then
+  # non-ubuntu (dev) users may not have sudo - 
+  # assume dependencies are installed by other means
+  
+  # -E passes through *_proxy environment
+  sudo -E apt update
+  sudo -E apt install -y git python-dev python-pip jq postgresql-client
+  sudo -E XDG_CACHE_HOME=/var/cache pip install --upgrade pip
+  sudo -E XDG_CACHE_HOME=/var/cache pip install awscli --upgrade
+  sudo -E XDG_CACHE_HOME=/var/cache pip install jinja2
+fi
 
 mkdir -p ~/${vpc_name}/apis_configs
 
@@ -47,19 +61,25 @@ python "${RENDER_CREDS}" secrets
 
 if [[ ! -f ~/${vpc_name}/apis_configs/user.yaml ]]; then
   # user database for accessing the commons ...
-  cp ~/cloud-automation/apis_configs/user.yaml ~/${vpc_name}/apis_configs/
+  cp "${G3AUTOHOME}/apis_configs/user.yaml" ~/${vpc_name}/apis_configs/
 fi
 
 cd ~/${vpc_name}
 
-export KUBECONFIG=~/${vpc_name}/kubeconfig
+export KUBECONFIG=${KUBECONFIG:-~/${vpc_name}/kubeconfig}
+kubeContext=$(kubectl config view -o=jsonpath='{.current-context}')
+kubeNamespace=$(kubectl config view -o json | jq --arg contextName "${kubeContext}" -r '.contexts[] | select( .name==$contextName ) | .context.namespace')
 
 # Note: look into 'kubectl replace' if you need to replace a secret
 if ! kubectl get secrets/indexd-secret > /dev/null 2>&1; then
   kubectl create secret generic indexd-secret --from-file=local_settings.py=./apis_configs/indexd_settings.py
 fi
 
-kubectl apply -f 00configmap.yaml
+if [[ "$kubeNamespace" == "default" ]]; then
+  kubectl apply -f 00configmap.yaml
+else
+  sed 's/hostname:[ a-zA-Z0-9]*\.\(.*\)/hostname: '"$kubeNamespace"'.\1/' < 00configmap.yaml | kubectl apply -f -
+fi
 
 kubectl apply -f services/portal/portal-deploy.yaml
 kubectl apply -f services/indexd/indexd-deploy.yaml

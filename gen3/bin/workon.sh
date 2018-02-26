@@ -176,6 +176,7 @@ vpc_name="$GEN3_VPC"
 #
 vpc_octet=GET_A_UNIQUE_VPC_172_OCTET
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
+portal_app="dev"
 
 aws_cert_name="YOUR.CERT.NAME"
 
