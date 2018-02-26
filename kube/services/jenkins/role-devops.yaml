@@ -4,5 +4,5 @@ metadata:
   name: devops
 rules:
 - apiGroups: ["", "extensions", "apps"]
-  resources: ["deployments", "replicasets", "pods"]
+  resources: ["deployments", "replicasets", "pods", "configmaps"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"] # You can also use ["*"]
