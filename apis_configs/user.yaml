@@ -30,11 +30,6 @@ users:
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
-  walt@occ-data.org:
-    admin: True
-    projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
   reuben@frickjack.com:
     admin: True
     projects:
