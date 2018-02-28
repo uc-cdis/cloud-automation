@@ -82,10 +82,9 @@ if [[ -z "${fence_snapshot}" && "${create_fence_db}" = "true" && ( ! -f .rendere
   # Fence sets up the gdcapi oauth2 client-id and secret stuff ...
   python "${RENDER_CREDS}" secrets
   cd ~/${vpc_name}
-
-  # try to avoid doing this block more than once ...
-  touch .rendered_fence_db
 fi
+# avoid doing the previous block more than once or when not necessary ...
+touch ~/"${vpc_name}.rendered_fence_db"
 
 kubectl apply -f services/fence/fence-service.yaml
 

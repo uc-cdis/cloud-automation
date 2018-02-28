@@ -128,9 +128,10 @@ if [[ -z "${gdcapi_snapshot}" && "${create_gdcapi_db}" = "true" && ( ! -f .rende
   cd ~/${vpc_name}_output; 
   python "${RENDER_CREDS}" gdcapi_db
   cd ~/${vpc_name}
-  # Avoid doing this more than once ...
-  touch .rendered_gdcapi_db
 fi
+# Avoid doing previous block more than once or when not necessary ...
+touch .rendered_gdcapi_db
+
 kubectl apply -f services/sheepdog/sheepdog-service.yaml
 
 cat <<EOM
