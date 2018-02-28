@@ -115,7 +115,7 @@ if kubectl get secrets/gdcapi-secret > /dev/null 2>&1; then
 fi
 if kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
   kubectl get secrets/peregrine-secret -o json | jq -r '.data["wsgi.py"]' | base64 --decode > apis_configs/peregrine_settings.py
-  peregrineDbPassword=$(grep password apis_configs/sheepdog_settings.py | awk '{ print $2 }' | sed 's/,$//' | sed 's/"//g')
+  peregrineDbPassword=$(grep password apis_configs/peregrine_settings.py | awk '{ print $2 }' | sed 's/,$//' | sed 's/"//g')
 fi
 
 # ok - got all our db passwords now!  let's generate some output files

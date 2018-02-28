@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.102
+FROM jenkins/jenkins:2.109
 
 USER root
 
@@ -9,11 +9,11 @@ RUN easy_install pip
 RUN pip install awscli --upgrade
 
 # install terraform
-RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.2/terraform_0.11.2_linux_amd64.zip
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip
 RUN unzip /tmp/terraform.zip -d /usr/local/bin; /bin/rm /tmp/terraform.zip
 
 # install packer
-RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.1.2/packer_1.1.2_linux_amd64.zip
+RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.2.1/packer_1.2.1_linux_amd64.zip
 RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
 
 # install kubectl

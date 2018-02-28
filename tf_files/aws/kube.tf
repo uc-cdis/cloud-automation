@@ -60,7 +60,8 @@ resource "aws_db_instance" "db_fence" {
         Organization = "Basic Service"
     }
     lifecycle {
-        ignore_changes = ["identifier", "name", "engine_version"]
+        ignore_changes = ["identifier", "name", "engine_version", "username", "password", "allocated_storage", "parameter_group_name"]
+        prevent_destroy = true
     }
 }
 
@@ -89,7 +90,8 @@ resource "aws_db_instance" "db_userapi" {
         Organization = "Basic Service"
     }
     lifecycle {
-        ignore_changes = ["identifier", "name", "engine_version", "snapshot_identifier"]
+        ignore_changes = ["identifier", "name", "engine_version", "snapshot_identifier", "username", "password", "allocated_storage", "parameter_group_name"]
+        prevent_destroy = true
     }
 }
 
@@ -114,7 +116,8 @@ resource "aws_db_instance" "db_gdcapi" {
         Organization = "Basic Service"
     }
     lifecycle {
-        ignore_changes = ["identifier", "name", "engine_version", "username", "password"]
+        ignore_changes = ["*"]
+        prevent_destroy = true
     }
 }
 
@@ -139,7 +142,8 @@ resource "aws_db_instance" "db_indexd" {
         Organization = "Basic Service"
     }
     lifecycle {
-        ignore_changes = ["identifier", "name", "engine_version"]
+        ignore_changes = ["identifier", "name", "engine_version", "username", "password", "allocated_storage", "parameter_group_name"]
+        prevent_destroy = true
     }
 }
 

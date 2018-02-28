@@ -6,7 +6,7 @@ Host login.${vpc_name}
 
 Host k8s.${vpc_name}
    ServerAliveInterval 120
-   HostName kube.internal.io
+   HostName ${k8s_ip}
    User ubuntu
    ForwardAgent yes
    ProxyCommand ssh ubuntu@login.${vpc_name} nc %h %p 2> /dev/null
