@@ -84,7 +84,7 @@ if [[ -z "${fence_snapshot}" && "${create_fence_db}" = "true" && ( ! -f .rendere
   cd ~/${vpc_name}
 fi
 # avoid doing the previous block more than once or when not necessary ...
-touch ~/"${vpc_name}.rendered_fence_db"
+touch ~/"${vpc_name}/.rendered_fence_db"
 
 kubectl apply -f services/fence/fence-service.yaml
 
