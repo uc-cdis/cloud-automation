@@ -17,7 +17,7 @@ fi
 cd ~/${vpc_name}
 
 # If you change this name you need to change it in the jupyterhub-config.yaml too
-namespaceName="jupyter_pods"
+namespaceName="jupyter-pods"
 
 # Create the namespace for user pods
 if ! kubectl get namespace "$namespaceName" > /dev/null 2>&1; then

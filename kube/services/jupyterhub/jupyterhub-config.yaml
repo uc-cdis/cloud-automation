@@ -13,7 +13,7 @@ data:
     #c.ConfigurableHTTPProxy.debug = True
     c.JupyterHub.log_level = 'DEBUG'
     c.JupyterHub.spawner_class = 'kubespawner.KubeSpawner'
-    c.KubeSpawner.namespace = 'jupyter_pods'
+    c.KubeSpawner.namespace = 'jupyter-pods'
     c.KubeSpawner.cpu_limit = 1.0
     c.KubeSpawner.mem_limit = '1.5G'
     #c.KubeSpawner.debug = False
