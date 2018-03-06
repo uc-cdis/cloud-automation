@@ -54,7 +54,7 @@ resource "aws_db_instance" "db_fence" {
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     allow_major_version_upgrade = true
-    final_snapshot_identifier = "${var.vpc_name}-fencedb"
+    final_snapshot_identifier = "${replace(var.vpc_name,"_", "-")}-fencedb"
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -84,7 +84,7 @@ resource "aws_db_instance" "db_userapi" {
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     allow_major_version_upgrade = true
-    final_snapshot_identifier = "${var.vpc_name}-userapidb"
+    final_snapshot_identifier = "${replace(var.vpc_name,"_", "-")}-userapidb"
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -110,7 +110,7 @@ resource "aws_db_instance" "db_gdcapi" {
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     allow_major_version_upgrade = true
-    final_snapshot_identifier = "${var.vpc_name}-gdcapidb"
+    final_snapshot_identifier = "${replace(var.vpc_name,"_", "-")}-gdcapidb"
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
@@ -136,7 +136,7 @@ resource "aws_db_instance" "db_indexd" {
     db_subnet_group_name = "${aws_db_subnet_group.private_group.id}"
     vpc_security_group_ids = ["${module.cdis_vpc.security_group_local_id}"]
     allow_major_version_upgrade = true
-    final_snapshot_identifier = "${var.vpc_name}-indexddb"
+    final_snapshot_identifier = "${replace(var.vpc_name,"_", "-")}-indexddb"
     tags {
         Environment = "${var.vpc_name}"
         Organization = "Basic Service"
