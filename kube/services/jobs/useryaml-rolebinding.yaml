@@ -5,7 +5,7 @@ metadata:
   namespace: default
 subjects:
 - kind: ServiceAccount
-  name: useryaml-service
+  name: useryaml-job
   apiGroup: ""
 roleRef:
   kind: Role

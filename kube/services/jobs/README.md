@@ -1,6 +1,15 @@
 # TL;DR
 
-A k8s job that periodically syncs a user.yaml file from S3 into a k8s configmap, and also updates the fence user-access database.
+K8s jobs to do various things
+
+## useryaml-cronjob
+
+Periodically syncs a user.yaml file from a specified S3 buket into the k8s `fence` configmap,
+and update fence's user-access database.
+
+## useryaml-job
+
+Sync the `user.yaml` from the k8s `fence` configmap into fence's database.
 
 ## Setup
 

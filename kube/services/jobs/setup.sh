@@ -14,7 +14,7 @@ yamlList=(
   ../jenkins/role-devops.yaml
   ./useryaml-serviceaccount.yaml
   ./useryaml-rolebinding.yaml
-  ./useryaml-cronjob.yaml
+#  ./useryaml-cronjob.yaml
 )
 
 for path in "${yamlList[@]}"; do
