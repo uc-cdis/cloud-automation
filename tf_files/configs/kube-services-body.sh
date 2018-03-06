@@ -46,11 +46,15 @@ if [[ "ubuntu" == "$USER" ]]; then
   sudo -E apt install -y git python-dev python-pip jq postgresql-client
   sudo -E XDG_CACHE_HOME=/var/cache pip install --upgrade pip
   sudo -E XDG_CACHE_HOME=/var/cache pip install awscli --upgrade
+  # jinja2 needed by render_creds.py
   sudo -E XDG_CACHE_HOME=/var/cache pip install jinja2
+  # yq === jq for yaml
+  sudo -E XDG_CACHE_HOME=/var/cache pip install yq
 fi
 
 mkdir -p ~/${vpc_name}/apis_configs
 
+source "${G3AUTOHOME}/kube/kubes.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-certs.sh"
 
 #
@@ -94,6 +98,11 @@ source "${G3AUTOHOME}/tf_files/configs/kube-setup-sheepdog.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-peregrine.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-revproxy.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-fluentd.sh"
+
+# Force pods to update
+patch_kube indexd-deployment
+patch_kube portal-deployment
+
 
 cat - <<EOM
 INFO: delete the portal pod if necessary to force a restart - 

@@ -24,6 +24,8 @@ if [ ! -d ~/"${vpc_name}" ]; then
   exit 1
 fi
 
+source "${G3AUTOHOME}/kube/kubes.sh"
+
 cd ~/${vpc_name}_output
 python "${RENDER_CREDS}" secrets
 
@@ -35,6 +37,8 @@ fi
 
 kubectl apply -f services/peregrine/peregrine-deploy.yaml
 kubectl apply -f services/peregrine/peregrine-service.yaml
+
+patch_kube peregrine-deployment
 
 cat <<EOM
 The peregrine services has been deployed onto the k8s cluster.

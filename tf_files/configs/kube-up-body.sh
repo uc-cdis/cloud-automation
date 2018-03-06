@@ -21,6 +21,9 @@ sudo -E XDG_CACHE_HOME=/var/cache pip install --upgrade pip
 sudo -E XDG_CACHE_HOME=/var/cache pip install awscli --upgrade
 # jinja2 needed by render_creds.py
 sudo -E XDG_CACHE_HOME=/var/cache pip install jinja2
+# yq === jq for yaml
+sudo -E XDG_CACHE_HOME=/var/cache pip install yq
+
 
 if ! which kube-aws > /dev/null 2>&1; then
   echo "Installing kube-aws"
