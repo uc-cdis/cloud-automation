@@ -27,7 +27,7 @@ spec:
             secretName: "service-ca"
       containers:
       - name: useryaml
-        image: quay.io/cdis/fence:chore_automation
+        image: quay.io/cdis/fence:master
         volumeMounts:
           - name: "config-volume"
             readOnly: true
