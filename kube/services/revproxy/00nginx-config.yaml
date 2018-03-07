@@ -176,6 +176,7 @@ data:
           location / {
               proxy_pass http://portal-service;
           }
+
           location /index/ {
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
@@ -197,6 +198,10 @@ data:
 
               proxy_next_upstream off;
               proxy_pass http://peregrine-service/v0/submission/getschema;
+          }
+          # Simplify external access to health checks
+          location /peregrine/_status {
+              proxy_pass http://peregrine-service/_status;
           }
           location /api/v0/submission/graphql {
               if ($cookie_csrftoken = "") {
