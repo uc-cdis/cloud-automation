@@ -47,7 +47,7 @@ g3k_help() {
       the deployment's running pods to update
     runjob JOBNAME 
      - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
-  update_config CONFIGMAP-NAME YAML-FILE
+    update_config CONFIGMAP-NAME YAML-FILE
 EOM
 }
 

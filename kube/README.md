@@ -77,6 +77,7 @@ There is currently no way for deployments to recognize that a secret or configma
 kubectl patch deployment $deployment_name -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 
 ```
+
 ### Create deployment/service
 A deployment or service is usually defined in a [configuration file](https://github.com/uc-cdis/cloud-automation/blob/master/kube/services/gdcapi/gdcapi-deploy.yaml).
 
@@ -120,7 +121,7 @@ for every CDIS service found by
 when run on the k8s provisioner in the `~/${vpc_name}` folder, and creates k8s secrets for the service's SSL service certificate and key,
 and the CA certificate.  
 
-At any time you can run `bash ~/cloud-automation/tf_files/configs/kube-certs.sh` within `~/VPC_NAME` on the k8s provisioner
+At any time you can run `bash ~/cloud-automation/tf_files/configs/kube-setup-certs.sh VPC_NAME` on the k8s provisioner
 to create certificates and secrets for any services that do not already have a certificate in `~/VPC_NAME/credentials/`.
 The `kube-services.sh` script also runs `kube-certs.sh` (kube-certs is actually embedded in kube-services) when setting up
 the Gen3 k8s resources the first time.
@@ -156,7 +157,7 @@ volumeMounts:
 
 A container running client code that communicates with a service over SSL should add the CA certificate to the container's trust store (so the client will accept that the service has a valid SSL endpoint) following a procedure similar to [this](https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line) depending on the nature of the container's image.
 
-### Upgrade kubernetes
+## Upgrade kubernetes
 To upgrade kubectl on current VM, you can download the latest one and replace the binary.
 ```
 curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
@@ -178,7 +179,7 @@ sed -i s/$old_version/$new_version/g /etc/kubernetes/manifests/*
 ```
 It will take a minute to install the new containers and reload
 
-### Accessing kubernete dashboard
+## Accessing kubernete dashboard
 To access the kubernete api/ui, you can start a proxy on the kube provisioner VM:
 ```
 kubectl proxy --port 9090
@@ -188,7 +189,7 @@ Then you can do ssh port forward from your laptop:
 ssh -L9090:localhost:9090 -N kube_provisioner_vm
 ```
 
-### Setting up users and roles
+## Setting up users and roles
 
 The kube/services/workspace/deploy_workspace.sh script creates a k8s 'worker' user and kubeconfig authenticated via a client certificate
 that has basic access to the 'workspace' namespace.  The script and accompanying workspace/*.yaml files
@@ -236,15 +237,49 @@ Kafka cluster that support different data streams for the system.
 #### [elk](https://github.com/uc-cdis/kubernetes-elk)
 Elasticsearch-Logstash-Kibana pod for log aggregation using filebeat.
 
-### bash functions
+# bash functions
+
 There are some helper functions in [kubes.sh](https://github.com/uc-cdis/cloud-automation/blob/master/kube/kubes.sh) for k8s related operations.
 
-#### patch_kube
-`patch_kube $DEPLOYMENT_NAME` to let k8s recycle pods when there is no change.
+### patch_kube
+`g3k patch_kube $DEPLOYMENT_NAME` to let k8s recycle pods when there is no change.
 
-#### get_pod
-`get_pod $DEPLOYMENT_SUBSTRING` get one of the pods' name for a deployment, this is handy when you want to just run a command on one pod, eg:
+### get_pod
+`g3k get_pod $DEPLOYMENT_SUBSTRING` get one of the pods' name for a deployment, this is handy when you want to just run a command on one pod, eg:
 `kubectl exec $(get_pod gdcapi) -c gdcapi ls`.
 
-#### update_config
-`update_config $CONFIG_NAME $CONFIG_FILE` this will delete old configmap and create new configmap with updated content
+### update_config
+`g3k update_config $CONFIG_NAME $CONFIG_FILE` this will delete old configmap and create new configmap with updated content
+
+### run_job
+
+```
+ubuntu@ip-172-16-36-26:~$ g3k update_config fence planxplanetv1/apis_configs/user.yaml 
+configmap "fence" deleted
+configmap "fence" created
+
+ubuntu@ip-172-16-36-26:~$ g3k runjob useryaml
+job "useryaml" deleted
+job "useryaml" created
+```
+
+### help
+
+```
+ubuntu@ip-172-16-36-26:~$ g3k help
+  
+  Use:
+  g3k COMMAND - where COMMAND is one of:
+    help
+    jobpods JOBNAME - list pods associated with given job
+    joblogs JOBNAME - get logs from first result of jobpods
+    pod PATTERN - grep for the first pod name matching PATTERN
+    pods PATTERN - grep for all pod names matching PATTERN
+    replicas DEPLOYMENT-NAME REPLICA-COUNT
+    roll DEPLOYMENT-NAME
+      Apply a superfulous metadata change to a deployment to trigger
+      the deployment's running pods to update
+    runjob JOBNAME 
+     - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
+    update_config CONFIGMAP-NAME YAML-FILE
+```

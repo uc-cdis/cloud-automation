@@ -5,6 +5,8 @@ metadata:
   name: useryamls3
 spec:
   schedule: "@hourly"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
   jobTemplate:
     spec:
       template:

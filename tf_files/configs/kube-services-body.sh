@@ -55,6 +55,7 @@ fi
 mkdir -p ~/${vpc_name}/apis_configs
 
 source "${G3AUTOHOME}/kube/kubes.sh"
+source "${G3AUTOHOME}/tf_files/configs/kube-setup-roles.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-certs.sh"
 
 #
@@ -119,6 +120,9 @@ export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
 
 export KUBECONFIG=~/${vpc_name}/kubeconfig
+
+# Load the kubectl completion code for bash into the current shell
+source <(kubectl completion bash)
 
 if [ -f ~/cloud-automation/kube/kubes.sh ]; then
     . ~/cloud-automation/kube/kubes.sh
