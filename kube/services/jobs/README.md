@@ -2,15 +2,27 @@
 
 K8s jobs to do various things.  The `g3k` bash helper functions (from `kube.sh`) provide an easy way to run a job - ex: `g3k runjob useryaml`
 
+## Setup
+
+The `cloud-automation/tf_files/configs/kube-setup-roles.sh` scripts sets up the k8s roles
+required by these jobs.  It runs automatically as part of the `kube-services` script that
+boots up a commons, but may need to be run manually to setup existing commons to run jobs.
+
 ## useryamls3-cronjob
 
 Periodically syncs a user.yaml file from a specified S3 buket into the k8s `fence` configmap,
 and update fence's user-access database.
 
+Note that this job assumes that the k8s worker nodes have an IAM policy that allows S3 read -
+which is the default in new commons deployments, but may require a manual update to existing commons.
+
 ## useryamls3-job
 
 Syncs a user.yaml file from the S3 bucket specified in the global configmap's `useryaml_s3path` attribute (`kubectl get configmap global -o=jsonpath='{.data.useryaml_s3path}'`) into the k8s `fence` configmap,
 and update fence's user-access database.
+
+Note that this job assumes that the k8s worker nodes have an IAM policy that allows S3 read -
+which is the default in new commons deployments, but may require a manual update to existing commons.
 
 ## useryaml-job
 
@@ -19,15 +31,3 @@ Sync the `user.yaml` from the k8s `fence` configmap into fence's database.  A ty
 $ g3k update_config fence apis_configs/user.yaml
 $ g3k runjob useryaml
 ```
-
-## Setup
-
-The `setup.sh` script shows how to deploy the cron job onto a cluster. 
-The useryaml cron job requires:
-
-* add `useryaml_s3path` key be added to the global configmap (00configmap.yaml) - ex:
-`s3://bucket-name/gen3Config/stackName/user.yaml`
-* IAM credentials that can read `useryaml_s3path` are injected into the job 
-  - set the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_DEFAULT_REGION environment variables -
-      https://docs.aws.amazon.com/cli/latest/userguide/cli-environment.html
-  - augment the IAM role attached to the k8s cluster nodes with a policy that allows reading the target bucket (we do this for cloudwatch logs - modify `cluster.yaml`, `kube-aws update --s3..`)
