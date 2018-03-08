@@ -36,6 +36,7 @@ g3k_help() {
   $message
   Use:
   g3k COMMAND - where COMMAND is one of:
+    devterm - open a terminal session in a dev pod
     help
     jobpods JOBNAME - list pods associated with given job
     joblogs JOBNAME - get logs from first result of jobpods
@@ -90,6 +91,15 @@ g3k_jobpods(){
 }
 
 #
+# Launch an interactive terminal into an awshelper Docker image -
+# gives a terminal in a pod on the cluster for running curl, dig, whatever 
+# to interact directly with running services
+#
+g3k_devterm() {
+  kubectl run "awshelper-$(date +%s)" -it --rm=true --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
+}
+
+#
 # Get the logs for the first pods returned by g3k_jobpods
 #
 g3k_joblogs(){
@@ -118,6 +128,9 @@ g3k() {
   fi
   (set -e
     case "$command" in
+    "devterm")
+      g3k_devterm "$@"
+      ;;
     "jobpods")
       g3k_jobpods "$@"
       ;;
