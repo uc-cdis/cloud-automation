@@ -25,28 +25,22 @@ $ cd ~/cloud-automation; git pull
 3. create deployment with secrets mounted
 4. create services for the pods
 
-The following helper scripts exist.  They are configured to be safe to run multiple times.
+The following helper script is configured to be safe to run multiple times.
 * The kube-services-body.sh script runs each of the following scripts in the proper order:
 ```
-$ export vpc_name="theName"
-$ cd ~/${vpc_name}
-$ bash ~/cloud-automation/tf_files/configs/kube-services-body.sh
+$ bash ~/cloud-automation/tf_files/configs/kube-services-body.sh VPC_NAME
 ```
 
 * Setup SSL certs and corresponding k8s secrets for all services:
 ```
-$ export vpc_name="theName"
-$ cd ~/${vpc_name}
-$ bash ~/cloud-automation/tf_files/configs/kube-setup-certs.sh
+$ bash ~/cloud-automation/tf_files/configs/kube-setup-certs.sh VPC_NAME
 ```
 * Deply *fence* - fence will connect to the existing *userapi* database if the database variables are properly configured in `creds.json`.  This script will also update the *gdcapi* configuration, but will not restart *gdcapi*, so you'll need to roll the *gdcapi* pod to kick it to start using fence.  Similarly - this script does not update the reverse proxy to point at *fence* instead of *userapi*.
 ```
-$ export vpc_name="theName"
-$ bash ~/cloud-automation/tf_files/configs/kube-setup-fence.sh
+$ bash ~/cloud-automation/tf_files/configs/kube-setup-fence.sh VPC_NAME
 ```
 * Deploy *sheepdog* and *peregrine* - replacing an existing *gdcapi-service* deployment.  These scripts also generate the supporting k8s secrets for the *sheepdog* and *peregrine* services (use *kube-setup-certs.sh* to setup the certs - see above).  Move the commons to *fence* (from *userapi*) before moving to *sheepdog* and *peregrin*.  As with *fence* - the following helper script first deploys *sheepdog* and *peregrine* services alongside *gdcapi*, and updating the reverse proxy to using the new services is a separate step
 ```
-$ export vpc_name="theName"
 $ echo You probably need to re-apply the 00configmap.yaml with the dictionary_url variable
 $ kubectl apply -f 00configmap.yaml
 $ kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}'
@@ -55,7 +49,7 @@ $ bash ~/cloud-automation/tf_files/configs/kube-setup-peregrine.sh
 $ echo verify sheepdog and peregrine are healthy 
 $ kubectl get pods; kubectl logs ...
 $ kubectl apply -f services/revproxy/00nginx-config.yaml
-$ patch_kube revproxy-deployment
+$ g3k roll revproxy-deployment
 ```
 
 
@@ -76,6 +70,10 @@ There is currently no way for deployments to recognize that a secret or configma
 ```
 kubectl patch deployment $deployment_name -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 
+```
+It's easier to just use the `g3k` helper function - which should already be added to the shell on a common's k8s provisioner VM:
+```
+$ g3k roll DEPLOYMENT_NAME
 ```
 
 ### Create deployment/service
@@ -241,8 +239,8 @@ Elasticsearch-Logstash-Kibana pod for log aggregation using filebeat.
 
 There are some helper functions in [kubes.sh](https://github.com/uc-cdis/cloud-automation/blob/master/kube/kubes.sh) for k8s related operations.
 
-### patch_kube
-`g3k patch_kube $DEPLOYMENT_NAME` to let k8s recycle pods when there is no change.
+### roll
+`g3k roll $DEPLOYMENT_NAME` to let k8s recycle pods when there is no change.
 
 ### get_pod
 `g3k get_pod $DEPLOYMENT_SUBSTRING` get one of the pods' name for a deployment, this is handy when you want to just run a command on one pod, eg:
