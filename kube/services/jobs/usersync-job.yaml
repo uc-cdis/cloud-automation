@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: useryamls3
+  name: usersync
 spec:
   template:
     spec:
@@ -21,6 +21,7 @@ spec:
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
+        imagePullPolicy: Always
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -59,7 +60,8 @@ spec:
             fi
             
       - name: awshelper
-        image: quay.io/cdis/awshelper:1.0.0
+        image: quay.io/cdis/awshelper:master
+        imagePullPolicy: Always
         volumeMounts:
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
