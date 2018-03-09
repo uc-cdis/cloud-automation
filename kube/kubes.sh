@@ -108,11 +108,13 @@ g3k_joblogs(){
     echo "g3k joblogs JOB-NAME"
     return 1
   fi
-  podname=$(g3k_jobpods "$jobName" | head -1)
-  for container in $(kubectl get pods "$podname" -o json | jq -r '.spec.containers|map(.name)|join( " " )'); do
-    echo "------------------"
-    echo "kubectl logs $podname $container"
-    kubectl logs $podname $container
+  podlist=$(g3k_jobpods "$jobName")
+  for podname in $podlist; do
+    for container in $(kubectl get pods "$podname" -o json | jq -r '.spec.containers|map(.name)|join( " " )'); do
+      echo "------------------"
+      echo "kubectl logs $podname $container"
+      kubectl logs $podname $container
+    done
   done
 }
 
