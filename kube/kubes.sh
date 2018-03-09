@@ -36,6 +36,7 @@ g3k_help() {
   $message
   Use:
   g3k COMMAND - where COMMAND is one of:
+    backup - backup home directory to vpc's S3 bucket
     devterm - open a terminal session in a dev pod
     help
     jobpods JOBNAME - list pods associated with given job
@@ -119,6 +120,21 @@ g3k_joblogs(){
 }
 
 #
+# Backup the current user's home directory to S3
+#
+g3k_backup() {
+  if [[ -z "$vpc_name" ]]; then
+    echo 'g3k backup requires the vpc_name environment to be set'
+    return 1
+  fi
+  if [[ -z "$s3_bucket" ]]; then
+    echo 'g3k backup requires the s3_bucket environment to be set'
+    return 1
+  fi
+  bash "$g3kScriptDir/../tf_files/configs/kube-backup.sh"
+}
+
+#
 # Parent for other commands - pronounced "geeks"
 #
 g3k() {
@@ -130,6 +146,9 @@ g3k() {
   fi
   (set -e
     case "$command" in
+    "backup")
+      g3k_backup "$@"
+      ;;
     "devterm")
       g3k_devterm "$@"
       ;;
