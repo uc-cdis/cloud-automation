@@ -25,36 +25,10 @@ if [ -z "${vpc_name}" ]; then
   exit 1
 fi
 
-#
-# Set a flag for the kube-setup-fence.sh and kube-setup-sheepdog.sh fragments
-# (invoked below) to trigger db initialization if not already done
-# (based on the presence of a .rendered_X file which kube-setup-X generate).
-#
-if [[ ! -f ~/"${vpc_name}/.rendered_fence_db" ]]; then
-  create_fence_db="true"
-fi
-if [[ ! -f ~/"${vpc_name}/.rendered_gdcapi_db" ]]; then
-  create_gdcapi_db="true"
-fi
-
-if [[ "ubuntu" == "$USER" ]]; then
-  # non-ubuntu (dev) users may not have sudo - 
-  # assume dependencies are installed by other means
-  
-  # -E passes through *_proxy environment
-  sudo -E apt update
-  sudo -E apt install -y git python-dev python-pip jq postgresql-client
-  sudo -E XDG_CACHE_HOME=/var/cache pip install --upgrade pip
-  sudo -E XDG_CACHE_HOME=/var/cache pip install awscli --upgrade
-  # jinja2 needed by render_creds.py
-  sudo -E XDG_CACHE_HOME=/var/cache pip install jinja2
-  # yq === jq for yaml
-  sudo -E XDG_CACHE_HOME=/var/cache pip install yq
-fi
-
 mkdir -p ~/${vpc_name}/apis_configs
 
 source "${G3AUTOHOME}/kube/kubes.sh"
+source "${G3AUTOHOME}/tf_files/configs/kube-setup-workvm.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-roles.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-certs.sh"
 
@@ -111,21 +85,3 @@ INFO: delete the portal pod if necessary to force a restart -
    services is fully up.
 
 EOM
-
-if ! grep kubes.sh ~/.bashrc > /dev/null; then
-  echo "Adding variables to ~/.bashrc"
-  cat >>~/.bashrc << EOF
-export http_proxy=http://cloud-proxy.internal.io:3128
-export https_proxy=http://cloud-proxy.internal.io:3128
-export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
-
-export KUBECONFIG=~/${vpc_name}/kubeconfig
-
-# Load the kubectl completion code for bash into the current shell
-source <(kubectl completion bash)
-
-if [ -f ~/cloud-automation/kube/kubes.sh ]; then
-    . ~/cloud-automation/kube/kubes.sh
-fi
-EOF
-fi
