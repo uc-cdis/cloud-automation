@@ -14,7 +14,6 @@ if [ ! -f "${RENDER_CREDS}" ]; then
   echo "ERROR: ${RENDER_CREDS} does not exist"
 fi
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-fence.sh vpc_name"
@@ -24,6 +23,8 @@ if [ ! -d ~/"${vpc_name}" ]; then
   echo "~/${vpc_name} does not exist"
   exit 1
 fi
+
+source "${G3AUTOHOME}/kube/kubes.sh"
 cd ~/${vpc_name}_output
 python "${RENDER_CREDS}" secrets
 
@@ -45,16 +46,12 @@ if ! kubectl get secrets/fence-secret > /dev/null 2>&1; then
 fi
 
 if ! kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
-  if [ -f "./apis_configs/fence_credentials.json" ]; then
-    echo "create fence-json-secret using current creds file"
-    kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
-  else
-    # default empty credential
-    echo "create fence-json-secret using default creds file"
-    kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=$DIR/fence_credentials.json
+  if [[ ! -f "./apis_configs/fence_credentials.json" ]]; then
+    cp "${G3AUTOHOME}/tf_files/configs/fence_credentials.json" "./apis_configs/fence_credentials.json" 
   fi
+  echo "create fence-json-secret using current creds file apis_configs/fence_credentials.json"
+  kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
 fi
-
 
 if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
   kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
@@ -87,6 +84,8 @@ fi
 touch ~/"${vpc_name}/.rendered_fence_db"
 
 kubectl apply -f services/fence/fence-service.yaml
+
+patch_kube fence-deployment
 
 cat <<EOM
 The fence services has been deployed onto the k8s cluster.

@@ -24,6 +24,8 @@ if [ ! -d ~/"${vpc_name}" ]; then
   exit 1
 fi
 
+source "${G3AUTOHOME}/kube/kubes.sh"
+
 cd ~/${vpc_name}_output
 python "${RENDER_CREDS}" secrets
 
@@ -133,6 +135,8 @@ fi
 touch .rendered_gdcapi_db
 
 kubectl apply -f services/sheepdog/sheepdog-service.yaml
+
+patch_kube sheepdog-deployment
 
 cat <<EOM
 The sheepdog services has been deployed onto the k8s cluster.

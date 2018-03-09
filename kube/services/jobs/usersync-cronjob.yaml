@@ -1,0 +1,102 @@
+# Note: change to batch/v1beta1 once we bump to k8s 1.8
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: usersync
+spec:
+  schedule: "@hourly"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: useryaml-job
+          volumes:
+            - name: shared-data
+              emptyDir: {}
+            - name: config-volume
+              secret:
+                secretName: "fence-secret"
+            - name: json-secret-volume
+              secret:
+                secretName: "fence-json-secret"
+            - name: fence-yaml
+              configMap:
+                name: fence
+          containers:
+          - name: fence
+            image: quay.io/cdis/fence:master
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: "config-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/local_settings.py"
+                subPath: local_settings.py
+              - name: "json-secret-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/fence_credentials.json"
+                subPath: fence_credentials.json
+              - name: "fence-yaml"
+                mountPath: "/var/www/fence/user.yaml"
+                subPath: user.yaml
+              - name: shared-data
+                mountPath: /mnt/shared
+            command: ["/bin/bash" ]
+            args: 
+              - "-c" 
+              - |
+                let count=0
+                while [[ ! -f /mnt/shared/user.yaml && $count -lt 50 ]]; do
+                  echo "fence container waiting for /mnt/shared/user.yaml";
+                  sleep 2
+                  let count=$count+1
+                done
+                if [[ -f /mnt/shared/user.yaml ]]; then
+                  echo "fence container user.yaml diff ..."
+                  diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
+                  if [[ $? == 1 ]]; then
+                    echo "running fence-create"
+                    fence-create create /mnt/shared/user.yaml
+                  else
+                    echo "no difference found"
+                  fi
+                else
+                  echo "/mnt/shared/user.yaml did not appear within timeout :-("
+                fi
+                
+          - name: awshelper
+            image: quay.io/cdis/awshelper:master
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: "fence-yaml"
+                mountPath: "/var/www/fence/user.yaml"
+                subPath: user.yaml
+              - name: shared-data
+                mountPath: /mnt/shared
+            command: ["/bin/bash" ]
+            args: 
+              - "-c" 
+              - |
+                echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
+                aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml;
+                if [[ -f /mnt/shared/user.yaml ]]; then
+                  echo "awshelper container user.yaml diff ..."
+                  diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
+                  if [[ $? == 1 ]]; then
+                    echo "awshelper updating fence configmap"
+                    kubectl delete configmap fence
+                    kubectl create configmap fence --from-file=/mnt/shared/user.yaml
+                  else
+                    echo "no difference found"
+                  fi              
+                fi
+            env:
+              - name: userYamlS3Path
+                valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: useryaml_s3path
+          restartPolicy: Never
+  
+  

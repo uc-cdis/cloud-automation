@@ -46,11 +46,16 @@ if [[ "ubuntu" == "$USER" ]]; then
   sudo -E apt install -y git python-dev python-pip jq postgresql-client
   sudo -E XDG_CACHE_HOME=/var/cache pip install --upgrade pip
   sudo -E XDG_CACHE_HOME=/var/cache pip install awscli --upgrade
+  # jinja2 needed by render_creds.py
   sudo -E XDG_CACHE_HOME=/var/cache pip install jinja2
+  # yq === jq for yaml
+  sudo -E XDG_CACHE_HOME=/var/cache pip install yq
 fi
 
 mkdir -p ~/${vpc_name}/apis_configs
 
+source "${G3AUTOHOME}/kube/kubes.sh"
+source "${G3AUTOHOME}/tf_files/configs/kube-setup-roles.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-certs.sh"
 
 #
@@ -95,6 +100,11 @@ source "${G3AUTOHOME}/tf_files/configs/kube-setup-peregrine.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-revproxy.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-fluentd.sh"
 
+# Force pods to update
+patch_kube indexd-deployment
+patch_kube portal-deployment
+
+
 cat - <<EOM
 INFO: delete the portal pod if necessary to force a restart - 
    portal will not come up cleanly until after the reverse proxy
@@ -110,6 +120,9 @@ export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
 
 export KUBECONFIG=~/${vpc_name}/kubeconfig
+
+# Load the kubectl completion code for bash into the current shell
+source <(kubectl completion bash)
 
 if [ -f ~/cloud-automation/kube/kubes.sh ]; then
     . ~/cloud-automation/kube/kubes.sh
