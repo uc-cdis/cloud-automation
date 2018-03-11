@@ -1,0 +1,50 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sftp-deployment
+spec:
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: sftp
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: sftp-secret
+          secret:
+            secretName: sftp-secret
+        - name: sftp-conf
+          configMap:
+            name: sftp-conf
+      containers:
+      - name: sftp
+        image: atmoz/sftp
+        livenessProbe:
+          tcpSocket:
+            port: 22
+          initialDelaySeconds: 5
+          periodSeconds: 30
+        ports:
+        - containerPort: 22
+        volumeMounts:
+          - name: "sftp-secret"
+            readOnly: true
+            mountPath: "/home/ubuntu/dbgap-key"
+          - name: "sftp-conf"
+            readOnly: true
+            mountPath: "/etc/sftp/users.conf"
+            subPath: "users.conf"
+          - name: "sftp-conf"
+            readOnly: true
+            mountPath: "/home/ubuntu/bpa.csv"
+            subPath: "bpa.csv"
+          - name: "sftp-conf"
+            readOnly: true
+            mountPath: "/home/ubuntu/test.csv"
+            subPath: "test.csv"
