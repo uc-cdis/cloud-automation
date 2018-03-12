@@ -124,6 +124,22 @@ resource "aws_subnet" "private_user" {
 }
 
 
+resource "aws_cloudwatch_log_group" "main_log_group" {
+    name = "${var.vpc_name}"
+    retention_in_days = "1827"
+    tags {
+        Environment = "${var.vpc_name}"
+        Organization = "Basic Service"
+    }
+}
+
+resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
+    name = "${var.vpc_name}_subscription"
+    destination_arn = "arn:aws:logs:us-east-1:433568766270:destination:${var.vpc_name}"
+    log_group_name  = "${var.vpc_name}"
+    filter_pattern  = ""
+}
+
 data "aws_ami" "public_login_ami" {
   most_recent      = true
 
