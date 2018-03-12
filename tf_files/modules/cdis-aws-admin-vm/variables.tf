@@ -5,29 +5,43 @@ variable "ami_account_id" {
 }
 
 variable "csoc_account_id" {
-  default = "what.it.is"
+  default = "433568766270"
 }
 
 variable "csoc_vpc_id" {
-  default = "what.it.is"
+  default = "vpc-e2b51d99"
 }
 
 variable "csoc_subnet_id" {
-  default = "what.it.is"
+  default = "subnet-6127013c"
 }
 
-variable "child_account_id" {}
+variable "child_account_id" {
+  # default = "707767160287"
+
+}
 
 variable "child_name" {
   # name of child account - ex: kidsfirst, cdistest
+ # default = "cdistest"
 }
 
 variable "vpc_cidr_octet" {
   # cidr_block = "172.24.${var.vpc_octet + 0}.0/24"
-  default = 17
+  default = 16
+}
+
+variable "aws_access_key" 
+{
+  default = ""
+}
+
+variable "aws_secret_key" 
+{
+  default = ""
 }
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {
-  default = "master_key"
+  default = "rarya_id_rsa"
 }

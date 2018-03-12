@@ -16,6 +16,10 @@ module "admin_vm" {
   child_account_id = "${var.child_account_id}"
   child_name       = "${var.child_name}"
   vpc_cidr_octet   = "${var.vpc_cidr_octet}"
+  csoc_account_id  = "${var.csoc_account_id}"
+  csoc_vpc_id      = "${var.csoc_vpc_id}"
+  csoc_subnet_id   = "${var.csoc_subnet_id}"
+  ssh_key_name     = "${var.ssh_key_name}"
 
   # put other variables here ...
 }

@@ -41,6 +41,22 @@ resource "aws_ami_copy" "cdis_ami" {
 resource "aws_iam_role" "child_role" {
   name = "${var.child_name}_role"
   path = "/"
+  # https://www.terraform.io/docs/providers/aws/r/iam_role_policy.html
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
 }
 
 #
@@ -65,7 +81,7 @@ data "aws_iam_policy_document" "child_policy_document" {
 
   statement {
     # see https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html
-    action = ["sts:AssumeRole"]
+    actions = ["sts:AssumeRole"]
 
     effect    = "Allow"
     resources = ["arn:aws:iam::${var.child_account_id}:role/*"]
@@ -89,7 +105,7 @@ resource "aws_iam_instance_profile" "child_role_profile" {
 resource "aws_security_group" "ssh" {
   name        = "ssh"
   description = "security group that only enables ssh"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = "${var.csoc_vpc_id}"
 
   ingress {
     from_port   = 22
@@ -124,13 +140,13 @@ resource "aws_security_group" "login-ssh" {
 resource "aws_security_group" "local" {
   name        = "local"
   description = "security group that only allow internal tcp traffics"
-  vpc_id      = "${aws_vpc.main.id}"
+  vpc_id      = "${var.csoc_vpc_id}"
 
   ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.0.0.0/20"]
+    cidr_blocks = ["10.128.0.0/20"]
   }
 
   egress {
@@ -139,7 +155,8 @@ resource "aws_security_group" "local" {
     protocol  = "-1"
 
     # 54.224.0.0/12 logs.us-east-1.amazonaws.com
-    cidr_blocks = ["172.24.${var.vpc_cidr_octet}.0/20", "54.224.0.0/12"]
+   #  cidr_blocks = ["${var.vpc_cidr_octet}", "54.224.0.0/12"]
+    cidr_blocks = ["172.24.16.0/20", "54.224.0.0/12"]
   }
 
   tags {
@@ -191,7 +208,7 @@ EOF
 #resource "aws_route53_zone" "main" {
 #  name    = "internal.io"
 #  comment = "internal dns server for ${var.child_name}"
-#  vpc_id  = "${aws_vpc.main.id}"
+#  vpc_id  = "${var.csoc_vpc_id}"
 #
 #  tags {
 #    Environment  = "${var.child_name}"
