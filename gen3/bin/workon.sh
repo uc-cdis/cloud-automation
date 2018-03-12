@@ -166,6 +166,17 @@ EOM
     return 0
   fi
 
+  # else
+  if [[ "$GEN3_VPC" =~ _adminvm$ ]]; then
+    # rds snapshot vpc is simpler ...
+    commonsName=$(echo "$GEN3_VPC" | sed 's/_snapshot$//')
+    cat - <<EOM
+child_account_id=""
+child_name=""
+vpc_cidr_octet=""
+EOM
+    return 0
+  fi
   # else ...
   cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
@@ -279,7 +290,7 @@ echo "Running terraform init ..."
 terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 # Generate some k8s helper scripts for on-prem deployments
-if ! [[ "$GEN3_VPC" =~ _user$ && "$GEN3_VPC" =~ _snapshot$ ]]; then
+if ! [[ "$GEN3_VPC" =~ _user$ || "$GEN3_VPC" =~ _snapshot$ || "$GEN3_VPC" =~ _adminvm$ ]]; then
   mkdir -p -m 0700 onprem_scripts
   cat - "$GEN3_HOME/tf_files/configs/kube-services-body.sh" > onprem_scripts/kube-services.sh <<EOM
 #!/bin/bash
