@@ -82,11 +82,6 @@ resource "aws_iam_role_policy" "mybucket_reader" {
   role   = "${aws_iam_role.mybucket_reader.id}"
 }
 
-resource "aws_iam_instance_profile" "mybucket_reader" {
-  name = "bucket_reader_${var.bucket_name}"
-  role = "${aws_iam_role.mybucket_reader.id}"
-}
-
 #----------------------
 
 resource "aws_iam_role" "mybucket_writer" {
@@ -120,15 +115,22 @@ data "aws_iam_policy_document" "mybucket_writer" {
     effect    = "Allow"
     resources = ["${aws_s3_bucket.mybucket.arn}", "${aws_s3_bucket.mybucket.arn}/*"]
   }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = ["${aws_s3_bucket.mybucket.arn}/*"]
+  }
 }
 
 resource "aws_iam_role_policy" "mybucket_writer" {
   name   = "bucket_writer_${var.bucket_name}"
   policy = "${data.aws_iam_policy_document.mybucket_writer.json}"
   role   = "${aws_iam_role.mybucket_writer.id}"
-}
-
-resource "aws_iam_instance_profile" "mybucket_writer" {
-  name = "bucket_writer_${var.bucket_name}"
-  role = "${aws_iam_role.mybucket_writer.id}"
 }
