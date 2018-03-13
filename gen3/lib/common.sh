@@ -51,14 +51,14 @@ if ! semver_ge "$AWS_VERSION" "1.14.0"; then
 fi
 
 TERRAFORM_VERSION=$(terraform --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
-if ! semver_ge "$TERRAFORM_VERSION" "0.11.2"; then
-  echo "ERROR: gen3 requires terraform >= 0.11.2 - please update from ${TERRAFORM_VERSION}"
+if ! semver_ge "$TERRAFORM_VERSION" "0.11.3"; then
+  echo "ERROR: gen3 requires terraform >= 0.11.3 - please update from ${TERRAFORM_VERSION}"
   echo "  see https://www.terraform.io/downloads.html"
   exit 1
 fi
 
-if [[ -z "$GEN3_PROFILE" || -z "$GEN3_VPC" || -z "$GEN3_WORKDIR" || -z "$GEN3_HOME" || -z "$GEN3_S3_BUCKET" ]]; then
-  echo "Must define runtime environment: GEN3_PROFILE, GEN3_VPC, GEN3_WORKDIR, GEN3_HOME"
+if [[ -z "$GEN3_PROFILE" || -z "$GEN3_WORKSPACE" || -z "$GEN3_WORKDIR" || -z "$GEN3_HOME" || -z "$GEN3_S3_BUCKET" ]]; then
+  echo "Must define runtime environment: GEN3_PROFILE, GEN3_WORKSPACE, GEN3_WORKDIR, GEN3_HOME"
   exit 1
 fi
 

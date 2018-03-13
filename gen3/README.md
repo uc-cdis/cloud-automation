@@ -67,16 +67,16 @@ Enter (and initialize if necessary) a local workspace for working with the VPC w
 under the *aws-profile-name* profile in `~/.aws/credentials`.
 This is a prerequisite for most other gen3 commands.
 
-The gen3 tools stores commons related data (including secrets)locally under *$XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_VPC_NAME* -
+The gen3 tools stores commons related data (including secrets)locally under *$XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_WORKSPACE_NAME* -
 conforming with the linux [xdg desktop specification](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html).
 
 The tasks performed include:
 
-* set the $GEN3_AWS_PROFILE and $GEN3_VPC_NAME environment variables
-* if a local $XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_VPC_NAME exist, then
+* set the $GEN3_AWS_PROFILE and $GEN3_WORKSPACE environment variables
+* if a local $XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_WORKSPACE exist, then
   - pull down any missing state from s3
   - run terraform init if necessary
-* else if GEN3_VPC_NAME state exists in S3, then
+* else if GEN3_WORKSPACE_NAME state exists in S3, then
   - copy the state from S3
   - generate terraform secrets based on the AWS profile credentials
   - run terraform init
@@ -95,7 +95,7 @@ List the variables associated with the current gen3 workspace - ex:
 ```
 $ gen3 status
 GEN3_PROFILE=cdistest
-GEN3_VPC=planxplanetv1
+GEN3_WORKSPACE=planxplanetv1
 GEN3_WORKDIR=/home/reuben/.local/share/gen3/cdistest/planxplanetv1
 GEN3_HOME=/home/reuben/Code/PlanX/cloud-automation
 GEN3_S3_BUCKET=cdis-terraform-state.cdistest.gen3
@@ -195,7 +195,7 @@ Not yet implemented
 The gen3 tools expect the terraform variable files (config.tfvars and backend.tfvars)
 to exist under
 ```
-    s3://${GEN3_S3_BUCKET}/${GEN3_VPC}/
+    s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/
 ```
 Those variable files do not include aws credentials - gen3 will harvest those
 from your local aws profile to another set of local aws_*.tfvars files that are not 
