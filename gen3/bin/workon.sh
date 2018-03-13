@@ -139,9 +139,9 @@ EOM
   fi
 
   # else
-  if [[ "$GEN3_VPC" =~ _adminvm$ ]]; then
+  if [[ "$GEN3_WORKSPACE" =~ _adminvm$ ]]; then
     # rds snapshot vpc is simpler ...
-    commonsName=$(echo "$GEN3_VPC" | sed 's/_snapshot$//')
+    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
     cat - <<EOM
 child_account_id=""
 child_name=""
@@ -272,7 +272,7 @@ echo "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_F
 terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 # Generate some k8s helper scripts for on-prem deployments
-if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_VPC" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
+if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
   mkdir -p -m 0700 onprem_scripts
   cat - "$GEN3_HOME/tf_files/configs/kube-services-body.sh" > onprem_scripts/kube-services.sh <<EOM
 #!/bin/bash

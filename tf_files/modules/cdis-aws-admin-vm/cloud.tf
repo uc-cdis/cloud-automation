@@ -41,6 +41,7 @@ resource "aws_ami_copy" "cdis_ami" {
 resource "aws_iam_role" "child_role" {
   name = "${var.child_name}_role"
   path = "/"
+
   # https://www.terraform.io/docs/providers/aws/r/iam_role_policy.html
   assume_role_policy = <<EOF
 {
@@ -155,8 +156,8 @@ resource "aws_security_group" "local" {
     protocol  = "-1"
 
     # 54.224.0.0/12 logs.us-east-1.amazonaws.com
-   #  cidr_blocks = ["${var.vpc_cidr_octet}", "54.224.0.0/12"]
-    cidr_blocks = ["172.24.16.0/20", "54.224.0.0/12"]
+    #  cidr_blocks = ["${var.vpc_cidr_octet}", "54.224.0.0/12"]
+    cidr_blocks = ["172.24.${var.vpc_cidr_octet}.0/20", "54.224.0.0/12"]
   }
 
   tags {
