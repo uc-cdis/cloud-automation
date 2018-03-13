@@ -33,15 +33,15 @@ gen3_workon() {
     return 2
   fi
 
-  if ! ( aws configure get "${1}.aws_access_key_id" > /dev/null && aws configure get "${1}.aws_secret_access_key" > /dev/null && aws configure get "${1}.region" > /dev/null ); then
-    echo "PROFILE $1 not properly configured with secrets and region for aws cli"
+  if ! ( aws configure get "${1}.region" > /dev/null ); then
+    echo "PROFILE $1 not properly configured with default region for aws cli"
     return 3
   fi
   export GEN3_PROFILE="$1"
-  export GEN3_VPC="$2"
-  export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_VPC}"
+  export GEN3_WORKSPACE="$2"
+  export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}"
   export AWS_PROFILE="$GEN3_PROFILE"
-
+  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")
   AWS_ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
   # S3 bucket where we save terraform state, etc
   if [[ -z "$AWS_ACCOUNT_ID" ]]; then
@@ -53,13 +53,15 @@ gen3_workon() {
 
   # terraform stack - based on VPC name
   export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws"
-  if [[ "$GEN3_VPC" =~ _user$ ]]; then
+  if [[ "$GEN3_WORKSPACE" =~ _user$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_user_vpc"
-  elif [[ "$GEN3_VPC" =~ _snapshot$ ]]; then
+  elif [[ "$GEN3_WORKSPACE" =~ _snapshot$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_rds_snapshot"
+  elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_data_bucket"
   fi
 
-  PS1="gen3/${GEN3_PROFILE}/${GEN3_VPC}:$GEN3_PS1_OLD"
+  PS1="gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
   return 0
 }
 

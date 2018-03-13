@@ -49,8 +49,8 @@ if $GEN3_DRY_RUN; then
   DRYRUN="--dryrun"
 fi
 
-s3Source="s3://$GEN3_S3_BUCKET/${GEN3_VPC}/terraform.tfstate"
-s3Dest="s3://$GEN3_S3_BUCKET/${GEN3_VPC}/terraform.tfstate.bak.$(date +%s)"
+s3Source="s3://$GEN3_S3_BUCKET/${GEN3_WORKSPACE}/terraform.tfstate"
+s3Dest="s3://$GEN3_S3_BUCKET/${GEN3_WORKSPACE}/terraform.tfstate.bak.$(date +%s)"
 echo "Backing up terraform state from $s3Source to $s3Dest"
 
 if ! aws s3 cp $DRYRUN "$s3Source" "$s3Dest"; then

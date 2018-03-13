@@ -54,16 +54,13 @@ file_mode() {
 test_workspace() {
   gen3 workon $TEST_PROFILE $TEST_VPC; because $? "Calling gen3 workon multiple times should be harmless"
   [[ $GEN3_PROFILE = $TEST_PROFILE ]]; because $? "gen3 workon sets the GEN3_PROFILE env variable: $GEN3_PROFILE"
-  [[ $GEN3_VPC = $TEST_VPC ]]; because $? "gen3 workon sets the GEN3_VPC env variable: $GEN3_VPC"
+  [[ $GEN3_WORKSPACE = $TEST_VPC ]]; because $? "gen3 workon sets the GEN3_WORKSPACE env variable: $GEN3_WORKSPACE"
   [[ $GEN3_S3_BUCKET = "cdis-terraform-state.account-${TEST_ACCOUNT}.gen3" ]]; because $? "gen3 workon sets the GEN3_S3_BUCKET env variable: $GEN3_S3_BUCKET"
   [[ (! -z $GEN3_WORKDIR) && -d $GEN3_WORKDIR ]]; because $? "gen3 workon sets the GEN3_WORKDIR env variable, and initializes the folder: $GEN3_WORKDIR"
   [[ $(file_mode $GEN3_WORKDIR) =~ 700$ ]]; because $? "gen3 workon sets the GEN3_WORKDIR to mode 0700, because secrets are in there"
   gen3 cd && [[ $(pwd) = "$GEN3_WORKDIR" ]]; because $? "gen3 cd should take us to the workspace by default: $(pwd) =? $GEN3_WORKDIR"
   for fileName in README.md config.tfvars backend.tfvars; do
     [[ -f $fileName ]]; because $? "gen3 workon ensures we have a $fileName - local copy || s3 copy || generated from template"
-  done
-  for fileName in aws_provider.tfvars aws_backend.tfvars; do
-    [[ -f $fileName ]]; because $? "gen3 workon ensures we have a $fileName with AWS secrets - local copy || generated with aws cli"
   done
   [[ ! -z "$MD5" ]]; because $? "commons.sh sets MD5 to $MD5"
 
@@ -134,7 +131,7 @@ test_tfoutput() {
   gen3 workon "${TEST_PROFILE}" planxplanetv1; because $? "planxplanetv1 has some state to run tfoutput against"
   gen3 tfoutput; because $? "tfoutput should run successfully against planxplanetv1"
   vpcName=$(gen3 tfoutput vpc_name)
-  [[ $vpcName = $GEN3_VPC ]]; because $? "tfoutput vpc_name works: $vpcName =? $GEN3_VPC"
+  [[ $vpcName = $GEN3_WORKSPACE ]]; because $? "tfoutput vpc_name works: $vpcName =? $GEN3_WORKSPACE"
 }
 
 shunit_runtest "test_semver"

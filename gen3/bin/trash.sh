@@ -32,7 +32,7 @@ if [[ ! -d "$GEN3_WORKDIR" ]]; then
   exit 1
 fi
 
-destFolder="${GEN3_TRASH}/${GEN3_PROFILE}-${GEN3_VPC}.$(date +%s)"
+destFolder="${GEN3_TRASH}/${GEN3_PROFILE}-${GEN3_WORKSPACE}.$(date +%s)"
 echo "$DRY_RUN_STR mv $GEN3_WORKDIR $destFolder"
 if ! $GEN3_DRY_RUN; then
   mv "$GEN3_WORKDIR" "$destFolder"

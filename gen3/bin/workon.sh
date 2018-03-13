@@ -22,34 +22,6 @@ source "$GEN3_HOME/gen3/lib/common.sh"
 #
 mkdir -p -m 0700 "$GEN3_WORKDIR/backups"
 
-#
-# aws_provider.tfvars - this has the secret keys that
-# the terraform aws provider wants:
-#     https://www.terraform.io/docs/providers/aws/
-#
-if [[ ! -f "$GEN3_WORKDIR/aws_provider.tfvars" ]]; then
-  echo "Creating $GEN3_WORKDIR/aws_provider.tfvars"
-  cat - > "$GEN3_WORKDIR/aws_provider.tfvars" <<EOM
-aws_access_key = "$(aws configure get "$GEN3_PROFILE.aws_access_key_id")"
-aws_secret_key = "$(aws configure get "$GEN3_PROFILE.aws_secret_access_key")"
-aws_region = "$(aws configure get "$GEN3_PROFILE.region")"
-EOM
-fi
-
-#
-# aws_backend.tfvars - this has the secret keys that
-# the terraform S3 backend wants:
-#     https://www.terraform.io/docs/backends/types/s3.html
-#
-if [[ ! -f "$GEN3_WORKDIR/aws_backend.tfvars" ]]; then
-  echo "Creating $GEN3_WORKDIR/aws_backend.tfvars"
-  cat - > "$GEN3_WORKDIR/aws_backend.tfvars" <<EOM
-access_key = "$(aws configure get "$GEN3_PROFILE.aws_access_key_id")"
-secret_key = "$(aws configure get "$GEN3_PROFILE.aws_secret_access_key")"
-region = "$(aws configure get "$GEN3_PROFILE.region")"
-EOM
-fi
-
 if [[ ! -f "$GEN3_WORKDIR/root.tf" ]]; then
   # Note: do not use `` in heredoc!
   echo "Creating $GEN3_WORKDIR/root.tf"
@@ -86,7 +58,7 @@ refreshFromS3() {
     echo "Ignoring S3 refresh for file that already exists: $fileName"
     return 1
   fi
-  s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_VPC}/${fileName}"
+  s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/${fileName}"
   aws s3 cp "$s3Path" "$filePath" > /dev/null 2>&1
   if [[ ! -f "$filePath" ]]; then
     echo "No data at $s3Path"
@@ -111,7 +83,7 @@ backend.tfvars() {
   cat - <<EOM
 bucket = "$GEN3_S3_BUCKET"
 encrypt = "true"
-key = "$GEN3_VPC/terraform.tfstate"
+key = "$GEN3_WORKSPACE/terraform.tfstate"
 region = "$(aws configure get "$GEN3_PROFILE.region")"
 EOM
 }
@@ -120,13 +92,13 @@ README.md() {
   cat - <<EOM
 # TL;DR
 
-Any special notes about $GEN3_VPC
+Any special notes about $GEN3_WORKSPACE
 
 ## Useful commands
 
 * gen3 help
 * gen3 tfoutput ssh_config >> ~/.ssh/config
-* rsync -rtvOz ${GEN3_VPC}_output/ k8s_${GEN3_VPC}/${GEN3_VPC}_output
+* rsync -rtvOz ${GEN3_WORKSPACE}_output/ k8s_${GEN3_WORKSPACE}/${GEN3_WORKSPACE}_output
 
 EOM
 }
@@ -139,10 +111,10 @@ EOM
 config.tfvars() {
   local commonsName
 
-  if [[ "$GEN3_VPC" =~ _user$ ]]; then
+  if [[ "$GEN3_WORKSPACE" =~ _user$ ]]; then
     # user vpc is simpler ...
     cat - <<EOM
-vpc_name="$GEN3_VPC"
+vpc_name="$GEN3_WORKSPACE"
 #
 # for vpc_octet see https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md
 #  CIDR becomes 172.24.{vpc_octet}.0/20
@@ -154,9 +126,9 @@ EOM
   fi
 
   # else ...
-  if [[ "$GEN3_VPC" =~ _snapshot$ ]]; then
+  if [[ "$GEN3_WORKSPACE" =~ _snapshot$ ]]; then
     # rds snapshot vpc is simpler ...
-    commonsName=$(echo "$GEN3_VPC" | sed 's/_snapshot$//')
+    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
     cat - <<EOM
 vpc_name="${commonsName}"
 indexd_rds_id="${commonsName}-indexddb"
@@ -167,9 +139,19 @@ EOM
   fi
 
   # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
+    # rds snapshot vpc is simpler ...
+    cat - <<EOM
+bucket_name="${GEN3_WORKSPACE}.gen3"
+environment="$(echo "$GEN3_WORKSPACE" | sed 's/_databucket$//')"
+EOM
+    return 0
+  fi
+
+  # else ...
   cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
-vpc_name="$GEN3_VPC"
+vpc_name="$GEN3_WORKSPACE"
 #
 # for vpc_octet see https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md
 #  CIDR becomes 172.24.{vpc_octet}.0/20
@@ -275,11 +257,11 @@ EOM
   fi
 fi
 
-echo "Running terraform init ..."
-terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
+echo "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/"
+terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 # Generate some k8s helper scripts for on-prem deployments
-if ! [[ "$GEN3_VPC" =~ _user$ && "$GEN3_VPC" =~ _snapshot$ ]]; then
+if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
   mkdir -p -m 0700 onprem_scripts
   cat - "$GEN3_HOME/tf_files/configs/kube-services-body.sh" > onprem_scripts/kube-services.sh <<EOM
 #!/bin/bash
@@ -289,7 +271,7 @@ if ! [[ "$GEN3_VPC" =~ _user$ && "$GEN3_VPC" =~ _snapshot$ ]]; then
 
 set -e
 
-vpc_name='${GEN3_VPC}'
+vpc_name='${GEN3_WORKSPACE}'
 
 EOM
 
