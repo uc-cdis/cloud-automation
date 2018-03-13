@@ -99,3 +99,12 @@ export vpc_name='$vpc_name'
 export s3_bucket='$s3_bucket'
 EOF
 fi
+
+if ! grep 'GEN3_HOME=' ~/.bashrc > /dev/null; then
+  cat - >>~/.bashrc <<EOF
+export GEN3_HOME=~/cloud-automation
+if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
+  source "\${GEN3_HOME}/gen3/gen3setup.sh"
+fi
+EOF
+fi
