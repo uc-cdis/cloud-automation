@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "log_bucket" {
-  bucket = "s3logs_from_${var.bucket_name}"
+  bucket = "s3logs.${var.bucket_name}"
   acl    = "log-delivery-write"
 
   server_side_encryption_configuration {
@@ -11,7 +11,7 @@ resource "aws_s3_bucket" "log_bucket" {
   }
 
   tags {
-    Name        = "s3logs_from_${var.bucket_name}"
+    Name        = "s3logs.${var.bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "logs bucket"
   }
