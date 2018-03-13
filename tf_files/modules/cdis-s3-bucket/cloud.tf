@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "s3logs_from_${var.bucket_name}"
-  acl    = "private"
+  acl    = "log-delivery-write"
 
   server_side_encryption_configuration {
     rule {
@@ -11,10 +11,9 @@ resource "aws_s3_bucket" "log_bucket" {
   }
 
   tags {
-    Name         = "s3logs_from_${var.bucket_name}"
-    Environment  = "${var.environment}"
-    Organization = "Basic Service"
-    Purpose      = "data bucket"
+    Name        = "s3logs_from_${var.bucket_name}"
+    Environment = "${var.environment}"
+    Purpose     = "logs bucket"
   }
 }
 
@@ -38,10 +37,9 @@ resource "aws_s3_bucket" "mybucket" {
   }
 
   tags {
-    Name         = "${var.bucket_name}"
-    Environment  = "${var.environment}"
-    Organization = "Basic Service"
-    Purpose      = "data bucket"
+    Name        = "${var.bucket_name}"
+    Environment = "${var.environment}"
+    Purpose     = "data bucket"
   }
 }
 
