@@ -4,11 +4,7 @@ terraform {
   }
 }
 
-provider "aws" {
-  access_key = "${var.aws_access_key}"
-  secret_key = "${var.aws_secret_key}"
-  region     = "${var.aws_region}"
-}
+provider "aws" {}
 
 module "admin_vm" {
   ami_account_id   = "${var.ami_account_id}"

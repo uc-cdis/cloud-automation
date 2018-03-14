@@ -1,5 +1,3 @@
-
-
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
   # cdis-test
@@ -23,8 +21,7 @@ variable "csoc_subnet_id" {
 }
 
 variable "child_account_id" {
- # default = "707767160287"
-
+  # default = "707767160287"
 }
 
 variable "child_account_region" {
@@ -32,8 +29,7 @@ variable "child_account_region" {
 }
 
 variable "child_name" {
-  # name of child account - ex: kidsfirst, cdistest
-  #default = "cdistest"
+  # name of child account - ex: kidsfirst, cdistest  #default = "cdistest"
 }
 
 variable "vpc_cidr_octet" {
@@ -43,11 +39,6 @@ variable "vpc_cidr_octet" {
 
 variable "elasticsearch_domain" {
   default = "commons-logs"
-}
-
-variable "aws_access_key" {
-}
-variable "aws_secret_key" {
 }
 
 # name of aws_key_pair ssh key to attach to VM's
