@@ -27,6 +27,9 @@ variable "child_account_id" {
 
 }
 
+variable "child_account_region" {
+  default = "us-east-1"
+}
 
 variable "child_name" {
   # name of child account - ex: kidsfirst, cdistest
@@ -36,6 +39,10 @@ variable "child_name" {
 variable "vpc_cidr_octet" {
   # cidr_block = "172.24.${var.vpc_octet + 0}.0/24"
   default = 16
+}
+
+variable "elasticsearch_domain" {
+  default = "commons-logs"
 }
 
 variable "aws_access_key" {
