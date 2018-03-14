@@ -160,6 +160,16 @@ EOM
   fi
 
   # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
+    # rds snapshot vpc is simpler ...
+    cat - <<EOM
+bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/_/-/g').gen3"
+environment="$(echo "$GEN3_WORKSPACE" | sed 's/_databucket$//')"
+EOM
+    return 0
+  fi
+
+  # else ...
   cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
 vpc_name="$GEN3_WORKSPACE"

@@ -3,9 +3,7 @@ variable "ami_account_id" {
   default = "707767160287"
 }
 
-variable "vpc_name" {
-
-}
+variable "vpc_name" {}
 
 variable "vpc_octet" {
   default = 17
@@ -25,4 +23,3 @@ variable "csoc_cidr" {
 variable "csoc_vpc_id" {
   default = "vpc-e2b51d99"
 }
-

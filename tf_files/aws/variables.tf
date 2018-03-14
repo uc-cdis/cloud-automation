@@ -123,8 +123,6 @@ variable "ami_account_id" {
   default = "707767160287"
 }
 
-
-
 variable "csoc_vpc_id" {
   default = "vpc-e2b51d99"
 }
