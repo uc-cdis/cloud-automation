@@ -50,6 +50,11 @@ output "ssh_key_name" {
   value = "${var.ssh_key_name}"
 }
 
+
+output "vpc_peering_id" {
+  value = "${aws_vpc_peering_connection.vpcpeering.id}"
+}
+
 #-------------------------------------------
 
 data "template_file" "ssh_config" {
@@ -59,3 +64,5 @@ data "template_file" "ssh_config" {
         login_public_ip = "${aws_eip.login.public_ip}"
     }
 }
+
+

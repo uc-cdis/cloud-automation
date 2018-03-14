@@ -28,7 +28,7 @@ variable "child_name" {
 
 variable "vpc_cidr_octet" {
   # cidr_block = "172.24.${var.vpc_octet + 0}.0/24"
-  default = 16
+  # default = 16
 }
 
 variable "aws_access_key" 

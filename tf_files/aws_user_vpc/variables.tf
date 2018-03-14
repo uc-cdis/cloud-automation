@@ -17,3 +17,5 @@ variable "aws_secret_key" {
 variable "ami_account_id" {
     default = "707767160287"
 }
+
+
