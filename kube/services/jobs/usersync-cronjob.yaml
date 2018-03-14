@@ -28,6 +28,9 @@ spec:
           - name: fence
             image: quay.io/cdis/fence:master
             imagePullPolicy: Always
+            env:
+              - name: PYTHONPATH
+                value: /var/www/fence
             volumeMounts:
               - name: "config-volume"
                 readOnly: true
