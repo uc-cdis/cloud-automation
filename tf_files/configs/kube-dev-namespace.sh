@@ -8,9 +8,11 @@
 
 set -e
 
-export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
-export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
-export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
+if [[ -z "$GEN3_NOPROXY" ]]; then
+  export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
+  export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
+  export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
+fi
 
 vpc_name=${vpc_name:-$1}
 namespace=${namespace:-$2}
