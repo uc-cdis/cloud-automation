@@ -40,15 +40,13 @@ variable "elasticsearch_domain" {
   default = "commons-logs"
 }
 
-variable "aws_access_key" 
-{
-  default = ""
+# security groups for admin vms in csoc for all data commons
+variable "secgroup_adminvms" {
+ default = "sg-9f56cfe9"
 }
 
-variable "aws_secret_key" 
-{
-  default = ""
-}
+
+
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {

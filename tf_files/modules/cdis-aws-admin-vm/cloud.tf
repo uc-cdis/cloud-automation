@@ -100,84 +100,7 @@ resource "aws_iam_instance_profile" "child_role_profile" {
   role = "${aws_iam_role.child_role.id}"
 }
 
-#------------------------------
-#------------ Security Group Setup
 
-resource "aws_security_group" "ssh" {
-  name        = "ssh"
-  description = "security group that only enables ssh"
-  vpc_id      = "${var.csoc_vpc_id}"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags {
-    Environment  = "${var.child_name}"
-    Organization = "Basic Service"
-  }
-}
-
-resource "aws_security_group" "login-ssh" {
-  name        = "login-ssh"
-  description = "security group that only enables ssh from login node"
-  vpc_id      = "${var.csoc_vpc_id}"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "TCP"
-    cidr_blocks = ["10.0.0.0/32"]
-  }
-
-  tags {
-    Environment = "${var.child_name}"
-  }
-}
-
-resource "aws_security_group" "local" {
-  name        = "local"
-  description = "security group that only allow internal tcp traffics"
-  vpc_id      = "${var.csoc_vpc_id}"
-
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["10.128.0.0/20"]
-  }
-
-  egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-
-    # 54.224.0.0/12 logs.us-east-1.amazonaws.com
-    #  cidr_blocks = ["${var.vpc_cidr_octet}", "54.224.0.0/12"]
-    cidr_blocks = ["172.24.${var.vpc_cidr_octet}.0/20", "54.224.0.0/12"]
-  }
-
-  tags {
-    Environment = "${var.child_name}"
-  }
-}
-
-
-# Creating the loggroup prior the instance comes up so we can set a retention period 
-# and use it for other things if we wanted to
-resource "aws_cloudwatch_log_group" "child_log_group" {
-    name = "${var.child_name}"
-    retention_in_days = "1827"
-    tags {
-        Environment = "${var.child_name}"
-        Organization = "Basic Service"
-    }
-}
-
-#--------------------------
 
 resource "aws_instance" "login" {
   ami                    = "${aws_ami_copy.cdis_ami.id}"
@@ -185,7 +108,8 @@ resource "aws_instance" "login" {
   instance_type          = "t2.micro"
   monitoring             = true
   key_name               = "${var.ssh_key_name}"
-  vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
+  #vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
+  vpc_security_group_ids = ["${var.secgroup_adminvms}"]
   iam_instance_profile   = "${aws_iam_instance_profile.child_role_profile.name}"
 
   tags {
