@@ -38,7 +38,7 @@ refresh_file() {
     return 1
   fi
   filePath="$GEN3_WORKDIR/$fileName"
-  s3Path="s3://$GEN3_S3_BUCKET/$GEN3_VPC/$fileName"
+  s3Path="s3://$GEN3_S3_BUCKET/$GEN3_WORKSPACE/$fileName"
 
   if [[ -f "$filePath" ]]; then
     # make a backup
@@ -65,6 +65,6 @@ done
 
 echo "Running terraform init ..."
 cd "$GEN3_WORKDIR"
-terraform init --backend-config ./backend.tfvars -backend-config ./aws_backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
+terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 exit 0

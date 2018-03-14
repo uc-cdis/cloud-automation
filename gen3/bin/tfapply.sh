@@ -34,7 +34,7 @@ if $GEN3_DRY_RUN; then
   dryRunFlag="--dryrun"
 fi
 for fileName in config.tfvars backend.tfvars README.md; do
-  s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_VPC}/$fileName"
+  s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/$fileName"
   echo "Backing up $fileName to $s3Path"
   aws s3 cp $dryRunFlag --sse AES256 "$fileName" "$s3Path"
 done
