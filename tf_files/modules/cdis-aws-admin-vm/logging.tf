@@ -2,7 +2,7 @@
 # Kinesis stream logs
 
 resource "aws_s3_bucket" "child_account_bucket" {
-  bucket = "${var.child_name}"
+  bucket = "${var.child_name}_logging"
   acl    = "private"
   tags {
     Environment  = "${var.child_name}"
@@ -51,12 +51,12 @@ data "aws_iam_policy_document" "cwltok_policy_document" {
     effect    = "Allow"
     resources = ["${aws_kinesis_stream.child_stream.arn}"]
                 #["arn:aws:kinesis:${var.aws_region}:${var.csoc_account_id}:stream/${aws_kinesis_stream.child_stream.name}"]
-  }
+  },
 
   statement {
     actions = ["iam:PassRole"]
     effect    = "Allow"
-    resources = ["${aws_iam_role.cwl_to_kinesis_role.arn"]
+    resources = ["${aws_iam_role.cwl_to_kinesis_role.arn}"]
                 #["arn:aws:iam::${var.csoc_account_id}:role/${aws_iam_role.child_cwl_to_kinesis_role.name}"]
   }
 }
@@ -105,9 +105,31 @@ resource "aws_cloudwatch_log_destination_policy" "child_logs_destination_poplicy
 
 #Not sure if we need this, this should be already created and working
 # however instructions uses it and this doesn't look like it would actually create domain though
-resource "aws_elasticsearch_domain" "elasticsearch_domain" {
-  domain_name = "${var.elasticsearch_domain}"
+#resource "aws_elasticsearch_domain" "elasticsearch_domain" {
+#  domain_name = "${var.elasticsearch_domain}"
+#}
+
+
+resource "aws_iam_role" "firehose_role" {
+  name = "${var.child_name}_firehose_role"
+  path   = "/"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "firehose.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
 }
+EOF
+}
+
 data "aws_iam_policy_document" "firehose_policy_document" {
   statement {
     actions = [
@@ -117,18 +139,11 @@ data "aws_iam_policy_document" "firehose_policy_document" {
       "s3:GetObject",
       "s3:AbortMultipartUpload",
       "s3:GetBucketLocation",
-      "kinesis:GetShardIterator",
-      "kinesis:DescribeStream",
-      "kinesis:GetRecords",
-      "lambda:GetFunctionConfiguration",
-      "lambda:InvokeFunction",
       "logs:PutLogEvents"
     ]
     effect    = "Allow"
     resources = [
       "arn:aws:logs:${var.aws_region}:${var.csoc_account_id}:log-group:${var.child_name}:log-stream:*",
-      "${aws_kinesis_stream.child_stream.arn}",
-      "arn:aws:lambda:us-east-1:433568766270:function:%FIREHOSE_DEFAULT_FUNCTION%:%FIREHOSE_DEFAULT_VERSION%",
       "${aws_s3_bucket.child_account_bucket.arn}",
       "${aws_s3_bucket.child_account_bucket.arn}/*"
     ]
@@ -136,12 +151,23 @@ data "aws_iam_policy_document" "firehose_policy_document" {
 
   statement {
     actions = [
-      "firehose:PutRecordBatch",
-      "firehose:PutRecord",
+      "es:DescribeElasticsearchDomain",
+      "es:ListDomainNames",
+      "es:DescribeElasticsearchDomain",
+      "es:ESHttpPost",
+      "es:ESHttpPut",
     ]
     effect    = "Allow"
-    resources = ["*"]
+    resources = ["arn:aws:es:${var.aws_region}:${var.csoc_account_id}:domain/${var.elasticsearch_domain}"]
+#"${aws_elasticsearch_domain.elasticsearch_domain.arn}"]
   }
+}
+
+
+resource "aws_iam_role_policy" "firehose_policy" {
+  name   = "${var.child_name}_firehose_policy"
+  policy = "${data.aws_iam_policy_document.firehose_policy_document.json}"
+  role = "${aws_iam_role.firehose_role.id}"
 }
 
 
@@ -158,7 +184,8 @@ resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
   }
 
   elasticsearch_configuration {
-    domain_arn = "${aws_elasticsearch_domain.elasticsearch_domain.arn}"
+    domain_arn = "arn:aws:es:${var.aws_region}:${var.csoc_account_id}:domain/${var.elasticsearch_domain}" 
+#"${aws_elasticsearch_domain.elasticsearch_domain.arn}"
     role_arn   = "${aws_iam_role.firehose_role.arn}"
     index_name = "${var.child_name}"
     type_name  = "${var.child_name}"
@@ -170,28 +197,7 @@ resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
 ############################ Begin Lambda function  #############################
 
 
-data "aws_iam_policy_document" "lamda_policy_document" {
-  statement {
-    actions = [
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-    ]
-    effect    = "Allow"
-    resources = ["${aws_cloudwatch_log_group.child_log_group.arn}"]
-  }
-
-  statement {
-    actions = [
-      "firehose:PutRecordBatch",
-      "firehose:PutRecord",
-    ]
-    effect    = "Allow"
-    resources = ["*"]
-  }
-}
-
-
-resource "aws_iam_role" "iam_for_lambda" {
+resource "aws_iam_role" "lambda_role" {
   name = "${var.child_name}_lambda"
   assume_role_policy = <<EOF
 {
@@ -210,17 +216,76 @@ resource "aws_iam_role" "iam_for_lambda" {
 EOF
 }
 
-resource "aws_lambda_function" "logs_decodeding" {
-  filename         = "lambda_function_payload.zip"
-  function_name    = "${var.child_name}_lambda"
-  role             = "${aws_iam_role.iam_for_lambda.arn}"
-  handler          = "exports.test"
-  source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
-  runtime          = "nodejs4.3"
+data "aws_iam_policy_document" "lamda_policy_document" {
+  statement {
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+    effect    = "Allow"
+    resources = ["${aws_cloudwatch_log_group.child_log_group.arn}"]
+  }
 
+  statement {
+    actions = [
+      "kinesis:Get*",
+      "kinesis:List*",
+      "kinesis:Describe*"
+    ]
+    effect    = "Allow",
+    resources = ["${aws_kinesis_stream.child_stream.arn}"]
+  }
+
+#  statement {
+#    actions = [
+#      "ec2:CreateNetworkInterface",
+#      "ec2:DescribeNetworkInterfaces",
+#      "ec2:DeleteNetworkInterface"
+#    ]
+#    effect    = "Allow"
+#    resources = "*"
+#  }
+
+  statement {
+    actions = [
+      "firehose:PutRecordBatch",
+      "firehose:PutRecord",
+    ]
+    effect    = "Allow"
+    resources = ["${aws_kinesis_firehose_delivery_stream.firehose_to_es.arn}"]
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_policy" {
+  name = "${var.child_name}_lambda_policy"
+  policy = "${data.aws_iam_policy_document.lamda_policy_document.json}"
+  role = "${aws_iam_role.lambda_role.id}"
+}
+
+resource "aws_lambda_event_source_mapping" "event_source_mapping" {
+  batch_size        = 100
+  event_source_arn  = "${aws_kinesis_stream.child_stream.arn}"
+  enabled           = true
+  function_name     = "${aws_lambda_function.logs_decodeding.arn}"
+  starting_position = "LATEST"
+}
+
+resource "aws_lambda_function" "logs_decodeding" {
+#  filename         = "lambda_function_payload.zip"
+  filename         = "lambda_function.py"
+  function_name    = "${var.child_name}_lambda_function"
+  role             = "${aws_iam_role.lambda_role.arn}"
+  handler          = "lambda_function.handler"
+#  source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  runtime          = "python3.6"
+  timeout          = 60
+  tracing_config {
+    mode           = "PassThrough"
+  }
+  
   environment {
     variables = {
-      foo = "bar"
+      stream_name = "${var.child_name}_firehose"
     }
   }
 }

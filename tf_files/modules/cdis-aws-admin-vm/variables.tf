@@ -36,6 +36,10 @@ variable "vpc_cidr_octet" {
 }
 
 
+variable "aws_region" {
+  default = "us-east-1"
+}
+
 variable "elasticsearch_domain" {
   default = "commons-logs"
 }
