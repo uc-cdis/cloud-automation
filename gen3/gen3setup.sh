@@ -23,7 +23,9 @@ GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
 #
 gen3_workon() {
   if [[ -z "$2" ]]; then
-    echo "USAGE: workon PROFILE_NAME VPC_NAME"
+    echo "USAGE: workon PROFILE_NAME WORKSPACE_NAME"
+    echo "     WORKSPACE_NAME corresponds to commons, X_databucket, X_adminvm, ... "
+    echo "     see: gen3 help"
     return 1
   fi
   local rxalpha
