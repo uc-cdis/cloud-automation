@@ -41,6 +41,11 @@ variable "elasticsearch_domain" {
   default = "commons-logs"
 }
 
+
+variable "vpc_cidr_list" {
+    type = "list"
+}
+
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {
   default = "rarya_id_rsa"
