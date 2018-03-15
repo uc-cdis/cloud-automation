@@ -50,7 +50,7 @@ gen3_workon() {
     echo "Error: unable to determine AWS_ACCOUNT_ID via: aws sts get-caller-identity | jq -r .Account"
     export GEN3_S3_BUCKET=""
   else
-    export GEN3_S3_BUCKET="cdis-terraform-state.account-${AWS_ACCOUNT_ID}.gen3"
+    export GEN3_S3_BUCKET="cdis-state-ac${AWS_ACCOUNT_ID}-gen3"
   fi
 
   # terraform stack - based on VPC name
