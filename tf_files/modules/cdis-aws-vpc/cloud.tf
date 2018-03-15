@@ -124,6 +124,9 @@ resource "aws_subnet" "private_user" {
 }
 
 
+# The need is to keep logs for no longer than 5 years so 
+# we create the group before it is created automatically without 
+# the retention period
 resource "aws_cloudwatch_log_group" "main_log_group" {
     name = "${var.vpc_name}"
     retention_in_days = "1827"
@@ -133,9 +136,10 @@ resource "aws_cloudwatch_log_group" "main_log_group" {
     }
 }
 
+#This needs vars from other branches, so hopefully will work just fine when they are merge
 resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
     name = "${var.vpc_name}_subscription"
-    destination_arn = "arn:aws:logs:us-east-1:433568766270:destination:${var.vpc_name}"
+    destination_arn = "arn:aws:logs:${var.aws_region}:${var.csoc_account_id}:destination:${var.vpc_name}_logs_destination"
     log_group_name  = "${var.vpc_name}"
     filter_pattern  = ""
 }
