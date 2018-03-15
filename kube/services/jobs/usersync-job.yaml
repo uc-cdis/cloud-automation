@@ -3,6 +3,7 @@ kind: Job
 metadata:
   name: usersync
 spec:
+  # not yet supported - backOffLimit: 3
   template:
     spec:
       serviceAccountName: useryaml-job
