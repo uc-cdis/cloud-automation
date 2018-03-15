@@ -40,14 +40,9 @@ variable "elasticsearch_domain" {
   default = "commons-logs"
 }
 
-#variable "vpc_cidr_list" {
-#    type = "list"
-#}
-  #default = [ "10.100.100.0/24", "10.100.160.0/24", "10.100.200.0/24" ]
-  #default = []
-
-
-
+variable "vpc_cidr_list" {
+   type = "list"
+}
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {

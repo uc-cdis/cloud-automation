@@ -68,10 +68,7 @@ resource "aws_security_group" "local" {
     from_port = 0
     to_port   = 0
     protocol  = "-1"
-    #cidr_blocks = ["172.24.${var.vpc_cidr_octet}.0/20", "10.128.0.0/20", "0.0.0.0/0", "[${var.vpc_cidr_list}]"]
-    #cidr_blocks = ["0.0.0.0/0", "${var.vpc_cidr_list}"]
-    cidr_blocks = ["172.24.${var.vpc_cidr_octet}.0/20", "10.128.0.0/20", "0.0.0.0/0"]
-    #cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["10.128.0.0/20", "0.0.0.0/0", "${var.vpc_cidr_list}"]
   }
 
   tags {
@@ -159,7 +156,6 @@ resource "aws_instance" "login" {
   monitoring             = true
   key_name               = "${var.ssh_key_name}"
   vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
-  #vpc_security_group_ids = ["${var.secgroup_adminvms}"]
   iam_instance_profile   = "${aws_iam_instance_profile.child_role_profile.name}"
 
   tags {

@@ -146,6 +146,7 @@ EOM
 child_account_id=""
 child_name=""
 vpc_cidr_octet=""
+vpc_cidr_list=""
 EOM
     return 0
   fi

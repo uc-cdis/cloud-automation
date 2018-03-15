@@ -42,9 +42,9 @@ variable "elasticsearch_domain" {
 }
 
 
-#variable "vpc_cidr_list" {
- #   type = "list"
-#}
+variable "vpc_cidr_list" {
+    type = "list"
+}
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {
