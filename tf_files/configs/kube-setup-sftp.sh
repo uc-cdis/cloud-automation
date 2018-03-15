@@ -40,9 +40,9 @@ if ! kubectl get configmaps/sftp-conf > /dev/null 2>&1; then
   kubectl apply -f services/sftp/sftp-config.yaml
 fi
 
-kubectl --namespace=sftp apply -f services/sftp/sftp-deploy.yaml
+kubectl apply --namespace=sftp -f services/sftp/sftp-deploy.yaml
 
-kubectl --namespace=sftp apply -f services/sftp/sftp-service.yaml
+kubectl apply --namespace=sftp -f services/sftp/sftp-service.yaml
 
 cat <<EOM
 The sftp services has been deployed onto the k8s cluster.

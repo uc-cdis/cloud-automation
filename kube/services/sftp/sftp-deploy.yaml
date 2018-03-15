@@ -24,7 +24,13 @@ spec:
             name: sftp-conf
       containers:
       - name: sftp
-        image: atmoz/sftp
+        image: quay.io/cdis/sftp:feat_sftp
+        command: ["/bin/bash" ]
+        args: 
+          - "-c" 
+          - |
+            apt-get install crypt -y
+            exec /entrypoint
         livenessProbe:
           tcpSocket:
             port: 22
@@ -35,16 +41,16 @@ spec:
         volumeMounts:
           - name: "sftp-secret"
             readOnly: true
-            mountPath: "/home/ubuntu/dbgap-key"
+            mountPath: "/home/foo/dbgap-key"
           - name: "sftp-conf"
             readOnly: true
             mountPath: "/etc/sftp/users.conf"
             subPath: "users.conf"
           - name: "sftp-conf"
             readOnly: true
-            mountPath: "/home/ubuntu/bpa.csv"
-            subPath: "bpa.csv"
+            mountPath: "/home/foo/authentication_file_phs000178.csv"
+            subPath: "authentication_file_phs000178.csv"
           - name: "sftp-conf"
             readOnly: true
-            mountPath: "/home/ubuntu/test.csv"
-            subPath: "test.csv"
+            mountPath: "/home/foo/authentication_file_phs000179.csv"
+            subPath: "authentication_file_phs000179.csv"
