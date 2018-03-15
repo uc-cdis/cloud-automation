@@ -38,7 +38,7 @@ data:
             'name': 'volume-{username}{servername}'
         }
     ]
-    c.KubeSpawner.hub_connect_ip = 'jupyterhub-service.default'
+    c.KubeSpawner.hub_connect_ip = 'jupyterhub-service.%s' % (os.environ['POD_NAMESPACE'])
     c.KubeSpawner.hub_connect_port = 8000
     c.KubeSpawner.singleuser_image_spec = 'quay.io/occ_data/jupyternotebook:latest'
     c.KubeSpawner.cmd = 'start-singleuser.sh'

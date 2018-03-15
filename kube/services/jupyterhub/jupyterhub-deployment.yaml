@@ -3,7 +3,6 @@ kind: StatefulSet
 metadata:
   name: jupyterhub-deployment
 spec:
-  replicas: 1
   revisionHistoryLimit: 2
   serviceName: "jupyter-hub"
   template:
@@ -32,6 +31,10 @@ spec:
                 configMapKeyRef:
                   name: global
                   key: hostname
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           imagePullPolicy: Always
           resources:
             limits:
