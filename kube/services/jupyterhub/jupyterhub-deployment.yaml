@@ -1,0 +1,58 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: jupyterhub-deployment
+spec:
+  revisionHistoryLimit: 2
+  serviceName: "jupyter-hub"
+  template:
+    metadata:
+      labels:
+        app: jupyter-hub
+    spec:
+      volumes:
+        - name: config-volume
+          configMap:
+            name: jupyterhub-config
+      containers:
+        - name: jupyterhub
+          image: quay.io/occ_data/jupyterhub:master
+          command:
+            - jupyterhub
+            - --config
+            - /srv/jupyterhub/jupyterhub_config.py
+            - --log-level
+            - DEBUG
+          ports:
+            - containerPort: 8000
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: hostname
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 1.0
+              memory: 512Mi
+          volumeMounts:
+            - name: config-volume
+              readOnly: true
+              mountPath: "/srv/jupyterhub/jupyterhub_config.py"
+              subPath: "jupyterhub_config.py"
+            - name: config-stateful
+              mountPath: /etc/config
+  volumeClaimTemplates:
+    - metadata:
+        name: config-stateful
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 10Gi
+        storageClassName: jupyter-storage
