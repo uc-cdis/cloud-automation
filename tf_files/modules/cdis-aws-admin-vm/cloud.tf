@@ -69,7 +69,8 @@ resource "aws_security_group" "local" {
     to_port   = 0
     protocol  = "-1"
     #cidr_blocks = ["172.24.${var.vpc_cidr_octet}.0/20", "10.128.0.0/20", "0.0.0.0/0", "[${var.vpc_cidr_list}]"]
-    cidr_blocks = ["0.0.0.0/0", "${var.vpc_cidr_list}"]
+    #cidr_blocks = ["0.0.0.0/0", "${var.vpc_cidr_list}"]
+    cidr_blocks = ["172.24.${var.vpc_cidr_octet}.0/20", "10.128.0.0/20", "0.0.0.0/0"]
     #cidr_blocks = ["0.0.0.0/0"]
   }
 
