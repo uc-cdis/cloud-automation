@@ -2,7 +2,7 @@
 # Kinesis stream logs
 
 resource "aws_s3_bucket" "child_account_bucket" {
-  bucket = "${var.child_name}_logging"
+  bucket = "${var.child_name}-logging"
   acl    = "private"
   tags {
     Environment  = "${var.child_name}"
@@ -14,7 +14,7 @@ resource "aws_s3_bucket" "child_account_bucket" {
 ## This is all for the stream of logs that'll be send over from the child account
 
 resource "aws_kinesis_stream" "child_stream" {
-    name = "${var.child_name}"
+    name = "${var.child_name}_stream"
     shard_count = 1
     tags {
         Environment = "${var.child_name}"
@@ -123,7 +123,12 @@ resource "aws_iam_role" "firehose_role" {
       "Principal": {
         "Service": "firehose.amazonaws.com"
       },
-      "Action": "sts:AssumeRole"
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "sts:ExternalId": "${var.csoc_account_id}"
+        }
+      }
     }
   ]
 }
@@ -139,11 +144,9 @@ data "aws_iam_policy_document" "firehose_policy_document" {
       "s3:GetObject",
       "s3:AbortMultipartUpload",
       "s3:GetBucketLocation",
-      "logs:PutLogEvents"
     ]
     effect    = "Allow"
     resources = [
-      "arn:aws:logs:${var.aws_region}:${var.csoc_account_id}:log-group:${var.child_name}:log-stream:*",
       "${aws_s3_bucket.child_account_bucket.arn}",
       "${aws_s3_bucket.child_account_bucket.arn}/*"
     ]
@@ -151,15 +154,20 @@ data "aws_iam_policy_document" "firehose_policy_document" {
 
   statement {
     actions = [
-      "es:DescribeElasticsearchDomain",
-      "es:ListDomainNames",
-      "es:DescribeElasticsearchDomain",
-      "es:ESHttpPost",
-      "es:ESHttpPut",
+      "logs:*",
     ]
     effect    = "Allow"
-    resources = ["arn:aws:es:${var.aws_region}:${var.csoc_account_id}:domain/${var.elasticsearch_domain}"]
-#"${aws_elasticsearch_domain.elasticsearch_domain.arn}"]
+    resources = ["*"]
+      #"arn:aws:logs:${var.aws_region}:${var.csoc_account_id}:log-group:${var.child_name}:log-stream:*",
+  }
+
+  statement { 
+    actions   = [ 
+      "es:*",
+    ]
+    effect    = "Allow"
+#    resources = ["arn:aws:es:${var.aws_region}:${var.csoc_account_id}:domain/${var.elasticsearch_domain}"]
+    resources = ["*"]
   }
 }
 
@@ -171,8 +179,20 @@ resource "aws_iam_role_policy" "firehose_policy" {
 }
 
 
+# Need these guys cuz the firehose resource is not that smart to create it if it doesn't exist
+
+resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
+  name           = "firehose_to_ES"
+  log_group_name = "${var.child_name}"
+}
+
+resource "aws_cloudwatch_log_stream" "firehose_to_S3" {
+  name           = "firehose_to_S3"
+  log_group_name = "${var.child_name}"
+}
+
 resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
-  name        = "${var.child_name}_firehose"
+  name        = "${var.child_name}_firehose_to_es"
   destination = "elasticsearch"
 
   s3_configuration {
@@ -180,7 +200,7 @@ resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
     bucket_arn         = "${aws_s3_bucket.child_account_bucket.arn}"
     buffer_size        = 10
     buffer_interval    = 400
-    compression_format = "GZIP"
+    #compression_format = "GZIP"
   }
 
   elasticsearch_configuration {
@@ -189,7 +209,32 @@ resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
     role_arn   = "${aws_iam_role.firehose_role.arn}"
     index_name = "${var.child_name}"
     type_name  = "${var.child_name}"
+    index_rotation_period = "OneMonth"
+    cloudwatch_logging_options {
+      enabled = true
+      log_group_name = "${var.child_name}"
+      log_stream_name  = "firehose_to_ES"
+    }
   }
+}
+
+resource "aws_kinesis_firehose_delivery_stream" "firehose_to_s3" {
+  name        = "${var.child_name}_firehose_to_s3"
+  destination = "s3"
+
+  s3_configuration {
+    role_arn           = "${aws_iam_role.firehose_role.arn}"
+    bucket_arn         = "${aws_s3_bucket.child_account_bucket.arn}"
+#    buffer_size        = 10
+#    buffer_interval    = 400
+    prefix             = "forwarded_"
+    cloudwatch_logging_options {
+      enabled = true
+      log_group_name = "${var.child_name}"
+      log_stream_name  = "firehose_to_S3"
+    }
+  }
+
 }
 
 ############################ End Kinesis Firehose #############################
@@ -219,11 +264,14 @@ EOF
 data "aws_iam_policy_document" "lamda_policy_document" {
   statement {
     actions = [
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
+      "logs:*",
+#      "logs:PutLogEvents",
+#      "logs:CreateLogGroup"
     ]
     effect    = "Allow"
-    resources = ["${aws_cloudwatch_log_group.child_log_group.arn}"]
+    #resources = ["${aws_cloudwatch_log_group.child_log_group.arn}"]
+#    resources = ["arn:aws:logs:${var.aws_region}:${var.csoc_account_id}:*"]
+    resources = ["*"]
   }
 
   statement {
@@ -252,7 +300,10 @@ data "aws_iam_policy_document" "lamda_policy_document" {
       "firehose:PutRecord",
     ]
     effect    = "Allow"
-    resources = ["${aws_kinesis_firehose_delivery_stream.firehose_to_es.arn}"]
+    resources = [
+      "${aws_kinesis_firehose_delivery_stream.firehose_to_es.arn}",
+      "${aws_kinesis_firehose_delivery_stream.firehose_to_s3.arn}"
+    ]
   }
 }
 
@@ -267,16 +318,16 @@ resource "aws_lambda_event_source_mapping" "event_source_mapping" {
   event_source_arn  = "${aws_kinesis_stream.child_stream.arn}"
   enabled           = true
   function_name     = "${aws_lambda_function.logs_decodeding.arn}"
-  starting_position = "LATEST"
+  starting_position = "TRIM_HORIZON"
 }
 
 resource "aws_lambda_function" "logs_decodeding" {
-#  filename         = "lambda_function_payload.zip"
-  filename         = "lambda_function.py"
+  filename         = "lambda_function_payload.zip"
+#  filename         = "lambda_function.py"
   function_name    = "${var.child_name}_lambda_function"
   role             = "${aws_iam_role.lambda_role.arn}"
   handler          = "lambda_function.handler"
-#  source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
   runtime          = "python3.6"
   timeout          = 60
   tracing_config {

@@ -128,6 +128,7 @@ def handler(event, context):
             message_batch = [{'Data': json.dumps(x)} for x in log_event_chunk]
             if message_batch:
                 #print(message_batch)
-                client.put_record_batch(DeliveryStreamName=os.environ['stream_name'], Records=message_batch)
+                client.put_record_batch(DeliveryStreamName=os.environ['stream_name']+'_to_es', Records=message_batch)
+                client.put_record_batch(DeliveryStreamName=os.environ['stream_name']+'_to_s3', Records=message_batch)
                 #print('')
 

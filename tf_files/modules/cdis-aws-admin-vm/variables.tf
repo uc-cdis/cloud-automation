@@ -35,6 +35,9 @@ variable "vpc_cidr_octet" {
   # default = 16
 }
 
+#variable "secgroup_adminvms" {
+#  default = "sg-9f56cfe9"
+#}
 
 variable "aws_region" {
   default = "us-east-1"
