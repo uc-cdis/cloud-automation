@@ -4,7 +4,12 @@ g3kScriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
 source "${g3kScriptDir}/../gen3/lib/utils.sh"
 
 patch_kube() {
-    kubectl patch deployment $1 -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+  local depName="$1"
+  if [[ ! "$depName" =~ _deployment$ ]] && ! kubectl get deployments "$depName" > /dev/null 2>&1; then
+    # allow 'g3k roll portal' in addition to 'g3k roll portal-deployment'
+    depName="${depName}-deployment"
+  fi
+  kubectl patch deployment "$depName" -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 }
 
 # 
