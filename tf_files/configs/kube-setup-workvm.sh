@@ -16,14 +16,10 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 
 XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-vpc_name=${vpc_name:-$1}
-s3_bucket=${s3_bucket:-$2}
+vpc_name="${vpc_name:-$1}"
+s3_bucket="${s3_bucket:-$2}"
 
 if [ -z "${vpc_name}" ]; then
-   echo "Usage: bash kube-setup-workvm.sh vpc_name s3_bucket"
-   exit 1
-fi
-if [ -z "${s3_bucket}" ]; then
    echo "Usage: bash kube-setup-workvm.sh vpc_name s3_bucket"
    exit 1
 fi
