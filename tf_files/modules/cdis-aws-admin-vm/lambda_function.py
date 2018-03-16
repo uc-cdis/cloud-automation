@@ -9,7 +9,6 @@ import re
 import copy
 import os
 
-STREAM_NAME = 'somethingNew'
 MESSAGE_BATCH_MAX_COUNT = 500 #limit from firehose put_record_batch api
 
 

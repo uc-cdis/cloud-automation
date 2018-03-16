@@ -321,13 +321,24 @@ resource "aws_lambda_event_source_mapping" "event_source_mapping" {
   starting_position = "TRIM_HORIZON"
 }
 
+# Let's not use the zip file and have terarafor zip it for us on the fly
+
+data "archive_file" "lambda_function"{
+  type = "zip"
+  source_file = "lambda_function.py"
+  output_path = "lambda_function_payload.zip"
+}
+
 resource "aws_lambda_function" "logs_decodeding" {
-  filename         = "lambda_function_payload.zip"
+#  filename         = "lambda_function_payload.zip"
 #  filename         = "lambda_function.py"
+  filename         = "${data.archive_file.lambda_function.output_path}"
   function_name    = "${var.child_name}_lambda_function"
   role             = "${aws_iam_role.lambda_role.arn}"
   handler          = "lambda_function.handler"
-  source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+#  source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
+  source_code_hash = "${data.archive_file.lambda_function.output_base64sha256}"
+  description      = "Decode incoming stream"
   runtime          = "python3.6"
   timeout          = 60
   tracing_config {
