@@ -1,16 +1,22 @@
 #!/bin/bash
 
 g3kScriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
+source "${g3kScriptDir}/../gen3/lib/utils.sh"
 
 patch_kube() {
-    kubectl patch deployment $1 -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+  local depName="$1"
+  if [[ ! "$depName" =~ _deployment$ ]] && ! kubectl get deployments "$depName" > /dev/null 2>&1; then
+    # allow 'g3k roll portal' in addition to 'g3k roll portal-deployment'
+    depName="${depName}-deployment"
+  fi
+  kubectl patch deployment "$depName" -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 }
 
 # 
 # Patch replicas
 g3k_replicas() {
   if [[ -z "$1" || -z "$2" ]]; then
-    echo "g3k replicas deployment-name replica-count"
+    echo -e $(red_color "g3k replicas deployment-name replica-count")
     return 1
   fi
   kubectl patch deployment $1 -p  '{"spec":{"replicas":'$2'}}'
@@ -43,6 +49,8 @@ g3k_help() {
     joblogs JOBNAME - get logs from first result of jobpods
     pod PATTERN - grep for the first pod name matching PATTERN
     pods PATTERN - grep for all pod names matching PATTERN
+    psql SERVICE 
+       - where SERVICE is one of sheepdog, indexd, fence
     replicas DEPLOYMENT-NAME REPLICA-COUNT
     roll DEPLOYMENT-NAME
       Apply a superfulous metadata change to a deployment to trigger
@@ -51,6 +59,58 @@ g3k_help() {
      - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
     update_config CONFIGMAP-NAME YAML-FILE
 EOM
+}
+
+#
+# Open a psql connection to the specified database
+#
+# @param serviceName should be one of indexd, fence, sheepdog
+#
+g3k_psql() {
+  local serviceName=$1
+  local key="${serviceName}"
+
+  if [[ -z "$serviceName" ]]; then
+    echo -e $(red_color "g3k_psql: No serviceName specified")
+    return 1
+  fi
+  if [[ -z "$vpc_name" ]]; then
+    echo -e $(red_color "g3k_psql: vpc_name variable must be set")
+    return 1
+  fi
+  local credsPath="${HOME}/${vpc_name}_output/creds.json"
+  if [[ ! -f "$credsPath" ]]; then
+    echo -e $(red_color "g3k_psql: could not find $credsPath")
+    return 1
+  fi
+
+  case "$serviceName" in
+  "gdc")
+    key=gdcapi
+    ;;
+  "sheepdog")
+    key=gdcapi
+    ;;
+  "peregrine")
+    key=gdcapi
+    ;;
+  "indexd")
+    key=indexd
+    ;;
+  "fence")
+    key=fence
+    ;;
+  *)
+    echo -e $(red_color "Invalid service: $serviceName")
+    return 1
+    ;;
+  esac
+  local username=$(jq -r ".${key}.db_username" < $credsPath)
+  local password=$(jq -r ".${key}.db_password" < $credsPath)
+  local host=$(jq -r ".${key}.db_host" < $credsPath)
+  local database=$(jq -r ".${key}.db_database" < $credsPath)
+  
+  PGPASSWORD="$password" psql -U "$username" -h "$host" -d "$database"
 }
 
 #
@@ -109,8 +169,10 @@ g3k_joblogs(){
     echo "g3k joblogs JOB-NAME"
     return 1
   fi
+  kubectl get jobs
   podlist=$(g3k_jobpods "$jobName")
   for podname in $podlist; do
+    echo "Scanning pod: $podname"
     for container in $(kubectl get pods "$podname" -o json | jq -r '.spec.containers|map(.name)|join( " " )'); do
       echo "------------------"
       echo "kubectl logs $podname $container"
@@ -166,6 +228,9 @@ g3k() {
       ;;
     "pods")
       get_pods "$@"
+      ;;
+    "psql")
+      g3k_psql "$@"
       ;;
     "roll")
       patch_kube "$@"

@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: jupyterhub-service
+spec:
+  selector:
+    app: jupyter-hub
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      name: proxy
+  type: NodePort

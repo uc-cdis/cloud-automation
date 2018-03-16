@@ -55,7 +55,7 @@ test_workspace() {
   gen3 workon $TEST_PROFILE $TEST_WORKSPACE; because $? "Calling gen3 workon multiple times should be harmless"
   [[ $GEN3_PROFILE = $TEST_PROFILE ]]; because $? "gen3 workon sets the GEN3_PROFILE env variable: $GEN3_PROFILE"
   [[ $GEN3_WORKSPACE = $TEST_WORKSPACE ]]; because $? "gen3 workon sets the GEN3_WORKSPACE env variable: $GEN3_WORKSPACE"
-  [[ $GEN3_S3_BUCKET = "cdis-terraform-state.account-${TEST_ACCOUNT}.gen3" ]]; because $? "gen3 workon sets the GEN3_S3_BUCKET env variable: $GEN3_S3_BUCKET"
+  [[ $GEN3_S3_BUCKET = "cdis-state-ac${TEST_ACCOUNT}-gen3" || $GEN3_S3_BUCKET = "cdis-terraform-state.account-${TEST_ACCOUNT}.gen3" ]]; because $? "gen3 workon sets the GEN3_S3_BUCKET env variable: $GEN3_S3_BUCKET"
   [[ (! -z $GEN3_WORKDIR) && -d $GEN3_WORKDIR ]]; because $? "gen3 workon sets the GEN3_WORKDIR env variable, and initializes the folder: $GEN3_WORKDIR"
   [[ $(file_mode $GEN3_WORKDIR) =~ 700$ ]]; because $? "gen3 workon sets the GEN3_WORKDIR to mode 0700, because secrets are in there"
   gen3 cd && [[ $(pwd) = "$GEN3_WORKDIR" ]]; because $? "gen3 cd should take us to the workspace by default: $(pwd) =? $GEN3_WORKDIR"
@@ -113,6 +113,20 @@ test_semver() {
   semver_ge "2.0.0" "1.10.22"; because $? "2.0.0 -ge 1.10.22"
 }
 
+test_colors() {
+  expected="red red red"
+  redTest=$(red_color "$expected")
+  
+  echo -e "red test: $redTest"
+  [[ "$redTest" ==  "${RED_COLOR}${expected}${DEFAULT_COLOR}" ]]; because $? "Calling red_color returns red-escaped string: $redTest ?= $expected";
+
+  expected="green green green"
+  greenTest=$(red_color "$expected")
+  echo -e "green test: $greenTest"
+  echo "green test: $greenTest"
+  [[ "$greenTest" == "$RED_COLOR${expected}$DEFAULT_COLOR" ]]; because $? "Calling green_color returns green-escaped string: $greenTest ?= $expected";
+}
+
 test_refresh() {
   gen3 --dryrun refresh; because $? "--dryrun refresh should be harmless in test workspace"
   gen3 refresh; because $? "refresh should be harmless in test workspace"
@@ -142,6 +156,7 @@ test_tfoutput() {
 }
 
 shunit_runtest "test_semver"
+shunit_runtest "test_colors"
 shunit_runtest "test_workspace"
 shunit_runtest "test_user_workspace"
 shunit_runtest "test_snapshot_workspace"

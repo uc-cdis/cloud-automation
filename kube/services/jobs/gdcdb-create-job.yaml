@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gdcdb-create
+spec:
+  template:
+    spec:
+      # not yet supported - backOffLimit: 3
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "sheepdog-secret"
+      containers:
+        - name: sheepdog
+          image: quay.io/cdis/sheepdog:master
+          ports:
+          - containerPort: 80
+          - containerPort: 443
+          env:
+          - name: DICTIONARY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: dictionary_url
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/sheepdog/wsgi.py"
+              subPath: "wsgi.py"
+          imagePullPolicy: Always
+          command: ["/bin/bash" ]
+          args: 
+            - "-c" 
+            - |
+              eval $(PYTHONPATH=/sheepdog python 2> /dev/null <<EOM
+              from wsgi import config
+              for key in config['PSQLGRAPH']:
+                print( key + "='" + config['PSQLGRAPH'][key] + "'" )
+              EOM
+              );
+              echo datamodel_postgres_admin create-all -U "${user}" -P "${password}" -H "${host}" -D "${database}"
+              echo python /sheepdog/bin/setup_transactionlogs.py --user "${user}"  --password "${password}" --host "${host}" --database "${database}"
+      restartPolicy: Never

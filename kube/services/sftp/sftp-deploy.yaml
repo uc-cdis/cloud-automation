@@ -1,0 +1,56 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sftp-deployment
+spec:
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: sftp
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: sftp-secret
+          secret:
+            secretName: sftp-secret
+        - name: sftp-conf
+          configMap:
+            name: sftp-conf
+      containers:
+      - name: sftp
+        image: quay.io/cdis/sftp:feat_sftp
+        command: ["/bin/bash" ]
+        args: 
+          - "-c" 
+          - |
+            apt-get install crypt -y
+            exec /entrypoint
+        livenessProbe:
+          tcpSocket:
+            port: 22
+          initialDelaySeconds: 5
+          periodSeconds: 30
+        ports:
+        - containerPort: 22
+        volumeMounts:
+          - name: "sftp-secret"
+            readOnly: true
+            mountPath: "/home/foo/dbgap-key"
+          - name: "sftp-conf"
+            readOnly: true
+            mountPath: "/etc/sftp/users.conf"
+            subPath: "users.conf"
+          - name: "sftp-conf"
+            readOnly: true
+            mountPath: "/home/foo/authentication_file_phs000178.csv"
+            subPath: "authentication_file_phs000178.csv"
+          - name: "sftp-conf"
+            readOnly: true
+            mountPath: "/home/foo/authentication_file_phs000179.csv"
+            subPath: "authentication_file_phs000179.csv"

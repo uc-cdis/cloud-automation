@@ -7,20 +7,19 @@
 
 set -e
 
-export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
-export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
-export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
+if [[ -z "$GEN3_NOPROXY" ]]; then
+  export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
+  export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
+  export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
+fi
+
 export DEBIAN_FRONTEND=noninteractive
 
 XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-vpc_name=${vpc_name:-$1}
-s3_bucket=${s3_bucket:-$2}
+vpc_name="${vpc_name:-$1}"
+s3_bucket="${s3_bucket:-$2}"
 
 if [ -z "${vpc_name}" ]; then
-   echo "Usage: bash kube-setup-workvm.sh vpc_name s3_bucket"
-   exit 1
-fi
-if [ -z "${s3_bucket}" ]; then
    echo "Usage: bash kube-setup-workvm.sh vpc_name s3_bucket"
    exit 1
 fi
