@@ -50,7 +50,19 @@ gen3_workon() {
     echo "Error: unable to determine AWS_ACCOUNT_ID via: aws sts get-caller-identity | jq -r .Account"
     export GEN3_S3_BUCKET=""
   else
+    #
+    # This is the new bucket name, which we prefer if data doesn't already exist in the old bucket ...
+    #    https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html#bucketnamingrules
+    #
     export GEN3_S3_BUCKET="cdis-state-ac${AWS_ACCOUNT_ID}-gen3"
+    
+    OLD_S3_BUCKET="cdis-terraform-state.account-${AWS_ACCOUNT_ID}.gen3"
+    if (! aws s3 ls "s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1) &&
+      (aws s3 ls "s3://${OLD_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1)
+    then
+      # Use the old bucket ... 
+      export GEN3_S3_BUCKET="${OLD_S3_BUCKET}"
+    fi
   fi
 
   # terraform stack - based on VPC name
