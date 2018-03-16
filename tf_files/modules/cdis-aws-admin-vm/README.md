@@ -5,7 +5,7 @@ Admin VM in CSOC account that is associated with a particular child AWS account.
 ## 1. QuickStart
 
 ```
-gen3 workon csoc <account>
+gen3 workon csoc <commons account>
 ```
 
 ## 2. Table of Contents 
