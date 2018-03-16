@@ -169,8 +169,10 @@ g3k_joblogs(){
     echo "g3k joblogs JOB-NAME"
     return 1
   fi
+  kubectl get jobs
   podlist=$(g3k_jobpods "$jobName")
   for podname in $podlist; do
+    echo "Scanning pod: $podname"
     for container in $(kubectl get pods "$podname" -o json | jq -r '.spec.containers|map(.name)|join( " " )'); do
       echo "------------------"
       echo "kubectl logs $podname $container"
