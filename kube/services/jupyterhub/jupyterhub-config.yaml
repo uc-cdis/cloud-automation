@@ -12,6 +12,13 @@ data:
     c.JupyterHub.authenticator_class = 'jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
     #c.ConfigurableHTTPProxy.debug = True
     c.JupyterHub.log_level = 'DEBUG'
+    c.JupyterHub.services = [
+        {
+            'name': 'cull-idle',
+            'admin': True,
+            'command': 'python /usr/local/bin/cull_idle_servers.py --timeout=3600'.split(),
+        }
+    ]
     c.JupyterHub.spawner_class = 'kubespawner.KubeSpawner'
     c.KubeSpawner.namespace = 'jupyter-pods'
     c.KubeSpawner.cpu_limit = 1.0
