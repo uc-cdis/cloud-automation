@@ -107,3 +107,14 @@ if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
 fi
 EOF
 fi
+
+if ! grep 'profile gen3' ~/.aws/config > /dev/null 2>&1; then
+  mkdir -p ~/.aws
+  cat - >>~/.aws/config <<EOF
+[profile gen3]
+output = json
+region = us-east-1
+role_arn = arn:aws:iam::COMMONS-ACCOUNT-ID-HERE:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
+EOF
+fi
