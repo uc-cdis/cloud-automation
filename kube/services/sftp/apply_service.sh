@@ -8,7 +8,7 @@
 # another cert for jenkins.domain or whatever.
 #
 
-scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
+scriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
 
 export ARN=$(kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
 if [[ ! -z $ARN ]]; then
