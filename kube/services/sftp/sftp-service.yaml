@@ -18,7 +18,7 @@ spec:
       name: https
     # right now kubernete make them both https for the elb protocol, has to manually fix it after you apply this file
     - protocol: TCP 
-      port: 80 
-      targetPort: 80 
-      name: http
+      port: 22
+      targetPort: 22
+      name: sftp
   type: LoadBalancer 

@@ -25,12 +25,6 @@ spec:
       containers:
       - name: sftp
         image: quay.io/cdis/sftp:feat_sftp
-        command: ["/bin/bash" ]
-        args: 
-          - "-c" 
-          - |
-            apt-get install crypt -y
-            exec /entrypoint
         livenessProbe:
           tcpSocket:
             port: 22

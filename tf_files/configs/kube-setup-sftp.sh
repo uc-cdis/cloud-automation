@@ -28,9 +28,9 @@ cd ~/${vpc_name}_output
 python "${RENDER_CREDS}" secrets
 
 cd ~/${vpc_name}
-# Generate RSA private and public keys.
-# TODO: generalize to list of key names?
-mkdir -p sftp-keys
+
+kubectl config set-context $(kubectl config current-context) --namespace=sftp
+kubectl apply -f 00configmap.yaml
 
 if ! kubectl get secret sftp-secret > /dev/null 2>&1; then
     password=$(base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 32)
@@ -40,9 +40,9 @@ if ! kubectl get configmaps/sftp-conf > /dev/null 2>&1; then
   kubectl apply -f services/sftp/sftp-config.yaml
 fi
 
-kubectl apply --namespace=sftp -f services/sftp/sftp-deploy.yaml
+kubectl apply -f services/sftp/sftp-deploy.yaml
 
-kubectl apply --namespace=sftp -f services/sftp/sftp-service.yaml
+kubectl apply -f services/sftp/sftp-service.yaml
 
 cat <<EOM
 The sftp services has been deployed onto the k8s cluster.
