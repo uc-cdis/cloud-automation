@@ -149,19 +149,9 @@ vpc_cidr_octet=""
 EOM
     return 0
   fi
+  
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
-    # rds snapshot vpc is simpler ...
-    cat - <<EOM
-bucket_name="${GEN3_WORKSPACE}.gen3"
-environment="$(echo "$GEN3_WORKSPACE" | sed 's/_databucket$//')"
-EOM
-    return 0
-  fi
-
-  # else ...
-  if [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
-    # rds snapshot vpc is simpler ...
     cat - <<EOM
 bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/[_\.]/-/g')-gen3"
 environment="$(echo "$GEN3_WORKSPACE" | sed 's/_databucket$//')"
