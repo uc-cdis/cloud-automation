@@ -14,7 +14,7 @@ if [ ! -f "${RENDER_CREDS}" ]; then
   echo "ERROR: ${RENDER_CREDS} does not exist"
 fi
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE:-$0}" )" && pwd )"
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-sftp.sh vpc_name"
@@ -41,7 +41,6 @@ if ! kubectl get configmaps/sftp-conf > /dev/null 2>&1; then
 fi
 
 kubectl apply -f services/sftp/sftp-deploy.yaml
-
 kubectl apply -f services/sftp/sftp-service.yaml
 
 cat <<EOM
