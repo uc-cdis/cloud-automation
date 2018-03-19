@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "log_bucket" {
-  bucket = "s3logs-${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  bucket = "s3logs-${local.clean_bucket_name}"
   acl    = "log-delivery-write"
 
   server_side_encryption_configuration {
@@ -11,7 +11,7 @@ resource "aws_s3_bucket" "log_bucket" {
   }
 
   tags {
-    Name        = "s3logs-${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+    Name        = "s3logs-${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "logs bucket"
   }
@@ -20,7 +20,7 @@ resource "aws_s3_bucket" "log_bucket" {
 #-------------------------
 
 resource "aws_s3_bucket" "mybucket" {
-  bucket = "${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  bucket = "${local.clean_bucket_name}"
   acl    = "private"
 
   server_side_encryption_configuration {
@@ -33,18 +33,18 @@ resource "aws_s3_bucket" "mybucket" {
 
   logging {
     target_bucket = "${aws_s3_bucket.log_bucket.id}"
-    target_prefix = "log/${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+    target_prefix = "log/${local.clean_bucket_name}"
   }
 
   tags {
-    Name        = "${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+    Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "data bucket"
   }
 }
 
 resource "aws_iam_role" "mybucket_reader" {
-  name = "bucket_reader_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name = "bucket_reader_${local.clean_bucket_name}"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -77,8 +77,8 @@ data "aws_iam_policy_document" "mybucket_reader" {
 }
 
 resource "aws_iam_policy" "mybucket_reader" {
-  name        = "bucket_reader_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
-  description = "Read ${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name        = "bucket_reader_${local.clean_bucket_name}"
+  description = "Read ${local.clean_bucket_name}"
   policy      = "${data.aws_iam_policy_document.mybucket_reader.json}"
 }
 
@@ -88,20 +88,20 @@ resource "aws_iam_role_policy_attachment" "mybucket_reader" {
 }
 
 #resource "aws_iam_role_policy" "mybucket_reader" {
-#  name   = "bucket_reader_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+#  name   = "bucket_reader_${local.clean_bucket_name}"
 #  policy = "${data.aws_iam_policy_document.mybucket_reader.json}"
 #  role   = "${aws_iam_role.mybucket_reader.id}"
 #}
 
 resource "aws_iam_instance_profile" "mybucket_reader" {
-  name = "bucket_reader_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name = "bucket_reader_${local.clean_bucket_name}"
   role = "${aws_iam_role.mybucket_reader.id}"
 }
 
 #----------------------
 
 resource "aws_iam_role" "mybucket_writer" {
-  name = "bucket_writer_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name = "bucket_writer_${local.clean_bucket_name}"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -146,8 +146,8 @@ data "aws_iam_policy_document" "mybucket_writer" {
 }
 
 resource "aws_iam_policy" "mybucket_writer" {
-  name        = "bucket_writer_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
-  description = "Read or write ${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name        = "bucket_writer_${local.clean_bucket_name}"
+  description = "Read or write ${local.clean_bucket_name}"
   policy      = "${data.aws_iam_policy_document.mybucket_writer.json}"
 }
 
@@ -157,12 +157,12 @@ resource "aws_iam_role_policy_attachment" "mybucket_writer" {
 }
 
 #resource "aws_iam_role_policy" "mybucket_writer" {
-#  name   = "bucket_writer_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+#  name   = "bucket_writer_${local.clean_bucket_name}"
 #  policy = "${data.aws_iam_policy_document.mybucket_writer.json}"
 #  role   = "${aws_iam_role.mybucket_writer.id}"
 #}
 
 resource "aws_iam_instance_profile" "mybucket_writer" {
-  name = "bucket_writer_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name = "bucket_writer_${local.clean_bucket_name}"
   role = "${aws_iam_role.mybucket_writer.id}"
 }
