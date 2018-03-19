@@ -202,6 +202,7 @@ resource "aws_cloudwatch_log_group" "csoc_log_group" {
     Environment = "${var.child_name}"
     Organization = "Basic Services"
   }
+  retention_in_days = 1827
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
@@ -212,7 +213,6 @@ resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
 resource "aws_cloudwatch_log_stream" "firehose_to_S3" {
   name           = "firehose_to_S3"
   log_group_name = "${aws_cloudwatch_log_group.csoc_log_group.name}"
-#  log_group_name = "${var.child_name}"
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
