@@ -19,3 +19,7 @@ variable "csoc_account_id" {
 variable "csoc_cidr" {
   default = "10.128.0.0/20"
 }
+
+variable "csoc_vpc_id" {
+  default = "vpc-e2b51d99"
+}

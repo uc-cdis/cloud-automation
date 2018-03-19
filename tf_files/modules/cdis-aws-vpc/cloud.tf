@@ -43,6 +43,11 @@ resource "aws_route_table" "public" {
         cidr_block = "0.0.0.0/0"
         gateway_id = "${aws_internet_gateway.gw.id}"
     }
+     route { 
+        #from the commons vpc to the csoc vpc via the peering connection
+        cidr_block = "${var.csoc_cidr}"
+        vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
+    }
 
     tags {
         Name = "main"
@@ -75,6 +80,11 @@ resource "aws_route_table" "private_user" {
         # cloudwatch logs route
         cidr_block = "54.224.0.0/12"
         nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
+    }
+    route { 
+        #from the commons vpc to the csoc vpc via the peering connection
+        cidr_block = "${var.csoc_cidr}"
+        vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
     }
     tags {
         Name = "private_user"
@@ -144,7 +154,7 @@ resource "aws_ami_copy" "login_ami" {
   encrypted = true
 
   tags {
-    Name = "login"
+    Name = "login-${var.vpc_name}"
   }
   lifecycle {
       #
@@ -164,7 +174,7 @@ resource "aws_ami_copy" "squid_ami" {
   encrypted = true
 
   tags {
-    Name = "login"
+    Name = "squid-${var.vpc_name}"
   }
   lifecycle {
       #
@@ -302,3 +312,16 @@ resource "aws_route53_record" "squid" {
     ttl = "300"
     records = ["${aws_instance.proxy.private_ip}"]
 }
+
+# this is for vpc peering
+resource "aws_vpc_peering_connection" "vpcpeering" {
+  peer_owner_id = "${var.csoc_account_id}"
+  peer_vpc_id   = "${var.csoc_vpc_id}"
+  vpc_id        = "${aws_vpc.main.id}"
+  auto_accept   = true
+
+  tags {
+    Name = "VPC Peering between ${var.vpc_name} and csoc_main_vpc"
+  }
+}
+

@@ -67,6 +67,8 @@ Enter (and initialize if necessary) a local workspace for working with the works
 under the *aws-profile-name* profile in `~/.aws/credentials`.
 This is a prerequisite for most other gen3 commands.
 
+The gen3 tools store commons related data (including secrets) locally under *$XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_WORKSPACE_NAME* -
+
 #### workspace types
 
 The type of workspace setup depends upon the workspace name.  The following

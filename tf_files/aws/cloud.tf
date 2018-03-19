@@ -54,6 +54,12 @@ resource "aws_route_table" "private_kube" {
     nat_gateway_id = "${module.cdis_vpc.nat_gw_id}"
   }
 
+  route {
+    #from the commons vpc to the csoc vpc via the peering connection
+    cidr_block                = "${var.csoc_cidr}"
+    vpc_peering_connection_id = "${module.cdis_vpc.vpc_peering_id}"
+  }
+
   tags {
     Name         = "private_kube"
     Environment  = "${var.vpc_name}"

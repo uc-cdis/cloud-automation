@@ -1,6 +1,6 @@
 #!/bin/bash
 
-g3kScriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
+g3kScriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
 source "${g3kScriptDir}/../gen3/lib/utils.sh"
 
 patch_kube() {
