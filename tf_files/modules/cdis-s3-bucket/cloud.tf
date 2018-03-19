@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "log_bucket" {
-  bucket = "s3logs.${var.bucket_name}"
+  bucket = "s3logs-${local.clean_bucket_name}"
   acl    = "log-delivery-write"
 
   server_side_encryption_configuration {
@@ -11,7 +11,7 @@ resource "aws_s3_bucket" "log_bucket" {
   }
 
   tags {
-    Name        = "s3logs.${var.bucket_name}"
+    Name        = "s3logs-${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "logs bucket"
   }
@@ -20,7 +20,7 @@ resource "aws_s3_bucket" "log_bucket" {
 #-------------------------
 
 resource "aws_s3_bucket" "mybucket" {
-  bucket = "${var.bucket_name}"
+  bucket = "${local.clean_bucket_name}"
   acl    = "private"
 
   server_side_encryption_configuration {
@@ -33,18 +33,18 @@ resource "aws_s3_bucket" "mybucket" {
 
   logging {
     target_bucket = "${aws_s3_bucket.log_bucket.id}"
-    target_prefix = "log/${var.bucket_name}"
+    target_prefix = "log/${local.clean_bucket_name}"
   }
 
   tags {
-    Name        = "${var.bucket_name}"
+    Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "data bucket"
   }
 }
 
 resource "aws_iam_role" "mybucket_reader" {
-  name = "bucket_reader_${var.bucket_name}"
+  name = "bucket_reader_${local.clean_bucket_name}"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -76,21 +76,32 @@ data "aws_iam_policy_document" "mybucket_reader" {
   }
 }
 
-resource "aws_iam_role_policy" "mybucket_reader" {
-  name   = "bucket_reader_${var.bucket_name}"
-  policy = "${data.aws_iam_policy_document.mybucket_reader.json}"
-  role   = "${aws_iam_role.mybucket_reader.id}"
+resource "aws_iam_policy" "mybucket_reader" {
+  name        = "bucket_reader_${local.clean_bucket_name}"
+  description = "Read ${local.clean_bucket_name}"
+  policy      = "${data.aws_iam_policy_document.mybucket_reader.json}"
 }
 
+resource "aws_iam_role_policy_attachment" "mybucket_reader" {
+  role       = "${aws_iam_role.mybucket_reader.name}"
+  policy_arn = "${aws_iam_policy.mybucket_reader.arn}"
+}
+
+#resource "aws_iam_role_policy" "mybucket_reader" {
+#  name   = "bucket_reader_${local.clean_bucket_name}"
+#  policy = "${data.aws_iam_policy_document.mybucket_reader.json}"
+#  role   = "${aws_iam_role.mybucket_reader.id}"
+#}
+
 resource "aws_iam_instance_profile" "mybucket_reader" {
-  name = "bucket_reader_${var.bucket_name}"
+  name = "bucket_reader_${local.clean_bucket_name}"
   role = "${aws_iam_role.mybucket_reader.id}"
 }
 
 #----------------------
 
 resource "aws_iam_role" "mybucket_writer" {
-  name = "bucket_writer_${var.bucket_name}"
+  name = "bucket_writer_${local.clean_bucket_name}"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -134,13 +145,24 @@ data "aws_iam_policy_document" "mybucket_writer" {
   }
 }
 
-resource "aws_iam_role_policy" "mybucket_writer" {
-  name   = "bucket_writer_${var.bucket_name}"
-  policy = "${data.aws_iam_policy_document.mybucket_writer.json}"
-  role   = "${aws_iam_role.mybucket_writer.id}"
+resource "aws_iam_policy" "mybucket_writer" {
+  name        = "bucket_writer_${local.clean_bucket_name}"
+  description = "Read or write ${local.clean_bucket_name}"
+  policy      = "${data.aws_iam_policy_document.mybucket_writer.json}"
 }
 
+resource "aws_iam_role_policy_attachment" "mybucket_writer" {
+  role       = "${aws_iam_role.mybucket_writer.name}"
+  policy_arn = "${aws_iam_policy.mybucket_writer.arn}"
+}
+
+#resource "aws_iam_role_policy" "mybucket_writer" {
+#  name   = "bucket_writer_${local.clean_bucket_name}"
+#  policy = "${data.aws_iam_policy_document.mybucket_writer.json}"
+#  role   = "${aws_iam_role.mybucket_writer.id}"
+#}
+
 resource "aws_iam_instance_profile" "mybucket_writer" {
-  name = "bucket_writer_${var.bucket_name}"
+  name = "bucket_writer_${local.clean_bucket_name}"
   role = "${aws_iam_role.mybucket_writer.id}"
 }

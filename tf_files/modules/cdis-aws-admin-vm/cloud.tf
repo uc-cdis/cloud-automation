@@ -31,7 +31,6 @@ resource "aws_ami_copy" "cdis_ami" {
   }
 }
 
-
 # Security group to access peered networks from the csoc admin VM
 
 resource "aws_security_group" "ssh" {
@@ -65,9 +64,9 @@ resource "aws_security_group" "local" {
   }
 
   egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["10.128.0.0/20", "0.0.0.0/0", "${var.vpc_cidr_list}"]
   }
 
@@ -75,8 +74,6 @@ resource "aws_security_group" "local" {
     Environment = "${var.child_name}"
   }
 }
-
-
 
 #------- IAM setup ---------------------
 
@@ -147,8 +144,6 @@ resource "aws_iam_instance_profile" "child_role_profile" {
   role = "${aws_iam_role.child_role.id}"
 }
 
-
-
 resource "aws_instance" "login" {
   ami                    = "${aws_ami_copy.cdis_ami.id}"
   subnet_id              = "${var.csoc_subnet_id}"
@@ -156,7 +151,9 @@ resource "aws_instance" "login" {
   monitoring             = true
   key_name               = "${var.ssh_key_name}"
   vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
-  iam_instance_profile   = "${aws_iam_instance_profile.child_role_profile.name}"
+
+  #vpc_security_group_ids = ["${var.secgroup_adminvms}"]
+  iam_instance_profile = "${aws_iam_instance_profile.child_role_profile.name}"
 
   tags {
     Name        = "${var.child_name}_admin"
@@ -207,6 +204,4 @@ EOF
 #  records = ["${aws_instance.proxy.private_ip}"]
 #}
 #
-
-
 

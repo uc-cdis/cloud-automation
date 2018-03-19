@@ -143,28 +143,17 @@ EOM
     # rds snapshot vpc is simpler ...
     commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
     cat - <<EOM
-child_account_id=""
-child_name=""
-vpc_cidr_octet=""
-vpc_cidr_list=""
+child_account_id="ACCOUNT-ID"
+child_name="NAME FOR TAGGING"
+vpc_cidr_list=[ "CIDR1", "CIDR2"]
 EOM
     return 0
   fi
+  
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
-    # rds snapshot vpc is simpler ...
     cat - <<EOM
-bucket_name="${GEN3_WORKSPACE}.gen3"
-environment="$(echo "$GEN3_WORKSPACE" | sed 's/_databucket$//')"
-EOM
-    return 0
-  fi
-
-  # else ...
-  if [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
-    # rds snapshot vpc is simpler ...
-    cat - <<EOM
-bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/_/-/g').gen3"
+bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/[_\.]/-/g')-gen3"
 environment="$(echo "$GEN3_WORKSPACE" | sed 's/_databucket$//')"
 EOM
     return 0

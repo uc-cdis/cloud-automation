@@ -147,7 +147,7 @@ The tasks performed include:
        * assumes ~/.ssh/id_rsa.pub
           is the user a good key to access the bastion host
 * fi
-* setup the *cdis-terraform-state.profile-name.gen3* S3 bucket if necessary
+* setup the *cdis-state-ac{ACCOUNTID}-gen3* S3 bucket if necessary
 * run `terraform init` if necessary
    
 ### gen3 status
@@ -160,7 +160,7 @@ GEN3_PROFILE=cdistest
 GEN3_WORKSPACE=planxplanetv1
 GEN3_WORKDIR=/home/reuben/.local/share/gen3/cdistest/planxplanetv1
 GEN3_HOME=/home/reuben/Code/PlanX/cloud-automation
-GEN3_S3_BUCKET=cdis-terraform-state.cdistest.gen3
+GEN3_S3_BUCKET=cdis-state-ac23212121-gen3
 AWS_PROFILE=cdistest
 ```
 
@@ -268,7 +268,7 @@ Here is one strategy for migration:
 
 This will create a local workspace with config.tfvars and backend.tfvars
 files generated from a template that auto-generates new passwords, etc.
-It will also auto-create the GEN3_S3_BUCKET (defaults to cdis-terraform-state.profile-name.gen3)
+It will also auto-create the GEN3_S3_BUCKET (defaults to cdis-state-ac{ACCOUNTID}-gen3)
 S3 bucket if it does not yet exist.
 
 * `gen3 cd`
@@ -285,7 +285,7 @@ The tfapply will automatically backup the local config.tfvars, backend.tfvars, a
 * Optionally - update backend.tfvars, so that terraform stores its S3 state in the same folder as config.tfvars, then run `terraform init` to move the state, and gen3 tfplan; gen3 tfapply; to sync everything up with s3 - ex:
 ```
 $ cat backend.tfvars 
-bucket = "cdis-terraform-state.cdistest.gen3"
+bucket = "cdis-state-ac3333-gen3"
 encrypt = "true"
 key = "gen3test"
 region = "us-east-1"

@@ -11,7 +11,6 @@ module "admin_vm" {
   source           = "../modules/cdis-aws-admin-vm"
   child_account_id = "${var.child_account_id}"
   child_name       = "${var.child_name}"
-  vpc_cidr_octet   = "${var.vpc_cidr_octet}"
   vpc_cidr_list    = "${var.vpc_cidr_list}"
   csoc_account_id  = "${var.csoc_account_id}"
   csoc_vpc_id      = "${var.csoc_vpc_id}"

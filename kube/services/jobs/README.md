@@ -8,6 +8,23 @@ The `cloud-automation/tf_files/configs/kube-setup-roles.sh` scripts sets up the 
 required by these jobs.  It runs automatically as part of the `kube-services` script that
 boots up a commons, but may need to be run manually to setup existing commons to run jobs.
 
+## gdcb-create-job
+
+Initialize the `gdcdb` database used by that backs the sheepdog and peregrine services.
+
+## graph-create-job
+
+Update the `gdcb` database (backing the sheepdog and peregrine services) to incorporate
+changes needed after updating the commons' dictionary.  The usual workflow is:
+```
+update ~/{VPC_NAME}/00configmap.yaml with the new dictionary URL
+kubectl apply -f ~/{VPC_NAME}/00configmap.yaml
+g3k runjob graph-create
+g3k joblogs graph-create
+g3k roll sheepdog-deployment
+g3k roll peregrine-deployment
+```
+
 ## usersync-cronjob
 
 Periodically syncs a user.yaml file from a specified S3 buket into the k8s `fence` configmap,

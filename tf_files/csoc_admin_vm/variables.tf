@@ -32,18 +32,12 @@ variable "child_name" {
   # name of child account - ex: kidsfirst, cdistest  #default = "cdistest"
 }
 
-variable "vpc_cidr_octet" {
-  # cidr_block = "172.24.${var.vpc_octet + 0}.0/24"
-  #default = 16
-}
-
 variable "elasticsearch_domain" {
   default = "commons-logs"
 }
 
-
 variable "vpc_cidr_list" {
-    type = "list"
+  type = "list"
 }
 
 # name of aws_key_pair ssh key to attach to VM's

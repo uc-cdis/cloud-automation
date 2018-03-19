@@ -18,30 +18,30 @@ variable "csoc_subnet_id" {
 
 variable "child_account_id" {
   # default = "707767160287"
-
 }
 
 variable "child_name" {
-  # name of child account - ex: kidsfirst, cdistest
- # default = "cdistest"
+  # name of child account - ex: kidsfirst, cdistest  # default = "cdistest"
 }
 
 variable "child_account_region" {
   default = "us-east-1"
 }
 
-variable "vpc_cidr_octet" {
-  # cidr_block = "172.24.${var.vpc_octet + 0}.0/24"
-  # default = 16
-}
+#variable "secgroup_adminvms" {
+#  default = "sg-9f56cfe9"
+#}
 
+variable "aws_region" {
+  default = "us-east-1"
+}
 
 variable "elasticsearch_domain" {
   default = "commons-logs"
 }
 
 variable "vpc_cidr_list" {
-   type = "list"
+  type = "list"
 }
 
 # name of aws_key_pair ssh key to attach to VM's

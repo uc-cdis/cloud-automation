@@ -3,6 +3,7 @@ kind: Job
 metadata:
   name: useryaml
 spec:
+  # not yet supported - backOffLimit: 3
   template:
     spec:
       serviceAccountName: useryaml-job
@@ -23,6 +24,9 @@ spec:
       - name: fence
         image: quay.io/cdis/fence:master
         imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
         volumeMounts:
           - name: "config-volume"
             readOnly: true
