@@ -9,6 +9,13 @@ resource "aws_s3_bucket" "child_account_bucket" {
     Environment  = "${var.child_name}"
     Organization = "Basic Service"
   }
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
 }
 
 ############################ Start Kinesis Stream and destination #################
@@ -187,16 +194,25 @@ resource "aws_iam_role_policy" "firehose_policy" {
   role   = "${aws_iam_role.firehose_role.id}"
 }
 
-# Need these guys cuz the firehose resource is not that smart to create it if it doesn't exist
+# Need these guys because the firehose resource is not that smart to create it if it doesn't exist
+
+resource "aws_cloudwatch_log_group" "csoc_log_group" {
+  name = "${var.child_name}"
+  tags {
+    Environment = "${var.child_name}"
+    Organization = "Basic Services"
+  }
+}
 
 resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
   name           = "firehose_to_ES"
-  log_group_name = "${var.child_name}"
+  log_group_name = "${aws_cloudwatch_log_group.csoc_log_group.name}"
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_to_S3" {
   name           = "firehose_to_S3"
-  log_group_name = "${var.child_name}"
+  log_group_name = "${aws_cloudwatch_log_group.csoc_log_group.name}"
+#  log_group_name = "${var.child_name}"
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
