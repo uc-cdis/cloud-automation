@@ -40,4 +40,5 @@ spec:
               EOM
               );
               echo datamodel_postgres_admin graph-create -U "${user}" -P "${password}" -H "${host}" -D "${database}"
+              datamodel_postgres_admin graph-create -U "${user}" -P "${password}" -H "${host}" -D "${database}"
       restartPolicy: Never
