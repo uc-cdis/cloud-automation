@@ -149,7 +149,8 @@ data:
       	# Proxy Settings
       	##
       	server {
-      		listen 80 proxy_protocol;
+                listen 81 proxy_protocol;
+                listen 80;
       		server_tokens off;
       		add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
       		add_header X-Frame-Options "SAMEORIGIN";

@@ -2,19 +2,12 @@ kind: Service
 apiVersion: v1
 metadata:
   name: revproxy-service
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: ssl
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: $ARN 
-    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
-    # supported in k8s 1.9
-    service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: "ELBSecurityPolicy-TLS-1-2-2017-01"
 spec:
   selector:
     app: revproxy
   ports:
-    - protocol: TCP 
-      port: 443 
-      targetPort: 80 
-      name: https
-  type: LoadBalancer 
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: http
+  type: NodePort
