@@ -88,6 +88,9 @@ oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/${vpc_name}_output/cred
 newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-1]*/$namespace/")
 sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}_output/creds.json
 sed -i.bak "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/${vpc_name}/00configmap.yaml
+if [[ -f /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json ]]
+  sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json
+fi
 
 # setup ~/.bashrc
 if ! grep kubes.sh /home/${namespace}/.bashrc > /dev/null 2>&1; then
