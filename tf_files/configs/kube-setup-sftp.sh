@@ -1,20 +1,22 @@
 #!/bin/bash
 #
-# Deploy fence into existing commons - assume configs are already configured
-# for fence to re-use the userapi db.
-# This fragment is pasted into kube-services.sh by kube.tf.
+# Deploy sftp service into a commons
+# this sftp server setup dummy users and files for dev/test purpose
 #
 
 set -e
+# get current context and namespace
+export kcontext=$(kubectl config current-context)
+export kns=$(kubectl config view current -o jsonpath="{.contexts[?(@.name==\"$kcontext\")].context.namespace}")
 
 export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
 export RENDER_CREDS="${G3AUTOHOME}/tf_files/configs/render_creds.py"
+
 
 if [ ! -f "${RENDER_CREDS}" ]; then
   echo "ERROR: ${RENDER_CREDS} does not exist"
 fi
 
-DIR="$( cd "$( dirname "${BASH_SOURCE:-$0}" )" && pwd )"
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-sftp.sh vpc_name"
@@ -46,3 +48,10 @@ kubectl apply -f services/sftp/sftp-service.yaml
 cat <<EOM
 The sftp services has been deployed onto the k8s cluster.
 EOM
+kubectl get services -o wide
+
+function switch_back_namespace {
+  kubectl config set-context $(kubectl config current-context) --namespace=$kns
+}
+
+trap switch_back_namespace EXIT

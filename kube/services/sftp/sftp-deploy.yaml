@@ -24,7 +24,7 @@ spec:
             name: sftp-conf
       containers:
       - name: sftp
-        image: quay.io/cdis/sftp
+        image: quay.io/cdis/sftp:master
         command: ["/bin/bash", "-c"]
         args: ["cd /home/foo; for i in *.csv; do crypt $(cat dbgap-key) <$i >${i}.enc; done; /entrypoint"]
         livenessProbe:
