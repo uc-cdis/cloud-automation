@@ -67,7 +67,7 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.128.0.0/20", "0.0.0.0/0", "${var.vpc_cidr_list}"]
+    cidr_blocks = ["10.128.0.0/20", "54.224.0.0/12","${var.vpc_cidr_list}"]
   }
 
   tags {
@@ -144,6 +144,7 @@ resource "aws_iam_instance_profile" "child_role_profile" {
   role = "${aws_iam_role.child_role.id}"
 }
 
+
 resource "aws_instance" "login" {
   ami                    = "${aws_ami_copy.cdis_ami.id}"
   subnet_id              = "${var.csoc_subnet_id}"
@@ -175,7 +176,7 @@ datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog
 log_stream_name = login_node-syslog-{hostname}-{instance_id}
 time_zone = LOCAL
-log_group_name = ${var.child_name}
+log_group_name = ${aws_cloudwatch_log_group.csoc_log_group.name}
 EOM
 
 chmod 755 /etc/init.d/awslogs
