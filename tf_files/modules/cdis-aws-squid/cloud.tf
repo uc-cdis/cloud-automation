@@ -3,7 +3,7 @@ resource "aws_cloudwatch_log_group" "squid_log_group" {
   retention_in_days = 1827
 
   tags {
-    Environment = "$var.environment_name"
+    Environment = "${var.environment_name}"
   }
 }
 
@@ -126,6 +126,19 @@ resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
 resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
   name = "${var.environment_name}_cluster_logging_cloudwatch"
   role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+}
+
+
+# assigning elastic ip to the squid proxy
+
+resource "aws_eip" "squid" {
+  vpc = true
+}
+
+
+resource "aws_eip_association" "squid_eip" {
+    instance_id = "${aws_instance.proxy.id}"
+    allocation_id = "${aws_eip.squid.id}"
 }
 
 resource "aws_instance" "proxy" {
