@@ -149,6 +149,15 @@ vpc_cidr_list=[ "CIDR1", "CIDR2"]
 EOM
     return 0
   fi
+
+    # else
+  if [[ "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
+    # rds snapshot vpc is simpler ...
+    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
+    cat - <<EOM
+EOM
+    return 0
+  fi
   
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
@@ -272,7 +281,7 @@ echo "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_F
 terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 # Generate some k8s helper scripts for on-prem deployments
-if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
+if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ || "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
   mkdir -p -m 0700 onprem_scripts
   cat - "$GEN3_HOME/tf_files/configs/kube-services-body.sh" > onprem_scripts/kube-services.sh <<EOM
 #!/bin/bash

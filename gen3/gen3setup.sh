@@ -75,6 +75,8 @@ gen3_workon() {
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_admin_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_data_bucket"
+  elif [[ "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_squid_vm"
   fi
 
   PS1="gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
