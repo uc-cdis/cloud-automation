@@ -24,13 +24,9 @@ spec:
             name: sftp-conf
       containers:
       - name: sftp
-        image: quay.io/cdis/sftp:feat_sftp
-        command: ["/bin/bash" ]
-        args: 
-          - "-c" 
-          - |
-            apt-get install crypt -y
-            exec /entrypoint
+        image: quay.io/cdis/sftp:master
+        command: ["/bin/bash", "-c"]
+        args: ["cd /home/foo; for i in *.csv; do crypt $(cat dbgap-key) <$i >${i}.enc; done; /entrypoint"]
         livenessProbe:
           tcpSocket:
             port: 22
@@ -42,6 +38,7 @@ spec:
           - name: "sftp-secret"
             readOnly: true
             mountPath: "/home/foo/dbgap-key"
+            subPath: "dbgap-key"
           - name: "sftp-conf"
             readOnly: true
             mountPath: "/etc/sftp/users.conf"
