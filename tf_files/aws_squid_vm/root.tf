@@ -10,10 +10,10 @@ module "squid_vm" {
   ami_account_id   = "${var.ami_account_id}"
   source           = "../modules/cdis-aws-squid"
   ssh_key_name     = "${var.ssh_key_name}"
-  environment_name = "${var.environment_name}"
-  csoc_vpc_id      = "${var.csoc_vpc_id}"
-  csoc_cidr        = "${var.csoc_cidr}"
-  public_subnet_id = "${var.public_subnet_id}"
+  env_vpc_name     = "${var.env_vpc_name}"
+  env_vpc_id       = "${var.env_vpc_id}"
+  env_vpc_cidr        = "${var.env_vpc_cidr}"
+  env_public_subnet_id = "${var.env_public_subnet_id}"
 
   # put other variables here ...
 }

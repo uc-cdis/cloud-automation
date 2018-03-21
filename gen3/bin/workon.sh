@@ -155,6 +155,10 @@ EOM
     # rds snapshot vpc is simpler ...
     commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
     cat - <<EOM
+  env_vpc_name         = "VPC-NAME"
+  env_vpc_id           = "VPC-ID"
+  env_vpc_cidr         = "VPC-CIDR"
+  env_public_subnet_id = "VPC-PUBLIC-SUBNET"
 EOM
     return 0
   fi

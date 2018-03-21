@@ -1,21 +1,21 @@
 resource "aws_cloudwatch_log_group" "squid_log_group" {
-  name              = "master_squid"
+  name              = "${var.env_vpc_name}_master_squid"
   retention_in_days = 1827
 
   tags {
-    Environment = "${var.environment_name}"
+    Environment = "${var.env_vpc_name}"
   }
 }
 
 resource "aws_ami_copy" "squid_ami" {
-  name              = "ub16-squid-crypt-${var.environment_name}-1.0.2"
+  name              = "ub16-squid-crypt-${var.env_vpc_name}-1.0.2"
   description       = "A copy of ubuntu16-squid-1.0.2"
   source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
   source_ami_region = "us-east-1"
   encrypted         = true
 
   tags {
-    Name = "squid-${var.environment_name}"
+    Name = "squid-${var.env_vpc_name}"
   }
 
   lifecycle {
@@ -42,45 +42,45 @@ data "aws_ami" "public_squid_ami" {
 # Security groups for the CSOC squid proxy
 
 resource "aws_security_group" "login-ssh" {
-  name        = "csoc-squid-login-ssh"
+  name        = "${var.env_vpc_name}-squid-login-ssh"
   description = "security group that only enables ssh from login node"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = "${var.env_vpc_id}"
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${var.csoc_cidr}"]
+    cidr_blocks = ["${var.env_vpc_cidr}"]
   }
 
   tags {
-    Environment  = "${var.environment_name}"
+    Environment  = "${var.env_vpc_name}"
     Organization = "Basic Service"
   }
 }
 
 resource "aws_security_group" "proxy" {
-  name        = "csoc-squid-proxy"
+  name        = "${var.env_vpc_name}-squid-proxy"
   description = "allow inbound tcp at 3128"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = "${var.env_vpc_id}"
 
   ingress {
     from_port   = 0
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["${var.csoc_cidr}"]
+    cidr_blocks = ["${var.env_vpc_cidr}"]
   }
 
   tags {
-    Environment  = "${var.environment_name}"
+    Environment  = "${var.env_vpc_name}"
     Organization = "Basic Service"
   }
 }
 
 resource "aws_security_group" "out" {
-  name        = "csoc-squid-out"
+  name        = "${var.env_vpc_name}-squid-out"
   description = "security group that allow outbound traffics"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = "${var.env_vpc_id}"
 
   egress {
     from_port   = 0
@@ -90,14 +90,14 @@ resource "aws_security_group" "out" {
   }
 
   tags {
-    Environment  = "${var.environment_name}"
+    Environment  = "${var.env_vpc_name}"
     Organization = "Basic Service"
   }
 }
 
 #logging for the squid proxy
 resource "aws_iam_role" "cluster_logging_cloudwatch" {
-  name = "${var.environment_name}_cluster_logging_cloudwatch"
+  name = "${var.env_vpc_name}_cluster_logging_cloudwatch"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -118,13 +118,13 @@ EOF
 }
 
 resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
-  name   = "${var.environment_name}_cluster_logging_cloudwatch"
+  name   = "${var.env_vpc_name}_cluster_logging_cloudwatch"
   policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
   role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
 }
 
 resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
-  name = "${var.environment_name}_cluster_logging_cloudwatch"
+  name = "${var.env_vpc_name}_cluster_logging_cloudwatch"
   role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
 }
 
@@ -143,7 +143,7 @@ resource "aws_eip_association" "squid_eip" {
 
 resource "aws_instance" "proxy" {
   ami                    = "${aws_ami_copy.squid_ami.id}"
-  subnet_id              = "${var.public_subnet_id}"
+  subnet_id              = "${var.env_public_subnet_id}"
   instance_type          = "t2.micro"
   monitoring             = true
   source_dest_check      = false
@@ -152,15 +152,18 @@ resource "aws_instance" "proxy" {
   iam_instance_profile   = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
 
   tags {
-    Name         = "${var.environment_name} HTTP Proxy"
-    Environment  = "${var.environment_name}"
+    Name         = "${var.env_vpc_name} HTTP Proxy"
+    Environment  = "${var.env_vpc_name}"
     Organization = "Basic Service"
   }
 
   user_data = <<EOF
 #!/bin/bash
+echo '127.0.1.1 ${var.env_vpc_name}_squid_proxy' | sudo tee --append /etc/hosts
+sudo hostnamectl set-hostname ${var.env_vpc_name}_squid_proxy
+
 sed -i 's/SERVER/http_proxy-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
-sed -i 's/VPC/'${var.environment_name}'/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'${var.env_vpc_name}'/g' /var/awslogs/etc/awslogs.conf
 cat >> /var/awslogs/etc/awslogs.conf <<EOM
 [syslog]
 datetime_format = %b %d %H:%M:%S

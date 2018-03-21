@@ -167,6 +167,13 @@ resource "aws_instance" "login" {
 
   user_data = <<EOF
 #!/bin/bash 
+echo http_proxy=http://cloud-proxy.internal.io:3128 >> /etc/environment
+echo https_proxy=http://cloud-proxy.internal.io:3128/ >> /etc/environment
+echo no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com"  >> /etc/environment
+echo 'Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
+echo 'Acquire::https::Proxy "http://cloud-proxy.internal.iio:3128";' >> /etc/apt/apt.conf.d/01proxy
+echo '127.0.1.1 ${var.child_name}_admin' | sudo tee --append /etc/hosts
+sudo hostnamectl set-hostname '${var.child_name}'_admin
 
 sed -i 's/SERVER/login_node-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
 sed -i 's/VPC/'${var.child_name}'/g' /var/awslogs/etc/awslogs.conf
