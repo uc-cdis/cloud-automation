@@ -3,13 +3,14 @@
 # Following the example of python virtual environment scripts.
 #
 
-export XDG_DATA_HOME=${XDG_DATA_HOME:-~/.local/share}
-export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/tmp/gen3-$USER"}
+if [[ ! -f "$GEN3_HOME/gen3/lib/utils.sh" ]]; then
+  echo "ERROR: is GEN3_HOME correct? $GEN3_HOME"
+  return 1
+fi
+
+source "$GEN3_HOME/gen3/lib/utils.sh"
 export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
 
-if [[ ! -d "$XDG_RUNTIME_DIR" ]]; then
-  mkdir -p "$XDG_RUNTIME_DIR"
-fi
 
 #
 # Flag values - cleared on each call to 'gen3'
@@ -44,7 +45,8 @@ gen3_workon() {
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}"
   export AWS_PROFILE="$GEN3_PROFILE"
   export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")
-  AWS_ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
+  
+  local AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
   # S3 bucket where we save terraform state, etc
   if [[ -z "$AWS_ACCOUNT_ID" ]]; then
     echo "Error: unable to determine AWS_ACCOUNT_ID via: aws sts get-caller-identity | jq -r .Account"
@@ -57,8 +59,8 @@ gen3_workon() {
     export GEN3_S3_BUCKET="cdis-state-ac${AWS_ACCOUNT_ID}-gen3"
     
     OLD_S3_BUCKET="cdis-terraform-state.account-${AWS_ACCOUNT_ID}.gen3"
-    if (! aws s3 ls "s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1) &&
-      (aws s3 ls "s3://${OLD_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1)
+    if (! gen3_aws_run aws s3 ls "s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1) &&
+      (gen3_aws_run aws s3 ls "s3://${OLD_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1)
     then
       # Use the old bucket ... 
       export GEN3_S3_BUCKET="${OLD_S3_BUCKET}"
@@ -100,6 +102,9 @@ gen3_run() {
     ;;
   "workon")
     gen3_workon $@ && scriptName=workon.sh
+    ;;
+  "aws")
+    gen3_aws_run aws "$@"
     ;;
   "cd")
     if [[ $1 = "home" ]]; then

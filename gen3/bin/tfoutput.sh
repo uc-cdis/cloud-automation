@@ -21,7 +21,7 @@ EOM
 source "$GEN3_HOME/gen3/lib/common.sh"
 
 cd $GEN3_WORKDIR
-terraform output -json > vpcdata.json
+gen3_aws_run terraform output -json > vpcdata.json
 if [[ -z $1 ]]; then
   cat vpcdata.json
 else

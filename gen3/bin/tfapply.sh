@@ -23,7 +23,7 @@ fi
 
 $GEN3_DRY_RUN && "Running in DRY_RUN mode ..."
 echo "Running: terraform apply plan.terraform"
-if ! ($GEN3_DRY_RUN || terraform apply plan.terraform); then
+if ! ($GEN3_DRY_RUN || gen3_aws_run terraform apply plan.terraform); then
   echo "apply failed, bailing out"
   exit 1
 fi
@@ -36,5 +36,5 @@ fi
 for fileName in config.tfvars backend.tfvars README.md; do
   s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/$fileName"
   echo "Backing up $fileName to $s3Path"
-  aws s3 cp $dryRunFlag --sse AES256 "$fileName" "$s3Path"
+  gen3_aws_run aws s3 cp $dryRunFlag --sse AES256 "$fileName" "$s3Path"
 done

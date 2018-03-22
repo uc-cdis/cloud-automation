@@ -48,7 +48,7 @@ refresh_file() {
     $GEN3_DRY_RUN || cp $filePath "$fileBackup"
   fi
   echo "aws s3 cp $s3Path $filePath"
-  if ! ($GEN3_DRY_RUN || aws s3 cp $s3Path $filePath); then
+  if ! ($GEN3_DRY_RUN || gen3_aws_run aws s3 cp $s3Path $filePath); then
     echo "WARNING: failed to refresh $filePath from $s3Path"
     return 1
   fi
@@ -65,6 +65,6 @@ done
 
 echo "Running terraform init ..."
 cd "$GEN3_WORKDIR"
-terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
+gen3_aws_run terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 exit 0

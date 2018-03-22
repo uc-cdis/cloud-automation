@@ -59,7 +59,7 @@ refreshFromS3() {
     return 1
   fi
   s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/${fileName}"
-  aws s3 cp "$s3Path" "$filePath" > /dev/null 2>&1
+  gen3_aws_run aws s3 cp "$s3Path" "$filePath" > /dev/null 2>&1
   if [[ ! -f "$filePath" ]]; then
     echo "No data at $s3Path"
     return 1
@@ -253,7 +253,7 @@ bucketCheckFlag=".tmp_bucketcheckflag2"
 if [[ ! -f "$bucketCheckFlag" ]]; then
   echo "initializing terraform"
   echo "checking if $GEN3_S3_BUCKET bucket exists"
-  if ! aws s3 ls "s3://$GEN3_S3_BUCKET" > /dev/null 2>&1; then
+  if ! gen3_aws_run aws s3 ls "s3://$GEN3_S3_BUCKET" > /dev/null 2>&1; then
     echo "Creating $GEN3_S3_BUCKET bucket"
     echo "NOTE: please verify that aws profile region matches backend.tfvars region:"
     echo "  aws profile region: $(aws configure get $GEN3_PROFILE.region)"
@@ -271,9 +271,9 @@ if [[ ! -f "$bucketCheckFlag" ]]; then
   }
 EOM
 )
-    aws s3api create-bucket --acl private --bucket "$GEN3_S3_BUCKET"
+    gen3_aws_run aws s3api create-bucket --acl private --bucket "$GEN3_S3_BUCKET"
     sleep 5 # Avoid race conditions
-    if aws s3api put-bucket-encryption --bucket "$GEN3_S3_BUCKET" --server-side-encryption-configuration "$S3_POLICY"; then
+    if gen3_aws_run aws s3api put-bucket-encryption --bucket "$GEN3_S3_BUCKET" --server-side-encryption-configuration "$S3_POLICY"; then
       touch "$bucketCheckFlag"
     fi
   else
@@ -282,7 +282,7 @@ EOM
 fi
 
 echo "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/"
-terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
+gen3_aws_run terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 # Generate some k8s helper scripts for on-prem deployments
 if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ || "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
