@@ -1,3 +1,13 @@
+resource "aws_cloudwatch_log_group" "csoc_log_group" {
+  name = "${var.child_name}"
+  retention_in_days = 1827
+  tags {
+    Environment = "${var.child_name}"
+    Organization = "Basic Services"
+  }
+  }
+
+
 data "aws_ami" "public_cdis_ami" {
   most_recent = true
 
@@ -165,6 +175,8 @@ resource "aws_instance" "login" {
     ignore_changes = ["ami", "key_name"]
   }
 
+
+
   user_data = <<EOF
 #!/bin/bash 
 echo http_proxy=http://cloud-proxy.internal.io:3128 >> /etc/environment
@@ -176,7 +188,7 @@ echo '127.0.1.1 ${var.child_name}_admin' | sudo tee --append /etc/hosts
 sudo hostnamectl set-hostname '${var.child_name}'_admin
 
 sed -i 's/SERVER/login_node-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
-sed -i 's/VPC/'${var.child_name}'/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'${aws_cloudwatch_log_group.csoc_log_group.name}'/g' /var/awslogs/etc/awslogs.conf
 cat >> /var/awslogs/etc/awslogs.conf <<EOM
 [syslog]
 datetime_format = %b %d %H:%M:%S
