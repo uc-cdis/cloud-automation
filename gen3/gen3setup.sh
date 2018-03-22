@@ -73,6 +73,8 @@ gen3_workon() {
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_rds_snapshot"
   elif [[ "$GEN3_WORKSPACE" =~ _adminvm$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_admin_vm"
+  elif [[ "$GEN3_WORKSPACE" =~ _logging$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_common_logging"
   elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_data_bucket"
   fi
