@@ -1,7 +1,7 @@
 # High level structure
 
 
-![image of architecture](architecture.png)
+![image of architecture](PlanXCommonsAWSdiagram.png)
 
 The protected cloud environment setup by cloud-automation currently have  5 subnets.
 - a public subnet with internet gateway attached to it, there are currently a login VM and a squid proxy VM on it.
@@ -9,3 +9,4 @@ The protected cloud environment setup by cloud-automation currently have  5 subn
 - a private subnet dedicated for k8s cluster which runs all Gen3 services.
 - a private subnet for users to run analysis.
 - a redundant private subnet for future multi-az setup.
+- a NAT gateway that allows overpassing the proxy for logs.us-east-1.amazonaws.com requests.
