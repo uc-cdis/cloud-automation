@@ -52,17 +52,13 @@ def dateIt(line):
     We want to transfor it to ISO8601 so we can index better in ES and
     run fancy queries with Kibana
     """
-    #print(str(line))
     for a_datetime in different_datetimes:
-        #for y in lines:
         try:
             fecha = re.search(a_datetime['pattern'],line['message'])
-            #print(fecha)
         except:
             print(format("there was an error with '{}' and '{}'",a_datetime['pattern'],line['message']))
     
         if fecha:
-            #print (fecha)
             if not a_datetime['format']:
                 #print(float(fecha.group())) This is squid
                 fecha = datetime.datetime(*time.strptime(time.ctime(float(fecha.group())))[0:6]).isoformat()
@@ -71,14 +67,18 @@ def dateIt(line):
                 forma = a_datetime['format'] + ' %Y'
                 fecha = datetime.datetime.strptime(fechat,forma).isoformat()
             else:
-                fecha = datetime.datetime.strptime(fecha.group(),a_datetime['format']).isoformat()
-            line['timestamp'] = fecha            
-                #print(line)
-        #else:
-        #    print("NOOOOO")
+                try:
+                    fecha = datetime.datetime.strptime(fecha.group(),a_datetime['format']).isoformat()
+                except:
+                    if a_datetime['format'] == '%Y-%m-%d %H:%M:%S %z':
+                        try:
+                            fecha = datetime.datetime.strptime(fecha.group(),'%Y-%m-%d %H:%M:%S').isoformat()
+                        except:
+                            fecha = datetime.datetime.now().isoformat()
+                    else:
+                        fecha = datetime.datetime.now().isoformat()
+            line['timestamp'] = fecha
     return line
-    #print(line['timestamp'])
-    
     
     
 def niceIt(r_data):
@@ -90,18 +90,15 @@ def niceIt(r_data):
     del metadata['logEvents']
     for line in r_data['logEvents']:
         new_meta = copy.deepcopy(metadata)
-        #print(line)
         line = dateIt(line)
         new_meta['timestamp'] = line['timestamp']
         #new_meta['message'] = json.loads(json.dumps(line['message']))
         try:
             # Let's see if it is JSONable, Fluentd stuff should
             cosa = json.loads(line['message'])
-            #print(cosa)
         except:
-            # If it ain't JSON, let's make it JSON
+            # If it isn't JSON, let's make it JSON
             cosa = { 'log' : line['message'] }
-            #print('plain')
         new_meta['message'] = cosa #line['message']
         individuals.append(new_meta)
         del new_meta
@@ -113,17 +110,9 @@ def handler(event, context):
     client = boto3.client('firehose')
     for record in event['Records']:
         compressed_record_data = record['kinesis']['data']
-        #firehose = str(record['eventSourceARN'].split(':')[5].split('/')[1]) + '_firehose'
-        #For practical reasons we are calling the firehose the same name 
-        # of the stream plus _firehose
-        #print(firehose)
         record_data = json.loads(zlib.decompress(base64.b64decode(compressed_record_data), 16+zlib.MAX_WBITS))
-        #print(record_data)
         record_data = niceIt(record_data)
-        #print(record_data)
         for log_event_chunk in chunker(record_data, MESSAGE_BATCH_MAX_COUNT):
-            #print(log_event_chunk)
-            #dateIT(log_event_chunk)
             message_batch = [{'Data': json.dumps(x)} for x in log_event_chunk]
             if message_batch:
                 #print(message_batch)
