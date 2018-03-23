@@ -115,7 +115,8 @@ gen3_aws_run() {
     fi
   fi
   if [[ "$cacheIsValid" != "yes" ]]; then
-    echo -e "$(green_color "INFO: refreshing aws access token cache")"
+    # echo to stderr - avoid messing with output pipes ...
+    echo -e "$(green_color "INFO: refreshing aws access token cache")" 1>&2
     if [[ -n "$gen3AwsRole" ]]; then
       # aws cli is smart about assume-role with MFA and everything - just need to get a new token
       # example ~/.aws/config entry:
@@ -139,12 +140,12 @@ gen3_aws_run() {
       #
       aws sts assume-role --role-arn "${gen3AwsRole}" --role-session-name "gen3-$USER" > "$gen3CredsCache"
     else
-      read -p "Enter a token from the $AWS_PROFILE MFA device $gen3AwsMfa" mfaToken
+      read -p "Enter a token from the $AWS_PROFILE MFA device $gen3AwsMfa" mfaToken 1>&2
       aws sts get-session-token --serial-number "$gen3AwsMfa" --token-code "$mfaToken" > "$gen3CredsCache"
     fi
   fi
   if [[ ! -f "$gen3CredsCache" ]]; then
-    echo -e "$(red_color "ERROR: AWS creds not cached at $gen3CredsCache")"
+    echo -e "$(red_color "ERROR: AWS creds not cached at $gen3CredsCache")" 1>&2
     return 1
   fi
   gen3AwsAccessKeyId=$(jq -r '.Credentials.AccessKeyId' < $gen3CredsCache)
