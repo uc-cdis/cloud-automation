@@ -41,8 +41,6 @@ if [[ -z "$(kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')"
   exit 1
 fi
 
-kubectl apply -f services/sheepdog/sheepdog-deploy.yaml
-
 #
 # Create the 'sheepdog' and 'peregrine' postgres user if necessary
 #
@@ -118,6 +116,7 @@ if [[ "$gdcapi_db_user" != "$sheepdog_db_user" ]]; then
 fi
 
 cd ~/${vpc_name}
+g3k roll sheepdog
 
 #
 # Note: the 'create_gdcapi_db' flag is set in
@@ -130,23 +129,14 @@ if [[ -z "${gdcapi_snapshot}" && "${create_gdcapi_db}" = "true" && ( ! -f .rende
   cd ~/${vpc_name}_output; 
   python "${RENDER_CREDS}" gdcapi_db
   cd ~/${vpc_name}
+  # force restart - might not be necessary
+  g3k roll sheepdog
 fi
 # Avoid doing previous block more than once or when not necessary ...
 touch .rendered_gdcapi_db
 
 kubectl apply -f services/sheepdog/sheepdog-service.yaml
 
-patch_kube sheepdog-deployment
-
 cat <<EOM
 The sheepdog services has been deployed onto the k8s cluster.
-You'll need to update the reverse-proxy nginx config
-to make the commons start using the sheepdog service (and retire gdcapi for submission).
-Run the following commands to make that switch:
-
-kubectl apply -f services/revproxy/00nginx-config.yaml
-
-# update_config is a function in cloud-automation/kube/kubes.sh
-source ~/cloud-automation/kube/kubes.sh
-patch_kube revproxy-deployment
 EOM

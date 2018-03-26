@@ -20,4 +20,21 @@ USAGE: gen3 [gen3-flags] command [command-options]
     - base64: $(which base64)
     - awk, sed, head, tail, ... bash shell utils
 
+  * command summary (details above) - each command supports a --help option:
+    - aws 
+      * shortcut for gen3 arun aws 
+    - arun shell command
+      * run the given shell command line with AWS secrets set
+        based on the current workspace - supports assume-role and mfa
+    - help
+    - ls
+    - refresh
+    - status
+    - tfapply
+    - tfplan
+    - tfoutput
+    - trash
+    - workon {profile} {workspace}
+      * supports workspace types: _adminvm, _databucket, _snapshot, _squidvm, 
+               _user, commons VPC is default
 EOM

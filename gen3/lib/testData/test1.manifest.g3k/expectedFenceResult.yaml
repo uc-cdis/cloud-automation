@@ -1,7 +1,7 @@
-apiVersion: extensions/v1beta1 
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: indexd-deployment
+  name: fence-deployment
 spec:
   revisionHistoryLimit: 2
   strategy:
@@ -12,27 +12,39 @@ spec:
   template:
     metadata:
       labels:
-        app: indexd
-        GEN3_DATE_LABEL
+        app: fence
+        date: 1522085421
     spec:
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:
-            secretName: "indexd-secret"
+            secretName: "fence-secret"
+        - name: json-secret-volume
+          secret:
+            secretName: "fence-json-secret"
+        - name: fence-jwt-keys
+          secret:
+            secretName: "fence-jwt-keys"
+        - name: fence-yaml
+          configMap:
+            name: fence
         - name: cert-volume
           secret:
-            secretName: "cert-indexd-service"
+            secretName: "cert-fence-service"
         - name: ca-volume
           secret:
             secretName: "service-ca"
       containers:
-      - name: indexd
-        GEN3_INDEXD_IMAGE
+      - name: fence
+        image: quay.io/cdis/fence:master
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
-            path: /_status
+            path: /jwt/keys
             port: 80
           initialDelaySeconds: 30
           periodSeconds: 60
@@ -43,8 +55,15 @@ spec:
         volumeMounts:
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/indexd/local_settings.py"
-            subPath: "local_settings.py"
+            mountPath: "/var/www/fence/local_settings.py"
+            subPath: local_settings.py
+          - name: "json-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_credentials.json"
+            subPath: fence_credentials.json
+          - name: "fence-yaml"
+            mountPath: "/var/www/fence/user.yaml"
+            subPath: user.yaml
           - name: "cert-volume"
             readOnly: true
             mountPath: "/mnt/ssl/service.crt"
@@ -57,4 +76,6 @@ spec:
             readOnly: true
             mountPath: "/mnt/ssl/cdis-ca.crt"
             subPath: "ca.pem"
-      
+          - name: "fence-jwt-keys"
+            readOnly: true
+            mountPath: "/fence/keys"

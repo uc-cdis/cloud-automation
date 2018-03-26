@@ -1,7 +1,11 @@
 #!/bin/bash
 
 g3kScriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
-source "${g3kScriptDir}/../gen3/lib/utils.sh"
+export GEN3_HOME="${GEN3_HOME:-$(dirname "$g3kScriptDir")}"
+export GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(dirname "$GEN3_HOME")/cdis-manifest"}"
+
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+source "${GEN3_HOME}/gen3/lib/g3k_manifest.sh"
 
 patch_kube() {
   local depName="$1"
@@ -53,10 +57,12 @@ g3k_help() {
        - where SERVICE is one of sheepdog, indexd, fence
     replicas DEPLOYMENT-NAME REPLICA-COUNT
     roll DEPLOYMENT-NAME
-      Apply a superfulous metadata change to a deployment to trigger
-      the deployment's running pods to update
+      Apply the current manifest to the specified deployment - triggers
+      and update in most deployments (referencing GEN3_DATE_LABEL) even 
+      if the version does not change.
     runjob JOBNAME 
      - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
+    testsuite
     update_config CONFIGMAP-NAME YAML-FILE
 EOM
 }
@@ -196,6 +202,7 @@ g3k_backup() {
   bash "$g3kScriptDir/../tf_files/configs/kube-backup.sh"
 }
 
+
 #
 # Parent for other commands - pronounced "geeks"
 #
@@ -233,13 +240,16 @@ g3k() {
       g3k_psql "$@"
       ;;
     "roll")
-      patch_kube "$@"
+      g3k_roll "$@"
       ;;
     "replicas")
       g3k_replicas "$@"
       ;;
     "runjob")
       g3k_runjob "$@"
+      ;;
+    "testsuite")
+      bash "${GEN3_HOME}/gen3/lib/g3k_testsuite.sh"
       ;;
     "update_config")
       update_config "$@"

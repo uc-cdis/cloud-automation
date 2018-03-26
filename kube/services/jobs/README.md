@@ -21,8 +21,8 @@ update ~/{VPC_NAME}/00configmap.yaml with the new dictionary URL
 kubectl apply -f ~/{VPC_NAME}/00configmap.yaml
 g3k runjob graph-create
 g3k joblogs graph-create
-g3k roll sheepdog-deployment
-g3k roll peregrine-deployment
+g3k roll sheepdog
+g3k roll peregrine
 ```
 
 ## usersync-cronjob

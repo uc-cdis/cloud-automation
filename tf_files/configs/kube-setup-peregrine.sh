@@ -35,20 +35,9 @@ if ! kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
   kubectl create secret generic peregrine-secret --from-file=wsgi.py=./apis_configs/peregrine_settings.py
 fi
 
-kubectl apply -f services/peregrine/peregrine-deploy.yaml
+g3k roll peregrine
 kubectl apply -f services/peregrine/peregrine-service.yaml
-
-patch_kube peregrine-deployment
 
 cat <<EOM
 The peregrine services has been deployed onto the k8s cluster.
-You'll need to update the reverse-proxy nginx config
-to make the commons start using the peregrine service (and retire GDCAPI for graphql).
-Run the following commands to make that switch:
-
-kubectl apply -f services/revproxy/00nginx-config.yaml
-
-# update_config is a function in cloud-automation/kube/kubes.sh
-source ~/cloud-automation/kube/kubes.sh
-patch_kube revproxy-deployment
 EOM

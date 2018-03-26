@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: portal
+        GEN3_DATE_LABEL
     spec:
       automountServiceAccountToken: false
       volumes:
@@ -24,7 +25,7 @@ spec:
           secretName: "service-ca"
       containers:
       - name: portal
-        image: quay.io/cdis/data-portal:master
+        GEN3_PORTAL_IMAGE
         livenessProbe:
           httpGet:
             path: /

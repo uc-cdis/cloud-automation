@@ -2,6 +2,10 @@
 # Source this file in .bashrc to expose the gen3 helper function.
 # Following the example of python virtual environment scripts.
 #
+G3K_SETUP_DIR=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+GEN3_HOME="${GEN3_HOME:-$(cd "${G3K_SETUP_DIR}/../.." && pwd)}"
+export GEN3_HOME
+
 
 if [[ ! -f "$GEN3_HOME/gen3/lib/utils.sh" ]]; then
   echo "ERROR: is GEN3_HOME correct? $GEN3_HOME"
@@ -107,6 +111,9 @@ gen3_run() {
     ;;
   "aws")
     gen3_aws_run aws "$@"
+    ;;
+  "arun")
+    gen3_aws_run "$@"
     ;;
   "cd")
     if [[ $1 = "home" ]]; then

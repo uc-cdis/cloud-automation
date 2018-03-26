@@ -63,11 +63,9 @@ else
   sed 's/hostname:[ a-zA-Z0-9]*\.\(.*\)/hostname: '"$kubeNamespace"'.\1/' < 00configmap.yaml | kubectl apply -f -
 fi
 
-kubectl apply -f services/portal/portal-deploy.yaml
-kubectl apply -f services/indexd/indexd-deploy.yaml
-
 cd ~/${vpc_name};
 
+g3k roll indexd
 kubectl apply -f services/portal/portal-service.yaml
 kubectl apply -f services/indexd/indexd-service.yaml
 
@@ -77,9 +75,8 @@ source "${G3AUTOHOME}/tf_files/configs/kube-setup-peregrine.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-revproxy.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-fluentd.sh"
 
-# Force pods to update
-patch_kube indexd-deployment
-patch_kube portal-deployment
+# portal is not happy until other services are up
+g3k roll portal
 
 
 cat - <<EOM

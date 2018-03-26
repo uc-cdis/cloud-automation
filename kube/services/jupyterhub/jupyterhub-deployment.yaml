@@ -9,6 +9,7 @@ spec:
     metadata:
       labels:
         app: jupyter-hub
+        GEN3_DATE_LABEL
     spec:
       volumes:
         - name: config-volume
@@ -16,7 +17,7 @@ spec:
             name: jupyterhub-config
       containers:
         - name: jupyterhub
-          image: quay.io/occ_data/jupyterhub:master
+          GEN3_JUPYTERHUB_IMAGE
           command:
             - jupyterhub
             - --config

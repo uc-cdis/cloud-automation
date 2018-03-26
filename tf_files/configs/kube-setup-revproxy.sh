@@ -25,12 +25,10 @@ source "${G3AUTOHOME}/kube/kubes.sh"
 
 cd ~/${vpc_name}
 kubectl apply -f services/revproxy/00nginx-config.yaml
-kubectl apply -f services/revproxy/revproxy-deploy.yaml
+g3k roll revproxy
 
 #
 # apply_service deploys the revproxy service after
 # inserting the certificate ARN from a config map
 #
 ./services/revproxy/apply_service
-
-patch_kube revproxy-deployment

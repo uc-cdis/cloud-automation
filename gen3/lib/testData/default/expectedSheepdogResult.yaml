@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: peregrine-deployment
+  name: sheepdog-deployment
 spec:
   revisionHistoryLimit: 2
   strategy:
@@ -12,23 +12,23 @@ spec:
   template:
     metadata:
       labels:
-        app: peregrine
-        GEN3_DATE_LABEL
+        app: sheepdog
+        date: 1522085303
     spec:
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:
-            secretName: "peregrine-secret"
+            secretName: "sheepdog-secret"
         - name: cert-volume
           secret:
-            secretName: "cert-peregrine-service"
+            secretName: "cert-sheepdog-service"
         - name: ca-volume
           secret:
             secretName: "service-ca"
       containers:
-        - name: peregrine
-          GEN3_PEREGRINE_IMAGE
+        - name: sheepdog
+          image: quay.io/cdis/sheepdog:1.0.1
           livenessProbe:
             httpGet:
               path: /_status
@@ -48,7 +48,7 @@ spec:
           volumeMounts:
             - name: "config-volume"
               readOnly: true
-              mountPath: "/var/www/peregrine/wsgi.py"
+              mountPath: "/var/www/sheepdog/wsgi.py"
               subPath: "wsgi.py"
             - name: "cert-volume"
               readOnly: true
@@ -66,4 +66,5 @@ spec:
           resources:
             limits:
               cpu: 0.8
-              memory: 2048Mi
+              memory: 512Mi
+
