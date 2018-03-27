@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: revproxy
+        GEN3_DATE_LABEL
     spec:
       automountServiceAccountToken: false
       volumes:

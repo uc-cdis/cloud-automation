@@ -21,9 +21,9 @@ g3k_manifest_init() {
   fi
   if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
     echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}")
-    echo "git clone https://github.com:uc-cdis/cloud-automation.git ${GEN3_MANIFEST_HOME}"
+    echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}"
     # This will fail if proxy is not set correctly
-    git clone "https://github.com:uc-cdis/cloud-automation.git" "${GEN3_MANIFEST_HOME}"
+    git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}"
   fi
   (cd "$GEN3_MANIFEST_HOME" && git fetch && git status)
   touch "$doneFilePath"
@@ -78,7 +78,7 @@ g3k_manifest_filter() {
   local value
   local replaceMap
   declare -A replaceMap=(
-    [GEN3_DATE_LABEL]="date: $(date +%s)"
+    [GEN3_DATE_LABEL]="date: \"$(date +%s)\""
   )
   for key in $(jq -r '.versions | keys[]' < "$manifestPath"); do
     value="$(jq -r ".versions[\"$key\"]" < "$manifestPath")"
@@ -110,5 +110,5 @@ g3k_roll() {
     local cleanName=$(echo "$depName" | sed s/[-_]deploy.*$//)
     templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
   fi
-  g3k_manifest_filter "$templatePath"
+  g3k_manifest_filter "$templatePath" | kubectl apply -f -
 }

@@ -24,7 +24,7 @@ spec:
         env:
           # Deploy with kube-setup-fluentd.sh ...
           - name:  LOG_GROUP_NAME
-            GEN3_LOG_GROUP_NAME
+            value: GEN3_LOG_GROUP_NAME
           - name: AWS_REGION
             value: "us-east-1"
         resources:
