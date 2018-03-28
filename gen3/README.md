@@ -160,7 +160,13 @@ The tasks performed include:
 * fi
 * setup the *cdis-state-ac{ACCOUNTID}-gen3* S3 bucket if necessary
 * run `terraform init` if necessary
+
+### gen3 arun command arg1 arg2 ...
    
+Generalization of `gen3 aws ...` just below, 
+so  `gen3 arun aws arg1 arg2 ...` is equivalent to
+`gen3 aws arg1 arg2 ...`
+ 
 ### gen3 aws arg1 arg2 ...
 
 Run the `aws` command with the given arguments after setting the
