@@ -97,7 +97,7 @@ gen3_run() {
   local scriptFolder
   local resultCode
   
-  let resultCode=0
+  let resultCode=0 || true
   scriptFolder="$GEN3_HOME/gen3/bin"
   command=$1
   scriptName=""
@@ -118,10 +118,10 @@ gen3_run() {
   "cd")
     if [[ $1 = "home" ]]; then
       cd $GEN3_HOME
-      let resultCode=$?
+      let resultCode=$? || true
     else
       cd $GEN3_WORKDIR
-      let resultCode=$?
+      let resultCode=$? || true
     fi
     scriptName=""
     ;;

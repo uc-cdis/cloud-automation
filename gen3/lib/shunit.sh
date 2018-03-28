@@ -62,7 +62,7 @@ shunit_runtest() {
   echo -e "\nRunning $testName"
   SHUNIT_CURRENT_TEST="$testName"
   let SHUNIT_TEST_COUNT+=1
-  let result=0
+  let result=0 || true
   #
   # Note that shunit_because calls shunit_test_summary on failure,
   # but we call it here if all assertions pass

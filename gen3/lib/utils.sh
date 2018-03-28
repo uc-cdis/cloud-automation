@@ -87,72 +87,77 @@ green_color() {
 # Assumes AWS_PROFILE environment is set.
 #
 gen3_aws_run() {
-  local gen3CredsCache="${GEN3_CACHE_DIR}/${AWS_PROFILE}_creds.json"
-  local cacheIsValid="no"
-  local gen3AwsExpire
-  local gen3AwsRole=$(aws configure get "${AWS_PROFILE}.role_arn")
-  local gen3AwsMfa
+  (
+    export AWS_PROFILE="${AWS_PROFILE:-default}"
+    local gen3CredsCache="${GEN3_CACHE_DIR}/${AWS_PROFILE}_creds.json"
+    local cacheIsValid="no"
+    local gen3AwsExpire
+    local gen3AwsRole=$(aws configure get "${AWS_PROFILE}.role_arn")
+    local gen3AwsMfa
 
-  if [[ -z "$gen3AwsRole" ]]; then
-    gen3AwsMfa=$(aws configure get "${AWS_PROFILE}.mfa_serial")
-    if [[ -z "$gen3AwsMfa" ]]; then
-      # No assume-role or mfa stuff going on - just run the command directly
-      "$@"
-      return $?
+    if [[ -z "$gen3AwsRole" ]]; then
+      gen3AwsMfa=$(aws configure get "${AWS_PROFILE}.mfa_serial")
+      if [[ -z "$gen3AwsMfa" ]]; then
+        # No assume-role or mfa stuff going on - just run the command directly
+        "$@"
+        return $?
+      fi
     fi
-  fi
-  
-  local gen3AwsAccessKeyId
-  local gen3AwsSecretAccessKey
-  local gen3AwsSessionToken
-  
-  # Try to use cached creds if possible
-  if [[ -f $gen3CredsCache ]]; then
-    gen3AwsExpire=$(jq -r '.Credentials.Expiration' < $gen3CredsCache)
     
-    if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$(date -u +%Y-%m-%dT%H:%M)" ]]; then
-      cacheIsValid="yes"
+    local gen3AwsAccessKeyId
+    local gen3AwsSecretAccessKey
+    local gen3AwsSessionToken
+    
+    # Try to use cached creds if possible
+    if [[ -f $gen3CredsCache ]]; then
+      gen3AwsExpire=$(jq -r '.Credentials.Expiration' < $gen3CredsCache)
+      
+      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$(date -u +%Y-%m-%dT%H:%M)" ]]; then
+        cacheIsValid="yes"
+      fi
     fi
-  fi
-  if [[ "$cacheIsValid" != "yes" ]]; then
-    # echo to stderr - avoid messing with output pipes ...
-    echo -e "$(green_color "INFO: refreshing aws access token cache")" 1>&2
-    if [[ -n "$gen3AwsRole" ]]; then
-      # aws cli is smart about assume-role with MFA and everything - just need to get a new token
-      # example ~/.aws/config entry:
-      #
-      # [profile cdistest]
-      # output = json
-      # region = us-east-1
-      # role_arn = arn:aws:iam::707767160287:role/csoc_adminvm
-      # role_session_name = gen3-reuben
-      # source_profile = csoc
-      # mfa_serial = arn:aws:iam::433568766270:mfa/reuben-csoc
-      #
-      # or
-      #
-      # [profile cdistest]
-      # output = json
-      # region = us-east-1
-      # role_arn = arn:aws:iam::707767160287:role/csoc_adminvm
-      # role_session_name = gen3-reuben
-      # credential_source = Ec2InstanceMetadata
-      #
-      aws sts assume-role --role-arn "${gen3AwsRole}" --role-session-name "gen3-$USER" > "$gen3CredsCache"
-    else
-      # zsh does not like 'read -p'
-      printf '%s: ' "Enter a token from the $AWS_PROFILE MFA device $gen3AwsMfa" 1>&2
-      read mfaToken
-      aws sts get-session-token --serial-number "$gen3AwsMfa" --token-code "$mfaToken" > "$gen3CredsCache"
+
+    if [[ "$cacheIsValid" != "yes" ]]; then
+      # echo to stderr - avoid messing with output pipes ...
+      echo -e "$(green_color "INFO: refreshing aws access token cache")" 1>&2
+      if [[ -n "$gen3AwsRole" ]]; then
+        # aws cli is smart about assume-role with MFA and everything - just need to get a new token
+        # example ~/.aws/config entry:
+        #
+        # [profile cdistest]
+        # output = json
+        # region = us-east-1
+        # role_arn = arn:aws:iam::707767160287:role/csoc_adminvm
+        # role_session_name = gen3-reuben
+        # source_profile = csoc
+        # mfa_serial = arn:aws:iam::433568766270:mfa/reuben-csoc
+        #
+        # or
+        #
+        # [profile cdistest]
+        # output = json
+        # region = us-east-1
+        # role_arn = arn:aws:iam::707767160287:role/csoc_adminvm
+        # role_session_name = gen3-reuben
+        # credential_source = Ec2InstanceMetadata
+        #
+        aws sts assume-role --role-arn "${gen3AwsRole}" --role-session-name "gen3-$USER" > "$gen3CredsCache"
+      else
+        # zsh does not like 'read -p'
+        printf '%s: ' "Enter a token from the $AWS_PROFILE MFA device $gen3AwsMfa" 1>&2
+        read mfaToken
+        aws sts get-session-token --serial-number "$gen3AwsMfa" --token-code "$mfaToken" > "$gen3CredsCache"
+      fi
     fi
-  fi
-  if [[ ! -f "$gen3CredsCache" ]]; then
-    echo -e "$(red_color "ERROR: AWS creds not cached at $gen3CredsCache")" 1>&2
-    return 1
-  fi
-  gen3AwsAccessKeyId=$(jq -r '.Credentials.AccessKeyId' < $gen3CredsCache)
-  gen3AwsSecretAccessKey=$(jq -r '.Credentials.SecretAccessKey' < $gen3CredsCache)
-  gen3AwsSessionToken=$(jq -r '.Credentials.SessionToken' < $gen3CredsCache)
-  AWS_ACCESS_KEY_ID="$gen3AwsAccessKeyId" AWS_SECRET_ACCESS_KEY="$gen3AwsSecretAccessKey" AWS_SESSION_TOKEN="$gen3AwsSessionToken" "$@"
+    
+    if [[ ! -f "$gen3CredsCache" ]]; then
+      echo -e "$(red_color "ERROR: AWS creds not cached at $gen3CredsCache")" 1>&2
+      return 1
+    fi
+    gen3AwsAccessKeyId=$(jq -r '.Credentials.AccessKeyId' < $gen3CredsCache)
+    gen3AwsSecretAccessKey=$(jq -r '.Credentials.SecretAccessKey' < $gen3CredsCache)
+    gen3AwsSessionToken=$(jq -r '.Credentials.SessionToken' < $gen3CredsCache)
+    AWS_ACCESS_KEY_ID="$gen3AwsAccessKeyId" AWS_SECRET_ACCESS_KEY="$gen3AwsSecretAccessKey" AWS_SESSION_TOKEN="$gen3AwsSessionToken" "$@"
+  )
   return $?
 }
