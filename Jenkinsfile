@@ -49,6 +49,7 @@ pipeline {
     }
     stage('lamda test') {
       steps {
+        sh 'pip3 install boto3 --upgrade'
         sh 'cd tf_files/modules/cdis-aws-common-logging && python3 -m pytest testLambda.py'
       }
     }
