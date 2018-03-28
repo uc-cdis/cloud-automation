@@ -160,7 +160,7 @@ def handler(event, context):
     #print(len(event['Records']))
     for record in event['Records']:
         compressed_record_data = record['kinesis']['data']
-        record_data = nice_it(json.loads(zlib.decompress(base64.b64decode(compressed_record_data), 16+zlib.MAX_WBITS)))
+        record_data = nice_it(json.loads(zlib.decompress(base64.b64decode(compressed_record_data), 16+zlib.MAX_WBITS).decode('utf-8')))
         #record_data = nice_it(record_data)
         for log_event_chunk in chunker(record_data, MESSAGE_BATCH_MAX_COUNT):
             message_batch = [{'Data': json.dumps(x)} for x in log_event_chunk]
