@@ -140,7 +140,9 @@ gen3_aws_run() {
       #
       aws sts assume-role --role-arn "${gen3AwsRole}" --role-session-name "gen3-$USER" > "$gen3CredsCache"
     else
-      read -p "Enter a token from the $AWS_PROFILE MFA device $gen3AwsMfa" mfaToken 1>&2
+      # zsh does not like 'read -p'
+      printf '%s: ' "Enter a token from the $AWS_PROFILE MFA device $gen3AwsMfa" 1>&2
+      read mfaToken
       aws sts get-session-token --serial-number "$gen3AwsMfa" --token-code "$mfaToken" > "$gen3CredsCache"
     fi
   fi
