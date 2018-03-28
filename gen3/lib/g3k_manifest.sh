@@ -113,5 +113,13 @@ g3k_roll() {
     local cleanName=$(echo "$depName" | sed s/[-_]deploy.*$//)
     templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
   fi
-  g3k_manifest_filter "$templatePath" | kubectl apply -f -
+
+  if [[ -f "$templatePath" ]]; then
+    g3k_manifest_filter "$templatePath" | kubectl apply -f -
+  elif [[ "$depName" == "all" ]]; then
+    echo bash "${GEN3_HOME}/tf_files/configs/kube-services-body.sh"
+    bash "${GEN3_HOME}/tf_files/configs/kube-services-body.sh"
+  else
+    echo -e "$(red_color "ERROR: could not find deployment template: $templatePath")"
+  fi
 }
