@@ -216,7 +216,7 @@ region = us-east-1
 role_session_name = gen3-adminvm
 role_arn = arn:aws:iam::${var.child_account_id}:role/csoc_adminvm
 credential_source = Ec2InstanceMetadata
-[profile cdistest]
+[profile ${var.child_name}]
 output = json
 region = us-east-1
 role_session_name = gen3-adminvm
