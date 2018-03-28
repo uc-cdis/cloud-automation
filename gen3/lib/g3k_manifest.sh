@@ -25,7 +25,10 @@ g3k_manifest_init() {
     # This will fail if proxy is not set correctly
     git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}"
   fi
-  (cd "$GEN3_MANIFEST_HOME" && git fetch && git status)
+  if [[ -d "$GEN3_MANIFEST_HOME/.git" ]]; then
+    echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
+    (cd "$GEN3_MANIFEST_HOME" && git fetch && git status)
+  fi
   touch "$doneFilePath"
 }
 
