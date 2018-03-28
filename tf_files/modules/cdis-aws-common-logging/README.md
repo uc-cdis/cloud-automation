@@ -14,6 +14,7 @@ gen3 workon csoc <commons account>
 - [2. Overview](#2-overview)
 - [3. Centralized  logging](#3-centralized-logging)
   - [3.1 How it works](#21-how-it-works)
+    - [3.1.1 JSON breakdown] (#311-json-breakdown)
 
 
 ## 2. Overview
@@ -32,12 +33,12 @@ Additionally, logs are also sent to ElasticSearch and S3 simultaneously. Elastic
 
 ![image of workflow](workflow.png)
 
-[Figure 1] Image of workflow reflects how the logs are sent from different account into this CSOC account and how the process is. 
+[Figure 1] Image of workflow reflects how the logs are sent from different accounts into the CSOC account and how the process is. 
 
 
 ### 3.1 How it works
 
-When logs come in through the data stream service it comes base64 encoded and zipped. We need to process it before sending it to ElasticSearch, otherwise it won't be properly interpretated and ultimately won't be inserted and create an index. 
+When logs come in through the data stream service, it comes base64 encoded and zipped. We need to process it before sending it to ElasticSearch, otherwise it won't be properly interpretated and ultimately won't be inserted and create an index. 
 
 An example how it is received:
 
@@ -50,7 +51,7 @@ An example how it is received:
       "kinesis": {
         "approximateArrivalTimestamp": 1428537600,
         "partitionKey": "partitionKey-3",
-        "data": "SGVsbG8sIHRoaXMgaXMgYSB0ZXN0IDEyMy4=",
+        "data": "H4sIAAAAAAAAAO1T227jNhD9FUJPCRrKvEmkBLRAgGbTlwUKxG+RYVDiKCYiS6pIZxFk/e8dyU6yl7ZAsa8L6YGcC+fMzDkvyR5CsA+wfh4hKZPfr9fX2483d3fXtzfJVTJ86mFCs2Za55rnTBiN5m54uJ2Gw4geB09jZ3uIT/zkuIsT2D16Hg81TOiAkD7ZKUVX2gx9tB6fDGnYAYxueKAOxm543kMfKccaGZMiM7QXsnncjjvfdT5s34OtyiBvmZNGKyFB2ZxJqUVmJbDGMCNtbiSvXWObnGesyXhmWtnaVqu8reWMAmGGQx2ayY/RD/0H30UElJT3X/ay/TIk2Syd3TwhyDnwJfEOG5SykNrkSknJMiGM4YWRKjOGKaG55pIJmYsiMwXXMjOZVgZvuUEA0ePYo93jBHkmuBG50ooxdvW6Dnz+pZqLVklZJfejdyUR5rMdx5KwzxP8VRJeyHwlMHVDOEsFfpxcXJIXqQjOOxDfE1lwUj/jBo7k/sPkyUc7ESEJ16VU+BPBuNmQ25s1WW0RTjwE8utv5AFwQzaCI/qUPT+lyD5AE8jFH+v1nyuOtQRjl0SQHVgHp3LanOMvOAmffGx2eB560gwTEHZZVX2VXFVJWBiyNBYi5k6L1Q3NI+CxxL7feLL1bon70b1XyRFLvDPy2zK93cMJ0JlpC6TZGkbbwLv/zMjFPQ7u+8T/4vNb1rkrW7SidUVBhZMZ5RwMtbnIKINGM9PyrHZmyelsDd0ZNFLge6QO17VYkU0s50Yb+VqMRtgjqyPQnQ27U9AbrtNcdkOIi8OPiFlQoWieU61SaETqe5RHb7vlvb0NeNsepm6J38U4hnK1Qv7JlKW8RC2s7Oi/md653VY6C7rmlNfK/mu7xyNi+jGFFf9fYZTM372QK9TIatZF+aaSXzCNbUhVVclXUnlVwuyY1YBymY90uS/RA50nRJvOIx1eQ/9ZBsMh/pTBTxl8JYPN8W+2lRG/nwcAAA==",
         "kinesisSchemaVersion": "1.0",
         "sequenceNumber": "49545115243490985018280067714973144582180062593244200961"
       },
@@ -68,3 +69,25 @@ An example how it is received:
 The actual data from child accountd is in the `data` part of the above JSON, the rest is added by the service which is also nice to have. The lamda function takes care of decoding the data and make it nice for ElasticSearch.
 
 Logs are being sent to S3 as well. There are multiple ways to store the data into S3, as it comes from the stream, or processed the same way we do for ElasticSearch. As for now, we are processing it so we don't need to decode/uncompress if we want/need to see the content.
+
+It worth mentioning that each common would have its own Kinesis Stream, lambda function, Firehoses, and S3 logging bucket. ElasticSearch endpoint is just one. The reason for this is to have more control when it requires to filtering, we can query ES easily and not the same for files within S3. And also, things are automates so, Why not?
+
+#### 3.1.1 JSON breakdown
+
+When data comes in, it's in form of Records, which is basically an array (list in python). Said array can be as long as it wants. 
+
+eventID				-> and Id given by kinesis which also add the shardID in use.
+eventVersion			-> self explanatory.
+kinesis				-> this is what actually comes in from the other account.
+  approximateArrivalTimestamp	-> timestamp when the stream reaches Kinesis.
+  partitionKey			-> yet another key value, not really healpful.
+  data				-> the data we want to decode and actually log into ES/S3
+  kinesisSchemaVersion		-> yet another version
+  sequenceNumber		-> an unique number for internal controls. A Kinesis thing.
+invokeIdentityArn		-> who invoked the stream (an AWS role ARN).
+eventName			-> self explanatory
+eventSourceARN			-> the stream ARN
+eventSource			-> self explanatory
+awsRegion			-> requires no explanation.
+
+For more deep info of what comes in and how it is formated, please checkout the lambda_function.py file. 
