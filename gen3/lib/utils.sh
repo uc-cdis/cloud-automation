@@ -116,7 +116,6 @@ gen3_aws_run() {
         cacheIsValid="yes"
       fi
     fi
-
     if [[ "$cacheIsValid" != "yes" ]]; then
       # echo to stderr - avoid messing with output pipes ...
       echo -e "$(green_color "INFO: refreshing aws access token cache")" 1>&2
