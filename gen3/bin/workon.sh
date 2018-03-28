@@ -167,8 +167,8 @@ EOM
     # rds snapshot vpc is simpler ...
     commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_logging$//')
     cat - <<EOM
-child_account_id=""
-common_name=""
+child_account_id="NUMERIC-ID"
+common_name="${commonsName}"
 EOM
     return 0
   fi
