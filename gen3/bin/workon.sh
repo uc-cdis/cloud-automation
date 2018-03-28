@@ -59,7 +59,7 @@ refreshFromS3() {
     return 1
   fi
   s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/${fileName}"
-  aws s3 cp "$s3Path" "$filePath" > /dev/null 2>&1
+  gen3_aws_run aws s3 cp "$s3Path" "$filePath" > /dev/null 2>&1
   if [[ ! -f "$filePath" ]]; then
     echo "No data at $s3Path"
     return 1
@@ -143,13 +143,36 @@ EOM
     # rds snapshot vpc is simpler ...
     commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
     cat - <<EOM
-child_account_id=""
-child_name=""
-vpc_cidr_octet=""
+child_account_id="ACCOUNT-ID"
+child_name="NAME FOR TAGGING"
+vpc_cidr_list=[ "CIDR1", "CIDR2"]
+EOM
+    return 0
+  fi
+
+    # else
+  if [[ "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
+    # rds snapshot vpc is simpler ...
+    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
+    cat - <<EOM
+  env_vpc_name         = "VPC-NAME"
+  env_vpc_id           = "VPC-ID"
+  env_vpc_cidr         = "VPC-CIDR"
+  env_public_subnet_id = "VPC-PUBLIC-SUBNET"
 EOM
     return 0
   fi
   
+  if [[ "$GEN3_WORKSPACE" =~ _logging$ ]]; then
+    # rds snapshot vpc is simpler ...
+    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_logging$//')
+    cat - <<EOM
+child_account_id="NUMERIC-ID"
+common_name="${commonsName}"
+EOM
+    return 0
+  fi
+
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
     cat - <<EOM
@@ -160,6 +183,19 @@ EOM
   fi
 
   # else ...
+
+# ssh key to be added to VMs and kube nodes
+local SSHADD=$(which ssh-add)
+if [ -f ~/.ssh/id_rsa.pub ];
+then
+  kube_ssh_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
+elif [ ! -z "$(${SSHADD} -L)" ];
+then
+  kube_ssh_key="$(${SSHADD} -L)"
+else
+  kube_ssh_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDOHPLoBC42tbr7YiQHGRWDOZ+5ItJVhgSqAOOb8bHD65ajen1haM2PUvqCrZ0p7NOrDPFRBlNIRlhC2y3VdnKkNYSYMvHUEwt8+V3supJBj2Tu8ldzpQthDu345/Ge4hqwp+ujZVRfjjAFaFLkMtqvlAXkj7a2Ip6ZZEhd8NcRq/mQET3eCaBR5/+BGzEMBVQGTSGYOY5rOkR8PNQiX+BF7qIX/xRHo8GCOztO4KmDLmaZV63ovQwr01PXSGEq/VGfHwXAvzX13IXTYE2gechEyudhRGZBbhayyaKD7VRoKzd4BZuuUrLCSpMDWBK/qtECcP4pCXW/0Wi2OCzUen3syh/YrOtJD1CUO+VvW6/8xFrcBeoygFW87hW08ncXLT/XxpgWeExJrTGIxjr4YzcsWPBzxI7/4SmKbaDSjx/RMX7x5WbPc5AZzHY17cKcpdc14weG+sm2OoKF5RqnFB/JpBaNxG+Zq8qYC/6h8fOzDWo5+qWKO/UlWaa3ob2QpG8qOBskoyKVG3ortQ04E04DmoaOiSsXoj0U0zaJnxpdF+a0i31RxQnjckTMEHH8Y2Ow8KIG45tzhJx9NbqSj9abk3yTzGA7MHvugQFpuTQ3gaorfG+A9RGUmx6aQNwXUGu+DWRF7lFeaPJt4CDjzbDUGP/b5KJkWK0DDAI61JfOew== /home/fauzi/.ssh/id_rsa"
+fi
+
   cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
 vpc_name="$GEN3_WORKSPACE"
@@ -204,8 +240,7 @@ fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
 
-# ssh key to be added to VMs and kube nodes
-kube_ssh_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
+kube_ssh_key="${kube_ssh_key}"
 
 kube_additional_keys = <<EOB
   - '"ssh-dss AAAAB3NzaC1kc3MAAACBAPfnMD7+UvFnOaQF00Xn636M1IiGKb7XkxJlQfq7lgyzWroUMwXFKODlbizgtoLmYToy0I4fUdiT4x22XrHDY+scco+3aDq+Nug+jaKqCkq+7Ms3owtProd0Jj6AWCFW+PPs0tGJiObieci4YqQavB299yFNn+jusIrDsqlrUf7xAAAAFQCi4wno2jigjedM/hFoEFiBR/wdlwAAAIBl6vTMb2yDtipuDflqZdA5f6rtlx4p+Dmclw8jz9iHWmjyE4KvADGDTy34lhle5r3UIou5o3TzxVtfy00Rvyd2aa4QscFiX5jZHQYnbIwwlQzguCiF/gtYNCIZit2B+R1p2XTR8URY7CWOTex4X4Lc88UEsM6AgXIpJ5KKn1pK2gAAAIAJD8p4AeJtnimJTKBdahjcRdDDedD3qTf8lr3g81K2uxxsLOudweYSZ1oFwP7RnZQK+vVE8uHhpkmfsy1wKCHrz/vLFAQfI47JDX33yZmBLtHjjfmYDdKVn36XKZ5XrO66vcbX2Jav9Hlqb6w/nekBx2nbJaZnHwlAp70RU13gyQ== renukarya@Renukas-MacBook-Pro.local"'
@@ -240,7 +275,7 @@ bucketCheckFlag=".tmp_bucketcheckflag2"
 if [[ ! -f "$bucketCheckFlag" ]]; then
   echo "initializing terraform"
   echo "checking if $GEN3_S3_BUCKET bucket exists"
-  if ! aws s3 ls "s3://$GEN3_S3_BUCKET" > /dev/null 2>&1; then
+  if ! gen3_aws_run aws s3 ls "s3://$GEN3_S3_BUCKET" > /dev/null 2>&1; then
     echo "Creating $GEN3_S3_BUCKET bucket"
     echo "NOTE: please verify that aws profile region matches backend.tfvars region:"
     echo "  aws profile region: $(aws configure get $GEN3_PROFILE.region)"
@@ -258,9 +293,9 @@ if [[ ! -f "$bucketCheckFlag" ]]; then
   }
 EOM
 )
-    aws s3api create-bucket --acl private --bucket "$GEN3_S3_BUCKET"
+    gen3_aws_run aws s3api create-bucket --acl private --bucket "$GEN3_S3_BUCKET"
     sleep 5 # Avoid race conditions
-    if aws s3api put-bucket-encryption --bucket "$GEN3_S3_BUCKET" --server-side-encryption-configuration "$S3_POLICY"; then
+    if gen3_aws_run aws s3api put-bucket-encryption --bucket "$GEN3_S3_BUCKET" --server-side-encryption-configuration "$S3_POLICY"; then
       touch "$bucketCheckFlag"
     fi
   else
@@ -269,10 +304,10 @@ EOM
 fi
 
 echo "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/"
-terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
+gen3_aws_run terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 # Generate some k8s helper scripts for on-prem deployments
-if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
+if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ || "$GEN3_WORKSPACE" =~ _logging$  || "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
   mkdir -p -m 0700 onprem_scripts
   cat - "$GEN3_HOME/tf_files/configs/kube-services-body.sh" > onprem_scripts/kube-services.sh <<EOM
 #!/bin/bash

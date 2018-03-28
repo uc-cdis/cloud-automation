@@ -53,7 +53,7 @@ s3Source="s3://$GEN3_S3_BUCKET/${GEN3_WORKSPACE}/terraform.tfstate"
 s3Dest="s3://$GEN3_S3_BUCKET/${GEN3_WORKSPACE}/terraform.tfstate.bak.$(date +%s)"
 echo "Backing up terraform state from $s3Source to $s3Dest"
 
-if ! aws s3 cp $DRYRUN "$s3Source" "$s3Dest"; then
+if ! gen3_aws_run aws s3 cp $DRYRUN "$s3Source" "$s3Dest"; then
   echo "ERROR: backup failed - bailing out without migrating terraform state"
   exit 1
 fi
@@ -62,5 +62,5 @@ for oldName in "${renameDb[@]}"; do
   echo $oldName
   newName="module.cdis_vpc.${oldName}"
   echo "$DRYRUN terraform state mv $oldName $newName"
-  $GEN3_DRY_RUN || terraform state mv "$oldName" "$newName"
+  $GEN3_DRY_RUN || gen3_aws_run terraform state mv "$oldName" "$newName"
 done

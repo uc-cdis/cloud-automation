@@ -85,6 +85,16 @@ $ gen3 workon csoc cdistest_adminvm
 
 An *admin vm* workspace creates an EC2 instance in the CSOC that is associated with a child account.  The EC2 instance is linked with a CSOC IAM role that can assume admin privileges in the child account.  A security group allows the VM to communicate with VPC's in the child account, and prevents communication with VPC's from other accounts also peered with the CSOC.
 
+* *logging*
+
+The *logging* type workspace is intended as a destination for logs that will be produced by the actual commons cluster. This module should be ran prior running any commons, otherwise it may conflict when the commons tries to attach the logging group of the common to the CSOC account destinations.
+
+```
+$ gen3 workon csoc common_logging
+```
+
+This module will create a Kinesis stream service, a lambda function, and a couple of firehoses. The latest one would be in charge of sending whatever the commons account forwards into an ElasticSearch domain along with a S3 bucket that will also be created with the name of the common.
+
 * *commons*
 
 Any workspace that does not match one of the other types is considered a *commons* type workspace - ex:
@@ -95,6 +105,7 @@ $ gen3 workon cdistest devplanetv1
 A *commons* workspace extends the *user vpc* type workspace with additional subnets to host a kubernetes cluster, and adds a `kubernetes provisioner` EC2 instance.  
 
 Note: we plan to deprecate both the `k8s provisioner` and the `bastion node` in *commons* VPC's in favor of accessing a commons through its *admin vm* in the *CSOC* account - which is accessed via VPN.
+
 
 * *databucket*
 
