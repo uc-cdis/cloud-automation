@@ -30,6 +30,19 @@ aws logs put-subscription-filter --log-group-name "<log group name>" --filter-na
 [{'Data': '{"messageType": "DATA_MESSAGE", "owner": "707767160287", "logGroup": "devplanetv1", "logStream": "kubernetes.var.log.containers.sheepdog-deployment-1517421976-mkbdj_thanhnd_sheepdog-b4f3e4d0cbb13e2398e3f0aefa6aaddaf0ff6723b87f33088dbbc95a867d7cb4.log", "subscriptionFilters": ["devplanetv1_subscription"], "timestamp": "2018-03-26T15:36:11", "message": {"log": "[pid: 28|app: 0|req: 2384/7253] 10.2.73.1 () {34 vars in 393 bytes} [Mon Mar 26 15:36:11 2018] GET /_status => generated 7 bytes in 4 msecs (HTTP/1.1 200) 2 headers in 78 bytes (1 switches on core 0)\\n", "stream": "stderr", "docker": {"container_id": "b4f3e4d0cbb13e2398e3f0aefa6aaddaf0ff6723b87f33088dbbc95a867d7cb4"}, "kubernetes": {"container_name": "sheepdog", "namespace_name": "thanhnd", "pod_name": "sheepdog-deployment-1517421976-mkbdj", "pod_id": "0a9ac65a-2d55-11e8-a625-0ec708f15bd8", "labels": {"app": "sheepdog", "date": "1521656203", "pod-template-hash": "1517421976"}, "host": "ip-172-24-66-102.ec2.internal", "master_url": "https://10.3.0.1:443/api", "namespace_id": "b039fc30-2173-11e8-a625-0ec708f15bd8"}}}'}, {'Data': '{"messageType": "DATA_MESSAGE", "owner": "707767160287", "logGroup": "devplanetv1", "logStream": "kubernetes.var.log.containers.sheepdog-deployment-1517421976-mkbdj_thanhnd_sheepdog-b4f3e4d0cbb13e2398e3f0aefa6aaddaf0ff6723b87f33088dbbc95a867d7cb4.log", "subscriptionFilters": ["devplanetv1_subscription"], "timestamp": "2018-03-26T15:36:11+00:00", "message": {"log": "- - - [26/Mar/2018:15:36:11 +0000] \\"GET /_status HTTP/1.1\\" 200 7 \\"-\\" \\"Go-http-client/1.1\\"\\n", "stream": "stdout", "docker": {"container_id": "b4f3e4d0cbb13e2398e3f0aefa6aaddaf0ff6723b87f33088dbbc95a867d7cb4"}, "kubernetes": {"container_name": "sheepdog", "namespace_name": "thanhnd", "pod_name": "sheepdog-deployment-1517421976-mkbdj", "pod_id": "0a9ac65a-2d55-11e8-a625-0ec708f15bd8", "labels": {"app": "sheepdog", "date": "1521656203", "pod-template-hash": "1517421976"}, "host": "ip-172-24-66-102.ec2.internal", "master_url": "https://10.3.0.1:443/api", "namespace_id": "b039fc30-2173-11e8-a625-0ec708f15bd8"}}}'}]
 
 
+The actual log that would be the same as in a rown in CloudWatchLogs 
+would be the "message" part of the json. 
+
+Since we receive a list of records, we need to iterate through the list,
+get the actual timestamp (when possible) and create a new single row,
+append it to a new list, chunk it if necesary. We can't just send a list
+longer than 500 to the firehose without throttling it.
+
+The flow is everytime Kinesis Stream receives something, it'll invoke this
+function by calling the handler function. The function nice_it would make 
+the records nice, and date_it would try to get any day from the actual log
+if not then datetime.now() is used.
+
 
 
 @author: Fauzi Gomez
