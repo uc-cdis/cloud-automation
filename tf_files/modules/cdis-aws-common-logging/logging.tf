@@ -191,6 +191,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
 }
 
 # Need these guys because the firehose resource is not that smart to create it if it doesn't exist
+# IF and only IF, the firehoses fail executioning they should populate into the group, enpty otherwise
 
 resource "aws_cloudwatch_log_group" "csoc_common_log_group" {
   name = "${var.common_name}"
