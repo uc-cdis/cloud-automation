@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: sheepdog-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: sheepdog
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -13,7 +17,7 @@ spec:
     metadata:
       labels:
         app: sheepdog
-        date: 1522085303
+        date: "1522344110"
     spec:
       automountServiceAccountToken: false
       volumes:
