@@ -17,4 +17,8 @@ spec:
       port: 443
       targetPort: 81
       name: https
+    - protocol: TCP
+      port: 80
+      targetPort: 82
+      name: http
   type: LoadBalancer

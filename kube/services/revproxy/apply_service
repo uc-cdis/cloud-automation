@@ -9,4 +9,5 @@ else
   echo "Global configmap not configured"
 fi
 
-kubectl apply -f $scriptDir/revproxy-service.yaml
+# Don't automatically apply this right now
+#kubectl apply -f $scriptDir/revproxy-service.yaml

@@ -148,6 +148,12 @@ data:
         ##
       	# Proxy Settings
       	##
+        # Serve internet facing http requests via this, and redirect to https
+        server {
+               listen      82 default_server proxy_protocol;
+               rewrite     ^   https://$host/$request_uri? permanent;
+        }
+        # Serve internet facing https requests and internal http requests here
       	server {
                 listen 81 proxy_protocol;
                 listen 80;
