@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: peregrine-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: peregrine
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate

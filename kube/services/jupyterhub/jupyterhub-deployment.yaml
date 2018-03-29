@@ -3,6 +3,10 @@ kind: StatefulSet
 metadata:
   name: jupyterhub-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: jupyter-hub
   revisionHistoryLimit: 2
   serviceName: "jupyter-hub"
   template:

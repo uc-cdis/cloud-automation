@@ -11,7 +11,9 @@ export GEN3_HOME
 export GEN3_MANIFEST_HOME
 
 #
-# Internal init helper
+# Internal init helper.
+# Note - be sure to redirect stdout to stderr, so we do
+#   not corrupte the output of g3k_manifest_filter with info messages
 #
 g3k_manifest_init() {
   # do this at most once a day
@@ -20,14 +22,14 @@ g3k_manifest_init() {
     return 0
   fi
   if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
-    echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}")
-    echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}"
+    echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
+    echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}" 1>&2
     # This will fail if proxy is not set correctly
-    git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}"
+    git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}" 1>&2
   fi
   if [[ -d "$GEN3_MANIFEST_HOME/.git" ]]; then
     echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
-    (cd "$GEN3_MANIFEST_HOME" && git fetch && git status)
+    (cd "$GEN3_MANIFEST_HOME" && git fetch && git status) 1>&2
   fi
   touch "$doneFilePath"
 }

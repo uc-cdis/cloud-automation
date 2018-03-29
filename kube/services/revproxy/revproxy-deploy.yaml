@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: revproxy-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: revproxy
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate

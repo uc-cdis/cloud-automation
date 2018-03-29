@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: indexd-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: indexd
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate

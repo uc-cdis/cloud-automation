@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: portal-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: portal
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
