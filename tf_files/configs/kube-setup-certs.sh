@@ -10,6 +10,14 @@
 
 set -e
 
+_KUBE_SETUP_CERTS=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_CERTS}/../.." && pwd)}"
+
+if [[ -z "$_KUBES_SH" ]]; then
+  source "$GEN3_HOME/kube/kubes.sh"
+fi # else already sourced this file ...
+
+
 #
 # This is a little goofy.
 # The script assumes ~/vpc_name exists with
@@ -48,8 +56,8 @@ fi
 # create SSL certs for all our services ...
 #
 service_list=$(grep -h 'name:' services/*/*service.yaml | grep -service | sed 's/^\s*//' | sed 's/\s*$//' | sort -u  | awk '{ print $2 }')
-if ! kubectl get secret service-ca > /dev/null 2>&1; then
-  kubectl create secret generic "service-ca" --from-file=ca.pem=credentials/ca.pem
+if ! g3kubectl get secret service-ca > /dev/null 2>&1; then
+  g3kubectl create secret generic "service-ca" --from-file=ca.pem=credentials/ca.pem
 fi
 for name in $service_list; do
     if !([[ -f "credentials/${name}.crt" && -f "credentials/${name}.key" ]]); then
@@ -64,7 +72,7 @@ for name in $service_list; do
       echo "Certificate already exists credentials/${name}.crt"
     fi
     # may need to create the secret in a different namespace ...
-    if ! kubectl get secrets "cert-$name" 2>&1 > /dev/null; then
-      kubectl create secret generic "cert-$name" "--from-file=service.crt=credentials/${name}.crt" "--from-file=service.key=credentials/${name}.key"
+    if ! g3kubectl get secrets "cert-$name" 2>&1 > /dev/null; then
+      g3kubectl create secret generic "cert-$name" "--from-file=service.crt=credentials/${name}.crt" "--from-file=service.key=credentials/${name}.key"
     fi
 done

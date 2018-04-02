@@ -4,6 +4,13 @@
 
 set -e
 
+_KUBE_SETUP_JUPYTER=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_JUPYTER}/../.." && pwd)}"
+
+if [[ -z "$_KUBES_SH" ]]; then
+  source "$GEN3_HOME/kube/kubes.sh"
+fi # else already sourced this file ...
+
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-jupyterhub.sh vpc_name"
@@ -20,16 +27,16 @@ cd ~/${vpc_name}
 namespaceName="jupyter-pods"
 
 # Create the namespace for user pods
-if ! kubectl get namespace "$namespaceName" > /dev/null 2>&1; then
+if ! g3kubectl get namespace "$namespaceName" > /dev/null 2>&1; then
   echo "Creating k8s namespace: ${namespaceName}" 
-  kubectl create namespace "${namespaceName}"
+  g3kubectl create namespace "${namespaceName}"
 else
   echo "I think k8s namespace ${namespaceName} already exists"
 fi
 
 
-kubectl apply -f services/jupyterhub/jupyterhub-config.yaml
-kubectl apply -f services/jupyterhub/jupyterhub-service.yaml
-kubectl apply -f services/jupyterhub/jupyterhub-storage.yaml
-kubectl apply -f services/jupyterhub/jupyterhub-deployment.yaml
+g3kubectl apply -f services/jupyterhub/jupyterhub-config.yaml
+g3kubectl apply -f services/jupyterhub/jupyterhub-service.yaml
+g3kubectl apply -f services/jupyterhub/jupyterhub-storage.yaml
+g3kubectl apply -f services/jupyterhub/jupyterhub-deployment.yaml
 

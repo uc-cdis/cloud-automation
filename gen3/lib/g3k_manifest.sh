@@ -11,6 +11,14 @@ export GEN3_HOME
 export GEN3_MANIFEST_HOME
 
 #
+# from https://github.com/kubernetes/kubernetes/issues/27308#issuecomment-309207951
+# support for KUBECTL_NAMESPACE environment variable ...
+#
+g3kubectl() {
+  kubectl ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+}
+
+#
 # Internal init helper.
 # Note - be sure to redirect stdout to stderr, so we do
 #   not corrupte the output of g3k_manifest_filter with info messages
@@ -40,7 +48,7 @@ g3k_manifest_init() {
 # @param domain commons domain - tries to extract from global configmap if not given
 #
 g3k_manifest_path() {
-  local domain=${1:-$(kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
+  local domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
   if [[ -z "$domain" ]]; then
     echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
     return 1
@@ -117,7 +125,7 @@ g3k_roll() {
   fi
 
   if [[ -f "$templatePath" ]]; then
-    g3k_manifest_filter "$templatePath" | kubectl apply -f -
+    g3k_manifest_filter "$templatePath" | g3kubectl apply -f -
   elif [[ "$depName" == "all" ]]; then
     echo bash "${GEN3_HOME}/tf_files/configs/kube-services-body.sh"
     bash "${GEN3_HOME}/tf_files/configs/kube-services-body.sh"

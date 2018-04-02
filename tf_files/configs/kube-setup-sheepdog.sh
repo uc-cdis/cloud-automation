@@ -7,8 +7,14 @@
 
 set -e
 
-export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
-export RENDER_CREDS="${G3AUTOHOME}/tf_files/configs/render_creds.py"
+_KUBE_SETUP_SHEEPDOG=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_SHEEPDOG}/../.." && pwd)}"
+
+if [[ -z "$_KUBES_SH" ]]; then
+  source "$GEN3_HOME/kube/kubes.sh"
+fi # else already sourced this file ...
+
+export RENDER_CREDS="${GEN3_HOME}/tf_files/configs/render_creds.py"
 
 if [ ! -f "${RENDER_CREDS}" ]; then
   echo "ERROR: ${RENDER_CREDS} does not exist"
@@ -24,18 +30,16 @@ if [ ! -d ~/"${vpc_name}" ]; then
   exit 1
 fi
 
-source "${G3AUTOHOME}/kube/kubes.sh"
-
 cd ~/${vpc_name}_output
 python "${RENDER_CREDS}" secrets
 
 cd ~/${vpc_name}
 
-if ! kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
-  kubectl create secret generic sheepdog-secret --from-file=wsgi.py=./apis_configs/sheepdog_settings.py
+if ! g3kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
+  g3kubectl create secret generic sheepdog-secret --from-file=wsgi.py=./apis_configs/sheepdog_settings.py
 fi
 
-if [[ -z "$(kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')" ]]; then
+if [[ -z "$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')" ]]; then
   echo "ERROR: configmaps/global does not include dictionary_url"
   echo "... update and apply ${vpc_name}/00configmap.json, then retry this script"
   exit 1
@@ -135,7 +139,7 @@ fi
 # Avoid doing previous block more than once or when not necessary ...
 touch .rendered_gdcapi_db
 
-kubectl apply -f services/sheepdog/sheepdog-service.yaml
+g3kubectl apply -f services/sheepdog/sheepdog-service.yaml
 
 cat <<EOM
 The sheepdog services has been deployed onto the k8s cluster.

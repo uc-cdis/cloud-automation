@@ -7,8 +7,14 @@
 
 set -e
 
-export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
-export RENDER_CREDS="${G3AUTOHOME}/tf_files/configs/render_creds.py"
+_KUBE_SETUP_PEREGRINE=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_PEREGRINE}/../.." && pwd)}"
+
+if [[ -z "$_KUBES_SH" ]]; then
+  source "$GEN3_HOME/kube/kubes.sh"
+fi # else already sourced this file ...
+
+export RENDER_CREDS="${GEN3_HOME}/tf_files/configs/render_creds.py"
 
 if [ ! -f "${RENDER_CREDS}" ]; then
   echo "ERROR: ${RENDER_CREDS} does not exist"
@@ -24,19 +30,17 @@ if [ ! -d ~/"${vpc_name}" ]; then
   exit 1
 fi
 
-source "${G3AUTOHOME}/kube/kubes.sh"
-
 cd ~/${vpc_name}_output
 python "${RENDER_CREDS}" secrets
 
 cd ~/${vpc_name}
 
-if ! kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
-  kubectl create secret generic peregrine-secret --from-file=wsgi.py=./apis_configs/peregrine_settings.py
+if ! g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
+  g3kubectl create secret generic peregrine-secret --from-file=wsgi.py=./apis_configs/peregrine_settings.py
 fi
 
 g3k roll peregrine
-kubectl apply -f services/peregrine/peregrine-service.yaml
+g3kubectl apply -f services/peregrine/peregrine-service.yaml
 
 cat <<EOM
 The peregrine services has been deployed onto the k8s cluster.

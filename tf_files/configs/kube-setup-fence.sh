@@ -7,8 +7,14 @@
 
 set -e
 
-export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
-export RENDER_CREDS="${G3AUTOHOME}/tf_files/configs/render_creds.py"
+_KUBE_SETUP_FENCE=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_FENCE}/../.." && pwd)}"
+
+if [[ -z "$_KUBES_SH" ]]; then
+  source "$GEN3_HOME/kube/kubes.sh"
+fi # else already sourced this file ...
+
+export RENDER_CREDS="${GEN3_HOME}/tf_files/configs/render_creds.py"
 
 if [ ! -f "${RENDER_CREDS}" ]; then
   echo "ERROR: ${RENDER_CREDS} does not exist"
@@ -24,7 +30,6 @@ if [ ! -d ~/"${vpc_name}" ]; then
   exit 1
 fi
 
-source "${G3AUTOHOME}/kube/kubes.sh"
 cd ~/${vpc_name}_output
 python "${RENDER_CREDS}" secrets
 
@@ -37,24 +42,24 @@ if [ ! -f jwt-keys/jwt_public_key.pem ]; then
   openssl genrsa -out jwt-keys/jwt_private_key.pem 2048
   openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
 fi
-if ! kubectl get configmaps/fence > /dev/null 2>&1; then
-  kubectl create configmap fence --from-file=apis_configs/user.yaml
+if ! g3kubectl get configmaps/fence > /dev/null 2>&1; then
+  g3kubectl create configmap fence --from-file=apis_configs/user.yaml
 fi
 
-if ! kubectl get secrets/fence-secret > /dev/null 2>&1; then
-  kubectl create secret generic fence-secret --from-file=local_settings.py=./apis_configs/fence_settings.py
+if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
+  g3kubectl create secret generic fence-secret --from-file=local_settings.py=./apis_configs/fence_settings.py
 fi
 
-if ! kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
+if ! g3kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
   if [[ ! -f "./apis_configs/fence_credentials.json" ]]; then
-    cp "${G3AUTOHOME}/tf_files/configs/fence_credentials.json" "./apis_configs/fence_credentials.json" 
+    cp "${GEN3_HOME}/tf_files/configs/fence_credentials.json" "./apis_configs/fence_credentials.json" 
   fi
   echo "create fence-json-secret using current creds file apis_configs/fence_credentials.json"
-  kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
+  g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
 fi
 
-if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
-  kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
+if ! g3kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
+  g3kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
 fi
 
 g3k roll fence
@@ -72,7 +77,7 @@ if [[ -z "${fence_snapshot}" && "${create_fence_db}" = "true" && ( ! -f .rendere
   #
   cd ~/${vpc_name}_output;
   #
-  # This crazy command actually does a kubectl -exec into the fence pod to
+  # This crazy command actually does a g3kubectl -exec into the fence pod to
   # intialize the db ...
   #
   python "${RENDER_CREDS}" fence_db
@@ -85,7 +90,7 @@ fi
 # avoid doing the previous block more than once or when not necessary ...
 touch ~/"${vpc_name}/.rendered_fence_db"
 
-kubectl apply -f services/fence/fence-service.yaml
+g3kubectl apply -f services/fence/fence-service.yaml
 
 cat <<EOM
 The fence services has been deployed onto the k8s cluster.
