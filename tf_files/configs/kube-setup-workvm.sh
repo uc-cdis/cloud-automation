@@ -107,3 +107,16 @@ if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
 fi
 EOF
 fi
+
+if [[ ! -f ~/.aws/config ]]; then
+  mkdir -p ~/.aws
+  cat - >>~/.aws/config <<EOF
+[default]
+output = json
+region = us-east-1
+# Comment these out if not running on adminvm
+role_arn = arn:aws:iam::COMMONS-ACCOUNT-ID-HERE:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
+
+EOF
+fi

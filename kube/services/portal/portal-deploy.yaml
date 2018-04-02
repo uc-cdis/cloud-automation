@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: portal-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: portal
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -13,6 +17,7 @@ spec:
     metadata:
       labels:
         app: portal
+        GEN3_DATE_LABEL
     spec:
       automountServiceAccountToken: false
       volumes:
@@ -24,7 +29,7 @@ spec:
           secretName: "service-ca"
       containers:
       - name: portal
-        image: quay.io/cdis/data-portal:master
+        GEN3_PORTAL_IMAGE
         livenessProbe:
           httpGet:
             path: /

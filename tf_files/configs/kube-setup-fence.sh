@@ -57,7 +57,7 @@ if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
   kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
 fi
 
-kubectl apply -f services/fence/fence-deploy.yaml
+g3k roll fence
 
 #
 # Note: the 'create_fence_db' flag is set in
@@ -79,26 +79,14 @@ if [[ -z "${fence_snapshot}" && "${create_fence_db}" = "true" && ( ! -f .rendere
   # Fence sets up the gdcapi oauth2 client-id and secret stuff ...
   python "${RENDER_CREDS}" secrets
   cd ~/${vpc_name}
+  # force restart - might not be necessary
+  g3k roll fence
 fi
 # avoid doing the previous block more than once or when not necessary ...
 touch ~/"${vpc_name}/.rendered_fence_db"
 
 kubectl apply -f services/fence/fence-service.yaml
 
-patch_kube fence-deployment
-
 cat <<EOM
 The fence services has been deployed onto the k8s cluster.
-You'll need to update the gdcapi-secret and the reverse-proxy nginx config
-to make the commons start using the fence service (and retire userapi).
-Run the following commands to make that switch:
-
-kubectl delete secrets gdcapi-secret
-kubectl create secret generic gdcapi-secret --from-file=wsgi.py=./apis_configs/gdcapi_settings.py
-kubectl apply -f services/revproxy/00nginx-config.yaml
-
-# update_config is a function in cloud-automation/kube/kubes.sh
-source ~/cloud-automation/kube/kubes.sh
-patch_kube gdcapi-deployment
-patch_kube revproxy-deployment
 EOM

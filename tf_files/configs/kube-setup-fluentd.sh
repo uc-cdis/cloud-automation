@@ -16,5 +16,5 @@ if [ ! -d ~/"${vpc_name}" ]; then
 fi
 
 cd ~/${vpc_name}
-sed -i "s/LGN/${vpc_name}/g"  services/fluentd/fluentd.yaml
-kubectl apply -f services/fluentd/fluentd.yaml
+sed "s/GEN3_LOG_GROUP_NAME/${vpc_name}/g"  services/fluentd/fluentd.yaml | kubectl apply -f -
+

@@ -302,6 +302,11 @@ resource "aws_kms_key" "kube_key" {
   }
 }
 
+resource "aws_kms_alias" "kube_key" {
+  name          = "alias/${var.vpc_name}-k8s"
+  target_key_id = "${aws_kms_key.kube_key.key_id}"
+}
+
 resource "aws_key_pair" "automation_dev" {
   key_name   = "${var.vpc_name}_automation_dev"
   public_key = "${var.kube_ssh_key}"

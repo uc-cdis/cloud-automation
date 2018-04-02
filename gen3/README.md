@@ -160,7 +160,56 @@ The tasks performed include:
 * fi
 * setup the *cdis-state-ac{ACCOUNTID}-gen3* S3 bucket if necessary
 * run `terraform init` if necessary
+
+### gen3 arun command arg1 arg2 ...
    
+Generalization of `gen3 aws ...` just below, 
+so  `gen3 arun aws arg1 arg2 ...` is equivalent to
+`gen3 aws arg1 arg2 ...`
+ 
+### gen3 aws arg1 arg2 ...
+
+Run the `aws` command with the given arguments after setting the
+environment to conform to the active workspace's `~/.aws/config` profile -
+acquiring temporary credentials as necessary.  
+
+For example - `gen3 workon cdistest devplanetv1` with the following 
+configuration prompts the user for an MFA token, acquire a token
+for the `role_arn` specified by the `cdistest` profile, and cache the
+token (and auto renew when it expires):
+
+```
+[profile cdistest]
+output = json
+region = us-east-1
+role_arn = arn:aws:iam::707767160287:role/csoc_adminvm
+role_session_name = gen3-reuben
+source_profile = csoc
+mfa_serial = arn:aws:iam::433568766270:mfa/reuben-csoc
+
+[profile csoc]
+mfa_serial = arn:aws:iam::433568766270:mfa/reuben-csoc
+# AWS_PROFILE=csoc aws sts get-session-token --serial-number arn:aws:iam::433568766270:mfa/reuben-csoc --token-code XXXX
+```
+
+Similarly, `gen3 workon csoc cdistest_adminvm` with the above profile
+prompts the user for an MFA token, then acquire and cache credentials.
+
+Finally, `gen3 workon cdistest devplanetv1` with the following configuration
+also acquires a token for the specified role, but uses credentials
+from the EC2 metadata service to assume the role rather than
+look for `csoc` credentials in `~/.aws/credentials`.
+
+```
+[profile cdistest]
+output = json
+region = us-east-1
+role_arn = arn:aws:iam::707767160287:role/csoc_adminvm
+role_session_name = gen3-reuben
+credential_source = Ec2InsanceMetadata
+```
+
+
 ### gen3 status
 
 List the variables associated with the current gen3 workspace - ex:
@@ -270,28 +319,28 @@ to exist under
 ```
     s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/
 ```
-Those variable files do not include aws credentials - gen3 will harvest those
-from your local aws profile to another set of local aws_*.tfvars files that are not 
+Those variable files do not include aws credentials - gen3 harvests those
+from your local aws profile, and are not 
 backed up to S3.
 
 Here is one strategy for migration:
 * `gen3 workon profile-name vpc-name`
 
-This will create a local workspace with config.tfvars and backend.tfvars
+This creates a local workspace with config.tfvars and backend.tfvars
 files generated from a template that auto-generates new passwords, etc.
-It will also auto-create the GEN3_S3_BUCKET (defaults to cdis-state-ac{ACCOUNTID}-gen3)
+It also creates the GEN3_S3_BUCKET (defaults to cdis-state-ac{ACCOUNTID}-gen3)
 S3 bucket if it does not yet exist.
 
 * `gen3 cd`
 
-This will cd your shell into the workspace folder.
+`cd` the shell into the workspace folder.
 
 * Update config.tfvars and backend.tfvars with appropriate values
 * `gen3 tfplan`
 * `gen3 tfapply`
 
 Only tfapply if the plan is not destructive.
-The tfapply will automatically backup the local config.tfvars, backend.tfvars, and README.md to S3.
+The tfapply copies the local config.tfvars, backend.tfvars, and README.md to a backup in S3.
 
 * Optionally - update backend.tfvars, so that terraform stores its S3 state in the same folder as config.tfvars, then run `terraform init` to move the state, and gen3 tfplan; gen3 tfapply; to sync everything up with s3 - ex:
 ```
@@ -302,9 +351,7 @@ key = "gen3test"
 region = "us-east-1"
 
 #
-# gen3 workon ... will run 'terraform init' - which will in turn prompt you to migrate the 
-# if it has changed 
-#
+# gen3 workon ... runs 'terraform init' - #
 
 $ gen3 workon cdistest gen3test
 $ gen3 tfplan

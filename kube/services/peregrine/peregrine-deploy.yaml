@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: peregrine-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: peregrine
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -13,6 +17,7 @@ spec:
     metadata:
       labels:
         app: peregrine
+        GEN3_DATE_LABEL
     spec:
       automountServiceAccountToken: false
       volumes:
@@ -27,7 +32,7 @@ spec:
             secretName: "service-ca"
       containers:
         - name: peregrine
-          image: quay.io/cdis/peregrine:master
+          GEN3_PEREGRINE_IMAGE
           livenessProbe:
             httpGet:
               path: /_status

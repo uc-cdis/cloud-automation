@@ -17,7 +17,7 @@ spec:
     metadata:
       labels:
         app: sheepdog
-        GEN3_DATE_LABEL
+        date: "1522344110"
     spec:
       automountServiceAccountToken: false
       volumes:
@@ -32,7 +32,7 @@ spec:
             secretName: "service-ca"
       containers:
         - name: sheepdog
-          GEN3_SHEEPDOG_IMAGE
+          image: quay.io/cdis/sheepdog:1.0.1
           livenessProbe:
             httpGet:
               path: /_status

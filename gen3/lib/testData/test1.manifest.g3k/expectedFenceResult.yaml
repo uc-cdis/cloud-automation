@@ -17,7 +17,7 @@ spec:
     metadata:
       labels:
         app: fence
-        GEN3_DATE_LABEL
+        date: "1522344234"
     spec:
       automountServiceAccountToken: false
       volumes:
@@ -41,7 +41,7 @@ spec:
             secretName: "service-ca"
       containers:
       - name: fence
-        GEN3_FENCE_IMAGE
+        image: quay.io/cdis/fence:master
         env:
           - name: PYTHONPATH
             value: /var/www/fence
