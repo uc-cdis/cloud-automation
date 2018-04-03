@@ -132,5 +132,6 @@ fi
 sudo chown -R "${namespace}:" /home/$namespace
 sudo chown -R "${namespace}:" /home/$namespace/.ssh
 sudo chmod -R 0700 /home/$namespace/.ssh
+sudo chmod go-w /home/$namespace
 
 echo "The $namespace user is ready to login and run ~/cloud-automation/tf_files/configs/kube-services-body.sh $vpc_name"
