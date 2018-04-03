@@ -20,4 +20,4 @@ if [ -z "${vpc_name}" ]; then
    exit 1
 fi
 
-sed "s/GEN3_LOG_GROUP_NAME/${vpc_name}/g"  "${GEN3_HOME}/kube/services/fluentd/fluentd.yaml" | g3kubectl apply -f -
+sed "s/GEN3_LOG_GROUP_NAME/${vpc_name}/g"  "${GEN3_HOME}/kube/services/fluentd/fluentd.yaml" | kubectl "--namespace=kube-system" apply -f -
