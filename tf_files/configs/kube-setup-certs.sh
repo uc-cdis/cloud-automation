@@ -11,51 +11,31 @@
 set -e
 
 _KUBE_SETUP_CERTS=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+# Jenkins friendly
+export WORKSPACE="${WORKSPACE:-$HOME}"
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_CERTS}/../.." && pwd)}"
 
 if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/kube/kubes.sh"
 fi # else already sourced this file ...
 
-
-#
-# This is a little goofy.
-# The script assumes ~/vpc_name exists with
-# a kubeconfig file and ./services/ folder
-#
-if [ ! -z "${vpc_name}" ]; then
-  if [ ! -f ~/"${vpc_name}/kubeconfig" ]; then
-    echo "ERROR: expected ~/${vpc_name}/kubeconfig to exist - bailing out"
-    exit 1
-  fi
-  cd ~/"${vpc_name}"
+vpc_name=${vpc_name:-$1}
+if [ -z "${vpc_name}" ]; then
+   echo "Usage: bash kube-setup-fence.sh vpc_name"
+   exit 1
 fi
 
-export KUBECONFIG=${KUBECONFIG:-~/${vpc_name}/kubeconfig}
-
-if [ ! -d ./services ]; then
-  echo "ERROR: No ./services/ folder - launch from ~/VPC_NAME/ - bailing out"
+if [[ ! -f "${WORKSPACE}/${vpc_name}/credentials/ca.pem" ]]; then
+  echo "Certificate authority not present - cannot create certs: ${WORKSPACE}/${vpc_name}/credentials"
   exit 1
-fi
+fi 
 
-if [ ! -f ./credentials/ca.pem ]; then
-  echo "ERROR: No ./credentials/ca.pem certificate authority - launch from ~/VPC_NAME/ - bailing out"
-  exit 1
-fi
-
-if [ -z "${KUBECONFIG}" ]; then
-  if [ -f ./kubeconfig ]; then
-    export KUBECONFIG=./kubeconfig
-  else
-    echo "ERROR: KUBECONFIG not configured - bailing out"
-    exit 1
-  fi
-fi
+cd "${WORKSPACE}/${vpc_name}"
 
 #
 # create SSL certs for all our services ...
 #
-service_list=$(grep -h 'name:' services/*/*service.yaml | grep -service | sed 's/^\s*//' | sed 's/\s*$//' | sort -u  | awk '{ print $2 }')
+service_list=$(grep -h 'name:' "${GEN3_HOME}"/kube/services/*/*service.yaml | grep -service | sed 's/^\s*//' | sed 's/\s*$//' | sort -u  | awk '{ print $2 }')
 if ! g3kubectl get secret service-ca > /dev/null 2>&1; then
   g3kubectl create secret generic "service-ca" --from-file=ca.pem=credentials/ca.pem
 fi
@@ -72,7 +52,7 @@ for name in $service_list; do
       echo "Certificate already exists credentials/${name}.crt"
     fi
     # may need to create the secret in a different namespace ...
-    if ! g3kubectl get secrets "cert-$name" 2>&1 > /dev/null; then
+    if ! g3kubectl get secrets "cert-$name" > /dev/null 2>&1; then
       g3kubectl create secret generic "cert-$name" "--from-file=service.crt=credentials/${name}.crt" "--from-file=service.key=credentials/${name}.key"
     fi
 done

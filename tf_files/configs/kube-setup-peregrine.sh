@@ -8,6 +8,8 @@
 set -e
 
 _KUBE_SETUP_PEREGRINE=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+# Jenkins friendly
+export WORKSPACE="${WORKSPACE:-$HOME}"
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_PEREGRINE}/../.." && pwd)}"
 
 if [[ -z "$_KUBES_SH" ]]; then
@@ -25,22 +27,25 @@ if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-peregrine.sh vpc_name"
    exit 1
 fi
-if [ ! -d ~/"${vpc_name}" ]; then
-  echo "~/${vpc_name} does not exist"
-  exit 1
-fi
 
-cd ~/${vpc_name}_output
-python "${RENDER_CREDS}" secrets
+if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
+  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
+    echo "${WORKSPACE}/${vpc_name} does not exist"
+    exit 1
+  fi
 
-cd ~/${vpc_name}
+  cd "${WORKSPACE}/${vpc_name}_output"
+  python "${RENDER_CREDS}" secrets
 
-if ! g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
-  g3kubectl create secret generic peregrine-secret --from-file=wsgi.py=./apis_configs/peregrine_settings.py
+  cd "${WORKSPACE}/${vpc_name}"
+
+  if ! g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
+    g3kubectl create secret generic peregrine-secret --from-file=wsgi.py=./apis_configs/peregrine_settings.py
+  fi
 fi
 
 g3k roll peregrine
-g3kubectl apply -f services/peregrine/peregrine-service.yaml
+g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-service.yaml"
 
 cat <<EOM
 The peregrine services has been deployed onto the k8s cluster.

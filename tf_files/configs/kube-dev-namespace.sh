@@ -127,6 +127,13 @@ if [ -f ~/cloud-automation/kube/kubes.sh ]; then
 fi
 EOF
 fi
+# a provisioner should only work with one vpc
+if ! grep 'vpc_name=' ~/.bashrc > /dev/null; then
+  cat - >>~/.bashrc <<EOF
+export vpc_name='$vpc_name'
+export s3_bucket='$s3_bucket'
+EOF
+fi
 
 # reset ownership
 sudo chown -R "${namespace}:" /home/$namespace

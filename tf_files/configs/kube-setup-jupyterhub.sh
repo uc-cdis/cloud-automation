@@ -5,23 +5,13 @@
 set -e
 
 _KUBE_SETUP_JUPYTER=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+# Jenkins friendly
+export WORKSPACE="${WORKSPACE:-$HOME}"
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_JUPYTER}/../.." && pwd)}"
 
 if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/kube/kubes.sh"
 fi # else already sourced this file ...
-
-vpc_name=${vpc_name:-$1}
-if [ -z "${vpc_name}" ]; then
-   echo "Usage: bash kube-setup-jupyterhub.sh vpc_name"
-   exit 1
-fi
-if [ ! -d ~/"${vpc_name}" ]; then
-  echo "~/${vpc_name} does not exist"
-  exit 1
-fi
-
-cd ~/${vpc_name}
 
 # If you change this name you need to change it in the jupyterhub-config.yaml too
 namespaceName="jupyter-pods"
@@ -35,8 +25,8 @@ else
 fi
 
 
-g3kubectl apply -f services/jupyterhub/jupyterhub-config.yaml
-g3kubectl apply -f services/jupyterhub/jupyterhub-service.yaml
-g3kubectl apply -f services/jupyterhub/jupyterhub-storage.yaml
-g3kubectl apply -f services/jupyterhub/jupyterhub-deployment.yaml
+g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-config.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-storage.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-deployment.yaml"
 
