@@ -54,13 +54,16 @@ g3k_manifest_path() {
     return 1
   fi
   g3k_manifest_init
-  local path="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
-  if [[ ! -f "$path" ]]; then
-    path="${GEN3_MANIFEST_HOME}/default/manifest.json"
+  local mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
+  if [[ ! -f "$mpath" ]]; then
+    mpath="${GEN3_MANIFEST_HOME}/default/manifest.json"
   fi
-  echo "$path"
-  [[ -f "$path" ]]
-  return $?
+  echo "$mpath"
+  if [[ -f "$mpath" ]]; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 #
@@ -86,20 +89,32 @@ g3k_manifest_filter() {
     return 1
   fi
   
+  #
   # Load the substitution map
+  # Note: zsh and bash manage parameter expansion of hashmap keys differently,
+  #   so maintain a separate key map.
+  #   Should really just pull g3k roll out into its own shell script ...
+  #
   local key
   local value
   local replaceMap
-  declare -A replaceMap=(
-    [GEN3_DATE_LABEL]="date: \"$(date +%s)\""
-  )
+  local keyList
+  declare -A replaceMap
+  declare -a keyList
+  # zsh friendly 
+  replaceMap[GEN3_DATE_LABEL]="date: \"$(date +%s)\""
+  keyList+=('GEN3_DATE_LABEL')
+
   for key in $(jq -r '.versions | keys[]' < "$manifestPath"); do
     value="$(jq -r ".versions[\"$key\"]" < "$manifestPath")"
-    replaceMap["GEN3_${key^^}_IMAGE"]="image: $value"
+    # zsh friendly upper case
+    key=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
+    replaceMap[$key]="image: $value"
+    keyList+=("$key")
   done
   local tempFile="$XDG_RUNTIME_DIR/g3k_manifest_filter_$$"
   cp "$templatePath" "$tempFile"
-  for key in "${!replaceMap[@]}"; do
+  for key in "${keyList[@]}"; do
     value="${replaceMap[$key]}"
     # this won't work if key or value contain ^ :-(
     sed -i.bak "s^${key}^${value}^g" "$tempFile"
@@ -120,7 +135,7 @@ g3k_roll() {
     # we were given the path to a file - fine
     templatePath="$depName"
   else
-    local cleanName=$(echo "$depName" | sed s/[-_]deploy.*$//)
+    local cleanName=$(echo "$depName" | sed 's/[-_]deploy.*$//')
     templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
   fi
 
