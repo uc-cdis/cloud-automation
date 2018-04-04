@@ -1,11 +1,11 @@
-FROM jenkins/jenkins:2.113
+FROM jenkins/jenkins:2.114
 
 USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # install python and pip and aws cli
-RUN apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential zip unzip jq less && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential zip unzip jq less vim gettext-base && rm -rf /var/lib/apt/lists/*
 RUN pip install awscli --upgrade && pip install pytest --upgrade
 RUN pip3 install pytest --upgrade
 
