@@ -10,7 +10,7 @@ if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/kube/kubes.sh"
 fi # else already sourced this file ...
 
-vpc_name=${vpc_name:-$1}
+export vpc_name=${vpc_name:-${1:-qaplanetv1}}
 
 if [ -z "${vpc_name}" ]; then
   echo "ERROR: vpc_name variable not set - bailing out"
