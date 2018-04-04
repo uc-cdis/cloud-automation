@@ -24,19 +24,24 @@ fi
 #
 export WORKSPACE="${WORKSPACE:-${XDG_RUNTIME_DIR:-/tmp}}"
 
+result=0
 namespaceList=$(g3kubectl get namespace -o json | jq -r '.items[].metadata.name')
 for name in $namespaceList; do
   if [[ "$name" == "default" || $name =~ ^qa-.+$ ]]; then
     echo $name
-    (
+    if ! (
       export WORKSPACE=$(mktemp -d -p "$WORKSPACE" "qaroll_${name}_XXXXXX")
       # g3kubectl keys on KUBECTL_NAMESPACE environment variable
       export KUBECTL_NAMESPACE="$name"
       cd "$WORKSPACE"
       echo "Rolling namespace $name"
       g3k roll all
-      echo "-------------"
-      echo ""
-    )
+    ); then
+      result=1
+    fi
+    echo "-------------"
+    echo ""
   fi
 done
+
+exit $result
