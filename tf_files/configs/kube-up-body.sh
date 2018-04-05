@@ -76,6 +76,7 @@ kube-aws render || true
 # role_arn = arn:aws:iam::{ACCOUNTID}:role/csoc_adminvm
 # credential_source = Ec2InstanceMetadata
 #
+export GEN3_HOME=~/cloud-automation
 source ~/cloud-automation/gen3/gen3setup.sh
 
 gen3 arun kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
