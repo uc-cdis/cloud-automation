@@ -68,6 +68,8 @@ if os.path.exists(fence_creds):
         ENABLED_IDENTITY_PROVIDERS = data['ENABLED_IDENTITY_PROVIDERS']
         APP_NAME = data['APP_NAME']
         HTTP_PROXY = data['HTTP_PROXY']
+        dbGaP = data['dbGaP']
+
 
 DEFAULT_LOGIN_URL_REDIRECT_PARAM = 'redirect'
 

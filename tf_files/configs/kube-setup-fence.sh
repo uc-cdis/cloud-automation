@@ -41,6 +41,7 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   # Generate RSA private and public keys.
   # TODO: generalize to list of key names?
   mkdir -p jwt-keys
+  mkdir -p ssh-keys
 
   if [ ! -f jwt-keys/jwt_public_key.pem ]; then
     openssl genrsa -out jwt-keys/jwt_private_key.pem 2048
@@ -62,11 +63,21 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
     g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
   fi
 
-  if ! g3kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
-    g3kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
+  if ! kubectl get configmaps/projects > /dev/null 2>&1; then
+    for name in projects.yaml; do
+      touch "apis_configs/$name"
+    done
+    kubectl create configmap projects --from-file=apis_configs/projects.yaml
+  fi
+
+  if ! kubectl get configmaps/dbgap-config > /dev/null 2>&1; then
+    kubectl create configmap dbgap-config
+  fi
+
+  if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
+    kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
   fi
 fi
-
 # deploy fence
 g3k roll fence
 

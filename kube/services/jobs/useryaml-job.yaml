@@ -20,6 +20,12 @@ spec:
         - name: fence-yaml
           configMap:
             name: fence
+        - name: projects
+          configMap:
+            name: "projects"
+        - name: dbgap
+          configMap:
+            name: "dbgap-config"
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
@@ -42,9 +48,18 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
+          - name: "projects"
+            mountPath: "/var/www/fence/projects.yaml"
+            subPath: "projects.yaml"
+          - name: "dbgap"
+            mountPath: "/var/www/fence/dbgap"
+
+
         command: ["/bin/bash" ]
         args: 
           - "-c" 
           - |
             fence-create create /var/www/fence/user.yaml
+            #fence-create sync-dbgap --projects /var/www/fence/projects.yaml --merge /var/www/fence/user.yaml
+            fence-create sync-dbgap --projects /var/www/fence/dbgap/projects.yaml --merge /var/www/fence/dbgap
       restartPolicy: Never

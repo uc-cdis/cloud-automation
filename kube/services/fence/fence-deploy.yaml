@@ -51,6 +51,12 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: projects
+          configMap:
+            name: "projects"
+        - name: dbgap
+          configMap:
+            name: "dbgap-config"
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -95,3 +101,8 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
+          - name: "projects"
+            mountPath: "/var/www/fence/projects.yaml"
+            subPath: "projects.yaml"
+          - name: "dbgap"
+            mountPath: "/var/www/fence/dbgap"
