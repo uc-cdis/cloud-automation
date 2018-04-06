@@ -60,5 +60,5 @@ spec:
           - "-c" 
           - |
             fence-create create /var/www/fence/user.yaml
-            fence-create sync-dbgap --projects /var/www/fence/dbgap/projects.yaml --yaml_dir /var/www/fence/userDir
+            fence-create sync-dbgap --projects /var/www/fence/projects.yaml --yaml_dir /var/www/fence/userDir
       restartPolicy: Never

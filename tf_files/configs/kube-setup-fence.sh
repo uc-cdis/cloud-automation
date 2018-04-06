@@ -65,7 +65,9 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   fi
 
   if ! kubectl get configmaps/projects > /dev/null 2>&1; then
-    touch "apis_configs/projects.yaml"
+    if [[ ! -f "./apis_configs/projects.yaml" ]]; then
+      touch "apis_configs/projects.yaml"
+    fi
     kubectl create configmap projects --from-file=apis_configs/projects.yaml
   fi
 
