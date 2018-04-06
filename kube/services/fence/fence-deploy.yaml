@@ -54,9 +54,9 @@ spec:
         - name: projects
           configMap:
             name: "projects"
-        - name: dbgap
+        - name: user-dir
           configMap:
-            name: "dbgap-config"
+            name: "user-dir"
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -104,5 +104,5 @@ spec:
           - name: "projects"
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"
-          - name: "dbgap"
-            mountPath: "/var/www/fence/dbgap"
+          - name: "user-dir"
+            mountPath: "/var/www/fence/userDir"

@@ -23,9 +23,9 @@ spec:
         - name: projects
           configMap:
             name: "projects"
-        - name: dbgap
+        - name: user-dir
           configMap:
-            name: "dbgap-config"
+            name: "user-dir"
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
@@ -51,8 +51,8 @@ spec:
           - name: "projects"
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"
-          - name: "dbgap"
-            mountPath: "/var/www/fence/dbgap"
+          - name: "user-dir"
+            mountPath: "/var/www/fence/userDir"
 
 
         command: ["/bin/bash" ]
@@ -60,6 +60,5 @@ spec:
           - "-c" 
           - |
             fence-create create /var/www/fence/user.yaml
-            #fence-create sync-dbgap --projects /var/www/fence/projects.yaml --merge /var/www/fence/user.yaml
-            fence-create sync-dbgap --projects /var/www/fence/dbgap/projects.yaml --merge /var/www/fence/dbgap
+            fence-create sync-dbgap --projects /var/www/fence/dbgap/projects.yaml --yaml_dir /var/www/fence/userDir
       restartPolicy: Never

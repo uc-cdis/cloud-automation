@@ -47,6 +47,7 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
     openssl genrsa -out jwt-keys/jwt_private_key.pem 2048
     openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
   fi
+  
   if ! g3kubectl get configmaps/fence > /dev/null 2>&1; then
     g3kubectl create configmap fence --from-file=apis_configs/user.yaml
   fi
@@ -64,14 +65,12 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   fi
 
   if ! kubectl get configmaps/projects > /dev/null 2>&1; then
-    for name in projects.yaml; do
-      touch "apis_configs/$name"
-    done
+    touch "apis_configs/projects.yaml"
     kubectl create configmap projects --from-file=apis_configs/projects.yaml
   fi
 
-  if ! kubectl get configmaps/dbgap-config > /dev/null 2>&1; then
-    kubectl create configmap dbgap-config
+  if ! kubectl get configmaps/user-dir > /dev/null 2>&1; then
+    kubectl create configmap user-dir
   fi
 
   if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
