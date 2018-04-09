@@ -1,0 +1,57 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: google-account-access-expiration
+spec:
+  template:
+    spec:
+      serviceAccountName: useryaml-job
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "fence-secret"
+        - name: json-secret-volume
+          secret:
+            secretName: "fence-json-secret"
+        - name: google-secret-volume
+          secret:
+            secretName: "fence-google-secret"
+        - name: fence-jwt-keys
+          secret:
+            secretName: "fence-jwt-keys"
+        - name: fence-yaml
+          configMap:
+            name: fence
+      containers:
+      - name: fence
+        image: quay.io/cdis/fence:master
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/local_settings.py"
+            subPath: local_settings.py
+          - name: "json-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_credentials.json"
+            subPath: fence_credentials.json
+          - name: "google-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/google_secret.json"
+            subPath: google_secret.json
+          - name: "fence-yaml"
+            mountPath: "/var/www/fence/user.yaml"
+            subPath: user.yaml
+          - name: "fence-jwt-keys"
+            readOnly: true
+            mountPath: "/fence/keys"
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            fence-create google-manage-account-access
+      restartPolicy: Never
