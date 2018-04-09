@@ -105,6 +105,11 @@ done
 oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/${vpc_name}_output/creds.json)
 newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-1]*/$namespace/")
 sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}_output/creds.json
+#
+# Update creds.json - replace every '.db_databsae' and '.fence_database' with $namespace -
+# we ceate a $namespace database on the fence, indexd, and sheepdog db servers with
+# the CREATE DATABASE commands above
+#
 jq -r '.[].db_database="'"$namespace"'"|.[].fence_database="'"$namespace"'"' < /home/$namespace/${vpc_name}_output/creds.json > $XDG_RUNTIME_DIR/creds.json
 cp $XDG_RUNTIME_DIR/creds.json /home/$namespace/${vpc_name}_output/creds.json
 sed -i.bak "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/${vpc_name}/00configmap.yaml
@@ -129,6 +134,11 @@ EOF
 fi
 # a provisioner should only work with one vpc
 if ! grep 'vpc_name=' ~/.bashrc > /dev/null; then
+  #
+  # Stash in ~/.bashrc, so the user doesn't have to keep passing the vpc_name to kube-setup- scripts.
+  # Also, the s3_bucket makes 'g3k backup' work -
+  # which makes it easy to backup the k8s certificate authority, etc.
+  #
   cat - >>~/.bashrc <<EOF
 export vpc_name='$vpc_name'
 export s3_bucket='$s3_bucket'
