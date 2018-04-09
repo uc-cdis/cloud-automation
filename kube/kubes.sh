@@ -157,7 +157,7 @@ g3k_jobpods(){
     echo "g3k jobpods JOB-NAME"
     return 1
   fi
-  g3kubectl get pods  --show-all --selector=job-name="$jobName" --output=jsonpath={.items..metadata.name}
+  g3kubectl get pods --selector=job-name="$jobName" --output=jsonpath={.items..metadata.name}
 }
 
 #
