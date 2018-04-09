@@ -51,6 +51,12 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: projects
+          configMap:
+            name: "projects"
+        - name: user-dir
+          configMap:
+            name: "user-dir"
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
@@ -95,3 +101,8 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
+          - name: "projects"
+            mountPath: "/var/www/fence/projects.yaml"
+            subPath: "projects.yaml"
+          - name: "user-dir"
+            mountPath: "/var/www/fence/userDir"

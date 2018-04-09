@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: useryaml
+  name: dbgapsync
 spec:
   # not yet supported - backOffLimit: 3
   template:
@@ -17,12 +17,15 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-        - name: fence-yaml
+        - name: projects
           configMap:
-            name: fence
+            name: "projects"
+        - name: user-dir
+          configMap:
+            name: "user-dir"
       containers:
       - name: fence
-        image: quay.io/cdis/fence:master
+        image: quay.io/cdis/fence:feat_dbgap_syncing
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH
@@ -36,15 +39,18 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
-          - name: "fence-yaml"
-            mountPath: "/var/www/fence/user.yaml"
-            subPath: user.yaml
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
+          - name: "projects"
+            mountPath: "/var/www/fence/projects.yaml"
+            subPath: "projects.yaml"
+          - name: "user-dir"
+            mountPath: "/var/www/fence/userDir"
+
         command: ["/bin/bash" ]
         args: 
           - "-c" 
           - |
-            fence-create create /var/www/fence/user.yaml
+            fence-create sync-dbgap --projects /var/www/fence/projects.yaml --is_sync False --yaml_dir /var/www/fence/userDir
       restartPolicy: Never
