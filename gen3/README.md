@@ -365,3 +365,10 @@ $ gen3 tfapply
 The *gen3* tools follow these VPC naming conventions to determine which terraform stack to build in the VPC.
 * a VPC name that ends in '_user' is a user VPC (for user VM's) on AWS defined by the resources in `cloud-automation/tf_files/aws_user_vpc`
 * every other VPC name is a commons VPC on AWS defined by resources in `cloud-automation/tf_files/aws`
+
+
+## VPC peering request acceptance by CSOC admin VM
+When we launch a new data commons; it fails when we run the `gen3 tfapply` for the first time. At this point, we need to login to the csoc_admin VM and run the following command:
+gen3 approve_vpcpeering_request <child_vpc_name>
+The underneath script basically looks for a new VPC peering request, if any accepts it, tags it and create an appropriate route to the csoc_main_vpc private subnet route table.
+Once this is completed successfully, we can run the `gen3 tfplan` and `gen3 tfapply` again.
