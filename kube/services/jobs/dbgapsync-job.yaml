@@ -52,5 +52,5 @@ spec:
         args: 
           - "-c" 
           - |
-            fence-create sync-dbgap --projects /var/www/fence/projects.yaml --is_sync False --yaml_dir /var/www/fence/userDir
+            fence-create sync-dbgap --projects /var/www/fence/projects.yaml --is_sync True --yaml_dir /var/www/fence/userDir
       restartPolicy: Never

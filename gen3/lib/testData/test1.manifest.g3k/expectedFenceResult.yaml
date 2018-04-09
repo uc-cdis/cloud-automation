@@ -51,6 +51,9 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: sshconfig
+          configMap:
+            name: "sshconfig"
         - name: projects
           configMap:
             name: "projects"
@@ -101,6 +104,8 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
+          - name: "sshconfig"
+            mountPath: "/root/.ssh"
           - name: "projects"
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"

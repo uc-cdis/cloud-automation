@@ -71,6 +71,28 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
     kubectl create configmap projects --from-file=apis_configs/projects.yaml
   fi
 
+  mkdir -p ./apis_configs/.ssh
+  if ! kubectl get configmaps/sshconfig > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/.ssh/config" ]]; then
+        echo '''
+        Host squid.internal
+          ServerAliveInterval 120
+          HostName cloud-proxy.internal.io
+          User ubuntu
+          ForwardAgent yes
+
+        Host sftp.dbgap
+          ServerAliveInterval 120
+          HostName sftp.dbgap.nih.gov
+          User ubuntu
+          ForwardAgent yes
+          IdentityFile /fence/keys/jwt_private_key.pem
+          ProxyCommand ssh ubuntu@squid.internal nc %h %p 2> /dev/null
+        ''' > ./apis_configs/.ssh/config
+    fi
+    kubectl create configmap sshconfig --from-file=./apis_configs/.ssh
+  fi
+
   if ! kubectl get configmaps/user-dir > /dev/null 2>&1; then
     kubectl create configmap user-dir
   fi
