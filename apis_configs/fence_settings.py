@@ -68,6 +68,17 @@ if os.path.exists(fence_creds):
         ENABLED_IDENTITY_PROVIDERS = data['ENABLED_IDENTITY_PROVIDERS']
         APP_NAME = data['APP_NAME']
         HTTP_PROXY = data['HTTP_PROXY']
+        os.environ["GOOGLE_API_KEY"] = data['GOOGLE_API_KEY']
+        os.environ["GOOGLE_PROJECT_ID"] = data['GOOGLE_PROJECT_ID']
+        os.environ["GOOGLE_ADMIN_EMAIL"] = data['GOOGLE_ADMIN_EMAIL']
+        os.environ["GOOGLE_IDENTITY_DOMAIN"] = data['GOOGLE_IDENTITY_DOMAIN']
+        os.environ["GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL"] = (
+            data['GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL']
+        )
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
+    "/var/www/fence/google_secret.json"
+)
 
 DEFAULT_LOGIN_URL_REDIRECT_PARAM = 'redirect'
 
