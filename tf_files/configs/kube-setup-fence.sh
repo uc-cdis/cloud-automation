@@ -53,6 +53,14 @@ if ! kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
   kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
 fi
 
+if ! kubectl get secrets/fence-google-secret > /dev/null 2>&1; then
+  if [[ ! -f "./apis_configs/google_secret.json" ]]; then
+    touch "./apis_configs/google_secret.json"
+  fi
+  echo "create fence-google-secret using current creds file apis_configs/google_secret.json"
+  kubectl create secret generic fence-google-secret --from-file=google_secret.json=./apis_configs/google_secret.json
+fi
+
 if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
   kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
 fi
