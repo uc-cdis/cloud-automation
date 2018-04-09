@@ -51,19 +51,19 @@ $ g3k runjob useryaml
 
 ### Google Jobs
 
-#### google-account-access-expiration-job
+#### google-manage-account-access-job
 
 Remove any expired Google Accounts from a User's Google Proxy Group,
 effectively removing that account from access to buckets.
 
-#### google-account-access-expiration-cronjob
+#### google-manage-account-access-cronjob
 
 Same as above but run on a schedule.
 
-#### google-access-keys-expiration-job
+#### google-manage-keys-job
 
 Remove any expired Google Service Account keys.
 
-#### google-access-keys-expiration-cronjob
+#### google-manage-keys-cronjob
 
 Same as above but run on a schedule.

@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: google-account-access-expiration
+  name: google-manage-keys
 spec:
   template:
     spec:
@@ -53,5 +53,5 @@ spec:
         args:
           - "-c"
           - |
-            fence-create google-manage-account-access
+            fence-create google-manage-keys
       restartPolicy: Never

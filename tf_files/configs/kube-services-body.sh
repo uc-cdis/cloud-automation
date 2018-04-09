@@ -33,6 +33,7 @@ mkdir -p ~/${vpc_name}/apis_configs
 source "${G3AUTOHOME}/kube/kubes.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-workvm.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-roles.sh"
+source "${G3AUTOHOME}/tf_files/configs/kube-setup-cronjobs.sh"
 source "${G3AUTOHOME}/tf_files/configs/kube-setup-certs.sh"
 
 #
