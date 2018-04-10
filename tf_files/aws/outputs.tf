@@ -144,6 +144,8 @@ data "template_file" "configmap" {
   vars {
     vpc_name       = "${var.vpc_name}"
     hostname       = "${var.hostname}"
+    kube_bucket    = "${aws_s3_bucket.kube_bucket.id}"
+    logs_bucket    = "${aws_s3_bucket.logs_bucket.id}"
     revproxy_arn   = "${data.aws_acm_certificate.api.arn}"
     dictionary_url = "${var.dictionary_url}"
     portal_app     = "${var.portal_app}"

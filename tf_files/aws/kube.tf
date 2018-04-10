@@ -328,3 +328,41 @@ resource "aws_s3_bucket" "kube_bucket" {
     ignore_changes = ["tags", "bucket"]
   }
 }
+
+#
+# Bucket for logs - mostly from load balancers in front of k8s services
+#
+resource "aws_s3_bucket" "logs_bucket" {
+  bucket = "logs-${replace(var.vpc_name,"_", "-")}-gen3"
+  acl    = "log-delivery-write"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  lifecycle_rule {
+    id      = "log"
+    enabled = true
+
+    prefix = "/"
+
+    tags {
+      "rule"      = "log"
+      "autoclean" = "true"
+    }
+
+    expiration {
+      days = 120
+    }
+  }
+
+  tags {
+    Name        = "logs-${replace(var.vpc_name,"_", "-")}-gen3"
+    Environment = "${var.vpc_name}"
+    Purpose     = "logs bucket"
+  }
+}
