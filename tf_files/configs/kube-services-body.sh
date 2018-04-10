@@ -46,7 +46,7 @@ else
   echo "INFO: certificate authority not available - skipping SSL cert check"
 fi
 
-source "${G3AUTOHOME}/tf_files/configs/kube-setup-cronjobs.sh"
+source "${GEN3_HOME}/tf_files/configs/kube-setup-cronjobs.sh"
 
 if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   #
@@ -78,7 +78,7 @@ g3k roll portal
 
 
 cat - <<EOM
-INFO: delete the portal pod if necessary to force a restart - 
+INFO: delete the portal pod if necessary to force a restart -
    portal will not come up cleanly until after the reverse proxy
    services is fully up.
 
