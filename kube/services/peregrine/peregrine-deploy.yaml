@@ -19,6 +19,18 @@ spec:
         app: peregrine
         GEN3_DATE_LABEL
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - peregrine
+              topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
         - name: config-volume

@@ -39,6 +39,6 @@ spec:
                 print( key + "='" + config['PSQLGRAPH'][key] + "'" )
               EOM
               );
-              echo datamodel_postgres_admin graph-create -U "${user}" -P "${password}" -H "${host}" -D "${database}"
+              echo datamodel_postgres_admin graph-create -U "${user}" -P XXXXXX -H "${host}" -D "${database}"
               datamodel_postgres_admin graph-create -U "${user}" -P "${password}" -H "${host}" -D "${database}"
       restartPolicy: Never

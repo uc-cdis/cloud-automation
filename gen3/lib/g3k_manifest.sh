@@ -11,6 +11,14 @@ export GEN3_HOME
 export GEN3_MANIFEST_HOME
 
 #
+# from https://github.com/kubernetes/kubernetes/issues/27308#issuecomment-309207951
+# support for KUBECTL_NAMESPACE environment variable ...
+#
+g3kubectl() {
+  kubectl ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+}
+
+#
 # Internal init helper.
 # Note - be sure to redirect stdout to stderr, so we do
 #   not corrupte the output of g3k_manifest_filter with info messages
@@ -40,19 +48,22 @@ g3k_manifest_init() {
 # @param domain commons domain - tries to extract from global configmap if not given
 #
 g3k_manifest_path() {
-  local domain=${1:-$(kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
+  local domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
   if [[ -z "$domain" ]]; then
     echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
     return 1
   fi
   g3k_manifest_init
-  local path="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
-  if [[ ! -f "$path" ]]; then
-    path="${GEN3_MANIFEST_HOME}/default/manifest.json"
+  local mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
+  if [[ ! -f "$mpath" ]]; then
+    mpath="${GEN3_MANIFEST_HOME}/default/manifest.json"
   fi
-  echo "$path"
-  [[ -f "$path" ]]
-  return $?
+  echo "$mpath"
+  if [[ -f "$mpath" ]]; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 #
@@ -78,20 +89,32 @@ g3k_manifest_filter() {
     return 1
   fi
   
+  #
   # Load the substitution map
+  # Note: zsh and bash manage parameter expansion of hashmap keys differently,
+  #   so maintain a separate key map.
+  #   Should really just pull g3k roll out into its own shell script ...
+  #
   local key
   local value
   local replaceMap
-  declare -A replaceMap=(
-    [GEN3_DATE_LABEL]="date: \"$(date +%s)\""
-  )
+  local keyList
+  declare -A replaceMap
+  declare -a keyList
+  # zsh friendly 
+  replaceMap[GEN3_DATE_LABEL]="date: \"$(date +%s)\""
+  keyList+=('GEN3_DATE_LABEL')
+
   for key in $(jq -r '.versions | keys[]' < "$manifestPath"); do
     value="$(jq -r ".versions[\"$key\"]" < "$manifestPath")"
-    replaceMap["GEN3_${key^^}_IMAGE"]="image: $value"
+    # zsh friendly upper case
+    key=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
+    replaceMap[$key]="image: $value"
+    keyList+=("$key")
   done
   local tempFile="$XDG_RUNTIME_DIR/g3k_manifest_filter_$$"
   cp "$templatePath" "$tempFile"
-  for key in "${!replaceMap[@]}"; do
+  for key in "${keyList[@]}"; do
     value="${replaceMap[$key]}"
     # this won't work if key or value contain ^ :-(
     sed -i.bak "s^${key}^${value}^g" "$tempFile"
@@ -112,12 +135,12 @@ g3k_roll() {
     # we were given the path to a file - fine
     templatePath="$depName"
   else
-    local cleanName=$(echo "$depName" | sed s/[-_]deploy.*$//)
+    local cleanName=$(echo "$depName" | sed 's/[-_]deploy.*$//')
     templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
   fi
 
   if [[ -f "$templatePath" ]]; then
-    g3k_manifest_filter "$templatePath" | kubectl apply -f -
+    g3k_manifest_filter "$templatePath" | g3kubectl apply -f -
   elif [[ "$depName" == "all" ]]; then
     echo bash "${GEN3_HOME}/tf_files/configs/kube-services-body.sh"
     bash "${GEN3_HOME}/tf_files/configs/kube-services-body.sh"

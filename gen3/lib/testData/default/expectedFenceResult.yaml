@@ -19,6 +19,18 @@ spec:
         app: fence
         date: "1522344094"
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - fence
+              topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
         - name: config-volume

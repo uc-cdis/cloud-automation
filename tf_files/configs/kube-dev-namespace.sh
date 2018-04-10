@@ -8,15 +8,23 @@
 
 set -e
 
+_KUBE_DEV_NAMESPACE=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_DEV_NAMESPACE}/../.." && pwd)}"
+
+if [[ -z "$_KUBES_SH" ]]; then
+  source "$GEN3_HOME/kube/kubes.sh"
+fi # else already sourced this file ...
+
 if [[ -z "$GEN3_NOPROXY" ]]; then
   export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
   export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
   export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
 fi
 
+
 vpc_name=${vpc_name:-$1}
 namespace=${namespace:-$2}
-if [[ -z "$vpc_name" || -z "$namespace" || (! "$namespace" =~ ^[a-z][a-z0-9]*$) ]]; then
+if [[ -z "$vpc_name" || -z "$namespace" || (! "$namespace" =~ ^[a-z][a-z0-9-]*$) ]]; then
   echo "Usage: bash kube-dev-namespace.sh vpc_name namespace, namespace is alphanumeric"
   exit 1
 fi
@@ -28,19 +36,19 @@ for checkDir in ~/"${vpc_name}" ~/"${vpc_name}_output"; do
   fi
 done
 
-if [[ $USER != "ubuntu" ]]; then
-  echo "Run as the 'ubuntu' user on the k8s provisioner"
+if ! sudo -n true > /dev/null 2>&1; then
+  echo "User must have sudo privileges"
   exit 1
 fi
 
 # prepare a copy of the /home/ubuntu k8s workspace
 if ! grep "^$namespace" /etc/passwd > /dev/null 2>&1; then
-  sudo useradd -m -s /bin/bash -G ubuntu $namespace
+  sudo useradd -m -s /bin/bash $namespace
 fi
-sudo chgrp ubuntu /home/$namespace
-sudo chmod g+rwx /home/$namespace
-sudo chgrp ubuntu /home/$namespace/.bashrc
-sudo chmod g+rwx /home/$namespace/.bashrc
+#sudo chgrp ubuntu /home/$namespace
+sudo chmod a+rwx /home/$namespace
+#sudo chgrp ubuntu /home/$namespace/.bashrc
+sudo chmod a+rwx /home/$namespace/.bashrc
 mkdir -p /home/$namespace/${vpc_name}
 mkdir -p /home/$namespace/${vpc_name}_output
 cd /home/$namespace
@@ -52,6 +60,10 @@ cp ~/.ssh/authorized_keys /home/$namespace/.ssh
 # setup ~/cloud-automation
 if [[ ! -d ./cloud-automation ]]; then
   git clone https://github.com/uc-cdis/cloud-automation.git
+fi
+if [[ ! -d ./cdis-manifest ]]; then
+  git clone "https://github.com/uc-cdis/cdis-manifest.git"
+  (cd cdis-manifest && git checkout QA)
 fi
 
 # setup ~/vpc_name
@@ -72,21 +84,34 @@ export KUBECONFIG="/home/$namespace/${vpc_name}/kubeconfig"
 
 echo "Testing new KUBECONFIG at $KUBECONFIG"
 # setup the namespace
-if ! kubectl get namespace $namespace > /dev/null 2>&1; then
-  kubectl create namespace $namespace
+if ! g3kubectl get namespace $namespace > /dev/null 2>&1; then
+  g3kubectl create namespace $namespace
 fi
 # do not re-create the databases
-for name in .rendered_fence_db .rendered_gdcapi_db; do
-  touch "/home/$namespace/${vpc_name}/$name"
-done
+#for name in .rendered_fence_db .rendered_gdcapi_db; do
+#  touch "/home/$namespace/${vpc_name}/$name"
+#done
 
 # setup ~/${vpc_name}_output/
 cp ~/${vpc_name}_output/creds.json /home/$namespace/${vpc_name}_output/creds.json
+
+dbname=$(echo $namespace | sed 's/-/_/g')
+# create new databases
+for name in indexd fence sheepdog; do
+  echo "CREATE DATABASE $dbname;" | g3k psql $name 
+done
 
 # update creds.json
 oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/${vpc_name}_output/creds.json)
 newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-1]*/$namespace/")
 sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}_output/creds.json
+#
+# Update creds.json - replace every '.db_databsae' and '.fence_database' with $namespace -
+# we ceate a $namespace database on the fence, indexd, and sheepdog db servers with
+# the CREATE DATABASE commands above
+#
+jq -r '.[].db_database="'"$namespace"'"|.[].fence_database="'"$namespace"'"' < /home/$namespace/${vpc_name}_output/creds.json > $XDG_RUNTIME_DIR/creds.json
+cp $XDG_RUNTIME_DIR/creds.json /home/$namespace/${vpc_name}_output/creds.json
 sed -i.bak "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/${vpc_name}/00configmap.yaml
 if [[ -f /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json ]]; then
   sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json
@@ -107,10 +132,23 @@ if [ -f ~/cloud-automation/kube/kubes.sh ]; then
 fi
 EOF
 fi
+# a provisioner should only work with one vpc
+if ! grep 'vpc_name=' ~/.bashrc > /dev/null; then
+  #
+  # Stash in ~/.bashrc, so the user doesn't have to keep passing the vpc_name to kube-setup- scripts.
+  # Also, the s3_bucket makes 'g3k backup' work -
+  # which makes it easy to backup the k8s certificate authority, etc.
+  #
+  cat - >>~/.bashrc <<EOF
+export vpc_name='$vpc_name'
+export s3_bucket='$s3_bucket'
+EOF
+fi
 
 # reset ownership
 sudo chown -R "${namespace}:" /home/$namespace
 sudo chown -R "${namespace}:" /home/$namespace/.ssh
 sudo chmod -R 0700 /home/$namespace/.ssh
+sudo chmod go-w /home/$namespace
 
 echo "The $namespace user is ready to login and run ~/cloud-automation/tf_files/configs/kube-services-body.sh $vpc_name"

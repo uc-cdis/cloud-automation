@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# little flag to prevent multiple imports
+_KUBES_SH="true"
+
 g3kScriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
 export GEN3_HOME="${GEN3_HOME:-$(dirname "$g3kScriptDir")}"
 export GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(dirname "$GEN3_HOME")/cdis-manifest"}"
@@ -9,11 +12,11 @@ source "${GEN3_HOME}/gen3/lib/g3k_manifest.sh"
 
 patch_kube() {
   local depName="$1"
-  if [[ ! "$depName" =~ _deployment$ ]] && ! kubectl get deployments "$depName" > /dev/null 2>&1; then
+  if [[ ! "$depName" =~ _deployment$ ]] && ! g3kubectl get deployments "$depName" > /dev/null 2>&1; then
     # allow 'g3k roll portal' in addition to 'g3k roll portal-deployment'
     depName="${depName}-deployment"
   fi
-  kubectl patch deployment "$depName" -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+  g3kubectl patch deployment "$depName" -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 }
 
 # 
@@ -23,21 +26,21 @@ g3k_replicas() {
     echo -e $(red_color "g3k replicas deployment-name replica-count")
     return 1
   fi
-  kubectl patch deployment $1 -p  '{"spec":{"replicas":'$2'}}'
+  g3kubectl patch deployment $1 -p  '{"spec":{"replicas":'$2'}}'
 }
 
 get_pod() {
-    pod=$(kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep -m 1 $1)
+    pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep -m 1 $1)
     echo $pod
 }
 
 get_pods() {
-  kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep "$1"
+  g3kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep "$1"
 }
 
 update_config() {
-    kubectl delete configmap $1
-    kubectl create configmap $1 --from-file $2
+    g3kubectl delete configmap $1
+    g3kubectl create configmap $1 --from-file $2
 }
 
 g3k_help() {
@@ -139,10 +142,10 @@ g3k_runjob() {
     return 1
   fi
   # delete previous job run and pods if any
-  if kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
-    kubectl delete "jobs/${jobName}"
+  if g3kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
+    g3kubectl delete "jobs/${jobName}"
   fi
-  kubectl create -f "$jobPath"
+  g3kubectl create -f "$jobPath"
 }
 
 #
@@ -154,7 +157,7 @@ g3k_jobpods(){
     echo "g3k jobpods JOB-NAME"
     return 1
   fi
-  kubectl get pods  --show-all --selector=job-name="$jobName" --output=jsonpath={.items..metadata.name}
+  g3kubectl get pods --selector=job-name="$jobName" --output=jsonpath={.items..metadata.name}
 }
 
 #
@@ -163,7 +166,7 @@ g3k_jobpods(){
 # to interact directly with running services
 #
 g3k_devterm() {
-  kubectl run "awshelper-$(date +%s)" -it --rm=true --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
+  g3kubectl run "awshelper-$(date +%s)" -it --rm=true --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
 }
 
 #
@@ -175,14 +178,14 @@ g3k_joblogs(){
     echo "g3k joblogs JOB-NAME"
     return 1
   fi
-  kubectl get jobs
+  g3kubectl get jobs
   podlist=$(g3k_jobpods "$jobName")
   for podname in $podlist; do
     echo "Scanning pod: $podname"
-    for container in $(kubectl get pods "$podname" -o json | jq -r '.spec.containers|map(.name)|join( " " )'); do
+    for container in $(g3kubectl get pods "$podname" -o json | jq -r '.spec.containers|map(.name)|join( " " )'); do
       echo "------------------"
-      echo "kubectl logs $podname $container"
-      kubectl logs $podname $container
+      echo "g3kubectl logs $podname $container"
+      g3kubectl logs $podname $container
     done
   done
 }

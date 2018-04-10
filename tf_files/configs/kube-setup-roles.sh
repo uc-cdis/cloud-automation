@@ -8,27 +8,23 @@
 
 set -e
 
-export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
-vpc_name=${vpc_name:-$1}
-if [ -z "${vpc_name}" ]; then
-   echo "Usage: bash kube-setup-peregrine.sh vpc_name"
-   exit 1
-fi
-if [ ! -d ~/"${vpc_name}" ]; then
-  echo "~/${vpc_name} does not exist"
-  exit 1
-fi
+_KUBE_SETUP_ROLES=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+# Jenkins friendly
+export WORKSPACE="${WORKSPACE:-$HOME}"
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_ROLES}/../.." && pwd)}"
 
-source "${G3AUTOHOME}/kube/kubes.sh"
+if [[ -z "$_KUBES_SH" ]]; then
+  source "$GEN3_HOME/kube/kubes.sh"
+fi # else already sourced this file ...
 
-if ! kubectl get roles/devops > /dev/null 2>&1; then
-  kubectl apply -f "${G3AUTOHOME}/kube/services/jenkins/role-devops.yaml"
+if ! g3kubectl get roles/devops > /dev/null 2>&1; then
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/role-devops.yaml"
 fi
 
-if ! kubectl get serviceaccounts/useryaml-job > /dev/null 2>&1; then
-  kubectl apply -f "${G3AUTOHOME}/kube/services/jobs/useryaml-serviceaccount.yaml"
+if ! g3kubectl get serviceaccounts/useryaml-job > /dev/null 2>&1; then
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/jobs/useryaml-serviceaccount.yaml"
 fi
 
-if ! kubectl get rolebindings/useryaml-binding > /dev/null 2>&1; then
-  kubectl apply -f "${G3AUTOHOME}/kube/services/jobs/useryaml-rolebinding.yaml"
+if ! g3kubectl get rolebindings/useryaml-binding > /dev/null 2>&1; then
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/jobs/useryaml-rolebinding.yaml"
 fi
