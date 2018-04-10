@@ -92,7 +92,7 @@ if which kubectl > /dev/null 2>&1; then
   # Load the kubectl completion code for bash into the current shell
   source <(kubectl completion bash)
 fi
-  EOF
+EOF
   fi
 
 # a provisioner should only work with one vpc
