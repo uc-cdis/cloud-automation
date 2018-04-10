@@ -39,6 +39,9 @@ spec:
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
+        - name: google-secret-volume
+          secret:
+            secretName: "fence-google-secret"
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
@@ -80,6 +83,10 @@ spec:
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml
+          - name: "google-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/google_secret.json"
+            subPath: google_secret.json
           - name: "cert-volume"
             readOnly: true
             mountPath: "/mnt/ssl/service.crt"
