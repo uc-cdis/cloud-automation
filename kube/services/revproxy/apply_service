@@ -2,9 +2,36 @@
 
 scriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
 
-export ARN=$(kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
+DRY_RUN=""
+if [[ "$1" =~ ^-*dry-run ]]; then
+  DRY_RUN="--dry-run"
+fi
+
+export KUBECTL_NAMESPACE="${KUBECTL_NAMESPACE:-default}"
+
+#
+# from https://github.com/kubernetes/kubernetes/issues/27308#issuecomment-309207951
+# support for KUBECTL_NAMESPACE environment variable ...
+#
+g3kubectl() {
+  kubectl ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+}
+
+export LOGGING_CONFIG=""
+bucketName=$(g3kubectl get configmap global --output=jsonpath='{.data.logs_bucket}')
+if [[ $? -eq 0 && -n "$bucketName" ]]; then
+  LOGING_CONFIG=$(cat - <<EOM
+    service.beta.kubernetes.io/aws-load-balancer-access-log-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-access-log-emit-interval: "60"
+    # The interval for publishing the access logs. You can specify an interval of either 5 or 60 (minutes).
+    service.beta.kubernetes.io/aws-load-balancer-access-log-s3-bucket-name: "$bucketName"
+    service.beta.kubernetes.io/aws-load-balancer-access-log-s3-bucket-prefix: "logs/lb/revproxy"
+EOM
+  )
+
+export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
 if [[ ! -z $ARN ]]; then
-  envsubst <$scriptDir/revproxy-service.yaml | kubectl apply -f -
+  envsubst <$scriptDir/revproxy-service.yaml | g3kubectl apply $DRY_RUN -f -
 else
   echo "Global configmap not configured"
 fi

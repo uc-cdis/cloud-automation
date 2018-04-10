@@ -1,3 +1,11 @@
+module "squid_proxy" {
+  source               = "../cdis-aws-squid"
+  env_vpc_name         = "${var.vpc_name}"
+  env_public_subnet_id = "${aws_subnet.public.id}"
+  env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
+  env_vpc_id           = "${aws_vpc.main.id}"
+}
+
 resource "aws_vpc" "main" {
   cidr_block           = "172.24.${var.vpc_octet}.0/20"
   enable_dns_hostnames = true
@@ -79,7 +87,7 @@ resource "aws_route_table" "private_user" {
 
   route {
     cidr_block  = "0.0.0.0/0"
-    instance_id = "${aws_instance.proxy.id}"
+    instance_id = "${module.squid_proxy.squid_id}"
   }
 
   route {
@@ -162,17 +170,6 @@ data "aws_ami" "public_login_ami" {
   owners = ["${var.ami_account_id}"]
 }
 
-data "aws_ami" "public_squid_ami" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu16-squid-1.0.2-*"]
-  }
-
-  owners = ["${var.ami_account_id}"]
-}
-
 resource "aws_ami_copy" "login_ami" {
   name              = "ub16-client-crypt-${var.vpc_name}-1.0.2"
   description       = "A copy of ubuntu16-client-1.0.2"
@@ -182,27 +179,6 @@ resource "aws_ami_copy" "login_ami" {
 
   tags {
     Name = "login-${var.vpc_name}"
-  }
-
-  lifecycle {
-    #
-    # Do not force update when new ami becomes available.
-    # We still need to improve our mechanism for tracking .ssh/authorized_keys
-    # User can use 'terraform state taint' to trigger update.
-    #
-    ignore_changes = ["source_ami_id"]
-  }
-}
-
-resource "aws_ami_copy" "squid_ami" {
-  name              = "ub16-squid-crypt-${var.vpc_name}-1.0.2"
-  description       = "A copy of ubuntu16-squid-1.0.2"
-  source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
-  source_ami_region = "us-east-1"
-  encrypted         = true
-
-  tags {
-    Name = "squid-${var.vpc_name}"
   }
 
   lifecycle {
@@ -285,49 +261,6 @@ systemctl restart awslogs
 EOF
 }
 
-resource "aws_instance" "proxy" {
-  ami                    = "${aws_ami_copy.squid_ami.id}"
-  subnet_id              = "${aws_subnet.public.id}"
-  instance_type          = "t2.micro"
-  monitoring             = true
-  source_dest_check      = false
-  key_name               = "${var.ssh_key_name}"
-  vpc_security_group_ids = ["${aws_security_group.proxy.id}", "${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
-  iam_instance_profile   = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
-
-  tags {
-    Name         = "${var.vpc_name} HTTP Proxy"
-    Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
-  }
-
-  user_data = <<EOF
-#!/bin/bash
-sed -i 's/SERVER/http_proxy-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
-sed -i 's/VPC/'${var.vpc_name}'/g' /var/awslogs/etc/awslogs.conf
-cat >> /var/awslogs/etc/awslogs.conf <<EOM
-[syslog]
-datetime_format = %b %d %H:%M:%S
-file = /var/log/syslog
-log_stream_name = http_proxy-syslog-{hostname}-{instance_id}
-time_zone = LOCAL
-log_group_name = ${var.vpc_name}
-[squid/access.log]
-log_group_name = ${var.vpc_name}
-log_stream_name = http_proxy-squid_access-{hostname}-{instance_id}
-file = /var/log/squid/access.log*
-EOM
-
-chmod 755 /etc/init.d/awslogs
-systemctl enable awslogs
-systemctl restart awslogs
-EOF
-
-  lifecycle {
-    ignore_changes = ["ami", "key_name"]
-  }
-}
-
 resource "aws_route53_zone" "main" {
   name    = "internal.io"
   comment = "internal dns server for ${var.vpc_name}"
@@ -344,7 +277,7 @@ resource "aws_route53_record" "squid" {
   name    = "cloud-proxy"
   type    = "A"
   ttl     = "300"
-  records = ["${aws_instance.proxy.private_ip}"]
+  records = ["${module.squid_proxy.squid_private_ip}"]
 }
 
 # this is for vpc peering

@@ -7,7 +7,7 @@ output "login_ami_id" {
 }
 
 output "proxy_id" {
-  value = "${aws_instance.proxy.id}"
+  value = "${module.squid_proxy.squid_id}"
 }
 
 output "zone_zid" {
@@ -50,7 +50,6 @@ output "ssh_key_name" {
   value = "${var.ssh_key_name}"
 }
 
-
 output "vpc_peering_id" {
   value = "${aws_vpc_peering_connection.vpcpeering.id}"
 }
@@ -58,11 +57,10 @@ output "vpc_peering_id" {
 #-------------------------------------------
 
 data "template_file" "ssh_config" {
-    template = "${file("${path.module}/ssh_config.tpl")}"
-    vars {
-        vpc_name = "${var.vpc_name}"
-        login_public_ip = "${aws_eip.login.public_ip}"
-    }
+  template = "${file("${path.module}/ssh_config.tpl")}"
+
+  vars {
+    vpc_name        = "${var.vpc_name}"
+    login_public_ip = "${aws_eip.login.public_ip}"
+  }
 }
-
-
