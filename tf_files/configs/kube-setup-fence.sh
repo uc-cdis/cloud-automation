@@ -47,9 +47,14 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
     openssl genrsa -out jwt-keys/jwt_private_key.pem 2048
     openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
   fi
-  
-  if ! g3kubectl get configmaps/fence > /dev/null 2>&1; then
-    g3kubectl create configmap fence --from-file=apis_configs/user.yaml
+
+  if [ ! -f ssh-keys/ssh_public_key.pem ]; then
+    openssl genrsa -out ssh-keys/ssh_private_key.pem 2048
+    openssl rsa -in ssh-keys/ssh_private_key.pem -pubout -out ssh-keys/ssh_public_key.pem
+  fi
+
+  if ! kubectl get configmaps/fence > /dev/null 2>&1; then
+    kubectl create configmap fence --from-file=apis_configs/user.yaml
   fi
 
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
@@ -100,8 +105,12 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
     kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
   fi
+  if ! kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
+    kubectl create secret generic fence-ssh-keys --from-file=./ssh-keys
+  fi
+
 fi
-# deploy fence
+
 g3k roll fence
 
 if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # create database
