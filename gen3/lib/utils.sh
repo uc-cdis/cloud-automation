@@ -96,7 +96,7 @@ gen3_aws_run() {
     local gen3AwsMfa
 
     if [[ -z "$gen3AwsRole" ]]; then
-      gen3AwsMfa=$(aws configure get "${AWS_PROFILE}.mfa_serial")
+      gen3AwsMfa=$(aws configure get "${AWS_PROFILE}.mfa_serial") || true
       if [[ -z "$gen3AwsMfa" ]]; then
         # No assume-role or mfa stuff going on - just run the command directly
         "$@"

@@ -19,6 +19,18 @@ spec:
         app: sheepdog
         date: "1522344110"
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - sheepdog
+              topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
