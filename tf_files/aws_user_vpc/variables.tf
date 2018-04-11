@@ -17,4 +17,6 @@ variable "ami_account_id" {
   default = "707767160287"
 }
 
-
+variable "csoc_cidr" {
+  default = "10.128.0.0/20"
+}
