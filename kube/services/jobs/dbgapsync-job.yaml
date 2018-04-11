@@ -14,9 +14,15 @@ spec:
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
-        - name: fence-jwt-keys
+        - name: fence-public-key
           secret:
-            secretName: "fence-jwt-keys"
+            secretName: "fence-public-key"
+        - name: fence-private-key
+          secret:
+            secretName: "fence-private-key"
+        - name: fence-sshconfig
+          configMap:
+            name: "fence-sshconfig"
         - name: projects
           configMap:
             name: "projects"
@@ -30,6 +36,13 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - bash
+                - -c
+                - chmod 400  /root/.ssh/id_rsa /root/.ssh/id_rsa.pub
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -39,9 +52,15 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
-          - name: "fence-jwt-keys"
-            readOnly: true
-            mountPath: "/fence/keys"
+          - name: "fence-public-key"
+            mountPath: "/root/.ssh/id_rsa.pub"
+            subPath: "id_rsa.pub"
+          - name: "fence-private-key"
+            mountPath: "/root/.ssh/id_rsa"
+            subPath: "id_rsa"
+          - name: "fence-sshconfig"
+            mountPath: "/root/.ssh/config"
+            subPath: "config"
           - name: "projects"
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"

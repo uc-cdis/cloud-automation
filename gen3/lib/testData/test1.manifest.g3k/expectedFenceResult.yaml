@@ -42,9 +42,12 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-        - name: fence-ssh-keys
+        - name: fence-public-key
           secret:
-            secretName: "fence-ssh-keys"
+            secretName: "fence-public-key"
+        - name: fence-private-key
+          secret:
+            secretName: "fence-private-key"
         - name: fence-yaml
           configMap:
             name: fence
@@ -54,9 +57,9 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
-        - name: sshconfig
+        - name: fence-sshconfig
           configMap:
-            name: "sshconfig"
+            name: "fence-sshconfig"
         - name: projects
           configMap:
             name: "projects"
@@ -80,6 +83,13 @@ spec:
         ports:
         - containerPort: 80
         - containerPort: 443
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - bash
+                - -c
+                - chmod 400  /root/.ssh/id_rsa /root/.ssh/id_rsa.pub
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -107,11 +117,15 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
-          - name: "fence-ssh-keys"
-            readOnly: true
-            mountPath: "/fence/ssh-keys"
-          - name: "sshconfig"
-            mountPath: "/root/.ssh"
+          - name: "fence-public-key"
+            mountPath: "/root/.ssh/id_rsa.pub"
+            subPath: "id_rsa.pub"
+          - name: "fence-private-key"
+            mountPath: "/root/.ssh/id_rsa"
+            subPath: "id_rsa"
+          - name: "fence-sshconfig"
+            mountPath: "/root/.ssh/config"
+            subPath: "config"
           - name: "projects"
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"

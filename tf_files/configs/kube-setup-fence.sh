@@ -48,9 +48,8 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
     openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
   fi
 
-  if [ ! -f ssh-keys/ssh_public_key.pem ]; then
-    openssl genrsa -out ssh-keys/ssh_private_key.pem 2048
-    openssl rsa -in ssh-keys/ssh_private_key.pem -pubout -out ssh-keys/ssh_public_key.pem
+  if [ ! -f ssh-keys/id_rsa ]; then
+    ssh-keygen -t rsa -b 4096 -C "giangbui0816@gmail.com" -N "" -f ssh-keys/id_rsa
   fi
 
   if ! kubectl get configmaps/fence > /dev/null 2>&1; then
@@ -76,8 +75,16 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
     kubectl create configmap projects --from-file=apis_configs/projects.yaml
   fi
 
-  mkdir -p ./apis_configs/.ssh
-  if ! kubectl get configmaps/sshconfig > /dev/null 2>&1; then
+  if ! kubectl get configmaps/user-dir > /dev/null 2>&1; then
+    mkdir -p ./apis_configs/user-dir
+    kubectl create configmap user-dir --from-file=./apis_configs/user-dir
+  fi
+
+  if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
+    kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
+  fi
+  
+  if ! kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
     if [[ ! -f "./apis_configs/.ssh/config" ]]; then
         echo '''
         Host squid.internal
@@ -86,27 +93,28 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
           User ubuntu
           ForwardAgent yes
 
-        Host sftp.dbgap
+        Host sftp.planx
           ServerAliveInterval 120
-          HostName sftp.dbgap.nih.gov
-          User ubuntu
+          HostName sftp.planx-pla.net
+          User foo
           ForwardAgent yes
-          IdentityFile /fence/keys/jwt_private_key.pem
+          IdentityFile ~/.ssh/id_rsa
           ProxyCommand ssh ubuntu@squid.internal nc %h %p 2> /dev/null
+
+        Host cloud-proxy.internal.io
+          StrictHostKeyChecking no
+          UserKnownHostsFile=/dev/null
         ''' > ./apis_configs/.ssh/config
     fi
-    kubectl create configmap sshconfig --from-file=./apis_configs/.ssh
+    kubectl create configmap fence-sshconfig --from-file=./apis_configs/.ssh/config
   fi
 
-  if ! kubectl get configmaps/user-dir > /dev/null 2>&1; then
-    kubectl create configmap user-dir
+  if ! kubectl get secrets/fence-public-key > /dev/null 2>&1; then
+    kubectl create secret generic fence-public-key --from-file=./apis_configs/.ssh/id_rsa.pub
   fi
 
-  if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
-    kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
-  fi
-  if ! kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
-    kubectl create secret generic fence-ssh-keys --from-file=./ssh-keys
+  if ! kubectl get secrets/fence-private-key > /dev/null 2>&1; then
+    kubectl create secret generic fence-private-key --from-file=./apis_configs/.ssh/id_rsa
   fi
 
 fi
