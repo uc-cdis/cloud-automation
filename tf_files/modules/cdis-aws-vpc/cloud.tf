@@ -1,5 +1,6 @@
 module "squid_proxy" {
   source               = "../cdis-aws-squid"
+  csoc_cidr            = "${var.csoc_cidr}"
   env_vpc_name         = "${var.vpc_name}"
   env_public_subnet_id = "${aws_subnet.public.id}"
   env_vpc_cidr         = "${aws_vpc.main.cidr_block}"

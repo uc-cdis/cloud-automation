@@ -43,19 +43,23 @@ data "aws_ami" "public_squid_ami" {
 
 resource "aws_security_group" "login-ssh" {
   name        = "${var.env_vpc_name}-squid-login-ssh"
-  description = "security group that only enables ssh from login node"
+  description = "security group that only enables ssh from VPC nodes and CSOC"
   vpc_id      = "${var.env_vpc_id}"
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${var.env_vpc_cidr}"]
+    cidr_blocks = ["${var.env_vpc_cidr}", "${var.csoc_cidr}"]
   }
 
   tags {
     Environment  = "${var.env_vpc_name}"
     Organization = "Basic Service"
+  }
+
+  lifecycle {
+    ignore_changes = ["description"]
   }
 }
 
