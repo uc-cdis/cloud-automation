@@ -61,6 +61,15 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   cd "${WORKSPACE}"/${vpc_name}
 fi
 
+if ! g3kubectl get configmaps global > /dev/null 2>&1; then
+  if [[ -f "${WORKSPACE}/${vpc_name}/00configmap.yaml" ]]; then
+    g3kubectl apply -f "${WORKSPACE}/${vpc_name}/00configmap.yaml"
+  else
+    echo "ERROR: unable to configure global configmap - missing ${WORKSPACE}/${vpc_name}/00configmap.yaml"
+    exit 1
+  fi
+fi
+
 g3k roll indexd
 g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
