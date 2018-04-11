@@ -13,28 +13,36 @@ clusterName: ${cluster_name}
 # for you.  Otherwise the deployer is responsible for making this name routable
 externalDNSName: controller.internal.io
 
+apiEndpoints: 
+- # The unique name of this API endpoint used to identify it inside CloudFormation stacks or
+  name: ${cluster_name}
+  dnsName: k8s-${cluster_name}.internal.io
+  loadBalancer:
+    subnets:
+      - name: private
+    private: true
+    hostedZone:
+      id: ${hosted_zone}
+
 keyName: ${key_name}
 sshAuthorizedKeys:
 ${kube_additional_keys}
 
 region: "${aws_region}"
-
 kmsKeyArn: "${kms_key}"
 
-addons:
-  clusterAutoscaler:
-    enabled: true
+controller:
+  autoScalingGroup: 
+    minSize: 1
+    maxSize: 3
+    rollingUpdateMinInstancesInService: 2
+  subnets:
+    - name: private
 
 worker:
   nodePools:
     - # Name of this node pool. Must be unique among all the node pools in this cluster
       name: nodepool
-      autoScalingGroup:
-         minSize: 1
-         maxSize: 4
-      autoscaling:
-        clusterAutoscaler:
-          enabled: true
       subnets:
         - name: private
       iam:
@@ -42,25 +50,44 @@ worker:
           name: ${cluster_name}
           managedPolicies:
             - arn: "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
-            #- arn: "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+      autoScalingGroup:
+        minSize: 1
+        maxSize: 10
+        rollingUpdateMinInstancesInService: 2
+      autoscaling:
+        clusterAutoscaler:
+          enabled: true
 
-controller:
-  subnets:
-  - name: private
-  loadBalancer:
-    private: true
 
 etcd:
   dataVolume:
-    encrypted: true
+    encripted: true
   subnets:
   - name: private
 
-routeTableId: ${route_table_id}
-# CIDR for Kubernetes VPC. If vpcId is specified, must match the CIDR of existing vpc.
-# vpcCIDR: "10.0.0.0/16"
 vpc:
   id: ${vpc_id}
+  routeTableId: ${route_table_id}
+
+useCalico: true
+
+# CIDR for Kubernetes subnet when placing nodes in a single availability zone (not highly-available) Leave commented out for multi availability zone setting and use the below `subnets` section instead.
+# instanceCIDR: "10.0.0.0/24"
+subnets:
+  - name: private
+    id: "${subnet_id}"
+    #private: true
+    availabilityZone: "${subnet_zone}"
+    instanceCIDR: "${subnet_cidr}"
+    securityGroupIds:
+      - ${security_group_id}
+    mapPublicIPs: false
+
+
+addons:
+  clusterAutoscaler:
+    enabled: true
+
 
 # CIDR for Kubernetes subnet when placing nodes in a single availability zone (not highly-available) Leave commented out for multi availability zone setting and use the below `subnets` section instead.
 # instanceCIDR: "10.0.0.0/24"
@@ -78,13 +105,3 @@ mapPublicIPs: false
 stackTags:
   Environment: ${cluster_name}
   Organization: "Basic Service"
-hostedZoneId: ${hosted_zone}
-createRecordSet: true
-
-#cloudWatchLogging:
-#  enabled: true
-#  retentionInDays: 7
-#  localStreaming:
-#    enabled: true
-#    filter:  `{ $.priority = "CRIT" || $.priority = "WARNING" && $.transport = "journal" && $.systemdUnit = "init.scope" }`
-#    interval: 60
