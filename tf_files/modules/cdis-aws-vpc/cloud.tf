@@ -4,6 +4,7 @@ module "squid_proxy" {
   env_public_subnet_id = "${aws_subnet.public.id}"
   env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
   env_vpc_id           = "${aws_vpc.main.id}"
+  ssh_key_name         = "${var.ssh_key_name}"
 }
 
 resource "aws_vpc" "main" {
