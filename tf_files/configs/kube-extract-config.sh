@@ -72,7 +72,7 @@ revproxyArn=$(g3kubectl get configmaps/global -o=jsonpath='{.data.revproxy_arn}'
 if g3kubectl get secrets/jwt-keys > /dev/null 2>&1; then
   mkdir -p -m 0700 ./jwt-keys
   for keyName in jwt_public_key.pem jwt_private_key.pem; do
-    g3kubectl get secrets/fence-jwt-keys -o=json | jq -r ".data[\"$keyName\"]" | base64 --decode > "./jwt_keys/$keyName"
+    g3kubectl get secrets/fence-jwt-keys -o=json | jq -r ".data[\"$keyName\"]" | base64 --decode > "./jwt-keys/$keyName"
   done
 fi
 
