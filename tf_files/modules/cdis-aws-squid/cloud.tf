@@ -1,5 +1,8 @@
-#resource "aws_cloudwatch_log_group" "squid_log_group" {
-#  name              = "${var.env_vpc_name}_master_squid"
+# The squid proxy is the first thing that will start sending logs
+# to the main loggroup, therefore we have to create it before the instance
+# comes up. This group is also the main one for the rest of the entire common
+#resource "aws_cloudwatch_log_group" "main_log_group" {
+#  name              = "${var.env_vpc_name}"
 #  retention_in_days = 1827
 #
 #  tags {
@@ -99,9 +102,10 @@ resource "aws_security_group" "out" {
   }
 }
 
+
 #logging for the squid proxy
-#resource "aws_iam_role" "squid_logging_cloudwatch" {
-#  name = "${var.env_vpc_name}_squid_logging_cloudwatch"
+#resource "aws_iam_role" "cluster_logging_cloudwatch" {
+#  name = "${var.env_vpc_name}_cluster_logging_cloudwatch"
 #  path = "/"
 #
 #  assume_role_policy = <<EOF
@@ -151,7 +155,8 @@ resource "aws_instance" "proxy" {
   source_dest_check      = false
   key_name               = "${var.ssh_key_name}"
   vpc_security_group_ids = ["${aws_security_group.proxy.id}", "${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
-  iam_instance_profile   = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+  iam_instance_profile   = "${var.instance_profile}" 
+# "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
 
   tags {
     Name         = "${var.env_vpc_name} HTTP Proxy"
@@ -165,18 +170,21 @@ echo '127.0.1.1 ${var.env_vpc_name}_squid_proxy' | sudo tee --append /etc/hosts
 sudo hostnamectl set-hostname ${var.env_vpc_name}_squid_proxy
 
 sed -i 's/SERVER/http_proxy-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
-sed -i 's/VPC/'${aws_cloudwatch_log_group.main_log_group.name}'/g' /var/awslogs/etc/awslogs.conf
+#sed -i 's/VPC/'${aws_cloudwatch_log_group.main_log_group.name}'/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'${var.log_group}'/g' /var/awslogs/etc/awslogs.conf
 cat >> /var/awslogs/etc/awslogs.conf <<EOM
 [syslog]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog
 log_stream_name = http_proxy-syslog-{hostname}-{instance_id}
 time_zone = LOCAL
-log_group_name = ${aws_cloudwatch_log_group.main_log_group.name}
+#log_group_name = ${aws_cloudwatch_log_group.main_log_group.name}
+log_group_name = ${var.log_group}
 [squid/access.log]
 file = /var/log/squid/access.log*
 log_stream_name = http_proxy-squid_access-{hostname}-{instance_id}
-log_group_name = ${aws_cloudwatch_log_group.main_log_group.name}
+#log_group_name = ${aws_cloudwatch_log_group.main_log_group.name}
+log_group_name = ${var.log_group}
 EOM
 
 chmod 755 /etc/init.d/awslogs
