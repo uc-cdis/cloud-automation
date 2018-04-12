@@ -13,3 +13,8 @@ terraform
 *.swp
 .DS_Store
 
+# Python related 
+*__pycache__
+*.pytest_cache
+*.cache
+*pyc

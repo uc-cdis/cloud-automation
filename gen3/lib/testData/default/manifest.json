@@ -1,0 +1,19 @@
+{
+  "notes": [
+    "This is the default manifest"
+  ],
+  "jenkins": {
+    "autodeploy": "yes"
+  },
+  "versions": {
+    "fence": "quay.io/cdis/fence:2.0.2",
+    "peregrine": "quay.io/cdis/peregrine:1.0.1",
+    "sheepdog": "quay.io/cdis/sheepdog:1.0.1",
+    "portal": "quay.io/cdis/data-portal:0.5.0",
+    "fluentd": "fluent/fluentd-kubernetes-daemonset:cloudwatch",
+    "jupyterhub": "quay.io/occ_data/jupyterhub:master"
+  },
+  "jupyterhub": {
+    "enabled": "no"
+  }
+}

@@ -2,14 +2,19 @@
 # Source this file in .bashrc to expose the gen3 helper function.
 # Following the example of python virtual environment scripts.
 #
+G3K_SETUP_DIR=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+GEN3_HOME="${GEN3_HOME:-$(cd "${G3K_SETUP_DIR}/../.." && pwd)}"
+export GEN3_HOME
 
-export XDG_DATA_HOME=${XDG_DATA_HOME:-~/.local/share}
-export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/tmp/gen3-$USER"}
+
+if [[ ! -f "$GEN3_HOME/gen3/lib/utils.sh" ]]; then
+  echo "ERROR: is GEN3_HOME correct? $GEN3_HOME"
+  return 1
+fi
+
+source "$GEN3_HOME/gen3/lib/utils.sh"
 export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
 
-if [[ ! -d "$XDG_RUNTIME_DIR" ]]; then
-  mkdir -p "$XDG_RUNTIME_DIR"
-fi
 
 #
 # Flag values - cleared on each call to 'gen3'
@@ -44,7 +49,8 @@ gen3_workon() {
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}"
   export AWS_PROFILE="$GEN3_PROFILE"
   export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")
-  AWS_ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
+  
+  local AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
   # S3 bucket where we save terraform state, etc
   if [[ -z "$AWS_ACCOUNT_ID" ]]; then
     echo "Error: unable to determine AWS_ACCOUNT_ID via: aws sts get-caller-identity | jq -r .Account"
@@ -57,8 +63,8 @@ gen3_workon() {
     export GEN3_S3_BUCKET="cdis-state-ac${AWS_ACCOUNT_ID}-gen3"
     
     OLD_S3_BUCKET="cdis-terraform-state.account-${AWS_ACCOUNT_ID}.gen3"
-    if (! aws s3 ls "s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1) &&
-      (aws s3 ls "s3://${OLD_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1)
+    if (! gen3_aws_run aws s3 ls "s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1) &&
+      (gen3_aws_run aws s3 ls "s3://${OLD_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1)
     then
       # Use the old bucket ... 
       export GEN3_S3_BUCKET="${OLD_S3_BUCKET}"
@@ -71,8 +77,14 @@ gen3_workon() {
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_user_vpc"
   elif [[ "$GEN3_WORKSPACE" =~ _snapshot$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_rds_snapshot"
+  elif [[ "$GEN3_WORKSPACE" =~ _adminvm$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_admin_vm"
+  elif [[ "$GEN3_WORKSPACE" =~ _logging$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_common_logging"
   elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_data_bucket"
+  elif [[ "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_squid_vm"
   fi
 
   PS1="gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -85,7 +97,7 @@ gen3_run() {
   local scriptFolder
   local resultCode
   
-  let resultCode=0
+  let resultCode=0 || true
   scriptFolder="$GEN3_HOME/gen3/bin"
   command=$1
   scriptName=""
@@ -97,13 +109,19 @@ gen3_run() {
   "workon")
     gen3_workon $@ && scriptName=workon.sh
     ;;
+  "aws")
+    gen3_aws_run aws "$@"
+    ;;
+  "arun")
+    gen3_aws_run "$@"
+    ;;
   "cd")
     if [[ $1 = "home" ]]; then
       cd $GEN3_HOME
-      let resultCode=$?
+      let resultCode=$? || true
     else
       cd $GEN3_WORKDIR
-      let resultCode=$?
+      let resultCode=$? || true
     fi
     scriptName=""
     ;;

@@ -48,6 +48,10 @@ spec:
               secretKeyRef:
                 name: jenkins-secret
                 key: aws_secret_access_key
+          - name: JENKINS_S3_PATH
+            # Just hard code for now 
+            # Bucket in cdistest account used for backups
+            value: "s3://cdis-terraform-state/JenkinsBackup"
         readinessProbe:
           httpGet:
             path: /login

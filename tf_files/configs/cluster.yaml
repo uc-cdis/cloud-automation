@@ -42,7 +42,7 @@ worker:
           name: ${cluster_name}
           managedPolicies:
             - arn: "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
-            - arn: "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+            #- arn: "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 
 controller:
   subnets:

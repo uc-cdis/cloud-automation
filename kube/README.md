@@ -77,28 +77,28 @@ $ g3k roll DEPLOYMENT_NAME
 ```
 
 ### Create deployment/service
-A deployment or service is usually defined in a [configuration file](https://github.com/uc-cdis/cloud-automation/blob/master/kube/services/gdcapi/gdcapi-deploy.yaml).
+A deployment or service is usually defined in a [configuration file](https://github.com/uc-cdis/cloud-automation/blob/master/kube/services/sheepdog/sheepdog-deploy.yaml).
 
-Run the following command to create the deployment defined in that file in Kubernetes.
+For example, the following command deploys the `sheepdog` deployment to the k8s cluster.
 ```
-kubectl create -f PATH_TO_DEFINITION_FILE
+g3k roll sheepdog
 ```
 
 Having the container running, we can access to the container by the following command:
 ```
-kubectl exec -ti POD_NAME -c CONTAINER_NAME /bin/bash
+kubectl exec -ti $(g3k pod sheepdog) -c CONTAINER_NAME /bin/bash
 ```
 
-We can also retrieve all the log traced from the container to the pod by:
+We can also retrieve all the log traces from the container to the pod by:
 ```
-kubectl logs POD_NAME
+kubectl logs $(g3k pod sheepdog)
 ```
 If you want to keep watching logs for debugging, do:
 ```
-kubectl logs --tail=20 POD_NAME -f
+kubectl logs --tail=20 -f $(g3k pod sheepdog)
 ```
 
-Use `kubectl apply -f PATH_TO_CONFIG_FILE` to update a running deployment. Set `save-config` flag to `true` if the configuration of current object is intended to save in its annotation.
+Use `g3k roll SERVICENAME` to update a running deployment. Set `save-config` flag to `true` if the configuration of current object is intended to save in its annotation.
 
 ### Mount secrets to container
 Secrets are passed to container in the initial phase by mounting as a volume. We can include the mounted secrets into the definition file as [this example](https://github.com/uc-cdis/cloud-automation/blob/master/kube/services/fence/fence-deploy.yaml#L25-L28)
@@ -178,13 +178,13 @@ sed -i s/$old_version/$new_version/g /etc/kubernetes/manifests/*
 It will take a minute to install the new containers and reload
 
 ## Accessing kubernete dashboard
-To access the kubernete api/ui, you can start a proxy on the kube provisioner VM:
+To access the kubernete api/ui, you can start a proxy on the admin VM:
 ```
 kubectl proxy --port 9090
 ```
 Then you can do ssh port forward from your laptop:
 ```
-ssh -L9090:localhost:9090 -N kube_provisioner_vm
+ssh -L9090:localhost:9090 -N adminvm
 ```
 
 ## Setting up users and roles

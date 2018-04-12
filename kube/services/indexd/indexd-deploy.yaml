@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: indexd-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: indexd
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -13,7 +17,20 @@ spec:
     metadata:
       labels:
         app: indexd
+        GEN3_DATE_LABEL
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - indexd
+              topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
@@ -27,7 +44,7 @@ spec:
             secretName: "service-ca"
       containers:
       - name: indexd
-        image: quay.io/cdis/indexd:latest
+        GEN3_INDEXD_IMAGE
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

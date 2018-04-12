@@ -1,10 +1,51 @@
 #!/bin/bash
 
-scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
+scriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
 
-export ARN=$(kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
-if [[ ! -z $ARN ]]; then
-  envsubst <$scriptDir/revproxy-service-elb.yaml | kubectl apply -f -
+DRY_RUN=${DRY_RUN:-""}
+if [[ "$1" =~ ^-*dry-run ]]; then
+  DRY_RUN="--dry-run"
+fi
+
+export KUBECTL_NAMESPACE="${KUBECTL_NAMESPACE:-default}"
+
+#
+# from https://github.com/kubernetes/kubernetes/issues/27308#issuecomment-309207951
+# support for KUBECTL_NAMESPACE environment variable ...
+#
+g3kubectl() {
+  kubectl ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+}
+
+export LOGGING_CONFIG=""
+bucketName=$(g3kubectl get configmap global --output=jsonpath='{.data.logs_bucket}')
+if [[ $? -eq 0 && -n "$bucketName" ]]; then
+  LOGGING_CONFIG=$(cat - <<EOM
+    service.beta.kubernetes.io/aws-load-balancer-access-log-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-access-log-emit-interval: "60"
+    # The interval for publishing the access logs. You can specify an interval of either 5 or 60 (minutes).
+    service.beta.kubernetes.io/aws-load-balancer-access-log-s3-bucket-name: "$bucketName"
+    service.beta.kubernetes.io/aws-load-balancer-access-log-s3-bucket-prefix: "logs/lb/revproxy"
+EOM
+)
+fi
+
+#
+# DISABLE LOGGING
+# TODO: We need to give the controller S3 permissions before we
+# can auto-apply S3 logging.  Will have to enable logging by hand util we fix that ...
+#
+LOGGING_CONFIG=""
+
+export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
+if [[ -n "$ARN" ]]; then
+  if [[ -z "$DRY_RUN" ]]; then
+    envsubst <$scriptDir/revproxy-service-elb.yaml | g3kubectl apply -f -
+  else
+    echo "DRY RUN"
+    envsubst <$scriptDir/revproxy-service-elb.yaml
+    echo "DRY RUN"
+  fi
 else
   echo "Global configmap not configured"
 fi

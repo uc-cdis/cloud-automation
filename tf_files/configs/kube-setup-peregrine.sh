@@ -7,8 +7,16 @@
 
 set -e
 
-export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
-export RENDER_CREDS="${G3AUTOHOME}/tf_files/configs/render_creds.py"
+_KUBE_SETUP_PEREGRINE=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+# Jenkins friendly
+export WORKSPACE="${WORKSPACE:-$HOME}"
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_PEREGRINE}/../.." && pwd)}"
+
+if [[ -z "$_KUBES_SH" ]]; then
+  source "$GEN3_HOME/kube/kubes.sh"
+fi # else already sourced this file ...
+
+export RENDER_CREDS="${GEN3_HOME}/tf_files/configs/render_creds.py"
 
 if [ ! -f "${RENDER_CREDS}" ]; then
   echo "ERROR: ${RENDER_CREDS} does not exist"
@@ -19,36 +27,26 @@ if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-peregrine.sh vpc_name"
    exit 1
 fi
-if [ ! -d ~/"${vpc_name}" ]; then
-  echo "~/${vpc_name} does not exist"
-  exit 1
+
+if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
+  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
+    echo "${WORKSPACE}/${vpc_name} does not exist"
+    exit 1
+  fi
+
+  cd "${WORKSPACE}/${vpc_name}_output"
+  python "${RENDER_CREDS}" secrets
+
+  cd "${WORKSPACE}/${vpc_name}"
+
+  if ! g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
+    g3kubectl create secret generic peregrine-secret --from-file=wsgi.py=./apis_configs/peregrine_settings.py
+  fi
 fi
 
-source "${G3AUTOHOME}/kube/kubes.sh"
-
-cd ~/${vpc_name}_output
-python "${RENDER_CREDS}" secrets
-
-cd ~/${vpc_name}
-
-if ! kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
-  kubectl create secret generic peregrine-secret --from-file=wsgi.py=./apis_configs/peregrine_settings.py
-fi
-
-kubectl apply -f services/peregrine/peregrine-deploy.yaml
-kubectl apply -f services/peregrine/peregrine-service.yaml
-
-patch_kube peregrine-deployment
+g3k roll peregrine
+g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-service.yaml"
 
 cat <<EOM
 The peregrine services has been deployed onto the k8s cluster.
-You'll need to update the reverse-proxy nginx config
-to make the commons start using the peregrine service (and retire GDCAPI for graphql).
-Run the following commands to make that switch:
-
-kubectl apply -f services/revproxy/00nginx-config.yaml
-
-# update_config is a function in cloud-automation/kube/kubes.sh
-source ~/cloud-automation/kube/kubes.sh
-patch_kube revproxy-deployment
 EOM

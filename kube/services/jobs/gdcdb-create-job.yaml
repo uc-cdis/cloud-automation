@@ -39,6 +39,8 @@ spec:
                 print( key + "='" + config['PSQLGRAPH'][key] + "'" )
               EOM
               );
-              echo datamodel_postgres_admin create-all -U "${user}" -P "${password}" -H "${host}" -D "${database}"
-              echo python /sheepdog/bin/setup_transactionlogs.py --user "${user}"  --password "${password}" --host "${host}" --database "${database}"
+              echo datamodel_postgres_admin create-all -U "${user}" -P XXXXXXX -H "${host}" -D "${database}"
+              datamodel_postgres_admin create-all -U "${user}" -P "${password}" -H "${host}" -D "${database}"
+              echo python /sheepdog/bin/setup_transactionlogs.py --user "${user}"  --password XXXXX --host "${host}" --database "${database}"
+              python /sheepdog/bin/setup_transactionlogs.py --user "${user}"  --password "${password}" --host "${host}" --database "${database}"
       restartPolicy: Never

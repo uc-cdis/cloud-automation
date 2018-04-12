@@ -1,49 +1,43 @@
 #!/bin/bash
 #
-# Deploy fence into existing commons - assume configs are already configured
-# for fence to re-use the userapi db.
-# This fragment is pasted into kube-services.sh by kube.tf.
+# Deploy sftp service into a commons
+# this sftp server setup dummy users and files for dev/test purpose
 #
 
 set -e
 
-export G3AUTOHOME=${G3AUTOHOME:-~/cloud-automation}
-export RENDER_CREDS="${G3AUTOHOME}/tf_files/configs/render_creds.py"
+_KUBE_SETUP_SFTP=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+# Jenkins friendly
+export WORKSPACE="${WORKSPACE:-$HOME}"
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_SFTP}/../.." && pwd)}"
+
+if [[ -z "$_KUBES_SH" ]]; then
+  source "$GEN3_HOME/kube/kubes.sh"
+fi # else already sourced this file ...
+
+export RENDER_CREDS="${GEN3_HOME}/tf_files/configs/render_creds.py"
 
 if [ ! -f "${RENDER_CREDS}" ]; then
   echo "ERROR: ${RENDER_CREDS} does not exist"
 fi
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-vpc_name=${vpc_name:-$1}
-if [ -z "${vpc_name}" ]; then
-   echo "Usage: bash kube-setup-sftp.sh vpc_name"
-   exit 1
-fi
-if [ ! -d ~/"${vpc_name}" ]; then
-  echo "~/${vpc_name} does not exist"
-  exit 1
-fi
-cd ~/${vpc_name}_output
-python "${RENDER_CREDS}" secrets
 
-cd ~/${vpc_name}
-# Generate RSA private and public keys.
-# TODO: generalize to list of key names?
-mkdir -p sftp-keys
+(
+  export KUBECTL_NAMESPACE=sftp
 
-if ! kubectl get secret sftp-secret > /dev/null 2>&1; then
-    password=$(base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 32)
-    kubectl create secret generic sftp-secret --from-literal=dbgap-key=$password
-fi
-if ! kubectl get configmaps/sftp-conf > /dev/null 2>&1; then
-  kubectl apply -f services/sftp/sftp-config.yaml
-fi
+  if ! g3kubectl get secret sftp-secret > /dev/null 2>&1; then
+      password=$(base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 32)
+      g3kubectl create secret generic sftp-secret --from-literal=dbgap-key=$password
+  fi
+  if ! g3kubectl get configmaps/sftp-conf > /dev/null 2>&1; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/sftp/sftp-config.yaml"
+  fi
 
-kubectl apply --namespace=sftp -f services/sftp/sftp-deploy.yaml
-
-kubectl apply --namespace=sftp -f services/sftp/sftp-service.yaml
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/sftp/sftp-deploy.yaml"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/sftp/sftp-service.yaml"
+)
 
 cat <<EOM
 The sftp services has been deployed onto the k8s cluster.
 EOM
+g3kubectl get services -o wide

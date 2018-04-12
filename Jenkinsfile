@@ -47,6 +47,17 @@ pipeline {
         sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/testsuite.sh --profile jenkins'
       }
     }
+    stage('lamda test') {
+      steps {
+        sh 'pip3 install boto3 --upgrade'
+        sh 'cd tf_files/modules/cdis-aws-common-logging && python3 -m pytest testLambda.py'
+      }
+    }
+    stage('g3k helper test suite') {
+      steps {
+        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/lib/g3k_testsuite.sh --profile jenkins'
+      }
+    }
   }
   post {
     success {

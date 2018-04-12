@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: sheepdog-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: sheepdog
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -13,7 +17,20 @@ spec:
     metadata:
       labels:
         app: sheepdog
+        GEN3_DATE_LABEL
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - sheepdog
+              topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
@@ -27,7 +44,7 @@ spec:
             secretName: "service-ca"
       containers:
         - name: sheepdog
-          image: quay.io/cdis/sheepdog:master
+          GEN3_SHEEPDOG_IMAGE
           livenessProbe:
             httpGet:
               path: /_status

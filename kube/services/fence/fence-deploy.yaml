@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: fence-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: fence
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -13,7 +17,20 @@ spec:
     metadata:
       labels:
         app: fence
+        GEN3_DATE_LABEL
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - fence
+              topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
@@ -36,7 +53,7 @@ spec:
             secretName: "service-ca"
       containers:
       - name: fence
-        image: quay.io/cdis/fence:master
+        GEN3_FENCE_IMAGE
         env:
           - name: PYTHONPATH
             value: /var/www/fence

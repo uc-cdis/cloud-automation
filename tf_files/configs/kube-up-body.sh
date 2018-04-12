@@ -51,15 +51,60 @@ done
 cd ~/${vpc_name}
 ln -fs ~/cloud-automation/kube/services ~/${vpc_name}/services
 
+# Add a little guard
+if kubectl get nodes > /dev/null 2>&1; then
+  echo "It looks like you already have a k8s cluster - bailing out without running kube-aws"
+  echo "Run kube-aws directly if you want to apply updates to an existing cluster"
+  exit 1
+fi
 
 if [[ ! -d ./credentials ]]; then
   kube-aws render credentials --generate-ca
 fi
 kube-aws render || true
-kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
-kube-aws up --s3-uri "s3://${s3_bucket}/${vpc_name}"
 
-kubectl --kubeconfig=kubeconfig get nodes
+#
+# When running on the adminvm - we need to assume the role
+# in the child account - `gen3 arun` handles that for us
+# assuming ~/.aws/config has the required setup 
+# under the [default] profile - ex:
+#
+# [default]
+# output = json
+# region = us-east-1
+# role_session_name = gen3-adminvm
+# role_arn = arn:aws:iam::{ACCOUNTID}:role/csoc_adminvm
+# credential_source = Ec2InstanceMetadata
+#
+export GEN3_HOME=~/cloud-automation
+source ~/cloud-automation/gen3/gen3setup.sh
+
+gen3 arun kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
+gen3 arun kube-aws up --s3-uri "s3://${s3_bucket}/${vpc_name}"
 
 # Back everything up to s3
 source ~/cloud-automation/tf_files/configs/kube-backup.sh
+
+if ! kubectl --kubeconfig=kubeconfig get nodes; then
+  cat - <<EOM
+It looks like kubectl cannot reach the controller.
+If you are running on the adminvm, then you probably can fix 
+this by editing ~/${vpc_name}/kubeconfig:
+    
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    #certificate-authority: credentials/ca.pem
+    #server: https://controller.internal.io
+    server: https://k8s-qaplanetv1.internal.io
+    insecure-skip-tls-verify: true
+  name: kube-aws-qaplanetv1-cluster
+  
+Finally - ask Renunka to add a k8s-${vpc_name}.internal.io alias
+to the CSOC DNS that points at the k8s controller load balancer:
+   aws elb describe-load-balancers | grep DNSName | grep -- -APIEndpo-
+
+EOM
+
+fi

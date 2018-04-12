@@ -4,13 +4,20 @@
 # from kubernetes secrets if possible.  
 # Generates
 #    $XDG_RUNTIME_DIR/kube-extract-config/creds.json, config.tfvars, and 00configmap.yaml
-# Requries kubectl to be on the path and configured.
+# Requries g3kubectl to be on the path and configured.
 #
+
+_KUBE_EXTRACT_CONFIG=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_EXTRACT_CONFIG}/../.." && pwd)}"
+
+if [[ -z "$_KUBES_SH" ]]; then
+  source "$GEN3_HOME/kube/kubes.sh"
+fi # else already sourced this file ...
 
 set -e
 
 # harvest some variables
-vpcName="$(kubectl get configmaps/global -o=jsonpath='{.data.environment}')$(date +%Y%m%d)"
+vpcName="$(g3kubectl get configmaps/global -o=jsonpath='{.data.environment}')$(date +%Y%m%d)"
 hostname=""
 dictionaryUrl=""
 revproxyArn=""
@@ -54,41 +61,41 @@ function random_alphanumeric() {
     base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c $1
 }
 
-kubectl get configmaps/global -o yaml > 00configmap.yaml
+g3kubectl get configmaps/global -o yaml > 00configmap.yaml
   
 # Note that legacy commons may not have the dictonary_url set ...
-hostname=$(kubectl get configmaps/global -o=jsonpath='{.data.hostname}')
-dictionaryUrl=$(kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')
-revproxyArn=$(kubectl get configmaps/global -o=jsonpath='{.data.revproxy_arn}')
+hostname=$(g3kubectl get configmaps/global -o=jsonpath='{.data.hostname}')
+dictionaryUrl=$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')
+revproxyArn=$(g3kubectl get configmaps/global -o=jsonpath='{.data.revproxy_arn}')
 
 # Legacy commons may not have jwt keys
-if kubectl get secrets/jwt-keys > /dev/null 2>&1; then
+if g3kubectl get secrets/jwt-keys > /dev/null 2>&1; then
   mkdir -p -m 0700 ./jwt-keys
   for keyName in jwt_public_key.pem jwt_private_key.pem; do
-    kubectl get secrets/fence-jwt-keys -o=json | jq -r ".data[\"$keyName\"]" | base64 --decode > "./jwt_keys/$keyName"
+    g3kubectl get secrets/fence-jwt-keys -o=json | jq -r ".data[\"$keyName\"]" | base64 --decode > "./jwt_keys/$keyName"
   done
 fi
 
 mkdir -p -m 0700 apis_configs
-if kubectl get configmaps/fence > /dev/null 2>&1; then
-  kubectl get configmaps/fence -o json | jq -r '.data["user.yaml"]' > apis_configs/user.yaml
+if g3kubectl get configmaps/fence > /dev/null 2>&1; then
+  g3kubectl get configmaps/fence -o json | jq -r '.data["user.yaml"]' > apis_configs/user.yaml
 else
-  kubectl get configmaps/userapi -o json | jq -r '.data["user.yaml"]' > apis_configs/user.yaml
+  g3kubectl get configmaps/userapi -o json | jq -r '.data["user.yaml"]' > apis_configs/user.yaml
 fi
 
-if kubectl get secrets/indexd-secret > /dev/null 2>&1; then
-  kubectl get secrets/indexd-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > apis_configs/indexd_settings.py
+if g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
+  g3kubectl get secrets/indexd-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > apis_configs/indexd_settings.py
   indexdDbPassword=$(grep ^psw apis_configs/indexd_settings.py | awk '{ print $3 }' | sed "s/^'//" | sed "s/'\$//")
   indexdDbSchema=$(grep ^db apis_configs/indexd_settings.py | awk '{ print $3 }' | sed "s/^'//" | sed "s/'\$//")
 fi
 
 fencePyFile=""
-if kubectl get secrets/fence-secret > /dev/null 2>&1; then
+if g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
   fencePyFile=apis_configs/fence_settings.py
-  kubectl get secrets/fence-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > "${fencePyFile}"
-elif kubectl get secrets/userapi-secret > /dev/null 2>&1; then
+  g3kubectl get secrets/fence-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > "${fencePyFile}"
+elif g3kubectl get secrets/userapi-secret > /dev/null 2>&1; then
   fencePyFile=apis_configs/userapi_settings.py
-  kubectl get secrets/userapi-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > "${fencePyFile}"
+  g3kubectl get secrets/userapi-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > "${fencePyFile}"
 fi
 if [[ ! -z "${fencePyFile}" ]]; then
   fenceDbUser=$(grep ^DB ${fencePyFile} | sed 's@^.*postgresql://@@' | sed 's/:.*$//')
@@ -98,23 +105,23 @@ if [[ ! -z "${fencePyFile}" ]]; then
   googleClientSecret=$(grep client_secret ${fencePyFile} | sed "s/.*:\s*//" | sed "s/[', ]*//g")
 fi
 
-if kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
-  kubectl get secrets/sheepdog-secret -o json | jq -r '.data["wsgi.py"]' | base64 --decode > apis_configs/sheepdog_settings.py
+if g3kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
+  g3kubectl get secrets/sheepdog-secret -o json | jq -r '.data["wsgi.py"]' | base64 --decode > apis_configs/sheepdog_settings.py
   gdcapiDbUser="sheepdog"
   sheepdogDbPassword=$(grep password apis_configs/sheepdog_settings.py | awk '{ print $2 }' | sed 's/,$//' | sed 's/"//g')
   gdcapiDbPassword="$sheepdogDbPassword"
   gdcapiDbSchema=$(grep database apis_configs/sheepdog_settings.py | awk '{ print $2 }' | sed 's/,$//' | sed 's/"//g')
   gdcapiIndexdSecret=$(grep "'auth'" apis_configs/sheepdog_settings.py | sed "s/^.*'gdcapi', '//" | sed "s/').*\$//")
 fi
-if kubectl get secrets/gdcapi-secret > /dev/null 2>&1; then
-  kubectl get secrets/gdcapi-secret -o json | jq -r '.data["wsgi.py"]' | base64 --decode > apis_configs/gdcapi_settings.py
+if g3kubectl get secrets/gdcapi-secret > /dev/null 2>&1; then
+  g3kubectl get secrets/gdcapi-secret -o json | jq -r '.data["wsgi.py"]' | base64 --decode > apis_configs/gdcapi_settings.py
   gdcapiDbUser="gdcapi_user"
   gdcapiDbPassword=$(grep password apis_configs/gdcapi_settings.py | awk '{ print $2 }' | sed 's/,$//' | sed 's/"//g')
   gdcapiDbSchema=$(grep database apis_configs/gdcapi_settings.py | awk '{ print $2 }' | sed 's/,$//' | sed 's/"//g')
   gdcapiIndexdSecret=$(grep "'auth'" apis_configs/gdcapi_settings.py | sed "s/^.*'gdcapi', '//" | sed "s/').*\$//")
 fi
-if kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
-  kubectl get secrets/peregrine-secret -o json | jq -r '.data["wsgi.py"]' | base64 --decode > apis_configs/peregrine_settings.py
+if g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
+  g3kubectl get secrets/peregrine-secret -o json | jq -r '.data["wsgi.py"]' | base64 --decode > apis_configs/peregrine_settings.py
   peregrineDbPassword=$(grep password apis_configs/peregrine_settings.py | awk '{ print $2 }' | sed 's/,$//' | sed 's/"//g')
 fi
 

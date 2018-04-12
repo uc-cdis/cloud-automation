@@ -1,26 +1,11 @@
-resource "aws_s3_bucket" "log_bucket" {
-  bucket = "s3logs-${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
-  acl    = "log-delivery-write"
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
-  tags {
-    Name        = "s3logs-${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
-    Environment = "${var.environment}"
-    Purpose     = "logs bucket"
-  }
+module "cdis_s3_logs" {
+  ami_account_id  = "${var.ami_account_id}"
+  source          = "./cdis-s3-logs"
+  log_bucket_name = "s3logs-${local.clean_bucket_name}"
 }
 
-#-------------------------
-
 resource "aws_s3_bucket" "mybucket" {
-  bucket = "${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  bucket = "${local.clean_bucket_name}"
   acl    = "private"
 
   server_side_encryption_configuration {
@@ -33,18 +18,18 @@ resource "aws_s3_bucket" "mybucket" {
 
   logging {
     target_bucket = "${aws_s3_bucket.log_bucket.id}"
-    target_prefix = "log/${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+    target_prefix = "log/${local.clean_bucket_name}"
   }
 
   tags {
-    Name        = "${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+    Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "data bucket"
   }
 }
 
 resource "aws_iam_role" "mybucket_reader" {
-  name = "bucket_reader_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name = "bucket_reader_${local.clean_bucket_name}"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -77,8 +62,8 @@ data "aws_iam_policy_document" "mybucket_reader" {
 }
 
 resource "aws_iam_policy" "mybucket_reader" {
-  name        = "bucket_reader_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
-  description = "Read ${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name        = "bucket_reader_${local.clean_bucket_name}"
+  description = "Read ${local.clean_bucket_name}"
   policy      = "${data.aws_iam_policy_document.mybucket_reader.json}"
 }
 
@@ -88,20 +73,20 @@ resource "aws_iam_role_policy_attachment" "mybucket_reader" {
 }
 
 #resource "aws_iam_role_policy" "mybucket_reader" {
-#  name   = "bucket_reader_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+#  name   = "bucket_reader_${local.clean_bucket_name}"
 #  policy = "${data.aws_iam_policy_document.mybucket_reader.json}"
 #  role   = "${aws_iam_role.mybucket_reader.id}"
 #}
 
 resource "aws_iam_instance_profile" "mybucket_reader" {
-  name = "bucket_reader_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name = "bucket_reader_${local.clean_bucket_name}"
   role = "${aws_iam_role.mybucket_reader.id}"
 }
 
 #----------------------
 
 resource "aws_iam_role" "mybucket_writer" {
-  name = "bucket_writer_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name = "bucket_writer_${local.clean_bucket_name}"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -146,8 +131,8 @@ data "aws_iam_policy_document" "mybucket_writer" {
 }
 
 resource "aws_iam_policy" "mybucket_writer" {
-  name        = "bucket_writer_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
-  description = "Read or write ${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name        = "bucket_writer_${local.clean_bucket_name}"
+  description = "Read or write ${local.clean_bucket_name}"
   policy      = "${data.aws_iam_policy_document.mybucket_writer.json}"
 }
 
@@ -157,12 +142,12 @@ resource "aws_iam_role_policy_attachment" "mybucket_writer" {
 }
 
 #resource "aws_iam_role_policy" "mybucket_writer" {
-#  name   = "bucket_writer_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+#  name   = "bucket_writer_${local.clean_bucket_name}"
 #  policy = "${data.aws_iam_policy_document.mybucket_writer.json}"
 #  role   = "${aws_iam_role.mybucket_writer.id}"
 #}
 
 resource "aws_iam_instance_profile" "mybucket_writer" {
-  name = "bucket_writer_${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  name = "bucket_writer_${local.clean_bucket_name}"
   role = "${aws_iam_role.mybucket_writer.id}"
 }
