@@ -60,10 +60,12 @@ worker:
 
 
 etcd:
+  count: 3
   dataVolume:
     encrypted: true
   subnets:
   - name: private
+  memberIdentityProvider: eni
 
 vpc:
   id: ${vpc_id}
