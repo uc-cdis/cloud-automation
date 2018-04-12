@@ -6,8 +6,8 @@ module "squid_proxy" {
   env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
   env_vpc_id           = "${aws_vpc.main.id}"
   ssh_key_name         = "${var.ssh_key_name}"
-  instance_profile     = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
-  log_group            = "${aws_cloudwatch_log_group.main_log_group.name}"
+  env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+  env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
 }
 
 resource "aws_vpc" "main" {
