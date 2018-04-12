@@ -23,12 +23,10 @@ spec:
       - name: fence
         image: quay.io/cdis/fence:master
         imagePullPolicy: Always
-        env:
-          - name: PYTHONPATH
-            value: /var/www/fence
         volumeMounts:
           - name: "config-volume"
             readOnly: true
+            # NOTE: don't move
             mountPath: "/var/www/fence/local_settings.py"
             subPath: local_settings.py
           - name: "json-secret-volume"
