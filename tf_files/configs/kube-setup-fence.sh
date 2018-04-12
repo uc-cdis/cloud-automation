@@ -110,11 +110,11 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   fi
 
   if ! kubectl get secrets/fence-public-key > /dev/null 2>&1; then
-    kubectl create secret generic fence-public-key --from-file=./apis_configs/.ssh/id_rsa.pub
+    kubectl create secret generic fence-public-key --from-file=./ssh-keys/id_rsa.pub
   fi
 
   if ! kubectl get secrets/fence-private-key > /dev/null 2>&1; then
-    kubectl create secret generic fence-private-key --from-file=./apis_configs/.ssh/id_rsa
+    kubectl create secret generic fence-private-key --from-file=./ssh-keys/id_rsa
   fi
 
 fi

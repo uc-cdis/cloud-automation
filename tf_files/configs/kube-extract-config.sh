@@ -76,6 +76,13 @@ if g3kubectl get secrets/jwt-keys > /dev/null 2>&1; then
   done
 fi
 
+if g3kubectl get secrets/fence-private-key > /dev/null 2>&1; then
+  mkdir -p -m 0700 ./ssh-keys
+  for keyName in id_rsa id_rsa.pub; do
+    g3kubectl get secrets/fence-private-key -o=json | jq -r ".data[\"$keyName\"]" | base64 --decode > "./ssh-keys/$keyName"
+  done
+fi
+
 mkdir -p -m 0700 apis_configs
 if g3kubectl get configmaps/fence > /dev/null 2>&1; then
   g3kubectl get configmaps/fence -o json | jq -r '.data["user.yaml"]' > apis_configs/user.yaml
@@ -97,6 +104,7 @@ elif g3kubectl get secrets/userapi-secret > /dev/null 2>&1; then
   fencePyFile=apis_configs/userapi_settings.py
   g3kubectl get secrets/userapi-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > "${fencePyFile}"
 fi
+
 if [[ ! -z "${fencePyFile}" ]]; then
   fenceDbUser=$(grep ^DB ${fencePyFile} | sed 's@^.*postgresql://@@' | sed 's/:.*$//')
   fenceDbPassword=$(grep ^DB ${fencePyFile} | sed "s/^.*_user://" | sed 's/@.*$//')
@@ -113,6 +121,7 @@ if g3kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
   gdcapiDbSchema=$(grep database apis_configs/sheepdog_settings.py | awk '{ print $2 }' | sed 's/,$//' | sed 's/"//g')
   gdcapiIndexdSecret=$(grep "'auth'" apis_configs/sheepdog_settings.py | sed "s/^.*'gdcapi', '//" | sed "s/').*\$//")
 fi
+
 if g3kubectl get secrets/gdcapi-secret > /dev/null 2>&1; then
   g3kubectl get secrets/gdcapi-secret -o json | jq -r '.data["wsgi.py"]' | base64 --decode > apis_configs/gdcapi_settings.py
   gdcapiDbUser="gdcapi_user"
@@ -120,6 +129,7 @@ if g3kubectl get secrets/gdcapi-secret > /dev/null 2>&1; then
   gdcapiDbSchema=$(grep database apis_configs/gdcapi_settings.py | awk '{ print $2 }' | sed 's/,$//' | sed 's/"//g')
   gdcapiIndexdSecret=$(grep "'auth'" apis_configs/gdcapi_settings.py | sed "s/^.*'gdcapi', '//" | sed "s/').*\$//")
 fi
+
 if g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
   g3kubectl get secrets/peregrine-secret -o json | jq -r '.data["wsgi.py"]' | base64 --decode > apis_configs/peregrine_settings.py
   peregrineDbPassword=$(grep password apis_configs/peregrine_settings.py | awk '{ print $2 }' | sed 's/,$//' | sed 's/"//g')
