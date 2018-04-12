@@ -55,25 +55,46 @@ AWS_CREDENTIALS = {}
 # { bucket_name: credential_identifie }
 S3_BUCKETS = {}
 
+
+def get_from_dict(dictionary, key, default=''):
+    value = dictionary.get(key)
+    if value is None:
+        print(
+            'Warning: A value for key {} not found. Defaulting to "{}"...'
+            .format(key, default))
+        value = default
+    return value
+
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 fence_creds = os.path.join(dir_path, 'fence_credentials.json')
 if os.path.exists(fence_creds):
     with open(fence_creds, 'r') as f:
         data = json.load(f)
-        AWS_CREDENTIALS = data['AWS_CREDENTIALS']
-        S3_BUCKETS = data['S3_BUCKETS']
-        DEFAULT_LOGIN_URL = data['DEFAULT_LOGIN_URL']
-        OPENID_CONNECT.update(data['OPENID_CONNECT'])
-        OIDC_ISSUER = data['OIDC_ISSUER']
-        ENABLED_IDENTITY_PROVIDERS = data['ENABLED_IDENTITY_PROVIDERS']
-        APP_NAME = data['APP_NAME']
-        HTTP_PROXY = data['HTTP_PROXY']
-        os.environ["GOOGLE_API_KEY"] = data['GOOGLE_API_KEY']
-        os.environ["GOOGLE_PROJECT_ID"] = data['GOOGLE_PROJECT_ID']
-        os.environ["GOOGLE_ADMIN_EMAIL"] = data['GOOGLE_ADMIN_EMAIL']
-        os.environ["GOOGLE_IDENTITY_DOMAIN"] = data['GOOGLE_IDENTITY_DOMAIN']
+        AWS_CREDENTIALS = get_from_dict(data, 'AWS_CREDENTIALS')
+        S3_BUCKETS = get_from_dict(data, 'S3_BUCKETS')
+        DEFAULT_LOGIN_URL = get_from_dict(data, 'DEFAULT_LOGIN_URL')
+        OPENID_CONNECT.update(get_from_dict(data, 'OPENID_CONNECT', {}))
+        OIDC_ISSUER = get_from_dict(data, 'OIDC_ISSUER')
+        ENABLED_IDENTITY_PROVIDERS = get_from_dict(
+            data, 'ENABLED_IDENTITY_PROVIDERS')
+
+        APP_NAME = get_from_dict(data, 'APP_NAME')
+        HTTP_PROXY = get_from_dict(data, 'HTTP_PROXY')
+        os.environ["GOOGLE_API_KEY"] = get_from_dict(data, 'GOOGLE_API_KEY')
+
+        os.environ["GOOGLE_PROJECT_ID"] = get_from_dict(
+            data, 'GOOGLE_PROJECT_ID')
+
+        os.environ["GOOGLE_ADMIN_EMAIL"] = get_from_dict(
+            data, 'GOOGLE_ADMIN_EMAIL')
+
+        os.environ["GOOGLE_IDENTITY_DOMAIN"] = (
+            get_from_dict(data, 'GOOGLE_IDENTITY_DOMAIN')
+        )
+
         os.environ["GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL"] = (
-            data['GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL']
+            get_from_dict(data, 'GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL')
         )
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
