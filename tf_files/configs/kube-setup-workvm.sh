@@ -70,10 +70,13 @@ if sudo -n true > /dev/null 2>&1; then
   fi
 fi
 
+SHELLL="$(echo $SHELL | awk -F'/' '{print $NF}')"
+RC_FILE="${SHELLL}rc"
+
 if [[ "$WORKSPACE" == "$HOME" ]]; then
-  if ! grep kubes.sh ${WORKSPACE}/.bashrc > /dev/null; then
-    echo "Adding variables to ${WORKSPACE}/.bashrc"
-    cat - >>${WORKSPACE}/.bashrc << EOF
+  if ! grep kubes.sh ${WORKSPACE}/.${RC_FILE} > /dev/null; then
+    echo "Adding variables to ${WORKSPACE}/.${RC_FILE}"
+    cat - >>${WORKSPACE}/.${RC_FILE} << EOF
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
@@ -86,25 +89,25 @@ fi
 EOF
   fi
 
-  if ! grep 'kubectl completion bash' ${WORKSPACE}/.bashrc > /dev/null; then 
-    cat - >>${WORKSPACE}/.bashrc << EOF
+  if ! grep 'kubectl completion bash' ${WORKSPACE}/.${RC_FILE} > /dev/null; then 
+    cat - >>${WORKSPACE}/.${RC_FILE} << EOF
 if which kubectl > /dev/null 2>&1; then
   # Load the kubectl completion code for bash into the current shell
-  source <(kubectl completion bash)
+  source <(kubectl completion ${SHELLL})
 fi
 EOF
   fi
 
 # a provisioner should only work with one vpc
-if ! grep 'vpc_name=' ${WORKSPACE}/.bashrc > /dev/null; then
-  cat - >>${WORKSPACE}/.bashrc <<EOF
+if ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
+  cat - >>${WORKSPACE}/.${RC_FILE} <<EOF
 export vpc_name='$vpc_name'
 export s3_bucket='$s3_bucket'
 EOF
   fi
 
-  if ! grep 'GEN3_HOME=' ${WORKSPACE}/.bashrc > /dev/null; then
-    cat - >>${WORKSPACE}/.bashrc <<EOF
+  if ! grep 'GEN3_HOME=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
+    cat - >>${WORKSPACE}/.${RC_FILE} <<EOF
 export GEN3_HOME=${WORKSPACE}/cloud-automation
 if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
   source "\${GEN3_HOME}/gen3/gen3setup.sh"

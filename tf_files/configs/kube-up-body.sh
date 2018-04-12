@@ -88,22 +88,13 @@ source ~/cloud-automation/tf_files/configs/kube-backup.sh
 if ! kubectl --kubeconfig=kubeconfig get nodes; then
   cat - <<EOM
 It looks like kubectl cannot reach the controller.
-If you are running on the adminvm, then you probably can fix 
-this by editing ~/${vpc_name}/kubeconfig:
-    
-apiVersion: v1
-kind: Config
-clusters:
-- cluster:
-    #certificate-authority: credentials/ca.pem
-    #server: https://controller.internal.io
-    server: https://k8s-qaplanetv1.internal.io
-    insecure-skip-tls-verify: true
-  name: kube-aws-qaplanetv1-cluster
-  
-Finally - ask Renunka to add a k8s-${vpc_name}.internal.io alias
-to the CSOC DNS that points at the k8s controller load balancer:
-   aws elb describe-load-balancers | grep DNSName | grep -- -APIEndpo-
+Most likely you need to add an entry in route53 for the CSCO account.
+
+Ask Renuka or Fauzi to add k8s-${vpc_name}.internal.io as CNAME for
+the k8s controller load balancer:
+    aws elb describe-load-balancers | grep DNSName | grep ${vpc_name}
+
+$(aws elb describe-load-balancers | grep DNSName | grep ${vpc_name})
 
 EOM
 

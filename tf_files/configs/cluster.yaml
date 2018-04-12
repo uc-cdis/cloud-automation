@@ -11,7 +11,7 @@ clusterName: ${cluster_name}
 # from worker nodes and external clients. Configure the options
 # below if you would like kube-aws to create a Route53 record sets/hosted zones
 # for you.  Otherwise the deployer is responsible for making this name routable
-externalDNSName: controller.internal.io
+#externalDNSName: controller.internal.io
 
 apiEndpoints: 
 - # The unique name of this API endpoint used to identify it inside CloudFormation stacks or
@@ -61,7 +61,7 @@ worker:
 
 etcd:
   dataVolume:
-    encripted: true
+    encrypted: true
   subnets:
   - name: private
 
@@ -100,7 +100,6 @@ subnets:
     securityGroupIds:
       - ${security_group_id}
 
-mapPublicIPs: false
 
 stackTags:
   Environment: ${cluster_name}
