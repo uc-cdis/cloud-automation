@@ -100,7 +100,17 @@ data:
           default upgrade;
           ''      close;
         }
-      
+    
+        map $proxy_protocol_addr $initialip {
+          "" $http_x_forwarded_for;
+          default $proxy_protocol_addr;
+        }
+
+        map $initialip $realip {
+          "" $remote_addr; #if this header missing set remote_addr as real ip
+          default $initialip;
+        }
+ 
       	# server_names_hash_bucket_size 64;
       	# server_name_in_redirect off;
       
@@ -117,7 +127,7 @@ data:
       	##
       	# Logging Settings
       	##
-        log_format aws   '$http_x_forwarded_for - $userid [$time_local] '
+        log_format aws   '$realip - $userid [$time_local] '
                     '"$request" $status $body_bytes_sent '
                     '"$http_referer" "$http_user_agent"';
       	access_log /dev/stdout aws;
@@ -138,8 +148,15 @@ data:
         ##
       	# Proxy Settings
       	##
+        # Serve internet facing http requests via this, and redirect to https
+        server {
+               listen      82 default_server proxy_protocol;
+               rewrite     ^   https://$host/$request_uri? permanent;
+        }
+        # Serve internet facing https requests and internal http requests here
       	server {
-      		listen 80;
+                listen 81 proxy_protocol;
+                listen 80;
       		server_tokens off;
       		add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
       		add_header X-Frame-Options "SAMEORIGIN";
@@ -165,7 +182,7 @@ data:
           #   not set headers ... http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header
           #
           proxy_set_header   Authorization "$access_token";
-          proxy_set_header   X-Forwarded-For "$http_x_forwarded_for";
+          proxy_set_header   X-Forwarded-For "$realip";
           proxy_set_header   X-UserId "$userid";
           
           #
@@ -244,7 +261,7 @@ data:
               proxy_set_header   Host $host;
               proxy_set_header   Subdir /api;
               proxy_set_header   Authorization "$access_token";
-              proxy_set_header   X-Forwarded-For "$http_x_forwarded_for";
+              proxy_set_header   X-Forwarded-For "$realip";
               proxy_set_header   X-UserId "$userid";
               proxy_connect_timeout 300;
               proxy_send_timeout 300;
@@ -266,7 +283,7 @@ data:
               proxy_set_header   Host $host;
               proxy_set_header   Subdir /api;
               proxy_set_header   Authorization "$access_token";
-              proxy_set_header   X-Forwarded-For "$http_x_forwarded_for";
+              proxy_set_header   X-Forwarded-For "$realip";
               proxy_set_header   X-UserId "$userid";
               proxy_connect_timeout 300;
               proxy_send_timeout 300;

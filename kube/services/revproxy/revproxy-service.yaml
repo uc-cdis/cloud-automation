@@ -2,24 +2,12 @@ kind: Service
 apiVersion: v1
 metadata:
   name: revproxy-service
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http 
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: $ARN 
-    # this is not supported yet
-    service.beta.kubernetes.io/aws-load-balancer-security-policy: "ELBSecurityPolicy-TLS-1-2-2017-01"
-$LOGGING_CONFIG
 spec:
   selector:
     app: revproxy
   ports:
-    - protocol: TCP 
-      port: 443 
-      targetPort: 80 
-      name: https
-    # right now kubernete make them both https for the elb protocol, has to manually fix it after you apply this file
-    - protocol: TCP 
-      port: 80 
-      targetPort: 80 
+    - protocol: TCP
+      port: 80
+      targetPort: 80
       name: http
-  type: LoadBalancer 
+  type: ClusterIP

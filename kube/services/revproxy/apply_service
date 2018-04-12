@@ -40,12 +40,15 @@ LOGGING_CONFIG=""
 export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
 if [[ -n "$ARN" ]]; then
   if [[ -z "$DRY_RUN" ]]; then
-    envsubst <$scriptDir/revproxy-service.yaml | g3kubectl apply -f -
+    envsubst <$scriptDir/revproxy-service-elb.yaml | g3kubectl apply -f -
   else
     echo "DRY RUN"
-    envsubst <$scriptDir/revproxy-service.yaml
+    envsubst <$scriptDir/revproxy-service-elb.yaml
     echo "DRY RUN"
   fi
 else
   echo "Global configmap not configured"
 fi
+
+# Don't automatically apply this right now
+#kubectl apply -f $scriptDir/revproxy-service.yaml
