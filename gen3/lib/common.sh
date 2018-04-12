@@ -15,8 +15,8 @@ if ! semver_ge "$AWS_VERSION" "1.14.0"; then
 fi
 
 TERRAFORM_VERSION=$(terraform --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
-if ! semver_ge "$TERRAFORM_VERSION" "0.11.3"; then
-  echo "ERROR: gen3 requires terraform >= 0.11.3 - please update from ${TERRAFORM_VERSION}"
+if ! semver_ge "$TERRAFORM_VERSION" "0.11.7"; then
+  echo "ERROR: gen3 requires terraform >= 0.11.7 - please update from ${TERRAFORM_VERSION}"
   echo "  see https://www.terraform.io/downloads.html"
   exit 1
 fi

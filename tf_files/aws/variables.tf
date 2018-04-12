@@ -28,11 +28,6 @@ variable "db_password_fence" {
   default = ""
 }
 
-variable "db_password_userapi" {
-  # userapi now deprecated in favor of fence
-  default = ""
-}
-
 variable "db_password_gdcapi" {
   # gdcapi now deprecated in favor of sheepdog + peregrine
   default = ""

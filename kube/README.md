@@ -178,13 +178,13 @@ sed -i s/$old_version/$new_version/g /etc/kubernetes/manifests/*
 It will take a minute to install the new containers and reload
 
 ## Accessing kubernete dashboard
-To access the kubernete api/ui, you can start a proxy on the kube provisioner VM:
+To access the kubernete api/ui, you can start a proxy on the admin VM:
 ```
 kubectl proxy --port 9090
 ```
 Then you can do ssh port forward from your laptop:
 ```
-ssh -L9090:localhost:9090 -N kube_provisioner_vm
+ssh -L9090:localhost:9090 -N adminvm
 ```
 
 ## Setting up users and roles

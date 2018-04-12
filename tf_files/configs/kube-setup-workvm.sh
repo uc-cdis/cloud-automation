@@ -59,7 +59,7 @@ if sudo -n true > /dev/null 2>&1; then
   fi
 
   if ! which terraform > /dev/null 2>&1; then
-    curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip
+    curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
     sudo unzip "${XDG_RUNTIME_DIR}/terraform.zip" -d /usr/local/bin;
     /bin/rm "${XDG_RUNTIME_DIR}/terraform.zip"
   fi

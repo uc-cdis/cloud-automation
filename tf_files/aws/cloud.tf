@@ -3,18 +3,10 @@
 terraform {
   backend "s3" {
     encrypt = "true"
-
-    # TODO - setup 'terraform' roles in each account ...
-    #role_arn = "arn:aws:iam::707767160287:role/devplanetv1_kube_provisioner"
   }
 }
 
 # Inject credentials via the AWS_PROFILE environment variable and shared credentials file and/or EC2 metadata service
-#
-# TODO - setup 'terraform' roles in each account ...  
-# assume_role {  
-#   role_arn = "arn:aws:iam::707767160287:role/devplanetv1_kube_provisioner"  
-# }
 #
 provider "aws" {}
 
@@ -26,6 +18,13 @@ module "cdis_vpc" {
   ssh_key_name    = "${aws_key_pair.automation_dev.key_name}"
   csoc_cidr       = "${var.csoc_cidr}"
   csoc_account_id = "${var.csoc_account_id}"
+}
+
+# logs bucket for elb logs
+module "elb_logs" {
+  source          = "../modules/cdis-s3-logs"
+  log_bucket_name = "logs-${var.vpc_name}-gen3"
+  environment     = "${var.vpc_name}"
 }
 
 data "aws_vpc_endpoint_service" "s3" {

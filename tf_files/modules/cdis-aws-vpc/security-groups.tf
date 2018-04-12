@@ -1,39 +1,3 @@
-resource "aws_security_group" "ssh" {
-  name        = "ssh"
-  description = "security group that only enables ssh"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags {
-    Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
-  }
-}
-
-resource "aws_security_group" "login-ssh" {
-  name        = "login-ssh"
-  description = "security group that only enables ssh from login node"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "TCP"
-    cidr_blocks = ["${aws_instance.login.private_ip}/32", "${var.csoc_cidr}"]
-  }
-
-  tags {
-    Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
-  }
-}
-
 resource "aws_security_group" "local" {
   name        = "local"
   description = "security group that only allow internal tcp traffics"
