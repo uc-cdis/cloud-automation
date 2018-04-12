@@ -1,11 +1,11 @@
-resource "aws_cloudwatch_log_group" "squid_log_group" {
-  name              = "${var.env_vpc_name}_master_squid"
-  retention_in_days = 1827
-
-  tags {
-    Environment = "${var.env_vpc_name}"
-  }
-}
+#resource "aws_cloudwatch_log_group" "squid_log_group" {
+#  name              = "${var.env_vpc_name}_master_squid"
+#  retention_in_days = 1827
+#
+#  tags {
+#    Environment = "${var.env_vpc_name}"
+#  }
+#}
 
 resource "aws_ami_copy" "squid_ami" {
   name              = "ub16-squid-crypt-${var.env_vpc_name}-1.0.2"
@@ -100,37 +100,37 @@ resource "aws_security_group" "out" {
 }
 
 #logging for the squid proxy
-resource "aws_iam_role" "squid_logging_cloudwatch" {
-  name = "${var.env_vpc_name}_squid_logging_cloudwatch"
-  path = "/"
+#resource "aws_iam_role" "squid_logging_cloudwatch" {
+#  name = "${var.env_vpc_name}_squid_logging_cloudwatch"
+#  path = "/"
+#
+#  assume_role_policy = <<EOF
+#{
+#    "Version": "2012-10-17",
+#    "Statement": [
+#        {
+#            "Action": "sts:AssumeRole",
+#            "Principal": {
+#               "Service": "ec2.amazonaws.com"
+#            },
+#            "Effect": "Allow",
+#            "Sid": ""
+#        }
+#    ]
+#}
+#EOF
+#}
 
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": "sts:AssumeRole",
-            "Principal": {
-               "Service": "ec2.amazonaws.com"
-            },
-            "Effect": "Allow",
-            "Sid": ""
-        }
-    ]
-}
-EOF
-}
+#resource "aws_iam_role_policy" "squid_logging_cloudwatch" {
+#  name   = "${var.env_vpc_name}_squid_logging_cloudwatch"
+#  policy = "${data.aws_iam_policy_document.squid_logging_cloudwatch.json}"
+#  role   = "${aws_iam_role.squid_logging_cloudwatch.id}"
+#}
 
-resource "aws_iam_role_policy" "squid_logging_cloudwatch" {
-  name   = "${var.env_vpc_name}_squid_logging_cloudwatch"
-  policy = "${data.aws_iam_policy_document.squid_logging_cloudwatch.json}"
-  role   = "${aws_iam_role.squid_logging_cloudwatch.id}"
-}
-
-resource "aws_iam_instance_profile" "squid_logging_cloudwatch" {
-  name = "${var.env_vpc_name}_squid_logging_cloudwatch"
-  role = "${aws_iam_role.squid_logging_cloudwatch.id}"
-}
+#resource "aws_iam_instance_profile" "squid_logging_cloudwatch" {
+#  name = "${var.env_vpc_name}_squid_logging_cloudwatch"
+#  role = "${aws_iam_role.squid_logging_cloudwatch.id}"
+#}
 
 # assigning elastic ip to the squid proxy
 
@@ -151,7 +151,7 @@ resource "aws_instance" "proxy" {
   source_dest_check      = false
   key_name               = "${var.ssh_key_name}"
   vpc_security_group_ids = ["${aws_security_group.proxy.id}", "${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
-  iam_instance_profile   = "${aws_iam_instance_profile.squid_logging_cloudwatch.name}"
+  iam_instance_profile   = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
 
   tags {
     Name         = "${var.env_vpc_name} HTTP Proxy"
