@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "log_bucket" {
-  bucket = "s3logs-${local.clean_bucket_name}"
+  bucket = "${local.clean_bucket_name}"
   acl    = "log-delivery-write"
 
   server_side_encryption_configuration {
@@ -27,8 +27,42 @@ resource "aws_s3_bucket" "log_bucket" {
   }
 
   tags {
-    Name        = "s3logs-${local.clean_bucket_name}"
+    Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "logs bucket"
   }
+}
+
+data "aws_iam_policy_document" "log_bucket_writer" {
+  statement {
+    actions = [
+      "s3:Get*",
+      "s3:List*",
+    ]
+
+    effect    = "Allow"
+    resources = ["${aws_s3_bucket.log_bucket.arn}", "${aws_s3_bucket.log_bucket.arn}/*"]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = ["${aws_s3_bucket.log_bucket.arn}/*"]
+  }
+}
+
+#
+# Convenience for passing through to kube-aws to
+# allow it to configure ELB logging
+#
+resource "aws_iam_policy" "log_bucket_writer" {
+  name        = "bucket_writer_${local.clean_bucket_name}"
+  description = "Read or write ${local.clean_bucket_name}"
+  policy      = "${data.aws_iam_policy_document.log_bucket_writer.json}"
 }

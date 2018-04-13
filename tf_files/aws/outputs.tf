@@ -66,6 +66,7 @@ data "template_file" "cluster" {
     kube_additional_keys = "${var.kube_additional_keys}"
     hosted_zone          = "${module.cdis_vpc.zone_id}"
     s3_bucket            = "${aws_s3_bucket.kube_bucket.id}"
+    log_bucket_policy    = "${module.elb_logs.rw_policy_arn}"
   }
 }
 

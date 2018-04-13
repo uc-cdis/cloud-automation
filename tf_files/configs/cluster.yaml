@@ -61,7 +61,7 @@ worker:
         - name: private
       iam:
         role:
-          name: ${cluster_name}
+          name: "${cluster_name}-worker"
           managedPolicies:
             - arn: "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
 kubeDns:
