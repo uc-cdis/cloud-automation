@@ -105,6 +105,14 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
           ForwardAgent yes
           IdentityFile ~/.ssh/id_rsa
           ProxyCommand ssh ubuntu@squid.internal nc %h %p 2> /dev/null
+      
+       Host sftp.dbgap
+          ServerAliveInterval 120
+          HostName ftp-private.ncbi.nlm.nih.gov
+          User BDC-TP
+          ForwardAgent yes
+          IdentityFile ~/.ssh/id_rsa
+          ProxyCommand ssh ubuntu@squid.internal nc %h %p 2> /dev/null
 
         Host cloud-proxy.internal.io
           StrictHostKeyChecking no
