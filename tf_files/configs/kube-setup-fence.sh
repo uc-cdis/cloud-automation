@@ -85,7 +85,7 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   fi
 
   if ! kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
-    kubectl create secret generic fence-ssh-keys --from-file=./ssh-keys
+    kubectl create secret generic fence-ssh-keys --from-file=id_rsa=./ssh-keys/id_rsa --from-file=id_rsa.pub=./ssh-keys/id_rsa.pub
   fi
   
   if ! kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then

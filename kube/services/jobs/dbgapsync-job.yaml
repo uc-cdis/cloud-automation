@@ -17,6 +17,7 @@ spec:
         - name: fence-ssh-keys
           secret:
             secretName: "fence-ssh-keys"
+            defaultMode: 0400
         - name: fence-sshconfig
           configMap:
             name: "fence-sshconfig"
@@ -33,13 +34,6 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
-        lifecycle:
-          postStart:
-            exec:
-              command:
-                - bash
-                - -c
-                - cp /fence/ssh-keys/..data/* /root/.ssh/ && chmod 400 /root/.ssh/id_rsa /root/.ssh/id_rsa.pub
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -50,8 +44,11 @@ spec:
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
           - name: "fence-ssh-keys"
-            readOnly: true
-            mountPath: "/fence/ssh-keys"
+            mountPath: "/root/.ssh/id_rsa"
+            subPath: "id_rsa"
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa.pub"
+            subPath: "id_rsa.pub"
           - name: "fence-sshconfig"
             mountPath: "/root/.ssh/config"
             subPath: "config"
