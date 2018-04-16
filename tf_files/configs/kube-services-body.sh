@@ -12,6 +12,8 @@ _KUBE_SERVICES_BODY=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
 # Jenkins friendly
 export WORKSPACE="${WORKSPACE:-$HOME}"
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SERVICES_BODY}/../.." && pwd)}"
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
+
 
 if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/kube/kubes.sh"
@@ -46,7 +48,7 @@ else
   echo "INFO: certificate authority not available - skipping SSL cert check"
 fi
 
-if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
+if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   #
   # Setup the files that will become secrets in "${WORKSPACE}/$vpc_name/apis_configs"
   #
@@ -56,6 +58,11 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   # Note: look into 'kubectl replace' if you need to replace a secret
   if ! kubectl get secrets/indexd-secret > /dev/null 2>&1; then
     kubectl create secret generic indexd-secret --from-file=local_settings.py="${WORKSPACE}/${vpc_name}/apis_configs/indexd_settings.py"
+  fi
+  if ! g3kubectl get secret indexd-creds > /dev/null 2>&1; then
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    jq -r .indexd < creds.json > "$credsFile"
+    g3kubectl create secret generic indexd-creds "--from-file=creds.json=${credsFile}"
   fi
 
   if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/user.yaml ]]; then
