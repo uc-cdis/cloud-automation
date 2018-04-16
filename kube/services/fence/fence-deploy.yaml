@@ -33,6 +33,7 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
+         volumes:
         - name: config-volume
           secret:
             secretName: "fence-secret"
@@ -42,12 +43,6 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-        - name: fence-public-key
-          secret:
-            secretName: "fence-public-key"
-        - name: fence-private-key
-          secret:
-            secretName: "fence-private-key"
         - name: fence-yaml
           configMap:
             name: fence
@@ -66,6 +61,9 @@ spec:
         - name: user-dir
           configMap:
             name: "user-dir"
+        - name: fence-sshkeys
+          secret:
+            secretName: "fence-sshkeys"
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -89,7 +87,8 @@ spec:
               command:
                 - bash
                 - -c
-                - chmod 400  /root/.ssh/id_rsa /root/.ssh/id_rsa.pub
+                - cp /fence/sshkeys/..data/* /root/.ssh/ && chmod 400 /root/.ssh/id_rsa /root/.ssh/id_rsa.pub
+
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -117,12 +116,6 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
-          - name: "fence-public-key"
-            mountPath: "/root/.ssh/id_rsa.pub"
-            subPath: "id_rsa.pub"
-          - name: "fence-private-key"
-            mountPath: "/root/.ssh/id_rsa"
-            subPath: "id_rsa"
           - name: "fence-sshconfig"
             mountPath: "/root/.ssh/config"
             subPath: "config"
@@ -131,3 +124,5 @@ spec:
             subPath: "projects.yaml"
           - name: "user-dir"
             mountPath: "/var/www/fence/userDir"
+          - name: "fence-sshkeys"
+            mountPath: "/fence/sshkeys"

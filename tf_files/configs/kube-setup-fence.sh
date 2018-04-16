@@ -83,8 +83,13 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
     kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
   fi
+
+  if ! kubectl get secrets/fence-sshkeys > /dev/null 2>&1; then
+    kubectl create secret generic fence-sshkeys --from-file=./ssh-keys
+  fi
   
   if ! kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
+    mkdir -p ./apis_configs/.ssh
     if [[ ! -f "./apis_configs/.ssh/config" ]]; then
         echo '''
         Host squid.internal
@@ -107,14 +112,6 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
         ''' > ./apis_configs/.ssh/config
     fi
     kubectl create configmap fence-sshconfig --from-file=./apis_configs/.ssh/config
-  fi
-
-  if ! kubectl get secrets/fence-public-key > /dev/null 2>&1; then
-    kubectl create secret generic fence-public-key --from-file=./ssh-keys/id_rsa.pub
-  fi
-
-  if ! kubectl get secrets/fence-private-key > /dev/null 2>&1; then
-    kubectl create secret generic fence-private-key --from-file=./ssh-keys/id_rsa
   fi
 
 fi
