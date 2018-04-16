@@ -76,10 +76,10 @@ if g3kubectl get secrets/jwt-keys > /dev/null 2>&1; then
   done
 fi
 
-if g3kubectl get secrets/fence-sshkeys > /dev/null 2>&1; then
+if g3kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
   mkdir -p -m 0700 ./ssh-keys
   for keyName in id_rsa id_rsa.pub; do
-    g3kubectl get secrets/fence-sshkeys -o=json | jq -r ".data[\"$keyName\"]" | base64 --decode > "./ssh-keys/$keyName"
+    g3kubectl get secrets/fence-ssh-keys -o=json | jq -r ".data[\"$keyName\"]" | base64 --decode > "./ssh-keys/$keyName"
   done
 fi
 

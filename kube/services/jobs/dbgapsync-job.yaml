@@ -14,6 +14,9 @@ spec:
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
+        - name: fence-ssh-keys
+          secret:
+            secretName: "fence-ssh-keys"
         - name: fence-sshconfig
           configMap:
             name: "fence-sshconfig"
@@ -23,9 +26,6 @@ spec:
         - name: user-dir
           configMap:
             name: "user-dir"
-        - name: fence-sshkeys
-          secret:
-            secretName: "fence-sshkeys"
       containers:
       - name: fence
         image: quay.io/cdis/fence:feat_dbgap_syncing
@@ -39,7 +39,7 @@ spec:
               command:
                 - bash
                 - -c
-                - cp /fence/sshkeys/..data/* /root/.ssh/ && chmod 400 /root/.ssh/id_rsa /root/.ssh/id_rsa.pub
+                - cp /fence/ssh-keys/..data/* /root/.ssh/ && chmod 400 /root/.ssh/id_rsa /root/.ssh/id_rsa.pub
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -49,6 +49,9 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
+          - name: "fence-ssh-keys"
+            readOnly: true
+            mountPath: "/fence/ssh-keys"
           - name: "fence-sshconfig"
             mountPath: "/root/.ssh/config"
             subPath: "config"
@@ -57,10 +60,6 @@ spec:
             subPath: "projects.yaml"
           - name: "user-dir"
             mountPath: "/var/www/fence/userDir"
-          - name: "fence-sshkeys"
-            readOnly: true
-            mountPath: "/fence/sshkeys"
-
         command: ["/bin/bash" ]
         args: 
           - "-c" 
