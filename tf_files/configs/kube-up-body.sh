@@ -79,8 +79,9 @@ kube-aws render || true
 export GEN3_HOME=~/cloud-automation
 source ~/cloud-automation/gen3/gen3setup.sh
 
-gen3 arun kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
-gen3 arun kube-aws up --s3-uri "s3://${s3_bucket}/${vpc_name}"
+# New kube-aws version doesn't need the s3-uri argument
+gen3 arun kube-aws validate #--s3-uri "s3://${s3_bucket}/${vpc_name}"
+gen3 arun kube-aws up #--s3-uri "s3://${s3_bucket}/${vpc_name}"
 
 # Back everything up to s3
 source ~/cloud-automation/tf_files/configs/kube-backup.sh
