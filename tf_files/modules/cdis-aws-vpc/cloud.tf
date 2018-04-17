@@ -9,7 +9,7 @@ module "squid_proxy" {
 }
 
 resource "aws_vpc" "main" {
-  cidr_block           = "172.24.${var.vpc_octet}.0/20"
+  cidr_block           = "172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"
   enable_dns_hostnames = true
 
   tags {
@@ -114,14 +114,14 @@ resource "aws_route_table_association" "private_user" {
 
 resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.main.id}"
-  cidr_block              = "172.24.${var.vpc_octet + 0}.0/24"
+  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 0}.0/24"
   map_public_ip_on_launch = true
   tags                    = "${map("Name", "public", "Organization", "Basic Service", "Environment", var.vpc_name)}"
 }
 
 resource "aws_subnet" "private_user" {
   vpc_id                  = "${aws_vpc.main.id}"
-  cidr_block              = "172.24.${var.vpc_octet + 1}.0/24"
+  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 1}.0/24"
   map_public_ip_on_launch = false
 
   tags {

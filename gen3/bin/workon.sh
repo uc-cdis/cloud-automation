@@ -117,9 +117,10 @@ config.tfvars() {
 vpc_name="$GEN3_WORKSPACE"
 #
 # for vpc_octet see https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md
-#  CIDR becomes 172.24.{vpc_octet}.0/20
+#  CIDR becomes 172.{vpc_octet2}.{vpc_octet3}.0/20
 #
-vpc_octet=GET_A_UNIQUE_VPC_172_OCTET
+vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
+vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
 ssh_public_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
 EOM
     return 0
@@ -201,9 +202,10 @@ fi
 vpc_name="$GEN3_WORKSPACE"
 #
 # for vpc_octet see https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md
-#  CIDR becomes 172.24.{vpc_octet}.0/20
+#  CIDR becomes 172.{vpc_octet2}.{vpc_octet3}.0/20
 #
-vpc_octet=GET_A_UNIQUE_VPC_172_OCTET
+vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
+vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 portal_app="dev"
 

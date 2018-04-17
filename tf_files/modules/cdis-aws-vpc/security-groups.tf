@@ -7,7 +7,7 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["172.24.${var.vpc_octet}.0/20", "${var.csoc_cidr}"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
   }
 
   egress {
@@ -16,7 +16,7 @@ resource "aws_security_group" "local" {
     protocol  = "-1"
 
     # 54.224.0.0/12 logs.us-east-1.amazonaws.com
-    cidr_blocks = ["172.24.${var.vpc_octet}.0/20", "54.224.0.0/12"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "54.224.0.0/12"]
   }
 
   tags {
@@ -34,14 +34,14 @@ resource "aws_security_group" "webservice" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["172.24.${var.vpc_octet}.0/20", "${var.csoc_cidr}"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["172.24.${var.vpc_octet}.0/20"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
   }
 
   ingress {
@@ -91,7 +91,7 @@ resource "aws_security_group" "proxy" {
     from_port   = 0
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["172.24.${var.vpc_octet}.0/20", "${var.csoc_cidr}"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
   }
 
   tags {

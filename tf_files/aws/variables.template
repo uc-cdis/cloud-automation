@@ -1,7 +1,9 @@
 # vpc name is also used for db name, so only alphanumeric characters
 vpc_name="$vpc_name"
 
-vpc_octet="$vpc_octet"
+vpc_octet2="$vpc_octet2"
+
+vpc_octet3="$vpc_octet3"
 
 aws_region="$aws_region"
 
