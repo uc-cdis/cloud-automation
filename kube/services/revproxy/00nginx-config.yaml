@@ -93,6 +93,7 @@ data:
       	tcp_nodelay on;
       	keepalive_timeout 65;
       	types_hash_max_size 2048;
+        port_in_redirect off;
       	# server_tokens off;
         
         # For websockets
