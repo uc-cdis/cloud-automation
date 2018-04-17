@@ -25,6 +25,7 @@ apiEndpoints:
     private: true
     hostedZone:
       id: ${hosted_zone}
+      
 controller:
   # Maximum time to wait for controller creation
   createTimeout: PT30M
@@ -34,6 +35,12 @@ controller:
     rollingUpdateMinInstancesInService: 2
   subnets:
     - name: private
+  iam:
+    role:
+      name: "${cluster_name}-controller"
+      managedPolicies:
+        - arn: "${log_bucket_policy}"
+
 etcd:
   # Maximum time to wait for controller creation
   createTimeout: PT30M
