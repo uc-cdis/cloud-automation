@@ -5,9 +5,14 @@ variable "ami_account_id" {
 
 variable "vpc_name" {}
 
-variable "vpc_octet" {
+variable "vpc_octet2" {
+  default = 24
+}
+
+variable "vpc_octet3" {
   default = 17
 }
+
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {}

@@ -161,9 +161,9 @@ if echo "$runtf" | grep -iq "^y"; then
         read -p "enter your vpc name (only alphanumeric characters): " vpc_name
     fi
 
-    if [ -z "$vpc_octet" ]; then
+    if [ -z "$vpc_octet3" ]; then
         read -p "enter your vpc subnet octet (between 16 to 31) which will make the internal network 172.x (default: 16): " vpc_octet
-        [ -z "$vpc_octet" ] && vpc_octet="16"
+        [ -z "$vpc_octet3" ] && vpc_octet3="16"
     fi
 
     echo "your configuration for this vpc will be saved to $HOME/.creds/$vpc_name"
@@ -273,7 +273,8 @@ if echo "$runtf" | grep -iq "^y"; then
         aws_secret_key=$aws_secret_key \
         aws_cert_name=$aws_cert_name \
         vpc_name=$vpc_name \
-        vpc_octet=$vpc_octet \
+        vpc_octet2=$vpc_octet2 \
+        vpc_octet3=$vpc_octet3 \
         hostname=$hostname \
         kube_ssh_key=$kube_ssh_key \
         addsshkey=$addsshkey \

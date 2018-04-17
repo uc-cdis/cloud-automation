@@ -13,7 +13,8 @@ provider "aws" {}
 module "cdis_vpc" {
   ami_account_id  = "${var.ami_account_id}"
   source          = "../modules/cdis-aws-vpc"
-  vpc_octet       = "${var.vpc_octet}"
+  vpc_octet2       = "${var.vpc_octet2}"
+  vpc_octet3       = "${var.vpc_octet3}"
   vpc_name        = "${var.vpc_name}"
   ssh_key_name    = "${aws_key_pair.automation_dev.key_name}"
   csoc_cidr       = "${var.csoc_cidr}"
@@ -73,7 +74,7 @@ resource "aws_route_table_association" "private_kube" {
 
 resource "aws_subnet" "private_kube" {
   vpc_id                  = "${module.cdis_vpc.vpc_id}"
-  cidr_block              = "172.24.${var.vpc_octet + 2}.0/24"
+  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 2}.0/24"
   availability_zone       = "${data.aws_availability_zones.available.names[0]}"
   map_public_ip_on_launch = false
   tags                    = "${map("Name", "private_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
@@ -81,7 +82,7 @@ resource "aws_subnet" "private_kube" {
 
 resource "aws_subnet" "private_db_alt" {
   vpc_id                  = "${module.cdis_vpc.vpc_id}"
-  cidr_block              = "172.24.${var.vpc_octet + 3}.0/24"
+  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 3}.0/24"
   availability_zone       = "${data.aws_availability_zones.available.names[1]}"
   map_public_ip_on_launch = false
 
