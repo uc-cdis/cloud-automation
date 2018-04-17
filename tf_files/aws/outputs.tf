@@ -63,30 +63,8 @@ data "template_file" "cluster" {
     security_group_id    = "${aws_security_group.kube-worker.id}"
     kube_additional_keys = "${var.kube_additional_keys}"
     hosted_zone          = "${module.cdis_vpc.zone_id}"
-    s3_bucket            = "${aws_s3_bucket.kube_bucket.id}"
   }
 }
-
-data "template_file" "cluster_9" {
-  template = "${file("${path.module}/../configs/cluster-9.9.yaml")}"
-
-  vars {
-    cluster_name         = "${var.vpc_name}"
-    key_name             = "${aws_key_pair.automation_dev.key_name}"
-    aws_region           = "${var.aws_region}"
-    kms_key              = "${aws_kms_key.kube_key.arn}"
-    route_table_id       = "${aws_route_table.private_kube.id}"
-    vpc_id               = "${module.cdis_vpc.vpc_id}"
-    vpc_cidr             = "${module.cdis_vpc.vpc_cidr_block}"
-    subnet_id            = "${aws_subnet.private_kube.id}"
-    subnet_cidr          = "${aws_subnet.private_kube.cidr_block}"
-    subnet_zone          = "${aws_subnet.private_kube.availability_zone}"
-    security_group_id    = "${aws_security_group.kube-worker.id}"
-    kube_additional_keys = "${var.kube_additional_keys}"
-    hosted_zone          = "${module.cdis_vpc.zone_id}"
-  }
-}
-
 
 #
 # Note - we normally either have a userapi or a fence database - not both.
@@ -175,10 +153,6 @@ resource "null_resource" "config_setup" {
 
   provisioner "local-exec" {
     command = "echo '${data.template_file.cluster.rendered}' > ${var.vpc_name}_output/cluster.yaml"
-  }
-
-  provisioner "local-exec" {
-    command = "echo '${data.template_file.cluster_9.rendered}' > ${var.vpc_name}_output/cluster-9.9.yaml"
   }
 
   provisioner "local-exec" {

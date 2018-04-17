@@ -17,7 +17,6 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 
-# This guys may not be necesary if we run kube-aws > 0.9.9
 vpc_name=${vpc_name:-$1}
 s3_bucket=${s3_bucket:-$2}
 
@@ -35,20 +34,6 @@ if [[ ! -d ~/cloud-automation ]]; then
   git clone https://github.com/uc-cdis/cloud-automation.git 2>/dev/null || true
 fi
 source ~/"cloud-automation/tf_files/configs/kube-setup-workvm.sh"
-
-
-# I think at some point we'll be only running the latest version of kube-aws
-# at least c0.9.10 which is currently at -rc3, most likely it'll be released
-# as GA soon enough. But if we are using a diferent version, this will fail
-# unless we use a couple of cluster.yaml
-kube_aws_current=$(kube-aws version | awk '{print $3}')
-kube_aws_newest="v0.9.10"
-
-if [ "${kube_aws_current/$kube_aws_newest}" = "$kube_aws_current" ];
-then
-        mv cluster.yaml cluster-9.10.yaml
-        mv cluster-9.9.yaml cluster.yaml
-fi
 
 mkdir -p ~/.aws
 mkdir -p ~/${vpc_name}
@@ -94,15 +79,8 @@ kube-aws render || true
 export GEN3_HOME=~/cloud-automation
 source ~/cloud-automation/gen3/gen3setup.sh
 
-if [ "${kube_aws_current/$kube_aws_newest}" = "$kube_aws_current" ];
-then
-        gen3 arun kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
-        gen3 arun kube-aws up --s3-uri "s3://${s3_bucket}/${vpc_name}"
-else
-        gen3 arun kube-aws validate
-        gen3 arun kube-aws up
-fi
-
+gen3 arun kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
+gen3 arun kube-aws up --s3-uri "s3://${s3_bucket}/${vpc_name}"
 
 # Back everything up to s3
 source ~/cloud-automation/tf_files/configs/kube-backup.sh
