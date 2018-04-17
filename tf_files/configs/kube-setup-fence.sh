@@ -29,6 +29,10 @@ if [ -z "${vpc_name}" ]; then
    exit 1
 fi
 
+if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
+  g3kubectl create configmap config-helper --from-file "${GEN3_HOME}/apis_configs/config_helper.py"
+fi
+
 if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
     echo "${WORKSPACE}/${vpc_name} does not exist"
@@ -64,7 +68,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   fi
 
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic fence-secret --from-file=local_settings.py=./apis_configs/fence_settings.py
+    g3kubectl create secret generic fence-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/fence_settings.py"
   fi
 
   if ! g3kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
