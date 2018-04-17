@@ -79,32 +79,22 @@ kube-aws render || true
 export GEN3_HOME=~/cloud-automation
 source ~/cloud-automation/gen3/gen3setup.sh
 
-gen3 arun kube-aws validate --s3-uri "s3://${s3_bucket}/${vpc_name}"
-gen3 arun kube-aws up --s3-uri "s3://${s3_bucket}/${vpc_name}"
+# New kube-aws version doesn't need the s3-uri argument
+gen3 arun kube-aws validate #--s3-uri "s3://${s3_bucket}/${vpc_name}"
+gen3 arun kube-aws up #--s3-uri "s3://${s3_bucket}/${vpc_name}"
 
 # Back everything up to s3
 source ~/cloud-automation/tf_files/configs/kube-backup.sh
 
-if ! kubectl --kubeconfig=kubeconfig get nodes; then
-  cat - <<EOM
+cat - <<EOM
 It looks like kubectl cannot reach the controller.
-If you are running on the adminvm, then you probably can fix 
-this by editing ~/${vpc_name}/kubeconfig:
-    
-apiVersion: v1
-kind: Config
-clusters:
-- cluster:
-    #certificate-authority: credentials/ca.pem
-    #server: https://controller.internal.io
-    server: https://k8s-qaplanetv1.internal.io
-    insecure-skip-tls-verify: true
-  name: kube-aws-qaplanetv1-cluster
-  
-Finally - ask Renunka to add a k8s-${vpc_name}.internal.io alias
-to the CSOC DNS that points at the k8s controller load balancer:
-   aws elb describe-load-balancers | grep DNSName | grep -- -APIEndpo-
+Most likely you need to add an entry in route53 for the CSOC account.
+
+Ask Renuka or Fauzi to add k8s-${vpc_name}.internal.io as CNAME for
+the k8s controller load balancer:
+    aws elb describe-load-balancers | grep DNSName | grep ${vpc_name}
+
+$(aws elb describe-load-balancers | grep DNSName | grep ${vpc_name})
 
 EOM
 
-fi

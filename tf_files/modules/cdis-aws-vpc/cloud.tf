@@ -6,6 +6,8 @@ module "squid_proxy" {
   env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
   env_vpc_id           = "${aws_vpc.main.id}"
   ssh_key_name         = "${var.ssh_key_name}"
+  env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+  env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
 }
 
 resource "aws_vpc" "main" {
@@ -213,8 +215,8 @@ EOF
 }
 
 #
-# Also not needed here - but will be handy for wrapping VM's
-# with a cloudwatch-logs enabled profile
+# This could go here or in the squid module. But squid may go away soon
+# do not remove this
 #
 resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
   name   = "${var.vpc_name}_cluster_logging_cloudwatch"

@@ -63,6 +63,7 @@ data "template_file" "cluster" {
     security_group_id    = "${aws_security_group.kube-worker.id}"
     kube_additional_keys = "${var.kube_additional_keys}"
     hosted_zone          = "${module.cdis_vpc.zone_id}"
+    s3_bucket            = "${aws_s3_bucket.kube_bucket.id}"
   }
 }
 
