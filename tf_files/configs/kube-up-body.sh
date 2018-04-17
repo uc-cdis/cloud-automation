@@ -86,10 +86,9 @@ gen3 arun kube-aws up #--s3-uri "s3://${s3_bucket}/${vpc_name}"
 # Back everything up to s3
 source ~/cloud-automation/tf_files/configs/kube-backup.sh
 
-if ! kubectl --kubeconfig=kubeconfig get nodes; then
-  cat - <<EOM
+cat - <<EOM
 It looks like kubectl cannot reach the controller.
-Most likely you need to add an entry in route53 for the CSCO account.
+Most likely you need to add an entry in route53 for the CSOC account.
 
 Ask Renuka or Fauzi to add k8s-${vpc_name}.internal.io as CNAME for
 the k8s controller load balancer:
@@ -99,4 +98,3 @@ $(aws elb describe-load-balancers | grep DNSName | grep ${vpc_name})
 
 EOM
 
-fi

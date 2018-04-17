@@ -107,10 +107,10 @@ experimental:
       enabled: false
     OwnerReferencesPermissionEnforcement:
       enabled: false
-  awsEnvironment:
-    enabled: false
-    environment:
-      CFNSTACK: '{ "Ref" : "AWS::StackId" }'
+#  awsEnvironment:
+#    enabled: false
+#    environment:
+#      CFNSTACK: '{ "Ref" : "AWS::StackId" }'
   auditLog:
     enabled: true
     maxage: 30
