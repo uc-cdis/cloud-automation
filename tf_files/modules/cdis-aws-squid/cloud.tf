@@ -103,39 +103,6 @@ resource "aws_security_group" "out" {
 }
 
 
-#logging for the squid proxy
-#resource "aws_iam_role" "cluster_logging_cloudwatch" {
-#  name = "${var.env_vpc_name}_cluster_logging_cloudwatch"
-#  path = "/"
-#
-#  assume_role_policy = <<EOF
-#{
-#    "Version": "2012-10-17",
-#    "Statement": [
-#        {
-#            "Action": "sts:AssumeRole",
-#            "Principal": {
-#               "Service": "ec2.amazonaws.com"
-#            },
-#            "Effect": "Allow",
-#            "Sid": ""
-#        }
-#    ]
-#}
-#EOF
-#}
-
-#resource "aws_iam_role_policy" "squid_logging_cloudwatch" {
-#  name   = "${var.env_vpc_name}_squid_logging_cloudwatch"
-#  policy = "${data.aws_iam_policy_document.squid_logging_cloudwatch.json}"
-#  role   = "${aws_iam_role.squid_logging_cloudwatch.id}"
-#}
-
-#resource "aws_iam_instance_profile" "squid_logging_cloudwatch" {
-#  name = "${var.env_vpc_name}_squid_logging_cloudwatch"
-#  role = "${aws_iam_role.squid_logging_cloudwatch.id}"
-#}
-
 # assigning elastic ip to the squid proxy
 
 resource "aws_eip" "squid" {

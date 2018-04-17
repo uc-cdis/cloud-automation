@@ -26,6 +26,11 @@ variable "env_vpc_id" {
   #default = "vpc-e2b51d99"
 }
 
+variable "env_log_group" {
+  #default = "common_name"
+}
+
+
 data "aws_iam_policy_document" "squid_logging_cloudwatch" {
   statement {
     actions = [

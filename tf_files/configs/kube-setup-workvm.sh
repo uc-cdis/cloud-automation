@@ -70,8 +70,8 @@ if sudo -n true > /dev/null 2>&1; then
   fi
 fi
 
-SHELLL="$(echo $SHELL | awk -F'/' '{print $NF}')"
-RC_FILE="${SHELLL}rc"
+CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
+RC_FILE="${CURRENT_SHELL}rc"
 
 if [[ "$WORKSPACE" == "$HOME" ]]; then
   if ! grep kubes.sh ${WORKSPACE}/.${RC_FILE} > /dev/null; then
@@ -89,11 +89,11 @@ fi
 EOF
   fi
 
-  if ! grep 'kubectl completion bash' ${WORKSPACE}/.${RC_FILE} > /dev/null; then 
+  if ! grep "kubectl completion ${CURRENT_SHELL}" ${WORKSPACE}/.${RC_FILE} > /dev/null; then 
     cat - >>${WORKSPACE}/.${RC_FILE} << EOF
 if which kubectl > /dev/null 2>&1; then
   # Load the kubectl completion code for bash into the current shell
-  source <(kubectl completion ${SHELLL})
+  source <(kubectl completion ${CURRENT_SHELL})
 fi
 EOF
   fi
