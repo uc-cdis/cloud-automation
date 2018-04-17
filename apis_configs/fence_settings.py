@@ -81,23 +81,25 @@ if os.path.exists(fence_creds):
 
         APP_NAME = get_from_dict(data, 'APP_NAME')
         HTTP_PROXY = get_from_dict(data, 'HTTP_PROXY')
-        os.environ["GOOGLE_API_KEY"] = get_from_dict(data, 'GOOGLE_API_KEY')
 
-        os.environ["GOOGLE_PROJECT_ID"] = get_from_dict(
+        CIRRUS_CFG = {}
+        CIRRUS_CFG["GOOGLE_API_KEY"] = get_from_dict(data, 'GOOGLE_API_KEY')
+
+        CIRRUS_CFG["GOOGLE_PROJECT_ID"] = get_from_dict(
             data, 'GOOGLE_PROJECT_ID')
 
-        os.environ["GOOGLE_ADMIN_EMAIL"] = get_from_dict(
+        CIRRUS_CFG["GOOGLE_ADMIN_EMAIL"] = get_from_dict(
             data, 'GOOGLE_ADMIN_EMAIL')
 
-        os.environ["GOOGLE_IDENTITY_DOMAIN"] = (
+        CIRRUS_CFG["GOOGLE_IDENTITY_DOMAIN"] = (
             get_from_dict(data, 'GOOGLE_IDENTITY_DOMAIN')
         )
 
-        os.environ["GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL"] = (
+        CIRRUS_CFG["GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL"] = (
             get_from_dict(data, 'GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL')
         )
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = (
+CIRRUS_CFG["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "/var/www/fence/google_secret.json"
 )
 
