@@ -1,7 +1,7 @@
 # High level structure
 
 
-![image of architecture](PlanXCommonsAWSdiagram.png)
+![image of architecture](PlanXCommonsAWSdiagram.svg)
 
 The protected cloud environment setup by cloud-automation currently have  5 subnets.
 - a public subnet with internet gateway attached to it, there are currently a login VM and a squid proxy VM on it.
