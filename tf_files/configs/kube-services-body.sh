@@ -53,6 +53,11 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   cd "${WORKSPACE}"/${vpc_name}_output
   python "${RENDER_CREDS}" secrets
 
+  # Note: look into 'kubectl replace' if you need to replace a secret
+  if ! kubectl get secrets/indexd-secret > /dev/null 2>&1; then
+    kubectl create secret generic indexd-secret --from-file=local_settings.py=./apis_configs/indexd_settings.py
+  fi
+
   if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/user.yaml ]]; then
     # user database for accessing the commons ...
     cp "${GEN3_HOME}/apis_configs/user.yaml" "${WORKSPACE}"/${vpc_name}/apis_configs/
