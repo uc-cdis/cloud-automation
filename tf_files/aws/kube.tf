@@ -165,11 +165,6 @@ resource "aws_db_parameter_group" "rds-cdis-pg" {
   }
 }
 
-data "aws_acm_certificate" "api" {
-  domain   = "${var.aws_cert_name}"
-  statuses = ["ISSUED"]
-}
-
 resource "aws_kms_key" "kube_key" {
   description         = "encryption/decryption key for kubernete"
   enable_key_rotation = true
