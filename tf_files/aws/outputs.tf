@@ -129,7 +129,7 @@ data "template_file" "configmap" {
     hostname       = "${var.hostname}"
     kube_bucket    = "${aws_s3_bucket.kube_bucket.id}"
     logs_bucket    = "${module.elb_logs.log_bucket_name}"
-    revproxy_arn   = "${data.aws_acm_certificate.api.arn}"
+    revproxy_arn   = "AWS-CERT-MANAGER-ARN-HERE"
     dictionary_url = "${var.dictionary_url}"
     portal_app     = "${var.portal_app}"
   }

@@ -38,7 +38,7 @@ fi
 LOGGING_CONFIG=""
 
 export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
-if [[ -n "$ARN" ]]; then
+if [[ "$ARN" =~ ^arn ]]; then
   if [[ -z "$DRY_RUN" ]]; then
     envsubst <$scriptDir/revproxy-service-elb.yaml | g3kubectl apply -f -
   else
@@ -47,7 +47,7 @@ if [[ -n "$ARN" ]]; then
     echo "DRY RUN"
   fi
 else
-  echo "Global configmap not configured"
+  echo "ERROR: Global configmap not configured with TLS certificate ARN"
 fi
 
 # Don't automatically apply this right now
