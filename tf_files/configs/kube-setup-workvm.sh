@@ -13,7 +13,7 @@ export WORKSPACE="${WORKSPACE:-$HOME}"
 if [[ -z "$GEN3_NOPROXY" ]]; then
   export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
   export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
-  export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
+  export no_proxy=${no_proxy:-'localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com'}
 fi
 
 export DEBIAN_FRONTEND=noninteractive
@@ -79,7 +79,7 @@ if [[ "$WORKSPACE" == "$HOME" ]]; then
     cat - >>${WORKSPACE}/.${RC_FILE} << EOF
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
-export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
+export no_proxy='$no_proxy'
 
 export KUBECONFIG=${WORKSPACE}/${vpc_name}/kubeconfig
 
