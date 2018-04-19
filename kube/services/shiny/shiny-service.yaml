@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: shiny-service
+spec:
+  selector:
+    app: shiny
+  ports:
+    - protocol: TCP
+      port: 3838
+      targetPort: 3838 
+  type: ClusterIP

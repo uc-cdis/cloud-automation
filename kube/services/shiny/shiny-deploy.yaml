@@ -1,0 +1,33 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: shiny
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: shiny
+        GEN3_DATE_LABEL
+    spec:
+      volumes:
+      - name: config-volume
+        secret:
+          secretName: shiny-secret
+      containers:
+      - name: shiny
+        GEN3_SHINY_IMAGE
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3838
+        volumeMounts:
+        - mountPath: /srv/shiny-server/shiny/utils/credentials.json
+          name: config-volume
+          readOnly: true
+          subPath: credentials.json
+      imagePullSecrets:
+        - name: cdis-devservices-pull-secret
