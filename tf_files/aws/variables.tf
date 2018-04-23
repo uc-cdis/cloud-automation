@@ -125,3 +125,8 @@ variable "ami_account_id" {
 variable "csoc_vpc_id" {
   default = "vpc-e2b51d99"
 }
+
+locals {
+  # kube-aws does not like '-' in cluster name
+  cluster_name = "${replace(var.vpc_name, "-", "")}"
+}
