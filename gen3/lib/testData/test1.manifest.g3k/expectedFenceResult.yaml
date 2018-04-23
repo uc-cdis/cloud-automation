@@ -31,7 +31,7 @@ spec:
                   values:
                   - fence
               topologyKey: "kubernetes.io/hostname"
-       automountServiceAccountToken: false
+      automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:
@@ -42,10 +42,6 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-        - name: fence-ssh-keys
-          secret:
-            secretName: "fence-ssh-keys"
-            defaultMode: 0400
         - name: fence-yaml
           configMap:
             name: fence
@@ -55,15 +51,6 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
-        - name: fence-sshconfig
-          configMap:
-            name: "fence-sshconfig"
-        - name: projects
-          configMap:
-            name: "projects"
-        - name: user-dir
-          configMap:
-            name: "user-dir"
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
@@ -108,17 +95,3 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
-          - name: "fence-ssh-keys"
-            mountPath: "/root/.ssh/id_rsa"
-            subPath: "id_rsa"
-          - name: "fence-ssh-keys"
-            mountPath: "/root/.ssh/id_rsa.pub"
-            subPath: "id_rsa.pub"
-          - name: "fence-sshconfig"
-            mountPath: "/root/.ssh/config"
-            subPath: "config"
-          - name: "projects"
-            mountPath: "/var/www/fence/projects.yaml"
-            subPath: "projects.yaml"
-          - name: "user-dir"
-            mountPath: "/var/www/fence/userDir"

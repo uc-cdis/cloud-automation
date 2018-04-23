@@ -75,11 +75,6 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
     kubectl create configmap projects --from-file=apis_configs/projects.yaml
   fi
 
-  if ! kubectl get configmaps/user-dir > /dev/null 2>&1; then
-    mkdir -p ./apis_configs/user-dir
-    kubectl create configmap user-dir --from-file=./apis_configs/user-dir
-  fi
-
   if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
     kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
   fi
