@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: simdata
+spec:
+  # not yet supported - backOffLimit: 3
+  template:
+    spec:
+      serviceAccountName: useryaml-job
+      volumes:
+        - name: api-secret
+          secret:
+            secretName: "api-secret"
+      containers:
+      - name: fence
+        image: quay.io/cdis/auto-qa:feat_gen_test_data
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
+        volumeMounts:
+          - name: "api-secret"
+            mountPath: "/var/www/AUTO-QA/submission-secret"
+            subPath: "submission-secret"
+        command: ["/bin/bash" ]
+        args: 
+          - "-c" 
+          - |
+            mkdir -p /AUTO-QA/sim-data/sim-data-code/TestData
+            Rscript /AUTO-QA/sim-data/sim-data-code/GenTestDataCmd.R https://github.com/occ-data/bpadictionary develop test 4 FALSE TRUE /AUTO-QA/sim-data/sim-data-code/TestData/
+      restartPolicy: Never
