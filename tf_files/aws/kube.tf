@@ -33,7 +33,9 @@ resource "aws_subnet" "public_kube" {
   cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 4}.0/24"
   map_public_ip_on_launch = true
   availability_zone       = "${data.aws_availability_zones.available.names[0]}"
-  tags                    = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "")}"
+
+  # Note: KubernetesCluster tag is required by kube-aws to identify the public subnet for ELBs
+  tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "", "KubernetesCluster", "${local.cluster_name}")}"
 }
 
 #

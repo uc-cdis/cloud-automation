@@ -50,7 +50,7 @@ data "template_file" "cluster" {
   template = "${file("${path.module}/../configs/cluster.yaml")}"
 
   vars {
-    cluster_name         = "${var.vpc_name}"
+    cluster_name         = "${local.cluster_name}"
     key_name             = "${aws_key_pair.automation_dev.key_name}"
     aws_region           = "${var.aws_region}"
     kms_key              = "${aws_kms_key.kube_key.arn}"
