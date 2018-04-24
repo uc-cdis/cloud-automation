@@ -68,8 +68,7 @@ resource "aws_route_table" "private_kube" {
 }
 
 resource "aws_default_route_table" "default" {
-  vpc_id = "${module.cdis_vpc.vpc_id}"
-  default_route_table_id = "${aws_vpc.main.default_route_table_id}"
+  default_route_table_id = "${module.cdis_vpc.vpc_default_route_table_id}"
   route {
     #from the commons vpc to the csoc vpc via the peering connection
     cidr_block                = "${var.csoc_cidr}"
@@ -87,7 +86,7 @@ resource "aws_route_table_association" "private_kube" {
 }
 
 resource "aws_main_route_table_association" "default" {
-  subnet_id      = "${aws_subnet.private_db_alt.id}"
+  vpc_id = "${module.cdis_vpc.vpc_id}"
   route_table_id = "${aws_default_route_table.default.id}"
 
 }

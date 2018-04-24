@@ -133,6 +133,8 @@ resource "aws_subnet" "private_user" {
   }
 }
 
+
+
 #
 # The need is to keep logs for no longer than 5 years so 
 # we create the group before it is created automatically without 
