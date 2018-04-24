@@ -3,7 +3,7 @@ output "bucket_name" {
 }
 
 output "log_bucket_name" {
-  value = "${aws_s3_bucket.log_bucket.id}"
+  value = "${module.cdis_s3_logs.log_bucket_name}"
 }
 
 output "rw_role_id" {
