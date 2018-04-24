@@ -18,14 +18,31 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: DICTIONARY_REPOS
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: dictionary_repos
+          - name: TEST_PROJECT
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: test_project
+          - name: SUBMISSION_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: submission_host
+
         volumeMounts:
           - name: "api-secret"
-            mountPath: "/var/www/AUTO-QA/submission-secret"
-            subPath: "submission-secret"
+            mountPath: "/var/www/AUTO-QA/credentials.json"
+            subPath: "credentials.json"
         command: ["/bin/bash" ]
         args: 
           - "-c" 
           - |
-            mkdir -p /AUTO-QA/sim-data/sim-data-code/TestData
-            Rscript /AUTO-QA/sim-data/sim-data-code/GenTestDataCmd.R https://github.com/occ-data/bpadictionary develop test 4 FALSE TRUE /AUTO-QA/sim-data/sim-data-code/TestData/
+            mkdir -p /AUTO-QA/python-scripts/sim-data-code/TestData
+            Rscript /AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $(DICTIONARY_REPOS) develop $(TEST_PROJECT) 100 FALSE TRUE /AUTO-QA/python-scripts/sim-data-code/TestData/
+            python scripts.py data-create --host $(SUBMISSION_HOST) --dir /AUTO-QA/python-scripts/sim-data-code/TestData/ --project "$(TEST_PROJECT)" --authfile /var/www/AUTO-QA/credentials.json
       restartPolicy: Never
