@@ -7,8 +7,6 @@ if [[ "$1" =~ ^-*dry-run ]]; then
   DRY_RUN="--dry-run"
 fi
 
-export KUBECTL_NAMESPACE="${KUBECTL_NAMESPACE:-default}"
-
 #
 # from https://github.com/kubernetes/kubernetes/issues/27308#issuecomment-309207951
 # support for KUBECTL_NAMESPACE environment variable ...
