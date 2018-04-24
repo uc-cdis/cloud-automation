@@ -1,7 +1,7 @@
 module "cdis_s3_logs" {
-  ami_account_id  = "${var.ami_account_id}"
-  source          = "./cdis-s3-logs"
+  source          = "../cdis-s3-logs"
   log_bucket_name = "s3logs-${local.clean_bucket_name}"
+  environment     = "${var.environment}"
 }
 
 resource "aws_s3_bucket" "mybucket" {
@@ -17,7 +17,7 @@ resource "aws_s3_bucket" "mybucket" {
   }
 
   logging {
-    target_bucket = "${aws_s3_bucket.log_bucket.id}"
+    target_bucket = "${module.cdis_s3_logs.log_bucket_name}"
     target_prefix = "log/${local.clean_bucket_name}"
   }
 
