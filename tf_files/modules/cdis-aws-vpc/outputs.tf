@@ -1,6 +1,4 @@
-output "vpc_default_route_table_id" {
- value = "${aws_vpc.main.default_route_table_id}"
-}
+
 
 
 output "login_ami_id" {
