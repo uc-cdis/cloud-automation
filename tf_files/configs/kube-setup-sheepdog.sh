@@ -17,12 +17,6 @@ if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/kube/kubes.sh"
 fi # else already sourced this file ...
 
-export RENDER_CREDS="${GEN3_HOME}/tf_files/configs/render_creds.py"
-
-if [ ! -f "${RENDER_CREDS}" ]; then
-  echo "ERROR: ${RENDER_CREDS} does not exist"
-fi
-
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-sheepdog.sh vpc_name"
@@ -45,8 +39,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
   fi
 
   cd "${WORKSPACE}/${vpc_name}_output"
-  python "${RENDER_CREDS}" secrets
-
   if ! g3kubectl get secret sheepdog-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .sheepdog < creds.json > "$credsFile"
@@ -56,7 +48,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
   cd "${WORKSPACE}/${vpc_name}"
 
   if ! g3kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic sheepdog-secret --from-file=wsgi.py=./apis_configs/sheepdog_settings.py
+    g3kubectl create secret generic sheepdog-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/sheepdog_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
 
   #
@@ -138,8 +130,6 @@ fi
 g3k roll sheepdog
 
 if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then  # setup the database ...
-  cd "${WORKSPACE}/${vpc_name}"
-
   #
   # Note: the 'create_gdcapi_db' flag is set in
   #   kube-services.sh
@@ -147,12 +137,9 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then  # setup the database ...
   #   when we run 'kube-services.sh' at cluster init time
   #   This setup block is not necessary when migrating an existing userapi commons to fence.
   #
-  if [[ -z "${gdcapi_snapshot}" && "${create_gdcapi_db}" = "true" && ( ! -f .rendered_gdcapi_db ) ]]; then
-    cd "${WORKSPACE}/${vpc_name}_output"
-    python "${RENDER_CREDS}" gdcapi_db
-    cd "${WORKSPACE}/${vpc_name}"
-    # force restart - might not be necessary
-    g3k roll sheepdog
+  if [[ ! -f .rendered_gdcapi_db ]]; then
+    # job runs asynchronously ...
+    g3k runjob gdcdb-create
   fi
   # Avoid doing previous block more than once or when not necessary ...
   touch .rendered_gdcapi_db

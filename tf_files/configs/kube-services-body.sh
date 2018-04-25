@@ -57,7 +57,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
 
   # Note: look into 'kubectl replace' if you need to replace a secret
   if ! kubectl get secrets/indexd-secret > /dev/null 2>&1; then
-    kubectl create secret generic indexd-secret --from-file=local_settings.py="${WORKSPACE}/${vpc_name}/apis_configs/indexd_settings.py"
+    kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
   if ! g3kubectl get secret indexd-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")

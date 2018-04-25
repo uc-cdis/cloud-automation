@@ -36,6 +36,9 @@ spec:
         - name: config-volume
           secret:
             secretName: "peregrine-secret"
+        - name: creds-volume
+          secret:
+            secretName: "peregrine-creds"
         - name: cert-volume
           secret:
             secretName: "cert-peregrine-service"
@@ -70,6 +73,10 @@ spec:
               readOnly: true
               mountPath: "/var/www/peregrine/wsgi.py"
               subPath: "wsgi.py"
+            - name: "creds-volume"
+              readOnly: true
+              mountPath: "/var/www/peregrine/creds.json"
+              subPath: creds.json
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"

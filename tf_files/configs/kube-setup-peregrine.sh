@@ -47,7 +47,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   cd "${WORKSPACE}/${vpc_name}"
 
   if ! g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic peregrine-secret --from-file=wsgi.py=./apis_configs/peregrine_settings.py
+    g3kubectl create secret generic peregrine-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/peregrine_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
 fi
 

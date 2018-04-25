@@ -68,7 +68,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   fi
 
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic fence-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/fence_settings.py"
+    g3kubectl create secret generic fence-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/fence_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
 
   if ! g3kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
