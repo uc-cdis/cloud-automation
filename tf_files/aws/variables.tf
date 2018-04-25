@@ -130,3 +130,7 @@ locals {
   # kube-aws does not like '-' in cluster name
   cluster_name = "${replace(var.vpc_name, "-", "")}"
 }
+
+
+
+

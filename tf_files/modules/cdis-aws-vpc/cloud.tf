@@ -104,6 +104,26 @@ resource "aws_route_table" "private_user" {
   }
 }
 
+resource "aws_default_route_table" "default" {
+  default_route_table_id = "${aws_vpc.main.default_route_table_id}"
+  route {
+    #from the commons vpc to the csoc vpc via the peering connection
+    cidr_block                = "${var.csoc_cidr}"
+    vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
+  }
+
+  tags {
+    Name = "default table"
+  }
+}
+
+
+resource "aws_main_route_table_association" "default" {
+  vpc_id = "${aws_vpc.main.id}"
+  route_table_id = "${aws_default_route_table.default.id}"
+
+}
+
 resource "aws_route_table_association" "public" {
   subnet_id      = "${aws_subnet.public.id}"
   route_table_id = "${aws_route_table.public.id}"
@@ -132,6 +152,8 @@ resource "aws_subnet" "private_user" {
     Organization = "Basic Service"
   }
 }
+
+
 
 #
 # The need is to keep logs for no longer than 5 years so 

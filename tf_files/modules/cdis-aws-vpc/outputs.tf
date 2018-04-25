@@ -1,3 +1,6 @@
+
+
+
 output "login_ami_id" {
   value = "${aws_ami_copy.login_ami.id}"
 }

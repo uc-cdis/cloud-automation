@@ -67,10 +67,14 @@ resource "aws_route_table" "private_kube" {
   }
 }
 
+
+
 resource "aws_route_table_association" "private_kube" {
   subnet_id      = "${aws_subnet.private_kube.id}"
   route_table_id = "${aws_route_table.private_kube.id}"
 }
+
+
 
 resource "aws_subnet" "private_kube" {
   vpc_id                  = "${module.cdis_vpc.vpc_id}"
