@@ -224,15 +224,32 @@ GEN3_S3_BUCKET=cdis-state-ac23212121-gen3
 AWS_PROFILE=cdistest
 ```
 
-### gen3 ls
+### gen3 ls [PROFILE]
 
-List workspaces that have been worked on locally - ex:
+List workspaces that have been worked on locally, and 
+workspaces saved to S3 if for a given PROFILE - ex:
 
 ```
 $ gen3 ls
 local workspaces under /home/reuben/.local/share/gen3
 cdistest    gen3test
 cdistest    planxplanetv1
+
+$ gen3 ls cdistest
+cdistest profile workspaces under s3://cdis-state-ac707767160287-gen3
+                           PRE devplanetv1/
+                           PRE gen3test_databucket/
+                           PRE qaplanetv1/
+                           PRE raryav1/
+                           PRE reuben_databucket/
+                           PRE vpcoctettest/
+
+cdistest profile workspaces under legacy path s3://cdis-terraform-state.account-707767160287.gen3
+                           PRE fauziv1/
+                           PRE planxplanet_user/
+
+local workspaces under /home/reuben/.local/share/gen3
+cdistest    devplanetv1
 ```
 
 ### gen3 refresh
