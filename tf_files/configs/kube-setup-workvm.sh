@@ -41,7 +41,7 @@ if sudo -n true > /dev/null 2>&1; then
 
   if ! which kube-aws > /dev/null 2>&1; then
     echo "Installing kube-aws"
-    wget https://github.com/kubernetes-incubator/kube-aws/releases/download/v0.9.8/kube-aws-linux-amd64.tar.gz
+    wget https://github.com/kubernetes-incubator/kube-aws/releases/download/v0.9.10-rc.5/kube-aws-linux-amd64.tar.gz
     tar -zxvf kube-aws-linux-amd64.tar.gz
     chmod -R a+rX linux-amd64
     sudo mv linux-amd64/kube-aws /usr/local/bin

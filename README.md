@@ -16,15 +16,11 @@ store terraform configuration files for bringing up VPCs
 For AWS, use the certificate manager to either import the certs or request admin for the domain to allow AWS to generate certs. The domain should match the hostname you configured in Google or the parent domain name.
 
 #### Using the automated scripts
-We have two scripts to guide you through the setup process. You will need your AWS credentials, Google project credentials, an idea of what domain you want to use, and a github username to complete the setup process.
-```
-./pack_and_terraform.bash
-```
-This script will grab packer, terraform, and clone the images git. It then proceeds to build the AMIs, and complete the terraform procedure.
-```
-./setup_kube.bash
-```
-This script uses the completed results of the step above to set up Kubernetes, and the initial data commons services. There is a manual configuration step here with route53 part way through the process.
+
+We have two automation scripts:
+
+* [gen3](https://github.com/uc-cdis/cloud-automation/blob/master/gen3/README.md) supports our terraform-based infrastructure automation
+* [g3k]
 
 #### Create customized AMI
 You need to build the amis using [images](https://github.com/uc-cdis/images). Make sure that your ssh key is added in [authorized_keys](https://github.com/uc-cdis/images/blob/master/configs/authorized_keys) before you build those amis.

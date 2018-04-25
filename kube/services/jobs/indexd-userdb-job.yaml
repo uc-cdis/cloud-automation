@@ -1,0 +1,68 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: indexd-userdb
+spec:
+  template:
+    spec:
+      # not yet supported - backOffLimit: 3
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "indexd-secret"
+        - name: "sheepdog-creds-volume"
+          secret:
+            secretName: "sheepdog-creds"
+        - name: "indexd-creds-volume"
+          secret:
+            secretName: "indexd-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
+      containers:
+        - name: indexd
+          image: quay.io/cdis/indexd:master
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/local_settings.py"
+              subPath: "local_settings.py"  
+            - name: "sheepdog-creds-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/sheepdog_creds.json"
+              subPath: creds.json
+            - name: "indexd-creds-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/creds.json"
+              subPath: creds.json
+            - name: "config-helper"
+              readOnly: true
+              mountPath: "/var/www/indexd/config_helper.py"
+              subPath: config_helper.py  
+          imagePullPolicy: Always
+          command: ["/bin/bash" ]
+          args: 
+            - "-c"
+            # Script always succeeds if it runs (echo exits with 0)
+            - |
+              eval $(python 2> /dev/null <<EOM
+              import json
+
+              sheepdog_data = json.load(open('/var/www/indexd/sheepdog_creds.json', 'r'))
+              indexd_data = json.load(open('/var/www/indexd/creds.json', 'r'))
+              user_db = { 'gdcapi': sheepdog_data['indexd_password'] }
+              if 'user_db' in indexd_data:
+                more_users = indexd_data['user_db']
+                for user in more_users:
+                  user_db[user] = more_users[user]
+              print('declare -A user_db')
+              for user in user_db:
+                print("user_db['%s']='%s'" % (user, user_db[user]))
+              EOM
+              )
+              for user in "${!user_db[@]}"; do
+                python /indexd/bin/index_admin.py create --username "$user" --password "${user_db[$user]}"
+              done
+              echo "Exit code: $?"
+      restartPolicy: Never

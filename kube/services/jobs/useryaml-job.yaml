@@ -6,11 +6,17 @@ spec:
   # not yet supported - backOffLimit: 3
   template:
     spec:
-      serviceAccountName: useryaml-job
+      automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:
             secretName: "fence-secret"
+        - name: creds-volume
+          secret:
+            secretName: "fence-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
@@ -47,6 +53,14 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
             subPath: local_settings.py
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+            subPath: creds.json
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/fence/config_helper.py"
+            subPath: config_helper.py
           - name: "json-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
@@ -71,7 +85,8 @@ spec:
             subPath: "projects.yaml"
         command: ["/bin/bash" ]
         args: 
-          - "-c" 
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
           - |
             if [ "$SYNC_FROM_DBGAP" = True ]; then
               if [[ ! -f /mnt/shared/user.yaml ]]; then
@@ -82,4 +97,5 @@ spec:
             else
               fence-create sync --yaml /var/www/fence/user.yaml
             fi
+            echo "Exit code: $?"
       restartPolicy: Never

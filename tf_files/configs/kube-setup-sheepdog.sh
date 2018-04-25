@@ -124,27 +124,23 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
     echo "Running: $sql"
     PGPASSWORD="$sheepdog_db_password" psql -t -U "$sheepdog_db_user" -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql"
   fi
-fi
-
-# deploy sheepdog 
-g3k roll sheepdog
-
-if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then  # setup the database ...
-  #
-  # Note: the 'create_gdcapi_db' flag is set in
-  #   kube-services.sh
-  #   The assumption here is that we only create the db once -
-  #   when we run 'kube-services.sh' at cluster init time
-  #   This setup block is not necessary when migrating an existing userapi commons to fence.
-  #
+  # setup the database ...
   if [[ ! -f .rendered_gdcapi_db ]]; then
     # job runs asynchronously ...
     g3k runjob gdcdb-create
+    # also go ahead and setup the indexd auth secrets
+    g3k runjob indexd-userdb
+    echo "Sleep 10 seconds for gdcdb-create job"
+    g3k joblogs gdcb-create
+    g3k joblogs indexd-userdb
+    echo "Leaving the job running in the background if not already done"
   fi
   # Avoid doing previous block more than once or when not necessary ...
   touch .rendered_gdcapi_db
 fi
 
+# deploy sheepdog 
+g3k roll sheepdog
 g3kubectl apply -f "${GEN3_HOME}/kube/services/sheepdog/sheepdog-service.yaml"
 
 cat <<EOM

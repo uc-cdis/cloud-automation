@@ -66,5 +66,7 @@
         "db_username": "${indexd_user}",
         "db_password": "${indexd_pwd}",
         "db_database": "${indexd_db}"
+        "user_db": {
+        }
     }
 }

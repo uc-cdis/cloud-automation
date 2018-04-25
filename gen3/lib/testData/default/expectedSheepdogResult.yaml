@@ -36,6 +36,12 @@ spec:
         - name: config-volume
           secret:
             secretName: "sheepdog-secret"
+        - name: creds-volume
+          secret:
+            secretName: "sheepdog-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
         - name: cert-volume
           secret:
             secretName: "cert-sheepdog-service"
@@ -70,6 +76,14 @@ spec:
               readOnly: true
               mountPath: "/var/www/sheepdog/wsgi.py"
               subPath: "wsgi.py"
+            - name: "creds-volume"
+              readOnly: true
+              mountPath: "/var/www/sheepdog/creds.json"
+              subPath: creds.json  
+            - name: "config-helper"
+              readOnly: true
+              mountPath: "/var/www/sheepdog/config_helper.py"
+              subPath: config_helper.py
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"

@@ -17,20 +17,10 @@ if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/kube/kubes.sh"
 fi # else already sourced this file ...
 
-export RENDER_CREDS="${GEN3_HOME}/tf_files/configs/render_creds.py"
-
-if [ ! -f "${RENDER_CREDS}" ]; then
-  echo "ERROR: ${RENDER_CREDS} does not exist"
-fi
-
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-fence.sh vpc_name"
    exit 1
-fi
-
-if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
-  g3kubectl create configmap config-helper --from-file "${GEN3_HOME}/apis_configs/config_helper.py"
 fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
@@ -40,8 +30,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   fi
 
   cd "${WORKSPACE}/${vpc_name}_output"
-  python "${RENDER_CREDS}" secrets
-
+  
   if ! g3kubectl get secret fence-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .fence < creds.json > "$credsFile"
@@ -130,36 +119,25 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
 
 fi
 
-g3k roll fence
-
 if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # create database
-  #
-  # Note: the 'create_fence_db' flag is set in
-  #   kube-services.sh
-  #   The assumption here is that we only create the db once -
-  #   when we run 'kube-services.sh' at cluster init time.
-  #   This setup block is not necessary when migrating an existing userapi commons to fence.
-  #
-  if [[ -z "${fence_snapshot}" && "${create_fence_db}" = "true" && ( ! -f .rendered_fence_db ) ]]; then
-    #
-    # This stuff is not necessary when migrating an existing VPC from userapi to fence ...
-    #
+  # Initialize fence database and user list
+  if [[ ! -f .rendered_fence_db ]]; then
     cd "${WORKSPACE}/${vpc_name}_output";
-    #
-    # This crazy command actually does a g3kubectl -exec into the fence pod to
-    # intialize the db ...
-    #
-    python "${RENDER_CREDS}" fence_db
-    # Fence sets up the gdcapi oauth2 client-id and secret stuff ...
-    python "${RENDER_CREDS}" secrets
+    g3k runjob fencedb-create
+    echo "Waiting 10 seconds for fencedb-create job"
+    sleep 10
+    g3k joblogs fencedb-create
+    g3k runjob useryaml
+    g3k joblogs
+    echo "Leaving setup jobs running in background"
     cd "${WORKSPACE}/${vpc_name}"
-    # force restart - might not be necessary
-    g3k roll fence
   fi
   # avoid doing the previous block more than once or when not necessary ...
   touch "${WORKSPACE}/${vpc_name}/.rendered_fence_db"
 fi
 
+# deploy fence
+g3k roll fence
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
 
 cat <<EOM

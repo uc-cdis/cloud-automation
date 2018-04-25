@@ -39,15 +39,15 @@ spec:
         - name: creds-volume
           secret:
             secretName: "fence-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-        - name: config-helper
-          configMap:
-            name: config-helper    
         - name: fence-yaml
           configMap:
             name: fence

@@ -17,12 +17,6 @@ if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/kube/kubes.sh"
 fi # else already sourced this file ...
 
-export RENDER_CREDS="${GEN3_HOME}/tf_files/configs/render_creds.py"
-
-if [ ! -f "${RENDER_CREDS}" ]; then
-  echo "ERROR: ${RENDER_CREDS} does not exist"
-fi
-
 vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
    echo "Usage: bash kube-setup-peregrine.sh vpc_name"
@@ -36,8 +30,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   fi
 
   cd "${WORKSPACE}/${vpc_name}_output"
-  python "${RENDER_CREDS}" secrets
-
+  
   if ! g3kubectl get secret peregrine-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .peregrine < creds.json > "$credsFile"

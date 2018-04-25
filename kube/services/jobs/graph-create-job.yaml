@@ -8,15 +8,12 @@ spec:
       # not yet supported - backOffLimit: 3
       automountServiceAccountToken: false
       volumes:
-        - name: config-volume
+        - name: creds-volume
           secret:
-            secretName: "sheepdog-secret"
+            secretName: "sheepdog-creds"
       containers:
         - name: sheepdog
           image: quay.io/cdis/sheepdog:master
-          ports:
-          - containerPort: 80
-          - containerPort: 443
           env:
           - name: DICTIONARY_URL
             valueFrom:
@@ -24,21 +21,26 @@ spec:
                 name: global
                 key: dictionary_url
           volumeMounts:
-            - name: "config-volume"
+            - name: "creds-volume"
               readOnly: true
-              mountPath: "/var/www/sheepdog/wsgi.py"
-              subPath: "wsgi.py"
+              mountPath: "/var/www/sheepdog/creds.json"
+              subPath: creds.json
           imagePullPolicy: Always
           command: ["/bin/bash" ]
           args: 
             - "-c" 
+            # Script always succeeds if it runs (echo exits with 0) 
             - |
-              eval $(PYTHONPATH=/sheepdog python 2> /dev/null <<EOM
-              from wsgi import config
-              for key in config['PSQLGRAPH']:
-                print( key + "='" + config['PSQLGRAPH'][key] + "'" )
+              eval $(python 2> /dev/null <<EOM
+              import json
+
+              creds = json.load(open('/var/www/sheepdog/creds.json', 'r'))
+              print('declare -A db_creds')
+              for key in ['db_host', 'db_username', 'db_password', 'db_database']:
+                print("db_creds['%s']='%s'" % (key, creds[key]))
               EOM
-              );
-              echo datamodel_postgres_admin graph-create -U "${user}" -P XXXXXX -H "${host}" -D "${database}"
-              datamodel_postgres_admin graph-create -U "${user}" -P "${password}" -H "${host}" -D "${database}"
+              )
+              echo datamodel_postgres_admin graph-create -U "${db_creds[db_username]}" -P XXXXXX -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
+              datamodel_postgres_admin graph-create -U "${db_creds[db_username]}" -P "${db_creds[db_password]}" -H "${db_creds[db_host]}" -D "${db_creds[db_database]}"
+              echo "Exit code: $?"
       restartPolicy: Never

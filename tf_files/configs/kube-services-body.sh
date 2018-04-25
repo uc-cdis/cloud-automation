@@ -26,12 +26,7 @@ if [[ -z "$GEN3_NOPROXY" ]]; then
 fi
 
 export DEBIAN_FRONTEND=noninteractive
-export RENDER_CREDS="${GEN3_HOME}/tf_files/configs/render_creds.py"
 vpc_name=${vpc_name:-$1}
-
-if [ ! -f "${RENDER_CREDS}" ]; then
-  echo "ERROR: ${RENDER_CREDS} does not exist"
-fi
 
 if [ -z "${vpc_name}" ]; then
   echo "ERROR: vpc_name variable not set - bailing out"
@@ -53,8 +48,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   # Setup the files that will become secrets in "${WORKSPACE}/$vpc_name/apis_configs"
   #
   cd "${WORKSPACE}"/${vpc_name}_output
-  python "${RENDER_CREDS}" secrets
-
+ 
   # Note: look into 'kubectl replace' if you need to replace a secret
   if ! kubectl get secrets/indexd-secret > /dev/null 2>&1; then
     kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
@@ -80,6 +74,9 @@ if ! g3kubectl get configmaps global > /dev/null 2>&1; then
     echo "ERROR: unable to configure global configmap - missing ${WORKSPACE}/${vpc_name}/00configmap.yaml"
     exit 1
   fi
+fi
+if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
+  g3kubectl create configmap config-helper --from-file "${GEN3_HOME}/apis_configs/config_helper.py"
 fi
 
 g3k roll indexd
