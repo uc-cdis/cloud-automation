@@ -24,22 +24,26 @@ g3k joblogs graph-create
 g3k roll sheepdog
 g3k roll peregrine
 ```
-
-## usersync-cronjob
-
-Periodically syncs a user.yaml file from a specified S3 buket into the k8s `fence` configmap,
-and update fence's user-access database.
-
-Note that this job assumes that the k8s worker nodes have an IAM policy that allows S3 read -
-which is the default in new commons deployments, but may require a manual update to existing commons.
+## setup sftp configuration
+To run usersync job or cronjob that fetches acl files from a remote ftp/sftp server, following setup need to be done:
+1. update `vpcname/apis_configs/fence_credentials.json` include dbgap credentials.
+2. run `kubectl delete secret fence-json-secret; bash ~/cloud-automation/tf_files/configs/kube-setup-fence.sh $VPC_NAME` to update secrets.
+3. add the public key at `$vpcname/ssh-keys/id_rsa.pub` to squid proxy
+4. set `sync_from_dbgap: "True"` in `$vpcname/00configmap.yaml`.
 
 ## usersync-job
 
-Syncs a user.yaml file from the S3 bucket specified in the global configmap's `useryaml_s3path` attribute (`kubectl get configmap global -o=jsonpath='{.data.useryaml_s3path}'`) into the k8s `fence` configmap,
-and update fence's user-access database.
+Sync user lists from two sources:
+- a ftp/sftp server that hosts user csv files that follows the format provided by dbgap, enabled if `sync_from_dbgap: "True"` in global configmap. Need to follow [sftp setup instruction](##setup sftp configuration) before enabling it.
+- a user.yaml file from the S3 bucket specified in the global configmap's `useryaml_s3path` attribute (`kubectl get configmap global -o=jsonpath='{.data.useryaml_s3path}'`) into the k8s `fence` configmap, and update fence's user-access database. If the useryaml_s3path is provided with an empty string, it will use the local user.yaml file.
 
 Note that this job assumes that the k8s worker nodes have an IAM policy that allows S3 read -
 which is the default in new commons deployments, but may require a manual update to existing commons.
+
+
+## usersync-cronjob
+
+Does the same job as usersync-job but do it periodically
 
 ## useryaml-job
 
