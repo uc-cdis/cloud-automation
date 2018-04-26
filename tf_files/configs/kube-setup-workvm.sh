@@ -38,7 +38,6 @@ if sudo -n true > /dev/null 2>&1; then
   # yq === jq for yaml
   sudo -E XDG_CACHE_HOME=/var/cache pip install yq
 
-
   if ! which kube-aws > /dev/null 2>&1; then
     echo "Installing kube-aws"
     wget https://github.com/kubernetes-incubator/kube-aws/releases/download/v0.9.10-rc.5/kube-aws-linux-amd64.tar.gz
@@ -51,11 +50,28 @@ if sudo -n true > /dev/null 2>&1; then
     #sudo mv kube-aws /usr/bin
   fi
 
-  if ! which kubectl > /dev/null 2>&1; then
-    echo "Installing kubectl"
-    curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-    chmod a+rx kubectl
-    sudo mv kubectl /usr/local/bin/
+  if ! which gcloud > /dev/null 2>&1; then
+    (
+      export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+      sudo -E bash -c "echo 'deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main' > /etc/apt/sources.list.d/google-cloud-sdk.list"
+      curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo -E apt-key add -
+      sudo -E apt-get update
+      sudo -E apt-get install -y google-cloud-sdk \
+          google-cloud-sdk-app-engine-python \
+          google-cloud-sdk-app-engine-java \
+          google-cloud-sdk-app-engine-go \
+          google-cloud-sdk-datalab \
+          google-cloud-sdk-datastore-emulator \
+          google-cloud-sdk-pubsub-emulator \
+          google-cloud-sdk-bigtable-emulator \
+          google-cloud-sdk-cbt \
+          kubectl
+      sudo -E gcloud config set core/disable_usage_reporting true
+      sudo -E gcloud config set component_manager/disable_update_check true
+      if [[ -f /usr/local/bin/kubectl && -f /usr/bin/kubectl ]]; then  # pref dpkg managed kubectl
+        sudo -E /bin/rm /usr/local/bin/kubectl
+      fi
+    )
   fi
 
   if ! which terraform > /dev/null 2>&1; then
