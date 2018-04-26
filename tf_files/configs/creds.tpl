@@ -44,7 +44,10 @@
         "db_password": "${peregrine_pwd}",
         "db_database": "${gdcapi_db}",
         "gdcapi_secret_key": "${gdcapi_secret_key}",
-        "hostname": "${hostname}"
+        "hostname": "${hostname}",
+        "aws_access_key_id": "",
+        "aws_secret_key_id": "",
+        "aws_bucket_id": ""
     },
     "gdcapi": {
         "fence_host": "${fence_host}",

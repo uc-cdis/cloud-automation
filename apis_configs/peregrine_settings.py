@@ -13,6 +13,18 @@ config['SIGNPOST'] = {
     'version': 'v0',
     'auth': ('gdcapi', '{{indexd_password}}'),
 }
+
+config['STORAGE'] = {
+    's3':
+    {
+        'access_key': '{{aws_access_key_id}}',
+        'secret_key': '{{aws_secret_key_id}}'
+    }
+}
+config['SUBMISSION'] = {
+    'bucket': '{{aws_bucket_id}}'
+}
+
 config["FAKE_AUTH"] = False
 config["PSQLGRAPH"] = {
     'host': '{{db_host}}',
