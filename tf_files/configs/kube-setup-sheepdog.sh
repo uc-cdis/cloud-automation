@@ -125,14 +125,15 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
     PGPASSWORD="$sheepdog_db_password" psql -t -U "$sheepdog_db_user" -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql"
   fi
   # setup the database ...
+  cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f .rendered_gdcapi_db ]]; then
     # job runs asynchronously ...
     g3k runjob gdcdb-create
     # also go ahead and setup the indexd auth secrets
     g3k runjob indexd-userdb
     echo "Sleep 10 seconds for gdcdb-create job"
-    g3k joblogs gdcb-create
-    g3k joblogs indexd-userdb
+    g3k joblogs gdcb-create || true
+    g3k joblogs indexd-userdb || true
     echo "Leaving the job running in the background if not already done"
   fi
   # Avoid doing previous block more than once or when not necessary ...

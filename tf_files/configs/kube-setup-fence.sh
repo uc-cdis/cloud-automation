@@ -121,14 +121,14 @@ fi
 
 if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # create database
   # Initialize fence database and user list
+  cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f .rendered_fence_db ]]; then
-    cd "${WORKSPACE}/${vpc_name}_output";
     g3k runjob fencedb-create
     echo "Waiting 10 seconds for fencedb-create job"
     sleep 10
-    g3k joblogs fencedb-create
+    g3k joblogs fencedb-create || true
     g3k runjob useryaml
-    g3k joblogs
+    g3k joblogs useryaml || true
     echo "Leaving setup jobs running in background"
     cd "${WORKSPACE}/${vpc_name}"
   fi
