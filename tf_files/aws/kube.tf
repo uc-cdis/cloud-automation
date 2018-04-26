@@ -65,7 +65,7 @@ resource "aws_db_instance" "db_fence" {
   }
 
   lifecycle {
-    ignore_changes  = ["identifier", "name", "engine_version", "username", "password", "allocated_storage", "parameter_group_name"]
+    ignore_changes  = ["*"]
     prevent_destroy = true
   }
 }
@@ -121,7 +121,7 @@ resource "aws_db_instance" "db_indexd" {
   }
 
   lifecycle {
-    ignore_changes  = ["identifier", "name", "engine_version", "username", "password", "allocated_storage", "parameter_group_name"]
+    ignore_changes  = ["*"]
     prevent_destroy = true
   }
 }
