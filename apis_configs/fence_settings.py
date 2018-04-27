@@ -46,6 +46,17 @@ HTTP_PROXY = {
     'host': 'cloud-proxy.internal.io',
     'port': 3128
 }
+
+DEFAULT_DBGAP = {
+    'sftp': {'host': '',
+             'username': '',
+             'password': '',
+             'port': 22,
+             'proxy': '',
+             'proxy_user': '',
+             },
+    'decrypt_key': ''}
+
 STORAGE_CREDENTIALS = {}
 # aws_credentials should be a dict looks like:
 # { identifier: { 'aws_access_key_id': 'XXX', 'aws_secret_access_key': 'XXX' }}
@@ -68,6 +79,8 @@ if os.path.exists(fence_creds):
         ENABLED_IDENTITY_PROVIDERS = data['ENABLED_IDENTITY_PROVIDERS']
         APP_NAME = data['APP_NAME']
         HTTP_PROXY = data['HTTP_PROXY']
+        dbGaP = data.get('dbGaP',DEFAULT_DBGAP)
+
 
 DEFAULT_LOGIN_URL_REDIRECT_PARAM = 'redirect'
 

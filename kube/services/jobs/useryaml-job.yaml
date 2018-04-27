@@ -20,6 +20,16 @@ spec:
         - name: fence-yaml
           configMap:
             name: fence
+        - name: fence-ssh-keys
+          secret:
+            secretName: "fence-ssh-keys"
+            defaultMode: 0400
+        - name: fence-sshconfig
+          configMap:
+            name: "fence-sshconfig"
+        - name: projects
+          configMap:
+            name: "projects"
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
@@ -27,6 +37,11 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: SYNC_FROM_DBGAP
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: sync_from_dbgap
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -42,9 +57,29 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa"
+            subPath: "id_rsa"
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa.pub"
+            subPath: "id_rsa.pub"
+          - name: "fence-sshconfig"
+            mountPath: "/root/.ssh/config"
+            subPath: "config"
+          - name: "projects"
+            mountPath: "/var/www/fence/projects.yaml"
+            subPath: "projects.yaml"
         command: ["/bin/bash" ]
         args: 
           - "-c" 
           - |
-            fence-create create /var/www/fence/user.yaml
+            if [ "$SYNC_FROM_DBGAP" = True ]; then
+              if [[ ! -f /mnt/shared/user.yaml ]]; then
+                fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
+              else
+                fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml
+              fi
+            else
+              fence-create sync --yaml /var/www/fence/user.yaml
+            fi
       restartPolicy: Never

@@ -49,6 +49,10 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
+          # portal sometimes takes a long time to come up ... -
+          # has to fetch the dictionary, relay compile, etc
+          failureThreshold: 6
+
         ports:
         - containerPort: 80
         - containerPort: 443

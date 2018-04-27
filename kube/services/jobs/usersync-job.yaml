@@ -19,6 +19,16 @@ spec:
         - name: fence-yaml
           configMap:
             name: fence
+        - name: fence-ssh-keys
+          secret:
+            secretName: "fence-ssh-keys"
+            defaultMode: 0400
+        - name: fence-sshconfig
+          configMap:
+            name: "fence-sshconfig"
+        - name: projects
+          configMap:
+            name: "projects"
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
@@ -26,6 +36,11 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: SYNC_FROM_DBGAP
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: sync_from_dbgap
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -40,9 +55,21 @@ spec:
             subPath: user.yaml
           - name: shared-data
             mountPath: /mnt/shared
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa"
+            subPath: "id_rsa"
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa.pub"
+            subPath: "id_rsa.pub"
+          - name: "fence-sshconfig"
+            mountPath: "/root/.ssh/config"
+            subPath: "config"
+          - name: "projects"
+            mountPath: "/var/www/fence/projects.yaml"
+            subPath: "projects.yaml"
         command: ["/bin/bash" ]
-        args: 
-          - "-c" 
+        args:
+          - "-c"
           - |
             let count=0
             while [[ ! -f /mnt/shared/user.yaml && $count -lt 50 ]]; do
@@ -50,19 +77,27 @@ spec:
               sleep 2
               let count=$count+1
             done
-            if [[ -f /mnt/shared/user.yaml ]]; then
-              echo "fence container user.yaml diff ..."
-              diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
-              if [[ $? == 1 ]]; then
-                echo "running fence-create"
-                fence-create create /mnt/shared/user.yaml
+            if [ ! "$SYNC_FROM_DBGAP" = True ]; then
+              if [[ -f /mnt/shared/user.yaml ]]; then
+                echo "fence container user.yaml diff ..."
+                diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
+                if [[ $? == 1 || "${userYamlS3Path}" = '' ]]; then
+                  echo "running fence-create"
+                  fence-create sync --yaml /mnt/shared/user.yaml
+                else
+                  echo "no difference found"
+                fi
               else
-                echo "no difference found"
+                echo "/mnt/shared/user.yaml did not appear within timeout :-("
               fi
             else
-              echo "/mnt/shared/user.yaml did not appear within timeout :-("
+              if [[ -f /mnt/shared/user.yaml ]]; then
+                fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
+              else
+                fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
+              fi
             fi
-            
+
       - name: awshelper
         image: quay.io/cdis/awshelper:master
         imagePullPolicy: Always
@@ -73,21 +108,26 @@ spec:
           - name: shared-data
             mountPath: /mnt/shared
         command: ["/bin/bash" ]
-        args: 
-          - "-c" 
+        args:
+          - "-c"
           - |
-            echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
-            aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml;
-            if [[ -f /mnt/shared/user.yaml ]]; then
-              echo "awshelper container user.yaml diff ..."
-              diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
-              if [[ $? == 1 ]]; then
-                echo "awshelper updating fence configmap"
-                kubectl delete configmap fence
-                kubectl create configmap fence --from-file=/mnt/shared/user.yaml
-              else
-                echo "no difference found"
-              fi              
+            if [ "${userYamlS3Path}" = '' ]; then
+              echo "s3 yaml not provided, using local yaml"
+              cp /var/www/fence/user.yaml /mnt/shared/user.yaml
+            else
+              echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
+              aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml;
+              if [[ -f /mnt/shared/user.yaml ]]; then
+                echo "awshelper container user.yaml diff ..."
+                diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
+                if [[ $? == 1 ]]; then
+                  echo "awshelper updating fence configmap"
+                  kubectl delete configmap fence
+                  kubectl create configmap fence --from-file=/mnt/shared/user.yaml
+                else
+                  echo "no difference found"
+                fi
+              fi
             fi
         env:
           - name: userYamlS3Path

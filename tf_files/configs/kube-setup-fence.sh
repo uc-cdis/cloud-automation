@@ -41,13 +41,19 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
   # Generate RSA private and public keys.
   # TODO: generalize to list of key names?
   mkdir -p jwt-keys
+  mkdir -p ssh-keys
 
   if [ ! -f jwt-keys/jwt_public_key.pem ]; then
     openssl genrsa -out jwt-keys/jwt_private_key.pem 2048
     openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
   fi
-  if ! g3kubectl get configmaps/fence > /dev/null 2>&1; then
-    g3kubectl create configmap fence --from-file=apis_configs/user.yaml
+
+  if [ ! -f ssh-keys/id_rsa ]; then
+    ssh-keygen -t rsa -b 4096 -C "giangbui0816@gmail.com" -N "" -f ssh-keys/id_rsa
+  fi
+
+  if ! kubectl get configmaps/fence > /dev/null 2>&1; then
+    kubectl create configmap fence --from-file=apis_configs/user.yaml
   fi
 
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
@@ -62,12 +68,57 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # update secrets
     g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
   fi
 
-  if ! g3kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
-    g3kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
+  if ! kubectl get configmaps/projects > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/projects.yaml" ]]; then
+      touch "apis_configs/projects.yaml"
+    fi
+    kubectl create configmap projects --from-file=apis_configs/projects.yaml
   fi
+
+  if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
+    kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
+  fi
+
+  if ! kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
+    kubectl create secret generic fence-ssh-keys --from-file=id_rsa=./ssh-keys/id_rsa --from-file=id_rsa.pub=./ssh-keys/id_rsa.pub
+  fi
+  
+  if ! kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
+    mkdir -p ./apis_configs/.ssh
+    if [[ ! -f "./apis_configs/.ssh/config" ]]; then
+        echo '''
+        Host squid.internal
+          ServerAliveInterval 120
+          HostName cloud-proxy.internal.io
+          User ubuntu
+          ForwardAgent yes
+
+        Host sftp.planx
+          ServerAliveInterval 120
+          HostName sftp.planx-pla.net
+          User foo
+          ForwardAgent yes
+          IdentityFile ~/.ssh/id_rsa
+          ProxyCommand ssh ubuntu@squid.internal nc %h %p 2> /dev/null
+      
+       Host sftp.dbgap
+          ServerAliveInterval 120
+          HostName ftp-private.ncbi.nlm.nih.gov
+          User BDC-TP
+          ForwardAgent yes
+          IdentityFile ~/.ssh/id_rsa
+          ProxyCommand ssh ubuntu@squid.internal nc %h %p 2> /dev/null
+
+        Host cloud-proxy.internal.io
+          StrictHostKeyChecking no
+          UserKnownHostsFile=/dev/null
+        ''' > ./apis_configs/.ssh/config
+    fi
+    kubectl create configmap fence-sshconfig --from-file=./apis_configs/.ssh/config
+  fi
+
 fi
 
-# deploy fence
 g3k roll fence
 
 if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # create database
