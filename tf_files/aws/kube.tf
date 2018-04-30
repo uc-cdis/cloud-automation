@@ -36,6 +36,11 @@ resource "aws_subnet" "public_kube" {
 
   # Note: KubernetesCluster tag is required by kube-aws to identify the public subnet for ELBs
   tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "", "KubernetesCluster", "${local.cluster_name}")}"
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["tags"]
+  }
 }
 
 #
@@ -65,7 +70,7 @@ resource "aws_db_instance" "db_fence" {
   }
 
   lifecycle {
-    ignore_changes  = ["identifier", "name", "engine_version", "username", "password", "allocated_storage", "parameter_group_name"]
+    ignore_changes  = ["*"]
     prevent_destroy = true
   }
 }
@@ -121,7 +126,7 @@ resource "aws_db_instance" "db_indexd" {
   }
 
   lifecycle {
-    ignore_changes  = ["identifier", "name", "engine_version", "username", "password", "allocated_storage", "parameter_group_name"]
+    ignore_changes  = ["*"]
     prevent_destroy = true
   }
 }

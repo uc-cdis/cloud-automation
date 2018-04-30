@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Little helper derives terraform and render_creds.py configuration
+# Little helper derives terraform and k8s configuration
 # from kubernetes secrets if possible.  
 # Generates
 #    $XDG_RUNTIME_DIR/kube-extract-config/creds.json, config.tfvars, and 00configmap.yaml
@@ -137,7 +137,7 @@ fi
 
 # ok - got all our db passwords now!  let's generate some output files
 #
-# creds.json is consumed by render_creds.py
+# creds.json is consumed by automation to generate k8s configmaps and secrets
 # use terraform to generate creds.json if possible
 #
 cat - > creds.json <<EOM

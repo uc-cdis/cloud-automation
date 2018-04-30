@@ -15,6 +15,11 @@ pipeline {
         sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/testsuite.sh --profile jenkins'
       }
     }
+    stage('k8s configs test') {
+      steps {
+        sh 'pytest apis_configs/'
+      }
+    }
     stage('lamda test') {
       steps {
         sh 'pip3 install boto3 --upgrade'
