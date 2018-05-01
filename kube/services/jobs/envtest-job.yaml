@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # Little test job - run with: g3k runjob envtest REUBEN frickjack
+  name: envtest
+spec:
+  # not yet supported - backOffLimit: 3
+  template:
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: fence
+        image: quay.io/cdis/fence:master
+        imagePullPolicy: Always
+        env:
+          - name: REUBEN
+            GEN3_REUBEN
+        command: ["/bin/bash" ]
+        args: 
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0) 
+          - |
+            echo "Rueben is a ${REUBEN}"
+            echo "Exit code: $?"
+      restartPolicy: Never
