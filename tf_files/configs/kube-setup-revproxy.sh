@@ -27,4 +27,15 @@ g3k roll revproxy
 # apply_service deploys the revproxy service after
 # inserting the certificate ARN from a config map
 #
+
+if ! g3kubectl get services revproxy-service > /dev/null 2>&1; then
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/revproxy/revproxy-service.yaml"
+else
+  #
+  # Do not do this automatically as it will trigger an elb
+  # change in existing commons
+  #
+  echo "Ensure the commons DNS references the -elb revproxy which support http proxy protocol"
+fi
+
 bash "${GEN3_HOME}/kube/services/revproxy/apply_service"

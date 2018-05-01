@@ -18,7 +18,7 @@ fi # else already sourced this file ...
 if [[ -z "$GEN3_NOPROXY" ]]; then
   export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
   export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
-  export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io'}
+  export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com'}
 fi
 
 
@@ -110,7 +110,7 @@ sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}_output/c
 # we ceate a $namespace database on the fence, indexd, and sheepdog db servers with
 # the CREATE DATABASE commands above
 #
-jq -r '.[].db_database="'"$namespace"'"|.[].fence_database="'"$namespace"'"' < /home/$namespace/${vpc_name}_output/creds.json > $XDG_RUNTIME_DIR/creds.json
+jq -r '.[].db_database="'"$dbname"'"|.[].fence_database="'"$dbname"'"' < /home/$namespace/${vpc_name}_output/creds.json > $XDG_RUNTIME_DIR/creds.json
 cp $XDG_RUNTIME_DIR/creds.json /home/$namespace/${vpc_name}_output/creds.json
 sed -i.bak "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/${vpc_name}/00configmap.yaml
 if [[ -f /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json ]]; then
@@ -123,7 +123,7 @@ if ! grep kubes.sh /home/${namespace}/.bashrc > /dev/null 2>&1; then
   cat >> /home/${namespace}/.bashrc << EOF
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
-export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io'
+export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com'
 
 export KUBECONFIG=~/${vpc_name}/kubeconfig
 
@@ -133,13 +133,13 @@ fi
 EOF
 fi
 # a provisioner should only work with one vpc
-if ! grep 'vpc_name=' ~/.bashrc > /dev/null; then
+if ! grep 'vpc_name=' /home/${namespace}/.bashrc > /dev/null; then
   #
   # Stash in ~/.bashrc, so the user doesn't have to keep passing the vpc_name to kube-setup- scripts.
   # Also, the s3_bucket makes 'g3k backup' work -
   # which makes it easy to backup the k8s certificate authority, etc.
   #
-  cat - >>~/.bashrc <<EOF
+  cat - >>/home/${namespace}/.bashrc <<EOF
 export vpc_name='$vpc_name'
 export s3_bucket='$s3_bucket'
 EOF
@@ -151,4 +151,5 @@ sudo chown -R "${namespace}:" /home/$namespace/.ssh
 sudo chmod -R 0700 /home/$namespace/.ssh
 sudo chmod go-w /home/$namespace
 
-echo "The $namespace user is ready to login and run ~/cloud-automation/tf_files/configs/kube-services-body.sh $vpc_name"
+echo "The $namespace user is ready to login and run: g3k roll all"
+echo "Be sure to verify that cdis-manifest/hostname is configured"

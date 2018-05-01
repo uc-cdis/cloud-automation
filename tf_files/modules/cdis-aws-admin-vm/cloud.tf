@@ -1,12 +1,12 @@
 resource "aws_cloudwatch_log_group" "csoc_log_group" {
-  name = "${var.child_name}"
+  name              = "${var.child_name}"
   retention_in_days = 1827
+
   tags {
-    Environment = "${var.child_name}"
+    Environment  = "${var.child_name}"
     Organization = "Basic Services"
   }
-  }
-
+}
 
 data "aws_ami" "public_cdis_ami" {
   most_recent = true
@@ -77,7 +77,7 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.128.0.0/20", "54.224.0.0/12","${var.vpc_cidr_list}"]
+    cidr_blocks = ["10.128.0.0/20", "54.224.0.0/12", "${var.vpc_cidr_list}"]
   }
 
   tags {
@@ -154,7 +154,6 @@ resource "aws_iam_instance_profile" "child_role_profile" {
   role = "${aws_iam_role.child_role.id}"
 }
 
-
 resource "aws_instance" "login" {
   ami                    = "${aws_ami_copy.cdis_ami.id}"
   subnet_id              = "${var.csoc_subnet_id}"
@@ -175,8 +174,6 @@ resource "aws_instance" "login" {
     ignore_changes = ["ami", "key_name"]
   }
 
-
-
   user_data = <<EOF
 #!/bin/bash 
 #Proxy configuration and hostname assigment for the adminVM
@@ -184,7 +181,7 @@ echo http_proxy=http://cloud-proxy.internal.io:3128 >> /etc/environment
 echo https_proxy=http://cloud-proxy.internal.io:3128/ >> /etc/environment
 echo no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com"  >> /etc/environment
 echo 'Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
-echo 'Acquire::https::Proxy "http://cloud-proxy.internal.iio:3128";' >> /etc/apt/apt.conf.d/01proxy
+echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
 echo '127.0.1.1 ${var.child_name}_admin' | sudo tee --append /etc/hosts
 sudo hostnamectl set-hostname '${var.child_name}'_admin
 
@@ -243,25 +240,3 @@ systemctl enable awslogs
 systemctl restart awslogs
 EOF
 }
-
-#
-#resource "aws_route53_zone" "main" {
-#  name    = "internal.io"
-#  comment = "internal dns server for ${var.child_name}"
-#  vpc_id  = "${var.csoc_vpc_id}"
-#
-#  tags {
-#    Environment  = "${var.child_name}"
-#    Organization = "Basic Service"
-#  }
-#}
-#
-#resource "aws_route53_record" "squid" {
-#  zone_id = "${aws_route53_zone.main.zone_id}"
-#  name    = "cloud-proxy"
-#  type    = "A"
-#  ttl     = "300"
-#  records = ["${aws_instance.proxy.private_ip}"]
-#}
-#
-

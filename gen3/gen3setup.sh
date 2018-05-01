@@ -50,7 +50,7 @@ gen3_workon() {
   export AWS_PROFILE="$GEN3_PROFILE"
   export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")
   
-  local AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
+  export AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
   # S3 bucket where we save terraform state, etc
   if [[ -z "$AWS_ACCOUNT_ID" ]]; then
     echo "Error: unable to determine AWS_ACCOUNT_ID via: aws sts get-caller-identity | jq -r .Account"
@@ -124,6 +124,16 @@ gen3_run() {
       let resultCode=$? || true
     fi
     scriptName=""
+    ;;
+  "ls")
+    (
+      set -e
+      if [[ -n "$1" && ! "$1" =~ ^-*help ]]; then
+        gen3_workon $1 gen3ls
+      fi
+      source "$GEN3_HOME/gen3/bin/ls.sh"
+    )
+    resultCode=$?
     ;;
   *)
     if [[ -f "$scriptFolder/${command}.sh" ]]; then

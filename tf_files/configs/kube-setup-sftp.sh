@@ -15,12 +15,6 @@ if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/kube/kubes.sh"
 fi # else already sourced this file ...
 
-export RENDER_CREDS="${GEN3_HOME}/tf_files/configs/render_creds.py"
-
-if [ ! -f "${RENDER_CREDS}" ]; then
-  echo "ERROR: ${RENDER_CREDS} does not exist"
-fi
-
 
 (
   export KUBECTL_NAMESPACE=sftp

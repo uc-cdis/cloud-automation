@@ -4,14 +4,17 @@ variable "ami_account_id" {
   default = "707767160287"
 }
 
+variable "csoc_cidr" {
+  default = "10.128.0.0/20"
+}
+
 #pass on the environment name
 variable "env_vpc_name" {
-#default="csoc_main"
-  
+  #default="csoc_main"
 }
 
 variable "env_public_subnet_id" {
- # default="subnet-da2c0a87"
+  # default="subnet-da2c0a87"
 }
 
 # name of aws_key_pair ssh key to attach to VM's
@@ -23,28 +26,31 @@ variable "env_vpc_cidr" {
   #default = "10.128.0.0/20"
 }
 
-
-
-
 variable "env_vpc_id" {
   #default = "vpc-e2b51d99"
 }
 
+variable "env_instance_profile" {
+  #default = "common_name_cloudwatch_access_profile"
+}
 
+variable "env_log_group" {
+  #default = "common_name"
+}
 
+data "aws_iam_policy_document" "squid_logging_cloudwatch" {
+  statement {
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:GetLogEvents",
+      "logs:PutLogEvents",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+      "logs:PutRetentionPolicy",
+    ]
 
-data "aws_iam_policy_document" "cluster_logging_cloudwatch" {
-    statement {
-        actions = [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:GetLogEvents",
-            "logs:PutLogEvents",
-            "logs:DescribeLogGroups",
-            "logs:DescribeLogStreams",
-            "logs:PutRetentionPolicy" 
-        ]
-        effect = "Allow"
-        resources = [ "*" ]
-    }
+    effect    = "Allow"
+    resources = ["*"]
+  }
 }

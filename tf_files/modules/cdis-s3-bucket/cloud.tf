@@ -1,39 +1,8 @@
-resource "aws_s3_bucket" "log_bucket" {
-  bucket = "s3logs-${local.clean_bucket_name}"
-  acl    = "log-delivery-write"
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
-  lifecycle_rule {
-    id      = "log"
-    enabled = true
-
-    prefix = "/"
-
-    tags {
-      "rule"      = "log"
-      "autoclean" = "true"
-    }
-
-    expiration {
-      days = 120
-    }
-  }
-
-  tags {
-    Name        = "s3logs-${local.clean_bucket_name}"
-    Environment = "${var.environment}"
-    Purpose     = "logs bucket"
-  }
+module "cdis_s3_logs" {
+  source          = "../cdis-s3-logs"
+  log_bucket_name = "s3logs-${local.clean_bucket_name}"
+  environment     = "${var.environment}"
 }
-
-#-------------------------
 
 resource "aws_s3_bucket" "mybucket" {
   bucket = "${local.clean_bucket_name}"
@@ -48,7 +17,7 @@ resource "aws_s3_bucket" "mybucket" {
   }
 
   logging {
-    target_bucket = "${aws_s3_bucket.log_bucket.id}"
+    target_bucket = "${module.cdis_s3_logs.log_bucket_name}"
     target_prefix = "log/${local.clean_bucket_name}"
   }
 

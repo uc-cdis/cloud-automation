@@ -3,29 +3,29 @@
 terraform {
   backend "s3" {
     encrypt = "true"
-
-    # TODO - setup 'terraform' roles in each account ...
-    #role_arn = "arn:aws:iam::707767160287:role/devplanetv1_kube_provisioner"
   }
 }
 
 # Inject credentials via the AWS_PROFILE environment variable and shared credentials file and/or EC2 metadata service
-#
-# TODO - setup 'terraform' roles in each account ...  
-# assume_role {  
-#   role_arn = "arn:aws:iam::707767160287:role/devplanetv1_kube_provisioner"  
-# }
 #
 provider "aws" {}
 
 module "cdis_vpc" {
   ami_account_id  = "${var.ami_account_id}"
   source          = "../modules/cdis-aws-vpc"
-  vpc_octet       = "${var.vpc_octet}"
+  vpc_octet2       = "${var.vpc_octet2}"
+  vpc_octet3       = "${var.vpc_octet3}"
   vpc_name        = "${var.vpc_name}"
   ssh_key_name    = "${aws_key_pair.automation_dev.key_name}"
   csoc_cidr       = "${var.csoc_cidr}"
   csoc_account_id = "${var.csoc_account_id}"
+}
+
+# logs bucket for elb logs
+module "elb_logs" {
+  source          = "../modules/cdis-s3-logs"
+  log_bucket_name = "logs-${var.vpc_name}-gen3"
+  environment     = "${var.vpc_name}"
 }
 
 data "aws_vpc_endpoint_service" "s3" {
@@ -67,14 +67,18 @@ resource "aws_route_table" "private_kube" {
   }
 }
 
+
+
 resource "aws_route_table_association" "private_kube" {
   subnet_id      = "${aws_subnet.private_kube.id}"
   route_table_id = "${aws_route_table.private_kube.id}"
 }
 
+
+
 resource "aws_subnet" "private_kube" {
   vpc_id                  = "${module.cdis_vpc.vpc_id}"
-  cidr_block              = "172.24.${var.vpc_octet + 2}.0/24"
+  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 2}.0/24"
   availability_zone       = "${data.aws_availability_zones.available.names[0]}"
   map_public_ip_on_launch = false
   tags                    = "${map("Name", "private_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
@@ -82,7 +86,7 @@ resource "aws_subnet" "private_kube" {
 
 resource "aws_subnet" "private_db_alt" {
   vpc_id                  = "${module.cdis_vpc.vpc_id}"
-  cidr_block              = "172.24.${var.vpc_octet + 3}.0/24"
+  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 3}.0/24"
   availability_zone       = "${data.aws_availability_zones.available.names[1]}"
   map_public_ip_on_launch = false
 

@@ -1,39 +1,3 @@
-resource "aws_security_group" "ssh" {
-  name        = "ssh"
-  description = "security group that only enables ssh"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags {
-    Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
-  }
-}
-
-resource "aws_security_group" "login-ssh" {
-  name        = "login-ssh"
-  description = "security group that only enables ssh from login node"
-  vpc_id      = "${aws_vpc.main.id}"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "TCP"
-    cidr_blocks = ["${aws_instance.login.private_ip}/32", "${var.csoc_cidr}"]
-  }
-
-  tags {
-    Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
-  }
-}
-
 resource "aws_security_group" "local" {
   name        = "local"
   description = "security group that only allow internal tcp traffics"
@@ -43,7 +7,7 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["172.24.${var.vpc_octet}.0/20", "${var.csoc_cidr}"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
   }
 
   egress {
@@ -52,7 +16,7 @@ resource "aws_security_group" "local" {
     protocol  = "-1"
 
     # 54.224.0.0/12 logs.us-east-1.amazonaws.com
-    cidr_blocks = ["172.24.${var.vpc_octet}.0/20", "54.224.0.0/12"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "54.224.0.0/12"]
   }
 
   tags {
@@ -70,14 +34,14 @@ resource "aws_security_group" "webservice" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["172.24.${var.vpc_octet}.0/20", "${var.csoc_cidr}"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["172.24.${var.vpc_octet}.0/20"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
   }
 
   ingress {
@@ -127,7 +91,7 @@ resource "aws_security_group" "proxy" {
     from_port   = 0
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["172.24.${var.vpc_octet}.0/20", "${var.csoc_cidr}"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
   }
 
   tags {
