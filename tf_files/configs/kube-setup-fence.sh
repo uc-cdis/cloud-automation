@@ -30,7 +30,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   fi
 
   cd "${WORKSPACE}/${vpc_name}_output"
-  
+
   if ! g3kubectl get secret fence-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .fence < creds.json > "$credsFile"
@@ -43,9 +43,15 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   mkdir -p jwt-keys
   mkdir -p ssh-keys
 
-  if [ ! -f jwt-keys/jwt_public_key.pem ]; then
-    openssl genrsa -out jwt-keys/jwt_private_key.pem 2048
-    openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
+  # Create keypairs for fence. Following the requirements from fence, the
+  # keypairs go in subdirectories of the base keys directory, where the
+  # subdirectories are named as an ISO 8601 timestamp of when the keypair is
+  # created.
+  if [ ! -f jwt-keys/*/jwt_public_key.pem ]; then
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    mkdir jwt-keys/${timestamp}
+    openssl genrsa -out jwt-keys/${timestamp}/jwt_private_key.pem 2048
+    openssl rsa -in jwt-keys/${timestamp}/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
   fi
 
   if [ ! -f ssh-keys/id_rsa ]; then
@@ -62,7 +68,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
 
   if ! g3kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
     if [[ ! -f "./apis_configs/fence_credentials.json" ]]; then
-      cp "${GEN3_HOME}/tf_files/configs/fence_credentials.json" "./apis_configs/fence_credentials.json" 
+      cp "${GEN3_HOME}/tf_files/configs/fence_credentials.json" "./apis_configs/fence_credentials.json"
     fi
     echo "create fence-json-secret using current creds file apis_configs/fence_credentials.json"
     g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
@@ -82,7 +88,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   if ! kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
     kubectl create secret generic fence-ssh-keys --from-file=id_rsa=./ssh-keys/id_rsa --from-file=id_rsa.pub=./ssh-keys/id_rsa.pub
   fi
-  
+
   if ! kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
     mkdir -p ./apis_configs/.ssh
     if [[ ! -f "./apis_configs/.ssh/config" ]]; then
@@ -100,7 +106,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
           ForwardAgent yes
           IdentityFile ~/.ssh/id_rsa
           ProxyCommand ssh ubuntu@squid.internal nc %h %p 2> /dev/null
-      
+
        Host sftp.dbgap
           ServerAliveInterval 120
           HostName ftp-private.ncbi.nlm.nih.gov
