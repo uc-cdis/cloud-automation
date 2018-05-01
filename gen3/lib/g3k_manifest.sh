@@ -78,6 +78,7 @@ g3k_manifest_path() {
 #
 g3k_kv_filter() {
   local templatePath=$1
+  shift
   local key
   local value
 
@@ -85,16 +86,15 @@ g3k_kv_filter() {
     echo -e "$(red_color "ERROR: kv template does not exist: $templatePath")" 1>&2
     return 1
   fi
-  shift;
   local tempFile="$XDG_RUNTIME_DIR/g3k_manifest_filter_$$"
   cp "$templatePath" "$tempFile"
   while [[ $# -gt 0 ]]; do
     key="$1"
     shift
     value="$1"
-    shift
+    shift || true
     # this won't work if key or value contain ^ :-(
-    echo "Replace $key - $value" 1>&2
+    # echo "Replace $key - $value" 1>&2
     sed -i.bak "s^${key}^${value}^g" "$tempFile"
   done
   cat $tempFile
@@ -115,7 +115,7 @@ g3k_manifest_filter() {
   local templatePath=$1
   shift
   local manifestPath=$1
-  shift
+  shift || true
   
   g3k_manifest_init
   if [[ ! -f "$templatePath" ]]; then
@@ -153,7 +153,7 @@ g3k_manifest_filter() {
     key="$1"
     shift
     value="$1"
-    shift
+    shift || true
     key=$(echo "GEN3_${key}" | tr '[:lower:]' '[:upper:]')
     kvList+=("$key" "value: \"$value\"")
   done
