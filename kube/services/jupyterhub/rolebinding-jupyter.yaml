@@ -1,0 +1,13 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: jupyter-binding
+subjects:
+- kind: ServiceAccount
+  name: jupyter-service
+  apiGroup: ""
+roleRef:
+  kind: Role
+  name: jupyter
+  apiGroup: ""
+
