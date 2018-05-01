@@ -48,8 +48,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
     openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
   fi
 
+  # sftp key
   if [ ! -f ssh-keys/id_rsa ]; then
-    ssh-keygen -t rsa -b 4096 -C "giangbui0816@gmail.com" -N "" -f ssh-keys/id_rsa
+    ssh-keygen -t rsa -b 4096 -C "dev@test.com" -N "" -f ssh-keys/id_rsa
   fi
 
   if ! kubectl get configmaps/fence > /dev/null 2>&1; then
