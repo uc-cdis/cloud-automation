@@ -71,3 +71,8 @@ Remove any expired Google Service Account keys.
 #### google-manage-keys-cronjob
 
 Same as above but run on a schedule.
+
+#### google-create-bucket
+
+Create a Google Bucket and associated db entries. See job file for details
+on job invocation.
