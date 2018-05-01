@@ -15,9 +15,16 @@ if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/kube/kubes.sh"
 fi # else already sourced this file ...
 
+vpc_name=${vpc_name:-$1}
+if [ -z "${vpc_name}" ]; then
+   echo "Usage: bash kube-setup-fence.sh vpc_name"
+   exit 1
+fi
+
+cd "${WORKSPACE}/${vpc_name}"
 
 if ! g3kubectl get secrets/shiny-secret > /dev/null 2>&1; then
-  g3kubectl create secret generic shiny-secret "--from-file=credentials.json=${GEN3_HOME}/apis_configs/shiny_credentials.json"
+  g3kubectl create secret generic shiny-secret "--from-file=credentials.json=./apis_configs/shiny_credentials.json"
 fi
 
 # deploy shiny

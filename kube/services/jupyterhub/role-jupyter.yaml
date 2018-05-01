@@ -1,9 +1,8 @@
-kind: Role
+kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
   name: jupyter
-  namespace: jupyter-pods
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
+  resources: ["pods", "persistentvolumeclaims"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"] # You can also use ["*"]
