@@ -123,11 +123,19 @@ g3k_psql() {
 }
 
 #
-# Run a job with the given name
+# Run a job with the given name - 
+# template is applied with subsequent k v list
 # see (g3k help) below
 #
 g3k_runjob() {
+  local jobName
+  local kvList
+  local tempFile
+  local result
+  declare -a kvList=()
+
   jobName=$1
+  shift
   if [[ -z "$jobName" ]]; then
     echo "g3k runjob JOBNAME"
     return 1
@@ -137,15 +145,28 @@ g3k_runjob() {
     echo "Could not find $jobPath"
     return 1
   fi
-  if [[ $(yq -r .metadata.name < "$jobPath") != "$jobName" ]]; then
+   
+  while [[ $# -gt 0 ]]; do
+    kvList+=("$1")
+    shift
+  done
+  tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "job.yaml_XXXXXX")
+  g3k_manifest_filter "$jobPath" "" "${kvList[@]}" > "$tempFile"
+
+  if [[ $(yq -r .metadata.name < "$tempFile") != "$jobName" ]]; then
     echo ".metadata.name != $jobName in $jobPath"
+    cat "$tempFile"
     return 1
   fi
+ 
   # delete previous job run and pods if any
   if g3kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
     g3kubectl delete "jobs/${jobName}"
   fi
-  g3kubectl create -f "$jobPath"
+  g3kubectl create -f "$tempFile"
+  result=$?
+  /bin/rm $tempFile
+  return "$result"
 }
 
 #

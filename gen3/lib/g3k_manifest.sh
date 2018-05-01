@@ -67,14 +67,55 @@ g3k_manifest_path() {
 }
 
 #
+# Take a templatePath, then a k1, v1, k2, v2, ... arguments,
+# and process the template path replacing k1 with v1, etc
+# Cats the result to stdout
+#
+# @param templatePath
+# @param k1
+# @param v1
+# ...
+#
+g3k_kv_filter() {
+  local templatePath=$1
+  local key
+  local value
+
+  if [[ ! -f "$templatePath" ]]; then
+    echo -e "$(red_color "ERROR: kv template does not exist: $templatePath")" 1>&2
+    return 1
+  fi
+  shift;
+  local tempFile="$XDG_RUNTIME_DIR/g3k_manifest_filter_$$"
+  cp "$templatePath" "$tempFile"
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    shift
+    value="$1"
+    shift
+    # this won't work if key or value contain ^ :-(
+    echo "Replace $key - $value" 1>&2
+    sed -i.bak "s^${key}^${value}^g" "$tempFile"
+  done
+  cat $tempFile
+  /bin/rm "$tempFile"
+  return 0  
+}
+
+#
 # Echo result of regex-replace on a given file based on the active manifest
 #
 # @param templatePath path to template to process
 # @param manifestPath path to manfiest variable file - optional - defaults to $(g3k_manifest_path)
+# @param k1 expands to 'GEN3_{k1}'
+# @param v1 expands to 'value: {v1}' - assumes this supplies an 'env:' environment variable value
+# ...
 #
 g3k_manifest_filter() {
   local templatePath=$1
-  local manifestPath=$2
+  shift
+  local manifestPath=$1
+  shift
   
   g3k_manifest_init
   if [[ ! -f "$templatePath" ]]; then
@@ -97,30 +138,26 @@ g3k_manifest_filter() {
   #
   local key
   local value
-  local replaceMap
-  local keyList
-  declare -A replaceMap
-  declare -a keyList
-  # zsh friendly 
-  replaceMap[GEN3_DATE_LABEL]="date: \"$(date +%s)\""
-  keyList+=('GEN3_DATE_LABEL')
+  local kvList
+  declare -a kvList=()
+  
+  kvList+=('GEN3_DATE_LABEL' "date: \"$(date +%s)\"")
 
   for key in $(jq -r '.versions | keys[]' < "$manifestPath"); do
     value="$(jq -r ".versions[\"$key\"]" < "$manifestPath")"
     # zsh friendly upper case
     key=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
-    replaceMap[$key]="image: $value"
-    keyList+=("$key")
+    kvList+=("$key" "image: $value")
   done
-  local tempFile="$XDG_RUNTIME_DIR/g3k_manifest_filter_$$"
-  cp "$templatePath" "$tempFile"
-  for key in "${keyList[@]}"; do
-    value="${replaceMap[$key]}"
-    # this won't work if key or value contain ^ :-(
-    sed -i.bak "s^${key}^${value}^g" "$tempFile"
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    shift
+    value="$1"
+    shift
+    key=$(echo "GEN3_${key}" | tr '[:lower:]' '[:upper:]')
+    kvList+=("$key" "value: \"$value\"")
   done
-  cat $tempFile
-  /bin/rm "$tempFile"
+  g3k_kv_filter "$templatePath" "${kvList[@]}"
   return 0
 }
 

@@ -1,0 +1,10 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: sheepdog-deployment
+spec:
+  selector:
+  -key: k1
+   GEN3_K1
+  -key: k2
+   GEN3_K2
