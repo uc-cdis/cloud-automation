@@ -38,5 +38,5 @@ g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_indexd_templ.y
 g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_peregrine_templ.yaml" gdcapidb_ip "$GDCAPIDB_IP" cloudproxy_ip "$CLOUDPROXY_IP" | g3kubectl apply -f -
 g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_sheepdog_templ.yaml" gdcapidb_ip "$GDCAPIDB_IP" cloudproxy_ip "$CLOUDPROXY_IP" | g3kubectl apply -f -
 g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_portal_templ.yaml" cloudproxy_ip "$CLOUDPROXY_IP" | g3kubectl apply -f -
-g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_revproxy.yaml" cloudproxy_ip "$CLOUDPROXY_IP" | g3kubectl apply -f -
+g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_revproxy_templ.yaml" cloudproxy_ip "$CLOUDPROXY_IP" | g3kubectl apply -f -
 kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_allowdns_templ.yaml"
