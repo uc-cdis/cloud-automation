@@ -63,7 +63,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
 
   if ! g3kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
     if [[ ! -f "./apis_configs/fence_credentials.json" ]]; then
-      cp "${GEN3_HOME}/tf_files/configs/fence_credentials.json" "./apis_configs/fence_credentials.json"
+      cp "${GEN3_HOME}/apis_configs/fence_credentials.json" "./apis_configs/fence_credentials.json" 
     fi
     echo "create fence-json-secret using current creds file apis_configs/fence_credentials.json"
     g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json

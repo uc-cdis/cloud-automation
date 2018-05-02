@@ -65,13 +65,13 @@ test_workspace() {
   [[ ! -z "$MD5" ]]; because $? "commons.sh sets MD5 to $MD5"
 
   if [[ "$TEST_WORKSPACE" =~ _user$ ]]; then
-    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws_user_vpc" ]]; because $? "a _user workspace should use the ./aws_user_vpc resources"
+    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/user_vpc" ]]; because $? "a _user workspace should use the ./aws_user_vpc resources"
   elif [[ "$TEST_WORKSPACE" =~ _snapshot$ ]]; then
-    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws_rds_snapshot" ]]; because $? "a _snapshot workspace should use the ./aws_rds_snapshot resources"
+    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/rds_snapshot" ]]; because $? "a _snapshot workspace should use the ./aws_rds_snapshot resources"
   elif [[ "$TEST_WORKSPACE" =~ _databucket$ ]]; then
-    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws_data_bucket" ]]; because $? "a _databucket workspace should use the ./aws_data_bucket resources"
+    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/data_bucket" ]]; because $? "a _databucket workspace should use the ./aws_data_bucket resources"
   else
-    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws" ]]; because $? "a generic workspace should use the ./aws resources"
+    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/commons" ]]; because $? "a generic workspace should use the ./aws resources"
     for fileName in README.md creds.json 00configmap.yaml kube-services.sh; do
       filePath="onprem_scripts/$fileName"
       [[ -f $filePath ]]; because $? "gen3 workon ensures we have a $filePath generated from template"

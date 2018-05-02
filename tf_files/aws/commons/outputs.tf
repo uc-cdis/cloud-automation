@@ -8,8 +8,6 @@
 # as an input.
 #
 
-
-
 output "aws_region" {
   value = "${var.aws_region}"
 }
@@ -49,7 +47,7 @@ output "gdcapi_rds_id" {
 #-----------------------------
 
 data "template_file" "cluster" {
-  template = "${file("${path.module}/../configs/cluster.yaml")}"
+  template = "${file("${path.module}/../../configs/cluster.yaml")}"
 
   vars {
     cluster_name         = "${local.cluster_name}"
@@ -79,7 +77,7 @@ data "template_file" "cluster" {
 #      https://github.com/hashicorp/terraform/issues/11566
 #
 data "template_file" "creds" {
-  template = "${file("${path.module}/../configs/creds.tpl")}"
+  template = "${file("${path.module}/../../configs/creds.tpl")}"
 
   vars {
     fence_host                  = "${aws_db_instance.db_fence.address}"
@@ -125,7 +123,7 @@ data "template_file" "kube_vars" {
 }
 
 data "template_file" "configmap" {
-  template = "${file("${path.module}/../configs/00configmap.yaml")}"
+  template = "${file("${path.module}/../../configs/00configmap.yaml")}"
 
   vars {
     vpc_name       = "${var.vpc_name}"
@@ -164,7 +162,7 @@ resource "null_resource" "config_setup" {
   }
 
   provisioner "local-exec" {
-    command = "echo \"${data.template_file.kube_vars.rendered}\" | cat - \"${path.module}/../configs/kube-services-body.sh\" > ${var.vpc_name}_output/kube-services.sh"
+    command = "echo \"${data.template_file.kube_vars.rendered}\" > ${var.vpc_name}_output/kube-vars.sh"
   }
 
   provisioner "local-exec" {

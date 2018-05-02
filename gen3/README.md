@@ -380,8 +380,8 @@ $ gen3 tfapply
 ## VPC naming conventions
 
 The *gen3* tools follow these VPC naming conventions to determine which terraform stack to build in the VPC.
-* a VPC name that ends in '_user' is a user VPC (for user VM's) on AWS defined by the resources in `cloud-automation/tf_files/aws_user_vpc`
-* every other VPC name is a commons VPC on AWS defined by resources in `cloud-automation/tf_files/aws`
+* a VPC name that ends in '_user' is a user VPC (for user VM's) on AWS defined by the resources in `cloud-automation/tf_files/aws/user_vpc`
+* every other VPC name is a commons VPC on AWS defined by resources in `cloud-automation/tf_files/aws/commons`
 
 
 ## VPC peering request acceptance by CSOC admin VM

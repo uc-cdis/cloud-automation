@@ -72,19 +72,19 @@ gen3_workon() {
   fi
 
   # terraform stack - based on VPC name
-  export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws"
+  export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons"
   if [[ "$GEN3_WORKSPACE" =~ _user$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_user_vpc"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/user_vpc"
   elif [[ "$GEN3_WORKSPACE" =~ _snapshot$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_rds_snapshot"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/rds_snapshot"
   elif [[ "$GEN3_WORKSPACE" =~ _adminvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_admin_vm"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_admin_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _logging$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_common_logging"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_common_logging"
   elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_data_bucket"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/data_bucket"
   elif [[ "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_squid_vm"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_vm"
   fi
 
   PS1="gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"

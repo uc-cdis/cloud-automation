@@ -106,6 +106,7 @@ resource "aws_route_table" "private_user" {
 
 resource "aws_default_route_table" "default" {
   default_route_table_id = "${aws_vpc.main.default_route_table_id}"
+
   route {
     #from the commons vpc to the csoc vpc via the peering connection
     cidr_block                = "${var.csoc_cidr}"
@@ -117,11 +118,9 @@ resource "aws_default_route_table" "default" {
   }
 }
 
-
 resource "aws_main_route_table_association" "default" {
-  vpc_id = "${aws_vpc.main.id}"
+  vpc_id         = "${aws_vpc.main.id}"
   route_table_id = "${aws_default_route_table.default.id}"
-
 }
 
 resource "aws_route_table_association" "public" {
@@ -152,8 +151,6 @@ resource "aws_subnet" "private_user" {
     Organization = "Basic Service"
   }
 }
-
-
 
 #
 # The need is to keep logs for no longer than 5 years so 
@@ -191,7 +188,7 @@ data "aws_ami" "public_login_ami" {
 
 #
 # This AMI is no longer used here, but is referenced in 
-# tf_files/aws-user-vpc and tf_files/aws.
+# tf_files/aws/user-vpc and tf_files/aws/commons.
 # It's handy to have the encrypted AMI ready to use in a VPC I think.
 #
 resource "aws_ami_copy" "login_ami" {
