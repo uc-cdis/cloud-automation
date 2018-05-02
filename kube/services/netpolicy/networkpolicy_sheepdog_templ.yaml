@@ -1,0 +1,42 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-sheepdog
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: sheepdog
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: sheepdog
+      - podSelector:
+          matchLabels:
+             app: revproxy
+      ports:
+         - port: 80
+         - port: 443
+  egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app: sheepdog
+      - podSelector:
+          matchLabels:
+            app: indexd
+      - podSelector:
+          matchLabels:
+            app: fence
+      - ipBlock:
+           cidr: ${gdcapidb_ip}/32
+      - ipBlock:
+           cidr: ${cloudproxy_ip}/32
+      - ipBlock:
+           cidr: 54.224.0.0/12
+      - ipBlock:
+           cidr: 52.92.16.0/20
+  policyTypes:
+   - Ingress
+   - Egress
