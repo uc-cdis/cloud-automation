@@ -36,9 +36,9 @@ spec:
           matchLabels:
             app: indexd
       - ipBlock:
-           cidr: ${fencedb_ip}/32
+           cidr: fencedb_ip/32
       - ipBlock:
-           cidr: ${cloudproxy_ip}/32
+           cidr: cloudproxy_ip/32
       - ipBlock:
            cidr: 54.224.0.0/12
       - ipBlock:

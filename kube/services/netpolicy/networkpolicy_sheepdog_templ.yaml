@@ -30,9 +30,9 @@ spec:
           matchLabels:
             app: fence
       - ipBlock:
-           cidr: ${gdcapidb_ip}/32
+           cidr: gdcapidb_ip/32
       - ipBlock:
-           cidr: ${cloudproxy_ip}/32
+           cidr: cloudproxy_ip/32
       - ipBlock:
            cidr: 54.224.0.0/12
       - ipBlock:
