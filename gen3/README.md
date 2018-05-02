@@ -317,65 +317,90 @@ Host k8s.planxplanetv1
 
 Run the test suite.  Requires a 'cdistest' profile.
 
-### gen3 kube-up
+### g3k 
 
-Not yet implemented 
+The `g3k` tools are now also available via `gen3`,
+so `gen3 roll sheepdog` is equivalent to `g3k roll sheepdog`.
 
-### gen3 dict-update
-
-Not yet implemented 
-
-### gen3 kube-deploy deployment-name
-
-Not yet implemented 
-
-## Migrating existing AWS commons to gen3
-
-The gen3 tools expect the terraform variable files (config.tfvars and backend.tfvars)
-to exist under
 ```
-    s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/
+$ g3k help
+  
+  Use:
+  g3k COMMAND - where COMMAND is one of:
+    backup - backup home directory to vpc's S3 bucket
+    devterm - open a terminal session in a dev pod
+    help
+    jobpods JOBNAME - list pods associated with given job
+    joblogs JOBNAME - get logs from first result of jobpods
+    pod PATTERN - grep for the first pod name matching PATTERN
+    pods PATTERN - grep for all pod names matching PATTERN
+    psql SERVICE 
+       - where SERVICE is one of sheepdog, indexd, fence
+    replicas DEPLOYMENT-NAME REPLICA-COUNT
+    roll DEPLOYMENT-NAME
+      Apply the current manifest to the specified deployment - triggers
+      and update in most deployments (referencing GEN3_DATE_LABEL) even 
+      if the version does not change.
+    runjob JOBNAME 
+     - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
+    testsuite
+    update_config CONFIGMAP-NAME YAML-FILE
 ```
-Those variable files do not include aws credentials - gen3 harvests those
-from your local aws profile, and are not 
-backed up to S3.
 
-Here is one strategy for migration:
-* `gen3 workon profile-name vpc-name`
+There are some helper functions in [kubes.sh](https://github.com/uc-cdis/cloud-automation/blob/master/kube/kubes.sh) for k8s related operations.
 
-This creates a local workspace with config.tfvars and backend.tfvars
-files generated from a template that auto-generates new passwords, etc.
-It also creates the GEN3_S3_BUCKET (defaults to cdis-state-ac{ACCOUNTID}-gen3)
-S3 bucket if it does not yet exist.
+### roll
+`g3k roll $DEPLOYMENT_NAME` updates the deployed pods to the 
+docker image currently referenced by `cdis-manifest` - 
+forces the pod to update even if the image tag has not changed
 
-* `gen3 cd`
+ex: `g3k roll fence`
 
-`cd` the shell into the workspace folder.
+Also, `g3k roll all` rolls all services in order, and creates missing
+secrets and configuration if the `~/${vpc_name}_output/creds.json` and
+similar files are present.
 
-* Update config.tfvars and backend.tfvars with appropriate values
-* `gen3 tfplan`
-* `gen3 tfapply`
+### get_pod
+`g3k get_pod $DEPLOYMENT_SUBSTRING` get one of the pods' name for a deployment, this is handy when you want to just run a command on one pod, eg:
+`kubectl exec $(get_pod gdcapi) -c gdcapi ls`.
 
-Only tfapply if the plan is not destructive.
-The tfapply copies the local config.tfvars, backend.tfvars, and README.md to a backup in S3.
+### update_config
+`g3k update_config $CONFIG_NAME $CONFIG_FILE` this will delete old configmap and create new configmap with updated content
 
-* Optionally - update backend.tfvars, so that terraform stores its S3 state in the same folder as config.tfvars, then run `terraform init` to move the state, and gen3 tfplan; gen3 tfapply; to sync everything up with s3 - ex:
+### run_job
+
 ```
-$ cat backend.tfvars 
-bucket = "cdis-state-ac3333-gen3"
-encrypt = "true"
-key = "gen3test"
-region = "us-east-1"
+ubuntu@ip-172-16-36-26:~$ g3k update_config fence planxplanetv1/apis_configs/user.yaml 
+configmap "fence" deleted
+configmap "fence" created
 
-#
-# gen3 workon ... runs 'terraform init' - #
-
-$ gen3 workon cdistest gen3test
-$ gen3 tfplan
-# Note: tfplan should propose no resource changes.
-#   Still run tfapply to sync up the state in S3.
-$ gen3 tfapply
+ubuntu@ip-172-16-36-26:~$ g3k runjob useryaml
+job "useryaml" deleted
+job "useryaml" created
 ```
+
+### g3k_help
+
+```
+ubuntu@ip-172-16-36-26:~$ g3k help
+  
+  Use:
+  g3k COMMAND - where COMMAND is one of:
+    help
+    jobpods JOBNAME - list pods associated with given job
+    joblogs JOBNAME - get logs from first result of jobpods
+    pod PATTERN - grep for the first pod name matching PATTERN
+    pods PATTERN - grep for all pod names matching PATTERN
+    replicas DEPLOYMENT-NAME REPLICA-COUNT
+    roll DEPLOYMENT-NAME
+      Apply a superfulous metadata change to a deployment to trigger
+      the deployment's running pods to update
+    runjob JOBNAME K1 V1 K2 V2 ...
+     - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
+    update_config CONFIGMAP-NAME YAML-FILE
+```
+
+
 
 ## VPC naming conventions
 

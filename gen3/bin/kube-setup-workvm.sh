@@ -90,7 +90,7 @@ CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
 RC_FILE="${CURRENT_SHELL}rc"
 
 if [[ "$WORKSPACE" == "$HOME" ]]; then
-  if ! grep kubes.sh ${WORKSPACE}/.${RC_FILE} > /dev/null; then
+  if ! grep KUBECONFIG ${WORKSPACE}/.${RC_FILE} > /dev/null; then
     echo "Adding variables to ${WORKSPACE}/.${RC_FILE}"
     cat - >>${WORKSPACE}/.${RC_FILE} << EOF
 export http_proxy=http://cloud-proxy.internal.io:3128
@@ -99,9 +99,6 @@ export no_proxy='$no_proxy'
 
 export KUBECONFIG=${WORKSPACE}/${vpc_name}/kubeconfig
 
-if [ -f ${WORKSPACE}/cloud-automation/kube/kubes.sh ]; then
-    . ${WORKSPACE}/cloud-automation/kube/kubes.sh
-fi
 EOF
   fi
 
@@ -114,7 +111,7 @@ fi
 EOF
   fi
 
-# a provisioner should only work with one vpc
+# a user login should only work with one vpc
 if ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
   cat - >>${WORKSPACE}/.${RC_FILE} <<EOF
 export vpc_name='$vpc_name'

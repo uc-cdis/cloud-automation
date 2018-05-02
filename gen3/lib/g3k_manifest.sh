@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Little library of manifest related functions usually accessed
-# via the `g3k` cli defined in kube/kubes.sh
+# via the `g3k/gen3` cli
 #
 
 G3K_MANIFEST_SH_DIR=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh

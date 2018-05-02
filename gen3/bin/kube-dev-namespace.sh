@@ -12,7 +12,7 @@ _KUBE_DEV_NAMESPACE=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_DEV_NAMESPACE}/../.." && pwd)}"
 
 if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/kube/kubes.sh"
+  source "$GEN3_HOME/gen3/gen3setup.sh"
 fi # else already sourced this file ...
 
 if [[ -z "$GEN3_NOPROXY" ]]; then
@@ -118,7 +118,7 @@ if [[ -f /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json ]]; th
 fi
 
 # setup ~/.bashrc
-if ! grep kubes.sh /home/${namespace}/.bashrc > /dev/null 2>&1; then
+if ! grep GEN3_HOME /home/${namespace}/.bashrc > /dev/null 2>&1; then
   echo "Adding variables to .bashrc"
   cat >> /home/${namespace}/.bashrc << EOF
 export http_proxy=http://cloud-proxy.internal.io:3128
@@ -126,9 +126,9 @@ export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com'
 
 export KUBECONFIG=~/${vpc_name}/kubeconfig
-
-if [ -f ~/cloud-automation/kube/kubes.sh ]; then
-    . ~/cloud-automation/kube/kubes.sh
+export GEN3_HOME=${WORKSPACE}/cloud-automation
+if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
+  source "\${GEN3_HOME}/gen3/gen3setup.sh"
 fi
 EOF
 fi

@@ -16,7 +16,7 @@ export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 
 
 if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/kube/kubes.sh"
+  source "$GEN3_HOME/gen3/gen3setup.sh"
 fi # else already sourced this file ...
 
 if [[ -z "$GEN3_NOPROXY" ]]; then

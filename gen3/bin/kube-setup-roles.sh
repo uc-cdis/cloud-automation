@@ -14,7 +14,7 @@ export WORKSPACE="${WORKSPACE:-$HOME}"
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_ROLES}/../.." && pwd)}"
 
 if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/kube/kubes.sh"
+  source "$GEN3_HOME/gen3/gen3setup.sh"
 fi # else already sourced this file ...
 
 if ! g3kubectl get roles/devops > /dev/null 2>&1; then

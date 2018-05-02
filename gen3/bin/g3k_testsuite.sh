@@ -5,10 +5,10 @@
 G3K_TESTSUITE_DIR=$(dirname "${BASH_SOURCE:-$0}")
 GEN3_HOME="${GEN3_HOME:-$(cd "${G3K_TESTSUITE_DIR}/../.." && pwd)}"
 export GEN3_HOME
-export GEN3_MANIFEST_HOME="${G3K_TESTSUITE_DIR}/testData"
+export GEN3_MANIFEST_HOME="${G3K_TESTSUITE_DIR}/../lib/testData"
 
-source "$G3K_TESTSUITE_DIR/shunit.sh"
-source "$G3K_TESTSUITE_DIR/../../kube/kubes.sh"
+source "$G3K_TESTSUITE_DIR/../lib/shunit.sh"
+source "$G3K_TESTSUITE_DIR/../gen3setup.sh"
 
 test_env() {
   [[ ! -z $GEN3_HOME ]]; because $? "kubes.sh defines the GEN3_HOME environment variable"

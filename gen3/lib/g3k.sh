@@ -4,7 +4,7 @@
 _KUBES_SH="true"
 
 g3kScriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
-export GEN3_HOME="${GEN3_HOME:-$(dirname "$g3kScriptDir")}"
+export GEN3_HOME="${GEN3_HOME:-$(dirname $(dirname "$g3kScriptDir"))}"
 export GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(dirname "$GEN3_HOME")/cdis-manifest"}"
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
@@ -211,21 +211,6 @@ g3k_joblogs(){
   done
 }
 
-#
-# Backup the current user's home directory to S3
-#
-g3k_backup() {
-  if [[ -z "$vpc_name" ]]; then
-    echo 'g3k backup requires the vpc_name environment to be set'
-    return 1
-  fi
-  if [[ -z "$s3_bucket" ]]; then
-    echo 'g3k backup requires the s3_bucket environment to be set'
-    return 1
-  fi
-  bash "$g3kScriptDir/../tf_files/configs/kube-backup.sh"
-}
-
 
 #
 # Parent for other commands - pronounced "geeks"
@@ -273,13 +258,14 @@ g3k() {
       g3k_runjob "$@"
       ;;
     "testsuite")
-      bash "${GEN3_HOME}/gen3/lib/g3k_testsuite.sh"
+      bash "${GEN3_HOME}/gen3/bin/g3k_testsuite.sh"
       ;;
     "update_config")
       update_config "$@"
       ;;
     *)
       g3k_help "unknown command: $command"
+      exit 2
       ;;
     esac
   )

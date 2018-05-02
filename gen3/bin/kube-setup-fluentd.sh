@@ -11,7 +11,7 @@ export WORKSPACE="${WORKSPACE:-$HOME}"
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_FLUENTD}/../.." && pwd)}"
 
 if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/kube/kubes.sh"
+  source "$GEN3_HOME/gen3/gen3setup.sh"
 fi # else already sourced this file ...
 
 vpc_name=${vpc_name:-$1}
