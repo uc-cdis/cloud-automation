@@ -26,7 +26,7 @@ indexddb_dns=$(aws rds describe-db-instances --db-instance-identifier "$child_vp
 fencedb_dns=$(aws rds describe-db-instances --db-instance-identifier "$child_vpc_name"-fencedb --query 'DBInstances[*].Endpoint.Address' --output text)
 gdcapidb_dns=$(aws rds describe-db-instances --db-instance-identifier "$child_vpc_name"-gdcapidb --query 'DBInstances[*].Endpoint.Address' --output text)
 
-INDEXDB_IP=$(dig "$indexddb_dns" +short)
+INDEXDDB_IP=$(dig "$indexddb_dns" +short)
 FENCEDB_IP=$(dig "$fencedb_dns" +short)
 GDCAPIDB_IP=$(dig "$gdcapidb_dns" +short)
 CLOUDPROXY_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values="$child_vpc_name" HTTP Proxy" --query 'Reservations[*].Instances[*].[PrivateIpAddress]' --output text)
