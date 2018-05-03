@@ -15,21 +15,22 @@ if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/kube/kubes.sh"
 fi # else already sourced this file ...
 
-if [ $# -ne 1 ]; then
-    echo "USAGE: $0 name_of_child_vpc"
-    exit 1
+vpc_name=${vpc_name:-$1}
+if [ -z "${vpc_name}" ]; then
+   echo "Usage: bash kube-setup-networkpolicy.sh vpc_name"
+   exit 1
 fi
 
-child_vpc_name=$1
+vpc_name=$1
 
-indexddb_dns=$(aws rds describe-db-instances --db-instance-identifier "$child_vpc_name"-indexddb --query 'DBInstances[*].Endpoint.Address' --output text)
-fencedb_dns=$(aws rds describe-db-instances --db-instance-identifier "$child_vpc_name"-fencedb --query 'DBInstances[*].Endpoint.Address' --output text)
-gdcapidb_dns=$(aws rds describe-db-instances --db-instance-identifier "$child_vpc_name"-gdcapidb --query 'DBInstances[*].Endpoint.Address' --output text)
+indexddb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-indexddb --query 'DBInstances[*].Endpoint.Address' --output text)
+fencedb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-fencedb --query 'DBInstances[*].Endpoint.Address' --output text)
+gdcapidb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-gdcapidb --query 'DBInstances[*].Endpoint.Address' --output text)
 
 INDEXDDB_IP=$(dig "$indexddb_dns" +short)
 FENCEDB_IP=$(dig "$fencedb_dns" +short)
 GDCAPIDB_IP=$(dig "$gdcapidb_dns" +short)
-CLOUDPROXY_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values="$child_vpc_name" HTTP Proxy" --query 'Reservations[*].Instances[*].[PrivateIpAddress]' --output text)
+CLOUDPROXY_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values="$vpc_name" HTTP Proxy" --query 'Reservations[*].Instances[*].[PrivateIpAddress]' --output text)
 
 
 
