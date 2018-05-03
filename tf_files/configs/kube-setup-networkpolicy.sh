@@ -21,8 +21,6 @@ if [ -z "${vpc_name}" ]; then
    exit 1
 fi
 
-vpc_name=$1
-
 indexddb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-indexddb --query 'DBInstances[*].Endpoint.Address' --output text)
 fencedb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-fencedb --query 'DBInstances[*].Endpoint.Address' --output text)
 gdcapidb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-gdcapidb --query 'DBInstances[*].Endpoint.Address' --output text)
