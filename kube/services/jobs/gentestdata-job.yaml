@@ -8,9 +8,23 @@ spec:
     spec:
       serviceAccountName: useryaml-job
       volumes:
-        - name: api-secret
+        - name: shared-data
+          emptyDir: {}
+        - name: config-volume
           secret:
-            secretName: "api-secret"
+            secretName: "fence-secret"
+        - name: creds-volume
+          secret:
+            secretName: "fence-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
+        - name: json-secret-volume
+          secret:
+            secretName: "fence-json-secret"
+        - name: fence-jwt-keys
+          secret:
+            secretName: "fence-jwt-keys"
       containers:
       - name: fence
         image: quay.io/cdis/auto-qa:feat_gen_test_data
@@ -33,16 +47,59 @@ spec:
               configMapKeyRef:
                 name: global
                 key: submission_host
-
+          - name: NUMBER_OF_EXAMPLES
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: number_of_examples
         volumeMounts:
-          - name: "api-secret"
-            mountPath: "/var/www/AUTO-QA/credentials.json"
-            subPath: "credentials.json"
+          - name: shared-data
+            mountPath: /mnt/shared
         command: ["/bin/bash" ]
         args: 
           - "-c" 
           - |
+            let count=0
+            while [[ ! -f /mnt/shared/access_token.txt && $count -lt 50 ]]; do
+              echo "waiting for /mnt/shared/access_token.txt";
+              sleep 2
+              let count=$count+1
+            done
             mkdir -p /AUTO-QA/python-scripts/sim-data-code/TestData
-            Rscript /AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $(DICTIONARY_REPOS) develop $(TEST_PROJECT) 100 FALSE TRUE /AUTO-QA/python-scripts/sim-data-code/TestData/
-            python scripts.py data-create --host $(SUBMISSION_HOST) --dir /AUTO-QA/python-scripts/sim-data-code/TestData/ --project "$(TEST_PROJECT)" --authfile /var/www/AUTO-QA/credentials.json
+            Rscript /AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $(DICTIONARY_REPOS) develop $(TEST_PROJECT) $(NUMBER_OF_EXAMPLES) FALSE TRUE /AUTO-QA/python-scripts/sim-data-code/TestData/
+            python scripts.py data-create --host $(SUBMISSION_HOST) --dir /AUTO-QA/python-scripts/sim-data-code/TestData/ --project "$(TEST_PROJECT)" --access_token /mnt/shared/access_token.txt
+      - name: fence
+        image: quay.io/cdis/fence:feat_ftp
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/local_settings.py"
+            subPath: local_settings.py
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+            subPath: creds.json
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/fence/config_helper.py"
+            subPath: config_helper.py
+          - name: "json-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_credentials.json"
+            subPath: fence_credentials.json
+          - name: "fence-jwt-keys"
+            readOnly: true
+            mountPath: "/fence/keys"
+          - name: shared-data
+            mountPath: /mnt/shared
+        command: ["/bin/bash" ]
+        args: 
+            - "-c" 
+            - |
+              echo "generate access token"
+              fence-create --path fence token-create --type access_token --username cdis  --scopes openid,user,test-client --exp 3600 > /mnt/shared/access_token.txt
       restartPolicy: Never
