@@ -139,7 +139,7 @@ gen3_run() {
       scriptName="${command}.sh"
     else
       # Maybe it's a g3k command
-      g3k "$@"
+      g3k "$command" "$@"
       if [[ $? -eq 2 ]]; then
         echo "ERROR unknown command $command"
         scriptName=usage.sh
