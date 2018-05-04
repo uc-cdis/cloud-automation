@@ -21,6 +21,14 @@ if [ -z "${vpc_name}" ]; then
    exit 1
 fi
 
+serverVersion="$(kubectl version server -o json | jq -r '.serverVersion.major + "." + .serverVersion.minor' | head -c3).0"
+echo "K8s server version is $serverVersion"
+if ! semver_ge "$serverVersion" "1.8.0"; then
+  echo "K8s server version $serverVersion does not yet support network policy"
+  exit 0
+fi
+
+
 indexddb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-indexddb --query 'DBInstances[*].Endpoint.Address' --output text)
 fencedb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-fencedb --query 'DBInstances[*].Endpoint.Address' --output text)
 gdcapidb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-gdcapidb --query 'DBInstances[*].Endpoint.Address' --output text)
