@@ -46,6 +46,9 @@ spec:
     spec:
       serviceAccountName: useryaml-job
       volumes:
+        - name: creds-volume
+          secret:
+            secretName: "fence-creds"
         - name: config-volume
           secret:
             secretName: "fence-secret"
@@ -86,6 +89,10 @@ spec:
           - name: ACCESS_LOGS_BUCKET
             GEN3_ACCESS_LOGS_BUCKET
         volumeMounts:
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+            subPath: creds.json
           - name: "config-volume"
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
