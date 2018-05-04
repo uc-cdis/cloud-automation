@@ -15,6 +15,7 @@ spec:
         app: jupyter-hub
         GEN3_DATE_LABEL
     spec:
+      serviceAccountName: jupyter-service
       volumes:
         - name: config-volume
           configMap:
