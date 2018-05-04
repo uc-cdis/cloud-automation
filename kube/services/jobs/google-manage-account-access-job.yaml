@@ -17,9 +17,12 @@ spec:
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
-        - name: google-secret-volume
+        - name: fence-google-app-creds-secret-volume
           secret:
-            secretName: "fence-google-secret"
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
@@ -49,10 +52,14 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
-          - name: "google-secret-volume"
+          - name: "fence-google-app-creds-secret-volume"
             readOnly: true
-            mountPath: "/var/www/fence/google_secret.json"
-            subPath: google_secret.json
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml
