@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: shiny
+  name: shiny-deployment
 spec:
   strategy:
     type: RollingUpdate

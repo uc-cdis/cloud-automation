@@ -323,7 +323,7 @@ data:
           }
 
           # Exploration page until we finish redoing it
-          location /shiny/ {
+          location ~ ^/(shiny|explore)/ {
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
@@ -341,6 +341,7 @@ data:
               proxy_set_header Upgrade $http_upgrade;
               proxy_set_header Connection $connection_upgrade;
           }
+
 
           # Auth-proxy uses fence to gate access to downstream services
           # that don't implement our auth i.e. shiny, jupyter.

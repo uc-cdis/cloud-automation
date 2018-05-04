@@ -30,7 +30,7 @@ test_mpath() {
 }
 
 #
-# Test g3k_manifest_filter
+# Test g3k_manifest_filter - also tests g3k_kv_filter
 #
 test_mfilter() {
   testFolder="${XDG_RUNTIME_DIR}/g3kTest/mfilter"
@@ -47,6 +47,9 @@ test_mfilter() {
       because $? "Manifest filter gave expected result for $name deployment with $domain manifest"
     done
   done
+  g3k_manifest_filter "${GEN3_MANIFEST_HOME}/bogusInput.yaml" "${GEN3_MANIFEST_HOME}/default/manifest.json" "k1" "the value is v1" "k2" "the value is v2" > "$testFolder/bogus-b.yaml"
+  diff -w "${GEN3_MANIFEST_HOME}/bogusExpectedResult.yaml" "$testFolder/bogus-b.yaml"
+  because $? "Manifest filter processed extra environment values ok"
 }
 
 shunit_runtest "test_env"
