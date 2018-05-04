@@ -23,6 +23,9 @@ spec:
         - name: fence-yaml
           configMap:
             name: fence
+        - name: config-helper
+          configMap:
+            name: config-helper
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
@@ -49,6 +52,10 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/fence/config_helper.py"
+            subPath: config_helper.py
         command: ["/bin/bash"]
         args:
           - "-c"
