@@ -5,8 +5,6 @@
 # This fragment is pasted into kube-services.sh by kube.tf.
 #
 
-set -e
-
 _KUBE_SETUP_FENCE=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
 # Jenkins friendly
 export WORKSPACE="${WORKSPACE:-$HOME}"
@@ -135,17 +133,20 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   fi
 
 fi
+source "${_KUBE_SETUP_FENCE}/../lib/kube-setup-init.sh"
+
+gen3 kube-setup-secrets
 
 if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # create database
   # Initialize fence database and user list
   cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f .rendered_fence_db ]]; then
-    g3k runjob fencedb-create
+    gen3 runjob fencedb-create
     echo "Waiting 10 seconds for fencedb-create job"
     sleep 10
-    g3k joblogs fencedb-create || true
-    g3k runjob useryaml
-    g3k joblogs useryaml || true
+    gen3 joblogs fencedb-create || true
+    gen3 runjob useryaml
+    gen3 joblogs useryaml || true
     echo "Leaving setup jobs running in background"
     cd "${WORKSPACE}/${vpc_name}"
   fi
@@ -154,7 +155,7 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # create database
 fi
 
 # deploy fence
-g3k roll fence
+gen3 roll fence
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
 
 cat <<EOM

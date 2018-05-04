@@ -179,8 +179,8 @@ g3k_roll() {
   if [[ -f "$templatePath" ]]; then
     g3k_manifest_filter "$templatePath" | g3kubectl apply -f -
   elif [[ "$depName" == "all" ]]; then
-    echo bash "${GEN3_HOME}/tf_files/configs/kube-services-body.sh"
-    bash "${GEN3_HOME}/tf_files/configs/kube-services-body.sh"
+    echo bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
+    bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
   else
     echo -e "$(red_color "ERROR: could not find deployment template: $templatePath")"
   fi

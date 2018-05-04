@@ -5,27 +5,12 @@
 # Assumes 'sudo' access.
 #
 
-set -e
 
-# Jenkins friendly
-export WORKSPACE="${WORKSPACE:-$HOME}"
+vpc_name="${vpc_name:-${1:-unknown}}"
+s3_bucket="${s3_bucket:-${2:-unknown}}"
 
-if [[ -z "$GEN3_NOPROXY" ]]; then
-  export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
-  export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
-  export no_proxy=${no_proxy:-'localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com'}
-fi
-
-export DEBIAN_FRONTEND=noninteractive
-
-XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-vpc_name="${vpc_name:-$1}"
-s3_bucket="${s3_bucket:-$2}"
-
-if [ -z "${vpc_name}" ]; then
-   echo "Usage: bash kube-setup-workvm.sh vpc_name s3_bucket"
-   exit 1
-fi
+_KUBE_SETUP_WORKVM=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
+source "${_KUBE_SETUP_WORKVM}/../lib/kube-setup-init.sh"
 
 if sudo -n true > /dev/null 2>&1; then
   # -E passes through *_proxy environment
@@ -97,8 +82,6 @@ export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy='$no_proxy'
 
-export KUBECONFIG=${WORKSPACE}/${vpc_name}/kubeconfig
-
 EOF
   fi
 
@@ -112,10 +95,13 @@ EOF
   fi
 
 # a user login should only work with one vpc
-if ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
+if [[ "$vpc_name" != "unknown" ]] && ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
   cat - >>${WORKSPACE}/.${RC_FILE} <<EOF
 export vpc_name='$vpc_name'
 export s3_bucket='$s3_bucket'
+
+export KUBECONFIG=${WORKSPACE}/${vpc_name}/kubeconfig
+
 EOF
   fi
 

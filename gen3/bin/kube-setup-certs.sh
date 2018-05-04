@@ -8,22 +8,8 @@
 # properly configured.
 #
 
-set -e
-
 _KUBE_SETUP_CERTS=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-# Jenkins friendly
-export WORKSPACE="${WORKSPACE:-$HOME}"
-export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_CERTS}/../.." && pwd)}"
-
-if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/gen3/gen3setup.sh"
-fi # else already sourced this file ...
-
-vpc_name=${vpc_name:-$1}
-if [ -z "${vpc_name}" ]; then
-   echo "Usage: bash kube-setup-fence.sh vpc_name"
-   exit 1
-fi
+source "${_KUBE_SETUP_CERTS}/../lib/kube-setup-init.sh"
 
 if [[ ! -f "${WORKSPACE}/${vpc_name}/credentials/ca.pem" ]]; then
   echo "Certificate authority not present - cannot create certs: ${WORKSPACE}/${vpc_name}/credentials"
@@ -48,8 +34,6 @@ for name in $service_list; do
       openssl req -new -key "credentials/$name.key" -out "credentials/$name.csr" -subj "$SUBJ"
 
       openssl x509 -req -in "credentials/$name.csr" -CA credentials/ca.pem -CAkey credentials/ca-key.pem -CAcreateserial -out "credentials/${name}.crt" -days 500
-    else
-      echo "Certificate already exists credentials/${name}.crt"
     fi
     # may need to create the secret in a different namespace ...
     if ! g3kubectl get secrets "cert-$name" > /dev/null 2>&1; then
