@@ -23,26 +23,6 @@ resource "aws_security_group" "kube-worker" {
   }
 }
 
-resource "aws_route_table_association" "public_kube" {
-  subnet_id      = "${aws_subnet.public_kube.id}"
-  route_table_id = "${module.cdis_vpc.public_route_table_id}"
-}
-
-resource "aws_subnet" "public_kube" {
-  vpc_id                  = "${module.cdis_vpc.vpc_id}"
-  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 4}.0/24"
-  map_public_ip_on_launch = true
-  availability_zone       = "${data.aws_availability_zones.available.names[0]}"
-
-  # Note: KubernetesCluster tag is required by kube-aws to identify the public subnet for ELBs
-  tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "", "KubernetesCluster", "${local.cluster_name}")}"
-
-  lifecycle {
-    # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["tags"]
-  }
-}
-
 #
 # Only create db_fence if var.db_password_fence is set.
 # Sort of a hack during userapi to fence switch over.

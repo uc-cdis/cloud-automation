@@ -137,7 +137,16 @@ resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.main.id}"
   cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 0}.0/24"
   map_public_ip_on_launch = true
-  tags                    = "${map("Name", "public", "Organization", "Basic Service", "Environment", var.vpc_name)}"
+
+  # kube_ subnets are in availability zone [0], so put this in [1]
+  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+
+  tags = "${map("Name", "public", "Organization", "Basic Service", "Environment", var.vpc_name)}"
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["tags", "availability_zone"]
+  }
 }
 
 resource "aws_subnet" "private_user" {
@@ -145,10 +154,18 @@ resource "aws_subnet" "private_user" {
   cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 1}.0/24"
   map_public_ip_on_launch = false
 
+  # kube_ subnets are in availability zone [0], so put this in [1]
+  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+
   tags {
     Name         = "private_user"
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
+  }
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["tags", "availability_zone"]
   }
 }
 

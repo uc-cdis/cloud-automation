@@ -13,8 +13,8 @@ provider "aws" {}
 module "cdis_vpc" {
   ami_account_id  = "${var.ami_account_id}"
   source          = "../modules/cdis-aws-vpc"
-  vpc_octet2       = "${var.vpc_octet2}"
-  vpc_octet3       = "${var.vpc_octet3}"
+  vpc_octet2      = "${var.vpc_octet2}"
+  vpc_octet3      = "${var.vpc_octet3}"
   vpc_name        = "${var.vpc_name}"
   ssh_key_name    = "${aws_key_pair.automation_dev.key_name}"
   csoc_cidr       = "${var.csoc_cidr}"
@@ -67,21 +67,43 @@ resource "aws_route_table" "private_kube" {
   }
 }
 
-
-
 resource "aws_route_table_association" "private_kube" {
   subnet_id      = "${aws_subnet.private_kube.id}"
   route_table_id = "${aws_route_table.private_kube.id}"
 }
-
-
 
 resource "aws_subnet" "private_kube" {
   vpc_id                  = "${module.cdis_vpc.vpc_id}"
   cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 2}.0/24"
   availability_zone       = "${data.aws_availability_zones.available.names[0]}"
   map_public_ip_on_launch = false
+  availability_zone       = "${data.aws_availability_zones.available.names[0]}"
   tags                    = "${map("Name", "private_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["tags", "availability_zone"]
+  }
+}
+
+resource "aws_route_table_association" "public_kube" {
+  subnet_id      = "${aws_subnet.public_kube.id}"
+  route_table_id = "${module.cdis_vpc.public_route_table_id}"
+}
+
+resource "aws_subnet" "public_kube" {
+  vpc_id                  = "${module.cdis_vpc.vpc_id}"
+  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 4}.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "${data.aws_availability_zones.available.names[0]}"
+
+  # Note: KubernetesCluster tag is required by kube-aws to identify the public subnet for ELBs
+  tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "", "KubernetesCluster", "${local.cluster_name}")}"
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["tags", "availability_zone"]
+  }
 }
 
 resource "aws_subnet" "private_db_alt" {
@@ -89,11 +111,17 @@ resource "aws_subnet" "private_db_alt" {
   cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 3}.0/24"
   availability_zone       = "${data.aws_availability_zones.available.names[1]}"
   map_public_ip_on_launch = false
+  availability_zone       = "${data.aws_availability_zones.available.names[1]}"
 
   tags {
     Name         = "private_db_alt"
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
+  }
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["tags", "availability_zone"]
   }
 }
 
