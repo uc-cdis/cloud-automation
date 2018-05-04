@@ -51,6 +51,7 @@ g3k_help() {
   g3k COMMAND - where COMMAND is one of:
     backup - backup home directory to vpc's S3 bucket
     devterm - open a terminal session in a dev pod
+    ec2_reboot PRIVATE-IP - reboot the ec2 instance with the given private ip
     help
     jobpods JOBNAME - list pods associated with given job
     joblogs JOBNAME - get logs from first result of jobpods
@@ -63,7 +64,7 @@ g3k_help() {
       Apply the current manifest to the specified deployment - triggers
       and update in most deployments (referencing GEN3_DATE_LABEL) even 
       if the version does not change.
-    runjob JOBNAME 
+    runjob JOBNAME k1 v1 k2 v2 ...
      - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
     testsuite
     update_config CONFIGMAP-NAME YAML-FILE
@@ -211,6 +212,29 @@ g3k_joblogs(){
   done
 }
 
+#
+# Little helper to reboot an ec2 instance by private IP address.
+# Assumes the current AWS_PROFILE is accurate
+#
+g3k_ec2_reboot() {
+  local ipAddr
+  local id
+  ipAddr="$1"
+  if [[ -z "$ipAddr" ]]; then
+    echo "Use: g3k ec2 reboot private-ip-address"
+    return 1
+  fi
+  (
+    set -e
+    id=$(gen3 aws ec2 describe-instances --filter "Name=private-ip-address,Values=$ipAddr" --query 'Reservations[*].Instances[*].[InstanceId]' | jq -r '.[0][0][0]')
+    if [[ -z "$id" ]]; then
+      echo "could not find instance with private ip $ipAddr" 1>&2
+      exit 1
+    fi
+    gen3 aws ec2 reboot-instances --instance-ids "$id"
+  )
+}
+
 
 #
 # Parent for other commands - pronounced "geeks"
@@ -229,6 +253,9 @@ g3k() {
       ;;
     "devterm")
       g3k_devterm "$@"
+      ;;
+    "ec2_reboot")
+      g3k_ec2_reboot "$@"
       ;;
     "jobpods")
       g3k_jobpods "$@"

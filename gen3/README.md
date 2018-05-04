@@ -329,6 +329,7 @@ $ g3k help
   g3k COMMAND - where COMMAND is one of:
     backup - backup home directory to vpc's S3 bucket
     devterm - open a terminal session in a dev pod
+    ec2_reboot PRIVATE-IP - reboot the ec2 instance with the given private ip
     help
     jobpods JOBNAME - list pods associated with given job
     joblogs JOBNAME - get logs from first result of jobpods
