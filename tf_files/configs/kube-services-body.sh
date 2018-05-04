@@ -88,10 +88,10 @@ source "${GEN3_HOME}/tf_files/configs/kube-setup-sheepdog.sh"
 source "${GEN3_HOME}/tf_files/configs/kube-setup-peregrine.sh"
 source "${GEN3_HOME}/tf_files/configs/kube-setup-revproxy.sh"
 source "${GEN3_HOME}/tf_files/configs/kube-setup-fluentd.sh"
+source "${GEN3_HOME}/tf_files/configs/kube-setup-networkpolicy.sh"
 
 # portal is not happy until other services are up
 g3k roll portal
-
 
 cat - <<EOM
 INFO: delete the portal pod if necessary to force a restart - 
