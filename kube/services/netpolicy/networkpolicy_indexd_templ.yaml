@@ -1,0 +1,48 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-indexd
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: indexd
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: indexd
+      - podSelector:
+          matchLabels:
+             app: peregrine
+      - podSelector:
+          matchLabels:
+             app: sheepdog
+      - podSelector:
+          matchLabels:
+             app: revproxy
+      - podSelector:
+          matchLabels:
+             app: fence
+      ports:
+         - port: 80
+         - port: 443
+  egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app: indexd
+      - podSelector:
+          matchLabels:
+            app: fence
+      - ipBlock:
+           cidr: GEN3_INDEXDDB_IP/32
+      - ipBlock:
+           cidr: GEN3_CLOUDPROXY_IP/32
+      - ipBlock:
+           cidr: 54.224.0.0/12
+      - ipBlock:
+           cidr: 52.92.16.0/20
+  policyTypes:
+    - Ingress
+    - Egress
