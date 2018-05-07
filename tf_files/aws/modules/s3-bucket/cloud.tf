@@ -1,5 +1,5 @@
 module "cdis_s3_logs" {
-  source          = "../cdis-s3-logs"
+  source          = "../s3-logs"
   log_bucket_name = "s3logs-${local.clean_bucket_name}"
   environment     = "${var.environment}"
 }
