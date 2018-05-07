@@ -143,6 +143,7 @@ test_tfplan() {
   # terraform plan fails if it can't lookup the cert for the commons in the account
   sed -i.bak 's/YOUR.CERT.NAME/*.planx-pla.net/g' config.tfvars
   sed -i.bak 's/GET_A_UNIQUE_VPC_172_OCTET[23]/64/g' config.tfvars
+  sed -i.bak 's/#config_folder=/config_folder=/g' config.tfvars
   gen3 tfplan; because $? "tfplan should run even with some invalid config variables"
   [[ -f "$GEN3_WORKDIR/plan.terraform" ]]; because $? "'gen3 tfplan' generates a plan.terraform file used by 'gen3 tfapply'"
 }
