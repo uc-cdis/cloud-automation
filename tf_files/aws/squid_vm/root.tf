@@ -8,7 +8,7 @@ provider "aws" {}
 
 module "squid_vm" {
   ami_account_id   = "${var.ami_account_id}"
-  source           = "../modules/cdis-aws-squid"
+  source           = "../modules/squid"
   ssh_key_name     = "${var.ssh_key_name}"
   env_vpc_name     = "${var.env_vpc_name}"
   env_vpc_id       = "${var.env_vpc_id}"

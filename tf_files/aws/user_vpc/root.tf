@@ -13,7 +13,7 @@ resource "aws_key_pair" "automation_dev" {
 
 module "cdis_vpc" {
   ami_account_id = "${var.ami_account_id}"
-  source         = "../modules/cdis-aws-vpc"
+  source         = "../modules/vpc"
   csoc_cidr      = "${var.csoc_cidr}"
   vpc_octet2      = "${var.vpc_octet2}"
   vpc_octet3      = "${var.vpc_octet3}"

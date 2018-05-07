@@ -12,7 +12,7 @@ provider "aws" {}
 
 module "cdis_vpc" {
   ami_account_id  = "${var.ami_account_id}"
-  source          = "../modules/cdis-aws-vpc"
+  source          = "../modules/vpc"
   vpc_octet2      = "${var.vpc_octet2}"
   vpc_octet3      = "${var.vpc_octet3}"
   vpc_name        = "${var.vpc_name}"
@@ -23,7 +23,7 @@ module "cdis_vpc" {
 
 # logs bucket for elb logs
 module "elb_logs" {
-  source          = "../modules/cdis-s3-logs"
+  source          = "../modules/s3-logs"
   log_bucket_name = "logs-${var.vpc_name}-gen3"
   environment     = "${var.vpc_name}"
 }

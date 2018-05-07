@@ -208,7 +208,7 @@ data "aws_iam_policy_document" "configbucket_reader" {
     ]
 
     effect    = "Allow"
-    resources = ["arn:aws:s3:::bucket_name arn:aws:s3:::cdis-gen3-users", "arn:aws:s3:::bucket_name arn:aws:s3:::cdis-gen3-users/${var.config_folder}/*"]
+    resources = ["arn:aws:s3:::cdis-gen3-users", "arn:aws:s3:::cdis-gen3-users/${var.config_folder}/*"]
   }
 }
 
