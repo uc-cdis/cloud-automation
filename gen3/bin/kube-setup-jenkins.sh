@@ -38,7 +38,11 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/role-devops.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml"
 
+g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrole-devops.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrolebinding-devops.yaml"
+
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/jenkins-deploy.yaml"
+
 
 #
 # Get the ARN of the SSL certificate for the commons -
