@@ -46,6 +46,51 @@ the CSOC account to create roles that can assume the `csoc_adminvm` role in the 
 Contact CDIS ops team to request access to the CSOC VPN, and to add your ssh public key to the
 appropriate adminvm.
 
+## New commons flow
+
+The CDIS ops team follows this flow to create a new commons.
+
+* Login to the adminvm
+* Create a user account for the commons.  There is one `admin-vm` per AWS account.  We create one `user` on an account's admin-vm for each commons VPC under the account.
+Note that an `adminvm` acquires credentials to interact with the AWS API via the EC2 metadata service.  For example, user accounts on the `cdistest` admin-vm have the following configuration:
+```
+$ cat ~/.aws/config 
+[default]
+output = json
+region = us-east-1
+role_arn = arn:aws:iam::707767160287:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
+
+[profile cdistest]
+output = json
+region = us-east-1
+role_arn = arn:aws:iam::707767160287:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
+```
+
+* Login to the commons account - ex: `ssh commons@account-admin-vm.csoc`
+* Run terraform to bring up a VPC to host the commons:
+```
+$ gen3 workon account-profile commons-name
+$ gen3 cd
+$ configure VPC CIDR in `config.tfvars`
+$ gen3 tfplan
+$ gen3 tfapply
+```
+* Copy the commons config files to the home directory: `cp {VPC_NAME}_output ~/{VPC_NAME}_output`
+* Run `kube-aws` (via the `kube-up` command)
+```
+cd ~/{VPC_NAME}_output
+bash kube-up.sh
+```
+* Bring up the commons
+```
+source ~/.bashrc
+edit ~/{VPC_NAME}/00configmap.yaml
+edit ~/{VPC_NAME}_output/creds.json
+gen3 roll all
+```
+
 ## Prerequisites for Commons
 
 
