@@ -17,14 +17,19 @@ if [[ -z "$_KUBES_SH" ]]; then
   source "$GEN3_HOME/gen3/gen3setup.sh"
 fi # else already sourced this file ...
 
-if ! g3kubectl get roles/devops > /dev/null 2>&1; then
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/role-devops.yaml"
-fi
+# Jenkins does not have permission to manipulate roles
+if [[ -z "$JENKINS_URL" ]]; then
+  if ! g3kubectl get roles/devops > /dev/null 2>&1; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/role-devops.yaml"
+  fi
 
-if ! g3kubectl get serviceaccounts/useryaml-job > /dev/null 2>&1; then
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/jobs/useryaml-serviceaccount.yaml"
-fi
+  if ! g3kubectl get serviceaccounts/useryaml-job > /dev/null 2>&1; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/jobs/useryaml-serviceaccount.yaml"
+  fi
 
-if ! g3kubectl get rolebindings/useryaml-binding > /dev/null 2>&1; then
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/jobs/useryaml-rolebinding.yaml"
+  if ! g3kubectl get rolebindings/useryaml-binding > /dev/null 2>&1; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/jobs/useryaml-rolebinding.yaml"
+  fi
+else
+  echo "Not setting up roles in Jenkins: $JENKINS_URL"
 fi
