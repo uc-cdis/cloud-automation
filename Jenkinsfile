@@ -28,7 +28,7 @@ pipeline {
     }
     stage('g3k helper test suite') {
       steps {
-        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/lib/g3k_testsuite.sh --profile jenkins'
+        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/g3k_testsuite.sh --profile jenkins'
       }
     }
   }
