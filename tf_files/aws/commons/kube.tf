@@ -196,3 +196,24 @@ resource "aws_s3_bucket" "kube_bucket" {
     ignore_changes = ["tags", "bucket"]
   }
 }
+
+# user.yaml bucket read policy
+# This bucket is in the 'bionimbus' account - 
+#   modify the permissions there as necessary.  Ugh.
+data "aws_iam_policy_document" "configbucket_reader" {
+  statement {
+    actions = [
+      "s3:Get*",
+      "s3:List*",
+    ]
+
+    effect    = "Allow"
+    resources = ["arn:aws:s3:::bucket_name arn:aws:s3:::cdis-gen3-users", "arn:aws:s3:::bucket_name arn:aws:s3:::cdis-gen3-users/${var.config_folder}/*"]
+  }
+}
+
+resource "aws_iam_policy" "configbucket_reader" {
+  name        = "bucket_reader_cdis-gen3-users_${var.vpc_name}"
+  description = "Read cdis-gen3-users/${var.config_folder}"
+  policy      = "${data.aws_iam_policy_document.configbucket_reader.json}"
+}

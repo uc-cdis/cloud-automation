@@ -126,11 +126,10 @@ variable "csoc_vpc_id" {
   default = "vpc-e2b51d99"
 }
 
+# Path to user.yaml in s3://cdis-gen3-users/CONFIG_FOLDER/user.yaml
+variable "config_folder" {}
+
 locals {
   # kube-aws does not like '-' in cluster name
   cluster_name = "${replace(var.vpc_name, "-", "")}"
 }
-
-
-
-

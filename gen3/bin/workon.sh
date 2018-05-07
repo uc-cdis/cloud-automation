@@ -121,6 +121,14 @@ vpc_name="$GEN3_WORKSPACE"
 #
 vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
 vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
+
+#
+# Bucket in bionimbus account hosts user.yaml
+# config for all commons:
+#   s3://cdis-gen3-users/CONFIG_FOLDER/user.yaml
+#
+#config_folder="PUT-SOMETHING-HERE"
+
 ssh_public_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
 EOM
     return 0

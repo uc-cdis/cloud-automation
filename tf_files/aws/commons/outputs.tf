@@ -65,6 +65,7 @@ data "template_file" "cluster" {
     hosted_zone          = "${module.cdis_vpc.zone_id}"
     s3_bucket            = "${aws_s3_bucket.kube_bucket.id}"
     log_bucket_policy    = "${module.elb_logs.rw_policy_arn}"
+    config_bucket_policy = "${aws_iam_policy.configbucket_reader.arn}"
   }
 }
 
@@ -133,6 +134,7 @@ data "template_file" "configmap" {
     revproxy_arn   = "AWS-CERT-MANAGER-ARN-HERE"
     dictionary_url = "${var.dictionary_url}"
     portal_app     = "${var.portal_app}"
+    config_folder  = "${var.config_folder}"
   }
 }
 

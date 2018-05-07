@@ -72,6 +72,8 @@ worker:
           name: "${cluster_name}-worker"
           managedPolicies:
             - arn: "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+            - arn: "${config_bucket_policy}"
+
 kubeDns:
   autoscaler:
     coresPerReplica: 256
