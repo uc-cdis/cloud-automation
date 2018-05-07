@@ -11,6 +11,11 @@
 _KUBE_SETUP_CERTS=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
 source "${_KUBE_SETUP_CERTS}/../lib/kube-setup-init.sh"
 
+if [[ -n "$JENKINS_URL" ]]; then
+  echo "Jenkins skipping service certificate setup: $JENKINS_URL"
+  exit 0
+fi
+
 if [[ ! -f "${WORKSPACE}/${vpc_name}/credentials/ca.pem" ]]; then
   echo "Certificate authority not present - cannot create certs: ${WORKSPACE}/${vpc_name}/credentials"
   exit 1
