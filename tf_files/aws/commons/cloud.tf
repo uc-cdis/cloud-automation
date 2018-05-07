@@ -75,7 +75,6 @@ resource "aws_route_table_association" "private_kube" {
 resource "aws_subnet" "private_kube" {
   vpc_id                  = "${module.cdis_vpc.vpc_id}"
   cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 2}.0/24"
-  availability_zone       = "${data.aws_availability_zones.available.names[0]}"
   map_public_ip_on_launch = false
   availability_zone       = "${data.aws_availability_zones.available.names[0]}"
   tags                    = "${map("Name", "private_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
