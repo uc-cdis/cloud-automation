@@ -4,7 +4,13 @@
 #
 
 _KUBE_SETUP_FLUENTD=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SETUP_FENCE}/../lib/kube-setup-init.sh"
+source "${_KUBE_SETUP_FLUENTD}/../lib/kube-setup-init.sh"
+
+
+if [[ -n "$JENKINS_URL" ]]; then
+  echo "Jenkins skipping fluentd setup: $JENKINS_URL"
+  exit 0
+fi
 
 #
 # Avoid doing this more than once
