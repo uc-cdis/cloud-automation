@@ -43,8 +43,6 @@ else
   echo "INFO: certificate authority not available - skipping SSL cert check"
 fi
 
-source "${GEN3_HOME}/tf_files/configs/kube-setup-cronjobs.sh"
-
 if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   #
   # Setup the files that will become secrets in "${WORKSPACE}/$vpc_name/apis_configs"
