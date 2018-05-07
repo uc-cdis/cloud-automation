@@ -12,6 +12,10 @@ if ! semver_ge "$serverVersion" "1.8.0"; then
   echo "K8s server version $serverVersion does not yet support network policy"
   exit 0
 fi
+if [[ -n "$JENKINS_URL" ]]; then
+  echo "Jenkins skipping network policy manipulation: $JENKINS_URL"
+  exit 0
+fi
 
 indexddb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-indexddb --query 'DBInstances[*].Endpoint.Address' --output text)
 fencedb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-fencedb --query 'DBInstances[*].Endpoint.Address' --output text)
