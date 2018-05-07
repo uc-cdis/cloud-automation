@@ -48,6 +48,8 @@ for name in $namespaceList; do
       #     kubectl --namespace=$KUBECTL_NAMESPACE get configmap -o=jsonpath='{.data.hostname}'
       #
       g3k roll all
+      # cleanup
+      /bin/rm -rf "${WORKSPACE}"
     ); then
       result=1
     fi
