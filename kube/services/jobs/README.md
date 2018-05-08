@@ -52,3 +52,27 @@ Sync the `user.yaml` from the k8s `fence` configmap into fence's database.  A ty
 $ g3k update_config fence apis_configs/user.yaml
 $ g3k runjob useryaml
 ```
+
+### Google Jobs
+
+#### google-manage-account-access-job
+
+Remove any expired Google Accounts from a User's Google Proxy Group,
+effectively removing that account from access to buckets.
+
+#### google-manage-account-access-cronjob
+
+Same as above but run on a schedule.
+
+#### google-manage-keys-job
+
+Remove any expired Google Service Account keys.
+
+#### google-manage-keys-cronjob
+
+Same as above but run on a schedule.
+
+#### google-create-bucket
+
+Create a Google Bucket and associated db entries. See job file for details
+on job invocation.

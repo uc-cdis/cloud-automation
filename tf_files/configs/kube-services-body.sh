@@ -48,7 +48,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   # Setup the files that will become secrets in "${WORKSPACE}/$vpc_name/apis_configs"
   #
   cd "${WORKSPACE}"/${vpc_name}_output
- 
+
   # Note: look into 'kubectl replace' if you need to replace a secret
   if ! kubectl get secrets/indexd-secret > /dev/null 2>&1; then
     kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
@@ -94,7 +94,7 @@ source "${GEN3_HOME}/tf_files/configs/kube-setup-networkpolicy.sh"
 g3k roll portal
 
 cat - <<EOM
-INFO: delete the portal pod if necessary to force a restart - 
+INFO: delete the portal pod if necessary to force a restart -
    portal will not come up cleanly until after the reverse proxy
    services is fully up.
 

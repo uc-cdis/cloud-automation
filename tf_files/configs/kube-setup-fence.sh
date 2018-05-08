@@ -30,7 +30,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   fi
 
   cd "${WORKSPACE}/${vpc_name}_output"
-  
+
   if ! g3kubectl get secret fence-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .fence < creds.json > "$credsFile"
@@ -48,8 +48,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
     openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
   fi
 
+  # sftp key
   if [ ! -f ssh-keys/id_rsa ]; then
-    ssh-keygen -t rsa -b 4096 -C "giangbui0816@gmail.com" -N "" -f ssh-keys/id_rsa
+    ssh-keygen -t rsa -b 4096 -C "dev@test.com" -N "" -f ssh-keys/id_rsa
   fi
 
   if ! kubectl get configmaps/fence > /dev/null 2>&1; then
@@ -62,10 +63,26 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
 
   if ! g3kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
     if [[ ! -f "./apis_configs/fence_credentials.json" ]]; then
-      cp "${GEN3_HOME}/tf_files/configs/fence_credentials.json" "./apis_configs/fence_credentials.json" 
+      cp "${GEN3_HOME}/tf_files/configs/fence_credentials.json" "./apis_configs/fence_credentials.json"
     fi
     echo "create fence-json-secret using current creds file apis_configs/fence_credentials.json"
     g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
+  fi
+
+  if ! g3kubectl get secrets/fence-google-app-creds-secret > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/fence_google_app_creds_secret.json" ]]; then
+      touch "./apis_configs/fence_google_app_creds_secret.json"
+    fi
+    echo "create fence-google-app-creds-secret using current creds file apis_configs/fence_google_app_creds_secret.json"
+    g3kubectl create secret generic fence-google-app-creds-secret --from-file=fence_google_app_creds_secret.json=./apis_configs/fence_google_app_creds_secret.json
+  fi
+
+  if ! g3kubectl get secrets/fence-google-storage-creds-secret > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/fence_google_storage_creds_secret.json" ]]; then
+      touch "./apis_configs/fence_google_storage_creds_secret.json"
+    fi
+    echo "create fence-google-storage-creds-secret using current creds file apis_configs/fence_google_storage_creds_secret.json"
+    g3kubectl create secret generic fence-google-storage-creds-secret --from-file=fence_google_storage_creds_secret.json=./apis_configs/fence_google_storage_creds_secret.json
   fi
 
   if ! kubectl get configmaps/projects > /dev/null 2>&1; then
@@ -82,7 +99,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   if ! kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
     kubectl create secret generic fence-ssh-keys --from-file=id_rsa=./ssh-keys/id_rsa --from-file=id_rsa.pub=./ssh-keys/id_rsa.pub
   fi
-  
+
   if ! kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
     mkdir -p ./apis_configs/.ssh
     if [[ ! -f "./apis_configs/.ssh/config" ]]; then
@@ -100,7 +117,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
           ForwardAgent yes
           IdentityFile ~/.ssh/id_rsa
           ProxyCommand ssh ubuntu@squid.internal nc %h %p 2> /dev/null
-      
+
        Host sftp.dbgap
           ServerAliveInterval 120
           HostName ftp-private.ncbi.nlm.nih.gov
