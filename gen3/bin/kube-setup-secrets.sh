@@ -20,8 +20,8 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   cd "${WORKSPACE}"/${vpc_name}_output
  
   # Note: look into 'kubectl replace' if you need to replace a secret
-  if ! kubectl get secrets/indexd-secret > /dev/null 2>&1; then
-    kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+  if ! g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
+    g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
   if ! g3kubectl get secret indexd-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
@@ -78,8 +78,8 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     ssh-keygen -t rsa -b 4096 -C "giangbui0816@gmail.com" -N "" -f ssh-keys/id_rsa
   fi
 
-  if ! kubectl get configmaps/fence > /dev/null 2>&1; then
-    kubectl create configmap fence --from-file=apis_configs/user.yaml
+  if ! g3kubectl get configmaps/fence > /dev/null 2>&1; then
+    g3kubectl create configmap fence --from-file=apis_configs/user.yaml
   fi
 
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
@@ -94,22 +94,22 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
   fi
 
-  if ! kubectl get configmaps/projects > /dev/null 2>&1; then
+  if ! g3kubectl get configmaps/projects > /dev/null 2>&1; then
     if [[ ! -f "./apis_configs/projects.yaml" ]]; then
       touch "apis_configs/projects.yaml"
     fi
-    kubectl create configmap projects --from-file=apis_configs/projects.yaml
+    g3kubectl create configmap projects --from-file=apis_configs/projects.yaml
   fi
 
   if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
-    kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
+    g3kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
   fi
 
-  if ! kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
-    kubectl create secret generic fence-ssh-keys --from-file=id_rsa=./ssh-keys/id_rsa --from-file=id_rsa.pub=./ssh-keys/id_rsa.pub
+  if ! g3kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
+    g3kubectl create secret generic fence-ssh-keys --from-file=id_rsa=./ssh-keys/id_rsa --from-file=id_rsa.pub=./ssh-keys/id_rsa.pub
   fi
   
-  if ! kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
+  if ! g3kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
     mkdir -p ./apis_configs/.ssh
     if [[ ! -f "./apis_configs/.ssh/config" ]]; then
         echo '''
@@ -140,7 +140,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
           UserKnownHostsFile=/dev/null
         ''' > ./apis_configs/.ssh/config
     fi
-    kubectl create configmap fence-sshconfig --from-file=./apis_configs/.ssh/config
+    g3kubectl create configmap fence-sshconfig --from-file=./apis_configs/.ssh/config
   fi
 fi
 
