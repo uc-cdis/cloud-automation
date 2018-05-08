@@ -17,3 +17,7 @@ fi
 if ! g3kubectl get cronjob google-manage-account-access > /dev/null 2>&1; then
    g3kubectl create -f "${GEN3_HOME}/kube/services/jobs/google-manage-account-access-cronjob.yaml"
 fi
+
+if ! g3kubectl get cronjob google-init-proxy-groups > /dev/null 2>&1; then
+   g3kubectl create -f "${GEN3_HOME}/kube/services/jobs/google-init-proxy-groups-cronjob.yaml"
+fi
