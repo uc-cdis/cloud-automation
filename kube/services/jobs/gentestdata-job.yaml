@@ -1,7 +1,32 @@
+# run with:
+# g3k runjob gentestdata \
+# SUBMISSION_HOST submission_host \
+# DICTIONARY_REPO dictionary_repo \
+# BRANCH  branch \
+# TEST_PROJECT "" \
+# NUMBER_OF_EXAMPLES "" \
+# NOTE: "" indicates an optional argument. Leave as "" for default
+#
+# SUBMISSION_HOST(required)
+#   url of submission host. e.g. https://giangb.planx-pla.net
+#
+# DICTIONARY_REPO(required)
+#   url of dictionary repo. e.g. https://github.com/uc-cdis/datadictionary
+#
+# BRANCH(optional)
+#   branch of the dictionary repos. Default: master
+#
+# TEST_PROJECT(optional)
+#   Name of test project. Default: DEV/test
+#
+# NUMBER_OF_EXAMPLES(optional)
+#   Number of examples for each node. Default 1000
+#
+
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: simdata
+  name: gentestdata
 spec:
   # not yet supported - backOffLimit: 3
   template:
@@ -32,26 +57,14 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
-          - name: DICTIONARY_REPOS
-            valueFrom:
-              configMapKeyRef:
-                name: global
-                key: dictionary_repos
+          - name: DICTIONARY_REPO
+            GEN3_DICTIONARY_REPO
           - name: TEST_PROJECT
-            valueFrom:
-              configMapKeyRef:
-                name: global
-                key: test_project
+            GEN3_TEST_PROJECT
           - name: SUBMISSION_HOST
-            valueFrom:
-              configMapKeyRef:
-                name: global
-                key: submission_host
+            GEN3_SUBMISSION_HOST
           - name: NUMBER_OF_EXAMPLES
-            valueFrom:
-              configMapKeyRef:
-                name: global
-                key: number_of_examples
+            GEN3_NUMBER_OF_EXAMPLES
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -65,11 +78,32 @@ spec:
               sleep 2
               let count=$count+1
             done
+            
             mkdir -p /AUTO-QA/python-scripts/sim-data-code/TestData
-            Rscript /AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $(DICTIONARY_REPOS) develop $(TEST_PROJECT) $(NUMBER_OF_EXAMPLES) FALSE TRUE /AUTO-QA/python-scripts/sim-data-code/TestData/
+
+            rscript_cmd = "/AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $(DICTIONARY_REPO)"
+            
+            if [[ -n "$BRANCH" ]]; then
+                create_command+=" $BRANCH"
+            else
+                create_command+=" master"
+            fi
+            if [[ -n "$TEST_PROJECT" ]]; then
+                create_command+=" $TEST_PROJECT"
+            else
+                create_command+=" DEV/test"
+            fi
+            if [[ -n "$NUMBER_OF_EXAMPLES" ]]; then
+                create_command+=" $NUMBER_OF_EXAMPLES"
+            else
+                create_command+=" 1000"
+            fi
+
+            create_command+=" FALSE TRUE /AUTO-QA/python-scripts/sim-data-code/TestData/"
+            Rscript create_command
             python scripts.py data-create --host $(SUBMISSION_HOST) --dir /AUTO-QA/python-scripts/sim-data-code/TestData/ --project "$(TEST_PROJECT)" --access_token /mnt/shared/access_token.txt
       - name: fence
-        image: quay.io/cdis/fence:feat_ftp
+        image: quay.io/cdis/fence:master
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH
