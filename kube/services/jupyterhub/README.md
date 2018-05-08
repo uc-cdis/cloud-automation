@@ -5,7 +5,7 @@ This service provides a JupyterHub statefulset enabling users to launch Jupyter 
 # Deployment
 Use latest cloud-automation, update revproxy if it's outdated, then:
 ```
-bash tf_files/configs/kube-setup-jupyterhub.sh $vpc
+gen3 kube-setup-jupyterhub
 ```
 
 Update ELB for revproxy to remove http listener, update https listen's protocol to SSL, keep rest of the config same. This is **temporary solution**, should be solved by https://github.com/uc-cdis/cloud-automation/issues/178

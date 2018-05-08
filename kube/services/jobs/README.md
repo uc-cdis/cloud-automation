@@ -4,7 +4,7 @@ K8s jobs to do various things.  The `g3k` bash helper functions (from `kube.sh`)
 
 ## Setup
 
-The `cloud-automation/tf_files/configs/kube-setup-roles.sh` scripts sets up the k8s roles
+The `gen3 kube-setup-roles` command sets up the k8s roles
 required by these jobs.  It runs automatically as part of the `kube-services` script that
 boots up a commons, but may need to be run manually to setup existing commons to run jobs.
 
@@ -27,7 +27,11 @@ g3k roll peregrine
 ## setup sftp configuration
 To run usersync job or cronjob that fetches acl files from a remote ftp/sftp server, following setup need to be done:
 1. update `vpcname/apis_configs/fence_credentials.json` include dbgap credentials.
-2. run `kubectl delete secret fence-json-secret; bash ~/cloud-automation/tf_files/configs/kube-setup-fence.sh $VPC_NAME` to update secrets.
+2. update secrets:
+```
+kubectl delete secret fence-json-secret 
+gen3 kube-setup-fence
+```
 3. add the public key at `$vpcname/ssh-keys/id_rsa.pub` to squid proxy
 4. set `sync_from_dbgap: "True"` in `$vpcname/00configmap.yaml`.
 

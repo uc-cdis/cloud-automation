@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Little library of manifest related functions usually accessed
-# via the `g3k` cli defined in kube/kubes.sh
+# via the `g3k/gen3` cli
 #
 
 G3K_MANIFEST_SH_DIR=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
@@ -179,8 +179,8 @@ g3k_roll() {
   if [[ -f "$templatePath" ]]; then
     g3k_manifest_filter "$templatePath" | g3kubectl apply -f -
   elif [[ "$depName" == "all" ]]; then
-    echo bash "${GEN3_HOME}/tf_files/configs/kube-services-body.sh"
-    bash "${GEN3_HOME}/tf_files/configs/kube-services-body.sh"
+    echo bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
+    bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
   else
     echo -e "$(red_color "ERROR: could not find deployment template: $templatePath")"
   fi

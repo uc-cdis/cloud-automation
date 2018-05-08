@@ -12,9 +12,8 @@ if [[ ! -f "$GEN3_HOME/gen3/lib/utils.sh" ]]; then
   return 1
 fi
 
-source "$GEN3_HOME/gen3/lib/utils.sh"
+source "$GEN3_HOME/gen3/lib/g3k.sh"
 export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
-
 
 #
 # Flag values - cleared on each call to 'gen3'
@@ -72,19 +71,19 @@ gen3_workon() {
   fi
 
   # terraform stack - based on VPC name
-  export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws"
+  export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons"
   if [[ "$GEN3_WORKSPACE" =~ _user$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_user_vpc"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/user_vpc"
   elif [[ "$GEN3_WORKSPACE" =~ _snapshot$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_rds_snapshot"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/rds_snapshot"
   elif [[ "$GEN3_WORKSPACE" =~ _adminvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_admin_vm"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_admin_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _logging$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_common_logging"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_common_logging"
   elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_data_bucket"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/data_bucket"
   elif [[ "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_squid_vm"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_vm"
   fi
 
   PS1="gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -139,8 +138,12 @@ gen3_run() {
     if [[ -f "$scriptFolder/${command}.sh" ]]; then
       scriptName="${command}.sh"
     else
-      echo "ERROR unknown command $command"
-      scriptName=usage.sh
+      # Maybe it's a g3k command
+      g3k "$command" "$@"
+      if [[ $? -eq 2 ]]; then
+        echo "ERROR unknown command $command"
+        scriptName=usage.sh
+      fi
     fi
     ;;
   esac
@@ -151,7 +154,7 @@ gen3_run() {
       echo "ERROR - internal bug - $scriptPath does not exist"
       return 1
     fi
-    GEN3_DRY_RUN=$GEN3_DRY_RUN_FLAG GEN3_VERBOSE=$GEN3_VERBOSE_FLAG bash "$GEN3_HOME/gen3/bin/$scriptName" $@
+    GEN3_DRY_RUN=$GEN3_DRY_RUN_FLAG GEN3_VERBOSE=$GEN3_VERBOSE_FLAG bash "$GEN3_HOME/gen3/bin/$scriptName" "$@"
     return $?
   fi
   return $resultCode
