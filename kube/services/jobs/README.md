@@ -85,8 +85,4 @@ on job invocation.
 
 Generate test data given dictionary, following steps need to be done
  1. add user cdis to user.yaml with full access to test database
- 2. update 00configmap.yaml
-    - submission_host: e.g. https://giangb.planx-pla.net
-    - dictionary repo: e.g. https://github.com/uc-cdis/datadictionary
-    - test_project: e.g. DEV/test
-    - number_of_examples: number of generated identities for each node .e.g 100
+ 2. See job file for details on job invocation.
