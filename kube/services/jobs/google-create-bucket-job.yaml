@@ -153,4 +153,8 @@ spec:
             fi
 
             fence-create ${create_command}
+
+            if [[ $? != 0 ]]; then
+              echo "WARNING: non zero exit code: $?"
+            fi
       restartPolicy: Never

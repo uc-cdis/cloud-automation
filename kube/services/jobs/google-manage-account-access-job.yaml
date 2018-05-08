@@ -75,4 +75,7 @@ spec:
           - "-c"
           - |
             fence-create google-manage-account-access
+            if [[ $? != 0 ]]; then
+              echo "WARNING: non zero exit code: $?"
+            fi
       restartPolicy: Never

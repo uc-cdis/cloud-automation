@@ -75,4 +75,7 @@ spec:
           - "-c"
           - |
             fence-create google-manage-keys
+            if [[ $? != 0 ]]; then
+              echo "WARNING: non zero exit code: $?"
+            fi
       restartPolicy: Never
