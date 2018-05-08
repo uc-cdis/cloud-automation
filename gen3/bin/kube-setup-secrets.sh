@@ -74,8 +74,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
   fi
 
+  # sftp key
   if [ ! -f ssh-keys/id_rsa ]; then
-    ssh-keygen -t rsa -b 4096 -C "giangbui0816@gmail.com" -N "" -f ssh-keys/id_rsa
+    ssh-keygen -t rsa -b 4096 -C "dev@test.com" -N "" -f ssh-keys/id_rsa
   fi
 
   if ! g3kubectl get configmaps/fence > /dev/null 2>&1; then
@@ -92,6 +93,23 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     fi
     echo "create fence-json-secret using current creds file apis_configs/fence_credentials.json"
     g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
+  fi
+
+
+  if ! g3kubectl get secrets/fence-google-app-creds-secret > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/fence_google_app_creds_secret.json" ]]; then
+      touch "./apis_configs/fence_google_app_creds_secret.json"
+    fi
+    echo "create fence-google-app-creds-secret using current creds file apis_configs/fence_google_app_creds_secret.json"
+    g3kubectl create secret generic fence-google-app-creds-secret --from-file=fence_google_app_creds_secret.json=./apis_configs/fence_google_app_creds_secret.json
+  fi
+
+  if ! g3kubectl get secrets/fence-google-storage-creds-secret > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/fence_google_storage_creds_secret.json" ]]; then
+      touch "./apis_configs/fence_google_storage_creds_secret.json"
+    fi
+    echo "create fence-google-storage-creds-secret using current creds file apis_configs/fence_google_storage_creds_secret.json"
+    g3kubectl create secret generic fence-google-storage-creds-secret --from-file=fence_google_storage_creds_secret.json=./apis_configs/fence_google_storage_creds_secret.json
   fi
 
   if ! g3kubectl get configmaps/projects > /dev/null 2>&1; then
