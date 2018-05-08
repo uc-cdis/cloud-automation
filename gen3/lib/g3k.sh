@@ -141,7 +141,7 @@ g3k_runjob() {
     echo "g3k runjob JOBNAME"
     return 1
   fi
-  jobPath="${g3kScriptDir}/services/jobs/${jobName}-job.yaml"
+  jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.yaml"
   if [[ ! -f "$jobPath" ]]; then
     echo "Could not find $jobPath"
     return 1
