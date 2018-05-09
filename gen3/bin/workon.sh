@@ -164,6 +164,21 @@ EOM
 EOM
     return 0
   fi
+
+      # else
+  if [[ "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
+    # rds snapshot vpc is simpler ...
+    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
+    cat - <<EOM
+  env_vpc_octet3                = "3rd OCTET OF CSOC CIDR FOR SQUID SETUP"
+  env_nlb_name                  = "NLB SETUP NAME"
+  env_vpc_id                    = "CSOC VPC-ID"
+  env_priv_subnet_routetable_id = "CSOC ROUTE TABLE ID - HAVING VPC PEERING ROUTES"
+EOM
+    return 0
+  fi
+
+
   
   if [[ "$GEN3_WORKSPACE" =~ _logging$ ]]; then
     # rds snapshot vpc is simpler ...
@@ -317,7 +332,7 @@ echo "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_F
 gen3_aws_run terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 # Generate some k8s helper scripts for on-prem deployments
-if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ || "$GEN3_WORKSPACE" =~ _logging$  || "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
+if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ || "$GEN3_WORKSPACE" =~ _logging$  || "$GEN3_WORKSPACE" =~ _squidvm$ ||  "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
   mkdir -p -m 0700 onprem_scripts
   cat - "$GEN3_HOME/tf_files/configs/kube-services-body.sh" > onprem_scripts/kube-services.sh <<EOM
 #!/bin/bash
