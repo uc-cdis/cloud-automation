@@ -1,3 +1,44 @@
+### Logging stuff
+
+resource "aws_iam_instance_profile" "squid-nlb_role_profile" {
+  name = "${var.env_nlb_name}_squid-nlb_role_profile"
+  role = "${aws_iam_role.squid-nlb_role.id}"
+}
+
+
+resource "aws_cloudwatch_log_group" "squid-nlb_log_group" {
+  name              = "${var.env_nlb_name}_log_group"
+  retention_in_days = 1827
+
+  tags {
+    Environment  = "${var.env_nlb_name}"
+    Organization = "Basic Services"
+  }
+}
+
+
+resource "aws_iam_role" "squid-nlb_role" {
+  name = "${var.env_nlb_name}_role"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+
 #Launching the private subnets for the squid VMs
 
 data "aws_availability_zones" "available" {}
@@ -149,6 +190,37 @@ resource "aws_launch_configuration" "squid_nlb" {
   instance_type = "t2.micro"
   security_groups = ["${aws_security_group.squidnlb_in.id}", "${aws_security_group.squidnlb_out.id}"]
   key_name = "${var.ssh_key_name}"
+  iam_instance_profile   = "${aws_iam_instance_profile.squid-nlb_role_profile.name}"
+
+user_data = <<EOF
+#!/bin/bash
+echo '127.0.1.1 ${var.env_nlb_name}_{instance_id}' | sudo tee --append /etc/hosts
+sudo hostnamectl set-hostname ${var.env_nlb_name}_{instance_id}
+
+sed -i 's/SERVER/http_proxy-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'${aws_cloudwatch_log_group.squid-nlb_log_group.name}'/g' /var/awslogs/etc/awslogs.conf
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
+[syslog]
+datetime_format = %b %d %H:%M:%S
+file = /var/log/syslog
+log_stream_name = http_proxy-syslog-{hostname}-{instance_id}
+time_zone = LOCAL
+log_group_name = ${aws_cloudwatch_log_group.squid-nlb_log_group.name}
+[squid/access.log]
+file = /var/log/squid/access.log*
+log_stream_name = http_proxy-squid_access-{hostname}-{instance_id}
+log_group_name = ${aws_cloudwatch_log_group.squid-nlb_log_group.name}
+EOM
+
+chmod 755 /etc/init.d/awslogs
+systemctl enable awslogs
+systemctl restart awslogs
+EOF
+
+lifecycle {
+    create_before_destroy = true
+  }
+
 }
 
 resource "aws_autoscaling_group" "squid_nlb" {
@@ -243,6 +315,7 @@ resource "aws_security_group" "squidnlb_out" {
     Organization = "Basic Service"
   }
 }
+
 
 
 
