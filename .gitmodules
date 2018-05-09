@@ -1,6 +1,0 @@
-[submodule "kube/services/kafka"]
-	path = kube/services/kafka
-	url = https://github.com/uc-cdis/kubernetes-kafka
-[submodule "kube/services/elk"]
-	path = kube/services/elk
-	url = git@github.com:uc-cdis/kubernetes-elk.git
