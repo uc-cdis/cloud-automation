@@ -1,8 +1,6 @@
 # run with:
 # g3k runjob gentestdata \
 # SUBMISSION_HOST submission_host \
-# DICTIONARY_REPO dictionary_repo \
-# BRANCH  branch \
 # TEST_PROGRAM "" \
 # TEST_PROJECT "" \
 # NUMBER_OF_EXAMPLES "" \
@@ -11,19 +9,14 @@
 # SUBMISSION_HOST(required)
 #   url of submission host. e.g. https://giangb.planx-pla.net
 #
-# DICTIONARY_REPO(required)
-#   url of dictionary repo. e.g. https://github.com/uc-cdis/datadictionary
-#
-# BRANCH(optional)
-#   branch of the dictionary repos. Default: master
-#
 # TEST_PROJECT(optional)
 #   Name of test project. Default: DEV/test
 #
 # NUMBER_OF_EXAMPLES(optional)
 #   Number of examples for each node. Default 1000
 #
-
+# Example
+# g3k runjob gentestdata SUBMISSION_HOST https://giangb.planx-pla.net TEST_PROGRAM DEV TEST_PROJECT test NUMBER_OF_EXAMPLES 10
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -58,10 +51,16 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
-          - name: DICTIONARY_REPO
-            GEN3_DICTIONARY_REPO
+          - name: DICTIONARY_REPOS
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: dictionary_repos
           - name: BRANCH
-            GEN3_BRANCH
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: dictionary_branch
           - name: TEST_PROGRAM
             GEN3_TEST_PROGRAM
           - name: TEST_PROJECT
@@ -86,16 +85,9 @@ spec:
 
             mkdir -p /AUTO-QA/python-scripts/sim-data-code/TestData
 
-            echo ${DICTIONARY_REPO}
-
             cd /AUTO-QA/python-scripts/sim-data-code/
-            rscript_cmd="/AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $DICTIONARY_REPO"
+            rscript_cmd="/AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $DICTIONARY_REPOS $BRANCH"
 
-            if [[ -n "$BRANCH" ]]; then
-                rscript_cmd+=" $BRANCH"
-            else
-                rscript_cmd+=" master"
-            fi
             if [[ -n "$TEST_PROJECT" ]]; then
                 rscript_cmd+=" $TEST_PROJECT"
             else
@@ -108,9 +100,7 @@ spec:
             fi
 
             rscript_cmd+=" /AUTO-QA/python-scripts/sim-data-code/TestData/"
-            echo ${rscript_cmd}
             Rscript ${rscript_cmd}
-            ls -al  /AUTO-QA/python-scripts/sim-data-code/TestData/
             python /AUTO-QA/python-scripts/scripts.py data-create --host $(SUBMISSION_HOST) --dir /AUTO-QA/python-scripts/sim-data-code/TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
       - name: fence
         image: quay.io/cdis/fence:master
