@@ -3,6 +3,7 @@
 # SUBMISSION_HOST submission_host \
 # DICTIONARY_REPO dictionary_repo \
 # BRANCH  branch \
+# TEST_PROGRAM "" \
 # TEST_PROJECT "" \
 # NUMBER_OF_EXAMPLES "" \
 # NOTE: "" indicates an optional argument. Leave as "" for default
@@ -51,7 +52,7 @@ spec:
           secret:
             secretName: "fence-jwt-keys"
       containers:
-      - name: fence
+      - name: auto-qa
         image: quay.io/cdis/auto-qa:feat_gen_test_data
         imagePullPolicy: Always
         env:
@@ -59,6 +60,10 @@ spec:
             value: /var/www/fence
           - name: DICTIONARY_REPO
             GEN3_DICTIONARY_REPO
+          - name: BRANCH
+            GEN3_BRANCH
+          - name: TEST_PROGRAM
+            GEN3_TEST_PROGRAM
           - name: TEST_PROJECT
             GEN3_TEST_PROJECT
           - name: SUBMISSION_HOST
@@ -69,8 +74,8 @@ spec:
           - name: shared-data
             mountPath: /mnt/shared
         command: ["/bin/bash" ]
-        args: 
-          - "-c" 
+        args:
+          - "-c"
           - |
             let count=0
             while [[ ! -f /mnt/shared/access_token.txt && $count -lt 50 ]]; do
@@ -78,30 +83,35 @@ spec:
               sleep 2
               let count=$count+1
             done
-            
+
             mkdir -p /AUTO-QA/python-scripts/sim-data-code/TestData
 
-            rscript_cmd = "/AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $(DICTIONARY_REPO)"
-            
+            echo ${DICTIONARY_REPO}
+
+            cd /AUTO-QA/python-scripts/sim-data-code/
+            rscript_cmd="/AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $DICTIONARY_REPO"
+
             if [[ -n "$BRANCH" ]]; then
-                create_command+=" $BRANCH"
+                rscript_cmd+=" $BRANCH"
             else
-                create_command+=" master"
+                rscript_cmd+=" master"
             fi
             if [[ -n "$TEST_PROJECT" ]]; then
-                create_command+=" $TEST_PROJECT"
+                rscript_cmd+=" $TEST_PROJECT"
             else
-                create_command+=" DEV/test"
+                rscript_cmd+=" test"
             fi
             if [[ -n "$NUMBER_OF_EXAMPLES" ]]; then
-                create_command+=" $NUMBER_OF_EXAMPLES"
+                rscript_cmd+=" $NUMBER_OF_EXAMPLES"
             else
-                create_command+=" 1000"
+                rscript_cmd+=" 1000"
             fi
 
-            create_command+=" FALSE TRUE /AUTO-QA/python-scripts/sim-data-code/TestData/"
-            Rscript create_command
-            python scripts.py data-create --host $(SUBMISSION_HOST) --dir /AUTO-QA/python-scripts/sim-data-code/TestData/ --project "$(TEST_PROJECT)" --access_token /mnt/shared/access_token.txt
+            rscript_cmd+=" /AUTO-QA/python-scripts/sim-data-code/TestData/"
+            echo ${rscript_cmd}
+            Rscript ${rscript_cmd}
+            ls -al  /AUTO-QA/python-scripts/sim-data-code/TestData/
+            python /AUTO-QA/python-scripts/scripts.py data-create --host $(SUBMISSION_HOST) --dir /AUTO-QA/python-scripts/sim-data-code/TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
       - name: fence
         image: quay.io/cdis/fence:master
         imagePullPolicy: Always
@@ -131,9 +141,9 @@ spec:
           - name: shared-data
             mountPath: /mnt/shared
         command: ["/bin/bash" ]
-        args: 
-            - "-c" 
+        args:
+            - "-c"
             - |
               echo "generate access token"
-              fence-create --path fence token-create --type access_token --username cdis  --scopes openid,user,test-client --exp 3600 > /mnt/shared/access_token.txt
+              fence-create --path fence token-create --type access_token --username cdis.autotest@gmail.com  --scopes openid,user,test-client --exp 3600 > /mnt/shared/access_token.txt
       restartPolicy: Never
