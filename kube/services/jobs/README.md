@@ -85,4 +85,5 @@ on job invocation.
 
 Generate test data given dictionary, following steps need to be done
  1. add user cdis.autotest@gmail.com to user.yaml with full access to test database
- 2. See job file for how to run the job with parameters.
+ 2. add dictionary_repos (eg. https://github.com/uc-cdis/datadictionary) and dictionary_branch( eg. develop) to global configmap
+ 3. See job file for how to run the job with parameters.
