@@ -3,6 +3,11 @@ kind: Deployment
 metadata:
   name: shiny-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    # Needed for gen3 scripts
+    matchLabels:
+      app: shiny
   strategy:
     type: RollingUpdate
     rollingUpdate:
