@@ -181,7 +181,7 @@ sudo hostnamectl set-hostname ${var.vm_hostname}
 
 git clone https://github.com/uc-cdis/cloud-automation.git
 
-bash "${var.bootstrap_path}${var.bootstrap_script}"
+bash "${var.bootstrap_path}${var.bootstrap_script}" |sudo tee --append /var/log/bootstrapping_script.log
 
 EOF
 }
