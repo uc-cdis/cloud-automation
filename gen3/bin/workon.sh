@@ -189,8 +189,9 @@ EOM
      cat - <<EOM
 bootstrap_path = "cloud-automation/flavors"
 bootstrap_script = "FILE-IN-ABOVE-PATH"
-vm_name = "NAMEIT"
+vm_name = "${vmName}"
 vm_hostname = "HOSTNAMEIT"
+vpc_cidr_list = []
 EOM
     return 0
   fi
