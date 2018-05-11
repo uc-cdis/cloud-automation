@@ -189,25 +189,29 @@ resource "aws_launch_configuration" "squid_nlb" {
   instance_type = "t2.micro"
   security_groups = ["${aws_security_group.squidnlb_in.id}", "${aws_security_group.squidnlb_out.id}"]
   key_name = "${var.ssh_key_name}"
-  iam_instance_profile   = "${aws_iam_instance_profile.squid-nlb_role_profile.name}"
+  iam_instance_profile   = "${aws_iam_instance_profile.squid-nlb_role_profile.id}"
+
+  depends_on = ["aws_iam_instance_profile.squid-nlb_role_profile"]
 
 user_data = <<EOF
 #!/bin/bash
-echo '127.0.1.1 ${var.env_nlb_name}_{instance_id}' | sudo tee --append /etc/hosts
-sudo hostnamectl set-hostname ${var.env_nlb_name}_{instance_id}
+instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
+echo "127.0.1.1 $instance_ip" | sudo tee --append /etc/hosts
+IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
+sudo hostnamectl set-hostname ${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
 
-sed -i 's/SERVER/http_proxy-auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/SERVER/http_proxy-auth-${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4/g' /var/awslogs/etc/awslogs.conf
 sed -i 's/VPC/'${aws_cloudwatch_log_group.squid-nlb_log_group.name}'/g' /var/awslogs/etc/awslogs.conf
 cat >> /var/awslogs/etc/awslogs.conf <<EOM
 [syslog]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog
-log_stream_name = http_proxy-syslog-{hostname}-{instance_id}
+log_stream_name = http_proxy-syslog-${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
 time_zone = LOCAL
 log_group_name = ${aws_cloudwatch_log_group.squid-nlb_log_group.name}
 [squid/access.log]
 file = /var/log/squid/access.log*
-log_stream_name = http_proxy-squid_access-{hostname}-{instance_id}
+log_stream_name = http_proxy-squid_access-${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
 log_group_name = ${aws_cloudwatch_log_group.squid-nlb_log_group.name}
 EOM
 
