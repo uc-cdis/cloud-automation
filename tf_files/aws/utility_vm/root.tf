@@ -17,6 +17,9 @@ module "utility_vm" {
   instance_type    = "${var.instance_type}"
   environment      = "${var.environment}"
   vm_name          = "${var.vm_name}"
+  bootstrap_path   = "${var.bootstrap_path}"
+  bootstrap_script = "${var.bootstrap_script}
+  vm_hostname      = "${var.vm_hostname}"
   
 
   # put other variables here ...
