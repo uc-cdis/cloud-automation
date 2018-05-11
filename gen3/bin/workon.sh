@@ -174,6 +174,8 @@ EOM
   env_nlb_name                  = "NLB SETUP NAME"
   env_vpc_id                    = "CSOC VPC-ID"
   env_priv_subnet_routetable_id = "CSOC ROUTE TABLE ID - HAVING VPC PEERING ROUTES"
+  allowed_principals_list       = "[LIST OF AWS ACCOUNTS WHICH NEEDS TO BE WHITELISTED]"
+  # e.g. of the list - ["arn:aws:iam::<AWS ACCOUNT1 ID>:root","arn:aws:iam::<AWS ACCOUNT2 ID>:root", ...]
 EOM
     return 0
   fi
@@ -222,8 +224,10 @@ vpc_name="$GEN3_WORKSPACE"
 #
 vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
 vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
+squid-nlb-endpointservice-name=CSOC_SQUID_NLB_SERVICE_NAME
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 portal_app="dev"
+
 
 aws_cert_name="YOUR.CERT.NAME"
 

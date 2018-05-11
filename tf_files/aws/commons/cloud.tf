@@ -19,6 +19,7 @@ module "cdis_vpc" {
   ssh_key_name    = "${aws_key_pair.automation_dev.key_name}"
   csoc_cidr       = "${var.csoc_cidr}"
   csoc_account_id = "${var.csoc_account_id}"
+  squid-nlb-endpointservice-name = "${var.squid-nlb-endpointservice-name}"
 }
 
 # logs bucket for elb logs

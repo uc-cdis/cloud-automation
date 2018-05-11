@@ -1,11 +1,5 @@
 ### Logging stuff
 
-resource "aws_iam_instance_profile" "squid-nlb_role_profile" {
-  name = "${var.env_nlb_name}_squid-nlb_role_profile"
-  role = "${aws_iam_role.squid-nlb_role.id}"
-}
-
-
 resource "aws_cloudwatch_log_group" "squid-nlb_log_group" {
   name              = "${var.env_nlb_name}_log_group"
   retention_in_days = 1827
@@ -14,6 +8,11 @@ resource "aws_cloudwatch_log_group" "squid-nlb_log_group" {
     Environment  = "${var.env_nlb_name}"
     Organization = "Basic Services"
   }
+}
+
+resource "aws_iam_instance_profile" "squid-nlb_role_profile" {
+  name = "${var.env_nlb_name}_squid-nlb_role_profile"
+  role = "${aws_iam_role.squid-nlb_role.id}"
 }
 
 
@@ -174,7 +173,7 @@ resource "aws_lb_listener" "squid_nlb" {
 ## Enpoint service for squid nlb
 
 resource "aws_vpc_endpoint_service" "squid_nlb" {
-  acceptance_required =  true
+  acceptance_required =  false
   network_load_balancer_arns = ["${aws_lb.squid_nlb.arn}"]
   #availability_zones = ["us-east-1a","us-east-1b","us-east-1c","us-east-1d","us-east-1e","us-east-1f"]
   allowed_principals = "${var.allowed_principals_list}"

@@ -28,3 +28,6 @@ variable "csoc_cidr" {
 variable "csoc_vpc_id" {
   default = "vpc-e2b51d99"
 }
+
+variable "squid-nlb-endpointservice-name" {
+  }
