@@ -152,7 +152,7 @@ resource "aws_instance" "utility_vm" {
   key_name               = "${var.ssh_key_name}"
   vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
 
-  iam_instance_profile = "${aws_iam_instance_profile.nginx_role_profile.name}"
+  iam_instance_profile = "${aws_iam_instance_profile.vm_role_profile.name}"
 
   tags {
     Name        = "${var.vm_name}"
