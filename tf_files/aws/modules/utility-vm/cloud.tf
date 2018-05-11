@@ -176,10 +176,12 @@ echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/
 sudo apt -y update
 sudo apt -y upgrade
 
-git clone https://github.com/uc-cdis/cloud-automation.git
-
 echo '127.0.1.1 ${var.vm_hostname}' | sudo tee --append /etc/hosts
 sudo hostnamectl set-hostname ${var.vm_hostname}
+
+git clone https://github.com/uc-cdis/cloud-automation.git
+
+bash "${var.bootstrap_path}${var.bootstrap_script}"
 
 EOF
 }
