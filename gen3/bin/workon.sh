@@ -184,6 +184,16 @@ EOM
     return 0
   fi
 
+  if [[ "$GEN3_WORKSPACE" =~ _utilityvm ]]; then
+     cat - <<EOM
+bootstrap_path = "cloud-automation/flavors"
+bootstrap_script = "FILE-IN-ABOVE-PATH"
+vm_name = "NAMEIT"
+vm_hostname = "HOSTNAMEIT"
+EOM
+    return 0
+  fi
+
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _bigdisk$ ]]; then
     cat - <<EOM
@@ -328,7 +338,7 @@ echo "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_F
 gen3_aws_run terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 # Generate some k8s helper scripts for on-prem deployments
-if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ || "$GEN3_WORKSPACE" =~ _logging$  || "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
+if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ || "$GEN3_WORKSPACE" =~ _logging$  || "$GEN3_WORKSPACE" =~ _squidvm$ || "$GEN3_WORKSPACE" =~ _utilityvm$ ]]; then
   mkdir -p -m 0700 onprem_scripts
   cat - "$GEN3_HOME/tf_files/configs/kube-services-body.sh" > onprem_scripts/kube-services.sh <<EOM
 #!/bin/bash
