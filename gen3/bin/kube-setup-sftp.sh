@@ -6,15 +6,8 @@
 
 set -e
 
-_KUBE_SETUP_SFTP=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-# Jenkins friendly
-export WORKSPACE="${WORKSPACE:-$HOME}"
-export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_SFTP}/../.." && pwd)}"
-
-if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/gen3/gen3setup.sh"
-fi # else already sourced this file ...
-
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
 
 (
   export KUBECTL_NAMESPACE=sftp

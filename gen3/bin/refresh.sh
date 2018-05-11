@@ -3,11 +3,6 @@
 # the files in S3 after backing up the local files.
 #
 
-if [[ ! -f "$GEN3_HOME/gen3/lib/common.sh" ]]; then
-  echo "ERROR: no $GEN3_HOME/gen3/lib/common.sh"
-  exit 1
-fi
-
 help() {
   cat - <<EOM
   Backup and refresh the local workspace config files from S3 after backing up the local files.
@@ -19,7 +14,8 @@ EOM
   exit 0
 }
 
-source "$GEN3_HOME/gen3/lib/common.sh"
+source "$GEN3_HOME/gen3/lib/utils.sh"
+gen3_load "gen3/lib/terraform"
 
 mkdir -p -m 0700 "$GEN3_WORKDIR/backups"
 
@@ -63,8 +59,13 @@ for fileName in config.tfvars backend.tfvars README.md; do
   refresh_file $fileName
 done
 
+if [[ "$GEN3_FLAVOR" == "GCP" ]]; then
+  echo -e "$(red_color "gen3 refresh not yet supported on ${GEN3_FLAVOR}")"
+  exit 1
+fi
+
 echo "Running terraform init ..."
 cd "$GEN3_WORKDIR"
-gen3_aws_run terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
+gen3_terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
 
 exit 0

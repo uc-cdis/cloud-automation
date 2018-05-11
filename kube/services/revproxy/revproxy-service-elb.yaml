@@ -16,10 +16,10 @@ spec:
   ports:
     - protocol: TCP
       port: 443
-      targetPort: 81
+      targetPort: $TARGET_PORT_HTTPS
       name: https
     - protocol: TCP
       port: 80
-      targetPort: 82
+      targetPort: $TARGET_PORT_HTTP
       name: http
   type: LoadBalancer

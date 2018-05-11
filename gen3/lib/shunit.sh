@@ -59,7 +59,7 @@ shunit_runtest() {
     echo "sh_runtest: ignoring empty test"
     return 1
   fi
-  echo -e "\nRunning $testName"
+  echo -e "\n$SHUNIT_TEST_COUNT - running $testName"
   SHUNIT_CURRENT_TEST="$testName"
   let SHUNIT_TEST_COUNT+=1
   let result=0 || true

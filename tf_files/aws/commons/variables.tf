@@ -14,7 +14,9 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-variable "aws_cert_name" {}
+variable "aws_cert_name" {
+  default = "AWS-CERTIFICATE-NAME"
+}
 
 variable "csoc_account_id" {
   default = "433568766270"
@@ -28,9 +30,7 @@ variable "db_size" {
   default = 10
 }
 
-variable "db_password_fence" {
-  default = ""
-}
+variable "db_password_fence" {}
 
 variable "db_password_gdcapi" {
   # gdcapi now deprecated in favor of sheepdog + peregrine

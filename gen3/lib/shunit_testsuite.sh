@@ -2,7 +2,8 @@
 # Run with: bash shunit_testsuite.sh
 # Assume we're running in the directory for now ...
 #
-source shunit.sh
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/shunit"
 
 test_assert() {
   [[ $SHUNIT_ASSERT_COUNT -eq 0 && $SHUNIT_ASSERT_FAIL -eq 0 ]]; because $? "sshunit_runtest clears ASSERT counters at beginning of test"

@@ -44,9 +44,10 @@ mkdir -p ~/${vpc_name}
 #mv credentials ~/.aws
 cd ~/"${vpc_name}_output"
 
-for fileName in cluster.yaml 00configmap.yaml; do
+for fileName in cluster.yaml 00configmap.yaml creds.json; do
   if [[ ! -f ~/"${vpc_name}/${fileName}" ]]; then
     cp ${fileName} ~/${vpc_name}/
+    mv "${fileName}" "${fileName}.bak"
   else
     echo "Using existing ~/${vpc_name}/${fileName}"
   fi
