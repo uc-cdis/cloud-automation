@@ -225,7 +225,7 @@ lifecycle {
 resource "aws_autoscaling_group" "squid_nlb" {
   name = "${var.env_nlb_name}_autoscaling_grp"
   availability_zones = ["us-east-1a","us-east-1b","us-east-1c","us-east-1d","us-east-1e","us-east-1f"]
-  desired_capacity = 4
+  desired_capacity = 3
   max_size = 6
   min_size = 1
   target_group_arns = ["${aws_lb_target_group.squid_nlb.arn}"]
