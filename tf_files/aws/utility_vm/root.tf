@@ -6,7 +6,7 @@ terraform {
 
 provider "aws" {}
 
-module "admin_vm" {
+module "utility_vm" {
   ami_account_id   = "${var.ami_account_id}"
   source           = "../modules/utility-vm"
   vpc_cidr_list    = "${var.vpc_cidr_list}"
