@@ -77,7 +77,7 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.128.0.0/20", "54.0.0.0/8", "54.0.0.0/8", "${var.vpc_cidr_list}"]
+    cidr_blocks = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8", "${var.vpc_cidr_list}"]
   }
 
   tags {
