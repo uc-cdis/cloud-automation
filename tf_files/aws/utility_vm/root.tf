@@ -18,7 +18,7 @@ module "utility_vm" {
   environment      = "${var.environment}"
   vm_name          = "${var.vm_name}"
   bootstrap_path   = "${var.bootstrap_path}"
-  bootstrap_script = "${var.bootstrap_script}
+  bootstrap_script = "${var.bootstrap_script}"
   vm_hostname      = "${var.vm_hostname}"
   
 
