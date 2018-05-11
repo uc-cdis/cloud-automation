@@ -16,6 +16,7 @@ module "utility_vm" {
   ssh_key_name     = "${var.ssh_key_name}"
   instance_type    = "${var.instance_type}"
   environment      = "${var.environment}"
+  vm_name          = "${var.vm_name}"
   
 
   # put other variables here ...
