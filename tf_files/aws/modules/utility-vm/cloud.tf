@@ -44,7 +44,7 @@ resource "aws_ami_copy" "cdis_ami" {
 # Security group to access peered networks from the csoc admin VM
 
 resource "aws_security_group" "ssh" {
-  name        = "ssh_nginx"
+  name        = "ssh_${var.vm_name}"
   description = "security group that only enables ssh"
   vpc_id      = "${var.csoc_vpc_id}"
 
@@ -62,7 +62,7 @@ resource "aws_security_group" "ssh" {
 }
 
 resource "aws_security_group" "local" {
-  name        = "local_csoc"
+  name        = "local_${var.vm_name}"
   description = "security group that only allow internal tcp traffics"
   vpc_id      = "${var.csoc_vpc_id}"
 
