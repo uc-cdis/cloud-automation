@@ -1,5 +1,5 @@
 output "utility_private_ip" {
-  value = "${module.utility_vm.admin_private_ip}"
+  value = "${module.utility_vm.utility_private_ip}"
 }
 
 output "role_id" {
