@@ -144,7 +144,7 @@ resource "aws_iam_instance_profile" "vm_role_profile" {
   role = "${aws_iam_role.vm_role.id}"
 }
 
-resource "aws_instance" "utiliti_vm" {
+resource "aws_instance" "utility_vm" {
   ami                    = "${aws_ami_copy.cdis_ami.id}"
   subnet_id              = "${var.csoc_subnet_id}"
   instance_type          = "${var.instance_type}"
