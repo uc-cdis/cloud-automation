@@ -58,6 +58,7 @@ resource "aws_security_group" "ssh" {
   tags {
     Environment  = "${var.environment}"
     Organization = "Basic Service"
+    name         = "ssh_${var.vm_name}"
   }
 }
 
@@ -82,6 +83,7 @@ resource "aws_security_group" "local" {
 
   tags {
     Environment = "CSOC"
+    name        = "local_${var.vm_name}"
   }
 }
 
@@ -176,11 +178,22 @@ echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/
 cd /home/ubuntu
 sudo git clone https://github.com/uc-cdis/cloud-automation.git
 
-sudo apt -y update | sudo tee --append /var/log/bootstrapping_script.log
-sudo apt -y upgrade| sudo tee --append /var/log/bootstrapping_script.log
+#sudo apt -y update | sudo tee --append /var/log/bootstrapping_script.log
+#sudo apt -y upgrade| sudo tee --append /var/log/bootstrapping_script.log
 
 echo '127.0.1.1 ${var.vm_hostname}' | sudo tee --append /etc/hosts
 sudo hostnamectl set-hostname ${var.vm_hostname}
+
+DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade
+DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' dist-upgrade
+
+apt-get autoremove -y
+apt-get clean
+apt-get autoclean
+    
+cd cloud-automation
+git checkout feat/csoc-utility-vm
+cd /home/ubuntu
 
 sudo bash "${var.bootstrap_path}${var.bootstrap_script}" |sudo tee --append /var/log/bootstrapping_script.log
 
