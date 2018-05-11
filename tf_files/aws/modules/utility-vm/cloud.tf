@@ -173,15 +173,16 @@ echo no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,log
 echo 'Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
 echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
 
-sudo apt -y update
-sudo apt -y upgrade
+cd /home/ubuntu
+sudo git clone https://github.com/uc-cdis/cloud-automation.git
+
+sudo apt -y update | sudo tee --append /var/log/bootstrapping_script.log
+sudo apt -y upgrade| sudo tee --append /var/log/bootstrapping_script.log
 
 echo '127.0.1.1 ${var.vm_hostname}' | sudo tee --append /etc/hosts
 sudo hostnamectl set-hostname ${var.vm_hostname}
 
-git clone https://github.com/uc-cdis/cloud-automation.git
-
-bash "${var.bootstrap_path}${var.bootstrap_script}" |sudo tee --append /var/log/bootstrapping_script.log
+sudo bash "${var.bootstrap_path}${var.bootstrap_script}" |sudo tee --append /var/log/bootstrapping_script.log
 
 EOF
 }
