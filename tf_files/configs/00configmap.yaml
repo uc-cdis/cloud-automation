@@ -12,4 +12,6 @@ data:
   logs_bucket: ${logs_bucket}
   sync_from_dbgap: 'False'
   useryaml_s3path: "s3://cdis-gen3-users/${config_folder}/user.yaml"
+  # Set up hook at https://yourslack.slack.com/apps/manage/custom-integrations
+  slack_webhook: 'None'
   

@@ -146,7 +146,9 @@ spec:
                       echo "awshelper updating fence configmap"
                       kubectl delete configmap fence
                       kubectl create configmap fence --from-file=/mnt/shared/user.yaml
-                      curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: Syncing users on ${gen3Env}\"}" "${slackWebHook}"
+                      if [ "${slackWebHook}" != 'None' ]; then
+                        curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: Syncing users on ${gen3Env}\"}" "${slackWebHook}"
+                      fi
                     else
                       echo "no difference found"
                     fi
