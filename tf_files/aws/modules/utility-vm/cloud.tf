@@ -184,18 +184,18 @@ sudo git clone https://github.com/uc-cdis/cloud-automation.git
 echo '127.0.1.1 ${var.vm_hostname}' | sudo tee --append /etc/hosts
 sudo hostnamectl set-hostname ${var.vm_hostname}
 
-DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade
-DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' dist-upgrade
+sudp apt -y update
+sudo DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade| sudo tee --append /var/log/bootstrapping_script.log
 
-apt-get autoremove -y
-apt-get clean
-apt-get autoclean
+sudo apt-get autoremove -y
+sudo apt-get clean
+sudp apt-get autoclean
     
 cd cloud-automation
 git checkout feat/csoc-utility-vm
 cd /home/ubuntu
 
-sudo bash "${var.bootstrap_path}${var.bootstrap_script}" |sudo tee --append /var/log/bootstrapping_script.log
+sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
 
 EOF
 }
