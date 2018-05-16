@@ -197,6 +197,13 @@ user_data = <<EOF
 #!/bin/bash
 cd /home/ubuntu
 sudo git clone https://github.com/uc-cdis/cloud-automation.git
+sudo chown -R ubuntu. /home/ubuntu/cloud-automation
+cd /home/ubuntu/cloud-automation
+git pull
+# this is just temporary to test stuff from y branch; not needed once it is merged
+git branch feat/nlbforsquid
+git pull
+#####
 
 #instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
 #echo "127.0.1.1 $instance_ip" | sudo tee --append /etc/hosts
@@ -234,7 +241,7 @@ sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append
 #chmod 755 /etc/init.d/awslogs
 #systemctl enable awslogs
 #systemctl restart awslogs
-sudo chown -R ubuntu. /home/ubuntu/cloud-automation
+#sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 EOF
 
 lifecycle {
@@ -245,7 +252,11 @@ lifecycle {
 
 resource "aws_autoscaling_group" "squid_nlb" {
   name = "${var.env_nlb_name}_autoscaling_grp"
-  availability_zones = ["us-east-1a","us-east-1b","us-east-1c","us-east-1d","us-east-1e","us-east-1f"]
+#If you define a list of subnet IDs split across the desired availability zones set them using vpc_zone_identifier 
+# and there is no need to set availability_zones.
+# (https://www.terraform.io/docs/providers/aws/r/autoscaling_group.html#availability_zones).
+
+ #availability_zones = ["us-east-1a","us-east-1b","us-east-1c","us-east-1d","us-east-1e","us-east-1f"]
   desired_capacity = 3
   max_size = 6
   min_size = 1
