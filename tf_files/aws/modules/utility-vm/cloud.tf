@@ -82,7 +82,7 @@ resource "aws_security_group" "local" {
   }
 
   tags {
-    Environment = "CSOC"
+    Environment = "${var.environment}"
     name        = "local_${var.vm_name}"
   }
 }
