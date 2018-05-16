@@ -8,22 +8,32 @@ resource "aws_cloudwatch_log_group" "csoc_log_group" {
   }
 }
 
-data "aws_ami" "public_cdis_ami" {
+data "aws_ami" "public_ami" {
   most_recent = true
 
   filter {
     name   = "name"
-    values = ["ubuntu16-docker-base-1.0.2-*"]
+    values = ["${var.image_name_search_criteria"] 
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter { 
+    name   = "root-device-type"
+    values = ["ebs"]
   }
 
   owners = ["${var.ami_account_id}"]
 }
 
 resource "aws_ami_copy" "cdis_ami" {
-  name              = "ub16-cdis-crypt-1.0.2-nginx"
-  description       = "A copy of ubuntu16-docker-base-1.0.2"
-  source_ami_id     = "${data.aws_ami.public_cdis_ami.id}"
-  source_ami_region = "us-east-1"
+  name              = "${var.vm_name}_ami"
+  description       = "A copy of ${data.aws_ami.public_ami.name}"
+  source_ami_id     = "${data.aws_ami.public_ami.id}"
+  source_ami_region = "${var.aws_region}"
   encrypted         = true
 
   tags {
@@ -171,12 +181,16 @@ resource "aws_instance" "utility_vm" {
 #Proxy configuration and hostname assigment for the adminVM
 echo http_proxy=http://cloud-proxy.internal.io:3128 >> /etc/environment
 echo https_proxy=http://cloud-proxy.internal.io:3128/ >> /etc/environment
-echo no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com,search-commons-logs-lqi5sot65fryjwvgp6ipyb65my.us-east-1.es.amazonaws.com"  >> /etc/environment
+echo no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com"  >> /etc/environment
 echo 'Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
 echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
 
 cd /home/ubuntu
 sudo git clone https://github.com/uc-cdis/cloud-automation.git
+#sudo mkdir -p /root/.ssh/
+cat cloud-automation/ssh-public-keys/authorized_keys >> /home/ubuntu/.ssh/authorized_keys
+
+
 
 echo '127.0.1.1 ${var.vm_hostname}' | sudo tee --append /etc/hosts
 sudo hostnamectl set-hostname ${var.vm_hostname}
@@ -187,9 +201,9 @@ sudo DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-con
 sudo apt-get autoremove -y
 sudo apt-get clean
 sudo apt-get autoclean
-    
-#cd cloud-automation
-#git checkout feat/csoc-utility-vm
+
+cd cloud-automation
+git checkout feat/csoc-utility-vm
 cd /home/ubuntu
 
 sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append /var/log/bootstrapping_script.log

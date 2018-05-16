@@ -1,7 +1,7 @@
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
-  # cdis-test
-  default = "707767160287"
+  # by default lets use canonical stuff only
+  default = "099720109477"
 }
 
 variable "csoc_account_id" {
@@ -35,6 +35,10 @@ variable "environment" {
 
 variable "instance_type" {
   default = "t2.micro"
+}
+
+variable "image_name_search_criteria" {
+  default = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
 }
 
 variable "bootstrap_path" {
