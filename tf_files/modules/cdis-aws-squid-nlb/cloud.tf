@@ -195,29 +195,46 @@ resource "aws_launch_configuration" "squid_nlb" {
 
 user_data = <<EOF
 #!/bin/bash
-instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
+cd /home/ubuntu
+sudo git clone https://github.com/uc-cdis/cloud-automation.git
+
+#instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
+#echo "127.0.1.1 $instance_ip" | sudo tee --append /etc/hosts
 echo "127.0.1.1 $instance_ip" | sudo tee --append /etc/hosts
-IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
-sudo hostnamectl set-hostname ${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
+#IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
+#sudo hostnamectl set-hostname ${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
+sudo hostnamectl set-hostname ${var.env_nlb_name}
 
-sed -i 's/SERVER/http_proxy-auth-${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4/g' /var/awslogs/etc/awslogs.conf
-sed -i 's/VPC/'${aws_cloudwatch_log_group.squid-nlb_log_group.name}'/g' /var/awslogs/etc/awslogs.conf
-cat >> /var/awslogs/etc/awslogs.conf <<EOM
-[syslog]
-datetime_format = %b %d %H:%M:%S
-file = /var/log/syslog
-log_stream_name = http_proxy-syslog-${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
-time_zone = LOCAL
-log_group_name = ${aws_cloudwatch_log_group.squid-nlb_log_group.name}
-[squid/access.log]
-file = /var/log/squid/access.log*
-log_stream_name = http_proxy-squid_access-${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
-log_group_name = ${aws_cloudwatch_log_group.squid-nlb_log_group.name}
-EOM
+sudo apt -y update
+sudo DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade| sudo tee --append /var/log/bootstrapping_script.log
 
-chmod 755 /etc/init.d/awslogs
-systemctl enable awslogs
-systemctl restart awslogs
+sudo apt-get autoremove -y
+sudo apt-get clean
+sudo apt-get autoclean
+
+cd /home/ubuntu
+sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
+
+
+#sed -i 's/SERVER/http_proxy-auth-${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4/g' /var/awslogs/etc/awslogs.conf
+#sed -i 's/VPC/'${aws_cloudwatch_log_group.squid-nlb_log_group.name}'/g' /var/awslogs/etc/awslogs.conf
+#cat >> /var/awslogs/etc/awslogs.conf <<EOM
+#[syslog]
+#datetime_format = %b %d %H:%M:%S
+#file = /var/log/syslog
+#log_stream_name = http_proxy-syslog-${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
+#time_zone = LOCAL
+#log_group_name = ${aws_cloudwatch_log_group.squid-nlb_log_group.name}
+#[squid/access.log]
+#file = /var/log/squid/access.log*
+#log_stream_name = http_proxy-squid_access-${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
+#log_group_name = ${aws_cloudwatch_log_group.squid-nlb_log_group.name}
+#EOM
+
+#chmod 755 /etc/init.d/awslogs
+#systemctl enable awslogs
+#systemctl restart awslogs
+sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 EOF
 
 lifecycle {

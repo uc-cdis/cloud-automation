@@ -16,6 +16,9 @@ module "squid_nlb" {
   env_priv_subnet_routetable_id = "${var.env_priv_subnet_routetable_id}"
   ssh_key_name     = "${var.ssh_key_name}"
   allowed_principals_list  = "${var.allowed_principals_list}"
+  bootstrap_path = "${var.bootstrap_path}"
+  bootstrap_script = "${var.bootstrap_script}"
+
   #env_instance_profile = "${aws_iam_instance_profile.squid-nlb_role_profile.name}"
   #env_log_group        = "${aws_cloudwatch_log_group.squid-nlb_log_group.name}"
 

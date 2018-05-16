@@ -46,6 +46,15 @@ variable "allowed_principals_list" {
   default = ["arn:aws:iam::707767160287:root"]
 }
 
+## variable for the bootstrap 
+variable "bootstrap_path" {
+  default = "cloud-automation/flavors/nginx/"
+}
+
+variable "bootstrap_script" {
+  #default = "es_revproxy.sh"
+}
+
 
 #variable "env_instance_profile" {
 #  default = "common_name_cloudwatch_access_profile"

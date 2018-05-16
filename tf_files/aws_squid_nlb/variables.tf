@@ -47,6 +47,17 @@ variable "allowed_principals_list" {
 }
 
 
+## variable for the bootstrap 
+variable "bootstrap_path" {
+  default = "cloud-automation/flavors/squid_nlb/"
+}
+
+variable "bootstrap_script" {
+  default = "squidvm.sh"
+}
+
+
+
 #variable "env_instance_profile" {
  # default = "common_name_cloudwatch_access_profile"
 #}
