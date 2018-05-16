@@ -94,6 +94,18 @@ fi
 EOF
   fi
 
+  if ! grep "aws_.*completer" ${WORKSPACE}/.${RC_FILE} > /dev/null ; then
+    if [[ ${CURRENT_SHELL} == "zsh" ]]; then
+      cat - >>${WORKSPACE}/.${RC_FILE} << EOF
+source /usr/local/bin/aws_zsh_completer.sh
+EOF
+    elif [[ ${CURRENT_SHELL} == "bash" ]]; then
+      cat - >>${WORKSPACE}/.${RC_FILE} << EOF
+complete -C '/usr/local/bin/aws_completer' aws
+EOF
+    fi
+  fi
+
 # a user login should only work with one vpc
 if [[ "$vpc_name" != "unknown" ]] && ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
   cat - >>${WORKSPACE}/.${RC_FILE} <<EOF
