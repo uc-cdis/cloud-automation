@@ -4,6 +4,35 @@
 # DCF_BUCKET_NAME a_bucket_name \
 # folow the below link  to setup bucket owner grant access to other aws account 
 # https://docs.aws.amazon.com/AmazonS3/latest/dev/example-walkthroughs-managing-access-example2.html
+# setup bucket policy
+# {
+#     "Version": "2012-10-17",
+#     "Statement": [
+#         {
+#             "Sid": "Example permissions",
+#             "Effect": "Allow",
+#             "Principal": {
+#                 "AWS": "arn:aws:iam::xxxxxxxxxxx:root"
+#             },
+#             "Action": [
+#                 "s3:GetBucketLocation",
+#                 "s3:ListBucket"
+#             ],
+#             "Resource": "arn:aws:s3:::gdc_bucket"
+#         },
+#         {
+#             "Sid": "bucket permissions",
+#             "Effect": "Allow",
+#             "Principal": {
+#                 "AWS": "arn:aws:iam::xxxxxxxxxxx:root"
+#             },
+#             "Action": [
+#                 "s3:GetObject"
+#             ],
+#             "Resource": "arn:aws:s3:::gdc_bucket/*"
+#         }
+#     ]
+# }
 
 apiVersion: batch/v1
 kind: Job
@@ -20,7 +49,7 @@ spec:
             secretName: "aws-cred-secret"
       containers:
       - name: awshelper
-        image: quay.io/cdis/awshelper:feat_aws_bucket_sync
+        image: quay.io/cdis/awshelper:master
         imagePullPolicy: Always
         env:
           - name: GDC_BUCKET_NAME
