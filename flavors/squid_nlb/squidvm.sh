@@ -28,6 +28,10 @@ systemctl restart awslogs
 cat >> /home/ubuntu/updatewhitelist.sh <<EOF
 cd /home/ubuntu/cloud-automation
 git pull
+# this is just temporary to test stuff from y branch; not needed once it is merged
+git branch feat/nlbforsquid
+git pull
+#####
 DIFF1=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/web_whitelist" "/etc/squid/web_whitelist")
 DIFF2=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/web_wildcard_whitelist" "/etc/squid/web_wildcard_whitelist")
 DIFF3=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/ftp_whitelist" "/etc/squid/ftp_whitelist")

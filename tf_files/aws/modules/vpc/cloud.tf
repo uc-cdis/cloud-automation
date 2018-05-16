@@ -311,7 +311,7 @@ resource "aws_vpc_endpoint" "squid-nlb" {
   private_dns_enabled = false
 }
 
-
+## 'raryatestnlbproxyv1' should be replaced with cloud-proxy at the time of merge
 resource "aws_route53_record" "squid-nlb" {
   zone_id = "${aws_route53_zone.main.zone_id}"
   name    = "raryatestnlbproxyv1.${aws_route53_zone.main.name}"
