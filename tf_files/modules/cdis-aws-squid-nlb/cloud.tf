@@ -200,8 +200,8 @@ sudo git clone https://github.com/uc-cdis/cloud-automation.git
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 cd /home/ubuntu/cloud-automation
 git pull
-# this is just temporary to test stuff from y branch; not needed once it is merged
-git branch feat/nlbforsquid
+# this is just temporary to test stuff from my branch; not needed once it is merged
+git checkout feat/nlbforsquid
 git pull
 #####
 
