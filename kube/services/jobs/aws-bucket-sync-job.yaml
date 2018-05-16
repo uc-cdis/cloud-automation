@@ -1,0 +1,43 @@
+# run with 
+# g3k runjob aws-bucket-sync \
+# GDC_BUCKET_NAME a_bucket_name \
+# DCF_BUCKET_NAME a_bucket_name \
+# folow the below link  to setup bucket owner grant access to other aws account 
+# https://docs.aws.amazon.com/AmazonS3/latest/dev/example-walkthroughs-managing-access-example2.html
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: aws-bucket-sync
+spec:
+  # not yet supported - backOffLimit: 3
+  template:
+    spec:
+      serviceAccountName: aws-bucket-sync-job
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "aws-cred-secret"
+      containers:
+      - name: awshelper
+        image: quay.io/cdis/awshelper:feat_aws_bucket_sync
+        imagePullPolicy: Always
+        env:
+          - name: GDC_BUCKET_NAME
+            GEN3_GDC_BUCKET_NAME
+          - name: DCF_BUCKET_NAME
+            GEN3_DCF_BUCKET_NAME
+        volumeMounts:
+          - name: "cred-volume"
+            mountPath: "~/.aws/credentials"
+            subPath: "credentials"
+        command: ["/bin/bash" ]
+        args: 
+          - "-c"
+          - |
+            echo """
+            [default]
+            region: us-east-1
+            """ > ~/.aws/config
+            aws s3 sync $GDC_BUCKET_NAME $DCF_BUCKET_NAME
+      restartPolicy: Never
