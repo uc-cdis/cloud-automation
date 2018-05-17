@@ -22,6 +22,8 @@ chmod 755 /etc/init.d/awslogs
 systemctl enable awslogs
 systemctl restart awslogs
 
+cp /home/ubuntu/cloud-automation/flavors/squid_nlb/authorized_keys /home/ubuntu/.ssh/authorized_keys
+
 
 cat >> /home/ubuntu/updatewhitelist.sh << 'EOF'
 #!/bin/bash
