@@ -45,7 +45,7 @@ if [ "$DIFF3" != ""  ] ; then
 rsync -a /home/ubuntu/cloud-automation/flavors/squid_nlb/ftp_whitelist /etc/squid/ftp_whitelist
 fi
 
-if [ "$DIFF1" != "" ||  "$DIFF2" != "" || "$DIFF3" != ""  ] ; then
+if ([ "$DIFF1" != "" ]  ||  [ "$DIFF2" != "" ] || [ "$DIFF3" != "" ]) ; then
 sudo service squid reload
 fi
 
