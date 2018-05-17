@@ -6,7 +6,8 @@ PUBLIC_IP="35.174.124.219"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 
 #CSOC-ACCOUNT-ID=$(${AWS} sts get-caller-identity --output text --query 'Account')
-sudo apt install -y curl jq
+sudo apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban
+sudo pip install --upgrade pip
 ACCOUNT_ID=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn' |sed -e 's/.*:://' -e 's/:.*//')
 
 # Let's install awscli and configure it
@@ -32,17 +33,18 @@ sudo chown ubuntu:ubuntu -R /home/ubuntu
 
 
 # configure SSH properly
-sudo cp ${SUB_FOLDER}flavors/nginx/ssh_config /etc/ssh/sshd_config
+sudo cp ${SUB_FOLDER}flavors/nginx/sshd_config /etc/ssh/sshd_config
 
 
 HOSTNAME=$(which hostname)
+PYTHON=$(which python)
 
 # download and install awslogs 
 sudo wget -O /tmp/awslogs-agent-setup.py https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
 sudo chmod 775 /tmp/awslogs-agent-setup.py
 sudo mkdir -p /var/awslogs/etc/
 curl -s ${MAGIC_URL}placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-sudo python /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/nginx/awslogs.conf
+sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/nginx/awslogs.conf
 sudo systemctl disable awslogs
 sudo chmod 644 /etc/init.d/awslogs
 
@@ -64,8 +66,7 @@ sudo systemctl restart awslogs
 
 
 
-# Let's install basic stuff 
-sudo apt-get install -y apt-transport-https ca-certificates software-properties-common fail2ban 
+################ NGINX 
 
 sudo apt -y install nginx
 

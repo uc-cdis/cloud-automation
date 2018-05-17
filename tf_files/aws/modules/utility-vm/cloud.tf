@@ -187,6 +187,11 @@ echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/
 
 cd /home/ubuntu
 sudo git clone https://github.com/uc-cdis/cloud-automation.git
+
+cd cloud-automation
+git checkout feat/csoc-utility-vm
+cd /home/ubuntu
+
 #sudo mkdir -p /root/.ssh/
 sudo cat cloud-automation/ssh-public-keys/authorized_keys | sudo tee --append /home/ubuntu/.ssh/authorized_keys
 
@@ -202,8 +207,6 @@ sudo apt-get autoremove -y
 sudo apt-get clean
 sudo apt-get autoclean
 
-cd cloud-automation
-git checkout feat/csoc-utility-vm
 cd /home/ubuntu
 
 sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
