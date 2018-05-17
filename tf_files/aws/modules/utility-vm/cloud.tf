@@ -187,6 +187,7 @@ echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/
 
 cd /home/ubuntu
 sudo git clone https://github.com/uc-cdis/cloud-automation.git
+sudo chown -R ubuntu. cloud-automation
 
 cd cloud-automation
 git checkout feat/csoc-utility-vm

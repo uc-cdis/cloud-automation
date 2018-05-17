@@ -6,7 +6,7 @@ PUBLIC_IP="35.174.124.219"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 
 #CSOC-ACCOUNT-ID=$(${AWS} sts get-caller-identity --output text --query 'Account')
-sudo apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban
+sudo apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev
 sudo pip install --upgrade pip
 ACCOUNT_ID=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn' |sed -e 's/.*:://' -e 's/:.*//')
 
@@ -36,7 +36,8 @@ sudo chown ubuntu:ubuntu -R /home/ubuntu
 sudo cp ${SUB_FOLDER}flavors/nginx/sshd_config /etc/ssh/sshd_config
 
 
-HOSTNAME=$(which hostname)
+HOSTNAME_BIN=$(which hostname)
+HOSTNAME=$(${HOSTNAME_BIN})
 PYTHON=$(which python)
 
 # download and install awslogs 
