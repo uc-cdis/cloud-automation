@@ -204,10 +204,11 @@ git pull
 git checkout feat/nlbforsquid
 git pull
 #####
+sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
 #instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
 #echo "127.0.1.1 $instance_ip" | sudo tee --append /etc/hosts
-echo "127.0.1.1 $instance_ip" | sudo tee --append /etc/hosts
+echo "127.0.1.1 ${var.env_nlb_name}" | sudo tee --append /etc/hosts
 #IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
 #sudo hostnamectl set-hostname ${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
 sudo hostnamectl set-hostname ${var.env_nlb_name}
@@ -245,7 +246,7 @@ sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append
 EOF
 
 lifecycle {
-    create_before_destroy = true
+    create_before_destroy = false
   }
 
 }
