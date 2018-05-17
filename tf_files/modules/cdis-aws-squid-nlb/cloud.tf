@@ -151,20 +151,39 @@ resource "aws_lb" "squid_nlb" {
     Environment = "production"
   }
 }
-
-resource "aws_lb_target_group" "squid_nlb" {
-  name     = "${var.env_nlb_name}-prod-tg"
+# For http/https traffic
+resource "aws_lb_target_group" "squid_nlb-http" {
+  name     = "${var.env_nlb_name}-prod-http-tg"
   port     = 3128
   protocol = "TCP"
   vpc_id   = "${var.env_vpc_id}"
 }
 
-resource "aws_lb_listener" "squid_nlb" {
+resource "aws_lb_listener" "squid_nlb-http" {
   load_balancer_arn = "${aws_lb.squid_nlb.arn}"
   port              = "3128"
   protocol          = "TCP"
   default_action {
-    target_group_arn = "${aws_lb_target_group.squid_nlb.arn}"
+    target_group_arn = "${aws_lb_target_group.squid_nlb-http.arn}"
+    type             = "forward"
+  }
+}
+
+# For  SFTP traffic
+
+resource "aws_lb_target_group" "squid_nlb-sftp" {
+  name     = "${var.env_nlb_name}-prod-sftp-tg"
+  port     = 22
+  protocol = "TCP"
+  vpc_id   = "${var.env_vpc_id}"
+}
+
+resource "aws_lb_listener" "squid_nlb-sftp" {
+  load_balancer_arn = "${aws_lb.squid_nlb.arn}"
+  port              = "22"
+  protocol          = "TCP"
+  default_action {
+    target_group_arn = "${aws_lb_target_group.squid_nlb-sftp.arn}"
     type             = "forward"
   }
 }
@@ -261,7 +280,7 @@ resource "aws_autoscaling_group" "squid_nlb" {
   desired_capacity = 3
   max_size = 6
   min_size = 1
-  target_group_arns = ["${aws_lb_target_group.squid_nlb.arn}"]
+  target_group_arns = ["${aws_lb_target_group.squid_nlb-http.arn}", "${aws_lb_target_group.squid_nlb-sftp.arn}"]
   vpc_zone_identifier = ["${aws_subnet.squid_priv0.id}", "${aws_subnet.squid_priv1.id}", "${aws_subnet.squid_priv2.id}", "${aws_subnet.squid_priv3.id}", "${aws_subnet.squid_priv4.id}", "${aws_subnet.squid_priv5.id}"]
   launch_configuration = "${aws_launch_configuration.squid_nlb.name}"
 
@@ -272,10 +291,7 @@ resource "aws_autoscaling_group" "squid_nlb" {
   }
 }
 
-#resource "aws_autoscaling_attachment" "squid_nlb" {
-#  autoscaling_group_name = "${aws_autoscaling_group.squid_nlb.id}"
-#  target_group_arns = ["${aws_lb_target_group.squid_nlb.arn}"]
-# }
+
 
 
 data "aws_ami" "public_squid_ami" {
