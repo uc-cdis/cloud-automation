@@ -22,7 +22,18 @@ chmod 755 /etc/init.d/awslogs
 systemctl enable awslogs
 systemctl restart awslogs
 
-cp /home/ubuntu/cloud-automation/flavors/squid_nlb/authorized_keys /home/ubuntu/.ssh/authorized_keys
+sudo cp /home/ubuntu/cloud-automation/flavors/squid_nlb/authorized_keys_admin /home/ubuntu/.ssh/authorized_keys
+
+## create a sftp user 
+sudo useradd -m -s /bin/bash sftpuser
+sudo mkdir /home/sftpuser/.ssh
+sudo chmod 700 /home/sftpuser/.ssh
+sudo cp -rp /home/ubuntu/cloud-automation /home/sftpuser
+sudo chown -R sftpuser. /home/sftpuser
+sudo cp /home/sftpuser/cloud-automation/flavors/squid_nlb/authorized_keys_user /home/sftpuser/.ssh/authorized_keys
+
+
+
 
 
 cat >> /home/ubuntu/updatewhitelist.sh << 'EOF'
@@ -31,23 +42,35 @@ cat >> /home/ubuntu/updatewhitelist.sh << 'EOF'
 cd /home/ubuntu/cloud-automation
 git pull
 
-DIFF1=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/web_whitelist" "/etc/squid/web_whitelist")
-DIFF2=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/web_wildcard_whitelist" "/etc/squid/web_wildcard_whitelist")
-DIFF3=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/ftp_whitelist" "/etc/squid/ftp_whitelist")
+DIFF_AUTH1=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/authorized_keys_admin" "/home/ubuntu/.ssh/authorized_keys")
+DIFF_AUTH2=$(diff "/home/sftpuser/cloud-automation/flavors/squid_nlb/authorized_keys_user" "/home/sftpuser/.ssh/authorized_keys")
 
-if [ "$DIFF1" != ""  ] ; then
+DIFF_SQUID1=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/web_whitelist" "/etc/squid/web_whitelist")
+DIFF_SQUID2=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/web_wildcard_whitelist" "/etc/squid/web_wildcard_whitelist")
+DIFF_SQUID3=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/ftp_whitelist" "/etc/squid/ftp_whitelist")
+
+if [ "$DIFF_AUTH1" != ""  ] ; then
+rsync -a /home/ubuntu/cloud-automation/flavors/squid_nlb/authorized_keys_admin /home/ubuntu/.ssh/authorized_keys
+fi
+
+if [ "$DIFF_AUTH2" != ""  ] ; then
+rsync -a /home/sftpuser/cloud-automation/flavors/squid_nlb/authorized_keys_user /home/ubuntu/.ssh/authorized_keys
+fi
+
+
+if [ "$DIFF_SQUID1" != ""  ] ; then
 rsync -a /home/ubuntu/cloud-automation/flavors/squid_nlb/web_whitelist /etc/squid/web_whitelist
 fi
 
-if [ "$DIFF2" != ""  ] ; then
+if [ "$DIFF_SQUID2" != ""  ] ; then
 rsync -a /home/ubuntu/cloud-automation/flavors/squid_nlb/web_wildcard_whitelist /etc/squid/web_wildcard_whitelist
 fi
 
-if [ "$DIFF3" != ""  ] ; then
+if [ "$DIFF_SQUID3" != ""  ] ; then
 rsync -a /home/ubuntu/cloud-automation/flavors/squid_nlb/ftp_whitelist /etc/squid/ftp_whitelist
 fi
 
-if ([ "$DIFF1" != "" ]  ||  [ "$DIFF2" != "" ] || [ "$DIFF3" != "" ]) ; then
+if ([ "$DIFF_SQUID1" != "" ]  ||  [ "$DIFF_SQUID2" != "" ] || [ "$DIFF_SQUID3" != "" ]) ; then
 sudo service squid reload
 fi
 
