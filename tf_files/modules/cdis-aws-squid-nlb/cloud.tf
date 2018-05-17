@@ -246,7 +246,7 @@ sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append
 EOF
 
 lifecycle {
-    create_before_destroy = false
+    create_before_destroy = true
   }
 
 }
