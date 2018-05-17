@@ -188,7 +188,7 @@ echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/
 cd /home/ubuntu
 sudo git clone https://github.com/uc-cdis/cloud-automation.git
 #sudo mkdir -p /root/.ssh/
-cat cloud-automation/ssh-public-keys/authorized_keys >> /home/ubuntu/.ssh/authorized_keys
+sudo cat cloud-automation/ssh-public-keys/authorized_keys | sudo tee --append /home/ubuntu/.ssh/authorized_keys
 
 
 
