@@ -13,7 +13,7 @@ data "aws_ami" "public_ami" {
 
   filter {
     name   = "name"
-    values = ["${var.image_name_search_criteria"] 
+    values = ["${var.image_name_search_criteria}"] 
   }
 
   filter {
