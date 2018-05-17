@@ -56,7 +56,8 @@ sudo chown -R ubuntu. /home/ubuntu/
 
 #crontab -l > file; echo '*/15 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file; crontab file
 
-crontab -l > file; echo '*/5 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file; crontab file
+crontab -l > file; echo '*/5 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file
+crontab file
  
 
 
