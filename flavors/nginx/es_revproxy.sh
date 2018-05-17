@@ -44,6 +44,7 @@ PYTHON=$(which python)
 sudo wget -O /tmp/awslogs-agent-setup.py https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
 sudo chmod 775 /tmp/awslogs-agent-setup.py
 sudo mkdir -p /var/awslogs/etc/
+sudo cp ${SUB_FOLDER}/flavors/nginx/awslogs.conf /var/awslogs/etc/awslogs.conf
 curl -s ${MAGIC_URL}placement/availability-zone > /tmp/EC2_AVAIL_ZONE
 sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/nginx/awslogs.conf
 sudo systemctl disable awslogs
@@ -75,7 +76,7 @@ sudo apt -y install nginx
 
 
 # I would like to avoid harconding urls and IPs in this script so let's try awscli for a few stuff
-ES_ENDPOINT=$(aws es describe-elasticsearch-domain --domain-name commons-logs --query 'DomainStatus.Endpoint' --output text)
+ES_ENDPOINT=$(sudo -H -u ubuntu bash -c "aws es describe-elasticsearch-domain --domain-name commons-logs --query 'DomainStatus.Endpoint' --output text")
 # let's change the proxy for this guy properly
 sed -i.bck '/no_proxy.*$/ s/$/,${ES_ENDPOINT}/' /etc/environment
 
