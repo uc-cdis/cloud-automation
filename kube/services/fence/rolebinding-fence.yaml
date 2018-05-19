@@ -1,0 +1,12 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: fence-binding
+subjects:
+- kind: ServiceAccount
+  name: fence-service
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: fence
+  apiGroup: ""

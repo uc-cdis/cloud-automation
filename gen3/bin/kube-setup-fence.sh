@@ -28,6 +28,10 @@ if [[ -d "${WORKSPACE}/${vpc_name}_output" ]]; then # create database
 fi
 
 # deploy fence
+g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/serviceaccount.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/role-fence.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/rolebinding-fence.yaml"
+
 gen3 roll fence
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
 
