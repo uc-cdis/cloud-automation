@@ -47,7 +47,48 @@ data:
     ]
     c.KubeSpawner.hub_connect_ip = 'jupyterhub-service.%s' % (os.environ['POD_NAMESPACE'])
     c.KubeSpawner.hub_connect_port = 8000
-    c.KubeSpawner.singleuser_image_spec = 'quay.io/occ_data/jupyternotebook:latest'
+    c.KubeSpawner.profile_list = [
+        {
+            'display_name': 'Base Python - Micro',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'jupyter/minimal-notebook:d29a0f617484',
+                'cpu_limit': 0.1,
+                'mem_limit': '128M',
+            }
+        },
+        {
+            'display_name': 'Bioinfo - Python/R - Small',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook@sha256:958f276424737ff9a3887606cf1ba0bec29d1f0316c90e8365545de1fcfb0c0e',
+                'cpu_limit': 0.25,
+                'mem_limit': '256M',
+            }
+        },
+        {
+            'display_name': 'Bioinfo - Python/R - Large',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook@sha256:958f276424737ff9a3887606cf1ba0bec29d1f0316c90e8365545de1fcfb0c0e',
+                'cpu_limit': 1.0,
+                'mem_limit': '1.5G',
+            }
+        },
+        {
+            'display_name': 'Earth - Python - Small',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo@sha256:3428f82630a2363280409b5cb19d9ddc2e39f4716c5393a8ec80677c365ecc30',
+                'cpu_limit': 0.25,
+                'mem_limit': '256M',
+            }
+        },
+        {
+            'display_name': 'Earth - Python - Large',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo@sha256:3428f82630a2363280409b5cb19d9ddc2e39f4716c5393a8ec80677c365ecc30',
+                'cpu_limit': 1.0,
+                'mem_limit': '1.5G',
+            }
+        }
+    ]
     c.KubeSpawner.cmd = 'start-singleuser.sh'
     c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-prefix=https://%s%s/' % (
         c.KubeSpawner.hub_connect_ip, c.KubeSpawner.hub_connect_port, c.JupyterHub.base_url, os.environ['HOSTNAME'], c.JupyterHub.base_url)]

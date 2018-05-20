@@ -1,0 +1,44 @@
+# Prepuller for images used by notebooks
+# Should be synced with jupyterhub-config
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: Jupyterhub-PrePuller
+  labels:
+    app: jupyterhub-prepuller
+spec:
+  selector:
+    matchLabels:
+        app: jupyterhub-prepuller
+  template:
+    metadata:
+      labels:
+        app: jupyterhub-prepuller
+    spec:
+      terminationGracePeriodSeconds: 0
+      automountServiceAccountToken: false
+      initContainers:
+      - name: image-pull-minimal
+        image: jupyter/minimal-notebook:d29a0f617484
+        imagePullPolicy: IfNotPresent
+        command:
+          - /bin/sh
+          - -c
+          - echo "Pulling complete"
+      - name: image-pull-bio
+        image: quay.io/occ_data/jupyternotebook@sha256:958f276424737ff9a3887606cf1ba0bec29d1f0316c90e8365545de1fcfb0c0e
+        imagePullPolicy: IfNotPresent
+        command:
+          - /bin/sh
+          - -c
+          - echo "Pulling complete"
+      - name: image-pull-geo
+        image: quay.io/occ_data/jupyter-geo@sha256:3428f82630a2363280409b5cb19d9ddc2e39f4716c5393a8ec80677c365ecc30
+        imagePullPolicy: IfNotPresent
+        command:
+          - /bin/sh
+          - -c
+          - echo "Pulling complete"
+      containers:
+      - name: pause
+        image: gcr.io/google_containers/pause-amd64:3.1
