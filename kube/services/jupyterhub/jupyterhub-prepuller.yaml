@@ -3,7 +3,7 @@
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
-  name: Jupyterhub-PrePuller
+  name: jupyterhub-prepuller
   labels:
     app: jupyterhub-prepuller
 spec:
@@ -26,14 +26,14 @@ spec:
           - -c
           - echo "Pulling complete"
       - name: image-pull-bio
-        image: quay.io/occ_data/jupyternotebook@sha256:958f276424737ff9a3887606cf1ba0bec29d1f0316c90e8365545de1fcfb0c0e
+        image: quay.io/occ_data/jupyternotebook:1.0
         imagePullPolicy: IfNotPresent
         command:
           - /bin/sh
           - -c
           - echo "Pulling complete"
       - name: image-pull-geo
-        image: quay.io/occ_data/jupyter-geo@sha256:3428f82630a2363280409b5cb19d9ddc2e39f4716c5393a8ec80677c365ecc30
+        image: quay.io/occ_data/jupyter-geo:1.2
         imagePullPolicy: IfNotPresent
         command:
           - /bin/sh
