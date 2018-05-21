@@ -43,7 +43,7 @@ variable "image_name_search_criteria" {
 
 variable "extra_vars" {
   type = "list"
-  default = ["hostname=stuff","accountid=34534534534"]
+  #default = ["hostname=stuff","accountid=34534534534"]
 }
 
 variable "bootstrap_path" {

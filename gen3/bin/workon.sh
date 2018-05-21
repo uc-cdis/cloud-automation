@@ -187,11 +187,12 @@ EOM
   if [[ "$GEN3_WORKSPACE" =~ _utilityvm ]]; then
      vmName=$(echo "$GEN3_WORKSPACE" | sed 's/_utilityvm$//')
      cat - <<EOM
-bootstrap_path = "cloud-automation/flavors"
+bootstrap_path = "cloud-automation/flavors/"
 bootstrap_script = "FILE-IN-ABOVE-PATH"
 vm_name = "${vmName}"
 vm_hostname = "HOSTNAMEIT"
 vpc_cidr_list = []
+extra_vars = []
 EOM
     return 0
   fi
