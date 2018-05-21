@@ -218,7 +218,9 @@ sudo apt-get autoclean
 
 cd /home/ubuntu
 
-sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
+
+sudo echo ${join(",",var.extra_vars)} > extra
+sudo bash "${var.bootstrap_path}${var.bootstrap_script}" ${join(",",var.extra_vars)} 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
 
 EOF
 }

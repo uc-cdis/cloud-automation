@@ -41,6 +41,11 @@ variable "image_name_search_criteria" {
   default = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
 }
 
+variable "extra_vars" {
+  type = "list"
+  default = ["hostname=stuff","accountid=34534534534"]
+}
+
 variable "bootstrap_path" {
   #default = "cloud-automation/flavors/nginx/"
 }

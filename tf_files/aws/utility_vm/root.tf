@@ -21,6 +21,7 @@ module "utility_vm" {
   bootstrap_script = "${var.bootstrap_script}"
   vm_hostname      = "${var.vm_hostname}"
   image_name_search_criteria = "${var.image_name_search_criteria}"
+  extra_vars       = "${var.extra_vars}"
   
 
   # put other variables here ...

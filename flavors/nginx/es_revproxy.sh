@@ -5,6 +5,13 @@ SUB_FOLDER="/home/ubuntu/cloud-automation/"
 PUBLIC_IP="35.174.124.219"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied" >> /home/ubuntu/extra
+else
+    echo $1 >> /home/ubuntu/extra
+fi
+
 #CSOC-ACCOUNT-ID=$(${AWS} sts get-caller-identity --output text --query 'Account')
 sudo apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev
 sudo pip install --upgrade pip
