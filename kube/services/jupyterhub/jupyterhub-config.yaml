@@ -81,11 +81,11 @@ data:
             }
         },
         {
-            'display_name': 'Earth - Python - 1.0 CPU 1.5G Mem',
+            'display_name': 'Earth - Python - 1.0 CPU 10.0G Mem',
             'kubespawner_override': {
                 'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.2',
                 'cpu_limit': 1.0,
-                'mem_limit': '1.5G',
+                'mem_limit': '10.0G',
             }
         }
     ]
