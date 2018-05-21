@@ -31,7 +31,7 @@ spec:
                   values:
                   - fence
               topologyKey: "kubernetes.io/hostname"
-      automountServiceAccountToken: false
+      serviceAccountName: fence-service
       volumes:
         - name: config-volume
           secret:
@@ -77,6 +77,10 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /jwt/keys
+            port: 80
         ports:
         - containerPort: 80
         - containerPort: 443
