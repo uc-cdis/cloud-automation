@@ -2,7 +2,6 @@
 #Proxy configuration and hostname assigment for the adminVM
 
 SUB_FOLDER="/home/ubuntu/cloud-automation/"
-#PUBLIC_IP="35.174.124.219"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 
 if [ $# -eq 0 ]
@@ -49,6 +48,15 @@ sudo chown ubuntu:ubuntu -R /home/ubuntu
 
 # configure SSH properly
 sudo cp ${SUB_FOLDER}flavors/nginx/sshd_config /etc/ssh/sshd_config
+sudo chown root:root /etc/ssh/sshd_config
+sudo chmod 0644 /etc/ssh/sshd_config
+
+sudo mkdir -p /usr/local/etc/ssh
+sudo cp $(dirname $0)/krlfile /usr/local/etc/ssh/krlfile
+sudo chown root:root /usr/local/etc/ssh/krlfile
+sudo chmod 0600 /usr/local/etc/ssh/krlfile
+sudo cat /home/ubuntu/.ssh/authorized_keys > /root/.ssh/authorized_keys
+sudo systemctl restart sshd
 
 
 HOSTNAME_BIN=$(which hostname)
