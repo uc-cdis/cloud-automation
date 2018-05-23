@@ -4,7 +4,7 @@ variable "ami_account_id" {
   default = "099720109477"
 }
 
-variable "account_id" {
+variable "aws_account_id" {
   default = "433568766270"
 }
 
@@ -16,7 +16,7 @@ variable "vpc_id" {
   default = "vpc-e2b51d99"
 }
 
-variable "subnet_id" {
+variable "vpc_subnet_id" {
   default = "subnet-6127013c"
 }
 
