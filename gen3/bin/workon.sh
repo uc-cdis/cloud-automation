@@ -190,8 +190,8 @@ EOM
 bootstrap_path = "cloud-automation/flavors/"
 bootstrap_script = "FILE-IN-ABOVE-PATH"
 vm_name = "${vmName}"
-vm_hostname = "HOSTNAMEIT"
-vpc_cidr_list = []
+vm_hostname = "${vmName}"
+vpc_cidr_list = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8"]
 extra_vars = []
 EOM
     return 0

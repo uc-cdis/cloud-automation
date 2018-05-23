@@ -42,7 +42,7 @@ resource "aws_ami_copy" "cdis_ami" {
   }
 
   lifecycle {
-    #
+    
     # Do not force update when new ami becomes available.
     # We still need to improve our mechanism for tracking .ssh/authorized_keys
     # User can use 'terraform state taint' to trigger update.
@@ -56,7 +56,7 @@ resource "aws_ami_copy" "cdis_ami" {
 resource "aws_security_group" "ssh" {
   name        = "ssh_${var.vm_name}"
   description = "security group that only enables ssh"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = "${var.vpc_id}"
 
   ingress {
     from_port   = 22
@@ -75,7 +75,7 @@ resource "aws_security_group" "ssh" {
 resource "aws_security_group" "local" {
   name        = "local_${var.vm_name}"
   description = "security group that only allow internal tcp traffics"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = "${var.vpc_id}"
 
   ingress {
     from_port   = 0
@@ -88,7 +88,7 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8", "${var.vpc_cidr_list}"]
+    cidr_blocks = ["${var.vpc_cidr_list}"]
   }
 
   tags {
@@ -148,7 +148,7 @@ data "aws_iam_policy_document" "vm_policy_document" {
     actions = ["sts:AssumeRole"]
 
     effect    = "Allow"
-    resources = ["arn:aws:iam::${var.csoc_account_id}:role/csoc_adminvm"]
+    resources = ["arn:aws:iam::${var.aws_account_id}:role/csoc_adminvm"]
   }
 
 }
@@ -166,7 +166,7 @@ resource "aws_iam_instance_profile" "vm_role_profile" {
 
 resource "aws_instance" "utility_vm" {
   ami                    = "${aws_ami_copy.cdis_ami.id}"
-  subnet_id              = "${var.csoc_subnet_id}"
+  subnet_id              = "${var.vpc_subnet_id}"
   instance_type          = "${var.instance_type}"
   monitoring             = true
   key_name               = "${var.ssh_key_name}"
@@ -219,7 +219,7 @@ sudo apt-get autoclean
 cd /home/ubuntu
 
 
-sudo bash "${var.bootstrap_path}${var.bootstrap_script}" ${join(",",var.extra_vars)} 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
+sudo bash "${var.bootstrap_path}${var.bootstrap_script}" ${join(";",var.extra_vars)} 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
 
 EOF
 }

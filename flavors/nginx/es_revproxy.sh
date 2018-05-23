@@ -2,14 +2,22 @@
 #Proxy configuration and hostname assigment for the adminVM
 
 SUB_FOLDER="/home/ubuntu/cloud-automation/"
-PUBLIC_IP="35.174.124.219"
+#PUBLIC_IP="35.174.124.219"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 
 if [ $# -eq 0 ]
   then
-    echo "No arguments supplied" >> /home/ubuntu/extra
+    echo "No arguments supplied" 
 else
-    echo $1 >> /home/ubuntu/extra
+    OIFS=$IFS
+    IFS=';' read -ra ADDR <<< "$1"
+    for i in "${ADDR[@]}"; do
+      if [[ $i = *"public_ip"* ]];
+      then
+        PUBLIC_IP="$(echo ${i} | cut -d= -f2)"
+      fi
+    done
+    echo $1
 fi
 
 #CSOC-ACCOUNT-ID=$(${AWS} sts get-caller-identity --output text --query 'Account')

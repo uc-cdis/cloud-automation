@@ -4,7 +4,7 @@ variable "ami_account_id" {
   default = "099720109477"
 }
 
-variable "csoc_account_id" {
+variable "aws_account_id" {
   default = "433568766270"
 }
 
@@ -12,11 +12,11 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-variable "csoc_vpc_id" {
+variable "vpc_id" {
   default = "vpc-e2b51d99"
 }
 
-variable "csoc_subnet_id" {
+variable "vpc_subnet_id" {
   default = "subnet-6127013c"
 }
 
