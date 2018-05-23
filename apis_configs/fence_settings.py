@@ -57,6 +57,7 @@ DEFAULT_DBGAP = {
              },
     'decrypt_key': ''}
 
+STORAGE_CREDENTIALS = {}
 # aws_credentials should be a dict looks like:
 # { identifier: { 'aws_access_key_id': 'XXX', 'aws_secret_access_key': 'XXX' }}
 AWS_CREDENTIALS = {}
