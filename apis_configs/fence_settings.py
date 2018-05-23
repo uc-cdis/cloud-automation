@@ -57,7 +57,6 @@ DEFAULT_DBGAP = {
              },
     'decrypt_key': ''}
 
-STORAGE_CREDENTIALS = {}
 # aws_credentials should be a dict looks like:
 # { identifier: { 'aws_access_key_id': 'XXX', 'aws_secret_access_key': 'XXX' }}
 AWS_CREDENTIALS = {}
@@ -116,15 +115,15 @@ if data:
     CIRRUS_CFG = {}
     CIRRUS_CFG["GOOGLE_API_KEY"] = get_from_dict(data, 'GOOGLE_API_KEY')
     CIRRUS_CFG["GOOGLE_PROJECT_ID"] = get_from_dict(data, 'GOOGLE_PROJECT_ID')
-    CIRRUS_CFG["GOOGLE_ADMIN_EMAIL"] = get_from_dict(
-        data, 'GOOGLE_ADMIN_EMAIL'
-    )
+    CIRRUS_CFG["GOOGLE_ADMIN_EMAIL"] = get_from_dict(data, 'GOOGLE_ADMIN_EMAIL')
     CIRRUS_CFG["GOOGLE_IDENTITY_DOMAIN"] = (
         get_from_dict(data, 'GOOGLE_IDENTITY_DOMAIN')
     )
     CIRRUS_CFG["GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL"] = (
         get_from_dict(data, 'GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL')
     )
+
+    STORAGE_CREDENTIALS = get_from_dict(data, 'STORAGE_CREDENTIALS', {})
 
 CIRRUS_CFG["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "/var/www/fence/fence_google_app_creds_secret.json"
