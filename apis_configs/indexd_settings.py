@@ -14,6 +14,7 @@ db = conf_data.get('db_database', '{{db_database}}')
 psw = conf_data.get('db_password', '{{db_password}}')
 pghost = conf_data.get('db_host', '{{db_host}}')
 pgport = 5432
+index_config = conf_data.get('index_config')
 CONFIG = {}
 
 CONFIG['JSONIFY_PRETTYPRINT_REGULAR'] = False
@@ -24,7 +25,7 @@ CONFIG['INDEX'] = {
     pghost=pghost,
     pgport=pgport,
     db=db,
-)),
+), index_config=index_config),
 }
 
 CONFIG['ALIAS'] = {
