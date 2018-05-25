@@ -1,7 +1,8 @@
 #!/bin/bash
 #Proxy configuration and hostname assigment for the adminVM
 
-sed -i '/proxy/ d' environment
+sudo sed -i '/proxy/ d' /etc/environment
+sudo rm /etc/apt/apt.conf.d/01proxy
 
 SUB_FOLDER="/home/ubuntu/cloud-automation/"
 PUBLIC_IP="35.174.124.219"
