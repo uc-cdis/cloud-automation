@@ -134,7 +134,10 @@ if [ -f \"\${GEN3_HOME}/gen3/gen3setup.sh\" ]; then
   source \"\${GEN3_HOME}/gen3/gen3setup.sh\"
 fi" | sudo tee --append /home/ubuntu/.bashrc
 
-source /home/ubuntu/.bashrc
-$(which gen3) kube-setup-workvm
+export GEN3_HOME="/home/ubuntu/cloud-automation"
+if [ -f "${GEN3_HOME}/gen3/gen3setup.sh" ]; then
+  source "${GEN3_HOME}/gen3/gen3setup.sh"
+fi
+gen3 kube-setup-workvm
  
 
