@@ -205,7 +205,7 @@ resource "aws_vpc_endpoint_service" "squid_nlb" {
 resource "aws_launch_configuration" "squid_nlb" {
   name_prefix = "${var.env_nlb_name}_autoscaling_launch_config"
   image_id = "${data.aws_ami.public_squid_ami.id}"
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
   security_groups = ["${aws_security_group.squidnlb_in.id}", "${aws_security_group.squidnlb_out.id}"]
   key_name = "${var.ssh_key_name}"
   iam_instance_profile   = "${aws_iam_instance_profile.squid-nlb_role_profile.id}"
@@ -256,7 +256,7 @@ resource "aws_autoscaling_group" "squid_nlb" {
 # (https://www.terraform.io/docs/providers/aws/r/autoscaling_group.html#availability_zones).
 
  #availability_zones = ["us-east-1a","us-east-1b","us-east-1c","us-east-1d","us-east-1e","us-east-1f"]
-  desired_capacity = 3
+  desired_capacity = 1
   max_size = 6
   min_size = 1
   target_group_arns = ["${aws_lb_target_group.squid_nlb-http.arn}", "${aws_lb_target_group.squid_nlb-sftp.arn}"]
@@ -278,10 +278,21 @@ data "aws_ami" "public_squid_ami" {
 
   filter {
     name   = "name"
-    values = ["ubuntu16-squid-1.0.2-*"]
+    #values = ["ubuntu16-squid-1.0.2-*"]
+    values = ["${var.image_name_search_criteria}"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  filter { 
+    name   = "root-device-type"
+    values = ["ebs"]
   }
 
   owners = ["${var.ami_account_id}"]
+  
 }
 
 

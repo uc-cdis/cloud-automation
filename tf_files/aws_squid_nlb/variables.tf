@@ -16,8 +16,14 @@ variable "env_nlb_name" {
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
   # cdis-test
-  default = "707767160287"
+  #default = "707767160287"
+  default = "099720109477"
 }
+
+variable "image_name_search_criteria" {
+  default = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
+}
+
 
 variable "csoc_cidr" {
   default = "10.128.0.0/20"

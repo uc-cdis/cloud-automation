@@ -18,6 +18,7 @@ module "squid_nlb" {
   allowed_principals_list  = "${var.allowed_principals_list}"
   bootstrap_path = "${var.bootstrap_path}"
   bootstrap_script = "${var.bootstrap_script}"
+  image_name_search_criteria = "${var.image_name_search_criteria}"
 
   #env_instance_profile = "${aws_iam_instance_profile.squid-nlb_role_profile.name}"
   #env_log_group        = "${aws_cloudwatch_log_group.squid-nlb_log_group.name}"
