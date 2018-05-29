@@ -32,7 +32,7 @@ gen3 kube-setup-sheepdog
 gen3 kube-setup-peregrine
 gen3 kube-setup-revproxy
 gen3 kube-setup-fluentd
-#gen3 kube-setup-networkpolicy
+gen3 kube-setup-networkpolicy
 
 # portal is not happy until other services are up
 gen3 roll portal
