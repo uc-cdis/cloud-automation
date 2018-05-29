@@ -212,6 +212,10 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
     g3kubectl create secret generic aws-cred-secret "--from-file=${GEN3_HOME}/apis_configs/aws-cred-secret"
   fi
 
+  if ! g3kubectl get configmaps/data-service-manifest > /dev/null 2>&1; then
+    g3kubectl create configmap data-service-manifest --from-file=apis_configs/manifest
+  fi
+
   #
   # Create the 'sheepdog' and 'peregrine' postgres user if necessary
   #

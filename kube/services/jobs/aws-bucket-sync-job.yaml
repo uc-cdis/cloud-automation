@@ -1,7 +1,7 @@
 # run with 
 # g3k runjob aws-bucket-sync \
 # GDC_BUCKET_NAME a_bucket_name \
-# DCF_BUCKET_NAME a_bucket_name \
+# CHUNK_FILE_SIZE chunk_file_sie
 #
 # folow the below link  to setup bucket owner grant access to other aws account 
 # https://docs.aws.amazon.com/AmazonS3/latest/dev/example-walkthroughs-managing-access-example2.html
@@ -49,19 +49,25 @@ spec:
         - name: cred-volume
           secret:
             secretName: "aws-cred-secret"
+        - name: manifest-volume
+          configMap:
+            name: data-service-manifest
       containers:
-      - name: awshelper
-        image: quay.io/cdis/awshelper:master
+      - name: awsreplicate
+        image: quay.io/cdis/dcf-dataservice:feat_data_replicate_service
         imagePullPolicy: Always
         env:
           - name: GDC_BUCKET_NAME
             GEN3_GDC_BUCKET_NAME
-          - name: DCF_BUCKET_NAME
-            GEN3_DCF_BUCKET_NAME
+          - name: CHUNK_FILE_SIZE
+            GEN3_CHUNK_FILE_SIZE
         volumeMounts:
           - name: "cred-volume"
             mountPath: "~/.aws/credentials"
             subPath: "credentials"
+          - name: "manifest-volume"
+            mountPath: "/dcf-dataservice/manifest"
+            subPath: "manifest"
         command: ["/bin/bash" ]
         args: 
           - "-c"
@@ -70,6 +76,5 @@ spec:
             [default]
             region: us-east-1
             """ > ~/.aws/config
-            
-            aws s3 sync $GDC_BUCKET_NAME $DCF_BUCKET_NAME
+            python replicate.py aws_replicate --bucket $GDC_BUCKET_NAME --manifest_file /dcf-dataservice/manifest --global_config '{"chunk_size": $GEN3_CHUNK_FILE_SIZE}'
       restartPolicy: Never
