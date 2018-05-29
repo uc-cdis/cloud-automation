@@ -17,7 +17,7 @@ sudo rm /etc/apt/apt.conf.d/01proxy
 cd /home/ubuntu
 sudo apt-get update
 sudo apt-get install -y build-essential wget libssl-dev
-wget http://www.squid-cache.org/Versions/v4/squid-4.0.24.tar.gz
+wget http://www.squid-cache.org/Versions/v4/squid-4.0.24.tar.xz
 tar -xJf squid-4.0.24.tar.gz
 mkdir squid-build
 
