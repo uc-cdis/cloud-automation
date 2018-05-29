@@ -11,7 +11,7 @@ spec:
         - name: cred-volume
           secret:
             secretName: "aws-cred-secret"
-        - name: gcs_config
+        - name: gcs-config
           secret:
             secretName: "gcs-cred-secret" 
         - name: manifest-volume
@@ -25,9 +25,9 @@ spec:
           - name: "cred-volume"
             mountPath: "~/.aws/credentials"
             subPath: "credentials"
-          - name: "gcs_config"
-            mouthPath: "/dcf-dataservice/gcs_json_config"
-            subPath: "gcs_json_config"
+          - name: "gcs-config"
+            mouthPath: "/dcf-dataservice/gcs-json-config"
+            subPath: "gcs-json-config"
           - name: "manifest-volume"
             mountPath: "/dcf-dataservice/manifest"
             subPath: "manifest"
@@ -40,6 +40,6 @@ spec:
             [default]
             region: us-east-1
             """ > ~/.aws/config
-            gcloud auth activate-service-account --key-file=/dcf-dataservice/gcs_json_config
+            gcloud auth activate-service-account --key-file=/dcf-dataservice/gcs-json-config
             python scripts/replicate.py indexd_update_service --manifest_file /dcf-dataservice/manifest 
       restartPolicy: Never
