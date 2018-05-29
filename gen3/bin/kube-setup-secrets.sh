@@ -208,15 +208,14 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
     g3kubectl create secret generic sheepdog-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/sheepdog_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
 
-  if ! g3kubectl get secret aws-cred-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic aws-cred-secret "--from-file=${GEN3_HOME}/apis_configs/aws-cred-secret"
+  if ! g3kubectl get secret aws-creds-secret > /dev/null 2>&1; then
+    g3kubectl create secret generic aws-creds-secret --from-file=apis_configs/aws-creds-secret
   fi
 
   if ! g3kubectl get configmaps/data-service-manifest > /dev/null 2>&1; then
     g3kubectl create configmap data-service-manifest --from-file=apis_configs/manifest
   fi
 
-  #
   # Create the 'sheepdog' and 'peregrine' postgres user if necessary
   #
   cd "${WORKSPACE}/${vpc_name}_output"

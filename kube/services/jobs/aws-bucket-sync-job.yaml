@@ -48,7 +48,7 @@ spec:
       volumes:
         - name: cred-volume
           secret:
-            secretName: "aws-cred-secret"
+            secretName: "aws-creds-secret"
         - name: manifest-volume
           configMap:
             name: data-service-manifest
