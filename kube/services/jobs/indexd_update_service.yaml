@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: aws-bucket-sync
+spec:
+  # not yet supported - backOffLimit: 3
+  template:
+    spec:
+      serviceAccountName: aws-bucket-sync-job
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "aws-cred-secret"
+        - name: gcs_config
+          secret:
+            secretName: "gcs-cred-secret" 
+        - name: manifest-volume
+          configMap:
+            name: data-service-manifest
+      containers:
+      - name: awsreplicate
+        image: quay.io/cdis/dcf-dataservice:feat_data_replicate_service
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: "cred-volume"
+            mountPath: "~/.aws/credentials"
+            subPath: "credentials"
+          - name: "gcs_config"
+            mouthPath: "/dcf-dataservice/gcs_json_config"
+            subPath: "gcs_json_config"
+          - name: "manifest-volume"
+            mountPath: "/dcf-dataservice/manifest"
+            subPath: "manifest"
+        command: ["/bin/bash" ]
+        args: 
+          - "-c"
+          - |
+            echo """
+            [default]
+            region: us-east-1
+            """ > ~/.aws/config
+            gcloud auth activate-service-account --key-file=/dcf-dataservice/gcs_json_confi
+            python scripts/replicate.py indexd_update_service --manifest_file /dcf-dataservice/manifest 
+      restartPolicy: Never
