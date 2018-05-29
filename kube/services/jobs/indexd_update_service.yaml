@@ -40,6 +40,6 @@ spec:
             [default]
             region: us-east-1
             """ > ~/.aws/config
-            gcloud auth activate-service-account --key-file=/dcf-dataservice/gcs_json_confi
+            gcloud auth activate-service-account --key-file=/dcf-dataservice/gcs_json_config
             python scripts/replicate.py indexd_update_service --manifest_file /dcf-dataservice/manifest 
       restartPolicy: Never
