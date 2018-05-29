@@ -51,16 +51,11 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
-          - name: DICTIONARY_REPOS
+          - name: DICTIONARY_URL
             valueFrom:
               configMapKeyRef:
                 name: global
-                key: dictionary_repos
-          - name: BRANCH
-            valueFrom:
-              configMapKeyRef:
-                name: global
-                key: dictionary_branch
+                key: dictionary_url
           - name: TEST_PROGRAM
             GEN3_TEST_PROGRAM
           - name: TEST_PROJECT
@@ -86,7 +81,7 @@ spec:
             mkdir -p /AUTO-QA/python-scripts/sim-data-code/TestData
 
             cd /AUTO-QA/python-scripts/sim-data-code/
-            rscript_cmd="/AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $DICTIONARY_REPOS $BRANCH"
+            rscript_cmd="/AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $DICTIONARY_URL"
 
             if [[ -n "$TEST_PROJECT" ]]; then
                 rscript_cmd+=" $TEST_PROJECT"
@@ -100,6 +95,7 @@ spec:
             fi
 
             rscript_cmd+=" /AUTO-QA/python-scripts/sim-data-code/TestData/"
+            echo ${rscript_cmd}
             Rscript ${rscript_cmd}
             python /AUTO-QA/python-scripts/scripts.py data-create --host $(SUBMISSION_HOST) --dir /AUTO-QA/python-scripts/sim-data-code/TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
       - name: fence
