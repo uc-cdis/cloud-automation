@@ -33,7 +33,7 @@ cp /home/ubuntu/images/configs/iptables-rules /tmp/iptables-rules
 cp /home/ubuntu/images/configs/squid.service /tmp/squid.service
 
 cd /home/ubuntu/squid-build/
-sudo sed -i '/squid-3.5.26/squid-4.0.24/g' squid-build.sh
+sudo sed -i -e 's/squid-3.5.26/squid-4.0.24/g' squid-build.sh
 bash squid-build.sh
 sudo make install
 
