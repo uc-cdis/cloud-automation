@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SUB_FOLDER="/home/ubuntu/cloud-automation/"
+#SUB_FOLDER="/home/ubuntu/cloud-automation/"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 
 
@@ -8,7 +8,7 @@ if [ $# -eq 0 ]
   then
     echo "No arguments supplied"
 else
-    OIFS=$IFS
+    #OIFS=$IFS
     IFS=';' read -ra ADDR <<< "$1"
     for i in "${ADDR[@]}"; do
       if [[ $i = *"account_id"* ]];
@@ -30,7 +30,7 @@ sudo apt install -y curl jq python-pip apt-transport-https ca-certificates softw
 # Adding AWS profile to the admin VM
 sudo pip install awscli
 sudo mkdir -p /home/ubuntu/.aws
-sudo cat <<EOT  >> /home/ubuntu/.aws/config
+cat <<EOT  >> /home/ubuntu/.aws/config
 [default]
 output = json
 region = us-east-1
@@ -55,7 +55,7 @@ sudo mkdir -p /usr/local/etc/ssh
 sudo cp $(dirname $0)/krlfile /usr/local/etc/ssh/krlfile
 sudo chown root:root /usr/local/etc/ssh/krlfile
 sudo chmod 0600 /usr/local/etc/ssh/krlfile
-sudo cat /home/ubuntu/.ssh/authorized_keys > /root/.ssh/authorized_keys
+cat /home/ubuntu/.ssh/authorized_keys > /root/.ssh/authorized_keys
 sudo systemctl restart sshd
 
 
@@ -78,7 +78,7 @@ sudo chmod 644 /etc/init.d/awslogs
 
 sudo sed -i 's/SERVER/auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
 sudo sed -i 's/VPC/'${HOSTNAME}'/g' /var/awslogs/etc/awslogs.conf
-sudo cat >> /var/awslogs/etc/awslogs.conf <<EOM
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
 [syslog]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog

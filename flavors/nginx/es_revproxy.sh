@@ -8,7 +8,7 @@ if [ $# -eq 0 ]
   then
     echo "No arguments supplied" 
 else
-    OIFS=$IFS
+#    OIFS=$IFS
     IFS=';' read -ra ADDR <<< "$1"
     for i in "${ADDR[@]}"; do
       if [[ $i = *"public_ip"* ]];
@@ -28,7 +28,7 @@ ACCOUNT_ID=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn' |sed -e 's/
 # Adding AWS profile to the admin VM
 sudo pip install awscli
 sudo mkdir -p /home/ubuntu/.aws
-sudo cat <<EOT  >> /home/ubuntu/.aws/config
+cat <<EOT  >> /home/ubuntu/.aws/config
 [default]
 output = json
 region = us-east-1
@@ -47,7 +47,7 @@ sudo chown ubuntu:ubuntu -R /home/ubuntu
 
 
 # configure SSH properly
-sudo cp ${SUB_FOLDER}flavors/nginx/sshd_config /etc/ssh/sshd_config
+sudo cp $(dirname $0)/sshd_config /etc/ssh/sshd_config
 sudo chown root:root /etc/ssh/sshd_config
 sudo chmod 0644 /etc/ssh/sshd_config
 
@@ -55,7 +55,7 @@ sudo mkdir -p /usr/local/etc/ssh
 sudo cp $(dirname $0)/krlfile /usr/local/etc/ssh/krlfile
 sudo chown root:root /usr/local/etc/ssh/krlfile
 sudo chmod 0600 /usr/local/etc/ssh/krlfile
-sudo cat /home/ubuntu/.ssh/authorized_keys > /root/.ssh/authorized_keys
+cat /home/ubuntu/.ssh/authorized_keys > /root/.ssh/authorized_keys
 sudo systemctl restart sshd
 
 
@@ -67,9 +67,9 @@ PYTHON=$(which python)
 sudo wget -O /tmp/awslogs-agent-setup.py https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
 sudo chmod 775 /tmp/awslogs-agent-setup.py
 sudo mkdir -p /var/awslogs/etc/
-sudo cp ${SUB_FOLDER}/flavors/nginx/awslogs.conf /var/awslogs/etc/awslogs.conf
+sudo cp $(dirname $0)/awslogs.conf /var/awslogs/etc/awslogs.conf
 curl -s ${MAGIC_URL}placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/nginx/awslogs.conf
+sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c $(dirname $0)/awslogs.conf
 sudo systemctl disable awslogs
 sudo chmod 644 /etc/init.d/awslogs
 
@@ -77,7 +77,7 @@ sudo chmod 644 /etc/init.d/awslogs
 
 sudo sed -i 's/SERVER/auth-{hostname}-{instance_id}/g' /var/awslogs/etc/awslogs.conf
 sudo sed -i 's/VPC/'${HOSTNAME}'/g' /var/awslogs/etc/awslogs.conf
-sudo cat >> /var/awslogs/etc/awslogs.conf <<EOM
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
 [syslog]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog
