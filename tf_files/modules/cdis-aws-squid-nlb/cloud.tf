@@ -157,7 +157,7 @@ resource "aws_lb_target_group" "squid_nlb-http" {
   port     = 3128
   protocol = "TCP"
   vpc_id   = "${var.env_vpc_id}"
-}
+  }
 
 resource "aws_lb_listener" "squid_nlb-http" {
   load_balancer_arn = "${aws_lb.squid_nlb.arn}"

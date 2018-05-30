@@ -53,7 +53,20 @@ sudo systemctl enable squid
 sudo service squid stop
 sudo service squid start
 
+## download and install awslogs
 
+SUB_FOLDER="/home/ubuntu/cloud-automation/"
+MAGIC_URL="http://169.254.169.254/latest/meta-data/"
+sudo wget -O /tmp/awslogs-agent-setup.py https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
+sudo chmod 775 /tmp/awslogs-agent-setup.py
+sudo mkdir -p /var/awslogs/etc/
+sudo cp ${SUB_FOLDER}/flavors/nginx/awslogs.conf /var/awslogs/etc/awslogs.conf
+curl -s ${MAGIC_URL}placement/availability-zone > /tmp/EC2_AVAIL_ZONE
+sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/nginx/awslogs.conf
+sudo systemctl disable awslogs
+sudo chmod 644 /etc/init.d/awslogs
+
+# Configure the AWS logs
 
 HOSTNAME=$(which hostname)
 instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
@@ -78,9 +91,10 @@ chmod 755 /etc/init.d/awslogs
 systemctl enable awslogs
 systemctl restart awslogs
 
+# Copy the authorized keys for the admin user
 sudo cp /home/ubuntu/cloud-automation/flavors/squid_nlb/authorized_keys_admin /home/ubuntu/.ssh/authorized_keys
 
-## create a sftp user 
+## create a sftp user  and copy the key of the sftp user
 sudo useradd -m -s /bin/bash sftpuser
 sudo mkdir /home/sftpuser/.ssh
 sudo chmod 700 /home/sftpuser/.ssh
