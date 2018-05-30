@@ -157,6 +157,7 @@ resource "aws_lb_target_group" "squid_nlb-http" {
   port     = 3128
   protocol = "TCP"
   vpc_id   = "${var.env_vpc_id}"
+  proxy_protocol_v2 = "True"
   }
 
 resource "aws_lb_listener" "squid_nlb-http" {
