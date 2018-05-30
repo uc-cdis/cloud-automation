@@ -60,7 +60,7 @@ MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 sudo wget -O /tmp/awslogs-agent-setup.py https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
 sudo chmod 775 /tmp/awslogs-agent-setup.py
 sudo mkdir -p /var/awslogs/etc/
-sudo cp ${SUB_FOLDER}/flavors/nginx/awslogs.conf /var/awslogs/etc/awslogs.conf
+sudo cp ${SUB_FOLDER}/flavors/squid_nlb/awslogs.conf /var/awslogs/etc/awslogs.conf
 curl -s ${MAGIC_URL}placement/availability-zone > /tmp/EC2_AVAIL_ZONE
 sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/nginx/awslogs.conf
 sudo systemctl disable awslogs
