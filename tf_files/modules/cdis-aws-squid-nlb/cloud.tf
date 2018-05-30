@@ -374,7 +374,7 @@ resource "aws_route53_record" "squid-nlb" {
   name    = "raryatestnlbproxy.${aws_route53_zone.main.name}"
   type    = "CNAME"
   ttl     = "300"
-  records = ["${aws_lb.squid_nlb.dns_name}, "dns_name")}"]
+  records = ["${aws_lb.squid_nlb.dns_name}"]
 }
 
 
