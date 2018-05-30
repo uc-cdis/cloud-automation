@@ -10,10 +10,7 @@ resource "aws_cloudwatch_log_group" "squid-nlb_log_group" {
   }
 }
 
-resource "aws_iam_instance_profile" "squid-nlb_role_profile" {
-  name = "${var.env_nlb_name}_squid-nlb_role_profile"
-  role = "${aws_iam_role.squid-nlb_role.id}"
-}
+## ----- IAM Setup -------
 
 
 resource "aws_iam_role" "squid-nlb_role" {
@@ -36,6 +33,47 @@ resource "aws_iam_role" "squid-nlb_role" {
 }
 EOF
 }
+
+# These squid VMs should only have access to Cloudwatch and nothing more
+
+data "aws_iam_policy_document" "squid_policy_document" {
+  statement {
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:GetLogEvents",
+      "logs:PutLogEvents",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+      "logs:PutRetentionPolicy",
+    ]
+
+    effect    = "Allow"
+    resources = ["*"]
+  }
+
+statement {
+    # see https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html
+    actions = ["sts:AssumeRole"]
+
+    effect    = "Allow"
+    resources = ["arn:aws:iam::${var.aws_account_id}:role/csoc_adminvm"]
+  }
+
+}
+
+resource "aws_iam_role_policy" "squid_policy" {
+  name   = "${var.env_nlb_name}_policy"
+  policy = "${data.aws_iam_policy_document.squid_policy_document.json}"
+  role   = "${aws_iam_role.squid-nlb_role.id}"
+}
+
+resource "aws_iam_instance_profile" "squid-nlb_role_profile" {
+  name = "${var.env_nlb_name}_squid-nlb_role_profile"
+  role = "${aws_iam_role.squid-nlb_role.id}"
+}
+
+
 
 
 #Launching the private subnets for the squid VMs

@@ -53,16 +53,44 @@ sudo systemctl enable squid
 sudo service squid stop
 sudo service squid start
 
-## download and install awslogs
-
+## Logging set-up
 SUB_FOLDER="/home/ubuntu/cloud-automation/"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
+#Getting the account details
+sudo apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev
+sudo pip install --upgrade pip
+ACCOUNT_ID=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn' |sed -e 's/.*:://' -e 's/:.*//')
+
+# Let's install awscli and configure it
+# Adding AWS profile to the admin VM
+sudo pip install awscli
+sudo mkdir -p /home/ubuntu/.aws
+sudo cat <<EOT  >> /home/ubuntu/.aws/config
+[default]
+output = json
+region = us-east-1
+role_session_name = gen3-adminvm
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
+[profile csoc]
+output = json
+region = us-east-1
+role_session_name = gen3-adminvm
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
+EOT
+sudo chown ubuntu:ubuntu -R /home/ubuntu
+
+
+## download and install awslogs
+
+
 sudo wget -O /tmp/awslogs-agent-setup.py https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
 sudo chmod 775 /tmp/awslogs-agent-setup.py
 sudo mkdir -p /var/awslogs/etc/
 sudo cp ${SUB_FOLDER}/flavors/squid_nlb/awslogs.conf /var/awslogs/etc/awslogs.conf
 curl -s ${MAGIC_URL}placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/nginx/awslogs.conf
+sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/squid_nlb/awslogs.conf
 sudo systemctl disable awslogs
 sudo chmod 644 /etc/init.d/awslogs
 

@@ -1,4 +1,6 @@
-
+variable "aws_account_id" {
+  default = "433568766270"
+}
 
 variable "env_vpc_octet3"{
   default = "4"
