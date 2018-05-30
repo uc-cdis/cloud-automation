@@ -48,7 +48,11 @@ sudo chmod 0755 /etc/systemd/system/squid.service
 sudo mkdir -p /var/log/squid /var/cache/squid
 sudo chown -R proxy:proxy /var/log/squid /var/cache/squid
 
-echo 'enabling squid with systemd'
+## Enable the Support for proxy protocol on the squid
+sudo mv /etc/squid/squid.conf /etc/squid/squid_original.conf
+sudo cp /home/ubuntu/cloud-automation/flavors/squid_nlb/squid_proxyprotocol.conf /etc/squid/squid.conf
+
+## Enable the squid service
 sudo systemctl enable squid
 sudo service squid stop
 sudo service squid start
