@@ -357,21 +357,21 @@ resource "aws_security_group" "squidnlb_out" {
 
 # DNS entry for the cloud-proxy in CSOC
 
-resource "aws_route53_zone" "csoc_main" {
-  name    = "internal.io"
-  comment = "internal dns server for csoc main vpc"
-  vpc_id  = "${var.env_vpc_id}"
+#resource "aws_route53_zone" "csoc_main" {
+ # name    = "internal.io"
+ # comment = "internal dns server for csoc main vpc"
+  #vpc_id  = "${var.env_vpc_id}"
 
-  tags {
-    Environment  = "${var.env_nlb_name}"
-    Organization = "Basic Service"
-  }
-}
+ # tags {
+   # Environment  = "${var.env_nlb_name}"
+   # Organization = "Basic Service"
+  #}
+#}
 
 ## 'raryatestnlbproxy' should be replaced with cloud-proxy at the time of merge
 resource "aws_route53_record" "squid-nlb" {
-  zone_id = "${aws_route53_zone.csoc_main.zone_id}"
-  name    = "raryatestnlbproxy.${aws_route53_zone.main.name}"
+  zone_id = "${var.csoc_internal_dns_zone_id}"
+  name    = "raryatestnlbproxy.internal.io"
   type    = "CNAME"
   ttl     = "300"
   records = ["${aws_lb.squid_nlb.dns_name}"]

@@ -174,6 +174,7 @@ EOM
   env_nlb_name                  = "NLB SETUP NAME"
   env_vpc_id                    = "CSOC VPC-ID"
   env_priv_subnet_routetable_id = "CSOC ROUTE TABLE ID - HAVING VPC PEERING ROUTES"
+  csoc_internal_dns_zone_id  = "PUT IT AS `ZA1HVV5W0QBG1` IF LAUNCHING THE SQUID NLB IN CSOC MAIN VPC"
   allowed_principals_list       = "[LIST OF AWS ACCOUNTS WHICH NEEDS TO BE WHITELISTED]"
   # e.g. of the list - ["arn:aws:iam::<AWS ACCOUNT1 ID>:root","arn:aws:iam::<AWS ACCOUNT2 ID>:root", ...]
 EOM

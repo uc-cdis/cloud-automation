@@ -63,6 +63,10 @@ variable "bootstrap_script" {
 }
 
 
+variable "csoc_internal_dns_zone_id"{
+  #default = "ZA1HVV5W0QBG1"
+}
+
 
 #variable "env_instance_profile" {
  # default = "common_name_cloudwatch_access_profile"
