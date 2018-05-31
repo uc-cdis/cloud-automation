@@ -1,7 +1,7 @@
 #!/bin/bash
 #Proxy configuration and hostname assigment for the adminVM
 
-SUB_FOLDER="/home/ubuntu/cloud-automation/"
+#SUB_FOLDER="/home/ubuntu/cloud-automation/"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 
 if [ $# -eq 0 ]
@@ -101,7 +101,7 @@ sudo apt -y install nginx
 # I would like to avoid harconding urls and IPs in this script so let's try awscli for a few stuff
 ES_ENDPOINT=$(sudo -H -u ubuntu bash -c "aws es describe-elasticsearch-domain --domain-name commons-logs --query 'DomainStatus.Endpoint' --output text")
 # let's change the proxy for this guy properly
-sed -i.bck '/no_proxy.*$/ s/$/,${ES_ENDPOINT}/' /etc/environment
+sed -i.bck "/no_proxy.*$/ s/$/,${ES_ENDPOINT}/" /etc/environment
 
 
 
