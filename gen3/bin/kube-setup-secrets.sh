@@ -213,6 +213,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
   fi
 
   if ! g3kubectl get configmaps/data-service-manifest > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/manifest" ]]; then
+      touch "./apis_configs/manifest"
+    fi
     g3kubectl create configmap data-service-manifest --from-file=manifest=./apis_configs/manifest
   fi
 
