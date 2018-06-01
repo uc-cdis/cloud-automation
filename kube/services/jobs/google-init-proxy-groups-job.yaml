@@ -5,6 +5,9 @@ metadata:
   name: google-init-proxy-groups
 spec:
   template:
+    metadata:
+      labels:
+        app: fencejob
     spec:
       serviceAccountName: useryaml-job
       volumes:

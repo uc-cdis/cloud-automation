@@ -2,6 +2,12 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
   name: useryaml-binding
+spec:
+  # not yet supported - backOffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: fencejob
 subjects:
 - kind: ServiceAccount
   name: useryaml-job

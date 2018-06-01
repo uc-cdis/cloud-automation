@@ -8,10 +8,13 @@ spec:
   schedule: "@hourly"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
-  jobTemplate:
+  jobTemplate: 
     spec:
       # not yet supported - backOffLimit: 3
       template:
+        metadata:
+          labels:
+            app: fencejob
         spec:
           serviceAccountName: useryaml-job
           volumes:
