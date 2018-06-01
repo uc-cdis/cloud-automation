@@ -34,4 +34,4 @@ g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_portal_templ.y
 g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_revproxy_templ.yaml" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
 g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_jenkins_templ.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_allowdns_templ.yaml"
-g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_fencejob_templ.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_gen3job_templ.yaml"

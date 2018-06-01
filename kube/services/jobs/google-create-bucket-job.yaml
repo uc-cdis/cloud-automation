@@ -45,7 +45,7 @@ spec:
   template:
     metadata:
       labels:
-        app: fencejob
+        app: gen3job
     spec:
       serviceAccountName: useryaml-job
       volumes:

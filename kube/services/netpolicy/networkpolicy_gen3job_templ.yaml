@@ -1,11 +1,11 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-fencejob
+  name: networkpolicy-gen3job
 spec:
   podSelector:
     matchLabels:
-      app: fencejob
+      app: gen3job
   egress:
     - {}
   policyTypes:

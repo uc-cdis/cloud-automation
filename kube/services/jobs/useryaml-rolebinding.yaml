@@ -7,7 +7,7 @@ spec:
   template:
     metadata:
       labels:
-        app: fencejob
+        app: gen3job
 subjects:
 - kind: ServiceAccount
   name: useryaml-job

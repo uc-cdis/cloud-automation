@@ -6,7 +6,7 @@ spec:
   template:
     metadata:
       labels:
-        app: fencejob
+        app: gen3job
     spec:
       # not yet supported - backOffLimit: 3
       automountServiceAccountToken: false
