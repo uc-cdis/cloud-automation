@@ -1,7 +1,7 @@
 # run with 
 # g3k runjob aws-bucket-sync \
 # GDC_BUCKET_NAME a_bucket_name \
-# CHUNK_FILE_SIZE chunk_file_sie
+# CHUNK_SIZE chunk_size
 #
 # folow the below link  to setup bucket owner grant access to other aws account 
 # https://docs.aws.amazon.com/AmazonS3/latest/dev/example-walkthroughs-managing-access-example2.html
@@ -35,16 +35,17 @@
 #         }
 #     ]
 # }
-
+# 
+# HOW TO RUN
+# g3k runjob aws-bucket-replicate GDC_BUCKET_NAME gdc_test_bk_bucket CHUNK_SIZE 4
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: aws-bucket-sync
+  name: aws-bucket-replicate
 spec:
   # not yet supported - backOffLimit: 3
   template:
     spec:
-      serviceAccountName: aws-bucket-sync-job
       volumes:
         - name: cred-volume
           secret:
@@ -59,12 +60,12 @@ spec:
         env:
           - name: GDC_BUCKET_NAME
             GEN3_GDC_BUCKET_NAME
-          - name: CHUNK_FILE_SIZE
-            GEN3_CHUNK_FILE_SIZE
+          - name: CHUNK_SIZE
+            GEN3_CHUNK_SIZE
         volumeMounts:
-          - name: "cred-volume"
-            mountPath: "~/.aws/credentials"
-            subPath: "credentials"
+          - name: cred-volume
+            mountPath: "/root/.aws/credentials"
+            subPath: credentials
           - name: "manifest-volume"
             mountPath: "/dcf-dataservice/manifest"
             subPath: "manifest"
@@ -72,10 +73,9 @@ spec:
         args: 
           - "-c"
           - |
-            mkdir ~/.aws
             echo """
             [default]
             region: us-east-1
             """ > ~/.aws/config
-            python replicate.py aws_replicate --bucket $GDC_BUCKET_NAME --manifest_file /dcf-dataservice/manifest --global_config '{"chunk_size": $GEN3_CHUNK_FILE_SIZE}'
+            python scripts/replicate.py aws_replicate --bucket $GDC_BUCKET_NAME --manifest_file /dcf-dataservice/manifest --global_config '{"chunk_size": "$CHUNK_SIZE"}'
       restartPolicy: Never
