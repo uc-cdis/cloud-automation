@@ -5,6 +5,9 @@ metadata:
   name: google-manage-keys
 spec:
   template:
+    metadata:
+      labels:
+        app: gen3job
     spec:
       serviceAccountName: useryaml-job
       volumes:

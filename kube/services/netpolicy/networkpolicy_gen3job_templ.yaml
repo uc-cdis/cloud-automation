@@ -1,0 +1,13 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-gen3job
+spec:
+  podSelector:
+    matchLabels:
+      app: gen3job
+  egress:
+    - {}
+  policyTypes:
+   - Ingress
+   - Egress

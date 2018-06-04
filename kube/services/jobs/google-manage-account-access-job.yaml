@@ -5,6 +5,9 @@ metadata:
   name: google-manage-account-access
 spec:
   template:
+    metadata:
+      labels:
+        app: gen3job
     spec:
       serviceAccountName: useryaml-job
       volumes:
