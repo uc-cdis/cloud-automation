@@ -139,7 +139,15 @@ data:
       	##
         gzip on;
         gzip_disable "msie6";
-        gzip_types application/javascript;
+        gzip_proxied any;
+        gzip_types
+          text/css
+          text/javascript
+          text/xml
+          text/plain
+          application/javascript
+          application/x-javascript
+          application/json;
        
         ##
         # Namespace
