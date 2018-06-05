@@ -42,6 +42,12 @@ spec:
       - podSelector:
           matchLabels:
              app: shiny
+      - podSelector:
+          matchLabels:
+             app: jupyter-hub
+      - podSelector:
+          matchLabels:
+             app: jupyterhub
       - ipBlock:
            cidr: GEN3_CLOUDPROXY_IP/32
       - ipBlock: # cloudwatch-logs and other AWS services
