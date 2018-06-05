@@ -14,10 +14,7 @@ spec:
       ports:
          - port: 3838
   egress:
-    - to:
-      - podSelector:
-          matchLabels:
-            app: fence
+    - {}
   policyTypes:
     - Ingress
     - Egress
