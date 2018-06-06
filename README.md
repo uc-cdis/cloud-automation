@@ -98,6 +98,7 @@ environment = "cdistest"
 instance_type = "t2.micro"
 aws_account_id = "707767160287"
 ```
+
     Generally speacking, the `bootstrap_path` and `bootstrap_script` vars shouldn't need any change unless you want to use a custom one. 
     Variables explaination:
         vm_name: self explanatory.
@@ -112,7 +113,9 @@ aws_account_id = "707767160287"
 ```
 $ gen3 tfplan
 ```
+
     Check that it looks good and it'll do what youa re sxpecting it to do.
+
 ```
 $ gen3 tfapply
 ```
