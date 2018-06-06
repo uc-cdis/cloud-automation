@@ -109,18 +109,22 @@ Variables explaination:
 - instance_type: the size of the VM.
 - aws_account_id: the remote account ID that this VM will have access to.
 
+
+
 5. Apply the module against AWS
 ```
 $ gen3 tfplan
 ```
 
-    Check that it looks good and it'll do what youa re sxpecting it to do.
+Check that it looks good and it'll do what youa re sxpecting it to do.
 
 ```
 $ gen3 tfapply
 ```
 
 The output should show you the new VM's IP. Please make sure to update https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md when it's done.
+
+
 
 
 ## New commons flow
