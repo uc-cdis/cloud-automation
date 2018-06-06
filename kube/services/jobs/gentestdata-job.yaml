@@ -49,7 +49,7 @@ spec:
             secretName: "fence-jwt-keys"
       containers:
       - name: auto-qa
-        image: quay.io/cdis/auto-qa:feat_gen_test_data
+        image: quay.io/cdis/auto-qa:master
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH
@@ -81,10 +81,10 @@ spec:
               let count=$count+1
             done
 
-            mkdir -p /AUTO-QA/python-scripts/sim-data-code/TestData
+            mkdir -p /gen3-qa/python-scripts/sim-data-code/TestData
 
-            cd /AUTO-QA/python-scripts/sim-data-code/
-            rscript_cmd="/AUTO-QA/python-scripts/sim-data-code/GenTestDataCmd.R $DICTIONARY_URL"
+            cd /gen3-qa/python-scripts/sim-data-code/
+            rscript_cmd="/gen3-qa/python-scripts/sim-data-code/GenTestDataCmd.R $DICTIONARY_URL"
 
             if [[ -n "$TEST_PROJECT" ]]; then
                 rscript_cmd+=" $TEST_PROJECT"
@@ -97,10 +97,10 @@ spec:
                 rscript_cmd+=" 1000"
             fi
 
-            rscript_cmd+=" /AUTO-QA/python-scripts/sim-data-code/TestData/"
+            rscript_cmd+=" /gen3-qa/python-scripts/sim-data-code/TestData/"
             echo ${rscript_cmd}
             Rscript ${rscript_cmd}
-            python /AUTO-QA/python-scripts/scripts.py data-create --host $(SUBMISSION_HOST) --dir /AUTO-QA/python-scripts/sim-data-code/TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
+            python /gen3-qa/python-scripts/scripts.py data-create --host $(SUBMISSION_HOST) --dir /gen3-qa/python-scripts/sim-data-code/TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
       - name: fence
         image: quay.io/cdis/fence:master
         imagePullPolicy: Always
