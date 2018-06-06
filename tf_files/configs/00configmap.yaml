@@ -14,5 +14,3 @@ data:
   useryaml_s3path: "s3://cdis-gen3-users/${config_folder}/user.yaml"
   # Set up hook at https://yourslack.slack.com/apps/manage/custom-integrations
   slack_webhook: 'None'
-  test_project: DEV/test
-  number_of_examples: 100
