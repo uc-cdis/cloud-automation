@@ -99,15 +99,15 @@ instance_type = "t2.micro"
 aws_account_id = "707767160287"
 ```
 
-    Generally speacking, the `bootstrap_path` and `bootstrap_script` vars shouldn't need any change unless you want to use a custom one. 
-    Variables explaination:
-        vm_name: self explanatory.
-        vm_hostname: hostname to be used by the VM, usually the same as the name. But you could use a domain if you wanted to.
-        vpc_cidr_list: CIDRs where the VM would have egress access.
-        extra_vars: variables that will be used by `bootstrap_script`. For the above example, we are telling it to use the remote account ID, in which case will be used to set up awscli `/home/ubuntu/.aws/config`.
-        environment: for tagging purposes.
-        instance_type: the size of the VM.
-        aws_account_id: the remote account ID that this VM will have access to.
+Generally speacking, the `bootstrap_path` and `bootstrap_script` vars shouldn't need any change unless you want to use a custom one. 
+Variables explaination:
+- vm_name: self explanatory.
+- vm_hostname: hostname to be used by the VM, usually the same as the name. But you could use a domain if you wanted to.
+- vpc_cidr_list: CIDRs where the VM would have egress access.
+- extra_vars: variables that will be used by `bootstrap_script`. For the above example, we are telling it to use the remote account ID, in which case will be used to set up awscli `/home/ubuntu/.aws/config`.
+- environment: for tagging purposes.
+- instance_type: the size of the VM.
+- aws_account_id: the remote account ID that this VM will have access to.
 
 5. Apply the module against AWS
 ```
