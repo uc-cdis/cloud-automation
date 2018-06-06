@@ -19,7 +19,7 @@ and [cdis-manifest]
 - [2. Workflows](#workflows)
   - [2.1 AWS CSOC](#aws-csoc)
   - [2.2 New account flow](#new-account-flow)
-  - [2.3 New adminVM](#new-dminvm)
+  - [2.3 New adminVM](#new-adminvm)
   - [2.4 New commons flow](#new-commons-flow)
   - [2.5 Prerequisites for Commons](#prerequisites-for-commons)
 
