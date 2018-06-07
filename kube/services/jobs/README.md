@@ -26,10 +26,11 @@ g3k roll peregrine
 ```
 ## setup sftp configuration
 To run usersync job or cronjob that fetches acl files from a remote ftp/sftp server, following setup need to be done:
-1. update `vpcname/apis_configs/fence_credentials.json` include dbgap credentials.
+1. update `vpcname/apis_configs/fence-config.yaml` include dbgap credentials.
 2. update secrets:
 ```
-kubectl delete secret fence-json-secret 
+kubectl delete secret fence-secret
+kubectl delete secret fence-config
 gen3 kube-setup-fence
 ```
 3. add the public key at `$vpcname/ssh-keys/id_rsa.pub` to squid proxy
@@ -57,6 +58,12 @@ $ g3k update_config fence apis_configs/user.yaml
 $ g3k runjob useryaml
 ```
 
+## fence-secret
+
+Gets called as part of kube-setup-secrets and handles injecting extra creds
+into fence's yaml configuration. Will also create fence's yaml configuration if
+it does not yet exist.
+
 ### Google Jobs
 
 #### google-manage-account-access-job
@@ -80,3 +87,11 @@ Same as above but run on a schedule.
 
 Create a Google Bucket and associated db entries. See job file for details
 on job invocation.
+
+#### google-init-proxy-groups-job
+
+Create a Google Group for each User that doesn't have one.
+
+#### google-init-proxy-groups-cronjob
+
+Same as above but run on a schedule.

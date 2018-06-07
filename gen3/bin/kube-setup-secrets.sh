@@ -18,7 +18,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
   # Setup the files that will become secrets in "${WORKSPACE}/$vpc_name/apis_configs"
   #
   cd "${WORKSPACE}"/${vpc_name}_output
- 
+
   # Note: look into 'kubectl replace' if you need to replace a secret
   if ! g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
     g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
@@ -56,7 +56,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   fi
 
   cd "${WORKSPACE}/${vpc_name}_output"
-  
+
   if ! g3kubectl get secret fence-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .fence < creds.json > "$credsFile"
@@ -84,17 +84,22 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   fi
 
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic fence-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/fence_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
-  fi
-
-  if ! g3kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
-    if [[ ! -f "./apis_configs/fence_credentials.json" ]]; then
-      cp "${GEN3_HOME}/apis_configs/fence_credentials.json" "./apis_configs/fence_credentials.json" 
+    # load updated fence-config.yaml into secret if it exists
+    if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+      fence_config=./apis_configs/fence-config.yaml
+      g3kubectl delete secret fence-config
+      g3kubectl create secret generic fence-config "--from-file=fence-config.yaml=${fence_config}"
     fi
-    echo "create fence-json-secret using current creds file apis_configs/fence_credentials.json"
-    g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
-  fi
 
+    # run job to inject creds.json into fence-config.yaml and save as fence-secret
+    g3k runjob fence-secret
+
+    # dump fence-config secret into file so user can edit.
+    if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+      fence_config=./apis_configs/fence-config.yaml
+      g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode > "${fence_config}"
+    fi
+  fi
 
   if ! g3kubectl get secrets/fence-google-app-creds-secret > /dev/null 2>&1; then
     if [[ ! -f "./apis_configs/fence_google_app_creds_secret.json" ]]; then
@@ -126,7 +131,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   if ! g3kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
     g3kubectl create secret generic fence-ssh-keys --from-file=id_rsa=./ssh-keys/id_rsa --from-file=id_rsa.pub=./ssh-keys/id_rsa.pub
   fi
-  
+
   if ! g3kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
     mkdir -p ./apis_configs/.ssh
     if [[ ! -f "./apis_configs/.ssh/config" ]]; then
@@ -144,7 +149,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
           ForwardAgent yes
           IdentityFile ~/.ssh/id_rsa
           ProxyCommand ssh ubuntu@squid.internal nc %h %p 2> /dev/null
-      
+
        Host sftp.dbgap
           ServerAliveInterval 120
           HostName ftp-private.ncbi.nlm.nih.gov
@@ -169,7 +174,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update peregrin
   fi
 
   cd "${WORKSPACE}/${vpc_name}_output"
-  
+
   if ! g3kubectl get secret peregrine-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .peregrine < creds.json > "$credsFile"
@@ -232,7 +237,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
   export PGPASSWORD="$gdcapi_db_password"
 
   declare -a sqlList
-        
+
   # Create peregrine and sheepdog db users if necessary
   for user in sheepdog peregrine; do
     new_db_user=$(jq -r .${user}.db_username < creds.json)
@@ -273,8 +278,8 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
     for sql in "${sqlList[@]}"; do
       echo "Running: $sql"
       psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql";
-    done  
-    # sheepdog user needs to grant peregrine privileges 
+    done
+    # sheepdog user needs to grant peregrine privileges
     # on postgres stuff sheepdog creates in the future if sheepdog user is not the
     # same as the 'gdcapi' user - which is the case when migrating legacy commons ...
     sql="ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"

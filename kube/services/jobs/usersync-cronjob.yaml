@@ -65,8 +65,8 @@ spec:
             volumeMounts:
               - name: "config-volume"
                 readOnly: true
-                mountPath: "/var/www/fence/local_settings.py"
-                subPath: local_settings.py
+                mountPath: "/var/www/fence/fence-config.yaml"
+                subPath: fence-config.yaml
               - name: "creds-volume"
                 readOnly: true
                 mountPath: "/var/www/fence/creds.json"
@@ -75,10 +75,6 @@ spec:
                 readOnly: true
                 mountPath: "/var/www/fence/config_helper.py"
                 subPath: config_helper.py
-              - name: "json-secret-volume"
-                readOnly: true
-                mountPath: "/var/www/fence/fence_credentials.json"
-                subPath: fence_credentials.json
               - name: "fence-google-app-creds-secret-volume"
                 readOnly: true
                 mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
