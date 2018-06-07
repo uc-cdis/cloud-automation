@@ -295,3 +295,27 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
     Name = "VPC Peering between ${var.vpc_name} and csoc_main_vpc"
   }
 }
+
+## This is for endpoint service needed to acccess the squid nlb in CSOC VPC
+
+resource "aws_vpc_endpoint" "squid-nlb" {
+  vpc_id            = "${aws_vpc.main.id}"
+  service_name      = "${var.squid-nlb-endpointservice-name}"
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids = [
+     "${aws_security_group.local.id}"
+  ]
+  # we need to supply it a subnet id ; so that it can create the dns name for the endpoint which is then added to the route53 for cloud-proxy
+  subnet_ids          = ["${aws_subnet.private_user.id}"]
+  private_dns_enabled = false
+}
+
+## 'raryatestnlbproxyv1' should be replaced with cloud-proxy at the time of merge
+resource "aws_route53_record" "squid-nlb" {
+  zone_id = "${aws_route53_zone.main.zone_id}"
+  name    = "raryatestnlbproxyv1.${aws_route53_zone.main.name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = ["${lookup(aws_vpc_endpoint.squid-nlb.dns_entry[0], "dns_name")}"]
+}

@@ -133,3 +133,8 @@ locals {
   # kube-aws does not like '-' in cluster name
   cluster_name = "${replace(var.vpc_name, "-", "")}"
 }
+
+
+# for squid nlb in the csoc account
+variable "squid-nlb-endpointservice-name" {
+  }
