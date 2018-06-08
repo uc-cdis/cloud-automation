@@ -20,7 +20,7 @@ resource "aws_ebs_volume" "worker_extra_drive" {
 
 
 resource "aws_volume_attachment" "ebs_att" {
-  device_name = "/dev/sdz"
+  device_name = "${var.dev_name}"
   volume_id   = "${aws_ebs_volume.worker_extra_drive.id}"
   instance_id = "${data.aws_instance.worker.id}"
 }

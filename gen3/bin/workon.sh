@@ -189,6 +189,7 @@ EOM
     cat - <<EOM
 volume_size = 20
 instance_ip = "10.0.0.0"
+dev_name = "/dev/sdz"
 EOM
     return 0
   fi

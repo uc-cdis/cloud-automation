@@ -7,3 +7,7 @@ variable "instance_ip" {
 variable "volume_size" {
   #default = 20
 }
+
+variable "dev_name" {
+  default = "/dev/sdz"
+}
