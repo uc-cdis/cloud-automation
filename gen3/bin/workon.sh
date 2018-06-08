@@ -187,8 +187,8 @@ EOM
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _bigdisk$ ]]; then
     cat - <<EOM
-volume_size=20
-instance_ip=10.0.0.0
+volume_size = 20
+instance_ip = "10.0.0.0"
 EOM
     return 0
   fi
