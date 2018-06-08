@@ -73,7 +73,8 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   # keypairs go in subdirectories of the base keys directory, where the
   # subdirectories are named as an ISO 8601 timestamp of when the keypair is
   # created.
-  if [ ! -f jwt-keys/*/jwt_public_key.pem ]; then
+  existingKeys="$(find jwt-keys -name 'jwt_public_key.pem' -print 2>/dev/null)"
+  if test -z "$existingKeys"; then
     # For backwards-compatibility: move old keys into keys subdirectory so that
     # fence can load them.
     newDirForOldKeys="jwt-keys/old-keys"
