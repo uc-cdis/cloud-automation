@@ -10,4 +10,6 @@ data:
   portal_app: ${portal_app}
   kube_bucket: ${kube_bucket}
   logs_bucket: ${logs_bucket}
-  sync_from_dbgap: "False"
+  sync_from_dbgap: 'False'
+  useryaml_s3path: "s3://cdis-gen3-users/${config_folder}/user.yaml"
+  

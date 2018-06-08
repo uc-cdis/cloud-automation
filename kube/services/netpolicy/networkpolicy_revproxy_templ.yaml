@@ -2,7 +2,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: networkpolicy-revproxy
-  namespace: default
 spec:
   podSelector:
     matchLabels:
@@ -42,9 +41,9 @@ spec:
              app: fence
       - ipBlock:
            cidr: GEN3_CLOUDPROXY_IP/32
-      - ipBlock:
+      - ipBlock: # cloudwatch-logs and other AWS services
            cidr: 54.224.0.0/12
-      - ipBlock:
+      - ipBlock: # S3 us-east-1
            cidr: 52.92.16.0/20
   policyTypes:
    - Ingress

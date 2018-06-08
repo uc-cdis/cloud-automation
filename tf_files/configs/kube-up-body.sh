@@ -17,8 +17,8 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 
-vpc_name=${vpc_name:-$1}
-s3_bucket=${s3_bucket:-$2}
+export vpc_name=${vpc_name:-$1}
+export s3_bucket=${s3_bucket:-$2}
 
 if [[ -z "${vpc_name}" || -z "${s3_bucket}" ]]; then
    echo "Usage: bash kube-up.sh vpc_name s3_bucket"
@@ -33,7 +33,11 @@ if [[ ! -d ~/cloud-automation ]]; then
   cd ~
   git clone https://github.com/uc-cdis/cloud-automation.git 2>/dev/null || true
 fi
-source ~/"cloud-automation/tf_files/configs/kube-setup-workvm.sh"
+
+export GEN3_HOME=~/cloud-automation
+source ~/cloud-automation/gen3/gen3setup.sh
+
+gen3 kube-setup-workvm
 
 mkdir -p ~/.aws
 mkdir -p ~/${vpc_name}
@@ -76,19 +80,16 @@ kube-aws render || true
 # role_arn = arn:aws:iam::{ACCOUNTID}:role/csoc_adminvm
 # credential_source = Ec2InstanceMetadata
 #
-export GEN3_HOME=~/cloud-automation
-source ~/cloud-automation/gen3/gen3setup.sh
 
 # New kube-aws version doesn't need the s3-uri argument
 gen3 arun kube-aws validate #--s3-uri "s3://${s3_bucket}/${vpc_name}"
 gen3 arun kube-aws up #--s3-uri "s3://${s3_bucket}/${vpc_name}"
 
 # Back everything up to s3
-source ~/cloud-automation/tf_files/configs/kube-backup.sh
+gen3 kube-backup
 
 cat - <<EOM
-It looks like kubectl cannot reach the controller.
-Most likely you need to add an entry in route53 for the CSOC account.
+You need to add an entry in route53 for the CSOC account.
 
 Ask Renuka or Fauzi to add k8s-${vpc_name}.internal.io as CNAME for
 the k8s controller load balancer:

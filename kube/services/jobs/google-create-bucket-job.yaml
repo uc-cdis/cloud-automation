@@ -1,0 +1,160 @@
+---
+# must invoke with:
+# g3k runjob google-create-bucket \
+#   UNIQUE_BUCKET_NAME some-unique-name \
+#   STORAGE_CLASS "" \
+#   PUBLIC_BUCKET "" \
+#   REQUESTER_PAYS "" \
+#   GOOGLE_PROJECT_ID "" \
+#   PROJECT_AUTH_ID "" \
+#   ACCESS_LOGS_BUCKET "" \
+#
+# NOTE: "" indicates an optional argument. Leave as "" for default
+#
+# These get passed into `fence-create google-bucket-create` so you should
+# check the --help for google-bucket-create for updated args and descriptions.
+#
+# UNIQUE_BUCKET_NAME (required)
+#   Name for the bucket, must be globally unique throughout Google
+#
+# STORAGE_CLASS
+#   Currently must be one of the following:
+#     "MULTI_REGIONAL", "REGIONAL", "NEARLINE", "COLDLINE", "STANDARD"
+#
+# PUBLIC_BUCKET
+#   Whether or not the bucket should be open to the public
+#
+# REQUESTER_PAYS
+#   Whether or not to enable requester_pays on the bucket
+#
+# GOOGLE_PROJECT_ID
+#   Google project this bucket should be associated with
+#
+# PROJECT_AUTH_ID
+#   A fence.models.Project auth_id to associate this bucket with.
+#   The project must exist in the db already.
+#
+# ACCESS_LOGS_BUCKET
+#   Enables logging.
+#   Must provide a Google bucket name which will store the access logs
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: google-create-bucket
+spec:
+  template:
+    spec:
+      serviceAccountName: useryaml-job
+      volumes:
+        - name: creds-volume
+          secret:
+            secretName: "fence-creds"
+        - name: config-volume
+          secret:
+            secretName: "fence-secret"
+        - name: json-secret-volume
+          secret:
+            secretName: "fence-json-secret"
+        - name: fence-google-app-creds-secret-volume
+          secret:
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
+        - name: fence-jwt-keys
+          secret:
+            secretName: "fence-jwt-keys"
+        - name: fence-yaml
+          configMap:
+            name: fence
+        - name: config-helper
+          configMap:
+            name: config-helper
+      containers:
+      - name: fence
+        image: quay.io/cdis/fence:master
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
+          - name: UNIQUE_BUCKET_NAME
+            GEN3_UNIQUE_BUCKET_NAME
+          - name: STORAGE_CLASS
+            GEN3_STORAGE_CLASS
+          - name: PUBLIC_BUCKET
+            GEN3_PUBLIC_BUCKET
+          - name: REQUESTER_PAYS
+            GEN3_REQUESTER_PAYS
+          - name: GOOGLE_PROJECT_ID
+            GEN3_GOOGLE_PROJECT_ID
+          - name: PROJECT_AUTH_ID
+            GEN3_PROJECT_AUTH_ID
+          - name: ACCESS_LOGS_BUCKET
+            GEN3_ACCESS_LOGS_BUCKET
+        volumeMounts:
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+            subPath: creds.json
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/local_settings.py"
+            subPath: local_settings.py
+          - name: "json-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_credentials.json"
+            subPath: fence_credentials.json
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
+          - name: "fence-yaml"
+            mountPath: "/var/www/fence/user.yaml"
+            subPath: user.yaml
+          - name: "fence-jwt-keys"
+            readOnly: true
+            mountPath: "/fence/keys"
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/fence/config_helper.py"
+            subPath: config_helper.py
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            if [[ -z "$UNIQUE_BUCKET_NAME" ]]; then
+                echo Cannot create bucket. UNIQUE_BUCKET_NAME variable must be specified.
+                exit 1 # terminate and indicate error
+            fi
+
+            create_command="google-bucket-create --unique-name $UNIQUE_BUCKET_NAME"
+
+            if [[ -n "$STORAGE_CLASS" ]]; then
+                create_command+=" --storage-class $STORAGE_CLASS"
+            fi
+            if [[ -n "$PUBLIC_BUCKET" ]]; then
+                create_command+=" --public"
+            fi
+            if [[ -n "$REQUESTER_PAYS" ]]; then
+                create_command+=" --requester-pays"
+            fi
+            if [[ -n "$GOOGLE_PROJECT_ID" ]]; then
+                create_command+=" --google-project-id $GOOGLE_PROJECT_ID"
+            fi
+            if [[ -n "$PROJECT_AUTH_ID" ]]; then
+                create_command+=" --project-auth-id $PROJECT_AUTH_ID"
+            fi
+            if [[ -n "$ACCESS_LOGS_BUCKET" ]]; then
+                create_command+=" --access-logs-bucket $ACCESS_LOGS_BUCKET"
+            fi
+
+            fence-create ${create_command}
+
+            if [[ $? != 0 ]]; then
+              echo "WARNING: non zero exit code: $?"
+            fi
+      restartPolicy: Never

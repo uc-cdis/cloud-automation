@@ -4,7 +4,7 @@ K8s jobs to do various things.  The `g3k` bash helper functions (from `kube.sh`)
 
 ## Setup
 
-The `cloud-automation/tf_files/configs/kube-setup-roles.sh` scripts sets up the k8s roles
+The `gen3 kube-setup-roles` command sets up the k8s roles
 required by these jobs.  It runs automatically as part of the `kube-services` script that
 boots up a commons, but may need to be run manually to setup existing commons to run jobs.
 
@@ -27,7 +27,11 @@ g3k roll peregrine
 ## setup sftp configuration
 To run usersync job or cronjob that fetches acl files from a remote ftp/sftp server, following setup need to be done:
 1. update `vpcname/apis_configs/fence_credentials.json` include dbgap credentials.
-2. run `kubectl delete secret fence-json-secret; bash ~/cloud-automation/tf_files/configs/kube-setup-fence.sh $VPC_NAME` to update secrets.
+2. update secrets:
+```
+kubectl delete secret fence-json-secret 
+gen3 kube-setup-fence
+```
 3. add the public key at `$vpcname/ssh-keys/id_rsa.pub` to squid proxy
 4. set `sync_from_dbgap: "True"` in `$vpcname/00configmap.yaml`.
 
@@ -52,3 +56,27 @@ Sync the `user.yaml` from the k8s `fence` configmap into fence's database.  A ty
 $ g3k update_config fence apis_configs/user.yaml
 $ g3k runjob useryaml
 ```
+
+### Google Jobs
+
+#### google-manage-account-access-job
+
+Remove any expired Google Accounts from a User's Google Proxy Group,
+effectively removing that account from access to buckets.
+
+#### google-manage-account-access-cronjob
+
+Same as above but run on a schedule.
+
+#### google-manage-keys-job
+
+Remove any expired Google Service Account keys.
+
+#### google-manage-keys-cronjob
+
+Same as above but run on a schedule.
+
+#### google-create-bucket
+
+Create a Google Bucket and associated db entries. See job file for details
+on job invocation.
