@@ -10,11 +10,11 @@ data "aws_instance" "worker" {
 
 resource "aws_ebs_volume" "worker_extra_drive" {
     availability_zone = "${aws_instance.worker.availability_zone}"
-    size = ${var.volume_size}
+    encrypted = true
+    size = "${var.volume_size}"
     tags {
         Name = "${aws_instance.worker.tag:Name}_extravolume_${length(aws_instance.worker.ebs_block_device) + 1}"
     }
-    encrypted = true
 }
 
 
