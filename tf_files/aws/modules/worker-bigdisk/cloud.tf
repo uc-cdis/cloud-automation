@@ -13,7 +13,7 @@ resource "aws_ebs_volume" "worker_extra_drive" {
     encrypted = true
     size = "${var.volume_size}"
     tags {
-        Name = "${aws_instance.worker.tag:Name}_extravolume_${length(aws_instance.worker.ebs_block_device) + 1}"
+        Name = "${aws_instance.worker.tag:Name}_extravolume_${length(${aws_instance.worker.ebs_block_device}) + 1}"
     }
 }
 

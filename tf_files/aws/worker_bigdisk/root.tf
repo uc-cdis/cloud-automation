@@ -6,7 +6,7 @@ terraform {
 
 provider "aws" {}
 
-module "squid_vm" {
+module "worker_bigdisk" {
   source           = "../modules/worker-bigdisk"
   instance_ip  = "${var.instance_ip}"
   volume_size = "${var.volume_size}"
