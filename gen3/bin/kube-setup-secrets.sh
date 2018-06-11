@@ -82,7 +82,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     # fence can load them. Assume that old keypairs had key ID "key-01".
     newDirForOldKeys="jwt-keys/key-01"
     mkdir -p "$newDirForOldKeys"
-    if [[ -f jwt-keys/jwt_public_key.pem && -f jwt_keys/jwt_private_key.pem ]]; then
+    if [[ -f jwt-keys/jwt_public_key.pem && -f jwt-keys/jwt_private_key.pem ]]; then
       mv jwt-keys/*.pem "$newDirForOldKeys/"
     fi
 
@@ -138,7 +138,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   fi
 
   if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
-    g3kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
+    rm -rf $XDG_RUNTIME_DIR/jwt-keys.tar
+    tar cvJf $XDG_RUNTIME_DIR/jwt-keys.tar jwt-keys
+    g3kubectl create secret generic fence-jwt-keys --from-file=$XDG_RUNTIME_DIR/jwt-keys.tar
   fi
 
   if ! g3kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
