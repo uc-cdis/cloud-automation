@@ -73,11 +73,14 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   # keypairs go in subdirectories of the base keys directory, where the
   # subdirectories are named as an ISO 8601 timestamp of when the keypair is
   # created.
-  existingKeys="$(find jwt-keys -name 'jwt_public_key.pem' -print 2>/dev/null)"
+
+  # If there are keypair subdirectories already, don't make a new one by
+  # default. (`mindepth -2` will restrict to searching for subdirectories.)
+  existingKeys="$(find jwt-keys -mindepth 2 -name 'jwt_public_key.pem' -print 2>/dev/null)"
   if test -z "$existingKeys"; then
     # For backwards-compatibility: move old keys into keys subdirectory so that
-    # fence can load them.
-    newDirForOldKeys="jwt-keys/old-keys"
+    # fence can load them. Assume that old keypairs had key ID "key-01".
+    newDirForOldKeys="jwt-keys/key-01"
     mkdir -p "$newDirForOldKeys"
     if [ -f jwt-keys/jwt_public_key.pem && -f jwt_keys/jwt_private_key.pem ]; then
       mv jwt-keys/*.pem "$newDirForOldKeys/"
@@ -86,7 +89,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     mkdir jwt-keys/${timestamp}
     openssl genrsa -out jwt-keys/${timestamp}/jwt_private_key.pem 2048
-    openssl rsa -in jwt-keys/${timestamp}/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
+    openssl rsa -in jwt-keys/${timestamp}/jwt_private_key.pem -pubout -out jwt-keys/${timestamp}/jwt_public_key.pem
   fi
 
   # sftp key
