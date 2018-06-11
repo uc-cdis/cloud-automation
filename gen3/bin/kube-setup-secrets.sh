@@ -97,8 +97,8 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
 
     # dump fence-user-config secret into file so user can edit.
     let count=0
-    while [[ ! -f g3kubectl get secrets/fence-config && $count -lt 50 ]]; do
-      echo "waiting for fence-config...";
+    while [ ! -f g3kubectl get secrets/fence-config && $count -lt 50 ]; do
+      echo "waiting for fence-config..."
       sleep 2
       let count=$count+1
     done

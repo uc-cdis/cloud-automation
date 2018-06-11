@@ -51,7 +51,7 @@ spec:
 
             let count=0
             while [[ ! -f /mnt/shared/old-fence-user-config.yaml && $count -lt 50 ]]; do
-              echo "waiting for /mnt/shared/old-fence-user-config.yaml";
+              echo "waiting for /mnt/shared/old-fence-user-config.yaml"
               sleep 2
               let count=$count+1
             done
@@ -112,7 +112,7 @@ spec:
             # wait for other image to generate config
             let count=0
             while [[ ! -f /mnt/shared/new-fence-user-config.yaml && $count -lt 50 ]]; do
-              echo "waiting for /mnt/shared/new-fence-user-config.yaml";
+              echo "waiting for /mnt/shared/new-fence-user-config.yaml"
               sleep 2
               let count=$count+1
             done
