@@ -83,24 +83,33 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     g3kubectl create configmap fence --from-file=apis_configs/user.yaml
   fi
 
-  if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
-    # load updated fence-config.yaml into secret if it exists
-    if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+  if ! g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+    # load updated fence-user-config.yaml into secret if it exists
+    if g3kubectl get secrets/fence-user-config > /dev/null 2>&1; then
       echo "loading fence config from file..."
-      fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-config.yaml
-      g3kubectl delete secret fence-config
-      g3kubectl create secret generic fence-config "--from-file=fence-config.yaml=${fence_config}"
+      fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-user-config.yaml
+      g3kubectl delete secret fence-user-config
+      g3kubectl create secret generic fence-user-config "--from-file=fence-user-config.yaml=${fence_config}"
     fi
 
-    # run job to inject creds.json into fence-config.yaml and save as fence-secret
-    g3k runjob fence-secret
+    # run job to inject creds.json into fence-user-config.yaml and save as fence-config
+    g3k runjob fence-config
 
-    # dump fence-config secret into file so user can edit.
-    if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
-      echo "dumping fence config into file..."
-      fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-config.yaml
-      g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode > "${fence_config}"
+    # dump fence-user-config secret into file so user can edit.
+    let count=0
+    while [[ ! -f g3kubectl get secrets/fence-config > /dev/null 2>&1 && $count -lt 50 ]]; do
+      echo "waiting for fence-config...";
+      sleep 2
+      let count=$count+1
+    done
+    if [[ ! -f g3kubectl get secrets/fence-config > /dev/null 2>&1 ]]; then
+      echo "dumping fence config into file from fence-user-config secret..."
+      fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-user-config.yaml
+      g3kubectl get secrets/fence-user-config -o json | jq -r '.data["fence-user-config.yaml"]' | base64 --decode > "${fence_config}"
+    else
+      echo "ERROR: could not find fence-config within the timeout!"
     fi
+
   fi
 
   if ! g3kubectl get secrets/fence-google-app-creds-secret > /dev/null 2>&1; then

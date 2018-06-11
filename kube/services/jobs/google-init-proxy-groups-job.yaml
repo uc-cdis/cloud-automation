@@ -16,7 +16,7 @@ spec:
             secretName: "fence-creds"
         - name: config-volume
           secret:
-            secretName: "fence-secret"
+            secretName: "fence-config"
         - name: fence-google-app-creds-secret-volume
           secret:
             secretName: "fence-google-app-creds-secret"
@@ -42,8 +42,8 @@ spec:
         volumeMounts:
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
-            subPath: fence-config.yaml
+            mountPath: "/var/www/fence/fence-user-config.yaml"
+            subPath: fence-user-config.yaml
           - name: "creds-volume"
             readOnly: true
             mountPath: "/var/www/fence/creds.json"

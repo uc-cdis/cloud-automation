@@ -97,9 +97,9 @@ if g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
 fi
 
 fencePyFile=""
-if g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
-  fencePyFile=apis_configs/fence-config.yaml
-  g3kubectl get secrets/fence-secret -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode > "${fencePyFile}"
+if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+  fencePyFile=apis_configs/fence-user-config.yaml
+  g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-user-config.yaml"]' | base64 --decode > "${fencePyFile}"
 elif g3kubectl get secrets/userapi-secret > /dev/null 2>&1; then
   fencePyFile=apis_configs/userapi_settings.py
   g3kubectl get secrets/userapi-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > "${fencePyFile}"
