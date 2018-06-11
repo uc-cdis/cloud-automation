@@ -88,7 +88,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-user-config.yaml
     if [[ -f ${fence_config} ]]; then
       echo "loading fence config from file..."
-      g3kubectl delete secret fence-user-config
+      if g3kubectl get secrets/fence-user-config > /dev/null 2>&1; then
+        g3kubectl delete secret fence-user-config
+      fi
       g3kubectl create secret generic fence-user-config "--from-file=fence-user-config.yaml=${fence_config}"
     fi
 
@@ -96,7 +98,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     g3k runjob fence-config
 
     # dump fence-user-config secret into file so user can edit.
-    let count=0
+    let count=1
     while g3kubectl get secrets/fence-config > /dev/null 2>&1 && $count -lt 50; do
       echo "waiting for fence-config..."
       sleep 2
@@ -108,7 +110,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     else
       echo "ERROR: could not find fence-config within the timeout!"
     fi
-
   fi
 
   if ! g3kubectl get secrets/fence-google-app-creds-secret > /dev/null 2>&1; then
