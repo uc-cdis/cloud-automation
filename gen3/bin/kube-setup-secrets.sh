@@ -86,7 +86,8 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
     # load updated fence-config.yaml into secret if it exists
     if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
-      fence_config=./apis_configs/fence-config.yaml
+      echo "loading fence config from file..."
+      fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-config.yaml
       g3kubectl delete secret fence-config
       g3kubectl create secret generic fence-config "--from-file=fence-config.yaml=${fence_config}"
     fi
@@ -96,7 +97,8 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
 
     # dump fence-config secret into file so user can edit.
     if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
-      fence_config=./apis_configs/fence-config.yaml
+      echo "dumping fence config into file..."
+      fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-config.yaml
       g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode > "${fence_config}"
     fi
   fi
