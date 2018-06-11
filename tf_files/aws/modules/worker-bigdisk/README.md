@@ -14,6 +14,7 @@ bigdisk module is intended to create an AWS volume and attached to the specified
 - [2. Table of Contents](#2-table-of-contents)
 - [3. Overview](#3-overview)
 - [4. Variables](#4-variables)
+- [5. Considerations](#5-considerations)
 
 
 # 3. Overview
@@ -34,4 +35,43 @@ dev_name = "/dev/sdz"
 * volume_size: the size of the new drive in GiB
 * instance_ip: ip of the VM that you want the volumen attached to.
 * dev_name: in case you want to attach a second or third drive to the same instance, change this accordingly.
+
+
+# 5. Considerations
+
+This particular module would only create the volume and attach it to the instance of your prefference. It won't though, format it and mount it for you, as this is a OS operantion that we can't tell terraform to perform for you.
+
+How to proceed in this case?, this is a simple example on how to. If you don't know how to format and mount, search for help.
+
+Search for the drive with `lsblk`:
+
+```
+ubuntu@cdistest_admin:~$ sudo lsblk 
+NAME    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+xvda    202:0    0    8G  0 disk 
+└─xvda1 202:1    0    8G  0 part /
+xvdz    202:80   0  100G  0 disk 
+```
+
+You could create a single partition with `fdisk`, `parter` or any other of your preference. 
+
+
+```
+fdisk /dev/xvdz
+```
+
+Then format it, most likely you would want to use ext4.
+
+```
+mkfs.ext4 /dev/xvdz1
+```
+
+Then mount it 
+
+```
+mount /dev/xvdz /newdrive
+```
+
+Remember to add it to `/etc/fstab`
+
 
