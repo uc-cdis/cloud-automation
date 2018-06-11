@@ -71,7 +71,7 @@ revproxyArn=$(g3kubectl get configmaps/global -o=jsonpath='{.data.revproxy_arn}'
 # Legacy commons may not have jwt keys
 if g3kubectl get secrets/jwt-keys > /dev/null 2>&1; then
   mkdir -p -m 0700 ./jwt-keys
-  for keyName in jwt_public_key.pem jwt_private_key.pem; do
+  for keyName in jwt_public_key.pem jwt_private_key.pem jwt-keys.tar; do
     g3kubectl get secrets/fence-jwt-keys -o=json | jq -r ".data[\"$keyName\"]" | base64 --decode > "./jwt-keys/$keyName"
   done
 fi
