@@ -97,12 +97,12 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
 
     # dump fence-user-config secret into file so user can edit.
     let count=0
-    while [ ! -f g3kubectl get secrets/fence-config && $count -lt 50 ]; do
+    while [[ ! g3kubectl get secrets/fence-config > /dev/null 2>&1 && $count -lt 50 ]]; do
       echo "waiting for fence-config..."
       sleep 2
       let count=$count+1
     done
-    if [[ ! -f g3kubectl get secrets/fence-config > /dev/null 2>&1 ]]; then
+    if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
       echo "dumping fence config into file from fence-user-config secret..."
       fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-user-config.yaml
       g3kubectl get secrets/fence-user-config -o json | jq -r '.data["fence-user-config.yaml"]' | base64 --decode > "${fence_config}"
