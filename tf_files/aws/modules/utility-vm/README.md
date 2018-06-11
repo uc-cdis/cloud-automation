@@ -28,13 +28,15 @@ Once you workon the workspace, you may want to edit the config.tfvars accordingl
 
 Ex: 
 
-`ubuntu@csoc_admin:~$ cat .local/share/gen3/csoc/test_utilityvm/config.tfvars 
+```
+ubuntu@csoc_admin:~$ cat .local/share/gen3/csoc/test_utilityvm/config.tfvars 
 bootstrap_path = "cloud-automation/flavors/nginx/"
 bootstrap_script = "es_revproxy.sh"
 vm_name = "test"
 vm_hostname = "test"
 vpc_cidr_list = ["10.128.0.0/20", "54.0.0.0/8", "52.0.0.0/8"]
-extra_vars = ["public_ip=35.174.124.219"]`
+extra_vars = ["public_ip=35.174.124.219"]
+```
 
 By default, when the VM comes up, it'll be placed in /home/ubuntu, therefore you want to provide the bootstrap_path accordingly, you could always use absolute paths nonetheless. 
 
