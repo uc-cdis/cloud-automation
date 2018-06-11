@@ -58,14 +58,14 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
     config_file.close()
 
     # get secret values from creds.json file
-    db_host = _get_nested_value(creds, 'fence/db_host')
-    db_username = _get_nested_value(creds, 'fence/db_username')
-    db_password = _get_nested_value(creds, 'fence/db_password')
-    db_database = _get_nested_value(creds, 'fence/db_database')
-    hostname = _get_nested_value(creds, 'fence/hostname')
-    google_client_secret = _get_nested_value(creds, 'fence/google_client_secret')
-    google_client_id = _get_nested_value(creds, 'fence/google_client_id')
-    hmac_key = _get_nested_value(creds, 'fence/hmac_key')
+    db_host = _get_nested_value(creds, 'db_host')
+    db_username = _get_nested_value(creds, 'db_username')
+    db_password = _get_nested_value(creds, 'db_password')
+    db_database = _get_nested_value(creds, 'db_database')
+    hostname = _get_nested_value(creds, 'hostname')
+    google_client_secret = _get_nested_value(creds, 'google_client_secret')
+    google_client_id = _get_nested_value(creds, 'google_client_id')
+    hmac_key = _get_nested_value(creds, 'hmac_key')
 
     # inject creds.json values into yaml configuration for fence
     db_path = (
