@@ -21,6 +21,16 @@ module "cdis_vpc" {
   csoc_account_id = "${var.csoc_account_id}"
 }
 
+module "gen3_es" {
+  source          = "../modules/cdis-aws-es"
+  vpc_id          = "${module.cdis_vpc.vpc_id}"
+  vpc_octet2      = "${var.vpc_octet2}"
+  vpc_octet3      = "${var.vpc_octet3}"
+  vpc_name        = "${var.vpc_name}"
+  csoc_cidr       = "${var.csoc_cidr}"
+  csoc_account_id = "${var.csoc_account_id}"
+} 
+
 # logs bucket for elb logs
 module "elb_logs" {
   source          = "../modules/s3-logs"
