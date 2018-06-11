@@ -82,7 +82,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     # fence can load them. Assume that old keypairs had key ID "key-01".
     newDirForOldKeys="jwt-keys/key-01"
     mkdir -p "$newDirForOldKeys"
-    if [ -f jwt-keys/jwt_public_key.pem && -f jwt_keys/jwt_private_key.pem ]; then
+    if [[ -f jwt-keys/jwt_public_key.pem && -f jwt_keys/jwt_private_key.pem ]]; then
       mv jwt-keys/*.pem "$newDirForOldKeys/"
     fi
 
