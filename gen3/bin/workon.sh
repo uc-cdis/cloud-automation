@@ -185,6 +185,16 @@ EOM
   fi
 
   # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _bigdisk$ ]]; then
+    cat - <<EOM
+volume_size = 20
+instance_ip = "10.0.0.0"
+dev_name = "/dev/sdz"
+EOM
+    return 0
+  fi
+
+  # else ...
 
 # ssh key to be added to VMs and kube nodes
 local SSHADD=$(which ssh-add)
