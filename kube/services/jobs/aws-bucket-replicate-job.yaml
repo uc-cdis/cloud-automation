@@ -56,6 +56,9 @@ spec:
         - name: manifest-volume
           configMap:
             name: data-service-manifest
+        - name: creds-json-volume
+          secret:
+            secretName: "dcf-dataservice-json-secret"
       containers:
       - name: awsreplicate
         image: quay.io/cdis/dcf-dataservice:feat_data_replicate_service
@@ -72,6 +75,9 @@ spec:
           - name: "manifest-volume"
             mountPath: "/dcf-dataservice/manifest"
             subPath: "manifest"
+          - name: "creds-json-volume"
+            mountPath: "/secrets/dcf_dataservice_credentials.json"
+            subPath: "dcf_dataservice_credentials.json"
         command: ["/bin/bash" ]
         args: 
           - "-c"

@@ -212,6 +212,14 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
     g3kubectl create secret generic aws-creds-secret --from-file=credentials=./apis_configs/aws_creds_secret
   fi
 
+  if ! g3kubectl get secrets/dcf-dataservice-json-secret > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/dcf_dataservice_credentials.json" ]]; then
+        touch "./apis_configs/dcf_dataservice_credentials.json"
+    fi
+    echo "create dcf-dataservice-json-secret using current creds file apis_configs/dcf_dataservice_credentials.json"
+    g3kubectl create secret generic dcf-dataservice-json-secret --from-file=dcf_dataservice_credentials.json=./apis_configs/dcf_dataservice_credentials.json
+  fi
+
   if ! g3kubectl get configmaps/data-service-manifest > /dev/null 2>&1; then
     if [[ ! -f "./apis_configs/manifest" ]]; then
       touch "./apis_configs/manifest"
