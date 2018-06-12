@@ -70,7 +70,7 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
     # inject creds.json values into yaml configuration for fence
     db_path = (
         'postgresql://{}:{}@{}:5432/{}'
-        .format(db_host, db_username, db_password, db_database)
+        .format(db_username, db_password, db_host, db_database)
     )
     _replace(config, 'DB', db_path)
     _replace(config, 'BASE_URL', 'https://{}/user'.format(hostname))
