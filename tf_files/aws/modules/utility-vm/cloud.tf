@@ -197,9 +197,9 @@ cd /home/ubuntu
 sudo git clone https://github.com/uc-cdis/cloud-automation.git
 sudo chown -R ubuntu. cloud-automation
 
-cd cloud-automation
-git checkout feat/csoc-utility-vm
-cd /home/ubuntu
+#cd cloud-automation
+#git checkout feat/csoc-utility-vm
+#cd /home/ubuntu
 
 #sudo mkdir -p /root/.ssh/
 sudo cat cloud-automation/ssh-public-keys/authorized_keys | sudo tee --append /home/ubuntu/.ssh/authorized_keys
