@@ -35,7 +35,7 @@ variable "image_name_search_criteria" {
 }
 
 variable "csoc_cidr" {
- # default = "10.128.0.0/20"
+  default = "10.128.0.0/20"
 }
 
 
