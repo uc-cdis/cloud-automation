@@ -69,9 +69,27 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   mkdir -p jwt-keys
   mkdir -p ssh-keys
 
-  if [ ! -f jwt-keys/jwt_public_key.pem ]; then
-    openssl genrsa -out jwt-keys/jwt_private_key.pem 2048
-    openssl rsa -in jwt-keys/jwt_private_key.pem -pubout -out jwt-keys/jwt_public_key.pem
+  # Create keypairs for fence. Following the requirements from fence, the
+  # keypairs go in subdirectories of the base keys directory, where the
+  # subdirectories are named as an ISO 8601 timestamp of when the keypair is
+  # created.
+
+  # If there are keypair subdirectories already, don't make a new one by
+  # default. (`mindepth -2` will restrict to searching for subdirectories.)
+  existingKeys="$(find jwt-keys -mindepth 2 -name 'jwt_public_key.pem' -print 2>/dev/null)"
+  if test -z "$existingKeys"; then
+    # For backwards-compatibility: move old keys into keys subdirectory so that
+    # fence can load them. Assume that old keypairs had key ID "key-01".
+    newDirForOldKeys="jwt-keys/key-01"
+    mkdir -p "$newDirForOldKeys"
+    if [[ -f jwt-keys/jwt_public_key.pem && -f jwt-keys/jwt_private_key.pem ]]; then
+      mv jwt-keys/*.pem "$newDirForOldKeys/"
+    fi
+
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    mkdir jwt-keys/${timestamp}
+    openssl genrsa -out jwt-keys/${timestamp}/jwt_private_key.pem 2048
+    openssl rsa -in jwt-keys/${timestamp}/jwt_private_key.pem -pubout -out jwt-keys/${timestamp}/jwt_public_key.pem
   fi
 
   # sftp key
@@ -113,6 +131,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
       g3kubectl get secrets/fence-user-config -o json | jq -r '.data["fence-user-config.yaml"]' | base64 --decode > "${fence_config}"
     else
       echo "ERROR: could not find fence-config within the timeout!"
+
     fi
   fi
 
@@ -140,7 +159,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   fi
 
   if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
-    g3kubectl create secret generic fence-jwt-keys --from-file=./jwt-keys
+    rm -rf $XDG_RUNTIME_DIR/jwt-keys.tar
+    tar cvJf $XDG_RUNTIME_DIR/jwt-keys.tar jwt-keys
+    g3kubectl create secret generic fence-jwt-keys --from-file=$XDG_RUNTIME_DIR/jwt-keys.tar
   fi
 
   if ! g3kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then

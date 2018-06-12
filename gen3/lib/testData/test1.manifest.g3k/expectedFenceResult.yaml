@@ -115,4 +115,18 @@ spec:
             subPath: "ca.pem"
           - name: "fence-jwt-keys"
             readOnly: true
-            mountPath: "/fence/keys"
+            mountPath: "/fence/jwt-keys.tar"
+            subPath: "jwt-keys.tar"
+        command: ["/bin/bash" ]
+        args: 
+          - "-c"
+          - |
+            if [ -f /fence/jwt-keys.tar ]; then
+              cd /fence
+              tar xvf jwt-keys.tar
+              if [ -d jwt-keys ]; then
+                mkdir -p keys
+                mv jwt-keys/* keys/
+              fi
+            fi
+            rm -rf /var/run/apache2/apache2.pid && /usr/sbin/apache2ctl -D FOREGROUND
