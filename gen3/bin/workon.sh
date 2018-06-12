@@ -217,6 +217,7 @@ EOM
   env_vpc_octet1                = "1st OCTET OF VPC CIDR FOR SQUID SETUP"
   env_vpc_octet2                = "2nd OCTET OF VPC CIDR FOR SQUID SETUP"
   env_vpc_octet3                = "3rd OCTET OF VPC CIDR FOR SQUID SETUP"
+  ## The code takes the third octet ; adds 15 to it and uses the CIDR as squid nlb cluster CIDR ; Eg. if your VPC CIDR is 10.128.0.0/20 ; it coverts it to 10.128.15.0/24 and thats your squid cluster CIDR
   env_nlb_name                  = "NLB SETUP NAME"
   env_vpc_id                    = "COMMONS VPC-ID"
   env_public_subnet_routetable_id = "COMMONS ROUTE TABLE (MAIN) ID  - HAVING ROUTE TO INTERNET GW"

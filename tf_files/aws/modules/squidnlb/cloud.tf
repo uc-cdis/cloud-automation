@@ -248,6 +248,7 @@ resource "aws_launch_configuration" "squid_nlb" {
   security_groups = ["${aws_security_group.squidnlb_in.id}", "${aws_security_group.squidnlb_out.id}"]
   key_name = "${var.ssh_key_name}"
   iam_instance_profile   = "${aws_iam_instance_profile.squid-nlb_role_profile.id}"
+  associate_public_ip_address = true
 
   depends_on = ["aws_iam_instance_profile.squid-nlb_role_profile"]
 
