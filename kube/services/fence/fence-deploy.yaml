@@ -33,6 +33,9 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
+        - name: old-config-volume
+          secret:
+            secretName: "fence-secret"
         - name: config-volume
           secret:
             secretName: "fence-config"
@@ -78,6 +81,10 @@ spec:
         - containerPort: 80
         - containerPort: 443
         volumeMounts:
+          - name: "old-config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/local_settings.py"
+            subPath: local_settings.py
           - name: "config-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence-user-config.yaml"
