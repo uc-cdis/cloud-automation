@@ -63,11 +63,11 @@ variable "allowed_principals_list" {
 
 ## variable for the bootstrap 
 variable "bootstrap_path" {
-  default = "cloud-automation/flavors/nginx/"
+  default = "cloud-automation/flavors/squid_nlb/"
 }
 
 variable "bootstrap_script" {
-  #default = "es_revproxy.sh"
+  default = "squidvm.sh"
 }
 
 variable "commons_internal_dns_zone_id"{
