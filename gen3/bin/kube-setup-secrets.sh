@@ -95,7 +95,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     fi
 
     # run job to inject creds.json into fence-user-config.yaml and save as fence-config
-    g3k runjob fence-config
+    g3k runjob config-fence
 
     # dump fence-user-config secret into file so user can edit.
     let count=1
