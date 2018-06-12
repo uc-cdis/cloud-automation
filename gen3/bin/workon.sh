@@ -221,6 +221,7 @@ EOM
   env_vpc_id                    = "COMMONS VPC-ID"
   env_public_subnet_routetable_id = "COMMONS ROUTE TABLE (MAIN) ID  - HAVING ROUTE TO INTERNET GW"
   commons_internal_dns_zone_id  = "PUT IT AS `ZA1HVV5W0QBG1` IF LAUNCHING THE SQUID NLB IN CSOC MAIN VPC"
+  csoc_cidr = "LEAVE THIS EMPTY IF SPINNING THE SQUID NLB SET_UP IN CSOC"
   # allowed_principals_list       = "[LIST OF AWS ACCOUNTS WHICH NEEDS TO BE WHITELISTED]"
   # e.g. of the list - ["arn:aws:iam::<AWS ACCOUNT1 ID>:root","arn:aws:iam::<AWS ACCOUNT2 ID>:root", ...]
 EOM

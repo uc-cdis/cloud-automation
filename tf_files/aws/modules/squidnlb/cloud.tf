@@ -349,7 +349,7 @@ resource "aws_security_group" "squidnlb_in" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${var.env_vpc_octet1}.${var.env_vpc_octet2}.${var.env_vpc_octet3}.0/20"]
+    cidr_blocks = ["${var.env_vpc_octet1}.${var.env_vpc_octet2}.${var.env_vpc_octet3}.0/20", "${var.csoc_cidr}"]
   }
 
   tags {

@@ -18,7 +18,7 @@ module "squid_nlb" {
   env_vpc_id       = "${var.env_vpc_id}"
   env_nlb_name     = "${var.env_nlb_name}"
   ami_account_id   = "${var.ami_account_id}"
-  #csoc_cidr        = "${var.csoc_cidr}"
+  csoc_cidr        = "${var.csoc_cidr}"
   env_public_subnet_routetable_id = "${var.env_public_subnet_routetable_id}"
   ssh_key_name     = "${var.ssh_key_name}"
   allowed_principals_list  = "${var.allowed_principals_list}"
