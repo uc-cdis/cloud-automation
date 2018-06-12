@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: fence-config
+  name: config-fence
 spec:
   # not yet supported - backOffLimit: 3
   template:
