@@ -259,10 +259,6 @@ sudo git clone https://github.com/uc-cdis/cloud-automation.git
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 cd /home/ubuntu/cloud-automation
 git pull
-# this is just temporary to test stuff from my branch; not needed once it is merged
-git checkout feat/nlbforsquid_standalone
-git pull
-#####
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
 #instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
@@ -408,10 +404,10 @@ resource "aws_security_group" "squidnlb_out" {
   #}
 #}
 
-## 'raryatestnlbproxy' should be replaced with cloud-proxy at the time of merge
+
 resource "aws_route53_record" "squid-nlb" {
   zone_id = "${var.commons_internal_dns_zone_id}"
-  name    = "raryatestnlbproxy.internal.io"
+  name    = "cloud-proxy.internal.io"
   type    = "CNAME"
   ttl     = "300"
   records = ["${aws_lb.squid_nlb.dns_name}"]
