@@ -14,14 +14,14 @@ mkdir squid-build
 
 git clone https://github.com/uc-cdis/images.git
 
-cp /home/ubuntu/images/configs/ftp_whitelist /tmp/ftp_whitelist
-cp /home/ubuntu/images/configs/web_whitelist /tmp/web_whitelist
-cp /home/ubuntu/images/configs/web_wildcard_whitelist /tmp/web_wildcard_whitelist
-cp /home/ubuntu/images/configs/squid.conf /tmp/squid.conf
-cp /home/ubuntu/images/configs/squid-build.sh /home/ubuntu/squid-build/squid-build.sh
-cp /home/ubuntu/images/configs/iptables.conf /tmp/iptables.conf
-cp /home/ubuntu/images/configs/iptables-rules /tmp/iptables-rules
-cp /home/ubuntu/images/configs/squid.service /tmp/squid.service
+sudo cp /home/ubuntu/images/configs/ftp_whitelist /tmp/ftp_whitelist
+sudo cp /home/ubuntu/images/configs/web_whitelist /tmp/web_whitelist
+sudo cp /home/ubuntu/images/configs/web_wildcard_whitelist /tmp/web_wildcard_whitelist
+sudo cp /home/ubuntu/images/configs/squid.conf /tmp/squid.conf
+sudo cp /home/ubuntu/images/configs/squid-build.sh /home/ubuntu/squid-build/squid-build.sh
+sudo cp /home/ubuntu/images/configs/iptables.conf /tmp/iptables.conf
+sudo cp /home/ubuntu/images/configs/iptables-rules /tmp/iptables-rules
+sudo cp /home/ubuntu/images/configs/squid.service /tmp/squid.service
 
 cd /home/ubuntu/squid-build/
 sudo sed -i -e 's/squid-3.5.26/squid-4.0.24/g' squid-build.sh
@@ -50,7 +50,7 @@ sudo chown -R proxy:proxy /var/log/squid /var/cache/squid
 
 ## Enable the Support for proxy protocol on the squid
 sudo mv /etc/squid/squid.conf /etc/squid/squid_original.conf
-sudo cp /home/ubuntu/cloud-automation/flavors/squid_nlb/squid_proxyprotocol.conf /etc/squid/squid.conf
+#sudo cp /home/ubuntu/cloud-automation/flavors/squid_nlb/squid_proxyprotocol.conf /etc/squid/squid.conf
 
 ## Enable the squid service
 sudo systemctl enable squid
