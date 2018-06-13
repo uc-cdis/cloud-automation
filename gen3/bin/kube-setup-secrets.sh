@@ -117,7 +117,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
 
     # dump fence-user-config secret into file so user can edit.
     let count=1
-    while ((${count} < 50)); do
+    while ((count < 50)); do
       if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
         break
       fi
