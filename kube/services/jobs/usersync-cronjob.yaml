@@ -62,6 +62,11 @@ spec:
                   configMapKeyRef:
                     name: global
                     key: sync_from_dbgap
+              - name: slackWebHook
+                valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
             volumeMounts:
               - name: "config-volume"
                 readOnly: true
@@ -130,12 +135,23 @@ spec:
                   fi
                 else
                   if [[ -f /mnt/shared/user.yaml ]]; then
-                    fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
+                    output=$(fence-create sync --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml)
                   else
-                    fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
+                    output=$(fence-create sync --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml)
+                  fi
+                  exitcode=$?
+                  echo "$output"
+                  # Echo what files we are seeing on dbgap ftp to Slack
+                  # We only do this step every 6 hours to reduce noise
+                  files=$(echo "$output" | grep "Reading file")
+                  let hour=$(date -u +%H)
+                  if ! (( hour % 6 )); then
+                    if [ "${slackWebHook}" != 'None' ]; then
+                      curl -X POST --data-urlencode "payload={\"text\": \"FenceHelper: \n\`\`\`\n${files}\n\`\`\`\"}" "${slackWebHook}"
+                    fi
                   fi
                 fi
-                echo "Exit code: $?"
+                echo "Exit code: $exitcode"
 
           - name: awshelper
             image: quay.io/cdis/awshelper:master
