@@ -49,7 +49,7 @@ sudo mkdir -p /var/log/squid /var/cache/squid
 sudo chown -R proxy:proxy /var/log/squid /var/cache/squid
 
 ## Enable the Support for proxy protocol on the squid
-sudo mv /etc/squid/squid.conf /etc/squid/squid_original.conf
+#sudo mv /etc/squid/squid.conf /etc/squid/squid_original.conf
 #sudo cp /home/ubuntu/cloud-automation/flavors/squid_nlb/squid_proxyprotocol.conf /etc/squid/squid.conf
 
 ## Enable the squid service
