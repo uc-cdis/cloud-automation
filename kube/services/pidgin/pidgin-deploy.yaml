@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       labels:
-        app: peregrine
+        app: pidgin
         GEN3_DATE_LABEL
     spec:
       affinity:
