@@ -203,6 +203,27 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update peregrin
   fi
 fi
 
+if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update pidgin secrets
+  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
+    echo "${WORKSPACE}/${vpc_name} does not exist"
+    exit 1
+  fi
+
+  cd "${WORKSPACE}/${vpc_name}_output"
+
+  #if ! g3kubectl get secret pidgin-creds > /dev/null 2>&1; then
+  #  credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+  #  jq -r .pidgin < creds.json > "$credsFile"
+  #  g3kubectl create secret generic pidgin-creds "--from-file=creds.json=${credsFile}"
+  #fi
+
+  cd "${WORKSPACE}/${vpc_name}"
+
+  if ! g3kubectl get secrets/pidgin-secret > /dev/null 2>&1; then
+    g3kubectl create secret generic pidgin-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/pidgin_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+  fi
+fi
+
 if [[ -z "$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')" ]]; then
   echo "ERROR: configmaps/global does not include dictionary_url"
   echo "... update and apply ${vpc_name}/00configmap.json, then retry this script"
