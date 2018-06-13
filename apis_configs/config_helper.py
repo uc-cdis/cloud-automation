@@ -72,15 +72,34 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
         'postgresql://{}:{}@{}:5432/{}'
         .format(db_username, db_password, db_host, db_database)
     )
+    print('  DB injected with value(s) from creds.json')
     _replace(config, 'DB', db_path)
+
+    print('  BASE_URL injected with value(s) from creds.json')
     _replace(config, 'BASE_URL', 'https://{}/user'.format(hostname))
+
+    print('  ENCRYPTION_KEY injected with value(s) from creds.json')
     _replace(config, 'ENCRYPTION_KEY', hmac_key)
+
+    print(
+        '  OPENID_CONNECT/google/client_secret injected with value(s) '
+        'from creds.json')
     _replace(
         config, 'OPENID_CONNECT/google/client_secret', google_client_secret)
+
+    print('  DB injected with value(s) from creds.json')
     _replace(config, 'OPENID_CONNECT/google/client_id', google_client_id)
+
+    print(
+        '  CIRRUS_CFG/GOOGLE_APPLICATION_CREDENTIALS set as '
+        'var/www/fence/fence_google_app_creds_secret.json')
     _replace(
         config, 'CIRRUS_CFG/GOOGLE_APPLICATION_CREDENTIALS',
         '/var/www/fence/fence_google_app_creds_secret.json')
+
+    print(
+        '  CIRRUS_CFG/GOOGLE_STORAGE_CREDS set as '
+        'var/www/fence/fence_google_storage_creds_secret.json')
     _replace(
         config, 'CIRRUS_CFG/GOOGLE_STORAGE_CREDS',
         '/var/www/fence/fence_google_storage_creds_secret.json')

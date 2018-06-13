@@ -112,7 +112,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
       g3kubectl create secret generic fence-user-config "--from-file=fence-user-config.yaml=${fence_config}"
     fi
 
-    # run job to inject creds.json into fence-user-config.yaml and save as fence-config
+    echo "running job to inject creds.json into fence-user-config.yaml..."
+    echo "NOTE: Some config values from fence-user-config.yaml will be replaced"
+    echo "      Run \"g3k joblogs config-fence\" for details"
     g3k runjob config-fence
 
     # dump fence-user-config secret into file so user can edit.
@@ -121,7 +123,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
       if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
         break
       fi
-      echo "waiting for fence-config..."
+      echo "waiting for fence-config secret from job..."
       sleep 2
       let count=${count}+1
     done
