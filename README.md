@@ -13,6 +13,18 @@ to a kubernetes cluster
 The repository also interacts closely with the [images](https://github.com/uc-cdis/images)
 and [cdis-manifest] 
 
+# Table of contents
+
+- [1. TL;TR](#tltr)
+- [2. Workflows](#workflows)
+  - [2.1 AWS CSOC](#aws-csoc)
+  - [2.2 New account flow](#new-account-flow)
+  - [2.3 New adminVM](#new-adminvm)
+  - [2.4 New commons flow](#new-commons-flow)
+  - [2.5 Prerequisites for Commons](#prerequisites-for-commons)
+
+
+
 # Workflows
 
 ## AWS CSOC
@@ -46,11 +58,89 @@ the CSOC account to create roles that can assume the `csoc_adminvm` role in the 
 Contact CDIS ops team to request access to the CSOC VPN, and to add your ssh public key to the
 appropriate adminvm.
 
+## New adminVM
+
+Admin VMs are used to communicate against the remote account from the CSOC account. 
+
+1. SSH into CSOC master VM 
+```
+Host csoc
+   ServerAliveInterval 120
+   HostName 10.128.2.252
+   User ubuntu
+   ForwardAgent yes
+```
+
+2. Access the cloud-automation folder and update if necessary:
+```
+$ cd cloud-automation
+$ git checkout master
+$ git pull
+```
+
+3. Invoke gen3 to use the utilityVM module
+```
+$ gen3 workon csoc <name of account>_utilityvm
+```
+
+4. Make the necesary changes to the config.tfvars
+
+```
+$ gen3 cd
+$ cat config.tfvars 
+bootstrap_path = "cloud-automation/flavors/adminvm/"
+bootstrap_script = "init.sh"
+vm_name = "cdistest_admin"
+vm_hostname = "cdistest_admin"
+vpc_cidr_list = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8", "172.24.48.0/20", "172.24.64.0/20", "172.24.192.0/20", "172.24.208.0/20"]
+extra_vars = ["account_id=707767160287"]
+environment = "cdistest"
+instance_type = "t2.micro"
+aws_account_id = "707767160287"
+```
+
+Generally speacking, the `bootstrap_path` and `bootstrap_script` vars shouldn't need any change unless you want to use a custom one. 
+Variables explaination:
+- vm_name: self explanatory.
+- vm_hostname: hostname to be used by the VM, usually the same as the name. But you could use a domain if you wanted to.
+- vpc_cidr_list: CIDRs where the VM would have egress access.
+- extra_vars: variables that will be used by `bootstrap_script`. For the above example, we are telling it to use the remote account ID, in which case will be used to set up awscli `/home/ubuntu/.aws/config`.
+- environment: for tagging purposes.
+- instance_type: the size of the VM.
+- aws_account_id: the remote account ID that this VM will have access to.
+
+
+
+5. Apply the module against AWS
+```
+$ gen3 tfplan
+```
+
+Check that it looks good and it'll do what youa re sxpecting it to do.
+
+```
+$ gen3 tfapply
+```
+
+The output should show you the new VM's IP. Please make sure to update https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md when it's done.
+
+
+
+
 ## New commons flow
 
 The CDIS ops team follows this flow to create a new commons.
 
-* Login to the adminvm
+* Before creating a new commons, you must bring up the logging portion in the CSOC account. To achieve this, ssh into the CSOC master VM.
+```
+$ gen3 workon csoc <name of account>_logging
+$ gen3 cd
+$ sed -i 's/NUMERIC-ID/<account-id>/g' config.tfvar
+$ gen3 tfplan
+$ gen3 tfapply
+```
+
+* Login to the adminvm, if this is a brand new account that requires a new adminVM, please see previous step.
 * Create a user account for the commons.  There is one `admin-vm` per AWS account.  We create one `user` on an account's admin-vm for each commons VPC under the account.
 Note that an `adminvm` acquires credentials to interact with the AWS API via the EC2 metadata service.  For example, user accounts on the `cdistest` admin-vm have the following configuration:
 ```
@@ -71,7 +161,7 @@ credential_source = Ec2InstanceMetadata
 * Login to the commons account - ex: `ssh commons@account-admin-vm.csoc`
 * Run terraform to bring up a VPC to host the commons:
 ```
-$ gen3 workon account-profile commons-name
+$ gen3 workon <account-profile> <commons-name>
 $ gen3 cd
 $ configure VPC CIDR in `config.tfvars`
 $ gen3 tfplan
