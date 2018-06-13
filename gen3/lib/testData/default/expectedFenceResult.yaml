@@ -104,7 +104,7 @@ spec:
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
         command: ["/bin/bash" ]
-        args: 
+        args:
           - "-c"
           - |
             if [ -f /fence/jwt-keys.tar ]; then
