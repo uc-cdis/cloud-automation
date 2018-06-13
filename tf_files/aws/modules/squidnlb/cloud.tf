@@ -60,7 +60,7 @@ data "aws_iam_policy_document" "squid_policy_document" {
    # resources = ["arn:aws:iam::${var.aws_account_id}:role/csoc_adminvm"]
   #}
 
-#}
+}
 
 resource "aws_iam_role_policy" "squid_policy" {
   name   = "${var.env_nlb_name}_policy"
