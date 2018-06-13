@@ -29,6 +29,7 @@ CLOUDPROXY_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values="$vpc
 g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_fence_templ.yaml" GEN3_FENCEDB_IP "$FENCEDB_IP" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
 g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_indexd_templ.yaml" GEN3_INDEXDDB_IP "$INDEXDDB_IP" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
 g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_peregrine_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
+g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_pidgin_templ.yaml" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
 g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_sheepdog_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
 g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_portal_templ.yaml" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
 g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_revproxy_templ.yaml" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
