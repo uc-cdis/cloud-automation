@@ -64,6 +64,7 @@ MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 sudo apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev
 sudo pip install --upgrade pip
 ACCOUNT_ID=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn' |sed -e 's/.*:://' -e 's/:.*//')
+ROLE_NAME=$(curl-s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn'|sed -e 's/.*instance-profile\///' -e 's/_squid.*//')
 
 # Let's install awscli and configure it
 # Adding AWS profile to the admin VM
@@ -74,13 +75,7 @@ sudo cat <<EOT  >> /home/ubuntu/.aws/config
 output = json
 region = us-east-1
 role_session_name = gen3-squidnlbvm
-role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csocsquidnlb_role
-credential_source = Ec2InstanceMetadata
-[profile csoc]
-output = json
-region = us-east-1
-role_session_name = gen3-squidnlbvm
-role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csocsquidnlb_role
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}_role
 credential_source = Ec2InstanceMetadata
 EOT
 sudo chown ubuntu:ubuntu -R /home/ubuntu
