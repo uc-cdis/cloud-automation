@@ -36,6 +36,9 @@ spec:
         - name: config-volume
           secret:
             secretName: "pidgin-secret"
+        - name: config-helper
+          configMap:
+            name: config-helper
         - name: cert-volume
           secret:
             secretName: "cert-pidgin-service"
@@ -64,6 +67,10 @@ spec:
               readOnly: true
               mountPath: "/var/www/pidgin/wsgi.py"
               subPath: "wsgi.py"
+            - name: "config-helper"
+              readOnly: true
+              mountPath: "/var/www/pidgin/config_helper.py"
+              subPath: config_helper.py
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"
