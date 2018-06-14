@@ -54,16 +54,6 @@ default_md        = sha256
 preserve          = no
 policy            = policy_strict
 
-[ policy_strict ]
-# The root CA should only sign intermediate certificates that match.
-# See the POLICY FORMAT section of 'man ca'.
-countryName             = match
-stateOrProvinceName     = match
-organizationName        = match
-organizationalUnitName  = optional
-commonName              = supplied
-emailAddress            = optional
-
 [ server_cert ]
 # Extensions for server certificates ('man x509v3_config').
 basicConstraints = CA:FALSE
