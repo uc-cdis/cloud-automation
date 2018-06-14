@@ -77,7 +77,7 @@ spec:
             subPath: "service.key"
           - name: "ca-volume"
             readOnly: true
-            mountPath: "/mnt/ssl/cdis-ca.crt"
+            mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
         readinessProbe:
           httpGet:

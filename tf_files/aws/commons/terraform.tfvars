@@ -1,5 +1,0 @@
-access_key = "$aws_s3_access_key"
-secret_key = "$aws_s3_secret_key"
-key = "$key_to_state"
-region = "$aws_s3_region"
-bucket = "$aws_s3_bucket"

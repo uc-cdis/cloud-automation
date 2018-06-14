@@ -2,17 +2,13 @@
 #
 # Initializes the Gen3 k8s secrets and services.
 #
-# Note that kube.tf cat's this file into ${vpc_name}_output/kube-services.sh,
-# but can also run this standalone if the environment is
-# properly configured.
-#
 set -e
 
-_KUBE_SERVICES_BODY=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SERVICES_BODY}/../lib/kube-setup-init.sh"
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-workvm
-if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
   gen3 kube-setup-secrets
 fi
 gen3 kube-setup-roles

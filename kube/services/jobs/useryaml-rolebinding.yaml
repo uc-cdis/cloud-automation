@@ -7,7 +7,6 @@ subjects:
   name: useryaml-job
   apiGroup: ""
 roleRef:
-  kind: Role
-  name: devops
+  kind: ClusterRole
+  name: admin
   apiGroup: ""
-

@@ -6,9 +6,8 @@
 _KUBE_ROLL_QA=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_ROLL_QA}/../.." && pwd)}"
 
-if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/gen3/gen3setup.sh"
-fi # else already sourced this file ...
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/gen3setup"
 
 export vpc_name=${vpc_name:-${1:-qaplanetv1}}
 
@@ -22,8 +21,6 @@ fi
 #   load secrets off the file system into the cluster.
 #   The kube-setup- scripts look for secrets and service configuration in
 #     $WORKSPACE/$vpc_name 
-#   and 
-#     $WORKSPACE/${vpc_name}_output
 #   if they exist (most kube-setup scripts use $HOME if $WORKSPACE is not defined), 
 #   so we try to be careful here that we don't blead
 #   configuration between namespaces or pickup config from random

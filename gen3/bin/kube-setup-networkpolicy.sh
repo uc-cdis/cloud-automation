@@ -3,8 +3,8 @@
 # Apply network policy to the core services of the commons
 #
 
-_KUBE_SETUP_NETWORKPOLICY=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SETUP_NETWORKPOLICY}/../lib/kube-setup-init.sh"
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
 
 serverVersion="$(kubectl version server -o json | jq -r '.serverVersion.major + "." + .serverVersion.minor' | head -c3).0"
 echo "K8s server version is $serverVersion"
@@ -17,21 +17,41 @@ if [[ -n "$JENKINS_URL" ]]; then
   exit 0
 fi
 
-indexddb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-indexddb --query 'DBInstances[*].Endpoint.Address' --output text)
-fencedb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-fencedb --query 'DBInstances[*].Endpoint.Address' --output text)
-gdcapidb_dns=$(aws rds describe-db-instances --db-instance-identifier "$vpc_name"-gdcapidb --query 'DBInstances[*].Endpoint.Address' --output text)
+name2IP() {
+  local name
+  local ip
+  name="$1"
+  ip="$name"
+  if [[ ! "$name" =~ ^[0-9\.\:]+$ ]]; then
+    ip=$(dig "$name" +short)
+  fi
+  echo "$ip"
+}
 
-INDEXDDB_IP=$(dig "$indexddb_dns" +short)
-FENCEDB_IP=$(dig "$fencedb_dns" +short)
-GDCAPIDB_IP=$(dig "$gdcapidb_dns" +short)
-CLOUDPROXY_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values="$vpc_name" HTTP Proxy" --query 'Reservations[*].Instances[*].[PrivateIpAddress]' --output text)
+credsPath="${WORKSPACE}/${vpc_name}/creds.json"
+if [[ -f "$credsPath" ]]; then # setup netpolicy
+  # google config this is already an IP
+  gdcapi_db_host=$(jq -r .gdcapi.db_host < "$credsPath")
+  indexd_db_host=$(jq -r .indexd.db_host < "$credsPath")
+  fence_db_host=$(jq -r .fence.db_host < "$credsPath")
 
-g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_fence_templ.yaml" GEN3_FENCEDB_IP "$FENCEDB_IP" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
-g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_indexd_templ.yaml" GEN3_INDEXDDB_IP "$INDEXDDB_IP" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
-g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_peregrine_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
-g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_sheepdog_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
-g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_portal_templ.yaml" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
-g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_revproxy_templ.yaml" GEN3_CLOUDPROXY_IP "$CLOUDPROXY_IP" | g3kubectl apply -f -
-g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_jenkins_templ.yaml"
-g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_allowdns_templ.yaml"
-g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_gen3job_templ.yaml"
+  GDCAPIDB_IP="$(name2IP "$gdcapi_db_host")"
+  INDEXDDB_IP="$(name2IP "$indexd_db_host")"
+  FENCEDB_IP="$(name2IP "$fence_db_host")"
+
+  #
+  # Replace this with something better later ...
+  # this works across AWS and GCP
+  #
+  CLOUDPROXY_CIDR="172.0.0.0/8"
+
+  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_fence_templ.yaml" GEN3_FENCEDB_IP "$FENCEDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
+  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_indexd_templ.yaml" GEN3_INDEXDDB_IP "$INDEXDDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
+  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_peregrine_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
+  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_sheepdog_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
+  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_portal_templ.yaml" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
+  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_revproxy_templ.yaml" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_jenkins_templ.yaml"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_allowdns_templ.yaml"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_gen3job_templ.yaml"
+fi

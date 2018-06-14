@@ -196,7 +196,6 @@ team to request a Google client-id and secret for a new commons to support *"Log
 - For the "Authorized JavaScript Origins" enter just the hostname like `https://data.examplecommons.org`.
 - For the "Authorized redirect URIs" enter `hostname + '/user/login/google/login/'` so for example `https://data.examplecommons.org/user/login/google/login/`.
 - Download your credentials with contain the `client_id` and `client_secret`.
-- Copy the [variables.template](https://github.com/uc-cdis/cloud-automation/blob/7bfeda73571d2841894470c9fd11027ed8cadd07/tf_files/variables.template) file to somewhere secure and fill it with creds
 
 #### Configure certificate for your domain
 

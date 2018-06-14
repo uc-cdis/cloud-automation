@@ -209,6 +209,28 @@ role_session_name = gen3-reuben
 credential_source = Ec2InsanceMetadata
 ```
 
+### gen3 kube-...
+
+kube-backup
+kube-dev-namespace
+kube-extract-config
+kube-roll-all
+kube-roll-qa
+kube-setup-certs
+kube-setup-fence
+kube-setup-fluentd
+kube-setup-jenkins
+kube-setup-jupyterhub
+kube-setup-networkpolicy
+kube-setup-peregrine
+kube-setup-revproxy
+kube-setup-roles
+kube-setup-secrets
+kube-setup-sftp
+kube-setup-sheepdog
+kube-setup-shiny
+kube-setup-workvm
+
 
 ### gen3 status
 
@@ -358,7 +380,7 @@ forces the pod to update even if the image tag has not changed
 ex: `g3k roll fence`
 
 Also, `g3k roll all` rolls all services in order, and creates missing
-secrets and configuration if the `~/${vpc_name}_output/creds.json` and
+secrets and configuration if the `~/${vpc_name}/creds.json` and
 similar files are present.
 
 ### get_pod

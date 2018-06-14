@@ -3,16 +3,12 @@
 #
 set -e
 
-_KUBE_SETUP_INIT=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
 # Jenkins friendly
 export WORKSPACE="${WORKSPACE:-$HOME}"
-export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_INIT}/../.." && pwd)}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 
-
-if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/gen3/gen3setup.sh"
-fi # else already sourced this file ...
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/gen3setup"
 
 if [[ -z "$GEN3_NOPROXY" ]]; then
   export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
@@ -29,3 +25,12 @@ if [ -z "${vpc_name}" ]; then
 fi
 
 export vpc_name
+
+if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # legacy path - fix it
+  if [[ ! -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then
+    # new path
+    mkdir -p "${WORKSPACE}/${vpc_name}"
+    cp "${WORKSPACE}/${vpc_name}_output/creds.json" "${WORKSPACE}/${vpc_name}/creds.json"
+  fi
+  mv "${WORKSPACE}/${vpc_name}_output/creds.json" "${WORKSPACE}/${vpc_name}_output/creds.json.bak"
+fi

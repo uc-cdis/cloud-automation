@@ -15,6 +15,7 @@ RUN apt-get update && apt-get upgrade -y \
       gcc \
       git \
       openssh-client \
+      postgresql-client \
       python2.7 \
       python-dev \
       python-pip \
@@ -24,14 +25,18 @@ RUN apt-get update && apt-get upgrade -y \
       jq \
       ssh \
       ftp \
-      wget
+      wget \
+      netcat-openbsd \
+      iputils-ping \
+      net-tools \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN  easy_install -U pip \
-    && pip install --upgrade pip \
-    && pip install --upgrade setuptools \
-    && pip install -U crcmod \
-    && pip install awscli --upgrade \
-    && pip install yq --upgrade
+    && python -m pip install --upgrade pip \
+    && python -m pip install --upgrade setuptools \
+    && python -m pip install -U crcmod \
+    && python -m pip install awscli --upgrade \
+    && python -m pip install yq --upgrade
 
 # From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
@@ -48,6 +53,7 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
         google-cloud-sdk-bigtable-emulator \
         google-cloud-sdk-cbt \
         kubectl && \
+    rm -rf /var/lib/apt/lists/* \
     gcloud config set core/disable_usage_reporting true && \
     gcloud config set component_manager/disable_update_check true && \
     gcloud config set metrics/environment github_docker_image && \
