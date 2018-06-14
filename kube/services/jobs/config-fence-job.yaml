@@ -43,12 +43,6 @@ spec:
           - "-c"
           # Script always succeeds if it runs (echo exits with 0)
           - |
-            # install json query helper if necessary ...
-            if ! which jq > /dev/null; then
-              export DEBIAN_FRONTEND=noninteractive
-              sudo -E apt install -y jq
-            fi
-
             echo "generating default fence configuration..."
             python /fence/cfg_help.py create --config_path new-fence-config.yaml
 
