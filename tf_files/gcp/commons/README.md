@@ -61,6 +61,10 @@ $ gen3 tfplan
 $ gen3 tfapply
 ```
 
+Terraform builds up an environment that looks like this:
+
+![image of architecture](GCP_Commons.svg)
+
 # Setup kubernetes environment
 
 Until our in-CSOC GCP admin vm is ready we have an in-VPC admin VM in GCP.
