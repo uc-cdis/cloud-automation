@@ -1,6 +1,7 @@
 #!/bin/bash
 
-##proxy v4 set-up
+SUB_FOLDER="/home/ubuntu/cloud-automation/"
+MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 
 #sudo sed -i '/proxy/ d' /etc/environment
 #sudo rm /etc/apt/apt.conf.d/01proxy
@@ -12,16 +13,16 @@ wget http://www.squid-cache.org/Versions/v4/squid-4.0.24.tar.xz
 tar -xJf squid-4.0.24.tar.xz
 mkdir squid-build
 
-git clone https://github.com/uc-cdis/images.git
+#git clone https://github.com/uc-cdis/images.git
 
-sudo cp /home/ubuntu/images/configs/ftp_whitelist /tmp/ftp_whitelist
-sudo cp /home/ubuntu/images/configs/web_whitelist /tmp/web_whitelist
-sudo cp /home/ubuntu/images/configs/web_wildcard_whitelist /tmp/web_wildcard_whitelist
-sudo cp /home/ubuntu/images/configs/squid.conf /tmp/squid.conf
-sudo cp /home/ubuntu/images/configs/squid-build.sh /home/ubuntu/squid-build/squid-build.sh
-sudo cp /home/ubuntu/images/configs/iptables.conf /tmp/iptables.conf
-sudo cp /home/ubuntu/images/configs/iptables-rules /tmp/iptables-rules
-sudo cp /home/ubuntu/images/configs/squid.service /tmp/squid.service
+sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/ftp_whitelist /tmp/ftp_whitelist
+sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/web_whitelist /tmp/web_whitelist
+sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/web_wildcard_whitelist /tmp/web_wildcard_whitelist
+sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/squid.conf /tmp/squid.conf
+sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/squid-build.sh /home/ubuntu/squid-build/squid-build.sh
+sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/iptables.conf /tmp/iptables.conf
+sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/iptables-rules /tmp/iptables-rules
+sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/squid.service /tmp/squid.service
 
 cd /home/ubuntu/squid-build/
 sudo sed -i -e 's/squid-3.5.26/squid-4.0.24/g' squid-build.sh
@@ -58,8 +59,7 @@ sudo service squid stop
 sudo service squid start
 
 ## Logging set-up
-SUB_FOLDER="/home/ubuntu/cloud-automation/"
-MAGIC_URL="http://169.254.169.254/latest/meta-data/"
+
 #Getting the account details
 sudo apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev
 sudo pip install --upgrade pip
@@ -130,48 +130,12 @@ sudo chown -R sftpuser. /home/sftpuser
 sudo cp /home/sftpuser/cloud-automation/flavors/squid_nlb/authorized_keys_user /home/sftpuser/.ssh/authorized_keys
 
 
+# Copy the updatewhitelist.sh script to the home directory 
+
+sudo cp  ${SUB_FOLDER}flavors/squid_nlb/updatewhitelist.sh /home/ubuntu
 
 
 
-cat >> /home/ubuntu/updatewhitelist.sh << 'EOF'
-#!/bin/bash
-
-cd /home/ubuntu/cloud-automation
-git pull
-
-DIFF_AUTH1=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/authorized_keys_admin" "/home/ubuntu/.ssh/authorized_keys")
-DIFF_AUTH2=$(diff "/home/sftpuser/cloud-automation/flavors/squid_nlb/authorized_keys_user" "/home/sftpuser/.ssh/authorized_keys")
-
-DIFF_SQUID1=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/web_whitelist" "/etc/squid/web_whitelist")
-DIFF_SQUID2=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/web_wildcard_whitelist" "/etc/squid/web_wildcard_whitelist")
-DIFF_SQUID3=$(diff "/home/ubuntu/cloud-automation/flavors/squid_nlb/ftp_whitelist" "/etc/squid/ftp_whitelist")
-
-if [ "$DIFF_AUTH1" != ""  ] ; then
-rsync -a /home/ubuntu/cloud-automation/flavors/squid_nlb/authorized_keys_admin /home/ubuntu/.ssh/authorized_keys
-fi
-
-if [ "$DIFF_AUTH2" != ""  ] ; then
-rsync -a /home/sftpuser/cloud-automation/flavors/squid_nlb/authorized_keys_user /home/ubuntu/.ssh/authorized_keys
-fi
-
-
-if [ "$DIFF_SQUID1" != ""  ] ; then
-rsync -a /home/ubuntu/cloud-automation/flavors/squid_nlb/web_whitelist /etc/squid/web_whitelist
-fi
-
-if [ "$DIFF_SQUID2" != ""  ] ; then
-rsync -a /home/ubuntu/cloud-automation/flavors/squid_nlb/web_wildcard_whitelist /etc/squid/web_wildcard_whitelist
-fi
-
-if [ "$DIFF_SQUID3" != ""  ] ; then
-rsync -a /home/ubuntu/cloud-automation/flavors/squid_nlb/ftp_whitelist /etc/squid/ftp_whitelist
-fi
-
-if ([ "$DIFF_SQUID1" != "" ]  ||  [ "$DIFF_SQUID2" != "" ] || [ "$DIFF_SQUID3" != "" ]) ; then
-sudo service squid reload
-fi
-
-EOF
 
 sudo chmod +x /home/ubuntu/updatewhitelist.sh
 
