@@ -259,6 +259,10 @@ sudo git clone https://github.com/uc-cdis/cloud-automation.git
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 cd /home/ubuntu/cloud-automation
 git pull
+#this is needed for testing
+git checkout feat/nlbforsquid_standalone
+git pull
+####
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
 #instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
