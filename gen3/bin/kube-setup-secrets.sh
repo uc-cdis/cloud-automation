@@ -29,11 +29,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
     g3kubectl create secret generic indexd-creds "--from-file=creds.json=${credsFile}"
   fi
 
-  if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/user.yaml ]]; then
-    # user database for accessing the commons ...
-    cp "${GEN3_HOME}/apis_configs/user.yaml" "${WORKSPACE}"/${vpc_name}/apis_configs/
-  fi
-
   cd "${WORKSPACE}"/${vpc_name}
 fi
 
@@ -98,6 +93,14 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   fi
 
   if ! g3kubectl get configmaps/fence > /dev/null 2>&1; then
+    #
+    # Only restore local user.yaml if the fence configmap does not exist.
+    # Most commons sync the user db from an S3 bucket.
+    #
+    if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/user.yaml ]]; then
+      # user database for accessing the commons ...
+      cp "${GEN3_HOME}/apis_configs/user.yaml" "${WORKSPACE}"/${vpc_name}/apis_configs/
+    fi
     g3kubectl create configmap fence --from-file=apis_configs/user.yaml
   fi
 
