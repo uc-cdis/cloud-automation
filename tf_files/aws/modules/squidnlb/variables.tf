@@ -1,7 +1,3 @@
-#variable "aws_account_id" {
-#  default = "433568766270"
-#}
-
 variable "env_vpc_octet1"{
   default = "10"
 }
@@ -25,8 +21,6 @@ variable "env_nlb_name" {
 
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
-  # cdis-test
-  #default = "707767160287"
   default = "099720109477"
 }
 
@@ -51,9 +45,7 @@ variable "ssh_key_name" {
   default = "rarya_id_rsa"
 }
 
-#variable "commons_vpc_cidr" {
- # default = "172.16.0.0/12"
-#}
+
 
 
 variable "allowed_principals_list" {
@@ -75,31 +67,7 @@ variable "commons_internal_dns_zone_id"{
 }
 
 
-#variable "env_instance_profile" {
-#  default = "common_name_cloudwatch_access_profile"
-#}
 
-#variable "env_log_group" {
- # default = "common_name"
-#}
-
-
-#data "aws_iam_policy_document" "squid_logging_cloudwatch" {
- # statement {
-  #  actions = [
-   #   "logs:CreateLogGroup",
-    #  "logs:CreateLogStream",
-     # "logs:GetLogEvents",
-      #"logs:PutLogEvents",
-      #"logs:DescribeLogGroups",
-      #"logs:DescribeLogStreams",
-      #"logs:PutRetentionPolicy",
-    #]
-
-    #effect    = "Allow"
-    #resources = ["*"]
-  #}
-#}
 
 
 

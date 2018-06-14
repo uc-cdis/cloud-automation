@@ -3,8 +3,7 @@
 SUB_FOLDER="/home/ubuntu/cloud-automation/"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 
-#sudo sed -i '/proxy/ d' /etc/environment
-#sudo rm /etc/apt/apt.conf.d/01proxy
+
 
 cd /home/ubuntu
 sudo apt-get update
@@ -49,9 +48,7 @@ sudo chmod 0755 /etc/systemd/system/squid.service
 sudo mkdir -p /var/log/squid /var/cache/squid
 sudo chown -R proxy:proxy /var/log/squid /var/cache/squid
 
-## Enable the Support for proxy protocol on the squid
-#sudo mv /etc/squid/squid.conf /etc/squid/squid_original.conf
-#sudo cp /home/ubuntu/cloud-automation/flavors/squid_nlb/squid_proxyprotocol.conf /etc/squid/squid.conf
+
 
 ## Enable the squid service
 sudo systemctl enable squid
@@ -140,7 +137,6 @@ sudo cp  ${SUB_FOLDER}flavors/squid_nlb/updatewhitelist.sh /home/ubuntu
 sudo chmod +x /home/ubuntu/updatewhitelist.sh
 
 
-#crontab -l > file; echo '*/15 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file; crontab file
 
 crontab -l > file; echo '*/15 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file
 sudo chown -R ubuntu. /home/ubuntu/

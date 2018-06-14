@@ -119,7 +119,7 @@ resource "aws_lb" "squid_nlb" {
   name               = "${var.env_nlb_name}-prod"
   internal           = true
   load_balancer_type = "network"
-  subnet_mapping {
+    subnet_mapping {
        subnet_id    =  "${aws_subnet.squid_pub0.id}"
   }
    subnet_mapping {
@@ -128,7 +128,7 @@ resource "aws_lb" "squid_nlb" {
    subnet_mapping {
        subnet_id    =  "${aws_subnet.squid_pub2.id}"
   }
-
+  
   enable_deletion_protection = true
   enable_cross_zone_load_balancing = true
 
@@ -175,14 +175,7 @@ resource "aws_lb_listener" "squid_nlb-sftp" {
 }
 
 
-## Enpoint service for squid nlb
 
-#resource "aws_vpc_endpoint_service" "squid_nlb" {
-#  acceptance_required =  false
- # network_load_balancer_arns = ["${aws_lb.squid_nlb.arn}"]
-  #availability_zones = ["us-east-1a","us-east-1b","us-east-1c","us-east-1d","us-east-1e","us-east-1f"]
-  #allowed_principals = "${var.allowed_principals_list}"
-#}
 
 
 
@@ -206,17 +199,11 @@ sudo git clone https://github.com/uc-cdis/cloud-automation.git
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 cd /home/ubuntu/cloud-automation
 git pull
-#this is needed for testing
-#git checkout feat/nlbforsquid_standalone
-#git pull
-####
+
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
 #instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
-#echo "127.0.1.1 $instance_ip" | sudo tee --append /etc/hosts
 echo "127.0.1.1 ${var.env_nlb_name}" | sudo tee --append /etc/hosts
-#IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
-#sudo hostnamectl set-hostname ${var.env_nlb_name}_$ip1"_"$ip2"_"$ip3"_"$ip4
 sudo hostnamectl set-hostname ${var.env_nlb_name}
 
 sudo apt -y update
