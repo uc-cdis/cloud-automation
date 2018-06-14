@@ -18,6 +18,7 @@ pipeline {
     stage('k8s configs test') {
       steps {
         sh 'pip install PyYAML'
+        sh 'pip3 install PyYAML'
         sh 'pytest apis_configs/'
       }
     }
