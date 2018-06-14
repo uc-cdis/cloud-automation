@@ -94,30 +94,8 @@ resource "aws_subnet" "squid_pub2" {
   tags                    = "${map("Name", "${var.env_nlb_name}_pub2", "Organization", "Basic Service", "Environment", var.env_nlb_name)}"
 }
 
-resource "aws_subnet" "squid_pub3" {
-  vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              = "${var.env_vpc_octet1}.${var.env_vpc_octet2}.${var.env_vpc_octet3 + 15}.96/27"
-  availability_zone = "${data.aws_availability_zones.available.names[3]}"
-  tags                    = "${map("Name", "${var.env_nlb_name}_pub3", "Organization", "Basic Service", "Environment", var.env_nlb_name)}"
-}
-
-resource "aws_subnet" "squid_pub4" {
-  vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              = "${var.env_vpc_octet1}.${var.env_vpc_octet2}.${var.env_vpc_octet3 + 15}.128/27"
-  availability_zone = "${data.aws_availability_zones.available.names[4]}"
-  tags                    = "${map("Name", "${var.env_nlb_name}_pub4", "Organization", "Basic Service", "Environment", var.env_nlb_name)}"
-}
-
-resource "aws_subnet" "squid_pub5" {
-  vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              = "${var.env_vpc_octet1}.${var.env_vpc_octet2}.${var.env_vpc_octet3 + 15}.160/27"
-  availability_zone = "${data.aws_availability_zones.available.names[5]}"
-  tags                    = "${map("Name", "${var.env_nlb_name}_pub5", "Organization", "Basic Service", "Environment", var.env_nlb_name)}"
-}
-
 
 resource "aws_route_table_association" "squid_nlb0" {
-  #subnet_id      = ["${aws_subnet.squid_pub0.id}, ${aws_subnet.squid_pub1.id},${aws_subnet.squid_pub2.id},${aws_subnet.squid_pub3.id},${aws_subnet.squid_pub4.id},${aws_subnet.squid_pub5.id}"]
   subnet_id      = "${aws_subnet.squid_pub0.id}"
   route_table_id = "${var.env_public_subnet_routetable_id}"
 }
@@ -132,20 +110,7 @@ resource "aws_route_table_association" "squid_nlb2" {
   route_table_id = "${var.env_public_subnet_routetable_id}"
 }
 
-resource "aws_route_table_association" "squid_nlb3" {
-  subnet_id      = "${aws_subnet.squid_pub3.id}"
-  route_table_id = "${var.env_public_subnet_routetable_id}"
-}
 
-resource "aws_route_table_association" "squid_nlb4" {
-  subnet_id      = "${aws_subnet.squid_pub4.id}"
-  route_table_id = "${var.env_public_subnet_routetable_id}"
-}
-
-resource "aws_route_table_association" "squid_nlb5" {
-  subnet_id      = "${aws_subnet.squid_pub5.id}"
-  route_table_id = "${var.env_public_subnet_routetable_id}"
-}
 
 
 # launching the network load balancer for the squid VMs
@@ -154,7 +119,6 @@ resource "aws_lb" "squid_nlb" {
   name               = "${var.env_nlb_name}-prod"
   internal           = true
   load_balancer_type = "network"
-  #subnets            = ["${aws_subnet.squid_pub0.id}, ${aws_subnet.squid_pub1.id}, ${aws_subnet.squid_pub2.id}, ${aws_subnet.squid_pub3.id}, ${aws_subnet.squid_pub4.id}, ${aws_subnet.squid_pub5.id} "]
   subnet_mapping {
        subnet_id    =  "${aws_subnet.squid_pub0.id}"
   }
@@ -163,15 +127,6 @@ resource "aws_lb" "squid_nlb" {
   }
    subnet_mapping {
        subnet_id    =  "${aws_subnet.squid_pub2.id}"
-  }
-   subnet_mapping {
-       subnet_id    =  "${aws_subnet.squid_pub3.id}"
-  }
-   subnet_mapping {
-       subnet_id    =  "${aws_subnet.squid_pub4.id}"
-  }
-   subnet_mapping {
-       subnet_id    =  "${aws_subnet.squid_pub5.id}"
   }
 
   enable_deletion_protection = true
@@ -292,7 +247,7 @@ resource "aws_autoscaling_group" "squid_nlb" {
   max_size = 6
   min_size = 1
   target_group_arns = ["${aws_lb_target_group.squid_nlb-http.arn}", "${aws_lb_target_group.squid_nlb-sftp.arn}"]
-  vpc_zone_identifier = ["${aws_subnet.squid_pub0.id}", "${aws_subnet.squid_pub1.id}", "${aws_subnet.squid_pub2.id}", "${aws_subnet.squid_pub3.id}", "${aws_subnet.squid_pub4.id}", "${aws_subnet.squid_pub5.id}"]
+  vpc_zone_identifier = ["${aws_subnet.squid_pub0.id}", "${aws_subnet.squid_pub1.id}", "${aws_subnet.squid_pub2.id}"]
   launch_configuration = "${aws_launch_configuration.squid_nlb.name}"
 
    tag {
@@ -389,16 +344,7 @@ resource "aws_security_group" "squidnlb_out" {
 
 # DNS entry for the cloud-proxy in CSOC
 
-#resource "aws_route53_zone" "csoc_main" {
- # name    = "internal.io"
- # comment = "internal dns server for csoc main vpc"
-  #vpc_id  = "${var.env_vpc_id}"
 
- # tags {
-   # Environment  = "${var.env_nlb_name}"
-   # Organization = "Basic Service"
-  #}
-#}
 
 
 resource "aws_route53_record" "squid-nlb" {
