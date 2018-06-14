@@ -52,14 +52,6 @@ data "aws_iam_policy_document" "squid_policy_document" {
     resources = ["*"]
   }
 
-#statement {
-    # see https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html
- #   actions = ["sts:AssumeRole"]
-
-  #  effect    = "Allow"
-   # resources = ["arn:aws:iam::${var.aws_account_id}:role/csoc_adminvm"]
-  #}
-
 }
 
 resource "aws_iam_role_policy" "squid_policy" {
