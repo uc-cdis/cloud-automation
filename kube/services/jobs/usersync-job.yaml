@@ -90,8 +90,8 @@ spec:
 # -----------------------------------------------------------------------------
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-user-config.yaml"
-            subPath: fence-user-config.yaml
+            mountPath: "/var/www/fence/fence-config.yaml"
+            subPath: fence-config.yaml
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_google_app_creds_secret.json"

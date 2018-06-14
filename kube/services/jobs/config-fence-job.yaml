@@ -49,41 +49,18 @@ spec:
               sudo -E apt install -y jq
             fi
 
-            let count=0
-            while [[ ! -f /mnt/shared/old-fence-user-config.yaml && $count -lt 50 ]]; do
-              echo "waiting for /mnt/shared/old-fence-user-config.yaml"
-              sleep 2
-              let count=$count+1
-            done
+            echo "generating default fence configuration..."
+            python /fence/cfg_help.py create --config_path new-fence-config.yaml
 
-            if [[ -f /mnt/shared/old-fence-user-config.yaml ]]; then
-              echo "found /mnt/shared/old-fence-user-config.yaml!"
-              if [[ -f /var/www/fence/creds.json ]]; then
-
-                # generate config from default if empty
-                if ! [[ -s /mnt/shared/old-fence-user-config.yaml ]]; then
-                  echo "no previous fence-user-config found. will use default..."
-                  python /fence/cfg_help.py create --config_path new-fence-user-config.yaml
-
-                  # copy default to shared location so other image can save in
-                  # secret
-                  cp new-fence-user-config.yaml /mnt/shared/old-fence-user-config.yaml
-                else
-                  echo "using previous fence-user-config from secret..."
-                  cp /mnt/shared/old-fence-user-config.yaml new-fence-user-config.yaml
-                fi
-
-                echo "injecting creds.json into fence configuration..."
-                python /var/www/fence/config_helper.py -i /var/www/fence/creds.json -c new-fence-user-config.yaml
-
-                echo "updating fence configuration..."
-                cp new-fence-user-config.yaml /mnt/shared/new-fence-user-config.yaml
-              else
-                echo "ERROR: /var/www/fence/creds.json not found"
-              fi
+            if [[ -f /var/www/fence/creds.json ]]; then
+              echo "injecting creds.json into fence configuration..."
+              python /var/www/fence/config_helper.py -i /var/www/fence/creds.json -c new-fence-config.yaml
             else
-              echo "/mnt/shared/old-fence-user-config.yaml did not appear within timeout :-("
+              echo "ERROR: /var/www/fence/creds.json not found!"
+              echo "       Only generating default config..."
             fi
+
+            cp new-fence-config.yaml /mnt/shared/new-fence-config.yaml
 
       - name: awshelper
         image: quay.io/cdis/awshelper:master
@@ -101,39 +78,23 @@ spec:
               sudo -E apt install -y jq
             fi
 
-            if kubectl get secrets/fence-user-config > /dev/null 2>&1; then
-                echo "extracting previous fence-user-config from secret..."
-                kubectl get secrets/fence-user-config -o json | jq -r '.data["fence-user-config.yaml"]' | base64 --decode > /mnt/shared/old-fence-user-config.yaml
-            else
-                echo "no previous fence-user-config found. will use default..."
-                touch /mnt/shared/old-fence-user-config.yaml
-            fi
-
             # wait for other image to generate config
             let count=0
-            while [[ ! -f /mnt/shared/new-fence-user-config.yaml && $count -lt 50 ]]; do
-              echo "waiting for /mnt/shared/new-fence-user-config.yaml"
+            while [[ ! -f /mnt/shared/new-fence-config.yaml && $count -lt 50 ]]; do
+              echo "waiting for /mnt/shared/new-fence-config.yaml"
               sleep 2
               let count=$count+1
             done
 
-            # load old yaml file into secrets
-            if kubectl get secrets/fence-user-config > /dev/null 2>&1; then
-              kubectl delete secret fence-user-config
-            fi
-            echo "saving raw configuration into fence-user-config secret..."
-            kubectl create secret generic fence-user-config "--from-file=fence-user-config.yaml=/mnt/shared/old-fence-user-config.yaml"
-
-            if [[ -f /mnt/shared/new-fence-user-config.yaml ]]; then
-              echo "updating fence configuration and fence-config..."
-
+            if [[ -f /mnt/shared/new-fence-config.yaml ]]; then
+              # load yaml file into secrets
               if kubectl get secrets/fence-config > /dev/null 2>&1; then
                 kubectl delete secret fence-config
               fi
-
-              kubectl create secret generic fence-config "--from-file=fence-user-config.yaml=/mnt/shared/new-fence-user-config.yaml"
+              echo "saving fence configuration into fence-config secret..."
+              kubectl create secret generic fence-config "--from-file=fence-config.yaml=/mnt/shared/new-fence-config.yaml"
             else
-              echo "/mnt/shared/fence-user-config.yaml did not appear within timeout :-("
+              echo "/mnt/shared/new-fence-config.yaml did not appear within timeout :-("
             fi
 
       restartPolicy: Never

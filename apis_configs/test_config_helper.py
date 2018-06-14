@@ -1,6 +1,7 @@
 import config_helper
 import os
 import time
+import yaml
 
 # WORKSPACE == Jenkins workspace
 TEST_ROOT = os.getenv('WORKSPACE', os.getenv('XDG_RUNTIME_DIR', '/tmp')) + '/test_config_helper/' + str(int(time.time()))
@@ -41,20 +42,16 @@ def test_load_json():
 
 
 def test_replace():
-    data = {
-        'top-level': {
-            'second-level': {
-                'some_value': '12345',
-                'some_other_value': '54321',
-                'another-level': {
-                    'nested_value': 'abc'
-                }
-            },
-            'another-second-level': {
-                'some_value': 'def'
-            }
-        }
-    }
+    data = (
+        "top-level:" + "\n"
+        "  second-level:" + "\n"
+        "    some_value: '12345'" + "\n"
+        "    some_other_value: '54321'" + "\n"
+        "    another-level:" + "\n"
+        "      nested_value: abc" + "\n"
+        "  another-second-level:" + "\n"
+        "     some_value: def" + "\n"
+    )
     new_data = {
         'level-1': {
             'level-2': {
@@ -69,24 +66,24 @@ def test_replace():
     replacement_value = config_helper._get_nested_value(
       new_data, 'level-1/level-2/level-3/some_new_value')
 
-    config_helper._replace(
-      data, 'top-level/second-level/some_value', replacement_value)
+    data = config_helper._replace(
+      data, 'top-level/another-second-level/some_value', replacement_value)
 
     assert (
-      data['top-level']['second-level']['some_value']
+      yaml.safe_load(data)['top-level']['second-level']['some_value']
+      == '12345'
+    )
+    assert (
+      yaml.safe_load(data)['top-level']['another-second-level']['some_value']
       == new_data['level-1']['level-2']['level-3']['some_new_value']
     )
     assert (
-      data['top-level']['second-level']['some_other_value']
+      yaml.safe_load(data)['top-level']['second-level']['some_other_value']
       == '54321'
     )
     assert (
-      data['top-level']['second-level']['another-level']['nested_value']
+      yaml.safe_load(data)['top-level']['second-level']['another-level']['nested_value']
       == 'abc'
-    )
-    assert (
-      data['top-level']['another-second-level']['some_value']
-      == 'def'
     )
 
 
@@ -95,48 +92,45 @@ def test_replace_doesnt_exist():
     Test that when the replacement value isn't there, we just insert an
     empty string.
     """
-    data = {
-        'top-level': {
-            'second-level': {
-                'some_value': '12345',
-                'some_other_value': '54321',
-                'another-level': {
-                    'nested_value': 'abc'
-                }
-            },
-            'another-second-level': {
-                'some_value': 'def'
-            }
-        }
-    }
+    data = (
+        "top-level:" + "\n"
+        "  second-level:" + "\n"
+        "    some_value: '12345'" + "\n"
+        "    some_other_value: '54321'" + "\n"
+        "    another-level:" + "\n"
+        "      nested_value: abc" + "\n"
+        "  another-second-level:" + "\n"
+        "     some_value: def" + "\n"
+    )
     new_data = {}
 
     replacement_value = config_helper._get_nested_value(
       new_data, 'level-1/level-2/level-3/some_new_value')
 
-    config_helper._replace(
+    data = config_helper._replace(
       data, 'top-level/second-level/some_value', replacement_value)
 
     assert (
-      data['top-level']['second-level']['some_value']
+      yaml.safe_load(data)['top-level']['second-level']['some_value']
       == ''
     )
+
     assert (
-      data['top-level']['second-level']['some_other_value']
+      yaml.safe_load(data)['top-level']['second-level']['some_other_value']
       == '54321'
     )
     assert (
-      data['top-level']['second-level']['another-level']['nested_value']
+      yaml.safe_load(data)['top-level']['second-level']['another-level']['nested_value']
       == 'abc'
     )
     assert (
-      data['top-level']['another-second-level']['some_value']
+      yaml.safe_load(data)['top-level']['another-second-level']['some_value']
       == 'def'
     )
 
 
 def test_nothing_to_replace():
-    data = {}
+    data = ""
     new_data = {
         'level-1': {
             'level-2': {
@@ -151,10 +145,10 @@ def test_nothing_to_replace():
     replacement_value = config_helper._get_nested_value(
       new_data, 'level-1/level-2/level-3/some_new_value')
 
-    config_helper._replace(
+    data = config_helper._replace(
       data, 'top-level/second-level/some_value', replacement_value)
 
-    assert data == {}
+    assert data == ""
 
 
 def run_tests():

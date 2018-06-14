@@ -26,11 +26,11 @@ g3k roll peregrine
 ```
 ## setup sftp configuration
 To run usersync job or cronjob that fetches acl files from a remote ftp/sftp server, following setup need to be done:
-1. update `vpcname/apis_configs/fence-user-config.yaml` include dbgap credentials.
+1. update `vpcname/apis_configs/fence-config.yaml` include dbgap credentials.
 2. update secrets:
 ```
 kubectl delete secret fence-config
-kubectl delete secret fence-user-config
+kubectl delete secret fence-config
 gen3 kube-setup-fence
 ```
 3. add the public key at `$vpcname/ssh-keys/id_rsa.pub` to squid proxy

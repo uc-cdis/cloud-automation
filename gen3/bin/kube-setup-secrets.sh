@@ -102,38 +102,38 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   fi
 
   if ! g3kubectl get secrets/fence-config > /dev/null 2>&1; then
-    # load updated fence-user-config.yaml into secret if it exists
-    fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-user-config.yaml
+    # load updated fence-config.yaml into secret if it exists
+    fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-config.yaml
     if [[ -f ${fence_config} ]]; then
       echo "loading fence config from file..."
-      if g3kubectl get secrets/fence-user-config > /dev/null 2>&1; then
-        g3kubectl delete secret fence-user-config
-      fi
-      g3kubectl create secret generic fence-user-config "--from-file=fence-user-config.yaml=${fence_config}"
-    fi
-
-    echo "running job to inject creds.json into fence-user-config.yaml..."
-    echo "NOTE: Some config values from fence-user-config.yaml will be replaced"
-    echo "      Run \"g3k joblogs config-fence\" for details"
-    g3k runjob config-fence
-
-    # dump fence-user-config secret into file so user can edit.
-    let count=1
-    while ((count < 50)); do
       if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
-        break
+        g3kubectl delete secret fence-config
       fi
-      echo "waiting for fence-config secret from job..."
-      sleep 2
-      let count=${count}+1
-    done
-    if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
-      echo "found fence-config!"
-      echo "dumping fence configuration into file from fence-user-config secret..."
-      g3kubectl get secrets/fence-user-config -o json | jq -r '.data["fence-user-config.yaml"]' | base64 --decode > "${fence_config}"
+      g3kubectl create secret generic fence-config "--from-file=fence-config.yaml=${fence_config}"
     else
-      echo "ERROR: could not find fence-config within the timeout!"
+      echo "running job to create fence-config.yaml."
+      echo "job will inject creds.json into fence-config.yaml..."
+      echo "NOTE: Some default config values from fence-config.yaml will be replaced"
+      echo "      Run \"g3k joblogs config-fence\" for details"
+      g3k runjob config-fence
 
+      # dump fence-config secret into file so user can edit.
+      let count=1
+      while ((count < 50)); do
+        if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+          break
+        fi
+        echo "waiting for fence-config secret from job..."
+        sleep 2
+        let count=${count}+1
+      done
+      if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+        echo "found fence-config!"
+        echo "dumping fence configuration into file from fence-config secret..."
+        g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode > "${fence_config}"
+      else
+        echo "ERROR: could not find fence-config within the timeout!"
+      fi
     fi
   fi
 
