@@ -18,6 +18,9 @@ spec:
         - name: old-config-volume
           secret:
             secretName: "fence-secret"
+        - name: json-secret-volume
+          secret:
+            secretName: "fence-json-secret"
         - name: creds-volume
           secret:
             secretName: "fence-creds"
@@ -56,6 +59,10 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
             subPath: local_settings.py
+          - name: "json-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_credentials.json"
+            subPath: fence_credentials.json
           - name: "creds-volume"
             readOnly: true
             mountPath: "/var/www/fence/creds.json"

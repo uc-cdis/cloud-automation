@@ -56,6 +56,9 @@ spec:
         - name: old-config-volume
           secret:
             secretName: "fence-secret"
+        - name: json-secret-volume
+          secret:
+            secretName: "fence-json-secret"
         - name: creds-volume
           secret:
             secretName: "fence-creds"
