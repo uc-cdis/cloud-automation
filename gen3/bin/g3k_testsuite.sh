@@ -22,10 +22,10 @@ test_env() {
 #
 test_mpath() {
   local mpath=$(g3k_manifest_path test1.manifest.g3k)
-  [[ "$mpath" == "${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json" ]]; 
+  [[ "$mpath" == "${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json" ]];
   because $? "g3k_manifest_path prefers domain/manifest.json if available: $mpath ?= ${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json"
   mpath=$(g3k_manifest_path bogus.manifest.g3k)
-  [[ "$mpath" == "${GEN3_MANIFEST_HOME}/default/manifest.json" ]]; 
+  [[ "$mpath" == "${GEN3_MANIFEST_HOME}/default/manifest.json" ]];
   because $? "g3k_manfiest_path falls through to default/manifest.json if domain/manifest.json not present: $mpath"
 }
 
@@ -45,6 +45,7 @@ test_mfilter() {
       cat "$(dirname "$mpath")/expected${name^}Result.yaml" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-b.yaml"
       diff -w "$testFolder/${name}-${domain}-a.yaml" "$testFolder/${name}-${domain}-b.yaml"
       because $? "Manifest filter gave expected result for $name deployment with $domain manifest"
+      echo $(diff -w "$testFolder/${name}-${domain}-a.yaml" "$testFolder/${name}-${domain}-b.yaml")
     done
   done
   g3k_manifest_filter "${GEN3_MANIFEST_HOME}/bogusInput.yaml" "${GEN3_MANIFEST_HOME}/default/manifest.json" "k1" "the value is v1" "k2" "the value is v2" > "$testFolder/bogus-b.yaml"
