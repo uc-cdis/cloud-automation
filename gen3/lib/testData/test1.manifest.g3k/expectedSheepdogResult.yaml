@@ -71,6 +71,13 @@ spec:
               configMapKeyRef:
                 name: global
                 key: dictionary_url
+          - name: REQUESTS_CA_BUNDLE
+            #
+            # override python 'requests' SSL certificate bundle
+            # to use system trusted certs
+            # which includes our private certificate authority
+            #
+            value: /etc/ssl/certs/ca-certificates.crt
           volumeMounts:
             - name: "config-volume"
               readOnly: true
@@ -93,12 +100,19 @@ spec:
               mountPath: "/mnt/ssl/service.key"
               subPath: "service.key"
             - name: "ca-volume"
+              # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
               readOnly: true
-              mountPath: "/mnt/ssl/cdis-ca.crt"
+              mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
               subPath: "ca.pem"
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 0.8
+              cpu: 0.3
               memory: 512Mi
-
+          command: ["/bin/bash" ]
+          args: 
+            - "-c"
+            - |
+              # get /usr/local/share/ca-certificates/cdis-ca.crt into system bundle
+              update-ca-certificates
+              bash /sheepdog/dockerrun.bash

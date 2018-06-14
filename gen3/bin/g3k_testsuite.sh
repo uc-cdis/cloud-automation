@@ -2,13 +2,12 @@
 # Run with: bash shunit_testsuite.sh
 # Assume we're running in the directory for now ...
 #
-G3K_TESTSUITE_DIR=$(dirname "${BASH_SOURCE:-$0}")
-GEN3_HOME="${GEN3_HOME:-$(cd "${G3K_TESTSUITE_DIR}/../.." && pwd)}"
-export GEN3_HOME
-export GEN3_MANIFEST_HOME="${G3K_TESTSUITE_DIR}/../lib/testData"
+source "$GEN3_HOME/gen3/lib/utils.sh"
 
-source "$G3K_TESTSUITE_DIR/../lib/shunit.sh"
-source "$G3K_TESTSUITE_DIR/../gen3setup.sh"
+export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
+
+gen3_load "gen3/lib/shunit"
+gen3_load "gen3/gen3setup"
 
 test_env() {
   [[ ! -z $GEN3_HOME ]]; because $? "kubes.sh defines the GEN3_HOME environment variable"
@@ -52,8 +51,36 @@ test_mfilter() {
   because $? "Manifest filter processed extra environment values ok"
 }
 
+test_loader() {
+  gen3_load "gen3/lib/testData/gen3_load/a"
+  gen3_load "gen3/lib/testData/gen3_load/b"
+  [[ "$GEN3_LOAD_A" -eq 1 && "$GEN3_LOAD_B" -eq 1 ]]; because $? "gen3_load loads a file once"
+  gen3_load "gen3/lib/testData/gen3_load/a"
+  gen3_load "gen3/lib/testData/gen3_load/b"
+  [[ "$GEN3_LOAD_A" -eq 1 && "$GEN3_LOAD_B" -eq 1 ]]; because $? "gen3_load does not load a file twice"
+  source "${GEN3_HOME}/gen3/lib/testData/gen3_load/a.sh"
+  source "${GEN3_HOME}/gen3/lib/testData/gen3_load/b.sh"
+  [[ "$GEN3_LOAD_A" -eq 2 && "$GEN3_LOAD_B" -eq 2 ]]; because $? "multi-load increments a counter"
+  (! gen3_load "gen3/lib/testData/gen3_load/c"); because $? "gen3_load gives error for file that does not exist"
+}
+
+test_random_alpha() {
+  local r1
+  local r2
+  r1="$(random_alphanumeric)"
+  r2="$(random_alphanumeric 32)"
+  [[ $(echo -n "$r1" | wc -m) == 32 ]]; because $? "random_alphanumeric defaults to 32 chars"
+  [[ $(echo -n "$r2" | wc -m) == 32 ]]; because $? "random_alphanumeric generates 32 chars"
+  [[ "$r1" != "$r2" ]]; because $? "random_alphanumeric generates random strings"
+}
+
 shunit_runtest "test_env"
 shunit_runtest "test_mpath"
 shunit_runtest "test_mfilter"
-shunit_summary
-
+shunit_runtest "test_loader"
+shunit_runtest "test_random_alpha"
+if [[ "$G3K_TESTSUITE_SUMMARY" != "no" ]]; then
+  # little hook, so gen3 testsuite can call through to this testsuite too ...
+  echo "g3k summary"
+  shunit_summary
+fi

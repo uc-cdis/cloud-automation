@@ -7,14 +7,10 @@
 # Requries g3kubectl to be on the path and configured.
 #
 
-_KUBE_EXTRACT_CONFIG=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_EXTRACT_CONFIG}/../.." && pwd)}"
-
-if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/gen3/gen3setup.sh"
-fi # else already sourced this file ...
-
 set -e
+
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/gen3setup"
 
 # harvest some variables
 vpcName="$(g3kubectl get configmaps/global -o=jsonpath='{.data.environment}')$(date +%Y%m%d)"
@@ -53,13 +49,6 @@ if ! which jq > /dev/null; then
   export DEBIAN_FRONTEND=noninteractive
   sudo -E apt install -y jq
 fi
-
-#
-# Let helper generates a random string of alphanumeric characters of length $1.
-#
-function random_alphanumeric() {
-    base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c $1
-}
 
 g3kubectl get configmaps/global -o yaml > 00configmap.yaml
 

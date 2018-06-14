@@ -4,7 +4,7 @@ Templates for deploying `gen3` services to a kubernetes cluster.
 The `g3k` helper scripts merge these templates with data
 from the [cdis-manifest](https://github.com/uc-cdis/cdis-manifest).
 The g3k helpers also automate the creation of missing secrets and configmaps
-(if `~/${vpc_name}_output/creds.json` and similar files are present.
+(if `~/${vpc_name}/creds.json` and similar files are present.
 These tools are currently only available on the [CSOC adminvm](https://github.com/uc-cdis/cdis-wiki/blob/master/ops/CSOC_Documentation.md) 
 associated with a commons.
 

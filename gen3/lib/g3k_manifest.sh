@@ -4,11 +4,10 @@
 # via the `g3k/gen3` cli
 #
 
-G3K_MANIFEST_SH_DIR=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-GEN3_HOME="${GEN3_HOME:-$(cd "${G3K_MANIFEST_SH_DIR}/../.." && pwd)}"
 GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
-export GEN3_HOME
 export GEN3_MANIFEST_HOME
+
+gen3_load "gen3/lib/utils"
 
 #
 # from https://github.com/kubernetes/kubernetes/issues/27308#issuecomment-309207951

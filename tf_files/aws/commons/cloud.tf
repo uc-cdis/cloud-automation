@@ -28,6 +28,42 @@ module "elb_logs" {
   environment     = "${var.vpc_name}"
 }
 
+module "config_files" {
+  source             = "../../shared/modules/k8s_configs"
+  vpc_name           = "${var.vpc_name}"
+  db_fence_address   = "${aws_db_instance.db_fence.address}"
+  db_fence_password  = "${var.db_password_fence}"
+  db_fence_name      = "${aws_db_instance.db_fence.name}"
+  db_gdcapi_address  = "${aws_db_instance.db_gdcapi.address}"
+  db_gdcapi_username = "${aws_db_instance.db_gdcapi.username}"
+
+  # legacy commons have a separate "gdcapi" postgres user with its own password
+  db_gdcapi_password          = "${var.db_password_gdcapi == "" ? var.db_password_sheepdog : var.db_password_gdcapi}"
+  db_gdcapi_name              = "${aws_db_instance.db_gdcapi.name}"
+  db_peregrine_password       = "${var.db_password_peregrine}"
+  db_sheepdog_password        = "${var.db_password_sheepdog}"
+  db_indexd_address           = "${aws_db_instance.db_indexd.address}"
+  db_indexd_username          = "${aws_db_instance.db_indexd.username}"
+  db_indexd_password          = "${var.db_password_indexd}"
+  db_indexd_name              = "${aws_db_instance.db_indexd.name}"
+  hostname                    = "${var.hostname}"
+  google_client_secret        = "${var.google_client_secret}"
+  google_client_id            = "${var.google_client_id}"
+  hmac_encryption_key         = "${var.hmac_encryption_key}"
+  gdcapi_secret_key           = "${var.gdcapi_secret_key}"
+  gdcapi_indexd_password      = "${var.gdcapi_indexd_password}"
+  gdcapi_oauth2_client_id     = "${var.gdcapi_oauth2_client_id}"
+  gdcapi_oauth2_client_secret = "${var.gdcapi_oauth2_client_secret}"
+
+  kube_bucket_name = "${aws_s3_bucket.kube_bucket.id}"
+  logs_bucket_name = "${module.elb_logs.log_bucket_name}"
+  dictionary_url   = "${var.dictionary_url}"
+  portal_app       = "${var.portal_app}"
+  config_folder    = "${var.config_folder}"
+
+  ssl_certificate_id = "${var.aws_cert_name}"
+}
+
 data "aws_vpc_endpoint_service" "s3" {
   service = "s3"
 }

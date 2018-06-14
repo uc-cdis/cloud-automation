@@ -7,5 +7,3 @@ set -e
 
 export vpc_name='${vpc_name}'
 export s3_bucket='${s3_bucket}'
-export fence_snapshot='${fence_snapshot}'
-export gdcapi_snapshot='${gdcapi_snapshot}'
