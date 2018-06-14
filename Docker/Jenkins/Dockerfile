@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # install python and pip and aws cli
 RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential zip unzip jq less vim gettext-base && rm -rf /var/lib/apt/lists/*
-RUN set -xe && pip install awscli --upgrade && pip install pytest --upgrade
+RUN set -xe && pip install awscli --upgrade && pip install pytest --upgrade && pip install PyYAML --upgrade
 RUN set -xe && pip3 install pytest --upgrade
 
 # install nodejs
