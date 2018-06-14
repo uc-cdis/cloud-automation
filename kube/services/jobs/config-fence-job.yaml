@@ -72,12 +72,6 @@ spec:
         args:
           - "-c"
           - |
-            # install json query helper if necessary ...
-            if ! which jq > /dev/null; then
-              export DEBIAN_FRONTEND=noninteractive
-              sudo -E apt install -y jq
-            fi
-
             # wait for other image to generate config
             let count=0
             while [[ ! -f /mnt/shared/new-fence-config.yaml && $count -lt 50 ]]; do
