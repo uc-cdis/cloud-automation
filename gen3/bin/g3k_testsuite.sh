@@ -1,5 +1,5 @@
 #
-# Run with: bash shunit_testsuite.sh
+# Run with: bash g3k_testsuite.sh
 # Assume we're running in the directory for now ...
 #
 source "$GEN3_HOME/gen3/lib/utils.sh"
@@ -36,12 +36,14 @@ test_mfilter() {
   /bin/rm -rf "$testFolder"
   mkdir -p -m 0700 "$testFolder"
   for name in fence sheepdog; do
+    capName=Fence
+    if [[ "$name" == "sheepdog" ]]; then capName=Sheepdog; fi
     for domain in test1.manifest.g3k default.bogus; do
       local mpath="$(g3k_manifest_path test1.manifest.g3k)"
       # Note: date timestamp will different between saved snapshot and fresh template processing
       echo "Writing: $testFolder/${name}-${domain}-a.yaml"
       g3k_manifest_filter "${GEN3_HOME}/kube/services/$name/${name}-deploy.yaml" "$mpath" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-a.yaml"
-      cat "$(dirname "$mpath")/expected${name^}Result.yaml" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-b.yaml"
+      cat "$(dirname "$mpath")/expected${capName}Result.yaml" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-b.yaml"
       diff -w "$testFolder/${name}-${domain}-a.yaml" "$testFolder/${name}-${domain}-b.yaml"
       because $? "Manifest filter gave expected result for $name deployment with $domain manifest"
     done
