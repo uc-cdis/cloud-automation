@@ -126,13 +126,22 @@ spec:
             subPath: fence_credentials.json
           - name: "fence-jwt-keys"
             readOnly: true
-            mountPath: "/fence/keys"
+            mountPath: "/fence/jwt-keys.tar"
+            subPath: "jwt-keys.tar"
           - name: shared-data
             mountPath: /mnt/shared
         command: ["/bin/bash" ]
         args:
             - "-c"
             - |
+              if [ -f /fence/jwt-keys.tar ]; then
+                cd /fence
+                tar xvf jwt-keys.tar
+                if [ -d jwt-keys ]; then
+                  mkdir -p keys
+                  mv jwt-keys/* keys/
+                fi
+              fi  
               echo "generate access token"
               fence-create --path fence token-create --type access_token --username cdis.autotest@gmail.com  --scopes openid,user,test-client --exp 3600 > /mnt/shared/access_token.txt
       restartPolicy: Never
