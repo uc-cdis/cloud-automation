@@ -17,11 +17,6 @@ variable "gcp_region" {
   default = "us-central1"
 }
 
-// for tagging resources ...
-variable "cluster_name" {
-  //default = "Commons1"
-}
-
 variable "gdcapi_secret_key" {
   # FLASK_SECRET_KEY thing - don't know why we have flask sessions
 }
