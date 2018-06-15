@@ -3,17 +3,15 @@
 # Test with `gen3 testsuite` - see ../bin/testsuite.sh 
 #
 
-_UTILS_GEN3=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
-
 export XDG_DATA_HOME=${XDG_DATA_HOME:-~/.local/share}
 export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/tmp/gen3-$USER"}
 export GEN3_CACHE_DIR="${XDG_DATA_HOME}/gen3/cache"
 export GEN3_ETC_FOLDER="${XDG_DATA_HOME}/gen3/etc"
 
 (
-  for path in "$GEN3_CACHE_DIR" "$GEN3_ETC_FOLDER/gcp"; do
-    if [[ ! -d "$path" ]]; then
-      mkdir -p -m 0700 "$path"
+  for filePath in "$GEN3_CACHE_DIR" "$GEN3_ETC_FOLDER/gcp"; do
+    if [[ ! -d "$filePath" ]]; then
+      mkdir -p -m 0700 "$filePath"
     fi
   done    
 )
@@ -48,28 +46,37 @@ semver_ge() {
   local bMajor
   local bMinor
   local bPatch
+  local rx   # for zsh
   aStr=$1
   bStr=$2
-  if [[ "$aStr" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-    let aMajor=${BASH_REMATCH[1]}
-    let aMinor=${BASH_REMATCH[2]}
-    let aPatch=${BASH_REMATCH[3]}
-  else
-    echo "ERROR: invalid semver $aStr"
-  fi
-  if [[ "$bStr" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-    let bMajor=${BASH_REMATCH[1]}
-    let bMinor=${BASH_REMATCH[2]}
-    let bPatch=${BASH_REMATCH[3]}
-  else
-    echo "ERROR: invalid semver $bStr"
-  fi
+  (
+    # ugh - zsh!
+    if [[ -z "${BASH_VERSION}" ]]; then
+      set -o BASH_REMATCH  # zsh signal
+      set -o KSH_ARRAYS
+    fi
+    rx='^([0-9]+)\.([0-9]+)\.([0-9]+)$'
+    if [[ "$aStr" =~ $rx ]]; then
+      let aMajor=${BASH_REMATCH[1]}
+      let aMinor=${BASH_REMATCH[2]}
+      let aPatch=${BASH_REMATCH[3]}
+    else
+      echo "ERROR: invalid semver $aStr"
+    fi
+    if [[ "$bStr" =~ $rx ]]; then
+      let bMajor=${BASH_REMATCH[1]}
+      let bMinor=${BASH_REMATCH[2]}
+      let bPatch=${BASH_REMATCH[3]}
+    else
+      echo "ERROR: invalid semver $bStr"
+    fi
 
-  if [[ $aMajor -gt $bMajor || ($aMajor -eq $bMajor && $aMinor -gt $bMinor) || ($aMajor -eq $bMajor && $aMinor -eq $bMinor && $aPatch -ge $bPatch) ]]; then
-    return 0
-  else
-    return 1
-  fi
+    if [[ $aMajor -gt $bMajor || ($aMajor -eq $bMajor && $aMinor -gt $bMinor) || ($aMajor -eq $bMajor && $aMinor -eq $bMinor && $aPatch -ge $bPatch) ]]; then
+      exit 0
+    else
+      exit 1
+    fi
+  )
 }
 
 # vt100 escape sequences - don't forget to pass -e to 'echo -e'
@@ -99,7 +106,8 @@ green_color() {
 #
 if [[ -z "${GEN3_SOURCED_SCRIPTS_GUARD}" ]]; then
   declare -A GEN3_SOURCED_SCRIPTS
-  GEN3_SOURCED_SCRIPTS=( ["/gen3/lib/utils"]="${GEN3_HOME}/gen3/lib/utils.sh" )
+  # be careful with associative arrays and zsh support
+  GEN3_SOURCED_SCRIPTS["/gen3/lib/utils"]="${GEN3_HOME}/gen3/lib/utils.sh"
   GEN3_SOURCED_SCRIPTS_GUARD="loaded"
 fi
 
@@ -121,29 +129,32 @@ gen3_reload() {
 #
 gen3_load() {
   local key
-  local path
+  local filePath
+  local rx
   if [[ -z "$1" ]]; then
     echo -e "$(red_color "gen3_load passed empty script key")"
     return 1
   fi
   key=$(echo "/$1" | sed 's@///*@/@g' | sed 's/\.sh$//')
-  if [[ key =~ \.\. ]]; then
+  # setting an rx variable works in both bash and zsh
+  rx='\.\.'
+  if [[ key =~ $rx ]]; then
     echo -e "$(red_color "gen3_load illegal key: $key")"
     return 1
   fi
-  path="${GEN3_HOME}${key}.sh"
+  filePath="${GEN3_HOME}${key}.sh"
   if [[ -n "${GEN3_SOURCED_SCRIPTS["$key"]}" ]]; then
     # script already loaded
     #echo "Already loaded $key"
     return 0
   fi
-  GEN3_SOURCED_SCRIPTS["$key"]="$path"
-  if [[ ! -f "${path}" ]]; then
-    echo -e "$(red_color "ERROR: gen3_load path does not exist: $path")"
+  GEN3_SOURCED_SCRIPTS["$key"]="$filePath"
+  if [[ ! -f "${filePath}" ]]; then
+    echo -e "$(red_color "ERROR: gen3_load filePath does not exist: $filePath")"
     return 1
   fi
-  #echo "Loading $key - $path"
-  source "${path}"
+  #echo "Loading $key - $filePath"
+  source "${filePath}"
 }
 
 

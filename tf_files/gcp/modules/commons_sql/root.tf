@@ -4,7 +4,7 @@
 data "google_compute_zones" "available" {}
 
 resource "google_sql_database_instance" "fence-master" {
-  name             = "fence-master"
+  name             = "fence-${var.vpc_name}"
   database_version = "POSTGRES_9_6"
   region           = "${var.gcp_region}"
 
@@ -43,7 +43,7 @@ resource "google_sql_database" "fence" {
 //------------
 
 resource "google_sql_database_instance" "sheepdog-master" {
-  name             = "sheepdog-master"
+  name             = "sheepdog-${var.vpc_name}"
   database_version = "POSTGRES_9_6"
   region           = "${var.gcp_region}"
 
@@ -88,7 +88,7 @@ resource "google_sql_database" "sheepdog" {
 //----------------
 
 resource "google_sql_database_instance" "indexd-master" {
-  name             = "indexd-master"
+  name             = "indexd-${var.vpc_name}"
   database_version = "POSTGRES_9_6"
   region           = "${var.gcp_region}"
 

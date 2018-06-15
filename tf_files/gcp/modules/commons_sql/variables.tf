@@ -24,3 +24,8 @@ variable "db_tier" {
 variable "db_version" {
   default = "POSTGRES_9_6"
 }
+
+// for tagging resources ...
+variable "vpc_name" {
+  //default = "Commons1"
+}

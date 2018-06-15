@@ -14,7 +14,7 @@ module "cdis_vpc" {
 module "k8s" {
   source        = "../modules/gke"
   gcp_region    = "${var.gcp_region}"
-  cluster_name  = "${var.cluster_name}"
+  cluster_name  = "${var.vpc_name}"
   cluster_index = "${var.cluster_index}"
   vpc_octet2    = "${var.vpc_octet2}"
   vpc_octet3    = "${var.vpc_octet3}"
@@ -34,8 +34,8 @@ module "sql_dbs" {
   db_indexd_password    = "${var.db_indexd_password}"
   db_peregrine_password = "${var.db_peregrine_password}"
   db_sheepdog_password  = "${var.db_sheepdog_password}"
-
-  authorized_cidr = "${module.k8s.admin_box_nat_ip}/32"
+  vpc_name              = "${var.vpc_name}"
+  authorized_cidr       = "${module.k8s.admin_box_nat_ip}/32"
 }
 
 module "config_files" {

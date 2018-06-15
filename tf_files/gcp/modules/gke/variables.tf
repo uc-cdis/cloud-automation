@@ -1,4 +1,10 @@
+//
 // for tagging resources ...
+// should normally just be the vpc_name
+// of the VPC where the cluster is deployed,
+// but may be different if a VPC has
+// multiple k8s clusters - which we should avoid :-p
+//
 variable "cluster_name" {
   //default = "Commons1"
 }
