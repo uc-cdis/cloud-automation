@@ -26,11 +26,16 @@ fi
 
 export vpc_name
 
-if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # legacy path - fix it
-  if [[ ! -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then
-    # new path
-    mkdir -p "${WORKSPACE}/${vpc_name}"
-    cp "${WORKSPACE}/${vpc_name}_output/creds.json" "${WORKSPACE}/${vpc_name}/creds.json"
+#
+# Move files from {vpc_name}_output/ folder to {vpc_name}/ folder
+#
+for name in creds.json 00configmap.yaml; do
+  if [[ -f "${WORKSPACE}/${vpc_name}_output/${name}" ]]; then # legacy path - fix it
+    if [[ ! -f "${WORKSPACE}/${vpc_name}/${name}" ]]; then
+      # new path
+      mkdir -p "${WORKSPACE}/${vpc_name}"
+      cp "${WORKSPACE}/${vpc_name}_output/${name}" "${WORKSPACE}/${vpc_name}/${name}"
+    fi
+    mv "${WORKSPACE}/${vpc_name}_output/${name}" "${WORKSPACE}/${vpc_name}_output/${name}.bak"
   fi
-  mv "${WORKSPACE}/${vpc_name}_output/creds.json" "${WORKSPACE}/${vpc_name}_output/creds.json.bak"
-fi
+done
