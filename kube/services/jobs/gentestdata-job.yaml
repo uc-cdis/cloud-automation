@@ -1,5 +1,5 @@
 # run with:
-# g3k runjob gentestdata \
+# gen3 runjob gentestdata \
 # SUBMISSION_USER submission_user \
 # TEST_PROGRAM "" \
 # TEST_PROJECT "" \
@@ -20,7 +20,7 @@
 #   Number of examples for each node. Default 1000
 #
 # Example
-# g3k runjob gentestdata SUBMISSION_USER cdis.autotest@gmail.com TEST_PROGRAM DEV TEST_PROJECT test NUMBER_OF_EXAMPLES 10
+# gen3 runjob gentestdata SUBMISSION_USER cdis.autotest@gmail.com TEST_PROGRAM DEV TEST_PROJECT test NUMBER_OF_EXAMPLES 10
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -68,8 +68,6 @@ spec:
               configMapKeyRef:
                 name: global
                 key: hostname
-          - name: SUBMISSION_USER
-            GEN3_SUBMISSION_USER
           - name: TEST_PROGRAM
             GEN3_TEST_PROGRAM
           - name: TEST_PROJECT
@@ -111,12 +109,15 @@ spec:
             Rscript ${rscript_cmd}
             echo "Preparing to submit data"
             python /gen3-qa/python-scripts/scripts.py data-create --host https://$HOSTNAME --dir /gen3-qa/python-scripts/sim-data-code/TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
+            echo "All Done - always succeed to avoid k8s retries"
       - name: fence
         image: quay.io/cdis/fence:master
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: SUBMISSION_USER
+            GEN3_SUBMISSION_USER
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -153,5 +154,7 @@ spec:
                 fi
               fi  
               echo "generate access token"
+              echo "fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600"
               fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600 > /mnt/shared/access_token.txt
+              echo "All Done - always succeed to avoid k8s retries"
       restartPolicy: Never
