@@ -62,8 +62,12 @@ STORAGE_CREDENTIALS = {}
 # { identifier: { 'aws_access_key_id': 'XXX', 'aws_secret_access_key': 'XXX' }}
 AWS_CREDENTIALS = {}
 
+# assume_roles should be a dict looks like:
+# { 'role_arn_name': 'cred_key_in_aws_credentials' }
+ASSUMED_ROLES = {}
+
 # s3_buckets should be a dict looks like:
-# { bucket_name: credential_identifie }
+# { 'bucket_name_1': {'cred': 'XXX', 'type': 'internal'}, 'bucket_name_2': {'role-arn': 'XXX', 'type': 'XXX'} }
 S3_BUCKETS = {}
 
 
@@ -102,6 +106,7 @@ CIRRUS_CFG = {}
 data = load_json('fence_credentials.json')
 if data:
     AWS_CREDENTIALS = data['AWS_CREDENTIALS']
+    ASSUMED_ROLES = data['ASSUMED_ROLES']
     S3_BUCKETS = data['S3_BUCKETS']
     DEFAULT_LOGIN_URL = data['DEFAULT_LOGIN_URL']
     OPENID_CONNECT.update(data['OPENID_CONNECT'])
