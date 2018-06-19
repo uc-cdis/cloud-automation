@@ -1,0 +1,42 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: wts
+spec:
+  serviceName: "wts"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wts
+    spec:
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "wts-secret"
+      containers:
+      - name: wts
+        image: quay.io/cdis/workspace-token-service:master
+        GEN3_WTS_IMAGE
+        ports:
+        - containerPort: 80
+        env:
+        - name: SECRET_DIR
+          value: "/var/www/workspace-token-service/secrets"
+        volumeMounts:
+        - name: datadir
+          mountPath: /mnt/data
+        - name: "config-volume"
+          readOnly: true
+          mountPath: "/var/www/workspace-token-service/secrets"
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+      annotations:
+        volume.beta.kubernetes.io/storage-class: gp2
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
