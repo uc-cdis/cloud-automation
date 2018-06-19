@@ -83,7 +83,10 @@ EOM
       export gdcapi_oauth2_client_id="n/a"
       export gdcapi_oauth2_client_secret="n/a"
 
-      cat "$GEN3_HOME/tf_files/configs/creds.tpl" | envsubst > onprem_scripts/creds.json
+      templatePath="$GEN3_HOME/tf_files/shared/modules/k8s_configs/creds.tpl"
+      if [[ -f "$templatePath" ]]; then
+        cat "$templatePath" | envsubst > onprem_scripts/creds.json
+      fi
     )
   else
     echo "onprem_scripts/creds.json already exists ..."
@@ -98,7 +101,11 @@ EOM
       export config_folder="CONFIG-FOLDER-NAME-HERE"
       export portal_app=dev
       export dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json"
-      cat "$GEN3_HOME/tf_files/configs/00configmap.yaml" | envsubst > onprem_scripts/00configmap.yaml
+      
+      templatePath="$GEN3_HOME/tf_files/shared/modules/k8s_configs/00configmap.yaml"
+      if [[ -f "$templatePath" ]]; then
+        cat "$templatePath" | envsubst > onprem_scripts/00configmap.yaml
+      fi
     )
   else
     echo "onprem_scripts/00configmap.yaml already exists ..."
