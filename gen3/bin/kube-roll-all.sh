@@ -4,6 +4,10 @@
 #
 set -e
 
+# Make it easy to run this directly ...
+_roll_all_dir="$(dirname -- "${BASH_SOURCE:-$0}")"
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_roll_all_dir}/../.." && pwd)}"
+
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 

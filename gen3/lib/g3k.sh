@@ -3,7 +3,7 @@
 # little flag to prevent multiple imports
 _KUBES_SH="true"
 
-g3kScriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
+g3kScriptDir="$(dirname -- "${BASH_SOURCE:-$0}")"
 export GEN3_HOME="${GEN3_HOME:-$(dirname $(dirname "$g3kScriptDir"))}"
 export GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(dirname "$GEN3_HOME")/cdis-manifest"}"
 

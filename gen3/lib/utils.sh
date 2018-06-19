@@ -105,9 +105,9 @@ green_color() {
 # so utils.sh may get sourced multiple times.
 #
 if [[ -z "${GEN3_SOURCED_SCRIPTS_GUARD}" ]]; then
-  declare -A GEN3_SOURCED_SCRIPTS
+  declare -a GEN3_SOURCED_SCRIPTS
   # be careful with associative arrays and zsh support
-  GEN3_SOURCED_SCRIPTS["/gen3/lib/utils"]="${GEN3_HOME}/gen3/lib/utils.sh"
+  GEN3_SOURCED_SCRIPTS=("/gen3/lib/utils")
   GEN3_SOURCED_SCRIPTS_GUARD="loaded"
 fi
 
@@ -143,12 +143,18 @@ gen3_load() {
     return 1
   fi
   filePath="${GEN3_HOME}${key}.sh"
-  if [[ -n "${GEN3_SOURCED_SCRIPTS["$key"]}" ]]; then
-    # script already loaded
-    #echo "Already loaded $key"
-    return 0
-  fi
-  GEN3_SOURCED_SCRIPTS["$key"]="$filePath"
+  # Check if key is already in our loaded array
+  # Note: bash3 on Mac does not support associative arrays
+  for it in ${GEN3_SOURCED_SCRIPTS[@]}; do
+    #if [[ -n "${GEN3_SOURCED_SCRIPTS["$key"]}" ]]; then
+    if [[ "$it" == "$key" ]]; then
+      # script already loaded
+      #echo "Already loaded $key"
+      return 0
+    fi
+  done
+  #GEN3_SOURCED_SCRIPTS["$key"]="$filePath"
+  GEN3_SOURCED_SCRIPTS+=("$key")
   if [[ ! -f "${filePath}" ]]; then
     echo -e "$(red_color "ERROR: gen3_load filePath does not exist: $filePath")"
     return 1
