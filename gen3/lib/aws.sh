@@ -140,8 +140,10 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/utility_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _bigdisk$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/worker_bigdisk"
-  elif [[ "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
+  elif [[ "$GEN3_WORKSPACE" =~ _squidnlbcentral$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_nlb_central_csoc"
+  elif [[ "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squidnlb_standalone"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -276,6 +278,22 @@ EOM
 volume_size = 20
 instance_ip = "10.0.0.0"
 dev_name = "/dev/sdz"
+EOM
+    return 0
+  fi
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _squidnlbcentral$ ]]; then
+    # rds snapshot vpc is simpler ...
+    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
+    cat - <<EOM
+  env_vpc_octet3                = "3rd OCTET OF CSOC CIDR FOR SQUID SETUP"
+  env_nlb_name                  = "NLB SETUP NAME"
+  env_vpc_id                    = "CSOC VPC-ID"
+  env_pub_subnet_routetable_id = "CSOC ROUTE TABLE ID - HAVING VPC PEERING ROUTES"
+  csoc_internal_dns_zone_id  = "PUT IT AS `ZA1HVV5W0QBG1` IF LAUNCHING THE SQUID NLB IN CSOC MAIN VPC"
+  allowed_principals_list       = "[LIST OF AWS ACCOUNTS WHICH NEEDS TO BE WHITELISTED]"
+  # e.g. of the list - ["arn:aws:iam::<AWS ACCOUNT1 ID>:root","arn:aws:iam::<AWS ACCOUNT2 ID>:root", ...]
 EOM
     return 0
   fi
