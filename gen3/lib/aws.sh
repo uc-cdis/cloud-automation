@@ -141,7 +141,7 @@ gen3_workon_aws(){
   elif [[ "$GEN3_WORKSPACE" =~ _bigdisk$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/worker_bigdisk"
   elif [[ "$GEN3_WORKSPACE" =~ _squidnlbcentral$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_nlb_central_csoc"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_nlb_central"
   elif [[ "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squidnlb_standalone"
   fi
@@ -194,6 +194,7 @@ vpc_name="$GEN3_WORKSPACE"
 #
 vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
 vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
+squid-nlb-endpointservice-name=CSOC_SQUID_NLB_SERVICE_NAME
 
 ssh_public_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
 EOM
@@ -290,7 +291,7 @@ EOM
   env_vpc_octet3                = "3rd OCTET OF CSOC CIDR FOR SQUID SETUP"
   env_nlb_name                  = "NLB SETUP NAME"
   env_vpc_id                    = "CSOC VPC-ID"
-  env_pub_subnet_routetable_id = "CSOC ROUTE TABLE ID - HAVING VPC PEERING ROUTES"
+  env_pub_subnet_routetable_id = "CSOC ROUTE TABLE ID - HAVING ROUTE TO INTERNET GW"
   csoc_internal_dns_zone_id  = "PUT IT AS `ZA1HVV5W0QBG1` IF LAUNCHING THE SQUID NLB IN CSOC MAIN VPC"
   allowed_principals_list       = "[LIST OF AWS ACCOUNTS WHICH NEEDS TO BE WHITELISTED]"
   # e.g. of the list - ["arn:aws:iam::<AWS ACCOUNT1 ID>:root","arn:aws:iam::<AWS ACCOUNT2 ID>:root", ...]
