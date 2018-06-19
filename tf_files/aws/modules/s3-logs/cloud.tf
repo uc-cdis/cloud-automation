@@ -33,6 +33,13 @@ resource "aws_s3_bucket" "log_bucket" {
   }
 }
 
+#### Added by fauzi@uchicago.edu
+
+data "aws_caller_identity" "current" {}
+
+####
+
+
 data "aws_iam_policy_document" "log_bucket_writer" {
   statement {
     actions = [
@@ -55,6 +62,47 @@ data "aws_iam_policy_document" "log_bucket_writer" {
 
     resources = ["${aws_s3_bucket.log_bucket.arn}/*"]
   }
+
+#### Added by fauzi@uchicago.edu
+# we want cloudtrail to be able to write to this bucket and put additional logs
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:GetBucketAcl",
+    ]
+
+    resources = ["${aws_s3_bucket.log_bucket.arn}"]
+
+    principals {
+      type = "Service"
+      identifiers = ["cloudtrail.amazonaws.com"]
+    }
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:PutObject",
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "s3:x-amz-acl"
+
+      values = [
+        "bucket-owner-full-control",
+      ]
+    }
+
+    resources = ["${aws_s3_bucket.log_bucket.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*"]
+
+  }
+   
+####
+
 }
 
 #
