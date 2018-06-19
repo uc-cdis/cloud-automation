@@ -141,7 +141,7 @@ gen3_workon_aws(){
   elif [[ "$GEN3_WORKSPACE" =~ _bigdisk$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/worker_bigdisk"
   elif [[ "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squidnlb_standalone"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_nlb_central_csoc"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
