@@ -297,7 +297,7 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
 }
 
 
-## This is for endpoint service needed to acccess the squid nlb in CSOC VPC
+## This is for endpoint service needed to acccess the squid nlb in CSOC VPC; code moved to commons
 
 #resource "aws_vpc_endpoint" "squid-nlb" {
  # vpc_id            = "${aws_vpc.main.id}"

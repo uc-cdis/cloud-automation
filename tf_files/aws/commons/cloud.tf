@@ -175,7 +175,8 @@ resource "aws_db_subnet_group" "private_group" {
 }
 
 
-## This is for endpoint service needed to acccess the squid nlb in CSOC VPC
+## This is for endpoint service needed to acccess the squid nlb in CSOC VPC. We need to add the subnets for both private_user and
+# private_kube; hence have the code in here
 
 resource "aws_vpc_endpoint" "squid-nlb" {
   vpc_id            = "${module.cdis_vpc.vpc_id}"
@@ -193,7 +194,7 @@ resource "aws_vpc_endpoint" "squid-nlb" {
 ## 'raryatestnlbproxyv1' should be replaced with cloud-proxy at the time of merge
 resource "aws_route53_record" "squid-nlb" {
   zone_id = "${module.cdis_vpc.zone_id}"
-  name    = "raryatestnlbproxyv1.${module.cdis_vpc.zone_id}"
+  name    = "raryatestnlbproxyv1.${module.cdis_vpc.zone_name}"
   type    = "CNAME"
   ttl     = "300"
   records = ["${lookup(aws_vpc_endpoint.squid-nlb.dns_entry[0], "dns_name")}"]
