@@ -191,10 +191,10 @@ resource "aws_vpc_endpoint" "squid-nlb" {
   private_dns_enabled = false
 }
 
-## 'raryatestnlbproxyv1' should be replaced with cloud-proxy at the time of merge
+
 resource "aws_route53_record" "squid-nlb" {
   zone_id = "${module.cdis_vpc.zone_id}"
-  name    = "raryatestnlbproxyv1.${module.cdis_vpc.zone_name}"
+  name    = "cloud-proxy.${module.cdis_vpc.zone_name}"
   type    = "CNAME"
   ttl     = "300"
   records = ["${lookup(aws_vpc_endpoint.squid-nlb.dns_entry[0], "dns_name")}"]
