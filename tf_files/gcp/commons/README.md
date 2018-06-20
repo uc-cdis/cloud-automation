@@ -85,7 +85,8 @@ $ git clone https://github.com/uc-cdis/cloud-automation.git
 $ git clone https://github.com/uc-cdis/cdis-manifest.git
 $ export vpc_name=THE-NAME
 $ export GEN3_NOPROXY=true
-$ gen3 kube-setup-workvm
+$ bash cloud-automation/gen3/bin/kube-setup-workvm
+$ source ~/.bashrc  # to get gen3 helper in shell
 $ gcloud container clusters get-credentials dev-commons --zone us-central1-a --project dev-commons
 $ kubectl get nodes
 $ verify secrets are properly configured under ~/$vpc_name
