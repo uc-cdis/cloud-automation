@@ -230,7 +230,7 @@ resource "aws_cloudtrail" "logger_trail" {
   s3_bucket_name                = "${module.cdis_s3_logs.log_bucket_name}"
   s3_key_prefix                 = "trailLogs"
   include_global_service_events = false
-  cloud_watch_logs_group_arn    = "${data.aws_cloudwatch_log_group.logs_destination.arn}"
+  cloud_watch_logs_group_arn    = "${aws_iam_role.cloudtrail_writer.arn}"
   cloud_watch_logs_role_arn     = "${aws_cloudwatch_log_group.logs_destination.arn}"
 
   event_selector {
