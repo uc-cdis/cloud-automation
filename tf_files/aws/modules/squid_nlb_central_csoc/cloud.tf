@@ -218,7 +218,7 @@ sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 cd /home/ubuntu/cloud-automation
 git pull
 # this is just temporary to test stuff from my branch; not needed once it is merged
-git checkout feat/nlbforsquid
+git checkout feat/squid_nlb_central
 git pull
 #####
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
