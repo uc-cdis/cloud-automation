@@ -1,6 +1,8 @@
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "${local.clean_bucket_name}"
-  acl    = "bucket-owner-full-control" #log-delivery-write"
+  acl    = "bucket-owner-full-control" #log-delivery-write
+  acl    = "log-delivery-write"
+
 
   server_side_encryption_configuration {
     rule {
