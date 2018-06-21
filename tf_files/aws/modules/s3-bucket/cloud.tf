@@ -154,17 +154,6 @@ resource "aws_iam_instance_profile" "mybucket_writer" {
 
 
 
-#
-# Convenience for passing through to kube-aws to
-# allow it to configure ELB logging
-#
-resource "aws_iam_policy" "log_bucket_writer" {
-  name        = "bucket_writer_${local.clean_bucket_name}"
-  description = "Read or write ${local.clean_bucket_name}"
-  policy      = "${data.aws_iam_policy_document.log_bucket_writer.json}"
-}
-
-
 ############################## Added by Fauzi fauzi@uchicago.edu
 
 # let's send the logs to cloudwatch as well
@@ -177,7 +166,7 @@ data "aws_cloudwatch_log_group" "logs_destination" {
 # the trail so it can write cloudwatch
 
 resource "aws_iam_role" "cloudtrail_writer" {
-  name = "bucket_writer_${local.clean_bucket_name}"
+  name = "cwl_writer_${local.clean_bucket_name}"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -212,8 +201,8 @@ data "aws_iam_policy_document" "trail_policy" {
 }
 
 resource "aws_iam_policy" "trail_writer" {
-  name        = "trail_write_to_cw_${data.cloudwatch_log_group.logs_destination.name}"
-  description = "Read or write ${data.cloudwatch_log_group.logs_destination.name}"
+  name        = "trail_write_to_cw_${data.aws_cloudwatch_log_group.logs_destination.name}"
+  description = "Read or write     ${data.aws_cloudwatch_log_group.logs_destination.name}"
   policy      = "${data.aws_iam_policy_document.trail_policy.json}"
 }
 
@@ -230,12 +219,12 @@ resource "aws_cloudtrail" "logger_trail" {
   s3_bucket_name                = "${module.cdis_s3_logs.log_bucket_name}"
   s3_key_prefix                 = "trailLogs"
   include_global_service_events = false
-  cloud_watch_logs_group_arn    = "${aws_iam_role.cloudtrail_writer.arn}"
-  cloud_watch_logs_role_arn     = "${aws_cloudwatch_log_group.logs_destination.arn}"
+  cloud_watch_logs_role_arn     = "${aws_iam_role.cloudtrail_writer.arn}"
+  cloud_watch_logs_group_arn    = "${data.aws_cloudwatch_log_group.logs_destination.arn}"
 
   event_selector {
     read_write_type = "All"
-    include_management_events = true
+    include_management_events = false
 
     data_resource {
       type   = "AWS::S3::Object"
@@ -247,7 +236,7 @@ resource "aws_cloudtrail" "logger_trail" {
   tags {
     Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
-    Purpose     = "trail_for_${aws_s3_bucket.mybucket.name}_data_bucket"
+    Purpose     = "trail_for_${local.clean_bucket_name}_data_bucket"
   }
 }
 

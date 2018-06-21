@@ -1,6 +1,6 @@
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "${local.clean_bucket_name}"
-  acl    = "log-delivery-write"
+  acl    = "bucket-owner-full-control" #log-delivery-write"
 
   server_side_encryption_configuration {
     rule {
@@ -63,46 +63,6 @@ data "aws_iam_policy_document" "log_bucket_writer" {
     resources = ["${aws_s3_bucket.log_bucket.arn}/*"]
   }
 
-#### Added by fauzi@uchicago.edu
-# we want cloudtrail to be able to write to this bucket and put additional logs
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:GetBucketAcl",
-    ]
-
-    resources = ["${aws_s3_bucket.log_bucket.arn}"]
-
-    principals {
-      type = "Service"
-      identifiers = ["cloudtrail.amazonaws.com"]
-    }
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:PutObject",
-    ]
-
-    condition {
-      test     = "StringEquals"
-      variable = "s3:x-amz-acl"
-
-      values = [
-        "bucket-owner-full-control",
-      ]
-    }
-
-    resources = ["${aws_s3_bucket.log_bucket.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*"]
-
-  }
-   
-####
-
 }
 
 #
@@ -114,3 +74,46 @@ resource "aws_iam_policy" "log_bucket_writer" {
   description = "Read or write ${local.clean_bucket_name}"
   policy      = "${data.aws_iam_policy_document.log_bucket_writer.json}"
 }
+
+
+
+#### Added by fauzi@uchicago.edu
+# we want cloudtrail to be able to write to this bucket and put additional logs
+
+resource "aws_s3_bucket_policy" "log_bucket_writer_by_ct" {
+  bucket = "${aws_s3_bucket.log_bucket.id}"
+  policy =<<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AWSCloudTrailAclCheck20150319",
+      "Effect": "Allow",
+      "Principal": {
+         "Service": "cloudtrail.amazonaws.com"
+      },
+      "Action": "s3:GetBucketAcl",
+      "Resource": "${aws_s3_bucket.log_bucket.arn}"
+    },
+
+    {
+      "Sid": "AWSCloudTrailWrite20150319",
+     "Effect": "Allow",
+      "Principal": {
+        "Service": "cloudtrail.amazonaws.com"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "${aws_s3_bucket.log_bucket.arn}/*",
+      "Condition": {
+         "StringEquals": {
+         "s3:x-amz-acl": "bucket-owner-full-control"
+         }
+      }
+    }
+  ]
+}
+POLICY
+}
+
+#### END added by fauzi@uchicago.edu
+
