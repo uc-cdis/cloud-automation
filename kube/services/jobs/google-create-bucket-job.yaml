@@ -30,6 +30,11 @@
 # GOOGLE_PROJECT_ID
 #   Google project this bucket should be associated with
 #
+# GOOGLE_GROUPS_PROJECT_ID
+#   Google project that has
+#   domain wide authority and connected to a Cloud Identity or GSuite for
+#   group creation (will use GOOGLE_PROJECT_ID if not provided)
+#
 # PROJECT_AUTH_ID
 #   A fence.models.Project auth_id to associate this bucket with.
 #   The project must exist in the db already.
@@ -87,6 +92,8 @@ spec:
             GEN3_REQUESTER_PAYS
           - name: GOOGLE_PROJECT_ID
             GEN3_GOOGLE_PROJECT_ID
+          - name: GOOGLE_GROUPS_PROJECT_ID
+            GEN3_GOOGLE_GROUPS_PROJECT_ID
           - name: PROJECT_AUTH_ID
             GEN3_PROJECT_AUTH_ID
           - name: ACCESS_LOGS_BUCKET
@@ -141,6 +148,9 @@ spec:
             fi
             if [[ -n "$GOOGLE_PROJECT_ID" ]]; then
                 create_command+=" --google-project-id $GOOGLE_PROJECT_ID"
+            fi
+            if [[ -n "$GOOGLE_GROUPS_PROJECT_ID" ]]; then
+                create_command+=" --google-groups-project-id $GOOGLE_GROUPS_PROJECT_ID"
             fi
             if [[ -n "$PROJECT_AUTH_ID" ]]; then
                 create_command+=" --project-auth-id $PROJECT_AUTH_ID"
