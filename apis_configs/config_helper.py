@@ -100,6 +100,17 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
         config_file, 'CIRRUS_CFG/GOOGLE_STORAGE_CREDS',
         '/var/www/fence/fence_google_storage_creds_secret.json')
 
+    print('  INDEXD set as http://indexd-service/')
+    config_file = _replace(config_file, 'INDEXD', 'http://indexd-service/')
+
+    print('  HTTP_PROXY/host set as cloud-proxy.internal.io')
+    config_file = _replace(
+        config_file, 'HTTP_PROXY/host',
+        'cloud-proxy.internal.io')
+
+    print('  HTTP_PROXY/port set as 3128')
+    config_file = _replace(config_file, 'HTTP_PROXY/port', 3128)
+
     open(config_file_path, 'w').write(config_file)
 
 
