@@ -1,13 +1,17 @@
 # run with:
-# g3k runjob gentestdata \
-# SUBMISSION_HOST submission_host \
+# gen3 runjob gentestdata \
+# SUBMISSION_USER submission_user \
 # TEST_PROGRAM "" \
 # TEST_PROJECT "" \
 # NUMBER_OF_EXAMPLES "" \
 # NOTE: "" indicates an optional argument. Leave as "" for default
 #
-# SUBMISSION_HOST(required)
-#   url of submission host. e.g. https://giangb.planx-pla.net
+# SUBMISSION_HOST
+#   url of submission host is taken from global configmap -
+#               https://{configmaps global hostname}
+#
+# SUBMISSION_USER
+#    e-mail of user-account to submit the data to sheepdog as
 #
 # TEST_PROJECT(optional)
 #   Name of test project. Default: DEV/test
@@ -16,7 +20,7 @@
 #   Number of examples for each node. Default 1000
 #
 # Example
-# g3k runjob gentestdata SUBMISSION_HOST https://giangb.planx-pla.net TEST_PROGRAM DEV TEST_PROJECT test NUMBER_OF_EXAMPLES 10
+# gen3 runjob gentestdata SUBMISSION_USER cdis.autotest@gmail.com TEST_PROGRAM DEV TEST_PROJECT test NUMBER_OF_EXAMPLES 10
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -67,12 +71,15 @@ spec:
               configMapKeyRef:
                 name: global
                 key: dictionary_url
+          - name: HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: hostname
           - name: TEST_PROGRAM
             GEN3_TEST_PROGRAM
           - name: TEST_PROJECT
             GEN3_TEST_PROJECT
-          - name: SUBMISSION_HOST
-            GEN3_SUBMISSION_HOST
           - name: NUMBER_OF_EXAMPLES
             GEN3_NUMBER_OF_EXAMPLES
         volumeMounts:
@@ -108,13 +115,17 @@ spec:
             rscript_cmd+=" /gen3-qa/python-scripts/sim-data-code/TestData/"
             echo ${rscript_cmd}
             Rscript ${rscript_cmd}
-            python /gen3-qa/python-scripts/scripts.py data-create --host $(SUBMISSION_HOST) --dir /gen3-qa/python-scripts/sim-data-code/TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
+            echo "Preparing to submit data"
+            python /gen3-qa/python-scripts/scripts.py data-create --host https://$HOSTNAME --dir /gen3-qa/python-scripts/sim-data-code/TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
+            echo "All Done - always succeed to avoid k8s retries"
       - name: fence
         image: quay.io/cdis/fence:master
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: SUBMISSION_USER
+            GEN3_SUBMISSION_USER
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -145,11 +156,24 @@ spec:
             subPath: fence-config.yaml
           - name: "fence-jwt-keys"
             readOnly: true
-            mountPath: "/fence/keys"
+            mountPath: "/fence/jwt-keys.tar"
+            subPath: "jwt-keys.tar"
+          - name: shared-data
+            mountPath: /mnt/shared
         command: ["/bin/bash" ]
         args:
             - "-c"
             - |
+              if [ -f /fence/jwt-keys.tar ]; then
+                cd /fence
+                tar xvf jwt-keys.tar
+                if [ -d jwt-keys ]; then
+                  mkdir -p keys
+                  mv jwt-keys/* keys/
+                fi
+              fi
               echo "generate access token"
-              fence-create --path fence token-create --type access_token --username cdis.autotest@gmail.com  --scopes openid,user,test-client --exp 3600 > /mnt/shared/access_token.txt
+              echo "fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600"
+              fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600 > /mnt/shared/access_token.txt
+              echo "All Done - always succeed to avoid k8s retries"
       restartPolicy: Never

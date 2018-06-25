@@ -76,6 +76,10 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     if [[ -f jwt-keys/jwt_public_key.pem && -f jwt-keys/jwt_private_key.pem ]]; then
       mv jwt-keys/*.pem "$newDirForOldKeys/"
     fi
+    if [[ ! -f ${newDirForOldKeys}/jwt_public_key.pem || ! -f ${newDirForOldKeys}/jwt_private_key.pem ]]; then
+      openssl genrsa -out ${newDirForOldKeys}/jwt_private_key.pem 2048
+      openssl rsa -in ${newDirForOldKeys}/jwt_private_key.pem -pubout -out ${newDirForOldKeys}/jwt_public_key.pem
+    fi
 
     timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     mkdir jwt-keys/${timestamp}

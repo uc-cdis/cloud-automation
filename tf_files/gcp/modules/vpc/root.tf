@@ -5,7 +5,7 @@ resource "google_compute_network" "vpc" {
 }
 
 resource "google_compute_subnetwork" "region1" {
-  name = "gen3-${var.gcp_region}"
+  name = "gen3-${var.vpc_name}-${var.gcp_region}"
 
   //
   // /20 block allocated for VPC - divide between subnets
@@ -33,7 +33,7 @@ resource "google_compute_subnetwork" "region1" {
 }
 
 resource "google_compute_firewall" "ssh" {
-  name    = "allow-ssh-from-everywhere"
+  name    = "${var.vpc_name}-ssh-from-everywhere"
   network = "${google_compute_network.vpc.name}"
 
   allow {
@@ -44,7 +44,7 @@ resource "google_compute_firewall" "ssh" {
 }
 
 resource "google_compute_firewall" "allow-internal" {
-  name    = "allow-internal"
+  name    = "${var.vpc_name}-allow-internal"
   network = "${google_compute_network.vpc.name}"
 
   allow {

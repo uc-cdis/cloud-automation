@@ -1,6 +1,6 @@
 ---
 # must invoke with:
-# g3k runjob google-create-bucket \
+# gen3 runjob google-create-bucket \
 #   UNIQUE_BUCKET_NAME some-unique-name \
 #   STORAGE_CLASS "" \
 #   PUBLIC_BUCKET "" \

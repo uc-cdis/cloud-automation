@@ -72,20 +72,25 @@ Until our in-CSOC GCP admin vm is ready we have an in-VPC admin VM in GCP.
 ```
 $ gcloud compute --project "dev-commons" ssh --zone "us-central1-a" "dev-commons-admin"
 $ add keys to admin box, and logout
+
+# Note that we cannot ssh out of the old AWS admin VM's, so you can do one of the following
+# to establish an initial ssh connection 
+# until the CSOC gcp-admin vm's with public IP are available:
+#   - ssh from your laptop
+#   - ssh via the gcp web console
+
 $ scp -r {vpc_name}_output/ admin-ip:{vpc_name}  # copy config files to gcp admin vm
 $ ssh to admin-box
 $ git clone https://github.com/uc-cdis/cloud-automation.git
+$ git clone https://github.com/uc-cdis/cdis-manifest.git
 $ export vpc_name=THE-NAME
 $ export GEN3_NOPROXY=true
-$ gen3 kube-setup-workvm
-$ gcloud container clusters get-credentials dev-commons --zone us-central1-a --project dev-commons
+$ bash cloud-automation/gen3/bin/kube-setup-workvm
+$ source ~/.bashrc  # to get gen3 helper in shell
+$ gcloud container clusters get-credentials {VPC-NAME} --zone us-central1-a --project {GCP-PROJECT-NAME}
 $ kubectl get nodes
 $ verify secrets are properly configured under ~/$vpc_name
-
-
-$ kubectl create clusterrolebinding your-user-cluster-admin-binding --clusterrole=cluster-admin --user=gen3-k8s-admin@{PROJECT}.iam.gserviceaccount.com
-# see https://github.com/coreos/prometheus-operator/issues/357
-
+$ verify that a manifest is properly configured under ~/cdis-manifest
 $ gen3 roll all
 
 ```

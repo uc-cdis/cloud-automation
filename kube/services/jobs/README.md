@@ -1,6 +1,6 @@
 # TL;DR
 
-K8s jobs to do various things.  The `g3k` bash helper functions (from `kube.sh`) provide an easy way to run a job - ex: `g3k runjob useryaml`
+K8s jobs to do various things.  The `gen3` bash helper functions (from `kube.sh`) provide an easy way to run a job - ex: `gen3 runjob useryaml`
 
 ## Setup
 
@@ -19,10 +19,10 @@ changes needed after updating the commons' dictionary.  The usual workflow is:
 ```
 update ~/{VPC_NAME}/00configmap.yaml with the new dictionary URL
 kubectl apply -f ~/{VPC_NAME}/00configmap.yaml
-g3k runjob graph-create
-g3k joblogs graph-create
-g3k roll sheepdog
-g3k roll peregrine
+gen3 runjob graph-create
+gen3 joblogs graph-create
+gen3 roll sheepdog
+gen3 roll peregrine
 ```
 ## setup sftp configuration
 To run usersync job or cronjob that fetches acl files from a remote ftp/sftp server, following setup need to be done:
@@ -54,8 +54,8 @@ Does the same job as usersync-job but do it periodically
 
 Sync the `user.yaml` from the k8s `fence` configmap into fence's database.  A typical workflow would first update the fence configmap, then run this job - ex:
 ```
-$ g3k update_config fence apis_configs/user.yaml
-$ g3k runjob useryaml
+$ gen3 update_config fence apis_configs/user.yaml
+$ gen3 runjob useryaml
 ```
 
 ## fence-config
