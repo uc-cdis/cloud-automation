@@ -35,12 +35,6 @@ resource "aws_s3_bucket" "log_bucket" {
   }
 }
 
-#### Added by fauzi@uchicago.edu
-
-data "aws_caller_identity" "current" {}
-
-####
-
 
 data "aws_iam_policy_document" "log_bucket_writer" {
   statement {

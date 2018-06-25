@@ -215,7 +215,7 @@ resource "aws_iam_role_policy_attachment" "trail_writer_role" {
 # first we need to create a trail in cloudtrail
 
 resource "aws_cloudtrail" "logger_trail" {
-  name                          = "${var.environment}-trail"
+  name                          = "${local.clean_bucket_name}-trail"
   s3_bucket_name                = "${module.cdis_s3_logs.log_bucket_name}"
   s3_key_prefix                 = "trailLogs"
   include_global_service_events = false
