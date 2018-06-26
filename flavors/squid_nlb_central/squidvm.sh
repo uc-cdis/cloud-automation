@@ -7,6 +7,11 @@ MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 cd /home/ubuntu
 sudo apt-get update
 sudo apt-get install -y build-essential wget libssl-dev
+# Updates about the squid versions can be found on http://www.squid-cache.org/Versions/
+# One of the major requirement for a centralised squid set-up was to log the original source IP address of the request; so that we can track the request back to the oriniator via the access logs.
+# This can be supported by proxy protocol V2 -  https://github.com/squid-cache/squid/blob/master/doc/rfc/proxy-protocol.txt
+# We figured that there is a bug associated with squid3 (https://bugs.squid-cache.org/show_bug.cgi?id=4814) which was resolved in squid4.
+# Hence are using squid-4.0.24 version for centralised squid for now, we are going to sqicth to apt packages, once available.
 wget http://www.squid-cache.org/Versions/v4/squid-4.0.24.tar.xz
 tar -xJf squid-4.0.24.tar.xz
 mkdir squid-build
