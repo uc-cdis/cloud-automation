@@ -140,6 +140,8 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/utility_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _bigdisk$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/worker_bigdisk"
+  elif [[ "$GEN3_WORKSPACE" =~ _squidnlbcentral$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_nlb_central"
   elif [[ "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squidnlb_standalone"
   fi
@@ -192,6 +194,7 @@ vpc_name="$GEN3_WORKSPACE"
 #
 vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
 vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
+squid-nlb-endpointservice-name=CSOC_SQUID_NLB_SERVICE_NAME
 
 ssh_public_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
 EOM
@@ -276,6 +279,26 @@ EOM
 volume_size = 20
 instance_ip = "10.0.0.0"
 dev_name = "/dev/sdz"
+EOM
+    return 0
+  fi
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _squidnlbcentral$ ]]; then
+    # rds snapshot vpc is simpler ...
+    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
+    cat - <<EOM
+  env_vpc_octet3                = "3rd OCTET OF CSOC CIDR FOR SQUID SETUP"
+  env_nlb_name                  = "NLB SETUP NAME"
+  # CSOC MAIN VPC ID 
+  env_vpc_id                    = "vpc-e2b51d99"
+  # CSOC ROUTE TABLE ID - HAVING ROUTE TO INTERNET GW
+  env_pub_subnet_routetable_id = "rtb-1cb66860"
+  # internal.io DNS ZONE ID IN CSOC MAIN VPC"
+  csoc_internal_dns_zone_id  = "ZA1HVV5W0QBG1"
+  # LIST OF AWS ACCOUNTS WHICH NEEDS TO BE WHITELISTED
+  allowed_principals_list       = ["arn:aws:iam::707767160287:root", "arn:aws:iam::655886864976:root", "arn:aws:iam::663707118480:root", "arn:aws:iam::728066667777:root", "arn:aws:iam::433568766270:root" , "arn:aws:iam::733512436101:root", "arn:aws:iam::584476192960:root", "arn:aws:iam::803291393429:root", "arn:aws:iam::980870151884:root", "arn:aws:iam::562749638216:root", "arn:aws:iam::302170346065:root", "arn:aws:iam::636151780898:root", "arn:aws:iam::895962626746:root", "arn:aws:iam::369384647397:root", "arn:aws:iam::547481746681:root", "arn:aws:iam::053927701465:root"]
+  # e.g. of the list - ["arn:aws:iam::<AWS ACCOUNT1 ID>:root","arn:aws:iam::<AWS ACCOUNT2 ID>:root", ...]
 EOM
     return 0
   fi

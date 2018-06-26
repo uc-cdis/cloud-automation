@@ -133,3 +133,7 @@ locals {
   # kube-aws does not like '-' in cluster name
   cluster_name = "${replace(var.vpc_name, "-", "")}"
 }
+
+variable "squid-nlb-endpointservice-name" {
+  default = "com.amazonaws.vpce.us-east-1.vpce-svc-0ce2261f708539011"
+  }
