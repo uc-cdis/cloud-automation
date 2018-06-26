@@ -6,12 +6,6 @@ A centralised NLB set-up for Squid proxy will be installed in the CSOC account. 
 ## Motivation
 The nodes in the Data Commons VPC do not have a direct internet access. All the egress traffic is supposed to go via a squid-proxy. A squid-proxy set-up gives us a single point to control and log all the internet access of the commons. Currently, we have a single VM running squid-proxy service in each of the data commons, which makes it a single point of failure and difficult to manage. We are spinning up a multi-az squid-proxy cluster behind a NLB integrated with a autoscaling capability. This gives us a centralised squid set-up which is easier to manage.
 
-## Current Concerns
-1) If the users in a particular data commons have a requirement of large data downloads via the squid proxy; we need to look into spinning up decentralised squid NLB cluster for those data commons ; so that the cost of managing the squid NLB set-up to support large data downloads is not incurred by the CSOC account.
-2) Currently, the default route to for the ```private_user``` and ```private_kube``` route table goes to the default proxy. With the current set-up,there is no way to point the default route to the endpoint (interface type). Check the ```Routing Options``` section in ```https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html#RouteTables```
- We need to have a way to configure explicit proxy  in the Kubernetes cluster , so that the pods can point to the ```cloud-proxy.internal.io```; which will have a DNS entry in Route 53 to point to the CNAME of the VPC endpoint.
-4) VPC Endpoint Pricing can be found at ```https://aws.amazon.com/vpc/pricing/```
-
 
 ## Set-up
 To launch a squid-nlb central set-up, we run the following from the csoc master admin VM 
@@ -33,17 +27,21 @@ keys in cloud-automation folder and update the local files in case of any change
 
 ## SFTP access via the squid-proxy set-up
 To access the SFTP server; something similar to the following needs to be added to the ssh config file. Please note the `sftpuser` which needs to be used to access the SFTP via squid-proxy cluster.
-```Host sftp.server
+``Host sftp.server
          ServerAliveInterval 120
          HostName sftp.server.xxx.net
          User foo
          ForwardAgent yes
          IdentityFile ~/.ssh/id_rsa
-         ProxyCommand ssh sftpuser@cloud-proxy.internal.io nc %h %p 2> /dev/null```
+         ProxyCommand ssh sftpuser@cloud-proxy.internal.io nc %h %p 2> /dev/null``
 
 
 
-
+## Current Concerns
+1) If the users in a particular data commons have a requirement of large data downloads via the squid proxy; we need to look into spinning up decentralised squid NLB cluster for those data commons ; so that the cost of managing the squid NLB set-up to support large data downloads is not incurred by the CSOC account.
+2) Currently, the default route to for the ```private_user``` and ```private_kube``` route table goes to the default proxy. With the current set-up,there is no way to point the default route to the endpoint (interface type). Check the ```Routing Options``` section in ```https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html#RouteTables```
+ We need to have a way to configure explicit proxy  in the Kubernetes cluster , so that the pods can point to the ```cloud-proxy.internal.io```; which will have a DNS entry in Route 53 to point to the CNAME of the VPC endpoint.
+4) VPC Endpoint Pricing can be found at ```https://aws.amazon.com/vpc/pricing/```
 
    
 
