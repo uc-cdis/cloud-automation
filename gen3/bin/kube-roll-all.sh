@@ -35,6 +35,18 @@ gen3 kube-setup-fluentd
 gen3 kube-setup-networkpolicy
 
 # portal is not happy until other services are up
+# If new pods are still rolling/starting up, then wait for that to finish
+(
+    COUNT=0
+    while [[ COUNT -lt 20 && 0 != "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.generateName, phase: .status.phase }] | map(select( .phase=="Pending" )) | length')" ]]; do 
+      g3kubectl get pods
+      echo ------------
+      echo "Waiting for pods to exit Pending state before rolling portal"
+      let COUNT+=1
+      sleep 10
+    done
+)
+
 gen3 roll portal
 
 cat - <<EOM
