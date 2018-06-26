@@ -1,14 +1,16 @@
 ## Description
 A centralised NLB set-up for Squid proxy will be installed in the CSOC account. This is going to be a centralised squid set-up utilized by all the data commons VPC.
 
+![image of architecture](CSOC_Centralized_Squid_Set-up.svg)
+
 ## Motivation
 The nodes in the Data Commons VPC do not have a direct internet access. All the egress traffic is supposed to go via a squid-proxy. A squid-proxy set-up gives us a single point to control and log all the internet access of the commons. Currently, we have a single VM running squid-proxy service in each of the data commons, which makes it a single point of failure and difficult to manage. We are spinning up a multi-az squid-proxy cluster behind a NLB integrated with a autoscaling capability. This gives us a centralised squid set-up which is easier to manage.
 
-# Current Concerns
+## Current Concerns
 1) If the users in a particular data commons have a requirement of large data downloads via the squid proxy; we need to look into spinning up decentralised squid NLB cluster for those data commons ; so that the cost of managing the squid NLB set-up to support large data downloads is not incurred by the CSOC account.
 2) Currently, the default route to for the ```private_user``` and ```private_kube``` route table goes to the default proxy. With the current set-up,there is no way to point the default route to the endpoint (interface type). Check the ```Routing Options``` section in ```https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Route_Tables.html#RouteTables```
- We need to have a way to configure explicit proxy  in the Kubernetes cluster , so that the pods can point to the cloud-proxy.internal.io; which will have a DNS entry in Route 53 to point to the CNAME of the VPC endpoint.
-4) VPC Endpoint Pricing can be found at https://aws.amazon.com/vpc/pricing/
+ We need to have a way to configure explicit proxy  in the Kubernetes cluster , so that the pods can point to the ```cloud-proxy.internal.io```; which will have a DNS entry in Route 53 to point to the CNAME of the VPC endpoint.
+4) VPC Endpoint Pricing can be found at ```https://aws.amazon.com/vpc/pricing/```
 
 
 ## Set-up
@@ -41,7 +43,7 @@ To access the SFTP server; something similar to the following needs to be added 
 
 
 
-![image of architecture](CSOC_Centralized_Squid_Set-up.svg)
+
 
    
 
