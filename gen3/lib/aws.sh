@@ -290,10 +290,14 @@ EOM
     cat - <<EOM
   env_vpc_octet3                = "3rd OCTET OF CSOC CIDR FOR SQUID SETUP"
   env_nlb_name                  = "NLB SETUP NAME"
-  env_vpc_id                    = "CSOC VPC-ID"
-  env_pub_subnet_routetable_id = "CSOC ROUTE TABLE ID - HAVING ROUTE TO INTERNET GW"
-  csoc_internal_dns_zone_id  = "PUT IT AS `ZA1HVV5W0QBG1` IF LAUNCHING THE SQUID NLB IN CSOC MAIN VPC"
-  allowed_principals_list       = "[LIST OF AWS ACCOUNTS WHICH NEEDS TO BE WHITELISTED]"
+  # CSOC MAIN VPC ID 
+  env_vpc_id                    = "vpc-e2b51d99"
+  # CSOC ROUTE TABLE ID - HAVING ROUTE TO INTERNET GW
+  env_pub_subnet_routetable_id = "rtb-1cb66860"
+  # internal.io DNS ZONE ID IN CSOC MAIN VPC"
+  csoc_internal_dns_zone_id  = "ZA1HVV5W0QBG1"
+  # LIST OF AWS ACCOUNTS WHICH NEEDS TO BE WHITELISTED
+  allowed_principals_list       = ["arn:aws:iam::707767160287:root", "arn:aws:iam::655886864976:root", "arn:aws:iam::663707118480:root", "arn:aws:iam::728066667777:root", "arn:aws:iam::433568766270:root" , "arn:aws:iam::733512436101:root", "arn:aws:iam::584476192960:root", "arn:aws:iam::803291393429:root", "arn:aws:iam::980870151884:root", "arn:aws:iam::562749638216:root", "arn:aws:iam::302170346065:root", "arn:aws:iam::636151780898:root", "arn:aws:iam::895962626746:root", "arn:aws:iam::369384647397:root", "arn:aws:iam::547481746681:root", "arn:aws:iam::053927701465:root"]
   # e.g. of the list - ["arn:aws:iam::<AWS ACCOUNT1 ID>:root","arn:aws:iam::<AWS ACCOUNT2 ID>:root", ...]
 EOM
     return 0
