@@ -276,13 +276,13 @@ resource "aws_route53_zone" "main" {
   }
 }
 
-#resource "aws_route53_record" "squid" {
- # zone_id = "${aws_route53_zone.main.zone_id}"
- # name    = "cloud-proxy"
- # type    = "A"
- # ttl     = "300"
- # records = ["${module.squid_proxy.squid_private_ip}"]
-#}
+resource "aws_route53_record" "squid" {
+  zone_id = "${aws_route53_zone.main.zone_id}"
+  name    = "cloud-proxy"
+  type    = "A"
+  ttl     = "300"
+  records = ["${module.squid_proxy.squid_private_ip}"]
+}
 
 # this is for vpc peering
 resource "aws_vpc_peering_connection" "vpcpeering" {
