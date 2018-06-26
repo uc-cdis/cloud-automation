@@ -135,4 +135,5 @@ locals {
 }
 
 variable "squid-nlb-endpointservice-name" {
+  default = "com.amazonaws.vpce.us-east-1.vpce-svc-0ce2261f708539011"
   }
