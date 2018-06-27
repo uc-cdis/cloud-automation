@@ -112,7 +112,7 @@ spec:
             if [ ! "$SYNC_FROM_DBGAP" = True ]; then
               if [[ -f /mnt/shared/user.yaml ]]; then
                 echo "fence container user.yaml diff ..."
-                diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
+                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
                 if [[ $? == 1 || "${userYamlS3Path}" = '' ]]; then
                   echo "running fence-create"
                   fence-create sync --yaml /mnt/shared/user.yaml
@@ -152,7 +152,7 @@ spec:
               aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml;
               if [[ -f /mnt/shared/user.yaml ]]; then
                 echo "awshelper container user.yaml diff ..."
-                diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
+                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
                 if [[ $? == 1 ]]; then
                   echo "awshelper updating fence configmap"
                   kubectl delete configmap fence
