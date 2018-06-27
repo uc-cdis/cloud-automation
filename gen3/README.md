@@ -246,6 +246,17 @@ GEN3_S3_BUCKET=cdis-state-ac23212121-gen3
 AWS_PROFILE=cdistest
 ```
 
+### gen3 indexd-post-folder [FOLDER]
+
+```
+$ gen3 indexd-post-folder --help
+  gen3 indexd-post-folder [folder]:
+      Post the .json files under the given folder to indexd
+      in the current environment: reuben.planx-pla.net
+      Note - currently only works with new records - does not
+         attempt to update existing records.
+```
+
 ### gen3 ls [PROFILE]
 
 List workspaces that have been worked on locally, and 
