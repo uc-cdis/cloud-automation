@@ -18,7 +18,7 @@ EOM
 
 DATA_DIR="$1"
 
-if [[ -z "${DATA_DIR}" || "${DATA_DIR}" =~ ^-*h(elp)? ]]; then
+if [[ -z "${DATA_DIR}" || "${DATA_DIR}" =~ ^-*h(elp)?$ ]]; then
   help
   exit 0
 fi
