@@ -126,6 +126,10 @@ variable "csoc_vpc_id" {
   default = "vpc-e2b51d99"
 }
 
+variable "squid-nlb-endpointservice-name" {
+  default = "com.amazonaws.vpce.us-east-1.vpce-svc-0ce2261f708539011"
+  }
+  
 # Path to user.yaml in s3://cdis-gen3-users/CONFIG_FOLDER/user.yaml
 variable "config_folder" {}
 
@@ -134,6 +138,4 @@ locals {
   cluster_name = "${replace(var.vpc_name, "-", "")}"
 }
 
-variable "squid-nlb-endpointservice-name" {
-  default = "com.amazonaws.vpce.us-east-1.vpce-svc-0ce2261f708539011"
-  }
+
