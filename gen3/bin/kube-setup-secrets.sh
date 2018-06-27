@@ -110,7 +110,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
 
   if ! g3kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
     if [[ ! -f "./apis_configs/fence_credentials.json" ]]; then
-      cp "${GEN3_HOME}/apis_configs/fence_credentials.json" "./apis_configs/fence_credentials.json" 
+      cp "${GEN3_HOME}/apis_configs/fence_credentials.json" "./apis_configs/fence_credentials.json"
     fi
     echo "create fence-json-secret using current creds file apis_configs/fence_credentials.json"
     g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
@@ -149,7 +149,27 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   if ! g3kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
     g3kubectl create secret generic fence-ssh-keys --from-file=id_rsa=./ssh-keys/id_rsa --from-file=id_rsa.pub=./ssh-keys/id_rsa.pub
   fi
-  
+
+  if [[ -d apis_configs/dcf_dataservice ]]; then
+      if ! g3kubectl get secret aws-creds-secret > /dev/null 2>&1; then
+         g3kubectl create secret generic aws-creds-secret --from-file=credentials=./apis_configs/dcf_dataservice/aws_creds_secret
+      fi
+      if ! g3kubectl get secrets/dcf-dataservice-json-secret > /dev/null 2>&1; then
+         if [[ ! -f "./apis_configs/dcf_dataservice/creds.json" ]]; then
+             touch "./apis_configs/dcf_dataservice/creds.json"
+         fi
+         echo "create dcf-dataservice-json-secret using current creds file apis_configs/dcf_dataservice/creds.json"
+         g3kubectl create secret generic dcf-dataservice-json-secret --from-file=dcf_dataservice_credentials.json=./apis_configs/dcf_dataservice/creds.json
+      fi
+
+      if ! g3kubectl get configmaps/data-service-manifest > /dev/null 2>&1; then
+         if [[ ! -f "./apis_configs/dcf_dataservice/manifest" ]]; then
+           touch "./apis_configs/dcf_dataservice/manifest"
+         fi
+         g3kubectl create configmap data-service-manifest --from-file=manifest=./apis_configs/dcf_dataservice/manifest
+      fi
+  fi
+
   if ! g3kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
     mkdir -p ./apis_configs/.ssh
     if [[ ! -f "./apis_configs/.ssh/config" ]]; then
@@ -167,7 +187,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
           ForwardAgent yes
           IdentityFile ~/.ssh/id_rsa
           ProxyCommand ssh ubuntu@squid.internal nc %h %p 2> /dev/null
-      
+
        Host sftp.dbgap
           ServerAliveInterval 120
           HostName ftp-private.ncbi.nlm.nih.gov
@@ -299,6 +319,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
       for sql in "${sqlList[@]}"; do
         echo "Running: $sql"
         psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
+      # sheepdog user needs to grant peregr
       done  
       # sheepdog user needs to grant peregrine privileges 
       # on postgres stuff sheepdog creates in the future if sheepdog user is not the
