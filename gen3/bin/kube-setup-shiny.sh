@@ -5,8 +5,8 @@
 
 set -e
 
-_KUBE_SETUP_SHINY=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SETUP_SHINY}/../lib/kube-setup-init.sh"
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
 
 cd "${WORKSPACE}/${vpc_name}"
 

@@ -3,9 +3,8 @@
 # fluentd would allow log sending from pods to cloudwatch
 #
 
-_KUBE_SETUP_FLUENTD=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SETUP_FLUENTD}/../lib/kube-setup-init.sh"
-
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
 
 if [[ -n "$JENKINS_URL" ]]; then
   echo "Jenkins skipping fluentd setup: $JENKINS_URL"

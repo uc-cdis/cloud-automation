@@ -295,3 +295,6 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
     Name = "VPC Peering between ${var.vpc_name} and csoc_main_vpc"
   }
 }
+
+
+

@@ -23,9 +23,6 @@ spec:
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
-        - name: fence-jwt-keys
-          secret:
-            secretName: "fence-jwt-keys"
         - name: fence-google-app-creds-secret-volume
           secret:
             secretName: "fence-google-app-creds-secret"
@@ -85,9 +82,6 @@ spec:
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml
-          - name: "fence-jwt-keys"
-            readOnly: true
-            mountPath: "/fence/keys"
           - name: "fence-ssh-keys"
             mountPath: "/root/.ssh/id_rsa"
             subPath: "id_rsa"

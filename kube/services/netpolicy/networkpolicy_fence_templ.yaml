@@ -37,7 +37,7 @@ spec:
       - ipBlock:
            cidr: GEN3_FENCEDB_IP/32
       - ipBlock:
-           cidr: GEN3_CLOUDPROXY_IP/32
+           cidr: GEN3_CLOUDPROXY_CIDR
       - ipBlock:
            cidr: 54.224.0.0/12
       - ipBlock:

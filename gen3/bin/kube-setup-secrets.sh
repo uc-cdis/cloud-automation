@@ -14,7 +14,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
   # Setup the files that will become secrets in "${WORKSPACE}/$vpc_name/apis_configs"
   #
   cd "${WORKSPACE}"/${vpc_name}
-
+ 
   # Note: look into 'kubectl replace' if you need to replace a secret
   if ! g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
     g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
@@ -47,7 +47,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   fi
 
   cd "${WORKSPACE}/${vpc_name}"
-
+  
   if ! g3kubectl get secret fence-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .fence < creds.json > "$credsFile"
@@ -212,7 +212,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
   fi
 
   cd "${WORKSPACE}/${vpc_name}"
-
+  
   if ! g3kubectl get secret peregrine-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .peregrine < creds.json > "$credsFile"
@@ -319,8 +319,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
       for sql in "${sqlList[@]}"; do
         echo "Running: $sql"
         psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
-      done
-      # sheepdog user needs to grant peregrine privileges
+      # sheepdog user needs to grant peregr
+      done  
+      # sheepdog user needs to grant peregrine privileges 
       # on postgres stuff sheepdog creates in the future if sheepdog user is not the
       # same as the 'gdcapi' user - which is the case when migrating legacy commons ...
       sql="ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"

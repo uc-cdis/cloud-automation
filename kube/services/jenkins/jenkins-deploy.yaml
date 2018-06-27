@@ -21,13 +21,6 @@ spec:
       containers:
       - name: jenkins
         image: quay.io/cdis/jenkins:master
-        livenessProbe:
-          httpGet:
-            path: /login
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 60
-          timeoutSeconds: 30
         ports:
         - containerPort: 8080
         env:
@@ -70,7 +63,7 @@ spec:
           subPath: "service.key"
         - name: "ca-volume"
           readOnly: true
-          mountPath: "/mnt/ssl/cdis-ca.crt"
+          mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
           subPath: "ca.pem"
       volumes:
       - name: datadir
