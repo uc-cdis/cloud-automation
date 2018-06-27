@@ -194,7 +194,7 @@ vpc_name="$GEN3_WORKSPACE"
 #
 vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
 vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
-squid-nlb-endpointservice-name="CSOC_SQUID_NLB_SERVICE_NAME"
+
 
 ssh_public_key="$(sed 's/\s*$//' ~/.ssh/id_rsa.pub)"
 EOM
@@ -345,7 +345,6 @@ vpc_name="$GEN3_WORKSPACE"
 #
 vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
 vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
-squid-nlb-endpointservice-name="CSOC_SQUID_NLB_SERVICE_NAME"
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 portal_app="dev"
 
