@@ -40,6 +40,7 @@ spec:
         args: 
           - "-c"
           - |
-            gcloud auth active-service-account --key-file=/secrets/google_service_account_creds
-            python dataflow_pipeline.py  --runner DataflowRunner --project $PROJECT --staging_location gs://$LOG_BUCKET/staging --temp_location gs://$LOG_BUCKET/temp --output gs://$LOG_BUCKET/output --setup_file ./setup.py --input gs://$INPUT_BUCKET/input/manifest global_config '{}' --extra_package indexclient-1.5.2.zip
+            gcloud auth activate-service-account --key-file=/secrets/google_service_account_creds
+            export GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_service_account_creds
+            python dataflow_pipeline.py  --runner DataflowRunner --project $PROJECT --staging_location gs://$LOG_BUCKET/staging --temp_location gs://$LOG_BUCKET/temp --output gs://$LOG_BUCKET/output --setup_file ./setup.py --input gs://$INPUT_BUCKET/input/manifest --extra_package indexclient-1.5.2.zip
       restartPolicy: Never

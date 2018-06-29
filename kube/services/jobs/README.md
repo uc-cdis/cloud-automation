@@ -94,6 +94,6 @@ see job file for more detail
 
 ## google-bucket-replicate-job
 
-Streaming onjects form GDC api to GOOGLE buckets using a manifest
+Streaming objects from GDC api to GOOGLE buckets using a manifest
 see job for more detail
 
