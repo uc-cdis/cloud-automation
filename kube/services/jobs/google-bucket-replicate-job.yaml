@@ -1,0 +1,45 @@
+# run with 
+# g3k runjob google-bucket-replicate PROJECT google_project INPUT_BUCKET input_bucket LOG_BUCKET log_bucket
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: google-bucket-replicate
+spec:
+  # not yet supported - backOffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "google-creds-secret"
+        - name: creds-json-volume
+          secret:
+            secretName: "dcf-dataservice-json-secret"
+      containers:
+      - name: googlereplicate
+        image: quay.io/cdis/dcf-dataservice:feat_data_replicate_service
+        imagePullPolicy: Always
+        env:
+          - name: PROJECT
+            GEN3_PROJECT
+          - name: INPUT_BUCKET
+            GEN3_INPUT_BUCKET
+          - name: LOG_BUCKET
+            GEN3_LOG_BUCKET
+        volumeMounts:
+          - name: cred-volume
+            mountPath: "/secrets/google_service_account_creds"
+            subPath: google_service_account_creds
+          - name: "creds-json-volume"
+            mountPath: "/secrets/dcf_dataservice_credentials.json"
+            subPath: "dcf_dataservice_credentials.json"
+        command: ["/bin/bash" ]
+        args: 
+          - "-c"
+          - |
+            gcloud auth active-service-account --key-file=/secrets/google_service_account_creds
+            python dataflow_pipeline.py  --runner DataflowRunner --project $PROJECT --staging_location gs://$LOG_BUCKET/staging --temp_location gs://$LOG_BUCKET/temp --output gs://$LOG_BUCKET/output --setup_file ./setup.py --input gs://$INPUT_BUCKET/input/manifest global_config '{}' --extra_package indexclient-1.5.2.zip
+      restartPolicy: Never
