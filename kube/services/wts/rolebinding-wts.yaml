@@ -5,7 +5,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: workspace-token-service
-  namespace: default
+  CURRENT_NAMESPACE
 roleRef:
   kind: ClusterRole
   name: workspace-token-service

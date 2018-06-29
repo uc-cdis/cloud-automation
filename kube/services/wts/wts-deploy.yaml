@@ -9,21 +9,24 @@ spec:
     metadata:
       labels:
         app: wts
+        GEN3_DATE_LABEL
     spec:
       terminationGracePeriodSeconds: 10
       volumes:
         - name: config-volume
           secret:
             secretName: "wts-secret"
+      serviceAccountName: workspace-token-service
       containers:
       - name: wts
-        image: quay.io/cdis/workspace-token-service:master
         GEN3_WTS_IMAGE
         ports:
         - containerPort: 80
         env:
         - name: SECRET_DIR
           value: "/var/www/workspace-token-service/secrets"
+        - name: AUTH_PLUGINS
+          value: k8s
         volumeMounts:
         - name: datadir
           mountPath: /mnt/data
