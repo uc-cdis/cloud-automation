@@ -156,7 +156,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
       fi
 
       if ! g3kubectl get secret google-creds-secret > /dev/null 2>&1; then
-         g3kubectl create secret generic google-creds-secret --from-file=google-creds-secret=./apis_configs/dcf_dataservice/google-creds-secret
+         g3kubectl create secret generic google-creds-secret --from-file=google_service_account_creds=./apis_configs/dcf_dataservice/gcloud-creds-secret
       fi
 
       if ! g3kubectl get secrets/dcf-dataservice-json-secret > /dev/null 2>&1; then

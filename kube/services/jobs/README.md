@@ -91,3 +91,9 @@ Generate test data given dictionary, following steps need to be done
 
 Copy objects from GDC s3 bucket to an AWS bucket using a manifest,
 see job file for more detail
+
+## google-bucket-replicate-job
+
+Streaming onjects form GDC api to GOOGLE buckets using a manifest
+see job for more detail
+
