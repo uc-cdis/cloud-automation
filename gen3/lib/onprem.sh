@@ -11,6 +11,7 @@ gen3_load "gen3/lib/utils"
 #   delegate for `gen3 workon ...`
 #
 gen3_workon_onprem(){
+  echo "entering gen3_workon_onprem (onprem.sh)"
   export GEN3_PROFILE="$1"
   export GEN3_WORKSPACE="$2"
   export GEN3_FLAVOR="ONPREM"
@@ -192,6 +193,8 @@ fi
   )
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
+
+  gen3_onprem_setup_compose
 }
 
 
@@ -228,3 +231,28 @@ gen3_ONPREM.config.tfvars() {
 EOM
 }
 
+#
+# Setup compose-services repo and run compose-services secrets setup script. 
+#
+gen3_onprem_setup_compose() {  
+  export GEN3_COMPOSEDIR="${GEN3_WORKDIR}/compose-services"
+  if [[ ! -d "${GEN3_COMPOSEDIR}" ]]; then
+    (
+      git clone git@github.com:uc-cdis/compose-services.git -b \
+        feat/docker-compose-dev-setup --single-branch $GEN3_COMPOSEDIR
+    ) 
+  else 
+    echo "compose-services repo already exists, pulling to update"
+    # echo ${GEN3_COMPOSEDIR}/
+    git -C ${GEN3_COMPOSEDIR}/ pull 
+  fi
+
+  cd ${GEN3_WORKDIR}/compose-services
+  if [[ ! -d "${GEN3_COMPOSEDIR}/temp_creds" ]]; then
+    if ! bash "${GEN3_COMPOSEDIR}/creds_setup.sh"; then
+      return 1
+    fi
+  else
+    echo "creds already exist"
+  fi
+}
