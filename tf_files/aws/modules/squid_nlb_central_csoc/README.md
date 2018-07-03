@@ -24,8 +24,8 @@ at any point of time, we expect a cluster of three squid proxies each running in
 
 ## Updating the squid whitelist and the authorized keys list
 Following steps need to be followed, whenever there is a requirement to whitelist a web URL or add a user key to access SFTP server via squid. 
-1) For updating the whitelist: The web whitelist files under ```~/cloud-automation/flavors/squid_nlb``` needs to be updated.
-1b) For updating authorized keys: The ```authorized_keys_user``` file under ```~/cloud-automation/flavors/squid_nlb``` needs to be updated.
+1) For updating the whitelist: The web whitelist files under ```~/cloud-automation/files/whitelist``` needs to be updated.
+1b) For updating authorized keys: The ```squid_authorized_keys_user``` file under ```~/cloud-automation/files/authorized_keys``` needs to be updated.
 2) A PR needs to created and approved to push the changes to the master.
 3) There is a cronjob which runs every 15 minutes on the squid-proxy VM , which checks for any change in the whitelist or the authorized 
 keys in cloud-automation folder and update the local files in case of any changes.Therefore, whenever a change is pushed, a maximum period of 15 minutes should be expected to have it in effect.
