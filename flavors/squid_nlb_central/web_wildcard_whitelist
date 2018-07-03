@@ -1,17 +1,17 @@
 .cloud.google.com
-.planx-pla.net
-.datacommons.io
 .amazonaws.com
 .apache.org
 .archive.canonical.com
 .bioconductor.org
 .bitbucket.org
 .bsc.es
+.cancer.gov
 .centos.org
 .ceph.com
 .clamav.net
 .completegenomics.com
 .cpan.org
+.datacommons.io
 .dockerproject.org
 .docker.com
 .elasticsearch.org
@@ -32,6 +32,7 @@
 .oicr.on.ca
 .osuosl.org
 .perl.org
+.planx-pla.net
 .postgresql.org
 .pypi.org
 .pypi.python.org
