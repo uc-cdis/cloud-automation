@@ -69,6 +69,11 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: APP
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: portal_app
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
