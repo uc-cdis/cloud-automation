@@ -18,9 +18,9 @@ mkdir squid-build
 
 
 
-sudo cp ${SUB_FOLDER}flavors/squid_nlb_central/startup_configs/ftp_whitelist /tmp/ftp_whitelist
-sudo cp ${SUB_FOLDER}flavors/squid_nlb_central/startup_configs/web_whitelist /tmp/web_whitelist
-sudo cp ${SUB_FOLDER}flavors/squid_nlb_central/startup_configs/web_wildcard_whitelist /tmp/web_wildcard_whitelist
+sudo cp ${SUB_FOLDER}files/squid_whitelist/ftp_whitelist /tmp/ftp_whitelist
+sudo cp ${SUB_FOLDER}files/squid_whitelist/web_whitelist /tmp/web_whitelist
+sudo cp ${SUB_FOLDER}files/squid_whitelist/web_wildcard_whitelist /tmp/web_wildcard_whitelist
 sudo cp ${SUB_FOLDER}flavors/squid_nlb_central/startup_configs/squid.conf /tmp/squid.conf
 sudo cp ${SUB_FOLDER}flavors/squid_nlb_central/startup_configs/squid-build.sh /home/ubuntu/squid-build/squid-build.sh
 sudo cp ${SUB_FOLDER}flavors/squid_nlb_central/startup_configs/iptables.conf /tmp/iptables.conf
@@ -127,7 +127,7 @@ systemctl enable awslogs
 systemctl restart awslogs
 
 # Copy the authorized keys for the admin user
-sudo cp /home/ubuntu/cloud-automation/flavors/squid_nlb_central/authorized_keys_admin /home/ubuntu/.ssh/authorized_keys
+sudo cp /home/ubuntu/cloud-automation/files/authorized_keys/squid_authorized_keys_admin /home/ubuntu/.ssh/authorized_keys
 
 #Copy the updatewhitelist.sh script  
 sudo cp /home/ubuntu/cloud-automation/flavors/squid_nlb_central/updatewhitelist.sh /home/ubuntu/updatewhitelist.sh
@@ -139,7 +139,7 @@ sudo mkdir /home/sftpuser/.ssh
 sudo chmod 700 /home/sftpuser/.ssh
 sudo cp -rp /home/ubuntu/cloud-automation /home/sftpuser
 sudo chown -R sftpuser. /home/sftpuser
-sudo cp /home/sftpuser/cloud-automation/flavors/squid_nlb_central/authorized_keys_user /home/sftpuser/.ssh/authorized_keys
+sudo cp /home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_keys_user /home/sftpuser/.ssh/authorized_keys
 
 
 

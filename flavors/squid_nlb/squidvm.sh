@@ -14,9 +14,9 @@ mkdir squid-build
 
 #git clone https://github.com/uc-cdis/images.git
 
-sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/ftp_whitelist /tmp/ftp_whitelist
-sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/web_whitelist /tmp/web_whitelist
-sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/web_wildcard_whitelist /tmp/web_wildcard_whitelist
+sudo cp ${SUB_FOLDER}files/squid_whitelist/ftp_whitelist /tmp/ftp_whitelist
+sudo cp ${SUB_FOLDER}files/squid_whitelist/web_whitelist /tmp/web_whitelist
+sudo cp ${SUB_FOLDER}files/squid_whitelist/web_wildcard_whitelist /tmp/web_wildcard_whitelist
 sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/squid.conf /tmp/squid.conf
 sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/squid-build.sh /home/ubuntu/squid-build/squid-build.sh
 sudo cp ${SUB_FOLDER}flavors/squid_nlb/startup_configs/iptables.conf /tmp/iptables.conf
