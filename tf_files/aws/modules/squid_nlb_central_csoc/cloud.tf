@@ -395,7 +395,7 @@ resource "aws_security_group" "squidnlb_out" {
 
 resource "aws_route53_record" "squid-nlb" {
   zone_id = "${var.csoc_internal_dns_zone_id}"
-  name    = "rarya-cloud-proxy.internal.io"
+  name    = "cloud-proxy.internal.io"
   type    = "CNAME"
   ttl     = "300"
   records = ["${aws_lb.squid_nlb.dns_name}"]
