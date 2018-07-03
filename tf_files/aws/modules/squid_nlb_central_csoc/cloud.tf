@@ -260,8 +260,8 @@ sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 cd /home/ubuntu/cloud-automation
 git pull
 # this is just temporary to test stuff from my branch; not needed once it is merged
-#git checkout feat/squid_nlb_central
-#git pull
+git checkout feat/squidnlb_files
+git pull
 #####
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
@@ -395,7 +395,7 @@ resource "aws_security_group" "squidnlb_out" {
 
 resource "aws_route53_record" "squid-nlb" {
   zone_id = "${var.csoc_internal_dns_zone_id}"
-  name    = "cloud-proxy.internal.io"
+  name    = "rarya-cloud-proxy.internal.io"
   type    = "CNAME"
   ttl     = "300"
   records = ["${aws_lb.squid_nlb.dns_name}"]
