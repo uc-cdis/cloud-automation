@@ -43,7 +43,7 @@ spec:
           matchLabels:
              app: pidgin
       - ipBlock:
-           cidr: GEN3_CLOUDPROXY_IP/32
+           cidr: GEN3_CLOUDPROXY_CIDR
       - ipBlock: # cloudwatch-logs and other AWS services
            cidr: 54.224.0.0/12
       - ipBlock: # S3 us-east-1

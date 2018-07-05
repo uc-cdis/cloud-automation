@@ -3,12 +3,12 @@
 # little flag to prevent multiple imports
 _KUBES_SH="true"
 
-g3kScriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
+g3kScriptDir="$(dirname -- "${BASH_SOURCE:-$0}")"
 export GEN3_HOME="${GEN3_HOME:-$(dirname $(dirname "$g3kScriptDir"))}"
 export GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(dirname "$GEN3_HOME")/cdis-manifest"}"
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
-source "${GEN3_HOME}/gen3/lib/g3k_manifest.sh"
+gen3_load "gen3/lib/g3k_manifest"
 
 patch_kube() {
   local depName="$1"
@@ -21,6 +21,7 @@ patch_kube() {
 
 # 
 # Patch replicas
+#
 g3k_replicas() {
   if [[ -z "$1" || -z "$2" ]]; then
     echo -e $(red_color "g3k replicas deployment-name replica-count")
@@ -30,8 +31,18 @@ g3k_replicas() {
 }
 
 get_pod() {
-    pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep -m 1 $1)
+  local pod
+  local name
+  name=$1
+  (
+    set +e
+    # prefer Running pods
+    pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.status.phase}{"   "}{.metadata.name}{"\n"}{end}' | grep Running | awk '{ print $2 }' | grep -m 1 $name)
+    if [[ -z "$pod" ]]; then # fall back to any pod if no Running pods available
+      pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep -m 1 $name)
+    fi
     echo $pod
+  )
 }
 
 get_pods() {
@@ -39,36 +50,10 @@ get_pods() {
 }
 
 update_config() {
-    g3kubectl delete configmap $1
+    if g3kubectl get configmap $1 > /dev/null 2>&1; then
+      g3kubectl delete configmap $1
+    fi
     g3kubectl create configmap $1 --from-file $2
-}
-
-g3k_help() {
-  message="$1"
-  cat - <<EOM
-  $message
-  Use:
-  g3k COMMAND - where COMMAND is one of:
-    backup - backup home directory to vpc's S3 bucket
-    devterm - open a terminal session in a dev pod
-    ec2_reboot PRIVATE-IP - reboot the ec2 instance with the given private ip
-    help
-    jobpods JOBNAME - list pods associated with given job
-    joblogs JOBNAME - get logs from first result of jobpods
-    pod PATTERN - grep for the first pod name matching PATTERN
-    pods PATTERN - grep for all pod names matching PATTERN
-    psql SERVICE 
-       - where SERVICE is one of sheepdog, indexd, fence
-    replicas DEPLOYMENT-NAME REPLICA-COUNT
-    roll DEPLOYMENT-NAME
-      Apply the current manifest to the specified deployment - triggers
-      and update in most deployments (referencing GEN3_DATE_LABEL) even 
-      if the version does not change.
-    runjob JOBNAME k1 v1 k2 v2 ...
-     - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
-    testsuite
-    update_config CONFIGMAP-NAME YAML-FILE
-EOM
 }
 
 #
@@ -88,7 +73,17 @@ g3k_psql() {
     echo -e $(red_color "g3k_psql: vpc_name variable must be set")
     return 1
   fi
-  local credsPath="${HOME}/${vpc_name}_output/creds.json"
+
+  if [[ -f "${HOME}/${vpc_name}_output/creds.json" ]]; then # legacy path - fix it
+    if [[ ! -f "${HOME}/${vpc_name}/creds.json" ]]; then
+      # new path
+      mkdir -p "${HOME}/${vpc_name}"
+      cp "${HOME}/${vpc_name}_output/creds.json" "${HOME}/${vpc_name}/creds.json"
+    fi
+    mv "${HOME}/${vpc_name}_output/creds.json" "${HOME}/${vpc_name}_output/creds.json.bak"
+  fi
+
+  local credsPath="${HOME}/${vpc_name}/creds.json"
   if [[ ! -f "$credsPath" ]]; then
     echo -e $(red_color "g3k_psql: could not find $credsPath")
     return 1
@@ -99,10 +94,10 @@ g3k_psql() {
     key=gdcapi
     ;;
   "sheepdog")
-    key=gdcapi
+    key=sheepdog
     ;;
   "peregrine")
-    key=gdcapi
+    key=peregrine
     ;;
   "indexd")
     key=indexd
@@ -133,53 +128,89 @@ g3k_runjob() {
   local kvList
   local tempFile
   local result
+  local jobPath
   declare -a kvList=()
 
   jobName=$1
+  result=1
   shift
   if [[ -z "$jobName" ]]; then
     echo "g3k runjob JOBNAME"
     return 1
   fi
   jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.yaml"
-  if [[ ! -f "$jobPath" ]]; then
-    echo "Could not find $jobPath"
-    return 1
-  fi
-   
-  while [[ $# -gt 0 ]]; do
-    kvList+=("$1")
-    shift
-  done
-  tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "job.yaml_XXXXXX")
-  g3k_manifest_filter "$jobPath" "" "${kvList[@]}" > "$tempFile"
+  if [[ -f "$jobPath" ]]; then   
+    while [[ $# -gt 0 ]]; do
+      kvList+=("$1")
+      shift
+    done
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "job.yaml_XXXXXX")
+    g3k_manifest_filter "$jobPath" "" "${kvList[@]}" > "$tempFile"
 
-  if [[ $(yq -r .metadata.name < "$tempFile") != "$jobName" ]]; then
-    echo ".metadata.name != $jobName in $jobPath"
-    cat "$tempFile"
-    return 1
+    if [[ $(yq -r .metadata.name < "$tempFile") != "$jobName" ]]; then
+      echo ".metadata.name != $jobName in $jobPath"
+      cat "$tempFile"
+      return 1
+    fi
+  
+    # delete previous job run and pods if any
+    if g3kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
+      g3kubectl delete "jobs/${jobName}"
+    fi
+    g3kubectl create -f "$tempFile"
+    result=$?
+    /bin/rm $tempFile
+  elif g3kubectl get cronjob "$jobName" > /dev/null 2>&1; then
+    # delete previous job run and pods if any
+    if g3kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
+      g3kubectl delete "jobs/${jobName}"
+    fi
+    
+    g3kubectl create job "$jobName" --from="$jobName"
+    result=$?
+    if [[ "$result" != 0 ]]; then
+      cat - <<EOM
+
+GEN3 TODO: switch cronjob to v1beta1 apiVersion to
+  support running jobs from cronjobs: 
+     https://kubernetes.io/docs/tasks/job/automated-tasks-with-cron-jobs/
+EOM
+    fi
+  else
+    echo "Could not find $jobPath and no cronjob"
+    result=1
   fi
- 
-  # delete previous job run and pods if any
-  if g3kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
-    g3kubectl delete "jobs/${jobName}"
-  fi
-  g3kubectl create -f "$tempFile"
-  result=$?
-  /bin/rm $tempFile
   return "$result"
 }
 
 #
-# Get the pods associated with the given jobname
+# Get the pods associated with the given jobname - does a 
+# prefix match on the jobName, so cron job instances get sucked in too
+#
+# @param jobName
 #
 g3k_jobpods(){
+  local jobName
+  local jobList
+  local it
   jobName="$1"
   if [[ -z "$jobName" ]]; then
     echo "g3k jobpods JOB-NAME"
     return 1
   fi
-  g3kubectl get pods --selector=job-name="$jobName" --output=jsonpath={.items..metadata.name}
+  # this crazy jobList thing should have a bare job and the newest cron job
+  jobList=$(g3kubectl get jobs --output=json | \
+   jq -r '[ .items[].metadata.name | select(startswith("'"${jobName}-"'")) ] | sort | "'"${jobName}"'", last(.[])' | \
+   grep -v null | sort -u
+  )
+
+  # Funny construct to get rid of empty lines
+  grep "$jobName" <(
+    for it in $jobList; do
+      g3kubectl get pods --selector=job-name="$it" --output=jsonpath={.items..metadata.name}
+      echo ""
+    done
+  )
 }
 
 #
@@ -188,7 +219,7 @@ g3k_jobpods(){
 # to interact directly with running services
 #
 g3k_devterm() {
-  g3kubectl run "awshelper-$(date +%s)" -it --rm=true --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
+  g3kubectl run "awshelper-$(date +%s)" -it --rm=true --labels="app=gen3job" --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
 }
 
 #
@@ -242,59 +273,65 @@ g3k_ec2_reboot() {
 g3k() {
   command=$1
   shift
-  if [[ -z "$command" || "$command" =~ ^-*help$ ]]; then
-    g3k_help "$*"
-    return $?
-  fi
-  (set -e
-    case "$command" in
-    "backup")
-      g3k_backup "$@"
-      ;;
-    "devterm")
-      g3k_devterm "$@"
-      ;;
-    "ec2_reboot")
-      g3k_ec2_reboot "$@"
-      ;;
-    "jobpods")
-      g3k_jobpods "$@"
-      ;;
-    "joblogs")
-      g3k_joblogs "$@"
-      ;;
-    "patch_kube") # legacy name
-      patch_kube "$@"
-      ;;
-    "pod")
-      get_pod "$@"
-      ;;
-    "pods")
-      get_pods "$@"
-      ;;
-    "psql")
-      g3k_psql "$@"
-      ;;
-    "roll")
-      g3k_roll "$@"
-      ;;
-    "replicas")
-      g3k_replicas "$@"
-      ;;
-    "runjob")
-      g3k_runjob "$@"
-      ;;
-    "testsuite")
-      bash "${GEN3_HOME}/gen3/bin/g3k_testsuite.sh"
-      ;;
-    "update_config")
-      update_config "$@"
-      ;;
-    *)
-      g3k_help "unknown command: $command"
-      exit 2
-      ;;
-    esac
-  )
+  case "$command" in
+  "reload") # reload should not run in a subshell
+    gen3_reload
+    ;;
+  *)
+    (set -e
+      case "$command" in
+      "backup")
+        g3k_backup "$@"
+        ;;
+      "devterm")
+        g3k_devterm "$@"
+        ;;
+      "ec2_reboot")
+        g3k_ec2_reboot "$@"
+        ;;
+      "jobpods")
+        g3k_jobpods "$@"
+        ;;
+      "joblogs")
+        g3k_joblogs "$@"
+        ;;
+      "patch_kube") # legacy name
+        patch_kube "$@"
+        ;;
+      "pod")
+        get_pod "$@"
+        ;;
+      "pods")
+        get_pods "$@"
+        ;;
+      "psql")
+        g3k_psql "$@"
+        ;;
+      "random")
+        random_alphanumeric "$@"
+        ;;
+      "roll")
+        g3k_roll "$@"
+        ;;
+      "replicas")
+        g3k_replicas "$@"
+        ;;
+      "runjob")
+        g3k_runjob "$@"
+        ;;
+      "testsuite")
+        bash "${GEN3_HOME}/gen3/bin/g3k_testsuite.sh"
+        ;;
+      "update_config")
+        update_config "$@"
+        ;;
+      *)
+        echo "ERROR: unknown command: $command"
+        exit 2
+        ;;
+      esac
+    )
+    ;;
+  esac
   return $?
 }

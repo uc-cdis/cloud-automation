@@ -5,32 +5,27 @@ groups: {}
 users:
   cdis:
     admin: True
-  phillis.tt@gmail.com:
+  yajingt@uchicago.edu:
     admin: True
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
-  curroortuno@gmail.com:
+  fortuno@uchicago.edu:
     admin: True
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
-  thanhnd.fit@gmail.com:
+  thanhnd@uchicago.edu:
     admin: True
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
-  razorm@gmail.com:
+  zflamig@uchicago.edu:
     admin: True
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
-  dmiller5191@gmail.com:
-    admin: True
-    projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
-  reuben@frickjack.com:
+  dmiller15@uchicago.edu:
     admin: True
     projects:
     - auth_id: acct
@@ -50,12 +45,22 @@ users:
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
-  chris.g.meyer@gmail.com:
+  cgmeyer@uchicago.edu:
     admin: True
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
-  giangbui0816@gmail.com:
+  giangbui@uchicago.edu:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  fauzi@uchicago.edu:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']
+  rarya@uchicago.edu:
     admin: True
     projects:
     - auth_id: acct

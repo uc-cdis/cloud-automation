@@ -2,17 +2,17 @@
 #
 # Initializes the Gen3 k8s secrets and services.
 #
-# Note that kube.tf cat's this file into ${vpc_name}_output/kube-services.sh,
-# but can also run this standalone if the environment is
-# properly configured.
-#
 set -e
 
-_KUBE_SERVICES_BODY=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SERVICES_BODY}/../lib/kube-setup-init.sh"
+# Make it easy to run this directly ...
+_roll_all_dir="$(dirname -- "${BASH_SOURCE:-$0}")"
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_roll_all_dir}/../.." && pwd)}"
+
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-workvm
-if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
   gen3 kube-setup-secrets
 fi
 gen3 kube-setup-roles
@@ -35,6 +35,18 @@ gen3 kube-setup-fluentd
 gen3 kube-setup-networkpolicy
 
 # portal is not happy until other services are up
+# If new pods are still rolling/starting up, then wait for that to finish
+(
+    COUNT=0
+    while [[ COUNT -lt 20 && 0 != "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.generateName, phase: .status.phase }] | map(select( .phase=="Pending" )) | length')" ]]; do 
+      g3kubectl get pods
+      echo ------------
+      echo "Waiting for pods to exit Pending state before rolling portal"
+      let COUNT+=1
+      sleep 10
+    done
+)
+
 gen3 roll portal
 
 cat - <<EOM

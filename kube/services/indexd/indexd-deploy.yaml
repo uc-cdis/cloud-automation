@@ -84,7 +84,7 @@ spec:
             mountPath: "/mnt/ssl/service.key"
             subPath: "service.key"
           - name: "ca-volume"
+            # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
             readOnly: true
-            mountPath: "/mnt/ssl/cdis-ca.crt"
+            mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
-      

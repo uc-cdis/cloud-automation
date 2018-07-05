@@ -2,23 +2,19 @@
 #
 # Initializes the Gen3 k8s secrets and services.
 #
-# Note that kube.tf cat's this file into ${vpc_name}_output/kube-services.sh,
-# but can also run this standalone if the environment is
-# properly configured.
-#
 set -e
 
-_KUBE_SETUP_SECRETS=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SETUP_SECRETS}/../lib/kube-setup-init.sh"
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
 
 mkdir -p "${WORKSPACE}/${vpc_name}/apis_configs"
 
-if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
   #
   # Setup the files that will become secrets in "${WORKSPACE}/$vpc_name/apis_configs"
   #
-  cd "${WORKSPACE}"/${vpc_name}_output
-
+  cd "${WORKSPACE}"/${vpc_name}
+ 
   # Note: look into 'kubectl replace' if you need to replace a secret
   if ! g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
     g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
@@ -27,11 +23,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update secrets
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .indexd < creds.json > "$credsFile"
     g3kubectl create secret generic indexd-creds "--from-file=creds.json=${credsFile}"
-  fi
-
-  if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/user.yaml ]]; then
-    # user database for accessing the commons ...
-    cp "${GEN3_HOME}/apis_configs/user.yaml" "${WORKSPACE}"/${vpc_name}/apis_configs/
   fi
 
   cd "${WORKSPACE}"/${vpc_name}
@@ -49,14 +40,14 @@ if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
   g3kubectl create configmap config-helper --from-file "${GEN3_HOME}/apis_configs/config_helper.py"
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence secrets
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
     echo "${WORKSPACE}/${vpc_name} does not exist"
     exit 1
   fi
 
-  cd "${WORKSPACE}/${vpc_name}_output"
-
+  cd "${WORKSPACE}/${vpc_name}"
+  
   if ! g3kubectl get secret fence-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .fence < creds.json > "$credsFile"
@@ -85,6 +76,10 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     if [[ -f jwt-keys/jwt_public_key.pem && -f jwt-keys/jwt_private_key.pem ]]; then
       mv jwt-keys/*.pem "$newDirForOldKeys/"
     fi
+    if [[ ! -f ${newDirForOldKeys}/jwt_public_key.pem || ! -f ${newDirForOldKeys}/jwt_private_key.pem ]]; then
+      openssl genrsa -out ${newDirForOldKeys}/jwt_private_key.pem 2048
+      openssl rsa -in ${newDirForOldKeys}/jwt_private_key.pem -pubout -out ${newDirForOldKeys}/jwt_public_key.pem
+    fi
 
     timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     mkdir jwt-keys/${timestamp}
@@ -98,6 +93,14 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   fi
 
   if ! g3kubectl get configmaps/fence > /dev/null 2>&1; then
+    #
+    # Only restore local user.yaml if the fence configmap does not exist.
+    # Most commons sync the user db from an S3 bucket.
+    #
+    if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/user.yaml ]]; then
+      # user database for accessing the commons ...
+      cp "${GEN3_HOME}/apis_configs/user.yaml" "${WORKSPACE}"/${vpc_name}/apis_configs/
+    fi
     g3kubectl create configmap fence --from-file=apis_configs/user.yaml
   fi
 
@@ -147,6 +150,26 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
     g3kubectl create secret generic fence-ssh-keys --from-file=id_rsa=./ssh-keys/id_rsa --from-file=id_rsa.pub=./ssh-keys/id_rsa.pub
   fi
 
+  if [[ -d apis_configs/dcf_dataservice ]]; then
+      if ! g3kubectl get secret aws-creds-secret > /dev/null 2>&1; then
+         g3kubectl create secret generic aws-creds-secret --from-file=credentials=./apis_configs/dcf_dataservice/aws_creds_secret
+      fi
+      if ! g3kubectl get secrets/dcf-dataservice-json-secret > /dev/null 2>&1; then
+         if [[ ! -f "./apis_configs/dcf_dataservice/creds.json" ]]; then
+             touch "./apis_configs/dcf_dataservice/creds.json"
+         fi
+         echo "create dcf-dataservice-json-secret using current creds file apis_configs/dcf_dataservice/creds.json"
+         g3kubectl create secret generic dcf-dataservice-json-secret --from-file=dcf_dataservice_credentials.json=./apis_configs/dcf_dataservice/creds.json
+      fi
+
+      if ! g3kubectl get configmaps/data-service-manifest > /dev/null 2>&1; then
+         if [[ ! -f "./apis_configs/dcf_dataservice/manifest" ]]; then
+           touch "./apis_configs/dcf_dataservice/manifest"
+         fi
+         g3kubectl create configmap data-service-manifest --from-file=manifest=./apis_configs/dcf_dataservice/manifest
+      fi
+  fi
+
   if ! g3kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
     mkdir -p ./apis_configs/.ssh
     if [[ ! -f "./apis_configs/.ssh/config" ]]; then
@@ -182,14 +205,14 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update fence se
   fi
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update peregrine secrets
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secrets
   if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
     echo "${WORKSPACE}/${vpc_name} does not exist"
     exit 1
   fi
 
-  cd "${WORKSPACE}/${vpc_name}_output"
-
+  cd "${WORKSPACE}/${vpc_name}"
+  
   if ! g3kubectl get secret peregrine-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .peregrine < creds.json > "$credsFile"
@@ -230,13 +253,13 @@ if [[ -z "$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}'
   exit 1
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
   if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
     echo "${WORKSPACE}/${vpc_name} does not exist"
     exit 1
   fi
 
-  cd "${WORKSPACE}/${vpc_name}_output"
+  cd "${WORKSPACE}/${vpc_name}"
   if ! g3kubectl get secret sheepdog-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .sheepdog < creds.json > "$credsFile"
@@ -252,7 +275,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
   #
   # Create the 'sheepdog' and 'peregrine' postgres user if necessary
   #
-  cd "${WORKSPACE}/${vpc_name}_output"
+  cd "${WORKSPACE}/${vpc_name}"
 
   if ! psql --help > /dev/null; then
     export DEBIAN_FRONTEND=noninteractive
@@ -273,55 +296,62 @@ if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then  # update secrets
   export PGPASSWORD="$gdcapi_db_password"
 
   declare -a sqlList
+  let tTooOld="$(date +%s) - 120"
+  psqlFlagFile="${WORKSPACE}/${vpc_name}/.rendered_psql_users"
+  # Avoid doing this over and over ...
+  if [[ ! -f "$psqlFlagFile" || $(stat -c %Y "$psqlFlagFile") -lt "$tTooOld" ]]; then
+    # Create peregrine and sheepdog db users if necessary
+    for user in sheepdog peregrine; do
+      new_db_user=$(jq -r .${user}.db_username < creds.json)
+      new_db_password=$(jq -r .${user}.db_password < creds.json)
 
-  # Create peregrine and sheepdog db users if necessary
-  for user in sheepdog peregrine; do
-    new_db_user=$(jq -r .${user}.db_username < creds.json)
-    new_db_password=$(jq -r .${user}.db_password < creds.json)
-
-    if [[ "$gdcapi_db_user" != "$new_db_user" ]]; then
-      new_user_count=$(psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "SELECT COUNT(*) FROM pg_catalog.pg_user WHERE usename='$new_db_user';")
-      if [[ $new_user_count -eq 0 ]]; then
-        echo "Creating postgres user $new_db_user"
-        sql="CREATE USER $new_db_user WITH PASSWORD '$new_db_password';"
-        echo "Running: $sql"
-        psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql"
+      if [[ "$gdcapi_db_user" != "$new_db_user" ]]; then
+        new_user_count=$(psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "SELECT COUNT(*) FROM pg_catalog.pg_user WHERE usename='$new_db_user';")
+        if [[ $new_user_count -eq 0 ]]; then
+          echo "Creating postgres user $new_db_user"
+          sql="CREATE USER $new_db_user WITH PASSWORD '$new_db_password';"
+          echo "Running: $sql"
+          psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql"
+        fi
       fi
-    fi
-  done
+    done
 
-  # Grant permissions to peregrine
-  sqlList=(
-    "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $peregrine_db_user;"
-    "ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
-  );
-  for sql in "${sqlList[@]}"; do
-    echo "Running: $sql"
-    psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql";
-  done
-
-  # GRANT permissions to sheepdog
-  declare -a sqlList;
-  if [[ "$gdcapi_db_user" != "$sheepdog_db_user" ]]; then
-    # sheepdog needs some extra permissions if it is not already the db owner
+    # Grant permissions to peregrine
     sqlList=(
-      "GRANT ALL ON ALL TABLES IN SCHEMA public TO $sheepdog_db_user;"
-      "GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO $sheepdog_db_user;"
-      "GRANT ALL ON SCHEMA public TO $sheepdog_db_user;"
-      "ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $sheepdog_db_user;"
-      "ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $sheepdog_db_user;"
+      "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $peregrine_db_user;"
+      "ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
     );
     for sql in "${sqlList[@]}"; do
       echo "Running: $sql"
-      psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql";
+      psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
     done
-    # sheepdog user needs to grant peregrine privileges
-    # on postgres stuff sheepdog creates in the future if sheepdog user is not the
-    # same as the 'gdcapi' user - which is the case when migrating legacy commons ...
-    sql="ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
-    echo "Running: $sql"
-    PGPASSWORD="$sheepdog_db_password" psql -t -U "$sheepdog_db_user" -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql"
+
+    # GRANT permissions to sheepdog
+    declare -a sqlList;
+    if [[ "$gdcapi_db_user" != "$sheepdog_db_user" ]]; then
+      # sheepdog needs some extra permissions if it is not already the db owner
+      sqlList=(
+        "GRANT ALL ON ALL TABLES IN SCHEMA public TO $sheepdog_db_user;"
+        "GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO $sheepdog_db_user;"
+        "GRANT ALL ON SCHEMA public TO $sheepdog_db_user;"
+        "ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $sheepdog_db_user;"
+        "ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $sheepdog_db_user;"
+      );
+      for sql in "${sqlList[@]}"; do
+        echo "Running: $sql"
+        psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
+      # sheepdog user needs to grant peregr
+      done  
+      # sheepdog user needs to grant peregrine privileges 
+      # on postgres stuff sheepdog creates in the future if sheepdog user is not the
+      # same as the 'gdcapi' user - which is the case when migrating legacy commons ...
+      sql="ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
+      echo "Running: $sql"
+      PGPASSWORD="$sheepdog_db_password" psql -t -U "$sheepdog_db_user" -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
+    fi
+    touch "$psqlFlagFile"
   fi
+
   # setup the database ...
   cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f .rendered_gdcapi_db ]]; then

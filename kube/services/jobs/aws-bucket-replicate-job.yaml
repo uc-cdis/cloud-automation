@@ -1,0 +1,92 @@
+# run with 
+# g3k runjob aws-bucket-sync \
+# GDC_BUCKET_NAME a_bucket_name \
+# CHUNK_SIZE chunk_size
+#
+# folow the below link  to setup bucket owner grant access to other aws account 
+# https://docs.aws.amazon.com/AmazonS3/latest/dev/example-walkthroughs-managing-access-example2.html
+#
+# setup bucket policy so that the user test can access to the bucket (GDC bucket)
+# {
+#     "Version": "2012-10-17",
+#     "Statement": [
+#         {
+#             "Sid": "Example permissions",
+#             "Effect": "Allow",
+#             "Principal": {
+#                 "AWS": "arn:aws:iam::xxxxxxxxxxx:user/test"
+#             },
+#             "Action": [
+#                 "s3:GetBucketLocation",
+#                 "s3:ListBucket"
+#             ],
+#             "Resource": "arn:aws:s3:::gdc_bucket"
+#         },
+#         {
+#             "Sid": "bucket permissions",
+#             "Effect": "Allow",
+#             "Principal": {
+#                 "AWS": "arn:aws:iam::xxxxxxxxxxx:user/test"
+#             },
+#             "Action": [
+#                 "s3:GetObject"
+#             ],
+#             "Resource": "arn:aws:s3:::gdc_bucket/*"
+#         }
+#     ]
+# }
+# 
+# HOW TO RUN
+# g3k runjob aws-bucket-replicate GDC_BUCKET_NAME gdc_test_bk_bucket LOG_BUCKET log_bucket CHUNK_SIZE 4
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: aws-bucket-replicate
+spec:
+  # not yet supported - backOffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "aws-creds-secret"
+        - name: manifest-volume
+          configMap:
+            name: data-service-manifest
+        - name: creds-json-volume
+          secret:
+            secretName: "dcf-dataservice-json-secret"
+      containers:
+      - name: awsreplicate
+        image: quay.io/cdis/dcf-dataservice:feat_data_replicate_service
+        imagePullPolicy: Always
+        env:
+          - name: GDC_BUCKET_NAME
+            GEN3_GDC_BUCKET_NAME
+          - name: LOG_BUCKET
+            GEN3_LOG_BUCKET
+          - name: CHUNK_SIZE
+            GEN3_CHUNK_SIZE
+        volumeMounts:
+          - name: cred-volume
+            mountPath: "/root/.aws/credentials"
+            subPath: credentials
+          - name: "manifest-volume"
+            mountPath: "/dcf-dataservice/manifest"
+            subPath: "manifest"
+          - name: "creds-json-volume"
+            mountPath: "/secrets/dcf_dataservice_credentials.json"
+            subPath: "dcf_dataservice_credentials.json"
+        command: ["/bin/bash" ]
+        args: 
+          - "-c"
+          - |
+            echo """
+            [default]
+            region: us-east-1
+            """ > ~/.aws/config
+            python scripts/replicate.py aws_replicate --bucket $GDC_BUCKET_NAME --manifest_file /dcf-dataservice/manifest --global_config "{\"chunk_size\": $CHUNK_SIZE, \"log_bucket\": \"$LOG_BUCKET\"}"
+      restartPolicy: Never
