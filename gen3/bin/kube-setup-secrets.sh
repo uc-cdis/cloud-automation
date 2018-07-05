@@ -14,7 +14,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
   # Setup the files that will become secrets in "${WORKSPACE}/$vpc_name/apis_configs"
   #
   cd "${WORKSPACE}"/${vpc_name}
- 
+
   # Note: look into 'kubectl replace' if you need to replace a secret
   if ! g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
     g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
@@ -47,7 +47,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   fi
 
   cd "${WORKSPACE}/${vpc_name}"
-  
+
   if ! g3kubectl get secret fence-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .fence < creds.json > "$credsFile"
@@ -212,7 +212,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
   fi
 
   cd "${WORKSPACE}/${vpc_name}"
-  
+
   if ! g3kubectl get secret peregrine-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .peregrine < creds.json > "$credsFile"
@@ -223,27 +223,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
 
   if ! g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
     g3kubectl create secret generic peregrine-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/peregrine_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
-  fi
-fi
-
-if [[ -f "${WORKSPACE}/${vpc_name}_output/creds.json" ]]; then # update pidgin secrets
-  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
-    echo "${WORKSPACE}/${vpc_name} does not exist"
-    exit 1
-  fi
-
-  cd "${WORKSPACE}/${vpc_name}_output"
-
-  #if ! g3kubectl get secret pidgin-creds > /dev/null 2>&1; then
-  #  credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-  #  jq -r .pidgin < creds.json > "$credsFile"
-  #  g3kubectl create secret generic pidgin-creds "--from-file=creds.json=${credsFile}"
-  #fi
-
-  cd "${WORKSPACE}/${vpc_name}"
-
-  if ! g3kubectl get secrets/pidgin-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic pidgin-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/pidgin_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
 fi
 
@@ -341,8 +320,8 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
         echo "Running: $sql"
         psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
       # sheepdog user needs to grant peregr
-      done  
-      # sheepdog user needs to grant peregrine privileges 
+      done
+      # sheepdog user needs to grant peregrine privileges
       # on postgres stuff sheepdog creates in the future if sheepdog user is not the
       # same as the 'gdcapi' user - which is the case when migrating legacy commons ...
       sql="ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"

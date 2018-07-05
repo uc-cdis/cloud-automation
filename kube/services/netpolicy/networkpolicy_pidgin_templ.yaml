@@ -24,9 +24,6 @@ spec:
             app: pidgin
       - podSelector:
           matchLabels:
-            app: indexd
-      - podSelector:
-          matchLabels:
             app: peregrine
       - ipBlock:
            cidr: GEN3_CLOUDPROXY_IP/32

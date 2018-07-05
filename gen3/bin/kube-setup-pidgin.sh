@@ -5,7 +5,8 @@
 #
 
 _KUBE_SETUP_PIDGIN=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SETUP_PIDGIN}/../lib/kube-setup-init.sh"
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-secrets
 gen3 roll pidgin
