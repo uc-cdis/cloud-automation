@@ -36,21 +36,11 @@ gen3 kube-setup-networkpolicy
 
 # portal is not happy until other services are up
 # If new pods are still rolling/starting up, then wait for that to finish
-(
-    COUNT=0
-    while [[ COUNT -lt 20 && 0 != "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.generateName, phase: .status.phase }] | map(select( .phase=="Pending" )) | length')" ]]; do 
-      g3kubectl get pods
-      echo ------------
-      echo "Waiting for pods to exit Pending state before rolling portal"
-      let COUNT+=1
-      sleep 10
-    done
-)
-
+gen3 kube-wait4-pods
 gen3 roll portal
 
 cat - <<EOM
-INFO: delete the portal pod if necessary to force a restart -
+INFO: 'gen3 roll portal' if necessary to force a restart -
    portal will not come up cleanly until after the reverse proxy
    services is fully up.
 
