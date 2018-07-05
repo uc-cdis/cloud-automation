@@ -140,7 +140,7 @@ g3k_runjob() {
   fi
   jobPath="$jobName"
   if [[ -f "$jobPath" ]]; then
-      jobName="$(basename $jobPath | sed 's/.yaml$//')"
+      jobName="$(basename $jobPath | sed 's/-job.yaml$//')"
   else
     jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.yaml"
   fi
