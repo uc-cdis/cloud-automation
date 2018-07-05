@@ -270,7 +270,9 @@ gen3_onprem_setup_compose() {
   cd ${cur_dir}
 }
 
-
+#
+# Helper function fo gen3_onprem_setup_compose to generate creds.json file
+#
 gen3_onprem_setup_compose_creds_json() {
   if [[ ! -f ${GEN3_COMPOSEDIR}/apis_configs/creds.json ]]; then
     (
