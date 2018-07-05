@@ -104,6 +104,18 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     g3kubectl create configmap fence --from-file=apis_configs/user.yaml
   fi
 
+  if ! g3kubectl get configmaps/logo-config > /dev/null 2>&1; then
+    #
+    # Only restore local user.yaml if the fence configmap does not exist.
+    # Most commons sync the user db from an S3 bucket.
+    #
+    if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/logo.svg ]]; then
+      # user database for accessing the commons ...
+      cp "${GEN3_HOME}/apis_configs/logo.svg" "${WORKSPACE}"/${vpc_name}/apis_configs/
+    fi
+    g3kubectl create configmap logo-config --from-file=apis_configs/logo.svg
+  fi
+
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
     g3kubectl create secret generic fence-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/fence_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
