@@ -7,8 +7,8 @@ def load_json(file_name):
   return config_helper.load_json(file_name, APP_NAME)
 
 #conf_data = load_json('creds.json')
-#config = app.config
+config = app.config
 
-#config['PEREGRINE_API'] = 'http://peregrine-service/'
+config['API_URL'] = 'http://peregrine-service/v0/submission/graphql/'
 #app_init(app)
 application = app
