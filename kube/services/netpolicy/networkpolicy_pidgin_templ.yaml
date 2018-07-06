@@ -17,6 +17,14 @@ spec:
       ports:
          - port: 80
          - port: 443
+  egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app: pidgin
+      - podSelector:
+          matchLabels:
+            app: peregrine
 
   policyTypes:
    - Ingress
