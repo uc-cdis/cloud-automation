@@ -30,6 +30,7 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 gen3 kube-setup-fence
 gen3 kube-setup-sheepdog
 gen3 kube-setup-peregrine
+gen3 kube-setup-pidgin
 gen3 kube-setup-revproxy
 gen3 kube-setup-fluentd
 gen3 kube-setup-networkpolicy
@@ -38,7 +39,7 @@ gen3 kube-setup-networkpolicy
 # If new pods are still rolling/starting up, then wait for that to finish
 (
     COUNT=0
-    while [[ COUNT -lt 20 && 0 != "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.generateName, phase: .status.phase }] | map(select( .phase=="Pending" )) | length')" ]]; do 
+    while [[ COUNT -lt 20 && 0 != "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.generateName, phase: .status.phase }] | map(select( .phase=="Pending" )) | length')" ]]; do
       g3kubectl get pods
       echo ------------
       echo "Waiting for pods to exit Pending state before rolling portal"
