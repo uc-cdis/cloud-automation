@@ -36,7 +36,7 @@ gen3 kube-setup-networkpolicy
 
 # portal is not happy until other services are up
 # If new pods are still rolling/starting up, then wait for that to finish
-gen3 kube-wait4-pods
+gen3 kube-wait4-pods || true
 gen3 roll portal
 
 cat - <<EOM
