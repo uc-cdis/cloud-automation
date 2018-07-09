@@ -104,6 +104,18 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     g3kubectl create configmap fence --from-file=apis_configs/user.yaml
   fi
 
+  if ! g3kubectl get configmaps/logo-config > /dev/null 2>&1; then
+    #
+    # Only restore local user.yaml if the fence configmap does not exist.
+    # Most commons sync the user db from an S3 bucket.
+    #
+    if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/logo.svg ]]; then
+      # user database for accessing the commons ...
+      cp "${GEN3_HOME}/apis_configs/logo.svg" "${WORKSPACE}"/${vpc_name}/apis_configs/
+    fi
+    g3kubectl create configmap logo-config --from-file=apis_configs/logo.svg
+  fi
+
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
     g3kubectl create secret generic fence-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/fence_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
@@ -148,26 +160,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
 
   if ! g3kubectl get secrets/fence-ssh-keys > /dev/null 2>&1; then
     g3kubectl create secret generic fence-ssh-keys --from-file=id_rsa=./ssh-keys/id_rsa --from-file=id_rsa.pub=./ssh-keys/id_rsa.pub
-  fi
-
-  if [[ -d apis_configs/dcf_dataservice ]]; then
-      if ! g3kubectl get secret aws-creds-secret > /dev/null 2>&1; then
-         g3kubectl create secret generic aws-creds-secret --from-file=credentials=./apis_configs/dcf_dataservice/aws_creds_secret
-      fi
-      if ! g3kubectl get secrets/dcf-dataservice-json-secret > /dev/null 2>&1; then
-         if [[ ! -f "./apis_configs/dcf_dataservice/creds.json" ]]; then
-             touch "./apis_configs/dcf_dataservice/creds.json"
-         fi
-         echo "create dcf-dataservice-json-secret using current creds file apis_configs/dcf_dataservice/creds.json"
-         g3kubectl create secret generic dcf-dataservice-json-secret --from-file=dcf_dataservice_credentials.json=./apis_configs/dcf_dataservice/creds.json
-      fi
-
-      if ! g3kubectl get configmaps/data-service-manifest > /dev/null 2>&1; then
-         if [[ ! -f "./apis_configs/dcf_dataservice/manifest" ]]; then
-           touch "./apis_configs/dcf_dataservice/manifest"
-         fi
-         g3kubectl create configmap data-service-manifest --from-file=manifest=./apis_configs/dcf_dataservice/manifest
-      fi
   fi
 
   if ! g3kubectl get configmaps/fence-sshconfig > /dev/null 2>&1; then
