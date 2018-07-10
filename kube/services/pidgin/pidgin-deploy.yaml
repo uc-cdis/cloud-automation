@@ -57,6 +57,10 @@ spec:
           - containerPort: 80
           - containerPort: 443
           volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/peregrine/wsgi.py"
+              subPath: "wsgi.py"
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"
