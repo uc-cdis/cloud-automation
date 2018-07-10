@@ -30,6 +30,7 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 gen3 kube-setup-fence
 gen3 kube-setup-sheepdog
 gen3 kube-setup-peregrine
+gen3 kube-setup-pidgin
 gen3 kube-setup-revproxy
 gen3 kube-setup-fluentd
 gen3 kube-setup-networkpolicy
