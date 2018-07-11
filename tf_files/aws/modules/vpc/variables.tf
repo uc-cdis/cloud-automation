@@ -28,3 +28,8 @@ variable "csoc_cidr" {
 variable "csoc_vpc_id" {
   default = "vpc-e2b51d99"
 }
+
+
+variable "squid-nlb-endpointservice-name" {
+  default = "com.amazonaws.vpce.us-east-1.vpce-svc-0ce2261f708539011"
+  }

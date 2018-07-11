@@ -84,7 +84,7 @@ fi
 if which gcloud > /dev/null 2>&1; then
   gcloud config set core/disable_usage_reporting true
   gcloud config set component_manager/disable_update_check true
-  gcloud config set container/use_v1_api false
+#  gcloud config set container/use_v1_api false
 fi
 
 CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"

@@ -1,3 +1,8 @@
+.nodesource.com
+.cancer.gov
+.cloud.google.com
+.planx-pla.net
+.datacommons.io
 .amazonaws.com
 .apache.org
 .archive.canonical.com
@@ -9,7 +14,6 @@
 .clamav.net
 .completegenomics.com
 .cpan.org
-.datacommons.io
 .dockerproject.org
 .docker.com
 .elasticsearch.org
@@ -30,7 +34,9 @@
 .osuosl.org
 .perl.org
 .postgresql.org
+.pypi.org
 .pypi.python.org
+.pythonhosted.org
 .pyx4me.com
 .rcsb.org
 .rubygems.org

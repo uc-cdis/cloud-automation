@@ -17,7 +17,7 @@ gen3_workon_onprem(){
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}"
   (
 # Generate some k8s helper scripts for on-prem deployments
-if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ || "$GEN3_WORKSPACE" =~ _logging$  || "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
+if ! [[ "$GEN3_WORKSPACE" =~ _user$ || "$GEN3_WORKSPACE" =~ _snapshot$ || "$GEN3_WORKSPACE" =~ _adminvm$ || "$GEN3_WORKSPACE" =~ _databucket$ || "$GEN3_WORKSPACE" =~ _logging$  || "$GEN3_WORKSPACE" =~ _squidvm$ || "$GEN3_WORKSPACE" =~ _squidnlbcentral$ || "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
   mkdir -p -m 0700 "${GEN3_WORKDIR}/onprem_scripts"
   cd "${GEN3_WORKDIR}"
   cat - > onprem_scripts/kube-setup.sh <<EOM

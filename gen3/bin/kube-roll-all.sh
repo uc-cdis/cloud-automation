@@ -30,15 +30,18 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 gen3 kube-setup-fence
 gen3 kube-setup-sheepdog
 gen3 kube-setup-peregrine
+gen3 kube-setup-pidgin
 gen3 kube-setup-revproxy
 gen3 kube-setup-fluentd
 gen3 kube-setup-networkpolicy
 
 # portal is not happy until other services are up
+# If new pods are still rolling/starting up, then wait for that to finish
+gen3 kube-wait4-pods || true
 gen3 roll portal
 
 cat - <<EOM
-INFO: delete the portal pod if necessary to force a restart -
+INFO: 'gen3 roll portal' if necessary to force a restart -
    portal will not come up cleanly until after the reverse proxy
    services is fully up.
 

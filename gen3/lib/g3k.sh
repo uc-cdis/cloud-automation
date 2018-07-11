@@ -19,7 +19,7 @@ patch_kube() {
   g3kubectl patch deployment "$depName" -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 }
 
-# 
+#
 # Patch replicas
 #
 g3k_replicas() {
@@ -31,8 +31,18 @@ g3k_replicas() {
 }
 
 get_pod() {
-    pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep -m 1 $1)
+  local pod
+  local name
+  name=$1
+  (
+    set +e
+    # prefer Running pods
+    pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.status.phase}{"   "}{.metadata.name}{"\n"}{end}' | grep Running | awk '{ print $2 }' | grep -m 1 $name)
+    if [[ -z "$pod" ]]; then # fall back to any pod if no Running pods available
+      pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep -m 1 $name)
+    fi
     echo $pod
+  )
 }
 
 get_pods() {
@@ -104,12 +114,12 @@ g3k_psql() {
   local password=$(jq -r ".${key}.db_password" < $credsPath)
   local host=$(jq -r ".${key}.db_host" < $credsPath)
   local database=$(jq -r ".${key}.db_database" < $credsPath)
-  
+
   PGPASSWORD="$password" psql -U "$username" -h "$host" -d "$database"
 }
 
 #
-# Run a job with the given name - 
+# Run a job with the given name -
 # template is applied with subsequent k v list
 # see (g3k help) below
 #
@@ -128,8 +138,13 @@ g3k_runjob() {
     echo "g3k runjob JOBNAME"
     return 1
   fi
-  jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.yaml"
-  if [[ -f "$jobPath" ]]; then   
+  jobPath="$jobName"
+  if [[ -f "$jobPath" ]]; then
+      jobName="$(basename $jobPath | sed 's/-job.yaml$//')"
+  else
+    jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.yaml"
+  fi
+  if [[ -f "$jobPath" ]]; then
     while [[ $# -gt 0 ]]; do
       kvList+=("$1")
       shift
@@ -142,7 +157,7 @@ g3k_runjob() {
       cat "$tempFile"
       return 1
     fi
-  
+
     # delete previous job run and pods if any
     if g3kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
       g3kubectl delete "jobs/${jobName}"
@@ -155,14 +170,14 @@ g3k_runjob() {
     if g3kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
       g3kubectl delete "jobs/${jobName}"
     fi
-    
+
     g3kubectl create job "$jobName" --from="$jobName"
     result=$?
     if [[ "$result" != 0 ]]; then
       cat - <<EOM
 
 GEN3 TODO: switch cronjob to v1beta1 apiVersion to
-  support running jobs from cronjobs: 
+  support running jobs from cronjobs:
      https://kubernetes.io/docs/tasks/job/automated-tasks-with-cron-jobs/
 EOM
     fi
@@ -174,7 +189,7 @@ EOM
 }
 
 #
-# Get the pods associated with the given jobname - does a 
+# Get the pods associated with the given jobname - does a
 # prefix match on the jobName, so cron job instances get sucked in too
 #
 # @param jobName
@@ -205,7 +220,7 @@ g3k_jobpods(){
 
 #
 # Launch an interactive terminal into an awshelper Docker image -
-# gives a terminal in a pod on the cluster for running curl, dig, whatever 
+# gives a terminal in a pod on the cluster for running curl, dig, whatever
 # to interact directly with running services
 #
 g3k_devterm() {

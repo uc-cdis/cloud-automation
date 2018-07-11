@@ -39,6 +39,9 @@ spec:
       - podSelector:
           matchLabels:
              app: fence
+      - podSelector:
+          matchLabels:
+             app: pidgin
       - ipBlock:
            cidr: GEN3_CLOUDPROXY_CIDR
       - ipBlock: # cloudwatch-logs and other AWS services

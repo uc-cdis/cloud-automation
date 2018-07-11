@@ -51,6 +51,9 @@ spec:
           configMap:
             name: config-helper
 # -----------------------------------------------------------------------------
+        - name: logo-volume
+          configMap:
+            name: "logo-config"
         - name: config-volume
           secret:
             secretName: "fence-config"
@@ -115,6 +118,10 @@ spec:
             mountPath: "/var/www/fence/config_helper.py"
             subPath: config_helper.py
 # -----------------------------------------------------------------------------
+          - name: "logo-volume"
+            readOnly: true
+            mountPath: "/fence/fence/static/img/logo.svg"
+            subPath: "logo.svg"
           - name: "config-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence-config.yaml"
