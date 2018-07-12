@@ -46,7 +46,3 @@ spec:
           timeoutSeconds: 10
         ports:
         - containerPort: 80
-        volumeMounts:
-          - name: arborist-config
-            readOnly: true
-            mountPath: /arborist/config
