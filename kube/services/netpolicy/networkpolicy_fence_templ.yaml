@@ -23,9 +23,6 @@ spec:
       - podSelector:
           matchLabels:
              app: revproxy
-      - podSelector:
-          matchLabels:
-             app: shiny
       ports:
          - port: 80
          - port: 443
