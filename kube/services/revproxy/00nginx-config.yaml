@@ -139,7 +139,15 @@ data:
       	##
         gzip on;
         gzip_disable "msie6";
-        gzip_types application/javascript;
+        gzip_proxied any;
+        gzip_types
+          text/css
+          text/javascript
+          text/xml
+          text/plain
+          application/javascript
+          application/x-javascript
+          application/json;
        
         ##
         # Namespace
@@ -276,6 +284,8 @@ data:
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
 
+
+              gzip off;
               proxy_next_upstream off;
               # Forward the host and set Subdir header so api
               # knows the original request path for hmac signing
