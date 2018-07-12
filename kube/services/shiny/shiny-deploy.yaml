@@ -15,8 +15,6 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
-      annotations:
-        gen3username: planxdemo@gmail.com
       labels:
         app: shiny
         GEN3_DATE_LABEL
