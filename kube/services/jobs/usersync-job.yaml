@@ -5,6 +5,9 @@ metadata:
 spec:
   # not yet supported - backOffLimit: 3
   template:
+    metadata:
+      labels:
+        app: gen3job
     spec:
       serviceAccountName: useryaml-job
       volumes:
@@ -22,6 +25,12 @@ spec:
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
+        - name: fence-google-app-creds-secret-volume
+          secret:
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
         - name: fence-yaml
           configMap:
             name: fence
@@ -64,6 +73,14 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml
@@ -82,9 +99,9 @@ spec:
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"
         command: ["/bin/bash" ]
-        args: 
+        args:
           - "-c"
-          # Script always succeeds if it runs (echo exits with 0) 
+          # Script always succeeds if it runs (echo exits with 0)
           - |
             let count=0
             while [[ ! -f /mnt/shared/user.yaml && $count -lt 50 ]]; do
@@ -95,7 +112,7 @@ spec:
             if [ ! "$SYNC_FROM_DBGAP" = True ]; then
               if [[ -f /mnt/shared/user.yaml ]]; then
                 echo "fence container user.yaml diff ..."
-                diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
+                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
                 if [[ $? == 1 || "${userYamlS3Path}" = '' ]]; then
                   echo "running fence-create"
                   fence-create sync --yaml /mnt/shared/user.yaml
@@ -113,7 +130,7 @@ spec:
               fi
             fi
             echo "Exit code: $?"
-            
+
       - name: awshelper
         image: quay.io/cdis/awshelper:master
         imagePullPolicy: Always
@@ -135,7 +152,7 @@ spec:
               aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml;
               if [[ -f /mnt/shared/user.yaml ]]; then
                 echo "awshelper container user.yaml diff ..."
-                diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
+                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
                 if [[ $? == 1 ]]; then
                   echo "awshelper updating fence configmap"
                   kubectl delete configmap fence

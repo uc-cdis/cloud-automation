@@ -204,7 +204,7 @@ EOT
 
 
 # Adding AWS profile to the admin VM
-sudo pip install awscli
+sudo python -m pip install awscli
 sudo mkdir -p /home/ubuntu/.aws
 sudo cat <<EOT  >> /home/ubuntu/.aws/config
 [default]

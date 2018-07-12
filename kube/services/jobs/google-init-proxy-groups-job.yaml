@@ -5,6 +5,9 @@ metadata:
   name: google-init-proxy-groups
 spec:
   template:
+    metadata:
+      labels:
+        app: gen3job
     spec:
       serviceAccountName: useryaml-job
       volumes:

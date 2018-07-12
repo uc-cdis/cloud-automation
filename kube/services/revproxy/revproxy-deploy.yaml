@@ -36,6 +36,9 @@ spec:
         - name: revproxy-conf
           configMap:
             name: revproxy-nginx-conf
+        - name: cert-external-volume
+          secret:
+            secretName: "cert-external"
         - name: cert-volume
           secret:
             secretName: "cert-revproxy-service"
@@ -73,14 +76,24 @@ spec:
             subPath: userid.js
           - name: "cert-volume"
             readOnly: true
+            # revproxy-service domain certificate
             mountPath: "/mnt/ssl/service.crt"
             subPath: "service.crt"
           - name: "cert-volume"
             readOnly: true
             mountPath: "/mnt/ssl/service.key"
             subPath: "service.key"
-          - name: "ca-volume"
+          - name: "cert-external-volume"
             readOnly: true
-            mountPath: "/mnt/ssl/cdis-ca.crt"
+            # external hostname certificate
+            mountPath: "/mnt/ssl/external.crt"
+            subPath: "service.crt"
+          - name: "cert-external-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/external.key"
+            subPath: "service.key"
+          - name: "ca-volume"
+            # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
+            readOnly: true
+            mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
-

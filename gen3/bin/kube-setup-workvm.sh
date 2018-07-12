@@ -5,23 +5,26 @@
 # Assumes 'sudo' access.
 #
 
-
 vpc_name="${vpc_name:-${1:-unknown}}"
 s3_bucket="${s3_bucket:-${2:-unknown}}"
 
-_KUBE_SETUP_WORKVM=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SETUP_WORKVM}/../lib/kube-setup-init.sh"
+# Make it easy to run this directly ...
+_setup_workvm_dir="$(dirname -- "${BASH_SOURCE:-$0}")"
+export GEN3_HOME="${GEN3_HOME:-$(cd "${_setup_workvm_dir}/../.." && pwd)}"
 
-if sudo -n true > /dev/null 2>&1; then
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
+
+if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   # -E passes through *_proxy environment
   sudo -E apt-get update
   sudo -E apt-get install -y git jq postgresql-client pwgen python-dev python-pip unzip
-  sudo -E XDG_CACHE_HOME=/var/cache pip install --upgrade pip
-  sudo -E XDG_CACHE_HOME=/var/cache pip install awscli --upgrade
+  sudo -E XDG_CACHE_HOME=/var/cache python -m pip install --upgrade pip
+  sudo -E XDG_CACHE_HOME=/var/cache python -m pip install awscli --upgrade
   # jinja2 needed by render_creds.py
-  sudo -E XDG_CACHE_HOME=/var/cache pip install jinja2
+  sudo -E XDG_CACHE_HOME=/var/cache python -m pip install jinja2
   # yq === jq for yaml
-  sudo -E XDG_CACHE_HOME=/var/cache pip install yq
+  sudo -E XDG_CACHE_HOME=/var/cache python -m pip install yq
 
   if ! which kube-aws > /dev/null 2>&1; then
     echo "Installing kube-aws"
@@ -35,6 +38,12 @@ if sudo -n true > /dev/null 2>&1; then
     #sudo mv kube-aws /usr/bin
   fi
 
+  if [[ ! -f /etc/apt/sources.list.d/google-cloud-sdk.list ]]; then
+    # might need to uninstall gcloud installed from ubuntu repo
+    if which gcloud > /dev/null 2>&1; then
+      sudo -E apt-get remove -y google-cloud-sdk
+    fi
+  fi
   if ! which gcloud > /dev/null 2>&1; then
     (
       export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
@@ -51,14 +60,15 @@ if sudo -n true > /dev/null 2>&1; then
           google-cloud-sdk-bigtable-emulator \
           google-cloud-sdk-cbt \
           kubectl
-      sudo -E gcloud config set core/disable_usage_reporting true
-      sudo -E gcloud config set component_manager/disable_update_check true
       if [[ -f /usr/local/bin/kubectl && -f /usr/bin/kubectl ]]; then  # pref dpkg managed kubectl
         sudo -E /bin/rm /usr/local/bin/kubectl
       fi
     )
   fi
 
+  mkdir -p ~/.config
+  sudo chown -R "${USER}:" ~/.config
+      
   if ! which terraform > /dev/null 2>&1; then
     curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
     sudo unzip "${XDG_RUNTIME_DIR}/terraform.zip" -d /usr/local/bin;
@@ -71,17 +81,25 @@ if sudo -n true > /dev/null 2>&1; then
   fi
 fi
 
+if which gcloud > /dev/null 2>&1; then
+  gcloud config set core/disable_usage_reporting true
+  gcloud config set component_manager/disable_update_check true
+#  gcloud config set container/use_v1_api false
+fi
+
 CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
 RC_FILE="${CURRENT_SHELL}rc"
 
 if [[ "$WORKSPACE" == "$HOME" ]]; then
-  if ! grep KUBECONFIG ${WORKSPACE}/.${RC_FILE} > /dev/null; then
+  if ! grep GEN3_NOPROXY ${WORKSPACE}/.${RC_FILE} > /dev/null; then
     echo "Adding variables to ${WORKSPACE}/.${RC_FILE}"
     cat - >>${WORKSPACE}/.${RC_FILE} << EOF
-export http_proxy=http://cloud-proxy.internal.io:3128
-export https_proxy=http://cloud-proxy.internal.io:3128
-export no_proxy='$no_proxy'
-
+export GEN3_NOPROXY='$GEN3_NOPROXY'
+if [[ -z "\$GEN3_NOPROXY" ]]; then
+  export http_proxy='${http_proxy:-"http://cloud-proxy.internal.io:3128"}'
+  export https_proxy='${https_proxy:-"http://cloud-proxy.internal.io:3128"}'
+  export no_proxy='$no_proxy'
+fi
 EOF
   fi
 
@@ -94,13 +112,27 @@ fi
 EOF
   fi
 
+  if ! grep "aws_.*completer" ${WORKSPACE}/.${RC_FILE} > /dev/null ; then
+    if [[ ${CURRENT_SHELL} == "zsh" ]]; then
+      cat - >>${WORKSPACE}/.${RC_FILE} << EOF
+source /usr/local/bin/aws_zsh_completer.sh
+EOF
+    elif [[ ${CURRENT_SHELL} == "bash" ]]; then
+      cat - >>${WORKSPACE}/.${RC_FILE} << EOF
+complete -C '/usr/local/bin/aws_completer' aws
+EOF
+    fi
+  fi
+
 # a user login should only work with one vpc
 if [[ "$vpc_name" != "unknown" ]] && ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
   cat - >>${WORKSPACE}/.${RC_FILE} <<EOF
 export vpc_name='$vpc_name'
 export s3_bucket='$s3_bucket'
 
-export KUBECONFIG=${WORKSPACE}/${vpc_name}/kubeconfig
+if [ -f "${WORKSPACE}/\$vpc_name/kubeconfig" ]; then
+  export KUBECONFIG="${WORKSPACE}/\$vpc_name/kubeconfig"
+fi
 
 EOF
   fi

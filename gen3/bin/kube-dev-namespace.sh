@@ -8,12 +8,9 @@
 
 set -e
 
-_KUBE_DEV_NAMESPACE=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_DEV_NAMESPACE}/../.." && pwd)}"
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/gen3setup"
 
-if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/gen3/gen3setup.sh"
-fi # else already sourced this file ...
 
 if [[ -z "$GEN3_NOPROXY" ]]; then
   export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
@@ -29,7 +26,9 @@ if [[ -z "$vpc_name" || -z "$namespace" || (! "$namespace" =~ ^[a-z][a-z0-9-]*$)
   exit 1
 fi
 
-for checkDir in ~/"${vpc_name}" ~/"${vpc_name}_output"; do
+gen3_load "gen3/lib/kube-setup-init"
+
+for checkDir in ~/"${vpc_name}"; do
   if [[ ! -d "$checkDir" ]]; then
     echo "ERROR: $checkDir does not exist"
     exit 1
@@ -50,7 +49,6 @@ sudo chmod a+rwx /home/$namespace
 #sudo chgrp ubuntu /home/$namespace/.bashrc
 sudo chmod a+rwx /home/$namespace/.bashrc
 mkdir -p /home/$namespace/${vpc_name}
-mkdir -p /home/$namespace/${vpc_name}_output
 cd /home/$namespace
 
 # setup ~/.ssh
@@ -92,8 +90,7 @@ fi
 #  touch "/home/$namespace/${vpc_name}/$name"
 #done
 
-# setup ~/${vpc_name}_output/
-cp ~/${vpc_name}_output/creds.json /home/$namespace/${vpc_name}_output/creds.json
+cp ~/${vpc_name}/creds.json /home/$namespace/${vpc_name}/creds.json
 
 dbname=$(echo $namespace | sed 's/-/_/g')
 # create new databases
@@ -102,16 +99,16 @@ for name in indexd fence sheepdog; do
 done
 
 # update creds.json
-oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/${vpc_name}_output/creds.json)
+oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/${vpc_name}/creds.json)
 newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-1]*/$namespace/")
-sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}_output/creds.json
+sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/creds.json
 #
 # Update creds.json - replace every '.db_databsae' and '.fence_database' with $namespace -
 # we ceate a $namespace database on the fence, indexd, and sheepdog db servers with
 # the CREATE DATABASE commands above
 #
-jq -r '.[].db_database="'"$dbname"'"|.[].fence_database="'"$dbname"'"' < /home/$namespace/${vpc_name}_output/creds.json > $XDG_RUNTIME_DIR/creds.json
-cp $XDG_RUNTIME_DIR/creds.json /home/$namespace/${vpc_name}_output/creds.json
+jq -r '.[].db_database="'"$dbname"'"|.[].fence_database="'"$dbname"'"' < /home/$namespace/${vpc_name}/creds.json > $XDG_RUNTIME_DIR/creds.json
+cp $XDG_RUNTIME_DIR/creds.json /home/$namespace/${vpc_name}/creds.json
 sed -i.bak "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/${vpc_name}/00configmap.yaml
 if [[ -f /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json ]]; then
   sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json
@@ -126,7 +123,7 @@ export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com'
 
 export KUBECONFIG=~/${vpc_name}/kubeconfig
-export GEN3_HOME=${WORKSPACE}/cloud-automation
+export GEN3_HOME=~/cloud-automation
 if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
   source "\${GEN3_HOME}/gen3/gen3setup.sh"
 fi

@@ -12,12 +12,7 @@ EOM
   return 0
 }
 
-if [[ ! -f "$GEN3_HOME/gen3/lib/common.sh" ]]; then
-  echo "ERROR: no $GEN3_HOME/gen3/lib/common.sh"
-  exit 1
-fi
-
-source "$GEN3_HOME/gen3/lib/common.sh"
+source "$GEN3_HOME/gen3/lib/utils.sh"
 
 GEN3_TRASH="$XDG_DATA_HOME/gen3/.trash"
 mkdir -p -m 0700 "$GEN3_TRASH"

@@ -53,11 +53,11 @@ spec:
               subPath: "service.key"
             - name: "ca-volume"
               readOnly: true
-              mountPath: "/mnt/ssl/cdis-ca.crt"
+              mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
               subPath: "ca.pem"
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 0.8
+              cpu: 0.3
               memory: 512Mi
 

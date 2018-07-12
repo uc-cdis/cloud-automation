@@ -139,7 +139,15 @@ data:
       	##
         gzip on;
         gzip_disable "msie6";
-        gzip_types application/javascript;
+        gzip_proxied any;
+        gzip_types
+          text/css
+          text/javascript
+          text/xml
+          text/plain
+          application/javascript
+          application/x-javascript
+          application/json;
        
         ##
         # Namespace
@@ -152,12 +160,20 @@ data:
         # Serve internet facing http requests via this, and redirect to https
         server {
                listen      82 default_server proxy_protocol;
-               rewrite     ^   https://$host/$request_uri? permanent;
+               listen      83;
+               rewrite     ^   https://$host$request_uri? permanent;
         }
         # Serve internet facing https requests and internal http requests here
       	server {
-                listen 81 proxy_protocol;
-                listen 80;
+          listen 81 proxy_protocol;
+          listen 80;
+          listen 443 ssl;
+
+          ssl_certificate     /mnt/ssl/external.crt;
+          ssl_certificate_key /mnt/ssl/external.key;
+          ssl_protocols       TLSv1.1 TLSv1.2;
+          ssl_ciphers         HIGH:!aNULL:!MD5;
+
       		server_tokens off;
       		add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
       		add_header X-Frame-Options "SAMEORIGIN";
@@ -283,6 +299,8 @@ data:
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
 
+
+              gzip off;
               proxy_next_upstream off;
               # Forward the host and set Subdir header so api
               # knows the original request path for hmac signing

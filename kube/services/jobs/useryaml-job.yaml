@@ -5,6 +5,9 @@ metadata:
 spec:
   # not yet supported - backOffLimit: 3
   template:
+    metadata:
+      labels:
+        app: gen3job
     spec:
       automountServiceAccountToken: false
       volumes:
@@ -20,9 +23,12 @@ spec:
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
-        - name: fence-jwt-keys
+        - name: fence-google-app-creds-secret-volume
           secret:
-            secretName: "fence-jwt-keys"
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
         - name: fence-yaml
           configMap:
             name: fence
@@ -65,12 +71,17 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml
-          - name: "fence-jwt-keys"
-            readOnly: true
-            mountPath: "/fence/keys"
           - name: "fence-ssh-keys"
             mountPath: "/root/.ssh/id_rsa"
             subPath: "id_rsa"
@@ -84,7 +95,7 @@ spec:
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"
         command: ["/bin/bash" ]
-        args: 
+        args:
           - "-c"
           # Script always succeeds if it runs (echo exits with 0)
           - |

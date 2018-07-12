@@ -1,11 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  # Little test job - run with: g3k runjob envtest REUBEN frickjack
+  # Little test job - run with: gen3 runjob envtest REUBEN frickjack
   name: envtest
 spec:
   # not yet supported - backOffLimit: 3
   template:
+    metadata:
+      labels:
+        app: gen3job
     spec:
       automountServiceAccountToken: false
       containers:

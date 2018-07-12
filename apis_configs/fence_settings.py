@@ -74,9 +74,6 @@ def load_json(file_name):
 def get_from_dict(dictionary, key, default=''):
     value = dictionary.get(key)
     if value is None:
-        print(
-            'Warning: A value for key {} not found. Defaulting to "{}"...'
-            .format(key, default))
         value = default
     return value
 
@@ -101,6 +98,7 @@ OPENID_CONNECT['google']['redirect_url'] = (
     'https://' + HOSTNAME + '/user/login/google/login/'
 )
 
+CIRRUS_CFG = {}
 data = load_json('fence_credentials.json')
 if data:
     AWS_CREDENTIALS = data['AWS_CREDENTIALS']
@@ -112,19 +110,18 @@ if data:
     APP_NAME = data['APP_NAME']
     HTTP_PROXY = data['HTTP_PROXY']
     dbGaP = data.get('dbGaP',DEFAULT_DBGAP)
-
-    CIRRUS_CFG = {}
     CIRRUS_CFG["GOOGLE_API_KEY"] = get_from_dict(data, 'GOOGLE_API_KEY')
     CIRRUS_CFG["GOOGLE_PROJECT_ID"] = get_from_dict(data, 'GOOGLE_PROJECT_ID')
-    CIRRUS_CFG["GOOGLE_ADMIN_EMAIL"] = get_from_dict(
-        data, 'GOOGLE_ADMIN_EMAIL'
-    )
+    CIRRUS_CFG["GOOGLE_ADMIN_EMAIL"] = get_from_dict(data, 'GOOGLE_ADMIN_EMAIL')
     CIRRUS_CFG["GOOGLE_IDENTITY_DOMAIN"] = (
         get_from_dict(data, 'GOOGLE_IDENTITY_DOMAIN')
     )
     CIRRUS_CFG["GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL"] = (
         get_from_dict(data, 'GOOGLE_CLOUD_IDENTITY_ADMIN_EMAIL')
     )
+
+    STORAGE_CREDENTIALS = get_from_dict(data, 'STORAGE_CREDENTIALS', {})
+    GOOGLE_GROUP_PREFIX = get_from_dict(data, 'GOOGLE_GROUP_PREFIX', 'gen3')
 
 CIRRUS_CFG["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "/var/www/fence/fence_google_app_creds_secret.json"
@@ -135,4 +132,4 @@ CIRRUS_CFG["GOOGLE_STORAGE_CREDS"] = (
 
 DEFAULT_LOGIN_URL_REDIRECT_PARAM = 'redirect'
 
-INDEXD = 'http://indexd-service.default/'
+INDEXD = 'http://indexd-service/'

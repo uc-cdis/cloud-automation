@@ -11,6 +11,9 @@ spec:
     spec:
       # not yet supported - backOffLimit: 3
       template:
+        metadata:
+          labels:
+            app: gen3job
         spec:
           serviceAccountName: useryaml-job
           volumes:
@@ -24,10 +27,16 @@ spec:
                 secretName: "fence-creds"
             - name: config-helper
               configMap:
-                name: config-helper   
+                name: config-helper
             - name: json-secret-volume
               secret:
                 secretName: "fence-json-secret"
+            - name: fence-google-app-creds-secret-volume
+              secret:
+                secretName: "fence-google-app-creds-secret"
+            - name: fence-google-storage-creds-secret-volume
+              secret:
+                secretName: "fence-google-storage-creds-secret"
             - name: fence-yaml
               configMap:
                 name: fence
@@ -53,6 +62,11 @@ spec:
                   configMapKeyRef:
                     name: global
                     key: sync_from_dbgap
+              - name: slackWebHook
+                valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
             volumeMounts:
               - name: "config-volume"
                 readOnly: true
@@ -70,6 +84,14 @@ spec:
                 readOnly: true
                 mountPath: "/var/www/fence/fence_credentials.json"
                 subPath: fence_credentials.json
+              - name: "fence-google-app-creds-secret-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+                subPath: fence_google_app_creds_secret.json
+              - name: "fence-google-storage-creds-secret-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+                subPath: fence_google_storage_creds_secret.json
               - name: "fence-yaml"
                 mountPath: "/var/www/fence/user.yaml"
                 subPath: user.yaml
@@ -88,7 +110,7 @@ spec:
                 mountPath: "/var/www/fence/projects.yaml"
                 subPath: "projects.yaml"
             command: ["/bin/bash" ]
-            args: 
+            args:
               - "-c"
               # Script always succeeds if it runs (echo exits with 0)
               - |
@@ -101,7 +123,7 @@ spec:
                 if [ ! "$SYNC_FROM_DBGAP" = True ]; then
                   if [[ -f /mnt/shared/user.yaml ]]; then
                     echo "fence container user.yaml diff ..."
-                    diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
+                    diff /var/www/fence/user.yaml /mnt/shared/user.yaml
                     if [[ $? == 1 || "${userYamlS3Path}" = '' ]]; then
                       echo "running fence-create"
                       fence-create sync --yaml /mnt/shared/user.yaml
@@ -113,13 +135,24 @@ spec:
                   fi
                 else
                   if [[ -f /mnt/shared/user.yaml ]]; then
-                    fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
+                    output=$(fence-create sync --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml)
                   else
-                    fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
+                    output=$(fence-create sync --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml)
+                  fi
+                  exitcode=$?
+                  echo "$output"
+                  # Echo what files we are seeing on dbgap ftp to Slack
+                  # We only do this step every 6 hours to reduce noise
+                  files=$(echo "$output" | grep "Reading file")
+                  let hour=$(date -u +%H)
+                  if ! (( hour % 6 )); then
+                    if [ "${slackWebHook}" != 'None' ]; then
+                      curl -X POST --data-urlencode "payload={\"text\": \"FenceHelper: \n\`\`\`\n${files}\n\`\`\`\"}" "${slackWebHook}"
+                    fi
                   fi
                 fi
-                echo "Exit code: $?"
-                
+                echo "Exit code: $exitcode"
+
           - name: awshelper
             image: quay.io/cdis/awshelper:master
             imagePullPolicy: Always
@@ -130,8 +163,8 @@ spec:
               - name: shared-data
                 mountPath: /mnt/shared
             command: ["/bin/bash" ]
-            args: 
-              - "-c" 
+            args:
+              - "-c"
               - |
                 if [ "${userYamlS3Path}" = '' ]; then
                   echo "s3 yaml not provided, using local yaml"
@@ -141,7 +174,7 @@ spec:
                   aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml;
                   if [[ -f /mnt/shared/user.yaml ]]; then
                     echo "awshelper container user.yaml diff ..."
-                    diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
+                    diff /var/www/fence/user.yaml /mnt/shared/user.yaml
                     if [[ $? == 1 ]]; then
                       echo "awshelper updating fence configmap"
                       kubectl delete configmap fence
