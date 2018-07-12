@@ -31,7 +31,7 @@ spec:
                   values:
                   - fence
               topologyKey: "kubernetes.io/hostname"
-      serviceAccountName: fence-service
+      automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:

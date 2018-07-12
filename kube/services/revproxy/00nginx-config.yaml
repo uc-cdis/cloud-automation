@@ -223,6 +223,30 @@ data:
 
               proxy_pass http://indexd-service/;
           }
+
+          location /coremetadata/ {
+              if ($csrf_check !~ ^ok-\S.+$) {
+                return 403 "failed csrf check";
+              }
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
+
+              proxy_pass http://pidgin-service/;
+          }
+
+          # GA4GH endpoint for DOS resolver
+          location /ga4gh/ {
+              if ($csrf_check !~ ^ok-\S.+$) {
+                return 403 "failed csrf check";
+              }
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
+
+              proxy_pass http://indexd-service/ga4gh/;
+          }
+
           location /user/ {
               if ($csrf_check !~ ^ok-\S.+$) {
                 return 403 "failed csrf check";
@@ -247,6 +271,9 @@ data:
           # Simplify external access to health checks
           location /peregrine/_status {
               proxy_pass http://peregrine-service/_status;
+          }
+          location /peregrine/_version {
+              proxy_pass http://peregrine-service/_version;
           }
           location /api/v0/submission/graphql {
               if ($csrf_check !~ ^ok-\S.+$) {

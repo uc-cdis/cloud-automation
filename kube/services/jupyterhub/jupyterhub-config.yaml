@@ -59,7 +59,7 @@ data:
         {
             'display_name': 'Bioinfo - Python/R - 0.25 CPU 256M Mem',
             'kubespawner_override': {
-                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.0',
+                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.2',
                 'cpu_limit': 0.25,
                 'mem_limit': '256M',
             }
@@ -67,7 +67,7 @@ data:
         {
             'display_name': 'Bioinfo - Python/R - 1.0 CPU 1.5G Mem',
             'kubespawner_override': {
-                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.0',
+                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.2',
                 'cpu_limit': 1.0,
                 'mem_limit': '1.5G',
             }
@@ -75,7 +75,7 @@ data:
         {
             'display_name': 'Earth - Python - 0.25 CPU 256M Mem',
             'kubespawner_override': {
-                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.2',
+                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.4',
                 'cpu_limit': 0.25,
                 'mem_limit': '256M',
             }
@@ -83,7 +83,7 @@ data:
         {
             'display_name': 'Earth - Python - 1.0 CPU 10.0G Mem',
             'kubespawner_override': {
-                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.2',
+                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.4',
                 'cpu_limit': 1.0,
                 'mem_limit': '10.0G',
             }
