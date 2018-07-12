@@ -290,6 +290,16 @@ data:
               send_timeout 300;
               proxy_pass http://peregrine-service/v0/submission/graphql;
           }
+          location /api/v0/flat-search/ {
+              if ($csrf_check !~ ^ok-\S.+$) {
+                return 403 "failed csrf check";
+              }              
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
+
+              proxy_pass http://arranger-service/;
+          }
           location /api/ {
               if ($csrf_check !~ ^ok-\S.+$) {
                 return 403 "failed csrf check";
