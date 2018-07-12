@@ -28,7 +28,6 @@ if [[ -d "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # create database
 fi
 
 # deploy fence
-
 gen3 roll fence
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
 
