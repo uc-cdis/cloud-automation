@@ -160,12 +160,20 @@ data:
         # Serve internet facing http requests via this, and redirect to https
         server {
                listen      82 default_server proxy_protocol;
-               rewrite     ^   https://$host/$request_uri? permanent;
+               listen      83;
+               rewrite     ^   https://$host$request_uri? permanent;
         }
         # Serve internet facing https requests and internal http requests here
       	server {
-                listen 81 proxy_protocol;
-                listen 80;
+          listen 81 proxy_protocol;
+          listen 80;
+          listen 443 ssl;
+
+          ssl_certificate     /mnt/ssl/external.crt;
+          ssl_certificate_key /mnt/ssl/external.key;
+          ssl_protocols       TLSv1.1 TLSv1.2;
+          ssl_ciphers         HIGH:!aNULL:!MD5;
+
       		server_tokens off;
       		add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
       		add_header X-Frame-Options "SAMEORIGIN";
@@ -231,6 +239,18 @@ data:
 
               proxy_pass http://indexd-service/;
           }
+
+          location /coremetadata/ {
+              if ($csrf_check !~ ^ok-\S.+$) {
+                return 403 "failed csrf check";
+              }
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
+
+              proxy_pass http://pidgin-service/;
+          }
+
           location /user/ {
               if ($csrf_check !~ ^ok-\S.+$) {
                 return 403 "failed csrf check";

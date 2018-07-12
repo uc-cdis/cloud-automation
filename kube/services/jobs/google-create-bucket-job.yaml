@@ -1,6 +1,6 @@
 ---
 # must invoke with:
-# g3k runjob google-create-bucket \
+# gen3 runjob google-create-bucket \
 #   UNIQUE_BUCKET_NAME some-unique-name \
 #   STORAGE_CLASS "" \
 #   PUBLIC_BUCKET "" \
@@ -64,9 +64,6 @@ spec:
         - name: fence-google-storage-creds-secret-volume
           secret:
             secretName: "fence-google-storage-creds-secret"
-        - name: fence-jwt-keys
-          secret:
-            secretName: "fence-jwt-keys"
         - name: fence-yaml
           configMap:
             name: fence
@@ -118,9 +115,6 @@ spec:
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml
-          - name: "fence-jwt-keys"
-            readOnly: true
-            mountPath: "/fence/keys"
           - name: "config-helper"
             readOnly: true
             mountPath: "/var/www/fence/config_helper.py"

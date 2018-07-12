@@ -11,14 +11,8 @@
 
 set -e
 
-_KUBE_SETUP_REVPROXY=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-# Jenkins friendly
-export WORKSPACE="${WORKSPACE:-$HOME}"
-export GEN3_HOME="${GEN3_HOME:-$(cd "${_KUBE_SETUP_REVPROXY}/../.." && pwd)}"
-
-if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/gen3/gen3setup.sh"
-fi # else already sourced this file ...
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/gen3setup"
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/revproxy/00nginx-config.yaml"
 g3k roll revproxy

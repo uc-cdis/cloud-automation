@@ -11,8 +11,8 @@
 scriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
 
 export ARN=$(kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
-if [[ "$ARN" =~ ^arn ]]; then
-  envsubst <$scriptDir/jenkins-service.yaml | kubectl apply -f -
-else
-  echo "Global configmap not configured with TLS certifcate ARN"
+envsubst <$scriptDir/jenkins-service.yaml | kubectl apply -f -
+
+if [[ ! "$ARN" =~ ^arn ]]; then
+  echo "WARNING: global configmap not configured with TLS certifcate ARN for AWS deploy"
 fi

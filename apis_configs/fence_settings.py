@@ -121,6 +121,7 @@ if data:
     )
 
     STORAGE_CREDENTIALS = get_from_dict(data, 'STORAGE_CREDENTIALS', {})
+    GOOGLE_GROUP_PREFIX = get_from_dict(data, 'GOOGLE_GROUP_PREFIX', 'gen3')
 
 CIRRUS_CFG["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "/var/www/fence/fence_google_app_creds_secret.json"
@@ -131,4 +132,4 @@ CIRRUS_CFG["GOOGLE_STORAGE_CREDS"] = (
 
 DEFAULT_LOGIN_URL_REDIRECT_PARAM = 'redirect'
 
-INDEXD = 'http://indexd-service.default/'
+INDEXD = 'http://indexd-service/'

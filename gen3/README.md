@@ -209,6 +209,28 @@ role_session_name = gen3-reuben
 credential_source = Ec2InsanceMetadata
 ```
 
+### gen3 kube-...
+
+kube-backup
+kube-dev-namespace
+kube-extract-config
+kube-roll-all
+kube-roll-qa
+kube-setup-certs
+kube-setup-fence
+kube-setup-fluentd
+kube-setup-jenkins
+kube-setup-jupyterhub
+kube-setup-networkpolicy
+kube-setup-peregrine
+kube-setup-revproxy
+kube-setup-roles
+kube-setup-secrets
+kube-setup-sftp
+kube-setup-sheepdog
+kube-setup-shiny
+kube-setup-workvm
+
 
 ### gen3 status
 
@@ -222,6 +244,17 @@ GEN3_WORKDIR=/home/reuben/.local/share/gen3/cdistest/planxplanetv1
 GEN3_HOME=/home/reuben/Code/PlanX/cloud-automation
 GEN3_S3_BUCKET=cdis-state-ac23212121-gen3
 AWS_PROFILE=cdistest
+```
+
+### gen3 indexd-post-folder [FOLDER]
+
+```
+$ gen3 indexd-post-folder --help
+  gen3 indexd-post-folder [folder]:
+      Post the .json files under the given folder to indexd
+      in the current environment: reuben.planx-pla.net
+      Note - currently only works with new records - does not
+         attempt to update existing records.
 ```
 
 ### gen3 ls [PROFILE]
@@ -358,7 +391,7 @@ forces the pod to update even if the image tag has not changed
 ex: `g3k roll fence`
 
 Also, `g3k roll all` rolls all services in order, and creates missing
-secrets and configuration if the `~/${vpc_name}_output/creds.json` and
+secrets and configuration if the `~/${vpc_name}/creds.json` and
 similar files are present.
 
 ### get_pod

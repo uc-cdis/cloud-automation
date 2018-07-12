@@ -14,7 +14,9 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
-variable "aws_cert_name" {}
+variable "aws_cert_name" {
+  default = "AWS-CERTIFICATE-NAME"
+}
 
 variable "csoc_account_id" {
   default = "433568766270"
@@ -28,9 +30,7 @@ variable "db_size" {
   default = 10
 }
 
-variable "db_password_fence" {
-  default = ""
-}
+variable "db_password_fence" {}
 
 variable "db_password_gdcapi" {
   # gdcapi now deprecated in favor of sheepdog + peregrine
@@ -126,6 +126,10 @@ variable "csoc_vpc_id" {
   default = "vpc-e2b51d99"
 }
 
+variable "squid-nlb-endpointservice-name" {
+  default = "com.amazonaws.vpce.us-east-1.vpce-svc-0ce2261f708539011"
+  }
+  
 # Path to user.yaml in s3://cdis-gen3-users/CONFIG_FOLDER/user.yaml
 variable "config_folder" {}
 
@@ -133,3 +137,5 @@ locals {
   # kube-aws does not like '-' in cluster name
   cluster_name = "${replace(var.vpc_name, "-", "")}"
 }
+
+

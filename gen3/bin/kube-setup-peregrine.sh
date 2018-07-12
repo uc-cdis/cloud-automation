@@ -5,8 +5,8 @@
 # This fragment is pasted into kube-services.sh by kube.tf.
 #
 
-_KUBE_SETUP_PEREGRINE=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SETUP_PEREGRINE}/../lib/kube-setup-init.sh"
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-secrets
 gen3 roll peregrine
