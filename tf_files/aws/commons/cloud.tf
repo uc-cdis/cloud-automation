@@ -63,6 +63,9 @@ module "config_files" {
   config_folder    = "${var.config_folder}"
 
   ssl_certificate_id = "${var.aws_cert_name}"
+
+  aws_user_key     = "${module.cdis_vpc.es_user_key}"
+  aws_user_key_id  = "${module.cdis_vpc.es_user_key_id}"
 }
 
 data "aws_vpc_endpoint_service" "s3" {

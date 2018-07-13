@@ -28,6 +28,20 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
   cd "${WORKSPACE}"/${vpc_name}
 fi
 
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
+  if ! g3kkubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
+    local credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    local creds=$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
+    echo "[default]" > "$credsFile"
+    IFS=',' read -ra CREDS <<< "$creds"
+    for i in "${CREDS[@]}"; do
+      echo ${i} >> "$credsFile"
+    done
+    g3kkubectl create secret generic aws-es-proxy "--from-file=credentials=${credsFile}"
+  fi
+fi
+
+
 if ! g3kubectl get configmaps global > /dev/null 2>&1; then
   if [[ -f "${WORKSPACE}/${vpc_name}/00configmap.yaml" ]]; then
     g3kubectl apply -f "${WORKSPACE}/${vpc_name}/00configmap.yaml"

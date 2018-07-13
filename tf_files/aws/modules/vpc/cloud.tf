@@ -297,4 +297,13 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
 }
 
 
+##to be used by arranger when accessing the ES
+resource "aws_iam_user" "es_user" {
+  name = "${var.vpc_name}_es_user"
+}
+
+resource "aws_iam_access_key" "es_user_key" {
+  user = "${aws_iam_user.es_user.name}"
+}
+
 
