@@ -37,7 +37,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
     for i in "${CREDS[@]}"; do
       echo ${i} >> "$credsFile"
     done
-    g3kkubectl create secret generic aws-es-proxy "--from-file=credentials=${credsFile}"
+    g3kubectl create secret generic aws-es-proxy "--from-file=credentials=${credsFile}"
   fi
 fi
 
