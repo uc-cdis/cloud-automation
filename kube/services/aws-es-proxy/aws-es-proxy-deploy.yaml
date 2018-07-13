@@ -36,7 +36,7 @@ spec:
         command: ["./aws-es-proxy"]
         args:
           - "-endpoint"
-          - ES_ENDPOINT
+          - "ES_ENDPOINT"
           - "-verbose"
           - "-listen"
           - ":9200"
