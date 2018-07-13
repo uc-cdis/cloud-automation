@@ -68,5 +68,9 @@
         "db_database": "${indexd_db}",
         "user_db": {
         }
+    },
+    "es": {
+        "aws_access_key_id": "aws_user_key_id",
+        "aws_secret_access_key": "aws_user_key"
     }
 }
