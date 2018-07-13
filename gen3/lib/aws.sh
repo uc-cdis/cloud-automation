@@ -325,7 +325,7 @@ EOM
   fi
 
   # else ...
-  if [[ "$GEN3_WORKSPACE" =~ _es ]]; then
+  if [[ "$GEN3_WORKSPACE" =~ _es$ ]]; then
       commonsName=${GEN3_WORKSPACE//_es/}
       cat - <<EOM
 vpc_name   = "${commonsName}"
