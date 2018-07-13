@@ -1,0 +1,42 @@
+export VPN_SETTINGS_LOADED="1"
+export CLOUD_NAME='#CLOUD_NAME#'
+export FQDN="#FQDN#"
+## EXTHOST is set in the easy-rsa/vars env settings.  I think these values have to maych so removing from here
+
+#sendemail vars
+#Set vars and constants
+export REPLYTO='#EMAIL#'
+export EMAIL='#EMAIL#'
+
+####################################################
+#  Do not normally need to alter below here these  #
+####################################################
+
+export TEMP_ROOT='/tmp/ovpn'
+if [ ! -d "$TEMP_ROOT" ]
+then
+    mkdir -p $TEMP_ROOT
+fi
+
+#EasyRSA
+export EASYRSA_PATH="/etc/openvpn/easy-rsa"
+source $EASYRSA_PATH/vars &>/dev/null
+
+export USER_PW_FILE="/etc/openvpn/user_passwd.csv"
+export OPENVPN_CONF_DIR="/etc/openvpn"
+export OPENVPN_MY_BIN="/etc/openvpn/bin"
+
+#CDIS OpenVPN scripts contants
+export TEMPLATE_DIR="/etc/openvpn/bin/templates"
+export KEY_PATH="/etc/openvpn/easy-rsa/keys/"
+export CA_PATH="$KEY_PATH/ca.crt"
+export TA_KEY_PATH="$KEY_PATH/ta.key"
+export ARCHIVE_CERT_DIR="$KEY_DIR/user_certs/"
+export USER_PW_FILE="/etc/openvpn/user_passwd.csv"
+
+export VPN_BIN_ROOT="/etc/openvpn/bin"
+export VPN_USER_CSV="/etc/openvpn/user_passwd.csv"
+export VPN_FILE_ATTACHMENTS="-a$VPN_BIN_ROOT/OpenVPN_for_CDIS_Installation_Guide.pdf"
+
+export PATH=$PATH:$EASYRSA_PATH:$OPENVPN_MY_BIN
+source /etc/openvpn/bin/.venv/bin/activate

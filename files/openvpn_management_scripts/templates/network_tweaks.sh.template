@@ -1,0 +1,14 @@
+#!/bin/bash
+##Per VPN DNS config (Adjust to pt to correct consul controlled vm, VPN on port 8xxx, DNS on 9xxx)
+#iptables -t nat -A FORWARD -p udp --dport 53 -j DNAT -s  192.168.128.0/23 --to localhost:9000
+#iptables -t nat -A FORWARD -p tcp --dport 53 -j DNAT -s  192.168.128.0/23 --to localhost:9000
+
+# Allow traffic initiated from VPN to access LAN
+iptables -I FORWARD -i tun0 -o eth0  -s #VM_SUBNET# -d #VPN_SUBNET# -m conntrack --ctstate NEW -j ACCEPT
+
+# Allow established traffic to pass back and forth
+iptables -I FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+# Masquerade
+iptables -t nat -A POSTROUTING -s #VPN_SUBNET# -o eth0 -j MASQUERADE
+echo 1 > /proc/sys/net/ipv4/ip_forward
