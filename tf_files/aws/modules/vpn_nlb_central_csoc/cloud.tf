@@ -235,6 +235,10 @@ sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 cd /home/ubuntu/cloud-automation
 git pull
 
+# checkout to the vpn branch for testing purposes
+git checkout feat/csocvpn_setup
+git pull
+
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
 echo "127.0.1.1 ${var.env_vpn_nlb_name}" | sudo tee --append /etc/hosts
@@ -330,6 +334,30 @@ resource "aws_security_group" "vpnnlb_in" {
   ingress {
     from_port   = 1194
     to_port     = 1194
+    protocol    = "TCP"
+    cidr_blocks = ["${var.csoc_cidr}"]
+  }
+
+  tags {
+    Environment  = "${var.env_vpn_nlb_name}"
+    Organization = "Basic Service"
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "TCP"
+    cidr_blocks = ["${var.csoc_cidr}"]
+  }
+
+  tags {
+    Environment  = "${var.env_vpn_nlb_name}"
+    Organization = "Basic Service"
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
     protocol    = "TCP"
     cidr_blocks = ["${var.csoc_cidr}"]
   }

@@ -7,7 +7,7 @@ variable "env_vpc_id" {
 }
 
 variable "env_vpn_nlb_name" {
-  default = "csoc_squid_nlb"
+  default = "csoc_vpn_nlb"
 }
 
 

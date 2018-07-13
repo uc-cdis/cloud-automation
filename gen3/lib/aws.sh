@@ -313,7 +313,13 @@ EOM
     # rds snapshot vpc is simpler ...
     commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
     cat - <<EOM
- ### add stuff here
+     env_vpc_octet3                = "3rd OCTET OF CSOC CIDR FOR SQUID SETUP"
+     # CSOC MAIN VPC ID 
+     env_vpc_id                    = "vpc-e2b51d99"
+     # CSOC ROUTE TABLE ID - HAVING ROUTE TO INTERNET GW
+     env_priv_subnet_routetable_id = "rtb-23b6685f"
+     # planx-pla.net  ZONE ID IN CSOC MAIN VPC"
+     csoc_planx_dns_zone_id  = "ZG153R4AYDHHK"
 EOM
     return 0
   fi
