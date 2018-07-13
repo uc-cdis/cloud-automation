@@ -14,7 +14,7 @@ gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-secrets
 #gen3 roll esproxy
-sed 's/ES_ENDPOINT/${1}/' "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-deploy.yaml" | g3kubectl apply -f - 
+sed "s/ES_ENDPOINT/${1}/" "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-deploy.yaml" | g3kubectl apply -f - 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_aws_es_proxy.yaml"
 
 cat <<EOM
