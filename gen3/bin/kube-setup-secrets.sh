@@ -29,7 +29,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
 fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
-  if ! g3kkubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
+  if ! g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     creds=$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
     echo "[default]" > "$credsFile"
