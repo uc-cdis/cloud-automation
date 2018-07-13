@@ -22,7 +22,7 @@ spec:
       volumes:
         - name: credentials
           secret:
-            secretName: "aws-key"
+            secretName: "aws-es-proxy"
       containers:
       - name: esproxy
         image: abutaha/aws-es-proxy
