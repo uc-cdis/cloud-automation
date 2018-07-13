@@ -13,7 +13,5 @@ module "commons_vpc_es" {
   vpc_octet2      = "${var.vpc_octet2}"
   vpc_octet3      = "${var.vpc_octet3}"
   vpc_name        = "${var.vpc_name}"
-  csoc_cidr       = "${var.csoc_cidr}"
-  csoc_account_id = "${var.csoc_account_id}"
 }
 
