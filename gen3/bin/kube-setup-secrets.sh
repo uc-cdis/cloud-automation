@@ -30,8 +30,8 @@ fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
   if ! g3kkubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
-    local credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    local creds=$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    creds=$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
     echo "[default]" > "$credsFile"
     IFS=',' read -ra CREDS <<< "$creds"
     for i in "${CREDS[@]}"; do
