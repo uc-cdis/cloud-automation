@@ -22,7 +22,7 @@ data "aws_vpcs" "vpcs" {
 
 # Assuming that there is only one VPC with the vpc_name
 data "aws_vpc" "the_vpc" {
-  id = "${element(data.aws_vpcs.foo.ids, count.index)}"
+  id = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
 }
 
 
@@ -58,7 +58,7 @@ resource "aws_security_group" "private_es" {
 
 resource "aws_subnet" "private_sn_es" {
   #vpc_id                  = "${var.vpc_id}"
-  vpc_id                  = "${element(data.aws_vpcs.foo.ids, count.index)}"
+  vpc_id                  = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
   #cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 6}.0/24"
   cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * 6 )}"
   availability_zone       = "us-east-1f" #${random_shuffle.az.result}
