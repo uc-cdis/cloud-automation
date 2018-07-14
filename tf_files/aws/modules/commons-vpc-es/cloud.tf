@@ -14,6 +14,20 @@ output "stuff" {
   value = "${random_shuffle.az.result}"
 }
 
+data "aws_vpcs" "vpcs" {
+  tags {
+    Name = "${var.vpc_name}""
+  }
+}
+
+# Assuming that there is only one VPC with the vpc_name
+data "aws_vpc" "the_vpc" {
+  id = "${element(data.aws_vpcs.foo.ids, count.index)}"
+}
+
+
+
+
 resource "aws_security_group" "private_es" {
   name        = "private_es"
   description = "security group that allow es port out"
@@ -23,14 +37,16 @@ resource "aws_security_group" "private_es" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
+    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
+    cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
+    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
+    cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
   }
 
   tags {
@@ -41,8 +57,10 @@ resource "aws_security_group" "private_es" {
 
 
 resource "aws_subnet" "private_sn_es" {
-  vpc_id                  = "${var.vpc_id}"
-  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 6}.0/24"
+  #vpc_id                  = "${var.vpc_id}"
+  vpc_id                  = "${element(data.aws_vpcs.foo.ids, count.index)}"
+  #cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 6}.0/24"
+  cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * 6 )}"
   availability_zone       = "us-east-1f" #${random_shuffle.az.result}
   map_public_ip_on_launch = false
 
