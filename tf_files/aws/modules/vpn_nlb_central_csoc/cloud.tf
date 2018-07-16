@@ -209,7 +209,24 @@ resource "aws_lb_listener" "vpn_nlb-tcp" {
 }
 
 
+# For VPN  QR code  traffic
+resource "aws_lb_target_group" "vpn_nlb-qr" {
+  name     = "${var.env_vpn_nlb_name}-prod-qr-tg"
+  port     = 443
+  protocol = "TCP"
+  vpc_id   = "${var.env_vpc_id}"
+  proxy_protocol_v2 = "True"
+  }
 
+resource "aws_lb_listener" "vpn_nlb-qr" {
+  load_balancer_arn = "${aws_lb.vpn_nlb.arn}"
+  port              = "443"
+  protocol          = "TCP"
+  default_action {
+    target_group_arn = "${aws_lb_target_group.vpn_nlb-qr.arn}"
+    type             = "forward"
+  }
+}
 
 
 
@@ -272,7 +289,7 @@ resource "aws_autoscaling_group" "vpn_nlb" {
   desired_capacity = 1
   max_size = 1
   min_size = 1
-  target_group_arns = ["${aws_lb_target_group.vpn_nlb-tcp.arn}"]
+  target_group_arns = ["${aws_lb_target_group.vpn_nlb-tcp.arn}","${aws_lb_target_group.vpn_nlb-qr.arn}",]
   vpc_zone_identifier = ["${aws_subnet.vpn_priv0.id}", "${aws_subnet.vpn_priv1.id}", "${aws_subnet.vpn_priv2.id}", "${aws_subnet.vpn_priv3.id}", "${aws_subnet.vpn_priv4.id}", "${aws_subnet.vpn_priv5.id}"]
   launch_configuration = "${aws_launch_configuration.vpn_nlb.name}"
 
@@ -347,7 +364,7 @@ resource "aws_security_group" "vpnnlb_in" {
     from_port   = 80
     to_port     = 80
     protocol    = "TCP"
-    cidr_blocks = ["${var.csoc_cidr}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {
