@@ -1,24 +1,24 @@
 version: '3'
 services:
   indexd:
-    image: "quay.io/cdis/indexd"
+    image: "quay.io/cdis/indexd:master"
     command: "bash waitForPostgres.sh"
     networks:
       - devnet
     volumes:
       - ./apis_configs/indexd_settings.py:/var/www/indexd/local_settings.py
-      - ./apis_configs/creds.json:/var/www/indexd/creds.json
+      - ./apis_configs/indexd_creds.json:/var/www/indexd/creds.json
       - ./apis_configs/config_helper.py:/var/www/indexd/config_helper.py
       - ./waitForPostgres.sh:/var/www/indexd/waitForPostgres.sh
     depends_on:
       - postgres
   fence:
-    image: "quay.io/cdis/fence"
+    image: "quay.io/cdis/fence:master"
     networks:
       - devnet
     volumes:
       - ./apis_configs/fence_settings.py:/var/www/fence/local_settings.py
-      - ./apis_configs/creds.json:/var/www/fence/creds.json
+      - ./apis_configs/fence_creds.json:/var/www/fence/creds.json
       - ./apis_configs/config_helper.py:/var/www/fence/config_helper.py
       - ./apis_configs/fence_credentials.json:/var/www/fence/fence_credentials.json
       - ./apis_configs/user.yaml:/var/www/fence/user.yaml
@@ -32,7 +32,7 @@ services:
     command: bash /peregrine_setup.sh
     volumes:
       - ./apis_configs/peregrine_settings.py:/var/www/peregrine/wsgi.py
-      - ./apis_configs/creds.json:/var/www/peregrine/creds.json
+      - ./apis_configs/peregrine_creds.json:/var/www/peregrine/creds.json
       - ./apis_configs/config_helper.py:/var/www/peregrine/config_helper.py 
       - ./temp_creds/service.crt:/usr/local/share/ca-certificates/cdis-ca.crt
       - ./peregrine_setup.sh:/peregrine_setup.sh
@@ -46,12 +46,12 @@ services:
       - devnet
     volumes:
       - ./apis_configs/sheepdog_settings.py:/var/www/sheepdog/wsgi.py
-      - ./apis_configs/creds.json:/var/www/sheepdog/creds.json
+      - ./apis_configs/sheepdog_creds.json:/var/www/sheepdog/creds.json
       - ./apis_configs/config_helper.py:/var/www/sheepdog/config_helper.py 
     depends_on:
       - postgres
   dataportal:
-    image: "quay.io/cdis/data-portal"
+    image: "quay.io/cdis/data-portal:master"
     networks:
       - devnet
     volumes:
@@ -67,7 +67,7 @@ services:
       - peregrine
       - sheepdog
   nginx:
-    image: "nginx"
+    image: "nginx:latest"
     networks:
       - devnet
     volumes:

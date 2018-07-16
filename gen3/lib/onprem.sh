@@ -241,13 +241,10 @@ gen3_onprem_setup_compose() {
   if [[ ! -d "${GEN3_COMPOSEDIR}" ]]; then
     mkdir -p ${GEN3_WORKDIR}/local-compose
 
-    cp -r ${GEN3_HOME}/compose-files/. ${GEN3_COMPOSEDIR}
+    cp -r ${GEN3_HOME}/Docker/compose-files/. ${GEN3_COMPOSEDIR}
     cp -r ${GEN3_HOME}/apis_configs ${GEN3_COMPOSEDIR}/apis_configs
-    sed -i .bk "s/('creds.json')/('creds.json')[APP_NAME]/g" \
-      ${GEN3_COMPOSEDIR}/apis_configs/*_settings.py
-      # ${GEN3_COMPOSEDIR}/apis_configs/peregrine_settings.py \
-      # ${GEN3_COMPOSEDIR}/apis_configs/sheepdog_settings.py \
-      # ${GEN3_COMPOSEDIR}/apis_configs/fence_settings.py
+    # sed -i .bk "s/('creds.json')/('creds.json')[APP_NAME]/g" \
+    #   ${GEN3_COMPOSEDIR}/apis_configs/*_settings.py
     sed -i .bk "s/fence-service/fence/g" ${GEN3_COMPOSEDIR}/apis_configs/peregrine_settings.py
     sed -i .bk -e '/USER_API/a\'$'\n''config['\''FORCE_ISSUER'\'']=True' \
       ${GEN3_COMPOSEDIR}/apis_configs/peregrine_settings.py
@@ -275,7 +272,6 @@ gen3_onprem_setup_compose() {
 #
 gen3_onprem_setup_compose_creds_json() {
   if [[ ! -f ${GEN3_COMPOSEDIR}/apis_configs/creds.json ]]; then
-    (
       export db_host="postgres"
       export fence_user="fence_user"
       export fence_pwd="fence_pass"
@@ -298,12 +294,17 @@ gen3_onprem_setup_compose_creds_json() {
       export gdcapi_oauth2_client_id="n/a"
       export gdcapi_oauth2_client_secret="n/a"
 
-      templatePath="$GEN3_HOME/tf_files/shared/modules/compose_configs/creds.tpl"
+      templatePath="$GEN3_HOME/Docker/compose-files/creds.tpl"
       if [[ -f "$templatePath" ]]; then
         cat "$templatePath" | envsubst > ${GEN3_COMPOSEDIR}/apis_configs/creds.json
       fi
-    )
   else
     echo "local-compose/creds.json already exists ..."
   fi
+
+  declare -a services=("indexd" "fence" "peregrine" "sheepdog")
+  for i in "${services[@]}"
+  do
+    jq .$i < creds.json > $i"_creds.json"
+  done
 }
