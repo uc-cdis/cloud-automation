@@ -12,8 +12,7 @@ spec:
           matchLabels:
             app: arranger
       ports:
-         - port: 80
-         - port: 443
+         - port: 9200
   egress:
     - to:
       - ipBlock:
