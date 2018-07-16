@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export http_proxy="http://cloud-proxy:3128"
-export https_proxy="http://cloud-proxy:3128"
+#export http_proxy="http://cloud-proxy:3128"
+#export https_proxy="http://cloud-proxy:3128"
 
 #Consts
 OPENVPN_PATH='/etc/openvpn'
@@ -70,14 +70,14 @@ parse_inputs() {
     fi
     if [ ! $VPN_SUBNET ]
     then
-        VPN_SUBNET="192.168.64.0/18"
+        VPN_SUBNET="192.168.192.0/20"
         VPN_SUBNET_BASE="${VPN_SUBNET%/*}"
         VPN_SUBNET_MASK=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask\s+-\s+(\S+)| && print "$1"' )
         VPN_SUBNET_MASK_BITS=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
     fi
     if [ ! $VM_SUBNET ]
     then
-        VM_SUBNET="172.16.0.0/12"
+        VM_SUBNET="10.128.0.0/20"
         VM_SUBNET_BASE="${VM_SUBNET%/*}"
         VM_SUBNET_MASK=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask\s+-\s+(\S+)| && print "$1"' )
         VM_SUBNET_MASK_BITS=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )

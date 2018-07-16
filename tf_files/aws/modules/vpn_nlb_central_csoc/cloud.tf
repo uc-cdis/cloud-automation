@@ -399,7 +399,7 @@ resource "aws_security_group" "vpnnlb_out" {
 
 resource "aws_route53_record" "vpn-nlb" {
   zone_id = "${var.csoc_planx_dns_zone_id}"
-  name    = "csoc_central_vpn.planx-pla.net"
+  name    = "raryatestvpnv1.planx-pla.net"
   type    = "CNAME"
   ttl     = "300"
   records = ["${aws_lb.vpn_nlb.dns_name}"]
