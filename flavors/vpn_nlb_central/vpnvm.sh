@@ -1,4 +1,60 @@
 #!/bin/bash
+
+#Basic Install
+#!/bin/bash
+
+SUB_FOLDER="/home/ubuntu/cloud-automation/"
+MAGIC_URL="http://169.254.169.254/latest/meta-data/"
+
+
+cd /home/ubuntu
+sudo apt-get update
+sudo apt-get install -y build-essential wget libssl-dev
+
+
+## Logging set-up
+
+#Getting the account details
+sudo apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev
+sudo pip install --upgrade pip
+ACCOUNT_ID=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn' |sed -e 's/.*:://' -e 's/:.*//')
+
+# Let's install awscli and configure it
+# Adding AWS profile to the admin VM
+sudo pip install awscli
+sudo mkdir -p /home/ubuntu/.aws
+sudo cat <<EOT  >> /home/ubuntu/.aws/config
+[default]
+output = json
+region = us-east-1
+role_session_name = gen3-squidnlbvm
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csocsquidnlb_role
+credential_source = Ec2InstanceMetadata
+[profile csoc]
+output = json
+region = us-east-1
+role_session_name = gen3-squidnlbvm
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csocsquidnlb_role
+credential_source = Ec2InstanceMetadata
+EOT
+sudo chown ubuntu:ubuntu -R /home/ubuntu
+
+
+## download and install awslogs
+
+
+sudo wget -O /tmp/awslogs-agent-setup.py https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
+sudo chmod 775 /tmp/awslogs-agent-setup.py
+sudo mkdir -p /var/awslogs/etc/
+sudo cp ${SUB_FOLDER}/flavors/squid_nlb_central/awslogs.conf /var/awslogs/etc/awslogs.conf
+curl -s ${MAGIC_URL}placement/availability-zone > /tmp/EC2_AVAIL_ZONE
+sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/squid_nlb_central/awslogs.conf
+sudo systemctl disable awslogs
+sudo chmod 644 /etc/init.d/awslogs
+
+
+# OpenVPN install
+
 sudo -E su  <<  EOF
 #Install postfix and mailutils
 cd /root
@@ -44,6 +100,19 @@ cp /root/server.pem /etc/lighttpd/certs/server.pem
 service lighttpd restart
 
 # Make changes to the iptables
+#Flush all iptables and re-install
+
+sudo iptables -F
+sudo iptables -X
+sudo iptables -t nat -F
+sudo iptables -t nat -X
+sudo iptables -t mangle -F
+sudo iptables -t mangle -X
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P FORWARD ACCEPT
+sudo iptables -P OUTPUT ACCEPT
+
+# Add the new iptables
 
 iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -s 10.128.0.0/20 -d 192.168.192.0/20 -i tun0 -o eth0 -m conntrack --ctstate NEW -j ACCEPT
@@ -60,3 +129,26 @@ systemctl restart openvpn
 EOF
 
 
+# Configure the AWS logs
+
+HOSTNAME=$(which hostname)
+sed -i 's/SERVER/http_proxy-auth-'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
+[syslog]
+datetime_format = %b %d %H:%M:%S
+file = /var/log/syslog
+log_stream_name = http_proxy-syslog-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
+time_zone = LOCAL
+log_group_name = $($HOSTNAME)_log_group
+[squid/access.log]
+file = /var/log/squid/access.log*
+log_stream_name = http_proxy-squid_access-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
+log_group_name = $($HOSTNAME)_log_group
+EOM
+
+chmod 755 /etc/init.d/awslogs
+systemctl enable awslogs
+systemctl restart awslogs
+
+echo "Install is completed"
