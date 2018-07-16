@@ -81,6 +81,14 @@ Same as above but run on a schedule.
 Create a Google Bucket and associated db entries. See job file for details
 on job invocation.
 
+#### google-delete-expired-service-account-job
+
+Delete any expired service accounts
+
+#### google-delete-expired-service-account-cronjob
+
+Same as above but run on a schedule.
+
 ## gentestdata-job
 
 Generate test data given dictionary, following steps need to be done
