@@ -55,6 +55,21 @@ Setup the *admin vm* in the CSOC account for a particular child account.
 $ gen3 workon csoc cdistest_adminvm
 ```
 
+## tf_files/aws/utility_vm
+
+Setup and utilityVM that would foolow a bootstrap scrip.
+```
+$ gen3 workon <profile> <commons_name>_es
+```
+
+## tf_files/aws/commons_vpc_es
+
+Setup an ElasticSearch cluster for arranger to access it.
+```
+$ gen3 workon <profile> <commons name>_es
+```
+
 ## tf_files/aws/modules
 
 Terraform code shared as modules.
+

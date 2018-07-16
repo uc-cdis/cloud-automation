@@ -32,7 +32,7 @@ data "aws_vpc" "the_vpc" {
 resource "aws_security_group" "private_es" {
   name        = "private_es"
   description = "security group that allow es port out"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
 
   ingress {
     from_port   = 0
