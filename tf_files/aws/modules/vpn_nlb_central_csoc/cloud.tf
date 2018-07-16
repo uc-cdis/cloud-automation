@@ -323,7 +323,7 @@ resource "aws_security_group" "vpnnlb_in" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${var.csoc_cidr}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {
@@ -335,7 +335,7 @@ resource "aws_security_group" "vpnnlb_in" {
     from_port   = 1194
     to_port     = 1194
     protocol    = "TCP"
-    cidr_blocks = ["${var.csoc_cidr}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {
@@ -359,7 +359,7 @@ resource "aws_security_group" "vpnnlb_in" {
     from_port   = 443
     to_port     = 443
     protocol    = "TCP"
-    cidr_blocks = ["${var.csoc_cidr}"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {
