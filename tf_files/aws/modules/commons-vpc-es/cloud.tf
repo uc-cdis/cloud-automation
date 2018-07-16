@@ -8,6 +8,7 @@ data "aws_availability_zones" "available" {
 resource "random_shuffle" "az" {
   input = ["${data.aws_availability_zones.available.names}"] #["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1e", "us-east-1f"]
   result_count = 1
+  count = 1
 }
 
 output "stuff" {
@@ -16,7 +17,7 @@ output "stuff" {
 
 data "aws_vpcs" "vpcs" {
   tags {
-    Name = "${var.vpc_name}""
+    Name = "${var.vpc_name}"
   }
 }
 
@@ -37,7 +38,6 @@ resource "aws_security_group" "private_es" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
     cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
   }
 
@@ -45,7 +45,6 @@ resource "aws_security_group" "private_es" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
     cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
   }
 
@@ -57,11 +56,9 @@ resource "aws_security_group" "private_es" {
 
 
 resource "aws_subnet" "private_sn_es" {
-  #vpc_id                  = "${var.vpc_id}"
   vpc_id                  = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
-  #cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 6}.0/24"
-  cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * 6 )}"
-  availability_zone       = "us-east-1f" #${random_shuffle.az.result}
+  cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * 6 )}/24"
+  availability_zone       = "${element(random_shuffle.az.result, count.index)}"
   map_public_ip_on_launch = false
 
   tags {

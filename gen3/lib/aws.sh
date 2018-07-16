@@ -329,9 +329,6 @@ EOM
       commonsName=${GEN3_WORKSPACE//_es/}
       cat - <<EOM
 vpc_name   = "${commonsName}"
-vpc_id     = "COMMONS VPC-ID"
-vpc_octet2 = "2nd OCTECT"
-vpc_octet3 = "3rd OCTECT"
 EOM
     return 0
   fi
