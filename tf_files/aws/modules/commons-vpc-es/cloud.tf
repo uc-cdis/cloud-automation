@@ -11,10 +11,6 @@ resource "random_shuffle" "az" {
   count = 1
 }
 
-output "stuff" {
-  value = "${random_shuffle.az.result}"
-}
-
 data "aws_vpcs" "vpcs" {
   tags {
     Name = "${var.vpc_name}"
