@@ -16,6 +16,7 @@ gen3 kube-setup-secrets
 
 ES_ENDPOINT=$(aws es describe-elasticsearch-domains --domain-names ${vpc_name}-gen3-metadata --query "DomainStatusList[*].Endpoints" --output text)
 sed "s/ES_ENDPOINT/https:\/\/${ES_ENDPOINT}/" "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-deploy.yaml" | g3kubectl apply -f -
+g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_aws_es_proxy.yaml"
 
 cat <<EOM
