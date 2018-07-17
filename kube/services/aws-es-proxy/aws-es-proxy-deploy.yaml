@@ -1,0 +1,42 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: aws-es-proxy-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: esproxy
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: esproxy
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: credentials
+          secret:
+            secretName: "aws-es-proxy"
+      containers:
+      - name: esproxy
+        image: abutaha/aws-es-proxy
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9200
+        volumeMounts:
+          - name: "credentials"
+            readOnly: true
+            mountPath: "/root/.aws"
+        command: ["./aws-es-proxy"]
+        args:
+          - "-endpoint"
+          - "ES_ENDPOINT"
+          - "-verbose"
+          - "-listen"
+          - ":9200"
