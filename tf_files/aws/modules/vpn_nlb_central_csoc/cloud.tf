@@ -195,7 +195,7 @@ resource "aws_lb_target_group" "vpn_nlb-tcp" {
   port     = 1194
   protocol = "TCP"
   vpc_id   = "${var.env_vpc_id}"
-  proxy_protocol_v2 = "True"
+  #proxy_protocol_v2 = "True"
   }
 
 resource "aws_lb_listener" "vpn_nlb-tcp" {
@@ -215,7 +215,7 @@ resource "aws_lb_target_group" "vpn_nlb-qr" {
   port     = 443
   protocol = "TCP"
   vpc_id   = "${var.env_vpc_id}"
-  proxy_protocol_v2 = "True"
+  #proxy_protocol_v2 = "True"
   }
 
 resource "aws_lb_listener" "vpn_nlb-qr" {
