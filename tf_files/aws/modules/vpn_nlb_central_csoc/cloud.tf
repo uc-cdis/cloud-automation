@@ -157,7 +157,7 @@ resource "aws_route_table_association" "vpn_nlb5" {
 
 resource "aws_lb" "vpn_nlb" {
   name               = "${var.env_vpn_nlb_name}-prod"
-  internal           = true
+  internal           = false
   load_balancer_type = "network"
     subnet_mapping {
        subnet_id    =  "${aws_subnet.vpn_priv0.id}"
@@ -240,6 +240,7 @@ resource "aws_launch_configuration" "vpn_nlb" {
   security_groups = ["${aws_security_group.vpnnlb_in.id}", "${aws_security_group.vpnnlb_out.id}"]
   key_name = "${var.ssh_key_name}"
   iam_instance_profile   = "${aws_iam_instance_profile.vpn-nlb_role_profile.id}"
+  associate_public_ip_address = true
   
 
   depends_on = ["aws_iam_instance_profile.vpn-nlb_role_profile"]
