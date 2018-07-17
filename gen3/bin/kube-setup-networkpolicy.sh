@@ -55,4 +55,5 @@ if [[ -f "$credsPath" ]]; then # setup netpolicy
   g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_jenkins_templ.yaml"
   g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_allowdns_templ.yaml"
   g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_gen3job_templ.yaml"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_arranger_templ.yaml"
 fi

@@ -23,6 +23,9 @@ spec:
     - to:
       - podSelector:
           matchLabels:
+            app: arranger      
+      - podSelector:
+          matchLabels:
             app: revproxy
       - podSelector:
           matchLabels:
