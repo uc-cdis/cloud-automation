@@ -26,7 +26,7 @@ variable "csoc_cidr" {
 
 
 
-variable "env_priv_subnet_routetable_id" {
+variable "env_pub_subnet_routetable_id" {
   #default = "rtb-23b6685f"
   default = "rtb-1cb66860"
 }

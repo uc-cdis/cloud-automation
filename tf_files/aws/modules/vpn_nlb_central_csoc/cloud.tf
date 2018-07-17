@@ -68,51 +68,51 @@ resource "aws_iam_instance_profile" "vpn-nlb_role_profile" {
 
 
 
-#Launching the private subnets for the VPN VMs
+#Launching the pubate subnets for the VPN VMs
 
 data "aws_availability_zones" "available" {}
 
 
-resource "aws_subnet" "vpn_priv0" {
+resource "aws_subnet" "vpn_pub0" {
   vpc_id                  = "${var.env_vpc_id}"
   cidr_block              = "10.128.${var.env_vpc_octet3}.0/27"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_priv0", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
+  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub0", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
 }
 
-resource "aws_subnet" "vpn_priv1" {
+resource "aws_subnet" "vpn_pub1" {
   vpc_id                  = "${var.env_vpc_id}"
   cidr_block              = "10.128.${var.env_vpc_octet3}.32/27"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
-  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_priv1", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
+  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub1", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
 }
 
-resource "aws_subnet" "vpn_priv2" {
+resource "aws_subnet" "vpn_pub2" {
   vpc_id                  = "${var.env_vpc_id}"
   cidr_block              = "10.128.${var.env_vpc_octet3}.64/27"
   availability_zone = "${data.aws_availability_zones.available.names[2]}"
-  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_priv2", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
+  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub2", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
 }
 
-resource "aws_subnet" "vpn_priv3" {
+resource "aws_subnet" "vpn_pub3" {
   vpc_id                  = "${var.env_vpc_id}"
   cidr_block              = "10.128.${var.env_vpc_octet3}.96/27"
   availability_zone = "${data.aws_availability_zones.available.names[3]}"
-  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_priv3", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
+  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub3", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
 }
 
-resource "aws_subnet" "vpn_priv4" {
+resource "aws_subnet" "vpn_pub4" {
   vpc_id                  = "${var.env_vpc_id}"
   cidr_block              = "10.128.${var.env_vpc_octet3}.128/27"
   availability_zone = "${data.aws_availability_zones.available.names[4]}"
-  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_priv4", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
+  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub4", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
 }
 
-resource "aws_subnet" "vpn_priv5" {
+resource "aws_subnet" "vpn_pub5" {
   vpc_id                  = "${var.env_vpc_id}"
   cidr_block              = "10.128.${var.env_vpc_octet3}.160/27"
   availability_zone = "${data.aws_availability_zones.available.names[5]}"
-  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_priv5", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
+  tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub5", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
 }
 
 
@@ -120,34 +120,34 @@ resource "aws_subnet" "vpn_priv5" {
 
 
 resource "aws_route_table_association" "vpn_nlb0" {
-  subnet_id      = "${aws_subnet.vpn_priv0.id}"
-  route_table_id = "${var.env_priv_subnet_routetable_id}"
+  subnet_id      = "${aws_subnet.vpn_pub0.id}"
+  route_table_id = "${var.env_pub_subnet_routetable_id}"
 }
 
 resource "aws_route_table_association" "vpn_nlb1" {
-  subnet_id      = "${aws_subnet.vpn_priv1.id}"
-  route_table_id = "${var.env_priv_subnet_routetable_id}"
+  subnet_id      = "${aws_subnet.vpn_pub1.id}"
+  route_table_id = "${var.env_pub_subnet_routetable_id}"
 }
 
 resource "aws_route_table_association" "vpn_nlb2" {
-  subnet_id      = "${aws_subnet.vpn_priv2.id}"
-  route_table_id = "${var.env_priv_subnet_routetable_id}"
+  subnet_id      = "${aws_subnet.vpn_pub2.id}"
+  route_table_id = "${var.env_pub_subnet_routetable_id}"
 }
 
 
 resource "aws_route_table_association" "vpn_nlb3" {
-  subnet_id      = "${aws_subnet.vpn_priv3.id}"
-  route_table_id = "${var.env_priv_subnet_routetable_id}"
+  subnet_id      = "${aws_subnet.vpn_pub3.id}"
+  route_table_id = "${var.env_pub_subnet_routetable_id}"
 }
 
 resource "aws_route_table_association" "vpn_nlb4" {
-  subnet_id      = "${aws_subnet.vpn_priv4.id}"
-  route_table_id = "${var.env_priv_subnet_routetable_id}"
+  subnet_id      = "${aws_subnet.vpn_pub4.id}"
+  route_table_id = "${var.env_pub_subnet_routetable_id}"
 }
 
 resource "aws_route_table_association" "vpn_nlb5" {
-  subnet_id      = "${aws_subnet.vpn_priv5.id}"
-  route_table_id = "${var.env_priv_subnet_routetable_id}"
+  subnet_id      = "${aws_subnet.vpn_pub5.id}"
+  route_table_id = "${var.env_pub_subnet_routetable_id}"
 }
 
 
@@ -160,22 +160,22 @@ resource "aws_lb" "vpn_nlb" {
   internal           = false
   load_balancer_type = "network"
     subnet_mapping {
-       subnet_id    =  "${aws_subnet.vpn_priv0.id}"
+       subnet_id    =  "${aws_subnet.vpn_pub0.id}"
   }
    subnet_mapping {
-       subnet_id    =  "${aws_subnet.vpn_priv1.id}"
+       subnet_id    =  "${aws_subnet.vpn_pub1.id}"
   }
    subnet_mapping {
-       subnet_id    =  "${aws_subnet.vpn_priv2.id}"
+       subnet_id    =  "${aws_subnet.vpn_pub2.id}"
   }
    subnet_mapping {
-       subnet_id    =  "${aws_subnet.vpn_priv3.id}"
+       subnet_id    =  "${aws_subnet.vpn_pub3.id}"
   }
    subnet_mapping {
-       subnet_id    =  "${aws_subnet.vpn_priv4.id}"
+       subnet_id    =  "${aws_subnet.vpn_pub4.id}"
   }
    subnet_mapping {
-       subnet_id    =  "${aws_subnet.vpn_priv5.id}"
+       subnet_id    =  "${aws_subnet.vpn_pub5.id}"
   }
 
 
@@ -291,7 +291,7 @@ resource "aws_autoscaling_group" "vpn_nlb" {
   max_size = 1
   min_size = 1
   target_group_arns = ["${aws_lb_target_group.vpn_nlb-tcp.arn}","${aws_lb_target_group.vpn_nlb-qr.arn}",]
-  vpc_zone_identifier = ["${aws_subnet.vpn_priv0.id}", "${aws_subnet.vpn_priv1.id}", "${aws_subnet.vpn_priv2.id}", "${aws_subnet.vpn_priv3.id}", "${aws_subnet.vpn_priv4.id}", "${aws_subnet.vpn_priv5.id}"]
+  vpc_zone_identifier = ["${aws_subnet.vpn_pub0.id}", "${aws_subnet.vpn_pub1.id}", "${aws_subnet.vpn_pub2.id}", "${aws_subnet.vpn_pub3.id}", "${aws_subnet.vpn_pub4.id}", "${aws_subnet.vpn_pub5.id}"]
   launch_configuration = "${aws_launch_configuration.vpn_nlb.name}"
 
    tag {
