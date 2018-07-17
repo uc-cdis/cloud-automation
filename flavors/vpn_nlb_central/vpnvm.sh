@@ -27,14 +27,14 @@ sudo cat <<EOT  >> /home/ubuntu/.aws/config
 [default]
 output = json
 region = us-east-1
-role_session_name = gen3-squidnlbvm
-role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csocsquidnlb_role
+role_session_name = gen3-vpnnlbvm
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csoc-vpn-nlb_role
 credential_source = Ec2InstanceMetadata
 [profile csoc]
 output = json
 region = us-east-1
-role_session_name = gen3-squidnlbvm
-role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csocsquidnlb_role
+role_session_name = gen3-vpnnlbvm
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csoc-vpn-nlb_role
 credential_source = Ec2InstanceMetadata
 EOT
 sudo chown ubuntu:ubuntu -R /home/ubuntu
@@ -46,9 +46,9 @@ sudo chown ubuntu:ubuntu -R /home/ubuntu
 sudo wget -O /tmp/awslogs-agent-setup.py https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
 sudo chmod 775 /tmp/awslogs-agent-setup.py
 sudo mkdir -p /var/awslogs/etc/
-sudo cp ${SUB_FOLDER}/flavors/squid_nlb_central/awslogs.conf /var/awslogs/etc/awslogs.conf
+sudo cp ${SUB_FOLDER}/flavors/vpn_nlb_central/awslogs.conf /var/awslogs/etc/awslogs.conf
 curl -s ${MAGIC_URL}placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/squid_nlb_central/awslogs.conf
+sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/vpn_nlb_central/awslogs.conf
 sudo systemctl disable awslogs
 sudo chmod 644 /etc/init.d/awslogs
 
@@ -132,18 +132,20 @@ EOF
 # Configure the AWS logs
 
 HOSTNAME=$(which hostname)
-sed -i 's/SERVER/http_proxy-auth-'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
+instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
+IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
+sed -i 's/SERVER/vpn-auth-'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
 sed -i 's/VPC/'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
 cat >> /var/awslogs/etc/awslogs.conf <<EOM
 [syslog]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog
-log_stream_name = http_proxy-syslog-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
+log_stream_name = vpn-syslog-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
 time_zone = LOCAL
 log_group_name = $($HOSTNAME)_log_group
-[squid/access.log]
-file = /var/log/squid/access.log*
-log_stream_name = http_proxy-squid_access-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
+[vpn/satus.log]
+file =  /etc/openvpn/openvpn-status.log
+log_stream_name = vpn_status-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
 log_group_name = $($HOSTNAME)_log_group
 EOM
 
