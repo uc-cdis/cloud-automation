@@ -72,10 +72,14 @@ sudo apt-get install uuid-runtime -y
 #Install git
 sudo apt-get install git -y
 
-
+ if [! -f "/root/server.pem"]; then
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj '/C=US/ST=IL/L=Chicago/O=CDIS' -keyout /root/cert.key -out /root/cert.pem
 cat /root/cert.key /root/cert.pem > /root/server.pem
-
+else
+scp -r ubuntu@10.128.1.11:/home/ubuntu/main/cert.key /root/
+scp -r ubuntu@10.128.1.11:/home/ubuntu/main/cert.pem /root/
+scp -r ubuntu@10.128.1.11:/home/ubuntu/main/server.pem /root/
+fi
 
 # Providing all the required inputs for install_vpn.sh script
 
