@@ -124,7 +124,7 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 systemctl restart openvpn
 
 
-## Make sure the securoty groups on the VM allows TCP access for 80,443,1194
+## Make sure the security groups on the VM allows TCP access for 80,443,1194
 
 EOF
 
@@ -143,7 +143,7 @@ file = /var/log/syslog
 log_stream_name = vpn-syslog-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
 time_zone = LOCAL
 log_group_name = $($HOSTNAME)_log_group
-[vpn/satus.log]
+[vpn/status.log]
 file =  /etc/openvpn/openvpn-status.log
 log_stream_name = vpn_status-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
 log_group_name = $($HOSTNAME)_log_group
