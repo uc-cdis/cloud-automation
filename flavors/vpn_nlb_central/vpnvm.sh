@@ -138,9 +138,9 @@ EOF
 HOSTNAME=$(which hostname)
 instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
 IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
-sed -i 's/SERVER/vpn-auth-'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
-sed -i 's/VPC/'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
-cat >> /var/awslogs/etc/awslogs.conf <<EOM
+sudo sed -i 's/SERVER/vpn-auth-'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
+sudo sed -i 's/VPC/'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
+sudo cat >> /var/awslogs/etc/awslogs.conf <<EOM
 [syslog]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog
@@ -153,8 +153,8 @@ log_stream_name = vpn_status-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
 log_group_name = $($HOSTNAME)_log_group
 EOM
 
-chmod 755 /etc/init.d/awslogs
-systemctl enable awslogs
-systemctl restart awslogs
+sudo chmod 755 /etc/init.d/awslogs
+sudo systemctl enable awslogs
+sudo systemctl restart awslogs
 
 echo "Install is completed"
