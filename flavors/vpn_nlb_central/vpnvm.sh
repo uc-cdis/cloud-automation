@@ -5,6 +5,7 @@
 
 SUB_FOLDER="/home/ubuntu/cloud-automation/"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
+PYTHON=$(which python)
 
 
 cd /home/ubuntu
@@ -141,7 +142,7 @@ instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
 IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
 sudo sed -i 's/SERVER/vpn-auth-'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
 sudo sed -i 's/VPC/'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
-sudo cat >> /var/awslogs/etc/awslogs.conf <<EOM
+cat >> /var/awslogs/etc/awslogs.conf <<EOM
 [syslog]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog

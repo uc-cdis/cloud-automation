@@ -237,6 +237,7 @@ resource "aws_launch_configuration" "vpn_nlb" {
   name_prefix = "${var.env_vpn_nlb_name}_autoscaling_launch_config"
   image_id = "${data.aws_ami.public_vpn_ami.id}"
   instance_type = "t2.medium"
+ # instance_type = "m5.xlarge"
   security_groups = ["${aws_security_group.vpnnlb_in.id}", "${aws_security_group.vpnnlb_out.id}"]
   key_name = "${var.ssh_key_name}"
   iam_instance_profile   = "${aws_iam_instance_profile.vpn-nlb_role_profile.id}"
@@ -260,7 +261,7 @@ git pull
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
 echo "127.0.1.1 ${var.env_vpn_nlb_name}" | sudo tee --append /etc/hosts
-sudo hostnamectl set-hostname ${var.env_vpn_nlb_name}
+#sudo hostnamectl set-hostname ${var.env_vpn_nlb_name}
 
 sudo apt -y update
 sudo DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade| sudo tee --append /var/log/bootstrapping_script.log
