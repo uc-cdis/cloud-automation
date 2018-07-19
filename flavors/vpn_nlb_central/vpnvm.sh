@@ -148,11 +148,13 @@ datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog
 log_stream_name = vpn-syslog-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
 time_zone = LOCAL
-log_group_name = $($HOSTNAME)_log_group
+#log_group_name = $($HOSTNAME)_log_group
+log_group_name = csoc-vpn-nlb_log_group
 [vpn/status.log]
 file =  /etc/openvpn/openvpn-status.log
 log_stream_name = vpn_status-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
-log_group_name = $($HOSTNAME)_log_group
+#log_group_name = $($HOSTNAME)_log_group
+log_group_name = csoc-vpn-nlb_log_group
 EOM
 
 sudo chmod 755 /etc/init.d/awslogs

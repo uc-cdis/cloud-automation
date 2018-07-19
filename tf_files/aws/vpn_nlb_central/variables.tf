@@ -7,9 +7,9 @@ variable "env_vpc_id" {
 }
 
 variable "env_vpn_nlb_name" {
-  #default = "csoc-vpn-nlb"
+  default = "csoc-vpn-nlb"
   #Have it same as FQDN
-  default = "raryatestvpnv1.planx-pla.net"
+ #default = "raryatestvpnv1.planx-pla.net"
 }
 
 
