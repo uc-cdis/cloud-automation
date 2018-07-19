@@ -122,6 +122,8 @@ if data:
 
     STORAGE_CREDENTIALS = get_from_dict(data, 'STORAGE_CREDENTIALS', {})
     GOOGLE_GROUP_PREFIX = get_from_dict(data, 'GOOGLE_GROUP_PREFIX', 'gen3')
+    SUPPORT_EMAIL_FOR_ERRORS = get_from_dict(
+        data, 'SUPPORT_EMAIL_FOR_ERRORS', None)
 
 CIRRUS_CFG["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "/var/www/fence/fence_google_app_creds_secret.json"
