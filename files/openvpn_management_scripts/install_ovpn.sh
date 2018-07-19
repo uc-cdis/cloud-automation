@@ -238,23 +238,23 @@ install_cron() {
 
 misc() {
     cd $OPENVPN_PATH
-    mkdir easy-rsa/keys/ovpn_files
-    mkdir easy-rsa/keys/user_certs
-    ln -s easy-rsa/keys/ovpn_files
+    mkdir -p easy-rsa/keys/ovpn_files
+    mkdir -p  easy-rsa/keys/user_certs
+    ln -sfn easy-rsa/keys/ovpn_files
 
     #If openvpn fails to start its cause perms. Init needs root rw to start, but service needs openvpn  rw to work
-    mkdir --mode 775 clients.d/
-    mkdir --mode 775 clients.d/tmp/
-    chown root:openvpn clients.d/tmp/
+    mkdir --mode 775 -p clients.d/
+    mkdir --mode 775 -p clients.d/tmp/
+    chown root:openvpn -p clients.d/tmp/
 
-    mkdir easy-rsa/keys/ovpn_files_seperated/
-    mkdir easy-rsa/keys/ovpn_files_systemd/
-    mkdir easy-rsa/keys/ovpn_files_resolvconf/
+    mkdir -p easy-rsa/keys/ovpn_files_seperated/
+    mkdir -p easy-rsa/keys/ovpn_files_systemd/
+    mkdir -p easy-rsa/keys/ovpn_files_resolvconf/
 
     touch user_passwd.csv
 
-    mkdir environments
-    mkdir client-restrictions
+    mkdir -p environments
+    mkdir -p client-restrictions
 
     chown -R openvpn:openvpn easy-rsa/ user_passwd.csv clients.d/tmp/
 }
@@ -266,14 +266,14 @@ misc() {
 set -e
 set -u
     install_custom_scripts
-    if [! -d "/etc/openvpn/easy-rsa"]; then
-    install_easyrsa
-    build_PKI
-    else
-    scp -r ubuntu@10.128.1.11:/home/ubuntu/openvpn/easy-rsa /etc/openvpn
-    scp ubuntu@10.128.1.11:/home/ubuntu/openvpn/ipp.txt /etc/openvpn
-    scp ubuntu@10.128.1.11:/home/ubuntu/openvpn/user_passwd.csv /etc/openvpn
-    fi
+  #  if [! -d "/etc/openvpn/easy-rsa"]; then
+   # install_easyrsa
+   # build_PKI
+   # else
+    scp -o StrictHostKeyChecking=no -r ubuntu@10.128.1.11:/home/ubuntu/openvpn/easy-rsa /etc/openvpn
+    scp -o StrictHostKeyChecking=no ubuntu@10.128.1.11:/home/ubuntu/openvpn/ipp.txt /etc/openvpn
+    scp -o StrictHostKeyChecking=no ubuntu@10.128.1.11:/home/ubuntu/openvpn/user_passwd.csv /etc/openvpn
+   # fi
 
     install_settings
 
