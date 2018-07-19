@@ -101,7 +101,7 @@ install_custom_scripts() {
     #pull our openvpn scripts
     #git clone git@github.com:LabAdvComp/openvpn_management_scripts.git
     sudo cp -r /root/openvpn_management_scripts /etc/openvpn/ 
-    ln -s openvpn_management_scripts bin
+    ln -sfn openvpn_management_scripts bin
     cd  $BIN_PATH
     virtualenv .venv
     #This is needed or else you get : .venv/bin/activate: line 57: PS1: unbound variable
@@ -245,7 +245,7 @@ misc() {
     #If openvpn fails to start its cause perms. Init needs root rw to start, but service needs openvpn  rw to work
     mkdir --mode 775 -p clients.d/
     mkdir --mode 775 -p clients.d/tmp/
-    chown root:openvpn -p clients.d/tmp/
+    chown root:openvpn  clients.d/tmp/
 
     mkdir -p easy-rsa/keys/ovpn_files_seperated/
     mkdir -p easy-rsa/keys/ovpn_files_systemd/
