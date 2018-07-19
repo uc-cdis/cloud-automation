@@ -57,11 +57,11 @@ spec:
           - containerPort: 3000
           env:
           - name: GEN3_ES_ENDPOINT
-            value: esproxy-service
+            value: esproxy-service:9200
           - name: GEN3_ARBORIST_ENDPOINT
             value: http://arborist-service
           - name: GEN3_PROJECT_ID
-            value: prod
+            value: dev
           volumeMounts:
             - name: "cert-volume"
               readOnly: true
