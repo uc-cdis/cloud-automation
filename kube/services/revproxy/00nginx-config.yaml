@@ -12,7 +12,7 @@ data:
       var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
       /**
-       * base64 decode polyfill from 
+       * base64 decode polyfill from
        *     https://github.com/davidchambers/Base64.js/blob/master/base64.js
        */
       function atob(input) {
@@ -42,9 +42,9 @@ data:
        * We appear to have access to the 'access_token' variable
        * defined in nginx.conf when this function runs via 'js_set'.
        * see https://www.nginx.com/blog/introduction-nginscript/
-       * 
-       * @param {*} req 
-       * @param {*} res 
+       *
+       * @param {*} req
+       * @param {*} res
        */
       function userid(req, res) {
         var token = req.variables["access_token"];
@@ -60,7 +60,7 @@ data:
                 if (data.context && data.context.user && data.context.user.name) {
                   user = "uid:" + data.sub + "," + data.context.user.name;
                 }
-              } 
+              }
             } catch (err) {}
           }
         }
@@ -70,9 +70,9 @@ data:
   nginx.conf: |
       user www-data;
       worker_processes 4;
-        
+
       pid /run/nginx.pid;
-      
+
       load_module modules/ngx_http_js_module.so;
       load_module modules/ngx_http_perl_module.so;
 
@@ -82,12 +82,12 @@ data:
       	worker_connections 768;
       	# multi_accept on;
       }
-      
+
       http {
-      
+
       	##
       	# Basic Settings
-      	##   
+      	##
       	sendfile on;
       	tcp_nopush on;
       	tcp_nodelay on;
@@ -95,13 +95,13 @@ data:
       	types_hash_max_size 2048;
         port_in_redirect off;
       	# server_tokens off;
-        
+
         # For websockets
         map $http_upgrade $connection_upgrade {
           default upgrade;
           ''      close;
         }
-    
+
         map $proxy_protocol_addr $initialip {
           "" $http_x_forwarded_for;
           default $proxy_protocol_addr;
@@ -111,16 +111,23 @@ data:
           "" $remote_addr; #if this header missing set remote_addr as real ip
           default $initialip;
         }
- 
+
+        # map to pidgin backend based on header
+        map $http_accept $pidginservice {
+            default "portal-service.pauline.svc.cluster.local/files/";
+            application/json "pidgin-service.pauline.svc.cluster.local/";
+            x-bibtex "pidgin-service.pauline.svc.cluster.local/";
+        }
+
       	# server_names_hash_bucket_size 64;
       	# server_name_in_redirect off;
-      
+
         include /etc/nginx/mime.types;
         default_type application/octet-stream;
-      
+
         ##
         # Note - nginscript js_set, etc get processed
-        #   on demand: https://www.nginx.com/blog/introduction-nginscript/  
+        #   on demand: https://www.nginx.com/blog/introduction-nginscript/
         #
         js_include userid.js;
         js_set $userid userid;
@@ -133,7 +140,7 @@ data:
                     '"$http_referer" "$http_user_agent"';
       	access_log /dev/stdout aws;
       	error_log /dev/stderr;
-      
+
       	##
       	# Gzip Settings
       	##
@@ -148,12 +155,12 @@ data:
           application/javascript
           application/x-javascript
           application/json;
-       
+
         ##
         # Namespace
         ##
         perl_set $namespace 'sub { return $ENV{"POD_NAMESPACE"}; }';
- 
+
         ##
       	# Proxy Settings
       	##
@@ -180,7 +187,7 @@ data:
       		if ($http_x_forwarded_proto = "http") { return 301 https://$host$request_uri; }
           # DNS resolver required to resolve dynamic hostnames, btw - kubedns may not support ipv6
           resolver kube-dns.kube-system.svc.cluster.local ipv6=off;
-          
+
           set $access_token "";
           set $csrf_check "ok-tokenauth";
           if ($cookie_access_token) {
@@ -201,7 +208,7 @@ data:
           proxy_set_header   Authorization "$access_token";
           proxy_set_header   X-Forwarded-For "$realip";
           proxy_set_header   X-UserId "$userid";
-          
+
           #
           # CSRF check
           # This block requires a csrftoken for all POST requests.
@@ -214,10 +221,10 @@ data:
             set $csrf_check "ok-$request_method";
           }
           if ($cookie_access_token = "") {
-            # do this again here b/c empty cookie_csrftoken == empty http_x_csrf_token - ugh  
+            # do this again here b/c empty cookie_csrftoken == empty http_x_csrf_token - ugh
             set $csrf_check "ok-tokenauth";
           }
-          
+
           location / {
               if ($csrf_check !~ ^ok-\S.+$) {
                 return 403 "failed csrf check";
@@ -247,14 +254,14 @@ data:
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
-
-              proxy_pass http://pidgin-service/;
+              rewrite ^/coremetadata/(.*) /$1 break;
+              proxy_pass http://$pidginservice$uri;
           }
 
           location /user/ {
               if ($csrf_check !~ ^ok-\S.+$) {
                 return 403 "failed csrf check";
-              }              
+              }
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
@@ -303,7 +310,7 @@ data:
           location /api/v0/flat-search/ {
               if ($csrf_check !~ ^ok-\S.+$) {
                 return 403 "failed csrf check";
-              }              
+              }
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
