@@ -2,20 +2,17 @@ variable "vm_name" {
   default = "qualys_scanner"
 }
 
-
 variable "csoc_vpc_id" {
   default = "vpc-e2b51d99"
 }
 
-
-variable "var.env_vpc_octet3" {
+variable "env_vpc_octet3" {
   default = "6"
  }
 
  variable "qualys_pub_subnet_routetable_id"{
    default = "rtb-7ee06301"
  }
-
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {
