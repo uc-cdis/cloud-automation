@@ -20,6 +20,7 @@ variable "ssh_key_name" {
 }
 
 variable "user_perscode"{
+  default="123456789"
   }
 
 
