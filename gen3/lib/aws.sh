@@ -147,7 +147,7 @@ gen3_workon_aws(){
   elif [[ "$GEN3_WORKSPACE" =~ _es$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons_vpc_es"
   elif [[ "$GEN3_WORKSPACE" =~ _qualysvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_qualys_vm"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_qualys_vm"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
