@@ -51,13 +51,6 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo -E apt-key add -
       sudo -E apt-get update
       sudo -E apt-get install -y google-cloud-sdk \
-          google-cloud-sdk-app-engine-python \
-          google-cloud-sdk-app-engine-java \
-          google-cloud-sdk-app-engine-go \
-          google-cloud-sdk-datalab \
-          google-cloud-sdk-datastore-emulator \
-          google-cloud-sdk-pubsub-emulator \
-          google-cloud-sdk-bigtable-emulator \
           google-cloud-sdk-cbt \
           kubectl
       if [[ -f /usr/local/bin/kubectl && -f /usr/bin/kubectl ]]; then  # pref dpkg managed kubectl
