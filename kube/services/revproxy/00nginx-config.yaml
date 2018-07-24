@@ -112,13 +112,6 @@ data:
           default $initialip;
         }
 
-        # map to pidgin backend based on header
-        map $http_accept $pidginservice {
-            default "portal-service.pauline.svc.cluster.local/files/";
-            application/json "pidgin-service.pauline.svc.cluster.local/";
-            x-bibtex "pidgin-service.pauline.svc.cluster.local/";
-        }
-
       	# server_names_hash_bucket_size 64;
       	# server_name_in_redirect off;
 
@@ -254,8 +247,13 @@ data:
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
-              rewrite ^/coremetadata/(.*) /$1 break;
-              proxy_pass http://$pidginservice$uri;
+
+              # redirect to coremetadata landing page if header does not specify otherwise
+              if ($http_accept !~ (application/json|x-bibtex)) {
+                rewrite ^/coremetadata/(.*) /files/$1 redirect;
+              }
+
+              proxy_pass http://pidgin-service/;
           }
 
           location /user/ {
