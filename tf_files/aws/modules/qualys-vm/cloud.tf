@@ -62,6 +62,7 @@ resource "aws_instance" "qualys" {
   key_name               = "${var.ssh_key_name}"
   vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
   associate_public_ip_address = true
+  disable_api_termination = true
 
   tags {
     Name        = "${var.vm_name}_CSOC"
