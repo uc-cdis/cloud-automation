@@ -74,6 +74,6 @@ resource "aws_instance" "qualys" {
   }
 
 user_data = <<EOF
-PERSCODE=${var.user_perscode}
+PERSCODE="${var.user_perscode}"
 EOF
 }
