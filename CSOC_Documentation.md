@@ -2,7 +2,7 @@
 
 ![CSOC_networkdiag](CSOC_networkdiag_V1.png)
 
-There are two major functionality associated with the Commons Services Operations Center (CSOC) account :
+CDIS uses a Commons Services Operations Center (CSOC) AWS account for accessing the AWS accounts associated with all of the Gen3 commons they operate. Operators of other Gen3 data commons may choose to have a separate CSOC account or operate their Gen3 data commons within the same AWS account. There are two major functionality associated with the CSOC account :
  
 ## A. CSOC Logging
 Centralize logging for all commons in other AWS accounts.
@@ -10,7 +10,7 @@ Centralize logging for all commons in other AWS accounts.
 https://github.com/uc-cdis/cloud-automation/blob/master/tf_files/modules/cdis-aws-common-logging/README.md
 
 ## B. CSOC Centralized Management VPC
-We have launched  `csoc_main_vpc [CIDR - 10.128.0.0/20]`, using a vpc wizard with two subnets - `csoc_main_vpc_pub1 [ public subnet - 10.128.1.0/24]` and `csoc_main_vpc_priv1 [private subnet - 10.128.2.0/24]` in the AWS CSOC account. 
+CDIS launched  `csoc_main_vpc [CIDR - 10.128.0.0/20]`, using a vpc wizard with two subnets - `csoc_main_vpc_pub1 [ public subnet - 10.128.1.0/24]` and `csoc_main_vpc_priv1 [private subnet - 10.128.2.0/24]` in the AWS CSOC account. 
 
 ## Components of CSOC VPC:
 
