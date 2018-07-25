@@ -23,9 +23,9 @@ resource "aws_security_group" "local" {
   description = "security group that only allow internal tcp traffics"
   vpc_id      = "${var.csoc_vpc_id}"
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port   = 443
+    to_port     = 443
+    protocol    =  "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
