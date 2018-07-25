@@ -55,14 +55,12 @@ resource "aws_route_table_association" "qualys_pub" {
 ## Launching the Qualys VM
 
 resource "aws_instance" "qualys" {
-  #ami                    = "${aws_ami_copy.qualys_ami.id}"
-  ami  =  "ami-5f2e6520"
+  ami                    = "ami-5f2e6520"
   subnet_id              = "${aws_subnet.qualys_pub.id}"
   instance_type          = "t2.large"
   monitoring             = true
   key_name               = "${var.ssh_key_name}"
   vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
-  #iam_instance_profile = "${aws_iam_instance_profile.qualys_profile.name}"
   associate_public_ip_address = true
 
   tags {
