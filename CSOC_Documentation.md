@@ -2,7 +2,7 @@
 
 ![CSOC_networkdiag](CSOC_networkdiag_V1.png)
 
-There are two major functionality associated with the CSOC account :
+There are two major functionality associated with the Commons Services Operations Center (CSOC) account :
  
 ## A. CSOC Logging
 Centralize logging for all commons in other AWS accounts.
