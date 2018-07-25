@@ -62,7 +62,7 @@ resource "aws_instance" "qualys" {
   monitoring             = true
   key_name               = "${var.ssh_key_name}"
   vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
-  iam_instance_profile = "${aws_iam_instance_profile.qualys_profile.name}"
+  #iam_instance_profile = "${aws_iam_instance_profile.qualys_profile.name}"
   associate_public_ip_address = true
 
   tags {
