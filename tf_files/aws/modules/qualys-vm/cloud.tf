@@ -1,72 +1,3 @@
-## Logging group for the qualys (Need to chceck on the logging)
-
-resource "aws_cloudwatch_log_group" "csoc_log_group" {
-  name              = "${var.vm_name}"
-  retention_in_days = 1827
-
-  tags {
-    Environment  = "${var.vm_name}"
-    Organization = "Basic Services"
-  }
-}
-
-#------- IAM setup ---------------------
-
-resource "aws_iam_role" "qualys-vm_role" {
-  name = "${var.vm_name}_role"
-  path = "/"
-
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": "sts:AssumeRole",
-            "Principal": {
-               "Service": "ec2.amazonaws.com"
-            },
-            "Effect": "Allow",
-            "Sid": ""
-        }
-    ]
-}
-EOF
-}
-
-# These qualys VMs should only have access to Cloudwatch and nothing more (Need to check more)
-
-data "aws_iam_policy_document" "qualys_policy_document" {
-  statement {
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:GetLogEvents",
-      "logs:PutLogEvents",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutRetentionPolicy",
-    ]
-
-    effect    = "Allow"
-    resources = ["*"]
-  }
-
-}
-
-resource "aws_iam_role_policy" "qualys_policy" {
-  name   = "${var.vm_name}_policy"
-  policy = "${data.aws_iam_policy_document.qualys_policy_document.json}"
-  role   = "${aws_iam_role.qualys-vm_role.id}"
-}
-
-resource "aws_iam_instance_profile" "qualys_profile" {
-  name = "${var.vm_name}_qualys_role_profile"
-  role = "${aws_iam_role.qualys-vm_role.id}"
-}
-
-
-
-
 # Security group to manage the inbound and outboud access for the qualys VM
 
 resource "aws_security_group" "ssh" {
@@ -123,32 +54,9 @@ resource "aws_route_table_association" "qualys_pub" {
 
 ## Launching the Qualys VM
 
-
-resource "aws_ami_copy" "qualys_ami" {
-  name              = "${var.vm_name}"
-  description       = "A copy of Qualys Virtual Scanner Appliance"
-  source_ami_id     = "ami-5f2e6520"
-  source_ami_region = "us-east-1"
-  encrypted         = true
-
-  tags {
-    Name        = "cdis"
-    Environment = "${var.vm_name}"
-  }
-
-  lifecycle {
-    #
-    # Do not force update when new ami becomes available.
-    # We still need to improve our mechanism for tracking .ssh/authorized_keys
-    # User can use 'terraform state taint' to trigger update.
-    #
-    ignore_changes = ["source_ami_id"]
-  }
-}
-
-
 resource "aws_instance" "qualys" {
-  ami                    = "${aws_ami_copy.qualys_ami.id}"
+  #ami                    = "${aws_ami_copy.qualys_ami.id}"
+  ami  =  "ami-5f2e6520"
   subnet_id              = "${aws_subnet.qualys_pub.id}"
   instance_type          = "t2.large"
   monitoring             = true
@@ -166,7 +74,7 @@ resource "aws_instance" "qualys" {
     ignore_changes = ["ami", "key_name"]
   }
 
-  user_data = <<EOF
-PERSCODE="${var.user_perscode}"
+user_data = <<EOF
+PERSCODE=${var.user_perscode}
 EOF
 }

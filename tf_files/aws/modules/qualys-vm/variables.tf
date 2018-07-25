@@ -7,7 +7,7 @@ variable "csoc_vpc_id" {
 }
 
 variable "env_vpc_octet3" {
-  default = "6"
+  default = "3"
  }
 
  variable "qualys_pub_subnet_routetable_id"{
@@ -20,14 +20,10 @@ variable "ssh_key_name" {
 }
 
 variable "user_perscode"{
-  default="123456789"
+  default="20045181822694"
   }
 
 
-# id of AWS account that owns the public AMI's
-#variable "ami_account_id" {
- # default = "433568766270"
-#}
 
 
 
