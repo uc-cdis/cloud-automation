@@ -13,6 +13,7 @@ module "qualys_vm" {
   env_vpc_octet3  = "${var.env_vpc_octet3}"
   qualys_pub_subnet_routetable_id = "${var.qualys_pub_subnet_routetable_id}"
   ssh_key_name     = "${var.ssh_key_name}"
+  user_perscode    = "${var.user_perscode}"
 
   # put other variables here ...
 }
