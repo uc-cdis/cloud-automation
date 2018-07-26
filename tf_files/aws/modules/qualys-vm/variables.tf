@@ -1,5 +1,5 @@
 variable "vm_name" {
-  default = "qualys_scanner"
+  default = "qualys_scanner_prod"
 }
 
 variable "csoc_vpc_id" {
