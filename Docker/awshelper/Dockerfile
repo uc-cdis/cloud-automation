@@ -57,7 +57,12 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 
 RUN useradd -m -s /bin/bash ubuntu
 
+RUN npm install elasticdump -g
+
 WORKDIR /home/ubuntu
 USER ubuntu
+
+RUN git clone https://github.com/uc-cdis/gen3-arranger.git ~/gen3-arranger\
+    && echo "source  ~/gen3-arranger/Docker/Stacks/esearch/indexSetup.sh" >> ~/.bashrc
 
 CMD /bin/bash
