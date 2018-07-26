@@ -62,9 +62,7 @@ RUN npm install elasticdump -g
 WORKDIR /home/ubuntu
 USER ubuntu
 
-RUN cd ~ \
-    && git clone https://github.com/uc-cdis/gen3-arranger.git\
-    && echo "git -C ~/gen3-arranger pull 1>/dev/null" >> ~/.bashrc \
+RUN git clone https://github.com/uc-cdis/gen3-arranger.git ~/gen3-arranger\
     && echo "source  ~/gen3-arranger/Docker/Stacks/esearch/indexSetup.sh" >> ~/.bashrc
 
 CMD /bin/bash
