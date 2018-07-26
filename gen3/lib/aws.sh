@@ -338,7 +338,7 @@ EOM
 
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _qualysvm$ ]]; then
-      commonsName=${GEN3_WORKSPACE//_es/}
+      #commonsName=${GEN3_WORKSPACE//_es/}
       cat - <<EOM
 user_perscode   = "PERSCODE you receive from the Qualys master"
 env_vpc_octet3  = "3rd OCTET OF VPC CIDR FOR QUALYS SETUP"
