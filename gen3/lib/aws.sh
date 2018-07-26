@@ -146,6 +146,8 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squidnlb_standalone"
   elif [[ "$GEN3_WORKSPACE" =~ _es$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons_vpc_es"
+  elif [[ "$GEN3_WORKSPACE" =~ _qualysvm$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_qualys_vm"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -333,6 +335,16 @@ EOM
     return 0
   fi
 
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _qualysvm$ ]]; then
+      #commonsName=${GEN3_WORKSPACE//_es/}
+      cat - <<EOM
+user_perscode   = "PERSCODE you receive from the Qualys master"
+env_vpc_octet3  = "3rd OCTET OF VPC CIDR FOR QUALYS SETUP"
+EOM
+    return 0
+  fi
 
   # ssh key to be added to VMs and kube nodes
   local SSHADD=$(which ssh-add)
