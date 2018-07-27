@@ -31,9 +31,9 @@ fi
 
 echo "Switching to '$TEST_PROFILE $TEST_WORKSPACE' workspace in test process"
 gen3_load "gen3/gen3setup"
-gen3 workon $TEST_PROFILE $TEST_WORKSPACE
+# gen3 workon $TEST_PROFILE $TEST_WORKSPACE
 
-gen3_load "gen3/lib/terraform"
+# gen3_load "gen3/lib/terraform"
 gen3_load "gen3/lib/shunit"
 
 #
@@ -193,5 +193,5 @@ shunit_runtest "test_tfplan"
 shunit_runtest "test_tfoutput"
 shunit_runtest "test_ls"
 G3K_TESTSUITE_SUMMARY="no"
-gen3_load "gen3/bin/g3k_testsuite"
+#gen3_load "gen3/bin/g3k_testsuite"
 shunit_summary
