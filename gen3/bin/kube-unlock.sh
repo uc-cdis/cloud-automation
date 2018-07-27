@@ -12,6 +12,11 @@ EOM
   return 0
 }
 
+if [[ $1 =~ ^-*help$ ]]; then
+  help
+  exit 0
+fi
+
 set -i
 # load bashrc so that the script is treated like it was launched on the remote machine
 source ~/.bashrc

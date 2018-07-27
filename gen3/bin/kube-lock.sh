@@ -12,6 +12,11 @@ EOM
   return 0
 }
 
+if [[ $1 =~ ^-*help$ ]]; then
+  help
+  exit 0
+fi
+
 set -i
 # load bashrc so that the script is treated like it was launched on the remote machine
 source ~/.bashrc
@@ -22,11 +27,6 @@ if [[ -n "$GEN3_HOME" ]]; then  # load gen3 tools from cloud-automation
   gen3_load "gen3/gen3setup"
 else
   echo "GEN3_HOME is not set"
-  exit 1
-fi
-
-if [[ $# -ne 2 ]]; then
-  echo "Usage[]"
   exit 1
 fi
 
