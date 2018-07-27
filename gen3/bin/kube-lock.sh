@@ -16,8 +16,9 @@ else
   exit 1
 fi
 
-echo $KUBECTL_NAMESPACE
-echo $1
+if [[ $# -ne 2 ]]; then
+  exit 1
+fi
 
 # create locks ConfigMap if it does not already exist, and set the lock we are 
 # currently trying to lock to unlocked with no owner

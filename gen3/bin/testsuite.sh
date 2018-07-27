@@ -179,19 +179,29 @@ test_tfoutput() {
   [[ $vpcName = $GEN3_WORKSPACE ]]; because $? "tfoutput vpc_name works: $vpcName =? $GEN3_WORKSPACE"
 }
 
-shunit_runtest "test_semver"
-shunit_runtest "test_colors"
-shunit_runtest "test_workspace"
-shunit_runtest "test_user_workspace"
-shunit_runtest "test_snapshot_workspace"
-shunit_runtest "test_databucket_workspace"
-shunit_runtest "test_gcp_workspace"
-shunit_runtest "test_onprem_workspace"
-shunit_runtest "test_trash"
-shunit_runtest "test_refresh"
-shunit_runtest "test_tfplan"
-shunit_runtest "test_tfoutput"
+test_kube_lock() {
+  echo "hello this is test_kube_lock"
+}
+
+test_kube_unlock() {
+  echo "hello this is test_kube_unlock"
+}
+
+# shunit_runtest "test_semver"
+# shunit_runtest "test_colors"
+# shunit_runtest "test_workspace"
+# shunit_runtest "test_user_workspace"
+# shunit_runtest "test_snapshot_workspace"
+# shunit_runtest "test_databucket_workspace"
+# shunit_runtest "test_gcp_workspace"
+# shunit_runtest "test_onprem_workspace"
+# shunit_runtest "test_trash"
+# shunit_runtest "test_refresh"
+# shunit_runtest "test_tfplan"
+# shunit_runtest "test_tfoutput"
 shunit_runtest "test_ls"
+shunit_runtest "test_kube_lock"
+shunit_runtest "test_kube_unlock"
 G3K_TESTSUITE_SUMMARY="no"
 #gen3_load "gen3/bin/g3k_testsuite"
 shunit_summary
