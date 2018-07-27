@@ -3,6 +3,15 @@
 # Script to lock namespace using labels on a lock ConfigMap (make sure 
 # KUBECTL_NAMESPACE is set so that g3kubectl works properly)
 
+help() {
+  cat - <<EOM
+  gen3 kube-lock lock-name owner:
+    Attempts to lock the lock lock-name in the namespace that KUBECTL_NAMESPACE 
+    is set to. Exits 0 if the lock is obtained and 1 if it is not obtained.
+EOM
+  return 0
+}
+
 set -i
 # load bashrc so that the script is treated like it was launched on the remote machine
 source ~/.bashrc
@@ -17,6 +26,7 @@ else
 fi
 
 if [[ $# -ne 2 ]]; then
+  echo "Usage[]"
   exit 1
 fi
 

@@ -3,6 +3,15 @@
 # Script to unlock namespace using labels on a lock ConfigMap (make sure 
 # KUBECTL_NAMESPACE is set so that g3kubectl works properly)
 
+help() {
+  cat - <<EOM
+  gen3 kube-unlock lock-name owner:
+    Attempts to unlock the lock lock-name in the namespace that KUBECTL_NAMESPACE 
+    is set to. Exits 0 if the lock is unlocked and 1 if it fails.
+EOM
+  return 0
+}
+
 set -i
 # load bashrc so that the script is treated like it was launched on the remote machine
 source ~/.bashrc
