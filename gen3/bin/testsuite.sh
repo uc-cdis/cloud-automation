@@ -181,10 +181,13 @@ test_tfoutput() {
 
 test_kube_lock() {
   echo "hello this is test_kube_lock"
+  gen3 kube-lock | grep -e "gen3 kube-lock lock-name owner:"; because $? "calling kube-lock without arguments should show the help documentation"
 }
 
 test_kube_unlock() {
   echo "hello this is test_kube_unlock"
+    gen3 kube-unlock | grep -e "gen3 kube-unlock lock-name owner:"; because $? "calling kube-unlock without arguments should show the help documentation"
+
 }
 
 # shunit_runtest "test_semver"

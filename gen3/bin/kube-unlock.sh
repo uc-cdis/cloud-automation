@@ -12,7 +12,7 @@ EOM
   return 0
 }
 
-if [[ $1 =~ ^-*help$ ]]; then
+if [[ $1 =~ ^-*help$ || $# -ne 2 ]]; then
   help
   exit 0
 fi
