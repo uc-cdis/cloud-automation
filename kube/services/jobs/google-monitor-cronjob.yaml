@@ -3,7 +3,7 @@
 apiVersion: batch/v2alpha1
 kind: CronJob
 metadata:
-  name: google-manage-user-registrations
+  name: google-monitor
 spec:
   schedule: "*/2 * * * *"
   successfulJobsHistoryLimit: 2
