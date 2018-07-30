@@ -31,7 +31,7 @@ EOF
 
 data "aws_iam_policy_document" "eks_policy_document" {
   statement {
-    actions = [ 
+    actions = [
       "autoscaling:DescribeAutoScalingGroups",
       "autoscaling:UpdateAutoScalingGroup",
       "ec2:AttachVolume",
@@ -124,20 +124,36 @@ resource "aws_iam_policy" "eks_access" {
   policy      = "${data.aws_iam_policy_document.eks_policy_document.json}"
 }
 
-resource "aws_iam_role_policy_attachment" "eks_access_sg" {
+#resource "aws_iam_role_policy_attachment" "eks_access_sg" {
+#  role       = "${aws_iam_role.eks_role.name}"
+#  policy_arn = "${aws_iam_policy.eks_access.arn}"
+#}
+
+resource "aws_iam_role_policy_attachment" "eks-policy-AmazonEKSClusterPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
   role       = "${aws_iam_role.eks_role.name}"
-  policy_arn = "${aws_iam_policy.eks_access.arn}"
+#  role       = "${aws_iam_role.EKSClusterRole.name}"
 }
 
+resource "aws_iam_role_policy_attachment" "eks-policy-AmazonEKSServicePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+  role       = "${aws_iam_role.eks_role.name}"
+#  role       = "${aws_iam_role.EKSClusterRole.name}"
+}
 
 
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
+####
+#* aws_eks_cluster.eks_cluster: error creating EKS Cluster (fauziv1): UnsupportedAvailabilityZoneException: Cannot create cluster 'fauziv1' because us-east-1e, the targeted availability zone, does not currently have sufficient capacity to support the cluster. Retry and choose from these availability zones: us-east-1a, us-east-1c, us-east-1d
+####
+
 
 resource "random_shuffle" "az" {
-  input = ["${data.aws_availability_zones.available.names}"] #["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1e", "us-east-1f"]
+#  input = ["${data.aws_availability_zones.available.names}"] 
+  input = ["us-east-1a", "us-east-1c", "us-east-1d"]
   result_count = 3
   count = 1
 }
@@ -189,7 +205,7 @@ resource "aws_subnet" "eks_private" {
 #  cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * 9 )}/24"
 #  availability_zone       = "${element(random_shuffle.az.result, count.index)}"
 #  map_public_ip_on_launch = false
-
+#
 #  tags {
 #    Name         = "eks_private_3"
 #    Environment  = "${var.vpc_name}"
@@ -212,20 +228,29 @@ resource "aws_security_group" "eks_control_plane_sg" {
 }
 
 
+
+
+
 resource "aws_eks_cluster" "eks_cluster" {
-  name     = "${var.vpc_name"
+  name     = "${var.vpc_name}"
   role_arn = "${aws_iam_role.eks_role.arn}"
 
   vpc_config {
-    #subnet_ids  = ["${aws_subnet.eks_private_1.id}", "${aws_subnet.eks_private_2.id}", "${aws_subnet.eks_private_3.id}"]
+
     subnet_ids  = ["${aws_subnet.eks_private.*.id}"]
     security_group_ids = ["${aws_security_group.eks_control_plane_sg.id}"]
   }
 
+#  depends_on = [
+#    "aws_iam_role_policy_attachment.eks_access_sg",
+#  ]
+
   depends_on = [
-    "aws_iam_role_policy_attachment.eks_access_sg",
+    "aws_iam_role_policy_attachment.eks-policy-AmazonEKSClusterPolicy",
+    "aws_iam_role_policy_attachment.eks-policy-AmazonEKSServicePolicy",
   ]
 }
 
 
+    #subnet_ids  = ["${aws_subnet.eks_private_1.id}", "${aws_subnet.eks_private_2.id}", "${aws_subnet.eks_private_3.id}"]
 
