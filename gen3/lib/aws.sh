@@ -146,6 +146,8 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squidnlb_standalone"
   elif [[ "$GEN3_WORKSPACE" =~ _es$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons_vpc_es"
+  elif [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/eks"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -332,6 +334,17 @@ vpc_name   = "${commonsName}"
 EOM
     return 0
   fi
+
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
+      commonsName=${GEN3_WORKSPACE//_eks/}
+      cat - <<EOM
+vpc_name   = "${commonsName}"
+EOM
+    return 0
+  fi
+
 
 
   # ssh key to be added to VMs and kube nodes
