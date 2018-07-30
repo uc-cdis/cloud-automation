@@ -35,7 +35,7 @@ RUN  easy_install -U pip \
     && python -m pip install --upgrade pip \
     && python -m pip install --upgrade setuptools \
     && python -m pip install -U crcmod \
-    && python -m pip install awscli --upgrade \
+    && python -m pip install awscli==1.15.59 --upgrade \
     && python -m pip install yq --upgrade
 
 # From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
