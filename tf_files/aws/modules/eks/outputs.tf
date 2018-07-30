@@ -1,4 +1,4 @@
 
 output "kubeconfig" {
-  value = "${data.template_file.kube_config}"
+  value = "${data.template_file.kube_config.rendered}"
 }

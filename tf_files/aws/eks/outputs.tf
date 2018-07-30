@@ -1,3 +1,3 @@
 output "kubeconfig" {
-  value = "${modules.eks.kubeconfig}"
+  value = "${module.eks.kubeconfig}"
 }
