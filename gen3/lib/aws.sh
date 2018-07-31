@@ -340,7 +340,9 @@ EOM
   if [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
       commonsName=${GEN3_WORKSPACE//_eks/}
       cat - <<EOM
-vpc_name   = "${commonsName}"
+vpc_name      = "${commonsName}"
+instance_type = "t2.medium"
+ec2_keyname   = "fauzi@uchicago.edu"
 EOM
     return 0
   fi
