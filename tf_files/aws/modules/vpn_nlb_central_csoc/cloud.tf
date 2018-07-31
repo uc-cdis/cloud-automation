@@ -265,6 +265,8 @@ echo "127.0.1.1 ${var.env_vpn_nlb_name}" | sudo tee --append /etc/hosts
 
 sudo apt -y update
 sudo DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade| sudo tee --append /var/log/bootstrapping_script.log
+sudo apt-get install -y python3-pip build-essential
+sudo pip3 install awscli
 
 sudo apt-get autoremove -y
 sudo apt-get clean
@@ -273,6 +275,11 @@ sudo apt-get autoclean
 cd /home/ubuntu
 ## WORK ON THIS TO POINT TO THE VPN FLAVOR SCRIPT
 sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
+
+echo ${aws_iam_access_key.vpn_s3_user_key.id} > /root/.aws_access_key
+echo ${aws_iam_access_key.vpn_s3_user_key.secret} > /root/.aws_secret_key
+
+
 EOF
 
 lifecycle {
@@ -423,4 +430,160 @@ resource "aws_route53_record" "vpn-nlb" {
   ttl     = "300"
   records = ["${aws_lb.vpn_nlb.dns_name}"]
 }
+
+
+# aws account for s3 storage of VPN certs
+resource "aws_iam_user" "vpn_s3_user" {
+  name = "#{var.vpc_name}_vpn_s3_user"
+}
+
+resource "aws_iam_access_key" "vpn_s3_user_key" {
+  user = "#{aws_iam_user.vpn_s3_user.name}"
+}
+
+resource "aws_s3_bucket" "vpn-certs-and-files" {
+  bucket = "vpn-certs-and-files"
+  acl    = "private"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  tags {
+    Name        = "vpn-certs-and-files"
+    Environment = "${var.environment}"
+    Purpose     = "data bucket"
+  }
+}
+
+data "template_file" "creds" {
+  template = "[default]
+aws_access_key_id = $${vpn_s3_user_key}}
+aws_secret_access_key = ${{}}"
+
+}
+
+#Really????
+resource "aws_iam_role" "vpn-certs-and-files_reader" {
+  name = "bucket_reader_vpn-certs-and-files"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+data "aws_iam_policy_document" "vpn-certs-and-files_reader" {
+  statement {
+    actions = [
+      "s3:Get*",
+      "s3:List*",
+    ]
+
+    effect    = "Allow"
+    resources = ["${aws_s3_bucket.vpn-certs-and-files.arn}", "${aws_s3_bucket.vpn-certs-and-files.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "vpn-certs-and-files_reader" {
+  name        = "bucket_reader_vpn-certs-and-files"
+  description = "Read vpn-certs-and-files"
+  policy      = "${data.aws_iam_policy_document.vpn-certs-and-files_reader.json}"
+}
+
+resource "aws_iam_role_policy_attachment" "vpn-certs-and-files_reader" {
+  role       = "${aws_iam_role.vpn-certs-and-files_reader.name}"
+  policy_arn = "${aws_iam_policy.vpn-certs-and-files_reader.arn}"
+}
+
+#resource "aws_iam_role_policy" "vpn-certs-and-files_reader" {
+#  name   = "bucket_reader_vpn-certs-and-files"
+#  policy = "${data.aws_iam_policy_document.vpn-certs-and-files_reader.json}"
+#  role   = "${aws_iam_role.vpn-certs-and-files_reader.id}"
+#}
+
+resource "aws_iam_instance_profile" "vpn-certs-and-files_reader" {
+  name = "bucket_reader_vpn-certs-and-files"
+  role = "${aws_iam_role.vpn-certs-and-files_reader.id}"
+}
+
+#----------------------
+
+resource "aws_iam_role" "vpn-certs-and-files_writer" {
+  name = "bucket_writer_vpn-certs-and-files"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+data "aws_iam_policy_document" "vpn-certs-and-files_writer" {
+  statement {
+    actions = [
+      "s3:Get*",
+      "s3:List*",
+    ]
+
+    effect    = "Allow"
+    resources = ["${aws_s3_bucket.vpn-certs-and-files.arn}", "${aws_s3_bucket.vpn-certs-and-files.arn}/*"]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = ["${aws_s3_bucket.vpn-certs-and-files.arn}/*"]
+  }
+}
+
+resource "aws_iam_policy" "vpn-certs-and-files_writer" {
+  name        = "bucket_writer_vpn-certs-and-files"
+  description = "Read or write vpn-certs-and-files"
+  policy      = "${data.aws_iam_policy_document.vpn-certs-and-files_writer.json}"
+}
+
+resource "aws_iam_role_policy_attachment" "vpn-certs-and-files_writer" {
+  role       = "${aws_iam_role.vpn-certs-and-files_writer.name}"
+  policy_arn = "${aws_iam_policy.vpn-certs-and-files_writer.arn}"
+}
+
+resource "aws_iam_instance_profile" "vpn-certs-and-files_writer" {
+  name = "bucket_writer_vpn-certs-and-files"
+  role = "${aws_iam_role.vpn-certs-and-files_writer.id}"
+}
+
 
