@@ -276,9 +276,13 @@ cd /home/ubuntu
 ## WORK ON THIS TO POINT TO THE VPN FLAVOR SCRIPT
 sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
 
-echo ${aws_iam_access_key.vpn_s3_user_key.id} > /root/.aws_access_key
-echo ${aws_iam_access_key.vpn_s3_user_key.secret} > /root/.aws_secret_key
+mkdir -p /root/.aws
+echo "[default]" > /root/.aws/config
+echo "region = us-east-1" >> /root/.aws/config
 
+echo "[default]" > /root/.aws/credentials
+echo "aws_access_key_id = ${aws_iam_access_key.vpn_s3_user_key.id}" >> /root/.aws/credentials
+echo "aws_secret_access_key = ${aws_iam_access_key.vpn_s3_user_key.secret}" >> /root/.aws/credentials
 
 EOF
 
