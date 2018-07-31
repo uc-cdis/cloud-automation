@@ -54,7 +54,9 @@ variable "bootstrap_script" {
   default = "vpnvm.sh"
 }
 
-
+variable "environment" {
+  default = "CSOC"
+}
 
 
 

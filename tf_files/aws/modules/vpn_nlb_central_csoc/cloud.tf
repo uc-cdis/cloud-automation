@@ -434,11 +434,11 @@ resource "aws_route53_record" "vpn-nlb" {
 
 # aws account for s3 storage of VPN certs
 resource "aws_iam_user" "vpn_s3_user" {
-  name = "#{var.vpc_name}_vpn_s3_user"
+  name = "${var.environment}-vpn-s3-user"
 }
 
 resource "aws_iam_access_key" "vpn_s3_user_key" {
-  user = "#{aws_iam_user.vpn_s3_user.name}"
+  user = "${aws_iam_user.vpn_s3_user.name}"
 }
 
 resource "aws_s3_bucket" "vpn-certs-and-files" {

@@ -23,6 +23,7 @@ module "vpn_nlb" {
   bootstrap_script = "${var.bootstrap_script}"
   image_name_search_criteria = "${var.image_name_search_criteria}"
   csoc_planx_dns_zone_id = "${var.csoc_planx_dns_zone_id}"
+  environment =  "${var.environment}"
   # put other variables here ...
 }
 
