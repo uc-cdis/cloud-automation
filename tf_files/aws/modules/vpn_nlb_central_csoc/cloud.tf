@@ -13,57 +13,57 @@ resource "aws_cloudwatch_log_group" "vpn_log_group" {
 ## ----- IAM Setup -------
 
 
-resource "aws_iam_role" "vpn-nlb_role" {
-  name = "${var.env_vpn_nlb_name}_role"
-  path = "/"
+#resource "aws_iam_role" "vpn-nlb_role" {
+#  name = "${var.env_vpn_nlb_name}_role"
+#  path = "/"
 
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": "sts:AssumeRole",
-            "Principal": {
-               "Service": "ec2.amazonaws.com"
-            },
-            "Effect": "Allow",
-            "Sid": ""
-        }
-    ]
-}
-EOF
-}
+#  assume_role_policy = <<EOF
+#{
+ #   "Version": "2012-10-17",
+ #   "Statement": [
+ #       {
+ #           "Action": "sts:AssumeRole",
+ #           "Principal": {
+ #              "Service": "ec2.amazonaws.com"
+ #           },
+ #           "Effect": "Allow",
+ #           "Sid": ""
+  #      }
+  #  ]
+#}
+#EOF
+#}
 
 # These VPN VMs should only have access to Cloudwatch and nothing more
 
-data "aws_iam_policy_document" "vpn_policy_document" {
-  statement {
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:GetLogEvents",
-      "logs:PutLogEvents",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutRetentionPolicy",
-    ]
+#data "aws_iam_policy_document" "vpn_policy_document" {
+#  statement {
+#    actions = [
+#      "logs:CreateLogGroup",
+#      "logs:CreateLogStream",
+#      "logs:GetLogEvents",
+#      "logs:PutLogEvents",
+#      "logs:DescribeLogGroups",
+#      "logs:DescribeLogStreams",
+#      "logs:PutRetentionPolicy",
+#    ]
 
-    effect    = "Allow"
-    resources = ["*"]
-  }
+ #   effect    = "Allow"
+  #  resources = ["*"]
+  #}
 
-}
+#}
 
-resource "aws_iam_role_policy" "vpn_policy" {
-  name   = "${var.env_vpn_nlb_name}_policy"
-  policy = "${data.aws_iam_policy_document.vpn_policy_document.json}"
-  role   = "${aws_iam_role.vpn-nlb_role.id}"
-}
+#resource "aws_iam_role_policy" "vpn_policy" {
+#  name   = "${var.env_vpn_nlb_name}_policy"
+#  policy = "${data.aws_iam_policy_document.vpn_policy_document.json}"
+ # role   = "${aws_iam_role.vpn-nlb_role.id}"
+#}
 
-resource "aws_iam_instance_profile" "vpn-nlb_role_profile" {
-  name = "${var.env_vpn_nlb_name}_vpn-nlb_role_profile"
-  role = "${aws_iam_role.vpn-nlb_role.id}"
-}
+#resource "aws_iam_instance_profile" "vpn-nlb_role_profile" {
+ # name = "${var.env_vpn_nlb_name}_vpn-nlb_role_profile"
+  #role = "${aws_iam_role.vpn-nlb_role.id}"
+#}
 
 
 
@@ -240,11 +240,15 @@ resource "aws_launch_configuration" "vpn_nlb" {
  # instance_type = "m5.xlarge"
   security_groups = ["${aws_security_group.vpnnlb_in.id}", "${aws_security_group.vpnnlb_out.id}"]
   key_name = "${var.ssh_key_name}"
-  iam_instance_profile   = "${aws_iam_instance_profile.vpn-nlb_role_profile.id}"
+  #iam_instance_profile   = "${aws_iam_instance_profile.vpn-nlb_role_profile.id}"
+  iam_instance_profile   = "${aws_iam_instance_profile.vpn-certs-and-files_reader.id}"
+  iam_instance_profile   = "${aws_iam_instance_profile.vpn-certs-and-files_writer.id}"
   associate_public_ip_address = true
   
 
-  depends_on = ["aws_iam_instance_profile.vpn-nlb_role_profile"]
+  #depends_on = ["aws_iam_instance_profile.vpn-nlb_role_profile"]
+  depends_on = ["aws_iam_instance_profile.vpn-certs-and-files_reader"]
+  depends_on = ["aws_iam_instance_profile.vpn-certs-and-files_writer"]
 
 user_data = <<EOF
 #!/bin/bash
