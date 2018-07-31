@@ -460,13 +460,6 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
   }
 }
 
-data "template_file" "creds" {
-  template = "[default]
-aws_access_key_id = $${vpn_s3_user_key}}
-aws_secret_access_key = ${{}}"
-
-}
-
 #Really????
 resource "aws_iam_role" "vpn-certs-and-files_reader" {
   name = "bucket_reader_vpn-certs-and-files"
