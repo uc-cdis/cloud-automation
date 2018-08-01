@@ -65,6 +65,19 @@ spec:
           readOnly: true
           mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
           subPath: "ca.pem"
+      - name: selenium
+        image: selenium/standalone-chrome:3.13.0-argon
+        ports:
+        - containerPort: 4444
+        readinessProbe:
+          httpGet:
+            path: /wd/hub/sessions
+            port: 4444
+        readinessProbe:
+          httpGet:
+            path: /wd/hub/sessions
+            port: 4444
+        imagePullPolicy: Always
       volumes:
       - name: datadir
         persistentVolumeClaim:
