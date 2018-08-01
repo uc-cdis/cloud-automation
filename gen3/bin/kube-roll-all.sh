@@ -27,6 +27,7 @@ gen3 roll indexd
 g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 
+gen3 kube-setup-arborist
 gen3 kube-setup-fence
 gen3 kube-setup-sheepdog
 gen3 kube-setup-peregrine
