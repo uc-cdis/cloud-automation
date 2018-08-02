@@ -62,7 +62,8 @@ RUN npm install elasticdump -g
 WORKDIR /home/ubuntu
 USER ubuntu
 
-RUN git clone https://github.com/uc-cdis/gen3-arranger.git ~/gen3-arranger\
-    && echo "source  ~/gen3-arranger/Docker/Stacks/esearch/indexSetup.sh" >> ~/.bashrc
-
+RUN git clone https://github.com/uc-cdis/gen3-arranger.git ~/gen3-arranger \
+    && echo "source  ~/gen3-arranger/Docker/Stacks/esearch/indexSetup.sh" >> ~/.bashrc \
+    && echo "export ESHOST=esproxy-service:9200" >> ~/.bashrc
+    
 CMD /bin/bash
