@@ -6,5 +6,9 @@ variable "ec2_keyname" {
 }
 
 variable "instance_type" {
-  deafult = "t2.medium"
+  default = "t2.medium"
+}
+
+variable "csoc_cidr" {
+  default = "10.128.0.0/20"
 }
