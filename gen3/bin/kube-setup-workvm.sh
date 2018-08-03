@@ -72,6 +72,10 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     sudo unzip "${XDG_RUNTIME_DIR}/packer.zip" -d /usr/local/bin
     /bin/rm "${XDG_RUNTIME_DIR}/packer.zip"
   fi
+  if ! which heptio-authenticator-aws > /dev/null 2>&1; then
+    curl -o "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.3.0/heptio-authenticator-aws_0.3.0_linux_amd64
+    sudo mv "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" /usr/local/bin
+  fi
 fi
 
 if which gcloud > /dev/null 2>&1; then

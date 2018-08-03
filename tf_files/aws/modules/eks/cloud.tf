@@ -1,6 +1,8 @@
 #####
 #
-# Module to create a new EKS cluster 
+# Module to create a new EKS cluster for an existing commons
+#
+# fauzi@uchicago.edu
 #
 #####
 
@@ -27,132 +29,27 @@ resource "aws_iam_role" "eks_control_plane_role" {
 EOF
 }
 
-
-
-data "aws_iam_policy_document" "eks_policy_document" {
-  statement {
-    actions = [
-      "autoscaling:DescribeAutoScalingGroups",
-      "autoscaling:UpdateAutoScalingGroup",
-      "ec2:AttachVolume",
-      "ec2:AuthorizeSecurityGroupIngress",
-      "ec2:CreateRoute",
-      "ec2:CreateSecurityGroup",
-      "ec2:CreateTags",
-      "ec2:CreateVolume",
-      "ec2:DeleteRoute",
-      "ec2:DeleteSecurityGroup",
-      "ec2:DeleteVolume",
-      "ec2:DescribeInstances",
-      "ec2:DescribeRouteTables",
-      "ec2:DescribeSecurityGroups",
-      "ec2:DescribeSubnets",
-      "ec2:DescribeVolumes",
-      "ec2:DescribeVolumesModifications",
-      "ec2:DescribeVpcs",
-      "ec2:DetachVolume",
-      "ec2:ModifyInstanceAttribute",
-      "ec2:ModifyVolume",
-      "ec2:RevokeSecurityGroupIngress",
-      "elasticloadbalancing:AddTags",
-      "elasticloadbalancing:ApplySecurityGroupsToLoadBalancer",
-      "elasticloadbalancing:AttachLoadBalancerToSubnets",
-      "elasticloadbalancing:ConfigureHealthCheck",
-      "elasticloadbalancing:CreateListener",
-      "elasticloadbalancing:CreateLoadBalancer",
-      "elasticloadbalancing:CreateLoadBalancerListeners",
-      "elasticloadbalancing:CreateLoadBalancerPolicy",
-      "elasticloadbalancing:CreateTargetGroup",
-      "elasticloadbalancing:DeleteListener",
-      "elasticloadbalancing:DeleteLoadBalancer",
-      "elasticloadbalancing:DeleteLoadBalancerListeners",
-      "elasticloadbalancing:DeleteTargetGroup",
-      "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
-      "elasticloadbalancing:DeregisterTargets",
-      "elasticloadbalancing:DescribeListeners",
-      "elasticloadbalancing:DescribeLoadBalancerAttributes",
-      "elasticloadbalancing:DescribeLoadBalancerPolicies",
-      "elasticloadbalancing:DescribeLoadBalancers",
-      "elasticloadbalancing:DescribeTargetGroupAttributes",
-      "elasticloadbalancing:DescribeTargetGroups",
-      "elasticloadbalancing:DescribeTargetHealth",
-      "elasticloadbalancing:DetachLoadBalancerFromSubnets",
-      "elasticloadbalancing:ModifyListener",
-      "elasticloadbalancing:ModifyLoadBalancerAttributes",
-      "elasticloadbalancing:ModifyTargetGroup",
-      "elasticloadbalancing:ModifyTargetGroupAttributes",
-      "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
-      "elasticloadbalancing:RegisterTargets",
-      "elasticloadbalancing:SetLoadBalancerPoliciesForBackendServer",
-      "elasticloadbalancing:SetLoadBalancerPoliciesOfListener",
-      "kms:DescribeKey"
-    ]
-
-    effect    = "Allow"
-    resources = ["*"]
-  },
-  statement {
-    actions = [
-      "ec2:CreateNetworkInterface",
-      "ec2:CreateNetworkInterfacePermission",
-      "ec2:DeleteNetworkInterface",
-      "ec2:DescribeInstances",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DescribeSecurityGroups",
-      "ec2:DescribeSubnets",
-      "ec2:DescribeVpcs",
-      "ec2:ModifyNetworkInterfaceAttribute",
-      "iam:ListAttachedRolePolicies"
-    ]
-    effect    = "Allow"
-    resources = ["*"]
-  },
-  statement {
-    actions = [
-      "ec2:CreateTags",
-      "ec2:DeleteTags"
-    ]
-    effect    = "Allow"
-    resources = ["arn:aws:ec2:*:*:vpc/*","arn:aws:ec2:*:*:subnet/*"]
-  }  
-}
-
-
-resource "aws_iam_policy" "eks_access" {
-  name        = "${var.vpc_name}_eks_access"
-  description = "${var.vpc_name} EKS access"
-  policy      = "${data.aws_iam_policy_document.eks_policy_document.json}"
-}
-
-#resource "aws_iam_role_policy_attachment" "eks_access_sg" {
-#  role       = "${aws_iam_role.eks_control_plane_role.name}"
-#  policy_arn = "${aws_iam_policy.eks_access.arn}"
-#}
-
+# Attach policies for said role
 resource "aws_iam_role_policy_attachment" "eks-policy-AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
   role       = "${aws_iam_role.eks_control_plane_role.name}"
-#  role       = "${aws_iam_role.EKSClusterRole.name}"
 }
 
 resource "aws_iam_role_policy_attachment" "eks-policy-AmazonEKSServicePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
   role       = "${aws_iam_role.eks_control_plane_role.name}"
-#  role       = "${aws_iam_role.EKSClusterRole.name}"
 }
 
 
 
-
+# Let's get the availability zones for the region we are working on
 data "aws_availability_zones" "available" {
   state = "available"
 }
 
 ####
-#* aws_eks_cluster.eks_cluster: error creating EKS Cluster (fauziv1): UnsupportedAvailabilityZoneException: Cannot create cluster 'fauziv1' because us-east-1e, the targeted availability zone, does not currently have sufficient capacity to support the cluster. Retry and choose from these availability zones: us-east-1a, us-east-1c, us-east-1d
+# * aws_eks_cluster.eks_cluster: error creating EKS Cluster (fauziv1): UnsupportedAvailabilityZoneException: Cannot create cluster 'fauziv1' because us-east-1e, the targeted availability zone, does not currently have sufficient capacity to support the cluster. Retry and choose from these availability zones: us-east-1a, us-east-1c, us-east-1d
 ####
-
-
 resource "random_shuffle" "az" {
 #  input = ["${data.aws_availability_zones.available.names}"] 
   input = ["us-east-1a", "us-east-1c", "us-east-1d"]
@@ -219,6 +116,99 @@ resource "aws_subnet" "eks_private" {
 #  }
 #}
 
+# Since we need to access the internet through the proxy, let find it
+
+data "aws_instances" "squid_proxy" {
+  instance_tags {
+    Name = "${var.vpc_name} HTTP Proxy"
+  }
+}
+
+
+# Also we want to access AWS stuff directly though an existing 
+# nat gateway instead than going through the proxy
+data "aws_nat_gateway" "the_gateway" {
+  vpc_id = "${data.aws_vpc.the_vpc.id}"
+}
+
+# Also let's allow comminication through the peering
+
+data "aws_vpc_peering_connection" "pc" {
+  vpc_id          = "${data.aws_vpc.the_vpc.id}"
+}
+
+resource "aws_route_table" "eks_private" {
+  vpc_id = "${data.aws_vpc.the_vpc.id}"
+
+  route {
+    cidr_block  = "0.0.0.0/0"
+    instance_id = "${data.aws_instances.squid_proxy.ids[0]}"
+  }
+
+  # We want to be able to talk to aws freely, therefore we are allowing 
+  # certain stuff overpass the proxy
+  route {
+    # logs.us-east-1.amazonaws.com
+    cidr_block     = "52.0.0.0/8"
+    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  }
+  route {
+    # logs.us-east-1.amazonaws.com as well, these guys are not static, therefore whitelist the whole list
+    cidr_block     = "54.0.0.0/8"
+    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  }
+  route {
+    # .us-east-1.eks.amazonaws.com 
+    cidr_block     = "34.192.0.0/10"
+    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  }
+
+  route {
+    #from the commons vpc to the csoc vpc via the peering connection
+    cidr_block                = "${var.csoc_cidr}"
+    vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
+  }
+
+  tags {
+    Name         = "eks_private"
+    Environment  = "${var.vpc_name}"
+    Organization = "Basic Service"
+  }
+}
+
+
+# Apparently we cannot iterate over the resource, therefore I am querying them after creation
+data "aws_subnet_ids" "private" {
+  vpc_id = "${data.aws_vpc.the_vpc.id}"
+  tags {
+    Name = "eks_private_*"
+  }
+  depends_on = [
+    "aws_subnet.eks_private",
+  ]
+}
+
+resource "aws_route_table_association" "private_kube" {
+  count = 3
+  subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
+  route_table_id = "${aws_route_table.eks_private.id}"
+}
+
+# Finally lets allow the nodes to access S3 directly 
+
+data "aws_vpc_endpoint_service" "s3" {
+  service = "s3"
+}
+
+resource "aws_vpc_endpoint" "k8s-s3" {
+  vpc_id       =  "${data.aws_vpc.the_vpc.id}"
+  
+  service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
+  route_table_ids = ["${aws_route_table.eks_private.id}"]
+}
+
+
+
 
 resource "aws_security_group" "eks_control_plane_sg" {
   name        = "${var.vpc_name}-control-plane"
@@ -247,10 +237,6 @@ resource "aws_eks_cluster" "eks_cluster" {
 #   subnet_ids  = ["${aws_subnet.eks_private_1.id}", "${aws_subnet.eks_private_2.id}", "${aws_subnet.eks_private_3.id}"]
     security_group_ids = ["${aws_security_group.eks_control_plane_sg.id}"]
   }
-
-#  depends_on = [
-#    "aws_iam_role_policy_attachment.eks_access_sg",
-#  ]
 
   depends_on = [
     "aws_iam_role_policy_attachment.eks-policy-AmazonEKSClusterPolicy",
@@ -317,22 +303,14 @@ resource "aws_security_group" "eks_nodes_sg" {
   name        =  "${var.vpc_name}-nodes-sg"
   description = "Security group for all nodes in the EKS cluster [${var.vpc_name}] "
   vpc_id      = "${data.aws_vpc.the_vpc.id}"
-  //    ingress {
-  //      from_port       = 0
-  //      to_port         = 0
-  //      protocol        = "-1"
-  //      description     = "allow nodes to communicate with each other"
-  //      self            = true
-  //    }
 
-  //    ingress {
-  //      from_port       = 1025
-  //      to_port         = 65535
-  //      protocol        = "tcp"
-  //      description     = "Allow worker Kubelets and pods to receive communication from the cluster control plane"
-  //      security_groups = ["${aws_security_group.eks_control_plane_sg.id}"]
-  //    }
-
+#  ingress {
+#    from_port       = 0
+#    to_port         = 0
+#    protocol        = "-1"
+#    description     = "Allow access from withing the VPC CIDR"
+#    cidr_blocks     = ["${data.aws_vpc.the_vpc.cidr_block}"]
+#  }
 
   egress {
     from_port       = 0
@@ -351,10 +329,9 @@ resource "aws_security_group" "eks_nodes_sg" {
 
 
 
-
-//Worker Node Access to EKS Master Cluster
-//Now that we have a way to know where traffic from the worker nodes is coming from,
-//we can allow the worker nodes networking access to the EKS master cluster.
+# Worker Node Access to EKS Master Cluster
+# Now that we have a way to know where traffic from the worker nodes is coming from,
+# we can allow the worker nodes networking access to the EKS master cluster.
 
 resource "aws_security_group_rule" "https_nodes_to_plane" {
   type                     = "ingress"
@@ -388,7 +365,26 @@ resource "aws_security_group_rule" "nodes_internode_communications" {
 }
 
 
+# Let's allow ssh just in case
+resource "aws_security_group" "ssh" {
+  name        = "ssh_eks_${var.vpc_name}"
+  description = "security group that only enables ssh"
+  vpc_id      = "${data.aws_vpc.the_vpc.id}"
 
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+    #cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
+  }
+
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "Basic Service"
+    Name         = "ssh_eks_${var.vpc_name}"
+  }
+}
 
 ## Worker Node AutoScaling Group
 # Now we have everything in place to create and manage EC2 instances that will serve as our worker nodes
@@ -422,9 +418,24 @@ locals {
   eks_node_userdata = <<USERDATA
 #!/bin/bash -xe
 
+#echo http_proxy=http://cloud-proxy.internal.io:3128 >> /etc/environment
+#echo https_proxy=http://cloud-proxy.internal.io:3128/ >> /etc/environment
+#export http{,s}_proxy=http://cloud-proxy.internal.io
+#export no_proxy=localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com
+#echo "proxy=http://cloud-proxy.internal.io:3128" >> /etc/yum.conf
+
 CA_CERTIFICATE_DIRECTORY=/etc/kubernetes/pki
 CA_CERTIFICATE_FILE_PATH=$CA_CERTIFICATE_DIRECTORY/ca.crt
+
+MODEL_DIRECTORY_PATH=~/.aws/eks
+MODEL_FILE_PATH=$MODEL_DIRECTORY_PATH/eks-2017-11-01.normal.json
+
 mkdir -p $CA_CERTIFICATE_DIRECTORY
+
+mkdir -p $MODEL_DIRECTORY_PATH
+curl -o $MODEL_FILE_PATH https://s3-us-west-2.amazonaws.com/amazon-eks/1.10.3/2018-06-05/eks-2017-11-01.normal.json
+aws configure add-model --service-model file://$MODEL_FILE_PATH --service-name eks
+
 echo "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}" | base64 -d >  $CA_CERTIFICATE_FILE_PATH
 INTERNAL_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
 sed -i s,MASTER_ENDPOINT,${aws_eks_cluster.eks_cluster.endpoint},g /var/lib/kubelet/kubeconfig
@@ -440,7 +451,7 @@ sed -i s,CERTIFICATE_AUTHORITY_FILE,$CA_CERTIFICATE_FILE_PATH,g /var/lib/kubelet
 sed -i s,CLIENT_CA_FILE,$CA_CERTIFICATE_FILE_PATH,g  /etc/systemd/system/kubelet.service
 systemctl daemon-reload
 systemctl restart kubelet
-cat > /tmp/something <<EFO
+cat > /home/ec2-user/.ssh/authorized_keys <<EFO
 ssh-dss AAAAB3NzaC1kc3MAAACBAPfnMD7+UvFnOaQF00Xn636M1IiGKb7XkxJlQfq7lgyzWroUMwXFKODlbizgtoLmYToy0I4fUdiT4x22XrHDY+scco+3aDq+Nug+jaKqCkq+7Ms3owtProd0Jj6AWCFW+PPs0tGJiObieci4YqQavB299yFNn+jusIrDsqlrUf7xAAAAFQCi4wno2jigjedM/hFoEFiBR/wdlwAAAIBl6vTMb2yDtipuDflqZdA5f6rtlx4p+Dmclw8jz9iHWmjyE4KvADGDTy34lhle5r3UIou5o3TzxVtfy00Rvyd2aa4QscFiX5jZHQYnbIwwlQzguCiF/gtYNCIZit2B+R1p2XTR8URY7CWOTex4X4Lc88UEsM6AgXIpJ5KKn1pK2gAAAIAJD8p4AeJtnimJTKBdahjcRdDDedD3qTf8lr3g81K2uxxsLOudweYSZ1oFwP7RnZQK+vVE8uHhpkmfsy1wKCHrz/vLFAQfI47JDX33yZmBLtHjjfmYDdKVn36XKZ5XrO66vcbX2Jav9Hlqb6w/nekBx2nbJaZnHwlAp70RU13gyQ== renukarya@Renukas-MacBook-Pro.local
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC2d7DncA3QdZoxXzkIaU4xcPZ0IJ97roh4qF3gE1dse3H/aQ5V3lYZ9HuhVYm1UnMvNvKXIdvsHUPEmwe6s9X8Fj1fxpxuF+/C6d5+5raHffEAqU/YEFa0V8vxcSCedQoiDfJwzUA7NTcMBEFAH4MdTa4hmGnlwEeW4JWFiBmr2y5UVRfrZhM+DVdv5hxFQCyTjMXz4ZOmfMnvC6W/ZNzCersDES36Mo/nqHQWIH6Xd5BfOYWrs2zW/MZRUy4Yt9hFyuKizSt77SpjmBYGeagHS0TSti36nAduMbr3dkbvPF3JhbsXxlGpZgaYR51zjK5cQNEEj2hCExWD2pWUKOzD jeff@wireles-guest-16-34-212.uchicago.edu
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCw48loSG10QUtackRFsmxYXd3OezarZLuT7F+bxKYsj9rx2WEehDxg1xWESMSoHxGlHMSWpt0NMnBC2oqRz19wk3YjE/LoOaDXZmzc6UBVZo4dgItKV2+T9RaeAMkCgRcp4EsN2Rw+GNoT2whIH8jrAi2HhoNSau4Gi4zyQ2px7xBtKdco5qjQ1a6s1EMqFuOL0jqqmAqMHg4g+oZnPl9uRzZao4UKgao3ypdTP/hGVTZc4MXGOskHpyKuvorFqr/QUg0suEy6jN3Sj+qZ+ETLXFfDDKjjZsrVdR4GNcQ/sMtvhaMYudObNgNHU9yjVL5vmRBCNM06upj3RHtVx0/L rpowell@rpowell.local
@@ -449,38 +460,42 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDkJRaRKEl9mqTm1ZSWqO9KX3b/zl0cv6RUshS4eST4
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDYe74TEoKYZm9cfCTAsjICaKUzAkh3/Y6mhzhhzYIqra0J5efQ+SJcDt7soOJ2qE1zOcGGvuA8belebkjOZDv50Mn5cEvaKsbpS9Poq0H02TzKby42pfV4TER1XbByuHC9eltsbn7efnmsdzcaY4uv2bMVXVauO0/XwHgoatVAeKvc+Gwkgx5BqiSI/MY+qDpldufL6f0hzsxFVlC/auJp+NWmKDjfCaS+mTBEezkXlg04ARjn3Pl68troK2uP2qXNESFgkBDTsLftM6p8cKIGjVLZI2+D4ayjbRbKWNQxS3L5CEeobzrovtls5bPSbsG/MxFdZC6EIbJH5h/6eYYj
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC6vuAdqy0pOwC5rduYmnjHTUsk/ryt//aJXwdhsFbuEFxKyuHsZ2O9r4wqwqsVpHdQBh3mLPXNGo2MZFESNEoL1olzW3VxXXzpujGHDd/F9FmOpnAAFz90gh/TM3bnWLLVWF2j7SKw68jUgijc28SnKRNRXpKJLv6PN9qq8OMHaojnEzrsGMb69lMT8dro1Yk71c4z5FDDVckN9UVL7W03+PE/dN6AtNWMlIEWlgm6/UA9Og+w9VYQnhEylxMpmxdO0SAbkIrr3EPC16kRewfovQLZJsw2KRo4EK62Xyjem/M1nHuJo4KpldZCOupxfo6jZosO/5wpKF1j8rF6vPLkHFYNwR62zTrHZ58NVjYTRF927kW7KHEq0xDKSr5nj9a8zwDInM/DkMpNyme4Jm3e4DOSQ3mP+LYG9TywNmf9/rVjEVwBBxqGRi27ex6GWcLm4XB58Ud3fhf5O5BDdkLYD1eqlJE5M4UG5vP5C9450XxW5eHUi/QK2/eV+7RijrEtczlkakPVO7JdWDZ44tX9sjkAlLSvgxkn4xZSdfqm/aJBIHUpoEitkZf9kgioZdDz2xmBDScG3c3g5UfPDrMvSTyoMliPo7bTIjdT/R1XV27V8ByrewwK/IkS70UkbIpE3GNYBUIWJBdNPpgjQ5scMOvhEIjts2z4KKq1mUSzdQ== zac
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDOHPLoBC42tbr7YiQHGRWDOZ+5ItJVhgSqAOOb8bHD65ajen1haM2PUvqCrZ0p7NOrDPFRBlNIRlhC2y3VdnKkNYSYMvHUEwt8+V3supJBj2Tu8ldzpQthDu345/Ge4hqwp+ujZVRfjjAFaFLkMtqvlAXkj7a2Ip6ZZEhd8NcRq/mQET3eCaBR5/+BGzEMBVQGTSGYOY5rOkR8PNQiX+BF7qIX/xRHo8GCOztO4KmDLmaZV63ovQwr01PXSGEq/VGfHwXAvzX13IXTYE2gechEyudhRGZBbhayyaKD7VRoKzd4BZuuUrLCSpMDWBK/qtECcP4pCXW/0Wi2OCzUen3syh/YrOtJD1CUO+VvW6/8xFrcBeoygFW87hW08ncXLT/XxpgWeExJrTGIxjr4YzcsWPBzxI7/4SmKbaDSjx/RMX7x5WbPc5AZzHY17cKcpdc14weG+sm2OoKF5RqnFB/JpBaNxG+Zq8qYC/6h8fOzDWo5+qWKO/UlWaa3ob2QpG8qOBskoyKVG3ortQ04E04DmoaOiSsXoj0U0zaJnxpdF+a0i31RxQnjckTMEHH8Y2Ow8KIG45tzhJx9NbqSj9abk3yTzGA7MHvugQFpuTQ3gaorfG+A9RGUmx6aQNwXUGu+DWRF7lFeaPJt4CDjzbDUGP/b5KJkWK0DDAI61JfOew== fauzi@uchicago.edu
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCfX+T2c3+iBP17DS0oPj93rcQH7OgTCKdjYS0f9s8sIKjErKCao0tRNy5wjBhAWqmq6xFGJeA7nt3UBJVuaGFbszIzs+yvjZYYVrJQdfl0yPbrKRMd/Ch77Jnqbu97Uyu8UxhGkzqEcxQrdBqhqkakhQULjcjZBnk0M1PrLwW+Pl1kRCnXnX/x3YzDR/Ltgjc57qjPbqz7+CBbuFo5OCYOY94pcXetHskvx1AAQ7ZT2c/F/p6vIH5jPKnCTjuqWuGoimp/alczLMO6n+aHgzqc9NKQUScxA0fCGxFeoEdd6b370E7j8xXMIA/xSmq8lFPam+fm3117nC4m29sRktoBI8YP4L7VPSkM/hLp/vRzVJf6U183GfvUSZPERrg+NvMeah9vgkTgzH0iN1+s2xPj6eFz7VUOQtLYTchMZ/qyyGhUzJznY0szocVd6iDbMAYm67R+QtgYEBD1hYrtUD052imb62nEXHFSL3V6369GaJ+k5BIUTGweOaUxGbJlb6fG2Aho4EWaigYRMtmlKgDFaCeJGjlQrFR9lKFzDBc3Af3RefPDVsavYGdQQRUAmueGjlks99Bvh2U53HQgQvc0iQg3ijey2YXBr6xFCMeG7MJZbPcrlQLXko4KygK94EcDPZnIH542CrtAySk/UxxwZv5u0dLsh7o+ZK9G6PO1+Q== reubenonrye@uchicago.edu
 EFO
+
+sudo cat /home/ec2-user/.ssh/authorized_keys > /root/.ssh/authorized_keys
 USERDATA
 }
 
 resource "aws_launch_configuration" "eks_launch_configuration" {
-  associate_public_ip_address = true
+  associate_public_ip_address = false
   iam_instance_profile        = "${aws_iam_instance_profile.eks_node_instance_profile.name}"
   image_id                    = "${data.aws_ami.eks_worker.id}"
   instance_type               = "${var.instance_type}"
   name_prefix                 = "eks-${var.vpc_name}"
-  security_groups             = ["${aws_security_group.eks_nodes_sg.id}"]
-  user_data_base64            = "${base64encode(local.eks-node-userdata)}"
+  security_groups             = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
+  user_data_base64            = "${base64encode(local.eks_node_userdata)}"
   key_name                    = "${var.ec2_keyname}"
 
   lifecycle {
     create_before_destroy = true
+    ignore_changes  = ["user_data_base64"]
   }
 }
 
 
-//Finally, we create an AutoScaling Group that actually launches EC2 instances based on the
-//AutoScaling Launch Configuration.
+# Finally, we create an AutoScaling Group that actually launches EC2 instances based on the
+# AutoScaling Launch Configuration.
 
-//NOTE: The usage of the specific kubernetes.io/cluster/* resource tag below is required for EKS
-//and Kubernetes to discover and manage compute resources.
+# NOTE: The usage of the specific kubernetes.io/cluster/* resource tag below is required for EKS
+# and Kubernetes to discover and manage compute resources.
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
   desired_capacity     = 2
   launch_configuration = "${aws_launch_configuration.eks_launch_configuration.id}"
-  max_size             = 2
-  min_size             = 1
-  name                 = "eks-${var.vpc_name}"
+  max_size             = 5
+  min_size             = 2
+  name                 = "eks-worker-node-${var.vpc_name}"
   vpc_zone_identifier  = ["${aws_subnet.eks_private.*.id}"]
 
 
@@ -503,22 +518,18 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
   }
 }
 
-//NOTE: At this point, your Kubernetes cluster will have running masters and worker nodes, however, the worker nodes will
-//not be able to join the Kubernetes cluster quite yet. The next section has the required Kubernetes configuration to
-//enable the worker nodes to join the cluster.
+# NOTE: At this point, your Kubernetes cluster will have running masters and worker nodes, however, the worker nodes will
+# not be able to join the Kubernetes cluster quite yet. The next section has the required Kubernetes configuration to
+# enable the worker nodes to join the cluster.
 
+# Required Kubernetes Configuration to Join Worker Nodes
+# The EKS service does not provide a cluster-level API parameter or resource to automatically configure the underlying
+# Kubernetes cluster to allow worker nodes to join the cluster via AWS IAM role authentication.
 
-//Required Kubernetes Configuration to Join Worker Nodes
-//The EKS service does not provide a cluster-level API parameter or resource to automatically configure the underlying
-//Kubernetes cluster to allow worker nodes to join the cluster via AWS IAM role authentication.
-
-
-//To output an IAM Role authentication ConfigMap from your Terraform configuration:
+# To output an IAM Role authentication ConfigMap from your Terraform configuration:
 
 locals {
   config-map-aws-auth = <<CONFIGMAPAWSAUTH
-
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -526,7 +537,7 @@ metadata:
   namespace: kube-system
 data:
   mapRoles: |
-    - rolearn: ${aws_iam_role.EKSNodeRole.arn}
+    - rolearn: ${aws_iam_role.eks_node_role.arn}
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
