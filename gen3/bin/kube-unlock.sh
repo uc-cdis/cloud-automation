@@ -33,15 +33,12 @@ fi
 # create locks ConfigMap if it does not already exist, and set the lock we are 
 # currently trying to lock to unlocked with no owner
 if ! g3kubectl get configmaps locks; then
-  echo "locks configmap not detected, can't unlock"
   exit 1
 else 
   if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$1}") != 'true' ]]; then
-    echo "lock $1 doesn't exist or isn't locked, can't unlock"
     exit 1
   else 
     if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$1_owner}") != $2 ]]; then
-      echo "you don't own this lock, can't unlock"
       exit 1
     else 
       g3kubectl label --overwrite configmap locks $1=false $1_owner=none

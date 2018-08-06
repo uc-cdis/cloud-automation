@@ -38,7 +38,6 @@ if ! g3kubectl get configmaps locks; then
   g3kubectl label configmap locks $1=false $1_owner=none
 else 
   if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$1}") = '' ]]; then
-    echo "lock $1 doesn't exist, creating it"
     g3kubectl label configmap locks $1=false $1_owner=none
   fi
 fi
@@ -46,19 +45,15 @@ fi
 # check if the lock we are currently trying to lock is unlocked. If it is, lock 
 # lock and wait, then check again if we have the lock before proceeding
 if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$1}") = "false" ]]; then
-  echo "lock is unlocked, locking"
   g3kubectl label --overwrite configmap locks $1=true $1_owner=$2
   sleep $(shuf -i 1-5 -n 1)
 
   if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$1}") = "true" 
     && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$1_owner}") = $2 ]]; then 
-    echo "still have lock after sleeping"
     exit 0
   else
-    echo "no longer have lock after sleeping"
     exit 1
   fi
 else 
-  echo "lock is locked"
   exit 1
 fi
