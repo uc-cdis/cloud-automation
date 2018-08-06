@@ -267,18 +267,18 @@ set -e
 set -u
     install_custom_scripts
   #  if [! -d "/etc/openvpn/easy-rsa"]; then
-   # install_easyrsa
+    install_easyrsa
    # build_PKI
    # else
-    scp -o StrictHostKeyChecking=no -r ubuntu@10.128.1.11:/home/ubuntu/openvpn/easy-rsa /etc/openvpn
-    scp -o StrictHostKeyChecking=no ubuntu@10.128.1.11:/home/ubuntu/openvpn/ipp.txt /etc/openvpn
-    scp -o StrictHostKeyChecking=no ubuntu@10.128.1.11:/home/ubuntu/openvpn/user_passwd.csv /etc/openvpn
+    #scp -o StrictHostKeyChecking=no -r ubuntu@10.128.1.11:/home/ubuntu/openvpn/easy-rsa /etc/openvpn
+    #scp -o StrictHostKeyChecking=no ubuntu@10.128.1.11:/home/ubuntu/openvpn/ipp.txt /etc/openvpn
+    #scp -o StrictHostKeyChecking=no ubuntu@10.128.1.11:/home/ubuntu/openvpn/user_passwd.csv /etc/openvpn
    # fi
 
     install_settings
 
    # if [! -d "/etc/openvpn/easy-rsa"]; then
-    #build_PKI
+    build_PKI
     #fi
 
     configure_ovpn
