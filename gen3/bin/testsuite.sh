@@ -187,16 +187,18 @@ test_kube_lock() {
   gen3 kube-lock testlock2 testuser; because $? "kube-lock should be able to handle multiple locks"
   gen3 kube-lock testlock3 testuser2; because $? "kube-lock should be able to handle multiple users"
   gen3 kube-lock testlock testuser2; because !$? "attempting to lock an already locked lock with a different user should fail"
+  kubectl delete configmap locks
 }
 
 test_kube_unlock() {
   gen3 kube-unlock | grep -e "gen3 kube-unlock lock-name owner:"; because $? "calling kube-unlock without arguments should show the help documentation"
-  gen3 kube-unlock testlock testuser; because $? "calling kube-unlock for the first time without a lock should fail"
+  gen3 kube-unlock testlock testuser; because !$? "calling kube-unlock for the first time without a lock should fail"
   gen3 kube-lock testlock testuser
-  gen3 kube-unlock testlock2 testuser; because !$? "calling kube-lock for the second time on a lock the user owns should fail because the lock does not exist"
-  gen3 kube-unlock testlock testuser2; because !$? "calling kube-lock for the second time on a lock the user does not own should fail"
-  gen3 kube-unlock testlock testuser; because $? "calling kube-lock for the first time on a lock the user owns should succeed"
-  gen3 kube-unlock testlock testuser; because !$? "calling kube-lock for the second time on a lock the user owns should fail because the lock is already unlocked"
+  gen3 kube-unlock testlock2 testuser; because !$? "calling kube-unlock for the first time on a lock that does not exist should fail"
+  gen3 kube-unlock testlock testuser2; because !$? "calling kube-unlock for the first time on a lock the user does not own should fail"
+  gen3 kube-unlock testlock testuser; because $? "calling kube-unlock for the first time on a lock the user owns should succeed"
+  gen3 kube-unlock testlock testuser; because !$? "calling kube-unlock for the second time on a lock the user owns should fail because the lock is already unlocked"
+  kubectl delete configmap locks
 }
 
 # shunit_runtest "test_semver"
