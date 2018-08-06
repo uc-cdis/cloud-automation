@@ -182,15 +182,12 @@ test_tfoutput() {
 test_kube_lock() {
   echo "hello this is test_kube_lock"
   gen3 kube-lock | grep -e "gen3 kube-lock lock-name owner:"; because $? "calling kube-lock without arguments should show the help documentation"
-  gen3 kube-lock testlock testuser; because $? "calling kube-lock for the first time for a lock should successfully lock it"
-  gen3 kube-lock testlock testuser; because ! $? "calling kube-lock for the second time in a row for a lock should fail to lock it"
+  kubectl delete configmap locks
+  gen3 kube-lock testlock testuser; because $? "calling kube-lock for the first time for a lock should successfully lock it, and it should create the configmap locks if it does not exist already"
+  gen3 kube-lock testlock testuser; because !$? "calling kube-lock for the second time in a row for a lock should fail to lock it"
   gen3 kube-lock testlock2 testuser; because $? "kube-lock should be able to handle multiple locks"
   gen3 kube-lock testlock3 testuser2; because $? "kube-lock should be able to handle multiple users"
-  gen3 kube-lock testlock testuser2; because ! $? "attempting to lock an already locked lock with a different user should fail"
-  kubectl delete configmap locks
-  gen3 kube-lock testlock testuser; because $? "calling kube-lock when the locks configmap doesn't exist should create the locks configmap and lock it"
-  gen3 kube-lock testlock testuser; because ! $? "calling kube-lock for the second time in a row for a lock should fail to lock it"
-
+  gen3 kube-lock testlock testuser2; because !$? "attempting to lock an already locked lock with a different user should fail"
 }
 
 test_kube_unlock() {
