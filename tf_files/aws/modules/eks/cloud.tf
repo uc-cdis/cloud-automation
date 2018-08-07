@@ -77,7 +77,7 @@ resource "aws_subnet" "eks_private" {
 #  vpc_id                  = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   #cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * ( 6 + count.index) )}/24"
-  cidr_block              = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 6 + count.index ))}"
+  cidr_block              = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index ))}"
   availability_zone       = "${random_shuffle.az.result[count.index]}"
 #  availability_zone       = "${element(random_shuffle.az.result, count.index)}"
   map_public_ip_on_launch = false
