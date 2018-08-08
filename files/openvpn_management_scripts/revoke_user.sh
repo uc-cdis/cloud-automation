@@ -23,3 +23,4 @@ revoke-full $username
 set -e
 
 sed -i "/${username},/d" $USER_PW_FILE
+/etc/openvpn/bin/push_to_s3.sh

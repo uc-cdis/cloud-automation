@@ -49,3 +49,4 @@ update_password_file
 generate_qr_code
 print_info
 
+/etc/openvpn/bin/push_to_s3.sh
