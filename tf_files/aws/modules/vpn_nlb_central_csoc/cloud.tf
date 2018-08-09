@@ -552,6 +552,38 @@ resource "aws_iam_role" "vpn-certs-and-files_writer" {
 EOF
 }
 
+
+resource "aws_s3_bucket" "b" {
+  bucket = "vpn_certs_and_files"
+}
+
+resource "aws_s3_bucket_policy" "b" {
+  bucket = "${aws_s3_bucket.b.id}"
+  policy =<<POLICY
+{
+    "Version": "2012-10-17",
+    "Id": "Policy1533585028918",
+    "Statement": [
+        {
+            "Sid": "Stmt1533585020818",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::433568766270:user/CSOC-vpn-s3-user"
+            },
+            "Action": "s3:*",
+            "Resource": [
+                "arn:aws:s3:::vpn-certs-and-files",
+                "arn:aws:s3:::vpn-certs-and-files/*"
+            ]
+        }
+    ]
+}
+
+POLICY
+}
+
+
+
 data "aws_iam_policy_document" "vpn-certs-and-files_writer" {
   statement {
     actions = [
