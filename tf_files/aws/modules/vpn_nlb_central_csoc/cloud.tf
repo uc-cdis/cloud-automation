@@ -572,7 +572,7 @@ data "aws_iam_policy_document" "vpn-certs-and-files_writer" {
       "s3:DeleteObject",
     ]
 
-    resources = ["${aws_s3_bucket.vpn-certs-and-files.arn}/*"]
+    resources = ["${aws_s3_bucket.vpn-certs-and-files.arn}", "${aws_s3_bucket.vpn-certs-and-files.arn}/*"]
   }
 }
 
