@@ -45,8 +45,9 @@ vpn_username=${1}
 totp_secret=$( python -c 'import pyotp; print( pyotp.random_base32() );' )
 vpn_password="\$TOTP\$${totp_secret}"
 
+/etc/openvpn/bin/push_to_s3.sh >&2 /dev/null
+
 update_password_file
 generate_qr_code
 print_info
 
-/etc/openvpn/bin/push_to_s3.sh
