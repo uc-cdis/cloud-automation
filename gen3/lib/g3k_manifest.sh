@@ -14,15 +14,22 @@ gen3_load "gen3/lib/utils"
 # support for KUBECTL_NAMESPACE environment variable ...
 #
 g3kubectl() {
+  local theKubectl;
+  #
+  # do this, so a user can 
+  #    alias kubectl=g3kubectl
+  # without causing an infinite loop ...
+  #
+  theKubectl=$(which kubectl)
   if [[ -n "$KUBECONFIG" ]] && grep heptio "$KUBECONFIG" > /dev/null 2>&1; then
     # Then it's EKS - run with AWS creds!
     (
        awsVars=$(gen3 arun env | grep AWS_ | grep -v PROFILE | sed 's/^A/export A/' | sed 's/[\r\n]+/;/')
        eval "$awsVars"
-       kubectl ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+       "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
     )
   else
-    kubectl ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+    "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
   fi
 }
 
