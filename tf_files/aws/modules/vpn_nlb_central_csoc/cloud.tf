@@ -553,7 +553,7 @@ resource "aws_iam_role" "vpn-certs-and-files_writer" {
 EOF
 }
 
-resource "aws_s3_bucket_policy" "b" {
+resource "aws_s3_bucket_policy" "vpn-bucket-policy" {
   bucket = "${aws_s3_bucket.vpn-certs-and-files.id}"
   policy =<<POLICY
 {
