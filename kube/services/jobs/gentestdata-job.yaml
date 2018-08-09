@@ -21,6 +21,7 @@
 #
 # Example
 # gen3 runjob gentestdata SUBMISSION_USER cdis.autotest@gmail.com TEST_PROGRAM DEV TEST_PROJECT test NUMBER_OF_EXAMPLES 10
+#
 apiVersion: batch/v1
 kind: Job
 metadata:
