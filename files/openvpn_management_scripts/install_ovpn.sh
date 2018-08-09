@@ -278,7 +278,7 @@ set -u
     install_settings
 
    # if [! -d "/etc/openvpn/easy-rsa"]; then
-    build_PKI
+    aws s3 ls s3://vpn-certs-and-file/WHICHVPN/ || build_PKI
     #fi
 
     configure_ovpn
