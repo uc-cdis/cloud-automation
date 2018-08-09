@@ -555,7 +555,7 @@ EOF
 
 
 resource "aws_s3_bucket" "b" {
-  bucket = "vpn_certs_and_files"
+  bucket = "vpn-certs-and-files"
 }
 
 resource "aws_s3_bucket_policy" "b" {
