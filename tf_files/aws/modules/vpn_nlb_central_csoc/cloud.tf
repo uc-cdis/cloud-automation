@@ -290,6 +290,7 @@ echo "aws_secret_access_key = ${aws_iam_access_key.vpn_s3_user_key.secret}" >> /
 
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /home/ubuntu/cloud-automation/files/openvpn_management_scripts/push_to_s3.sh
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /home/ubuntu/cloud-automation/files/openvpn_management_scripts/recover_from_s3.sh
+sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /home/ubuntu/cloud-automation/files/openvpn_management_scripts/install_ovpn.sh
 
 aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ && /home/ubuntu/cloud-automation/files/openvpn_management_scripts/recover_from_s3.sh
 
