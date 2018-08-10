@@ -280,11 +280,6 @@ sudo apt-get autoclean
 
 sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
-echo sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/push_to_s3.sh >> /root/whatsup
-echo sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/recover_from_s3.sh  >> /root/whatsup
-echo sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh >> /root/whatsup
-echo aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ >> /root/whatsup
-
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/push_to_s3.sh
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/recover_from_s3.sh
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh
