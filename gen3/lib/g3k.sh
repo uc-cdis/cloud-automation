@@ -140,10 +140,11 @@ g3k_runjob() {
   fi
   jobPath="$jobName"
   if [[ -f "$jobPath" ]]; then
-      jobName="$(basename $jobPath | sed 's/-job.yaml$//')"
+    jobName="$(basename $jobPath | sed 's/-job.yaml$//')"
   else
     jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.yaml"
   fi
+  jobScriptPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.sh"
   if [[ -f "$jobPath" ]]; then
     while [[ $# -gt 0 ]]; do
       kvList+=("$1")
@@ -161,6 +162,13 @@ g3k_runjob() {
     # delete previous job run and pods if any
     if g3kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
       g3kubectl delete "jobs/${jobName}"
+    fi
+    # run job helper script if present
+    if [[ -f "$jobScriptPath" ]]; then
+      if ! bash "$jobScriptPath" "${kvList[@]}" "$tempFile"; then
+        echo "$jobScriptPath failed"
+        return 1
+      fi
     fi
     g3kubectl create -f "$tempFile"
     result=$?
@@ -224,7 +232,7 @@ g3k_jobpods(){
 # to interact directly with running services
 #
 g3k_devterm() {
-  g3kubectl run "awshelper-$(date +%s)" -it --rm=true --labels="app=gen3job" --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
+  g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --labels="app=gen3job" --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
 }
 
 #
