@@ -76,7 +76,7 @@ resource "aws_subnet" "eks_private" {
   count = 3
 #  vpc_id                  = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  #cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * ( 6 + count.index) )}/24"
+#  cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * ( 6 + count.index) )}/24"
   cidr_block              = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index ))}"
   availability_zone       = "${random_shuffle.az.result[count.index]}"
 #  availability_zone       = "${element(random_shuffle.az.result, count.index)}"
@@ -86,9 +86,39 @@ resource "aws_subnet" "eks_private" {
     Name         = "eks_private_${count.index}"
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
+    "kubernetes.io/cluster/${var.vpc_name}" = "owned"
+  }
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["tags", "availability_zone"]
   }
 }
 
+
+
+resource "aws_subnet" "eks_public" {
+  count                   = 3
+  vpc_id                  = "${data.aws_vpc.the_vpc.id}"
+  cidr_block              = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 10 + count.index ))}"
+  map_public_ip_on_launch = true
+  availability_zone       = "${random_shuffle.az.result[count.index]}"
+
+  # Note: KubernetesCluster tag is required by kube-aws to identify the public subnet for ELBs
+  tags {
+    Name                                    = "eks_public_${count.index}"
+    Environment                             = "${var.vpc_name}"
+    Organization                            = "Basic Service"
+    "kubernetes.io/cluster/${var.vpc_name}"   = "shared"
+    "kubernetes.io/role/elb"                  = ""
+    KubernetesCluster                       = "${var.vpc_name}"
+  }
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["tags", "availability_zone"]
+  }
+}
 
 #resource "aws_subnet" "eks_private_2" {
 #  vpc_id                  = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
@@ -190,7 +220,7 @@ data "aws_subnet_ids" "private" {
 }
 
 resource "aws_route_table_association" "private_kube" {
-  count = 3
+  count          = 3
   subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
 }
@@ -226,6 +256,31 @@ resource "aws_security_group" "eks_control_plane_sg" {
 
 
 
+data "aws_route_table" "public_kube" {
+  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+  tags {
+    Name = "main"
+  }
+}
+
+
+# Apparently we cannot iterate over the resource, therefore I am querying them after creation
+data "aws_subnet_ids" "public_kube" {
+  vpc_id = "${data.aws_vpc.the_vpc.id}"
+  tags {
+    Name = "eks_public_*"
+  }
+  depends_on = [
+    "aws_subnet.eks_public",
+  ]
+}
+
+
+resource "aws_route_table_association" "public_kube" {
+  count          = 3
+  subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
+  route_table_id = "${data.aws_route_table.public_kube.id}"
+}
 
 # The actual EKS cluster 
 
