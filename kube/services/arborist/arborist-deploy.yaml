@@ -38,7 +38,8 @@ spec:
         GEN3_ARBORIST_IMAGE
         imagePullPolicy: Always
         env:
-          - JWKS_ENDPOINT: "http://fence-service/.well-known/jwks"
+          - name: JWKS_ENDPOINT
+            value: "http://fence-service/.well-known/jwks"
         livenessProbe:
           httpGet:
             path: /health
