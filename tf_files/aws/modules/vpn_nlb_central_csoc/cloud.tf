@@ -276,7 +276,20 @@ sudo apt-get autoremove -y
 sudo apt-get clean
 sudo apt-get autoclean
 
+# This is to modify the S3 scripts and openvpn install script to use the specific VPN bucket in S3
+
 sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
+
+echo sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/push_to_s3.sh >> /root/whatsup
+echo sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/recover_from_s3.sh  >> /root/whatsup
+echo sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh >> /root/whatsup
+echo aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ >> /root/whatsup
+
+sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/push_to_s3.sh
+sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/recover_from_s3.sh
+sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh
+
+aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ && /root/openvpn_management_scripts/recover_from_s3.sh
 
 cd /home/ubuntu
 ## WORK ON THIS TO POINT TO THE VPN FLAVOR SCRIPT
@@ -290,16 +303,7 @@ echo "[default]" > /root/.aws/credentials
 echo "aws_access_key_id = ${aws_iam_access_key.vpn_s3_user_key.id}" >> /root/.aws/credentials
 echo "aws_secret_access_key = ${aws_iam_access_key.vpn_s3_user_key.secret}" >> /root/.aws/credentials
 
-echo sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /etc/openvpn/openvpn_management_scripts/push_to_s3.sh >> /root/whatsup
-echo sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /etc/openvpn/openvpn_management_scripts/recover_from_s3.sh  >> /root/whatsup
-echo sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /etc/openvpn/openvpn_management_scripts/install_ovpn.sh >> /root/whatsup
-echo aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ >> /root/whatsup
 
-sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /etc/openvpn/openvpn_management_scripts/push_to_s3.sh
-sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /etc/openvpn/openvpn_management_scripts/recover_from_s3.sh
-sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /etc/openvpn/openvpn_management_scripts/install_ovpn.sh
-
-aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ && /home/ubuntu/cloud-automation/files/openvpn_management_scripts/recover_from_s3.sh
 
 EOF
 
