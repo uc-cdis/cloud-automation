@@ -1,6 +1,13 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
+  # 
+  # A little helper jobs for creating new indexd
+  # users with basic-auth access to indexd update
+  # endpoints.
+  # Loads the list of users from the indexd
+  # creds.json
+  #
   name: indexd-userdb
 spec:
   template:
