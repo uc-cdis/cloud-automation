@@ -55,4 +55,4 @@ cat $TEMPLATE_DIR/client_ovpn_systemd.settings >> $KEY_DIR/ovpn_files_systemd/${
 cp $KEY_DIR/ovpn_files/${username}-${CLOUD_NAME}.ovpn $KEY_DIR/ovpn_files_resolvconf/${username}-${CLOUD_NAME}-resolvconf.ovpn
 cat $TEMPLATE_DIR/client_ovpn_resolvconf.settings >> $KEY_DIR/ovpn_files_resolvconf/${username}-${CLOUD_NAME}-resolvconf.ovpn
 ##
-/etc/openvpn/bin/push_to_s3.sh
+#/etc/openvpn/bin/push_to_s3.sh
