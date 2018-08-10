@@ -48,7 +48,7 @@ vpn_password="\$TOTP\$${totp_secret}"
 update_password_file
 generate_qr_code
 
-/etc/openvpn/bin/push_to_s3.sh >&2 /dev/null
+/etc/openvpn/bin/push_to_s3.sh >& /dev/null
 
 print_info
 
