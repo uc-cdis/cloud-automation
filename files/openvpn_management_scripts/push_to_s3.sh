@@ -6,7 +6,7 @@ else
 	echo directory /etc/openvpn/easy-rsa/ does not exist
 fi
 
-for F in /etc/openvpn/user_passwd.csv /etc/lighttpd/certs/server.pem /etc/openvpn/ipp.txt
+for F in /etc/openvpn/user_passwd.csv /root/server.pem /etc/openvpn/ipp.txt
 do
 	if [ -e $F ]
 	then
