@@ -61,7 +61,7 @@ spec:
           - name: GEN3_ARBORIST_ENDPOINT
             value: http://arborist-service
           - name: GEN3_PROJECT_ID
-            value: dev
+            value: GEN3_ARRANGER_PROJECT_ID|-dev-|
           volumeMounts:
             - name: "cert-volume"
               readOnly: true

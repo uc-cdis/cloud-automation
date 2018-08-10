@@ -40,7 +40,7 @@ test_mfilter() {
     if [[ "$name" == "sheepdog" ]]; then capName=Sheepdog; fi
     for domain in test1.manifest.g3k default.bogus; do
       local mpath="$(g3k_manifest_path test1.manifest.g3k)"
-      # Note: date timestamp will different between saved snapshot and fresh template processing
+      # Note: date timestamp will differ between saved snapshot and fresh template processing
       echo "Writing: $testFolder/${name}-${domain}-a.yaml"
       g3k_manifest_filter "${GEN3_HOME}/kube/services/$name/${name}-deploy.yaml" "$mpath" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-a.yaml"
       cat "$(dirname "$mpath")/expected${capName}Result.yaml" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-b.yaml"
