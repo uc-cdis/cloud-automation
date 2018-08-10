@@ -88,7 +88,7 @@ cat /root/cert.key /root/cert.pem > /root/server.pem
 
 #Make changes to the install_vpn.sh script
 # copy the openvpn_management_scipts to the /root folder
-cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
+# cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
 export FQDN="raryatestvpnv1.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
 

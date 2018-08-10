@@ -276,6 +276,8 @@ sudo apt-get autoremove -y
 sudo apt-get clean
 sudo apt-get autoclean
 
+sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
+
 cd /home/ubuntu
 ## WORK ON THIS TO POINT TO THE VPN FLAVOR SCRIPT
 sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
