@@ -1,8 +1,7 @@
 # TL;DR
 
 Terraform rules for bringing up cloud resources in different stacks.  Use the [gen3](../gen3/README.md) 
-helper scripts to simplify running terraform and other
-devops tasks.
+helper scripts to simplify running terraform and other devops tasks.
 
 ## Organization
 
@@ -26,6 +25,12 @@ Resources for a gen3 commons in an AWS VPC.
 ```
 gen3 workon cdistest devplanetv1
 ```
+
+### VPC peering request acceptance by CSOC admin VM
+When we launch a new data commons; it fails when we run the `gen3 tfapply` for the first time. At this point, we need to login to the csoc_admin VM and run the following command:
+gen3 approve_vpcpeering_request <child_vpc_name>
+The underneath script basically looks for a new VPC peering request, if any accepts it, tags it and create an appropriate route to the csoc_main_vpc private subnet route table.
+Once this is completed successfully, we can run the `gen3 tfplan` and `gen3 tfapply` again.
 
 ## tf_files/aws/data_bucket
 

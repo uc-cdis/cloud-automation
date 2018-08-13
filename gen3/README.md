@@ -216,6 +216,7 @@ kube-dev-namespace
 kube-extract-config
 kube-roll-all
 kube-roll-qa
+kube-setup-arranger
 kube-setup-certs
 kube-setup-fence
 kube-setup-fluentd
@@ -384,31 +385,33 @@ $ g3k help
 There are some helper functions in [kubes.sh](https://github.com/uc-cdis/cloud-automation/blob/master/kube/kubes.sh) for k8s related operations.
 
 ### roll
-`g3k roll $DEPLOYMENT_NAME` updates the deployed pods to the 
+`gen3 roll $DEPLOYMENT_NAME` updates the deployed pods to the 
 docker image currently referenced by `cdis-manifest` - 
-forces the pod to update even if the image tag has not changed
+forces the pod to update even if the image tag has not changed.
+The [kube/README](../kube/README.md) has details on the simple template
+processing that `gen3 roll` applies to each `-deploy.yaml` file.
 
-ex: `g3k roll fence`
+ex: `gen3 roll fence`
 
-Also, `g3k roll all` rolls all services in order, and creates missing
+Also, `gen3 roll all` rolls all services in order, and creates missing
 secrets and configuration if the `~/${vpc_name}/creds.json` and
 similar files are present.
 
-### get_pod
-`g3k get_pod $DEPLOYMENT_SUBSTRING` get one of the pods' name for a deployment, this is handy when you want to just run a command on one pod, eg:
-`kubectl exec $(get_pod gdcapi) -c gdcapi ls`.
 
 ### update_config
-`g3k update_config $CONFIG_NAME $CONFIG_FILE` this will delete old configmap and create new configmap with updated content
+`gen3 update_config $CONFIG_NAME $CONFIG_FILE` this will delete old configmap and create new configmap with updated content
 
-### run_job
+### runjob
+
+Launch `kube/services/jobs/JOBNAME-job.yaml` onto the cluster after running
+`kube/services/jobs/JOBNAME-job.sh` if it exists.
 
 ```
-ubuntu@ip-172-16-36-26:~$ g3k update_config fence planxplanetv1/apis_configs/user.yaml 
+ubuntu@ip-172-16-36-26:~$ gen3 update_config fence planxplanetv1/apis_configs/user.yaml 
 configmap "fence" deleted
 configmap "fence" created
 
-ubuntu@ip-172-16-36-26:~$ g3k runjob useryaml
+ubuntu@ip-172-16-36-26:~$ gen3 runjob useryaml
 job "useryaml" deleted
 job "useryaml" created
 ```
@@ -416,10 +419,10 @@ job "useryaml" created
 ### g3k_help
 
 ```
-ubuntu@ip-172-16-36-26:~$ g3k help
+ubuntu@ip-172-16-36-26:~$ gen3 help
   
   Use:
-  g3k COMMAND - where COMMAND is one of:
+  gen3 COMMAND - where COMMAND is one of:
     help
     jobpods JOBNAME - list pods associated with given job
     joblogs JOBNAME - get logs from first result of jobpods
@@ -434,17 +437,3 @@ ubuntu@ip-172-16-36-26:~$ g3k help
     update_config CONFIGMAP-NAME YAML-FILE
 ```
 
-
-
-## VPC naming conventions
-
-The *gen3* tools follow these VPC naming conventions to determine which terraform stack to build in the VPC.
-* a VPC name that ends in '_user' is a user VPC (for user VM's) on AWS defined by the resources in `cloud-automation/tf_files/aws/user_vpc`
-* every other VPC name is a commons VPC on AWS defined by resources in `cloud-automation/tf_files/aws/commons`
-
-
-## VPC peering request acceptance by CSOC admin VM
-When we launch a new data commons; it fails when we run the `gen3 tfapply` for the first time. At this point, we need to login to the csoc_admin VM and run the following command:
-gen3 approve_vpcpeering_request <child_vpc_name>
-The underneath script basically looks for a new VPC peering request, if any accepts it, tags it and create an appropriate route to the csoc_main_vpc private subnet route table.
-Once this is completed successfully, we can run the `gen3 tfplan` and `gen3 tfapply` again.
