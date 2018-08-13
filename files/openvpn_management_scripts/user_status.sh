@@ -1,7 +1,19 @@
 #!/bin/bash
 #   Copyright 2015 CDIS
 #   Author: Ray Powell rpowell1@uchicago.edu
+CLEAR="\033[0m"
+BLINK="\033[5m"
+BOLD="\033[1m"
+UNDERLINE="\033[4m"
+REVERSED="\033[7m"
+GREEN="\033[32m"
+CYAN="\033[36m"
+YELLOW="\033[33m"
+MAGENTA="\033[35m"
+WHITE="\033[37m"
+RED="\033[31m"
 
+echo -e "Entering ${BOLD}$_${CLEAR}"
 
 source /etc/openvpn/bin/settings.sh 
 #Source the settings for EASY RSA
@@ -119,3 +131,4 @@ then
 else
     check_status | grep -E ",$cmd$"
 fi
+echo -e "Exiting ${BOLD}$_${CLEAR}"

@@ -1,4 +1,18 @@
 #!/bin/bash
+CLEAR="\033[0m"
+BLINK="\033[5m"
+BOLD="\033[1m"
+UNDERLINE="\033[4m"
+REVERSED="\033[7m"
+GREEN="\033[32m"
+CYAN="\033[36m"
+YELLOW="\033[33m"
+MAGENTA="\033[35m"
+WHITE="\033[37m"
+RED="\033[31m"
+
+echo -e "Entering ${BOLD}$_${CLEAR}"
+
 if [ -e /etc/profile.d/99-proxy.sh ]
 then
     source /etc/profile.d/99-proxy.sh
@@ -49,6 +63,8 @@ update_password_file
 generate_qr_code
 
 /etc/openvpn/bin/push_to_s3.sh >& /dev/null
+
+echo -e "Exiting ${BOLD}$_${CLEAR}"
 
 print_info
 

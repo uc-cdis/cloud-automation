@@ -1,6 +1,19 @@
 #!/bin/bash
 #   Copyright 2017 CDIS
 #   Author: Ray Powell rpowell1@uchicago.edu
+CLEAR="\033[0m"
+BLINK="\033[5m"
+BOLD="\033[1m"
+UNDERLINE="\033[4m"
+REVERSED="\033[7m"
+GREEN="\033[32m"
+CYAN="\033[36m"
+YELLOW="\033[33m"
+MAGENTA="\033[35m"
+WHITE="\033[37m"
+RED="\033[31m"
+
+echo -e "Entering ${BOLD}$_${CLEAR}"
 
 if [ -e /etc/openvpn/bin/settings.sh ] && [ -z "$VPN_SETTINGS_LOADED" ]
 then
@@ -36,3 +49,4 @@ while read r; do eval echo $r; done < $TEMPLATE_DIR/client_ovpn_seperate.setting
 
 tar -C $TEMP_DIR/../ -zcvf $KEY_DIR/ovpn_files_seperated/${username}-${CLOUD_NAME}-seperated.tgz  $TEMP_NAME
 
+echo -e "Exiting ${BOLD}$_${CLEAR}"
