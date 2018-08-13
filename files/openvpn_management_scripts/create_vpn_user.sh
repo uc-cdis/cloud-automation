@@ -50,8 +50,8 @@ export KEY_ALTNAMES="DNS:${KEY_CN}"
 
 #This create the key's for the road warrior
 echo -e "running ${YELLOW} build-batch-key"
-build-key-batch  $username &>/dev/null && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
-&& echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
+build-key-batch  $username &>/dev/null && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR 
+#&& echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
 
 echo "Backup certs so we can revoke them if ever needed"
 [ -d  $KEY_DIR/user_certs/ ]  || mkdir  $KEY_DIR/user_certs/
