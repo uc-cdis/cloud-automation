@@ -23,13 +23,14 @@ fi
 FILENAME=${1}
 if [ ! -e "$1" ]
 then
-    "ERROR: $FILENAME does not exist"
+    "ERROR: ${RED}${FILENAME}${CLEAR} does not exist"
     exit 1
 fi
 
 if [ -e /etc/profile.d/99-proxy.sh ]
 then
     source /etc/profile.d/99-proxy.sh
+    echo -e "${YELLOW}using proxy${CLEAR}"
 fi
 
 if [ -e /etc/openvpn/bin/settings.sh ] && [ -z "$VPN_SETTINGS_LOADED" ]
@@ -61,7 +62,7 @@ send_welcome_letter_png() {
 
     #export VPN_CREDS_URL=${vpn_creds_url}
     export VPN_CREDS_URL=${vpn_totp_qrcode}
-    cat $VPN_BIN_ROOT/templates/creds_template.txt | envsubst | mutt $vpn_email -e "set realname='$EMAIL'"  -s "$CLOUD_NAME VPN Configuration Files: $CLOUD_NAME" -a$TEMP_ROOT/$vpn_username.zip $VPN_FILE_ATTACHMENTS
+    cat $VPN_BIN_ROOT/templates/creds_template.txt | envsubst | mutt $vpn_email -e "set realname='$EMAIL'"  -s "$CLOUD_NAME VPN Configuration Files: $CLOUD_NAME" -a$TEMP_ROOT/$vpn_username.zip $VPN_FILE_ATTACHMENTS || echo -e "${RED}${BLINK}Failed to send email${CLEAR}"
 }
 
 
@@ -89,7 +90,7 @@ do
    
     if vpn_user_exists
     then
-        echo "$vpn_username exists skipping"
+        echo -e "${YELLOW}${vpn_username}${CLEAR} exists skipping"
         continue
     fi
 

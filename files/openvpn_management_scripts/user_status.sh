@@ -45,12 +45,12 @@ is_active_crt(){
         openssl verify -crl_check -CAfile $crl $crt &>/dev/null
         if [ $?  -eq 0 ]
         then
-            echo true
+            echo -e "${GREEN}true${CLEAR}"
         else
-            echo false
+            echo -e "${RED}false${CLEAR}"
         fi
     else
-        echo false
+        echo -e "${RED}false${CLEAR}"
     fi
 
 }

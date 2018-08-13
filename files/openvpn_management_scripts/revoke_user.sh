@@ -32,9 +32,9 @@ source $EASYRSA_PATH/vars
 export KEY_CN=$username
 
 set +e
-revoke-full $username
+revoke-full $username || echo -e "${RED}${BOLD}${BLINK}FAILED TO REVOKE ${username}${CLEAR}"
 set -e
 
-sed -i "/${username},/d" $USER_PW_FILE
+sed -i "/${username},/d" $USER_PW_FILE || echo -e "${RED}${BOLD}${BLINK}Failed to remove $username from file ${USER_PW_FILE}${CLEAR}"
 /etc/openvpn/bin/push_to_s3.sh
 echo -e "Exiting ${BOLD}$_${CLEAR}"

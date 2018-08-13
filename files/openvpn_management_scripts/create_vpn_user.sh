@@ -49,24 +49,28 @@ export KEY_EMAIL=$email
 export KEY_ALTNAMES="DNS:${KEY_CN}"
 
 #This create the key's for the road warrior
-build-key-batch  $username &>/dev/null
+echo -e "running ${YELLOW} build-batch-key"
+build-key-batch  $username &>/dev/null && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
+&& echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
 
-#Backup certs so we can revoke them if ever needed
+echo "Backup certs so we can revoke them if ever needed"
 [ -d  $KEY_DIR/user_certs/ ]  || mkdir  $KEY_DIR/user_certs/
-cp $KEY_DIR/$username.crt $KEY_DIR/user_certs/$username.crt-$(date +%F-%T)
+cp $KEY_DIR/$username.crt $KEY_DIR/user_certs/$username.crt-$(date +%F-%T) && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
 
-#Create the OVPN file for the new user
-$VPN_BIN_ROOT/create_ovpn.sh $KEY_CN $KEY_EMAIL > $KEY_DIR/ovpn_files/${username}-${CLOUD_NAME}.ovpn 2> /dev/null
+echo "Create the OVPN file for $username"
+$VPN_BIN_ROOT/create_ovpn.sh $KEY_CN $KEY_EMAIL > $KEY_DIR/ovpn_files/${username}-${CLOUD_NAME}.ovpn 2> /dev/null && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
 
-#Create the seperated zip file for linux users dealing with network manager
-$VPN_BIN_ROOT/create_seperated_vpn_zip.sh $KEY_CN &> /dev/null
+echo "Create the seperated zip file for linux users dealing with network manager"
+$VPN_BIN_ROOT/create_seperated_vpn_zip.sh $KEY_CN &> /dev/null && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
 
 #systemd
-cp $KEY_DIR/ovpn_files/${username}-${CLOUD_NAME}.ovpn $KEY_DIR/ovpn_files_systemd/${username}-${CLOUD_NAME}-systemd.ovpn
-cat $TEMPLATE_DIR/client_ovpn_systemd.settings >> $KEY_DIR/ovpn_files_systemd/${username}-${CLOUD_NAME}-systemd.ovpn
+echo "Create systemd file for linux users suffering with systemd"
+cp $KEY_DIR/ovpn_files/${username}-${CLOUD_NAME}.ovpn $KEY_DIR/ovpn_files_systemd/${username}-${CLOUD_NAME}-systemd.ovpn && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
+cat $TEMPLATE_DIR/client_ovpn_systemd.settings >> $KEY_DIR/ovpn_files_systemd/${username}-${CLOUD_NAME}-systemd.ovpn && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
 #ovpn_files_resolvconf
-cp $KEY_DIR/ovpn_files/${username}-${CLOUD_NAME}.ovpn $KEY_DIR/ovpn_files_resolvconf/${username}-${CLOUD_NAME}-resolvconf.ovpn
-cat $TEMPLATE_DIR/client_ovpn_resolvconf.settings >> $KEY_DIR/ovpn_files_resolvconf/${username}-${CLOUD_NAME}-resolvconf.ovpn
+echo "create resolvconf files for linux users"
+cp $KEY_DIR/ovpn_files/${username}-${CLOUD_NAME}.ovpn $KEY_DIR/ovpn_files_resolvconf/${username}-${CLOUD_NAME}-resolvconf.ovpn && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
+cat $TEMPLATE_DIR/client_ovpn_resolvconf.settings >> $KEY_DIR/ovpn_files_resolvconf/${username}-${CLOUD_NAME}-resolvconf.ovpn && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
 ##
 #/etc/openvpn/bin/push_to_s3.sh
 echo -e "Exiting ${BOLD}$_${CLEAR}"
