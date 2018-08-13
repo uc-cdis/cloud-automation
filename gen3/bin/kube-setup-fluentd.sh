@@ -16,6 +16,6 @@ fi
 # We may have multiple commons running on the same k8s cluster,
 # but we only have one fluentd.
 #
-if ! kubectl --namespace=kube-system get daemonset fluentd > /dev/null 2>&1; then
-  sed "s/GEN3_LOG_GROUP_NAME/${vpc_name}/g"  "${GEN3_HOME}/kube/services/fluentd/fluentd.yaml" | kubectl "--namespace=kube-system" apply -f -
+if ! g3kubectl --namespace=kube-system get daemonset fluentd > /dev/null 2>&1; then
+  sed "s/GEN3_LOG_GROUP_NAME/${vpc_name}/g"  "${GEN3_HOME}/kube/services/fluentd/fluentd.yaml" | g3kubectl "--namespace=kube-system" apply -f -
 fi
