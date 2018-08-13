@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/gen3setup"
+
 scriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
 
 DRY_RUN=${DRY_RUN:-""}
@@ -7,13 +10,6 @@ if [[ "$1" =~ ^-*dry-run ]]; then
   DRY_RUN="--dry-run"
 fi
 
-#
-# from https://github.com/kubernetes/kubernetes/issues/27308#issuecomment-309207951
-# support for KUBECTL_NAMESPACE environment variable ...
-#
-g3kubectl() {
-  kubectl ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
-}
 
 export LOGGING_CONFIG=""
 bucketName=$(g3kubectl get configmap global --output=jsonpath='{.data.logs_bucket}')
