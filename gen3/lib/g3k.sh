@@ -226,14 +226,6 @@ g3k_jobpods(){
   )
 }
 
-#
-# Launch an interactive terminal into an awshelper Docker image -
-# gives a terminal in a pod on the cluster for running curl, dig, whatever
-# to interact directly with running services
-#
-g3k_devterm() {
-  g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --labels="app=gen3job" --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
-}
 
 #
 # Get the logs for the first pods returned by g3k_jobpods
@@ -295,9 +287,6 @@ g3k() {
       case "$command" in
       "backup")
         g3k_backup "$@"
-        ;;
-      "devterm")
-        g3k_devterm "$@"
         ;;
       "ec2_reboot")
         g3k_ec2_reboot "$@"
