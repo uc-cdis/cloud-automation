@@ -32,7 +32,10 @@ source $EASYRSA_PATH/vars
 export KEY_CN=$username
 
 set +e
-revoke-full $username || echo -e "${RED}${BOLD}${BLINK}FAILED TO REVOKE ${username}${CLEAR}"
+#revoke-full $username || echo -e "${RED}${BOLD}${BLINK}FAILED TO REVOKE ${username}${CLEAR}"
+revoke-full $username
+#Apparently it doesn't exist like I expected, and says failed even when it succeeded.
+
 set -e
 
 sed -i "/${username},/d" $USER_PW_FILE || echo -e "${RED}${BOLD}${BLINK}Failed to remove $username from file ${USER_PW_FILE}${CLEAR}"
