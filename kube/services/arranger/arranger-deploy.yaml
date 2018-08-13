@@ -41,7 +41,7 @@ spec:
             secretName: "service-ca"
       containers:
         - name: arranger
-          GEN3_ARRANGER_IMAGE
+          GEN3_ARRANGER_IMAGE|-image: quay.io/cdis/arranger:master-|
           livenessProbe:
             httpGet:
               path: /_status
