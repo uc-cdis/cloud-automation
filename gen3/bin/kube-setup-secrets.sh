@@ -170,7 +170,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     g3kubectl create configmap projects --from-file=apis_configs/projects.yaml
   fi
 
-  if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
+  if ! g3kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
     rm -rf $XDG_RUNTIME_DIR/jwt-keys.tar
     tar cvJf $XDG_RUNTIME_DIR/jwt-keys.tar jwt-keys
     g3kubectl create secret generic fence-jwt-keys --from-file=$XDG_RUNTIME_DIR/jwt-keys.tar

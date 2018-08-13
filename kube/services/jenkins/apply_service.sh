@@ -8,10 +8,13 @@
 # another cert for jenkins.domain or whatever.
 #
 
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/gen3setup"
+
 scriptDir=$(dirname -- "$(readlink -f -- "${BASH_SOURCE:-$0}")")
 
-export ARN=$(kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
-envsubst <$scriptDir/jenkins-service.yaml | kubectl apply -f -
+export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
+envsubst <$scriptDir/jenkins-service.yaml | g3kubectl apply -f -
 
 if [[ ! "$ARN" =~ ^arn ]]; then
   echo "WARNING: global configmap not configured with TLS certifcate ARN for AWS deploy"
