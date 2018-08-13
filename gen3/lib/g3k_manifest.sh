@@ -56,7 +56,7 @@ g3k_manifest_init() {
   fi
   if [[ -d "$GEN3_MANIFEST_HOME/.git" ]]; then
     echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
-    (cd "$GEN3_MANIFEST_HOME" && git fetch && git status) 1>&2
+    (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
   fi
   touch "$doneFilePath"
 }
