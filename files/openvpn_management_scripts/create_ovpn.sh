@@ -13,7 +13,6 @@ MAGENTA="\033[35m"
 WHITE="\033[37m"
 RED="\033[31m"
 
-echo -e "Entering ${BOLD}$_${CLEAR}"
 
 if [ -e /etc/openvpn/bin/settings.sh ] && [ -z "$VPN_SETTINGS_LOADED" ]
 then
@@ -82,5 +81,3 @@ $(cat $TA_KEY_PATH)
 "
 
     perl -n -e 'undef $/;' -e' m|(-----BEGIN CERTIFICATE-----.*-----END CERTIFICATE-----)|igsm && print "$1\n"' $USER_CERT_PATH  | sed 's/^/##/'
-
-echo -e "Exiting ${BOLD}$_${CLEAR}"
