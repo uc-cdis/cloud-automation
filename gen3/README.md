@@ -63,103 +63,11 @@ ex: $ gen3 tfapply help
 ex:$ gen3 workon cdistest plaxplanetv1
 ```
 
-Enter (and initialize if necessary) a local workspace for working with the workspace resources under the AWS account accessible with admin credentials
+Enter (and initialize if necessary) a local workspace for working with the terraform resources under the AWS account 
+accessible using the admin credentials
 under the *aws-profile-name* profile in `~/.aws/credentials`.
-This is a prerequisite for most other gen3 commands.
+See [tf_files/README.md](../tf_files/README.md) for more details.
 
-The gen3 tools store commons related data (including secrets) locally under *$XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_WORKSPACE_NAME* -
-
-#### workspace types
-
-The type of workspace setup depends upon the workspace name.  The following
-types of workspace are supported:
-
-* *admin vm*
-
-The *admin vm* type workspace is intended to create an EC2 instance in the *CSOC* account to act as the CSOC's 
-admin workstation for another account with VPC's that are peered with the CSOC.  If the workspace name ends in `_adminvm`, then the `gen3` script configures
-an *admin vm* workspace - ex:
-```
-$ gen3 workon csoc cdistest_adminvm
-```
-
-An *admin vm* workspace creates an EC2 instance in the CSOC that is associated with a child account.  The EC2 instance is linked with a CSOC IAM role that can assume admin privileges in the child account.  A security group allows the VM to communicate with VPC's in the child account, and prevents communication with VPC's from other accounts also peered with the CSOC.
-
-* *logging*
-
-The *logging* type workspace is intended as a destination for logs that will be produced by the actual commons cluster. This module should be ran prior running any commons, otherwise it may conflict when the commons tries to attach the logging group of the common to the CSOC account destinations.
-
-```
-$ gen3 workon csoc common_logging
-```
-
-This module will create a Kinesis stream service, a lambda function, and a couple of firehoses. The latest one would be in charge of sending whatever the commons account forwards into an ElasticSearch domain along with a S3 bucket that will also be created with the name of the common.
-
-* *commons*
-
-Any workspace that does not match one of the other types is considered a *commons* type workspace - ex:
-```
-$ gen3 workon cdistest devplanetv1
-```
-
-A *commons* workspace extends the *user vpc* type workspace with additional subnets to host a kubernetes cluster, and adds a `kubernetes provisioner` EC2 instance.  
-
-Note: we plan to deprecate both the `k8s provisioner` and the `bastion node` in *commons* VPC's in favor of accessing a commons through its *admin vm* in the *CSOC* account - which is accessed via VPN.
-
-
-* *databucket*
-
-If the workspace name ends in `_databucket`, then the `gen3` script configures
-a *databucket* type workspace - ex:
-```
-$ gen3 workon cdistest devplanetv1_proj1_databucket
-```
-
-A *databucket* workspace creates an encrypted S3 data bucket,
-another S3 bucket to store the access logs from the data bucket,
-a read-only role and instance-profile, and a read-write role and instance-profile.
-
-* *user vpc*
-
-If the workspace name ends in `_user`, then the `gen3` script configures
-a *user vpc* type workspace - ex:
-```
-$ gen3 workon cdistest devplanetv1_proj1_user
-```
-
-A *user vpc* workspace created a VPC with a bastion, squid proxy, public and private subnets that route egress traffic through the proxy, cloudwatch logs, and VPC peering to the CSOC VPC. 
-
-* *rds snapshot*
-
-If the workspace name ends in `_snapshot`, then the `gen3` script configures
-a workspace that simply collects snapshots of the specified RDS databases - ex:
-```
-$ gen3 workon cdistest devplanetv1_snapshot
-```
-
-
-#### workspace details
-
-The gen3 tools stores workspace data (including secrets) locally under *$XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_WORKSPACE_NAME* -
-conforming with the linux [xdg desktop specification](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html).
-
-The tasks performed include:
-
-* set the $GEN3_AWS_PROFILE and $GEN3_WORKSPACE environment variables
-* if a local $XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_WORKSPACE exist, then
-  - pull down any missing state from s3
-  - run terraform init if necessary
-* else if GEN3_WORKSPACE_NAME state exists in S3, then
-  - copy the state from S3
-  - generate terraform secrets based on the AWS profile credentials
-  - run terraform init
-* else
-   - setup template config files
-       * assumes ~/.ssh/id_rsa.pub
-          is the user a good key to access the bastion host
-* fi
-* setup the *cdis-state-ac{ACCOUNTID}-gen3* S3 bucket if necessary
-* run `terraform init` if necessary
 
 ### gen3 arun command arg1 arg2 ...
    
@@ -362,7 +270,6 @@ $ g3k help
   Use:
   g3k COMMAND - where COMMAND is one of:
     backup - backup home directory to vpc's S3 bucket
-    devterm - open a terminal session in a dev pod
     ec2_reboot PRIVATE-IP - reboot the ec2 instance with the given private ip
     help
     jobpods JOBNAME - list pods associated with given job
@@ -400,6 +307,20 @@ similar files are present.
 
 ### update_config
 `gen3 update_config $CONFIG_NAME $CONFIG_FILE` this will delete old configmap and create new configmap with updated content
+
+### devterm
+Open a bash shell on the cluster in an `awshelper` container: `gen3 devterm`
+
+The `devterm` command can also pass a command to the bash shell (`bash -c`) - ex:
+`gen3 devterm "nslookup fence-service"`
+
+### es
+Query elastic-search (via `devterm`) - ex:
+```
+gen3 es indices
+gen3 es dump arranger-projects
+gen3 es --help
+```
 
 ### runjob
 
