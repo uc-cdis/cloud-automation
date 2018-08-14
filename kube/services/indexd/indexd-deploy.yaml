@@ -51,6 +51,9 @@ spec:
       containers:
       - name: indexd
         GEN3_INDEXD_IMAGE
+        env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: False-|
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

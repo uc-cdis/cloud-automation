@@ -78,6 +78,8 @@ spec:
             # which includes our private certificate authority
             #
             value: /etc/ssl/certs/ca-certificates.crt
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: False-|
           volumeMounts:
             - name: "config-volume"
               readOnly: true
@@ -109,11 +111,4 @@ spec:
             limits:
               cpu: 0.3
               memory: 2048Mi
-          command: ["/bin/bash" ]
-          args: 
-            - "-c"
-            - |
-              # get /usr/local/share/ca-certificates/cdis-ca.crt into system bundle
-              update-ca-certificates
-              bash /peregrine/dockerrun.bash
-        
+          
