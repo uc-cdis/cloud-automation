@@ -528,7 +528,7 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
   #statement {
    # actions = [
     #  "s3:Get*",
-      "s3:List*",
+     # "s3:List*",
    # ]
 
     #effect    = "Allow"
