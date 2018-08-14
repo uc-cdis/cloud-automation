@@ -180,7 +180,7 @@ test_tfoutput() {
 }
 
 test_kube_lock() {
-  gen3 kube-lock | grep -e "gen3 kube-lock lock-name owner:"; because $? "calling kube-lock without arguments should show the help documentation"
+  gen3 kube-lock | grep -e "gen3 kube-lock lock-name owner max-age:"; because $? "calling kube-lock without arguments should show the help documentation"
   kubectl delete configmap locks
   gen3 kube-lock testlock testuser; because $? "calling kube-lock for the first time for a lock should successfully lock it, and it should create the configmap locks if it does not exist already"
   gen3 kube-lock testlock testuser; because !$? "calling kube-lock for the second time in a row for a lock should fail to lock it"
@@ -191,7 +191,7 @@ test_kube_lock() {
 }
 
 test_kube_unlock() {
-  gen3 kube-unlock | grep -e "gen3 kube-unlock lock-name owner:"; because $? "calling kube-unlock without arguments should show the help documentation"
+  gen3 kube-unlock | grep -e "gen3 kube-unlock lock-name owner max-age:"; because $? "calling kube-unlock without arguments should show the help documentation"
   gen3 kube-unlock testlock testuser; because !$? "calling kube-unlock for the first time without a lock should fail"
   gen3 kube-lock testlock testuser
   gen3 kube-unlock testlock2 testuser; because !$? "calling kube-unlock for the first time on a lock that does not exist should fail"
