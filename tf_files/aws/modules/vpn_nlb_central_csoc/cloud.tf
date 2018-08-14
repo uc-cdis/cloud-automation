@@ -76,18 +76,27 @@ data "aws_iam_policy_document" "vpn_policy_document" {
 
 }
 
-resource "aws_iam_role_policy" "vpn_policy" {
-  name   = "${var.env_vpn_nlb_name}_policy"
-  policy = "${data.aws_iam_policy_document.vpn_policy_document.json}"
-  role   = "${aws_iam_role.vpn-nlb_role.id}"
-}
+#resource "aws_iam_role_policy" "vpn_policy" {
+#  name   = "${var.env_vpn_nlb_name}_policy"
+#  policy = "${data.aws_iam_policy_document.vpn_policy_document.json}"
+#  role   = "${aws_iam_role.vpn-nlb_role.id}
+#}
 
 resource "aws_iam_instance_profile" "vpn-nlb_role_profile" {
   name = "${var.env_vpn_nlb_name}_vpn-nlb_role_profile"
   role = "${aws_iam_role.vpn-nlb_role.id}"
 }
 
+resource "aws_iam_policy" "vpn_policy" {
+  name        = "${var.env_vpn_nlb_name}_policy"
+  description = "Cloud watch and S3 policy"
+  policy      = "${data.aws_iam_policy_document.vpn_policy_document.json}"
+}
 
+resource "aws_iam_role_policy_attachment" "vpn_policy_attachment" {
+  role       = "${aws_iam_role.vpn-nlb_role.name}"
+  policy_arn = "${aws_iam_policy.vpn_policy.arn}"
+}
 
 
 #Launching the pubate subnets for the VPN VMs
