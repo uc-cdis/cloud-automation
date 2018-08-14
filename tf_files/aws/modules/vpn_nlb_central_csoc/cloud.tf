@@ -79,7 +79,7 @@ data "aws_iam_policy_document" "vpn_policy_document" {
 #resource "aws_iam_role_policy" "vpn_policy" {
 #  name   = "${var.env_vpn_nlb_name}_policy"
 #  policy = "${data.aws_iam_policy_document.vpn_policy_document.json}"
-#  role   = "${aws_iam_role.vpn-nlb_role.id}
+#  role   = "${aws_iam_role.vpn-nlb_role.id}"
 #}
 
 resource "aws_iam_instance_profile" "vpn-nlb_role_profile" {
@@ -93,9 +93,17 @@ resource "aws_iam_policy" "vpn_policy" {
   policy      = "${data.aws_iam_policy_document.vpn_policy_document.json}"
 }
 
-resource "aws_iam_role_policy_attachment" "vpn_policy_attachment" {
-  role       = "${aws_iam_role.vpn-nlb_role.name}"
+#resource "aws_iam_role_policy_attachment" "vpn_policy_attachment" {
+#  role       = "${aws_iam_role.vpn-nlb_role.name}"
+#  policy_arn = "${aws_iam_policy.vpn_policy.arn}"
+  
+#}
+
+resource "aws_iam_policy_attachment" "vpn_policy_attachment" {
+  name        = "${var.env_vpn_nlb_name}_policy_attach"
+  roles       = ["${aws_iam_role.vpn-nlb_role.name}"]
   policy_arn = "${aws_iam_policy.vpn_policy.arn}"
+  users = ["${aws_iam_user.vpn_s3_user.name}"]
 }
 
 
