@@ -519,6 +519,32 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
   }
 }
 
+
+resource "aws_s3_bucket_policy" "vpn-bucket-policy" {
+  bucket = "${aws_s3_bucket.vpn-certs-and-files.id}"
+  policy =<<POLICY
+{
+    "Version": "2012-10-17",
+    "Id": "Policy1533585028918",
+    "Statement": [
+        {
+            "Sid": "Stmt1533585020818",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::433568766270:user/CSOC-vpn-s3-user"
+            },
+            "Action": "s3:*",
+            "Resource": [
+               "arn:aws:s3:::vpn-certs-and-files",
+               "arn:aws:s3:::vpn-certs-and-files/*"
+            ]
+        }
+    ]
+}
+
+POLICY
+}
+
 #Really????
 #resource "aws_iam_role" "vpn-certs-and-files_reader" {
  # name = "bucket_reader_vpn-certs-and-files"
@@ -594,30 +620,7 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
 #EOF
 #}
 
-resource "aws_s3_bucket_policy" "vpn-bucket-policy" {
-  bucket = "${aws_s3_bucket.vpn-certs-and-files.id}"
-  policy =<<POLICY
-{
-    "Version": "2012-10-17",
-    "Id": "Policy1533585028918",
-    "Statement": [
-        {
-            "Sid": "Stmt1533585020818",
-            "Effect": "Allow",
-            "Principal": {
-                "AWS": "arn:aws:iam::433568766270:user/CSOC-vpn-s3-user"
-            },
-            "Action": "s3:*",
-            "Resource": [
-               "arn:aws:s3:::vpn-certs-and-files",
-               "arn:aws:s3:::vpn-certs-and-files/*"
-            ]
-        }
-    ]
-}
 
-POLICY
-}
 
 
 
