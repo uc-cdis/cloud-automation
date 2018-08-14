@@ -5,17 +5,23 @@
 
 help() {
   cat - <<EOM
-  gen3 kube-lock lock-name owner:
+  gen3 kube-lock lock-name owner max-age:
     Attempts to lock the lock lock-name in the namespace that KUBECTL_NAMESPACE 
     is set to. Exits 0 if the lock is obtained and 1 if it is not obtained.
 EOM
   return 0
 }
 
-if [[ $1 =~ ^-*help$ || $# -ne 2 ]]; then
+if [[ $1 =~ ^-*help$ || $# -ne 3 ]]; then
   help
   exit 0
+else
+  lockName="$1"
+  owner="$2"
+  maxAge="$3"
 fi
+
+echo $maxAge
 
 set -i
 # load bashrc so that the script is treated like it was launched on the remote machine
@@ -35,21 +41,21 @@ fi
 if ! g3kubectl get configmaps locks; then
   echo "locks configmap not detected, creating one"
   g3kubectl create configmap locks
-  g3kubectl label configmap locks $1=false $1_owner=none
+  g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none
 else 
-  if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$1}") = '' ]]; then
-    g3kubectl label configmap locks $1=false $1_owner=none
+  if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}}") = '' ]]; then
+    g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none
   fi
 fi
 
 # check if the lock we are currently trying to lock is unlocked. If it is, lock 
 # lock and wait, then check again if we have the lock before proceeding
-if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$1}") = "false" ]]; then
-  g3kubectl label --overwrite configmap locks $1=true $1_owner=$2
+if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}}") = "false" ]]; then
+  g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=${owner}}
   sleep $(shuf -i 1-5 -n 1)
 
-  if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$1}") = "true" 
-    && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$1_owner}") = $2 ]]; then 
+  if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}}}") = "true" 
+    && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}}_owner}") = ${owner}} ]]; then 
     exit 0
   else
     exit 1
