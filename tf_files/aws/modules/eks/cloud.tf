@@ -328,7 +328,7 @@ POLICY
 ## Policies
 
 resource "aws_iam_policy" "cwl_access_policy" {
-    name        = "EKS_workers_access_to_cloudwatchlogs"
+    name        = "${var.vpc_name}_EKS_workers_access_to_cloudwatchlogs"
     description = "In order to avoid the creation of users and keys, we are using roles and policies."
     policy = <<EOF
 {
