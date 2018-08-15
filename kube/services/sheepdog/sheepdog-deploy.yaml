@@ -79,7 +79,7 @@ spec:
             #
             value: /etc/ssl/certs/ca-certificates.crt
           - name: GEN3_DEBUG
-            GEN3_DEBUG_FLAG|-value: False-|
+            GEN3_DEBUG_FLAG|-value: "False"-|
           volumeMounts:
             - name: "config-volume"
               readOnly: true

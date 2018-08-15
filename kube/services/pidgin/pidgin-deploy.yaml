@@ -44,7 +44,7 @@ spec:
           GEN3_PIDGIN_IMAGE
           env:
           - name: GEN3_DEBUG
-            GEN3_DEBUG_FLAG|-value: False-|
+            GEN3_DEBUG_FLAG|-value: "False"-|
           livenessProbe:
             httpGet:
               path: /_status

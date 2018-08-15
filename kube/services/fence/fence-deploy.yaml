@@ -73,7 +73,7 @@ spec:
         - name: PYTHONPATH
           value: /var/www/fence
         - name: GEN3_DEBUG
-          GEN3_DEBUG_FLAG|-value: False-|
+          GEN3_DEBUG_FLAG|-value: "False"-|
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
