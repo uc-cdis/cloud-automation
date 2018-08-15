@@ -535,7 +535,7 @@ resource "aws_s3_bucket_policy" "vpn-bucket-policy" {
             "Sid": "Stmt1533585020818",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::433568766270:user/CSOC-vpn-s3-user"
+                "AWS": "arn:aws:iam::${var.csoc_account_id}:user/${var.environment}-vpn-s3-user"
             },
             "Action": "s3:*",
             "Resource": [
@@ -548,6 +548,8 @@ resource "aws_s3_bucket_policy" "vpn-bucket-policy" {
 
 POLICY
 }
+
+#"AWS": "arn:aws:iam::433568766270:user/CSOC-vpn-s3-user"
 
 #Really????
 #resource "aws_iam_role" "vpn-certs-and-files_reader" {

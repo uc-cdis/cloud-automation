@@ -59,6 +59,10 @@ variable "environment" {
 }
 
 
+variable "csoc_account_id" {
+  default = "433568766270"
+}
+
 
 
 

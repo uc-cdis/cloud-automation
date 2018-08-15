@@ -24,6 +24,7 @@ module "vpn_nlb" {
   image_name_search_criteria = "${var.image_name_search_criteria}"
   csoc_planx_dns_zone_id = "${var.csoc_planx_dns_zone_id}"
   environment =  "${var.environment}"
+  csoc_account_id = "${var.csoc_account_id}"
   # put other variables here ...
 }
 
