@@ -52,12 +52,12 @@ fi
 
 # check if the lock we are currently trying to lock is unlocked. If it is, lock 
 # lock and wait, then check again if we have the lock before proceeding
-if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}}") = "false" ]]; then
-  g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=${owner}}
+if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "false" ]]; then
+  g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner
   sleep $(shuf -i 1-5 -n 1)
 
-  if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}}}") = "true" 
-    && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}}_owner}") = ${owner}} ]]; then 
+  if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
+    && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_owner}") = $owner ]]; then 
     exit 0
   else
     exit 1
