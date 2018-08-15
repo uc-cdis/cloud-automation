@@ -179,6 +179,32 @@ test_tfoutput() {
   [[ $vpcName = $GEN3_WORKSPACE ]]; because $? "tfoutput vpc_name works: $vpcName =? $GEN3_WORKSPACE"
 }
 
+test_kube_lock() {
+  gen3 kube-lock | grep -e "gen3 kube-lock lock-name owner max-age:"; because $? "calling kube-lock without arguments should show the help documentation"
+  kubectl delete configmap locks
+  gen3 kube-lock testlock testuser 60; because $? "calling kube-lock for the first time for a lock should successfully lock it, and it should create the configmap locks if it does not exist already"
+  gen3 kube-lock testlock testuser 60; because !$? "calling kube-lock for the second time in a row for a lock should fail to lock it"
+  gen3 kube-lock testlock2 testuser 60; because $? "kube-lock should be able to handle multiple locks"
+  gen3 kube-lock testlock3 testuser2 60; because $? "kube-lock should be able to handle multiple users"
+  gen3 kube-lock testlock testuser2 60; because !$? "attempting to lock an already locked lock with a different user should fail"
+  gen3 kube-lock testlock4 testuser 10
+  sleep 11
+  gen3 kube-lock testlock4 testuser 15; because $? "attempting to lock an expired lock should succeed"
+  kubectl delete configmap locks
+}
+
+test_kube_unlock() {
+  gen3 kube-unlock | grep -e "gen3 kube-unlock lock-name owner:"; because $? "calling kube-unlock without arguments should show the help documentation"
+  kubectl delete configmap locks
+  gen3 kube-unlock testlock testuser; because !$? "calling kube-unlock for the first time without a lock should fail"
+  gen3 kube-lock testlock testuser 60
+  gen3 kube-unlock testlock2 testuser; because !$? "calling kube-unlock for the first time on a lock that does not exist should fail"
+  gen3 kube-unlock testlock testuser2; because !$? "calling kube-unlock for the first time on a lock the user does not own should fail"
+  gen3 kube-unlock testlock testuser; because $? "calling kube-unlock for the first time on a lock the user owns should succeed"
+  gen3 kube-unlock testlock testuser; because !$? "calling kube-unlock for the second time on a lock the user owns should fail because the lock is already unlocked"
+  kubectl delete configmap locks
+}
+
 shunit_runtest "test_semver"
 shunit_runtest "test_colors"
 shunit_runtest "test_workspace"
@@ -192,6 +218,8 @@ shunit_runtest "test_refresh"
 shunit_runtest "test_tfplan"
 shunit_runtest "test_tfoutput"
 shunit_runtest "test_ls"
+shunit_runtest "test_kube_lock"
+shunit_runtest "test_kube_unlock"
 G3K_TESTSUITE_SUMMARY="no"
 gen3_load "gen3/bin/g3k_testsuite"
 shunit_summary

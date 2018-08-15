@@ -119,26 +119,27 @@ credential_source = Ec2InsanceMetadata
 
 ### gen3 kube-...
 
-kube-backup
-kube-dev-namespace
-kube-extract-config
-kube-roll-all
-kube-roll-qa
-kube-setup-arranger
-kube-setup-certs
-kube-setup-fence
-kube-setup-fluentd
-kube-setup-jenkins
-kube-setup-jupyterhub
-kube-setup-networkpolicy
-kube-setup-peregrine
-kube-setup-revproxy
-kube-setup-roles
-kube-setup-secrets
-kube-setup-sftp
-kube-setup-sheepdog
-kube-setup-shiny
-kube-setup-workvm
+kube-backup  
+kube-dev-namespace  
+kube-extract-config  
+kube-roll-all  
+kube-roll-qa  
+kube-setup-certs  
+kube-setup-fence  
+kube-setup-fluentd  
+kube-setup-jenkins  
+kube-setup-jupyterhub  
+kube-setup-networkpolicy  
+kube-setup-peregrine  
+kube-setup-revproxy  
+kube-setup-roles  
+kube-setup-secrets  
+kube-setup-sftp  
+kube-setup-sheepdog  
+kube-setup-shiny  
+kube-setup-workvm  
+kube-lock  
+kube-unlock
 
 
 ### gen3 status
