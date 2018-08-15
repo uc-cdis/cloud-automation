@@ -194,15 +194,26 @@ g3k_manifest_filter() {
     shift
     value="$1"
     shift || true
-    key=$(echo "GEN3_${key}" | tr '[:lower:]' '[:upper:]')
+    key=$(echo "${key}" | tr '[:lower:]' '[:upper:]')
+    if [[ ! "$key" =~ ^GEN3_ ]]; then
+      key="GEN3_$key"
+    fi
     kvList+=("$key" "value: \"$value\"")
   done
   g3k_kv_filter "$templatePath" "${kvList[@]}"
   return 0
 }
 
+#
+# Roll the given deployment
+#
+# @param deploymentName
+# @param kvList varargs - template key/values - values expand as 'value: VALUE'
+#
 g3k_roll() {
-  local depName="$1"
+  local depName
+  depName="$1"
+  shift
   if [[ -z "$depName" ]]; then
     echo -e "$(red_color "Use: g3k roll deployment-name")"
     return 1
@@ -217,7 +228,7 @@ g3k_roll() {
   fi
 
   if [[ -f "$templatePath" ]]; then
-    g3k_manifest_filter "$templatePath" | g3kubectl apply -f -
+    g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
   elif [[ "$depName" == "all" ]]; then
     echo bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
     bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
