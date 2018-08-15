@@ -1,0 +1,85 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: tube-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: tube
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: tube
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - tube
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "tube-secret"
+        - name: creds-volume
+          secret:
+            secretName: "peregrine-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
+      containers:
+        - name: tube
+          imagePullPolicy: Always
+          image: quay.io/cdis/tube:feat_parser
+          ports:
+          - containerPort: 80
+          env:
+          - name: DICTIONARY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: dictionary_url
+          - name: HADOOP_URL
+            value: hdfs://spark-service:9000
+          - name: ES_URL
+            value: esproxy-service
+          - name: HADOOP_HOST
+            value: spark-service
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/tube/tube/local_settings.py"
+              subPath: "local_settings.py"
+            - name: "creds-volume"
+              readOnly: true
+              mountPath: "/tube/creds.json"
+              subPath: creds.json
+            - name: "config-helper"
+              readOnly: true
+              mountPath: "/tube/tube/config_helper.py"
+              subPath: config_helper.py
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+          command: ["/bin/bash" ]
+          args: 
+            - "-c"
+            - |
+              python run_config.py
+              while true; do sleep 5; done

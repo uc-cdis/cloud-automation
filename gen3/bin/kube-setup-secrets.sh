@@ -236,6 +236,19 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
   fi
 fi
 
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update tube secrets
+  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
+    echo "${WORKSPACE}/${vpc_name} does not exist"
+    exit 1
+  fi
+
+  cd "${WORKSPACE}/${vpc_name}"
+
+  if ! g3kubectl get secrets/tube-secret > /dev/null 2>&1; then
+    g3kubectl create secret generic tube-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/tube_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+  fi
+fi
+
 if [[ -z "$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')" ]]; then
   echo "ERROR: configmaps/global does not include dictionary_url"
   echo "... update and apply ${vpc_name}/00configmap.json, then retry this script"
