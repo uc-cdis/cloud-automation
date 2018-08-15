@@ -22,6 +22,8 @@ else
 fi
 
 echo $maxAge
+echo $lockName
+echo $owner
 
 set -i
 # load bashrc so that the script is treated like it was launched on the remote machine
