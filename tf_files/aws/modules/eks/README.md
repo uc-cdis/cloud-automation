@@ -71,11 +71,10 @@ Finally, examples:
 fauziv1@cdistest_admin ~ % gen3 arun kubectl apply -f aws-auth-cm.yaml --kubeconfig kubeconfig-FauziEKSTest               
 configmap/aws-auth created
 
-fauziv1@cdistest_admin ~ % gen3 arun kubectl get node
+fauziv1@cdistest_admin ~ % kubectl get node
 NAME                            STATUS    ROLES     AGE       VERSION
-ip-172-24-50-107.ec2.internal   Ready     master    20d       v1.9.3
-ip-172-24-50-21.ec2.internal    Ready     node      20d       v1.9.3
-ip-172-24-50-80.ec2.internal    Ready     node      20d       v1.9.3
+ip-172-24-55-210.ec2.internal   Ready     <none>    3h        v1.10.3
+ip-172-24-56-45.ec2.internal    Ready     <none>    3h        v1.10.3
 
 fauziv1@cdistest_admin ~ % gen3 arun kubectl --kubeconfig kubeconfig-FauziEKSTest run nginx --image nginx:latest -ti -- bash
 If you don't see a command prompt, try pressing enter.
