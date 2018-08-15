@@ -194,7 +194,10 @@ g3k_manifest_filter() {
     shift
     value="$1"
     shift || true
-    key=$(echo "GEN3_${key}" | tr '[:lower:]' '[:upper:]')
+    key=$(echo "${key}" | tr '[:lower:]' '[:upper:]')
+    if [[ ! "$key" =~ ^GEN3_ ]]; then
+      key="GEN3_$key"
+    fi
     kvList+=("$key" "value: \"$value\"")
   done
   g3k_kv_filter "$templatePath" "${kvList[@]}"
