@@ -31,9 +31,9 @@ fi
 
 echo "Switching to '$TEST_PROFILE $TEST_WORKSPACE' workspace in test process"
 gen3_load "gen3/gen3setup"
-# gen3 workon $TEST_PROFILE $TEST_WORKSPACE
+gen3 workon $TEST_PROFILE $TEST_WORKSPACE
 
-# gen3_load "gen3/lib/terraform"
+gen3_load "gen3/lib/terraform"
 gen3_load "gen3/lib/shunit"
 
 #
@@ -187,8 +187,8 @@ test_kube_lock() {
   gen3 kube-lock testlock2 testuser 60; because $? "kube-lock should be able to handle multiple locks"
   gen3 kube-lock testlock3 testuser2 60; because $? "kube-lock should be able to handle multiple users"
   gen3 kube-lock testlock testuser2 60; because !$? "attempting to lock an already locked lock with a different user should fail"
-  gen3 kube-lock testlock4 testuser 15
-  sleep 15
+  gen3 kube-lock testlock4 testuser 10
+  sleep 11
   gen3 kube-lock testlock4 testuser 15; because $? "attempting to lock an expired lock should succeed"
   kubectl delete configmap locks
 }
@@ -205,21 +205,21 @@ test_kube_unlock() {
   kubectl delete configmap locks
 }
 
-# shunit_runtest "test_semver"
-# shunit_runtest "test_colors"
-# shunit_runtest "test_workspace"
-# shunit_runtest "test_user_workspace"
-# shunit_runtest "test_snapshot_workspace"
-# shunit_runtest "test_databucket_workspace"
-# shunit_runtest "test_gcp_workspace"
-# shunit_runtest "test_onprem_workspace"
-# shunit_runtest "test_trash"
-# shunit_runtest "test_refresh"
-# shunit_runtest "test_tfplan"
-# shunit_runtest "test_tfoutput"
+shunit_runtest "test_semver"
+shunit_runtest "test_colors"
+shunit_runtest "test_workspace"
+shunit_runtest "test_user_workspace"
+shunit_runtest "test_snapshot_workspace"
+shunit_runtest "test_databucket_workspace"
+shunit_runtest "test_gcp_workspace"
+shunit_runtest "test_onprem_workspace"
+shunit_runtest "test_trash"
+shunit_runtest "test_refresh"
+shunit_runtest "test_tfplan"
+shunit_runtest "test_tfoutput"
 shunit_runtest "test_ls"
 shunit_runtest "test_kube_lock"
 shunit_runtest "test_kube_unlock"
 G3K_TESTSUITE_SUMMARY="no"
-# gen3_load "gen3/bin/g3k_testsuite"
+gen3_load "gen3/bin/g3k_testsuite"
 shunit_summary

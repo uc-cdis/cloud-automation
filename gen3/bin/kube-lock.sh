@@ -46,7 +46,7 @@ else
   fi
 fi
 
-# check if the lock we are currently trying to lock is unlocked. If it is, lock 
+# check if the lock we are currently trying to lock is unlocked or expired. If it is, lock 
 # lock and wait, then check again if we have the lock before proceeding
 if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "false" 
   || $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -lt $(date +%s) ]]; then
