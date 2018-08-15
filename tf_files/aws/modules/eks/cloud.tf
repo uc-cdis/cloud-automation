@@ -7,7 +7,14 @@
 #####
 
 
-## First thing we need to create the role that would spin up resources for us 
+
+#Basics
+
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
+
+## First thing we need to create is the role that would spin up resources for us 
 
 resource "aws_iam_role" "eks_control_plane_role" {
   name = "${var.vpc_name}_EKS_role"
@@ -40,6 +47,11 @@ resource "aws_iam_role_policy_attachment" "eks-policy-AmazonEKSServicePolicy" {
   role       = "${aws_iam_role.eks_control_plane_role.name}"
 }
 
+# This one must have been created when we deployed the VPC resources
+resource "aws_iam_role_policy_attachment" "bucket_write" {
+  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/bucket_writer_logs-${var.vpc_name}-gen3"
+  role       = "${aws_iam_role.eks_control_plane_role.name}"
+}
 
 
 # Let's get the availability zones for the region we are working on
@@ -74,20 +86,19 @@ data "aws_vpc" "the_vpc" {
 # The subnet where our cluster will live in 
 resource "aws_subnet" "eks_private" {
   count = 3
-#  vpc_id                  = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-#  cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * ( 6 + count.index) )}/24"
   cidr_block              = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index ))}"
   availability_zone       = "${random_shuffle.az.result[count.index]}"
-#  availability_zone       = "${element(random_shuffle.az.result, count.index)}"
   map_public_ip_on_launch = false
 
-  tags {
-    Name         = "eks_private_${count.index}"
-    Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
-    "kubernetes.io/cluster/${var.vpc_name}" = "owned"
-  }
+  tags = "${
+    map(
+     "Name", "eks_private_${count.index}",
+     "Environment", "${var.vpc_name}",
+     "Organization", "Basic Service",
+     "kubernetes.io/cluster/${var.vpc_name}", "owned",
+    )
+  }"
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
@@ -96,7 +107,7 @@ resource "aws_subnet" "eks_private" {
 }
 
 
-
+# for the ELB to talk to the worker nodes
 resource "aws_subnet" "eks_public" {
   count                   = 3
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
@@ -105,14 +116,17 @@ resource "aws_subnet" "eks_public" {
   availability_zone       = "${random_shuffle.az.result[count.index]}"
 
   # Note: KubernetesCluster tag is required by kube-aws to identify the public subnet for ELBs
-  tags {
-    Name                                    = "eks_public_${count.index}"
-    Environment                             = "${var.vpc_name}"
-    Organization                            = "Basic Service"
-    "kubernetes.io/cluster/${var.vpc_name}"   = "shared"
-    "kubernetes.io/role/elb"                  = ""
-    KubernetesCluster                       = "${var.vpc_name}"
-  }
+
+  tags = "${
+    map(
+     "Name", "eks_public_${count.index}",
+     "Environment", "${var.vpc_name}",
+     "Organization", "Basic Service",
+     "kubernetes.io/cluster/${var.vpc_name}", "shared",
+     "kubernetes.io/role/elb", "",
+     "KubernetesCluster", "${var.vpc_name}",
+    )
+  }"
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
@@ -120,32 +134,6 @@ resource "aws_subnet" "eks_public" {
   }
 }
 
-#resource "aws_subnet" "eks_private_2" {
-#  vpc_id                  = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
-#  cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * 8 )}/24"
-#  availability_zone       = "${element(random_shuffle.az.result, count.index)}"
-#  map_public_ip_on_launch = false
-#
-#  tags {
-#    Name         = "eks_private_2"
-#    Environment  = "${var.vpc_name}"
-#    Organization = "Basic Service"
-#  }
-#}
-
-
-#resource "aws_subnet" "eks_private_3" {
-#  vpc_id                  = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
-#  cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * 9 )}/24"
-#  availability_zone       = "${element(random_shuffle.az.result, count.index)}"
-#  map_public_ip_on_launch = false
-#
-#  tags {
-#    Name         = "eks_private_3"
-#    Environment  = "${var.vpc_name}"
-#    Organization = "Basic Service"
-#  }
-#}
 
 # Since we need to access the internet through the proxy, let find it
 
@@ -223,6 +211,10 @@ resource "aws_route_table_association" "private_kube" {
   count          = 3
   subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["id", "subnet_id"]
+  }
 }
 
 # Finally lets allow the nodes to access S3 directly 
@@ -280,6 +272,11 @@ resource "aws_route_table_association" "public_kube" {
   count          = 3
   subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
   route_table_id = "${data.aws_route_table.public_kube.id}"
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["id", "subnet_id"]
+  }
 }
 
 # The actual EKS cluster 
@@ -309,7 +306,7 @@ resource "aws_eks_cluster" "eks_cluster" {
 ## Role
 
 resource "aws_iam_role" "eks_node_role" {
-  name = "eks-${var.vpc_name}-node-role"
+  name = "eks_${var.vpc_name}_workers_role"
 
   assume_role_policy = <<POLICY
 {
@@ -330,6 +327,33 @@ POLICY
 
 ## Policies
 
+resource "aws_iam_policy" "cwl_access_policy" {
+    name        = "EKS_workers_access_to_cloudwatchlogs"
+    description = "In order to avoid the creation of users and keys, we are using roles and policies."
+    policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "logs:DescribeLogGroups",
+            "Resource": "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group::log-stream:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogStreams"
+            ],
+            "Resource": "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:${var.vpc_name}:log-stream:*"
+        }
+    ]
+}
+EOF
+}
+
+
 resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = "${aws_iam_role.eks_node_role.name}"
@@ -345,8 +369,19 @@ resource "aws_iam_role_policy_attachment" "eks-node-AmazonEC2ContainerRegistryRe
   role       = "${aws_iam_role.eks_node_role.name}"
 }
 
+resource "aws_iam_role_policy_attachment" "cloudwatch_logs_access" {
+  policy_arn = "${aws_iam_policy.cwl_access_policy.arn}"
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+
+# This one must have been created when we deployed the VPC resources
+resource "aws_iam_role_policy_attachment" "bucket_read" {
+  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/bucket_reader_cdis-gen3-users_${var.vpc_name}"
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+
 resource "aws_iam_instance_profile" "eks_node_instance_profile" {
-  name = "${var.vpc_name}-EKS-nodes"
+  name = "${var.vpc_name}_EKS_workers"
   role = "${aws_iam_role.eks_node_role.name}"
 }
 
@@ -356,7 +391,7 @@ resource "aws_iam_instance_profile" "eks_node_instance_profile" {
 
 
 resource "aws_security_group" "eks_nodes_sg" {
-  name        =  "${var.vpc_name}-nodes-sg"
+  name        =  "${var.vpc_name}_EKS_workers_sg"
   description = "Security group for all nodes in the EKS cluster [${var.vpc_name}] "
   vpc_id      = "${data.aws_vpc.the_vpc.id}"
 
@@ -460,9 +495,6 @@ data "aws_ami" "eks_worker" {
   most_recent = true
   owners      = ["602401143452"] # Amazon Account ID
 }
-
-
-data "aws_region" "current" {}
 
 
 # EKS currently documents this required userdata for EKS worker nodes to
