@@ -8,3 +8,9 @@ spec:
    value: "the value is v1"
   -key: k2
    value: "the value is v2"
+  -key: k3
+   value: "the value is v1"
+  -key: k4
+   value: "the value is v4"
+  -key: jupyterhub
+   value: no

@@ -176,6 +176,6 @@ gen3() {
     shift
   done
   # Pass remaing args to gen3_run
-  gen3_run $@
+  gen3_run "$@"
 }
 

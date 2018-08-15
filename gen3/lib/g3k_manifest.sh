@@ -20,7 +20,11 @@ g3kubectl() {
   #    alias kubectl=g3kubectl
   # without causing an infinite loop ...
   #
-  theKubectl=$(which kubectl)
+  if [[ ${CURRENT_SHELL} == "zsh" ]]; then
+    theKubectl=$(whence -p kubectl)
+  else
+    theKubectl=$(which kubectl)
+  fi
   if [[ -n "$KUBECONFIG" ]] && grep heptio "$KUBECONFIG" > /dev/null 2>&1; then
     # Then it's EKS - run with AWS creds!
     (
@@ -52,7 +56,7 @@ g3k_manifest_init() {
   fi
   if [[ -d "$GEN3_MANIFEST_HOME/.git" ]]; then
     echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
-    (cd "$GEN3_MANIFEST_HOME" && git fetch && git status) 1>&2
+    (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
   fi
   touch "$doneFilePath"
 }
@@ -108,10 +112,19 @@ g3k_kv_filter() {
     shift
     value="$1"
     shift || true
+    #
     # this won't work if key or value contain ^ :-(
     # echo "Replace $key - $value" 1>&2
-    sed -i.bak "s^${key}^${value}^g" "$tempFile"
+    # introduce support for default value - KEY|DEFAULT|
+    # Note: -E == extended regex
+    #
+    sed -E -i.bak "s^${key}([|]-.+-[|])?^${value}^g" "$tempFile"
   done
+  #
+  # Finally - any put default values in place for any undefined variables
+  # Note: -E == extended regex
+  #
+  sed -E -i.bak 's^[a-zA-Z][a-zA-Z0-9_-]+[|]-(.*)-[|]^\1^g' "$tempFile"
   cat $tempFile
   /bin/rm "$tempFile"
   return 0  
@@ -152,6 +165,8 @@ g3k_manifest_filter() {
   #   Should really just pull g3k roll out into its own shell script ...
   #
   local key
+  local key2
+  local kvKey
   local value
   local kvList
   declare -a kvList=()
@@ -161,8 +176,18 @@ g3k_manifest_filter() {
   for key in $(jq -r '.versions | keys[]' < "$manifestPath"); do
     value="$(jq -r ".versions[\"$key\"]" < "$manifestPath")"
     # zsh friendly upper case
-    key=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
-    kvList+=("$key" "image: $value")
+    kvKey=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
+    kvList+=("$kvKey" "image: $value")
+  done
+  for key in $(jq -r '. | keys[]' < "$manifestPath"); do
+    for key2 in $(jq -r ".[\"${key}\"] | keys[]" < "$manifestPath" | grep '^[a-zA-Z]'); do
+      value="$(jq -r ".[\"$key\"][\"$key2\"]" < "$manifestPath")"
+      if [[ -n "$value" ]]; then
+        # zsh friendly upper case
+        kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
+        kvList+=("$kvKey" "$value")
+      fi
+    done
   done
   while [[ $# -gt 0 ]]; do
     key="$1"

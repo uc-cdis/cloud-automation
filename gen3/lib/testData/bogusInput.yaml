@@ -8,3 +8,9 @@ spec:
    GEN3_K1
   -key: k2
    GEN3_K2
+  -key: k3
+   GEN3_K1|-value: v3-|
+  -key: k4
+   GEN3_UNDEFINED|-value: "the value is v4"-|
+  -key: jupyterhub
+   value: GEN3_JUPYTERHUB_ENABLED
