@@ -257,6 +257,9 @@ misc() {
     mkdir -p client-restrictions
 
     chown -R openvpn:openvpn easy-rsa/ user_passwd.csv clients.d/tmp/
+    #ahhem.  
+    chown :root /etc/openvpn/clients.d/tmp
+    chmod g+rwx /etc/openvpn/clients.d/tmp
 }
 
     print_help
