@@ -5,23 +5,20 @@
 
 help() {
   cat - <<EOM
-  gen3 kube-unlock lock-name owner max-age:
+  gen3 kube-unlock lock-name owner:
     Attempts to unlock the lock lock-name in the namespace that KUBECTL_NAMESPACE 
     is set to. Exits 0 if the lock is unlocked and 1 if it fails.
 EOM
   return 0
 }
 
-if [[ $1 =~ ^-*help$ || $# -ne 3 ]]; then
+if [[ $1 =~ ^-*help$ || $# -ne 2 ]]; then
   help
   exit 0
 else
   lockName="$1"
   owner="$2"
-  maxAge="$3"
 fi
-
-echo $maxAge
 
 set -i
 # load bashrc so that the script is treated like it was launched on the remote machine

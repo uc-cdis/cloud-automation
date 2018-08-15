@@ -18,12 +18,8 @@ if [[ $1 =~ ^-*help$ || $# -ne 3 ]]; then
 else
   lockName="$1"
   owner="$2"
-  maxAge="$3"
+  expTime=$(($(date +%s)+$3))
 fi
-
-echo $maxAge
-echo $lockName
-echo $owner
 
 set -i
 # load bashrc so that the script is treated like it was launched on the remote machine
@@ -43,21 +39,23 @@ fi
 if ! g3kubectl get configmaps locks; then
   echo "locks configmap not detected, creating one"
   g3kubectl create configmap locks
-  g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none
+  g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0
 else 
   if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}}") = '' ]]; then
-    g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none
+    g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0
   fi
 fi
 
 # check if the lock we are currently trying to lock is unlocked. If it is, lock 
 # lock and wait, then check again if we have the lock before proceeding
-if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "false" ]]; then
-  g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner
+if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "false" 
+  || $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -lt $(date +%s) ]]; then
+  g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime
   sleep $(shuf -i 1-5 -n 1)
 
   if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
-    && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_owner}") = $owner ]]; then 
+    && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_owner}") = $owner 
+    && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then 
     exit 0
   else
     exit 1
