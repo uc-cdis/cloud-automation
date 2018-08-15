@@ -6,7 +6,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-serverVersion="$(kubectl version server -o json | jq -r '.serverVersion.major + "." + .serverVersion.minor' | head -c3).0"
+serverVersion="$(g3kubectl version server -o json | jq -r '.serverVersion.major + "." + .serverVersion.minor' | head -c4).0"
 echo "K8s server version is $serverVersion"
 if ! semver_ge "$serverVersion" "1.8.0"; then
   echo "K8s server version $serverVersion does not yet support network policy"
