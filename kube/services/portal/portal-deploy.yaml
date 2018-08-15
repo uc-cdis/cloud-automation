@@ -66,6 +66,8 @@ spec:
               configMapKeyRef:
                 name: global
                 key: portal_app
+          - name: REACT_APP_ARRANGER_API
+            value: /api/v0/flat-search
         volumeMounts:
           - name: "cert-volume"
             readOnly: true

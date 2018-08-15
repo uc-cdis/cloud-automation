@@ -1,11 +1,141 @@
 # TL;DR
 
 Templates for deploying `gen3` services to a kubernetes cluster.
-The `g3k` helper scripts merge these templates with data
-from the [cdis-manifest](https://github.com/uc-cdis/cdis-manifest).
-The g3k helpers also automate the creation of missing secrets and configmaps
-(if `~/${vpc_name}/creds.json` and similar files are present.
-These tools are currently only available on the [CSOC adminvm](https://github.com/uc-cdis/cdis-wiki/blob/master/ops/CSOC_Documentation.md) 
+
+
+## Template processing
+
+Both `gen3 roll ...` and `gen3 runjob ...` merge `kube/.../..yaml` templates with data
+from the [cdis-manifest](https://github.com/uc-cdis/cdis-manifest) and
+variables supplied on the command line.  The flow is:
+```
+raw.yaml >>> template processing >>> kubectl
+```
+
+For example, this is the `manifest.json` file for the `reuben.planx-pla.net` commons:
+```
+{
+  "notes": [
+    "This is the dev environment manifest",
+    "That's all I have to say"
+  ],
+  "jenkins": {
+    "autodeploy": "yes"
+  },
+  "versions": {
+    "arranger": "quay.io/cdis/arranger:master",
+    "fence": "quay.io/cdis/fence:master",
+    "indexd": "quay.io/cdis/indexd:master",
+    "peregrine": "quay.io/cdis/peregrine:master",
+    "pidgin": "quay.io/cdis/pidgin:master",
+    "sheepdog": "quay.io/cdis/sheepdog:master",
+    "portal": "quay.io/cdis/data-portal:master",
+    "fluentd": "fluent/fluentd-kubernetes-daemonset:cloudwatch",
+    "jupyterhub": "quay.io/occ_data/jupyterhub:master"
+  },
+  "jupyterhub": {
+    "enabled": "no"
+  },
+  "arranger": {
+    "project_id": "dev"
+  }
+}
+```
+
+Template processing of this manifest yields the following key-value replacements:
+```
+(GEN3_IMAGE_ARRANGER, image: quay.io/cdis/arranger:master)
+(GEN3_IMAGE_FENCE, image: quay.io/cdis/fence:master)
+(GEN3_IMAGE_INDEXD, image: quay.io/cdis/fence:master)
+...
+(GEN3_VERSIONS_ARRANGER, quay.io/cdis/arranger:master)
+(GEN3_VERSIONS_FENCE, quay.io/cdis/fence:master)
+(GEN3_VERSIONS_INDEXD, quay.io/cdis/indexd:master)
+...
+(GEN3_JUPYTERHUB_ENABLED, no)
+(GEN3_ARRANGER_PROJECT_ID, dev)
+```
+
+The `gen3 roll arranger` command processes the `arranger-deploy.yaml` template:
+```
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: arranger-deployment
+spec:
+...
+    metadata:
+      labels:
+        app: arranger
+        GEN3_DATE_LABEL
+      containers:
+        - name: arranger
+          GEN3_ARRANGER_IMAGE|-image: quay.io/cdis/arranger:master-|
+          livenessProbe:
+            ...
+          env:
+          - name: GEN3_ES_ENDPOINT
+            value: esproxy-service:9200
+          - name: GEN3_ARBORIST_ENDPOINT
+            value: http://arborist-service
+          - name: GEN3_PROJECT_ID
+            value: GEN3_ARRANGER_PROJECT_ID|-dev-|
+          volumeMounts:
+            - name: "cert-volume"
+              readOnly: true
+          ...
+```
+to generate a `yaml` output to send to kubernetes that looks like this:
+```
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: arranger-deployment
+spec:
+...
+    metadata:
+      labels:
+        app: arranger
+        date: 1534177684
+      containers:
+        - name: arranger
+          image: quay.io/cdis/arranger:master
+          livenessProbe:
+            ...
+          env:
+          - name: GEN3_ES_ENDPOINT
+            value: esproxy-service:9200
+          - name: GEN3_ARBORIST_ENDPOINT
+            value: http://arborist-service
+          - name: GEN3_PROJECT_ID
+            value: dev
+          volumeMounts:
+            - name: "cert-volume"
+              readOnly: true
+          ...
+```
+
+A few notes:
+
+* GEN3_DATE_LABEL is a helper that expands to `date: (date +%s)`
+* a template can specify a default value to use if a variable is undefined using the syntax: `|-DEFAULT-|`
+* `gen3 runjob` accepts key-value pairs on the command line, but the values expand to `value: VALUE`,
+so `gen3 runjob gentestdata VAR1 VALUE1` replaces occurrences of `VAR1` in `gentestdata-job.yaml`
+with `value: VALUE1`.  A `...-job.yaml` template might look like this:
+```
+...
+    env:
+       - name: ENVVAR1
+         VAR1
+       - name: ENVVAR2
+         VAR2
+...
+```
+
+## CSOC
+
+We interact with a commons' kubernetes cluster from the 
+[CSOC adminvm](https://github.com/uc-cdis/cdis-wiki/blob/master/ops/CSOC_Documentation.md) 
 associated with a commons.
 
 Use the [gen3](../gen3/README.md) helper to execute PlanX workflows for deploying infrastructure
@@ -15,12 +145,15 @@ and managing kubernetes resources.
 ### Services
 #### [fence](https://github.com/uc-cdis/fence)
 The authentication and authorization provider.
-#### [sheepdog](https://github.com/uc-cdis/sheepdog/)
-API for submitting data model that stores the metadata for this cluster.
-#### [peregrine](https://github.com/uc-cdis/peregrine/)
-API for querying graph data model that stores the metadata for this cluster.
+#### [fence](https://github.com/uc-cdis/gen3-arranger)
+Provides `graphql` endpoint backed by elastic search.
 #### [indexd](https://github.com/LabAdvComp/indexd)
 ID service that tracks all data blobs in different storage locations
+#### [peregrine](https://github.com/uc-cdis/peregrine/)
+API for querying graph data model that stores the metadata for this cluster.
+#### [pidgin](https://github.com/uc-cdis/pidgin/)
+Provides endpoints that simplify coremetadata retrieval from peregrine.
+#### [sheepdog](https://github.com/uc-cdis/sheepdog/)
+API for submitting data model that stores the metadata for this cluster.
 #### [data-portal](https://github.com/uc-cdis/data-portal)
 Portal to browse and submit metadata.
-

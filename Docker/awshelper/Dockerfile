@@ -35,7 +35,7 @@ RUN  easy_install -U pip \
     && python -m pip install --upgrade pip \
     && python -m pip install --upgrade setuptools \
     && python -m pip install -U crcmod \
-    && python -m pip install awscli --upgrade \
+    && python -m pip install awscli==1.15.59 --upgrade \
     && python -m pip install yq --upgrade
 
 # From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
@@ -57,7 +57,13 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 
 RUN useradd -m -s /bin/bash ubuntu
 
+RUN npm install elasticdump -g
+
 WORKDIR /home/ubuntu
 USER ubuntu
 
+RUN git clone https://github.com/uc-cdis/gen3-arranger.git ~/gen3-arranger \
+    && echo "source  ~/gen3-arranger/Docker/Stacks/esearch/indexSetup.sh" >> ~/.bashrc \
+    && echo "export ESHOST=esproxy-service:9200" >> ~/.bashrc
+    
 CMD /bin/bash

@@ -256,6 +256,18 @@ data:
               proxy_pass http://pidgin-service/;
           }
 
+          # GA4GH endpoint for DOS resolver
+          location /ga4gh/ {
+              if ($csrf_check !~ ^ok-\S.+$) {
+                return 403 "failed csrf check";
+              }
+              if ($cookie_csrftoken = "") {
+                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
+              }
+
+              proxy_pass http://indexd-service/ga4gh/;
+          }
+
           location /user/ {
               if ($csrf_check !~ ^ok-\S.+$) {
                 return 403 "failed csrf check";
@@ -280,6 +292,9 @@ data:
           # Simplify external access to health checks
           location /peregrine/_status {
               proxy_pass http://peregrine-service/_status;
+          }
+          location /peregrine/_version {
+              proxy_pass http://peregrine-service/_version;
           }
           location /api/v0/submission/graphql {
               if ($csrf_check !~ ^ok-\S.+$) {
@@ -306,9 +321,12 @@ data:
               proxy_pass http://peregrine-service/v0/submission/graphql;
           }
           location /api/v0/flat-search/ {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
+              #
+              # Arranger UI does not set csrf headers ..
+              #
+              #if ($csrf_check !~ ^ok-\S.+$) {
+              #  return 403 "failed csrf check";
+              #}
               if ($cookie_csrftoken = "") {
                 add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
               }
@@ -345,6 +363,10 @@ data:
           location /workspace/ {
               auth_request /auth-proxy;
               auth_request_set $remoteUser $upstream_http_REMOTE_USER;
+              auth_request_set $saved_set_cookie $upstream_http_set_cookie;
+              if ($saved_set_cookie != "") {
+                  add_header Set-Cookie $saved_set_cookie always;
+              }
               proxy_set_header REMOTE_USER $remoteUser;
               error_page 401 = @error401;
 
@@ -358,6 +380,7 @@ data:
               proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
               proxy_set_header Upgrade $http_upgrade;
               proxy_set_header Connection $connection_upgrade;
+              client_max_body_size 0;
           }
 
           # JupyterHub doesn't currently support chaining logout pages
@@ -398,6 +421,10 @@ data:
               proxy_pass_request_body off;
               proxy_set_header Authorization "$access_token";
               proxy_set_header Content-Length "";
+              proxy_set_header X-Forwarded-For "$realip";
+              proxy_set_header X-UserId "$userid";
+              # nginx bug that it checks even if request_body off
+              client_max_body_size 0;
           }
           location @error401 {
               return 302 /login;
