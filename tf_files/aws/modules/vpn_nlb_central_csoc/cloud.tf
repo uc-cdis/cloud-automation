@@ -549,7 +549,7 @@ resource "aws_s3_bucket_policy" "vpn-bucket-policy" {
 POLICY
 }
 
-#"AWS": "arn:aws:iam::433568766270:user/CSOC-vpn-s3-user"
+#chnaged above from hardcode - "AWS": "arn:aws:iam::433568766270:user/CSOC-vpn-s3-user" (delete later)
 
 #Really????
 #resource "aws_iam_role" "vpn-certs-and-files_reader" {
