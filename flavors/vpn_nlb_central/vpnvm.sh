@@ -127,7 +127,7 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 
  # Restart VPN
 #openvpn --daemon ovpn-openvpn --status /run/openvpn/openvpn.status 10 --cd /etc/openvpn --script-security 2 --config /etc/openvpn/openvpn.conf --writepid /run/openvpn/openvpn.pid
-#systemctl restart openvpn
+systemctl restart openvpn
 
 
 ## Make sure the security groups on the VM allows TCP access for 80,443,1194
