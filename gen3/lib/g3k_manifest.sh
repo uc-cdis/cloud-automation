@@ -54,7 +54,8 @@ g3k_manifest_init() {
     # This will fail if proxy is not set correctly
     git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}" 1>&2
   fi
-  if [[ -d "$GEN3_MANIFEST_HOME/.git" ]]; then
+  if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
+    # Don't do this when running tests in Jenkins ...
     echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
     (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
   fi
