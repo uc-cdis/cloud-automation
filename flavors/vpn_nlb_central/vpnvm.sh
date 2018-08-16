@@ -72,10 +72,10 @@ sudo apt-get install uuid-runtime -y
 #Install git
 sudo apt-get install git -y
 
-#if [ ! -e "/root/server.pem" ]; then
-#openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj '/C=US/ST=IL/L=Chicago/O=CDIS' -keyout /root/cert.key -out /root/cert.pem
-#cat /root/cert.key /root/cert.pem > /root/server.pem
-#fi
+if [ ! -e "/root/server.pem" ]; then
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj '/C=US/ST=IL/L=Chicago/O=CDIS' -keyout /root/cert.key -out /root/cert.pem
+cat /root/cert.key /root/cert.pem > /root/server.pem
+fi
 #else
 #scp -o StrictHostKeyChecking=no -r ubuntu@10.128.1.11:/home/ubuntu/main/cert.key /root/ 
 #scp -o StrictHostKeyChecking=no -r ubuntu@10.128.1.11:/home/ubuntu/main/cert.pem /root/
@@ -97,13 +97,13 @@ export FQDN="raryatestvpnv1.planx-pla.net"; export cloud="planxvpn1"; export SER
 
 ### need to install lighttpd
 
-#apt-get install -y lighttpd
-#cp /etc/openvpn/bin/templates/lighttpd.conf.template  /etc/lighttpd/lighttpd.conf
-#mkdir -p --mode=750 /var/www/qrcode
-#chown openvpn:www-data /var/www/qrcode
-#mkdir -p /etc/lighttpd/certs
-#cp /root/server.pem /etc/lighttpd/certs/server.pem
-#service lighttpd restart
+apt-get install -y lighttpd
+cp /etc/openvpn/bin/templates/lighttpd.conf.template  /etc/lighttpd/lighttpd.conf
+mkdir -p --mode=750 /var/www/qrcode
+chown openvpn:www-data /var/www/qrcode
+mkdir -p /etc/lighttpd/certs
+cp /root/server.pem /etc/lighttpd/certs/server.pem
+service lighttpd restart
 
 # Make changes to the iptables
 #Flush all iptables and re-install
