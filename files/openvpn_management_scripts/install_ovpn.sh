@@ -286,6 +286,13 @@ set -u
 
     configure_ovpn
     tweak_network
+
+    if [ ! -e "/root/server.pem" ]; then
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj '/C=US/ST=IL/L=Chicago/O=CDIS' -keyout /root/cert.key -out /root/cert.pem
+    cat /root/cert.key /root/cert.pem > /root/server.pem
+    fi
+
+
     if [ -f "$SERVER_PEM" ]
     then
         install_webserver
