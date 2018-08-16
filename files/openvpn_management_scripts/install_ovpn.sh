@@ -8,6 +8,7 @@ OPENVPN_PATH='/etc/openvpn'
 BIN_PATH="$OPENVPN_PATH/bin"
 EASYRSA_PATH="$OPENVPN_PATH/easy-rsa"
 VARS_PATH="$EASYRSA_PATH/vars"
+SERVER_PEM='/root/server.pem'
 
 #EASY-RSA Vars
 
@@ -260,6 +261,7 @@ misc() {
     #ahhem.  
     chown :root /etc/openvpn/clients.d/tmp
     chmod g+rwx /etc/openvpn/clients.d/tmp
+    systemctl restart openvpn
 }
 
     print_help
