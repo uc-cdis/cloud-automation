@@ -20,10 +20,6 @@ else
   owner="$2"
 fi
 
-set -i
-# load bashrc so that the script is treated like it was launched on the remote machine
-source ~/.bashrc
-
 # load gen3 tools
 if [[ -n "$GEN3_HOME" ]]; then  # load gen3 tools from cloud-automation
   source "${GEN3_HOME}/gen3/lib/utils.sh"

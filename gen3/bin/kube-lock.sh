@@ -5,14 +5,18 @@
 
 help() {
   cat - <<EOM
-  gen3 kube-lock lock-name owner max-age:
+  gen3 kube-lock lock-name owner max-age [wait5]:
     Attempts to lock the lock lock-name in the namespace that KUBECTL_NAMESPACE 
     is set to. Exits 0 if the lock is obtained and 1 if it is not obtained.
+      lock-name: string, name of lock
+      owner: string, name of owner
+      max-age: int, number of seconds for the lock to persist before expiring
+      wait5: boolean, whether or not to spinwait for 5 minutes
 EOM
   return 0
 }
 
-if [[ $1 =~ ^-*help$ || $# -ne 3 ]]; then
+if [[ $1 =~ ^-*help$ || ($# -ne 3 && $# -ne 4) ]]; then
   help
   exit 0
 else
@@ -20,10 +24,6 @@ else
   owner="$2"
   expTime=$(($(date +%s)+$3))
 fi
-
-set -i
-# load bashrc so that the script is treated like it was launched on the remote machine
-source ~/.bashrc
 
 # load gen3 tools
 if [[ -n "$GEN3_HOME" ]]; then  # load gen3 tools from cloud-automation
