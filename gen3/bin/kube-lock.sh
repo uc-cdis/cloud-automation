@@ -21,17 +21,21 @@ if [[ $1 =~ ^-*help$ || ($# -ne 3 && $# -ne 5) ]]; then
   help
   exit 0
 else
-  if ! [[ $3 =~ '^[0-9]+$' && $5 =~ '^[0-9]+$' ]]; then
-    echo "ERROR: max-age and wait-time must be integers"
+  if ! [[ $3 =~ '^[0-9]+$' ]]; then
+    echo "ERROR: max-age must be an integer"
     exit 1
+  fi
+  if [[ $4 = '-w' || $4 = '--wait' ]]; then
+    wait=true
+    if ! [[ $5 =~ '^[0-9]+$' ]]; then
+      echo "ERROR: wait-time must be an integer"
+      exit 1
+    fi
+    endWaitTime=$(($(date +%s)+$5))
   fi
   lockName="$1"
   owner="$2"
   expTime=$(($(date +%s)+$3))
-  if [[ $4 = '-w' || $4 = '--wait' ]]; then
-    wait=true
-    endWaitTime=$(($(date +%s)+$5))
-  fi
 fi
 
 # load gen3 tools
