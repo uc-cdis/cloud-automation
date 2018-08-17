@@ -78,10 +78,10 @@ if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}"
           sleep $(shuf -i 1-5 -n 1)
         else
           g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime
-          break
+          exit 0
         fi
       done
-      exit 0
+      exit 1
     else 
       exit 1
     fi
@@ -94,10 +94,10 @@ else
         sleep $(shuf -i 1-5 -n 1)
       else
         g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime
-        break
+        exit 0
       fi
     done
-    exit 0
+    exit 1
   else 
     exit 1
   fi
