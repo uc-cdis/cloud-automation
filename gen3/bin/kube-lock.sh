@@ -74,10 +74,11 @@ if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}"
     if [[ $wait = true ]]; then
       while [[ $endWaitTime -gt $(date +%s) ]]; do
         if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
-          || $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then
+          && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then
           sleep $(shuf -i 1-5 -n 1)
         else
           g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime
+          break
         fi
       done
       exit 0
@@ -89,10 +90,11 @@ else
   if [[ $wait = true ]]; then
     while [[ $endWaitTime -gt $(date +%s) ]]; do
       if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
-        || $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then
+        && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then
         sleep $(shuf -i 1-5 -n 1)
       else
         g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime
+        break
       fi
     done
     exit 0
