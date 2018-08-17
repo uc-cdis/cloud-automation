@@ -180,7 +180,7 @@ test_tfoutput() {
 }
 
 test_kube_lock() {
-  gen3 kube-lock | grep -e "gen3 kube-lock lock-name owner max-age [--wait wait-time]:"; because $? "calling kube-lock without arguments should show the help documentation"
+  gen3 kube-lock | grep -e "gen3 kube-lock lock-name owner max-age [--wait wait-time]"; because $? "calling kube-lock without arguments should show the help documentation"
   gen3 kube-lock testlock testuser not-a-number | grep -e "ERROR: max-age is not-a-number, must be an integer"; because $? "calling kube-lock without a number for max-age should show this error message"
   gen3 kube-lock testlock testuser 60 -w not-a-number | grep -e "ERROR: wait-time is not-a-number, must be an integer"; because $? "calling kube-lock without a number for wait-time should show this error message"
   kubectl delete configmap locks
