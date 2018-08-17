@@ -21,6 +21,10 @@ if [[ $1 =~ ^-*help$ || ($# -ne 3 && $# -ne 5) ]]; then
   help
   exit 0
 else
+  if ! [[ $3 =~ '^[0-9]+$' && $5 =~ '^[0-9]+$' ]]; then
+    echo "ERROR: max-age and wait-time must be integers"
+    exit 1
+  fi
   lockName="$1"
   owner="$2"
   expTime=$(($(date +%s)+$3))
@@ -38,7 +42,7 @@ else
   echo "GEN3_HOME is not set"
   exit 1
 fi
- 
+
 # create locks ConfigMap if it does not already exist, and set the lock we are 
 # currently trying to lock to unlocked with no owner
 if ! g3kubectl get configmaps locks; then
@@ -50,7 +54,7 @@ else
     g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0
   fi
 fi
- 
+
 # check if the lock we are currently trying to lock is unlocked or expired. If it is, lock 
 # lock and wait, then check again if we have the lock before proceeding
 if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "false" 
