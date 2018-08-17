@@ -20,10 +20,6 @@ else
   owner="$2"
 fi
 
-set -i
-# load bashrc so that the script is treated like it was launched on the remote machine
-source ~/.bashrc
-
 # load gen3 tools
 if [[ -n "$GEN3_HOME" ]]; then  # load gen3 tools from cloud-automation
   source "${GEN3_HOME}/gen3/lib/utils.sh"
@@ -44,7 +40,7 @@ else
     if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_owner}") != $owner ]]; then
       exit 1
     else 
-      g3kubectl label --overwrite configmap locks ${lockName}=false ${lockName}_owner=none
+      g3kubectl label --overwrite configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0
       exit 0
     fi
   fi
