@@ -4,9 +4,18 @@
 # via the `g3k/gen3` cli
 #
 
-GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
-export GEN3_MANIFEST_HOME
+COMMON_NAME=$(pwd | cut -d'/' -f 3)
+CONFIGMAP_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${COMMON_NAME}"
+GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
+GEN3_MANIFEST_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${GEN3_HOST_NAME}"
+export GEN3_HOST_NAME=${GEN3_HOST_NAME}
+export GEN3_MANIFEST_HOME=${GEN3_MANIFEST_HOME}
 
+##########comment out
+#GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
+#export GEN3_MANIFEST_HOME
+###########
+#echo "GEN3_MANIFEST_HOME=$GEN3_MANIFEST_HOME}"
 gen3_load "gen3/lib/utils"
 
 #
@@ -45,14 +54,22 @@ g3kubectl() {
 g3k_manifest_init() {
   # do this at most once a day
   local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d)"
-  if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
-    return 0
-  fi
+ #################################comment out by Di 
+  #if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
+  #  return 0
+  #fi
+ ##################################
   if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
     echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
-    echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}" 1>&2
-    # This will fail if proxy is not set correctly
-    git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}" 1>&2
+    echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_MANIFEST_HOME}" 1>&2
+
+###############
+    #echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
+    #echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}" 1>&2
+   # This will fail if proxy is not set correctly
+#    git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}" 1>&2
+################
+   git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_MANIFEST_HOME}" 1>&2
   fi
   if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
     # Don't do this when running tests in Jenkins ...
@@ -74,9 +91,15 @@ g3k_manifest_path() {
     return 1
   fi
   g3k_manifest_init
-  local mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
+#############################comment out by Di 
+  #local mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
+#############################
+  local mpath="${GEN3_MANIFEST_HOME}/manifest.json"
   if [[ ! -f "$mpath" ]]; then
-    mpath="${GEN3_MANIFEST_HOME}/default/manifest.json"
+#############################comment out by Di 
+   # mpath="${GEN3_MANIFEST_HOME}/default/manifest.json"
+####################################
+    mpath="${GEN3_MANIFEST_HOME}/manifest.json"
   fi
   echo "$mpath"
   if [[ -f "$mpath" ]]; then
