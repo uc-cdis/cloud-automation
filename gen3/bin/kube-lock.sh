@@ -21,14 +21,14 @@ if [[ $1 =~ ^-*help$ || ($# -ne 3 && $# -ne 5) ]]; then
   help
   exit 0
 else
-  if ! [[ $3 =~ '^[0-9]+$' ]]; then
-    echo "ERROR: max-age must be an integer"
+  if ! [[ $3 =~ ^[0-9]+$ ]]; then
+    echo "ERROR: max-age is $3, must be an integer"
     exit 1
   fi
   if [[ $4 = '-w' || $4 = '--wait' ]]; then
     wait=true
-    if ! [[ $5 =~ '^[0-9]+$' ]]; then
-      echo "ERROR: wait-time must be an integer"
+    if ! [[ $5 =~ ^[0-9]+$ ]]; then
+      echo "ERROR: wait-time is $5, must be an integer"
       exit 1
     fi
     endWaitTime=$(($(date +%s)+$5))
