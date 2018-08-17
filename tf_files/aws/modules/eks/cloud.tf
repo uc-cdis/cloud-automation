@@ -353,6 +353,30 @@ resource "aws_iam_policy" "cwl_access_policy" {
 EOF
 }
 
+# This policy will allow the autoscaler deployment to add or terminate instance into the group
+# https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
+resource "aws_iam_policy" "asg_access" {
+    name        = "${var.vpc_name}_EKS_workers_autoscaling_access"
+    description = "Allow the deployment cluster-autoscaler to add or terminate instances accordingly"
+    policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "autoscaling:DescribeAutoScalingGroups",
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeTags",
+                "autoscaling:SetDesiredCapacity",
+                "autoscaling:TerminateInstanceInAutoScalingGroup"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+}
 
 resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
@@ -371,6 +395,11 @@ resource "aws_iam_role_policy_attachment" "eks-node-AmazonEC2ContainerRegistryRe
 
 resource "aws_iam_role_policy_attachment" "cloudwatch_logs_access" {
   policy_arn = "${aws_iam_policy.cwl_access_policy.arn}"
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+
+resource "aws_iam_role_policy_attachment" "asg_access" {
+  policy_arn = "${aws_iam_policy.asg_access.arn}"
   role       = "${aws_iam_role.eks_node_role.name}"
 }
 
@@ -602,6 +631,12 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
   tag {
     key                 = "kubernetes.io/cluster/${var.vpc_name}"
     value               = "owned"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "k8s.io/cluster-autoscaler/enabled"
+    value               = ""
     propagate_at_launch = true
   }
 }
