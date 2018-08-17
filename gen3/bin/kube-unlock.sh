@@ -40,7 +40,7 @@ else
     if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_owner}") != $owner ]]; then
       exit 1
     else 
-      g3kubectl label --overwrite configmap locks ${lockName}=false ${lockName}_owner=none
+      g3kubectl label --overwrite configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0
       exit 0
     fi
   fi

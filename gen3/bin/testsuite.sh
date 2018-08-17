@@ -31,9 +31,9 @@ fi
 
 echo "Switching to '$TEST_PROFILE $TEST_WORKSPACE' workspace in test process"
 gen3_load "gen3/gen3setup"
-gen3 workon $TEST_PROFILE $TEST_WORKSPACE
+# gen3 workon $TEST_PROFILE $TEST_WORKSPACE
 
-gen3_load "gen3/lib/terraform"
+# gen3_load "gen3/lib/terraform"
 gen3_load "gen3/lib/shunit"
 
 #
@@ -181,8 +181,11 @@ test_tfoutput() {
 
 test_kube_lock() {
   gen3 kube-lock | grep -e "gen3 kube-lock lock-name owner max-age:"; because $? "calling kube-lock without arguments should show the help documentation"
+  gen3 kube-lock testlock testuser not-a-number | grep -e "ERROR: max-age is not-a-number, must be an integer"; because $? "calling kube-lock without a number for max-age should show this error message"
+  gen3 kube-lock testlock testuser 60 -w not-a-number | grep -e "ERROR: wait-time is not-a-number, must be an integer"; because $? "calling kube-lock without a number for wait-time should show this error message"
   kubectl delete configmap locks
   gen3 kube-lock testlock testuser 60; because $? "calling kube-lock for the first time for a lock should successfully lock it, and it should create the configmap locks if it does not exist already"
+  kubectl get configmaps locks -o=yaml | grep -e 'testlock: "true"'; because $? "kube-lock success should write to the configmap properly"
   gen3 kube-lock testlock testuser 60; because !$? "calling kube-lock for the second time in a row for a lock should fail to lock it"
   gen3 kube-lock testlock2 testuser 60; because $? "kube-lock should be able to handle multiple locks"
   gen3 kube-lock testlock3 testuser2 60; because $? "kube-lock should be able to handle multiple users"
@@ -190,6 +193,10 @@ test_kube_lock() {
   gen3 kube-lock testlock4 testuser 10
   sleep 11
   gen3 kube-lock testlock4 testuser 15; because $? "attempting to lock an expired lock should succeed"
+  gen3 kube-lock testlock5 testuser 10
+  gen3 kube-lock testlock5 testuser2 10 -w 5; because !$? "wait is too short, so kube-lock should fail to acquire lock"
+  gen3 kube-lock testlock6 testuser 10
+  gen3 kube-lock testlock6 testuser2 10 -w 20; because $? "wait is longer than expiry time on the first user, so kube-lock should succeed to acquire lock"
   kubectl delete configmap locks
 }
 
@@ -201,25 +208,26 @@ test_kube_unlock() {
   gen3 kube-unlock testlock2 testuser; because !$? "calling kube-unlock for the first time on a lock that does not exist should fail"
   gen3 kube-unlock testlock testuser2; because !$? "calling kube-unlock for the first time on a lock the user does not own should fail"
   gen3 kube-unlock testlock testuser; because $? "calling kube-unlock for the first time on a lock the user owns should succeed"
+  kubectl get configmaps locks -o=yaml | grep -e 'testlock: "false"'; because $? "kube-unlock success should write to the configmap properly"
   gen3 kube-unlock testlock testuser; because !$? "calling kube-unlock for the second time on a lock the user owns should fail because the lock is already unlocked"
   kubectl delete configmap locks
 }
 
-shunit_runtest "test_semver"
-shunit_runtest "test_colors"
-shunit_runtest "test_workspace"
-shunit_runtest "test_user_workspace"
-shunit_runtest "test_snapshot_workspace"
-shunit_runtest "test_databucket_workspace"
-shunit_runtest "test_gcp_workspace"
-shunit_runtest "test_onprem_workspace"
-shunit_runtest "test_trash"
-shunit_runtest "test_refresh"
-shunit_runtest "test_tfplan"
-shunit_runtest "test_tfoutput"
+# shunit_runtest "test_semver"
+# shunit_runtest "test_colors"
+# shunit_runtest "test_workspace"
+# shunit_runtest "test_user_workspace"
+# shunit_runtest "test_snapshot_workspace"
+# shunit_runtest "test_databucket_workspace"
+# shunit_runtest "test_gcp_workspace"
+# shunit_runtest "test_onprem_workspace"
+# shunit_runtest "test_trash"
+# shunit_runtest "test_refresh"
+# shunit_runtest "test_tfplan"
+# shunit_runtest "test_tfoutput"
 shunit_runtest "test_ls"
 shunit_runtest "test_kube_lock"
 shunit_runtest "test_kube_unlock"
 G3K_TESTSUITE_SUMMARY="no"
-gen3_load "gen3/bin/g3k_testsuite"
+# gen3_load "gen3/bin/g3k_testsuite"
 shunit_summary
