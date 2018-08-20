@@ -91,7 +91,11 @@ fi
 # copy the openvpn_management_scipts to the /root folder
 # cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
-export FQDN="raryatestvpnv1.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
+HOSTNAME=$(sed -n -e '/VAR1/ s/.*\= *//p' /root/openvpn_management_scripts/templates/csoc_vpn_user_variable_templ)
+
+export FQDN="$HOSTNAME.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
+
+#export FQDN="raryatestvpnv1.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
 
 #export FQDN="raryatestvpnv1.planx-pla.net"; export cloud="planxvpn"; export EMAIL="support@datacommons.io"; export SERVER_PEM="/root/server.pem"; export VPN_SUBNET="192.168.192.0/20"; export VM_SUBNET="10.128.0.0/20"; bash install_ovpn.sh
 
@@ -120,9 +124,13 @@ sudo iptables -P OUTPUT ACCEPT
 
 # Add the new iptables
 
+VPN_SUBNET=$(sed -n -e '/VAR2/ s/.*\= *//p' /root/openvpn_management_scripts/templates/csoc_vpn_user_variable_templ)
+VM_SUBNET=$(sed -n -e '/VAR3/ s/.*\= *//p' /root/openvpn_management_scripts/templates/csoc_vpn_user_variable_templ)
+
+
 iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-iptables -A FORWARD -s 10.128.0.0/20 -d 192.168.192.0/20 -i tun0 -o eth0 -m conntrack --ctstate NEW -j ACCEPT
-iptables -t nat -A POSTROUTING -s  192.168.192.0/20 -d 0.0.0.0/0  -o eth0 -j MASQUERADE
+iptables -A FORWARD -s  $VM_SUBNET -d $VPN_SUBNET -i tun0 -o eth0 -m conntrack --ctstate NEW -j ACCEPT
+iptables -t nat -A POSTROUTING -s  $VPN_SUBNET -d 0.0.0.0/0  -o eth0 -j MASQUERADE
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
  # Restart VPN

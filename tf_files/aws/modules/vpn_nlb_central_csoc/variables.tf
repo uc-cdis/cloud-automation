@@ -2,14 +2,23 @@ variable "env_vpc_octet3"{
   default = "5"
 }
 
+variable "csoc_vpn_subnet"{
+  default = "192.168.1.0/24"
+}
+
+variable "csoc_vm_subnet"{
+  default = "10.128.2.0/24"
+}
+
+
 variable "env_vpc_id" {
   default = "vpc-e2b51d99"
 }
 
 variable "env_vpn_nlb_name" {
-  default = "csoc-vpn-nlb"
+  #default = "csoc-vpn-nlb"
   #Have it same as FQDN
-  #default = "raryatestvpnv1.planx-pla.net"
+  default = "csoc-prod-vpn"
 }
 
 

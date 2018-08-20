@@ -1,0 +1,4 @@
+VAR1hostname = HOSTNAME
+VAR2vpnsubnet = VPN_SUBNET
+VAR3vmsubnet =  VM_SUBNET
+VAR4routepush = VM_ROUTE_PUSH
