@@ -317,7 +317,9 @@ sudo apt-get autoclean
 
 # This is to modify the S3 scripts and openvpn install script to use the specific VPN bucket in S3
 
-sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
+sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts/csoc_vpn_user_variable_test /root
+
+sudo cp   -r /home/ubuntu/cloud-automation/files/ /root
 
 # Different buckets for different CSOC vpn environments
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/push_to_s3.sh
@@ -327,11 +329,11 @@ sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/in
 # Replace the User variable for hostname, VPN subnet and VM subnet 
 #sudo sed -i "s/HOSTNAME/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 sudo sed -i "s/HOSTNAME/RARYATEST/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+sudo sed -i "s/HOSTNAME/RARYATEST/" /root/csoc_vpn_user_variable_test
 sudo sed -i "s/VPN_SUBNET/${var.csoc_vpn_subnet}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 sudo sed -i "s/VM_SUBNET/${var.csoc_vm_subnet}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 #sudo sed -i "s/VM_ROUTE_PUSH/10.128.2.0\/24/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 
-##
 
 aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ && /root/openvpn_management_scripts/recover_from_s3.sh
 
