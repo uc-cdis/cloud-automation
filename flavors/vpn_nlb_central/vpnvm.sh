@@ -91,7 +91,7 @@ fi
 # copy the openvpn_management_scipts to the /root folder
 # cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
-HOSTNAME=$(sed -n -e '/VAR1/ s/.*\= *//p' /root/openvpn_management_scripts/templates/csoc_vpn_user_variable_templ)
+HOSTNAME=$(sed -n -e '/VAR1/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
 
 export FQDN="$HOSTNAME.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
 
@@ -124,8 +124,8 @@ sudo iptables -P OUTPUT ACCEPT
 
 # Add the new iptables
 
-VPN_SUBNET=$(sed -n -e '/VAR2/ s/.*\= *//p' /root/openvpn_management_scripts/templates/csoc_vpn_user_variable_templ)
-VM_SUBNET=$(sed -n -e '/VAR3/ s/.*\= *//p' /root/openvpn_management_scripts/templates/csoc_vpn_user_variable_templ)
+VPN_SUBNET=$(sed -n -e '/VAR2/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
+VM_SUBNET=$(sed -n -e '/VAR3/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
 
 
 iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
