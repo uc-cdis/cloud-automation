@@ -325,7 +325,8 @@ sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/re
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh
 
 # Replace the User variable for hostname, VPN subnet and VM subnet 
-sudo sed -i "s/HOSTNAME/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+#sudo sed -i "s/HOSTNAME/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+sudo sed -i "s/HOSTNAME/RARYATEST/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 sudo sed -i "s/VPN_SUBNET/${var.csoc_vpn_subnet}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 sudo sed -i "s/VM_SUBNET/${var.csoc_vm_subnet}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 #sudo sed -i "s/VM_ROUTE_PUSH/10.128.2.0\/24/" /root/openvpn_management_scripts/csoc_vpn_user_variable
