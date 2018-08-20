@@ -2,6 +2,15 @@ variable "env_vpc_octet3"{
   default = "5"
 }
 
+variable "csoc_vpn_subnet"{
+  default = "192.168.1.0/24"
+}
+
+variable "csoc_vm_subnet"{
+  default = "10.128.2.0/24"
+}
+
+
 variable "env_vpc_id" {
   default = "vpc-e2b51d99"
 }
@@ -9,7 +18,11 @@ variable "env_vpc_id" {
 variable "env_vpn_nlb_name" {
   #default = "csoc-vpn-nlb"
   #Have it same as FQDN
+<<<<<<< HEAD
   default = "csoc_prod_vpn"
+=======
+  default = "csoc-prod-vpn"
+>>>>>>> bb3cd9af986fa24558156d98b42257f42d880ff1
 }
 
 

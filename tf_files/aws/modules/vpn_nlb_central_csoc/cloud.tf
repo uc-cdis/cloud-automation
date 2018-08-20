@@ -324,7 +324,29 @@ sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/pu
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/recover_from_s3.sh
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh
 
+<<<<<<< HEAD
 # 
+=======
+# Replace the User variable for hostname, VPN subnet and VM subnet 
+sudo sed -i "s/HOSTNAME/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+
+VPN_SUBNET=${var.csoc_vpn_subnet}
+VPN_SUBNET_BASE="${VPN_SUBNET%/*}"
+#VPN_SUBNET_MASK=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask\s+-\s+(\S+)| && print "$1"' )
+VPN_SUBNET_MASK_BITS=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
+sudo sed -i "s/VPN_SUBNET/$VPN_SUBNET_BASE\/$VPN_SUBNET_MASK_BITS/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+
+VM_SUBNET=${var.csoc_vm_subnet}
+VM_SUBNET_BASE="${VM_SUBNET%/*}"
+#VM_SUBNET_MASK=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask\s+-\s+(\S+)| && print "$1"' )
+VPN_SUBNET_MASK_BITS=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
+sudo sed -i "s/VM_SUBNET/$VM_SUBNET_BASE\/$VM_SUBNET_MASK_BITS/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+
+
+
+#sudo sed -i "s/VM_ROUTE_PUSH/10.128.2.0\/24/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+
+>>>>>>> bb3cd9af986fa24558156d98b42257f42d880ff1
 
 aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ && /root/openvpn_management_scripts/recover_from_s3.sh
 
@@ -487,7 +509,8 @@ resource "aws_security_group" "vpnnlb_out" {
 
 resource "aws_route53_record" "vpn-nlb" {
   zone_id = "${var.csoc_planx_dns_zone_id}"
-  name    = "raryatestvpnv1.planx-pla.net"
+  #name    = "raryatestvpnv1.planx-pla.net"
+  name    = "${var.env_vpn_nlb_name}.planx-pla.net"
   type    = "CNAME"
   ttl     = "300"
   records = ["${aws_lb.vpn_nlb.dns_name}"]

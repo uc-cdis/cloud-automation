@@ -25,6 +25,8 @@ module "vpn_nlb" {
   csoc_planx_dns_zone_id = "${var.csoc_planx_dns_zone_id}"
   environment =  "${var.environment}"
   csoc_account_id = "${var.csoc_account_id}"
+  csoc_vpn_subnet  = "${var.csoc_vpn_subnet}"
+  csoc_vm_subnet   = "${var.csoc_vm_subnet}"
   # put other variables here ...
 }
 

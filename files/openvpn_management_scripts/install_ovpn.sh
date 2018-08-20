@@ -71,14 +71,16 @@ parse_inputs() {
     fi
     if [ ! $VPN_SUBNET ]
     then
-        VPN_SUBNET="192.168.192.0/20"
+        #VPN_SUBNET="192.168.192.0/20"
+        VPN_SUBNET=$(sed -n -e '/VAR2/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
         VPN_SUBNET_BASE="${VPN_SUBNET%/*}"
         VPN_SUBNET_MASK=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask\s+-\s+(\S+)| && print "$1"' )
         VPN_SUBNET_MASK_BITS=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
     fi
     if [ ! $VM_SUBNET ]
     then
-        VM_SUBNET="10.128.0.0/20"
+        #VM_SUBNET="10.128.0.0/20"
+        VM_SUBNET=$(sed -n -e '/VAR3/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
         VM_SUBNET_BASE="${VM_SUBNET%/*}"
         VM_SUBNET_MASK=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask\s+-\s+(\S+)| && print "$1"' )
         VM_SUBNET_MASK_BITS=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
