@@ -317,8 +317,6 @@ sudo apt-get autoclean
 
 # This is to modify the S3 scripts and openvpn install script to use the specific VPN bucket in S3
 
-sudo cp   -r /home/ubuntu/cloud-automation/files/csoc_vpn_user_variable_test /root
-
 sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
 # Different buckets for different CSOC vpn environments
@@ -328,9 +326,21 @@ sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/in
 
 # Replace the User variable for hostname, VPN subnet and VM subnet 
 sudo sed -i "s/HOSTNAME/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
-sudo sed -i "s/HOSTNAME/RARYATEST/" /root/csoc_vpn_user_variable_test
-sudo sed -i "s/VPN_SUBNET/${var.csoc_vpn_subnet}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
-sudo sed -i "s/VM_SUBNET/${var.csoc_vm_subnet}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+
+VPN_SUBNET=${var.csoc_vpn_subnet}
+VPN_SUBNET_BASE="${VPN_SUBNET%/*}"
+#VPN_SUBNET_MASK=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask\s+-\s+(\S+)| && print "$1"' )
+VPN_SUBNET_MASK_BITS=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
+sudo sed -i "s/VPN_SUBNET/$VPN_SUBNET_BASE\/$VPN_SUBNET_MASK_BITS/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+
+VM_SUBNET=${var.csoc_vm_subnet}
+VM_SUBNET_BASE="${VM_SUBNET%/*}"
+#VM_SUBNET_MASK=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask\s+-\s+(\S+)| && print "$1"' )
+VPN_SUBNET_MASK_BITS=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
+sudo sed -i "s/VM_SUBNET/$VM_SUBNET_BASE\/$VM_SUBNET_MASK_BITS/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+
+
+
 #sudo sed -i "s/VM_ROUTE_PUSH/10.128.2.0\/24/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 
 
