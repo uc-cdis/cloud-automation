@@ -329,8 +329,6 @@ sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/in
 # Replace the User variable for hostname, VPN subnet and VM subnet 
 sudo sed -i "s/HOSTNAME/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 
-
-
 VPN_SUBNET=${var.csoc_vpn_subnet}
 VPN_SUBNET_BASE=$( sipcalc $VPN_SUBNET | perl -ne 'm|Host address\s+-\s+(\S+)| && print "$1"')
 VPN_SUBNET_MASK_BITS=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
@@ -354,8 +352,6 @@ echo "region = us-east-1" >> /root/.aws/config
 echo "[default]" > /root/.aws/credentials
 echo "aws_access_key_id = ${aws_iam_access_key.vpn_s3_user_key.id}" >> /root/.aws/credentials
 echo "aws_secret_access_key = ${aws_iam_access_key.vpn_s3_user_key.secret}" >> /root/.aws/credentials
-
-
 
 EOF
 
