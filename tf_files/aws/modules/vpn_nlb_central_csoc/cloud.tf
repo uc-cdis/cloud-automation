@@ -317,7 +317,7 @@ sudo apt-get autoclean
 
 # This is to modify the S3 scripts and openvpn install script to use the specific VPN bucket in S3
 
-sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts/csoc_vpn_user_variable_test /root
+sudo cp   -r /home/ubuntu/cloud-automation/files/csoc_vpn_user_variable_test /root
 
 sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
