@@ -319,7 +319,7 @@ sudo apt-get autoclean
 
 sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts/csoc_vpn_user_variable_test /root
 
-sudo cp   -r /home/ubuntu/cloud-automation/files/ /root
+sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
 # Different buckets for different CSOC vpn environments
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/push_to_s3.sh
