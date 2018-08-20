@@ -18,11 +18,7 @@ variable "env_vpc_id" {
 variable "env_vpn_nlb_name" {
   #default = "csoc-vpn-nlb"
   #Have it same as FQDN
-<<<<<<< HEAD
-  default = "csoc_prod_vpn"
-=======
   default = "csoc-prod-vpn"
->>>>>>> bb3cd9af986fa24558156d98b42257f42d880ff1
 }
 
 
