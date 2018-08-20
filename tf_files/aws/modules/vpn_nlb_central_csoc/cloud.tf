@@ -310,6 +310,7 @@ sudo apt -y update
 sudo DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade| sudo tee --append /var/log/bootstrapping_script.log
 sudo apt-get install -y python3-pip build-essential
 sudo pip3 install awscli
+sudo apt-get install sipcalc -y
 
 sudo apt-get autoremove -y
 sudo apt-get clean
@@ -328,7 +329,7 @@ sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/in
 # Replace the User variable for hostname, VPN subnet and VM subnet 
 sudo sed -i "s/HOSTNAME/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 
-sudo apt install sipcalc -y
+
 
 VPN_SUBNET=${var.csoc_vpn_subnet}
 VPN_SUBNET_BASE=$( sipcalc $VPN_SUBNET | perl -ne 'm|Host address\s+-\s+(\S+)| && print "$1"')
