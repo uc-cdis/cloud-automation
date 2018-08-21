@@ -133,7 +133,6 @@ iptables -t nat -A POSTROUTING -s  $VPN_SUBNET -d 0.0.0.0/0  -o eth0 -j MASQUERA
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
 sudo apt-get install aptitude
-sudo  apt-get install iptables-persistent -y
 sudo DEBIAN_FRONTEND=noninteractive aptitude install -y -q iptables-persistent
 
  # Restart VPN
