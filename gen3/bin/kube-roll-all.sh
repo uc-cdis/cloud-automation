@@ -36,6 +36,7 @@ gen3 kube-setup-revproxy
 gen3 kube-setup-fluentd
 gen3 kube-setup-autoscaler
 gen3 kube-setup-kube-dns-autoscaler
+gen3 kube-setup-tiller
 gen3 kube-setup-networkpolicy
 
 # portal is not happy until other services are up

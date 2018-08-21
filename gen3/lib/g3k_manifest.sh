@@ -21,7 +21,9 @@ g3kubectl() {
   # without causing an infinite loop ...
   #
   if [[ ${CURRENT_SHELL} == "zsh" ]]; then
-    theKubectl=$(whence -p kubectl)
+    #theKubectl=$(whence -p kubectl)
+    #theKubectl=$(/usr/bin/which kubectl)
+    theKubectl=$(bash which kubectl)
   else
     theKubectl=$(which kubectl)
   fi
