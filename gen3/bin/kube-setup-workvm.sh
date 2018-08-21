@@ -18,7 +18,7 @@ gen3_load "gen3/lib/kube-setup-init"
 if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   # -E passes through *_proxy environment
   sudo -E apt-get update
-  sudo -E apt-get install -y git jq postgresql-client pwgen python-dev python-pip unzip
+  sudo -E apt-get install -y git jq pwgen python-dev python-pip unzip
   sudo -E XDG_CACHE_HOME=/var/cache python -m pip install --upgrade pip
   sudo -E XDG_CACHE_HOME=/var/cache python -m pip install awscli --upgrade
   # jinja2 needed by render_creds.py
@@ -43,6 +43,19 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     if which gcloud > /dev/null 2>&1; then
       sudo -E apt-get remove -y google-cloud-sdk
     fi
+  fi
+  if ! which psql > /dev/null 2>&1; then
+    (
+      # use the postgres dpkg server
+      # https://www.postgresql.org/download/linux/ubuntu/
+      DISTRO="$(lsb_release -c -s)"  # ex - xenial
+      if [[ ! -f /etc/apt/sources.list.d/pgdg.list ]]; then
+        sudo -E echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+      fi
+      wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+      sudo -E apt-get update
+      sudo -E apt-get install -y postgresql-client-9.6
+    )
   fi
   if ! which gcloud > /dev/null 2>&1; then
     (
