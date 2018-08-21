@@ -1,13 +1,5 @@
 #!/bin/bash
 #
-# Deploy aws-es-proxy into existing commons
-# https://github.com/abutaha/aws-es-proxy
-# 
-
-#if [ $# -ne 1 ]; then
-#    echo "USAGE: $0 name_of_child_vpc"
-#    exit 1
-#fi
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
