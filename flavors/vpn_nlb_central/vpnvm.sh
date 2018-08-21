@@ -132,7 +132,9 @@ iptables -A FORWARD -s  $VM_SUBNET -d $VPN_SUBNET -i tun0 -o eth0 -m conntrack -
 iptables -t nat -A POSTROUTING -s  $VPN_SUBNET -d 0.0.0.0/0  -o eth0 -j MASQUERADE
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
+sudo apt-get install aptitude
 sudo  apt-get install iptables-persistent -y
+sudo DEBIAN_FRONTEND=noninteractive aptitude install -y -q iptables-persistent
 
  # Restart VPN
 #openvpn --daemon ovpn-openvpn --status /run/openvpn/openvpn.status 10 --cd /etc/openvpn --script-security 2 --config /etc/openvpn/openvpn.conf --writepid /run/openvpn/openvpn.pid
