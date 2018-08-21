@@ -311,15 +311,22 @@ EOM
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _vpnnlbcentral$ ]]; then
     # rds snapshot vpc is simpler ...
-    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
+    #commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
     cat - <<EOM
-     env_vpc_octet3                = "3rd OCTET OF CSOC CIDR FOR SQUID SETUP"
+     env_vpc_octet3                = "3rd OCTET OF CSOC CIDR FOR VPN SETUP"
      # CSOC MAIN VPC ID 
      env_vpc_id                    = "vpc-e2b51d99"
      # CSOC ROUTE TABLE ID - HAVING ROUTE TO INTERNET GW
      env_pub_subnet_routetable_id = "rtb-23b6685f"
      # planx-pla.net  ZONE ID IN CSOC MAIN VPC"
      csoc_planx_dns_zone_id  = "ZG153R4AYDHHK"
+     # This is the openvpn subnet cidr
+     csoc_vpn_subnet = "192.168.X.X/Y"
+     # This is the csoc commons admin subnet we want  users to access
+     csoc_vm_subnet = "10.128.X.X/Y"
+     # This is the csoc subnet in which the VPN server will be launched
+     vpn_server_subnet = "10.128.X.X/Y"
+
 EOM
     return 0
   fi

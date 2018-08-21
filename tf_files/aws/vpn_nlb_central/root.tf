@@ -27,6 +27,7 @@ module "vpn_nlb" {
   csoc_account_id = "${var.csoc_account_id}"
   csoc_vpn_subnet  = "${var.csoc_vpn_subnet}"
   csoc_vm_subnet   = "${var.csoc_vm_subnet}"
+  vpn_server_subnet = "${var.vpn_server_subnet}"
   # put other variables here ...
 }
 

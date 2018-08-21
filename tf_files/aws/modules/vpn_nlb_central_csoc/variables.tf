@@ -3,13 +3,16 @@ variable "env_vpc_octet3"{
 }
 
 variable "csoc_vpn_subnet"{
-  default = "192.168.1.0/24"
+  #default = "192.168.1.0/24"
 }
 
 variable "csoc_vm_subnet"{
-  default = "10.128.2.0/24"
+ # default = "10.128.2.0/24"
 }
 
+variable "vpn_server_subnet"{
+  # default = "10.128.5.0/25"
+}
 
 variable "env_vpc_id" {
   default = "vpc-e2b51d99"
