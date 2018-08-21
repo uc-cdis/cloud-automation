@@ -55,6 +55,12 @@ cd /home/$namespace
 mkdir -p /home/$namespace/.ssh
 cp ~/.ssh/authorized_keys /home/$namespace/.ssh
 
+# setup ~/.aws
+mkdir -p /home/$namespace/.aws
+if [[ -f ~/.aws/config ]]; then
+  cp ~/.aws/config /home/$namespace/.aws/
+fi
+
 # setup ~/cloud-automation
 if [[ ! -d ./cloud-automation ]]; then
   git clone https://github.com/uc-cdis/cloud-automation.git
@@ -93,9 +99,9 @@ fi
 cp ~/${vpc_name}/creds.json /home/$namespace/${vpc_name}/creds.json
 
 dbname=$(echo $namespace | sed 's/-/_/g')
-# create new databases
+# create new databases - don't break if already exists
 for name in indexd fence sheepdog; do
-  echo "CREATE DATABASE $dbname;" | g3k psql $name 
+  echo "CREATE DATABASE $dbname;" | g3k psql $name || true
 done
 
 # update creds.json
@@ -143,8 +149,7 @@ EOF
 fi
 
 # reset ownership
-sudo chown -R "${namespace}:" /home/$namespace
-sudo chown -R "${namespace}:" /home/$namespace/.ssh
+sudo chown -R "${namespace}:" /home/$namespace /home/$namespace/.ssh /home/$namespace/.aws
 sudo chmod -R 0700 /home/$namespace/.ssh
 sudo chmod go-w /home/$namespace
 
