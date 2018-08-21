@@ -310,6 +310,7 @@ sudo apt -y update
 sudo DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade| sudo tee --append /var/log/bootstrapping_script.log
 sudo apt-get install -y python3-pip build-essential
 sudo pip3 install awscli
+sudo apt-get install sipcalc -y
 
 sudo apt-get autoremove -y
 sudo apt-get clean
@@ -324,25 +325,19 @@ sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/pu
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/recover_from_s3.sh
 sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh
 
+# 
 # Replace the User variable for hostname, VPN subnet and VM subnet 
-sudo sed -i "s/HOSTNAME/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+sudo sed -i "s/SERVERNAME/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 
 VPN_SUBNET=${var.csoc_vpn_subnet}
-VPN_SUBNET_BASE="${VPN_SUBNET%/*}"
-#VPN_SUBNET_MASK=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask\s+-\s+(\S+)| && print "$1"' )
+VPN_SUBNET_BASE=$( sipcalc $VPN_SUBNET | perl -ne 'm|Host address\s+-\s+(\S+)| && print "$1"')
 VPN_SUBNET_MASK_BITS=$( sipcalc $VPN_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
 sudo sed -i "s/VPN_SUBNET/$VPN_SUBNET_BASE\/$VPN_SUBNET_MASK_BITS/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 
 VM_SUBNET=${var.csoc_vm_subnet}
-VM_SUBNET_BASE="${VM_SUBNET%/*}"
-#VM_SUBNET_MASK=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask\s+-\s+(\S+)| && print "$1"' )
-VPN_SUBNET_MASK_BITS=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
+VM_SUBNET_BASE=$( sipcalc $VM_SUBNET | perl -ne 'm|Host address\s+-\s+(\S+)| && print "$1"')
+VM_SUBNET_MASK_BITS=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
 sudo sed -i "s/VM_SUBNET/$VM_SUBNET_BASE\/$VM_SUBNET_MASK_BITS/" /root/openvpn_management_scripts/csoc_vpn_user_variable
-
-
-
-#sudo sed -i "s/VM_ROUTE_PUSH/10.128.2.0\/24/" /root/openvpn_management_scripts/csoc_vpn_user_variable
-
 
 aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ && /root/openvpn_management_scripts/recover_from_s3.sh
 
@@ -357,8 +352,6 @@ echo "region = us-east-1" >> /root/.aws/config
 echo "[default]" > /root/.aws/credentials
 echo "aws_access_key_id = ${aws_iam_access_key.vpn_s3_user_key.id}" >> /root/.aws/credentials
 echo "aws_secret_access_key = ${aws_iam_access_key.vpn_s3_user_key.secret}" >> /root/.aws/credentials
-
-
 
 EOF
 

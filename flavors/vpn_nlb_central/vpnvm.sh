@@ -55,6 +55,10 @@ sudo chmod 644 /etc/init.d/awslogs
 
 # OpenVPN install
 
+SERVERNAME=$(sed -n -e '/VAR1/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
+VPN_SUBNET=$(sed -n -e '/VAR2/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
+VM_SUBNET=$(sed -n -e '/VAR3/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
+
 sudo -E su  <<  EOF
 #Install postfix and mailutils
 cd /root
@@ -91,9 +95,8 @@ fi
 # copy the openvpn_management_scipts to the /root folder
 # cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
-HOSTNAME=$(sed -n -e '/VAR1/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
 
-export FQDN="$HOSTNAME.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
+export FQDN="$SERVERNAME.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
 
 #export FQDN="raryatestvpnv1.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
 
@@ -123,10 +126,6 @@ sudo iptables -P FORWARD ACCEPT
 sudo iptables -P OUTPUT ACCEPT
 
 # Add the new iptables
-
-VPN_SUBNET=$(sed -n -e '/VAR2/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
-VM_SUBNET=$(sed -n -e '/VAR3/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
-
 
 iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -s  $VM_SUBNET -d $VPN_SUBNET -i tun0 -o eth0 -m conntrack --ctstate NEW -j ACCEPT
