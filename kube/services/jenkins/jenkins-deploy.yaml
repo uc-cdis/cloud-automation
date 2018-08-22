@@ -45,6 +45,26 @@ spec:
             # Just hard code for now 
             # Bucket in cdistest account used for backups
             value: "s3://cdis-terraform-state/JenkinsBackup"
+          - name: GOOGLE_ACCT1_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: google-acct1
+                key: email
+          - name: GOOGLE_ACCT1_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: google-acct1
+                key: password
+          - name: GOOGLE_ACCT2_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: google-acct2
+                key: email
+          - name: GOOGLE_ACCT2_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: google-acct2
+                key: password
         readinessProbe:
           httpGet:
             path: /login
