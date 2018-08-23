@@ -11,6 +11,15 @@ spec:
       - podSelector:
           matchLabels:
             app: arranger
+      - podSelector:
+          matchLabels:
+            app: spark
+      - podSelector:
+          matchLabels:
+            app: tube
+      - podSelector:
+          matchLabels:
+            app: arranger-dashboard
       ports:
          - port: 9200
   egress:

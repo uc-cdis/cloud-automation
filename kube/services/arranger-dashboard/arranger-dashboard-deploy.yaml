@@ -1,0 +1,61 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: arranger-dashboard-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: arranger-dashboard
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: arranger-dashboard
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - arranger
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      containers:
+        - name: arranger-dashboard
+          GEN3_ARRANGER_DASHBOARD_IMAGE|-image: quay.io/cdis/arranger-dashboard:master-|
+          ports:
+          - containerPort: 6060
+          env:
+          - name: ARRANGER_API
+            value: localhost:5050
+          - name: ES_HOST
+            value: esproxy-service:9200
+          imagePullPolicy: Always
+          #resources:
+          #  limits:
+          #    cpu: 0.2
+          #    memory: 412Mi
+        - name: arranger-adminapi
+          GEN3_ARRANGER_ADMINAPI_IMAGE|-image: quay.io/cdis/arranger-server:master-|
+          ports:
+          - containerPort: 5050
+          env:
+          - name: ES_HOST
+            value: esproxy-service:9200
+          imagePullPolicy: Always
+          #resources:
+          #  limits:
+          #    cpu: 0.2
+          #    memory: 412Mi
