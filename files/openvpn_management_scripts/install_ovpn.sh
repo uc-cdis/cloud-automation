@@ -215,6 +215,9 @@ tweak_network() {
     sed -i 's/^exit/#exit/' /etc/rc.local
     echo /etc/openvpn/bin/network_tweaks.sh >> /etc/rc.local
     echo exit 0 >> /etc/rc.local
+
+    #maybe not neccessary, but ... 
+    systemctl enable rc-local.service || true
     
 
 }
