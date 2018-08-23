@@ -273,8 +273,25 @@ resource "aws_lb_listener" "vpn_nlb-qr" {
   }
 }
 
+# For SSH access to the VPn node
 
+resource "aws_lb_target_group" "vpn_nlb-ssh" {
+  name     = "${var.env_vpn_nlb_name}-prod-ssh-tg"
+  port     = 22
+  protocol = "TCP"
+  vpc_id   = "${var.env_vpc_id}"
 
+  }
+
+resource "aws_lb_listener" "vpn_nlb-ssh" {
+  load_balancer_arn = "${aws_lb.vpn_nlb.arn}"
+  port              = "22"
+  protocol          = "TCP"
+  default_action {
+    target_group_arn = "${aws_lb_target_group.vpn_nlb-ssh.arn}"
+    type             = "forward"
+  }
+}
 
 # Auto scaling group for VPN nlb
 
