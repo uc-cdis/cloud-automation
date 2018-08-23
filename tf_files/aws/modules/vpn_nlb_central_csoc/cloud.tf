@@ -394,7 +394,7 @@ resource "aws_autoscaling_group" "vpn_nlb" {
   desired_capacity = 1
   max_size = 1
   min_size = 1
-  target_group_arns = ["${aws_lb_target_group.vpn_nlb-tcp.arn}","${aws_lb_target_group.vpn_nlb-qr.arn}",]
+  target_group_arns = ["${aws_lb_target_group.vpn_nlb-tcp.arn}","${aws_lb_target_group.vpn_nlb-qr.arn}","${aws_lb_target_group.vpn_nlb-ssh.arn}"]
   vpc_zone_identifier = ["${aws_subnet.vpn_pub0.id}", "${aws_subnet.vpn_pub1.id}", "${aws_subnet.vpn_pub2.id}", "${aws_subnet.vpn_pub3.id}", "${aws_subnet.vpn_pub4.id}", "${aws_subnet.vpn_pub5.id}"]
   launch_configuration = "${aws_launch_configuration.vpn_nlb.name}"
 
