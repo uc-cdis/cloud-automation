@@ -210,7 +210,11 @@ tweak_network() {
 
     chmod +x $NetTweaks_PATH
     $NetTweaks_PATH
-    perl -p -i.bak -e 's|exit 0|/etc/openvpn/bin/network_tweaks.sh\nexit 0|' /etc/rc.local
+    #perl -p -i.bak -e 's|exit 0|/etc/openvpn/bin/network_tweaks.sh\nexit 0|' /etc/rc.local
+    cp /etc/rc.local /etc/rc.local.bak
+    sed -i 's/^exit/#exit/' /etc/rc.local
+    echo /etc/openvpn/bin/network_tweaks.sh >> /etc/rc.local
+    echo exit 0 >> /etc/rc.local
     
 
 }
