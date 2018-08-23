@@ -116,23 +116,23 @@ service lighttpd restart
 # Make changes to the iptables
 #Flush all iptables and re-install
 
-sudo iptables -F
-sudo iptables -X
-sudo iptables -t nat -F
-sudo iptables -t nat -X
-sudo iptables -t mangle -F
-sudo iptables -t mangle -X
-sudo iptables -P INPUT ACCEPT
-sudo iptables -P FORWARD ACCEPT
-sudo iptables -P OUTPUT ACCEPT
+#sudo iptables -F
+#sudo iptables -X
+#sudo iptables -t nat -F
+#sudo iptables -t nat -X
+#sudo iptables -t mangle -F
+#sudo iptables -t mangle -X
+#sudo iptables -P INPUT ACCEPT
+#sudo iptables -P FORWARD ACCEPT
+#sudo iptables -P OUTPUT ACCEPT
 
 # Add the new iptables
 
-iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-iptables -A FORWARD -s  $VM_SUBNET -d $VPN_SUBNET -i tun0 -o eth0 -m conntrack --ctstate NEW -j ACCEPT
+#iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+#iptables -A FORWARD -s  $VM_SUBNET -d $VPN_SUBNET -i tun0 -o eth0 -m conntrack --ctstate NEW -j ACCEPT
 #iptables -t nat -A POSTROUTING -s  $VPN_SUBNET -d 0.0.0.0/0  -o eth0 -j MASQUERADE
-iptables -t nat -A POSTROUTING -s  $VPN_SUBNET -d $VM_SUBNET  -o eth0 -j MASQUERADE
-echo 1 > /proc/sys/net/ipv4/ip_forward
+#iptables -t nat -A POSTROUTING -s  $VPN_SUBNET -d $VM_SUBNET  -o eth0 -j MASQUERADE
+#echo 1 > /proc/sys/net/ipv4/ip_forward
 
 #sudo apt-get install aptitude -y
 #sudo DEBIAN_FRONTEND=noninteractive aptitude install -y -q iptables-persistent

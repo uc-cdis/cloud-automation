@@ -201,7 +201,7 @@ tweak_network() {
     #perl -p -i -e "s|#VPN_SUBMASK#|$VPN_SUBNET_MASK|" $NetTweaks_PATH
     #perl -p -i -e "s|#VPN_SUBNET_MASK_BITS#|$VPN_SUBNET_MASK_BITS|" $NetTweaks_PATH
 
-    perl -p -i -e "s|#VM_SUBNET#|$VPN_SUBNET|" $NetTweaks_PATH
+    perl -p -i -e "s|#VM_SUBNET#|$VM_SUBNET|" $NetTweaks_PATH
     #perl -p -i -e "s|#VM_SUBNET_BASE#|$VPN_SUBNET_BASE|" $NetTweaks_PATH
     #perl -p -i -e "s|#VM_SUBMASK#|$VPN_SUBNET_MASK|" $NetTweaks_PATH
     #perl -p -i -e "s|#VM_SUBNET_MASK_BITS#|$VPN_SUBNET_MASK_BITS|" $NetTweaks_PATH
