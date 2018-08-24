@@ -192,6 +192,8 @@ fi
   )
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
+
+  gen3_onprem_setup_compose
 }
 
 
@@ -228,3 +230,81 @@ gen3_ONPREM.config.tfvars() {
 EOM
 }
 
+#
+# Setup compose-services repo and run compose-services secrets setup script. 
+#
+gen3_onprem_setup_compose() {  
+  GEN3_COMPOSEDIR="${GEN3_WORKDIR}/local-compose"
+  local cur_dir=$PWD
+  
+  # setup file structure and files for Docker Compose 
+  if [[ ! -d "${GEN3_COMPOSEDIR}" ]]; then
+    mkdir -p ${GEN3_WORKDIR}/local-compose
+
+    cp -r ${GEN3_HOME}/Docker/compose-files/. ${GEN3_COMPOSEDIR}
+    cp -r ${GEN3_HOME}/apis_configs ${GEN3_COMPOSEDIR}/apis_configs
+    # sed -i .bk "s/('creds.json')/('creds.json')[APP_NAME]/g" \
+    #   ${GEN3_COMPOSEDIR}/apis_configs/*_settings.py
+    sed -i .bk "s/fence-service/fence/g" ${GEN3_COMPOSEDIR}/apis_configs/peregrine_settings.py
+    sed -i .bk -e '/USER_API/a\'$'\n''config['\''FORCE_ISSUER'\'']=True' \
+      ${GEN3_COMPOSEDIR}/apis_configs/peregrine_settings.py
+    rm ${GEN3_COMPOSEDIR}/apis_configs/*.bk
+
+    gen3_onprem_setup_compose_creds_json
+  else 
+    echo "local-compose directory already exists, proceeding to creds setup"
+  fi
+
+  # setup creds for compose services
+  cd ${GEN3_COMPOSEDIR}
+  if [[ ! -d "${GEN3_COMPOSEDIR}/temp_creds" ]]; then
+    if ! bash "${GEN3_COMPOSEDIR}/creds_setup.sh" ${GEN3_COMPOSEDIR}; then
+      return 1
+    fi
+  else
+    echo "creds already exist"
+  fi
+  cd ${cur_dir}
+}
+
+#
+# Helper function fo gen3_onprem_setup_compose to generate creds.json file
+#
+gen3_onprem_setup_compose_creds_json() {
+  if [[ ! -f ${GEN3_COMPOSEDIR}/apis_configs/creds.json ]]; then
+      export db_host="postgres"
+      export fence_user="fence_user"
+      export fence_pwd="fence_pass"
+      export fence_db="fence_db"
+      export hostname="localhost"
+      export google_client_secret="look-it-up"
+      export google_client_id="look-it-up"
+      export indexd_user="indexd_user"
+      export indexd_pwd="indexd_pass"
+      export indexd_db="indexd_db"
+      export hmac_key="$(gen3 random 32 | base64)"
+      export sheepdog_user="sheepdog_user"
+      export sheepdog_pwd="sheepdog_pass"
+      export gdcapi_user="sheepdog"
+      export gdcapi_pwd="${sheepdog_pwd}"
+      export gdcapi_db="metadata_db"
+      export peregrine_user="peregrine_user"
+      export peregrine_pwd="peregrine_pass"
+      export gdcapi_secret_key="$(gen3 random 50)"
+      export gdcapi_oauth2_client_id="n/a"
+      export gdcapi_oauth2_client_secret="n/a"
+
+      templatePath="$GEN3_HOME/Docker/compose-files/creds.tpl"
+      if [[ -f "$templatePath" ]]; then
+        cat "$templatePath" | envsubst > ${GEN3_COMPOSEDIR}/apis_configs/creds.json
+      fi
+  else
+    echo "local-compose/creds.json already exists ..."
+  fi
+
+  declare -a services=("indexd" "fence" "peregrine" "sheepdog")
+  for i in "${services[@]}"
+  do
+    jq .$i < creds.json > $i"_creds.json"
+  done
+}

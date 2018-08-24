@@ -1,0 +1,98 @@
+version: '3'
+services:
+  indexd:
+    image: "quay.io/cdis/indexd:master"
+    command: "bash waitForPostgres.sh"
+    networks:
+      - devnet
+    volumes:
+      - ./apis_configs/indexd_settings.py:/var/www/indexd/local_settings.py
+      - ./apis_configs/indexd_creds.json:/var/www/indexd/creds.json
+      - ./apis_configs/config_helper.py:/var/www/indexd/config_helper.py
+      - ./waitForPostgres.sh:/var/www/indexd/waitForPostgres.sh
+    depends_on:
+      - postgres
+  fence:
+    image: "quay.io/cdis/fence:master"
+    networks:
+      - devnet
+    volumes:
+      - ./apis_configs/fence_settings.py:/var/www/fence/local_settings.py
+      - ./apis_configs/fence_creds.json:/var/www/fence/creds.json
+      - ./apis_configs/config_helper.py:/var/www/fence/config_helper.py
+      - ./apis_configs/fence_credentials.json:/var/www/fence/fence_credentials.json
+      - ./apis_configs/user.yaml:/var/www/fence/user.yaml
+      - ./temp_keys:/fence/keys
+    depends_on:
+      - postgres
+  peregrine:
+    image: "quay.io/cdis/peregrine:chore_userdb"
+    networks:
+      - devnet
+    command: bash /peregrine_setup.sh
+    volumes:
+      - ./apis_configs/peregrine_settings.py:/var/www/peregrine/wsgi.py
+      - ./apis_configs/peregrine_creds.json:/var/www/peregrine/creds.json
+      - ./apis_configs/config_helper.py:/var/www/peregrine/config_helper.py 
+      - ./temp_creds/service.crt:/usr/local/share/ca-certificates/cdis-ca.crt
+      - ./peregrine_setup.sh:/peregrine_setup.sh
+    environment:
+      REQUESTS_CA_BUNDLE: /etc/ssl/certs/ca-certificates.crt
+    depends_on:
+      - postgres
+  sheepdog:
+    image: "quay.io/cdis/sheepdog:chore_userdatamodel"
+    networks:
+      - devnet
+    volumes:
+      - ./apis_configs/sheepdog_settings.py:/var/www/sheepdog/wsgi.py
+      - ./apis_configs/sheepdog_creds.json:/var/www/sheepdog/creds.json
+      - ./apis_configs/config_helper.py:/var/www/sheepdog/config_helper.py 
+    depends_on:
+      - postgres
+  dataportal:
+    image: "quay.io/cdis/data-portal:master"
+    networks:
+      - devnet
+    volumes:
+      - ./waitForContainers.sh:/var/www/data-portal/waitForContainers.sh
+    command: ["bash", "/var/www/data-portal/waitForContainers.sh"]
+    environment:
+      - NODE_ENV=dev
+      - MOCK_STORE=true
+      - APP=dev
+      - GDC_SUBPATH=http://nginx/api/v0/submission/
+    depends_on:
+      - postgres
+      - peregrine
+      - sheepdog
+  nginx:
+    image: "nginx:latest"
+    networks:
+      - devnet
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./temp_creds/service.crt:/etc/nginx/ssl/nginx.crt
+      - ./temp_creds/service.key:/etc/nginx/ssl/nginx.key
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - indexd
+      - peregrine
+      - sheepdog
+      - fence
+      - dataportal
+  postgres:
+    image: postgres:9.5
+    networks:
+      - devnet
+    volumes:
+      - "psqldata:/var/lib/postgresql/data"
+      - "./postgres_init.sql:/docker-entrypoint-initdb.d/postgres_init.sql"
+    restart: unless-stopped
+    
+volumes:
+  psqldata:
+networks:
+  devnet:
