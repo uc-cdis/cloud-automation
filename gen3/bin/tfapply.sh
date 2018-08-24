@@ -8,12 +8,9 @@ EOM
   return 0
 }
 
-if [[ ! -f "$GEN3_HOME/gen3/lib/common.sh" ]]; then
-  echo "ERROR: no $GEN3_HOME/gen3/lib/common.sh"
-  exit 1
-fi
 
-source "$GEN3_HOME/gen3/lib/common.sh"
+source "$GEN3_HOME/gen3/lib/utils.sh"
+gen3_load "gen3/lib/terraform"
 
 cd $GEN3_WORKDIR
 if [[ ! -f plan.terraform ]]; then
@@ -23,18 +20,20 @@ fi
 
 $GEN3_DRY_RUN && "Running in DRY_RUN mode ..."
 echo "Running: terraform apply plan.terraform"
-if ! ($GEN3_DRY_RUN || gen3_aws_run terraform apply plan.terraform); then
+if ! ($GEN3_DRY_RUN || gen3_terraform apply plan.terraform); then
   echo "apply failed, bailing out"
   exit 1
 fi
 
-echo "Backing up files to s3"
 dryRunFlag=""
 if $GEN3_DRY_RUN; then
   dryRunFlag="--dryrun"
 fi
-for fileName in config.tfvars backend.tfvars README.md; do
-  s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/$fileName"
-  echo "Backing up $fileName to $s3Path"
-  gen3_aws_run aws s3 cp $dryRunFlag --sse AES256 "$fileName" "$s3Path"
-done
+if [[ "$GEN3_FLAVOR" == "AWS" ]]; then
+  echo "Backing up files to s3"
+  for fileName in config.tfvars backend.tfvars README.md; do
+    s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/$fileName"
+    echo "Backing up $fileName to $s3Path"
+    gen3_aws_run aws s3 cp $dryRunFlag --sse AES256 "$fileName" "$s3Path"
+  done
+fi

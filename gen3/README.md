@@ -63,103 +63,11 @@ ex: $ gen3 tfapply help
 ex:$ gen3 workon cdistest plaxplanetv1
 ```
 
-Enter (and initialize if necessary) a local workspace for working with the workspace resources under the AWS account accessible with admin credentials
+Enter (and initialize if necessary) a local workspace for working with the terraform resources under the AWS account 
+accessible using the admin credentials
 under the *aws-profile-name* profile in `~/.aws/credentials`.
-This is a prerequisite for most other gen3 commands.
+See [tf_files/README.md](../tf_files/README.md) for more details.
 
-The gen3 tools store commons related data (including secrets) locally under *$XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_WORKSPACE_NAME* -
-
-#### workspace types
-
-The type of workspace setup depends upon the workspace name.  The following
-types of workspace are supported:
-
-* *admin vm*
-
-The *admin vm* type workspace is intended to create an EC2 instance in the *CSOC* account to act as the CSOC's 
-admin workstation for another account with VPC's that are peered with the CSOC.  If the workspace name ends in `_adminvm`, then the `gen3` script configures
-an *admin vm* workspace - ex:
-```
-$ gen3 workon csoc cdistest_adminvm
-```
-
-An *admin vm* workspace creates an EC2 instance in the CSOC that is associated with a child account.  The EC2 instance is linked with a CSOC IAM role that can assume admin privileges in the child account.  A security group allows the VM to communicate with VPC's in the child account, and prevents communication with VPC's from other accounts also peered with the CSOC.
-
-* *logging*
-
-The *logging* type workspace is intended as a destination for logs that will be produced by the actual commons cluster. This module should be ran prior running any commons, otherwise it may conflict when the commons tries to attach the logging group of the common to the CSOC account destinations.
-
-```
-$ gen3 workon csoc common_logging
-```
-
-This module will create a Kinesis stream service, a lambda function, and a couple of firehoses. The latest one would be in charge of sending whatever the commons account forwards into an ElasticSearch domain along with a S3 bucket that will also be created with the name of the common.
-
-* *commons*
-
-Any workspace that does not match one of the other types is considered a *commons* type workspace - ex:
-```
-$ gen3 workon cdistest devplanetv1
-```
-
-A *commons* workspace extends the *user vpc* type workspace with additional subnets to host a kubernetes cluster, and adds a `kubernetes provisioner` EC2 instance.  
-
-Note: we plan to deprecate both the `k8s provisioner` and the `bastion node` in *commons* VPC's in favor of accessing a commons through its *admin vm* in the *CSOC* account - which is accessed via VPN.
-
-
-* *databucket*
-
-If the workspace name ends in `_databucket`, then the `gen3` script configures
-a *databucket* type workspace - ex:
-```
-$ gen3 workon cdistest devplanetv1_proj1_databucket
-```
-
-A *databucket* workspace creates an encrypted S3 data bucket,
-another S3 bucket to store the access logs from the data bucket,
-a read-only role and instance-profile, and a read-write role and instance-profile.
-
-* *user vpc*
-
-If the workspace name ends in `_user`, then the `gen3` script configures
-a *user vpc* type workspace - ex:
-```
-$ gen3 workon cdistest devplanetv1_proj1_user
-```
-
-A *user vpc* workspace created a VPC with a bastion, squid proxy, public and private subnets that route egress traffic through the proxy, cloudwatch logs, and VPC peering to the CSOC VPC. 
-
-* *rds snapshot*
-
-If the workspace name ends in `_snapshot`, then the `gen3` script configures
-a workspace that simply collects snapshots of the specified RDS databases - ex:
-```
-$ gen3 workon cdistest devplanetv1_snapshot
-```
-
-
-#### workspace details
-
-The gen3 tools stores workspace data (including secrets) locally under *$XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_WORKSPACE_NAME* -
-conforming with the linux [xdg desktop specification](https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html).
-
-The tasks performed include:
-
-* set the $GEN3_AWS_PROFILE and $GEN3_WORKSPACE environment variables
-* if a local $XDG_DATA_HOME/$GEN3_AWS_PROFILE/$GEN3_WORKSPACE exist, then
-  - pull down any missing state from s3
-  - run terraform init if necessary
-* else if GEN3_WORKSPACE_NAME state exists in S3, then
-  - copy the state from S3
-  - generate terraform secrets based on the AWS profile credentials
-  - run terraform init
-* else
-   - setup template config files
-       * assumes ~/.ssh/id_rsa.pub
-          is the user a good key to access the bastion host
-* fi
-* setup the *cdis-state-ac{ACCOUNTID}-gen3* S3 bucket if necessary
-* run `terraform init` if necessary
 
 ### gen3 arun command arg1 arg2 ...
    
@@ -209,6 +117,30 @@ role_session_name = gen3-reuben
 credential_source = Ec2InsanceMetadata
 ```
 
+### gen3 kube-...
+
+kube-backup  
+kube-dev-namespace  
+kube-extract-config  
+kube-roll-all  
+kube-roll-qa  
+kube-setup-certs  
+kube-setup-fence  
+kube-setup-fluentd  
+kube-setup-jenkins  
+kube-setup-jupyterhub  
+kube-setup-networkpolicy  
+kube-setup-peregrine  
+kube-setup-revproxy  
+kube-setup-roles  
+kube-setup-secrets  
+kube-setup-sftp  
+kube-setup-sheepdog  
+kube-setup-shiny  
+kube-setup-workvm  
+kube-lock  
+kube-unlock
+
 
 ### gen3 status
 
@@ -224,15 +156,43 @@ GEN3_S3_BUCKET=cdis-state-ac23212121-gen3
 AWS_PROFILE=cdistest
 ```
 
-### gen3 ls
+### gen3 indexd-post-folder [FOLDER]
 
-List workspaces that have been worked on locally - ex:
+```
+$ gen3 indexd-post-folder --help
+  gen3 indexd-post-folder [folder]:
+      Post the .json files under the given folder to indexd
+      in the current environment: reuben.planx-pla.net
+      Note - currently only works with new records - does not
+         attempt to update existing records.
+```
+
+### gen3 ls [PROFILE]
+
+List workspaces that have been worked on locally, and 
+workspaces saved to S3 if for a given PROFILE - ex:
 
 ```
 $ gen3 ls
 local workspaces under /home/reuben/.local/share/gen3
 cdistest    gen3test
 cdistest    planxplanetv1
+
+$ gen3 ls cdistest
+cdistest profile workspaces under s3://cdis-state-ac707767160287-gen3
+                           PRE devplanetv1/
+                           PRE gen3test_databucket/
+                           PRE qaplanetv1/
+                           PRE raryav1/
+                           PRE reuben_databucket/
+                           PRE vpcoctettest/
+
+cdistest profile workspaces under legacy path s3://cdis-terraform-state.account-707767160287.gen3
+                           PRE fauziv1/
+                           PRE planxplanet_user/
+
+local workspaces under /home/reuben/.local/share/gen3
+cdistest    devplanetv1
 ```
 
 ### gen3 refresh
@@ -300,75 +260,102 @@ Host k8s.planxplanetv1
 
 Run the test suite.  Requires a 'cdistest' profile.
 
-### gen3 kube-up
+### g3k 
 
-Not yet implemented 
+The `g3k` tools are now also available via `gen3`,
+so `gen3 roll sheepdog` is equivalent to `g3k roll sheepdog`.
 
-### gen3 dict-update
-
-Not yet implemented 
-
-### gen3 kube-deploy deployment-name
-
-Not yet implemented 
-
-## Migrating existing AWS commons to gen3
-
-The gen3 tools expect the terraform variable files (config.tfvars and backend.tfvars)
-to exist under
 ```
-    s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/
-```
-Those variable files do not include aws credentials - gen3 harvests those
-from your local aws profile, and are not 
-backed up to S3.
-
-Here is one strategy for migration:
-* `gen3 workon profile-name vpc-name`
-
-This creates a local workspace with config.tfvars and backend.tfvars
-files generated from a template that auto-generates new passwords, etc.
-It also creates the GEN3_S3_BUCKET (defaults to cdis-state-ac{ACCOUNTID}-gen3)
-S3 bucket if it does not yet exist.
-
-* `gen3 cd`
-
-`cd` the shell into the workspace folder.
-
-* Update config.tfvars and backend.tfvars with appropriate values
-* `gen3 tfplan`
-* `gen3 tfapply`
-
-Only tfapply if the plan is not destructive.
-The tfapply copies the local config.tfvars, backend.tfvars, and README.md to a backup in S3.
-
-* Optionally - update backend.tfvars, so that terraform stores its S3 state in the same folder as config.tfvars, then run `terraform init` to move the state, and gen3 tfplan; gen3 tfapply; to sync everything up with s3 - ex:
-```
-$ cat backend.tfvars 
-bucket = "cdis-state-ac3333-gen3"
-encrypt = "true"
-key = "gen3test"
-region = "us-east-1"
-
-#
-# gen3 workon ... runs 'terraform init' - #
-
-$ gen3 workon cdistest gen3test
-$ gen3 tfplan
-# Note: tfplan should propose no resource changes.
-#   Still run tfapply to sync up the state in S3.
-$ gen3 tfapply
+$ g3k help
+  
+  Use:
+  g3k COMMAND - where COMMAND is one of:
+    backup - backup home directory to vpc's S3 bucket
+    ec2_reboot PRIVATE-IP - reboot the ec2 instance with the given private ip
+    help
+    jobpods JOBNAME - list pods associated with given job
+    joblogs JOBNAME - get logs from first result of jobpods
+    pod PATTERN - grep for the first pod name matching PATTERN
+    pods PATTERN - grep for all pod names matching PATTERN
+    psql SERVICE 
+       - where SERVICE is one of sheepdog, indexd, fence
+    replicas DEPLOYMENT-NAME REPLICA-COUNT
+    roll DEPLOYMENT-NAME
+      Apply the current manifest to the specified deployment - triggers
+      and update in most deployments (referencing GEN3_DATE_LABEL) even 
+      if the version does not change.
+    runjob JOBNAME 
+     - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
+    testsuite
+    update_config CONFIGMAP-NAME YAML-FILE
 ```
 
-## VPC naming conventions
+There are some helper functions in [kubes.sh](https://github.com/uc-cdis/cloud-automation/blob/master/kube/kubes.sh) for k8s related operations.
 
-The *gen3* tools follow these VPC naming conventions to determine which terraform stack to build in the VPC.
-* a VPC name that ends in '_user' is a user VPC (for user VM's) on AWS defined by the resources in `cloud-automation/tf_files/aws_user_vpc`
-* every other VPC name is a commons VPC on AWS defined by resources in `cloud-automation/tf_files/aws`
+### roll
+`gen3 roll $DEPLOYMENT_NAME` updates the deployed pods to the 
+docker image currently referenced by `cdis-manifest` - 
+forces the pod to update even if the image tag has not changed.
+The [kube/README](../kube/README.md) has details on the simple template
+processing that `gen3 roll` applies to each `-deploy.yaml` file.
+
+ex: `gen3 roll fence`
+
+Also, `gen3 roll all` rolls all services in order, and creates missing
+secrets and configuration if the `~/${vpc_name}/creds.json` and
+similar files are present.
 
 
-## VPC peering request acceptance by CSOC admin VM
-When we launch a new data commons; it fails when we run the `gen3 tfapply` for the first time. At this point, we need to login to the csoc_admin VM and run the following command:
-gen3 approve_vpcpeering_request <child_vpc_name>
-The underneath script basically looks for a new VPC peering request, if any accepts it, tags it and create an appropriate route to the csoc_main_vpc private subnet route table.
-Once this is completed successfully, we can run the `gen3 tfplan` and `gen3 tfapply` again.
+### update_config
+`gen3 update_config $CONFIG_NAME $CONFIG_FILE` this will delete old configmap and create new configmap with updated content
+
+### devterm
+Open a bash shell on the cluster in an `awshelper` container: `gen3 devterm`
+
+The `devterm` command can also pass a command to the bash shell (`bash -c`) - ex:
+`gen3 devterm "nslookup fence-service"`
+
+### es
+Query elastic-search (via `devterm`) - ex:
+```
+gen3 es indices
+gen3 es dump arranger-projects
+gen3 es --help
+```
+
+### runjob
+
+Launch `kube/services/jobs/JOBNAME-job.yaml` onto the cluster after running
+`kube/services/jobs/JOBNAME-job.sh` if it exists.
+
+```
+ubuntu@ip-172-16-36-26:~$ gen3 update_config fence planxplanetv1/apis_configs/user.yaml 
+configmap "fence" deleted
+configmap "fence" created
+
+ubuntu@ip-172-16-36-26:~$ gen3 runjob useryaml
+job "useryaml" deleted
+job "useryaml" created
+```
+
+### g3k_help
+
+```
+ubuntu@ip-172-16-36-26:~$ gen3 help
+  
+  Use:
+  gen3 COMMAND - where COMMAND is one of:
+    help
+    jobpods JOBNAME - list pods associated with given job
+    joblogs JOBNAME - get logs from first result of jobpods
+    pod PATTERN - grep for the first pod name matching PATTERN
+    pods PATTERN - grep for all pod names matching PATTERN
+    replicas DEPLOYMENT-NAME REPLICA-COUNT
+    roll DEPLOYMENT-NAME
+      Apply a superfulous metadata change to a deployment to trigger
+      the deployment's running pods to update
+    runjob JOBNAME K1 V1 K2 V2 ...
+     - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
+    update_config CONFIGMAP-NAME YAML-FILE
+```
+

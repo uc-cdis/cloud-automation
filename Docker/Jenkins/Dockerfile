@@ -1,13 +1,30 @@
-FROM jenkins/jenkins:2.116
+FROM jenkins/jenkins:2.135
 
 USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # install python and pip and aws cli
-RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential zip unzip jq less vim gettext-base && rm -rf /var/lib/apt/lists/*
-RUN set -xe && pip install awscli --upgrade && pip install pytest --upgrade
-RUN set -xe && pip3 install pytest --upgrade
+RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential zip unzip jq less vim gettext-base
+RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade
+RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade
+RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade
+
+RUN apt-get update \
+  && apt-get install -y lsb-release \
+     apt-transport-https \
+     r-base \
+     libssl-dev \
+     libcurl4-openssl-dev
+
+RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
+    && echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list \
+    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
+    && apt-get update \
+    && apt-get install -y google-cloud-sdk \
+          google-cloud-sdk-cbt \
+          kubectl \
+          zsh
 
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
@@ -22,18 +39,19 @@ RUN set -xe \
     && rm -rf /var/lib/apt/lists/*
 
 # install terraform
-RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
 RUN unzip /tmp/terraform.zip -d /usr/local/bin; /bin/rm /tmp/terraform.zip
 
 # install packer
 RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.2.1/packer_1.2.1_linux_amd64.zip
 RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
 
-# install kubectl
-RUN wget -P /tmp https://dl.k8s.io/v1.7.10/kubernetes-client-linux-amd64.tar.gz
-RUN tar xvfz /tmp/kubernetes-client-linux-amd64.tar.gz -C /tmp
-RUN chmod -R a+rX /tmp/kubernetes/client/bin && mv /tmp/kubernetes/client/bin/kube* /usr/local/bin/
-RUN rm -r /tmp/kubernetes /tmp/kubernetes-client-linux-amd64.tar.gz
+# install r packages
+RUN Rscript -e 'install.packages("yaml",repos="http://cran.us.r-project.org");' \
+    && Rscript -e 'install.packages("curl",repos="http://cran.us.r-project.org");' \
+    && Rscript -e 'install.packages("httr",repos="http://cran.us.r-project.org");' \
+    && Rscript -e 'install.packages("stringr",repos="http://cran.us.r-project.org");' \
+    && Rscript -e 'install.packages("pryr",repos="http://cran.us.r-project.org");'
 
 # add our custom start script
 COPY jenkins.sh /opt/cdis/bin/jenkins.sh

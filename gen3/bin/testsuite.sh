@@ -1,3 +1,5 @@
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+
 help() {
   cat - <<EOM
   gen3 testsuite [--profile profilename]:
@@ -8,7 +10,6 @@ help() {
 EOM
   return 0
 }
-
 
 if [[ $1 =~ ^-*help$ ]]; then
   help
@@ -29,16 +30,11 @@ if [[ $1 =~ ^-*profile ]]; then
 fi
 
 echo "Switching to '$TEST_PROFILE $TEST_WORKSPACE' workspace in test process"
-source "$GEN3_HOME/gen3/gen3setup.sh"
+gen3_load "gen3/gen3setup"
 gen3 workon $TEST_PROFILE $TEST_WORKSPACE
 
-if [[ ! -f "$GEN3_HOME/gen3/lib/common.sh" ]]; then
-  echo "ERROR: no $GEN3_HOME/gen3/lib/common.sh"
-  exit 1
-fi
-
-source "$GEN3_HOME/gen3/lib/common.sh"
-source "$GEN3_HOME/gen3/lib/shunit.sh"
+gen3_load "gen3/lib/terraform"
+gen3_load "gen3/lib/shunit"
 
 #
 # Little macos/linux stat wrapper
@@ -55,7 +51,10 @@ test_workspace() {
   gen3 workon $TEST_PROFILE $TEST_WORKSPACE; because $? "Calling gen3 workon multiple times should be harmless"
   [[ $GEN3_PROFILE = $TEST_PROFILE ]]; because $? "gen3 workon sets the GEN3_PROFILE env variable: $GEN3_PROFILE"
   [[ $GEN3_WORKSPACE = $TEST_WORKSPACE ]]; because $? "gen3 workon sets the GEN3_WORKSPACE env variable: $GEN3_WORKSPACE"
-  [[ $GEN3_S3_BUCKET = "cdis-state-ac${TEST_ACCOUNT}-gen3" || $GEN3_S3_BUCKET = "cdis-terraform-state.account-${TEST_ACCOUNT}.gen3" ]]; because $? "gen3 workon sets the GEN3_S3_BUCKET env variable: $GEN3_S3_BUCKET"
+  [[ $GEN3_FLAVOR = "AWS" || \
+    ($GEN3_FLAVOR == "GCP" && $GEN3_PROFILE =~ ^gcp-) || \
+    ($GEN3_FLAVOR == "ONPREM" && $GEN3_PROFILE =~ ^onprem-) ]]; because $? "GEN3_FLAVOR is gcp for gcp-* profiles, else AWS"
+  [[ $GEN3_FLAVOR != "AWS" || $GEN3_S3_BUCKET = "cdis-state-ac${TEST_ACCOUNT}-gen3" || $GEN3_S3_BUCKET = "cdis-terraform-state.account-${TEST_ACCOUNT}.gen3" ]]; because $? "gen3 workon sets the GEN3_S3_BUCKET env variable: $GEN3_S3_BUCKET"
   [[ (! -z $GEN3_WORKDIR) && -d $GEN3_WORKDIR ]]; because $? "gen3 workon sets the GEN3_WORKDIR env variable, and initializes the folder: $GEN3_WORKDIR"
   [[ $(file_mode $GEN3_WORKDIR) =~ 700$ ]]; because $? "gen3 workon sets the GEN3_WORKDIR to mode 0700, because secrets are in there"
   gen3 cd && [[ $(pwd) = "$GEN3_WORKDIR" ]]; because $? "gen3 cd should take us to the workspace by default: $(pwd) =? $GEN3_WORKDIR"
@@ -64,19 +63,24 @@ test_workspace() {
   done
   [[ ! -z "$MD5" ]]; because $? "commons.sh sets MD5 to $MD5"
 
-  if [[ "$TEST_WORKSPACE" =~ _user$ ]]; then
-    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws_user_vpc" ]]; because $? "a _user workspace should use the ./aws_user_vpc resources"
-  elif [[ "$TEST_WORKSPACE" =~ _snapshot$ ]]; then
-    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws_rds_snapshot" ]]; because $? "a _snapshot workspace should use the ./aws_rds_snapshot resources"
-  elif [[ "$TEST_WORKSPACE" =~ _databucket$ ]]; then
-    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws_data_bucket" ]]; because $? "a _databucket workspace should use the ./aws_data_bucket resources"
-  else
-    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws" ]]; because $? "a generic workspace should use the ./aws resources"
-    for fileName in README.md creds.json 00configmap.yaml kube-services.sh; do
+  if [[ "$TEST_PROFILE" =~ ^gcp- ]]; then
+    [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/gcp/commons" ]]; because $? "a gcp- profile currently only support a commons workspace"
+  elif [[ "$TEST_PROFILE" =~ ^onprem- ]]; then
+    for fileName in README.md creds.json 00configmap.yaml kube-setup.sh; do
       filePath="onprem_scripts/$fileName"
       [[ -f $filePath ]]; because $? "gen3 workon ensures we have a $filePath generated from template"
     done
-  fi
+  else  # aws profile
+    if [[ "$TEST_WORKSPACE" =~ _user$ ]]; then
+      [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/user_vpc" ]]; because $? "a _user workspace should use the ./aws/user_vpc resources: $GEN3_TFSCRIPT_FOLDER"
+    elif [[ "$TEST_WORKSPACE" =~ _snapshot$ ]]; then
+      [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/rds_snapshot" ]]; because $? "a _snapshot workspace should use the ./aws/rds_snapshot resources: $GEN3_TFSCRIPT_FOLDER"
+    elif [[ "$TEST_WORKSPACE" =~ _databucket$ ]]; then
+      [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/data_bucket" ]]; because $? "a _databucket workspace should use the ./aws/data_bucket resources: $GEN3_TFSCRIPT_FOLDER"
+    else
+      [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/commons" ]]; because $? "a generic workspace should use the ./aws/commons resources: $GEN3_TFSCRIPT_FOLDER"
+    fi
+  fi  
 }
 
 test_user_workspace() {
@@ -91,6 +95,23 @@ test_snapshot_workspace() {
 
 test_databucket_workspace() {
   TEST_WORKSPACE="${TEST_WORKSPACE}_databucket"
+  test_workspace
+}
+
+test_gcp_workspace() {
+  TEST_PROFILE="gcp-${TEST_PROFILE}"
+  if [[ ! -f "${GEN3_ETC_FOLDER}/gcp/${TEST_PROFILE}.json" ]]; then
+    cat > "${GEN3_ETC_FOLDER}/gcp/${TEST_PROFILE}.json" <<EOM
+{
+  "project_id": "testsuite"
+}
+EOM
+  fi
+  test_workspace
+}
+
+test_onprem_workspace() {
+  TEST_PROFILE="onprem-${TEST_PROFILE}"
   test_workspace
 }
 
@@ -118,13 +139,15 @@ test_colors() {
   redTest=$(red_color "$expected")
   
   echo -e "red test: $redTest"
-  [[ "$redTest" ==  "${RED_COLOR}${expected}${DEFAULT_COLOR}" ]]; because $? "Calling red_color returns red-escaped string: $redTest ?= $expected";
+  # test does not work in zsh
+  [[  -z "${BASH_VERSION}" || "$redTest" ==  "${RED_COLOR}${expected}${DEFAULT_COLOR}" ]]; because $? "Calling red_color returns red-escaped string: $redTest ?= $expected";
 
   expected="green green green"
   greenTest=$(red_color "$expected")
   echo -e "green test: $greenTest"
   echo "green test: $greenTest"
-  [[ "$greenTest" == "$RED_COLOR${expected}$DEFAULT_COLOR" ]]; because $? "Calling green_color returns green-escaped string: $greenTest ?= $expected";
+  # test does not work in zsh
+  [[ -z "${BASH_VERSION}" || "$greenTest" == "$RED_COLOR${expected}$DEFAULT_COLOR" ]]; because $? "Calling green_color returns green-escaped string: $greenTest ?= $expected";
 }
 
 test_refresh() {
@@ -142,7 +165,8 @@ test_tfplan() {
   gen3 cd
   # terraform plan fails if it can't lookup the cert for the commons in the account
   sed -i.bak 's/YOUR.CERT.NAME/*.planx-pla.net/g' config.tfvars
-  sed -i.bak 's/GET_A_UNIQUE_VPC_172_OCTET/64/g' config.tfvars
+  sed -i.bak 's/GET_A_UNIQUE_VPC_172_OCTET[23]/64/g' config.tfvars
+  sed -i.bak 's/#config_folder=/config_folder=/g' config.tfvars
   gen3 tfplan; because $? "tfplan should run even with some invalid config variables"
   [[ -f "$GEN3_WORKDIR/plan.terraform" ]]; because $? "'gen3 tfplan' generates a plan.terraform file used by 'gen3 tfapply'"
 }
@@ -155,16 +179,55 @@ test_tfoutput() {
   [[ $vpcName = $GEN3_WORKSPACE ]]; because $? "tfoutput vpc_name works: $vpcName =? $GEN3_WORKSPACE"
 }
 
+test_kube_lock() {
+  gen3 kube-lock | grep -e "gen3 kube-lock lock-name owner max-age [--wait wait-time]"; because $? "calling kube-lock without arguments should show the help documentation"
+  gen3 kube-lock testlock testuser not-a-number | grep -e "ERROR: max-age is not-a-number, must be an integer"; because $? "calling kube-lock without a number for max-age should show this error message"
+  gen3 kube-lock testlock testuser 60 -w not-a-number | grep -e "ERROR: wait-time is not-a-number, must be an integer"; because $? "calling kube-lock without a number for wait-time should show this error message"
+  kubectl delete configmap locks
+  gen3 kube-lock testlock testuser 60; because $? "calling kube-lock for the first time for a lock should successfully lock it, and it should create the configmap locks if it does not exist already"
+  kubectl get configmaps locks -o=yaml | grep -e 'testlock: "true"'; because $? "kube-lock success should write to the configmap properly"
+  gen3 kube-lock testlock testuser 60; because !$? "calling kube-lock for the second time in a row for a lock should fail to lock it"
+  gen3 kube-lock testlock2 testuser 60; because $? "kube-lock should be able to handle multiple locks"
+  gen3 kube-lock testlock3 testuser2 60; because $? "kube-lock should be able to handle multiple users"
+  gen3 kube-lock testlock testuser2 60; because !$? "attempting to lock an already locked lock with a different user should fail"
+  gen3 kube-lock testlock4 testuser 10
+  sleep 11
+  gen3 kube-lock testlock4 testuser 15; because $? "attempting to lock an expired lock should succeed"
+  gen3 kube-lock testlock5 testuser 10
+  gen3 kube-lock testlock5 testuser2 10 -w 5; because !$? "wait is too short, so kube-lock should fail to acquire lock"
+  gen3 kube-lock testlock6 testuser 10
+  gen3 kube-lock testlock6 testuser2 10 -w 20; because $? "wait is longer than expiry time on the first user, so kube-lock should succeed to acquire lock"
+  kubectl delete configmap locks
+}
+
+test_kube_unlock() {
+  gen3 kube-unlock | grep -e "gen3 kube-unlock lock-name owner:"; because $? "calling kube-unlock without arguments should show the help documentation"
+  kubectl delete configmap locks
+  gen3 kube-unlock testlock testuser; because !$? "calling kube-unlock for the first time without a lock should fail"
+  gen3 kube-lock testlock testuser 60
+  gen3 kube-unlock testlock2 testuser; because !$? "calling kube-unlock for the first time on a lock that does not exist should fail"
+  gen3 kube-unlock testlock testuser2; because !$? "calling kube-unlock for the first time on a lock the user does not own should fail"
+  gen3 kube-unlock testlock testuser; because $? "calling kube-unlock for the first time on a lock the user owns should succeed"
+  kubectl get configmaps locks -o=yaml | grep -e 'testlock: "false"'; because $? "kube-unlock success should write to the configmap properly"
+  gen3 kube-unlock testlock testuser; because !$? "calling kube-unlock for the second time on a lock the user owns should fail because the lock is already unlocked"
+  kubectl delete configmap locks
+}
+
 shunit_runtest "test_semver"
 shunit_runtest "test_colors"
 shunit_runtest "test_workspace"
 shunit_runtest "test_user_workspace"
 shunit_runtest "test_snapshot_workspace"
 shunit_runtest "test_databucket_workspace"
+shunit_runtest "test_gcp_workspace"
+shunit_runtest "test_onprem_workspace"
 shunit_runtest "test_trash"
 shunit_runtest "test_refresh"
 shunit_runtest "test_tfplan"
 shunit_runtest "test_tfoutput"
 shunit_runtest "test_ls"
+shunit_runtest "test_kube_lock"
+shunit_runtest "test_kube_unlock"
+G3K_TESTSUITE_SUMMARY="no"
+gen3_load "gen3/bin/g3k_testsuite"
 shunit_summary
-

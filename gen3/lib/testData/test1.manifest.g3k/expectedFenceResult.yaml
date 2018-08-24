@@ -33,12 +33,27 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
+        - name: logo-volume
+          configMap:
+            name: "logo-config"
         - name: config-volume
           secret:
             secretName: "fence-secret"
+        - name: creds-volume
+          secret:
+            secretName: "fence-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
+        - name: fence-google-app-creds-secret-volume
+          secret:
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
@@ -54,6 +69,9 @@ spec:
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
+        env:
+          - name: GEN3_DEBUG
+            value: "False"
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -62,15 +80,31 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /jwt/keys
+            port: 80
         ports:
         - containerPort: 80
         - containerPort: 443
         volumeMounts:
+          - name: "logo-volume"
+            readOnly: true
+            mountPath: "/fence/fence/static/img/logo.svg"
+            subPath: "logo.svg"
           - name: "config-volume"
             readOnly: true
             # NOTE: don't change this path! fence will be confused!
             mountPath: "/var/www/fence/local_settings.py"
             subPath: local_settings.py
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+            subPath: creds.json
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/fence/config_helper.py"
+            subPath: config_helper.py
           - name: "json-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
@@ -78,6 +112,14 @@ spec:
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
           - name: "cert-volume"
             readOnly: true
             mountPath: "/mnt/ssl/service.crt"
@@ -87,9 +129,11 @@ spec:
             mountPath: "/mnt/ssl/service.key"
             subPath: "service.key"
           - name: "ca-volume"
+            # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
             readOnly: true
-            mountPath: "/mnt/ssl/cdis-ca.crt"
+            mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
           - name: "fence-jwt-keys"
             readOnly: true
-            mountPath: "/fence/keys"
+            mountPath: "/fence/jwt-keys.tar"
+            subPath: "jwt-keys.tar"       

@@ -5,6 +5,9 @@ metadata:
 spec:
   # not yet supported - backOffLimit: 3
   template:
+    metadata:
+      labels:
+        app: gen3job
     spec:
       serviceAccountName: useryaml-job
       volumes:
@@ -13,34 +16,91 @@ spec:
         - name: config-volume
           secret:
             secretName: "fence-secret"
+        - name: creds-volume
+          secret:
+            secretName: "fence-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
+        - name: fence-google-app-creds-secret-volume
+          secret:
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
         - name: fence-yaml
           configMap:
             name: fence
+        - name: fence-ssh-keys
+          secret:
+            secretName: "fence-ssh-keys"
+            defaultMode: 0400
+        - name: fence-sshconfig
+          configMap:
+            name: "fence-sshconfig"
+        - name: projects
+          configMap:
+            name: "projects"
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
         imagePullPolicy: Always
+        env:
+          - name: SYNC_FROM_DBGAP
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: sync_from_dbgap
         volumeMounts:
           - name: "config-volume"
             readOnly: true
             # NOTE: don't move
             mountPath: "/var/www/fence/local_settings.py"
             subPath: local_settings.py
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+            subPath: creds.json
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/fence/config_helper.py"
+            subPath: config_helper.py
           - name: "json-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml
           - name: shared-data
             mountPath: /mnt/shared
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa"
+            subPath: "id_rsa"
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa.pub"
+            subPath: "id_rsa.pub"
+          - name: "fence-sshconfig"
+            mountPath: "/root/.ssh/config"
+            subPath: "config"
+          - name: "projects"
+            mountPath: "/var/www/fence/projects.yaml"
+            subPath: "projects.yaml"
         command: ["/bin/bash" ]
-        args: 
-          - "-c" 
+        args:
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
           - |
             let count=0
             while [[ ! -f /mnt/shared/user.yaml && $count -lt 50 ]]; do
@@ -48,19 +108,28 @@ spec:
               sleep 2
               let count=$count+1
             done
-            if [[ -f /mnt/shared/user.yaml ]]; then
-              echo "fence container user.yaml diff ..."
-              diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
-              if [[ $? == 1 ]]; then
-                echo "running fence-create"
-                fence-create create /mnt/shared/user.yaml
+            if [ ! "$SYNC_FROM_DBGAP" = True ]; then
+              if [[ -f /mnt/shared/user.yaml ]]; then
+                echo "fence container user.yaml diff ..."
+                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
+                if [[ $? == 1 || "${userYamlS3Path}" = '' ]]; then
+                  echo "running fence-create"
+                  fence-create sync --yaml /mnt/shared/user.yaml
+                else
+                  echo "no difference found"
+                fi
               else
-                echo "no difference found"
+                echo "/mnt/shared/user.yaml did not appear within timeout :-("
               fi
             else
-              echo "/mnt/shared/user.yaml did not appear within timeout :-("
+              if [[ -f /mnt/shared/user.yaml ]]; then
+                fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
+              else
+                fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
+              fi
             fi
-            
+            echo "Exit code: $?"
+
       - name: awshelper
         image: quay.io/cdis/awshelper:master
         imagePullPolicy: Always
@@ -71,21 +140,29 @@ spec:
           - name: shared-data
             mountPath: /mnt/shared
         command: ["/bin/bash" ]
-        args: 
-          - "-c" 
+        args:
+          - "-c"
           - |
-            echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
-            aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml;
-            if [[ -f /mnt/shared/user.yaml ]]; then
-              echo "awshelper container user.yaml diff ..."
-              diff -w /var/www/fence/user.yaml /mnt/shared/user.yaml
-              if [[ $? == 1 ]]; then
-                echo "awshelper updating fence configmap"
-                kubectl delete configmap fence
-                kubectl create configmap fence --from-file=/mnt/shared/user.yaml
-              else
-                echo "no difference found"
-              fi              
+            if [ "${userYamlS3Path}" = '' ]; then
+              echo "s3 yaml not provided, using local yaml"
+              cp /var/www/fence/user.yaml /mnt/shared/user.yaml
+            else
+              echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
+              aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml;
+              if [[ -f /mnt/shared/user.yaml ]]; then
+                echo "awshelper container user.yaml diff ..."
+                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
+                if [[ $? == 1 ]]; then
+                  echo "awshelper updating fence configmap"
+                  kubectl delete configmap fence
+                  kubectl create configmap fence --from-file=/mnt/shared/user.yaml
+                  if [ "${slackWebHook}" != 'None' ]; then
+                    curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: Syncing users on ${gen3Env}\"}" "${slackWebHook}"
+                  fi
+                else
+                  echo "no difference found"
+                fi
+              fi
             fi
         env:
           - name: userYamlS3Path
@@ -93,4 +170,14 @@ spec:
                 configMapKeyRef:
                   name: global
                   key: useryaml_s3path
+          - name: gen3Env
+            valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+          - name: slackWebHook
+            valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: slack_webhook
       restartPolicy: Never

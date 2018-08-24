@@ -6,6 +6,16 @@
 export XDG_DATA_HOME=${XDG_DATA_HOME:-~/.local/share}
 export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/tmp/gen3-$USER"}
 export GEN3_CACHE_DIR="${XDG_DATA_HOME}/gen3/cache"
+export GEN3_ETC_FOLDER="${XDG_DATA_HOME}/gen3/etc"
+CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
+
+(
+  for filePath in "$GEN3_CACHE_DIR" "$GEN3_ETC_FOLDER/gcp"; do
+    if [[ ! -d "$filePath" ]]; then
+      mkdir -p -m 0700 "$filePath"
+    fi
+  done    
+)
 
 # MacOS has 'md5', linux has 'md5sum'
 MD5=md5
@@ -37,28 +47,37 @@ semver_ge() {
   local bMajor
   local bMinor
   local bPatch
+  local rx   # for zsh
   aStr=$1
   bStr=$2
-  if [[ "$aStr" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-    let aMajor=${BASH_REMATCH[1]}
-    let aMinor=${BASH_REMATCH[2]}
-    let aPatch=${BASH_REMATCH[3]}
-  else
-    echo "ERROR: invalid semver $aStr"
-  fi
-  if [[ "$bStr" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-    let bMajor=${BASH_REMATCH[1]}
-    let bMinor=${BASH_REMATCH[2]}
-    let bPatch=${BASH_REMATCH[3]}
-  else
-    echo "ERROR: invalid semver $bStr"
-  fi
+  (
+    # ugh - zsh!
+    if [[ -z "${BASH_VERSION}" ]]; then
+      set -o BASH_REMATCH  # zsh signal
+      set -o KSH_ARRAYS
+    fi
+    rx='^([0-9]+)\.([0-9]+)\.([0-9]+)$'
+    if [[ "$aStr" =~ $rx ]]; then
+      let aMajor=${BASH_REMATCH[1]}
+      let aMinor=${BASH_REMATCH[2]}
+      let aPatch=${BASH_REMATCH[3]}
+    else
+      echo "ERROR: invalid semver $aStr"
+    fi
+    if [[ "$bStr" =~ $rx ]]; then
+      let bMajor=${BASH_REMATCH[1]}
+      let bMinor=${BASH_REMATCH[2]}
+      let bPatch=${BASH_REMATCH[3]}
+    else
+      echo "ERROR: invalid semver $bStr"
+    fi
 
-  if [[ $aMajor -gt $bMajor || ($aMajor -eq $bMajor && $aMinor -gt $bMinor) || ($aMajor -eq $bMajor && $aMinor -eq $bMinor && $aPatch -ge $bPatch) ]]; then
-    return 0
-  else
-    return 1
-  fi
+    if [[ $aMajor -gt $bMajor || ($aMajor -eq $bMajor && $aMinor -gt $bMinor) || ($aMajor -eq $bMajor && $aMinor -eq $bMinor && $aPatch -ge $bPatch) ]]; then
+      exit 0
+    else
+      exit 1
+    fi
+  )
 }
 
 # vt100 escape sequences - don't forget to pass -e to 'echo -e'
@@ -80,83 +99,75 @@ green_color() {
   echo "${GREEN_COLOR}$1${DEFAULT_COLOR}"
 }
 
+#
+# Do not redefine these variables every time this file is sourced
+# The idea is that all our scripts source utils.sh,
+# then use gen3_load to source other scripts,
+# so utils.sh may get sourced multiple times.
+#
+if [[ -z "${GEN3_SOURCED_SCRIPTS_GUARD}" ]]; then
+  declare -a GEN3_SOURCED_SCRIPTS
+  # be careful with associative arrays and zsh support
+  GEN3_SOURCED_SCRIPTS=("/gen3/lib/utils")
+  GEN3_SOURCED_SCRIPTS_GUARD="loaded"
+fi
+
 
 #
-# Run the given command with AWS credentials if necessary
-# to support assume-role, mfa, etc
-# Assumes AWS_PROFILE environment is set.
+# Little helper for interactive debugging - 
+# clears the GEN3_SOURCED_SCRIPTS flags,
+# and re-source gen3setup.sh
 #
-gen3_aws_run() {
-  (
-    export AWS_PROFILE="${AWS_PROFILE:-default}"
-    local gen3CredsCache="${GEN3_CACHE_DIR}/${AWS_PROFILE}_creds.json"
-    local cacheIsValid="no"
-    local gen3AwsExpire
-    local gen3AwsRole=$(aws configure get "${AWS_PROFILE}.role_arn")
-    local gen3AwsMfa
+gen3_reload() {
+  GEN3_SOURCED_SCRIPTS=()
+  GEN3_SOURCED_SCRIPTS_GUARD=""
+  gen3_load "gen3/gen3setup.sh"
+}
 
-    if [[ -z "$gen3AwsRole" ]]; then
-      gen3AwsMfa=$(aws configure get "${AWS_PROFILE}.mfa_serial") || true
-      if [[ -z "$gen3AwsMfa" ]]; then
-        # No assume-role or mfa stuff going on - just run the command directly
-        "$@"
-        return $?
-      fi
+#
+# Source ${GEN3_HOME}/${key}.sh
+#   ex: gen3_load gen3/lib/gcp
+#
+gen3_load() {
+  local key
+  local filePath
+  local rx
+  if [[ -z "$1" ]]; then
+    echo -e "$(red_color "gen3_load passed empty script key")"
+    return 1
+  fi
+  key=$(echo "/$1" | sed 's@///*@/@g' | sed 's/\.sh$//')
+  # setting an rx variable works in both bash and zsh
+  rx='\.\.'
+  if [[ key =~ $rx ]]; then
+    echo -e "$(red_color "gen3_load illegal key: $key")"
+    return 1
+  fi
+  filePath="${GEN3_HOME}${key}.sh"
+  # Check if key is already in our loaded array
+  # Note: bash3 on Mac does not support associative arrays
+  for it in ${GEN3_SOURCED_SCRIPTS[@]}; do
+    #if [[ -n "${GEN3_SOURCED_SCRIPTS["$key"]}" ]]; then
+    if [[ "$it" == "$key" ]]; then
+      # script already loaded
+      #echo "Already loaded $key"
+      return 0
     fi
-    
-    local gen3AwsAccessKeyId
-    local gen3AwsSecretAccessKey
-    local gen3AwsSessionToken
-    
-    # Try to use cached creds if possible
-    if [[ -f $gen3CredsCache ]]; then
-      gen3AwsExpire=$(jq -r '.Credentials.Expiration' < $gen3CredsCache)
-      
-      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$(date -u +%Y-%m-%dT%H:%M)" ]]; then
-        cacheIsValid="yes"
-      fi
-    fi
-    if [[ "$cacheIsValid" != "yes" ]]; then
-      # echo to stderr - avoid messing with output pipes ...
-      echo -e "$(green_color "INFO: refreshing aws access token cache")" 1>&2
-      if [[ -n "$gen3AwsRole" ]]; then
-        # aws cli is smart about assume-role with MFA and everything - just need to get a new token
-        # example ~/.aws/config entry:
-        #
-        # [profile cdistest]
-        # output = json
-        # region = us-east-1
-        # role_arn = arn:aws:iam::707767160287:role/csoc_adminvm
-        # role_session_name = gen3-reuben
-        # source_profile = csoc
-        # mfa_serial = arn:aws:iam::433568766270:mfa/reuben-csoc
-        #
-        # or
-        #
-        # [profile cdistest]
-        # output = json
-        # region = us-east-1
-        # role_arn = arn:aws:iam::707767160287:role/csoc_adminvm
-        # role_session_name = gen3-reuben
-        # credential_source = Ec2InstanceMetadata
-        #
-        aws sts assume-role --role-arn "${gen3AwsRole}" --role-session-name "gen3-$USER" > "$gen3CredsCache"
-      else
-        # zsh does not like 'read -p'
-        printf '%s: ' "Enter a token from the $AWS_PROFILE MFA device $gen3AwsMfa" 1>&2
-        read mfaToken
-        aws sts get-session-token --serial-number "$gen3AwsMfa" --token-code "$mfaToken" > "$gen3CredsCache"
-      fi
-    fi
-    
-    if [[ ! -f "$gen3CredsCache" ]]; then
-      echo -e "$(red_color "ERROR: AWS creds not cached at $gen3CredsCache")" 1>&2
-      return 1
-    fi
-    gen3AwsAccessKeyId=$(jq -r '.Credentials.AccessKeyId' < $gen3CredsCache)
-    gen3AwsSecretAccessKey=$(jq -r '.Credentials.SecretAccessKey' < $gen3CredsCache)
-    gen3AwsSessionToken=$(jq -r '.Credentials.SessionToken' < $gen3CredsCache)
-    AWS_ACCESS_KEY_ID="$gen3AwsAccessKeyId" AWS_SECRET_ACCESS_KEY="$gen3AwsSecretAccessKey" AWS_SESSION_TOKEN="$gen3AwsSessionToken" "$@"
-  )
-  return $?
+  done
+  #GEN3_SOURCED_SCRIPTS["$key"]="$filePath"
+  GEN3_SOURCED_SCRIPTS+=("$key")
+  if [[ ! -f "${filePath}" ]]; then
+    echo -e "$(red_color "ERROR: gen3_load filePath does not exist: $filePath")"
+    return 1
+  fi
+  #echo "Loading $key - $filePath"
+  source "${filePath}"
+}
+
+
+#
+# Let helper generates a random string of alphanumeric characters of length $1.
+#
+function random_alphanumeric() {
+    base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c "${1:-"32"}"
 }

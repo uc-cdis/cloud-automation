@@ -1,0 +1,10 @@
+kind: ClusterRole
+# DEPRECATED - no longer used - just use 'admin' role instead
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: devops
+rules:
+- apiGroups: ["", "extensions", "apps"]
+  resources: ["*"]
+  #verbs: ["get", "list", "watch", "create", "update", "patch", "delete"] # You can also use ["*"]
+  verbs: ["*"] # You can also use ["*"]

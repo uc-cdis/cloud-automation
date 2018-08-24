@@ -49,6 +49,9 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
+          # portal sometimes takes a long time to come up ... -
+          # has to fetch the dictionary, relay compile, etc
+          failureThreshold: 6
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -63,6 +66,8 @@ spec:
               configMapKeyRef:
                 name: global
                 key: portal_app
+          - name: REACT_APP_ARRANGER_API
+            value: /api/v0/flat-search
         volumeMounts:
           - name: "cert-volume"
             readOnly: true
@@ -74,7 +79,7 @@ spec:
             subPath: "service.key"
           - name: "ca-volume"
             readOnly: true
-            mountPath: "/mnt/ssl/cdis-ca.crt"
+            mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
         readinessProbe:
           httpGet:

@@ -1,4 +1,4 @@
 # TL;DR
 
-Templates for `cloud-automation/tf_files/configs/render_creds.py`
-
+Configuration files for the gen3 services - mounted as files into the service pods -
+see `kube/services/X/X-deploy.yaml`

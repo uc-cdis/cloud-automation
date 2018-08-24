@@ -5,44 +5,107 @@ metadata:
 spec:
   # not yet supported - backOffLimit: 3
   template:
+    metadata:
+      labels:
+        app: gen3job
     spec:
-      serviceAccountName: useryaml-job
+      automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:
             secretName: "fence-secret"
+        - name: creds-volume
+          secret:
+            secretName: "fence-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
-        - name: fence-jwt-keys
+        - name: fence-google-app-creds-secret-volume
           secret:
-            secretName: "fence-jwt-keys"
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
         - name: fence-yaml
           configMap:
             name: fence
+        - name: fence-ssh-keys
+          secret:
+            secretName: "fence-ssh-keys"
+            defaultMode: 0400
+        - name: fence-sshconfig
+          configMap:
+            name: "fence-sshconfig"
+        - name: projects
+          configMap:
+            name: "projects"
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
         imagePullPolicy: Always
+        env:
+          - name: SYNC_FROM_DBGAP
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: sync_from_dbgap
         volumeMounts:
           - name: "config-volume"
             readOnly: true
             # NOTE: don't move
             mountPath: "/var/www/fence/local_settings.py"
             subPath: local_settings.py
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+            subPath: creds.json
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/fence/config_helper.py"
+            subPath: config_helper.py
           - name: "json-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml
-          - name: "fence-jwt-keys"
-            readOnly: true
-            mountPath: "/fence/keys"
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa"
+            subPath: "id_rsa"
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa.pub"
+            subPath: "id_rsa.pub"
+          - name: "fence-sshconfig"
+            mountPath: "/root/.ssh/config"
+            subPath: "config"
+          - name: "projects"
+            mountPath: "/var/www/fence/projects.yaml"
+            subPath: "projects.yaml"
         command: ["/bin/bash" ]
-        args: 
-          - "-c" 
+        args:
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
           - |
-            fence-create create /var/www/fence/user.yaml
+            if [ "$SYNC_FROM_DBGAP" = True ]; then
+              if [[ ! -f /mnt/shared/user.yaml ]]; then
+                fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
+              else
+                fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml
+              fi
+            else
+              fence-create sync --yaml /var/www/fence/user.yaml
+            fi
+            echo "Exit code: $?"
       restartPolicy: Never

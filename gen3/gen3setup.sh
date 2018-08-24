@@ -3,18 +3,22 @@
 # Following the example of python virtual environment scripts.
 #
 G3K_SETUP_DIR=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-GEN3_HOME="${GEN3_HOME:-$(cd "${G3K_SETUP_DIR}/../.." && pwd)}"
-export GEN3_HOME
-
+GEN3_HOME="${GEN3_HOME:-$(cd "${G3K_SETUP_DIR}/.." && pwd)}"
 
 if [[ ! -f "$GEN3_HOME/gen3/lib/utils.sh" ]]; then
   echo "ERROR: is GEN3_HOME correct? $GEN3_HOME"
+  unset GEN3_HOME
   return 1
 fi
+export GEN3_HOME
 
 source "$GEN3_HOME/gen3/lib/utils.sh"
-export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
+gen3_load "gen3/lib/g3k"
+gen3_load "gen3/lib/gcp"
+gen3_load "gen3/lib/aws"
+gen3_load "gen3/lib/onprem"
 
+export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
 
 #
 # Flag values - cleared on each call to 'gen3'
@@ -27,87 +31,69 @@ GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
 # after some basic validation
 #
 gen3_workon() {
-  if [[ -z "$2" ]]; then
-    echo "USAGE: workon PROFILE_NAME WORKSPACE_NAME"
-    echo "     WORKSPACE_NAME corresponds to commons, X_databucket, X_adminvm, ... "
-    echo "     see: gen3 help"
+  if [[ $# -lt 2 ]]; then
+    cat - <<EOM
+USE: gen3 workon PROFILE_NAME WORKSPACE_NAME
+  or
+     gen3 workon . .
+     * PROFILE_NAME follows a {provider}_{name} pattern
+       - 'gcp-{NAME}' corresonds to ${GEN3_ETC_FOLDER}/gcp/${PROFILE_NAME}.json
+       - otherwise {PROFILE_NAME} corresponds to an ~/.aws/config profile name
+       - . is equivalent to the current active profile {GEN3_PROFILE}
+     * WORKSPACE_NAME corresponds to commons, X_databucket, X_adminvm, ... "
+       - . is equivalent to the current active workspace {GEN3_WORKSPACE}
+     see: gen3 help
+EOM
     return 1
   fi
+  local profile
+  local workspace
   local rxalpha
+  local delegate
+  profile=$1
+  workspace=$2
+  shift
+  shift
+  if [[ "$profile" == "." ]]; then profile="$GEN3_PROFILE"; fi
+  if [[ "$workspace" == "." ]]; then workspace="$GEN3_WORKSPACE"; fi
   rxalpha="^[a-zA-Z0-9_-]+\$"
-  if [[ ! ($1 =~ $rxalpha && $2 =~ $rxalpha) ]]; then
-    echo "PROFILE and VPC must be alphanumeric: $1 $2"
+  if [[ ! ($profile =~ $rxalpha && $workspace =~ $rxalpha) ]]; then
+    echo "PROFILE and WORKSPACE must be alphanumeric: $profile $workspace"
     return 2
   fi
 
-  if ! ( aws configure get "${1}.region" > /dev/null ); then
-    echo "PROFILE $1 not properly configured with default region for aws cli"
-    return 3
+  delegate="gen3_workon_aws"
+  if [[ "${profile}" =~ ^gcp- ]]; then
+    delegate="gen3_workon_gcp"
+  elif [[ "${profile}" =~ ^onprem- ]]; then
+    delegate="gen3_workon_onprem"
   fi
-  export GEN3_PROFILE="$1"
-  export GEN3_WORKSPACE="$2"
-  export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}"
-  export AWS_PROFILE="$GEN3_PROFILE"
-  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")
-  
-  local AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
-  # S3 bucket where we save terraform state, etc
-  if [[ -z "$AWS_ACCOUNT_ID" ]]; then
-    echo "Error: unable to determine AWS_ACCOUNT_ID via: aws sts get-caller-identity | jq -r .Account"
-    export GEN3_S3_BUCKET=""
+  if $delegate "$profile" "$workspace" "$@"; then
+    bash "${GEN3_HOME}/gen3/bin/workon.sh" "$profile" "$workspace" "$@"
+    return $?
   else
-    #
-    # This is the new bucket name, which we prefer if data doesn't already exist in the old bucket ...
-    #    https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html#bucketnamingrules
-    #
-    export GEN3_S3_BUCKET="cdis-state-ac${AWS_ACCOUNT_ID}-gen3"
-    
-    OLD_S3_BUCKET="cdis-terraform-state.account-${AWS_ACCOUNT_ID}.gen3"
-    if (! gen3_aws_run aws s3 ls "s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1) &&
-      (gen3_aws_run aws s3 ls "s3://${OLD_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1)
-    then
-      # Use the old bucket ... 
-      export GEN3_S3_BUCKET="${OLD_S3_BUCKET}"
-    fi
+    return $?
   fi
-
-  # terraform stack - based on VPC name
-  export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws"
-  if [[ "$GEN3_WORKSPACE" =~ _user$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_user_vpc"
-  elif [[ "$GEN3_WORKSPACE" =~ _snapshot$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_rds_snapshot"
-  elif [[ "$GEN3_WORKSPACE" =~ _adminvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_admin_vm"
-  elif [[ "$GEN3_WORKSPACE" =~ _logging$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/csoc_common_logging"
-  elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_data_bucket"
-  elif [[ "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws_squid_vm"
-  fi
-
-  PS1="gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
-  return 0
 }
 
+
 gen3_run() {
-  local command
+  local commandStr
   local scriptName
   local scriptFolder
   local resultCode
   
   let resultCode=0 || true
   scriptFolder="$GEN3_HOME/gen3/bin"
-  command=$1
+  commandStr=$1
   scriptName=""
   shift
-  case $command in
+  case $commandStr in
   "help")
     scriptName=usage.sh
     ;;
   "workon")
-    gen3_workon $@ && scriptName=workon.sh
+    gen3_workon $@
     ;;
   "aws")
     gen3_aws_run aws "$@"
@@ -119,18 +105,35 @@ gen3_run() {
     if [[ $1 = "home" ]]; then
       cd $GEN3_HOME
       let resultCode=$? || true
+    elif [[ $1 = "config" ]]; then
+      cd "$GEN3_ETC_FOLDER"
+      let resultCode=$? || true
     else
       cd $GEN3_WORKDIR
       let resultCode=$? || true
     fi
     scriptName=""
     ;;
+  "ls")
+    (
+      set -e
+      if [[ -n "$1" && ! "$1" =~ ^-*help ]]; then
+        gen3_workon $1 gen3ls
+      fi
+      source "$GEN3_HOME/gen3/bin/ls.sh"
+    )
+    resultCode=$?
+    ;;
   *)
-    if [[ -f "$scriptFolder/${command}.sh" ]]; then
-      scriptName="${command}.sh"
+    if [[ -f "$scriptFolder/${commandStr}.sh" ]]; then
+      scriptName="${commandStr}.sh"
     else
-      echo "ERROR unknown command $command"
-      scriptName=usage.sh
+      # Maybe it's a g3k command
+      g3k "$commandStr" "$@"
+      if [[ $? -eq 2 ]]; then
+        echo "ERROR unknown command $commandStr"
+        scriptName=usage.sh
+      fi
     fi
     ;;
   esac
@@ -141,7 +144,7 @@ gen3_run() {
       echo "ERROR - internal bug - $scriptPath does not exist"
       return 1
     fi
-    GEN3_DRY_RUN=$GEN3_DRY_RUN_FLAG GEN3_VERBOSE=$GEN3_VERBOSE_FLAG bash "$GEN3_HOME/gen3/bin/$scriptName" $@
+    GEN3_DRY_RUN=$GEN3_DRY_RUN_FLAG GEN3_VERBOSE=$GEN3_VERBOSE_FLAG bash "$GEN3_HOME/gen3/bin/$scriptName" "$@"
     return $?
   fi
   return $resultCode
@@ -173,6 +176,6 @@ gen3() {
     shift
   done
   # Pass remaing args to gen3_run
-  gen3_run $@
+  gen3_run "$@"
 }
 

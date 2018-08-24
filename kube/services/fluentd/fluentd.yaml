@@ -20,7 +20,7 @@ spec:
         effect: NoSchedule
       containers:
       - name: fluentd
-        image: fluent/fluentd-kubernetes-daemonset:cloudwatch
+        image: fluent/fluentd-kubernetes-daemonset:v1.2-debian-cloudwatch
         env:
           # Deploy with kube-setup-fluentd.sh ...
           - name:  LOG_GROUP_NAME
