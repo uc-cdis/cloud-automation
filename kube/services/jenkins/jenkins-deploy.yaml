@@ -65,6 +65,11 @@ spec:
               secretKeyRef:
                 name: google-acct2
                 key: password
+          - name: GOOGLE_APP_CREDS_JSON
+            valueFrom:
+              secretKeyRef:
+                name: fence-google-app-creds-secret
+                key: fence_google_app_creds_secret.json
         readinessProbe:
           httpGet:
             path: /login
