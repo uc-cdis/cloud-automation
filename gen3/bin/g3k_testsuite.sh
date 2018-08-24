@@ -23,9 +23,13 @@ test_mpath() {
   local mpath=$(g3k_manifest_path test1.manifest.g3k)
   [[ "$mpath" == "${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json" ]]; 
   because $? "g3k_manifest_path prefers domain/manifest.json if available: $mpath ?= ${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json"
-  mpath=$(g3k_manifest_path bogus.manifest.g3k)
-  [[ "$mpath" == "${GEN3_MANIFEST_HOME}/default/manifest.json" ]]; 
-  because $? "g3k_manfiest_path falls through to default/manifest.json if domain/manifest.json not present: $mpath"
+  ! mpath=$(g3k_manifest_path bogus.manifest.g3k); because $? "The bogus manifest does not exist: $mpath"
+  [[ "$mpath" == "${GEN3_MANIFEST_HOME}/bogus.manifest.g3k/manifest.json" ]]; 
+  because $? "g3k_manfest_path maps to domain/manifest.json even if it does not exist: $mpath"
+
+  export GEN3_GITOPS_FOLDER="/whatever"
+  [[ "$(g3k_manifest_path)" == "$GEN3_GITOPS_FOLDER/manifest.json" ]]; 
+  because $? "g3k_manifest_path respects the GEN3_GITOPS_FOLDER override variable"
 }
 
 #
@@ -38,8 +42,9 @@ test_mfilter() {
   for name in fence sheepdog; do
     capName=Fence
     if [[ "$name" == "sheepdog" ]]; then capName=Sheepdog; fi
-    for domain in test1.manifest.g3k default.bogus; do
-      local mpath="$(g3k_manifest_path test1.manifest.g3k)"
+    for domain in test1.manifest.g3k default; do
+      local mpath
+      mpath="$(g3k_manifest_path test1.manifest.g3k)"
       # Note: date timestamp will differ between saved snapshot and fresh template processing
       echo "Writing: $testFolder/${name}-${domain}-a.yaml"
       g3k_manifest_filter "${GEN3_HOME}/kube/services/$name/${name}-deploy.yaml" "$mpath" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-a.yaml"
@@ -51,6 +56,29 @@ test_mfilter() {
   g3k_manifest_filter "${GEN3_MANIFEST_HOME}/bogusInput.yaml" "${GEN3_MANIFEST_HOME}/default/manifest.json" "k1" "the value is v1" "k2" "the value is v2" > "$testFolder/bogus-b.yaml"
   diff -w "${GEN3_MANIFEST_HOME}/bogusExpectedResult.yaml" "$testFolder/bogus-b.yaml"
   because $? "Manifest filter processed extra environment values ok"
+}
+
+test_mlookup() {
+  export GEN3_GITOPS_FOLDER="${GEN3_MANIFEST_HOME}/test1.manifest.g3k"
+  [[ "$(g3k_config_lookup .versions.fence)" == "quay.io/cdis/fence:master" ]];
+  because $? "g3k_config_lookup found expected fence version: $(g3k_config_lookup .versions.fence)"
+  ! g3k_manifest_filter '.bogus.whatever';
+  because $? 'g3k_manifest_filter gives non-zero exit code on jq expression failure'
+  g3k_config_lookup '.versions.fence';
+  because $? 'g3k_manifest_filter gives zero exit code on jq expression match'
+  # test with a toy .yaml file
+  testFolder="${XDG_RUNTIME_DIR}/g3kTest/mlookup"
+  /bin/rm -rf "$testFolder"
+  mkdir -p -m 0700 "$testFolder"
+  cat - > "$testFolder/toy.yaml" <<EOM
+bla:
+  foo: frick
+  ugh: doh
+EOM
+  blaFoo=$(g3k_config_lookup '.bla.foo' "$testFolder/toy.yaml")
+  because $? "g3k_config_lookup zero exit code for valid yaml lookup"
+  [[ "$blaFoo" == "frick" ]];
+  because $? "g3k_config_lookup got expected value from yaml: $blaFoo"
 }
 
 test_loader() {
@@ -76,11 +104,28 @@ test_random_alpha() {
   [[ "$r1" != "$r2" ]]; because $? "random_alphanumeric generates random strings"
 }
 
+test_roll() {
+  # Mock g3kubectl
+  function g3kubectl() {
+    echo "MOCK: g3kubectl $@"
+  }
+  local mpath
+  mpath="$(g3k_manifest_path test1.manifest.g3k)"
+  # Mock g3k_manifest_path
+  function g3k_manifest_path() { echo "$mpath"; }
+  g3k_roll sheepdog; because $? "roll sheepdog should be ok"
+  ! g3k_roll frickjack; because $? "roll frickjack should not be ok - no yaml file"
+  ! g3k_roll aws-es-proxy; because $? "roll aws-es-proxy should not be ok - no manifest entry"
+}
+
 shunit_runtest "test_env"
 shunit_runtest "test_mpath"
 shunit_runtest "test_mfilter"
+shunit_runtest "test_mlookup"
 shunit_runtest "test_loader"
 shunit_runtest "test_random_alpha"
+shunit_runtest "test_roll"
+
 if [[ "$G3K_TESTSUITE_SUMMARY" != "no" ]]; then
   # little hook, so gen3 testsuite can call through to this testsuite too ...
   echo "g3k summary"
