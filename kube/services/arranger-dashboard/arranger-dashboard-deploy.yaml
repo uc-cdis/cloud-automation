@@ -34,7 +34,7 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: arranger-dashboard
-          GEN3_ARRANGER_DASHBOARD_IMAGE|-image: quay.io/cdis/arranger-dashboard:master-|
+          GEN3_ARRANGER-DASHBOARD_IMAGE|-image: quay.io/cdis/arranger-dashboard:master-|
           ports:
           - containerPort: 6060
           env:
@@ -48,7 +48,7 @@ spec:
           #    cpu: 0.2
           #    memory: 412Mi
         - name: arranger-adminapi
-          GEN3_ARRANGER_ADMINAPI_IMAGE|-image: quay.io/cdis/arranger-server:master-|
+          GEN3_ARRANGER-ADMINAPI_IMAGE|-image: quay.io/cdis/arranger-server:master-|
           ports:
           - containerPort: 5050
           env:

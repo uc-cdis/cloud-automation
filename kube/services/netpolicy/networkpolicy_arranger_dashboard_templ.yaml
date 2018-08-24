@@ -5,7 +5,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: fence
+      app: arranger-dashboard
   ingress:
     - from:
       - podSelector:

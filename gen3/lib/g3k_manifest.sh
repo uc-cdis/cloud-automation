@@ -11,11 +11,11 @@ GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-m
 export GEN3_MANIFEST_HOME
 
 #
+# GEN3_GITOPS_FOLDER environment variable:
 # Override the folder under which to look for
 # manifest.json and other configuration files.
 # If not set, then defaults to GEN3_MANIFEST_HOME/hostname 
 #
-GEN3_GITOPS_FOLDER="${GEN3_GITOPS_FOLDER:""}"
 
 gen3_load "gen3/lib/utils"
 
@@ -283,7 +283,7 @@ g3k_roll() {
     local serviceName
     serviceName="$(basename "$templatePath" | sed 's/-deploy.yaml$//')"
     
-    if g3k_config_lookup ".versions.$serviceName" < "$manifestPath" > /dev/null 2>&1; then
+    if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
       g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
     else
       echo "Not rolling $serviceName - no manifest entry in $manifestPath" 1>&2
