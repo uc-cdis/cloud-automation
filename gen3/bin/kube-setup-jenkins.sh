@@ -14,15 +14,25 @@ gen3_load "gen3/gen3setup"
 #
 aws_access_key_id="$(aws configure get jenkins.aws_access_key_id)"
 aws_secret_access_key="$(aws configure get jenkins.aws_secret_access_key)"
+google_acct1_email="$(jq '.jenkins.google_acct1.email' < ${WORKSPACE}/qaplanetv1/creds.json)"
+google_acct1_password="$(jq '.jenkins.google_acct1.password' < ${WORKSPACE}/qaplanetv1/creds.json)"
+google_acct2_email="$(jq '.jenkins.google_acct2.email' < ${WORKSPACE}/qaplanetv1/creds.json)"
+google_acct2_password="$(jq '.jenkins.google_acct2.password' < ${WORKSPACE}/qaplanetv1/creds.json)"
 
 if [ -z "$aws_access_key_id" -o -z "$aws_secret_access_key" ]; then
   echo 'ERROR: not configuring jenkins - could not extract secrets from aws configure'
+  exit 1
+fi
+if [[ -z "$google_acct1_email" || -z "$google_acct1_password" || -z "$google_acct2_email" || -z "$google_acct2_password" ]]; then
+  echo "ERROR: missing google credentials in '.jenkins' of creds.json"
   exit 1
 fi
 
 if ! g3kubectl get "${GEN3_HOME}/kube/secrets/jenkins-secret" > /dev/null 2>&1; then
   # make it easy to rerun kube-setup-jenkins.sh
   g3kubectl create secret generic jenkins-secret "--from-literal=aws_access_key_id=$aws_access_key_id" "--from-literal=aws_secret_access_key=$aws_secret_access_key"
+  g3kubectl create secret generic google-acct1 "--from-literal=email=${google_acct1_email}" "--from-literal=password=${google_acct1_password}"
+  g3kubectl create secret generic google-acct2 "--from-literal=email=${google_acct2_email}" "--from-literal=password=${google_acct2_password}"
 fi
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/10storageclass.yaml"
