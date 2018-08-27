@@ -351,6 +351,7 @@ sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/in
 # 
 # Replace the User variable for hostname, VPN subnet and VM subnet 
 sudo sed -i "s/SERVERNAME/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
+sudo sed -i "s/CLOUDNAME/${var.env_cloud_name}/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 
 VPN_SUBNET=${var.csoc_vpn_subnet}
 VPN_SUBNET_BASE=$( sipcalc $VPN_SUBNET | perl -ne 'm|Host address\s+-\s+(\S+)| && print "$1"')

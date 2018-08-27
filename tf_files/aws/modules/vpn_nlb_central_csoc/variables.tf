@@ -24,6 +24,11 @@ variable "env_vpn_nlb_name" {
   default = "csoc-prod-vpn"
 }
 
+variable "env_cloud_name" {
+  default = "planxprod"
+}
+
+
 
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {

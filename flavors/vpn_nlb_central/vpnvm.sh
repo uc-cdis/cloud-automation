@@ -59,6 +59,7 @@ sudo chmod 644 /etc/init.d/awslogs
 SERVERNAME=$(sed -n -e '/VAR1/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
 VPN_SUBNET=$(sed -n -e '/VAR2/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
 VM_SUBNET=$(sed -n -e '/VAR3/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
+CLOUDNAME=$(sed -n -e '/VAR4/ s/.*\= *//p' /root/openvpn_management_scripts/csoc_vpn_user_variable)
 
 sudo -E su  <<  EOF
 #Install postfix and mailutils
@@ -97,7 +98,7 @@ fi
 # cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
 
-export FQDN="$SERVERNAME.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
+export FQDN="$SERVERNAME.planx-pla.net"; export cloud="$CLOUDNAME"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
 
 #export FQDN="raryatestvpnv1.planx-pla.net"; export cloud="planxvpn1"; export SERVER_PEM="/root/server.pem"; bash /root/openvpn_management_scripts/install_ovpn.sh
 

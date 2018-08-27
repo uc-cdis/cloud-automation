@@ -313,8 +313,10 @@ EOM
     # rds snapshot vpc is simpler ...
     #commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
     cat - <<EOM
-    # env_vpn_nlb_name can be enter ad csoc-ENVNAME-vpn where ENVNAME is prod,qa,dev,etc
+    # env_vpn_nlb_name can be enter as csoc-ENVNAME-vpn where ENVNAME is prod,qa,dev,etc
      env_vpn_nlb_name  = "csoc-ENVNAME-vpn"
+     #  env_cloud_name can be enter as planxCLOUDNAME where CLOUDNAME is prod,qa,dev,etc
+     env_cloud_name = "planxCLOUDNAME"
      env_vpc_octet3                = "3rd OCTET OF CSOC CIDR FOR VPN SETUP"
      # CSOC MAIN VPC ID 
      env_vpc_id                    = "vpc-e2b51d99"
