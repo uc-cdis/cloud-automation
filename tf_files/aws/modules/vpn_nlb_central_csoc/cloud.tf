@@ -1,7 +1,7 @@
 ### Logging stuff
 
 resource "aws_cloudwatch_log_group" "vpn_log_group" {
-  name              = "${var.env_vpn_nlb_name}_log_group"
+  name              = "${var.env_vpn_nlb_name}.planx-pla.net_log_group"
   retention_in_days = 1827
 
   tags {
