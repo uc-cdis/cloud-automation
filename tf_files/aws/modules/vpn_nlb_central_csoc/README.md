@@ -21,7 +21,7 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 
 ## IP SCHEMA
 
-`csoc prod-vpn`
+## csoc prod-vpn
 
 ```Hostname (FQDN) - csocprodvpn-planx.pla.net```
 
@@ -32,7 +32,7 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 ```VPN server cluster network at AWS (vpn_server_subnet) - 10.128.5.0/25```
 
 
-``csoc dev-vpn``
+## csoc dev-vpn
 
 ```Hostname (FQDN) - csocdevvpn-planx.pla.net```
 
