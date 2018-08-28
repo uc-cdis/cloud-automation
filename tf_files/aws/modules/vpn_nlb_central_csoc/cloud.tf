@@ -76,11 +76,7 @@ data "aws_iam_policy_document" "vpn_policy_document" {
 
 }
 
-#resource "aws_iam_role_policy" "vpn_policy" {
-#  name   = "${var.env_vpn_nlb_name}_policy"
-#  policy = "${data.aws_iam_policy_document.vpn_policy_document.json}"
-#  role   = "${aws_iam_role.vpn-nlb_role.id}"
-#}
+
 
 resource "aws_iam_instance_profile" "vpn-nlb_role_profile" {
   name = "${var.env_vpn_nlb_name}_vpn-nlb_role_profile"
@@ -303,8 +299,6 @@ resource "aws_launch_configuration" "vpn_nlb" {
   security_groups = ["${aws_security_group.vpnnlb_in.id}", "${aws_security_group.vpnnlb_out.id}"]
   key_name = "${var.ssh_key_name}"
   iam_instance_profile   = "${aws_iam_instance_profile.vpn-nlb_role_profile.id}"
-  #iam_instance_profile   = "${aws_iam_instance_profile.vpn-certs-and-files_reader.id}"
-  #iam_instance_profile   = "${aws_iam_instance_profile.vpn-certs-and-files_writer.id}"
   associate_public_ip_address = true
   
 
@@ -587,126 +581,4 @@ resource "aws_s3_bucket_policy" "vpn-bucket-policy" {
 
 POLICY
 }
-
-#chnaged above from hardcode - "AWS": "arn:aws:iam::433568766270:user/CSOC-vpn-s3-user" (delete later)
-
-#Really????
-#resource "aws_iam_role" "vpn-certs-and-files_reader" {
- # name = "bucket_reader_vpn-certs-and-files"
- # path = "/"
-
-  #assume_role_policy = <<EOF
-#{
- #   "Version": "2012-10-17",
-  #  "Statement": [
-   #     {
-    #        "Action": "sts:AssumeRole",
-     #       "Principal": {
-      #         "Service": "ec2.amazonaws.com"
-       #     },
-        #    "Effect": "Allow",
-         #   "Sid": ""
-        #}
-    #]
-#}
-#EOF
-#}
-
-#data "aws_iam_policy_document" "vpn-certs-and-files_reader" {
-  #statement {
-   # actions = [
-    #  "s3:Get*",
-     # "s3:List*",
-   # ]
-
-    #effect    = "Allow"
-    #resources = ["${aws_s3_bucket.vpn-certs-and-files.arn}", "${aws_s3_bucket.vpn-certs-and-files.arn}/*"]
-  #}
-#}
-
-#resource "aws_iam_policy" "vpn-certs-and-files_reader" {
- # name        = "bucket_reader_vpn-certs-and-files"
- # description = "Read vpn-certs-and-files"
- # policy      = "${data.aws_iam_policy_document.vpn-certs-and-files_reader.json}"
-#}
-
-#resource "aws_iam_role_policy_attachment" "vpn-certs-and-files_reader" {
- # role       = "${aws_iam_role.vpn-certs-and-files_reader.name}"
- # policy_arn = "${aws_iam_policy.vpn-certs-and-files_reader.arn}"
-#}
-
-
-
-#resource "aws_iam_instance_profile" "vpn-certs-and-files_reader" {
-#  name = "bucket_reader_vpn-certs-and-files"
-#  role = "${aws_iam_role.vpn-certs-and-files_reader.id}"
-#}
-
-#----------------------
-
-#resource "aws_iam_role" "vpn-certs-and-files_writer" {
- # name = "bucket_writer_vpn-certs-and-files"
- # path = "/"
-
-  #assume_role_policy = <<EOF
-#{
- #   "Version": "2012-10-17",
-  #  "Statement": [
-   #     {
-    #        "Action": "sts:AssumeRole",
-     #       "Principal": {
-      #         "Service": "ec2.amazonaws.com"
-       #     },
-        #    "Effect": "Allow",
-         #   "Sid": ""
-        #}
-    #]
-#}
-#EOF
-#}
-
-
-
-
-
-#data "aws_iam_policy_document" "vpn-certs-and-files_writer" {
- # statement {
-   # actions = [
-    #  "s3:Get*",
-    #  "s3:List*",
-   # ]
-
-   # effect    = "Allow"
-   # resources = ["${aws_s3_bucket.vpn-certs-and-files.arn}", "${aws_s3_bucket.vpn-certs-and-files.arn}/*"]
-  #}
-
-  #statement {
-    #effect = "Allow"
-
-    #actions = [
-     # "s3:PutObject",
-     # "s3:GetObject",
-    #  "s3:DeleteObject",
-   # ]
-
-  #  resources = ["${aws_s3_bucket.vpn-certs-and-files.arn}", "${aws_s3_bucket.vpn-certs-and-files.arn}/*"]
- # }
-#}
-
-#resource "aws_iam_policy" "vpn-certs-and-files_writer" {
-  #name        = "bucket_writer_vpn-certs-and-files"
-  #description = "Read or write vpn-certs-and-files"
- # policy      = "${data.aws_iam_policy_document.vpn-certs-and-files_writer.json}"
-#}
-
-#resource "aws_iam_role_policy_attachment" "vpn-certs-and-files_writer" {
- # role       = "${aws_iam_role.vpn-certs-and-files_writer.name}"
-  #policy_arn = "${aws_iam_policy.vpn-certs-and-files_writer.arn}"
-#}
-
-#resource "aws_iam_instance_profile" "vpn-certs-and-files_writer" {
-  #name = "bucket_writer_vpn-certs-and-files"
- # role = "${aws_iam_role.vpn-certs-and-files_writer.id}"
-#}
-
 
