@@ -45,7 +45,7 @@ spec:
       containers:
         - name: tube
           imagePullPolicy: Always
-          image: quay.io/cdis/tube:feat_parser
+          image: GEN3_TUBE_IMAGE
           ports:
           - containerPort: 80
           env:
@@ -60,6 +60,8 @@ spec:
             value: esproxy-service
           - name: HADOOP_HOST
             value: spark-service
+          - name: ES_INDEX_NAME
+            value: GEN3_TUBE_ES_INDEX_NAME|-null-|
           volumeMounts:
             - name: "config-volume"
               readOnly: true

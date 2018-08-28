@@ -22,7 +22,7 @@ spec:
       containers:
       - name: tube
         imagePullPolicy: Always
-        image: quay.io/cdis/tube:feat_parser
+        image: GEN3_TUBE_IMAGE
         ports:
         - containerPort: 80
         env:
@@ -35,6 +35,8 @@ spec:
           value: hdfs://revproxy-service:9000
         - name: ES_URL
           value: esproxy-service
+        - name: ES_INDEX_NAME
+          value: GEN3_TUBE_ES_INDEX_NAME|-null-|
         - name: HADOOP_HOST
           value: spark-service
         volumeMounts:
