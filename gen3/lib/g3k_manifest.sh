@@ -23,7 +23,8 @@ g3k_gitops_init() {
   MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .id) 
   if [[ $MANIFEST_EXIST -gt 0 ]]; then
   #new path for all gitops files 
-
+    local branch
+    branch=${2:-$MANIFEST_BRANCH}
     GEN3_GITOPS_FOLDER=$WORKSPACE/$GEN3_HOST_NAME
     if [[ ! -d "${GEN3_GITOPS_FOLDER}" ]]; then
       echo -e $(red_color "ERROR: GEN3_GITOPS_FOLDER does not exist: ${GEN3_GITOPS_FOLDER}") 1>&2
@@ -33,8 +34,6 @@ g3k_gitops_init() {
     fi
     if [[ -d "$GEN3_GITOPS_FOLDER/.git" && -z "$JENKINS_HOME" ]]; then
       # Don't do this when running tests in Jenkins ...
-      local branch
-      branch=${2:-$MANIFEST_BRANCH}
       echo "INFO: git fetch branch $branch in $GEN3_GITOPS_FOLDER" 1>&2
       (cd "$GEN3_GITOPS_FOLDER" && git pull; git checkout $branch; git pull; git status) 1>&2
     fi
@@ -96,6 +95,8 @@ g3k_manifest_init() {
   local gitopsPath
   gitopsPath="$(g3k_gitops_init)"
   if [[ -z  "${gitopsPath}" ]]; then
+    local branch
+    branch=${1:-$MANIFEST_BRANCH}
     if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
       echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
       echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}" 1>&2
@@ -104,8 +105,6 @@ g3k_manifest_init() {
     fi
     if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
       # Don't do this when running tests in Jenkins ...
-      local branch
-      branch=${1:-$MANIFEST_BRANCH}
       echo "INFO: git fetch branch $branch in $GEN3_MANIFEST_HOME" 1>&2
       (cd "$GEN3_MANIFEST_HOME" && git pull; git checkout $branch; git pull; git status) 1>&2
     fi

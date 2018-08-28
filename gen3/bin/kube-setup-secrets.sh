@@ -59,6 +59,18 @@ if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
   gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
 fi
 
+
+let configmapsExpireTime="$(date +%s) - 120"
+configmapsFlagFile="${WORKSPACE}/${vpc_name}/.configmapsFlagFile"
+# Avoid creating configmaps more than once every two minutes
+if [[ ! -f "configmapsFlagFile" || $(stat -c %Y "$configmapsFlagFile") -lt "$configmapsExpireTime" ]]; then
+  # call g3k configmaps to create manifest configmaps
+  echo "creating manifest configmaps"
+  g3k configmaps
+  touch "$configmapsFlagFile"
+fi
+
+
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
     echo "${WORKSPACE}/${vpc_name} does not exist"
