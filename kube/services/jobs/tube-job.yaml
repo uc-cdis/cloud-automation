@@ -22,7 +22,7 @@ spec:
       containers:
       - name: tube
         imagePullPolicy: Always
-        image: GEN3_TUBE_IMAGE
+        GEN3_TUBE_IMAGE
         ports:
         - containerPort: 80
         env:

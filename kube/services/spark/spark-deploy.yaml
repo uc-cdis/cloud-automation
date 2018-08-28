@@ -35,7 +35,7 @@ spec:
       volumes:
       containers:
         - name: gen3-spark
-          image: GEN3_SPARK_IMAGE
+          GEN3_SPARK_IMAGE
           ports:
           - containerPort: 22
           - containerPort: 9000
