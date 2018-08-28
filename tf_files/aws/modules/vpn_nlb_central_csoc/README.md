@@ -21,53 +21,53 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 
 ## IP SCHEMA
 
-## csoc prod-vpn
+`csoc prod-vpn`
 
-Hostname (FQDN) - csocprodvpn-planx.pla.net
+```Hostname (FQDN) - csocprodvpn-planx.pla.net```
 
-OpenVPN Network (csoc_vpn_subnet) - 192.168.1.0/24
+```OpenVPN Network (csoc_vpn_subnet) - 192.168.1.0/24```
 
-VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  10.128.2.0/24
+```VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  10.128.2.0/24```
 
-VPN server cluster network at AWS (vpn_server_subnet) - 10.128.5.0/25
+```VPN server cluster network at AWS (vpn_server_subnet) - 10.128.5.0/25```
 
 
-## csoc dev-vpn
+``csoc dev-vpn``
 
-Hostname (FQDN) - csocdevvpn-planx.pla.net
+```Hostname (FQDN) - csocdevvpn-planx.pla.net```
 
-OpenVPN Network (csoc_vpn_subnet) - 192.168.2.0/24
+```OpenVPN Network (csoc_vpn_subnet) - 192.168.2.0/24```
 
-VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  TBD
+```VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  TBD```
 
-VPN server cluster network at AWS (vpn_server_subnet) - 10.128.5.128/25
+```VPN server cluster network at AWS (vpn_server_subnet) - 10.128.5.128/25```
 
 
 
 ## csoc qa-vpn
 
-Hostname (FQDN) - csocqavpn-planx.pla.net
+```Hostname (FQDN) - csocqavpn-planx.pla.net```
 
-OpenVPN Network (csoc_vpn_subnet) - 192.168.3.0/24
+```OpenVPN Network (csoc_vpn_subnet) - 192.168.3.0/24```
 
-VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  TBD
+```VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  TBD```
 
-VPN server cluster network at AWS (vpn_server_subnet) - 10.128.6.0/25
+```VPN server cluster network at AWS (vpn_server_subnet) - 10.128.6.0/25```
 
 
 ## CERTS RENEWAL 
 
 ## Renewing the OpenVPN server certs
 
-mv /etc/openvpn/easy-rsa/keys/$(hostname) /etc/openvpn/easy-rsa/$(hostname).old.$(date +%F)
+```mv /etc/openvpn/easy-rsa/keys/$(hostname) /etc/openvpn/easy-rsa/$(hostname).old.$(date +%F)```
 
-source /etc/openvpn/bin/settings.sh
+```source /etc/openvpn/bin/settings.sh```
 
-$EASY_RSA/revoke-full $(hostname)
+```$EASY_RSA/revoke-full $(hostname)```
 
-$EASY_RSA/pkitool --server $(hostname)
+```$EASY_RSA/pkitool --server $(hostname)```
 
-systemctl restart openvpn
+```systemctl restart openvpn```
 
 ## Renewing the OpenVPN client certs
 
@@ -78,39 +78,39 @@ systemctl restart openvpn
 
 1. Generate a new CSR as cert.csr
 
-openssl req  -subj '/C=US/ST=IL/L=Chicago/O=CDIS' -new -key /root/cert.key -out /root/cert.csr
+```openssl req  -subj '/C=US/ST=IL/L=Chicago/O=CDIS' -new -key /root/cert.key -out /root/cert.csr```
 
 2. Take a backup of the existing cert.pem server.pem
 
-mv /root/cert.pem /root/cert.old.$(date +%F).pem
+```mv /root/cert.pem /root/cert.old.$(date +%F).pem```
 
-mv /root/server.pem /root/server.old.$(date +%F).pem
+```mv /root/server.pem /root/server.old.$(date +%F).pem```
 
 3. Create the new cert.pem 
 
-openssl x509 -req -days 365 -in /root/cert.csr -signkey /root/cert.key -out /root/cert.pem
+```openssl x509 -req -days 365 -in /root/cert.csr -signkey /root/cert.key -out /root/cert.pem```
 
 4. Concatenate the cert.key and cert.pem and create a new server.pem
 
-cat /root/cert.key /root/cert.pem > /root/server.pem
+```cat /root/cert.key /root/cert.pem > /root/server.pem```
 
 5. Check for the end date on server.pem
 
-openssl x509 -in /root/server.pem -noout -enddate
+```openssl x509 -in /root/server.pem -noout -enddate```
 
 6. Reload the cert for lighttpd
 
-mv  /etc/lighttpd/certs/server.pem  /etc/lighttpd/certs/server.old.$(date +%F).pem
+```mv  /etc/lighttpd/certs/server.pem  /etc/lighttpd/certs/server.old.$(date +%F).pem```
 
-cp /root/server.pem /etc/lighttpd/certs/server.pem
+```cp /root/server.pem /etc/lighttpd/certs/server.pem```
 
 7. Restart the lighttpd service
 
-service lighttpd restart
+```service lighttpd restart```
 
 8. Backup to S3
 
-/etc/openvpn/bin/push_to_s3.sh
+```/etc/openvpn/bin/push_to_s3.sh```
 
 
 
