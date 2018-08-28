@@ -47,10 +47,10 @@ fi
 
 
 if ! g3kubectl get configmaps global > /dev/null 2>&1; then
-  if [[ -f "${WORKSPACE}/${vpc_name}/00configmap.yaml" ]]; then
-    g3kubectl apply -f "${WORKSPACE}/${vpc_name}/00configmap.yaml"
+  if [[ -f "${GEN3_MANIFEST_HOME}/00configmap.yaml" ]]; then
+    g3kubectl apply -f "${GEN3_MANIFEST_HOME}/00configmap.yaml"
   else
-    echo "ERROR: unable to configure global configmap - missing ${WORKSPACE}/${vpc_name}/00configmap.yaml"
+    echo "ERROR: unable to configure global configmap - missing ${GEN3_MANIFEST_HOME}/00configmap.yaml"
     exit 1
   fi
 fi
