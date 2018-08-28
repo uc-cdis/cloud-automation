@@ -4,11 +4,11 @@
 # via the `g3k/gen3` cli
 #
 
-COMMON_NAME=$(pwd | cut -d'/' -f 3)
-CONFIGMAP_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${COMMON_NAME}"
-GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
+#COMMON_NAME=$(pwd | cut -d'/' -f 3)
+#CONFIGMAP_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${COMMON_NAME}"
+#GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
 GEN3_MANIFEST_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${GEN3_HOST_NAME}"
-export GEN3_HOST_NAME=${GEN3_HOST_NAME}
+#export GEN3_HOST_NAME=${GEN3_HOST_NAME}
 export GEN3_MANIFEST_HOME=${GEN3_MANIFEST_HOME}
 
 ##########comment out
@@ -52,11 +52,13 @@ g3kubectl() {
 #   not corrupte the output of g3k_manifest_filter with info messages
 #
 g3k_manifest_init() {
+  ##################comment out for now 
   # do this at most once a day
-  local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d)"
-  if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
-    return 0
-  fi
+  #local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d)"
+  #if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
+  #  return 0
+  #fi
+  #######################################
   if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
     echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
     echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_MANIFEST_HOME}" 1>&2
