@@ -52,13 +52,12 @@ g3kubectl() {
 #   not corrupte the output of g3k_manifest_filter with info messages
 #
 g3k_manifest_init() {
-  ##################comment out for now 
-  # do this at most once a day
-  #local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d)"
-  #if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
-  #  return 0
-  #fi
-  #######################################
+  # do this at most once per minute 
+  local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d%H%M)"
+  if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
+    return 0
+  fi
+
   if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
     echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
     echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_MANIFEST_HOME}" 1>&2
