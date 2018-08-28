@@ -7,8 +7,8 @@ A centralised NLB set-up for VPN will be installed in the CSOC account. This is 
 
 There are two major driving force for implementing the VPN cluster set-up:
 
-1) Currently, there is a single VM installed as a OpenVPN server. All the users connects to that OpenVPN server and can access the adminVMs in CSOC via which they can access the data commons. A VPN cluster befind the NLB is going to provide a robust VPN system. All the keys,certs will be backed up securely to a S3 and can be restrived as and when required.It will be quick to launch a new VPN cluster in case the VM goes down. It will also take care of AZ failure.
-2) Currently, all the adminVMs (prod,dev and qa) can be accessed by anyone who is connected to the current CSOC VPN. With the VPN cluster we have an option of having separate VPN system for seperate environment. This is done by pushing appropriate routes to the VPN client machine and having the required iptable rules on the VPN server itself.
+1) Currently, there is a single VM installed as a OpenVPN server. All the users connects to that OpenVPN server and can access the adminVMs in CSOC via which they can access the data commons. A VPN cluster befind the NLB is going to provide a robust VPN system. All the keys,certs will be backed up securely to a S3 and can be restrieved as and when required.It will be quick to launch a new VPN cluster in case the VM goes down. It will also take care of AZ failure.
+2) Currently, all the adminVMs (prod,dev and qa) can be accessed by anyone who is connected to the current CSOC VPN.Infact on a CSOC VPN can access anything in the CSOC VPC (provided there keys are there) With the VPN cluster we have an option of having separate VPN system for seperate environment. This is done by pushing appropriate routes to the VPN client machine and having the required iptable rules on the VPN server itself.
 
 ## Setting up the VPN NLB in CSOC
 
