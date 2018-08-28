@@ -16,19 +16,21 @@ To launch a vpn-nlb central set-up, we run the following from the csoc master ad
 
 ```gen3 workon csoc <vpnnlbname>_vpnnlbcentral```
 
-This launches a NLB with a target group pointing to the VM running  VPN service. Listeners and target groups correspodning to ```port 1194```, ```port 443``` and  ```port 22```  are created to handle VPN traffic, HTTPS and SSH traffic respectively. Currently, the autoscaling group has a desired capacity of 1, hence at any point of time, we expect a cluster of one VM. This is a limitation with the NLB set-up as we do not have a stickiness feature for NLB and stickiness is a requirement for multiple VPN access servers behind a load balancer.
+This launches a NLB with a target group pointing to the VM running  VPN service. Listeners and target groups correspodning to ```port 1194```, ```port 443``` and  ```port 22```  are created to handle VPN traffic, HTTPS and SSH traffic respectively. Currently, the autoscaling group has a desired capacity of 1, hence at any point of time, we expect a cluster of one VM. This is a limitation with the NLB set-up as we do not have a stickiness feature for NLB and stickiness is a requirement for multiple VPN access servers behind a load balancer. However, we expect a single VPN VM sufficient for our requirement. 
 
 
-## IP schema
+## IP Schema
 
-```CSOC PROD-VPN```
+#CSOC PROD-VPN
+
 Hostname (FQDN) - csocprodvpn-planx.pla.net
 OpenVPN Network (csoc_vpn_subnet) - 192.168.1.0/24
 VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  10.128.2.0/24
 VPN server cluster network at AWS (vpn_server_subnet) - 10.128.5.0/25
 
 
-```CSOC DEV-VPN```
+#CSOC DEV-VPN
+
 Hostname (FQDN) - csocdevvpn-planx.pla.net
 OpenVPN Network (csoc_vpn_subnet) - 192.168.2.0/24
 VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  TBD
@@ -36,7 +38,8 @@ VPN server cluster network at AWS (vpn_server_subnet) - 10.128.5.128/25
 
 
 
-```CSOC QA-VPN```
+#CSOC QA-VPN
+
 Hostname (FQDN) - csocqavpn-planx.pla.net
 OpenVPN Network (csoc_vpn_subnet) - 192.168.3.0/24
 VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  TBD
@@ -45,7 +48,7 @@ VPN server cluster network at AWS (vpn_server_subnet) - 10.128.6.0/25
 
 ## Renewing certs on VPN and the lighttpd server
 
-```Renewing the OpenVPN server certs```
+#Renewing the OpenVPN server certs
 
 mv /etc/openvpn/easy-rsa/keys/$(hostname) /etc/openvpn/easy-rsa/$(hostname).old.$(date +%F)
 source /etc/openvpn/bin/settings.sh
@@ -53,10 +56,10 @@ $EASY_RSA/revoke-full $(hostname)
 $EASY_RSA/pkitool --server $(hostname)
 systemctl restart openvpn
 
-```Renewing the OpenVPN client certs```
+#Renewing the OpenVPN client certs
 
 
-```Renewing the Lighttpd server certs```
+#Renewing the Lighttpd server certs
 
 0. Login to the VPN server behind the load balancer
 
