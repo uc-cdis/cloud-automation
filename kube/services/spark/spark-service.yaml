@@ -1,0 +1,33 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: spark-service
+spec:
+  selector:
+    app: spark
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: http
+    - protocol: TCP
+      port: 9000
+      targetPort: 9000
+      name: hdfs
+    - protocol: TCP
+      port: 8030
+      targetPort: 8030
+      name: yarn-scheduler
+    - protocol: TCP
+      port: 8031
+      targetPort: 8031
+      name: yarn-resource-tracker
+    - protocol: TCP
+      port: 8032
+      targetPort: 8032
+      name: yarn-address-manager
+    - protocol: TCP
+      port: 22
+      targetPort: 22
+      name: ssl
+  type: NodePort
