@@ -3,9 +3,13 @@
 # Little library of manifest related functions usually accessed
 # via the `g3k/gen3` cli
 #
-
+GEN3_HOST_NAME=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
+  if [[ -z "$GEN3_HOST_NAME" ]]; then
+    echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
+    return 1
+  fi
 CONFIGMAP_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${vpc_name}"
-GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
+#GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
 #new path for all gitops files 
 GEN3_COMMON_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${GEN3_HOST_NAME}"
 #old manifest path
@@ -99,11 +103,7 @@ g3k_manifest_init() {
 # @param domain commons domain - tries to extract from global configmap if not given
 #
 g3k_manifest_path() {
-  local domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
-  if [[ -z "$domain" ]]; then
-    echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
-    return 1
-  fi
+
   g3k_manifest_init
 #############################comment out by Di 
   #local mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
