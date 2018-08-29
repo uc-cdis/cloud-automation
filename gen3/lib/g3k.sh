@@ -271,6 +271,12 @@ g3k_ec2_reboot() {
   )
 }
 
+#
+# g3k command to create configmaps from manifest
+#
+g3k_create_configmaps() {
+  echo "hi"
+}
 
 #
 # Parent for other commands - pronounced "geeks"
@@ -326,6 +332,9 @@ g3k() {
         ;;
       "update_config")
         update_config "$@"
+        ;;
+      "create_configmaps")
+        g3k_create_configmaps
         ;;
       *)
         echo "ERROR: unknown command: $command"
