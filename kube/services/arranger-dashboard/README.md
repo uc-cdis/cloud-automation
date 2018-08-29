@@ -16,7 +16,7 @@ OFFSET=100 # something unique
 ```
 OFFSET=...  # same as above
 g3kubectl port-forward deployment/arranger-dashboard-deployment $((OFFSET + 6060)):6060 $((OFFSET+5050)):5050 &
-g3kubectl port-forward deployment/aws-es-proxy-deployment 9200 &
+g3kubectl port-forward deployment/aws-es-proxy-deployment $((OFFSET+9200)):9200 &
 
 ```
 
