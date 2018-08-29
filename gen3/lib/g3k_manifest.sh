@@ -4,11 +4,10 @@
 # via the `g3k/gen3` cli
 #
 
-#COMMON_NAME=$(pwd | cut -d'/' -f 3)
-#CONFIGMAP_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${COMMON_NAME}"
-#GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
+CONFIGMAP_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${vpc_name}"
+GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
 GEN3_MANIFEST_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${GEN3_HOST_NAME}"
-#export GEN3_HOST_NAME=${GEN3_HOST_NAME}
+export GEN3_HOST_NAME=${GEN3_HOST_NAME}
 export GEN3_MANIFEST_HOME=${GEN3_MANIFEST_HOME}
 
 ##########comment out
