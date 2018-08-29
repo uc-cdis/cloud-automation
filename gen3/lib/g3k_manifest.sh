@@ -6,9 +6,13 @@
 
 CONFIGMAP_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${vpc_name}"
 GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
-GEN3_MANIFEST_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${GEN3_HOST_NAME}"
+#new path for all gitops files 
+GEN3_COMMON_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${GEN3_HOST_NAME}"
+#old manifest path
+GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
 export GEN3_HOST_NAME=${GEN3_HOST_NAME}
 export GEN3_MANIFEST_HOME=${GEN3_MANIFEST_HOME}
+export GEN3_COMMON_HOME=${GEN3_COMMON_HOME}
 
 ##########comment out
 #GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
@@ -59,6 +63,7 @@ g3k_manifest_init() {
 
   git ls-remote "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" > /dev/null 2>&1
   #if the separate common didn't setup, we will use the exist cdis-manifest logic 
+  #we should set up two separate variable one is 
   if [[ "$?" -ne 0 ]]; then
     if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
       echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
@@ -74,16 +79,16 @@ g3k_manifest_init() {
   fi
   
   if [["$?" -eq 0]]; then
-    if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
-      echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
-      echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_MANIFEST_HOME}" 1>&2
+    if [[ ! -d "${GEN3_COMMON_HOME}" ]]; then
+      echo -e $(red_color "ERROR: GEN3_COMMON_HOME does not exist: ${GEN3_COMMON_HOME}") 1>&2
+      echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_COMMON_HOME}" 1>&2
 
-      git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_MANIFEST_HOME}" 1>&2
+      git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_COMMON_HOME}" 1>&2
     fi
-    if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
+    if [[ -d "$GEN3_COMMON_HOME/.git" && -z "$JENKINS_HOME" ]]; then
       # Don't do this when running tests in Jenkins ...
-      echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
-      (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
+      echo "INFO: git fetch in $GEN3_COMMON_HOME" 1>&2
+      (cd "$GEN3_COMMON_HOME" && git pull; git status) 1>&2
     fi
   touch "$doneFilePath"
 }
@@ -103,12 +108,12 @@ g3k_manifest_path() {
 #############################comment out by Di 
   #local mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
 #############################
-  local mpath="${GEN3_MANIFEST_HOME}/manifest.json"
+  local mpath="${GEN3_COMMON_HOME}/manifest.json"
   if [[ ! -f "$mpath" ]]; then
 #############################comment out by Di 
    # mpath="${GEN3_MANIFEST_HOME}/default/manifest.json"
 ####################################
-    mpath="${GEN3_MANIFEST_HOME}/manifest.json"
+    mpath="${GEN3_COMMON_HOME}/manifest.json"
   fi
   echo "$mpath"
   if [[ -f "$mpath" ]]; then
