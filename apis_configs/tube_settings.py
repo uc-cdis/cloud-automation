@@ -1,21 +1,9 @@
 import os
-try:
-    # Import everything from ``local_settings``, if it exists.
-    from tube.config_helper import *
-except ImportError:
-    # If it doesn't, look in ``/tube/tube``.
-    try:
-        import imp
-        imp.load_source('config_helper', '/tube/tube/config_helper.py')
-        print('finished importing')
-    except IOError:
-        print("config_helper is not found")
+import config_helper
 
 APP_NAME='tube'
-def wrap_load_json(file_name):
-  return load_json(file_name, APP_NAME)
 
-conf_data = wrap_load_json('/tube/creds.json')
+conf_data = config_helper.load_json('creds.json', APP_NAME)
 DB_HOST = conf_data.get( 'db_host', '{{db_host}}' )
 DB_DATABASE = conf_data.get( 'db_database', '{{db_database}}' )
 DB_USERNAME = conf_data.get( 'db_username', '{{db_username}}' )
@@ -51,3 +39,4 @@ HADOOP_URL = os.getenv('HADOOP_URL', 'http://spark-service:9000')
 ES_HADOOP_VERSION = os.getenv("ES_HADOOP_VERSION", "")
 ES_HADOOP_HOME_BIN = '{}/elasticsearch-hadoop-{}'.format(os.getenv("ES_HADOOP_HOME", ""), os.getenv("ES_HADOOP_VERSION", ""))
 HADOOP_HOST = os.getenv("HADOOP_HOST", "spark-service")
+MAPPING_FILE = config_helper.find_paths("etlMapping.yaml", APP_NAME)[0]

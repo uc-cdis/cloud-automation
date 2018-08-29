@@ -42,6 +42,9 @@ spec:
         - name: config-helper
           configMap:
             name: config-helper
+        - name: etl-mapping
+          configMap:
+            name: etl-mapping
       containers:
         - name: tube
           imagePullPolicy: Always
@@ -69,12 +72,16 @@ spec:
               subPath: "local_settings.py"
             - name: "creds-volume"
               readOnly: true
-              mountPath: "/tube/creds.json"
+              mountPath: "/gen3/tube/creds.json"
               subPath: creds.json
             - name: "config-helper"
               readOnly: true
               mountPath: "/tube/tube/config_helper.py"
               subPath: config_helper.py
+            - name: "etl-mapping"
+              readOnly: true
+              mountPath: "/gen3/tube/etlMapping.yaml"
+              subPath: "etlMapping.yaml"
           resources:
             limits:
               cpu: 1
