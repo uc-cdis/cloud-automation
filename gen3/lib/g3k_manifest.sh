@@ -51,29 +51,40 @@ g3kubectl() {
 #   not corrupte the output of g3k_manifest_filter with info messages
 #
 g3k_manifest_init() {
-  # do this at most once per minute 
+  # do this at most once per min for testing  
   local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d%H%M)"
   if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
     return 0
   fi
 
-  if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
-    echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
-    echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_MANIFEST_HOME}" 1>&2
+  git ls-remote "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" > /dev/null 2>&1
+  #if the separate common didn't setup, we will use the exist cdis-manifest logic 
+  if [[ "$?" -ne 0 ]]; then
+    if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
+      echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
+      echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}" 1>&2
+      # This will fail if proxy is not set correctly
+      git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}" 1>&2
+    fi
+    if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
+      # Don't do this when running tests in Jenkins ...
+      echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
+      (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
+    fi
+  fi
+  
+  if [["$?" -eq 0]]; then
+    if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
+      echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
+      echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_MANIFEST_HOME}" 1>&2
 
-###############
-    #echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
-    #echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}" 1>&2
-   # This will fail if proxy is not set correctly
-#    git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}" 1>&2
-################
-   git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_MANIFEST_HOME}" 1>&2
-  fi
-  if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
-    # Don't do this when running tests in Jenkins ...
-    echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
-    (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
-  fi
+      git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_MANIFEST_HOME}" 1>&2
+    fi
+    if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
+      # Don't do this when running tests in Jenkins ...
+      echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
+      (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
+    fi
   touch "$doneFilePath"
 }
 
