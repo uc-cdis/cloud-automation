@@ -37,6 +37,12 @@ pipeline {
         sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/g3k_testsuite.sh --profile jenkins'
       }
     }
+    stage('gen3 roll all in current namespace') {
+      steps {
+        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/kube-roll-all.sh'
+      }
+    }
+
   }
   post {
     success {
