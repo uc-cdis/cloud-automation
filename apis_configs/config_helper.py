@@ -1,7 +1,11 @@
 import json
 import os
 
+#
 # make it easy to change this for testing
+# on linux XDG_DATA_HOME defaults to $HOME/.local/share,
+# but may need to add to .bashrc on Mac
+#
 XDG_DATA_HOME=os.getenv('XDG_DATA_HOME','/usr/share/')
 
 def default_search_folders(app_name): 
@@ -9,9 +13,10 @@ def default_search_folders(app_name):
   Return the list of folders to search for configuration files
   '''
   return [
-    '%s/cdis/%s' % (XDG_DATA_HOME, app_name),
-    '/usr/share/cdis/%s' % app_name,
-    '/var/www/%s' % app_name
+    '%s/gen3/%s' % (XDG_DATA_HOME, app_name),
+    '/usr/share/gen3/%s' % app_name,
+    '/var/www/%s' % app_name,
+    '/gen3/%s' % app_name
   ]
 
 def find_paths(file_name,app_name,search_folders=None):

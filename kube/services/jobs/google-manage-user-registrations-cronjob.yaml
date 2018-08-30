@@ -1,14 +1,14 @@
 ---
 # Note: change to batch/v1beta1 once we bump to k8s 1.8
-apiVersion: batch/v1beta1
+apiVersion: batch/v2alpha1
 kind: CronJob
 metadata:
-  name: google-manage-keys
+  name: google-manage-user-registrations
 spec:
   schedule: "@hourly"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
-  jobTemplate: 
+  jobTemplate:
     spec:
       # not yet supported - backOffLimit: 3
       template:
@@ -41,7 +41,7 @@ spec:
                 name: config-helper
           containers:
           - name: fence
-            image: quay.io/cdis/fence:master
+            GEN3_FENCE_IMAGE
             imagePullPolicy: Always
             env:
               - name: PYTHONPATH
@@ -78,5 +78,8 @@ spec:
             args:
               - "-c"
               - |
-                fence-create google-manage-keys
+                fence-create google-manage-user-registrations
+                if [[ $? != 0 ]]; then
+                  echo "WARNING: non zero exit code: $?"
+                fi
           restartPolicy: Never

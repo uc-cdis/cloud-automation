@@ -1,4 +1,7 @@
 
+resource "aws_iam_service_linked_role" "es" {
+  aws_service_name = "es.amazonaws.com"
+}
 
 data "aws_availability_zones" "available" {
   state = "available"
@@ -86,7 +89,7 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
   advanced_options {
     "rest.action.multi.allow_explicit_index" = "true"
   }
-
+  depends_on = ["aws_iam_service_linked_role.es"]
 
   snapshot_options {
     automated_snapshot_start_hour = 23

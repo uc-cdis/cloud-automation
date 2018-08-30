@@ -41,6 +41,7 @@ else
       exit 1
     else 
       g3kubectl label --overwrite configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0
+      >&2 echo "($(date +%s)) unlocked $lockName as owner $owner"
       exit 0
     fi
   fi
