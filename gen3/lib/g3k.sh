@@ -299,7 +299,7 @@ g3k_create_configmaps() {
     kvList+=("$key" "image: $value")
   done
 
-  echo -e "after first block\n"
+  echo -e "\nafter first block"
   for i in "${kvList[@]}"; do
     echo $i
   done
@@ -311,13 +311,13 @@ g3k_create_configmaps() {
       if [[ -n "$value" ]]; then
         # zsh friendly upper case
         # kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
-        kvKey=$(echo "gen3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
-        kvList+=("$kvKey" "$value")
+        # kvKey=$(echo "gen3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
+        kvList+=("$key" "$key2: $value")
       fi
     done
   done
 
-  echo -e "after second block\n"
+  echo -e "\nafter second block"
   for i in "${kvList[@]}"; do
     echo $i
   done
