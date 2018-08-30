@@ -286,23 +286,9 @@ g3k_create_configmaps() {
 
   local key
   local key2
-  local kvKey
   local value
   local kvList
   declare -a kvList=()
-  
-  # for key in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
-  #   value="$(g3k_config_lookup ".versions[\"$key\"]" "$manifestPath")"
-  #   # zsh friendly upper case
-  #   # kvKey=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
-  #   # kvKey=$(echo "gen3_${key}_IMAGE")
-  #   kvList+=("$key" "image: $value")
-  # done
-
-  echo -e "\nafter first block"
-  for i in "${kvList[@]}"; do
-    echo $i
-  done
 
   for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
     if [[ $key == 'versions' ]]; then 
@@ -314,7 +300,6 @@ g3k_create_configmaps() {
         kvList+=("$key2" "image: $value")
       done
     else
-    # for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
       for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
         if [[ -n "$value" ]]; then
@@ -327,27 +312,10 @@ g3k_create_configmaps() {
     fi
   done
 
-  echo -e "\nafter second block"
+  echo -e "\nafter parsing json"
   for i in "${kvList[@]}"; do
     echo $i
   done
-
-  # while [[ $# -gt 0 ]]; do
-  #   key="$1"
-  #   shift
-  #   value="$1"
-  #   shift || true
-  #   key=$(echo "${key}" | tr '[:lower:]' '[:upper:]')
-  #   if [[ ! "$key" =~ ^GEN3_ ]]; then
-  #     key="GEN3_$key"
-  #   fi
-  #   kvList+=("$key" "value: \"$value\"")
-  # done
-
-  # echo -e "after third block\n"
-  # for i in "${kvList[@]}"; do
-  #   echo $i
-  # done
 
 }
 
