@@ -68,7 +68,7 @@ g3k_manifest_init() {
     return 0 
   fi
   # if the url exists, we will follow the new gitops logic
-  if [[ ${NEW_MANIFEST_EXIST} != "Not Found" ]]; then
+  if [[ -z "${NEW_MANIFEST_EXIST}" ]]; then
 #     echo "if the url exists, we will follow the new gitops logic=====${NEW_MANIFEST_EXIST}"
     if [[ ! -d "${GEN3_COMMON_HOME}" ]]; then
       echo -e $(red_color "ERROR: GEN3_COMMON_HOME does not exist: ${GEN3_COMMON_HOME}") 1>&2
