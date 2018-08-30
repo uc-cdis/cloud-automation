@@ -288,67 +288,26 @@ g3k_create_configmaps() {
   local key2
   local value
   local kvList
-  # declare -a kvList=()
-
-  # for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
-  #   if [[ $key == 'versions' ]]; then 
-  #     for key2 in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
-  #       value="$(g3k_config_lookup ".versions[\"$key2\"]" "$manifestPath")"
-  #       # zsh friendly upper case
-  #       # kvKey=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
-  #       # kvKey=$(echo "gen3_${key}_IMAGE")
-  #       kvList+=("$key2" "image: $value")
-  #     done
-  #   else
-  #     for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
-  #       value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
-  #       if [[ -n "$value" ]]; then
-  #         # zsh friendly upper case
-  #         # kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
-  #         # kvKey=$(echo "gen3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
-  #         kvList+=("$key" "$key2: $value")
-  #       fi
-  #     done
-  #   fi
-  # done
-
-  # echo -e "\nafter parsing json"
-  # for i in "${kvList[@]}"; do
-  #   echo $i
-  # done
-
-  declare -A array
+  declare -A kvList
 
   for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
     if [[ $key == 'versions' ]]; then 
       for key2 in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
         value="$(g3k_config_lookup ".versions[\"$key2\"]" "$manifestPath")"
-        # zsh friendly upper case
-        # kvKey=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
-        # kvKey=$(echo "gen3_${key}_IMAGE")
-        # kvList+=("$key2" "image: $value")
-        array[$key2]="${array[$key2]}${array[$key2]:+,}image: $value"
+        kvList[$key2]="${kvList[$key2]}${kvList[$key2]:+,}image: $value"
       done
     else
       for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
         if [[ -n "$value" ]]; then
-          # zsh friendly upper case
-          # kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
-          # kvKey=$(echo "gen3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
-          # kvList+=("$key" "$key2: $value")
-          array[$key]="${array[$key]}${array[$key]:+,}$key2: $value"
-
+          kvList[$key]="${kvList[$key]}${kvList[$key]:+,}$key2: $value"
         fi
       done
     fi
   done
 
   echo -e "\nafter parsing json"
-  for key in "${!array[@]}"; do echo "$key->${array[$key]}"; done
-
-
-
+  for key in "${!kvList[@]}"; do echo "$key->${kvList[$key]}"; done
 }
 
 #
