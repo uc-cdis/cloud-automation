@@ -305,16 +305,18 @@ g3k_create_configmaps() {
   done
 
   for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
-  # for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
-    for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
-      value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
-      if [[ -n "$value" ]]; then
-        # zsh friendly upper case
-        # kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
-        # kvKey=$(echo "gen3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
-        kvList+=("$key" "$key2: $value")
-      fi
-    done
+    if [[ key != 'versions' ]]; then 
+    # for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
+      for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
+        value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
+        if [[ -n "$value" ]]; then
+          # zsh friendly upper case
+          # kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
+          # kvKey=$(echo "gen3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
+          kvList+=("$key" "$key2: $value")
+        fi
+      done
+    fi
   done
 
   echo -e "\nafter second block"
