@@ -52,7 +52,7 @@ if ! g3kubectl get configmaps global > /dev/null 2>&1; then
   else
     echo "ERROR: unable to configure global configmap - missing ${WORKSPACE}/${vpc_name}/00configmap.yaml"
     exit 1
-fi
+  fi
 fi
 if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
   g3kubectl create configmap config-helper --from-file "${GEN3_HOME}/apis_configs/config_helper.py"
