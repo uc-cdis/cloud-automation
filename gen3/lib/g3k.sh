@@ -282,7 +282,10 @@ g3k_create_configmaps() {
     echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
     return 1
   fi
-  echo $manifest_path
+  if [[ -z "$manifestPath" ]]; then
+    echo "manifestPath is emptu"
+  fi
+  echo $manifestPath
 
 
   local key
@@ -299,7 +302,7 @@ g3k_create_configmaps() {
     kvList+=("$kvKey" "image: $value")
   done
 
-  echo "after first block"
+  echo "after first block\n"
   for i in "${kvList[@]}"; do
     echo $i
   done
@@ -316,7 +319,7 @@ g3k_create_configmaps() {
     done
   done
 
-  echo "after second block"
+  echo "after second block\n"
   for i in "${kvList[@]}"; do
     echo $i
   done
@@ -333,7 +336,7 @@ g3k_create_configmaps() {
     kvList+=("$key" "value: \"$value\"")
   done
 
-  echo "after third block"
+  echo "after third block\n"
   for i in "${kvList[@]}"; do
     echo $i
   done
