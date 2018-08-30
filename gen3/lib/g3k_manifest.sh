@@ -8,6 +8,18 @@
 # Root manifest folder where the `cdis-manifest` git repo is checked out
 #
 
+COMMON_NAME=$(pwd | cut -d'/' -f 3)
+CONFIGMAP_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${COMMON_NAME}"
+GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
+  #new path for all gitops files 
+GEN3_COMMON_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${GEN3_HOST_NAME}"
+export GEN3_HOST_NAME=${GEN3_HOST_NAME}
+export GEN3_COMMON_HOME=${GEN3_COMMON_HOME}
+
+  #check if the new manifest url exists
+NEW_MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .message)
+export NEW_MANIFEST_EXIST=${NEW_MANIFEST_EXIST}
+
 #old manifest path
 GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
 export GEN3_MANIFEST_HOME
@@ -54,22 +66,18 @@ g3kubectl() {
 # Note - be sure to redirect stdout to stderr, so we do
 #   not corrupte the output of g3k_manifest_filter with info messages
 #
+
 g3k_manifest_init() {
-  GEN3_HOST_NAME=$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')
-  #new path for all gitops files 
-  GEN3_COMMON_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${GEN3_HOST_NAME}"
+  # NOTE:do this at  once a minute for testing purpose. 
   local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d%H%M)"
-  export GEN3_HOST_NAME=${GEN3_HOST_NAME}
-  export GEN3_COMMON_HOME=${GEN3_COMMON_HOME}
-  
+
   # do this at most once a minute for testing purpose. 
   local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d%H%M)"
   if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
-    return 0 
+    return 0
   fi
   # if the url exists, we will follow the new gitops logic
-  if [[ -z "${NEW_MANIFEST_EXIST}" ]]; then
-#     echo "if the url exists, we will follow the new gitops logic=====${NEW_MANIFEST_EXIST}"
+ if [[ ${NEW_MANIFEST_EXIST} == "null" ]]; then 
     if [[ ! -d "${GEN3_COMMON_HOME}" ]]; then
       echo -e $(red_color "ERROR: GEN3_COMMON_HOME does not exist: ${GEN3_COMMON_HOME}") 1>&2
       echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_COMMON_HOME}" 1>&2
@@ -81,9 +89,8 @@ g3k_manifest_init() {
       echo "INFO: git fetch in $GEN3_COMMON_HOME" 1>&2
       (cd "$GEN3_COMMON_HOME" && git pull; git status) 1>&2
     fi
-  #if the new common repo url doesn't exit, we will follow our curernt manifest logic                           
   else
-#    echo "we will follow our curernt manifest logic ===${GEN3_MANIFEST_HOME}"
+  #if the new common repo url doesn't exit, we will follow our curernt manifest logic                           
     if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
       echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
       echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}" 1>&2
@@ -95,9 +102,10 @@ g3k_manifest_init() {
       echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
       (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
     fi
-  fi 
+  fi
   touch "$doneFilePath"
 }
+
 
 #
 # Get the path to the manifest appropriate for this commons
