@@ -35,7 +35,7 @@ else
   fi
   lockName="$1"
   owner="$2"
-  expTime=$(($(date +%s)+$3))
+  lockDurationSecs=$3
 fi
 
 # load gen3 tools
@@ -63,6 +63,7 @@ fi
 # lock and wait, then check again if we have the lock before proceeding
 if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "false" 
   || $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -lt $(date +%s) ]]; then
+  expTime=$(($(date +%s)+$lockDurationSecs))
   g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime
   sleep $(shuf -i 1-5 -n 1)
 
@@ -78,6 +79,7 @@ if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}"
           && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then
           sleep $(shuf -i 1-5 -n 1)
         else
+          expTime=$(($(date +%s)+$lockDurationSecs))
           g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime
           >&2 echo "($(date +%s)) locked $lockName as owner $owner until $expTime"
           exit 0
@@ -95,6 +97,7 @@ else
         && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then
         sleep $(shuf -i 1-5 -n 1)
       else
+        expTime=$(($(date +%s)+$lockDurationSecs))
         g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime
         >&2 echo "($(date +%s)) locked $lockName as owner $owner until $expTime"
         exit 0
