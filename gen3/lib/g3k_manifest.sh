@@ -7,6 +7,7 @@
 #
 # Root manifest folder where the `cdis-manifest` git repo is checked out
 #
+#GEN3_HOST_NAME=$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')
 CONFIGMAP_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${vpc_name}"
 GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
 
@@ -71,7 +72,7 @@ g3k_manifest_init() {
     return 0 
   fi
   #if the new common repo url doesn't exit, we will follow our curernt manifest logic                           
-  if [[ ${NEW_MANIFEST_EXIST} == "Not Found" ]]; then 
+  if [[ "${NEW_MANIFEST_EXIST}" == "Not Found" ]]; then 
      echo "$NEW_MANIFEST_EXIST"
     if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
       echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
