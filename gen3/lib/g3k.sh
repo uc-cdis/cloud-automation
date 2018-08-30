@@ -276,6 +276,8 @@ g3k_ec2_reboot() {
 #
 g3k_create_configmaps() {
   echo "hi"
+  manifest_path=$(g3k_manifest_path)
+  echo $manifest_path
 }
 
 #
