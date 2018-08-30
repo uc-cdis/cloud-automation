@@ -24,3 +24,7 @@ fi
 if ! g3kubectl get cronjob google-delete-expired-service-account > /dev/null 2>&1; then
    g3kubectl create -f "${GEN3_HOME}/kube/services/jobs/google-delete-expired-service-account-cronjob.yaml"
 fi
+
+if ! g3kubectl get cronjob google-manage-user-registrations > /dev/null 2>&1; then
+   g3kubectl create -f "${GEN3_HOME}/kube/services/jobs/google-manage-user-registrations-cronjob.yaml"
+fi
