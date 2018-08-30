@@ -56,7 +56,7 @@ if ! g3kubectl get configmaps global > /dev/null 2>&1; then
   fi
 fi
 if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
-  g3kubectl create configmap config-helper --from-file "${GEN3_HOME}/apis_configs/config_helper.py"
+  gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
 fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
@@ -244,12 +244,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update tube secrets
   fi
 
   cd "${WORKSPACE}/${vpc_name}"
-
-  if ! g3kubectl get secrets/tube-secret > /dev/null 2>&1; then
-    # make sure config-helper is up to date while we're at it
-    gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
-    g3kubectl create secret generic tube-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/tube_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
-  fi
 fi
 
 # ETL mapping file for tube
