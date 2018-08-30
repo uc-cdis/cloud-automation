@@ -6,6 +6,7 @@ set -e
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
+gen3_load "gen3/lib/g3k_manifest"
 
 mkdir -p "${WORKSPACE}/${vpc_name}/apis_configs"
 
@@ -234,6 +235,27 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
   if ! g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
     g3kubectl create secret generic peregrine-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/peregrine_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
+fi
+
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update tube secrets
+  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
+    echo "${WORKSPACE}/${vpc_name} does not exist"
+    exit 1
+  fi
+
+  cd "${WORKSPACE}/${vpc_name}"
+
+  if ! g3kubectl get secrets/tube-secret > /dev/null 2>&1; then
+    # make sure config-helper is up to date while we're at it
+    gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
+    g3kubectl create secret generic tube-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/tube_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+  fi
+fi
+
+# ETL mapping file for tube
+ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"
+if [[ -f "$ETL_MAPPING_PATH" ]]; then
+  gen3 update_config etl-mapping "$ETL_MAPPING_PATH"
 fi
 
 if [[ -z "$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')" ]]; then

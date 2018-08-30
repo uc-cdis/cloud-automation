@@ -106,6 +106,14 @@ Delete any expired service accounts
 
 Same as above but run on a schedule.
 
+#### google-manage-user-registrations-job
+
+Remove any invalid service account registered to access controlled data.
+
+#### google-manage-user-registrations-cronjob
+
+Same as above but run on a schedule.
+
 ## Misc jobs
 
 ### gentestdata-job

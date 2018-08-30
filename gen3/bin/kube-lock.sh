@@ -5,25 +5,38 @@
 
 help() {
   cat - <<EOM
-  gen3 kube-lock lock-name owner max-age:
+  gen3 kube-lock lock-name owner max-age [--wait wait-time]:
     Attempts to lock the lock lock-name in the namespace that KUBECTL_NAMESPACE 
     is set to. Exits 0 if the lock is obtained and 1 if it is not obtained.
+      lock-name: string, name of lock
+      owner: string, name of owner
+      max-age: int, number of seconds for the lock to persist before expiring
+      -w, --wait: option to make lock spin wait
+        wait-time: int, number of seconds to spin wait for
 EOM
   return 0
 }
 
-if [[ $1 =~ ^-*help$ || $# -ne 3 ]]; then
+if [[ $1 =~ ^-*help$ || ($# -ne 3 && $# -ne 5) ]]; then
   help
   exit 0
 else
+  if ! [[ $3 =~ ^[0-9]+$ ]]; then
+    echo "ERROR: max-age is $3, must be an integer"
+    exit 1
+  fi
+  if [[ $4 = '-w' || $4 = '--wait' ]]; then
+    wait=true
+    if ! [[ $5 =~ ^[0-9]+$ ]]; then
+      echo "ERROR: wait-time is $5, must be an integer"
+      exit 1
+    fi
+    endWaitTime=$(($(date +%s)+$5))
+  fi
   lockName="$1"
   owner="$2"
   expTime=$(($(date +%s)+$3))
 fi
-
-set -i
-# load bashrc so that the script is treated like it was launched on the remote machine
-source ~/.bashrc
 
 # load gen3 tools
 if [[ -n "$GEN3_HOME" ]]; then  # load gen3 tools from cloud-automation
@@ -56,10 +69,39 @@ if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}"
   if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
     && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_owner}") = $owner 
     && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then 
+    >&2 echo "($(date +%s)) locked $lockName as owner $owner until $expTime"
     exit 0
   else
-    exit 1
+    if [[ $wait = true ]]; then
+      while [[ $endWaitTime -gt $(date +%s) ]]; do
+        if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
+          && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then
+          sleep $(shuf -i 1-5 -n 1)
+        else
+          g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime
+          >&2 echo "($(date +%s)) locked $lockName as owner $owner until $expTime"
+          exit 0
+        fi
+      done
+      exit 1
+    else 
+      exit 1
+    fi
   fi
 else 
-  exit 1
+  if [[ $wait = true ]]; then
+    while [[ $endWaitTime -gt $(date +%s) ]]; do
+      if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
+        && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then
+        sleep $(shuf -i 1-5 -n 1)
+      else
+        g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime
+        >&2 echo "($(date +%s)) locked $lockName as owner $owner until $expTime"
+        exit 0
+      fi
+    done
+    exit 1
+  else 
+    exit 1
+  fi
 fi

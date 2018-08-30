@@ -1,0 +1,73 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tube
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: tube-job
+      volumes:
+      - name: config-volume
+        secret:
+          secretName: "tube-secret"
+      - name: creds-volume
+        secret:
+          secretName: "peregrine-creds"
+      - name: config-helper
+        configMap:
+          name: config
+      - name: etl-mapping
+          configMap:
+            name: etl-mapping
+      containers:
+      - name: tube
+        imagePullPolicy: Always
+        GEN3_TUBE_IMAGE
+        ports:
+        - containerPort: 80
+        env:
+        - name: DICTIONARY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: global
+              key: dictionary_url
+        - name: HADOOP_URL
+          value: hdfs://revproxy-service:9000
+        - name: ES_URL
+          value: esproxy-service
+        - name: ES_INDEX_NAME
+          value: GEN3_TUBE_ES_INDEX_NAME|-null-|
+        - name: HADOOP_HOST
+          value: spark-service
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/tube/tube/local_settings.py"
+            subPath: "local_settings.py"
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/gen3/tube/creds.json"
+            subPath: creds.json
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/tube/tube/config_helper.py"
+            subPath: config_helper.py
+          - name: "etl-mapping"
+            readOnly: true
+            mountPath: "/gen3/tube/etlMapping.yaml"
+            subPath: "etlMapping.yaml"
+        resources:
+          limits:
+            cpu: 0.3
+            memory: 512Mi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            python run_config.py
+            python run_import.py
+            python run_spark.py
+      restartPolicy: Never

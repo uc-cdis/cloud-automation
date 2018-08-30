@@ -68,9 +68,10 @@ g3kubectl() {
 #
 
 g3k_manifest_init() {
-  # NOTE:do this  once a minute for testing purpose. 
-  local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d%H%M)"
 
+  # do this at most once every 5 minutes
+  local doneFilePath
+  doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(($(date +%s) / 300))"
   if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
     return 0
   fi

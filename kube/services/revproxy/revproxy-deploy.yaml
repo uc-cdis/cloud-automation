@@ -47,7 +47,7 @@ spec:
             secretName: "service-ca"
       containers:
       - name: revproxy
-        image: nginx:1.13.9-perl
+        GEN3_REVPROXY_IMAGE|-image: nginx:1.13.9-perl-|
         command:
           - /usr/sbin/nginx
           - -g
