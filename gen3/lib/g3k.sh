@@ -276,8 +276,68 @@ g3k_ec2_reboot() {
 #
 g3k_create_configmaps() {
   echo "hi"
-  manifest_path=$(g3k_manifest_path)
+  local manifestPath
+  manifestPath=$(g3k_manifest_path)
+  if [[ ! -f "$manifestPath" ]]; then
+    echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
+    return 1
+  fi
   echo $manifest_path
+
+
+  local key
+  local key2
+  local kvKey
+  local value
+  local kvList
+  declare -a kvList=()
+  
+  for key in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
+    value="$(g3k_config_lookup ".versions[\"$key\"]" "$manifestPath")"
+    # zsh friendly upper case
+    kvKey=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
+    kvList+=("$kvKey" "image: $value")
+  done
+
+  echo "after first block"
+  for i in "${kvList[@]}"; do
+    echo $i
+  done
+
+  for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
+  # for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
+    for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
+      value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
+      if [[ -n "$value" ]]; then
+        # zsh friendly upper case
+        kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
+        kvList+=("$kvKey" "$value")
+      fi
+    done
+  done
+
+  echo "after second block"
+  for i in "${kvList[@]}"; do
+    echo $i
+  done
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    shift
+    value="$1"
+    shift || true
+    key=$(echo "${key}" | tr '[:lower:]' '[:upper:]')
+    if [[ ! "$key" =~ ^GEN3_ ]]; then
+      key="GEN3_$key"
+    fi
+    kvList+=("$key" "value: \"$value\"")
+  done
+
+  echo "after third block"
+  for i in "${kvList[@]}"; do
+    echo $i
+  done
+
 }
 
 #
