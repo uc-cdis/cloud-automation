@@ -282,11 +282,7 @@ g3k_create_configmaps() {
     echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
     return 1
   fi
-  if [[ -z "$manifestPath" ]]; then
-    echo "manifestPath is emptu"
-  fi
   echo $manifestPath
-
 
   local key
   local key2
@@ -298,11 +294,12 @@ g3k_create_configmaps() {
   for key in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
     value="$(g3k_config_lookup ".versions[\"$key\"]" "$manifestPath")"
     # zsh friendly upper case
-    kvKey=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
-    kvList+=("$kvKey" "image: $value")
+    # kvKey=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
+    # kvKey=$(echo "gen3_${key}_IMAGE")
+    kvList+=("$key" "image: $value")
   done
 
-  echo "after first block\n"
+  echo -e "after first block\n"
   for i in "${kvList[@]}"; do
     echo $i
   done
@@ -313,33 +310,34 @@ g3k_create_configmaps() {
       value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
       if [[ -n "$value" ]]; then
         # zsh friendly upper case
-        kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
+        # kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
+        kvKey=$(echo "gen3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
         kvList+=("$kvKey" "$value")
       fi
     done
   done
 
-  echo "after second block\n"
+  echo -e "after second block\n"
   for i in "${kvList[@]}"; do
     echo $i
   done
 
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    shift
-    value="$1"
-    shift || true
-    key=$(echo "${key}" | tr '[:lower:]' '[:upper:]')
-    if [[ ! "$key" =~ ^GEN3_ ]]; then
-      key="GEN3_$key"
-    fi
-    kvList+=("$key" "value: \"$value\"")
-  done
+  # while [[ $# -gt 0 ]]; do
+  #   key="$1"
+  #   shift
+  #   value="$1"
+  #   shift || true
+  #   key=$(echo "${key}" | tr '[:lower:]' '[:upper:]')
+  #   if [[ ! "$key" =~ ^GEN3_ ]]; then
+  #     key="GEN3_$key"
+  #   fi
+  #   kvList+=("$key" "value: \"$value\"")
+  # done
 
-  echo "after third block\n"
-  for i in "${kvList[@]}"; do
-    echo $i
-  done
+  # echo -e "after third block\n"
+  # for i in "${kvList[@]}"; do
+  #   echo $i
+  # done
 
 }
 
