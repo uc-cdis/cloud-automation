@@ -6,18 +6,26 @@ pipeline {
   stages {
     stage('FetchCode'){
       steps {
-        checkout scm
+        dir('cloud-automation') {
+          checkout scm
+        }
+        dir('cdis-manifest') {
+          git(
+            url: 'https://github.com/uc-cdis/cdis-manifest.git',
+            branch: 'QA'
+          )
+        }
         sh '/bin/rm -rf Secrets SecretsNoPlan dataHome'
       }
     }
     stage('gen3 helper test suite') {
       steps {
-        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/testsuite.sh --profile jenkins'
+        sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
       }
     }
     stage('gen3 helper test suite with zsh') {
       steps {
-        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome zsh gen3/bin/testsuite.sh --profile jenkins'
+        sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome zsh cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
       }
     }
 
@@ -29,17 +37,17 @@ pipeline {
     stage('lamda test') {
       steps {
         sh 'pip3 install boto3 --upgrade'
-        sh 'cd tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
+        sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
       }
     }
     stage('g3k helper test suite') {
       steps {
-        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/g3k_testsuite.sh --profile jenkins'
+        sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/g3k_testsuite.sh --profile jenkins'
       }
     }
     stage('gen3 roll all in current namespace') {
       steps {
-        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/kube-roll-all.sh'
+        sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/kube-roll-all.sh'
       }
     }
 
