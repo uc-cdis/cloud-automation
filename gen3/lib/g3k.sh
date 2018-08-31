@@ -316,7 +316,7 @@ g3k_create_configmaps() {
     read -ra valueList <<< "${kvList[$key]}"
     for item in "${valueList[@]}"; do
         echo "$item"
-        execString+="--from-literal $(sed -i -e "s,: ,=,g" <<< $item)"
+        execString+="--from-literal $(sed "s,: ,=,g" <<< "$item")"
     done
     echo $execString
     # g3kubectl create configmap $key --from-literal
