@@ -405,7 +405,7 @@ resource "aws_iam_role_policy_attachment" "asg_access" {
 
 # This one must have been created when we deployed the VPC resources
 resource "aws_iam_role_policy_attachment" "bucket_read" {
-  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/bucket_reader_cdis-gen3-users_${var.vpc_name}"
+  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/bucket_reader_cdis-gen3-users_${var.users_folder}"
   role       = "${aws_iam_role.eks_node_role.name}"
 }
 
