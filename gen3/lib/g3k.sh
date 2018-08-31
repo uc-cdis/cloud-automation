@@ -275,7 +275,6 @@ g3k_ec2_reboot() {
 # g3k command to create configmaps from manifest
 #
 g3k_create_configmaps() {
-  echo "hi"
   local manifestPath
   manifestPath=$(g3k_manifest_path)
   if [[ ! -f "$manifestPath" ]]; then
@@ -288,6 +287,7 @@ g3k_create_configmaps() {
   local key2
   local value
   local kvList
+  local valueList
   declare -A kvList
 
   for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
@@ -307,7 +307,20 @@ g3k_create_configmaps() {
   done
 
   echo -e "\nafter parsing json"
-  for key in "${!kvList[@]}"; do echo "$key->${kvList[$key]}"; done
+#   for key in "${!kvList[@]}"; do echo "$key->${kvList[$key]}"; done
+
+
+  IFS=','
+  for key in "${!kvList[@]}"; do 
+    echo "$key->${kvList[$key]}"
+
+    read -ra valueList <<< ${kvList[$key]}
+    for i in "${valueList[@]}"; do
+        echo "$i"
+    done
+    # g3kubectl create configmap $key --from-literal
+  done
+
 }
 
 #
