@@ -287,7 +287,6 @@ g3k_create_configmaps() {
   local key2
   local value
   local kvList
-  local valueList
   declare -A kvList
 
   for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
@@ -306,18 +305,20 @@ g3k_create_configmaps() {
     fi
   done
 
+  local execString
+  local valueList
   echo -e "\nafter parsing json"
-#   for key in "${!kvList[@]}"; do echo "$key->${kvList[$key]}"; done
-
-
   IFS=','
   for key in "${!kvList[@]}"; do 
-    echo "$key->${kvList[$key]}"
-
-    read -ra valueList <<< ${kvList[$key]}
-    for i in "${valueList[@]}"; do
-        echo "$i"
+    echo "$key"
+    # echo "$key->${kvList[$key]}"
+    execString=""
+    read -ra valueList <<< "${kvList[$key]}"
+    for item in "${valueList[@]}"; do
+        echo "$item"
+        execString+="--from-literal $(sed -i -e "s,: ,=,g" <<< $item)"
     done
+    echo $execString
     # g3kubectl create configmap $key --from-literal
   done
 
