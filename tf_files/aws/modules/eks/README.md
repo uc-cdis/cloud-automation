@@ -45,6 +45,7 @@ ec2_keyname = "fauziv1_automation_dev"
 
 * `vpc_name` usually the same name as the commons, this VPC must be an existing one, otherwise the execution will fail. Additioanlly, it worth mentioning that logging and VPC must exist before running this.
 * `ec2_keyname` and existing key pair so we can ssh into the worker nodes. There might be a better way to achieve this.
+* `users_folder` This mus match a folder in the cdis-gen3-users bucket in order for users synchronization.
 
 ### 4.2 Optional Variables
 
