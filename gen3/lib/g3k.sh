@@ -294,19 +294,19 @@ g3k_create_configmaps() {
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
     if [[ $key != 'notes' ]]; then
       echo $key
+      execString="kubectl create configmap $key "
+
       for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
         if [[ -n "$value" ]]; then
-          echo $key2
-          echo $value
-          # kvList[$key]="${kvList[$key]}${kvList[$key]:+,}$key2: $value"
+          execString+="--from-literal $key2=$value "
         fi
       done
 
 
-      json=$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")
-      echo $json
-      execString="kubectl create configmap $key --from-literal json=$json"
+      jsonSection="--from-literal json=$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")"
+      echo $jsonSection
+      execString+=$jsonSection
       echo $execString
     fi
   done
