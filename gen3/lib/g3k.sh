@@ -316,7 +316,7 @@ g3k_create_configmaps() {
         execString+="--from-literal $(sed "s,: ,=,g" <<< "$item") "
     done
     echo $execString
-    # g3kubectl create configmap $key --from-literal
+    g3kubectl create configmap $execString
   done
 
 }
