@@ -283,7 +283,7 @@ g3k_create_configmaps() {
   fi
   echo $manifestPath
 
-  g3kubectl create configmap manifest --from-literal json=$(g3k_config_lookup "." "$manifestPath")
+  g3kubectl create configmap manifest --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
 
   local key
   local key2
