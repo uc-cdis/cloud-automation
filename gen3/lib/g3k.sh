@@ -295,7 +295,9 @@ g3k_create_configmaps() {
     echo $key
     if [[ $key != 'notes' ]]; then
       echo $key
-      execString="kubectl create configmap $key --from-literal json=$(g3k_config_lookup ".versions[\"key\"]" "$manifestPath")"
+      json=$(g3k_config_lookup ".versions[\"key\"]" "$manifestPath")
+      echo $json
+      execString="kubectl create configmap $key --from-literal json=$json"
       echo $execString
     fi
   done
