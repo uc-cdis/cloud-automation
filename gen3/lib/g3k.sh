@@ -281,9 +281,8 @@ g3k_create_configmaps() {
     echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
     return 1
   fi
-  echo $manifestPath
 
-  g3kubectl create configmap manifest --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
+  g3kubectl create configmap manifest_all --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
 
   local key
   local key2
@@ -292,7 +291,7 @@ g3k_create_configmaps() {
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
     if [[ $key != 'notes' ]]; then
-      execString="g3kubectl create configmap $key "
+      execString="g3kubectl create configmap manifest_$key "
       for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
         if [[ -n "$value" ]]; then
@@ -301,8 +300,7 @@ g3k_create_configmaps() {
       done
       jsonSection="--from-literal json=$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")"
       execString+=$jsonSection
-      echo $execString
-      # eval $execString
+      eval $execString
     fi
   done
 }
