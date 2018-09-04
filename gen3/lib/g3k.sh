@@ -310,13 +310,10 @@ g3k_create_configmaps() {
   echo -e "\nafter parsing json"
   IFS=','
   for key in "${!kvList[@]}"; do 
-    echo "$key"
-    # echo "$key->${kvList[$key]}"
-    execString=""
+    execString="$key " 
     read -ra valueList <<< "${kvList[$key]}"
     for item in "${valueList[@]}"; do
-        echo "$item"
-        execString+="--from-literal $(sed "s,: ,=,g" <<< "$item")"
+        execString+="--from-literal $(sed "s,: ,=,g" <<< "$item") "
     done
     echo $execString
     # g3kubectl create configmap $key --from-literal
