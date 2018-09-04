@@ -283,61 +283,28 @@ g3k_create_configmaps() {
   fi
   echo $manifestPath
 
+  g3kubectl create configmap manifest --from-literal $(g3k_config_lookup "." "$manifestPath")
+
   local key
   local key2
   local value
-  local kvList
-  declare -A kvList
   local execString
-
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
     if [[ $key != 'notes' ]]; then
-      echo $key
-      execString="kubectl create configmap $key "
-
+      execString="g3kubectl create configmap $key "
       for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
         if [[ -n "$value" ]]; then
           execString+="--from-literal $key2=$value "
         fi
       done
-
-
       jsonSection="--from-literal json=$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")"
-      echo $jsonSection
       execString+=$jsonSection
       echo $execString
+      # eval $execString
     fi
   done
-
-  #     for key2 in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
-  #       value="$(g3k_config_lookup ".versions[\"$key2\"]" "$manifestPath")"
-  #       kvList[$key2]="${kvList[$key2]}${kvList[$key2]:+,}image: $value"
-  #     done
-  #   else
-  #     for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
-  #       value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
-  #       if [[ -n "$value" ]]; then
-  #         kvList[$key]="${kvList[$key]}${kvList[$key]:+,}$key2: $value"
-  #       fi
-  #     done
-  #   fi
-  # done
-
-  # local valueList
-  # echo -e "\nafter parsing json"
-  # IFS=','
-  # for key in "${!kvList[@]}"; do 
-  #   execString="$key " 
-  #   read -ra valueList <<< "${kvList[$key]}"
-  #   for item in "${valueList[@]}"; do
-  #       execString+="--from-literal $(sed "s,: ,=,g" <<< "$item") "
-  #   done
-  #   echo $execString
-  #   $(g3kubectl create configmap $execString)
-  # done
-
 }
 
 #
