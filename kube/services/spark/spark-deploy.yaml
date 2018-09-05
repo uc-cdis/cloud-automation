@@ -1,0 +1,75 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: spark-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: spark
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: spark
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - spark
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+      containers:
+        - name: gen3-spark
+          GEN3_SPARK_IMAGE
+          ports:
+          - containerPort: 22
+          - containerPort: 9000
+          - containerPort: 8030
+          - containerPort: 8031
+          - containerPort: 8032
+          env:
+          - name: DICTIONARY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: dictionary_url
+          - name: HADOOP_URL
+            value: hdfs://0.0.0.0:9000
+          - name: HADOOP_HOST
+            value: 0.0.0.0
+          volumeMounts:
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 0.3
+              memory: 2Gi
+          command: ["/bin/bash" ]
+          args: 
+            - "-c"
+            - |
+              # get /usr/local/share/ca-certificates/cdis-ca.crt into system bundle
+              ssh server sudo /etc/init.d/ssh start
+              update-ca-certificates
+              python run_config.py
+              hdfs namenode -format
+              hdfs --daemon start namenode
+              hdfs --daemon start datanode
+              yarn --daemon start resourcemanager
+              yarn --daemon start nodemanager
+              start-history-server.sh
+              while true; do sleep 5; done

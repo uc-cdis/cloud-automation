@@ -4,8 +4,18 @@
 # via the `g3k/gen3` cli
 #
 
+#
+# Root manifest folder where the `cdis-manifest` git repo is checked out
+#
 GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
 export GEN3_MANIFEST_HOME
+
+#
+# GEN3_GITOPS_FOLDER environment variable:
+# Override the folder under which to look for
+# manifest.json and other configuration files.
+# If not set, then defaults to GEN3_MANIFEST_HOME/hostname 
+#
 
 gen3_load "gen3/lib/utils"
 
@@ -21,7 +31,7 @@ g3kubectl() {
   # without causing an infinite loop ...
   #
   if [[ ${CURRENT_SHELL} == "zsh" ]]; then
-    theKubectl=$(whence -p kubectl)
+    theKubectl=$(bash which kubectl)
   else
     theKubectl=$(which kubectl)
   fi
@@ -43,8 +53,9 @@ g3kubectl() {
 #   not corrupte the output of g3k_manifest_filter with info messages
 #
 g3k_manifest_init() {
-  # do this at most once a day
-  local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d)"
+  # do this at most once every 5 minutes
+  local doneFilePath
+  doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(($(date +%s) / 300))"
   if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
     return 0
   fi
@@ -68,15 +79,17 @@ g3k_manifest_init() {
 # @param domain commons domain - tries to extract from global configmap if not given
 #
 g3k_manifest_path() {
-  local domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
-  if [[ -z "$domain" ]]; then
-    echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
-    return 1
-  fi
-  g3k_manifest_init
-  local mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
-  if [[ ! -f "$mpath" ]]; then
-    mpath="${GEN3_MANIFEST_HOME}/default/manifest.json"
+  local mpath
+  if [[ -z "$GEN3_GITOPS_FOLDER" ]]; then
+    local domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
+    if [[ -z "$domain" ]]; then
+      echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
+      return 1
+    fi
+    g3k_manifest_init
+    mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
+  else
+    mpath="${GEN3_GITOPS_FOLDER}/manifest.json"
   fi
   echo "$mpath"
   if [[ -f "$mpath" ]]; then
@@ -174,15 +187,15 @@ g3k_manifest_filter() {
   
   kvList+=('GEN3_DATE_LABEL' "date: \"$(date +%s)\"")
 
-  for key in $(jq -r '.versions | keys[]' < "$manifestPath"); do
-    value="$(jq -r ".versions[\"$key\"]" < "$manifestPath")"
+  for key in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
+    value="$(g3k_config_lookup ".versions[\"$key\"]" "$manifestPath")"
     # zsh friendly upper case
     kvKey=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
     kvList+=("$kvKey" "image: $value")
   done
-  for key in $(jq -r '. | keys[]' < "$manifestPath"); do
-    for key2 in $(jq -r ".[\"${key}\"] | keys[]" < "$manifestPath" | grep '^[a-zA-Z]'); do
-      value="$(jq -r ".[\"$key\"][\"$key2\"]" < "$manifestPath")"
+  for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
+    for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
+      value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
       if [[ -n "$value" ]]; then
         # zsh friendly upper case
         kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
@@ -206,6 +219,36 @@ g3k_manifest_filter() {
 }
 
 #
+# Little helper evaluates the given jq or yq expression
+# (for .json and .yaml files respectively)
+# against the specified manifest
+#
+# @param queryStr like '.versions.sheepdog'
+# @param configPath optional - otherwise defaults to
+#      g3k_manifest_path
+#
+g3k_config_lookup() {
+  local queryStr
+  local configPath
+  queryStr="$1"
+  shift
+  if [[ -z "$1" ]]; then
+    configPath=$(g3k_manifest_path)
+  else
+    configPath="$1"
+  fi
+  if [[ "$configPath" =~ .json$ ]]; then
+    jq -r -e "$queryStr" < "$configPath"
+  elif [[ "$configPath" =~ .yaml ]]; then
+    yq -r -e "$queryStr" < "$configPath"
+  else
+    echo "$(red_color ERROR: file is not .json or .yaml: $configPath)" 1>&2
+    return 1
+  fi
+}
+
+
+#
 # Roll the given deployment
 #
 # @param deploymentName
@@ -216,9 +259,10 @@ g3k_roll() {
   depName="$1"
   shift
   if [[ -z "$depName" ]]; then
-    echo -e "$(red_color "Use: g3k roll deployment-name")"
+    echo -e "$(red_color "Use: g3k roll deployment-name")" 1>&2
     return 1
   fi
+
   local templatePath=""
   if [[ -f "$depName" ]]; then
     # we were given the path to a file - fine
@@ -228,12 +272,29 @@ g3k_roll() {
     templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
   fi
 
+  local manifestPath
+  manifestPath="$(g3k_manifest_path)"
+  if [[ ! -f "$manifestPath" ]]; then
+    echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
+    return 1
+  fi
+
   if [[ -f "$templatePath" ]]; then
-    g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
+    # Get the service name, so we can verify it's in the manifest
+    local serviceName
+    serviceName="$(basename "$templatePath" | sed 's/-deploy.yaml$//')"
+    
+    if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
+      g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
+    else
+      echo "Not rolling $serviceName - no manifest entry in $manifestPath" 1>&2
+      return 1
+    fi
   elif [[ "$depName" == "all" ]]; then
     echo bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
     bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
   else
     echo -e "$(red_color "ERROR: could not find deployment template: $templatePath")"
+    return 1
   fi
 }

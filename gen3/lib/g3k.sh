@@ -50,10 +50,10 @@ get_pods() {
 }
 
 update_config() {
-    if g3kubectl get configmap $1 > /dev/null 2>&1; then
-      g3kubectl delete configmap $1
-    fi
-    g3kubectl create configmap $1 --from-file $2
+  if g3kubectl get configmap $1 > /dev/null 2>&1; then
+    g3kubectl delete configmap $1
+  fi
+  g3kubectl create configmap $1 --from-file $2
 }
 
 #
