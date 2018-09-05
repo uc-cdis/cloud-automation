@@ -14,3 +14,9 @@ data:
   useryaml_s3path: "s3://cdis-gen3-users/${config_folder}/user.yaml"
   # Set up hook at https://yourslack.slack.com/apps/manage/custom-integrations
   slack_webhook: 'None'
+  arranger_project_id: 'dev'
+  # field on nodes to use for applying the authorization filter between arranger
+  # and arborist
+  auth_filter_field: 'gen3_resource_path'
+  # name of the node type filtered on
+  auth_filter_node_type: 'case'
