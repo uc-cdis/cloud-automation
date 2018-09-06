@@ -58,7 +58,7 @@ function es_dump() {
   local indexName
   indexName=$1
 
-curl -X GET "${ESHOST}/${indexName}/_search?pretty=true&size=100" \
+curl -s -X GET "${ESHOST}/${indexName}/_search?pretty=true&size=100" \
 -H 'Content-Type: application/json' -d'
 {
   "query": { "match_all": {} }
@@ -71,7 +71,7 @@ curl -X GET "${ESHOST}/${indexName}/_search?pretty=true&size=100" \
 # Get the list of indexes
 #
 function es_indices() {
-  curl -X GET "${ESHOST}/_cat/indices?v"
+  curl -s -X GET "${ESHOST}/_cat/indices?v"
 }
 
 #
@@ -93,13 +93,60 @@ function es_export() {
   projectName="$1"
   shift
   mkdir -p "$destFolder"
-  indexList=$(es_indices 2> /dev/null | grep "arranger-$projectName" | awk '{ print $3 }')
+  indexList=$(es_indices 2> /dev/null | grep "arranger-projects-${projectName}[- ]" | awk '{ print $3 }')
   for name in $indexList; do
     echo $name
     npx elasticdump --input http://$ESHOST/$name --output ${destFolder}/${name}__data.json --type data
     npx elasticdump --input http://$ESHOST/$name --output ${destFolder}/${name}__mapping.json --type mapping
   done
 }
+
+#
+# Import the arranger config indexes dumped with es_export
+# @param sourceFolder with the es_export files
+# @param projectName name of the arranger project to import
+#
+function es_import() {
+  local sourceFolder
+  local projectName
+  local indexList
+
+  if [[ $# -lt 2 ]]; then
+    echo 'USE: es_import srcFolderPath arrangerProjectName'
+    return 1
+  fi
+
+  sourceFolder="$1"
+  shift
+  projectName="$1"
+  shift
+
+  if es_indices | grep "arranger-projects-${projectName}[- ]" > /dev/null 2>&1; then
+    echo "ERROR: arranger project already exists - abandoning import: $projectName" 1>2
+    return 1
+  fi
+
+  #indexList="$(es_indices 2> /dev/null | grep arranger- | awk '{ print $3 }')"
+  indexList=$(ls -1 $sourceFolder | sed 's/__.*json$//' | grep "arrangerr-$projectName" | sort -u)
+  for name in $indexList; do
+    echo $name
+    npx elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__data.json --type data
+    npx elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__mapping.json --type mapping
+  done
+  
+  # make sure arranger-projects index has an entry for our project id
+  local dayStr
+  dayStr="$(date +%Y-%m-%d)"
+  curl -X PUT $ESHOST/arranger-projects/arranger-projects/$projectName?pretty=true \
+    -H 'Content-Type: application/json' -d"
+        {
+          \"id\" : \"$projectName\",
+          \"active\" : true,
+          \"timestamp\" : \"${dayStr}T18:58:53.452Z\"
+        }
+";
+}
+
 
 #
 # Point the given alias at the given index
