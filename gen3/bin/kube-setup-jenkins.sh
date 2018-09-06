@@ -38,11 +38,9 @@ fi
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/10storageclass.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/00pvc.yaml"
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/serviceaccount.yaml"
-#g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/role-devops.yaml"
-g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml"
-
-#g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrole-devops.yaml"
+# Note: jenkins service account is configured by `kube-setup-roles`
+gen3 kube-setup-roles
+# Note: only the 'default' namespace jenkins-service account gets a cluster rolebinding
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrolebinding-devops.yaml"
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/jenkins-deploy.yaml"
