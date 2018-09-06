@@ -58,7 +58,7 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 ## CERTS RENEWAL 
 
 ## Renewing the OpenVPN server certs
-1. Create a diretcory to save the current certs
+1. Create a directory to save the current certs
 ```mkdir -p /etc/openvpn/easy-rsa/keys/oldkeys.$(hostname).$(date +%F)```
 
 2. Copy the current certs to the directory
@@ -76,10 +76,17 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 6. Restart the vpn service
 ```systemctl restart openvpn```
 
-7. Make sure the openvpn client can connect to the VPN. If yes, push the chnages to the S3
+7. Make sure the openvpn client can connect to the VPN from your user. If yes, push the changes to the S3
 ```/etc/openvpn/openvpn_management_scripts/ push_to_s3.sh```
 
 ## Renewing the OpenVPN client certs
+1. Revoke the user
+```/etc/openvpn/openvpn_management_scripts/revoke_user.sh <username>```
+
+2. Send the email
+```/etc/openvpn/openvpn_management_scripts/send_email.sh /root/<user.csv>```
+
+3. Ask user to get rid of curent vpn client config/set-up/2FA and rerun the .ovpn and 2FA as received in the email
 
 
 ## Renewing the Lighttpd server certs
