@@ -58,16 +58,26 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 ## CERTS RENEWAL 
 
 ## Renewing the OpenVPN server certs
+1. Create a diretcory to save the current certs
+```mkdir -p /etc/openvpn/easy-rsa/keys/oldkeys.$(hostname).$(date +%F)```
 
-```mv /etc/openvpn/easy-rsa/keys/$(hostname) /etc/openvpn/easy-rsa/$(hostname).old.$(date +%F)```
+2. Copy the current certs to the directory
+```cp /etc/openvpn/easy-rsa/keys/$(hostname)* /etc/openvpn/easy-rsa/keys/oldkeys.$(hostname).$(date +%F)/```
 
+3. Source the settings
 ```source /etc/openvpn/bin/settings.sh```
 
+4. Revoke the server cert 
 ```$EASY_RSA/revoke-full $(hostname)```
 
+5. Run the pki tool
 ```$EASY_RSA/pkitool --server $(hostname)```
 
+6. Restart the vpn service
 ```systemctl restart openvpn```
+
+7. Make sure the openvpn client can connect to the VPN. If yes, push the chnages to the S3
+```/etc/openvpn/openvpn_management_scripts/ push_to_s3.sh```
 
 ## Renewing the OpenVPN client certs
 
