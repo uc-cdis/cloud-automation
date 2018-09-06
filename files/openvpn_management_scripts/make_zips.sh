@@ -33,8 +33,8 @@ username=${1}
 
 cd $TEMP_ROOT
 TEMP_DIR="$TEMP_ROOT/$username-$CLOUD_NAME"
-mkdir $TEMP_DIR;
-mkdir $TEMP_DIR/linux;
+mkdir -p $TEMP_DIR;
+mkdir -p $TEMP_DIR/linux;
 cp $KEY_DIR/ovpn_files/$username-$CLOUD_NAME.ovpn $TEMP_DIR/; 
 cp $KEY_DIR/ovpn_files_seperated/$username-$CLOUD_NAME-seperated.tgz $TEMP_DIR/; 
 cp $KEY_DIR/ovpn_files_systemd/${username}-${CLOUD_NAME}-systemd.ovpn $TEMP_DIR/linux/;
