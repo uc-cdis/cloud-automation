@@ -10,7 +10,6 @@ gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-secrets
 gen3 roll tube
-g3kubectl apply -f "${GEN3_HOME}/kube/services/tube/tube-service.yaml"
 
 cat <<EOM
 The tube services has been deployed onto the k8s cluster.
