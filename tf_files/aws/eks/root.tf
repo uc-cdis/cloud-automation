@@ -13,6 +13,6 @@ module "eks" {
   ec2_keyname     = "${var.ec2_keyname}"
   instance_type   = "${var.instance_type}"
   csoc_cidr       = "${var.csoc_cidr}"
-  users_folder    = "${var.users_folder}"
+  users_policy    = "${var.users_folder}"
 }
 

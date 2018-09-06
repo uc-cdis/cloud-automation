@@ -13,5 +13,5 @@ variable "csoc_cidr" {
   default = "10.128.0.0/20"
 }
 
-variable "users_folder" {}
+variable "users_policy" {}
 
