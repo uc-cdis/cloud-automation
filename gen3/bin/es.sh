@@ -75,6 +75,19 @@ function es_indices() {
 }
 
 #
+# Delete a given index
+#
+function es_delete() {
+  local name
+  name="$1"
+  if [[ -n "$name" ]]; then
+    curl -iv -X DELETE "${ESHOST}/$name"
+  else
+    echo 'Use: es_delete INDEX_NAME'
+  fi
+}
+
+#
 # Dump the arranger config indexes to the given destination folder
 # @param destFolder
 # @param projectName name of the arranger project
@@ -127,13 +140,19 @@ function es_import() {
   fi
 
   #indexList="$(es_indices 2> /dev/null | grep arranger- | awk '{ print $3 }')"
-  indexList=$(ls -1 $sourceFolder | sed 's/__.*json$//' | grep "arrangerr-$projectName" | sort -u)
+  indexList=$(ls -1 $sourceFolder | sed 's/__.*json$//' | grep "arranger-projects-$projectName" | sort -u)
+  local importCount
+  importCount=0
   for name in $indexList; do
     echo $name
     npx elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__data.json --type data
     npx elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__mapping.json --type mapping
+    let importCount+=1
   done
-  
+  if [[ $importCount == 0 ]]; then
+    echo "ERROR: no .json files found matching $projectName" 1>2
+    return 1
+  fi
   # make sure arranger-projects index has an entry for our project id
   local dayStr
   dayStr="$(date +%Y-%m-%d)"
@@ -221,6 +240,9 @@ case "$command" in
   ;;
 "indices")
   es_indices
+  ;;
+"delete")
+  es_delete "$@"
   ;;
 "dump")
   indexName="$1"
