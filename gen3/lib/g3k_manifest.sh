@@ -7,35 +7,31 @@
 #
 # Root manifest folder where the `cdis-manifest` git repo is checked out
 #old manifest path
-#ß
+#
 GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
 export GEN3_MANIFEST_HOME
 
-
 g3k_get_gitops_home() {
    WORKSPACE="${WORKSPACE:-$HOME}"
-   
-   #decide if the new manifest repo exist 
-   NEW_MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .message)
-   export NEW_MANIFEST_EXIST=${NEW_MANIFEST_EXIST}
 
    local GEN3_HOST_NAME;
     if [[ $# > 0 ]]; then
-        GEN3_HOST_NAME="$1"
+        GEN3_HOST_NAME="$1"i
     else
        GEN3_HOST_NAME="$(yq -r .data.hostname ${WORKSPACE}/${vpc_name}/00configmap.yaml)"
        #GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
+       #decide if the new manifest repo exist 
     fi
+    NEW_MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .message)
+    export NEW_MANIFEST_EXIST=${NEW_MANIFEST_EXIST}
     #check if the new manifest url exists
     if [[ ${NEW_MANIFEST_EXIST} == "null" ]]; then
         #new path for all gitops files 
-        echo $WORKSPACE/$GEN3_HOST_NAME 
+        GEN3_GITOPS_FOLDER=$WORKSPACE/$GEN3_HOST_NAME
+        export GEN3_GITOPS_FOLDER=${GEN3_GITOPS_FOLDER}
         return 0
     fi
-    echo "================================we will move forward with the old logic"
 }
-export GEN3_GITOPS_FOLDER=$(g3k_get_gitops_home)
-
 #
 # GEN3_GITOPS_FOLDER environment variable:
 # Override the folder under which to look for
@@ -73,14 +69,11 @@ g3kubectl() {
   fi
 }
 
-
-
 #
 # Internal init helper.
 # Note - be sure to redirect stdout to stderr, so we do
 #   not corrupte the output of g3k_manifest_filter with info messages
 #
-
 
 g3k_manifest_init() {
 
@@ -311,6 +304,8 @@ g3k_roll() {
     return 1
   fi
 
+  g3k_get_gitops_home
+  
   local templatePath=""
   if [[ -f "$depName" ]]; then
     # we were given the path to a file - fine
