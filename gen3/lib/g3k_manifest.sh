@@ -6,23 +6,35 @@
 
 #
 # Root manifest folder where the `cdis-manifest` git repo is checked out
-#
-
-COMMON_NAME=$(pwd | cut -d'/' -f 3)
-CONFIGMAP_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${COMMON_NAME}"
-GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
-  #new path for all gitops files 
-GEN3_COMMON_HOME=$(cd "${GEN3_HOME}/.." && pwd)/"${GEN3_HOST_NAME}"
-export GEN3_HOST_NAME=${GEN3_HOST_NAME}
-export GEN3_COMMON_HOME=${GEN3_COMMON_HOME}
-
-  #check if the new manifest url exists
-NEW_MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .message)
-export NEW_MANIFEST_EXIST=${NEW_MANIFEST_EXIST}
-
 #old manifest path
+#ß
 GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
 export GEN3_MANIFEST_HOME
+
+
+g3k_get_gitops_home() {
+   WORKSPACE="${WORKSPACE:-$HOME}"
+   
+   #decide if the new manifest repo exist 
+   NEW_MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .message)
+   export NEW_MANIFEST_EXIST=${NEW_MANIFEST_EXIST}
+
+   local GEN3_HOST_NAME;
+    if [[ $# > 0 ]]; then
+        GEN3_HOST_NAME="$1"
+    else
+       GEN3_HOST_NAME="$(yq -r .data.hostname ${WORKSPACE}/${vpc_name}/00configmap.yaml)"
+       #GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
+    fi
+    #check if the new manifest url exists
+    if [[ ${NEW_MANIFEST_EXIST} == "null" ]]; then
+        #new path for all gitops files 
+        echo $WORKSPACE/$GEN3_HOST_NAME 
+        return 0
+    fi
+    echo "================================we will move forward with the old logic"
+}
+export GEN3_GITOPS_FOLDER=$(g3k_get_gitops_home)
 
 #
 # GEN3_GITOPS_FOLDER environment variable:
@@ -61,11 +73,14 @@ g3kubectl() {
   fi
 }
 
+
+
 #
 # Internal init helper.
 # Note - be sure to redirect stdout to stderr, so we do
 #   not corrupte the output of g3k_manifest_filter with info messages
 #
+
 
 g3k_manifest_init() {
 
@@ -77,16 +92,16 @@ g3k_manifest_init() {
   fi
   # if the url exists, we will follow the new gitops logic
  if [[ ${NEW_MANIFEST_EXIST} == "null" ]]; then 
-    if [[ ! -d "${GEN3_COMMON_HOME}" ]]; then
-      echo -e $(red_color "ERROR: GEN3_COMMON_HOME does not exist: ${GEN3_COMMON_HOME}") 1>&2
-      echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_COMMON_HOME}" 1>&2
+    if [[ ! -d "${GEN3_GITOPS_FOLDER}" ]]; then
+      echo -e $(red_color "ERROR: GEN3_GITOPS_FOLDER does not exist: ${GEN3_GITOPS_FOLDER}") 1>&2
+      echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_GITOPS_FOLDER}" 1>&2
 
-      git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_COMMON_HOME}" 1>&2
+      git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_GITOPS_FOLDER}" 1>&2
     fi
-    if [[ -d "$GEN3_COMMON_HOME/.git" && -z "$JENKINS_HOME" ]]; then
+    if [[ -d "$GEN3_GITOPS_FOLDER/.git" && -z "$JENKINS_HOME" ]]; then
       # Don't do this when running tests in Jenkins ...
-      echo "INFO: git fetch in $GEN3_COMMON_HOME" 1>&2
-      (cd "$GEN3_COMMON_HOME" && git pull; git status) 1>&2
+      echo "INFO: git fetch in $GEN3_GITOPS_FOLDER" 1>&2
+      (cd "$GEN3_GITOPS_FOLDER" && git pull; git status) 1>&2
     fi
   else
   #if the new common repo url doesn't exit, we will follow our curernt manifest logic                           
