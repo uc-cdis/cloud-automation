@@ -152,7 +152,7 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_qualys_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/eks"
-
+fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
   return 0
