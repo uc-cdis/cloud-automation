@@ -17,11 +17,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
 fi
 gen3 kube-setup-roles
 gen3 kube-setup-certs
-if [[ -f "${WORKSPACE}/${vpc_name}/credentials/ca.pem" ]]; then
-  gen3 kube-setup-certs
-else
-  echo "INFO: certificate authority not available - skipping SSL cert check"
-fi
 
 gen3 roll indexd
 g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
@@ -36,7 +31,7 @@ gen3 kube-setup-revproxy
 gen3 kube-setup-fluentd
 gen3 kube-setup-autoscaler
 gen3 kube-setup-kube-dns-autoscaler
-gen3 kube-setup-tiller
+gen3 kube-setup-tiller || true
 gen3 kube-setup-networkpolicy
 
 # portal is not happy until other services are up

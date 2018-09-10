@@ -8,20 +8,13 @@ spec:
       labels:
         app: gen3job
     spec:
-      serviceAccountName: tube-job
       volumes:
-      - name: config-volume
-        secret:
-          secretName: "tube-secret"
       - name: creds-volume
         secret:
           secretName: "peregrine-creds"
-      - name: config-helper
-        configMap:
-          name: config
       - name: etl-mapping
-          configMap:
-            name: etl-mapping
+        configMap:
+          name: etl-mapping
       containers:
       - name: tube
         imagePullPolicy: Always
@@ -43,18 +36,10 @@ spec:
         - name: HADOOP_HOST
           value: spark-service
         volumeMounts:
-          - name: "config-volume"
-            readOnly: true
-            mountPath: "/tube/tube/local_settings.py"
-            subPath: "local_settings.py"
           - name: "creds-volume"
             readOnly: true
             mountPath: "/gen3/tube/creds.json"
             subPath: creds.json
-          - name: "config-helper"
-            readOnly: true
-            mountPath: "/tube/tube/config_helper.py"
-            subPath: config_helper.py
           - name: "etl-mapping"
             readOnly: true
             mountPath: "/gen3/tube/etlMapping.yaml"

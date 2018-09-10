@@ -12,8 +12,8 @@ if ! semver_ge "$serverVersion" "1.8.0"; then
   echo "K8s server version $serverVersion does not yet support network policy"
   exit 0
 fi
-if [[ -n "$JENKINS_URL" ]]; then
-  echo "Jenkins skipping network policy manipulation: $JENKINS_URL"
+if [[ -n "$JENKINS_HOME" ]]; then
+  echo "Jenkins skipping network policy manipulation: $JENKINS_HOME"
   exit 0
 fi
 

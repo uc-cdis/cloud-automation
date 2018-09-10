@@ -114,6 +114,18 @@ gen3_run() {
     fi
     scriptName=""
     ;;
+  "es")
+    if [[ $1 == "port-forward" ]]; then
+      # set the ESHOST environment variable
+      local portNum
+      portNum=$(bash $scriptFolder/es.sh port-forward)
+      if [[ $portNum =~ ^[0-9]+$ ]]; then
+        export ESHOST="localhost:$portNum"
+      fi
+    else
+      scriptName="es.sh"
+    fi
+    ;;
   "ls")
     (
       set -e
