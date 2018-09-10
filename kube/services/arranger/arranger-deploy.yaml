@@ -62,6 +62,10 @@ spec:
             value: http://arborist-service
           - name: GEN3_PROJECT_ID
             value: GEN3_ARRANGER_PROJECT_ID|-dev-|
+          - name: GEN3_AUTH_FILTER_FIELD
+            value: GEN3_ARRANGER_AUTH_FILTER_FIELD|-gen3_resource_path-|
+          - name: GEN3_AUTH_FILTER_NODE_TYPE
+            value: GEN3_ARRANGER_AUTH_FILTER_NODE_TYPE|-case-|
           volumeMounts:
             - name: "cert-volume"
               readOnly: true

@@ -276,6 +276,7 @@ g3k_ec2_reboot() {
 # Parent for other commands - pronounced "geeks"
 #
 g3k() {
+  local command
   command=$1
   shift
   case "$command" in
@@ -290,6 +291,12 @@ g3k() {
         ;;
       "ec2_reboot")
         g3k_ec2_reboot "$@"
+        ;;
+      "filter")
+        local yaml
+        yaml="$1"
+        shift
+        g3k_manifest_filter "$yaml" "" "$@"
         ;;
       "jobpods")
         g3k_jobpods "$@"

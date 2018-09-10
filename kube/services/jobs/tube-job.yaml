@@ -8,14 +8,13 @@ spec:
       labels:
         app: gen3job
     spec:
-      serviceAccountName: tube-job
       volumes:
       - name: creds-volume
         secret:
           secretName: "peregrine-creds"
       - name: etl-mapping
-          configMap:
-            name: etl-mapping
+        configMap:
+          name: etl-mapping
       containers:
       - name: tube
         imagePullPolicy: Always
