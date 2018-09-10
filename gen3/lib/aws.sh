@@ -146,8 +146,13 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/vpn_nlb_central"
   elif [[ "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squidnlb_standalone"
-  
-  fi
+  elif [[ "$GEN3_WORKSPACE" =~ _es$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons_vpc_es"
+  elif [[ "$GEN3_WORKSPACE" =~ _qualysvm$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_qualys_vm"
+  elif [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/eks"
+
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
   return 0
@@ -353,6 +358,41 @@ EOM
 EOM
     return 0
   fi
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _es$ ]]; then
+      commonsName=${GEN3_WORKSPACE//_es/}
+      cat - <<EOM
+vpc_name   = "${commonsName}"
+EOM
+    return 0
+  fi
+
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _qualysvm$ ]]; then
+      #commonsName=${GEN3_WORKSPACE//_es/}
+      cat - <<EOM
+user_perscode   = "PERSCODE you receive from the Qualys master"
+env_vpc_octet3  = "3rd OCTET OF VPC CIDR FOR QUALYS SETUP"
+EOM
+    return 0
+  fi
+
+
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
+      commonsName=${GEN3_WORKSPACE//_eks/}
+      cat - <<EOM
+vpc_name      = "${commonsName}"
+instance_type = "t2.medium"
+ec2_keyname   = "fauzi@uchicago.edu"
+EOM
+    return 0
+  fi
+
+
 
   # ssh key to be added to VMs and kube nodes
   local SSHADD=$(which ssh-add)

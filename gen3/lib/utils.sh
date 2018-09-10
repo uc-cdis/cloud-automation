@@ -7,6 +7,7 @@ export XDG_DATA_HOME=${XDG_DATA_HOME:-~/.local/share}
 export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/tmp/gen3-$USER"}
 export GEN3_CACHE_DIR="${XDG_DATA_HOME}/gen3/cache"
 export GEN3_ETC_FOLDER="${XDG_DATA_HOME}/gen3/etc"
+CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
 
 (
   for filePath in "$GEN3_CACHE_DIR" "$GEN3_ETC_FOLDER/gcp"; do

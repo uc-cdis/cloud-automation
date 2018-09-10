@@ -18,13 +18,18 @@ gen3_load "gen3/lib/kube-setup-init"
 if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   # -E passes through *_proxy environment
   sudo -E apt-get update
-  sudo -E apt-get install -y git jq postgresql-client pwgen python-dev python-pip unzip
+  sudo -E apt-get install -y git jq pwgen python-dev python-pip unzip
   sudo -E XDG_CACHE_HOME=/var/cache python -m pip install --upgrade pip
   sudo -E XDG_CACHE_HOME=/var/cache python -m pip install awscli --upgrade
   # jinja2 needed by render_creds.py
   sudo -E XDG_CACHE_HOME=/var/cache python -m pip install jinja2
   # yq === jq for yaml
   sudo -E XDG_CACHE_HOME=/var/cache python -m pip install yq
+
+  # install nodejs
+  curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+  sudo -E apt-get update
+  sudo -E apt-get install -y nodejs
 
   if ! which kube-aws > /dev/null 2>&1; then
     echo "Installing kube-aws"
@@ -44,6 +49,19 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       sudo -E apt-get remove -y google-cloud-sdk
     fi
   fi
+  if ! which psql > /dev/null 2>&1; then
+    (
+      # use the postgres dpkg server
+      # https://www.postgresql.org/download/linux/ubuntu/
+      DISTRO="$(lsb_release -c -s)"  # ex - xenial
+      if [[ ! -f /etc/apt/sources.list.d/pgdg.list ]]; then
+        sudo -E echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+      fi
+      wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+      sudo -E apt-get update
+      sudo -E apt-get install -y postgresql-client-9.6
+    )
+  fi
   if ! which gcloud > /dev/null 2>&1; then
     (
       export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
@@ -51,13 +69,6 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo -E apt-key add -
       sudo -E apt-get update
       sudo -E apt-get install -y google-cloud-sdk \
-          google-cloud-sdk-app-engine-python \
-          google-cloud-sdk-app-engine-java \
-          google-cloud-sdk-app-engine-go \
-          google-cloud-sdk-datalab \
-          google-cloud-sdk-datastore-emulator \
-          google-cloud-sdk-pubsub-emulator \
-          google-cloud-sdk-bigtable-emulator \
           google-cloud-sdk-cbt \
           kubectl
       if [[ -f /usr/local/bin/kubectl && -f /usr/bin/kubectl ]]; then  # pref dpkg managed kubectl
@@ -70,7 +81,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   sudo chown -R "${USER}:" ~/.config
       
   if ! which terraform > /dev/null 2>&1; then
-    curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
+    curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.8/terraform_0.11.8_linux_amd64.zip
     sudo unzip "${XDG_RUNTIME_DIR}/terraform.zip" -d /usr/local/bin;
     /bin/rm "${XDG_RUNTIME_DIR}/terraform.zip"
   fi
@@ -79,12 +90,21 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     sudo unzip "${XDG_RUNTIME_DIR}/packer.zip" -d /usr/local/bin
     /bin/rm "${XDG_RUNTIME_DIR}/packer.zip"
   fi
+  if ! which heptio-authenticator-aws > /dev/null 2>&1; then
+    curl -o "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.3.0/heptio-authenticator-aws_0.3.0_linux_amd64
+    sudo mv "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" /usr/local/bin
+  fi
+  if ! which helm > /dev/null 2>&1; then
+    curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" https://storage.googleapis.com/kubernetes-helm/helm-v2.10.0-linux-amd64.tar.gz
+    tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
+    sudo mv "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
+  fi
 fi
 
 if which gcloud > /dev/null 2>&1; then
   gcloud config set core/disable_usage_reporting true
   gcloud config set component_manager/disable_update_check true
-  gcloud config set container/use_v1_api false
+#  gcloud config set container/use_v1_api false
 fi
 
 CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"

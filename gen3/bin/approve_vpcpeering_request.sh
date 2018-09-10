@@ -15,6 +15,8 @@ echo "The vpc peering connection request for id $vpcpeerconnid was accepted"
 
 
 aws ec2 create-route --route-table-id rtb-23b6685f --destination-cidr-block $vpccidrblock --vpc-peering-connection-id $vpcpeerconnid
+aws ec2 create-route --route-table-id rtb-7ee06301 --destination-cidr-block $vpccidrblock --vpc-peering-connection-id $vpcpeerconnid
+
 echo "The route for the child vpc $child_vpc_name cidr $vpccidrblock was added"
 exit 1
 else echo "CSOC AWS account haven't received the VPC peering request yet"

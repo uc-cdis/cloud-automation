@@ -26,8 +26,11 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/role-jupyter.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/rolebinding-jupyter.yaml"
 
+g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-prepuller.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-config.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-service.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-storage.yaml"
+
+g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_jh_templ.yaml"
 
 g3k roll jupyterhub

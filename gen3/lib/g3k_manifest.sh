@@ -4,8 +4,18 @@
 # via the `g3k/gen3` cli
 #
 
+#
+# Root manifest folder where the `cdis-manifest` git repo is checked out
+#
 GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
 export GEN3_MANIFEST_HOME
+
+#
+# GEN3_GITOPS_FOLDER environment variable:
+# Override the folder under which to look for
+# manifest.json and other configuration files.
+# If not set, then defaults to GEN3_MANIFEST_HOME/hostname 
+#
 
 gen3_load "gen3/lib/utils"
 
@@ -14,7 +24,27 @@ gen3_load "gen3/lib/utils"
 # support for KUBECTL_NAMESPACE environment variable ...
 #
 g3kubectl() {
-  kubectl ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+  local theKubectl;
+  #
+  # do this, so a user can 
+  #    alias kubectl=g3kubectl
+  # without causing an infinite loop ...
+  #
+  if [[ ${CURRENT_SHELL} == "zsh" ]]; then
+    theKubectl=$(bash which kubectl)
+  else
+    theKubectl=$(which kubectl)
+  fi
+  if [[ -n "$KUBECONFIG" ]] && grep heptio "$KUBECONFIG" > /dev/null 2>&1; then
+    # Then it's EKS - run with AWS creds!
+    (
+       awsVars=$(gen3 arun env | grep AWS_ | grep -v PROFILE | sed 's/^A/export A/' | sed 's/[\r\n]+/;/')
+       eval "$awsVars"
+       "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+    )
+  else
+    "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+  fi
 }
 
 #
@@ -23,8 +53,9 @@ g3kubectl() {
 #   not corrupte the output of g3k_manifest_filter with info messages
 #
 g3k_manifest_init() {
-  # do this at most once a day
-  local doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(date +%Y%m%d)"
+  # do this at most once every 5 minutes
+  local doneFilePath
+  doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(($(date +%s) / 300))"
   if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
     return 0
   fi
@@ -34,9 +65,10 @@ g3k_manifest_init() {
     # This will fail if proxy is not set correctly
     git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}" 1>&2
   fi
-  if [[ -d "$GEN3_MANIFEST_HOME/.git" ]]; then
+  if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
+    # Don't do this when running tests in Jenkins ...
     echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
-    (cd "$GEN3_MANIFEST_HOME" && git fetch && git status) 1>&2
+    (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
   fi
   touch "$doneFilePath"
 }
@@ -47,15 +79,17 @@ g3k_manifest_init() {
 # @param domain commons domain - tries to extract from global configmap if not given
 #
 g3k_manifest_path() {
-  local domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
-  if [[ -z "$domain" ]]; then
-    echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
-    return 1
-  fi
-  g3k_manifest_init
-  local mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
-  if [[ ! -f "$mpath" ]]; then
-    mpath="${GEN3_MANIFEST_HOME}/default/manifest.json"
+  local mpath
+  if [[ -z "$GEN3_GITOPS_FOLDER" ]]; then
+    local domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
+    if [[ -z "$domain" ]]; then
+      echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
+      return 1
+    fi
+    g3k_manifest_init
+    mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
+  else
+    mpath="${GEN3_GITOPS_FOLDER}/manifest.json"
   fi
   echo "$mpath"
   if [[ -f "$mpath" ]]; then
@@ -92,10 +126,19 @@ g3k_kv_filter() {
     shift
     value="$1"
     shift || true
+    #
     # this won't work if key or value contain ^ :-(
     # echo "Replace $key - $value" 1>&2
-    sed -i.bak "s^${key}^${value}^g" "$tempFile"
+    # introduce support for default value - KEY|DEFAULT|
+    # Note: -E == extended regex
+    #
+    sed -E -i.bak "s^${key}([|]-.+-[|])?^${value}^g" "$tempFile"
   done
+  #
+  # Finally - any put default values in place for any undefined variables
+  # Note: -E == extended regex
+  #
+  sed -E -i.bak 's^[a-zA-Z][a-zA-Z0-9_-]+[|]-(.*)-[|]^\1^g' "$tempFile"
   cat $tempFile
   /bin/rm "$tempFile"
   return 0  
@@ -136,36 +179,90 @@ g3k_manifest_filter() {
   #   Should really just pull g3k roll out into its own shell script ...
   #
   local key
+  local key2
+  local kvKey
   local value
   local kvList
   declare -a kvList=()
   
   kvList+=('GEN3_DATE_LABEL' "date: \"$(date +%s)\"")
 
-  for key in $(jq -r '.versions | keys[]' < "$manifestPath"); do
-    value="$(jq -r ".versions[\"$key\"]" < "$manifestPath")"
+  for key in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
+    value="$(g3k_config_lookup ".versions[\"$key\"]" "$manifestPath")"
     # zsh friendly upper case
-    key=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
-    kvList+=("$key" "image: $value")
+    kvKey=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
+    kvList+=("$kvKey" "image: $value")
+  done
+  for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
+    for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
+      value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
+      if [[ -n "$value" ]]; then
+        # zsh friendly upper case
+        kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
+        kvList+=("$kvKey" "$value")
+      fi
+    done
   done
   while [[ $# -gt 0 ]]; do
     key="$1"
     shift
     value="$1"
     shift || true
-    key=$(echo "GEN3_${key}" | tr '[:lower:]' '[:upper:]')
+    key=$(echo "${key}" | tr '[:lower:]' '[:upper:]')
+    if [[ ! "$key" =~ ^GEN3_ ]]; then
+      key="GEN3_$key"
+    fi
     kvList+=("$key" "value: \"$value\"")
   done
   g3k_kv_filter "$templatePath" "${kvList[@]}"
   return 0
 }
 
-g3k_roll() {
-  local depName="$1"
-  if [[ -z "$depName" ]]; then
-    echo -e "$(red_color "Use: g3k roll deployment-name")"
+#
+# Little helper evaluates the given jq or yq expression
+# (for .json and .yaml files respectively)
+# against the specified manifest
+#
+# @param queryStr like '.versions.sheepdog'
+# @param configPath optional - otherwise defaults to
+#      g3k_manifest_path
+#
+g3k_config_lookup() {
+  local queryStr
+  local configPath
+  queryStr="$1"
+  shift
+  if [[ -z "$1" ]]; then
+    configPath=$(g3k_manifest_path)
+  else
+    configPath="$1"
+  fi
+  if [[ "$configPath" =~ .json$ ]]; then
+    jq -r -e "$queryStr" < "$configPath"
+  elif [[ "$configPath" =~ .yaml ]]; then
+    yq -r -e "$queryStr" < "$configPath"
+  else
+    echo "$(red_color ERROR: file is not .json or .yaml: $configPath)" 1>&2
     return 1
   fi
+}
+
+
+#
+# Roll the given deployment
+#
+# @param deploymentName
+# @param kvList varargs - template key/values - values expand as 'value: VALUE'
+#
+g3k_roll() {
+  local depName
+  depName="$1"
+  shift
+  if [[ -z "$depName" ]]; then
+    echo -e "$(red_color "Use: g3k roll deployment-name")" 1>&2
+    return 1
+  fi
+
   local templatePath=""
   if [[ -f "$depName" ]]; then
     # we were given the path to a file - fine
@@ -175,12 +272,29 @@ g3k_roll() {
     templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
   fi
 
+  local manifestPath
+  manifestPath="$(g3k_manifest_path)"
+  if [[ ! -f "$manifestPath" ]]; then
+    echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
+    return 1
+  fi
+
   if [[ -f "$templatePath" ]]; then
-    g3k_manifest_filter "$templatePath" | g3kubectl apply -f -
+    # Get the service name, so we can verify it's in the manifest
+    local serviceName
+    serviceName="$(basename "$templatePath" | sed 's/-deploy.yaml$//')"
+    
+    if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
+      g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
+    else
+      echo "Not rolling $serviceName - no manifest entry in $manifestPath" 1>&2
+      return 1
+    fi
   elif [[ "$depName" == "all" ]]; then
     echo bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
     bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
   else
     echo -e "$(red_color "ERROR: could not find deployment template: $templatePath")"
+    return 1
   fi
 }

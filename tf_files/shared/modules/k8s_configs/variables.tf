@@ -123,3 +123,8 @@ variable "db_gdcapi_name" {
 }
 
 variable "db_gdcapi_address" {}
+
+variable "aws_user_key" {}
+
+variable "aws_user_key_id" {}
+

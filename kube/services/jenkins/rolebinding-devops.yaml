@@ -7,6 +7,6 @@ subjects:
   name: jenkins-service
   apiGroup: ""
 roleRef:
-  kind: Role
-  name: devops
+  kind: ClusterRole
+  name: admin
   apiGroup: ""

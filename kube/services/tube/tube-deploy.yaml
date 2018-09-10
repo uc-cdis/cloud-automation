@@ -1,0 +1,80 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: tube-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: tube
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: tube
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - tube
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: creds-volume
+          secret:
+            secretName: "peregrine-creds"
+        - name: etl-mapping
+          configMap:
+            name: etl-mapping
+      containers:
+        - name: tube
+          imagePullPolicy: Always
+          GEN3_TUBE_IMAGE
+          ports:
+          - containerPort: 80
+          env:
+          - name: DICTIONARY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: dictionary_url
+          - name: HADOOP_URL
+            value: hdfs://spark-service:9000
+          - name: ES_URL
+            value: esproxy-service
+          - name: HADOOP_HOST
+            value: spark-service
+          - name: ES_INDEX_NAME
+            value: GEN3_TUBE_ES_INDEX_NAME|-null-|
+          volumeMounts:
+            - name: "creds-volume"
+              readOnly: true
+              mountPath: "/gen3/tube/creds.json"
+              subPath: creds.json
+            - name: "etl-mapping"
+              readOnly: true
+              mountPath: "/gen3/tube/etlMapping.yaml"
+              subPath: "etlMapping.yaml"
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+          command: ["/bin/bash" ]
+          args: 
+            - "-c"
+            - |
+              python run_config.py
+              while true; do sleep 5; done

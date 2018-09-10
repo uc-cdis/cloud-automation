@@ -7,11 +7,11 @@ if [[ $(uname -s) == "Linux" ]]; then
 fi
 
 README="$GEN3_HOME/gen3/README.md"
-cat "$README" - <<EOM
+cat - <<EOM
 $README
 -----------------------------------------
 
-USAGE: gen3 [gen3-flags] command [command-options]
+USAGE: gen3 [gen3-flags] command [subcommand] [options]
   * dependency check:
     - awscli: $(which aws)
     - terraform: $(which terraform)
@@ -45,24 +45,38 @@ USAGE: gen3 [gen3-flags] command [command-options]
     - backup - backup home directory to vpc's S3 bucket
     - devterm - open a terminal session in a dev pod
     - ec2_reboot PRIVATE-IP - reboot the ec2 instance with the given private ip
+    - es [subcommand] - elastic search helpers
+        o alias
+        o dump
+        o export
+        o import
+        o indices
+        o port-forward
+    - filter file.yaml [k1 v1 k2 v2 ...]
+        apply the manifest filter that gen3 roll and gen3 runjob use to the given file -
+        gen3 roll deployment == gen3 filter deployment.yaml | kubectl apply -f -
     - jobpods JOBNAME - list pods associated with given job
     - joblogs JOBNAME - get logs from first result of jobpods
+    - kube-lock
+    - kube-unlock
+    - kube-wait4pods
     - pod PATTERN - grep for the first pod name matching PATTERN
     - pods PATTERN - grep for all pod names matching PATTERN
     - psql SERVICE 
-        - where SERVICE is one of sheepdog, indexd, fence
+        o where SERVICE is one of sheepdog, indexd, fence
     - random [length=32]
-        - random string (ex - password) of length (default 32)
+        o random string (ex - password) of length (default 32)
     - reload
-        - reload the gen3 function library - useful after
+        o reload the gen3 function library - useful after
           updating the cloud-automation folder
     - replicas DEPLOYMENT-NAME REPLICA-COUNT
-    - roll DEPLOYMENT-NAME
+    - roll DEPLOYMENT-NAME [key1 value1 key2 value2 ...]
         Apply the current manifest to the specified deployment - triggers
         and update in most deployments (referencing GEN3_DATE_LABEL) even 
-        if the version does not change.
+        if the version does not change. - ex:
+          gen3 roll fence DEBUG_FLAG True
     - runjob JOBNAME k1 v1 k2 v2 ...
-      - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
+        o JOBNAME maps to cloud-automation/kube/services/JOBNAME-job.yaml
     - testsuite
     - update_config CONFIGMAP-NAME YAML-FILE
     

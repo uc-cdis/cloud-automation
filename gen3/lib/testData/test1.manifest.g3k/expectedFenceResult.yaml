@@ -72,6 +72,8 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: GEN3_DEBUG
+            value: "False"
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -135,17 +137,4 @@ spec:
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
-            subPath: "jwt-keys.tar"
-        command: ["/bin/bash" ]
-        args: 
-          - "-c"
-          - |
-            if [ -f /fence/jwt-keys.tar ]; then
-              cd /fence
-              tar xvf jwt-keys.tar
-              if [ -d jwt-keys ]; then
-                mkdir -p keys
-                mv jwt-keys/* keys/
-              fi
-            fi
-            rm -rf /var/run/apache2/apache2.pid && /usr/sbin/apache2ctl -D FOREGROUND
+            subPath: "jwt-keys.tar"       

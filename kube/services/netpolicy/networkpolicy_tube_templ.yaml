@@ -1,0 +1,13 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-tube
+spec:
+  podSelector:
+    matchLabels:
+      app: tube
+  egress:
+    - {}
+  policyTypes:
+   - Ingress
+   - Egress
