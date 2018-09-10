@@ -286,6 +286,12 @@ g3k_config_lookup() {
   fi
 }
 
+#
+# Little alias for g3k_config_lookup
+#
+g3k_manifest_lookup() {
+  g3k_config_lookup "$1"
+}
 
 #
 # Roll the given deployment
