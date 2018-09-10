@@ -45,6 +45,7 @@ ec2_keyname = "fauziv1_automation_dev"
 
 * `vpc_name` usually the same name as the commons, this VPC must be an existing one, otherwise the execution will fail. Additioanlly, it worth mentioning that logging and VPC must exist before running this.
 * `ec2_keyname` and existing key pair so we can ssh into the worker nodes. There might be a better way to achieve this.
+* `users_policy` This is the policy that was created before that allows the cluster to access the users bucket in bionimbus. Usually the same name as the VPC, but not always. You may look up the commons name in the policies for the account in question and the bucket reader policy is the one.
 
 ### 4.2 Optional Variables
 

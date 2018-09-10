@@ -95,7 +95,8 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     sudo mv "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" /usr/local/bin
   fi
   if ! which helm > /dev/null 2>&1; then
-    curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" https://storage.googleapis.com/kubernetes-helm/helm-v2.10.0-linux-amd64.tar.gz
+    #curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" https://storage.googleapis.com/kubernetes-helm/helm-v2.10.0-linux-amd64.tar.gz # 2.10.0 is buggy, would ignore the proxy.
+    curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz
     tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
     sudo mv "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
   fi
