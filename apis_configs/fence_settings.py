@@ -98,6 +98,29 @@ OPENID_CONNECT['google']['redirect_url'] = (
     'https://' + HOSTNAME + '/user/login/google/login/'
 )
 
+GOOGLE_MANAGED_SERVICE_ACCOUNT_DOMAINS = {
+    "dataflow-service-producer-prod.iam.gserviceaccount.com",
+    "cloudbuild.gserviceaccount.com",
+    "cloud-ml.google.com.iam.gserviceaccount.com",
+    "container-engine-robot.iam.gserviceaccount.com",
+    "dataflow-service-producer-prod.iam.gserviceaccount.com",
+    "sourcerepo-service-accounts.iam.gserviceaccount.com",
+    "dataproc-accounts.iam.gserviceaccount.com",
+    "gae-api-prod.google.com.iam.gserviceaccount.com",
+    "genomics-api.google.com.iam.gserviceaccount.com",
+    "containerregistry.iam.gserviceaccount.com",
+    "container-analysis.iam.gserviceaccount.com",
+    "cloudservices.gserviceaccount.com",
+    "stackdriver-service.iam.gserviceaccount.com",
+    "appspot.gserviceaccount.com",
+    "partnercontent.gserviceaccount.com",
+    "trifacta-gcloud-prod.iam.gserviceaccount.com",
+    "gcf-admin-robot.iam.gserviceaccount.com",
+    "compute-system.iam.gserviceaccount.com",
+    "gcp-sa-websecurityscanner.iam.gserviceaccount.com",
+    "storage-transfer-service.iam.gserviceaccount.com",
+}
+
 CIRRUS_CFG = {}
 data = load_json('fence_credentials.json')
 if data:
@@ -129,6 +152,9 @@ if data:
     )
     WHITE_LISTED_GOOGLE_PARENT_ORGS = (
         get_from_dict(data, 'WHITE_LISTED_GOOGLE_PARENT_ORGS', [])
+    )
+    GOOGLE_MANAGED_SERVICE_ACCOUNT_DOMAINS.update(
+        data.get("GOOGLE_MANAGED_SERVICE_ACCOUNT_DOMAINS", [])
     )
 
 CIRRUS_CFG["GOOGLE_APPLICATION_CREDENTIALS"] = (
