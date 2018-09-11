@@ -28,12 +28,6 @@ spec:
       - podSelector:
           matchLabels:
             app: fence
-      - ipBlock:
-           cidr: 0.0.0.0/0
-      - ipBlock:
-           cidr: 54.224.0.0/12
-      - ipBlock:
-           cidr: 52.92.16.0/20
   policyTypes:
    - Ingress
    - Egress
