@@ -6,31 +6,27 @@
 
 #
 # Root manifest folder where the `cdis-manifest` git repo is checked out
-#old manifest path
 #
 GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
 export GEN3_MANIFEST_HOME
 
 g3k_get_gitops_home() {
-   WORKSPACE="${WORKSPACE:-$HOME}"
+  WORKSPACE="${WORKSPACE:-$HOME}"
+#  local GEN3_HOST_NAME;
+  if [[ $# > 0 ]]; then
+    GEN3_HOST_NAME="$1"
+  else
+    GEN3_HOST_NAME=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
+  fi
+  export GEN3_HOST_NAME=${GEN3_HOST_NAME}
 
-   local GEN3_HOST_NAME;
-    if [[ $# > 0 ]]; then
-        GEN3_HOST_NAME="$1"i
-    else
-       GEN3_HOST_NAME="$(yq -r .data.hostname ${WORKSPACE}/${vpc_name}/00configmap.yaml)"
-       #GEN3_HOST_NAME="$(yq .data.hostname ${CONFIGMAP_HOME}/00configmap.yaml | sed "s/\"//g")"
-       #decide if the new manifest repo exist 
-    fi
-    NEW_MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .message)
-    export NEW_MANIFEST_EXIST=${NEW_MANIFEST_EXIST}
-    #check if the new manifest url exists
-    if [[ ${NEW_MANIFEST_EXIST} == "null" ]]; then
-        #new path for all gitops files 
-        GEN3_GITOPS_FOLDER=$WORKSPACE/$GEN3_HOST_NAME
-        export GEN3_GITOPS_FOLDER=${GEN3_GITOPS_FOLDER}
-        return 0
-    fi
+  #check if the new manifest url exists
+  if [[ $(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .message) == "null" ]]; then
+  #new path for all gitops files 
+    GEN3_GITOPS_FOLDER=$WORKSPACE/$GEN3_HOST_NAME
+    export GEN3_GITOPS_FOLDER=${GEN3_GITOPS_FOLDER}
+    return 0
+  fi
 }
 #
 # GEN3_GITOPS_FOLDER environment variable:
@@ -74,17 +70,14 @@ g3kubectl() {
 # Note - be sure to redirect stdout to stderr, so we do
 #   not corrupte the output of g3k_manifest_filter with info messages
 #
-
 g3k_manifest_init() {
-
   # do this at most once every 5 minutes
   local doneFilePath
   doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(($(date +%s) / 300))"
   if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
     return 0
   fi
-  # if the url exists, we will follow the new gitops logic
- if [[ ${NEW_MANIFEST_EXIST} == "null" ]]; then 
+  if [[ $(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .message) == "null" ]]; then
     if [[ ! -d "${GEN3_GITOPS_FOLDER}" ]]; then
       echo -e $(red_color "ERROR: GEN3_GITOPS_FOLDER does not exist: ${GEN3_GITOPS_FOLDER}") 1>&2
       echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_GITOPS_FOLDER}" 1>&2
@@ -97,7 +90,6 @@ g3k_manifest_init() {
       (cd "$GEN3_GITOPS_FOLDER" && git pull; git status) 1>&2
     fi
   else
-  #if the new common repo url doesn't exit, we will follow our curernt manifest logic                           
     if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
       echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
       echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}" 1>&2
@@ -112,8 +104,6 @@ g3k_manifest_init() {
   fi
   touch "$doneFilePath"
 }
-
-
 #
 # Get the path to the manifest appropriate for this commons
 #
@@ -130,12 +120,14 @@ g3k_manifest_path() {
     g3k_manifest_init
     mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
   else
+#    g3k_manifest_init
     mpath="${GEN3_GITOPS_FOLDER}/manifest.json"
   fi
   echo "$mpath"
   if [[ -f "$mpath" ]]; then
     return 0
   else
+    echo -e $(red_color "ERROR: The path g3k_manifest_path obtained was not a valid path. Does $mpath exist?") 1>&2
     return 1
   fi
 }
@@ -182,7 +174,7 @@ g3k_kv_filter() {
   sed -E -i.bak 's^[a-zA-Z][a-zA-Z0-9_-]+[|]-(.*)-[|]^\1^g' "$tempFile"
   cat $tempFile
   /bin/rm "$tempFile"
-  return 0  
+  return 0
 }
 
 #
@@ -199,7 +191,6 @@ g3k_manifest_filter() {
   shift
   local manifestPath=$1
   shift || true
-  
   g3k_manifest_init
   if [[ ! -f "$templatePath" ]]; then
     echo -e "$(red_color "ERROR: template does not exist: $templatePath")" 1>&2
@@ -212,7 +203,7 @@ g3k_manifest_filter() {
     echo -e "$(red_color "ERROR: unable to find manifest: $manifestPath")" 1>&2
     return 1
   fi
-  
+
   #
   # Load the substitution map
   # Note: zsh and bash manage parameter expansion of hashmap keys differently,
@@ -225,7 +216,7 @@ g3k_manifest_filter() {
   local value
   local kvList
   declare -a kvList=()
-  
+
   kvList+=('GEN3_DATE_LABEL' "date: \"$(date +%s)\"")
 
   for key in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
@@ -304,8 +295,6 @@ g3k_roll() {
     return 1
   fi
 
-  g3k_get_gitops_home
-  
   local templatePath=""
   if [[ -f "$depName" ]]; then
     # we were given the path to a file - fine
@@ -315,6 +304,7 @@ g3k_roll() {
     templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
   fi
 
+  g3k_get_gitops_home
   local manifestPath
   manifestPath="$(g3k_manifest_path)"
   if [[ ! -f "$manifestPath" ]]; then
@@ -326,7 +316,7 @@ g3k_roll() {
     # Get the service name, so we can verify it's in the manifest
     local serviceName
     serviceName="$(basename "$templatePath" | sed 's/-deploy.yaml$//')"
-    
+
     if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
       g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
     else
@@ -341,3 +331,6 @@ g3k_roll() {
     return 1
   fi
 }
+
+                                                                                                                                                                                                                                                            336,0-1       Bot
+
