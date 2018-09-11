@@ -14,10 +14,10 @@ gen3_load "gen3/gen3setup"
 #
 aws_access_key_id="$(aws configure get jenkins.aws_access_key_id)"
 aws_secret_access_key="$(aws configure get jenkins.aws_secret_access_key)"
-google_acct1_email="$(jq '.jenkins.google_acct1.email' < ${WORKSPACE}/qaplanetv1/creds.json)"
-google_acct1_password="$(jq '.jenkins.google_acct1.password' < ${WORKSPACE}/qaplanetv1/creds.json)"
-google_acct2_email="$(jq '.jenkins.google_acct2.email' < ${WORKSPACE}/qaplanetv1/creds.json)"
-google_acct2_password="$(jq '.jenkins.google_acct2.password' < ${WORKSPACE}/qaplanetv1/creds.json)"
+google_acct1_email=$(jq '.jenkins.google_acct1.email' < ${WORKSPACE}/qaplanetv1/creds.json)
+google_acct1_password=$(jq '.jenkins.google_acct1.password' < ${WORKSPACE}/qaplanetv1/creds.json)
+google_acct2_email=$(jq '.jenkins.google_acct2.email' < ${WORKSPACE}/qaplanetv1/creds.json)
+google_acct2_password=$(jq '.jenkins.google_acct2.password' < ${WORKSPACE}/qaplanetv1/creds.json)
 
 if [ -z "$aws_access_key_id" -o -z "$aws_secret_access_key" ]; then
   echo 'ERROR: not configuring jenkins - could not extract secrets from aws configure'
