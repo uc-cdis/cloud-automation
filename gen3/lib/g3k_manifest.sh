@@ -12,7 +12,7 @@ export GEN3_MANIFEST_HOME
 
 g3k_get_gitops_home() {
   WORKSPACE="${WORKSPACE:-$HOME}"
-#  local GEN3_HOST_NAME;
+
   if [[ $# > 0 ]]; then
     GEN3_HOST_NAME="$1"
   else
@@ -120,7 +120,7 @@ g3k_manifest_path() {
     g3k_manifest_init
     mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
   else
-#    g3k_manifest_init
+    g3k_manifest_init
     mpath="${GEN3_GITOPS_FOLDER}/manifest.json"
   fi
   echo "$mpath"
@@ -330,7 +330,4 @@ g3k_roll() {
     echo -e "$(red_color "ERROR: could not find deployment template: $templatePath")"
     return 1
   fi
-}
-
-                                                                                                                                                                                                                                                            336,0-1       Bot
-
+}                                                                            
