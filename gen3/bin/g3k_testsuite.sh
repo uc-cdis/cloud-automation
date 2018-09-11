@@ -117,7 +117,11 @@ test_roll() {
   ! g3k_roll frickjack; because $? "roll frickjack should not be ok - no yaml file"
   ! g3k_roll aws-es-proxy; because $? "roll aws-es-proxy should not be ok - no manifest entry"
 }
-
+test_gitops_home() {
+   [[ $(g3k_get_gitops_home dev.planx-pla.net) == $WORKSPACE/dev.planx-pla.net ]]; because $? "dev.planx-pla.net GITOPS repo exists"
+  [[ -z "$(g3k_get_gitops_home bogus.di.domain)" ]]; because $? "bogus.di.domain does not exist"
+}
+shunit_runtest "test_gitops_home"
 shunit_runtest "test_env"
 shunit_runtest "test_mpath"
 shunit_runtest "test_mfilter"
