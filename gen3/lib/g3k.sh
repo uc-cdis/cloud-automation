@@ -274,12 +274,22 @@ g3k_ec2_reboot() {
 #
 # g3k command to create configmaps from manifest
 #
-g3k_create_configmaps() {
+g3k_create_and_update_configmaps() {
   local manifestPath
   manifestPath=$(g3k_manifest_path)
   if [[ ! -f "$manifestPath" ]]; then
     echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
     return 1
+  fi
+
+  if [[ ! grep global $manifestPath ]]; then
+    echo -e "$(red_color "ERROR: manifest does not have global section - $manifestPath")" 1>&2
+    return 1
+  fi
+
+  # if old configmaps are found, deletes them
+  if [[ g3kubectl get configmaps -l app=manifest | grep NAME ]]; then
+    g3kubectl delete configmaps -l app=manifest
   fi
 
   g3kubectl create configmap manifest_all --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
@@ -291,7 +301,8 @@ g3k_create_configmaps() {
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
     if [[ $key != 'notes' ]]; then
-      execString="g3kubectl create configmap manifest_$key "
+      cMapName="manifest_$key"
+      execString="g3kubectl create configmap $cMapName "
       for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
         if [[ -n "$value" ]]; then
@@ -301,6 +312,7 @@ g3k_create_configmaps() {
       jsonSection="--from-literal json=$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")"
       execString+=$jsonSection
       eval $execString
+      g3kubectl label configmap $cMapName app=manifest
     fi
   done
 }
@@ -360,8 +372,8 @@ g3k() {
       "update_config")
         update_config "$@"
         ;;
-      "create_configmaps")
-        g3k_create_configmaps
+      "configmaps")
+        g3k_create_and_update_configmaps
         ;;
       *)
         echo "ERROR: unknown command: $command"
