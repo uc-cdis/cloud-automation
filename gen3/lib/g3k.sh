@@ -302,7 +302,7 @@ g3k_create_and_update_configmaps() {
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
     if [[ $key != 'notes' ]]; then
-      cMapName="manifest-$key"
+      local cMapName="manifest-$key"
       execString="g3kubectl create configmap $cMapName "
       for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
@@ -310,7 +310,7 @@ g3k_create_and_update_configmaps() {
           execString+="--from-literal $key2=$value "
         fi
       done
-      jsonSection="--from-literal json='$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")'"
+      local jsonSection="--from-literal json='$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")'"
       execString+=$jsonSection
       eval $execString
       g3kubectl label configmap $cMapName app=manifest
