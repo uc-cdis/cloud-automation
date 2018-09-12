@@ -119,6 +119,13 @@ test_roll() {
 }
 
 test_configmaps() {
+  local mpath
+  mpath="$(g3k_manifest_path test1.manifest.g3k)"
+  # Mock g3k_manifest_path
+  function g3k_manifest_path() { echo "$mpath"; }
+  g3k configmaps; because !$? "g3k configmaps should exit with code 1 if the manifest does not have a global section"
+  
+  mpath="$(g3k_manifest_path manifest.global.g3k)"
   g3k configmaps | grep -q created && grep -q labeled; because $? "g3k configmaps should create and label configmaps"
   g3kubectl delete configmaps -l app=manifest
   g3k configmaps; 
