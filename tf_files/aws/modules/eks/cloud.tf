@@ -668,3 +668,34 @@ data:
 CONFIGMAPAWSAUTH
 }
 
+
+
+#--------------------------------------------------------------
+# We need to have the kubeconfigfile somewhere, even if it is temporaty so we can execute stuff agains the freshly create EKS cluster 
+# Legacy stuff ...
+# We want to move away from generating output files, and
+# instead just publish output variables
+#
+resource "null_resource" "config_setup" {
+   triggers {
+    kubeconfig_change  = "${data.template_file.kube_config.rendered}"
+ #   config_change = "${data.template_file.configmap.rendered}"
+ #   kube_change   = "${data.template_file.kube_vars.rendered}"
+  }
+
+  provisioner "local-exec" {
+    command = "mkdir -p ${var.vpc_name}_output_EKS; echo '${data.template_file.kube_config.rendered}' >${var.vpc_name}_output_EKS/kubeconfig"
+  }
+
+  provisioner "local-exec" {
+    command = "echo \"${local.config-map-aws-auth}\" > ${var.vpc_name}_output_EKS/aws-auth-cm.yaml"
+  }
+
+  provisioner "local-exec" {
+    command = "echo \"${data.template_file.init_cluster.rendered}\" > ${var.vpc_name}_output_EKS/init_cluster.sh"
+  }
+
+  provisioner "local-exec" {
+    command = "bash ${var.vpc_name}_output_EKS/init_cluster.sh"
+  }
+}
