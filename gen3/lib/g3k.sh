@@ -282,7 +282,7 @@ g3k_create_and_update_configmaps() {
     return 1
   fi
 
-  if ! grep global $manifestPath; then
+  if ! grep -q global $manifestPath; then
     echo -e "$(red_color "ERROR: manifest does not have global section - $manifestPath")" 1>&2
     return 1
   fi
@@ -301,7 +301,7 @@ g3k_create_and_update_configmaps() {
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
     if [[ $key != 'notes' ]]; then
-      cMapName="manifest_$key"
+      cMapName="manifest-$key"
       execString="g3kubectl create configmap $cMapName "
       for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
