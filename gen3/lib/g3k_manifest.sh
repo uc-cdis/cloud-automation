@@ -1,9 +1,7 @@
-#!/bin/bash
 #
 # Little library of manifest related functions usually accessed
 # via the `g3k/gen3` cli
 #
-
 #
 # Root manifest folder where the `cdis-manifest` git repo is checked out
 #
@@ -20,12 +18,17 @@ g3k_get_gitops_home() {
   fi
   export GEN3_HOST_NAME=${GEN3_HOST_NAME}
 
-  #check if the new manifest url exists
-  if [[ $(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .message) == "null" ]]; then
+ #check if the new manifest url exists
+  MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .id) 
+  export MANIFEST_EXIST=$MANIFEST_EXIST 
+ if [[ $MANIFEST_EXIST -gt 0 ]]; then
   #new path for all gitops files 
     GEN3_GITOPS_FOLDER=$WORKSPACE/$GEN3_HOST_NAME
     export GEN3_GITOPS_FOLDER=${GEN3_GITOPS_FOLDER}
+    echo "$GEN3_GITOPS_FOLDER"
     return 0
+ # else 
+ #   echo -e $(red_color "the url doesn't exist")
   fi
 }
 #
@@ -77,7 +80,7 @@ g3k_manifest_init() {
   if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
     return 0
   fi
-  if [[ $(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .message) == "null" ]]; then
+  if [[ $MANIFEST_EXIST -gt 0 ]]; then
     if [[ ! -d "${GEN3_GITOPS_FOLDER}" ]]; then
       echo -e $(red_color "ERROR: GEN3_GITOPS_FOLDER does not exist: ${GEN3_GITOPS_FOLDER}") 1>&2
       echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_GITOPS_FOLDER}" 1>&2
@@ -305,6 +308,7 @@ g3k_roll() {
   fi
 
   g3k_get_gitops_home
+
   local manifestPath
   manifestPath="$(g3k_manifest_path)"
   if [[ ! -f "$manifestPath" ]]; then
