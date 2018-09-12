@@ -95,6 +95,7 @@ g3k_manifest_path() {
   if [[ -f "$mpath" ]]; then
     return 0
   else
+    echo -e $(red_color "ERROR: The path g3k_manifest_path obtained was not a valid path. Does $mpath exist?") 1>&2
     return 1
   fi
 }

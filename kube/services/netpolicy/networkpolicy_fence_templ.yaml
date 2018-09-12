@@ -23,6 +23,9 @@ spec:
       - podSelector:
           matchLabels:
              app: revproxy
+      - podSelector:
+          matchLabels:
+             app: arborist
       ports:
          - port: 80
          - port: 443
