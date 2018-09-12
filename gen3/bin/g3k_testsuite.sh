@@ -131,3 +131,4 @@ if [[ "$G3K_TESTSUITE_SUMMARY" != "no" ]]; then
   echo "g3k summary"
   shunit_summary
 fi
+
