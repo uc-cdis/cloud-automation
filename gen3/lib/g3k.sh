@@ -288,11 +288,12 @@ g3k_create_and_update_configmaps() {
   fi
 
   # if old configmaps are found, deletes them
-  if g3kubectl get configmaps -l app=manifest | grep NAME; then
+  if g3kubectl get configmaps -l app=manifest | grep -q NAME; then
     g3kubectl delete configmaps -l app=manifest
   fi
 
   g3kubectl create configmap manifest-all --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
+  g3kubectl label configmap manifest-all app=manifest
 
   local key
   local key2
@@ -309,7 +310,7 @@ g3k_create_and_update_configmaps() {
           execString+="--from-literal $key2=$value "
         fi
       done
-      jsonSection="--from-literal json=$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")"
+      jsonSection="--from-literal json='$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")'"
       execString+=$jsonSection
       eval $execString
       g3kubectl label configmap $cMapName app=manifest
