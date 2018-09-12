@@ -135,7 +135,7 @@ test_configmaps() {
   g3kubectl delete configmaps -l app=manifest
   g3k configmaps; 
   g3k configmaps; because $? "g3k configmaps should not bomb out, even if the configmaps already exist"
-  g3k configmaps; grep -q deleted; because $? "g3k configmaps delete previous configmaps"
+  g3k configmaps | grep -q deleted; because $? "g3k configmaps delete previous configmaps"
 }
 
 shunit_runtest "test_env"
