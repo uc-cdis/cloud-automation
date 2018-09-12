@@ -119,20 +119,19 @@ test_roll() {
 }
 
 test_configmaps() {
-  # Mock g3kubectl
-  function g3kubectl() {
-    echo "MOCK: g3kubectl $@"
-  }
   local mpath
+  local mpathGlobal
   mpath="$(g3k_manifest_path test1.manifest.g3k)"
-  # Mock g3k_manifest_path
+  mpathGlobal="$(g3k_manifest_path manifest.global.g3k)"
+
+  # Mock g3k_manifest_path to manifest with no global
   function g3k_manifest_path() { echo "$mpath"; }
   g3k configmaps; because !$? "g3k configmaps should exit with code 1 if the manifest does not have a global section"
   
-  mpath="$(g3k_manifest_path manifest.global.g3k)"
-  # Mock g3k_manifest_path
-  function g3k_manifest_path() { echo "$mpath"; }
-  g3k configmaps | grep -q created && grep -q labeled; because $? "g3k configmaps should create and label configmaps"
+  # Mock g3k_manifest_path to manifest with global
+  function g3k_manifest_path() { echo "$mpathGlobal"; }
+  g3k configmaps | grep -q created; because $? "g3k configmaps should create configmaps"
+  g3k configmaps | grep -q labeled; because $? "g3k configmaps should label configmaps"
   g3kubectl delete configmaps -l app=manifest
   g3k configmaps; 
   g3k configmaps; because $? "g3k configmaps should not bomb out, even if the configmaps already exist"
