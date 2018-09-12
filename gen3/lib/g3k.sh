@@ -282,13 +282,13 @@ g3k_create_and_update_configmaps() {
     return 1
   fi
 
-  if [[ ! grep global $manifestPath ]]; then
+  if ! grep global $manifestPath; then
     echo -e "$(red_color "ERROR: manifest does not have global section - $manifestPath")" 1>&2
     return 1
   fi
 
   # if old configmaps are found, deletes them
-  if [[ g3kubectl get configmaps -l app=manifest | grep NAME ]]; then
+  if g3kubectl get configmaps -l app=manifest | grep NAME; then
     g3kubectl delete configmaps -l app=manifest
   fi
 
