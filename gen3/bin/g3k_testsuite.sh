@@ -119,6 +119,10 @@ test_roll() {
 }
 
 test_configmaps() {
+  # Mock g3kubectl
+  function g3kubectl() {
+    echo "MOCK: g3kubectl $@"
+  }
   local mpath
   mpath="$(g3k_manifest_path test1.manifest.g3k)"
   # Mock g3k_manifest_path
