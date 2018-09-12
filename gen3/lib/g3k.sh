@@ -292,7 +292,7 @@ g3k_create_and_update_configmaps() {
     g3kubectl delete configmaps -l app=manifest
   fi
 
-  g3kubectl create configmap manifest_all --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
+  g3kubectl create configmap manifest-all --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
 
   local key
   local key2
