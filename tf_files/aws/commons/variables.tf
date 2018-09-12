@@ -168,4 +168,13 @@ variable "csoc_managed" {
 
 variable "organization_name" {
   default = "Basic Service"
+
+
+## Mailgun variable defaults/definitions.
+variable "mailgun_api_key" {}
+variable "mailgun_smtp_host" {
+    default = "smtp.mailgun.org"
+}
+variable "mailgun_api_url" {
+    default = "https://api.mailgun.net/v3/"
 }
