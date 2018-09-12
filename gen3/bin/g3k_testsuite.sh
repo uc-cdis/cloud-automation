@@ -118,6 +118,14 @@ test_roll() {
   ! g3k_roll aws-es-proxy; because $? "roll aws-es-proxy should not be ok - no manifest entry"
 }
 
+test_configmaps() {
+  g3k configmaps | grep -q created && grep -q labeled; because $? "g3k configmaps should create and label configmaps"
+  g3kubectl delete configmaps -l app=manifest
+  g3k configmaps; 
+  g3k configmaps; because $? "g3k configmaps should not bomb out, even if the configmaps already exist"
+  g3k configmaps; grep -q deleted; because $? "g3k configmaps delete previous configmaps"
+}
+
 shunit_runtest "test_env"
 shunit_runtest "test_mpath"
 shunit_runtest "test_mfilter"
@@ -125,6 +133,7 @@ shunit_runtest "test_mlookup"
 shunit_runtest "test_loader"
 shunit_runtest "test_random_alpha"
 shunit_runtest "test_roll"
+shunit_runtest "test_configmaps"
 
 if [[ "$G3K_TESTSUITE_SUMMARY" != "no" ]]; then
   # little hook, so gen3 testsuite can call through to this testsuite too ...
