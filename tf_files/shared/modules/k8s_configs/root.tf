@@ -30,6 +30,11 @@ data "template_file" "creds" {
     gdcapi_oauth2_client_secret = "${var.gdcapi_oauth2_client_secret}"
     aws_user_key                = "${var.aws_user_key}"
     aws_user_key_id             = "${var.aws_user_key_id}"
+
+    ## mailgun creds
+    mailgun_api_key             = "${var.mailgun_api_key}"
+    mailgun_api_url             = "${var.mailgun_api_url}"
+    mailgun_smtp_host           = "${var.mailgun_smtp_host}"
   }
 }
 

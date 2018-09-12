@@ -246,6 +246,18 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update tube secrets
   cd "${WORKSPACE}/${vpc_name}"
 fi
 
+##  update mailgun secret
+##+ if we need to make a creds file:
+##+ jq -r '.mailgun | keys[] as $k | "\($k) = \"\(.[$k])\""' creds.json > ${credsFile}
+
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
+  if ! g3kubectl get secrets/mailgun-creds > /dev/null 2>&1; then
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    jq -r '.mailgun' creds.json > "$credsFile"
+    g3kubectl create secret generic mailgun-creds "--from-file=creds.json=${credsFile}"
+  fi
+fi
+
 # ETL mapping file for tube
 ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"
 if [[ -f "$ETL_MAPPING_PATH" ]]; then

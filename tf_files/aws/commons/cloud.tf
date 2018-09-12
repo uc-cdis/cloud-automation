@@ -66,6 +66,11 @@ module "config_files" {
 
   aws_user_key     = "${module.cdis_vpc.es_user_key}"
   aws_user_key_id  = "${module.cdis_vpc.es_user_key_id}"
+
+## mailgun creds
+  mailgun_api_key    = "${var.mailgun_api_key}"
+  mailgun_api_url    = "${var.mailgun_api_url}"
+  mailgun_smtp_host  = "${var.mailgun_smtp_host}"
 }
 
 data "aws_vpc_endpoint_service" "s3" {

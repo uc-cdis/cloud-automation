@@ -128,3 +128,11 @@ variable "aws_user_key" {}
 
 variable "aws_user_key_id" {}
 
+## Mailgun variable defaults/definitions.
+variable "mailgun_api_key" {}
+variable "mailgun_smtp_host" {
+    default = "smtp.mailgun.org"
+}
+variable "mailgun_api_url" {
+    default = "https://api.mailgun.net/v3/"
+}
