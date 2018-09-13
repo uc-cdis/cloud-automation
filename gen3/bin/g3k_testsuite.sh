@@ -117,6 +117,11 @@ test_roll() {
   ! g3k_roll frickjack; because $? "roll frickjack should not be ok - no yaml file"
   ! g3k_roll aws-es-proxy; because $? "roll aws-es-proxy should not be ok - no manifest entry"
 }
+test_gitops_home() {
+  WORKSPACE="${WORKSPACE:-$HOME}"
+  [[ $(g3k_gitops_init dev.planx-pla.net) == $WORKSPACE/dev.planx-pla.net ]]; because $? "dev.planx-pla.net GITOPS repo exists"
+  [[ -z "$(g3k_gitops_init bogus.di.domain)" ]]; because $? "bogus.di.domain does not exist"
+}
 
 test_configmaps() {
   local mpath
@@ -138,6 +143,7 @@ test_configmaps() {
   g3k configmaps | grep -q deleted; because $? "g3k configmaps delete previous configmaps"
 }
 
+shunit_runtest "test_gitops_home"
 shunit_runtest "test_env"
 shunit_runtest "test_mpath"
 shunit_runtest "test_mfilter"
