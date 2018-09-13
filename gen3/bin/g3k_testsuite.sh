@@ -119,8 +119,8 @@ test_roll() {
 }
 test_gitops_home() {
   WORKSPACE="${WORKSPACE:-$HOME}"
-  [[ $(g3k_get_gitops_home dev.planx-pla.net) == $WORKSPACE/dev.planx-pla.net ]]; because $? "dev.planx-pla.net GITOPS repo exists"
-  [[ -z "$(g3k_get_gitops_home bogus.di.domain)" ]]; because $? "bogus.di.domain does not exist"
+  [[ $(g3k_gitops_init dev.planx-pla.net) == $WORKSPACE/dev.planx-pla.net ]]; because $? "dev.planx-pla.net GITOPS repo exists"
+  [[ -z "$(g3k_gitops_init bogus.di.domain)" ]]; because $? "bogus.di.domain does not exist"
 }
 
 test_configmaps() {
