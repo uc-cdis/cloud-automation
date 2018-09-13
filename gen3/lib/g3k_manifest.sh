@@ -309,8 +309,6 @@ g3k_roll() {
     templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
   fi
 
-  g3k_get_gitops_home
-
   local manifestPath
   manifestPath="$(g3k_manifest_path)"
   if [[ ! -f "$manifestPath" ]]; then
