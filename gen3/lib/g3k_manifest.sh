@@ -8,27 +8,39 @@
 GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
 export GEN3_MANIFEST_HOME
 
-g3k_get_gitops_home() {
+#
+#check if gitops folder exist, update locally and return the path.
+#
+g3k_gitops_init() {
   WORKSPACE="${WORKSPACE:-$HOME}"
-
+  local GEN3_HOST_NAME
   if [[ $# > 0 ]]; then
     GEN3_HOST_NAME="$1"
   else
     GEN3_HOST_NAME=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
   fi
-  export GEN3_HOST_NAME=${GEN3_HOST_NAME}
 
  #check if the new manifest url exists
+ local MANIFEST_EXIST
   MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .id) 
-  export MANIFEST_EXIST=$MANIFEST_EXIST 
  if [[ $MANIFEST_EXIST -gt 0 ]]; then
   #new path for all gitops files 
+
     GEN3_GITOPS_FOLDER=$WORKSPACE/$GEN3_HOST_NAME
-    export GEN3_GITOPS_FOLDER=${GEN3_GITOPS_FOLDER}
+    if [[ ! -d "${GEN3_GITOPS_FOLDER}" ]]; then
+      echo -e $(red_color "ERROR: GEN3_GITOPS_FOLDER does not exist: ${GEN3_GITOPS_FOLDER}") 1>&2
+      echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_GITOPS_FOLDER}" 1>&2
+
+      git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_GITOPS_FOLDER}" 1>&2
+    fi
+    if [[ -d "$GEN3_GITOPS_FOLDER/.git" && -z "$JENKINS_HOME" ]]; then
+      # Don't do this when running tests in Jenkins ...
+      echo "INFO: git fetch in $GEN3_GITOPS_FOLDER" 1>&2
+      (cd "$GEN3_GITOPS_FOLDER" && git pull; git status) 1>&2
+    fi
+    export GEN3_GITOPS_FOLDER
     echo "$GEN3_GITOPS_FOLDER"
     return 0
- # else 
- #   echo -e $(red_color "the url doesn't exist")
   fi
 }
 #
@@ -80,19 +92,10 @@ g3k_manifest_init() {
   if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
     return 0
   fi
-  if [[ $MANIFEST_EXIST -gt 0 ]]; then
-    if [[ ! -d "${GEN3_GITOPS_FOLDER}" ]]; then
-      echo -e $(red_color "ERROR: GEN3_GITOPS_FOLDER does not exist: ${GEN3_GITOPS_FOLDER}") 1>&2
-      echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_GITOPS_FOLDER}" 1>&2
 
-      git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_GITOPS_FOLDER}" 1>&2
-    fi
-    if [[ -d "$GEN3_GITOPS_FOLDER/.git" && -z "$JENKINS_HOME" ]]; then
-      # Don't do this when running tests in Jenkins ...
-      echo "INFO: git fetch in $GEN3_GITOPS_FOLDER" 1>&2
-      (cd "$GEN3_GITOPS_FOLDER" && git pull; git status) 1>&2
-    fi
-  else
+  local gitopsPath
+  gitopsPath="$(g3k_gitops_init)"
+  if [[ -z  "${gitopsPath}" ]]; then
     if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
       echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
       echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}" 1>&2
@@ -114,16 +117,15 @@ g3k_manifest_init() {
 #
 g3k_manifest_path() {
   local mpath
+  g3k_manifest_init
   if [[ -z "$GEN3_GITOPS_FOLDER" ]]; then
     local domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
     if [[ -z "$domain" ]]; then
       echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
       return 1
     fi
-    g3k_manifest_init
     mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
   else
-    g3k_manifest_init
     mpath="${GEN3_GITOPS_FOLDER}/manifest.json"
   fi
   echo "$mpath"
