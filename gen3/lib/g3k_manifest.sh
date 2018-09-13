@@ -89,7 +89,7 @@ g3k_manifest_init() {
   # do this at most once every 5 minutes
   local doneFilePath
   doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(($(date +%s) / 300))"
-  if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
+  if [[ (! "$2" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
     return 0
   fi
 
@@ -104,8 +104,10 @@ g3k_manifest_init() {
     fi
     if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
       # Don't do this when running tests in Jenkins ...
-      echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
-      (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
+      local branch
+      branch=${1:-"master"}
+      echo "INFO: git fetch branch $branch in $GEN3_MANIFEST_HOME" 1>&2
+      (cd "$GEN3_MANIFEST_HOME" && git pull; git checkout $branch; git status) 1>&2
     fi
   fi
   touch "$doneFilePath"
