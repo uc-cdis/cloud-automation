@@ -122,6 +122,27 @@ test_gitops_home() {
   [[ $(g3k_get_gitops_home dev.planx-pla.net) == $WORKSPACE/dev.planx-pla.net ]]; because $? "dev.planx-pla.net GITOPS repo exists"
   [[ -z "$(g3k_get_gitops_home bogus.di.domain)" ]]; because $? "bogus.di.domain does not exist"
 }
+
+test_configmaps() {
+  local mpath
+  local mpathGlobal
+  mpath="$(g3k_manifest_path test1.manifest.g3k)"
+  mpathGlobal="$(g3k_manifest_path manifest.global.g3k)"
+
+  # Mock g3k_manifest_path to manifest with no global
+  function g3k_manifest_path() { echo "$mpath"; }
+  g3k configmaps; because !$? "g3k configmaps should exit with code 1 if the manifest does not have a global section"
+  
+  # Mock g3k_manifest_path to manifest with global
+  function g3k_manifest_path() { echo "$mpathGlobal"; }
+  g3k configmaps | grep -q created; because $? "g3k configmaps should create configmaps"
+  g3k configmaps | grep -q labeled; because $? "g3k configmaps should label configmaps"
+  g3kubectl delete configmaps -l app=manifest
+  g3k configmaps; 
+  g3k configmaps; because $? "g3k configmaps should not bomb out, even if the configmaps already exist"
+  g3k configmaps | grep -q deleted; because $? "g3k configmaps delete previous configmaps"
+}
+
 shunit_runtest "test_gitops_home"
 shunit_runtest "test_env"
 shunit_runtest "test_mpath"
@@ -130,6 +151,7 @@ shunit_runtest "test_mlookup"
 shunit_runtest "test_loader"
 shunit_runtest "test_random_alpha"
 shunit_runtest "test_roll"
+shunit_runtest "test_configmaps"
 
 if [[ "$G3K_TESTSUITE_SUMMARY" != "no" ]]; then
   # little hook, so gen3 testsuite can call through to this testsuite too ...
