@@ -137,7 +137,8 @@ spec:
             - --cloud-provider=aws
             - --skip-nodes-with-local-storage=false
             - --expander=least-waste
-            - --skip-nodes-with-system-pods=false
+            # - --skip-nodes-with-system-pods=false
+            - --scale-down-delay-after-add=7m
             - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,kubernetes.io/cluster/VPC_NAME
           env:
             - name: AWS_REGION

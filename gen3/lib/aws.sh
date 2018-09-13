@@ -357,6 +357,7 @@ EOM
 vpc_name      = "${commonsName}"
 instance_type = "t2.medium"
 ec2_keyname   = "fauzi@uchicago.edu"
+users_policy  = "PUT SOMETHING HERE"
 EOM
     return 0
   fi
