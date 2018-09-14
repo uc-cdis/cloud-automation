@@ -7,6 +7,8 @@
 #
 GEN3_MANIFEST_HOME="${GEN3_MANIFEST_HOME:-"$(cd "${GEN3_HOME}/.." && pwd)/cdis-manifest"}"
 export GEN3_MANIFEST_HOME
+MANIFEST_BRANCH=${MANIFEST_BRANCH:-"master"}
+export MANIFEST_BRANCH
 
 #
 #check if gitops folder exist, update locally and return the path.
@@ -14,16 +16,12 @@ export GEN3_MANIFEST_HOME
 g3k_gitops_init() {
   WORKSPACE="${WORKSPACE:-$HOME}"
   local GEN3_HOST_NAME
-  if [[ $# > 0 ]]; then
-    GEN3_HOST_NAME="$1"
-  else
-    GEN3_HOST_NAME=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
-  fi
+  GEN3_HOST_NAME=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
 
- #check if the new manifest url exists
- local MANIFEST_EXIST
+  #check if the new manifest url exists
+  local MANIFEST_EXIST
   MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .id) 
- if [[ $MANIFEST_EXIST -gt 0 ]]; then
+  if [[ $MANIFEST_EXIST -gt 0 ]]; then
   #new path for all gitops files 
 
     GEN3_GITOPS_FOLDER=$WORKSPACE/$GEN3_HOST_NAME
@@ -35,8 +33,10 @@ g3k_gitops_init() {
     fi
     if [[ -d "$GEN3_GITOPS_FOLDER/.git" && -z "$JENKINS_HOME" ]]; then
       # Don't do this when running tests in Jenkins ...
-      echo "INFO: git fetch in $GEN3_GITOPS_FOLDER" 1>&2
-      (cd "$GEN3_GITOPS_FOLDER" && git pull; git status) 1>&2
+      local branch
+      branch=${2:-$MANIFEST_BRANCH}
+      echo "INFO: git fetch branch $branch in $GEN3_GITOPS_FOLDER" 1>&2
+      (cd "$GEN3_GITOPS_FOLDER" && git pull; git checkout $branch; git pull; git status) 1>&2
     fi
     export GEN3_GITOPS_FOLDER
     echo "$GEN3_GITOPS_FOLDER"
@@ -89,7 +89,7 @@ g3k_manifest_init() {
   # do this at most once every 5 minutes
   local doneFilePath
   doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(($(date +%s) / 300))"
-  if [[ (! "$1" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
+  if [[ (! "$2" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
     return 0
   fi
 
@@ -104,8 +104,10 @@ g3k_manifest_init() {
     fi
     if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
       # Don't do this when running tests in Jenkins ...
-      echo "INFO: git fetch in $GEN3_MANIFEST_HOME" 1>&2
-      (cd "$GEN3_MANIFEST_HOME" && git pull; git status) 1>&2
+      local branch
+      branch=${1:-$MANIFEST_BRANCH}
+      echo "INFO: git fetch branch $branch in $GEN3_MANIFEST_HOME" 1>&2
+      (cd "$GEN3_MANIFEST_HOME" && git pull; git checkout $branch; git pull; git status) 1>&2
     fi
   fi
   touch "$doneFilePath"
