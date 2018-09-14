@@ -698,4 +698,8 @@ resource "null_resource" "config_setup" {
   provisioner "local-exec" {
     command = "bash ${var.vpc_name}_output_EKS/init_cluster.sh"
   }
+
+  depends_on = [
+    "aws_autoscaling_group.eks_autoscaling_group",
+  ]
 }

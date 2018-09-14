@@ -1,6 +1,6 @@
 # TL;DR
 
-This module is still on it first steps, but it is intended to build up a fully functional kubernetes cluster on EKS.
+This module would bring up a fully functional EKS cluster. If everything goes as expected, then you should be able to run kubectl commands against the cluster.
 
 
 ## 1. QuickStart
@@ -37,6 +37,7 @@ Ex.
 fauziv1@cdistest_admin ~ % cat .local/share/gen3/cdistest/fauziv1_eks/config.tfvars 
 vpc_name   = "fauziv1"
 ec2_keyname = "fauziv1_automation_dev"
+users_policy = "fauziv1"
 ```
 
 ## 4. Variables 
@@ -44,8 +45,9 @@ ec2_keyname = "fauziv1_automation_dev"
 ### 4.1 Required Variables 
 
 * `vpc_name` usually the same name as the commons, this VPC must be an existing one, otherwise the execution will fail. Additioanlly, it worth mentioning that logging and VPC must exist before running this.
-* `ec2_keyname` and existing key pair so we can ssh into the worker nodes. There might be a better way to achieve this.
-* `users_policy` This is the policy that was created before that allows the cluster to access the users bucket in bionimbus. Usually the same name as the VPC, but not always. You may look up the commons name in the policies for the account in question and the bucket reader policy is the one.
+* `ec2_keyname` and existing key pair so we can ssh into the worker nodes. There might be a better way to achieve this, but as for now the key should exist. At the end, we replace the keys for what we put in terraform.
+* `users_policy` This is the policy that was created before that allows the cluster to access the users bucket in bionimbus. Usually the same name as the VPC, but not always. 
+   You may want to look up the policy in AWS console. It should something like `bucket_reader_cdis-gen3-users_fauziv1` the part you need to set the value of `users_policy` is just the part that differentiates the commons. In this case `fauziv1`
 
 ### 4.2 Optional Variables
 
@@ -56,35 +58,11 @@ ec2_keyname = "fauziv1_automation_dev"
 ## 5. Considerations 
 
 * We are using AWS EKS ready AMIs, even though there might be other options out there, we are using this ones as for now, or at least until there are more mature solutions. 
-  Said AMIs uses amazon linux, which default user is `ec2-user`. We are enabling root logging to the instances for the keys we are pasting in there.
+  Said AMIs uses amazon linux, which default user is `ec2-user`.
 
-* When tfapply is ran, there will be two main outputs `config_map_aws_auth` and `kubeconfig`. You must copy the output and put them in files accordingly. Both are in YAML format. 
-  The first one is an authentication configmap that will allow the k8s cluster add the nodes into it, otherewise you won't see the nodes at all.
-  The second one is the kubeconfig file to use.
+* When tfapply is ran, there will be two main outputs `config_map_aws_auth` and `kubeconfig`. 
+  `config_map_aws_auth` is a confimap that sets permision to the cluster to incorporate the worker nodes into the cluster. This is applied automatically, but in case it doesn't copy this output and apply it to the cluster. 
+  `kubeconfig` is the config file for kubernetes, it is not saved automatically in the right path, therfore you must put it where your KUBECONFIG var points to.
 
-* Due to the fact that you need to use keys to access EKS endpoint, we need to re-design gen3 later in order to be able to use this out of the box.
-  As for now, you may use `gen3 arun` or set ENV varaibles with valid key, the ones that gen3 genenerates `gen3 arun env | grep AWS`.
+   These outputs are also saved into a file in the terraform space. You can access it by running `gen3 cd`, there is a `<commons-name>_output_eks` folder which contains the files in question.
 
-Finally, examples:
-
-
-```
-fauziv1@cdistest_admin ~ % gen3 arun kubectl apply -f aws-auth-cm.yaml --kubeconfig kubeconfig-FauziEKSTest               
-configmap/aws-auth created
-
-fauziv1@cdistest_admin ~ % kubectl get node
-NAME                            STATUS    ROLES     AGE       VERSION
-ip-172-24-55-210.ec2.internal   Ready     <none>    3h        v1.10.3
-ip-172-24-56-45.ec2.internal    Ready     <none>    3h        v1.10.3
-
-fauziv1@cdistest_admin ~ % gen3 arun kubectl --kubeconfig kubeconfig-FauziEKSTest run nginx --image nginx:latest -ti -- bash
-If you don't see a command prompt, try pressing enter.
-
-root@nginx-6d9b45cb59-r7zsh:/# exit
-exit
-Session ended, resume using 'kubectl attach nginx-6d9b45cb59-r7zsh -c nginx -i -t' command when the pod is running
-
-fauziv1@cdistest_admin ~ % gen3 arun kubectl get pod --kubeconfig kubeconfig-FauziEKSTest
-NAME                     READY     STATUS    RESTARTS   AGE
-nginx-6d9b45cb59-r7zsh   1/1       Running   1          4m
-```
