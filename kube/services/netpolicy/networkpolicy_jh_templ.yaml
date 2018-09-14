@@ -1,3 +1,4 @@
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -13,6 +14,27 @@ spec:
              app: revproxy
       ports:
          - port: 3838
+  egress:
+    - {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-jh-nb
+spec:
+  podSelector:
+    matchLabels:
+      app: jupyterhub
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+             app: jupyter-hub
+      ports:
+         - {}
   egress:
     - {}
   policyTypes:
