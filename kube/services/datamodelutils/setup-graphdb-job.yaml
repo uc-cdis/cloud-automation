@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: setup-graph-db
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: datamodelutils
+        imagePullPolicy: Always
+        image: quay.io/cdis/datamodelutils:feat_admin
+        command: ["datamodel_postgres_admin", "create-all"]
+        env:
+          - name: PG_HOST
+            valueFrom:
+              secretKeyRef:
+                name: pggraph-db-creds
+                key: host
+          - name: PG_USER
+            valueFrom:
+              secretKeyRef:
+                name: pggraph-db-creds
+                key: username
+          - name: PG_PASS
+            valueFrom:
+              secretKeyRef:
+                name: pggraph-db-creds
+                key: password
+          - name: PG_NAME
+            valueFrom:
+              secretKeyRef:
+                name: pggraph-db-creds
+                key: name
+          - name: DICTIONARY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: dictionary_url
+      restartPolicy: Never

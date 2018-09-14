@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api-repl
+spec:
+  containers:
+  - name: datamodelutils
+    imagePullPolicy: Always
+    image: quay.io/cdis/datamodelutils:feat_admin
+    env:
+      - name: PG_HOST
+        valueFrom:
+          secretKeyRef:
+            name: pggraph-db-creds
+            key: host
+      - name: PG_USER
+        valueFrom:
+          secretKeyRef:
+            name: pggraph-db-creds
+            key: username
+      - name: PG_PASS
+        valueFrom:
+          secretKeyRef:
+            name: pggraph-db-creds
+            key: password
+      - name: PG_NAME
+        valueFrom:
+          secretKeyRef:
+            name: pggraph-db-creds
+            key: name
+      - name: DICTIONARY_URL
+        valueFrom:
+          configMapKeyRef:
+            name: global
+            key: dictionary_url
+
+    command: ["sh", "-c", "tail -f /dev/null"]
