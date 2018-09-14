@@ -36,7 +36,7 @@ g3k_gitops_init() {
       local branch
       branch=${2:-$MANIFEST_BRANCH}
       echo "INFO: git fetch branch $branch in $GEN3_GITOPS_FOLDER" 1>&2
-      (cd "$GEN3_GITOPS_FOLDER" && git pull; git checkout $branch; git status) 1>&2
+      (cd "$GEN3_GITOPS_FOLDER" && git pull; git checkout $branch; git pull; git status) 1>&2
     fi
     export GEN3_GITOPS_FOLDER
     echo "$GEN3_GITOPS_FOLDER"
@@ -107,7 +107,7 @@ g3k_manifest_init() {
       local branch
       branch=${1:-$MANIFEST_BRANCH}
       echo "INFO: git fetch branch $branch in $GEN3_MANIFEST_HOME" 1>&2
-      (cd "$GEN3_MANIFEST_HOME" && git pull; git checkout $branch; git status) 1>&2
+      (cd "$GEN3_MANIFEST_HOME" && git pull; git checkout $branch; git pull; git status) 1>&2
     fi
   fi
   touch "$doneFilePath"
