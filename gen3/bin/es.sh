@@ -156,6 +156,35 @@ function es_import() {
     return 1
   fi
   # make sure arranger-projects index has an entry for our project id
+  if ! gen3 es indices | awk '{ print $3 }' | grep -e '^arranger-frickjacks$' > /dev/null 2>&1; then
+    # Need to create arranger-projects index by hand
+    curl -iv -X PUT "${ESHOST}/arranger-frickjacks" \
+-H 'Content-Type: application/json' -d'
+{
+    "mappings" : {
+      "arranger-projects" : {
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "timestamp" : {
+            "type" : "date"
+          }
+        }
+      }
+    }
+}
+';
+  fi
   local dayStr
   dayStr="$(date +%Y-%m-%d)"
   curl -X PUT $ESHOST/arranger-projects/arranger-projects/$projectName?pretty=true \
