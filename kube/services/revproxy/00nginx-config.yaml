@@ -186,10 +186,17 @@ data:
           # This is somewhat problematic as the individual services
           # may also set CORS headers
           #
-          add_header 'Access-Control-Allow-Origin' "https://$host";
+          set $allow_origin "*";
+          if ($http_origin) {
+            set $allow_origin "$http_origin";
+          }
+
+          add_header 'Access-Control-Allow-Origin' "$allow_origin";
           add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+          add_header 'Access-Control-Allow-Credentials' 'true';
           add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,Cookie';
           add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+          
           if ($request_method = 'OPTIONS') {
             return 204;
           }
@@ -203,6 +210,17 @@ data:
 
           set $access_token "";
           set $csrf_check "ok-tokenauth";
+
+          #
+          # Note: add_header blocks are inheritted iff the current block does not call add_header:
+          #     http://nginx.org/en/docs/http/ngx_http_headers_module.html
+          #
+          set $csrf_token "$request_id$request_length$request_time$time_iso8601";
+          if ($cookie_csrftoken) {
+            set $csrf_token "$cookie_csrftoken";
+          }
+          add_header Set-Cookie "csrftoken=$csrf_token;Path=/";
+          
           if ($cookie_access_token) {
               set $access_token "bearer $cookie_access_token";
               # cookie auth requires csrf check
