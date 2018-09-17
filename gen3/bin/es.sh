@@ -156,9 +156,9 @@ function es_import() {
     return 1
   fi
   # make sure arranger-projects index has an entry for our project id
-  if ! gen3 es indices | awk '{ print $3 }' | grep -e '^arranger-frickjacks$' > /dev/null 2>&1; then
+  if ! gen3 es indices | awk '{ print $3 }' | grep -e '^arranger-projects$' > /dev/null 2>&1; then
     # Need to create arranger-projects index by hand
-    curl -iv -X PUT "${ESHOST}/arranger-frickjacks" \
+    curl -iv -X PUT "${ESHOST}/arranger-projects" \
 -H 'Content-Type: application/json' -d'
 {
     "mappings" : {
