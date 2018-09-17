@@ -194,7 +194,7 @@ data:
           add_header 'Access-Control-Allow-Origin' "$allow_origin";
           add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
           add_header 'Access-Control-Allow-Credentials' 'true';
-          add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,Cookie';
+          add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,Cookie,X-CSRF-Token';
           add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
           
           if ($request_method = 'OPTIONS') {
