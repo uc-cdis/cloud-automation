@@ -148,7 +148,7 @@ spec:
             if [[ ! "$SYNC_FROM_DBGAP" = True ]]; then
               if [[ -f /var/www/fence/user.yaml ]]; then
                 echo "running fence-create"
-                fence-create sync --arborist http://arborist-service --yaml /var/www/fence/user.yaml
+                fence-create sync --arborist http://localhost --yaml /var/www/fence/user.yaml
               else
                 echo "/var/www/fence/user.yaml is not mounted :-("
               fi
