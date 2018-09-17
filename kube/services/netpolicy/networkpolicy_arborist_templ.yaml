@@ -28,6 +28,9 @@ spec:
       - podSelector:
           matchLabels:
             app: fence
+      - ipBlock:
+           # fence-create sidecar
+           cidr: GEN3_FENCEDB_IP/32
   policyTypes:
    - Ingress
    - Egress
