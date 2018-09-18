@@ -518,7 +518,7 @@ resource "aws_security_group" "ssh" {
 data "aws_ami" "eks_worker" {
   filter {
     name   = "name"
-    values = ["eks-worker-*"]
+    values = ["amazon-eks-node-*"]
   }
 
   most_recent = true
@@ -638,6 +638,11 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
     key                 = "k8s.io/cluster-autoscaler/enabled"
     value               = ""
     propagate_at_launch = true
+  }
+
+# Avoid unnecessary changes for existing commons running on EKS 
+  lifecycle {
+    ignore_changes = ["desired_capacity","max_size","min_size"]
   }
 }
 
