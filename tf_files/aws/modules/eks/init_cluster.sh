@@ -3,7 +3,7 @@
 
 
 
-export vpc_name='${vpc_name}'
+export vpc_name="${vpc_name}"
 export GEN3_HOME=~/cloud-automation
 if [ -f "$${GEN3_HOME}/gen3/gen3setup.sh" ]; then
   source "$${GEN3_HOME}/gen3/gen3setup.sh"
@@ -13,7 +13,7 @@ fi
 
 #alias kubectl=g3kubectl
 
-KUBECTL=$(bash which kubectl)
+#KUBECTL=$(bash which kubectl)
 if ! $(bash which kubectl) get daemonsets -n kube-system calico-node > /dev/null 2>&1; then
   $(bash which kubectl) --kubeconfig "${kubeconfig_path}" apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-1.1/config/v1.1/calico.yaml
 fi
