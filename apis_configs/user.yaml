@@ -65,4 +65,8 @@ users:
     projects:
     - auth_id: acct
       privilege: ['create', 'read', 'update', 'delete', 'upload']
-  
+  diw@uchicago.edu:
+    admin: True
+    projects:
+    - auth_id: acct
+      privilege: ['create', 'read', 'update', 'delete', 'upload']  
