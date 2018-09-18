@@ -16,11 +16,11 @@
 # TEST_PROJECT(optional)
 #   Name of test project. Default: DEV/test
 #
-# NUMBER_OF_EXAMPLES(optional)
-#   Number of examples for each node. Default 1000
+# MAX_EXAMPLES(optional)
+#   Number of maximum examples for each node. Default 1000
 #
 # Example
-# gen3 runjob gentestdata SUBMISSION_USER cdis.autotest@gmail.com TEST_PROGRAM DEV TEST_PROJECT test NUMBER_OF_EXAMPLES 10
+# gen3 runjob gentestdata SUBMISSION_USER cdis.autotest@gmail.com TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 10 SUBMISSION_USER cdistest@gmail.com
 #
 apiVersion: batch/v1
 kind: Job
@@ -73,8 +73,8 @@ spec:
             GEN3_TEST_PROGRAM
           - name: TEST_PROJECT
             GEN3_TEST_PROJECT
-          - name: NUMBER_OF_EXAMPLES
-            GEN3_NUMBER_OF_EXAMPLES
+          - name: MAX_EXAMPLES
+            GEN3_MAX_EXAMPLES
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -100,7 +100,7 @@ spec:
                 rscript_cmd+=" test"
             fi
             if [[ -n "$NUMBER_OF_EXAMPLES" ]]; then
-                rscript_cmd+=" $NUMBER_OF_EXAMPLES"
+                rscript_cmd+=" $MAX_EXAMPLES"
             else
                 rscript_cmd+=" 1000"
             fi
