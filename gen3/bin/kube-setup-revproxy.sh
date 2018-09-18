@@ -47,6 +47,13 @@ else
   echo "Ensure the commons DNS references the -elb revproxy which support http proxy protocol"
 fi
 
+#
+# If set do not actually apply the revproxy service.yaml -
+# just process the template and echo the yaml that would
+# be set to kubectl without --dry-run.
+# Mostly useful for debugging or verifying that some change
+# will not re-create the AWS load balancer (and force a DNS change)
+#
 DRY_RUN=${DRY_RUN:-""}
 if [[ "$1" =~ ^-*dry-run ]]; then
   DRY_RUN="--dry-run"
