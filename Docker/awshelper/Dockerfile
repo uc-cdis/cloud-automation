@@ -29,6 +29,7 @@ RUN apt-get update && apt-get upgrade -y \
       netcat-openbsd \
       iputils-ping \
       net-tools \
+      sudo \
     && rm -rf /var/lib/apt/lists/*
 
 RUN  easy_install -U pip \

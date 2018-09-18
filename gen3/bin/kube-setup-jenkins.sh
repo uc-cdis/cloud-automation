@@ -43,8 +43,8 @@ gen3 kube-setup-roles
 # Note: only the 'default' namespace jenkins-service account gets a cluster rolebinding
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrolebinding-devops.yaml"
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/jenkins-deploy.yaml"
-
+# Note: requires Jenkins entry in cdis-manifest
+gen3 roll jenkins
 
 #
 # Get the ARN of the SSL certificate for the commons -

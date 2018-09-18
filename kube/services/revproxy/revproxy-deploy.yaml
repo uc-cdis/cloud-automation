@@ -36,6 +36,9 @@ spec:
         - name: revproxy-conf
           configMap:
             name: revproxy-nginx-conf
+        - name: revproxy-subconf
+          configMap:
+            name: revproxy-nginx-subconf
         - name: cert-external-volume
           secret:
             secretName: "cert-external"
@@ -70,6 +73,9 @@ spec:
             readOnly: true
             mountPath: "/etc/nginx/nginx.conf"
             subPath: nginx.conf
+          - name: "revproxy-subconf"
+            readOnly: true
+            mountPath: "/etc/nginx/gen3.conf"
           - name: "revproxy-conf"
             readOnly: true
             mountPath: "/etc/nginx/userid.js"
@@ -97,3 +103,12 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
+        #command: ["/bin/bash" ]
+        #args:
+        #  - "-c"
+        #  # Script always succeeds if it runs (echo exits with 0)
+        #  - |
+        #    while [[ ! -f /tmp/killme ]]; do
+        #      echo "revproxy container spinning";
+        #      sleep 10
+        #    done

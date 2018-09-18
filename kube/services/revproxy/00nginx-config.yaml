@@ -159,9 +159,9 @@ data:
       	##
         # Serve internet facing http requests via this, and redirect to https
         server {
-               listen      82 default_server proxy_protocol;
-               listen      83;
-               rewrite     ^   https://$host$request_uri? permanent;
+          listen      82 default_server proxy_protocol;
+          listen      83;
+          rewrite     ^   https://$host$request_uri? permanent;
         }
         # Serve internet facing https requests and internal http requests here
       	server {
@@ -177,12 +177,50 @@ data:
       		server_tokens off;
       		add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
       		add_header X-Frame-Options "SAMEORIGIN";
-      		if ($http_x_forwarded_proto = "http") { return 301 https://$host$request_uri; }
+          add_header X-Content-Type-Options "nosniff";
+
+          if ($http_x_forwarded_proto = "http") { return 301 https://$host$request_uri; }
+          
+          #
+          # From https://enable-cors.org/server_nginx.html
+          # This is somewhat problematic as the individual services
+          # may also set CORS headers
+          #
+          set $allow_origin "*";
+          if ($http_origin) {
+            set $allow_origin "$http_origin";
+          }
+
+          add_header 'Access-Control-Allow-Origin' "$allow_origin";
+          add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+          add_header 'Access-Control-Allow-Credentials' 'true';
+          add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,Cookie,X-CSRF-Token';
+          add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
+          
+          if ($request_method = 'OPTIONS') {
+            return 204;
+          }
+
+          #
           # DNS resolver required to resolve dynamic hostnames, btw - kubedns may not support ipv6
+          # see https://www.nginx.com/blog/dns-service-discovery-nginx-plus/
+          #     https://distinctplace.com/2017/04/19/nginx-resolver-explained/
+          #
           resolver kube-dns.kube-system.svc.cluster.local ipv6=off;
 
           set $access_token "";
           set $csrf_check "ok-tokenauth";
+
+          #
+          # Note: add_header blocks are inheritted iff the current block does not call add_header:
+          #     http://nginx.org/en/docs/http/ngx_http_headers_module.html
+          #
+          set $csrf_token "$request_id$request_length$request_time$time_iso8601";
+          if ($cookie_csrftoken) {
+            set $csrf_token "$cookie_csrftoken";
+          }
+          add_header Set-Cookie "csrftoken=$csrf_token;Path=/";
+          
           if ($cookie_access_token) {
               set $access_token "bearer $cookie_access_token";
               # cookie auth requires csrf check
@@ -218,221 +256,8 @@ data:
             set $csrf_check "ok-tokenauth";
           }
 
-          location / {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
+          include /etc/nginx/gen3.conf/*.conf;
 
-              proxy_pass http://portal-service;
-          }
-
-          location /index/ {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_pass http://indexd-service/;
-          }
-
-          location /coremetadata/ {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              # redirect to coremetadata landing page if header does not specify otherwise
-              if ($http_accept !~ (application/json|x-bibtex)) {
-                rewrite ^/coremetadata/(.*) /files/$1 redirect;
-              }
-
-              proxy_pass http://pidgin-service/;
-          }
-
-          # GA4GH endpoint for DOS resolver
-          location /ga4gh/ {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_pass http://indexd-service/ga4gh/;
-          }
-
-          location /user/ {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_pass http://fence-service/;
-          }
-          location /api/v0/submission/getschema {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_next_upstream off;
-              proxy_pass http://peregrine-service/v0/submission/getschema;
-          }
-          # Simplify external access to health checks
-          location /peregrine/_status {
-              proxy_pass http://peregrine-service/_status;
-          }
-          location /peregrine/_version {
-              proxy_pass http://peregrine-service/_version;
-          }
-          location /api/v0/submission/graphql {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-
-              gzip off;
-              proxy_next_upstream off;
-              # Forward the host and set Subdir header so api
-              # knows the original request path for hmac signing
-              proxy_set_header   Host $host;
-              proxy_set_header   Subdir /api;
-              proxy_set_header   Authorization "$access_token";
-              proxy_set_header   X-Forwarded-For "$realip";
-              proxy_set_header   X-UserId "$userid";
-              proxy_connect_timeout 300;
-              proxy_send_timeout 300;
-              proxy_read_timeout 300;
-              send_timeout 300;
-              proxy_pass http://peregrine-service/v0/submission/graphql;
-          }
-          location /api/v0/flat-search/ {
-            #
-            # Arranger UI does not set csrf headers ..
-            #
-            #if ($csrf_check !~ ^ok-\S.+$) {
-            #  return 403 "failed csrf check";
-            #}
-            if ($cookie_csrftoken = "") {
-            add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-            }
-
-            proxy_set_header   Host $host;
-            proxy_set_header   Authorization "$access_token";
-            proxy_set_header   X-Forwarded-For "$realip";
-            proxy_set_header   X-UserId "$userid";
-            # Use this variable so nginx won't error out on start
-            set $upstream_host http://arranger-service.$namespace.svc.cluster.local;
-            rewrite ^/api/v0/flat-search/(.*) /$1 break;
-            proxy_pass $upstream_host;
-          }
-          location /api/ {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_next_upstream off;
-              # Forward the host and set Subdir header so api
-              # knows the original request path for hmac signing
-              proxy_set_header   Host $host;
-              proxy_set_header   Subdir /api;
-              proxy_set_header   Authorization "$access_token";
-              proxy_set_header   X-Forwarded-For "$realip";
-              proxy_set_header   X-UserId "$userid";
-              proxy_connect_timeout 300;
-              proxy_send_timeout 300;
-              proxy_read_timeout 300;
-              send_timeout 300;
-              proxy_pass http://sheepdog-service/;
-          }
-
-          # This works if the JupyterHub service is enabled
-          # The JupyterHub service is set to use REMOTE_USER auth
-          # So it trusts that the user is authenticated if the header
-          # is set and passed in
-          location /workspace/ {
-              auth_request /auth-proxy;
-              auth_request_set $remoteUser $upstream_http_REMOTE_USER;
-              auth_request_set $saved_set_cookie $upstream_http_set_cookie;
-              if ($saved_set_cookie != "") {
-                  add_header Set-Cookie $saved_set_cookie always;
-              }
-              proxy_set_header REMOTE_USER $remoteUser;
-              error_page 401 = @error401;
-
-              # Use this variable so nginx won't error out on start
-              # if not using the jupyterhub service
-              # this isn't dev namespace friendly, must be manually updated
-              set $upstream_jh http://jupyterhub-service.$namespace.svc.cluster.local:8000;
-              proxy_pass $upstream_jh;
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header Upgrade $http_upgrade;
-              proxy_set_header Connection $connection_upgrade;
-              client_max_body_size 0;
-          }
-
-          # JupyterHub doesn't currently support chaining logout pages
-          # So route the jupyterhub logout to the fence logout path
-          # Fence is hence responsible for clearing all cookies
-          location = /workspace/hub/logout {
-              return 301 $scheme://$host/user/logout?next=/;
-          }
-
-          # Exploration page until we finish redoing it
-          location ~ ^/(shiny|explore)/ {
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-              auth_request /auth-proxy;
-              auth_request_set $remoteUser $upstream_http_REMOTE_USER;
-              proxy_set_header REMOTE_USER $remoteUser;
-              error_page 401 = @error401;
-
-              # Use this variable so nginx won't error out on start
-              set $upstream_shiny http://shiny-service.$namespace.svc.cluster.local:3838;
-              proxy_pass $upstream_shiny;
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header Upgrade $http_upgrade;
-              proxy_set_header Connection $connection_upgrade;
-          }
-
-
-          # Auth-proxy uses fence to gate access to downstream services
-          # that don't implement our auth i.e. shiny, jupyter.
-          # Fence also sets the REMOTE_USER header to the username
-          # of the logged in user for later use
-          location /auth-proxy {
-              internal;
-              proxy_pass http://fence-service/user/anyaccess;
-              proxy_pass_request_body off;
-              proxy_set_header Authorization "$access_token";
-              proxy_set_header Content-Length "";
-              proxy_set_header X-Forwarded-For "$realip";
-              proxy_set_header X-UserId "$userid";
-              # nginx bug that it checks even if request_body off
-              client_max_body_size 0;
-          }
           location @error401 {
               return 302 /login;
           }
