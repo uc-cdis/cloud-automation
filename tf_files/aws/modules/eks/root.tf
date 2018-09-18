@@ -10,3 +10,14 @@ data "template_file" "kube_config" {
   }
 }
 
+
+data "template_file" "init_cluster" {
+  template = "${file("${path.module}/init_cluster.sh")}"
+
+  vars {
+    vpc_name        = "${var.vpc_name}"
+    kubeconfig_path = "${var.vpc_name}_output_EKS/kubeconfig"
+    auth_configmap  = "${var.vpc_name}_output_EKS/aws-auth-cm.yaml"
+  }
+}
+    

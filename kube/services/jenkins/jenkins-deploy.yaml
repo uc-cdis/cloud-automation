@@ -14,6 +14,7 @@ spec:
     metadata:
       labels:
         app: jenkins
+        GEN3_DATE_LABEL
     spec:
       serviceAccountName: jenkins-service
       securityContext:
@@ -21,7 +22,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: jenkins
-        image: quay.io/cdis/jenkins:master
+        GEN3_JENKINS_IMAGE
         ports:
         - containerPort: 8080
         env:

@@ -137,7 +137,7 @@ function es_import() {
   shift
 
   if es_indices | grep "arranger-projects-${projectName}[- ]" > /dev/null 2>&1; then
-    echo "ERROR: arranger project already exists - abandoning import: $projectName" 1>2
+    echo "ERROR: arranger project already exists - abandoning import: $projectName" 1>&2
     return 1
   fi
 
@@ -147,15 +147,44 @@ function es_import() {
   importCount=0
   for name in $indexList; do
     echo $name
-    npx elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__data.json --type data
     npx elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__mapping.json --type mapping
+    npx elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__data.json --type data
     let importCount+=1
   done
   if [[ $importCount == 0 ]]; then
-    echo "ERROR: no .json files found matching $projectName" 1>2
+    echo "ERROR: no .json files found matching $projectName" 1>&2
     return 1
   fi
   # make sure arranger-projects index has an entry for our project id
+  if ! gen3 es indices | awk '{ print $3 }' | grep -e '^arranger-projects$' > /dev/null 2>&1; then
+    # Need to create arranger-projects index by hand
+    curl -iv -X PUT "${ESHOST}/arranger-projects" \
+-H 'Content-Type: application/json' -d'
+{
+    "mappings" : {
+      "arranger-projects" : {
+        "properties" : {
+          "active" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "text",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+            }
+          },
+          "timestamp" : {
+            "type" : "date"
+          }
+        }
+      }
+    }
+}
+';
+  fi
   local dayStr
   dayStr="$(date +%Y-%m-%d)"
   curl -X PUT $ESHOST/arranger-projects/arranger-projects/$projectName?pretty=true \
