@@ -99,7 +99,7 @@ spec:
             else
                 rscript_cmd+=" test"
             fi
-            if [[ -n "$NUMBER_OF_EXAMPLES" ]]; then
+            if [[ -n "$MAX_EXAMPLES" ]]; then
                 rscript_cmd+=" $MAX_EXAMPLES"
             else
                 rscript_cmd+=" 1000"
