@@ -80,55 +80,64 @@ g3kubectl() {
 }
 
 #
-# Internal init helper.
+# Internal init helper - clones the appropriate gitops repo.
+# A gitops repo has basic structure ./HOSTNAME/manifest.json
+# plus possibly other config files on ./HOSTNAME/
+#
 # Note - be sure to redirect stdout to stderr, so we do
 #   not corrupte the output of g3k_manifest_filter with info messages
+#
+# @return echo the folder cdis-manifest/gitops is checked out in
 #
 g3k_manifest_init() {
   # do this at most once every 5 minutes
   local doneFilePath
   doneFilePath="$XDG_RUNTIME_DIR/g3kManifestInit_$(($(date +%s) / 300))"
-  if [[ (! "$2" =~ ^-*force$) && -f "${doneFilePath}" ]]; then
+  if [[ (! "$2" =~ ^-*force$) && -f "${doneFilePath}" && -d "${GEN3_MANIFEST_HOME}" ]]; then
+    echo "$GEN3_MANIFEST_HOME"
     return 0
   fi
-
-  local gitopsPath
-  gitopsPath="$(g3k_gitops_init)"
-  if [[ -z  "${gitopsPath}" ]]; then
+  if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
+    # Figure out which gitops repo to clone
+    local gitopsPath
+    gitopsPath="$(g3kubectl get configmaps global -ojsonpath='{ .data.gitops_path }')"
+    if [[ -z  "${gitopsPath}" ]]; then
+      # Default to cdis-manifest repo
+      gitopsPath="https://github.com/uc-cdis/cdis-manifest.git"
+    fi
+    
+    echo "git clone $gitopsPath ${GEN3_MANIFEST_HOME}" 1>&2
+    # This will fail if proxy is not set correctly
+    git clone "$gitopsPath" "${GEN3_MANIFEST_HOME}" 1>&2
+  fi
+  if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
+    # Don't do this when running tests in Jenkins ...
     local branch
     branch=${1:-$MANIFEST_BRANCH}
-    if [[ ! -d "${GEN3_MANIFEST_HOME}" ]]; then
-      echo -e $(red_color "ERROR: GEN3_MANIFEST_HOME does not exist: ${GEN3_MANIFEST_HOME}") 1>&2
-      echo "git clone https://github.com/uc-cdis/cdis-manifest.git ${GEN3_MANIFEST_HOME}" 1>&2
-      # This will fail if proxy is not set correctly
-      git clone "https://github.com/uc-cdis/cdis-manifest.git" "${GEN3_MANIFEST_HOME}" 1>&2
-    fi
-    if [[ -d "$GEN3_MANIFEST_HOME/.git" && -z "$JENKINS_HOME" ]]; then
-      # Don't do this when running tests in Jenkins ...
-      echo "INFO: git fetch branch $branch in $GEN3_MANIFEST_HOME" 1>&2
-      (cd "$GEN3_MANIFEST_HOME" && git pull; git checkout $branch; git pull; git status) 1>&2
-    fi
+    echo "INFO: git fetch branch $branch in $GEN3_MANIFEST_HOME" 1>&2
+    (cd "$GEN3_MANIFEST_HOME" && git pull; git checkout $branch; git pull; git status) 1>&2
   fi
   touch "$doneFilePath"
+  echo "$GEN3_MANIFEST_HOME"
 }
+
 #
 # Get the path to the manifest appropriate for this commons
 #
 # @param domain commons domain - tries to extract from global configmap if not given
 #
 g3k_manifest_path() {
+  local folder
+  local domain
   local mpath
-  g3k_manifest_init
-  if [[ -z "$GEN3_GITOPS_FOLDER" ]]; then
-    local domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
-    if [[ -z "$domain" ]]; then
-      echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
-      return 1
-    fi
-    mpath="${GEN3_MANIFEST_HOME}/${domain}/manifest.json"
-  else
-    mpath="${GEN3_GITOPS_FOLDER}/manifest.json"
+
+  folder="$(g3k_manifest_init)"
+  domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
+  if [[ -z "$domain" ]]; then
+    echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
+    return 1
   fi
+  mpath="${folder}/${domain}/manifest.json"
   echo "$mpath"
   if [[ -f "$mpath" ]]; then
     return 0
@@ -197,7 +206,6 @@ g3k_manifest_filter() {
   shift
   local manifestPath=$1
   shift || true
-  g3k_manifest_init
   if [[ ! -f "$templatePath" ]]; then
     echo -e "$(red_color "ERROR: template does not exist: $templatePath")" 1>&2
     return 1
