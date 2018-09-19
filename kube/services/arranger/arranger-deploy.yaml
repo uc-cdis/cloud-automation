@@ -33,6 +33,9 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
+        - name: arranger-config
+          configMap:
+            name: configmaps-arranger
         - name: cert-volume
           secret:
             secretName: "cert-arranger-service"
@@ -56,6 +59,8 @@ spec:
           ports:
           - containerPort: 3000
           env:
+          - name: ARRANGER_CONFIG_FILEPATH
+            value: /arranger/arranger_config.json
           - name: GEN3_ES_ENDPOINT
             value: esproxy-service:9200
           - name: GEN3_ARBORIST_ENDPOINT
@@ -67,6 +72,10 @@ spec:
           - name: GEN3_AUTH_FILTER_NODE_TYPE
             value: GEN3_ARRANGER_AUTH_FILTER_NODE_TYPE|-case-|
           volumeMounts:
+            - name: "arranger-config"
+              readOnly: true
+              mountPath: "/arranger/arranger_config.json"
+              subPath: "arranger_config.json"
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"
