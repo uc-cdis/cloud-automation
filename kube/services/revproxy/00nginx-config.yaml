@@ -237,6 +237,7 @@ data:
           #   not set headers ... http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header
           #
           proxy_set_header   Authorization "$access_token";
+          proxy_set_header   Host $host;
           proxy_set_header   X-Forwarded-For "$realip";
           proxy_set_header   X-UserId "$userid";
 
