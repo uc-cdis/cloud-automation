@@ -34,7 +34,6 @@ if g3k_manifest_lookup .versions.peregrine 2> /dev/null; then
 else
   echo "INFO: not deploying peregrine - no manifest entry for .versions.peregrine"
 fi
-kubectl wait --for=condition=complete job/update-dict
 
 if g3k_manifest_lookup .versions.arranger 2> /dev/null; then
   gen3 kube-setup-arranger
