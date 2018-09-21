@@ -58,11 +58,10 @@ if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
   gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
 fi
 
-# only update configmaps here if they have not updated in last 2 minutes
-# (gen3 roll all calls this over and over)
 let configmapsExpireTime="$(date +%s) - 120"
 configmapsFlagFile="${WORKSPACE}/${vpc_name}/.configmapsFlagFile"
 # Avoid creating configmaps more than once every two minutes
+# (gen3 roll all calls this over and over)
 if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$configmapsExpireTime" ]]; then
   # call g3k configmaps to create manifest configmaps
   echo "creating manifest configmaps"
