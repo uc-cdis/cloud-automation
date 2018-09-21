@@ -4,7 +4,7 @@ kind: CronJob
 metadata:
   name: update-dict
 spec:
-  schedule: "*/1 * * * *"
+  schedule: "*/5 * * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:
@@ -18,7 +18,7 @@ spec:
           serviceAccountName: jenkins-service
           containers:
             - name: awshelper
-              image: quay.io/cdis/awshelper:feat_update-dict
+              image: quay.io/cdis/awshelper:master
               imagePullPolicy: Always
               env:
                 - name: gen3Env

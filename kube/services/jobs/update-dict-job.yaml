@@ -12,7 +12,7 @@ spec:
       serviceAccountName: jenkins-service
       containers:
         - name: awshelper
-          image: quay.io/cdis/awshelper:feat_update-dict
+          image: quay.io/cdis/awshelper:master
           imagePullPolicy: Always
           env:
             - name: gen3Env
