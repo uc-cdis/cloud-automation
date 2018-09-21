@@ -26,10 +26,6 @@ test_mpath() {
   ! mpath=$(g3k_manifest_path bogus.manifest.g3k); because $? "The bogus manifest does not exist: $mpath"
   [[ "$mpath" == "${GEN3_MANIFEST_HOME}/bogus.manifest.g3k/manifest.json" ]]; 
   because $? "g3k_manfest_path maps to domain/manifest.json even if it does not exist: $mpath"
-
-  export GEN3_GITOPS_FOLDER="/whatever"
-  [[ "$(g3k_manifest_path)" == "$GEN3_GITOPS_FOLDER/manifest.json" ]]; 
-  because $? "g3k_manifest_path respects the GEN3_GITOPS_FOLDER override variable"
 }
 
 #
@@ -59,12 +55,13 @@ test_mfilter() {
 }
 
 test_mlookup() {
-  export GEN3_GITOPS_FOLDER="${GEN3_MANIFEST_HOME}/test1.manifest.g3k"
-  [[ "$(g3k_config_lookup .versions.fence)" == "quay.io/cdis/fence:master" ]];
-  because $? "g3k_config_lookup found expected fence version: $(g3k_config_lookup .versions.fence)"
-  ! g3k_manifest_filter '.bogus.whatever';
+  local mpath # manifest path
+  mpath="$(g3k_manifest_path test1.manifest.g3k)"
+  [[ "$(g3k_config_lookup .versions.fence "$mpath")" == "quay.io/cdis/fence:master" ]];
+  because $? "g3k_config_lookup found expected fence version: $(g3k_config_lookup .versions.fence "$mpath")"
+  ! g3k_manifest_filter '.bogus.whatever' "$mpath";
   because $? 'g3k_manifest_filter gives non-zero exit code on jq expression failure'
-  g3k_config_lookup '.versions.fence';
+  g3k_config_lookup '.versions.fence' "$mpath";
   because $? 'g3k_manifest_filter gives zero exit code on jq expression match'
   # test with a toy .yaml file
   testFolder="${XDG_RUNTIME_DIR}/g3kTest/mlookup"
@@ -131,16 +128,32 @@ test_configmaps() {
 
   # Mock g3k_manifest_path to manifest with no global
   function g3k_manifest_path() { echo "$mpath"; }
+
+  # Do not actually update the configmaps on a live environment
+  # from test data
+  function g3kubectl() {
+    if [[ "$1" == "label" ]]; then
+      echo "labeled"
+    elif [[ "$1" == "create" ]]; then
+      echo "created"
+    elif [[ "$1" == "delete" ]]; then
+      echo "deleted"
+    elif [[ "$1" == "get" ]]; then
+      echo "NAME"
+    fi
+    return 0
+  }
+
   g3k configmaps; because !$? "g3k configmaps should exit with code 1 if the manifest does not have a global section"
   
   # Mock g3k_manifest_path to manifest with global
   function g3k_manifest_path() { echo "$mpathGlobal"; }
-  g3k configmaps | grep -q created; because $? "g3k configmaps should create configmaps"
-  g3k configmaps | grep -q labeled; because $? "g3k configmaps should label configmaps"
+  gen3 configmaps | grep -q created; because $? "g3k configmaps should create configmaps"
+  gen3 configmaps | grep -q labeled; because $? "g3k configmaps should label configmaps"
   g3kubectl delete configmaps -l app=manifest
-  g3k configmaps; 
-  g3k configmaps; because $? "g3k configmaps should not bomb out, even if the configmaps already exist"
-  g3k configmaps | grep -q deleted; because $? "g3k configmaps delete previous configmaps"
+  gen3 configmaps; 
+  gen3 configmaps; because $? "g3k configmaps should not bomb out, even if the configmaps already exist"
+  gen3 configmaps | grep -q deleted; because $? "g3k configmaps delete previous configmaps"
 }
 
 shunit_runtest "test_gitops_home"

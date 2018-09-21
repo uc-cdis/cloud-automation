@@ -12,9 +12,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-workvm
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
-  gen3 kube-setup-secrets
-fi
+gen3 kube-setup-secrets
 gen3 kube-setup-roles
 gen3 kube-setup-certs
 
