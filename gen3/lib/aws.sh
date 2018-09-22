@@ -150,6 +150,8 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_qualys_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/eks"
+  elif [[ "$GEN3_WORKSPACE" =~ _sns$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons_sns"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -362,6 +364,17 @@ EOM
     return 0
   fi
 
+
+  if [[ "$GEN3_WORKSPACE" =~ _sns$ ]]; then
+      commonsName=${GEN3_WORKSPACE//_sns/}
+      cat - <<EOM
+vpc_name  = "${commonsName}"
+cluster_type = "EKS"
+emails = ["e1@uchicago.edu","e2@uchicago.edu"]
+topic_display = "Cronjob Monitor"
+EOM
+    return 0
+  fi
 
 
   # ssh key to be added to VMs and kube nodes
