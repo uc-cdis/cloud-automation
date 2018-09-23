@@ -8,7 +8,7 @@ provider "aws" {}
 
 
 module "commons_sns" {
-  source          = "../modules/commons_sns"
+  source          = "../modules/commons-sns"
   vpc_name        = "${var.vpc_name}"
   emails          = "${var.emails}"
   topic_display   = "${var.topic_display}"

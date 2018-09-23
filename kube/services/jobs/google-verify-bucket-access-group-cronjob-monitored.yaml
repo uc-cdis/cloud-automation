@@ -1,0 +1,109 @@
+---
+# Note: change to batch/v1beta1 once we bump to k8s 1.8
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: google-verify-bucket-access-group
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      # not yet supported - backOffLimit: 3
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          serviceAccountName: useryaml-job
+          volumes:
+            - name: creds-volume
+              secret:
+                secretName: "fence-creds"
+            - name: config-volume
+              secret:
+                secretName: "fence-secret"
+            - name: json-secret-volume
+              secret:
+                secretName: "fence-json-secret"
+            - name: fence-google-app-creds-secret-volume
+              secret:
+                secretName: "fence-google-app-creds-secret"
+            - name: fence-google-storage-creds-secret-volume
+              secret:
+                secretName: "fence-google-storage-creds-secret"
+            - name: fence-yaml
+              configMap:
+                name: fence
+            - name: config-helper
+              configMap:
+                name: config-helper
+            - name: shared-data
+              emptyDir: {}
+            #- name: credentials
+            #  secret:
+            #    secretName: "fauziv1-sns-user"
+          containers:
+          - name: fence
+            image: quay.io/cdis/fence:master
+            imagePullPolicy: Always
+            env:
+              - name: PYTHONPATH
+                value: /var/www/fence
+            volumeMounts:
+              - name: "creds-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/creds.json"
+                subPath: creds.json
+              - name: "config-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/local_settings.py"
+                subPath: local_settings.py
+              - name: "json-secret-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/fence_credentials.json"
+                subPath: fence_credentials.json
+              - name: "fence-google-app-creds-secret-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+                subPath: fence_google_app_creds_secret.json
+              - name: "fence-google-storage-creds-secret-volume"
+                readOnly: true
+                mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+                subPath: fence_google_storage_creds_secret.json
+              - name: "fence-yaml"
+                mountPath: "/var/www/fence/user.yaml"
+                subPath: user.yaml
+              - name: "config-helper"
+                readOnly: true
+                mountPath: "/var/www/fence/config_helper.py"
+                subPath: config_helper.py
+              - name: shared-data
+                mountPath: /mnt/shared
+            command: ["/bin/bash"]
+            args:
+              - "-c"
+              - |
+                fence-create bucket-access-group-verify
+                if [[ $? != 0 ]]; then
+                  echo "WARNING: non zero exit code: $?"
+                else
+                  touch /mnt/shared/success
+                fi
+          - name: awshelper
+            image: quay.io/cdis/awshelper:master
+            volumeMounts:
+              - name: shared-data
+                mountPath: /mnt/shared
+              #- name: "credentials"
+              #  readOnly: true
+              #  mountPath: "/home/ubuntu/.aws"
+            command: ["/bin/bash"]
+            args:
+              - "-c"
+              - |
+                if ! [ -f /mnt/shared/success ]; then
+                  aws --region us-east-1 sns publish --message "MESSAGE TO SEND" --topic-arn <TOPIC ARN>
+                fi
+          restartPolicy: Never
