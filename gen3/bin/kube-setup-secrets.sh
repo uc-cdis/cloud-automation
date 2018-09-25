@@ -227,6 +227,13 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   fi
 fi
 
+if ! g3kubectl get configmaps/isb-cgc-link-list > /dev/null 2>&1; then
+  if [[ ! -f "./apis_configs/isb-cgc-link-list.txt" ]]; then
+    touch "apis_configs/isb-cgc-link-list.txt"
+  fi
+  g3kubectl create configmap isb-cgc-link-list --from-file=apis_configs/isb-cgc-link-list.txt
+fi
+  
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secrets
   if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
     echo "${WORKSPACE}/${vpc_name} does not exist"
