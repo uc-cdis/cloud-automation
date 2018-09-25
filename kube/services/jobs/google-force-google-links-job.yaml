@@ -26,9 +26,9 @@ spec:
         - name: fence-google-storage-creds-secret-volume
           secret:
             secretName: "fence-google-storage-creds-secret"
-        - name: isb-cgc-link-volumn
+        - name: external-google-link-volumn
           configMap:
-            name: isb-cgc-link-list
+            name: external-google-link-list
         - name: config-helper
           configMap:
             name: config-helper
@@ -60,9 +60,9 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
             subPath: fence_google_storage_creds_secret.json
-          - name: "isb-cgc-link-volumn"
-            mountPath: "/var/www/fence/isb-cgc-link-list.txt"
-            subPath: isb-cgc-link-list.txt
+          - name: "external-google-link-volumn"
+            mountPath: "/var/www/fence/external-google-link-list.txt"
+            subPath: external-google-link-list.txt
           - name: "config-helper"
             readOnly: true
             mountPath: "/var/www/fence/config_helper.py"
@@ -71,7 +71,7 @@ spec:
         args:
           - "-c"
           - |
-            FILENAME=/var/www/fence/isb-cgc-link-list.txt
+            FILENAME=/var/www/fence/external-google-link-list.txt
             while true;
             do
               read -r line

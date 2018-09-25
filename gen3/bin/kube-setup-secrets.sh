@@ -227,11 +227,11 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   fi
 fi
 
-if ! g3kubectl get configmaps/isb-cgc-link-list > /dev/null 2>&1; then
-  if [[ ! -f "./apis_configs/isb-cgc-link-list.txt" ]]; then
-    touch "apis_configs/isb-cgc-link-list.txt"
+if ! g3kubectl get configmaps/external-google-link-list > /dev/null 2>&1; then
+  if [[ ! -f "./apis_configs/external-google-link-list.txt" ]]; then
+    touch "apis_configs/external-google-link-list.txt"
   fi
-  g3kubectl create configmap isb-cgc-link-list --from-file=apis_configs/isb-cgc-link-list.txt
+  g3kubectl create configmap external-google-link-list --from-file=apis_configs/external-google-link-list.txt
 fi
   
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secrets
