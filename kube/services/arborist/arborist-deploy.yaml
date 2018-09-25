@@ -63,13 +63,21 @@ spec:
         - name: projects
           configMap:
             name: "projects"
+        - name: arborist-creds-volume
+          secret:
+            secretName: "arborist-creds"
+            
       containers:
       - name: arborist
-        GEN3_ARBORIST_IMAGE
+        image: quay.io/cdis/arborist:feat_s3
         imagePullPolicy: Always
         env:
           - name: JWKS_ENDPOINT
             value: "http://fence-service/.well-known/jwks"
+        volumeMounts:
+          - name: "arborist-creds-volume"
+            mountPath: "/arborist/credentials.json"
+            subPath: credentials.json
         livenessProbe:
           httpGet:
             path: /health

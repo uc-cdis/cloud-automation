@@ -247,6 +247,23 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
   fi
 fi
 
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update tube secrets
+  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
+    echo "${WORKSPACE}/${vpc_name} does not exist"
+    exit 1
+  fi
+
+  cd "${WORKSPACE}/${vpc_name}"
+fi
+
+# Arborist
+if ! g3kubectl get secrets/arborist-creds > /dev/null 2>&1; then
+    if [[ ! -f "${GEN3_HOME}/apis_configs/arborist_creds_secret.json" ]]; then
+      touch "${GEN3_HOME}/apis_configs/arborist_creds_secret.json"
+    fi
+    g3kubectl create secret generic arborist-creds  "--from-file=credentials=${GEN3_HOME}/apis_configs/arborist_creds_secret.json"
+fi
+
 # ETL mapping file for tube
 ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"
 if [[ -f "$ETL_MAPPING_PATH" ]]; then
