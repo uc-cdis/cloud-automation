@@ -315,6 +315,12 @@ g3k_roll() {
     return 1
   fi
 
+  if [[ "$depName" == "all" ]]; then # special case
+    echo bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
+    bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
+    return $?
+  fi
+
   local templatePath=""
   if [[ -f "$depName" ]]; then
     # we were given the path to a file - fine
@@ -342,9 +348,6 @@ g3k_roll() {
       echo "Not rolling $serviceName - no manifest entry in $manifestPath" 1>&2
       return 1
     fi
-  elif [[ "$depName" == "all" ]]; then
-    echo bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
-    bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
   else
     echo -e "$(red_color "ERROR: could not find deployment template: $templatePath")"
     return 1
