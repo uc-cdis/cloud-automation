@@ -258,10 +258,10 @@ fi
 
 # Arborist
 if ! g3kubectl get secrets/arborist-creds > /dev/null 2>&1; then
-    if [[ ! -f "${GEN3_HOME}/apis_configs/arborist_creds_secret.json" ]]; then
-      touch "${GEN3_HOME}/apis_configs/arborist_creds_secret.json"
+    if [[ ! -f "./apis_configs/arborist_creds_secret.json" ]]; then
+      touch "./apis_configs/arborist_creds_secret.json"
     fi
-    g3kubectl create secret generic arborist-creds  "--from-file=credentials=${GEN3_HOME}/apis_configs/arborist_creds_secret.json"
+    g3kubectl create secret generic arborist-creds --from-file=credentials.json=./apis_configs/arborist_creds_secret.json
 fi
 
 # ETL mapping file for tube
