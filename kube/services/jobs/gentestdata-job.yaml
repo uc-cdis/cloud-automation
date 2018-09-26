@@ -62,7 +62,7 @@ spec:
           - name: DICTIONARY_URL
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: dictionary_url
           - name: HOSTNAME
             valueFrom:
