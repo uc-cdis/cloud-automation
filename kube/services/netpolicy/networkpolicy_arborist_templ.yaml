@@ -31,6 +31,12 @@ spec:
       - ipBlock:
            # fence-create sidecar
            cidr: GEN3_FENCEDB_IP/32
+      - ipBlock:
+           cidr: 54.224.0.0/12
+      - ipBlock:
+           cidr: 52.92.16.0/20
+      - ipBlock:
+           cidr: 0.0.0.0/0
   policyTypes:
    - Ingress
    - Egress

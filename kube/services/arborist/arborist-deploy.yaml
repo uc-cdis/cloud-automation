@@ -76,7 +76,7 @@ spec:
             value: "http://fence-service/.well-known/jwks"
         volumeMounts:
           - name: "arborist-creds-volume"
-            mountPath: "/arborist/credentials.json"
+            mountPath: "/credentials.json"
             subPath: credentials.json
         livenessProbe:
           httpGet:
