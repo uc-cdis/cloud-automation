@@ -156,6 +156,7 @@ if data:
     GOOGLE_MANAGED_SERVICE_ACCOUNT_DOMAINS.update(
         data.get("GOOGLE_MANAGED_SERVICE_ACCOUNT_DOMAINS", [])
     )
+    GUN_MAIL = data.get("GUN_MAIL")
 
 CIRRUS_CFG["GOOGLE_APPLICATION_CREDENTIALS"] = (
     "/var/www/fence/fence_google_app_creds_secret.json"
