@@ -36,7 +36,7 @@ export USER_PW_FILE="/etc/openvpn/user_passwd.csv"
 
 export VPN_BIN_ROOT="/etc/openvpn/bin"
 export VPN_USER_CSV="/etc/openvpn/user_passwd.csv"
-export VPN_FILE_ATTACHMENTS="-a$VPN_BIN_ROOT/OpenVPN_for_CDIS_Installation_Guide.pdf"
+export VPN_FILE_ATTACHMENTS="-a$VPN_BIN_ROOT/OpenVPN_for_PLANX_Installation_Guide.pdf"
 
 export PATH=$PATH:$EASYRSA_PATH:$OPENVPN_MY_BIN
 source /etc/openvpn/bin/.venv/bin/activate
