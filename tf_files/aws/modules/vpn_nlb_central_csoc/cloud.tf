@@ -110,7 +110,6 @@ data "aws_availability_zones" "available" {}
 
 resource "aws_subnet" "vpn_pub0" {
   vpc_id                  = "${var.env_vpc_id}"
-  #cidr_block              = "10.128.${var.env_vpc_octet3}.0/27"
   cidr_block              =  "${cidrsubnet("${var.vpn_server_subnet}",3,0)}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub0", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
@@ -118,7 +117,6 @@ resource "aws_subnet" "vpn_pub0" {
 
 resource "aws_subnet" "vpn_pub1" {
   vpc_id                  = "${var.env_vpc_id}"
-  #cidr_block              = "10.128.${var.env_vpc_octet3}.32/27"
   cidr_block              =  "${cidrsubnet("${var.vpn_server_subnet}",3,1)}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub1", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
@@ -126,7 +124,6 @@ resource "aws_subnet" "vpn_pub1" {
 
 resource "aws_subnet" "vpn_pub2" {
   vpc_id                  = "${var.env_vpc_id}"
-  #cidr_block              = "10.128.${var.env_vpc_octet3}.64/27"
   cidr_block              =  "${cidrsubnet("${var.vpn_server_subnet}",3,2)}"
   availability_zone = "${data.aws_availability_zones.available.names[2]}"
   tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub2", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
@@ -134,7 +131,6 @@ resource "aws_subnet" "vpn_pub2" {
 
 resource "aws_subnet" "vpn_pub3" {
   vpc_id                  = "${var.env_vpc_id}"
- # cidr_block              = "10.128.${var.env_vpc_octet3}.96/27"
   cidr_block              =  "${cidrsubnet("${var.vpn_server_subnet}",3,3)}"
   availability_zone = "${data.aws_availability_zones.available.names[3]}"
   tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub3", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
@@ -142,7 +138,6 @@ resource "aws_subnet" "vpn_pub3" {
 
 resource "aws_subnet" "vpn_pub4" {
   vpc_id                  = "${var.env_vpc_id}"
-  #cidr_block              = "10.128.${var.env_vpc_octet3}.128/27"
   cidr_block              =  "${cidrsubnet("${var.vpn_server_subnet}",3,4)}"
   availability_zone = "${data.aws_availability_zones.available.names[4]}"
   tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub4", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"
@@ -150,7 +145,6 @@ resource "aws_subnet" "vpn_pub4" {
 
 resource "aws_subnet" "vpn_pub5" {
   vpc_id                  = "${var.env_vpc_id}"
-  #cidr_block              = "10.128.${var.env_vpc_octet3}.160/27"
   cidr_block              =  "${cidrsubnet("${var.vpn_server_subnet}",3,5)}"
   availability_zone = "${data.aws_availability_zones.available.names[5]}"
   tags                    = "${map("Name", "${var.env_vpn_nlb_name}_pub5", "Organization", "Basic Service", "Environment", var.env_vpn_nlb_name)}"

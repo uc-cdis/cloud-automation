@@ -1,7 +1,3 @@
-variable "env_vpc_octet3"{
-  default = "5"
-}
-
 variable "csoc_vpn_subnet"{
   #default = "192.168.1.0/24"
 }

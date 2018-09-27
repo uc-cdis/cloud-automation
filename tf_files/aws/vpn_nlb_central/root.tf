@@ -12,7 +12,6 @@ provider "aws" {
 
 module "vpn_nlb" {
   source           = "../modules/vpn_nlb_central_csoc"
-  env_vpc_octet3   = "${var.env_vpc_octet3}"
   env_vpc_id       = "${var.env_vpc_id}"
   env_vpn_nlb_name     = "${var.env_vpn_nlb_name}"
   ami_account_id   = "${var.ami_account_id}"
