@@ -32,27 +32,16 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 ```VPN server cluster network at AWS (vpn_server_subnet) - 10.128.5.0/25```
 
 
-## csoc dev-vpn
+## csoc test-vpn
 
-```Hostname (FQDN) - csocdevvpn-planx.pla.net```
+```Hostname (FQDN) - csoctestvpn-planx.pla.net```
 
 ```OpenVPN Network (csoc_vpn_subnet) - 192.168.2.0/24```
 
-```VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  TBD```
+```VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  10.128.7.0/24```
 
 ```VPN server cluster network at AWS (vpn_server_subnet) - 10.128.5.128/25```
 
-
-
-## csoc qa-vpn
-
-```Hostname (FQDN) - csocqavpn-planx.pla.net```
-
-```OpenVPN Network (csoc_vpn_subnet) - 192.168.3.0/24```
-
-```VM network at CSOC for which the routes need to be pused (csoc_vm_subnet) -  TBD```
-
-```VPN server cluster network at AWS (vpn_server_subnet) - 10.128.6.0/25```
 
 
 ## CERTS RENEWAL 
