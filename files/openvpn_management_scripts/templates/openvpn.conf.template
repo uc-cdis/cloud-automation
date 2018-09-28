@@ -1,0 +1,52 @@
+#Listen Port
+lport 1194
+
+# Protocol TCP|UDP
+proto #PROTO#
+
+#Device to use
+dev tun
+persist-key
+persist-tun
+
+#certificates
+ca easy-rsa/keys/ca.crt
+cert easy-rsa/keys/#FQDN#.crt
+key easy-rsa/keys/#FQDN#.key  # This file should be kept secret
+dh easy-rsa/keys/dh4096.pem
+tls-auth easy-rsa/keys/ta.key 0 # This file is secret
+crl-verify easy-rsa/keys/crl.pem # Revocation files
+
+#Password script
+auth-user-pass-verify  bin/auth-user-pass-verify.sh via-env
+script-security 3 execve
+
+#Cipher suite
+cipher AES-256-CBC
+comp-lzo
+
+#DHCP Information
+server #VPN_SUBNET_BASE# #VPN_SUBNET_MASK#
+ifconfig-pool-persist ipp.txt
+push "route #VM_SUBNET_BASE# #VM_SUBNET_MASK#"
+
+#log and security
+user openvpn
+group openvpn
+keepalive 10 120
+status openvpn-status.log
+verb 4
+
+# set this to the max number of clients that should be connected at a time
+max-clients 250
+
+#Reauth timeout, with 2fa this will force disconnect unless the TOTP lifetime is longer
+#  In client side config you need to set "reneg-sec 0"
+#  Openvpn uses the lower of the two (Server/Client) values
+#  43200 == 12 hrs
+reneg-sec 43200
+
+
+client-config-dir /etc/openvpn/clients.d/
+tmp-dir /etc/openvpn/clients.d/tmp/
+client-connect /etc/openvpn/bin/client-connect.sh

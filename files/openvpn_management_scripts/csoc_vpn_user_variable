@@ -1,0 +1,4 @@
+VAR1hostname = SERVERNAME
+VAR2vpnsubnet = VPN_SUBNET
+VAR3vmsubnet =  VM_SUBNET
+VAR4cloudname = CLOUDNAME
