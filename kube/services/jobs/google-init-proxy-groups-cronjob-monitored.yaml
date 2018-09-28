@@ -3,9 +3,9 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: google-verify-bucket-access-group
+  name: google-init-proxy-groups
 spec:
-  schedule: "*/5 * * * *"
+  schedule: "@hourly"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:
@@ -33,6 +33,9 @@ spec:
             - name: fence-google-storage-creds-secret-volume
               secret:
                 secretName: "fence-google-storage-creds-secret"
+            - name: fence-jwt-keys
+              secret:
+                secretName: "fence-jwt-keys"
             - name: fence-yaml
               configMap:
                 name: fence
@@ -72,6 +75,9 @@ spec:
               - name: "fence-yaml"
                 mountPath: "/var/www/fence/user.yaml"
                 subPath: user.yaml
+              - name: "fence-jwt-keys"
+                readOnly: true
+                mountPath: "/fence/keys"
               - name: "config-helper"
                 readOnly: true
                 mountPath: "/var/www/fence/config_helper.py"
@@ -82,7 +88,7 @@ spec:
             args:
               - "-c"
               - |
-                fence-create bucket-access-group-verify
+                fence-create google-init
                 if [[ $? != 0 ]]; then
                   echo "WARNING: non zero exit code: $?"
                 else
@@ -111,7 +117,7 @@ spec:
                 if ! [ -f /mnt/shared/success ]; then
                   AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
                   RE=${AZ::-1}
-                  aws --region ${RE} sns publish --message "google-verify-bucket-access-group failed for ${gen3Env}" --topic-arn arn:aws:sns:us-east-1:707767160287:fauziv1-user-updates-topic
+                  aws --region ${RE} sns publish --message "google-verify-bucket-access-group failed for ${gen3Env}" --topic-arn <TOPIC ARN>
                   curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: google-verify-bucket-access-group failed for ${gen3Env} \"}" "${slackWebHook}"
                 else
                   HOUR=$(TZ='America/Chicago' date "+%H")
