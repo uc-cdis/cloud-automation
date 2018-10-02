@@ -4,12 +4,8 @@
 # SUBMISSION_USER submission_user \
 # TEST_PROGRAM "" \
 # TEST_PROJECT "" \
-# NUMBER_OF_EXAMPLES "" \
+# MAX_EXAMPLES "" \
 # NOTE: "" indicates an optional argument. Leave as "" for default
-#
-# SUBMISSION_HOST
-#   url of submission host is taken from global configmap -
-#               https://{configmaps global hostname}
 #
 # SUBMISSION_USER
 #    e-mail of user-account to submit the data to sheepdog as
@@ -18,10 +14,10 @@
 #   Name of test project. Default: DEV/test
 #
 # MAX_EXAMPLES(optional)
-#   Number of maximum examples for each node. Default 1000
+#   Number of maximum examples for each node. Default 100
 #
 # Example
-# gen3 runjob gentestdata SUBMISSION_HOST https://giangb.planx-pla.net TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100 SUBMISSION_USER cdistest@gmail.com
+# gen3 runjob gentestdata TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100 SUBMISSION_USER cdistest@gmail.com
 #
 apiVersion: batch/v1
 kind: Job
@@ -103,7 +99,7 @@ spec:
             if [[ -n "$MAX_EXAMPLES" ]]; then
                 rscript_cmd+=" $MAX_EXAMPLES"
             else
-                rscript_cmd+=" 1000"
+                rscript_cmd+=" 100"
             fi
 
             rscript_cmd+=" /gen3-qa/python-scripts/sim-data-code/TestData/"

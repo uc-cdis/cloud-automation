@@ -122,7 +122,7 @@ Generate test data given dictionary, following steps need to be done
 See job file for how to run the job with parameters.
 
 Ex: 
-`gen3 runjob gentestdata SUBMISSION_HOST https://giangb@planx-pla.net TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100 SUBMISSION_USER cdistest@gmail.com`
+`gen3 runjob gentestdata TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100 SUBMISSION_USER cdistest@gmail.com`
 
 ### arranger-config-job
 
