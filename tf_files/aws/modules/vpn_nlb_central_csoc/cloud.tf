@@ -309,7 +309,7 @@ cd /home/ubuntu/cloud-automation
 git pull
 
 # checkout to the vpn branch for testing purposes
-git checkout fix/vpnnlbflavorint
+# git checkout fix/vpnnlbflavorint
 git pull
 
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation

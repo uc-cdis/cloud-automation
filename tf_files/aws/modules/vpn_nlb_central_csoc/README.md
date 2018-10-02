@@ -32,9 +32,9 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 ```VPN server cluster network at AWS (vpn_server_subnet) - 10.128.5.0/25```
 
 
-## csoc test-vpn
+## csoc dev-vpn
 
-```Hostname (FQDN) - csoctestvpn-planx.pla.net```
+```Hostname (FQDN) - csocdevvpn-planx.pla.net```
 
 ```OpenVPN Network (csoc_vpn_subnet) - 192.168.2.0/24```
 
