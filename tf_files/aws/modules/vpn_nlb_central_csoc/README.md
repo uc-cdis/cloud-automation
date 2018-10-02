@@ -23,7 +23,7 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 
 ## csoc prod-vpn
 
-```Hostname (FQDN) - csocprodvpn-planx.pla.net```
+```Hostname (FQDN) - csoc-prod-vpn.planx-pla.net```
 
 ```OpenVPN Network (csoc_vpn_subnet) - 192.168.1.0/24```
 
@@ -34,7 +34,7 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 
 ## csoc dev-vpn
 
-```Hostname (FQDN) - csocdevvpn-planx.pla.net```
+```Hostname (FQDN) - csoc-dev-vpn.planx-pla.net```
 
 ```OpenVPN Network (csoc_vpn_subnet) - 192.168.2.0/24```
 
