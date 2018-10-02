@@ -288,8 +288,8 @@ resource "aws_lb_listener" "vpn_nlb-ssh" {
 resource "aws_launch_configuration" "vpn_nlb" {
   name_prefix = "${var.env_vpn_nlb_name}_autoscaling_launch_config"
   image_id = "${data.aws_ami.public_vpn_ami.id}"
-  instance_type = "t2.medium"
- # instance_type = "m5.xlarge"
+ # instance_type = "t2.medium"
+  instance_type = "m5.xlarge"
   security_groups = ["${aws_security_group.vpnnlb_in.id}", "${aws_security_group.vpnnlb_out.id}"]
   key_name = "${var.ssh_key_name}"
   iam_instance_profile   = "${aws_iam_instance_profile.vpn-nlb_role_profile.id}"
