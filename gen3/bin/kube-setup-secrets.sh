@@ -248,15 +248,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
   fi
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update tube secrets
-  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
-    echo "${WORKSPACE}/${vpc_name} does not exist"
-    exit 1
-  fi
-
-  cd "${WORKSPACE}/${vpc_name}"
-fi
-
 # Arborist
 if ! g3kubectl get secrets/arborist-creds > /dev/null 2>&1; then
     if [[ ! -f "./apis_configs/arborist_creds_secret.json" ]]; then
@@ -269,12 +260,6 @@ fi
 ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"
 if [[ -f "$ETL_MAPPING_PATH" ]]; then
   gen3 update_config etl-mapping "$ETL_MAPPING_PATH"
-fi
-
-if [[ -z "$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')" ]]; then
-  echo "ERROR: configmaps/global does not include dictionary_url"
-  echo "... update and apply ${vpc_name}/00configmap.json, then retry this script"
-  exit 1
 fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets

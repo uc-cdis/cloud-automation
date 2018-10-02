@@ -1,0 +1,9 @@
+Hello,
+    Attached is a zip file containing your OpenVPN configuration files and
+a PDF containing the OpenVPN HowTo guide. 
+
+    Your two factor authorization (2FA) QR Code is availble at ${VPN_CREDS_URL} . This link will
+only work for the next 48 hours and then delete itself. Please be sure to have scanned the QR Code by then.
+
+Thank you
+Support Team

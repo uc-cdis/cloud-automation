@@ -139,6 +139,13 @@ spec:
           - name: "projects"
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"
+        readinessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+          initialDelaySeconds: 10
+          periodSeconds: 10
         command: ["/bin/bash" ]
         args:
           - "-c"
@@ -156,12 +163,17 @@ spec:
             if [[ ! "$SYNC_FROM_DBGAP" = True ]]; then
               if [[ -f /var/www/fence/user.yaml ]]; then
                 echo "running fence-create"
-                fence-create sync --arborist http://localhost --yaml /var/www/fence/user.yaml
+                if fence-create sync --arborist http://localhost --yaml /var/www/fence/user.yaml; then
+                  touch /tmp/healthy
+                else
+                  echo "Looks like fence-create failed: $?"
+                fi
               else
                 echo "/var/www/fence/user.yaml is not mounted :-("
               fi
             else
               echo "Not running fence-create in arborist pod when DBGAP sync is enabled"
+              touch /tmp/healthy
             fi
             echo "Exit code: $?"
             # Keep arborist company

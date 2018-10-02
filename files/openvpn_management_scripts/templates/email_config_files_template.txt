@@ -1,0 +1,5 @@
+Hello,
+   Attached is a zip file containing your GDC OpenVPN configuration files.   A seperate email will follow containing a link to your username and password for the VPN environment.
+
+Thank you
+GDC Support Team

@@ -5,7 +5,7 @@ kind: CronJob
 metadata:
   name: google-manage-user-registrations
 spec:
-  schedule: "@hourly"
+  schedule: "*/15 * * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:

@@ -67,7 +67,7 @@ if [[ ! -d ./cloud-automation ]]; then
 fi
 if [[ ! -d ./cdis-manifest ]]; then
   git clone "https://github.com/uc-cdis/cdis-manifest.git"
-  (cd cdis-manifest && git checkout QA)
+  (cd cdis-manifest && git checkout master)
 fi
 
 # setup ~/vpc_name
