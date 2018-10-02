@@ -36,4 +36,5 @@ fi
 echo "Creating portal-config ${confFileList[@]}"
 g3kubectl create configmap portal-config "${confFileList[@]}"
 
+g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
 gen3 roll portal
