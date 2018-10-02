@@ -70,8 +70,7 @@ if g3k_manifest_lookup .versions.portal 2> /dev/null; then
   # portal is not happy until other services are up
   # If new pods are still rolling/starting up, then wait for that to finish
   gen3 kube-wait4-pods || true
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
-  gen3 roll portal
+  gen3 kube-setup-portal
 else
   echo "INFO: not deploying portal - no manifest entry for .versions.portal"
 fi
