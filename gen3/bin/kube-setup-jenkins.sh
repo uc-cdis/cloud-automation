@@ -9,6 +9,8 @@ export WORKSPACE="${WORKSPACE:-$HOME}"
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+gen3 kube-setup-secrets
+
 #
 # Assume Jenkins should use 'jenkins' profile credentials in "${WORKSPACE}"/.aws/credentials
 #
@@ -28,10 +30,14 @@ if [[ -z "$google_acct1_email" || -z "$google_acct1_password" || -z "$google_acc
   exit 1
 fi
 
-if ! g3kubectl get "${GEN3_HOME}/kube/secrets/jenkins-secret" > /dev/null 2>&1; then
+if ! g3kubectl get secrets jenkins-secret > /dev/null 2>&1; then
   # make it easy to rerun kube-setup-jenkins.sh
   g3kubectl create secret generic jenkins-secret "--from-literal=aws_access_key_id=$aws_access_key_id" "--from-literal=aws_secret_access_key=$aws_secret_access_key"
+fi
+if ! g3kubectl get secrets google-acct1 > /dev/null 2>&1; then
   g3kubectl create secret generic google-acct1 "--from-literal=email=${google_acct1_email}" "--from-literal=password=${google_acct1_password}"
+fi
+if ! g3kubectl get secrets google-acct2 > /dev/null 2>&1; then
   g3kubectl create secret generic google-acct2 "--from-literal=email=${google_acct2_email}" "--from-literal=password=${google_acct2_password}"
 fi
 
