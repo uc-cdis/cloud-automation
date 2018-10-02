@@ -54,7 +54,7 @@ if g3k_manifest_lookup .versions.portal > /dev/null 2>&1; then
   # Wait to deploy the portal, because portal wants to connect
   # to the reverse proxy ...
   #
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
+  gen3 kube-setup-portal
 fi
 
 gen3 kube-setup-revproxy
