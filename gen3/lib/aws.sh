@@ -325,7 +325,7 @@ EOM
      # CSOC MAIN VPC ID 
      env_vpc_id                    = "vpc-e2b51d99"
      # CSOC ROUTE TABLE ID - HAVING ROUTE TO INTERNET GW
-     env_pub_subnet_routetable_id = "rtb-23b6685f"
+     env_pub_subnet_routetable_id = "rtb-1cb66860"
      # planx-pla.net  ZONE ID IN CSOC MAIN VPC"
      csoc_planx_dns_zone_id  = "ZG153R4AYDHHK"
      # This is the openvpn subnet cidr
