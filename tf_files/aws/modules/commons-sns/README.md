@@ -34,7 +34,7 @@ Ex.
 ```
 vpc_name  = "fauziv1"
 cluster_type = "EKS"
-emails = ["fauzi@uchicago.edu","fauzi@g.uchicago.edu"]
+emails = ["someone@uchicago.edu","otherone@uchicago.edu"]
 topic_display = "Cronjob Monitor"
 ```
 

@@ -6,7 +6,7 @@ variable "cluster_type" {
 }
 
 variable "emails" {
-  default = ["fauzi@uchicago.edu","fauzi@g.uchicago.edu"]
+  default = ["someone@uchicago.edu","someone@uchicago.edu"]
 }
 
 variable "topic_display" {
