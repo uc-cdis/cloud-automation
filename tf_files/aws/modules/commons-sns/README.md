@@ -21,6 +21,7 @@ $ gen3 workon cdistest fauziv1_ks
 - [3. Overview](#3-overview)
 - [4. Variables](#4-variables)
   - [4.1 Required Variables](#41-required-variables)
+- [5. After Deployment](#5-after-deployment)
 
 
 
@@ -46,4 +47,12 @@ topic_display = "Cronjob Monitor"
 * `cluster_type` EKS or kube-aws
 * `emails` List of emails the topic will send message to. More can be added later.
 * `topic_display` Subject of the email sent
+
+
+## 5. After Deployment
+
+Once SNS resources are stood up, then you should be able to apply the jobs into kubernetes. 
+
+Jobs compatible with this modules will have `monitored.yaml` at the end of the filename.
+
 
