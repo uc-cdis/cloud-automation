@@ -45,7 +45,7 @@ mkdir -p ~/${vpc_name}
 cd ~/"${vpc_name}_output"
 
 for fileName in cluster.yaml 00configmap.yaml creds.json; do
-  if [[ ! -f ~/"${vpc_name}/${fileName}" ]]; then
+  if [[ -f "${fileName}" && ! -f ~/"${vpc_name}/${fileName}" ]]; then
     cp ${fileName} ~/${vpc_name}/
     mv "${fileName}" "${fileName}.bak"
   else
@@ -54,7 +54,6 @@ for fileName in cluster.yaml 00configmap.yaml creds.json; do
 done
 
 cd ~/${vpc_name}
-ln -fs ~/cloud-automation/kube/services ~/${vpc_name}/services
 
 # Add a little guard
 if kubectl get nodes > /dev/null 2>&1; then
@@ -63,35 +62,32 @@ if kubectl get nodes > /dev/null 2>&1; then
   exit 1
 fi
 
-if [[ ! -d ./credentials ]]; then
-  kube-aws render credentials --generate-ca
-fi
-kube-aws render || true
+if [[ -f cluster.yaml ]]; then # setup a kube-aws cluster
+  if [[ ! -d ./credentials ]]; then
+    kube-aws render credentials --generate-ca
+  fi
+  kube-aws render || true
 
-#
-# When running on the adminvm - we need to assume the role
-# in the child account - `gen3 arun` handles that for us
-# assuming ~/.aws/config has the required setup 
-# under the [default] profile - ex:
-#
-# [default]
-# output = json
-# region = us-east-1
-# role_session_name = gen3-adminvm
-# role_arn = arn:aws:iam::{ACCOUNTID}:role/csoc_adminvm
-# credential_source = Ec2InstanceMetadata
-#
+  #
+  # When running on the adminvm - we need to assume the role
+  # in the child account - `gen3 arun` handles that for us
+  # assuming ~/.aws/config has the required setup 
+  # under the [default] profile - ex:
+  #
+  # [default]
+  # output = json
+  # region = us-east-1
+  # role_session_name = gen3-adminvm
+  # role_arn = arn:aws:iam::{ACCOUNTID}:role/csoc_adminvm
+  # credential_source = Ec2InstanceMetadata
+  #
 
-# New kube-aws version doesn't need the s3-uri argument
-gen3 arun kube-aws validate #--s3-uri "s3://${s3_bucket}/${vpc_name}"
-gen3 arun kube-aws up #--s3-uri "s3://${s3_bucket}/${vpc_name}"
+  # New kube-aws version doesn't need the s3-uri argument
+  gen3 arun kube-aws validate #--s3-uri "s3://${s3_bucket}/${vpc_name}"
+  gen3 arun kube-aws up #--s3-uri "s3://${s3_bucket}/${vpc_name}"
 
-# Back everything up to s3
-gen3 kube-backup
-
-cat - <<EOM
-You need to add an entry in route53 for the CSOC account.
-
+  cat - <<EOM
+The kube-aws cluster is up; now add an entry in route53 for the CSOC account.
 Ask Renuka or Fauzi to add k8s-${vpc_name}.internal.io as CNAME for
 the k8s controller load balancer:
     aws elb describe-load-balancers | grep DNSName | grep ${vpc_name}
@@ -99,4 +95,13 @@ the k8s controller load balancer:
 $(aws elb describe-load-balancers | grep DNSName | grep ${vpc_name})
 
 EOM
+
+fi
+# else running some other k8s flavor (EKS, GKE, ...)
+
+if [[ -n "${s3_bucket}" ]]; then
+  # Back everything up to s3
+  gen3 kube-backup
+fi
+
 
