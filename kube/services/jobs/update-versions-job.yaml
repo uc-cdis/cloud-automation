@@ -42,6 +42,10 @@ spec:
 
               for key in $(echo $newJson | jq -r "keys[]"); do
                 echo $key
+                newVersion=$(echo $newJson | jq ".$key")
+                oldVersion=$(echo $oldJson | jq ".$key") 
+                echo "new Version is: $newVersion"
+                echo "old Version is: $oldVersion"
                 if [[ $(echo $newJson | jq ".$key") !=  $(echo $oldJson | jq ".$key") ]]; then
                   changeFlag=1
                 fi
@@ -50,7 +54,7 @@ spec:
 
               if [[ -z $newJson ]]; then
                 echo "Manifest does not have versions section. Unable to get new versions, skipping version update."
-              elif [[ ! changeFlag ]]; then
+              elif [[ changeFlag -eq 1 ]]; then
                 echo "Versions are the same, skipping version update."
               else
                 echo "Versions are different, updating versions."
