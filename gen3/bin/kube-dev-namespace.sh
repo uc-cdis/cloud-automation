@@ -65,8 +65,14 @@ fi
 if [[ ! -d ./cloud-automation ]]; then
   git clone https://github.com/uc-cdis/cloud-automation.git
 fi
+
+gitopsPath="$(g3kubectl get configmaps global -ojsonpath='{ .data.gitops_path }')"
+if [[ -z  "${gitopsPath}" ]]; then
+  # Default to cdis-manifest repo
+  gitopsPath="https://github.com/uc-cdis/cdis-manifest.git"
+fi
 if [[ ! -d ./cdis-manifest ]]; then
-  git clone "https://github.com/uc-cdis/cdis-manifest.git"
+  git clone "$gitopsPath" cdis-manifest
   (cd cdis-manifest && git checkout master)
 fi
 
@@ -91,6 +97,7 @@ echo "Testing new KUBECONFIG at $KUBECONFIG"
 if ! g3kubectl get namespace $namespace > /dev/null 2>&1; then
   g3kubectl create namespace $namespace
 fi
+
 # do not re-create the databases
 #for name in .rendered_fence_db .rendered_gdcapi_db; do
 #  touch "/home/$namespace/${vpc_name}/$name"
