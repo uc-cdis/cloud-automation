@@ -42,7 +42,7 @@ spec:
 
               for key in $(echo $newJson | jq -r "keys[]"); do
                 echo $key
-                if [[ $(echo $newJson | jq ".$key") !=  $(echo $oldJson | jq ".$key") ]]
+                if [[ $(echo $newJson | jq ".$key") !=  $(echo $oldJson | jq ".$key") ]]; then
                   changeFlag=1
                 fi
               done
