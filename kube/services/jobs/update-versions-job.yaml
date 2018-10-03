@@ -1,0 +1,63 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: update-versions
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      restartPolicy: Never
+      serviceAccountName: jenkins-service
+      containers:
+        - name: awshelper
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: ""
+            - name: GEN3_NOPROXY
+              value: none
+          command: ["/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              set -i
+              source ~/.bashrc
+              g3k_manifest_init
+              changeFlag=0
+              length=$(g3k_config_lookup ".versions | length")
+              if g3kubectl get configmap manifest-versions; then
+                oldJson=$(g3kubectl get configmap manifest-versions -o=json | jq ".data")
+              fi
+              newJson=$(g3k_config_lookup ".versions")
+              echo "old JSON is: $oldJson"
+              echo "new JSON is: $newJson"
+
+              for key in $(echo $newJson | jq -r "keys[]"); do
+                echo $key
+                if [[ $(echo $newJson | jq ".$key") !=  $(echo $oldJson | jq ".$key") ]]
+                  changeFlag=1
+                fi
+              done
+              echo $changeFlag
+
+              if [[ -z $newJson ]]; then
+                echo "Manifest does not have versions section. Unable to get new versions, skipping version update."
+              elif [[ ! changeFlag ]]; then
+                echo "Versions are the same, skipping version update."
+              else
+                echo "Versions are different, updating versions."
+                if [[ $oldUrl = null ]]; then
+                  echo "Configmap manifest-versions does not exist, cannot extract old versions. Using new versions."
+                fi
+                export JENKINS_HOME=none
+                gen3 kube-roll-all
+              fi
+              echo "Exit code: $?"
