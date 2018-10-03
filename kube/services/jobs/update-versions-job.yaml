@@ -62,6 +62,6 @@ spec:
                   echo "Configmap manifest-versions does not exist, cannot extract old versions. Using new versions."
                 fi
                 export JENKINS_HOME=none
-                gen3 kube-roll-all
+                #gen3 kube-roll-all
               fi
               echo "Exit code: $?"
