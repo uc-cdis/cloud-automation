@@ -42,11 +42,11 @@ spec:
 
               for key in $(echo $newJson | jq -r "keys[]"); do
                 echo $key
-                newVersion=$(echo $newJson | jq ".$key")
-                oldVersion=$(echo $oldJson | jq ".$key") 
-                echo "new Version is: $newVersion"
+                newVersion=$(echo $newJson | jq ".'$key'")
+                oldVersion=$(echo $oldJson | jq ".'$key'") 
                 echo "old Version is: $oldVersion"
-                if [[ $(echo $newJson | jq ".$key") !=  $(echo $oldJson | jq ".$key") ]]; then
+                echo "new Version is: $newVersion"
+                if [[ oldVersion !=  newVersion ]]; then
                   changeFlag=1
                 fi
               done
