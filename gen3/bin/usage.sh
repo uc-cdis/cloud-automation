@@ -77,6 +77,7 @@ USAGE: gen3 [gen3-flags] command [subcommand] [options]
           gen3 roll fence DEBUG_FLAG True
     - runjob JOBNAME k1 v1 k2 v2 ...
         o JOBNAME maps to cloud-automation/kube/services/JOBNAME-job.yaml
+        o also support: runjob path/to/name-job.yaml or name-cronjob.yaml
     - testsuite
     - update_config CONFIGMAP-NAME YAML-FILE
     
