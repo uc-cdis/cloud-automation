@@ -119,8 +119,9 @@ g3k_psql() {
 }
 
 #
-# Run a job with the given name -
-# template is applied with subsequent k v list
+# Run a job with the given name or path - if the path is a -cronjob.yaml,
+# then try to launch a cronjob instead of a job.
+# The job template is processed throgh g3k_manifest_filter with additional k v list from arguments.
 # see (g3k help) below
 #
 g3k_runjob() {
@@ -140,7 +141,7 @@ g3k_runjob() {
   fi
   jobPath="$jobName"
   if [[ -f "$jobPath" ]]; then
-    jobName="$(basename $jobPath | sed 's/-job.yaml$//')"
+    jobName="$(basename $jobPath | sed -E 's/-(cron)?job.yaml$//')"
   else
     jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.yaml"
   fi
@@ -159,12 +160,18 @@ g3k_runjob() {
       return 1
     fi
 
+    local jobType
+    jobType="jobs"
+    if [[ "$jobPath" =~ -cronjob.yaml ]]; then
+      jobType="cronjobs"
+    fi
+
     # delete previous job run and pods if any
-    if g3kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
-      g3kubectl delete "jobs/${jobName}"
+    if g3kubectl get "$jobType/${jobName}" > /dev/null 2>&1; then
+      g3kubectl delete "$jobType/${jobName}"
     fi
     # run job helper script if present
-    if [[ -f "$jobScriptPath" ]]; then
+    if [[ "$jobType" == "jobs" && -f "$jobScriptPath" ]]; then
       if ! bash "$jobScriptPath" "${kvList[@]}" "$tempFile"; then
         echo "$jobScriptPath failed"
         return 1
@@ -174,6 +181,7 @@ g3k_runjob() {
     result=$?
     /bin/rm $tempFile
   elif g3kubectl get cronjob "$jobName" > /dev/null 2>&1; then
+    # support launching a job from an existing cronjob ...?
     # delete previous job run and pods if any
     if g3kubectl get "jobs/${jobName}" > /dev/null 2>&1; then
       g3kubectl delete "jobs/${jobName}"

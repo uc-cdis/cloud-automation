@@ -67,3 +67,4 @@ config['OAUTH2'] = {
 config['USER_API'] = 'http://fence-service/'
 app_init(app)
 application = app
+application.debug = (environ.get('GEN3_DEBUG') == "True")

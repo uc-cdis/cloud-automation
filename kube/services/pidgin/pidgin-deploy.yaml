@@ -76,4 +76,4 @@ spec:
           resources:
             limits:
               cpu: 0.8
-              memory: 256Mi
+              memory: 512Mi

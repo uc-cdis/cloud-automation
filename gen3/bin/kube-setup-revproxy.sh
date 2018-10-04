@@ -80,11 +80,33 @@ fi
 LOGGING_CONFIG=""
 
 export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
+#
+# We do this hacky thing where we toggle between different configurations
+# based on the value of the 'revproxy_arn' field of the global configmap
+#
+# Configure revproxy-service-elb - the main external load balancer service
+# which targets the revproxy-deployment:
+#   * TARGET_PORT_HTTPS == the load-balancer target for https traffic
+#   * TARGET_PORT_HTTP == load-balancer target for http traffic
+# Default AWS setup - k8s revproxy-service-elb manifests itself
+#  as an AWS ELB that terminates HTTPS requests, and
+#  forwards http and https traffic to the
+#  revproxy deployment using http proxy protocol.
+#
+# port 81 == proxy-protocol listener - main service entry
 export TARGET_PORT_HTTPS=81
+# port 82 == proxy-protocol listener - redirects to https
 export TARGET_PORT_HTTP=82
 
 if [[ "$ARN" == "GCP" ]]; then
+  # port 443 - https listener - main service entry
   export TARGET_PORT_HTTPS=443
+  # port 83 - http listener - redirects to https
+  export TARGET_PORT_HTTP=83
+elif [[ "$ARN" == "ONPREM" ]]; then
+  # port 80 - http listener - main service entry
+  export TARGET_PORT_HTTPS=80
+  # port 83 - http listener - redirects to https
   export TARGET_PORT_HTTP=83
 elif [[ ! "$ARN" =~ ^arn ]]; then
   echo "WARNING: global configmap not configured with TLS certificate ARN"
