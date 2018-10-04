@@ -53,3 +53,4 @@ config['DICTIONARY_URL'] = environ.get('DICTIONARY_URL','https://s3.amazonaws.co
 
 app_init(app)
 application = app
+application.debug = (environ.get('GEN3_DEBUG') == "True")
