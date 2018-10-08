@@ -270,7 +270,6 @@ EOM
 
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _utilityvm$ ]]; then
-     #vmName=$(echo "$GEN3_WORKSPACE" | sed 's/_utilityvm$//')
      vmName=${GEN3_WORKSPACE//_utilityvm/}
      cat - <<EOM
 bootstrap_path = "cloud-automation/flavors/"
@@ -278,6 +277,7 @@ bootstrap_script = "FILE-IN-ABOVE-PATH"
 vm_name = "${vmName}"
 vm_hostname = "${vmName}"
 vpc_cidr_list = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8"]
+aws_account_id = "ACCOUNT-ID"
 extra_vars = []
 EOM
     return 0
