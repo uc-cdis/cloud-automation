@@ -93,7 +93,7 @@ gen3_run() {
     scriptName=usage.sh
     ;;
   "workon")
-    gen3_workon $@
+    gen3_workon "$@"
     ;;
   "aws")
     gen3_aws_run aws "$@"
@@ -136,6 +136,9 @@ gen3_run() {
     )
     resultCode=$?
     ;;
+  *job*) # support legacy runjob, joblogs, ... commands
+    bash $scriptFolder/job.sh $command "$@"
+    return $?
   *)
     if [[ -f "$scriptFolder/${commandStr}.sh" ]]; then
       scriptName="${commandStr}.sh"
