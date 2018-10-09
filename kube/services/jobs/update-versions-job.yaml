@@ -42,8 +42,8 @@ spec:
 
               for key in $(echo $newJson | jq -r "keys[]"); do
                 echo $key
-                newVersion=$(echo $newJson | jq ".'$key'")
-                oldVersion=$(echo $oldJson | jq ".'$key'") 
+                newVersion=$(echo $newJson | jq ".$key")
+                oldVersion=$(echo $oldJson | jq ".$key") 
                 echo "old Version is: $oldVersion"
                 echo "new Version is: $newVersion"
                 if [[ oldVersion !=  newVersion ]]; then
