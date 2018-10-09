@@ -31,7 +31,7 @@ spec:
               set -i
               source ~/.bashrc
               g3k_manifest_init
-              changeFlag=0
+    
               length=$(g3k_config_lookup ".versions | length")
               if g3kubectl get configmap manifest-versions; then
                 oldJson=$(g3kubectl get configmap manifest-versions -o=json | jq ".data")
@@ -40,27 +40,31 @@ spec:
               echo "old JSON is: $oldJson"
               echo "new JSON is: $newJson"
 
-              for key in $(echo $newJson | jq -r "keys[]"); do
-                newVersion=$(echo $newJson | jq ".\"$key\"")
-                oldVersion=$(echo $oldJson | jq ".\"$key\"") 
-                echo "$key old Version is: $oldVersion"
-                echo "$key new Version is: $newVersion"
-                if [ "$oldVersion" !=  "$newVersion" ]; then
-                  echo "$key versions are not the same"
-                  changeFlag=1
-                fi
-              done
-
               if [[ -z $newJson ]]; then
                 echo "Manifest does not have versions section. Unable to get new versions, skipping version update."
-              elif [[ changeFlag -eq 0 ]]; then
-                echo "Versions are the same, skipping version update."
-              else
-                echo "Versions are different, updating versions."
-                if [[ -z $oldJson ]]; then
-                  echo "Configmap manifest-versions does not exist, cannot extract old versions. Using new versions."
-                fi
+              elif [[ -z $oldJson ]]; then
+                echo "Configmap manifest-versions does not exist, cannot extract old versions. Using new versions."
                 export JENKINS_HOME=none
                 #gen3 kube-roll-all
+              else 
+                changeFlag=0
+                for key in $(echo $newJson | jq -r "keys[]"); do
+                  newVersion=$(echo $newJson | jq ".\"$key\"")
+                  oldVersion=$(echo $oldJson | jq ".\"$key\"") 
+                  echo "$key old Version is: $oldVersion"
+                  echo "$key new Version is: $newVersion"
+                  if [ "$oldVersion" !=  "$newVersion" ]; then
+                    echo "$key versions are not the same"
+                    changeFlag=1
+                  fi
+                done
+
+                if [[ changeFlag -eq 0 ]]; then
+                  echo "Versions are the same, skipping version update."
+                else
+                  echo "Versions are different, updating versions."
+                  export JENKINS_HOME=none
+                  #gen3 kube-roll-all
+                fi
               fi
               echo "Exit code: $?"
