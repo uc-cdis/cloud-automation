@@ -351,7 +351,7 @@ VM_SUBNET_BASE=$( sipcalc $VM_SUBNET | perl -ne 'm|Host address\s+-\s+(\S+)| && 
 VM_SUBNET_MASK_BITS=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
 sudo sed -i "s/VM_SUBNET/$VM_SUBNET_BASE\/$VM_SUBNET_MASK_BITS/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 
-aws s3 ls s3://vpn-certs-and-files-${var.env_vpn_nlb_name}\/${var.env_vpn_nlb_name}/ && /root/openvpn_management_scripts/recover_from_s3.sh
+aws s3 ls s3://vpn-certs-and-files-${var.env_vpn_nlb_name}/${var.env_vpn_nlb_name}/ && /root/openvpn_management_scripts/recover_from_s3.sh
 
 cd /home/ubuntu
 ## WORK ON THIS TO POINT TO THE VPN FLAVOR SCRIPT
