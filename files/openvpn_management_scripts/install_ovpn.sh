@@ -281,7 +281,7 @@ set -e
 set -u
     install_custom_scripts
   #  if [! -d "/etc/openvpn/easy-rsa"]; then
-    aws s3 ls s3://vpn-certs-and-files/WHICHVPN/ || install_easyrsa
+    aws s3 ls s3://WHICHVPN/ || install_easyrsa
    # build_PKI
    # else
     #scp -o StrictHostKeyChecking=no -r ubuntu@10.128.1.11:/home/ubuntu/openvpn/easy-rsa /etc/openvpn
@@ -292,7 +292,7 @@ set -u
     install_settings
 
    # if [! -d "/etc/openvpn/easy-rsa"]; then
-    aws s3 ls s3://vpn-certs-and-files/WHICHVPN/ || build_PKI
+    aws s3 ls s3://WHICHVPN/ || build_PKI
     #fi
 
     configure_ovpn

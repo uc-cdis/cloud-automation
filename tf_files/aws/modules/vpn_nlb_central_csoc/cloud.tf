@@ -332,9 +332,9 @@ sudo apt-get autoclean
 sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
 # Different buckets for different CSOC vpn environments
-sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/push_to_s3.sh
-sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/recover_from_s3.sh
-sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh
+sed -i "s/WHICHVPN/vpn-certs-and-files-${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/push_to_s3.sh
+sed -i "s/WHICHVPN/vpn-certs-and-files-${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/recover_from_s3.sh
+sed -i "s/WHICHVPN/vpn-certs-and-files-${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh
 
 # 
 # Replace the User variable for hostname, VPN subnet and VM subnet 
@@ -351,7 +351,7 @@ VM_SUBNET_BASE=$( sipcalc $VM_SUBNET | perl -ne 'm|Host address\s+-\s+(\S+)| && 
 VM_SUBNET_MASK_BITS=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
 sudo sed -i "s/VM_SUBNET/$VM_SUBNET_BASE\/$VM_SUBNET_MASK_BITS/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 
-aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ && /root/openvpn_management_scripts/recover_from_s3.sh
+aws s3 ls s3://vpn-certs-and-files-${var.env_vpn_nlb_name}/ && /root/openvpn_management_scripts/recover_from_s3.sh
 
 cd /home/ubuntu
 ## WORK ON THIS TO POINT TO THE VPN FLAVOR SCRIPT
@@ -528,7 +528,7 @@ resource "aws_iam_access_key" "vpn_s3_user_key" {
 }
 
 resource "aws_s3_bucket" "vpn-certs-and-files" {
-  bucket = "vpn-certs-and-files"
+  bucket = "vpn-certs-and-files-${var.env_vpn_nlb_name}"
   acl    = "private"
 
   versioning {
@@ -544,7 +544,7 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
   }
 
   tags {
-    Name        = "vpn-certs-and-files"
+    Name        = "vpn-certs-and-files-${var.env_vpn_nlb_name}"
     Environment = "${var.env_vpn_nlb_name}"
     Purpose     = "data bucket"
   }
@@ -566,8 +566,8 @@ resource "aws_s3_bucket_policy" "vpn-bucket-policy" {
             },
             "Action": "s3:*",
             "Resource": [
-               "arn:aws:s3:::vpn-certs-and-files",
-               "arn:aws:s3:::vpn-certs-and-files/*"
+               "arn:aws:s3:::vpn-certs-and-files-${var.env_vpn_nlb_name}",
+               "arn:aws:s3:::vpn-certs-and-files-${var.env_vpn_nlb_name}/*"
             ]
         }
     ]
