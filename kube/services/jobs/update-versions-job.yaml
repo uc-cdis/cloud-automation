@@ -45,7 +45,7 @@ spec:
                 oldVersion=$(echo $oldJson | jq ".\"$key\"") 
                 echo "$key old Version is: $oldVersion"
                 echo "$key new Version is: $newVersion"
-                if [ $oldVersion !=  $newVersion ]; then
+                if [ "$oldVersion" !=  "$newVersion" ]; then
                   echo "$key versions are not the same"
                   changeFlag=1
                 fi
