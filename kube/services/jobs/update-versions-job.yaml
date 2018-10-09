@@ -45,7 +45,7 @@ spec:
               elif [[ -z $oldJson ]]; then
                 echo "Configmap manifest-versions does not exist, cannot extract old versions. Using new versions."
                 export JENKINS_HOME=none
-                #gen3 kube-roll-all
+                gen3 kube-roll-all
               else 
                 changeFlag=0
                 for key in $(echo $newJson | jq -r "keys[]"); do
@@ -64,7 +64,7 @@ spec:
                 else
                   echo "Versions are different, updating versions."
                   export JENKINS_HOME=none
-                  #gen3 kube-roll-all
+                  gen3 kube-roll-all
                 fi
               fi
               echo "Exit code: $?"
