@@ -22,7 +22,7 @@ module "vpn_nlb" {
   bootstrap_script = "${var.bootstrap_script}"
   image_name_search_criteria = "${var.image_name_search_criteria}"
   csoc_planx_dns_zone_id = "${var.csoc_planx_dns_zone_id}"
-  environment =  "${var.environment}"
+  #environment =  "${var.environment}"
   csoc_account_id = "${var.csoc_account_id}"
   csoc_vpn_subnet  = "${var.csoc_vpn_subnet}"
   csoc_vm_subnet   = "${var.csoc_vm_subnet}"

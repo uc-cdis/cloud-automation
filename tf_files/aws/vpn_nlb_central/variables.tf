@@ -66,9 +66,9 @@ variable "bootstrap_script" {
   default = "vpnvm.sh"
 }
 
-variable "environment" {
-  default = "CSOC"
-}
+#variable "environment" {
+#  default = "CSOC"
+#}
 
 
 variable "csoc_account_id" {

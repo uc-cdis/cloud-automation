@@ -520,7 +520,7 @@ resource "aws_route53_record" "vpn-nlb" {
 
 # aws account for s3 storage of VPN certs
 resource "aws_iam_user" "vpn_s3_user" {
-  name = "${var.environment}-vpn-s3-user"
+  name = "${var.env_vpn_nlb_name}-vpn-s3-user"
 }
 
 resource "aws_iam_access_key" "vpn_s3_user_key" {
@@ -545,7 +545,7 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
 
   tags {
     Name        = "vpn-certs-and-files"
-    Environment = "${var.environment}"
+    Environment = "${var.env_vpn_nlb_name}"
     Purpose     = "data bucket"
   }
 }
@@ -562,7 +562,7 @@ resource "aws_s3_bucket_policy" "vpn-bucket-policy" {
             "Sid": "Stmt1533585020818",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::${var.csoc_account_id}:user/${var.environment}-vpn-s3-user"
+                "AWS": "arn:aws:iam::${var.csoc_account_id}:user/${var.env_vpn_nlb_name}-vpn-s3-user"
             },
             "Action": "s3:*",
             "Resource": [
