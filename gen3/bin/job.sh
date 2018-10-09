@@ -20,7 +20,7 @@ g3k_runjob() {
   result=1
   shift
   if [[ -z "$jobName" ]]; then
-    echo "g3k runjob JOBNAME"
+    echo "gen3 job run JOBNAME"
     return 1
   fi
   jobPath="$jobName"
@@ -100,7 +100,7 @@ g3k_jobpods(){
   local it
   jobName="$1"
   if [[ -z "$jobName" ]]; then
-    echo "g3k jobpods JOB-NAME"
+    echo "gen3 job pods JOB-NAME"
     return 1
   fi
   # this crazy jobList thing should have a bare job and the newest cron job
@@ -125,7 +125,7 @@ g3k_jobpods(){
 g3k_joblogs(){
   jobName="$1"
   if [[ -z "$jobName" ]]; then
-    echo "g3k joblogs JOB-NAME"
+    echo "gen3 job logs JOB-NAME"
     return 1
   fi
   g3kubectl get jobs
