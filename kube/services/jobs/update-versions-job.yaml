@@ -57,7 +57,7 @@ spec:
                 echo "Versions are the same, skipping version update."
               else
                 echo "Versions are different, updating versions."
-                if [[ $oldJson = null ]]; then
+                if [[ -z $oldJson ]]; then
                   echo "Configmap manifest-versions does not exist, cannot extract old versions. Using new versions."
                 fi
                 export JENKINS_HOME=none
