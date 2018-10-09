@@ -373,9 +373,6 @@ g3k() {
       "random")
         random_alphanumeric "$@"
         ;;
-      "roll")
-        g3k_roll "$@"
-        ;;
       "replicas")
         g3k_replicas "$@"
         ;;

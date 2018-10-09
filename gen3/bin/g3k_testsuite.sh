@@ -102,6 +102,9 @@ test_random_alpha() {
 }
 
 test_roll() {
+  GEN3_SOURCE_ONLY=true
+  gen3_load "gen3/bin/roll"
+
   # Mock g3kubectl
   function g3kubectl() {
     echo "MOCK: g3kubectl $@"
@@ -114,6 +117,7 @@ test_roll() {
   ! g3k_roll frickjack; because $? "roll frickjack should not be ok - no yaml file"
   ! g3k_roll aws-es-proxy; because $? "roll aws-es-proxy should not be ok - no manifest entry"
 }
+
 test_gitops_home() {
   WORKSPACE="${WORKSPACE:-$HOME}"
   [[ $(g3k_gitops_init dev.planx-pla.net) == $WORKSPACE/dev.planx-pla.net ]]; because $? "dev.planx-pla.net GITOPS repo exists"
