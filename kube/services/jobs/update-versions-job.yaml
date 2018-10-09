@@ -41,20 +41,19 @@ spec:
               echo "new JSON is: $newJson"
 
               for key in $(echo $newJson | jq -r "keys[]"); do
-                echo $key
                 newVersion=$(echo $newJson | jq ".\"$key\"")
                 oldVersion=$(echo $oldJson | jq ".\"$key\"") 
-                echo "old Version is: $oldVersion"
-                echo "new Version is: $newVersion"
+                echo "$key old Version is: $oldVersion"
+                echo "$key new Version is: $newVersion"
                 if [[ oldVersion !=  newVersion ]]; then
+                  echo "$key these are not the same"
                   changeFlag=1
                 fi
               done
-              echo $changeFlag
 
               if [[ -z $newJson ]]; then
                 echo "Manifest does not have versions section. Unable to get new versions, skipping version update."
-              elif [[ changeFlag -eq 1 ]]; then
+              elif [[ changeFlag -eq 0 ]]; then
                 echo "Versions are the same, skipping version update."
               else
                 echo "Versions are different, updating versions."
