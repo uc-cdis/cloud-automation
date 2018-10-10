@@ -11,8 +11,8 @@ For example - `gen3 help aws` opens `aws.md`
 * [aws](./aws.md)
 * [arun](./arun.md)
 * [devterm](./devterm.md)
-* [es](./es.md)
-* [gitops](./gitops.md)
+* [es](./es.md) - elastic search
+* [gitops](./gitops.md) - manifest filter, configmaps, etc
 * [ec2_reboot](./ec2_reboot.md)
 * [job logs|pods|run](./job.md)
 * [joblogs](./job.md) - see [job logs](./job.md)
