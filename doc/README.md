@@ -68,6 +68,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [commons infrastructure](./terraform/commonsOverview.md)
 * [csoc](../CSOC_Documentation.md)
 * [csoc vpn](../tf_files/aws/modules/vpn_nlb_central_csoc/README.md)
+* [EKS](../tf_files/aws/modules/eks/README.md)
 * [utility vm](../tf_files/aws/modules/utility-vm/README.md)
 * [explorer infrastructure](https://github.com/uc-cdis/cdis-wiki/blob/master/dev/gen3/data_explorer/README.md)
 * [gcp](../tf_files/gcp/commons/README.md)

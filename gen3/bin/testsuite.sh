@@ -201,7 +201,7 @@ test_kube_lock() {
 }
 
 test_kube_unlock() {
-  gen3 klock unlock | grep -e "gen3 klock unlock lock-name owner:"; because $? "calling klock unlock without arguments should show the help documentation"
+  gen3 klock unlock | grep -e "gen3 klock unlock lock-name owner"; because $? "calling klock unlock without arguments should show the help documentation"
   kubectl delete configmap locks
   gen3 klock unlock testlock testuser; because !$? "calling klock unlock for the first time without a lock should fail"
   gen3 klock lock testlock testuser 60
