@@ -63,9 +63,8 @@ configmapsFlagFile="${WORKSPACE}/${vpc_name}/.configmapsFlagFile"
 # Avoid creating configmaps more than once every two minutes
 # (gen3 roll all calls this over and over)
 if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$configmapsExpireTime" ]]; then
-  # call g3k configmaps to create manifest configmaps
   echo "creating manifest configmaps"
-  g3k configmaps
+  gen3 gitops configmaps
   touch "$configmapsFlagFile"
 fi
 

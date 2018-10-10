@@ -43,13 +43,13 @@ test_mfilter() {
       mpath="$(g3k_manifest_path test1.manifest.g3k)"
       # Note: date timestamp will differ between saved snapshot and fresh template processing
       echo "Writing: $testFolder/${name}-${domain}-a.yaml"
-      g3k_manifest_filter "${GEN3_HOME}/kube/services/$name/${name}-deploy.yaml" "$mpath" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-a.yaml"
+      gen3 gitops filter "${GEN3_HOME}/kube/services/$name/${name}-deploy.yaml" "$mpath" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-a.yaml"
       cat "$(dirname "$mpath")/expected${capName}Result.yaml" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-b.yaml"
       diff -w "$testFolder/${name}-${domain}-a.yaml" "$testFolder/${name}-${domain}-b.yaml"
       because $? "Manifest filter gave expected result for $name deployment with $domain manifest"
     done
   done
-  g3k_manifest_filter "${GEN3_MANIFEST_HOME}/bogusInput.yaml" "${GEN3_MANIFEST_HOME}/default/manifest.json" "k1" "the value is v1" "k2" "the value is v2" > "$testFolder/bogus-b.yaml"
+  gen3 gitops filter "${GEN3_MANIFEST_HOME}/bogusInput.yaml" "${GEN3_MANIFEST_HOME}/default/manifest.json" "k1" "the value is v1" "k2" "the value is v2" > "$testFolder/bogus-b.yaml"
   diff -w "${GEN3_MANIFEST_HOME}/bogusExpectedResult.yaml" "$testFolder/bogus-b.yaml"
   because $? "Manifest filter processed extra environment values ok"
 }
@@ -102,6 +102,9 @@ test_random_alpha() {
 }
 
 test_roll() {
+  GEN3_SOURCE_ONLY=true
+  gen3_load "gen3/bin/roll"
+
   # Mock g3kubectl
   function g3kubectl() {
     echo "MOCK: g3kubectl $@"
@@ -114,6 +117,7 @@ test_roll() {
   ! g3k_roll frickjack; because $? "roll frickjack should not be ok - no yaml file"
   ! g3k_roll aws-es-proxy; because $? "roll aws-es-proxy should not be ok - no manifest entry"
 }
+
 test_gitops_home() {
   WORKSPACE="${WORKSPACE:-$HOME}"
   [[ $(g3k_gitops_init dev.planx-pla.net) == $WORKSPACE/dev.planx-pla.net ]]; because $? "dev.planx-pla.net GITOPS repo exists"
@@ -121,6 +125,9 @@ test_gitops_home() {
 }
 
 test_configmaps() {
+  GEN3_SOURCE_ONLY=true
+  gen3_load "gen3/bin/gitops"
+
   local mpath
   local mpathGlobal
   mpath="$(g3k_manifest_path test1.manifest.g3k)"
@@ -144,16 +151,16 @@ test_configmaps() {
     return 0
   }
 
-  g3k configmaps; because !$? "g3k configmaps should exit with code 1 if the manifest does not have a global section"
+  g3k_gitops_configmaps; because !$? "g3k_gitops_configmaps should exit with code 1 if the manifest does not have a global section"
   
   # Mock g3k_manifest_path to manifest with global
   function g3k_manifest_path() { echo "$mpathGlobal"; }
-  gen3 configmaps | grep -q created; because $? "g3k configmaps should create configmaps"
-  gen3 configmaps | grep -q labeled; because $? "g3k configmaps should label configmaps"
+  g3k_gitops_configmaps | grep -q created; because $? "g3k_gitops_configmaps should create configmaps"
+  g3k_gitops_configmaps | grep -q labeled; because $? "g3k_gitops_configmaps should label configmaps"
   g3kubectl delete configmaps -l app=manifest
-  gen3 configmaps; 
-  gen3 configmaps; because $? "g3k configmaps should not bomb out, even if the configmaps already exist"
-  gen3 configmaps | grep -q deleted; because $? "g3k configmaps delete previous configmaps"
+  g3k_gitops_configmaps; 
+  g3k_gitops_configmaps; because $? "g3k_gitops_configmaps should not bomb out, even if the configmaps already exist"
+  g3k_gitops_configmaps | grep -q deleted; because $? "g3k_gitops_configmaps delete previous configmaps"
 }
 
 shunit_runtest "test_gitops_home"
