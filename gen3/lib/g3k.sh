@@ -57,52 +57,6 @@ update_config() {
 }
 
 
-#
-# g3k command to create configmaps from manifest
-#
-g3k_create_and_update_configmaps() {
-  local manifestPath
-  manifestPath=$(g3k_manifest_path)
-  if [[ ! -f "$manifestPath" ]]; then
-    echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
-    return 1
-  fi
-
-  if ! grep -q global $manifestPath; then
-    echo -e "$(red_color "ERROR: manifest does not have global section - $manifestPath")" 1>&2
-    return 1
-  fi
-
-  # if old configmaps are found, deletes them
-  if g3kubectl get configmaps -l app=manifest | grep -q NAME; then
-    g3kubectl delete configmaps -l app=manifest
-  fi
-
-  g3kubectl create configmap manifest-all --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
-  g3kubectl label configmap manifest-all app=manifest
-
-  local key
-  local key2
-  local value
-  local execString
-
-  for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
-    if [[ $key != 'notes' ]]; then
-      local cMapName="manifest-$key"
-      execString="g3kubectl create configmap $cMapName "
-      for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
-        value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
-        if [[ -n "$value" ]]; then
-          execString+="--from-literal $key2=$value "
-        fi
-      done
-      local jsonSection="--from-literal json='$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")'"
-      execString+=$jsonSection
-      eval $execString
-      g3kubectl label configmap $cMapName app=manifest
-    fi
-  done
-}
 
 #
 # Parent for other commands - pronounced "geeks"
@@ -118,19 +72,7 @@ g3k() {
   *)
     (set -e
       case "$command" in
-      "backup")
-        g3k_backup "$@"
-        ;;
-      "ec2_reboot")
-        g3k_ec2_reboot "$@"
-        ;;
-      "filter")
-        local yaml
-        yaml="$1"
-        shift
-        g3k_manifest_filter "$yaml" "" "$@"
-        ;;
-      "patch_kube") # legacy name
+      "patch_kube") # legacy - use "roll" instead
         patch_kube "$@"
         ;;
       "pod")
@@ -145,14 +87,8 @@ g3k() {
       "replicas")
         g3k_replicas "$@"
         ;;
-      "testsuite")
-        bash "${GEN3_HOME}/gen3/bin/g3k_testsuite.sh"
-        ;;
       "update_config")
         update_config "$@"
-        ;;
-      "configmaps")
-        g3k_create_and_update_configmaps
         ;;
       *)
         echo "ERROR: unknown command: $command"

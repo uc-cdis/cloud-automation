@@ -12,9 +12,11 @@ For example - `gen3 help aws` opens `aws.md`
 * [arun](./arun.md)
 * [devterm](./devterm.md)
 * [es](./es.md)
-* [filter](./filter.md)
+* [gitops](./gitops.md)
 * [ec2_reboot](./ec2_reboot.md)
-* [joblogs](./joblogs.md)
+* [job logs|pods|run](./job.md)
+* [joblogs](./job.md) - see [job logs](./job.md)
+* [klock](./klock.md)
 * [kube-setup-portal](./kube-setup-portal.md)
 * [kube-setup-revproxy](./kube-setup-revproxy.md)
 * [kube-setup-secrets](./kube-setup-secrets.md)
@@ -23,11 +25,11 @@ For example - `gen3 help aws` opens `aws.md`
 * [random](./random.md)
 * [replicas](./replicas.md)
 * [roll](./roll.md)
-* [runjob](./runjob.md)
+* [runjob](./job.md) - see [job run](./job.md)
 * [update_config](./update_config.md)
 
 
-## Configuring services and gitops
+## Configure services and gitops
 
 * [kube-setup-arborist](./kube-setup-arborist.md)
 * [kube-setup-arranger](./kube-setup-arranger.md)
@@ -62,8 +64,11 @@ For example - `gen3 help aws` opens `aws.md`
 
 * [arranger configuration](../kube/services/arranger/README.md)
 * [running the arranger dashboard](../kube/services/arranger-dashboard/README.md)
+* [cloud accounts and access](https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md)
 * [commons infrastructure](./terraform/commonsOverview.md)
 * [csoc](../CSOC_Documentation.md)
+* [csoc vpn](../tf_files/aws/modules/vpn_nlb_central_csoc/README.md)
+* [utility vm](../tf_files/aws/modules/utility-vm/README.md)
 * [explorer infrastructure](https://github.com/uc-cdis/cdis-wiki/blob/master/dev/gen3/data_explorer/README.md)
 * [gcp](../tf_files/gcp/commons/README.md)
 * [jenkins](../kube/services/jenkins/README.md)
@@ -71,6 +76,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [logging in AWS](../tf_files/aws/modules/common-logging/README.md)
 * [new commons cookbook](../README.md)
 * [portal configuration](../kube/services/portal/README.md)
+* [portal dev mode](https://github.com/uc-cdis/cdis-wiki/blob/master/dev/Local-development-for-Gen3.md#nginx-installation)
 * [reverse proxy configuration](../kube/services/revproxy/README.md)
 * [terraform](../tf_files/README.md)
 
@@ -87,7 +93,6 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-backup](./kube-backup.md)
 * [kube-dev-namespace](./kube-dev-namespace.md)
 * [kube-extract-config](./kube-extract-config.md)
-* [kube-lock](./kube-lock.md)
 * [kube-roll-all](./kube-roll-all.md)
 * [kube-roll-qa](./kube-roll-qa.md)
 * [kube-setup-arborist](./kube-setup-arborist.md)
@@ -115,4 +120,3 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-setup-tiller](./kube-setup-tiller.md)
 * [kube-setup-tube](./kube-setup-tube.md)
 * [kube-setup-workvm](./kube-setup-workvm.md)
-* [kube-unlock](./kube-unlock.md)

@@ -13,7 +13,7 @@ where sub-command is one of:
 
   - if given a path, then assumes a path ending in `-cronjob.yaml` is a cron job
   - executes the `${jobname}-job.sh` script if present
-  - filters the `yaml` file as a manifest template via [gen3 filter](./filter.md)
+  - filters the `yaml` file as a manifest template via [gen3 gitops filter](./filter.md)
 
 * logs name
 
