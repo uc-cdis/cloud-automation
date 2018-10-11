@@ -81,8 +81,6 @@ for name in 00configmap.yaml apis_configs kubeconfig; do
   cp -r ~/${vpc_name}/$name /home/$namespace/${vpc_name}/$name
 done
 
-ln -sf /home/$namespace/cloud-automation/kube/services /home/$namespace/$vpc_name/services
-
 # setup ~/vpc_name/credentials and kubeconfig
 cd /home/$namespace/${vpc_name}
 mkdir -p credentials
@@ -103,7 +101,7 @@ cp ~/${vpc_name}/creds.json /home/$namespace/${vpc_name}/creds.json
 dbname=$(echo $namespace | sed 's/-/_/g')
 # create new databases - don't break if already exists
 for name in indexd fence sheepdog; do
-  echo "CREATE DATABASE $dbname;" | g3k psql $name || true
+  echo "CREATE DATABASE $dbname;" | gen3 psql $name || true
 done
 # Remove "database initialized" markers
 for name in .rendered_fence_db .rendered_gdcapi_db; do
