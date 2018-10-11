@@ -98,17 +98,16 @@ if ! g3kubectl get namespace $namespace > /dev/null 2>&1; then
   g3kubectl create namespace $namespace
 fi
 
-# do not re-create the databases
-#for name in .rendered_fence_db .rendered_gdcapi_db; do
-#  touch "/home/$namespace/${vpc_name}/$name"
-#done
-
 cp ~/${vpc_name}/creds.json /home/$namespace/${vpc_name}/creds.json
 
 dbname=$(echo $namespace | sed 's/-/_/g')
 # create new databases - don't break if already exists
 for name in indexd fence sheepdog; do
   echo "CREATE DATABASE $dbname;" | g3k psql $name || true
+done
+# Remove "database initialized" markers
+for name in .rendered_fence_db .rendered_gdcapi_db; do
+  /bin/rm -rf "/home/$namespace/${vpc_name}/$name"
 done
 
 # update creds.json
