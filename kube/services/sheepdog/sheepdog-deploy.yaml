@@ -48,6 +48,9 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+      # sheepdog transactions take forever -
+      # try to let the complete before termination
+      terminationGracePeriodSeconds: 300
       containers:
         - name: sheepdog
           GEN3_SHEEPDOG_IMAGE

@@ -309,7 +309,7 @@ cd /home/ubuntu/cloud-automation
 git pull
 
 # checkout to the vpn branch for testing purposes
-# git checkout fix/vpnnlbflavorint
+#git checkout fix/vpnnlbparallelenv
 git pull
 
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
@@ -332,9 +332,9 @@ sudo apt-get autoclean
 sudo cp   -r /home/ubuntu/cloud-automation/files/openvpn_management_scripts /root
 
 # Different buckets for different CSOC vpn environments
-sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/push_to_s3.sh
-sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/recover_from_s3.sh
-sed -i "s/WHICHVPN/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh
+sed -i "s/WHICHVPN/vpn-certs-and-files-${var.env_vpn_nlb_name}\/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/push_to_s3.sh
+sed -i "s/WHICHVPN/vpn-certs-and-files-${var.env_vpn_nlb_name}\/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/recover_from_s3.sh
+sed -i "s/WHICHVPN/vpn-certs-and-files-${var.env_vpn_nlb_name}\/${var.env_vpn_nlb_name}/" /root/openvpn_management_scripts/install_ovpn.sh
 
 # 
 # Replace the User variable for hostname, VPN subnet and VM subnet 
@@ -351,7 +351,7 @@ VM_SUBNET_BASE=$( sipcalc $VM_SUBNET | perl -ne 'm|Host address\s+-\s+(\S+)| && 
 VM_SUBNET_MASK_BITS=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
 sudo sed -i "s/VM_SUBNET/$VM_SUBNET_BASE\/$VM_SUBNET_MASK_BITS/" /root/openvpn_management_scripts/csoc_vpn_user_variable
 
-aws s3 ls s3://vpn-certs-and-files/${var.env_vpn_nlb_name}/ && /root/openvpn_management_scripts/recover_from_s3.sh
+aws s3 ls s3://vpn-certs-and-files-${var.env_vpn_nlb_name}/${var.env_vpn_nlb_name}/ && /root/openvpn_management_scripts/recover_from_s3.sh
 
 cd /home/ubuntu
 ## WORK ON THIS TO POINT TO THE VPN FLAVOR SCRIPT
@@ -520,7 +520,7 @@ resource "aws_route53_record" "vpn-nlb" {
 
 # aws account for s3 storage of VPN certs
 resource "aws_iam_user" "vpn_s3_user" {
-  name = "${var.environment}-vpn-s3-user"
+  name = "${var.env_vpn_nlb_name}-vpn-s3-user"
 }
 
 resource "aws_iam_access_key" "vpn_s3_user_key" {
@@ -528,7 +528,7 @@ resource "aws_iam_access_key" "vpn_s3_user_key" {
 }
 
 resource "aws_s3_bucket" "vpn-certs-and-files" {
-  bucket = "vpn-certs-and-files"
+  bucket = "vpn-certs-and-files-${var.env_vpn_nlb_name}"
   acl    = "private"
 
   versioning {
@@ -544,8 +544,8 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
   }
 
   tags {
-    Name        = "vpn-certs-and-files"
-    Environment = "${var.environment}"
+    Name        = "vpn-certs-and-files-${var.env_vpn_nlb_name}"
+    Environment = "${var.env_vpn_nlb_name}"
     Purpose     = "data bucket"
   }
 }
@@ -562,12 +562,12 @@ resource "aws_s3_bucket_policy" "vpn-bucket-policy" {
             "Sid": "Stmt1533585020818",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::${var.csoc_account_id}:user/${var.environment}-vpn-s3-user"
+                "AWS": "arn:aws:iam::${var.csoc_account_id}:user/${var.env_vpn_nlb_name}-vpn-s3-user"
             },
             "Action": "s3:*",
             "Resource": [
-               "arn:aws:s3:::vpn-certs-and-files",
-               "arn:aws:s3:::vpn-certs-and-files/*"
+               "arn:aws:s3:::vpn-certs-and-files-${var.env_vpn_nlb_name}",
+               "arn:aws:s3:::vpn-certs-and-files-${var.env_vpn_nlb_name}/*"
             ]
         }
     ]

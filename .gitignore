@@ -20,3 +20,4 @@ terraform
 *.pytest_cache
 *.cache
 *pyc
+!doc/terraform

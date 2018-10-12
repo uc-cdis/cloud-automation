@@ -63,9 +63,8 @@ configmapsFlagFile="${WORKSPACE}/${vpc_name}/.configmapsFlagFile"
 # Avoid creating configmaps more than once every two minutes
 # (gen3 roll all calls this over and over)
 if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$configmapsExpireTime" ]]; then
-  # call g3k configmaps to create manifest configmaps
   echo "creating manifest configmaps"
-  g3k configmaps
+  gen3 gitops configmaps
   touch "$configmapsFlagFile"
 fi
 
@@ -357,12 +356,12 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
   cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f .rendered_gdcapi_db ]]; then
     # job runs asynchronously ...
-    g3k runjob gdcdb-create
+    gen3 job run gdcdb-create
     # also go ahead and setup the indexd auth secrets
-    g3k runjob indexd-userdb
+    gen3 job run indexd-userdb
     echo "Sleep 10 seconds for gdcdb-create job"
-    g3k joblogs gdcb-create || true
-    g3k joblogs indexd-userdb || true
+    gen3 job logs gdcb-create || true
+    gen3 job logs indexd-userdb || true
     echo "Leaving the job running in the background if not already done"
   fi
   # Avoid doing previous block more than once or when not necessary ...
