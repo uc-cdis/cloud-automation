@@ -13,6 +13,8 @@ help() {
 # command to update dictionary URL and image versions
 #
 sync_dict_and_versions() {
+  echo "dryrun flag is: $GEN3_DRY_RUN"
+
   g3k_manifest_init
 
   if g3kubectl get configmap manifest-global; then
@@ -36,7 +38,7 @@ sync_dict_and_versions() {
     # gen3 kube-roll-all
   fi
 
-  length=$(g3k_config_lookup ".versions | length")
+  local length=$(g3k_config_lookup ".versions | length")
   if g3kubectl get configmap manifest-versions; then
     oldJson=$(g3kubectl get configmap manifest-versions -o=json | jq ".data")
   fi
@@ -76,6 +78,7 @@ sync_dict_and_versions() {
 # g3k command to create configmaps from manifest
 #
 g3k_gitops_configmaps() {
+  echo "dryrun flag is: $GEN3_DRY_RUN"
   local manifestPath
   manifestPath=$(g3k_manifest_path)
   if [[ ! -f "$manifestPath" ]]; then
