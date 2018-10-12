@@ -10,6 +10,69 @@ help() {
 }
 
 #
+# command to update dictionary URL and image versions
+#
+sync_dict_and_versions() {
+  g3k_manifest_init
+
+  if g3kubectl get configmap manifest-global; then
+    oldUrl=$(g3kubectl get configmap manifest-global -o jsonpath={.data.dictionary_url})
+  else
+    oldUrl=$(g3kubectl get configmap global -o jsonpath={.data.dictionary_url})
+  fi
+  newUrl=$(g3k_config_lookup ".global.dictionary_url")
+  echo "old Url is: $oldUrl"
+  echo "new Url is: $newUrl"
+  if [[ -z $newUrl ]]; then
+    echo "Could not get new url from manifest, maybe the g3k functions are broken. Skipping dictionary update"
+  elif [[ $newUrl == $oldUrl ]]; then
+    echo "Dictionary URLs are the same (and not blank), skipping dictionary update"
+  else
+    echo "Dictionary URLs are different, updating dictionary"
+    if [[ $oldUrl = null ]]; then
+      echo "Could not get current url from manifest-global configmap, applying new url from manifest and rolling"
+    fi
+    # export JENKINS_HOME=none
+    # gen3 kube-roll-all
+  fi
+
+  length=$(g3k_config_lookup ".versions | length")
+  if g3kubectl get configmap manifest-versions; then
+    oldJson=$(g3kubectl get configmap manifest-versions -o=json | jq ".data")
+  fi
+  newJson=$(g3k_config_lookup ".versions")
+  echo "old JSON is: $oldJson"
+  echo "new JSON is: $new"
+  if [[ -z $newJson ]]; then
+    echo "Manifest does not have versions section. Unable to get new versions, skipping version update."
+  elif [[ -z $oldJson ]]; then
+    echo "Configmap manifest-versions does not exist, cannot extract old versions. Using new versions."
+    # export JENKINS_HOME=none
+    # gen3 kube-roll-all
+  else 
+    changeFlag=0
+    for key in $(echo $newJson | jq -r "keys[]"); do
+      newVersion=$(echo $newJson | jq ".\"$key\"")
+      oldVersion=$(echo $oldJson | jq ".\"$key\"") 
+      echo "$key old Version is: $oldVersion"
+      echo "$key new Version is: $newVersion"
+      if [ "$oldVersion" !=  "$newVersion" ]; then
+        echo "$key versions are not the same"
+        changeFlag=1
+      fi
+  
+    if [[ changeFlag -eq 0 ]]; then
+      echo "Versions are the same, skipping version update."
+    else
+      echo "Versions are different, updating versions."
+      # export JENKINS_HOME=none
+      # gen3 kube-roll-all
+    fi
+  fi
+}
+
+
+#
 # g3k command to create configmaps from manifest
 #
 g3k_gitops_configmaps() {
@@ -73,6 +136,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "configmaps")
       g3k_gitops_configmaps
+      ;;
+    "sync")
+      sync_dict_and_versions
       ;;
     *)
       help
