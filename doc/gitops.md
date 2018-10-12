@@ -23,3 +23,11 @@ Update the manifest derived (`manifest-*`) configmaps.
 ```
 gen3 gitops configmaps
 ```
+
+### sync
+
+Update the dictionary URL and image versions.
+
+```
+gen3 gitops sync
+```

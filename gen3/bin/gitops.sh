@@ -13,10 +13,11 @@ help() {
 # command to update dictionary URL and image versions
 #
 sync_dict_and_versions() {
-  echo "dryrun flag is: $GEN3_DRY_RUN"
-
   g3k_manifest_init
+  local dict_roll=false
+  local versions_roll=false
 
+  # dictionary URL check
   if g3kubectl get configmap manifest-global; then
     oldUrl=$(g3kubectl get configmap manifest-global -o jsonpath={.data.dictionary_url})
   else
@@ -34,10 +35,10 @@ sync_dict_and_versions() {
     if [[ $oldUrl = null ]]; then
       echo "Could not get current url from manifest-global configmap, applying new url from manifest and rolling"
     fi
-    # export JENKINS_HOME=none
-    # gen3 kube-roll-all
+    dict_roll=true
   fi
 
+  # image versions check
   local length=$(g3k_config_lookup ".versions | length")
   if g3kubectl get configmap manifest-versions; then
     oldJson=$(g3kubectl get configmap manifest-versions -o=json | jq ".data")
@@ -49,8 +50,7 @@ sync_dict_and_versions() {
     echo "Manifest does not have versions section. Unable to get new versions, skipping version update."
   elif [[ -z $oldJson ]]; then
     echo "Configmap manifest-versions does not exist, cannot extract old versions. Using new versions."
-    # export JENKINS_HOME=none
-    # gen3 kube-roll-all
+    versions_roll=true
   else 
     changeFlag=0
     for key in $(echo $newJson | jq -r "keys[]"); do
@@ -67,8 +67,18 @@ sync_dict_and_versions() {
       echo "Versions are the same, skipping version update."
     else
       echo "Versions are different, updating versions."
-      # export JENKINS_HOME=none
-      # gen3 kube-roll-all
+      versions_roll=true
+    fi
+  fi
+
+  if [[ GEN3_DRY_RUN ]]; then
+    echo "DRYRUN flag detected, not rolling"
+  else
+    if [[ dict_roll || versions_roll ]]; then
+      echo "changes detected, rolling"
+      gen3 kube-roll-all
+    else
+      echo "no changes detected, not rolling"
     fi
   fi
 }
@@ -78,7 +88,6 @@ sync_dict_and_versions() {
 # g3k command to create configmaps from manifest
 #
 g3k_gitops_configmaps() {
-  echo "dryrun flag is: $GEN3_DRY_RUN"
   local manifestPath
   manifestPath=$(g3k_manifest_path)
   if [[ ! -f "$manifestPath" ]]; then
