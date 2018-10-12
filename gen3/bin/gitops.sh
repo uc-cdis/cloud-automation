@@ -45,7 +45,7 @@ sync_dict_and_versions() {
   fi
   newJson=$(g3k_config_lookup ".versions")
   echo "old JSON is: $oldJson"
-  echo "new JSON is: $new"
+  echo "new JSON is: $newJson"
   if [[ -z $newJson ]]; then
     echo "Manifest does not have versions section. Unable to get new versions, skipping version update."
   elif [[ -z $oldJson ]]; then
