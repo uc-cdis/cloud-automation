@@ -165,15 +165,15 @@ data:
         set $service_weight 9;
 
         upstream fence_pool {
-          server http://fence-service.$kube_hostname route=service weight=$service_weight;
-          server http://fence-canary.$kube_hostname route=canary;
+          server http://fence-service.$kube_hostname route=production weight=$service_weight;
+          server http://fence-canary-service.$kube_hostname route=canary;
 
           sticky cookie fence_srv_id
         }
 
         upstream fence_pool {
-          server http://fence-service.$kube_hostname/user/anyaccess route=service weight=$service_weight;
-          server http://fence-canary.$kube_hostname/user/anyaccess route=canary;
+          server http://fence-service.$kube_hostname/user/anyaccess route=production weight=$service_weight;
+          server http://fence-canary-service.$kube_hostname/user/anyaccess route=canary;
 
           sticky cookie fence2_srv_id
         }
