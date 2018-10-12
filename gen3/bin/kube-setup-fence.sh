@@ -4,8 +4,6 @@
 # for fence to re-use the userapi db.
 # This fragment is pasted into kube-services.sh by kube.tf.
 #
-# @param release - optional: pod release to roll (e.g. canary or production)
-#
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
@@ -30,16 +28,10 @@ if [[ -d "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # create database
 fi
 
 # deploy fence
-release="$1"
-if [[ -z "$release" || "$release" = "production" ]]; then
-  gen3 roll fence
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
-elif [[ "$release" = "canary" ]]; then
-  gen3 roll fence-canary
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-canary-service.yaml"
-else
-  echo "$(red_color ERROR: invalid release version, must be 'production', 'canary' or omitted)"
-fi
+gen3 roll fence
+g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
+gen3 roll fence-canary
+g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-canary-service.yaml"
 
 cat <<EOM
 The fence services has been deployed onto the k8s cluster.
