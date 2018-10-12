@@ -4,7 +4,8 @@ metadata:
   name: fence-canary-service
 spec:
   selector:
-    app: fence-canary
+    app: fence
+    release: canary
   ports:
     - protocol: TCP
       port: 80
@@ -14,4 +15,4 @@ spec:
       port: 443 
       targetPort: 443
       name: https
-  type: NodePort
+  type: ClusterIP

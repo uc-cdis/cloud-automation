@@ -69,7 +69,7 @@ spec:
             secretName: "service-ca"
       containers:
       - name: fence
-        GEN3_FENCE_IMAGE
+        GEN3_FENCE-CANARY_IMAGE
         env:
         - name: PYTHONPATH
           value: /var/www/fence
