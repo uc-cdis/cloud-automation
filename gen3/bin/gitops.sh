@@ -60,7 +60,7 @@ sync_dict_and_versions() {
         echo "$key versions are not the same"
         changeFlag=1
       fi
-  
+    done
     if [[ changeFlag -eq 0 ]]; then
       echo "Versions are the same, skipping version update."
     else
