@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: fence
+        release: production
         GEN3_DATE_LABEL
     spec:
       affinity:
