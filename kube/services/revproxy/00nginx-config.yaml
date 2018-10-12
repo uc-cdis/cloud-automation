@@ -155,6 +155,30 @@ data:
         perl_set $namespace 'sub { return $ENV{"POD_NAMESPACE"}; }';
 
         ##
+        # Upstream servers
+        #
+        # Direct to -service and -canary deployments
+        # Inspects <service_name>_srv_id cookie value to select server
+        # See http://nginx.org/en/docs/http/ngx_http_upstream_module.html#sticky
+        ##
+        set $kubernetes_hostname "$namespace.svc.cluster.local";
+        set $service_weight 9;
+
+        upstream fence_pool {
+          server http://fence-service.$kube_hostname route=service weight=$service_weight;
+          server http://fence-canary.$kube_hostname route=canary;
+
+          sticky cookie fence_srv_id
+        }
+
+        upstream fence_pool {
+          server http://fence-service.$kube_hostname/user/anyaccess route=service weight=$service_weight;
+          server http://fence-canary.$kube_hostname/user/anyaccess route=canary;
+
+          sticky cookie fence2_srv_id
+        }
+
+        ##
       	# Proxy Settings
       	##
         # Serve internet facing http requests via this, and redirect to https
