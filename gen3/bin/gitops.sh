@@ -70,13 +70,14 @@ sync_dict_and_versions() {
       versions_roll=true
     fi
   fi
-
-  if [[ GEN3_DRY_RUN ]]; then
+  
+  echo "DRYRUN flag is: $GEN3_DRY_RUN"
+  if [ "$GEN3_DRY_RUN" = true ]; then
     echo "DRYRUN flag detected, not rolling"
   else
-    if [[ dict_roll || versions_roll ]]; then
+    if [ "$dict_roll" = true -o "$versions_roll" = true ]; then
       echo "changes detected, rolling"
-      gen3 kube-roll-all
+      # gen3 kube-roll-all
     else
       echo "no changes detected, not rolling"
     fi
