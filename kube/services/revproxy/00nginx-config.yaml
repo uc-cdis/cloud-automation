@@ -161,8 +161,8 @@ data:
         # Inspects <service_name>_srv_id cookie value to select server
         # See http://nginx.org/en/docs/http/ngx_http_upstream_module.html#sticky
         ##
-        set $kubernetes_hostname "$namespace.svc.cluster.local";
-        set $service_weight 9;
+        perl_set $kubernetes_hostname "$namespace.svc.cluster.local";
+        perl_set $service_weight 9;
 
         upstream fence_pool {
           server http://fence-service.$kube_hostname route=production weight=$service_weight;
