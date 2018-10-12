@@ -30,7 +30,8 @@ g3k_roll() {
     templatePath="$depName"
   else
     local cleanName=$(echo "$depName" | sed 's/[-_]deploy.*$//')
-    templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
+    local serviceName=$(echo "$cleanName" | sed 's/-canary//')
+    templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy.yaml"
   fi
 
   local manifestPath
