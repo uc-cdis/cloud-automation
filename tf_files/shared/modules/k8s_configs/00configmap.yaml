@@ -6,8 +6,6 @@ data:
   environment: ${vpc_name}
   hostname: ${hostname}
   revproxy_arn: ${revproxy_arn}
-  dictionary_url: ${dictionary_url}
-  portal_app: ${portal_app}
   kube_bucket: ${kube_bucket}
   logs_bucket: ${logs_bucket}
   sync_from_dbgap: 'False'
