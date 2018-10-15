@@ -149,9 +149,17 @@ gen3_run() {
     )
     resultCode=$?
     ;;
-  *job*) # support legacy runjob, joblogs, ... commands
-    bash $scriptFolder/job.sh $command "$@"
-    return $?
+  runjob) # support legacy runjob
+    (
+      gen3_run job run "$@"
+    )
+    resultCode=$?
+    ;;
+  joblogs) # support legacy joblogs
+    (
+      gen3_run job logs "$@"
+    )
+    resultCode=$?
     ;;
   *)
     if [[ -f "$scriptFolder/${commandStr}.sh" ]]; then
