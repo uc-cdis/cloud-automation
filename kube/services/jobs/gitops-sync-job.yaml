@@ -30,6 +30,6 @@ spec:
             - |
               set -i
               source ~/.bashrc
-              # export JENKINS_HOME=none
+              export JENKINS_HOME=none
               gen3 gitops sync
               echo "Exit code: $?"
