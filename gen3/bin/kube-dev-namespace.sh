@@ -137,6 +137,7 @@ export GEN3_HOME=~/cloud-automation
 if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
   source "\${GEN3_HOME}/gen3/gen3setup.sh"
 fi
+alias kubectl=g3kubectl
 EOF
 fi
 # a provisioner should only work with one vpc
@@ -157,5 +158,5 @@ sudo chown -R "${namespace}:" /home/$namespace /home/$namespace/.ssh /home/$name
 sudo chmod -R 0700 /home/$namespace/.ssh
 sudo chmod go-w /home/$namespace
 
-echo "The $namespace user is ready to login and run: g3k roll all"
+echo "The $namespace user is ready to login and run: gen3 roll all"
 echo "Be sure to verify that cdis-manifest/hostname is configured"

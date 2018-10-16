@@ -14,7 +14,7 @@ g3k_roll() {
   depName="$1"
   shift
   if [[ -z "$depName" ]]; then
-    echo -e "$(red_color "Use: g3k roll deployment-name")" 1>&2
+    echo -e "$(red_color "Use: gen3 roll deployment-name")" 1>&2
     return 1
   fi
 

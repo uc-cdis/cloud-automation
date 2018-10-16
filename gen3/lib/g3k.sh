@@ -13,7 +13,7 @@ gen3_load "gen3/lib/g3k_manifest"
 patch_kube() {
   local depName="$1"
   if [[ ! "$depName" =~ _deployment$ ]] && ! g3kubectl get deployments "$depName" > /dev/null 2>&1; then
-    # allow 'g3k roll portal' in addition to 'g3k roll portal-deployment'
+    # allow 'gen3 roll portal' in addition to 'gen3 roll portal-deployment'
     depName="${depName}-deployment"
   fi
   g3kubectl patch deployment "$depName" -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
