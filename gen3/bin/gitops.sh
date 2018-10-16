@@ -39,7 +39,6 @@ sync_dict_and_versions() {
   fi
 
   # image versions check
-  local length=$(g3k_config_lookup ".versions | length")
   if g3kubectl get configmap manifest-versions; then
     oldJson=$(g3kubectl get configmap manifest-versions -o=json | jq ".data")
   fi
@@ -77,7 +76,7 @@ sync_dict_and_versions() {
   else
     if [ "$dict_roll" = true -o "$versions_roll" = true ]; then
       echo "changes detected, rolling"
-      # gen3 kube-roll-all
+      gen3 kube-roll-all
     else
       echo "no changes detected, not rolling"
     fi
