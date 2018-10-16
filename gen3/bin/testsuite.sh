@@ -196,7 +196,7 @@ test_kube_lock() {
   gen3 klock lock testlock5 testuser2 10 -w 2; because !$? "wait is too short, so klock lock should fail to acquire lock"
   gen3 klock lock testlock6 testuser 10
   gen3 klock lock testlock6 testuser2 10 -w 20; because $? "wait is longer than expiry time on the first user, so klock lock should succeed to acquire lock"
-  kubectl delete configmap locks
+  # kubectl delete configmap locks
 }
 
 test_kube_unlock() {
