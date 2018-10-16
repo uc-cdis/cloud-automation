@@ -222,7 +222,6 @@ g3k_manifest_filter() {
   # Load the substitution map
   # Note: zsh and bash manage parameter expansion of hashmap keys differently,
   #   so maintain a separate key map.
-  #   Should really just pull g3k roll out into its own shell script ...
   #
   local key
   local key2
