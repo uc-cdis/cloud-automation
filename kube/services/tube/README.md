@@ -23,7 +23,7 @@ Every ETL process is defined by a translation from the original dataset to the e
 
  ## Running ETL
 
- 1. define mapping file and save that mapping file as `etlMapping.yaml` to the gitops repo.
+ 1. define mapping file and save that mapping file as `etlMapping.yaml` to the gitops repo. Format of the mapping file can be found [here](https://github.com/uc-cdis/tube#mapping-file)
  2. run `gen3 kube-setup-secrets` to create the new configmap. If the configmap exists, you must delete it first by running `kubectl delete configmap etl-mapping`
  3. run `gen3 roll spark`
  4. run `gen3 roll tube`
