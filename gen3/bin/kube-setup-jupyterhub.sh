@@ -33,4 +33,4 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-storage.yam
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_jh_templ.yaml"
 
-g3k roll jupyterhub
+gen3 roll jupyterhub
