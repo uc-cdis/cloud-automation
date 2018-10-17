@@ -211,8 +211,7 @@ data:
       	##
         log_format aws   '$realip - $userid [$time_local] '
                     '"$request" $status $body_bytes_sent '
-                    '"$http_referer" "$http_user_agent" '
-                    '"$fence_release"';
+                    '"$http_referer" "$http_user_agent" ';
       	access_log /dev/stdout aws;
       	error_log /dev/stderr;
 
