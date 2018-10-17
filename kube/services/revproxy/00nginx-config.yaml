@@ -67,6 +67,64 @@ data:
         return user;
       }
 
+      /**
+       * util for hasing a string into given range
+       *
+       * @param s - string to hash
+       * @param size - range to hash into
+       */
+      function simpleHash(s, size) {
+        var i, hash = 0;
+        for (i = 0; i < s.length; i++) {
+          hash += (s[i].charCodeAt() * (i+1));
+        }
+        return Math.abs(hash) % size;
+      }
+
+      /*
+       * Checks cookie for service release versions and assigns
+       *   release versions for services not in the cookie based
+       *   on hash value and the percent weight of the canary.
+       * Returns a string of service assignments. E.g:
+       *   "fence:canary;sheepdog:production;"
+       *
+       * @param req - nginx request object
+       */
+      function getServiceReleases(req) {
+        // return fence:canary;arborist:production;
+        // then in location block:
+        // if ($release_string contains ~ fence:canary) {
+        //    set $service_name "${service_name}-canary"
+        // }
+        // return ${service_name}-deployment.asdfasdfg.com
+
+        var release_cookie = req.variables['cookie_release_tags'];
+        var services = ['fence', 'sheepdog'];
+
+        // hash user info to select the release
+        var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
+        var hash_res = simpleHash(hash_str, 100);
+        console.log("hash res ", hash_res);
+        var canary_percent = 10
+        var selected_release = 'production';
+        if (hash_res < canary_percent) {
+          selected_release = 'canary'
+        }
+        // if not given a release for a service, use the one selected by hash
+        var updated_release_cookie = services.map(name => {
+          var release_val = release_cookie.match(name+':(production|canary)')
+          if (!release_val) {
+            return name + ':' + selected_release;
+          }
+          return release_val[0];
+        })
+          .join(';') + ';';
+
+        req.headersOut.release_tags = updated_release_cookie
+
+        return updated_release_cookie
+      }
+
   nginx.conf: |
       user nginx;
       worker_processes 4;
@@ -124,30 +182,30 @@ data:
         js_include userid.js;
         js_set $userid userid;
 
+        #        #
+        #        # Split traffic to production and canary
+        #        # See https://www.viget.com/articles/split-test-traffic-distribution-with-nginx/
         #
-        # Split traffic to production and canary
-        # See https://www.viget.com/articles/split-test-traffic-distribution-with-nginx/
-
-        # The "$fence_variant" variable is set to different value
-        # depending on random hash
-        split_clients "app${realip}${http_user_agent}${date_gmt}" $fence_variant {
-          10% "canary"; # 10% of addresses assigned to canary
-          * "production"; # 90% of addresses assigned to production
-        }
-
-        # map cookie type to the release version
-        # if cookie does not exist, assign to the generated variant
-        map $cookie_fence_release $fence_release {
-          default $fence_variant;
-          "canary" "canary";
-          "production" "production";
-        }
-
-        # map fence release version to deployment name
-        map $fence_release $fence_deploy_name {
-          "canary" "fence-canary";
-          "production" "fence";
-        }
+        #        # The "$fence_variant" variable is set to different value
+        #        # depending on random hash
+        #        split_clients "app${realip}${http_user_agent}${date_gmt}" $fence_variant {
+        #          10% "canary"; # 10% of addresses assigned to canary
+        #          * "production"; # 90% of addresses assigned to production
+        #        }
+        #
+        #        # map cookie type to the release version
+        #        # if cookie does not exist, assign to the generated variant
+        #        map $cookie_fence_release $fence_release {
+        #          default $fence_variant;
+        #          "canary" "canary";
+        #          "production" "production";
+        #        }
+        #
+        #        # map fence release version to deployment name
+        #        map $fence_release $fence_deploy_name {
+        #          "canary" "fence-canary";
+        #          "production" "fence";
+        #        }
 
       	##
       	# Logging Settings
@@ -158,6 +216,11 @@ data:
                     '"$fence_release"';
       	access_log /dev/stdout aws;
       	error_log /dev/stderr;
+
+      	#
+      	# service assignment
+      	#
+      	js_set $service_releases getServiceReleases;
 
       	##
       	# Gzip Settings
