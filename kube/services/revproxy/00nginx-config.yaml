@@ -111,7 +111,7 @@ data:
           selected_release = 'canary'
         }
         // if not given a release for a service, use the one selected by hash
-        var updated_release_cookie = services.map(name => {
+        var updated_release_cookie = services.map(function(name) {
           var release_val = release_cookie.match(name+':(production|canary)')
           if (!release_val) {
             return name + ':' + selected_release;
