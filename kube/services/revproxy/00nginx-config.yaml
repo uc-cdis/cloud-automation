@@ -91,7 +91,7 @@ data:
        * @param req - nginx request object
        */
       function getServiceReleases(req) {
-        /*
+
         var release_cookie = req.variables['cookie_release_tags'];
         var services = ['fence', 'sheepdog'];
 
@@ -116,8 +116,6 @@ data:
         req.headersOut.release_tags = updated_release_cookie
 
         return updated_release_cookie
-        */
-        return "fence+canary&sheepdog+production";
       }
 
   nginx.conf: |
