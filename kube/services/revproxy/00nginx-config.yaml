@@ -165,18 +165,16 @@ data:
         perl_set $service_weight 9;
 
         upstream fence_pool {
-          server fence-service.$kube_hostname route=production weight=$service_weight;
-          server fence-canary-service.$kube_hostname route=canary;
-
-          sticky cookie fence_srv_id
+          server fence-service.$kube_hostname weight=$service_weight;
+          server fence-canary-service.$kube_hostname;
         }
 
-        upstream fence_pool {
-          server fence-service.$kube_hostname/user/anyaccess route=production weight=$service_weight;
-          server fence-canary-service.$kube_hostname/user/anyaccess route=canary;
-
-          sticky cookie fence2_srv_id
-        }
+        #        upstream fence2_pool {
+        #          server fence-service.$kube_hostname/user/anyaccess route=production weight=$service_weight;
+        #          server fence-canary-service.$kube_hostname/user/anyaccess route=canary;
+        #
+        #          sticky cookie fence2_srv_id
+        #        }
 
         ##
       	# Proxy Settings
