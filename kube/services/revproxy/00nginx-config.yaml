@@ -111,7 +111,7 @@ data:
           }
           return release_val[0];
         })
-          .join(';') + ';';
+          .join('::');
 
         req.headersOut.release_tags = updated_release_cookie
 
