@@ -54,7 +54,7 @@ spec:
             name: "projects"
       containers:
       - name: fence
-        image: quay.io/cdis/fence:master
+        GEN3_FENCE_IMAGE
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH
@@ -132,7 +132,7 @@ spec:
                 diff /var/www/fence/user.yaml /mnt/shared/user.yaml
                 if [[ $? == 1 || "${userYamlS3Path}" = '' ]]; then
                   echo "running fence-create"
-                  fence-create sync --yaml /mnt/shared/user.yaml
+                  fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
                 else
                   echo "no difference found"
                 fi
@@ -141,9 +141,9 @@ spec:
               fi
             else
               if [[ -f /mnt/shared/user.yaml ]]; then
-                fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
+                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
               else
-                fence-create sync --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
+                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
               fi
             fi
             echo "Exit code: $?"

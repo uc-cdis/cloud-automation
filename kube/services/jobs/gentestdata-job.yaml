@@ -1,14 +1,11 @@
+#
 # run with:
 # gen3 runjob gentestdata \
 # SUBMISSION_USER submission_user \
 # TEST_PROGRAM "" \
 # TEST_PROJECT "" \
-# NUMBER_OF_EXAMPLES "" \
+# MAX_EXAMPLES "" \
 # NOTE: "" indicates an optional argument. Leave as "" for default
-#
-# SUBMISSION_HOST
-#   url of submission host is taken from global configmap -
-#               https://{configmaps global hostname}
 #
 # SUBMISSION_USER
 #    e-mail of user-account to submit the data to sheepdog as
@@ -16,11 +13,12 @@
 # TEST_PROJECT(optional)
 #   Name of test project. Default: DEV/test
 #
-# NUMBER_OF_EXAMPLES(optional)
-#   Number of examples for each node. Default 1000
+# MAX_EXAMPLES(optional)
+#   Number of maximum examples for each node. Default 100
 #
 # Example
-# gen3 runjob gentestdata SUBMISSION_USER cdis.autotest@gmail.com TEST_PROGRAM DEV TEST_PROJECT test NUMBER_OF_EXAMPLES 10
+# gen3 runjob gentestdata TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100 SUBMISSION_USER cdistest@gmail.com
+#
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -69,7 +67,7 @@ spec:
           - name: DICTIONARY_URL
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: dictionary_url
           - name: HOSTNAME
             valueFrom:
@@ -80,8 +78,8 @@ spec:
             GEN3_TEST_PROGRAM
           - name: TEST_PROJECT
             GEN3_TEST_PROJECT
-          - name: NUMBER_OF_EXAMPLES
-            GEN3_NUMBER_OF_EXAMPLES
+          - name: MAX_EXAMPLES
+            GEN3_MAX_EXAMPLES
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -106,10 +104,10 @@ spec:
             else
                 rscript_cmd+=" test"
             fi
-            if [[ -n "$NUMBER_OF_EXAMPLES" ]]; then
-                rscript_cmd+=" $NUMBER_OF_EXAMPLES"
+            if [[ -n "$MAX_EXAMPLES" ]]; then
+                rscript_cmd+=" $MAX_EXAMPLES"
             else
-                rscript_cmd+=" 1000"
+                rscript_cmd+=" 100"
             fi
 
             rscript_cmd+=" /gen3-qa/python-scripts/sim-data-code/TestData/"

@@ -1,0 +1,175 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: arborist-deployment
+spec:
+  selector:
+    matchLabels:
+      app: arborist
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: arborist
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - arborist
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "fence-secret"
+        - name: creds-volume
+          secret:
+            secretName: "fence-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
+        - name: json-secret-volume
+          secret:
+            secretName: "fence-json-secret"
+        - name: fence-google-app-creds-secret-volume
+          secret:
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
+        - name: fence-yaml
+          configMap:
+            name: fence
+        - name: fence-ssh-keys
+          secret:
+            secretName: "fence-ssh-keys"
+            defaultMode: 0400
+        - name: fence-sshconfig
+          configMap:
+            name: "fence-sshconfig"
+        - name: projects
+          configMap:
+            name: "projects"
+      containers:
+      - name: arborist
+        GEN3_ARBORIST_IMAGE
+        imagePullPolicy: Always
+        env:
+          - name: JWKS_ENDPOINT
+            value: "http://fence-service/.well-known/jwks"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 10
+        ports:
+        - containerPort: 80
+      - name: fence
+        # Mount fence pod to initialize the arborist db
+        GEN3_FENCE_IMAGE
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
+          - name: SYNC_FROM_DBGAP
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: sync_from_dbgap
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/local_settings.py.original"
+            subPath: local_settings.py
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+            subPath: creds.json
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/fence/config_helper.py"
+            subPath: config_helper.py
+          - name: "json-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_credentials.json"
+            subPath: fence_credentials.json
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
+          - name: "fence-yaml"
+            mountPath: "/var/www/fence/user.yaml"
+            subPath: user.yaml
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa"
+            subPath: "id_rsa"
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa.pub"
+            subPath: "id_rsa.pub"
+          - name: "fence-sshconfig"
+            mountPath: "/root/.ssh/config"
+            subPath: "config"
+          - name: "projects"
+            mountPath: "/var/www/fence/projects.yaml"
+            subPath: "projects.yaml"
+        readinessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
+          - |
+            # point at localhost
+            cat /var/www/fence/local_settings.py.original | sed s/arborist-service/localhost/g > /var/www/fence/local_settings.py
+            let count=0
+            sleep 30   # wait for service to come up
+            while (! curl --fail http://localhost/health) && [[ $count -lt 50 ]]; do
+              echo "fence container waiting for /mnt/shared/user.yaml";
+              sleep 3
+              let count=$count+1
+            done
+            if [[ ! "$SYNC_FROM_DBGAP" = True ]]; then
+              if [[ -f /var/www/fence/user.yaml ]]; then
+                echo "running fence-create"
+                if fence-create sync --arborist http://localhost --yaml /var/www/fence/user.yaml; then
+                  touch /tmp/healthy
+                else
+                  echo "Looks like fence-create failed: $?"
+                fi
+              else
+                echo "/var/www/fence/user.yaml is not mounted :-("
+              fi
+            else
+              echo "Not running fence-create in arborist pod when DBGAP sync is enabled"
+              touch /tmp/healthy
+            fi
+            echo "Exit code: $?"
+            # Keep arborist company
+            while curl --fail --silent --show-error http://localhost/health; do
+              echo "arborist is healthy, so fence will keep company";
+              sleep 60
+            done

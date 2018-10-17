@@ -142,8 +142,18 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/worker_bigdisk"
   elif [[ "$GEN3_WORKSPACE" =~ _squidnlbcentral$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_nlb_central"
+  elif [[ "$GEN3_WORKSPACE" =~ _vpnnlbcentral$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/vpn_nlb_central"
   elif [[ "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squidnlb_standalone"
+  elif [[ "$GEN3_WORKSPACE" =~ _es$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons_vpc_es"
+  elif [[ "$GEN3_WORKSPACE" =~ _qualysvm$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_qualys_vm"
+  elif [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/eks"
+  elif [[ "$GEN3_WORKSPACE" =~ _sns$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons_sns"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -260,7 +270,6 @@ EOM
 
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _utilityvm$ ]]; then
-     #vmName=$(echo "$GEN3_WORKSPACE" | sed 's/_utilityvm$//')
      vmName=${GEN3_WORKSPACE//_utilityvm/}
      cat - <<EOM
 bootstrap_path = "cloud-automation/flavors/"
@@ -268,6 +277,7 @@ bootstrap_script = "FILE-IN-ABOVE-PATH"
 vm_name = "${vmName}"
 vm_hostname = "${vmName}"
 vpc_cidr_list = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8"]
+aws_account_id = "ACCOUNT-ID"
 extra_vars = []
 EOM
     return 0
@@ -303,6 +313,34 @@ EOM
     return 0
   fi
 
+
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _vpnnlbcentral$ ]]; then
+    # rds snapshot vpc is simpler ...
+    #commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
+    cat - <<EOM
+    # env_vpn_nlb_name can be enter as csoc-ENVNAME-vpn where ENVNAME is prod,qa,dev,etc
+     env_vpn_nlb_name  = "csoc-ENVNAME-vpn"
+     #  env_cloud_name can be enter as planxCLOUDNAME where CLOUDNAME is prod,qa,dev,etc
+     env_cloud_name = "planxCLOUDNAME"
+     # CSOC MAIN VPC ID 
+     env_vpc_id                    = "vpc-e2b51d99"
+     # CSOC ROUTE TABLE ID - HAVING ROUTE TO INTERNET GW
+     env_pub_subnet_routetable_id = "rtb-1cb66860"
+     # planx-pla.net  ZONE ID IN CSOC MAIN VPC"
+     csoc_planx_dns_zone_id  = "ZG153R4AYDHHK"
+     # This is the openvpn subnet cidr
+     csoc_vpn_subnet = "192.168.X.X/Y"
+     # This is the csoc commons admin subnet we want  users to access
+     csoc_vm_subnet = "10.128.X.X/Y"
+     # This is the csoc subnet in which the VPN server will be launched
+     vpn_server_subnet = "10.128.X.X/Y"
+
+EOM
+    return 0
+  fi
+
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
     # rds snapshot vpc is simpler ...
@@ -321,6 +359,53 @@ EOM
 EOM
     return 0
   fi
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _es$ ]]; then
+      commonsName=${GEN3_WORKSPACE//_es/}
+      cat - <<EOM
+vpc_name   = "${commonsName}"
+EOM
+    return 0
+  fi
+
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _qualysvm$ ]]; then
+      #commonsName=${GEN3_WORKSPACE//_es/}
+      cat - <<EOM
+user_perscode   = "PERSCODE you receive from the Qualys master"
+env_vpc_octet3  = "3rd OCTET OF VPC CIDR FOR QUALYS SETUP"
+EOM
+    return 0
+  fi
+
+
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
+      commonsName=${GEN3_WORKSPACE//_eks/}
+      cat - <<EOM
+vpc_name      = "${commonsName}"
+instance_type = "t2.medium"
+ec2_keyname   = "someone@uchicago.edu"
+users_policy  = "PUT SOMETHING HERE"
+EOM
+    return 0
+  fi
+
+
+  if [[ "$GEN3_WORKSPACE" =~ _sns$ ]]; then
+      commonsName=${GEN3_WORKSPACE//_sns/}
+      cat - <<EOM
+vpc_name  = "${commonsName}"
+cluster_type = "EKS"
+emails = ["e1@uchicago.edu","e2@uchicago.edu"]
+topic_display = "Cronjob Monitor"
+EOM
+    return 0
+  fi
+
 
   # ssh key to be added to VMs and kube nodes
   local SSHADD=$(which ssh-add)

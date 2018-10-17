@@ -82,18 +82,31 @@ gen3_run() {
   local scriptName
   local scriptFolder
   local resultCode
-  
+  local subCommand
+
   let resultCode=0 || true
   scriptFolder="$GEN3_HOME/gen3/bin"
   commandStr=$1
   scriptName=""
   shift
+  subCommand="$1"
+
+  if [[ -z "$commandStr" || "$commandStr" =~ -*help$ || "$subCommand" =~ -*help$ ]]; then
+    local helpCommand
+    helpCommand="$subCommand"
+    if [[ "$subCommand" =~ -*help$ ]]; then
+      helpCommand="$commandStr"
+    fi
+    bash "$scriptFolder/usage.sh" "$helpCommand"
+    return 0
+  fi
+
   case $commandStr in
   "help")
     scriptName=usage.sh
     ;;
   "workon")
-    gen3_workon $@
+    gen3_workon "$@"
     ;;
   "aws")
     gen3_aws_run aws "$@"
@@ -114,6 +127,18 @@ gen3_run() {
     fi
     scriptName=""
     ;;
+  "es")
+    if [[ $1 == "port-forward" ]]; then
+      # set the ESHOST environment variable
+      local portNum
+      portNum=$(bash $scriptFolder/es.sh port-forward)
+      if [[ $portNum =~ ^[0-9]+$ ]]; then
+        export ESHOST="localhost:$portNum"
+      fi
+    else
+      scriptName="es.sh"
+    fi
+    ;;
   "ls")
     (
       set -e
@@ -121,6 +146,18 @@ gen3_run() {
         gen3_workon $1 gen3ls
       fi
       source "$GEN3_HOME/gen3/bin/ls.sh"
+    )
+    resultCode=$?
+    ;;
+  runjob) # support legacy runjob
+    (
+      gen3_run job run "$@"
+    )
+    resultCode=$?
+    ;;
+  joblogs) # support legacy joblogs
+    (
+      gen3_run job logs "$@"
     )
     resultCode=$?
     ;;
@@ -176,6 +213,6 @@ gen3() {
     shift
   done
   # Pass remaing args to gen3_run
-  gen3_run $@
+  gen3_run "$@"
 }
 

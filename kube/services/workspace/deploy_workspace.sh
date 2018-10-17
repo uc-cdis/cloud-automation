@@ -36,7 +36,7 @@ if [ ! -f "credentials/${userName}.crt" ]; then
   openssl req -new -key "credentials/${userName}.key" -out "credentials/${userName}.csr" -subj "/CN=${userName}/O=cdis"
   openssl x509 -req -in "credentials/${userName}.csr" -CA credentials/ca.pem -CAkey credentials/ca-key.pem -CAcreateserial -out "credentials/${userName}.crt" -days 500
 
-  cluster=$(kubectl config get-clusters | tail -1)   
+  cluster=$(g3kubectl config get-clusters | tail -1)   
   kubectl config set-credentials "${userName}" --client-certificate="credentials/${userName}.crt" --client-key="credentials/${userName}.key" 
 else
   echo "credentials/${userName}.crt already exists"

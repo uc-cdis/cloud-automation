@@ -1,0 +1,23 @@
+--- /usr/share/easy-rsa/pkitool	2014-01-07 17:37:58.000000000 -0600
++++ easy-rsa/pkitool	2015-05-14 16:41:38.261141519 -0500
+@@ -272,17 +272,17 @@ if [ $DO_ROOT -eq 1 ]; then
+ 	    KEY_ALTNAMES="DNS:${KEY_CN}"
+         elif [ "$KEY_ORG" ]; then
+             KEY_CN="$KEY_ORG CA"
+-	    KEY_ALTNAMES="$KEY_CN"
++	    KEY_ALTNAMES="DNS:${KEY_CN}"
+         fi
+     fi
+     if [ $BATCH ] && [ "$KEY_CN" ]; then
+         echo "Using CA Common Name:" "$KEY_CN"
+-	KEY_ALTNAMES="$KEY_CN"
++	KEY_ALTNAMES="DNS:${KEY_CN}"
+     fi
+     FN="$KEY_CN"
+ elif [ $BATCH ] && [ "$KEY_CN" ]; then
+     echo "Using Common Name:" "$KEY_CN"
+-    KEY_ALTNAMES="$KEY_CN"
++    KEY_ALTNAMES="DNS:${KEY_CN}"
+     FN="$KEY_CN"
+     if [ "$1" ]; then
+         FN="$1"

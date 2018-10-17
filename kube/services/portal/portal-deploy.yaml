@@ -39,14 +39,24 @@ spec:
       - name: ca-volume
         secret:
           secretName: "service-ca"
+      - name: config-volume
+        configMap:
+          name: "portal-config"
       containers:
       - name: portal
         GEN3_PORTAL_IMAGE
-        livenessProbe:
+        readinessProbe:
           httpGet:
             path: /
             port: 80
           initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 60
           periodSeconds: 60
           timeoutSeconds: 30
           # portal sometimes takes a long time to come up ... -
@@ -64,7 +74,7 @@ spec:
           - name: APP
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: portal_app
         volumeMounts:
           - name: "cert-volume"
@@ -79,6 +89,21 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
+          - name: "config-volume"
+            mountPath: "/data-portal/data/config/gitops.json"
+            subPath: "gitops.json"
+          - name: "config-volume"
+            mountPath: "/data-portal/custom/logo/gitops-logo.png"
+            subPath: "gitops-logo.png"
+          - name: "config-volume"
+            mountPath: "/data-portal/custom/createdby/gitops.png"
+            subPath: "gitops-createdby.png"
+          - name: "config-volume"
+            mountPath: "/data-portal/custom/logo/gitops-favicon.ico"
+            subPath: "gitops-favicon.ico"
+          - name: "config-volume"
+            mountPath: "/data-portal/custom/css/gitops.css"
+            subPath: "gitops.css"
         readinessProbe:
           httpGet:
             path: /

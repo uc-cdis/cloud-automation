@@ -23,6 +23,9 @@ spec:
     - to:
       - podSelector:
           matchLabels:
+            app: arranger      
+      - podSelector:
+          matchLabels:
             app: revproxy
       - podSelector:
           matchLabels:
@@ -39,6 +42,15 @@ spec:
       - podSelector:
           matchLabels:
              app: fence
+      - podSelector:
+          matchLabels:
+             app: shiny
+      - podSelector:
+          matchLabels:
+             app: jupyter-hub
+      - podSelector:
+          matchLabels:
+             app: jupyterhub
       - podSelector:
           matchLabels:
              app: pidgin

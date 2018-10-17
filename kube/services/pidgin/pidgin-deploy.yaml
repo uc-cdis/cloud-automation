@@ -42,6 +42,9 @@ spec:
       containers:
         - name: pidgin
           GEN3_PIDGIN_IMAGE
+          env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
           livenessProbe:
             httpGet:
               path: /_status
@@ -73,4 +76,4 @@ spec:
           resources:
             limits:
               cpu: 0.8
-              memory: 128Mi
+              memory: 512Mi

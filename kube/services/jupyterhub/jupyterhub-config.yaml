@@ -47,7 +47,48 @@ data:
     ]
     c.KubeSpawner.hub_connect_ip = 'jupyterhub-service.%s' % (os.environ['POD_NAMESPACE'])
     c.KubeSpawner.hub_connect_port = 8000
-    c.KubeSpawner.singleuser_image_spec = 'quay.io/occ_data/jupyternotebook:latest'
+    c.KubeSpawner.profile_list = [
+        {
+            'display_name': 'Base Python - 0.1 CPU 128M Mem',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'jupyter/minimal-notebook:d29a0f617484',
+                'cpu_limit': 0.1,
+                'mem_limit': '128M',
+            }
+        },
+        {
+            'display_name': 'Bioinfo - Python/R - 0.25 CPU 256M Mem',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.2',
+                'cpu_limit': 0.25,
+                'mem_limit': '256M',
+            }
+        },
+        {
+            'display_name': 'Bioinfo - Python/R - 1.0 CPU 1.5G Mem',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.2',
+                'cpu_limit': 1.0,
+                'mem_limit': '1.5G',
+            }
+        },
+        {
+            'display_name': 'Earth - Python - 0.25 CPU 256M Mem',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.4',
+                'cpu_limit': 0.25,
+                'mem_limit': '256M',
+            }
+        },
+        {
+            'display_name': 'Earth - Python - 1.0 CPU 10.0G Mem',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.4',
+                'cpu_limit': 1.0,
+                'mem_limit': '10.0G',
+            }
+        }
+    ]
     c.KubeSpawner.cmd = 'start-singleuser.sh'
     c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-prefix=https://%s%s/' % (
         c.KubeSpawner.hub_connect_ip, c.KubeSpawner.hub_connect_port, c.JupyterHub.base_url, os.environ['HOSTNAME'], c.JupyterHub.base_url)]

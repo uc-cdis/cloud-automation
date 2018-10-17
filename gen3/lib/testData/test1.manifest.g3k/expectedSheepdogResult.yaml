@@ -48,6 +48,9 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+      # sheepdog transactions take forever -
+      # try to let the complete before termination
+      terminationGracePeriodSeconds: 300
       containers:
         - name: sheepdog
           image: quay.io/cdis/sheepdog:master
@@ -69,7 +72,7 @@ spec:
           - name: DICTIONARY_URL
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: dictionary_url
           - name: REQUESTS_CA_BUNDLE
             #
@@ -78,6 +81,8 @@ spec:
             # which includes our private certificate authority
             #
             value: /etc/ssl/certs/ca-certificates.crt
+          - name: GEN3_DEBUG
+            value: "False"
           volumeMounts:
             - name: "config-volume"
               readOnly: true
@@ -109,10 +114,3 @@ spec:
             limits:
               cpu: 0.3
               memory: 512Mi
-          command: ["/bin/bash" ]
-          args: 
-            - "-c"
-            - |
-              # get /usr/local/share/ca-certificates/cdis-ca.crt into system bundle
-              update-ca-certificates
-              bash /sheepdog/dockerrun.bash

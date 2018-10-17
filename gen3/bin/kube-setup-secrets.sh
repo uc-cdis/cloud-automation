@@ -6,6 +6,7 @@ set -e
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
+gen3_load "gen3/lib/g3k_manifest"
 
 mkdir -p "${WORKSPACE}/${vpc_name}/apis_configs"
 
@@ -28,6 +29,23 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
   cd "${WORKSPACE}"/${vpc_name}
 fi
 
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
+  if ! g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    creds=$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
+    if [[ "$creds" != null ]]; then
+      echo "[default]" > "$credsFile"
+      IFS=',' read -ra CREDS <<< "$creds"
+      for i in "${CREDS[@]}"; do
+        echo ${i} >> "$credsFile"
+      done
+      g3kubectl create secret generic aws-es-proxy "--from-file=credentials=${credsFile}"
+    else
+      echo "WARNING: creds.json does not include AWS elastic search credentials - not initializing aws-es-proxy secret"
+    fi
+  fi
+fi
+
 if ! g3kubectl get configmaps global > /dev/null 2>&1; then
   if [[ -f "${WORKSPACE}/${vpc_name}/00configmap.yaml" ]]; then
     g3kubectl apply -f "${WORKSPACE}/${vpc_name}/00configmap.yaml"
@@ -37,8 +55,19 @@ if ! g3kubectl get configmaps global > /dev/null 2>&1; then
   fi
 fi
 if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
-  g3kubectl create configmap config-helper --from-file "${GEN3_HOME}/apis_configs/config_helper.py"
+  gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
 fi
+
+let configmapsExpireTime="$(date +%s) - 120"
+configmapsFlagFile="${WORKSPACE}/${vpc_name}/.configmapsFlagFile"
+# Avoid creating configmaps more than once every two minutes
+# (gen3 roll all calls this over and over)
+if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$configmapsExpireTime" ]]; then
+  echo "creating manifest configmaps"
+  gen3 gitops configmaps
+  touch "$configmapsFlagFile"
+fi
+
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
@@ -175,7 +204,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     g3kubectl create configmap projects --from-file=apis_configs/projects.yaml
   fi
 
-  if ! kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
+  if ! g3kubectl get secrets/fence-jwt-keys > /dev/null 2>&1; then
     rm -rf $XDG_RUNTIME_DIR/jwt-keys.tar
     tar cvJf $XDG_RUNTIME_DIR/jwt-keys.tar jwt-keys
     g3kubectl create secret generic fence-jwt-keys --from-file=$XDG_RUNTIME_DIR/jwt-keys.tar
@@ -241,10 +270,10 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
   fi
 fi
 
-if [[ -z "$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')" ]]; then
-  echo "ERROR: configmaps/global does not include dictionary_url"
-  echo "... update and apply ${vpc_name}/00configmap.json, then retry this script"
-  exit 1
+# ETL mapping file for tube
+ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"
+if [[ -f "$ETL_MAPPING_PATH" ]]; then
+  gen3 update_config etl-mapping "$ETL_MAPPING_PATH"
 fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
@@ -349,12 +378,12 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
   cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f .rendered_gdcapi_db ]]; then
     # job runs asynchronously ...
-    g3k runjob gdcdb-create
+    gen3 job run gdcdb-create
     # also go ahead and setup the indexd auth secrets
-    g3k runjob indexd-userdb
+    gen3 job run indexd-userdb
     echo "Sleep 10 seconds for gdcdb-create job"
-    g3k joblogs gdcb-create || true
-    g3k joblogs indexd-userdb || true
+    gen3 job logs gdcb-create || true
+    gen3 job logs indexd-userdb || true
     echo "Leaving the job running in the background if not already done"
   fi
   # Avoid doing previous block more than once or when not necessary ...

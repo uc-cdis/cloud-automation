@@ -6,14 +6,14 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-serverVersion="$(kubectl version server -o json | jq -r '.serverVersion.major + "." + .serverVersion.minor' | head -c3).0"
+serverVersion="$(g3kubectl version server -o json | jq -r '.serverVersion.major + "." + .serverVersion.minor' | head -c4).0"
 echo "K8s server version is $serverVersion"
 if ! semver_ge "$serverVersion" "1.8.0"; then
   echo "K8s server version $serverVersion does not yet support network policy"
   exit 0
 fi
-if [[ -n "$JENKINS_URL" ]]; then
-  echo "Jenkins skipping network policy manipulation: $JENKINS_URL"
+if [[ -n "$JENKINS_HOME" ]]; then
+  echo "Jenkins skipping network policy manipulation: $JENKINS_HOME"
   exit 0
 fi
 
@@ -49,10 +49,15 @@ if [[ -f "$credsPath" ]]; then # setup netpolicy
   g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_indexd_templ.yaml" GEN3_INDEXDDB_IP "$INDEXDDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
   g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_peregrine_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
   g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_pidgin_templ.yaml" | g3kubectl apply -f -
+  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_arborist_templ.yaml" GEN3_FENCEDB_IP "$FENCEDB_IP" | g3kubectl apply -f -
   g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_sheepdog_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
   g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_portal_templ.yaml" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
   g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_revproxy_templ.yaml" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
   g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_jenkins_templ.yaml"
   g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_allowdns_templ.yaml"
   g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_gen3job_templ.yaml"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_arranger_templ.yaml"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_aws_es_proxy.yaml"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_arranger_dashboard_templ.yaml"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_tube_templ.yaml"
 fi

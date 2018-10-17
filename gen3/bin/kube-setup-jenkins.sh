@@ -9,34 +9,48 @@ export WORKSPACE="${WORKSPACE:-$HOME}"
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+gen3 kube-setup-secrets
+
 #
 # Assume Jenkins should use 'jenkins' profile credentials in "${WORKSPACE}"/.aws/credentials
 #
 aws_access_key_id="$(aws configure get jenkins.aws_access_key_id)"
 aws_secret_access_key="$(aws configure get jenkins.aws_secret_access_key)"
+google_acct1_email="$(jq -r '.jenkins.google_acct1.email' < ${WORKSPACE}/qaplanetv1/creds.json)"
+google_acct1_password="$(jq -r '.jenkins.google_acct1.password' < ${WORKSPACE}/qaplanetv1/creds.json)"
+google_acct2_email="$(jq -r '.jenkins.google_acct2.email' < ${WORKSPACE}/qaplanetv1/creds.json)"
+google_acct2_password="$(jq -r '.jenkins.google_acct2.password' < ${WORKSPACE}/qaplanetv1/creds.json)"
 
 if [ -z "$aws_access_key_id" -o -z "$aws_secret_access_key" ]; then
   echo 'ERROR: not configuring jenkins - could not extract secrets from aws configure'
   exit 1
 fi
+if [[ -z "$google_acct1_email" || -z "$google_acct1_password" || -z "$google_acct2_email" || -z "$google_acct2_password" ]]; then
+  echo "ERROR: missing google credentials in '.jenkins' of creds.json"
+  exit 1
+fi
 
-if ! g3kubectl get "${GEN3_HOME}/kube/secrets/jenkins-secret" > /dev/null 2>&1; then
+if ! g3kubectl get secrets jenkins-secret > /dev/null 2>&1; then
   # make it easy to rerun kube-setup-jenkins.sh
   g3kubectl create secret generic jenkins-secret "--from-literal=aws_access_key_id=$aws_access_key_id" "--from-literal=aws_secret_access_key=$aws_secret_access_key"
+fi
+if ! g3kubectl get secrets google-acct1 > /dev/null 2>&1; then
+  g3kubectl create secret generic google-acct1 "--from-literal=email=${google_acct1_email}" "--from-literal=password=${google_acct1_password}"
+fi
+if ! g3kubectl get secrets google-acct2 > /dev/null 2>&1; then
+  g3kubectl create secret generic google-acct2 "--from-literal=email=${google_acct2_email}" "--from-literal=password=${google_acct2_password}"
 fi
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/10storageclass.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/00pvc.yaml"
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/serviceaccount.yaml"
-#g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/role-devops.yaml"
-g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml"
-
-#g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrole-devops.yaml"
+# Note: jenkins service account is configured by `kube-setup-roles`
+gen3 kube-setup-roles
+# Note: only the 'default' namespace jenkins-service account gets a cluster rolebinding
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrolebinding-devops.yaml"
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/jenkins-deploy.yaml"
-
+# Note: requires Jenkins entry in cdis-manifest
+gen3 roll jenkins
 
 #
 # Get the ARN of the SSL certificate for the commons -

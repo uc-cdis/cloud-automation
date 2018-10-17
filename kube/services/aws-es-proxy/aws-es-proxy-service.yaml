@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: esproxy-service
+spec:
+  selector:
+    app: esproxy
+  ports:
+    - protocol: TCP 
+      port: 9200 
+      targetPort: 9200
+      name: https
+  type: NodePort
+

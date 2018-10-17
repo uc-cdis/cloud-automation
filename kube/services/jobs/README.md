@@ -8,11 +8,25 @@ The `gen3 kube-setup-roles` command sets up the k8s roles
 required by these jobs.  It runs automatically as part of the `kube-services` script that
 boots up a commons, but may need to be run manually to setup existing commons to run jobs.
 
-## gdcb-create-job
+Also - `gen3 runjob` treats a `job.yaml` as a template that is processed via
+`g3k_manifest_filter` in the same way a deployment is processed.
+Variable key-value pairs passed on the command line are replaced in the .yaml file - ex:
+`gen3 runjob gentestdata SUBMISSION_USER reubenonrye2uchicago.edu`
 
-Initialize the `gdcdb` database used by that backs the sheepdog and peregrine services.
+Each job can optionally include a helper script that `gen3 runjob ...` executes
+on the operator workstation before deploying the job onto the kubernetes cluster.
 
-## graph-create-job
+
+## Database Setup Jobs
+
+### gdcb-create-job
+
+Initialize the `gdcdb` database used by that backs the sheepdog and peregrine services - including the audit tables.
+
+### graph-create-job
+
+Deprecated - sheepdog/peregrine will
+auto-migrate the database on restart now.
 
 Update the `gdcb` database (backing the sheepdog and peregrine services) to incorporate
 changes needed after updating the commons' dictionary.  The usual workflow is:
@@ -24,7 +38,10 @@ gen3 joblogs graph-create
 gen3 roll sheepdog
 gen3 roll peregrine
 ```
-## setup sftp configuration
+
+## User management jobs for fence
+
+### Setup sftp configuration for dbgap sync
 To run usersync job or cronjob that fetches acl files from a remote ftp/sftp server, following setup need to be done:
 1. update `vpcname/apis_configs/fence-config.yaml` include dbgap credentials.
 2. update secrets:
@@ -64,7 +81,7 @@ Gets called as part of kube-setup-secrets and handles injecting extra creds
 into fence's yaml configuration. Will also create fence's yaml configuration if
 it does not yet exist.
 
-### Google Jobs
+## Google Jobs
 
 #### google-manage-account-access-job
 
@@ -88,17 +105,40 @@ Same as above but run on a schedule.
 Create a Google Bucket and associated db entries. See job file for details
 on job invocation.
 
-#### google-init-proxy-groups-job
+#### google-delete-expired-service-account-job
 
-Create a Google Group for each User that doesn't have one.
+Delete any expired service accounts
 
-#### google-init-proxy-groups-cronjob
+#### google-delete-expired-service-account-cronjob
 
 Same as above but run on a schedule.
 
-## gentestdata-job
+#### google-manage-user-registrations-job
+
+Remove any invalid service account registered to access controlled data.
+
+#### google-manage-user-registrations-cronjob
+
+Same as above but run on a schedule.
+
+## Misc jobs
+
+### gentestdata-job
 
 Generate test data given dictionary, following steps need to be done
- 1. add user cdis.autotest@gmail.com to user.yaml with full access to test database
- 2. See job file for how to run the job with parameters.
+See job file for how to run the job with parameters.
+
+Ex:
+`gen3 runjob gentestdata TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100 SUBMISSION_USER cdistest@gmail.com`
+
+### arranger-config-job
+
+Update the arranger configuration with the `esdump` in the specified folder - ex:
+`gen3 runjob arranger-config configFolder/`
+
+### indexd-userdb-job
+
+Add indexd users:
+* extend the `indexd.user_db` portion of `creds.json` with `username:password` entries (`gen3 random` is handy for generating passwords), and reset the `indexd_creds` secret
+* `gen3 runjob indexd-userdb`
 

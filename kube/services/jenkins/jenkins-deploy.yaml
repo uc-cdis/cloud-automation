@@ -5,14 +5,16 @@ metadata:
 spec:
   revisionHistoryLimit: 2
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+    #
+    # rolling update does not work, since
+    # persistent volume claim cannot be shared
+    #
+    type: Recreate
   template:
     metadata:
       labels:
         app: jenkins
+        GEN3_DATE_LABEL
     spec:
       serviceAccountName: jenkins-service
       securityContext:
@@ -20,7 +22,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: jenkins
-        image: quay.io/cdis/jenkins:master
+        GEN3_JENKINS_IMAGE
         ports:
         - containerPort: 8080
         env:
@@ -45,6 +47,31 @@ spec:
             # Just hard code for now 
             # Bucket in cdistest account used for backups
             value: "s3://cdis-terraform-state/JenkinsBackup"
+          - name: GOOGLE_EMAIL_AUX1
+            valueFrom:
+              secretKeyRef:
+                name: google-acct1
+                key: email
+          - name: GOOGLE_PASSWORD_AUX1
+            valueFrom:
+              secretKeyRef:
+                name: google-acct1
+                key: password
+          - name: GOOGLE_EMAIL_AUX2
+            valueFrom:
+              secretKeyRef:
+                name: google-acct2
+                key: email
+          - name: GOOGLE_PASSWORD_AUX2
+            valueFrom:
+              secretKeyRef:
+                name: google-acct2
+                key: password
+          - name: GOOGLE_APP_CREDS_JSON
+            valueFrom:
+              secretKeyRef:
+                name: fence-google-app-creds-secret
+                key: fence_google_app_creds_secret.json
         readinessProbe:
           httpGet:
             path: /login
@@ -65,6 +92,19 @@ spec:
           readOnly: true
           mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
           subPath: "ca.pem"
+      - name: selenium
+        image: selenium/standalone-chrome:3.13.0-argon
+        ports:
+        - containerPort: 4444
+        readinessProbe:
+          httpGet:
+            path: /wd/hub/sessions
+            port: 4444
+        readinessProbe:
+          httpGet:
+            path: /wd/hub/sessions
+            port: 4444
+        imagePullPolicy: Always
       volumes:
       - name: datadir
         persistentVolumeClaim:

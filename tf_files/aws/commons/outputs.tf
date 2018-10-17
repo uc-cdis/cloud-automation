@@ -20,17 +20,17 @@ output "vpc_cidr_block" {
   value = "${module.cdis_vpc.vpc_cidr_block}"
 }
 
-output "k8s_cluster" {
-  value = "${data.template_file.cluster.rendered}"
-}
+#output "k8s_cluster" {
+#  value = "${data.template_file.cluster.rendered}"
+#}
 
-output "k8s_configmap" {
-  value = "${module.config_files.k8s_configmap}"
-}
+#output "k8s_configmap" {
+#  value = "${module.config_files.k8s_configmap}"
+#}
 
-output "service_creds" {
-  value = "${module.config_files.k8s_service_creds}"
-}
+#output "service_creds" {
+#  value = "${module.config_files.k8s_service_creds}"
+#}
 
 output "indexd_rds_id" {
   value = "${aws_db_instance.db_indexd.id}"
@@ -80,7 +80,7 @@ resource "null_resource" "config_setup" {
   }
 
   provisioner "local-exec" {
-    command = "mkdir ${var.vpc_name}_output; echo '${data.template_file.cluster.rendered}' > ${var.vpc_name}_output/cluster.yaml"
+    command = "mkdir ${var.vpc_name}_output; echo '${data.template_file.cluster.rendered}' > ${var.vpc_name}_output/kube-aws.cluster.yaml"
   }
 
   provisioner "local-exec" {

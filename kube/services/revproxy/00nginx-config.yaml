@@ -12,7 +12,7 @@ data:
       var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
       /**
-       * base64 decode polyfill from 
+       * base64 decode polyfill from
        *     https://github.com/davidchambers/Base64.js/blob/master/base64.js
        */
       function atob(input) {
@@ -42,9 +42,9 @@ data:
        * We appear to have access to the 'access_token' variable
        * defined in nginx.conf when this function runs via 'js_set'.
        * see https://www.nginx.com/blog/introduction-nginscript/
-       * 
-       * @param {*} req 
-       * @param {*} res 
+       *
+       * @param {*} req
+       * @param {*} res
        */
       function userid(req, res) {
         var token = req.variables["access_token"];
@@ -60,7 +60,7 @@ data:
                 if (data.context && data.context.user && data.context.user.name) {
                   user = "uid:" + data.sub + "," + data.context.user.name;
                 }
-              } 
+              }
             } catch (err) {}
           }
         }
@@ -68,12 +68,11 @@ data:
       }
 
   nginx.conf: |
-      user www-data;
+      user nginx;
       worker_processes 4;
-        
-      pid /run/nginx.pid;
-      
-      load_module modules/ngx_http_js_module.so;
+
+      pid /var/run/nginx.pid;
+
       load_module modules/ngx_http_perl_module.so;
 
       env POD_NAMESPACE;
@@ -82,12 +81,12 @@ data:
       	worker_connections 768;
       	# multi_accept on;
       }
-      
+
       http {
-      
+
       	##
       	# Basic Settings
-      	##   
+      	##
       	sendfile on;
       	tcp_nopush on;
       	tcp_nodelay on;
@@ -95,13 +94,13 @@ data:
       	types_hash_max_size 2048;
         port_in_redirect off;
       	# server_tokens off;
-        
+
         # For websockets
         map $http_upgrade $connection_upgrade {
           default upgrade;
           ''      close;
         }
-    
+
         map $proxy_protocol_addr $initialip {
           "" $http_x_forwarded_for;
           default $proxy_protocol_addr;
@@ -111,16 +110,16 @@ data:
           "" $remote_addr; #if this header missing set remote_addr as real ip
           default $initialip;
         }
- 
+
       	# server_names_hash_bucket_size 64;
       	# server_name_in_redirect off;
-      
+
         include /etc/nginx/mime.types;
         default_type application/octet-stream;
-      
+
         ##
         # Note - nginscript js_set, etc get processed
-        #   on demand: https://www.nginx.com/blog/introduction-nginscript/  
+        #   on demand: https://www.nginx.com/blog/introduction-nginscript/
         #
         js_include userid.js;
         js_set $userid userid;
@@ -133,27 +132,35 @@ data:
                     '"$http_referer" "$http_user_agent"';
       	access_log /dev/stdout aws;
       	error_log /dev/stderr;
-      
+
       	##
       	# Gzip Settings
       	##
         gzip on;
         gzip_disable "msie6";
-        gzip_types application/javascript;
-       
+        gzip_proxied any;
+        gzip_types
+          text/css
+          text/javascript
+          text/xml
+          text/plain
+          application/javascript
+          application/x-javascript
+          application/json;
+
         ##
         # Namespace
         ##
         perl_set $namespace 'sub { return $ENV{"POD_NAMESPACE"}; }';
- 
+
         ##
       	# Proxy Settings
       	##
         # Serve internet facing http requests via this, and redirect to https
         server {
-               listen      82 default_server proxy_protocol;
-               listen      83;
-               rewrite     ^   https://$host$request_uri? permanent;
+          listen      82 default_server proxy_protocol;
+          listen      83;
+          rewrite     ^   https://$host$request_uri? permanent;
         }
         # Serve internet facing https requests and internal http requests here
       	server {
@@ -166,15 +173,52 @@ data:
           ssl_protocols       TLSv1.1 TLSv1.2;
           ssl_ciphers         HIGH:!aNULL:!MD5;
 
-      		server_tokens off;
-      		add_header Strict-Transport-Security "max-age=63072000; includeSubdomains; preload";
-      		add_header X-Frame-Options "SAMEORIGIN";
-      		if ($http_x_forwarded_proto = "http") { return 301 https://$host$request_uri; }
-          # DNS resolver required to resolve dynamic hostnames, btw - kubedns may not support ipv6
-          resolver kube-dns.kube-system.svc.cluster.local ipv6=off;
+      	  server_tokens off;
+          more_set_headers "Server: gen3"
+      	  more_set_headers "Strict-Transport-Security: max-age=63072000; includeSubdomains; preload";
+          more_set_headers "X-Frame-Options: SAMEORIGIN";
+          more_set_headers "X-Content-Type-Options: nosniff";
+
+          if ($http_x_forwarded_proto = "http") { return 301 https://$host$request_uri; }
           
+          #
+          # From https://enable-cors.org/server_nginx.html
+          # This overrides the individual services
+          #
+          set $allow_origin "*";
+          if ($http_origin) {
+            set $allow_origin "$http_origin";
+          }
+
+          more_set_headers "Access-Control-Allow-Origin: $allow_origin";
+          more_set_headers "Access-Control-Allow-Methods: GET, POST, OPTIONS";
+          more_set_headers "Access-Control-Allow-Credentials: true";
+          more_set_headers "Access-Control-Allow-Headers: DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,Cookie,X-CSRF-Token";
+          more_set_headers "Access-Control-Expose-Headers: Content-Length,Content-Range";
+
+          if ($request_method = 'OPTIONS') {
+            return 204;
+          }
+          #
+          # DNS resolver required to resolve dynamic hostnames, btw - kubedns may not support ipv6
+          # see https://www.nginx.com/blog/dns-service-discovery-nginx-plus/
+          #     https://distinctplace.com/2017/04/19/nginx-resolver-explained/
+          #
+          resolver kube-dns.kube-system.svc.cluster.local ipv6=off;
+
           set $access_token "";
           set $csrf_check "ok-tokenauth";
+
+          #
+          # Note: add_header blocks are inheritted iff the current block does not call add_header:
+          #     http://nginx.org/en/docs/http/ngx_http_headers_module.html
+          #
+          set $csrf_token "$request_id$request_length$request_time$time_iso8601";
+          if ($cookie_csrftoken) {
+            set $csrf_token "$cookie_csrftoken";
+          }
+          add_header Set-Cookie "csrftoken=$csrf_token;Path=/";
+          
           if ($cookie_access_token) {
               set $access_token "bearer $cookie_access_token";
               # cookie auth requires csrf check
@@ -191,9 +235,10 @@ data:
           #   not set headers ... http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header
           #
           proxy_set_header   Authorization "$access_token";
+          proxy_set_header   Host $host;
           proxy_set_header   X-Forwarded-For "$realip";
           proxy_set_header   X-UserId "$userid";
-          
+
           #
           # CSRF check
           # This block requires a csrftoken for all POST requests.
@@ -206,174 +251,12 @@ data:
             set $csrf_check "ok-$request_method";
           }
           if ($cookie_access_token = "") {
-            # do this again here b/c empty cookie_csrftoken == empty http_x_csrf_token - ugh  
+            # do this again here b/c empty cookie_csrftoken == empty http_x_csrf_token - ugh
             set $csrf_check "ok-tokenauth";
           }
-          
-          location / {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
 
-              proxy_pass http://portal-service;
-          }
+          include /etc/nginx/gen3.conf/*.conf;
 
-          location /index/ {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_pass http://indexd-service/;
-          }
-
-          location /coremetadata/ {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_pass http://pidgin-service/;
-          }
-
-          location /user/ {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }              
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_pass http://fence-service/;
-          }
-          location /api/v0/submission/getschema {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_next_upstream off;
-              proxy_pass http://peregrine-service/v0/submission/getschema;
-          }
-          # Simplify external access to health checks
-          location /peregrine/_status {
-              proxy_pass http://peregrine-service/_status;
-          }
-          location /api/v0/submission/graphql {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_next_upstream off;
-              # Forward the host and set Subdir header so api
-              # knows the original request path for hmac signing
-              proxy_set_header   Host $host;
-              proxy_set_header   Subdir /api;
-              proxy_set_header   Authorization "$access_token";
-              proxy_set_header   X-Forwarded-For "$realip";
-              proxy_set_header   X-UserId "$userid";
-              proxy_connect_timeout 300;
-              proxy_send_timeout 300;
-              proxy_read_timeout 300;
-              send_timeout 300;
-              proxy_pass http://peregrine-service/v0/submission/graphql;
-          }
-          location /api/ {
-              if ($csrf_check !~ ^ok-\S.+$) {
-                return 403 "failed csrf check";
-              }
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-
-              proxy_next_upstream off;
-              # Forward the host and set Subdir header so api
-              # knows the original request path for hmac signing
-              proxy_set_header   Host $host;
-              proxy_set_header   Subdir /api;
-              proxy_set_header   Authorization "$access_token";
-              proxy_set_header   X-Forwarded-For "$realip";
-              proxy_set_header   X-UserId "$userid";
-              proxy_connect_timeout 300;
-              proxy_send_timeout 300;
-              proxy_read_timeout 300;
-              send_timeout 300;
-              proxy_pass http://sheepdog-service/;
-          }
-
-          # This works if the JupyterHub service is enabled
-          # The JupyterHub service is set to use REMOTE_USER auth
-          # So it trusts that the user is authenticated if the header
-          # is set and passed in
-          location /workspace/ {
-              auth_request /auth-proxy;
-              auth_request_set $remoteUser $upstream_http_REMOTE_USER;
-              proxy_set_header REMOTE_USER $remoteUser;
-              error_page 401 = @error401;
-
-              # Use this variable so nginx won't error out on start
-              # if not using the jupyterhub service
-              # this isn't dev namespace friendly, must be manually updated
-              set $upstream_jh http://jupyterhub-service.$namespace.svc.cluster.local:8000;
-              proxy_pass $upstream_jh;
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header Upgrade $http_upgrade;
-              proxy_set_header Connection $connection_upgrade;
-          }
-
-          # JupyterHub doesn't currently support chaining logout pages
-          # So route the jupyterhub logout to the fence logout path
-          # Fence is hence responsible for clearing all cookies
-          location = /workspace/hub/logout {
-              return 301 $scheme://$host/user/logout?next=/;
-          }
-
-          # Exploration page until we finish redoing it
-          location ~ ^/(shiny|explore)/ {
-              if ($cookie_csrftoken = "") {
-                add_header Set-Cookie "csrftoken=$request_id$request_length$request_time$time_iso8601;Path=/";
-              }
-              auth_request /auth-proxy;
-              auth_request_set $remoteUser $upstream_http_REMOTE_USER;
-              proxy_set_header REMOTE_USER $remoteUser;
-              error_page 401 = @error401;
-
-              # Use this variable so nginx won't error out on start
-              set $upstream_shiny http://shiny-service.$namespace.svc.cluster.local:3838;
-              proxy_pass $upstream_shiny;
-              proxy_set_header Host $host;
-              proxy_set_header X-Real-IP $remote_addr;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header Upgrade $http_upgrade;
-              proxy_set_header Connection $connection_upgrade;
-          }
-
-
-          # Auth-proxy uses fence to gate access to downstream services
-          # that don't implement our auth i.e. shiny, jupyter.
-          # Fence also sets the REMOTE_USER header to the username
-          # of the logged in user for later use
-          location /auth-proxy {
-              internal;
-              proxy_pass http://fence-service/user/anyaccess;
-              proxy_pass_request_body off;
-              proxy_set_header Authorization "$access_token";
-              proxy_set_header Content-Length "";
-          }
           location @error401 {
               return 302 /login;
           }

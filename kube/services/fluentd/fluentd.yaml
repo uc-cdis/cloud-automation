@@ -20,7 +20,7 @@ spec:
         effect: NoSchedule
       containers:
       - name: fluentd
-        image: fluent/fluentd-kubernetes-daemonset:v1.1-debian-cloudwatch
+        image: fluent/fluentd-kubernetes-daemonset:v1.2-debian-cloudwatch
         env:
           # Deploy with kube-setup-fluentd.sh ...
           - name:  LOG_GROUP_NAME
@@ -40,6 +40,7 @@ spec:
           mountPath: /var/lib/docker/containers
           readOnly: true
       terminationGracePeriodSeconds: 30
+      serviceAccountName: fluentd
       volumes:
       - name: varlog
         hostPath:

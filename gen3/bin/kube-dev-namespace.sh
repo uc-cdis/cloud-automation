@@ -55,21 +55,31 @@ cd /home/$namespace
 mkdir -p /home/$namespace/.ssh
 cp ~/.ssh/authorized_keys /home/$namespace/.ssh
 
+# setup ~/.aws
+mkdir -p /home/$namespace/.aws
+if [[ -f ~/.aws/config ]]; then
+  cp ~/.aws/config /home/$namespace/.aws/
+fi
+
 # setup ~/cloud-automation
 if [[ ! -d ./cloud-automation ]]; then
   git clone https://github.com/uc-cdis/cloud-automation.git
 fi
+
+gitopsPath="$(g3kubectl get configmaps global -ojsonpath='{ .data.gitops_path }')"
+if [[ -z  "${gitopsPath}" ]]; then
+  # Default to cdis-manifest repo
+  gitopsPath="https://github.com/uc-cdis/cdis-manifest.git"
+fi
 if [[ ! -d ./cdis-manifest ]]; then
-  git clone "https://github.com/uc-cdis/cdis-manifest.git"
-  (cd cdis-manifest && git checkout QA)
+  git clone "$gitopsPath" cdis-manifest
+  (cd cdis-manifest && git checkout master)
 fi
 
 # setup ~/vpc_name
 for name in 00configmap.yaml apis_configs kubeconfig; do
   cp -r ~/${vpc_name}/$name /home/$namespace/${vpc_name}/$name
 done
-
-ln -sf /home/$namespace/cloud-automation/kube/services /home/$namespace/$vpc_name/services
 
 # setup ~/vpc_name/credentials and kubeconfig
 cd /home/$namespace/${vpc_name}
@@ -85,17 +95,17 @@ echo "Testing new KUBECONFIG at $KUBECONFIG"
 if ! g3kubectl get namespace $namespace > /dev/null 2>&1; then
   g3kubectl create namespace $namespace
 fi
-# do not re-create the databases
-#for name in .rendered_fence_db .rendered_gdcapi_db; do
-#  touch "/home/$namespace/${vpc_name}/$name"
-#done
 
 cp ~/${vpc_name}/creds.json /home/$namespace/${vpc_name}/creds.json
 
 dbname=$(echo $namespace | sed 's/-/_/g')
-# create new databases
+# create new databases - don't break if already exists
 for name in indexd fence sheepdog; do
-  echo "CREATE DATABASE $dbname;" | g3k psql $name 
+  echo "CREATE DATABASE $dbname;" | gen3 psql $name || true
+done
+# Remove "database initialized" markers
+for name in .rendered_fence_db .rendered_gdcapi_db; do
+  /bin/rm -rf "/home/$namespace/${vpc_name}/$name"
 done
 
 # update creds.json
@@ -127,6 +137,7 @@ export GEN3_HOME=~/cloud-automation
 if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
   source "\${GEN3_HOME}/gen3/gen3setup.sh"
 fi
+alias kubectl=g3kubectl
 EOF
 fi
 # a provisioner should only work with one vpc
@@ -143,10 +154,9 @@ EOF
 fi
 
 # reset ownership
-sudo chown -R "${namespace}:" /home/$namespace
-sudo chown -R "${namespace}:" /home/$namespace/.ssh
+sudo chown -R "${namespace}:" /home/$namespace /home/$namespace/.ssh /home/$namespace/.aws
 sudo chmod -R 0700 /home/$namespace/.ssh
 sudo chmod go-w /home/$namespace
 
-echo "The $namespace user is ready to login and run: g3k roll all"
+echo "The $namespace user is ready to login and run: gen3 roll all"
 echo "Be sure to verify that cdis-manifest/hostname is configured"
