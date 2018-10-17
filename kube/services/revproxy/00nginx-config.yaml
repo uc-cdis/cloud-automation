@@ -104,11 +104,10 @@ data:
         // hash user info to select the release
         var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
         var hash_res = simpleHash(hash_str, 100);
-        console.log("hash res ", hash_res);
-        var canary_percent = 10
+        var canary_percent = 10;
         var selected_release = 'production';
         if (hash_res < canary_percent) {
-          selected_release = 'canary'
+          selected_release = 'canary';
         }
         // if not given a release for a service, use the one selected by hash
         var updated_release_cookie = services.map(function(name) {
