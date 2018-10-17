@@ -81,8 +81,6 @@ for name in 00configmap.yaml apis_configs kubeconfig; do
   cp -r ~/${vpc_name}/$name /home/$namespace/${vpc_name}/$name
 done
 
-ln -sf /home/$namespace/cloud-automation/kube/services /home/$namespace/$vpc_name/services
-
 # setup ~/vpc_name/credentials and kubeconfig
 cd /home/$namespace/${vpc_name}
 mkdir -p credentials
@@ -98,17 +96,16 @@ if ! g3kubectl get namespace $namespace > /dev/null 2>&1; then
   g3kubectl create namespace $namespace
 fi
 
-# do not re-create the databases
-#for name in .rendered_fence_db .rendered_gdcapi_db; do
-#  touch "/home/$namespace/${vpc_name}/$name"
-#done
-
 cp ~/${vpc_name}/creds.json /home/$namespace/${vpc_name}/creds.json
 
 dbname=$(echo $namespace | sed 's/-/_/g')
 # create new databases - don't break if already exists
 for name in indexd fence sheepdog; do
-  echo "CREATE DATABASE $dbname;" | g3k psql $name || true
+  echo "CREATE DATABASE $dbname;" | gen3 psql $name || true
+done
+# Remove "database initialized" markers
+for name in .rendered_fence_db .rendered_gdcapi_db; do
+  /bin/rm -rf "/home/$namespace/${vpc_name}/$name"
 done
 
 # update creds.json
@@ -140,6 +137,7 @@ export GEN3_HOME=~/cloud-automation
 if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
   source "\${GEN3_HOME}/gen3/gen3setup.sh"
 fi
+alias kubectl=g3kubectl
 EOF
 fi
 # a provisioner should only work with one vpc
@@ -160,5 +158,5 @@ sudo chown -R "${namespace}:" /home/$namespace /home/$namespace/.ssh /home/$name
 sudo chmod -R 0700 /home/$namespace/.ssh
 sudo chmod go-w /home/$namespace
 
-echo "The $namespace user is ready to login and run: g3k roll all"
+echo "The $namespace user is ready to login and run: gen3 roll all"
 echo "Be sure to verify that cdis-manifest/hostname is configured"

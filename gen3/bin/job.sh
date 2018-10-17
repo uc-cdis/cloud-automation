@@ -143,6 +143,7 @@ g3k_joblogs(){
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   set -e
   command="$1"
+  shift
   case "$command" in
       "jobpods")
         g3k_jobpods "$@"

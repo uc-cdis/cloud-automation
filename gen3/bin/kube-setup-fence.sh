@@ -14,12 +14,12 @@ if [[ -d "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # create database
   # Initialize fence database and user list
   cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f .rendered_fence_db ]]; then
-    gen3 runjob fencedb-create
+    gen3 job run fencedb-create
     echo "Waiting 10 seconds for fencedb-create job"
     sleep 10
-    gen3 joblogs fencedb-create || true
-    gen3 runjob useryaml
-    gen3 joblogs useryaml || true
+    gen3 job logs fencedb-create || true
+    gen3 job run useryaml
+    gen3 job logs useryaml || true
     echo "Leaving setup jobs running in background"
     cd "${WORKSPACE}/${vpc_name}"
   fi
