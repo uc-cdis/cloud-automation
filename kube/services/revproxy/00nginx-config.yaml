@@ -165,7 +165,7 @@ data:
         perl_set $service_weight 9;
 
         upstream fence_pool {
-          server fence-service.$kube_hostname weight=$service_weight;
+          server fence-service.$kube_hostname weight=3;
           server fence-canary-service.$kube_hostname;
         }
 
