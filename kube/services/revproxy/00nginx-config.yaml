@@ -124,12 +124,21 @@ data:
         js_include userid.js;
         js_set $userid userid;
 
+
+        # The "$split" variable is set to different percentage ranges
+        # sticky by realip (client IP address)
+        split_clients "${realip}AAA" $split {
+        50% "-canary"; # 10% of addresses assigned to canary
+        50% ""; # 90% of addresses assigned to production
+        }
+
       	##
       	# Logging Settings
       	##
         log_format aws   '$realip - $userid [$time_local] '
                     '"$request" $status $body_bytes_sent '
-                    '"$http_referer" "$http_user_agent"';
+                    '"$http_referer" "$http_user_agent" '
+                    '"$split"';
       	access_log /dev/stdout aws;
       	error_log /dev/stderr;
 
@@ -174,13 +183,6 @@ data:
         #
         #          sticky cookie fence2_srv_id
         #        }
-
-        # The "$split" variable is set to different percentage ranges
-        # sticky by realip (client IP address)
-        split_clients "${realip}AAA" $split {
-        50% "-canary"; # 10% of addresses assigned to canary
-        50% ""; # 90% of addresses assigned to production
-        }
 
         ##
       	# Proxy Settings
