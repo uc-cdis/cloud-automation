@@ -105,19 +105,19 @@ data:
         }
         // if not given a release for a service, use the one selected by hash
         var updated_release_cookie = services.map(function(name) {
-          var release_val = release_cookie.match(name+':(production|canary)')
+          var release_val = release_cookie.match(name+'.(production|canary)')
           if (!release_val) {
-            return name + ':' + selected_release;
+            return name + '.' + selected_release;
           }
           return release_val[0];
         })
-          .join('::');
+          .join('&');
 
         req.headersOut.release_tags = updated_release_cookie
 
         return updated_release_cookie
         */
-        return "fence+canary&sheepdog+production";
+        return "fence.canary&sheepdog.production";
       }
 
   nginx.conf: |
