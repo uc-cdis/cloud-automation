@@ -164,10 +164,10 @@ data:
         perl_set $kubernetes_hostname "$namespace.svc.cluster.local";
         perl_set $service_weight 9;
 
-        upstream fence_pool {
-          server fence-service.$kube_hostname weight=3;
-          server fence-canary-service.$kube_hostname;
-        }
+        #        upstream fence_pool {
+        #          server fence-service.$kube_hostname weight=3;
+        #          server fence-canary-service.$kube_hostname;
+        #        }
 
         #        upstream fence2_pool {
         #          server fence-service.$kube_hostname/user/anyaccess route=production weight=$service_weight;
