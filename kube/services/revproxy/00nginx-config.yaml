@@ -68,6 +68,14 @@ data:
       }
 
       /**
+       * returns absolute value of a number
+       */
+      function MathAbs(x) {
+        x = +x;
+        return (x > 0) ? x : 0 - x;
+      }
+
+      /**
        * util for hasing a string into given range
        *
        * @param s - string to hash
@@ -78,7 +86,7 @@ data:
         for (i = 0; i < s.length; i++) {
           hash += (s[i].charCodeAt() * (i+1));
         }
-        return Math.abs(hash) % size;
+        return MathAbs(hash) % size;
       }
 
       /*
