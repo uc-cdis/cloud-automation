@@ -131,8 +131,8 @@ data:
         # The "$fence_variant" variable is set to different value
         # depending on random hash
         split_clients "app${realip}${http_user_agent}${date_gmt}" $fence_variant {
-          50% "canary"; # 10% of addresses assigned to canary
-          50% "production"; # 90% of addresses assigned to production
+          10% "canary"; # 10% of addresses assigned to canary
+          * "production"; # 90% of addresses assigned to production
         }
 
         # map cookie type to the release version
