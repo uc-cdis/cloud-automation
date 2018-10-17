@@ -117,7 +117,7 @@ data:
 
         return updated_release_cookie
         */
-        return "fence:canary::sheepdog:production";
+        return "fencecanarysheepdogproduction";
       }
 
   nginx.conf: |
