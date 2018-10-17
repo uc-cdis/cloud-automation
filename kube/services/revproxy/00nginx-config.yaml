@@ -124,12 +124,29 @@ data:
         js_include userid.js;
         js_set $userid userid;
 
+        #
+        # Split traffic to production and canary
+        # See https://www.viget.com/articles/split-test-traffic-distribution-with-nginx/
 
-        # The "$split" variable is set to different percentage ranges
-        # sticky by realip (client IP address)
-        split_clients "${realip}AAA" $split {
-        50% "-canary"; # 10% of addresses assigned to canary
-        50% ""; # 90% of addresses assigned to production
+        # The "$fence_variant" variable is set to different value
+        # depending on random hash
+        split_clients "app${realip}${http_user_agent}${date_gmt}" $fence_variant {
+          50% "canary"; # 10% of addresses assigned to canary
+          50% "production"; # 90% of addresses assigned to production
+        }
+
+        # map cookie type to the release version
+        # if cookie does not exist, assign to the generated variant
+        map $cookie_fence_release $fence_release {
+          default $fence_variant;
+          "canary" "canary";
+          "production" "production";
+        }
+
+        # map fence release version to deployment name
+        map $fence_release $fence_deploy_name {
+          "canary" "fence-canary";
+          "production "fence"
         }
 
       	##
