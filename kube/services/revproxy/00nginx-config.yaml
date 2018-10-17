@@ -146,7 +146,7 @@ data:
         # map fence release version to deployment name
         map $fence_release $fence_deploy_name {
           "canary" "fence-canary";
-          "production "fence"
+          "production "fence";
         }
 
       	##
