@@ -239,7 +239,7 @@ g3k_manifest_filter() {
     kvList+=("$kvKey" "image: $value")
   done
   for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
-    for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
+    for key2 in $(g3k_config_lookup ".[\"${key}\"] "' | to_entries | map(select((.value|type != "array") and (.value|type != "object"))) | map(.key)[]' "$manifestPath" | grep '^[a-zA-Z]'); do
       value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
       if [[ -n "$value" ]]; then
         # zsh friendly upper case
