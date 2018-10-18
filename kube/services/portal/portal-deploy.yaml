@@ -99,7 +99,7 @@ spec:
             mountPath: "/data-portal/custom/createdby/gitops.png"
             subPath: "gitops-createdby.png"
           - name: "config-volume"
-            mountPath: "/data-portal/custom/logo/gitops-favicon.ico"
+            mountPath: "/data-portal/custom/favicon/gitops-favicon.ico"
             subPath: "gitops-favicon.ico"
           - name: "config-volume"
             mountPath: "/data-portal/custom/css/gitops.css"
