@@ -13,6 +13,11 @@
     "fluentd": "fluent/fluentd-kubernetes-daemonset:cloudwatch",
     "jupyterhub": "quay.io/occ_data/jupyterhub:master"
   },
+  "reuben": {
+    "bla": "frick",
+    "ugh": [ "ignore", "this" ],
+    "frick": { "a": 1, "b": 2 }
+  },
   "jupyterhub": {
     "enabled": "no"
   }
