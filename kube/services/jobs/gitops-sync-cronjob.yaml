@@ -1,0 +1,41 @@
+# Note: change to batch/v1beta1 once we bump to k8s 1.8
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: gitops-sync
+spec:
+  schedule: "*/5 * * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          restartPolicy: Never
+          serviceAccountName: jenkins-service
+          containers:
+            - name: awshelper
+              image: quay.io/cdis/awshelper:master
+              imagePullPolicy: Always
+              env:
+                - name: gen3Env
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: environment
+                - name: JENKINS_HOME
+                  value: ""
+                - name: GEN3_NOPROXY
+                  value: none
+              command: ["/bin/bash" ]
+              args:
+                - "-c"
+                - |
+                  set -i
+                  source ~/.bashrc
+                  export JENKINS_HOME=none
+                  gen3 gitops sync
+                  echo "Exit code: $?"
