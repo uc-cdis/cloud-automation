@@ -26,14 +26,14 @@ spec:
           - -c
           - echo "Pulling complete"
       - name: image-pull-bio
-        image: quay.io/occ_data/jupyternotebook:1.5
+        image: quay.io/occ_data/jupyternotebook:1.6
         imagePullPolicy: IfNotPresent
         command:
           - /bin/sh
           - -c
           - echo "Pulling complete"
       - name: image-pull-geo
-        image: quay.io/occ_data/jupyter-geo:1.5
+        image: quay.io/occ_data/jupyter-geo:1.6
         imagePullPolicy: IfNotPresent
         command:
           - /bin/sh
