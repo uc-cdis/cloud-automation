@@ -45,7 +45,7 @@ g3k_gitops_configmaps() {
       for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
         if [[ -n "$value" ]]; then
-          execString+="--from-literal $key2=$value "
+          execString+="--from-literal $key2='$value' "
         fi
       done
       local jsonSection="--from-literal json='$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")'"
