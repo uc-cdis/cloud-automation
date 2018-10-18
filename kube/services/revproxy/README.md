@@ -3,13 +3,45 @@
 External facing services are accessed through this reverse proxy at 
 different URL paths under the same domain.
 
-### Run reverse proxy
+### Run reverse proxy in AWS
 
-- Create a cert in AWS Certificate Manager, and register it in the global config map.  This will require the admin for the domain approve it through email
-- `gen3 kube-setup-revproxy`
+The `revproxy-service-elb` k8s LoadBalancer service manifests itself
+as an AWS ELB that terminates HTTPS requests (using an AWS Certificate Manager supplied certificate configured in the service's yaml file), and
+forwards http and https traffic to the
+revproxy deployment using http proxy protocol.
 
-Note that `kube-setup-revproxy` accpets an options `--dryrun` flag that prevents it from deploying the public `revproxy-service-elb.yaml` load balancer - instead it just echos the yaml to the screen, so that we can verify that the template is being processed as expected
-- update DNS to point to your ELB
+- Create a cert in AWS Certificate Manager, and register it in the global config map.  This will require the admin for the domain approve it through email 
+- `gen3 kube-setup-revproxy` - deploys the service - creating an AWS ELB
+- update DNS to point at the ELB
+
+The `gen3 kube-setup-revproxy` script sets up 2 k8s services:
+
+  * `revproxy-service` - legacy service - now available for internal clients 
+         that want to route
+         through the revproxy rather than access a service directly for some reason
+  * `revproxy-service-elb` - public facing load balancer service that 
+        target the `revproxy-deployment` backend in different ways depending
+        on which environment gen3 is deployed to (AWS, GCP, onprem, ...)
+
+The `revproxy-service-elb` service came about when we decided we wanted to change the service configuration in a way that would require the existing service to be re-created - which would change its DNS in AWS, and require downtime while we switch DNS to the new ELB.
+
+Note that `kube-setup-revproxy` accepts an optional `--dryrun` flag that prevents it from deploying the public `revproxy-service-elb.yaml` load balancer - instead it just echos the yaml to the screen, so that we can verify that the template is being processed as expected
+
+
+### Run reverse proxy outside AWS
+
+We currently do this hacky thing where we toggle between different configurations
+based on the value of the 'revproxy_arn' field of the global configmap
+
+* In GCP we terminate SSL traffic on the revproxy-deployment.  If the global configmap `revproxy_arn` is set to GCP, then `kube-setup-revproxy` configures the `revproxy-service-elb` to transparently forward https and http traffic, so that:
+    - incoming https traffic is forwarded to the revproxy-deployment's https listener on port 443
+    - incoming http traffic is forwarded to the revproxy-deployment's http listener on port 83 that HTTP-redirects all requests to https
+
+* On prem we terminate SSL traffic on an external proxy (either nginx or F5).  If the global configmap `revproxy_arn` is set to ONPREM, then `kube-setup-revproxy` configures the `revproxy-service-elb` to forward incoming https and http requests as http to the revproxy-deployment backend, so that:
+    - incoming https traffic is forwarded to the revproxy-deployment's http listener on port 80
+    - incoming http traffic is forwarded to the revproxy-deployment's http listener on port 83 that HTTP-redirects all requests to https
+
+Note: also see the comments in [gen3/bin/kube-setup-revproxy](https://github.com/uc-cdis/cloud-automation/blob/master/gen3/bin/kube-setup-revproxy.sh)
 
 ### How it works
 

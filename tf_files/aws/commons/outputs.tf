@@ -80,7 +80,7 @@ resource "null_resource" "config_setup" {
   }
 
   provisioner "local-exec" {
-    command = "mkdir ${var.vpc_name}_output; echo '${data.template_file.cluster.rendered}' > ${var.vpc_name}_output/cluster.yaml"
+    command = "mkdir ${var.vpc_name}_output; echo '${data.template_file.cluster.rendered}' > ${var.vpc_name}_output/kube-aws.cluster.yaml"
   }
 
   provisioner "local-exec" {

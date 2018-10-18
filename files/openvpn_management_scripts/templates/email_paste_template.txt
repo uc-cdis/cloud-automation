@@ -1,0 +1,14 @@
+Hello:
+
+Welcome to the Open Science Data cloud (OSDC) private "paste" site.
+
+The below username and passwords are for access to the OSDC paste site and will be valid for the next 30 days.
+
+A separate e-mail will arrive containing a link to this paste site which, upon logging in with the credentials below, will contain your username and passwords for your VPN authentication.
+
+Paste Site Username/Password:
+username: ${PASTE_SITE_USERNAME}
+password: ${PASTE_SITE_PASSWORD}
+
+Thank you,
+GDC Support Team

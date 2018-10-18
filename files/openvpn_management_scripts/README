@@ -1,0 +1,3 @@
+
+Example:
+    export FQDN="Foo-ovpn.example.tld"; export cloud=Foo; export SERVER_PEM="/root/server.pem"; bash install_ovpn.sh

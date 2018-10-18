@@ -518,7 +518,8 @@ resource "aws_security_group" "ssh" {
 data "aws_ami" "eks_worker" {
   filter {
     name   = "name"
-    values = ["amazon-eks-node-*"]
+    #values = ["amazon-eks-node-*"]
+    values = ["eks-worker-v*"]
   }
 
   most_recent = true

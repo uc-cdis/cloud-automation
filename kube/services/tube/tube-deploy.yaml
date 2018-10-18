@@ -49,7 +49,7 @@ spec:
           - name: DICTIONARY_URL
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: dictionary_url
           - name: HADOOP_URL
             value: hdfs://spark-service:9000

@@ -1,68 +1,243 @@
 cloud_providers: {}
-
 groups: {}
-
+resources:
+- name: programs
+  subresources:
+  - name: QA
+    subresources:
+    - name: projects
+      subresources:
+      - {name: test}
+  - name: DEV
+    subresources:
+    - name: projects
+      subresources:
+      - {name: test}
 users:
-  cdis:
-    admin: True
-  yajingt@uchicago.edu:
-    admin: True
+  abbygeorge@uchicago.edu:
+    admin: true
     projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
-  fortuno@uchicago.edu:
-    admin: True
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  aprokh@uchicago.edu:
+    admin: true
     projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
-  thanhnd@uchicago.edu:
-    admin: True
-    projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
-  zflamig@uchicago.edu:
-    admin: True
-    projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
-  dmiller15@uchicago.edu:
-    admin: True
-    projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
-  reubenonrye@uchicago.edu:
-    admin: True
-    projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
-  rudyardrichter@uchicago.edu:
-    admin: True
-    projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
   avantol@uchicago.edu:
-    admin: True
+    admin: true
     projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
   cgmeyer@uchicago.edu:
-    admin: True
+    admin: true
     projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  diw@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  dmiller15@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload]
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
   giangbui@uchicago.edu:
-    admin: True
+    admin: true
     projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  kbrennen@uchicago.edu:
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
   fauzi@uchicago.edu:
-    admin: True
+    admin: true
     projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
-  rarya@uchicago.edu:
-    admin: True
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  qshu@uchicago.edu:
+    admin: true
     projects:
-    - auth_id: acct
-      privilege: ['create', 'read', 'update', 'delete', 'upload']
-  
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  reubenonrye@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  ribeyre@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  rudyardrichter@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/QA
+    - auth_id: test
+      privilege: [create, read, update, delete, upload]
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  scui729@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  thanhnd@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  trevars@uchicago.edu:
+    admin: false
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  vivilin@uchicago.edu:
+    admin: false
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  yajingt@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  yilinxu@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload, read-storage]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  mlukowski@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
+  zflamig@uchicago.edu:
+    admin: true
+    projects:
+    - auth_id: QA
+      privilege: [create, read, update, delete, upload]
+    - auth_id: test
+      privilege: [create, read, update, delete, upload]
+      resource: /programs/QA/projects/test
+    - auth_id: DEV
+      privilege: [create, read, update, delete, upload, read-storage]
+      resource: /programs/DEV
