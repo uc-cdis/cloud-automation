@@ -173,7 +173,7 @@ region = "$(aws configure get "$GEN3_PROFILE.region")"
 EOM
 }
 
-README.md() {
+gen3_AWS.README.md() {
   cat - <<EOM
 # TL;DR
 

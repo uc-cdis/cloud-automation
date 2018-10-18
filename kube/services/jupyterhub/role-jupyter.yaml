@@ -4,5 +4,5 @@ metadata:
   name: jupyter
 rules:
 - apiGroups: [""]
-  resources: ["pods", "persistentvolumeclaims"]
+  resources: ["pods", "persistentvolumeclaims", "events"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"] # You can also use ["*"]

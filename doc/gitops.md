@@ -23,3 +23,12 @@ Update the manifest derived (`manifest-*`) configmaps.
 ```
 gen3 gitops configmaps
 ```
+
+### sync
+
+Update the dictionary URL and image versions. The `--dryrun` flag can be used to display dictionary URL and image version check logs but do not want to roll pods.
+
+```
+gen3 gitops sync
+gen3 --dryrun gitops sync
+```

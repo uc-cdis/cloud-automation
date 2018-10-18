@@ -202,8 +202,7 @@ sudo chown -R ubuntu. cloud-automation
 #cd /home/ubuntu
 
 #sudo mkdir -p /root/.ssh/
-sudo cat cloud-automation/ssh-public-keys/authorized_keys | sudo tee --append /home/ubuntu/.ssh/authorized_keys
-
+sudo cat cloud-automation/files/authorized_keys/ops_team | sudo tee --append /home/ubuntu/.ssh/authorized_keys
 
 
 echo '127.0.1.1 ${var.vm_hostname}' | sudo tee --append /etc/hosts

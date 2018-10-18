@@ -164,7 +164,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         g3k_runjob "$@"
         ;;
       *)
-        echo "ERROR: unknown command: $command"
+        echo "ERROR: unknown job sub-command: $command"
         exit 2
         ;;
   esac
