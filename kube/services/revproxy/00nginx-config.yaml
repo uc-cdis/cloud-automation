@@ -103,38 +103,34 @@ data:
         var release_cookie = req.variables['cookie_release_tags'];
         var services = ['fence', 'sheepdog'];
 
-        // hash user info to select the release
-        var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
-        var hash_res = simpleHash(hash_str, 100);
         var canary_percent = 10;
-        var selected_release = 'production';
-        if (hash_res < canary_percent) {
-          selected_release = 'canary';
-        }
-        // if not given a release for a service, use the one selected by hash
-        /*
-        var updated_release_cookie = services.map(function(name) {
-          var release_val = release_cookie.match(name+'\.(production|canary)')
-          if (!release_val) {
-            return name + '.' + selected_release;
-          }
-          return release_val[0];
-        })
-          .join('&');
-        */
+        var generated_release = Null;
+
+        // if not given a release for a service, select one by hasing user info
         var updated_release = "";
         for (var i=0; i < services.length; i++) {
           var name = services[i];
           var release_val = release_cookie.match(name+'\.(production|canary)')
           if (!release_val) {
-            updated_release = updated_release + name + '.' + selected_release + "&";
+            // if we haven't yet generated a release selection, hash request info
+            //   and select release based on weighting
+            if (!generated_release) {
+              // hash user info to select the release
+              var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
+              var hash_res = simpleHash(hash_str, 100);
+              generated_release = 'production';
+              if (hash_res < canary_percent) {
+                generated_release = 'canary';
+              }
+            }
+            updated_release = updated_release + name + '.' + generated_release + "&";
           } else {
             updated_release = updated_release + release_val[0] + "&";
           }
         }
 
         // set cookie with updated release values
-        req.headersOut['Set-Cookie'] = "service_releases=" + updated_release_cookie + ";Path=/;Max-Age=600";
+        req.headersOut['Set-Cookie'] = "service_releases=" + updated_release + ";Path=/;Max-Age=600";
 
         return updated_release
       }
