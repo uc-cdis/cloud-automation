@@ -7,131 +7,6 @@ kind: ConfigMap
 metadata:
   name: revproxy-nginx-conf
 data:
-  userid.js: |
-      /** global supporting atob polyfill below */
-      var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-
-      /**
-       * base64 decode polyfill from
-       *     https://github.com/davidchambers/Base64.js/blob/master/base64.js
-       */
-      function atob(input) {
-        var str = String(input).replace(/[=]+$/, ''); // #31: ExtendScript bad parse of /=
-        if (str.length % 4 == 1) {
-          return input;
-        }
-        for (
-          // initialize result and counters
-          var bc = 0, bs, buffer, idx = 0, output = '';
-          // get next character
-          buffer = str.charAt(idx++);
-          // character found in table? initialize bit storage and add its ascii value;
-          ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
-            // and if not first of each 4 characters,
-            // convert the first 8 bits to one ascii character
-            bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
-        ) {
-          // try to find character in table (0-63, not found => -1)
-          buffer = chars.indexOf(buffer);
-        }
-        return output;
-      }
-
-      /**
-       * nginscript helper for parsing user out of JWT tokens.
-       * We appear to have access to the 'access_token' variable
-       * defined in nginx.conf when this function runs via 'js_set'.
-       * see https://www.nginx.com/blog/introduction-nginscript/
-       *
-       * @param {*} req
-       * @param {*} res
-       */
-      function userid(req, res) {
-        var token = req.variables["access_token"];
-        var user = "uid:null,unknown@unknown";
-
-        if (token) {
-          user = token;
-          var raw = atob((token.split('.')[1] || "").replace('-', '+').replace('_', '/'));
-          if (raw) {
-            try {
-              var data = JSON.parse(raw);
-              if (data) {
-                if (data.context && data.context.user && data.context.user.name) {
-                  user = "uid:" + data.sub + "," + data.context.user.name;
-                }
-              }
-            } catch (err) {}
-          }
-        }
-        return user;
-      }
-
-      /**
-       * returns absolute value of a number
-       */
-      function MathAbs(x) {
-        x = +x;
-        return (x > 0) ? x : 0 - x;
-      }
-
-      /**
-       * util for hasing a string into given range
-       *
-       * @param s - string to hash
-       * @param size - range to hash into
-       */
-      function simpleHash(s, size) {
-        var i, hash = 0;
-        for (i = 0; i < s.length; i++) {
-          hash += (s[i].charCodeAt() * (i+1));
-        }
-        return MathAbs(hash) % size;
-      }
-
-      /*
-       * Checks cookie for service release versions and assigns
-       *   release versions for services not in the cookie based
-       *   on hash value and the percent weight of the canary.
-       * Returns a string of service assignments. E.g:
-       *   "fence:canary;sheepdog:production;"
-       *
-       * @param req - nginx request object
-       */
-      function getServiceReleases(req) {
-
-        var release_cookie = req.variables['cookie_release_tags'];
-        var services = ['fence', 'sheepdog'];
-
-        var canary_percent = 10;
-        var generated_release = "";
-
-        // if not given a release for a service, select one by hasing user info
-        var updated_release = "";
-        for (var i=0; i < services.length; i++) {
-          var name = services[i];
-          var release_val = release_cookie.match(name+'\.(production|canary)')
-          if (!release_val) {
-            // if we haven't yet generated a release selection, hash request info
-            //   and select release based on weighting
-            if (!generated_release) {
-              // hash user info to select the release
-              var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
-              var hash_res = simpleHash(hash_str, 100);
-              generated_release = 'production';
-              if (hash_res < canary_percent) {
-                generated_release = 'canary';
-              }
-            }
-            updated_release = updated_release + name + '.' + generated_release + "xx&";
-          } else {
-            updated_release = updated_release + release_val[0] + "&";
-          }
-        }
-
-        return updated_release
-      }
-
   nginx.conf: |
       user nginx;
       worker_processes 4;
@@ -186,36 +61,11 @@ data:
         # Note - nginscript js_set, etc get processed
         #   on demand: https://www.nginx.com/blog/introduction-nginscript/
         #
-        js_include userid.js;
+        js_include helpers.js;
         js_set $userid userid;
 
-        #        #
-        #        # Split traffic to production and canary
-        #        # See https://www.viget.com/articles/split-test-traffic-distribution-with-nginx/
-        #
-        #        # The "$fence_variant" variable is set to different value
-        #        # depending on random hash
-        #        split_clients "app${realip}${http_user_agent}${date_gmt}" $fence_variant {
-        #          10% "canary"; # 10% of addresses assigned to canary
-        #          * "production"; # 90% of addresses assigned to production
-        #        }
-        #
-        #        # map cookie type to the release version
-        #        # if cookie does not exist, assign to the generated variant
-        #        map $cookie_fence_release $fence_release {
-        #          default $fence_variant;
-        #          "canary" "canary";
-        #          "production" "production";
-        #        }
-        #
-        #        # map fence release version to deployment name
-        #        map $fence_release $fence_deploy_name {
-        #          "canary" "fence-canary";
-        #          "production" "fence";
-        #        }
-
-        #
-        # service assignment
+        ##
+        # Service release parsing and assignment
         #
         js_set $service_releases getServiceReleases;
 
@@ -248,28 +98,6 @@ data:
         # Namespace
         ##
         perl_set $namespace 'sub { return $ENV{"POD_NAMESPACE"}; }';
-
-        ##
-        # Upstream servers
-        #
-        # Direct to -service and -canary deployments
-        # Inspects <service_name>_srv_id cookie value to select server
-        # See http://nginx.org/en/docs/http/ngx_http_upstream_module.html#sticky
-        ##
-        perl_set $kubernetes_hostname "$namespace.svc.cluster.local";
-        perl_set $service_weight 9;
-
-        #        upstream fence_pool {
-        #          server fence-service.$kube_hostname weight=3;
-        #          server fence-canary-service.$kube_hostname;
-        #        }
-
-        #        upstream fence2_pool {
-        #          server fence-service.$kube_hostname/user/anyaccess route=production weight=$service_weight;
-        #          server fence-canary-service.$kube_hostname/user/anyaccess route=canary;
-        #
-        #          sticky cookie fence2_srv_id
-        #        }
 
         ##
       	# Proxy Settings
@@ -313,6 +141,9 @@ data:
           more_set_headers "Access-Control-Allow-Credentials: true";
           more_set_headers "Access-Control-Allow-Headers: DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,Cookie,X-CSRF-Token";
           more_set_headers "Access-Control-Expose-Headers: Content-Length,Content-Range";
+
+          # update service release cookie
+          add_header Set-Cookie "service_releases=${service_releases};Path=/;Max-Age=600";
 
           if ($request_method = 'OPTIONS') {
             return 204;

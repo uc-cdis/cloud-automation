@@ -14,7 +14,7 @@ set -e
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/revproxy/00nginx-config.yaml"
+gen3 gitops filter "${GEN3_HOME}/kube/services/revproxy/00nginx-config.yaml" | g3kubectl apply -f -
 
 scriptDir="${GEN3_HOME}/kube/services/revproxy"
 declare -a confFileList=()
@@ -34,6 +34,9 @@ if g3kubectl get configmap revproxy-nginx-subconf > /dev/null 2>&1; then
   g3kubectl delete configmap revproxy-nginx-subconf
 fi
 g3kubectl create configmap revproxy-nginx-subconf "${confFileList[@]}"
+
+filteredHelper=$(gen3 gitops filter "${scriptDir}/helpers.js")
+gen3 update_config revproxy-helper-js --from-literal=${filteredHelper}
 
 gen3 roll revproxy
 
