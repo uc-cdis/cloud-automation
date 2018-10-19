@@ -104,15 +104,15 @@ data:
         var services = ['fence', 'sheepdog'];
 
         // hash user info to select the release
-        // var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
-        // var hash_res = simpleHash(hash_str, 100);
-        var hash_res = 50;
+        var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
+        var hash_res = simpleHash(hash_str, 100);
         var canary_percent = 10;
         var selected_release = 'production';
         if (hash_res < canary_percent) {
           selected_release = 'canary';
         }
         // if not given a release for a service, use the one selected by hash
+        /*
         var updated_release_cookie = services.map(function(name) {
           var release_val = release_cookie.match(name+'\.(production|canary)')
           if (!release_val) {
@@ -121,10 +121,12 @@ data:
           return release_val[0];
         })
           .join('&');
+        */
 
         // req.headersOut.release_tags = updated_release_cookie
 
-        return updated_release_cookie
+        // return updated_release_cookie
+        return "fence.canary&sheepdog.production"+hash_str
       }
 
   nginx.conf: |
