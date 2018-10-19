@@ -104,7 +104,7 @@ data:
         var services = ['fence', 'sheepdog'];
 
         var canary_percent = 10;
-        var generated_release = Null;
+        var generated_release = null;
 
         // if not given a release for a service, select one by hasing user info
         var updated_release = "";
