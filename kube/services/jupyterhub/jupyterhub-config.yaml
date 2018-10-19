@@ -5,7 +5,7 @@ metadata:
 data:
   jupyterhub_config.py: |-
     import os
-    c.JupyterHub.base_url = '/workspace'
+    c.JupyterHub.base_url = '/lw_workspace'
     c.JupyterHub.confirm_no_ssl = True
     c.JupyterHub.db_url = 'sqlite:////etc/config/jupyterhub.sqlite'
     c.JupyterHub.cookie_secret_file = '/etc/config/jupyterhub_cookie_secret'
@@ -49,41 +49,33 @@ data:
     c.KubeSpawner.hub_connect_port = 8000
     c.KubeSpawner.profile_list = [
         {
-            'display_name': 'Base Python - 0.1 CPU 128M Mem',
+            'display_name': 'Bioinfo - Python/R - 0.5 CPU 256M Mem',
             'kubespawner_override': {
-                'singleuser_image_spec': 'jupyter/minimal-notebook:d29a0f617484',
-                'cpu_limit': 0.1,
-                'mem_limit': '128M',
-            }
-        },
-        {
-            'display_name': 'Bioinfo - Python/R - 0.25 CPU 256M Mem',
-            'kubespawner_override': {
-                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.2',
-                'cpu_limit': 0.25,
+                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.6',
+                'cpu_limit': 0.5,
                 'mem_limit': '256M',
             }
         },
         {
             'display_name': 'Bioinfo - Python/R - 1.0 CPU 1.5G Mem',
             'kubespawner_override': {
-                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.2',
+                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.6',
                 'cpu_limit': 1.0,
                 'mem_limit': '1.5G',
             }
         },
         {
-            'display_name': 'Earth - Python - 0.25 CPU 256M Mem',
+            'display_name': 'Earth - Python - 0.5 CPU 256M Mem',
             'kubespawner_override': {
-                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.4',
-                'cpu_limit': 0.25,
+                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.6',
+                'cpu_limit': 0.5,
                 'mem_limit': '256M',
             }
         },
         {
             'display_name': 'Earth - Python - 1.0 CPU 10.0G Mem',
             'kubespawner_override': {
-                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.4',
+                'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.6',
                 'cpu_limit': 1.0,
                 'mem_limit': '10.0G',
             }
