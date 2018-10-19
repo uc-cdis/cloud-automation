@@ -122,11 +122,20 @@ data:
         })
           .join('&');
         */
+        var updated_release = "";
+        for (var i=0; i < services.length; i++) {
+          var release_val = release_cookie.match(name+'\.(production|canary)')
+          if (!release_val) {
+            updated_release = updated_release + name + '.' + selected_release + "&";
+          } else {
+            updated_release = updated_release + release_val[0] + "&";
+          }
+        }
 
         // req.headersOut.release_tags = updated_release_cookie
 
         // return updated_release_cookie
-        return "fence.canary&sheepdog.production"+hash_str
+        return updated_release
       }
 
   nginx.conf: |
