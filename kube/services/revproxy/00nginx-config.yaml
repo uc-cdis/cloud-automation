@@ -124,6 +124,7 @@ data:
         */
         var updated_release = "";
         for (var i=0; i < services.length; i++) {
+          var name = services[i];
           var release_val = release_cookie.match(name+'\.(production|canary)')
           if (!release_val) {
             updated_release = updated_release + name + '.' + selected_release + "&";
