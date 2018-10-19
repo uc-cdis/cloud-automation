@@ -595,6 +595,11 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   user_data_base64            = "${base64encode(local.eks_node_userdata)}"
   key_name                    = "${var.ec2_keyname}"
 
+  root_block_device {
+    volume_size = 30
+  }
+
+
   lifecycle {
     create_before_destroy = true
     ignore_changes  = ["user_data_base64"]
