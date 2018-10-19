@@ -27,6 +27,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [roll](./roll.md)
 * [runjob](./job.md) - see [job run](./job.md)
 * [update_config](./update_config.md)
+* [watch](./watch.md)
 
 
 ## Configure services and gitops
