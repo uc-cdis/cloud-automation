@@ -130,7 +130,7 @@ data:
         }
 
         // set cookie with updated release values
-        req.headersOut['Set-Cookie'] = "service_releases=" + updated_release + ";Path=/;Max-Age=600";
+        // req.headersOut['Set-Cookie'] = "service_releases=" + updated_release + ";Path=/;Max-Age=600";
 
         return updated_release
       }
