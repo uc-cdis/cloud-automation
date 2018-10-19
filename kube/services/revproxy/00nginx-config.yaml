@@ -123,7 +123,7 @@ data:
                 generated_release = 'canary';
               }
             }
-            updated_release = updated_release + name + '.' + generated_release + "&";
+            updated_release = updated_release + name + '.' + generated_release + "xx&";
           } else {
             updated_release = updated_release + release_val[0] + "&";
           }
