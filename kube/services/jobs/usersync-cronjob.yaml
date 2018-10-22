@@ -60,7 +60,7 @@ spec:
               - name: SYNC_FROM_DBGAP
                 valueFrom:
                   configMapKeyRef:
-                    name: global
+                    name: manifest-global
                     key: sync_from_dbgap
               - name: slackWebHook
                 valueFrom:
@@ -192,7 +192,7 @@ spec:
               - name: userYamlS3Path
                 valueFrom:
                     configMapKeyRef:
-                      name: global
+                      name: manifest-global
                       key: useryaml_s3path
               - name: gen3Env
                 valueFrom:
