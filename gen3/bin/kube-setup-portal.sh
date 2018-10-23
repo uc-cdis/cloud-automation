@@ -30,11 +30,20 @@ for defaultFile in "${defaultsDir}"/gitops*; do
   fi
 done
 
+#
+# configmap would be better, but pre-1.10 k8s does not
+# support binary data in configmap, so would have to
+# deal with base64 decode by hand
+#
+if g3kubectl get secret portal-config > /dev/null 2>&1; then
+  g3kubectl delete secret portal-config
+fi
+# cleanup legacy setup
 if g3kubectl get configmap portal-config > /dev/null 2>&1; then
   g3kubectl delete configmap portal-config
 fi
 echo "Creating portal-config ${confFileList[@]}"
-g3kubectl create configmap portal-config "${confFileList[@]}"
+g3kubectl create secret generic portal-config "${confFileList[@]}"
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
 gen3 roll portal

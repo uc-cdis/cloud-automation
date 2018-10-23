@@ -40,8 +40,8 @@ spec:
         secret:
           secretName: "service-ca"
       - name: config-volume
-        configMap:
-          name: "portal-config"
+        secret:
+          secretName: "portal-config"
       containers:
       - name: portal
         GEN3_PORTAL_IMAGE
