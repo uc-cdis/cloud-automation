@@ -11,6 +11,8 @@ gen3_load "gen3/lib/kube-setup-init"
 gen3 kube-setup-secrets
 gen3 roll peregrine
 g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-service.yaml"
+gen3 roll peregrine-canary || true
+g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-canary-service.yaml"
 
 cat <<EOM
 The peregrine services has been deployed onto the k8s cluster.

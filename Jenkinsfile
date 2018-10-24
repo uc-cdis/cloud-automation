@@ -37,6 +37,12 @@ pipeline {
         sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/g3k_testsuite.sh --profile jenkins'
       }
     }
+    stage('nginx helper test suite') {
+      steps {
+        sh 'npm install -g jasmine jsonwebtoken'
+        sh 'cd kube/services/revproxy && npm jasmine helpersTest.js'
+      }
+    }
     /* ... this not working yet - will finish later ...
     stage('gen3 roll all in current namespace') {
       steps {

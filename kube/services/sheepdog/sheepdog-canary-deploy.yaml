@@ -1,12 +1,12 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: peregrine-deployment
+  name: sheepdog-canary-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: peregrine
+      app: sheepdog
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -16,8 +16,8 @@ spec:
   template:
     metadata:
       labels:
-        app: peregrine
-        release: production
+        app: sheepdog
+        release: canary
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -30,34 +30,36 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - peregrine
+                  - sheepdog
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:
-            secretName: "peregrine-secret"
+            secretName: "sheepdog-secret"
         - name: creds-volume
           secret:
-            secretName: "peregrine-creds"
+            secretName: "sheepdog-creds"
         - name: config-helper
           configMap:
             name: config-helper
         - name: cert-volume
           secret:
-            secretName: "cert-peregrine-service"
+            secretName: "cert-sheepdog-service"
         - name: ca-volume
           secret:
             secretName: "service-ca"
+      # sheepdog transactions take forever -
+      # try to let the complete before termination
+      terminationGracePeriodSeconds: 300
       containers:
-        - name: peregrine
-          GEN3_PEREGRINE_IMAGE
+        - name: sheepdog
+          GEN3_SHEEPDOG-CANARY_IMAGE|-GEN3_SHEEPDOG_IMAGE-|
           livenessProbe:
             httpGet:
               path: /_status
               port: 80
-            # peregrine can take forever to initialize
-            initialDelaySeconds: 300
+            initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
@@ -85,16 +87,16 @@ spec:
           volumeMounts:
             - name: "config-volume"
               readOnly: true
-              mountPath: "/var/www/peregrine/wsgi.py"
+              mountPath: "/var/www/sheepdog/wsgi.py"
               subPath: "wsgi.py"
             - name: "creds-volume"
               readOnly: true
-              mountPath: "/var/www/peregrine/creds.json"
+              mountPath: "/var/www/sheepdog/creds.json"
               subPath: creds.json
             - name: "config-helper"
               readOnly: true
-              mountPath: "/var/www/peregrine/config_helper.py"
-              subPath: config_helper.py
+              mountPath: "/var/www/sheepdog/config_helper.py"
+              subPath: config_helper.py  
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"
@@ -106,11 +108,10 @@ spec:
             - name: "ca-volume"
               # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
               readOnly: true
-              mountPath: "/usr/local/share/ca-certificates/cdis-ca.crt"
-              subPath: "ca.pem"
+              mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
+              subPath: "ca.pem"  
           imagePullPolicy: Always
           resources:
             limits:
               cpu: 0.3
-              memory: 2048Mi
-          
+              memory: 512Mi

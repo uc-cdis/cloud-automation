@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: peregrine-deployment
+  name: peregrine-canary-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -17,7 +17,7 @@ spec:
     metadata:
       labels:
         app: peregrine
-        release: production
+        release: canary
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -51,7 +51,7 @@ spec:
             secretName: "service-ca"
       containers:
         - name: peregrine
-          GEN3_PEREGRINE_IMAGE
+          GEN3_PEREGRINE-CANARY_IMAGE|-GEN3_PEREGRINE_IMAGE-|
           livenessProbe:
             httpGet:
               path: /_status

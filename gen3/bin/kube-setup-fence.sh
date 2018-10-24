@@ -30,7 +30,7 @@ fi
 # deploy fence
 gen3 roll fence
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
-gen3 roll fence-canary
+gen3 roll fence-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-canary-service.yaml"
 
 cat <<EOM

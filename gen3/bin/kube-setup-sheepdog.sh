@@ -13,6 +13,8 @@ gen3 kube-setup-secrets
 # deploy sheepdog 
 gen3 roll sheepdog
 g3kubectl apply -f "${GEN3_HOME}/kube/services/sheepdog/sheepdog-service.yaml"
+gen3 roll sheepdog-canary || true
+g3kubectl apply -f "${GEN3_HOME}/kube/services/sheepdog/sheepdog-canary-service.yaml"
 
 cat <<EOM
 The sheepdog services has been deployed onto the k8s cluster.

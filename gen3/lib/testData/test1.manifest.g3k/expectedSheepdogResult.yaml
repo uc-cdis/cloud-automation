@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: sheepdog
+        release: production
         date: "1522344212"
     spec:
       affinity:

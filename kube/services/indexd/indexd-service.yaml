@@ -5,6 +5,7 @@ metadata:
 spec:
   selector:
     app: indexd
+    release: production
   ports:
     - protocol: TCP
       port: 80

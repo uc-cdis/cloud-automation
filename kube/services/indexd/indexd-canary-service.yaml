@@ -1,11 +1,11 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: peregrine-service
+  name: indexd-canary-service
 spec:
   selector:
-    app: peregrine
-    release: production
+    app: indexd
+    release: canary
   ports:
     - protocol: TCP
       port: 80
@@ -15,5 +15,5 @@ spec:
       port: 443 
       targetPort: 443
       name: https
-  type: NodePort
+  type: ClusterIP
 

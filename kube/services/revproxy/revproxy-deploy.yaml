@@ -71,6 +71,11 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: CANARY_PERCENT_JSON
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-canary-percent
+                key: json
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true

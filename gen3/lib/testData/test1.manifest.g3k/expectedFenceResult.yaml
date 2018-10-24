@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: fence
+        release: production
         date: "1522344234"
     spec:
       affinity:
