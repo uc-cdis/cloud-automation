@@ -258,7 +258,7 @@ data:
           include /etc/nginx/gen3.conf/*.conf;
 
           location @error401 {
-              return 302 /login;
+              return 302 $scheme://$host/login;
           }
       	}
       }
