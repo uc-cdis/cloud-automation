@@ -196,6 +196,7 @@ data:
           # DO NOT DO THIS!!!
           # Opens us up to CSRF requests from sites in other tabs ...
           # TODO - add CORS whitelist to gitops
+          # https://stackoverflow.com/questions/24687313/what-exactly-does-the-access-control-allow-credentials-header-do
           #
           #more_set_headers "Access-Control-Allow-Credentials: true";
           more_set_headers "Access-Control-Allow-Headers: DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,Cookie,X-CSRF-Token";
