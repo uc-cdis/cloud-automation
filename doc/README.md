@@ -12,7 +12,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [arun](./arun.md)
 * [devterm](./devterm.md)
 * [es](./es.md) - elastic search
-* [gitops](./gitops.md) - manifest filter, configmaps, etc
+* [gitops](./gitops.md) - manifest filter, configmaps, sync, etc
 * [ec2_reboot](./ec2_reboot.md)
 * [job logs|pods|run](./job.md)
 * [joblogs](./job.md) - see [job logs](./job.md)
@@ -73,10 +73,13 @@ For example - `gen3 help aws` opens `aws.md`
 * [EKS](../tf_files/aws/modules/eks/README.md)
 * [utility vm](../tf_files/aws/modules/utility-vm/README.md)
 * [explorer infrastructure](https://github.com/uc-cdis/cdis-wiki/blob/master/dev/gen3/data_explorer/README.md)
-* [gcp](../tf_files/gcp/commons/README.md)
+* [automation for gcp](../tf_files/gcp/commons/README.md)
+* [gcp bucket access flows for DCF](https://github.com/uc-cdis/fence/blob/master/docs/google_architecture.md)
+* [authn and authz with fence](https://github.com/uc-cdis/fence/blob/master/README.md)
 * [jenkins](../kube/services/jenkins/README.md)
 * [jupyterhub configuration](../kube/services/jupyterhub/README.md)
-* [logging in AWS](../tf_files/aws/modules/common-logging/README.md)
+* [logging infrastructure in AWS](../tf_files/aws/modules/common-logging/README.md)
+* [log parsing and analytics in AWS](../kube/services/fluentd/README.md)
 * [new commons cookbook](../README.md)
 * [portal configuration](../kube/services/portal/README.md)
 * [portal dev mode](https://github.com/uc-cdis/cdis-wiki/blob/master/dev/Local-development-for-Gen3.md#nginx-installation)
