@@ -91,7 +91,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     /bin/rm "${XDG_RUNTIME_DIR}/packer.zip"
   fi
   if ! which heptio-authenticator-aws > /dev/null 2>&1; then
-    curl -oL "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.3.0/heptio-authenticator-aws_0.3.0_linux_amd64
+    curl -Lo "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.3.0/heptio-authenticator-aws_0.3.0_linux_amd64
     sudo mv "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" /usr/local/bin
     sudo chmod +x /usr/local/bin/heptio-authenticator-aws
   fi
