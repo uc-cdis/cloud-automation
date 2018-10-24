@@ -114,7 +114,7 @@ sudo apt-get -y install xz-utils bzip2 gnupg wget graphviz unzip
 
 # Terraform 
 ## assumin we always want the latest stable version 
-sudo wget -O /tmp/terraform.zip  $(echo "https://releases.hashicorp.com/terraform/$(curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r -M '.current_version')/terraform_$(curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r -M '.current_version')_linux_amd64.zip")
+#sudo wget -O /tmp/terraform.zip  $(echo "https://releases.hashicorp.com/terraform/$(curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r -M '.current_version')/terraform_$(curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r -M '.current_version')_linux_amd64.zip")
 
 ## Otherwise get an specific version
 #sudo wget -O /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.5/terraform_0.11.5_linux_amd64.zip
