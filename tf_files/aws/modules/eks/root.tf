@@ -20,4 +20,7 @@ data "template_file" "init_cluster" {
     auth_configmap  = "${var.vpc_name}_output_EKS/aws-auth-cm.yaml"
   }
 }
-    
+ 
+data "template_file" "ssh_keys" {
+  template = "${file("${path.module}/../../../../files/authorized_keys/ops_team")}"
+}
