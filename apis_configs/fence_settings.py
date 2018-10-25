@@ -153,6 +153,8 @@ if data:
     REMOVE_SERVICE_ACCOUNT_EMAIL_NOTIFICATION = data.get(
         "REMOVE_SERVICE_ACCOUNT_EMAIL_NOTIFICATION"
     )
+    # use for intergration tests to skip the login page
+    MOCK_GOOGLE_AUTH = data.get("MOCK_GOOGLE_AUTH", False)
 
 CIRRUS_CFG[
     "GOOGLE_APPLICATION_CREDENTIALS"
