@@ -570,7 +570,7 @@ sed -i s,CLIENT_CA_FILE,$CA_CERTIFICATE_FILE_PATH,g  /etc/systemd/system/kubelet
 systemctl daemon-reload
 systemctl restart kubelet
 cat > /home/ec2-user/.ssh/authorized_keys <<EFO
-${data.template_file.init_cluster.rendered}
+${data.template_file.ssh_keys.rendered}
 EFO
 
 sudo cat /home/ec2-user/.ssh/authorized_keys > /root/.ssh/authorized_keys
