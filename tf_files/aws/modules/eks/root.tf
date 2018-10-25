@@ -22,5 +22,5 @@ data "template_file" "init_cluster" {
 }
  
 data "template_file" "ssh_keys" {
-  template = "${file("~/cloud-automation/files/authorized_keys/ops_team")}"
+  template = "${file("${path.module}/../../../../files/authorized_keys/ops_team")}"
 }
