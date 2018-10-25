@@ -135,6 +135,7 @@ data:
         log_format json '{"gen3log": "nginx", '
           '"date_access": "$time_iso8601", '
           '"user_id": "$userid", '
+          '"request_id": "$request_id", '
           '"session_id": "$session_id", '
           '"visitor_id": "$visitor_id", '
           '"network_client_ip": "$realip", '
@@ -256,7 +257,7 @@ data:
           if ($cookie_visitor) {
             set $visitor_id "$cookie_visitor";
           }
-          add_header Set-Cookie "session=$session_id;Path=/;Max-Age=1200";
+          add_header Set-Cookie "visitor=$visitor_id;Path=/;Max-Age=36000000";
           
           if ($cookie_access_token) {
               set $access_token "bearer $cookie_access_token";
