@@ -54,6 +54,16 @@ spec:
               configMapKeyRef:
                 name: global
                 key: sync_from_dbgap
+          - name: ARBORIST_BUCKET_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: arborist_bucket_name
+          - name: ARBORIST_MODEL_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: arborist_model_name
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -108,5 +118,7 @@ spec:
             else
             fence-create sync --arborist http://arborist-service --yaml /var/www/fence/user.yaml
             fi
+            echo "upload model to s3"
+            curl -X POST http://arborist-service/model/ -d "{\"modelName\": \"$ARBORIST_MODEL_NAME\", \"bucket\": \"$ARBORIST_BUCKET_NAME\"}"
             echo "Exit code: $?"
       restartPolicy: Never

@@ -62,6 +62,16 @@ spec:
                   configMapKeyRef:
                     name: global
                     key: sync_from_dbgap
+              - name: ARBORIST_BUCKET_NAME
+                valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: arborist_bucket_name
+              - name: ARBORIST_MODEL_NAME
+                valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: arborist_model_name
               - name: slackWebHook
                 valueFrom:
                     configMapKeyRef:
@@ -127,6 +137,8 @@ spec:
                     if [[ $? == 1 || "${userYamlS3Path}" = '' ]]; then
                       echo "running fence-create"
                       fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
+                      echo "upload model to s3"
+                      curl -X POST http://arborist-service/model/ -d "{\"modelName\": \"$ARBORIST_MODEL_NAME\", \"bucket\": \"$ARBORIST_BUCKET_NAME\"}"
                     else
                       echo "no difference found"
                     fi
@@ -140,6 +152,8 @@ spec:
                     output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml)
                   fi
                   exitcode=$?
+                  echo "upload model to s3"
+                  curl -X POST http://arborist-service/model/ -d "{\"modelName\": \"$ARBORIST_MODEL_NAME\", \"bucket\": \"$ARBORIST_BUCKET_NAME\"}"
                   echo "$output"
                   # Echo what files we are seeing on dbgap ftp to Slack
                   # We only do this step every 6 hours to reduce noise
