@@ -69,7 +69,7 @@ spec:
             
       containers:
       - name: arborist
-        image: quay.io/cdis/arborist:feat_s3
+        GEN3_ARBORIST_IMAGE
         imagePullPolicy: Always
         env:
           - name: JWKS_ENDPOINT
@@ -94,6 +94,16 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: ARBORIST_BUCKET_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: arborist_bucket_name
+          - name: ARBORIST_MODEL_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: arborist_model_name
           - name: SYNC_FROM_DBGAP
             valueFrom:
               configMapKeyRef:
@@ -151,6 +161,8 @@ spec:
           - "-c"
           # Script always succeeds if it runs (echo exits with 0)
           - |
+            # update model from s3
+            curl -X PUT http://arborist-service/model/ -d "{\"modelName\": \"$ARBORIST_MODEL_NAME\", \"bucket\": \"$ARBORIST_BUCKET_NAME\"}"
             # point at localhost
             cat /var/www/fence/local_settings.py.original | sed s/arborist-service/localhost/g > /var/www/fence/local_settings.py
             let count=0
@@ -164,6 +176,7 @@ spec:
               if [[ -f /var/www/fence/user.yaml ]]; then
                 echo "running fence-create"
                 if fence-create sync --arborist http://localhost --yaml /var/www/fence/user.yaml; then
+                  curl -X POST http://arborist-service/model/ -d "{\"modelName\": \"$ARBORIST_MODEL_NAME\", \"bucket\": \"$ARBORIST_BUCKET_NAME\"}"
                   touch /tmp/healthy
                 else
                   echo "Looks like fence-create failed: $?"
