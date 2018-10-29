@@ -126,22 +126,22 @@ def set_prod_defaults(config_file_path):
     config_file = _replace(config_file, "HTTP_PROXY/port", 3128)
 
     print("  DEBUG set to false")
-    config_file = _replace(config_file, "DEBUG", "false")
+    config_file = _replace(config_file, "DEBUG", False)
 
     print("  MOCK_AUTH set to false")
-    config_file = _replace(config_file, "MOCK_AUTH", "false")
+    config_file = _replace(config_file, "MOCK_AUTH", False)
 
     print("  MOCK_GOOGLE_AUTH set to false")
-    config_file = _replace(config_file, "MOCK_GOOGLE_AUTH", "false")
+    config_file = _replace(config_file, "MOCK_GOOGLE_AUTH", False)
 
     print("  AUTHLIB_INSECURE_TRANSPORT set to false")
-    config_file = _replace(config_file, "AUTHLIB_INSECURE_TRANSPORT", "false")
+    config_file = _replace(config_file, "AUTHLIB_INSECURE_TRANSPORT", False)
 
     print("  SESSION_COOKIE_SECURE set to true")
-    config_file = _replace(config_file, "SESSION_COOKIE_SECURE", "true")
+    config_file = _replace(config_file, "SESSION_COOKIE_SECURE", True)
 
     print("  ENABLE_CSRF_PROTECTION set to true")
-    config_file = _replace(config_file, "ENABLE_CSRF_PROTECTION", "true")
+    config_file = _replace(config_file, "ENABLE_CSRF_PROTECTION", True)
 
     open(config_file_path, "w").write(config_file)
 
@@ -205,6 +205,8 @@ def _get_yaml_replacement_value(value):
         return "'" + value + "'"
     elif isinstance(value, bool):
         return str(value).lower()
+    else:
+        return value
 
 
 def _get_nested_value(dictionary, nested_path):
