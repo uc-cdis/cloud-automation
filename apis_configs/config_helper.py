@@ -161,9 +161,8 @@ def _replace(yaml_config, path_to_key, replacement_value, start=0, nested_level=
     nested_path_to_replace = path_to_key.split("/")
 
     # our regex looks for a specific number of spaces to ensure correct
-    # level of nesting. It matches to the end of the line and ignores lines
-    # with comments (# character)
-    search_string = "\n  " * nested_level + "[^#]*" + nested_path_to_replace[0] + ".*\n"
+    # level of nesting. It matches to the end of the line
+    search_string = "  " * nested_level + ".*" + nested_path_to_replace[0] + ":.*\n"
     matches = re.search(search_string, yaml_config[start:])
 
     # early return if we haven't found anything

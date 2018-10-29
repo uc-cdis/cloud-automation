@@ -47,6 +47,7 @@ spec:
             python /fence/cfg_help.py create --config_path new-fence-config.yaml
 
             if [[ -f /var/www/fence/creds.json ]]; then
+              echo ""
               echo "injecting creds.json into fence configuration..."
               python /var/www/fence/config_helper.py -i /var/www/fence/creds.json -c new-fence-config.yaml
             else
