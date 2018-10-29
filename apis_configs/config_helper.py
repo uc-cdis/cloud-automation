@@ -87,6 +87,12 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
         config_file, "OPENID_CONNECT/google/client_id", google_client_id
     )
 
+    open(config_file_path, "w").write(config_file)
+
+
+def set_prod_defaults(config_file_path):
+    config_file = open(config_file_path, "r").read()
+
     print(
         "  CIRRUS_CFG/GOOGLE_APPLICATION_CREDENTIALS set as "
         "var/www/fence/fence_google_app_creds_secret.json"
@@ -110,11 +116,32 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
     print("  INDEXD set as http://indexd-service/")
     config_file = _replace(config_file, "INDEXD", "http://indexd-service/")
 
+    print("  ARBORIST set as http://arborist-service/")
+    config_file = _replace(config_file, "ARBORIST", "http://arborist-service/")
+
     print("  HTTP_PROXY/host set as cloud-proxy.internal.io")
     config_file = _replace(config_file, "HTTP_PROXY/host", "cloud-proxy.internal.io")
 
     print("  HTTP_PROXY/port set as 3128")
     config_file = _replace(config_file, "HTTP_PROXY/port", 3128)
+
+    print("  DEBUG set to false")
+    config_file = _replace(config_file, "DEBUG", "false")
+
+    print("  MOCK_AUTH set to false")
+    config_file = _replace(config_file, "MOCK_AUTH", "false")
+
+    print("  MOCK_GOOGLE_AUTH set to false")
+    config_file = _replace(config_file, "MOCK_GOOGLE_AUTH", "false")
+
+    print("  AUTHLIB_INSECURE_TRANSPORT set to false")
+    config_file = _replace(config_file, "AUTHLIB_INSECURE_TRANSPORT", "false")
+
+    print("  SESSION_COOKIE_SECURE set to true")
+    config_file = _replace(config_file, "SESSION_COOKIE_SECURE", "true")
+
+    print("  ENABLE_CSRF_PROTECTION set to true")
+    config_file = _replace(config_file, "ENABLE_CSRF_PROTECTION", "true")
 
     open(config_file_path, "w").write(config_file)
 
@@ -210,3 +237,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     inject_creds_into_fence_config(args.creds_file_to_inject, args.config_file)
+    set_prod_defaults(args.config_file)
