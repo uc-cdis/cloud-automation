@@ -135,14 +135,18 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
 
   if ! g3kubectl get configmaps/logo-config > /dev/null 2>&1; then
     #
-    # Only restore local user.yaml if the fence configmap does not exist.
-    # Most commons sync the user db from an S3 bucket.
+    # Only restore logo if the configmap does not exist.
     #
-    if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/logo.svg ]]; then
-      # user database for accessing the commons ...
-      cp "${GEN3_HOME}/apis_configs/logo.svg" "${WORKSPACE}"/${vpc_name}/apis_configs/
+    logoPath="$(dirname $(g3k_manifest_path))/fence/logo.svg"
+    if [[ ! -f "${logoPath}" ]]; then
+      # fallback to legacy path
+      logoPath="${WORKSPACE}/${vpc_name}/apis_configs/logo.svg"
     fi
-    g3kubectl create configmap logo-config --from-file=apis_configs/logo.svg
+    if [[ ! -f "${logoPath}" ]]; then
+      # fallback to default gen3 logo
+      logoPath="${GEN3_HOME}/apis_configs/logo.svg"
+    fi
+    g3kubectl create configmap logo-config --from-file="${logoPath}"
   fi
 
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then

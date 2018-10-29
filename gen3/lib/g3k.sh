@@ -91,7 +91,7 @@ g3k() {
         update_config "$@"
         ;;
       *)
-        echo "ERROR: unknown command: $command"
+        echo "ERROR: unknown command (g3k): $command"
         exit 2
         ;;
       esac

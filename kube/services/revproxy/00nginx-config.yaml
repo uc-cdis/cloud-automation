@@ -130,7 +130,25 @@ data:
         log_format aws   '$realip - $userid [$time_local] '
                     '"$request" $status $body_bytes_sent '
                     '"$http_referer" "$http_user_agent"';
-      	access_log /dev/stdout aws;
+
+        
+        log_format json '{"gen3log": "nginx", '
+          '"date_access": "$time_iso8601", '
+          '"user_id": "$userid", '
+          '"request_id": "$request_id", '
+          '"session_id": "$session_id", '
+          '"visitor_id": "$visitor_id", '
+          '"network_client_ip": "$realip", '
+          '"network_bytes_write": $body_bytes_sent, '
+          '"http_response_time": "$request_time", '
+          '"http_status_code": $status, '
+          '"http_request": "$request_uri", '
+          '"http_verb": "$request_method", '
+          '"http_referer": "$http_referer", '
+          '"http_useragent": "$http_user_agent", '
+          '"message": "$request"}';
+
+      	access_log /dev/stdout json;
       	error_log /dev/stderr;
 
       	##
@@ -224,6 +242,22 @@ data:
             set $csrf_token "$cookie_csrftoken";
           }
           add_header Set-Cookie "csrftoken=$csrf_token;Path=/";
+
+          # visitor and session tracking for analytics -
+          #    https://developers.google.com/analytics/devguides/collection/analyticsjs/cookies-user-id
+          #
+          # Simple session tracking - expire the session if not active for 20 minutes
+          set $session_id "$request_id";
+          if ($cookie_session) {
+            set $session_id "$cookie_session";
+          }
+          add_header Set-Cookie "session=$session_id;Path=/;Max-Age=1200";
+          # Simple visitor tracking - immortal
+          set $visitor_id "$request_id";
+          if ($cookie_visitor) {
+            set $visitor_id "$cookie_visitor";
+          }
+          add_header Set-Cookie "visitor=$visitor_id;Path=/;Max-Age=36000000";
           
           if ($cookie_access_token) {
               set $access_token "bearer $cookie_access_token";
@@ -244,6 +278,8 @@ data:
           proxy_set_header   Host $host;
           proxy_set_header   X-Forwarded-For "$realip";
           proxy_set_header   X-UserId "$userid";
+          # Can propagate this request id through downstream microservice requests for tracing
+          proxy_set_header   X-ReqId "$request_id";
 
           #
           # CSRF check
