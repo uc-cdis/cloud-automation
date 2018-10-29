@@ -97,17 +97,17 @@ spec:
           - name: ARBORIST_BUCKET_NAME
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: arborist_bucket_name
           - name: ARBORIST_MODEL_NAME
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: arborist_model_name
           - name: SYNC_FROM_DBGAP
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: sync_from_dbgap
         volumeMounts:
           - name: "config-volume"
