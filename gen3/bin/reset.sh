@@ -19,13 +19,13 @@ g3kubectl delete --all deployments --namespace=$KUBECTL_NAMESPACE
 services=( fence sheepdog indexd)
 for service in ${services[@]}; do
     echo $service
-    echo '\c template1; DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBBECTL_NAMESPACE' | gen3 psql $service
+    echo "\c template1; DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBBECTL_NAMESPACE" | gen3 psql $service
 done
 
-gen3 roll all
-gen3 kube-wait4-pods
-gen3 runjob gdcdb-create; gen3 runjob indexd-userdb; gen3 runjob usersync;
-gen3 roll all
-gen3 kube-wait4-pods
+# gen3 roll all
+# gen3 kube-wait4-pods
+# gen3 runjob gdcdb-create; gen3 runjob indexd-userdb; gen3 runjob usersync;
+# gen3 roll all
+# gen3 kube-wait4-pods
 
 gen3 klock unlock reset-lock gen3-reset
