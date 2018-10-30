@@ -375,7 +375,8 @@ resource "aws_iam_policy" "asg_access" {
                 "autoscaling:DescribeAutoScalingInstances",
                 "autoscaling:DescribeTags",
                 "autoscaling:SetDesiredCapacity",
-                "autoscaling:TerminateInstanceInAutoScalingGroup"
+                "autoscaling:TerminateInstanceInAutoScalingGroup",
+                "autoscaling:DescribeLaunchConfigurations"
             ],
             "Resource": "*"
         }
@@ -633,6 +634,12 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
 
   tag {
     key                 = "k8s.io/cluster-autoscaler/enabled"
+    value               = ""
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "k8s.io/cluster-type/eks"
     value               = ""
     propagate_at_launch = true
   }
