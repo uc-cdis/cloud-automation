@@ -21,8 +21,8 @@ g3kubectl delete --all deployments --namespace=$KUBECTL_NAMESPACE
 #     echo $service
 #     echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBBECTL_NAMESPACE" | gen3 psql $service
 # done
-echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBBECTL_NAMESPACE"
-echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBBECTL_NAMESPACE" | gen3 psql fence
+echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBECTL_NAMESPACE;"
+echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBECTL_NAMESPACE;" | gen3 psql fence
 
 # gen3 roll all
 # gen3 kube-wait4-pods
