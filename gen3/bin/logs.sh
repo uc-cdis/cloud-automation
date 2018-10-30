@@ -131,6 +131,7 @@ gen3_logs_rawlog_search() {
   local pageMax
   local pageSize
   local totalRecs
+  local errStr
   pageSize=1000
   pageNum="$(gen3_logs_get_arg page 0 "$@")"
   format="$(gen3_logs_get_arg format raw "$@")"
@@ -154,7 +155,8 @@ gen3_logs_rawlog_search() {
   pageMin=$pageIt
   queryFile=$(mktemp -p "$XDG_RUNTIME_DIR" "esLogsSearch.json_XXXXXX")
   jsonFile=$(mktemp -p "$XDG_RUNTIME_DIR" "esLogsResult.json_XXXXXX")
-  while [[ $pageMax == "all" || $pageIt -lt $pageMax ]]; do
+  # our ES cluster is setup with a 10000 record max result size
+  while [[ $pageIt -lt 10 && ($pageMax == "all" || $pageIt -lt $pageMax) ]]; do
     # first key=value takes precedence in argument processing, so just put page first
     queryStr="$(gen3_logs_rawlog_query "page=$pageIt" "$@")"
     tee "$queryFile" 1>&2 <<EOM
@@ -165,7 +167,15 @@ EOM
     curl -u "${LOGUSER}:${LOGPASSWORD}" -X GET "$LOGHOST/_all/_search?pretty=true" "-d@$queryFile" > $jsonFile
     rm "$queryFile"
     # check integrity of result
-    if ! jq -r .hits.total > /dev/null 2>&1; then
+    errStr="$(jq -r .error < $jsonFile)"
+    if [[ "$errStr" != null ]]; then
+      echo -e "$(red_color "ERROR: error from server")"
+      cat - 1>&2 <<EOM
+$errStr
+EOM
+      return 1
+    fi
+    if ! jq -r .hits.total > /dev/null 2>&1 < $jsonFile; then
       echo -e "$(red_color "ERROR: unable to parse search result")" 1>&2
       cat "$jsonFile" 1>&2
       rm "$jsonFile"
@@ -193,6 +203,10 @@ EOM
     echo "INFO:, total_records=$totalRecs, pageSize=1000, pageMin=$pageMin, pageMax=$pageMax, lastPage=$pageIt" 1>&2
     let pageIt+=1
   done
+
+  if [[ $pageIt -lt $pageMax && $pageMax -gt 10 ]]; then
+    echo -e "$(red_color "Only retrieved $pageIt of $pageMax pages - 10000 record max result size")"
+  fi
 }
 
 gen3_logs_help() {
@@ -205,7 +219,6 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     gen3_logs_help
     exit 0
   fi
-  local command
   command="$1"
   shift
   case "$command" in
