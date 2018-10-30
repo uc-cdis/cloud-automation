@@ -22,10 +22,10 @@ for service in ${services[@]}; do
     echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBECTL_NAMESPACE;" | gen3 psql $service
 done
 
-# gen3 roll all
-# gen3 kube-wait4-pods
-# gen3 runjob gdcdb-create; gen3 runjob indexd-userdb; gen3 runjob usersync;
-# gen3 roll all
-# gen3 kube-wait4-pods
+gen3 roll all
+gen3 kube-wait4-pods
+gen3 runjob gdcdb-create; gen3 runjob indexd-userdb; gen3 runjob usersync;
+gen3 roll all
+gen3 kube-wait4-pods
 
 gen3 klock unlock reset-lock gen3-reset
