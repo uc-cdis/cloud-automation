@@ -6,8 +6,8 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-LOGHOST=kibana.planx-pla.net
-LOGUSER=kibanaadmin
+LOGHOST="${LOGHOST:-kibana.planx-pla.net}"
+LOGUSER="${LOGUSER:-kibanaadmin}"
 LOGPASSWORD="${LOGPASSWORD:-""}"
 
 
@@ -106,34 +106,93 @@ ENESTED
 }
 EOM
   cat "$queryFile"  # show the user the query, so can tweak by hand
-  unlink $queryFile
+  rm $queryFile
   return 0
 }
 
+#
+# Helper to search the logs for a particular/all services
+# in a particular date range for a particular/all vpc.
+# Accepts some extra key=value arguments - first option is the default:
+#
+# @parma format=raw|json
+# @param page=0|number|all
+# @return to stdout the results in the requested format, also write
+#     to stderr the /_search query sent to elastic search
+#
 gen3_logs_rawlog_search() {
   local queryStr
   local queryFile
   local format
   local jsonFile
+  local pageNum
+  local pageIt
+  local pageMin
+  local pageMax
+  local pageSize
+  local totalRecs
+  pageSize=1000
+  pageNum="$(gen3_logs_get_arg page 0 "$@")"
   format="$(gen3_logs_get_arg format raw "$@")"
-  queryStr="$(gen3_logs_rawlog_query "$@")"
+  
+  # Support retrieving all pages
+  if [[ $pageNum =~ ^[0-9][0-9]*$ ]]; then
+    pageIt=$pageNum
+    pageMax=$(($pageNum + 1))
+  elif [[ $pageNum =~ ^[0-9][0-9]*-[0-9][0-9]*$ ]]; then
+    pageMax=$(echo $pageNum | sed -e 's/^.*-//')
+    let pageMax+=1  # we do a 'less than' comparison below
+    pageIt=$(echo $pageNum | sed -e 's/-.*$//')
+  elif [[ $pageNum == "all" ]]; then
+    pageMax="all"
+    pageIt=0
+  else
+    echo -e "$(red_color "ERROR: invalid page $pageNum - setting to 0")" 1>&2
+    pageIt=0
+    pageMax=1
+  fi
+  pageMin=$pageIt
   queryFile=$(mktemp -p "$XDG_RUNTIME_DIR" "esLogsSearch.json_XXXXXX")
   jsonFile=$(mktemp -p "$XDG_RUNTIME_DIR" "esLogsResult.json_XXXXXX")
-
-  tee "$queryFile" 1>&2 <<EOM
+  while [[ $pageMax == "all" || $pageIt -lt $pageMax ]]; do
+    # first key=value takes precedence in argument processing, so just put page first
+    queryStr="$(gen3_logs_rawlog_query "page=$pageIt" "$@")"
+    tee "$queryFile" 1>&2 <<EOM
 $queryStr
 
 --------------------------
 EOM
-  curl -u "${LOGUSER}:${LOGPASSWORD}" -X GET "$LOGHOST/_all/_search?pretty=true" "-d@$queryFile" > $jsonFile
-  unlink "$queryFile"
-  if [[ "$format" == "json" ]]; then
-    cat "$jsonFile"
-  else
-    echo "INFO: total_records $(jq -r .hits.total < "$jsonFile")" 1>&2
-    cat "$jsonFile" | jq -r '.hits.hits[] | ._source.message.log' | grep -e '.' --color="never"
-  fi
-  unlink "$jsonFile"
+    curl -u "${LOGUSER}:${LOGPASSWORD}" -X GET "$LOGHOST/_all/_search?pretty=true" "-d@$queryFile" > $jsonFile
+    rm "$queryFile"
+    # check integrity of result
+    if ! jq -r .hits.total > /dev/null 2>&1; then
+      echo -e "$(red_color "ERROR: unable to parse search result")" 1>&2
+      cat "$jsonFile" 1>&2
+      rm "$jsonFile"
+      return 1
+    fi
+
+    if [[ "$format" == "json" ]]; then
+      cat "$jsonFile"
+    else
+      cat "$jsonFile" | jq -r '.hits.hits[] | ._source.message.log' | grep -e '.' --color="never"
+    fi
+    if [[ -z "$totalRecs" ]]; then
+      totalRecs=$(jq -r .hits.total < "$jsonFile")
+    fi
+    if [[ $pageMax == "all" ]]; then
+      # compute pageMax from the total records in the first page result
+      pageMax=$(( $totalRecs / $pageSize)) # note - this rounds down
+      if [[ $(($pageMax * $pageSize)) -lt $((totalRecs)) ]]; then # deal with rounding errors
+        let pageMax+=2
+      else
+        let pageMax+=1
+      fi
+    fi
+    rm "$jsonFile"
+    echo "INFO:, total_records=$totalRecs, pageSize=1000, pageMin=$pageMin, pageMax=$pageMax, lastPage=$pageIt" 1>&2
+    let pageIt+=1
+  done
 }
 
 gen3_logs_help() {
@@ -146,7 +205,16 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     gen3_logs_help
     exit 0
   fi
-
+  local command
+  command="$1"
   shift
-  gen3_logs_rawlog_search "$@"
+  case "$command" in
+    "raw")
+      gen3_logs_rawlog_search "$@"
+      ;;
+    *)
+      echo -e "$(red_color "ERROR: invalid command $command")"
+      gen3_logs_help
+      ;;
+  esac
 fi
