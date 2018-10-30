@@ -48,6 +48,9 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+      # sheepdog transactions take forever -
+      # try to let the complete before termination
+      terminationGracePeriodSeconds: 300
       containers:
         - name: sheepdog
           GEN3_SHEEPDOG_IMAGE
@@ -69,7 +72,7 @@ spec:
           - name: DICTIONARY_URL
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: dictionary_url
           - name: REQUESTS_CA_BUNDLE
             #
@@ -109,5 +112,5 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 0.3
-              memory: 512Mi
+              cpu: 1.0
+              memory: 1024Mi

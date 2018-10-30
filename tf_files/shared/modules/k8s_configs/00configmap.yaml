@@ -6,11 +6,8 @@ data:
   environment: ${vpc_name}
   hostname: ${hostname}
   revproxy_arn: ${revproxy_arn}
-  dictionary_url: ${dictionary_url}
-  portal_app: ${portal_app}
   kube_bucket: ${kube_bucket}
   logs_bucket: ${logs_bucket}
-  sync_from_dbgap: 'False'
-  useryaml_s3path: "s3://cdis-gen3-users/${config_folder}/user.yaml"
   # Set up hook at https://yourslack.slack.com/apps/manage/custom-integrations
   slack_webhook: 'None'
+  gitops_path: "https://github.com/uc-cdis/cdis-manifest.git"

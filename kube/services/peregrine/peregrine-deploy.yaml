@@ -55,7 +55,8 @@ spec:
             httpGet:
               path: /_status
               port: 80
-            initialDelaySeconds: 30
+            # peregrine can take forever to initialize
+            initialDelaySeconds: 300
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
@@ -69,7 +70,7 @@ spec:
           - name: DICTIONARY_URL
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: dictionary_url
           - name: REQUESTS_CA_BUNDLE
             #

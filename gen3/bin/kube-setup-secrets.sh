@@ -46,7 +46,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
   fi
 fi
 
-
 if ! g3kubectl get configmaps global > /dev/null 2>&1; then
   if [[ -f "${WORKSPACE}/${vpc_name}/00configmap.yaml" ]]; then
     g3kubectl apply -f "${WORKSPACE}/${vpc_name}/00configmap.yaml"
@@ -58,6 +57,17 @@ fi
 if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
   gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
 fi
+
+let configmapsExpireTime="$(date +%s) - 120"
+configmapsFlagFile="${WORKSPACE}/${vpc_name}/.configmapsFlagFile"
+# Avoid creating configmaps more than once every two minutes
+# (gen3 roll all calls this over and over)
+if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$configmapsExpireTime" ]]; then
+  echo "creating manifest configmaps"
+  gen3 gitops configmaps
+  touch "$configmapsFlagFile"
+fi
+
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
@@ -125,14 +135,18 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
 
   if ! g3kubectl get configmaps/logo-config > /dev/null 2>&1; then
     #
-    # Only restore local user.yaml if the fence configmap does not exist.
-    # Most commons sync the user db from an S3 bucket.
+    # Only restore logo if the configmap does not exist.
     #
-    if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/logo.svg ]]; then
-      # user database for accessing the commons ...
-      cp "${GEN3_HOME}/apis_configs/logo.svg" "${WORKSPACE}"/${vpc_name}/apis_configs/
+    logoPath="$(dirname $(g3k_manifest_path))/fence/logo.svg"
+    if [[ ! -f "${logoPath}" ]]; then
+      # fallback to legacy path
+      logoPath="${WORKSPACE}/${vpc_name}/apis_configs/logo.svg"
     fi
-    g3kubectl create configmap logo-config --from-file=apis_configs/logo.svg
+    if [[ ! -f "${logoPath}" ]]; then
+      # fallback to default gen3 logo
+      logoPath="${GEN3_HOME}/apis_configs/logo.svg"
+    fi
+    g3kubectl create configmap logo-config --from-file="${logoPath}"
   fi
 
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
@@ -237,25 +251,10 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
   fi
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update tube secrets
-  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
-    echo "${WORKSPACE}/${vpc_name} does not exist"
-    exit 1
-  fi
-
-  cd "${WORKSPACE}/${vpc_name}"
-fi
-
 # ETL mapping file for tube
 ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"
 if [[ -f "$ETL_MAPPING_PATH" ]]; then
   gen3 update_config etl-mapping "$ETL_MAPPING_PATH"
-fi
-
-if [[ -z "$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')" ]]; then
-  echo "ERROR: configmaps/global does not include dictionary_url"
-  echo "... update and apply ${vpc_name}/00configmap.json, then retry this script"
-  exit 1
 fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
@@ -361,12 +360,12 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
   cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f .rendered_gdcapi_db ]]; then
     # job runs asynchronously ...
-    g3k runjob gdcdb-create
+    gen3 job run gdcdb-create
     # also go ahead and setup the indexd auth secrets
-    g3k runjob indexd-userdb
+    gen3 job run indexd-userdb
     echo "Sleep 10 seconds for gdcdb-create job"
-    g3k joblogs gdcb-create || true
-    g3k joblogs indexd-userdb || true
+    gen3 job logs gdcb-create || true
+    gen3 job logs indexd-userdb || true
     echo "Leaving the job running in the background if not already done"
   fi
   # Avoid doing previous block more than once or when not necessary ...

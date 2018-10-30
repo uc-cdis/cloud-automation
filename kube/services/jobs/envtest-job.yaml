@@ -17,7 +17,7 @@ spec:
         imagePullPolicy: Always
         env:
           - name: REUBEN
-            GEN3_REUBEN
+            GEN3_REUBEN|-value: frickjack-|
         command: ["/bin/bash" ]
         args: 
           - "-c"

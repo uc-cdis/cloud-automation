@@ -9,6 +9,7 @@ to a kubernetes cluster
 * `./Docker` - image automation - for building various Docker images including *Jenkins* and *devterm*
 * `./Jenkins` - Jenkins pipelines - for automating workflows like backing up the Jenkins server, testing the *cloud-automation* repo, and continuously deploying to the *QA* environments
 * `./gen3` - user friendly-ish tools to simplify workflows with the `./kube` kubernetes and `./tf_files` terraform automation - [more details](./gen3/README.md)
+* `./doc` - [gen3 help](./doc/README.md) docs
 
 The repository also interacts closely with the [images](https://github.com/uc-cdis/images)
 and [cdis-manifest] 

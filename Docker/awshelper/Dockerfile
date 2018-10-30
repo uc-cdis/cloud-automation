@@ -30,6 +30,7 @@ RUN apt-get update && apt-get upgrade -y \
       iputils-ping \
       net-tools \
       sudo \
+      gettext-base \
     && rm -rf /var/lib/apt/lists/*
 
 RUN  easy_install -U pip \
@@ -66,5 +67,11 @@ USER ubuntu
 RUN git clone https://github.com/uc-cdis/gen3-arranger.git ~/gen3-arranger \
     && echo "source  ~/gen3-arranger/Docker/Stacks/esearch/indexSetup.sh" >> ~/.bashrc \
     && echo "export ESHOST=esproxy-service:9200" >> ~/.bashrc
+
+# install and set up gen3
+RUN git clone https://github.com/uc-cdis/cloud-automation.git ~/cloud-automation \
+    && echo "export GEN3_HOME=~/cloud-automation" >> ~/.bashrc \
+    && echo '(cd ~/cloud-automation && git pull)' >> ~/.bashrc \
+    && echo 'source "${GEN3_HOME}/gen3/gen3setup.sh"' >> ~/.bashrc 
     
 CMD /bin/bash

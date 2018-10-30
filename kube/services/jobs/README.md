@@ -50,13 +50,13 @@ kubectl delete secret fence-json-secret
 gen3 kube-setup-fence
 ```
 3. add the public key at `$vpcname/ssh-keys/id_rsa.pub` to squid proxy
-4. set `sync_from_dbgap: "True"` in `$vpcname/00configmap.yaml`.
+4. set `sync_from_dbgap: "True"` in gitops `manifest.json`.
 
 ## usersync-job
 
 Sync user lists from two sources:
 - a ftp/sftp server that hosts user csv files that follows the format provided by dbgap, enabled if `sync_from_dbgap: "True"` in global configmap. Need to follow [sftp setup instruction](##setup sftp configuration) before enabling it.
-- a user.yaml file from the S3 bucket specified in the global configmap's `useryaml_s3path` attribute (`kubectl get configmap global -o=jsonpath='{.data.useryaml_s3path}'`) into the k8s `fence` configmap, and update fence's user-access database. If the useryaml_s3path is provided with an empty string, it will use the local user.yaml file.
+- a user.yaml file from the S3 bucket specified in the gitops manifest's `useryaml_s3path` attribute (`kubectl get configmap manifest-global -o=jsonpath='{.data.useryaml_s3path}'`) into the k8s `fence` configmap, and update fence's user-access database. If the useryaml_s3path is provided with an empty string, it will use the local user.yaml file.
 
 Note that this job assumes that the k8s worker nodes have an IAM policy that allows S3 read -
 which is the default in new commons deployments, but may require a manual update to existing commons.
@@ -122,7 +122,7 @@ Generate test data given dictionary, following steps need to be done
 See job file for how to run the job with parameters.
 
 Ex: 
-`gen3 runjob gentestdata SUBMISSION_USER reubenonrye@uchicago.edu TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100`
+`gen3 runjob gentestdata TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100 SUBMISSION_USER cdistest@gmail.com`
 
 ### arranger-config-job
 

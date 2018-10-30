@@ -12,9 +12,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-workvm
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
-  gen3 kube-setup-secrets
-fi
+gen3 kube-setup-secrets
 gen3 kube-setup-roles
 gen3 kube-setup-certs
 
@@ -72,8 +70,7 @@ if g3k_manifest_lookup .versions.portal 2> /dev/null; then
   # portal is not happy until other services are up
   # If new pods are still rolling/starting up, then wait for that to finish
   gen3 kube-wait4-pods || true
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
-  gen3 roll portal
+  gen3 kube-setup-portal
 else
   echo "INFO: not deploying portal - no manifest entry for .versions.portal"
 fi

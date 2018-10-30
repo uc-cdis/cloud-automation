@@ -117,31 +117,6 @@ role_session_name = gen3-reuben
 credential_source = Ec2InsanceMetadata
 ```
 
-### gen3 kube-...
-
-kube-backup  
-kube-dev-namespace  
-kube-extract-config  
-kube-roll-all  
-kube-roll-qa  
-kube-setup-certs  
-kube-setup-fence  
-kube-setup-fluentd  
-kube-setup-jenkins  
-kube-setup-jupyterhub  
-kube-setup-networkpolicy  
-kube-setup-peregrine  
-kube-setup-revproxy  
-kube-setup-roles  
-kube-setup-secrets  
-kube-setup-sftp  
-kube-setup-sheepdog  
-kube-setup-shiny  
-kube-setup-workvm  
-kube-lock  
-kube-unlock
-
-
 ### gen3 status
 
 List the variables associated with the current gen3 workspace - ex:
@@ -154,17 +129,6 @@ GEN3_WORKDIR=/home/reuben/.local/share/gen3/cdistest/planxplanetv1
 GEN3_HOME=/home/reuben/Code/PlanX/cloud-automation
 GEN3_S3_BUCKET=cdis-state-ac23212121-gen3
 AWS_PROFILE=cdistest
-```
-
-### gen3 indexd-post-folder [FOLDER]
-
-```
-$ gen3 indexd-post-folder --help
-  gen3 indexd-post-folder [folder]:
-      Post the .json files under the given folder to indexd
-      in the current environment: reuben.planx-pla.net
-      Note - currently only works with new records - does not
-         attempt to update existing records.
 ```
 
 ### gen3 ls [PROFILE]
@@ -260,37 +224,6 @@ Host k8s.planxplanetv1
 
 Run the test suite.  Requires a 'cdistest' profile.
 
-### g3k 
-
-The `g3k` tools are now also available via `gen3`,
-so `gen3 roll sheepdog` is equivalent to `g3k roll sheepdog`.
-
-```
-$ g3k help
-  
-  Use:
-  g3k COMMAND - where COMMAND is one of:
-    backup - backup home directory to vpc's S3 bucket
-    ec2_reboot PRIVATE-IP - reboot the ec2 instance with the given private ip
-    help
-    jobpods JOBNAME - list pods associated with given job
-    joblogs JOBNAME - get logs from first result of jobpods
-    pod PATTERN - grep for the first pod name matching PATTERN
-    pods PATTERN - grep for all pod names matching PATTERN
-    psql SERVICE 
-       - where SERVICE is one of sheepdog, indexd, fence
-    replicas DEPLOYMENT-NAME REPLICA-COUNT
-    roll DEPLOYMENT-NAME
-      Apply the current manifest to the specified deployment - triggers
-      and update in most deployments (referencing GEN3_DATE_LABEL) even 
-      if the version does not change.
-    runjob JOBNAME 
-     - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
-    testsuite
-    update_config CONFIGMAP-NAME YAML-FILE
-```
-
-There are some helper functions in [kubes.sh](https://github.com/uc-cdis/cloud-automation/blob/master/kube/kubes.sh) for k8s related operations.
 
 ### roll
 `gen3 roll $DEPLOYMENT_NAME` updates the deployed pods to the 
@@ -314,48 +247,4 @@ Open a bash shell on the cluster in an `awshelper` container: `gen3 devterm`
 
 The `devterm` command can also pass a command to the bash shell (`bash -c`) - ex:
 `gen3 devterm "nslookup fence-service"`
-
-### es
-Query elastic-search (via `devterm`) - ex:
-```
-gen3 es indices
-gen3 es dump arranger-projects
-gen3 es --help
-```
-
-### runjob
-
-Launch `kube/services/jobs/JOBNAME-job.yaml` onto the cluster after running
-`kube/services/jobs/JOBNAME-job.sh` if it exists.
-
-```
-ubuntu@ip-172-16-36-26:~$ gen3 update_config fence planxplanetv1/apis_configs/user.yaml 
-configmap "fence" deleted
-configmap "fence" created
-
-ubuntu@ip-172-16-36-26:~$ gen3 runjob useryaml
-job "useryaml" deleted
-job "useryaml" created
-```
-
-### g3k_help
-
-```
-ubuntu@ip-172-16-36-26:~$ gen3 help
-  
-  Use:
-  gen3 COMMAND - where COMMAND is one of:
-    help
-    jobpods JOBNAME - list pods associated with given job
-    joblogs JOBNAME - get logs from first result of jobpods
-    pod PATTERN - grep for the first pod name matching PATTERN
-    pods PATTERN - grep for all pod names matching PATTERN
-    replicas DEPLOYMENT-NAME REPLICA-COUNT
-    roll DEPLOYMENT-NAME
-      Apply a superfulous metadata change to a deployment to trigger
-      the deployment's running pods to update
-    runjob JOBNAME K1 V1 K2 V2 ...
-     - JOBNAME also maps to cloud-automation/kube/services/JOBNAME-job.yaml
-    update_config CONFIGMAP-NAME YAML-FILE
-```
 
