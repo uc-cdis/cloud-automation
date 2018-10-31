@@ -8,42 +8,14 @@ const fs = require('fs');
 eval(fs.readFileSync('helpers.js')+'');
 
 const crypto = require('crypto');
-const jwt  = require('jsonwebtoken');
-
-// THIS IS A FAKE PRIVATE KEY - it's not used for anything
-const fakePrivateKey = `-----BEGIN RSA PRIVATE KEY-----
-    MIICWgIBAAKBgHt5O3e0d6auiEIl0z7iBVKB3pDWxqCZ0B5fXx16mXuezYTD3A9K
-  MM/hjAqWhgbW+N7ZNvx59mFl3EGA/+hpHmw2sn59tIE2JaZvNDwVutldnySXix6J
-  pYRw9WNDdLwW3Oq/uW+dgfvA4Rt0OXd5Pj5UMxog4SanWbKWG/Sw44OvAgMBAAEC
-  gYBMtcjoWcpsV8p3riBL1QgRdnXb7lOAu469D+t72Qs57jMo5LX3GdSxkiL7AQFL
-  hosfiDvNJ8iWQj5Qw+A5d/VZyd8+pOoRwWDlr/xBPjAklKiL0ENRLGhpe7w7YiKm
-  25Elh53ybUlK5SJ+CAdbCbT5Z6aSguLIpacFnTdz4n9b4QJBAOQot8Eylb3XcF1r
-  ILh0azSBiyN5xUR9sfzk21smOjYVW+M6mQ4ymSlbiTLuUxEo6ulCLcS/UI2d9Wlu
-  isHhJLUCQQCKilOMl7U5qnED3ZI1AGVT9r1wDJyMMZ5d/1V+CTAtb6cM9mMz0RtT
-  wmn5boisFp00EHkDfv6DdxwWo7L02UlTAkAJhKFVz/RrPQeU/hkZWNH4GMdjLXtL
-  Riscr7du8ANRqkZxDkrASuAU15q7ozGX76sNHBOot4p2vfY09cWYHPpZAkBuo32J
-  v/Y4sUdEIQUMUt6ZKWmsPEYhJ9cjljA+UTQqdQphrbsXvJ0oTRC45G89j2nIFIew
-  JRE5CDxkUCMwqv6FAkAAm3zqGq7HXJvxGOTm3tx2ahahXFT4NoaltYC+JX3gbneA
-  impyGFchHwISN9LcR0b8EUws/erweiaw73Idld8B
------END RSA PRIVATE KEY----- `;
-const tokenSignOptions = {algorithm:  "RS256"};
-
 
 describe("Nginx helper function", function() {
 
   it("userid returns correct user and uuid from access_token", function() {
-    // construct a token with a uuid and user
     const uuid = '1234567890abcdefghijklmnop';
     const user = 'jimmyjoe@joetown.gov';
-    const payload = {
-      sub: uuid,
-      context: {
-        user: {
-          name: user,
-        },
-      },
-    };
-    const access_token = jwt.sign(payload, fakePrivateKey, tokenSignOptions);
+    // access token with uuid and user above
+    const access_token = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwYWJjZGVmZ2hpamtsbW5vcCIsImNvbnRleHQiOnsidXNlciI6eyJuYW1lIjoiamltbXlqb2VAam9ldG93bi5nb3YifX0sImlhdCI6MTU0MTAwMTg4M30.Mo7zS3PV-Ji3hhCgtLLQsBGvRIIXnziqfo9e2_COwTkc4X_AwcU3fvcP7vQx0d11uglAFzg3V8y0QX1JMFR5YT9kEegkyu5NOnvNcQ9gbp3Jg_9oJAdrWxW-RKgKvzDzvFBLhwlkHpMyQHM4fOnMg9U4N6IgZdbZ5Ez754uKGH8';
     const nginxRequest = {
       variables: {
         access_token: access_token

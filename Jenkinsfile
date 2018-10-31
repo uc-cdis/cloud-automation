@@ -39,8 +39,7 @@ pipeline {
     }
     stage('nginx helper test suite') {
       steps {
-        sh 'npm install -g jasmine jsonwebtoken'
-        sh 'cd kube/services/revproxy && npm jasmine helpersTest.js'
+        sh 'cd kube/services/revproxy && npx jasmine helpersTest.js'
       }
     }
     /* ... this not working yet - will finish later ...
