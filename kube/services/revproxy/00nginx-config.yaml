@@ -251,13 +251,13 @@ data:
           if ($cookie_session) {
             set $session_id "$cookie_session";
           }
-          add_header Set-Cookie "session=$session_id;Path=/;Max-Age=1200";
+          add_header Set-Cookie "session=$session_id;Path=/;Max-Age=1200;HttpOnly;Secure";
           # Simple visitor tracking - immortal
           set $visitor_id "$request_id";
           if ($cookie_visitor) {
             set $visitor_id "$cookie_visitor";
           }
-          add_header Set-Cookie "visitor=$visitor_id;Path=/;Max-Age=36000000";
+          add_header Set-Cookie "visitor=$visitor_id;Path=/;Max-Age=36000000;HttpOnly;Secure";
           
           if ($cookie_access_token) {
               set $access_token "bearer $cookie_access_token";
