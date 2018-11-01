@@ -10,6 +10,7 @@ gen3_load "gen3/lib/g3k_manifest"
 #
 g3k_psql() {
   local serviceName=$1
+  shift
   local key="${serviceName}"
 
   if [[ -z "$serviceName" ]]; then
@@ -62,7 +63,7 @@ g3k_psql() {
   local host=$(jq -r ".${key}.db_host" < $credsPath)
   local database=$(jq -r ".${key}.db_database" < $credsPath)
 
-  PGPASSWORD="$password" psql -U "$username" -h "$host" -d "$database"
+  PGPASSWORD="$password" psql -U "$username" -h "$host" -d "$database" "$@"
 }
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
