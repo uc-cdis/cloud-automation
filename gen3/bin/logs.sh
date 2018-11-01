@@ -10,6 +10,43 @@ LOGHOST="${LOGHOST:-kibana.planx-pla.net}"
 LOGUSER="${LOGUSER:-kibanaadmin}"
 LOGPASSWORD="${LOGPASSWORD:-""}"
 
+gen3_logs_vpc_list=(
+    "edcprodv2 portal.occ-data.org environmental data commons"
+    "prodv1 data.kidsfirstdrc.org kids first"
+    "skfqa gen3qa.kidsfirstdrc.org kids first"
+    "devplanetv1 dev.planx-pla.net"
+    "qaplanetv1 qa.planx-pla.net jenkins"
+    "bloodv2 data.bloodpac.org"
+    "bhcprodv2 data.braincommons.org cvb"
+    "gtexprod dcp.bionimbus.org"
+    "dcfqav1 qa.dcf.planx-pla.net"
+    "niaidprod niaid.bionimbus.org"  
+    # -----------------------------------
+    "accountprod  acct.bionimbus.org"
+    "kfqa dcf-interop.kidsfirstdrc.org"
+    "dcfprod nci-crdc.datacommons.io"
+    "dcf-staging nci-crdc-staging.datacommons.io"
+    "genomelprod genomel.bionimbus.org"
+    "vadcprod va.datacommons.io"
+    "ibdgc-prod ibdgc.datacommons.io"
+)
+
+#
+# Dump vpclist
+# The output lists one vpc per line where
+# the first two tokens of each line are the
+# `vpcName` and one `hostname` associated with
+# a commons running in that vpc:
+# ```
+# vpcName hostname other descriptive stuff to grep on
+# ```
+#
+gen3_logs_vpc_list() {
+  local info
+  for info in "${gen3_logs_vpc_list[@]}"; do
+    echo "$info"
+  done
+}
 
 #
 # Little helper - first argument is key,
@@ -136,6 +173,10 @@ gen3_logs_rawlog_search() {
   pageNum="$(gen3_logs_get_arg page 0 "$@")"
   format="$(gen3_logs_get_arg format raw "$@")"
   
+  if [[ -z "$LOGPASSWORD" ]]; then
+    echo -e "$(red_color "ERROR: LOGPASSWORD environment not set")" 1>&2
+    return 1
+  fi
   # Support retrieving all pages
   if [[ $pageNum =~ ^[0-9][0-9]*$ ]]; then
     pageIt=$pageNum
@@ -167,12 +208,14 @@ EOM
     curl -u "${LOGUSER}:${LOGPASSWORD}" -X GET "$LOGHOST/_all/_search?pretty=true" "-d@$queryFile" > $jsonFile
     rm "$queryFile"
     # check integrity of result
-    errStr="$(jq -r .error < $jsonFile)"
+    errStr="$(jq -r .error < "$jsonFile")"
     if [[ "$errStr" != null ]]; then
-      echo -e "$(red_color "ERROR: error from server")"
+      echo -e "$(red_color "ERROR: error from server")" 1>&2
       cat - 1>&2 <<EOM
 $errStr
 EOM
+      cat "$jsonFile" 1>&2
+      rm "$jsonFile"
       return 1
     fi
     if ! jq -r .hits.total > /dev/null 2>&1 < $jsonFile; then
@@ -224,6 +267,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   case "$command" in
     "raw")
       gen3_logs_rawlog_search "$@"
+      ;;
+    "vpc")
+      gen3_logs_vpc_list "$@"
       ;;
     *)
       echo -e "$(red_color "ERROR: invalid command $command")"
