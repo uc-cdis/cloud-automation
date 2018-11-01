@@ -282,6 +282,21 @@ data:
           proxy_set_header   X-ReqId "$request_id";
 
           #
+          # Accomodate large jwt token headers
+          # * http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size
+          # * https://ma.ttias.be/nginx-proxy-upstream-sent-big-header-reading-response-header-upstream/
+          #
+          proxy_buffer_size          16k;
+          proxy_buffers              8 16k;
+          proxy_busy_buffers_size    32k;
+          #
+          # also incoming from client:
+          # * https://fullvalence.com/2016/07/05/cookie-size-in-nginx/
+          # * https://nginx.org/en/docs/http/ngx_http_core_module.html#client_header_buffer_size
+          large_client_header_buffers 4 8k;
+          client_header_buffer_size 4k;
+
+          #
           # CSRF check
           # This block requires a csrftoken for all POST requests.
           #
