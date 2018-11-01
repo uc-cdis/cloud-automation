@@ -10,7 +10,7 @@ LOGHOST="${LOGHOST:-kibana.planx-pla.net}"
 LOGUSER="${LOGUSER:-kibanaadmin}"
 LOGPASSWORD="${LOGPASSWORD:-""}"
 
-gen3_logs_vpc_list=(
+gen3LogsVpcList=(
     "edcprodv2 portal.occ-data.org environmental data commons"
     "prodv1 data.kidsfirstdrc.org kids first"
     "skfqa gen3qa.kidsfirstdrc.org kids first"
@@ -43,7 +43,7 @@ gen3_logs_vpc_list=(
 #
 gen3_logs_vpc_list() {
   local info
-  for info in "${gen3_logs_vpc_list[@]}"; do
+  for info in "${gen3LogsVpcList[@]}"; do
     echo "$info"
   done
 }
@@ -87,7 +87,7 @@ gen3_logs_fix_date() {
 #
 # Process arguments of form 'key=value' to an Elastic Search query
 # Supported keys:
-#   vpc, start, end, service, page
+#   vpc, start, end, user, visitor, session, service, page
 #
 gen3_logs_rawlog_query() {
   local vpcName
@@ -97,8 +97,14 @@ gen3_logs_rawlog_query() {
   local endDate
   local serviceName
   local queryFile
+  local userId
+  local sessionId
+  local visitorId
 
   vpcName="$(gen3_logs_get_arg vpc "${vpc_name:-"all"}" "$@")"
+  userId="$(gen3_logs_get_arg user "" "$@")"
+  visitorId="$(gen3_logs_get_arg visitor "" "$@")"
+  sessionId="$(gen3_logs_get_arg session "" "$@")"
   startDate="$(gen3_logs_fix_date "$(gen3_logs_get_arg start "$(gen3_logs_fix_date 'yesterday 00:00')" "$@")")"
   endDate="$(gen3_logs_fix_date "$(gen3_logs_get_arg end "$(gen3_logs_fix_date 'tomorrow 00:00')" "$@")")"
   pageNum="$(gen3_logs_get_arg page 0 "$@")"
@@ -124,6 +130,30 @@ gen3_logs_rawlog_query() {
           if [[ "$vpcName" != all ]]; then
             cat - <<ENESTED
             {"term": {"logGroup": "$vpcName"}},
+ENESTED
+          else echo ""
+          fi
+        )
+        $(
+          if [[ -n "$userId" ]]; then
+            cat - <<ENESTED
+            {"term": {"message.user_id.keyword": "$userId"}},
+ENESTED
+          else echo ""
+          fi
+        )
+        $(
+          if [[ -n "$visitorId" ]]; then
+            cat - <<ENESTED
+            {"term": {"message.visitor_id.keyword": "$visitorId"}},
+ENESTED
+          else echo ""
+          fi
+        )
+        $(
+          if [[ -n "$sessionId" ]]; then
+            cat - <<ENESTED
+            {"term": {"message.session_id.keyword": "$sessionId"}},
 ENESTED
           else echo ""
           fi
@@ -252,6 +282,10 @@ EOM
   fi
 }
 
+gen3_logs_user_list() {
+  echo "SELECT 'uid:'||id,email FROM \"User\" WHERE email IS NOT NULL;" | gen3 psql fence --no-align --tuples-only --pset=fieldsep=,
+}
+
 gen3_logs_help() {
   gen3 help logs
 }
@@ -270,6 +304,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "vpc")
       gen3_logs_vpc_list "$@"
+      ;;
+    "user")
+      gen3_logs_user_list "$@"
       ;;
     *)
       echo -e "$(red_color "ERROR: invalid command $command")"
