@@ -13,7 +13,17 @@
     "fluentd": "fluent/fluentd-kubernetes-daemonset:cloudwatch",
     "jupyterhub": "quay.io/occ_data/jupyterhub:master"
   },
+  "reuben": {
+    "bla": "frick",
+    "ugh": [ "ignore", "this" ],
+    "frick": { "a": 1, "b": 2 }
+  },
   "jupyterhub": {
     "enabled": "no"
+  },
+  "global": {
+    "dictionary_url": "https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json",
+    "useryaml_s3path": "s3://cdis-gen3-users/dev/user.yaml",
+    "sync_from_dbgap": "False"
   }
 }

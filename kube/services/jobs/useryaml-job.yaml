@@ -60,7 +60,7 @@ spec:
           - name: SYNC_FROM_DBGAP
             valueFrom:
               configMapKeyRef:
-                name: global
+                name: manifest-global
                 key: sync_from_dbgap
         volumeMounts:
 # -----------------------------------------------------------------------------
@@ -123,7 +123,7 @@ spec:
                 fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml
               fi
             else
-            fence-create sync --arborist http://arborist-service --yaml /var/www/fence/user.yaml
+              fence-create sync --arborist http://arborist-service --yaml /var/www/fence/user.yaml
             fi
             echo "Exit code: $?"
       restartPolicy: Never

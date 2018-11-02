@@ -6,6 +6,7 @@ metadata:
   labels:
     k8s-app: fluentd-logging
     version: v1
+    GEN3_DATE_LABEL
     kubernetes.io/cluster-service: "true"
 spec:
   template:
@@ -20,13 +21,20 @@ spec:
         effect: NoSchedule
       containers:
       - name: fluentd
-        image: fluent/fluentd-kubernetes-daemonset:v1.2-debian-cloudwatch
+        GEN3_FLUENTD_IMAGE
         env:
+          # See https://github.com/fabric8io/fluent-plugin-kubernetes_metadata_filter#environment-variables-for-kubernetes
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
           # Deploy with kube-setup-fluentd.sh ...
           - name:  LOG_GROUP_NAME
-            value: GEN3_LOG_GROUP_NAME
+            GEN3_LOG_GROUP_NAME
           - name: AWS_REGION
             value: "us-east-1"
+          - name: FLUENTD_CONF
+            value: "gen3.conf"
         resources:
           limits:
             memory: 200Mi
@@ -34,11 +42,20 @@ spec:
             cpu: 100m
             memory: 200Mi
         volumeMounts:
+        - name: fluentd-gen3
+          mountPath: /fluentd/etc/gen3.conf
+          subPath: gen3.conf
         - name: varlog
           mountPath: /var/log
         - name: varlibdockercontainers
           mountPath: /var/lib/docker/containers
           readOnly: true
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
+          - |
+            /fluentd/entrypoint.sh
       terminationGracePeriodSeconds: 30
       serviceAccountName: fluentd
       volumes:
@@ -48,3 +65,6 @@ spec:
       - name: varlibdockercontainers
         hostPath:
           path: /var/lib/docker/containers
+      - name: fluentd-gen3
+        configMap:
+          name: fluentd-gen3

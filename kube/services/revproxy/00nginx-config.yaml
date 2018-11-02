@@ -130,7 +130,25 @@ data:
         log_format aws   '$realip - $userid [$time_local] '
                     '"$request" $status $body_bytes_sent '
                     '"$http_referer" "$http_user_agent"';
-      	access_log /dev/stdout aws;
+
+        
+        log_format json '{"gen3log": "nginx", '
+          '"date_access": "$time_iso8601", '
+          '"user_id": "$userid", '
+          '"request_id": "$request_id", '
+          '"session_id": "$session_id", '
+          '"visitor_id": "$visitor_id", '
+          '"network_client_ip": "$realip", '
+          '"network_bytes_write": $body_bytes_sent, '
+          '"http_response_time": "$request_time", '
+          '"http_status_code": $status, '
+          '"http_request": "$request_uri", '
+          '"http_verb": "$request_method", '
+          '"http_referer": "$http_referer", '
+          '"http_useragent": "$http_user_agent", '
+          '"message": "$request"}';
+
+      	access_log /dev/stdout json;
       	error_log /dev/stderr;
 
       	##
@@ -192,7 +210,13 @@ data:
 
           more_set_headers "Access-Control-Allow-Origin: $allow_origin";
           more_set_headers "Access-Control-Allow-Methods: GET, POST, OPTIONS";
-          more_set_headers "Access-Control-Allow-Credentials: true";
+          #
+          # DO NOT DO THIS!!!
+          # Opens us up to CSRF requests from sites in other tabs ...
+          # TODO - add CORS whitelist to gitops
+          # https://stackoverflow.com/questions/24687313/what-exactly-does-the-access-control-allow-credentials-header-do
+          #
+          #more_set_headers "Access-Control-Allow-Credentials: true";
           more_set_headers "Access-Control-Allow-Headers: DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,Cookie,X-CSRF-Token";
           more_set_headers "Access-Control-Expose-Headers: Content-Length,Content-Range";
 
@@ -218,6 +242,22 @@ data:
             set $csrf_token "$cookie_csrftoken";
           }
           add_header Set-Cookie "csrftoken=$csrf_token;Path=/";
+
+          # visitor and session tracking for analytics -
+          #    https://developers.google.com/analytics/devguides/collection/analyticsjs/cookies-user-id
+          #
+          # Simple session tracking - expire the session if not active for 20 minutes
+          set $session_id "$request_id";
+          if ($cookie_session) {
+            set $session_id "$cookie_session";
+          }
+          add_header Set-Cookie "session=$session_id;Path=/;Max-Age=1200;HttpOnly;Secure";
+          # Simple visitor tracking - immortal
+          set $visitor_id "$request_id";
+          if ($cookie_visitor) {
+            set $visitor_id "$cookie_visitor";
+          }
+          add_header Set-Cookie "visitor=$visitor_id;Path=/;Max-Age=36000000;HttpOnly;Secure";
           
           if ($cookie_access_token) {
               set $access_token "bearer $cookie_access_token";
@@ -238,6 +278,23 @@ data:
           proxy_set_header   Host $host;
           proxy_set_header   X-Forwarded-For "$realip";
           proxy_set_header   X-UserId "$userid";
+          # Can propagate this request id through downstream microservice requests for tracing
+          proxy_set_header   X-ReqId "$request_id";
+
+          #
+          # Accomodate large jwt token headers
+          # * http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size
+          # * https://ma.ttias.be/nginx-proxy-upstream-sent-big-header-reading-response-header-upstream/
+          #
+          proxy_buffer_size          16k;
+          proxy_buffers              8 16k;
+          proxy_busy_buffers_size    32k;
+          #
+          # also incoming from client:
+          # * https://fullvalence.com/2016/07/05/cookie-size-in-nginx/
+          # * https://nginx.org/en/docs/http/ngx_http_core_module.html#client_header_buffer_size
+          large_client_header_buffers 4 8k;
+          client_header_buffer_size 4k;
 
           #
           # CSRF check
@@ -258,7 +315,7 @@ data:
           include /etc/nginx/gen3.conf/*.conf;
 
           location @error401 {
-              return 302 /login;
+              return 302 $scheme://$host/login;
           }
       	}
       }
