@@ -15,7 +15,7 @@ gen3_load "gen3/gen3setup"
 if [[ -z "$GEN3_NOPROXY" ]]; then
   export http_proxy=${http_proxy:-'http://cloud-proxy.internal.io:3128'}
   export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
-  export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com'}
+  export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com,kibana.planx-pla.net'}
 fi
 
 
@@ -130,7 +130,7 @@ if ! grep GEN3_HOME /home/${namespace}/.bashrc > /dev/null 2>&1; then
   cat >> /home/${namespace}/.bashrc << EOF
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
-export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com'
+export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com,kibana.planx-pla.net'
 
 export KUBECONFIG=~/${vpc_name}/kubeconfig
 export GEN3_HOME=~/cloud-automation
