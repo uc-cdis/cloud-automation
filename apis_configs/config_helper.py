@@ -16,6 +16,8 @@ def default_search_folders(app_name):
     return [
         "%s/cdis/%s" % (XDG_DATA_HOME, app_name),
         "/usr/share/cdis/%s" % app_name,
+        "%s/gen3/%s" % (XDG_DATA_HOME, app_name),
+        "/usr/share/gen3/%s" % app_name,
         "/var/www/%s" % app_name,
         "/etc/gen3/%s" % app_name,
     ]
