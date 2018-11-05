@@ -1,4 +1,8 @@
 ---
+# invoke with:
+# gen3 runjob config-fence \
+#   CONVERT_OLD_CFG ""
+#
 # to attempt to convert old configuration invoke with:
 # gen3 runjob config-fence \
 #   CONVERT_OLD_CFG "true"

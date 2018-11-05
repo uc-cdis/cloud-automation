@@ -163,7 +163,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
       echo "job will inject creds.json into fence-config.yaml..."
       echo "NOTE: Some default config values from fence-config.yaml will be replaced"
       echo "      Run \"gen3 joblogs config-fence\" for details"
-      gen3 runjob config-fence
+      gen3 runjob config-fence CONVERT_OLD_CFG ""
 
       # dump fence-config secret into file so user can edit.
       let count=1
