@@ -3,6 +3,7 @@ import os
 import copy
 import argparse
 import re
+import types
 
 #
 # make it easy to change this for testing
@@ -89,7 +90,7 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
         config_file, "OPENID_CONNECT/google/client_id", google_client_id
     )
 
-    open(config_file_path, "w").write(config_file)
+    open(config_file_path, "w+").write(config_file)
 
 
 def set_prod_defaults(config_file_path):
@@ -145,7 +146,71 @@ def set_prod_defaults(config_file_path):
     print("  ENABLE_CSRF_PROTECTION set to true")
     config_file = _replace(config_file, "ENABLE_CSRF_PROTECTION", True)
 
-    open(config_file_path, "w").write(config_file)
+    open(config_file_path, "w+").write(config_file)
+
+
+def inject_other_files_into_fence_config(other_files, config_file_path):
+    additional_cfgs = _get_all_additional_configs(other_files)
+
+    config_file = open(config_file_path, "r").read()
+
+    for key, value in additional_cfgs.iteritems():
+        print("  {} set to {}".format(key, value))
+        config_file = _nested_replace(config_file, key, value)
+
+    open(config_file_path, "w+").write(config_file)
+
+
+def _get_all_additional_configs(other_files):
+    """
+    Attempt to parse given list of files and extract configuration variables and values
+    """
+    additional_configs = dict()
+    for file_path in other_files:
+        try:
+            file_ext = file_path.strip().split(".")[-1]
+            if file_ext == "json":
+                json_file = open(file_path, "r")
+                configs = json.load(json_file)
+                json_file.close()
+            elif file_ext == "py":
+                configs = from_pyfile(file_path)
+            else:
+                print(
+                    "Cannot load config vars from a file with extention: {}".format(
+                        file_ext
+                    )
+                )
+        except Exception as exc:
+            # if there's any issue reading the file, exit
+            print(
+                "Error reading {}. Cannot get configuration. Skipping this file. "
+                "Details: {}".format(other_files, str(exc))
+            )
+            raise
+            continue
+
+        if configs:
+            additional_configs.update(configs)
+
+    return additional_configs
+
+
+def _nested_replace(config_file, key, value, replacement_path=None):
+    replacement_path = replacement_path or key
+    try:
+        for inner_key, inner_value in value.iteritems():
+            temp_path = replacement_path
+            temp_path = temp_path + "/" + inner_key
+            config_file = _nested_replace(
+                config_file, inner_key, inner_value, temp_path
+            )
+    except AttributeError:
+        # not a dict so replace
+        if value is not None:
+            config_file = _replace(config_file, replacement_path, value)
+
+    return config_file
 
 
 def _replace(yaml_config, path_to_key, replacement_value, start=0, nested_level=0):
@@ -164,7 +229,9 @@ def _replace(yaml_config, path_to_key, replacement_value, start=0, nested_level=
 
     # our regex looks for a specific number of spaces to ensure correct
     # level of nesting. It matches to the end of the line
-    search_string = "  " * nested_level + ".*" + nested_path_to_replace[0] + ":.*\n"
+    search_string = (
+        "  " * nested_level + ".*" + nested_path_to_replace[0] + "(')?(\")?:.*\n"
+    )
     matches = re.search(search_string, yaml_config[start:])
 
     # early return if we haven't found anything
@@ -181,7 +248,7 @@ def _replace(yaml_config, path_to_key, replacement_value, start=0, nested_level=
             yaml_config[:match_start]
             + "{}: {}\n".format(
                 nested_path_to_replace[0],
-                _get_yaml_replacement_value(replacement_value),
+                _get_yaml_replacement_value(replacement_value, nested_level),
             )
             + yaml_config[match_end:]
         )
@@ -202,11 +269,52 @@ def _replace(yaml_config, path_to_key, replacement_value, start=0, nested_level=
     )
 
 
-def _get_yaml_replacement_value(value):
+def from_pyfile(filename, silent=False):
+    """
+    Modeled after flask's ability to load in python files:
+    https://github.com/pallets/flask/blob/master/flask/config.py
+
+    Some alterations were made but logic is essentially the same
+    """
+    filename = os.path.abspath(filename)
+    d = types.ModuleType("config")
+    d.__file__ = filename
+    try:
+        with open(filename, mode="rb") as config_file:
+            exec(compile(config_file.read(), filename, "exec"), d.__dict__)
+    except IOError as e:
+        print("Unable to load configuration file ({})".format(e.strerror))
+        if silent:
+            return False
+        raise
+    return _from_object(d)
+
+
+def _from_object(obj):
+    configs = {}
+    for key in dir(obj):
+        if key.isupper():
+            configs[key] = getattr(obj, key)
+    return configs
+
+
+def _get_yaml_replacement_value(value, nested_level=0):
     if isinstance(value, str):
         return "'" + value + "'"
     elif isinstance(value, bool):
         return str(value).lower()
+    elif isinstance(value, list) or isinstance(value, set):
+        output = ""
+        for item in value:
+            # spaces for nested level then spaces and hyphen for each list item
+            output += (
+                "\n"
+                + "  " * nested_level
+                + "  - "
+                + _get_yaml_replacement_value(item)
+                + ""
+            )
+        return output
     else:
         return value
 
@@ -245,10 +353,20 @@ if __name__ == "__main__":
         help="creds file to inject into the configuration yaml",
     )
     parser.add_argument(
+        "--other_files_to_inject",
+        nargs="+",
+        help="fence_credentials.json, local_settings.py, fence_settings.py file(s) to "
+        "inject into the configuration yaml",
+    )
+    parser.add_argument(
         "-c", "--config_file", default="config.yaml", help="configuration yaml"
     )
-
     args = parser.parse_args()
 
     inject_creds_into_fence_config(args.creds_file_to_inject, args.config_file)
     set_prod_defaults(args.config_file)
+
+    if args.other_files_to_inject:
+        inject_other_files_into_fence_config(
+            args.other_files_to_inject, args.config_file
+        )

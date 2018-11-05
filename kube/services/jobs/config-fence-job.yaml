@@ -1,4 +1,8 @@
 ---
+# to attempt to convert old configuration invoke with:
+# gen3 runjob config-fence \
+#   CONVERT_OLD_CFG "true"
+#
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -27,7 +31,20 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: CONVERT_OLD_CFG
+            GEN3_CONVERT_OLD_CFG
         volumeMounts:
+          # -----------------------------------------------------------------------------
+          # DEPRECATED! Remove when all commons are no longer using local_settings.py
+          #             for fence.
+          # -----------------------------------------------------------------------------
+          - name: old-config-volume
+            secret:
+              secretName: "fence-secret"
+          - name: json-secret-volume
+            secret:
+              secretName: "fence-json-secret"
+          # -----------------------------------------------------------------------------
           - name: "creds-volume"
             readOnly: true
             mountPath: "/var/www/fence/creds.json"
@@ -53,6 +70,17 @@ spec:
             else
               echo "ERROR: /var/www/fence/creds.json not found!"
               echo "       Only generating default config..."
+            fi
+
+            if [[ -n "$CONVERT_OLD_CFG" ]]; then
+              if [[ -f /var/www/fence/fence_settings.py ]]; then
+                echo ""
+                echo "injecting fence_settings.py into fence configuration..."
+                python /var/www/fence/config_helper.py --other_files_to_inject /var/www/fence/fence_settings.py
+              else
+                echo "ERROR: /var/www/fence/fence_settings.py not found!"
+                echo "       Cannot inject config vars, skipping..."
+              fi
             fi
 
             cp new-fence-config.yaml /mnt/shared/new-fence-config.yaml
