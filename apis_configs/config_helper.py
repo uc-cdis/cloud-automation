@@ -187,7 +187,6 @@ def _get_all_additional_configs(other_files):
                 "Error reading {}. Cannot get configuration. Skipping this file. "
                 "Details: {}".format(other_files, str(exc))
             )
-            raise
             continue
 
         if configs:
