@@ -90,12 +90,12 @@ spec:
             fi
 
             if [[ -n "$CONVERT_OLD_CFG" ]]; then
-              if [[ -f /var/www/fence/fence_settings.py ]]; then
+              if [[ -f /var/www/fence/local_settings.py ]]; then
                 echo ""
-                echo "injecting fence_settings.py into fence configuration..."
-                python /var/www/fence/config_helper.py --other_files_to_inject /var/www/fence/fence_settings.py
+                echo "injecting local_settings.py into fence configuration..."
+                python /var/www/fence/config_helper.py --other_files_to_inject /var/www/fence/local_settings.py
               else
-                echo "ERROR: /var/www/fence/fence_settings.py not found!"
+                echo "ERROR: /var/www/fence/local_settings.py not found!"
                 echo "       Cannot inject config vars, skipping..."
               fi
             fi
