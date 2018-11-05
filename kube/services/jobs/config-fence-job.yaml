@@ -93,7 +93,7 @@ spec:
               if [[ -f /var/www/fence/local_settings.py ]]; then
                 echo ""
                 echo "injecting local_settings.py into fence configuration..."
-                python /var/www/fence/config_helper.py --other_files_to_inject /var/www/fence/local_settings.py
+                python /var/www/fence/config_helper.py --other_files_to_inject /var/www/fence/local_settings.py -c new-fence-config.yaml
               else
                 echo "ERROR: /var/www/fence/local_settings.py not found!"
                 echo "       Cannot inject config vars, skipping..."
