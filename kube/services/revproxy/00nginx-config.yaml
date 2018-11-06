@@ -251,13 +251,13 @@ data:
           if ($cookie_session) {
             set $session_id "$cookie_session";
           }
-          add_header Set-Cookie "session=$session_id;Path=/;Max-Age=1200";
+          add_header Set-Cookie "session=$session_id;Path=/;Max-Age=1200;HttpOnly;Secure";
           # Simple visitor tracking - immortal
           set $visitor_id "$request_id";
           if ($cookie_visitor) {
             set $visitor_id "$cookie_visitor";
           }
-          add_header Set-Cookie "visitor=$visitor_id;Path=/;Max-Age=36000000";
+          add_header Set-Cookie "visitor=$visitor_id;Path=/;Max-Age=36000000;HttpOnly;Secure";
           
           if ($cookie_access_token) {
               set $access_token "bearer $cookie_access_token";
@@ -280,6 +280,21 @@ data:
           proxy_set_header   X-UserId "$userid";
           # Can propagate this request id through downstream microservice requests for tracing
           proxy_set_header   X-ReqId "$request_id";
+
+          #
+          # Accomodate large jwt token headers
+          # * http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffer_size
+          # * https://ma.ttias.be/nginx-proxy-upstream-sent-big-header-reading-response-header-upstream/
+          #
+          proxy_buffer_size          16k;
+          proxy_buffers              8 16k;
+          proxy_busy_buffers_size    32k;
+          #
+          # also incoming from client:
+          # * https://fullvalence.com/2016/07/05/cookie-size-in-nginx/
+          # * https://nginx.org/en/docs/http/ngx_http_core_module.html#client_header_buffer_size
+          large_client_header_buffers 4 8k;
+          client_header_buffer_size 4k;
 
           #
           # CSRF check

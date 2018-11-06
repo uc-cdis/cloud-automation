@@ -16,7 +16,9 @@ if (! g3kubectl --namespace=kube-system get daemonset fluentd > /dev/null 2>&1) 
     export KUBECTL_NAMESPACE=kube-system  
     gen3 update_config fluentd-gen3 "${GEN3_HOME}/kube/services/fluentd/gen3.conf"
     g3kubectl apply -f "${GEN3_HOME}/kube/services/fluentd/fluentd-serviceaccount.yaml"
-    g3kubectl "--namespace=kube-system" delete daemonset fluentd
+    if g3kubectl --namespace=kube-system get daemonset fluentd > /dev/null 2>&1; then
+      g3kubectl "--namespace=kube-system" delete daemonset fluentd
+    fi
     (unset KUBECTL_NAMESPACE; gen3 gitops filter "${GEN3_HOME}/kube/services/fluentd/fluentd.yaml" GEN3_LOG_GROUP_NAME "${vpc_name}") | g3kubectl "--namespace=kube-system" apply -f -
   )
 else

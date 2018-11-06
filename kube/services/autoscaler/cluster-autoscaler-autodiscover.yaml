@@ -139,7 +139,7 @@ spec:
             - --expander=least-waste
             # - --skip-nodes-with-system-pods=false
             - --scale-down-delay-after-add=7m
-            - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,kubernetes.io/cluster/VPC_NAME
+            - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-type/eks,kubernetes.io/cluster/VPC_NAME
           env:
             - name: AWS_REGION
               value: us-east-1
