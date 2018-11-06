@@ -143,7 +143,7 @@ declare -a gen3_gitops_repolist_arr=(
   uc-cdis/data-portal
   uc-cdis/sheepdog
   uc-cdis/tube
-  #frickjack/misc-stuff - just for testing
+  frickjack/misc-stuff  # just for testing
 )
 
 #
@@ -262,21 +262,25 @@ gen3_gitops_repo_dotag() {
     echo "New tag: $nextVer" 1>&2
     sleep 5   # give the user a couple seconds to see the current tag list, etc
     git tag -d "$nextVer" > /dev/null 2>&1 || true
-    if ! git tag -a -e -m "# chore(tag $nextVer): leave the # to abort" "$nextVer"; then
-      echo -e "$(red_color "gen3_gitops_repo_tag abort")" 1>&2
+    commentFile=$(mktemp "$XDG_RUNTIME_DIR/gitco.txt.XXXXXX")
+    echo "chore(tag $nextVer): save an empty file to abort" > "$commentFile"
+    EDITOR="${EDITOR:-vi}"
+    "${EDITOR}" "$commentFile"
+    if [[ 4 -gt "$(stat "--format=%s" "$commentFile")" ]]; then
+      echo -e "$(red_color "ERROR: aborting tag - empty comment")" 1>&2
+      rm "$commentFile"
       return 1
     fi
-    if git tag -l -n 1 "$nextVer" | grep -E "^$nextVer  *[^# ].*$"; then # tag comment does not have #
-      if git push ssh "$nextVer"; then
-        # refresh taglist cache
-        gen3 gitops taglist --force
-      else
-        echo -e "$(red_color "failed to push $nextVer tag to github")" 1>&2
-        git tag -d "$nextVer"
-        return 1
-      fi
+    if ! git tag -a -F "$commentFile" "$nextVer"; then
+      echo -e "$(red_color "git tag command failed")" 1>&2
+      return 1
+    fi
+    rm "$commentFile"
+    if git push ssh "$nextVer"; then
+      # refresh taglist cache
+      gen3 gitops taglist --force
     else
-      echo -e "$(red_color "ERROR: aborting tag annotated with #")" 1>&2
+      echo -e "$(red_color "failed to push $nextVer tag to github")" 1>&2
       git tag -d "$nextVer"
       return 1
     fi
