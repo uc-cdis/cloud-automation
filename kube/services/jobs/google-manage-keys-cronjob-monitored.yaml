@@ -8,7 +8,7 @@ spec:
   schedule: "@hourly"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
-  jobTemplate: 
+  jobTemplate:
     spec:
       # not yet supported - backOffLimit: 3
       template:
@@ -43,7 +43,7 @@ spec:
               emptyDir: {}
           containers:
           - name: fence
-            image: quay.io/cdis/fence:master
+            GEN3_FENCE_IMAGE
             imagePullPolicy: Always
             env:
               - name: PYTHONPATH
