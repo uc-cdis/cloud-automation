@@ -63,6 +63,8 @@ For example - `gen3 help aws` opens `aws.md`
 
 ## Overview
 
+* [gen3 install and overview](../gen3/README.md)
+* [gen3 kube/ yaml template processing](../kube/README.md)
 * [arranger configuration](../kube/services/arranger/README.md)
 * [tube configuration](../kube/services/tube/README.md)
 * [running the arranger dashboard](../kube/services/arranger-dashboard/README.md)

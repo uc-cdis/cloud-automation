@@ -199,48 +199,14 @@ Apply the last plan from `gen3 tfplan`, and perform supporting tasks:
 * auto-generate entries for ~/.ssh/config if not already present
 * rsync the terraform generated _output/ scripts to the k8s provisioner
 
-### gen3 tfoutput
 
-A wrapper around [terraform output](https://www.terraform.io/intro/getting-started/outputs.html).  Ex:
+### gen3 g3k_testsuite
 
-```
-$ gen3 tfoutput ssh_config
-Host login.planxplanetv1
-   ServerAliveInterval 120
-   HostName XX.XXX.XXX.XXX
-   User ubuntu
-   ForwardAgent yes
-
-Host k8s.planxplanetv1
-   ServerAliveInterval 120
-   HostName 172.XX.XX.XX
-   User ubuntu
-   ForwardAgent yes
-   ProxyCommand ssh ubuntu@login.planxplanetv1 nc %h %p 2> /dev/null
-
-```
+Test suite with mocks that work for local unit testing.
 
 ### gen3 testsuite
 
-Run the test suite.  Requires a 'cdistest' profile.
-
-
-### roll
-`gen3 roll $DEPLOYMENT_NAME` updates the deployed pods to the 
-docker image currently referenced by `cdis-manifest` - 
-forces the pod to update even if the image tag has not changed.
-The [kube/README](../kube/README.md) has details on the simple template
-processing that `gen3 roll` applies to each `-deploy.yaml` file.
-
-ex: `gen3 roll fence`
-
-Also, `gen3 roll all` rolls all services in order, and creates missing
-secrets and configuration if the `~/${vpc_name}/creds.json` and
-similar files are present.
-
-
-### update_config
-`gen3 update_config $CONFIG_NAME $CONFIG_FILE` this will delete old configmap and create new configmap with updated content
+Test suite assumes AWS and terraform access.
 
 ### devterm
 Open a bash shell on the cluster in an `awshelper` container: `gen3 devterm`
