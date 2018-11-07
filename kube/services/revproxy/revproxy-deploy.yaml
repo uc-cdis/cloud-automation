@@ -74,7 +74,7 @@ spec:
           - name: CANARY_PERCENT_JSON
             valueFrom:
               configMapKeyRef:
-                name: manifest-canary-percent
+                name: manifest-canary
                 key: json
         volumeMounts:
           - name: "revproxy-conf"

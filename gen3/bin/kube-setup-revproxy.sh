@@ -28,7 +28,7 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
 done
 #echo "${confFileList[@]}" $BASHPID
 
-gen3 gitops configmaps
+gen3 kube-setup-secrets
 gen3 update_config revproxy-nginx-conf "${scriptDir}/nginx.conf"
 gen3 update_config revproxy-helper-js "${scriptDir}/helpers.js"
 
