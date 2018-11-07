@@ -7,6 +7,7 @@ spec:
     # Only select pods based on the 'app' label
     matchLabels:
       app: peregrine
+      release: canary
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
