@@ -132,28 +132,3 @@ with `value: VALUE1`.  A `...-job.yaml` template might look like this:
 ...
 ```
 
-## CSOC
-
-We interact with a commons' kubernetes cluster from the 
-[CSOC adminvm](https://github.com/uc-cdis/cdis-wiki/blob/master/ops/CSOC_Documentation.md) 
-associated with a commons.
-
-Use the [gen3](../gen3/README.md) helper to execute PlanX workflows for deploying infrastructure
-and managing kubernetes resources.
-
-
-### Services
-#### [fence](https://github.com/uc-cdis/fence)
-The authentication and authorization provider.
-#### [fence](https://github.com/uc-cdis/gen3-arranger)
-Provides `graphql` endpoint backed by elastic search.
-#### [indexd](https://github.com/LabAdvComp/indexd)
-ID service that tracks all data blobs in different storage locations
-#### [peregrine](https://github.com/uc-cdis/peregrine/)
-API for querying graph data model that stores the metadata for this cluster.
-#### [pidgin](https://github.com/uc-cdis/pidgin/)
-Provides endpoints that simplify coremetadata retrieval from peregrine.
-#### [sheepdog](https://github.com/uc-cdis/sheepdog/)
-API for submitting data model that stores the metadata for this cluster.
-#### [data-portal](https://github.com/uc-cdis/data-portal)
-Portal to browse and submit metadata.

@@ -314,6 +314,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "raw")
       gen3_logs_rawlog_search "$@"
       ;;
+    "rawq")  # echo raw query - mostly for test suite
+      gen3_logs_rawlog_query "$@"
+      ;;
     "vpc")
       gen3_logs_vpc_list "$@"
       ;;
