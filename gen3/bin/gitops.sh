@@ -246,6 +246,10 @@ gen3_gitops_repo_dotag() {
     echo -e "$(red_color "ERROR: invalid repo name: $repoName")" 1>&2
     return 1
   fi
+  if [[ ! -d "$cacheDir" ]]; then
+    echo -e "$(red_color "ERROR: $cacheDir does not exist")"
+    return 1
+  fi
   # taglist guarantees tags of form #.#.#(-...)?
   nextVer="$(gen3 gitops taglist | grep "$repoName" | awk '{ print $2 }')"
   if [[ -z "$nextVer" ]]; then
@@ -259,6 +263,10 @@ gen3_gitops_repo_dotag() {
   fi
   (
     cd "$cacheDir"
+    if ! git pull --prune; then
+      echo -e "$(red_color "ERROR: failed to pull latest code from github")"
+      return 1
+    fi
     echo "New tag: $nextVer" 1>&2
     sleep 5   # give the user a couple seconds to see the current tag list, etc
     git tag -d "$nextVer" > /dev/null 2>&1 || true

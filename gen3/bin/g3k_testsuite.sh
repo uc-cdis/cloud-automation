@@ -1,6 +1,10 @@
 #
 # Run with: bash g3k_testsuite.sh
-# Assume we're running in the directory for now ...
+#
+# NOTE: The tests in this testsuite.sh require a particular test environment
+# that can run terraform and interact with kubernetes.
+# The tests in g3k_testsuite.sh should run anywhere.
+#
 #
 source "$GEN3_HOME/gen3/lib/utils.sh"
 
@@ -8,6 +12,28 @@ export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
 
 gen3_load "gen3/lib/shunit"
 gen3_load "gen3/gen3setup"
+
+test_semver() {
+  semver_ge "1.1.1" "1.1.0"; because $? "1.1.1 -ge 1.1.0"
+  ! semver_ge "1.1.0" "1.1.1"; because $? "! 1.1.0 -ge 1.1.1"
+  semver_ge "2.0.0" "1.10.22"; because $? "2.0.0 -ge 1.10.22"
+}
+
+test_colors() {
+  expected="red red red"
+  redTest=$(red_color "$expected")
+  
+  echo -e "red test: $redTest"
+  # test does not work in zsh
+  [[  -z "${BASH_VERSION}" || "$redTest" ==  "${RED_COLOR}${expected}${DEFAULT_COLOR}" ]]; because $? "Calling red_color returns red-escaped string: $redTest ?= $expected";
+
+  expected="green green green"
+  greenTest=$(red_color "$expected")
+  echo -e "green test: $greenTest"
+  echo "green test: $greenTest"
+  # test does not work in zsh
+  [[ -z "${BASH_VERSION}" || "$greenTest" == "$RED_COLOR${expected}$DEFAULT_COLOR" ]]; because $? "Calling green_color returns green-escaped string: $greenTest ?= $expected";
+}
 
 test_env() {
   [[ ! -z $GEN3_HOME ]]; because $? "kubes.sh defines the GEN3_HOME environment variable"
@@ -167,6 +193,8 @@ test_gitops_logs() {
   gen3 logs vpc | grep -E '^devplanetv1 '; because $? "gen3 logs vpc should include the devplanetv1 vpc environment/log group"
 }
 
+shunit_runtest "test_semver"
+shunit_runtest "test_colors"
 shunit_runtest "test_env"
 shunit_runtest "test_mpath"
 shunit_runtest "test_mfilter"
