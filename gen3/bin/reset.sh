@@ -14,19 +14,27 @@ fi
 
 gen3 klock lock reset-lock gen3-reset 3600 -w 60
 
-g3kubectl delete --all deployments --namespace=$KUBECTL_NAMESPACE
+echo -e "$(red_color "WARNING: about to drop the $db_name database from the $service postgres server - proceed?")"
+read -r redno
+echo $redno
 
-# drop and recreate all the postgres databases
-services=( fence sheepdog indexd )
-for service in ${services[@]}; do
-    echo $service
-    echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBECTL_NAMESPACE;" | gen3 psql $service
-done
+if [[ -f "${WORKSPACE}/${vpc_name}/.rendered_gdcapi_db" ]]; then
+    echo "deleting .rendered_gdcapi_db flag file"
+    # rm "${WORKSPACE}/${vpc_name}/.rendered_gdcapi_db"
+fi
+# g3kubectl delete --all deployments --namespace=$KUBECTL_NAMESPACE
 
-gen3 roll all
-gen3 kube-wait4-pods
-gen3 runjob gdcdb-create; gen3 runjob indexd-userdb; gen3 runjob usersync
-gen3 kube-wait4-pods
-gen3 roll all
+# # drop and recreate all the postgres databases
+# services=( fence sheepdog indexd )
+# for service in ${services[@]}; do
+#     echo $service
+#     echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBECTL_NAMESPACE;" | gen3 psql $service
+# done
+
+# gen3 roll all
+# gen3 kube-wait4-pods
+# gen3 job run gdcdb-create; gen3 job run indexd-userdb; gen3 job run usersync
+# gen3 kube-wait4-pods
+# gen3 roll all
 
 gen3 klock unlock reset-lock gen3-reset
