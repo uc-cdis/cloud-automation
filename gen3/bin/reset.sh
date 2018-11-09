@@ -14,13 +14,17 @@ fi
 
 gen3 klock lock reset-lock gen3-reset 3600 -w 60
 
-echo -e "$(red_color "WARNING: about to drop the $db_name database from the $service postgres server - proceed?")"
-read -r redno
-echo $redno
+echo -e "$(red_color "WARNING: about to drop the $db_name database from the $service postgres server - proceed?(Y/N)")"
+read -r yesno
+if [[ yesno == "N" ]]; then
+    exit 1
+fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/.rendered_gdcapi_db" ]]; then
     echo "deleting .rendered_gdcapi_db flag file"
     # rm "${WORKSPACE}/${vpc_name}/.rendered_gdcapi_db"
+else 
+    echo "something wrong with flag file detection"
 fi
 # g3kubectl delete --all deployments --namespace=$KUBECTL_NAMESPACE
 
