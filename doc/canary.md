@@ -8,7 +8,7 @@ To change the branch a canary service is pointing to, just edit the `<service>-c
 
 To change the probability that a client is directed to the canary service:
 * update the service's value in the `canary` section of the manifest. Provide an integer between 0 and 100, where 0 means 0% of clients are directed to the canary, and 100 means 100% of the clients are directed to the canary service
-* update the configmap to match your new weights, run `gen3 kube-setup-revproxy`
+* deploy the reverse proxy, run `gen3 kube-setup-revproxy`
 
 To create a new canary release of a service:
 * copy the deployment and service yaml files into the same directory with name `<service>-canary-<deployment/service>.yaml
