@@ -19,6 +19,7 @@ echo -e "$(red_color "WARNING: about to drop the $db_name database from the $ser
 read -r yesno
 if [[ $yesno = "n" ]]; then
     echo "detected yesno value as 'n'"
+    gen3 klock unlock reset-lock gen3-reset
     exit 1
 fi
 
