@@ -17,10 +17,12 @@ fi
 wait_for_pods_down() {
     echo "entered wait"
     podsDownFlag=1
-    while [[ podsDownFlag == 0 ]]; do
+    while [[ podsDownFlag -ne 0 ]]; do
         g3kubectl get pods
         if [[ 0 == "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.labels.app } ] | map(select(.name=="fence" or .name=="sheepdog" or .name=="peregrine" or .name=="indexd")) | length')" ]]; then
             let podsDownFlag=0
+        else
+            sleep 10
         fi
     done
     return 0
