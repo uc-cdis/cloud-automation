@@ -29,14 +29,14 @@ for serviceCred in ${serviceCreds[@]}; do
     dbname=$(g3kubectl get secrets $serviceCred -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_database)
     # echo $service
     echo "$KUBECTL_NAMESPACE"
-    stripped=${dbname%-creds}
+    stripped=${serviceCred%-creds}
     echo $stripped
 #     echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBECTL_NAMESPACE;" | gen3 psql $service
 
     echo -e "$(red_color "WARNING: about to drop the $db_name database from the $service postgres server - proceed? (y/n)")"
     read -r yesno
     if [[ $yesno = "n" ]]; then
-        echo "'n' detected, Unlocking klock and aborting"
+        echo "'n' detected, unlocking klock and aborting"
         gen3 klock unlock reset-lock gen3-reset
         exit 1
     fi
