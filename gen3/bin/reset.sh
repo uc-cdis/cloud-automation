@@ -17,7 +17,8 @@ gen3 klock lock reset-lock gen3-reset 3600 -w 60
 
 echo -e "$(red_color "WARNING: about to drop the $db_name database from the $service postgres server - proceed? (y/n)")"
 read -r yesno
-if [[ yesno = "n" ]]; then
+if [[ $yesno = "n" ]]; then
+    echo "detected yesno value as 'n'"
     exit 1
 fi
 
@@ -34,7 +35,7 @@ fi
 serviceCreds=( fence-creds sheepdog-creds indexd-creds )
 for serviceCred in ${serviceCreds[@]}; do
     echo $serviceCred
-    service=$(kubectl get secrets $serviceCred -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_database)
+    service=$(g3kubectl get secrets $serviceCred -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_database)
     echo $service
     echo "$KUBECTL_NAMESPACE"
 #     echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBECTL_NAMESPACE;" | gen3 psql $service
