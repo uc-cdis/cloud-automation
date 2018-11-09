@@ -20,6 +20,7 @@ if [[ yesno == "N" ]]; then
     exit 1
 fi
 
+echo "${WORKSPACE}/${vpc_name}/.rendered_gdcapi_db"
 if [[ -f "${WORKSPACE}/${vpc_name}/.rendered_gdcapi_db" ]]; then
     echo "deleting .rendered_gdcapi_db flag file"
     # rm "${WORKSPACE}/${vpc_name}/.rendered_gdcapi_db"
@@ -29,11 +30,13 @@ fi
 # g3kubectl delete --all deployments --namespace=$KUBECTL_NAMESPACE
 
 # # drop and recreate all the postgres databases
-# services=( fence sheepdog indexd )
-# for service in ${services[@]}; do
-#     echo $service
+serviceCreds=( fence-creds sheepdog-creds indexd-creds )
+for serviceCred in ${serviceCreds[@]}; do
+    echo $serviceCred
+    kubectl get secrets serviceCred -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_database
+    echo "$KUBECTL_NAMESPACE"
 #     echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBECTL_NAMESPACE;" | gen3 psql $service
-# done
+done
 
 # gen3 roll all
 # gen3 kube-wait4-pods
