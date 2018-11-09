@@ -5,6 +5,7 @@
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
+gen3_load "gen3/lib/kube-setup-init"
 
 # make sure KUBECTL_NAMESPACE env var is set (defaults to current namespace)
 if [[ -z $KUBECTL_NAMESPACE ]]; then
@@ -33,7 +34,7 @@ fi
 serviceCreds=( fence-creds sheepdog-creds indexd-creds )
 for serviceCred in ${serviceCreds[@]}; do
     echo $serviceCred
-    kubectl get secrets serviceCred -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_database
+    kubectl get secrets $serviceCred -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_database
     echo "$KUBECTL_NAMESPACE"
 #     echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBECTL_NAMESPACE;" | gen3 psql $service
 done
