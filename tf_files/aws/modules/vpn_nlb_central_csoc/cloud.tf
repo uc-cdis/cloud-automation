@@ -294,7 +294,9 @@ resource "aws_launch_configuration" "vpn_nlb" {
   key_name = "${var.ssh_key_name}"
   iam_instance_profile   = "${aws_iam_instance_profile.vpn-nlb_role_profile.id}"
   associate_public_ip_address = true
-  
+  root_block_device {
+    volume_size = 30
+  }  
 
   depends_on = ["aws_iam_instance_profile.vpn-nlb_role_profile"]
  #depends_on = ["aws_iam_instance_profile.vpn-certs-and-files_reader"]
