@@ -79,14 +79,14 @@ function MathAbs(x) {
  * Source: http://pmav.eu/stuff/javascript-hashing-functions/source.html
  *
  * @param s - string to hash
- * @param size - range to hash into
  */
-function simpleHash(s, size) {
+function simpleHash(s) {
   var i, hash = 0;
   for (i = 0; i < s.length; i++) {
     hash += (s[i].charCodeAt() * (i+1));
   }
-  return MathAbs(hash) % size;
+  // mod 100 b/c we want a percentage range (ie 0-99)
+  return MathAbs(hash) % 100;
 }
 
 /**
@@ -98,55 +98,69 @@ function simpleHash(s, size) {
  * @param default_weight - if service_weight is undefined, compare hash to this value
  * @returns {string} - release
  */
-function selectRelease(hash_res, service_weight, default_weight) {
+function selectRelease(hash_res, w) {
   // determine release by comparing hash val to service weight
-  // if service weight is not defined use default value
-  service_weight = typeof service_weight === 'undefined' ? default_weight : service_weight;
-  if (hash_res < parseInt(service_weight)) {
-    return 'canary';
+  return hash_res < parseInt(w) ? 'canary' : 'production';
+}
+
+function getWeight(service, weights) {
+  return weights[service] ? weights[service] : weights['default'];
+}
+
+function releasesObjToString(releases) {
+  var res = '';
+  for (var service in releases) {
+    if (releases.hasOwnProperty(service)) {
+      res = res + service + '.' + releases[service] + '&';
+    }
   }
-  return 'production';
+  return res;
 }
 
 /**
  * Checks cookie for service release versions and assigns
  *   release versions for services not in the cookie based
  *   on hash value and the percent weight of the canary.
+ *   If the weight for a service is 0, it ignores the cookie
+ *   and sets the release to production.
  * Returns a string of service assignments. E.g:
  *   "fence.canary&sheepdog.production&"
  *
  * @param req - nginx request object
  */
 function getServiceReleases(req) {
-
+  // client cookie containing releases
   var release_cookie = req.variables['cookie_service_releases'] || '';
+  // services to assign to a service (edit this if adding a new canary service)
   var services = ['fence', 'sheepdog', 'indexd', 'peregrine'];
+  // weights for services - if given a default weight, use it; else use the default weight from this file
   var canary_weights = JSON.parse(req.variables['canary_percent_json']);
-  var hash_res;
+  canary_weights['default'] = canary_weights['default'] ? parseInt(canary_weights['default']) : DEFAULT_WEIGHT;
+  // the string to be hashed
+  var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
+  var hash_res = -1;
 
-  // if given a default weight, use it; else use the default weight from this file
-  var default_weight = parseInt(canary_weights['default']);
-  default_weight = default_weight ? default_weight : DEFAULT_WEIGHT;
-
-  // if release for a service is not in the cookie, select one by hashing user info
-  var updated_release = "";
+  // for each service:
+  //   if it's weight == 0, ignore the cookie and set release to production
+  //   else if it's in the cookie, use that release
+  //   else select one by hashing and comparing to weight
+  var updated_releases = {};
   for (var i=0; i < services.length; i++) {
-    var name = services[i];
-    var release_val = release_cookie.match(name+'\.(production|canary)');
-    if (!release_val) {
+    var service = services[i];
+    var parsed_release = release_cookie.match(service+'\.(production|canary)');
+    if (getWeight(service, canary_weights) === 0) {
+      updated_releases[service] = 'production';
+    } else if (!parsed_release) {
       // if we haven't yet generated a hash value, do that now
-      if (typeof hash_res === 'undefined') {
-        // hash user info to get a value between 0 and 99
-        var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
-        hash_res = simpleHash(hash_str, 100);
+      if (hash_res < 0) {
+        hash_res = simpleHash(hash_str);
       }
-      var selected_release = selectRelease(hash_res, canary_weights[name], default_weight);
-      updated_release = updated_release + name + '.' + selected_release + '&';
+      updated_releases[service] = selectRelease(hash_res, getWeight(service, canary_weights));
     } else {
       // append the matched values from the cookie
-      updated_release = updated_release + release_val[0] + "&";
+      updated_releases[service] = parsed_release[1];
     }
   }
 
-  return updated_release
+  return releasesObjToString(updated_releases);
 }

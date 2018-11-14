@@ -146,4 +146,18 @@ describe("Nginx helper function", function() {
     expect(serviceReleases).toMatch('fence.production');
   });
 
+  it("getServiceReleases sets service to production when weight is 0", function() {
+    // set fence to canary, and weight to 0 - should ignore the cookie and set to production
+    const cookie = 'fence.canary';
+    let nginxRequest = {
+      variables: {
+        cookie_service_releases: cookie,
+        canary_percent_json: '{ "fence": 0 }', // provide no weights - script should use it's default
+        ...propertiesForHash
+      }
+    };
+
+    const serviceReleases = getServiceReleases(nginxRequest);
+    expect(serviceReleases).toMatch('fence.production');
+  });
 });
