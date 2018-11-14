@@ -29,6 +29,14 @@ resource "aws_iam_user_policy" "fence-bot_policy" {
       ],
       "Effect": "Allow",
       "Resource": ["${data.aws_s3_bucket.data-bucket.arn}/*"]
+    },
+    {
+       "Action": [
+         "s3:List*",
+         "s3:Get*"
+       ],
+      "Effect": "Allow",
+      "Resource": ["${data.aws_s3_bucket.data-bucket.arn}/*", "${data.aws_s3_bucket.data-bucket.arn}"]
     }
   ]
 }
