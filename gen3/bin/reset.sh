@@ -26,6 +26,7 @@ wait_for_pods_down() {
             echo "pods not done terminating, waiting"
         fi
     done
+    return 0
 }
 
 
@@ -38,8 +39,8 @@ fi
 
 g3kubectl delete --all deployments --namespace=$KUBECTL_NAMESPACE
 wait_for_pods_down
-
-# # drop and recreate all the postgres databases
+echo "done with wait"
+# drop and recreate all the postgres databases
 serviceCreds=( fence-creds sheepdog-creds indexd-creds )
 for serviceCred in ${serviceCreds[@]}; do
     dbName=$(g3kubectl get secrets $serviceCred -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_database)
