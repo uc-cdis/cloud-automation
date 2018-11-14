@@ -6,11 +6,7 @@ resource "aws_cloudtrail" "logger_trail" {
   s3_key_prefix                 = "trail-logs"
   include_global_service_events = false
   cloud_watch_logs_role_arn     = "${aws_iam_role.cloudtrail_to_clouodwatch_writer.arn}"
-  #cloud_watch_logs_group_arn    = "${aws_cloudwatch_log_group.main_log_group.arn}"
-  #cloud_watch_logs_group_arn    = "${var.cloudwatchlogs_group_arn}"
-  #cloud_watch_logs_group_arn    = "${data.aws_cloudwatch_log_group.logs_destination.arn}"
   cloud_watch_logs_group_arn    = "${var.cloudwatchlogs_group}"
-  #cloud_watch_logs_group_arn    = "fauziv1"
 
   event_selector {
     read_write_type = "All"
