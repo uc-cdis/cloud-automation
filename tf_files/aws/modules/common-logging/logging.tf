@@ -230,7 +230,7 @@ resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
     role_arn              = "${aws_iam_role.firehose_role.arn}"
     index_name            = "${var.common_name}"
     type_name             = "${var.common_name}"
-    index_rotation_period = "OneMonth"
+    index_rotation_period = "OneWeek"
 
     cloudwatch_logging_options {
       enabled         = true

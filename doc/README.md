@@ -12,7 +12,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [arun](./arun.md)
 * [devterm](./devterm.md)
 * [es](./es.md) - elastic search
-* [gitops](./gitops.md) - manifest filter, configmaps, sync, etc
+* [gitops](./gitops.md) - manifest filter, configmaps, sync, tagging releases, etc
 * [ec2_reboot](./ec2_reboot.md)
 * [job logs|pods|run](./job.md)
 * [joblogs](./job.md) - see [job logs](./job.md)
@@ -63,6 +63,8 @@ For example - `gen3 help aws` opens `aws.md`
 
 ## Overview
 
+* [gen3 install and overview](../gen3/README.md)
+* [gen3 kube/ yaml template processing](../kube/README.md)
 * [arranger configuration](../kube/services/arranger/README.md)
 * [tube configuration](../kube/services/tube/README.md)
 * [running the arranger dashboard](../kube/services/arranger-dashboard/README.md)

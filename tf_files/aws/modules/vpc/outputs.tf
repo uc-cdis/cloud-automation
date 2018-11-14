@@ -72,3 +72,19 @@ output "es_user_key" {
 output "es_user_key_id" {
   value = "${aws_iam_access_key.es_user_key.id}"
 }
+
+output "cwlogs" {
+  value = "${aws_cloudwatch_log_group.main_log_group.arn}"
+}
+
+output "fence-bot_id" {
+  value = "${module.fence-bot-user.fence-bot_id}"
+}
+
+output "fence-bot_secret" {
+  value = "${module.fence-bot-user.fence-bot_secret}"
+}
+
+output "data-bucket_name" {
+  value = "${module.data-bucket.data-bucket_name}"
+}

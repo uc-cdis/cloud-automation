@@ -87,7 +87,7 @@ sync_dict_and_versions() {
 #
 # g3k command to create configmaps from manifest
 #
-g3k_gitops_configmaps() {
+gen3_gitops_configmaps() {
   local manifestPath
   manifestPath=$(g3k_manifest_path)
   if [[ ! -f "$manifestPath" ]]; then
@@ -131,6 +131,179 @@ g3k_gitops_configmaps() {
   done
 }
 
+declare -a gen3_gitops_repolist_arr=(
+  uc-cdis/arborist
+  uc-cdis/fence
+  uc-cdis/peregrine
+  uc-cdis/gen3-arranger
+  uc-cdis/gen3-spark
+  uc-cdis/indexd
+  uc-cdis/docker-nginx
+  uc-cdis/pidgin
+  uc-cdis/data-portal
+  uc-cdis/sheepdog
+  uc-cdis/tube
+  #frickjack/misc-stuff  # just for testing
+)
+
+#
+# List the releases for the given git repo.
+# Note that this very quickly runs into rate-limiting, so cache result aggressively:
+#    https://developer.github.com/v3/#rate-limiting
+#
+# @param --force to ignore cache
+# @return echo list of top 5 semver tags in form: "repo tag1 tag2 ..."
+#
+gen3_gitops_repo_taglist() {
+  local repoPath
+  local repoList
+  local url
+  local cacheDir
+  cacheDir="${GEN3_CACHE_DIR}/gitRepos"
+  mkdir -p "$cacheDir"
+  local cacheFile
+  cacheFile="${cacheDir}/tagListCache.ssv"
+  local useCache
+  useCache=true
+  local baseName
+
+  if [[ "$1" =~ -*force ]]; then
+    useCache=""
+    shift
+  fi
+  if [[ "$1" =~ -*help ]]; then
+    help
+    return 1
+  fi
+
+  if [[ ! (-f "$cacheFile" && $(($(stat --format=%Y "$cacheFile")+120)) -gt $(date +%s)) ]]; then
+    # cache is not fresh (2 minutes old)
+    useCache=""
+  fi
+  if [[ -z "$useCache" ]]; then
+    if [[ -f "$cacheFile" ]]; then
+      rm "$cacheFile"
+    fi
+    # repoList="$@" - let's not do this - user can grep himself
+    repoList="${gen3_gitops_repolist_arr[@]}"
+    #echo "Scanning repolist: ${repoList}" 1>&2
+    for repoPath in $repoList; do
+      baseName="$(basename "$repoPath")"
+
+      if [[ ! "$repoPath" =~ ./. ]]; then
+        repoPath="uc-cdis/$repoPath"
+      fi
+      (
+        cd "$cacheDir"
+        result="$repoPath"
+        if [[ ! -d "./$baseName" ]]; then
+          git clone "https://github.com/${repoPath}.git" 1>&2
+          cd "$baseName"
+          git remote add ssh "git@github.com:${repoPath}.git" 1>&2
+        else
+          cd "$baseName"
+          git fetch --prune 1>&2
+        fi
+        git ls-remote --tags 2> /dev/null | awk '{ str=$2; sub(/.*\//, "", str); print str }' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9_]+)?$' | sort -Vr | head -5 | (
+          while read -r tag; do
+            result="$result $tag"
+          done
+          echo "$result" >> "$cacheFile"
+        )
+      )
+      # Querying via the API hits anonymous rate limit quickly
+      #url="https://api.github.com/repos/${repoPath}/tags"
+      #echo "Scanning $repoPath - $url" 1>&2
+    done
+  else
+    echo -e "$(green_color "INFO: using cache at $cacheFile, use --force to bypass")" 1>&2
+  fi
+  echo "" 1>&2  # blank line
+  cat "$cacheFile"
+  return $?
+}
+
+
+#
+# Generate and push a new tag.
+# Requires the user to have ssh write access to the github repo.
+#
+# @param repoName like fence
+#
+gen3_gitops_repo_dotag() {
+  local repoName
+  repoName="$1"
+  local cacheDir
+  local nextVer
+  nextVer="1.0.0"
+  cacheDir="${GEN3_CACHE_DIR}/gitRepos/$repoName"
+
+  if [[ -z "$repoName"  || "$repoName" =~ -*help ]]; then
+    help
+    return 0
+  fi
+  if ! (gen3_gitops_repo_taglist --force | grep "$repoName"); then
+    echo -e "$(red_color "ERROR: invalid repo name: $repoName")" 1>&2
+    return 1
+  fi
+  if [[ ! -d "$cacheDir" ]]; then
+    echo -e "$(red_color "ERROR: $cacheDir does not exist")"
+    return 1
+  fi
+  # taglist guarantees tags of form #.#.#(-...)?
+  nextVer="$(gen3 gitops taglist | grep "$repoName" | awk '{ print $2 }')"
+  if [[ -z "$nextVer" ]]; then
+    nextVer="1.0.0"
+  else
+    nextVer="$(
+      prefix="$(echo $nextVer | sed -e 's/[^\.]*$//')"
+      patchNum="$(echo $nextVer | sed -e 's/^.*\.//' | sed -e 's/-.*$//')"
+      echo "${prefix}$(($patchNum+1))"
+    )"
+  fi
+  (
+    cd "$cacheDir"
+    if ! git pull --prune; then
+      echo -e "$(red_color "ERROR: failed to pull latest code from github")"
+      return 1
+    fi
+    echo "New tag: $nextVer" 1>&2
+    sleep 5   # give the user a couple seconds to see the current tag list, etc
+    git tag -d "$nextVer" > /dev/null 2>&1 || true
+    commentFile=$(mktemp "$XDG_RUNTIME_DIR/gitco.txt.XXXXXX")
+    echo "chore(tag $nextVer): save an empty file to abort" > "$commentFile"
+    EDITOR="${EDITOR:-vi}"
+    "${EDITOR}" "$commentFile"
+    if [[ 4 -gt "$(stat "--format=%s" "$commentFile")" ]]; then
+      echo -e "$(red_color "ERROR: aborting tag - empty comment")" 1>&2
+      rm "$commentFile"
+      return 1
+    fi
+    if ! git tag -a -F "$commentFile" "$nextVer"; then
+      echo -e "$(red_color "git tag command failed")" 1>&2
+      return 1
+    fi
+    rm "$commentFile"
+    if git push ssh "$nextVer"; then
+      # refresh taglist cache
+      gen3 gitops taglist --force
+    else
+      echo -e "$(red_color "failed to push $nextVer tag to github")" 1>&2
+      git tag -d "$nextVer"
+      return 1
+    fi
+  )
+}
+
+
+gen3_gitops_repolist() {
+  local name
+  for name in "${gen3_gitops_repolist_arr[@]}"; do
+    echo "$name"
+  done
+}
+
+
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   # Support sourcing this file for test suite
   command="$1"
@@ -147,10 +320,19 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       g3k_manifest_filter "$yaml" "$manifest" "$@"
       ;;
     "configmaps")
-      g3k_gitops_configmaps
+      gen3_gitops_configmaps
       ;;
     "sync")
       sync_dict_and_versions
+      ;;
+    "repolist")
+      gen3_gitops_repolist "$@"
+      ;;
+    "taglist")
+      gen3_gitops_repo_taglist "$@"
+      ;;
+    "dotag")
+      gen3_gitops_repo_dotag "$@"
       ;;
     *)
       help

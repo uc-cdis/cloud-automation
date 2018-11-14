@@ -55,7 +55,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       # https://www.postgresql.org/download/linux/ubuntu/
       DISTRO="$(lsb_release -c -s)"  # ex - xenial
       if [[ ! -f /etc/apt/sources.list.d/pgdg.list ]]; then
-        sudo -E echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+        echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
       fi
       wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
       sudo -E apt-get update

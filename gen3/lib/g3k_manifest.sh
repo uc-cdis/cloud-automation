@@ -10,38 +10,7 @@ export GEN3_MANIFEST_HOME
 MANIFEST_BRANCH=${MANIFEST_BRANCH:-"master"}
 export MANIFEST_BRANCH
 
-#
-#check if gitops folder exist, update locally and return the path.
-#
-g3k_gitops_init() {
-  WORKSPACE="${WORKSPACE:-$HOME}"
-  local GEN3_HOST_NAME
-  GEN3_HOST_NAME=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
 
-  #check if the new manifest url exists
-  local MANIFEST_EXIST
-  MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .id) 
-  if [[ $MANIFEST_EXIST -gt 0 ]]; then
-  #new path for all gitops files 
-    local branch
-    branch=${2:-$MANIFEST_BRANCH}
-    GEN3_GITOPS_FOLDER=$WORKSPACE/$GEN3_HOST_NAME
-    if [[ ! -d "${GEN3_GITOPS_FOLDER}" ]]; then
-      echo -e $(red_color "ERROR: GEN3_GITOPS_FOLDER does not exist: ${GEN3_GITOPS_FOLDER}") 1>&2
-      echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_GITOPS_FOLDER}" 1>&2
-
-      git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_GITOPS_FOLDER}" 1>&2
-    fi
-    if [[ -d "$GEN3_GITOPS_FOLDER/.git" && -z "$JENKINS_HOME" ]]; then
-      # Don't do this when running tests in Jenkins ...
-      echo "INFO: git fetch branch $branch in $GEN3_GITOPS_FOLDER" 1>&2
-      (cd "$GEN3_GITOPS_FOLDER" && git pull; git checkout $branch; git pull; git status) 1>&2
-    fi
-    export GEN3_GITOPS_FOLDER
-    echo "$GEN3_GITOPS_FOLDER"
-    return 0
-  fi
-}
 #
 # GEN3_GITOPS_FOLDER environment variable:
 # Override the folder under which to look for
