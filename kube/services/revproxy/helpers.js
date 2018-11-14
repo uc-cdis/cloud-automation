@@ -140,6 +140,8 @@ function getServiceReleases(req) {
   var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
   var hash_res = -1;
 
+  req.log(req.variables['canary_percent_json']);
+
   // for each service:
   //   if it's weight == 0, ignore the cookie and set release to production
   //   else if it's in the cookie, use that release
@@ -149,6 +151,7 @@ function getServiceReleases(req) {
     var service = services[i];
     var parsed_release = release_cookie.match(service+'\.(production|canary)');
     if (getWeight(service, canary_weights) === 0) {
+      req.log('weight 0 for ' + service)
       updated_releases[service] = 'production';
     } else if (!parsed_release) {
       // if we haven't yet generated a hash value, do that now
@@ -156,8 +159,10 @@ function getServiceReleases(req) {
         hash_res = simpleHash(hash_str);
       }
       updated_releases[service] = selectRelease(hash_res, getWeight(service, canary_weights));
+      req.log('selected release for ' + service + ': ' + updated_releases[service]);
     } else {
       // append the matched values from the cookie
+      req.log('already had release for ' + service + ': ' + parsed_release[1]);
       updated_releases[service] = parsed_release[1];
     }
   }
