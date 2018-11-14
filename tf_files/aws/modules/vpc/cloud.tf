@@ -33,6 +33,10 @@ resource "aws_vpc" "main" {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
   }
+
+  lifecycle {
+    ignore_changes = ["tags"]
+  }
 }
 
 data "aws_vpc_endpoint_service" "s3" {
