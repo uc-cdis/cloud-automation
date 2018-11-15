@@ -24,7 +24,7 @@ gen3 kube-setup-arborist
 gen3 kube-setup-fence
 
 if kubectl get configmap manifest-google; then
-    kube-setup-google
+  gen3 kube-setup-google
 fi
 
 if g3k_manifest_lookup .versions.sheepdog 2> /dev/null; then
