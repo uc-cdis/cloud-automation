@@ -67,6 +67,11 @@ spec:
                     configMapKeyRef:
                       name: global
                       key: slack_webhook
+              - name: gen3Env
+                valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: environment
             volumeMounts:
               - name: "config-volume"
                 readOnly: true
@@ -133,6 +138,7 @@ spec:
                   else
                     echo "/mnt/shared/user.yaml did not appear within timeout :-("
                   fi
+                  exitcode=$?
                 else
                   if [[ -f /mnt/shared/user.yaml ]]; then
                     output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml)
