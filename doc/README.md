@@ -35,7 +35,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-setup-arborist](./kube-setup-arborist.md)
 * [kube-setup-arranger](./kube-setup-arranger.md)
 * [kube-setup-aws-es-proxy](./kube-setup-aws-es-proxy.md)
-* [kube-setup-google.md](./kube-setup-cronjobs.md)
+* [kube-setup-google.md](./kube-setup-google.md)
 * [kube-setup-fence](./kube-setup-fence.md)
 * [kube-setup-fluentd](./kube-setup-fluentd.md)
 * [kube-setup-jenkins](./kube-setup-jenkins.md)

@@ -23,7 +23,7 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 gen3 kube-setup-arborist
 gen3 kube-setup-fence
 
-if kubectl get configmap manifest-google; then
+if g3kubectl get configmap manifest-google >/dev/null 2>&1; then
   gen3 kube-setup-google
 fi
 
