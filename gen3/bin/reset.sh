@@ -50,7 +50,6 @@ while [[ podsDownFlag -ne 0 ]]; do
         echo "pods not done terminating, waiting"
     fi
 done
-return 0
 
 # wait_for_pods_down
 echo "done with wait"
