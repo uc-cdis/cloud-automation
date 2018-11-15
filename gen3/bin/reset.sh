@@ -59,9 +59,7 @@ done
 
 gen3 roll all
 gen3 kube-wait4-pods
-# gen3 job run gdcdb-create; gen3 job run indexd-userdb; gen3 job run usersync
-# gen3 kube-wait4-pods
-# gen3 roll all
+gen3 job run usersync
 
 gen3 klock unlock reset-lock gen3-reset
 
