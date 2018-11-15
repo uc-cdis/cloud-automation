@@ -151,7 +151,7 @@ spec:
                     fi
                   fi
                 fi
-                if [ $exitcode -ne 0 ]; then
+                if [[ $exitcode -ne 0 && "${slackWebHook}" != 'None' ]]; then
                   curl -X POST --data-urlencode "payload={\"text\": \"FenceHelper: User sync failed on ${gen3Env}\"}" "${slackWebHook}"
                 fi
                 echo "Exit code: $exitcode"
