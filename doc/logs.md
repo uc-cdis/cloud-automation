@@ -23,6 +23,8 @@ The following variables are also available when search `revproxy` service logs:
 * `user=uid:number,email` - ex: `user=uid:5,frickjack@uchicago.edu` - see `gen3 logs user` below
 * `visitor=visitor_id` - corresponding to the `visitor` cookie
 * `session=session_id` - corresponding to the `session` cookie
+* `statusmin=0` - minimum http status, default 0
+* `statusmax=1000` - max http status, default 100
 
 Ex:
 ```
@@ -31,6 +33,13 @@ $ gen3 logs raw page=0-1
 $ gen3 logs raw page=all
 $ gen3 logs raw vpc=devplanetv1 service=fence format=json start=2018/10/01
 $ gen3 logs raw "user=$(gen3 logs user | grep reubenonrye)"
+$ gen3 logs raw statusmin=400
+```
+
+Note: the reverse proxy's logs are json format - which lends itself well
+to post-query processing - ex:
+```
+cat /tmp/bla | (echo '['; while read -r line; do echo "$line" | jq -r .; echo ','; done; echo '{}]') | jq -r '. | map(select(.http_status_code > 100))'
 ```
 
 ### `gen3 logs vpc`

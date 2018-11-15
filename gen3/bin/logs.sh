@@ -100,6 +100,8 @@ gen3_logs_rawlog_query() {
   local userId
   local sessionId
   local visitorId
+  local statusMin
+  local statusMax
 
   vpcName="$(gen3_logs_get_arg vpc "${vpc_name:-"all"}" "$@")"
   userId="$(gen3_logs_get_arg user "" "$@")"
@@ -109,7 +111,9 @@ gen3_logs_rawlog_query() {
   endDate="$(gen3_logs_fix_date "$(gen3_logs_get_arg end "$(gen3_logs_fix_date 'tomorrow 00:00')" "$@")")"
   pageNum="$(gen3_logs_get_arg page 0 "$@")"
   serviceName="$(gen3_logs_get_arg service revproxy "$@")"
-
+  statusMin="$(gen3_logs_get_arg statusmin 0 "$@")"
+  statusMax="$(gen3_logs_get_arg statusmax 1000 "$@")"
+  
   queryFile=$(mktemp -p "$XDG_RUNTIME_DIR" "esLogsQuery.json_XXXXXX")
   fromNum=$(($pageNum * 1000))
   cat - > "$queryFile" <<EOM
@@ -160,10 +164,18 @@ ENESTED
         )
         { 
           "range": {
-            "timestamp" : {
+            "timestamp": {
               "gte": "$startDate",
               "lte": "$endDate",
               "format": "yyyy/MM/dd HH:mm"
+            }
+          }
+        },
+        { 
+          "range": {
+            "message.http_status_code": {
+              "gte": $statusMin,
+              "lte": $statusMax
             }
           }
         }
@@ -301,6 +313,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   case "$command" in
     "raw")
       gen3_logs_rawlog_search "$@"
+      ;;
+    "rawq")  # echo raw query - mostly for test suite
+      gen3_logs_rawlog_query "$@"
       ;;
     "vpc")
       gen3_logs_vpc_list "$@"
