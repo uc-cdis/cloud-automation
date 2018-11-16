@@ -18,6 +18,11 @@ gen3 kube-setup-certs
 
 echo "INFO: using manifest at $(g3k_manifest_path)"
 
+# label pods without release version
+for name in $(kubectl get pods -l 'release!=production,release!=canary' -o jsonpath="{..metadata.labels.app}"); do
+  g3kubectl label pods $name release=production
+done
+
 gen3 kube-setup-indexd
 gen3 kube-setup-arborist
 gen3 kube-setup-fence
