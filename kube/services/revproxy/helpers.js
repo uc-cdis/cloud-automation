@@ -153,16 +153,16 @@ function getServiceReleases(req) {
     var service = services[i];
     var parsed_release = release_cookie.match(service+'\.(production|canary)');
     if (getWeight(service, canary_weights) === 0) {
-      updated_releases[service] = 'production';
+      updated_releases[service] = 'production+WEIGHT_ZERO';
     } else if (!parsed_release) {
       // if we haven't yet generated a hash value, do that now
       if (hash_res < 0) {
         hash_res = simpleHash(hash_str);
       }
-      updated_releases[service] = selectRelease(hash_res, getWeight(service, canary_weights));
+      updated_releases[service] = selectRelease(hash_res, getWeight(service, canary_weights)) + "+SELECTED_RELEASE";
     } else {
       // append the matched values from the cookie
-      updated_releases[service] = parsed_release[1];
+      updated_releases[service] = parsed_release[1] + "+PARSED_RELEASE";
     }
   }
 
