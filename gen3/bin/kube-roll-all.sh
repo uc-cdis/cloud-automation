@@ -23,6 +23,10 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 gen3 kube-setup-arborist
 gen3 kube-setup-fence
 
+if g3kubectl get configmap manifest-google >/dev/null 2>&1; then
+  gen3 kube-setup-google
+fi
+
 if g3k_manifest_lookup .versions.sheepdog 2> /dev/null; then
   gen3 kube-setup-sheepdog
 else
