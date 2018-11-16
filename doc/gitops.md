@@ -24,6 +24,24 @@ Update the manifest derived (`manifest-*`) configmaps.
 gen3 gitops configmaps
 ```
 
+### rsync
+
+Run `gen3 gitops sync` on the given `ssh` target.
+See `gen3 gitops sshlist` and `gen3 gitops sync` below.
+
+
+```
+gen3 gitops rsync reuben@cdistest.csoc
+```
+
+### sshlist
+
+List the cdis gen3 admin machines.
+
+```
+gen3 gitops sshlist
+```
+
 ### sync
 
 Update the dictionary URL and image versions. The `--dryrun` flag can be used to display dictionary URL and image version check logs but do not want to roll pods.
