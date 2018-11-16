@@ -135,7 +135,12 @@ function getServiceReleases(req) {
   var services = ['fence', 'sheepdog', 'indexd', 'peregrine'];
   // weights for services - if given a default weight, use it; else use the default weight from this file
   var canary_weights = JSON.parse(req.variables['canary_percent_json']);
-  canary_weights['default'] = canary_weights['default'] ? parseInt(canary_weights['default']) : DEFAULT_WEIGHT;
+  if (typeof canary_weights['default'] === 'undefined') {
+    canary_weights['default'] = DEFAULT_WEIGHT
+  } else {
+    canary_weights['default'] = parseInt(canary_weights['default'])
+  }
+  // canary_weights['default'] = canary_weights['default'] ? parseInt(canary_weights['default']) : DEFAULT_WEIGHT;
   // the string to be hashed
   var hash_str = ['app', req.variables['realip'], req.variables['http_user_agent'], req.variables['date_gmt']].join();
   var hash_res = -1;
