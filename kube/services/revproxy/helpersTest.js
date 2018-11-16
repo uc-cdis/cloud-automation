@@ -9,6 +9,8 @@ eval(fs.readFileSync('helpers.js')+'');
 
 const crypto = require('crypto');
 
+const log = (str) => console.log('LOGGED: ' + str);
+
 describe("Nginx helper function", function() {
 
   it("userid returns correct user and uuid from access_token", function() {
@@ -50,18 +52,34 @@ describe("Nginx helper function", function() {
     counts.forEach(val => console.log('#'.repeat(val)));
   });
 
+  it("getWeight returns weight of defined service", function() {
+    const weights = {
+      fence: 32,
+      default: 99
+    };
+    const w = getWeight('fence', weights);
+    expect(w).toBe(weights['fence'])
+  });
+
+  it("getWeight returns default if service weight undefined", function() {
+    const weights = {
+      fence: 32,
+      default: 99
+    };
+    const w = getWeight('sheepdog', weights);
+    expect(w).toBe(weights['default'])
+  });
+
   it("selectRelease returns canary if hash val below weight", function() {
     const hashVal = 0;
     const serviceWeight = 100;
-    const defaultWeight = 0;
-    expect(selectRelease(hashVal, serviceWeight, defaultWeight)).toEqual('canary');
+    expect(selectRelease(hashVal, serviceWeight)).toEqual('canary');
   });
 
   it("selectRelease returns production if hash val above weight", function() {
     const hashVal = 100;
     const serviceWeight = 0;
-    const defaultWeight = 0;
-    expect(selectRelease(hashVal, serviceWeight, defaultWeight)).toEqual('production');
+    expect(selectRelease(hashVal, serviceWeight)).toEqual('production');
   });
 
   it("selectRelease uses default weight if service weight is undefined", function() {
@@ -84,8 +102,9 @@ describe("Nginx helper function", function() {
       variables: {
         cookie_service_releases: cookie,
         canary_percent_json: '{ "fence": 100 }',
-        ...propertiesForHash
-      }
+        ...propertiesForHash,
+      },
+      log: log,
     };
 
     const serviceReleases = getServiceReleases(nginxRequest);
@@ -97,8 +116,9 @@ describe("Nginx helper function", function() {
     let nginxRequest = {
       variables: {
         canary_percent_json: '{ "fence": 100 }',
-        ...propertiesForHash
-      }
+        ...propertiesForHash,
+      },
+      log: log,
     };
 
     const serviceReleases = getServiceReleases(nginxRequest);
@@ -110,8 +130,9 @@ describe("Nginx helper function", function() {
     let nginxRequest = {
       variables: {
         canary_percent_json: '{ "fence": 0, "sheepdog": 100 }',
-        ...propertiesForHash
-      }
+        ...propertiesForHash,
+      },
+      log: log,
     };
 
     const serviceReleases = getServiceReleases(nginxRequest);
@@ -124,8 +145,9 @@ describe("Nginx helper function", function() {
     let nginxRequest = {
       variables: {
         canary_percent_json: '{ "default": 100 }',
-        ...propertiesForHash
-      }
+        ...propertiesForHash,
+      },
+      log: log,
     };
 
     const serviceReleases = getServiceReleases(nginxRequest);
@@ -137,8 +159,9 @@ describe("Nginx helper function", function() {
     let nginxRequest = {
       variables: {
         canary_percent_json: '{}', // provide no weights - script should use it's default
-        ...propertiesForHash
-      }
+        ...propertiesForHash,
+      },
+      log: log,
     };
 
     // default weight in script is 0 (ie it should always be assigned production)
@@ -153,8 +176,9 @@ describe("Nginx helper function", function() {
       variables: {
         cookie_service_releases: cookie,
         canary_percent_json: '{ "fence": 0 }', // provide no weights - script should use it's default
-        ...propertiesForHash
-      }
+        ...propertiesForHash,
+      },
+      log: log,
     };
 
     const serviceReleases = getServiceReleases(nginxRequest);
