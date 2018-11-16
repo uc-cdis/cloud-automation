@@ -58,6 +58,7 @@ g3k_psql() {
   local password=$(jq -r ".db_password" < $credsPath)
   local host=$(jq -r ".db_host" < $credsPath)
   local database=$(jq -r ".db_database" < $credsPath)
+  shred "$credsPath"
   rm "$credsPath"
   PGPASSWORD="$password" psql -U "$username" -h "$host" -d "$database" "$@"
 }
