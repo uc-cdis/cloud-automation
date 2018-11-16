@@ -24,6 +24,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [psql](./psql.md)
 * [random](./random.md)
 * [replicas](./replicas.md)
+* [reset](./reset.md)
 * [roll](./roll.md)
 * [runjob](./job.md) - see [job run](./job.md)
 * [update_config](./update_config.md)
