@@ -113,7 +113,7 @@ spec:
                   # AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
                   # RE=${AZ::-1}
                   # aws --region ${RE} sns publish --message "google-manage-account-access failed for ${gen3Env}" --topic-arn <TOPIC ARN>
-                  curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: google-manage-account-access failed for ${gen3Env} \"}" "${slackWebHook}"
+                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: google-manage-account-access failed for ${gen3Env} \"}" "${slackWebHook}"
                 else
                   HOUR=$(TZ='America/Chicago' date "+%H")
                   if [ ${HOUR} -eq 09 ]; then

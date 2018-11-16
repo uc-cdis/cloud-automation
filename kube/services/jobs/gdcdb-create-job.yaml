@@ -16,7 +16,7 @@ spec:
             secretName: "sheepdog-creds"
       containers:
         - name: sheepdog
-          image: quay.io/cdis/sheepdog:master
+          GEN3_SHEEPDOG_IMAGE
           env:
           - name: DICTIONARY_URL
             valueFrom:
