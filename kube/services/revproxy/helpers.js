@@ -100,11 +100,17 @@ function simpleHash(s) {
  */
 function selectRelease(hash_res, w) {
   // determine release by comparing hash val to service weight
-  return hash_res < parseInt(w) ? 'canary' : 'production';
+  if (hash_res < parseInt(w)) {
+    return 'canary';
+  }
+  return 'production';
 }
 
 function getWeight(service, weights) {
-  return weights[service] ? weights[service] : weights['default'];
+  if (typeof weights[service] === 'undefined') {
+    return weights['default'];
+  }
+  return weights[service];
 }
 
 function releasesObjToString(releases) {
