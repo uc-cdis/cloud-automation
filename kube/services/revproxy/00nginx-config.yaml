@@ -280,6 +280,8 @@ data:
           proxy_set_header   X-UserId "$userid";
           # Can propagate this request id through downstream microservice requests for tracing
           proxy_set_header   X-ReqId "$request_id";
+          proxy_set_header   X-SessionId "$session_id";
+          proxy_set_header   X-VistorId "$visitor_id";
 
           #
           # Accomodate large jwt token headers

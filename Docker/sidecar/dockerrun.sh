@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+#
+# Note: base nginx-alpine does not include bash shell
 
 #
 # Gen3 sidecar
@@ -18,18 +20,22 @@ GEN3_DEBUG="${GEN3_DEBUG:-False}"
 GEN3_UWSGI="${GEN3_UWSGI:-True}"
 GEN3_UWSGI_ROUTE="${GEN3_UWSGI_ROUTE:-/}"
 GEN3_UWSGI_TIMEOUT="${GEN3_UWSGI_TIMEOUT:-45s}"
-GEN3_DRYRUN="${GEN3_DRYRUN:-True}"
+GEN3_DRYRUN="${GEN3_DRYRUN:-False}"
+
 
 help() {
     cat - <<EOM
 Gen3 sidecar launch script
 Use: 
   dockkerrun.bash [--help] [--uwsgi=True] [--uwsgiRoute=/] [--uwsgiTimeout=45s] [--dryrun=False]
+
+Note:
+  The uwsgi configurations assumes that nginx communicates with uwsgi via /var/run/gen3/uwsgi.sock
 EOM
 }
 
 run() {
-  if [[ "$GEN3_DRYRUN" == True ]]; then
+  if [[ "$GEN3_DRYRUN" != False ]]; then
     echo "DRY RUN - not running: $@"
   else
     echo "Running $@"
@@ -90,11 +96,11 @@ while [[ $# -gt 0 ]]; do
   shift
   key=""
   value=""
-  if [[ "$arg" =~ -*[a-zA-Z0-9_]{1,}(=..){0,}* ]]; then
-    if [[ "$arg" =~ ..*=.* ]]; then
-      value="$(echo "$arg" | sed -e 's/^.*={0,}//')"
-    fi
-    key="$(echo "$arg" | sed -e 's/^-*//' | sed -e 's/=.*$//')"
+  key="$(echo "$arg" | sed -e 's/^-*//' | sed -e 's/=.*$//')"
+  value="$(echo "$arg" | sed -e 's/^.*=//')"
+
+  if [[ "$value" == "$arg" ]]; then # =value not given, so use default
+    value=""
   fi
   case "$key" in
   debug)
@@ -136,9 +142,10 @@ if [[ "$GEN3_UWSGI" != True ]]; then
   exit 1
 fi
 
-filterSource=/etc/nginx/gen3.conf/uwsgi.conf.template
+filterSource=/etc/nginx/gen3.conf.d/uwsgi.conf.template
 # For local testing:
-if [[ (! -f "$filterSource") && -f ./uwsgi.conf.template ]]; then
+if [[ ! -f "$filterSource" ]] && [[ -f ./uwsgi.conf.template ]] && [[ "$GEN3_DRYRUN" != False ]]; then
+  echo 'Setting local filterSource for testing ...'
   filterSource="./uwsgi.conf.template"
 fi
 filterTarget="$(mktemp "${XDG_RUNTIME_DIR}/uwsgi.conf_XXXXXX")"
@@ -146,7 +153,7 @@ g3k_kv_filter "${filterSource}" \
     GEN3_UWSGI_ROUTE "$GEN3_UWSGI_ROUTE" \
     GEN3_UWSGI_TIMEOUT "$GEN3_UWSGI_TIMEOUT" | tee "$filterTarget"
 
-run cp "$filterTarget" /etc/nginx/gen3.conf/uwsgi.conf
+run cp "$filterTarget" /etc/nginx/gen3.conf.d/uwsgi.conf
 rm "$filterTarget"
 
 run nginx -g 'daemon off;'
