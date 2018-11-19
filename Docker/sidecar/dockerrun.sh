@@ -27,7 +27,7 @@ help() {
     cat - <<EOM
 Gen3 sidecar launch script
 Use: 
-  dockkerrun.bash [--help] [--uwsgi=True] [--uwsgiRoute=/] [--uwsgiTimeout=45s] [--dryrun=False]
+  dockkerrun.sh [--help] [--uwsgi=True] [--uwsgiRoute=/] [--uwsgiTimeout=45s] [--dryrun=False]
 
 Note:
   The uwsgi configurations assumes that nginx communicates with uwsgi via /var/run/gen3/uwsgi.sock
