@@ -141,9 +141,9 @@ spec:
                   exitcode=$?
                 else
                   if [[ -f /mnt/shared/user.yaml ]]; then
-                    output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml)
+                    output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml 2>&1)
                   else
-                    output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml)
+                    output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml 2>&1)
                   fi
                   exitcode=$?
                   echo "$output"
@@ -158,8 +158,12 @@ spec:
                   fi
                 fi
                 if [[ $exitcode -ne 0 && "${slackWebHook}" != 'None' ]]; then
-                  emptyfile=$(echo "$output" | grep "received empty file")
-                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: User sync failed on ${gen3Env} ${emptyfile}\"}" "${slackWebHook}"
+                  emptyfile=$(echo "$output" | grep "EnvironmentError:")
+                  if [ ! -z "$emptyfile" ]; then
+                    curl -X POST --data-urlencode "payload={\"text\": \"JOBSKIPPED: User sync skipped on ${gen3Env} ${emptyfile}\"}" "${slackWebHook}";
+                  else
+                    curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: User sync failed on ${gen3Env}\"}" "${slackWebHook}"
+                  fi
                 fi
                 echo "Exit code: $exitcode"
 
