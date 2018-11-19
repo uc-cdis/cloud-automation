@@ -67,6 +67,11 @@ spec:
                     configMapKeyRef:
                       name: global
                       key: slack_webhook
+              - name: gen3Env
+                valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: environment
             volumeMounts:
               - name: "config-volume"
                 readOnly: true
@@ -124,7 +129,7 @@ spec:
                   if [[ -f /mnt/shared/user.yaml ]]; then
                     echo "fence container user.yaml diff ..."
                     diff /var/www/fence/user.yaml /mnt/shared/user.yaml
-                    if [[ $? == 1 || "${userYamlS3Path}" = '' ]]; then
+                    if [[ $? == 1 || "${userYamlS3Path}" = 'none' ]]; then
                       echo "running fence-create"
                       fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
                     else
@@ -133,6 +138,7 @@ spec:
                   else
                     echo "/mnt/shared/user.yaml did not appear within timeout :-("
                   fi
+                  exitcode=$?
                 else
                   if [[ -f /mnt/shared/user.yaml ]]; then
                     output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml)
@@ -151,6 +157,10 @@ spec:
                     fi
                   fi
                 fi
+                if [[ $exitcode -ne 0 && "${slackWebHook}" != 'None' ]]; then
+                  emptyfile=$(echo "$output" | grep "received empty file")
+                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: User sync failed on ${gen3Env} ${emptyfile}\"}" "${slackWebHook}"
+                fi
                 echo "Exit code: $exitcode"
 
           - name: awshelper
@@ -166,7 +176,7 @@ spec:
             args:
               - "-c"
               - |
-                if [ "${userYamlS3Path}" = '' ]; then
+                if [ "${userYamlS3Path}" = 'none' ]; then
                   echo "s3 yaml not provided, using local yaml"
                   cp /var/www/fence/user.yaml /mnt/shared/user.yaml
                 else

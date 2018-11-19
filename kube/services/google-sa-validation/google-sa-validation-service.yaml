@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: google-sa-validation-service
+spec:
+  selector:
+    app: google-sa-validation
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: http

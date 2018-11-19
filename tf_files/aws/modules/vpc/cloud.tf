@@ -10,6 +10,20 @@ module "squid_proxy" {
   env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
 }
 
+module "data-bucket" {
+  source               = "../upload-data-bucket"
+  vpc_name             = "${var.vpc_name}"
+#  cloudwatchlogs_group = "${module.cdis_vpc.cwlogs}"
+  cloudwatchlogs_group = "${aws_cloudwatch_log_group.main_log_group.arn}"
+  environment          = "${var.vpc_name}"
+}
+
+module "fence-bot-user" {
+  source               = "../fence-bot-user"
+  vpc_name             = "${var.vpc_name}"
+  bucket_name          = "${module.data-bucket.data-bucket_name}"
+}
+
 resource "aws_vpc" "main" {
   cidr_block           = "172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"
   enable_dns_hostnames = true
@@ -18,6 +32,10 @@ resource "aws_vpc" "main" {
     Name         = "${var.vpc_name}"
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
+  }
+
+  lifecycle {
+    ignore_changes = ["tags"]
   }
 }
 

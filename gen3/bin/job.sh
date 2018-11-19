@@ -132,6 +132,11 @@ g3k_joblogs(){
   podlist=$(g3k_jobpods "$jobName")
   for podname in $podlist; do
     echo "Scanning pod: $podname"
+    for container in $(g3kubectl get pods "$podname" -o json | jq -r '.spec.initContainers|map(.name)|join( " " )'); do
+      echo "------------------"
+      echo "g3kubectl logs $podname $container"
+      g3kubectl logs $podname $container
+    done
     for container in $(g3kubectl get pods "$podname" -o json | jq -r '.spec.containers|map(.name)|join( " " )'); do
       echo "------------------"
       echo "g3kubectl logs $podname $container"

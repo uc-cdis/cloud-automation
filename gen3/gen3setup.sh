@@ -18,6 +18,10 @@ gen3_load "gen3/lib/gcp"
 gen3_load "gen3/lib/aws"
 gen3_load "gen3/lib/onprem"
 
+if [[ -n "${BASH_VERSION}" ]]; then
+  gen3_load "gen3/lib/bash-completions"
+fi
+
 export GEN3_PS1_OLD=${GEN3_PS1_OLD:-$PS1}
 
 #
