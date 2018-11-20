@@ -130,7 +130,7 @@ spec:
               if [[ -f /mnt/shared/user.yaml ]]; then
                 echo "fence container user.yaml diff ..."
                 diff /var/www/fence/user.yaml /mnt/shared/user.yaml
-                if [[ $? == 1 || "${userYamlS3Path}" = '' ]]; then
+                if [[ $? == 1 || "${userYamlS3Path}" = 'none' ]]; then
                   echo "running fence-create"
                   fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
                 else
@@ -161,7 +161,7 @@ spec:
         args:
           - "-c"
           - |
-            if [ "${userYamlS3Path}" = '' ]; then
+            if [ "${userYamlS3Path}" = 'none' ]; then
               echo "s3 yaml not provided, using local yaml"
               cp /var/www/fence/user.yaml /mnt/shared/user.yaml
             else

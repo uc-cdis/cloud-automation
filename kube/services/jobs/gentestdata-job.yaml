@@ -117,7 +117,7 @@ spec:
             python /gen3-qa/python-scripts/scripts.py data-create --host https://$HOSTNAME --dir /gen3-qa/python-scripts/sim-data-code/TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
             echo "All Done - always succeed to avoid k8s retries"
       - name: fence
-        image: quay.io/cdis/fence:master
+        GEN3_FENCE_IMAGE
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH

@@ -80,7 +80,7 @@ spec:
             name: fence
       containers:
       - name: fence
-        image: quay.io/cdis/fence:master
+        GEN3_FENCE_IMAGE
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH

@@ -59,7 +59,7 @@ test_mpath() {
 # Test g3k_manifest_filter - also tests g3k_kv_filter
 #
 test_mfilter() {
-  testFolder="${XDG_RUNTIME_DIR}/g3kTest/mfilter"
+  testFolder="${XDG_RUNTIME_DIR}/$$/g3kTest/mfilter"
   /bin/rm -rf "$testFolder"
   mkdir -p -m 0700 "$testFolder"
   for name in fence sheepdog; do
@@ -79,6 +79,7 @@ test_mfilter() {
   gen3 gitops filter "${GEN3_MANIFEST_HOME}/bogusInput.yaml" "${GEN3_MANIFEST_HOME}/default/manifest.json" "k1" "the value is v1" "k2" "the value is v2" > "$testFolder/bogus-b.yaml"
   diff -w "${GEN3_MANIFEST_HOME}/bogusExpectedResult.yaml" "$testFolder/bogus-b.yaml"
   because $? "Manifest filter processed extra environment values ok"
+  /bin/rm -rf "$testFolder"
 }
 
 test_mlookup() {
@@ -91,7 +92,7 @@ test_mlookup() {
   g3k_config_lookup '.versions.fence' "$mpath";
   because $? 'g3k_manifest_filter gives zero exit code on jq expression match'
   # test with a toy .yaml file
-  testFolder="${XDG_RUNTIME_DIR}/g3kTest/mlookup"
+  testFolder="${XDG_RUNTIME_DIR}/$$/g3kTest/mlookup"
   /bin/rm -rf "$testFolder"
   mkdir -p -m 0700 "$testFolder"
   cat - > "$testFolder/toy.yaml" <<EOM
@@ -103,6 +104,7 @@ EOM
   because $? "g3k_config_lookup zero exit code for valid yaml lookup"
   [[ "$blaFoo" == "frick" ]];
   because $? "g3k_config_lookup got expected value from yaml: $blaFoo"
+  /bin/rm -rf "$testFolder"
 }
 
 test_loader() {
