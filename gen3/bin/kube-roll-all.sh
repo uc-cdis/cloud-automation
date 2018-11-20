@@ -20,7 +20,7 @@ echo "INFO: using manifest at $(g3k_manifest_path)"
 gen3 roll indexd
 g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 
-gen3 kube-setup-arborist
+gen3 kube-setup-arborist || true
 gen3 kube-setup-fence
 
 if g3kubectl get configmap manifest-google >/dev/null 2>&1; then
