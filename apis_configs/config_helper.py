@@ -137,8 +137,8 @@ def set_prod_defaults(config_file_path):
     print("  MOCK_GOOGLE_AUTH set to false")
     config_file = _replace(config_file, "MOCK_GOOGLE_AUTH", False)
 
-    print("  AUTHLIB_INSECURE_TRANSPORT set to false")
-    config_file = _replace(config_file, "AUTHLIB_INSECURE_TRANSPORT", False)
+    print("  AUTHLIB_INSECURE_TRANSPORT set to true")
+    config_file = _replace(config_file, "AUTHLIB_INSECURE_TRANSPORT", True)
 
     print("  SESSION_COOKIE_SECURE set to true")
     config_file = _replace(config_file, "SESSION_COOKIE_SECURE", True)
