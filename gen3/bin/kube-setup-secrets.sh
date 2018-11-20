@@ -149,6 +149,20 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     g3kubectl create configmap logo-config --from-file="${logoPath}"
   fi
 
+  # old fence cfg method uses fence-secret and fence-json-secret
+  if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
+    g3kubectl create secret generic fence-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/fence_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+  fi
+
+  if ! g3kubectl get secrets/fence-json-secret > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/fence_credentials.json" ]]; then
+      cp "${GEN3_HOME}/apis_configs/fence_credentials.json" "./apis_configs/fence_credentials.json"
+    fi
+    echo "create fence-json-secret using current creds file apis_configs/fence_credentials.json"
+    g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
+  fi
+
+  # new fence cfg method uses a single fence-config secret
   if ! g3kubectl get secrets/fence-config > /dev/null 2>&1; then
     # load updated fence-config.yaml into secret if it exists
     fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-config.yaml
