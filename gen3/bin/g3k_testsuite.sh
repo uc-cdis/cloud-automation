@@ -47,10 +47,11 @@ test_env() {
 #
 test_mpath() {
   local mpath=$(g3k_manifest_path test1.manifest.g3k)
-  [[ "$mpath" == "${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json" ]]; 
+  [[ "$mpath" == "${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json" ]];
   because $? "g3k_manifest_path prefers domain/manifest.json if available: $mpath ?= ${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json"
+
   ! mpath=$(g3k_manifest_path bogus.manifest.g3k); because $? "The bogus manifest does not exist: $mpath"
-  [[ "$mpath" == "${GEN3_MANIFEST_HOME}/bogus.manifest.g3k/manifest.json" ]]; 
+  [[ "$mpath" == "${GEN3_MANIFEST_HOME}/bogus.manifest.g3k/manifest.json" ]];
   because $? "g3k_manfest_path maps to domain/manifest.json even if it does not exist: $mpath"
 }
 
@@ -174,6 +175,7 @@ test_configmaps() {
     return 0
   }
 
+
   gen3_gitops_configmaps; because !$? "gen3_gitops_configmaps should exit with code 1 if the manifest does not have a global section"
   
   # Mock g3k_manifest_path to manifest with global
@@ -181,6 +183,7 @@ test_configmaps() {
   gen3_gitops_configmaps | grep -q created; because $? "gen3_gitops_configmaps should create configmaps"
   gen3_gitops_configmaps | grep -q labeled; because $? "gen3_gitops_configmaps should label configmaps"
   g3kubectl delete configmaps -l app=manifest
+
   gen3_gitops_configmaps; 
   gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should not bomb out, even if the configmaps already exist"
   gen3_gitops_configmaps | grep -q deleted; because $? "gen3_gitops_configmaps delete previous configmaps"

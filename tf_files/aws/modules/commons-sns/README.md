@@ -11,7 +11,7 @@ gen3 workon <profile> <commons_name>_sns
 
 Ex.
 ```
-$ gen3 workon cdistest fauziv1_ks
+$ gen3 workon cdistest fauziv1_sns
 ```
 
 ## 2. Table of content

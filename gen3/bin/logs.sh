@@ -6,7 +6,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-LOGHOST="${LOGHOST:-kibana.planx-pla.net}"
+LOGHOST="${LOGHOST:-https://kibana.planx-pla.net}"
 LOGUSER="${LOGUSER:-kibanaadmin}"
 LOGPASSWORD="${LOGPASSWORD:-""}"
 
