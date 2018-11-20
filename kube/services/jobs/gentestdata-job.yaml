@@ -34,7 +34,11 @@ spec:
       volumes:
         - name: shared-data
           emptyDir: {}
-        - name: config-volume
+# -----------------------------------------------------------------------------
+# DEPRECATED! Remove when all commons are no longer using local_settings.py
+#             for fence.
+# -----------------------------------------------------------------------------
+        - name: old-config-volume
           secret:
             secretName: "fence-secret"
         - name: creds-volume
@@ -46,6 +50,10 @@ spec:
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
+# -----------------------------------------------------------------------------
+        - name: config-volume
+          secret:
+            secretName: "fence-config"
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
@@ -117,7 +125,13 @@ spec:
           - name: SUBMISSION_USER
             GEN3_SUBMISSION_USER
         volumeMounts:
-          - name: "config-volume"
+          - name: shared-data
+            mountPath: /mnt/shared
+# -----------------------------------------------------------------------------
+# DEPRECATED! Remove when all commons are no longer using local_settings.py
+#             for fence.
+# -----------------------------------------------------------------------------
+          - name: "old-config-volume"
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
             subPath: local_settings.py
@@ -133,6 +147,11 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
+# -----------------------------------------------------------------------------
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence-config.yaml"
+            subPath: fence-config.yaml
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
@@ -150,7 +169,7 @@ spec:
                   mkdir -p keys
                   mv jwt-keys/* keys/
                 fi
-              fi  
+              fi
               echo "generate access token"
               echo "fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600"
               fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600 > /mnt/shared/access_token.txt
