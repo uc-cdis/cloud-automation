@@ -5,6 +5,7 @@
         "db_password": "${fence_pwd}",
         "db_database": "${fence_db}",
         "hostname": "${hostname}",
+        "indexd_password": "${gdcapi_indexd_password}",
         "google_client_secret": "${google_client_secret}",
         "google_client_id": "${google_client_id}",
         "hmac_key": "${hmac_encryption_key}"

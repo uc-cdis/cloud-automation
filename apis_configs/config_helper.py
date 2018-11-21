@@ -59,6 +59,7 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
     db_password = _get_nested_value(creds, "db_password")
     db_database = _get_nested_value(creds, "db_database")
     hostname = _get_nested_value(creds, "hostname")
+    indexd_password = _get_nested_value(creds, "indexd_password")
     google_client_secret = _get_nested_value(creds, "google_client_secret")
     google_client_id = _get_nested_value(creds, "google_client_id")
     hmac_key = _get_nested_value(creds, "hmac_key")
@@ -73,6 +74,9 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
 
     print("  BASE_URL injected with value(s) from creds.json")
     config_file = _replace(config_file, "BASE_URL", "https://{}/user".format(hostname))
+
+    print("  INDEXD_PASSWORD injected with value(s) from creds.json")
+    config_file = _replace(config_file, "INDEXD_PASSWORD", indexd_password)
 
     print("  ENCRYPTION_KEY injected with value(s) from creds.json")
     config_file = _replace(config_file, "ENCRYPTION_KEY", hmac_key)
