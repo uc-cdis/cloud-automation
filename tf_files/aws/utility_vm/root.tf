@@ -22,6 +22,8 @@ module "utility_vm" {
   vm_hostname      = "${var.vm_hostname}"
   image_name_search_criteria = "${var.image_name_search_criteria}"
   extra_vars       = "${var.extra_vars}"
+  proxy            = "${var.proxy}"
+  authorized_keys  = "${var.authorized_keys}"
   
 
   # put other variables here ...
