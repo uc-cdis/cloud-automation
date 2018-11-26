@@ -1,4 +1,4 @@
-resource "aws_cloudwatch_log_group" "vm_log_group" {
+resource "aws_cloudwatch_log_group" "csoc_log_group" {
   name              = "${var.vm_hostname}"
   retention_in_days = 1827
 
@@ -194,13 +194,21 @@ resource "aws_instance" "utility_vm" {
   }
 
   provisioner "file" {
-    content     = "${var.proxy == yes ? local.proxy_config_environment : ''}"
-    destination = "/etc/environment"
+    content     = "${var.proxy == "yes" ? local.proxy_config_environment : ""}"
+    destination = "/tmp/environment"
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+    }
   }
 
   provisioner "file" {
-    content     = "${var.proxy == yes ? local.proxy_config_apt : ''}"
-    destination = "/etc/apt/apt.conf.d/01proxy"
+    content     = "${var.proxy == "yes" ? local.proxy_config_apt : ""}"
+    destination = "/tmp/01proxy"
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+    }
   }
 
   user_data = <<EOF
@@ -212,6 +220,9 @@ resource "aws_instance" "utility_vm" {
 #echo no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com"  >> /etc/environment
 #echo 'Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
 #echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
+
+cat /tmp/environment >> /etc/environment
+cat /tmp/01proxy >> /etc/apt/apt.conf.d/01proxy
 
 cd /home/ubuntu
 sudo git clone https://github.com/uc-cdis/cloud-automation.git
