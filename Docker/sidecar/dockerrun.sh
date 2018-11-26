@@ -21,13 +21,13 @@ GEN3_UWSGI="${GEN3_UWSGI:-True}"
 GEN3_UWSGI_ROUTE="${GEN3_UWSGI_ROUTE:-/}"
 GEN3_UWSGI_TIMEOUT="${GEN3_UWSGI_TIMEOUT:-45s}"
 GEN3_DRYRUN="${GEN3_DRYRUN:-False}"
-
+GEN3_SIDECAR="${GEN3_SIDECAR:-True}"
 
 help() {
     cat - <<EOM
 Gen3 sidecar launch script
 Use: 
-  dockkerrun.sh [--help] [--uwsgi=True] [--uwsgiRoute=/] [--uwsgiTimeout=45s] [--dryrun=False]
+  dockkerrun.sh [--help] [--uwsgi=True] [--uwsgiRoute=/] [--uwsgiTimeout=45s] [--dryrun=False] [--sidecar=True]
 
 Note:
   The uwsgi configurations assumes that nginx communicates with uwsgi via /var/run/gen3/uwsgi.sock
@@ -118,6 +118,9 @@ while [ $# -gt 0 ]; do
   dryrun)
     GEN3_DRYRUN="${value:-True}"
     ;;
+  sidecar)
+    GEN3_SIDECAR="${value:-True}"
+    ;;
   help)
     help
     exit 0
@@ -135,6 +138,7 @@ GEN3_UWSGI=$GEN3_UWSGI
 GEN3_UWSGI_ROUTE=$GEN3_UWSGI_ROUTE
 GEN3_UWSGI_TIMEOUT=$GEN3_UWSGI_TIMEOUT
 GEN3_DRYRUN=$GEN3_DRYRUN
+GEN3_SIDECAR=$GEN3_SIDECAR
 EOM
 
 if [ "$GEN3_UWSGI" != True ]; then
@@ -156,4 +160,11 @@ g3k_kv_filter "${filterSource}" \
 run cp "$filterTarget" /etc/nginx/gen3.conf.d/uwsgi.conf
 rm "$filterTarget"
 
-run nginx -g 'daemon off;'
+if [ "$GEN3_SIDECAR" = True ]; then
+  run nginx -g 'daemon off;'
+else
+  while true; do
+    echo "sidecar disabled - just running sleep loop"
+    sleep 60
+  done
+fi
