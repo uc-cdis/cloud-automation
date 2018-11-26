@@ -177,6 +177,7 @@ prodv1@kf.csoc
 edcprodv2@occ-edc.csoc
 ibdgc@ibdgc.csoc
 ncigdcprod@ncigdc.csoc
+ncicrdcdemo@ncicrdc.csoc
 vadcprod@vadc.csoc
 accountprod@account.csoc
 yilinxu@account.csoc
