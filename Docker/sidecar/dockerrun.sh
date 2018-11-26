@@ -35,7 +35,7 @@ EOM
 }
 
 run() {
-  if [[ "$GEN3_DRYRUN" != False ]]; then
+  if [ "$GEN3_DRYRUN" != False ]; then
     echo "DRY RUN - not running: $@"
   else
     echo "Running $@"
@@ -91,7 +91,7 @@ g3k_kv_filter() {
 
 
 
-while [[ $# -gt 0 ]]; do
+while [ $# -gt 0 ]; do
   arg="$1"
   shift
   key=""
@@ -99,7 +99,7 @@ while [[ $# -gt 0 ]]; do
   key="$(echo "$arg" | sed -e 's/^-*//' | sed -e 's/=.*$//')"
   value="$(echo "$arg" | sed -e 's/^.*=//')"
 
-  if [[ "$value" == "$arg" ]]; then # =value not given, so use default
+  if [ "$value" = "$arg" ]; then # =value not given, so use default
     value=""
   fi
   case "$key" in
@@ -137,14 +137,14 @@ GEN3_UWSGI_TIMEOUT=$GEN3_UWSGI_TIMEOUT
 GEN3_DRYRUN=$GEN3_DRYRUN
 EOM
 
-if [[ "$GEN3_UWSGI" != True ]]; then
+if [ "$GEN3_UWSGI" != True ]; then
   echo "ERROR: uwsgi not enabled, but that's all we do :shrug:"
   exit 1
 fi
 
 filterSource=/etc/nginx/gen3.conf.d/uwsgi.conf.template
 # For local testing:
-if [[ ! -f "$filterSource" ]] && [[ -f ./uwsgi.conf.template ]] && [[ "$GEN3_DRYRUN" != False ]]; then
+if [ ! -f "$filterSource" ] && [ -f ./uwsgi.conf.template ] && [ "$GEN3_DRYRUN" != False ]; then
   echo 'Setting local filterSource for testing ...'
   filterSource="./uwsgi.conf.template"
 fi
