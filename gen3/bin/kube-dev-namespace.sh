@@ -112,6 +112,9 @@ done
 oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/${vpc_name}/creds.json)
 newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-1]*/$namespace/")
 sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/creds.json
+sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/apis_configs/fence-config.yaml
+sed -i.bak "s@^\(DB: .*/\)[a-zA-Z0-9_]*\$@\1$dbname@g" /home/$namespace/${vpc_name}/apis_configs/fence-config.yaml
+
 #
 # Update creds.json - replace every '.db_databsae' and '.fence_database' with $namespace -
 # we ceate a $namespace database on the fence, indexd, and sheepdog db servers with
