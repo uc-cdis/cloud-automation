@@ -102,7 +102,13 @@ if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$
   gen3 gitops configmaps
   touch "$configmapsFlagFile"
 fi
-
+# S3Listener
+if ! g3kubectl get secrets/s3listener-creds > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/s3listener_creds_secret.json" ]]; then
+      touch "./apis_configs/s3listener_creds_secret.json"
+    fi
+    g3kubectl create secret generic s3listener-creds --from-file=credentials.json=./apis_configs/s3listener_creds_secret.json
+fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
@@ -323,6 +329,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
     g3kubectl create secret generic peregrine-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/peregrine_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
 fi
+
 
 # ETL mapping file for tube
 ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"

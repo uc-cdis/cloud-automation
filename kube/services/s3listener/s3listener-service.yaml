@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: s3listener-service
+spec:
+  selector:
+    app: s3listener
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80 
+      name: http
+    - protocol: TCP 
+      port: 443 
+      targetPort: 443
+      name: https
+  type: NodePort

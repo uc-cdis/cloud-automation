@@ -1,0 +1,60 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: s3listener-deployment
+spec:
+  selector:
+    matchLabels:
+      app: s3listener
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: s3listener
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - s3listener
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: s3listener-creds-volume
+          secret:
+            secretName: "s3listener-creds"
+      containers:
+      - name: s3listener
+        image: quay.io/cdis/ssjdispatcher:feat_sqs_consumer
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: "s3listener-creds-volume"
+            mountPath: "/credentials.json"
+            subPath: credentials.json
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 10
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          exec:
+            command:
+            - cat
+            - /tmp/healthy
+          initialDelaySeconds: 10
+          periodSeconds: 10
