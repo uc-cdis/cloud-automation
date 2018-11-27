@@ -70,11 +70,18 @@ spec:
                   configMapKeyRef:
                     name: manifest-global
                     key: sync_from_dbgap
+              - name: SLACK_SEND_DBGAP
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: slack_send_dbgap
+                    optional: true
               - name: slackWebHook
                 valueFrom:
                     configMapKeyRef:
                       name: global
                       key: slack_webhook
+                      optional: true
               - name: gen3Env
                 valueFrom:
                     configMapKeyRef:
@@ -165,12 +172,15 @@ spec:
                   exitcode=$?
                   echo "$output"
                   # Echo what files we are seeing on dbgap ftp to Slack
-                  # We only do this step every 6 hours to reduce noise
-                  files=$(echo "$output" | grep "Reading file")
-                  let hour=$(date -u +10#%H)
-                  if ! (( hour % 6 )); then
-                    if [ "${slackWebHook}" != 'None' ]; then
-                      curl -X POST --data-urlencode "payload={\"text\": \"FenceHelper: \n\`\`\`\n${files}\n\`\`\`\"}" "${slackWebHook}"
+                  # We only do this step every 12 hours and not on weekends to reduce noise
+                  if [[ -n "$SLACK_SEND_DBGAP" && "$SLACK_SEND_DBGAP" = True ]]; then
+                    files=$(echo "$output" | grep "Reading file")
+                    let hour=$(date -u +10#%H)
+                    let dow=$(date -u +10#%u)
+                    if ! (( hour % 12 )) && (( dow < 6 )); then
+                      if [ "${slackWebHook}" != 'None' ]; then
+                        curl -X POST --data-urlencode "payload={\"text\": \"FenceHelper: \n\`\`\`\n${files}\n\`\`\`\"}" "${slackWebHook}"
+                      fi
                     fi
                   fi
                 fi
