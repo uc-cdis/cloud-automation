@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Little helper derives terraform and k8s configuration
-# from kubernetes secrets if possible.  
+# from kubernetes secrets if possible.
 # Generates
 #    $XDG_RUNTIME_DIR/kube-extract-config/creds.json, config.tfvars, and 00configmap.yaml
 # Requries g3kubectl to be on the path and configured.
@@ -51,7 +51,7 @@ if ! which jq > /dev/null; then
 fi
 
 g3kubectl get configmaps/global -o yaml > 00configmap.yaml
-  
+
 # Note that legacy commons may not have the dictonary_url set ...
 hostname=$(g3kubectl get configmaps/global -o=jsonpath='{.data.hostname}')
 dictionaryUrl=$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')
@@ -86,14 +86,15 @@ if g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
 fi
 
 fencePyFile=""
-if g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
-  fencePyFile=apis_configs/fence_settings.py
-  g3kubectl get secrets/fence-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > "${fencePyFile}"
+if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+  fencePyFile=apis_configs/fence-config.yaml
+  g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode > "${fencePyFile}"
 elif g3kubectl get secrets/userapi-secret > /dev/null 2>&1; then
   fencePyFile=apis_configs/userapi_settings.py
   g3kubectl get secrets/userapi-secret -o json | jq -r '.data["local_settings.py"]' | base64 --decode > "${fencePyFile}"
 fi
 
+# TODO may need to update these
 if [[ ! -z "${fencePyFile}" ]]; then
   fenceDbUser=$(grep ^DB ${fencePyFile} | sed 's@^.*postgresql://@@' | sed 's/:.*$//')
   fenceDbPassword=$(grep ^DB ${fencePyFile} | sed "s/^.*_user://" | sed 's/@.*$//')
@@ -192,7 +193,7 @@ cat - > creds.json <<EOM
         "hostname": "${hostname}",
         "oauth2_client_id": "",
         "oauth2_client_secret": ""
-    },  
+    },
     "indexd": {
         "db_host": "",
         "db_username": "indexd_user",

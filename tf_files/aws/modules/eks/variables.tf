@@ -2,7 +2,7 @@
 variable "vpc_name" {}
 
 variable "ec2_keyname" {
-  default = "fauzi@uchicago.edu"
+  default = "someone@uchicago.edu"
 }
 
 variable "instance_type" {

@@ -195,10 +195,10 @@ resource "aws_vpc_endpoint" "squid-nlb" {
 }
 
 
-#resource "aws_route53_record" "squid-nlb" {
- # zone_id = "${module.cdis_vpc.zone_id}"
-  #name    = "cloud-proxy.${module.cdis_vpc.zone_name}"
-  #type    = "CNAME"
-  #ttl     = "300"
-  #records = ["${lookup(aws_vpc_endpoint.squid-nlb.dns_entry[0], "dns_name")}"]
-#}
+resource "aws_route53_record" "squid-nlb" {
+  zone_id = "${module.cdis_vpc.zone_id}"
+  name    = "csoc-cloud-proxy.${module.cdis_vpc.zone_name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = ["${lookup(aws_vpc_endpoint.squid-nlb.dns_entry[0], "dns_name")}"]
+}

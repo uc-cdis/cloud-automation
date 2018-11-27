@@ -1,0 +1,9 @@
+
+#Systemd specific additions
+#https://github.com/masterkorp/openvpn-update-resolv-conf
+#https://github.com/jonathanio/update-systemd-resolved
+setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+script-security 2
+up /etc/openvpn/update-resolv-conf 
+down /etc/openvpn/update-resolv-conf 
+down-pre

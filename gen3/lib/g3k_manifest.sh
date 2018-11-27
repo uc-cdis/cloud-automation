@@ -10,38 +10,7 @@ export GEN3_MANIFEST_HOME
 MANIFEST_BRANCH=${MANIFEST_BRANCH:-"master"}
 export MANIFEST_BRANCH
 
-#
-#check if gitops folder exist, update locally and return the path.
-#
-g3k_gitops_init() {
-  WORKSPACE="${WORKSPACE:-$HOME}"
-  local GEN3_HOST_NAME
-  GEN3_HOST_NAME=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
 
-  #check if the new manifest url exists
-  local MANIFEST_EXIST
-  MANIFEST_EXIST=$(curl -s https://api.github.com/repos/uc-cdis/${GEN3_HOST_NAME} | yq .id) 
-  if [[ $MANIFEST_EXIST -gt 0 ]]; then
-  #new path for all gitops files 
-    local branch
-    branch=${2:-$MANIFEST_BRANCH}
-    GEN3_GITOPS_FOLDER=$WORKSPACE/$GEN3_HOST_NAME
-    if [[ ! -d "${GEN3_GITOPS_FOLDER}" ]]; then
-      echo -e $(red_color "ERROR: GEN3_GITOPS_FOLDER does not exist: ${GEN3_GITOPS_FOLDER}") 1>&2
-      echo "git clone https://github.com/uc-cdis/${GEN3_HOST_NAME}.git ${GEN3_GITOPS_FOLDER}" 1>&2
-
-      git clone "https://github.com/uc-cdis/${GEN3_HOST_NAME}.git" "${GEN3_GITOPS_FOLDER}" 1>&2
-    fi
-    if [[ -d "$GEN3_GITOPS_FOLDER/.git" && -z "$JENKINS_HOME" ]]; then
-      # Don't do this when running tests in Jenkins ...
-      echo "INFO: git fetch branch $branch in $GEN3_GITOPS_FOLDER" 1>&2
-      (cd "$GEN3_GITOPS_FOLDER" && git pull; git checkout $branch; git pull; git status) 1>&2
-    fi
-    export GEN3_GITOPS_FOLDER
-    echo "$GEN3_GITOPS_FOLDER"
-    return 0
-  fi
-}
 #
 # GEN3_GITOPS_FOLDER environment variable:
 # Override the folder under which to look for
@@ -222,7 +191,6 @@ g3k_manifest_filter() {
   # Load the substitution map
   # Note: zsh and bash manage parameter expansion of hashmap keys differently,
   #   so maintain a separate key map.
-  #   Should really just pull g3k roll out into its own shell script ...
   #
   local key
   local key2
@@ -240,7 +208,7 @@ g3k_manifest_filter() {
     kvList+=("$kvKey" "image: $value")
   done
   for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
-    for key2 in $(g3k_config_lookup ".[\"${key}\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
+    for key2 in $(g3k_config_lookup ".[\"${key}\"] "' | to_entries | map(select((.value|type != "array") and (.value|type != "object"))) | map(.key)[]' "$manifestPath" | grep '^[a-zA-Z]'); do
       value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
       if [[ -n "$value" ]]; then
         # zsh friendly upper case
@@ -300,53 +268,3 @@ g3k_manifest_lookup() {
   g3k_config_lookup "$1"
 }
 
-#
-# Roll the given deployment
-#
-# @param deploymentName
-# @param kvList varargs - template key/values - values expand as 'value: VALUE'
-#
-g3k_roll() {
-  local depName
-  depName="$1"
-  shift
-  if [[ -z "$depName" ]]; then
-    echo -e "$(red_color "Use: g3k roll deployment-name")" 1>&2
-    return 1
-  fi
-
-  local templatePath=""
-  if [[ -f "$depName" ]]; then
-    # we were given the path to a file - fine
-    templatePath="$depName"
-  else
-    local cleanName=$(echo "$depName" | sed 's/[-_]deploy.*$//')
-    templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
-  fi
-
-  local manifestPath
-  manifestPath="$(g3k_manifest_path)"
-  if [[ ! -f "$manifestPath" ]]; then
-    echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
-    return 1
-  fi
-
-  if [[ -f "$templatePath" ]]; then
-    # Get the service name, so we can verify it's in the manifest
-    local serviceName
-    serviceName="$(basename "$templatePath" | sed 's/-deploy.yaml$//')"
-
-    if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
-      g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
-    else
-      echo "Not rolling $serviceName - no manifest entry in $manifestPath" 1>&2
-      return 1
-    fi
-  elif [[ "$depName" == "all" ]]; then
-    echo bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
-    bash "${GEN3_HOME}/gen3/bin/kube-roll-all.sh"
-  else
-    echo -e "$(red_color "ERROR: could not find deployment template: $templatePath")"
-    return 1
-  fi
-}                                                                            

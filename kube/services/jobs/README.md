@@ -9,7 +9,7 @@ required by these jobs.  It runs automatically as part of the `kube-services` sc
 boots up a commons, but may need to be run manually to setup existing commons to run jobs.
 
 Also - `gen3 runjob` treats a `job.yaml` as a template that is processed via
-`g3k_manifest_filter` in the same way a deployment is processed.  
+`g3k_manifest_filter` in the same way a deployment is processed.
 Variable key-value pairs passed on the command line are replaced in the .yaml file - ex:
 `gen3 runjob gentestdata SUBMISSION_USER reubenonrye2uchicago.edu`
 
@@ -43,20 +43,21 @@ gen3 roll peregrine
 
 ### Setup sftp configuration for dbgap sync
 To run usersync job or cronjob that fetches acl files from a remote ftp/sftp server, following setup need to be done:
-1. update `vpcname/apis_configs/fence_credentials.json` include dbgap credentials.
+1. update `vpcname/apis_configs/fence-config.yaml` include dbgap credentials.
 2. update secrets:
 ```
-kubectl delete secret fence-json-secret 
+kubectl delete secret fence-config
+kubectl delete secret fence-config
 gen3 kube-setup-fence
 ```
 3. add the public key at `$vpcname/ssh-keys/id_rsa.pub` to squid proxy
-4. set `sync_from_dbgap: "True"` in `$vpcname/00configmap.yaml`.
+4. set `sync_from_dbgap: "True"` in gitops `manifest.json`.
 
 ## usersync-job
 
 Sync user lists from two sources:
 - a ftp/sftp server that hosts user csv files that follows the format provided by dbgap, enabled if `sync_from_dbgap: "True"` in global configmap. Need to follow [sftp setup instruction](##setup sftp configuration) before enabling it.
-- a user.yaml file from the S3 bucket specified in the global configmap's `useryaml_s3path` attribute (`kubectl get configmap global -o=jsonpath='{.data.useryaml_s3path}'`) into the k8s `fence` configmap, and update fence's user-access database. If the useryaml_s3path is provided with an empty string, it will use the local user.yaml file.
+- a user.yaml file from the S3 bucket specified in the gitops manifest's `useryaml_s3path` attribute (`kubectl get configmap manifest-global -o=jsonpath='{.data.useryaml_s3path}'`) into the k8s `fence` configmap, and update fence's user-access database. If the useryaml_s3path is provided with an empty string, it will use the local user.yaml file.
 
 Note that this job assumes that the k8s worker nodes have an IAM policy that allows S3 read -
 which is the default in new commons deployments, but may require a manual update to existing commons.
@@ -73,6 +74,12 @@ Sync the `user.yaml` from the k8s `fence` configmap into fence's database.  A ty
 $ gen3 update_config fence apis_configs/user.yaml
 $ gen3 runjob useryaml
 ```
+
+## fence-config
+
+Gets called as part of kube-setup-secrets and handles injecting extra creds
+into fence's yaml configuration. Will also create fence's yaml configuration if
+it does not yet exist.
 
 ## Google Jobs
 
@@ -121,8 +128,8 @@ Same as above but run on a schedule.
 Generate test data given dictionary, following steps need to be done
 See job file for how to run the job with parameters.
 
-Ex: 
-`gen3 runjob gentestdata SUBMISSION_USER reubenonrye@uchicago.edu TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100`
+Ex:
+`gen3 runjob gentestdata TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100 SUBMISSION_USER cdistest@gmail.com`
 
 ### arranger-config-job
 

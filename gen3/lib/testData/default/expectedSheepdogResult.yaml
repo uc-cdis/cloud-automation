@@ -48,6 +48,9 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+      # sheepdog transactions take forever -
+      # try to let the complete before termination
+      terminationGracePeriodSeconds: 300
       containers:
         - name: sheepdog
           image: quay.io/cdis/sheepdog:1.0.1
@@ -109,5 +112,5 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 0.3
-              memory: 512Mi         
+              cpu: 1.0
+              memory: 1024Mi         

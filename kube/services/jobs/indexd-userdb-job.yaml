@@ -32,7 +32,7 @@ spec:
             name: config-helper
       containers:
         - name: indexd
-          image: quay.io/cdis/indexd:master
+          GEN3_INDEXD_IMAGE
           volumeMounts:
             - name: "config-volume"
               readOnly: true

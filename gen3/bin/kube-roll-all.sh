@@ -20,8 +20,16 @@ echo "INFO: using manifest at $(g3k_manifest_path)"
 gen3 roll indexd
 g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 
-gen3 kube-setup-arborist
+gen3 kube-setup-arborist || true
 gen3 kube-setup-fence
+
+if g3kubectl get cronjob usersync >/dev/null 2>&1; then
+    gen3 job run "${GEN3_HOME}/kube/services/jobs/usersync-cronjob.yaml"
+fi
+
+if g3kubectl get configmap manifest-google >/dev/null 2>&1; then
+  gen3 kube-setup-google
+fi
 
 if g3k_manifest_lookup .versions.sheepdog 2> /dev/null; then
   gen3 kube-setup-sheepdog
@@ -70,8 +78,7 @@ if g3k_manifest_lookup .versions.portal 2> /dev/null; then
   # portal is not happy until other services are up
   # If new pods are still rolling/starting up, then wait for that to finish
   gen3 kube-wait4-pods || true
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
-  gen3 roll portal
+  gen3 kube-setup-portal
 else
   echo "INFO: not deploying portal - no manifest entry for .versions.portal"
 fi
