@@ -156,3 +156,7 @@ spec:
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
+        resources:
+            limits:
+              cpu: 0.3
+              memory: 600Mi
