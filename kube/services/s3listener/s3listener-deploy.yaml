@@ -4,6 +4,7 @@ metadata:
   name: s3listener-deployment
 spec:
   selector:
+    # Only select pods based on the 'app' label
     matchLabels:
       app: s3listener
   revisionHistoryLimit: 2
@@ -29,7 +30,7 @@ spec:
                   values:
                   - s3listener
               topologyKey: "kubernetes.io/hostname"
-      automountServiceAccountToken: false
+      automountServiceAccountToken: true
       volumes:
         - name: s3listener-creds-volume
           secret:
@@ -37,7 +38,6 @@ spec:
       containers:
       - name: s3listener
         image: quay.io/cdis/ssjdispatcher:feat_sqs_consumer
-        imagePullPolicy: Always
         volumeMounts:
           - name: "s3listener-creds-volume"
             mountPath: "/credentials.json"
@@ -45,16 +45,19 @@ spec:
         livenessProbe:
           httpGet:
             path: /_status
-            port: 80
-          initialDelaySeconds: 30
+            port: 8000
+          initialDelaySeconds: 5
           periodSeconds: 60
-          timeoutSeconds: 10
-        ports:
-        - containerPort: 80
+          timeoutSeconds: 30
         readinessProbe:
-          exec:
-            command:
-            - cat
-            - /tmp/healthy
-          initialDelaySeconds: 10
-          periodSeconds: 10
+          httpGet:
+            path: /_status
+            port: 8000
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
