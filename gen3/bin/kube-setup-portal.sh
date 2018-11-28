@@ -37,6 +37,7 @@ done
 #
 if g3kubectl get secret portal-config > /dev/null 2>&1; then
   g3kubectl delete secret portal-config
+  g3kubectl delete secret portal-sponsor-config
 fi
 # cleanup legacy setup
 if g3kubectl get configmap portal-config > /dev/null 2>&1; then
@@ -44,6 +45,7 @@ if g3kubectl get configmap portal-config > /dev/null 2>&1; then
 fi
 echo "Creating portal-config ${confFileList[@]}"
 g3kubectl create secret generic portal-config "${confFileList[@]}"
+g3kubectl create secret generic portal-sponsor-config --from-file $manifestsDir/gitops-sponsors/
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
 gen3 roll portal

@@ -42,6 +42,9 @@ spec:
       - name: config-volume
         secret:
           secretName: "portal-config"
+      - name: sponsor-img-volume
+        secret:
+          secretName: "portal-sponsor-config"
       containers:
       - name: portal
         GEN3_PORTAL_IMAGE
@@ -104,6 +107,8 @@ spec:
           - name: "config-volume"
             mountPath: "/data-portal/custom/css/gitops.css"
             subPath: "gitops.css"
+          - name: "sponsor-img-volume"
+            mountPath: "/data-portal/custom/sponsors/gitops-sponsors"
         readinessProbe:
           httpGet:
             path: /
