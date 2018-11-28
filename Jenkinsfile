@@ -54,7 +54,7 @@ pipeline {
           for (int i=0; i < namespaces.length && lockStatus != 0; ++i) {
             env.KUBECTL_NAMESPACE = namespaces[i]
             println "selected namespace $env.KUBECTL_NAMESPACE (qa.planx-pla.net) on executor $env.EXECUTOR_NUMBER"
-            println "attempting to lock namespace $env.KUBECTL_NAMESPACE with a wait time of 1 minutes"
+            println "attempting to lock namespace $env.KUBECTL_NAMESPACE with a wait time of 10 minutes"
             withEnv(['GEN3_NOPROXY=true', "GEN3_HOME=$env.WORKSPACE"]) {
               lockStatus = sh( script: "bash gen3/bin/klock.sh lock jenkins "+uid+" 3600 -w 600", returnStatus: true)
             }
