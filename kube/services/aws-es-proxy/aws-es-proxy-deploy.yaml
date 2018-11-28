@@ -25,7 +25,7 @@ spec:
             secretName: "aws-es-proxy"
       containers:
       - name: esproxy
-        image: abutaha/aws-es-proxy
+        image: abutaha/aws-es-proxy:0.8
         imagePullPolicy: Always
         ports:
         - containerPort: 9200
