@@ -45,7 +45,11 @@ if g3kubectl get configmap portal-config > /dev/null 2>&1; then
 fi
 echo "Creating portal-config ${confFileList[@]}"
 g3kubectl create secret generic portal-config "${confFileList[@]}"
-g3kubectl create secret generic portal-sponsor-config --from-file $manifestsDir/gitops-sponsors/
+if [[ -d "$manifestsDir/gitops-sponsors/" ]]; then
+  g3kubectl create secret generic portal-sponsor-config --from-file $manifestsDir/gitops-sponsors/
+else
+  g3kubectl create secret generic portal-sponsor-config
+fi
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
 gen3 roll portal
