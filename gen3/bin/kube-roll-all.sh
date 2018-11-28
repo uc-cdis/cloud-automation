@@ -24,8 +24,16 @@ for name in $(kubectl get pods -l 'release!=production,release!=canary' -o jsonp
 done
 
 gen3 kube-setup-indexd
-gen3 kube-setup-arborist
+gen3 kube-setup-arborist || true
 gen3 kube-setup-fence
+
+if g3kubectl get cronjob usersync >/dev/null 2>&1; then
+    gen3 job run "${GEN3_HOME}/kube/services/jobs/usersync-cronjob.yaml"
+fi
+
+if g3kubectl get configmap manifest-google >/dev/null 2>&1; then
+  gen3 kube-setup-google
+fi
 
 if g3k_manifest_lookup .versions.sheepdog 2> /dev/null; then
   gen3 kube-setup-sheepdog

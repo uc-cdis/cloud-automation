@@ -51,7 +51,8 @@ resource "aws_ami_copy" "cdis_ami" {
   }
 }
 
-# Security group to access peered networks from the csoc admin VM
+
+# Allo SSH Access 
 
 resource "aws_security_group" "ssh" {
   name        = "ssh_${var.vm_name}"
@@ -71,6 +72,9 @@ resource "aws_security_group" "ssh" {
     name         = "ssh_${var.vm_name}"
   }
 }
+
+
+# Security group for local traffic
 
 resource "aws_security_group" "local" {
   name        = "local_${var.vm_name}"
@@ -142,15 +146,6 @@ data "aws_iam_policy_document" "vm_policy_document" {
     effect    = "Allow"
     resources = ["*"]
   }
-
-  statement {
-    # see https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html
-    actions = ["sts:AssumeRole"]
-
-    effect    = "Allow"
-    resources = ["arn:aws:iam::${var.aws_account_id}:role/csoc_adminvm"]
-  }
-
 }
 
 resource "aws_iam_role_policy" "vm_policy" {
@@ -162,6 +157,21 @@ resource "aws_iam_role_policy" "vm_policy" {
 resource "aws_iam_instance_profile" "vm_role_profile" {
   name = "${var.vm_name}_role_profile"
   role = "${aws_iam_role.vm_role.id}"
+}
+
+locals {
+
+  proxy_config_environment = <<EOF
+http_proxy=http://cloud-proxy.internal.io:3128
+https_proxy=http://cloud-proxy.internal.io:3128
+no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com" 
+EOF
+
+  proxy_config_apt = <<EOF
+Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";
+Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";
+EOF
+
 }
 
 resource "aws_instance" "utility_vm" {
@@ -183,26 +193,44 @@ resource "aws_instance" "utility_vm" {
     ignore_changes = ["ami", "key_name"]
   }
 
+  provisioner "file" {
+    content     = "${var.proxy == "yes" ? local.proxy_config_environment : ""}"
+    destination = "/tmp/environment"
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+    }
+  }
+
+  provisioner "file" {
+    content     = "${var.proxy == "yes" ? local.proxy_config_apt : ""}"
+    destination = "/tmp/01proxy"
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+    }
+  }
+
   user_data = <<EOF
 #!/bin/bash 
 
 #Proxy configuration and hostname assigment for the adminVM
-echo http_proxy=http://cloud-proxy.internal.io:3128 >> /etc/environment
-echo https_proxy=http://cloud-proxy.internal.io:3128/ >> /etc/environment
-echo no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com"  >> /etc/environment
-echo 'Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
-echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
+#echo http_proxy=http://cloud-proxy.internal.io:3128 >> /etc/environment
+#echo https_proxy=http://cloud-proxy.internal.io:3128/ >> /etc/environment
+#echo no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com"  >> /etc/environment
+#echo 'Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
+#echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
+
+cat /tmp/environment >> /etc/environment
+cat /tmp/01proxy >> /etc/apt/apt.conf.d/01proxy
 
 cd /home/ubuntu
 sudo git clone https://github.com/uc-cdis/cloud-automation.git
 sudo chown -R ubuntu. cloud-automation
 
-#cd cloud-automation
-#git checkout feat/csoc-utility-vm
-#cd /home/ubuntu
-
 #sudo mkdir -p /root/.ssh/
-sudo cat cloud-automation/files/authorized_keys/ops_team | sudo tee --append /home/ubuntu/.ssh/authorized_keys
+#sudo cat cloud-automation/files/authorized_keys/ops_team | sudo tee --append /home/ubuntu/.ssh/authorized_keys
+sudo cat cloud-automation/${var.authorized_keys} | sudo tee --append /home/ubuntu/.ssh/authorized_keys
 
 
 echo '127.0.1.1 ${var.vm_hostname}' | sudo tee --append /etc/hosts

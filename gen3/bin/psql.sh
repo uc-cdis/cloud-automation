@@ -32,15 +32,8 @@ g3k_psql() {
   fi
 
   local credsPath="${HOME}/${vpc_name}/creds.json"
-  if [[ ! -f "$credsPath" ]]; then
-    echo -e $(red_color "g3k_psql: could not find $credsPath")
-    return 1
-  fi
 
   case "$serviceName" in
-  "gdc")
-    key=gdcapi
-    ;;
   "sheepdog")
     key=sheepdog
     ;;
@@ -58,11 +51,15 @@ g3k_psql() {
     return 1
     ;;
   esac
-  local username=$(jq -r ".${key}.db_username" < $credsPath)
-  local password=$(jq -r ".${key}.db_password" < $credsPath)
-  local host=$(jq -r ".${key}.db_host" < $credsPath)
-  local database=$(jq -r ".${key}.db_database" < $credsPath)
-
+  local credsPath
+  credsPath="$(mktemp "${XDG_RUNTIME_DIR}/creds.json.XXXXXX")"
+  g3kubectl get secret "${key}-creds" -o json | jq -r '.data["creds.json"]' | base64 --decode > "$credsPath"
+  local username=$(jq -r ".db_username" < $credsPath)
+  local password=$(jq -r ".db_password" < $credsPath)
+  local host=$(jq -r ".db_host" < $credsPath)
+  local database=$(jq -r ".db_database" < $credsPath)
+  shred "$credsPath"
+  rm "$credsPath"
   PGPASSWORD="$password" psql -U "$username" -h "$host" -d "$database" "$@"
 }
 

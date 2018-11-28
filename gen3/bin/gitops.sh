@@ -12,7 +12,7 @@ help() {
 #
 # command to update dictionary URL and image versions
 #
-sync_dict_and_versions() {
+gen3_gitops_sync() {
   g3k_manifest_init
   local dict_roll=false
   local versions_roll=false
@@ -85,6 +85,23 @@ sync_dict_and_versions() {
 
 
 #
+# Run `gen3 gitops sync` against a remote ssh target
+#
+gen3_gitops_rsync() {
+  local target
+  target="$1"
+  if [[ -z "$1" ]]; then
+    echo -e "$(red_color "ERROR: gen3 gitops rsync user@host")"
+    return 1
+  fi
+  if ! ssh "$target" "bash -c 'cd cloud-automation && git checkout master && git pull && cd ../cdis-manifest && git checkout master && git pull'"; then
+    echo -e "$(red_color "ERROR: could not update cloud-automation or cdis-manifest at $target")"
+    return 1
+  fi
+  ssh "$target" "bash -ic 'gen3 gitops sync'"
+}
+
+#
 # g3k command to create configmaps from manifest
 #
 gen3_gitops_configmaps() {
@@ -144,6 +161,29 @@ declare -a gen3_gitops_repolist_arr=(
   uc-cdis/sheepdog
   uc-cdis/tube
   #frickjack/misc-stuff  # just for testing
+)
+
+declare -a gen3_gitops_sshlist_arr=(
+dcfprod@dcfprod.csoc
+staging@dcfprod.csoc
+dcfqav1@dcfqa.csoc
+bhcprodv2@braincommons.csoc
+bloodv2@occ.csoc
+dataguids@gtex.csoc
+gtexdev@gtex.csoc
+gtexprod@gtex.csoc
+niaidprod@niaiddh.csoc
+prodv1@kf.csoc
+edcprodv2@occ-edc.csoc
+ibdgc@ibdgc.csoc
+ncigdcprod@ncigdc.csoc
+ncicrdcdemo@ncicrdc.csoc
+vadcprod@vadc.csoc
+accountprod@account.csoc
+yilinxu@account.csoc
+kfqa@gmkfqa.csoc
+skfqa@gmkfqa.csoc
+genomelprod@genomel.csoc
 )
 
 #
@@ -303,6 +343,13 @@ gen3_gitops_repolist() {
   done
 }
 
+gen3_gitops_sshlist() {
+  local name
+  for name in "${gen3_gitops_sshlist_arr[@]}"; do
+    echo "$name"
+  done
+}
+
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   # Support sourcing this file for test suite
@@ -322,11 +369,17 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "configmaps")
       gen3_gitops_configmaps
       ;;
-    "sync")
-      sync_dict_and_versions
+    "rsync")
+      gen3_gitops_rsync "$@"
       ;;
     "repolist")
       gen3_gitops_repolist "$@"
+      ;;
+    "sshlist")
+      gen3_gitops_sshlist "$@"
+      ;;
+    "sync")
+      gen3_gitops_sync "$@"
       ;;
     "taglist")
       gen3_gitops_repo_taglist "$@"

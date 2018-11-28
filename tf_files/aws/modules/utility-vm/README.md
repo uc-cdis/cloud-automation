@@ -71,4 +71,6 @@ This variables are not initialized but you can change them if needed.
 * ssh_key_name: this one will most likely be overwriten, but in case something goes wrong with the execution script, you might still be able to access the VM.
 * environment: for tagging purposes.
 * instance_type: t2.micro, t2.medium, etc.
+* proxy: if a literal "yes" is provide, proxy configuration will be added. Default set to yes.
+* authorized_keys: path to file containing ssh keys that will be copied to `/home/ubuntu/.ssh/authorized_keys`. Default is set to `files/authorized_keys/ops_team` (relative to the cloud-automation folder).
 

@@ -24,16 +24,6 @@ g3k_roll() {
     return $?
   fi
 
-  local templatePath=""
-  if [[ -f "$depName" ]]; then
-    # we were given the path to a file - fine
-    templatePath="$depName"
-  else
-    local cleanName=$(echo "$depName" | sed 's/[-_]deploy.*$//')
-    local serviceName=$(echo "$cleanName" | sed 's/-canary//')
-    templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy.yaml"
-  fi
-
   local manifestPath
   manifestPath="$(g3k_manifest_path)"
   if [[ ! -f "$manifestPath" ]]; then
@@ -41,10 +31,26 @@ g3k_roll() {
     return 1
   fi
 
+  local templatePath=""
+  if [[ -f "$depName" ]]; then
+    # we were given the path to a file - fine
+    templatePath="$depName"
+  else
+    local cleanName=$(echo "$depName" | sed 's/[-_]deploy.*$//')
+    local serviceName=$(echo "$cleanName" | sed 's/-canary//')
+    templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
+    # check to see if there's a version override
+    local deployVersion="$(jq -r ".[\"$cleanName\"][\"deployment_version\"]" < "$manifestPath")"
+    if [[ -n "$deployVersion" && "$deployVersion" != null ]]; then
+      templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy-${deployVersion}.yaml"
+    fi
+    echo "INFO: rolling $templatePath" 1>&2
+  fi
+
   if [[ -f "$templatePath" ]]; then
     # Get the service name, so we can verify it's in the manifest
     local serviceName
-    serviceName="$(basename "$templatePath" | sed 's/-deploy.yaml$//')"
+    serviceName="$(basename "$templatePath" | sed 's/-deploy.*yaml$//')"
 
     if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
       g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -

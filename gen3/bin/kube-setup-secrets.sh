@@ -149,6 +149,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     g3kubectl create configmap logo-config --from-file="${logoPath}"
   fi
 
+  # old fence cfg method uses fence-secret and fence-json-secret
   if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then
     g3kubectl create secret generic fence-secret "--from-file=local_settings.py=${GEN3_HOME}/apis_configs/fence_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
@@ -161,6 +162,43 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     g3kubectl create secret generic fence-json-secret --from-file=fence_credentials.json=./apis_configs/fence_credentials.json
   fi
 
+  # new fence cfg method uses a single fence-config secret
+  if ! g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+    # load updated fence-config.yaml into secret if it exists
+    fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-config.yaml
+    if [[ -f ${fence_config} ]]; then
+      echo "loading fence config from file..."
+      if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+        g3kubectl delete secret fence-config
+      fi
+      g3kubectl create secret generic fence-config "--from-file=fence-config.yaml=${fence_config}"
+    else
+      echo "running job to create fence-config.yaml."
+      echo "job will inject creds.json into fence-config.yaml..."
+      echo "job will also attempt to load old configuration into fence-config.yaml..."
+      echo "NOTE: Some default config values from fence-config.yaml will be replaced"
+      echo "      Run \"gen3 joblogs config-fence\" for details"
+      gen3 runjob config-fence CONVERT_OLD_CFG "true"
+
+      # dump fence-config secret into file so user can edit.
+      let count=1
+      while ((count < 50)); do
+        if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+          break
+        fi
+        echo "waiting for fence-config secret from job..."
+        sleep 2
+        let count=${count}+1
+      done
+      if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+        echo "found fence-config!"
+        echo "dumping fence configuration into file from fence-config secret..."
+        g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode > "${fence_config}"
+      else
+        echo "ERROR: could not find fence-config within the timeout!"
+      fi
+    fi
+  fi
 
   if ! g3kubectl get secrets/fence-google-app-creds-secret > /dev/null 2>&1; then
     if [[ ! -f "./apis_configs/fence_google_app_creds_secret.json" ]]; then
@@ -344,7 +382,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
       for sql in "${sqlList[@]}"; do
         echo "Running: $sql"
         psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
-      # sheepdog user needs to grant peregr
       done
       # sheepdog user needs to grant peregrine privileges
       # on postgres stuff sheepdog creates in the future if sheepdog user is not the

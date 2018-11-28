@@ -63,3 +63,10 @@ variable "vm_hostname" {
   #default = "csoc_nginx_server"
 }
 
+variable "proxy" {
+  default = "yes"
+}
+
+variable "authorized_keys" {
+  default = "files/authorized_keys/ops_team"
+}
