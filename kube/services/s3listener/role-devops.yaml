@@ -1,0 +1,9 @@
+kind: Role
+# DEPRECATED - no longer used - just use 'admin' role instead
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: role-s3listener
+rules:
+- apiGroups: [""]
+  resources: ["pods", "configmaps", "secrets"]
+  verbs: ["get", "list", "create", "update", "patch", "delete"] # You can also use ["*"]
