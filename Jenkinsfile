@@ -8,6 +8,13 @@ pipeline {
       steps {
         checkout scm
         sh '/bin/rm -rf Secrets SecretsNoPlan dataHome'
+        dir('cdis-manifest') {
+          git(
+            url: 'https://github.com/uc-cdis/gitops-qa.git',
+            branch: 'master'
+          )
+        }
+        env.GEN3_MANIFEST_HOME=env.WORKSPACE + '/cloud-automation'
       }
     }
     stage('gen3 helper test suite') {
