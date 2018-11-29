@@ -130,6 +130,22 @@ test_random_alpha() {
   [[ "$r1" != "$r2" ]]; because $? "random_alphanumeric generates random strings"
 }
 
+test_roll_path() {
+  GEN3_SOURCE_ONLY=true
+  gen3_load "gen3/bin/roll"
+
+  ! tpath="$(gen3_roll_path bogus)"; because $? "bogus service yaml does not exist"
+  [[ "$tpath" =~ /kube/services/bogus/bogus-deploy.yaml$ ]]; because $? "gen3_roll_path gives expected bogus path $tpath"
+  ! tpath="$(gen3_roll_path bogus-canary)"; because $? "bogus-canary service yaml does not exist"
+  [[ "$tpath" =~ /kube/services/bogus/bogus-canary-deploy.yaml$ ]]; because $? "gen3_roll_path gives expected bogus-canary path $tpath"
+  tpath="$(gen3_roll_path fence)"; because $? "fence service yaml exists"
+  [[ "$tpath" =~ /kube/services/fence/fence-deploy.yaml$ ]]; because $? "gen3_roll_path gives expected fence path $tpath"
+  tpath="$(gen3_roll_path fence-canary)"; because $? "fence-canary service yaml exists"
+  [[ "$tpath" =~ /kube/services/fence/fence-canary-deploy.yaml$ ]]; because $? "gen3_roll_path gives expected fence-canary path $tpath"
+  ! tpath="$(gen3_roll_path fence 1.2.3)"; because $? "fence service v1.2.3 yaml does not exist"
+  [[ "$tpath" =~ /kube/services/fence/fence-deploy-1.2.3.yaml$ ]]; because $? "gen3_roll_path gives expected fence v1.2.3 path $tpath"
+}
+
 test_roll() {
   GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/roll"
@@ -142,9 +158,9 @@ test_roll() {
   mpath="$(g3k_manifest_path test1.manifest.g3k)"
   # Mock g3k_manifest_path
   function g3k_manifest_path() { echo "$mpath"; }
-  g3k_roll sheepdog; because $? "roll sheepdog should be ok"
-  ! g3k_roll frickjack; because $? "roll frickjack should not be ok - no yaml file"
-  ! g3k_roll aws-es-proxy; because $? "roll aws-es-proxy should not be ok - no manifest entry"
+  gen3_roll sheepdog; because $? "roll sheepdog should be ok"
+  ! gen3_roll frickjack; because $? "roll frickjack should not be ok - no yaml file"
+  ! gen3_roll aws-es-proxy; because $? "roll aws-es-proxy should not be ok - no manifest entry"
 }
 
 
@@ -207,6 +223,7 @@ shunit_runtest "test_mlookup"
 shunit_runtest "test_loader"
 shunit_runtest "test_random_alpha"
 shunit_runtest "test_roll"
+shunit_runtest "test_roll_path"
 shunit_runtest "test_configmaps"
 shunit_runtest "test_gitops_taglist"
 shunit_runtest "test_gitops_logs"
