@@ -14,7 +14,9 @@ pipeline {
             branch: 'master'
           )
         }
-        env.GEN3_MANIFEST_HOME=env.WORKSPACE + '/cloud-automation'
+        script {
+          env.GEN3_MANIFEST_HOME=env.WORKSPACE + '/cdis-manifest'
+        }
       }
     }
     stage('gen3 helper test suite') {
@@ -37,11 +39,6 @@ pipeline {
       steps {
         sh 'pip3 install boto3 --upgrade'
         sh 'cd tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
-      }
-    }
-    stage('g3k helper test suite') {
-      steps {
-        sh 'GEN3_HOME=$WORKSPACE XDG_DATA_HOME=$WORKSPACE/dataHome bash gen3/bin/g3k_testsuite.sh --profile jenkins'
       }
     }
     stage('nginx helper test suite') {
