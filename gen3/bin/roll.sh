@@ -78,7 +78,7 @@ gen3_roll() {
   if ! templatePath="$(gen3_roll_path "$depName" "$deployVersion")"; then
     return 1
   fi
-  echo "INFO: rolling $templatePath" 1>&2
+  echo "INFO: roll selected template - $templatePath" 1>&2
   
   # Get the service name, so we can verify it's in the manifest
   local serviceName
@@ -87,7 +87,7 @@ gen3_roll() {
   if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
     g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
   else
-    echo "Not rolling $serviceName - no manifest entry in $manifestPath" 1>&2
+    echo -e "$(red_color "ERROR: not rolling $serviceName - no manifest entry in $manifestPath")" 1>&2
     return 1
   fi
 }                                                                            
