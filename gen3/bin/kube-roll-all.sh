@@ -31,7 +31,7 @@ gen3 kube-setup-indexd
 gen3 kube-setup-arborist || true
 gen3 kube-setup-fence
 
-gen3 kube-setup-s3listener
+gen3 kube-setup-ssjdispatcher
 
 if g3kubectl get cronjob usersync >/dev/null 2>&1; then
     gen3 job run "${GEN3_HOME}/kube/services/jobs/usersync-cronjob.yaml"

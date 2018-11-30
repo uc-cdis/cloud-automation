@@ -1,13 +1,12 @@
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: s3listener-binding
+  name: ssjdispatcher-binding
 subjects:
 - kind: ServiceAccount
-  name: s3listener-service-account
-  namespace: giangb
+  name: ssjdispatcher-service-account
   apiGroup: ""
 roleRef:
   kind: ClusterRole
   name: admin
-  apiGroup: ""
+  apiGroup: rbac.authorization.k8s.io

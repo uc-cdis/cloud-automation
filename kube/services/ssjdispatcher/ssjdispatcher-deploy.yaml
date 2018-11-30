@@ -1,12 +1,12 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: s3listener-deployment
+  name: ssjdispatcher-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: s3listener
+      app: ssjdispatcher
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -16,9 +16,9 @@ spec:
   template:
     metadata:
       labels:
-        app: s3listener
+        app: ssjdispatcher
     spec:
-      serviceAccountName: s3listener-service-account
+      serviceAccountName: ssjdispatcher-service-account
       securityContext:
         runAsUser: 1000
         fsGroup: 1000
@@ -32,20 +32,27 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - s3listener
+                  - ssjdispatcher
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: true
       volumes:
-        - name: s3listener-creds-volume
+        - name: ssjdispatcher-creds-volume
           secret:
-            secretName: "s3listener-creds"
+            secretName: "ssjdispatcher-creds"
       containers:
-      - name: s3listener
+      - name: ssjdispatcher
         image: quay.io/cdis/ssjdispatcher:feat_sqs_consumer
         volumeMounts:
-          - name: "s3listener-creds-volume"
+          - name: "ssjdispatcher-creds-volume"
             mountPath: "/credentials.json"
             subPath: credentials.json
+        env:
+          - name: GEN3_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: JOB_NUM_MAX
+            value: "5"
         livenessProbe:
           httpGet:
             path: /_status

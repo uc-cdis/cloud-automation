@@ -102,12 +102,12 @@ if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$
   gen3 gitops configmaps
   touch "$configmapsFlagFile"
 fi
-# S3Listener
-if ! g3kubectl get secrets/s3listener-creds > /dev/null 2>&1; then
-    if [[ ! -f "./apis_configs/s3listener_creds_secret.json" ]]; then
-      touch "./apis_configs/s3listener_creds_secret.json"
+# ssjdispatcher
+if ! g3kubectl get secrets/ssjdispatcher-creds > /dev/null 2>&1; then
+    if [[ ! -f "./apis_configs/ssjdispatcher_creds_secret.json" ]]; then
+      touch "./apis_configs/ssjdispatcher_creds_secret.json"
     fi
-    g3kubectl create secret generic s3listener-creds --from-file=credentials.json=./apis_configs/s3listener_creds_secret.json
+    g3kubectl create secret generic ssjdispatcher-creds --from-file=credentials.json=./apis_configs/ssjdispatcher_creds_secret.json
 fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets

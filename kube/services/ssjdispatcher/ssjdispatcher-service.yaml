@@ -1,10 +1,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: s3listener-service
+  name: ssjdispatcher-service
 spec:
   selector:
-    app: s3listener
+    app: ssjdispatcher
   ports:
     - protocol: TCP
       port: 80
