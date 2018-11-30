@@ -1,18 +1,19 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: peregrine-service
+  name: sheepdog-canary-service
 spec:
   selector:
-    app: peregrine
-    release: production
+    app: sheepdog
+    release: canary
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 80 
+      targetPort: 80
       name: http
-    - protocol: TCP 
-      port: 443 
+    - protocol: TCP
+      port: 443
       targetPort: 443
       name: https
   type: ClusterIP
+

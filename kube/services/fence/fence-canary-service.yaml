@@ -1,11 +1,11 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: peregrine-service
+  name: fence-canary-service
 spec:
   selector:
-    app: peregrine
-    release: production
+    app: fence
+    release: canary
   ports:
     - protocol: TCP
       port: 80

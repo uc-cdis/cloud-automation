@@ -14,8 +14,6 @@ set -e
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/revproxy/00nginx-config.yaml"
-
 scriptDir="${GEN3_HOME}/kube/services/revproxy"
 declare -a confFileList=()
 confFileList+=("--from-file" "$scriptDir/gen3.nginx.conf/README.md")
@@ -30,10 +28,15 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
 done
 #echo "${confFileList[@]}" $BASHPID
 
+gen3 kube-setup-secrets
+gen3 update_config revproxy-nginx-conf "${scriptDir}/nginx.conf"
+gen3 update_config revproxy-helper-js "${scriptDir}/helpers.js"
+
 if g3kubectl get configmap revproxy-nginx-subconf > /dev/null 2>&1; then
   g3kubectl delete configmap revproxy-nginx-subconf
 fi
 g3kubectl create configmap revproxy-nginx-subconf "${confFileList[@]}"
+
 
 gen3 roll revproxy
 

@@ -69,6 +69,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [arranger configuration](../kube/services/arranger/README.md)
 * [tube configuration](../kube/services/tube/README.md)
 * [running the arranger dashboard](../kube/services/arranger-dashboard/README.md)
+* [canary releases](./canary.md)
 * [cloud accounts and access](https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md)
 * [commons infrastructure](./terraform/commonsOverview.md)
 * [csoc](../CSOC_Documentation.md)

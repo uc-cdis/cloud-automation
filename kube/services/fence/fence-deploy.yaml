@@ -8,6 +8,7 @@ spec:
     # Only select pods based on the 'app' label
     matchLabels:
       app: fence
+      release: production
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -18,6 +19,7 @@ spec:
     metadata:
       labels:
         app: fence
+        release: production
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -159,4 +161,4 @@ spec:
         resources:
             limits:
               cpu: 0.3
-              memory: 600Mi
+              memory: 1200Mi

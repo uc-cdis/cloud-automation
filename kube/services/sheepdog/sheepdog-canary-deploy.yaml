@@ -1,13 +1,13 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: sheepdog-deployment
+  name: sheepdog-canary-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
       app: sheepdog
-      release: production
+      release: canary
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -18,7 +18,7 @@ spec:
     metadata:
       labels:
         app: sheepdog
-        release: production
+        release: canary
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -55,7 +55,7 @@ spec:
       terminationGracePeriodSeconds: 300
       containers:
         - name: sheepdog
-          GEN3_SHEEPDOG_IMAGE
+          GEN3_SHEEPDOG-CANARY_IMAGE|-GEN3_SHEEPDOG_IMAGE-|
           livenessProbe:
             httpGet:
               path: /_status
@@ -114,5 +114,5 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 1.0
-              memory: 1024Mi
+              cpu: 0.3
+              memory: 512Mi

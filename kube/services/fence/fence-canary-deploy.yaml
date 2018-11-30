@@ -2,13 +2,13 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: fence-deployment
+  name: fence-canary-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
       app: fence
-      release: production
+      release: canary
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -19,8 +19,8 @@ spec:
     metadata:
       labels:
         app: fence
-        release: production
-        date: "1522344234"
+        release: canary
+        GEN3_DATE_LABEL
     spec:
       affinity:
         podAntiAffinity:
@@ -79,12 +79,12 @@ spec:
             secretName: "service-ca"
       containers:
       - name: fence
-        image: quay.io/cdis/fence:master
+        GEN3_FENCE-CANARY_IMAGE|-GEN3_FENCE_IMAGE-|
         env:
-          - name: PYTHONPATH
-            value: /var/www/fence
-          - name: GEN3_DEBUG
-            value: "False"
+        - name: PYTHONPATH
+          value: /var/www/fence
+        - name: GEN3_DEBUG
+          GEN3_DEBUG_FLAG|-value: "False"-|
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

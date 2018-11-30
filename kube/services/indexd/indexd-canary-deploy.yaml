@@ -1,13 +1,13 @@
 apiVersion: extensions/v1beta1 
 kind: Deployment
 metadata:
-  name: indexd-deployment
+  name: indexd-canary-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
       app: indexd
-      release: production
+      release: canary
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -18,7 +18,7 @@ spec:
     metadata:
       labels:
         app: indexd
-        release: production
+        release: canary
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -52,7 +52,7 @@ spec:
             secretName: "service-ca"
       containers:
       - name: indexd
-        GEN3_INDEXD_IMAGE
+        GEN3_INDEXD-CANARY_IMAGE|-GEN3_INDEXD_IMAGE-|
         env:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|

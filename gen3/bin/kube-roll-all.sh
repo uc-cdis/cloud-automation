@@ -17,9 +17,13 @@ gen3 kube-setup-roles
 gen3 kube-setup-certs
 
 echo "INFO: using manifest at $(g3k_manifest_path)"
-gen3 roll indexd
-g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 
+# label pods without release version
+for name in $(kubectl get pods -l 'release!=production,release!=canary' -o jsonpath="{..metadata.name}"); do
+  g3kubectl label pods $name release=production
+done
+
+gen3 kube-setup-indexd
 gen3 kube-setup-arborist || true
 gen3 kube-setup-fence
 

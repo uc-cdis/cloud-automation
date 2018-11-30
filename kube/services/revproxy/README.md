@@ -47,7 +47,7 @@ Note: also see the comments in [gen3/bin/kube-setup-revproxy](https://github.com
 
 `kube-setup-reverse-proxy` does the following:
 * register each files under `revproxy/gen3.nginx.conf` that corresponds with a currently running kubernetes service with the `revproxy-nginx-subconf` configmap; the `revproxy` pod mounts the configmap to `/etc/nginx/gen3.conf/`
-* register `00nginx-config.yaml` as the core `revproxy-nginx-conf` configmap - which the `revproxy` pod mounts as `nginx.conf` which in turns `includes` the service files at `/etc/nginx/gen3.conf/*.conf` 
+* register `nginx.conf` as the core `revproxy-nginx-conf` configmap - which the `revproxy` pod mounts, which in turns `includes` the service files at `/etc/nginx/gen3.conf/*.conf`
 
 ### Nginx resolver
 
@@ -56,3 +56,19 @@ included sub-configuration files:
 
 * https://www.nginx.com/blog/dns-service-discovery-nginx-plus/
 * https://distinctplace.com/2017/04/19/nginx-resolver-explained/
+
+### Canary services
+
+The reverse proxy manages canary releases. See here for information on canary rollouts:
+* https://martinfowler.com/bliki/CanaryRelease.html
+
+Canary service deployment branches are defined in the manifest just like regular services. The probability of a client being directed to a canary deployment of a service is also defined in the manifest under the `canary` section - a weight of 0 means zero percent traffic is sent to the canary, whereas a weight of 100 means 100% of traffic is sent to the canary deployment.
+
+When determining which release to direct a client to, the revproxy goes through the following steps:
+
+1. Get the `service_releases` cookie from the request. If it doesn't exist, we will create a new one.
+2. For each service defined to have a canary release (defined in an array in the helpers.js file):
+  * if its release is already defined in the cookie, continue (ie use that release)
+  * if its release is not in the cookie, hash the request info into an integer between 0 and 99; if the value is less than the manifest defined weight, set the service to canary in the cookie, else set to production
+3. Add a header to set the cookie to the updated version
+4. Direct client to production or canary depending on the value in the cookie

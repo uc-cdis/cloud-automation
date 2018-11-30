@@ -1,11 +1,11 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: peregrine-service
+  name: peregrine-canary-service
 spec:
   selector:
     app: peregrine
-    release: production
+    release: canary
   ports:
     - protocol: TCP
       port: 80
@@ -16,3 +16,4 @@ spec:
       targetPort: 443
       name: https
   type: ClusterIP
+

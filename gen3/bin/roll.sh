@@ -4,12 +4,53 @@ gen3_load "gen3/lib/g3k_manifest"
 
 
 #
+# Get the path to the yaml file to apply for a `gen3 roll name` command.
+# Supports deployment versions (ex: ...-deploy-1.0.0.yaml) and canary 
+# deployments (ex: fence-canary)
+# 
+# @param depName deployment name or alias
+# @param depVersion deployment version - if any - usually extracted from manifest - ignores "null" value
+# @return echo path to yaml, non-zero exit code if path does not exist
+#
+gen3_roll_path() {
+  local depName
+  local deployVersion
+
+  depName="$1"
+  if [[ -z "$depName" ]]; then
+    echo -e "$(red_color "ERROR: roll deployment name not specified")" 1>&2
+    return 1
+  fi
+  if [[ -f "$depName" ]]; then # path to yaml given
+    echo "$depName"
+    return 0
+  fi
+  deployVersion="${2:-""}"
+  local cleanName
+  local serviceName
+  local templatePath
+  cleanName=$(echo "$depName" | sed 's/[-_]deploy.*$//')
+  serviceName=$(echo "$cleanName" | sed 's/-canary//')
+  templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy.yaml"
+  if [[ -n "$deployVersion" && "$deployVersion" != null ]]; then
+    templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy-${deployVersion}.yaml"
+  fi
+  echo "$templatePath"
+  if [[ -f "$templatePath" ]]; then
+    return 0
+  else
+    echo -e "$(red_color "ERROR: roll path does not exist: $templatePath")" 1>&2
+    return 1
+  fi
+}
+
+#
 # Roll the given deployment
 #
 # @param deploymentName
 # @param kvList varargs - template key/values - values expand as 'value: VALUE'
 #
-g3k_roll() {
+gen3_roll() {
   local depName
   depName="$1"
   shift
@@ -19,7 +60,7 @@ g3k_roll() {
   fi
 
   if [[ "$depName" == "all" ]]; then # special case
-    echo "gen3 kube-roll-all"
+    echo "gen3 kube-roll-all" 1>&2
     gen3 kube-roll-all
     return $?
   fi
@@ -30,39 +71,27 @@ g3k_roll() {
     echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
     return 1
   fi
-
-  local templatePath=""
-  if [[ -f "$depName" ]]; then
-    # we were given the path to a file - fine
-    templatePath="$depName"
-  else
-    local cleanName=$(echo "$depName" | sed 's/[-_]deploy.*$//')
-    templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy.yaml"
-    # check to see if there's a version override
-    local deployVersion="$(jq -r ".[\"$cleanName\"][\"deployment_version\"]" < "$manifestPath")"
-    if [[ -n "$deployVersion" && "$deployVersion" != null ]]; then
-      templatePath="${GEN3_HOME}/kube/services/${cleanName}/${cleanName}-deploy-${deployVersion}.yaml"
-    fi
-    echo "INFO: rolling $templatePath" 1>&2
+  # check to see if there's a version override
+  local deployVersion
+  deployVersion="$(jq -r ".[\"$serviceName\"][\"deployment_version\"]" < "$manifestPath")"
+  local templatePath
+  if ! templatePath="$(gen3_roll_path "$depName" "$deployVersion")"; then
+    return 1
   fi
+  echo "INFO: roll selected template - $templatePath" 1>&2
+  
+  # Get the service name, so we can verify it's in the manifest
+  local serviceName
+  serviceName="$(basename "$templatePath" | sed 's/-deploy.*yaml$//')"
 
-  if [[ -f "$templatePath" ]]; then
-    # Get the service name, so we can verify it's in the manifest
-    local serviceName
-    serviceName="$(basename "$templatePath" | sed 's/-deploy.*yaml$//')"
-
-    if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
-      g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
-    else
-      echo "Not rolling $serviceName - no manifest entry in $manifestPath" 1>&2
-      return 1
-    fi
+  if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
+    g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
   else
-    echo -e "$(red_color "ERROR: could not find deployment template: $templatePath")"
+    echo -e "$(red_color "ERROR: not rolling $serviceName - no manifest entry in $manifestPath")" 1>&2
     return 1
   fi
 }                                                                            
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
-  g3k_roll "$@"
+  gen3_roll "$@"
 fi
