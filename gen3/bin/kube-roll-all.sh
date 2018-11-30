@@ -23,6 +23,10 @@ for name in $(kubectl get pods -l 'release!=production,release!=canary' -o jsonp
   g3kubectl label pods $name release=production
 done
 
+for name in $(kubectl get replicasets -l 'release!=production,release!=canary' -o jsonpath="{..metadata.name}"); do
+  g3kubectl label replicasets $name release=production
+done
+
 gen3 kube-setup-indexd
 gen3 kube-setup-arborist || true
 gen3 kube-setup-fence
