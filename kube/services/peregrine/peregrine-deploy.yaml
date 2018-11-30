@@ -95,7 +95,7 @@ spec:
               path: /_status
               port: 80
             # peregrine can take forever to initialize
-            initialDelaySeconds: 300
+            initialDelaySeconds: 600
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
