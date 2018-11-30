@@ -34,7 +34,7 @@ EOM
         echo ------------
         echo "INFO: Waiting for pods to exit Pending state"
         let COUNT+=1
-        if [[ COUNT -gt 900 ]]; then
+        if [[ COUNT -gt 90 ]]; then
           echo -e "$(red_color "ERROR:") pods still not ready after 900 seconds"
           exit 1
         fi
