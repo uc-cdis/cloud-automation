@@ -164,11 +164,13 @@ declare -a gen3_gitops_repolist_arr=(
 )
 
 declare -a gen3_gitops_sshlist_arr=(
+accountprod@account.csoc
 dcfprod@dcfprod.csoc
 staging@dcfprod.csoc
 dcfqav1@dcfqa.csoc
 bhcprodv2@braincommons.csoc
 bloodv2@occ.csoc
+cvbcommons@cvbcommons.csoc
 dataguids@gtex.csoc
 gtexdev@gtex.csoc
 gtexprod@gtex.csoc
@@ -179,7 +181,6 @@ ibdgc@ibdgc.csoc
 ncigdcprod@ncigdc.csoc
 ncicrdcdemo@ncicrdc.csoc
 vadcprod@vadc.csoc
-accountprod@account.csoc
 yilinxu@account.csoc
 kfqa@gmkfqa.csoc
 skfqa@gmkfqa.csoc
