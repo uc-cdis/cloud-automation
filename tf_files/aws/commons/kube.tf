@@ -46,7 +46,7 @@ resource "aws_db_instance" "db_fence" {
   maintenance_window          = "SAT:03:00-SAT:03:59"
   backup_retention_period     = "4"
   backup_window               = "00:00-00:59"
-  apply_immediately           = true
+
   tags {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
@@ -76,7 +76,7 @@ resource "aws_db_instance" "db_gdcapi" {
   maintenance_window          = "SAT:04:00-SAT:04:59"
   backup_retention_period     = "4"
   backup_window               = "01:00-01:59"
-  apply_immediately           = true
+
   tags {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
@@ -106,7 +106,7 @@ resource "aws_db_instance" "db_indexd" {
   maintenance_window          = "SAT:05:00-SAT:05:59"
   backup_retention_period     = "4"
   backup_window               = "02:00-02:59"
-  apply_immediately           = true
+
   tags {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
