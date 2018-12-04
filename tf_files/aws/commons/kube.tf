@@ -43,14 +43,16 @@ resource "aws_db_instance" "db_fence" {
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
   allow_major_version_upgrade = true
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-fencedb"
-
+  maintenance_window          = "SAT:03:00-SAT:03:59"
+  backup_retention_period     = "4"
+  backup_window               = "00:00-00:59"
+  apply_immediately           = true
   tags {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
   }
 
   lifecycle {
-    ignore_changes  = ["*"]
     prevent_destroy = true
   }
 }
@@ -71,14 +73,16 @@ resource "aws_db_instance" "db_gdcapi" {
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
   allow_major_version_upgrade = true
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-gdcapidb"
-
+  maintenance_window          = "SAT:04:00-SAT:04:59"
+  backup_retention_period     = "4"
+  backup_window               = "01:00-01:59"
+  apply_immediately           = true
   tags {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
   }
 
   lifecycle {
-    ignore_changes  = ["*"]
     prevent_destroy = true
   }
 }
@@ -99,14 +103,16 @@ resource "aws_db_instance" "db_indexd" {
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
   allow_major_version_upgrade = true
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-indexddb"
-
+  maintenance_window          = "SAT:05:00-SAT:05:59"
+  backup_retention_period     = "4"
+  backup_window               = "02:00-02:59"
+  apply_immediately           = true
   tags {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
   }
 
   lifecycle {
-    ignore_changes  = ["*"]
     prevent_destroy = true
   }
 }
@@ -198,7 +204,7 @@ resource "aws_s3_bucket" "kube_bucket" {
 }
 
 # user.yaml bucket read policy
-# This bucket is in the 'bionimbus' account - 
+# This bucket is in the 'bionimbus' account -
 #   modify the permissions there as necessary.  Ugh.
 data "aws_iam_policy_document" "configbucket_reader" {
   statement {
