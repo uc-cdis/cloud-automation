@@ -75,11 +75,11 @@ spec:
                 name: global
                 key: hostname
           - name: TEST_PROGRAM
-            GEN3_TEST_PROGRAM
+            GEN3_TEST_PROGRAM|-value: "DEV"-|
           - name: TEST_PROJECT
-            GEN3_TEST_PROJECT
+            GEN3_TEST_PROJECT|-value: "test"-|
           - name: MAX_EXAMPLES
-            GEN3_MAX_EXAMPLES
+            GEN3_MAX_EXAMPLES|-value: "10"-|
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -123,10 +123,8 @@ spec:
           - name: PYTHONPATH
             value: /var/www/fence
           - name: SUBMISSION_USER
-            GEN3_SUBMISSION_USER
+            GEN3_SUBMISSION_USER|-value: "reubenonrye@uchicago.edu"-|
         volumeMounts:
-          - name: shared-data
-            mountPath: /mnt/shared
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
