@@ -43,9 +43,9 @@ resource "aws_db_instance" "db_fence" {
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
   allow_major_version_upgrade = true
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-fencedb"
-  maintenance_window          = "SAT:03:00-SAT:03:59"
+  maintenance_window          = "FRI:21:00-FRI:21:59"
   backup_retention_period     = "4"
-  backup_window               = "00:00-00:59"
+  backup_window               = "18:00-18:59"
 
   tags {
     Environment  = "${var.vpc_name}"
@@ -73,9 +73,9 @@ resource "aws_db_instance" "db_gdcapi" {
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
   allow_major_version_upgrade = true
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-gdcapidb"
-  maintenance_window          = "SAT:04:00-SAT:04:59"
+  maintenance_window          = "FRI:22:00-FRI:22:59"
   backup_retention_period     = "4"
-  backup_window               = "01:00-01:59"
+  backup_window               = "19:00-19:59"
 
   tags {
     Environment  = "${var.vpc_name}"
@@ -103,9 +103,9 @@ resource "aws_db_instance" "db_indexd" {
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
   allow_major_version_upgrade = true
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-indexddb"
-  maintenance_window          = "SAT:05:00-SAT:05:59"
+  maintenance_window          = "FRI:23:00-FRI:23:59"
   backup_retention_period     = "4"
-  backup_window               = "02:00-02:59"
+  backup_window               = "20:00-20:59"
 
   tags {
     Environment  = "${var.vpc_name}"
