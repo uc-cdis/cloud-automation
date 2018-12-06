@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: tube
+  name: etl
 spec:
   template:
     metadata:
@@ -28,7 +28,7 @@ spec:
               name: manifest-global
               key: dictionary_url
         - name: HADOOP_URL
-          value: hdfs://revproxy-service:9000
+          value: hdfs://spark-service:9000
         - name: ES_URL
           value: esproxy-service
         - name: ES_INDEX_NAME
@@ -46,8 +46,8 @@ spec:
             subPath: "etlMapping.yaml"
         resources:
           limits:
-            cpu: 0.3
-            memory: 512Mi
+            cpu: 1
+            memory: 2Gi
         command: ["/bin/bash" ]
         args:
           - "-c"

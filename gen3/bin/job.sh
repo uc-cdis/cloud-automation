@@ -2,6 +2,25 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/g3k_manifest"
 
+g3k_wait4job(){
+  local jobName
+  jobName="$1"
+  if [[ -z "$jobName" ]]; then
+    echo "gen3 job wait4 JOB-NAME"
+    return 1
+  fi
+  local COUNT
+  COUNT=0
+  while [[ 1 == $(g3kubectl get jobs "$jobName" -o json | jq -r '.status.active') ]]; do
+    if [[ COUNT -gt 90 ]]; then
+      echo "wait too long"
+      exit 1
+    fi
+    echo "waiting for $jobName to finish"
+    sleep 10
+  done
+}
+
 #
 # Run a job with the given name or path - if the path is a -cronjob.yaml,
 # then try to launch a cronjob instead of a job.
@@ -14,11 +33,18 @@ g3k_runjob() {
   local tempFile
   local result
   local jobPath
+  local waitJob
   declare -a kvList=()
 
   jobName=$1
   result=1
   shift
+  waitJob=$1
+  if [[ $waitJob =~ -*w(ait)? ]]; then
+    shift
+  fi
+  
+
   if [[ -z "$jobName" ]]; then
     echo "gen3 job run JOBNAME"
     return 1
@@ -84,6 +110,10 @@ EOM
   else
     echo "Could not find $jobPath and no cronjob"
     result=1
+  fi
+
+  if [[ $waitJob =~ -*w(ait)? ]]; then
+    g3k_wait4job $jobName
   fi
   return "$result"
 }

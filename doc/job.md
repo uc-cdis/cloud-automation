@@ -8,12 +8,13 @@ Kubernetes batch job helper
 gen3 job sub-command
 ```
 where sub-command is one of:
-* run [jobname or path]
+* run [jobname or path] [-w]
   - if given a jobname, then looks for `${jobname}-job.yaml` in [cloud-automation/kube/services/jobs](https://github.com/uc-cdis/cloud-automation/tree/master/kube/services/jobs) after:
 
   - if given a path, then assumes a path ending in `-cronjob.yaml` is a cron job
   - executes the `${jobname}-job.sh` script if present
   - filters the `yaml` file as a manifest template via [gen3 gitops filter](./filter.md)
+  - passing `-w` right after the `jobname` (before its arguments) if wait for job finish
 
 * logs name
 

@@ -17,7 +17,7 @@
 #   Number of maximum examples for each node. Default 100
 #
 # Example
-# gen3 runjob gentestdata TEST_PROGRAM DEV TEST_PROJECT test MAX_EXAMPLES 100 SUBMISSION_USER cdistest@gmail.com
+# gen3 runjob gentestdata TEST_PROGRAM jnkns TEST_PROJECT jenkins MAX_EXAMPLES 100 SUBMISSION_USER cdis.autotest@gmail.com
 #
 apiVersion: batch/v1
 kind: Job
