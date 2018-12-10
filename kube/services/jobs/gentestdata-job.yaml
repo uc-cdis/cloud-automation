@@ -59,7 +59,7 @@ spec:
             secretName: "fence-jwt-keys"
       containers:
       - name: auto-qa
-        image: quay.io/cdis/data-simulator:feat_nested
+        image: quay.io/cdis/data-simulator:master
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH
