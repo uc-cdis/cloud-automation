@@ -4,7 +4,7 @@ groups: {}
 resources:
   - name: programs
     subresources:
-      - name: qa
+      - name: QA
         subresources:
           - name: projects
             subresources:
@@ -18,15 +18,15 @@ users:
   dcf-integration-test-0@planx-pla.net:
     admin: false
     projects:
-      - auth_id: qa
+      - auth_id: QA
         privilege: [create, read, update, delete, upload, read-storage]
-        resource: /programs/qa
+        resource: /programs/QA
   dcf-integration-test-1@planx-pla.net:
     admin: false
     projects:
-      - auth_id: qa
+      - auth_id: QA
         privilege: [create, read, update, delete, upload, read-storage]
-        resource: /programs/qa
+        resource: /programs/QA
       - auth_id: test
         privilege: [create, read, update, delete, upload, read-storage]
         resource: /programs/test
