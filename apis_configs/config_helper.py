@@ -77,6 +77,7 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
 
     print("  INDEXD_PASSWORD injected with value(s) from creds.json")
     config_file = _replace(config_file, "INDEXD_PASSWORD", indexd_password)
+    config_file = _replace(config_file, "INDEXD_USERNAME", "fence")
 
     print("  ENCRYPTION_KEY injected with value(s) from creds.json")
     config_file = _replace(config_file, "ENCRYPTION_KEY", hmac_key)
