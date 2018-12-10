@@ -59,7 +59,7 @@ spec:
             secretName: "fence-jwt-keys"
       containers:
       - name: auto-qa
-        image: quay.io/cdis/auto-qa:master
+        image: quay.io/cdis/data-simulator:master
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH
@@ -94,27 +94,11 @@ spec:
               let count=$count+1
             done
 
-            mkdir -p /gen3-qa/python-scripts/sim-data-code/TestData
+            mkdir -p /TestData
+            data-simulator simulate --url $DICTIONARY_URL --path /TestData --program $TEST_PROGRAM --project $TEST_PROJECT --max_samples $MAX_EXAMPLES
 
-            cd /gen3-qa/python-scripts/sim-data-code/
-            rscript_cmd="/gen3-qa/python-scripts/sim-data-code/GenTestDataCmd.R $DICTIONARY_URL"
-
-            if [[ -n "$TEST_PROJECT" ]]; then
-                rscript_cmd+=" $TEST_PROJECT"
-            else
-                rscript_cmd+=" test"
-            fi
-            if [[ -n "$MAX_EXAMPLES" ]]; then
-                rscript_cmd+=" $MAX_EXAMPLES"
-            else
-                rscript_cmd+=" 100"
-            fi
-
-            rscript_cmd+=" /gen3-qa/python-scripts/sim-data-code/TestData/"
-            echo ${rscript_cmd}
-            Rscript ${rscript_cmd}
             echo "Preparing to submit data"
-            python /gen3-qa/python-scripts/scripts.py data-create --host https://$HOSTNAME --dir /gen3-qa/python-scripts/sim-data-code/TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
+            data-simulator submitting_data --host https://$HOSTNAME --dir /TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
             echo "All Done - always succeed to avoid k8s retries"
       - name: fence
         GEN3_FENCE_IMAGE
