@@ -31,6 +31,9 @@ spec:
       - ipBlock:
            # fence-create sidecar
            cidr: GEN3_FENCEDB_IP/32
+      - ipBlock:
+          # fence-create wants to talk to google now     
+          cidr: 0.0.0.0/0
   policyTypes:
    - Ingress
    - Egress

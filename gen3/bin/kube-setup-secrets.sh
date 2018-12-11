@@ -10,13 +10,50 @@ gen3_load "gen3/lib/g3k_manifest"
 
 mkdir -p "${WORKSPACE}/${vpc_name}/apis_configs"
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update indexd secrets
   #
   # Setup the files that will become secrets in "${WORKSPACE}/$vpc_name/apis_configs"
   #
   cd "${WORKSPACE}"/${vpc_name}
 
-  # Note: look into 'kubectl replace' if you need to replace a secret
+  # Check if the `fence` indexd user has been configured
+  fenceIndexdPassword="$(jq -r .fence.indexd_password < creds.json)"
+  if [[ -z "$fenceIndexdPassword" || "null" == "$fenceIndexdPassword" ]]; then
+    # Ugh - need to update fence with an indexd password
+    # generate a password
+    fenceIndexdPassword="$(gen3 random)"
+    
+    # update creds.json
+    gdcapiIndexdPassword="$(jq -r .sheepdog.indexd_password < creds.json)"
+    cp creds.json creds.json.bak
+    jq -r ".indexd.user_db.fence=\"$fenceIndexdPassword\" | .indexd.user_db.gdcapi=\"$gdcapiIndexdPassword\" | .fence.indexd_password=\"$fenceIndexdPassword\"" < creds.json.bak > creds.json
+
+    # update fence-config.yaml
+    if [ -f apis_configs/fence-config.yaml ]; then
+      # this should only happen with old (pre-indexd-password) fence-config.yaml files ...
+      if ! grep INDEXD_USERNAME apis_configs/fence-config.yaml > /dev/null; then
+        echo "INDEXD_USERNAME: \"fence\"" >> apis_configs/fence-config.yaml
+      else
+        echo -e "$(red_color "WARNING: fence-config.yaml already has INDEXD_USERNAME entry?  May be out of sync with creds.json")"
+      fi
+      if ! grep INDEXD_PASSWORD apis_configs/fence-config.yaml > /dev/null; then
+        echo "INDEXD_PASSWORD: \"$fenceIndexdPassword\"" >> apis_configs/fence-config.yaml
+      else
+        echo -e "$(red_color "WARNING: fence-config.yaml already has INDEXD_PASSWORD entry?  May be out of sync with creds.json")"
+      fi
+    fi
+
+    # Delete out of date secrets
+    for name in indexd-creds fence-creds fence-config; do
+      if g3kubectl get secret "$name" > /dev/null 2>&1; then
+        g3kubectl delete secret "$name" || true
+      fi
+    done
+
+    # Run the indexd-userdb job to update the indexd user database
+    /bin/rm -rf .rendered_indexd_userdb
+  fi
+
   if ! g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
     g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
@@ -25,11 +62,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
     jq -r .indexd < creds.json > "$credsFile"
     g3kubectl create secret generic indexd-creds "--from-file=creds.json=${credsFile}"
   fi
-
-  cd "${WORKSPACE}"/${vpc_name}
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update aws-es-proxy secrets
   if ! g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     creds=$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
@@ -400,11 +435,19 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
     gen3 job run gdcdb-create
     # also go ahead and setup the indexd auth secrets
     gen3 job run indexd-userdb
-    echo "Sleep 10 seconds for gdcdb-create job"
+    echo "Sleep 10 seconds for gdcdb-create and indexd-userdb jobs"
+    sleep 10
     gen3 job logs gdcb-create || true
+    gen3 job logs indexd-userdb || true
+    echo "Leaving the jobs running in the background if not already done"
+  elif [[ ! -f .rendered_indexd_userdb ]]; then
+    # may need to re-run just the indexd-job in some situations
+    gen3 job run indexd-userdb
+    echo "Sleep 10 seconds for indexd-userd job"
+    sleep 10
     gen3 job logs indexd-userdb || true
     echo "Leaving the job running in the background if not already done"
   fi
   # Avoid doing previous block more than once or when not necessary ...
-  touch .rendered_gdcapi_db
+  touch .rendered_gdcapi_db .rendered_indexd_userdb
 fi

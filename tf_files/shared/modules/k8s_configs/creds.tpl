@@ -5,6 +5,7 @@
         "db_password": "${fence_pwd}",
         "db_database": "${fence_db}",
         "hostname": "${hostname}",
+        "indexd_password": "",
         "google_client_secret": "${google_client_secret}",
         "google_client_id": "${google_client_id}",
         "hmac_key": "${hmac_encryption_key}"
@@ -67,6 +68,8 @@
         "db_password": "${indexd_pwd}",
         "db_database": "${indexd_db}",
         "user_db": {
+          "gdcapi": "${gdcapi_indexd_password}",
+          "fence": ""
         }
     },
     "es": {
