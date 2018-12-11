@@ -31,12 +31,12 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update indexd secrets
     # update fence-config.yaml
     if [ -f apis_configs/fence-config.yaml ]; then
       # this should only happen with old (pre-indexd-password) fence-config.yaml files ...
-      if ! grep INDEXD_USERNAME apis_configs/fence_config.yaml > /dev/null; then
+      if ! grep INDEXD_USERNAME apis_configs/fence-config.yaml > /dev/null; then
         echo "INDEXD_USERNAME: \"fence\"" >> apis_configs/fence-config.yaml
       else
         echo -e "$(red_color "WARNING: fence-config.yaml already has INDEXD_USERNAME entry?  May be out of sync with creds.json")"
       fi
-      if ! grep INDEXD_PASSWORD apis_configs/fence_config.yaml > /dev/null; then
+      if ! grep INDEXD_PASSWORD apis_configs/fence-config.yaml > /dev/null; then
         echo "INDEXD_PASSWORD: \"$fenceIndexdPassword\"" >> apis_configs/fence-config.yaml
       else
         echo -e "$(red_color "WARNING: fence-config.yaml already has INDEXD_PASSWORD entry?  May be out of sync with creds.json")"
@@ -436,6 +436,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
     # also go ahead and setup the indexd auth secrets
     gen3 job run indexd-userdb
     echo "Sleep 10 seconds for gdcdb-create and indexd-userdb jobs"
+    sleep 10
     gen3 job logs gdcb-create || true
     gen3 job logs indexd-userdb || true
     echo "Leaving the jobs running in the background if not already done"
@@ -443,6 +444,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
     # may need to re-run just the indexd-job in some situations
     gen3 job run indexd-userdb
     echo "Sleep 10 seconds for indexd-userd job"
+    sleep 10
     gen3 job logs indexd-userdb || true
     echo "Leaving the job running in the background if not already done"
   fi
