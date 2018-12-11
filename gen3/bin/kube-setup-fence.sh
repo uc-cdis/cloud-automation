@@ -10,10 +10,6 @@ gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-secrets
 
-# copy the indexd password from sheepdog to the fence creds if it wasn't there
-tmp=$(mktemp)
-jq -r 'if (.fence.indexd_password | not) then .fence.indexd_password=.sheepdog.indexd_password else . end' creds.json > "$tmp" && mv "$tmp" creds.json
-
 if [[ -d "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # create database
   # Initialize fence database and user list
   cd "${WORKSPACE}/${vpc_name}"
