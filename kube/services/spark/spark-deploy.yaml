@@ -71,5 +71,6 @@ spec:
               hdfs --daemon start datanode
               yarn --daemon start resourcemanager
               yarn --daemon start nodemanager
-              start-history-server.sh
+              hdfs dfsadmin -safemode leave
+              hdfs dfs -mkdir /result
               while true; do sleep 5; done

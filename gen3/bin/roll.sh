@@ -44,6 +44,22 @@ gen3_roll_path() {
   fi
 }
 
+g3k_wait4roll(){
+  local appName
+  appName="$1"
+  local COUNT
+  COUNT=0
+  while [[ 'true' != $(g3kubectl get pods --selector=app=$appName -o json | jq -r '.items[].status.containerStatuses[0].ready' | tr -d '\n') ]]; do
+    if [[ COUNT -gt 90 ]]; then
+      echo "wait too long"
+      exit 1
+    fi
+    echo "waiting for $appName to be ready"
+    sleep 10
+    let COUNT+=1
+  done
+}
+
 #
 # Roll the given deployment
 #
@@ -52,8 +68,11 @@ gen3_roll_path() {
 #
 gen3_roll() {
   local depName
+  local waitRoll
   depName="$1"
   shift
+  waitRoll=$1
+
   if [[ -z "$depName" ]]; then
     echo -e "$(red_color "Use: gen3 roll deployment-name")" 1>&2
     return 1
@@ -90,7 +109,11 @@ gen3_roll() {
     echo -e "$(red_color "WARNING: not rolling $serviceName - no manifest entry in $manifestPath")" 1>&2
     return 1
   fi
-}                                                                            
+
+  if [[ $waitRoll =~ -*w(ait)? ]]; then
+    g3k_wait4roll $depName
+  fi
+}
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   gen3_roll "$@"
