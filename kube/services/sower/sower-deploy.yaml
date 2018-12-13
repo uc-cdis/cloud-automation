@@ -33,7 +33,7 @@ spec:
       automountServiceAccountToken: true
       containers:
       - name: sower
-        image: quay.io/giangbui/sower:master
+        image: quay.io/cdis/sower:master
         livenessProbe:
           httpGet:
             path: /_status

@@ -17,6 +17,8 @@ spec:
     metadata:
       labels:
         app: ssjdispatcher
+        release: production
+        GEN3_DATE_LABEL
     spec:
       serviceAccountName: ssjdispatcher-service-account
       securityContext:
@@ -41,7 +43,7 @@ spec:
             secretName: "ssjdispatcher-creds"
       containers:
       - name: ssjdispatcher
-        image: quay.io/cdis/ssjdispatcher:feat_sqs_consumer
+        GEN3_SSJDISPATCHER_IMAGE
         volumeMounts:
           - name: "ssjdispatcher-creds-volume"
             mountPath: "/credentials.json"
@@ -52,7 +54,10 @@ spec:
               fieldRef:
                 fieldPath: metadata.namespace
           - name: JOB_NUM_MAX
-            value: "5"
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: dispatcher_job_num
         livenessProbe:
           httpGet:
             path: /_status

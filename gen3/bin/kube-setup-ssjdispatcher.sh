@@ -6,7 +6,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-gen3 roll ssjdispatcher
+gen3 roll ssjdispatcher || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/ssjdispatcher-service.yaml"
 
 cat <<EOM
