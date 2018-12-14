@@ -9,7 +9,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-secrets
-gen3 roll tube
+gen3 roll tube $@
 
 cat <<EOM
 The tube services has been deployed onto the k8s cluster.
