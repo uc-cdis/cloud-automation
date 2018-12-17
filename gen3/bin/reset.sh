@@ -10,7 +10,7 @@ gen3_load "gen3/lib/kube-setup-init"
 
 # make sure KUBECTL_NAMESPACE env var is set (defaults to current namespace)
 if [[ -z $KUBECTL_NAMESPACE ]]; then
-    KUBECTL_NAMESPACE=$(g3kubectl get configmap manifest-global -o=jsonpath='{.metadata.namespace}')
+    export KUBECTL_NAMESPACE=$(g3kubectl get configmap manifest-global -o=jsonpath='{.metadata.namespace}')
     echo "KUBECTL_NAMESPACE set to $KUBECTL_NAMESPACE"
 fi
 
@@ -31,11 +31,6 @@ wait_for_pods_down() {
 
 
 gen3 klock lock reset-lock gen3-reset 3600 -w 60
-
-if [[ -f "${WORKSPACE}/${vpc_name}/.rendered_gdcapi_db" ]]; then
-    echo "deleting .rendered_gdcapi_db flag file"
-    rm "${WORKSPACE}/${vpc_name}/.rendered_gdcapi_db"
-fi
 
 g3kubectl delete --all deployments --namespace=$KUBECTL_NAMESPACE
 wait_for_pods_down
@@ -58,9 +53,16 @@ for serviceCred in ${serviceCreds[@]}; do
 done
 
 gen3 roll all
-gen3 kube-wait4-pods
-gen3 job run usersync
+gen3 kube-wait4-pods || true
+gen3 job run useryaml
+# job runs asynchronously ...
+gen3 job run gdcdb-create
+# also go ahead and setup the indexd auth secrets
+gen3 job run indexd-userdb
+echo "Sleep 10 seconds for gdcdb-create and indexd-userdb jobs"
+sleep 10
+gen3 job logs gdcb-create || true
+gen3 job logs indexd-userdb || true
+echo "Leaving the jobs running in the background if not already done"
 
 gen3 klock unlock reset-lock gen3-reset
-
-
