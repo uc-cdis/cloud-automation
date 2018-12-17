@@ -64,6 +64,7 @@ g3k_wait4roll(){
 # Roll the given deployment
 #
 # @param deploymentName
+# @param --wait optional wait flag
 # @param kvList varargs - template key/values - values expand as 'value: VALUE'
 #
 gen3_roll() {
@@ -73,6 +74,9 @@ gen3_roll() {
   shift
   waitRoll=$1
 
+  if [[ "$waitRoll" =~ --*w(ait)? ]]; then
+    shift;
+  fi
   if [[ -z "$depName" ]]; then
     echo -e "$(red_color "Use: gen3 roll deployment-name")" 1>&2
     return 1
@@ -110,7 +114,7 @@ gen3_roll() {
     return 1
   fi
 
-  if [[ $waitRoll =~ -*w(ait)? ]]; then
+  if [[ "$waitRoll" =~ --*w(ait)? ]]; then
     g3k_wait4roll $depName
   fi
 }
