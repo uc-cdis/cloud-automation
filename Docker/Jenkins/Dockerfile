@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.153
+FROM jenkins/jenkins:2.155
 
 USER root
 
@@ -15,8 +15,13 @@ RUN apt-get update \
      apt-transport-https \
      r-base \
      libssl-dev \
-     libcurl4-openssl-dev
+     libcurl4-openssl-dev \
+     ca-certificates \
+     curl \
+     gnupg2 \
+     software-properties-common
 
+# install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
     && echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list \
     && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
@@ -25,6 +30,22 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
           google-cloud-sdk-cbt \
           kubectl \
           zsh
+
+#
+# install docker tools:
+#  * https://docs.docker.com/install/linux/docker-ce/debian/#install-docker-ce-1
+#  * https://docs.docker.com/compose/install/#install-compose
+#
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
+    && add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/debian \
+   $(lsb_release -cs) \
+   stable" \
+   && apt-get update \
+   && apt-get install -y docker-ce \
+   && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+   && chmod a+rx /usr/local/bin/docker-compose
+
 
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
