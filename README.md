@@ -54,7 +54,7 @@ the CSOC account to create roles that can assume the `csoc_adminvm` role in the 
 ```
 
 * Create a new `admin-vm` in the CSOC.  An administrator logs into an account's admin-vm to interact with the account's AWS API and kubernetes clusters:
-    - connect to the CSOC VPN (requires multifactor authentication)
+    - connect to the CSOC VPN (requires multi-factor authentication)
     - ssh to the adminvm
 Contact CDIS ops team to request access to the CSOC VPN, and to add your ssh public key to the
 appropriate adminvm.
@@ -84,7 +84,7 @@ $ git pull
 $ gen3 workon csoc <name of account>_utilityvm
 ```
 
-4. Make the necesary changes to the config.tfvars
+4. Make the necessary changes to the config.tfvars
 
 ```
 $ gen3 cd
@@ -100,8 +100,8 @@ instance_type = "t2.micro"
 aws_account_id = "707767160287"
 ```
 
-Generally speacking, the `bootstrap_path` and `bootstrap_script` vars shouldn't need any change unless you want to use a custom one. 
-Variables explaination:
+Generally speaking, the `bootstrap_path` and `bootstrap_script` vars shouldn't need any change unless you want to use a custom one. 
+Variables explanation:
 - vm_name: self explanatory.
 - vm_hostname: hostname to be used by the VM, usually the same as the name. But you could use a domain if you wanted to.
 - vpc_cidr_list: CIDRs where the VM would have egress access.
@@ -117,7 +117,7 @@ Variables explaination:
 $ gen3 tfplan
 ```
 
-Check that it looks good and it'll do what youa re sxpecting it to do.
+Check that it looks good and it'll do what you are expecting it to do.
 
 ```
 $ gen3 tfapply
