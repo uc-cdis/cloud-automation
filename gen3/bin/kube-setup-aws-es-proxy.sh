@@ -18,7 +18,7 @@ if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   ES_ENDPOINT=$(aws es describe-elasticsearch-domains --domain-names ${vpc_name}-gen3-metadata --query "DomainStatusList[*].Endpoints" --output text)
 
   if ! [ -z ${ES_ENDPOINT} ]; then
-    gen3 roll aws-es-proxy-service aws-es-proxy GEN3_ES_ENDPOINT "${ES_ENDPOINT}" | g3kubectl apply -f
+    gen3 roll aws-es-proxy GEN3_ES_ENDPOINT "${ES_ENDPOINT}"
     g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
     g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_aws_es_proxy.yaml"
 
