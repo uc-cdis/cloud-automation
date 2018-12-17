@@ -19,7 +19,8 @@ RUN apt-get update \
      ca-certificates \
      curl \
      gnupg2 \
-     software-properties-common
+     software-properties-common \
+     sudo
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
@@ -60,11 +61,11 @@ RUN set -xe \
     && rm -rf /var/lib/apt/lists/*
 
 # install terraform
-RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.8/terraform_0.11.8_linux_amd64.zip
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip
 RUN unzip /tmp/terraform.zip -d /usr/local/bin; /bin/rm /tmp/terraform.zip
 
 # install packer
-RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.2.1/packer_1.2.1_linux_amd64.zip
+RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.3.3/packer_1.3.3_linux_amd64.zip
 RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
 
 # install r packages
@@ -73,6 +74,12 @@ RUN Rscript -e 'install.packages("yaml",repos="http://cran.us.r-project.org");' 
     && Rscript -e 'install.packages("httr",repos="http://cran.us.r-project.org");' \
     && Rscript -e 'install.packages("stringr",repos="http://cran.us.r-project.org");' \
     && Rscript -e 'install.packages("pryr",repos="http://cran.us.r-project.org");'
+
+# update /etc/sudoers
+RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
+  && /bin/echo -e "\n%sudo    ALL=(ALL:ALL) NOPASSWD:ALL\n" >> /etc/sudoers.bak \
+  && cp /etc/sudoers.bak /etc/sudoers \
+  && usermod -G sudo jenkins
 
 # add our custom start script
 COPY jenkins.sh /opt/cdis/bin/jenkins.sh
