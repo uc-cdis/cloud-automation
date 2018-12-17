@@ -7,7 +7,7 @@ CDIS uses a Commons Services Operations Center (CSOC) AWS account for accessing 
 ## A. CSOC Logging
 Centralize logging for all commons in other AWS accounts.
 
-https://github.com/uc-cdis/cloud-automation/blob/master/tf_files/modules/cdis-aws-common-logging/README.md
+https://github.com/uc-cdis/cloud-automation/blob/master/tf_files/aws/modules/common-logging/README.md
 
 ## B. CSOC Centralized Management VPC
 CDIS launched  `csoc_main_vpc [CIDR - 10.128.0.0/20]`, using a vpc wizard with two subnets - `csoc_main_vpc_pub1 [ public subnet - 10.128.1.0/24]` and `csoc_main_vpc_priv1 [private subnet - 10.128.2.0/24]` in the AWS CSOC account. 
