@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-ssjdispatcherjob
+spec:
+  spec:
+  podSelector:
+    matchLabels:
+      app: ssjdispatcherjob
+  egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app: ssjdispatcherjob
+      - ipBlock:
+           cidr: 54.224.0.0/12
+      - ipBlock:
+           cidr: 52.92.16.0/20
+      - ipBlock:
+           cidr: 0.0.0.0/0
+  policyTypes:
+   - Ingress
+   - Egress
