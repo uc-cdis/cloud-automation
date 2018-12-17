@@ -1,6 +1,6 @@
 # TL;DR
 
-The gen3 cloud-automation bash scripts simplify and standardize common devops tasks on a gen3 commons.
+The gen3 [cloud-automation](../README.md) bash scripts simplify and standardize common devops tasks on a gen3 commons.
 
 ## installation 
 
@@ -56,6 +56,8 @@ ex: $ gen3 tfapply help
        terraform apply plan.terraform
 
 ```
+
+More examples and use cases can be found on the [gen3 help](../doc/README.md) docs
 
 ### gen3 workon aws-profile-name workspace-name
 
