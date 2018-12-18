@@ -102,12 +102,13 @@ if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$
   gen3 gitops configmaps
   touch "$configmapsFlagFile"
 fi
+
 # ssjdispatcher
-if ! g3kubectl get secrets/ssjdispatcher-creds > /dev/null 2>&1; then
-    if [[ ! -f "./apis_configs/ssjdispatcher_creds_secret.json" ]]; then
-      touch "./apis_configs/ssjdispatcher_creds_secret.json"
-    fi
-    g3kubectl create secret generic ssjdispatcher-creds --from-file=credentials.json=./apis_configs/ssjdispatcher_creds_secret.json
+cd "${WORKSPACE}/${vpc_name}"
+if ! g3kubectl get secret ssjdispatcher-creds > /dev/null 2>&1; then
+  credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+  jq -r .ssjdispatcher < creds.json > "$credsFile"
+  g3kubectl create secret generic ssjdispatcher-creds "--from-file=credentials.json=${credsFile}"
 fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
