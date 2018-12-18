@@ -11,16 +11,24 @@ if [[ -n "$JENKINS_HOME" ]]; then
   echo "Jenkins skipping fluentd setup: $JENKINS_HOME"
   exit 0
 fi
-if (! g3kubectl --namespace=kube-system get daemonset fluentd > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
-  ( # subshell
-    export KUBECTL_NAMESPACE=kube-system  
-    gen3 update_config fluentd-gen3 "${GEN3_HOME}/kube/services/fluentd/gen3.conf"
-    g3kubectl apply -f "${GEN3_HOME}/kube/services/fluentd/fluentd-serviceaccount.yaml"
-    if g3kubectl --namespace=kube-system get daemonset fluentd > /dev/null 2>&1; then
-      g3kubectl "--namespace=kube-system" delete daemonset fluentd
-    fi
-    (unset KUBECTL_NAMESPACE; gen3 gitops filter "${GEN3_HOME}/kube/services/fluentd/fluentd.yaml" GEN3_LOG_GROUP_NAME "${vpc_name}") | g3kubectl "--namespace=kube-system" apply -f -
-  )
+
+ctx="$(g3kubectl config current-context)"
+ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
+# only do this if we are running in the default namespace
+if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
+  if (! g3kubectl --namespace=kube-system get daemonset fluentd > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
+    ( # subshell
+      export KUBECTL_NAMESPACE=kube-system  
+      gen3 update_config fluentd-gen3 "${GEN3_HOME}/kube/services/fluentd/gen3.conf"
+      g3kubectl apply -f "${GEN3_HOME}/kube/services/fluentd/fluentd-serviceaccount.yaml"
+      if g3kubectl --namespace=kube-system get daemonset fluentd > /dev/null 2>&1; then
+        g3kubectl "--namespace=kube-system" delete daemonset fluentd
+      fi
+      (unset KUBECTL_NAMESPACE; gen3 gitops filter "${GEN3_HOME}/kube/services/fluentd/fluentd.yaml" GEN3_LOG_GROUP_NAME "${vpc_name}") | g3kubectl "--namespace=kube-system" apply -f -
+    )
+  else
+    echo "kube-setup-fluentd exiting - fluentd already deployed, use --force to redeploy"
+  fi
 else
-  echo "kube-setup-fluentd exiting - fluentd already deployed, use --force to redeploy"
+  echo "kube-setup-fluentd exiting - only deploys in default namespace"
 fi

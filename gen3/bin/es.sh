@@ -40,9 +40,12 @@ es_port_forward() {
 #
 function es_dump() {
   local indexName
+  local size
   indexName=$1
+  shift
+  size="${1:-100}"
 
-curl -s -X GET "${ESHOST}/${indexName}/_search?pretty=true&size=100" \
+curl -s -X GET "${ESHOST}/${indexName}/_search?pretty=true&size=$size" \
 -H 'Content-Type: application/json' -d'
 {
   "query": { "match_all": {} }

@@ -15,7 +15,7 @@ environment variable, so can `curl $ESHOST`
 
     delete and index or document
 
-* `gen3 es dump index-name`
+* `gen3 es dump index-name [size]`
     
     dump the contents of an ES index (ex: arranger-projects)
   
