@@ -81,6 +81,13 @@ RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
   && cp /etc/sudoers.bak /etc/sudoers \
   && usermod -G sudo jenkins
 
+# add psql: https://www.postgresql.org/download/linux/debian/
+RUN DISTRO="$(lsb_release -c -s)"  \
+      && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+      && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+      && apt-get update \
+      && apt-get install -y postgresql-client-9.6
+
 # add our custom start script
 COPY jenkins.sh /opt/cdis/bin/jenkins.sh
 RUN chmod -R a+rx /opt/cdis

@@ -15,6 +15,11 @@ export GEN3_HOME="${GEN3_HOME:-$(cd "${_setup_workvm_dir}/../.." && pwd)}"
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
+if [[ -n "$JENKINS_HOME" ]]; then
+  echo "Jenkins skipping workvm setup: $JENKINS_HOME"
+  exit 0
+fi
+
 if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   # -E passes through *_proxy environment
   sudo -E apt-get update
