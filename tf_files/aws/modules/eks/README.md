@@ -44,7 +44,7 @@ users_policy = "fauziv1"
 
 ### 4.1 Required Variables 
 
-* `vpc_name` usually the same name as the commons, this VPC must be an existing one, otherwise the execution will fail. Additioanlly, it worth mentioning that logging and VPC must exist before running this.
+* `vpc_name` usually the same name as the commons, this VPC must be an existing one, otherwise the execution will fail. Additionally, it worth mentioning that logging and VPC must exist before running this.
 * `ec2_keyname` and existing key pair so we can ssh into the worker nodes. There might be a better way to achieve this, but as for now the key should exist. At the end, we replace the keys for what we put in terraform.
 * `users_policy` This is the policy that was created before that allows the cluster to access the users bucket in bionimbus. Usually the same name as the VPC, but not always. 
    You may want to look up the policy in AWS console. It should something like `bucket_reader_cdis-gen3-users_fauziv1` the part you need to set the value of `users_policy` is just the part that differentiates the commons. In this case `fauziv1`
@@ -61,8 +61,8 @@ users_policy = "fauziv1"
   Said AMIs uses amazon linux, which default user is `ec2-user`.
 
 * When tfapply is ran, there will be two main outputs `config_map_aws_auth` and `kubeconfig`. 
-  `config_map_aws_auth` is a confimap that sets permision to the cluster to incorporate the worker nodes into the cluster. This is applied automatically, but in case it doesn't copy this output and apply it to the cluster. 
-  `kubeconfig` is the config file for kubernetes, it is not saved automatically in the right path, therfore you must put it where your KUBECONFIG var points to.
+  `config_map_aws_auth` is a configmap that sets permission to the cluster to incorporate the worker nodes into the cluster. This is applied automatically, but in case it doesn't copy this output and apply it to the cluster. 
+  `kubeconfig` is the config file for kubernetes, it is not saved automatically in the right path, therefore you must put it where your KUBECONFIG var points to.
 
    These outputs are also saved into a file in the terraform space. You can access it by running `gen3 cd`, there is a `<commons-name>_output_eks` folder which contains the files in question.
 

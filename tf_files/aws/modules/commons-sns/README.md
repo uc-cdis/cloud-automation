@@ -43,7 +43,7 @@ topic_display = "Cronjob Monitor"
 
 ### 4.1 Required Variables 
 
-* `vpc_name` usually the same name as the commons, this VPC must be an existing one, otherwise the execution will fail. Additioanlly, it worth mentioning that logging and VPC must exist before running this.
+* `vpc_name` usually the same name as the commons, this VPC must be an existing one, otherwise the execution will fail. Additionally, it worth mentioning that logging and VPC must exist before running this.
 * `cluster_type` EKS or kube-aws
 * `emails` List of emails the topic will send message to. More can be added later.
 * `topic_display` Subject of the email sent

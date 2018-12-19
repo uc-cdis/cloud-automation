@@ -3,28 +3,28 @@
 ![CSOC_networkdiag](CSOC_networkdiag_V1.png)
 
 CDIS uses a Commons Services Operations Center (CSOC) AWS account for accessing the AWS accounts associated with all of the Gen3 commons they operate. Operators of other Gen3 data commons may choose to have a separate CSOC account or operate their Gen3 data commons within the same AWS account. There are two major functionality associated with the CSOC account :
- 
+
 ## A. CSOC Logging
 Centralize logging for all commons in other AWS accounts.
 
 https://github.com/uc-cdis/cloud-automation/blob/master/tf_files/aws/modules/common-logging/README.md
 
 ## B. CSOC Centralized Management VPC
-CDIS launched  `csoc_main_vpc [CIDR - 10.128.0.0/20]`, using a vpc wizard with two subnets - `csoc_main_vpc_pub1 [ public subnet - 10.128.1.0/24]` and `csoc_main_vpc_priv1 [private subnet - 10.128.2.0/24]` in the AWS CSOC account. 
+CDIS launched  `csoc_main_vpc [CIDR - 10.128.0.0/20]`, using a vpc wizard with two subnets - `csoc_main_vpc_pub1 [ public subnet - 10.128.1.0/24]` and `csoc_main_vpc_priv1 [private subnet - 10.128.2.0/24]` in the AWS CSOC account.
 
 ## Components of CSOC VPC:
 
-	1.	OpenVPN server VM 
-	2.	Admin VM for the CSOC account 
+	1.	OpenVPN server VM
+	2.	Admin VM for the CSOC account
 	3.	Admin VM for data commons account
 	4.	Squid Proxy VM
 	5.	VPC Peering
 
 
 
-## 1. OpenVPN server VM 
+## 1. OpenVPN server VM
 
-An openvpn server has been manually configured on an instance in the public subnet of the CSOC VPC. It is a one time spun-up and rather a permanent resource. One needs to connect to the  CSOC VPN server to access the admin VMs in the CSOC. The PlanX admin can request for  an openVPN credentials. Upon request an email will be sent with a link to the QR code, openvpn files and instructions on how to set-up the VPN client. 
+An openvpn server has been manually configured on an instance in the public subnet of the CSOC VPC. It is a one time spun-up and rather a permanent resource. One needs to connect to the  CSOC VPN server to access the admin VMs in the CSOC. The PlanX admin can request for  an openVPN credentials. Upon request an email will be sent with a link to the QR code, openvpn files and instructions on how to set-up the VPN client.
 Once client is set-up, the PlanX admins can connect to the planx-vpn with the provided username and 2FA code as a password.
 We followed this to set-up the open VPN:
 https://wiki.opensciencedatacloud.org/software/openvpn.html
@@ -41,7 +41,7 @@ Each data commons account is  associated with an admin VM. The purpose of the ad
 
 `gen3 workon csoc <commons name>_adminvm`
 
-Once launched it can be accessed on private ip [10.128.x.y]  via the  CSOC VPN. Each admin VM can only communicate with the associated data commons account’s VPCs. 
+Once launched it can be accessed on private ip [10.128.x.y]  via the  CSOC VPN. Each admin VM can only communicate with the associated data commons account’s VPCs.
 The routing is done via the VPC peering [ explained below] between the CSOC and the data commons VPC. CSOC squid proxy is configured for internet access.The access is limited at the security group level. Each admin VM have specific security group rules attached to it.
 * ssh_* - This only allows the inbound ssh traffic from anywhere.
 * local_* - This allows the ingress traffic from the CSOC VPC CIDR and the egress traffic to the CSOC VPC CIDR , VPC CIDR of the associated VPC and the AWS cloudwatch subnet.
@@ -64,7 +64,7 @@ A VPC peering connection is used for the communication between the admin VM in t
 1.  A VPC peering request is made when the data commons VPC is spun up (appropriate routes from the data commons VPC to the CSOC VPC via the VPC peering connection  are created in the data commons route tables).`Please note that the “gen3 tfapply” fails when you first run it for the VPC. CSOC admin needs to accept the peering and and then run `gen3 tfplan` and `gen3 tfapply` again.`
 
 2. VPC peeing acceptance can be done manually or via the script as follows:
-*  Automatic process: We need to login to the csoc_admin VM and run the following command: 
+*  Automatic process: We need to login to the csoc_admin VM and run the following command:
 
 `gen3 approve_vpcpeering_request <child_vpc_name>`
 
@@ -72,6 +72,6 @@ The underneath script basically looks for a new VPC peering request, if there is
 *  Manual Process: Once the VPC Peering connection request is made, the CSOC admin need to do the following (use this process only if `automatic process` explained above give errors):
 	*	Verify the VPC  peering request and accept it. Make sure the VPC peering connection is active. At this time you can give a name to the peering connection for future reference.
 	*	Add a route in the  route table associated to the private subnet - `Destination - Data commons VPC CIDR` & `Target - VPC peering connection`.
-	
+
 3. Add the CNAME DNS entry in the route 53 of CSOC. Eg. `k8s-{COMMONS-NAME}.internal.io.` pointing to the DNS name of the VPC load balancer for the K8 controller. This is needed to run the `kubectl` commands to the data commons VPC from the admin VM.
 

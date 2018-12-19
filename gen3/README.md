@@ -2,7 +2,7 @@
 
 The gen3 [cloud-automation](../README.md) bash scripts simplify and standardize common devops tasks on a gen3 commons.
 
-## installation 
+## installation
 
 Install the gen3 scripts on a system like this:
 
@@ -51,7 +51,7 @@ You can also run `gen3 COMMAND help` for most commands:
 ```
 ex: $ gen3 tfapply help
   gen3 tfapply:
-    Run 'terraform apply' in the current workspace, and backup config.tfvars, backend.tfvars, and README.md.  
+    Run 'terraform apply' in the current workspace, and backup config.tfvars, backend.tfvars, and README.md.
     A typical command line is:
        terraform apply plan.terraform
 
@@ -65,25 +65,25 @@ More examples and use cases can be found on the [gen3 help](../doc/README.md) do
 ex:$ gen3 workon cdistest plaxplanetv1
 ```
 
-Enter (and initialize if necessary) a local workspace for working with the terraform resources under the AWS account 
+Enter (and initialize if necessary) a local workspace for working with the terraform resources under the AWS account
 accessible using the admin credentials
 under the *aws-profile-name* profile in `~/.aws/credentials`.
 See [tf_files/README.md](../tf_files/README.md) for more details.
 
 
 ### gen3 arun command arg1 arg2 ...
-   
-Generalization of `gen3 aws ...` just below, 
+
+Generalization of `gen3 aws ...` just below,
 so  `gen3 arun aws arg1 arg2 ...` is equivalent to
 `gen3 aws arg1 arg2 ...`
- 
+
 ### gen3 aws arg1 arg2 ...
 
 Run the `aws` command with the given arguments after setting the
 environment to conform to the active workspace's `~/.aws/config` profile -
-acquiring temporary credentials as necessary.  
+acquiring temporary credentials as necessary.
 
-For example - `gen3 workon cdistest devplanetv1` with the following 
+For example - `gen3 workon cdistest devplanetv1` with the following
 configuration prompts the user for an MFA token, acquire a token
 for the `role_arn` specified by the `cdistest` profile, and cache the
 token (and auto renew when it expires):
@@ -135,7 +135,7 @@ AWS_PROFILE=cdistest
 
 ### gen3 ls [PROFILE]
 
-List workspaces that have been worked on locally, and 
+List workspaces that have been worked on locally, and
 workspaces saved to S3 if for a given PROFILE - ex:
 
 ```

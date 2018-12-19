@@ -33,13 +33,13 @@ dev_name = "/dev/sdz"
 # 4. Variables
 
 * volume_size: the size of the new drive in GiB
-* instance_ip: ip of the VM that you want the volumen attached to.
+* instance_ip: ip of the VM that you want the volume attached to.
 * dev_name: in case you want to attach a second or third drive to the same instance, change this accordingly.
 
 
 # 5. Considerations
 
-This particular module would only create the volume and attach it to the instance of your prefference. It won't though, format it and mount it for you, as this is a OS operantion that we can't tell terraform to perform for you.
+This particular module would only create the volume and attach it to the instance of your preference. It won't though, format it and mount it for you, as this is a OS operation that we can't tell terraform to perform for you.
 
 How to proceed in this case?, this is a simple example on how to. If you don't know how to format and mount, search for help.
 
@@ -49,11 +49,11 @@ Search for the drive with `lsblk`:
 ubuntu@cdistest_admin:~$ sudo lsblk 
 NAME    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 xvda    202:0    0    8G  0 disk 
-└─xvda1 202:1    0    8G  0 part /
+--xvda1 202:1    0    8G  0 part /
 xvdz    202:80   0  100G  0 disk 
 ```
 
-You could create a single partition with `fdisk`, `parter` or any other of your preference. 
+You could create a single partition with `fdisk`, `parted` or any other of your preference. 
 
 
 ```
@@ -73,5 +73,4 @@ mount /dev/xvdz /newdrive
 ```
 
 Remember to add it to `/etc/fstab`
-
 

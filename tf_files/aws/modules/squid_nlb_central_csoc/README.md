@@ -18,7 +18,7 @@ To launch a squid-nlb central set-up, we run the following from the csoc master 
 
 ```gen3 workon <aws-account-name> <squidnlbname>_squidnlbcentral```
 
-This launches a NLB with a target group pointing to VMs running squid-proxy service. A squid version of ```squid-4.0.24``` is running on these VMs. Listeners and target groups correspodning to ```port 3128``` and 
+This launches a NLB with a target group pointing to VMs running squid-proxy service. A squid version of ```squid-4.0.24``` is running on these VMs. Listeners and target groups corresponding to ```port 3128``` and 
 ```port 22```  are created to handle HTTP/HTTPS traffic and SFTP traffic respectively. Currently, the autoscaling group has a desired capacity of 3, hence 
 at any point of time, we expect a cluster of three squid proxies each running in a different AZ environment. The squid-proxy cluster can be scaled up/down as per the requirement.
 
