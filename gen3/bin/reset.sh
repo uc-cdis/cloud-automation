@@ -49,7 +49,7 @@ for serviceCred in ${serviceCreds[@]}; do
         gen3 klock unlock reset-lock gen3-reset
         exit 1
     fi
-    echo "\c template1 \\\ DROP DATABASE $KUBECTL_NAMESPACE; CREATE DATABASE $KUBECTL_NAMESPACE;" | gen3 psql $service
+    echo "\c template1 \\\ DROP DATABASE \"$KUBECTL_NAMESPACE\"; CREATE DATABASE \"$KUBECTL_NAMESPACE\";" | gen3 psql $service
 done
 
 gen3 roll all
