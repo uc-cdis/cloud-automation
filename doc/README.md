@@ -130,3 +130,4 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-setup-tiller](./kube-setup-tiller.md)
 * [kube-setup-tube](./kube-setup-tube.md)
 * [kube-setup-workvm](./kube-setup-workvm.md)
+* [kube-setup-ssjdispatcher](./kube-setup-ssjdispatcher.md)

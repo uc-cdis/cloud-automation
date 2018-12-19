@@ -160,6 +160,7 @@ declare -a gen3_gitops_repolist_arr=(
   uc-cdis/data-portal
   uc-cdis/sheepdog
   uc-cdis/tube
+  uc-cdis/ssjdispatcher
   #frickjack/misc-stuff  # just for testing
 )
 

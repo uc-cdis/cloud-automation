@@ -1,0 +1,74 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ssjdispatcher-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: ssjdispatcher
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: ssjdispatcher
+        release: production
+        GEN3_DATE_LABEL
+    spec:
+      serviceAccountName: ssjdispatcher-service-account
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - ssjdispatcher
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: true
+      volumes:
+        - name: ssjdispatcher-creds-volume
+          secret:
+            secretName: "ssjdispatcher-creds"
+      containers:
+      - name: ssjdispatcher
+        GEN3_SSJDISPATCHER_IMAGE
+        volumeMounts:
+          - name: "ssjdispatcher-creds-volume"
+            mountPath: "/credentials.json"
+            subPath: credentials.json
+        env:
+          - name: GEN3_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: JOB_NUM_MAX
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: dispatcher_job_num
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 60
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 8000
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000

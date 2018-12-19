@@ -29,6 +29,13 @@ if [[ -z "$JENKINS_HOME" ]]; then
   if ! g3kubectl get rolebindings/devops-binding > /dev/null 2>&1; then
     g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml"
   fi
+
+  if ! g3kubectl get serviceaccounts/ssjdispatcher-service-account > /dev/null 2>&1; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/serviceaccount.yaml"
+  fi
+  if ! g3kubectl get rolebindings/ssjdispatcher-binding > /dev/null 2>&1; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/ssjdispatcher-binding.yaml"
+  fi
 else
   echo "Not setting up roles in Jenkins: $JENKINS_HOME"
 fi

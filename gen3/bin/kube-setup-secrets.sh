@@ -103,6 +103,13 @@ if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$
   touch "$configmapsFlagFile"
 fi
 
+# ssjdispatcher
+cd "${WORKSPACE}/${vpc_name}"
+if ! g3kubectl get secret ssjdispatcher-creds > /dev/null 2>&1; then
+  credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+  jq -r .ssjdispatcher < creds.json > "$credsFile"
+  g3kubectl create secret generic ssjdispatcher-creds "--from-file=credentials.json=${credsFile}"
+fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
@@ -323,6 +330,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
     g3kubectl create secret generic peregrine-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/peregrine_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
 fi
+
 
 # ETL mapping file for tube
 ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"
