@@ -32,7 +32,7 @@ wait_for_pods_down() {
 
 gen3 klock lock reset-lock gen3-reset 3600 -w 60
 
-g3kubectl delete --all deployments --namespace=$KUBECTL_NAMESPACE
+g3kubectl delete --all deployments --namespace=$KUBECTL_NAMESPACE --now
 wait_for_pods_down
 
 # drop and recreate all the postgres databases
