@@ -84,6 +84,10 @@ spec:
           httpGet:
             path: /login
             port: 8080
+        resources:
+          limits:
+            cpu: 0.5
+            memory: 2048Mi
         imagePullPolicy: Always
         volumeMounts:
         - name: datadir

@@ -104,11 +104,13 @@ if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$
 fi
 
 # ssjdispatcher
-cd "${WORKSPACE}/${vpc_name}"
-if ! g3kubectl get secret ssjdispatcher-creds > /dev/null 2>&1; then
-  credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-  jq -r .ssjdispatcher < creds.json > "$credsFile"
-  g3kubectl create secret generic ssjdispatcher-creds "--from-file=credentials.json=${credsFile}"
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update aws-es-proxy secrets
+  cd "${WORKSPACE}/${vpc_name}"
+  if ! g3kubectl get secret ssjdispatcher-creds > /dev/null 2>&1; then
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    jq -r .ssjdispatcher < creds.json > "$credsFile"
+    g3kubectl create secret generic ssjdispatcher-creds "--from-file=credentials.json=${credsFile}"
+  fi
 fi
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
