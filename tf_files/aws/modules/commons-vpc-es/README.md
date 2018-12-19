@@ -34,11 +34,11 @@ Once you workon the workspace, you may want to edit the config.tfvars accordingl
 Ex.
 ```
 fauziv1@cdistest_admin ~/cloud-automation
- % cat ~/.local/share/gen3/cdistest/fauziv1_es/config.tfvars 
+ % cat ~/.local/share/gen3/cdistest/fauziv1_es/config.tfvars
 vpc_name   = "fauziv1"
 ```
 
-## 4. Variables 
+## 4. Variables
 
 By default the vpc_name would be configured properly at the moment workon is executed. There are no more variables for this module.
 

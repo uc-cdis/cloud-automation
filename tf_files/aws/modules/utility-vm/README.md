@@ -2,7 +2,7 @@
 
 UtilityVM is intended to make the spin up of new VMs more easily. The whole idea is to offload any package installation to a file within the cloud-automation folder.
 
-Originally, modules would use a custom AMI created though Packer, although this is still a good practice, different issues arises, like keeping the image updated updated. 
+Originally, modules would use a custom AMI created though Packer, although this is still a good practice, different issues arises, like keeping the image updated updated.
 
 The main advantage of this utilityVM module is the ability to add custom bootstrap script without altering the user_data portion in terraform and also the custom script in the packer image creation.
 
@@ -13,7 +13,7 @@ The main advantage of this utilityVM module is the ability to add custom bootstr
 gen3 workon csoc <commons account name>_utilityvm
 ```
 
-## 2. Table of Contents 
+## 2. Table of Contents
 
 - [1. QuickStart](#1-quickstart)
 - [2. Table of Contents](#2-table-of-contents)
@@ -24,12 +24,12 @@ gen3 workon csoc <commons account name>_utilityvm
 
 ## 3. Overview
 
-Once you workon the workspace, you may want to edit the config.tfvars accordingly 
+Once you workon the workspace, you may want to edit the config.tfvars accordingly
 
 Ex: 
 
 ```
-ubuntu@csoc_admin:~$ cat .local/share/gen3/csoc/test_utilityvm/config.tfvars 
+ubuntu@csoc_admin:~$ cat .local/share/gen3/csoc/test_utilityvm/config.tfvars
 bootstrap_path = "cloud-automation/flavors/nginx/"
 bootstrap_script = "es_revproxy.sh"
 vm_name = "test"
@@ -43,12 +43,12 @@ By default, when the VM comes up, it'll be placed in /home/ubuntu, therefore you
 vpc_cird_list would try to send traffic out of the NAT gateway directly.
 
 
-## 4. Variables 
+## 4. Variables
 
 
 ### 4.1 Required Variables
 
-This variables would be initialized when you first `workon` the module. You need to update accordingly. 
+This variables would be initialized when you first `workon` the module. You need to update accordingly.
 
 * bootstrap_path: folder where the custom bootstrap script is located. Can be absolute or relative. If you want to use relative, keep in mind that you will be located in `/home/ubuntu`.
 * bootstrap_script: strip to execute located at the path previously set.
@@ -58,7 +58,7 @@ This variables would be initialized when you first `workon` the module. You need
 * extra_vars: in case you want to use some vars within the bootstrap script. Must be `;` separated if you want to provide more than one. You can leave the list empty.
 
 
-### 4.2 Optional Variables 
+### 4.2 Optional Variables
 
 This variables are not initialized but you can change them if needed.
 

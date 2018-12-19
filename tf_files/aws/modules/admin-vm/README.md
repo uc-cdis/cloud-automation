@@ -8,7 +8,7 @@ Admin VM in CSOC account that is associated with a particular child AWS account.
 gen3 workon csoc <commons account name>_adminvm
 ```
 
-## 2. Table of Contents 
+## 2. Table of Contents
 
 - [1. QuickStart](#1-quickstart)
 - [2. Overview](#2-overview)
@@ -21,5 +21,4 @@ The CSOC account is conceptualized to represent a centralized management account
 
 
 **TODO** Add diagram that explain VPC peering.
-
 

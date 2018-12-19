@@ -11,7 +11,7 @@ the content up to CloudWatch Logs.
 ## AWS Role
 
 The kubernetes worker nodes require an AWS role that allows fluentd to talk to cloudwatchlog,
-they need basically list,read, and write access.
+they need basically list, read, and write access.
 
 ## fluentd setup
 

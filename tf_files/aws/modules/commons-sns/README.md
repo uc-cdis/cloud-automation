@@ -27,7 +27,7 @@ $ gen3 workon cdistest fauziv1_sns
 
 ## 3. Overview
 
-Once you workon the workspace, you may want to edit the config.tfvars accordingly. 
+Once you workon the workspace, you may want to edit the config.tfvars accordingly.
 
 There are mandatory variables, and there are a few other optionals that are set by default in the variables.tf file, but you could change them accordingly.
 
@@ -39,9 +39,9 @@ emails = ["someone@uchicago.edu","otherone@uchicago.edu"]
 topic_display = "Cronjob Monitor"
 ```
 
-## 4. Variables 
+## 4. Variables
 
-### 4.1 Required Variables 
+### 4.1 Required Variables
 
 * `vpc_name` usually the same name as the commons, this VPC must be an existing one, otherwise the execution will fail. Additionally, it worth mentioning that logging and VPC must exist before running this.
 * `cluster_type` EKS or kube-aws
@@ -51,7 +51,7 @@ topic_display = "Cronjob Monitor"
 
 ## 5. After Deployment
 
-Once SNS resources are stood up, then you should be able to apply the jobs into kubernetes. 
+Once SNS resources are stood up, then you should be able to apply the jobs into kubernetes.
 
 Jobs compatible with this modules will have `monitored.yaml` at the end of the filename.
 
