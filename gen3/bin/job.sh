@@ -12,8 +12,12 @@ g3k_wait4job(){
   local COUNT
   COUNT=0
   while [[ 1 == $(g3kubectl get jobs "$jobName" -o json | jq -r '.status.active') ]]; do
-    if [[ COUNT -gt 90 ]]; then
+    if [[ (COUNT -gt 90) ]]; then
       echo "wait too long"
+      exit 1
+    fi
+    if [[ $(g3kubectl get jobs "$jobName" -o json | jq -r '.status.failed') != null ]]; then
+      echo "job fail"
       exit 1
     fi
     echo "waiting for $jobName to finish"
