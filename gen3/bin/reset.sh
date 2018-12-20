@@ -49,7 +49,8 @@ done
 
 gen3 roll all
 gen3 kube-wait4-pods || true
-gen3 job run useryaml
+# integration tests may much with user.yaml, so re-sync from S3
+gen3 job run usersync
 # job runs asynchronously ...
 gen3 job run gdcdb-create
 # also go ahead and setup the indexd auth secrets
