@@ -31,8 +31,6 @@ g3k_psql() {
     mv "${HOME}/${vpc_name}_output/creds.json" "${HOME}/${vpc_name}_output/creds.json.bak"
   fi
 
-  local credsPath="${HOME}/${vpc_name}/creds.json"
-
   case "$serviceName" in
   "sheepdog")
     key=sheepdog
@@ -51,13 +49,18 @@ g3k_psql() {
     return 1
     ;;
   esac
+
   local credsPath
+  local username
+  local password
+  local host
+  local database
   credsPath="$(mktemp "${XDG_RUNTIME_DIR}/creds.json.XXXXXX")"
   g3kubectl get secret "${key}-creds" -o json | jq -r '.data["creds.json"]' | base64 --decode > "$credsPath"
-  local username=$(jq -r ".db_username" < $credsPath)
-  local password=$(jq -r ".db_password" < $credsPath)
-  local host=$(jq -r ".db_host" < $credsPath)
-  local database=$(jq -r ".db_database" < $credsPath)
+  username=$(jq -r ".db_username" < $credsPath)
+  password=$(jq -r ".db_password" < $credsPath)
+  host=$(jq -r ".db_host" < $credsPath)
+  database=$(jq -r ".db_database" < $credsPath)
   shred "$credsPath"
   rm "$credsPath"
   PGPASSWORD="$password" psql -U "$username" -h "$host" -d "$database" "$@"

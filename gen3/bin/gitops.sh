@@ -166,6 +166,7 @@ declare -a gen3_gitops_repolist_arr=(
 
 declare -a gen3_gitops_sshlist_arr=(
 accountprod@account.csoc
+anvilprod@anvil.csoc
 dcfprod@dcfprod.csoc
 staging@dcfprod.csoc
 dcfqav1@dcfqa.csoc

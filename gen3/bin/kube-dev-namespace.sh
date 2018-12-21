@@ -88,13 +88,18 @@ for name in ca.pem ca-key.pem admin.pem admin-key.pem; do
   cp ~/${vpc_name}/credentials/$name credentials/
 done
 sed -i.bak "s/default/$namespace/" kubeconfig
-export KUBECONFIG="/home/$namespace/${vpc_name}/kubeconfig"
 
-echo "Testing new KUBECONFIG at $KUBECONFIG"
-# setup the namespace
-if ! g3kubectl get namespace $namespace > /dev/null 2>&1; then
-  g3kubectl create namespace $namespace
-fi
+( 
+  #
+  # subshell - need to keep KUBECONFIG at current env for gen3 psql to work below
+  #
+  export KUBECONFIG="/home/$namespace/${vpc_name}/kubeconfig"
+  echo "Testing new KUBECONFIG at $KUBECONFIG"
+  # setup the namespace
+  if ! g3kubectl get namespace $namespace > /dev/null 2>&1; then
+    g3kubectl create namespace $namespace
+  fi
+)
 
 cp ~/${vpc_name}/creds.json /home/$namespace/${vpc_name}/creds.json
 
