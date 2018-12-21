@@ -10,7 +10,7 @@ Remember to associate a billing account with the new project.
     - iam.serviceAccounts.get
     - iam.serviceAccounts.list
     - resourcemanager.projects.get
-* Create a `gen3-terraform` service account, and register its credentials with `gen3`.  
+* Create a `gen3-terraform` service account, and register its credentials with `gen3`.
   The `gen3-terraform` account should be given the following IAM roles:
     - Compute admin
     - Compute storage admin
@@ -38,7 +38,7 @@ Add `gen3-terraform` as a iam.serviceAccountUser member on the service account
     - Storage Admin
 Add `gen3-terraform` as a iam.serviceAccountUser member on this service account
 
-* Download the `credentials.json` file for the `gen3-terraform` service account 
+* Download the `credentials.json` file for the `gen3-terraform` service account
 to the adminvm `vpc_name@gcp.csoc`, and register it as a `gcp-X` profile with `gen3`:
 ```
 download `credentials.json` from GCP console
@@ -47,7 +47,7 @@ cp path/to/credentials.json gcp/gcp-profile.json
 gen3 workon gcp-profile prodcommons
 gen3 cd
 ...
-``` 
+```
 
 # Run terraform
 
@@ -74,7 +74,7 @@ $ gcloud compute --project "dev-commons" ssh --zone "us-central1-a" "dev-commons
 $ add keys to admin box, and logout
 
 # Note that we cannot ssh out of the old AWS admin VM's, so you can do one of the following
-# to establish an initial ssh connection 
+# to establish an initial ssh connection
 # until the CSOC gcp-admin vm's with public IP are available:
 #   - ssh from your laptop
 #   - ssh via the gcp web console

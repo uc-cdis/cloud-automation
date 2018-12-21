@@ -1,22 +1,22 @@
 ## DESCRIPTION
 
-A centralised NLB set-up for VPN will be installed in the CSOC account. This is going to be a centralised VPN set-up. We plan to set-up different VPN set-ups for different environments like prod,qa and dev
+A centralised NLB set-up for VPN will be installed in the CSOC account. This is going to be a centralised VPN set-up. We plan to set-up different VPN set-ups for different environments like prod, qa and dev
 
 
 ## MOTIVATION
 
 There are two major driving force for implementing the VPN cluster set-up:
 
-1) Currently, there is a single VM installed as a OpenVPN server. All the users connects to that OpenVPN server and can access the adminVMs in CSOC via which they can access the data commons. A VPN cluster befind the NLB is going to provide a robust VPN system. All the keys,certs will be backed up securely to a S3 and can be restrieved as and when required.It will be quick to launch a new VPN cluster in case the VM goes down. It will also take care of AZ failure.
-2) Currently, all the adminVMs (prod,dev and qa) can be accessed by anyone who is connected to the current CSOC VPN.Infact on a CSOC VPN can access anything in the CSOC VPC (provided there keys are there) With the VPN cluster we have an option of having separate VPN system for seperate environment. This is done by pushing appropriate routes to the VPN client machine and having the required iptable rules on the VPN server itself.
+1) Currently, there is a single VM installed as a OpenVPN server. All the users connects to that OpenVPN server and can access the adminVMs in CSOC via which they can access the data commons. A VPN cluster behind the NLB is going to provide a robust VPN system. All the keys, certs will be backed up securely to a S3 and can be retrieved as and when required. It will be quick to launch a new VPN cluster in case the VM goes down. It will also take care of AZ failure.
+2) Currently, all the adminVMs (prod, dev and qa) can be accessed by anyone who is connected to the current CSOC VPN. In fact on a CSOC VPN can access anything in the CSOC VPC (provided there keys are there) With the VPN cluster we have an option of having separate VPN system for separate environment. This is done by pushing appropriate routes to the VPN client machine and having the required ip table rules on the VPN server itself.
 
 ## SET-UP
 
-To launch a vpn-nlb central set-up, we run the following from the csoc master admin VM 
+To launch a vpn-nlb central set-up, we run the following from the csoc master admin VM
 
 ```gen3 workon csoc <vpnnlbname>_vpnnlbcentral```
 
-This launches a NLB with a target group pointing to the VM running  VPN service. Listeners and target groups correspodning to ```port 1194```, ```port 443``` and  ```port 22```  are created to handle VPN traffic, HTTPS and SSH traffic respectively. Currently, the autoscaling group has a desired capacity of 1, hence at any point of time, we expect a cluster of one VM. This is a limitation with the NLB set-up as we do not have a stickiness feature for NLB and stickiness is a requirement for multiple VPN access servers behind a load balancer. However, we expect a single VPN VM sufficient for our requirement. 
+This launches a NLB with a target group pointing to the VM running  VPN service. Listeners and target groups corresponding to ```port 1194```, ```port 443``` and  ```port 22```  are created to handle VPN traffic, HTTPS and SSH traffic respectively. Currently, the autoscaling group has a desired capacity of 1, hence at any point of time, we expect a cluster of one VM. This is a limitation with the NLB set-up as we do not have a stickiness feature for NLB and stickiness is a requirement for multiple VPN access servers behind a load balancer. However, we expect a single VPN VM sufficient for our requirement.
 
 
 ## IP SCHEMA
@@ -56,7 +56,7 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 3. Source the settings
 ```source /etc/openvpn/bin/settings.sh```
 
-4. Revoke the server cert 
+4. Revoke the server cert
 ```$EASY_RSA/revoke-full $(hostname)```
 
 5. Run the pki tool
@@ -75,7 +75,7 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 2. Send the email
 ```/etc/openvpn/openvpn_management_scripts/send_email.sh /root/<user.csv>```
 
-3. Ask user to get rid of curent vpn client config/set-up/2FA and rerun the .ovpn and 2FA as received in the email
+3. Ask user to get rid of current vpn client config/set-up/2FA and rerun the .ovpn and 2FA as received in the email
 
 
 ## Renewing the Lighttpd server certs
@@ -117,10 +117,4 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 8. Backup to S3
 
 ```/etc/openvpn/bin/push_to_s3.sh```
-
-
-
-
-
-   
 

@@ -2,7 +2,7 @@
 
 Terraform modules for GCP infrastructure.
 
-The `gcp/*` folders configure the GCP terraform provider and 
+The `gcp/*` folders configure the GCP terraform provider and
 reference terraform modules under `gcp/modules/` to provision
 different types of Gen3 infrastructure.
 

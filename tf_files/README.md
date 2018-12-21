@@ -1,7 +1,6 @@
 # TL;DR
 
-Terraform rules for bringing up cloud resources in different stacks.  Use the [gen3](../gen3/README.md) 
-helper scripts to simplify running terraform and other devops tasks.
+Terraform rules for bringing up cloud resources in different stacks.  Use the [gen3](../gen3/README.md) helper scripts to simplify running terraform and other devops tasks.
 
 ## Organization
 
@@ -62,7 +61,7 @@ $ gen3 workon csoc cdistest_adminvm
 
 ## tf_files/aws/utility_vm
 
-Setup and utilityVM that would foolow a bootstrap scrip.
+Setup and utilityVM that would follow a bootstrap scrip.
 ```
 $ gen3 workon <profile> <commons_name>_es
 ```
@@ -89,8 +88,7 @@ types of workspace are supported:
 
 * *admin vm*
 
-The *admin vm* type workspace is intended to create an EC2 instance in the *CSOC* account to act as the CSOC's 
-admin workstation for another account with VPC's that are peered with the CSOC.  If the workspace name ends in `_adminvm`, then the `gen3` script configures
+The *admin vm* type workspace is intended to create an EC2 instance in the *CSOC* account to act as the CSOC's admin workstation for another account with VPC's that are peered with the CSOC.  If the workspace name ends in `_adminvm`, then the `gen3` script configures
 an *admin vm* workspace - ex:
 ```
 $ gen3 workon csoc cdistest_adminvm
@@ -138,7 +136,7 @@ a *user vpc* type workspace - ex:
 $ gen3 workon cdistest devplanetv1_proj1_user
 ```
 
-A *user vpc* workspace created a VPC with a bastion, squid proxy, public and private subnets that route egress traffic through the proxy, cloudwatch logs, and VPC peering to the CSOC VPC. 
+A *user vpc* workspace created a VPC with a bastion, squid proxy, public and private subnets that route egress traffic through the proxy, cloudwatch logs, and VPC peering to the CSOC VPC.
 
 * *rds snapshot*
 

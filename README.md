@@ -2,17 +2,17 @@
 
 This code supports automation of several PlanX processes:
 
-* `./tf_files` - terraform infrastructure automation - for creating resources in the cloud 
+* `./tf_files` - terraform infrastructure automation - for creating resources in the cloud
 like databuckets, networks, databases, and kubernetes clusters
 * `./kube` - kubernetes automation - for deploying services, configuration, secrets, and jobs
-to a kubernetes cluster 
+to a kubernetes cluster
 * `./Docker` - image automation - for building various Docker images including *Jenkins* and *devterm*
 * `./Jenkins` - Jenkins pipelines - for automating workflows like backing up the Jenkins server, testing the *cloud-automation* repo, and continuously deploying to the *QA* environments
-* `./gen3` - user friendly-ish tools to simplify workflows with the `./kube` kubernetes and `./tf_files` terraform automation - [more details](./gen3/README.md)
+* `./gen3` - user friendly tools to simplify workflows with the `./kube` kubernetes and `./tf_files` terraform automation - [more details](./gen3/README.md)
 * `./doc` - [gen3 help](./doc/README.md) docs
 
 The repository also interacts closely with the [images](https://github.com/uc-cdis/images)
-and [cdis-manifest] 
+and [cdis-manifest]
 
 # Table of contents
 
@@ -35,7 +35,7 @@ Most of our interaction with CDIS AWS accounts occur via the central CDIS CSOC a
 
 ## New account flow
 
-* Create an `csoc_adminvm` role in the new account with a trust relationship that allows 
+* Create an `csoc_adminvm` role in the new account with a trust relationship that allows
 the CSOC account to create roles that can assume the `csoc_adminvm` role in the new account:
 ```
 {
@@ -54,16 +54,16 @@ the CSOC account to create roles that can assume the `csoc_adminvm` role in the 
 ```
 
 * Create a new `admin-vm` in the CSOC.  An administrator logs into an account's admin-vm to interact with the account's AWS API and kubernetes clusters:
-    - connect to the CSOC VPN (requires multifactor authentication)
+    - connect to the CSOC VPN (requires multi-factor authentication)
     - ssh to the adminvm
 Contact CDIS ops team to request access to the CSOC VPN, and to add your ssh public key to the
 appropriate adminvm.
 
 ## New adminVM
 
-Admin VMs are used to communicate against the remote account from the CSOC account. 
+Admin VMs are used to communicate against the remote account from the CSOC account.
 
-1. SSH into CSOC master VM 
+1. SSH into CSOC master VM
 ```
 Host csoc
    ServerAliveInterval 120
@@ -84,11 +84,11 @@ $ git pull
 $ gen3 workon csoc <name of account>_utilityvm
 ```
 
-4. Make the necesary changes to the config.tfvars
+4. Make the necessary changes to the config.tfvars
 
 ```
 $ gen3 cd
-$ cat config.tfvars 
+$ cat config.tfvars
 bootstrap_path = "cloud-automation/flavors/adminvm/"
 bootstrap_script = "init.sh"
 vm_name = "cdistest_admin"
@@ -100,8 +100,8 @@ instance_type = "t2.micro"
 aws_account_id = "707767160287"
 ```
 
-Generally speacking, the `bootstrap_path` and `bootstrap_script` vars shouldn't need any change unless you want to use a custom one. 
-Variables explaination:
+Generally speaking, the `bootstrap_path` and `bootstrap_script` vars shouldn't need any change unless you want to use a custom one.
+Variables explanation:
 - vm_name: self explanatory.
 - vm_hostname: hostname to be used by the VM, usually the same as the name. But you could use a domain if you wanted to.
 - vpc_cidr_list: CIDRs where the VM would have egress access.
@@ -117,7 +117,7 @@ Variables explaination:
 $ gen3 tfplan
 ```
 
-Check that it looks good and it'll do what youa re sxpecting it to do.
+Check that it looks good and it'll do what you are expecting it to do.
 
 ```
 $ gen3 tfapply
@@ -145,7 +145,7 @@ $ gen3 tfapply
 * Create a user account for the commons.  There is one `admin-vm` per AWS account.  We create one `user` on an account's admin-vm for each commons VPC under the account.
 Note that an `adminvm` acquires credentials to interact with the AWS API via the EC2 metadata service.  For example, user accounts on the `cdistest` admin-vm have the following configuration:
 ```
-$ cat ~/.aws/config 
+$ cat ~/.aws/config
 [default]
 output = json
 region = us-east-1
@@ -188,7 +188,7 @@ gen3 roll all
 #### Google OAUTH credentials
 
 We register each commons (going forward) as an OAuth client of the `cdis-test` project
-under the `planx-pla.net` GCP domain (organization).  Contact the CDIS *ops* 
+under the `planx-pla.net` GCP domain (organization).  Contact the CDIS *ops*
 team to request a Google client-id and secret for a new commons to support *"Login with Google"*.
 
 - [Create a Google project](https://console.developers.google.com/projectcreate?previousPage=%2Fprojectselector%2Fapis%2Fapi%2Fplus.googleapis.com%2Foverview) with the project name you want to use.
@@ -213,5 +213,4 @@ We have two automation scripts:
 
 The latest versions of the customized ubuntu 16.04 AMI's required by the terraform automation
 are published as public images under the AWS `cdis-test` account.
-Build new AMIs using [images](https://github.com/uc-cdis/images). 
-
+Build new AMIs using [images](https://github.com/uc-cdis/images).

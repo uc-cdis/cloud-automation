@@ -15,6 +15,3 @@ gen3 kube-setup-arborist
 ```
 After arborist is up, run `g3k runjob usersync`
 
-
-### Roll new version
-arborist doesn't have data persistence right now, everytime arborist is rolled, you will need to run `g3k runjob usersync` again
