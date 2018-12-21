@@ -22,12 +22,9 @@ CDIS launched  `csoc_main_vpc [CIDR - 10.128.0.0/20]`, using a vpc wizard with t
 
 
 
-## 1. OpenVPN server VM
+## 1. VPN server VM
 
-An openvpn server has been manually configured on an instance in the public subnet of the CSOC VPC. It is a one time spun-up and rather a permanent resource. One needs to connect to the  CSOC VPN server to access the admin VMs in the CSOC. The PlanX admin can request for  an openVPN credentials. Upon request an email will be sent with a link to the QR code, openvpn files and instructions on how to set-up the VPN client.
-Once client is set-up, the PlanX admins can connect to the planx-vpn with the provided username and 2FA code as a password.
-We followed this to set-up the open VPN:
-https://wiki.opensciencedatacloud.org/software/openvpn.html
+Two VPN servers were configured on an CSOC. Dev VPN gives access to the admin VM for our development environments. Prod VPN gives access to admin VM for production environments. To access controls for a particular environment a user must be able to authenticate to the VPN, and also have ssh access to the admin vm.
 
 ## 2. Admin VM for the CSOC account
 
@@ -64,13 +61,12 @@ A VPC peering connection is used for the communication between the admin VM in t
 1.  A VPC peering request is made when the data commons VPC is spun up (appropriate routes from the data commons VPC to the CSOC VPC via the VPC peering connection  are created in the data commons route tables). Please note that the `gen3 tfapply` fails when you first run it for the VPC. CSOC admin needs to accept the peering and then run `gen3 tfplan` and `gen3 tfapply` again.
 
 2. VPC peeing acceptance can be done manually or via the script as follows:
-*  Automatic process: We need to login to the csoc_admin VM and run the following command:
+* Automatic process: We need to login to the csoc_admin VM and run the following command:
 
-`gen3 approve_vpcpeering_request <child_vpc_name>`
+  `gen3 approve_vpcpeering_request <child_vpc_name>`
 
-The underneath script basically looks for a new VPC peering request, if there is a request in a pending state, it is accepted, tagged and  an appropriate route to the csoc_main_vpc private subnet route table is added.
+  The underneath script basically looks for a new VPC peering request, if there is a request in a pending state, it is accepted, tagged and  an appropriate route to the csoc_main_vpc private subnet route table is added.
+
 *  Manual Process: Once the VPC Peering connection request is made, the CSOC admin need to do the following (use this process only if `automatic process` explained above give errors):
 	*	Verify the VPC  peering request and accept it. Make sure the VPC peering connection is active. At this time you can give a name to the peering connection for future reference.
 	*	Add a route in the  route table associated to the private subnet - `Destination - Data commons VPC CIDR` & `Target - VPC peering connection`.
-
-3. Add the CNAME DNS entry in the route 53 of CSOC. Eg. `k8s-{COMMONS-NAME}.internal.io.` pointing to the DNS name of the VPC load balancer for the K8 controller. This is needed to run the `kubectl` commands to the data commons VPC from the admin VM.
