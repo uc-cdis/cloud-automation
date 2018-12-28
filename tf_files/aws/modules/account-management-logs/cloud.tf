@@ -1,7 +1,7 @@
 # We need a bucket for cloud-trail to send logs
 
 resource "aws_s3_bucket" "management-logs_bucket" {
-  bucket = "${var.account_name}_management-logs"
+  bucket = "${var.account_name}-management-logs"
   acl    = "private"
 
   tags {
@@ -42,28 +42,31 @@ resource "aws_s3_bucket" "management-logs_bucket" {
       days = 1827
     }
   }
+}
 
-  policy = <<POLICY
+
+locals {
+  bucket_policy = <<POLICY
 {
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "AWSCloudTrailAclCheck",
+            "Sid": "AWSCloudTrailAclCheck20150319",
             "Effect": "Allow",
             "Principal": {
-              "Service": "cloudtrail.amazonaws.com"
+                "Service": "cloudtrail.amazonaws.com"
             },
             "Action": "s3:GetBucketAcl",
-            "Resource": "arn:aws:s3:::${var.account_name}_management-logs"
+            "Resource": "arn:aws:s3:::${var.account_name}-management-logs"
         },
         {
-            "Sid": "AWSCloudTrailWrite",
+            "Sid": "AWSCloudTrailWrite20150319",
             "Effect": "Allow",
             "Principal": {
-              "Service": "cloudtrail.amazonaws.com"
+                "Service": "cloudtrail.amazonaws.com"
             },
-            "Action": "s3:PutObject",
-            "Resource": "arn:aws:s3:::${var.account_name}_management-logs/*",
+            "Action": "*",
+            "Resource": "arn:aws:s3:::${var.account_name}-management-logs/*",
             "Condition": {
                 "StringEquals": {
                     "s3:x-amz-acl": "bucket-owner-full-control"
@@ -75,6 +78,12 @@ resource "aws_s3_bucket" "management-logs_bucket" {
 POLICY
 }
 
+
+resource "aws_s3_bucket_policy" "b" {
+  bucket = "${aws_s3_bucket.management-logs_bucket.id}"
+
+  policy = "${local.bucket_policy}"
+}
 
 
 # We also need a CloudWatchLogGroup so we can hook it up with the CSOC account through a subscription Filter
@@ -102,7 +111,7 @@ resource "aws_iam_role" "cloudtrail_role" {
       "Principal": {
         "Service": "cloudtrail.amazonaws.com"
       },
-      "Action": "sts:AssumeRole",
+      "Action": "sts:AssumeRole"
     }
   ]
 }
@@ -112,12 +121,13 @@ EOF
 data "aws_iam_policy_document" "cloudtrail_to_cloudwatch_policy_document" {
   statement {
     actions = [
-      "logs:CreateLogsStream",
-      "logs:PutLogEvents",
+      "logs:*",
+#      "logs:CreateLogsStream",
+#      "logs:PutLogEvents",
     ]
     effect = "Allow"
     resources = [
-      "${aws_cloudwatch_log_group.management-log_group.arn}:*"
+      "${aws_cloudwatch_log_group.management-logs_group.arn}:*"
     ]
   }
 }
@@ -135,15 +145,16 @@ resource "aws_iam_role_policy" "cloudtrail_to_cloudwatch_policy" {
 
 resource "aws_cloudtrail" "logs-trail" {
 
-  is_multi_region_trail = true
-  cloud_watch_logs_role_arn = "${aws_iam_role.cloudtrail_role}"
-  cloud_watch_logs_group_arn= "${aws_cloudwatch_log_group.management-logs_group.arn}"
+  name                        = "${var.account_name}_management_trail"
+  is_multi_region_trail       = true
+  cloud_watch_logs_role_arn   = "${aws_iam_role.cloudtrail_role.arn}"
+  cloud_watch_logs_group_arn  = "${aws_cloudwatch_log_group.management-logs_group.arn}"
   event_selector {
     read_write_type           = "All"
     include_management_events = true
   }
 
-  s3_bucket_name = "${aws_se_bucket.management-logs_bucket.id}"
+  s3_bucket_name = "${aws_s3_bucket.management-logs_bucket.id}"
   s3_key_prefix = "management-logs"
 
   tags {

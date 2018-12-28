@@ -419,7 +419,7 @@ EOM
 
   if [[ "$GEN3_WORKSPACE" =~ _management-logs$ ]]; then
       cat - <<EOM
-account_name = "${GEN3_WORKSPACE//_management-logs/}
+account_name = "${GEN3_WORKSPACE//_management-logs/}"
 EOM
     return 0
   fi
