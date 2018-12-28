@@ -137,7 +137,8 @@ def nice_it(r_data):
     del metadata['logEvents']
     for line in r_data['logEvents']:
         new_meta = copy.deepcopy(metadata)
-        line = date_it(line)
+        #may need to fix this if we need ES
+        #line = date_it(line)
         new_meta['timestamp'] = line['timestamp']
         #new_meta['message'] = json.loads(json.dumps(line['message']))
         try:
