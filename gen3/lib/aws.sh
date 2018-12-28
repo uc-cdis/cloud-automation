@@ -154,8 +154,10 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/eks"
   elif [[ "$GEN3_WORKSPACE" =~ _sns$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons_sns"
-  elif [[ "$GEN4_WORKSPACE" =~ ^management-logs$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/management-logs"
+  elif [[ "$GEN3_WORKSPACE" == "management-logs" ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_management-logs"
+  elif [[ "$GEN3_WORKSPACE" =~ _management-logs$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/account_management-logs"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -408,9 +410,16 @@ EOM
     return 0
   fi
 
-  if [[ "$GEN3_WORKSPACE" =~ ^management-logs$ ]]; then
+  if [[ "$GEN3_WORKSPACE" == "management-logs" ]]; then
       cat - <<EOM
 account_id = ["830067555646", "474789003679", "655886864976", "663707118480", "728066667777", "433568766270", "733512436101", "584476192960", "236835632492", "662843554732", "803291393429", "446046036926", "980870151884", "562749638216", "707767160287", "302170346065", "636151780898", "895962626746", "222487244010", "369384647397", "547481746681"]
+EOM
+    return 0
+  fi
+
+  if [[ "$GEN3_WORKSPACE" =~ _management-logs$ ]]; then
+      cat - <<EOM
+account_name = "${GEN3_WORKSPACE//_management-logs/}
 EOM
     return 0
   fi

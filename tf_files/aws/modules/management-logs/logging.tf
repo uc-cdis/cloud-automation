@@ -2,7 +2,7 @@
 # Kinesis stream logs
 
 resource "aws_s3_bucket" "management-logs_bucket" {
-  bucket = "management-logs"
+  bucket = "management-logs-remote-acconts"
   acl    = "private"
 
   tags {
@@ -332,8 +332,8 @@ data "aws_iam_policy_document" "lamda_policy_document" {
     effect = "Allow"
 
     resources = [
-      "${aws_kinesis_firehose_delivery_stream.firehose_to_es.arn}",
-      #"${aws_kinesis_firehose_delivery_stream.firehose_to_s3.arn}",
+      #"${aws_kinesis_firehose_delivery_stream.firehose_to_es.arn}",
+      "${aws_kinesis_firehose_delivery_stream.firehose_to_s3.arn}",
     ]
   }
 }
