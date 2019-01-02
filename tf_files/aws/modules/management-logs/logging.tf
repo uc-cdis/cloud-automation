@@ -348,7 +348,7 @@ resource "aws_lambda_event_source_mapping" "event_source_mapping" {
   batch_size        = 100
   event_source_arn  = "${aws_kinesis_stream.management-logs_stream.arn}"
   enabled           = true
-  function_name     = "${aws_lambda_function.logs_decodeding.arn}"
+  function_name     = "${aws_lambda_function.logs_decoding.arn}"
   starting_position = "TRIM_HORIZON"
 }
 
@@ -360,7 +360,7 @@ data "archive_file" "lambda_function" {
   output_path = "lambda_function_payload.zip"
 }
 
-resource "aws_lambda_function" "logs_decodeding" {
+resource "aws_lambda_function" "logs_decoding" {
   filename = "${data.archive_file.lambda_function.output_path}"
 
   function_name = "management-logs_lambda_function"
