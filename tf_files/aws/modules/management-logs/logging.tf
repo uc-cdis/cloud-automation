@@ -194,13 +194,13 @@ data "aws_iam_policy_document" "firehose_policy_document" {
 
   }
 
-#  statement {
-#    actions = [
-#      "es:*",
-#    ]
-#    effect = "Allow"
-#    resources = ["*"]
-#  }
+  statement {
+    actions = [
+      "es:*",
+    ]
+    effect = "Allow"
+    resources = ["*"]
+  }
 
 }
 
@@ -222,10 +222,10 @@ resource "aws_cloudwatch_log_group" "management-logs_group" {
   retention_in_days = 1827
 }
 
-#resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
-#  name           = "firehose_to_ES"
-#  log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
-#}
+resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
+  name           = "firehose_to_ES"
+  log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
+}
 
 resource "aws_cloudwatch_log_stream" "firehose_to_S3" {
   name           = "firehose_to_S3"
@@ -233,31 +233,31 @@ resource "aws_cloudwatch_log_stream" "firehose_to_S3" {
 }
 
 ## The current requirement is to send these logs onto S3 only, but just commenting in case we want to enable later
-#resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
-#  name        = "management-logs_firehose_to_es"
-#  destination = "elasticsearch"
+resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
+  name        = "management-logs_firehose_to_es"
+  destination = "elasticsearch"
 
-#  s3_configuration {
-#    role_arn        = "${aws_iam_role.firehose_role.arn}"
-#    bucket_arn      = "${aws_s3_bucket.management-logs_bucket.arn}"
-#    buffer_size     = 10
-#    buffer_interval = 400
-#  }
+  s3_configuration {
+    role_arn        = "${aws_iam_role.firehose_role.arn}"
+    bucket_arn      = "${aws_s3_bucket.management-logs_bucket.arn}"
+    buffer_size     = 10
+    buffer_interval = 400
+  }
 
-#  elasticsearch_configuration {
-#    domain_arn = "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${var.elasticsearch_domain}"
-#    role_arn              = "${aws_iam_role.firehose_role.arn}"
-#    index_name            = "${var.common_name}"
-#    type_name             = "${var.common_name}"
-#    index_rotation_period = "OneWeek"
+  elasticsearch_configuration {
+    domain_arn = "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${var.elasticsearch_domain}"
+    role_arn              = "${aws_iam_role.firehose_role.arn}"
+    index_name            = "management_logs"
+    type_name             = "management_logs"
+    index_rotation_period = "OneWeek"
 
-#    cloudwatch_logging_options {
-#      enabled         = true
-#      log_group_name  = "management-logs"
-#      log_stream_name = "firehose_to_ES"
-#    }
-#  }
-#}
+    cloudwatch_logging_options {
+      enabled         = true
+      log_group_name  = "management-logs"
+      log_stream_name = "firehose_to_ES"
+    }
+  }
+}
 
 
 resource "aws_kinesis_firehose_delivery_stream" "firehose_to_s3" {

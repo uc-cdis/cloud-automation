@@ -64,11 +64,6 @@ import os
 MESSAGE_BATCH_MAX_COUNT = 500 #limit from firehose put_record_batch api
 
 
-# Syslogs (also auth) type -> Apr 8 14:42:01  ->  '%b %d %H:%M:%S'
-syslog = { 'pattern' : '[JFMASOND][aepuco][nbrylgptvc]\s*([0-2]?[0-9]|3[01])\s*([0-1]?[0-9]|2[0-4])(:[0-5][0-9]){2}', 'format' : '%b %d %H:%M:%S' }
-
-different_datetimes = syslog
-
 
 def chunker(iterable, chunksize):
   """
@@ -94,37 +89,11 @@ def date_it(line):
     better in ES and run fancy queries with Kibana
     """
     #print(line)
-    fecha = None
-    for a_datetime in different_datetimes:
-        try:
-            fecha = re.search(a_datetime['pattern'],line['message'])
-        except:
-            print(format("there was an error with '{}' and '{}'",a_datetime['pattern'],line['message']))
-    
-        if fecha:
-            if not a_datetime['format']:
-                #print(float(fecha.group())) This is squid
-                fecha = datetime.datetime(*time.strptime(time.ctime(float(fecha.group())))[0:6]).isoformat()
-            elif not "%Y" in a_datetime['format']:
-                fechat = fecha.group() + ' ' + time.strftime("%Y", time.localtime(time.time()))
-                forma = a_datetime['format'] + ' %Y'
-                fecha = datetime.datetime.strptime(fechat,forma).isoformat()
-            else:
-                try:
-                    fecha = datetime.datetime.strptime(fecha.group(),a_datetime['format']).isoformat()
-                except:
-                    if a_datetime['format'] == '%Y-%m-%d %H:%M:%S %z':
-                        try:
-                            fecha = datetime.datetime.strptime(fecha.group(),'%Y-%m-%d %H:%M:%S').isoformat()
-                        except:
-                            fecha = datetime.datetime.now().isoformat()
-            break
-    #print(line)
-    if not fecha:
-        fecha = datetime.datetime.now().isoformat()
-    
+    fecha = json.loads(line['message'])['eventTime']
+    # 2019-01-02T19:14:07Z
+    fecha = datetime.datetime.strptime(json.loads(line['message'])['eventTime'],'%Y-%m-%dT%H:%M:%SZ').isoformat()
+    #print(fecha)
     line['timestamp'] = fecha
-
     return line
     
     
@@ -138,7 +107,7 @@ def nice_it(r_data):
     for line in r_data['logEvents']:
         new_meta = copy.deepcopy(metadata)
         #may need to fix this if we need ES
-        #line = date_it(line)
+        line = date_it(line)
         new_meta['timestamp'] = line['timestamp']
         #new_meta['message'] = json.loads(json.dumps(line['message']))
         try:
@@ -162,16 +131,17 @@ def handler(event, context):
     #print(len(event['Records']))
     for record in event['Records']:
         compressed_record_data = record['kinesis']['data']
-        #record_data = nice_it(json.loads(zlib.decompress(base64.b64decode(compressed_record_data), 16+zlib.MAX_WBITS).decode('utf-8')))
-        # unless we want logs in ES, we don't need fancyness 
-        record_data = json.loads(zlib.decompress(base64.b64decode(compressed_record_data), 16+zlib.MAX_WBITS).decode('utf-8'))
+        record_data = nice_it(json.loads(zlib.decompress(base64.b64decode(compressed_record_data), 16+zlib.MAX_WBITS).decode('utf-8')))
+        #print(record_data)
         #record_data = nice_it(record_data)
         for log_event_chunk in chunker(record_data, MESSAGE_BATCH_MAX_COUNT):
             message_batch = [{'Data': json.dumps(x)} for x in log_event_chunk]
+            #print(message_batch)
             if message_batch:
                 if os.environ.get('stream_name') is not None:
-                    #client.put_record_batch(DeliveryStreamName=os.environ['stream_name']+'_to_es', Records=message_batch)
+                    client.put_record_batch(DeliveryStreamName=os.environ['stream_name']+'_to_es', Records=message_batch)
                     client.put_record_batch(DeliveryStreamName=os.environ['stream_name']+'_to_s3', Records=message_batch)
+                    #print(message_batch)
                 else:
                     #return message_batch
                     output += str(message_batch)

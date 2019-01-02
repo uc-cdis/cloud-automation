@@ -7,6 +7,7 @@ terraform {
 provider "aws" {}
 
 module "logging" {
-  source           = "../modules/management-logs"
-  accounts_id = "${var.accounts_id}"
+  source               = "../modules/management-logs"
+  accounts_id          = "${var.accounts_id}"
+  elasticsearch_domain = "${var.elasticsearch_domain}"
 }
