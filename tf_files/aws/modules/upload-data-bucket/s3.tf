@@ -25,9 +25,18 @@ resource "aws_s3_bucket" "data_bucket" {
   }
 }
 
+##create an event for SNS
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = "${aws_s3_bucket.data_bucket.id}"
+
+  topic {
+    topic_arn     = "${module.data-bucket-queue.data-bucket_name}"
+    events        = ["s3:ObjectCreated:Put","s3:ObjectCreated:Post"]
+  }
+}
 
 
-## Log bucket, where access to the avobe bucket will be logged 
+## Log bucket, where access to the avobe bucket will be logged
 
 
 resource "aws_s3_bucket" "log_bucket" {
@@ -70,7 +79,7 @@ resource "aws_s3_bucket" "log_bucket" {
 
 
 
-## We want could trail to put additional logs in this log bucket 
+## We want could trail to put additional logs in this log bucket
 resource "aws_s3_bucket_policy" "log_bucket_writer_by_ct" {
   bucket = "${aws_s3_bucket.log_bucket.id}"
   policy =<<POLICY
