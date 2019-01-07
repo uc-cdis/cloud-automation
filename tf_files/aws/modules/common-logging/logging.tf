@@ -361,6 +361,10 @@ resource "aws_lambda_function" "logs_decodeding" {
       stream_name = "${var.common_name}_firehose"
     }
   }
+
+  lifecycle {
+    ignore_changes = ["memory_size"]
+  }
 }
 
 ############################ End Lambda function  ############################
