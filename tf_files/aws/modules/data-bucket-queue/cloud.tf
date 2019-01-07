@@ -32,11 +32,12 @@ data "aws_iam_policy_document" "sns-topic-policy" {
     ]
 
     condition {
-      "ArnLike": {
-        "aws:SourceArn": "arn:aws:s3:*:*:${var.bucket_name}"
-        }
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values    = [
+        "arn:aws:s3:*:*:${var.bucket_name}",
+      ]
     }
-
     effect = "Allow"
 
     principals {
