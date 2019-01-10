@@ -9,6 +9,8 @@ spec:
       labels:
         app: gen3job
     spec:
+      nodeSelector:
+        role: default
       automountServiceAccountToken: false
       volumes:
         - name: creds-volume

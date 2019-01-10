@@ -10,7 +10,7 @@ OFFSET=100 # something unique
 ```
 
 * Login to the admin vm, then:
-    - launch the arranger-dashboard if it's not already running:
+    - launch the arranger-dashboard if it's not already running: 
        `gen3 roll arranger-dashboard`
     - forward the dashboard ports to the admin vm
 ```
@@ -31,7 +31,7 @@ ssh -L 127.0.0.1:6060:localhost:$((OFFSET + 6060)) -L 127.0.0.1:5050:localhost:$
 ```
 
 * finally - connect to the dashboard: http://localhost:6060
-* can also interact with the ES cluster via http://localhost:9200
+* can also interact with the ES cluster via http://localhost:9200 
 ```
 source gen3-arranger/Docker/Stacks/esearch/indexSetup.sh
 es_indices

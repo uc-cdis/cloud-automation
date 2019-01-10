@@ -31,6 +31,8 @@ spec:
                   values:
                   - spark
               topologyKey: "kubernetes.io/hostname"
+      nodeSelector:
+        role: default
       automountServiceAccountToken: false
       volumes:
       containers:

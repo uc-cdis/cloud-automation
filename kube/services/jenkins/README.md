@@ -26,7 +26,7 @@ The Jenkins deployment includes:
   pipeline that will backup the jenkins filesystem database to S3 if
   properly configured
 * The jenkins-service sets up a public ELB that you can attach a domain name to.
-
+  
 The `kube-setup-jenkins.sh` script will hopefully setup everything.
 Take a look at `kube-setup-jenkins.sh` and the different .yaml files under kube/services/jenkins to get all the details.
 Note that the `apply_service.sh` script deploys the service to kubernetes with the same

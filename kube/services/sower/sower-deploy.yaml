@@ -30,6 +30,8 @@ spec:
                   values:
                   - sower
               topologyKey: "kubernetes.io/hostname"
+      nodeSelector:
+        role: default
       automountServiceAccountToken: true
       containers:
       - name: sower

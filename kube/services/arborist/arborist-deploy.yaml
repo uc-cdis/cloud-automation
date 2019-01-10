@@ -30,6 +30,8 @@ spec:
                   values:
                   - arborist
               topologyKey: "kubernetes.io/hostname"
+      nodeSelector:
+        role: default
       automountServiceAccountToken: false
       volumes:
 # -----------------------------------------------------------------------------

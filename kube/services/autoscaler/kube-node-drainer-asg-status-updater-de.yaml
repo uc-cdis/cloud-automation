@@ -28,6 +28,8 @@ spec:
           volumeMounts:
           - mountPath: /workdir
             name: workdir
+      nodeSelector:
+        role: default
       containers:
         - name: kube-node-drainer-asg-status-updater
           image: quay.io/coreos/awscli:master

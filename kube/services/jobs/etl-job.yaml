@@ -8,6 +8,8 @@ spec:
       labels:
         app: gen3job
     spec:
+      nodeSelector:
+        role: default
       volumes:
       - name: creds-volume
         secret:

@@ -8,6 +8,8 @@ spec:
       labels:
         app: gen3job
     spec:
+      nodeSelector:
+        role: default
       restartPolicy: Never
       serviceAccountName: jenkins-service
       containers:

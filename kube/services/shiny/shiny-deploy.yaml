@@ -19,6 +19,8 @@ spec:
         app: shiny
         GEN3_DATE_LABEL
     spec:
+      nodeSelector:
+        role: default
       volumes:
       - name: config-volume
         secret:

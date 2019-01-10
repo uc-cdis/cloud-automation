@@ -9,6 +9,8 @@ spec:
         app: gen3job
     spec:
       # not yet supported - backOffLimit: 3
+      nodeSelector:
+        role: default
       automountServiceAccountToken: false
       volumes:
         - name: creds-volume

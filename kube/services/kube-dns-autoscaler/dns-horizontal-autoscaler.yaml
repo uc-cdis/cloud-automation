@@ -79,6 +79,8 @@ spec:
         scheduler.alpha.kubernetes.io/critical-pod: ''
         seccomp.security.alpha.kubernetes.io/pod: 'docker/default'
     spec:
+      nodeSelector:
+        role: default
       priorityClassName: system-cluster-critical
       containers:
       - name: autoscaler

@@ -9,6 +9,8 @@ spec:
   failedJobsHistoryLimit: 2
   jobTemplate:
     spec:
+      nodeSelector:
+        role: default
       template:
         metadata:
           labels:

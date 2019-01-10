@@ -17,8 +17,9 @@ spec:
     metadata:
       labels:
         app: esproxy
-        GEN3_DATE_LABEL
     spec:
+      nodeSelector:
+        role: default
       automountServiceAccountToken: false
       volumes:
         - name: credentials
@@ -26,25 +27,20 @@ spec:
             secretName: "aws-es-proxy"
       containers:
       - name: esproxy
-        GEN3_ESPROXY_IMAGE|-image: abutaha/aws-es-proxy:0.8-|
+        image: abutaha/aws-es-proxy:0.8
         imagePullPolicy: Always
         ports:
         - containerPort: 9200
-        env:
-          - name: "ES_ENDPOINT"
-            GEN3_ES_ENDPOINT
         volumeMounts:
           - name: "credentials"
             readOnly: true
             mountPath: "/root/.aws"
-        command: ["/bin/sh"]
-        # NOTE- NEED TO RUN kube-set-aws-es-proxy TO POPULATE ES_ENDPOINT - ugh!
-        # NOTE- gen3 roll aws-es-proxy WILL NOT WORK! 
+        command: ["./aws-es-proxy"]
+        NOTE- NEED TO RUN kube-set-aws-es-proxy TO POPULATE ES_ENDPOINT - ugh!
+        NOTE- gen3 roll aws-es-proxy WILL NOT WORK! 
         args:
-          - "-c"
-          - |
-            ./aws-es-proxy -endpoint "https://$ES_ENDPOINT" -verbose -listen ":9200"
-        resources:
-          limits:
-            cpu: 0.3
-            memory: 256Mi
+          - "-endpoint"
+          - "ES_ENDPOINT"
+          - "-verbose"
+          - "-listen"
+          - ":9200"

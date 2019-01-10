@@ -3,10 +3,6 @@ kind: Deployment
 metadata:
   name: jenkins-deployment
 spec:
-  selector:
-    # Only select pods based on the 'app' label
-    matchLabels:
-      app: jenkins
   revisionHistoryLimit: 2
   strategy:
     #
@@ -25,10 +21,6 @@ spec:
         runAsUser: 1000
         fsGroup: 1000
       containers:
-      #
-      # See for details on running docker in a pod:
-      #   https://estl.tech/accessing-docker-from-a-kubernetes-pod-68996709c04b
-      #
       - name: jenkins
         GEN3_JENKINS_IMAGE
         ports:
@@ -84,10 +76,6 @@ spec:
           httpGet:
             path: /login
             port: 8080
-        resources:
-          limits:
-            cpu: 0.5
-            memory: 2048Mi
         imagePullPolicy: Always
         volumeMounts:
         - name: datadir
@@ -104,8 +92,6 @@ spec:
           readOnly: true
           mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
           subPath: "ca.pem"
-        - name: dockersock
-          mountPath: "/var/run/docker.sock"
       - name: selenium
         image: selenium/standalone-chrome:3.13.0-argon
         ports:
@@ -129,6 +115,3 @@ spec:
       - name: ca-volume
         secret:
           secretName: "service-ca"
-      - name: dockersock
-        hostPath:
-          path: /var/run/docker.sock

@@ -37,10 +37,10 @@ spec:
             value: "gen3.conf"
         resources:
           limits:
-            memory: 1Gi
+            memory: 200Mi
           requests:
             cpu: 100m
-            memory: 1Gi
+            memory: 200Mi
         volumeMounts:
         - name: fluentd-gen3
           mountPath: /fluentd/etc/gen3.conf

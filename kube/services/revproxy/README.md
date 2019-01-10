@@ -1,6 +1,6 @@
 ## TL;DR
 
-External facing services are accessed through this reverse proxy at
+External facing services are accessed through this reverse proxy at 
 different URL paths under the same domain.
 
 ### Run reverse proxy in AWS
@@ -10,16 +10,16 @@ as an AWS ELB that terminates HTTPS requests (using an AWS Certificate Manager s
 forwards http and https traffic to the
 revproxy deployment using http proxy protocol.
 
-- Create a cert in AWS Certificate Manager, and register it in the global config map.  This will require the admin for the domain approve it through email
+- Create a cert in AWS Certificate Manager, and register it in the global config map.  This will require the admin for the domain approve it through email 
 - `gen3 kube-setup-revproxy` - deploys the service - creating an AWS ELB
 - update DNS to point at the ELB
 
 The `gen3 kube-setup-revproxy` script sets up 2 k8s services:
 
-  * `revproxy-service` - legacy service - now available for internal clients
+  * `revproxy-service` - legacy service - now available for internal clients 
          that want to route
          through the revproxy rather than access a service directly for some reason
-  * `revproxy-service-elb` - public facing load balancer service that
+  * `revproxy-service-elb` - public facing load balancer service that 
         target the `revproxy-deployment` backend in different ways depending
         on which environment gen3 is deployed to (AWS, GCP, onprem, ...)
 

@@ -17,6 +17,8 @@ spec:
         app: google-sa-validation
         GEN3_DATE_LABEL
     spec:
+      nodeSelector:
+        role: default
       automountServiceAccountToken: false
       volumes:
         - name: logo-volume

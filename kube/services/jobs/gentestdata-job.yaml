@@ -30,6 +30,8 @@ spec:
       labels:
         app: gen3job
     spec:
+      nodeSelector:
+        role: default
       serviceAccountName: useryaml-job
       volumes:
         - name: shared-data

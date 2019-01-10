@@ -31,6 +31,8 @@ spec:
                   values:
                   - revproxy
               topologyKey: "kubernetes.io/hostname"
+      nodeSelector:
+        role: default
       automountServiceAccountToken: false
       volumes:
         - name: revproxy-conf

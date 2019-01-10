@@ -23,6 +23,8 @@ spec:
         effect: NoExecute
       - operator: Exists
         key: CriticalAddonsOnly
+      nodeSelector:
+        role: default
       initContainers:
         - name: hyperkube
           image: k8s.gcr.io/hyperkube-amd64:K8S_VERSION

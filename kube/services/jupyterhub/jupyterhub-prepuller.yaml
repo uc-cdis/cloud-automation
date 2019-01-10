@@ -15,6 +15,8 @@ spec:
       labels:
         app: jupyterhub-prepuller
     spec:
+      nodeSelector:
+        role: jupyter
       terminationGracePeriodSeconds: 0
       automountServiceAccountToken: false
       initContainers:
