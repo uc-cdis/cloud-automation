@@ -79,10 +79,6 @@ resource "random_shuffle" "az" {
 
 
 
-# Assuming that there is only one VPC with the vpc_name
-data "aws_vpc" "the_vpc" {
-  id = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
-}
 
 # The subnet where our cluster will live in 
 resource "aws_subnet" "eks_private" {

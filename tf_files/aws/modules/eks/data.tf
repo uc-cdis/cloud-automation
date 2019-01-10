@@ -5,6 +5,11 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 
+# Assuming that there is only one VPC with the vpc_name
+data "aws_vpc" "the_vpc" {
+  id = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
+}
+
 # Let's get the availability zones for the region we are working on
 data "aws_availability_zones" "available" {
   state = "available"
@@ -38,7 +43,8 @@ data "aws_nat_gateway" "the_gateway" {
 # Also let's allow comminication through the peering
 
 data "aws_vpc_peering_connection" "pc" {
-  vpc_id          = "${data.aws_vpc.the_vpc.id}"
+  vpc_id = "${data.aws_vpc.the_vpc.id}"
+  status = "active"
 }
 
 
