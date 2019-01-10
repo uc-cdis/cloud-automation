@@ -642,8 +642,7 @@ CONFIGMAPAWSAUTH
 resource "null_resource" "config_setup" {
    triggers {
     kubeconfig_change  = "${data.template_file.kube_config.rendered}"
- #   config_change = "${data.template_file.configmap.rendered}"
- #   kube_change   = "${data.template_file.kube_vars.rendered}"
+    configmap_change   = "{local.config-map-aws-auth}"
   }
 
   provisioner "local-exec" {

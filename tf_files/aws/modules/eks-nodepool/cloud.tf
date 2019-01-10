@@ -50,28 +50,14 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
 # * aws_eks_cluster.eks_cluster: error creating EKS Cluster (fauziv1): UnsupportedAvailabilityZoneException: Cannot create cluster 'fauziv1' because us-east-1e, the targeted availability zone, does not currently have sufficient capacity to support the cluster. Retry and choose from these availability zones: us-east-1a, us-east-1c, us-east-1d
 ####
 resource "random_shuffle" "az" {
-#  input = ["${data.aws_availability_zones.available.names}"] 
-  input = ["us-east-1a", "us-east-1c", "us-east-1d"]
-  result_count = 3
+  #input = ["${data.aws_availability_zones.available.names}"] 
+  #input = ["us-east-1a", "us-east-1c", "us-east-1d"]
+  input = ["us-east-1a"]
+  #result_count = 3
+  result_count = 1
   count = 1
 }
 
-
-
-
-
-#resource "aws_security_group" "eks_control_plane_sg" {
-#  name        = "${var.vpc_name}-nodepool-${var.nodepool}-control-plane"
-#  description = "Cluster communication with worker nodes ${var.nodepool} [${var.vpc_name}]"
-#  vpc_id      = "${data.aws_vpc.the_vpc.id}"
-#
-#  egress {
-#    from_port       = 0
-#    to_port         = 0
-#    protocol        = "-1"
-#    cidr_blocks     = ["0.0.0.0/0"]
-#  }
-#}
 
 
 
