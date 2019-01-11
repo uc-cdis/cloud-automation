@@ -57,8 +57,6 @@ spec:
             value: esproxy-service
           - name: HADOOP_HOST
             value: spark-service
-          - name: ES_INDEX_NAME
-            value: GEN3_TUBE_ES_INDEX_NAME|-null-|
           volumeMounts:
             - name: "creds-volume"
               readOnly: true

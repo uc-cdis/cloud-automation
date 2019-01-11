@@ -31,8 +31,6 @@ spec:
           value: hdfs://spark-service:9000
         - name: ES_URL
           value: esproxy-service
-        - name: ES_INDEX_NAME
-          value: GEN3_TUBE_ES_INDEX_NAME|-null-|
         - name: HADOOP_HOST
           value: spark-service
         volumeMounts:
