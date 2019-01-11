@@ -33,9 +33,9 @@ do
                         PVNAME="${VAL}"
                         VAL="copy-${VAL}"
                         #PVNAME="copy-${VAL}"
-                elif [ ${KEY} == "kubernetes.io/created-for/pvc/name" ];
-                then
-                        PVCNAME="${VAL}"
+                #elif [ ${KEY} == "kubernetes.io/created-for/pvc/name" ];
+                #then
+                #        PVCNAME="${VAL}"
                 fi
                 taggo="$taggo,{Key=${KEY},Value=${VAL}}"
         done
@@ -58,7 +58,7 @@ do
         then
                 COUNTER=0
         else
-                COUNTER=$(( ${COUNTER} + 1 ))
+                COUNTER=$(( COUNTER + 1 ))
         fi
         #echo $taggo
 
