@@ -55,7 +55,7 @@ data "aws_vpc_endpoint_service" "s3" {
 }
 
 
-
+# get the route to public kube 
 data "aws_route_table" "public_kube" {
   vpc_id      = "${data.aws_vpc.the_vpc.id}"
   tags {
