@@ -2,7 +2,7 @@
 # Kinesis stream logs
 
 resource "aws_s3_bucket" "management-logs_bucket" {
-  bucket = "management-logs-remote-acconts"
+  bucket = "management-logs-remote-accounts"
   acl    = "private"
 
   tags {
