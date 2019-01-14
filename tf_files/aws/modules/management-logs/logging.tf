@@ -2,7 +2,7 @@
 # Kinesis stream logs
 
 resource "aws_s3_bucket" "management-logs_bucket" {
-  bucket = "management-logs-remote-acconts"
+  bucket = "management-logs-remote-accounts"
   acl    = "private"
 
   tags {
@@ -30,12 +30,12 @@ resource "aws_s3_bucket" "management-logs_bucket" {
     }
 
     transition {
-      days          = 30
+      days          = 60
       storage_class = "STANDARD_IA" # or "ONEZONE_IA"
     }
 
     transition {
-      days          = 60
+      days          = 120
       storage_class = "GLACIER"
     }
 
