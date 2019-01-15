@@ -28,7 +28,7 @@ resource "aws_s3_bucket" "management-logs_bucket" {
       "autoclean" = "true"
     }
 
-    # Onezon_IA should be suffice since we have the logs already in CSOC
+    # ONEZONE_IA should be suffice since we have the logs already in CSOC
     transition {
       days          = 30
       storage_class = "ONEZONE_IA" # or "STANDARD_IA" or "INTELLIGENT_TIERING"
