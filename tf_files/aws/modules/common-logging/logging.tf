@@ -16,6 +16,33 @@ resource "aws_s3_bucket" "common_logging_bucket" {
       }
     }
   }
+
+  lifecycle_rule {
+    id      = "forwarded"
+    enabled = true
+
+    prefix = "forwarded*/"
+
+    tags = {
+      "rule"      = "log"
+      "autoclean" = "true"
+    }
+
+    transition {
+      days          = 60
+      storage_class = "STANDARD_IA" 
+    }
+
+    transition {
+      days          = 90
+      storage_class = "GLACIER"
+    }
+
+    #Logs are being sent over to CSOC, there is no need to keep 5 years worth of logs on both account
+    expiration {
+      days = 1827
+    }
+  }
 }
 
 ############################ Start Kinesis Stream and destination #################
