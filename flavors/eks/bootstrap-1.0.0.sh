@@ -32,6 +32,10 @@ sed -i s,DNS_CLUSTER_IP,$DNS_CLUSTER_IP,g /etc/systemd/system/kubelet.service
 sed -i s,CERTIFICATE_AUTHORITY_FILE,$CA_CERTIFICATE_FILE_PATH,g /var/lib/kubelet/kubeconfig
 sed -i s,CLIENT_CA_FILE,$CA_CERTIFICATE_FILE_PATH,g  /etc/systemd/system/kubelet.service
 sed -i "/node-ip/a --node-labels=role=${nodepool} \\\\" /etc/systemd/system/kubelet.service
+if [[ ${nodepool} == jupyter ]];
+then
+    sed -i "/node-ip/a --register-with-taints=role=${nodepool}:NoSchedule \\\\" /etc/systemd/system.kubelet.service
+fi
 systemctl daemon-reload
 systemctl restart kubelet
 cat > /home/ec2-user/.ssh/authorized_keys <<EFO
