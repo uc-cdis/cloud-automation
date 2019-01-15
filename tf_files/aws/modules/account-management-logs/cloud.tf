@@ -28,18 +28,21 @@ resource "aws_s3_bucket" "management-logs_bucket" {
       "autoclean" = "true"
     }
 
+    # Onezon_IA should be suffice since we have the logs already in CSOC
     transition {
       days          = 30
-      storage_class = "STANDARD_IA" # or "ONEZONE_IA"
+      storage_class = "ONEZONE_IA" # or "STANDARD_IA" or "INTELLIGENT_TIERING"
     }
 
+    # Reduse some costs after 60 days 
     transition {
       days          = 60
       storage_class = "GLACIER"
     }
 
+    #Logs are being sent over to CSOC, there is no need to keep 5 years worth of logs on both account
     expiration {
-      days = 1827
+      days = 120
     }
   }
 }
