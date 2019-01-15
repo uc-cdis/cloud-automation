@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: etl
 spec:
-  schedule: "@hourly"
+  schedule: "@daily"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:
