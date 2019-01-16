@@ -14,8 +14,6 @@ spec:
       labels:
         app: sftp
     spec:
-      nodeSelector:
-        role: default
       automountServiceAccountToken: false
       volumes:
         - name: sftp-secret

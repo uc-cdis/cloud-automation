@@ -10,8 +10,6 @@ spec:
   failedJobsHistoryLimit: 2
   jobTemplate:
     spec:
-      nodeSelector:
-        role: default
       # not yet supported - backOffLimit: 3
       template:
         metadata:

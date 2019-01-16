@@ -31,8 +31,6 @@ spec:
                   values:
                   - arranger
               topologyKey: "kubernetes.io/hostname"
-      nodeSelector:
-        role: default
       automountServiceAccountToken: false
       volumes:
         - name: arranger-config

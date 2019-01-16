@@ -31,8 +31,6 @@ spec:
                   values:
                   - tube
               topologyKey: "kubernetes.io/hostname"
-      nodeSelector:
-        role: default
       automountServiceAccountToken: false
       volumes:
         - name: creds-volume

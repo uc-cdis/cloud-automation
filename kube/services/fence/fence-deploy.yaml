@@ -34,8 +34,6 @@ spec:
                   values:
                   - fence
               topologyKey: "kubernetes.io/hostname"
-      nodeSelector:
-        role: default
       automountServiceAccountToken: false
       volumes:
 # -----------------------------------------------------------------------------

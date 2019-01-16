@@ -14,8 +14,6 @@ spec:
       labels:
         app: gdcapi
     spec:
-      nodeSelector:
-        role: default
       automountServiceAccountToken: false
       volumes:
         - name: config-volume

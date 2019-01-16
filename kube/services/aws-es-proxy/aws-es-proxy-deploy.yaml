@@ -19,8 +19,6 @@ spec:
         app: esproxy
         GEN3_DATE_LABEL
     spec:
-      nodeSelector:
-        role: default
       automountServiceAccountToken: false
       volumes:
         - name: credentials
