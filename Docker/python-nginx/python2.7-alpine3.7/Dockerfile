@@ -11,9 +11,9 @@ RUN apk update && apk add --no-cache \
     # dependency for cryptography
     libffi-dev \
     # dependency for pyscopg2 - which is dependency for sqlalchemy postgres engine
-    # postgresql-dev \
+    postgresql-dev \
     # dependency for cryptography
-    openssl-dev \
+    # openssl-dev \
     libxml2-dev \
     libxslt-dev \
     nginx \
