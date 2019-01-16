@@ -21,3 +21,5 @@ RUN apk update && apk add --no-cache \
     sudo \
     vim \ 
     uwsgi-python
+
+CMD [ "sh" ]
