@@ -22,4 +22,6 @@ RUN apk update && apk add --no-cache \
     vim \ 
     uwsgi-python
 
+RUN adduser -S www-data
+
 CMD [ "sh" ]
