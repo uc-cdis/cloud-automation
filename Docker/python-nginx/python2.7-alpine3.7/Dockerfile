@@ -22,6 +22,6 @@ RUN apk update && apk add --no-cache \
     vim \ 
     uwsgi-python
 
-RUN addgroup -S www-data && adduser -S www-data -G www-data
+RUN adduser -S www-data -G www-data
 
 CMD [ "sh" ]
