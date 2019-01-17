@@ -25,6 +25,13 @@ wait_for_pods_down() {
 }
 
 
+# check for user consent before deleting and recreating tables
+echo -e "$(red_color "WARNING: about to drop all service deployments - proceed? (y/n)")"
+read -r yesno
+if [[ ! $yesno =~ ^y ]]; then
+  exit 1
+fi
+
 gen3 klock lock reset-lock gen3-reset 3600 -w 60
 
 g3kubectl delete --all deployments --now
