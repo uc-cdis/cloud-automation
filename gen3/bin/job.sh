@@ -32,6 +32,7 @@ g3k_wait4job(){
 # see (g3k help) below
 #
 g3k_runjob() {
+  local jobKey
   local jobName
   local kvList
   local tempFile
@@ -40,7 +41,7 @@ g3k_runjob() {
   local waitJob
   declare -a kvList=()
 
-  jobName=$1
+  jobKey=$1
   result=1
   shift
   waitJob=$1
@@ -49,13 +50,20 @@ g3k_runjob() {
   fi
   
 
-  if [[ -z "$jobName" ]]; then
+  if [[ -z "$jobKey" ]]; then
     echo "gen3 job run JOBNAME"
     return 1
   fi
-  jobPath="$jobName"
+  jobName="$jobKey"
+  jobPath="$jobKey"
   if [[ -f "$jobPath" ]]; then
     jobName="$(basename $jobPath | sed -E 's/-(cron)?job.yaml$//')"
+  elif [[ "$jobName" =~ ^[^/]+-(cron)?job$ ]]; then
+    jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}.yaml"
+    jobName="$(echo $jobName | sed -E 's/-(cron)?job$//')"
+  elif [[ "$jobName" =~ ^[^/]+.yaml ]]; then
+    jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}"
+    jobName="$(echo $jobName | sed -E 's/-(cron)?job.yaml$//')"
   else
     jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.yaml"
   fi
@@ -68,8 +76,10 @@ g3k_runjob() {
     tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "job.yaml_XXXXXX")
     g3k_manifest_filter "$jobPath" "" "${kvList[@]}" > "$tempFile"
 
-    if [[ $(yq -r .metadata.name < "$tempFile") != "$jobName" ]]; then
-      echo ".metadata.name != $jobName in $jobPath"
+    local yamlName
+    yamlName="$(yq -r .metadata.name < "$tempFile")"
+    if [[ "$yamlName" != "$jobName" ]]; then
+      echo ".metadata.name $yamlName != $jobName in $jobPath"
       cat "$tempFile"
       return 1
     fi
