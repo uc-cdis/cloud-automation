@@ -1,10 +1,4 @@
 
-
-#Basics
-
-
-
-
 ## First thing we need to create is the role that would spin up resources for us 
 
 resource "aws_iam_role" "eks_control_plane_role" {
@@ -52,6 +46,12 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
 resource "random_shuffle" "az" {
   #input = ["${data.aws_availability_zones.available.names}"] 
   #input = ["us-east-1a", "us-east-1c", "us-east-1d"]
+  ## Autoscaling strugles to scale out the ASG when the desired number of instances is 0 because the multiAZ.
+  ## It woould work anyway after you manually set the numer to something > 0. If you remove all jupyter stuff,
+  ## it would bring the pool to 0 successfully, to avoid manual intervention, let's put this stuff in a single AZ.
+  ## The issue seems like it has no fix in the near future or people to care about this:
+  ## https://github.com/kubernetes/autoscaler/issues/501
+  ## basically the problem is also for StatefulSets, which jupyter is.
   input = ["us-east-1a"]
   #result_count = 3
   result_count = 1
