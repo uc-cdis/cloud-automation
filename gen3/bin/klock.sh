@@ -111,15 +111,6 @@ unlock() {
     owner="$2"
   fi
 
-  # load gen3 tools
-  if [[ -n "$GEN3_HOME" ]]; then  # load gen3 tools from cloud-automation
-    source "${GEN3_HOME}/gen3/lib/utils.sh"
-    gen3_load "gen3/gen3setup"
-  else
-    echo "GEN3_HOME is not set"
-    exit 1
-  fi
-
   # create locks ConfigMap if it does not already exist, and set the lock we are 
   # currently trying to lock to unlocked with no owner
   if ! g3kubectl get configmaps locks; then
@@ -139,16 +130,27 @@ unlock() {
   fi
 }
 
+list() {
+  g3kubectl get configmap locks -o json | jq -r .metadata.labels
+}
+
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then  # support sourcing this file for test suite
   command="$1"
   shift
 
-  if [[ $command == 'lock' ]]; then
-    lock "$@"
-  elif [[ $command == 'unlock' ]]; then
-    unlock "$@"
-  else
-    help
-  fi
+  case "$command" in
+    'lock')
+      lock "$@"
+      ;;
+    'unlock')
+      unlock "$@"
+      ;;
+    'list')
+      list "$@"
+      ;;
+    *)
+      help
+      ;;
+  esac
 fi
