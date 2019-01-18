@@ -150,8 +150,9 @@ function main()
             fi
         done
         
-        if [ ${COUNTER} -gt 30 ];
+        if [ ${COUNTER} -gt 60 ];
         then
+            echo "Could not create volumens in a 10 minutes window. It seems like the snapshots are still being created"
             break
         elif [ "${control}" = true ];
         then
