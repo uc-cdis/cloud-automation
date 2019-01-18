@@ -12,7 +12,33 @@ resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
   endpoint  = "${aws_sqs_queue.user_updates_queue.arn}"
 }
 
-##policy
+##sqs policy
+resource "aws_sqs_queue_policy" "subscribe_sns" {
+  queue_url = "${aws_sqs_queue.user_updates_queue.id}"
+
+  policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Id": "sqspolicy",
+  "Statement": [
+    {
+      "Sid": "100",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "sqs:SendMessage",
+      "Resource": "${aws_sqs_queue.user_updates_queue.arn}",
+      "Condition": {
+        "ArnEquals": {
+          "aws:SourceArn": "${aws_sns_topic.user_updates.arn}"
+        }
+      }
+    }
+  ]
+}
+POLICY
+}
+
+##sns policy
 resource "aws_sns_topic_policy" "default" {
   arn = "${aws_sns_topic.user_updates.arn}"
 
