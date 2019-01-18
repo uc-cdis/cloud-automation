@@ -42,4 +42,4 @@ cat > /home/ec2-user/.ssh/authorized_keys <<EFO
 ${ssh_keys}
 EFO
 
-cat /home/ec2-user/.ssh/authorized_keys | sudo tee /root/.ssh/authorized_keys
+sudo tee /root/.ssh/authorized_keys < /home/ec2-user/.ssh/authorized_keys 
