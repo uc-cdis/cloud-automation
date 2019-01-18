@@ -5,6 +5,7 @@ FROM python:2.7-alpine3.7
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apk update && apk add --no-cache \
+    linux-headers \
     build-base \
     curl \
     git \
