@@ -26,10 +26,10 @@ resource "aws_sqs_queue_policy" "subscribe_sns" {
       "Effect": "Allow",
       "Principal": "*",
       "Action": "sqs:SendMessage",
-      "Resource": "${aws_sqs_queue.q.arn}",
+      "Resource": "${aws_sqs_queue.user_updates_queue.arn}",
       "Condition": {
         "ArnEquals": {
-          "aws:SourceArn": "${aws_sqs_queue.user_updates_queue.arn}"
+          "aws:SourceArn": "${aws_sns_topic.user_updates.arn}"
         }
       }
     }
