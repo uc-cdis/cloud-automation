@@ -69,7 +69,7 @@ function createVolumesCopy()
                 elif [ ${KEY} == "kubernetes.io/created-for/pv/name" ];
                 then
                         PVNAME="${VAL}"
-                        VAL="${NEW_VOLUME_PRFIX}${VAL}"
+                        VAL="${NEW_VOLUME_PREFIX}${VAL}"
                         #PVNAME="copy-${VAL}"
                 #elif [ ${KEY} == "kubernetes.io/created-for/pvc/name" ];
                 #then
