@@ -9,6 +9,7 @@ RUN apk update && apk add --no-cache \
     build-base \
     curl \
     git \
+    bash \ 
     # dependency for cryptography
     libffi-dev \
     # dependency for pyscopg2 - which is dependency for sqlalchemy postgres engine
