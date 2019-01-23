@@ -35,10 +35,11 @@ pipeline {
         sh 'pytest apis_configs/'
       }
     }
-    stage('lamda test') {
+    stage('pytest') {
       steps {
         sh 'pip3 install boto3 --upgrade'
         sh 'cd tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
+        sh 'cd kube/services/jupyterhub && python3 -m pytest test-jupyterhub-config.py'
       }
     }
     stage('gen3 psql test') {

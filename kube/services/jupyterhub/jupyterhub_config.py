@@ -85,8 +85,18 @@ c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-p
     c.KubeSpawner.hub_connect_ip, c.KubeSpawner.hub_connect_port, c.JupyterHub.base_url, os.environ['HOSTNAME'], c.JupyterHub.base_url)]
 # First pulls can be really slow, so let's give it a big timeout
 c.KubeSpawner.start_timeout = 60 * 10
-c.KubeSpawner.node_affinity_required = [
-  
+c.KubeSpawner.tolerations = [ 
+    {
+        'key': 'role',
+        'value': 'jupyter',
+        'operator': 'Equal',
+        'effect': 'NoSchedule',
+    }
+]
+c.KubeSpawner.node_selector = [
+    {
+        'role': 'jupyter'
+    }
 ]
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers

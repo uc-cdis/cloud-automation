@@ -9,7 +9,7 @@ class MockConfig:
     self.KubeSpawner=MockNull()
 
 # read jupyterhub-config.py - for later eval
-filePath=os.path.dirname(__file__) + '/jupyterhub-config.py'
+filePath=os.path.dirname(__file__) + '/jupyterhub_config.py'
 with open(filePath) as f:
   configPy=f.read()
 
