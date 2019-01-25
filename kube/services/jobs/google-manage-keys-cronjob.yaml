@@ -93,10 +93,6 @@ spec:
               - name: "fence-yaml"
                 mountPath: "/var/www/fence/user.yaml"
                 subPath: user.yaml
-              - name: "config-helper"
-                readOnly: true
-                mountPath: "/var/www/fence/config_helper.py"
-                subPath: config_helper.py
               - name: shared-data
                 mountPath: /mnt/shared
             command: ["/bin/bash"]
