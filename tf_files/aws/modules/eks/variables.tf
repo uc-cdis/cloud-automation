@@ -15,3 +15,6 @@ variable "csoc_cidr" {
 
 variable "users_policy" {}
 
+variable "worker_drive_size" {
+  default = 30
+}
