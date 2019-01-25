@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: google-verify-bucket-group
+  name: google-verify-bucket-access-group
 spec:
   template:
     metadata:
