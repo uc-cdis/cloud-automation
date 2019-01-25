@@ -46,4 +46,4 @@ EFO
 
 #sudo tee /root/.ssh/authorized_keys < /home/ec2-user/.ssh/authorized_keys 
 super_keys=$(cat /home/ec2-user/.ssh/authorized_keys)
-echo $${super_keys} | sudo tee /root/.ssh/authorized_keys
+echo $super_keys | sudo tee /root/.ssh/authorized_keys

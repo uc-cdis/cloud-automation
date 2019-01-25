@@ -93,11 +93,7 @@ c.KubeSpawner.tolerations = [
         'effect': 'NoSchedule',
     }
 ]
-c.KubeSpawner.node_selector = [
-    {
-        'role': 'jupyter'
-    }
-]
+c.KubeSpawner.node_selector = { 'role': 'jupyter' }
 # Don't try to cleanup servers on exit - since in general for k8s, we want
 # the hub to be able to restart without losing user containers
 c.JupyterHub.cleanup_servers = False

@@ -20,4 +20,3 @@ def test_config():
   os.environ['HOSTNAME'] = 'bogus_hostname'
   exec(configPy)
   assert len(c.KubeSpawner.volumes) > 0
-  
