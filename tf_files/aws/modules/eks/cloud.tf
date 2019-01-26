@@ -262,7 +262,7 @@ resource "aws_route_table_association" "public_kube" {
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "${var.vpc_name}"
   role_arn = "${aws_iam_role.eks_control_plane_role.arn}"
-  version  = "1.10"
+  version  = "${var.eks_version}"
 
   vpc_config {
     subnet_ids  = ["${aws_subnet.eks_private.*.id}"]

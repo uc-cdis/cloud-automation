@@ -11,8 +11,8 @@ fi
 DESTROY_JUPYTER="NO"
 
 
-OLD_KUBECONFIG="/home/-------/-------/kubeconfig"
-NEW_KUBECONFIG="/home/-------/-------/kubeconfig"
+OLD_KUBECONFIG="" #/home/-------/-------/kubeconfig"
+NEW_KUBECONFIG="" #/home/-------/-------/kubeconfig"
 
 SNAPSHOT_PREFIX="OLD-"
 NEW_VOLUME_PREFIX="copy-"
@@ -23,13 +23,14 @@ EXEC_IMPORT="NO"
 CREATED_SNAPSHOTS=()
 
 
-# We need to list all the existing volumes related to Jupyter, usually named pvc-"[Aa0-zZ9]?-*", and we have to rule out the one for the deployment.
-# Then we should create snapshots for those volumens 
-gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get persistentvolume -o yaml |yq '.items[] | select(.spec.claimRef.namespace == "jupyter-pods") | .metadata.name' -r |while read i; do echo $i; done
 
 
 function createSnapshots()
 {
+    # We need to list all the existing volumes related to Jupyter, usually named pvc-"[Aa0-zZ9]?-*", and we have to rule out the one for the deployment.
+    # Then we should create snapshots for those volumens 
+    gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get persistentvolume -o yaml |yq '.items[] | select(.spec.claimRef.namespace == "jupyter-pods") | .metadata.name' -r |while read i; do echo $i; done
+    echo "gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get persistentvolume -o yaml |yq '.items[] | select(.spec.claimRef.namespace == \"jupyter-pods\") | .metadata.name' -r |while read i; do echo $i; done"
     for pv in $(gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get persistentvolume -o yaml |yq '.items[] | select(.spec.claimRef.namespace == "jupyter-pods") | .metadata.name' -r);
     do
             local volume_id=$(gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get persistentvolume -o go-template --template="{{.spec.awsElasticBlockStore.volumeID}}" ${pv} | awk -F/ '{print $NF}')
@@ -45,7 +46,13 @@ function createVolumesCopy()
     local COUNTER=0
 
     # AZ(s) where the new nodes are so we can place the volumes there 
-    local AZs=($(gen3 arun kubectl --kubeconfig ${NEW_KUBECONFIG} get node -o json  -l role=jupyter |jq '.items[].metadata.labels["failure-domain.beta.kubernetes.io/zone"]' -r |sort |uniq))
+    local AZs=($(gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get node -o json  -l role=jupyter |jq '.items[].metadata.labels["failure-domain.beta.kubernetes.io/zone"]' -r |sort |uniq))
+    AZs=(${AZs[0]})
+    if ! [ -z ${NEW_KUBECONFIG} ];
+    then
+            local AZs=($(gen3 arun kubectl --kubeconfig ${NEW_KUBECONFIG} get node -o json  -l role=jupyter |jq '.items[].metadata.labels["failure-domain.beta.kubernetes.io/zone"]' -r |sort |uniq))
+            EXEC_IMPORT="YES"
+    fi
 
     # When we have snapshots of the active volumes, we must restore them so the hub can find them respectively. Keep in mind that certain tags are required for jupyter to understand which volumes these are.
     # SNAPSHOTS=$(aws ec2 describe-snapshots --filters "Name=description,Values=${SNAPSHOT_PREFIX}*" --query "Snapshots[].SnapshotId" --owner-ids $(aws sts get-caller-identity --query "Account" --output text) --output text)
@@ -130,6 +137,34 @@ function destroyJupyter()
 
 function main()
 {
+
+    if ! [ -z $destroy ];
+    then
+        if ! [ -z $OLD_KUBECONFIG ];
+        then
+            echo "Destroying jupyter for $OLD_KUBECONFIG"
+            destroyJupyter
+            exit 0
+        else
+            echo "Can't find the kubeconfig file to access the cluster"
+            echo
+            usage
+            exit 2
+        fi
+    fi
+
+
+    if [ -z $OLD_KUBECONFIG ];
+    then
+        echo "Please provide a kubeconfigfile"
+        echo
+        usage
+        exit 2
+    fi
+
+    echo $OLD_KUBECONFIG
+    #echo "WHATTTTTT"
+
     createSnapshots
 
     local COUNTER=0
@@ -167,5 +202,96 @@ function main()
     # 
 
 }
+
+
+function usage
+{
+        echo
+	echo "Usage: $0 [-b|--backup </tmp/>] [-o|--old-kubeconfig  <~/kubeconfig_old>] [-n|--new-kubeconfig: <~/kubeconfig_new> ]" 1>&2
+	echo 
+	echo "  -b|--backup Would create backups of the current persistent volumes for a jupyter environment in kubernetes."
+	echo "  You may provide a path for the import .yaml files that will be ready for import in your new cluster. If you don't /tmp/ will be used."
+	echo
+	echo "  -o|--old-kubeconfig Path to the kubeconfig file where you want to backup the persistent volumes from."
+	echo
+	echo "  -n|--new-kubeconfig Path to the kubeconfig file where you want to restore the backups."
+        echo "  If you provide a new kubeconfig file, the AZ associated to the cluster would be used to restore the volumes in a sequential fashion, otherwise 'a' will be used."
+        echo
+        echo "  -d|--destroy would delete jupyter using the kubeconfig file provided by --old-kubeconfig."
+        echo
+}
+
+
+if [ $# -lt 3 ]
+then
+	usage
+	exit 2
+fi
+
+
+# read the options
+params="$(getopt -o b::o:n:dh --long backup::,old-kubeconfig:,new-kubeconfig:,destroy-jupyter,help -n "$0" -- "$@")"
+eval set -- "$params"
+
+# extract options and their arguments into variables.
+while true ; do
+    case "$1" in
+        -b|--backup)
+	    #echo "$2 pluss"
+            case "$2" in
+                "") IMPORT_LOCATION='/tmp/'
+			echo "No path given, using ${IMPORT_LOCATION}"
+			shift 2;;
+                *) IMPORT_LOCATION="$2" #; shift 2 ;;
+                        if ! [ -d ${IMPORT_LOCATION} ];
+                        then
+                            echo "Can't find the path give to place the import files"
+                            exit 2;
+                        fi
+			#echo "${CONF_LOCATION}"
+			shift 2 ;;
+            esac 
+	    ;;
+        -o|--old-kubeconfig)
+		OLD_KUBECONFIG=$2
+		#CLIENT_NAME=$2
+		#echo $3
+                #echo "$OLD_KUBECONFIG"
+		if ! [ -f $OLD_KUBECONFIG ];
+		then
+                        echo "Can't find the old kubeconfig provided, please verify the path"
+                        exit 2;
+		fi
+		shift 2;;
+	-n|--new-kubeconfig)
+		NEW_KUBECONFIG=$2
+		if ! [ -f $NEW_KUBECONFIG ];
+		then
+			echo "Can't find the new kubeconfig, please verify the path"
+			exit 2;
+		fi
+		shift 2;;
+        -d|--destroy-jupyter)
+               echo "Are you sure you want to destroy jupyter?: [yes/NO]"
+               read destroy
+               if [ ${destroy} == yes ];
+               then
+                        echo "If you haven't backed up your persistent volumes and you need them, run again with the proper paramenters"
+                        echo "Continue? [yes/NO]"
+                        read carryon
+                        if [ $carryon == no ];
+                        then
+                                exit 0;
+                        fi
+               fi
+               shift 1;;
+	-h|--help)
+		usage
+		exit 0
+		;;
+        --) shift ; break ;;
+        *) echo "run ${0} -h for help" ; exit 1 ;;
+    esac
+done
 
 main

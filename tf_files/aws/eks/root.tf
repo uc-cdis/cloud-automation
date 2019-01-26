@@ -15,5 +15,6 @@ module "eks" {
   csoc_cidr         = "${var.csoc_cidr}"
   users_policy      = "${var.users_policy}"
   worker_drive_size = "${var.worker_drive_size}"
+  eks_version       = "${var.eks_version}"
 }
 
