@@ -214,6 +214,13 @@ test_gitops_logs() {
   gen3 logs vpc | grep -E '^devplanetv1 '; because $? "gen3 logs vpc should include the devplanetv1 vpc environment/log group"
 }
 
+test_time_since() {
+  gen3_time_since test_time_since is 0; because $? "gen3_time_since with 0 timeout should be ok"
+  ! gen3_time_since test_time_since is 5; because $? "gen3_time_since with 5 second timeout should have to wait"
+  sleep 6
+  gen3_time_since test_time_since is 5; because $? "gen3_time_since with 5 second timeout should pass after sleeping 5 seconds"
+}
+
 shunit_runtest "test_semver"
 shunit_runtest "test_colors"
 shunit_runtest "test_env"
@@ -227,6 +234,7 @@ shunit_runtest "test_roll_path"
 shunit_runtest "test_configmaps"
 shunit_runtest "test_gitops_taglist"
 shunit_runtest "test_gitops_logs"
+shunit_runtest "test_time_since"
 
 if [[ "$G3K_TESTSUITE_SUMMARY" != "no" ]]; then
   # little hook, so gen3 testsuite can call through to this testsuite too ...

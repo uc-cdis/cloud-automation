@@ -171,3 +171,51 @@ gen3_load() {
 function random_alphanumeric() {
     base64 /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c "${1:-"32"}"
 }
+
+#
+# Little helper returns true (0 exit code) if time since the last call to 
+# ${operation} is greater than ${periodSecs} seconds.
+# If the time period has expired, then also touches the file
+# under the assumption that the caller will go on to perform the operation:
+#     if gen3_time_since  "automation_gitsync" is 300; then ...
+#
+function gen3_time_since() {
+  local operation
+  local periodSecs
+  local tnow
+  local lastTime
+  local nextTime
+  local flagFile
+  local flagFolder
+
+  if [[ $# -lt 3 ]]; then
+    echo -e "$(red_color "ERROR: gen3_time_since_last got $@")" 1>&2
+    return 1
+  fi
+  operation="$1"
+  shift
+  verb="$1"
+  shift
+  periodSecs="$1"
+  shift
+  if ! [[ -n "$operation" && -n "$verb" && "$periodSecs" =~ ^[0-9]+$ ]]; then
+    echo -e "$(red_color "ERROR: gen3_time_since_last got $operation $verb $periodSecs")" 1>&2
+    return 1
+  fi
+  flagFolder="${GEN3_CACHE_DIR}/flagFiles"
+  if [[ ! -d "$flagFolder" ]]; then
+    mkdir -m 0700 -p "$flagFolder"
+  fi
+  flagFile="${flagFolder}/${operation}"
+  tnow="$(date +%s)"
+  lastTime=0
+  if [[ -f "$flagFile" ]]; then
+    lastTime="$(stat -c %Y "$flagFile")"
+  fi
+  nextTime=$(($lastTime + $periodSecs))
+  if [[ $nextTime -lt $tnow ]]; then
+    touch "$flagFile"
+    return 0
+  fi
+  return 1
+}
