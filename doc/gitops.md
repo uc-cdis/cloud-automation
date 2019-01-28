@@ -24,6 +24,14 @@ Update the manifest derived (`manifest-*`) configmaps.
 gen3 gitops configmaps
 ```
 
+### history
+
+Show the git history of changes to the manifest folder
+
+```
+gen3 gitops history
+```
+
 ### rsync
 
 Run `gen3 gitops sync` on the given `ssh` target.

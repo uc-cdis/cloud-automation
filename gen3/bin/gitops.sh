@@ -104,6 +104,26 @@ gen3_gitops_rsync() {
 #
 # g3k command to create configmaps from manifest
 #
+gen3_gitops_history() {
+  local manifestDir
+  if [[ $# -gt 0 ]]; then
+    manifestDir="$1"
+  fi  
+  ( # subshell - can cd and set globals
+    set -e  # fail on any weirdness
+
+    if [[ -z "$manifestDir" ]]; then
+      manifestPath=$(g3k_manifest_path)
+      manifestDir="$(dirname "$manifestPath")"
+    fi
+    cd "$manifestDir"
+    git log -p -w --full-diff .
+  )
+}
+
+#
+# g3k command to create configmaps from manifest
+#
 gen3_gitops_configmaps() {
   local manifestPath
   manifestPath=$(g3k_manifest_path)
@@ -370,7 +390,10 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       g3k_manifest_filter "$yaml" "$manifest" "$@"
       ;;
     "configmaps")
-      gen3_gitops_configmaps
+      gen3_gitops_configmaps "$@"
+      ;;
+    "history")
+      gen3_gitops_history "$@"
       ;;
     "rsync")
       gen3_gitops_rsync "$@"

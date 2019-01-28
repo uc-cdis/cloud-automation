@@ -12,7 +12,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [arun](./arun.md)
 * [devterm](./devterm.md)
 * [es](./es.md) - elastic search
-* [gitops](./gitops.md) - manifest filter, configmaps, sync, tagging releases, etc
+* [gitops](./gitops.md) - manifest filter, configmaps, history, sync, tagging releases, etc
 * [ec2](./ec2.md) - describe, reboot
 * [job logs|pods|run](./job.md)
 * [joblogs](./job.md) - see [job logs](./job.md)
