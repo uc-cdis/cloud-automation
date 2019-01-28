@@ -41,19 +41,31 @@ function createSnapshots()
 }
 
 
+function volOffSnap()
+{
+        echo "Creating Volume off Snapshot ${1}"
+        #echo "aws ec2 create-volume --volume-type gp2 --availability-zone ${3} --snapshot-id ${1} --tag-specifications \"ResourceType=volume,Tags=[${2}]\" --query \"VolumeId\" --output text"
+        local NEWVOL=$(aws ec2 create-volume --volume-type gp2 --availability-zone ${3} --snapshot-id ${1} --tag-specifications "ResourceType=volume,Tags=[${2}]" --query "VolumeId" --output text)
+        echo ${NEWVOL}
+        #echo "Volume ${NEWVOL} created"
+}
+
 function createVolumesCopy()
 {
     local COUNTER=0
 
     # AZ(s) where the new nodes are so we can place the volumes there 
-    local AZs=($(gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get node -o json  -l role=jupyter |jq '.items[].metadata.labels["failure-domain.beta.kubernetes.io/zone"]' -r |sort |uniq))
+    echo "gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get node -o json  |jq '.items[].metadata.labels[\"failure-domain.beta.kubernetes.io/zone\"]' -r |sort |uniq))"
+    local AZs=($(gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get node -o json  |jq '.items[].metadata.labels["failure-domain.beta.kubernetes.io/zone"]' -r |sort |uniq))
     AZs=(${AZs[0]})
+    #exit
     if ! [ -z ${NEW_KUBECONFIG} ];
     then
             local AZs=($(gen3 arun kubectl --kubeconfig ${NEW_KUBECONFIG} get node -o json  -l role=jupyter |jq '.items[].metadata.labels["failure-domain.beta.kubernetes.io/zone"]' -r |sort |uniq))
             EXEC_IMPORT="YES"
     fi
 
+    echo ${AZs[@]}
     # When we have snapshots of the active volumes, we must restore them so the hub can find them respectively. Keep in mind that certain tags are required for jupyter to understand which volumes these are.
     # SNAPSHOTS=$(aws ec2 describe-snapshots --filters "Name=description,Values=${SNAPSHOT_PREFIX}*" --query "Snapshots[].SnapshotId" --owner-ids $(aws sts get-caller-identity --query "Account" --output text) --output text)
 
@@ -88,9 +100,11 @@ function createVolumesCopy()
 
         taggo=${taggo#","}
 
-        echo "Creating Volume off Snapshot ${SNAP}"
-        #echo "aws ec2 create-volume --availability-zone ${AZs[${COUNTER}]} --snapshot-id ${SNAP} --tag-specifications \"ResourceType=volume,Tags=[${taggo}]\" --query \"VolumeId\" --output text"
-        local NEWVOL=$(aws ec2 create-volume --volume-type gp2 --availability-zone ${AZs[${COUNTER}]} --snapshot-id ${SNAP} --tag-specifications "ResourceType=volume,Tags=[${taggo}]" --query "VolumeId" --output text)
+        #volOffSnap "${SNAP}" "${taggo}" "${AZs[${COUNTER}]}"
+        #echo "Creating Volume off Snapshot ${SNAP}"
+        #echo "aws ec2 create-volume --volume-type gp2 --availability-zone ${AZs[${COUNTER}]} --snapshot-id ${SNAP} --tag-specifications \"ResourceType=volume,Tags=[${taggo}]\" --query \"VolumeId\" --output text"
+        #local NEWVOL=$(aws ec2 create-volume --volume-type gp2 --availability-zone ${AZs[${COUNTER}]} --snapshot-id ${SNAP} --tag-specifications "ResourceType=volume,Tags=[${taggo}]" --query "VolumeId" --output text)
+        local NEWVOL=$(volOffSnap "${SNAP}" "${taggo}" "${AZs[${COUNTER}]}")
         echo "Volume ${NEWVOL} created"
 
         echo "Creating export files"
@@ -124,15 +138,28 @@ function destroyJupyter()
 {
     if [[ "${DESTROY_JUPYTER}" == "YES" ]];
     then
-        gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete statefulsets.apps jupyterhub-deployment
         OIFS=${IFS};IFS=$'\n';
-        for i in $(grep apply ${GEN3_HOME}/gen3/bin/kube-setup-jupyterhub.sh |awk '{print $NF}'); 
+        #for i in $(grep apply ${GEN3_HOME}/gen3/bin/kube-setup-jupyterhub.sh |awk '{print $NF}'); 
+        for i in $(grep apply ${GEN3_HOME}/gen3/bin/kube-setup-jupyterhub.sh |sed  's/apply/delete/')
         do 
-                gen3 arun kubectl delete -f $i
+                echo $i
+                eval "$i"
+                #en3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete -f "${i}"
         done
-        gen3 arun kubectl delete namespace jupyter-pods
+        gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete statefulsets.apps jupyterhub-deployment
         IFS=${OIFS}
     fi
+}
+
+function destroyPersistentVolumes()
+{
+    #for i in $(kubectl --kubeconfig ${OLD_KUBECONFIG} get persistentvolumeaims -o yaml |yq '.items[] | select(.spec.claimRef.namespace == "jupyter-pods") | .metadata.name' -r);
+    for i in $(gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get persistentvolumeclaims -o yaml --all-namespaces |yq '.items[] | select(.metadata.namespace == "jupyter-pods") | .metadata.name' -r);
+    do
+         gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete persistentvolumeclaims -n jupyter-pods $i;
+    done
+    gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete persistentvolumeclaims config-stateful-jupyterhub-deployment-0
+    gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete namespace jupyter-pods
 }
 
 function main()
@@ -140,10 +167,13 @@ function main()
 
     if ! [ -z $destroy ];
     then
+        echo $destroy
+        DESTROY_JUPYTER="YES"
         if ! [ -z $OLD_KUBECONFIG ];
         then
             echo "Destroying jupyter for $OLD_KUBECONFIG"
             destroyJupyter
+            destroyPersistentVolumes
             exit 0
         else
             echo "Can't find the kubeconfig file to access the cluster"
@@ -156,7 +186,7 @@ function main()
 
     if [ -z $OLD_KUBECONFIG ];
     then
-        echo "Please provide a kubeconfigfile"
+        echo "Please provide a kubeconfig file"
         echo
         usage
         exit 2
