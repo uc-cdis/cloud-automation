@@ -108,7 +108,10 @@ gen3_roll() {
   serviceName="$(basename "$templatePath" | sed 's/-deploy.*yaml$//')"
 
   if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
-    g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -
+    if ! (g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -); then
+      echo -e "$(red_color "ERROR: bailing out of roll $serviceName")"
+      return 1
+    fi
   else
     echo -e "$(red_color "WARNING: not rolling $serviceName - no manifest entry in $manifestPath")" 1>&2
     return 1
