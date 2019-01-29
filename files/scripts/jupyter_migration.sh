@@ -134,55 +134,9 @@ function createVolumesCopy()
     done
 }
 
-function destroyJupyter()
-{
-    if [[ "${DESTROY_JUPYTER}" == "YES" ]];
-    then
-        OIFS=${IFS};IFS=$'\n';
-        #for i in $(grep apply ${GEN3_HOME}/gen3/bin/kube-setup-jupyterhub.sh |awk '{print $NF}'); 
-        for i in $(grep apply ${GEN3_HOME}/gen3/bin/kube-setup-jupyterhub.sh |sed  's/apply/delete/')
-        do 
-                echo $i
-                eval "$i"
-                #en3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete -f "${i}"
-        done
-        gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete statefulsets.apps jupyterhub-deployment
-        IFS=${OIFS}
-    fi
-}
-
-function destroyPersistentVolumes()
-{
-    #for i in $(kubectl --kubeconfig ${OLD_KUBECONFIG} get persistentvolumeaims -o yaml |yq '.items[] | select(.spec.claimRef.namespace == "jupyter-pods") | .metadata.name' -r);
-    for i in $(gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} get persistentvolumeclaims -o yaml --all-namespaces |yq '.items[] | select(.metadata.namespace == "jupyter-pods") | .metadata.name' -r);
-    do
-         gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete persistentvolumeclaims -n jupyter-pods $i;
-    done
-    gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete persistentvolumeclaims config-stateful-jupyterhub-deployment-0
-    gen3 arun kubectl --kubeconfig ${OLD_KUBECONFIG} delete namespace jupyter-pods
-}
 
 function main()
 {
-
-    if ! [ -z $destroy ];
-    then
-        echo $destroy
-        DESTROY_JUPYTER="YES"
-        if ! [ -z $OLD_KUBECONFIG ];
-        then
-            echo "Destroying jupyter for $OLD_KUBECONFIG"
-            destroyJupyter
-            destroyPersistentVolumes
-            exit 0
-        else
-            echo "Can't find the kubeconfig file to access the cluster"
-            echo
-            usage
-            exit 2
-        fi
-    fi
-
 
     if [ -z $OLD_KUBECONFIG ];
     then
@@ -193,7 +147,6 @@ function main()
     fi
 
     echo $OLD_KUBECONFIG
-    #echo "WHATTTTTT"
 
     createSnapshots
 
@@ -236,7 +189,7 @@ function main()
 
 function usage
 {
-        echo
+    echo
 	echo "Usage: $0 [-b|--backup </tmp/>] [-o|--old-kubeconfig  <~/kubeconfig_old>] [-n|--new-kubeconfig: <~/kubeconfig_new> ]" 1>&2
 	echo 
 	echo "  -b|--backup Would create backups of the current persistent volumes for a jupyter environment in kubernetes."
@@ -245,10 +198,8 @@ function usage
 	echo "  -o|--old-kubeconfig Path to the kubeconfig file where you want to backup the persistent volumes from."
 	echo
 	echo "  -n|--new-kubeconfig Path to the kubeconfig file where you want to restore the backups."
-        echo "  If you provide a new kubeconfig file, the AZ associated to the cluster would be used to restore the volumes in a sequential fashion, otherwise 'a' will be used."
-        echo
-        echo "  -d|--destroy would delete jupyter using the kubeconfig file provided by --old-kubeconfig."
-        echo
+    echo "  If you provide a new kubeconfig file, the AZ associated to the cluster would be used to restore the volumes in a sequential fashion, otherwise 'a' will be used."
+    echo
 }
 
 
@@ -283,42 +234,28 @@ while true ; do
             esac 
 	    ;;
         -o|--old-kubeconfig)
-		OLD_KUBECONFIG=$2
-		#CLIENT_NAME=$2
-		#echo $3
+            OLD_KUBECONFIG=$2
+            #CLIENT_NAME=$2
+            #echo $3
                 #echo "$OLD_KUBECONFIG"
-		if ! [ -f $OLD_KUBECONFIG ];
-		then
-                        echo "Can't find the old kubeconfig provided, please verify the path"
-                        exit 2;
-		fi
-		shift 2;;
-	-n|--new-kubeconfig)
-		NEW_KUBECONFIG=$2
-		if ! [ -f $NEW_KUBECONFIG ];
-		then
-			echo "Can't find the new kubeconfig, please verify the path"
-			exit 2;
-		fi
-		shift 2;;
-        -d|--destroy-jupyter)
-               echo "Are you sure you want to destroy jupyter?: [yes/NO]"
-               read destroy
-               if [ ${destroy} == yes ];
-               then
-                        echo "If you haven't backed up your persistent volumes and you need them, run again with the proper paramenters"
-                        echo "Continue? [yes/NO]"
-                        read carryon
-                        if [ $carryon == no ];
-                        then
-                                exit 0;
-                        fi
-               fi
-               shift 1;;
-	-h|--help)
-		usage
-		exit 0
-		;;
+            if ! [ -f $OLD_KUBECONFIG ];
+            then
+                echo "Can't find the old kubeconfig provided, please verify the path"
+                exit 2;
+            fi
+            shift 2;;
+        -n|--new-kubeconfig)
+            NEW_KUBECONFIG=$2
+            if ! [ -f $NEW_KUBECONFIG ];
+            then
+                echo "Can't find the new kubeconfig, please verify the path"
+                exit 2;
+            fi
+            shift 2;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
         --) shift ; break ;;
         *) echo "run ${0} -h for help" ; exit 1 ;;
     esac
