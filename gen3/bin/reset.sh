@@ -56,7 +56,10 @@ done
 
 gen3 roll all
 gen3 kube-wait4-pods || true
-# integration tests may much with user.yaml, so re-sync from S3
+# integration tests may muck with user.yaml in fence configmap, so re-sync from S3
+# first clear the configmap, so the usersync job sees a diff between S3 and local user.yaml
+g3kubectl delete configmap fence
+g3kubectl create configmap fence '--from-literal=user.yaml=frickjack:reuben'
 gen3 job run usersync
 # job runs asynchronously ...
 gen3 job run gdcdb-create
