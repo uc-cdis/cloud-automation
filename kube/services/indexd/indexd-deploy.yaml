@@ -93,7 +93,7 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
-          resources:
-            limits:
-              cpu: 1.0
-              memory: 1024Mi
+        resources:
+          limits:
+            cpu: 1.0
+            memory: 1024Mi
