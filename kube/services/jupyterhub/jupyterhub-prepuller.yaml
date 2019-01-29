@@ -15,6 +15,13 @@ spec:
       labels:
         app: jupyterhub-prepuller
     spec:
+      tolerations:
+      - key: "role"
+        operator: "Equal"
+        value: "jupyter"
+        effect: "NoSchedule"
+      nodeSelector:
+        role: jupyter
       terminationGracePeriodSeconds: 0
       automountServiceAccountToken: false
       initContainers:

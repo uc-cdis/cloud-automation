@@ -19,7 +19,7 @@ fi
 if ! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1; then
   k8s_version="$(g3kubectl version -o json |jq -r '.serverVersion.gitVersion')"
   #if [[ ${k8s_version} =~ -eks$ ]]; then tkv=$(echo ${k8s_version}| sed  's/\-eks//' ); k8s_version="${tkv}"; fi
-  if [[ ${k8s_version} =~ -eks$ ]]; then tkv=${k8s_version//-eks/}; k8s_version="${tkv}"; fi
+  if [[ ${k8s_version} =~ -eks.*$ ]]; then tkv=${k8s_version//-eks*/}; k8s_version="${tkv}"; fi
   sed "s/VPC_NAME/${vpc_name}/"  "${GEN3_HOME}/kube/services/autoscaler/cluster-autoscaler-autodiscover.yaml" | g3kubectl "--namespace=kube-system" apply -f -
   g3kubectl "--namespace=kube-system" apply -f "${GEN3_HOME}/kube/services/autoscaler/node-drainer-sa.yaml"
   sed -e "s/VPC_NAME/${vpc_name}/" -e "s/K8S_VERSION/${k8s_version}/"  "${GEN3_HOME}/kube/services/autoscaler/kube-node-drainer-asg-status-updater-de.yaml" | g3kubectl "--namespace=kube-system" apply -f -

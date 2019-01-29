@@ -17,8 +17,9 @@ spec:
     spec:
       #priorityClassName: system-node-critical
       tolerations:
-      - operator: Exists
-        effect: NoSchedule
+      # for the case of jupyter nodepool, we don't care if the drainer is running on the workers 
+      #- operator: Exists
+      #  effect: NoSchedule
       - operator: Exists
         effect: NoExecute
       - operator: Exists

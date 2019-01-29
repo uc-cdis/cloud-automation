@@ -21,13 +21,13 @@ else
   echo "I think k8s namespace ${namespaceName} already exists"
 fi
 
+gen3 update_config jupyterhub-config "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub_config.py"
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/role-jupyter.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/rolebinding-jupyter.yaml"
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-prepuller.yaml"
-g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-config.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-service.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-storage.yaml"
 
