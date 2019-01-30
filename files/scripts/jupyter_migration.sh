@@ -43,7 +43,6 @@ function createSnapshots()
 
 function volOffSnap()
 {
-        echo "Creating Volume off Snapshot ${1}"
         #echo "aws ec2 create-volume --volume-type gp2 --availability-zone ${3} --snapshot-id ${1} --tag-specifications \"ResourceType=volume,Tags=[${2}]\" --query \"VolumeId\" --output text"
         local NEWVOL=$(aws ec2 create-volume --volume-type gp2 --availability-zone ${3} --snapshot-id ${1} --tag-specifications "ResourceType=volume,Tags=[${2}]" --query "VolumeId" --output text)
         echo ${NEWVOL}
@@ -104,6 +103,7 @@ function createVolumesCopy()
         #echo "Creating Volume off Snapshot ${SNAP}"
         #echo "aws ec2 create-volume --volume-type gp2 --availability-zone ${AZs[${COUNTER}]} --snapshot-id ${SNAP} --tag-specifications \"ResourceType=volume,Tags=[${taggo}]\" --query \"VolumeId\" --output text"
         #local NEWVOL=$(aws ec2 create-volume --volume-type gp2 --availability-zone ${AZs[${COUNTER}]} --snapshot-id ${SNAP} --tag-specifications "ResourceType=volume,Tags=[${taggo}]" --query "VolumeId" --output text)
+        echo "Creating Volume off Snapshot ${SNAP}"
         local NEWVOL=$(volOffSnap "${SNAP}" "${taggo}" "${AZs[${COUNTER}]}")
         echo "Volume ${NEWVOL} created"
 
