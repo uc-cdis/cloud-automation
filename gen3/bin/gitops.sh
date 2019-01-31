@@ -102,6 +102,49 @@ gen3_gitops_rsync() {
 }
 
 #
+# Get the local manifest and cloud-automation folders in sync with github
+#
+gen3_gitops_enforcer() {
+  local manifestDir
+  local manifestPath
+  local today
+
+  manifestPath=$(g3k_manifest_path)
+  if [[ $? -ne 0 || ! -f "$manifestPath" ]]; then
+    return 1
+  fi
+  manifestDir="$(dirname "$manifestPath")"
+  today="$(date -u +%Y%m%d)"
+  weekAgo="$(date -d "@$(($(date +%s) - 60*60*24*7))" +%Y%m%d)"
+
+  for syncDir in "$manifestDir/.." "$GEN3_HOME"; do
+    ( # subshell for cd
+      echo "Syncing $syncDir with git master" 1>&2
+      cd "${syncDir}"
+
+      ( # subshell cd - erase old backups
+        cd backups
+        for oldDir in $(ls .); do
+          if [[ "$oldDir" =~ ^[0-9]+$ && $oldDir -lt $weekAgo ]]; then
+            echo "Erasing old backup $(pwd)/$oldDir" 1>&2
+            /bin/rm -rf "$oldDir"
+          fi
+        done
+      )
+      if [[ ! -d "backups/$today" ]]; then
+        # only take one backup each day ...
+        mkdir -p "backups/$today"
+        mv $(/bin/ls . | grep -v backups) "backups/$today/"
+      fi
+      git checkout .
+      git checkout -f master
+      git pull
+      git reset --hard origin/master
+    )
+  done
+}
+
+#
 # g3k command to create configmaps from manifest
 #
 gen3_gitops_history() {
@@ -391,6 +434,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "configmaps")
       gen3_gitops_configmaps "$@"
+      ;;
+    "enforce")
+      gen3_gitops_enforcer "$@"
       ;;
     "history")
       gen3_gitops_history "$@"

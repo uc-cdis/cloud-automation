@@ -1,0 +1,21 @@
+#!/bin/bash
+#
+# Enforce repo sync on $HOME/cloud-automation and $HOME/cdis-manifest
+# Run as cron job in qa-* user accounts:
+#
+# 1   1   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/qa-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/qa-cronjob.sh; else echo "no qa-cronjob.sh"; fi) > $HOME/qa-cronjob.log 2>&1
+
+set -i
+
+if ! [[ -d "$HOME/cloud-automation" && -d "$HOME/cdis-manifest" && -f "$HOME/qaplanetv1/kubeconfig" ]]; then
+  echo "ERROR: this does not look like a QA environment"
+  exit 1
+fi
+
+export GEN3_HOME="$HOME/cloud-automation"
+export KUBECONFIG="$HOME/qaplanetv1/kubeconfig"
+export vpc_name="qaplanetv1"
+PATH="${PATH}:/usr/local/bin"
+
+source "${GEN3_HOME}/gen3/gen3setup.sh"
+gen3 gitops enforce

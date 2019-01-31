@@ -24,6 +24,14 @@ Update the manifest derived (`manifest-*`) configmaps.
 gen3 gitops configmaps
 ```
 
+### enforce
+
+Force the local `cdis-manifest/` and `cloud-automation/` folders to sync with github.
+
+```
+gen3 gitops enforce
+```
+
 ### history
 
 Show the git history of changes to the manifest folder
