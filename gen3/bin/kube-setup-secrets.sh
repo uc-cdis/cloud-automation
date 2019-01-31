@@ -93,14 +93,11 @@ if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
   gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
 fi
 
-let configmapsExpireTime="$(date +%s) - 120"
-configmapsFlagFile="${WORKSPACE}/${vpc_name}/.configmapsFlagFile"
 # Avoid creating configmaps more than once every two minutes
 # (gen3 roll all calls this over and over)
-if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$configmapsExpireTime" ]]; then
+if gen3_time_since configmaps_sync is 120; then
   echo "creating manifest configmaps"
   gen3 gitops configmaps
-  touch "$configmapsFlagFile"
 fi
 
 # ssjdispatcher
@@ -383,10 +380,8 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
   export PGPASSWORD="$gdcapi_db_password"
 
   declare -a sqlList
-  let tTooOld="$(date +%s) - 120"
-  psqlFlagFile="${WORKSPACE}/${vpc_name}/.rendered_psql_users"
   # Avoid doing this over and over ...
-  if [[ ! -f "$psqlFlagFile" || $(stat -c %Y "$psqlFlagFile") -lt "$tTooOld" ]]; then
+  if gen3_time_since postgres_checkup is 120; then
     # Create peregrine and sheepdog db users if necessary
     for user in sheepdog peregrine; do
       new_db_user=$(jq -r .${user}.db_username < creds.json)
@@ -435,7 +430,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
       echo "Running: $sql"
       PGPASSWORD="$sheepdog_db_password" psql -t -U "$sheepdog_db_user" -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
     fi
-    touch "$psqlFlagFile"
   fi
 
   # setup the database ...

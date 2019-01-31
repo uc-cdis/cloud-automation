@@ -41,6 +41,8 @@ spec:
                 key: hostname
           - name: AWS_DEFAULT_REGION
             value: us-east-1
+          - name: JAVA_OPTS
+            value: "-Xmx3072m"
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
@@ -87,7 +89,7 @@ spec:
         resources:
           limits:
             cpu: 0.5
-            memory: 2048Mi
+            memory: 6144Mi
         imagePullPolicy: Always
         volumeMounts:
         - name: datadir
