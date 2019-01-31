@@ -19,3 +19,4 @@ PATH="${PATH}:/usr/local/bin"
 
 source "${GEN3_HOME}/gen3/gen3setup.sh"
 gen3 gitops enforce
+gen3 roll all
