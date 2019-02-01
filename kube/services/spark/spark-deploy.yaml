@@ -42,6 +42,11 @@ spec:
           - containerPort: 8030
           - containerPort: 8031
           - containerPort: 8032
+          livenessProbe:
+            tcpSocket:
+              port: 9000
+            initialDelaySeconds: 10
+            periodSeconds: 30
           env:
           - name: DICTIONARY_URL
             valueFrom:
