@@ -17,6 +17,17 @@ export KUBECONFIG="$HOME/qaplanetv1/kubeconfig"
 export vpc_name="qaplanetv1"
 PATH="${PATH}:/usr/local/bin"
 
+if [[ -z "$XDG_DATA_HOME" ]]; then
+  export XDG_DATA_HOME="$HOME/.local/share"
+fi
+if [[ -z "$USER" ]]; then
+  export USER="$(basename "$HOME")"
+fi
+if [[ -z "$XDG_RUNTIME_DIR" ]]; then
+  export XDG_RUNTIME_DIR="/tmp/gen3-$USER-$$"
+  mkdir -m 700 -p "$XDG_RUNTIME_DIR"
+fi
+
 source "${GEN3_HOME}/gen3/gen3setup.sh"
 gen3 gitops enforce
 gen3 roll all
