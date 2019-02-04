@@ -21,6 +21,12 @@ spec:
               image: quay.io/cdis/awshelper:master
               imagePullPolicy: Always
               env:
+                - name: slackWebHook
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
+                      optional: true
                 - name: gen3Env
                   valueFrom:
                     configMapKeyRef:
