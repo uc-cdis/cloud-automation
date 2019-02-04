@@ -16,5 +16,6 @@ module "eks" {
   users_policy      = "${var.users_policy}"
   worker_drive_size = "${var.worker_drive_size}"
   eks_version       = "${var.eks_version}"
+  deploy_jupyter_pool = "${var.deploy_jupyter_pool}"
 }
 

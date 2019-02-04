@@ -20,6 +20,7 @@ module "jupyter_pool" {
   eks_private_subnets  = "${aws_subnet.eks_private.*.id}"
   control_plane_sg     = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg  = "${aws_security_group.eks_nodes_sg.id}"
+  deploy_jupyter_pool  = "${var.deploy_jupyter_pool}"
 }
 
 
