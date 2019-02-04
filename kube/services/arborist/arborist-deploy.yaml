@@ -179,7 +179,6 @@ spec:
               echo "Not running fence-create in arborist pod when DBGAP sync is enabled"
               touch /tmp/healthy
             fi
-            echo "Exit code: $?"
             # Keep arborist company
             while curl --fail --silent --show-error http://localhost/health; do
               echo "arborist is healthy, so fence will keep company";
