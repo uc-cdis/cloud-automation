@@ -78,13 +78,23 @@ c.KubeSpawner.profile_list = [
             'cpu_limit': 1.0,
             'mem_limit': '10.0G',
         }
+    },
+    {
+        'display_name': 'Brain - Python/R/Freesurfer - 1.0 CPU 1.5G Mem',
+        'kubespawner_override' : {
+            'singleuser_image_spec': 'quay.io/cdis/jupyterbrain:1.0',
+            'cpu_limit': 1.0,
+            'mem_limit': '1.5G',
+        }
     }
 ]
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-prefix=https://%s%s/' % (
     c.KubeSpawner.hub_connect_ip, c.KubeSpawner.hub_connect_port, c.JupyterHub.base_url, os.environ['HOSTNAME'], c.JupyterHub.base_url)]
 # First pulls can be really slow, so let's give it a big timeout
-c.KubeSpawner.start_timeout = 60 * 10
+c.KubeSpawner.start_timeout = 60 * 25
+c.KubeSpawner.http_timeout = 60 * 25
+c.JupyterHub.slow_spawn_timeout = 60 * 25
 c.KubeSpawner.tolerations = [ 
     {
         'key': 'role',

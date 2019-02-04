@@ -46,6 +46,13 @@ spec:
           - /bin/sh
           - -c
           - echo "Pulling complete"
+      - name: image-pull-brain
+        image: quay.io/cdis/jupyterbrain:1.0
+        imagePullPolicy: IfNotPresent
+        command:
+          - /bin/sh
+          - -c
+          - echo "Pulling complete"
       containers:
       - name: pause
         image: gcr.io/google_containers/pause-amd64:3.1
