@@ -56,9 +56,22 @@ done
 
 # integration tests may muck with user.yaml in fence configmap, so re-sync from S3
 # first clear the configmap, so the usersync job sees a diff between S3 and local user.yaml
+#
+# create a stub user.yaml file that will allow
+# arborist to startup with no permissions granted.
+#
+useryaml="$(mktemp "$XDG_RUNTIME_DIR/user.yaml.XXXXXX")"
+cat - > "$useryaml" <<EOM
+cloud_providers: {}
+groups: {}
+resources: {}
+users: {}
+EOM
 g3kubectl delete configmap fence
-g3kubectl create configmap fence '--from-literal=user.yaml=frickjack:reuben'
+g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
+/bin/rm "$useryaml"
 gen3 job run usersync
+sleep 30   # give the usersync job a chance to run
 
 gen3 roll all
 gen3 kube-wait4-pods || true
