@@ -50,7 +50,6 @@ spec:
         args:
           - "-c"
           - |
-            hdfs dfs -rm /result/*/**/
-            python run_config.py && python run_import.py && python run_spark.py
+            python run_config.py && python run_etl.py
             echo "All done - exit status $?"
       restartPolicy: Never
