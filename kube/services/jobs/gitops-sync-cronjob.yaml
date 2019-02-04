@@ -37,5 +37,5 @@ spec:
                   set -i
                   source ~/.bashrc
                   export JENKINS_HOME=none
-                  gen3 gitops sync
+                  gen3 gitops sync --slack
                   echo "Exit code: $?"

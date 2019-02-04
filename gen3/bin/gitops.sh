@@ -17,6 +17,14 @@ gen3_gitops_sync() {
   local dict_roll=false
   local versions_roll=false
 
+  if [[ $1 = '--slack' ]]; then
+    if [[ "${slackWebHook}" != 'None' ]]; then
+      slack=true
+    else
+      echo "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
+    fi
+  fi
+
   # dictionary URL check
   if g3kubectl get configmap manifest-global; then
     oldUrl=$(g3kubectl get configmap manifest-global -o jsonpath={.data.dictionary_url})
@@ -77,6 +85,24 @@ gen3_gitops_sync() {
     if [ "$dict_roll" = true -o "$versions_roll" = true ]; then
       echo "changes detected, rolling"
       gen3 kube-roll-all
+      rollRes=$?
+      # send result to slack
+      if [[ $slack = true ]]; then
+        resStr="SUCCESS"
+        color="#1FFF00"
+        if [[ $rollRes != 0 ]]; then
+          resStr="FAILURE"
+          color="#FF0000"
+        fi
+        if [[ "$dict_roll" = true ]]; then
+          dictAttachment="{ \"text\": \"${newUrl}\", \"color\": \"${color}\" },"
+        fi
+        if [[ "$versions_roll" = true ]]; then
+          versionsAttachment="{ \"text\": \"${newJson}\", \"color\": \"${color}\" }"
+        fi
+        # curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: Syncing dict and images on ${gen3Env}\", \"attachments\": [${dictAttachment} ${versionsAttachment}]}" "${slackWebHook}"
+        echo "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${gen3Env}\", \"attachments\": [${dictAttachment} ${versionsAttachment}]}"
+      fi
     else
       echo "no changes detected, not rolling"
     fi
