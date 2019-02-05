@@ -91,6 +91,7 @@ gen3_gitops_sync() {
       rollRes=$?
       # send result to slack
       if [[ $slack = true ]]; then
+        tmpHostname=$(g3kubectl get configmap manifest-global -o jsonpath={.data.hostname})
         resStr="SUCCESS"
         color="#1FFF00"
         if [[ $rollRes != 0 ]]; then
@@ -103,7 +104,7 @@ gen3_gitops_sync() {
         if [[ "$versions_roll" = true ]]; then
           versionsAttachment="\"title\": \"New Versions\", \"text\": \"$(echo $newJson | sed s/\"/\\\\\"/g | sed s/,/,\\n/g)\", \"color\": \"${color}\""
         fi
-        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${gen3Env}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}]}" "${slackWebHook}"
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}]}" "${slackWebHook}"
       fi
     else
       echo "no changes detected, not rolling"
