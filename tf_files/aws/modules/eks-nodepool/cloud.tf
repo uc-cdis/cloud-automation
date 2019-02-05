@@ -273,7 +273,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
 
   tag {
     key                 = "Name"
-    value               = "eks-${var.vpc_name}"
+    value               = "eks-${var.vpc_name}-jupyter"
     propagate_at_launch = true
   }
 

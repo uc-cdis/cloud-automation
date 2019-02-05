@@ -38,3 +38,5 @@ variable "default_nodepool_sg" {}
 variable "deploy_jupyter_pool" {
   default = "no"
 }
+
+variable "eks_version" {}
