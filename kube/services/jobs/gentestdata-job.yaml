@@ -17,7 +17,7 @@
 #   Number of maximum examples for each node. Default 100
 #
 # Example
-# gen3 runjob gentestdata TEST_PROGRAM jnkns TEST_PROJECT jenkins MAX_EXAMPLES 100 SUBMISSION_USER cdis.autotest@gmail.com
+# gen3 job run gentestdata TEST_PROGRAM jnkns TEST_PROJECT jenkins MAX_EXAMPLES 10 SUBMISSION_USER cdis.autotest@gmail.com
 #
 apiVersion: batch/v1
 kind: Job
@@ -154,6 +154,6 @@ spec:
               fi
               echo "generate access token"
               echo "fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600"
-              fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600 > /mnt/shared/access_token.txt
+              fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600 | tail -1 > /mnt/shared/access_token.txt
               echo "All Done - always succeed to avoid k8s retries"
       restartPolicy: Never
