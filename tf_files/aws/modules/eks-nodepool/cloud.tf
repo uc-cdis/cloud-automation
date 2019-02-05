@@ -256,10 +256,10 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
 
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
-  desired_capacity     = 2 
+  desired_capacity     = "${var.deploy_jupyter_pool == "yes" ? 3 : 0}"
   launch_configuration = "${aws_launch_configuration.eks_launch_configuration.id}"
   max_size             = 10
-  min_size             = 2 
+  min_size             = "${var.deploy_jupyter_pool == "yes" ? 3 : 0}"
   name                 = "eks-${var.nodepool}worker-node-${var.vpc_name}"
   #vpc_zone_identifier  = ["${data.aws_subnet.eks_private.*.id}"]
   #vpc_zone_identifier  = ["${data.aws_subnet_ids.private.ids}"]
@@ -273,7 +273,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
 
   tag {
     key                 = "Name"
-    value               = "eks-${var.vpc_name}"
+    value               = "eks-${var.vpc_name}-jupyter"
     propagate_at_launch = true
   }
 
@@ -315,7 +315,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
 
 # Avoid unnecessary changes for existing commons running on EKS 
   lifecycle {
-    ignore_changes = ["desired_capacity","max_size","min_size"]
+    #ignore_changes = ["desired_capacity","max_size","min_size"]
   }
 }
 

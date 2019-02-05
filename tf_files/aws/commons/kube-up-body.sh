@@ -62,11 +62,11 @@ if kubectl get nodes > /dev/null 2>&1; then
   exit 1
 fi
 
-if [[ -f cluster.yaml ]]; then # setup a kube-aws cluster
-  if [[ ! -d ./credentials ]]; then
-    kube-aws render credentials --generate-ca
-  fi
-  kube-aws render || true
+#if [[ -f cluster.yaml ]]; then # setup a kube-aws cluster
+#  if [[ ! -d ./credentials ]]; then
+#    kube-aws render credentials --generate-ca
+#  fi
+#  kube-aws render || true
 
   #
   # When running on the adminvm - we need to assume the role
@@ -83,20 +83,20 @@ if [[ -f cluster.yaml ]]; then # setup a kube-aws cluster
   #
 
   # New kube-aws version doesn't need the s3-uri argument
-  gen3 arun kube-aws validate #--s3-uri "s3://${s3_bucket}/${vpc_name}"
-  gen3 arun kube-aws up #--s3-uri "s3://${s3_bucket}/${vpc_name}"
+  #gen3 arun kube-aws validate #--s3-uri "s3://${s3_bucket}/${vpc_name}"
+  #gen3 arun kube-aws up #--s3-uri "s3://${s3_bucket}/${vpc_name}"
 
-  cat - <<EOM
-The kube-aws cluster is up; now add an entry in route53 for the CSOC account.
-Ask Renuka or Fauzi to add k8s-${vpc_name}.internal.io as CNAME for
-the k8s controller load balancer:
-    aws elb describe-load-balancers | grep DNSName | grep ${vpc_name}
+#  cat - <<EOM
+#The kube-aws cluster is up; now add an entry in route53 for the CSOC account.
+#Ask Renuka or Fauzi to add k8s-${vpc_name}.internal.io as CNAME for
+#the k8s controller load balancer:
+#    aws elb describe-load-balancers | grep DNSName | grep ${vpc_name}
 
-$(aws elb describe-load-balancers | grep DNSName | grep ${vpc_name})
+#$(aws elb describe-load-balancers | grep DNSName | grep ${vpc_name})
 
-EOM
+#EOM
 
-fi
+#fi
 # else running some other k8s flavor (EKS, GKE, ...)
 
 if [[ -n "${s3_bucket}" ]]; then
