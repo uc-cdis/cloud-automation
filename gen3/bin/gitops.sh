@@ -18,7 +18,7 @@ gen3_gitops_sync() {
   local versions_roll=false
 
   if [[ $1 = '--slack' ]]; then
-    if [[ "${slackWebHook}" = 'None' || -z "${slackWebHook}" ]]; then
+    if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
       slackWebHook=$(g3kubectl get configmap global -o jsonpath={.data.slack_webhook})
     fi
     if [[ "${slackWebHook}" != 'None' && ! -z "${slackWebHook}" ]]; then
