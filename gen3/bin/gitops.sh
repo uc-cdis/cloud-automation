@@ -100,8 +100,7 @@ gen3_gitops_sync() {
         if [[ "$versions_roll" = true ]]; then
           versionsAttachment="\"title\": \"New Versions\", \"text\": \"$(echo $newJson | sed s/\"/\\\\\"/g | sed s/,/,\\n/g)\", \"color\": \"${color}\""
         fi
-        # curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: Syncing dict and images on ${gen3Env}\", \"attachments\": [${dictAttachment} ${versionsAttachment}]}" "${slackWebHook}"
-        echo "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${gen3Env}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}]}"
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${gen3Env}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}]}" "${slackWebHook}"
       fi
     else
       echo "no changes detected, not rolling"
