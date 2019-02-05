@@ -16,6 +16,12 @@ gen3_gitops_sync() {
   g3k_manifest_init
   local dict_roll=false
   local versions_roll=false
+  local slack=false
+  local tmpHostname
+  local resStr
+  local color
+  local dictAttachment
+  local versionsAttachment
 
   if [[ $1 = '--slack' ]]; then
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
