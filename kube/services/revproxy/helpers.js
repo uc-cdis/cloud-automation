@@ -50,7 +50,7 @@ function userid(req, res) {
   var user = "uid:null,unknown@unknown";
 
   if (token) {
-    user = token;
+    // note - raw token is secret, so do not expose in userid
     var raw = atob((token.split('.')[1] || "").replace('-', '+').replace('_', '/'));
     if (raw) {
       try {
