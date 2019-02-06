@@ -487,7 +487,7 @@ data "aws_ami" "eks_worker" {
   filter {
     name   = "name"
     #values = ["amazon-eks-node-*"]
-    values = ["${var.eks_version == "1.10" ? "eks-worker-v*" : "amazon-eks-node-1.11*"}"]
+    values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
   }
 
   most_recent = true
