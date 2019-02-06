@@ -53,7 +53,8 @@ data "aws_availability_zones" "available" {
 data "aws_ami" "eks_worker" {
   filter {
     name   = "name"
-    values = ["${var.eks_version == "1.10" ? "eks-worker-v*" : "amazon-eks-node-1.11*"}"]
+    #values = ["${var.eks_version == "1.10" ? "eks-worker-v*" : "amazon-eks-node-1.11*"}"]
+    values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
     values = ["eks-worker-v*"]
   }
 
