@@ -51,9 +51,14 @@ for serviceCred in ${serviceCreds[@]}; do
         gen3 klock unlock reset-lock gen3-reset
         exit 1
     fi
-    echo "\c template1 \\\ DROP DATABASE \"${dbName}\"; CREATE DATABASE \"${dbName}\";" | gen3 psql $service
+    #
+    # Note: connect to --dbname=template1 to avoid erroring out in
+    # situation where the database does not yet exist
+    #
+    echo "DROP DATABASE \"${dbName}\"; CREATE DATABASE \"${dbName}\";" | gen3 psql $service  --dbname=template1
 done
 
+#
 # integration tests may muck with user.yaml in fence configmap, so re-sync from S3
 # first clear the configmap, so the usersync job sees a diff between S3 and local user.yaml
 #
