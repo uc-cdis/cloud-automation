@@ -356,24 +356,6 @@ EOM
 }
 
 
-gen3_logs_aggs_24hr() {
-  if [[ -z "$LOGPASSWORD" ]]; then
-    echo -e "$(red_color "ERROR: LOGPASSWORD environment not set")" 1>&2
-    return 1
-  fi
-
-cat - <<EOM
- "aggregations": {
-    "unique_user_count" : {
-        "cardinality" : {
-            "field" : "message.user_id",
-            "precision_threshold": 1000
-        }
-    }
-  }
-EOM
-}
-
 gen3_logs_user_list() {
   echo "SELECT 'uid:'||id,email FROM \"User\" WHERE email IS NOT NULL;" | gen3 psql fence --no-align --tuples-only --pset=fieldsep=,
 }
