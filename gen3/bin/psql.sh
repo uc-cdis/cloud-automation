@@ -12,7 +12,7 @@ g3k_psql() {
   local serviceName=$1
   shift
   local key="${serviceName}"
-
+  
   if [[ -z "$serviceName" ]]; then
     echo -e $(red_color "g3k_psql: No serviceName specified")
     return 1
@@ -55,6 +55,7 @@ g3k_psql() {
   local password
   local host
   local database
+  local arg
   credsPath="$(mktemp "${XDG_RUNTIME_DIR}/creds.json.XXXXXX")"
   g3kubectl get secret "${key}-creds" -o json | jq -r '.data["creds.json"]' | base64 --decode > "$credsPath"
   username=$(jq -r ".db_username" < $credsPath)
@@ -63,7 +64,23 @@ g3k_psql() {
   database=$(jq -r ".db_database" < $credsPath)
   shred "$credsPath"
   rm "$credsPath"
-  PGPASSWORD="$password" psql -U "$username" -h "$host" -d "$database" "$@"
+
+  #
+  # Allow the client to override the database we connect to - 
+  # useful in `gen3 reset` to connect to template1
+  #
+  local userdb
+  userdb=false
+  for arg in "$@"; do
+    if [[ "$arg" = "-d" || "$arg" =~ "^--dbname" ]]; then
+      userdb=true
+    fi
+  done
+  if [[ "$userdb" = false ]]; then
+    PGPASSWORD="$password" psql -U "$username" -h "$host" -d "$database" "$@"
+  else
+    PGPASSWORD="$password" psql -U "$username" -h "$host" "$@"
+  fi
 }
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
