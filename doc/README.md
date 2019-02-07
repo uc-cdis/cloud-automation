@@ -99,7 +99,7 @@ For example - `gen3 help aws` opens `aws.md`
 ## More
 
 * [approve_vpcpeering_request](./approve_vpcpeering_request.md)
-* [indexd-post-folder](./indexd-post-folder.md)
+* [api](./api.md) - indexd-post-folder, access-token, new-program, new-project
 * [kube-backup](./kube-backup.md)
 * [kube-dev-namespace](./kube-dev-namespace.md)
 * [kube-extract-config](./kube-extract-config.md)
