@@ -52,6 +52,8 @@ Assumes that a `fence` pod is running in the current environment.
 
 ### new-program
 
+PENDING - not yet implemented
+
 Attempt to create a new program using a default template -
 suitable for dev accounts and testing.
 
@@ -62,6 +64,8 @@ suitable for dev accounts and testing.
 Where `user-email` specifies the user to act as (via `gen3 api access-token`)
 
 ### new-project
+
+PENDING - not yet implemented
 
 Attempt to create a new project using a default template -
 suitable for dev accounts and testing.

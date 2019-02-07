@@ -9,7 +9,13 @@ help() {
 }
 
 gen3_access_token() {
-  echo "ERROR: not yet implemented"
+  local username
+  username="$1"
+  if [[ -z "$username" ]]; then
+    help
+    return 1
+  fi
+  g3kubectl exec $(gen3 pod fence) -- fence-create token-create --scopes openid,user,fence,data,credentials,google_service_account --type access_token --exp 3600 --username ${username} | tail -1
   return 0
 }
 
