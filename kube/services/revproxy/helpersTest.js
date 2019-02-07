@@ -111,6 +111,23 @@ describe("Nginx helper function", function() {
     expect(serviceReleases).toMatch('fence.production');
   });
 
+  it("getServiceReleases returns dev override release versions if in cookie", function() {
+    const cookie = 'fence.production';
+    const devCookie = 'fence.canary';
+    let nginxRequest = {
+      variables: {
+        cookie_service_releases: cookie,
+        cookie_dev_canaries: devCookie,
+        canary_percent_json: '{ "fence": 0 }',
+        ...propertiesForHash,
+      },
+      log: log,
+    };
+
+    const serviceReleases = getServiceReleases(nginxRequest);
+    expect(serviceReleases).toMatch('fence.canary');
+  });
+
   it("getServiceReleases returns correct release version when no cookie val is set (test 1)", function() {
     // don't define the service release cookie, forcing it to hash and select a release
     let nginxRequest = {
