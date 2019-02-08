@@ -58,6 +58,14 @@ for serviceCred in ${serviceCreds[@]}; do
     echo "DROP DATABASE \"${dbName}\"; CREATE DATABASE \"${dbName}\";" | gen3 psql $service  --dbname=template1
 done
 
+# Make sure peregrine has permission to read the sheepdog db tables
+peregrine_db_user="$(g3kubectl get secrets peregrine-creds -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_username)"
+if [[ -n "$peregrine_db_user" ]]; then
+  gen3 psql sheepdog -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $peregrine_db_user; ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
+else
+  echo -e "$(red_color "WARNING: unable to determine peregrine db username")"
+fi
+
 #
 # integration tests may muck with user.yaml in fence configmap, so re-sync from S3
 # first clear the configmap, so the usersync job sees a diff between S3 and local user.yaml
