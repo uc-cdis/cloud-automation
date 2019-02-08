@@ -110,9 +110,11 @@ spec:
               # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
               readOnly: true
               mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
-              subPath: "ca.pem"  
+              subPath: "ca.pem"
           imagePullPolicy: Always
           resources:
+            requests:
+              cpu: 1
             limits:
-              cpu: 1.0
+              cpu: 2
               memory: 1024Mi

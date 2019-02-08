@@ -55,6 +55,9 @@ spec:
       containers:
         - name: peregrine
           GEN3_PEREGRINE_IMAGE
+          ports:
+          - containerPort: 80
+          - containerPort: 443
           env:
           - name: DICTIONARY_URL
             valueFrom:
@@ -64,7 +67,7 @@ spec:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
           - name: GEN3_SIDECAR
-            value: "GEN3_PEREGRINE_SIDECAR|-False-|"
+            value: "False"
           volumeMounts:
             - name: "shared-data"
               mountPath: "/var/run/gen3"
@@ -87,8 +90,10 @@ spec:
               subPath: "ca.pem"
           imagePullPolicy: Always
           resources:
+            requests:
+              cpu: 1
             limits:
-              cpu: 0.3
+              cpu: 2
               memory: 2048Mi
           livenessProbe:
             httpGet:
@@ -102,39 +107,3 @@ spec:
             httpGet:
               path: /_status
               port: 80
-        #
-        # Containers interact via /var/run/gen3/uwsgi.sock ...
-        # Note: the sidecar is disabled unless GEN3_PEREGRINE_SIDECAR
-        #   is enabled in the manifest
-        #
-        - name: sidecar
-          GEN3_SIDECAR_IMAGE|-image: 'quay.io/cdis/sidecar:1.3.1-sidecar'-|
-          ports:
-          - containerPort: 80
-          - containerPort: 443
-          env:
-          - name: GEN3_UWSGI_TIMEOUT
-            value: "GEN3_PEREGRINE_SIDECAR_TIMEOUT|-45-|"
-          - name: GEN3_SIDECAR
-            value: "GEN3_PEREGRINE_SIDECAR|-False-|"
-          volumeMounts:
-            - name: "shared-data"
-              mountPath: "/var/run/gen3"
-            - name: "cert-volume"
-              readOnly: true
-              mountPath: "/mnt/ssl/service.crt"
-              subPath: "service.crt"
-            - name: "cert-volume"
-              readOnly: true
-              mountPath: "/mnt/ssl/service.key"
-              subPath: "service.key"
-            - name: "ca-volume"
-              # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
-              readOnly: true
-              mountPath: "/usr/local/share/ca-certificates/cdis-ca.crt"
-              subPath: "ca.pem"
-          imagePullPolicy: Always
-          resources:
-            limits:
-              cpu: 0.3
-              memory: 256Mi
