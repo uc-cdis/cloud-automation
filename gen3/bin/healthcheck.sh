@@ -28,7 +28,7 @@ gen3_healthcheck() {
 
   # check for pods pending for more than 10 minutes
   while read -r pod; do
-    local podDate=$(echo $pod | jq '.created')
+    local podDate=$(echo $pod | jq -r '.created')
     local startTime=$(date --date="$podDate" '+%s')
     local secsPassed=$(( $(date '+%s') - $startTime ))
     if [[ $secsPassed -gt 600 ]]; then
