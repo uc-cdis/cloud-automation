@@ -168,6 +168,7 @@ g3k_jobpods(){
 #
 g3k_joblogs(){
   jobName="$1"
+  shift
   if [[ -z "$jobName" ]]; then
     echo "gen3 job logs JOB-NAME"
     return 1
@@ -176,15 +177,15 @@ g3k_joblogs(){
   podlist=$(g3k_jobpods "$jobName")
   for podname in $podlist; do
     echo "Scanning pod: $podname"
-    for container in $(g3kubectl get pods "$podname" -o json | jq -r '.spec.initContainers|map(.name)|join( " " )'); do
+    for container in $(g3kubectl get pods "$podname" -o json | jq -r '.spec.initContainers|map(.name)|join( " " )' 2> /dev/null); do
       echo "------------------"
-      echo "g3kubectl logs $podname $container"
-      g3kubectl logs $podname $container
+      echo "g3kubectl logs $podname -c $container"
+      g3kubectl logs $podname -c $container
     done
     for container in $(g3kubectl get pods "$podname" -o json | jq -r '.spec.containers|map(.name)|join( " " )'); do
       echo "------------------"
-      echo "g3kubectl logs $podname $container"
-      g3kubectl logs $podname $container
+      echo "g3kubectl logs $podname -c $container $@"
+      g3kubectl logs $podname -c $container "$@"
     done
   done
 }
