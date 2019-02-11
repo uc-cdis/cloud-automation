@@ -32,7 +32,7 @@ gen3_access_token() {
     fi
   fi
   g3kubectl exec $(gen3 pod fence) -- fence-create token-create --scopes openid,user,fence,data,credentials,google_service_account --type access_token --exp 3600 --username ${username} | tail -1 | tee "$gen3CredsCache"
-  return 0
+  return $?
 }
 
 

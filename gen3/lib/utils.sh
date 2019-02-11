@@ -7,7 +7,7 @@ export XDG_DATA_HOME=${XDG_DATA_HOME:-~/.local/share}
 export GEN3_ETC_FOLDER="${XDG_DATA_HOME}/gen3/etc"
 
 # Jenkins special cases
-if [[ -n "$JENNKINS_HOME" && -n "$WORKSPACE" && -d "$WORKSPACE" ]]; then
+if [[ -n "$JENKINS_HOME" && -n "$WORKSPACE" && -d "$WORKSPACE" ]]; then
   GEN3_CACHE_DIR="${WORKSPACE}/gen3/cache"
   XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"${WORKSPACE}/tmp/gen3-$USER"}
 else
