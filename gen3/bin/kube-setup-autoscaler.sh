@@ -16,7 +16,7 @@ fi
 # We may have multiple commons running on the same k8s cluster,
 # but we only have one fluentd.
 #
-if ! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1; then
+if (! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
   k8s_version="$(g3kubectl version -o json |jq -r '.serverVersion.gitVersion')"
   #if [[ ${k8s_version} =~ -eks$ ]]; then tkv=$(echo ${k8s_version}| sed  's/\-eks//' ); k8s_version="${tkv}"; fi
   if [[ ${k8s_version} =~ -eks.*$ ]]; then tkv=${k8s_version//-eks*/}; k8s_version="${tkv}"; fi
@@ -24,4 +24,6 @@ if ! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/
   g3kubectl "--namespace=kube-system" apply -f "${GEN3_HOME}/kube/services/autoscaler/node-drainer-sa.yaml"
   sed -e "s/VPC_NAME/${vpc_name}/" -e "s/K8S_VERSION/${k8s_version}/"  "${GEN3_HOME}/kube/services/autoscaler/kube-node-drainer-asg-status-updater-de.yaml" | g3kubectl "--namespace=kube-system" apply -f -
   sed "s/K8S_VERSION/${k8s_version}/"  "${GEN3_HOME}/kube/services/autoscaler/kube-node-drainer-ds.yaml" | g3kubectl "--namespace=kube-system" apply -f -
+else
+    echo "kube-setup-autoscaler exiting - cluster-autoscaler already deployed, use --force to redeploy"
 fi
