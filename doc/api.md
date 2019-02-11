@@ -43,16 +43,14 @@ A new record looks like this:
 
 ### access-token
 
-Allocate a one-hour access-token for the given user.
+Allocate a one-hour access-token for the given user, or re-use one from cache if available.
 Assumes that a `fence` pod is running in the current environment.
 
 ```
-  gen3 api indexd-post-folder [user-email]
+  gen3 api access-token [user-email]
 ```
 
 ### new-program
-
-PENDING - not yet implemented
 
 Attempt to create a new program using a default template -
 suitable for dev accounts and testing.
@@ -63,15 +61,36 @@ suitable for dev accounts and testing.
 
 Where `user-email` specifies the user to act as (via `gen3 api access-token`)
 
-### new-project
+ex:
+```
+  gen3 api new-program jnkns reubenonrye@uchicago.edu
+```
 
-PENDING - not yet implemented
+### new-project
 
 Attempt to create a new project using a default template -
 suitable for dev accounts and testing.
 
 ```
-  gen3 api new-project [program-project] [user-email]
+  gen3 api new-project [program] [project] [user-email]
+```
+
+ex:
+```
+  gen3 api new-project jnkns jenkins reubenonrye@uchicago.edu
 ```
 
 Where `user-email` specifies the user to act as (via `gen3 api access-token`)
+
+### curl
+
+Curl the endpoint of the given commons with the user's access token - POST jsonFile if given
+
+```
+  gen3 api curl path user-email jsonFile
+```
+
+ex:
+```
+  gen3 api curl /user/user reubenonrye@uchicago.edu
+```
