@@ -24,7 +24,7 @@ gen3_access_token() {
     local expTime
     local nowTime
     nowTime=$(date '+%s')
-    expTime=$(cat "$gen3CredsCache" | awk --field-separator=. '{ print $2 }' | base64 --decode 2> /dev/null | jq -r .exp)
+    expTime=$(cat "$gen3CredsCache" | awk -F . '{ print $2 }' | base64 --decode 2> /dev/null | jq -r .exp)
     if [[ $((nowTime + 300)) -lt "$expTime" ]]; then # cache not out of date
       echo -e "INFO: using cached token at $gen3CredsCache" 1>&2
       cat $gen3CredsCache
