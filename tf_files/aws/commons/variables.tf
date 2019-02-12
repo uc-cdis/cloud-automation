@@ -37,7 +37,9 @@ variable "db_password_gdcapi" {
   default = ""
 }
 
-variable "indexd_prefix" {}
+variable "indexd_prefix" {
+  default = "dg.XXXX/"
+}
 
 variable "db_password_peregrine" {}
 
