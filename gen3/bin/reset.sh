@@ -83,20 +83,21 @@ EOM
 g3kubectl delete configmap fence
 g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 /bin/rm "$useryaml"
-gen3 job run usersync
-sleep 30   # give the usersync job a chance to run
 
 gen3 roll all
-gen3 kube-wait4-pods || true
 
-# job runs asynchronously ...
-gen3 job run gdcdb-create
-# also go ahead and setup the indexd auth secrets
-gen3 job run indexd-userdb
-echo "Sleep 10 seconds for gdcdb-create and indexd-userdb jobs"
-sleep 10
-gen3 job logs gdcb-create || true
-gen3 job logs indexd-userdb || true
-echo "Leaving the jobs running in the background if not already done"
+# jobs run asynchronously ...
+for jobName in gdcdb-create indexd-userdb usersync; do
+  echo "Launching job $jobName"
+  gen3 job run $jobName
+done
+echo "Waiting for jobs to finish, and late starting services to come up"
+sleep 5
+gen3 kube-wait4-pods 
+for jobName in gdcdb-create indexd-userdb usersync; do
+  echo "--------------------"
+  echo "Logs for $jobName"
+  gen3 job logs "$jobName"
+done
 
 gen3 klock unlock reset-lock gen3-reset

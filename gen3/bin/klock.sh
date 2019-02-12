@@ -132,6 +132,7 @@ unlock() {
 
 list() {
   g3kubectl get configmap locks -o json | jq -r .metadata.labels
+  echo 'Note: use "date -d@timestamp" to convert timestamp to date, "date +%s" gives current timestamp' 1>&2
 }
 
 
