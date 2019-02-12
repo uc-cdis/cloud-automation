@@ -35,13 +35,13 @@ if [[ ! -d "${secretsDir}" ]]; then
   fi
 fi
 
+echo "=================================="
+echo "Updating secrets from /secrets"
+echo "=================================="
+
 # ensure subdirs of services exist
 for serviceDir in fence sheepdog indexd peregrine es userapi gdcapi; do
-  if [[ ! -d "${secretsDir}/${serviceDir}" ]]; then
-    mkdir "${secretsDir}/${serviceDir}"
-    git -C "${secretsDir}" add "${secretsDir}/${serviceDir}"
-  fi
-  git -C "${secretsDir}" commit -m "init(service): add service dirs"
+  mkdir -p "${secretsDir}/${serviceDir}"
 done
 
 # ensure a backup exists
@@ -52,18 +52,17 @@ if [[ ! -d "${backupDir}" ]]; then
   git -C "${secretsDir}" remote add secrets_backup "${backupDir}/secrets.git"
 fi
 
-# update backup repo
-git -C "${secretsDir}" push secrets_backup master
+echo "INFO: attempting to update secrets backup"
+git -C "${secretsDir}" push secrets_backup master || true
 
 # check for any unstaged or uncommitted files
 assertRepoClean $secretsDir
 
 # create secrets from secrets dir
-for secretPath in $(find . -type f -not -path "./.git/*" -print); do
-  secretFile=${secretPath%.*}
-  secretName=$(echo "${secretPath:2}" | sed -e 's/\//-/g' | sed -e 's/\.[^.]*$//')
-  if [[ ! g3kubectl get secret "$secretName" > /dev/null 2>&1 ]]; then
-    g3kubectl create secret generic $secretName --from-file=="${secretFile}"="$secretPath"
+for secretPath in $(find ${secretsDir} -type f -not -path "${secretsDir}/.git/*" -print); do
+  secretName=$(echo "${secretPath}" | sed -e "s/^.*secrets\///g" | sed -e 's/\//-/g' | sed -e 's/\.[^.]*$//')
+  if ! g3kubectl get secret "$secretName" > /dev/null 2>&1; then
+    g3kubectl create secret generic $secretName --from-file=$secretName="$secretPath"
   fi
 done
 
@@ -72,8 +71,12 @@ if [[ ! -d "${WORKSPACE}/${vpc_name}" ]]; then
   exit 0
 fi
 
+echo "=================================="
+echo "Updating secrets from /${vpc_name}"
+echo "==================================" 
+
 # make sure <vpc_name> dir is initialized as a git repo
-if [[ ! -d "${WORKSPACE}/${vpc_name}/.git" ]]
+if [[ ! -d "${WORKSPACE}/${vpc_name}/.git" ]]; then
   echo -e "$(green_color "INFO: Initializing $vpc_name directory as git repo")"
   git -C "${WORKSPACE}/${vpc_name}" init
   git -C "${WORKSPACE}/${vpc_name}" config user.name "gen3"
