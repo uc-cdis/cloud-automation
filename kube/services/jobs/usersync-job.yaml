@@ -166,7 +166,15 @@ spec:
               cp /var/www/fence/user.yaml /mnt/shared/user.yaml
             else
               echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
-              aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml;
+              aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml
+              count=0
+              sleepTime=10
+              while [[ $count -lt 3 && ! -f /mnt/shared/user.yaml ]]; do
+                let count=$count+1
+                echo "Download failed - retry in $sleepTime seconds"
+                let sleepTime=$sleepTime+$sleepTime
+                aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml
+              done
               if [[ -f /mnt/shared/user.yaml ]]; then
                 echo "awshelper container user.yaml diff ..."
                 diff /var/www/fence/user.yaml /mnt/shared/user.yaml

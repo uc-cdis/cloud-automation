@@ -4,13 +4,23 @@
 #
 
 export XDG_DATA_HOME=${XDG_DATA_HOME:-~/.local/share}
-export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/tmp/gen3-$USER"}
-export GEN3_CACHE_DIR="${XDG_DATA_HOME}/gen3/cache"
 export GEN3_ETC_FOLDER="${XDG_DATA_HOME}/gen3/etc"
+
+# Jenkins special cases
+if [[ -n "$JENKINS_HOME" && -n "$WORKSPACE" && -d "$WORKSPACE" ]]; then
+  GEN3_CACHE_DIR="${WORKSPACE}/gen3/cache"
+  XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"${WORKSPACE}/tmp/gen3-$USER"}
+else
+  GEN3_CACHE_DIR="${XDG_DATA_HOME}/gen3/cache"
+  XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/tmp/gen3-$USER"}
+fi
+export GEN3_CACHE_DIR
+export XDG_RUNTIME_DIR
+
 CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
 
 (
-  for filePath in "$GEN3_CACHE_DIR" "$GEN3_ETC_FOLDER/gcp"; do
+  for filePath in "$GEN3_CACHE_DIR" "$GEN3_ETC_FOLDER/gcp" "$XDG_RUNTIME_DIR"; do
     if [[ ! -d "$filePath" ]]; then
       mkdir -p -m 0700 "$filePath"
     fi
