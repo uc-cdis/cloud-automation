@@ -188,6 +188,7 @@ resource "aws_lb" "squid_nlb" {
   tags {
     Environment = "production"
   }
+  lifecycle{ignore_changes=["subnet_mapping"]}
 }
 # For http/https traffic
 resource "aws_lb_target_group" "squid_nlb-http" {
