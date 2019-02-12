@@ -8,6 +8,81 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 gen3_load "gen3/lib/g3k_manifest"
 
+secretsDir="${WORKSPACE}/secrets"
+backupDir="${WORKSPACE}/backup"
+
+function assertRepoClean() {
+  # check that the working tree is clean
+  local repoDir=$1
+  if [[ ! -d "${repoDir}/.git" ]]; then
+    echo -e "$(red_color "ERROR: Not a git repo: ${repoDir}")"
+    exit 1
+  fi
+  if [[ ! -z "$(git -C "${repoDir}" status --porcelain)" ]]; then
+    echo -e "$(red_color "ERROR: All changes to ${repoDir} must be committed")"
+    exit 1
+  fi
+}
+
+if [[ ! -d "${secretsDir}" ]]; then
+  if [[ -d "${backupDir}" ]]; then # clone the backup
+    git clone "${backupDir}/secrets.git" "${secretsDir}"
+  else # initialize the secrets management directory
+    mkdir "${secretsDir}"
+    git -C "${secretsDir}" init
+    git -C "${secretsDir}" config user.name "gen3"
+    git -C "${secretsDir}" config user.email admin@gen3.org
+  fi
+fi
+
+# ensure subdirs of services exist
+for serviceDir in fence sheepdog indexd peregrine es userapi gdcapi; do
+  if [[ ! -d "${secretsDir}/${serviceDir}" ]]; then
+    mkdir "${secretsDir}/${serviceDir}"
+    git -C "${secretsDir}" add "${secretsDir}/${serviceDir}"
+  fi
+  git -C "${secretsDir}" commit -m "init(service): add service dirs"
+done
+
+# ensure a backup exists
+# see here for info about local backup config
+#   https://matthew-brett.github.io/curious-git/curious_remotes.html
+if [[ ! -d "${backupDir}" ]]; then
+  git init --bare "${backupDir}/secrets.git"
+  git -C "${secretsDir}" remote add secrets_backup "${backupDir}/secrets.git"
+fi
+
+# update backup repo
+git -C "${secretsDir}" push secrets_backup master
+
+# check for any unstaged or uncommitted files
+assertRepoClean $secretsDir
+
+# create secrets from secrets dir
+for secretPath in $(find . -type f -not -path "./.git/*" -print); do
+  secretFile=${secretPath%.*}
+  secretName=$(echo "${secretPath:2}" | sed -e 's/\//-/g' | sed -e 's/\.[^.]*$//')
+  if [[ ! g3kubectl get secret "$secretName" > /dev/null 2>&1 ]]; then
+    g3kubectl create secret generic $secretName --from-file=="${secretFile}"="$secretPath"
+  fi
+done
+
+if [[ ! -d "${WORKSPACE}/${vpc_name}" ]]; then
+  echo -e "$(green_color "INFO: $vpc_name directory not found. Exiting successfully")"
+  exit 0
+fi
+
+# make sure <vpc_name> dir is initialized as a git repo
+if [[ ! -d "${WORKSPACE}/${vpc_name}/.git" ]]
+  echo -e "$(green_color "INFO: Initializing $vpc_name directory as git repo")"
+  git -C "${WORKSPACE}/${vpc_name}" init
+  git -C "${WORKSPACE}/${vpc_name}" config user.name "gen3"
+  git -C "${WORKSPACE}/${vpc_name}" config user.email admin@gen3.org
+  git -C "${WORKSPACE}/${vpc_name}" add .
+  git -C "${WORKSPACE}/${vpc_name}" commit -m "init(vpc_name): init local repo"
+fi
+assertRepoClean "${WORKSPACE}/${vpc_name}"
+
 mkdir -p "${WORKSPACE}/${vpc_name}/apis_configs"
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update indexd secrets
