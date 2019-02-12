@@ -1,5 +1,5 @@
 #
-# TODO: write info here
+# Finds any unhealthy pods and nodes
 #
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
