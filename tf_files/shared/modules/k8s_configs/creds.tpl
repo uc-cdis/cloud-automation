@@ -61,12 +61,16 @@
         "hostname": "${hostname}",
         "oauth2_client_id": "${gdcapi_oauth2_client_id}",
         "oauth2_client_secret": "${gdcapi_oauth2_client_secret}"
-    },  
+    },
     "indexd": {
         "db_host": "${indexd_host}",
         "db_username": "${indexd_user}",
         "db_password": "${indexd_pwd}",
         "db_database": "${indexd_db}",
+        "index_config": {
+          "DEFAULT_PREFIX": "${indexd_prefix}",
+          "PREPEND_PREFIX": true
+        },
         "user_db": {
           "gdcapi": "${gdcapi_indexd_password}",
           "fence": ""
