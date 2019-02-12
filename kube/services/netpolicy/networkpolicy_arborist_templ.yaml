@@ -7,19 +7,7 @@ spec:
     matchLabels:
       app: arborist
   ingress:
-    - from:
-      - podSelector:
-          matchLabels:
-            app: arborist
-      - podSelector:
-          matchLabels:
-             app: revproxy
-      - podSelector:
-          matchLabels:
-             app: arranger
-      ports:
-         - port: 80
-         - port: 443
+    - {}
   egress:
     - to:
       - podSelector:
