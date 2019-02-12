@@ -19,6 +19,7 @@ gen3_healthcheck() {
         created: .metadata.creationTimestamp, waitingContainers: [ .status.containerStatuses[] | { state: .state, ready:.ready} ]
       }
     ]')
+
   local evictedPods=$(echo $allPods | jq -r '.[] | select(.reason == "Evicted")')
   local pendingPods=$(echo $allPods | jq -r '[.[] | select(.phase == "Pending")]')
   local unknownPods=$(echo $allPods | jq -r '.[] | select(.phase == "Unknown")')
@@ -44,7 +45,7 @@ gen3_healthcheck() {
       # check how long it's been terminating
       local s=$(echo $statusLine | grep -oP "\d+(?=s)")
       local m=$(echo $statusLine | grep -oP "\d+(?=m)")
-      local h=$(echo $statusLine | grep -oP "\d+(?=m)")
+      local h=$(echo $statusLine | grep -oP "\d+(?=h)")
       if [[ $m -gt 10 || $s -gt 300 || $h -gt 0 ]]; then
         terminatingPods=$(echo $terminatingPods | jq -r ". += [$pod]")
       fi
@@ -68,16 +69,56 @@ gen3_healthcheck() {
     internetAccess=false
   fi
 
+  local healthy=true
+  if [[ !$internetAccess || ! -z "$pendingLongPods" || ! -z "$terminatingPods" || ! -z "$unknownPods" || ! -z "$crashLoopPods" || ! -z "$evictedPods" || ! -z "$notReadyNodes" ]]; then
+    healthy=false
+  fi
 
-  # Echo all the bad stuff
-  # TODO: Check and report these values in better way
-  echo "Pods pending > 10min: $pendingLongPods"
-  echo "Pods terminating > 10min: $terminatingPods"
-  echo "Pods unknown: $unknownPods"
-  echo "Pods crashing: $crashLoopPods"
-  echo "Pods evicted: $evictedPods"
-  echo "Nodes not ready: $notReadyNodes"
-  echo "Internet access available: $internetAccess"
+  local healthJson=$(echo '{}' | jq -r "{
+    pendingTimeoutPods: $pendingLongPods,
+    terminatingTimeoutPods: $terminatingPods,
+    unknownPods: $unknownPods,
+    crashLoopBackOffPods: $crashLoopPods,
+    evictedPods: $evictedPods,
+    notReadyNodes: $notReadyNodes,
+    internetAccess: $internetAccess
+  }")
+  if [[ OUTPUT_JSON ]]; then
+    echo $healthJson | jq -r '.'
+  fi
+
+  if [[ SEND_SLACK && ! healthy ]]; then
+    if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
+      slackWebHook=$(g3kubectl get configmap global -o jsonpath={.data.slack_webhook})
+    fi
+    if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
+      echo "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
+    else
+      local tmpHostname=$(g3kubectl get configmap manifest-global -o jsonpath={.data.hostname})
+      curl -X POST --data-urlencode "payload={\"text\": \"${tmpHostname} healthcheck: ${healthJson}\"}" "${slackWebHook}"
+    fi
+  fi
 }
+
+local SEND_SLACK=false
+local OUTPUT_JSON=false
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+    '--slack')
+      SEND_SLACK=true
+      shift
+      ;;
+    '--json')
+      OUTPUT_JSON=true
+      shift
+      ;;
+    *)
+      echo "Unrecognized flag"
+      help
+      exit 1
+      ;;
+  esac
+done
 
 gen3_healthcheck
