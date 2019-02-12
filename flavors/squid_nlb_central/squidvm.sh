@@ -104,7 +104,8 @@ sudo chmod 644 /etc/init.d/awslogs
 # Configure the AWS logs
 
 HOSTNAME=$(which hostname)
-instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
+server_int=$(route | grep '^default' | grep -o '[^ ]*$')
+instance_ip=$(ip -f inet -o addr show $server_int|cut -d\  -f 7 | cut -d/ -f 1)
 IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
 
 sed -i 's/SERVER/http_proxy-auth-'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
