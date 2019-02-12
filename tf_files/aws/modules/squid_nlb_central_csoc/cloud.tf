@@ -244,11 +244,15 @@ resource "aws_vpc_endpoint_service" "squid_nlb" {
 resource "aws_launch_configuration" "squid_nlb" {
   name_prefix = "${var.env_nlb_name}_autoscaling_launch_config"
   image_id = "${data.aws_ami.public_squid_ami.id}"
-  instance_type = "t2.medium"
+  #instance_type = "t2.medium"
+  instance_type = "t3.xlarge"
   security_groups = ["${aws_security_group.squidnlb_in.id}", "${aws_security_group.squidnlb_out.id}"]
   key_name = "${var.ssh_key_name}"
   iam_instance_profile   = "${aws_iam_instance_profile.squid-nlb_role_profile.id}"
   associate_public_ip_address = true
+  root_block_device {
+    volume_size = 30
+  }
 
   depends_on = ["aws_iam_instance_profile.squid-nlb_role_profile"]
 
