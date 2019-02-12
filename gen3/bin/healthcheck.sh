@@ -70,7 +70,7 @@ gen3_healthcheck() {
   fi
 
   local healthy=true
-  if [[ !$internetAccess || ! -z "$pendingLongPods" || ! -z "$terminatingPods" || ! -z "$unknownPods" || ! -z "$crashLoopPods" || ! -z "$evictedPods" || ! -z "$notReadyNodes" ]]; then
+  if [[ "$internetAccess" = false || ! -z "$pendingLongPods" || ! -z "$terminatingPods" || ! -z "$unknownPods" || ! -z "$crashLoopPods" || ! -z "$evictedPods" || ! -z "$notReadyNodes" ]]; then
     healthy=false
   fi
 
