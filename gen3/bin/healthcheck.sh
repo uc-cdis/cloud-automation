@@ -93,7 +93,8 @@ gen3_healthcheck() {
       echo "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
     else
       local tmpHostname=$(g3kubectl get configmap manifest-global -o jsonpath={.data.hostname})
-      curl -X POST --data-urlencode "payload={\"text\": \"healthcheck ${tmpHostname}:\n$(echo $healthJson | sed s/\"/\\\\\"/g | sed s/,/,\\n/g)\"}" "${slackWebHook}"
+      local formattedAttachment="{\"title\": \"Status\", \"text\": \"$(echo $healthJson | sed s/\"/\\\\\"/g | sed s/,/,\\n/g)\", \"color\": \"#FF0000\"}"
+      curl -X POST --data-urlencode "payload={\"text\": \"Healthcheck FAILED for ${tmpHostname}\n\", \"attachments\": [$formattedAttachment]}" "${slackWebHook}"
     fi
   fi
 }
