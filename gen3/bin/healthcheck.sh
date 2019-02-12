@@ -83,11 +83,9 @@ gen3_healthcheck() {
     notReadyNodes: [$notReadyNodes],
     internetAccess: $internetAccess
   }")
-  if [[ HEALTH_OUTPUT_JSON ]]; then
-    echo $healthJson | jq -r '.'
-  fi
+  echo $healthJson | jq -r '.'
 
-  if [[ "$HEALTH_SEND_SLACK" = true && "healthy" = false ]]; then
+  if [[ "$HEALTH_SEND_SLACK" = true && "$healthy" = false ]]; then
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
       slackWebHook=$(g3kubectl get configmap global -o jsonpath={.data.slack_webhook})
     fi
@@ -101,16 +99,11 @@ gen3_healthcheck() {
 }
 
 HEALTH_SEND_SLACK=false
-HEALTH_OUTPUT_JSON=false
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
     '--slack')
       HEALTH_SEND_SLACK=true
-      shift
-      ;;
-    '--json')
-      HEALTH_OUTPUT_JSON=true
       shift
       ;;
     *)
