@@ -27,6 +27,7 @@ function assertRepoClean() {
 if [[ ! -d "${secretsDir}" ]]; then
   if [[ -d "${backupDir}" ]]; then # clone the backup
     git clone "${backupDir}/secrets.git" "${secretsDir}"
+    git -C "${secretsDir}" remote add secrets_backup "${backupDir}/secrets.git"
   else # initialize the secrets management directory
     mkdir "${secretsDir}"
     git -C "${secretsDir}" init
