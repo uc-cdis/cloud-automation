@@ -77,17 +77,17 @@ gen3_healthcheck() {
   local healthJson=$(echo '{}' | jq -r "{
     pendingTimeoutPods: $pendingLongPods,
     terminatingTimeoutPods: $terminatingPods,
-    unknownPods: $unknownPods,
-    crashLoopBackOffPods: $crashLoopPods,
-    evictedPods: $evictedPods,
-    notReadyNodes: $notReadyNodes,
+    unknownPods: [$unknownPods],
+    crashLoopBackOffPods: [$crashLoopPods],
+    evictedPods: [$evictedPods],
+    notReadyNodes: [$notReadyNodes],
     internetAccess: $internetAccess
   }")
-  if [[ OUTPUT_JSON ]]; then
+  if [[ HEALTH_OUTPUT_JSON ]]; then
     echo $healthJson | jq -r '.'
   fi
 
-  if [[ SEND_SLACK && ! healthy ]]; then
+  if [[ "$HEALTH_SEND_SLACK" = true && "healthy" = false ]]; then
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
       slackWebHook=$(g3kubectl get configmap global -o jsonpath={.data.slack_webhook})
     fi
@@ -95,22 +95,22 @@ gen3_healthcheck() {
       echo "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
     else
       local tmpHostname=$(g3kubectl get configmap manifest-global -o jsonpath={.data.hostname})
-      curl -X POST --data-urlencode "payload={\"text\": \"${tmpHostname} healthcheck: ${healthJson}\"}" "${slackWebHook}"
+      curl -X POST --data-urlencode "payload={\"text\": \"healthcheck ${tmpHostname}:\n$(echo $healthJson | sed s/\"/\\\\\"/g | sed s/,/,\\n/g)\"}" "${slackWebHook}"
     fi
   fi
 }
 
-local SEND_SLACK=false
-local OUTPUT_JSON=false
+HEALTH_SEND_SLACK=false
+HEALTH_OUTPUT_JSON=false
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
     '--slack')
-      SEND_SLACK=true
+      HEALTH_SEND_SLACK=true
       shift
       ;;
     '--json')
-      OUTPUT_JSON=true
+      HEALTH_OUTPUT_JSON=true
       shift
       ;;
     *)
