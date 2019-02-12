@@ -27,15 +27,15 @@ gen3_aws_run() {
         return $?
       fi
     fi
-    
+
     local gen3AwsAccessKeyId
     local gen3AwsSecretAccessKey
     local gen3AwsSessionToken
-    
+
     # Try to use cached creds if possible
     if [[ -f $gen3CredsCache ]]; then
       gen3AwsExpire=$(jq -r '.Credentials.Expiration' < $gen3CredsCache)
-      
+
       if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$(date -u +%Y-%m-%dT%H:%M)" ]]; then
         cacheIsValid="yes"
       fi
@@ -72,7 +72,7 @@ gen3_aws_run() {
         aws sts get-session-token --serial-number "$gen3AwsMfa" --token-code "$mfaToken" > "$gen3CredsCache"
       fi
     fi
-    
+
     if [[ ! -f "$gen3CredsCache" ]]; then
       echo -e "$(red_color "ERROR: AWS creds not cached at $gen3CredsCache")" 1>&2
       return 1
@@ -86,7 +86,7 @@ gen3_aws_run() {
 }
 
 #
-# Setup and access terraform workspace for AWS - 
+# Setup and access terraform workspace for AWS -
 #   delegate for `gen3 workon ...`
 #
 gen3_workon_aws(){
@@ -99,7 +99,7 @@ gen3_workon_aws(){
   export GEN3_FLAVOR=AWS
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}"
   export AWS_PROFILE="$GEN3_PROFILE"
-  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")  
+  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")
   export AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
 
   # S3 bucket where we save terraform state, etc
@@ -112,12 +112,12 @@ gen3_workon_aws(){
     #    https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html#bucketnamingrules
     #
     export GEN3_S3_BUCKET="cdis-state-ac${AWS_ACCOUNT_ID}-gen3"
-    
+
     OLD_S3_BUCKET="cdis-terraform-state.account-${AWS_ACCOUNT_ID}.gen3"
     if (! gen3_aws_run aws s3 ls "s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1) &&
       (gen3_aws_run aws s3 ls "s3://${OLD_S3_BUCKET}/${GEN3_WORKSPACE}" > /dev/null 2>&1)
     then
-      # Use the old bucket ... 
+      # Use the old bucket ...
       export GEN3_S3_BUCKET="${OLD_S3_BUCKET}"
     fi
   fi
@@ -252,7 +252,7 @@ EOM
 EOM
     return 0
   fi
-  
+
   if [[ "$GEN3_WORKSPACE" =~ _logging$ ]]; then
     # rds snapshot vpc is simpler ...
     commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_logging$//')
@@ -304,7 +304,7 @@ EOM
     cat - <<EOM
   env_vpc_octet3                = "3rd OCTET OF CSOC CIDR FOR SQUID SETUP"
   env_nlb_name                  = "NLB SETUP NAME"
-  # CSOC MAIN VPC ID 
+  # CSOC MAIN VPC ID
   env_vpc_id                    = "vpc-e2b51d99"
   # CSOC ROUTE TABLE ID - HAVING ROUTE TO INTERNET GW
   env_pub_subnet_routetable_id = "rtb-1cb66860"
@@ -328,7 +328,7 @@ EOM
      env_vpn_nlb_name  = "csoc-ENVNAME-vpn"
      #  env_cloud_name can be enter as planxCLOUDNAME where CLOUDNAME is prod,qa,dev,etc
      env_cloud_name = "planxCLOUDNAME"
-     # CSOC MAIN VPC ID 
+     # CSOC MAIN VPC ID
      env_vpc_id                    = "vpc-e2b51d99"
      # CSOC ROUTE TABLE ID - HAVING ROUTE TO INTERNET GW
      env_pub_subnet_routetable_id = "rtb-1cb66860"
@@ -454,6 +454,9 @@ portal_app="dev"
 aws_cert_name="arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
 
 db_size=10
+
+# This indexd guid prefix should come from Trevar/ZAC
+indexd_prefix=ENTER_UNIQUE_GUID_PREFIX
 
 hostname="YOUR.API.HOSTNAME"
 #
