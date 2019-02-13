@@ -1,3 +1,4 @@
+#!/bin/bash
 #
 # Finds any unhealthy pods and nodes
 #
@@ -10,6 +11,22 @@ help() {
 }
 
 gen3_healthcheck() {
+  local HEALTH_SEND_SLACK=false
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+      '--slack')
+	HEALTH_SEND_SLACK=true
+	shift
+	;;
+      *)
+	echo "Unrecognized flag"
+	help
+	exit 1
+	;;
+    esac
+  done
+
   # refer to k8s api docs for pod status info
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#podstatus-v1-core
   local allPods=$(g3kubectl get pods -o json | \
@@ -20,10 +37,10 @@ gen3_healthcheck() {
       }
     ]')
 
-  local evictedPods=$(echo $allPods | jq -r '.[] | select(.reason == "Evicted")')
+  local evictedPods=$(echo $allPods | jq -r '[.[] | select(.reason == "Evicted") ]')
   local pendingPods=$(echo $allPods | jq -r '[.[] | select(.phase == "Pending")]')
-  local unknownPods=$(echo $allPods | jq -r '.[] | select(.phase == "Unknown")')
-  local crashLoopPods=$(echo $allPods | jq -r '.[] | select( .waitingContainers[].state.waiting.reason == "CrashLoopBackOff")')
+  local unknownPods=$(echo $allPods | jq -r '[.[] | select(.phase == "Unknown")]')
+  local crashLoopPods=$(echo $allPods | jq -r '[.[] | select( .waitingContainers[].state.waiting.reason == "CrashLoopBackOff")]')
   local terminatingPods='[]'
   local pendingLongPods='[]'
 
@@ -60,28 +77,48 @@ gen3_healthcheck() {
         name: .metadata.labels."kubernetes.io/hostname", conditions: [ .status.conditions[] | { (.type): .status }] | add
       }
     ]')
-  local notReadyNodes=$(echo $allNodes | jq -r '.[] | select(.conditions.Ready != "True")')
+  local notReadyNodes=$(echo $allNodes | jq -r '[.[] | select(.conditions.Ready != "True")]')
 
   # check internet access
-  local statusCode=$(curl -s -o /dev/null -I -w "%{http_code}" https://www.google.com)
+  local curlCmd="curl -s -o /dev/null -I -w "%{http_code}" https://www.google.com"
+  if [[ $HOSTNAME == *"admin"* ]]; then
+    curlCmd="g3kubectl exec $(get_pod fence) -- $curlCmd"
+  fi
+  local statusCode=$(eval $curlCmd)
   local internetAccess=true
   if [[ $statusCode -lt 200 || $statusCode -ge 400 ]]; then
     internetAccess=false
   fi
+  (
+    export http_proxy="http://cloud-proxy.internal.io:3128"
+    export https_proxy=$http_proxy
+    local statusCodeExplicit=$(curl -s -o /dev/null -I -w "%{http_code}" https://www.google.com)
+    if [[ $statusCodeExplicit -lt 200 || $statusCodeExplicit -ge 400 ]]; then
+      exit 1
+    else
+      exit 0
+    fi
+  )
+  explicitProxyResult=$?
+  local internetAccessExplicitProxy=true
+  if [[ $explicitProxyResult != 0 ]]; then
+    internetAccessExplicitProxy=false
+  fi
 
   local healthy=true
-  if [[ "$internetAccess" = false || ! -z "$pendingLongPods" || ! -z "$terminatingPods" || ! -z "$unknownPods" || ! -z "$crashLoopPods" || ! -z "$evictedPods" || ! -z "$notReadyNodes" ]]; then
+  if [[ "$internetAccess" = false || "$internetAccessExplicitProxy" = false || "$pendingLongPods" != "[]" || "$terminatingPods" != "[]" || "$unknownPods" != "[]" || "$crashLoopPods" != "[]" || "$evictedPods" != "[]" || "$notReadyNodes" != "[]" ]]; then
     healthy=false
   fi
 
   local healthJson=$(echo '{}' | jq -r "{
     pendingTimeoutPods: $pendingLongPods,
     terminatingTimeoutPods: $terminatingPods,
-    unknownPods: [$unknownPods],
-    crashLoopBackOffPods: [$crashLoopPods],
-    evictedPods: [$evictedPods],
-    notReadyNodes: [$notReadyNodes],
-    internetAccess: $internetAccess
+    unknownPods: $unknownPods,
+    crashLoopBackOffPods: $crashLoopPods,
+    evictedPods: $evictedPods,
+    notReadyNodes: $notReadyNodes,
+    internetAccess: $internetAccess,
+    internetAccessExplicitProxy: $internetAccessExplicitProxy
   }")
   echo $healthJson | jq -r '.'
 
@@ -99,20 +136,4 @@ gen3_healthcheck() {
   fi
 }
 
-HEALTH_SEND_SLACK=false
-while [[ $# -gt 0 ]]; do
-  key="$1"
-  case $key in
-    '--slack')
-      HEALTH_SEND_SLACK=true
-      shift
-      ;;
-    *)
-      echo "Unrecognized flag"
-      help
-      exit 1
-      ;;
-  esac
-done
-
-gen3_healthcheck
+gen3_healthcheck "$@"
