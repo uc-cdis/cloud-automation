@@ -41,6 +41,12 @@ spec:
                 value: GEN3_TUBE_ES_INDEX_NAME|-null-|
               - name: HADOOP_HOST
                 value: spark-service
+              - name: HADOOP_CLIENT_OPTS
+                value: -Xmx512m
+              - name: SPARK_EXECUTOR_MEMORY
+                value: 2g
+              - name: SPARK_DRIVER_MEMORY
+                value: 512m
               - name: slackWebHook
                 valueFrom:
                     configMapKeyRef:
@@ -64,7 +70,7 @@ spec:
               resources:
                 limits:
                   cpu: 1
-                  memory: 2Gi
+                  memory: 784M
               command: ["/bin/bash"]
               args:
                 - "-c"
