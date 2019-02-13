@@ -81,7 +81,7 @@ gen3_healthcheck() {
 
   # check internet access
   local curlCmd="curl -s -o /dev/null -I -w "%{http_code}" https://www.google.com"
-  if [[ $HOSTNAME == *"admin"* ]]; then
+  if [[ $HOSTNAME == *"admin"* ]]; then # if in admin vm, run curl in fence pod
     curlCmd="g3kubectl exec $(get_pod fence) -- $curlCmd"
   fi
   local statusCode=$(eval $curlCmd)
@@ -92,7 +92,7 @@ gen3_healthcheck() {
   (
     export http_proxy="http://cloud-proxy.internal.io:3128"
     export https_proxy=$http_proxy
-    local statusCodeExplicit=$(curl -s -o /dev/null -I -w "%{http_code}" https://www.google.com)
+    local statusCodeExplicit=$(eval $curlCmd)
     if [[ $statusCodeExplicit -lt 200 || $statusCodeExplicit -ge 400 ]]; then
       exit 1
     else
