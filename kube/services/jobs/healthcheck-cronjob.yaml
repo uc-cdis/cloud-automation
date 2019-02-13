@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: healthcheck 
 spec:
-  schedule: "*/1 * * * *"
+  schedule: "*/10 * * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:
