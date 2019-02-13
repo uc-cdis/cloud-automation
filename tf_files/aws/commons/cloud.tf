@@ -1,4 +1,4 @@
-# Inject credentials via the AWS_PROFILE environment variable and shared credentials file 
+# Inject credentials via the AWS_PROFILE environment variable and shared credentials file
 # and/or EC2 metadata service
 terraform {
   backend "s3" {
@@ -66,6 +66,8 @@ module "config_files" {
 
   aws_user_key     = "${module.cdis_vpc.es_user_key}"
   aws_user_key_id  = "${module.cdis_vpc.es_user_key_id}"
+
+  indexd_prefix = "${var.indexd_prefix}"
 }
 
 data "aws_vpc_endpoint_service" "s3" {

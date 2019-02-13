@@ -86,7 +86,7 @@ test_workspace() {
     else
       [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/commons" ]]; because $? "a generic workspace should use the ./aws/commons resources: $GEN3_TFSCRIPT_FOLDER"
     fi
-  fi  
+  fi
 }
 
 test_user_workspace() {
@@ -152,6 +152,7 @@ test_tfplan() {
   sed -i.bak 's/YOUR.CERT.NAME/*.planx-pla.net/g' config.tfvars
   sed -i.bak 's/GET_A_UNIQUE_VPC_172_OCTET[23]/64/g' config.tfvars
   sed -i.bak 's/#config_folder=/config_folder=/g' config.tfvars
+  sed -i.bak 's/indexd_prefix/#indexd_prefix/g' config.tfvars
   gen3 tfplan; because $? "tfplan should run even with some invalid config variables"
   [[ -f "$GEN3_WORKDIR/plan.terraform" ]]; because $? "'gen3 tfplan' generates a plan.terraform file used by 'gen3 tfapply'"
 }
@@ -188,7 +189,7 @@ test_kube_lock() {
   ! gen3 klock lock testlock5 testuser2 10 -w 2; because $? "wait is too short, so klock lock should fail to acquire lock"
   gen3 klock lock testlock6 testuser 10
   gen3 klock lock testlock6 testuser2 10 -w 20; because $? "wait is longer than expiry time on the first user, so klock lock should succeed to acquire lock"
-  
+
   # cleanup
   for lock in testlock testlock2 testlock3 testlock4 testlock5 testlock6; do
     for user in testuser testuser2; do
@@ -210,14 +211,14 @@ test_kube_unlock() {
   fi
   # Do not do this - it break any klock's active in the test environment! :-(
   #g3kubectl delete configmap locks
-  
+
   gen3 klock unlock | grep -e "gen3 klock unlock lock-name owner"; because $? "calling klock unlock without arguments should show the help documentation"
   gen3 klock lock testlock testuser 60
   ! gen3 klock unlock testlock2 testuser; because $? "calling klock unlock for the first time on a lock that does not exist should fail"
   ! gen3 klock unlock testlock testuser2; because $? "calling klock unlock for the first time on a lock the user does not own should fail"
   gen3 klock unlock testlock testuser; because $? "calling klock unlock for the first time on a lock the user owns should succeed"
   ! gen3 klock unlock testlock testuser; because $? "calling klock unlock for the second time on a lock the user owns should fail because the lock is already unlocked"
-  
+
   # teardown
   # Do not do this - it break any klock's active in the test environment! :-(
   #g3kubectl delete configmap locks
