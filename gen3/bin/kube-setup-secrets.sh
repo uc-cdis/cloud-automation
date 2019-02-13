@@ -8,74 +8,6 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 gen3_load "gen3/lib/g3k_manifest"
 
-secretsDir="${WORKSPACE}/secrets"
-backupDir="${WORKSPACE}/backup"
-
-function assertRepoClean() {
-  # check that the working tree is clean
-  local repoDir=$1
-  if [[ ! -d "${repoDir}/.git" ]]; then
-    echo -e "$(red_color "ERROR: Not a git repo: ${repoDir}")"
-    exit 1
-  fi
-  if [[ ! -z "$(git -C "${repoDir}" status --porcelain)" ]]; then
-    echo -e "$(red_color "ERROR: All changes to ${repoDir} must be committed")"
-    exit 1
-  fi
-}
-
-if [[ ! -d "${secretsDir}" ]]; then
-  if [[ -d "${backupDir}" ]]; then # clone the backup
-    git clone "${backupDir}/secrets.git" "${secretsDir}"
-    git -C "${secretsDir}" remote add secrets_backup "${backupDir}/secrets.git"
-  else # initialize the secrets management directory
-    mkdir "${secretsDir}"
-    git -C "${secretsDir}" init
-    git -C "${secretsDir}" config user.name "gen3"
-    git -C "${secretsDir}" config user.email admin@gen3.org
-  fi
-fi
-
-echo "=================================="
-echo "Updating secrets from /secrets"
-echo "=================================="
-
-# ensure subdirs of services exist
-for serviceDir in fence sheepdog indexd peregrine es userapi gdcapi; do
-  mkdir -p "${secretsDir}/${serviceDir}"
-done
-
-# ensure a backup exists
-# see here for info about local backup config
-#   https://matthew-brett.github.io/curious-git/curious_remotes.html
-if [[ ! -d "${backupDir}" ]]; then
-  git init --bare "${backupDir}/secrets.git"
-  git -C "${secretsDir}" remote add secrets_backup "${backupDir}/secrets.git"
-fi
-
-echo "INFO: attempting to update secrets backup"
-git -C "${secretsDir}" push secrets_backup master || true
-
-# check for any unstaged or uncommitted files
-assertRepoClean $secretsDir
-
-# create secrets from secrets dir
-for secretPath in $(find ${secretsDir} -type f -not -path "${secretsDir}/.git/*" -print); do
-  secretName=$(echo "${secretPath}" | sed -e "s/^.*secrets\///g" | sed -e 's/\//-/g' | sed -e 's/\.[^.]*$//')
-  if ! g3kubectl get secret "$secretName" > /dev/null 2>&1; then
-    g3kubectl create secret generic $secretName --from-file=$secretName="$secretPath"
-  fi
-done
-
-if [[ ! -d "${WORKSPACE}/${vpc_name}" ]]; then
-  echo -e "$(green_color "INFO: $vpc_name directory not found. Exiting successfully")"
-  exit 0
-fi
-
-echo "=================================="
-echo "Updating secrets from /${vpc_name}"
-echo "==================================" 
-
 # make sure <vpc_name> dir is initialized as a git repo
 if [[ ! -d "${WORKSPACE}/${vpc_name}/.git" ]]; then
   echo -e "$(green_color "INFO: Initializing $vpc_name directory as git repo")"
@@ -85,7 +17,24 @@ if [[ ! -d "${WORKSPACE}/${vpc_name}/.git" ]]; then
   git -C "${WORKSPACE}/${vpc_name}" add .
   git -C "${WORKSPACE}/${vpc_name}" commit -m "init(vpc_name): init local repo"
 fi
-assertRepoClean "${WORKSPACE}/${vpc_name}"
+
+# ensure a backup exists
+# see here for info about local backup config
+#   https://matthew-brett.github.io/curious-git/curious_remotes.html
+if [[ ! -d "${WORKSPACE}/backup" ]]; then
+  echo -e "$(green_color "INFO: Initializing backup for $vpc_name")"
+  git init --bare "${WORKSPACE}/backup/secrets.git"
+  git -C "${WORKSPACE}/${vpc_name}" remote add secrets_backup "${WORKSPACE}/backup/secrets.git"
+fi
+
+# assert there are no unstaged or uncommitted files
+if [[ ! -z "$(git -C "${WORKSPACE}/${vpc_name}" status --porcelain)" ]]; then
+  echo -e "$(red_color "ERROR: All changes to ${vpc_name} must be committed")"
+  exit 1
+fi
+
+echo "INFO: attempting to update secrets backup"
+git -C "${WORKSPACE}/${vpc_name}" push secrets_backup master || true
 
 mkdir -p "${WORKSPACE}/${vpc_name}/apis_configs"
 
