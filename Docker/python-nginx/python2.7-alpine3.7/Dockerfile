@@ -26,6 +26,18 @@ RUN apk update && apk add --no-cache \
     vim \ 
     uwsgi-python
 
-RUN adduser -S www-data -G www-data
+COPY nginx.conf /etc/nginx/
+COPY uwsgi.conf /etc/nginx/sites-available/
+
+RUN adduser -S www-data -G www-data \ 
+    && mkdir -p /var/www/.cache/Python-Eggs/ \
+    && chown www-data -R /var/www/.cache/Python-Eggs/ \
+    && mkdir /run/nginx/ \ 
+    && mkdir -m 075 /var/run/gen3 \
+    && chown root:www-data /var/run/gen3 \ 
+    && rm /etc/nginx/conf.d/default.conf \
+    && ln -s /etc/nginx/sites-available/uwsgi.conf /etc/nginx/conf.d/uwsgi.conf \
+    && ln -sf /dev/stdout /var/log/nginx/access.log \
+    && ln -sf /dev/stderr /var/log/nginx/error.log
 
 CMD [ "sh" ]
