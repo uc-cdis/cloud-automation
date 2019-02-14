@@ -44,7 +44,7 @@ spec:
               - name: HADOOP_CLIENT_OPTS
                 value: -Xmx512m
               - name: SPARK_EXECUTOR_MEMORY
-                value: 2g
+                value: 3g
               - name: SPARK_DRIVER_MEMORY
                 value: 512m
               - name: slackWebHook
@@ -70,7 +70,7 @@ spec:
               resources:
                 limits:
                   cpu: 1
-                  memory: 784M
+                  memory: 1Gi
               command: ["/bin/bash"]
               args:
                 - "-c"
