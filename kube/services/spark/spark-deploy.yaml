@@ -61,8 +61,8 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 0.3
-              memory: 2Gi
+              cpu: 0.5
+              memory: 3Gi
           command: ["/bin/bash" ]
           args: 
             - "-c"
