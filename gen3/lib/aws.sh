@@ -391,7 +391,7 @@ EOM
       commonsName=${GEN3_WORKSPACE//_eks/}
       cat - <<EOM
 vpc_name      = "${commonsName}"
-instance_type = "t2.medium"
+instance_type = "t3.large"
 ec2_keyname   = "someone@uchicago.edu"
 users_policy  = "PUT SOMETHING HERE"
 EOM
