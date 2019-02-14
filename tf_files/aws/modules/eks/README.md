@@ -51,11 +51,12 @@ users_policy = "fauziv1"
 
 ### 4.2 Optional Variables
 
-* `instance_type` By default this is set to t2.medium, but it can be changed if needed.
+* `instance_type` Instance_type for workers by default this is set to t3.large, but it can be changed if needed.
 * `csoc_cidr` By default set to 10.128.0.0/20.
 * `eks_version` Version of kubernetes to deploy for EKS, default is set to 1.10.
 * `worker_drive_size` Size of the root volume for the workers. Default is set to 30 GB.
 * `deploy_jupyter_pool` If you want the jupyter pool. If explicit "yes" is passed, then the autoscaling group would be set to a minimum of three instances, and same value for desired capasity. Default is no.
+*  `jupyter_instance_type` Instance_type for nodepool by default this is set to t3.medium, but it can be changed if needed.
 
 ## 5. Considerations
 
@@ -67,4 +68,3 @@ users_policy = "fauziv1"
   `kubeconfig` is the config file for kubernetes, it is not saved automatically in the right path, therefore you must put it where your KUBECONFIG var points to.
 
    These outputs are also saved into a file in the terraform space. You can access it by running `gen3 cd`, there is a `<commons-name>_output_eks` folder which contains the files in question.
-
