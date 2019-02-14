@@ -237,7 +237,7 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   associate_public_ip_address = false
   iam_instance_profile        = "${aws_iam_instance_profile.eks_node_instance_profile.name}"
   image_id                    = "${data.aws_ami.eks_worker.id}"
-  jupyter_instance_type       = "${var.jupyter_instance_type}"
+  instance_type               = "${var.jupyter_instance_type}"
   name_prefix                 = "eks-${var.vpc_name}-nodepool-${var.nodepool}"
   security_groups             = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
   user_data_base64            = "${base64encode(data.template_file.bootstrap.rendered)}"
