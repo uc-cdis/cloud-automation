@@ -7,6 +7,7 @@ class MockConfig:
   def __init__(self):
     self.JupyterHub=MockNull()
     self.KubeSpawner=MockNull()
+    self.RemoteUserAuthenticator=MockNull()
 
 # read jupyterhub-config.py - for later eval
 filePath=os.path.dirname(__file__) + '/jupyterhub_config.py'
