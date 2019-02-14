@@ -1,5 +1,5 @@
 
-## First thing we need to create is the role that would spin up resources for us 
+## First thing we need to create is the role that would spin up resources for us
 
 resource "aws_iam_role" "eks_control_plane_role" {
   name = "${var.vpc_name}_EKS_${var.nodepool}_role"
@@ -237,7 +237,7 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   associate_public_ip_address = false
   iam_instance_profile        = "${aws_iam_instance_profile.eks_node_instance_profile.name}"
   image_id                    = "${data.aws_ami.eks_worker.id}"
-  instance_type               = "${var.instance_type}"
+  jupyter_instance_type       = "${var.jupyter_instance_type}"
   name_prefix                 = "eks-${var.vpc_name}-nodepool-${var.nodepool}"
   security_groups             = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
   user_data_base64            = "${base64encode(data.template_file.bootstrap.rendered)}"
@@ -313,7 +313,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
     propagate_at_launch = true
   }
 
-# Avoid unnecessary changes for existing commons running on EKS 
+# Avoid unnecessary changes for existing commons running on EKS
   lifecycle {
     #ignore_changes = ["desired_capacity","max_size","min_size"]
   }
@@ -339,4 +339,3 @@ resource "aws_security_group" "ssh" {
     Name         = "ssh_eks_${var.vpc_name}-nodepool-${var.nodepool}"
   }
 }
-

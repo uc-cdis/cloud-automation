@@ -6,7 +6,11 @@ variable "ec2_keyname" {
 }
 
 variable "instance_type" {
-  default = "t2.medium"
+  default = "t3.large"
+}
+
+variable "jupyter_instance_type"{
+  default = "t3.medium"
 }
 
 variable "csoc_cidr" {

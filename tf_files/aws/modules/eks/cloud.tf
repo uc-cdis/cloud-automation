@@ -10,7 +10,6 @@
 module "jupyter_pool" {
   source               = "../eks-nodepool/"
   ec2_keyname          = "${var.ec2_keyname}"
-  instance_type        = "${var.instance_type}"
   users_policy         = "${var.users_policy}"
   nodepool             = "jupyter"
   vpc_name             = "${var.vpc_name}"
@@ -22,12 +21,13 @@ module "jupyter_pool" {
   default_nodepool_sg  = "${aws_security_group.eks_nodes_sg.id}"
   deploy_jupyter_pool  = "${var.deploy_jupyter_pool}"
   eks_version          = "${var.eks_version}"
+  jupyter_instance_type = "${var.jupyter_instance_type}"
 }
 
 
 
 
-## First thing we need to create is the role that would spin up resources for us 
+## First thing we need to create is the role that would spin up resources for us
 
 resource "aws_iam_role" "eks_control_plane_role" {
   name = "${var.vpc_name}_EKS_role"
@@ -73,7 +73,7 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
 # * aws_eks_cluster.eks_cluster: error creating EKS Cluster (fauziv1): UnsupportedAvailabilityZoneException: Cannot create cluster 'fauziv1' because us-east-1e, the targeted availability zone, does not currently have sufficient capacity to support the cluster. Retry and choose from these availability zones: us-east-1a, us-east-1c, us-east-1d
 ####
 resource "random_shuffle" "az" {
-#  input = ["${data.aws_availability_zones.available.names}"] 
+#  input = ["${data.aws_availability_zones.available.names}"]
   input = ["us-east-1a", "us-east-1c", "us-east-1d"]
   result_count = 3
   count = 1
@@ -82,7 +82,7 @@ resource "random_shuffle" "az" {
 
 
 
-# The subnet where our cluster will live in 
+# The subnet where our cluster will live in
 resource "aws_subnet" "eks_private" {
   #count = 3
   count                   = "${random_shuffle.az.result_count}"
@@ -145,7 +145,7 @@ resource "aws_route_table" "eks_private" {
     instance_id = "${data.aws_instances.squid_proxy.ids[0]}"
   }
 
-  # We want to be able to talk to aws freely, therefore we are allowing 
+  # We want to be able to talk to aws freely, therefore we are allowing
   # certain stuff overpass the proxy
   route {
     # logs.us-east-1.amazonaws.com
@@ -158,7 +158,7 @@ resource "aws_route_table" "eks_private" {
     nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
   }
   route {
-    # .us-east-1.eks.amazonaws.com 
+    # .us-east-1.eks.amazonaws.com
     cidr_block     = "34.192.0.0/10"
     nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
   }
@@ -207,7 +207,7 @@ resource "aws_route_table_association" "private_kube" {
 }
 
 
-#  S3 endpoint 
+#  S3 endpoint
 resource "aws_vpc_endpoint" "k8s-s3" {
   vpc_id          =  "${data.aws_vpc.the_vpc.id}"
   service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
@@ -259,7 +259,7 @@ resource "aws_route_table_association" "public_kube" {
 }
 
 
-# The actual EKS cluster 
+# The actual EKS cluster
 
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "${var.vpc_name}"
@@ -451,7 +451,7 @@ resource "aws_security_group_rule" "communication_plane_to_nodes" {
   description              = "from the control plane to the nodes"
 }
 
-# Let's allow nodes talk to each other 
+# Let's allow nodes talk to each other
 resource "aws_security_group_rule" "nodes_internode_communications" {
   type              = "ingress"
   from_port         = 0
@@ -462,7 +462,7 @@ resource "aws_security_group_rule" "nodes_internode_communications" {
   self              = true
 }
 
-# Let's allow the two polls talk to each other 
+# Let's allow the two polls talk to each other
 resource "aws_security_group_rule" "nodes_interpool_communications" {
   type                     = "ingress"
   from_port                = 0
@@ -525,10 +525,10 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
 
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
-  desired_capacity     = 2 
+  desired_capacity     = 2
   launch_configuration = "${aws_launch_configuration.eks_launch_configuration.id}"
   max_size             = 10
-  min_size             = 2 
+  min_size             = 2
   name                 = "eks-worker-node-${var.vpc_name}"
   vpc_zone_identifier  = ["${aws_subnet.eks_private.*.id}"]
 
@@ -568,7 +568,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
     propagate_at_launch = true
   }
 
-# Avoid unnecessary changes for existing commons running on EKS 
+# Avoid unnecessary changes for existing commons running on EKS
   lifecycle {
     ignore_changes = ["desired_capacity","max_size","min_size"]
   }
@@ -632,7 +632,7 @@ CONFIGMAPAWSAUTH
 
 
 #--------------------------------------------------------------
-# We need to have the kubeconfigfile somewhere, even if it is temporaty so we can execute stuff agains the freshly create EKS cluster 
+# We need to have the kubeconfigfile somewhere, even if it is temporaty so we can execute stuff agains the freshly create EKS cluster
 # Legacy stuff ...
 # We want to move away from generating output files, and
 # instead just publish output variables
