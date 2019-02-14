@@ -56,7 +56,7 @@ users_policy = "fauziv1"
 * `eks_version` Version of kubernetes to deploy for EKS, default is set to 1.10.
 * `worker_drive_size` Size of the root volume for the workers. Default is set to 30 GB.
 * `deploy_jupyter_pool` If you want the jupyter pool. If explicit "yes" is passed, then the autoscaling group would be set to a minimum of three instances, and same value for desired capasity. Default is no.
-*  `jupyter_instance_type` Instance_type for workers by default this is set to t3.medium, but it can be changed if needed.
+*  `jupyter_instance_type` Instance_type for nodepool by default this is set to t3.medium, but it can be changed if needed.
 
 ## 5. Considerations
 
