@@ -33,7 +33,7 @@ spec:
           - -c
           - echo "Pulling complete"
       - name: image-pull-bio
-        image: quay.io/occ_data/jupyternotebook:1.6
+        image: quay.io/occ_data/jupyternotebook:1.7.2
         imagePullPolicy: IfNotPresent
         command:
           - /bin/sh

@@ -34,8 +34,6 @@ spec:
             - jupyterhub
             - --config
             - /srv/jupyterhub/jupyterhub_config.py
-            - --log-level
-            - DEBUG
           ports:
             - containerPort: 8000
           env:

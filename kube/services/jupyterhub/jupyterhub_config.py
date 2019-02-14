@@ -10,7 +10,7 @@ c.JupyterHub.db_url = 'sqlite:////etc/config/jupyterhub.sqlite'
 c.JupyterHub.cookie_secret_file = '/etc/config/jupyterhub_cookie_secret'
 c.JupyterHub.authenticator_class = 'jhub_remote_user_authenticator.remote_user_auth.RemoteUserAuthenticator'
 #c.ConfigurableHTTPProxy.debug = True
-c.JupyterHub.log_level = 'DEBUG'
+c.JupyterHub.log_level = 'INFO'
 c.JupyterHub.services = [
     {
         'name': 'cull-idle',
@@ -24,12 +24,12 @@ c.KubeSpawner.cpu_limit = 1.0
 c.KubeSpawner.mem_limit = '1.5G'
 #c.KubeSpawner.debug = False
 c.KubeSpawner.notebook_dir = '/home/jovyan/pd'
-c.KubeSpawner.singleuser_uid = 1000
-c.KubeSpawner.singleuser_fs_gid = 1000
-c.KubeSpawner.user_storage_pvc_ensure = True
-c.KubeSpawner.user_storage_capacity = '10Gi'
+c.KubeSpawner.uid = 1000
+c.KubeSpawner.fs_gid = 1000
+c.KubeSpawner.storage_pvc_ensure = True
+c.KubeSpawner.storage_capacity = '10Gi'
 c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
-c.KubeSpawner.user_storage_class = 'jupyter-storage'
+c.KubeSpawner.storage_class = 'jupyter-storage'
 c.KubeSpawner.volumes = [
     {
         'name': 'volume-{username}{servername}',
@@ -50,7 +50,7 @@ c.KubeSpawner.profile_list = [
     {
         'display_name': 'Bioinfo - Python/R - 0.5 CPU 256M Mem',
         'kubespawner_override': {
-            'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.6',
+            'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.7.2',
             'cpu_limit': 0.5,
             'mem_limit': '256M',
         }
@@ -58,7 +58,7 @@ c.KubeSpawner.profile_list = [
     {
         'display_name': 'Bioinfo - Python/R - 1.0 CPU 1.5G Mem',
         'kubespawner_override': {
-            'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.6',
+            'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.7.2',
             'cpu_limit': 1.0,
             'mem_limit': '1.5G',
         }
@@ -99,4 +99,5 @@ c.KubeSpawner.node_selector = { 'role': 'jupyter' }
 c.JupyterHub.cleanup_servers = False
 c.JupyterHub.ip = '0.0.0.0'
 c.JupyterHub.hub_ip = '0.0.0.0'
-#c.Authenticator.admin_users = {'razorm@gmail.com'}
+c.RemoteUserAuthenticator.auth_refresh_age = 1
+c.RemoteUserAuthenticator.refresh_pre_spawn = True
