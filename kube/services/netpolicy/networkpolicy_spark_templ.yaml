@@ -1,14 +1,12 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-tube
+  name: networkpolicy-spark
 spec:
   podSelector:
     matchLabels:
-      app: tube
+      app: spark
   egress:
-    - {}
-  ingress:
     - {}
   policyTypes:
    - Ingress
