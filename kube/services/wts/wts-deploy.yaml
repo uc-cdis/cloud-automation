@@ -24,7 +24,7 @@ spec:
         - containerPort: 80
         env:
         - name: SECRET_DIR
-          value: "/var/www/workspace-token-service/secrets"
+          value: "/var/www/wts/secrets"
         - name: AUTH_PLUGINS
           value: k8s
         volumeMounts:
@@ -32,7 +32,14 @@ spec:
           mountPath: /mnt/data
         - name: "config-volume"
           readOnly: true
-          mountPath: "/var/www/workspace-token-service/secrets"
+          mountPath: "/var/www/wts/secrets"
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            chown nginx:nginx /mnt/data
+            /wts/dockerrun.bash
+        imagePullPolicy: Always
   volumeClaimTemplates:
   - metadata:
       name: datadir
