@@ -59,6 +59,8 @@ fi
 gen3 klock lock reset-lock gen3-reset 3600 -w 60
 
 g3kubectl delete --all deployments --now
+# ssjdispatcher leaves jobs laying around when undeployed
+g3kubectl delete --all jobs --now
 wait_for_pods_down
 
 # drop and recreate all the postgres databases
@@ -120,3 +122,4 @@ gen3 roll all
 run_setup_jobs
 
 gen3 klock unlock reset-lock gen3-reset
+echo "All done"  # force 0 exit code
