@@ -9,6 +9,8 @@ gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/kube-setup-init"
 
 
+# lib ---------------------------
+
 wait_for_pods_down() {
     podsDownFlag=1
     while [[ podsDownFlag -ne 0 ]]; do
@@ -24,6 +26,28 @@ wait_for_pods_down() {
     return 0
 }
 
+run_setup_jobs() {
+  local jobName
+  #
+  # Run some setup jobs to restore some startup state.
+  # sheepdog wants its transaction tables to exist at startup
+  # jobs run asynchronously ...
+  #
+  for jobName in gdcdb-create indexd-userdb usersync; do
+    echo "Launching job $jobName"
+    gen3 job run $jobName
+  done
+  echo "Waiting for jobs to finish, and late starting services to come up"
+  sleep 5
+  gen3 kube-wait4-pods 
+  for jobName in gdcdb-create indexd-userdb usersync; do
+    echo "--------------------"
+    echo "Logs for $jobName"
+    gen3 job logs "$jobName"
+  done
+}
+
+# main ---------------------------
 
 # check for user consent before deleting and recreating tables
 echo -e "$(red_color "WARNING: about to drop all service deployments - proceed? (y/n)")"
@@ -35,6 +59,8 @@ fi
 gen3 klock lock reset-lock gen3-reset 3600 -w 60
 
 g3kubectl delete --all deployments --now
+# ssjdispatcher leaves jobs laying around when undeployed
+g3kubectl delete --all jobs --now
 wait_for_pods_down
 
 # drop and recreate all the postgres databases
@@ -84,20 +110,16 @@ g3kubectl delete configmap fence
 g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 /bin/rm "$useryaml"
 
+#
+# various weird race conditions 
+# where these setup jobs setup part of a service
+# database, and the service itself sets up other parts,
+# so run_setup_jobs both before and after roll all to
+# try to make reset more reliable - especially in Jenkins
+# 
+run_setup_jobs
 gen3 roll all
-
-# jobs run asynchronously ...
-for jobName in gdcdb-create indexd-userdb usersync; do
-  echo "Launching job $jobName"
-  gen3 job run $jobName
-done
-echo "Waiting for jobs to finish, and late starting services to come up"
-sleep 5
-gen3 kube-wait4-pods 
-for jobName in gdcdb-create indexd-userdb usersync; do
-  echo "--------------------"
-  echo "Logs for $jobName"
-  gen3 job logs "$jobName"
-done
+run_setup_jobs
 
 gen3 klock unlock reset-lock gen3-reset
+echo "All done"  # force 0 exit code
