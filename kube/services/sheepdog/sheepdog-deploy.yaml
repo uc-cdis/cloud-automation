@@ -52,7 +52,7 @@ spec:
             secretName: "service-ca"
       # sheepdog transactions take forever -
       # try to let the complete before termination
-      terminationGracePeriodSeconds: 300
+      terminationGracePeriodSeconds: 50
       containers:
         - name: sheepdog
           GEN3_SHEEPDOG_IMAGE
