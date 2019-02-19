@@ -41,5 +41,4 @@ spec:
                 - |
                   set -i
                   source ~/.bashrc
-                  export JENKINS_HOME=none
                   gen3 healthcheck --slack --retry
