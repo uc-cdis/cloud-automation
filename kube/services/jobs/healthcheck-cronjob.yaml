@@ -42,3 +42,4 @@ spec:
                   set -i
                   source ~/.bashrc
                   gen3 healthcheck --slack --retry
+                  echo "All Done!"
