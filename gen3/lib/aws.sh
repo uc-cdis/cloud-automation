@@ -158,6 +158,8 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_management-logs"
   elif [[ "$GEN3_WORKSPACE" =~ _management-logs$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/account_management-logs"
+  elif [[ "$GEN3_WORKSPACE" =~ _squidauto$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_auto"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -249,6 +251,15 @@ EOM
   env_vpc_id           = "VPC-ID"
   env_vpc_cidr         = "VPC-CIDR"
   env_public_subnet_id = "VPC-PUBLIC-SUBNET"
+EOM
+    return 0
+  fi
+
+  if [[ "$GEN3_WORKSPACE" =~ _squidauto$ ]]; then
+    # rds snapshot vpc is simpler ...
+    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
+    cat - <<EOM
+  #env_vpc_name         = "VPC-NAME"
 EOM
     return 0
   fi
