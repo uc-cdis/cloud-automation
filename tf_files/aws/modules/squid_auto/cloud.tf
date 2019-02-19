@@ -146,11 +146,6 @@ resource "aws_route_table_association" "squid_auto5" {
   route_table_id = "${var.env_public_subnet_routetable_id}"
 }
 
-
-
-
-
-
 # Auto scaling group for squid auto
 
 resource "aws_launch_configuration" "squid_auto" {
@@ -207,7 +202,7 @@ resource "aws_autoscaling_group" "squid_auto" {
   min_size = 1
   #target_group_arns = ["${aws_lb_target_group.squid_nlb-http.arn}", "${aws_lb_target_group.squid_nlb-sftp.arn}"]
   vpc_zone_identifier = ["${aws_subnet.squid_pub0.id}", "${aws_subnet.squid_pub1.id}", "${aws_subnet.squid_pub2.id}"]
-  launch_configuration = "${aws_launch_configuration.squid_nlb.name}"
+  launch_configuration = "${aws_launch_configuration.squid_auto.name}"
 
    tag {
     key                 = "Name"
@@ -268,7 +263,7 @@ resource "aws_security_group" "squidauto_in" {
     from_port   = 3128
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["${var.env_vpc_octet1}.${var.env_vpc_octet2}.${var.env_vpc_octet3}.0/20"]
+    cidr_blocks = ["${var.squid_server_subnet}"]
   }
 
   tags {
@@ -295,24 +290,12 @@ resource "aws_security_group" "squidauto_out" {
   }
 
   tags {
-    Environment  = "${var.env_squid_name"
+    Environment  = "${var.env_squid_name}"
     Organization = "Basic Service"
   }
 }
 
 
-# DNS entry for the cloud-proxy in CSOC
-
-
-
-
-#resource "aws_route53_record" "squid-auto" {
- # zone_id = "${var.commons_internal_dns_zone_id}"
- # name    = "cloud-proxy-auto.internal.io"
- # type    = "A"
- # ttl     = "300"
- # records = ["${aws_lb.squid_nlb.dns_name}"]
-#}
 
 
 
