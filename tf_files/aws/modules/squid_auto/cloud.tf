@@ -167,6 +167,10 @@ sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 cd /home/ubuntu/cloud-automation
 git pull
 
+# This is needed temporarily for testing purposes ; before merging the code to master
+git checkout feat/autosquidVM
+git pull
+
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
 #instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
