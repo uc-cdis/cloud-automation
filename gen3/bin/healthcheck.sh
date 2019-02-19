@@ -10,6 +10,16 @@ help() {
   gen3 help healthcheck
 }
 
+getPodsSimple() {
+  g3kubectl get pods "$@" -o json | \
+    jq -r '[
+      .items[] | {
+        name: .metadata.name, namespace: .metadata.namespace, phase: .status.phase, reason: .status.reason,
+        created: .metadata.creationTimestamp, waitingContainers: [ .status.containerStatuses[] | { state: .state, ready:.ready} ]
+      }
+    ]'
+}
+
 gen3_healthcheck() {
   local HEALTH_SEND_SLACK=false
   local RETRY=false
@@ -36,6 +46,7 @@ gen3_healthcheck() {
 
   # refer to k8s api docs for pod status info
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#podstatus-v1-core
+  echo "Getting all pods..." 1>&2
   local allPods=$(g3kubectl get pods --all-namespaces -o json | \
     jq -r '[
       .items[] | {
@@ -43,11 +54,12 @@ gen3_healthcheck() {
         created: .metadata.creationTimestamp, waitingContainers: [ .status.containerStatuses[] | { state: .state, ready:.ready} ]
       }
     ]')
-
+  echo "Checking pods..." 1>&2
   local evictedPods=$(echo $allPods | jq -r '[.[] | select(.reason == "Evicted") ]')
   local pendingPods=$(echo $allPods | jq -r '[.[] | select(.phase == "Pending")]')
   local unknownPods=$(echo $allPods | jq -r '[.[] | select(.phase == "Unknown")]')
   local crashLoopPods=$(echo $allPods | jq -r '[.[] | select( .waitingContainers[].state.waiting.reason == "CrashLoopBackOff")]')
+  local terminatingPods=$(g3kubectl get pods --all-namespaces | grep "Terminating" | awk '{ print "{ \"namespace\": \"" $1 "\", "; print "\"name\": \"" $2 "\"}"; }' | jq -r '[inputs]')
   local terminatingTimeoutPods='[]'
   local pendingTimeoutPods='[]'
 
@@ -63,7 +75,9 @@ gen3_healthcheck() {
 
   # check for terminating pods
   # Unfortunately the only way to get termination duration is by grepping the `describe` output
+  echo "Checking terminating pods for timeout..." 1>&2
   while read -r pod; do
+    if [[ -z "$pod" ]]; then continue; fi
     local statusLine=$(g3kubectl describe pod $(echo $pod | jq -r '.name') --namespace $(echo $pod | jq -r '.namespace') | grep "Status:" -m 1)
     if [[ "$(echo $statusLine | awk '{ print $2 }')" == "Terminating" ]]; then
       # check how long it's been terminating
@@ -74,7 +88,7 @@ gen3_healthcheck() {
         terminatingTimeoutPods=$(echo $terminatingTimeoutPods | jq -r ". += [$pod]")
       fi
     fi
-  done <<< "$(echo $allPods | jq -c '.[]')"
+  done <<< "$(echo $terminatingPods | jq -c '.[]')"
 
   # check status of nodes
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#nodestatus-v1-core
@@ -87,15 +101,17 @@ gen3_healthcheck() {
   local notReadyNodes=$(echo $allNodes | jq -r '[.[] | select(.conditions.Ready != "True")]')
 
   # check internet access
+  echo "Checking internet access..." 1>&2
   local curlCmd="curl --max-time 15 -s -o /dev/null -I -w "%{http_code}" https://www.google.com"
   if [[ $HOSTNAME == *"admin"* ]]; then # if in admin vm, run curl in fence pod
-    curlCmd="g3kubectl exec $(get_pod fence) -- $curlCmd"
+    curlCmd="g3kubectl exec $(gen3 pod fence) -- $curlCmd"
   fi
   local statusCode=$(eval $curlCmd)
   local internetAccess=true
   if [[ $statusCode -lt 200 || $statusCode -ge 400 ]]; then
     internetAccess=false
   fi
+  echo "Checking explicit proxy internet access..." 1>&2
   (
     export http_proxy="http://cloud-proxy.internal.io:3128"
     export https_proxy=$http_proxy
@@ -122,7 +138,6 @@ gen3_healthcheck() {
     internetAccess: $internetAccess,
     internetAccessExplicitProxy: $internetAccessExplicitProxy
   }")
-  echo $healthJson | jq -r '.'
 
   local healthy=true
   local healthSimple=""
@@ -140,11 +155,15 @@ gen3_healthcheck() {
   fi
 
   if [[ "$RETRY" = true && "$healthy" = false ]]; then
-    echo "INFO: Unhealthy. Waiting for 30 seconds then trying again..."
+    echo $healthJson | jq -r '.' 1>&2
+    echo "INFO: Unhealthy. Waiting for 30 seconds then trying again..." 1>&2
     sleep 30
     gen3_healthcheck $RETRY_PARAMS
     exit $?
   fi
+
+  # print final result to stdout
+  echo $healthJson | jq -r '.'
 
   if [[ "$HEALTH_SEND_SLACK" = true && "$healthy" = false ]]; then
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
@@ -155,7 +174,7 @@ gen3_healthcheck() {
     else
       local formattedAttachment='{"title": "Statuses", "text": "'"$healthSimple"'", "color": "#FF0000", "mrkdwn_in": ["text"] }'
       local payload='payload={"text": ":warning: Healthcheck failed", "attachments": ['"$formattedAttachment"']}'
-      curl --max-time 15 -X POST --data-urlencode "${payload}" "${slackWebHook}"
+      curl --max-time 15 -X POST --data-urlencode "${payload}" "${slackWebHook}" 1>&2
     fi
   fi
 }
