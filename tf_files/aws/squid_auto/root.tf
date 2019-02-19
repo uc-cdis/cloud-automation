@@ -14,6 +14,7 @@ module "squid_auto" {
   source           = "../modules/squid_auto"
   squid_server_subnet   = "${var.squid_server_subnet}"
   env_vpc_id       = "${var.env_vpc_id}"
+  env_vpc_name     = "${var.env_vpc_name}"
   env_squid_name     = "${var.env_squid_name}"
   ami_account_id   = "${var.ami_account_id}"
   csoc_cidr        = "${var.csoc_cidr}"

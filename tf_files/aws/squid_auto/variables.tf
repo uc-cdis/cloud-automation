@@ -8,6 +8,10 @@ variable "env_vpc_id" {
   default = "vpc-0b45c2f1d0ea5bda0"
 }
 
+variable "env_vpc_name" {
+  default = "raryav1"
+}
+
 variable "env_squid_name" {
   default = "commons_squid_auto"
 }
