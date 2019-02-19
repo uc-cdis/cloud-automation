@@ -36,6 +36,13 @@ if [[ -z "$JENKINS_HOME" ]]; then
   if ! g3kubectl get rolebindings/ssjdispatcher-binding > /dev/null 2>&1; then
     g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/ssjdispatcher-binding.yaml"
   fi
+
+  ctx="$(g3kubectl config current-context)"
+  ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
+  # only do this if we are running in the default namespace
+  if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrolebinding-devops.yaml"
+  fi
 else
   echo "Not setting up roles in Jenkins: $JENKINS_HOME"
 fi

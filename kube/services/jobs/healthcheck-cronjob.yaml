@@ -2,8 +2,9 @@ apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: healthcheck 
+  namespace: default
 spec:
-  schedule: "*/10 * * * *"
+  schedule: "0 * * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:
