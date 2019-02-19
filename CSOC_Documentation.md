@@ -1,6 +1,4 @@
-
-
-![CSOC_networkdiag](CSOC_networkdiag_V1.png)
+![CSOC_networkdiag](CSOC_DETAILS_v1.png)
 
 CDIS uses a Commons Services Operations Center (CSOC) AWS account for accessing the AWS accounts associated with all of the Gen3 commons they operate. Operators of other Gen3 data commons may choose to have a separate CSOC account or operate their Gen3 data commons within the same AWS account. There are two major functionality associated with the CSOC account:
 
