@@ -62,7 +62,7 @@ spec:
           - name: SPARK_EXECUTOR_MEMORY
             value: 2g
           - name: SPARK_DRIVER_MEMORY
-            value: 512m
+            value: 1g
           volumeMounts:
             - name: "creds-volume"
               readOnly: true
@@ -75,7 +75,7 @@ spec:
           resources:
             limits:
               cpu: 1
-              memory: 784M
+              memory: 3Gi
           command: ["/bin/bash" ]
           args: 
             - "-c"

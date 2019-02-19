@@ -42,6 +42,7 @@ spec:
           - containerPort: 8030
           - containerPort: 8031
           - containerPort: 8032
+          - containerPort: 7077
           livenessProbe:
             tcpSocket:
               port: 9000
@@ -62,7 +63,7 @@ spec:
           resources:
             limits:
               cpu: 0.5
-              memory: 3Gi
+              memory: 2Gi
           command: ["/bin/bash" ]
           args: 
             - "-c"
@@ -78,4 +79,7 @@ spec:
               yarn --daemon start nodemanager
               hdfs dfsadmin -safemode leave
               hdfs dfs -mkdir /result
+              hdfs dfs -mkdir /jars
+              hdfs dfs -mkdir /archive
+              /spark/sbin/start-all.sh
               while true; do sleep 5; done
