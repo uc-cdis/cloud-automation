@@ -103,28 +103,32 @@ gen3_healthcheck() {
   # check internet access
   echo "Checking internet access..." 1>&2
   local curlCmd="curl --max-time 15 -s -o /dev/null -I -w "%{http_code}" https://www.google.com"
+  local statusCode=0
   if [[ $HOSTNAME == *"admin"* ]]; then # if in admin vm, run curl in fence pod
-    curlCmd="g3kubectl exec $(gen3 pod fence) -- $curlCmd"
+    statusCode=$(g3kubectl exec $(gen3 pod fence) -- $curlCmd)
+  else # not inside adminvm, curl from here
+    statusCode=$(eval $curlCmd)
   fi
-  local statusCode=$(eval $curlCmd)
   local internetAccess=true
   if [[ $statusCode -lt 200 || $statusCode -ge 400 ]]; then
     internetAccess=false
   fi
+ 
+  # check internet access with explicit proxy
   echo "Checking explicit proxy internet access..." 1>&2
-  (
-    export http_proxy="http://cloud-proxy.internal.io:3128"
-    export https_proxy=$http_proxy
-    local statusCodeExplicit=$(eval $curlCmd)
-    if [[ $statusCodeExplicit -lt 200 || $statusCodeExplicit -ge 400 ]]; then
-      exit 1
-    else
-      exit 0
-    fi
-  )
-  explicitProxyResult=$?
+  local http_proxy="http://cloud-proxy.internal.io:3128"
+  local statusCodeExplicit=0
+  if [[ $HOSTNAME == *"admin"* ]]; then # inside adminvm, curl from fence pod
+    statusCodeExplicit=$(g3kubectl exec $(gen3 pod fence) env http_proxy=$http_proxy https_proxy=$http_proxy -- $curlCmd)
+  else # not inside adminvm, curl from here
+    statusCodeExplicit=$(
+      export http_proxy=$http_proxy
+      export https_proxy=$http_proxy
+      eval $curlCmd
+    )
+  fi
   local internetAccessExplicitProxy=true
-  if [[ $explicitProxyResult != 0 ]]; then
+  if [[ $statusCodeExplicit -lt 200 || $statusCodeExplicit -ge 400 ]]; then
     internetAccessExplicitProxy=false
   fi
 
