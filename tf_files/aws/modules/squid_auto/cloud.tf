@@ -153,7 +153,7 @@ resource "aws_launch_configuration" "squid_auto" {
   image_id = "${data.aws_ami.public_squid_ami.id}"
   instance_type = "t3.xlarge"
   security_groups = ["${aws_security_group.squidauto_in.id}", "${aws_security_group.squidauto_out.id}"]
-  key_name = "${var.ssh_key_name}"
+  #key_name = "${var.ssh_key_name}"
   iam_instance_profile   = "${aws_iam_instance_profile.squid-auto_role_profile.id}"
   associate_public_ip_address = true
 
