@@ -182,6 +182,15 @@ edit ~/{VPC_NAME}_output/creds.json
 gen3 roll all
 ```
 
+
+### Network Diagram
+
+The following diagram intends to illustrate the network and basic communications between CSOC and a commons account.
+
+![network-diag](network-diag.svg)
+
+
+
 ## Prerequisites for Commons
 
 
