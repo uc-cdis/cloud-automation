@@ -36,6 +36,7 @@ RUN adduser -S www-data -G www-data \
     && mkdir /run/nginx/ \ 
     && mkdir -m 075 /var/run/gen3 \
     && chown root:www-data /var/run/gen3 \ 
+    && chown -R www-data:www-data /var/tmp/nginx \
     && rm /etc/nginx/conf.d/default.conf \
     && ln -s /etc/nginx/sites-available/uwsgi.conf /etc/nginx/conf.d/uwsgi.conf \
     && ln -sf /dev/stdout /var/log/nginx/access.log \
