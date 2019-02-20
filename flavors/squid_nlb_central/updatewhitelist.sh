@@ -17,7 +17,7 @@ diff "/home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_key
 DIFF_AUTH2=$?
 if [ "$DIFF_AUTH2" -ne 0  ] ; then
 echo "There is a change in authorized_keys for users"
-rsync -a /home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_keys_user /home/ubuntu/.ssh/authorized_keys
+rsync -a /home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_keys_user /home/sftpuser/.ssh/authorized_keys
 fi
 
 
