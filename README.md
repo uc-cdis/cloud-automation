@@ -183,11 +183,12 @@ gen3 roll all
 ```
 
 
-### Data Flow Diagram
+### Network Diagram
 
-The following diagram intends to illustrate the data flow for commons.
+The following diagram intends to illustrate the network and basic communications between CSOC and a commons account.
 
-![dataflow-diag](dataflow-diag.svg)
+![network-diag](network-diag.svg)
+
 
 
 ## Prerequisites for Commons
