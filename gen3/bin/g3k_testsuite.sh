@@ -221,6 +221,12 @@ test_time_since() {
   gen3_time_since test_time_since is 5; because $? "gen3_time_since with 5 second timeout should pass after sleeping 5 seconds"
 }
 
+test_secrets_folder() {
+  vpc_name=SecretName
+  secretFolder="$(gen3_secrets_folder)"
+  [[ "$secretFolder" == "$WORKSPACE/$vpc_name" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
+}
+
 shunit_runtest "test_semver"
 shunit_runtest "test_colors"
 shunit_runtest "test_env"
@@ -235,6 +241,7 @@ shunit_runtest "test_configmaps"
 shunit_runtest "test_gitops_taglist"
 shunit_runtest "test_gitops_logs"
 shunit_runtest "test_time_since"
+shunit_runtest "test_secrets_folder"
 
 if [[ "$G3K_TESTSUITE_SUMMARY" != "no" ]]; then
   # little hook, so gen3 testsuite can call through to this testsuite too ...

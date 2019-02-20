@@ -3,24 +3,31 @@
 # Test with `gen3 testsuite` - see ../bin/testsuite.sh 
 #
 
-export XDG_DATA_HOME=${XDG_DATA_HOME:-~/.local/share}
+# Jenkins friendly
+export WORKSPACE="${WORKSPACE:-$HOME}"
+export XDG_DATA_HOME=${XDG_DATA_HOME:-"${WORKSPACE}/.local/share"}
 export GEN3_ETC_FOLDER="${XDG_DATA_HOME}/gen3/etc"
+export GEN3_CACHE_DIR="${XDG_DATA_HOME}/gen3/cache"
+
 
 # Jenkins special cases
 if [[ -n "$JENKINS_HOME" && -n "$WORKSPACE" && -d "$WORKSPACE" ]]; then
-  GEN3_CACHE_DIR="${WORKSPACE}/gen3/cache"
   XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"${WORKSPACE}/tmp/gen3-$USER"}
 else
-  GEN3_CACHE_DIR="${XDG_DATA_HOME}/gen3/cache"
   XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-"/tmp/gen3-$USER"}
 fi
-export GEN3_CACHE_DIR
 export XDG_RUNTIME_DIR
 
 CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
 
+gen3_secrets_folder() {
+  local folderName
+  folderName="${vpc_name:-Gen3Secrets}"
+  echo "$WORKSPACE/$folderName"
+}
+
 (
-  for filePath in "$GEN3_CACHE_DIR" "$GEN3_ETC_FOLDER/gcp" "$XDG_RUNTIME_DIR"; do
+  for filePath in "$GEN3_CACHE_DIR" "$GEN3_ETC_FOLDER/gcp" "$XDG_RUNTIME_DIR" "$(gen3_secrets_folder)"; do
     if [[ ! -d "$filePath" ]]; then
       mkdir -p -m 0700 "$filePath"
     fi
@@ -31,14 +38,6 @@ CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
 MD5=md5
 if [[ $(uname -s) == "Linux" ]]; then
   MD5=md5sum
-fi
-
-if [[ ! -d "$XDG_RUNTIME_DIR" ]]; then
-  mkdir -p -m 0700 "$XDG_RUNTIME_DIR"
-fi
-
-if [[ ! -d "$GEN3_CACHE_DIR" ]]; then
-  mkdir -p -m 0700 "$GEN3_CACHE_DIR"
 fi
 
 
@@ -229,3 +228,12 @@ function gen3_time_since() {
   fi
   return 1
 }
+
+gen3_log_err() {
+  echo -e "$(red_color "ERROR: $*")" 1>&2
+}
+
+gen3_log_info() {
+  echo -e "$(green_color "INFO:") $*" 1>&2
+}
+

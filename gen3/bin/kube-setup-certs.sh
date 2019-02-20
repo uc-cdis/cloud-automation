@@ -16,12 +16,12 @@ if [[ -n "$JENKINS_HOME" ]]; then
   exit 0
 fi
 
-mkdir -p "${WORKSPACE}/${vpc_name}/credentials/"
+mkdir -p "$(gen3_secrets_folder)/credentials/"
 
-cd "${WORKSPACE}/${vpc_name}"
+cd "$(gen3_secrets_folder)"
 
-if [[ ! -f "${WORKSPACE}/${vpc_name}/credentials/ca.pem" && ! -f "${WORKSPACE}/${vpc_name}/credentials/ca-key.pem" ]]; then
-  echo "Certificate authority not present under ${WORKSPACE}/${vpc_name}/credentials"
+if [[ ! -f "$(gen3_secrets_folder)/credentials/ca.pem" && ! -f "$(gen3_secrets_folder)/credentials/ca-key.pem" ]]; then
+  echo "Certificate authority not present under $(gen3_secrets_folder)/credentials"
   echo "Creating self signed certificate"
   #openssl genrsa -out "credentials/ca-key.pem" 2048
   SUBJ="/countryName=US/stateOrProvinceName=IL/localityName=Chicago/organizationName=CDIS/organizationalUnitName=Software/commonName=cdis.uchicago.edu/emailAddress=cdis@uchicago.edu"
@@ -42,7 +42,7 @@ default_ca = CA_default
 
 [ CA_default ]
 # Directory and file locations.
-dir             = ${WORKSPACE}/${vpc_name}/credentials              # Where everything is kept
+dir             = $(gen3_secrets_folder)/credentials              # Where everything is kept
 new_certs_dir   = \$dir/CA/newcerts
 database        = \$dir/CA/index.txt     # database index file.
 certificate     = \$dir/ca.pem           # The CA certificate

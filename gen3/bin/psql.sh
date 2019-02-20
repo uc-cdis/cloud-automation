@@ -14,21 +14,8 @@ g3k_psql() {
   local key="${serviceName}"
   
   if [[ -z "$serviceName" ]]; then
-    echo -e $(red_color "g3k_psql: No serviceName specified")
+    gen3_log_err "g3k_psql: No serviceName specified"
     return 1
-  fi
-  if [[ -z "$vpc_name" ]]; then
-    echo -e $(red_color "g3k_psql: vpc_name variable must be set")
-    return 1
-  fi
-
-  if [[ -f "${HOME}/${vpc_name}_output/creds.json" ]]; then # legacy path - fix it
-    if [[ ! -f "${HOME}/${vpc_name}/creds.json" ]]; then
-      # new path
-      mkdir -p "${HOME}/${vpc_name}"
-      cp "${HOME}/${vpc_name}_output/creds.json" "${HOME}/${vpc_name}/creds.json"
-    fi
-    mv "${HOME}/${vpc_name}_output/creds.json" "${HOME}/${vpc_name}_output/creds.json.bak"
   fi
 
   case "$serviceName" in
@@ -45,7 +32,7 @@ g3k_psql() {
     key=fence
     ;;
   *)
-    echo -e $(red_color "Invalid service: $serviceName")
+    gen3_log_err "Invalid service: $serviceName"
     return 1
     ;;
   esac
@@ -57,7 +44,17 @@ g3k_psql() {
   local database
   local arg
   credsPath="$(mktemp "${XDG_RUNTIME_DIR}/creds.json.XXXXXX")"
-  g3kubectl get secret "${key}-creds" -o json | jq -r '.data["creds.json"]' | base64 --decode > "$credsPath"
+  
+  if g3kubectl get secret "${key}-creds" > /dev/null 2>&1; then
+    # prefer to pull creds from secret
+    g3kubectl get secret "${key}-creds" -o json | jq -r '.data["creds.json"]' | base64 --decode > "$credsPath"
+  elif [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
+    jq -r ".${key}" < "$(gen3_secrets_folder)/creds.json" > "$credsPath"
+  else
+    gen3_log_err "unable to find ${key}-creds k8s secret or creds.json"
+    return 1
+  fi
+
   username=$(jq -r ".db_username" < $credsPath)
   password=$(jq -r ".db_password" < $credsPath)
   host=$(jq -r ".db_host" < $credsPath)

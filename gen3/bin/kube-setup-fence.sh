@@ -10,7 +10,7 @@ gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-secrets
 
-if [[ -d "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # create database
+if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   # Initialize fence database and user list
   cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f .rendered_fence_db ]]; then
@@ -21,10 +21,10 @@ if [[ -d "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # create database
     gen3 job run useryaml
     gen3 job logs useryaml || true
     echo "Leaving setup jobs running in background"
-    cd "${WORKSPACE}/${vpc_name}"
+    cd "$(gen3_secrets_folder)"
   fi
   # avoid doing the previous block more than once or when not necessary ...
-  touch "${WORKSPACE}/${vpc_name}/.rendered_fence_db"
+  touch "$(gen3_secrets_folder)/.rendered_fence_db"
 fi
 
 # deploy fence

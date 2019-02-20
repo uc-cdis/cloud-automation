@@ -8,43 +8,43 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 gen3_load "gen3/lib/g3k_manifest"
 
-if [[ -d "${WORKSPACE}/${vpc_name}" && -z "${JENKINS_HOME}" ]]; then
-# make sure <vpc_name> dir is initialized as a git repo
-  if [[ ! -d "${WORKSPACE}/${vpc_name}/.git" ]]; then
-    echo -e "$(green_color "INFO: Initializing $vpc_name directory as git repo")"
-    git -C "${WORKSPACE}/${vpc_name}" init
-    git -C "${WORKSPACE}/${vpc_name}" config user.name "gen3"
-    git -C "${WORKSPACE}/${vpc_name}" config user.email admin@gen3.org
-    git -C "${WORKSPACE}/${vpc_name}" add .
-    git -C "${WORKSPACE}/${vpc_name}" commit -m "init(vpc_name): init local repo"
+if [[ -d "$(gen3_secrets_folder)" && -z "${JENKINS_HOME}" ]]; then
+  # make sure <vpc_name> dir is initialized as a git repo
+  if [[ ! -d "$(gen3_secrets_folder)/.git" ]]; then
+    echo -e "$(green_color "INFO: Initializing $(gen3_secrets_folder) directory as git repo")"
+    git -C "$(gen3_secrets_folder)" init
+    git -C "$(gen3_secrets_folder)" config user.name "gen3"
+    git -C "$(gen3_secrets_folder)" config user.email admin@gen3.org
+    git -C "$(gen3_secrets_folder)" add .
+    git -C "$(gen3_secrets_folder)" commit -m "init(vpc_name): init local repo"
   fi
 
   # ensure a backup exists
   # see here for info about local backup config
   #   https://matthew-brett.github.io/curious-git/curious_remotes.html
   if [[ ! -d "${WORKSPACE}/backup" ]]; then
-    echo -e "$(green_color "INFO: Initializing backup for $vpc_name")"
+    echo -e "$(green_color "INFO: Initializing backup for $(gen3_secrets_folder)")"
     git init --bare "${WORKSPACE}/backup/secrets.git"
-    git -C "${WORKSPACE}/${vpc_name}" remote add secrets_backup "${WORKSPACE}/backup/secrets.git"
+    git -C "$(gen3_secrets_folder)" remote add secrets_backup "${WORKSPACE}/backup/secrets.git"
   fi
 
   # assert there are no unstaged or uncommitted files
-  if [[ ! -z "$(git -C "${WORKSPACE}/${vpc_name}" status --porcelain)" ]]; then
-    echo -e "$(red_color "ERROR: All changes to ${vpc_name} must be committed")"
+  if [[ ! -z "$(git -C "$(gen3_secrets_folder)" status --porcelain)" ]]; then
+    echo -e "$(red_color "ERROR: All changes to $(gen3_secrets_folder) must be committed")"
     exit 1
   fi
 
   echo "INFO: attempting to update secrets backup"
-  git -C "${WORKSPACE}/${vpc_name}" push secrets_backup master || true
+  git -C "$(gen3_secrets_folder)" push secrets_backup master || true
 fi
 
-mkdir -p "${WORKSPACE}/${vpc_name}/apis_configs"
+mkdir -p "$(gen3_secrets_folder)/apis_configs"
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update indexd secrets
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update indexd secrets
   #
-  # Setup the files that will become secrets in "${WORKSPACE}/$vpc_name/apis_configs"
+  # Setup the files that will become secrets in "$(gen3_secrets_folder)/apis_configs"
   #
-  cd "${WORKSPACE}"/${vpc_name}
+  cd "$(gen3_secrets_folder)"
 
   # Check if the `fence` indexd user has been configured
   fenceIndexdPassword="$(jq -r .fence.indexd_password < creds.json)"
@@ -94,7 +94,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update indexd secrets
   fi
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update aws-es-proxy secrets
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update aws-es-proxy secrets
   if ! g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     creds=$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
@@ -112,10 +112,10 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update aws-es-proxy se
 fi
 
 if ! g3kubectl get configmaps global > /dev/null 2>&1; then
-  if [[ -f "${WORKSPACE}/${vpc_name}/00configmap.yaml" ]]; then
-    g3kubectl apply -f "${WORKSPACE}/${vpc_name}/00configmap.yaml"
+  if [[ -f "$(gen3_secrets_folder)/00configmap.yaml" ]]; then
+    g3kubectl apply -f "$(gen3_secrets_folder)/00configmap.yaml"
   else
-    echo "ERROR: unable to configure global configmap - missing ${WORKSPACE}/${vpc_name}/00configmap.yaml"
+    echo "ERROR: unable to configure global configmap - missing $(gen3_secrets_folder)/00configmap.yaml"
     exit 1
   fi
 fi
@@ -131,8 +131,8 @@ if gen3_time_since configmaps_sync is 120; then
 fi
 
 # ssjdispatcher
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update aws-es-proxy secrets
-  cd "${WORKSPACE}/${vpc_name}"
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update aws-es-proxy secrets
+  cd "$(gen3_secrets_folder)"
   if ! g3kubectl get secret ssjdispatcher-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .ssjdispatcher < creds.json > "$credsFile"
@@ -140,13 +140,13 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update aws-es-proxy se
   fi
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
-  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
-    echo "${WORKSPACE}/${vpc_name} does not exist"
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
+  if [ ! -d "$(gen3_secrets_folder)" ]; then
+    echo "$(gen3_secrets_folder) does not exist"
     exit 1
   fi
 
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
 
   if ! g3kubectl get secret fence-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
@@ -154,7 +154,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     g3kubectl create secret generic fence-creds "--from-file=creds.json=${credsFile}"
   fi
 
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
   # Generate RSA private and public keys.
   # TODO: generalize to list of key names?
   mkdir -p jwt-keys
@@ -197,9 +197,9 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     # Only restore local user.yaml if the fence configmap does not exist.
     # Most commons sync the user db from an S3 bucket.
     #
-    if [[ ! -f "${WORKSPACE}"/${vpc_name}/apis_configs/user.yaml ]]; then
+    if [[ ! -f "$(gen3_secrets_folder)/apis_configs/user.yaml" ]]; then
       # user database for accessing the commons ...
-      cp "${GEN3_HOME}/apis_configs/user.yaml" "${WORKSPACE}"/${vpc_name}/apis_configs/
+      cp "${GEN3_HOME}/apis_configs/user.yaml" "$(gen3_secrets_folder)/apis_configs/"
     fi
     g3kubectl create configmap fence --from-file=apis_configs/user.yaml
   fi
@@ -211,7 +211,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
     logoPath="$(dirname $(g3k_manifest_path))/fence/logo.svg"
     if [[ ! -f "${logoPath}" ]]; then
       # fallback to legacy path
-      logoPath="${WORKSPACE}/${vpc_name}/apis_configs/logo.svg"
+      logoPath="$(gen3_secrets_folder)/apis_configs/logo.svg"
     fi
     if [[ ! -f "${logoPath}" ]]; then
       # fallback to default gen3 logo
@@ -236,7 +236,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   # new fence cfg method uses a single fence-config secret
   if ! g3kubectl get secrets/fence-config > /dev/null 2>&1; then
     # load updated fence-config.yaml into secret if it exists
-    fence_config=${WORKSPACE}/${vpc_name}/apis_configs/fence-config.yaml
+    fence_config=$(gen3_secrets_folder)/apis_configs/fence-config.yaml
     if [[ -f ${fence_config} ]]; then
       echo "loading fence config from file..."
       if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
@@ -339,13 +339,13 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update fence secrets
   fi
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secrets
-  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
-    echo "${WORKSPACE}/${vpc_name} does not exist"
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update peregrine secrets
+  if [ ! -d "$(gen3_secrets_folder)" ]; then
+    echo "$(gen3_secrets_folder) does not exist"
     exit 1
   fi
 
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
 
   if ! g3kubectl get secret peregrine-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
@@ -353,7 +353,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update peregrine secre
     g3kubectl create secret generic peregrine-creds "--from-file=creds.json=${credsFile}"
   fi
 
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
 
   if ! g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
     g3kubectl create secret generic peregrine-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/peregrine_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
@@ -367,20 +367,20 @@ if [[ -f "$ETL_MAPPING_PATH" ]]; then
   gen3 update_config etl-mapping "$ETL_MAPPING_PATH"
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
-  if [ ! -d "${WORKSPACE}/${vpc_name}" ]; then
-    echo "${WORKSPACE}/${vpc_name} does not exist"
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
+  if [ ! -d "$(gen3_secrets_folder)" ]; then
+    echo "$(gen3_secrets_folder) does not exist"
     exit 1
   fi
 
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
   if ! g3kubectl get secret sheepdog-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .sheepdog < creds.json > "$credsFile"
     g3kubectl create secret generic sheepdog-creds "--from-file=creds.json=${credsFile}"
   fi
 
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
 
   if ! g3kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
     g3kubectl create secret generic sheepdog-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/sheepdog_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
@@ -389,7 +389,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
   #
   # Create the 'sheepdog' and 'peregrine' postgres user if necessary
   #
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
 
   if ! psql --help > /dev/null; then
     export DEBIAN_FRONTEND=noninteractive
@@ -463,7 +463,7 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
   fi
 
   # setup the database ...
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
   if [[ ! -f .rendered_gdcapi_db ]]; then
     # job runs asynchronously ...
     gen3 job run gdcdb-create
