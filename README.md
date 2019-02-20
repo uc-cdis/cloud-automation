@@ -182,6 +182,14 @@ edit ~/{VPC_NAME}_output/creds.json
 gen3 roll all
 ```
 
+
+### Data Flow Diagram
+
+The following diagram intends to illustrate the data flow for commons.
+
+![dataflow-diag](dataflow-diag.svg)
+
+
 ## Prerequisites for Commons
 
 
