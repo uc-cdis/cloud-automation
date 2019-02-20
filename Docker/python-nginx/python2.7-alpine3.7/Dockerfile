@@ -28,6 +28,7 @@ RUN apk update && apk add --no-cache \
 
 COPY nginx.conf /etc/nginx/
 COPY uwsgi.conf /etc/nginx/sites-available/
+COPY dockerrun.sh /dockerrun.sh
 
 RUN adduser -S www-data -G www-data \ 
     && mkdir -p /var/www/.cache/Python-Eggs/ \
