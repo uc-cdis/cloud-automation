@@ -89,6 +89,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [portal dev mode](https://github.com/uc-cdis/cdis-wiki/blob/master/dev/Local-development-for-Gen3.md#nginx-installation)
 * [reverse proxy configuration](../kube/services/revproxy/README.md)
 * [terraform](../tf_files/README.md)
+* [network diagram](../README.md#network-diagram)
 
 ## Batch Jobs
 
