@@ -71,7 +71,7 @@ sudo cat <<EOT  >> /home/ubuntu/.aws/config
 [default]
 output = json
 region = us-east-1
-role_session_name = gen3-squidnlbvm
+role_session_name = gen3-squidautovm
 role_arn = arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}_role
 credential_source = Ec2InstanceMetadata
 EOT
@@ -84,16 +84,17 @@ sudo chown ubuntu:ubuntu -R /home/ubuntu
 sudo wget -O /tmp/awslogs-agent-setup.py https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
 sudo chmod 775 /tmp/awslogs-agent-setup.py
 sudo mkdir -p /var/awslogs/etc/
-sudo cp ${SUB_FOLDER}/flavors/squid_nlb/awslogs.conf /var/awslogs/etc/awslogs.conf
+sudo cp ${SUB_FOLDER}/flavors/squid_auto/awslogs.conf /var/awslogs/etc/awslogs.conf
 curl -s ${MAGIC_URL}placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/squid_nlb/awslogs.conf
+sudo ${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/squid_auto/awslogs.conf
 sudo systemctl disable awslogs
 sudo chmod 644 /etc/init.d/awslogs
 
 # Configure the AWS logs
 
 HOSTNAME=$(which hostname)
-instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
+server_int=$(route | grep '^default' | grep -o '[^ ]*$')
+instance_ip=$(ip -f inet -o addr show $server_int|cut -d\  -f 7 | cut -d/ -f 1)
 IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
 
 sed -i 's/SERVER/http_proxy-auth-'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
@@ -129,7 +130,7 @@ sudo cp /home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_k
 
 # Copy the updatewhitelist.sh script to the home directory 
 
-sudo cp  ${SUB_FOLDER}flavors/squid_nlb/updatewhitelist.sh /home/ubuntu
+sudo cp  ${SUB_FOLDER}flavors/squid_auto/updatewhitelist.sh /home/ubuntu
 
 
 
