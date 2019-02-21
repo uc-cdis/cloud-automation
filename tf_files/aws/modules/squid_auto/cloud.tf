@@ -53,7 +53,7 @@ data "aws_iam_policy_document" "squid_policy_document" {
   }
   statement {
     actions = [
-      "ec2:*"
+      "ec2:*",
       "route53:*",
     ]
     effect    = "Allow"
