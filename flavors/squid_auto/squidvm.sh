@@ -124,8 +124,9 @@ sudo useradd -m -s /bin/bash sftpuser
 sudo mkdir /home/sftpuser/.ssh
 sudo chmod 700 /home/sftpuser/.ssh
 sudo cp -rp /home/ubuntu/cloud-automation /home/sftpuser
+#sudo chown -R sftpuser. /home/sftpuser
+sudo cp /home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_keys_user /home/sftpuser/.ssh/authorized_keys
 sudo chown -R sftpuser. /home/sftpuser
-sudo cp /home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_keys_admin /home/sftpuser/.ssh/authorized_keys
 
 
 # Copy the updatewhitelist.sh script to the home directory 
@@ -136,6 +137,12 @@ sudo cp  ${SUB_FOLDER}flavors/squid_auto/updatewhitelist.sh /home/ubuntu
 
 
 sudo chmod +x /home/ubuntu/updatewhitelist.sh
+
+##Updating the route table and the cloud-proxy dns entry
+sudo chmod +x /home/ubuntu/proxy_route53_config.sh
+sudo chmod +x /home/ubuntu/default_ip_route_config.sh
+# bash /home/ubuntu/proxy_route53_config.sh
+# bash /home/ubuntu/default_ip_route_config.sh
 
 
 

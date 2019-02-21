@@ -36,6 +36,10 @@ variable "env_public_subnet_routetable_id" {
   default = "rtb-09015401a98b3952c"
 }
 
+variable "env_private_eks_subnet_routetable_id" {
+  default = "rtb-0fc1d4ca429c06d1a"
+}
+
 
 
 # name of aws_key_pair ssh key to attach to VM's
@@ -60,9 +64,9 @@ variable "bootstrap_script" {
   default = "squidvm.sh"
 }
 
-#variable "commons_internal_dns_zone_id"{
-  #default = "ZA1HVV5W0QBG1"
-#}
+variable "commons_internal_dns_zone_id"{
+  default = "ZPUZ5CIHT930N"
+}
 
 
 

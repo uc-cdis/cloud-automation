@@ -192,6 +192,23 @@ sudo apt-get clean
 sudo apt-get autoclean
 
 cd /home/ubuntu
+
+##### ADDING STUFF FIR DNS AND ROUTE TABLE UPDATE 
+#DNSZONEID=${var.commons_internal_dns_zone_id}
+#EKSROUTETABLEID=${var.env_private_eks_subnet_routetable_id}
+
+sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/proxy_route53_config.sh /home/ubuntu/
+sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/default_ip_route_config.sh /home/ubuntu/
+sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/squid_auto_user_variable /home/ubuntu/
+
+
+# Replace the User variable for hostname, VPN subnet and VM subnet 
+sudo sed -i "s/DNSZONEID/${var.commons_internal_dns_zone_id}/" /home/ubuntu/squid_auto_user_variable
+sudo sed -i "s/EKSROUTETABLEID/${var.env_private_eks_subnet_routetable_id}/" /home/ubuntu/squid_auto_user_variable
+
+
+
+#####
 sudo bash "${var.bootstrap_path}${var.bootstrap_script}" 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
 EOF
 
