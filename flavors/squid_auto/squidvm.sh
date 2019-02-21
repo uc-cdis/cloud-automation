@@ -61,7 +61,7 @@ sudo service squid start
 sudo apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev
 sudo pip install --upgrade pip
 ACCOUNT_ID=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn' |sed -e 's/.*:://' -e 's/:.*//')
-ROLE_NAME=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn'|sed -e 's/.*instance-profile\///' -e 's/_squid.*//')
+#ROLE_NAME=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn'|sed -e 's/.*instance-profile\///' -e 's/_squid.*//')
 
 # Let's install awscli and configure it
 # Adding AWS profile to the admin VM
@@ -72,7 +72,7 @@ sudo cat <<EOT  >> /home/ubuntu/.aws/config
 output = json
 region = us-east-1
 role_session_name = gen3-squidautovm
-role_arn = arn:aws:iam::${ACCOUNT_ID}:role/${ROLE_NAME}_role
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/commons_squid_auto_role
 credential_source = Ec2InstanceMetadata
 EOT
 sudo chown ubuntu:ubuntu -R /home/ubuntu

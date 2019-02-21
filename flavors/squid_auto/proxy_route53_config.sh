@@ -39,9 +39,9 @@ EOF
 
 
 
-aws route53 change-resource-record-sets --hosted-zone-id $dns_zone_id  --change-batch file://create_proxy_dns_entry.json  --profile cdistest
+aws route53 change-resource-record-sets --hosted-zone-id $dns_zone_id  --change-batch file://create_proxy_dns_entry.json  
 
-aws route53 change-resource-record-sets --hosted-zone-id $dns_zone_id --change-batch file://update_proxy_dns_entry.json --profile cdistest
+aws route53 change-resource-record-sets --hosted-zone-id $dns_zone_id --change-batch file://update_proxy_dns_entry.json 
 
 echo "Removing the proxy dns entry create file"
 rm create_proxy_dns_entry.json
