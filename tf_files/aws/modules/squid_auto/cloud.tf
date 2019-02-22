@@ -40,14 +40,16 @@ data "aws_iam_policy_document" "squid_policy_document" {
   statement {
     actions = ["ec2:*",
                "route53:*",
+               "sts:AssumeRole",
                "logs:CreateLogGroup",
                "logs:CreateLogStream",
                "logs:GetLogEvents",
                "logs:PutLogEvents",
                "logs:DescribeLogGroups",
                "logs:DescribeLogStreams",
-               "logs:PutRetentionPolicy"],
-    effect    = "Allow"
+               "logs:PutRetentionPolicy",
+               ],
+    effect    = "Allow",
     resources = ["*"]
   }
  }
