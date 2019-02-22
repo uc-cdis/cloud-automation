@@ -12,6 +12,6 @@ echo " The squid auto inteface id is ..."
 echo $squid_auto_interface_id
 
 echo "Creating the default route....."
-aws ec2 create-route  --route-table-id $route_table_id --destination-cidr-block 1.1.1.1/32 --network-interface-id $squid_auto_interface_id
+aws ec2 create-route  --route-table-id $route_table_id --destination-cidr-block 1.1.1.1/32 --network-interface-id $squid_auto_interface_id --region us-east-1
 echo "Updating the default route ...."
-aws ec2 replace-route  --route-table-id $route_table_id --destination-cidr-block 1.1.1.1/32 --network-interface-id $squid_auto_interface_id
+aws ec2 replace-route  --route-table-id $route_table_id --destination-cidr-block 1.1.1.1/32 --network-interface-id $squid_auto_interface_id --region us-east-1
