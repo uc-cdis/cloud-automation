@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /home/ubuntu
+
 
 server_int=$(route | grep '^default' | grep -o '[^ ]*$')
 instance_ip=$(ip -f inet -o addr show $server_int|cut -d\  -f 7 | cut -d/ -f 1)
