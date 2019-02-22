@@ -8,33 +8,35 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 gen3_load "gen3/lib/g3k_manifest"
 
+if [[ -d "${WORKSPACE}/${vpc_name}" && -z "${JENKINS_HOME}" ]]; then
 # make sure <vpc_name> dir is initialized as a git repo
-if [[ ! -d "${WORKSPACE}/${vpc_name}/.git" ]]; then
-  echo -e "$(green_color "INFO: Initializing $vpc_name directory as git repo")"
-  git -C "${WORKSPACE}/${vpc_name}" init
-  git -C "${WORKSPACE}/${vpc_name}" config user.name "gen3"
-  git -C "${WORKSPACE}/${vpc_name}" config user.email admin@gen3.org
-  git -C "${WORKSPACE}/${vpc_name}" add .
-  git -C "${WORKSPACE}/${vpc_name}" commit -m "init(vpc_name): init local repo"
-fi
+  if [[ ! -d "${WORKSPACE}/${vpc_name}/.git" ]]; then
+    echo -e "$(green_color "INFO: Initializing $vpc_name directory as git repo")"
+    git -C "${WORKSPACE}/${vpc_name}" init
+    git -C "${WORKSPACE}/${vpc_name}" config user.name "gen3"
+    git -C "${WORKSPACE}/${vpc_name}" config user.email admin@gen3.org
+    git -C "${WORKSPACE}/${vpc_name}" add .
+    git -C "${WORKSPACE}/${vpc_name}" commit -m "init(vpc_name): init local repo"
+  fi
 
-# ensure a backup exists
-# see here for info about local backup config
-#   https://matthew-brett.github.io/curious-git/curious_remotes.html
-if [[ ! -d "${WORKSPACE}/backup" ]]; then
-  echo -e "$(green_color "INFO: Initializing backup for $vpc_name")"
-  git init --bare "${WORKSPACE}/backup/secrets.git"
-  git -C "${WORKSPACE}/${vpc_name}" remote add secrets_backup "${WORKSPACE}/backup/secrets.git"
-fi
+  # ensure a backup exists
+  # see here for info about local backup config
+  #   https://matthew-brett.github.io/curious-git/curious_remotes.html
+  if [[ ! -d "${WORKSPACE}/backup" ]]; then
+    echo -e "$(green_color "INFO: Initializing backup for $vpc_name")"
+    git init --bare "${WORKSPACE}/backup/secrets.git"
+    git -C "${WORKSPACE}/${vpc_name}" remote add secrets_backup "${WORKSPACE}/backup/secrets.git"
+  fi
 
-# assert there are no unstaged or uncommitted files
-if [[ ! -z "$(git -C "${WORKSPACE}/${vpc_name}" status --porcelain)" ]]; then
-  echo -e "$(red_color "ERROR: All changes to ${vpc_name} must be committed")"
-  exit 1
-fi
+  # assert there are no unstaged or uncommitted files
+  if [[ ! -z "$(git -C "${WORKSPACE}/${vpc_name}" status --porcelain)" ]]; then
+    echo -e "$(red_color "ERROR: All changes to ${vpc_name} must be committed")"
+    exit 1
+  fi
 
-echo "INFO: attempting to update secrets backup"
-git -C "${WORKSPACE}/${vpc_name}" push secrets_backup master || true
+  echo "INFO: attempting to update secrets backup"
+  git -C "${WORKSPACE}/${vpc_name}" push secrets_backup master || true
+fi
 
 mkdir -p "${WORKSPACE}/${vpc_name}/apis_configs"
 
