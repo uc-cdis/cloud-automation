@@ -27,6 +27,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [reset](./reset.md)
 * [roll](./roll.md)
 * [runjob](./job.md) - see [job run](./job.md)
+* [testsuite](./testsuite.md)
 * [update_config](./update_config.md)
 * [watch](./watch.md)
 
@@ -57,10 +58,6 @@ For example - `gen3 help aws` opens `aws.md`
 * [trash](./trash.md)
 * [workon](./terraform/workon.md)
 
-## Test suites
-
-* [g3k_testsuite](./g3k_testsuite.md)
-* [testsuite](./testsuite.md)
 
 ## Overview
 

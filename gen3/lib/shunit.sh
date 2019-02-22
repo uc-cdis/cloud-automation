@@ -12,14 +12,63 @@ XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/tmp}
 # Internal helper to clear variables
 #
 shunit_clear() {
-  let SHUNIT_TEST_COUNT=0
-  let SHUNIT_TEST_FAIL=0
+  SHUNIT_TEST_COUNT=0
+  SHUNIT_TEST_FAIL=0
   SHUNIT_FAILED_TESTS=""
   SHUNIT_CURRENT_TEST=""
 
-  let SHUNIT_ASSERT_COUNT=0
-  let SHUNIT_ASSERT_FAIL=0
+  SHUNIT_ASSERT_COUNT=0
+  SHUNIT_ASSERT_FAIL=0
+  SHUNIT_FILTERS=""
 }
+
+#
+# Set the SHUNIT_FILTERS variable
+#
+shunit_set_filters() {
+  if [[ $# -gt 0 ]]; then
+    SHUNIT_FILTERS="$1"
+  fi
+}
+
+#
+# Test the given tags against the given filters.
+# Passes if any tag matches any filter
+#
+# @param tags a,b,c,d
+# @param filters defaults to SHUNIT_FILTERS
+#
+shunit_test_filters() {
+  local tags
+  local filters
+  local itag
+  local ifilter
+
+  if [[ $# -gt 1 ]]; then
+    filters="$2"
+  else
+    filters="$SHUNIT_FILTERS"
+  fi
+  if [[ -z "$filters" ]]; then
+    # no filters
+    return 0
+  fi
+  if [[ $# -lt 1 || -z "$1" ]]; then
+    return 1
+  fi
+  tags="$1"
+  shift
+  for ifilter in $(echo "$filters" | sed 's/,\{1,\}/ /g'); do
+    for itag in $(echo "$tags" | sed 's/,\{1,\}/ /g'); do
+      #echo "Testing $itag against $ifilter"
+      if [[ "$itag" == "$ifilter" ]]; then
+        return 0
+      fi
+    done
+  done
+  return 1
+}
+
 
 shunit_clear
 
@@ -28,7 +77,7 @@ shunit_clear
 #
 shunit_test_summary() {
   local SHUNIT_ASSERT_SUCCESS
-  let SHUNIT_ASSERT_SUCCESS=$SHUNIT_ASSERT_COUNT-$SHUNIT_ASSERT_FAIL;
+  SHUNIT_ASSERT_SUCCESS=$((SHUNIT_ASSERT_COUNT - SHUNIT_ASSERT_FAIL))
   if [[ $SHUNIT_ASSERT_FAIL -gt 0 ]]; then
     echo -e "\n\n\x1B[31mTest Failed - $SHUNIT_CURRENT_TEST\x1B[39m"
   else
@@ -42,27 +91,44 @@ Total : $SHUNIT_ASSERT_COUNT
 EOM
 
   # clear counters
-  let SHUNIT_ASSERT_COUNT=0
-  let SHUNIT_ASSERT_FAIL=0
+  SHUNIT_ASSERT_COUNT=0
+  SHUNIT_ASSERT_FAIL=0
   return 0
 }
 
 #
-# Run a given test-function in a sub shell
+# Run a given test-function in a sub shell if it passes
+# the testsuite filters (if any)
+#
+# @param testName corresponds to a bash function
+# @param testTags tag1,tag2,tag3,...
 #
 shunit_runtest() {
   local testName
-  let SHUNIT_ASSERT_COUNT=0
-  let SHUNIT_ASSERT_FAIL=0
-  testName=$1
-  if [[ -z $1 ]]; then
+  local testFilters
+  SHUNIT_ASSERT_COUNT=0
+  SHUNIT_ASSERT_FAIL=0
+  if [[ -z "$1" ]]; then
     echo "sh_runtest: ignoring empty test"
     return 1
+  fi
+  testName="$1"
+  shift
+  if [[ -n "$1" ]]; then
+    # add commas to simplify regex
+    testFilters=",${1},"
+  else
+    testFilters=""
+  fi
+  if ! shunit_test_filters "$testFilters,$testName"; then
+    echo -e "... - skipping filtered test $testName"
+    return 0
   fi
   echo -e "\n$SHUNIT_TEST_COUNT - running $testName"
   SHUNIT_CURRENT_TEST="$testName"
   let SHUNIT_TEST_COUNT+=1
-  let result=0 || true
+  local result
+  result=0
   #
   # Note that shunit_because calls shunit_test_summary on failure,
   # but we call it here if all assertions pass
@@ -70,7 +136,7 @@ shunit_runtest() {
   if ! ($testName && shunit_test_summary); then
     let SHUNIT_TEST_FAIL+=1
     SHUNIT_FAILED_TESTS="$SHUNIT_FAILED_TESTS $testName"
-    let result=1
+    result=1
   fi
   SHUNIT_CURRENT_TEST=""
   return $result

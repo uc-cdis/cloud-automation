@@ -41,6 +41,9 @@ get_pod() {
     if [[ -z "$pod" ]]; then # fall back to any pod if no Running pods available
       pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep -m 1 $name)
     fi
+    if [[ -z "$pod" ]]; then
+      return 1
+    fi
     echo $pod
   )
 }
