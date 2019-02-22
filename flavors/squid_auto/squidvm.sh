@@ -151,6 +151,6 @@ crontab file
 
 cd /home/ubuntu
 
-bash default_ip_route_config.sh
-bash proxy_route53_config.sh
+bash /home/ubuntu/default_ip_route_config.sh
+bash /home/ubuntu/proxy_route53_config.sh
 
