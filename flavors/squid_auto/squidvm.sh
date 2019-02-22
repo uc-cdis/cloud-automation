@@ -148,9 +148,9 @@ sudo chmod +x /home/ubuntu/default_ip_route_config.sh
 crontab -l > file; echo '*/15 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file
 sudo chown -R ubuntu. /home/ubuntu/
 crontab file
-
-for i in {1..10}; do bash /home/ubuntu/proxy_route53_config.sh; done
 for i in {1..10}; do bash /home/ubuntu/default_ip_route_config.sh; done
+for i in {1..10}; do bash /home/ubuntu/proxy_route53_config.sh; done
+
  
 
 
