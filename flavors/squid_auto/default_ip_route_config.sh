@@ -1,3 +1,7 @@
+#!/bin/bash
+
+cd /home/ubuntu
+
 server_int=$(route | grep '^default' | grep -o '[^ ]*$')
 instance_ip=$(ip -f inet -o addr show $server_int|cut -d\  -f 7 | cut -d/ -f 1)
 route_table_id=$(sed -n -e '/VAR2/ s/.*\= *//p' /home/ubuntu/squid_auto_user_variable)
