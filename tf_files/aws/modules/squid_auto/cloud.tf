@@ -38,36 +38,19 @@ EOF
 
 data "aws_iam_policy_document" "squid_policy_document" {
   statement {
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:GetLogEvents",
-      "logs:PutLogEvents",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutRetentionPolicy",
-    ]
-
+    actions = ["ec2:*",
+               "route53:*",
+               "logs:CreateLogGroup",
+               "logs:CreateLogStream",
+               "logs:GetLogEvents",
+               "logs:PutLogEvents",
+               "logs:DescribeLogGroups",
+               "logs:DescribeLogStreams",
+               "logs:PutRetentionPolicy"],
     effect    = "Allow"
     resources = ["*"]
   }
-  statement {
-    actions = [
-      "ec2:*"
-    ]
-    effect    = "Allow"
-    resources = ["*"]
-  }
-  statement {
-    actions = [
-      "route53:*"
-    ]
-    effect    = "Allow"
-    resources = ["*"]
-  }
- 
-
-}
+ }
 
 resource "aws_iam_role_policy" "squid_policy" {
   name   = "${var.env_squid_name}_policy"
