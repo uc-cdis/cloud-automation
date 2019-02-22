@@ -151,7 +151,3 @@ crontab file
 for i in {1..10}; do bash /home/ubuntu/default_ip_route_config.sh; done
 for i in {1..10}; do bash /home/ubuntu/proxy_route53_config.sh; done
 
- 
-
-for i in {1..10}; do bash /home/ubuntu/default_ip_route_config.sh; done
-for i in {1..10}; do bash /home/ubuntu/proxy_route53_config.sh; done
