@@ -141,8 +141,8 @@ sudo chmod +x /home/ubuntu/updatewhitelist.sh
 ##Updating the route table and the cloud-proxy dns entry
 sudo chmod +x /home/ubuntu/proxy_route53_config.sh
 sudo chmod +x /home/ubuntu/default_ip_route_config.sh
-bash /home/ubuntu/proxy_route53_config.sh
-bash /home/ubuntu/default_ip_route_config.sh
+for i in {1..5}; do bash /home/ubuntu/proxy_route53_config.sh; done
+for i in {1..5}; do bash /home/ubuntu/default_ip_route_config.sh; done
 
 
 
