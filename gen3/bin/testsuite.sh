@@ -28,6 +28,7 @@ if [[ $# > 0 ]]; then
 fi
 
 gen3_load "gen3/test/apiTest"
+gen3_load "gen3/test/dbTest"
 gen3_load "gen3/test/gitopsTest"
 gen3_load "gen3/test/klockTest"
 gen3_load "gen3/test/shunitTest"
