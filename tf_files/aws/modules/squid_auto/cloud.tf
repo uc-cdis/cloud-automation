@@ -217,6 +217,7 @@ resource "aws_route_table_association" "squid_auto5" {
   route_table_id = "${data.aws_route_table.public_route_table.id}"
 }
 
+
 # Auto scaling group for squid auto
 
 resource "aws_launch_configuration" "squid_auto" {
@@ -261,7 +262,7 @@ cd /home/ubuntu
 
 
 sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/proxy_route53_config.sh /home/ubuntu/
-sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/default_ip_route_config.sh /home/ubuntu/
+sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/default_ip_route_and_instance_check_config.sh /home/ubuntu/
 sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/squid_auto_user_variable /home/ubuntu/
 
 
@@ -354,10 +355,10 @@ resource "aws_security_group" "squidauto_in" {
   }
 
   ingress {
-    from_port   = 3128
+    from_port   = 0
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
   }
 
   tags {

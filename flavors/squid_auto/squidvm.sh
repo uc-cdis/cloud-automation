@@ -38,6 +38,9 @@ sudo mv /tmp/iptables-rules /etc/network/if-up.d/iptables-rules
 sudo chown root: /etc/network/if-up.d/iptables-rules
 sudo chmod 0755 /etc/network/if-up.d/iptables-rules
 
+## Enable iptables for NAT. We need this so that the proxy can be used transparently
+sudo iptables-restore < /etc/iptables.conf
+
 sudo mkdir /etc/squid/ssl
 sudo openssl genrsa -out /etc/squid/ssl/squid.key 2048
 sudo openssl req -new -key /etc/squid/ssl/squid.key -out /etc/squid/ssl/squid.csr -subj '/C=XX/ST=XX/L=squid/O=squid/CN=squid'
@@ -140,7 +143,7 @@ sudo chmod +x /home/ubuntu/updatewhitelist.sh
 
 ##Updating the route table and the cloud-proxy dns entry
 sudo chmod +x /home/ubuntu/proxy_route53_config.sh
-sudo chmod +x /home/ubuntu/default_ip_route_config.sh
+sudo chmod +x /home/ubuntu/default_ip_route_and_instance_check_config.sh
 
 
 
@@ -151,6 +154,6 @@ crontab file
 
 cd /home/ubuntu
 
-bash /home/ubuntu/default_ip_route_config.sh
+bash /home/ubuntu/default_ip_route_and_instance_check_config.sh
 bash /home/ubuntu/proxy_route53_config.sh
 
