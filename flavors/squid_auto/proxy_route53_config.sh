@@ -13,7 +13,7 @@ cat > create_proxy_dns_entry.json << EOF
             "Changes": [{
             "Action": "CREATE",
                         "ResourceRecordSet": {
-                                    "Name": "rarya_squid_auto_cloud-proxy.internal.io",
+                                    "Name": "cloud-proxy.internal.io",
                                     "Type": "A",
                                     "TTL": 300,
                                  "ResourceRecords": [{ "Value": "$proxy_ip"}]
@@ -28,7 +28,7 @@ cat > update_proxy_dns_entry.json << EOF
             "Changes": [{
             "Action": "UPSERT",
                         "ResourceRecordSet": {
-                                    "Name": "rarya_squid_auto_cloud-proxy.internal.io",
+                                    "Name": "cloud-proxy.internal.io",
                                     "Type": "A",
                                     "TTL": 300,
                                  "ResourceRecords": [{ "Value": "$proxy_ip"}]

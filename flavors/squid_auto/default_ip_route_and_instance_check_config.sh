@@ -20,16 +20,16 @@ aws ec2 replace-route  --route-table-id $route_table_id1 --destination-cidr-bloc
 
 
 echo "Creating the default route for private kube route table....."
-aws ec2 create-route  --route-table-id $route_table_id2 --destination-cidr-block 1.1.1.1/32 --network-interface-id $squid_auto_interface_id --region us-east-1
+aws ec2 create-route  --route-table-id $route_table_id2 --destination-cidr-block 0.0.0.0/0 --network-interface-id $squid_auto_interface_id --region us-east-1
 echo "Updating the default route for private kube route table ...."
-aws ec2 replace-route  --route-table-id $route_table_id2 --destination-cidr-block 1.1.1.1/32 --network-interface-id $squid_auto_interface_id --region us-east-1
+aws ec2 replace-route  --route-table-id $route_table_id2 --destination-cidr-block 0.0.0.0/0 --network-interface-id $squid_auto_interface_id --region us-east-1
 
 
 
 echo "Creating the default route for private user route table ....."
-aws ec2 create-route  --route-table-id $route_table_id3 --destination-cidr-block 1.1.1.1/32 --network-interface-id $squid_auto_interface_id --region us-east-1
+aws ec2 create-route  --route-table-id $route_table_id3 --destination-cidr-block 0.0.0.0/0 --network-interface-id $squid_auto_interface_id --region us-east-1
 echo "Updating the default route for private user route table ...."
-aws ec2 replace-route  --route-table-id $route_table_id3 --destination-cidr-block 1.1.1.1/32 --network-interface-id $squid_auto_interface_id --region us-east-1
+aws ec2 replace-route  --route-table-id $route_table_id3 --destination-cidr-block 0.0.0.0/0 --network-interface-id $squid_auto_interface_id --region us-east-1
 
 
 ## disable the source destination check on the instance
