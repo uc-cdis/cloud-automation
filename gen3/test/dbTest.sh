@@ -11,6 +11,7 @@ test_db_init() {
   gen3_db_init; because $? "gen3 db_init should be ok"
   [[ "$(gen3 psql server1 -c 'SELECT 1;' | awk '{ if(NR==3){ print $1; } }')" == "1" ]]; because $? "gen3 psql server1 works"
   gen3_db_validate_server "server1"; because $? "server1 should be in the db farm"
+  gen3_db_validate_server "server2"; because $? "server2 should be in the db farm"
   ! gen3_db_validate_server "server1000"; because $? "server1000 should not be in the db farm"
 }
 

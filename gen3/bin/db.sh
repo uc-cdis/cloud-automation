@@ -142,7 +142,7 @@ gen3_db_list() {
     gen3_log_err "gen3_db_list requires server name"
     return 1
   fi
-  gen3_db_psql "$server" --list | grep '|' | grep fence_user | awk -F '|' '{ gsub(/ /, "", $1); if($1 != ""){ print $1 } }'
+  gen3_db_psql "$server" --list | awk -F '|' '{ gsub(/ /, "", $1); if($1 != ""){ print $1 } }' | tail -n +3 | head -n -1
 }
 
 #
@@ -157,7 +157,7 @@ gen3_db_user_list() {
     gen3_log_err "gen3_db_list requires server name"
     return 1
   fi
-  gen3_db_psql "$server" -c 'SELECT u.usename FROM pg_catalog.pg_user u';
+  gen3_db_psql "$server" -c 'SELECT u.usename FROM pg_catalog.pg_user u' | awk -F '|' '{ gsub(/ /, "", $1); if($1 != ""){ print $1 } }' | tail -n +3 | head -n -1
 }
 
 #
@@ -284,7 +284,7 @@ gen3_db_service_setup() {
       return 1
     fi
   done
-  for it in $(gen3_user_list "$server"); do
+  for it in $(gen3_db_user_list "$server"); do
     echo "-" 
   done
 }
