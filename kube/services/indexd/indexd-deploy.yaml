@@ -56,6 +56,12 @@ spec:
         env:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: DIST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-indexd
+                key: dist
+                optional: true
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
