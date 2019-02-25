@@ -68,49 +68,114 @@ resource "aws_iam_instance_profile" "squid-auto_role_profile" {
 
 
 
+### DATA RESOURCES:
+
+#Basics
+
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
+# Assuming that there is only one VPC with the vpc_name
+#data "aws_vpc" "the_vpc" {
+#  id = "${var.env_vpc_id}"
+#}
+
+data "aws_vpc" "the_vpc" {
+tags {
+    Name = "${var.env_vpc_name}"
+  }
+}
+
+# Let's get the availability zones for the region we are working on
+#data "aws_availability_zones" "available" {
+#  state = "available"
+#}
+
+# get public route table 
+data "aws_route_table" "public_route_table" {
+  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+  tags {
+    Name = "main"
+  }
+}
+
+# get the eks private route table id 
+data "aws_route_table" "eks_private_route_table" {
+  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+  tags {
+    Name = "eks_private"
+  }
+}
+
+# get the private kube table id 
+data "aws_route_table" "private_kube_route_table" {
+  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+  tags {
+    Name = "private_kube"
+  }
+}
+
+# get the private user table id 
+data "aws_route_table" "private_user_route_table" {
+  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+  tags {
+    Name = "private_user"
+  }
+}
+
+
+#get the internal zone id
+data "aws_route53_zone" "vpczone" {
+  name = "internal.io."
+  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+}
+
+########
+
+
 #Launching the public subnets for the squid VMs
 
 data "aws_availability_zones" "available" {}
 
 resource "aws_subnet" "squid_pub0" {
-  vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              = "${cidrsubnet("${var.squid_server_subnet}",3,0)}"
+  vpc_id                  = "${data.aws_vpc.the_vpc.id}"
+  cidr_block              = "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,0)}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub0", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub1" {
-  vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              =  "${cidrsubnet("${var.squid_server_subnet}",3,1)}"
+  vpc_id                  = "${data.aws_vpc.the_vpc.id}"
+  cidr_block              =   "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,1)}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub1", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub2" {
-  vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              =  "${cidrsubnet("${var.squid_server_subnet}",3,2)}"
+  vpc_id                  = "${data.aws_vpc.the_vpc.id}"
+  cidr_block              =   "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,2)}"
   availability_zone = "${data.aws_availability_zones.available.names[2]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub2", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 
 resource "aws_subnet" "squid_pub3" {
-  vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              = "${cidrsubnet("${var.squid_server_subnet}",3,3)}"
+  vpc_id                  = "${data.aws_vpc.the_vpc.id}"
+  cidr_block              =  "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,3)}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub0", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub4" {
-  vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              =  "${cidrsubnet("${var.squid_server_subnet}",3,4)}"
+  vpc_id                  = "${data.aws_vpc.the_vpc.id}"
+  cidr_block              =   "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,4)}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub1", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub5" {
-  vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              =  "${cidrsubnet("${var.squid_server_subnet}",3,5)}"
+  vpc_id                  = "${data.aws_vpc.the_vpc.id}"
+  cidr_block              =   "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,5)}"
   availability_zone = "${data.aws_availability_zones.available.names[2]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub2", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
@@ -118,32 +183,38 @@ resource "aws_subnet" "squid_pub5" {
 
 resource "aws_route_table_association" "squid_auto0" {
   subnet_id      = "${aws_subnet.squid_pub0.id}"
-  route_table_id = "${var.env_public_subnet_routetable_id}"
+  #route_table_id = "${var.env_public_subnet_routetable_id}"
+  route_table_id = "${data.aws_route_table.public_route_table.id}"
 }
 
 resource "aws_route_table_association" "squid_auto1" {
   subnet_id      = "${aws_subnet.squid_pub1.id}"
-  route_table_id = "${var.env_public_subnet_routetable_id}"
+  #route_table_id = "${var.env_public_subnet_routetable_id}"
+  route_table_id = "${data.aws_route_table.public_route_table.id}"
 }
 
 resource "aws_route_table_association" "squid_auto2" {
   subnet_id      = "${aws_subnet.squid_pub2.id}"
-  route_table_id = "${var.env_public_subnet_routetable_id}"
+  #route_table_id = "${var.env_public_subnet_routetable_id}"
+  route_table_id = "${data.aws_route_table.public_route_table.id}"
 }
 
 resource "aws_route_table_association" "squid_auto3" {
   subnet_id      = "${aws_subnet.squid_pub3.id}"
-  route_table_id = "${var.env_public_subnet_routetable_id}"
+  #route_table_id = "${var.env_public_subnet_routetable_id}"
+  route_table_id = "${data.aws_route_table.public_route_table.id}"
 }
 
 resource "aws_route_table_association" "squid_auto4" {
   subnet_id      = "${aws_subnet.squid_pub4.id}"
-  route_table_id = "${var.env_public_subnet_routetable_id}"
+  #route_table_id = "${var.env_public_subnet_routetable_id}"
+  route_table_id = "${data.aws_route_table.public_route_table.id}"
 }
 
 resource "aws_route_table_association" "squid_auto5" {
   subnet_id      = "${aws_subnet.squid_pub5.id}"
-  route_table_id = "${var.env_public_subnet_routetable_id}"
+  #route_table_id = "${var.env_public_subnet_routetable_id}"
+  route_table_id = "${data.aws_route_table.public_route_table.id}"
 }
 
 # Auto scaling group for squid auto
@@ -154,6 +225,7 @@ resource "aws_launch_configuration" "squid_auto" {
   instance_type = "t3.xlarge"
   security_groups = ["${aws_security_group.squidauto_in.id}", "${aws_security_group.squidauto_out.id}"]
   key_name = "${var.env_vpc_name}_automation_dev"
+  #key_name = "${data.aws_vpc.the_vpc.filter.name}_automation_dev"
   iam_instance_profile   = "${aws_iam_instance_profile.squid-auto_role_profile.id}"
   associate_public_ip_address = true
 
@@ -186,9 +258,7 @@ sudo apt-get autoclean
 
 cd /home/ubuntu
 
-##### ADDING STUFF FIR DNS AND ROUTE TABLE UPDATE 
-#DNSZONEID=${var.commons_internal_dns_zone_id}
-#EKSROUTETABLEID=${var.env_private_eks_subnet_routetable_id}
+
 
 sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/proxy_route53_config.sh /home/ubuntu/
 sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/default_ip_route_config.sh /home/ubuntu/
@@ -196,8 +266,11 @@ sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/squid_auto_user_variabl
 
 
 # Replace the User variable for hostname, VPN subnet and VM subnet 
-sudo sed -i "s/DNSZONEID/${var.commons_internal_dns_zone_id}/" /home/ubuntu/squid_auto_user_variable
-sudo sed -i "s/EKSROUTETABLEID/${var.env_private_eks_subnet_routetable_id}/" /home/ubuntu/squid_auto_user_variable
+
+sudo sed -i "s/DNS_ZONE_ID/${data.aws_route53_zone.vpczone.zone_id}/" /home/ubuntu/squid_auto_user_variable
+sudo sed -i "s/EKS_ROUTETABLE_ID/${data.aws_route_table.eks_private_route_table.id}/" /home/ubuntu/squid_auto_user_variable
+sudo sed -i "s/PRIVATE_KUBE_ROUTETABLE_ID/${data.aws_route_table.private_kube_route_table.id}/" /home/ubuntu/squid_auto_user_variable
+sudo sed -i "s/PRIVATE_USER_ROUTETABLE_ID/${data.aws_route_table.private_user_route_table.id}/" /home/ubuntu/squid_auto_user_variable
 
 
 
@@ -266,7 +339,7 @@ data "aws_ami" "public_squid_ami" {
 resource "aws_security_group" "squidauto_in" {
   name        = "${var.env_squid_name}-squidauto_in"
   description = "security group that only enables ssh from VPC nodes and CSOC"
-  vpc_id      = "${var.env_vpc_id}"
+  vpc_id      = "${data.aws_vpc.the_vpc.id}"
 
   ingress {
     from_port   = 22
@@ -284,7 +357,7 @@ resource "aws_security_group" "squidauto_in" {
     from_port   = 3128
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["${var.squid_server_subnet}"]
+    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24"]
   }
 
   tags {
@@ -301,7 +374,7 @@ resource "aws_security_group" "squidauto_in" {
 resource "aws_security_group" "squidauto_out" {
   name        = "${var.env_squid_name}-squidauto_out"
   description = "security group that allow outbound traffics"
-  vpc_id      = "${var.env_vpc_id}"
+  vpc_id      = "${data.aws_vpc.the_vpc.id}"
 
   egress {
     from_port   = 0
