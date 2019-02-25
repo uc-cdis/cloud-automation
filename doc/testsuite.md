@@ -1,7 +1,14 @@
 # TL;DR
 
 Run through the complete testsuite include [g3k_testuite](./g3k_testsuite.md) and a terraform test suite that requires a properly configured `cdistest` environment.
-Jenkins runs this test suite, but [g3k_testsuite](./g3k_testsuite.md) is more appropriate for local testing.
+
+## Local testing
+
+```
+export GEN3_HOME=path/to/cloud-automation
+source "$GEN3_HOME/gen3/gen3setup.sh"
+gen3 testsuite --filter local
+```
 
 ## Examples
 

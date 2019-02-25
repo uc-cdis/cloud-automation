@@ -15,5 +15,15 @@ test_db_init() {
   ! gen3_db_validate_server "server1000"; because $? "server1000 should not be in the db farm"
 }
 
+test_db_list() {
+  unset JENKINS_HOME  # these functions normally don't work in Jenkins
+  export GEN3_SOURCE_ONLY=true
+  gen3_load "gen3/bin/db"
+  unset GEN3_SOURCE_ONLY
+  [[ $(gen3_db_list server1 | wc -l) -gt 0 ]]; because $? "gen3_db_list has non-zero result"
+  [[ $(gen3_db_user_list server1 | wc -l) -gt 0 ]]; because $? "gen3_db_user_list has non-zero result"
+}
+
 shunit_runtest "test_db_psql" "db"
 shunit_runtest "test_db_init" "db"
+shunit_runtest "test_db_list" "db"

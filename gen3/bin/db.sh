@@ -142,7 +142,7 @@ gen3_db_list() {
     gen3_log_err "gen3_db_list requires server name"
     return 1
   fi
-  gen3_db_psql "$server" --list | awk -F '|' '{ gsub(/ /, "", $1); if($1 != ""){ print $1 } }' | tail -n +3 | head -n -1
+  gen3_db_psql "$server" --list | awk -F '|' '{ gsub(/ /, "", $1); if($1 != ""){ print $1 } }' | tail -n +4 | head -n -1
 }
 
 #
