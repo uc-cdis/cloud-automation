@@ -230,10 +230,9 @@ function gen3_time_since() {
 }
 
 gen3_log_err() {
-  echo -e "$(red_color "ERROR: $*")" 1>&2
+  echo -e "$(red_color "ERROR: $(date +%T) - $*")" 1>&2
 }
 
 gen3_log_info() {
-  echo -e "$(green_color "INFO:") $*" 1>&2
+  echo -e "$(green_color "INFO: $(date +%T) -") $*" 1>&2
 }
-
