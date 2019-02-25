@@ -33,4 +33,9 @@ aws ec2 replace-route  --route-table-id $route_table_id3 --destination-cidr-bloc
 
 
 ## disable the source destination check on the instance
+echo "Disabling the source destination check on the instance....."
 aws ec2 modify-network-interface-attribute --network-interface-id $squid_auto_interface_id  --no-source-dest-check --region us-east-1
+
+
+
+echo "And we are done here....."
