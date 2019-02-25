@@ -68,6 +68,15 @@ spec:
           value: /var/www/fence
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
+        # check the last modified time is within 30min
+        livenessProbe:
+          exec:
+            command:
+            - test
+            - $(($(date +%s) - $(date -r /google_job/status.json +%s))) -lt 1800
+          initialDelaySeconds: 300
+          periodSeconds: 5
+          failureThreshold: 1
         imagePullPolicy: Always
         ports:
         - containerPort: 80
