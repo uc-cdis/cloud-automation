@@ -75,11 +75,6 @@ resource "aws_iam_instance_profile" "squid-auto_role_profile" {
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-# Assuming that there is only one VPC with the vpc_name
-#data "aws_vpc" "the_vpc" {
-#  id = "${var.env_vpc_id}"
-#}
-
 data "aws_vpc" "the_vpc" {
 tags {
     Name = "${var.env_vpc_name}"
@@ -87,9 +82,7 @@ tags {
 }
 
 # Let's get the availability zones for the region we are working on
-#data "aws_availability_zones" "available" {
-#  state = "available"
-#}
+data "aws_availability_zones" "available" {}
 
 # get public route table 
 data "aws_route_table" "public_route_table" {
@@ -135,7 +128,7 @@ data "aws_route53_zone" "vpczone" {
 
 #Launching the public subnets for the squid VMs
 
-data "aws_availability_zones" "available" {}
+
 
 resource "aws_subnet" "squid_pub0" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
