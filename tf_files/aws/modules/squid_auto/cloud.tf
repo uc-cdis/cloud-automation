@@ -34,7 +34,7 @@ resource "aws_iam_role" "squid-auto_role" {
 EOF
 }
 
-# These squid VMs should only have access to Cloudwatch and nothing more
+# The squid VM should have access to Cloudwatch, route53 and ec2
 
 data "aws_iam_policy_document" "squid_policy_document" {
   statement {
