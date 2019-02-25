@@ -139,21 +139,21 @@ data "aws_availability_zones" "available" {}
 
 resource "aws_subnet" "squid_pub0" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              = "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,0)}"
+  cidr_block              = "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,0)}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub0", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub1" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              =   "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,1)}"
+  cidr_block              =   "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,1)}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub1", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub2" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              =   "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,2)}"
+  cidr_block              =   "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,2)}"
   availability_zone = "${data.aws_availability_zones.available.names[2]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub2", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
@@ -161,21 +161,21 @@ resource "aws_subnet" "squid_pub2" {
 
 resource "aws_subnet" "squid_pub3" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              =  "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,3)}"
+  cidr_block              =  "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,3)}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub0", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub4" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              =   "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,4)}"
+  cidr_block              =   "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,4)}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub1", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub5" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              =   "${cidrsubnet("172.${var.vpc_octet2}.${var.vpc_octet3+5}.0/24",3,5)}"
+  cidr_block              =   "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,5)}"
   availability_zone = "${data.aws_availability_zones.available.names[2]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub2", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
@@ -358,7 +358,7 @@ resource "aws_security_group" "squidauto_in" {
     from_port   = 0
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
+    cidr_blocks = ["172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3}.0/20"]
   }
 
   tags {

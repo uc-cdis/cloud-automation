@@ -2,7 +2,7 @@ variable "env_vpc_cidr_octet2"{
   default = "24"
 }
 
-variable "env_vpc_cidr_octet2"{
+variable "env_vpc_cidr_octet3"{
   default = "192"
 }
 
