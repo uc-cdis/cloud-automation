@@ -41,8 +41,8 @@ lock() {
 
   # create locks ConfigMap if it does not already exist, and set the lock we are 
   # currently trying to lock to unlocked with no owner
-  if ! g3kubectl get configmaps locks; then
-    echo "locks configmap not detected, creating one"
+  if ! g3kubectl get configmaps locks > /dev/null 2>&1; then
+    echo "locks configmap not detected, creating one" 1>&2
     g3kubectl create configmap locks
     g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0
   else 

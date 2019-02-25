@@ -167,7 +167,7 @@ test_tfoutput() {
 
 test_kube_lock() {
   # Setup - acquire test runner lock - running concurrent tests in the same env won't work
-  if ! gen3 klock lock testrunner testuser 240 -w 240; then
+  if ! gen3 klock lock testrunner testuser 360 -w 360; then
     because $? "Failed to acquire testrunner lock"
     return 1
   fi
@@ -177,7 +177,7 @@ test_kube_lock() {
   gen3 klock lock testlock testuser 60 -w not-a-number | grep -e "ERROR: wait-time is not-a-number, must be an integer"; because $? "calling klock lock without a number for wait-time should show this error message"
   # Do not do this - it break any klock's active in the test environment! :-(
   #g3kubectl delete configmap locks
-  gen3 klock lock testlock testuser 60; because $? "calling klock lock for the first time for a lock should successfully lock it, and it should create the configmap locks if it does not exist already"
+  gen3 klock lock testlock testuser 300; because $? "calling klock lock for the first time for a lock should successfully lock it, and it should create the configmap locks if it does not exist already"
   ! gen3 klock lock testlock testuser 60; because $? "calling klock lock for the second time in a row for a lock should fail to lock it"
   gen3 klock lock testlock2 testuser 60; because $? "klock lock should be able to handle multiple locks"
   gen3 klock lock testlock3 testuser2 60; because $? "klock lock should be able to handle multiple users"
@@ -205,7 +205,7 @@ test_kube_lock() {
 
 test_kube_unlock() {
   # Setup - acquire test runner lock - running concurrent tests in the same env won't work
-  if ! gen3 klock lock testrunner testuser 240 -w 240; then
+  if ! gen3 klock lock testrunner testuser 360 -w 360; then
     because $? "Failed to acquire testrunner lock"
     return 1
   fi
@@ -213,8 +213,8 @@ test_kube_unlock() {
   #g3kubectl delete configmap locks
 
   gen3 klock unlock | grep -e "gen3 klock unlock lock-name owner"; because $? "calling klock unlock without arguments should show the help documentation"
-  gen3 klock lock testlock testuser 60
-  ! gen3 klock unlock testlock2 testuser; because $? "calling klock unlock for the first time on a lock that does not exist should fail"
+  gen3 klock lock testlock testuser 300
+  ! gen3 klock unlock unlockfail testuser; because $? "calling klock unlock for the first time on a lock that does not exist should fail"
   ! gen3 klock unlock testlock testuser2; because $? "calling klock unlock for the first time on a lock the user does not own should fail"
   gen3 klock unlock testlock testuser; because $? "calling klock unlock for the first time on a lock the user owns should succeed"
   ! gen3 klock unlock testlock testuser; because $? "calling klock unlock for the second time on a lock the user owns should fail because the lock is already unlocked"
