@@ -38,4 +38,3 @@ aws ec2 modify-network-interface-attribute --network-interface-id $squid_auto_in
 
 
 
-echo "And we are done here....."

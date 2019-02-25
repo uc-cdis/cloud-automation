@@ -37,6 +37,8 @@ cat > update_proxy_dns_entry.json << EOF
 EOF
 
 
+echo "And we are done here....."
+
 
 
 
