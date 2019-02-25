@@ -283,13 +283,10 @@ resource "aws_autoscaling_group" "squid_auto" {
 #If you define a list of subnet IDs split across the desired availability zones set them using vpc_zone_identifier 
 # and there is no need to set availability_zones.
 # (https://www.terraform.io/docs/providers/aws/r/autoscaling_group.html#availability_zones).
-
- #availability_zones = ["us-east-1a","us-east-1b","us-east-1c","us-east-1d","us-east-1e","us-east-1f"]
   desired_capacity = 1
   max_size = 1
   min_size = 1
-  #target_group_arns = ["${aws_lb_target_group.squid_nlb-http.arn}", "${aws_lb_target_group.squid_nlb-sftp.arn}"]
-  vpc_zone_identifier = ["${aws_subnet.squid_pub0.id}", "${aws_subnet.squid_pub1.id}", "${aws_subnet.squid_pub2.id}"]
+  vpc_zone_identifier = ["${aws_subnet.squid_pub0.id}", "${aws_subnet.squid_pub1.id}", "${aws_subnet.squid_pub2.id}","${aws_subnet.squid_pub3.id}","${aws_subnet.squid_pub4.id}","${aws_subnet.squid_pub5.id}"]
   launch_configuration = "${aws_launch_configuration.squid_auto.name}"
 
    tag {
