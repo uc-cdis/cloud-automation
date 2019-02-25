@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: shiny-nb2-service
+spec:
+  selector:
+    app: shiny-nb2
+  ports:
+    - protocol: TCP
+      port: 3838
+      targetPort: 3838 
+  type: ClusterIP
+
