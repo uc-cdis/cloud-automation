@@ -355,8 +355,32 @@ resource "aws_security_group" "squidauto_in" {
   }
 
   ingress {
-    from_port   = 0
+    from_port   = 3128
     to_port     = 3128
+    protocol    = "TCP"
+    cidr_blocks = ["172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3}.0/20"]
+  }
+
+  tags {
+    Environment  = "${var.env_squid_name}"
+    Organization = "Basic Service"
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "TCP"
+    cidr_blocks = ["172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3}.0/20"]
+  }
+
+  tags {
+    Environment  = "${var.env_squid_name}"
+    Organization = "Basic Service"
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
     protocol    = "TCP"
     cidr_blocks = ["172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3}.0/20"]
   }
