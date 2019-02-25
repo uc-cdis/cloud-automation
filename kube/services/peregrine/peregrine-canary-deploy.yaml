@@ -94,15 +94,15 @@ spec:
               memory: 2048Mi
           livenessProbe:
             httpGet:
-              path: /_status
+              path: /_status?timeout=20
               port: 80
             # peregrine can take forever to initialize
-            initialDelaySeconds: 300
+            initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
-              path: /_status
+              path: /_status?timeout=2
               port: 80
         #
         # Containers interact via /var/run/gen3/uwsgi.sock ...

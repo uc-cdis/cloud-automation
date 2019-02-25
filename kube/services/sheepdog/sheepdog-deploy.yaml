@@ -58,14 +58,14 @@ spec:
           GEN3_SHEEPDOG_IMAGE
           livenessProbe:
             httpGet:
-              path: /_status
+              path: /_status?timeout=20
               port: 80
             initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
-              path: /_status
+              path: /_status?timeout=2
               port: 80
           ports:
           - containerPort: 80
