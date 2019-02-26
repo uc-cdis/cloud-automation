@@ -117,7 +117,7 @@ server {
         server_name _;
         location / {
                 proxy_http_version      1.1;
-                proxy_set_header        Host https://${ES_ENDPONT}/;
+                proxy_set_header        Host https://${ES_ENDPOINT}/;
                 proxy_set_header        Connection "Keep-Alive";
                 proxy_set_header        Proxy-Connection "Keep-Alive";
                 auth_basic "Restricted Content";
