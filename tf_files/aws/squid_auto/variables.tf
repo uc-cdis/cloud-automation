@@ -1,9 +1,19 @@
-variable "env_vpc_cidr_octet2"{
-  #default = "24"
+#variable "env_vpc_cidr_octet2"{
+#  default = "24"
+#}
+
+#variable "env_vpc_cidr_octet3"{
+#  default = "192"
+#}
+
+variable "vpc_cidr"{
+  #default = 172.24.192.0/20
 }
 
-variable "env_vpc_cidr_octet3"{
- # default = "192"
+
+
+variable "squid_proxy_subnet"{
+  #default = 172.24.197.0/24
 }
 
 variable "env_vpc_name" {

@@ -260,8 +260,8 @@ EOM
     commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
     cat - <<EOM
   env_vpc_name         = "VPC-NAME"
-  env_vpc_cidr_octet2        = "VPC-CIDR-OCTET2"
-  env_vpc_cidr_octet3         = "VPC-CIDR-OCTET3"
+  vpc_cidr             = "VPC_CIDR"
+  squid_proxy_subnet = "ASSIGNED SUBNET FOR SQUID SET-UP a /24"
 EOM
     return 0
   fi

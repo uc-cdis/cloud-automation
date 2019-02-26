@@ -127,26 +127,28 @@ data "aws_route53_zone" "vpczone" {
 
 
 #Launching the public subnets for the squid VMs
+# If squid is launched in PROD 172.X.Y+5.0/24 subnet is used; For QA/DEV 172.X.Y+1.0/24 subnet is used
+# The value of var.environment is supplied as a user variable - 1 for PROD and 0 for QA/DEV
 
-
+# FOR PROD ENVIRONMENT:
 
 resource "aws_subnet" "squid_pub0" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              = "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,0)}"
+  cidr_block              = "${cidrsubnet("${var.squid_proxy_subnet}",3,0)}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub0", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub1" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              =   "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,1)}"
+  cidr_block              =   "${cidrsubnet("${var.squid_proxy_subnet}",3,1)}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub1", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub2" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              =   "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,2)}"
+  cidr_block              =   "${cidrsubnet("${var.squid_proxy_subnet}",3,2)}"
   availability_zone = "${data.aws_availability_zones.available.names[2]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub2", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
@@ -154,24 +156,30 @@ resource "aws_subnet" "squid_pub2" {
 
 resource "aws_subnet" "squid_pub3" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              =  "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,3)}"
+  cidr_block              =  "${cidrsubnet("${var.squid_proxy_subnet}",3,3)}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub0", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub4" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              =   "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,4)}"
+  cidr_block              =   "${cidrsubnet("${var.squid_proxy_subnet}",3,4)}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub1", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub5" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              =   "${cidrsubnet("172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3+5}.0/24",3,5)}"
+  cidr_block              =   "${cidrsubnet("${var.squid_proxy_subnet}",3,5)}"
   availability_zone = "${data.aws_availability_zones.available.names[2]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub2", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
+
+
+
+
+
+
 
 
 resource "aws_route_table_association" "squid_auto0" {
@@ -348,7 +356,7 @@ resource "aws_security_group" "squidauto_in" {
     from_port   = 3128
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3}.0/20"]
+    cidr_blocks = ["${var.vpc_cidr}"]
   }
 
   tags {
@@ -360,7 +368,7 @@ resource "aws_security_group" "squidauto_in" {
     from_port   = 80
     to_port     = 80
     protocol    = "TCP"
-    cidr_blocks = ["172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3}.0/20"]
+    cidr_blocks = ["${var.vpc_cidr}"]
   }
 
   tags {
@@ -372,7 +380,7 @@ resource "aws_security_group" "squidauto_in" {
     from_port   = 443
     to_port     = 443
     protocol    = "TCP"
-    cidr_blocks = ["172.${var.env_vpc_cidr_octet2}.${var.env_vpc_cidr_octet3}.0/20"]
+    cidr_blocks = ["${var.vpc_cidr}"]
   }
 
   tags {

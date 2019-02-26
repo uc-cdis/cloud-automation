@@ -12,8 +12,8 @@ provider "aws" {
 
 module "squid_auto" {
   source           = "../modules/squid_auto"
-  env_vpc_cidr_octet2 = "${var.env_vpc_cidr_octet2}"
-  env_vpc_cidr_octet3 = "${var.env_vpc_cidr_octet3}"
+  vpc_cidr = "${var.vpc_cidr}"
+  squid_proxy_subnet = "${var.squid_proxy_subnet}"
   env_vpc_name     = "${var.env_vpc_name}"
   env_squid_name     = "${var.env_squid_name}"
   ami_account_id   = "${var.ami_account_id}"
