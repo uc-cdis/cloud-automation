@@ -8,36 +8,6 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 gen3_load "gen3/lib/g3k_manifest"
 
-if [[ -d "$(gen3_secrets_folder)" && -z "${JENKINS_HOME}" ]]; then
-  # make sure <vpc_name> dir is initialized as a git repo
-  if [[ ! -d "$(gen3_secrets_folder)/.git" ]]; then
-    echo -e "$(green_color "INFO: Initializing $(gen3_secrets_folder) directory as git repo")"
-    git -C "$(gen3_secrets_folder)" init
-    git -C "$(gen3_secrets_folder)" config user.name "gen3"
-    git -C "$(gen3_secrets_folder)" config user.email admin@gen3.org
-    git -C "$(gen3_secrets_folder)" add .
-    git -C "$(gen3_secrets_folder)" commit -m "init(vpc_name): init local repo"
-  fi
-
-  # ensure a backup exists
-  # see here for info about local backup config
-  #   https://matthew-brett.github.io/curious-git/curious_remotes.html
-  if [[ ! -d "${WORKSPACE}/backup" ]]; then
-    echo -e "$(green_color "INFO: Initializing backup for $(gen3_secrets_folder)")"
-    git init --bare "${WORKSPACE}/backup/secrets.git"
-    git -C "$(gen3_secrets_folder)" remote add secrets_backup "${WORKSPACE}/backup/secrets.git"
-  fi
-
-  # assert there are no unstaged or uncommitted files
-  if [[ ! -z "$(git -C "$(gen3_secrets_folder)" status --porcelain)" ]]; then
-    echo -e "$(red_color "ERROR: All changes to $(gen3_secrets_folder) must be committed")"
-    exit 1
-  fi
-
-  echo "INFO: attempting to update secrets backup"
-  git -C "$(gen3_secrets_folder)" push secrets_backup master || true
-fi
-
 mkdir -p "$(gen3_secrets_folder)/apis_configs"
 
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update indexd secrets
@@ -74,7 +44,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update indexd secrets
     fi
 
     # Delete out of date secrets
-    for name in indexd-creds fence-creds fence-config; do
+    for name in fence-config; do
       if g3kubectl get secret "$name" > /dev/null 2>&1; then
         g3kubectl delete secret "$name" || true
       fi
@@ -86,11 +56,6 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update indexd secrets
 
   if ! g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
     g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
-  fi
-  if ! g3kubectl get secret indexd-creds > /dev/null 2>&1; then
-    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    jq -r .indexd < creds.json > "$credsFile"
-    g3kubectl create secret generic indexd-creds "--from-file=creds.json=${credsFile}"
   fi
 fi
 
@@ -130,6 +95,10 @@ if gen3_time_since configmaps_sync is 120; then
   gen3 gitops configmaps
 fi
 
+if gen3_time_since secrets_sync is 120; then
+  gen3 secrets sync || true
+fi
+
 # ssjdispatcher
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update aws-es-proxy secrets
   cd "$(gen3_secrets_folder)"
@@ -141,19 +110,6 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update aws-es-proxy secr
 fi
 
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
-  if [ ! -d "$(gen3_secrets_folder)" ]; then
-    echo "$(gen3_secrets_folder) does not exist"
-    exit 1
-  fi
-
-  cd "$(gen3_secrets_folder)"
-
-  if ! g3kubectl get secret fence-creds > /dev/null 2>&1; then
-    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    jq -r .fence < creds.json > "$credsFile"
-    g3kubectl create secret generic fence-creds "--from-file=creds.json=${credsFile}"
-  fi
-
   cd "$(gen3_secrets_folder)"
   # Generate RSA private and public keys.
   # TODO: generalize to list of key names?
@@ -346,15 +302,6 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update peregrine secrets
   fi
 
   cd "$(gen3_secrets_folder)"
-
-  if ! g3kubectl get secret peregrine-creds > /dev/null 2>&1; then
-    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    jq -r .peregrine < creds.json > "$credsFile"
-    g3kubectl create secret generic peregrine-creds "--from-file=creds.json=${credsFile}"
-  fi
-
-  cd "$(gen3_secrets_folder)"
-
   if ! g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
     g3kubectl create secret generic peregrine-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/peregrine_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
@@ -368,20 +315,8 @@ if [[ -f "$ETL_MAPPING_PATH" ]]; then
 fi
 
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
-  if [ ! -d "$(gen3_secrets_folder)" ]; then
-    echo "$(gen3_secrets_folder) does not exist"
-    exit 1
-  fi
-
+  
   cd "$(gen3_secrets_folder)"
-  if ! g3kubectl get secret sheepdog-creds > /dev/null 2>&1; then
-    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    jq -r .sheepdog < creds.json > "$credsFile"
-    g3kubectl create secret generic sheepdog-creds "--from-file=creds.json=${credsFile}"
-  fi
-
-  cd "$(gen3_secrets_folder)"
-
   if ! g3kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
     g3kubectl create secret generic sheepdog-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/sheepdog_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
@@ -389,8 +324,6 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
   #
   # Create the 'sheepdog' and 'peregrine' postgres user if necessary
   #
-  cd "$(gen3_secrets_folder)"
-
   if ! psql --help > /dev/null; then
     export DEBIAN_FRONTEND=noninteractive
     sudo -E apt install -y postgresql-client

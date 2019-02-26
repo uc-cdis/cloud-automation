@@ -31,6 +31,7 @@ gen3_load "gen3/test/apiTest"
 gen3_load "gen3/test/dbTest"
 gen3_load "gen3/test/gitopsTest"
 gen3_load "gen3/test/klockTest"
+gen3_load "gen3/test/secretsTest"
 gen3_load "gen3/test/shunitTest"
 gen3_load "gen3/test/terraformTest"
 shunit_summary
