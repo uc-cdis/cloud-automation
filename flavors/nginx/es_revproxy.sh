@@ -14,6 +14,9 @@ else
       if [[ $i = *"public_ip"* ]];
       then
         PUBLIC_IP="$(echo ${i} | cut -d= -f2)"
+      elif [[ $i = *"es_endpoint"* ]];
+      then
+        ES_ENDPOINT="$(echo ${i} | cut -d= -f2)"
       fi
     done
     echo $1
@@ -99,24 +102,26 @@ sudo apt -y install nginx
 
 
 # I would like to avoid harconding urls and IPs in this script so let's try awscli for a few stuff
-ES_ENDPOINT=$(sudo -H -u ubuntu bash -c "aws es describe-elasticsearch-domain --domain-name commons-logs --query 'DomainStatus.Endpoint' --output text")
+#ES_ENDPOINT=$(sudo -H -u ubuntu bash -c "aws es describe-elasticsearch-domain --domain-name commons-logs --query 'DomainStatus.Endpoint' --output text")
 # let's change the proxy for this guy properly
 sed -i.bck "/no_proxy.*$/ s/$/,${ES_ENDPOINT}/" /etc/environment
 
 
+mkdir /usr/share/nginx/html/status
+echo Healthy > /usr/share/nginx/html/status/index.html
 
 cat > /etc/nginx/sites-enabled/default  <<EOF
 server {
         listen 80;
         listen [::]:80;
         server_name _;
-        auth_basic "Restricted Content";
-        auth_basic_user_file /etc/nginx/.htpasswd;
         location / {
                 proxy_http_version      1.1;
-                proxy_set_header        Host https://${ES_ENDPOINT}/;
+                proxy_set_header        Host https://${ES_ENDPONT}/;
                 proxy_set_header        Connection "Keep-Alive";
                 proxy_set_header        Proxy-Connection "Keep-Alive";
+                auth_basic "Restricted Content";
+                auth_basic_user_file /etc/nginx/.htpasswd;
                 proxy_set_header        Authorization "";
                 proxy_set_header        X-Real-IP ${PUBLIC_IP};
                 proxy_pass              https://${ES_ENDPOINT}/;
@@ -129,8 +134,13 @@ server {
                 proxy_set_header        X-Forwarded-For \$proxy_add_x_forwarded_for;
                 proxy_set_header        X-Forwarded-Proto \$scheme;
                 proxy_set_header        X-Forwarded-Host \$http_host;
+                auth_basic "Restricted Content";
+                auth_basic_user_file /etc/nginx/.htpasswd;
                 proxy_set_header        Authorization  "";
+        }
+        # ELB Health Checks
+        location /status {
+                root /usr/share/nginx/html/;
         }
 }
 EOF
-
