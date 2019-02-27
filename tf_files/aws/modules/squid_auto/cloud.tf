@@ -242,7 +242,7 @@ cd /home/ubuntu/cloud-automation
 git pull
 
 # This is needed temporarily for testing purposes ; before merging the code to master
-git checkout feat/autosquidVM
+#git checkout feat/autosquidVM
 git pull
 
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
