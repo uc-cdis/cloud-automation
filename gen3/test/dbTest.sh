@@ -26,6 +26,12 @@ test_db_list() {
   gen3 db server list | grep server1; because $? "server1 is in the server list"
 }
 
+test_db_namespace() {
+  local ns
+  ns="$(gen3 db namespace)"
+  [[ -n "$ns" && "$ns" != "null" ]]; because $? "gen3 db namespace looks valid: $ns"
+}
+
 test_db_create() {
   unset JENKINS_HOME  # these functions normally don't work in Jenkins
   local serviceName
@@ -57,4 +63,5 @@ test_db_create() {
 shunit_runtest "test_db_psql" "db"
 shunit_runtest "test_db_init" "db"
 shunit_runtest "test_db_list" "db"
+shunit_runtest "test_db_namespace" "db"
 shunit_runtest "test_db_create" "db"

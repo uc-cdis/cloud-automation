@@ -233,10 +233,20 @@ gen3_db_psql() {
 gen3_db_namespace() {
   local ctx
   local ctxNamespace
-  
-  ctx="$(g3kubectl config current-context)"
-  ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
-  echo "${KUBECTL_NAMESPACE:-${ctxNamespace:-default}}"
+  local result
+
+  if [[ -n "${KUBECTL_NAMESPACE}" ]]; then
+    result="$KUBECTL_NAMESPACE"
+  else
+    ctx="$(g3kubectl config current-context)"
+    ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
+    if [[ -n "${ctxNamespace}" && "${ctxNamespace}" != null ]]; then
+      result="$ctxNamespace"
+    else
+      result="default"
+    fi
+  fi
+  echo "$result"
 }
 
 gen3_db_service_setup() {

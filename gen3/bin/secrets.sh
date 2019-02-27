@@ -12,7 +12,7 @@ gen3_load "gen3/gen3setup"
 #
 # @return 0 if the secrets folder is configured for git commits
 gen3_secrets_init_git() {
-  if [[ -d "$(gen3_secrets_folder)" && -z "${JENKINS_HOME}" && -n "${vpc_name}" ]]; then
+  if [[ -d "$(gen3_secrets_folder)" && -z "${JENKINS_HOME}" ]]; then
     (
       # issue git commands in the secrets folder
       cd "$(gen3_secrets_folder)"
