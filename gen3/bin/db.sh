@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
@@ -77,7 +76,9 @@ gen3_db_service_creds() {
   local key=$1
   shift
   local credsPath
+  local dbcredsPath
   credsPath="$(gen3_secrets_folder)/creds.json"
+  dbcredsPath="$(gen3_secrets_folder)/g3auto/${key}/dbcreds.json"
   
   if [[ -z "$key" ]]; then
     gen3_log_err "gen3_db_service_creds: No serviceName specified"
@@ -87,8 +88,13 @@ gen3_db_service_creds() {
   if g3kubectl get secret "${key}-creds" > /dev/null 2>&1; then
     # prefer to pull creds from secret
     g3kubectl get secret "${key}-creds" -o json | jq -r '.data["creds.json"]' | base64 --decode
+  elif g3kubectl get secret "${key}-g3auto" > /dev/null 2>&1 && g3kubectl get secret "${key}-g3auto" -ojson | jq -e -r '.data["dbcreds.json"]' > /dev/null 2>&1; then
+    # prefer to pull creds from secret
+    g3kubectl get secret "${key}-g3auto" -o json | jq -r '.data["dbcreds.json"]' | base64 --decode
   elif [[ -z "$JENKINS_HOME" && -f "$credsPath" ]]; then
     jq -e -r ".[\"$key\"]" < "$credsPath"
+  elif [[ -z "$JENKINS_HOME" && -f "$dbcredsPath" ]]; then
+    cat "$dbcredsPath"
   else
     gen3_log_err "gen3_db_service_creds - unable to find ${key}-creds k8s secret or creds.json"
     return 1
@@ -221,6 +227,17 @@ gen3_db_psql() {
   fi
 }
 
+#
+# Scope user and db names to namespace
+#
+gen3_db_namespace() {
+  local ctx
+  local ctxNamespace
+  
+  ctx="$(g3kubectl config current-context)"
+  ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
+  echo "${KUBECTL_NAMESPACE:-${ctxNamespace:-default}}"
+}
 
 gen3_db_service_setup() {
   local service
@@ -266,27 +283,50 @@ gen3_db_service_setup() {
   local dbname
   local username
   local namespace
-  local ctx
-  local ctxNamespace
   local password
   local it
-
-  ctx="$(g3kubectl config current-context)"
-  ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
-  namespace="${KUBECTL_NAMESPACE:-$ctxNamespace}"
+  
+  namespace="$(gen3_db_namespace)"
   dbname="${service}_${namespace}"
   username="${service}_${namespace}"
   password="$(random_alphanumeric)"
 
   for it in $(gen3_db_list "$server"); do
     if [[ "$it" == "$dbname" ]]; then
-      gen3_log_err "$dbname database already exists"
+      gen3_log_err "gen3_db_service_setup" "$dbname database already exists on server $it"
       return 1
     fi
   done
   for it in $(gen3_db_user_list "$server"); do
-    echo "-" 
+    if [[ "$it" == "$username" ]]; then
+      gen3_log_err "gen3_db_service_setup" "$username user already exists on server $it"
+      return 1
+    fi
   done
+  if ! gen3_db_psql "$server" -c "CREATE DATABASE \"${dbname}\";"; then
+    gen3_log_err "gen3_db_service_setup" "CREATE DATABASE $dbname failed"
+    return 1
+  fi
+  if ! gen3_db_psql "$server" -c "CREATE USER $username WITH PASSWORD '$password'; GRANT ALL ON DATABASE $dbname TO $username WITH GRANT OPTION;"; then
+    gen3_log_err "gen3_db_service_setup" "CREATE USER $username failed"
+    # try to clean up
+    gen3_db_psql "$server" -c "DROP DATABASE \"${dbname}\";"
+    return 1
+  fi
+  # Update creds.json, and generate secrets
+  local dbhost
+  dbhost="$(gen3_db_server_info "$server" | jq -r .db_host)"
+  mkdir -m 0700 -p "$(gen3_secrets_folder)/g3auto/$service"
+  cat - > "$(gen3_secrets_folder)/g3auto/$service/dbcreds.json" <<EOM
+{ 
+  "db_host": "$dbhost", 
+  "db_username": "$username", 
+  "db_password": "$password", 
+  "db_database": "$dbname"
+}
+EOM
+  gen3 secrets sync "setup new g3auto database - $dbname"
+  return $?
 }
 
 # main -----------------------------
@@ -300,11 +340,30 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   command="$1"
   shift
   case "$command" in
+    "list")
+      gen3_db_list "$@"
+      ;;
+    "namespace") #simplify testing
+      gen3_db_namespace
+      ;;
     "psql")
       gen3_db_psql "$@"
+      ;;
+    "server")
+      if [[ "$1" == "list" ]]; then
+        shift
+        gen3_db_server_list "$@"
+      else
+        gen3_db_help
+        exit 1
+      fi
+      ;;
+    "setup")
+      gen3_db_service_setup "$@"
       ;;
     *)
       gen3_db_help
       ;;
   esac
+  exit $?
 fi
