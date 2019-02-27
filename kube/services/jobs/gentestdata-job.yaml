@@ -17,7 +17,7 @@
 #   Number of maximum examples for each node. Default 100
 #
 # Example
-# gen3 runjob gentestdata TEST_PROGRAM jnkns TEST_PROJECT jenkins MAX_EXAMPLES 100 SUBMISSION_USER cdis.autotest@gmail.com
+# gen3 job run gentestdata TEST_PROGRAM jnkns TEST_PROJECT jenkins MAX_EXAMPLES 10 SUBMISSION_USER cdis.autotest@gmail.com
 #
 apiVersion: batch/v1
 kind: Job
@@ -154,6 +154,30 @@ spec:
               fi
               echo "generate access token"
               echo "fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600"
-              fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600 > /mnt/shared/access_token.txt
+              tempFile="$(mktemp -p /tmp token.txt_XXXXXX)"
+              success=false
+              count=0
+              sleepTime=10
+              # retry loop
+              while [[ $count -lt 3 && $success == false ]]; do
+                if fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600 > "$tempFile"; then
+                  echo "fence-create success!"
+                  tail -1 "$tempFile" > /mnt/shared/access_token.txt
+                  # base64 --decode complains about invalid characters - don't know why
+                  awk -F . '{ print $2 }' /mnt/shared/access_token.txt | base64 --decode 2> /dev/null
+                  success=true
+                else
+                  echo "fence-create failed!"
+                  cat "$tempFile"
+                  echo "sleep for $sleepTime, then retry"
+                  sleep "$sleepTime"
+                  let sleepTime=$sleepTime+$sleepTime
+                fi
+                let count=$count+1
+              done
+              if [[ $success != true ]]; then
+                echo "Giving up on fence-create after $count retries - failed to create valid access token"
+              fi
+              echo ""
               echo "All Done - always succeed to avoid k8s retries"
       restartPolicy: Never

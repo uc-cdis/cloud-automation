@@ -8,6 +8,8 @@ spec:
       app: tube
   egress:
     - {}
+  ingress:
+    - {}
   policyTypes:
    - Ingress
    - Egress

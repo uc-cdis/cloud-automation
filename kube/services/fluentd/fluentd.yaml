@@ -19,6 +19,10 @@ spec:
       tolerations:
       - key: node-role.kubernetes.io/master
         effect: NoSchedule
+      - key: "role"
+        operator: "Equal"
+        value: "jupyter"
+        effect: "NoSchedule"
       containers:
       - name: fluentd
         GEN3_FLUENTD_IMAGE

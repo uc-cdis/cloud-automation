@@ -86,7 +86,7 @@ test_workspace() {
     else
       [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/commons" ]]; because $? "a generic workspace should use the ./aws/commons resources: $GEN3_TFSCRIPT_FOLDER"
     fi
-  fi  
+  fi
 }
 
 test_user_workspace() {
@@ -152,6 +152,7 @@ test_tfplan() {
   sed -i.bak 's/YOUR.CERT.NAME/*.planx-pla.net/g' config.tfvars
   sed -i.bak 's/GET_A_UNIQUE_VPC_172_OCTET[23]/64/g' config.tfvars
   sed -i.bak 's/#config_folder=/config_folder=/g' config.tfvars
+  sed -i.bak 's/indexd_prefix/#indexd_prefix/g' config.tfvars
   gen3 tfplan; because $? "tfplan should run even with some invalid config variables"
   [[ -f "$GEN3_WORKDIR/plan.terraform" ]]; because $? "'gen3 tfplan' generates a plan.terraform file used by 'gen3 tfapply'"
 }
@@ -166,7 +167,7 @@ test_tfoutput() {
 
 test_kube_lock() {
   # Setup - acquire test runner lock - running concurrent tests in the same env won't work
-  if ! gen3 klock lock testrunner testuser 240 -w 240; then
+  if ! gen3 klock lock testrunner testuser 360 -w 360; then
     because $? "Failed to acquire testrunner lock"
     return 1
   fi
@@ -176,19 +177,19 @@ test_kube_lock() {
   gen3 klock lock testlock testuser 60 -w not-a-number | grep -e "ERROR: wait-time is not-a-number, must be an integer"; because $? "calling klock lock without a number for wait-time should show this error message"
   # Do not do this - it break any klock's active in the test environment! :-(
   #g3kubectl delete configmap locks
-  gen3 klock lock testlock testuser 60; because $? "calling klock lock for the first time for a lock should successfully lock it, and it should create the configmap locks if it does not exist already"
-  gen3 klock lock testlock testuser 60; because !$? "calling klock lock for the second time in a row for a lock should fail to lock it"
+  gen3 klock lock testlock testuser 300; because $? "calling klock lock for the first time for a lock should successfully lock it, and it should create the configmap locks if it does not exist already"
+  ! gen3 klock lock testlock testuser 60; because $? "calling klock lock for the second time in a row for a lock should fail to lock it"
   gen3 klock lock testlock2 testuser 60; because $? "klock lock should be able to handle multiple locks"
   gen3 klock lock testlock3 testuser2 60; because $? "klock lock should be able to handle multiple users"
-  gen3 klock lock testlock testuser2 60; because !$? "attempting to lock an already locked lock with a different user should fail"
+  ! gen3 klock lock testlock testuser2 60; because $? "attempting to lock an already locked lock with a different user should fail"
   gen3 klock lock testlock4 testuser 10
   sleep 11
   gen3 klock lock testlock4 testuser 15; because $? "attempting to lock an expired lock should succeed"
   gen3 klock lock testlock5 testuser 10
-  gen3 klock lock testlock5 testuser2 10 -w 2; because !$? "wait is too short, so klock lock should fail to acquire lock"
+  ! gen3 klock lock testlock5 testuser2 10 -w 2; because $? "wait is too short, so klock lock should fail to acquire lock"
   gen3 klock lock testlock6 testuser 10
   gen3 klock lock testlock6 testuser2 10 -w 20; because $? "wait is longer than expiry time on the first user, so klock lock should succeed to acquire lock"
-  
+
   # cleanup
   for lock in testlock testlock2 testlock3 testlock4 testlock5 testlock6; do
     for user in testuser testuser2; do
@@ -204,26 +205,35 @@ test_kube_lock() {
 
 test_kube_unlock() {
   # Setup - acquire test runner lock - running concurrent tests in the same env won't work
-  if ! gen3 klock lock testrunner testuser 240 -w 240; then
+  if ! gen3 klock lock testrunner testuser 360 -w 360; then
     because $? "Failed to acquire testrunner lock"
     return 1
   fi
   # Do not do this - it break any klock's active in the test environment! :-(
   #g3kubectl delete configmap locks
-  
+
   gen3 klock unlock | grep -e "gen3 klock unlock lock-name owner"; because $? "calling klock unlock without arguments should show the help documentation"
-  gen3 klock lock testlock testuser 60
-  gen3 klock unlock testlock2 testuser; because !$? "calling klock unlock for the first time on a lock that does not exist should fail"
-  gen3 klock unlock testlock testuser2; because !$? "calling klock unlock for the first time on a lock the user does not own should fail"
+  gen3 klock lock testlock testuser 300
+  ! gen3 klock unlock unlockfail testuser; because $? "calling klock unlock for the first time on a lock that does not exist should fail"
+  ! gen3 klock unlock testlock testuser2; because $? "calling klock unlock for the first time on a lock the user does not own should fail"
   gen3 klock unlock testlock testuser; because $? "calling klock unlock for the first time on a lock the user owns should succeed"
-  gen3 klock unlock testlock testuser; because !$? "calling klock unlock for the second time on a lock the user owns should fail because the lock is already unlocked"
-  
+  ! gen3 klock unlock testlock testuser; because $? "calling klock unlock for the second time on a lock the user owns should fail because the lock is already unlocked"
+
   # teardown
   # Do not do this - it break any klock's active in the test environment! :-(
   #g3kubectl delete configmap locks
   gen3 klock unlock testrunner testuser
 }
 
+test_api() {
+  user="cdis.autotest@gmail.com"
+  token=$(gen3 api access-token "$user"); because $? "able to acquire access token for $user"
+  token2=$(gen3 api access-token "$user"); because $? "able to acquire second access token for $user"
+  [[ "$token" == "$token2" ]]; because $? "token1=token2 because of token cache"
+  (gen3 api curl /user/user/ "$user"); because $? "/user/user should get user-info for api token"
+}
+
+# terraform tests
 shunit_runtest "test_workspace"
 shunit_runtest "test_user_workspace"
 shunit_runtest "test_snapshot_workspace"
@@ -235,8 +245,16 @@ shunit_runtest "test_refresh"
 shunit_runtest "test_tfplan"
 shunit_runtest "test_tfoutput"
 shunit_runtest "test_ls"
+
+# klock tests
 shunit_runtest "test_kube_lock"
 shunit_runtest "test_kube_unlock"
+
+if [[ -n "$(gen3 pod fence)" ]]; then
+  # test needs to interact with fence
+  shunit_runtest "test_api"
+fi
+
 G3K_TESTSUITE_SUMMARY="no"
 gen3_load "gen3/bin/g3k_testsuite"
 shunit_summary

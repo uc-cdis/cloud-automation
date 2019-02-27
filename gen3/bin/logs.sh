@@ -27,6 +27,7 @@ gen3LogsVpcList=(
     "dcfprod nci-crdc.datacommons.io"
     "dcf-staging nci-crdc-staging.datacommons.io"
     "genomelprod genomel.bionimbus.org"
+    "stageprod gen3.datastage.io"
     "vadcprod va.datacommons.io"
     "ibdgc-prod ibdgc.datacommons.io"
 )
@@ -87,7 +88,7 @@ gen3_logs_fix_date() {
 #
 # Process arguments of form 'key=value' to an Elastic Search query
 # Supported keys:
-#   vpc, start, end, user, visitor, session, service, page
+#   vpc, start, end, user, visitor, session, service, aggs (yes, no), fields (log, all, none), page
 #
 gen3_logs_rawlog_query() {
   local vpcName
@@ -102,6 +103,8 @@ gen3_logs_rawlog_query() {
   local visitorId
   local statusMin
   local statusMax
+  local aggs   # aggregations
+  local fields 
 
   vpcName="$(gen3_logs_get_arg vpc "${vpc_name:-"all"}" "$@")"
   userId="$(gen3_logs_get_arg user "" "$@")"
@@ -113,14 +116,40 @@ gen3_logs_rawlog_query() {
   serviceName="$(gen3_logs_get_arg service revproxy "$@")"
   statusMin="$(gen3_logs_get_arg statusmin 0 "$@")"
   statusMax="$(gen3_logs_get_arg statusmax 1000 "$@")"
-  
+  aggs="$(gen3_logs_get_arg aggs no "$@")"
+  fields="log"
+  if [[ "$aggs" == "yes" ]]; then # no search fields by default when aggregations on
+    fields="none"
+  fi
+  fields="$(gen3_logs_get_arg fields "$fields" "$@")"
+
   queryFile=$(mktemp -p "$XDG_RUNTIME_DIR" "esLogsQuery.json_XXXXXX")
   fromNum=$(($pageNum * 1000))
+  
   cat - > "$queryFile" <<EOM
 {
   "from": ${fromNum},
+  
+  $(
+    if [[ "$fields" != "none" ]]; then
+      cat - <<ENESTED
   "size": 1000,
+  "sort": [
+    {"timestamp": "asc"}
+    ],
+ENESTED
+      if [[ "$fields" != "all" ]]; then   
+        cat - <<ENESTED
   "_source": [ "message.log" ],
+ENESTED
+      fi
+    else
+      cat - <<ENESTED
+  "_source": [],
+  "size": 0,
+ENESTED
+    fi
+  )
   "sort": [
     {"timestamp": "asc"}
   ],
@@ -182,6 +211,25 @@ ENESTED
       ]
     }
   }
+$(
+  if [[ "$aggs" == "yes" ]]; then
+    cat - <<ENESTED
+  , "aggregations": {
+    "vpc": {
+      "terms" : { "field": "_type"},
+      "aggregations": {
+        "unique_user_count" : {
+            "cardinality" : {
+                "field" : "message.user_id.keyword",
+                "precision_threshold": 1000
+            }
+        }
+      }
+    }
+  }
+ENESTED
+  fi
+)
 }
 EOM
   cat "$queryFile"  # show the user the query, so can tweak by hand
@@ -211,9 +259,22 @@ gen3_logs_rawlog_search() {
   local pageSize
   local totalRecs
   local errStr
+  local aggs
+  local fields
+
   pageSize=1000
   pageNum="$(gen3_logs_get_arg page 0 "$@")"
-  format="$(gen3_logs_get_arg format raw "$@")"
+  aggs="$(gen3_logs_get_arg aggs no "$@")"
+  fields="log"
+  if [[ "$aggs" == "yes" ]]; then # no search fields by default when aggregations on
+    fields="none"
+  fi
+  fields="$(gen3_logs_get_arg fields "$fields" "$@")"
+  format="raw"
+  if [[ "$aggs" == "yes" || "$fields" == "all" ]]; then
+    format="json"
+  fi
+  format="$(gen3_logs_get_arg format "$format" "$@")"
   
   if [[ -z "$LOGPASSWORD" ]]; then
     echo -e "$(red_color "ERROR: LOGPASSWORD environment not set")" 1>&2
@@ -293,6 +354,7 @@ EOM
     echo -e "$(red_color "Only retrieved $pageIt of $pageMax pages - 10000 record max result size")"
   fi
 }
+
 
 gen3_logs_user_list() {
   echo "SELECT 'uid:'||id,email FROM \"User\" WHERE email IS NOT NULL;" | gen3 psql fence --no-align --tuples-only --pset=fieldsep=,

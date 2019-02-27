@@ -37,7 +37,7 @@ get_pod() {
   (
     set +e
     # prefer Running pods
-    pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.status.phase}{"   "}{.metadata.name}{"\n"}{end}' | grep Running | awk '{ print $2 }' | grep -m 1 $name)
+    pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.status.phase}{"   "}{.metadata.name}{"\n"}{end}' | grep Running | awk '{ print $2 }' | grep -m 1 -E "$name-[^\(canary\)]")
     if [[ -z "$pod" ]]; then # fall back to any pod if no Running pods available
       pod=$(g3kubectl get pods --output=jsonpath='{range .items[*]}{.metadata.name}  {"\n"}{end}' | grep -m 1 $name)
     fi

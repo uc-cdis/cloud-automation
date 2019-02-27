@@ -52,20 +52,20 @@ spec:
             secretName: "service-ca"
       # sheepdog transactions take forever -
       # try to let the complete before termination
-      terminationGracePeriodSeconds: 300
+      terminationGracePeriodSeconds: 50
       containers:
         - name: sheepdog
           GEN3_SHEEPDOG_IMAGE
           livenessProbe:
             httpGet:
-              path: /_status
+              path: /_status?timeout=20
               port: 80
             initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
-              path: /_status
+              path: /_status?timeout=2
               port: 80
           ports:
           - containerPort: 80
@@ -110,9 +110,11 @@ spec:
               # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
               readOnly: true
               mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
-              subPath: "ca.pem"  
+              subPath: "ca.pem"
           imagePullPolicy: Always
           resources:
+            requests:
+              cpu: 1
             limits:
-              cpu: 1.0
+              cpu: 2
               memory: 1024Mi

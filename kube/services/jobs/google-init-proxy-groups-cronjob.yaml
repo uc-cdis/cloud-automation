@@ -38,9 +38,6 @@ spec:
             - name: config-volume
               secret:
                 secretName: "fence-config"
-            - name: json-secret-volume
-              secret:
-                secretName: "fence-json-secret"
             - name: fence-google-app-creds-secret-volume
               secret:
                 secretName: "fence-google-app-creds-secret"

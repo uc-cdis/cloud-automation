@@ -12,7 +12,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [arun](./arun.md)
 * [devterm](./devterm.md)
 * [es](./es.md) - elastic search
-* [gitops](./gitops.md) - manifest filter, configmaps, sync, tagging releases, etc
+* [gitops](./gitops.md) - manifest filter, configmaps, history, sync, tagging releases, etc
 * [ec2](./ec2.md) - describe, reboot
 * [job logs|pods|run](./job.md)
 * [joblogs](./job.md) - see [job logs](./job.md)
@@ -89,6 +89,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [portal dev mode](https://github.com/uc-cdis/cdis-wiki/blob/master/dev/Local-development-for-Gen3.md#nginx-installation)
 * [reverse proxy configuration](../kube/services/revproxy/README.md)
 * [terraform](../tf_files/README.md)
+* [network diagram](../README.md#network-diagram)
 
 ## Batch Jobs
 
@@ -99,7 +100,7 @@ For example - `gen3 help aws` opens `aws.md`
 ## More
 
 * [approve_vpcpeering_request](./approve_vpcpeering_request.md)
-* [indexd-post-folder](./indexd-post-folder.md)
+* [api](./api.md) - indexd-post-folder, access-token, new-program, new-project
 * [kube-backup](./kube-backup.md)
 * [kube-dev-namespace](./kube-dev-namespace.md)
 * [kube-extract-config](./kube-extract-config.md)

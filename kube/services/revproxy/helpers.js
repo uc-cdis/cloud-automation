@@ -50,7 +50,7 @@ function userid(req, res) {
   var user = "uid:null,unknown@unknown";
 
   if (token) {
-    user = token;
+    // note - raw token is secret, so do not expose in userid
     var raw = atob((token.split('.')[1] || "").replace('-', '+').replace('_', '/'));
     if (raw) {
       try {
@@ -124,19 +124,25 @@ function releasesObjToString(releases) {
 }
 
 /**
- * Checks cookie for service release versions and assigns
- *   release versions for services not in the cookie based
- *   on hash value and the percent weight of the canary.
- *   If the weight for a service is 0, it ignores the cookie
- *   and sets the release to production.
- * Returns a string of service assignments. E.g:
- *   "fence.canary&sheepdog.production&"
- *
+ * Checks cookie (dev_canaries or service_releases) 
+ * for service release versions and assigns
+ * release versions for services not in the cookie based
+ * on hash value and the percent weight of the canary.
+ * If the weight for a service is 0, it ignores the cookie
+ * and sets the release to production.
+ * 
  * @param req - nginx request object
+ * @return a string of service assignments. E.g:
+ *   "fence.canary&sheepdog.production&"
  */
 function getServiceReleases(req) {
+  //
   // client cookie containing releases
-  var release_cookie = req.variables['cookie_service_releases'] || '';
+  // developer override can force canary even when canary has
+  // been deployed for general users by setting the canary weights to zero
+  //
+  var devOverride= !!req.variables['cookie_dev_canaries'];
+  var release_cookie = req.variables['cookie_dev_canaries'] || req.variables['cookie_service_releases'] || '';
   // services to assign to a service (edit this if adding a new canary service)
   var services = ['fence', 'sheepdog', 'indexd', 'peregrine'];
   // weights for services - if given a default weight, use it; else use the default weight from this file
@@ -158,7 +164,7 @@ function getServiceReleases(req) {
   for (var i=0; i < services.length; i++) {
     var service = services[i];
     var parsed_release = release_cookie.match(service+'\.(production|canary)');
-    if (getWeight(service, canary_weights) === 0) {
+    if ((!devOverride) && getWeight(service, canary_weights) === 0) {
       updated_releases[service] = 'production';
     } else if (!parsed_release) {
       // if we haven't yet generated a hash value, do that now

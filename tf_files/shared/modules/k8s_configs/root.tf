@@ -30,6 +30,7 @@ data "template_file" "creds" {
     gdcapi_oauth2_client_secret = "${var.gdcapi_oauth2_client_secret}"
     aws_user_key                = "${var.aws_user_key}"
     aws_user_key_id             = "${var.aws_user_key_id}"
+    indexd_prefix               = "${var.indexd_prefix}"
   }
 }
 

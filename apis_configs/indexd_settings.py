@@ -2,6 +2,8 @@ from indexd.index.drivers.alchemy import SQLAlchemyIndexDriver
 from indexd.alias.drivers.alchemy import SQLAlchemyAliasDriver
 from indexd.auth.drivers.alchemy import SQLAlchemyAuthDriver
 import config_helper
+from os import environ
+import json
 
 APP_NAME='indexd'
 def load_json(file_name):
@@ -18,6 +20,11 @@ index_config = conf_data.get('index_config')
 CONFIG = {}
 
 CONFIG['JSONIFY_PRETTYPRINT_REGULAR'] = False
+
+dist = environ.get('DIST', None)
+if dist:
+  CONFIG['DIST'] = json.loads(dist)
+
 CONFIG['INDEX'] = {
 'driver': SQLAlchemyIndexDriver('postgresql+psycopg2://{usr}:{psw}@{pghost}:{pgport}/{db}'.format(
     usr=usr,

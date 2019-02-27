@@ -8,6 +8,36 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 gen3_load "gen3/lib/g3k_manifest"
 
+if [[ -d "${WORKSPACE}/${vpc_name}" && -z "${JENKINS_HOME}" ]]; then
+# make sure <vpc_name> dir is initialized as a git repo
+  if [[ ! -d "${WORKSPACE}/${vpc_name}/.git" ]]; then
+    echo -e "$(green_color "INFO: Initializing $vpc_name directory as git repo")"
+    git -C "${WORKSPACE}/${vpc_name}" init
+    git -C "${WORKSPACE}/${vpc_name}" config user.name "gen3"
+    git -C "${WORKSPACE}/${vpc_name}" config user.email admin@gen3.org
+    git -C "${WORKSPACE}/${vpc_name}" add .
+    git -C "${WORKSPACE}/${vpc_name}" commit -m "init(vpc_name): init local repo"
+  fi
+
+  # ensure a backup exists
+  # see here for info about local backup config
+  #   https://matthew-brett.github.io/curious-git/curious_remotes.html
+  if [[ ! -d "${WORKSPACE}/backup" ]]; then
+    echo -e "$(green_color "INFO: Initializing backup for $vpc_name")"
+    git init --bare "${WORKSPACE}/backup/secrets.git"
+    git -C "${WORKSPACE}/${vpc_name}" remote add secrets_backup "${WORKSPACE}/backup/secrets.git"
+  fi
+
+  # assert there are no unstaged or uncommitted files
+  if [[ ! -z "$(git -C "${WORKSPACE}/${vpc_name}" status --porcelain)" ]]; then
+    echo -e "$(red_color "ERROR: All changes to ${vpc_name} must be committed")"
+    exit 1
+  fi
+
+  echo "INFO: attempting to update secrets backup"
+  git -C "${WORKSPACE}/${vpc_name}" push secrets_backup master || true
+fi
+
 mkdir -p "${WORKSPACE}/${vpc_name}/apis_configs"
 
 if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update indexd secrets
@@ -93,14 +123,11 @@ if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
   gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
 fi
 
-let configmapsExpireTime="$(date +%s) - 120"
-configmapsFlagFile="${WORKSPACE}/${vpc_name}/.configmapsFlagFile"
 # Avoid creating configmaps more than once every two minutes
 # (gen3 roll all calls this over and over)
-if [[ (! -f "$configmapsFlagFile") || $(stat -c %Y "$configmapsFlagFile") -lt "$configmapsExpireTime" ]]; then
+if gen3_time_since configmaps_sync is 120; then
   echo "creating manifest configmaps"
   gen3 gitops configmaps
-  touch "$configmapsFlagFile"
 fi
 
 # ssjdispatcher
@@ -383,10 +410,8 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
   export PGPASSWORD="$gdcapi_db_password"
 
   declare -a sqlList
-  let tTooOld="$(date +%s) - 120"
-  psqlFlagFile="${WORKSPACE}/${vpc_name}/.rendered_psql_users"
   # Avoid doing this over and over ...
-  if [[ ! -f "$psqlFlagFile" || $(stat -c %Y "$psqlFlagFile") -lt "$tTooOld" ]]; then
+  if gen3_time_since postgres_checkup is 120; then
     # Create peregrine and sheepdog db users if necessary
     for user in sheepdog peregrine; do
       new_db_user=$(jq -r .${user}.db_username < creds.json)
@@ -435,7 +460,6 @@ if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then  # update secrets
       echo "Running: $sql"
       PGPASSWORD="$sheepdog_db_password" psql -t -U "$sheepdog_db_user" -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
     fi
-    touch "$psqlFlagFile"
   fi
 
   # setup the database ...

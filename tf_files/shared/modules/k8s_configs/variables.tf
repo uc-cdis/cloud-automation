@@ -128,3 +128,4 @@ variable "aws_user_key" {}
 
 variable "aws_user_key_id" {}
 
+variable "indexd_prefix" {}

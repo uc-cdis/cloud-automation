@@ -6,7 +6,11 @@ variable "ec2_keyname" {
 }
 
 variable "instance_type" {
-  default = "t2.medium"
+  default = "t3.large"
+}
+
+variable "jupyter_instance_type"{
+  default = "t3.medium"
 }
 
 variable "csoc_cidr" {
@@ -15,3 +19,14 @@ variable "csoc_cidr" {
 
 variable "users_policy" {}
 
+variable "worker_drive_size" {
+  default = 30
+}
+
+variable "eks_version" {
+  default = "1.10"
+}
+
+variable "deploy_jupyter_pool" {
+  default = "no"
+}

@@ -41,6 +41,12 @@ spec:
                 value: GEN3_TUBE_ES_INDEX_NAME|-null-|
               - name: HADOOP_HOST
                 value: spark-service
+              - name: HADOOP_CLIENT_OPTS
+                value: -Xmx512m
+              - name: SPARK_EXECUTOR_MEMORY
+                value: 3g
+              - name: SPARK_DRIVER_MEMORY
+                value: 512m
               - name: slackWebHook
                 valueFrom:
                     configMapKeyRef:
@@ -64,14 +70,12 @@ spec:
               resources:
                 limits:
                   cpu: 1
-                  memory: 2Gi
+                  memory: 1Gi
               command: ["/bin/bash"]
               args:
                 - "-c"
                 - |
-                  python run_config.py
-                  python run_import.py
-                  python run_spark.py
+                  python run_config.py && python run_etl.py
                   exitcode=$?
                   if [[ $exitcode == 1 && "${slackWebHook}" != 'None' ]]; then
                     curl -X POST --data-urlencode "payload={\"text\": \"JOBFAILED: ETL job on ${gen3Env}\"}" "${slackWebHook}"

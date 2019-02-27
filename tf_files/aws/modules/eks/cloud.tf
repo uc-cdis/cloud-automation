@@ -7,14 +7,27 @@
 #####
 
 
+module "jupyter_pool" {
+  source               = "../eks-nodepool/"
+  ec2_keyname          = "${var.ec2_keyname}"
+  users_policy         = "${var.users_policy}"
+  nodepool             = "jupyter"
+  vpc_name             = "${var.vpc_name}"
+  csoc_cidr            = "${var.csoc_cidr}"
+  eks_cluster_endpoint = "${aws_eks_cluster.eks_cluster.endpoint}"
+  eks_cluster_ca       = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+  eks_private_subnets  = "${aws_subnet.eks_private.*.id}"
+  control_plane_sg     = "${aws_security_group.eks_control_plane_sg.id}"
+  default_nodepool_sg  = "${aws_security_group.eks_nodes_sg.id}"
+  deploy_jupyter_pool  = "${var.deploy_jupyter_pool}"
+  eks_version          = "${var.eks_version}"
+  jupyter_instance_type = "${var.jupyter_instance_type}"
+}
 
-#Basics
-
-data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
 
 
-## First thing we need to create is the role that would spin up resources for us 
+
+## First thing we need to create is the role that would spin up resources for us
 
 resource "aws_iam_role" "eks_control_plane_role" {
   name = "${var.vpc_name}_EKS_role"
@@ -54,38 +67,25 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
 }
 
 
-# Let's get the availability zones for the region we are working on
-data "aws_availability_zones" "available" {
-  state = "available"
-}
+
 
 ####
 # * aws_eks_cluster.eks_cluster: error creating EKS Cluster (fauziv1): UnsupportedAvailabilityZoneException: Cannot create cluster 'fauziv1' because us-east-1e, the targeted availability zone, does not currently have sufficient capacity to support the cluster. Retry and choose from these availability zones: us-east-1a, us-east-1c, us-east-1d
 ####
 resource "random_shuffle" "az" {
-#  input = ["${data.aws_availability_zones.available.names}"] 
+#  input = ["${data.aws_availability_zones.available.names}"]
   input = ["us-east-1a", "us-east-1c", "us-east-1d"]
   result_count = 3
   count = 1
 }
 
 
-# Let's grab the vpc we already created in the VPC module.
 
-data "aws_vpcs" "vpcs" {
-  tags {
-    Name = "${var.vpc_name}"
-  }
-}
 
-# Assuming that there is only one VPC with the vpc_name
-data "aws_vpc" "the_vpc" {
-  id = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
-}
-
-# The subnet where our cluster will live in 
+# The subnet where our cluster will live in
 resource "aws_subnet" "eks_private" {
-  count = 3
+  #count = 3
+  count                   = "${random_shuffle.az.result_count}"
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   cidr_block              = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index ))}"
   availability_zone       = "${random_shuffle.az.result[count.index]}"
@@ -109,7 +109,8 @@ resource "aws_subnet" "eks_private" {
 
 # for the ELB to talk to the worker nodes
 resource "aws_subnet" "eks_public" {
-  count                   = 3
+  #count                   = 3
+  count                   = "${random_shuffle.az.result_count}"
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   cidr_block              = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 10 + count.index ))}"
   map_public_ip_on_launch = true
@@ -135,26 +136,6 @@ resource "aws_subnet" "eks_public" {
 }
 
 
-# Since we need to access the internet through the proxy, let find it
-
-data "aws_instances" "squid_proxy" {
-  instance_tags {
-    Name = "${var.vpc_name} HTTP Proxy"
-  }
-}
-
-
-# Also we want to access AWS stuff directly though an existing 
-# nat gateway instead than going through the proxy
-data "aws_nat_gateway" "the_gateway" {
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
-}
-
-# Also let's allow comminication through the peering
-
-data "aws_vpc_peering_connection" "pc" {
-  vpc_id          = "${data.aws_vpc.the_vpc.id}"
-}
 
 resource "aws_route_table" "eks_private" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
@@ -164,7 +145,7 @@ resource "aws_route_table" "eks_private" {
     instance_id = "${data.aws_instances.squid_proxy.ids[0]}"
   }
 
-  # We want to be able to talk to aws freely, therefore we are allowing 
+  # We want to be able to talk to aws freely, therefore we are allowing
   # certain stuff overpass the proxy
   route {
     # logs.us-east-1.amazonaws.com
@@ -177,7 +158,7 @@ resource "aws_route_table" "eks_private" {
     nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
   }
   route {
-    # .us-east-1.eks.amazonaws.com 
+    # .us-east-1.eks.amazonaws.com
     cidr_block     = "34.192.0.0/10"
     nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
   }
@@ -213,25 +194,22 @@ data "aws_subnet_ids" "private" {
   ]
 }
 
+
 resource "aws_route_table_association" "private_kube" {
-  count          = 3
+  #count          = 3
+  count          = "${random_shuffle.az.result_count}"
   subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["id", "subnet_id"]
+    ignore_changes = ["id", "subnet_id","tags"]
   }
 }
 
-# Finally lets allow the nodes to access S3 directly 
 
-data "aws_vpc_endpoint_service" "s3" {
-  service = "s3"
-}
-
+#  S3 endpoint
 resource "aws_vpc_endpoint" "k8s-s3" {
-  vpc_id       =  "${data.aws_vpc.the_vpc.id}"
-  
+  vpc_id          =  "${data.aws_vpc.the_vpc.id}"
   service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
   route_table_ids = ["${aws_route_table.eks_private.id}"]
 }
@@ -254,12 +232,6 @@ resource "aws_security_group" "eks_control_plane_sg" {
 
 
 
-data "aws_route_table" "public_kube" {
-  vpc_id      = "${data.aws_vpc.the_vpc.id}"
-  tags {
-    Name = "main"
-  }
-}
 
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
@@ -275,7 +247,8 @@ data "aws_subnet_ids" "public_kube" {
 
 
 resource "aws_route_table_association" "public_kube" {
-  count          = 3
+  #count          = 3
+  count          = "${random_shuffle.az.result_count}"
   subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
   route_table_id = "${data.aws_route_table.public_kube.id}"
 
@@ -285,21 +258,23 @@ resource "aws_route_table_association" "public_kube" {
   }
 }
 
-# The actual EKS cluster 
+
+# The actual EKS cluster
 
 resource "aws_eks_cluster" "eks_cluster" {
   name     = "${var.vpc_name}"
   role_arn = "${aws_iam_role.eks_control_plane_role.arn}"
+  version  = "${var.eks_version}"
 
   vpc_config {
     subnet_ids  = ["${aws_subnet.eks_private.*.id}"]
-#   subnet_ids  = ["${aws_subnet.eks_private_1.id}", "${aws_subnet.eks_private_2.id}", "${aws_subnet.eks_private_3.id}"]
     security_group_ids = ["${aws_security_group.eks_control_plane_sg.id}"]
   }
 
   depends_on = [
     "aws_iam_role_policy_attachment.eks-policy-AmazonEKSClusterPolicy",
     "aws_iam_role_policy_attachment.eks-policy-AmazonEKSServicePolicy",
+    "aws_subnet.eks_private",
   ]
 }
 
@@ -431,14 +406,6 @@ resource "aws_security_group" "eks_nodes_sg" {
   description = "Security group for all nodes in the EKS cluster [${var.vpc_name}] "
   vpc_id      = "${data.aws_vpc.the_vpc.id}"
 
-#  ingress {
-#    from_port       = 0
-#    to_port         = 0
-#    protocol        = "-1"
-#    description     = "Allow access from withing the VPC CIDR"
-#    cidr_blocks     = ["${data.aws_vpc.the_vpc.cidr_block}"]
-#  }
-
   egress {
     from_port       = 0
     to_port         = 0
@@ -460,6 +427,7 @@ resource "aws_security_group" "eks_nodes_sg" {
 # Now that we have a way to know where traffic from the worker nodes is coming from,
 # we can allow the worker nodes networking access to the EKS master cluster.
 
+# Nodes talk to Control plane
 resource "aws_security_group_rule" "https_nodes_to_plane" {
   type                     = "ingress"
   from_port                = 443
@@ -468,9 +436,10 @@ resource "aws_security_group_rule" "https_nodes_to_plane" {
   security_group_id        = "${aws_security_group.eks_control_plane_sg.id}"
   source_security_group_id = "${aws_security_group.eks_nodes_sg.id}"
   depends_on               = ["aws_security_group.eks_nodes_sg", "aws_security_group.eks_control_plane_sg" ]
+  description              = "from the workers to the control plane"
 }
 
-
+# Control plane to the workers
 resource "aws_security_group_rule" "communication_plane_to_nodes" {
   type                     = "ingress"
   from_port                = 1025
@@ -479,10 +448,12 @@ resource "aws_security_group_rule" "communication_plane_to_nodes" {
   security_group_id        = "${aws_security_group.eks_nodes_sg.id}"
   source_security_group_id = "${aws_security_group.eks_control_plane_sg.id}"
   depends_on               = ["aws_security_group.eks_nodes_sg", "aws_security_group.eks_control_plane_sg" ]
+  description              = "from the control plane to the nodes"
 }
 
+# Let's allow nodes talk to each other
 resource "aws_security_group_rule" "nodes_internode_communications" {
-  type = "ingress"
+  type              = "ingress"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
@@ -491,27 +462,17 @@ resource "aws_security_group_rule" "nodes_internode_communications" {
   self              = true
 }
 
-
-# Let's allow ssh just in case
-resource "aws_security_group" "ssh" {
-  name        = "ssh_eks_${var.vpc_name}"
-  description = "security group that only enables ssh"
-  vpc_id      = "${data.aws_vpc.the_vpc.id}"
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
-    #cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
-  }
-
-  tags {
-    Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
-    Name         = "ssh_eks_${var.vpc_name}"
-  }
+# Let's allow the two polls talk to each other
+resource "aws_security_group_rule" "nodes_interpool_communications" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  description              = "allow jupyter nodes to talk to the default"
+  security_group_id        = "${aws_security_group.eks_nodes_sg.id}"
+  source_security_group_id = "${module.jupyter_pool.nodepool_sg}"
 }
+
 
 ## Worker Node AutoScaling Group
 # Now we have everything in place to create and manage EC2 instances that will serve as our worker nodes
@@ -526,57 +487,21 @@ data "aws_ami" "eks_worker" {
   filter {
     name   = "name"
     #values = ["amazon-eks-node-*"]
-    values = ["eks-worker-v*"]
+    values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
   }
 
   most_recent = true
   owners      = ["602401143452"] # Amazon Account ID
 }
 
-
 # EKS currently documents this required userdata for EKS worker nodes to
 # properly configure Kubernetes applications on the EC2 instance.
 # We utilize a Terraform local here to simplify Base64 encoding this
 # information into the AutoScaling Launch Configuration.
 # More information: https://amazon-eks.s3-us-west-2.amazonaws.com/1.10.3/2018-06-05/amazon-eks-nodegroup.yaml
-locals {
-  eks_node_userdata = <<USERDATA
-#!/bin/bash -xe
 
-CA_CERTIFICATE_DIRECTORY=/etc/kubernetes/pki
-CA_CERTIFICATE_FILE_PATH=$CA_CERTIFICATE_DIRECTORY/ca.crt
+# See template.tf for more information about the bootstrap script
 
-MODEL_DIRECTORY_PATH=~/.aws/eks
-MODEL_FILE_PATH=$MODEL_DIRECTORY_PATH/eks-2017-11-01.normal.json
-
-mkdir -p $CA_CERTIFICATE_DIRECTORY
-
-mkdir -p $MODEL_DIRECTORY_PATH
-curl -o $MODEL_FILE_PATH https://s3-us-west-2.amazonaws.com/amazon-eks/1.10.3/2018-06-05/eks-2017-11-01.normal.json
-aws configure add-model --service-model file://$MODEL_FILE_PATH --service-name eks
-
-echo "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}" | base64 -d >  $CA_CERTIFICATE_FILE_PATH
-INTERNAL_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
-sed -i s,MASTER_ENDPOINT,${aws_eks_cluster.eks_cluster.endpoint},g /var/lib/kubelet/kubeconfig
-sed -i s,CLUSTER_NAME,${var.vpc_name},g /var/lib/kubelet/kubeconfig
-sed -i s,REGION,${data.aws_region.current.name},g /etc/systemd/system/kubelet.service
-sed -i s,MAX_PODS,20,g /etc/systemd/system/kubelet.service
-sed -i s,MASTER_ENDPOINT,${aws_eks_cluster.eks_cluster.endpoint},g /etc/systemd/system/kubelet.service
-sed -i s,INTERNAL_IP,$INTERNAL_IP,g /etc/systemd/system/kubelet.service
-DNS_CLUSTER_IP=10.100.0.10
-if [[ $INTERNAL_IP == 10.* ]] ; then DNS_CLUSTER_IP=172.20.0.10; fi
-sed -i s,DNS_CLUSTER_IP,$DNS_CLUSTER_IP,g /etc/systemd/system/kubelet.service
-sed -i s,CERTIFICATE_AUTHORITY_FILE,$CA_CERTIFICATE_FILE_PATH,g /var/lib/kubelet/kubeconfig
-sed -i s,CLIENT_CA_FILE,$CA_CERTIFICATE_FILE_PATH,g  /etc/systemd/system/kubelet.service
-systemctl daemon-reload
-systemctl restart kubelet
-cat > /home/ec2-user/.ssh/authorized_keys <<EFO
-${data.template_file.ssh_keys.rendered}
-EFO
-
-sudo cat /home/ec2-user/.ssh/authorized_keys > /root/.ssh/authorized_keys
-USERDATA
-}
 
 resource "aws_launch_configuration" "eks_launch_configuration" {
   associate_public_ip_address = false
@@ -585,26 +510,19 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   instance_type               = "${var.instance_type}"
   name_prefix                 = "eks-${var.vpc_name}"
   security_groups             = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
-  user_data_base64            = "${base64encode(local.eks_node_userdata)}"
+  user_data_base64            = "${base64encode(data.template_file.bootstrap.rendered)}"
   key_name                    = "${var.ec2_keyname}"
 
   root_block_device {
-    volume_size = 30
+    volume_size = "${var.worker_drive_size}"
   }
-
 
   lifecycle {
     create_before_destroy = true
-    ignore_changes  = ["user_data_base64"]
+    #ignore_changes  = ["user_data_base64"]
   }
 }
 
-
-# Finally, we create an AutoScaling Group that actually launches EC2 instances based on the
-# AutoScaling Launch Configuration.
-
-# NOTE: The usage of the specific kubernetes.io/cluster/* resource tag below is required for EKS
-# and Kubernetes to discover and manage compute resources.
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
   desired_capacity     = 2
@@ -644,11 +562,40 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
     propagate_at_launch = true
   }
 
-# Avoid unnecessary changes for existing commons running on EKS 
+  tag {
+    key                 = "k8s.io/nodepool/default"
+    value               = ""
+    propagate_at_launch = true
+  }
+
+# Avoid unnecessary changes for existing commons running on EKS
   lifecycle {
     ignore_changes = ["desired_capacity","max_size","min_size"]
   }
 }
+
+
+# Let's allow ssh just in case
+resource "aws_security_group" "ssh" {
+  name        = "ssh_eks_${var.vpc_name}"
+  description = "security group that only enables ssh"
+  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+    #cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
+  }
+
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "Basic Service"
+    Name         = "ssh_eks_${var.vpc_name}"
+  }
+}
+
 
 # NOTE: At this point, your Kubernetes cluster will have running masters and worker nodes, however, the worker nodes will
 # not be able to join the Kubernetes cluster quite yet. The next section has the required Kubernetes configuration to
@@ -674,13 +621,18 @@ data:
       groups:
         - system:bootstrappers
         - system:nodes
+    - rolearn: ${module.jupyter_pool.nodepool_role}
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
 CONFIGMAPAWSAUTH
 }
 
 
 
 #--------------------------------------------------------------
-# We need to have the kubeconfigfile somewhere, even if it is temporaty so we can execute stuff agains the freshly create EKS cluster 
+# We need to have the kubeconfigfile somewhere, even if it is temporaty so we can execute stuff agains the freshly create EKS cluster
 # Legacy stuff ...
 # We want to move away from generating output files, and
 # instead just publish output variables
@@ -688,8 +640,7 @@ CONFIGMAPAWSAUTH
 resource "null_resource" "config_setup" {
    triggers {
     kubeconfig_change  = "${data.template_file.kube_config.rendered}"
- #   config_change = "${data.template_file.configmap.rendered}"
- #   kube_change   = "${data.template_file.kube_vars.rendered}"
+    configmap_change   = "{local.config-map-aws-auth}"
   }
 
   provisioner "local-exec" {

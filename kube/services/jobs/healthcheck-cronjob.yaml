@@ -1,0 +1,46 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: healthcheck 
+  namespace: default
+spec:
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          restartPolicy: Never
+          serviceAccountName: jenkins-service
+          containers:
+            - name: awshelper
+              image: quay.io/cdis/awshelper:master
+              imagePullPolicy: Always
+              env:
+                - name: slackWebHook
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
+                      optional: true
+                - name: gen3Env
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: environment
+                - name: JENKINS_HOME
+                  value: ""
+                - name: GEN3_NOPROXY
+                  value: none
+              command: ["/bin/bash" ]
+              args:
+                - "-c"
+                - |
+                  set -i
+                  source ~/.bashrc
+                  gen3 healthcheck --slack --retry
+                  echo "All Done!"

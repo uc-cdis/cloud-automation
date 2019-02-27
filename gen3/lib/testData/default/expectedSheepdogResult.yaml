@@ -50,20 +50,20 @@ spec:
             secretName: "service-ca"
       # sheepdog transactions take forever -
       # try to let the complete before termination
-      terminationGracePeriodSeconds: 300
+      terminationGracePeriodSeconds: 50
       containers:
         - name: sheepdog
           image: quay.io/cdis/sheepdog:1.0.1
           livenessProbe:
             httpGet:
-              path: /_status
+              path: /_status?timeout=20
               port: 80
             initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
-              path: /_status
+              path: /_status?timeout=2
               port: 80
           ports:
           - containerPort: 80
@@ -111,6 +111,8 @@ spec:
               subPath: "ca.pem"
           imagePullPolicy: Always
           resources:
+            requests:
+              cpu: 1
             limits:
-              cpu: 1.0
-              memory: 1024Mi         
+              cpu: 2
+              memory: 1024Mi

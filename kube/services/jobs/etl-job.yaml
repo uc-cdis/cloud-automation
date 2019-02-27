@@ -33,6 +33,12 @@ spec:
           value: esproxy-service
         - name: HADOOP_HOST
           value: spark-service
+        - name: HADOOP_CLIENT_OPTS
+          value: -Xmx512m
+        - name: SPARK_EXECUTOR_MEMORY
+          value: 3g
+        - name: SPARK_DRIVER_MEMORY
+          value: 512m
         volumeMounts:
           - name: "creds-volume"
             readOnly: true
@@ -45,12 +51,11 @@ spec:
         resources:
           limits:
             cpu: 1
-            memory: 2Gi
+            memory: 1Gi
         command: ["/bin/bash" ]
         args:
           - "-c"
           - |
-            python run_config.py
-            python run_import.py
-            python run_spark.py
+            python run_config.py && python run_etl.py
+            echo "All done - exit status $?"
       restartPolicy: Never

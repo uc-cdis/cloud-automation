@@ -16,6 +16,23 @@ gen3_gitops_sync() {
   g3k_manifest_init
   local dict_roll=false
   local versions_roll=false
+  local slack=false
+  local tmpHostname
+  local resStr
+  local color
+  local dictAttachment
+  local versionsAttachment
+
+  if [[ $1 = '--slack' ]]; then
+    if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
+      slackWebHook=$(g3kubectl get configmap global -o jsonpath={.data.slack_webhook})
+    fi
+    if [[ "${slackWebHook}" != 'None' && ! -z "${slackWebHook}" ]]; then
+      slack=true
+    else
+      echo "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
+    fi
+  fi
 
   # dictionary URL check
   if g3kubectl get configmap manifest-global; then
@@ -77,6 +94,24 @@ gen3_gitops_sync() {
     if [ "$dict_roll" = true -o "$versions_roll" = true ]; then
       echo "changes detected, rolling"
       gen3 kube-roll-all
+      rollRes=$?
+      # send result to slack
+      if [[ $slack = true ]]; then
+        tmpHostname=$(g3kubectl get configmap manifest-global -o jsonpath={.data.hostname})
+        resStr="SUCCESS"
+        color="#1FFF00"
+        if [[ $rollRes != 0 ]]; then
+          resStr="FAILURE"
+          color="#FF0000"
+        fi
+        if [[ "$dict_roll" = true ]]; then
+          dictAttachment="\"title\": \"New Dictionary\", \"text\": \"${newUrl}\", \"color\": \"${color}\""
+        fi
+        if [[ "$versions_roll" = true ]]; then
+          versionsAttachment="\"title\": \"New Versions\", \"text\": \"$(echo $newJson | sed s/\"/\\\\\"/g | sed s/,/,\\n/g)\", \"color\": \"${color}\""
+        fi
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}]}" "${slackWebHook}"
+      fi
     else
       echo "no changes detected, not rolling"
     fi
@@ -99,6 +134,69 @@ gen3_gitops_rsync() {
     return 1
   fi
   ssh "$target" "bash -ic 'gen3 gitops sync'"
+}
+
+#
+# Get the local manifest and cloud-automation folders in sync with github
+#
+gen3_gitops_enforcer() {
+  local manifestDir
+  local manifestPath
+  local today
+
+  manifestPath=$(g3k_manifest_path)
+  if [[ $? -ne 0 || ! -f "$manifestPath" ]]; then
+    return 1
+  fi
+  manifestDir="$(dirname "$manifestPath")"
+  today="$(date -u +%Y%m%d)"
+  weekAgo="$(date -d "@$(($(date +%s) - 60*60*24*7))" +%Y%m%d)"
+
+  for syncDir in "$manifestDir/.." "$GEN3_HOME"; do
+    ( # subshell for cd
+      echo "Syncing $syncDir with git master" 1>&2
+      cd "${syncDir}"
+
+      ( # subshell cd - erase old backups
+        cd backups
+        for oldDir in $(ls .); do
+          if [[ "$oldDir" =~ ^[0-9]+$ && $oldDir -lt $weekAgo ]]; then
+            echo "Erasing old backup $(pwd)/$oldDir" 1>&2
+            /bin/rm -rf "$oldDir"
+          fi
+        done
+      )
+      if [[ ! -d "backups/$today" ]]; then
+        # only take one backup each day ...
+        mkdir -p "backups/$today"
+        mv $(/bin/ls . | grep -v backups) "backups/$today/"
+      fi
+      git checkout .
+      git checkout -f master
+      git pull
+      git reset --hard origin/master
+    )
+  done
+}
+
+#
+# g3k command to create configmaps from manifest
+#
+gen3_gitops_history() {
+  local manifestDir
+  if [[ $# -gt 0 ]]; then
+    manifestDir="$1"
+  fi  
+  ( # subshell - can cd and set globals
+    set -e  # fail on any weirdness
+
+    if [[ -z "$manifestDir" ]]; then
+      manifestPath=$(g3k_manifest_path)
+      manifestDir="$(dirname "$manifestPath")"
+    fi
+    cd "$manifestDir"
+    git log -p -w --full-diff .
+  )
 }
 
 #
@@ -370,7 +468,13 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       g3k_manifest_filter "$yaml" "$manifest" "$@"
       ;;
     "configmaps")
-      gen3_gitops_configmaps
+      gen3_gitops_configmaps "$@"
+      ;;
+    "enforce")
+      gen3_gitops_enforcer "$@"
+      ;;
+    "history")
+      gen3_gitops_history "$@"
       ;;
     "rsync")
       gen3_gitops_rsync "$@"

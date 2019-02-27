@@ -47,11 +47,16 @@ ftp.linux.ncsu.edu
 ftp.sanger.ac.uk
 ftp.usf.edu
 ftp.ussg.iu.edu
+gcr.io
 git.bionimbus.org
 git.io
+golang.org
+gopkg.in
 http.us.debian.org
+hooks.slack.com
 internet2.edu
 ifconfig.io
+k8s.gcr.io
 keyservice.opensciencedatacloud.org
 ks.osdc.io
 lib.stat.cmu.edu
@@ -105,8 +110,8 @@ sa-update.space-pro.be
 security.debian.org
 services.mathworks.com
 source.bionimbus.org
-streaming.stat.iastate.edu
 www.google.com
+streaming.stat.iastate.edu
 www.mathworks.com
 www.oracle.com
 www.rabbitmq.com

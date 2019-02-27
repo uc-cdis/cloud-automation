@@ -22,7 +22,11 @@ spec:
         - name: logo-volume
           configMap:
             name: "logo-config"
-        - name: config-volume
+# -----------------------------------------------------------------------------
+# DEPRECATED! Remove when all commons are no longer using local_settings.py
+#             for fence.
+# -----------------------------------------------------------------------------
+        - name: old-config-volume
           secret:
             secretName: "fence-secret"
         - name: creds-volume
@@ -34,6 +38,10 @@ spec:
         - name: json-secret-volume
           secret:
             secretName: "fence-json-secret"
+# -----------------------------------------------------------------------------
+        - name: config-volume
+          secret:
+            secretName: "fence-config"
         - name: fence-google-app-creds-secret-volume
           secret:
             secretName: "fence-google-app-creds-secret"
@@ -60,6 +68,15 @@ spec:
           value: /var/www/fence
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
+        # check the last modified time is within 30min
+        livenessProbe:
+          exec:
+            command:
+            - test
+            - $(($(date +%s) - $(date -r /google_job/status.json +%s))) -lt 1800
+          initialDelaySeconds: 300
+          periodSeconds: 5
+          failureThreshold: 1
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -72,7 +89,11 @@ spec:
             readOnly: true
             mountPath: "/fence/fence/static/img/logo.svg"
             subPath: "logo.svg"
-          - name: "config-volume"
+# -----------------------------------------------------------------------------
+# DEPRECATED! Remove when all commons are no longer using local_settings.py
+#             for fence.
+# -----------------------------------------------------------------------------
+          - name: "old-config-volume"
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
             subPath: local_settings.py
@@ -88,6 +109,11 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_credentials.json"
             subPath: fence_credentials.json
+# -----------------------------------------------------------------------------
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence-config.yaml"
+            subPath: fence-config.yaml
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
             subPath: user.yaml

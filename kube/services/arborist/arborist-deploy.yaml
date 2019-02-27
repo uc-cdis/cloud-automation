@@ -157,7 +157,7 @@ spec:
           - |
             # point at localhost
             cat /var/www/fence/local_settings.py.original | sed s/arborist-service/localhost/g > /var/www/fence/local_settings.py
-            let count=0
+            count=0
             sleep 30   # wait for service to come up
             while (! curl --fail http://localhost/health) && [[ $count -lt 50 ]]; do
               echo "fence container waiting for arborist to startup";
@@ -167,21 +167,36 @@ spec:
             if [[ ! "$SYNC_FROM_DBGAP" = True ]]; then
               if [[ -f /var/www/fence/user.yaml ]]; then
                 echo "running fence-create"
-                if fence-create sync --arborist http://localhost --yaml /var/www/fence/user.yaml; then
-                  touch /tmp/healthy
-                else
-                  echo "Looks like fence-create failed: $?"
-                fi
+                count=0
+                while ! fence-create sync --arborist http://localhost --yaml /var/www/fence/user.yaml; do
+                  let count=$count+1
+                  if [[ $count -lt 4 ]]; then
+                    #
+                    # retry a few times - race conditions exist if fence-create
+                    # and fence-pod startup run at the same time against an empty db
+                    #
+                    echo "Looks like fence-create failed"
+                    echo "sleep 60 and retry"
+                    sleep 60
+                  else
+                    # if user.yaml is corrupt or some other error - might as well give up
+                    echo "Fence-create still failing - giving up"
+                    exit 1
+                  fi
+                done
+                # fence-create succeeded - touch the readyness probe file
+                touch /tmp/healthy
               else
                 echo "/var/www/fence/user.yaml is not mounted :-("
+                # just bomb out - arborist is useless in this case
+                exit 1
               fi
             else
               echo "Not running fence-create in arborist pod when DBGAP sync is enabled"
               touch /tmp/healthy
             fi
-            echo "Exit code: $?"
             # Keep arborist company
             while curl --fail --silent --show-error http://localhost/health; do
-              echo "arborist is healthy, so fence will keep company";
-              sleep 60
+              echo "arborist is healthy, so fence will keep company - sleep 300";
+              sleep 300
             done

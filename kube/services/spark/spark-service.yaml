@@ -30,4 +30,8 @@ spec:
       port: 22
       targetPort: 22
       name: ssl
+    - protocol: TCP
+      port: 7077
+      targetPort: 7077
+      name: spark-master
   type: NodePort
