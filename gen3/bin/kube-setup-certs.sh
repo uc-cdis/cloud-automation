@@ -112,3 +112,5 @@ for name in $service_list external; do
       g3kubectl create secret generic "cert-$name" "--from-file=service.crt=credentials/${name}.crt" "--from-file=service.key=credentials/${name}.key"
     fi
 done
+
+gen3 secrets commit "saving new TLS certs"
