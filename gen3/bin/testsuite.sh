@@ -17,15 +17,24 @@ if [[ $1 =~ ^-*help$ ]]; then
   help
   exit 0
 fi
-if [[ $# > 0 ]]; then
-  if [[ "$1" =~ ^-*filter$ ]]; then
-    shift
+while [[ $# > 0 ]]; do
+  command="$1"
+  shift
+  if [[ "$command" =~ ^-*filter$ ]]; then
     shunit_set_filters "$1"
+    shift
+  elif [[ $command =~ ^-*profile ]]; then
+    GEN3_TEST_PROFILE="$1"
+    shift
+    if [[ -z "$GEN3_TEST_PROFILE" ]]; then
+      echo -e "ERROR: Invalid profile"
+      exit 1
+    fi
   else
     help
     exit 1
   fi
-fi
+done
 
 gen3_load "gen3/test/apiTest"
 gen3_load "gen3/test/dbTest"
