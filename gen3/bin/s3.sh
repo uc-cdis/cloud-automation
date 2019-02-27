@@ -17,8 +17,8 @@ gen3_s3() {
     'list'|'ls')
       list "$@"
       ;;
-    'create')
-      create "$@"
+    'new')
+      new "$@"
       ;;
     'get')
       get "$@"
@@ -37,7 +37,7 @@ list() {
   fi
 }
 
-create() {
+new() {
   local bucketName=$1
   # do simple validation of bucket name
   local regexp="^[a-z][a-z0-9\-]*$"
@@ -50,7 +50,7 @@ EOF
     exit 1
   fi
   # if bucket already exists do nothing and exit
-  if aws s3 ls "s3://$bucketName" > /dev/null 2>&1; then
+  if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
     echo "INFO: Bucket already exists"
     exit 0
   fi
