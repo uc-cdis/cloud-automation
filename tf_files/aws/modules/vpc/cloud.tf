@@ -286,7 +286,9 @@ resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
 resource "aws_route53_zone" "main" {
   name    = "internal.io"
   comment = "internal dns server for ${var.vpc_name}"
-  vpc_id  = "${aws_vpc.main.id}"
+  vpc {
+    vpc_id  = "${aws_vpc.main.id}"
+  }
 
   tags {
     Environment  = "${var.vpc_name}"
