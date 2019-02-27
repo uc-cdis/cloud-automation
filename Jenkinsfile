@@ -53,6 +53,13 @@ pipeline {
         sh 'cd kube/services/revproxy && npx jasmine helpersTest.js'
       }
     }
+    stage('base image dockerrun.sh test') {
+      steps {
+        dir('Docker/python-nginx/python2.7-alpine3.7') {
+          sh 'dockerrun.sh --dryrun=True'
+        }
+      }
+    }
     // The following stages are copied from the cdis-jenkins-lib pipeline
     stage('SelectNamespace') {
       steps {

@@ -35,6 +35,8 @@ RUN adduser -S www-data -G www-data \
     && chown www-data -R /var/www/.cache/Python-Eggs/ \
     && mkdir /run/nginx/ \ 
     && mkdir -m 075 /var/run/gen3 \
+    && chown root:www-data /dockerrun.sh \
+    && chmod +x /dockerrun.sh \ 
     && chown root:www-data /var/run/gen3 \ 
     && chown -R www-data:www-data /var/tmp/nginx \
     && rm /etc/nginx/conf.d/default.conf \
