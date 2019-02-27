@@ -32,7 +32,12 @@ test_db_create() {
   local namespace
   serviceName="dbctest"
   namespace="$(gen3 db namespace)"
-
+  if [[ ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
+    # gen3 db setup checks that creds.json exists to avoid accidental execution - 
+    # let's bypass that check
+    mkdir -p "$(gen3_secrets_folder)"
+    echo '{}' > "$(gen3_secrets_folder)/creds.json"
+  fi
   [[ -n "$namespace" ]]; because $? "gen3_db_namespace should give a valid value: $namespace"
   gen3 klock lock dbctest dbctest 300 -w 300; because $? "must acquire a lock to run test_db_create"
 

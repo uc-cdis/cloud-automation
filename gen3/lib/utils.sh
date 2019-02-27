@@ -27,7 +27,7 @@ gen3_secrets_folder() {
 }
 
 (
-  for filePath in "$GEN3_CACHE_DIR" "$GEN3_ETC_FOLDER/gcp" "$XDG_RUNTIME_DIR" "$(gen3_secrets_folder)"; do
+  for filePath in "$XDG_DATA_HOME/gen3" "$GEN3_CACHE_DIR" "$GEN3_ETC_FOLDER/gcp" "$XDG_RUNTIME_DIR" "$(gen3_secrets_folder)"; do
     if [[ ! -d "$filePath" ]]; then
       mkdir -p -m 0700 "$filePath"
     fi
