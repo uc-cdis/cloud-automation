@@ -28,7 +28,7 @@ name2IP() {
   echo "$ip"
 }
 
-credsPath="${WORKSPACE}/${vpc_name}/creds.json"
+credsPath="$(gen3_secrets_folder)/creds.json"
 if [[ -f "$credsPath" ]]; then # setup netpolicy
   # google config this is already an IP
   gdcapi_db_host=$(jq -r .gdcapi.db_host < "$credsPath")

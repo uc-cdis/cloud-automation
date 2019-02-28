@@ -20,6 +20,7 @@ gen3_load "gen3/lib/onprem"
 # Create any missing files
 #
 mkdir -p -m 0700 "$GEN3_WORKDIR/backups"
+chmod 0700 "$GEN3_WORKDIR"
 
 if [[ ! -f "$GEN3_WORKDIR/root.tf" ]]; then
   # Note: do not use `` in heredoc!

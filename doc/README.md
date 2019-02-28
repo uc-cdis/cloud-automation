@@ -11,6 +11,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [aws](./aws.md)
 * [arun](./arun.md)
 * [devterm](./devterm.md)
+* [db](./db.md)
 * [es](./es.md) - elastic search
 * [gitops](./gitops.md) - manifest filter, configmaps, history, sync, tagging releases, etc
 * [ec2](./ec2.md) - describe, reboot
@@ -27,6 +28,8 @@ For example - `gen3 help aws` opens `aws.md`
 * [reset](./reset.md)
 * [roll](./roll.md)
 * [runjob](./job.md) - see [job run](./job.md)
+* [secrets](./secrets.md)
+* [testsuite](./testsuite.md)
 * [update_config](./update_config.md)
 * [watch](./watch.md)
 
@@ -57,10 +60,6 @@ For example - `gen3 help aws` opens `aws.md`
 * [trash](./trash.md)
 * [workon](./terraform/workon.md)
 
-## Test suites
-
-* [g3k_testsuite](./g3k_testsuite.md)
-* [testsuite](./testsuite.md)
 
 ## Overview
 
