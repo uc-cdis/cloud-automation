@@ -34,7 +34,7 @@ gen3_s3_new() {
   # do simple validation of bucket name
   local regexp="^[a-z][a-z0-9\-]*$"
   if [[ ! $bucketName =~ $regexp ]];then
-    cat << EOF
+    cat << EOF >&2
 ERROR: Bucket name does not meet the following requirements:
   - starts with a-z
   - contains only a-z, 0-9, and dashes, "-"
@@ -43,7 +43,7 @@ EOF
   fi
   # if bucket already exists do nothing and exit
   if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
-    gen3_log_err "Bucket already exists"
+    gen3_log_info "Bucket already exists"
     exit 0
   fi
   # bucket doesn't exist - make and apply tfplan
