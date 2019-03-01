@@ -61,21 +61,6 @@ EOF
     exit 1
   fi
   gen3 trash
-
-  gen3_log_info "Attempting to add bucket to cloudtrail"
-  local cloudtrailName="${environmentName}-data-bucket-trail"
-  local cloudtrailEventSelectors=$(gen3_aws_run aws cloudtrail get-event-selectors --trail-name $cloudtrailName | jq -r '.EventSelectors')
-  if [[ -z "$cloudtrailEventSelectors" ]]; then
-    # uh oh... for some reason the cloudtrail is not what we expected it to be
-    gen3_log_info "Unable to find cloudtrail with name $cloudtrailName"
-    exit 0
-  fi
-  # update previous event selector to include our bucket
-  cloudtrailEventSelectors=$(echo $cloudtrailEventSelectors | \
-    jq '(.[].DataResources[] | select(.Type == "AWS::S3::Object")  | .Values) += ["'"arn:aws:s3:::$bucketName/"'"]'
-  )
-  gen3_aws_run aws cloudtrail put-event-selectors --trail-name $cloudtrailName --event-selectors "$cloudtrailEventSelectors"
-  exit $?
 }
 
 #
