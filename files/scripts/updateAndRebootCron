@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# Run this as a cron job:
+#  sudo cp updateAndRebootCron /etc/cron.d/updateAndRebootCron
+#  sudo chmod 0644 /etc/cron.d/updateAndRebootCron
+#
+# gen3 kube-setup-workvm installs this too
+#
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+1 1 * * 0 root (date && apt-get update && DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade && systemctl reboot) > /var/log/updateAndRebootCron.log 2>&1
