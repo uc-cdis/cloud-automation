@@ -4,8 +4,8 @@
 #  sudo cp updateAndRebootCron /etc/cron.d/updateAndRebootCron
 #  sudo chmod 0644 /etc/cron.d/updateAndRebootCron
 #
-# Some weirdness about Debian cron.weekly:
-# * file must be owned by root, at most 0755
+# gen3 kube-setup-workvm installs this too
 #
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-1 1 * * 0 root (date && apt update && apt upgrade -y && systemctl reboot) > /var/log/updateAndRebootCron.log 2>&1
+1 1 * * 0 root (date && apt-get update && DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade && systemctl reboot) > /var/log/updateAndRebootCron.log 2>&1
