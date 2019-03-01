@@ -43,10 +43,10 @@ EOF
   fi
   # if bucket already exists do nothing and exit
   if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
-    echo -e $(red_color "INFO: Bucket already exists") 2>&1
+    gen3_log_err "Bucket already exists"
     exit 0
   fi
-  # if bucket doesn't exist make and apply tfplan
+  # bucket doesn't exist - make and apply tfplan
   gen3 workon default "${bucketName}_databucket"
   gen3 cd
   cat << EOF > config.tfvars
@@ -57,17 +57,17 @@ EOF
   gen3 tfplan 2>&1
   gen3 tfapply 2>&1
   if [[ $? != 0 ]]; then
-    echo -e $(red_color "ERROR: Unexpected error running gen3 tfapply. Please cleanup workspace in default/${bucketName}_databucket...") 2>&1
+    gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in default/${bucketName}_databucket..."
     exit 1
   fi
   gen3 trash
 
-  echo -e $(green_color "INFO: Attempting to add bucket to cloudtrail") 2>&1
+  gen3_log_info "Attempting to add bucket to cloudtrail"
   local cloudtrailName="${environmentName}-data-bucket-trail"
   local cloudtrailEventSelectors=$(gen3_aws_run aws cloudtrail get-event-selectors --trail-name $cloudtrailName | jq -r '.EventSelectors')
   if [[ -z "$cloudtrailEventSelectors" ]]; then
     # uh oh... for some reason the cloudtrail is not what we expected it to be
-    echo -e $(red_color "INFO: Unable to find cloudtrail with name $cloudtrailName") 2>&1
+    gen3_log_info "Unable to find cloudtrail with name $cloudtrailName"
     exit 0
   fi
   # update previous event selector to include our bucket
