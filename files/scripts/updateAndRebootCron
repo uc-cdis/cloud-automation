@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# Run this as a cron job:
+#  sudo cp updateAndRebootCron /etc/cron.d/updateAndRebootCron
+#  sudo chmod 0644 /etc/cron.d/updateAndRebootCron
+#
+# Some weirdness about Debian cron.weekly:
+# * file must be owned by root, at most 0755
+#
+
+1 1 * * 0 root (date && apt update && apt upgrade -y && systemctl reboot) > /var/log/updateAndRebootCron.log 2>&1
