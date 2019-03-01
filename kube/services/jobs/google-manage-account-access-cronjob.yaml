@@ -99,6 +99,7 @@ spec:
             args:
               - "-c"
               - |
+                echo 'options use-vc' >> /etc/resolv.conf
                 fence-create google-manage-account-access
                 if [[ $? != 0 ]]; then
                   echo "WARNING: non zero exit code: $?"
