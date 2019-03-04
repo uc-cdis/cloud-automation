@@ -55,7 +55,7 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/role-wts.yaml"
 context=$(g3kubectl config view -o template --template='{{ index . "current-context" }}')
 namespace="$(gen3 db namespace)"
-g3k_kv_filter ${GEN3_HOME}/kube/services/wts/rolebinding-wts.yaml CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -
+g3k_kv_filter ${GEN3_HOME}/kube/services/wts/rolebinding-wts.yaml WTS_BINDING "name: wts-binding-$namespace" CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -
 
 gen3 roll wts
 g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-service.yaml"
