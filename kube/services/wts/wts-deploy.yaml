@@ -36,10 +36,7 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       terminationGracePeriodSeconds: 10
       volumes:
-        - name: config-volume
-          secret:
-            secretName: "wts-secret"
-        - name: dbcreds
+        - name: wts-secret
           secret:
             secretName: "wts-g3auto"
       serviceAccountName: workspace-token-service
@@ -51,18 +48,19 @@ spec:
         env:
         - name: POSTGRES_CREDS_FILE
           value: "/var/www/wts/dbcreds.json"
-        - name: SECRET_DIR
-          value: "/var/www/wts/secrets"
+        - name: SECRET_CONFIG
+          value: "/var/www/wts/appcreds.json"
         - name: AUTH_PLUGINS
           value: k8s
         volumeMounts:
-        - name: "config-volume"
-          readOnly: true
-          mountPath: "/var/www/wts/secrets"
-        - name: "dbcreds"
+        - name: "wts-secret"
           readOnly: true
           mountPath: "/var/www/wts/dbcreds.json"
           subPath: dbcreds.json
+        - name: "wts-secret"
+          readOnly: true
+          mountPath: "/var/www/wts/appcreds.json"
+          subPath: appcreds.json
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
