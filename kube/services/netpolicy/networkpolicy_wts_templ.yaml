@@ -9,33 +9,16 @@ spec:
   ingress:
     - from:
       - namespaceSelector:
-        matchLabels:
-          purpose: jupyter-pods
+          matchLabels:
+            name: jupyter-pods
       - podSelector:
           matchLabels:
-             app: revproxy
+            app: revproxy
       ports:
          - port: 80
          - port: 443
   egress:
-    - to:
-      - podSelector:
-          matchLabels:
-            app: wts
-      - podSelector:
-          matchLabels:
-            app: fence
-      - ipBlock:
-           cidr: GEN3_GDCAPIDB_IP/32
-      - ipBlock:
-           cidr: GEN3_CLOUDPROXY_CIDR
-      - ipBlock:
-           cidr: 0.0.0.0/0
-      - ipBlock:
-           cidr: 54.224.0.0/12
-      - ipBlock:
-           cidr: 52.92.16.0/20
-
+    - {}
   policyTypes:
    - Ingress
    - Egress

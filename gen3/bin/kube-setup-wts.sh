@@ -10,6 +10,7 @@ source "${_KUBE_SETUP_WTS}/../lib/kube-setup-init.sh"
 echo "check wts secret"
 if ! g3kubectl get secret wts-secret > /dev/null 2>&1; then
     hostname=$(g3kubectl get configmaps/global -o=jsonpath='{.data.hostname}')
+    echo "creating fence oidc client"
     secrets=$(g3kubectl exec $(g3k pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
     # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
     if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
@@ -21,13 +22,19 @@ if ! g3kubectl get secret wts-secret > /dev/null 2>&1; then
     client_secret="${BASH_REMATCH[3]}"
     encryption_key="$(random_alphanumeric 32 | base64)"
     secret_key="$(random_alphanumeric 32 | base64)"
+    if ! g3kubectl get secret wts-g3auto > /dev/null 2>&1; then
+        echo "create database"
+        if ! gen3 db setup wts; then
+            echo "Failed setting up database for workspace token service"
+            exit 1
+        fi
+    fi
     echo "create wts-secret"
-    g3kubectl create secret generic wts-secret --type=string --from-literal=OIDC_CLIENT_ID="$client_id" --from-literal=OIDC_CLIENT_SECRET="$client_secret" --from-literal=ENCRYPTION_KEY="$encryption_key" --from-literal=SECRET_KEY="$secret_key" --from-literal=FENCE_BASE_URL="https://${hostname}/user/" --from-literal=WTS_BASE_URL="https://${hostname}/wts/" --from-literal=SQLALCHEMY_DATABASE_URI="sqlite:////mnt/data/wts.db"
+    g3kubectl create secret generic wts-secret --type=string --from-literal=OIDC_CLIENT_ID="$client_id" --from-literal=OIDC_CLIENT_SECRET="$client_secret" --from-literal=ENCRYPTION_KEY="$encryption_key" --from-literal=SECRET_KEY="$secret_key" --from-literal=FENCE_BASE_URL="https://${hostname}/user/" --from-literal=WTS_BASE_URL="https://${hostname}/wts/"
 
 fi
 # deploy wts
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/storageclass.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/role-wts.yaml"
 context=$(g3kubectl config view -o template --template='{{ index . "current-context" }}')

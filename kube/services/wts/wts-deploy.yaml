@@ -1,21 +1,47 @@
-apiVersion: apps/v1beta1
-kind: StatefulSet
+
+apiVersion: extensions/v1beta1
+kind: Deployment
 metadata:
-  name: wts
+  name: wts-deployment
 spec:
-  serviceName: "wts"
-  replicas: 1
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: wts
+      release: production
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
         app: wts
+        release: production
         GEN3_DATE_LABEL
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - wts
+              topologyKey: "kubernetes.io/hostname"
       terminationGracePeriodSeconds: 10
       volumes:
         - name: config-volume
           secret:
             secretName: "wts-secret"
+        - name: dbcreds
+          secret:
+            secretName: "wts-g3auto"
       serviceAccountName: workspace-token-service
       containers:
       - name: wts
@@ -23,30 +49,26 @@ spec:
         ports:
         - containerPort: 80
         env:
+        - name: POSTGRES_CREDS_FILE
+          value: "/var/www/wts/dbcreds.json"
         - name: SECRET_DIR
           value: "/var/www/wts/secrets"
         - name: AUTH_PLUGINS
           value: k8s
         volumeMounts:
-        - name: datadir
-          mountPath: /mnt/data
         - name: "config-volume"
           readOnly: true
           mountPath: "/var/www/wts/secrets"
-        command: ["/bin/bash"]
-        args:
-          - "-c"
-          - |
-            chown nginx:nginx /mnt/data
-            /wts/dockerrun.bash
+        - name: "dbcreds"
+          readOnly: true
+          mountPath: "/var/www/wts/dbcreds.json"
+          subPath: dbcreds.json
         imagePullPolicy: Always
-  volumeClaimTemplates:
-  - metadata:
-      name: datadir
-      annotations:
-        volume.beta.kubernetes.io/storage-class: gp2
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 80
