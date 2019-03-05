@@ -26,6 +26,21 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
     #echo "${confFileList[@]}"
   fi
 done
+
+if g3kubectl get namespace prometheus > /dev/null 2>&1;
+then
+  for prometheus in $(g3kubectl get services -n prometheus -o jsonpath='{.items[*].metadata.name}');
+  do
+    filePath="$scriptDir/gen3.nginx.conf/${prometheus}.conf"
+  #echo "$filePath"
+  if [[ -f "$filePath" ]]; then
+    #echo "$filePath exists in $BASHPID!"
+    confFileList+=("--from-file" "$filePath")
+    #echo "${confFileList[@]}"
+  fi
+  done
+fi
+
 #echo "${confFileList[@]}" $BASHPID
 
 gen3 kube-setup-secrets
