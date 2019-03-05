@@ -40,7 +40,7 @@ data "template_file" "ssh_keys" {
 
 data "template_file" "bootstrap" {
   #template = "${file(var.eks_version == "1.10" ? "${path.module}/../../../../flavors/eks/bootstrap-1.0.0.sh" : "${path.module}/../../../../flavors/eks/bootstrap-2.0.0.sh")}"
-  template = "${file("${path.module}/../../../../flavors/eks/bootstrap-2.0.0.sh")}"
+  template = "${file("${path.module}/../../../../flavors/eks/bootstrap-2.1.0.sh")}"
   vars {
     eks_ca       = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
     eks_endpoint = "${aws_eks_cluster.eks_cluster.endpoint}"

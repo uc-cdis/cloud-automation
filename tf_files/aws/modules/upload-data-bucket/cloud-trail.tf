@@ -24,5 +24,9 @@ resource "aws_cloudtrail" "logger_trail" {
     Environment = "${var.environment}"
     Purpose     = "trail_for_${var.vpc_name}_data_bucket"
   }
+
+  lifecycle {
+    ignore_changes = ["*"]
+  }
 }
 

@@ -43,13 +43,13 @@ data "aws_vpc_endpoint_service" "s3" {
   service = "s3"
 }
 
-resource "aws_vpc_endpoint" "private-s3" {
-  vpc_id = "${aws_vpc.main.id}"
+#resource "aws_vpc_endpoint" "private-s3" {
+#  vpc_id = "${aws_vpc.main.id}"
 
   #service_name = "com.amazonaws.us-east-1.s3"
-  service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
-  route_table_ids = ["${aws_route_table.private_user.id}"]
-}
+#  service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
+#  route_table_ids = ["${aws_route_table.private_user.id}"]
+#}
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.main.id}"
@@ -95,32 +95,32 @@ resource "aws_eip" "nat_gw" {
   vpc = true
 }
 
-resource "aws_route_table" "private_user" {
-  vpc_id = "${aws_vpc.main.id}"
+#resource "aws_route_table" "private_user" {
+#  vpc_id = "${aws_vpc.main.id}"
 
-  route {
-    cidr_block  = "0.0.0.0/0"
-    instance_id = "${module.squid_proxy.squid_id}"
-  }
+#  route {
+#    cidr_block  = "0.0.0.0/0"
+#    instance_id = "${module.squid_proxy.squid_id}"
+#  }
 
-  route {
+#  route {
     # cloudwatch logs route
-    cidr_block     = "54.224.0.0/12"
-    nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
-  }
+#    cidr_block     = "54.224.0.0/12"
+#    nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
+#  }
 
-  route {
+#  route {
     #from the commons vpc to the csoc vpc via the peering connection
-    cidr_block                = "${var.csoc_cidr}"
-    vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
-  }
+#    cidr_block                = "${var.csoc_cidr}"
+#    vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
+#  }
 
-  tags {
-    Name         = "private_user"
-    Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
-  }
-}
+#  tags {
+#    Name         = "private_user"
+#    Environment  = "${var.vpc_name}"
+#    Organization = "Basic Service"
+#  }
+#}
 
 resource "aws_default_route_table" "default" {
   default_route_table_id = "${aws_vpc.main.default_route_table_id}"
@@ -146,10 +146,10 @@ resource "aws_route_table_association" "public" {
   route_table_id = "${aws_route_table.public.id}"
 }
 
-resource "aws_route_table_association" "private_user" {
-  subnet_id      = "${aws_subnet.private_user.id}"
-  route_table_id = "${aws_route_table.private_user.id}"
-}
+#resource "aws_route_table_association" "private_user" {
+#  subnet_id      = "${aws_subnet.private_user.id}"
+#  route_table_id = "${aws_route_table.private_user.id}"
+#}
 
 resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.main.id}"
@@ -167,25 +167,25 @@ resource "aws_subnet" "public" {
   }
 }
 
-resource "aws_subnet" "private_user" {
-  vpc_id                  = "${aws_vpc.main.id}"
-  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 1}.0/24"
-  map_public_ip_on_launch = false
+#resource "aws_subnet" "private_user" {
+#  vpc_id                  = "${aws_vpc.main.id}"
+#  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 1}.0/24"
+#  map_public_ip_on_launch = false
 
   # kube_ subnets are in availability zone [0], so put this in [1]
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+#  availability_zone = "${data.aws_availability_zones.available.names[1]}"
 
-  tags {
-    Name         = "private_user"
-    Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
-  }
+#  tags {
+#    Name         = "private_user"
+#    Environment  = "${var.vpc_name}"
+#    Organization = "Basic Service"
+#  }
 
-  lifecycle {
+#  lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["tags", "availability_zone"]
-  }
-}
+#    ignore_changes = ["tags", "availability_zone"]
+#  }
+#}
 
 #
 # The need is to keep logs for no longer than 5 years so 
@@ -289,6 +289,8 @@ resource "aws_route53_zone" "main" {
   vpc {
     vpc_id  = "${aws_vpc.main.id}"
   }
+  #vpc_id  = "${aws_vpc.main.id}"
+  
   tags {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"

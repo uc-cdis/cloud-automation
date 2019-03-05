@@ -54,6 +54,7 @@ resource "aws_db_instance" "db_fence" {
 
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = ["*"]
   }
 }
 
@@ -84,6 +85,7 @@ resource "aws_db_instance" "db_gdcapi" {
 
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = ["*"]
   }
 }
 
@@ -114,6 +116,7 @@ resource "aws_db_instance" "db_indexd" {
 
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = ["*"]
   }
 }
 
@@ -155,6 +158,10 @@ resource "aws_db_parameter_group" "rds-cdis-pg" {
   parameter {
     name  = "random_page_cost"
     value = "0.7"
+  }
+
+  lifecycle {
+    ignore_changes  = ["*"]
   }
 }
 
