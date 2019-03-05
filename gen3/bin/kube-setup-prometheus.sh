@@ -14,7 +14,38 @@ if [[ -n "$JENKINS_HOME" ]]; then
 fi
 
 
+function delete_prometheus()
+{
+      gen3 arun helm delete prometheus
+      gen3 arun helm del --purge prometheus
+}
 
+function delete_grafana()
+{
+      gen3 arun helm delete grafana
+      gen3 arun helm del --purge grafana
+}
+
+function create_grafana_secrets()
+{
+
+  if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    creds="admin-user=admin,admin-password=$(base64 /dev/urandom | head -c 12)"
+    #$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
+    if [[ "$creds" != null ]]; then
+      echo "[default]" > "$credsFile"
+      IFS=',' read -ra CREDS <<< "$creds"
+      for i in "${CREDS[@]}"; do
+        echo ${i} >> "$credsFile"
+      done
+      g3kubectl create secret generic grafana-admin "--from-file=credentials=${credsFile}"
+      rm -f ${credsFile}
+    else
+      echo "WARNING: there was an error creating the secrets for grafana"
+    fi
+  fi
+}
 
 function deploy_prometheus()
 {
@@ -31,8 +62,7 @@ function deploy_prometheus()
 
     if ( g3kubectl --namespace=prometheus get deployment prometheus-server > /dev/null 2>&1);
     then
-      gen3 arun helm delete prometheus
-      gen3 arun helm del --purge prometheus
+      delete_prometheus
     fi
     # We need to give helm permission to do certain stuff for us, including some admin access so we can deploy prometheus
     g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/helm-rbac.yaml"
@@ -48,33 +78,18 @@ function deploy_prometheus()
 
 function deploy_grafana()
 {
-    if (! g3kubectl get namespace grafana > /dev/null 2>&1);
-    then
-      g3kubectl create namespace grafana
-    fi
-
-  # curl -o grafana-values.yaml https://raw.githubusercontent.com/helm/charts/master/stable/grafana/values.yaml
-  if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
-    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    creds="grafana-admin-user=admin,grafana-admin-password=$(base64 /dev/urandom | head -c 12)"
-    #$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
-    if [[ "$creds" != null ]]; then
-      echo "[default]" > "$credsFile"
-      IFS=',' read -ra CREDS <<< "$creds"
-      for i in "${CREDS[@]}"; do
-        echo ${i} >> "$credsFile"
-      done
-      g3kubectl create secret generic grafana-admin "--from-file=credentials=${credsFile}"
-    else
-      echo "WARNING: there was an error creating the secrets for grafana"
-    fi
+  if (! g3kubectl get namespace grafana > /dev/null 2>&1);
+  then
+    g3kubectl create namespace grafana
   fi
+
+  create_grafana_secrets
+  # curl -o grafana-values.yaml https://raw.githubusercontent.com/helm/charts/master/stable/grafana/values.yaml
 
   if (! g3kubectl --namespace=grafana get deployment grafana > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
     if ( g3kubectl --namespace=grafana get deployment grafana > /dev/null 2>&1);
     then
-      gen3 arun helm delete grafana
-      gen3 arun helm del --purge grafana
+      delete_grafana
     fi
     
     gen3 arun helm install -f "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" stable/grafana --name grafana --namespace grafana

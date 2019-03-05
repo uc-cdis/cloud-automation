@@ -149,7 +149,7 @@ persistence:
 
 # Administrator credentials when not using an existing secret (see below)
 adminUser: admin
-# adminPassword: strongpassword
+#adminPassword: strongpassword
 
 # Use an existing secret for the admin user.
 admin:
@@ -272,6 +272,9 @@ grafana.ini:
     mode: console
   grafana_net:
     url: https://grafana.net
+  server:
+    domain: 'fauziv1.planx-pla.net'
+    root_url: '%(protocol)s://%(domain)s/grafana/'
 ## LDAP Authentication can be enabled with the following values on grafana.ini
 ## NOTE: Grafana will fail to start if the value for ldap.toml is invalid
   # auth.ldap:

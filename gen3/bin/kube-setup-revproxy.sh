@@ -42,6 +42,19 @@ then
 fi
 
 #echo "${confFileList[@]}" $BASHPID
+if g3kubectl get namespace grafana > /dev/null 2>&1;
+then
+  for grafana in $(g3kubectl get services -n grafana -o jsonpath='{.items[*].metadata.name}');
+  do
+    filePath="$scriptDir/gen3.nginx.conf/${grafana}.conf"
+  #echo "$filePath"
+  if [[ -f "$filePath" ]]; then
+    #echo "$filePath exists in $BASHPID!"
+    confFileList+=("--from-file" "$filePath")
+    #echo "${confFileList[@]}"
+  fi
+  done
+fi
 
 gen3 kube-setup-secrets
 gen3 update_config revproxy-nginx-conf "${scriptDir}/nginx.conf"
