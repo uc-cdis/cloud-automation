@@ -280,7 +280,7 @@ EOM
   if [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
     cat - <<EOM
 bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/[_\.]/-/g')-gen3"
-environment="$(echo "$GEN3_WORKSPACE" | sed 's/_databucket$//')"
+environment="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
 EOM
     return 0
   fi

@@ -166,6 +166,7 @@ data "aws_cloudwatch_log_group" "logs_destination" {
 # the trail so it can write cloudwatch
 
 resource "aws_iam_role" "cloudtrail_writer" {
+  count = "${var.cloud_trail_count}"
   name = "cwl_writer_${local.clean_bucket_name}"
   path = "/"
 
@@ -201,12 +202,14 @@ data "aws_iam_policy_document" "trail_policy" {
 }
 
 resource "aws_iam_policy" "trail_writer" {
+  count       = "${var.cloud_trail_count}"
   name        = "trail_write_to_cw_${data.aws_cloudwatch_log_group.logs_destination.name}"
   description = "Read or write     ${data.aws_cloudwatch_log_group.logs_destination.name}"
   policy      = "${data.aws_iam_policy_document.trail_policy.json}"
 }
 
 resource "aws_iam_role_policy_attachment" "trail_writer_role" {
+  count      = "${var.cloud_trail_count}"
   role       = "${aws_iam_role.cloudtrail_writer.name}"
   policy_arn = "${aws_iam_policy.trail_writer.arn}"
 }
@@ -215,6 +218,7 @@ resource "aws_iam_role_policy_attachment" "trail_writer_role" {
 # first we need to create a trail in cloudtrail
 
 resource "aws_cloudtrail" "logger_trail" {
+  count                         = "${var.cloud_trail_count}"
   name                          = "${local.clean_bucket_name}-trail"
   s3_bucket_name                = "${module.cdis_s3_logs.log_bucket_name}"
   s3_key_prefix                 = "trailLogs"
