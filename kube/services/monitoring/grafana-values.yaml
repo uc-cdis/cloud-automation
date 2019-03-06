@@ -138,24 +138,33 @@ extraContainers: |
 ##
 persistence:
   enabled: false
-  initChownData: true
+  #initChownData: true
   storageClassName: prometheus
-  accessModes:
-    - ReadWriteOnce
-  size: 10Gi
+  #accessModes:
+  #  - ReadWriteOnce
+  #size: 10Gi
   # annotations: {}
   # subPath: ""
   # existingClaim:
 
+#auth.google:
+#  enabled: true
+#  client_id:
+#  client_secret:
+#  scopes: https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email
+#  auth_url: https://accounts.google.com/o/oauth2/auth
+#  token_url: https://accounts.google.com/o/oauth2/token
+#  allowed_domains: uchicago.edu vpodc.org
+
 # Administrator credentials when not using an existing secret (see below)
 adminUser: admin
-#adminPassword: strongpassword
+adminPassword: strongpassword
 
 # Use an existing secret for the admin user.
-admin:
-  existingSecret: "grafana-admin"
-  userKey: grafana-admin-user
-  passwordKey: grafana-admin-password
+#admin:
+#  existingSecret: "grafana-admin"
+#  userKey: admin-user
+#  passwordKey: admin-password
 
 ## Use an alternate scheduler, e.g. "stork".
 ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
@@ -200,7 +209,7 @@ datasources:
     datasources:
     - name: Prometheus
       type: prometheus
-      url: http://prometheus-server.prometheus.svc.cluster.local
+      url: http://prometheus-server.prometheus.svc.cluster.local/prometheus
       access: proxy
       isDefault: true
 

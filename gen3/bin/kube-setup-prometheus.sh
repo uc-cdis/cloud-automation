@@ -83,7 +83,10 @@ function deploy_grafana()
     g3kubectl create namespace grafana
   fi
 
-  create_grafana_secrets
+  #create_grafana_secrets
+  tmpGrafanaValues=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+  adminPass=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
+  yq '.adminPassword = "'${adminPass}'"' "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" --yaml-output > ${tmpGrafanaValues}
   # curl -o grafana-values.yaml https://raw.githubusercontent.com/helm/charts/master/stable/grafana/values.yaml
 
   if (! g3kubectl --namespace=grafana get deployment grafana > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
@@ -92,7 +95,8 @@ function deploy_grafana()
       delete_grafana
     fi
     
-    gen3 arun helm install -f "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" stable/grafana --name grafana --namespace grafana
+    #gen3 arun helm install -f "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" stable/grafana --name grafana --namespace grafana
+    gen3 arun helm install -f "${tmpGrafanaValues}" stable/grafana --name grafana --namespace grafana
   else
     echo "Grafana is already installed, use --force to try redeploying"
   fi

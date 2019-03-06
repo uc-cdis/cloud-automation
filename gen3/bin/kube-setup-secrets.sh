@@ -418,3 +418,20 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
   # Avoid doing previous block more than once or when not necessary ...
   touch .rendered_gdcapi_db .rendered_indexd_userdb
 fi
+
+if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
+  credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+  creds="$(base64 /dev/urandom | head -c 12)"
+  if [[ "$creds" != null ]]; then
+    #IFS=',' read -ra CREDS <<< "$creds"
+    #for i in "${CREDS[@]}"; do
+      #echo ${i} >> "$credsFile"
+    #done
+    echo ${creds} > ${credsFile}
+    g3kubectl create secret generic grafana-admin "--from-file=credentials=${credsFile}"
+    #shred ${credsFile}
+    rm -f ${credsFile}
+  else
+    echo "WARNING: there was an error creating the secrets for grafana"
+  fi
+fi
