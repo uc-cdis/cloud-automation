@@ -98,5 +98,6 @@ fi
     echo "WARNING: /var/run/gen3/uwsgi.sock does not exist!!!"
   fi
   run uwsgi --ini /etc/uwsgi/uwsgi.ini
-)
+) &
+nginx -g 'daemon off;'
 wait
