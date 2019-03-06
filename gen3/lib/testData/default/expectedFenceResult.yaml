@@ -65,14 +65,14 @@ spec:
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
-            path: /jwt/keys
+            path: /_status
             port: 80
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
         readinessProbe:
           httpGet:
-            path: /jwt/keys
+            path: /_status
             port: 80
         ports:
         - containerPort: 80

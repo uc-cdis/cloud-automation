@@ -289,7 +289,6 @@ resource "aws_route53_zone" "main" {
   vpc {
     vpc_id  = "${aws_vpc.main.id}"
   }
-
   tags {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"

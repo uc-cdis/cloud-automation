@@ -105,6 +105,7 @@ spec:
             args:
               - "-c"
               - |
+                echo 'options use-vc' >> /etc/resolv.conf
                 fence-create google-init
                 if [[ $? != 0 ]]; then
                   echo "WARNING: non zero exit code: $?"

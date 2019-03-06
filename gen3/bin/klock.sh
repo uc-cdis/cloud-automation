@@ -113,7 +113,7 @@ unlock() {
 
   # create locks ConfigMap if it does not already exist, and set the lock we are 
   # currently trying to lock to unlocked with no owner
-  if ! g3kubectl get configmaps locks; then
+  if ! g3kubectl get configmaps locks > /dev/null 2>&1; then
     exit 1
   else 
     if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}}") != 'true' ]]; then
