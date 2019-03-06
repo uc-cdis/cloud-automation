@@ -34,9 +34,11 @@ gen3_aws_run() {
 
     # Try to use cached creds if possible
     if [[ -f $gen3CredsCache ]]; then
+      local tPlus5Mins
+      tPlus5Mins=$(($(date +%s) + 300))
       gen3AwsExpire=$(jq -r '.Credentials.Expiration' < $gen3CredsCache)
 
-      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$(date -u +%Y-%m-%dT%H:%M)" ]]; then
+      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$(date --utc --date "@$tPlus5Mins" +%Y-%m-%dT%H:%M)" ]]; then
         cacheIsValid="yes"
       fi
     fi
