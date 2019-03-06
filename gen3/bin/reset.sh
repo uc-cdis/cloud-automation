@@ -6,7 +6,6 @@
 # load gen3 tools and set up for resetting namespace
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
-gen3_load "gen3/lib/kube-setup-init"
 
 
 # lib ---------------------------

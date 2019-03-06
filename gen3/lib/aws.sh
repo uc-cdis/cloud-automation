@@ -36,7 +36,7 @@ gen3_aws_run() {
     if [[ -f $gen3CredsCache ]]; then
       gen3AwsExpire=$(jq -r '.Credentials.Expiration' < $gen3CredsCache)
 
-      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$(date -u +%Y-%m-%dT%H:%M)" ]]; then
+      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$(date --utc --date '+5 mins' +%Y-%m-%dT%H:%M)" ]]; then
         cacheIsValid="yes"
       fi
     fi
