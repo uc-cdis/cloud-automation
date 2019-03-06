@@ -32,12 +32,9 @@ then
   for prometheus in $(g3kubectl get services -n prometheus -o jsonpath='{.items[*].metadata.name}');
   do
     filePath="$scriptDir/gen3.nginx.conf/${prometheus}.conf"
-  #echo "$filePath"
-  if [[ -f "$filePath" ]]; then
-    #echo "$filePath exists in $BASHPID!"
-    confFileList+=("--from-file" "$filePath")
-    #echo "${confFileList[@]}"
-  fi
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
   done
 fi
 
@@ -49,14 +46,12 @@ then
     filePath="$scriptDir/gen3.nginx.conf/${grafana}.conf"
     touch "${XDG_RUNTIME_DIR}/${grafana}.conf"
     tmpCredsFile="${XDG_RUNTIME_DIR}/${grafana}.conf"
-    echo ${tmpCredsFile}
     adminPass=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
     adminCred=$(echo -n "admin:${adminPass}" | base64 --wrap=0)
     sed "s/CREDS/${adminCred}/" ${filePath} > ${tmpCredsFile}
     if [[ -f "${tmpCredsFile}" ]]; then
       confFileList+=("--from-file" "${tmpCredsFile}")
     fi
-    echo "made it here"
     #rm -f ${tmpCredsFile}
   done
 fi

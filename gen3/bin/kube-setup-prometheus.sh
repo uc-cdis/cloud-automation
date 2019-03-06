@@ -31,14 +31,9 @@ function create_grafana_secrets()
 
   if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    creds="admin-user=admin,admin-password=$(base64 /dev/urandom | head -c 12)"
-    #$(jq -r ".es|tostring" < creds.json |sed -e 's/[{-}]//g' -e 's/"//g' -e 's/:/=/g')
+    creds="$(base64 /dev/urandom | head -c 12)"
     if [[ "$creds" != null ]]; then
-      echo "[default]" > "$credsFile"
-      IFS=',' read -ra CREDS <<< "$creds"
-      for i in "${CREDS[@]}"; do
-        echo ${i} >> "$credsFile"
-      done
+      echo ${creds} >> "$credsFile"
       g3kubectl create secret generic grafana-admin "--from-file=credentials=${credsFile}"
       rm -f ${credsFile}
     else
