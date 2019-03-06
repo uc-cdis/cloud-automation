@@ -57,7 +57,7 @@ pipeline {
     stage('base image dockerrun.sh test') {
       steps {
         dir('Docker/python-nginx/python2.7-alpine3.7') {
-          sh 'dockerrun.sh --dryrun=True'
+          sh 'sh dockerrun.sh --dryrun=True'
         }
       }
     }
