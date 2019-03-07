@@ -14,7 +14,8 @@ set -e
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-current_namespace=$(g3kubectl config view -o jsonpath={.contexts[].context.namespace})
+#current_namespace=$(g3kubectl config view -o jsonpath={.contexts[].context.namespace})
+current_namespace=$(gen3 db namespace)
 
 scriptDir="${GEN3_HOME}/kube/services/revproxy"
 declare -a confFileList=()
