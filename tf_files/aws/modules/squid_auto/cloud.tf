@@ -157,21 +157,21 @@ resource "aws_subnet" "squid_pub2" {
 resource "aws_subnet" "squid_pub3" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   cidr_block              =  "${cidrsubnet("${var.squid_proxy_subnet}",3,3)}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = "${data.aws_availability_zones.available.names[3]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub0", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub4" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   cidr_block              =   "${cidrsubnet("${var.squid_proxy_subnet}",3,4)}"
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  availability_zone = "${data.aws_availability_zones.available.names[4]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub1", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub5" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   cidr_block              =   "${cidrsubnet("${var.squid_proxy_subnet}",3,5)}"
-  availability_zone = "${data.aws_availability_zones.available.names[2]}"
+  availability_zone = "${data.aws_availability_zones.available.names[5]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub2", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
