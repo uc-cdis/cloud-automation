@@ -15,7 +15,7 @@ gen3 kube-setup-secrets
 
 # deploy manifest-service
 gen3 roll manifest_service
-g3kubectl apply -f "${GEN3_HOME}/kube/services/sheepdog/manifest-service-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/manifest_service/manifest-service-service.yaml"
 
 cat <<EOM
 The manifest service has been deployed onto the k8s cluster.
