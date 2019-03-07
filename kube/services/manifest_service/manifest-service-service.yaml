@@ -1,0 +1,14 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: manifest_service-service
+spec:
+  selector:
+    app: manifest_service
+    release: production
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+      name: https
+  type: NodePort
