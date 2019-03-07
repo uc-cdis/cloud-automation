@@ -8,5 +8,5 @@ test_logs() {
 if [[ -n "$LOGPASSWORD" ]]; then
   shunit_runtest "test_logs" "logs,local"
 else
-  gen3_log_err "test_logs" "skipping logs test - LOGPASSWORD not set"
+  gen3_log_info "test_logs" "skipping logs test - LOGPASSWORD not set"
 fi
