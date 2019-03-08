@@ -1,0 +1,12 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  WTS_BINDING
+subjects:
+- kind: ServiceAccount
+  name: workspace-token-service
+  CURRENT_NAMESPACE
+roleRef:
+  kind: ClusterRole
+  name: workspace-token-service
+  apiGroup: ""

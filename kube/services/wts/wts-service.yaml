@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: workspace-token-service
+spec:
+  selector:
+    app: wts
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: http
+    - protocol: TCP
+      port: 443
+      targetPort: 443
+      name: https

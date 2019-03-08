@@ -1,0 +1,72 @@
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: wts-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: wts
+      release: production
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: wts
+        release: production
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - wts
+              topologyKey: "kubernetes.io/hostname"
+      terminationGracePeriodSeconds: 10
+      volumes:
+        - name: wts-secret
+          secret:
+            secretName: "wts-g3auto"
+      serviceAccountName: workspace-token-service
+      containers:
+      - name: wts
+        GEN3_WTS_IMAGE
+        ports:
+        - containerPort: 80
+        env:
+        - name: POSTGRES_CREDS_FILE
+          value: "/var/www/wts/dbcreds.json"
+        - name: SECRET_CONFIG
+          value: "/var/www/wts/appcreds.json"
+        - name: AUTH_PLUGINS
+          value: k8s
+        volumeMounts:
+        - name: "wts-secret"
+          readOnly: true
+          mountPath: "/var/www/wts/dbcreds.json"
+          subPath: dbcreds.json
+        - name: "wts-secret"
+          readOnly: true
+          mountPath: "/var/www/wts/appcreds.json"
+          subPath: appcreds.json
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 80
