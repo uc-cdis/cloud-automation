@@ -137,12 +137,12 @@ extraContainers: |
 ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
 ##
 persistence:
-  enabled: false
-  #initChownData: true
+  enabled: true
+  initChownData: true
   storageClassName: prometheus
-  #accessModes:
-  #  - ReadWriteOnce
-  #size: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
   # annotations: {}
   # subPath: ""
   # existingClaim:
