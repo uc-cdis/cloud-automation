@@ -249,7 +249,7 @@ gen3_gitops_configmaps() {
 declare -a gen3_gitops_repolist_arr=(
   uc-cdis/arborist
   uc-cdis/fence
-  uc-cdis/manifest_service
+  uc-cdis/manifestservice
   uc-cdis/peregrine
   uc-cdis/gen3-arranger
   uc-cdis/gen3-spark

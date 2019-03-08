@@ -1,12 +1,12 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: manifest-service-deployment
+  name: manifestservice-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: manifest_service
+      app: manifestservice
       release: production
   revisionHistoryLimit: 2
   strategy:
@@ -17,7 +17,7 @@ spec:
   template:
     metadata:
       labels:
-        app: manifest_service
+        app: manifestservice
         release: production
         GEN3_DATE_LABEL
     spec:
@@ -31,49 +31,37 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - manifest_service
+                  - manifestservice
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:
-            secretName: "manifest-service-secret"
-        - name: creds-volume
-          secret:
             secretName: "manifestservice-g3auto"
-        - name: config-helper
-          configMap:
-            name: config-helper
         - name: cert-volume
           secret:
-            secretName: "cert-manifest-service-service"
+            secretName: "cert-manifestservice-service"
         - name: ca-volume
           secret:
             secretName: "service-ca"
       terminationGracePeriodSeconds: 50
       containers:
-        - name: manifest_service
-          GEN3_MANIFEST_SERVICE_IMAGE
-          livenessProbe:
-            httpGet:
-              path: /_status?timeout=20
-              port: 80
-            initialDelaySeconds: 30
-            periodSeconds: 60
-            timeoutSeconds: 30
-          readinessProbe:
-            httpGet:
-              path: /_status?timeout=2
-              port: 80
-          ports:
-          - containerPort: 80
-          - containerPort: 443
+        - name: manifestservice
+          #GEN3_SHEEPDOG_IMAGE
+          GEN3_MANIFESTSERVICE_IMAGE
+          #livenessProbe:
+          #  httpGet:
+          #    path: /_status?timeout=20
+          #    port: 80
+          #  initialDelaySeconds: 30
+          #  periodSeconds: 60
+          #  timeoutSeconds: 30
+          #readinessProbe:
+          #  httpGet:
+          #    path: /_status?timeout=2
+          #ports:
+          #- containerPort: 80
           env:
-          - name: DICTIONARY_URL
-            valueFrom:
-              configMapKeyRef:
-                name: manifest-global
-                key: dictionary_url
           - name: REQUESTS_CA_BUNDLE
             #
             # override python 'requests' SSL certificate bundle
@@ -81,21 +69,14 @@ spec:
             # which includes our private certificate authority
             #
             value: /etc/ssl/certs/ca-certificates.crt
+          - name: CONFIG_PATH
+            value: /var/gen3/config/config.json
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
           volumeMounts:
             - name: "config-volume"
               readOnly: true
-              mountPath: "/var/www/manifest_service/wsgi.py"
-              subPath: "wsgi.py"
-            - name: "creds-volume"
-              readOnly: true
-              mountPath: "/var/www/manifest_service/creds.json"
-              subPath: creds.json
-            - name: "config-helper"
-              readOnly: true
-              mountPath: "/var/www/manifest_service/config_helper.py"
-              subPath: config_helper.py  
+              mountPath: "/var/gen3/config/"  
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"
@@ -112,7 +93,7 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 1
+              cpu: 0.5    
             limits:
-              cpu: 2
+              cpu: 1
               memory: 1024Mi

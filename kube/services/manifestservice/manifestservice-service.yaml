@@ -1,14 +1,14 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: manifest_service-service
+  name: manifestservice-service
 spec:
   selector:
-    app: manifest_service
+    app: manifestservice
     release: production
   ports:
     - protocol: TCP
-      port: 5000
-      targetPort: 5000
+      port: 80
+      targetPort: 80
       name: https
-  type: NodePort
+  type: ClusterIP

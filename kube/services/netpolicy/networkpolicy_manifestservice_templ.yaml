@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-manifestservice
+spec:
+  podSelector:
+    matchLabels:
+      app: manifestservice
+  ingress:
+    - from:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+      - podSelector:
+          matchLabels:
+            app: revproxy
+      ports:
+         - port: 80
+  egress:
+    - to:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+  policyTypes:
+   - Ingress
+   - Egress

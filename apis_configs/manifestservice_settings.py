@@ -1,8 +1,8 @@
-from manifest_service.api import app
+from manifestservice.api import app
 from os import environ
 import config_helper
 
-APP_NAME='manifest_service'
+APP_NAME='manifestservice'
 
 def load_json(file_name):
   return config_helper.load_json(file_name, APP_NAME)
