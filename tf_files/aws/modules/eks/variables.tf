@@ -30,3 +30,7 @@ variable "eks_version" {
 variable "deploy_jupyter_pool" {
   default = "no"
 }
+
+variable "workers_subnet_size" {
+  default = 24
+}
