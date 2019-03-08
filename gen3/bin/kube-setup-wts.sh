@@ -27,13 +27,6 @@ setup_creds() {
         client_secret="${BASH_REMATCH[3]}"
         encryption_key="$(random_alphanumeric 32 | base64)"
         secret_key="$(random_alphanumeric 32 | base64)"
-        if ! g3kubectl get secret wts-g3auto > /dev/null 2>&1; then
-            echo "create database"
-            if ! gen3 db setup wts; then
-                echo "Failed setting up database for workspace token service"
-                exit 1
-            fi
-        fi
         echo "create wts-secret"
         mkdir -m 0700 -p "$(gen3_secrets_folder)/g3auto/wts"
         cat - > "$credsPath" <<EOM
@@ -46,6 +39,14 @@ setup_creds() {
             "wts_base_url": "https://${hostname}/wts/"
         }
 EOM
+        gen3 secrets sync
+    fi
+
+    if ! g3kubectl get secret wts-g3auto | grep dbcreds.json > /dev/null 2>&1; then
+        echo "create database"
+        if ! gen3 db setup wts; then
+            echo "Failed setting up database for workspace token service"
+        fi
         gen3 secrets sync
     fi
 }
