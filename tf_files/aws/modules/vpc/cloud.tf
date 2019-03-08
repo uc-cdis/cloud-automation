@@ -25,7 +25,8 @@ module "fence-bot-user" {
 }
 
 resource "aws_vpc" "main" {
-  cidr_block           = "172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"
+  #cidr_block           = "172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"
+  cidr_block           = "${var.vpc_cidr_block}"
   enable_dns_hostnames = true
 
   tags {
@@ -153,7 +154,8 @@ resource "aws_route_table_association" "public" {
 
 resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.main.id}"
-  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 0}.0/24"
+  #cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 0}.0/24"
+  cidr_block              = "${cidrsubnet(var.vpc_cidr_block,4,0)}"
   map_public_ip_on_launch = true
 
   # kube_ subnets are in availability zone [0], so put this in [1]

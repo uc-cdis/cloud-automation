@@ -5,14 +5,17 @@ variable "ami_account_id" {
 
 variable "vpc_name" {}
 
-variable "vpc_octet2" {
-  default = 24
-}
+#variable "vpc_octet2" {
+#  default = 24
+#}
 
-variable "vpc_octet3" {
-  default = 17
-}
+#variable "vpc_octet3" {
+#  default = 17
+#}
 
+variable "vpc_cidr_block" {
+  default = "172.24.17.0/20"
+}
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {}
@@ -32,4 +35,4 @@ variable "csoc_vpc_id" {
 
 variable "squid-nlb-endpointservice-name" {
   default = "com.amazonaws.vpce.us-east-1.vpce-svc-0ce2261f708539011"
-  }
+}
