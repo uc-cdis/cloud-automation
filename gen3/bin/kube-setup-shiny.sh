@@ -8,7 +8,7 @@ set -e
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-cd "${WORKSPACE}/${vpc_name}"
+cd "$(gen3_secrets_folder)"
 
 if ! g3kubectl get secrets/shiny-secret > /dev/null 2>&1; then
   if [[ ! -f ./apis_configs/shiny_credentials.json ]]; then

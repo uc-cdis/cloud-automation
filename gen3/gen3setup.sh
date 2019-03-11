@@ -155,6 +155,12 @@ gen3_run() {
     )
     resultCode=$?
     ;;
+  psql) # support legacy psql
+    (
+      gen3_run db psql "$@"
+    )
+    resultCode=$?
+    ;;
   runjob) # support legacy runjob
     (
       gen3_run job run "$@"
@@ -173,9 +179,10 @@ gen3_run() {
     else
       # Maybe it's a g3k command
       g3k "$commandStr" "$@"
-      if [[ $? -eq 2 ]]; then
+      resultCode=$?
+      if [[ $resultCode -eq 2 ]]; then
         echo "ERROR unknown command $commandStr"
-        scriptName=usage.sh
+        bash "$GEN3_HOME/gen3/bin/usage.sh" "$commandStr"
       fi
     fi
     ;;

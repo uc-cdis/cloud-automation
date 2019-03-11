@@ -36,7 +36,7 @@ gen3_aws_run() {
     if [[ -f $gen3CredsCache ]]; then
       gen3AwsExpire=$(jq -r '.Credentials.Expiration' < $gen3CredsCache)
 
-      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$(date -u +%Y-%m-%dT%H:%M)" ]]; then
+      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$(date --utc --date '+5 mins' +%Y-%m-%dT%H:%M)" ]]; then
         cacheIsValid="yes"
       fi
     fi
@@ -158,6 +158,8 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_management-logs"
   elif [[ "$GEN3_WORKSPACE" =~ _management-logs$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/account_management-logs"
+  elif [[ "$GEN3_WORKSPACE" =~ _squidauto$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_auto"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -253,6 +255,17 @@ EOM
     return 0
   fi
 
+  if [[ "$GEN3_WORKSPACE" =~ _squidauto$ ]]; then
+    # rds snapshot vpc is simpler ...
+    commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_snapshot$//')
+    cat - <<EOM
+  env_vpc_name         = "VPC-NAME"
+  vpc_cidr             = "VPC_CIDR"
+  squid_proxy_subnet = "ASSIGNED SUBNET FOR SQUID SET-UP a /24"
+EOM
+    return 0
+  fi
+
   if [[ "$GEN3_WORKSPACE" =~ _logging$ ]]; then
     # rds snapshot vpc is simpler ...
     commonsName=$(echo "$GEN3_WORKSPACE" | sed 's/_logging$//')
@@ -267,7 +280,7 @@ EOM
   if [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
     cat - <<EOM
 bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/[_\.]/-/g')-gen3"
-environment="$(echo "$GEN3_WORKSPACE" | sed 's/_databucket$//')"
+environment="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
 EOM
     return 0
   fi

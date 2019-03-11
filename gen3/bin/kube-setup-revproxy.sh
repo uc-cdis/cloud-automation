@@ -14,6 +14,9 @@ set -e
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+#current_namespace=$(g3kubectl config view -o jsonpath={.contexts[].context.namespace})
+current_namespace=$(gen3 db namespace)
+
 scriptDir="${GEN3_HOME}/kube/services/revproxy"
 declare -a confFileList=()
 confFileList+=("--from-file" "$scriptDir/gen3.nginx.conf/README.md")
@@ -26,7 +29,41 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
     #echo "${confFileList[@]}"
   fi
 done
+
+if g3kubectl get namespace prometheus > /dev/null 2>&1;
+then
+  if [[ $current_namespace == "default" ]];
+  then
+    for prometheus in $(g3kubectl get services -n prometheus -o jsonpath='{.items[*].metadata.name}');
+    do
+      filePath="$scriptDir/gen3.nginx.conf/${prometheus}.conf"
+      if [[ -f "$filePath" ]]; then
+        confFileList+=("--from-file" "$filePath")
+      fi
+    done
+  fi
+fi
+
 #echo "${confFileList[@]}" $BASHPID
+if g3kubectl get namespace grafana > /dev/null 2>&1;
+then
+  if [[ $current_namespace == "default" ]];
+  then
+    for grafana in $(g3kubectl get services -n grafana -o jsonpath='{.items[*].metadata.name}');
+    do
+      filePath="$scriptDir/gen3.nginx.conf/${grafana}.conf"
+      touch "${XDG_RUNTIME_DIR}/${grafana}.conf"
+      tmpCredsFile="${XDG_RUNTIME_DIR}/${grafana}.conf"
+      adminPass=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
+      adminCred=$(echo -n "admin:${adminPass}" | base64 --wrap=0)
+      sed "s/CREDS/${adminCred}/" ${filePath} > ${tmpCredsFile}
+      if [[ -f "${tmpCredsFile}" ]]; then
+        confFileList+=("--from-file" "${tmpCredsFile}")
+      fi
+      #rm -f ${tmpCredsFile}
+    done
+  fi
+fi
 
 gen3 kube-setup-secrets
 gen3 update_config revproxy-nginx-conf "${scriptDir}/nginx.conf"

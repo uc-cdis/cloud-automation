@@ -64,6 +64,12 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: dictionary_url
+          - name: PUBLIC_DATASETS
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: public_datasets
+                optional: true
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
           - name: GEN3_SIDECAR

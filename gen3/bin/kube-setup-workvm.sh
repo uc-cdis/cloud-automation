@@ -106,6 +106,9 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
     sudo mv "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
   fi
+
+  # install "update and reboot" cron job
+  sudo cp "${GEN3_HOME}/files/scripts/updateAndRebootCron" /etc/cron.d/
 fi
 
 if which gcloud > /dev/null 2>&1; then

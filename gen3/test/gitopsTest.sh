@@ -1,17 +1,4 @@
-#
-# Run with: bash g3k_testsuite.sh
-#
-# NOTE: The tests in this testsuite.sh require a particular test environment
-# that can run terraform and interact with kubernetes.
-# The tests in g3k_testsuite.sh should run anywhere.
-#
-#
-source "$GEN3_HOME/gen3/lib/utils.sh"
-
 export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
-
-gen3_load "gen3/lib/shunit"
-gen3_load "gen3/gen3setup"
 
 test_semver() {
   semver_ge "1.1.1" "1.1.0"; because $? "1.1.1 -ge 1.1.0"
@@ -221,23 +208,24 @@ test_time_since() {
   gen3_time_since test_time_since is 5; because $? "gen3_time_since with 5 second timeout should pass after sleeping 5 seconds"
 }
 
-shunit_runtest "test_semver"
-shunit_runtest "test_colors"
-shunit_runtest "test_env"
-shunit_runtest "test_mpath"
-shunit_runtest "test_mfilter"
-shunit_runtest "test_mlookup"
-shunit_runtest "test_loader"
-shunit_runtest "test_random_alpha"
-shunit_runtest "test_roll"
-shunit_runtest "test_roll_path"
-shunit_runtest "test_configmaps"
-shunit_runtest "test_gitops_taglist"
-shunit_runtest "test_gitops_logs"
-shunit_runtest "test_time_since"
+test_secrets_folder() {
+  vpc_name=SecretName
+  secretFolder="$(gen3_secrets_folder)"
+  [[ "$secretFolder" == "$WORKSPACE/$vpc_name" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
+}
 
-if [[ "$G3K_TESTSUITE_SUMMARY" != "no" ]]; then
-  # little hook, so gen3 testsuite can call through to this testsuite too ...
-  echo "g3k summary"
-  shunit_summary
-fi
+shunit_runtest "test_semver" "local,gitops"
+shunit_runtest "test_colors" "local,gitops"
+shunit_runtest "test_env" "local,gitops"
+shunit_runtest "test_mpath" "local,gitops"
+shunit_runtest "test_mfilter" "local,gitops"
+shunit_runtest "test_mlookup" "local,gitops"
+shunit_runtest "test_loader" "local,gitops"
+shunit_runtest "test_random_alpha" "local,gitops"
+shunit_runtest "test_roll" "local,gitops"
+shunit_runtest "test_roll_path" "local,gitops"
+shunit_runtest "test_configmaps" "local,gitops"
+shunit_runtest "test_gitops_taglist" "local,gitops"
+shunit_runtest "test_gitops_logs" "local,gitops"
+shunit_runtest "test_time_since" "local,gitops"
+shunit_runtest "test_secrets_folder" "local,gitops"

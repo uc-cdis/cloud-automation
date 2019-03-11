@@ -42,16 +42,16 @@ pipeline {
         sh 'cd kube/services/jupyterhub && python3 -m pytest test-jupyterhub_config.py'
       }
     }
-    stage('gen3 psql test') {
-      steps {
-        withEnv(['GEN3_NOPROXY=true', "vpc_name=$env.KUBECTL_NAMESPACE", "GEN3_HOME=$env.WORKSPACE"]) {
-          sh 'echo "SELECT 1" | bash gen3/bin/psql.sh indexd'
-        }
-      } 
-    }
     stage('nginx helper test suite') {
       steps {
         sh 'cd kube/services/revproxy && npx jasmine helpersTest.js'
+      }
+    }
+    stage('base image dockerrun.sh test') {
+      steps {
+        dir('Docker/python-nginx/python2.7-alpine3.7') {
+          sh 'sh dockerrun.sh --dryrun=True'
+        }
       }
     }
     // The following stages are copied from the cdis-jenkins-lib pipeline
