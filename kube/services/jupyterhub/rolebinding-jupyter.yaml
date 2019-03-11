@@ -6,7 +6,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: jupyter-service
-  namespace: default
+  CURRENT_NAMESPACE
 roleRef:
   kind: ClusterRole
   name: jupyter

@@ -69,7 +69,7 @@ spec:
             # which includes our private certificate authority
             #
             value: /etc/ssl/certs/ca-certificates.crt
-          - name: CONFIG_PATH
+          - name: MANIFEST_SERVICE_CONFIG_PATH
             value: /var/gen3/config/config.json
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|

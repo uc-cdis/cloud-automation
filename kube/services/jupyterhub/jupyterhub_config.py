@@ -12,7 +12,6 @@ def modify_pod_hook(spawner, pod):
     https://github.com/jupyterhub/zero-to-jupyterhub-k8s/issues/379
     """
     pod.spec.containers[0].security_context = client.V1SecurityContext(
-        privileged=True,
         capabilities=client.V1Capabilities(
             add=['SYS_ADMIN', 'MKNOD']
         )
@@ -69,14 +68,6 @@ c.KubeSpawner.volume_mounts = [
         'name': 'fuse-{username}{servername}',
     }
 ]
-
-# c.KubeSpawner.lifecycle_hooks = {
-#     "postStart" : {
-#             "exec" : {
-#               "command" : ["sudo", "chmod", "777", "/dev/fuse"]
-#             }
-#         }
-# }
 
 c.KubeSpawner.hub_connect_ip = 'jupyterhub-service.%s' % (os.environ['POD_NAMESPACE'])
 c.KubeSpawner.hub_connect_port = 8000
