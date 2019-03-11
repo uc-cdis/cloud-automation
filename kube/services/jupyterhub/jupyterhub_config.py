@@ -13,7 +13,7 @@ def modify_pod_hook(spawner, pod):
     """
     pod.spec.containers[0].security_context = client.V1SecurityContext(
         capabilities=client.V1Capabilities(
-            add=['SYS_ADMIN', 'MKNOD']
+            add=['SYS_ADMIN']
         )
     )
     return pod
@@ -39,7 +39,7 @@ c.KubeSpawner.mem_limit = '1.5G'
 #c.KubeSpawner.debug = False
 c.KubeSpawner.notebook_dir = '/home/jovyan/pd'
 c.KubeSpawner.uid = 1000
-c.KubeSpawner.fs_gid = 100
+c.KubeSpawner.fs_gid = 1000
 c.KubeSpawner.storage_pvc_ensure = True
 c.KubeSpawner.storage_capacity = '10Gi'
 c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
@@ -68,13 +68,13 @@ c.KubeSpawner.volume_mounts = [
         'name': 'fuse-{username}{servername}',
     }
 ]
-
 c.KubeSpawner.hub_connect_ip = 'jupyterhub-service.%s' % (os.environ['POD_NAMESPACE'])
 c.KubeSpawner.hub_connect_port = 8000
 c.KubeSpawner.profile_list = [
     {
         'display_name': 'Bioinfo - Python/R - 0.5 CPU 256M Mem',
         'kubespawner_override': {
+            # TODO: Change this back. But need this here for now for integration test purposes.
             'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:feat_install-gen3-fuse-2',
             'cpu_limit': 0.5,
             'mem_limit': '256M',
@@ -106,14 +106,10 @@ c.KubeSpawner.profile_list = [
     }
 ]
 c.KubeSpawner.image_pull_policy = "Always" 
-
-
 c.KubeSpawner.modify_pod_hook = modify_pod_hook
-
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-prefix=https://%s%s/' % (
     c.KubeSpawner.hub_connect_ip, c.KubeSpawner.hub_connect_port, c.JupyterHub.base_url, os.environ['HOSTNAME'], c.JupyterHub.base_url)]
-
 # First pulls can be really slow, so let's give it a big timeout
 c.KubeSpawner.start_timeout = 60 * 10
 c.KubeSpawner.tolerations = [ 
