@@ -136,7 +136,7 @@ sudo chown -R sftpuser. /home/sftpuser
 
 sudo cp  ${SUB_FOLDER}flavors/squid_auto/updatewhitelist.sh /home/ubuntu
 
-
+sudo cp  ${SUB_FOLDER}flavors/squid_auto/healthcheck_status.sh /home/ubuntu
 
 
 sudo chmod +x /home/ubuntu/updatewhitelist.sh
@@ -144,13 +144,15 @@ sudo chmod +x /home/ubuntu/updatewhitelist.sh
 ##Updating the route table and the cloud-proxy dns entry
 sudo chmod +x /home/ubuntu/proxy_route53_config.sh
 sudo chmod +x /home/ubuntu/default_ip_route_and_instance_check_config.sh
-
+sudo chmod +x /home/ubuntu/healthcheck_status.sh
 
 
 
 crontab -l > file; echo '*/15 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file
+crontab -l > file1; echo '* * * * * for i in {1..60}; do sudo bash /home/ubuntu/health_check.sh ; sleep 5; done >/dev/null 2>&1' >> file1
 sudo chown -R ubuntu. /home/ubuntu/
 crontab file
+crontab file1
 
 cd /home/ubuntu
 
