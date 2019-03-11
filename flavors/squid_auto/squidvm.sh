@@ -149,7 +149,7 @@ sudo chmod +x /home/ubuntu/healthcheck_status.sh
 
 
 crontab -l > file; echo '*/15 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file
-crontab -l > file1; echo '* * * * * for i in {1..60}; do sudo bash /home/ubuntu/health_check.sh ; sleep 5; done >/dev/null 2>&1' >> file1
+crontab -l > file1; echo '* * * * * for i in {1..12}; do /home/ubuntu/health_check.sh ; sleep 5; done >/dev/null 2>&1' >> file1
 sudo chown -R ubuntu. /home/ubuntu/
 crontab file
 crontab file1
