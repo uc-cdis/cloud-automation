@@ -33,8 +33,8 @@ spec:
           - -c
           - echo "Pulling complete"
       - name: image-pull-bio
-        image: quay.io/occ_data/jupyternotebook:1.7.2
-        imagePullPolicy: IfNotPresent
+        image: quay.io/occ_data/jupyternotebook:feat_install-gen3-fuse-2
+        imagePullPolicy: Always
         command:
           - /bin/sh
           - -c
