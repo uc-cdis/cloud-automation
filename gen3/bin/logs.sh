@@ -8,7 +8,7 @@ gen3_load "gen3/gen3setup"
 
 LOGHOST="${LOGHOST:-https://kibana.planx-pla.net}"
 LOGUSER="${LOGUSER:-kibanaadmin}"
-LOGPASSWORD="${LOGPASSWORD:-""}"
+LOGPASSWORD="${LOGPASSWORD:-"deprecated"}"
 
 if [[ -z "$vpc_name" ]]; then
   vpc_name="$(g3kubectl get configmap global -o json | jq -r .data.environment)"
@@ -37,6 +37,7 @@ gen3LogsVpcList=(
     "stageprod gen3.datastage.io"
     "vadcprod vpodc.org"
     "ibdgc-prod ibdgc.datacommons.io"
+    "ncicrdcdemo nci-crdc-demo.datacommons.io"
 )
 
 #
@@ -313,7 +314,10 @@ $queryStr
 
 --------------------------
 EOM
-    gen3_logs_curl "_all/_search?pretty=true" "-d@$queryFile" > $jsonFile
+    if ! gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d@$queryFile" > $jsonFile; then
+      rm "$queryFile" "$jsonFIle"
+      return 1
+    fi
     rm "$queryFile"
     # check integrity of result
     errStr="$(jq -r .error < "$jsonFile")"
@@ -360,8 +364,16 @@ EOM
   fi
 }
 
+#
+# Little wrapper around curl that always passes '-s', '-u user:password', '-H Content-Tpe application/json',
+# plus other args passed as inputs
+#
+# @param path under $LOGHOST/ to curl
+# @param ... other curl args
+#
 gen3_logs_curl() {
   local path
+  local fullPath
 
   if [[ $# -gt 0 ]]; then
     path="$1"
@@ -369,11 +381,87 @@ gen3_logs_curl() {
   else
     path="_cat/indices"
   fi
-  gen3_log_info "gen3_logs_curl" "$LOGHOST/$path"
-  curl -s -u "${LOGUSER}:${LOGPASSWORD}" -H 'Content-Type: application/json' "$LOGHOST/$path" "$@"
+  if [[ "$path" =~ ^https?:// ]]; then
+    fullPath="$path"
+  else
+    fullPath="$LOGHOST/$path"
+  fi
+  gen3_log_info "gen3_logs_curl" "$fullPath"
+  curl -s -u "${LOGUSER}:${LOGPASSWORD}" -H 'Content-Type: application/json' "$fullPath" "$@"
 }
 
+
+#
+# Same as gen3_logs_curl, but passes -i, and fails if  HTTP result is not 200 - sending output to stderr
+#
+gen3_logs_curl200() {
+  local tempFile
+  local result
+  local path
+  local httpStatus
+  tempFile="$(mktemp "$XDG_RUNTIME_DIR/curl.json_XXXXXX")"
+  result=0
+  path="$1"
+  if ! gen3_logs_curl "$@" -i > "$tempFile"; then
+    gen3_log_err "gen3_logs_curl200" "non-zero exit from curl $path"
+    cat "$tempFile" 1>&2
+    result=1
+  elif (head -1 "$tempFile" | grep -e '^HTTP' > /dev/null 2>&1) && httpStatus="$(head -1 "$tempFile" | awk '{ print $2 }')" && [[ "$httpStatus" == 200  || "$httpStatus" == 201 ]]; then
+    # looks like HTTP/.. 200!
+    awk '(body == "true") { print $0 }; /^[\r\n\s]*$/ { body="true" }' < "$tempFile"
+    result=0
+  else
+    gen3_log_err "gen3_logs_curl200" "non-200 from curl $path"
+    cat "$tempFile" 1>&2
+    result=1
+  fi
+  rm "$tempFile"
+  return $result      
+}
+
+#
+# Same as gen3_logs_curl200, but passes the output through 'jq -e -r .'
+# to verify, and returns that exit code.  On failure sends output to stderr instead of stdout
+#
+gen3_logs_curljson() {
+  local tempFile
+  local result
+  local path
+  tempFile="$(mktemp "$XDG_RUNTIME_DIR/curl.json_XXXXXX")"
+  result=0
+  path="$1"
+  if ! gen3_logs_curl200 "$@" > "$tempFile"; then
+    result=1
+  elif jq -e -r . < "$tempFile" > /dev/null 2>&1; then
+    cat "$tempFile"
+    result=0
+  else
+    result=1
+    gen3_log_err "gen3_logs_curljson" "non json output from $path"
+    cat "$tempFile" 1>&2
+  fi
+  rm "$tempFile"
+  return $result
+}
+
+
 GEN3_AGGS_DAILY="gen3-aggs-daily"
+
+
+gen3_logs_fetch_aggs() {
+  local aggsFile
+  if [[ $# -lt 1 || ! -f "$1" ]]; then
+    gen3_log_err "gen3_logs_fetch_aggs" "must pass aggs file to output results to"
+    return 1
+  fi
+  aggsFile="$1"
+
+  gen3_logs_rawlog_search "aggs=yes" "vpc=all" "start=$dayArg 00:00" "end=$dayArg + 1 day 00:00" > "$aggsFile"
+  gen3_log_info "gen3_logs_fetch_aggs" "verifying query results ..."
+  cat "$aggsFile" 1>&2
+  # this will fail if the data is not json
+  jq -e -r . > /dev/null 2>&1 < "$aggsFile"
+}
 
 #
 # Save per-commons aggregations for yesterday
@@ -398,7 +486,7 @@ gen3_logs_save_daily() {
   indexStatus="$(gen3_logs_curl "$GEN3_AGGS_DAILY" -X HEAD | grep HTTP | awk '{ print $2 }')"
   if [[ "$indexStatus" != 200 ]]; then
     # setup aggregations index
-    gen3_logs_curl "$GEN3_AGGS_DAILY" -i -X PUT -d'
+    gen3_logs_curl200 "$GEN3_AGGS_DAILY" -X PUT -d'
 {
     "mappings": {
       "infodoc": {
@@ -424,7 +512,13 @@ gen3_logs_save_daily() {
   aggsFile="$(mktemp "$XDG_RUNTIME_DIR/aggs.json_XXXXXX")"
   docFile="$(mktemp "$XDG_RUNTIME_DIR/doc.json_XXXXXX")"
 
-  gen3_logs_rawlog_search "aggs=yes" "vpc=all" "start=$dayArg 00:00" "end=$dayArg + 1 day 00:00" > "$aggsFile"
+  # ES is a bit flaky - retry a couple times
+  if ! gen3_retry gen3_logs_fetch_aggs "$aggsFile"; then
+    gen3_log_err "gen3_logs_daily_save" "failed to retrieve aggregations"
+    rm "$aggsFile"
+    return 1
+  fi
+
   for vpcName in $(jq -r '.aggregations.vpc.buckets | map(.key) | join("\n")' < "$aggsFile"); do
     docId="${dayKey}-${vpcName}"
     # fetch the data for this vpc
@@ -445,13 +539,17 @@ gen3_logs_save_daily() {
 EOM
       gen3_log_info "gen3_logs_save_daily" "saving $docId"
       # update the document
-      gen3_logs_curl "$GEN3_AGGS_DAILY/infodoc/${docId}?pretty=true" -i -X PUT "-d@$docFile" 1>&2
+      if ! gen3_retry gen3_logs_curl200 "$GEN3_AGGS_DAILY/infodoc/${docId}?pretty=true" -i -X PUT "-d@$docFile" 1>&2; then
+        gen3_logs_err "gen3_logs_save_daily" "failed to save user count for vpc $vpcName"
+      fi
     else
       gen3_log_err "gen3_logs_save_daily" "failed to extract user count for vpc $vpcName"
     fi
   done
   rm "$aggsFile"
-  rm "$docFile"
+  if [[ -f "$docFile" ]]; then
+    rm "$docFile"
+  fi
 }
 
 #
@@ -480,7 +578,8 @@ gen3_logs_history_daily() {
   "from": ${fromNum},
   "size": 1000,
   "sort": [
-    {"day_date": "asc"}
+    {"day_date.keyword": "asc"},
+    {"vpc_id.keyword": "asc"}
   ],
   "query": {
     "bool": {
@@ -488,7 +587,7 @@ gen3_logs_history_daily() {
         $(
           if [[ "$vpcName" != all ]]; then
             cat - <<ENESTED
-            {"term": {"vpc_id": "$vpcName"}},
+            {"term": {"vpc_id.keyword": "$vpcName"}},
 ENESTED
           else echo ""
           fi
@@ -503,7 +602,7 @@ ENESTED
         )
         { 
           "range": {
-            "timestamp": {
+            "day_date.keyword": {
               "gte": "$startDate",
               "lte": "$endDate",
               "format": "yyyy/MM/dd HH:mm"
@@ -517,8 +616,11 @@ ENESTED
 EOM
 
   cat "$queryFile" 1>&2
-  gen3_logs_curl "$GEN3_AGGS_DAILY/infodoc/_search?pretty=true"
+  local result
+  gen3_retry gen3_logs_curljson "$GEN3_AGGS_DAILY/infodoc/_search?pretty=true" "-d@$queryFile"
+  result=$?
   rm "$queryFile"
+  return $result
 }
 
 gen3_logs_user_list() {
@@ -540,6 +642,12 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   case "$command" in
     "curl")
       gen3_logs_curl "$@"
+      ;;
+    "curl200")
+      gen3_logs_curl200 "$@"
+      ;;
+    "curljson")
+      gen3_logs_curljson "$@"
       ;;
     "raw")
       gen3_logs_rawlog_search "$@"

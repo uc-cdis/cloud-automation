@@ -19,6 +19,29 @@ passes through other args.
 gen3 logs curl genomelprod-2019-w09/_mapping?pretty=true
 ```
 
+If the URL includes the protocol, then assumes the hostname is given - ex:
+
+```
+gen3 logs curl https://www.google.com
+```
+
+
+### `gen3 logs curl200`
+
+Like `gen3 logs curl`, but non-zero exit code if HTTP status is not 200.
+Little different than `--fail`, because it sends the results to stderr.
+
+```
+gen3 logs curl200 https://www.google.com -X DELETE
+```
+
+### `gen3 logs curljson`
+
+Like `gen3 logs curl200`, but fails if the response payload is not json - sending the results to stderr.
+
+```
+gen3 logs curl200 https://www.google.com -X DELETE
+```
 
 ### `gen3 logs raw`
 

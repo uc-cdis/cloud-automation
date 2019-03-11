@@ -236,3 +236,53 @@ gen3_log_err() {
 gen3_log_info() {
   echo -e "$(green_color "INFO: $(date +%T) -") $*" 1>&2
 }
+
+gen3_log_warn() {
+  echo -e "$(red_color "WARNING: $(date +%T) -") $*" 1>&2
+}
+
+#
+# Retry a failing command up to n times
+#
+# @param maxRetries number of retries - defaults to 3 if first arg does not look like a number
+# @param sleepTimeSecs initial sleep time - defaults to 20 if 2nd arg does not look like a number
+# @param ... everything else treated as the command
+#
+gen3_retry() {
+  local maxRetries
+  local retryCount
+  local sleepTime
+  maxRetries=3
+  retryCount=0
+  sleepTime=20
+  if [[ $# -gt 0 && "$1" =~ ^[0-9]+$ ]]; then
+    maxRetries="$1"
+    shift
+  fi
+  if [[ $# -gt 0 && "$1" =~ ^[0-9]+$ ]]; then
+    sleepTime="$1"
+    if [[ "$sleepTime" -lt 1 ]]; then
+      sleepTime=1
+    fi
+    shift
+  fi
+
+  if [[ $# -lt 1 ]]; then
+    gen3_log_err "gen3_retry" "cannot retry empty command"
+    return 1
+  fi
+  while ! "$@"; do
+    gen3_log_warn "gen3_retry" "command failed - $*"
+    retryCount=$((retryCount + 1))
+    if [[ "$retryCount" -gt "$maxRetries" ]]; then
+      gen3_log_err "gen3_retry" "no more retries for failed command - $*"
+      return 1
+    else
+      gen3_log_info "gen3_retry" "sleep $sleepTime, then retry - $*"
+      sleep "$sleepTime"
+      sleepTime=$((sleepTime + sleepTime))
+    fi
+  done
+  return 0
+}
+

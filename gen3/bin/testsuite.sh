@@ -44,4 +44,5 @@ gen3_load "gen3/test/logsTest"
 gen3_load "gen3/test/secretsTest"
 gen3_load "gen3/test/shunitTest"
 gen3_load "gen3/test/terraformTest"
+gen3_load "gen3/test/utilsTest"
 shunit_summary
