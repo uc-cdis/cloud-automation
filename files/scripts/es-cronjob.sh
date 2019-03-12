@@ -3,7 +3,6 @@
 # Save daily logs aggregations, and delete old indices.
 # Run as cron job in devplanetv1 or other selected user accounts:
 #
-# LOGPASSWORD=theEsProxyPassword
 # 2   2   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/es-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/es-cronjob.sh; else echo "no es-cronjob.sh"; fi) > $HOME/es-cronjob.log 2>&1
 
 set -i

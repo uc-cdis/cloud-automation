@@ -315,7 +315,7 @@ $queryStr
 --------------------------
 EOM
     if ! gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d@$queryFile" > $jsonFile; then
-      rm "$queryFile" "$jsonFIle"
+      rm "$queryFile" "$jsonFile"
       return 1
     fi
     rm "$queryFile"
@@ -448,19 +448,36 @@ gen3_logs_curljson() {
 GEN3_AGGS_DAILY="gen3-aggs-daily"
 
 
+#
+# Retry lamda supporting gen3_logs_save_daily
+#
+# @param dayArg like 'yesterday' or '03/01/2019' to fetch aggregations for
+# @return 0 on success, and cat json search data
+#
 gen3_logs_fetch_aggs() {
   local aggsFile
-  if [[ $# -lt 1 || ! -f "$1" ]]; then
-    gen3_log_err "gen3_logs_fetch_aggs" "must pass aggs file to output results to"
+  local dayArg
+
+  if [[ $# -lt 1 ]]; then
+    gen3_log_err "gen3_logs_fetch_aggs" "must pass dayArg to query for aggregations"
     return 1
   fi
-  aggsFile="$1"
+  dayArg="$1"
+  aggsFile="$(mktemp "$XDG_RUNTIME_DIR/aggsfetch.json_XXXXXX")"
 
+  gen3_log_info "gen3_logs_fetch_aggs" "collecting daily aggregations for $dayArg"
   gen3_logs_rawlog_search "aggs=yes" "vpc=all" "start=$dayArg 00:00" "end=$dayArg + 1 day 00:00" > "$aggsFile"
-  gen3_log_info "gen3_logs_fetch_aggs" "verifying query results ..."
-  cat "$aggsFile" 1>&2
   # this will fail if the data is not json
-  jq -e -r . > /dev/null 2>&1 < "$aggsFile"
+  if jq -e -r . > /dev/null 2>&1 < "$aggsFile"; then
+    cat "$aggsFile"
+    rm "$aggsFile"
+    return 0
+  else
+    gen3_log_err "gen3_logs_fetch_aggs" "failed verifying query results ..."
+    cat "$aggsFile" 1>&2
+    rm "$aggsFile"
+    return 1
+  fi
 }
 
 #
@@ -470,7 +487,6 @@ gen3_logs_fetch_aggs() {
 #
 gen3_logs_save_daily() {
   local dayDate
-  local indexStatus
   local dayKey
   local dayArg
 
@@ -483,8 +499,7 @@ gen3_logs_save_daily() {
   dayKey="$(date --utc --date "$dayArg 00:00" '+%Y%m%d')"
 
   # first - setup the index if it's not already there
-  indexStatus="$(gen3_logs_curl "$GEN3_AGGS_DAILY" -X HEAD | grep HTTP | awk '{ print $2 }')"
-  if [[ "$indexStatus" != 200 ]]; then
+  if ! gen3_logs_curl200 "$GEN3_AGGS_DAILY" > /dev/null 2>&1; then
     # setup aggregations index
     gen3_logs_curl200 "$GEN3_AGGS_DAILY" -X PUT -d'
 {
@@ -513,7 +528,7 @@ gen3_logs_save_daily() {
   docFile="$(mktemp "$XDG_RUNTIME_DIR/doc.json_XXXXXX")"
 
   # ES is a bit flaky - retry a couple times
-  if ! gen3_retry gen3_logs_fetch_aggs "$aggsFile"; then
+  if ! gen3_retry gen3_logs_fetch_aggs "$dayArg" > "$aggsFile"; then
     gen3_log_err "gen3_logs_daily_save" "failed to retrieve aggregations"
     rm "$aggsFile"
     return 1
@@ -540,7 +555,7 @@ EOM
       gen3_log_info "gen3_logs_save_daily" "saving $docId"
       # update the document
       if ! gen3_retry gen3_logs_curl200 "$GEN3_AGGS_DAILY/infodoc/${docId}?pretty=true" -i -X PUT "-d@$docFile" 1>&2; then
-        gen3_logs_err "gen3_logs_save_daily" "failed to save user count for vpc $vpcName"
+        gen3_log_err "gen3_logs_save_daily" "failed to save user count for vpc $vpcName"
       fi
     else
       gen3_log_err "gen3_logs_save_daily" "failed to extract user count for vpc $vpcName"
