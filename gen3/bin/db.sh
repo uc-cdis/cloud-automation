@@ -317,7 +317,7 @@ gen3_db_service_setup() {
     gen3_log_err "gen3_db_service_setup" "CREATE DATABASE $dbname failed"
     return 1
   fi
-  if ! gen3_db_psql "$server" -c "CREATE USER $username WITH PASSWORD '$password'; GRANT ALL ON DATABASE $dbname TO $username WITH GRANT OPTION;"; then
+  if ! gen3_db_psql "$server" -c "CREATE USER \"$username\" WITH PASSWORD '$password'; GRANT ALL ON DATABASE $dbname TO $username WITH GRANT OPTION;"; then
     gen3_log_err "gen3_db_service_setup" "CREATE USER $username failed"
     # try to clean up
     gen3_db_psql "$server" -c "DROP DATABASE \"${dbname}\";"
