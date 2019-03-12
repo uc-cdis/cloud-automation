@@ -460,9 +460,9 @@ vpc_name="$GEN3_WORKSPACE"
 #  CIDR becomes 172.{vpc_octet2}.{vpc_octet3}.0/20
 #
 # octets are legacy, we should now use the full CIDR
-vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
-vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
-vpc_cidr_block="172.X.Y.0/20"
+#vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
+#vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
+vpc_cidr_block=172.X.Y.0/20
 
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 portal_app="dev"
