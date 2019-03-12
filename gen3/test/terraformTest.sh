@@ -114,7 +114,7 @@ test_tfplan() {
   # terraform plan fails if it can't lookup the cert for the commons in the account
   sed -i.bak 's/YOUR.CERT.NAME/*.planx-pla.net/g' config.tfvars
   sed -i.bak 's/GET_A_UNIQUE_VPC_172_OCTET[23]/64/g' config.tfvars
-  sed -i.bak 's#172.X.Y.0/20#172.24.64.0/20#g' config.tfvars
+  sed -i.bak 's#172.X.Y.0/20#"172.24.64.0/20"#g' config.tfvars
   sed -i.bak 's/#config_folder=/config_folder=/g' config.tfvars
   sed -i.bak 's/indexd_prefix/#indexd_prefix/g' config.tfvars
   gen3 tfplan; because $? "tfplan should run even with some invalid config variables"
