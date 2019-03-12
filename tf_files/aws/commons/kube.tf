@@ -7,7 +7,8 @@ resource "aws_security_group" "kube-worker" {
     from_port   = 30000
     to_port     = 30100
     protocol    = "TCP"
-    cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
+    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
+    cidr_blocks = ["${var.vpc_cidr_block}","${var.csoc_cidr}"]
   }
 
   ingress {
@@ -32,7 +33,7 @@ resource "aws_db_instance" "db_fence" {
   identifier                  = "${var.vpc_name}-fencedb"
   storage_type                = "gp2"
   engine                      = "postgres"
-  engine_version              = "9.6.6"
+  engine_version              = "9.6.11"
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.db_instance}"
   name                        = "fence"
@@ -54,6 +55,8 @@ resource "aws_db_instance" "db_fence" {
 
   lifecycle {
     prevent_destroy = true
+    #ignore_changes  = ["*"]
+    ignore_changes = ["engine_version"]
   }
 }
 
@@ -62,7 +65,7 @@ resource "aws_db_instance" "db_gdcapi" {
   identifier                  = "${var.vpc_name}-gdcapidb"
   storage_type                = "gp2"
   engine                      = "postgres"
-  engine_version              = "9.6.6"
+  engine_version              = "9.6.11"
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.db_instance}"
   name                        = "gdcapi"
@@ -84,6 +87,8 @@ resource "aws_db_instance" "db_gdcapi" {
 
   lifecycle {
     prevent_destroy = true
+    #ignore_changes  = ["*"]
+    ignore_changes = ["engine_version"]
   }
 }
 
@@ -92,7 +97,7 @@ resource "aws_db_instance" "db_indexd" {
   identifier                  = "${var.vpc_name}-indexddb"
   storage_type                = "gp2"
   engine                      = "postgres"
-  engine_version              = "9.6.6"
+  engine_version              = "9.6.11"
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.db_instance}"
   name                        = "indexd"
@@ -114,6 +119,8 @@ resource "aws_db_instance" "db_indexd" {
 
   lifecycle {
     prevent_destroy = true
+    #ignore_changes  = ["*"]
+    ignore_changes = ["engine_version"]
   }
 }
 
@@ -155,6 +162,10 @@ resource "aws_db_parameter_group" "rds-cdis-pg" {
   parameter {
     name  = "random_page_cost"
     value = "0.7"
+  }
+
+  lifecycle {
+    ignore_changes  = ["*"]
   }
 }
 

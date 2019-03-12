@@ -13,8 +13,9 @@ provider "aws" {}
 module "cdis_vpc" {
   ami_account_id  = "${var.ami_account_id}"
   source          = "../modules/vpc"
-  vpc_octet2      = "${var.vpc_octet2}"
-  vpc_octet3      = "${var.vpc_octet3}"
+  #vpc_octet2      = "${var.vpc_octet2}"
+  #vpc_octet3      = "${var.vpc_octet3}"
+  vpc_cidr_block  = "${var.vpc_cidr_block}"
   vpc_name        = "${var.vpc_name}"
   ssh_key_name    = "${aws_key_pair.automation_dev.key_name}"
   csoc_cidr       = "${var.csoc_cidr}"
@@ -116,10 +117,12 @@ resource "aws_route_table_association" "private_kube" {
 
 resource "aws_subnet" "private_kube" {
   vpc_id                  = "${module.cdis_vpc.vpc_id}"
-  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 2}.0/24"
+  #cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 2}.0/24"
+  cidr_block              = "${cidrsubnet(var.vpc_cidr_block,4,2)}"
   map_public_ip_on_launch = false
   availability_zone       = "${data.aws_availability_zones.available.names[0]}"
-  tags                    = "${map("Name", "private_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
+  #tags                    = "${map("Name", "private_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
+  tags                    = "${map("Name", "int_services", "Organization", "Basic Service", "Environment", var.vpc_name )}"
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
@@ -127,29 +130,30 @@ resource "aws_subnet" "private_kube" {
   }
 }
 
-resource "aws_route_table_association" "public_kube" {
-  subnet_id      = "${aws_subnet.public_kube.id}"
-  route_table_id = "${module.cdis_vpc.public_route_table_id}"
-}
+#resource "aws_route_table_association" "public_kube" {
+#  subnet_id      = "${aws_subnet.public_kube.id}"
+#  route_table_id = "${module.cdis_vpc.public_route_table_id}"
+#}
 
-resource "aws_subnet" "public_kube" {
-  vpc_id                  = "${module.cdis_vpc.vpc_id}"
-  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 4}.0/24"
-  map_public_ip_on_launch = true
-  availability_zone       = "${data.aws_availability_zones.available.names[0]}"
+#resource "aws_subnet" "public_kube" {
+#  vpc_id                  = "${module.cdis_vpc.vpc_id}"
+#  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 4}.0/24"
+#  map_public_ip_on_launch = true
+#  availability_zone       = "${data.aws_availability_zones.available.names[0]}"
 
   # Note: KubernetesCluster tag is required by kube-aws to identify the public subnet for ELBs
-  tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "", "KubernetesCluster", "${local.cluster_name}")}"
+#  tags = "${map("Name", "public_kube", "Organization", "Basic Service", "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "", "KubernetesCluster", "${local.cluster_name}")}"
 
-  lifecycle {
+#  lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["tags", "availability_zone"]
-  }
-}
+#    ignore_changes = ["tags", "availability_zone"]
+#  }
+#}
 
 resource "aws_subnet" "private_db_alt" {
   vpc_id                  = "${module.cdis_vpc.vpc_id}"
-  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 3}.0/24"
+  #cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 3}.0/24"
+  cidr_block              = "${cidrsubnet(var.vpc_cidr_block,4,3)}"
   availability_zone       = "${data.aws_availability_zones.available.names[1]}"
   map_public_ip_on_launch = false
   availability_zone       = "${data.aws_availability_zones.available.names[1]}"
@@ -192,7 +196,8 @@ resource "aws_vpc_endpoint" "squid-nlb" {
      "${module.cdis_vpc.security_group_local_id}"
   ]
   # we need to supply it a subnet id ; so that it can create the dns name for the endpoint which is then added to the route53 for cloud-proxy
-  subnet_ids          = ["${module.cdis_vpc.private_subnet_id}", "${aws_subnet.public_kube.id}"]
+  #subnet_ids          = ["${module.cdis_vpc.private_subnet_id}", "${aws_subnet.public_kube.id}"]
+  subnet_ids          = ["${aws_subnet.private_kube.id}"]
   private_dns_enabled = false
 }
 
