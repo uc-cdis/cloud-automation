@@ -494,7 +494,7 @@ gen3_logs_fetch_aggs() {
 #
 # Save per-commons aggregations for yesterday
 #
-# @param dayDate defaults to yesterday
+# @param dayArg defaults to yesterday
 #
 gen3_logs_save_daily() {
   local dayDate
@@ -512,20 +512,23 @@ gen3_logs_save_daily() {
   # first - setup the index if it's not already there
   if ! gen3_logs_curl200 "$GEN3_AGGS_DAILY" > /dev/null 2>&1; then
     # setup aggregations index
-    gen3_logs_curl200 "$GEN3_AGGS_DAILY" -X PUT -d'
+    if ! gen3_logs_curl200 "$GEN3_AGGS_DAILY" -X PUT -d'
 {
     "mappings": {
       "infodoc": {
         "properties": {
           "vpc_id": { "type": "keyword" },
-          "hostname": { "type": "keyword" }
-          "day_date": { "type": "date" },
+          "hostname": { "type": "keyword" },
+          "day_date": { "type": "date", "format": "yyyy/MM/dd HH:mm" },
           "unique_users": { "type": "integer" }
         }
       }
     }
 }
-'
+'; then
+      gen3_log_err "gen3_logs_save_daily" "failed to setup index mapping"
+      return 1
+    fi
   fi
 
   # collect stats for each commons not already saved ...
@@ -564,6 +567,7 @@ gen3_logs_save_daily() {
 }
 EOM
       gen3_log_info "gen3_logs_save_daily" "saving $docId"
+      cat "$docFile" 1>&2
       # update the document
       if ! gen3_retry gen3_logs_curl200 "$GEN3_AGGS_DAILY/infodoc/${docId}?pretty=true" -i -X PUT "-d@$docFile" 1>&2; then
         gen3_log_err "gen3_logs_save_daily" "failed to save user count for vpc $vpcName"
@@ -604,8 +608,8 @@ gen3_logs_history_daily() {
   "from": ${fromNum},
   "size": 1000,
   "sort": [
-    {"day_date.keyword": "asc"},
-    {"vpc_id.keyword": "asc"}
+    {"day_date": "asc"},
+    {"vpc_id": "asc"}
   ],
   "query": {
     "bool": {
@@ -613,7 +617,7 @@ gen3_logs_history_daily() {
         $(
           if [[ "$vpcName" != all ]]; then
             cat - <<ENESTED
-            {"term": {"vpc_id.keyword": "$vpcName"}},
+            {"term": {"vpc_id": "$vpcName"}},
 ENESTED
           else echo ""
           fi
@@ -628,7 +632,7 @@ ENESTED
         )
         { 
           "range": {
-            "day_date.keyword": {
+            "day_date": {
               "gte": "$startDate",
               "lte": "$endDate",
               "format": "yyyy/MM/dd HH:mm"
