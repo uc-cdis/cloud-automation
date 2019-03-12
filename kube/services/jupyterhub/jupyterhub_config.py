@@ -85,7 +85,7 @@ c.KubeSpawner.profile_list = [
         'display_name': 'Bioinfo - Python/R - 0.5 CPU 256M Mem',
         'kubespawner_override': {
             # TODO: Change this back. But need this here for now for integration test purposes.
-            'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:feat_install-gen3-fuse-2',
+            'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:feat_workspace-tools',
             'cpu_limit': 0.5,
             'mem_limit': '256M',
         }
