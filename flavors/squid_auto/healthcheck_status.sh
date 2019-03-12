@@ -1,6 +1,6 @@
 for i in {1..12}
 do
-timestamp=$(date +%T)
+timestamp=$(date)
 
 count_stat1=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names commons_squid_auto_autoscaling_grp --region us-east-1  --query AutoScalingGroups[].Instances[].HealthStatus --output text | grep -w Healthy | awk '{print NF}')
 
