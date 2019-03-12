@@ -8,17 +8,14 @@ spec:
       app: manifestservice
   ingress:
     - from:
-      - ipBlock:
-          cidr: 0.0.0.0/0
       - podSelector:
           matchLabels:
             app: revproxy
       ports:
          - port: 80
+         - port: 443
   egress:
-    - to:
-      - ipBlock:
-          cidr: 0.0.0.0/0
+    - {}
   policyTypes:
    - Ingress
    - Egress
