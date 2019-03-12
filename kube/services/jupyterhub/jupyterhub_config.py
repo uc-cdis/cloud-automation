@@ -6,14 +6,14 @@ import os
 from kubernetes import client
 
 def modify_pod_hook(spawner, pod):
-    """
-    A container must be run with additional arguments: --cap-add SYS_ADMIN --device /dev/fuse
-    in order to mount a FUSE filesystem.
+    '''
+    A container must be run with additional privileges in order to mount a FUSE filesystem.
     https://github.com/jupyterhub/zero-to-jupyterhub-k8s/issues/379
-    """
+    '''
     pod.spec.containers[0].security_context = client.V1SecurityContext(
+        privileged=True,
         capabilities=client.V1Capabilities(
-            add=['SYS_ADMIN']
+            add=['SYS_ADMIN', 'MKNOD']
         )
     )
     return pod
@@ -39,7 +39,7 @@ c.KubeSpawner.mem_limit = '1.5G'
 #c.KubeSpawner.debug = False
 c.KubeSpawner.notebook_dir = '/home/jovyan/pd'
 c.KubeSpawner.uid = 1000
-c.KubeSpawner.fs_gid = 1000
+c.KubeSpawner.fs_gid = 100
 c.KubeSpawner.storage_pvc_ensure = True
 c.KubeSpawner.storage_capacity = '10Gi'
 c.KubeSpawner.pvc_name_template = 'claim-{username}{servername}'
@@ -68,6 +68,16 @@ c.KubeSpawner.volume_mounts = [
         'name': 'fuse-{username}{servername}',
     }
 ]
+# c.KubeSpawner.extra_containers = [{
+#     'name' : 'fuse-container', 
+#     'volumeDevices' :  [ 
+#         { 'devicePath' : '/dev/fuse', 'name' : 'fuse-{username}{servername}' }
+#     ],
+#     'command' : ['sh', '-c', 'while [ true ]; sleep 10; done'],
+#     'image': 'quay.io/cdis/fuse_container:1.0',
+#     'securityContext': { 'privileged' : 'true' },
+#     'capabilities': {'add' : ['SYS_ADMIN', 'MKNOD']}
+# }]
 c.KubeSpawner.hub_connect_ip = 'jupyterhub-service.%s' % (os.environ['POD_NAMESPACE'])
 c.KubeSpawner.hub_connect_port = 8000
 c.KubeSpawner.profile_list = [
@@ -105,7 +115,8 @@ c.KubeSpawner.profile_list = [
         }
     }
 ]
-c.KubeSpawner.image_pull_policy = "Always" 
+# TODO: Remove this below line. But need this here for now for integration test purposes.
+c.KubeSpawner.image_pull_policy = 'Always' 
 c.KubeSpawner.modify_pod_hook = modify_pod_hook
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-prefix=https://%s%s/' % (
