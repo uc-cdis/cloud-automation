@@ -392,7 +392,14 @@ gen3_logs_curl() {
 
 
 #
-# Same as gen3_logs_curl, but passes -i, and fails if  HTTP result is not 200 - sending output to stderr
+# Same as gen3_logs_curl, but passes -i, and fails if  HTTP result is not 200 - sending output to stderr.
+# This can be a little tricky - behind proxy curl -i gives status of proxy connection - ex:
+#
+# HTTP/1.1 200 Connection established
+#
+# HTTP/1.1 200 OK
+# Date: Tue, 12 Mar 2019 19:07:46 GMT
+# ...
 #
 gen3_logs_curl200() {
   local tempFile
@@ -408,7 +415,11 @@ gen3_logs_curl200() {
     result=1
   elif (head -1 "$tempFile" | grep -e '^HTTP' > /dev/null 2>&1) && httpStatus="$(head -1 "$tempFile" | awk '{ print $2 }')" && [[ "$httpStatus" == 200  || "$httpStatus" == 201 ]]; then
     # looks like HTTP/.. 200!
-    awk '(body == "true") { print $0 }; /^[\r\n\s]*$/ { body="true" }' < "$tempFile"
+    # ignore leading line blocks that start with ^HTTP lines
+    #
+    #echo "curl200 temp file $tempFile" 1>&2
+    #cat "$tempFile" 1>&2
+    awk '(lastlineblank=="true" && $1 !~ /^HTTP/ && $0 !~ /^[\r\n\s]*$/) { body="true"; }; lastlineblank="true" && $0 !~ /^[\r\n\s]*$/ { lastlineblank="false" }; body != "true" && /^[\r\n\s]*$/ { lastlineblank="true" }; body=="true" { print $0; }' < "$tempFile"
     result=0
   else
     gen3_log_err "gen3_logs_curl200" "non-200 from curl $path"
