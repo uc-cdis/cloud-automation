@@ -4,8 +4,8 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 
-help() {
-  gen3 help gitops
+gen3_api_help() {
+  gen3 help api
 }
 
 #
@@ -15,7 +15,7 @@ gen3_access_token() {
   local username
   username="$1"
   if [[ -z "$username" ]]; then
-    help
+    gen3_api_help
     return 1
   fi
 
@@ -235,7 +235,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       gen3_curl_json "$@"
       ;;
     *)
-      help
+      gen3_api_help
       ;;
   esac
 fi

@@ -1,33 +1,5 @@
 export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
 
-test_semver() {
-  semver_ge "1.1.1" "1.1.0"; because $? "1.1.1 -ge 1.1.0"
-  ! semver_ge "1.1.0" "1.1.1"; because $? "! 1.1.0 -ge 1.1.1"
-  semver_ge "2.0.0" "1.10.22"; because $? "2.0.0 -ge 1.10.22"
-}
-
-test_colors() {
-  expected="red red red"
-  redTest=$(red_color "$expected")
-  
-  echo -e "red test: $redTest"
-  # test does not work in zsh
-  [[  -z "${BASH_VERSION}" || "$redTest" ==  "${RED_COLOR}${expected}${DEFAULT_COLOR}" ]]; because $? "Calling red_color returns red-escaped string: $redTest ?= $expected";
-
-  expected="green green green"
-  greenTest=$(red_color "$expected")
-  echo -e "green test: $greenTest"
-  echo "green test: $greenTest"
-  # test does not work in zsh
-  [[ -z "${BASH_VERSION}" || "$greenTest" == "$RED_COLOR${expected}$DEFAULT_COLOR" ]]; because $? "Calling green_color returns green-escaped string: $greenTest ?= $expected";
-}
-
-test_env() {
-  [[ ! -z $GEN3_HOME ]]; because $? "kubes.sh defines the GEN3_HOME environment variable"
-  [[ ! -z $GEN3_MANIFEST_HOME ]]; because $? "kubes.sh defines the GEN3_MANIFEST_HOME environment variable"
-  [[ -d $GEN3_MANIFEST_HOME ]]; because $? "kubes.sh checks out cdis-manifest if necessary"
-  [[ -d "${GEN3_MANIFEST_HOME}/test1.manifest.g3k" ]]; because $? "cdis-manifest includes a test1.manifest.g3k domain"
-}
 
 #
 # Test g3k_manifest_path
@@ -214,9 +186,6 @@ test_secrets_folder() {
   [[ "$secretFolder" == "$WORKSPACE/$vpc_name" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
 }
 
-shunit_runtest "test_semver" "local,gitops"
-shunit_runtest "test_colors" "local,gitops"
-shunit_runtest "test_env" "local,gitops"
 shunit_runtest "test_mpath" "local,gitops"
 shunit_runtest "test_mfilter" "local,gitops"
 shunit_runtest "test_mlookup" "local,gitops"

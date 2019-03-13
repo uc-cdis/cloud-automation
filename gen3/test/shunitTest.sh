@@ -47,8 +47,8 @@ test_shunit_summary() {
 }
 
 test_shunit_filter() {
-  shunit_test_filters "a,b,c,d" "x,y,c,d"; becuase $? "a,b,c,d tags match x,y,c,d filters"
-  ! shunit_test_filters "a,b,c,d" "x,y,d"; becuase $? "a,b,c,d tags do not match x,y,d filters"
+  shunit_test_filters "a,b,c,d" "x,y,c,d"; because $? "a,b,c,d tags match x,y,c,d filters"
+  ! shunit_test_filters "a,b,c,d" "x,y,z"; because $? "a,b,c,d tags do not match x,y,z filters"
   ! shunit_test_filters "" "x"; because $? "empty taglist does not match a filter"
   shunit_test_filters "" ""; because $? "empty filter list matches everything"
 }
