@@ -16,28 +16,28 @@ fi
 
 
 gen3LogsVpcList=(
-    "edcprodv2 portal.occ-data.org environmental data commons"
-    "prodv1 data.kidsfirstdrc.org kids first"
-    "skfqa gen3qa.kidsfirstdrc.org kids first"
-    "devplanetv1 dev.planx-pla.net"
-    "qaplanetv1 qa.planx-pla.net jenkins"
-    "bloodv2 data.bloodpac.org"
-    "bhcprodv2 data.braincommons.org cvb"
-    "gtexprod dcp.bionimbus.org"
-    "dcfqav1 qa.dcf.planx-pla.net"
-    "niaidprod niaid.bionimbus.org"  
-    # -----------------------------------
     "accountprod  acct.bionimbus.org"
     "anvilprod theanvil.io"
     "anvilstaging staging.theavil.io"
-    "kfqa dcf-interop.kidsfirstdrc.org"
+    "bloodv2 data.bloodpac.org"
+    "bhcprodv2 data.braincommons.org cvb"
+    "dataguids dataguids.org"
+    "dcfqav1 qa.dcf.planx-pla.net"
     "dcfprod nci-crdc.datacommons.io"
     "dcf-staging nci-crdc-staging.datacommons.io"
+    "devplanetv1 dev.planx-pla.net"
+    "edcprodv2 portal.occ-data.org environmental data commons"
     "genomelprod genomel.bionimbus.org"
-    "stageprod gen3.datastage.io"
-    "vadcprod vpodc.org"
+    "gtexprod dcp.bionimbus.org"
+    "kfqa dcf-interop.kidsfirstdrc.org"
     "ibdgc-prod ibdgc.datacommons.io"
     "ncicrdcdemo nci-crdc-demo.datacommons.io"
+    "niaidprod niaid.bionimbus.org"  
+    "prodv1 data.kidsfirstdrc.org kids first"
+    "skfqa gen3qa.kidsfirstdrc.org kids first"
+    "qaplanetv1 qa.planx-pla.net jenkins"
+    "stageprod gen3.datastage.io"
+    "vadcprod vpodc.org"
 )
 
 #
@@ -413,13 +413,11 @@ gen3_logs_curl200() {
     gen3_log_err "gen3_logs_curl200" "non-zero exit from curl $path"
     cat "$tempFile" 1>&2
     result=1
-  elif (head -1 "$tempFile" | grep -e '^HTTP' > /dev/null 2>&1) && httpStatus="$(head -1 "$tempFile" | awk '{ print $2 }')" && [[ "$httpStatus" == 200  || "$httpStatus" == 201 ]]; then
+  elif httpStatus="$(awk -f "$GEN3_HOME/gen3/lib/curl200Status.awk" < "$tempFile")" && [[ "$httpStatus" == 200  || "$httpStatus" == 201 ]]; then
     # looks like HTTP/.. 200!
-    # ignore leading line blocks that start with ^HTTP lines
-    #
-    #echo "curl200 temp file $tempFile" 1>&2
-    #cat "$tempFile" 1>&2
-    awk '(lastlineblank=="true" && $1 !~ /^HTTP/ && $0 !~ /^[\r\n\s]*$/) { body="true"; }; lastlineblank="true" && $0 !~ /^[\r\n\s]*$/ { lastlineblank="false" }; body != "true" && /^[\r\n\s]*$/ { lastlineblank="true" }; body=="true" { print $0; }' < "$tempFile"
+    # curl200Body.awk outputs the body of the curl -i response
+    # curl200Status.awk outputs the HTTP status of the curl -i response
+    awk -f "$GEN3_HOME/gen3/lib/curl200Body.awk" < "$tempFile"
     result=0
   else
     gen3_log_err "gen3_logs_curl200" "non-200 from curl $path"
