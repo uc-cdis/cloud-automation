@@ -1,3 +1,9 @@
+#!/bin/bash
+
+# We run this script in a loop with a sleep interval of  5 seconds so that the squid VMs can do a health check 
+# on the autoscaling group every 5 secs. Please note the VM in autoscaling group only goes Unhealthy/ or not available
+# only for a sort duration like 20-25 secs
+
 for i in {1..12}
 do
 timestamp=$(date)
