@@ -79,6 +79,7 @@ EOF
 
 #
 # Return existing read and write policies for bucket
+# NOTE: Only works for buckets created with the gen3 s3 tool
 #
 # @param bucketName
 #
@@ -87,12 +88,16 @@ gen3_s3_info() {
   local readerPolicy=""
   local writerName="bucket_writer_$1"
   local readerName="bucket_reader_$1"
+  local AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
   local rootPolicyArn="arn:aws:iam::${AWS_ACCOUNT_ID}:policy"
   if gen3_aws_run aws iam get-policy --policy-arn ${rootPolicyArn}/${writerName} >/dev/null 2>&1; then
-    writerPolicy="{ \"name\": \"$writerName\", \"arn\": \"${rootPolicyArn}/${writerName}\" } "
+    writerPolicy="{ \"name\": \"$writerName\", \"policy_arn\": \"${rootPolicyArn}/${writerName}\" } "
   fi
   if gen3_aws_run aws iam get-policy --policy-arn ${rootPolicyArn}/${readerName} >/dev/null 2>&1; then
-    readerPolicy="{ \"name\": \"$readerName\", \"arn\": \"${rootPolicyArn}/${readerName}\" } "
+    readerPolicy="{ \"name\": \"$readerName\", \"policy_arn\": \"${rootPolicyArn}/${readerName}\" } "
+  fi
+  if [[ -z $writerPolicy || -z $readerPolicy ]]; then
+    gen3_log_err "Unable to find a reader or writer policy with names ${writerName} and ${readerName}. Note this function only works for buckets created with the gen3 s3 add command."
   fi
   echo "{ \"read\": ${readerPolicy:-"{}"}, \"write\": ${writerPolicy:-"{}"} }" | jq -r '.'
 }
