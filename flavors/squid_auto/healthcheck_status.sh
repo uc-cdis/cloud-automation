@@ -16,7 +16,7 @@ count_stat2=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-
 
 
 
-if [[ "$count_stat1" -lt '2'  ||   "$count_stat2" -ge '1' ]] ; then
+if [[ "$count_stat1" -lt '2'  ||   ! -z "$count_stat2" ]] ; then
 echo "The number of Healthy hosts  at $timestamp  is $count_stat1" >> /var/log/squid_health.log
 echo "The number of Unhealthy hosts  at $timestamp is $count_stat2" >> /var/log/squid_health.log
 echo "Running the private subnets route table script at $timestamp" >> /var/log/squid_health.log

@@ -160,7 +160,7 @@ crontab -l > file; echo '*/15 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null
 sudo chown -R ubuntu. /home/ubuntu/
 crontab file
 
-crontab -l > file1; echo '* * * * * /home/ubuntu/healthcheck_status.sh >/dev/null 2>&1' >> file1
+crontab -l > file1; echo '* * * * * sudo bash /home/ubuntu/healthcheck_status.sh >/dev/null 2>&1' >> file1
 sudo chown -R ubuntu. /home/ubuntu/
 crontab file1
 
