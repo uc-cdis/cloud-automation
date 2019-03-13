@@ -41,6 +41,14 @@ sudo chmod 0755 /etc/network/if-up.d/iptables-rules
 ## Enable iptables for NAT. We need this so that the proxy can be used transparently
 sudo iptables-restore < /etc/iptables.conf
 
+
+sudo cp /etc/rc.local /etc/rc.local.bak
+sudo sed -i 's/^exit/#exit/' /etc/rc.local
+sudo echo "iptables-restore < /etc/iptables.conf" >> /etc/rc.local
+sudo echo exit 0 >> /etc/rc.local
+
+
+
 sudo mkdir /etc/squid/ssl
 sudo openssl genrsa -out /etc/squid/ssl/squid.key 2048
 sudo openssl req -new -key /etc/squid/ssl/squid.key -out /etc/squid/ssl/squid.csr -subj '/C=XX/ST=XX/L=squid/O=squid/CN=squid'
