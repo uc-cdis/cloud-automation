@@ -183,5 +183,5 @@ function getServiceReleases(req) {
 
 // TODO: finish this js func
 function getResourceToQuery(req) {
-
+  return "mock_resource"
 }
