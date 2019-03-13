@@ -7,7 +7,7 @@ test_logs() {
 test_logs_curl() {
   gen3 logs curl200 https://www.google.com; because $? "gen3 logs curl200 should almost always work with www.google.com"
   ! gen3 logs curl200 https://www.google.com -X DELETE; because $? "gen3 logs curl200 cannot DELETE www.google.com"
-  ! gen3 logs curljson https://www.google.com; becuase $? "gen3 logs curljson www.google.com does not return json"
+  ! gen3 logs curljson https://www.google.com; because $? "gen3 logs curljson www.google.com does not return json"
   (gen3 logs curljson https://accounts.google.com/.well-known/openid-configuration | jq -e -r .); because $? "gen3 logs curljson should work with google oauth config"
 }
 
