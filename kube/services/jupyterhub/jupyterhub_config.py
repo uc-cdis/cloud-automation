@@ -93,7 +93,7 @@ c.KubeSpawner.profile_list = [
     {
         'display_name': 'Bioinfo - Python/R - 1.0 CPU 1.5G Mem',
         'kubespawner_override': {
-            'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.7.2',
+            'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:feat_workspace-tools',
             'cpu_limit': 1.0,
             'mem_limit': '1.5G',
         }
