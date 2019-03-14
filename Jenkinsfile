@@ -1,7 +1,7 @@
 #!groovy
 
 // See 'Loading libraries dynamically' here: https://jenkins.io/doc/book/pipeline/shared-libraries/
-library identifier: "cdis-jenkins-lib@master"
+@Library('cdis-jenkins-lib@chore/simtest') _
 
 pipeline {
   agent any
