@@ -40,6 +40,7 @@ data "aws_iam_policy_document" "squid_policy_document" {
   statement {
     actions = ["ec2:*",
                "route53:*",
+               "autoscaling:*",
                "sts:AssumeRole",
                "logs:CreateLogGroup",
                "logs:CreateLogStream",
@@ -157,21 +158,21 @@ resource "aws_subnet" "squid_pub2" {
 resource "aws_subnet" "squid_pub3" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   cidr_block              =  "${cidrsubnet("${var.squid_proxy_subnet}",3,3)}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
+  availability_zone = "${data.aws_availability_zones.available.names[3]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub0", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub4" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   cidr_block              =   "${cidrsubnet("${var.squid_proxy_subnet}",3,4)}"
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  availability_zone = "${data.aws_availability_zones.available.names[4]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub1", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
 resource "aws_subnet" "squid_pub5" {
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   cidr_block              =   "${cidrsubnet("${var.squid_proxy_subnet}",3,5)}"
-  availability_zone = "${data.aws_availability_zones.available.names[2]}"
+  availability_zone = "${data.aws_availability_zones.available.names[5]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub2", "Organization", "Basic Service", "Environment", var.env_squid_name)}"
 }
 
@@ -242,8 +243,8 @@ cd /home/ubuntu/cloud-automation
 git pull
 
 # This is needed temporarily for testing purposes ; before merging the code to master
-#git checkout feat/autosquidVM
-git pull
+#git checkout fix/squid_auto_activestandby
+#git pull
 
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
@@ -291,8 +292,8 @@ resource "aws_autoscaling_group" "squid_auto" {
 #If you define a list of subnet IDs split across the desired availability zones set them using vpc_zone_identifier 
 # and there is no need to set availability_zones.
 # (https://www.terraform.io/docs/providers/aws/r/autoscaling_group.html#availability_zones).
-  desired_capacity = 1
-  max_size = 1
+  desired_capacity = 2
+  max_size = 2
   min_size = 1
   vpc_zone_identifier = ["${aws_subnet.squid_pub0.id}", "${aws_subnet.squid_pub1.id}", "${aws_subnet.squid_pub2.id}","${aws_subnet.squid_pub3.id}","${aws_subnet.squid_pub4.id}","${aws_subnet.squid_pub5.id}"]
   launch_configuration = "${aws_launch_configuration.squid_auto.name}"

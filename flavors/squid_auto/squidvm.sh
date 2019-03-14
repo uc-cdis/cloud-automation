@@ -41,6 +41,16 @@ sudo chmod 0755 /etc/network/if-up.d/iptables-rules
 ## Enable iptables for NAT. We need this so that the proxy can be used transparently
 sudo iptables-restore < /etc/iptables.conf
 
+
+sudo cp /etc/rc.local /etc/rc.local.bak
+sudo sed -i 's/^exit/#exit/' /etc/rc.local
+
+#sudo echo "iptables-restore < /etc/iptables.conf" >> /etc/rc.local
+#sudo echo exit 0 >> /etc/rc.local
+echo "iptables-restore < /etc/iptables.conf" | sudo tee -a /etc/rc.local
+echo exit 0 | sudo tee -a /etc/rc.local
+
+
 sudo mkdir /etc/squid/ssl
 sudo openssl genrsa -out /etc/squid/ssl/squid.key 2048
 sudo openssl req -new -key /etc/squid/ssl/squid.key -out /etc/squid/ssl/squid.csr -subj '/C=XX/ST=XX/L=squid/O=squid/CN=squid'
@@ -136,7 +146,7 @@ sudo chown -R sftpuser. /home/sftpuser
 
 sudo cp  ${SUB_FOLDER}flavors/squid_auto/updatewhitelist.sh /home/ubuntu
 
-
+sudo cp  ${SUB_FOLDER}flavors/squid_auto/healthcheck_status.sh /home/ubuntu
 
 
 sudo chmod +x /home/ubuntu/updatewhitelist.sh
@@ -144,13 +154,17 @@ sudo chmod +x /home/ubuntu/updatewhitelist.sh
 ##Updating the route table and the cloud-proxy dns entry
 sudo chmod +x /home/ubuntu/proxy_route53_config.sh
 sudo chmod +x /home/ubuntu/default_ip_route_and_instance_check_config.sh
-
+sudo chmod +x /home/ubuntu/healthcheck_status.sh
 
 
 
 crontab -l > file; echo '*/15 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file
 sudo chown -R ubuntu. /home/ubuntu/
 crontab file
+
+crontab -l > file1; echo '* * * * * sudo bash /home/ubuntu/healthcheck_status.sh >/dev/null 2>&1' >> file1
+sudo chown -R ubuntu. /home/ubuntu/
+crontab file1
 
 cd /home/ubuntu
 
