@@ -44,9 +44,11 @@ sudo iptables-restore < /etc/iptables.conf
 
 sudo cp /etc/rc.local /etc/rc.local.bak
 sudo sed -i 's/^exit/#exit/' /etc/rc.local
-sudo echo "iptables-restore < /etc/iptables.conf" >> /etc/rc.local
-sudo echo exit 0 >> /etc/rc.local
 
+#sudo echo "iptables-restore < /etc/iptables.conf" >> /etc/rc.local
+#sudo echo exit 0 >> /etc/rc.local
+echo "iptables-restore < /etc/iptables.conf" | sudo tee -a /etc/rc.local
+echo exit 0 | sudo tee -a /etc/rc.local
 
 
 sudo mkdir /etc/squid/ssl
