@@ -1,12 +1,12 @@
 #!groovy
 
 // See 'Loading libraries dynamically' here: https://jenkins.io/doc/book/pipeline/shared-libraries/
-@Library('cdis-jenkins-lib@master') _
+library 'cdis-jenkins-lib@master'
 
 node {
   kubectlNamespace = null
   kubeLocks = []
-  pipeConfig = pipelineHelper.setupConfig({})
+  pipeConfig = pipelineHelper.setupConfig([:])
   pipelineHelper.cancelPreviousRunningBuilds()
 
   try {
