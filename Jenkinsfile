@@ -74,15 +74,15 @@ node {
         testHelper.cleanS3()
       }
     }
-    catch (e) {
-      pipelineHelper.handleError(e)
-    }
-    finally {
-      stage('Post') {
-        kubeHelper.teardown(kubeLocks)
-        testHelper.teardown()
-        pipelineHelper.teardown(currentBuild.result)
-      }
+  catch (e) {
+    pipelineHelper.handleError(e)
+  }
+  finally {
+    stage('Post') {
+      kubeHelper.teardown(kubeLocks)
+      testHelper.teardown()
+      pipelineHelper.teardown(currentBuild.result)
     }
   }
 }
+
