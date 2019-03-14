@@ -3,29 +3,11 @@ resource "aws_iam_service_linked_role" "es" {
   aws_service_name = "es.amazonaws.com"
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
-
 resource "random_shuffle" "az" {
-  input = ["${data.aws_availability_zones.available.names}"] #["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1e", "us-east-1f"]
+  input = ["${data.aws_availability_zones.available.names}"]
   result_count = 1
   count = 1
 }
-
-data "aws_vpcs" "vpcs" {
-  tags {
-    Name = "${var.vpc_name}"
-  }
-}
-
-# Assuming that there is only one VPC with the vpc_name
-data "aws_vpc" "the_vpc" {
-  id = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
-}
-
-
 
 
 resource "aws_security_group" "private_es" {
@@ -86,6 +68,20 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
     volume_size = 20
   }
 
+  encrypt_at_rest {
+    enabled = "true"
+  }
+
+  cluster_config {
+    instance_count = 3
+  }
+
+  log_publishing_options {
+    log_type = "ES_APPLICATION_LOGS"
+    cloudwatch_log_group_arn = "${aws_cloudwatch_log_group.logs_group.arn}"
+    enabled = "true"
+  }
+
   advanced_options {
     "rest.action.multi.allow_explicit_index" = "true"
   }
@@ -119,7 +115,3 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
 }
 CONFIG
 }
-
-data "aws_iam_user" "es_user" {
-  user_name = "${var.vpc_name}_es_user"
-} 
