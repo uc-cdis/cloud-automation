@@ -1,3 +1,4 @@
+# gen3 job run etl ETL_FORCED TRUE
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -39,6 +40,8 @@ spec:
           value: 3g
         - name: SPARK_DRIVER_MEMORY
           value: 512m
+        - name: ETL_FORCED
+          GEN3_ETL_FORCED|-value: "false"-|
         volumeMounts:
           - name: "creds-volume"
             readOnly: true
@@ -56,6 +59,11 @@ spec:
         args:
           - "-c"
           - |
-            python run_config.py && python run_etl.py
+            echo 'options use-vc' >> /etc/resolv.conf
+            if [[ $ETL_FORCED != "false" ]]; then
+              python run_config.py && python run_etl.py --force
+            else
+              python run_config.py && python run_etl.py
+            fi
             echo "All done - exit status $?"
       restartPolicy: Never
