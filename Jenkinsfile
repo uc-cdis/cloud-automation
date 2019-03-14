@@ -20,11 +20,9 @@ node {
       sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome zsh cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
     }
 
-    stage('k8s configs test') {
-      sh 'pytest apis_configs/'
-    }
     stage('pytest') {
       sh 'pip3 install boto3 --upgrade'
+      sh 'python -m pytest cloud-automation/apis_configs/'
       sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
       sh 'cd cloud-automation/kube/services/jupyterhub && python3 -m pytest test-jupyterhub_config.py'
     }
