@@ -1,7 +1,7 @@
 
-#resource "aws_iam_service_linked_role" "es" {
-#  aws_service_name = "es.amazonaws.com"
-#}
+resource "aws_iam_service_linked_role" "es" {
+  aws_service_name = "es.amazonaws.com"
+}
 
 resource "random_shuffle" "az" {
   input = ["${data.aws_availability_zones.available.names}"]
@@ -78,7 +78,7 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
   advanced_options {
     "rest.action.multi.allow_explicit_index" = "true"
   }
-#  depends_on = ["aws_iam_service_linked_role.es"]
+  depends_on = ["aws_iam_service_linked_role.es"]
 
   snapshot_options {
     automated_snapshot_start_hour = 23
