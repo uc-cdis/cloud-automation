@@ -107,4 +107,8 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
     ]
 }
 CONFIG
+
+  lifecycle {
+    ignore_changes = ["elasticsearch_version"]
+  }
 }
