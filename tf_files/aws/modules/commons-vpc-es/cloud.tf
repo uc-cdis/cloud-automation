@@ -69,11 +69,11 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
     volume_size = 20
   }
 
-#  log_publishing_options {
-#    log_type = "ES_APPLICATION_LOGS"
-#    cloudwatch_log_group_arn = "${data.aws_cloudwatch_log_group.logs_group.arn}"
-#    enabled = "true"
-#  }
+  log_publishing_options {
+    log_type = "ES_APPLICATION_LOGS"
+    cloudwatch_log_group_arn = "${data.aws_cloudwatch_log_group.logs_group.arn}"
+    enabled = "true"
+  }
 
   advanced_options {
     "rest.action.multi.allow_explicit_index" = "true"
