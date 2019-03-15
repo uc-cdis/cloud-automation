@@ -3,11 +3,11 @@ resource "aws_iam_service_linked_role" "es" {
   aws_service_name = "es.amazonaws.com"
 }
 
-resource "random_shuffle" "az" {
-  input = ["${data.aws_availability_zones.available.names}"]
-  result_count = 1
-  count = 1
-}
+#resource "random_shuffle" "az" {
+#  input = ["${data.aws_availability_zones.available.names}"]
+#  result_count = 1
+#  count = 1
+#}
 
 
 resource "aws_security_group" "private_es" {
