@@ -180,8 +180,3 @@ function getServiceReleases(req) {
 
   return releasesObjToString(updated_releases);
 }
-
-// TODO: finish this js func
-function getResourceToQuery(req) {
-  return "mock_resource"
-}
