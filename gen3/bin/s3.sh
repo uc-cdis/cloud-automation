@@ -37,11 +37,7 @@ gen3_s3_list() {
 _tfplan_s3() {
   local bucketName=$1
   local environmentName=$2
-  if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
-    gen3 workon default "${bucketName}_databucket"
-  else
-    gen3 workon ${GEN3_TEST_PROFILE:-cdistest} "${bucketName}_databucket"
-  fi
+  gen3 workon default "${bucketName}_databucket"
   gen3 cd
   cat << EOF > config.tfvars
 bucket_name="$bucketName"

@@ -1,5 +1,3 @@
-GEN3_TEST_PROFILE="${GEN3_TEST_PROFILE:-cdistest}"
-
 test_s3_create() {
   GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/s3.sh"
