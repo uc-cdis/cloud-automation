@@ -24,6 +24,9 @@ spec:
         role: jupyter
       terminationGracePeriodSeconds: 0
       automountServiceAccountToken: false
+      containers:
+      - name: pause
+        image: gcr.io/google_containers/pause-amd64:3.1
       initContainers:
       - name: image-pull-minimal
         image: jupyter/minimal-notebook:d29a0f617484
@@ -32,20 +35,3 @@ spec:
           - /bin/sh
           - -c
           - echo "Pulling complete"
-      - name: image-pull-bio
-        image: quay.io/occ_data/jupyternotebook:1.7.2
-        imagePullPolicy: IfNotPresent
-        command:
-          - /bin/sh
-          - -c
-          - echo "Pulling complete"
-      - name: image-pull-geo
-        image: quay.io/occ_data/jupyter-geo:1.6
-        imagePullPolicy: IfNotPresent
-        command:
-          - /bin/sh
-          - -c
-          - echo "Pulling complete"
-      containers:
-      - name: pause
-        image: gcr.io/google_containers/pause-amd64:3.1
