@@ -1,7 +1,7 @@
 # id of AWS account that owns the public AMI's
 
 variable "slack_webhook" {
-  default = "https://hooks.slack.com/services/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"
+  default = ""
 }
 
 variable "db_size" 
