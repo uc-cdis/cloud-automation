@@ -2,19 +2,6 @@ GEN3_TEST_PROFILE="${GEN3_TEST_PROFILE:-cdistest}"
 GEN3_TEST_WORKSPACE="gen3test"
 GEN3_TEST_ACCOUNT=707767160287
 
-test_s3_create_utils() {
-  GEN3_SOURCE_ONLY=true
-  gen3_load "gen3/bin/s3.sh"
-
-  # test tfplan of bucket
-  local myBucket="testsuitebucket"
-  _tfplan_s3 $myBucket "qaplanetv1"; because $? "should be able to call tfplan successfully"
-  gen3 cd
-  cat config.tfvars | grep "bucket_name=$bucketName"; because $? "when s3 workspace set the config.tf should have correct bucket name"
-  cat config.tfvars | grep "environment=$environmentName"; because $? "when s3 workspace set the config.tf should have correct environment"
-  gen3 trash --apply
-}
-
 test_s3_create() {
   GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/s3.sh"
@@ -22,16 +9,22 @@ test_s3_create() {
   # Mock util
   function _bucket_exists() {
     local bucketName=$1
-    if [[ $bucketName =~ .*existing.* ]]; then
+    if [[ $bucketName =~ "existing" ]]; then
       echo "true"
     else
       echo "false"
     fi
   }
+  
+  # Mock util
+  function _tfplan_s3() {
+    echo "MOCK: creating s3 tf plan"
+    return 0
+  }
 
   # Mock util
   function _tfapply_s3() {
-    gen3 trash --apply
+    echo "MOCK: applying and trashing s3 tfplan"
     return 0
   }
 
@@ -44,6 +37,10 @@ test_s3_create() {
   ! gen3_s3_create "3badbucket"; because $? "when bucketname starts with number it fails"
   ! gen3_s3_create "name/word"; because $? "when bucketname not alphanumeric or - it fails"
   gen3_s3_create "test-suite-bucket"; because $? "when bucket doesn't exist it is created successfully"
+  local cloudtrailCreateRes
+  cloudtrailCreateRes=$(gen3_s3_create "test-suite-bucket" --add-cloudtrail); because $? "when bucket created with cloudtrail flag it is created successfully"
+  echo "cloudtrail ires : $cloudtrailCreateRes"
+  [[ $cloudtrailCreateRes =~ "cloudtrail called" ]]; because $? "when bucket created with cloudtrail flag it is added to cloudtrail"
   gen3_s3_create "existing-bucket"; because $? "when bucket already exists it succeeds"
 }
 
@@ -53,13 +50,14 @@ test_s3_info() {
 
   # Mock aws
   function gen3_aws_run () {
-    if [[ $* =~ ^.*bogus.*$ ]]; then
+    if [[ $* =~ "bogus" ]]; then
       echo "MOCK: Bogus resource not found"
       return 1
-    elif [[ $* =~ ^.*sts.*$ ]]; then
+    elif [[ $* =~ "sts" ]]; then
+      # call to get account number
       echo '{"Account": "123212321"}'
       return 0
-    elif [[ $* =~ ^.*real.*$ ]]; then
+    elif [[ $* =~ "real" ]]; then
       # searching for a REAL resource (bucket or policy)
       return 0
     else
@@ -67,7 +65,7 @@ test_s3_info() {
     fi
   }
 
-  ! gen3_s3_info bogus-bucket; because $? "when bucket doesn't exit it should fail"
+  ! gen3_s3_info bogus-bucket; because $? "when bucket doesn't exist it should fail"
   policies=$(gen3_s3_info real-bucket); because $? "when bucket and policies exist it should succeed" 
   readOnly="$(echo $policies | jq '."read-only"')"
   readWrite="$(echo $policies | jq '."read-write"')"
@@ -98,12 +96,12 @@ test_s3_attach_bucket_policy() {
     local entityType=$1
     local entityName=$2
     local policyArn=$3
-    if [[ $entityType =~ .*bogus.* || $entityName =~ .*bogus.* ]]; then
+    if [[ $entityType =~ "bogus" || $entityName =~ "bogus" ]]; then
       return 1
-    elif [[ $entityName =~ .*alreadyAttached.* ]]; then
+    elif [[ $entityName =~ "alreadyAttached" ]]; then
       echo "true"
       return 0
-    elif [[ $entityName =~ .*notAttached.* ]]; then
+    elif [[ $entityName =~ "notAttached" ]]; then
       echo "false"
       return 0
     else
@@ -115,9 +113,8 @@ test_s3_attach_bucket_policy() {
 
   # Mock aws
   function gen3_aws_run() {
-    local awsIamAttach=".*aws iam attach.*"
-    if [[ $* =~ $awsIamAttach ]]; then
-      if [[ $* =~ .*bogus.* ]]; then
+    if [[ $* =~ "aws iam attach" ]]; then
+      if [[ $* =~ "bogus" ]]; then
         return 1
       else
         return 0
@@ -137,7 +134,6 @@ test_s3_attach_bucket_policy() {
   gen3_s3_attach_bucket_policy valid-bucket --read-only --role-name alreadyAttached; because $? "when role IS already attached it should succeed"
 }
 
-shunit_runtest "test_s3_create_utils" "s3"
 shunit_runtest "test_s3_create" "s3"
 shunit_runtest "test_s3_info" "s3"
 shunit_runtest "test_s3_attach_bucket_policy" "s3"
