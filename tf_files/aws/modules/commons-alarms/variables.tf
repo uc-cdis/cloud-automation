@@ -4,27 +4,22 @@ variable "slack_webhook" {
   default = ""
 }
 
-variable "db_size" 
-{
+variable "db_size" {
   default = "10"
 }
 
-variable "vpc_name" 
-{
+variable "vpc_name" {
   default = ""
 }
 
-variable "db_fence" 
-{
+variable "db_fence" {
   default = ""
 }
 
-variable "db_indexd" 
-{
+variable "db_indexd" {
   default = ""
 }
 
-variable "db_gdcapi" 
-{
+variable "db_gdcapi" {
   default = ""
 }

@@ -9,7 +9,7 @@ resource "aws_cloudwatch_metric_alarm" "fence_db_alarm" {
   metric_query {
     id = "storageSpacePercentage"
     expression = "100 - freeDiskSpace/(${var.db_size}*10000000)"
-    label = "Free Disk Space fence"
+    label = "Free Disk Space fence ${var.vpc_name}"
     return_data = "true"
   }
   metric_query {
@@ -37,7 +37,7 @@ resource "aws_cloudwatch_metric_alarm" "gdcapi_db_alarm" {
   metric_query {
     id = "storageSpacePercentage"
     expression = "100 - freeDiskSpace/(${var.db_size}*10000000)"
-    label = "Free Disk Space fence"
+    label = "Free Disk Space gdcapi ${var.vpc_name}"
     return_data = "true"
   }
   metric_query {
@@ -65,7 +65,7 @@ resource "aws_cloudwatch_metric_alarm" "indexd_db_alarm" {
   metric_query {
     id = "storageSpacePercentage"
     expression = "100 - freeDiskSpace/(${var.db_size}*10000000)"
-    label = "Free Disk Space fence"
+    label = "Free Disk Space indexd ${var.vpc_name}"
     return_data = "true"
   }
   metric_query {
