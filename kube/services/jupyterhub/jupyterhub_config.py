@@ -64,8 +64,14 @@ else:
         }
     ]
 c.KubeSpawner.cmd = 'start-singleuser.sh'
-c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-prefix=https://%s%s/' % (
-    c.KubeSpawner.hub_connect_ip, c.KubeSpawner.hub_connect_port, c.JupyterHub.base_url, os.environ['HOSTNAME'], c.JupyterHub.base_url)]
+c.KubeSpawner.args = ['--allow-root', '--hub-api-url=http://%s:%d%s/hub/api' % (c.KubeSpawner.hub_connect_ip, c.KubeSpawner.hub_connect_port, c.JupyterHub.base_url), '--hub-prefix=https://%s%s/' % (os.environ['HOSTNAME'], c.JupyterHub.base_url)]
+c.KubeSpawner.lifecycle_hooks = {
+                "postStart": {
+                    "exec": {
+                        "command": ["/bin/sh", "-c", "rm -rf /home/jovyan/pd/dockerHome; ln -s $(pwd) /home/jovyan/pd/dockerHome"]
+                    }
+                }
+}
 # First pulls can be really slow, so let's give it a big timeout
 c.KubeSpawner.start_timeout = 60 * 10
 c.KubeSpawner.tolerations = [ 
