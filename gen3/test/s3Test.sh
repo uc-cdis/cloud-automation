@@ -1,3 +1,7 @@
+GEN3_TEST_PROFILE="${GEN3_TEST_PROFILE:-cdistest}"
+GEN3_TEST_WORKSPACE="gen3test"
+GEN3_TEST_ACCOUNT=707767160287
+
 test_s3_create_utils() {
   GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/s3.sh"
