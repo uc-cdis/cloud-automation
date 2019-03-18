@@ -265,7 +265,6 @@ gen3_s3_attach_bucket_policy() {
   fi
   
   # check the iam entity type
-  local entityPolicies
   local entityType
   if [[ $entityTypeFlag =~ "user-name" ]]; then
     entityType="user"
@@ -290,12 +289,11 @@ gen3_s3_attach_bucket_policy() {
   # attach the bucket policy to the entity
   local attachStdout
   attachStdout=$(gen3_aws_run aws iam attach-${entityType}-policy --${entityType}-name $entityName --policy-arn $policyArn 2>&1)
-  local attachResult=$?
-  if [[ $attachResult != 0 ]]; then
+  if [[ $? != 0 ]]; then
     local errMsg=$(
       cat << EOF
 Failed to attach policy:
-$attachResult
+$attachStdout
 EOF
     )
     gen3_log_err $errMsg
