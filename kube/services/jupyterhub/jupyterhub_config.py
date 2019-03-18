@@ -68,7 +68,7 @@ c.KubeSpawner.args = ['--allow-root', '--hub-api-url=http://%s:%d%s/hub/api' % (
 c.KubeSpawner.lifecycle_hooks = {
                 "postStart": {
                     "exec": {
-                        "command": ["/bin/sh", "-c", "rm -rf /home/jovyan/pd/dockerHome; ln -s $(pwd) /home/jovyan/pd/dockerHome"]
+                        "command": ["/bin/sh", "-c", "rm -rf /home/jovyan/pd/dockerHome; ln -s $(pwd) /home/jovyan/pd/dockerHome; mkdir -p /home/$NB_USER/.jupyter/custom; echo \"define(['base/js/namespace'], function(Jupyter){Jupyter._target = '_self';})\" >/home/$NB_USER/.jupyter/custom/custom.js; true"]
                     }
                 }
 }
