@@ -71,6 +71,15 @@ module "config_files" {
   indexd_prefix = "${var.indexd_prefix}"
 }
 
+module "cdis_alarms" {
+  source          = "../modules/commons-alarms"
+  vpc_name        = "${var.vpc_name}"
+  db_size         = "${var.db_size}"
+  db_fence        = "${aws_db_instance.db_fence.identifier}"
+  db_indexd       = "${aws_db_instance.db_indexd.identifier}"
+  db_gdcapi       = "${aws_db_instance.db_gdcapi.identifier}"
+}
+
 data "aws_vpc_endpoint_service" "s3" {
   service = "s3"
 }
