@@ -29,29 +29,14 @@ gen3_s3_list() {
 }
 
 #
-# Create a new s3 bucket
+# Util to tfplan creation of s3 bucket
 #
 # @param bucketName
+# @param environmentName
 #
-gen3_s3_new() {
+_tfplan_s3() {
   local bucketName=$1
-  local environmentName="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
-  # do simple validation of bucket name
-  local regexp="^[a-z][a-z0-9\-]*$"
-  if [[ ! $bucketName =~ $regexp ]];then
-    cat << EOF >&2
-ERROR: Bucket name does not meet the following requirements:
-  - starts with a-z
-  - contains only a-z, 0-9, and dashes, "-"
-EOF
-    exit 1
-  fi
-  # if bucket already exists do nothing and exit
-  if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
-    gen3_log_info "Bucket already exists"
-    exit 0
-  fi
-  # bucket doesn't exist - make and apply tfplan
+  local environmentName=$2
   gen3 workon default "${bucketName}_databucket"
   gen3 cd
   cat << EOF > config.tfvars
@@ -60,13 +45,34 @@ environment="$environmentName"
 cloud_trail_count="0"
 EOF
   gen3 tfplan 2>&1
+}
+
+#
+# Util for applying tfplan
+#
+_tfapply_s3() {
+  if [[ -z "$GEN3_WORKSPACE" ]]; then
+    gen_log_err "GEN3_WORKSPACE not set - unable to apply s3 bucket"
+    return 1
+  fi
+  gen3 cd
   gen3 tfapply 2>&1
   if [[ $? != 0 ]]; then
-    gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in default/${bucketName}_databucket..."
-    exit 1
+    gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in ${GEN3_WORKSPACE}"
+    return 1
   fi
-  gen3 trash
+  gen3 trash --apply
+}
 
+#
+# Util for adding a bucket to cloudtrail
+#
+# @param bucketName
+# @param environmentName
+# 
+_add_bucket_to_cloudtrail() {
+  local bucketName=$1
+  local environmentName=$2
   gen3_log_info "Attempting to add bucket to cloudtrail"
   local cloudtrailName="${environmentName}-data-bucket-trail"
   local cloudtrailEventSelectors=$(gen3_aws_run aws cloudtrail get-event-selectors --trail-name $cloudtrailName | jq -r '.EventSelectors')
@@ -80,6 +86,62 @@ EOF
     jq '(.[].DataResources[] | select(.Type == "AWS::S3::Object")  | .Values) += ["'"arn:aws:s3:::$bucketName/"'"]'
   )
   gen3_aws_run aws cloudtrail put-event-selectors --trail-name $cloudtrailName --event-selectors "$cloudtrailEventSelectors" 2>&1
+}
+
+#
+# Util for checking if bucket exists
+#
+_bucket_exists() {
+  local bucketName=$1
+  if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
+    return "true"
+  else
+    return "false"
+  fi
+}
+
+#
+# Create a new s3 bucket
+#
+# @param bucketName
+# @param cloudtrailFlag (--add-cloudtrail)
+#
+gen3_s3_create() {
+  local bucketName=$1
+  local cloudtrailFlag=$2
+  local environmentName="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
+  
+  # do simple validation of bucket name
+  local regexp="^[a-z][a-z0-9\-]*$"
+  if [[ ! $bucketName =~ $regexp ]];then
+    local errMsg=$(cat << EOF
+ERROR: Bucket name does not meet the following requirements:
+  - starts with a-z
+  - contains only a-z, 0-9, and dashes, "-"
+EOF
+    )
+    gen3_log_err $errMsg
+    return 1
+  fi
+  
+  # if bucket already exists do nothing and exit
+  if [[ $(_bucket_exists $bucketName) == "true" ]]; then
+    gen3_log_info "Bucket already exists"
+    return 0
+  fi
+
+  _tfplan_s3 $bucketName $environmentName
+  if [[ $? != 0 ]]; then
+    return 1
+  fi
+  _tfapply_s3
+  if [[ $? != 0 ]]; then
+    return 1
+  fi
+
+  if [[ $cloudtrailFlag =~ ^.*add-cloudtrail$ ]]; then
+    _add_bucket_to_cloudtrail $bucketName $environmentName
+  fi
 }
 
 #
@@ -232,6 +294,7 @@ Failed to attach policy:
 $attachResult
 EOF
     )
+    gen3_log_err $errMsg
     return 1
   fi
 
@@ -247,8 +310,8 @@ gen3_s3() {
     'list'|'ls')
       gen3_s3_list "$@"
       ;;
-    'new')
-      gen3_s3_new "$@"
+    'create')
+      gen3_s3_create "$@"
       ;;
     'info')
       gen3_s3_info "$@"

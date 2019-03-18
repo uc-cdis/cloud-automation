@@ -1,3 +1,48 @@
+test_s3_create_utils() {
+  GEN3_SOURCE_ONLY=true
+  gen3_load "gen3/bin/s3.sh"
+
+  # test tfplan of bucket
+  local myBucket="testsuitebucket"
+  _tfplan_s3 $myBucket "qaplanetv1"; because $? "should be able to call tfplan successfully"
+  gen3 cd
+  cat config.tfvars | grep "bucket_name=$bucketName"; because $? "when s3 workspace set the config.tf should have correct bucket name"
+  cat config.tfvars | grep "environment=$environmentName"; because $? "when s3 workspace set the config.tf should have correct environment"
+  gen3 trash --apply
+}
+
+test_s3_create() {
+  GEN3_SOURCE_ONLY=true
+  gen3_load "gen3/bin/s3.sh"
+
+  # Mock util
+  function _bucket_exists() {
+    local bucketName=$1
+    if [[ $bucketName =~ .*existing.* ]]; then
+      echo "true"
+    else
+      echo "false"
+    fi
+  }
+
+  # Mock util
+  function _tfapply_s3() {
+    gen3 trash --apply
+    return 0
+  }
+
+  # Mock util
+  function _add_bucket_to_cloudtrail() {
+    echo "MOCK: cloudtrail called"
+    return 0
+  }
+
+  ! gen3_s3_create "3badbucket"; because $? "when bucketname starts with number it fails"
+  ! gen3_s3_create "name/word"; because $? "when bucketname not alphanumeric or - it fails"
+  gen3_s3_create "test-suite-bucket"; because $? "when bucket doesn't exist it is created successfully"
+  gen3_s3_create "existing-bucket"; because $? "when bucket already exists it succeeds"
+}
+
 test_s3_info() {
   GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/s3.sh"
@@ -20,8 +65,10 @@ test_s3_info() {
 
   ! gen3_s3_info bogus-bucket; because $? "when bucket doesn't exit it should fail"
   policies=$(gen3_s3_info real-bucket); because $? "when bucket and policies exist it should succeed" 
-  [[ "$(echo $policies | jq '.read-only')" != "{}" ]]; because $? "when bucket and policies exist the result should include read-only policy"
-  [[ "$(echo $policies | jq '.read-write')" != "{}" ]]; because $? "when buket and policies exist the result should include read-write policy"
+  readOnly="$(echo $policies | jq '."read-only"')"
+  readWrite="$(echo $policies | jq '."read-write"')"
+  [[ "$readOnly" != "{}" && "$readOnly" != "null" && "$readOnly" != "" ]]; because $? "when bucket and policies exist the result should include read-only policy"
+  [[ "$readWrite" != "{}" && "$readWrite" != "null" && "$readWrite" != "" ]]; because $? "when buket and policies exist the result should include read-write policy"
 }
 
 test_s3_attach_bucket_policy() {
@@ -86,5 +133,7 @@ test_s3_attach_bucket_policy() {
   gen3_s3_attach_bucket_policy valid-bucket --read-only --role-name alreadyAttached; because $? "when role IS already attached it should succeed"
 }
 
+shunit_runtest "test_s3_create_utils" "s3"
+shunit_runtest "test_s3_create" "s3"
 shunit_runtest "test_s3_info" "s3"
 shunit_runtest "test_s3_attach_bucket_policy" "s3"
