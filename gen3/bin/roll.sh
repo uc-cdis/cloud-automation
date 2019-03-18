@@ -88,6 +88,12 @@ gen3_roll() {
     return $?
   fi
 
+  if [[ "$depName" == "jupyter" ]]; then # special case
+    echo "gen3 kube-roll-jupyter" 1>&2
+    gen3 kube-roll-jupyter
+    return $?
+  fi
+
   local manifestPath
   manifestPath="$(g3k_manifest_path)"
   if [[ ! -f "$manifestPath" ]]; then

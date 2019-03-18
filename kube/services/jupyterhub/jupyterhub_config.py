@@ -3,6 +3,7 @@ Kind of a weird file - pretty sure jupyterhub just eval's this after defining c
 '''
 
 import os
+import json
 
 c.JupyterHub.base_url = '/lw-workspace'
 c.JupyterHub.confirm_no_ssl = True
@@ -46,40 +47,22 @@ c.KubeSpawner.volume_mounts = [
 ]
 c.KubeSpawner.hub_connect_ip = 'jupyterhub-service.%s' % (os.environ['POD_NAMESPACE'])
 c.KubeSpawner.hub_connect_port = 8000
-c.KubeSpawner.profile_list = [
-    {
-        'display_name': 'Bioinfo - Python/R - 0.5 CPU 256M Mem',
-        'kubespawner_override': {
-            'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.7.2',
-            'cpu_limit': 0.5,
-            'mem_limit': '256M',
+raw_profiles = os.environ.get('JUPYTER_CONTAINERS', None)
+if raw_profiles:
+    profiles = json.loads(raw_profiles)
+    profile_list = [{'display_name': '{} {:.1f} CPU {} Mem'.format(x['name'], x['cpu'], x['memory']), 'kubespawner_override': {'singleuser_image_spec': x['image'], 'cpu_limit': x['cpu'], 'mem_limit': x['memory']}} for x in profiles]
+    c.KubeSpawner.profile_list = profile_list
+else:
+    c.KubeSpawner.profile_list = [
+        {
+            'display_name': 'Bioinfo - Python/R - 0.5 CPU 256M Mem',
+            'kubespawner_override': {
+                'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.7.2',
+                'cpu_limit': 0.5,
+                'mem_limit': '256M',
+            }
         }
-    },
-    {
-        'display_name': 'Bioinfo - Python/R - 1.0 CPU 1.5G Mem',
-        'kubespawner_override': {
-            'singleuser_image_spec': 'quay.io/occ_data/jupyternotebook:1.7.2',
-            'cpu_limit': 1.0,
-            'mem_limit': '1.5G',
-        }
-    },
-    {
-        'display_name': 'Earth - Python - 0.5 CPU 256M Mem',
-        'kubespawner_override': {
-            'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.6',
-            'cpu_limit': 0.5,
-            'mem_limit': '256M',
-        }
-    },
-    {
-        'display_name': 'Earth - Python - 1.0 CPU 10.0G Mem',
-        'kubespawner_override': {
-            'singleuser_image_spec': 'quay.io/occ_data/jupyter-geo:1.6',
-            'cpu_limit': 1.0,
-            'mem_limit': '10.0G',
-        }
-    }
-]
+    ]
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-prefix=https://%s%s/' % (
     c.KubeSpawner.hub_connect_ip, c.KubeSpawner.hub_connect_port, c.JupyterHub.base_url, os.environ['HOSTNAME'], c.JupyterHub.base_url)]
