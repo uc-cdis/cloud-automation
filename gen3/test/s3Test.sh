@@ -39,7 +39,6 @@ test_s3_create() {
   gen3_s3_create "test-suite-bucket"; because $? "when bucket doesn't exist it is created successfully"
   local cloudtrailCreateRes
   cloudtrailCreateRes=$(gen3_s3_create "test-suite-bucket" --add-cloudtrail); because $? "when bucket created with cloudtrail flag it is created successfully"
-  echo "cloudtrail ires : $cloudtrailCreateRes"
   [[ $cloudtrailCreateRes =~ "cloudtrail called" ]]; because $? "when bucket created with cloudtrail flag it is added to cloudtrail"
   gen3_s3_create "existing-bucket"; because $? "when bucket already exists it succeeds"
 }
