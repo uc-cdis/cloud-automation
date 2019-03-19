@@ -12,7 +12,7 @@ gen3_load "gen3/gen3setup"
 # Print doc
 #
 gen3_s3_help() {
-  cat "${GEN3_HOME}/doc/s3.md"
+  gen3 help s3
 }
 
 #
@@ -79,7 +79,7 @@ _add_bucket_to_cloudtrail() {
   if [[ -z "$cloudtrailEventSelectors" ]]; then
     # uh oh... for some reason the cloudtrail is not what we expected it to be
     gen3_log_info "Unable to find cloudtrail with name $cloudtrailName"
-    exit 0
+    return 0
   fi
   # update previous event selector to include our bucket
   cloudtrailEventSelectors=$(echo $cloudtrailEventSelectors | \
