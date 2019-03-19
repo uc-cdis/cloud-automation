@@ -64,7 +64,10 @@ function deploy_prometheus()
 
     # now prometheus
     g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/prometheus-storageclass.yaml"
-    gen3 arun helm install -f "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" stable/prometheus --name prometheus --namespace prometheus
+
+    local HOSTNAME
+    HOSTNAME=$(g3kubectl get configmaps manifest-global -o jsonpath="{.data.hostname}")
+    sed "s/DOMAIN/${HOSTNAME}/" "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" |  gen3 arun helm install  stable/prometheus --name prometheus --namespace prometheus -f --
   else
     echo "Prometheus is already installed, use --force to try redeploying"
   fi
