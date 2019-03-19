@@ -13,6 +13,7 @@ LOGPASSWORD="${LOGPASSWORD:-"deprecated"}"
 gen3_logs_curl() {
   local path
   local fullPath
+  local ctype
 
   if [[ $# -gt 0 ]]; then
     path="$1"
@@ -25,20 +26,28 @@ gen3_logs_curl() {
   else
     fullPath="$LOGHOST/$path"
   fi
+  ctype="application/json"
+  if [[ "$path" =~ /_bulk$ ]]; then
+    # ES /_bulk API wants application/ndjson ... 
+    ctype="application/ndjson"
+  fi
   gen3_log_info "gen3_logs_curl" "$fullPath"
-  curl -s -u "${LOGUSER}:${LOGPASSWORD}" -H 'Content-Type: application/json' "$fullPath" "$@"
+  curl -s -u "${LOGUSER}:${LOGPASSWORD}" -H "Content-Type: $ctype" "$fullPath" "$@"
 }
 
 
 #
-# Same as gen3_logs_curl, but passes -i, and fails if  HTTP result is not 200 - sending output to stderr.
+# Same as gen3_logs_curl, but passes -i, -H Content-Type, and fails if  HTTP result is not 200 - sending output to stderr.
 # This can be a little tricky - behind proxy curl -i gives status of proxy connection - ex:
-#
+# """
 # HTTP/1.1 200 Connection established
 #
 # HTTP/1.1 200 OK
 # Date: Tue, 12 Mar 2019 19:07:46 GMT
 # ...
+# """
+# Also - content-type is set to application/ndjson if endpoint matches /_bulk - see
+#     https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
 #
 gen3_logs_curl200() {
   local tempFile

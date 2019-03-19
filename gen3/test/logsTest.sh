@@ -1,8 +1,11 @@
 test_logs() {
   (set -e; gen3 logs raw vpc=all | jq -e -r .); because $? "gen3 logs raw should work ..."
-  (set -e; gen3 logs history daily vpc=all | jq -e -r .); because $? "gen3 logs history should work"
-  gen3 logs save daily; because $? "gen3 logs save should work"
+  (set -e; gen3 logs history daily vpc=all | jq -e -r .) > /dev/null 2>&1; because $? "gen3 logs history daily should work"
+  (set -e; gen3 logs history ubh vpc=all | jq -e -r .)  > /dev/null 2>&1; because $? "gen3 logs history ubh should work"
+  gen3 logs save daily > /dev/null 2>&1; because $? "gen3 logs save daily should work"
+  gen3 logs save ubh > /dev/null 2>&1; because $? "gen3 logs save ubh should work"
 }
+
 
 test_logs_curl() {
   gen3 logs curl200 https://www.google.com; because $? "gen3 logs curl200 should almost always work with www.google.com"

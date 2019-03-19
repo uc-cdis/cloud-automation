@@ -286,3 +286,10 @@ gen3_retry() {
   return 0
 }
 
+
+#
+# Little convenience for testing if a string is a number
+#
+gen3_is_number() {
+  [[ $# == 1 && "$1" =~ ^[0-9]+$ ]]
+}

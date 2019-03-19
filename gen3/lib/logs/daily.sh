@@ -144,6 +144,7 @@ gen3_logs_history_daily() {
   endDate="$(gen3_logs_fix_date "$(gen3_logs_get_arg end 'tomorrow 00:00' "$@")")"
   pageNum="$(gen3_logs_get_arg page 0 "$@")"
   fromNum=$(($pageNum * 1000))
+  if [[ -n "$hostname" ]]; then vpcName=all; fi
   
   queryFile="$(mktemp "$XDG_RUNTIME_DIR/esquery.json_XXXXXX")"
   cat - > "$queryFile" <<EOM

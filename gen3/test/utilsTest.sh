@@ -51,7 +51,15 @@ test_retry() {
   gen3_retry retry_test_helper; because $? "gen3_retry should retry then succeed with retry_test_helper"
 }
 
+test_is_number() {
+  gen3_is_number 15; because $? "15 is a number"
+  ! gen3_is_number 15b; because $? "15b is not a number"
+  ! gen3_is_number; becuase $? "empty is not a number"
+  ! gen3_is_number -1; because $? "is_number does not recognize negative numbers"
+}
+
 shunit_runtest "test_semver" "local,utils"
 shunit_runtest "test_colors" "local,utils"
 shunit_runtest "test_env" "local,utils"
+shunit_runtest "test_is_number" "local,utils"
 shunit_runtest "test_retry" "local,utils"

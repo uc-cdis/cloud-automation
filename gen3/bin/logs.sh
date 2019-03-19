@@ -50,7 +50,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           gen3_logs_history_daily "$@"
           ;;
         "ubh") # users by hour
-          gen3_logs_ubh_raw "$@"
+          gen3_logs_ubh_history "$@"
           ;;
         *)
           gen3_log_err "gen3_logs" "invalid history subcommand $subcommand"
@@ -73,8 +73,12 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         "daily")
           gen3_logs_save_daily "$@"
           ;;
+        "ubh")
+          gen3_logs_ubh_save "$@"
+          ;;
         *)
           gen3_log_err "gen3_logs" "invalid save subcommand $subcommand"
+          exit 1
           ;;
       esac
       ;;
