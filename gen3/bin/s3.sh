@@ -6,6 +6,11 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+#---------- lib
+
+#
+# Print doc
+#
 gen3_s3_help() {
   gen3 help s3
 }
@@ -24,29 +29,14 @@ gen3_s3_list() {
 }
 
 #
-# Create a new s3 bucket
+# Util to tfplan creation of s3 bucket
 #
 # @param bucketName
+# @param environmentName
 #
-gen3_s3_new() {
+_tfplan_s3() {
   local bucketName=$1
-  local environmentName="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
-  # do simple validation of bucket name
-  local regexp="^[a-z][a-z0-9\-]*$"
-  if [[ ! $bucketName =~ $regexp ]];then
-    cat << EOF >&2
-ERROR: Bucket name does not meet the following requirements:
-  - starts with a-z
-  - contains only a-z, 0-9, and dashes, "-"
-EOF
-    exit 1
-  fi
-  # if bucket already exists do nothing and exit
-  if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
-    gen3_log_info "Bucket already exists"
-    exit 0
-  fi
-  # bucket doesn't exist - make and apply tfplan
+  local environmentName=$2
   gen3 workon default "${bucketName}_databucket"
   gen3 cd
   cat << EOF > config.tfvars
@@ -55,26 +45,103 @@ environment="$environmentName"
 cloud_trail_count="0"
 EOF
   gen3 tfplan 2>&1
+}
+
+#
+# Util for applying tfplan
+#
+_tfapply_s3() {
+  if [[ -z "$GEN3_WORKSPACE" ]]; then
+    gen_log_err "GEN3_WORKSPACE not set - unable to apply s3 bucket"
+    return 1
+  fi
+  gen3 cd
   gen3 tfapply 2>&1
   if [[ $? != 0 ]]; then
-    gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in default/${bucketName}_databucket..."
-    exit 1
+    gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in ${GEN3_WORKSPACE}"
+    return 1
   fi
-  gen3 trash
+  gen3 trash --apply
+}
 
+#
+# Util for adding a bucket to cloudtrail
+#
+# @param bucketName
+# @param environmentName
+# 
+_add_bucket_to_cloudtrail() {
+  local bucketName=$1
+  local environmentName=$2
   gen3_log_info "Attempting to add bucket to cloudtrail"
   local cloudtrailName="${environmentName}-data-bucket-trail"
   local cloudtrailEventSelectors=$(gen3_aws_run aws cloudtrail get-event-selectors --trail-name $cloudtrailName | jq -r '.EventSelectors')
   if [[ -z "$cloudtrailEventSelectors" ]]; then
     # uh oh... for some reason the cloudtrail is not what we expected it to be
     gen3_log_info "Unable to find cloudtrail with name $cloudtrailName"
-    exit 0
+    return 0
   fi
   # update previous event selector to include our bucket
   cloudtrailEventSelectors=$(echo $cloudtrailEventSelectors | \
     jq '(.[].DataResources[] | select(.Type == "AWS::S3::Object")  | .Values) += ["'"arn:aws:s3:::$bucketName/"'"]'
   )
   gen3_aws_run aws cloudtrail put-event-selectors --trail-name $cloudtrailName --event-selectors "$cloudtrailEventSelectors" 2>&1
+}
+
+#
+# Util for checking if bucket exists
+#
+_bucket_exists() {
+  local bucketName=$1
+  if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
+    return "true"
+  else
+    return "false"
+  fi
+}
+
+#
+# Create a new s3 bucket
+#
+# @param bucketName
+# @param cloudtrailFlag (--add-cloudtrail)
+#
+gen3_s3_create() {
+  local bucketName=$1
+  local cloudtrailFlag=$2
+  local environmentName="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
+  
+  # do simple validation of bucket name
+  local regexp="^[a-z][a-z0-9\-]*$"
+  if [[ ! $bucketName =~ $regexp ]];then
+    local errMsg=$(cat << EOF
+ERROR: Bucket name does not meet the following requirements:
+  - starts with a-z
+  - contains only a-z, 0-9, and dashes, "-"
+EOF
+    )
+    gen3_log_err $errMsg
+    return 1
+  fi
+  
+  # if bucket already exists do nothing and exit
+  if [[ $(_bucket_exists $bucketName) == "true" ]]; then
+    gen3_log_info "Bucket already exists"
+    return 0
+  fi
+
+  _tfplan_s3 $bucketName $environmentName
+  if [[ $? != 0 ]]; then
+    return 1
+  fi
+  _tfapply_s3
+  if [[ $? != 0 ]]; then
+    return 1
+  fi
+
+  if [[ $cloudtrailFlag =~ ^.*add-cloudtrail$ ]]; then
+    _add_bucket_to_cloudtrail $bucketName $environmentName
+  fi
 }
 
 #
@@ -91,7 +158,11 @@ gen3_s3_info() {
   local AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
   if [[ -z "$AWS_ACCOUNT_ID" ]]; then
     gen3_log_err "Unable to fetch AWS account ID."
-    exit 1
+    return 1
+  fi
+  if [[ ! -z "$(gen3_aws_run aws s3api head-bucket --bucket $1 2>&1)" ]]; then
+    gen3_log_err "Bucket does not exist"
+    return 1
   fi
   local rootPolicyArn="arn:aws:iam::${AWS_ACCOUNT_ID}:policy"
   if gen3_aws_run aws iam get-policy --policy-arn ${rootPolicyArn}/${writerName} >/dev/null 2>&1; then
@@ -103,7 +174,129 @@ gen3_s3_info() {
   if [[ -z $writerPolicy || -z $readerPolicy ]]; then
     gen3_log_err "Unable to find a reader or writer policy with names ${writerName} and ${readerName}. Note this function only works for buckets created with the gen3 s3 add command."
   fi
-  echo "{ \"read\": ${readerPolicy:-"{}"}, \"write\": ${writerPolicy:-"{}"} }" | jq -r '.'
+  echo "{ \"read-only\": ${readerPolicy:-"{}"}, \"read-write\": ${writerPolicy:-"{}"} }" | jq -r '.'
+}
+
+#
+# Util for getting arn of a bucket's read or write policy
+#
+# @param bucketName
+# @param policyType
+# 
+_fetch_bucket_policy_arn() {
+  local bucketName=$1
+  local policyType=$2
+  policies=$(gen3_s3_info $bucketName)
+  if [[ $? != 0 ]]; then
+    gen3_log_err "Failed to fetch policy for bucket"
+    return 1
+  fi
+  if [[ $policyType =~ "read-only" ]]; then
+    echo $policies | jq -r '."read-only".policy_arn'
+    return 0
+  elif [[ $policyType =~ "read-write" ]]; then
+    echo $policies | jq -r '."read-write".policy_arn'
+    return 0
+  else
+    gen3_log_err "Invalid policy type: $policyType"
+    return 1
+  fi
+  if [[ "$policyArn" == "null" ]]; then
+    gen3_log_err "Policy does not exist"
+    return 1
+  fi
+}
+
+#
+# Util for checking if an entity already has a policy attached to them
+#
+# @param entityType: aws entity type (e.g. user, role...)
+# @param entityName
+# @param policyArn
+#
+_entity_has_policy() {
+  # returns true if entity already has policy, false otherwise
+  local entityType=$1
+  local entityName=$2
+  local policyArn=$3
+  # fetch policies attached to entity and check if bucket policy is already attached
+  local currentAttachedPolicies
+  currentAttachedPolicies=$(gen3_aws_run aws iam list-attached-${entityType}-policies --${entityType}-name $entityName 2>&1)
+  if [[ $? != 0 ]]; then
+    return 1
+  fi
+
+  if [[ ! -z $(echo $currentAttachedPolicies | jq '.AttachedPolicies[] | select(.PolicyArn == "'"${policyArn}"'")') ]]; then
+    echo "true"
+    return 0
+  fi
+
+  echo "false"
+  return 0
+}
+
+#
+# Attaches a bucket's read/write policy to a role
+#
+# @param bucket-name
+# @param policy-type
+# @param --role-name | --user-name
+# @param role-name | user-name
+#
+gen3_s3_attach_bucket_policy() {
+  local bucketName=$1
+  local policyType=$2
+  local entityTypeFlag=$3
+  local entityName=$4
+
+  if [[ -z "$bucketName" || -z "$entityName" ]]; then
+    gen3_log_err "Bucket name and user/role name must not be empty"
+    return 1
+  fi
+  
+  local policyArn
+  policyArn=$(_fetch_bucket_policy_arn $bucketName $policyType)
+  if [[ $? != 0 ]]; then
+    return 1
+  fi
+  
+  # check the iam entity type
+  local entityType
+  if [[ $entityTypeFlag =~ "user-name" ]]; then
+    entityType="user"
+  elif [[ $entityTypeFlag =~ "role-name" ]]; then
+    entityType="role"
+  else
+    gen3_log_err "Invalid entity type provided: $entityTypeFlag"
+    return 1
+  fi
+  
+  local alreadyHasPolicy
+  alreadyHasPolicy=$(_entity_has_policy $entityType $entityName $policyArn)
+  if [[ $? != 0 ]]; then
+    gen3_log_err "Failed to determine if entity already has policy"
+    return 1
+  fi
+  if [[ "true" == "$alreadyHasPolicy" ]]; then
+    gen3_log_info "Policy already attached"
+    return 0
+  fi
+
+  # attach the bucket policy to the entity
+  local attachStdout
+  attachStdout=$(gen3_aws_run aws iam attach-${entityType}-policy --${entityType}-name $entityName --policy-arn $policyArn 2>&1)
+  if [[ $? != 0 ]]; then
+    local errMsg=$(
+      cat << EOF
+Failed to attach policy:
+$attachStdout
+EOF
+    )
+    gen3_log_err $errMsg
+    return 1
+  fi
+
+  gen3_log_info "Successfully attached policy"
 }
 
 #---------- main
@@ -115,16 +308,23 @@ gen3_s3() {
     'list'|'ls')
       gen3_s3_list "$@"
       ;;
-    'new')
-      gen3_s3_new "$@"
+    'create')
+      gen3_s3_create "$@"
       ;;
     'info')
       gen3_s3_info "$@"
       ;;
+    'attach-bucket-policy')
+      gen3_s3_attach_bucket_policy "$@"
+      ;;
     *)
-      help
+      gen3_s3_help
       ;;
   esac
 }
 
-gen3_s3 "$@"
+# Let testsuite source file
+if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
+  gen3_s3 "$@"
+fi
+
