@@ -38,7 +38,7 @@ gen3_logs_rawlog_query() {
   fields="$(gen3_logs_get_arg fields "$fields" "$@")"
 
   queryFile=$(mktemp -p "$XDG_RUNTIME_DIR" "esLogsQuery.json_XXXXXX")
-  fromNum=$(($pageNum * 1000))
+  fromNum=$((pageNum * 1000))
   
   cat - > "$queryFile" <<EOM
 {
@@ -192,7 +192,7 @@ gen3_logs_rawlog_search() {
   # Support retrieving all pages
   if [[ $pageNum =~ ^[0-9][0-9]*$ ]]; then
     pageIt=$pageNum
-    pageMax=$(($pageNum + 1))
+    pageMax=$((pageNum + 1))
   elif [[ $pageNum =~ ^[0-9][0-9]*-[0-9][0-9]*$ ]]; then
     pageMax=$(echo $pageNum | sed -e 's/^.*-//')
     let pageMax+=1  # we do a 'less than' comparison below
@@ -250,8 +250,8 @@ EOM
     fi
     if [[ $pageMax == "all" ]]; then
       # compute pageMax from the total records in the first page result
-      pageMax=$(( $totalRecs / $pageSize)) # note - this rounds down
-      if [[ $(($pageMax * $pageSize)) -lt $((totalRecs)) ]]; then # deal with rounding errors
+      pageMax=$(( totalRecs / pageSize)) # note - this rounds down
+      if [[ $((pageMax * pageSize)) -lt $((totalRecs)) ]]; then # deal with rounding errors
         let pageMax+=2
       else
         let pageMax+=1

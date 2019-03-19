@@ -7,20 +7,13 @@ GEN3_UBH="gen3-ubh"
 #
 # Process arguments of form 'key=value' to an Elastic Search query
 # Supported keys:
-#   vpc, start, end, user, visitor, session, service, aggs (yes, no), fields (log, all, none), page
+#   vpc, start, end, hostname
 #
 gen3_logs_ubh_raw() {
   local vpcName
   local startDate
   local endDate
   local queryFile
-  local userId
-  local sessionId
-  local visitorId
-  local statusMin
-  local statusMax
-  local aggs   # aggregations
-  local fields 
 
   vpcName="$(gen3_logs_get_arg vpc "${vpc_name:-"all"}" "$@")"
   startDate="$(date --utc --date "$(gen3_logs_get_arg start '-12 hour' "$@")"  '+%Y/%m/%d %H:00')"
@@ -151,7 +144,6 @@ gen3_logs_ubh_save() {
   local hourName
   local rawDataFile
   local newDocFile
-  local vpcFile
   local numVpc
   local itVpc
   local numHour
@@ -159,7 +151,6 @@ gen3_logs_ubh_save() {
   local numUser
   local itUser
   local numDoc
-  local itDoc
   local totalDocs
 
   rawDataFile="$(mktemp "$XDG_RUNTIME_DIR/aggs.json_XXXXXX")"
@@ -245,6 +236,7 @@ EOM
   if [[ -f "$newDocFile" ]]; then
     rm "$newDocFile"
   fi
+  return $resultCode
 }
 
 
@@ -265,7 +257,7 @@ gen3_logs_ubh_history() {
   startDate="$(gen3_logs_fix_date "$(gen3_logs_get_arg start 'yesterday 00:00' "$@")")"
   endDate="$(gen3_logs_fix_date "$(gen3_logs_get_arg end 'tomorrow 00:00' "$@")")"
   pageNum="$(gen3_logs_get_arg page 0 "$@")"
-  fromNum=$(($pageNum * 1000))  
+  fromNum=$((pageNum * 1000))  
   if [[ -n "$hostname" ]]; then vpcName=all; fi
 
   queryFile="$(mktemp "$XDG_RUNTIME_DIR/esquery.json_XXXXXX")"
