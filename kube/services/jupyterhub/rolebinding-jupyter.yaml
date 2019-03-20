@@ -1,12 +1,12 @@
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
-  name: jupyter-binding
+  JUPYTER_BINDING
   namespace: jupyter-pods
 subjects:
 - kind: ServiceAccount
   name: jupyter-service
-  namespace: default
+  CURRENT_NAMESPACE
 roleRef:
   kind: ClusterRole
   name: jupyter
