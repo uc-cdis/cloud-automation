@@ -2,12 +2,16 @@ variable "vpc_name" {
   default = "Commons1"
 }
 
-variable "vpc_octet2" {
-  default = 24
-}
+#variable "vpc_octet2" {
+#  default = 24
+#}
 
-variable "vpc_octet3" {
-  default = 17
+#variable "vpc_octet3" {
+#  default = 17
+#}
+
+variable "vpc_cidr_block" {
+  default = "172.24.17.0/20"
 }
 
 variable "aws_region" {

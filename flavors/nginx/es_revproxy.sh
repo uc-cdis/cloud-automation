@@ -111,32 +111,66 @@ mkdir /usr/share/nginx/html/status
 echo Healthy > /usr/share/nginx/html/status/index.html
 
 cat > /etc/nginx/sites-enabled/default  <<EOF
+#
+# gen3 ES proxy
+# see also:
+#      https://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive
+#      https://ma.ttias.be/enable-keepalive-connections-in-nginx-upstream-proxy-configurations/
+#      https://discuss.elastic.co/t/reverse-proxy-with-nginx/80244/2
+#      https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_read_timeout
+#
+
+# aws magic resolver IP
+resolver 169.254.169.253;
+
+upstream es_backend {
+    server ${ES_ENDPOINT}:443;
+
+    keepalive 100;
+}
+
 server {
         listen 80;
         listen [::]:80;
         server_name _;
+        set \$es_server_name ${ES_ENDPOINT};
+
         location / {
                 proxy_http_version      1.1;
-                proxy_set_header        Host https://${ES_ENDPOINT}/;
-                proxy_set_header        Connection "Keep-Alive";
-                proxy_set_header        Proxy-Connection "Keep-Alive";
-                auth_basic "Restricted Content";
-                auth_basic_user_file /etc/nginx/.htpasswd;
+                proxy_set_header        Connection "";
+                proxy_set_header        Host \$es_server_name;
+                #proxy_set_header        Connection "Keep-Alive";
+                #proxy_set_header        Proxy-Connection "Keep-Alive";
+                #auth_basic              "Restricted Content";
+                #auth_basic_user_file    /etc/nginx/.htpasswd;
                 proxy_set_header        Authorization "";
-                proxy_set_header        X-Real-IP ${PUBLIC_IP};
-                proxy_pass              https://${ES_ENDPOINT}/;
-                proxy_redirect          https://${ES_ENDPOINT}/ https://${PUBLIC_IP}/_plugin/kibana/;
+                proxy_set_header        X-Real-IP  ${PUBLIC_IP};
+                proxy_redirect          https://\$es_server_name/ https://kibana.planx-pla.net/_plugin/kibana/;
+                proxy_buffers           16 64k;
+                proxy_busy_buffers_size  64k;
+                client_max_body_size    256k;
+                client_body_buffer_size 128k;
+                proxy_pass              https://es_backend;
         }
+
         location ~ (/app/kibana|/app/timelion|/bundles|/es_admin|/plugins|/api|/ui|/elasticsearch) {
-                proxy_pass              https://${ES_ENDPOINT};
+                proxy_http_version      1.1;
+                proxy_set_header        Connection "";
+                #proxy_set_header        Connection "Keep-Alive";
+                #proxy_set_header        Proxy-Connection "Keep-Alive";
                 proxy_set_header        Host \$host;
                 proxy_set_header        X-Real-IP \$remote_addr;
                 proxy_set_header        X-Forwarded-For \$proxy_add_x_forwarded_for;
                 proxy_set_header        X-Forwarded-Proto \$scheme;
                 proxy_set_header        X-Forwarded-Host \$http_host;
-                auth_basic "Restricted Content";
-                auth_basic_user_file /etc/nginx/.htpasswd;
+                #auth_basic              "Restricted Content";
+                #auth_basic_user_file    /etc/nginx/.htpasswd;
                 proxy_set_header        Authorization  "";
+                proxy_buffers           16 64k;
+                proxy_busy_buffers_size  64k;
+                client_max_body_size    256k;
+                client_body_buffer_size 128k;
+                proxy_pass              https://es_backend;
         }
         # ELB Health Checks
         location /status {

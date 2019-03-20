@@ -60,9 +60,9 @@ spec:
           - name: HADOOP_CLIENT_OPTS
             value: -Xmx512m
           - name: SPARK_EXECUTOR_MEMORY
-            value: 2g
+            value: 3g
           - name: SPARK_DRIVER_MEMORY
-            value: 1g
+            value: 2g
           volumeMounts:
             - name: "creds-volume"
               readOnly: true
@@ -75,9 +75,9 @@ spec:
           resources:
             limits:
               cpu: 1
-              memory: 3Gi
+              memory: 5Gi
           command: ["/bin/bash" ]
-          args: 
+          args:
             - "-c"
             - |
               python run_config.py

@@ -45,9 +45,9 @@ output "public_subnet_id" {
   value = "${aws_subnet.public.id}"
 }
 
-output "private_subnet_id" {
-  value = "${aws_subnet.private_user.id}"
-}
+#output "private_subnet_id" {
+#  value = "${aws_subnet.private_user.id}"
+#}
 
 output "security_group_local_id" {
   value = "${aws_security_group.local.id}"

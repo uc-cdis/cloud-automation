@@ -9,6 +9,40 @@ gen3 logs raw
 
 ## Use
 
+### `gen3 logs curl`
+
+Little `curl` wrapper that sets up the basic-auth creds and hostname,
+takes the URL path from the first argument (or defaults to `_cat/indices`), then
+passes through other args.
+
+```
+gen3 logs curl genomelprod-2019-w09/_mapping?pretty=true
+```
+
+If the URL includes the protocol, then assumes the hostname is given - ex:
+
+```
+gen3 logs curl https://www.google.com
+```
+
+
+### `gen3 logs curl200`
+
+Like `gen3 logs curl`, but non-zero exit code if HTTP status is not 200.
+Little different than `--fail`, because it sends the results to stderr.
+
+```
+gen3 logs curl200 https://www.google.com -X DELETE
+```
+
+### `gen3 logs curljson`
+
+Like `gen3 logs curl200`, but fails if the response payload is not json - sending the results to stderr.
+
+```
+gen3 logs curl200 https://www.google.com -X DELETE
+```
+
 ### `gen3 logs raw`
 
 Accepts the following `key=value` arguments
@@ -18,6 +52,8 @@ Accepts the following `key=value` arguments
 * `start=datetime` - default `yesterday`
 * `end=datetime` - default `tomorrow`
 * `format=raw|json` - default `raw`
+* `aggs=yes|no` - default `no` - aggregations
+* `fields=all|log|none` - default `log` if `aggs` is `no`, default `none` if `aggs` is `yes`
 
 The following variables are also available when search `revproxy` service logs:
 * `user=uid:number,email` - ex: `user=uid:5,frickjack@uchicago.edu` - see `gen3 logs user` below
@@ -70,4 +106,20 @@ Ex:
 ```
 $ gen3 logs user | grep reuben
 uid:11,reubenonrye@sandwich.edu
+```
+
+### `gen3 logs save daily`
+
+Save aggregations from yesterday to the `gen3-aggs-daily` index.
+
+```
+$ gen3 logs save daily
+```
+
+### `gen3 logs history daily`
+
+Retrieve aggregations from the `gen3-aggs-daily` index.
+
+```
+$ gen3 logs history daily "start=-7 days" "vpc=all"
 ```

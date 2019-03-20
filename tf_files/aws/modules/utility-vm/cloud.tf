@@ -164,7 +164,7 @@ locals {
   proxy_config_environment = <<EOF
 http_proxy=http://cloud-proxy.internal.io:3128
 https_proxy=http://cloud-proxy.internal.io:3128
-no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com" 
+no_proxy=localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com
 EOF
 
   proxy_config_apt = <<EOF
