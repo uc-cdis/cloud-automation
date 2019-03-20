@@ -282,7 +282,7 @@ grafana.ini:
   grafana_net:
     url: https://grafana.net
   server:
-    domain: 'fauziv1.planx-pla.net'
+    domain: 'DOMAIN'
     root_url: '%(protocol)s://%(domain)s/grafana/'
 ## LDAP Authentication can be enabled with the following values on grafana.ini
 ## NOTE: Grafana will fail to start if the value for ldap.toml is invalid
