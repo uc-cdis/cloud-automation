@@ -62,7 +62,7 @@ spec:
           - name: SPARK_EXECUTOR_MEMORY
             value: 3g
           - name: SPARK_DRIVER_MEMORY
-            value: 1g
+            value: 2g
           volumeMounts:
             - name: "creds-volume"
               readOnly: true
