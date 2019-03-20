@@ -58,6 +58,7 @@ if [[ -f "$credsPath" ]]; then # setup netpolicy
   g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_sheepdog_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
   g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_portal_templ.yaml" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
   g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_revproxy_templ.yaml" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
+  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_pelican_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
   g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_jenkins_templ.yaml"
   g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_allowdns_templ.yaml"
   g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_gen3job_templ.yaml"

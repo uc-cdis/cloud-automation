@@ -1,0 +1,90 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: pelican-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: pelican
+      release: production
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: pelican
+        release: production
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - pelican
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      # volumes:
+      #   - name: cert-volume
+      #     secret:
+      #       secretName: "cert-pelican-service"
+      #   - name: ca-volume
+      #     secret:
+      #       secretName: "service-ca"
+      terminationGracePeriodSeconds: 50
+      containers:
+        - name: pelican
+          GEN3_PELICAN_IMAGE
+          # livenessProbe:
+          #   httpGet:
+          #     path: /_status?timeout=20
+          #     port: 80
+          #   initialDelaySeconds: 30
+          #   periodSeconds: 60
+          #   timeoutSeconds: 30
+          # readinessProbe:
+          #   httpGet:
+          #     path: /_status?timeout=2
+          #     port: 80
+          ports:
+          - containerPort: 80
+          - containerPort: 443
+          env:
+          - name: DICTIONARY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: dictionary_url
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+          # volumeMounts:
+          #   - name: "cert-volume"
+          #     readOnly: true
+          #     mountPath: "/mnt/ssl/service.crt"
+          #     subPath: "service.crt"
+          #   - name: "cert-volume"
+          #     readOnly: true
+          #     mountPath: "/mnt/ssl/service.key"
+          #     subPath: "service.key"
+          #   - name: "ca-volume"
+          #     # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
+          #     readOnly: true
+          #     mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
+          #     subPath: "ca.pem"
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 1
+            limits:
+              cpu: 2
+              memory: 1024Mi
