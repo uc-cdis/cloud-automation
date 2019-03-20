@@ -73,6 +73,7 @@ module "config_files" {
 
 module "cdis_alarms" {
   source          = "../modules/commons-alarms"
+  slack_webhook   = "${var.slack_webhook}"
   vpc_name        = "${var.vpc_name}"
   db_size         = "${var.db_size}"
   db_fence        = "${aws_db_instance.db_fence.identifier}"
