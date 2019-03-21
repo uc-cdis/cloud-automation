@@ -34,7 +34,10 @@ spec:
                   - pelican
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
-      # volumes:
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "pelican-secret"
       #   - name: cert-volume
       #     secret:
       #       secretName: "cert-pelican-service"
@@ -67,7 +70,11 @@ spec:
                 key: dictionary_url
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
-          # volumeMounts:
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/pelican/config.py"
+              subPath: "config.py"
           #   - name: "cert-volume"
           #     readOnly: true
           #     mountPath: "/mnt/ssl/service.crt"
