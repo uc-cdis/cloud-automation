@@ -26,7 +26,7 @@ gen3 update_config jupyterhub-config "${GEN3_HOME}/kube/services/jupyterhub/jupy
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/role-jupyter.yaml"
 namespace="$(gen3 db namespace)"
-g3k_kv_filter ${GEN3_HOME}/kube/services/jupyterhub/rolebinding-jupyter.yaml CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -
+g3k_kv_filter ${GEN3_HOME}/kube/services/jupyterhub/rolebinding-jupyter.yaml JUPYTER_BINDING "name: jupyter-binding-$namespace" CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-prepuller.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-service.yaml"
