@@ -2,12 +2,12 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: fence-deployment
+  name: fenceshib-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: fence
+      app: fenceshib
       release: production
   revisionHistoryLimit: 2
   strategy:
@@ -18,7 +18,7 @@ spec:
   template:
     metadata:
       labels:
-        app: fence
+        app: fenceshib
         release: production
         GEN3_DATE_LABEL
     spec:
@@ -32,7 +32,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - fence
+                  - fenceshib
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
@@ -77,9 +77,12 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: fenceshib-secret
+          secret:
+            secretName: "fenceshib-g3auto"
       containers:
-      - name: fence
-        GEN3_FENCE_IMAGE
+      - name: fenceshib
+        GEN3_FENCESHIB_IMAGE
         env:
         - name: PYTHONPATH
           value: /var/www/fence
@@ -158,6 +161,22 @@ spec:
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
+          - name: "fenceshib-secret"
+            readOnly: false
+            mountPath: "/etc/shibboleth/shibboleth2.xml"
+            subPath: "shibboleth2.xml"
+          - name: "fenceshib-secret"
+            readOnly: true
+            mountPath: "/etc/ssl/private/incommon-login.bionimbus.org.key"
+            subPath: "incommon-login.bionimbus.org.key"
+          - name: "fenceshib-secret"
+            readOnly: true
+            mountPath: "/etc/ssl/certs/incommon-login.bionimbus.org.crt"
+            subPath: "incommon-login.bionimbus.org.crt"
+          - name: "fenceshib-secret"
+            readOnly: true
+            mountPath: "/etc/shibboleth/inc-md-cert.pem"
+            subPath: "inc-md-cert.pem"
         resources:
             limits:
               cpu: 0.3
