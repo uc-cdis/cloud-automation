@@ -5,12 +5,12 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: fence
+      app: fenceshib
   ingress:
     - from:
       - podSelector:
           matchLabels:
-            app: fence
+            app: fenceshib
       - podSelector:
           matchLabels:
              app: indexd
