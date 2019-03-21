@@ -47,12 +47,6 @@ else
   echo "INFO: not deploying sheepdog - no manifest entry for .versions.sheepdog"
 fi
 
-if g3k_manifest_lookup .versions.manifestservice 2> /dev/null; then
-  gen3 kube-setup-manifestservice
-else
-  echo "INFO: not deploying manifestservice - no manifest entry for .versions.manifestservice"
-fi
-
 if g3k_manifest_lookup .versions.peregrine 2> /dev/null; then
   gen3 kube-setup-peregrine
 else

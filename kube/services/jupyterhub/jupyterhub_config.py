@@ -13,6 +13,7 @@ def modify_pod_hook(spawner, pod):
     https://github.com/jupyterhub/zero-to-jupyterhub-k8s/issues/379
     '''
     pod.spec.containers[0].security_context = client.V1SecurityContext(
+        # TODO: Remove this below line if the --userns-remap solution is successful next sprint
         privileged=True,
         capabilities=client.V1Capabilities(
             add=['SYS_ADMIN', 'MKNOD']
@@ -116,7 +117,7 @@ c.KubeSpawner.lifecycle_hooks = {
         }
     }
 }
-# TODO: Remove this below line. But need this here for now for integration test purposes.
+# TODO: Remove this below line before merge to master. But need this here for now for testing purposes.
 c.KubeSpawner.image_pull_policy = 'Always' 
 c.KubeSpawner.modify_pod_hook = modify_pod_hook
 c.KubeSpawner.cmd = 'start-singleuser.sh'
