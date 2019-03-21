@@ -118,7 +118,7 @@ c.KubeSpawner.lifecycle_hooks = {
     }
 }
 # TODO: Remove this below line before merge to master. But need this here for now for testing purposes.
-c.KubeSpawner.image_pull_policy = 'Always' 
+c.KubeSpawner.image_pull_policy = 'Always'
 c.KubeSpawner.modify_pod_hook = modify_pod_hook
 c.KubeSpawner.cmd = 'start-singleuser.sh'
 c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-prefix=https://%s%s/' % (
