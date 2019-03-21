@@ -37,7 +37,7 @@ spec:
       volumes:
         - name: config-volume
           secret:
-            secretName: "pelican-secret"
+            secretName: "pelican-g3auto"
       #   - name: cert-volume
       #     secret:
       #       secretName: "cert-pelican-service"
