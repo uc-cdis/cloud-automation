@@ -60,6 +60,10 @@ spec:
             value: esproxy-service:9200
           - name: GEN3_ARBORIST_ENDPOINT
             value: http://arborist-service
+          - name: GEN3_ES_INDEX
+            value: GEN3_GUPPY_ES_INDEX|-gen3-subject-dev-|
+          - name: GEN3_ES_TYPE
+            value: GEN3_GUPPY_ES_TYPE|-subject-|
           volumeMounts:
             - name: "cert-volume"
               readOnly: true
