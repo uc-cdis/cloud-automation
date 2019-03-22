@@ -83,7 +83,7 @@ gen3_curl_json() {
   fi
 
   if [[ "$method" == "POST" ]]; then
-    curl -s -X POST "https://$hostname/$path" -H "Authorization: bearer $accessToken" "-d@$jsonFile"
+    curl -s -X POST "https://$hostname/$path" -H "Authorization: bearer $accessToken" -H "Content-Type: application/json" "-d@$jsonFile"
   else
     curl -s -X GET "https://$hostname/$path" -H "Authorization: bearer $accessToken"
   fi
@@ -211,6 +211,7 @@ gen3_indexd_post_folder() {
     fi
   done
 }
+
 
 #---------- main
 

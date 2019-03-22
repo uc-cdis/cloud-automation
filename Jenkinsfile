@@ -71,6 +71,12 @@ node {
       stage('CleanS3') {
         testHelper.cleanS3()
       }
+      stage('authzTest') {
+        // test revproxy+arborist /gen3-authz stuff
+        kubeHelper.kube(kubectlNamespace, {
+          sh('bash cloud-automation/gen3/bin/testsuite.sh --filter authz');
+        });
+      }
     }
   catch (e) {
     pipelineHelper.handleError(e)
