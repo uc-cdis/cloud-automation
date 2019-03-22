@@ -13,7 +13,7 @@ else
   S3_LOCATION="s3://gen3-kernels/4.19.30"
 fi
 
-KERNEL-FILES="/tmp/gen3-kernel/"
+KERNEL_FILES="/tmp/gen3-kernel/"
 
 
 
@@ -48,7 +48,7 @@ echo "export HTTPS_PROXY=$${PROXY}" |sudo tee -a /etc/sysconfig/docker
 echo "export NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com" |sudo tee -a /etc/sysconfig/docker
 
 
-# reload docker for out changes to take place
+# reload docker for our changes to take place
 systemctl daemon-reload
 systemctl restart docker
 
@@ -57,13 +57,13 @@ systemctl restart docker
 
 
 # If we are using this bootstrap is because we want a new kernel on our workers
-mkdir $KERNEL-FILES
+mkdir $KERNEL_FILES
 
 # Using `aws s3 sync` throws all kind of issues in the logs, using cp instead. 
 
-aws s3 cp --recursive $${S3_LOCATION} $KERNEL-FILES
+aws s3 cp --recursive $${S3_LOCATION} $KERNEL_FILES
 
-rpm -iUv $KERNEL-FILES/kernel*.rpm
+rpm -iUv $KERNEL_FILES/kernel*.rpm
 
 
 
@@ -81,8 +81,7 @@ fi
 cat >> /etc/rc.d/rc.local <<EOF
 if ! [ -f /var/bootstrapted ];
 then
-    /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name}
-    touch /var/bootstrapted
+    /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} > /var/bootstrapted 2>&1
 fi
 EOF
 
