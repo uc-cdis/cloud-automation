@@ -4,7 +4,6 @@
 # More info https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html
 
 # Upper case variables are local, lower case are handled by terraform.
-# We use double dollar signs ($$) because terraform uses the same sintax for variables.
 
 if [ ${kernel} != "N/A" ];
 then
@@ -37,14 +36,15 @@ if ! [ -d /etc/systemd/system/docker.service.d ];
 then
     sudo mkdir -p /etc/systemd/system/docker.service.d
 fi
-sudo cat <<EOF > /etc/systemd/system/docker.service.d/http-proxy.conf
+
+cat > /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
 [Service]
-Environment="HTTP_PROXY=$${PROXY}" "HTTPS_PROXY=$${PROXY}" "NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com"
+Environment="HTTP_PROXY=$PROXY" "HTTPS_PROXY=$PROXY" "NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com"
 EOF
 
 
-echo "export HTTP_PROXY=$${PROXY}" |sudo tee -a /etc/sysconfig/docker
-echo "export HTTPS_PROXY=$${PROXY}" |sudo tee -a /etc/sysconfig/docker
+echo "export HTTP_PROXY=$PROXY" |sudo tee -a /etc/sysconfig/docker
+echo "export HTTPS_PROXY=$PROXY" |sudo tee -a /etc/sysconfig/docker
 echo "export NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com" |sudo tee -a /etc/sysconfig/docker
 
 
@@ -61,7 +61,7 @@ mkdir $KERNEL_FILES
 
 # Using `aws s3 sync` throws all kind of issues in the logs, using cp instead. 
 
-aws s3 cp --recursive $${S3_LOCATION} $KERNEL_FILES
+aws s3 cp --recursive $S3_LOCATION $KERNEL_FILES
 
 rpm -iUv $KERNEL_FILES/kernel*.rpm
 

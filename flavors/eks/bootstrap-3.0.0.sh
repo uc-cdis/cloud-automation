@@ -31,7 +31,7 @@ mkdir $KERNEL_FILES
 
 # Using `aws s3 sync` throws all kind of issues in the logs, using cp instead. 
 
-aws s3 cp --recursive $${S3_LOCATION} $KERNEL_FILES
+aws s3 cp --recursive $S3_LOCATION $KERNEL_FILES
 
 rpm -iUv $KERNEL_FILES/kernel*.rpm
 

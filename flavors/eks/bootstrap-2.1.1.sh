@@ -16,14 +16,14 @@ if ! [ -d /etc/systemd/system/docker.service.d ];
 then
     sudo mkdir -p /etc/systemd/system/docker.service.d
 fi
-sudo cat <<EOF > /etc/systemd/system/docker.service.d/http-proxy.conf
+cat  > /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
 [Service]
-Environment="HTTP_PROXY=$${PROXY}" "HTTPS_PROXY=$${PROXY}" "NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com"
+Environment="HTTP_PROXY=$PROXY" "HTTPS_PROXY=$PROXY" "NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com"
 EOF
 
 
-echo "export HTTP_PROXY=$${PROXY}" |sudo tee -a /etc/sysconfig/docker
-echo "export HTTPS_PROXY=$${PROXY}" |sudo tee -a /etc/sysconfig/docker
+echo "export HTTP_PROXY=$PROXY" |sudo tee -a /etc/sysconfig/docker
+echo "export HTTPS_PROXY=$PROXY" |sudo tee -a /etc/sysconfig/docker
 echo "export NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com" |sudo tee -a /etc/sysconfig/docker
 
 
@@ -37,7 +37,7 @@ cat > /home/ec2-user/.ssh/authorized_keys <<EFO
 ${ssh_keys}
 EFO
 
-sudo cp /home/ec2-user/.ssh/authorized_keys /root/.ssh/authorized_keys
+cp /home/ec2-user/.ssh/authorized_keys /root/.ssh/authorized_keys
 
 # forcing a restart of docker at the very end, it seems like the changes are not picked up for some reason
 systemctl daemon-reload
