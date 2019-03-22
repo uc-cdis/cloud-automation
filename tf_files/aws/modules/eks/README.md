@@ -56,7 +56,10 @@ users_policy = "fauziv1"
 * `eks_version` Version of kubernetes to deploy for EKS, default is set to 1.10.
 * `worker_drive_size` Size of the root volume for the workers. Default is set to 30 GB.
 * `deploy_jupyter_pool` If you want the jupyter pool. If explicit "yes" is passed, then the autoscaling group would be set to a minimum of three instances, and same value for desired capasity. Default is no.
-*  `jupyter_instance_type` Instance_type for nodepool by default this is set to t3.medium, but it can be changed if needed.
+* `jupyter_instance_type` Instance_type for nodepool by default this is set to t3.medium, but it can be changed if needed.
+* `bootstrap_script` Script to use to initialize the worker nodes. Default value `bootstrap-2.0.0.sh`
+* `jupyter_bootstrap_script` Script to intialize jupyter worekers. Default value `bootstrap-2.0.0.sh`
+* `kernel` If your bootstrap script requires a different kernel that what ships with the AMIs. Additionally, kernels will be uploaded onto `gen3-kernels` bucket in the CSOC account. Default value `"N/A"`
 
 ## 5. Considerations
 

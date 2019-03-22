@@ -41,6 +41,8 @@ All variables in this module are mandatory, however, since it is not intended to
 * `control_plane_sg` security group for the control plane to talk to the workers.
 * `default_nodepool_sg` Security group of the default pool. This hasn't been tested for additional pools other than jupyter, but theoretically you could create as many pools as you want.
 * `deploy_jupyter_pool` If expolicit "yes" provided, then the autoscaling group for the pool will be set for 3 as minimum and desired capasity. Default is no.
+* `bootstrap_script` Script to use to initialize the worker. Default value `bootstrap-2.0.0.sh`
+* `kernel` If your bootstrap script requires another kernel, you could point to it with this variable. Available kernels will be in `gen3-kernels` bucket. Default value `N/A`
 
 
 ## 5. Considerations
