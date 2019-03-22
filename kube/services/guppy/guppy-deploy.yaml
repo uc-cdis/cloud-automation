@@ -1,0 +1,82 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: guppy-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: guppy
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: guppy
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - guppy
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: cert-volume
+          secret:
+            secretName: "cert-arranger-service"
+        - name: ca-volume
+          secret:
+            secretName: "service-ca"
+      containers:
+        - name: guppy
+          GEN3_GUPPY_IMAGE|-image: quay.io/cdis/guppy:master-|
+          livenessProbe:
+            httpGet:
+              path: /_status
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /_status
+              port: 3000
+          ports:
+          - containerPort: 3000
+          env:
+          - name: GEN3_ES_ENDPOINT
+            value: esproxy-service:9200
+          - name: GEN3_ARBORIST_ENDPOINT
+            value: http://arborist-service
+          - name: GEN3_ES_INDEX
+            value: GEN3_GUPPY_ES_INDEX|-gen3-subject-dev-|
+          - name: GEN3_ES_TYPE
+            value: GEN3_GUPPY_ES_TYPE|-subject-|
+          volumeMounts:
+            - name: "cert-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/service.crt"
+              subPath: "service.crt"
+            - name: "ca-volume"
+              # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
+              readOnly: true
+              mountPath: "/usr/local/share/ca-certificates/cdis-ca.crt"
+              subPath: "ca.pem"
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 0.3
+              memory: 512Mi
+          
