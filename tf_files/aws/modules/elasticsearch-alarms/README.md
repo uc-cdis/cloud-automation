@@ -1,17 +1,17 @@
 # TL;DR
 
-This module will create an sns topic and lambda for commons alarms. Currently there are only postgres rds alarms created but you can add a new .tf file to create alarms for other services.
+This module will create an sns topic and lambda for elasticsearch alarms. 
 
 
 ## 1. QuickStart
 
 ```
-gen3 workon <profile> <commons_name>
+gen3 workon <profile> <commons_name>_es
 ```
 
 Ex.
 ```
-$ gen3 workon cdistest emalinowskiv1
+$ gen3 workon cdistest emalinowskiv1_es
 ```
 
 ## 2. Table of content
@@ -19,7 +19,7 @@ $ gen3 workon cdistest emalinowskiv1
 - [1. QuickStart](#1-quickstart)
 - [2. Table of Contents](#2-table-of-contents)
 - [3. Overview](#3-overview)
-- [4. Variables](#4-variables)
+- [4. Variables](#4-Variables)
 - [5. Considerations](#5-considerations)
 
 
@@ -48,4 +48,4 @@ slack_webhook = https://hooks.slack.com/services/XXXXXXXX/XXXXXXXX/XXXXXXXXXXXXX
 
 ## 5. Considerations
 
-* This module has been added to the standard commons terraform deploy so most of the variables should be setup when terraform is run. The only required variable at that point would be the slack_webhook. 
+* This module has been added to the standard elasticsearch terraform deploy so most of the variables should be setup when terraform is run. The only required variable at that point would be the slack_webhook.
