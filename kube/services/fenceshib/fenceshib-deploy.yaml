@@ -88,6 +88,11 @@ spec:
           value: /var/www/fence
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
+        - name: HOSTNAME
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: hostname
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -98,7 +103,7 @@ spec:
           timeoutSeconds: 30
         readinessProbe:
           httpGet:
-            path: /_status
+            path: /Shibboleth.sso/DiscoFeed
             port: 80
         ports:
         - containerPort: 80
@@ -162,7 +167,7 @@ spec:
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
           - name: "fenceshib-secret"
-            readOnly: false
+            readOnly: true
             mountPath: "/etc/shibboleth/shibboleth2.xml"
             subPath: "shibboleth2.xml"
           - name: "fenceshib-secret"
@@ -179,5 +184,5 @@ spec:
             subPath: "inc-md-cert.pem"
         resources:
             limits:
-              cpu: 0.3
+              cpu: 2
               memory: 1200Mi
