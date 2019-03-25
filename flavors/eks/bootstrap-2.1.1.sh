@@ -4,7 +4,8 @@
 # More info https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html
 
 # Upper case variables are local, lower case are handled by terraform.
-# We use double dollar signs ($$) because terraform uses the same sintax for variables.
+# Bracket enclosed variables are handled by terraform. Non encloses variables are local to this script
+
  
 sudo sysctl fs.inotify.max_user_watches=12000
 
@@ -18,7 +19,7 @@ then
 fi
 cat  > /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
 [Service]
-Environment="HTTP_PROXY=$PROXY" "HTTPS_PROXY=$PROXY" "NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com"
+Environment="HTTP_PROXY=$PROXY" "HTTPS_PROXY=$PROXY" "NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,.planx-pla.net,.amazonaws.com,.amazon.com"
 EOF
 
 

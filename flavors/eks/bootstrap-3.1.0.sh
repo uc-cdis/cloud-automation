@@ -39,13 +39,13 @@ fi
 
 cat > /etc/systemd/system/docker.service.d/http-proxy.conf <<EOF
 [Service]
-Environment="HTTP_PROXY=$PROXY" "HTTPS_PROXY=$PROXY" "NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com"
+Environment="HTTP_PROXY=$PROXY" "HTTPS_PROXY=$PROXY" "NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,.planx-pla.net,.amazonaws.com,.amazon.com"
 EOF
 
 
 echo "export HTTP_PROXY=$PROXY" |sudo tee -a /etc/sysconfig/docker
 echo "export HTTPS_PROXY=$PROXY" |sudo tee -a /etc/sysconfig/docker
-echo "export NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com" |sudo tee -a /etc/sysconfig/docker
+echo "export NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,.planx-pla.net,.amazonaws.com,.amazon.com" |sudo tee -a /etc/sysconfig/docker
 
 
 # reload docker for our changes to take place

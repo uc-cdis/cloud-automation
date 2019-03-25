@@ -52,7 +52,6 @@ cat >> /etc/rc.d/rc.local <<EOF
 
 if ! [ -f /var/bootstraped ];
 then
-    sleep 1
     /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} > /var/bootstraped 2>&1
 fi
 EOF
