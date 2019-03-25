@@ -47,8 +47,7 @@ g3k_runjob() {
   waitJob=$1
   if [[ $waitJob =~ -*w(ait)? ]]; then
     shift
-  fi
-  
+  fi  
 
   if [[ -z "$jobKey" ]]; then
     echo "gen3 job run JOBNAME"
@@ -61,7 +60,7 @@ g3k_runjob() {
   elif [[ "$jobName" =~ ^[^/]+-(cron)?job$ ]]; then
     jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}.yaml"
     jobName="$(echo $jobName | sed -E 's/-(cron)?job$//')"
-  elif [[ "$jobName" =~ ^[^/]+.yaml ]]; then
+  elif [[ "$jobName" =~ ^[^/]+\.yaml$ ]]; then
     jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}"
     jobName="$(echo $jobName | sed -E 's/-(cron)?job.yaml$//')"
   else
