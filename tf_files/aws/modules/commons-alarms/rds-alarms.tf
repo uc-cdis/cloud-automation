@@ -1,10 +1,11 @@
 module "alarms-lambda" {
   source          = "../alarms-lambda"
+  vpc_name        = "${var.vpc_name}"
   slack_webhook   = "${var.slack_webhook}"
 }
 
 resource "aws_cloudwatch_metric_alarm" "fence_db_alarm" {
-  alarm_name                = "db_disk_space_fence_alarm-{var.vpc_name}"
+  alarm_name                = "db_disk_space_fence_alarm-${var.vpc_name}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
   threshold                 = "${var.alarm_threshold}"
@@ -32,7 +33,7 @@ resource "aws_cloudwatch_metric_alarm" "fence_db_alarm" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "gdcapi_db_alarm" {
-  alarm_name                = "db_disk_space_gdcapi_alarm-{var.vpc_name}"
+  alarm_name                = "db_disk_space_gdcapi_alarm-${var.vpc_name}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
   threshold                 = "${var.alarm_threshold}"
@@ -60,7 +61,7 @@ resource "aws_cloudwatch_metric_alarm" "gdcapi_db_alarm" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "indexd_db_alarm" {
-  alarm_name                = "db_disk_space_indexd_alarm$-{var.vpc_name}"
+  alarm_name                = "db_disk_space_indexd_alarm-${var.vpc_name}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
   threshold                 = "${var.alarm_threshold}"
