@@ -17,7 +17,3 @@ variable "vpc_name" {
 variable "es_domain_name" {
   default = ""
 }
-
-variable "client_id" {
-  default = ""
-}
