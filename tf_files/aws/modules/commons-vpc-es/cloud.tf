@@ -4,7 +4,7 @@ module "elasticsearch_alarms" {
   slack_webhook   = "${var.slack_webhook}"
   vpc_name        = "${var.vpc_name}_es"
   es_domain_name  = "${aws_elasticsearch_domain.gen3_metadata.domain_name}"
-  ebs_volume_size = "${aws_elasticsearch_domain.gen3_metadata.ebs_options.volume_size}"
+  ebs_volume_size = "${aws_elasticsearch_domain.gen3_metadata.ebs_options.0.volume_size}"
   client_id       = "${var.client_id}"
 }
 

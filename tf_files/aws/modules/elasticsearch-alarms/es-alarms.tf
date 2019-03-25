@@ -27,7 +27,7 @@ resource "aws_cloudwatch_metric_alarm" "elasticsearch_alarm" {
       stat        = "Average"
       dimensions = {
         DomainName = "${var.es_domain_name}",
-        ClientId   = "${var.client_id}"
+        ClientId   = "${data.aws_caller_identity.current.account_id}"
       }
     }
   }
