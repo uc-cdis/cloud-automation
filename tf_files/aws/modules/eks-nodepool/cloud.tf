@@ -273,7 +273,7 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   key_name                    = "${var.ec2_keyname}"
 
   root_block_device {
-    volume_size = 30
+    volume_size = "${var.jupyter_worker_drive_size}"
   }
 
 

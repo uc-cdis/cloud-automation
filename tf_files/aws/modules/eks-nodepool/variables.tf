@@ -52,3 +52,7 @@ variable "kernel" {
 variable "bootstrap_script" {
   default = "bootstrap-2.0.0.sh"
 }
+
+variable "jupyter_worker_drive_size" {
+  default = 30
+}

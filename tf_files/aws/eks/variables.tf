@@ -47,3 +47,7 @@ variable "jupyter_bootstrap_script" {
 variable "kernel" {
   default = "N/A"
 }
+
+variable "jupyter_worker_drive_size" {
+  default = 30
+}

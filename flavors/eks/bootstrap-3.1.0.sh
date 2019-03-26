@@ -78,12 +78,39 @@ then
     KUBELET_EXTRA_ARGUMENTS="$KUBELET_EXTRA_ARGUMENTS --register-with-taints=role=${nodepool}:NoSchedule"
 fi
 
-cat >> /etc/rc.d/rc.local <<EOF
-if ! [ -f /var/bootstrapted ];
+cat >> /usr/local/bin/initialize.sh <<EOF
+#!/bin/bash
+if ! [ -f /var/bootstraped ];
 then
-    /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} > /var/bootstrapted 2>&1
+    /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} > /var/bootstraped 2>&1
 fi
 EOF
+
+chmod +x /usr/local/bin/initialize.sh
+
+cat > /etc/systemd/system/initialize.service <<EOF
+[Unit]
+Description=Make the worker join the k8s cluster
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/initialize.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl inizialize enable
+
+
+#cat >> /etc/rc.d/rc.local <<EOF
+#if ! [ -f /var/bootstrapted ];
+#then
+#    /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} > /var/bootstrapted 2>&1
+#fi
+#EOF
 
 shutdown -rf now
 
