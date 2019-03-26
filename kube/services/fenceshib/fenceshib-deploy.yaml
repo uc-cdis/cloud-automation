@@ -98,13 +98,16 @@ spec:
           httpGet:
             path: /_status
             port: 80
-          initialDelaySeconds: 30
+          initialDelaySeconds: 300
           periodSeconds: 60
           timeoutSeconds: 30
         readinessProbe:
           httpGet:
             path: /Shibboleth.sso/DiscoFeed
             port: 80
+          initialDelaySeconds: 300
+          failureThreshold: 100
+          timeoutSeconds: 60
         ports:
         - containerPort: 80
         - containerPort: 443
