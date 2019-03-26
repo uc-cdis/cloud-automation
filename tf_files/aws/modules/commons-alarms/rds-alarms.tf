@@ -1,7 +1,8 @@
 module "alarms-lambda" {
-  source          = "../alarms-lambda"
-  vpc_name        = "${var.vpc_name}"
-  slack_webhook   = "${var.slack_webhook}"
+  source                    = "../alarms-lambda"
+  vpc_name                  = "${var.vpc_name}"
+  slack_webhook             = "${var.slack_webhook}"
+  secondary_slack_webhook   = "${var.secondary_slack_webhook}"
 }
 
 resource "aws_cloudwatch_metric_alarm" "fence_db_alarm" {
