@@ -102,7 +102,7 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl inizialize enable
+systemctl enable initialize.service
 
 
 #cat >> /etc/rc.d/rc.local <<EOF
