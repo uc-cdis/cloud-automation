@@ -68,7 +68,6 @@ rpm -iUv $KERNEL_FILES/kernel*.rpm
 
 
 # When the host is back up after reboot, it should trigger the eks/bootstrap script for it to join th cluster.
-chmod +x /etc/rc.d/rc.local
 
 ## EKS connection
 KUBELET_EXTRA_ARGUMENTS="--node-labels=role=${nodepool}"
@@ -105,6 +104,7 @@ systemctl daemon-reload
 systemctl enable initialize.service
 
 
+#chmod +x /etc/rc.d/rc.local
 #cat >> /etc/rc.d/rc.local <<EOF
 #if ! [ -f /var/bootstrapted ];
 #then

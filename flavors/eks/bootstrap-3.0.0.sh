@@ -36,9 +36,7 @@ aws s3 cp --recursive $S3_LOCATION $KERNEL_FILES
 rpm -iUv $KERNEL_FILES/kernel*.rpm
 
 
-
-# When the host is back up after reboot, it should trigger the eks/bootstrap script for it to join th cluster.
-chmod +x /etc/rc.d/rc.local
+# When the host is back up after reboot, it should trigger the eks/bootstrap script for it to join th cluster
 
 ## EKS connection
 KUBELET_EXTRA_ARGUMENTS="--node-labels=role=${nodepool}"
@@ -73,6 +71,8 @@ EOF
 
 systemctl daemon-reload
 systemctl enable initialize.service 
+
+#chmod +x /etc/rc.d/rc.local
 #cat >> /etc/rc.d/rc.local <<EOF
 #if ! [ -f /var/bootstraped ];
 #then
