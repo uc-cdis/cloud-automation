@@ -2,6 +2,10 @@ variable "slack_webhook" {
   default = ""
 }
 
+variable "secondary_slack_webhook" {
+  default = ""
+}
+
 variable "db_fence_size" {
   default = "10"
 }
