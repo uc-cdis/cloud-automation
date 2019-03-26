@@ -36,18 +36,6 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   sudo -E apt-get update
   sudo -E apt-get install -y nodejs
 
-  if ! which kube-aws > /dev/null 2>&1; then
-    echo "Installing kube-aws"
-    wget https://github.com/kubernetes-incubator/kube-aws/releases/download/v0.9.10-rc.5/kube-aws-linux-amd64.tar.gz
-    tar -zxvf kube-aws-linux-amd64.tar.gz
-    chmod -R a+rX linux-amd64
-    sudo mv linux-amd64/kube-aws /usr/local/bin
-    rm kube-aws-linux-amd64.tar.gz
-    rm -r linux-amd64
-    #chmod +x kube-aws
-    #sudo mv kube-aws /usr/bin
-  fi
-
   if [[ ! -f /etc/apt/sources.list.d/google-cloud-sdk.list ]]; then
     # might need to uninstall gcloud installed from ubuntu repo
     if which gcloud > /dev/null 2>&1; then

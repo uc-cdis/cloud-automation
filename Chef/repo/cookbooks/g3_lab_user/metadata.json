@@ -1,0 +1,11 @@
+{
+  "name":"g3_base_apt",
+  "version":"1.0.0",
+  "description":"Basic packages we want everywhere",
+  "dependencies":{"g3_dev_apt": ">=1.0.0"},
+  "maintainer":"admin@gen3.org","maintainer_email":"admin@gen3.org","license":"Apache-2.0",
+  "platforms":{"debian":">= 0.0.0","ubuntu":">= 0.0.0"},
+  "source_url":"https://github.com/uc_cdis/cloud-automation",
+  "issues_url":"https://github.com/uc_cdis/cloud-automation/issues",
+  "chef_version":[[">= 12.14"]],"ohai_version":[]
+}
