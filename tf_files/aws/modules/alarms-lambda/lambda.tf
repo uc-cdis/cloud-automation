@@ -61,7 +61,8 @@ resource "aws_lambda_function" "lambda" {
   source_code_hash = "${data.archive_file.cloudwatch_lambda.output_base64sha256}"
   environment {
     variables = {
-      slack_webhook = "${var.slack_webhook}"
+      slack_webhook = "${var.slack_webhook}",
+      secondary_slack_webhook = "${var.secondary_slack_webhook}"
     }
   }
 }
