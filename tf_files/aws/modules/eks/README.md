@@ -60,6 +60,7 @@ users_policy = "fauziv1"
 * `bootstrap_script` Script to use to initialize the worker nodes. Default value `bootstrap-2.0.0.sh`
 * `jupyter_bootstrap_script` Script to intialize jupyter worekers. Default value `bootstrap-2.0.0.sh`
 * `kernel` If your bootstrap script requires a different kernel that what ships with the AMIs. Additionally, kernels will be uploaded onto `gen3-kernels` bucket in the CSOC account. Default value `"N/A"`
+* `jupyter_worker_drive_size` Size of the jupyter workers drive. Default 30.
 
 ## 5. Considerations
 
