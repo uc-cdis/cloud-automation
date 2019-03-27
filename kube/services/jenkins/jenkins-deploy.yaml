@@ -81,7 +81,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: jenkins-g3auto
-                key: jenkins-g3auto
+                key: google_app_creds.json
         readinessProbe:
           httpGet:
             path: /login
