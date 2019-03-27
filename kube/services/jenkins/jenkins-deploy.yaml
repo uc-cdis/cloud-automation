@@ -80,8 +80,8 @@ spec:
           - name: GOOGLE_APP_CREDS_JSON
             valueFrom:
               secretKeyRef:
-                name: fence-google-app-creds-secret
-                key: fence_google_app_creds_secret.json
+                name: gen3-qa-g3auto
+                key: gen3-qa-g3auto
         readinessProbe:
           httpGet:
             path: /login
