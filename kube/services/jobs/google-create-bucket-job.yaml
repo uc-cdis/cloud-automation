@@ -23,6 +23,7 @@
 #
 # PUBLIC_BUCKET
 #   Whether or not the bucket should be open to the public
+#   Default is "False". Need to set it to "True" for public buckets
 #
 # REQUESTER_PAYS
 #   Whether or not to enable requester_pays on the bucket
@@ -151,7 +152,7 @@ spec:
                 create_command+=" --storage-class $STORAGE_CLASS"
             fi
             if [[ -n "$PUBLIC_BUCKET" ]]; then
-                create_command+=" --public"
+                create_command+=" --public $PUBLIC_BUCKET"
             fi
             if [[ -n "$REQUESTER_PAYS" ]]; then
                 create_command+=" --requester-pays"
