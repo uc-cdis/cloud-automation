@@ -23,13 +23,13 @@ variable "nodepool" {
   default = "jupyter"
 }
 
-variable "eks_cluster_ca" {
-  default = ""
-}
+#variable "eks_cluster_ca" {
+#  default = ""
+#}
 
-variable "eks_cluster_endpoint" {
-  default = ""
-}
+#variable "eks_cluster_endpoint" {
+#  default = ""
+#}
 
 variable "eks_private_subnets" {
   type  = "list"
@@ -44,3 +44,15 @@ variable "deploy_jupyter_pool" {
 }
 
 variable "eks_version" {}
+
+variable "kernel" {
+  default = "N/A"
+}
+
+variable "bootstrap_script" {
+  default = "bootstrap-2.0.0.sh"
+}
+
+variable "jupyter_worker_drive_size" {
+  default = 30
+}

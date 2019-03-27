@@ -35,3 +35,19 @@ variable "deploy_jupyter_pool" {
 variable "workers_subnet_size" {
   default = 24
 }
+
+variable "bootstrap_script" {
+  default = "bootstrap-2.0.0.sh"
+}
+
+variable "jupyter_bootstrap_script" {
+  default = "bootstrap-2.0.0.sh"
+}
+
+variable "kernel" {
+  default = "N/A"
+}
+
+variable "jupyter_worker_drive_size" {
+  default = 30
+}

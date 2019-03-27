@@ -94,6 +94,30 @@ resource "aws_iam_policy" "cwl_access_policy" {
 EOF
 }
 
+resource "aws_iam_policy" "access_to_kernels" {
+    name        = "${var.vpc_name}_EKS_nodepool_${var.nodepool}_kernel_access"
+    description = "To access custom Kernels"
+    policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "",
+            "Effect": "Allow",
+            "Action": [
+                "s3:List*",
+                "s3:Get*"
+            ],
+            "Resource": [
+                "arn:aws:s3:::gen3-kernels/*",
+                "arn:aws:s3:::gen3-kernels"
+            ]
+        }
+    ]
+}
+EOF
+}
+
 # This policy will allow the autoscaler deployment to add or terminate instance in the group
 # https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
 resource "aws_iam_policy" "asg_access" {
@@ -142,6 +166,11 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_logs_access" {
 
 resource "aws_iam_role_policy_attachment" "asg_access" {
   policy_arn = "${aws_iam_policy.asg_access.arn}"
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+
+resource "aws_iam_role_policy_attachment" "kernel_access" {
+  policy_arn = "${aws_iam_policy.access_to_kernels.arn}"
   role       = "${aws_iam_role.eks_node_role.name}"
 }
 
@@ -244,7 +273,7 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   key_name                    = "${var.ec2_keyname}"
 
   root_block_device {
-    volume_size = 30
+    volume_size = "${var.jupyter_worker_drive_size}"
   }
 
 

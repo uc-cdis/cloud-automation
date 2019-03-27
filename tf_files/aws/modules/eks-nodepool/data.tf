@@ -55,7 +55,7 @@ data "aws_ami" "eks_worker" {
     name   = "name"
     #values = ["${var.eks_version == "1.10" ? "eks-worker-v*" : "amazon-eks-node-1.11*"}"]
     values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
-    values = ["eks-worker-v*"]
+    #values = ["eks-worker-v*"]
   }
 
   most_recent = true
