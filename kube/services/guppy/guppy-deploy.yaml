@@ -33,6 +33,12 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
+        - name: guppy-config
+          configMap:
+            name: manifest-guppy
+            items:
+              - key: json
+                path: guppy_config.json
         - name: cert-volume
           secret:
             secretName: "cert-arranger-service"
@@ -56,6 +62,8 @@ spec:
           ports:
           - containerPort: 3000
           env:
+          - name: GUPPY_CONFIG_FILEPATH
+            value: /guppy/guppy_config.json
           - name: GEN3_ES_ENDPOINT
             value: esproxy-service:9200
           - name: GEN3_ARBORIST_ENDPOINT
@@ -65,6 +73,10 @@ spec:
           - name: GEN3_ES_TYPE
             value: GEN3_GUPPY_ES_TYPE|-subject-|
           volumeMounts:
+            - name: guppy-config
+              readOnly: true
+              mountPath: /guppy/guppy_config.json
+              subPath: guppy_config.json
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"
