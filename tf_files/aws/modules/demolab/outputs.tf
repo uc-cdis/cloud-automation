@@ -4,5 +4,5 @@ output "vpc_id" {
 }
 
 output "iplist" {
-  value = "${aws_eip.ips.*.public_ip}"
+  value = ["${aws_eip.ips.*.public_ip}"]
 }

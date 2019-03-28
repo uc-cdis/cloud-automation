@@ -18,20 +18,48 @@ module "vpc" {
   }
 }
 
-# https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/2.16.0/submodules/web
-module "web_sg" {
-  source = "terraform-aws-modules/security-group/aws//modules/web"
-  vpc_id = "${module.vpc.vpc_id}"
-  name = "${var.vpc_name}_web_sg"
+resource "aws_security_group" "all_out" {
+  name        = "all_out"
+  description = "security group that allow outbound traffics"
+  vpc_id      = "${module.vpc.vpc_id}"
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "gen3"
+  }
 }
 
-# https://registry.terraform.io/modules/terraform-aws-modules/security-group/aws/2.16.0/submodules/ssh
-module "ssh_sg" {
-  source = "terraform-aws-modules/security-group/aws//modules/ssh"
+resource "aws_security_group" "web_in" {
+  name        = "web_in"
+  description = "allow inbound 80 and 443"
+  vpc_id      = "${module.vpc.vpc_id}"
 
-  vpc_id = "${module.vpc.vpc_id}"
-  name = "${var.vpc_name}_ssh_sg"
+  ingress {
+    from_port   = 0
+    to_port     = 443
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 0
+    to_port     = 80
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "gen3"
+  }
 }
+
 
 # https://www.andreagrandi.it/2017/08/25/getting-latest-ubuntu-ami-with-terraform/
 data "aws_ami" "ubuntu" {
@@ -57,26 +85,30 @@ resource "aws_key_pair" "automation_dev" {
 
 # https://registry.terraform.io/modules/terraform-aws-modules/ec2-instance/aws/1.21.0
 resource "aws_instance" "cluster" {
-  source                 = "terraform-aws-modules/ec2-instance/aws"
-  version                = "1.12.0"
-
-  name                   = "${var.vpc_name}"
   # Note - this number should match the number of eip's setup below
-  instance_count         = "${var.instance_count}"
+  count                  = "${var.instance_count}"
 
   ami                    = "${data.aws_ami.ubuntu.id}"
   instance_type          = "${var.instance_type}"
   key_name               = "${aws_key_pair.automation_dev.key_name}"
   monitoring             = false
-  vpc_security_group_ids = ["${module.ssh_sg.this_security_group_id}", "${module.web_sg.this_security_group_id}"]
+  vpc_security_group_ids = ["${aws_security_group.all_out.id}", "${aws_security_group.web_in.id}"]
   subnet_id              = "${module.vpc.public_subnets[count.index % 3]}"
   user_data = <<EOF
 #!/bin/bash 
 
 (
-  hostnamectl set-hostname 'lab${count.id}'
+  export DEBIAN_FRONTEND=noninteractive
+    
+  if which hostnamectl > /dev/null; then
+    hostnamectl set-hostname 'lab${count.index}'
+  fi
   mkdir -p -m 0755 /var/lib/gen3
   cd /var/lib/gen3
+  if ! which git > /dev/null; then
+    apt update
+    apt install git -y
+  fi
   git clone https://github.com/uc-cdis/cloud-automation.git 
   cd ./cloud-automation
   if [[ ! -d ./Chef ]]; then
@@ -87,10 +119,9 @@ resource "aws_instance" "cluster" {
   bash ./installClient.sh
   # hopefully chef-client is ready to run now
   cd ./repo
-  cd /home/ubuntu
   /bin/rm -rf nodes
   # add -l debug for more verbose logging
-  chef-client --local-mode --node-name littlenode --override-runlist 'role[labvm]' -l debug
+  chef-client --local-mode --node-name littlenode --override-runlist 'role[labvm]'
 ) 2>&1 | tee /var/log/gen3boot.log
   EOF
   
@@ -101,14 +132,15 @@ resource "aws_instance" "cluster" {
     ignore_changes = ["private_ip", "root_block_device", "ebs_block_device"]
   }
   tags = {
+    Name        = "${var.vpc_name}${count.index}"
     Terraform = "true"
-    Environment = "${vpc_name}"
+    Environment = "${var.vpc_name}"
   }
 }
 
 
 resource "aws_eip" "ips" {
   count = "${var.instance_count}"
-  instance = "${aws_instance.cluster.id[count.index]}"
+  instance = "${aws_instance.cluster.*.id[count.index]}"
   vpc      = true
 }

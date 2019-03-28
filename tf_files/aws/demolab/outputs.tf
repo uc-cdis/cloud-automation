@@ -4,5 +4,5 @@ output "vpc_id" {
 }
 
 output "iplist" {
-  value = "${module.demolab.public_ip}"
+  value = "${module.demolab.iplist}"
 }
