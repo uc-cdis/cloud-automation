@@ -1,0 +1,52 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-fenceshib
+spec:
+  podSelector:
+    matchLabels:
+      app: fenceshib
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: fenceshib
+      - podSelector:
+          matchLabels:
+             app: indexd
+      - podSelector:
+          matchLabels:
+             app: peregrine
+      - podSelector:
+          matchLabels:
+             app: sheepdog
+      - podSelector:
+          matchLabels:
+             app: revproxy
+      - podSelector:
+          matchLabels:
+             app: arborist
+      ports:
+         - port: 80
+         - port: 443
+  egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app: fence
+      - podSelector:
+          matchLabels:
+            app: indexd
+      - ipBlock:
+           cidr: GEN3_FENCEDB_IP/32
+      - ipBlock:
+           cidr: GEN3_CLOUDPROXY_CIDR
+      - ipBlock:
+           cidr: 54.224.0.0/12
+      - ipBlock:
+           cidr: 52.92.16.0/20
+      - ipBlock:
+           cidr: 0.0.0.0/0
+  policyTypes:
+   - Ingress
+   - Egress
