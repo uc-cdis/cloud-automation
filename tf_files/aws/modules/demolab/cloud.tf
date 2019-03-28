@@ -1,8 +1,13 @@
+locals {
+  # kube-aws does not like '-' in cluster name
+  environment = "lab_${var.vpc_name}"
+}
+
 # https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/1.60.0 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "1.60.0"
-  name="${var.vpc_name}"
+  name="${local.environment}"
   cidr = "10.0.0.0/16"
   azs = ["us-east-1a", "us-east-1b", "us-east-1c"]
   private_subnets = []
@@ -11,10 +16,10 @@ module "vpc" {
   enable_nat_gateway = false
 
   tags = {
-    Environment = "${var.vpc_name}"
+    Environment = "${local.environment}"
   }
   vpc_tags {
-    Name = "${var.vpc_name}"
+    Name = "${local.environment}"
   }
 }
 
@@ -31,7 +36,7 @@ resource "aws_security_group" "all_out" {
   }
 
   tags {
-    Environment  = "${var.vpc_name}"
+    Environment  = "${local.environment}"
     Organization = "gen3"
   }
 }
@@ -42,20 +47,38 @@ resource "aws_security_group" "web_in" {
   vpc_id      = "${module.vpc.vpc_id}"
 
   ingress {
-    from_port   = 0
+    from_port   = 443
     to_port     = 443
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    from_port   = 0
+    from_port   = 80
     to_port     = 80
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags {
-    Environment  = "${var.vpc_name}"
+    Environment  = "${local.environment}"
+    Organization = "gen3"
+  }
+}
+
+resource "aws_security_group" "ssh_in" {
+  name        = "ssh_in"
+  description = "allow inbound 22"
+  vpc_id      = "${module.vpc.vpc_id}"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "TCP"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    Environment  = "${local.environment}"
     Organization = "gen3"
   }
 }
@@ -79,7 +102,7 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_key_pair" "automation_dev" {
-  key_name   = "${var.vpc_name}_automation_dev"
+  key_name   = "${local.environment}_automation_dev"
   public_key = "${var.ssh_public_key}"
 }
 
@@ -92,7 +115,7 @@ resource "aws_instance" "cluster" {
   instance_type          = "${var.instance_type}"
   key_name               = "${aws_key_pair.automation_dev.key_name}"
   monitoring             = false
-  vpc_security_group_ids = ["${aws_security_group.all_out.id}", "${aws_security_group.web_in.id}"]
+  vpc_security_group_ids = ["${aws_security_group.all_out.id}", "${aws_security_group.ssh_in.id}", "${aws_security_group.web_in.id}"]
   subnet_id              = "${module.vpc.public_subnets[count.index % 3]}"
   user_data = <<EOF
 #!/bin/bash 
@@ -129,12 +152,12 @@ resource "aws_instance" "cluster" {
     # Due to several known issues in Terraform AWS provider related to arguments of aws_instance:
     # (eg, https://github.com/terraform-providers/terraform-provider-aws/issues/2036)
     # we have to ignore changes in the following arguments
-    ignore_changes = ["private_ip", "root_block_device", "ebs_block_device"]
+    ignore_changes = ["private_ip", "root_block_device", "ebs_block_device", "user_data"]
   }
   tags = {
-    Name        = "${var.vpc_name}${count.index}"
+    Name        = "${local.environment}${count.index}"
     Terraform = "true"
-    Environment = "${var.vpc_name}"
+    Environment = "${local.environment}"
   }
 }
 

@@ -1,7 +1,7 @@
 {
-  "name":"g3_base_apt",
+  "name":"g3_lab_user",
   "version":"1.0.0",
-  "description":"Basic packages we want everywhere",
+  "description":"Setup the gen3lab user",
   "dependencies":{"g3_dev_apt": ">=1.0.0"},
   "maintainer":"admin@gen3.org","maintainer_email":"admin@gen3.org","license":"Apache-2.0",
   "platforms":{"debian":">= 0.0.0","ubuntu":">= 0.0.0"},
