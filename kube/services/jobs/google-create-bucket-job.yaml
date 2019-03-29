@@ -3,11 +3,11 @@
 # gen3 runjob google-create-bucket \
 #   UNIQUE_BUCKET_NAME some-unique-name \
 #   STORAGE_CLASS "" \
-#   PUBLIC_BUCKET "" \
+#   PUBLIC_BUCKET True-or-False \
 #   REQUESTER_PAYS "" \
 #   GOOGLE_PROJECT_ID "" \
 #   PROJECT_AUTH_ID "" \
-#   ACCESS_LOGS_BUCKET "" \
+#   ACCESS_LOGS_BUCKET some-log-bucket-name \
 #
 # NOTE: "" indicates an optional argument. Leave as "" for default
 #
@@ -23,7 +23,6 @@
 #
 # PUBLIC_BUCKET
 #   Whether or not the bucket should be open to the public
-#   Default is "False". Need to set it to "True" for public buckets
 #
 # REQUESTER_PAYS
 #   Whether or not to enable requester_pays on the bucket
@@ -148,12 +147,22 @@ spec:
 
             create_command="google-bucket-create --unique-name $UNIQUE_BUCKET_NAME"
 
+            if [[ -z "$PUBLIC_BUCKET" ]]; then
+                echo Cannot create bucket. PUBLIC_BUCKET variable must be specified.
+                exit 1 # terminate and indicate error
+            fi
+            create_command+=" --public $PUBLIC_BUCKET"
+
+            if [[ -z "$ACCESS_LOGS_BUCKET" ]]; then
+                echo Cannot create bucket. ACCESS_LOGS_BUCKET variable must be specified.
+                exit 1 # terminate and indicate error
+            fi
+            create_command+=" --access-logs-bucket $ACCESS_LOGS_BUCKET"
+
             if [[ -n "$STORAGE_CLASS" ]]; then
                 create_command+=" --storage-class $STORAGE_CLASS"
             fi
-            if [[ -n "$PUBLIC_BUCKET" ]]; then
-                create_command+=" --public $PUBLIC_BUCKET"
-            fi
+
             if [[ -n "$REQUESTER_PAYS" ]]; then
                 create_command+=" --requester-pays"
             fi
@@ -162,9 +171,6 @@ spec:
             fi
             if [[ -n "$PROJECT_AUTH_ID" ]]; then
                 create_command+=" --project-auth-id $PROJECT_AUTH_ID"
-            fi
-            if [[ -n "$ACCESS_LOGS_BUCKET" ]]; then
-                create_command+=" --access-logs-bucket $ACCESS_LOGS_BUCKET"
             fi
 
             fence-create ${create_command}
