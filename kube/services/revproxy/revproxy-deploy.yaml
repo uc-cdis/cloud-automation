@@ -63,6 +63,9 @@ spec:
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 30
+        readinessProbe:
+          tcpSocket:
+            port: 80
         ports:
         - containerPort: 80
         - containerPort: 443

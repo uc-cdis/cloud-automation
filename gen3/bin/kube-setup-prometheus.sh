@@ -65,9 +65,7 @@ function deploy_prometheus()
     # now prometheus
     g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/prometheus-storageclass.yaml"
 
-    local HOSTNAME
-    HOSTNAME=$(g3kubectl get configmaps manifest-global -o jsonpath="{.data.hostname}")
-    sed "s/DOMAIN/${HOSTNAME}/" "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" |  gen3 arun helm install  stable/prometheus --name prometheus --namespace prometheus -f --
+    gen3 arun helm install  stable/prometheus --name prometheus --namespace prometheus -f "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" 
   else
     echo "Prometheus is already installed, use --force to try redeploying"
   fi
@@ -82,9 +80,9 @@ function deploy_grafana()
   fi
 
   #create_grafana_secrets
-  tmpGrafanaValues=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-  adminPass=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
-  yq '.adminPassword = "'${adminPass}'"' "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" --yaml-output > ${tmpGrafanaValues}
+  TMPGRAFANAVALUES=$(mktemp -p "$XDG_RUNTIME_DIR" "grafana.json_XXXXXX")
+  ADMINPASS=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
+  yq '.adminPassword = "'${ADMINPASS}'"' "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" --yaml-output > ${TMPGRAFANAVALUES}
   # curl -o grafana-values.yaml https://raw.githubusercontent.com/helm/charts/master/stable/grafana/values.yaml
 
   if (! g3kubectl --namespace=grafana get deployment grafana > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
@@ -93,8 +91,12 @@ function deploy_grafana()
       delete_grafana
     fi
     
+    local HOSTNAME
+    HOSTNAME=$(g3kubectl get configmaps manifest-global -o jsonpath="{.data.hostname}")
+    #sed "s/DOMAIN/${HOSTNAME}/" "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" |  gen3 arun helm install  stable/grafana --name grafana --namespace grafana -f -
+    g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm install  stable/grafana --name grafana --namespace grafana -f -
     #gen3 arun helm install -f "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" stable/grafana --name grafana --namespace grafana
-    gen3 arun helm install -f "${tmpGrafanaValues}" stable/grafana --name grafana --namespace grafana
+    #gen3 arun helm install -f "${TMPGRAFANAVALUES}" stable/grafana --name grafana --namespace grafana
     gen3 kube-setup-revproxy
   else
     echo "Grafana is already installed, use --force to try redeploying"

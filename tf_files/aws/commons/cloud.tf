@@ -72,13 +72,17 @@ module "config_files" {
 }
 
 module "cdis_alarms" {
-  source          = "../modules/commons-alarms"
-  slack_webhook   = "${var.slack_webhook}"
-  vpc_name        = "${var.vpc_name}"
-  db_size         = "${var.db_size}"
-  db_fence        = "${aws_db_instance.db_fence.identifier}"
-  db_indexd       = "${aws_db_instance.db_indexd.identifier}"
-  db_gdcapi       = "${aws_db_instance.db_gdcapi.identifier}"
+  source                    = "../modules/commons-alarms"
+  slack_webhook             = "${var.slack_webhook}"
+  secondary_slack_webhook   = "${var.secondary_slack_webhook}"
+  vpc_name                  = "${var.vpc_name}"
+  alarm_threshold           = "${var.alarm_threshold}"
+  db_fence_size             = "${aws_db_instance.db_fence.allocated_storage}"
+  db_indexd_size            = "${aws_db_instance.db_indexd.allocated_storage}"
+  db_gdcapi_size            = "${aws_db_instance.db_gdcapi.allocated_storage}"
+  db_fence                  = "${aws_db_instance.db_fence.identifier}"
+  db_indexd                 = "${aws_db_instance.db_indexd.identifier}"
+  db_gdcapi                 = "${aws_db_instance.db_gdcapi.identifier}"
 }
 
 data "aws_vpc_endpoint_service" "s3" {

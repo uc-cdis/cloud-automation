@@ -57,8 +57,8 @@ require 'net/http'
 require 'uri'
 
 
-def createPost(message)
-    uri = URI.parse(ENV["slack_webhook"])
+def createPost(message,url)
+    uri = URI.parse(url)
     request = Net::HTTP::Post.new(uri)
     request.body = message
     req_options = {
@@ -73,10 +73,13 @@ def processMessage(event)
     messageHash = JSON.parse(event[:event]["Records"][0]["Sns"]["Message"])
     slackMessage = {
         "text": "\
-Alarm Name: #{messageHash["AlarmName"]},\ 
-Alarm Description: #{messageHash["AlarmDescription"]},\ 
-New State Value: #{messageHash["NewStateValue"]}, \ 
+Alarm Name: #{messageHash["AlarmName"]},\
+Alarm Description: #{messageHash["AlarmDescription"]},\
+New State Value: #{messageHash["NewStateValue"]}, \
 New State Reason: #{messageHash["NewStateReason"]}"
     }.to_json
-    createPost(slackMessage)
+    createPost(slackMessage,ENV["slack_webhook"])
+    unless ENV["secondary_slack_webhook"].empty?
+      createPost(slackMessage,ENV["secondary_slack_webhook"])
+    end
 end

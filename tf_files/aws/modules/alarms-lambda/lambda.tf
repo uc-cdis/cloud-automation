@@ -1,9 +1,9 @@
 resource "aws_sns_topic" "cloudwatch-alarms" {
-  name = "cloudwatch-alarms"
+  name = "cloudwatch-alarms-${var.vpc_name}"
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name = "cloudwatch_lambda"
+  name = "cloudwatch_lambda_${var.vpc_name}"
 
   assume_role_policy = <<EOF
 {
@@ -54,14 +54,15 @@ data "archive_file" "cloudwatch_lambda" {
 
 resource "aws_lambda_function" "lambda" {
   filename         = "${data.archive_file.cloudwatch_lambda.output_path}"
-  function_name    = "cloudwatch-lambda"
+  function_name    = "cloudwatch-lambda-${var.vpc_name}"
   role             = "${aws_iam_role.lambda_role.arn}"
   handler          = "lambda_function.processMessage"
   runtime          = "ruby2.5"
   source_code_hash = "${data.archive_file.cloudwatch_lambda.output_base64sha256}"
   environment {
     variables = {
-      slack_webhook = "${var.slack_webhook}"
+      slack_webhook = "${var.slack_webhook}",
+      secondary_slack_webhook = "${var.secondary_slack_webhook}"
     }
   }
 }

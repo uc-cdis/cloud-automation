@@ -8,20 +8,23 @@
 
 
 module "jupyter_pool" {
-  source               = "../eks-nodepool/"
-  ec2_keyname          = "${var.ec2_keyname}"
-  users_policy         = "${var.users_policy}"
-  nodepool             = "jupyter"
-  vpc_name             = "${var.vpc_name}"
-  csoc_cidr            = "${var.csoc_cidr}"
-  eks_cluster_endpoint = "${aws_eks_cluster.eks_cluster.endpoint}"
-  eks_cluster_ca       = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
-  eks_private_subnets  = "${aws_subnet.eks_private.*.id}"
-  control_plane_sg     = "${aws_security_group.eks_control_plane_sg.id}"
-  default_nodepool_sg  = "${aws_security_group.eks_nodes_sg.id}"
-  deploy_jupyter_pool  = "${var.deploy_jupyter_pool}"
-  eks_version          = "${var.eks_version}"
-  jupyter_instance_type = "${var.jupyter_instance_type}"
+  source                    = "../eks-nodepool/"
+  ec2_keyname               = "${var.ec2_keyname}"
+  users_policy              = "${var.users_policy}"
+  nodepool                  = "jupyter"
+  vpc_name                  = "${var.vpc_name}"
+  csoc_cidr                 = "${var.csoc_cidr}"
+  #eks_cluster_endpoint     = "${aws_eks_cluster.eks_cluster.endpoint}"
+  #eks_cluster_ca           = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+  eks_private_subnets       = "${aws_subnet.eks_private.*.id}"
+  control_plane_sg          = "${aws_security_group.eks_control_plane_sg.id}"
+  default_nodepool_sg       = "${aws_security_group.eks_nodes_sg.id}"
+  deploy_jupyter_pool       = "${var.deploy_jupyter_pool}"
+  eks_version               = "${var.eks_version}"
+  jupyter_instance_type     = "${var.jupyter_instance_type}"
+  kernel                    = "${var.kernel}"
+  bootstrap_script          = "${var.jupyter_bootstrap_script}"
+  jupyter_worker_drive_size = "${var.jupyter_worker_drive_size}"
 }
 
 

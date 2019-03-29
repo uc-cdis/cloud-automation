@@ -7,5 +7,24 @@ test_api() {
   (gen3 api curl /user/user/ "$user"); because $? "/user/user should get user-info for api token"
 }
 
+#
+# Little test to verify authz is working via the reverse proxy /gen3-authz subrequest thing.
+# Requires running revproxy with latest config.
+#
+test_authz() {
+  local hostname
+  hostname="$(g3kubectl get configmap manifest-global -o json | jq -r '.data["hostname"]')"
+  [[ -n "$hostname" ]]; because $? "authz test only works if able to determine hostname"
+  # test succeeds (exit code 0) if access is denied ...
+  curl -i -s https://${hostname}/gen3-authz-test | head -10 | grep -E '^HTTP/[0-9\.]* 40[13]' > /dev/null; because $? "should be denied access to /gen3-authz-test with 401 or 403"
+}
 
 shunit_runtest "test_api" "api"
+if [[ $SHUNIT_FILTERS =~ authz$ ]]; then
+  #
+  # only run this test if explicitly asked - 
+  # requires revproxy and arborist deployment.
+  # It's actually an integration test of revproxy+arborist.
+  #
+  shunit_runtest "test_authz" "api,authz"
+fi
