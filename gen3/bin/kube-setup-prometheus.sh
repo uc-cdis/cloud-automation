@@ -97,6 +97,7 @@ function deploy_grafana()
     g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm install  stable/grafana --name grafana --namespace grafana -f -
     #gen3 arun helm install -f "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" stable/grafana --name grafana --namespace grafana
     #gen3 arun helm install -f "${TMPGRAFANAVALUES}" stable/grafana --name grafana --namespace grafana
+    gen3 kube-setup-revproxy
   else
     echo "Grafana is already installed, use --force to try redeploying"
   fi
