@@ -30,6 +30,7 @@ execute 'g3-lab-setup' do
         bash ./creds_setup.sh
       fi
     )
+    chown -R gen3lab: /home/gen3lab/
     EOF
 end
 
