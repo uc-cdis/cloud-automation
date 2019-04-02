@@ -8,7 +8,7 @@
     "override_attributes": {
     },
     "run_list": [
-        "recipe[g3_base_apt]",
+        "recipe[g3_dev_apt]",
         "recipe[g3_docker_apt]"
     ]
 }

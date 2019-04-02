@@ -117,6 +117,10 @@ resource "aws_instance" "cluster" {
   monitoring             = false
   vpc_security_group_ids = ["${aws_security_group.all_out.id}", "${aws_security_group.ssh_in.id}", "${aws_security_group.web_in.id}"]
   subnet_id              = "${module.vpc.public_subnets[count.index % 3]}"
+  root_block_device {
+    volume_size = 50
+  }
+
   user_data = <<EOF
 #!/bin/bash 
 
