@@ -5,5 +5,6 @@
 ['apt-transport-https', 'curl', 'lsb-release', 'software-properties-common'].each do |name|
   package 'g3-base-'+name do
     package_name name
+    action :upgrade
   end
 end
