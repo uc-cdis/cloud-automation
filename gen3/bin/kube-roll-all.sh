@@ -75,6 +75,12 @@ if g3k_manifest_lookup .versions.portal > /dev/null 2>&1; then
   g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
 fi
 
+if g3k_manifest_lookup .versions.wts 2> /dev/null; then
+  gen3 kube-setup-wts
+else
+  echo "INFO: not deploying wts - no manifest entry for .versions.wts"
+fi
+
 gen3 kube-setup-revproxy
 
 # Internal k8s systems
