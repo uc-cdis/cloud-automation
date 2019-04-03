@@ -178,13 +178,6 @@ resource "aws_route_table" "eks_private" {
     vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
   }
 
-  route {
-    count          = "${var.cidrs_to_route_to_gw.result_count}"
-    #count          = "${lookup(var.cidrs_to_route_to_gw,count.index)}"
-    cidr_block     = "${var.cidrs_to_route_to_gw[count.index]}"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
-
   tags {
     Name         = "eks_private"
     Environment  = "${var.vpc_name}"
@@ -192,9 +185,20 @@ resource "aws_route_table" "eks_private" {
   }
 }
 
-resource "aws_route_table_association" "skip_proxy" {
-  count = "${var.cidrs_to_route_to_gw[count.index]}"
-  subnet_id
+resource "aws_route_table" "eks_private_skip_proxy" {
+  count          = "${length(var.cidrs_to_route_to_gw)}"
+  vpc_id = "${data.aws_vpc.the_vpc.id}"
+  route {
+    cidr_block     = "${element(var.cidrs_to_route_to_gw,count.index)}"
+    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  }
+  tags {
+    Name         = "eks_private_skip_proxy"
+    Environment  = "${var.vpc_name}"
+    Organization = "Basic Service"
+  }
+}
+  
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
 data "aws_subnet_ids" "private" {
@@ -228,7 +232,7 @@ resource "aws_vpc_endpoint" "k8s-s3" {
 }
 
 # Cloudwatch logs endpoint
-reource "aws_vpc_endpoint" "k8s-logs" {
+resource "aws_vpc_endpoint" "k8s-logs" {
   vpc_id          =  "${data.aws_vpc.the_vpc.id}"
   service_name    = "${data.aws_vpc_endpoint_service.logs.service_name}"
   route_table_ids = ["${aws_route_table.eks_private.id}"]
