@@ -54,6 +54,10 @@ data "aws_vpc_endpoint_service" "s3" {
   service = "s3"
 }
 
+data "aws_vpc_endpoint_service" "logs" {
+  service = "logs"
+}
+
 
 # get the route to public kube 
 data "aws_route_table" "public_kube" {

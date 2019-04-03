@@ -150,32 +150,39 @@ resource "aws_route_table" "eks_private" {
 
   # We want to be able to talk to aws freely, therefore we are allowing
   # certain stuff overpass the proxy
-  route {
+  #route {
     # logs.us-east-1.amazonaws.com
-    cidr_block     = "52.0.0.0/8"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
-  route {
+  #  cidr_block     = "52.0.0.0/8"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
+  #route {
     # logs.us-east-1.amazonaws.com as well, these guys are not static, therefore whitelist the whole list
-    cidr_block     = "54.0.0.0/8"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
-  route {
+  #  cidr_block     = "54.0.0.0/8"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
+  #route {
     # .us-east-1.eks.amazonaws.com
-    cidr_block     = "34.192.0.0/10"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
+  #  cidr_block     = "34.192.0.0/10"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
 
-  route {
+  #route {
     # also eks service
-    cidr_block     = "18.128.0.0/9"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
+  #  cidr_block     = "18.128.0.0/9"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
 
   route {
     #from the commons vpc to the csoc vpc via the peering connection
     cidr_block                = "${var.csoc_cidr}"
     vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
+  }
+
+  route {
+    count          = "${var.cidrs_to_route_to_gw.result_count}"
+    #count          = "${lookup(var.cidrs_to_route_to_gw,count.index)}"
+    cidr_block     = "${var.cidrs_to_route_to_gw[count.index]}"
+    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
   }
 
   tags {
@@ -185,6 +192,9 @@ resource "aws_route_table" "eks_private" {
   }
 }
 
+resource "aws_route_table_association" "skip_proxy" {
+  count = "${var.cidrs_to_route_to_gw[count.index]}"
+  subnet_id
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
 data "aws_subnet_ids" "private" {
@@ -217,6 +227,12 @@ resource "aws_vpc_endpoint" "k8s-s3" {
   route_table_ids = ["${aws_route_table.eks_private.id}"]
 }
 
+# Cloudwatch logs endpoint
+reource "aws_vpc_endpoint" "k8s-logs" {
+  vpc_id          =  "${data.aws_vpc.the_vpc.id}"
+  service_name    = "${data.aws_vpc_endpoint_service.logs.service_name}"
+  route_table_ids = ["${aws_route_table.eks_private.id}"]
+}
 
 
 
@@ -270,8 +286,9 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = "${var.eks_version}"
 
   vpc_config {
-    subnet_ids  = ["${aws_subnet.eks_private.*.id}"]
-    security_group_ids = ["${aws_security_group.eks_control_plane_sg.id}"]
+    subnet_ids              = ["${aws_subnet.eks_private.*.id}"]
+    security_group_ids      = ["${aws_security_group.eks_control_plane_sg.id}"]
+    endpoint_private_access = "true"
   }
 
   depends_on = [
