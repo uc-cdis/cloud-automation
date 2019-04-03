@@ -27,7 +27,7 @@ execute 'g3-lab-setup' do
       if [ ! -d ./compose-services ]; then
         git clone https://github.com/uc-cdis/compose-services.git
         cd ./compose-services
-        bash ./creds_setup.sh
+        bash ./creds_setup.sh "$(hostname).gen3workshop.org"
       fi
     )
     chown -R gen3lab: /home/gen3lab/

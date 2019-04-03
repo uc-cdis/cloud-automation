@@ -4,7 +4,7 @@
 
 include_recipe 'g3_base_apt'
 
-['dnsutils', 'git', 'gpg', 'jq', 'less', 'nano', 'python3-dev', 'python3-pip', 'unzip', 'vim'].each do |name|
+['dnsutils', 'git', 'gpg', 'jq', 'less', 'nano', 'python-dev', 'python-pip', 'python3-dev', 'python3-pip', 'unzip', 'vim'].each do |name|
   package 'g3-dev-'+name do
     package_name name
     action :upgrade
@@ -13,7 +13,7 @@ end
 
 execute 'g3-python3-alternatives' do
   command <<-EOF
-    if (! which python) || [ "$(python --version 2>&1 | awk '$2 ~ /^3\./ { print "3" }')" = 2 ]; then
+    if (! which python > /dev/null) || [ "$(python --version 2>&1 | awk '$2 ~ /^3\./ { print "3" }')" != 3 ]; then
       if [ -e /usr/bin/python2 ]; then
         update-alternatives --install /usr/bin/python python /usr/bin/python2 50
       fi
