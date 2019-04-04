@@ -9,4 +9,4 @@ fi
 # Pass args through to docker run - 
 #   ex: bash testHarness.sh --rm to auto-delete container
 #
-docker run -it -v "$(pwd):/mnt/chefRepo" --workdir=/mnt/chefRepo --name=chefTest "$@" ubuntu:18.04
+docker run -it -v "$(pwd):/mnt/chefRepo" -v /var/run/docker.sock:/var/run/docker.sock --workdir=/mnt/chefRepo --name=chefTest "$@" ubuntu:18.04

@@ -23,11 +23,15 @@ execute 'g3-lab-setup' do
   command <<-EOF
     (
       su gen3lab
-      # command for installing Python goes here
       if [ ! -d ./compose-services ]; then
         git clone https://github.com/uc-cdis/compose-services.git
         cd ./compose-services
         bash ./creds_setup.sh "$(hostname).gen3workshop.org"
+        sed -i 's/DICTIONARY_URL:/#DICTIONARY_URL:/g' docker-compose.yml
+        sed -i 's/#\s*PATH_TO_SCHEMA_DIR:/PATH_TO_SCHEMA_DIR:/g' docker-compose.yml
+        if [ -e /var/run/docker.sock ]; then
+          docker-compose pull
+        fi
       fi
     )
     chown -R gen3lab: /home/gen3lab/
