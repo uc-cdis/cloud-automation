@@ -197,20 +197,6 @@ resource "aws_route" "skip_proxy" {
   depends_on             = ["aws_route_table.eks_private"]
 }
 
-#resource "aws_route_table" "eks_private_skip_proxy" {
-#  count            = "${length(var.cidrs_to_route_to_gw)}"
-#  vpc_id           = "${data.aws_vpc.the_vpc.id}"
-#  route {
-#    cidr_block     = "${element(var.cidrs_to_route_to_gw,count.index)}"
-#    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-#  }
-#  tags {
-#    Name           = "eks_private_skip_proxy"
-#    Environment    = "${var.vpc_name}"
-#    Organization   = "Basic Service"
-#  }
-#}
-  
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
 data "aws_subnet_ids" "private" {
@@ -223,26 +209,16 @@ data "aws_subnet_ids" "private" {
   ]
 }
 
-#resource "aws_route_table_association" "private_kube_skip_proxy" {
-#  count          = "${random_shuffle.az.result_count}"
-#  subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
-#  route_table_id = "${aws_route_table.eks_private_skip_proxy[count.index].id}"
-#  lifecycle {
-#    ignore_changes = ["id", "subnet_id","tags"]
-#  }
-#}
 
 resource "aws_route_table_association" "private_kube" {
   #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  #count          = "${length(data.aws_subnet_ids.private.ids)}"
   subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
     ignore_changes = ["id", "subnet_id","tags"]
   }
-#  depends_on = ["aws_route.skip_proxy"]
 }
 
 
