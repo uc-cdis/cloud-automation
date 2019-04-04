@@ -86,3 +86,7 @@ EOM
 )
   EOF
 end
+
+log "certbot certonly -a manual -i nginx -d '*.gen3workshop.org'" do
+  level :info
+end
