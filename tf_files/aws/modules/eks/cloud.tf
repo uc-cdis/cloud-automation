@@ -183,21 +183,33 @@ resource "aws_route_table" "eks_private" {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
   }
+
+  lifecycle {
+    ignore_changes = ["*"]
+  }
 }
 
-resource "aws_route_table" "eks_private_skip_proxy" {
-  count          = "${length(var.cidrs_to_route_to_gw)}"
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
-  route {
-    cidr_block     = "${element(var.cidrs_to_route_to_gw,count.index)}"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
-  tags {
-    Name         = "eks_private_skip_proxy"
-    Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
-  }
+resource "aws_route" "skip_proxy" {
+  count                  = "${length(var.cidrs_to_route_to_gw)}"
+  route_table_id         = "${aws_route_table.eks_private.id}"
+  destination_cidr_block = "${element(var.cidrs_to_route_to_gw,count.index)}"
+  nat_gateway_id         = "${data.aws_nat_gateway.the_gateway.id}"
+  depends_on             = ["aws_route_table.eks_private"]
 }
+
+#resource "aws_route_table" "eks_private_skip_proxy" {
+#  count            = "${length(var.cidrs_to_route_to_gw)}"
+#  vpc_id           = "${data.aws_vpc.the_vpc.id}"
+#  route {
+#    cidr_block     = "${element(var.cidrs_to_route_to_gw,count.index)}"
+#    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+#  }
+#  tags {
+#    Name           = "eks_private_skip_proxy"
+#    Environment    = "${var.vpc_name}"
+#    Organization   = "Basic Service"
+#  }
+#}
   
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
@@ -211,16 +223,26 @@ data "aws_subnet_ids" "private" {
   ]
 }
 
+#resource "aws_route_table_association" "private_kube_skip_proxy" {
+#  count          = "${random_shuffle.az.result_count}"
+#  subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
+#  route_table_id = "${aws_route_table.eks_private_skip_proxy[count.index].id}"
+#  lifecycle {
+#    ignore_changes = ["id", "subnet_id","tags"]
+#  }
+#}
 
 resource "aws_route_table_association" "private_kube" {
   #count          = 3
   count          = "${random_shuffle.az.result_count}"
+  #count          = "${length(data.aws_subnet_ids.private.ids)}"
   subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
     ignore_changes = ["id", "subnet_id","tags"]
   }
+#  depends_on = ["aws_route.skip_proxy"]
 }
 
 
@@ -233,9 +255,20 @@ resource "aws_vpc_endpoint" "k8s-s3" {
 
 # Cloudwatch logs endpoint
 resource "aws_vpc_endpoint" "k8s-logs" {
-  vpc_id          =  "${data.aws_vpc.the_vpc.id}"
-  service_name    = "${data.aws_vpc_endpoint_service.logs.service_name}"
-  route_table_ids = ["${aws_route_table.eks_private.id}"]
+  vpc_id              = "${data.aws_vpc.the_vpc.id}"
+  service_name        = "${data.aws_vpc_endpoint_service.logs.service_name}"
+  vpc_endpoint_type   = "Interface"
+
+  security_group_ids  = [
+    "${aws_security_group.eks_nodes_sg.id}"
+  ]
+
+  private_dns_enabled = true
+  subnet_ids          = ["${data.aws_subnet_ids.private.ids}"]
+  #route_table_ids    = ["${aws_route_table.eks_private.id}"]
+  lifecycle {
+    ignore_changes = ["subnet_ids"]
+  }
 }
 
 
