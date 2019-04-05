@@ -61,6 +61,7 @@ users_policy = "fauziv1"
 * `jupyter_bootstrap_script` Script to intialize jupyter worekers. Default value `bootstrap-2.0.0.sh`
 * `kernel` If your bootstrap script requires a different kernel that what ships with the AMIs. Additionally, kernels will be uploaded onto `gen3-kernels` bucket in the CSOC account. Default value `"N/A"`
 * `jupyter_worker_drive_size` Size of the jupyter workers drive. Default 30.
+* `cidrs_to_route_to_gw` CIDRs you would like to get out skiping the proxy. This var should be a list type, Ex: `cidrs_to_route_to_gw = ["192.170.230.192/26", "192.170.230.160/27"]`. Default, empty list.
 
 ## 5. Considerations
 
