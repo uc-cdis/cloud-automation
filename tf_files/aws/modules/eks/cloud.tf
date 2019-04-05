@@ -199,26 +199,28 @@ resource "aws_route" "skip_proxy" {
 
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
-data "aws_subnet_ids" "private" {
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
-  tags {
-    Name = "eks_private_*"
-  }
-  depends_on = [
-    "aws_subnet.eks_private",
-  ]
-}
+#data "aws_subnet_ids" "private" {
+#  vpc_id = "${data.aws_vpc.the_vpc.id}"
+#  tags {
+#    Name = "eks_private_*"
+#  }
+#  depends_on = [
+#    "aws_subnet.eks_private",
+#  ]
+#}
 
 
 resource "aws_route_table_association" "private_kube" {
   #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
+  #subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
+  subnet_id      = "${aws_subnet.eks_private.*.id[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["id", "subnet_id","tags"]
+    #ignore_changes = ["id", "subnet_id","tags"]
   }
+  depends_on = ["aws_subnet.eks_private"]
 }
 
 
@@ -240,10 +242,11 @@ resource "aws_vpc_endpoint" "k8s-logs" {
   ]
 
   private_dns_enabled = true
-  subnet_ids          = ["${data.aws_subnet_ids.private.ids}"]
+  #subnet_ids          = ["${data.aws_subnet_ids.private.ids}"]
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
   #route_table_ids    = ["${aws_route_table.eks_private.id}"]
   lifecycle {
-    ignore_changes = ["subnet_ids"]
+    #ignore_changes = ["subnet_ids"]
   }
 }
 
@@ -267,26 +270,27 @@ resource "aws_security_group" "eks_control_plane_sg" {
 
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
-data "aws_subnet_ids" "public_kube" {
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
-  tags {
-    Name = "eks_public_*"
-  }
-  depends_on = [
-    "aws_subnet.eks_public",
-  ]
-}
+#data "aws_subnet_ids" "public_kube" {
+#  vpc_id = "${data.aws_vpc.the_vpc.id}"
+#  tags {
+#    Name = "eks_public_*"
+#  }
+#  depends_on = [
+#    "aws_subnet.eks_public",
+#  ]
+#}
 
 
 resource "aws_route_table_association" "public_kube" {
   #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
+  #subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
+  subnet_id      = "${aws_subnet.eks_public.*.id[count.index]}"
   route_table_id = "${data.aws_route_table.public_kube.id}"
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["id", "subnet_id"]
+    #ignore_changes = ["id", "subnet_id"]
   }
 }
 
