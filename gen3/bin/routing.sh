@@ -11,11 +11,10 @@ gen3_load "gen3/gen3setup"
 # lib --------------------------
 
 #
-# Scan the active k8s environment for
-# public facing load balancers, and output a json
-# suitable for "aws route53 change-resource-record-sets"
-# to setup route53 A and AAAA records (via UPSERT)
-# that alias the LB
+# Scan routing tables looking for eks_private 
+# then it'll scan the nat gateways related to the commons
+# and add the provided CIDR to the routing table found using the NAT GW as GW
+# for the CIDR
 #
 gen3_routing_skip_proxy() {
   local routingTable
