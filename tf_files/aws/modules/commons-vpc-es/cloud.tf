@@ -59,6 +59,30 @@ resource "aws_security_group" "private_es" {
 #}
 
 
+resource "aws_cloudwatch_log_resource_policy" "es_logs" {
+  policy_name = "es_logs_for_${var.vpc_name}"
+  policy_document = <<CONFIG
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "es.amazonaws.com"
+      },
+      "Action": [
+        "logs:PutLogEvents",
+        "logs:PutLogEventsBatch",
+        "logs:CreateLogStream"
+      ],
+      "Resource": "${data.aws_cloudwatch_log_group.logs_group.arn}"
+    }
+  ]
+}
+CONFIG
+}
+
+
 resource "aws_elasticsearch_domain" "gen3_metadata" {
   domain_name           = "${var.vpc_name}-gen3-metadata"
   elasticsearch_version = "6.3"
@@ -120,4 +144,5 @@ CONFIG
   lifecycle {
     ignore_changes = ["elasticsearch_version"]
   }
+  depends_on = ["aws_cloudwatch_log_resource_policy.es_logs"]
 }
