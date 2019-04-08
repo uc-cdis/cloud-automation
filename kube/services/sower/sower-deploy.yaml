@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: sower
+        GEN3_DATE_LABEL
     spec:
       affinity:
         podAntiAffinity:
@@ -30,10 +31,10 @@ spec:
                   values:
                   - sower
               topologyKey: "kubernetes.io/hostname"
-      automountServiceAccountToken: true
+      serviceAccountName: sower-service-account
       containers:
       - name: sower
-        image: quay.io/cdis/sower:master
+        GEN3_SOWER_IMAGE
         livenessProbe:
           httpGet:
             path: /_status
