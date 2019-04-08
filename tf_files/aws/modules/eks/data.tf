@@ -58,6 +58,9 @@ data "aws_vpc_endpoint_service" "logs" {
   service = "logs"
 }
 
+data "aws_vpc_endpoint_service" "autoscaling" {
+  service = "autoscaling"
+}
 
 # get the route to public kube 
 data "aws_route_table" "public_kube" {

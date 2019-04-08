@@ -251,6 +251,23 @@ resource "aws_vpc_endpoint" "k8s-logs" {
 }
 
 
+# Autoscaling logs endpoint
+resource "aws_vpc_endpoint" "k8s-autoscaling" {
+  vpc_id              = "${data.aws_vpc.the_vpc.id}"
+  service_name        = "${data.aws_vpc_endpoint_service.autoscaling.service_name}"
+  vpc_endpoint_type   = "Interface"
+
+  security_group_ids  = [
+    "${aws_security_group.eks_nodes_sg.id}"
+  ]
+
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  lifecycle {
+    #ignore_changes = ["subnet_ids"]
+  }
+}
+
 
 resource "aws_security_group" "eks_control_plane_sg" {
   name        = "${var.vpc_name}-control-plane"
