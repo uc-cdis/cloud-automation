@@ -75,7 +75,7 @@ resource "aws_cloudwatch_log_resource_policy" "es_logs" {
         "logs:PutLogEventsBatch",
         "logs:CreateLogStream"
       ],
-      "Resource": "arn:aws:logs:*"
+      "Resource": "${data.aws_cloudwatch_log_group.logs_group.arn}"
     }
   ]
 }
@@ -144,4 +144,5 @@ CONFIG
   lifecycle {
     ignore_changes = ["elasticsearch_version"]
   }
+  depends_on = ["aws_cloudwatch_log_resource_policy.es_logs"]
 }
