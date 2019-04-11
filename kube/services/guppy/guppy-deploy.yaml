@@ -51,16 +51,16 @@ spec:
           livenessProbe:
             httpGet:
               path: /_status
-              port: 3000
+              port: 80
             initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
               path: /_status
-              port: 3000
+              port: 80
           ports:
-          - containerPort: 3000
+          - containerPort: 80
           env:
           - name: GUPPY_CONFIG_FILEPATH
             value: /guppy/guppy_config.json
@@ -68,10 +68,6 @@ spec:
             value: esproxy-service:9200
           - name: GEN3_ARBORIST_ENDPOINT
             value: http://arborist-service
-          - name: GEN3_ES_INDEX
-            value: GEN3_GUPPY_ES_INDEX|-gen3-subject-dev-|
-          - name: GEN3_ES_TYPE
-            value: GEN3_GUPPY_ES_TYPE|-subject-|
           volumeMounts:
             - name: guppy-config
               readOnly: true
