@@ -51,16 +51,16 @@ spec:
           livenessProbe:
             httpGet:
               path: /_status
-              port: 3000
+              port: 80
             initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
               path: /_status
-              port: 3000
+              port: 80
           ports:
-          - containerPort: 3000
+          - containerPort: 80
           env:
           - name: GUPPY_CONFIG_FILEPATH
             value: /guppy/guppy_config.json
