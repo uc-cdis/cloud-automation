@@ -22,9 +22,55 @@ gen3_db_help() {
 declare -a gen3DbServerFarm=(server1 server2)
 
 
-gen3_db_farm_path() {
-  echo "$(gen3_secrets_folder)/dbFarm/servers.json"
+#
+# Cat the dbfarm k8s secret file if available - otherwise cat the secret
+#
+gen3_db_farm_json() {
+  gen3 secrets decode dbFarm-g3auto servers.json
 }
+
+#
+# Little helper for `gen3 reset` that will drop and re-create
+# a database for a particular service.
+# This method prompts an interactive user for approval
+# before executing the reset unless given a 2nd argument "noprompt"
+#
+# @param serviceName
+# @param [optional]noPrompt
+#
+gen3_db_reset() {
+  local serviceName
+  if [[ $# -lt 1 || -z "$1" ]]; then
+    gen3_log_err "gen3_db_drop_create" "must specify serviceName"
+    return 1
+  fi
+  serviceName="$1"
+  local extraArgs="-d template1"
+  # connect as the admin user for the db server associated with the service
+  local credsTemp="$(mktemp "$XDG_RUNTIME_DIR/credsTemp.json_XXXXXX")"
+  if ! gen3_db_service_creds "$serviceName" > "$credsTemp"; then
+    gen3_log_err "failed to retrieve db creds for service $serviceName"
+    return 1
+  fi
+  local dbhost="$(jq -r .db_host < "$credsTemp")"
+  local username="$(jq -r .db_username < "$credsTemp")"
+  local dbname="$(jq -r ".db_database" < "$credsTemp")"
+  rm "$credsTemp"
+  if [[ -z "$dbhost" || -z "$dbname" || -z "$username" ]]; then
+    gen3_log_err "failed to establish db credentials for service $serviceName"
+    return 1
+  fi
+
+  local serverName
+  # got the server host and db associated with this service - get the server root user
+  serverName=(gen3_db_farm_json | jq -e -r ". | to_entries | map(select(.value.db_host==\"$dbhost\")) | .[0].key"); 
+  if [[ -z "$serverName" ]]; then
+    gen3_log_err "failed to retrieve creds for server $dbhost"
+    return 1
+  fi
+  gen3 psql "$serverName" -c "DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;"
+}
+
 
 #
 # Bootstrap the db/servers.json secret
@@ -32,8 +78,8 @@ gen3_db_farm_path() {
 gen3_db_init() {
   local secretPath
   
-  secretPath="$(gen3_db_farm_path)"
-  if [[ ! -f "$secretPath" ]]; then
+  secretPath="$(gen3_secrets_folder)/g3auto/dbFarm/servers.json"
+  if [[ (! -f "$secretPath") && (! gen3 db secrets decode dbFarm-g3auto servers.json > /dev/null 2>&1) ]]; then
     mkdir -p -m 0700 "$(dirname $secretPath)"
     # initialize the dbFarm with info for the fence and indexd db servers
     (cat - <<EOM
@@ -43,8 +89,10 @@ gen3_db_init() {
 }
 EOM
     ) | jq -r . > "$secretPath"
+    gen3 secrets sync "initialize dbFarm secret"
   fi
 }
+
 
 #
 # Validate that the given server name is in gen3DbServerList
@@ -107,9 +155,9 @@ gen3_db_service_creds() {
 gen3_db_random_server() {
   local total
   local index
-  total="$(gen3_db_farm_path | xargs cat | jq -r '. | keys | length')"
+  total="$(gen3_db_farm_json | jq -r '. | keys | length')"
   index=$((RANDOM % total))
-  gen3_db_farm_path | xargs cat | jq -r ". | keys | .[$index]"
+  gen3_db_farm_json | jq -r ". | keys | .[$index]"
 }
 
 
@@ -117,7 +165,7 @@ gen3_db_random_server() {
 # List the servers - one per line
 #
 gen3_db_server_list() {
-  gen3_db_farm_path | xargs cat | jq -r '. | keys | join("\n")'
+  gen3_db_farm_json | jq -r '. | keys | join("\n")'
 }
 
 #
@@ -132,7 +180,7 @@ gen3_db_server_info() {
   fi
   server="$1"
   shift
-  gen3_db_farm_path | xargs cat | jq -e -r ".[\"$server\"]"
+  gen3_db_farm_json | jq -e -r ".[\"$server\"]"
 }
 
 
@@ -167,7 +215,9 @@ gen3_db_user_list() {
 }
 
 #
-# Open a psql connection to the specified database
+# Open a psql connection to the specified database service
+# using that service credentials.  Respects psql overrides
+# for '-d' and '-U'
 #
 # @param serviceName should be one of indexd, fence, sheepdog
 #
@@ -214,17 +264,25 @@ gen3_db_psql() {
   # useful in `gen3 reset` to connect to template1
   #
   local userdb
+  local userUser
   userdb=false
+  userUser=false
   for arg in "$@"; do
     if [[ "$arg" = "-d" || "$arg" =~ "^--dbname" ]]; then
       userdb=true
+    elif [[ "$arg" = "-U" || "$arg" =~ "^--username" ]]; then
+      userUser=true
     fi
   done
-  if [[ "$userdb" = false ]]; then
-    PGPASSWORD="$password" psql -U "$username" -h "$host" -d "$database" "$@"
-  else
-    PGPASSWORD="$password" psql -U "$username" -h "$host" "$@"
+  local extraArgs="-h \"$host\""
+  if [[ "false" == "$userUser" ]]; then
+    extraArgs="$extraArgs -U \"$username\""
   fi
+  if [[ "false" == "$userdb" ]]; then
+    extraArgs="$extraArgs -d \"$database\""
+  fi
+  
+  PGPASSWORD="$password" psql $extraArgs "$@"
 }
 
 #
