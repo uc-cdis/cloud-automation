@@ -17,17 +17,18 @@ gen3_awsuser_help() {
 
 #
 # Util for checking if entity already exists
+# Names must be unique for all users, roles and groups
 #
 _entity_exists() {
-  local username = $1
-  if ! gen3_aws_run aws iam get-user --user-name $username 2>&1; then
-    return "false"
-  elif ! gen3_aws_run aws iam get-role --role-name $username 2>&1; then
-    return "false"
-  elif ! gen3_aws_run aws iam get-group --group-name $username 2>&1; then
-    return "false"
+  local username=$1
+  if gen3_aws_run aws iam get-user --user-name $username > /dev/null 2>&1; then
+    return 0
+  elif gen3_aws_run aws iam get-role --role-name $username > /dev/null 2>&1; then
+    return 0
+  elif gen3_aws_run aws iam get-group --group-name $username > /dev/null 2>&1; then
+    return 0
   else
-    return "true"
+    return 1
   fi
 }
 
@@ -47,9 +48,10 @@ EOF
 }
 
 #
-# Util for applying tfplan
+# Util for applying tfplan and updating secrets
 #
-_tfapply_user() {
+_tfapply_update_secrets() {
+  local username=$1
   if [[ -z "$GEN3_WORKSPACE" ]]; then
     gen_log_err "GEN3_WORKSPACE not set - unable to apply s3 bucket"
     return 1
@@ -60,6 +62,21 @@ _tfapply_user() {
     gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in ${GEN3_WORKSPACE}"
     return 1
   fi
+
+  # Update aws secrets
+  local key_id=$(gen3 tfoutput key_id)
+  local key_secret=$(gen3 tfoutput key_secret)
+  local aws_secrets_dir="$(gen3_secrets_folder)/g3auto/aws-secrets"
+  mkdir -p $aws_secrets_dir
+  cd $aws_secrets_dir
+  cat << EOF > $username.json
+{
+  "key_id": "$key_id",
+  "key_secret": "$key_secret"
+}
+EOF
+  gen3 secrets sync
+  
   gen3 trash --apply
 }
 
@@ -84,7 +101,7 @@ EOF
   fi
 
   # if entity already exists with do nothing and exit
-  if [[ $(_entity_exists $username) == "true" ]]; then
+  if _entity_exists $username; then
     gen3_log_info "An entity with that name already exists"
     return 0
   fi
@@ -93,7 +110,7 @@ EOF
   if [[ $? != 0 ]]; then
     return 1
   fi
-  _tfapply_user
+  _tfapply_update_secrets $username
   if [[ $? != 0 ]]; then
     return 1
   fi
@@ -111,13 +128,13 @@ gen3_awsuser() {
       gen3_awsuser_create "$@"
       ;;
     *)
-      gen3_s3_help
+      gen3_awsuser_help
       ;;
   esac
 }
 
 # Let testsuite source file
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
-  gen3_s3 "$@"
+  gen3_awsuser "$@"
 fi
 
