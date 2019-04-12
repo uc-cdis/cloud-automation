@@ -1,0 +1,14 @@
+{
+    "name": "labvm",
+    "description": "Setup VM for gen3 labs",
+    "chef_type": "role",
+    "json_class": "Chef::Role",
+    "default_attributes": {
+    },
+    "override_attributes": {
+    },
+    "run_list": [
+        "recipe[g3_docker_apt]",
+        "recipe[g3_lab_user]"
+    ]
+}

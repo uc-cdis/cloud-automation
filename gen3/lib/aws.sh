@@ -141,6 +141,8 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_common_logging"
   elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/data_bucket"
+  elif [[ "$GEN3_WORKSPACE" =~ _demolab$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/demolab"
   elif [[ "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _utilityvm$ ]]; then
@@ -288,6 +290,18 @@ EOM
     cat - <<EOM
 bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/[_\.]/-/g')-gen3"
 environment="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
+EOM
+    return 0
+  fi
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _demolab$ ]]; then
+    cat - <<EOM
+vpc_name="${GEN3_WORKSPACE//_demolab/}"
+instance_type="t3.small"
+instance_count=5
+# this is Reuben's key ...
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCfX+T2c3+iBP17DS0oPj93rcQH7OgTCKdjYS0f9s8sIKjErKCao0tRNy5wjBhAWqmq6xFGJeA7nt3UBJVuaGFbszIzs+yvjZYYVrJQdfl0yPbrKRMd/Ch77Jnqbu97Uyu8UxhGkzqEcxQrdBqhqkakhQULjcjZBnk0M1PrLwW+Pl1kRCnXnX/x3YzDR/Ltgjc57qjPbqz7+CBbuFo5OCYOY94pcXetHskvx1AAQ7ZT2c/F/p6vIH5jPKnCTjuqWuGoimp/alczLMO6n+aHgzqc9NKQUScxA0fCGxFeoEdd6b370E7j8xXMIA/xSmq8lFPam+fm3117nC4m29sRktoBI8YP4L7VPSkM/hLp/vRzVJf6U183GfvUSZPERrg+NvMeah9vgkTgzH0iN1+s2xPj6eFz7VUOQtLYTchMZ/qyyGhUzJznY0szocVd6iDbMAYm67R+QtgYEBD1hYrtUD052imb62nEXHFSL3V6369GaJ+k5BIUTGweOaUxGbJlb6fG2Aho4EWaigYRMtmlKgDFaCeJGjlQrFR9lKFzDBc3Af3RefPDVsavYGdQQRUAmueGjlks99Bvh2U53HQgQvc0iQg3ijey2YXBr6xFCMeG7MJZbPcrlQLXko4KygK94EcDPZnIH542CrtAySk/UxxwZv5u0dLsh7o+ZK9G6PO1+Q== reubenonrye@uchicago.edu"
 EOM
     return 0
   fi

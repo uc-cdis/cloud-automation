@@ -1,0 +1,11 @@
+{
+  "name":"g3_base_apt",
+  "version":"1.0.0",
+  "description":"Basic packages we want everywhere",
+  "long_description":"# [base-apt](https://github.com/uc_cdis/cloud-automation)\n\n## License & Authors\n\n\n\n**Copyright:** 2008-2017, Chef Software, Inc.\n\n```\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.\n```\n",
+  "maintainer":"admin@gen3.org","maintainer_email":"admin@gen3.org","license":"Apache-2.0",
+  "platforms":{"debian":">= 0.0.0","ubuntu":">= 0.0.0"},
+  "source_url":"https://github.com/uc_cdis/cloud-automation",
+  "issues_url":"https://github.com/uc_cdis/cloud-automation/issues",
+  "chef_version":[[">= 12.14"]],"ohai_version":[]
+}
