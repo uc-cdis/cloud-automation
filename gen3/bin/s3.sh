@@ -94,9 +94,9 @@ _add_bucket_to_cloudtrail() {
 _bucket_exists() {
   local bucketName=$1
   if [[ -z "$(gen3_aws_run aws s3api head-bucket --bucket $bucketName 2>&1)" ]]; then
-    return "true"
+    echo "true"
   else
-    return "false"
+    echo "false"
   fi
 }
 
