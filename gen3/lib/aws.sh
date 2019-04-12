@@ -133,6 +133,8 @@ gen3_workon_aws(){
   export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons"
   if [[ "$GEN3_WORKSPACE" =~ _user$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/user_vpc"
+  elif [[ "$GEN3_WORKSPACE" =~ _usergeneric$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/user_generic"
   elif [[ "$GEN3_WORKSPACE" =~ _snapshot$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/rds_snapshot"
   elif [[ "$GEN3_WORKSPACE" =~ _adminvm$ ]]; then
