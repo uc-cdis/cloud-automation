@@ -5,6 +5,22 @@ Kind of a weird file - pretty sure jupyterhub just eval's this after defining c
 import os
 import json
 
+from kubernetes import client
+
+def modify_pod_hook(spawner, pod):
+    '''
+    A container must be run with additional privileges in order to mount a FUSE filesystem.
+    https://github.com/jupyterhub/zero-to-jupyterhub-k8s/issues/379
+    '''
+    pod.spec.containers[0].security_context = client.V1SecurityContext(
+        # TODO: Remove this below line if the --userns-remap solution is successful next sprint
+        privileged=True,
+        capabilities=client.V1Capabilities(
+            add=['SYS_ADMIN', 'MKNOD']
+        )
+    )
+    return pod
+
 c.JupyterHub.base_url = "/lw-workspace"
 c.JupyterHub.confirm_no_ssl = True
 c.JupyterHub.db_url = "sqlite:////etc/config/jupyterhub.sqlite"
@@ -28,20 +44,27 @@ c.KubeSpawner.mem_limit = "1.5G"
 # c.KubeSpawner.debug = False
 c.KubeSpawner.notebook_dir = "/home/jovyan/pd"
 c.KubeSpawner.uid = 1000
-c.KubeSpawner.fs_gid = 1000
+c.KubeSpawner.fs_gid = 100
 c.KubeSpawner.storage_pvc_ensure = True
 c.KubeSpawner.storage_capacity = "10Gi"
 c.KubeSpawner.pvc_name_template = "claim-{username}{servername}"
 c.KubeSpawner.storage_class = "jupyter-storage"
 c.KubeSpawner.volumes = [
     {
-        "name": "volume-{username}{servername}",
-        "persistentVolumeClaim": {"claimName": "claim-{username}{servername}"},
+        'name': 'volume-{username}{servername}',
+        'persistentVolumeClaim': { 'claimName': 'claim-{username}{servername}' }
+    },
+    {
+	'name': 'shared-data',
+	'emptyDir': {}
     }
 ]
+
 c.KubeSpawner.volume_mounts = [
-    {"mountPath": "/home/jovyan/pd", "name": "volume-{username}{servername}"}
+    { 'mountPath': '/home/jovyan/pd', 'name': 'volume-{username}{servername}' },
+    { 'mountPath' : '/data', 'name' : 'shared-data', 'mountPropagation' : 'Bidirectional' }
 ]
+
 c.KubeSpawner.hub_connect_ip = "jupyterhub-service.%s" % (os.environ["POD_NAMESPACE"])
 c.KubeSpawner.hub_connect_port = 8000
 raw_profiles = os.environ.get("JUPYTER_CONTAINERS", None)
@@ -94,6 +117,12 @@ c.KubeSpawner.lifecycle_hooks = {
         }
     }
 }
+# TODO: Remove this below line before merge to master. But need this here for now for testing purposes.
+c.KubeSpawner.image_pull_policy = 'Always'
+c.KubeSpawner.modify_pod_hook = modify_pod_hook
+c.KubeSpawner.cmd = 'start-singleuser.sh'
+c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-prefix=https://%s%s/' % (
+    c.KubeSpawner.hub_connect_ip, c.KubeSpawner.hub_connect_port, c.JupyterHub.base_url, os.environ['HOSTNAME'], c.JupyterHub.base_url)]
 # First pulls can be really slow, so let's give it a big timeout
 c.KubeSpawner.start_timeout = 60 * 10
 c.KubeSpawner.tolerations = [
@@ -107,3 +136,15 @@ c.JupyterHub.ip = "0.0.0.0"
 c.JupyterHub.hub_ip = "0.0.0.0"
 c.RemoteUserAuthenticator.auth_refresh_age = 1
 c.RemoteUserAuthenticator.refresh_pre_spawn = True
+
+c.KubeSpawner.env_keep = ['HOSTNAME', 'POD_NAMESPACE']
+
+c.KubeSpawner.extra_containers = [{
+     'name' : 'fuse-container',
+     'volumeMounts' :  [
+         { 'mountPath' : '/data', 'name' : 'shared-data', 'mountPropagation' : 'Bidirectional' }
+     ],
+     'command' : ['su', '-c', 'env NAMESPACE="%s" HOSTNAME="%s" /home/jovyan/sidecarDockerrun.sh' % (os.environ["POD_NAMESPACE"], os.environ["HOSTNAME"]), '-s', '/bin/sh', 'jovyan'],
+     'image': 'quay.io/cdis/gen3fuse-sidecar:feat_created-fuse-sidecar-container',
+     'securityContext': { 'privileged' : True, 'runAsUser' : 0, 'runAsGroup' : 0 }
+}]
