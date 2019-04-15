@@ -118,11 +118,8 @@ c.KubeSpawner.lifecycle_hooks = {
     }
 }
 # TODO: Remove this below line before merge to master. But need this here for now for testing purposes.
-c.KubeSpawner.image_pull_policy = 'Always'
+#c.KubeSpawner.image_pull_policy = 'Always'
 c.KubeSpawner.modify_pod_hook = modify_pod_hook
-c.KubeSpawner.cmd = 'start-singleuser.sh'
-c.KubeSpawner.args = ['--allow-root --hub-api-url=http://%s:%d%s/hub/api --hub-prefix=https://%s%s/' % (
-    c.KubeSpawner.hub_connect_ip, c.KubeSpawner.hub_connect_port, c.JupyterHub.base_url, os.environ['HOSTNAME'], c.JupyterHub.base_url)]
 # First pulls can be really slow, so let's give it a big timeout
 c.KubeSpawner.start_timeout = 60 * 10
 c.KubeSpawner.tolerations = [
@@ -137,7 +134,6 @@ c.JupyterHub.hub_ip = "0.0.0.0"
 c.RemoteUserAuthenticator.auth_refresh_age = 1
 c.RemoteUserAuthenticator.refresh_pre_spawn = True
 
-c.KubeSpawner.env_keep = ['HOSTNAME', 'POD_NAMESPACE']
 
 c.KubeSpawner.extra_containers = [{
      'name' : 'fuse-container',
