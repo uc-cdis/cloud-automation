@@ -28,19 +28,25 @@ c.KubeSpawner.mem_limit = "1.5G"
 # c.KubeSpawner.debug = False
 c.KubeSpawner.notebook_dir = "/home/jovyan/pd"
 c.KubeSpawner.uid = 1000
-c.KubeSpawner.fs_gid = 1000
+c.KubeSpawner.fs_gid = 100
 c.KubeSpawner.storage_pvc_ensure = True
 c.KubeSpawner.storage_capacity = "10Gi"
 c.KubeSpawner.pvc_name_template = "claim-{username}{servername}"
 c.KubeSpawner.storage_class = "jupyter-storage"
 c.KubeSpawner.volumes = [
     {
-        "name": "volume-{username}{servername}",
-        "persistentVolumeClaim": {"claimName": "claim-{username}{servername}"},
+        'name': 'volume-{username}{servername}',
+        'persistentVolumeClaim': { 'claimName': 'claim-{username}{servername}' }
+    },
+    {
+	'name': 'shared-data',
+	'emptyDir': {}
     }
 ]
+
 c.KubeSpawner.volume_mounts = [
-    {"mountPath": "/home/jovyan/pd", "name": "volume-{username}{servername}"}
+    { 'mountPath': '/home/jovyan/pd', 'name': 'volume-{username}{servername}' },
+    { 'mountPath' : '/data', 'name' : 'shared-data', 'mountPropagation' : 'HostToContainer' }
 ]
 c.KubeSpawner.hub_connect_ip = "jupyterhub-service.%s" % (os.environ["POD_NAMESPACE"])
 c.KubeSpawner.hub_connect_port = 8000
@@ -94,6 +100,7 @@ c.KubeSpawner.lifecycle_hooks = {
         }
     }
 }
+# c.KubeSpawner.image_pull_policy = 'Always'
 # First pulls can be really slow, so let's give it a big timeout
 c.KubeSpawner.start_timeout = 60 * 10
 c.KubeSpawner.tolerations = [
@@ -107,3 +114,12 @@ c.JupyterHub.ip = "0.0.0.0"
 c.JupyterHub.hub_ip = "0.0.0.0"
 c.RemoteUserAuthenticator.auth_refresh_age = 1
 c.RemoteUserAuthenticator.refresh_pre_spawn = True
+c.KubeSpawner.extra_containers = [{
+     'name' : 'fuse-container',
+     'volumeMounts' :  [
+         { 'mountPath' : '/data', 'name' : 'shared-data', 'mountPropagation' : 'Bidirectional' }
+     ],
+     'command' : ['su', '-c', 'env NAMESPACE="%s" HOSTNAME="%s" /home/jovyan/sidecarDockerrun.sh' % (os.environ["POD_NAMESPACE"], os.environ["HOSTNAME"]), '-s', '/bin/sh', 'jovyan'],
+     'image': 'quay.io/cdis/gen3fuse-sidecar:feat_created-fuse-sidecar-container',
+     'securityContext': { 'privileged' : True, 'runAsUser' : 0, 'runAsGroup' : 0 }
+}]
