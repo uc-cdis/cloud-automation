@@ -7,20 +7,6 @@ import json
 
 from kubernetes import client
 
-def modify_pod_hook(spawner, pod):
-    '''
-    A container must be run with additional privileges in order to mount a FUSE filesystem.
-    https://github.com/jupyterhub/zero-to-jupyterhub-k8s/issues/379
-    '''
-    pod.spec.containers[0].security_context = client.V1SecurityContext(
-        # TODO: Remove this below line if the --userns-remap solution is successful next sprint
-        privileged=True,
-        capabilities=client.V1Capabilities(
-            add=['SYS_ADMIN', 'MKNOD']
-        )
-    )
-    return pod
-
 c.JupyterHub.base_url = "/lw-workspace"
 c.JupyterHub.confirm_no_ssl = True
 c.JupyterHub.db_url = "sqlite:////etc/config/jupyterhub.sqlite"
@@ -62,9 +48,8 @@ c.KubeSpawner.volumes = [
 
 c.KubeSpawner.volume_mounts = [
     { 'mountPath': '/home/jovyan/pd', 'name': 'volume-{username}{servername}' },
-    { 'mountPath' : '/data', 'name' : 'shared-data', 'mountPropagation' : 'Bidirectional' }
+    { 'mountPath' : '/data', 'name' : 'shared-data', 'mountPropagation' : 'HostToContainer' }
 ]
-
 c.KubeSpawner.hub_connect_ip = "jupyterhub-service.%s" % (os.environ["POD_NAMESPACE"])
 c.KubeSpawner.hub_connect_port = 8000
 raw_profiles = os.environ.get("JUPYTER_CONTAINERS", None)
@@ -117,9 +102,7 @@ c.KubeSpawner.lifecycle_hooks = {
         }
     }
 }
-# TODO: Remove this below line before merge to master. But need this here for now for testing purposes.
-#c.KubeSpawner.image_pull_policy = 'Always'
-c.KubeSpawner.modify_pod_hook = modify_pod_hook
+# c.KubeSpawner.image_pull_policy = 'Always'
 # First pulls can be really slow, so let's give it a big timeout
 c.KubeSpawner.start_timeout = 60 * 10
 c.KubeSpawner.tolerations = [
@@ -133,8 +116,6 @@ c.JupyterHub.ip = "0.0.0.0"
 c.JupyterHub.hub_ip = "0.0.0.0"
 c.RemoteUserAuthenticator.auth_refresh_age = 1
 c.RemoteUserAuthenticator.refresh_pre_spawn = True
-
-
 c.KubeSpawner.extra_containers = [{
      'name' : 'fuse-container',
      'volumeMounts' :  [
