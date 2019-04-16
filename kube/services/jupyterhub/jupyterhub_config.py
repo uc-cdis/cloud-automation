@@ -5,8 +5,6 @@ Kind of a weird file - pretty sure jupyterhub just eval's this after defining c
 import os
 import json
 
-from kubernetes import client
-
 c.JupyterHub.base_url = "/lw-workspace"
 c.JupyterHub.confirm_no_ssl = True
 c.JupyterHub.db_url = "sqlite:////etc/config/jupyterhub.sqlite"
