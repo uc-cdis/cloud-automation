@@ -73,50 +73,25 @@ g3kubectl delete --all deployments --now
 g3kubectl delete --all jobs --now
 wait_for_pods_down
 
-
 #
-# Drop and recreate the "gen3 db create" databases with -g3auto secrets ...
+# Reset our well known databases, and
+# the "gen3 db create" databases with -g3auto secrets ...
 # scan the -g3auto secrets for `dbcreds.json` ...
 #
+dbServices=(fence indexd sheepdog)
 tempSecrets="$(mktemp "$XDG_RUNTIME_DIR/secrets.json_XXXXXX")"
-tempCreds="$(mktemp "$XDG_RUNTIME_DIR/dbcreds.json_XXXXXX")"
-g3kubectl get secrets -o json | jq -r '.items | map(select( .data["dbcreds.json"] and (.metadata.name|test("-g3auto$")))) | map( { "creds": .data["dbcreds.json"], "name": .metadata.name })' > "$tempSecrets"
+g3kubectl get secrets -o json | jq -r '.items | map(select( .data["dbcreds.json"] and (.metadata.name|test("-g3auto$")))) | map( { "name": .metadata.name })' > "$tempSecrets"
 numSecrets="$(jq -r '. | length' < "$tempSecrets")"
 for ((i=0; i < numSecrets; i++)); do
-  jq -r ".[${i}].creds" < "$tempSecrets" | base64 --decode > "$tempCreds"
-  dbName="$(jq -r .db_database < "$tempCreds")"
   service="$(jq -r ".[${i}].name" < "$tempSecrets")"
   service="${service%-g3auto}"
-  gen3_user_verify "about to drop the $dbName database from the $service postgres server"
-  echo "DROP DATABASE \"${dbName}\"; CREATE DATABASE \"${dbName}\";" | gen3 psql $service  --dbname=template1
-  /bin/rm "$tempCreds"
+  dbServices+=("$service")
 done
 /bin/rm "$tempSecrets"
 
-#
-# drop and recreate the legacy (pre-g3auto) databases
-#
-serviceCreds=( fence-creds sheepdog-creds indexd-creds )
-for serviceCred in ${serviceCreds[@]}; do
-    dbName="$(g3kubectl get secrets $serviceCred -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_database)"
-    service=${serviceCred%-creds}
-
-    # check for user consent before deleting and recreating tables
-    gen3_user_verify "about to drop the $dbName database from the $service postgres server"
-    #
-    # Note: connect to --dbname=template1 to avoid erroring out in
-    # situation where the database does not yet exist
-    #
-    echo "DROP DATABASE \"${dbName}\"; CREATE DATABASE \"${dbName}\";" | gen3 psql $service  --dbname=template1
+for serviceName in "${dbServices[@]}"; do
+  gen3 db reset "$serviceName"
 done
-
-# Make sure peregrine has permission to read the sheepdog db tables
-peregrine_db_user="$(g3kubectl get secrets peregrine-creds -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_username)"
-if [[ -n "$peregrine_db_user" ]]; then
-  gen3 psql sheepdog -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $peregrine_db_user; ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
-else
-  echo -e "$(red_color "WARNING: unable to determine peregrine db username")"
-fi
 
 #
 # integration tests may muck with user.yaml in fence configmap, so re-sync from S3

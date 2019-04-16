@@ -9,6 +9,13 @@ the various databases used by gen3 services.
 
 ## Use
 
+### gen3 db creds service
+
+```
+ex:
+gen3 db creds fence
+```
+
 ### gen3 db server list
 
 List the servers in the database farm.  Note that the server for the 
@@ -40,6 +47,10 @@ gen3 db psql server1
 gen3 db psql fence
 ```
 
+### gen3 db server list
+
+List the servers in the db farm.
+
 ### gen3 db setup
 
 Setup a database, db user, and associated secrets for the specified service.
@@ -50,7 +61,7 @@ ex:
 gen3 db setup "service_name"
 ```
 
-The script randomly selects one of the farm servers by default, but 
+The script randomly selects one of the `farmEnabled` farm servers by default, but 
 a server name may optionally be added to the command line.
 
 ```

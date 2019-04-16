@@ -14,19 +14,12 @@ gen3_db_help() {
   gen3 help db
 }
 
-#
-# Currently run 3 db servers
-# db1=fence
-# db2=indexd
-#
-declare -a gen3DbServerFarm=(server1 server2)
-
 
 #
 # Cat the dbfarm k8s secret file if available - otherwise cat the secret
 #
 gen3_db_farm_json() {
-  gen3 secrets decode dbFarm-g3auto servers.json
+  gen3 secrets decode dbfarm-g3auto servers.json
 }
 
 #
@@ -41,11 +34,16 @@ gen3_db_farm_json() {
 gen3_db_reset() {
   local serviceName
   if [[ $# -lt 1 || -z "$1" ]]; then
-    gen3_log_err "gen3_db_drop_create" "must specify serviceName"
+    gen3_log_err "gen3_db_reset" "must specify serviceName"
     return 1
   fi
+
   serviceName="$1"
-  local extraArgs="-d template1"
+  if [[ "$serviceName" == "$peregrine" ]]; then
+    gen3_log_err "gen3_db_reset" "may not reset peregrine - only sheepdog"
+    return 1
+  fi
+
   # connect as the admin user for the db server associated with the service
   local credsTemp="$(mktemp "$XDG_RUNTIME_DIR/credsTemp.json_XXXXXX")"
   if ! gen3_db_service_creds "$serviceName" > "$credsTemp"; then
@@ -63,12 +61,39 @@ gen3_db_reset() {
 
   local serverName
   # got the server host and db associated with this service - get the server root user
-  serverName=(gen3_db_farm_json | jq -e -r ". | to_entries | map(select(.value.db_host==\"$dbhost\")) | .[0].key"); 
+  serverName=$(gen3_db_farm_json | jq -e -r ". | to_entries | map(select(.value.db_host==\"$dbhost\")) | .[0].key"); 
   if [[ -z "$serverName" ]]; then
     gen3_log_err "failed to retrieve creds for server $dbhost"
     return 1
   fi
-  gen3 psql "$serverName" -c "DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;"
+
+  # check for user consent before deleting and recreating tables
+  local promptUser
+  promptUser="$(
+    yesno=no
+    gen3_log_warn "about to drop the $dbname database for $serviceName from the $serverName postgres server - proceed? (y/n)"
+    read -r yesno
+    echo "$yesno"
+  )"
+
+  if [[ ! $promptUser =~ ^y(es)?$ ]]; then
+    return 1
+  fi
+
+  # Postgres won't accept these commands in one batch ...
+  echo "DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;" | gen3 psql "$serverName"
+  if [[ "$serviceName" == "sheepdog" ]]; then 
+    # special case - peregrine shares the database
+    # Make sure peregrine has permission to read the sheepdog db tables
+    gen3_log_info "gen3_db_reset" "granting db access permissions to peregrine"
+    local peregrine_db_user;
+    peregrine_db_user="$(g3kubectl get secrets peregrine-creds -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_username)"
+    if [[ -n "$peregrine_db_user" ]]; then
+      gen3 psql sheepdog -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $peregrine_db_user; ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
+    else
+      gen3_log_warn "gen3_db_reset" "unable to determine peregrine db username"
+    fi
+  fi
 }
 
 
@@ -78,18 +103,25 @@ gen3_db_reset() {
 gen3_db_init() {
   local secretPath
   
-  secretPath="$(gen3_secrets_folder)/g3auto/dbFarm/servers.json"
-  if [[ (! -f "$secretPath") && (! gen3 db secrets decode dbFarm-g3auto servers.json > /dev/null 2>&1) ]]; then
+  secretPath="$(gen3_secrets_folder)/g3auto/dbfarm/servers.json"
+  if [[ (! -f "$secretPath") && -z "$JENKINS_HOME" && -d "$(gen3_secrets_folder)" ]]; then
     mkdir -p -m 0700 "$(dirname $secretPath)"
-    # initialize the dbFarm with info for the fence and indexd db servers
-    (cat - <<EOM
+    # initialize the dbfarm with info for the fence, indexd, and sheepdog db servers
+    if ! gen3 secrets decode dbfarm-g3auto servers.json > /dev/null 2>&1; then
+      # create a new server list
+          (cat - <<EOM
 {
-  "server1": $(gen3_db_service_creds fence),
-  "server2": $(gen3_db_service_creds indexd)
+  "server1": $(gen3_db_service_creds fence | jq -r '.farmEnabled=true'),
+  "server2": $(gen3_db_service_creds indexd | jq -r '.farmEnabled=true'),
+  "server3": $(gen3_db_service_creds sheepdog | jq -r '.farmEnabled=false')
 }
 EOM
-    ) | jq -r . > "$secretPath"
-    gen3 secrets sync "initialize dbFarm secret"
+      ) | jq -r . > "$secretPath"
+    else
+      # sync k8s secret into Secrets/ folder
+      gen3 secrets decode dbfarm-g3auto servers.json > "$secretPath"
+    fi
+    gen3 secrets sync "initialize dbfarm secret" 1>&2
   fi
 }
 
@@ -150,14 +182,21 @@ gen3_db_service_creds() {
 }
 
 #
-# Select a random server
+# Select a random server that is farmEnabled
 #
 gen3_db_random_server() {
   local total
   local index
-  total="$(gen3_db_farm_json | jq -r '. | keys | length')"
+  local result
+  local farmServersTemp
+  farmServersTemp="$(mktemp "$XDG_RUNTIME_DIR/farmServers.json_XXXXXX")"
+  gen3_db_server_list | jq -r '. | to_entries | map(select(.value.farmEnabled==true)) | from_entries' > "$farmServersTemp"
+  total="$(jq -r '. | keys | length' < "$farmServersTemp")"
   index=$((RANDOM % total))
-  gen3_db_farm_json | jq -r ". | keys | .[$index]"
+  jq -r ". | keys | .[$index]" < "$farmServersTemp"
+  result=$?
+  rm "$farmServersTemp"
+  return $result
 }
 
 
@@ -274,15 +313,15 @@ gen3_db_psql() {
       userUser=true
     fi
   done
-  local extraArgs="-h \"$host\""
+  local extraArgs=("-h" "$host")
   if [[ "false" == "$userUser" ]]; then
-    extraArgs="$extraArgs -U \"$username\""
+    extraArgs+=( "-U" "$username")
   fi
   if [[ "false" == "$userdb" ]]; then
-    extraArgs="$extraArgs -d \"$database\""
+    extraArgs+=("-d" "$database")
   fi
   
-  PGPASSWORD="$password" psql $extraArgs "$@"
+  PGPASSWORD="$password" psql "${extraArgs[@]}" "$@"
 }
 
 #
@@ -408,6 +447,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   command="$1"
   shift
   case "$command" in
+    "creds")
+      gen3_db_service_creds "$@";
+      ;;
     "list")
       gen3_db_list "$@"
       ;;
@@ -416,6 +458,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "psql")
       gen3_db_psql "$@"
+      ;;
+    "reset")
+      gen3_db_reset "$@"
       ;;
     "server")
       if [[ "$1" == "list" ]]; then

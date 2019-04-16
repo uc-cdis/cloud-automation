@@ -56,7 +56,11 @@ test_db_create() {
   gen3 db setup "$serviceName" "server1"; because $? "setup db should go ok"
   g3kubectl get secret "${serviceName}-g3auto"; because $? "setup db should create a secret in k8s"
   [[ -f "$(gen3_secrets_folder)/g3auto/${serviceName}/dbcreds.json" ]]; because $? "setup db should setup secrets file"
-  gen3 db psql "$serviceName" -c 'SELECT 1'; because $? "should be able to connect to the new service"
+  gen3 db psql "$serviceName" -c 'SELECT 1'; because $? "should be able to connect to the new service db"
+  ! (echo "no" | gen3 db reset "$serviceName"); because $? "db reset should fail without user confirmation"
+  (yes | gen3 db reset "$serviceName"); because $? "db reset should re-create the database"
+  gen3 db psql "$serviceName" -c 'SELECT 1'; because $? "should be able to connect to the new service db after reset"
+  
   gen3 klock unlock dbctest dbctest
 }
 
