@@ -79,11 +79,11 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: portal_app
-          - name: SECURE_LEVEL
+          - name: TIER_ACCESS_LEVEL
             valueFrom:
               configMapKeyRef:
                 name: manifest-global
-                key: secure_level
+                key: tier_access_level
                 # for now making it optional so won't break anything
                 optional: true
         volumeMounts:

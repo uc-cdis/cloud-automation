@@ -68,11 +68,11 @@ spec:
             value: esproxy-service:9200
           - name: GEN3_ARBORIST_ENDPOINT
             value: http://arborist-service
-          - name: SECURE_LEVEL
+          - name: TIER_ACCESS_LEVEL
             valueFrom:
               configMapKeyRef:
                 name: manifest-global
-                key: secure_level
+                key: tier_access_level
                 # for now making it optional so won't break anything
                 optional: true
           volumeMounts:
