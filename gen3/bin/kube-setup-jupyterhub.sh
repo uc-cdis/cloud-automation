@@ -21,6 +21,8 @@ else
   echo "I think k8s namespace ${namespaceName} already exists"
 fi
 
+# update manifest-jupyterhub configmap
+gen3 gitops configmaps
 gen3 update_config jupyterhub-config "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub_config.py"
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/serviceaccount.yaml"

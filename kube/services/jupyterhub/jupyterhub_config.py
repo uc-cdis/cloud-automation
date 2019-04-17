@@ -50,6 +50,7 @@ c.KubeSpawner.volume_mounts = [
 ]
 c.KubeSpawner.hub_connect_ip = "jupyterhub-service.%s" % (os.environ["POD_NAMESPACE"])
 c.KubeSpawner.hub_connect_port = 8000
+#c.KubeSpawner.image_pull_policy = "Always"
 raw_profiles = os.environ.get("JUPYTER_CONTAINERS", None)
 if raw_profiles:
     profiles = json.loads(raw_profiles)

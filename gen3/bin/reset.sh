@@ -46,50 +46,52 @@ run_setup_jobs() {
   done
 }
 
+LOCK_USER="gen3-reset-$$"
+
+# 
+# Prompt the user with a given message, bail out if user does not reply "yes"
+gen3_user_verify() {
+  local message="$1"
+  local yesno="no"
+
+  # check for user consent before deleting and recreating tables
+  gen3_log_warn "$message - proceed? (y/n)"
+  read -r yesno
+  if [[ $yesno != "y" ]]; then
+      echo "$yesno response, unlocking klock and aborting"
+      gen3 klock unlock reset-lock "$LOCK_USER"
+      exit 1
+  fi
+}
+
 # main ---------------------------
 
-# check for user consent before deleting and recreating tables
-echo -e "$(red_color "WARNING: about to drop all service deployments - proceed? (y/n)")"
-read -r yesno
-if [[ ! $yesno =~ ^y ]]; then
-  exit 1
-fi
-
-gen3 klock lock reset-lock gen3-reset 3600 -w 60
-
+gen3_user_verify "about to drop all service deployments"
+gen3 klock lock reset-lock "$LOCK_USER" 3600 -w 60
 g3kubectl delete --all deployments --now
 # ssjdispatcher leaves jobs laying around when undeployed
 g3kubectl delete --all jobs --now
 wait_for_pods_down
 
-# drop and recreate all the postgres databases
-serviceCreds=( fence-creds sheepdog-creds indexd-creds )
-for serviceCred in ${serviceCreds[@]}; do
-    dbName="$(g3kubectl get secrets $serviceCred -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_database)"
-    service=${serviceCred%-creds}
-
-    # check for user consent before deleting and recreating tables
-    echo -e "$(red_color "WARNING: about to drop the $dbName database from the $service postgres server - proceed? (y/n)")"
-    read -r yesno
-    if [[ $yesno = "n" ]]; then
-        echo "'n' detected, unlocking klock and aborting"
-        gen3 klock unlock reset-lock gen3-reset
-        exit 1
-    fi
-    #
-    # Note: connect to --dbname=template1 to avoid erroring out in
-    # situation where the database does not yet exist
-    #
-    echo "DROP DATABASE \"${dbName}\"; CREATE DATABASE \"${dbName}\";" | gen3 psql $service  --dbname=template1
+#
+# Reset our well known databases, and
+# the "gen3 db create" databases with -g3auto secrets ...
+# scan the -g3auto secrets for `dbcreds.json` ...
+#
+dbServices=(fence indexd sheepdog)
+tempSecrets="$(mktemp "$XDG_RUNTIME_DIR/secrets.json_XXXXXX")"
+g3kubectl get secrets -o json | jq -r '.items | map(select( .data["dbcreds.json"] and (.metadata.name|test("-g3auto$")))) | map( { "name": .metadata.name })' > "$tempSecrets"
+numSecrets="$(jq -r '. | length' < "$tempSecrets")"
+for ((i=0; i < numSecrets; i++)); do
+  service="$(jq -r ".[${i}].name" < "$tempSecrets")"
+  service="${service%-g3auto}"
+  dbServices+=("$service")
 done
+/bin/rm "$tempSecrets"
 
-# Make sure peregrine has permission to read the sheepdog db tables
-peregrine_db_user="$(g3kubectl get secrets peregrine-creds -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_username)"
-if [[ -n "$peregrine_db_user" ]]; then
-  gen3 psql sheepdog -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $peregrine_db_user; ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
-else
-  echo -e "$(red_color "WARNING: unable to determine peregrine db username")"
-fi
+for serviceName in "${dbServices[@]}"; do
+  gen3 db reset "$serviceName"
+done
 
 #
 # integration tests may muck with user.yaml in fence configmap, so re-sync from S3
@@ -120,5 +122,5 @@ run_setup_jobs
 gen3 roll all
 run_setup_jobs
 
-gen3 klock unlock reset-lock gen3-reset
+gen3 klock unlock reset-lock "$LOCK_USER"
 echo "All done"  # force 0 exit code
