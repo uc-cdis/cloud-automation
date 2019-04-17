@@ -57,6 +57,7 @@ spec:
                 configMapKeyRef:
                   name: manifest-jupyterhub
                   key: nb_storage_size
+                  optional: true
             - name: SIDECAR
               valueFrom:
                 configMapKeyRef:
