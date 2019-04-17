@@ -129,5 +129,6 @@ c.KubeSpawner.extra_containers = [{
      ],
      'command' : ['su', '-c', 'env NAMESPACE="%s" HOSTNAME="%s" /home/jovyan/sidecarDockerrun.sh' % (os.environ["POD_NAMESPACE"], os.environ["HOSTNAME"]), '-s', '/bin/sh', 'jovyan'],
      'image': sidecar_image,
-     'securityContext': { 'privileged' : True, 'runAsUser' : 0, 'runAsGroup' : 0 }
+     'securityContext': { 'privileged' : True, 'runAsUser' : 0, 'runAsGroup' : 0 },
+     'lifecycle': {'preStop': {'exec': {'command': ['su', '-c', 'cd /data; for f in *; do fusermount -u $f; rm -rf $f; done', '-s', '/bin/sh', 'jovyan']}}}
 }]
