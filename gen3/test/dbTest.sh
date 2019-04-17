@@ -4,7 +4,6 @@ test_db_psql() {
 }
 
 test_db_init() {
-  unset JENKINS_HOME  # these functions normally don't work in Jenkins
   export GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/db"
   unset GEN3_SOURCE_ONLY
@@ -16,7 +15,6 @@ test_db_init() {
 }
 
 test_db_list() {
-  unset JENKINS_HOME  # these functions normally don't work in Jenkins
   export GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/db"
   unset GEN3_SOURCE_ONLY
