@@ -13,6 +13,8 @@ determines which "profile" the portal runs with.  The portal's profile
 includes customizations necessary for the common's dictionary, so the `bhc` portal_app
 customizes the portal to work with the brain commons' dictionary.
 
+Second, the optional `tier_access_level` property in the `global` object of `manifest.json` determines the access level of a common. Valid options for `tier_access_level` are `libre`, `regular` and `private`. Common will be treated as `private` by default.
+
 The portal includes support for several customization profiles in its code base in various files under the [data/config](https://github.com/uc-cdis/data-portal/tree/master/data/config)
 and [custom/](https://github.com/uc-cdis/data-portal/tree/master/custom) folders.
 An environment may also define its own `gitops` profile by installing files

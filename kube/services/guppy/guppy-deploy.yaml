@@ -72,6 +72,7 @@ spec:
             valueFrom:
               configMapKeyRef:
                 name: manifest-global
+                # acceptable values for `tier_access_level` are: `libre`, `regular` and `private`. If omitted, by default common will be treated as `private`
                 key: tier_access_level
                 # for now making it optional so won't break anything
                 optional: true
