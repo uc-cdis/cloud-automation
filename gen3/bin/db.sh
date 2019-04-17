@@ -190,7 +190,7 @@ gen3_db_random_server() {
   local result
   local farmServersTemp
   farmServersTemp="$(mktemp "$XDG_RUNTIME_DIR/farmServers.json_XXXXXX")"
-  gen3_db_server_list | jq -r '. | to_entries | map(select(.value.farmEnabled==true)) | from_entries' > "$farmServersTemp"
+  gen3_db_farm_json | jq -r '. | to_entries | map(select(.value.farmEnabled==true)) | from_entries' > "$farmServersTemp"
   total="$(jq -r '. | keys | length' < "$farmServersTemp")"
   index=$((RANDOM % total))
   jq -r ". | keys | .[$index]" < "$farmServersTemp"

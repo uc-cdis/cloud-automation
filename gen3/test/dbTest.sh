@@ -24,6 +24,17 @@ test_db_list() {
   gen3 db server list | grep server1; because $? "server1 is in the server list"
 }
 
+test_db_random_server() {
+  export GEN3_SOURCE_ONLY=true
+  gen3_load "gen3/bin/db"
+  unset GEN3_SOURCE_ONLY
+  gen3_db_random_server; because $? "gen3_db_random_server should run fine"
+  local name
+  name="$(gen3_db_random_server)"
+  [[ "$name" =~ ^server[0-9]+$ ]]; because $? "gen3_db_random_server should return serverN - $name"
+}
+
+
 test_db_namespace() {
   local ns
   ns="$(gen3 db namespace)"
@@ -62,8 +73,9 @@ test_db_create() {
   gen3 klock unlock dbctest dbctest
 }
 
-shunit_runtest "test_db_psql" "db"
 shunit_runtest "test_db_init" "db"
+shunit_runtest "test_db_psql" "db"
+shunit_runtest "test_db_random_server" "db"
 shunit_runtest "test_db_list" "db"
 shunit_runtest "test_db_namespace" "db"
 shunit_runtest "test_db_create" "db"
