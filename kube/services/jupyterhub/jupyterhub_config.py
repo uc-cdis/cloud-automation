@@ -30,7 +30,12 @@ c.KubeSpawner.notebook_dir = "/home/jovyan/pd"
 c.KubeSpawner.uid = 1000
 c.KubeSpawner.fs_gid = 100
 c.KubeSpawner.storage_pvc_ensure = True
-c.KubeSpawner.storage_capacity = "10Gi"
+
+if os.environ.get("NOTEBOOK_STORAGE_CAPACITY"):
+  c.KubeSpawner.storage_capacity = os.environ.get("NOTEBOOK_STORAGE_CAPACITY")
+else:
+  c.KubeSpawner.storage_capacity = "10Gi"
+
 c.KubeSpawner.pvc_name_template = "claim-{username}{servername}"
 c.KubeSpawner.storage_class = "jupyter-storage"
 c.KubeSpawner.volumes = [
@@ -60,7 +65,7 @@ if raw_profiles:
                 x["name"], x["cpu"], x["memory"]
             ),
             "kubespawner_override": {
-                "singleuser_image_spec": x["image"],
+                "image_spec": x["image"],
                 "cpu_limit": x["cpu"],
                 "mem_limit": x["memory"],
             },
@@ -73,7 +78,7 @@ else:
         {
             "display_name": "Bioinfo - Python/R - 0.5 CPU 256M Mem",
             "kubespawner_override": {
-                "singleuser_image_spec": "quay.io/occ_data/jupyternotebook:1.7.2",
+                "image_spec": "quay.io/occ_data/jupyternotebook:1.7.2",
                 "cpu_limit": 0.5,
                 "mem_limit": "256M",
             },
