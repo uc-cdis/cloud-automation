@@ -79,6 +79,14 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: portal_app
+          - name: TIER_ACCESS_LEVEL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                # acceptable values for `tier_access_level` are: `libre`, `regular` and `private`. If omitted, by default common will be treated as `private`
+                key: tier_access_level
+                # for now making it optional so won't break anything
+                optional: true
         volumeMounts:
           - name: "cert-volume"
             readOnly: true
