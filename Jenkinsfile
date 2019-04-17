@@ -22,6 +22,7 @@ node {
 
     stage('pytest') {
       sh 'pip3 install boto3 --upgrade'
+      sh 'pip3 install kubernetes --upgrade'
       sh 'python -m pytest cloud-automation/apis_configs/'
       sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
       sh 'cd cloud-automation/kube/services/jupyterhub && python3 -m pytest test-jupyterhub_config.py'

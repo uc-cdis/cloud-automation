@@ -6,9 +6,9 @@ test_s3_create() {
   function _bucket_exists() {
     local bucketName=$1
     if [[ $bucketName =~ "existing" ]]; then
-      echo "true"
+      echo 0
     else
-      echo "false"
+      echo 1
     fi
   }
   

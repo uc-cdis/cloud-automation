@@ -259,6 +259,7 @@ declare -a gen3_gitops_repolist_arr=(
   uc-cdis/sheepdog
   uc-cdis/tube
   uc-cdis/ssjdispatcher
+  uc-cdis/manifestservice
   #frickjack/misc-stuff  # just for testing
 )
 

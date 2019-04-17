@@ -120,12 +120,15 @@ c.JupyterHub.ip = "0.0.0.0"
 c.JupyterHub.hub_ip = "0.0.0.0"
 c.RemoteUserAuthenticator.auth_refresh_age = 1
 c.RemoteUserAuthenticator.refresh_pre_spawn = True
+
+sidecar_image = os.environ.get("SIDECAR", 'quay.io/cdis/gen3fuse-sidecar:master')
 c.KubeSpawner.extra_containers = [{
      'name' : 'fuse-container',
      'volumeMounts' :  [
          { 'mountPath' : '/data', 'name' : 'shared-data', 'mountPropagation' : 'Bidirectional' }
      ],
      'command' : ['su', '-c', 'env NAMESPACE="%s" HOSTNAME="%s" /home/jovyan/sidecarDockerrun.sh' % (os.environ["POD_NAMESPACE"], os.environ["HOSTNAME"]), '-s', '/bin/sh', 'jovyan'],
-     'image': 'quay.io/cdis/gen3fuse-sidecar:feat_created-fuse-sidecar-container',
-     'securityContext': { 'privileged' : True, 'runAsUser' : 0, 'runAsGroup' : 0 }
+     'image': sidecar_image,
+     'securityContext': { 'privileged' : True, 'runAsUser' : 0, 'runAsGroup' : 0 },
+     'lifecycle': {'preStop': {'exec': {'command': ['su', '-c', 'cd /data; for f in *; do fusermount -u $f; rm -rf $f; done', '-s', '/bin/sh', 'jovyan']}}}
 }]

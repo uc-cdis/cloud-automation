@@ -81,6 +81,11 @@ else
   echo "INFO: not deploying wts - no manifest entry for .versions.wts"
 fi
 
+if g3k_manifest_lookup .versions.manifestservice 2> /dev/null; then
+  gen3 kube-setup-manifestservice
+else
+  echo "INFO: not deploying manifestservice - no manifest entry for .versions.manifestservice"
+fi
 gen3 kube-setup-revproxy
 
 # Internal k8s systems
