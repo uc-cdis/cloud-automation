@@ -1,0 +1,63 @@
+#1. create secret aws-sync-creds-secret with aws credentials
+#example: g3kubectl create secret generic aws-sync-creds-secret --from-file=credentials=${WORKSPACE}/${vpc_name}/<PATH>/aws-sync-bucket-secret
+# must invoke with:
+# gen3 job run kidsfirst-s3sync-cronjob gen3 job run s3sync-cronjob  SOURCE_BUCKET <source-bucket> TARGET_BUCKET <target-bucket>
+#####REQUIRED VARIABLE########
+#SOURCE_BUCKET
+#TARGET_BUCKET
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: s3sync
+spec:
+  schedule: "@daily"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      # not yet supported - backOffLimit: 3
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          volumes:
+            - name: cred-volume
+              secret:
+                secretName: "aws-sync-creds-secret"
+          containers:
+            - name: awshelper
+              image: quay.io/cdis/awshelper:master
+              imagePullPolicy: Always
+              env:
+                - name: slackWebHook
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
+                      optional: true
+                - name: SOURCE_BUCKET
+                  GEN3_SOURCE_BUCKET
+                - name: TARGET_BUCKET
+                  GEN3_TARGET_BUCKET
+              volumeMounts:
+                - name: cred-volume
+                  mountPath: "/home/ubuntu/.aws/credentials"
+                  subPath: credentials
+              command: ["/bin/bash" ]
+              args:
+              - "-c"
+              - |
+                if [[ -z "$SOURCE_BUCKET" || -z "$TARGET_BUCKET" ]]; then
+                    echo Cannot sync. BOTH SOURCE_BUCKET and TARGET_BUCKET variable must be specified.
+                    exit 1 # terminate and indicate error
+                fi
+
+                aws s3 sync s3://$SOURCE_BUCKET s3://$TARGET_BUCKET --acl bucket-owner-full-control > /tmp/temp.txt
+
+                if [ $? -ne 0 ] ; then
+                  curl -X POST --data-urlencode "payload={\"text\": \"AWS bucket sync failed for ${gen3Env} \"}" "${slackWebHook}"
+                else
+                  curl -X POST --data-urlencode "payload={\"text\": \"AWS bucket sync succeeded for ${gen3Env} \"}" "${slackWebHook}"
+                fi
+          restartPolicy: Never
