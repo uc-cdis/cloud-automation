@@ -52,6 +52,12 @@ spec:
                   name: manifest-jupyterhub
                   key: containers
                   optional: true
+            - name: NOTEBOOK_STORAGE_CAPACITY
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-jupyterhub
+                  key: nb_storage_size
+                  optional: true
           imagePullPolicy: Always
           resources:
             limits:
