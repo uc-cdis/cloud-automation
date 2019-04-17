@@ -16,17 +16,19 @@ gen3 s3 create "$bucketname"
 # this will fail if manifest-user does not exist ... I think -Reuben
 gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name manifest_bot || true
 
-
-credsFile="$(gen3_secrets_folder)/g3auto/manifestservice/creds.json"
+mkdir -p $(gen3_secrets_folder)/g3auto/manifestservice
+credsFile="$(gen3_secrets_folder)/g3auto/manifestservice/config.json"
 if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
-  gen3_log_err "manifestservice creds.json not initialized - add AWS creds"
+  gen3_log_err "initializing manifestservice config.json - need to add AWS creds afterwards"
   cat - > "$credsFile" <<EOM
 {
-  "manifest_bucket_name": "$bucketName",
-  "hostname": "$hostname"
+  "manifest_bucket_name": "$bucketname",
+  "hostname": "$hostname",
+  "aws_access_key_id": "",
+  "aws_secret_access_key", ""
 }
 EOM
-  gen3 secrets sync "initialize manifestservice/creds.json"
+  gen3 secrets sync "initialize manifestservice/config.json"
 fi
 
 
