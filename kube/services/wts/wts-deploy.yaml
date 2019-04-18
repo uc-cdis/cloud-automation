@@ -70,3 +70,4 @@ spec:
           httpGet:
             path: /_status
             port: 80
+          failureThreshold: 10
