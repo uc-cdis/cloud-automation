@@ -19,9 +19,14 @@ setup_creds() {
         secrets=$(g3kubectl exec $(g3k pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
         # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
         if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
-            echo "Failed generating oidc client for workspace token service: "
-            echo $secrets
-            exit 1
+            # try delete client
+            g3kubectl exec $(g3k pod fence) -- fence-create client-delete --client wts
+            secrets=$(g3kubectl exec $(g3k pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
+            if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
+                echo "Failed generating oidc client for workspace token service: "
+                echo $secrets
+                return 1
+            fi
         fi
         client_id="${BASH_REMATCH[2]}"
         client_secret="${BASH_REMATCH[3]}"
