@@ -66,8 +66,9 @@ spec:
           httpGet:
             path: /_status
             port: 80
+          failureThreshold: 10
+          initialDelaySeconds: 5
         readinessProbe:
           httpGet:
             path: /_status
             port: 80
-          failureThreshold: 10
