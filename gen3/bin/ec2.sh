@@ -11,13 +11,37 @@ help() {
 # Little helper to lookup AWS status of a node by ip address
 #
 gen3_ec2_describe() {
-  local ipAddr
-  ipAddr="$1"
-  if [[ -z "$ipAddr" ]]; then
-    echo "Use: gen3 ec2 describe private-ip-address"
-    return 1
+  local filters=""
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+      --owner-id)
+        filters="$filters Name=owner-id,Values=$2"
+        shift # past argument
+        shift # past value
+        ;;
+      --instance-id)
+        filters="$filters Name=instance-id,Values=$2"
+        shift
+        shift
+        ;;
+      --private-ip)
+        filters="$filters Name=private-ip-address,Values=$2"
+        shift
+        shift
+        ;;
+      *)
+        gen3_log_err "Unrecognized flag: $key"
+        help
+        return 1
+        ;;
+    esac
+  done
+  if [[ ! -z "$filters" ]]; then
+    filters="--filters $filters"
   fi
-  gen3 aws ec2 describe-instances --filter "Name=private-ip-address,Values=$ipAddr"
+  gen3_log_info "Getting ec2 instances with filters: $filters"
+  gen3 aws ec2 describe-instances $filters
 }
 
 
@@ -45,6 +69,34 @@ gen3_ec2_reboot() {
   )
 }
 
+#
+# Termiante an EC2 instance
+#
+gen3_ec2_terminate() {
+  local instanceId=$1
+  local autoTerminate=$2
+  local userResponse
+
+  if [[ -z "$instanceId" ]]; then
+    gen3_log_err "Usage: gen3 ec2 terminate <instanceId> [-y]"
+    return 1
+  fi
+  if [[ "$autoTerminate" =~ ^-y$ ]]; then
+    gen3_log_warn "Automatically terminating instance $instanceId"
+  else
+    echo "Are you sure you want to delete instance $instanceId?"
+    read -p "[y/n]: " userResponse
+    if [[ "$userResponse" != "y" ]]; then
+      gen3_log_info "Aborting termination process"
+      return 0
+    fi
+  fi
+  
+  gen3_log_err "EXITING EARLY: I DON'T WANT TO TEST THIS YET"
+  return 1
+  gen3_aws_run aws ec2 terminate-instances --instance-ids $instanceId
+}
+
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   # Support sourcing this file for test suite
   command="$1"
@@ -55,6 +107,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "describe")
       gen3_ec2_describe "$@"
+      ;;
+    "terminate")
+      gen3_ec2_terminate "$@"
       ;;
     *)
       help
