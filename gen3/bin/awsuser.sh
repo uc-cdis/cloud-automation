@@ -16,20 +16,31 @@ gen3_awsuser_help() {
 }
 
 #
-# Util for checking if entity already exists
-# Names must be unique for all users, roles and groups
+# Util for checking if user already exists
 #
-_entity_exists() {
+_user_exists() {
   local username=$1
   if gen3_aws_run aws iam get-user --user-name $username > /dev/null 2>&1; then
     return 0
-  elif gen3_aws_run aws iam get-role --role-name $username > /dev/null 2>&1; then
-    return 0
+  fi
+  return 1
+}
+
+#
+# Echos type of entity for given name. If not found, it returns non zero exit code
+#
+_get_entity_type() {
+  local username=$1
+  if gen3_aws_run aws iam get-user --user-name $username > /dev/null 2>&1; then
+    echo "user"
   elif gen3_aws_run aws iam get-group --group-name $username > /dev/null 2>&1; then
-    return 0
+    echo "group"
+  elif gen3_aws_run aws iam get-role --role-name $username > /dev/null 2>&1; then
+    echo "role"
   else
     return 1
   fi
+  return 0
 }
 
 #
@@ -66,13 +77,13 @@ _tfapply_update_secrets() {
   # Update aws secrets
   local key_id=$(gen3 tfoutput key_id)
   local key_secret=$(gen3 tfoutput key_secret)
-  local aws_secrets_dir="$(gen3_secrets_folder)/g3auto/aws-secrets"
+  local aws_secrets_dir="$(gen3_secrets_folder)/g3auto/$username"
   mkdir -p $aws_secrets_dir
   cd $aws_secrets_dir
-  cat << EOF > $username.json
+  cat << EOF > awsusercreds.json
 {
-  "key_id": "$key_id",
-  "key_secret": "$key_secret"
+  "id": "$key_id",
+  "secret": "$key_secret"
 }
 EOF
   gen3 secrets sync
@@ -82,6 +93,7 @@ EOF
 
 #
 # Create aws user with an access key that's added to kube secrets
+# Created secrets are in <secrets_dir>/g3auto/<username>/awsusercreds.json
 #
 # @param username
 #
@@ -100,18 +112,24 @@ EOF
     return 1
   fi
 
-  # if entity already exists with do nothing and exit
-  if _entity_exists $username; then
-    gen3_log_info "An entity with that name already exists"
-    return 0
+  # check if the name is already used by another entity
+  local entity_type
+  entity_type=$(_get_entity_type $username)
+  if [[ $? == 0 ]]; then
+    # That name is already used. If it's a user, exit with 0, otherwise 1
+    if [[ "$entity_type" =~ user ]]; then
+      gen3_log_info "A user with that name already exists"
+      return 0
+    else
+      gen3_log_err "A $entity_type with that name already exists"
+      return 1
+    fi
   fi
 
-  _tfplan_user $username
-  if [[ $? != 0 ]]; then
+  if ! _tfplan_user $username; then
     return 1
   fi
-  _tfapply_update_secrets $username
-  if [[ $? != 0 ]]; then
+  if ! _tfapply_update_secrets $username; then
     return 1
   fi
 
