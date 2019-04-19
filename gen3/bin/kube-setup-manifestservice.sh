@@ -25,7 +25,7 @@ if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
   "manifest_bucket_name": "$bucketname",
   "hostname": "$hostname",
   "aws_access_key_id": "",
-  "aws_secret_access_key", ""
+  "aws_secret_access_key": ""
 }
 EOM
   gen3 secrets sync "initialize manifestservice/config.json"
