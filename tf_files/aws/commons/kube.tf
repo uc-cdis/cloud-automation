@@ -140,7 +140,7 @@ resource "aws_db_instance" "db_arborist" {
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
   allow_major_version_upgrade = true
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-arboristdb"
-  maintenance_window          = "SAT:11:00-SAT:11:59"
+  maintenance_window          = "SAT:12:00-SAT:12:59"
   backup_retention_period     = "4"
   backup_window               = "09:00-09:59"
 
