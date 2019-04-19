@@ -51,6 +51,8 @@ variable "db_password_sheepdog" {}
 
 variable "db_password_indexd" {}
 
+variable "db_password_arborist" {}
+
 variable "dictionary_url" {
   # ex: dev dictionary is at: https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json
 }
@@ -73,6 +75,10 @@ variable "peregrine_snapshot" {
 }
 
 variable "sheepdog_snapshot" {
+  default = ""
+}
+
+variable "arborist_snapshot" {
   default = ""
 }
 

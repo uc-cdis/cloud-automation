@@ -48,6 +48,11 @@ module "config_files" {
   db_indexd_username          = "${aws_db_instance.db_indexd.username}"
   db_indexd_password          = "${var.db_password_indexd}"
   db_indexd_name              = "${aws_db_instance.db_indexd.name}"
+  db_arborist_address         = "${aws_db_instance.db_arborist.address}"
+  db_arborist_username        = "${aws_db_instance.db_arborist.username}"
+  db_arborist_password        = "${var.db_password_arborist}"
+  db_arborist_name            = "${aws_db_instance.db_arborist.name}"
+
   hostname                    = "${var.hostname}"
   google_client_secret        = "${var.google_client_secret}"
   google_client_id            = "${var.google_client_id}"

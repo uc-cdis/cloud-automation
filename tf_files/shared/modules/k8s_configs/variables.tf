@@ -86,6 +86,18 @@ variable "db_indexd_username" {
 
 variable "db_indexd_address" {}
 
+variable "db_arborist_name" {
+  default = "arborist"
+}
+
+variable "db_arborist_password" {}
+
+variable "db_arborist_username" {
+  default = "arborist_user"
+}
+
+variable "db_arborist_address" {}
+
 variable "db_sheepdog_password" {
   # password for sheepdog user to shared gdcapi db
 }

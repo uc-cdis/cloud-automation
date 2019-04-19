@@ -124,6 +124,38 @@ resource "aws_db_instance" "db_indexd" {
   }
 }
 
+resource "aws_db_instance" "db_arborist" {
+  allocated_storage           = "${var.db_size}"
+  identifier                  = "${var.vpc_name}-arboristdb"
+  storage_type                = "gp2"
+  engine                      = "postgres"
+  engine_version              = "9.6.11"
+  parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
+  instance_class              = "${var.db_instance}"
+  name                        = "arborist"
+  username                    = "arborist_user"
+  password                    = "${var.db_password_arborist}"
+  snapshot_identifier         = "${var.arborist_snapshot}"
+  db_subnet_group_name        = "${aws_db_subnet_group.private_group.id}"
+  vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
+  allow_major_version_upgrade = true
+  final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-arboristdb"
+  maintenance_window          = "SAT:11:00-SAT:11:59"
+  backup_retention_period     = "4"
+  backup_window               = "09:00-09:59"
+
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "Basic Service"
+  }
+
+  lifecycle {
+    prevent_destroy = true
+    #ignore_changes  = ["*"]
+    ignore_changes = ["engine_version"]
+  }
+}
+
 # See https://www.postgresql.org/docs/9.6/static/runtime-config-logging.html
 # and https://www.postgresql.org/docs/9.6/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE
 # for detail parameter descriptions

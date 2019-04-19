@@ -11,6 +11,11 @@ resource "aws_db_snapshot" "indexd" {
   db_snapshot_identifier = "${var.vpc_name}-indexd"
 }
 
+resource "aws_db_snapshot" "arborist" {
+  db_instance_identifier = "${var.arborist_rds_id}"
+  db_snapshot_identifier = "${var.vpc_name}-arborist"
+}
+
 resource "aws_db_snapshot" "fence" {
   db_instance_identifier = "${var.fence_rds_id}"
   db_snapshot_identifier = "${var.vpc_name}-fence"

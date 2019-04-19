@@ -44,6 +44,10 @@ output "gdcapi_rds_id" {
   value = "${aws_db_instance.db_gdcapi.id}"
 }
 
+output "arborist_rds_id" {
+  value = "${aws_db_instance.db_arborist.id}"
+}
+
 output "fence-bot_user_secret" {
   value = "${module.cdis_vpc.fence-bot_secret}"
 #  value = "${module.fence-bot-user.fence-bot_secret}"

@@ -8,6 +8,9 @@ variable "vpc_name" {}
 variable "indexd_rds_id" {}
 
 # rds instance id
+variable "arborist_rds_id" {}
+
+# rds instance id
 variable "fence_rds_id" {}
 
 # rds instance id
