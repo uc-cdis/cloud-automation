@@ -47,7 +47,7 @@ EOM
         gen3 secrets sync
     fi
 
-    if ! g3kubectl get secret wts-g3auto | grep dbcreds.json > /dev/null 2>&1; then
+    if ! g3kubectl describe secret wts-g3auto | grep dbcreds.json > /dev/null 2>&1; then
         echo "create database"
         if ! gen3 db setup wts; then
             echo "Failed setting up database for workspace token service"
