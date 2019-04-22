@@ -29,6 +29,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # create database
 fi
 
 gen3 roll arborist
+g3kubectl apply -f "${GEN3_HOME}/kube/services/arborist/arborist-service.yaml"
 
 cat <<EOM
 The arborist service has been deployed onto the kubernetes cluster.
