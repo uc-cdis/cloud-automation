@@ -32,6 +32,13 @@ spec:
                   - sower
               topologyKey: "kubernetes.io/hostname"
       serviceAccountName: sower-service-account
+      volumes:
+        - name: sower-config
+          configMap:
+            name: manifest-sower
+            items:
+              - key: json
+                path: sower_config.json
       containers:
       - name: sower
         GEN3_SOWER_IMAGE
@@ -54,4 +61,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-
+        volumeMounts:
+          - name: sower-config
+            readOnly: true
+            mountPath: /sower_config.json
+            subPath: sower_config.json
