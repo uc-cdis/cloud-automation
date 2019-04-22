@@ -1,3 +1,4 @@
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -35,27 +36,14 @@ spec:
         - name: projects
           configMap:
             name: "projects"
-        - name: "creds-volume"
-          readOnly: true
-          mountPath: "/var/www/arborist/creds.json"
-          subPath: creds.json
+        - name: creds-volume
+          secret:
+            secretName: "arborist-creds"
       containers:
       - name: arborist
         GEN3_ARBORIST_IMAGE
         imagePullPolicy: Always
         env:
-          - name: PGDATABASE
-            value: # TODO Do we need this here instead of setting up in command below???
-          - name: PGUSER
-            value: # TODO ???
-          - name: PGPASSWORD
-            value: # TODO ???
-          - name: PGHOST
-            value: # TODO ???
-          - name: PGPORT
-            value: # TODO ???
-          - name: PGSSLMODE
-            value: disable
           - name: JWKS_ENDPOINT
             value: "http://fence-service/.well-known/jwks"
         livenessProbe:
@@ -67,26 +55,25 @@ spec:
           timeoutSeconds: 10
         ports:
         - containerPort: 80
-        command: ["/bin/bash" ]
+        volumeMounts:
+        - name: "creds-volume"
+          readOnly: true
+          mountPath: "/var/www/arborist/creds.json"
+          subPath: creds.json
+        command: ["sh"]
         args:
           - "-c"
           - |
-            eval $(python 2> /dev/null <<EOM
-            import json
-
-            creds = json.load(open('/var/www/arborist/creds.json', 'r'))
-            print('declare -A db_creds')
-            for key in ['db_host', 'db_username', 'db_password', 'db_database']:
-              print("db_creds['%s']='%s'" % (key, creds[key]))
-            EOM
-            )
-
             # set env vars
-            export PGDATABASE = "${db_creds[db_database]}"
-            export PGUSER = "${db_creds[db_username]}"
-            export PGPASSWORD = "${db_creds[db_password]}"
-            export PGHOST = "${db_creds[db_host]}"
-            export PGPORT = "5432"
-            export PGSSLMODE = "disable"
+            export PGDATABASE=$(cat /var/www/arborist/creds.json | jq -r '.db_database')
+            export PGUSER=$(cat /var/www/arborist/creds.json | jq -r '.db_username')
+            export PGPASSWORD=$(cat /var/www/arborist/creds.json | jq -r '.db_password')
+            export PGHOST=$(cat /var/www/arborist/creds.json | jq -r '.db_host')
+            export PGPORT="5432"
+            export PGSSLMODE="disable"
 
-            ./migrations/latest
+            # bring the database schema up to the latest version
+            /go/src/github.com/uc-cdis/arborist/migrations/latest
+
+            # run arborist
+            /go/src/github.com/uc-cdis/arborist/bin/arborist
