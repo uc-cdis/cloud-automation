@@ -8,10 +8,10 @@ gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-secrets
 
-if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   # Initialize arborist database and user list
   cd "${WORKSPACE}/${vpc_name}"
-  if [[ ! -f .rendered_arborist_db ]]; then
+  if [[ ! -f "$(gen3_secrets_folder)/.rendered_arborist_db" ]]; then
     gen3 job run arboristdb-create
     echo "Waiting 10 seconds for arboristdb-create job"
     sleep 10
@@ -29,7 +29,6 @@ if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
 fi
 
 gen3 roll arborist
-g3kubectl apply -f "${GEN3_HOME}/kube/services/arborist/arborist-service.yaml"
 
 cat <<EOM
 The arborist service has been deployed onto the kubernetes cluster.
