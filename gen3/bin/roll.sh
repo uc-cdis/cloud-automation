@@ -5,9 +5,9 @@ gen3_load "gen3/lib/g3k_manifest"
 
 #
 # Get the path to the yaml file to apply for a `gen3 roll name` command.
-# Supports deployment versions (ex: ...-deploy-1.0.0.yaml) and canary 
+# Supports deployment versions (ex: ...-deploy-1.0.0.yaml) and canary
 # deployments (ex: fence-canary)
-# 
+#
 # @param depName deployment name or alias
 # @param depVersion deployment version - if any - usually extracted from manifest - ignores "null" value
 # @return echo path to yaml, non-zero exit code if path does not exist
@@ -100,15 +100,16 @@ gen3_roll() {
     echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
     return 1
   fi
+
   # check to see if there's a version override
   local deployVersion
-  deployVersion="$(jq -r ".[\"$serviceName\"][\"deployment_version\"]" < "$manifestPath")"
+  deployVersion="$(jq -r ".[\"$depName\"][\"deployment_version\"]" < "$manifestPath")"
   local templatePath
   if ! templatePath="$(gen3_roll_path "$depName" "$deployVersion")"; then
     return 1
   fi
   echo "INFO: roll selected template - $templatePath" 1>&2
-  
+
   # Get the service name, so we can verify it's in the manifest
   local serviceName
   serviceName="$(basename "$templatePath" | sed 's/-deploy.*yaml$//')"
