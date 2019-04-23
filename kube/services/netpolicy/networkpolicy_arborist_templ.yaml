@@ -6,8 +6,12 @@ spec:
   podSelector:
     matchLabels:
       app: arborist
-  ingress:
-    - {}
+  ingress: 
+    from:
+      - podSelector: {}
+        ports:
+          - port: 80
+          - port: 443
   egress:
     - to:
       - podSelector:
@@ -18,7 +22,7 @@ spec:
             app: fence
       - ipBlock:
            # fence-create sidecar
-           cidr: GEN3_FENCEDB_IP/32
+           cidr: GEN3_FENCE_DBIP/32
       - ipBlock:
           # fence-create wants to talk to google now     
           cidr: 0.0.0.0/0

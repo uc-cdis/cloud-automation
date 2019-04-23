@@ -32,7 +32,7 @@ spec:
           matchLabels:
             app: fence
       - ipBlock:
-           cidr: GEN3_GDCAPIDB_IP/32
+           cidr: GEN3_SHEEPDOG_DBIP/32
       - ipBlock:
            cidr: GEN3_CLOUDPROXY_CIDR
       - ipBlock:

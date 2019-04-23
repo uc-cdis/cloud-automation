@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-reuben
+spec:
+  podSelector:
+    matchLabels:
+      app: reuben
+  ingress: []
+  egress:
+    - to:
+      - ipBlock:
+           cidr: 0.0.0.0/0
+  policyTypes:
+   - Ingress
+   - Egress

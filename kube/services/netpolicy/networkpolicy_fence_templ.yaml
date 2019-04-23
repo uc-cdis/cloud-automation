@@ -38,7 +38,7 @@ spec:
           matchLabels:
             app: indexd
       - ipBlock:
-           cidr: GEN3_FENCEDB_IP/32
+           cidr: GEN3_FENCE_DBIP/32
       - ipBlock:
            cidr: GEN3_CLOUDPROXY_CIDR
       - ipBlock:

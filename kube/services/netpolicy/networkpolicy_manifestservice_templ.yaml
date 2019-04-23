@@ -11,6 +11,9 @@ spec:
       - podSelector:
           matchLabels:
             app: revproxy
+      - namespaceSelector:
+          matchLabels:
+            purpose: production
       ports:
          - port: 80
          - port: 443
