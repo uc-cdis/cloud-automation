@@ -420,15 +420,19 @@ gen3_db_service_setup() {
     gen3_db_psql "$server" -c "DROP DATABASE \"${dbname}\";"
     return 1
   fi
+
+  # install ltree extension (currently arborist requires this)
+  gen3_db_psql "$server" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname"
+
   # Update creds.json, and generate secrets
   local dbhost
   dbhost="$(gen3_db_server_info "$server" | jq -r .db_host)"
   mkdir -m 0700 -p "$(gen3_secrets_folder)/g3auto/$service"
   cat - > "$(gen3_secrets_folder)/g3auto/$service/dbcreds.json" <<EOM
-{ 
-  "db_host": "$dbhost", 
-  "db_username": "$username", 
-  "db_password": "$password", 
+{
+  "db_host": "$dbhost",
+  "db_username": "$username",
+  "db_password": "$password",
   "db_database": "$dbname"
 }
 EOM
