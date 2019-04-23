@@ -17,7 +17,7 @@ if ! g3kubectl describe secret arborist-g3auto | grep dbcreds.json > /dev/null 2
     gen3 secrets sync
 fi
 
-if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
+if [[ -f "$(gen3_secrets_folder)/g3auto/arborist/dbcreds.json" ]]; then
   # Initialize arborist database and user list
   cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f "$(gen3_secrets_folder)/.rendered_arborist_db" ]]; then
