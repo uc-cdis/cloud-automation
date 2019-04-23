@@ -33,12 +33,9 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
-        - name: projects
-          configMap:
-            name: "projects"
-        - name: creds-volume
+        - name: arborist-secret
           secret:
-            secretName: "arborist-creds"
+            secretName: "arborist-g3auto"
       containers:
       - name: arborist
         GEN3_ARBORIST_IMAGE
@@ -56,19 +53,19 @@ spec:
         ports:
         - containerPort: 80
         volumeMounts:
-        - name: "creds-volume"
+        - name: "arborist-secret"
           readOnly: true
-          mountPath: "/var/www/arborist/creds.json"
-          subPath: creds.json
+          mountPath: "/var/www/arborist/dbcreds.json"
+          subPath: dbcreds.json
         command: ["sh"]
         args:
           - "-c"
           - |
             # set env vars
-            export PGDATABASE=$(cat /var/www/arborist/creds.json | jq -r '.db_database')
-            export PGUSER=$(cat /var/www/arborist/creds.json | jq -r '.db_username')
-            export PGPASSWORD=$(cat /var/www/arborist/creds.json | jq -r '.db_password')
-            export PGHOST=$(cat /var/www/arborist/creds.json | jq -r '.db_host')
+            export PGDATABASE=$(cat /var/www/arborist/dbcreds.json | jq -r '.db_database')
+            export PGUSER=$(cat /var/www/arborist/dbcreds.json | jq -r '.db_username')
+            export PGPASSWORD=$(cat /var/www/arborist/dbcreds.json | jq -r '.db_password')
+            export PGHOST=$(cat /var/www/arborist/dbcreds.json | jq -r '.db_host')
             export PGPORT="5432"
             export PGSSLMODE="disable"
 

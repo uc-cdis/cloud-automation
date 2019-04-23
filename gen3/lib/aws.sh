@@ -520,7 +520,6 @@ db_password_sheepdog="$db_password_sheepdog"
 db_password_peregrine="$(random_alphanumeric 32)"
 
 db_password_indexd="$(random_alphanumeric 32)"
-db_password_arborist="$(random_alphanumeric 32)"
 
 db_instance="db.t2.micro"
 
@@ -530,7 +529,6 @@ gdcapi_indexd_password="$(random_alphanumeric 32)"
 fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
-arborist_snapshot=""
 
 kube_ssh_key="${kube_ssh_key}"
 

@@ -8,7 +8,16 @@ gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-secrets
 
-if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # create database
+# provision a new db and get creds (if doesn't exist already)
+if ! g3kubectl describe secret arborist-g3auto | grep dbcreds.json > /dev/null 2>&1; then
+    echo "create database"
+    if ! gen3 db setup arborist; then
+        echo "Failed setting up database for arborist"
+    fi
+    gen3 secrets sync
+fi
+
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
   # Initialize arborist database and user list
   cd "${WORKSPACE}/${vpc_name}"
   if [[ ! -f "$(gen3_secrets_folder)/.rendered_arborist_db" ]]; then

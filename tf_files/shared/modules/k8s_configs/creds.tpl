@@ -10,13 +10,6 @@
         "google_client_id": "${google_client_id}",
         "hmac_key": "${hmac_encryption_key}"
     },
-    "arborist": {
-        "db_host": "${arborist_host}",
-        "db_username": "${arborist_user}",
-        "db_password": "${arborist_pwd}",
-        "db_database": "${arborist_db}",
-        "hostname": "${hostname}",
-    },
     "userapi": {
         "db_host": "${fence_host}",
         "db_username": "${fence_user}",
