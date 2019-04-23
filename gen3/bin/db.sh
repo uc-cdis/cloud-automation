@@ -157,9 +157,10 @@ gen3_db_service_creds() {
   shift
   local credsPath
   local dbcredsPath
+  local tempResult
   credsPath="$(gen3_secrets_folder)/creds.json"
   dbcredsPath="$(gen3_secrets_folder)/g3auto/${key}/dbcreds.json"
-  
+  tempResult="$(mktemp "$XDG_RUNTIME_DIR/tempCreds.json_XXXXXX")"
   if [[ -z "$key" ]]; then
     gen3_log_err "gen3_db_service_creds: No serviceName specified"
     return 1
@@ -167,18 +168,26 @@ gen3_db_service_creds() {
   
   if g3kubectl get secret "${key}-creds" > /dev/null 2>&1; then
     # prefer to pull creds from secret
-    g3kubectl get secret "${key}-creds" -o json | jq -r '.data["creds.json"]' | base64 --decode
+    g3kubectl get secret "${key}-creds" -o json | jq -r '.data["creds.json"]' | base64 --decode > "$tempResult"
   elif g3kubectl get secret "${key}-g3auto" > /dev/null 2>&1 && g3kubectl get secret "${key}-g3auto" -ojson | jq -e -r '.data["dbcreds.json"]' > /dev/null 2>&1; then
     # prefer to pull creds from secret
-    g3kubectl get secret "${key}-g3auto" -o json | jq -r '.data["dbcreds.json"]' | base64 --decode
-  elif [[ -z "$JENKINS_HOME" && -f "$credsPath" ]]; then
-    jq -e -r ".[\"$key\"]" < "$credsPath"
+    g3kubectl get secret "${key}-g3auto" -o json | jq -r '.data["dbcreds.json"]' | base64 --decode > "$tempResult"
   elif [[ -z "$JENKINS_HOME" && -f "$dbcredsPath" ]]; then
-    cat "$dbcredsPath"
+    cat "$dbcredsPath" > "$tempResult"
+  elif [[ -z "$JENKINS_HOME" && -f "$credsPath" ]] && (jq -e -r ".[\"$key\"]" < "$credsPath" > "$tempResult"); then
+    true
   else
     gen3_log_err "gen3_db_service_creds - unable to find ${key}-creds k8s secret or creds.json"
+    rm "$tempResult"
     return 1
   fi
+  local dbHost
+  local server
+  dbHost="$(jq -r .db_host < "$tempResult")"
+  server="$(gen3_db_farm_json | jq -r --arg dbHost "$dbHost" '. | to_entries | map(select(.value.db_host==$dbHost)) | map(.key) | .[]')"
+  jq -r --arg g3FarmServer "$server" '.g3FarmServer = $g3FarmServer' < "$tempResult"
+  rm "$tempResult"
+  return 0
 }
 
 #
@@ -346,6 +355,12 @@ gen3_db_namespace() {
   echo "$result"
 }
 
+#
+# Create a new database (user, secret, ...) for a service
+#
+# @param service name of the service
+# @param server optional - defaults to random server
+#
 gen3_db_service_setup() {
   local service
   local server
@@ -466,6 +481,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       if [[ "$1" == "list" ]]; then
         shift
         gen3_db_server_list "$@"
+      elif [[ "$1" == "info" ]]; then
+        shift
+        gen3_db_server_info "$@"
       else
         gen3_db_help
         exit 1

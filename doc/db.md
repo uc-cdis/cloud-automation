@@ -18,6 +18,15 @@ gen3 db creds fence
 
 ### gen3 db server list
 
+Get the credentials associated with a farm server.
+
+```
+ex: 
+gen3 db server info server1
+```
+
+### gen3 db server list
+
 List the servers in the database farm.  Note that the server for the 
 sheepdog and peregrine services is dedicated to those servers, and not
 included in the list.
