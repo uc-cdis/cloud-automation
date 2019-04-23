@@ -70,7 +70,17 @@ test_db_create() {
   (yes | gen3 db reset "$serviceName"); because $? "db reset should re-create the database"
   gen3 db psql "$serviceName" -c 'SELECT 1'; because $? "should be able to connect to the new service db after reset"
   
+  local serverName
+  serverName="$(gen3 db creds "$serviceName" | jq -r '.g3FarmServer')"
+  [[ "$serverName" == "server1" ]]; because $? "db creds includes new service the farm server: $serverName"
+  
   gen3 klock unlock dbctest dbctest
+}
+
+test_db_creds() {
+  local serverName
+  serverName="$(gen3 db creds fence | jq -r '.g3FarmServer')"
+  [[ "$serverName" =~ ^server[0-9]+$ ]]; because $? "db creds includes the farm server: $serverName"
 }
 
 shunit_runtest "test_db_init" "db"
@@ -79,3 +89,4 @@ shunit_runtest "test_db_random_server" "db"
 shunit_runtest "test_db_list" "db"
 shunit_runtest "test_db_namespace" "db"
 shunit_runtest "test_db_create" "db"
+shunit_runtest "test_db_creds" "db"
