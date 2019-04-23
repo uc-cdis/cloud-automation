@@ -38,9 +38,6 @@ spec:
             export PGPORT="5432"
             export PGSSLMODE="disable"
 
-            # create the database for the first time
-            createdb
-
             # bring the database schema up to the latest version
             /go/src/github.com/uc-cdis/arborist/migrations/latest
 

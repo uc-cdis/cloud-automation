@@ -25,7 +25,8 @@ if [[ -f "$(gen3_secrets_folder)/g3auto/arborist/dbcreds.json" ]]; then
     echo "Waiting 10 seconds for arboristdb-create job"
     sleep 10
     gen3 job logs arboristdb-create || true
-    # TODO in the future, we can run bootstrapping step here to dump in
+    # TODO in the future, we can run bootstrapping step in the above job
+    #      or here to dump in
     #      service-level arborist configurations. For now, we rely on
     #      usersync to update arborist
     gen3 job run usersync
