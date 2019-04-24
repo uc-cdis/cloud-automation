@@ -58,7 +58,7 @@ spec:
                     exit 1 # terminate and indicate error
                 fi
 
-                aws s3 sync s3://$SOURCE_BUCKET s3://$TARGET_BUCKET --acl bucket-owner-full-control > /tmp/temp.txt
+                aws s3 sync s3://$SOURCE_BUCKET s3://$TARGET_BUCKET --acl bucket-owner-full-control > s3sync-cronjob.log
 
                 if [ $? -ne 0 ] ; then
                   curl -X POST --data-urlencode "payload={\"text\": \"AWS bucket sync failed for ${gen3Env} \"}" "${slackWebHook}"
