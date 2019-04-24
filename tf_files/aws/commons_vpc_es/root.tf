@@ -10,5 +10,7 @@ provider "aws" {}
 module "commons_vpc_es" {
   source          = "../modules/commons-vpc-es"
   vpc_name        = "${var.vpc_name}"
+  slack_webhook   = "${var.slack_webhook}"
+  secondary_slack_webhook = "${var.secondary_slack_webhook}"
 }
 
