@@ -1,7 +1,7 @@
 #1. create secret aws-sync-creds-secret with aws credentials
 #example: g3kubectl create secret generic aws-sync-creds-secret --from-file=credentials=${WORKSPACE}/${vpc_name}/<PATH>/aws-sync-bucket-secret
 # 2. job must invoke with:
-# gen3 job run kidsfirst-s3sync-cronjob gen3 job run s3sync-cronjob  SOURCE_BUCKET <source-bucket> TARGET_BUCKET <target-bucket>
+#  gen3 job run s3sync-cronjob  SOURCE_BUCKET <source-bucket> TARGET_BUCKET <target-bucket>
 #####REQUIRED VARIABLE########
 #SOURCE_BUCKET
 #TARGET_BUCKET
