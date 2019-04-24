@@ -29,58 +29,9 @@ name2IP() {
 }
 
 
-#
-# Allow communication to all CIDR's except 10/8 and 172.16/12
-#
-externalIPs() {
-  local basePolicy
-  basePolicy="$(mktemp "$XDG_RUNTIME_DIR/netpolicy.json_XXXXXX")"
-  cidrList="$(mktemp "$XDG_RUNTIME_DIR/cidrList.ndjson_XXXXXX")"
-  cat - > "$basePolicy" <<EOM
-{
-    "apiVersion": "extensions/v1beta1",
-    "kind": "NetworkPolicy",
-    "metadata": {
-        "name": "networkpolicy-reuben",
-    },
-    "spec": {
-        "egress": [
-            {
-                "to": [
-                    {
-                        "ipBlock": {
-                            "cidr": "0.0.0.0/0"
-                        }
-                    }
-                ]
-            }
-        ],
-        "podSelector": {
-            "matchLabels": {
-                "app": "reuben"
-            }
-        },
-        "policyTypes": [
-            "Ingress",
-            "Egress"
-        ]
-    }
-}
-EOM
 
-  for ip in {1..254}; do
-    if [[ "$ip" -ne 10 && "$ip" -ne 172 ]]; then
-      cat - >> "$cidrList" <<EOM
-{
-  "ipBlock": {
-    "cidr": "${ip}.0.0.0/8"
-  }
-}
-EOM
-    fi
-  done
-  rm "$basePolicy"
-}
+
+#......................................
 
 credsPath="$(gen3_secrets_folder)/creds.json"
 if [[ -f "$credsPath" ]]; then # setup netpolicy
@@ -108,8 +59,16 @@ if [[ -f "$credsPath" ]]; then # setup netpolicy
   # this works across AWS and GCP
   #
   CLOUDPROXY_CIDR="172.0.0.0/8"
+  notebookNamespace="jupyter-pods"
+  namespace="$(gen3 db namespace)"
+  if [[ -n "$namespace" && "$namespace" != "default" ]]; then
+    notebookNamespace="jupyter-pods-$namespace"
+  fi
 
   for name in "${GEN3_HOME}/kube/services/netpolicy/networkpolicy"*.yaml; do
-    (g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_fence_templ.yaml" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" "${dbArgs[@]}" | g3kubectl apply -f -) || true
+    (g3k_kv_filter "$name" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" NOTEBOOK_NAMESPACE "namespace: $notebookNamespace" "${dbArgs[@]}" | g3kubectl apply -f -) || true
   done
+  externalAccess | g3kubectl apply -f
+  externalAccess "$notebookNamespace" | jq -r '.spec.podSelector={}' | g3kubectl apply -f
+  (jq -r --arg namespace "$namespace" '.metadata.namespace=$namespace' < "${GEN3_HOME}/kube/services/netpolicy/networkpolicy/allowdns_netpolicy.yaml")
 fi

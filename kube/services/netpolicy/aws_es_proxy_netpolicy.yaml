@@ -25,7 +25,7 @@ spec:
   egress:
     - to:
       - ipBlock:
-           cidr: 0.0.0.0/0
+           cidr: 172.0.0.0/8
   policyTypes:
    - Ingress
    - Egress

@@ -20,7 +20,7 @@ if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   if ! [ -z ${ES_ENDPOINT} ]; then
     gen3 roll aws-es-proxy GEN3_ES_ENDPOINT "${ES_ENDPOINT}"
     g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
-    g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_aws_es_proxy.yaml"
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/aws_es_proxy_netpolicy.yaml"
 
     cat <<EOM
 The aws-es-proxy service has been deployed onto the k8s cluster.

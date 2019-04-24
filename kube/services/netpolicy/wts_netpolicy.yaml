@@ -10,7 +10,7 @@ spec:
     - from:
       - namespaceSelector:
           matchLabels:
-            name: jupyter-pods
+            role: usercode
       - podSelector:
           matchLabels:
             app: revproxy
