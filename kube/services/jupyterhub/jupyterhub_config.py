@@ -22,7 +22,10 @@ c.JupyterHub.services = [
     }
 ]
 c.JupyterHub.spawner_class = "kubespawner.KubeSpawner"
-c.KubeSpawner.namespace = "jupyter-pods"
+if os.environ["POD_NAMESPACE"] == "default":
+  c.KubeSpawner.namespace = "jupyter-pods"
+else
+  c.KubeSpawner.namespace = "jupyter-pods-" + os.environ["POD_NAMESPACE"]
 c.KubeSpawner.cpu_limit = 1.0
 c.KubeSpawner.mem_limit = "1.5G"
 # c.KubeSpawner.debug = False
