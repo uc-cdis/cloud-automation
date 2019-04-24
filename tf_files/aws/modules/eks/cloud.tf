@@ -218,7 +218,7 @@ resource "aws_route_table_association" "private_kube" {
   route_table_id = "${aws_route_table.eks_private.id}"
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    #ignore_changes = ["id", "subnet_id","tags"]
+    ignore_changes = ["tags"]
   }
   depends_on = ["aws_subnet.eks_private"]
 }
