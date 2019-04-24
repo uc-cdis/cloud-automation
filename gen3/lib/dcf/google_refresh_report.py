@@ -10,20 +10,34 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(title="action", dest="action")
 
-    submit_data_cmd = subparsers.add_parser("google_refresh_report")
-    submit_data_cmd.add_argument("--manifest", required=True)
-    submit_data_cmd.add_argument("--log_dir", required=True)
+    google_refresh_cmd = subparsers.add_parser("google_refresh_report")
+    google_refresh_cmd.add_argument("--manifest", required=True)
+    google_refresh_cmd.add_argument("--log_dir", required=True)
+
+    google_validate_cmd = subparsers.add_parser("google_refresh_validate")
+    google_validate_cmd.add_argument("--manifest", required=True)
+    google_validate_cmd.add_argument("--log_file", required=True)
 
     return parser.parse_args()
 
+def google_refresh_validate(fname):
+    try:
+        with open(fname) as f:
+            content = f.readlines()
+    except IOError as e:
+        print(e)
+        print("Please run the dcf validation job first")
+        os._exit()
 
-def main():
-    args = parse_arguments()
-    if args.action != "google_refresh_report":
-        return
+    lines = [x.strip() for x in content]
+    for line in lines:
+        if "TOTAL GS COPY FAILURE CASES" in line:
+            print(line)
+            return False
+    return True
 
-    log_dir = args.log_dir
-    manifest = args.manifest
+def google_refresh_report(manifest, fname):
+    
     #manifest = '/tmp/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv'
     #og_dir = "./active"
 
@@ -45,7 +59,7 @@ def main():
 
                 if words[6] == "True":
                     copied_objects.add(words[0])
-   
+
     files, headers = utils.get_fileinfo_list_from_csv_manifest(manifest)
     file_dict = {}
     for fi in files:
@@ -81,6 +95,19 @@ def main():
             copied_files.append(file_dict[uuid])
 
     utils.write_csv(manifest[:-4] + "_gs_copied.tsv", copied_files, fieldnames=headers)
+
+
+def main():
+    args = parse_arguments()
+    log_dir = args.log_dir
+    manifest = args.manifest
+    if args.action == "google_refresh_report":
+        google_refresh_report(manifest, fname)
+    if args.action == "google_refresh_validate":
+        if google_refresh_validate(fname):
+            print("All the files in the manifest have been copied to google dcf buckets")
+        else:
+            print("The manifest validation fails")
 
 
 if __name__ == "__main__":

@@ -9,21 +9,17 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(title="action", dest="action")
 
-    submit_data_cmd = subparsers.add_parser("aws_refresh_report")
-    submit_data_cmd.add_argument("--manifest", required=True)
-    submit_data_cmd.add_argument("--log_file", required=True)
+    aws_refresh_cmd = subparsers.add_parser("aws_refresh_report")
+    aws_refresh_cmd.add_argument("--manifest", required=True)
+    aws_refresh_cmd.add_argument("--log_file", required=True)
+
+    aws_validate_cmd = subparsers.add_parser("aws_refresh_validate")
+    aws_validate_cmd.add_argument("--manifest", required=True)
+    aws_validate_cmd.add_argument("--log_file", required=True)
 
     return parser.parse_args()
 
-
-def main():
-    args = parse_arguments()
-
-    if args.action != "aws_refresh_report":
-        return
-
-    fname = args.log_file
-    manifest = args.manifest
+def aws_refresh_report(manifest, fname):
     try:
         with open(fname) as f:
             content = f.readlines()
@@ -62,7 +58,7 @@ def main():
         m = re.search(pattern, line)
         if m:
             streaming_copied_objects.add(m.group(1))
- 
+
     files, headers = utils.get_fileinfo_list_from_csv_manifest(manifest)
     file_dict = {}
     for fi in files:
@@ -101,6 +97,35 @@ def main():
             copied_files.append(file_dict[uuid])
 
     utils.write_csv(manifest[:-4] + "_aws_copied.tsv", copied_files, fieldnames=headers)
+
+def aws_refresh_validate(fname):
+    try:
+        with open(fname) as f:
+            content = f.readlines()
+    except IOError as e:
+        print(e)
+        print("Please run the dcf validation job first")
+        os._exit()
+
+    lines = [x.strip() for x in content]
+    for line in lines:
+        if "TOTAL AWS COPY FAILURE CASES" in line:
+            print(line)
+            return False
+    return True
+
+def main():
+    args = parse_arguments()
+    fname = args.log_file
+    manifest = args.manifest
+
+    if args.action == "aws_refresh_report":
+        aws_refresh_report(manifest, fname)
+    elif args.action == "aws_refresh_report":
+        if aws_refresh_validate(fname):
+            print("All the files in the manifest have been copied to aws dcf buckets")
+        else:
+            print("The manifest validation fails")
 
 
 if __name__ == "__main__":
