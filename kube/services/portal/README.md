@@ -14,6 +14,7 @@ includes customizations necessary for the common's dictionary, so the `bhc` port
 customizes the portal to work with the brain commons' dictionary.
 
 Second, the optional `tier_access_level` property in the `global` object of `manifest.json` determines the access level of a common. Valid options for `tier_access_level` are `libre`, `regular` and `private`. Common will be treated as `private` by default.
+For `regular` level data commons, there's another configuration environment variable `tier_access_limit`, which is the minimum visible count for aggregation results. By default set to 1000. 
 
 The portal includes support for several customization profiles in its code base in various files under the [data/config](https://github.com/uc-cdis/data-portal/tree/master/data/config)
 and [custom/](https://github.com/uc-cdis/data-portal/tree/master/custom) folders.
