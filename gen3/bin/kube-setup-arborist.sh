@@ -5,37 +5,48 @@
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
+gen3_load "gen3/lib/g3k_manifest"
 
-gen3 kube-setup-secrets
-
-# provision a new db and get creds (if doesn't exist already)
-if ! g3kubectl describe secret arborist-g3auto | grep dbcreds.json > /dev/null 2>&1; then
-    echo "create database"
-    if ! gen3 db setup arborist; then
-        echo "Failed setting up database for arborist"
-    fi
-    gen3 secrets sync
+# only do db creation and setup if this is arborist deployment version > 1
+manifestPath=$(g3k_manifest_path)
+deployVersion="$(jq -r ".[\"arborist\"][\"deployment_version\"]" < "$manifestPath")"
+if [ -n $deployVersion ]; then
+  deployVersion="1"
 fi
 
-if [[ -f "$(gen3_secrets_folder)/g3auto/arborist/dbcreds.json" ]]; then
-  # Initialize arborist database and user list
-  cd "${WORKSPACE}/${vpc_name}"
-  if [[ ! -f "$(gen3_secrets_folder)/.rendered_arborist_db" ]]; then
-    gen3 job run arboristdb-create
-    echo "Waiting 10 seconds for arboristdb-create job"
-    sleep 10
-    gen3 job logs arboristdb-create || true
-    # TODO in the future, we can run bootstrapping step in the above job
-    #      or here to dump in
-    #      service-level arborist configurations. For now, we rely on
-    #      usersync to update arborist
-    gen3 job run usersync
-    gen3 job logs usersync || true
-    echo "Leaving setup jobs running in background"
-    cd "$(gen3_secrets_folder)"
+if [ "$deployVersion" -gt  "1" ]; then
+  echo "setting up arborist deployment version 2..."
+  gen3 kube-setup-secrets
+
+  # provision a new db and get creds (if doesn't exist already)
+  if ! g3kubectl describe secret arborist-g3auto | grep dbcreds.json > /dev/null 2>&1; then
+      echo "create database"
+      if ! gen3 db setup arborist; then
+          echo "Failed setting up database for arborist"
+      fi
+      gen3 secrets sync
   fi
-  # avoid doing the previous block more than once or when not necessary ...
-  touch "$(gen3_secrets_folder)/.rendered_arborist_db"
+
+  if [[ -f "$(gen3_secrets_folder)/g3auto/arborist/dbcreds.json" ]]; then
+    # Initialize arborist database and user list
+    cd "${WORKSPACE}/${vpc_name}"
+    if [[ ! -f "$(gen3_secrets_folder)/.rendered_arborist_db" ]]; then
+      gen3 job run arboristdb-create
+      echo "Waiting 10 seconds for arboristdb-create job"
+      sleep 10
+      gen3 job logs arboristdb-create || true
+      # TODO in the future, we can run bootstrapping step in the above job
+      #      or here to dump in
+      #      service-level arborist configurations. For now, we rely on
+      #      usersync to update arborist
+      gen3 job run usersync
+      gen3 job logs usersync || true
+      echo "Leaving setup jobs running in background"
+      cd "$(gen3_secrets_folder)"
+    fi
+    # avoid doing the previous block more than once or when not necessary ...
+    touch "$(gen3_secrets_folder)/.rendered_arborist_db"
+  fi
 fi
 
 gen3 roll arborist
