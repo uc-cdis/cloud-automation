@@ -59,6 +59,12 @@ else
   echo "INFO: not deploying arranger - no manifest entry for .versions.arranger"
 fi
 
+if g3k_manifest_lookup .versions.guppy 2> /dev/null; then
+  gen3 kube-setup-guppy
+else
+  echo "INFO: not deploying guppy - no manifest entry for .versions.guppy"
+fi
+
 if g3k_manifest_lookup .versions.pidgin 2> /dev/null; then
   gen3 kube-setup-pidgin
 else
