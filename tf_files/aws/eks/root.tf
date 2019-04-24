@@ -23,4 +23,5 @@ module "eks" {
   jupyter_bootstrap_script  = "${var.jupyter_bootstrap_script}"
   kernel                    = "${var.kernel}"
   jupyter_worker_drive_size = "${var.jupyter_worker_drive_size}"
+  cidrs_to_route_to_gw      = "${var.cidrs_to_route_to_gw}"
 }

@@ -150,27 +150,27 @@ resource "aws_route_table" "eks_private" {
 
   # We want to be able to talk to aws freely, therefore we are allowing
   # certain stuff overpass the proxy
-  route {
+  #route {
     # logs.us-east-1.amazonaws.com
-    cidr_block     = "52.0.0.0/8"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
-  route {
+  #  cidr_block     = "52.0.0.0/8"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
+  #route {
     # logs.us-east-1.amazonaws.com as well, these guys are not static, therefore whitelist the whole list
-    cidr_block     = "54.0.0.0/8"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
-  route {
+  #  cidr_block     = "54.0.0.0/8"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
+  #route {
     # .us-east-1.eks.amazonaws.com
-    cidr_block     = "34.192.0.0/10"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
+  #  cidr_block     = "34.192.0.0/10"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
 
-  route {
+  #route {
     # also eks service
-    cidr_block     = "18.128.0.0/9"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
+  #  cidr_block     = "18.128.0.0/9"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
 
   route {
     #from the commons vpc to the csoc vpc via the peering connection
@@ -183,30 +183,44 @@ resource "aws_route_table" "eks_private" {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
   }
+
+  lifecycle {
+    #ignore_changes = ["*"]
+  }
+}
+
+resource "aws_route" "skip_proxy" {
+  count                  = "${length(var.cidrs_to_route_to_gw)}"
+  route_table_id         = "${aws_route_table.eks_private.id}"
+  destination_cidr_block = "${element(var.cidrs_to_route_to_gw,count.index)}"
+  nat_gateway_id         = "${data.aws_nat_gateway.the_gateway.id}"
+  depends_on             = ["aws_route_table.eks_private"]
 }
 
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
-data "aws_subnet_ids" "private" {
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
-  tags {
-    Name = "eks_private_*"
-  }
-  depends_on = [
-    "aws_subnet.eks_private",
-  ]
-}
+#data "aws_subnet_ids" "private" {
+#  vpc_id = "${data.aws_vpc.the_vpc.id}"
+#  tags {
+#    Name = "eks_private_*"
+#  }
+#  depends_on = [
+#    "aws_subnet.eks_private",
+#  ]
+#}
 
 
 resource "aws_route_table_association" "private_kube" {
   #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
+  #subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
+  subnet_id      = "${aws_subnet.eks_private.*.id[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["id", "subnet_id","tags"]
+    ignore_changes = ["tags"]
   }
+  depends_on = ["aws_subnet.eks_private"]
 }
 
 
@@ -217,7 +231,24 @@ resource "aws_vpc_endpoint" "k8s-s3" {
   route_table_ids = ["${aws_route_table.eks_private.id}"]
 }
 
+# Cloudwatch logs endpoint
+resource "aws_vpc_endpoint" "k8s-logs" {
+  vpc_id              = "${data.aws_vpc.the_vpc.id}"
+  service_name        = "${data.aws_vpc_endpoint_service.logs.service_name}"
+  vpc_endpoint_type   = "Interface"
 
+  security_group_ids  = [
+    "${aws_security_group.eks_nodes_sg.id}"
+  ]
+
+  private_dns_enabled = true
+  #subnet_ids          = ["${data.aws_subnet_ids.private.ids}"]
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  #route_table_ids    = ["${aws_route_table.eks_private.id}"]
+  lifecycle {
+    #ignore_changes = ["subnet_ids"]
+  }
+}
 
 
 resource "aws_security_group" "eks_control_plane_sg" {
@@ -238,26 +269,27 @@ resource "aws_security_group" "eks_control_plane_sg" {
 
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
-data "aws_subnet_ids" "public_kube" {
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
-  tags {
-    Name = "eks_public_*"
-  }
-  depends_on = [
-    "aws_subnet.eks_public",
-  ]
-}
+#data "aws_subnet_ids" "public_kube" {
+#  vpc_id = "${data.aws_vpc.the_vpc.id}"
+#  tags {
+#    Name = "eks_public_*"
+#  }
+#  depends_on = [
+#    "aws_subnet.eks_public",
+#  ]
+#}
 
 
 resource "aws_route_table_association" "public_kube" {
   #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
+  #subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
+  subnet_id      = "${aws_subnet.eks_public.*.id[count.index]}"
   route_table_id = "${data.aws_route_table.public_kube.id}"
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["id", "subnet_id"]
+    #ignore_changes = ["id", "subnet_id"]
   }
 }
 
@@ -270,8 +302,9 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = "${var.eks_version}"
 
   vpc_config {
-    subnet_ids  = ["${aws_subnet.eks_private.*.id}"]
-    security_group_ids = ["${aws_security_group.eks_control_plane_sg.id}"]
+    subnet_ids              = ["${aws_subnet.eks_private.*.id}"]
+    security_group_ids      = ["${aws_security_group.eks_control_plane_sg.id}"]
+    endpoint_private_access = "true"
   }
 
   depends_on = [

@@ -51,3 +51,7 @@ variable "kernel" {
 variable "jupyter_worker_drive_size" {
   default = 30
 }
+
+variable "cidrs_to_route_to_gw" {
+  default = []
+}
