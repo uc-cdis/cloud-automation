@@ -3,8 +3,8 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-#INPUT_BUCKET="data-refresh-manifest"
-AWS_INPUT_BUCKET="giang816test"
+INPUT_BUCKET="data-refresh-manifest"
+#AWS_INPUT_BUCKET="giang816test"
 AWS_OUTPUT_BUCKET="data-refresh-output"
 
 GS_INPUT_BUCKET="replication-input"
@@ -59,7 +59,23 @@ generate_aws_refresh_report() {
 
 }
 
-generate_google_refresh_report() {
+validate_aws_refresh_report() {
+
+  active_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_active_.*$release | awk -F'/' '{print $4}')"
+  legacy_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_legacy_.*$release | awk -F'/' '{print $4}')"
+
+  rm -r /tmp/active/
+  rm -r /tmp/legacy/
+
+  gsutil cp -r gs://$GS_OUTPUT_BUCKET/$release/active /tmp/active/
+  gsutil cp -r gs://$GS_OUTPUT_BUCKET/$release/legacy /tmp/legacy/
+
+  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py google_refresh_validate --manifest /tmp/$active_manifest --log_file /tmp/active/
+  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py google_refresh_validate --manifest /tmp/$legacy_manifest --log_file /tmp/legacy/
+
+}
+
+generate_gs_refresh_report() {
 
   active_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_active_.*$release | awk -F'/' '{print $4}')"
   legacy_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_legacy_.*$release | awk -F'/' '{print $4}')"
@@ -75,12 +91,34 @@ generate_google_refresh_report() {
 
 }
 
+validate_gs_refresh_report() {
+
+  active_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_active_.*$release | awk -F'/' '{print $4}')"
+  legacy_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_legacy_.*$release | awk -F'/' '{print $4}')"
+
+  rm -r /tmp/active/
+  rm -r /tmp/legacy/
+
+  gsutil cp -r gs://$GS_OUTPUT_BUCKET/$release/active /tmp/active/
+  gsutil cp -r gs://$GS_OUTPUT_BUCKET/$release/legacy /tmp/legacy/
+
+  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_validate --manifest /tmp/$active_manifest --log_file /tmp/active/
+  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_validate --manifest /tmp/$legacy_manifest --log_file /tmp/legacy/
+
+}
+
 case "$command" in
 "aws-refresh")
   generate_aws_refresh_report "$@"
   ;;
+"validate-aws-refresh")
+  validate_aws_refresh_report "$@"
+  ;;
 "google-refresh")
-  generate_google_refresh_report "$@"
+  generate_gs_refresh_report "$@"
+  ;;
+"validate-google-refresh")
+  validate_gs_refresh_report "$@"
   ;;
 esac
 
