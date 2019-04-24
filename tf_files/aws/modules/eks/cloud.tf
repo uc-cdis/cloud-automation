@@ -185,7 +185,7 @@ resource "aws_route_table" "eks_private" {
   }
 
   lifecycle {
-    ignore_changes = ["*"]
+    #ignore_changes = ["*"]
   }
 }
 
