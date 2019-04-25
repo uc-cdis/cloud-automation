@@ -76,6 +76,12 @@ spec:
                 key: tier_access_level
                 # for now making it optional so won't break anything
                 optional: true
+          - name: TIER_ACCESS_LIMIT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: tier_access_limit
+                optional: true
           volumeMounts:
             - name: guppy-config
               readOnly: true
