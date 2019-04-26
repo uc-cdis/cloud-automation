@@ -13,9 +13,9 @@ command=$1
 release=$2
 
 # Activate google service account
-if [ -f "${WORKSPACE}/${vpc_name}/apis_configs/dcf_dataservice/creds.json" ]; then
-  gcloud auth activate-service-account --key-file=${WORKSPACE}/${vpc_name}/apis_configs/dcf_dataservice/creds.json
-  export GOOGLE_APPLICATION_CREDENTIALS=${WORKSPACE}/${vpc_name}/apis_configs/dcf_dataservice/creds.json
+if [ -f "$(gen3_secrets_folder)/g3auto/dcf_dataservice/googleCreds.json" ]; then
+  gcloud auth activate-service-account --key-file=$(gen3_secrets_folder)/g3auto/dcf_dataservice/googleCreds.json
+  export GOOGLE_APPLICATION_CREDENTIALS=$(gen3_secrets_folder)/g3auto/dcf_dataservice/googleCreds.json
 fi
 
 generate_aws_refresh_report() {
@@ -23,24 +23,30 @@ generate_aws_refresh_report() {
   manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F' ' '{print $4}')"
 
   if [ -z "$manifest" ]; then
-    echo "fail to download $manifest_type manifest!!!"
+    echo "The $manifest_type manifest is missing"
     exit 1
   fi
 
-  refresh_log=${manifest//.tsv/.txt}
-
-  echo "$refresh_log"
-
-  if [ ! -f "/tmp/$manifest" ]; then
-    aws s3 cp s3://$AWS_INPUT_BUCKET/$manifest /tmp/$manifest
+  if [ ! -f "$GEN3_CACHE_DIR/$manifest" ]; then
+    echo "Downloading the $manifest_type manifest from S3"
+    aws s3 cp s3://$AWS_INPUT_BUCKET/$manifest $GEN3_CACHE_DIR/$manifest
   fi
 
-  if [ ! -f "/tmp/$refresh_log" ]; then
-    aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$refresh_log /tmp/$refresh_log
+  # Download the lattest log file
+  refresh_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep GDC_full_sync_${manifest_type}_.*$release.*.txt$ | awk -F' ' '{print $4}')"
+  if [ -z "$refresh_log" ]; then
+    echo "fail to download $refresh_log log!!!"
+    exit 1
   fi
 
-  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py aws_refresh_report --manifest /tmp/$manifest --log_file /tmp/$refresh_log
+  local_refresh_log="$(mktemp $XDG_RUNTIME_DIR/XXXXX_refresh_log)"
+  echo $local_refresh_log
+  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$refresh_log $local_refresh_log
+  
+  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py aws_refresh_report --manifest $GEN3_CACHE_DIR/$manifest --log_file $local_refresh_log
 
+  # Cleanup
+  rm -f $local_refresh_log
 }
 
 validate_aws_refresh_report() {
@@ -50,15 +56,14 @@ validate_aws_refresh_report() {
   manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F' ' '{print $4}')"
   
   if [ -z "$manifest" ]; then
-    echo "fail to download $manifest_type manifest!!!"
+    echo "The $manifest_type manifest is missing"
     exit 1
   fi
-  
-  if [ ! -f "/tmp/$manifest" ]; then
-    aws s3 cp s3://$AWS_INPUT_BUCKET/$manifest /tmp/$manifest
+
+  if [ ! -f "$GEN3_CACHE_DIR/$manifest" ]; then
+    echo "Downloading the $manifest_type manifest from S3"
+    aws s3 cp s3://$AWS_INPUT_BUCKET/$manifest $GEN3_CACHE_DIR/$manifest
   fi
-  
-  echo "Finish downloading the $manifest_type manifest"
   
   validation_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep validation.log | awk -F' ' '{print $4}')"
 
@@ -69,66 +74,62 @@ validate_aws_refresh_report() {
     exit 1
   fi
 
-  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log /tmp/validation.log
+  # Download the lattest log
+  local_validation_log="$(mktemp $XDG_RUNTIME_DIR/XXXXX_validation_log)"
+  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log $local_validation_log
   
-  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py aws_refresh_validate --manifest /tmp/$manifest --log_file /tmp/validation.log
+  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py aws_refresh_validate --manifest $GEN3_CACHE_DIR/$manifest --log_file $local_validation_log
+
+  #Cleanup
+  rm -f $local_validation_log
 
 }
 
 generate_gs_refresh_report() {
 
   manifest_type=$3
-
   manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release.*tsv | awk -F'/' '{print $4}')"
-  
+
   if [ -z "$manifest" ]; then
-    echo "fail to download $manifest_type manifest!!!"
+    echo "The $manifest_type manifest is missing"
     exit 1
   fi
 
-  gsutil cp gs://$GS_INPUT_BUCKET/$manifest /tmp/$manifest
-
-  echo "Finish downloading the $manifest_type manifest"
-
-  if [ -d "/tmp/$manifest_type/" ]; then
-    rm -r /tmp/$manifest_type/
+  if [ ! -f "$GEN3_CACHE_DIR/$manifest" ]; then
+    echo "Downloading the $manifest_type manifest from GS"
+    gsutil cp gs://$GS_INPUT_BUCKET/$manifest $GEN3_CACHE_DIR/$manifest
   fi
 
-  mkdir -p /tmp/manifest
+  localLogDir="$(mktemp -d $XDG_RUNTIME_DIR/XXXXX_Log_dir)"
+  echo $localLogDir
 
-  echo "gs://$GS_OUTPUT_BUCKET/$release/$manifest_type"
-  gsutil -m cp -r gs://$GS_OUTPUT_BUCKET/$release/$manifest_type /tmp/manifest/
+  gsutil -m cp -r gs://$GS_OUTPUT_BUCKET/$release/$manifest_type $localLogDir
 
-  if [ ! -d "/tmp/manifest/" ]; then
+  if [ ! -d "$localLogDir" ]; then
     echo "Fail to download logs for google $manifest_type data refresh"
     exit 1
   fi
 
-  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_report --manifest "/tmp/$manifest" --log_dir "/tmp/manifest/$manifest_type"
+  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_report --manifest "/tmp/$manifest" --log_dir "$localLogDir/$manifest_type"
+
+  # Cleanup
+  rm -rf "$localLogDir/$manifest_type"
 
 }
 
 validate_gs_refresh_report() {
 
   manifest_type=$3
-  manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F'/' '{print $4}')"
-  
+  manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release.*tsv | awk -F'/' '{print $4}')"
+
   if [ -z "$manifest" ]; then
-    echo "fail to download $manifest_type manifest!!!"
+    echo "The $manifest_type manifest is missing"
     exit 1
   fi
 
-  gsutil cp gs://$GS_INPUT_BUCKET/$manifest /tmp/$manifest
-
-  echo "Finish downloading the $manifest_type manifest"
-
-
-  if [ -d "/tmp/$manifest_type/" ]; then
-    rm -r /tmp/$manifest_type/
-  fi
-
-  if [ -f "/tmp/validation.log" ]; then
-    rm  /tmp/validation.log
+  if [ ! -f "$GEN3_CACHE_DIR/$manifest" ]; then
+    echo "Downloading the $manifest_type manifest from GS"
+    gsutil cp gs://$GS_INPUT_BUCKET/$manifest $GEN3_CACHE_DIR/$manifest
   fi
 
   validation_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep validation.log | awk -F' ' '{print $4}')"
@@ -139,12 +140,15 @@ validate_gs_refresh_report() {
     """
     exit 1
   fi
-  
-  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log /tmp/validation.log
 
-  echo "/tmp/$manifest"
+  # Download the lattest log
+  local_validation_log="$(mktemp $XDG_RUNTIME_DIR/XXXXX_validation_log)"
+  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log $local_validation_log
 
-  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_validate --manifest "/tmp/$manifest" --log_file "/tmp/validation.log"
+  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_validate --manifest "/tmp/$manifest" --log_file "$local_validation_log"
+
+  # Cleanup
+  rm -f $local_validation_log
 
 }
 
@@ -154,11 +158,12 @@ generate_isb_manifest() {
 
   if [ -z "$manifest" ]; then
     echo """
-    The aumgmented manifest does not exist. Please run the validation script first
+    The augmented manifest does not exist. Please run the validation script first
     as desribed in https://github.com/uc-cdis/cdis-wiki/blob/master/ops/Data-refresh.md
     """
     exit 1
   fi
+
   aws s3 cp s3://$AWS_OUTPUT_BUCKET/$manifest ./
   echo "The manifest is saved at ./$manifest"
 
