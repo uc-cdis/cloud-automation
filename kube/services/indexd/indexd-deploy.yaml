@@ -19,6 +19,7 @@ spec:
       labels:
         app: indexd
         release: production
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

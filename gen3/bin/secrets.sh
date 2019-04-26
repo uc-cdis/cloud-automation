@@ -84,7 +84,7 @@ gen3_secrets_commit() {
       if [[ ! -z "$(git status --porcelain)" ]]; then
         gen3_log_info "gen3_secrets_commit" "commiting changes to $(gen3_secrets_folder)"
         git add .
-        git commit -m "$message"
+        git commit -n -m "$message"
       fi
 
       gen3_log_info "gen3_secrets_commit" "attempting to update secrets backup"

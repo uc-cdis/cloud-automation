@@ -21,8 +21,8 @@ if g3kubectl get serviceaccounts/jenkins-service > /dev/null 2>&1; then
 fi
 
 if [[ -z "$1" ]]; then
-  g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="app=gen3job,name=devterm" --restart=Never --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
+  g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --generator=run-pod/v1 --labels="app=gen3job,name=devterm,netnolimit=yes" --restart=Never --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
 else
   commandStr="$1"
-  g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="app=gen3job,name=devterm" --restart=Never --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash -c "$commandStr"
+  g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides"  --generator=run-pod/v1 --labels="app=gen3job,name=devterm,netnolimit=yes" --restart=Never --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash -c "$commandStr"
 fi

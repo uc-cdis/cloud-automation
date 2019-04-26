@@ -17,6 +17,8 @@ spec:
     metadata:
       labels:
         app: sower
+        public: "yes"
+        netnolimit: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

@@ -19,6 +19,9 @@ spec:
       labels:
         app: manifestservice
         release: production
+        s3: "yes"
+        public: "yes"
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

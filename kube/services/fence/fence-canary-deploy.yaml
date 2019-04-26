@@ -20,6 +20,9 @@ spec:
       labels:
         app: fence
         release: canary
+        authprovider: "yes"
+        internet: "yes"
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

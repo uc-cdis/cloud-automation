@@ -1,31 +1,22 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-portal
+  name: networkpolicy-peregrine
 spec:
   podSelector:
     matchLabels:
-      app: portal 
+      app: peregrine
   ingress:
     - from:
       - podSelector:
           matchLabels:
-            app: portal
+             app: revproxy
       - podSelector:
           matchLabels:
-             app: revproxy
+             app: pidgin
       ports:
          - port: 80
          - port: 443
-  egress:
-    - to:
-      - podSelector:
-          matchLabels:
-            app: portal
-      - podSelector:
-          matchLabels:
-            app: revproxy
 
   policyTypes:
    - Ingress
-   - Egress

@@ -17,6 +17,8 @@ spec:
     metadata:
       labels:
         app: arborist
+        authprovider: "yes"
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

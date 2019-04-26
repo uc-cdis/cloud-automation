@@ -16,6 +16,10 @@ spec:
     metadata:
       labels:
         app: arborist
+        internet: "yes"
+        # for network policy selectors
+        authprovider: "yes"
+        dbfence: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

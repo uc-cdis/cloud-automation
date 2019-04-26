@@ -1,13 +1,12 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-spark
+  name: networkpolicy-public
 spec:
   podSelector:
     matchLabels:
-      app: spark
+      netnolimit: "yes"
   egress:
-    - {}
+    - {}  
   policyTypes:
-   - Ingress
    - Egress

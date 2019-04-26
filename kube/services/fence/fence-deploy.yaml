@@ -20,6 +20,10 @@ spec:
       labels:
         app: fence
         release: production
+        # for network policy selectors
+        authprovider: "yes"
+        internet: "yes"
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

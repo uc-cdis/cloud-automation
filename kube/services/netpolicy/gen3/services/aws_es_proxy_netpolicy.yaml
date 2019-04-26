@@ -1,31 +1,34 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-pidgin
+  name: networkpolicy-aws-es-proxy
 spec:
   podSelector:
     matchLabels:
-      app: pidgin
+      app: esproxy
   ingress:
     - from:
       - podSelector:
           matchLabels:
-            app: pidgin
+            app: arranger
       - podSelector:
           matchLabels:
-             app: revproxy
+            app: guppy
+      - podSelector:
+          matchLabels:
+            app: spark
+      - podSelector:
+          matchLabels:
+            app: tube
+      - podSelector:
+          matchLabels:
+            app: arranger-dashboard
       ports:
-         - port: 80
-         - port: 443
+         - port: 9200
   egress:
     - to:
-      - podSelector:
-          matchLabels:
-            app: pidgin
-      - podSelector:
-          matchLabels:
-            app: peregrine
-
+      - ipBlock:
+           cidr: 172.0.0.0/8
   policyTypes:
    - Ingress
    - Egress

@@ -21,11 +21,26 @@ We currently allow all the pods in `usercode` namespaces to access the external 
 
 ## Policy Design
 
-* [deny_all_netpolicy](../kube/services/netpolicy/deny_all_netpolicy.yaml) - deployed to both `gen3` and `usercode` namespaces - applies to all pods in a namespace, and grants no rules for ingress or egress - so no communication by default
-* [networkpolicy-external-egress](../gen3/bin/kube-setup-networkpolicy.sh) - a procedurally generated policy (by kube-setup-networkpolicy.sh) deployed to both `gen3` and `usercode` namespaces - allows all pods in a `usercode` namespace to communicate with the external internet, and allows `gen3` pods labeled with `internet=yes` to communicate with the external internet.  This policy whitelists the entire IP4 address space except for the `172.16.0.0/12` and `10.0.0.0/8` CIDRs used internally.
-* [wts_netpolicy](../kube/services/netpolicy/wts_netpolicy.yaml) and [manifestservice_netpolicy](../kube/services/netpolicy/manifestservice_netpolicy.yaml) allow `ingress` from `usercode` namespaces
-* [networkpolicy-s3](../kube/services/netpolicy/s3_netpolicy.yaml) grants egress to AWS S3 addresses to pods labeled with `s3=yes` - note that the `networkpolicy-external-egress` grants permissions to a superset of ip addresses that includes S3
-* [networkpolicy-linklocal](../kube/services/netpolicy/linklocal_netpolicy.yaml) grants egress to the `169.254.0.0/16` CIDR which includes the AWS metadata service http://169.254.169.254/
+We divide our network policies into 2 groups.
+
+### Base policies
+
+Base policies apply to both `gen3` and `usercode` namespaces.
+
+* [networkpolicy-allow-nothing](../kube/services/netpolicy/base/allow_nothing_netpolicy.yaml) - grants no rules for ingress or egress - so no communication by default
+* [networkpolicy-external-egress](./netpolicy.md) - a procedurally generated policy - allows all pods in a `usercode` namespace to communicate with the external internet, and allows `gen3` pods labeled with `internet=yes` to communicate with the external internet.  This policy whitelists the entire IP4 address space except for the `172.16.0.0/12` and `10.0.0.0/8` CIDRs used internally.
+
+
+### Gen3 policies
+
+Most of these policies enforce constraints on interservice communication for specific internal gen3 applications, but there are also a handful of generic policies described below.
+
+* [networkpolicy-linklocal](../kube/services/netpolicy/gen3/linklocal_netpolicy.yaml) grants egress to the `169.254.0.0/16` CIDR - which includes the AWS metadata service http://169.254.169.254/ - for pods labeled with `linklocal=yes`
+* [networkpolicy-public](../kube/services/netpolicy/gen3/public_netpolicy.yaml) grants ingress from the `revproxy` service (our gateway for public API's) for pods labeled with `public=yes`
+* [networkpolicy-s3](./netpolicy.md) grants egress to AWS S3 addresses for pods labeled with `s3=yes` - note that the `networkpolicy-s3` grants permissions to a superset of ip addresses that includes S3
+* [networkpolicy-userhelper](../kube/services/netpolicy/auth/userhelp-netpolicy.yaml) - grants ingress from pods in `usercode` namespaces for `gen3` pods labeled with `userhelper=yes`
+* [networkpolicy-auth](../kube/services/netpolicy/gen3/auth-netpolicy.yaml) - grants egress from all pods to pods labeled with `authrpovider=yes`
+* [networkpolicy-nolimit](../kube/services/netpolicy/gen3/nolimit-netpolicy.yaml) - grants egress from pods labeled with `netnolimit=yes` to any IP address
 
 ## Resources
 

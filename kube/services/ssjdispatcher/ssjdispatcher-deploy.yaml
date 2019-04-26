@@ -18,6 +18,8 @@ spec:
       labels:
         app: ssjdispatcher
         release: production
+        netnolimit: "yes"
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       serviceAccountName: ssjdispatcher-service-account

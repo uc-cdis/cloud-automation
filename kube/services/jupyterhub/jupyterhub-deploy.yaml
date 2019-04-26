@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         app: jupyter-hub
+        public: "yes"
+        netnolimit: "yes"
         GEN3_DATE_LABEL
     spec:
       nodeSelector:

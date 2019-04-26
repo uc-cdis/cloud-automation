@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: spark
+        dbsheepdog: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

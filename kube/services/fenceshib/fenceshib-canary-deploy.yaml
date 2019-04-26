@@ -7,7 +7,7 @@ spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: fence
+      app: fenceshib
       release: canary
   revisionHistoryLimit: 2
   strategy:
@@ -18,8 +18,11 @@ spec:
   template:
     metadata:
       labels:
-        app: fence
+        app: fenceshib
         release: canary
+        authprovider: "yes"
+        internet: "yes"
+        dbfence: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

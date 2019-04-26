@@ -83,6 +83,10 @@ test_db_creds() {
   [[ "$serverName" =~ ^server[0-9]+$ ]]; because $? "db creds includes the farm server: $serverName"
 }
 
+test_db_services() {
+  (gen3 db services | grep peregrine > /dev/null); because $? "gen3 db services includes peregrine"
+}
+
 shunit_runtest "test_db_init" "db"
 shunit_runtest "test_db_psql" "db"
 shunit_runtest "test_db_random_server" "db"
@@ -90,3 +94,4 @@ shunit_runtest "test_db_list" "db"
 shunit_runtest "test_db_namespace" "db"
 shunit_runtest "test_db_create" "db"
 shunit_runtest "test_db_creds" "db"
+shunit_runtest "test_db_services" "db"

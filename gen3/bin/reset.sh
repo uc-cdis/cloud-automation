@@ -74,23 +74,12 @@ g3kubectl delete --all jobs --now
 wait_for_pods_down
 
 #
-# Reset our well known databases, and
-# the "gen3 db create" databases with -g3auto secrets ...
-# scan the -g3auto secrets for `dbcreds.json` ...
+# Reset our databases
 #
-dbServices=(fence indexd sheepdog)
-tempSecrets="$(mktemp "$XDG_RUNTIME_DIR/secrets.json_XXXXXX")"
-g3kubectl get secrets -o json | jq -r '.items | map(select( .data["dbcreds.json"] and (.metadata.name|test("-g3auto$")))) | map( { "name": .metadata.name })' > "$tempSecrets"
-numSecrets="$(jq -r '. | length' < "$tempSecrets")"
-for ((i=0; i < numSecrets; i++)); do
-  service="$(jq -r ".[${i}].name" < "$tempSecrets")"
-  service="${service%-g3auto}"
-  dbServices+=("$service")
-done
-/bin/rm "$tempSecrets"
-
-for serviceName in "${dbServices[@]}"; do
-  gen3 db reset "$serviceName"
+for serviceName in $(gen3 db services); do
+  if [[ "$serviceName" != "peregrine" ]]; then  # sheepdog and peregrine share the same db
+    gen3 db reset "$serviceName"
+  fi
 done
 
 #

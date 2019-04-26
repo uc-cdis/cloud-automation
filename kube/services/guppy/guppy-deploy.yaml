@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: guppy
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

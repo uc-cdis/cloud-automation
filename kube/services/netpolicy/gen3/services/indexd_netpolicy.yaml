@@ -1,19 +1,16 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-google-sa-validation
+  name: networkpolicy-indexd
 spec:
   podSelector:
     matchLabels:
-      app: google-sa-validation
+      app: indexd
   ingress:
     - from:
       - podSelector:
           matchLabels:
-            app: fence
-      - podSelector:
-          matchLabels:
-             app: indexd
+            app: indexd
       - podSelector:
           matchLabels:
              app: peregrine
@@ -25,22 +22,12 @@ spec:
              app: revproxy
       - podSelector:
           matchLabels:
-             app: arborist
+             app: fence
+      - podSelector:
+          matchLabels:
+             app: fenceshib
       ports:
          - port: 80
          - port: 443
-  egress:
-    - to:
-      - podSelector:
-          matchLabels:
-            app: fence
-      - podSelector:
-          matchLabels:
-            app: indexd
-      - ipBlock:
-           cidr: GEN3_FENCE_DBIP/32
-      - ipBlock:
-           cidr: 0.0.0.0/0
   policyTypes:
-   - Ingress
-   - Egress
+    - Ingress
