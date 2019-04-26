@@ -110,7 +110,7 @@ generate_gs_refresh_report() {
     exit 1
   fi
 
-  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_report --manifest "/tmp/$manifest" --log_dir "$localLogDir/$manifest_type"
+  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_report --manifest "$GEN3_CACHE_DIR/$manifest" --log_dir "$localLogDir/$manifest_type"
 
   # Cleanup
   rm -rf "$localLogDir/$manifest_type"
@@ -145,7 +145,7 @@ validate_gs_refresh_report() {
   local_validation_log="$(mktemp $XDG_RUNTIME_DIR/XXXXX_validation_log)"
   aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log $local_validation_log
 
-  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_validate --manifest "/tmp/$manifest" --log_file "$local_validation_log"
+  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_validate --manifest "$GEN3_CACHE_DIR/$manifest" --log_file "$local_validation_log"
 
   # Cleanup
   rm -f $local_validation_log
