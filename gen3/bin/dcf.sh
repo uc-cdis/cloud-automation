@@ -12,6 +12,12 @@ echo "Hello from dcf!"
 command=$1
 release=$2
 
+# Activate google service account
+if [ -f "${WORKSPACE}/${vpc_name}/apis_configs/dcf_dataservice/creds.json" ]; then
+  gcloud auth activate-service-account --key-file=${WORKSPACE}/${vpc_name}/apis_configs/dcf_dataservice/creds.json
+  export GOOGLE_APPLICATION_CREDENTIALS=${WORKSPACE}/${vpc_name}/apis_configs/dcf_dataservice/creds.json
+fi
+
 generate_aws_refresh_report() {
   manifest_type=$3
   manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F' ' '{print $4}')"

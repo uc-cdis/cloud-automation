@@ -16,7 +16,6 @@ def google_refresh_validate(fname):
             content = f.readlines()
     except IOError as e:
         print(e)
-        print("Please run the dcf validation job first")
         os._exit(1)
 
     lines = [x.strip() for x in content]

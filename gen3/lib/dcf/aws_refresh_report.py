@@ -20,7 +20,7 @@ def aws_refresh_report(manifest, fname):
             content = f.readlines()
     except IOError as e:
         print(e)
-        os._exit()
+        os._exit(1)
 
     lines = [x.strip() for x in content]
 
@@ -103,7 +103,7 @@ def aws_refresh_validate(fname):
     except IOError as e:
         print(e)
         print("Please run the dcf validation job first")
-        os._exit()
+        os._exit(1)
 
     lines = [x.strip() for x in content]
     for line in lines:
