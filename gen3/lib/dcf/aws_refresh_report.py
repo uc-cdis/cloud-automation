@@ -5,21 +5,16 @@ import re
 import utils
 
 
-def parse_arguments():
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(title="action", dest="action")
-
-    aws_refresh_cmd = subparsers.add_parser("aws_refresh_report")
-    aws_refresh_cmd.add_argument("--manifest", required=True)
-    aws_refresh_cmd.add_argument("--log_file", required=True)
-
-    aws_validate_cmd = subparsers.add_parser("aws_refresh_validate")
-    aws_validate_cmd.add_argument("--manifest", required=True)
-    aws_validate_cmd.add_argument("--log_file", required=True)
-
-    return parser.parse_args()
-
 def aws_refresh_report(manifest, fname):
+    """
+    Generate a aws refresh report by looking into the log file
+    generated during aws refresh script running. The output is a report
+    containing the number of files is copied, total amount in GB was copied
+
+    Args:
+        manifest(tsv): GDC manifest (active or legacy)
+        fname(str): the log file of running aws refresh script
+    """
     try:
         with open(fname) as f:
             content = f.readlines()
@@ -46,7 +41,6 @@ def aws_refresh_report(manifest, fname):
         pattern = ".*aws s3 mv s3://.*/(.{36})/.*"
         m = re.search(pattern, line)
         if m:
-            #total_moved_files = int(m.group(1))
             awscli_copied_objects.add(m.group(1))
 
         pattern = ".*aws s3 cp s3://gdcbackup/(.{36})/.*"
@@ -92,13 +86,17 @@ def aws_refresh_report(manifest, fname):
     )
 
     copied_files = []
-    for uuid in awscli_copied_objects + streaming_copied_objects:
+    for uuid in awscli_copied_objects.union(streaming_copied_objects):
         if uuid in file_dict:
             copied_files.append(file_dict[uuid])
 
-    utils.write_csv(manifest[:-4] + "_aws_copied.tsv", copied_files, fieldnames=headers)
+    utils.write_csv(manifest.split("/")[-1][:-4] + "_aws_copied.tsv", copied_files, fieldnames=headers)
 
 def aws_refresh_validate(fname):
+    """
+    Validate the aws data refresh by looking into the log after validation 
+    script finished.
+    """
     try:
         with open(fname) as f:
             content = f.readlines()
@@ -114,6 +112,20 @@ def aws_refresh_validate(fname):
             return False
     return True
 
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(title="action", dest="action")
+
+    aws_refresh_cmd = subparsers.add_parser("aws_refresh_report")
+    aws_refresh_cmd.add_argument("--manifest", required=True)
+    aws_refresh_cmd.add_argument("--log_file", required=True)
+
+    aws_validate_cmd = subparsers.add_parser("aws_refresh_validate")
+    aws_validate_cmd.add_argument("--manifest", required=True)
+    aws_validate_cmd.add_argument("--log_file", required=True)
+
+    return parser.parse_args()
+
 def main():
     args = parse_arguments()
     fname = args.log_file
@@ -121,7 +133,7 @@ def main():
 
     if args.action == "aws_refresh_report":
         aws_refresh_report(manifest, fname)
-    elif args.action == "aws_refresh_report":
+    elif args.action == "aws_refresh_validate":
         if aws_refresh_validate(fname):
             print("All the files in the manifest have been copied to aws dcf buckets")
         else:

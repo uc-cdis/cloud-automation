@@ -2,32 +2,22 @@ import os
 from os import listdir
 from os.path import isfile, join
 import argparse
-import re
 
 import utils
 
-def parse_arguments():
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(title="action", dest="action")
-
-    google_refresh_cmd = subparsers.add_parser("google_refresh_report")
-    google_refresh_cmd.add_argument("--manifest", required=True)
-    google_refresh_cmd.add_argument("--log_dir", required=True)
-
-    google_validate_cmd = subparsers.add_parser("google_refresh_validate")
-    google_validate_cmd.add_argument("--manifest", required=True)
-    google_validate_cmd.add_argument("--log_file", required=True)
-
-    return parser.parse_args()
 
 def google_refresh_validate(fname):
+    """
+    Validate the google data refresh by looking into the log after validation 
+    script finished.
+    """
     try:
         with open(fname) as f:
             content = f.readlines()
     except IOError as e:
         print(e)
         print("Please run the dcf validation job first")
-        os._exit()
+        os._exit(1)
 
     lines = [x.strip() for x in content]
     for line in lines:
@@ -36,12 +26,18 @@ def google_refresh_validate(fname):
             return False
     return True
 
-def google_refresh_report(manifest, fname):
-    
-    #manifest = '/tmp/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv'
-    #og_dir = "./active"
+def google_refresh_report(manifest, log_dir):
+    """
+    Generate a google refresh report by looking into all the log files
+    generated during google dataflow running. The output is a report
+    containing the number of files is copied, total amount in GB was copied
 
-    og_files = [join(log_dir, f) for f in listdir(log_dir) if isfile(join(log_dir, f))]
+    Args:
+        manifest(str): GDC manifest (active or legacy)
+        log(str): the directory containing logs of running google dataflow
+    """
+
+    log_files = [join(log_dir, f) for f in listdir(log_dir) if isfile(join(log_dir, f))]
 
     manifest_copying_files = 0
     total_data = 0
@@ -52,8 +48,11 @@ def google_refresh_report(manifest, fname):
 
     for fname in log_files:
         with open(fname) as fread:
-            for cnt, line in enumerate(fread):
-                words = line.split(" ")
+            for _, line in enumerate(fread):
+                if "\t" in line:
+                    words = line.split("\t")
+                else:
+                    words = line.split(" ")
 
                 copying_ojects.add(words[0])
 
@@ -94,17 +93,29 @@ def google_refresh_report(manifest, fname):
         if uuid in file_dict:
             copied_files.append(file_dict[uuid])
 
-    utils.write_csv(manifest[:-4] + "_gs_copied.tsv", copied_files, fieldnames=headers)
+    utils.write_csv(manifest.split("/")[-1][:-4] + "_gs_copied.tsv", copied_files, fieldnames=headers)
 
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(title="action", dest="action")
+
+    google_refresh_cmd = subparsers.add_parser("google_refresh_report")
+    google_refresh_cmd.add_argument("--manifest", required=True)
+    google_refresh_cmd.add_argument("--log_dir", required=True)
+
+    google_validate_cmd = subparsers.add_parser("google_refresh_validate")
+    google_validate_cmd.add_argument("--manifest", required=True)
+    google_validate_cmd.add_argument("--log_file", required=True)
+
+    return parser.parse_args()
 
 def main():
     args = parse_arguments()
-    log_dir = args.log_dir
     manifest = args.manifest
     if args.action == "google_refresh_report":
-        google_refresh_report(manifest, fname)
+        google_refresh_report(manifest, args.log_dir)
     if args.action == "google_refresh_validate":
-        if google_refresh_validate(fname):
+        if google_refresh_validate(args.log_file):
             print("All the files in the manifest have been copied to google dcf buckets")
         else:
             print("The manifest validation fails")

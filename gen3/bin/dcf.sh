@@ -3,112 +3,139 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-INPUT_BUCKET="data-refresh-manifest"
-#AWS_INPUT_BUCKET="giang816test"
+AWS_INPUT_BUCKET="data-refresh-manifest"
 AWS_OUTPUT_BUCKET="data-refresh-output"
-
 GS_INPUT_BUCKET="replication-input"
-#GS_INPUT_BUCKET="data-flow-code/input"
 GS_OUTPUT_BUCKET="datarefresh-log"
-#OUTPUT_BUCKET="data-flow-code"
 
-
-TMP_DIR="/tmp"
+# AWS_INPUT_BUCKET="giang816test"
+# AWS_OUTPUT_BUCKET="xssxs"
+# GS_INPUT_BUCKET="data-flow-code"
+# GS_OUTPUT_BUCKET="data-flow-code"
 
 echo "Hello from dcf!"
-command="$1"
-release="$2"
+command=$1
+release=$2
 
 generate_aws_refresh_report() {
-  active_manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_active_.*$release | awk -F' ' '{print $4}')"
-  legacy_manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_legacy_.*$release | awk -F' ' '{print $4}')"
+  manifest_type=$3
+  manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F' ' '{print $4}')"
 
-  if [ -z "$active_manifest" ]; then
-    echo "fail to download active manifest!!!"
+  if [ -z "$manifest" ]; then
+    echo "fail to download $manifest_type manifest!!!"
     exit 1
   fi
 
-  if [ -z "$legacy_manifest" ]; then
-    echo "fail to download legacy manifest!!!"
-    exit 1
+  refresh_log=${manifest//.tsv/.txt}
+
+  echo "$refresh_log"
+
+  if [ ! -f "/tmp/$manifest" ]; then
+    aws s3 cp s3://$AWS_INPUT_BUCKET/$manifest /tmp/$manifest
   fi
 
-  active_refresh_log="$(echo $active_manifest | sed -e 's/tsv/txt/g')"
-  legacy_refresh_log="$(echo $legacy_manifest | sed -e 's/tsv/txt/g')"
-
-  echo "$active_copy_log"
-
-  if [ ! -f "/tmp/$active_manifest" ]; then
-    aws s3 cp s3://$AWS_INPUT_BUCKET/$active_manifest /tmp/$active_manifest
+  if [ ! -f "/tmp/$refresh_log" ]; then
+    aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$refresh_log /tmp/$refresh_log
   fi
 
-  if [ ! -f "/tmp/$legacy_manifest" ]; then
-    aws s3 cp s3://$AWS_INPUT_BUCKET/$legacy_manifest /tmp/$legacy_manifest
-  fi
-
-  if [ ! -f "/tmp/$active_refresh_log" ]; then
-    aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$active_refresh_log /tmp/$active_refresh_log
-  fi
-
-  if [ ! -f "/tmp/$legacy_refresh_log" ]; then
-    aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$legacy_refresh_log /tmp/$legacy_refresh_log
-  fi
-
-  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py aws_refresh_report --manifest /tmp/$active_manifest --log_file /tmp/$active_refresh_log
-  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py aws_refresh_report --manifest /tmp/$legacy_manifest --log_file /tmp/$legacy_refresh_log
+  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py aws_refresh_report --manifest /tmp/$manifest --log_file /tmp/$refresh_log
 
 }
 
 validate_aws_refresh_report() {
+  echo "Validate aws refresh"
 
-  active_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_active_.*$release | awk -F'/' '{print $4}')"
-  legacy_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_legacy_.*$release | awk -F'/' '{print $4}')"
+  manifest_type=$3
+  manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F' ' '{print $4}')"
+  
+  if [ -z "$manifest" ]; then
+    echo "fail to download $manifest_type manifest!!!"
+    exit 1
+  fi
+  
+  if [ ! -f "/tmp/$manifest" ]; then
+    aws s3 cp s3://$AWS_INPUT_BUCKET/$manifest /tmp/$manifest
+  fi
+  
+  echo "Finish downloading the $manifest_type manifest"
 
-  rm -r /tmp/active/
-  rm -r /tmp/legacy/
+  # if [ -d "/tmp/$manifest_type" ]; then
+  #   rm -r /tmp/$manifest_type/
+  # fi
 
-  gsutil cp -r gs://$GS_OUTPUT_BUCKET/$release/active /tmp/active/
-  gsutil cp -r gs://$GS_OUTPUT_BUCKET/$release/legacy /tmp/legacy/
-
-  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py google_refresh_validate --manifest /tmp/$active_manifest --log_file /tmp/active/
-  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py google_refresh_validate --manifest /tmp/$legacy_manifest --log_file /tmp/legacy/
+  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log /tmp/validation.log
+  
+  python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py aws_refresh_validate --manifest /tmp/$manifest --log_file /tmp/validation.log
 
 }
 
 generate_gs_refresh_report() {
 
-  active_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_active_.*$release | awk -F'/' '{print $4}')"
-  legacy_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_legacy_.*$release | awk -F'/' '{print $4}')"
+  manifest_type=$3
 
-  rm -r /tmp/active/
-  rm -r /tmp/legacy/
+  manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_$manifest_type_.*$release.*tsv | awk -F'/' '{print $4}')"
+  
+  if [ -z "$manifest" ]; then
+    echo "fail to download $manifest_type manifest!!!"
+    exit 1
+  fi
 
-  gsutil cp -r gs://$GS_OUTPUT_BUCKET/$release/active /tmp/active/
-  gsutil cp -r gs://$GS_OUTPUT_BUCKET/$release/legacy /tmp/legacy/
+  gsutil cp gs://$GS_INPUT_BUCKET/$manifest /tmp/$manifest
 
-  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_report --manifest /tmp/$active_manifest --log_file /tmp/active/
-  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_report --manifest /tmp/$legacy_manifest --log_file /tmp/legacy/
+  echo "Finish downloading the $manifest_type manifest"
+
+  if [ -d "/tmp/$manifest_type/" ]; then
+    rm -r /tmp/$manifest_type/
+  fi
+
+  mkdir -p /tmp/manifest
+
+  echo "gs://$GS_OUTPUT_BUCKET/$release/$manifest_type"
+  gsutil -m cp -r gs://$GS_OUTPUT_BUCKET/$release/$manifest_type /tmp/manifest/
+
+  if [ ! -d "/tmp/manifest/" ]; then
+    echo "Fail to download logs for google $manifest_type data refresh"
+    exit 1
+  fi
+
+  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_report --manifest "/tmp/$manifest" --log_dir "/tmp/manifest/$manifest_type"
 
 }
 
 validate_gs_refresh_report() {
 
-  active_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_active_.*$release | awk -F'/' '{print $4}')"
-  legacy_manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_legacy_.*$release | awk -F'/' '{print $4}')"
+  manifest_type=$3
+  manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_$manifest_type_.*$release | awk -F'/' '{print $4}')"
+  
+  if [ -z "$manifest" ]; then
+    echo "fail to download $manifest_type manifest!!!"
+    exit 1
+  fi
 
-  rm -r /tmp/active/
-  rm -r /tmp/legacy/
+  gsutil cp gs://$GS_INPUT_BUCKET/$manifest /tmp/$manifest
 
-  gsutil cp -r gs://$GS_OUTPUT_BUCKET/$release/active /tmp/active/
-  gsutil cp -r gs://$GS_OUTPUT_BUCKET/$release/legacy /tmp/legacy/
+  echo "Finish downloading the $manifest_type manifest"
 
-  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_validate --manifest /tmp/$active_manifest --log_file /tmp/active/
-  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_validate --manifest /tmp/$legacy_manifest --log_file /tmp/legacy/
+
+  if [ -d "/tmp/$manifest_type/" ]; then
+    rm -r /tmp/$manifest_type/
+  fi
+
+  if [ -f "/tmp/validation.log" ]; then
+    rm  /tmp/validation.log
+  fi
+  
+  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log /tmp/validation.log
+
+  echo "/tmp/$manifest"
+
+  python3 $GEN3_HOME/gen3/lib/dcf/google_refresh_report.py google_refresh_validate --manifest "/tmp/$manifest" --log_file "/tmp/validation.log"
 
 }
 
 case "$command" in
 "aws-refresh")
+  echo "HELLO"
   generate_aws_refresh_report "$@"
   ;;
 "validate-aws-refresh")
