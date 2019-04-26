@@ -1,6 +1,0 @@
-#project_name = "common-deploy-tf"
-billing_account = "011336-65F4E7-456C92"
-credential_file = "../credentials.json"
-folder_id = "700043220908"
-region = "us-central1"
-project_name = "elephant-hippo"

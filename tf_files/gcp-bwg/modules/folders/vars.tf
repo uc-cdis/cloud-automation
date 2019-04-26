@@ -5,3 +5,7 @@ variable "display_name" {
 variable "parent_folder" {
   description = "The name of the Organization in the form {organization_id} or organizations/{organization_id}"
 }
+
+variable "create_folder" {
+  description = "Decide whether or not we need to create folders"
+}

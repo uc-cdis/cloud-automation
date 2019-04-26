@@ -42,6 +42,11 @@ then
   exit 1;
 fi
 
+echo "Creating bucket"
+BUCKET="terraform-state-"
+NUMBER=$( date '+%N')
+gsutil mb -l us-central1 gs://"$BUCKET-$NUMBER"
+
  # Seed Project
 echo "Verifying project..."
 SEED_PROJECT="$(gcloud projects list --format="value(projectId)" --filter="$2")"
@@ -67,7 +72,7 @@ else
 fi
 
  # Seed Service Account creation
-SA_NAME="terraform-deploy-${RANDOM}"
+SA_NAME="project-factory-${RANDOM}"
 SA_ID="${SA_NAME}@${SEED_PROJECT}.iam.gserviceaccount.com"
 STAGING_DIR="${PWD}"
 KEY_FILE="${STAGING_DIR}/credentials.json"
@@ -123,6 +128,14 @@ gcloud organizations add-iam-policy-binding \
   --role="roles/compute.networkAdmin" \
   --user-output-enabled false
 
+# Grant roles/cloudsql.admin to the service account on the organization for SQL admin
+echo "Adding role roles/cloudsql.admin..."
+gcloud organizations add-iam-policy-binding \
+  "${ORG_ID}" \
+  --member="serviceAccount:${SA_ID}" \
+  --role="roles/cloudsql.admin" \
+  --user-output-enabled false
+
 # Grant roles/iam.serviceAccountAdmin to the service account on the organization
 echo "Adding role roles/iam.serviceAccountAdmin..."
 gcloud organizations add-iam-policy-binding \
@@ -157,6 +170,19 @@ gcloud services enable \
   admin.googleapis.com \
   --project "${SEED_PROJECT}"
 
+gcloud services enable \
+  sqladmin.googleapis.com \
+  --project "${SEED_PROJECT}"
+
+gcloud services enable \
+  containerregistry.googleapis.com \
+  --project "${SEED_PROJECT}"
+
+gcloud services enable \
+  servicenetworking.googleapis.com \
+  --project "${SEED_PROJECT}"
+  
+
 # enable the billing account
 if [[ ${BILLING_ACCOUNT:-} != "" ]]; then
   echo "Enabling the billing account..."
@@ -175,4 +201,17 @@ if [[ ${BILLING_ACCOUNT:-} != "" ]]; then
   rm -f policy-tmp-$$.yml
 fi
 
+echo "Rename credentials file."
+gsutil ren credentials.json $SA_NAME.json
+
+echo "Copy credentials to bucket"
+gsutil cp $SA_NAME.json gs://$BUCKET-$NUMBER
+
+VM="adminvm"
+ZONE="us-central1-c"
+TYPE="n1-standard-1"
+SUBNET="default"
+
+echo "Spinning up Admin VM"
+gcloud compute --project=$2 instances create $VM --zone=$ZONE --machine-type=$TYPE --subnet=$SUBNET --network-tier=PREMIUM --maintenance-policy=MIGRATE --image=ubuntu-1604-xenial-v20190411 --image-project=ubuntu-os-cloud
 echo "All done."
