@@ -8,11 +8,6 @@ AWS_OUTPUT_BUCKET="data-refresh-output"
 GS_INPUT_BUCKET="replication-input"
 GS_OUTPUT_BUCKET="datarefresh-log"
 
-# AWS_INPUT_BUCKET="giang816test"
-# AWS_OUTPUT_BUCKET="xssxs"
-# GS_INPUT_BUCKET="data-flow-code"
-# GS_OUTPUT_BUCKET="data-flow-code"
-
 echo "Hello from dcf!"
 command=$1
 release=$2
@@ -58,10 +53,15 @@ validate_aws_refresh_report() {
   fi
   
   echo "Finish downloading the $manifest_type manifest"
+  
+  validation_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep validation.log | awk -F' ' '{print $4}')"
 
-  # if [ -d "/tmp/$manifest_type" ]; then
-  #   rm -r /tmp/$manifest_type/
-  # fi
+  if [ -z "${validation_log}" ]; then
+    echo "The validation log does not exist. Please run the validation script first
+    as desribed in https://github.com/uc-cdis/cdis-wiki/blob/master/ops/Data-refresh.md
+    """
+    exit 1
+  fi
 
   aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log /tmp/validation.log
   
@@ -73,7 +73,7 @@ generate_gs_refresh_report() {
 
   manifest_type=$3
 
-  manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_$manifest_type_.*$release.*tsv | awk -F'/' '{print $4}')"
+  manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release.*tsv | awk -F'/' '{print $4}')"
   
   if [ -z "$manifest" ]; then
     echo "fail to download $manifest_type manifest!!!"
@@ -105,7 +105,7 @@ generate_gs_refresh_report() {
 validate_gs_refresh_report() {
 
   manifest_type=$3
-  manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_$manifest_type_.*$release | awk -F'/' '{print $4}')"
+  manifest="$(gsutil ls gs://$GS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F'/' '{print $4}')"
   
   if [ -z "$manifest" ]; then
     echo "fail to download $manifest_type manifest!!!"
@@ -124,6 +124,15 @@ validate_gs_refresh_report() {
   if [ -f "/tmp/validation.log" ]; then
     rm  /tmp/validation.log
   fi
+
+  validation_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep validation.log | awk -F' ' '{print $4}')"
+
+  if [ -z "${validation_log}" ]; then
+    echo "The validation log does not exist. Please run the validation script first
+    as desribed in https://github.com/uc-cdis/cdis-wiki/blob/master/ops/Data-refresh.md
+    """
+    exit 1
+  fi
   
   aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log /tmp/validation.log
 
@@ -133,9 +142,24 @@ validate_gs_refresh_report() {
 
 }
 
+generate_isb_manifest() {
+  manifest_type=$3
+  manifest="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release.*_DCF.tsv$ | awk -F' ' '{print $4}')"
+
+  if [ -z "$manifest" ]; then
+    echo """
+    The aumgmented manifest does not exist. Please run the validation script first
+    as desribed in https://github.com/uc-cdis/cdis-wiki/blob/master/ops/Data-refresh.md
+    """
+    exit 1
+  fi
+  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$manifest ./
+  echo "The manifest is saved at ./$manifest"
+
+}
+
 case "$command" in
 "aws-refresh")
-  echo "HELLO"
   generate_aws_refresh_report "$@"
   ;;
 "validate-aws-refresh")
@@ -147,5 +171,7 @@ case "$command" in
 "validate-google-refresh")
   validate_gs_refresh_report "$@"
   ;;
+"generate-augmented-manifest")
+  generate_isb_manifest "$@"
+  ;;
 esac
-
