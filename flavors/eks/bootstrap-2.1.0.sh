@@ -38,7 +38,7 @@ if [[ ${nodepool} == jupyter ]];
 then
     KUBELET_EXTRA_ARGUMENTS="$KUBELET_EXTRA_ARGUMENTS --register-with-taints=role=${nodepool}:NoSchedule"
 fi
-/etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name}
+/etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} --apiserver-endpoint ${eks_endpoint} --b64-cluster-ca ${eks_ca}
 
 cat > /home/ec2-user/.ssh/authorized_keys <<EFO
 ${ssh_keys}

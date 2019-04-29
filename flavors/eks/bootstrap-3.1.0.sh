@@ -81,7 +81,7 @@ cat >> /usr/local/bin/initialize.sh <<EOF
 #!/bin/bash
 if ! [ -f /var/bootstraped ];
 then
-    /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} > /var/bootstraped 2>&1
+    /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} --apiserver-endpoint ${eks_endpoint} --b64-cluster-ca ${eks_ca} > /var/bootstraped 2>&1
 fi
 EOF
 
