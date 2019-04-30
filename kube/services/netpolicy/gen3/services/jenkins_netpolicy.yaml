@@ -6,13 +6,14 @@ spec:
   podSelector:
     matchLabels:
       app: jenkins
-  ingress: 
-    - {}
-      ports:
-         - port: 80
-         - port: 443
-  egress:
-    - {}
+  ingress:
+    - ports:
+        - port: 80
+        - port: 8080
+        - port: 443
+      from: []   
+  egress: 
+    - to: []
   policyTypes:
    - Ingress
    - Egress

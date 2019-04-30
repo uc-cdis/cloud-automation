@@ -89,8 +89,8 @@ gen3_roll() {
   fi
 
   if [[ "$depName" == "jupyter" ]]; then # special case
-    echo "gen3 kube-roll-jupyter" 1>&2
-    gen3 kube-roll-jupyter
+    gen3_log_warn "prefer to run gen3 jupyter upgrade directly"
+    gen3 jupyter upgrade
     return $?
   fi
 

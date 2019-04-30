@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-auth
+  name: networkpolicy-userhelper
 spec:
   podSelector:
     matchLabels:

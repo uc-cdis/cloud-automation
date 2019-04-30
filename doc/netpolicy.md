@@ -5,6 +5,8 @@ Helpers for generating procedural network policies.
 ## Overview
 
 Mostly used by `kube-setup-networkpolicy`.
+This is a great resource: https://github.com/ahmetb/kubernetes-network-policy-recipes
+
 
 ## Use
 

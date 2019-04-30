@@ -31,14 +31,11 @@ name2IP() {
 
 #......................................
 
-notebookNamespace="(gen3 jupyter j-namespace)"
-
 # apply base policies in both the commons namespace and the jupyter/user namespace
 for name in "${GEN3_HOME}/kube/services/netpolicy/base/"*.yaml; do
-  echo "... applying $name"
   g3kubectl apply -f "$name"
-  (yq -r . < "$name") | jq -r --arg namespace "$notebookNamespace" '.metadata.namespace=$namespace' | g3kubectl apply -f -
 done
+notebookNamespace="(gen3 jupyter j-namespace)"
 
 # apply gen3 generic policies in commons namespace
 for name in "${GEN3_HOME}/kube/services/netpolicy/gen3/"*.yaml; do
@@ -47,16 +44,24 @@ done
 
 # apply service-specific policies
 for name in "${GEN3_HOME}/kube/services/netpolicy/gen3/services/"*.yaml; do
-  (g3k_kv_filter "$name" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" NOTEBOOK_NAMESPACE "namespace: $notebookNamespace" | g3kubectl apply -f -) || true
+  g3kubectl apply -f "$name" || true
 done
 
 # apply procedurally-generated policies
 # external internet access in both commons and user namespaces
-gen3 netpolicy external | g3kubectl apply -f
-gen3 netpolicy external | jq -r --arg namespace "$notebookNamespace" '.spec.podSelector={} | .metadata.namespace=$namespace' | g3kubectl apply -f
+gen3 netpolicy external | g3kubectl apply -f -
 # s3 access
-gen3 netpolicy s3 | g3kubectl apply -f
+gen3 netpolicy s3 | g3kubectl apply -f -
 # db access
 for serviceName in $(gen3 db services); do
   gen3 netpolicy db "$serviceName" | g3kubectl apply -f -
+  gen3 netpolicy bydb "$serviceName" | g3kubectl apply -f -
 done
+
+if g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
+  # this is also copied into kube-setup-jupyterhub
+  for name in "${GEN3_HOME}/kube/services/netpolicy/base/"*.yaml; do
+    (yq -r . < "$name") | jq -r --arg namespace "$notebookNamespace" '.metadata.namespace=$namespace' | g3kubectl apply -f -
+  done
+  gen3 netpolicy external | jq -r --arg namespace "$notebookNamespace" '.spec.podSelector={} | .metadata.namespace=$namespace' | g3kubectl apply -f
+fi

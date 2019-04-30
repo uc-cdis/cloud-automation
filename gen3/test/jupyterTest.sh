@@ -1,5 +1,6 @@
 test_jupyter_prepuller() {
-  (gen3 jupyter prepuller | yq -e -r . > /dev/null); becuase $? "jupyter prepuller generates valid yaml"
+  (gen3 jupyter prepuller | yq -e -r . > /dev/null); because $? "jupyter prepuller generates valid yaml"
+  (gen3 jupyter prepuller extra1 extra2 | yq -e -r . > /dev/null); because $? "jupyter prepuller with extra images generates valid yaml"
 }
 
 test_jupyter_namespace() {

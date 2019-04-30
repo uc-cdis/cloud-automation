@@ -10,11 +10,7 @@ gen3_load "gen3/gen3setup"
 # Jenkins friendly
 export WORKSPACE="${WORKSPACE:-$HOME}"
 
-# If you change this name you need to change it in the kube/.../jupyterhub-config.py too
 notebookNamespace="$(gen3 jupyter j-namespace)"
-if [[ -n "$namespace" && "$namespace" != "default" ]]; then
-  notebookNamespace="jupyter-pods-$namespace"
-fi
 
 # Create the namespace for user pods
 if ! g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
@@ -23,11 +19,12 @@ if ! g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
 else
   echo "I think k8s namespace ${notebookNamespace} already exists"
 fi
-
 g3kubectl label "${notebookNamespace}" "role=usercode" > /dev/null 2>&1 || true
 
-# update manifest-jupyterhub configmap
-gen3 gitops configmaps
+# copied from kube-setup-netpolicy
+for name in "${GEN3_HOME}/kube/services/netpolicy/base/"*.yaml; do
+  (yq -r . < "$name") | jq -r --arg namespace "$notebookNamespace" '.metadata.namespace=$namespace' | g3kubectl apply -f -
+done
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/role-jupyter.yaml"

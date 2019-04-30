@@ -219,7 +219,7 @@ gen3_net_db_access() {
     gen3_log_err "gen3_net_db_access" "unable to determine address of $serviceName database"
     return 1
   fi
-  gen3_net_cidr_access "networkpolicy-db$serviceName" "$ip/32" | jq -r -e --arg serviceName "$serviceName" '.spec.podSelector = { "matchExpressions": { "app":$serviceName  } }'
+  gen3_net_cidr_access "networkpolicy-db$serviceName" "$ip/32" | jq -r -e --arg serviceName "$serviceName" '.spec.podSelector = { "matchLabels": { "app":$serviceName  } }'
 }
 
 #
@@ -236,7 +236,7 @@ gen3_net_bydb_access() {
   fi
   local serviceName
   serviceName="$1"
-  (gen3_net_db_access "$@" || echo "break") | jq -r -e --arg serviceKey "db$serviceName" '.spec.podSelector = { "matchExpressions": { ($serviceKey): "yes"  } } | .metadata.name+="-bydb"'
+  (gen3_net_db_access "$@" || echo "break") | jq -r -e --arg serviceKey "db$serviceName" '.spec.podSelector = { "matchLabels": { ($serviceKey): "yes"  } } | .metadata.name+="-bydb"'
 }
 
 # main -------------------------------

@@ -17,6 +17,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [ec2](./ec2.md) - describe, reboot
 * [job logs|pods|run](./job.md)
 * [joblogs](./job.md) - see [job logs](./job.md)
+* [jupyter](./jupyter.md) - j-namespace. upgrade
 * [klock](./klock.md) - formerly kube-lock/kube-unlock
 * [kube-setup-portal](./kube-setup-portal.md)
 * [kube-setup-revproxy](./kube-setup-revproxy.md)
