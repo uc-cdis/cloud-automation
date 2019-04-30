@@ -45,7 +45,7 @@ fi
 echo "Creating bucket"
 BUCKET="terraform-state-"
 NUMBER=$( date '+%N')
-gsutil mb -l us-central1 gs://"$BUCKET-$NUMBER"
+gsutil mb -l us-central1 -c nearline gs://"$BUCKET-$NUMBER"
 
  # Seed Project
 echo "Verifying project..."
@@ -144,6 +144,14 @@ gcloud organizations add-iam-policy-binding \
   --role="roles/iam.serviceAccountAdmin" \
   --user-output-enabled false
 
+# Grant roles/storage.admin to the service account on the organization
+echo "Adding role roles/storage.admin..."
+gcloud organizations add-iam-policy-binding \
+  "${ORG_ID}" \
+  --member="serviceAccount:${SA_ID}" \
+  --role="roles/storage.admin" \
+  --user-output-enabled false
+
  # Grant roles/resourcemanager.projectIamAdmin to the Seed Service Account on the Seed Project
 echo "Adding role roles/resourcemanager.projectIamAdmin..."
 gcloud projects add-iam-policy-binding \
@@ -213,5 +221,5 @@ TYPE="n1-standard-1"
 SUBNET="default"
 
 echo "Spinning up Admin VM"
-gcloud compute --project=$2 instances create $VM --zone=$ZONE --machine-type=$TYPE --subnet=$SUBNET --network-tier=PREMIUM --maintenance-policy=MIGRATE --image=ubuntu-1604-xenial-v20190411 --image-project=ubuntu-os-cloud
+gcloud compute --project=$2 instances create $VM --zone=$ZONE --machine-type=$TYPE --subnet=$SUBNET --network-tier=PREMIUM --maintenance-policy=MIGRATE --image=ubuntu-1604-xenial-v20190411 --image-project=ubuntu-os-cloud --scopes=https://www.googleapis.com/auth/cloud-platform
 echo "All done."

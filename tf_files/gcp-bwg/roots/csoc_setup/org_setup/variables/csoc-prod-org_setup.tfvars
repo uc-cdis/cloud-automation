@@ -1,0 +1,13 @@
+env = "csoc-prod"
+project_name = "<project_name_here>"
+billing_account = "<billing_account_here>"
+credential_file = "<credentials_here>.json"
+create_folder = true
+set_parent_folder = true
+folder = "csoc-production"
+region = "us-central1"
+organization = "<organization_name_here>"
+org_id = "<org_id_here>"
+prefix_org_setup = "org_setup_csoc"
+prefix_project_setup = "project_setup_csoc"
+state_bucket_name = "<tfstate_bucket_here>"

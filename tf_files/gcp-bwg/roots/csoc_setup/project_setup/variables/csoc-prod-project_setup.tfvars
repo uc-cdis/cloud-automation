@@ -64,17 +64,16 @@ https_ingress_ports = ["443"]
 https_ingress_source_ranges = ["172.21.1.0/24"]
 https_ingress_target_tags = ["https-in"]
 
-project_name = "jca-uchi-tf-csoc"
-billing_account = "01A7C1-F7ECC5-A7181E"
-credential_file = "../credentials.json"
+project_name = "<new_project_name_here>"
+billing_account = "<billing_account_here>"
+credential_file = "<credentials>.json"
 create_folder = true
 set_parent_folder = true
 folder = "csoc-production"
 region = "us-central1"
-organization = "prorelativity.com"
-org_id = "575228741867"
+organization = "<organization_name_here>"
+org_id = "<org_id_here>"
 prefix_org_setup = "org_setup_csoc"
 prefix_project_setup = "project_setup_csoc"
-state_bucket_name = "jca-uchi-tf-state"
-terraform_workspace = "csoc_setup"
-
+state_bucket_name = "<tfstate_bucket_here>"
+env = "csoc-prod"
