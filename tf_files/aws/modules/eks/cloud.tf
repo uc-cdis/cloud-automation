@@ -14,8 +14,8 @@ module "jupyter_pool" {
   nodepool                  = "jupyter"
   vpc_name                  = "${var.vpc_name}"
   csoc_cidr                 = "${var.csoc_cidr}"
-  #eks_cluster_endpoint     = "${aws_eks_cluster.eks_cluster.endpoint}"
-  #eks_cluster_ca           = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+  eks_cluster_endpoint     = "${aws_eks_cluster.eks_cluster.endpoint}"
+  eks_cluster_ca           = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
   eks_private_subnets       = "${aws_subnet.eks_private.*.id}"
   control_plane_sg          = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg       = "${aws_security_group.eks_nodes_sg.id}"
@@ -138,7 +138,31 @@ resource "aws_subnet" "eks_public" {
   }
 }
 
+resource "aws_vpc_endpoint" "ec2" {
+  vpc_id       = "${data.aws_vpc.the_vpc.id}"
+  service_name = "com.amazonaws.us-east-1.ec2"
+  vpc_endpoint_type = "Interface"
+  security_group_ids  = [
+    "${aws_security_group.eks_nodes_sg.id}"
+  ]
 
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+}
+
+
+resource "aws_vpc_endpoint" "ecr-dkr" {
+  vpc_id       = "${data.aws_vpc.the_vpc.id}"
+  service_name = "com.amazonaws.us-east-1.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = [
+    "${aws_security_group.eks_nodes_sg.id}"
+  ]
+
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+}
 
 resource "aws_route_table" "eks_private" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
@@ -150,11 +174,11 @@ resource "aws_route_table" "eks_private" {
 
   # We want to be able to talk to aws freely, therefore we are allowing
   # certain stuff overpass the proxy
-  #route {
+  route {
     # logs.us-east-1.amazonaws.com
-  #  cidr_block     = "52.0.0.0/8"
-  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  #}
+    cidr_block     = "52.0.0.0/8"
+    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  }
   #route {
     # logs.us-east-1.amazonaws.com as well, these guys are not static, therefore whitelist the whole list
   #  cidr_block     = "54.0.0.0/8"
