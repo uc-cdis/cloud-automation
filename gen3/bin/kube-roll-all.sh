@@ -105,6 +105,11 @@ else
   echo "INFO: not deploying manifestservice - no manifest entry for .versions.manifestservice"
 fi
 
+if g3k_manifest_lookup .versions.ambassador 2> /dev/null; then
+  gen3 kube-setup-ambassador
+else
+  echo "INFO: not deploying rstudio - no manifest entry for .versions.rstudio"
+fi
 gen3 kube-setup-revproxy
 
 # Internal k8s systems
