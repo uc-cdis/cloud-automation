@@ -157,3 +157,12 @@ variable "secondary_slack_webhook" {
 variable "alarm_threshold" {
   default = "85"
 }
+
+
+variable "csoc_managed" {
+  default = "yes"
+}
+
+variable "organization_name" {
+  default = "Basic Service"
+}

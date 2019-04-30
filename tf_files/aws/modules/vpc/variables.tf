@@ -36,3 +36,7 @@ variable "csoc_vpc_id" {
 variable "squid-nlb-endpointservice-name" {
   default = "com.amazonaws.vpce.us-east-1.vpce-svc-0ce2261f708539011"
 }
+
+variable "csoc_managed" {
+  default = "yes"
+}

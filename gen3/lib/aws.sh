@@ -490,7 +490,7 @@ vpc_name="$GEN3_WORKSPACE"
 # octets are legacy, we should now use the full CIDR
 #vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
 #vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
-vpc_cidr_block=172.X.Y.0/20
+vpc_cidr_block="172.X.Y.0/20"
 
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 portal_app="dev"
@@ -498,6 +498,7 @@ portal_app="dev"
 aws_cert_name="arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
 
 db_size=10
+db_instance="db.t2.micro"
 
 # This indexd guid prefix should come from Trevar/ZAC
 indexd_prefix=ENTER_UNIQUE_GUID_PREFIX
@@ -528,7 +529,6 @@ db_password_peregrine="$(random_alphanumeric 32)"
 
 db_password_indexd="$(random_alphanumeric 32)"
 
-db_instance="db.t2.micro"
 
 # password for write access to indexd
 gdcapi_indexd_password="$(random_alphanumeric 32)"

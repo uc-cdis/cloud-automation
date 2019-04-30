@@ -13,7 +13,8 @@ variable "jupyter_instance_type"{
   default = "t3.medium"
 }
 
-variable "csoc_cidr" {
+#variable "csoc_cidr" {
+variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
