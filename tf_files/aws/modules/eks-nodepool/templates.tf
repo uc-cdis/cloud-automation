@@ -7,8 +7,8 @@ data "template_file" "bootstrap" {
   vars {
     #eks_ca       = "${data.aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
     #eks_endpoint = "${data.aws_eks_cluster.eks_cluster.endpoint}"
-    #eks_ca       = "${var.eks_cluster_ca}"
-    #eks_endpoint = "${var.eks_cluster_endpoint}"
+    eks_ca       = "${var.eks_cluster_ca}"
+    eks_endpoint = "${var.eks_cluster_endpoint}"
     eks_region   = "${data.aws_region.current.name}"
     vpc_name     = "${var.vpc_name}"
     ssh_keys     = "${data.template_file.ssh_keys.rendered}"

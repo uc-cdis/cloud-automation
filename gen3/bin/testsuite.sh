@@ -37,6 +37,8 @@ while [[ $# > 0 ]]; do
 done
 
 gen3_load "gen3/test/apiTest"
+gen3_load "gen3/test/awsuserTest"
+gen3_load "gen3/test/awsroleTest"
 gen3_load "gen3/test/dbTest"
 gen3_load "gen3/test/gitopsTest"
 gen3_load "gen3/test/klockTest"
