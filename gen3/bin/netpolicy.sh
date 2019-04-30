@@ -14,6 +14,7 @@ gen3_net_isIp() {
   [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
 }
 
+
 #
 # Generate a network policy that
 # allows communication to all CIDR's except 10/8 and 172.16/12 and 169.254/16
