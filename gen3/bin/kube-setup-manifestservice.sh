@@ -13,19 +13,22 @@ gen3 kube-setup-secrets
 hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
 bucketname="manifest-${hostname//./-}"
 gen3 s3 create "$bucketname"
-# this will fail if manifest-user does not exist ... I think -Reuben
-gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name manifest_bot || true
+gen3 awsuser create manifest-bot
+gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name manifest-bot
 
 mkdir -p $(gen3_secrets_folder)/g3auto/manifestservice
 credsFile="$(gen3_secrets_folder)/g3auto/manifestservice/config.json"
 if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
-  gen3_log_err "initializing manifestservice config.json - need to add AWS creds afterwards"
+  gen3_log_info "initializing manifestservice config.json"
+  user=$(gen3 secrets decode manifest-bot-g3auto awsusercreds.json)
+  key_id=$(jq -r .id <<< $user)
+  access_key=$(jq -r .secret <<< $user)
   cat - > "$credsFile" <<EOM
 {
   "manifest_bucket_name": "$bucketname",
   "hostname": "$hostname",
-  "aws_access_key_id": "",
-  "aws_secret_access_key": ""
+  "aws_access_key_id": "$key_id",
+  "aws_secret_access_key": "$access_key"
 }
 EOM
   gen3 secrets sync "initialize manifestservice/config.json"
