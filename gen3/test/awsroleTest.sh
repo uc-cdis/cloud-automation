@@ -1,6 +1,5 @@
 test_awsrole_create() {
-  GEN3_SOURCE_ONLY=true
-  gen3_load "gen3/bin/awsrole.sh"
+  gen3_load "gen3/bin/awsrole"
 
   # Mock util b/c it makes aws calls
   function _get_entity_type() {

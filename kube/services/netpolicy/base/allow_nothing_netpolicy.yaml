@@ -4,8 +4,8 @@ metadata:
   name: networkpolicy-allow-nothing
 spec:
   policyTypes:
-  - Egress
   - Ingress
+  - Egress
   podSelector: {}
   ingress: []
   egress: []

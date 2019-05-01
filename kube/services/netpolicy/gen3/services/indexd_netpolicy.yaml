@@ -26,6 +26,9 @@ spec:
       - podSelector:
           matchLabels:
              app: fenceshib
+      - podSelector:
+          matchLabels:
+             app: gen3job
       ports:
          - port: 80
          - port: 443

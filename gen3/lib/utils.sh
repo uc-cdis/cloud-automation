@@ -170,7 +170,17 @@ gen3_load() {
     return 1
   fi
   #echo "Loading $key - $filePath"
+  # support loading stack - load somethig that loads something that ...
+  if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
+    GEN3_SOURCE_ONLY=1
+  else
+    GEN3_SOURCE_ONLY=$((GEN3_SOURCE_ONLY + 1))
+  fi
   source "${filePath}"
+  GEN3_SOURCE_ONLY=$((GEN3_SOURCE_ONLY - 1))
+  if [[ "$GEN3_SOURCE_ONLY" -lt 1 ]]; then
+    unset GEN3_SOURCE_ONLY
+  fi
 }
 
 

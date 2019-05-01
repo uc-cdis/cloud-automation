@@ -23,8 +23,6 @@ spec:
       - podSelector:
           matchLabels:
             app: arranger-dashboard
-      ports:
-         - port: 9200
   egress:
     - to:
       - ipBlock:

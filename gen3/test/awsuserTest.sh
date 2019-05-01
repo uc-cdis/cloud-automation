@@ -1,6 +1,5 @@
 test_awsuser_create() {
-  GEN3_SOURCE_ONLY=true
-  gen3_load "gen3/bin/awsuser.sh"
+  gen3_load "gen3/bin/awsuser"
 
   # Mock util b/c it makes aws calls
   function _get_entity_type() {

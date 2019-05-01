@@ -38,6 +38,10 @@ gen3_net_external_access() {
                     {
                         "ipBlock": {
                             "cidr": "0.0.0.0/32"
+                            "except":
+                            - 169.254.0.0/16
+                            - 172.16.0.0/12
+                            - 10.0.0.0/8
                         }
                     }
                 ]
@@ -55,45 +59,9 @@ gen3_net_external_access() {
 }
 EOM
 
-  local ip
-  # whitelist */8 except 10, 172, and 169 ...
-  for ip in {1..254}; do
-    if [[ "$ip" -ne 10 && "$ip" -ne 172 && "$ip" -ne 169 ]]; then
-      cat - >> "$cidrList" <<EOM
-{
-  "ipBlock": {
-    "cidr": "${ip}.0.0.0/8"
-  }
-}
-EOM
-    fi
-  done
-  # whitelist 172.X/12 except 172.16/12
-  for ip in {0..15}; do
-    if [[ $ip -ne 1 ]]; then
-      cat - >> "$cidrList" <<EOM
-{
-  "ipBlock": {
-    "cidr": "172.$((ip * 16)).0.0/12"
-  }
-}
-EOM
-    fi
-  done
-  # whitelist 169.X/16 except 169.254/16
-  for ip in {0..255}; do
-    if [[ $ip -ne 254 ]]; then
-      cat - >> "$cidrList" <<EOM
-{
-  "ipBlock": {
-    "cidr": "169.${ip}.0.0/16"
-  }
-}
-EOM
-    fi
-  done
   # whitelist the squid proxy if we can identify it
   local squidAddr
+  local result
   squidAddr="$(dig +short cloud-proxy.internal.io)"
   if gen3_net_isIp "$squidAddr"; then
     cat - >> "$cidrList" <<EOM
@@ -103,10 +71,10 @@ EOM
   }
 }
 EOM
+    jq -r -e --slurpfile data "$cidrList" '.spec.egress[1].to=$data' < "$basePolicy"
+  else
+    cat "$basePolicy"
   fi
-
-  local result
-  jq -r -e --slurpfile data "$cidrList" '.spec.egress[0].to=$data' < "$basePolicy"
   result=$?
   rm "$basePolicy"
   rm "$cidrList"
@@ -239,6 +207,75 @@ gen3_net_bydb_access() {
   (gen3_net_db_access "$@" || echo "break") | jq -r -e --arg serviceKey "db$serviceName" '.spec.podSelector = { "matchLabels": { ($serviceKey): "yes"  } } | .metadata.name+="-bydb"'
 }
 
+
+
+
+#
+# Generate a policy that allows ingress to pods
+# labeled with `app` equal to the first argument from pods
+# labeled with `app` equal to subsequent arguments
+#
+gen3_net_ingress_to_app() {
+  local app
+  if [[ $# -lt 2 ]]; then
+    gen3_log_err "gen3_net_ingress_to_app" "empty spec $@"
+    return 0
+  fi
+  app="$1"
+  shift
+  (cat - <<EOM
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-ingress-to-$app
+spec:
+  podSelector:
+    matchLabels:
+      app: $app
+  ingress:
+    - from:
+      - podSelector:
+          matchExpressions:
+          - { key: app, operator: In, values: [] }
+  policyTypes:
+   - Ingress
+EOM
+  ) | yq -r . | jq -e --arg apps "$*" -r '.spec.ingress[0].from[0].podSelector.matchExpressions[0].values = ($apps | split(" +"; "i"))'
+}
+
+#
+# Generate a policy that allows egress to pods
+# labeled with `app` equal to the first argument from pods
+# labeled with `app` equal to subsequent arguments
+#
+gen3_net_egress_to_app() {
+  local app
+  if [[ $# -lt 2 ]]; then
+    gen3_log_err "gen3_net_ingress_to_app" "empty spec $@"
+    return 0
+  fi
+  app="$1"
+  shift
+  (cat - <<EOM
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-egress-to-$app
+spec:
+  podSelector:
+    matchExpressions:
+    - { key: app, operator: In, values: [] }
+  egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app: $app
+  policyTypes:
+   - Egress
+EOM
+  ) | yq -r . | jq -e --arg apps "$*" -r '.spec.podSelector.matchExpressions[0].values = ($apps | split(" +"; "i"))'
+}
+
 # main -------------------------------
 
 command="$1"
@@ -259,10 +296,13 @@ case "$command" in
   "bydb")
     gen3_net_bydb_access "$@"
     ;;
-  "isIp")
-    gen3_net_isIp "$@"
+  ingress[tT]o)
+    gen3_net_ingress_to_app "$@"
     ;;
-  "isip")
+  egress[tT]o)
+    gen3_net_egress_to_app "$@"
+    ;;
+  is[Ii]p)
     gen3_net_isIp "$@"
     ;;
   *)
