@@ -2,9 +2,8 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: ambassador
+  name: ambassador-deployment
 spec:
-  replicas: 3
   template:
     metadata:
       annotations:
@@ -25,7 +24,7 @@ spec:
       serviceAccountName: ambassador
       containers:
       - name: ambassador
-        image: quay.io/datawire/ambassador:0.60.2
+        GEN3_AMBASSADOR_IMAGE
         resources:
           limits:
             cpu: 1
