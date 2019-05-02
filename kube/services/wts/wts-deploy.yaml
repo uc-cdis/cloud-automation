@@ -72,3 +72,9 @@ spec:
           httpGet:
             path: /_status
             port: 80
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+            memory: 1024Mi
