@@ -243,8 +243,8 @@ cd /home/ubuntu/cloud-automation
 git pull
 
 # This is needed temporarily for testing purposes ; before merging the code to master
-git checkout fix/squidautoroutetable
-git pull
+#git checkout fix/squidautoroutetable
+#git pull
 
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
