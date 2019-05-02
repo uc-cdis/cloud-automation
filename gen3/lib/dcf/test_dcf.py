@@ -1,15 +1,19 @@
+import os
 import aws_refresh_report
 import google_refresh_report
 import redaction
 
-aws_log_file = "./testData/aws/GDC_sample_manifest.txt"
-gs_log_dir = "./testData/google/active"
-validation_log = "./testData/validation.log"
 
-manifest = "./testData/GDC_sample_manifest.tsv"
-redaction_manifest = "./testData/GDC_sample_redact_manifest.tsv"
-aws_redact_log = "./testData/aws/aws_deletion_log.json"
-gs_redact_log = "./testData/google/gs_deletion_log.json"
+current_path = os.path.dirname(os.path.abspath(__file__))
+
+aws_log_file = current_path + "/testData/aws/GDC_sample_manifest.txt"
+gs_log_dir = current_path + "/testData/google/active"
+validation_log = current_path + "/testData/validation.log"
+
+manifest = current_path + "/testData/GDC_sample_manifest.tsv"
+redaction_manifest = current_path + "/testData/GDC_sample_redact_manifest.tsv"
+aws_redact_log = current_path + "/testData/aws/aws_deletion_log.json"
+gs_redact_log = current_path + "/testData/google/gs_deletion_log.json"
 
 def test_aws_report():
     report = aws_refresh_report.aws_refresh_report(manifest, aws_log_file)
