@@ -1,0 +1,137 @@
+[2019-04-30 20:54:01,251][Validation][   INFO] List of the manifests
+[2019-04-30 20:54:01,251][Validation][   INFO] s3://giang816test/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv
+[2019-04-30 20:54:01,251][Validation][   INFO] GDC_full_sync_legacy_manifest_20190326_post_DR16_DCF.tsv
+[2019-04-30 20:54:01,251][Validation][   INFO] scan all copied objects
+[2019-04-30 20:54:01,731][Validation][   INFO] INDEXD: get 1000 records
+[2019-04-30 20:54:02,207][Validation][   INFO] INDEXD: get 2000 records
+[2019-04-30 20:54:02,777][Validation][   INFO] INDEXD: get 3000 records
+[2019-04-30 20:54:03,238][Validation][   INFO] INDEXD: get 4000 records
+[2019-04-30 20:54:03,721][Validation][   INFO] INDEXD: get 5000 records
+[2019-04-30 20:54:04,214][Validation][   INFO] INDEXD: get 6000 records
+[2019-04-30 20:54:04,682][Validation][   INFO] INDEXD: get 7000 records
+[2019-04-30 20:54:05,288][Validation][   INFO] INDEXD: get 8000 records
+[2019-04-30 20:54:05,734][Validation][   INFO] INDEXD: get 9000 records
+[2019-04-30 20:54:06,203][Validation][   INFO] INDEXD: get 10000 records
+[2019-04-30 20:54:06,659][Validation][   INFO] INDEXD: get 11000 records
+[2019-04-30 20:54:07,132][Validation][   INFO] INDEXD: get 12000 records
+[2019-04-30 20:54:07,589][Validation][   INFO] INDEXD: get 13000 records
+[2019-04-30 20:54:08,047][Validation][   INFO] INDEXD: get 14000 records
+[2019-04-30 20:54:08,494][Validation][   INFO] INDEXD: get 15000 records
+[2019-04-30 20:54:09,007][Validation][   INFO] INDEXD: get 16000 records
+[2019-04-30 20:54:09,469][Validation][   INFO] INDEXD: get 17000 records
+[2019-04-30 20:54:09,934][Validation][   INFO] INDEXD: get 18000 records
+[2019-04-30 20:54:10,455][Validation][   INFO] INDEXD: get 19000 records
+[2019-04-30 20:54:10,881][Validation][   INFO] INDEXD: get 20000 records
+[2019-04-30 20:54:11,320][Validation][   INFO] INDEXD: get 21000 records
+[2019-04-30 20:54:11,861][Validation][   INFO] INDEXD: get 22000 records
+[2019-04-30 20:54:12,305][Validation][   INFO] INDEXD: get 23000 records
+[2019-04-30 20:54:12,768][Validation][   INFO] INDEXD: get 24000 records
+[2019-04-30 20:54:13,208][Validation][   INFO] INDEXD: get 25000 records
+[2019-04-30 20:54:13,682][Validation][   INFO] INDEXD: get 26000 records
+[2019-04-30 20:54:14,144][Validation][   INFO] INDEXD: get 27000 records
+[2019-04-30 20:54:14,582][Validation][   INFO] INDEXD: get 28000 records
+[2019-04-30 20:54:15,011][Validation][   INFO] INDEXD: get 29000 records
+[2019-04-30 20:54:15,449][Validation][   INFO] INDEXD: get 30000 records
+[2019-04-30 20:54:15,906][Validation][   INFO] INDEXD: get 31000 records
+[2019-04-30 20:54:16,337][Validation][   INFO] INDEXD: get 32000 records
+[2019-04-30 20:54:16,771][Validation][   INFO] INDEXD: get 33000 records
+[2019-04-30 20:54:17,211][Validation][   INFO] INDEXD: get 34000 records
+[2019-04-30 20:54:17,633][Validation][   INFO] INDEXD: get 35000 records
+[2019-04-30 20:54:18,199][Validation][   INFO] INDEXD: get 36000 records
+[2019-04-30 20:54:19,253][Validation][   INFO] INDEXD: get 37000 records
+[2019-04-30 20:54:19,678][Validation][   INFO] INDEXD: get 38000 records
+[2019-04-30 20:54:20,128][Validation][   INFO] INDEXD: get 39000 records
+[2019-04-30 20:54:20,563][Validation][   INFO] INDEXD: get 40000 records
+[2019-04-30 20:54:20,996][Validation][   INFO] INDEXD: get 41000 records
+[2019-04-30 20:54:21,460][Validation][   INFO] INDEXD: get 42000 records
+[2019-04-30 20:54:21,950][Validation][   INFO] INDEXD: get 43000 records
+[2019-04-30 20:54:22,453][Validation][   INFO] INDEXD: get 44000 records
+[2019-04-30 20:54:22,887][Validation][   INFO] INDEXD: get 45000 records
+[2019-04-30 20:54:23,328][Validation][   INFO] INDEXD: get 46000 records
+[2019-04-30 20:54:23,774][Validation][   INFO] INDEXD: get 47000 records
+[2019-04-30 20:54:24,195][Validation][   INFO] INDEXD: get 48000 records
+[2019-04-30 20:54:24,645][Validation][   INFO] INDEXD: get 49000 records
+[2019-04-30 20:54:25,169][Validation][   INFO] INDEXD: get 50000 records
+[2019-04-30 20:54:25,606][Validation][   INFO] INDEXD: get 51000 records
+[2019-04-30 20:54:26,057][Validation][   INFO] INDEXD: get 52000 records
+[2019-04-30 20:54:26,479][Validation][   INFO] INDEXD: get 53000 records
+[2019-04-30 20:54:26,961][Validation][   INFO] INDEXD: get 54000 records
+[2019-04-30 20:54:27,383][Validation][   INFO] INDEXD: get 55000 records
+[2019-04-30 20:54:28,258][Validation][   INFO] INDEXD: get 56000 records
+[2019-04-30 20:54:28,687][Validation][   INFO] INDEXD: get 57000 records
+[2019-04-30 20:54:29,115][Validation][   INFO] INDEXD: get 58000 records
+[2019-04-30 20:54:29,564][Validation][   INFO] INDEXD: get 59000 records
+[2019-04-30 20:54:30,002][Validation][   INFO] INDEXD: get 60000 records
+[2019-04-30 20:54:30,524][Validation][   INFO] INDEXD: get 61000 records
+[2019-04-30 20:54:30,956][Validation][   INFO] INDEXD: get 62000 records
+[2019-04-30 20:54:31,434][Validation][   INFO] INDEXD: get 63000 records
+[2019-04-30 20:54:31,865][Validation][   INFO] INDEXD: get 64000 records
+[2019-04-30 20:54:32,612][Validation][   INFO] INDEXD: get 65000 records
+[2019-04-30 20:54:33,111][Validation][   INFO] INDEXD: get 66000 records
+[2019-04-30 20:54:33,557][Validation][   INFO] INDEXD: get 67000 records
+[2019-04-30 20:54:34,005][Validation][   INFO] INDEXD: get 68000 records
+[2019-04-30 20:54:34,496][Validation][   INFO] INDEXD: get 69000 records
+[2019-04-30 20:54:34,930][Validation][   INFO] INDEXD: get 70000 records
+[2019-04-30 20:54:35,433][Validation][   INFO] INDEXD: get 71000 records
+[2019-04-30 20:54:35,982][Validation][   INFO] INDEXD: get 72000 records
+[2019-04-30 20:54:36,430][Validation][   INFO] INDEXD: get 73000 records
+[2019-04-30 20:54:36,863][Validation][   INFO] INDEXD: get 74000 records
+[2019-04-30 20:54:37,298][Validation][   INFO] INDEXD: get 75000 records
+[2019-04-30 20:54:37,731][Validation][   INFO] INDEXD: get 76000 records
+[2019-04-30 20:54:43,236][Validation][   INFO] INDEXD: get 77000 records
+[2019-04-30 20:54:43,706][Validation][   INFO] INDEXD: get 78000 records
+[2019-04-30 20:54:44,233][Validation][   INFO] INDEXD: get 79000 records
+[2019-04-30 20:54:44,681][Validation][   INFO] INDEXD: get 80000 records
+[2019-04-30 20:54:45,117][Validation][   INFO] INDEXD: get 81000 records
+[2019-04-30 20:54:45,590][Validation][   INFO] INDEXD: get 82000 records
+[2019-04-30 20:54:46,056][Validation][   INFO] INDEXD: get 83000 records
+[2019-04-30 20:54:46,487][Validation][   INFO] INDEXD: get 84000 records
+[2019-04-30 20:54:46,941][Validation][   INFO] INDEXD: get 85000 records
+[2019-04-30 20:54:47,377][Validation][   INFO] INDEXD: get 86000 records
+[2019-04-30 20:54:47,834][Validation][   INFO] INDEXD: get 87000 records
+[2019-04-30 20:54:48,270][Validation][   INFO] INDEXD: get 88000 records
+[2019-04-30 20:54:48,700][Validation][   INFO] INDEXD: get 89000 records
+[2019-04-30 20:54:49,168][Validation][   INFO] INDEXD: get 90000 records
+[2019-04-30 20:54:49,610][Validation][   INFO] INDEXD: get 91000 records
+[2019-04-30 20:54:50,059][Validation][   INFO] INDEXD: get 92000 records
+[2019-04-30 20:54:50,583][Validation][   INFO] INDEXD: get 93000 records
+[2019-04-30 20:54:51,040][Validation][   INFO] INDEXD: get 94000 records
+[2019-04-30 20:54:51,480][Validation][   INFO] INDEXD: get 95000 records
+[2019-04-30 20:54:51,906][Validation][   INFO] INDEXD: get 96000 records
+[2019-04-30 20:54:52,335][Validation][   INFO] INDEXD: get 97000 records
+[2019-04-30 20:54:52,815][Validation][   INFO] INDEXD: get 98000 records
+[2019-04-30 20:54:53,339][Validation][   INFO] INDEXD: get 99000 records
+[2019-04-30 20:54:53,762][Validation][   INFO] INDEXD: get 100000 records
+[2019-04-30 20:54:54,188][Validation][   INFO] INDEXD: get 101000 records
+[2019-04-30 20:54:54,649][Validation][   INFO] INDEXD: get 102000 records
+[2019-04-30 20:54:55,086][Validation][   INFO] INDEXD: get 103000 records
+[2019-04-30 20:54:55,624][Validation][   INFO] INDEXD: get 104000 records
+[2019-04-30 20:54:56,132][Validation][   INFO] INDEXD: get 105000 records
+[2019-04-30 20:54:56,553][Validation][   INFO] INDEXD: get 106000 records
+[2019-04-30 20:54:56,997][Validation][   INFO] INDEXD: get 107000 records
+[2019-04-30 20:54:57,528][Validation][   INFO] INDEXD: get 108000 records
+[2019-04-30 20:54:57,968][Validation][   INFO] INDEXD: get 109000 records
+[2019-04-30 20:54:58,426][Validation][   INFO] INDEXD: get 110000 records
+[2019-04-30 20:54:58,822][Validation][   INFO] Start threads to list aws objects
+[2019-04-30 20:54:58,823][Validation][   INFO] Wait for threads to finish the jobs
+start to list objects in tcga-controlled
+start to list objects in tcga-open
+[2019-04-30 20:54:58,921][Validation][  ERROR] Can not detect the bucket tcga-open. Detail An error occurred (AccessDenied) when calling the ListObjectsV2 operation: Access Denied
+[2019-04-30 20:54:58,923][Validation][  ERROR] Can not detect the bucket tcga-controlled. Detail An error occurred (AccessDenied) when calling the ListObjectsV2 operation: Access Denied
+[2019-04-30 20:55:03,071][Validation][  ERROR] tcga-open/dfe81f49-90c8-4b8e-8a2e-f08470958e8c/MSK_252152917543_S01_CGH-v4_10_27Aug08__GCN_V3_A1__CBS_out.txt is not copied yet to aws buckets
+[2019-04-30 20:55:03,071][Validation][  ERROR] There is no indexd record for f92a6ae9-7fd3-4058-a679-f1e779460aaf
+[2019-04-30 20:55:03,071][Validation][  ERROR] tcga-controlled/f92a6ae9-7fd3-4058-a679-f1e779460aaf/UNCID_2196034.0b0a2e4a-d939-426b-ba2f-71ad4fcb2565.120220_UNC15-SN850_0168_AD0MNAACXX_1_TAGCTT.tar.gz is not copied yet to aws buckets
+[2019-04-30 20:55:03,072][Validation][  ERROR] There is no indexd record for e0e3ac46-150a-4e0b-89b9-a34fa9455c83
+[2019-04-30 20:55:03,072][Validation][  ERROR] tcga-controlled/e0e3ac46-150a-4e0b-89b9-a34fa9455c83/MATZO_p_TCGAb40_SNP_1N_GenomeWideSNP_6_E05_667706.byallele.copynumber.data.txt is not copied yet to aws buckets
+[2019-04-30 20:55:03,072][Validation][  ERROR] gdc-tcga-xxxx-phs000178-controlled/e0e3ac46-150a-4e0b-89b9-a34fa9455c83/MATZO_p_TCGAb40_SNP_1N_GenomeWideSNP_6_E05_667706.byallele.copynumber.data.txt is not copied yet to google buckets
+[2019-04-30 20:55:03,072][Validation][  ERROR] tcga-open/e362a9fb-960d-42b8-97c1-7e6397e776d8/THING_p_TCGA_B19_SNP_N_GenomeWideSNP_6_D04_495140.hg18.seg.txt is not copied yet to aws buckets
+[2019-04-30 20:55:03,072][Validation][  ERROR] tcga-open/e42a42e7-ed71-4cc8-8187-6a4bca8f14f0/SOURS_p_TCGAb22_SNP_N_GenomeWideSNP_6_E08_529962.nocnv_hg19.seg.txt is not copied yet to aws buckets
+[2019-04-30 20:55:03,072][Validation][  ERROR] tcga-open/e6058724-93f0-4a7a-9e9f-f93dcc810cfe/ACOLD_p_TCGA_Batch17_SNP_N_GenomeWideSNP_6_D01_466150.hg19.seg.txt is not copied yet to aws buckets
+[2019-04-30 20:55:03,072][Validation][  ERROR] tcga-open/e787e327-4595-4254-8e3e-cbd7d80be4ce/NEWLY_p_TCGA_Batch13_CN_GenomeWideSNP_6_A03_446162.nocnv_hg18.seg.txt is not copied yet to aws buckets
+[2019-04-30 20:55:03,072][Validation][  ERROR] tcga-open/e9e4ec5d-6a99-472f-9862-07fe3273b306/MSK_252152914251_S01_CGH-v4_10_27Aug08__GCN_V3.mat is not copied yet to aws buckets
+[2019-04-30 20:55:03,072][Validation][  ERROR] tcga-open/eb30258d-1f32-4138-8131-2993407d2369/TCGA-24-1419-10A-01D-0476-02_S01_CGH_105_Dec08_lowess_normalized_smoothed.png is not copied yet to aws buckets
+[2019-04-30 20:55:03,072][Validation][   INFO] TOTAL AWS INDEX FAILURE CASES 2 in s3://giang816test/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv
+[2019-04-30 20:55:03,072][Validation][   INFO] TOTAL AWS COPY FAILURE CASES 9 in s3://giang816test/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv
+[2019-04-30 20:55:03,072][Validation][   INFO] Can not generate the augmented manifest for s3://giang816test/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv. Please fix all the errors
+[2019-04-30 20:55:03,075][Validation][  ERROR] [Errno 2] No such file or directory: 'tmp.csv'
+Total time: 63.5826020241 seconds

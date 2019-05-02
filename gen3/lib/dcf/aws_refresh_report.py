@@ -68,13 +68,11 @@ def aws_refresh_report(manifest, fname):
         if uuid in file_dict:
             manifest_copied_files +=1
             streaming_copied_data += file_dict[uuid]["size"]*1.0/1024/1024/1024
-    
-    print(
-        """
+
+    report = """
     Number of files need to be copied {}. Total {} (GiB)
     Number of files were copied successfully via aws cli {}. Total {}(GiB)
     Number of files were copied successfully via gdc api {}. Total {}(GiB)
-
     """.format(
             total_copying_files,
             total_data,
@@ -83,18 +81,21 @@ def aws_refresh_report(manifest, fname):
             len(streaming_copied_objects),
             streaming_copied_data
         )
-    )
+
+    print(report)
 
     copied_files = []
     for uuid in awscli_copied_objects.union(streaming_copied_objects):
         if uuid in file_dict:
             copied_files.append(file_dict[uuid])
 
+    print("Saving list of copied files")
     utils.write_csv(manifest.split("/")[-1][:-4] + "_aws_copied.tsv", copied_files, fieldnames=headers)
+    return report
 
 def aws_refresh_validate(fname):
     """
-    Validate the aws data refresh by looking into the log after validation 
+    Validate the aws data refresh by looking into the log after validation
     script finished.
     """
     try:

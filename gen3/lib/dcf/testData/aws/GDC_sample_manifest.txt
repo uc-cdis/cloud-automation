@@ -1,0 +1,42 @@
+[2019-04-26 05:19:03,790][AWSReplication][   INFO] scan all copied objects
+[2019-04-26 05:19:03,798][AWSReplication][   INFO] Start threads to list aws objects
+[2019-04-26 05:19:03,798][AWSReplication][   INFO] Wait for threads to finish the jobs
+[2019-04-26 05:19:03,923][AWSReplication][  ERROR] Something wrong with listing objects in gdc-tcga-xxxx-phs000178-controlled. Detail 'Contents'
+[2019-04-26 05:19:04,062][AWSReplication][  ERROR] Something wrong with listing objects in gdc-tcga-xxxx-phs000178-open. Detail 'Contents'
+[2019-04-26 05:19:04,505][AWSReplication][   INFO] Total files need to be replicated: 9
+[2019-04-26 05:19:05,548][AWSReplication][   INFO] start aws copying e42a42e7-ed71-4cc8-8187-6a4bca8f14f0/SOURS_p_TCGAb22_SNP_N_GenomeWideSNP_6_E08_529962.nocnv_hg19.seg.txt
+[2019-04-26 05:19:05,566][AWSReplication][   INFO] aws s3 cp s3://gdcbackup/e42a42e7-ed71-4cc8-8187-6a4bca8f14f0/SOURS_p_TCGAb22_SNP_N_GenomeWideSNP_6_E08_529962.nocnv_hg19.seg.txt s3://gdc-tcga-xxxx-phs000178-open/e42a42e7-ed71-4cc8-8187-6a4bca8f14f0/SOURS_p_TCGAb22_SNP_N_GenomeWideSNP_6_E08_529962.nocnv_hg19.seg.txt --request-payer requester
+[2019-04-26 05:19:05,603][AWSReplication][   INFO] object with id f92a6ae9-7fd3-4058-a679-f1e779460aaf does not exist in source bucket gdcbackup. Stream from gdcapi
+[2019-04-26 05:19:05,733][AWSReplication][   INFO] start aws copying dfe81f49-90c8-4b8e-8a2e-f08470958e8c/MSK_252152917543_S01_CGH-v4_10_27Aug08__GCN_V3_A1__CBS_out.txt
+[2019-04-26 05:19:05,733][AWSReplication][   INFO] aws s3 cp s3://gdcbackup/dfe81f49-90c8-4b8e-8a2e-f08470958e8c/MSK_252152917543_S01_CGH-v4_10_27Aug08__GCN_V3_A1__CBS_out.txt s3://gdc-tcga-xxxx-phs000178-open/dfe81f49-90c8-4b8e-8a2e-f08470958e8c/MSK_252152917543_S01_CGH-v4_10_27Aug08__GCN_V3_A1__CBS_out.txt --request-payer requester
+[2019-04-26 05:19:05,740][AWSReplication][   INFO] object with id e362a9fb-960d-42b8-97c1-7e6397e776d8 does not exist in source bucket gdcbackup. Stream from gdcapi
+[2019-04-26 05:19:05,787][AWSReplication][   INFO] object with id e0e3ac46-150a-4e0b-89b9-a34fa9455c83 does not exist in source bucket gdcbackup. Stream from gdcapi
+[2019-04-26 05:19:06,393][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,395][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,397][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,410][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,410][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,421][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,433][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,433][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,442][AWSReplication][   INFO] successfully stream file e362a9fb-960d-42b8-97c1-7e6397e776d8/THING_p_TCGA_B19_SNP_N_GenomeWideSNP_6_D04_495140.hg18.seg.txt to gdc-tcga-xxxx-phs000178-open
+[2019-04-26 05:19:06,442][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,458][AWSReplication][   INFO] 1/9 objects are processed and 0/0 (GiB) is copied
+[2019-04-26 05:19:06,472][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,654][AWSReplication][WARNING] Fail to open http connection to gdc api. Take a sleep and retry. Detail HTTP Error 403: FORBIDDEN
+[2019-04-26 05:19:06,705][AWSReplication][   INFO] 2/9 objects are processed and 0/0 (GiB) is copied
+[2019-04-26 05:19:06,715][AWSReplication][   INFO] 3/9 objects are processed and 0/0 (GiB) is copied
+[2019-04-26 05:19:07,285][AWSReplication][   INFO] object with id e6058724-93f0-4a7a-9e9f-f93dcc810cfe does not exist in source bucket gdcbackup. Stream from gdcapi
+[2019-04-26 05:19:07,407][AWSReplication][   INFO] start aws copying e9e4ec5d-6a99-472f-9862-07fe3273b306/MSK_252152914251_S01_CGH-v4_10_27Aug08__GCN_V3.mat
+[2019-04-26 05:19:07,407][AWSReplication][   INFO] aws s3 cp s3://gdcbackup/e9e4ec5d-6a99-472f-9862-07fe3273b306/MSK_252152914251_S01_CGH-v4_10_27Aug08__GCN_V3.mat s3://gdc-tcga-xxxx-phs000178-open/e9e4ec5d-6a99-472f-9862-07fe3273b306/MSK_252152914251_S01_CGH-v4_10_27Aug08__GCN_V3.mat --request-payer requester
+[2019-04-26 05:19:07,429][AWSReplication][   INFO] object with id e787e327-4595-4254-8e3e-cbd7d80be4ce does not exist in source bucket gdcbackup. Stream from gdcapi
+[2019-04-26 05:19:07,829][AWSReplication][   INFO] successfully stream file e6058724-93f0-4a7a-9e9f-f93dcc810cfe/ACOLD_p_TCGA_Batch17_SNP_N_GenomeWideSNP_6_D01_466150.hg19.seg.txt to gdc-tcga-xxxx-phs000178-open
+[2019-04-26 05:19:07,912][AWSReplication][   INFO] 4/9 objects are processed and 0/0 (GiB) is copied
+[2019-04-26 05:19:08,129][AWSReplication][   INFO] successfully stream file e787e327-4595-4254-8e3e-cbd7d80be4ce/NEWLY_p_TCGA_Batch13_CN_GenomeWideSNP_6_A03_446162.nocnv_hg18.seg.txt to gdc-tcga-xxxx-phs000178-open
+[2019-04-26 05:19:08,181][AWSReplication][   INFO] object with id eb30258d-1f32-4138-8131-2993407d2369 does not exist in source bucket gdcbackup. Stream from gdcapi
+[2019-04-26 05:19:08,323][AWSReplication][   INFO] 5/9 objects are processed and 0/0 (GiB) is copied
+[2019-04-26 05:19:08,697][AWSReplication][   INFO] 6/9 objects are processed and 0/0 (GiB) is copied
+[2019-04-26 05:19:08,847][AWSReplication][   INFO] successfully stream file eb30258d-1f32-4138-8131-2993407d2369/TCGA-24-1419-10A-01D-0476-02_S01_CGH_105_Dec08_lowess_normalized_smoothed.png to gdc-tcga-xxxx-phs000178-open
+[2019-04-26 05:19:08,897][AWSReplication][   INFO] 7/9 objects are processed and 0/0 (GiB) is copied
+[2019-04-26 05:19:11,397][AWSReplication][   INFO] 8/9 objects are processed and 6/6 (GiB) is copied
+[2019-04-26 05:19:11,665][AWSReplication][   INFO] 9/9 objects are processed and 6/6 (GiB) is copied

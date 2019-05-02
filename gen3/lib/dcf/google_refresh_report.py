@@ -8,7 +8,7 @@ import utils
 
 def google_refresh_validate(fname):
     """
-    Validate the google data refresh by looking into the log after validation 
+    Validate the google data refresh by looking into the log after validation
     script finished.
     """
     try:
@@ -68,24 +68,24 @@ def google_refresh_report(manifest, log_dir):
             if file_dict[uuid]["size"] > 0:
                 manifest_copying_files +=1
                 total_data += file_dict[uuid]["size"]*1.0/1024/1024/1024
-    
+
     manifest_copied_files = 0
     for uuid in copied_objects:
         if uuid in file_dict:
             manifest_copied_files +=1
             total_copied_data += file_dict[uuid]["size"]*1.0/1024/1024/1024
 
-    print(
-        """
-    Number of files need to be copied {}. Total {} (GB)
-    Number of files were copied successfully {}. Total copied data {}
+    report = """
+    Number of files need to be copied {}. Total {}(GiB)
+    Number of files were copied successfully {}. Total copied data {}(GiB)
     """.format(
             manifest_copying_files,
             total_data,
             manifest_copied_files,
             total_copied_data
         )
-    )
+
+    print(report)
 
     copied_files = []
     for uuid in copied_objects:
@@ -93,6 +93,7 @@ def google_refresh_report(manifest, log_dir):
             copied_files.append(file_dict[uuid])
 
     utils.write_csv(manifest.split("/")[-1][:-4] + "_gs_copied.tsv", copied_files, fieldnames=headers)
+    return report
 
 def parse_arguments():
     parser = argparse.ArgumentParser()

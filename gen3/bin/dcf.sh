@@ -8,6 +8,11 @@ AWS_OUTPUT_BUCKET="data-refresh-output"
 GS_INPUT_BUCKET="replication-input"
 GS_OUTPUT_BUCKET="datarefresh-log"
 
+AWS_INPUT_BUCKET="giang816test"
+AWS_OUTPUT_BUCKET="xssxs"
+GS_INPUT_BUCKET="data-flow-code"
+GS_OUTPUT_BUCKET="data-flow-code"
+
 echo "Hello from dcf!"
 command=$1
 release=$2
@@ -152,6 +157,45 @@ validate_gs_refresh_report() {
 
 }
 
+redaction_rp() {
+  redact_manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_obsolete_.*$release | awk -F' ' '{print $4}')"
+  if [ -z "$redact_manifest" ]; then
+    echo "The redaction manifest is missing"
+    exit 1
+  fi
+
+  if [ ! -f "$GEN3_CACHE_DIR/$redact_manifest" ]; then
+    echo "Downloading the redaction manifest from S3"
+    aws s3 cp s3://$AWS_INPUT_BUCKET/$redact_manifest $GEN3_CACHE_DIR/$redact_manifest
+  fi
+
+  aws_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep aws_deletion_log.json | awk -F' ' '{print $4}')"
+  gs_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep gs_deletion_log.json | awk -F' ' '{print $4}')"
+  
+  if [ -z "$aws_log" ]; then
+    echo "Can not find the redaction aws log"
+    exit 1
+  fi
+  if [ -z "$gs_log" ]; then
+    echo "Can not find the redaction google log"
+    exit 1
+  fi
+
+  # Download the lattest log
+  local_aws_log="$(mktemp $XDG_RUNTIME_DIR/XXXXX_aws_log)"
+  local_gs_log="$(mktemp $XDG_RUNTIME_DIR/XXXXX_gs_log)"
+
+  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$aws_log $local_aws_log
+  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$gs_log $local_gs_log
+
+  python3 $GEN3_HOME/gen3/lib/dcf/redaction.py redact --manifest $GEN3_CACHE_DIR/$redact_manifest --aws_log $local_aws_log --gs_log $local_gs_log
+
+  # Cleanup
+  rm -f $local_aws_log
+  rm -f $local_gs_log
+
+}
+
 generate_isb_manifest() {
   manifest_type=$3
   manifest="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release.*_DCF.tsv$ | awk -F' ' '{print $4}')"
@@ -184,5 +228,8 @@ case "$command" in
   ;;
 "generate-augmented-manifest")
   generate_isb_manifest "$@"
+  ;;
+"redaction")
+  redaction_rp "$@"
   ;;
 esac
