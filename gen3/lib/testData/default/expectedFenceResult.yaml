@@ -17,6 +17,11 @@ spec:
     metadata:
       labels:
         app: fence
+        release: production
+        # for network policy selectors
+        authprovider: "yes"
+        internet: "yes"
+        public: "yes"
         date: "1522344094"
     spec:
       affinity:

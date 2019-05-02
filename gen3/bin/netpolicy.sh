@@ -29,7 +29,7 @@ gen3_net_external_access() {
     "apiVersion": "extensions/v1beta1",
     "kind": "NetworkPolicy",
     "metadata": {
-        "name": "networkpolicy-external-egress"
+        "name": "netpolicy-external-egress"
     },
     "spec": {
         "egress": [
@@ -37,7 +37,7 @@ gen3_net_external_access() {
                 "to": [
                     {
                         "ipBlock": {
-                            "cidr": "0.0.0.0/32",
+                            "cidr": "0.0.0.0/0",
                             "except": [
                               "169.254.0.0/16",
                               "172.16.0.0/12",
@@ -163,7 +163,7 @@ gen3_net_s3_access() {
     fi
   fi
 
-  gen3_net_cidr_access "networkpolicy-s3" $(jq -r '. | map(.ip_prefix) | .[]' < "$s3CacheFile") | jq -r -e '.spec.podSelector = { "matchLabels": { "s3":"yes" } }'
+  gen3_net_cidr_access "netpolicy-s3" $(jq -r '. | map(.ip_prefix) | .[]' < "$s3CacheFile") | jq -r -e '.spec.podSelector = { "matchLabels": { "s3":"yes" } }'
 }
 
 #
@@ -188,7 +188,7 @@ gen3_net_db_access() {
     gen3_log_err "gen3_net_db_access" "unable to determine address of $serviceName database"
     return 1
   fi
-  gen3_net_cidr_access "networkpolicy-db$serviceName" "$ip/32" | jq -r -e --arg serviceName "$serviceName" '.spec.podSelector = { "matchLabels": { "app":$serviceName  } }'
+  gen3_net_cidr_access "netpolicy-db$serviceName" "$ip/32" | jq -r -e --arg serviceName "$serviceName" '.spec.podSelector = { "matchLabels": { "app":$serviceName  } }'
 }
 
 #
@@ -228,7 +228,7 @@ gen3_net_ingress_to_app() {
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-ingress-to-$app
+  name: netpolicy-ingress-to-$app
 spec:
   podSelector:
     matchLabels:
@@ -261,7 +261,7 @@ gen3_net_egress_to_app() {
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-egress-to-$app
+  name: netpolicy-egress-to-$app
 spec:
   podSelector:
     matchExpressions:

@@ -10,12 +10,12 @@ test_netpolicy_s3() {
   [[ "$numRules" -gt 2 ]]; because $? "gen3 netpolicy s3 generates a few rules"
   numRules="$(gen3 netpolicy s3 | jq -r '.spec.egress[0].to | length')"
   [[ "$numRules" -gt 2 ]]; because $? "gen3 netpolicy s3 generates a few rules 2nd time from cache too"
-  [[ "$(gen3 netpolicy s3 | jq -r .metadata.name)" == "networkpolicy-s3" ]]; because $? "gen3 netpolicy s3 generates policy with expected name"
+  [[ "$(gen3 netpolicy s3 | jq -r .metadata.name)" == "netpolicy-s3" ]]; because $? "gen3 netpolicy s3 generates policy with expected name"
 }
 
 test_netpolicy_cidr() {
   local numRules
-  numRules="$(gen3 netpolicy cidr networkpolicy-testname 169.254.169.254/32 54.0.0.0/32 | jq -r '.spec.egress[0].to | length')"
+  numRules="$(gen3 netpolicy cidr netpolicy-testname 169.254.169.254/32 54.0.0.0/32 | jq -r '.spec.egress[0].to | length')"
   [[ "$numRules" -eq 2 ]]; because $? "gen3 netpolicy cidr generates a filter for each cidr: $numRules"
 }
 

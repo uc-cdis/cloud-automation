@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: aws-es-proxy-deployment
   annotations:
-    gen3.io/network/ingress: "arranger,arranger-server,arranger-dashboard,guppy,spark,tube"
+    gen3.io/network-ingress: "arranger,arranger-server,arranger-dashboard,guppy,spark,tube"
 spec:
   selector:
     # Only select pods based on the 'app' label

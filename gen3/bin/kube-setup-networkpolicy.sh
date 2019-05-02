@@ -33,13 +33,13 @@ name2IP() {
 
 #
 # Deploy network policies that accomodate the
-# gen3.io/network/ingress ACL included in gen3 deployments
+# gen3.io/network-ingress ACL included in gen3 deployments
 #
 # @param name of the service
 #
-apply_service() {
+net_apply_service() {
   if [[ $# -lt 1 ]]; then
-    gen3_log_err "kube-setup-networkpolicy" "apply_service service not specified"
+    gen3_log_err "kube-setup-networkpolicy" "net_apply_service service not specified"
     return 1
   fi
   local name
@@ -47,7 +47,7 @@ apply_service() {
   shift
   local yamlPath
   if yamlPath="$(gen3 gitops rollpath "$name" 2> /dev/null)"; then
-    if accessList="$(gen3 gitops filter "$yamlPath" | yq -e -r '.metadata.annotations["gen3.io/network/ingress"]')"; then
+    if accessList="$(gen3 gitops filter "$yamlPath" | yq -e -r '.metadata.annotations["gen3.io/network-ingress"]')"; then
       accessList="${accessList//,/ }"
       gen3_log_info "networkpolicy - $name accessible by: ${accessList}"
       gen3 netpolicy ingressTo $name $accessList | g3kubectl apply -f -
@@ -55,8 +55,8 @@ apply_service() {
     else
       gen3_log_info "networkpolicy - $name not accessible"
       # delete previously generated policies if they exist
-      g3kubectl delete networkpolicy "networkpolicy-ingress-to-$name" > /dev/null 2>&1
-      g3kubectl delete networkpolicy "networkpolicy-egress-to-$name" > /dev/null 2>&1
+      g3kubectl delete networkpolicy "netpolicy-ingress-to-$name" > /dev/null 2>&1
+      g3kubectl delete networkpolicy "netpolicy-egress-to-$name" > /dev/null 2>&1
     fi
   else
     gen3_log_info "kube_setup_networkpolicy" "failed to retrieve path for service ${name}: $yamlPath"
@@ -64,7 +64,7 @@ apply_service() {
 }
 
 
-apply_gen3() {
+net_apply_gen3() {
   local name
 
   # apply base policies in both the commons namespace and the jupyter/user namespace
@@ -100,7 +100,7 @@ apply_gen3() {
   # in the services refrenced by the manifest
   #
   g3k_manifest_lookup .versions | jq -r '. | keys | .[]' | while read -r name; do
-    apply_service "$name"
+    net_apply_service "$name"
   done
 
 }
@@ -109,7 +109,7 @@ apply_gen3() {
 #
 # Apply policy rules to the jupyter/user namespaces
 #
-apply_jupyter() {
+net_apply_jupyter() {
   local notebookNamespace
   local name
   notebookNamespace="(gen3 jupyter j-namespace)"
@@ -123,10 +123,25 @@ apply_jupyter() {
   fi
 }
 
-apply_all() {
-  apply_gen3 "$@"
-  apply_jupyter "$@"
+
+#
+# Old network policies were named 'networkpolicy-', new ones are 'netpolicy-'
+#
+net_delete_old_policies() {
+  local olds
+  if olds="$(g3kubectl get networkpolicies --no-headers 2> /dev/null | awk '{ print $1 }' | grep '^networkpolicy-')"; then
+    g3kubectl delete networkpolicies $olds
+  fi
 }
+
+
+net_apply_all() {
+  net_apply_gen3 "$@"
+  net_apply_jupyter "$@"
+  net_delete_old_policies
+}
+
+
 
 # main -----------------------------------
 
@@ -134,12 +149,12 @@ command="$1"
 shift
 case "$command" in 
   "jupyter"):
-    apply_jupyter "$@"
+    net_apply_jupyter "$@"
     ;;
   "service"):
-    apply_service "$@"
+    net_apply_service "$@"
     ;;
   *)
-    apply_all "$@"
+    net_apply_all "$@"
     ;;
 esac

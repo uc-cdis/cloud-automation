@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: indexd-canary-deployment
   annotations:
-    gen3.io/network/ingress: "fence,fenceshib,peregrine,sheepdog"  
+    gen3.io/network-ingress: "fence,fenceshib,peregrine,sheepdog"  
 spec:
   selector:
     # Only select pods based on the 'app' label
