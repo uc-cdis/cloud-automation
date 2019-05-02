@@ -34,9 +34,9 @@ spec:
             memory: 100Mi
         env:
         - name: AMBASSADOR_NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
+          value: "jupyter-pods"
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+          value: "true"
         ports:
         - name: http
           containerPort: 8080
