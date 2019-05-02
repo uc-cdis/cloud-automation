@@ -9,5 +9,4 @@ spec:
   egress:
     - {}
   policyTypes:
-   - Ingress
    - Egress

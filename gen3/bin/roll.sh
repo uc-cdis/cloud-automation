@@ -76,6 +76,8 @@ gen3_roll() {
       gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
       return 1
     fi
+    # update network policy
+    gen3 kube-setup-networkpolicy service "$serviceName"
   else
     gen3_log_err "gen3_roll" "not rolling $serviceName - no manifest entry in $manifestPath"
     return 1

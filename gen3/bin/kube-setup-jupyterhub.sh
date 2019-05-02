@@ -21,11 +21,6 @@ else
 fi
 g3kubectl label "${notebookNamespace}" "role=usercode" > /dev/null 2>&1 || true
 
-# copied from kube-setup-netpolicy
-for name in "${GEN3_HOME}/kube/services/netpolicy/base/"*.yaml; do
-  (yq -r . < "$name") | jq -r --arg namespace "$notebookNamespace" '.metadata.namespace=$namespace' | g3kubectl apply -f -
-done
-
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/role-jupyter.yaml"
 g3k_kv_filter ${GEN3_HOME}/kube/services/jupyterhub/rolebinding-jupyter.yaml JUPYTER_BINDING "name: jupyter-binding-$namespace" CURRENT_NAMESPACE "namespace: $namespace" NOTEBOOK_NAMESPACE "namespace: $notebookNamespace" | g3kubectl apply -f -
@@ -33,4 +28,5 @@ g3k_kv_filter ${GEN3_HOME}/kube/services/jupyterhub/rolebinding-jupyter.yaml JUP
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-service.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-storage.yaml"
 
+gen3 kube-setup-networkpolicy jupyter
 gen3 jupyter upgrade

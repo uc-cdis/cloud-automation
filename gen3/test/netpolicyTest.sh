@@ -1,12 +1,12 @@
 test_netpolicy_external() {
   local numRules
-  numRules="$(gen3 netpolicy external | jq -r '.spec.egress[0].to | length')"
-  [[ "$numRules" -gt 200 ]]; because $? "gen3 netpolicy external generates a bunch of rules"
+  numRules="$(gen3 netpolicy external | jq -e -r '.spec.egress[0].to | length')"; because $? "gen3 netpolicy external generates valid json"
+  [[ "$numRules" -gt 0 ]]; because $? "gen3 netpolicy external generates a bunch of rules"
 }
 
 test_netpolicy_s3() {
   local numRules
-  numRules="$(gen3 netpolicy s3 | jq -r '.spec.egress[0].to | length')"
+  numRules="$(gen3 netpolicy s3 | jq -r '.spec.egress[0].to | length')"; becuase $? "gen3 netpolicy s3 generates valid json"
   [[ "$numRules" -gt 2 ]]; because $? "gen3 netpolicy s3 generates a few rules"
   numRules="$(gen3 netpolicy s3 | jq -r '.spec.egress[0].to | length')"
   [[ "$numRules" -gt 2 ]]; because $? "gen3 netpolicy s3 generates a few rules 2nd time from cache too"

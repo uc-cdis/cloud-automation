@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-auth
+  name: networkpolicy-auth-egress
 spec:
   podSelector: {}
   egress:
@@ -11,3 +11,17 @@ spec:
             authprovider: "yes"
   policyTypes:
    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: networkpolicy-auth-ingress
+spec:
+  podSelector: 
+    matchLabels:
+      authprovider: "yes"
+  ingress:
+    - from:
+      - podSelector: {}
+  policyTypes:
+   - Ingress

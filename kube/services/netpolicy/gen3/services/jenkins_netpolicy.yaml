@@ -12,8 +12,6 @@ spec:
         - port: 8080
         - port: 443
       from: []   
-  egress: 
-    - to: []
   policyTypes:
    - Ingress
    - Egress

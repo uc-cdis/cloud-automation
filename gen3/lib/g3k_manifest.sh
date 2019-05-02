@@ -103,7 +103,7 @@ g3k_manifest_path() {
   folder="$(g3k_manifest_init)"
   domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
   if [[ -z "$domain" ]]; then
-    echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
+    gen3_log_err "g3k_manifest_path" "could not establish commons hostname"
     return 1
   fi
   mpath="${folder}/${domain}/manifest.json"
@@ -111,7 +111,7 @@ g3k_manifest_path() {
   if [[ -f "$mpath" ]]; then
     return 0
   else
-    echo -e $(red_color "ERROR: The path g3k_manifest_path obtained was not a valid path. Does $mpath exist?") 1>&2
+    gen3_log_err "g3k_manifest_path" "path obtained was not a valid path. Does $mpath exist?"
     return 1
   fi
 }

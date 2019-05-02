@@ -19,6 +19,7 @@ spec:
     metadata:
       labels:
         app: esproxy
+        netvpc: "yes"
         GEN3_DATE_LABEL
     spec:
       automountServiceAccountToken: false
@@ -34,7 +35,7 @@ spec:
         - containerPort: 9200
         env:
           - name: "ES_ENDPOINT"
-            GEN3_ES_ENDPOINT
+            GEN3_ES_ENDPOINT|-value: es.internal.io-|
         volumeMounts:
           - name: "credentials"
             readOnly: true
