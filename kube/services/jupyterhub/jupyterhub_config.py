@@ -101,7 +101,7 @@ c.KubeSpawner.lifecycle_hooks = {
             "command": [
                 "/bin/sh",
                 "-c",
-                "rm -rf /home/jovyan/pd/dockerHome; ln -s $(pwd) /home/jovyan/pd/dockerHome; mkdir -p /home/$NB_USER/.jupyter/custom; echo \"define(['base/js/namespace'], function(Jupyter){Jupyter._target = '_self';})\" >/home/$NB_USER/.jupyter/custom/custom.js; true",
+                "rm -rf /home/jovyan/pd/dockerHome; ln -s $(pwd) /home/jovyan/pd/dockerHome; mkdir -p /home/$NB_USER/.jupyter/custom; echo \"define(['base/js/namespace'], function(Jupyter){Jupyter._target = '_self';})\" >/home/$NB_USER/.jupyter/custom/custom.js; ln -s /data $HOME/pd/data; true",
             ]
         }
     }
