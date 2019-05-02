@@ -25,4 +25,5 @@ module "eks" {
   kernel                    = "${var.kernel}"
   jupyter_worker_drive_size = "${var.jupyter_worker_drive_size}"
   cidrs_to_route_to_gw      = "${var.cidrs_to_route_to_gw}"
+  organization_name         = "${var.organization_name}"
 }

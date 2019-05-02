@@ -56,3 +56,7 @@ variable "jupyter_worker_drive_size" {
 variable "cidrs_to_route_to_gw" {
   default = []
 }
+
+variable "organization_name" {
+  default = "Basic Services"
+}

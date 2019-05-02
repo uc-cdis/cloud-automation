@@ -56,3 +56,7 @@ variable "bootstrap_script" {
 variable "jupyter_worker_drive_size" {
   default = 30
 }
+
+variable "organization_name" {
+  default = "Basic Service"
+}

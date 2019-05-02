@@ -18,7 +18,8 @@ module "cdis_vpc" {
   vpc_cidr_block  = "${var.vpc_cidr_block}"
   vpc_name        = "${var.vpc_name}"
   ssh_key_name    = "${aws_key_pair.automation_dev.key_name}"
-  csoc_cidr       = "${var.csoc_cidr}"
+  #csoc_cidr       = "${var.csoc_cidr}"
+  peering_cidr    = "${var.peering_cidr}"
   csoc_account_id = "${var.csoc_account_id}"
   squid-nlb-endpointservice-name = "${var.squid-nlb-endpointservice-name}"
 
@@ -88,9 +89,6 @@ module "cdis_alarms" {
   db_gdcapi                   = "${aws_db_instance.db_gdcapi.identifier}"
 }
 
-data "aws_vpc_endpoint_service" "s3" {
-  service = "s3"
-}
 
 resource "aws_vpc_endpoint" "k8s-s3" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
@@ -117,7 +115,8 @@ resource "aws_route_table" "private_kube" {
   route {
     #from the commons vpc to the csoc vpc via the peering connection
     #cidr_block                  = "${var.csoc_cidr}"
-    cidr_block                  = "${var.csoc_managed == "yes" ? var.csoc_cidr : data.aws_vpc.csoc_vpc.cidr_block}"
+    #cidr_block                  = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"
+    cidr_block                  = "${var.peering_cidr}"
     vpc_peering_connection_id   = "${module.cdis_vpc.vpc_peering_id}"
   }
 
@@ -139,8 +138,8 @@ resource "aws_subnet" "private_kube" {
   cidr_block                  = "${cidrsubnet(var.vpc_cidr_block,4,2)}"
   map_public_ip_on_launch     = false
   availability_zone           = "${data.aws_availability_zones.available.names[0]}"
-  #tags                        = "${map("Name", "private_kube", "Organization", ${var.organization_name}, "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
-  tags                        = "${map("Name", "int_services", "Organization", ${var.organization_name}, "Environment", var.vpc_name )}"
+  #tags                        = "${map("Name", "private_kube", "Organization", var.organization_name, "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
+  tags                        = "${map("Name", "int_services", "Organization", var.organization_name, "Environment", var.vpc_name )}"
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
@@ -174,7 +173,7 @@ resource "aws_subnet" "private_db_alt" {
   cidr_block                  = "${cidrsubnet(var.vpc_cidr_block,4,3)}"
   availability_zone           = "${data.aws_availability_zones.available.names[1]}"
   map_public_ip_on_launch     = false
-  availability_zone           = "${data.aws_availability_zones.available.names[1]}"
+  #availability_zone           = "${data.aws_availability_zones.available.names[1]}"
 
   tags {
     Name                      = "private_db_alt"
@@ -224,7 +223,7 @@ resource "aws_vpc_endpoint" "squid-nlb" {
 
 resource "aws_route53_record" "squid-nlb" {
   count                      = "${var.csoc_managed == "yes" ? 1 : 0}"
-  zone_id                    = "${module.c<F8>dis_vpc.zone_id}"
+  zone_id                    = "${module.cdis_vpc.zone_id}"
   name                       = "csoc-cloud-proxy.${module.cdis_vpc.zone_name}"
   type                       = "CNAME"
   ttl                        = "300"

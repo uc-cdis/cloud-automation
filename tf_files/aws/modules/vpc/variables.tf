@@ -24,7 +24,10 @@ variable "csoc_account_id" {
   default = "433568766270"
 }
 
-variable "csoc_cidr" {
+#variable "csoc_cidr" {
+#  default = "10.128.0.0/20"
+#}
+variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
