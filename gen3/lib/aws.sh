@@ -276,7 +276,8 @@ EOM
     cat - <<EOM
   env_vpc_name         = "VPC-NAME"
   vpc_cidr             = "VPC_CIDR"
-  squid_proxy_subnet = "ASSIGNED SUBNET FOR SQUID SET-UP a /24"
+  squid_proxy_subnet = "ASSIGN SUBNET FOR SQUID SET-UP a /24"
+  env_squid_name     = "ASSING A SQUID NAME AS '<commons_name>_squid_auto_setup' "
 EOM
     return 0
   fi

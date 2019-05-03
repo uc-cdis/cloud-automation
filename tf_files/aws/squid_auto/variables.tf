@@ -14,7 +14,7 @@ variable "env_vpc_name" {
 }
 
 variable "env_squid_name" {
-  default = "commons_squid_auto"
+ # default = "commons_squid_auto"
 }
 
 
