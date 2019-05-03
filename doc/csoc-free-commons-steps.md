@@ -1,6 +1,17 @@
 # Commons built up steps 
 
-The following guide is intended to guide you through the process of bringing up a gen3 commons.
+The following guide is intended to guide you through the process of bringing up a gen3 commons. This particular guide is intended for those who would build commons independetly from a centralized account, said kind of account we call it CSOC and is used basically to control multiple commons, and also collect logs from all of them for later process.
+
+
+## Requirements
+
+To get stated, you must have an AWS account ready in which you will deploy all the resources required to stand up a commons. Unfortunatelly, the deployment may not be small enough, at least as for now, to enter into the free tier zone, therefore, costs may be involved if you decide to test this.
+
+On the bright side, because we use terraform to deploy almost all resources, it is realtively easy to tear them all down.
+
+In order to move on, you must have an EC2 instance up with an admin like role attached to it. It shouldn't matter in which VPC it is and if it's behind a bastion node or not. 
+
+Additionally we recommend requesting a SSL certificate for the domain you are going to use to access your commons through AWS certificate manager before moving on, you'll need it later.
 
 
 ## First part, setting up the adminVM
@@ -14,14 +25,14 @@ git clone https://github.com/uc-cdis/cloud-automation.git
 ```bash
 export GEN3_NOPROXY='no'
 ```
-   If a proxy is required, then gen3 would assume cloud-proxy.internal.io:3128 is your proxy for http and https
+   If a proxy is required, then gen3 would assume cloud-proxy.internal.io:3128 is your proxy for http and https. 
 
 3. Install dependencies, you must run this part as a sudo access user
 ```bash 
 bash cloud-automation/gen3/bin/kube-setup-workvm.sh
 ```
 
-4. kube-setup-workvm.sh add a few required configurations to the user's local bashrc file. To be able to use them, we may want to source it, otherwise we'll have to logout and in again.
+4. kube-setup-workvm.sh adds a few required configurations to the user's local bashrc file. To be able to use them, we may want to source it, otherwise we'll have to logout and in again.
 ```bash
 source .bashrc
 ```
@@ -48,6 +59,11 @@ source .bashrc
 
 1. Initialize the base module
 ```bash
+gen3 workon <aws profile> <commons-name> 
+```
+
+Ex:
+```
 gen3 workon cdistest commons-test
 ```
 
@@ -59,25 +75,27 @@ gen3 workon cdistest commons-test
 gen3 cd
 ```
 
-3. Edit the `config.tfvars` file with a text editor of prefference. 
+3. Edit the `config.tfvars` file with a text editor of preference.
 
   Variables to pay attention to:
 
 `vpc_cidr_block` CIDR where the commons resources would reside. EX: 172.16.192.0/20. As for now, only /20 subnets are supported. Your VPC must have only RFC1918 or CG NAT CIDRs.
 
-`dictionary_url` url where the dictionary schema is, it must be in json format
+`dictionary_url` url where the dictionary schema is, it must be in json format.
 
-`portal_app`
+`portal_app` 
 
-`aws_cert_name` AWS ARN for the certificate to use on the Load Balancer that will be in front for HTTPS access.
+`aws_cert_name` AWS ARN for the certificate to use on the Load Balancer that will be in front. Access to commons is strictly through HTTPS, therefore you need one. You may want request it previously this step.
 
 `hostname` domain which the commons will respond to
 
 `config_folder` folder for permissions. By default, commons would try to load a user.yaml file from s3://cdis-gen3-users/CONFIG_FOLDER/user.yaml. This bucket is not publicly accessible, you can later set a different one though. Just keep in mind that the folder with the name you are setting this var with needs to exist within the bucket and a user.yaml file within the folder in question. You can still set permissions based on a local file
 
-`google_client_secret` and `google_client_id`  Google set of API key so you can set google authentication.
+`google_client_secret` and `google_client_id`  Google set of API key so you can set google authentication. You can generate a new one through Google Cloud Console.
 
 `csoc_managed` if you are going to set up your commons hooked up to a central control management account. By default it is set to yes, any other value would assume that you don't want this to happen. If you leave the default value, you must run the logging module first, otherwise terraform will fail.
+
+`peering_cidr` this is the CIDR that your adminVM belongs to. Since the commons would create it's own VPC, you need to pair them up to allow communication between them later. Basically, said peering would let you run kubectl commands agains the kubernetes cluster hosting the commons.
 
 `csoc_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
 
