@@ -1,5 +1,6 @@
 VAR1dnszoneid = DNS_ZONE_ID
 VAR2eksroutetableid = EKS_ROUTETABLE_ID
 VAR3privatekuberoutetableid = PRIVATE_KUBE_ROUTETABLE_ID
+VAR4commons_squid_role = COMMONS_SQUID_ROLE
 
 
