@@ -19,7 +19,7 @@ module "cdis_vpc" {
   vpc_name                       = "${var.vpc_name}"
   ssh_key_name                   = "${aws_key_pair.automation_dev.key_name}"
   #csoc_cidr                     = "${var.csoc_cidr}"
-  peering_cidr                   = "${data.aws_vpc_csoc_vpc.cidr_block}" #"${var.peering_cidr}"
+  peering_cidr                   = "${data.aws_vpc.csoc_vpc.cidr_block}" #"${var.peering_cidr}"
   csoc_account_id                = "${var.csoc_account_id}"
   squid-nlb-endpointservice-name = "${var.squid-nlb-endpointservice-name}"
   organization_name              = "${var.organization_name}"

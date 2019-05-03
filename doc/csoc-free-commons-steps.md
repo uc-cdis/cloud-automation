@@ -147,6 +147,8 @@ gen3 cd
 
 `ec2_keyname` an existing Key Pair in EC2 for the workers for deployment. More keys can be added automatically if you specify them in $HOME/cloud-automation/files/authorized_keys/ops_team.
 
+`peering_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
+
 
 4. Create a terraform plan
 ```bash
@@ -185,11 +187,70 @@ mv $HOME/kubconfig $HOME/commons-test/
 
 3. Create a manifest folder
 ```bash
-mkdir -p $HOME/cdis-manifest/commons-test.plantx-pla.net
+mkdir -p $HOME/cdis-manifest/commons-test.plant-pla.net
 ```
 
   Note: The cdis-manifest folder is required, if you want to use your own manifest folder name you must make changes to the code, the file containing the line is `cloud-automation/gen3/lib/g3k_manifest.sh`.
         Moreover, a subfolder named the same as your hostname is required.
+
+4. Create a manifest file
+
+  With the test editor of your preference, create new file and open it, Ex: `$HOME/cdis-manifest/commons-test.planx-pla.net.json`. The content of the file shold be similar to:
+
+```json
+{
+  "notes": [
+    "This is the dev environment manifest",
+    "That's all I have to say"
+  ],
+  "jenkins": {
+    "autodeploy": "yes"
+  },
+  "versions": {
+    "arborist": "quay.io/cdis/arborist:master",
+    "arranger": "quay.io/cdis/arranger:feat_indices",
+    "arranger-adminapi": "quay.io/cdis/arranger-server:master",
+    "arranger-dashboard": "quay.io/cdis/arranger-dashboard:master",
+    "aws-es-proxy": "abutaha/aws-es-proxy:0.8",
+    "fence": "quay.io/cdis/fence:master",
+    "fluentd": "fluent/fluentd-kubernetes-daemonset:v1.2-debian-cloudwatch",
+    "indexd": "quay.io/cdis/indexd:master",
+    "jupyterhub": "quay.io/occ_data/jupyterhub:master",
+    "peregrine": "quay.io/cdis/peregrine:master",
+    "pidgin": "quay.io/cdis/pidgin:master",
+    "portal": "quay.io/cdis/data-portal:master",
+    "revproxy": "quay.io/cdis/nginx:1.15.5-ctds",
+    "sheepdog": "quay.io/cdis/sheepdog:master",
+    "spark": "quay.io/cdis/gen3-spark:master",
+    "tube": "quay.io/cdis/tube:master"
+  },
+  "arranger": {
+    "project_id": "dev",
+    "auth_filter_field": "gen3_resource_path",
+    "auth_filter_node_types": [
+      "subject"
+    ]
+  },
+"jupyterhub": {
+    "enabled": "no"
+  },
+  "global": {
+    "environment": "devplanetv1",
+    "hostname": "commons-test.planx-pla.net",
+    "revproxy_arn": "arn:aws:acm:us-east-1:707767160287:certificate/c676c81c-9546-4e9a-9a72-725dd3912bc8",
+    "dictionary_url": "https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json",
+    "portal_app": "dev",
+    "kube_bucket": "kube-commons-test-gen3",
+    "logs_bucket": "logs-commons-test-gen3",
+    "sync_from_dbgap": "False",
+    "useryaml_s3path": "s3://cdis-gen3-users/dev/user.yaml"
+  },
+  "canary": {
+    "default": 0
+  }
+}
+```
+
 
 4. kube-up.sh added a few lines to our local bashrc file, let's load the up.
 ```bash
