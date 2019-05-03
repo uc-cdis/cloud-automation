@@ -49,11 +49,17 @@ net_apply_service() {
   if yamlPath="$(gen3 gitops rollpath "$name" 2> /dev/null)"; then
     if accessList="$(gen3 gitops filter "$yamlPath" | yq -e -r '.metadata.annotations["gen3.io/network-ingress"]')"; then
       accessList="${accessList//,/ }"
-      gen3_log_info "networkpolicy - $name accessible by: ${accessList}"
-      gen3 netpolicy ingressTo $name $accessList | g3kubectl apply -f -
-      gen3 netpolicy egressTo $name $accessList | g3kubectl apply -f -
+      local app
+      app="$name"
+      # on-off for aws-es-proxy - ugh!
+      if [[ "$name" == "aws-es-proxy" ]]; then
+        app="esproxy"
+      fi
+      gen3_log_info "networkpolicy - $app accessible by annotation acl: ${accessList}"
+      gen3 netpolicy ingressTo $app $accessList | g3kubectl apply -f -
+      gen3 netpolicy egressTo $app $accessList | g3kubectl apply -f -
     else
-      gen3_log_info "networkpolicy - $name not accessible"
+      gen3_log_info "networkpolicy - $name not accessible by annotation acl"
       # delete previously generated policies if they exist
       g3kubectl delete networkpolicy "netpolicy-ingress-to-$name" > /dev/null 2>&1
       g3kubectl delete networkpolicy "netpolicy-egress-to-$name" > /dev/null 2>&1
@@ -95,6 +101,11 @@ net_apply_gen3() {
     gen3 netpolicy bydb "$serviceName" | g3kubectl apply -f -
   done
 
+}
+
+
+net_apply_all_services() {
+  local name
   #
   # apply ingress/egress rolls from gen3.io/network annotations
   # in the services refrenced by the manifest
@@ -102,9 +113,7 @@ net_apply_gen3() {
   g3k_manifest_lookup .versions | jq -r '. | keys | .[]' | while read -r name; do
     net_apply_service "$name"
   done
-
 }
-
 
 #
 # Apply policy rules to the jupyter/user namespaces
@@ -135,12 +144,18 @@ net_delete_old_policies() {
 }
 
 
+#
+# Accepts "noservice" as arg 1 to indicate to not
+# process service annotations - to save time in `gen3 roll all`
+#
 net_apply_all() {
   net_apply_gen3 "$@"
   net_apply_jupyter "$@"
-  net_delete_old_policies
+  if [[ "$1" != "noservice" ]]; then
+    net_apply_all_services "$@"
+  fi
+  net_delete_old_policies "$@"
 }
-
 
 
 # main -----------------------------------
@@ -153,6 +168,9 @@ case "$command" in
     ;;
   "service"):
     net_apply_service "$@"
+    ;;
+  "noservice"):
+    net_apply_all noservice
     ;;
   *)
     net_apply_all "$@"

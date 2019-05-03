@@ -32,7 +32,7 @@ gen3_roll() {
   depName="$1"
   shift
 
-  if [[ $# -gt 1 ]]; then
+  if [[ $# -gt 1 && "$1" =~ --*w(ait)? ]]; then
     waitRoll=$1
     shift;
   fi

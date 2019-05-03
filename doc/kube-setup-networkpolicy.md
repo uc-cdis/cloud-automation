@@ -10,6 +10,13 @@ accumulates the union of all the rights from policies that apply to it.
 
 Deploys the entire suite of network policies
 
+### gen3 kube-setup-networkpolicy noservice
+
+Deploys the network policies except for those
+specified by annotations on service deployments
+(saves time in `gen3 roll all`).
+
+
 ### gen3 kube-setup-networkpolicy jupyter
 
 Deploys the relevent policies to the jupyter namespace.

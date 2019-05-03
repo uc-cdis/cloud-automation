@@ -8,9 +8,6 @@ spec:
       app: revproxy
   ingress:
     - from:
-      - podSelector:
-          matchLabels:
-             app: portal
       - ipBlock:
            cidr: 0.0.0.0/0
       ports:
