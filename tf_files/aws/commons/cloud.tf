@@ -11,20 +11,21 @@ terraform {
 provider "aws" {}
 
 module "cdis_vpc" {
-  ami_account_id  = "${var.ami_account_id}"
-  source          = "../modules/vpc"
-  #vpc_octet2      = "${var.vpc_octet2}"
-  #vpc_octet3      = "${var.vpc_octet3}"
-  vpc_cidr_block  = "${var.vpc_cidr_block}"
-  vpc_name        = "${var.vpc_name}"
-  ssh_key_name    = "${aws_key_pair.automation_dev.key_name}"
-  #csoc_cidr       = "${var.csoc_cidr}"
-  peering_cidr    = "${var.peering_cidr}"
-  csoc_account_id = "${var.csoc_account_id}"
+  ami_account_id                 = "${var.ami_account_id}"
+  source                         = "../modules/vpc"
+  #vpc_octet2                    = "${var.vpc_octet2}"
+  #vpc_octet3                    = "${var.vpc_octet3}"
+  vpc_cidr_block                 = "${var.vpc_cidr_block}"
+  vpc_name                       = "${var.vpc_name}"
+  ssh_key_name                   = "${aws_key_pair.automation_dev.key_name}"
+  #csoc_cidr                     = "${var.csoc_cidr}"
+  peering_cidr                   = "${data.aws_vpc_csoc_vpc.cidr_block}" #"${var.peering_cidr}"
+  csoc_account_id                = "${var.csoc_account_id}"
   squid-nlb-endpointservice-name = "${var.squid-nlb-endpointservice-name}"
+  organization_name              = "${var.organization_name}"
 
-  csoc_managed    = "${var.csoc_managed}"
-  csoc_vpc_id     = "${var.csoc_vpc_id}"
+  csoc_managed                   = "${var.csoc_managed}"
+  csoc_vpc_id                    = "${var.csoc_vpc_id}"
 }
 
 # logs bucket for elb logs
@@ -116,7 +117,7 @@ resource "aws_route_table" "private_kube" {
     #from the commons vpc to the csoc vpc via the peering connection
     #cidr_block                  = "${var.csoc_cidr}"
     #cidr_block                  = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"
-    cidr_block                  = "${var.peering_cidr}"
+    cidr_block                  = "${data.aws_vpc.csoc_vpc.cidr_block}"
     vpc_peering_connection_id   = "${module.cdis_vpc.vpc_peering_id}"
   }
 

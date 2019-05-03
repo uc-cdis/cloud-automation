@@ -65,3 +65,9 @@ data "aws_route_table" "public_kube" {
     Name = "main"
   }
 }
+
+
+data "aws_vpc" "peering_vpc" {
+  #count = "${var.csoc_managed == "yes" ? 0 : 1}"
+  id    = "${var.peering_vpc_id}"
+}

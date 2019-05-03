@@ -1,6 +1,6 @@
 module "squid_proxy" {
   source               = "../squid"
-  csoc_cidr            = "${var.peering_cidr}"
+  csoc_cidr            = "${data.aws_vpc.csoc_vpc.cidr_block}"
   env_vpc_name         = "${var.vpc_name}"
   env_public_subnet_id = "${aws_subnet.public.id}"
   env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
@@ -32,7 +32,7 @@ resource "aws_vpc" "main" {
   tags {
     Name         = "${var.vpc_name}"
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 
   lifecycle {
@@ -57,7 +57,7 @@ resource "aws_internet_gateway" "gw" {
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -67,7 +67,7 @@ resource "aws_nat_gateway" "nat_gw" {
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -89,7 +89,7 @@ resource "aws_route_table" "public" {
   tags {
     Name         = "main"
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -97,7 +97,7 @@ resource "aws_route_table" "public" {
 resource "aws_route" "peering_route_public" {
   count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
   route_table_id            = "${aws_route_table.public.id}"
-  destination_cidr_block    = "${var.peering_cidr}"
+  destination_cidr_block    = "${data.aws_vpc.csoc_vpc.cidr_block}"
   vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
   depends_on                = ["aws_route_table.public"]
 }
@@ -150,7 +150,7 @@ resource "aws_default_route_table" "default" {
 resource "aws_route" "peering_route_default" {
   count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
   route_table_id            = "${aws_default_route_table.default.id}"
-  destination_cidr_block    = "${var.peering_cidr}"
+  destination_cidr_block    = "${data.aws_vpc.csoc_vpc.cidr_block}"
   vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
   depends_on                = ["aws_default_route_table.default"]
 }
@@ -180,7 +180,7 @@ resource "aws_subnet" "public" {
   # kube_ subnets are in availability zone [0], so put this in [1]
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
 
-  tags = "${map("Name", "public", "Organization", "Basic Service", "Environment", var.vpc_name)}"
+  tags = "${map("Name", "public", "Organization", var.organization_name, "Environment", var.vpc_name)}"
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
@@ -219,7 +219,7 @@ resource "aws_cloudwatch_log_group" "main_log_group" {
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -316,7 +316,7 @@ resource "aws_route53_zone" "main" {
   
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
 
