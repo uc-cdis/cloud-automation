@@ -15,6 +15,7 @@ spec:
         app: jupyter-hub
         public: "yes"
         netnolimit: "yes"
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
       nodeSelector:

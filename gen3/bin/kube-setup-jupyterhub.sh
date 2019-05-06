@@ -10,6 +10,7 @@ gen3_load "gen3/gen3setup"
 # Jenkins friendly
 export WORKSPACE="${WORKSPACE:-$HOME}"
 
+namespace="$(gen3 db namespace)"
 notebookNamespace="$(gen3 jupyter j-namespace)"
 
 # Create the namespace for user pods
@@ -20,6 +21,7 @@ else
   echo "I think k8s namespace ${notebookNamespace} already exists"
 fi
 g3kubectl label "${notebookNamespace}" "role=usercode" > /dev/null 2>&1 || true
+g3kubectl label "${namespace}" "role=gen3" > /dev/null 2>&1 || true
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/role-jupyter.yaml"

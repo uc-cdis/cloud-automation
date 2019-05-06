@@ -20,6 +20,8 @@ spec:
         # for network policy selectors
         authprovider: "yes"
         dbfence: "yes"
+        # for revproxy authz
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

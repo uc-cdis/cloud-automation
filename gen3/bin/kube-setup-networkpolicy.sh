@@ -121,14 +121,16 @@ net_apply_all_services() {
 net_apply_jupyter() {
   local notebookNamespace
   local name
-  notebookNamespace="(gen3 jupyter j-namespace)"
+  notebookNamespace="$(gen3 jupyter j-namespace)"
 
   if g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
-    # this is also copied into kube-setup-jupyterhub
     for name in "${GEN3_HOME}/kube/services/netpolicy/base/"*.yaml; do
       (yq -r . < "$name") | jq -r --arg namespace "$notebookNamespace" '.metadata.namespace=$namespace' | g3kubectl apply -f -
     done
-    gen3 netpolicy external | jq -r --arg namespace "$notebookNamespace" '.spec.podSelector={} | .metadata.namespace=$namespace' | g3kubectl apply -f
+    gen3 netpolicy external | jq -r --arg namespace "$notebookNamespace" '.spec.podSelector={} | .metadata.namespace=$namespace' | g3kubectl apply -f -
+    for name in "${GEN3_HOME}/kube/services/netpolicy/user/"*.yaml; do
+      (yq -r . < "$name") | jq -r --arg namespace "$notebookNamespace" '.metadata.namespace=$namespace' | g3kubectl apply -f -
+    done
   fi
 }
 
