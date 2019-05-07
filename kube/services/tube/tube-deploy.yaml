@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: tube
+        netnolimit: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

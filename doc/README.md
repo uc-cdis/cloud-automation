@@ -17,6 +17,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [ec2](./ec2.md) - describe, reboot
 * [job logs|pods|run](./job.md)
 * [joblogs](./job.md) - see [job logs](./job.md)
+* [jupyter](./jupyter.md) - j-namespace, upgrade
 * [klock](./klock.md) - formerly kube-lock/kube-unlock
 * [kube-setup-portal](./kube-setup-portal.md)
 * [kube-setup-revproxy](./kube-setup-revproxy.md)
@@ -98,8 +99,8 @@ For example - `gen3 help aws` opens `aws.md`
 
 ## More
 
-* [approve_vpcpeering_request](./approve_vpcpeering_request.md)
 * [api](./api.md) - indexd-post-folder, access-token, new-program, new-project
+* [approve_vpcpeering_request](./approve_vpcpeering_request.md)
 * [kube-backup](./kube-backup.md)
 * [kube-dev-namespace](./kube-dev-namespace.md)
 * [kube-extract-config](./kube-extract-config.md)
@@ -131,3 +132,4 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-setup-tube](./kube-setup-tube.md)
 * [kube-setup-workvm](./kube-setup-workvm.md)
 * [kube-setup-ssjdispatcher](./kube-setup-ssjdispatcher.md)
+* [netpolicy](./netpolicy.md) - `kube-setup-networkpolicy` helpers

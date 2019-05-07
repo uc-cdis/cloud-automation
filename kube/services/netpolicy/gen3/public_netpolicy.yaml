@@ -1,42 +1,32 @@
----
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-jh
+  name: netpolicy-public-ingress-to
 spec:
   podSelector:
     matchLabels:
-      app: jupyter-hub
+      public: "yes"
   ingress:
     - from:
       - podSelector:
           matchLabels:
-             app: revproxy
-      ports:
-         - port: 3838
-  egress:
-    - {}
+            app: revproxy
   policyTypes:
-    - Ingress
-    - Egress
+   - Ingress
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-jh-nb
+  name: netpolicy-public-egress-to
 spec:
   podSelector:
     matchLabels:
-      app: jupyterhub
-  ingress:
-    - from:
+      app: revproxy
+  egress:
+    - to:
       - podSelector:
           matchLabels:
-             app: jupyter-hub
-      ports:
-         - {}
-  egress:
-    - {}
+            public: "yes"
   policyTypes:
-    - Ingress
-    - Egress
+   - Egress
+

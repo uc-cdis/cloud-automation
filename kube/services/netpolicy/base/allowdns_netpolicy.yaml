@@ -1,12 +1,10 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-allowdns
+  name: netpolicy-allowdns
 spec:
   podSelector:
     matchLabels: {}
-  ingress:
-  - {}
   egress:
   - to:
     - namespaceSelector:
@@ -18,5 +16,4 @@ spec:
       port: 53
 
   policyTypes:
-  - Ingress
   - Egress

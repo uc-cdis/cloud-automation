@@ -141,6 +141,8 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
     mkdir jwt-keys/${timestamp}
     openssl genrsa -out jwt-keys/${timestamp}/jwt_private_key.pem 2048
     openssl rsa -in jwt-keys/${timestamp}/jwt_private_key.pem -pubout -out jwt-keys/${timestamp}/jwt_public_key.pem
+    # we want 'tar' suitcase below to have readable keys in it
+    chmod -R a+r jwt-keys/
   fi
 
   # sftp key

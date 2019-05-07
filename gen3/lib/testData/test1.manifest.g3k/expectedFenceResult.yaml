@@ -20,6 +20,10 @@ spec:
       labels:
         app: fence
         release: production
+        # for network policy selectors
+        authprovider: "yes"
+        internet: "yes"
+        public: "yes"
         date: "1522344234"
     spec:
       affinity:

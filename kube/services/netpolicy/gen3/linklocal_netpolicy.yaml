@@ -1,13 +1,14 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: networkpolicy-gen3job
+  name: netpolicy-linklocal
 spec:
   podSelector:
     matchLabels:
-      app: gen3job
+      linklocal: "yes"
   egress:
-    - {}
+    - to:
+      - ipBlock:
+          cidr: 169.254.0.0/16
   policyTypes:
-   - Ingress
    - Egress

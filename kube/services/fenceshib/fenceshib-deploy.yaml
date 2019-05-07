@@ -20,6 +20,9 @@ spec:
       labels:
         app: fenceshib
         release: production
+        authprovider: "yes"
+        internet: "yes"
+        dbfence: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

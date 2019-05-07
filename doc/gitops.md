@@ -75,6 +75,17 @@ List the Gen3 source code repos.
 gen3 gitops repolist
 ```
 
+### rollpath
+
+Derive the path to the `-deploy.yaml` for a service name
+(or service-canary), and an optional deployment version -
+pulled from the manifest if not given as an argument
+
+```
+gen3 gitops rollpath fence
+gen3 gitops rollpath arborist 2
+```
+
 ### taglist
 
 List the 5 largest semver tags associated with each Gen3 code repository.

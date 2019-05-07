@@ -84,7 +84,7 @@ gen3_secrets_commit() {
       if [[ ! -z "$(git status --porcelain)" ]]; then
         gen3_log_info "gen3_secrets_commit" "commiting changes to $(gen3_secrets_folder)"
         git add .
-        git commit -m "$message"
+        git commit -n -m "$message"
       fi
 
       gen3_log_info "gen3_secrets_commit" "attempting to update secrets backup"
@@ -104,6 +104,9 @@ gen3_secrets_commit() {
 #
 gen3_secrets_sync() {
   if gen3_secrets_commit "$@"; then
+    #
+    # Handle creds.json secrets first
+    #
     local credsFile
     credsFile="$(gen3_secrets_folder)/creds.json"
     if [[ ! -f "$credsFile" ]]; then
@@ -117,32 +120,45 @@ gen3_secrets_sync() {
     local serviceName
     local secretName
     local secretValueFile
+    #
+    # delete all the secrets first, then sleep a second
+    # to avoid race condition
+    #
     for serviceName in $keys; do
       secretName="${serviceName}-creds"
-      gen3_log_info "gen3_secrets_sync_creds" "update secret $secretName"
-      if g3kubectl get secret "$secretName" > /dev/null 2>&1; then
-        g3kubectl delete secret "$secretName"
-        sleep 1
-      fi
+      g3kubectl delete secret "$secretName" > /dev/null 2>&1
+    done
+    sleep 1  # I think delete is async - give backend a second to finish
+    for serviceName in $keys; do
+      secretName="${serviceName}-creds"
       secretValueFile="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXX")"
       jq -r ".[\"$serviceName\"]" > "$secretValueFile" < "$credsFile"
       g3kubectl create secret generic "$secretName" "--from-file=creds.json=${secretValueFile}"
       rm "$secretValueFile"
     done
-
-    # try to process the g3auto/ folder
+  
+    #---------------------------
+    # now try to process the g3auto/ folder
+    #
     if [[ -d "$(gen3_secrets_folder)/g3auto" ]]; then
       (
         cd "$(gen3_secrets_folder)/g3auto"
+        # delete first, then sleep to avoid race condition re-creating
         for serviceName in *; do
           if [[ -d "$serviceName" ]]; then
             (
               cd "$serviceName"
               secretName="${serviceName}-g3auto"
-              if g3kubectl get secret "$secretName" > /dev/null 2>&1; then
-                g3kubectl delete secret "$secretName"
-                sleep 1
-              fi
+              g3kubectl delete secret "$secretName" > /dev/null 2>&1
+            )
+          fi
+        done
+        sleep 1  # avoid race
+        for serviceName in *; do
+          if [[ -d "$serviceName" ]]; then
+            (
+              cd "$serviceName"
+              secretName="${serviceName}-g3auto"
               # in subshell now - forget about local
               flags=""
               for secretValueFile in *; do

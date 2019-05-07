@@ -104,7 +104,7 @@ function es_export() {
 
 function install_elasticdump() {
   PATH=$PATH:$HOME/node_modules/.bin/
-  if ! type elasticdump > /dev/null; then
+  if ! type elasticdump > /dev/null 2>&1; then
       cd $HOME
       npm install elasticdump@latest
       cd -

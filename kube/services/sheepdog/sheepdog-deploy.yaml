@@ -19,6 +19,9 @@ spec:
       labels:
         app: sheepdog
         release: production
+        public: "yes"
+        # to download dictionary
+        s3: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

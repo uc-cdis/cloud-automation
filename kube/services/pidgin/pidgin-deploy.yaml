@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: pidgin
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

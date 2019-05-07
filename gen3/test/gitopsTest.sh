@@ -90,23 +90,29 @@ test_random_alpha() {
 }
 
 test_roll_path() {
-  GEN3_SOURCE_ONLY=true
-  gen3_load "gen3/bin/roll"
+  gen3_load "gen3/bin/gitops"
 
-  ! tpath="$(gen3_roll_path bogus)"; because $? "bogus service yaml does not exist"
-  [[ "$tpath" =~ /kube/services/bogus/bogus-deploy.yaml$ ]]; because $? "gen3_roll_path gives expected bogus path $tpath"
-  ! tpath="$(gen3_roll_path bogus-canary)"; because $? "bogus-canary service yaml does not exist"
-  [[ "$tpath" =~ /kube/services/bogus/bogus-canary-deploy.yaml$ ]]; because $? "gen3_roll_path gives expected bogus-canary path $tpath"
-  tpath="$(gen3_roll_path fence)"; because $? "fence service yaml exists"
-  [[ "$tpath" =~ /kube/services/fence/fence-deploy.yaml$ ]]; because $? "gen3_roll_path gives expected fence path $tpath"
-  tpath="$(gen3_roll_path fence-canary)"; because $? "fence-canary service yaml exists"
-  [[ "$tpath" =~ /kube/services/fence/fence-canary-deploy.yaml$ ]]; because $? "gen3_roll_path gives expected fence-canary path $tpath"
-  ! tpath="$(gen3_roll_path fence 1.2.3)"; because $? "fence service v1.2.3 yaml does not exist"
-  [[ "$tpath" =~ /kube/services/fence/fence-deploy-1.2.3.yaml$ ]]; because $? "gen3_roll_path gives expected fence v1.2.3 path $tpath"
+  ! tpath="$(gen3 gitops rollpath bogus "" 2> /dev/null)"; because $? "bogus service yaml does not exist"
+  [[ "$tpath" =~ /kube/services/bogus/bogus-deploy.yaml$ ]]; because $? "gen3 gitops rollpath gives expected bogus path $tpath"
+  ! tpath="$(gen3 gitops rollpath bogus-canary "" 2> /dev/null)"; because $? "bogus-canary service yaml does not exist"
+  [[ "$tpath" =~ /kube/services/bogus/bogus-canary-deploy.yaml$ ]]; because $? "gen3 gitops rollpath gives expected bogus-canary path $tpath"
+  tpath="$(gen3 gitops rollpath fence "")"; because $? "fence service yaml exists"
+  [[ "$tpath" =~ /kube/services/fence/fence-deploy.yaml$ ]]; because $? "gen3 gitops rollpath gives expected fence path $tpath"
+  tpath="$(gen3 gitops rollpath fence-canary "")"; because $? "fence-canary service yaml exists"
+  [[ "$tpath" =~ /kube/services/fence/fence-canary-deploy.yaml$ ]]; because $? "gen3 gitops rollpath gives expected fence-canary path $tpath"
+  ! tpath="$(gen3 gitops rollpath fence 1.2.3)"; because $? "fence service v1.2.3 yaml does not exist"
+  [[ "$tpath" =~ /kube/services/fence/fence-deploy-1.2.3.yaml$ ]]; because $? "gen3 gitops rollpath gives expected fence v1.2.3 path $tpath"
+
+  local mpath
+  mpath="$(g3k_manifest_path test1.manifest.g3k)"
+  # Mock g3k_manifest_path
+  function g3k_manifest_path() { echo "$mpath"; }
+
+  tpath="$(gen3_roll_path fence)"; because $? "fence service does exist, and mock manifest exists"
+  [[ "$tpath" =~ /kube/services/fence/fence-deploy.yaml$ ]]; because $? "gen3 gitops rollpath gives expected fence no-version path $tpath"
 }
 
 test_roll() {
-  GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/roll"
 
   # Mock g3kubectl
@@ -124,7 +130,6 @@ test_roll() {
 
 
 test_configmaps() {
-  GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/gitops"
 
   local mpath

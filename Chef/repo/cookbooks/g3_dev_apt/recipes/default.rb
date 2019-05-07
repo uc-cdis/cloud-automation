@@ -4,7 +4,7 @@
 
 include_recipe 'g3_base_apt'
 
-['dnsutils', 'git', 'gpg', 'jq', 'less', 'nano', 'python-dev', 'python-pip', 'python3-dev', 'python3-pip', 'unzip', 'vim', 'zip'].each do |name|
+['dnsutils', 'git', 'gpg', 'jq', 'ldap-utils', 'less', 'nano', 'python-dev', 'python-pip', 'python3-dev', 'python3-pip', 'unzip', 'vim', 'zip'].each do |name|
   package 'g3-dev-'+name do
     package_name name
     action :upgrade

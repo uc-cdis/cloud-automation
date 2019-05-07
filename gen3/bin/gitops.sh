@@ -452,6 +452,56 @@ gen3_gitops_sshlist() {
   done
 }
 
+#
+# Get the path to the yaml file to apply for a `gen3 roll name` command.
+# Supports deployment versions (ex: ...-deploy-1.0.0.yaml) and canary
+# deployments (ex: fence-canary)
+#
+# @param depName deployment name or alias
+# @param depVersion deployment version - extracted from manifest if not set - ignores "null" value
+# @return echo path to yaml, non-zero exit code if path does not exist
+#
+gen3_roll_path() {
+  local depName
+  local deployVersion
+
+  depName="$1"
+  shift
+  if [[ -z "$depName" ]]; then
+    gen3_log_err "gen3_roll_path" "roll deployment name not specified"
+    return 1
+  fi
+  if [[ -f "$depName" ]]; then # path to yaml given
+    echo "$depName"
+    return 0
+  fi
+  if [[ $# -gt 0 ]]; then
+    deployVersion="${1}"
+    shift
+  else
+    local manifestPath
+    manifestPath="$(g3k_manifest_path)"
+    deployVersion="$(jq -r ".[\"$depName\"][\"deployment_version\"]" < "$manifestPath")"
+  fi
+  local cleanName
+  local serviceName
+  local templatePath
+  cleanName="${depName%[-_]deploy*}"
+  serviceName="${cleanName/-canary/}"
+  templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy.yaml"
+  if [[ -n "$deployVersion" && "$deployVersion" != null ]]; then
+    templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy-${deployVersion}.yaml"
+  fi
+  echo "$templatePath"
+  if [[ -f "$templatePath" ]]; then
+    return 0
+  else
+    gen3_log_err "gen3_roll_path" "roll path does not exist: $templatePath"
+    return 1
+  fi
+}
+
+
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   # Support sourcing this file for test suite
@@ -482,6 +532,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "repolist")
       gen3_gitops_repolist "$@"
+      ;;
+    "rollpath")
+      gen3_roll_path "$@"
       ;;
     "sshlist")
       gen3_gitops_sshlist "$@"

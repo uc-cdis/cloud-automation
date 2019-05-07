@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netpolicy-notebook
+  # Note - deploy to the usercode namespace
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            role: "gen3"
+        podSelector:
+          matchLabels:
+            app: "jupyter-hub"
+  policyTypes:
+   - Ingress

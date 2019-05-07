@@ -263,6 +263,20 @@ gen3_db_user_list() {
 }
 
 #
+# List all the services with databases, so `gen3 db creds $service` or `gen3 db psql $service` works ...
+#
+gen3_db_service_list() {
+  cat - <<EOM
+fence
+indexd
+sheepdog
+peregrine
+EOM
+  g3kubectl get secrets -o json | jq -r '.items | map(select( .data["dbcreds.json"] and (.metadata.name|test("-g3auto$")))) | map(.metadata.name | gsub("-g3auto$";"")) | .[]'
+
+}
+
+#
 # Open a psql connection to the specified database service
 # using that service credentials.  Respects psql overrides
 # for '-d' and '-U'
@@ -492,6 +506,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         gen3_db_help
         exit 1
       fi
+      ;;
+    "services")
+      gen3_db_service_list "$@"
       ;;
     "setup")
       gen3_db_service_setup "$@"

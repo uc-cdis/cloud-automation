@@ -60,6 +60,10 @@ gen3 db psql fence
 
 List the servers in the db farm.
 
+### gen3 db services
+
+List the services with databases accessible via `gen3 db`
+
 ### gen3 db setup
 
 Setup a database, db user, and associated secrets for the specified service.
