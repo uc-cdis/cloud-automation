@@ -32,7 +32,7 @@ test_netpolicy_bydb() {
   numRules="$(gen3 netpolicy bydb fence | jq -r '.spec.egress[0].to | length')"
   [[ "$numRules" -eq 1 ]]; because $? "gen3 netpolicy bydb generates a single filter for the db host"
   local byFence
-  byFence="$(gen3 netpolicy bydb fence | jq -r .spec.podSelector.matchExpressions.dbfence)"
+  byFence="$(gen3 netpolicy bydb fence | jq -r .spec.podSelector.matchLabels.dbfence)"
   [[ "$byFence" == "yes" ]]; because $? "gen3 netpolicy bydb matches pods with label dbfence=yes"
 }
 
