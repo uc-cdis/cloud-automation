@@ -23,3 +23,7 @@ Those Gen3 commands are used to generate data refresh reports, augmented manifes
 * `gen3 dcf generate-augmented-manifest DR16 legacy`
 
   Generate augmented dcf manifest for data release 16 legacy manifest
+
+* `gen3 dcf redaction DR16`
+
+  Generate redaction report for data release 16

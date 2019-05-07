@@ -5,13 +5,9 @@ gen3_load "gen3/gen3setup"
 
 AWS_INPUT_BUCKET="data-refresh-manifest"
 AWS_OUTPUT_BUCKET="data-refresh-output"
+AWS_PROFILE="data_refresh"
 GS_INPUT_BUCKET="replication-input"
 GS_OUTPUT_BUCKET="datarefresh-log"
-
-AWS_INPUT_BUCKET="giang816test"
-AWS_OUTPUT_BUCKET="xssxs"
-GS_INPUT_BUCKET="data-flow-code"
-GS_OUTPUT_BUCKET="data-flow-code"
 
 echo "Hello from dcf!"
 command=$1
@@ -25,7 +21,7 @@ fi
 
 generate_aws_refresh_report() {
   manifest_type=$3
-  manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F' ' '{print $4}')"
+  manifest="$(aws --profile $AWS_PROFILE s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F' ' '{print $4}')"
 
   if [ -z "$manifest" ]; then
     echo "The $manifest_type manifest is missing"
@@ -34,11 +30,11 @@ generate_aws_refresh_report() {
 
   if [ ! -f "$GEN3_CACHE_DIR/$manifest" ]; then
     echo "Downloading the $manifest_type manifest from S3"
-    aws s3 cp s3://$AWS_INPUT_BUCKET/$manifest $GEN3_CACHE_DIR/$manifest
+    aws --profile $AWS_PROFILE s3 cp s3://$AWS_INPUT_BUCKET/$manifest $GEN3_CACHE_DIR/$manifest
   fi
 
   # Download the lattest log file
-  refresh_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep GDC_full_sync_${manifest_type}_.*$release.*.txt$ | awk -F' ' '{print $4}')"
+  refresh_log="$(aws --profile $AWS_PROFILE s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep GDC_full_sync_${manifest_type}_.*$release.*.txt$ | awk -F' ' '{print $4}')"
   if [ -z "$refresh_log" ]; then
     echo "fail to download $refresh_log log!!!"
     exit 1
@@ -46,7 +42,7 @@ generate_aws_refresh_report() {
 
   local_refresh_log="$(mktemp $XDG_RUNTIME_DIR/XXXXX_refresh_log)"
   echo $local_refresh_log
-  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$refresh_log $local_refresh_log
+  aws --profile $AWS_PROFILE s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$refresh_log $local_refresh_log
   
   python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py aws_refresh_report --manifest $GEN3_CACHE_DIR/$manifest --log_file $local_refresh_log
 
@@ -58,7 +54,7 @@ validate_aws_refresh_report() {
   echo "Validate aws refresh"
 
   manifest_type=$3
-  manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F' ' '{print $4}')"
+  manifest="$(aws --profile $AWS_PROFILE s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release | awk -F' ' '{print $4}')"
   
   if [ -z "$manifest" ]; then
     echo "The $manifest_type manifest is missing"
@@ -67,10 +63,10 @@ validate_aws_refresh_report() {
 
   if [ ! -f "$GEN3_CACHE_DIR/$manifest" ]; then
     echo "Downloading the $manifest_type manifest from S3"
-    aws s3 cp s3://$AWS_INPUT_BUCKET/$manifest $GEN3_CACHE_DIR/$manifest
+    aws --profile $AWS_PROFILE s3 cp s3://$AWS_INPUT_BUCKET/$manifest $GEN3_CACHE_DIR/$manifest
   fi
   
-  validation_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep validation.log | awk -F' ' '{print $4}')"
+  validation_log="$(aws --profile $AWS_PROFILE s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep validation.log | awk -F' ' '{print $4}')"
 
   if [ -z "${validation_log}" ]; then
     echo "The validation log does not exist. Please run the validation script first
@@ -81,7 +77,7 @@ validate_aws_refresh_report() {
 
   # Download the lattest log
   local_validation_log="$(mktemp $XDG_RUNTIME_DIR/XXXXX_validation_log)"
-  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log $local_validation_log
+  aws --profile $AWS_PROFILE s3 cp s3://$AWS_OUTPUT_BUCKET/$release/validation.log $local_validation_log
   
   python3 $GEN3_HOME/gen3/lib/dcf/aws_refresh_report.py aws_refresh_validate --manifest $GEN3_CACHE_DIR/$manifest --log_file $local_validation_log
 
@@ -137,7 +133,7 @@ validate_gs_refresh_report() {
     gsutil cp gs://$GS_INPUT_BUCKET/$manifest $GEN3_CACHE_DIR/$manifest
   fi
 
-  validation_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep validation.log | awk -F' ' '{print $4}')"
+  validation_log="$(aws --profile $AWS_PROFILE s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep validation.log | awk -F' ' '{print $4}')"
 
   if [ -z "${validation_log}" ]; then
     echo "The validation log does not exist. Please run the validation script first
@@ -158,7 +154,7 @@ validate_gs_refresh_report() {
 }
 
 redaction_rp() {
-  redact_manifest="$(aws s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_obsolete_.*$release | awk -F' ' '{print $4}')"
+  redact_manifest="$(aws --profile $AWS_PROFILE s3 ls s3://$AWS_INPUT_BUCKET | grep GDC_full_sync_obsolete_.*$release | awk -F' ' '{print $4}')"
   if [ -z "$redact_manifest" ]; then
     echo "The redaction manifest is missing"
     exit 1
@@ -166,11 +162,11 @@ redaction_rp() {
 
   if [ ! -f "$GEN3_CACHE_DIR/$redact_manifest" ]; then
     echo "Downloading the redaction manifest from S3"
-    aws s3 cp s3://$AWS_INPUT_BUCKET/$redact_manifest $GEN3_CACHE_DIR/$redact_manifest
+    aws --profile $AWS_PROFILE s3 cp s3://$AWS_INPUT_BUCKET/$redact_manifest $GEN3_CACHE_DIR/$redact_manifest
   fi
 
-  aws_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep aws_deletion_log.json | awk -F' ' '{print $4}')"
-  gs_log="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep gs_deletion_log.json | awk -F' ' '{print $4}')"
+  aws_log="$(aws --profile $AWS_PROFILE s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep aws_deletion_log.json | awk -F' ' '{print $4}')"
+  gs_log="$(aws --profile $AWS_PROFILE s3 ls s3://$AWS_OUTPUT_BUCKET/$release/ | grep gs_deletion_log.json | awk -F' ' '{print $4}')"
   
   if [ -z "$aws_log" ]; then
     echo "Can not find the redaction aws log"
@@ -185,8 +181,8 @@ redaction_rp() {
   local_aws_log="$(mktemp $XDG_RUNTIME_DIR/XXXXX_aws_log)"
   local_gs_log="$(mktemp $XDG_RUNTIME_DIR/XXXXX_gs_log)"
 
-  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$aws_log $local_aws_log
-  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$gs_log $local_gs_log
+  aws --profile $AWS_PROFILE s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$aws_log $local_aws_log
+  aws --profile $AWS_PROFILE s3 cp s3://$AWS_OUTPUT_BUCKET/$release/$gs_log $local_gs_log
 
   python3 $GEN3_HOME/gen3/lib/dcf/redaction.py redact --manifest $GEN3_CACHE_DIR/$redact_manifest --aws_log $local_aws_log --gs_log $local_gs_log
 
@@ -198,7 +194,7 @@ redaction_rp() {
 
 generate_isb_manifest() {
   manifest_type=$3
-  manifest="$(aws s3 ls s3://$AWS_OUTPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release.*_DCF.tsv$ | awk -F' ' '{print $4}')"
+  manifest="$(aws --profile $AWS_PROFILE s3 ls s3://$AWS_OUTPUT_BUCKET | grep GDC_full_sync_${manifest_type}_.*$release.*_DCF.tsv$ | awk -F' ' '{print $4}')"
 
   if [ -z "$manifest" ]; then
     echo """
@@ -208,7 +204,7 @@ generate_isb_manifest() {
     exit 1
   fi
 
-  aws s3 cp s3://$AWS_OUTPUT_BUCKET/$manifest ./
+  aws --profile $AWS_PROFILE s3 cp s3://$AWS_OUTPUT_BUCKET/$manifest ./
   echo "The manifest is saved at ./$manifest"
 
 }
