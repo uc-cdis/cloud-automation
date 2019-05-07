@@ -79,3 +79,4 @@ metadata:
 
 * AWS address ranges: https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html
 * IP4 special use address ranges: https://en.wikipedia.org/wiki/IPv4
+* Example policies: https://github.com/ahmetb/kubernetes-network-policy-recipes

@@ -20,8 +20,8 @@ if ! g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
 else
   echo "I think k8s namespace ${notebookNamespace} already exists"
 fi
-g3kubectl label "${notebookNamespace}" "role=usercode" > /dev/null 2>&1 || true
-g3kubectl label "${namespace}" "role=gen3" > /dev/null 2>&1 || true
+g3kubectl label namespace "${notebookNamespace}" "role=usercode" > /dev/null 2>&1 || true
+g3kubectl label namespace "${namespace}" "role=gen3" > /dev/null 2>&1 || true
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/role-jupyter.yaml"

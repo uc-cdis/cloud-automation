@@ -19,18 +19,6 @@ fi
 
 # lib -------------------------
 
-name2IP() {
-  local name
-  local ip
-  name="$1"
-  ip="$name"
-  if [[ ! "$name" =~ ^[0-9\.\:]+$ ]]; then
-    ip=$(dig "$name" +short)
-  fi
-  echo "$ip"
-}
-
-
 #
 # Deploy network policies that accomodate the
 # gen3.io/network-ingress ACL included in gen3 deployments
@@ -100,7 +88,6 @@ net_apply_gen3() {
     gen3 netpolicy db "$serviceName" | g3kubectl apply -f -
     gen3 netpolicy bydb "$serviceName" | g3kubectl apply -f -
   done
-
 }
 
 
