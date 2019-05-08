@@ -14,7 +14,8 @@ module "jupyter_pool" {
   nodepool                  = "jupyter"
   vpc_name                  = "${var.vpc_name}"
   #csoc_cidr                 = "${var.csoc_cidr}"
-  csoc_cidr                 = "${data.aws_vpc.peering_vpc.cidr_block}"
+  #csoc_cidr                 = "${data.aws_vpc.peering_vpc.cidr_block}"
+  csoc_cidr                 = "${var.peering_cidr}"
   eks_cluster_endpoint      = "${aws_eks_cluster.eks_cluster.endpoint}"
   eks_cluster_ca            = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
   eks_private_subnets       = "${aws_subnet.eks_private.*.id}"
@@ -201,7 +202,8 @@ resource "aws_route_table" "eks_private" {
   route {
     #from the commons vpc to the csoc vpc via the peering connection
     #cidr_block                = "${var.csoc_cidr}"
-    cidr_block                = "${data.aws_vpc.peering_vpc.cidr_block}"
+    #cidr_block                = "${data.aws_vpc.peering_vpc.cidr_block}"
+    cidr_block                = "${var.peering_cidr}"
     vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
   }
 
