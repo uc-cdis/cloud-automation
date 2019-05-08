@@ -9,7 +9,7 @@ gen3_load "gen3/lib/kube-setup-init"
 namespace="$(gen3 db namespace)"
 
 g3k_kv_filter ${GEN3_HOME}/kube/services/ambassador/ambassador-rbac.yaml AMBASSADOR_BINDING "name: ambassador-binding-$namespace" CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -
-g3kubectl apply -f "${GEN3_HOME}/kube/services/ambassador/ambassador-deploy.yaml"
+gen3 roll ambassador
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ambassador/ambassador-service.yaml"
 
 cat <<EOM
