@@ -1,6 +1,7 @@
 module "squid_proxy" {
   source               = "../squid"
-  csoc_cidr            = "${data.aws_vpc.csoc_vpc.cidr_block}"
+  #csoc_cidr            = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}" #"${data.aws_vpc.csoc_vpc.cidr_block}"
+  csoc_cidr            = "${var.peering_cidr}"
   env_vpc_name         = "${var.vpc_name}"
   env_public_subnet_id = "${aws_subnet.public.id}"
   env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
@@ -97,7 +98,8 @@ resource "aws_route_table" "public" {
 resource "aws_route" "peering_route_public" {
   count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
   route_table_id            = "${aws_route_table.public.id}"
-  destination_cidr_block    = "${data.aws_vpc.csoc_vpc.cidr_block}"
+  #destination_cidr_block    = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}" #"${data.aws_vpc.csoc_vpc.cidr_block}"
+  destination_cidr_block    = "${var.peering_cidr}"
   vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
   depends_on                = ["aws_route_table.public"]
 }
@@ -150,7 +152,8 @@ resource "aws_default_route_table" "default" {
 resource "aws_route" "peering_route_default" {
   count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
   route_table_id            = "${aws_default_route_table.default.id}"
-  destination_cidr_block    = "${data.aws_vpc.csoc_vpc.cidr_block}"
+  #destination_cidr_block    = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}" #"${data.aws_vpc.csoc_vpc.cidr_block}"
+  destination_cidr_block    = "${var.peering_cidr}"
   vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
   depends_on                = ["aws_default_route_table.default"]
 }
@@ -346,7 +349,7 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
 # If this is an independent commons, then we should add the route on the VPC where the adminVM is, because we can
 
 data "aws_route_tables" "control_routing_table" {
-  #count = "${var.csoc_managed == "yes" ? 0 : 1}"
+  count = "${var.csoc_managed == "yes" ? 0 : 1}"
   vpc_id = "${var.csoc_vpc_id}"
 
   # If we wanted to filter by tags later we could

@@ -219,7 +219,7 @@ resource "aws_s3_bucket" "kube_bucket" {
 }
 
 
-resource "aws_s3_bucket_public_access_block" "example" {
+resource "aws_s3_bucket_public_access_block" "kube_bucket_privacy" {
   bucket                      = "${aws_s3_bucket.kube_bucket.id}"
 
   block_public_acls           = true

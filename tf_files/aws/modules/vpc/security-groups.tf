@@ -8,7 +8,8 @@ resource "aws_security_group" "local" {
     to_port     = 0
     protocol    = "-1"
     #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
-    cidr_blocks = ["${var.vpc_cidr_block}", "${data.aws_vpc.csoc_vpc.cidr_block}"]
+    #cidr_blocks = ["${var.vpc_cidr_block}", "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"]
+    cidr_blocks = ["${var.vpc_cidr_block}", "${var.peering_cidr}"]
   }
 
   egress {
@@ -37,7 +38,8 @@ resource "aws_security_group" "webservice" {
     to_port     = 0
     protocol    = "-1"
     #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
-    cidr_blocks = ["${var.vpc_cidr_block}", "${data.aws_vpc.csoc_vpc.cidr_block}"]
+    #cidr_blocks = ["${var.vpc_cidr_block}", "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"]
+    cidr_blocks = ["${var.vpc_cidr_block}", "${var.peering_cidr}"]
   }
 
   egress {
@@ -96,7 +98,8 @@ resource "aws_security_group" "proxy" {
     to_port     = 3128
     protocol    = "TCP"
     #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
-    cidr_blocks = ["${var.vpc_cidr_block}", "${data.aws_vpc.csoc_vpc.cidr_block}"]
+    #cidr_blocks = ["${var.vpc_cidr_block}", "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"]
+    cidr_blocks = ["${var.vpc_cidr_block}", "${var.peering_cidr}"]
   }
 
   tags {
