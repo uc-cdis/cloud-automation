@@ -4,8 +4,12 @@
 
 include_recipe 'g3_base_apt'
 
+#
+# https://github.com/nodesource/distributions/blob/master/README.md
+#   https://deb.nodesource.com/setup_12.x
+#
 apt_repository 'nodejs-apt-repo' do
-  uri   'https://deb.nodesource.com/${NODEREPO}/dists/node_12.x/Release'
+  uri   'https://deb.nodesource.com/node_12.x/dists/bionic/Release'
   key   'https://deb.nodesource.com/gpgkey/nodesource.gpg.key'
   components ['main']
 end
