@@ -149,14 +149,14 @@ resource "aws_default_route_table" "default" {
   }
 }
 
-resource "aws_route" "peering_route_default" {
-  count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
-  route_table_id            = "${aws_default_route_table.default.id}"
+#resource "aws_route" "peering_route_default" {
+#  count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
+#  route_table_id            = "${aws_default_route_table.default.id}"
   #destination_cidr_block    = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}" #"${data.aws_vpc.csoc_vpc.cidr_block}"
-  destination_cidr_block    = "${var.peering_cidr}"
-  vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
-  depends_on                = ["aws_default_route_table.default"]
-}
+#  destination_cidr_block    = "${var.peering_cidr}"
+#  vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
+#  depends_on                = ["aws_default_route_table.default"]
+#}
 
 
 resource "aws_main_route_table_association" "default" {
