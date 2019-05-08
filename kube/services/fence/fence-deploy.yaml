@@ -22,7 +22,8 @@ spec:
         release: production
         # for network policy selectors
         authprovider: "yes"
-        internet: "yes"
+        # uses explicit proxy and AWS APIs
+        netnolimit: "yes"
         public: "yes"
         GEN3_DATE_LABEL
     spec:
