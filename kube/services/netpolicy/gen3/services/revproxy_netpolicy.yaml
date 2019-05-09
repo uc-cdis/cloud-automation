@@ -14,5 +14,15 @@ spec:
          - port: 80
          - port: 81
          - port: 443
+  egress:
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            app: prometheus
+    - to: 
+      - namespaceSelector:
+          matchLabels:
+            app: grafana
   policyTypes:
    - Ingress
+   - Egress
