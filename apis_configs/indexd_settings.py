@@ -51,6 +51,7 @@ AUTH = SQLAlchemyAuthDriver('postgresql+psycopg2://{usr}:{psw}@{pghost}:{pgport}
     pghost=pghost,
     pgport=pgport,
     db=db,
+    arborist="http://arborist-service/",
 ))
 
 settings = {'config': CONFIG, 'auth': AUTH}
