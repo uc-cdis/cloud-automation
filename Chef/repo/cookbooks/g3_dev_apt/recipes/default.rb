@@ -4,7 +4,17 @@
 
 include_recipe 'g3_base_apt'
 
-['dnsutils', 'git', 'gpg', 'jq', 'ldap-utils', 'less', 'nano', 'python-dev', 'python-pip', 'python3-dev', 'python3-pip', 'unzip', 'vim', 'zip'].each do |name|
+#
+# https://github.com/nodesource/distributions/blob/master/README.md
+#   https://deb.nodesource.com/setup_12.x
+#
+apt_repository 'nodejs-apt-repo' do
+  uri   'https://deb.nodesource.com/node_12.x'
+  key   'https://deb.nodesource.com/gpgkey/nodesource.gpg.key'
+  components ['main']
+end
+
+['build-essential', 'dnsutils', 'git', 'gpg', 'jq', 'ldap-utils', 'less', 'nano', 'nodejs', 'python-dev', 'python-pip', 'python3-dev', 'python3-pip', 'unzip', 'vim', 'zip'].each do |name|
   package 'g3-dev-'+name do
     package_name name
     action :upgrade

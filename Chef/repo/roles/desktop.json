@@ -1,6 +1,6 @@
 {
-    "name": "devbox",
-    "description": "Setup dev box",
+    "name": "desktop",
+    "description": "Setup an ubuntu desktop",
     "chef_type": "role",
     "json_class": "Chef::Role",
     "default_attributes": {
@@ -10,6 +10,7 @@
     "run_list": [
         "recipe[g3_dev_apt]",
         "recipe[g3_docker_apt]",
-        "recipe[g3_google_apt]"
+        "recipe[g3_google_apt]",
+        "recipe[g3_desktop_apt]"
     ]
 }
