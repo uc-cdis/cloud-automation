@@ -13,4 +13,5 @@ end
 
 snap_package 'g3-desktop-code' do
   package_name "code"
+  options ["--classic" ]
 end
