@@ -80,6 +80,12 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: portal_app
+          - name: LOGOUT_INACTIVE_USERS
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: logout_inactive_users
+                optional: true
           - name: TIER_ACCESS_LEVEL
             valueFrom:
               configMapKeyRef:
