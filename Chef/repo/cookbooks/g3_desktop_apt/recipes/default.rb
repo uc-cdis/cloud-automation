@@ -11,7 +11,9 @@ include_recipe 'g3_dev_apt'
   end
 end
 
-snap_package 'g3-desktop-code' do
-  package_name "code"
-  options ["--classic" ]
+execute 'g3-desktop-code' do
+  command <<-EOF
+snap install code --classic
+    EOF
+  creates "/snap/bin/code"
 end
