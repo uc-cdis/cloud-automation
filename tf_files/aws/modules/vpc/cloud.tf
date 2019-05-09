@@ -80,12 +80,12 @@ resource "aws_route_table" "public" {
     gateway_id = "${aws_internet_gateway.gw.id}"
   }
 
-#  route {
+  route {
     #from the commons vpc to the csoc vpc via the peering connection
     #cidr_block                = "${var.csoc_cidr}"
-#    cidr_block                = "${var.peering_cidr}"
-#    vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
-#  }
+    cidr_block                = "${var.peering_cidr}"
+    vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
+  }
 
   tags {
     Name         = "main"
@@ -95,14 +95,14 @@ resource "aws_route_table" "public" {
 }
 
 
-resource "aws_route" "peering_route_public" {
-  count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
-  route_table_id            = "${aws_route_table.public.id}"
+#resource "aws_route" "peering_route_public" {
+#  count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
+#  route_table_id            = "${aws_route_table.public.id}"
   #destination_cidr_block    = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}" #"${data.aws_vpc.csoc_vpc.cidr_block}"
-  destination_cidr_block    = "${var.peering_cidr}"
-  vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
-  depends_on                = ["aws_route_table.public"]
-}
+#  destination_cidr_block    = "${var.peering_cidr}"
+#  vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
+#  depends_on                = ["aws_route_table.public"]
+#}
 
 resource "aws_eip" "nat_gw" {
   vpc = true
@@ -138,25 +138,25 @@ resource "aws_eip" "nat_gw" {
 resource "aws_default_route_table" "default" {
   default_route_table_id = "${aws_vpc.main.default_route_table_id}"
 
-#  route {
+  route {
     #from the commons vpc to the csoc vpc via the peering connection
-#    cidr_block                = "${var.csoc_cidr}"
-#    vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
-#  }
+    cidr_block                = "${var.peering_cidr}"
+    vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
+  }
 
   tags {
     Name = "default table"
   }
 }
 
-resource "aws_route" "peering_route_default" {
-  count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
-  route_table_id            = "${aws_default_route_table.default.id}"
+#resource "aws_route" "peering_route_default" {
+#  count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
+#  route_table_id            = "${aws_default_route_table.default.id}"
   #destination_cidr_block    = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}" #"${data.aws_vpc.csoc_vpc.cidr_block}"
-  destination_cidr_block    = "${var.peering_cidr}"
-  vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
+#  destination_cidr_block    = "${var.peering_cidr}"
+#  vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
 #  depends_on                = ["aws_default_route_table.default"]
-}
+#}
 
 
 resource "aws_main_route_table_association" "default" {
