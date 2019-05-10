@@ -173,7 +173,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       gen3_ec2_public_ip "$@"
       ;;
     *)
-      help
+      gen3_ec2_help
       ;;
   esac
 fi
