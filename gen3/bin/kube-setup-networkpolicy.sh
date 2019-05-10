@@ -12,10 +12,6 @@ if ! semver_ge "$serverVersion" "1.8.0"; then
   gen3_log_info "kube-setup-netpolciy" "K8s server version $serverVersion does not yet support network policy"
   exit 0
 fi
-if [[ -n "$JENKINS_HOME" ]]; then
-  gen3_log_info "kube-setup-netpolciy" "Jenkins skipping network policy manipulation: $JENKINS_HOME"
-  exit 0
-fi
 
 # lib -------------------------
 
