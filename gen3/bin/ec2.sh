@@ -3,14 +3,14 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-help() {
+gen3_ec2_help() {
   gen3 help ec2
 }
 
 #
-# Little helper to lookup AWS status of a node by ip address
+# Internal helper for parsing filter flags
 #
-gen3_ec2_describe() {
+_parse_filters() {
   local filters=""
   while [[ $# -gt 0 ]]; do
     key="$1"
@@ -31,17 +31,27 @@ gen3_ec2_describe() {
         shift
         ;;
       *)
-        gen3_log_err "Unrecognized flag: $key"
-        help
-        return 1
+        gen3_log_err "Unrecognized filter flag: $key"
+        exit 1
         ;;
     esac
   done
-  if [[ ! -z "$filters" ]]; then
-    filters="--filters $filters"
+  if [[ ! -z "${filters}" ]]; then
+    echo "--filter ${filters}"
   fi
-  gen3_log_info "Getting ec2 instances with filters: $filters"
-  gen3 aws ec2 describe-instances $filters
+}
+
+#
+# Little helper to lookup AWS status of a node by ip address
+#
+gen3_ec2_describe() {
+  local filters
+  if ! filters=$(_parse_filters $@); then
+    gen3_ec2_help
+    exit 1
+  fi
+  gen3_log_info "Getting ec2 instances with filters: ${filters}"
+  gen3 aws ec2 describe-instances ${filters}
 }
 
 
@@ -70,18 +80,61 @@ gen3_ec2_reboot() {
 }
 
 #
+# Gets public ip of instances
+#
+gen3_ec2_public_ip() {
+  local filters
+  if ! filters="$(_parse_filters $@)"; then
+    gen3_ec2_help
+    exit 1
+  fi
+  local instanceIPs=$(aws ec2 describe-instances ${filters} --query "Reservations[*].Instances[*].PublicIpAddress" --output=text)
+  if [[ -z "${instanceIPs}" ]]; then
+    gen3_log_err "Unable to find IPs with filters: ${filters}"
+    exit 1
+  fi
+  echo "${instanceIPs}"
+}
+
+#
 # Termiante an EC2 instance
 #
 gen3_ec2_terminate() {
   local instanceId=$1
-  local autoTerminate=$2
-  local userResponse
+  shift
+  local autoTerminate="false"
+  local dryRun="false"
 
   if [[ -z "$instanceId" ]]; then
-    gen3_log_err "Usage: gen3 ec2 terminate <instanceId> [-y]"
+    gen3_log_err "Missing required instance id"
+    gen3_ec2_help
     return 1
   fi
-  if [[ "$autoTerminate" =~ ^-y$ ]]; then
+  # parse flags
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+      -y)
+        autoTerminate="true"
+        shift
+        ;;
+      --dry-run | -d)
+        dryRun="true"
+        shift
+        ;;
+      *)
+        gen3_log_err "Unrecognized flag: $key"
+        exit 1
+        ;;
+    esac
+  done
+
+  if [[ "${dryRun}" == "true" ]]; then
+    gen3_log_info "Running a dry-run of termination (ie will not actually terminate instance)"
+  fi
+
+  local userResponse
+  if [[ "$autoTerminate" == "true" ]]; then
     gen3_log_warn "Automatically terminating instance $instanceId"
   else
     echo "Are you sure you want to delete instance $instanceId?"
@@ -92,9 +145,14 @@ gen3_ec2_terminate() {
     fi
   fi
   
-  gen3_log_err "EXITING EARLY: I DON'T WANT TO TEST THIS YET"
-  return 1
-  gen3_aws_run aws ec2 terminate-instances --instance-ids $instanceId
+  if [[ "${dryRun}" == "true" ]]; then
+    gen3_aws_run aws ec2 terminate-instances --instance-ids $instanceId --dry-run
+  else
+    if ! gen3_aws_run aws ec2 terminate-instances --instance-ids $instanceId; then
+      gen3_log_err "Failed to terminate instance ${instanceId}"
+      return 1
+    fi
+  fi
 }
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
@@ -110,6 +168,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "terminate")
       gen3_ec2_terminate "$@"
+      ;;
+    "public-ip")
+      gen3_ec2_public_ip "$@"
       ;;
     *)
       help
