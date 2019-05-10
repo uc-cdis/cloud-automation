@@ -59,7 +59,7 @@
   "gnetId": 6417,
   "graphTooltip": 1,
   "id": null,
-  "iteration": 1557502639787,
+  "iteration": 1557522379671,
   "links": [],
   "panels": [
     {
@@ -810,7 +810,7 @@
             "h": 6,
             "w": 12,
             "x": 0,
-            "y": 2
+            "y": 10
           },
           "id": 66,
           "legend": {
@@ -896,7 +896,7 @@
             "h": 6,
             "w": 12,
             "x": 12,
-            "y": 2
+            "y": 10
           },
           "id": 67,
           "legend": {
@@ -996,7 +996,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 20
+            "y": 3
           },
           "id": 59,
           "legend": {
@@ -1082,7 +1082,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 20
+            "y": 3
           },
           "id": 63,
           "legend": {
@@ -1185,7 +1185,7 @@
             "h": 5,
             "w": 6,
             "x": 0,
-            "y": 3
+            "y": 4
           },
           "id": 16,
           "links": [],
@@ -1278,7 +1278,7 @@
             "h": 5,
             "w": 6,
             "x": 6,
-            "y": 3
+            "y": 4
           },
           "id": 18,
           "interval": null,
@@ -1358,7 +1358,7 @@
             "h": 5,
             "w": 6,
             "x": 12,
-            "y": 3
+            "y": 4
           },
           "id": 19,
           "interval": null,
@@ -1438,7 +1438,7 @@
             "h": 5,
             "w": 6,
             "x": 18,
-            "y": 3
+            "y": 4
           },
           "id": 20,
           "interval": null,
@@ -1503,7 +1503,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 8
+            "y": 9
           },
           "id": 65,
           "links": [],
@@ -1620,7 +1620,7 @@
             "h": 3,
             "w": 8,
             "x": 0,
-            "y": 4
+            "y": 5
           },
           "id": 24,
           "interval": null,
@@ -1700,7 +1700,7 @@
             "h": 3,
             "w": 8,
             "x": 8,
-            "y": 4
+            "y": 5
           },
           "id": 25,
           "interval": null,
@@ -1780,7 +1780,7 @@
             "h": 3,
             "w": 8,
             "x": 16,
-            "y": 4
+            "y": 5
           },
           "id": 26,
           "interval": null,
@@ -1874,7 +1874,7 @@
             "h": 3,
             "w": 12,
             "x": 0,
-            "y": 5
+            "y": 6
           },
           "id": 30,
           "interval": null,
@@ -1955,7 +1955,7 @@
             "h": 3,
             "w": 12,
             "x": 12,
-            "y": 5
+            "y": 6
           },
           "id": 31,
           "interval": null,
@@ -2036,7 +2036,7 @@
             "h": 3,
             "w": 8,
             "x": 0,
-            "y": 8
+            "y": 9
           },
           "id": 32,
           "interval": null,
@@ -2117,7 +2117,7 @@
             "h": 3,
             "w": 8,
             "x": 8,
-            "y": 8
+            "y": 9
           },
           "id": 33,
           "interval": null,
@@ -2198,7 +2198,7 @@
             "h": 3,
             "w": 8,
             "x": 16,
-            "y": 8
+            "y": 9
           },
           "id": 34,
           "interval": null,
@@ -2256,6 +2256,289 @@
             }
           ],
           "valueName": "current"
+        },
+        {
+          "columns": [],
+          "fontSize": "100%",
+          "gridPos": {
+            "h": 6,
+            "w": 8,
+            "x": 0,
+            "y": 12
+          },
+          "id": 71,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 2,
+            "desc": true
+          },
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "mappingType": 1,
+              "pattern": "namespace",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "mappingType": 1,
+              "pattern": "pod",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "mappingType": 1,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "hidden",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "expr": "kube_pod_status_phase{namespace=~\"$namespace\", phase=\"Failed\"} == 1",
+              "format": "table",
+              "instant": true,
+              "intervalFactor": 1,
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Failed Pods",
+          "transform": "table",
+          "type": "table"
+        },
+        {
+          "columns": [],
+          "fontSize": "100%",
+          "gridPos": {
+            "h": 6,
+            "w": 8,
+            "x": 8,
+            "y": 12
+          },
+          "id": 72,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 2,
+            "desc": true
+          },
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "mappingType": 1,
+              "pattern": "namespace",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "mappingType": 1,
+              "pattern": "pod",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "mappingType": 1,
+              "pattern": "phase",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "mappingType": 1,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "hidden",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "expr": "kube_pod_status_phase{namespace=~\"$namespace\", phase=\"Pending\"} == 1",
+              "format": "table",
+              "instant": true,
+              "intervalFactor": 1,
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Pending Pods",
+          "transform": "table",
+          "type": "table"
+        },
+        {
+          "columns": [],
+          "fontSize": "100%",
+          "gridPos": {
+            "h": 6,
+            "w": 8,
+            "x": 16,
+            "y": 12
+          },
+          "id": 73,
+          "links": [],
+          "pageSize": null,
+          "scroll": true,
+          "showHeader": true,
+          "sort": {
+            "col": 2,
+            "desc": true
+          },
+          "styles": [
+            {
+              "alias": "Time",
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "pattern": "Time",
+              "type": "date"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "mappingType": 1,
+              "pattern": "namespace",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "mappingType": 1,
+              "pattern": "pod",
+              "thresholds": [],
+              "type": "number",
+              "unit": "short"
+            },
+            {
+              "alias": "",
+              "colorMode": null,
+              "colors": [
+                "rgba(245, 54, 54, 0.9)",
+                "rgba(237, 129, 40, 0.89)",
+                "rgba(50, 172, 45, 0.97)"
+              ],
+              "dateFormat": "YYYY-MM-DD HH:mm:ss",
+              "decimals": 2,
+              "mappingType": 1,
+              "pattern": "/.*/",
+              "thresholds": [],
+              "type": "hidden",
+              "unit": "short"
+            }
+          ],
+          "targets": [
+            {
+              "expr": "kube_pod_status_phase{namespace=~\"$namespace\", phase=\"Unknown\"} == 1",
+              "format": "table",
+              "instant": true,
+              "intervalFactor": 1,
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Unknown Pods",
+          "transform": "table",
+          "type": "table"
         }
       ],
       "title": "Pods",
@@ -2293,7 +2576,7 @@
             "h": 3,
             "w": 6,
             "x": 0,
-            "y": 6
+            "y": 7
           },
           "id": 38,
           "interval": null,
@@ -2373,7 +2656,7 @@
             "h": 3,
             "w": 6,
             "x": 6,
-            "y": 6
+            "y": 7
           },
           "id": 39,
           "interval": null,
@@ -2453,7 +2736,7 @@
             "h": 3,
             "w": 6,
             "x": 12,
-            "y": 6
+            "y": 7
           },
           "id": 40,
           "interval": null,
@@ -2533,7 +2816,7 @@
             "h": 3,
             "w": 6,
             "x": 18,
-            "y": 6
+            "y": 7
           },
           "id": 41,
           "interval": null,
@@ -2613,7 +2896,7 @@
             "h": 3,
             "w": 12,
             "x": 0,
-            "y": 9
+            "y": 10
           },
           "id": 43,
           "interval": null,
@@ -2693,7 +2976,7 @@
             "h": 3,
             "w": 12,
             "x": 12,
-            "y": 9
+            "y": 10
           },
           "id": 42,
           "interval": null,
@@ -2787,7 +3070,7 @@
             "h": 3,
             "w": 8,
             "x": 0,
-            "y": 7
+            "y": 8
           },
           "id": 47,
           "interval": null,
@@ -2867,7 +3150,7 @@
             "h": 3,
             "w": 8,
             "x": 8,
-            "y": 7
+            "y": 8
           },
           "id": 48,
           "interval": null,
@@ -2947,7 +3230,7 @@
             "h": 3,
             "w": 8,
             "x": 16,
-            "y": 7
+            "y": 8
           },
           "id": 49,
           "interval": null,
@@ -3012,7 +3295,7 @@
             "h": 7,
             "w": 8,
             "x": 0,
-            "y": 10
+            "y": 11
           },
           "id": 57,
           "links": [],
@@ -3085,7 +3368,7 @@
             "h": 7,
             "w": 8,
             "x": 8,
-            "y": 10
+            "y": 11
           },
           "id": 53,
           "links": [],
@@ -3158,7 +3441,7 @@
             "h": 7,
             "w": 8,
             "x": 16,
-            "y": 10
+            "y": 11
           },
           "id": 51,
           "links": [],
@@ -3331,5 +3614,5 @@
   "timezone": "browser",
   "title": "Data Commons Metrics",
   "uid": "KzcRrmeik",
-  "version": 8
+  "version": 13
 }
