@@ -410,6 +410,10 @@ EOM
       commonsName=${GEN3_WORKSPACE//_es/}
       cat - <<EOM
 vpc_name   = "${commonsName}"
+instance_type = "m4.large.elasticsearch"
+ebs_volume_size_gb = 20
+slack_webhook             = FILL THIS IN FOR CLOUDWATCH ALARMS
+secondary_slack_webhook   = FILL THIS IN FOR CLOUDWATCH ALARMS
 EOM
     return 0
   fi
