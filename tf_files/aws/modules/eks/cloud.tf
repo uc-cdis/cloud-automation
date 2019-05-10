@@ -13,9 +13,11 @@ module "jupyter_pool" {
   users_policy              = "${var.users_policy}"
   nodepool                  = "jupyter"
   vpc_name                  = "${var.vpc_name}"
-  csoc_cidr                 = "${var.csoc_cidr}"
-  eks_cluster_endpoint     = "${aws_eks_cluster.eks_cluster.endpoint}"
-  eks_cluster_ca           = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+  #csoc_cidr                 = "${var.csoc_cidr}"
+  #csoc_cidr                 = "${data.aws_vpc.peering_vpc.cidr_block}"
+  csoc_cidr                 = "${var.peering_cidr}"
+  eks_cluster_endpoint      = "${aws_eks_cluster.eks_cluster.endpoint}"
+  eks_cluster_ca            = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
   eks_private_subnets       = "${aws_subnet.eks_private.*.id}"
   control_plane_sg          = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg       = "${aws_security_group.eks_nodes_sg.id}"
@@ -25,6 +27,7 @@ module "jupyter_pool" {
   kernel                    = "${var.kernel}"
   bootstrap_script          = "${var.jupyter_bootstrap_script}"
   jupyter_worker_drive_size = "${var.jupyter_worker_drive_size}"
+  organization_name         = "${var.organization_name}"
 }
 
 
@@ -98,7 +101,7 @@ resource "aws_subnet" "eks_private" {
     map(
      "Name", "eks_private_${count.index}",
      "Environment", "${var.vpc_name}",
-     "Organization", "Basic Service",
+     "Organization", "${var.organization_name}",
      "kubernetes.io/cluster/${var.vpc_name}", "owned",
     )
   }"
@@ -125,7 +128,7 @@ resource "aws_subnet" "eks_public" {
     map(
      "Name", "eks_public_${count.index}",
      "Environment", "${var.vpc_name}",
-     "Organization", "Basic Service",
+     "Organization", "${var.organization_name}",
      "kubernetes.io/cluster/${var.vpc_name}", "shared",
      "kubernetes.io/role/elb", "",
      "KubernetesCluster", "${var.vpc_name}",
@@ -198,14 +201,16 @@ resource "aws_route_table" "eks_private" {
 
   route {
     #from the commons vpc to the csoc vpc via the peering connection
-    cidr_block                = "${var.csoc_cidr}"
+    #cidr_block                = "${var.csoc_cidr}"
+    #cidr_block                = "${data.aws_vpc.peering_vpc.cidr_block}"
+    cidr_block                = "${var.peering_cidr}"
     vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
   }
 
   tags {
     Name         = "eks_private"
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 
   lifecycle {
@@ -651,7 +656,7 @@ resource "aws_security_group" "ssh" {
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
     Name         = "ssh_eks_${var.vpc_name}"
   }
 }
