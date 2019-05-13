@@ -13,15 +13,7 @@ export WORKSPACE="${WORKSPACE:-$HOME}"
 namespace="$(gen3 db namespace)"
 notebookNamespace="$(gen3 jupyter j-namespace)"
 
-# Create the namespace for user pods
-if ! g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
-  echo "Creating k8s namespace: ${notebookNamespace}" 
-  g3kubectl create namespace "${notebookNamespace}"
-else
-  echo "I think k8s namespace ${notebookNamespace} already exists"
-fi
-g3kubectl label namespace "${notebookNamespace}" "role=usercode" > /dev/null 2>&1 || true
-g3kubectl label namespace "${namespace}" "role=gen3" > /dev/null 2>&1 || true
+gen3 jupyter j-namespace setup
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/role-jupyter.yaml"

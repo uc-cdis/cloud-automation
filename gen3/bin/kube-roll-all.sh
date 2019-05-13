@@ -15,6 +15,7 @@ gen3 kube-setup-workvm
 gen3 kube-setup-secrets
 gen3 kube-setup-roles
 gen3 kube-setup-certs
+gen3 jupyter j-namespace setup
 
 echo "INFO: using manifest at $(g3k_manifest_path)"
 
