@@ -61,9 +61,10 @@ gen3 gitops sshlist
 ### sync
 
 Update the dictionary URL and image versions. The `--dryrun` flag can be used to display dictionary URL and image version check logs but do not want to roll pods.
+The optional `--slack` flag sends an update to the commons' slack channel (if any). 
 
 ```
-gen3 gitops sync
+gen3 gitops sync --slack
 gen3 --dryrun gitops sync
 ```
 
