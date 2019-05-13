@@ -14,6 +14,14 @@ and a namespace `X` is associated with `jupyter-pods-X`.
 gen3 jupyter j-namespace
 ```
 
+### gen3 jupyter j-namespace setup
+
+Create and label the jupyter namespace, also label the gen3 workspace.
+
+```
+gen3 jupyter j-namespace setup
+```
+
 ### gen3 jupyter prepuller [image1 image2 image3 ...]
 
 Output yaml for the prepuller extended with images from the `manifest-jupyter`

@@ -37,7 +37,7 @@ EOM
 
 
 #
-# User namespace where jupyter notebooks run.
+# Echo the user namespace where jupyter notebooks run.
 #
 gen3_jupyter_namespace() {
   local notebookNamespace
@@ -50,6 +50,27 @@ gen3_jupyter_namespace() {
   fi
   echo "$notebookNamespace"
 }
+
+#
+# Create and label the jupyter namespace, also label the gen3 workspace
+#
+gen3_jupyter_namespace_setup() {
+  local notebookNamespace
+  local namespace
+  
+  namespace="$(gen3 db namespace)"
+  notebookNamespace="$(gen3_jupyter_namespace)"
+
+  if ! g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
+    gen3_log_info "gen3_jupyter_namespace_setup" "creating k8s namespace: ${notebookNamespace}" 
+    g3kubectl create namespace "${notebookNamespace}"
+  else
+    gen3_log_info "gen3_jupyter_namespace_setup" "I think k8s namespace ${notebookNamespace} already exists"
+  fi
+  g3kubectl label namespace "${notebookNamespace}" "role=usercode" > /dev/null 2>&1 || true
+  g3kubectl label namespace "${namespace}" "role=gen3" > /dev/null 2>&1 || true
+}
+
 
 #
 # Update the jupyterhub configmaps,
@@ -84,7 +105,12 @@ command="$1"
 shift
 case "$command" in
   "j-namespace")
-    gen3_jupyter_namespace "$@";
+    if [[ $# -gt 0 && "$1" == "setup" ]]; then
+      shift
+      gen3_jupyter_namespace_setup "$@";
+    else
+      gen3_jupyter_namespace "$@";
+    fi
     ;;
   "prepuller")
     gen3_jupyter_prepuller "$@"

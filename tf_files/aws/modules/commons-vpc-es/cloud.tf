@@ -94,12 +94,12 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
     subnet_ids = ["${data.aws_subnet_ids.private.ids}"]
   }
   cluster_config {
-    instance_type = "m4.large.elasticsearch"
+    instance_type = "${var.instance_type}"
     instance_count = 3
   }
   ebs_options {
     ebs_enabled = "true"
-    volume_size = 20
+    volume_size = "${var.ebs_volume_size_gb}"
   }
 
   log_publishing_options {

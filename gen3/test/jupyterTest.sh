@@ -17,5 +17,10 @@ test_jupyter_namespace() {
   [[ "$namespace" == "jupyter-pods-frickjack" ]]; because $? "frickjack namespace should map to jupyter-pods-frickjack, got: $namespace"
 }
 
+test_jupyter_setup() {
+  gen3 jupyter j-namespace setup; because $? "jupyter namespace setup should work";
+}
+
 shunit_runtest "test_jupyter_prepuller" "local,jupyter"
 shunit_runtest "test_jupyter_namespace" "local,jupyter"
+shunit_runtest "test_jupyter_setup" "jupyter"
