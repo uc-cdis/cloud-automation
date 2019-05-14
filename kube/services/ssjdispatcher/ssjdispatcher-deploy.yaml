@@ -58,8 +58,13 @@ spec:
           - name: JOB_NUM_MAX
             valueFrom:
               configMapKeyRef:
-                name: manifest-global
-                key: dispatcher_job_num
+                name: manifest-ssjdispatcher
+                key: job_num
+          - name: JOB_IMAGES
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-ssjdispatcher
+                key: job_images
         livenessProbe:
           httpGet:
             path: /_status
