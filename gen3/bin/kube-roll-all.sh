@@ -102,6 +102,7 @@ gen3 kube-setup-fluentd
 gen3 kube-setup-autoscaler
 gen3 kube-setup-kube-dns-autoscaler
 gen3 kube-setup-tiller || true
+gen3 kube-setup-networkpolicy disable
 gen3 kube-setup-networkpolicy noservice
 
 if g3k_manifest_lookup .versions.portal 2> /dev/null; then
@@ -113,8 +114,11 @@ else
   echo "INFO: not deploying portal - no manifest entry for .versions.portal"
 fi
 
-if g3kubectl get statefulset jupyterhub-deployment; then 
-  gen3_log_info "roll-all" "rolling jupyterhub"
+if g3kubectl get statefulset jupyterhub-deployment > /dev/null 2>&1 && [[ "$(g3kubectl get statefulsets jupyterhub-deployment -o json | jq -r '.metadata.labels.public')" != "yes" ]]; then 
+  gen3_log_info "roll-all" "rolling jupyterhub - need to update labels for network policy"
   g3kubectl delete statefulset jupyterhub-deployment || true
   gen3 roll jupyterhub
 fi
+
+gen3_log_info "roll-all" "roll completed successfully!"
+gen3 kube-setup-networkpolicy enable

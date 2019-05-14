@@ -145,6 +145,38 @@ net_apply_all() {
   net_delete_old_policies "$@"
 }
 
+#
+# Deploy an "allow everything" network policy.
+# May want to do this during `roll all` when 
+# policy roles are changing from an old set to a new set
+#
+net_disable() {
+  (cat - <<EOM
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netpolicy-nolimit-inout
+spec:
+  podSelector: 
+    matchLabels: {}
+  egress: 
+    - {}
+  ingress:
+    - {}  
+  policyTypes:
+   - Egress
+   - Ingress
+EOM
+  ) | g3kubectl apply -f -
+}
+
+#
+# Remove the "allow everything" network policy if any
+#
+net_enable() {
+  g3kubectl delete networkpolicies netpolicy-nolimit-inout > /dev/null 2>&1 || true
+}
+
 
 # main -----------------------------------
 
@@ -153,7 +185,13 @@ shift
 if [[ ! "$command" =~ ^-*help$ ]]; then
   gen3 jupyter j-namespace setup
 fi
-case "$command" in 
+case "$command" in
+  "disable"):
+    net_disable
+    ;;
+  "enable"):
+    net_enable
+    ;; 
   "jupyter"):
     net_apply_jupyter "$@"
     ;;

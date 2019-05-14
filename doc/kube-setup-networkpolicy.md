@@ -10,6 +10,17 @@ accumulates the union of all the rights from policies that apply to it.
 
 Deploys the entire suite of network policies
 
+### gen3 kube-setup-networkpolicy disable
+
+Deploy an "allow everything" network policy.
+May want to do this during `roll all` when 
+policy roles are changing from an old set to a new set
+
+### gen3 kube-setup-networkpolicy enable
+
+Remove the "allow everything" policy deployed by `kube-setup-networkpolicy disable`
+
+
 ### gen3 kube-setup-networkpolicy noservice
 
 Deploys the network policies except for those
