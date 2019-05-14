@@ -64,6 +64,15 @@ gen3_user_verify() {
   fi
 }
 
+remove_wts_creds_secrets() {
+  appCredsPath="$(gen3_secrets_folder)/g3auto/wts/appcreds.json"
+  if [ -f "$appCredsPath" ]; then
+      rm -r "$appCredsPath"
+      return 0
+  fi
+  g3kubectl delete secret wts-g3auto
+}
+
 # main ---------------------------
 
 gen3_user_verify "about to drop all service deployments"
@@ -108,6 +117,7 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 # try to make reset more reliable - especially in Jenkins
 # 
 run_setup_jobs
+remove_wts_creds_secrets
 gen3 roll all
 run_setup_jobs
 
