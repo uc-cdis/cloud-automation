@@ -307,7 +307,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update peregrine secrets
   (
     version="$(g3kubectl get secrets/peregrine-secret -ojson 2> /dev/null | jq -r .metadata.labels.g3version)"
     if [[ -z "$version" || "$version" == null || "$version" -lt 1 ]]; then
-      g3kubectl delete secret peregrine-secret > /dev/null 2>&1
+      g3kubectl delete secret peregrine-secret > /dev/null 2>&1 || true
       g3kubectl create secret generic peregrine-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/peregrine_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
       g3kubectl label secret peregrine-secret g3version=1
     fi
@@ -327,7 +327,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
   (
     version="$(g3kubectl get secrets/sheepdog-secret -ojson 2> /dev/null | jq -r .metadata.labels.g3version)"
     if [[ -z "$version" || "$version" == null || "$version" -lt 1 ]]; then
-      g3kubectl delete secret sheepdog-secret > /dev/null 2>&1
+      g3kubectl delete secret sheepdog-secret > /dev/null 2>&1 || true
       g3kubectl create secret generic sheepdog-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/sheepdog_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
       g3kubectl label secret sheepdog-secret g3version=1
     fi

@@ -12,8 +12,10 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-workvm
-gen3 kube-setup-secrets
+# kube-setup-roles runs before kube-setup-secrets -
+#    setup-secrets may launch a job that needs the useryaml-role
 gen3 kube-setup-roles
+gen3 kube-setup-secrets
 gen3 kube-setup-certs
 gen3 jupyter j-namespace setup
 
@@ -111,9 +113,8 @@ else
   echo "INFO: not deploying portal - no manifest entry for .versions.portal"
 fi
 
-cat - <<EOM
-INFO: 'gen3 roll portal' if necessary to force a restart -
-   portal will not come up cleanly until after the reverse proxy
-   services is fully up.
-
-EOM
+if g3kubectl get statefulset jupyterhub-deployment; then 
+  gen3_log_info "roll-all" "rolling jupyterhub"
+  g3kubectl delete statefulset jupyterhub-deployment || true
+  gen3 roll jupyterhub
+fi
