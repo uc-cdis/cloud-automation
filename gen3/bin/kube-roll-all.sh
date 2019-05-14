@@ -102,6 +102,7 @@ gen3 kube-setup-fluentd
 gen3 kube-setup-autoscaler
 gen3 kube-setup-kube-dns-autoscaler
 gen3 kube-setup-tiller || true
+gen3 kube-setup-networkpolicy disable
 gen3 kube-setup-networkpolicy noservice
 
 if g3k_manifest_lookup .versions.portal 2> /dev/null; then
@@ -120,3 +121,4 @@ if g3kubectl get statefulset jupyterhub-deployment > /dev/null 2>&1 && [[ "$(g3k
 fi
 
 gen3_log_info "roll-all" "roll completed successfully!"
+gen3 kube-setup-networkpolicy enable
