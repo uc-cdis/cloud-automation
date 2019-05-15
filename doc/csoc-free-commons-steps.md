@@ -160,6 +160,11 @@ gen3 cd
 `peering_vpc_id` basically the vpc_id of the VM where you are running gen3. Pretty much the same as `csoc_vpc_id` for part two.
 
 
+*Optional*
+
+`eks_version` default set to 1.10, but you can change it to 1.11. We can't use 1.12 as of now, but we should soon.
+
+
 
 4. Create a terraform plan
 ```bash
