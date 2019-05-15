@@ -22,7 +22,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update indexd secrets
     # Ugh - need to update fence with an indexd password
     # generate a password
     fenceIndexdPassword="$(gen3 random)"
-    
+
     # update creds.json
     gdcapiIndexdPassword="$(jq -r .sheepdog.indexd_password < creds.json)"
     cp creds.json creds.json.bak
@@ -55,7 +55,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update indexd secrets
   fi
 
   if ! g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+    g3kubectl create secret generic indexd-secret --from-file=local_settings.py="$(gen3_secrets_folder)/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
 fi
 
@@ -322,7 +322,7 @@ if [[ -f "$ETL_MAPPING_PATH" ]]; then
 fi
 
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
-  
+
   cd "$(gen3_secrets_folder)"
   (
     version="$(g3kubectl get secrets/sheepdog-secret -ojson 2> /dev/null | jq -r .metadata.labels.g3version)"
