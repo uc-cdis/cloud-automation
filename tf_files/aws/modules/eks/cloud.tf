@@ -545,19 +545,6 @@ resource "aws_security_group_rule" "nodes_interpool_communications" {
 # EC2 instances. This offers flexibility to scale up and down the worker nodes on demand when used in conjunction
 # with AutoScaling policies (not implemented here).
 
-# First, let us create a data source to fetch the latest Amazon Machine Image (AMI) that Amazon provides with an
-# EKS compatible Kubernetes baked in.
-
-data "aws_ami" "eks_worker" {
-  filter {
-    name   = "name"
-    #values = ["amazon-eks-node-*"]
-    values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
-  }
-
-  most_recent = true
-  owners      = ["602401143452"] # Amazon Account ID
-}
 
 # EKS currently documents this required userdata for EKS worker nodes to
 # properly configure Kubernetes applications on the EC2 instance.
