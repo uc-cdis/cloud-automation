@@ -23,7 +23,8 @@ if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
     # try to make sure network policy labels are up to date
     #
     gen3_log_info "kube-setup-aws-es-proxy" "Not deploying aws-es-proxy, no endpoint to hook it up."
-    gen3 kube-setup-networkpolicy service aws-es-proxy
+    # do not deploy network policy for now ...
+    #gen3 kube-setup-networkpolicy service aws-es-proxy
     g3kubectl patch deployment "aws-es-proxy-deployment" -p  '{"spec":{"template":{"metadata":{"labels":{"netvpc":"yes"}}}}}' || true
   fi
 else
