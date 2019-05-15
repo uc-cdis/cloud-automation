@@ -22,5 +22,6 @@ g3k_kv_filter ${GEN3_HOME}/kube/services/jupyterhub/rolebinding-jupyter.yaml JUP
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-service.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/jupyterhub/jupyterhub-storage.yaml"
 
-gen3 kube-setup-networkpolicy jupyter
+# disable network policy for now
+#gen3 kube-setup-networkpolicy jupyter
 gen3 jupyter upgrade
