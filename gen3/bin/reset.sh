@@ -64,6 +64,11 @@ gen3_user_verify() {
   fi
 }
 
+#
+# both fence db and wts db have been wiped out during reset
+# need to then remove local appcreds.json for wts and delete wts-g3auto secret
+# after these steps kube-setup-wts can recreate client
+#
 remove_wts_creds_secrets() {
   appCredsPath="$(gen3_secrets_folder)/g3auto/wts/appcreds.json"
   if [ -f "$appCredsPath" ]; then
