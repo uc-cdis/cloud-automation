@@ -135,8 +135,11 @@ gen3_gitops_sync() {
       newFile=$(base64 $filepath)
       oldFile=$(g3kubectl get secret portal-config -o json | jq -r '.data."'"${filename}"'"')
       # found diff if they aren't equal or if there's a new file not found in the secret
-      if [[ ( "${oldFile}" != "${newFile}" ) || ( -z "${oldFile// }" ) ]]; then
-        gen3_log_info "Found portal diff in portal/${filename}"
+      if [[ -z "${oldFile// }" ]]; then
+        gen3_log_info "Found portal diff in portal/${filename} - filename not found in secret or is empty"
+        portal_roll=true
+      elif [[ "${oldFile}" != "${newFile}" ]]; then
+        gen3_log_info "Found diff in portal/${filename} - difference between file and secret"
         portal_roll=true
       fi
     done
@@ -144,17 +147,18 @@ gen3_gitops_sync() {
 
   # portal manifest config check
   if [[ "$(_check_manifest_global_diff portal_app)" == "true" ]]; then
-    gen3_log_info "Found difference in portal_app"
+    gen3_log_info "Found difference in manifest global.portal_app"
     portal_roll=true
   fi
   if [[ "$(_check_manifest_global_diff tier_access_level)" == "true" ]]; then
-    gen3_log_info "Found difference in tier_access_level"
+    gen3_log_info "Found difference in manifest global.tier_access_level"
     portal_roll=true
   fi
 
   echo "DRYRUN flag is: $GEN3_DRY_RUN"
   if [ "$GEN3_DRY_RUN" = true ]; then
     echo "DRYRUN flag detected, not rolling"
+    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll"
   else
     if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true ) ]]; then
       echo "changes detected, rolling"
