@@ -34,12 +34,13 @@ bash cloud-automation/gen3/bin/kube-setup-workvm.sh
 
 4. kube-setup-workvm.sh adds a few required configurations to the user's local bashrc file. To be able to use them, we may want to source it, otherwise we'll have to logout and in again.
 ```bash
-source .bashrc
+source ${HOME}/.bashrc
 ```
 
-5. Edit the local aws config file by adding a profile additional to default, even if it's the same info as the default. It should look something like: 
-```
-  ubuntu@ip-172-31-40-144:~$ cat .aws/config 
+5. Edit the local aws config file by adding a profile additionally to the default, even if it's the same info as the default. 
+   Usually said file is located in the user's home (${HOME})folder. And it should look something like:
+```bash
+  ubuntu@ip-172-31-40-144:~$ cat ${HOME}/.aws/config 
   [default]
   output = json
   region = us-east-1
@@ -93,13 +94,16 @@ gen3 cd
 
 `google_client_secret` and `google_client_id`  Google set of API key so you can set google authentication. You can generate a new one through Google Cloud Console.
 
+
+**NOTE:** If the following variables are not in the file, just add the along with their values.
+
 `csoc_managed` if you are going to set up your commons hooked up to a central control management account. By default it is set to yes, any other value would assume that you don't want this to happen. If you leave the default value, you must run the logging module first, otherwise terraform will fail.
 
 `peering_cidr` this is the CIDR that your adminVM belongs to. Since the commons would create it's own VPC, you need to pair them up to allow communication between them later. Basically, said peering would let you run kubectl commands agains the kubernetes cluster hosting the commons.
 
 `csoc_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
 
-*Note:* If you are hooking up your commons with a cetralized control management account, you may need to add additional variables to this file with more information about said account.
+**NOTE:** If you are hooking up your commons with a cetralized control management account, you may need to add additional variables to this file with more information about said account.
 
 
 4. Create a terraform plan
@@ -143,11 +147,18 @@ gen3 cd
 
 `users_policy` this is the name of the policy that allows access to the user.yaml file mentioned in part two. This variable value should always be the same as the above one, but it might differ in very specific cases.
 
-`instance_type` default set to t2.medium. Change if necessary.
+`instance_type` default set to t3.xlarge. Change if necessary.
 
 `ec2_keyname` an existing Key Pair in EC2 for the workers for deployment. More keys can be added automatically if you specify them in $HOME/cloud-automation/files/authorized_keys/ops_team.
 
+**NOTE:** If the following variables are not in the file, just add the along with their values.
+
 `peering_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
+
+`csoc_managed` same as in part 2, if you want it attahed to a csoc account. Default is yes.
+
+`peering_vpc_id` basically the vpc_id of the VM where you are running gen3. Pretty much the same as `csoc_vpc_id` for part two.
+
 
 
 4. Create a terraform plan
@@ -172,7 +183,7 @@ cp commons-test_output_EKS/kubeconfig $HOME
 
 1. Access the folder copied to the home folder
 ```bash
-cd $HOME/commons-test_output/
+cd ${HOME}/commons-test_output/
 ```
 
 2. Run `kube-up.sh`
@@ -182,12 +193,12 @@ bash kube-up.sh
 
 4. Move the kubeconfig file we copied previously into a newly created folder that `kube-up.sh` created for us.
 ```bash
-mv $HOME/kubconfig $HOME/commons-test/
+mv ${HOME}/kubconfig ${HOME}/commons-test/
 ```
 
 3. Create a manifest folder
 ```bash
-mkdir -p $HOME/cdis-manifest/commons-test.plant-pla.net
+mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
 ```
 
   Note: The cdis-manifest folder is required, if you want to use your own manifest folder name you must make changes to the code, the file containing the line is `cloud-automation/gen3/lib/g3k_manifest.sh`.
@@ -195,7 +206,7 @@ mkdir -p $HOME/cdis-manifest/commons-test.plant-pla.net
 
 4. Create a manifest file
 
-  With the test editor of your preference, create new file and open it, Ex: `$HOME/cdis-manifest/commons-test.planx-pla.net.json`. The content of the file shold be similar to:
+  With the test editor of your preference, create new file and open it, Ex: `${HOME}/cdis-manifest/commons-test.planx-pla.net.json`. The content of the file shold be similar to:
 
 ```json
 {
@@ -254,7 +265,7 @@ mkdir -p $HOME/cdis-manifest/commons-test.plant-pla.net
 
 4. kube-up.sh added a few lines to our local bashrc file, let's load the up.
 ```bash
-source $HOME/.bashrc
+source ${HOME}/.bashrc
 ```
 
 5. Verify that kubernetes is up. After sourcing our local bashrc file we should be able to talk to kubernetes:
@@ -274,7 +285,5 @@ kubectl get service revproxy-service-elb -o json | jq -r .status.loadBalancer.in
 ```
 
 8. Go to your registrar and point the desired domain to the outcome of above command.
-
-
 
 
