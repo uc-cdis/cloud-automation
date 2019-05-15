@@ -160,7 +160,7 @@ gen3_gitops_sync() {
     echo "DRYRUN flag detected, not rolling"
     gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll"
   else
-    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true ) ]]; then
+    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) ]]; then
       echo "changes detected, rolling"
       gen3 kube-roll-all
       rollRes=$?
