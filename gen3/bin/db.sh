@@ -80,8 +80,9 @@ gen3_db_reset() {
     return 1
   fi
 
-  # Postgres won't accept these commands in one batch ...
+  local result
   echo "DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;" | gen3 psql "$serverName"
+  result=$?
   if [[ "$serviceName" == "sheepdog" ]]; then 
     # special case - peregrine shares the database
     # Make sure peregrine has permission to read the sheepdog db tables
@@ -95,8 +96,12 @@ gen3_db_reset() {
     fi
   fi
 
+  #
   # install ltree extension (currently arborist requires this)
-  gen3_db_psql "$server" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname"
+  # this will fail if the extension is already installed, so ignore that
+  #
+  gen3_db_psql "$server" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname" || true
+  return $result
 }
 
 
@@ -453,8 +458,11 @@ gen3_db_service_setup() {
     return 1
   fi
 
+  #
   # install ltree extension (currently arborist requires this)
-  gen3_db_psql "$server" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname"
+  # this will fail if the extension is already installed, so ignore that
+  #
+  gen3_db_psql "$server" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname" || true
 
   # Update creds.json, and generate secrets
   local dbhost
