@@ -94,6 +94,9 @@ gen3_db_reset() {
       gen3_log_warn "gen3_db_reset" "unable to determine peregrine db username"
     fi
   fi
+
+  # install ltree extension (currently arborist requires this)
+  gen3_db_psql "$server" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname"
 }
 
 
