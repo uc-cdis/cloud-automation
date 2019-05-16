@@ -85,9 +85,9 @@ if g3k_manifest_lookup .versions.portal > /dev/null 2>&1; then
 fi
 
 if g3k_manifest_lookup .versions.wts 2> /dev/null; then
-  gen3 kube-setup-wts
-else
-  echo "INFO: not deploying wts - no manifest entry for .versions.wts"
+  # go ahead and deploy the service, so the revproxy setup sees it
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-service.yaml"
+  # wait till after fence is up to do a full setup - see below
 fi
 
 if g3k_manifest_lookup .versions.manifestservice 2> /dev/null; then
@@ -95,6 +95,7 @@ if g3k_manifest_lookup .versions.manifestservice 2> /dev/null; then
 else
   echo "INFO: not deploying manifestservice - no manifest entry for .versions.manifestservice"
 fi
+
 gen3 kube-setup-revproxy
 
 # Internal k8s systems
@@ -108,10 +109,20 @@ gen3 kube-setup-tiller || true
 #gen3 kube-setup-networkpolicy noservice
 g3kubectl delete networkpolicies --all
 
+#
+# portal and wts are not happy until other services are up
+# If new pods are still rolling/starting up, then wait for that to finish
+#
+gen3 kube-wait4-pods || true
+
+if g3k_manifest_lookup .versions.wts 2> /dev/null; then
+  # this tries to kubectl exec into fence 
+  gen3 kube-setup-wts || true
+else
+  echo "INFO: not deploying wts - no manifest entry for .versions.wts"
+fi
+
 if g3k_manifest_lookup .versions.portal 2> /dev/null; then
-  # portal is not happy until other services are up
-  # If new pods are still rolling/starting up, then wait for that to finish
-  gen3 kube-wait4-pods || true
   gen3 kube-setup-portal
 else
   echo "INFO: not deploying portal - no manifest entry for .versions.portal"

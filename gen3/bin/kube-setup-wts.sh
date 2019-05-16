@@ -3,8 +3,10 @@
 # Deploy workspace-token-service into existing commons,
 # this is an optional service that's not part of gen3 core services
 
-_KUBE_SETUP_WTS=$(dirname "${BASH_SOURCE:-$0}")  # $0 supports zsh
-source "${_KUBE_SETUP_WTS}/../lib/kube-setup-init.sh"
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
+
+# lib ---------------------
 
 setup_creds() {
     echo "check wts secret"
@@ -55,16 +57,22 @@ EOM
         gen3 secrets sync
     fi
 }
+
+# main --------------------------------------
 # deploy wts
-setup_creds
 g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/role-wts.yaml"
-context=$(g3kubectl config view -o template --template='{{ index . "current-context" }}')
+
 namespace="$(gen3 db namespace)"
 g3k_kv_filter ${GEN3_HOME}/kube/services/wts/rolebinding-wts.yaml WTS_BINDING "name: wts-binding-$namespace" CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -
-
-gen3 roll wts
 g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-service.yaml"
 
-echo "The wts services has been deployed onto the k8s cluster."
+#
+# Note - this is likely to fail first time after a reset due to exec into fence,
+#   so do it last.  roll-all will call this again after waiting for fence to come up.
+#   we want to get the service up, etc, so the revproxy will see it
+#
+setup_creds
+gen3 roll wts
 
+echo "The wts services has been deployed onto the k8s cluster."
