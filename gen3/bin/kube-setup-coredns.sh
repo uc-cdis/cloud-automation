@@ -16,6 +16,7 @@ gen3_load "gen3/lib/kube-setup-init"
 g3kubectl patch -n kube-system deployment/kube-dns --patch '{"spec":{"selector":{"matchLabels":{"eks.amazonaws.com/component":"kube-dns"}}}}' || true
 
 
+
 # 2. Deploy CoreDNS to your cluster.
 
   # a. Set your cluster's DNS IP address to the DNS_CLUSTER_IP environment variable.
