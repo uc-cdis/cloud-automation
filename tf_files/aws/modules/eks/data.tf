@@ -29,7 +29,8 @@ data "aws_vpcs" "vpcs" {
 
 data "aws_instances" "squid_proxy" {
   instance_tags {
-    Name = "${var.vpc_name} HTTP Proxy"
+    #Name = "${var.vpc_name} HTTP Proxy"
+    Name = "${var.vpc_name}${var.proxy_name}"
   }
 }
 

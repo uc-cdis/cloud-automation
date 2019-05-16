@@ -64,3 +64,7 @@ variable "cidrs_to_route_to_gw" {
 variable "organization_name" {
   default = "Basic Services"
 }
+
+variable "proxy_name" {
+  default = " HTTP Proxy"
+}
