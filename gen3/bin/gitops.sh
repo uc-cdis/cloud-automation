@@ -10,18 +10,52 @@ help() {
 }
 
 #
+# Internal util for checking for differences between manifest-global
+# configmap and manifest.json
+#
+# @param keyName
+# @returns echos true if diff found, false if no diff
+#
+_check_manifest_global_diff() {
+  local keyName=$1
+  if [[ -z "$keyName" ]]; then
+    gen3_log_err "_check_manifest_global_diff: keyName argument missing"
+    return 1;
+  fi
+
+  local oldVal
+  if g3kubectl get configmap manifest-global > /dev/null; then
+    oldVal=$(g3kubectl get configmap manifest-global -o jsonpath={.data.${keyName}})
+  else
+    oldVal=$(g3kubectl get configmap global -o jsonpath={.data.${keyName}})
+  fi
+  local newVal=$(g3k_config_lookup ".global.${keyName}")
+  
+  if [[ ( -z "${newVal}" ) || ( "${newVal}" == "null" ) ]]; then
+    gen3_log_warn "Unable to find ${keyName} in manifest.json; skipping for diff"
+    echo "false"
+  elif [[ "${oldVal}" != "${newVal}" ]]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+#
 # command to update dictionary URL and image versions
 #
 gen3_gitops_sync() {
   g3k_manifest_init
   local dict_roll=false
   local versions_roll=false
+  local portal_roll=false
   local slack=false
   local tmpHostname
   local resStr
   local color
   local dictAttachment
   local versionsAttachment
+  local commonsManifestDir
 
   if [[ $1 = '--slack' ]]; then
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
@@ -86,12 +120,47 @@ gen3_gitops_sync() {
       versions_roll=true
     fi
   fi
-  
+
+  # portal directory config check
+  commonsManifestDir=$(dirname $(g3k_manifest_path))
+  if [[ ! -d "${commonsManifestDir}/portal" ]]; then
+    gen3_log_info "Portal directory not found, skipping portal update"
+  else
+    # for each file in the portal dir, look for a diff in the portal-config secret
+    local filename
+    local oldFile
+    local newFile
+    for filepath in $(find "${commonsManifestDir}/portal/" -type f); do
+      filename=$(basename ${filepath})
+      newFile=$(base64 $filepath)
+      oldFile=$(g3kubectl get secret portal-config -o json | jq -r '.data."'"${filename}"'"')
+      # found diff if they aren't equal or if there's a new file not found in the secret
+      if [[ -z "${oldFile// }" ]]; then
+        gen3_log_info "Found portal diff in portal/${filename} - filename not found in secret or is empty"
+        portal_roll=true
+      elif [[ "${oldFile}" != "${newFile}" ]]; then
+        gen3_log_info "Found diff in portal/${filename} - difference between file and secret"
+        portal_roll=true
+      fi
+    done
+  fi
+
+  # portal manifest config check
+  if [[ "$(_check_manifest_global_diff portal_app)" == "true" ]]; then
+    gen3_log_info "Found difference in manifest global.portal_app"
+    portal_roll=true
+  fi
+  if [[ "$(_check_manifest_global_diff tier_access_level)" == "true" ]]; then
+    gen3_log_info "Found difference in manifest global.tier_access_level"
+    portal_roll=true
+  fi
+
   echo "DRYRUN flag is: $GEN3_DRY_RUN"
   if [ "$GEN3_DRY_RUN" = true ]; then
     echo "DRYRUN flag detected, not rolling"
+    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll"
   else
-    if [ "$dict_roll" = true -o "$versions_roll" = true ]; then
+    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) ]]; then
       echo "changes detected, rolling"
       gen3 kube-roll-all
       rollRes=$?
@@ -452,6 +521,56 @@ gen3_gitops_sshlist() {
   done
 }
 
+#
+# Get the path to the yaml file to apply for a `gen3 roll name` command.
+# Supports deployment versions (ex: ...-deploy-1.0.0.yaml) and canary
+# deployments (ex: fence-canary)
+#
+# @param depName deployment name or alias
+# @param depVersion deployment version - extracted from manifest if not set - ignores "null" value
+# @return echo path to yaml, non-zero exit code if path does not exist
+#
+gen3_roll_path() {
+  local depName
+  local deployVersion
+
+  depName="$1"
+  shift
+  if [[ -z "$depName" ]]; then
+    gen3_log_err "gen3_roll_path" "roll deployment name not specified"
+    return 1
+  fi
+  if [[ -f "$depName" ]]; then # path to yaml given
+    echo "$depName"
+    return 0
+  fi
+  if [[ $# -gt 0 ]]; then
+    deployVersion="${1}"
+    shift
+  else
+    local manifestPath
+    manifestPath="$(g3k_manifest_path)"
+    deployVersion="$(jq -r ".[\"$depName\"][\"deployment_version\"]" < "$manifestPath")"
+  fi
+  local cleanName
+  local serviceName
+  local templatePath
+  cleanName="${depName%[-_]deploy*}"
+  serviceName="${cleanName/-canary/}"
+  templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy.yaml"
+  if [[ -n "$deployVersion" && "$deployVersion" != null ]]; then
+    templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy-${deployVersion}.yaml"
+  fi
+  echo "$templatePath"
+  if [[ -f "$templatePath" ]]; then
+    return 0
+  else
+    gen3_log_err "gen3_roll_path" "roll path does not exist: $templatePath"
+    return 1
+  fi
+}
+
+
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   # Support sourcing this file for test suite
@@ -482,6 +601,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "repolist")
       gen3_gitops_repolist "$@"
+      ;;
+    "rollpath")
+      gen3_roll_path "$@"
       ;;
     "sshlist")
       gen3_gitops_sshlist "$@"

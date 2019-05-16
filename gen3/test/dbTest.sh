@@ -4,9 +4,7 @@ test_db_psql() {
 }
 
 test_db_init() {
-  export GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/db"
-  unset GEN3_SOURCE_ONLY
   gen3_db_init; because $? "gen3 db_init should be ok"
   [[ "$(gen3 db psql server1 -c 'SELECT 1;' | awk '{ if(NR==3){ print $1; } }')" == "1" ]]; because $? "gen3 db psql server1 works"
   gen3_db_validate_server "server1"; because $? "server1 should be in the db farm"
@@ -15,9 +13,7 @@ test_db_init() {
 }
 
 test_db_list() {
-  export GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/db"
-  unset GEN3_SOURCE_ONLY
   [[ $(gen3_db_list server1 | wc -l) -gt 0 ]]; because $? "gen3_db_list has non-zero result"
   [[ $(gen3_db_user_list server1 | wc -l) -gt 0 ]]; because $? "gen3_db_user_list has non-zero result"
   [[ "$(gen3 db server list | wc -l)" -gt 0 ]]; because $? "there should be some servers"
@@ -25,9 +21,7 @@ test_db_list() {
 }
 
 test_db_random_server() {
-  export GEN3_SOURCE_ONLY=true
   gen3_load "gen3/bin/db"
-  unset GEN3_SOURCE_ONLY
   gen3_db_random_server; because $? "gen3_db_random_server should run fine"
   local name
   name="$(gen3_db_random_server)"
@@ -83,6 +77,10 @@ test_db_creds() {
   [[ "$serverName" =~ ^server[0-9]+$ ]]; because $? "db creds includes the farm server: $serverName"
 }
 
+test_db_services() {
+  (gen3 db services | grep peregrine > /dev/null); because $? "gen3 db services includes peregrine"
+}
+
 shunit_runtest "test_db_init" "db"
 shunit_runtest "test_db_psql" "db"
 shunit_runtest "test_db_random_server" "db"
@@ -90,3 +88,4 @@ shunit_runtest "test_db_list" "db"
 shunit_runtest "test_db_namespace" "db"
 shunit_runtest "test_db_create" "db"
 shunit_runtest "test_db_creds" "db"
+shunit_runtest "test_db_services" "db"

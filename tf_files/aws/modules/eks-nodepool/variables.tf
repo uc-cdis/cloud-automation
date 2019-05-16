@@ -23,13 +23,13 @@ variable "nodepool" {
   default = "jupyter"
 }
 
-#variable "eks_cluster_ca" {
-#  default = ""
-#}
+variable "eks_cluster_ca" {
+  default = ""
+}
 
-#variable "eks_cluster_endpoint" {
-#  default = ""
-#}
+variable "eks_cluster_endpoint" {
+  default = ""
+}
 
 variable "eks_private_subnets" {
   type  = "list"
@@ -55,4 +55,8 @@ variable "bootstrap_script" {
 
 variable "jupyter_worker_drive_size" {
   default = 30
+}
+
+variable "organization_name" {
+  default = "Basic Service"
 }

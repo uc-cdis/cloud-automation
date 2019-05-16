@@ -12,9 +12,12 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-workvm
-gen3 kube-setup-secrets
+# kube-setup-roles runs before kube-setup-secrets -
+#    setup-secrets may launch a job that needs the useryaml-role
 gen3 kube-setup-roles
+gen3 kube-setup-secrets
 gen3 kube-setup-certs
+gen3 jupyter j-namespace setup
 
 echo "INFO: using manifest at $(g3k_manifest_path)"
 
@@ -99,7 +102,11 @@ gen3 kube-setup-fluentd
 gen3 kube-setup-autoscaler
 gen3 kube-setup-kube-dns-autoscaler
 gen3 kube-setup-tiller || true
-gen3 kube-setup-networkpolicy
+#
+# Disable this stuff for now - ugh!
+#gen3 kube-setup-networkpolicy disable
+#gen3 kube-setup-networkpolicy noservice
+g3kubectl delete networkpolicies --all
 
 if g3k_manifest_lookup .versions.portal 2> /dev/null; then
   # portal is not happy until other services are up
@@ -110,9 +117,11 @@ else
   echo "INFO: not deploying portal - no manifest entry for .versions.portal"
 fi
 
-cat - <<EOM
-INFO: 'gen3 roll portal' if necessary to force a restart -
-   portal will not come up cleanly until after the reverse proxy
-   services is fully up.
+if g3kubectl get statefulset jupyterhub-deployment > /dev/null 2>&1 && [[ "$(g3kubectl get statefulsets jupyterhub-deployment -o json | jq -r '.metadata.labels.public')" != "yes" ]]; then 
+  gen3_log_info "roll-all" "rolling jupyterhub - need to update labels for network policy"
+  g3kubectl delete statefulset jupyterhub-deployment || true
+  gen3 roll jupyterhub
+fi
 
-EOM
+gen3_log_info "roll-all" "roll completed successfully!"
+#gen3 kube-setup-networkpolicy enable

@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netpolicy-linklocal
+spec:
+  podSelector:
+    matchLabels:
+      linklocal: "yes"
+  egress:
+    - to:
+      - ipBlock:
+          cidr: 169.254.0.0/16
+  policyTypes:
+   - Egress

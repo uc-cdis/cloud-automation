@@ -26,7 +26,10 @@ variable "csoc_account_id" {
   default = "433568766270"
 }
 
-variable "csoc_cidr" {
+#variable "csoc_cidr" {
+#  default = "10.128.0.0/20"
+#}
+variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
@@ -156,4 +159,13 @@ variable "secondary_slack_webhook" {
 
 variable "alarm_threshold" {
   default = "85"
+}
+
+
+variable "csoc_managed" {
+  default = "yes"
+}
+
+variable "organization_name" {
+  default = "Basic Service"
 }

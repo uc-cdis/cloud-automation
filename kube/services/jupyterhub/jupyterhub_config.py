@@ -22,7 +22,10 @@ c.JupyterHub.services = [
     }
 ]
 c.JupyterHub.spawner_class = "kubespawner.KubeSpawner"
-c.KubeSpawner.namespace = "jupyter-pods"
+if os.environ["POD_NAMESPACE"] == "default":
+  c.KubeSpawner.namespace = "jupyter-pods"
+else:
+  c.KubeSpawner.namespace = "jupyter-pods-" + os.environ["POD_NAMESPACE"]
 c.KubeSpawner.cpu_limit = 1.0
 c.KubeSpawner.mem_limit = "1.5G"
 # c.KubeSpawner.debug = False
@@ -101,7 +104,7 @@ c.KubeSpawner.lifecycle_hooks = {
             "command": [
                 "/bin/sh",
                 "-c",
-                "rm -rf /home/jovyan/pd/dockerHome; ln -s $(pwd) /home/jovyan/pd/dockerHome; mkdir -p /home/$NB_USER/.jupyter/custom; echo \"define(['base/js/namespace'], function(Jupyter){Jupyter._target = '_self';})\" >/home/$NB_USER/.jupyter/custom/custom.js; true",
+                "rm -rf /home/jovyan/pd/dockerHome; ln -s $(pwd) /home/jovyan/pd/dockerHome; mkdir -p /home/$NB_USER/.jupyter/custom; echo \"define(['base/js/namespace'], function(Jupyter){Jupyter._target = '_self';})\" >/home/$NB_USER/.jupyter/custom/custom.js; ln -s /data /home/jovyan/pd/; true",
             ]
         }
     }

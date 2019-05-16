@@ -20,6 +20,11 @@ spec:
       labels:
         app: fenceshib
         release: production
+        authprovider: "yes"
+        # uses explicit proxy and AWS APIs
+        netnolimit: "yes"
+        dbfence: "yes"
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

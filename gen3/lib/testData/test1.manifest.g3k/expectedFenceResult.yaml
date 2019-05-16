@@ -20,6 +20,11 @@ spec:
       labels:
         app: fence
         release: production
+        # for network policy selectors
+        authprovider: "yes"
+        # uses explicit proxy and AWS APIs
+        netnolimit: "yes"
+        public: "yes"
         date: "1522344234"
     spec:
       affinity:

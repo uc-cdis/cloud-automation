@@ -13,8 +13,13 @@ variable "jupyter_instance_type"{
   default = "t3.medium"
 }
 
-variable "csoc_cidr" {
+#variable "csoc_cidr" {
+variable "peering_cidr" {
   default = "10.128.0.0/20"
+}
+
+variable "peering_vpc_id" {
+  default = "vpc-e2b51d99"
 }
 
 variable "users_policy" {}
@@ -54,4 +59,8 @@ variable "jupyter_worker_drive_size" {
 
 variable "cidrs_to_route_to_gw" {
   default = []
+}
+
+variable "organization_name" {
+  default = "Basic Services"
 }

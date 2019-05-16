@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: guppy
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -75,6 +76,12 @@ spec:
                 # acceptable values for `tier_access_level` are: `libre`, `regular` and `private`. If omitted, by default common will be treated as `private`
                 key: tier_access_level
                 # for now making it optional so won't break anything
+                optional: true
+          - name: TIER_ACCESS_LIMIT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: tier_access_limit
                 optional: true
           volumeMounts:
             - name: guppy-config

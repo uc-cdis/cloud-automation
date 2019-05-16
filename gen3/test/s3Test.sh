@@ -1,6 +1,5 @@
 test_s3_create() {
-  GEN3_SOURCE_ONLY=true
-  gen3_load "gen3/bin/s3.sh"
+  gen3_load "gen3/bin/s3"
 
   # Mock util
   function _bucket_exists() {
@@ -40,8 +39,7 @@ test_s3_create() {
 }
 
 test_s3_info() {
-  GEN3_SOURCE_ONLY=true
-  gen3_load "gen3/bin/s3.sh"
+  gen3_load "gen3/bin/s3"
 
   # Mock aws
   function gen3_aws_run () {
@@ -69,8 +67,7 @@ test_s3_info() {
 }
 
 test_s3_attach_bucket_policy() {
-  GEN3_SOURCE_ONLY=true
-  gen3_load "gen3/bin/s3.sh"
+  gen3_load "gen3/bin/s3"
 
   # Mock util
   function _fetch_bucket_policy_arn() {

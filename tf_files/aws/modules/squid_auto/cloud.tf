@@ -110,12 +110,12 @@ data "aws_route_table" "private_kube_route_table" {
 }
 
 # get the private user table id 
-data "aws_route_table" "private_user_route_table" {
-  vpc_id      = "${data.aws_vpc.the_vpc.id}"
-  tags {
-    Name = "private_user"
-  }
-}
+#data "aws_route_table" "private_user_route_table" {
+#  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+#  tags {
+#    Name = "private_user"
+#  }
+#}
 
 
 #get the internal zone id
@@ -243,7 +243,7 @@ cd /home/ubuntu/cloud-automation
 git pull
 
 # This is needed temporarily for testing purposes ; before merging the code to master
-#git checkout fix/squid_auto_activestandby
+#git checkout fix/squidauto_rolechange
 #git pull
 
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
@@ -273,7 +273,9 @@ sudo cp /home/ubuntu/cloud-automation/flavors/squid_auto/squid_auto_user_variabl
 sudo sed -i "s/DNS_ZONE_ID/${data.aws_route53_zone.vpczone.zone_id}/" /home/ubuntu/squid_auto_user_variable
 sudo sed -i "s/EKS_ROUTETABLE_ID/${data.aws_route_table.eks_private_route_table.id}/" /home/ubuntu/squid_auto_user_variable
 sudo sed -i "s/PRIVATE_KUBE_ROUTETABLE_ID/${data.aws_route_table.private_kube_route_table.id}/" /home/ubuntu/squid_auto_user_variable
-sudo sed -i "s/PRIVATE_USER_ROUTETABLE_ID/${data.aws_route_table.private_user_route_table.id}/" /home/ubuntu/squid_auto_user_variable
+sudo sed -i "s/COMMONS_SQUID_ROLE/${var.env_squid_name}/" /home/ubuntu/squid_auto_user_variable
+
+
 
 
 

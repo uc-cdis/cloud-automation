@@ -73,7 +73,6 @@ USER ubuntu
 RUN git clone https://github.com/uc-cdis/cloud-automation.git ~/cloud-automation \
     && echo "export GEN3_HOME=~/cloud-automation" >> ~/.bashrc \
     && echo "export ESHOST=esproxy-service:9200" >> ~/.bashrc \
-    && echo '(cd ~/cloud-automation && git pull)' >> ~/.bashrc \
     && echo 'source "${GEN3_HOME}/gen3/gen3setup.sh"' >> ~/.bashrc 
     
 CMD /bin/bash

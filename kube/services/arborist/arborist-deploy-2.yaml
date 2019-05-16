@@ -17,6 +17,11 @@ spec:
     metadata:
       labels:
         app: arborist
+        # for network policy selectors
+        authprovider: "yes"
+        dbarborist: "yes"
+        # for revproxy authz
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

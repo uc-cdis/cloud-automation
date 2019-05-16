@@ -53,6 +53,7 @@ function deploy_prometheus()
     if (! g3kubectl get namespace prometheus > /dev/null 2>&1);
     then
       g3kubectl create namespace prometheus
+      g3lubectl label namespace prometheus app=prometheus 
     fi
 
     if ( g3kubectl --namespace=prometheus get deployment prometheus-server > /dev/null 2>&1);
@@ -77,6 +78,7 @@ function deploy_grafana()
   if (! g3kubectl get namespace grafana > /dev/null 2>&1);
   then
     g3kubectl create namespace grafana
+    g3kubectl label namespace grafana app=grafana
   fi
 
   #create_grafana_secrets

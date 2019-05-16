@@ -9,6 +9,7 @@
     },
     "run_list": [
         "recipe[g3_dev_apt]",
-        "recipe[g3_docker_apt]"
+        "recipe[g3_docker_apt]",
+        "recipe[g3_google_apt]"
     ]
 }

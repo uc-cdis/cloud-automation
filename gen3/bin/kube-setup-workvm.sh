@@ -74,7 +74,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   sudo chown -R "${USER}:" ~/.config
       
   if ! which terraform > /dev/null 2>&1; then
-    curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.8/terraform_0.11.8_linux_amd64.zip
+    curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
     sudo unzip "${XDG_RUNTIME_DIR}/terraform.zip" -d /usr/local/bin;
     /bin/rm "${XDG_RUNTIME_DIR}/terraform.zip"
   fi

@@ -133,6 +133,8 @@ gen3_workon_aws(){
   export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons"
   if [[ "$GEN3_WORKSPACE" =~ _user$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/user_vpc"
+  elif [[ "$GEN3_WORKSPACE" =~ _usergeneric$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/user_generic"
   elif [[ "$GEN3_WORKSPACE" =~ _snapshot$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/rds_snapshot"
   elif [[ "$GEN3_WORKSPACE" =~ _adminvm$ ]]; then
@@ -169,6 +171,10 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/account_management-logs"
   elif [[ "$GEN3_WORKSPACE" =~ _squidauto$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_auto"
+  elif [[ "$GEN3_WORKSPACE" =~ _role$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role"
+  elif [[ "$GEN3_WORKSPACE" =~ _role_policy_attachment$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role_policy_attachment"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -270,7 +276,8 @@ EOM
     cat - <<EOM
   env_vpc_name         = "VPC-NAME"
   vpc_cidr             = "VPC_CIDR"
-  squid_proxy_subnet = "ASSIGNED SUBNET FOR SQUID SET-UP a /24"
+  squid_proxy_subnet = "ASSIGN SUBNET FOR SQUID SET-UP a /24"
+  env_squid_name     = "ASSING A SQUID NAME AS '<commons_name>_squid_auto_setup' "
 EOM
     return 0
   fi
@@ -403,6 +410,10 @@ EOM
       commonsName=${GEN3_WORKSPACE//_es/}
       cat - <<EOM
 vpc_name   = "${commonsName}"
+instance_type = "m4.large.elasticsearch"
+ebs_volume_size_gb = 20
+slack_webhook             = FILL THIS IN FOR CLOUDWATCH ALARMS
+secondary_slack_webhook   = FILL THIS IN FOR CLOUDWATCH ALARMS
 EOM
     return 0
   fi
@@ -483,7 +494,7 @@ vpc_name="$GEN3_WORKSPACE"
 # octets are legacy, we should now use the full CIDR
 #vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
 #vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
-vpc_cidr_block=172.X.Y.0/20
+vpc_cidr_block="172.X.Y.0/20"
 
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 portal_app="dev"
@@ -491,6 +502,7 @@ portal_app="dev"
 aws_cert_name="arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
 
 db_size=10
+db_instance="db.t2.micro"
 
 # This indexd guid prefix should come from Trevar/ZAC
 indexd_prefix=ENTER_UNIQUE_GUID_PREFIX
@@ -521,7 +533,6 @@ db_password_peregrine="$(random_alphanumeric 32)"
 
 db_password_indexd="$(random_alphanumeric 32)"
 
-db_instance="db.t2.micro"
 
 # password for write access to indexd
 gdcapi_indexd_password="$(random_alphanumeric 32)"

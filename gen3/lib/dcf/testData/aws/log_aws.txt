@@ -1,0 +1,9 @@
+Total files need to be replicated: 3
+2019-04-02 20:18:49,236][AWSReplication][   INFO] aws s3 cp s3://gdcbackup/254a69d8-6bbf-4e44-bdcb-a3a6a8a9de09/c913633d-4498-4e7c-aa72-c7bd0c2924fa_gdc_realn.bam s3://gdc-cptac-phs001287-controlled/254a69d8-6bbf-4e44-bdcb-a3a6a8a9de09/c913633d-4498-4e7c-aa72-c7bd0c2924fa_gdc_realn.bam --request-payer requester
+[2019-04-02 20:18:50,254][AWSReplication][   INFO] start aws copying e145afd0-dbf5-4b8f-b549-4d6e0ef4d537/66e981a1-73f3-4ccc-8348-101dec7f9812_wgs_gdc_realn.bam
+[2019-04-02 20:18:50,254][AWSReplication][   INFO] aws s3 cp s3://gdcbackup/e145afd0-dbf5-4b8f-b549-4d6e0ef4d537/66e981a1-73f3-4ccc-8348-101dec7f9812_wgs_gdc_realn.bam s3://target-controlled/e145afd0-dbf5-4b8f-b549-4d6e0ef4d537/66e981a1-73f3-4ccc-8348-101dec7f9812_wgs_gdc_realn.bam --request-payer requester
+[2019-04-02 20:18:50,390][AWSReplication][   INFO] start aws copying 4dacf396-02e5-436c-ab15-6d0909282714/2c8cbf2e-1ac6-46cb-9315-3690d564180f_wgs_gdc_realn.bam
+[2019-04-02 20:18:50,391][AWSReplication][   INFO] aws s3 cp s3://gdcbackup/4dacf396-02e5-436c-ab15-6d0909282714/2c8cbf2e-1ac6-46cb-9315-3690d564180f_wgs_gdc_realn.bam s3://gdc-cptac-phs001287-controlled/4dacf396-02e5-436c-ab15-6d0909282714/2c8cbf2e-1ac6-46cb-9315-3690d564180f_wgs_gdc_realn.bam --request-payer requester
+[2019-04-02 20:19:09,904][AWSReplication][   INFO] 9/1575 objects are processed and 876/97146 (GiB) is copied
+[2019-04-02 21:04:07,752][AWSReplication][   INFO] object d2587436-1d13-47d5-9231-f31c3276d118/7a3bd51d3e is already copied to gdc-tcga-xxxx-phs000178-open
+[2019-04-02 21:04:07,811][AWSReplication][   INFO] 100/100 objects are processed and 1.3/45 (GiB) is copied

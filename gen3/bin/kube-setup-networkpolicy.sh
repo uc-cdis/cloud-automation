@@ -4,69 +4,204 @@
 #
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
-gen3_load "gen3/lib/kube-setup-init"
+gen3_load "gen3/gen3setup"
+
 
 serverVersion="$(g3kubectl version server -o json | jq -r '.serverVersion.major + "." + .serverVersion.minor' | head -c4).0"
-echo "K8s server version is $serverVersion"
 if ! semver_ge "$serverVersion" "1.8.0"; then
-  echo "K8s server version $serverVersion does not yet support network policy"
-  exit 0
-fi
-if [[ -n "$JENKINS_HOME" ]]; then
-  echo "Jenkins skipping network policy manipulation: $JENKINS_HOME"
+  gen3_log_info "kube-setup-netpolciy" "K8s server version $serverVersion does not yet support network policy"
   exit 0
 fi
 
-name2IP() {
-  local name
-  local ip
-  name="$1"
-  ip="$name"
-  if [[ ! "$name" =~ ^[0-9\.\:]+$ ]]; then
-    ip=$(dig "$name" +short)
+# lib -------------------------
+
+#
+# Deploy network policies that accomodate the
+# gen3.io/network-ingress ACL included in gen3 deployments
+#
+# @param name of the service
+#
+net_apply_service() {
+  if [[ $# -lt 1 ]]; then
+    gen3_log_err "kube-setup-networkpolicy" "net_apply_service service not specified"
+    return 1
   fi
-  echo "$ip"
+  local name
+  name="$1"
+  shift
+  local yamlPath
+  if yamlPath="$(gen3 gitops rollpath "$name" 2> /dev/null)"; then
+    if accessList="$(gen3 gitops filter "$yamlPath" | yq -e -r '.metadata.annotations["gen3.io/network-ingress"]')"; then
+      accessList="${accessList//,/ }"
+      local app
+      app="$name"
+      # on-off for aws-es-proxy - ugh!
+      if [[ "$name" == "aws-es-proxy" ]]; then
+        app="esproxy"
+      fi
+      gen3_log_info "networkpolicy - $app accessible by annotation acl: ${accessList}"
+      gen3 netpolicy ingressTo $app $accessList | g3kubectl apply -f -
+      gen3 netpolicy egressTo $app $accessList | g3kubectl apply -f -
+    else
+      gen3_log_info "networkpolicy - $name not accessible by annotation acl"
+      # delete previously generated policies if they exist
+      g3kubectl delete networkpolicy "netpolicy-ingress-to-$name" > /dev/null 2>&1
+      g3kubectl delete networkpolicy "netpolicy-egress-to-$name" > /dev/null 2>&1
+    fi
+  else
+    gen3_log_info "kube_setup_networkpolicy" "failed to retrieve path for service ${name}: $yamlPath"
+  fi
 }
 
-credsPath="$(gen3_secrets_folder)/creds.json"
-if [[ -f "$credsPath" ]]; then # setup netpolicy
-  # google config this is already an IP
-  gdcapi_db_host=$(jq -r .gdcapi.db_host < "$credsPath")
-  indexd_db_host=$(jq -r .indexd.db_host < "$credsPath")
-  fence_db_host=$(jq -r .fence.db_host < "$credsPath")
 
-  GDCAPIDB_IP="$(name2IP "$gdcapi_db_host")"
-  INDEXDDB_IP="$(name2IP "$indexd_db_host")"
-  FENCEDB_IP="$(name2IP "$fence_db_host")"
+net_apply_gen3() {
+  local name
 
+  # apply base policies in both the commons namespace and the jupyter/user namespace
+  for name in "${GEN3_HOME}/kube/services/netpolicy/base/"*.yaml; do
+    g3kubectl apply -f "$name"
+  done
+
+  # apply gen3 generic policies in commons namespace
+  for name in "${GEN3_HOME}/kube/services/netpolicy/gen3/"*.yaml; do
+    g3kubectl apply -f "$name"
+  done
+
+  # apply service-specific policies
+  for name in "${GEN3_HOME}/kube/services/netpolicy/gen3/services/"*.yaml; do
+    g3kubectl apply -f "$name" || true
+  done
+
+  # apply procedurally-generated policies
+  # external internet access in both commons and user namespaces
+  gen3 netpolicy external | g3kubectl apply -f -
+  # s3 access
+  gen3 netpolicy s3 | g3kubectl apply -f -
+
+  local serviceName
+  # db access
+  for serviceName in $(gen3 db services); do
+    gen3 netpolicy db "$serviceName" | g3kubectl apply -f -
+    gen3 netpolicy bydb "$serviceName" | g3kubectl apply -f -
+  done
+}
+
+
+net_apply_all_services() {
+  local name
   #
-  # Replace this with something better later ...
-  # this works across AWS and GCP
+  # apply ingress/egress rolls from gen3.io/network annotations
+  # in the services refrenced by the manifest
   #
-  CLOUDPROXY_CIDR="172.0.0.0/8"
+  g3k_manifest_lookup .versions | jq -r '. | keys | .[]' | while read -r name; do
+    net_apply_service "$name"
+  done
+}
 
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_fence_templ.yaml" GEN3_FENCEDB_IP "$FENCEDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_fenceshib_templ.yaml" GEN3_FENCEDB_IP "$FENCEDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_google-sa-validation_templ.yaml" GEN3_FENCEDB_IP "$FENCEDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_indexd_templ.yaml" GEN3_INDEXDDB_IP "$INDEXDDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_peregrine_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_wts_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_pidgin_templ.yaml" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_arborist_templ.yaml" GEN3_FENCEDB_IP "$FENCEDB_IP" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_ssjdispatcher_templ.yaml" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_ssjdispatcherjob_templ.yaml" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_sheepdog_templ.yaml" GEN3_GDCAPIDB_IP "$GDCAPIDB_IP" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_portal_templ.yaml" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_revproxy_templ.yaml" GEN3_CLOUDPROXY_CIDR "$CLOUDPROXY_CIDR" | g3kubectl apply -f -
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_jenkins_templ.yaml"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_allowdns_templ.yaml"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_gen3job_templ.yaml"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_arranger_templ.yaml"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_aws_es_proxy.yaml"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_arranger_dashboard_templ.yaml"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_tube_templ.yaml"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_spark_templ.yaml"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_manifestservice_templ.yaml"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_guppy_templ.yaml"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_sower_templ.yaml"
+#
+# Apply policy rules to the jupyter/user namespaces
+#
+net_apply_jupyter() {
+  local notebookNamespace
+  local name
+  
+  #
+  # Disable this till we bump to k8s 1.11 - 
+  # the jupyter network policies rely on compound label selectors
+  #
+  if false && g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
+    for name in "${GEN3_HOME}/kube/services/netpolicy/base/"*.yaml; do
+      (yq -r . < "$name") | jq -r --arg namespace "$notebookNamespace" '.metadata.namespace=$namespace' | g3kubectl apply -f -
+    done
+    gen3 netpolicy external | jq -r --arg namespace "$notebookNamespace" '.spec.podSelector={} | .metadata.namespace=$namespace' | g3kubectl apply -f -
+    for name in "${GEN3_HOME}/kube/services/netpolicy/user/"*.yaml; do
+      (yq -r . < "$name") | jq -r --arg namespace "$notebookNamespace" '.metadata.namespace=$namespace' | g3kubectl apply -f -
+    done
+  fi
+}
+
+
+#
+# Old network policies were named 'networkpolicy-', new ones are 'netpolicy-'
+#
+net_delete_old_policies() {
+  local olds
+  if olds="$(g3kubectl get networkpolicies --no-headers 2> /dev/null | awk '{ print $1 }' | grep '^networkpolicy-')"; then
+    g3kubectl delete networkpolicies $olds
+  fi
+}
+
+
+#
+# Accepts "noservice" as arg 1 to indicate to not
+# process service annotations - to save time in `gen3 roll all`
+#
+net_apply_all() {
+  net_apply_gen3 "$@"
+  net_apply_jupyter "$@"
+  if [[ "$1" != "noservice" ]]; then
+    net_apply_all_services "$@"
+  fi
+  net_delete_old_policies "$@"
+}
+
+#
+# Deploy an "allow everything" network policy.
+# May want to do this during `roll all` when 
+# policy roles are changing from an old set to a new set
+#
+net_disable() {
+  (cat - <<EOM
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netpolicy-nolimit-inout
+spec:
+  podSelector: 
+    matchLabels: {}
+  egress: 
+    - {}
+  ingress:
+    - {}  
+  policyTypes:
+   - Egress
+   - Ingress
+EOM
+  ) | g3kubectl apply -f -
+}
+
+#
+# Remove the "allow everything" network policy if any
+#
+net_enable() {
+  g3kubectl delete networkpolicies netpolicy-nolimit-inout > /dev/null 2>&1 || true
+}
+
+
+# main -----------------------------------
+
+command="$1"
+shift
+if [[ ! "$command" =~ ^-*help$ ]]; then
+  gen3 jupyter j-namespace setup
 fi
+case "$command" in
+  "disable"):
+    net_disable
+    ;;
+  "enable"):
+    net_enable
+    ;; 
+  "jupyter"):
+    net_apply_jupyter "$@"
+    ;;
+  "service"):
+    net_apply_service "$@"
+    ;;
+  "noservice"):
+    net_apply_all noservice
+    ;;
+  *)
+    net_apply_all "$@"
+    ;;
+esac
