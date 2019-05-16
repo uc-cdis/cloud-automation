@@ -81,7 +81,7 @@ gen3_db_reset() {
   fi
 
   # Postgres won't accept these commands in one batch ...
-  echo "DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;" | gen3 psql "$serverName"
+  echo "DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION; CREATE EXTENSION IF NOT EXISTS ltree;" | gen3 psql "$serverName"
   if [[ "$serviceName" == "sheepdog" ]]; then 
     # special case - peregrine shares the database
     # Make sure peregrine has permission to read the sheepdog db tables
@@ -94,9 +94,6 @@ gen3_db_reset() {
       gen3_log_warn "gen3_db_reset" "unable to determine peregrine db username"
     fi
   fi
-
-  # install ltree extension (currently arborist requires this)
-  gen3_db_psql "$server" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname"
 }
 
 
