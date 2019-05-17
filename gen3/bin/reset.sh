@@ -32,13 +32,32 @@ run_setup_jobs() {
   # sheepdog wants its transaction tables to exist at startup
   # jobs run asynchronously ...
   #
+  for jobName in gdcdb-create indexd-userdb; do
+    echo "Launching job $jobName"
+    gen3 job run $jobName
+  done
+  echo "Waiting for jobs to finish, and late starting services to come up"
+  sleep 5
+  gen3 kube-wait4-pods
+  for jobName in gdcdb-create indexd-userdb; do
+    echo "--------------------"
+    echo "Logs for $jobName"
+    gen3 job logs "$jobName"
+  done
+}
+
+run_post_roll_jobs() {
+  local jobName
+  #
+  # Run some post roll jobs to restore some startup state.
+  #
   for jobName in gdcdb-create indexd-userdb usersync; do
     echo "Launching job $jobName"
     gen3 job run $jobName
   done
   echo "Waiting for jobs to finish, and late starting services to come up"
   sleep 5
-  gen3 kube-wait4-pods 
+  gen3 kube-wait4-pods
   for jobName in gdcdb-create indexd-userdb usersync; do
     echo "--------------------"
     echo "Logs for $jobName"
@@ -115,16 +134,16 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 /bin/rm "$useryaml"
 
 #
-# various weird race conditions 
+# various weird race conditions
 # where these setup jobs setup part of a service
 # database, and the service itself sets up other parts,
 # so run_setup_jobs both before and after roll all to
 # try to make reset more reliable - especially in Jenkins
-# 
+#
 run_setup_jobs
 remove_wts_creds_secrets
 gen3 roll all
-run_setup_jobs
+run_post_roll_jobs
 
 gen3 klock unlock reset-lock "$LOCK_USER"
 echo "All done"  # force 0 exit code
