@@ -56,6 +56,7 @@ gen3_gitops_sync() {
   local dictAttachment
   local versionsAttachment
   local commonsManifestDir
+  local portalDiffs
 
   if [[ $1 = '--slack' ]]; then
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
@@ -123,23 +124,49 @@ gen3_gitops_sync() {
 
   # portal directory config check
   commonsManifestDir=$(dirname $(g3k_manifest_path))
+  local defaultsDir="${GEN3_HOME}/kube/services/portal/defaults"
   if [[ ! -d "${commonsManifestDir}/portal" ]]; then
     gen3_log_info "Portal directory not found, skipping portal update"
   else
-    # for each file in the portal dir, look for a diff in the portal-config secret
+    # for each file in the portal defaults dir...
+    #   if file not found in commons's portal dir
+    #     use default file for comparison
+    #   else
+    #     use commons's file in manifest/portal dir
+    #
+    #   if file not in secret
+    #     roll portal
+    #   else if comparison file and secret are different
+    #     roll portal
+
     local filename
-    local oldFile
-    local newFile
-    for filepath in $(find "${commonsManifestDir}/portal/" -type f); do
-      filename=$(basename ${filepath})
-      newFile=$(base64 $filepath)
-      oldFile=$(g3kubectl get secret portal-config -o json | jq -r '.data."'"${filename}"'"')
-      # found diff if they aren't equal or if there's a new file not found in the secret
-      if [[ -z "${oldFile// }" ]]; then
-        gen3_log_info "Found portal diff in portal/${filename} - filename not found in secret or is empty"
-        portal_roll=true
-      elif [[ "${oldFile}" != "${newFile}" ]]; then
-        gen3_log_info "Found diff in portal/${filename} - difference between file and secret"
+    local secretsFile
+    local comparingFile
+    local diffMsg
+    for defaultFilepath in $(find "${defaultsDir}/" -name "gitops*" -type f); do
+      diffMsg=""
+      filename=$(basename ${defaultFilepath})
+      commonsFilepath="${commonsManifestDir}/portal/$filename"
+      secretsFile=$(g3kubectl get secret portal-config -o json | jq -r '.data."'"${filename}"'"')
+
+      # get file contents from default file or commons's file
+      if [[ ! -f "${commonsFilepath}" ]]; then
+        comparingFile=$(base64 $defaultFilepath -w 0)
+        gen3_log_info "Comparing default portal file $defaultFilepath"
+      else
+        comparingFile=$(base64 $commonsFilepath -w 0)
+        gen3_log_info "Comparing commons's portal file $commonsFilepath"
+      fi
+
+      # check for a diff
+      if [[ "${secretsFile}" = null ]]; then
+        diffMsg="Diff in portal/${filename} - file not found in secret"
+      elif [[ "${secretsFile}" != "${comparingFile}" ]]; then
+        diffMsg="Diff in portal/${filename} - difference between file and secret"
+      fi
+      if [[ ! -z "${diffMsg}" ]]; then
+        portalDiffs="${portalDiffs} \n${diffMsg}"
+        gen3_log_info "$diffMsg"
         portal_roll=true
       fi
     done
@@ -147,11 +174,13 @@ gen3_gitops_sync() {
 
   # portal manifest config check
   if [[ "$(_check_manifest_global_diff portal_app)" == "true" ]]; then
-    gen3_log_info "Found difference in manifest global.portal_app"
+    gen3_log_info "Diff in manifest global.portal_app"
+    portalDiffs="$portalDiffs \nDiff in manifest global.portal_app"
     portal_roll=true
   fi
   if [[ "$(_check_manifest_global_diff tier_access_level)" == "true" ]]; then
-    gen3_log_info "Found difference in manifest global.tier_access_level"
+    gen3_log_info "Diff in manifest global.tier_access_level"
+    portalDiffs="$portalDiffs \nDiff in manifest global.tier_access_level"
     portal_roll=true
   fi
 
@@ -160,7 +189,7 @@ gen3_gitops_sync() {
     echo "DRYRUN flag detected, not rolling"
     gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll"
   else
-    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) ]]; then
+    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true ) ]]; then
       echo "changes detected, rolling"
       gen3 kube-roll-all
       rollRes=$?
@@ -179,7 +208,10 @@ gen3_gitops_sync() {
         if [[ "$versions_roll" = true ]]; then
           versionsAttachment="\"title\": \"New Versions\", \"text\": \"$(echo $newJson | sed s/\"/\\\\\"/g | sed s/,/,\\n/g)\", \"color\": \"${color}\""
         fi
-        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}]}" "${slackWebHook}"
+        if [[ "$portal_roll" = true ]]; then
+          portalAttachment="\"title\": \"Portal Diffs\", \"text\": \"${portalDiffs}\", \"color\": \"${color}\""
+        fi
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}]}" "${slackWebHook}"
       fi
     else
       echo "no changes detected, not rolling"
