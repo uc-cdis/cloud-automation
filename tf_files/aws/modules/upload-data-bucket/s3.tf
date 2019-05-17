@@ -42,7 +42,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
   topic {
     topic_arn     = "${module.data-bucket-queue.data-bucket_name}"
-    events        = ["s3:ObjectCreated::Put", "s3:ObjectCreated:Post", "s3:ObjectCreated:Copy", "s3:ObjectCreated:CompleteMultipartUpload" ]
+    events        = ["s3:ObjectCreated:Put", "s3:ObjectCreated:Post", "s3:ObjectCreated:Copy", "s3:ObjectCreated:CompleteMultipartUpload" ]
   }
 }
 
