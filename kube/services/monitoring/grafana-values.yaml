@@ -239,8 +239,11 @@ dashboardProviders:
 ##
 dashboards:
   default:
-    k8s-cluster:
-      url: https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/files/grafana/dashboards/kubernetes-cluster-prometheus_rev1.json
+    data-commons-metrics:
+      url: https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/files/grafana/dashboards/data-commons-metrics.json
+      datasource: Prometheus
+    Misc:
+      url: https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/files/grafana/dashboards/misc.json
       datasource: Prometheus
   #   some-dashboard:
   #     json: |
