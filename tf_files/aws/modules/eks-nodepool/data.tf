@@ -23,39 +23,14 @@ data "aws_availability_zones" "available" {
 }
 
 
-# get the subnets 
-#data "aws_subnet_ids" "private" {
-#  vpc_id = "${data.aws_vpc.the_vpc.id}"
-#  tags {
-#    Name = "eks_private_*"
-#  }
-#}
-
-
-#data "aws_subnet" "eks_private" {
-#  count = "${length(data.aws_subnet_ids.private.ids)}"
-#  id    = "${data.aws_subnet_ids.private.ids[count.index]}"
-#}
-
-
-
-# Apparently we cannot iterate over the resource, therefore I am querying them after creation
-#data "aws_subnet_ids" "public_kube" {
-#  vpc_id = "${data.aws_vpc.the_vpc.id}"
-#  tags {
-#    Name = "eks_public_*"
-#  }
-#}
-
 # First, let us create a data source to fetch the latest Amazon Machine Image (AMI) that Amazon provides with an
 # EKS compatible Kubernetes baked in.
 
 data "aws_ami" "eks_worker" {
   filter {
     name   = "name"
-    #values = ["${var.eks_version == "1.10" ? "eks-worker-v*" : "amazon-eks-node-1.11*"}"]
-    values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
-    #values = ["eks-worker-v*"]
+    # values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
+    values = ["amazon-eks-node-${var.eks_version}*"]
   }
 
   most_recent = true

@@ -16,6 +16,7 @@ gen3_load "gen3/lib/kube-setup-init"
 g3kubectl patch -n kube-system deployment/kube-dns --patch '{"spec":{"selector":{"matchLabels":{"eks.amazonaws.com/component":"kube-dns"}}}}' || true
 
 
+
 # 2. Deploy CoreDNS to your cluster.
 
   # a. Set your cluster's DNS IP address to the DNS_CLUSTER_IP environment variable.
@@ -31,11 +32,11 @@ g3kubectl patch -n kube-system deployment/kube-dns --patch '{"spec":{"selector":
 
   # c. Download the CoreDNS manifest from the Amazon EKS resource bucket.
 
-  curl -o /tmp/dns.yaml https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2019-02-11/dns.yaml
+  curl -o ${XDG_RUNTIME_DIR}/dns.yaml https://amazon-eks.s3-us-west-2.amazonaws.com/cloudformation/2019-02-11/dns.yaml
 
   # d. Replace the variable placeholders in the dns.yaml file with your environment variable values and apply the updated manifest to your cluster. The following command completes this in one step.
 
-  cat /tmp/dns.yaml | sed -e "s/REGION/$REGION/g" | sed -e "s/DNS_CLUSTER_IP/$DNS_CLUSTER_IP/g" | g3kubectl apply -f -
+  cat ${XDG_RUNTIME_DIR}/dns.yaml | sed -e "s/REGION/$REGION/g" | sed -e "s/DNS_CLUSTER_IP/$DNS_CLUSTER_IP/g" | g3kubectl apply -f -
 
 
   # e. Fetch the coredns pod name from your cluster.
@@ -63,11 +64,15 @@ g3kubectl patch -n kube-system deployment/kube-dns --patch '{"spec":{"selector":
 
 # 3. Scale down the kube-dns deployment to zero replicas.
 
+  # 3.1 if we don't do this before scaling down, scaling down won't happen ever
+  g3kubectl delete deployment -n kube-system kube-dns-autoscaler
+
+  # give it a little time to delete, lucky seven
+  sleep 7
+
+  # 3.2 actual scaling down
   g3kubectl scale -n kube-system deployment/kube-dns --replicas=0
 
-
-# give it a little time to scale down 
-sleep 5
 
 
 # 4. Clean up the old kube-dns resources.
@@ -75,12 +80,13 @@ COUNT=0
 
 while [ ${COUNT} -lt 10 ];
 do
-  if ( ! g3kubectl get pod -n kube-system -l eks.amazonaws.com/component=kube-dns > /dev/null 2>&1 );
+  if ( ! g3kubectl get pod -n kube-system -l eks.amazonaws.com/component=kube-dns > /dev/null 2>&1 ) || [[ $(g3kubectl get deployments. -n kube-system kube-dns -o json |jq '.status.readyReplicas') -eq 0 ]];
   then
     g3kubectl delete -n kube-system deployment/kube-dns serviceaccount/kube-dns configmap/kube-dns
     return
   else
     COUNT=$(( COUNT + 1 ))
+    g3kubectl get deployments. -n kube-system kube-dns 
     sleep 30
   fi
 done

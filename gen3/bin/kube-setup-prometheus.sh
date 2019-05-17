@@ -53,7 +53,7 @@ function deploy_prometheus()
     if (! g3kubectl get namespace prometheus > /dev/null 2>&1);
     then
       g3kubectl create namespace prometheus
-      g3lubectl label namespace prometheus app=prometheus 
+      g3kubectl label namespace prometheus app=prometheus 
     fi
 
     if ( g3kubectl --namespace=prometheus get deployment prometheus-server > /dev/null 2>&1);

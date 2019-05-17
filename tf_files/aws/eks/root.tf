@@ -27,5 +27,6 @@ module "eks" {
   cidrs_to_route_to_gw      = "${var.cidrs_to_route_to_gw}"
   organization_name         = "${var.organization_name}"
   peering_vpc_id            = "${var.peering_vpc_id}"
+  proxy_name                = "${var.proxy_name}"
 
 }
