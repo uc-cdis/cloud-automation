@@ -83,7 +83,7 @@ do
   if ( ! g3kubectl get pod -n kube-system -l eks.amazonaws.com/component=kube-dns > /dev/null 2>&1 ) || [[ $(g3kubectl get deployments. -n kube-system kube-dns -o json |jq '.status.readyReplicas') -eq 0 ]];
   then
     g3kubectl delete -n kube-system deployment/kube-dns serviceaccount/kube-dns configmap/kube-dns
-    return
+    break
   else
     COUNT=$(( COUNT + 1 ))
     g3kubectl get deployments. -n kube-system kube-dns 
