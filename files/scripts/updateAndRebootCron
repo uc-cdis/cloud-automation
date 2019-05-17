@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# Update and reboot an ubuntu system.
+#
 # Run this as a cron job:
 #  sudo cp updateAndRebootCron /etc/cron.d/updateAndRebootCron
 #  sudo chmod 0644 /etc/cron.d/updateAndRebootCron
