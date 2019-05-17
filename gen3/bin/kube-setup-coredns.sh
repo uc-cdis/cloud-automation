@@ -36,8 +36,11 @@ g3kubectl patch -n kube-system deployment/kube-dns --patch '{"spec":{"selector":
 
   # d. Replace the variable placeholders in the dns.yaml file with your environment variable values and apply the updated manifest to your cluster. The following command completes this in one step.
 
-  cat ${XDG_RUNTIME_DIR}/dns.yaml | sed -e "s/REGION/$REGION/g" | sed -e "s/DNS_CLUSTER_IP/$DNS_CLUSTER_IP/g" | g3kubectl apply -f -
+  #cat ${XDG_RUNTIME_DIR}/dns.yaml | sed -e "s/REGION/$REGION/g" -e "s/DNS_CLUSTER_IP/$DNS_CLUSTER_IP/g" | g3kubectl apply -f -
+  sed -e "s/REGION/$REGION/g" -e "s/DNS_CLUSTER_IP/$DNS_CLUSTER_IP/g" ${XDG_RUNTIME_DIR}/dns.yaml | g3kubectl apply -f -
 
+  # let's just not flood ${XDG_RUNTIME_DIR}
+  rm ${XDG_RUNTIME_DIR}/dns.yaml 
 
   # e. Fetch the coredns pod name from your cluster.
 
@@ -47,7 +50,6 @@ g3kubectl patch -n kube-system deployment/kube-dns --patch '{"spec":{"selector":
 
   # f. Query the coredns pod to ensure that it's receiving requests.
 
-  #g3kubectl get --raw "/api/v1/namespaces/kube-system/pods/$(g3kubectl get pod -n kube-system -l eks.amazonaws.com/component=coredns -o jsonpath='{.items[0].metadata.name}'):9153/proxy/metrics" | grep 'coredns_dns_request_count_total'
   #g3kubectl get --raw /api/v1/namespaces/kube-system/pods/${COREDNS_POD}:9153/proxy/metrics | grep 'coredns_dns_request_count_total'
 #  for i in $(g3kubectl get pod -n kube-system -l eks.amazonaws.com/component=coredns -o name |awk -F/ '{print $2}')
 #  do
@@ -56,7 +58,7 @@ g3kubectl patch -n kube-system deployment/kube-dns --patch '{"spec":{"selector":
 #  done
   
 
-
+# Output example for the above commands.
 # HELP coredns_dns_request_count_total Counter of DNS requests made per zone, protocol and family.
 # TYPE coredns_dns_request_count_total counter
 # coredns_dns_request_count_total{family="1",proto="udp",server="dns://:53",zone="."} 23
@@ -83,7 +85,7 @@ do
   if ( ! g3kubectl get pod -n kube-system -l eks.amazonaws.com/component=kube-dns > /dev/null 2>&1 ) || [[ $(g3kubectl get deployments. -n kube-system kube-dns -o json |jq '.status.readyReplicas') -eq 0 ]];
   then
     g3kubectl delete -n kube-system deployment/kube-dns serviceaccount/kube-dns configmap/kube-dns
-    return
+    break
   else
     COUNT=$(( COUNT + 1 ))
     g3kubectl get deployments. -n kube-system kube-dns 
