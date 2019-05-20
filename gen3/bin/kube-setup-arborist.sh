@@ -10,7 +10,7 @@ gen3_load "gen3/lib/g3k_manifest"
 # only do db creation and setup if this is arborist deployment version > 1
 manifestPath=$(g3k_manifest_path)
 deployVersion="$(jq -r ".[\"arborist\"][\"deployment_version\"]" < "$manifestPath")"
-if [ -n $deployVersion ]; then
+if [ -z "$deployVersion" ]; then
   deployVersion="1"
 fi
 
