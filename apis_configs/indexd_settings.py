@@ -28,7 +28,7 @@ dist = environ.get("DIST", None)
 if dist:
     CONFIG["DIST"] = json.loads(dist)
 
-arborist = environ.get("ARBORIST", False)
+arborist = environ.get("ARBORIST", "false").lower() == "true"
 
 CONFIG["INDEX"] = {
     "driver": SQLAlchemyIndexDriver(
