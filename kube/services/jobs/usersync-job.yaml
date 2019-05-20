@@ -1,3 +1,15 @@
+#
+# run with:
+# gen3 job run usersync FORCE true
+# NOTE: FORCE is an optional argument. Will default to "false"
+#
+# FORCE
+#    Force running full userync without doing diff of user.yaml
+#
+# Examples
+# gen3 job run usersync
+# gen3 job run usersync FORCE true
+#
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -64,6 +76,8 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: sync_from_dbgap
+          - name: FORCE
+            GEN3_FORCE|-value: "false"-|
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -128,13 +142,18 @@ spec:
             done
             if [ ! "$SYNC_FROM_DBGAP" = True ]; then
               if [[ -f /mnt/shared/user.yaml ]]; then
-                echo "fence container user.yaml diff ..."
-                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
-                if [[ $? == 1 || "${userYamlS3Path}" = 'none' ]]; then
+                if [[ "$FORCE" == "true" ]]; then
                   echo "running fence-create"
                   fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
                 else
-                  echo "no difference found"
+                  echo "fence container user.yaml diff ..."
+                  diff /var/www/fence/user.yaml /mnt/shared/user.yaml
+                  if [[ $? == 1 || "${userYamlS3Path}" = 'none' ]]; then
+                    echo "running fence-create"
+                    fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
+                  else
+                    echo "no difference found"
+                  fi
                 fi
               else
                 echo "/mnt/shared/user.yaml did not appear within timeout :-("
@@ -176,9 +195,7 @@ spec:
                 aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml
               done
               if [[ -f /mnt/shared/user.yaml ]]; then
-                echo "awshelper container user.yaml diff ..."
-                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
-                if [[ $? == 1 ]]; then
+                if [[ "$FORCE" == "true" ]]; then
                   echo "awshelper updating fence configmap"
                   kubectl delete configmap fence
                   kubectl create configmap fence --from-file=/mnt/shared/user.yaml
@@ -186,7 +203,18 @@ spec:
                     curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: Syncing users on ${gen3Env}\"}" "${slackWebHook}"
                   fi
                 else
-                  echo "no difference found"
+                  echo "awshelper container user.yaml diff ..."
+                  diff /var/www/fence/user.yaml /mnt/shared/user.yaml
+                  if [[ $? == 1 ]]; then
+                    echo "awshelper updating fence configmap"
+                    kubectl delete configmap fence
+                    kubectl create configmap fence --from-file=/mnt/shared/user.yaml
+                    if [ "${slackWebHook}" != 'None' ]; then
+                      curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: Syncing users on ${gen3Env}\"}" "${slackWebHook}"
+                    fi
+                  else
+                    echo "no difference found"
+                  fi
                 fi
               fi
             fi
