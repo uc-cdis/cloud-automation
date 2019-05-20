@@ -28,6 +28,8 @@ dist = environ.get("DIST", None)
 if dist:
     CONFIG["DIST"] = json.loads(dist)
 
+arborist = environ.get("ARBORIST", "false").lower() == "true"
+
 CONFIG["INDEX"] = {
     "driver": SQLAlchemyIndexDriver(
         "postgresql+psycopg2://{usr}:{psw}@{pghost}:{pgport}/{db}".format(
@@ -45,11 +47,18 @@ CONFIG["ALIAS"] = {
     )
 }
 
-AUTH = SQLAlchemyAuthDriver(
-    "postgresql+psycopg2://{usr}:{psw}@{pghost}:{pgport}/{db}".format(
-        usr=usr, psw=psw, pghost=pghost, pgport=pgport, db=db
+if arborist:
+    AUTH = SQLAlchemyAuthDriver(
+        "postgresql+psycopg2://{usr}:{psw}@{pghost}:{pgport}/{db}".format(
+            usr=usr, psw=psw, pghost=pghost, pgport=pgport, db=db
+        ),
+        arborist="http://arborist-service/",  # uncomment if you're using arborist
     )
-    # , arborist="http://arborist-service/",  # uncomment if you're using arborist
-)
+else:
+    AUTH = SQLAlchemyAuthDriver(
+        "postgresql+psycopg2://{usr}:{psw}@{pghost}:{pgport}/{db}".format(
+            usr=usr, psw=psw, pghost=pghost, pgport=pgport, db=db
+        )
+    )
 
 settings = {"config": CONFIG, "auth": AUTH}

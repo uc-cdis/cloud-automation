@@ -55,7 +55,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update indexd secrets
   fi
 
   if ! g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic indexd-secret --from-file=local_settings.py="$(gen3_secrets_folder)/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+    g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   fi
 fi
 
