@@ -29,7 +29,7 @@ variable "worker_drive_size" {
 }
 
 variable "eks_version" {
-  default = "1.10"
+  default = "1.11"
 }
 
 variable "deploy_jupyter_pool" {
