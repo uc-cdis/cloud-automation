@@ -347,7 +347,10 @@ resource "aws_security_group" "squidauto_in" {
     from_port   = 22
     to_port     = 22
     protocol    = "TCP"
-    cidr_blocks = ["${var.csoc_cidr}"]
+    #
+    # Do not do this - fence may ssh-bridge out for sftp access
+    #
+    cidr_blocks = ["${var.csoc_cidr}", "${var.vpc_cidr}"]
   }
 
   tags {
