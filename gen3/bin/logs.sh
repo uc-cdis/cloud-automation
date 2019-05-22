@@ -57,8 +57,14 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           ;;
       esac
       ;;
+    "job")
+      gen3_logs_rawlog_search qtype=job "$@"
+      ;;
     "raw")
       gen3_logs_rawlog_search "$@"
+      ;;
+    "jobq")  # echo raw query - mostly for test suite
+      gen3_logs_joblog_query "$@"
       ;;
     "rawq")  # echo raw query - mostly for test suite
       gen3_logs_rawlog_query "$@"
