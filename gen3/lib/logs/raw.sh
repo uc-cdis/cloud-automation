@@ -1,3 +1,4 @@
+gen3_load "gen3/lib/logs/job"
 
 #
 # Process arguments of form 'key=value' to an Elastic Search query
@@ -157,6 +158,7 @@ EOM
 #
 # @parma format=raw|json
 # @param page=0|number|all
+# @param qtype=raw|job whether to raw query services or jobs
 # @return to stdout the results in the requested format, also write
 #     to stderr the /_search query sent to elastic search
 #
@@ -174,10 +176,13 @@ gen3_logs_rawlog_search() {
   local errStr
   local aggs
   local fields
+  local qtype
 
   pageSize=1000
   pageNum="$(gen3_logs_get_arg page 0 "$@")"
   aggs="$(gen3_logs_get_arg aggs no "$@")"
+  qtype="$(gen3_logs_get_arg qtype raw "$@")"
+
   fields="log"
   if [[ "$aggs" == "yes" ]]; then # no search fields by default when aggregations on
     fields="none"
@@ -211,12 +216,15 @@ gen3_logs_rawlog_search() {
   # our ES cluster is setup with a 10000 record max result size
   while [[ $pageIt -lt 10 && ($pageMax == "all" || $pageIt -lt $pageMax) ]]; do
     # first key=value takes precedence in argument processing, so just put page first
-    queryStr="$(gen3_logs_rawlog_query "page=$pageIt" "$@")"
+    if [[ "$qtype" != "job" ]]; then
+      queryStr="$(gen3_logs_rawlog_query "page=$pageIt" "$@")"
+    else
+      queryStr="$(gen3_logs_joblog_query "page=$pageIt" "$@")"
+    fi
     tee "$queryFile" 1>&2 <<EOM
 $queryStr
-
---------------------------
 EOM
+    echo "--------------------------" 1>&2
     if ! gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d@$queryFile" > $jsonFile; then
       rm "$queryFile" "$jsonFile"
       return 1
@@ -242,6 +250,8 @@ EOM
 
     if [[ "$format" == "json" ]]; then
       cat "$jsonFile"
+    elif [[ "$qtype" == "job" ]]; then
+      cat "$jsonFile" | jq -r '.hits.hits[] | [._index, "-", ._source.timestamp, ":", ._source.message.log] | join(" ")' | grep -e '.' --color="never"
     else
       cat "$jsonFile" | jq -r '.hits.hits[] | ._source.message.log' | grep -e '.' --color="never"
     fi
