@@ -24,8 +24,8 @@ resource "aws_s3_bucket" "common_logging_bucket" {
     prefix = "forwarded*/"
 
     tags = {
-      "rule"      = "log"
-      "autoclean" = "true"
+      rule      = "log"
+      autoclean = "true"
     }
 
     transition {
@@ -384,11 +384,7 @@ resource "aws_lambda_function" "logs_decodeding" {
   }
 
   environment {
-    variables = {
-      stream_name   = "${var.common_name}_firehose"
-      threshold     = "${var.threshold)"
-      slack_webhook = "${var.slack_webhook}"
-    }
+    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}" } 
   }
 
   lifecycle {
