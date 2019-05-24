@@ -385,7 +385,9 @@ resource "aws_lambda_function" "logs_decodeding" {
 
   environment {
     variables = {
-      stream_name = "${var.common_name}_firehose"
+      stream_name   = "${var.common_name}_firehose"
+      threshold     = "${var.threshold)"
+      slack_webhook = "${var.slack_webhook}"
     }
   }
 

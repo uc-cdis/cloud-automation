@@ -24,3 +24,10 @@ variable "elasticsearch_domain" {
   default = "commons-logs"
 }
 
+variable "threshold" {
+  default = "4.00"
+}
+
+variable "slack_webhook" {
+ default = ""
+}
