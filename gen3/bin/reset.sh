@@ -91,10 +91,14 @@ gen3_user_verify() {
 remove_wts_creds_secrets() {
   appCredsPath="$(gen3_secrets_folder)/g3auto/wts/appcreds.json"
   if [ -f "$appCredsPath" ]; then
-      rm -r "$appCredsPath"
-      return 0
+      echo "Removing local wts cred file"
+      rm -v "$appCredsPath"
   fi
-  g3kubectl delete secret wts-g3auto
+  if g3kubectl get secret wts-g3auto > /dev/null 2>&1; then
+      echo "Deleting wts secret"
+      g3kubectl delete secret wts-g3auto || true
+  fi
+  echo "All clear for wts"
 }
 
 # main ---------------------------
