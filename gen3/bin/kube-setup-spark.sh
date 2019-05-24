@@ -13,5 +13,5 @@ gen3 roll spark $@
 g3kubectl apply -f "${GEN3_HOME}/kube/services/spark/spark-service.yaml"
 
 cat <<EOM
-The tube services has been deployed onto the k8s cluster.
+The spark services has been deployed onto the k8s cluster.
 EOM

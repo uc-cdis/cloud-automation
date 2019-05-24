@@ -314,7 +314,6 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update peregrine secrets
   )
 fi
 
-
 # ETL mapping file for tube
 ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"
 if [[ -f "$ETL_MAPPING_PATH" ]]; then
