@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Run this as a cron job on admin.csoc to verify the secgroup's
+# on the es-logs proxies have egress permissions to the
+# current cluster IPs.
+#
+#  sudo mkdir -p /var/lib/gen3
+#  sudo cp es-secgroup-sync.sh /var/lib/gen3/
+#  sudo touch /var/log/es-secgroup-cron.log
+#  sudo chown ubuntu: /var/log/es-secgroup-cron.log
+#  sudo cp esSecgroupCron /etc/cron.d/
+#  sudo chmod 0644 /etc/cron.d/esSecgroupCron
+#
+# TODO - port this to a cloudwatch event lambda ...
+#
+# m h  dom mon dow  user  command
+#
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# Note: this is a secret - only set the real webhook at deploy time - do not checkin to git!
+# SLACK_WEBHOOK=https://hooks.slack.com/...
+
+*/10 * * * * ubuntu bash /var/lib/gen3/es-secgroup-sync.sh update > /var/log/es-secgroup-cron.log 2>&1

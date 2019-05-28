@@ -32,10 +32,11 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   sudo -E XDG_CACHE_HOME=/var/cache python -m pip install yq
 
   # install nodejs
-  curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
-  sudo -E apt-get update
-  sudo -E apt-get install -y nodejs
-
+  if ! which node > /dev/null 2>&1; then
+    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+    sudo -E apt-get update
+    sudo -E apt-get install -y nodejs
+  fi
   if [[ ! -f /etc/apt/sources.list.d/google-cloud-sdk.list ]]; then
     # might need to uninstall gcloud installed from ubuntu repo
     if which gcloud > /dev/null 2>&1; then
@@ -72,12 +73,24 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
 
   mkdir -p ~/.config
   sudo chown -R "${USER}:" ~/.config
-      
-  if ! which terraform > /dev/null 2>&1; then
-    curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
-    sudo unzip "${XDG_RUNTIME_DIR}/terraform.zip" -d /usr/local/bin;
-    /bin/rm "${XDG_RUNTIME_DIR}/terraform.zip"
-  fi
+  
+  ( # in a subshell - install terraform
+    install_terraform() {
+      curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.14/terraform_0.11.14_linux_amd64.zip
+      sudo /bin/rm -rf /usr/local/bin/terraform > /dev/null 2>&1 || true
+      sudo unzip "${XDG_RUNTIME_DIR}/terraform.zip" -d /usr/local/bin;
+      /bin/rm "${XDG_RUNTIME_DIR}/terraform.zip"
+    }
+
+    if ! which terraform > /dev/null 2>&1; then
+      install_terraform  
+    else
+      TERRAFORM_VERSION=$(terraform --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
+      if ! semver_ge "$TERRAFORM_VERSION" "0.11.14"; then
+        install_terraform
+      fi
+    fi
+  )
   if ! which packer > /dev/null 2>&1; then
     curl -o "${XDG_RUNTIME_DIR}/packer.zip" https://releases.hashicorp.com/packer/1.2.1/packer_1.2.1_linux_amd64.zip
     sudo unzip "${XDG_RUNTIME_DIR}/packer.zip" -d /usr/local/bin

@@ -62,6 +62,15 @@ else
   echo "INFO: not deploying arranger - no manifest entry for .versions.arranger"
 fi
 
+#
+# Do not do this - it may interrupt a running ETL
+#
+#if g3k_manifest_lookup .versions.spark 2> /dev/null; then
+#  gen3 kube-setup-spark
+#else
+#  echo "INFO: not deploying spark (required for ES ETL) - no manifest entry for .versions.spark"
+#fi
+
 if g3k_manifest_lookup .versions.guppy 2> /dev/null; then
   gen3 kube-setup-guppy
 else
