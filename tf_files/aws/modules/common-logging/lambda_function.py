@@ -149,7 +149,7 @@ def send_it_out(slack_text,response_time):
     bar_color = "#FF0000"
     data = {"text": slack_text,
                 "attachments": [
-                    {"title": "Slow Response notification {0}".format(response_time),
+                    {"title": "Slow Response notification: ({0} seconds)".format(response_time),
                      "color": bar_color
                     }]
                 }
