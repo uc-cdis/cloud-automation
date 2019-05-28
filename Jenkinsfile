@@ -27,6 +27,7 @@ node {
       sh 'python -m pytest cloud-automation/gen3/lib/dcf/'
       sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
       sh 'cd cloud-automation/kube/services/jupyterhub && python3 -m pytest test-jupyterhub_config.py'
+      sh 'bash cloud-automation/files/scripts/es-secgroup-sync.sh test'
     }
     stage('nginx helper test suite') {
       dir('cloud-automation/kube/services/revproxy') {

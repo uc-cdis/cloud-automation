@@ -11,6 +11,8 @@ CLUSTER_DOMAIN="search-commons-logs-lqi5sot65fryjwvgp6ipyb65my.us-east-1.es.amaz
 AWS_IP_URL="https://ip-ranges.amazonaws.com/ip-ranges.json"
 declare -a SECGROUP_NAMES
 SECGROUP_NAMES=("local_es-revproxy-dev-a" "local_es-revproxy-dev-b")
+# ids corresponding to names
+SECGROUP_IDS=("sg-0a09b3484f0c13291" "sg-052d8824141986e65")
 
 if [[ -z "$XDG_RUNTIME_DIR" ]]; then
   XDG_RUNTIME_DIR=/tmp
@@ -228,9 +230,53 @@ updateSecGroup() {
   # only try to add one cidr at a time - can get other ip's on next run
   ip="${ipList[0]}"
   if cidr="$(findCidrForIP "$ip" "$cleanFile")"; then
-    # TODO - update the security group!
-    echo "INFO: adding $cidr to security group" 1>&2
-    return 0
+    local sgId
+    local result
+    local skeleton
+    result=0
+    
+    for sgId in "${SECGROUP_IDS[@]}"; do
+      echo "INFO: adding $cidr to security group $sgId" 1>&2
+      skeleton="$(cat - <<EOM
+{
+    "DryRun": false, 
+    "GroupId": "${sgId}",
+    "IpPermissions": [
+        {
+            "FromPort": 0,
+            "ToPort": 65535, 
+            "IpProtocol": "tcp", 
+            "IpRanges": [
+                {
+                    "CidrIp": "$cidr", 
+                    "Description": "from es-secgroup-sync job"
+                }
+            ],
+            "Ipv6Ranges": [], 
+            "PrefixListIds": [], 
+            "UserIdGroupPairs": []
+        }
+    ]
+}
+EOM
+)"
+      aws ec2 authorize-security-group-egress --cli-input-json "$skeleton" "$@"
+      result=$((result + $?))
+    done
+    if [[ -n "$SLACK_WEBHOOK" ]]; then
+      local message
+      local status
+      local color
+      status="SUCCESS"
+      color="#1FFF00"
+      if [[ "$result" -ne 0 ]]; then
+        status="FAILURE"
+        color="#FF0000"
+      fi
+      message="ES Secgroup Update: ${status} - admin.csoc adding CIDR $cidr"
+      curl -X POST --data-urlencode "payload={\"text\": \"$message\", \"attachments\": []}" "${SLACK_WEBHOOK}"
+    fi
+    return $result
   else
     echo "ERROR: unable to find cidr in AWS whitelist for unaccessible ip $ip" 1>&2
     return 1
@@ -283,7 +329,9 @@ testSuite() {
 
 help() {
   cat - <<EOM
-Use: bash es-secgroup-sync.sh test|dryrun|ip2num|cidr2range|check|show|update
+Use: bash es-secgroup-sync.sh test|ip2num|cidr2range|check|show|update
+* Note: optionally specify a SLACK_WEBHOOK environment variable to notify slack of secgroup updates
+* update accepts a --dryrun option
 EOM
 }
 
@@ -314,6 +362,9 @@ case "$command" in
   ;;
 "test")
   testSuite && echo "All ok"
+  ;;
+"update")
+  updateSecGroup "$@"
   ;;
 *)
   help
