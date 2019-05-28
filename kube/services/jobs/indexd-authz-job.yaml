@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: indexd-authz
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "indexd-secret"
+        - name: "sheepdog-creds-volume"
+          secret:
+            secretName: "sheepdog-creds"
+        - name: "indexd-creds-volume"
+          secret:
+            secretName: "indexd-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
+      containers:
+        - name: indexd
+          GEN3_INDEXD_IMAGE
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/local_settings.py"
+              subPath: "local_settings.py"
+            - name: "sheepdog-creds-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/sheepdog_creds.json"
+              subPath: creds.json
+            - name: "indexd-creds-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/creds.json"
+              subPath: creds.json
+            - name: "config-helper"
+              readOnly: true
+              mountPath: "/var/www/indexd/config_helper.py"
+              subPath: config_helper.py  
+          imagePullPolicy: Always
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - |
+              db_uri=$(python - <<- EOF
+              from base64 import b64decode
+              import json
+
+              with open("/var/www/indexd/sheepdog_creds.json") as f:
+                  creds = json.loads(f.read())
+
+              print("postgres://{}:{}@{}:5432/{}".format(creds["db_username"], creds["db_password"], creds["db_host"], creds["db_database"]))
+              EOF
+              )
+              python /indexd/bin/migrate_acl_authz.py --path "/var/www/indexd/" --sheepdog-db "$db_uri" --arborist-url "http://arborist-service"
+              echo "Exit code: $?"
+      restartPolicy: Never
