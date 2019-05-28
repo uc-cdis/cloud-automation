@@ -209,8 +209,9 @@ def check_speed(event,logGroup):
             send_it_out(slack_text,event["http_response_time"])
 
     except Exception as e:
-        print(e)
-        return
+        if not str(e) == "'http_response_time'":
+            print(e)
+        #return
 
 
     
