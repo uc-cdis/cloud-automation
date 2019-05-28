@@ -166,7 +166,7 @@ checkClusterIPs() {
 # one CIDR per line for a rule that includes the given IP
 #
 # @param ip
-# @param whitelistFile
+# @param whiteListFile
 # @return 0 if found a match, and echo match - else exit 1
 #
 findCidrForIP() {
@@ -221,9 +221,12 @@ updateSecGroup() {
   cleanFile="$(mktemp "$XDG_RUNTIME_DIR/clean_XXXXXX")"
   local result
   if ! jq -r -e '.prefixes[] | .ip_prefix' < "$whitelist" > "$cleanFile"; then
+    /bin/rm "$whitelist"
     echo "ERROR: AWS white list not in expected json format - $AWS_IP_URL" 1>&2
     return 1
   fi
+  /bin/rm "$whitelist"
+
   local ip
   local cidr
   local result=0
@@ -234,6 +237,7 @@ updateSecGroup() {
     local result
     local skeleton
     result=0
+    /bin/rm "$cleanFile"
     
     for sgId in "${SECGROUP_IDS[@]}"; do
       echo "INFO: adding $cidr to security group $sgId" 1>&2
@@ -279,6 +283,7 @@ EOM
     return $result
   else
     echo "ERROR: unable to find cidr in AWS whitelist for unaccessible ip $ip" 1>&2
+    /bin/rm "$cleanFile"
     return 1
   fi
 }
