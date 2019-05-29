@@ -75,6 +75,12 @@ module "config_files" {
   aws_user_key_id             = "${module.cdis_vpc.es_user_key_id}"
 
   indexd_prefix               = "${var.indexd_prefix}"
+
+## mailgun creds
+  mailgun_api_key             = "${var.mailgun_api_key}"
+  mailgun_api_url             = "${var.mailgun_api_url}"
+  mailgun_smtp_host           = "${var.mailgun_smtp_host}"
+
 }
 
 module "cdis_alarms" {

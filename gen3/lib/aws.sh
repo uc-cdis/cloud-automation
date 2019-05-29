@@ -540,6 +540,10 @@ gdcapi_indexd_password="$(random_alphanumeric 32)"
 fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
+# mailgun for sending alert e-mails
+mailgun_api_key=""
+mailgun_api_url=""
+mailgun_smtp_host=""
 
 kube_ssh_key="${kube_ssh_key}"
 
