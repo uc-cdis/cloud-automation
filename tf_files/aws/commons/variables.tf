@@ -168,6 +168,7 @@ variable "csoc_managed" {
 
 variable "organization_name" {
   default = "Basic Service"
+}
 
 
 ## Mailgun variable defaults/definitions.
