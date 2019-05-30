@@ -25,6 +25,12 @@ spec:
       containers:
         - name: indexd
           GEN3_INDEXD_IMAGE
+          env:
+            - name: AUTH_NAMESPACE
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-global
+                  key: auth_namespace
           volumeMounts:
             - name: "config-volume"
               readOnly: true
@@ -41,7 +47,7 @@ spec:
             - name: "config-helper"
               readOnly: true
               mountPath: "/var/www/indexd/config_helper.py"
-              subPath: config_helper.py  
+              subPath: config_helper.py
           imagePullPolicy: Always
           command: ["/bin/bash"]
           args:
