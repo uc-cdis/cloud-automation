@@ -77,7 +77,7 @@ if [[ ! -d ./cdis-manifest ]]; then
 fi
 
 # setup ~/vpc_name
-for name in 00configmap.yaml apis_configs kubeconfig; do
+for name in 00configmap.yaml apis_configs kubeconfig ssh-keys; do
   cp -r ~/${vpc_name}/$name /home/$namespace/${vpc_name}/$name
 done
 
