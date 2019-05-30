@@ -31,6 +31,7 @@ spec:
                 configMapKeyRef:
                   name: manifest-global
                   key: auth_namespace
+                  optional: true
           volumeMounts:
             - name: "config-volume"
               readOnly: true
