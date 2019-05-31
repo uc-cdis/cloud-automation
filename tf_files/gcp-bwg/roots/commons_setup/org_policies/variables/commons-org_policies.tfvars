@@ -8,20 +8,20 @@
 #####Project setup info
 
 env = "commons001"
-project_name = "<project_name_here>"
-billing_account = "<billing_account_here>"
+project_name = "<seed_project_here>" # seed project name here
+#billing_account = "<billing_account_here>"
 credential_file = "<credentials_here>.json"
 create_folder = true
 set_parent_folder = true
-folder = "<folder_name_here>"
+#folder = "<folder_name_here>"
 region = "us-central1"
 organization = "<organization_name_here>"
 org_id = "<org_id_here>"
 ###### Terraform State
 state_bucket_name = "<tfstate_bucket_here>"
 prefix_org_policies = "org_policies_commons001"
-prefix_org_setup = "org_setup_commons0001"
-prefix_project_setup = "project_setup_commons001"
+#prefix_org_setup = "org_setup_commons0001"
+#prefix_project_setup = "project_setup_commons001"
 
 ### Add addition constraints if desired
 constraint = ["constraints/compute.disableNestedVirtualization","constraints/compute.disableSerialPortAccess","constraints/compute.skipDefaultNetworkCreation"]

@@ -20,7 +20,7 @@ org_id = "<org_id_here>"
 ###### Terraform State
 state_bucket_name = "<tfstate_bucket_here>"
 csoc_state_bucket_name = "<csoc_tfstate_bucket_here>"
-tf_state_project_setup_csoc = "<cosc_tfstate_file_here>"
+tf_state_project_setup_csoc = "<csoc_tfstate_file_here>"
 prefix_org_policies = "org_policies_commons001"
 prefix_org_setup = "org_setup_commons001"
 prefix_project_setup = "project_setup_commons001"
