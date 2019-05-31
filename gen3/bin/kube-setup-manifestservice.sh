@@ -12,13 +12,16 @@ gen3 kube-setup-secrets
 
 hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
 bucketname="manifest-${hostname//./-}"
-gen3 s3 create "$bucketname"
-gen3 awsuser create manifest-bot
-gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name manifest-bot
 
 mkdir -p $(gen3_secrets_folder)/g3auto/manifestservice
 credsFile="$(gen3_secrets_folder)/g3auto/manifestservice/config.json"
-if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
+
+if (! (g3kubectl describe secret manifestservice-g3auto 2> /dev/null | grep config.js > /dev/null 2>&1) \
+  && [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; 
+then
+  gen3 s3 create "$bucketname"
+  gen3 awsuser create manifest-bot
+  gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name manifest-bot
   gen3_log_info "initializing manifestservice config.json"
   user=$(gen3 secrets decode manifest-bot-g3auto awsusercreds.json)
   key_id=$(jq -r .id <<< $user)

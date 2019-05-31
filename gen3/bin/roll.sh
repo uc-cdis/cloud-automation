@@ -79,7 +79,7 @@ gen3_roll() {
     # update network policy - disable for now
     gen3 kube-setup-networkpolicy service "$serviceName"
   else
-    gen3_log_err "gen3_roll" "not rolling $serviceName - no manifest entry in $manifestPath"
+    gen3_log_warn "gen3_roll" "not rolling $serviceName - no manifest entry in $manifestPath"
     return 1
   fi
 
