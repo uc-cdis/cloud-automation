@@ -102,10 +102,12 @@ variable "network" {
   description = "Network name inside of the VPC."
   default     = "default"
 }
+
 variable "sql_network" {
   description = "Network name inside of the VPC."
   default     = "default"
 }
+
 /*
 variable "authorized_networks" {
   description = "Allowed networks to connect to this sql instance."
