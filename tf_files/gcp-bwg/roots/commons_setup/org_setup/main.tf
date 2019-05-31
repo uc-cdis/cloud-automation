@@ -45,6 +45,6 @@ module "project" {
     "iam.googleapis.com",
     "containerregistry.googleapis.com",
     "storage-api.googleapis.com",
-    "servicenetworking.googleapis.com"
+    "servicenetworking.googleapis.com",
   ]
 }

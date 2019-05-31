@@ -20,6 +20,8 @@ module "vpc-commons001-dev-private" {
     },
   ]
 
+
+
   /*********************************************
    define subnet alias's ***** Look for k8s in vars and tfvars
   *********************************************/
@@ -35,27 +37,6 @@ module "vpc-commons001-dev-private" {
       },
     ]
   }
-
-
-
-/********************************************************
-*      Create VPC route google_apis
-********************************************************/
-
-  routes = [
-/*    {
-      name              = "${var.google_apis_route}"
-      destination_range = "199.36.153.4/30"
-      next_hop_internet = "true"
-    },
-*/
-    {
-      name              = "default-route"
-      destination_range = "0.0.0.0/0"
-#      next_hop_ip       = "172.29.31.1"
-      next_hop_internet = "true"
-    },
-  ]
 }
 
 ############### End Create VPC##############################################################################
@@ -80,7 +61,7 @@ module "firewall-inbound-commons001-dev" {
 ############### End Create FW Rule##############################################################################
 
 /**********************************************
-*     Create FW Rule outbound-range
+*     Create FW Rule outbound-range           *
 **********************************************/
 /*module "firewall-outbound-commons001-dev" {
   source         = "../../../modules/firewall-egress"
