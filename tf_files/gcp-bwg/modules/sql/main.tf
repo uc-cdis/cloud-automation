@@ -44,7 +44,7 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   reserved_peering_ranges = ["${google_compute_global_address.private_ip_address.name}"]
 
   depends_on = [
-    "google_service_networking_connection.servicenetworking"
+    "google_project_service.servicenetworking"
   ]
 }
 
@@ -62,7 +62,7 @@ resource "google_sql_database_instance" "instance" {
 
   depends_on = [
     "google_service_networking_connection.private_vpc_connection",
-    "google_service_networking_connection.servicenetworking"
+    "google_project_service.servicenetworking"
   ]
 
   settings {
