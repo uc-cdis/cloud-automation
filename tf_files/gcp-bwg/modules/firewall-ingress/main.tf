@@ -5,7 +5,7 @@ resource "google_compute_firewall" "fw-rule" {
   direction      = "${var.direction}"
   priority       = "${var.priority}"
 
-  name        = "${lower(var.name)}-${lower(element(var.target_tags, 0) )}"
+  name        = "${var.name}"
   network     = "${var.network}"
   description = "Creates Firewall rule targetting tagged instances"
 

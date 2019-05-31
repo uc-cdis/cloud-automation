@@ -23,3 +23,9 @@ variable "disable_services_on_destroy" {
   default     = "true"
   type        = "string"
 }
+
+# If constraints/compute.skipDefaultNetworkCreation policy is enabled, then this must be set to true
+variable "auto_create_network" {
+    description = "Create the 'default' network automatically."
+    default = "true"
+}

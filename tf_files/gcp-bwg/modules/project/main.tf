@@ -9,7 +9,7 @@ resource "google_project" "project" {
   project_id          = "${random_id.id.hex}"
   billing_account     = "${var.billing_account}"
   folder_id           = "${var.folder_id}"
-  auto_create_network = false
+  auto_create_network = "${var.auto_create_network}"
 
   labels {
     "data-commons" = "${var.project_name}"
