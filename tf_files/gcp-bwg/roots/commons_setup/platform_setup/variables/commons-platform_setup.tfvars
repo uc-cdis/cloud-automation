@@ -9,14 +9,14 @@
 
 env = "commons001"
 project_name = "<project_name_here>"
-billing_account = "<billing_account_here>"
+#billing_account = "<billing_account_here>"
 credential_file = "<credentials_here>.json"
-create_folder = true
-set_parent_folder = true
-folder = "<folder_name_here>"
+#create_folder = true
+#set_parent_folder = true
+#folder = "<folder_name_here>"
 region = "us-central1"
-organization = "<organization_name_here>"
-org_id = "<org_id_here>"
+#organization = "<organization_name_here>"
+#org_id = "<org_id_here>"
 ###### Terraform State
 state_bucket_name = "<tfstate_bucket_here>"
 prefix_org_policies = "org_policies_commons001"
