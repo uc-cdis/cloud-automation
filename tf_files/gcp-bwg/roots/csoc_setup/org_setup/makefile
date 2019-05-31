@@ -70,7 +70,8 @@ plan: prep ## Show what terraform thinks it will do
 	@terraform plan \
 		-input=false \
 		-refresh=true \
-		-var-file="$(VARS)" -var="workspace=${WORKSPACE}" 
+		-var-file="$(VARS)" \
+        -var="workspace=${WORKSPACE}" 
 
 plan-target: prep ## Shows what a plan looks like for applying a specific resource
 	@echo "$(YELLOW)$(BOLD)[INFO]   $(RESET)"; echo "Example to type for the following question: module.rds.aws_route53_record.rds-master"

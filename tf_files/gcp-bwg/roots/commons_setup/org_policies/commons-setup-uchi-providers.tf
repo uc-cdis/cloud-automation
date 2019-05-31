@@ -6,16 +6,16 @@ terraform {
   required_providers = {
     gcp = ">=2.1.0"
   }
+
+  backend "gcs" {}
 }
 
 provider "google" {
   credentials = "${file("${var.credential_file}")}"
-  project     = "${var.project-id}"
   region      = "${var.region}"
 }
 
-module "bucket" {
-  source      = "../modules/bucket"
-  project     = "${var.project-id}"
-  bucket_name = ["${var.project-id}-commons"]
+provider "google-beta" {
+  credentials = "${file("${var.credential_file}")}"
+  region      = "${var.region}"
 }

@@ -4,6 +4,10 @@ variable "org_id" {
   default     = ""
 }
 
+variable "env" {
+    description = "Environment variable."
+}
+
 variable "project_name" {
   description = "Name of the GCP Project"
   default     = "my-first-project"

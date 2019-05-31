@@ -4,7 +4,7 @@
 .PHONY: apply destroy destroy-target plan-destroy plan plan-target prep
 #Change this bucket name
 CURRENT_FOLDER=$(shell basename "$$(pwd)")
-VARS=variables/csoc-prod-${CURRENT_FOLDER}.tfvars
+VARS=variables/commons-${CURRENT_FOLDER}.tfvars
 ENV=$(shell awk '$$1 == "env" {print $$NF}' ${VARS}|tr -d '"')
 PROJECT=$(shell awk '$$1 == "project_name" {print $$NF}' ${VARS}|tr -d '"')
 GCP_CREDENTIALS=$(shell awk '$$1 == "credential_file" {print $$NF}' ${VARS}|tr -d '"')
@@ -70,8 +70,7 @@ plan: prep ## Show what terraform thinks it will do
 	@terraform plan \
 		-input=false \
 		-refresh=true \
-		-var-file="$(VARS)" \
-        -var="workspace=${WORKSPACE}" 
+		-var-file="$(VARS)" -var="workspace=${WORKSPACE}" 
 
 plan-target: prep ## Shows what a plan looks like for applying a specific resource
 	@echo "$(YELLOW)$(BOLD)[INFO]   $(RESET)"; echo "Example to type for the following question: module.rds.aws_route53_record.rds-master"

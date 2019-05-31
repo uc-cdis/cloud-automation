@@ -3,8 +3,8 @@
 *******************************************/
 
 output "folder" {
-  value       = "${module.folders.folder_name}"
-  description = "The name of the folder being created."
+   value = "${module.folders.folder_name}"
+   description = "The name of the folder being created."
 }
 
 output "folder_id" {
@@ -16,7 +16,7 @@ output "parent_folder" {
 }
 
 output "folder_create_time" {
-  value       = "${module.folders.folder_create_time}"
+  value = "${module.folders.folder_create_time}"
   description = "The time the folder was created."
 }
 
@@ -34,3 +34,4 @@ output "project_id" {
 output "project_number" {
   value = "${module.project.project_number}"
 }
+
