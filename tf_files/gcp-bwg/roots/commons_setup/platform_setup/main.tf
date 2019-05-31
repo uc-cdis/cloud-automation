@@ -39,7 +39,7 @@ module "sql" {
 /**********************************************
 *      Create GKE commons001-gke
 **********************************************/
-
+/*
 module "commons001-gke" {
   source       = "../../../modules/gke"
   project      = "${data.terraform_remote_state.org_setup.project_id}"
@@ -60,10 +60,11 @@ module "commons001-gke" {
   node_tags                     = "${var.node_tags}"
   master_version                = "${var.min_master_version}"
 }
-
+*/
 /************************************************************************************************
 *        Create Firewall Rules for Google Private Access for Health Checks/Master Access
 ************************************************************************************************/
+/*
 module "commons001-gke-priv-access" {
   source                           = "../../../modules/firewall-gke-priv"
   project_id                       = "${data.terraform_remote_state.org_setup.project_id}"
@@ -74,3 +75,4 @@ module "commons001-gke-priv-access" {
   fw_rule_allow_google_apis_egress = "${var.fw_rule_allow_google_apis_egress}"
   fw_rule_allow_master_node_egress = "${var.fw_rule_allow_master_node_egress}"
 }
+*/
