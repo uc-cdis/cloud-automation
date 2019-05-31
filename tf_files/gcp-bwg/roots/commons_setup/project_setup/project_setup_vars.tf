@@ -16,6 +16,11 @@ variable "tf_state_project_setup_csoc" {
     description = "TF State bucket name that hosts project setup VPC self links."
 }
 
+variable "csoc_state_bucket_name" {
+  description = "Terraform state bucket name in the csoc account. Used to for VPC peering."  
+}
+
+
 variable "org_id" {
   description = "GCP Organization ID"
   default     = ""
