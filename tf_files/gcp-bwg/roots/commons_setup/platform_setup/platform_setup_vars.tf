@@ -14,9 +14,14 @@ variable "tf_state_project_setup_csoc" {
 }
 
 // Cloud SQL
-variable "sql_name" {}
+variable "sql_name" {
+  description = "Name of the Cloud SQL instance."
+}
 
-variable "db_name" {}
+variable "db_name" {
+  description = "Database names."
+  type = "list"
+}
 
 variable "cluster_region" {
   description = "The region that the cluster master and nodes should be created in."
