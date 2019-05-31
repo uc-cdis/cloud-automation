@@ -103,6 +103,14 @@ gcloud organizations add-iam-policy-binding \
   --role="roles/resourcemanager.projectCreator" \
   --user-output-enabled false
 
+# Grant roles/orgpolicy.PolicyAdmin to the service account on the organization
+echo "Adding role roles/orgpolicy.policyAdmin..."
+gcloud organizations add-iam-policy-binding \
+  "${ORG_ID}" \
+  --member="serviceAccount:${SA_ID}" \
+  --role="roles/orgpolicy.policyAdmin" \
+  --user-output-enabled false
+
 # Grant roles/billing.user to the service account on the organization
 echo "Adding role roles/billing.user..."
 gcloud organizations add-iam-policy-binding \
