@@ -40,7 +40,9 @@ commons001-dev_private_subnet_secondary_name1 = "ip-cidr-range-k8-service"
 commons001-dev_private_subnet_secondary_ip1 = "10.170.80.0/20" 
 commons001-dev_private_subnet_secondary_name2 = "ip-cidr-range-k8-pod"
 commons001-dev_private_subnet_secondary_ip2 = "10.56.0.0/14"
-
+### Cloud SQL SETUP Info
+sql_name = "test-sql-01"
+db_name = ["fence","sheepdog"]
 
 ### GKE SETUP Info
 cluster_name           = "commons001-gke-1"
