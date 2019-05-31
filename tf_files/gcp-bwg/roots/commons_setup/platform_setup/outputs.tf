@@ -42,6 +42,7 @@ output "user_name" {
 /**********************************************
 *      GKE Outputs
 **********************************************/
+/*
 output "endpoint" {
   value = "${module.commons001-gke.endpoint}"
 }
@@ -49,3 +50,4 @@ output "endpoint" {
 output "master_version" {
   value = "${module.commons001-gke.master_version}"
 }
+*/

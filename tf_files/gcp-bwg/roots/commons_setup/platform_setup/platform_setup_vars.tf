@@ -22,6 +22,7 @@ variable "cluster_region" {
 }
 
 // GKE
+/*
 variable "cluster_name" {
   description = "The name of the cluster, unique within the project and location."
 }
@@ -48,7 +49,7 @@ variable "username" {
 variable "password" {
   description = "The password to use for HTTP basic authentication when accessing the Kubernetes master endpoint."
 }
-*/
+
 
 variable "master_ipv4_cidr_block" {
   description = "The IP range in CIDR notation to use for the hosted master network. Must not overlap with any other ranges."
@@ -139,3 +140,4 @@ variable "fw_rule_allow_google_apis_egress" {
 variable "fw_rule_allow_master_node_egress" {
   description = "Allow egress to master node subnet"
 }
+*/
