@@ -23,6 +23,7 @@ prefix_org_policies = "org_policies_commons001"
 prefix_org_setup = "org_setup_commons0001"
 prefix_project_setup = "project_setup_commons001"
 prefix_platform_setup = "platform_setup_commons001"
+tf_state_project_setup_csoc = "<tfstate_state_name_csoc>"
 
 #### Uncomment this if not using our makefiles
 #terraform_workspace = "commons001_setup"

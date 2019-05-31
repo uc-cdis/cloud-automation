@@ -5,11 +5,13 @@ variable "env" {}
 
 // Terraform State
 variable "prefix_org_setup" {}
-
 variable "prefix_project_setup" {}
 variable "prefix_org_policies" {}
 variable "state_bucket_name" {}
-variable "tf_state_project_setup_csoc" {}
+variable "prefix_platform_setup" {}
+variable "tf_state_project_setup_csoc" {
+  description = "The terraform state name in the csoc."
+}
 
 // Cloud SQL
 variable "sql_name" {}
