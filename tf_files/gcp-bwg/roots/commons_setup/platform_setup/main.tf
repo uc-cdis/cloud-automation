@@ -39,6 +39,7 @@ module "sql" {
 /**********************************************
 *      Create GKE commons001-gke
 **********************************************/
+
 module "commons001-gke" {
   source       = "../../../modules/gke"
   project      = "${data.terraform_remote_state.org_setup.project_id}"

@@ -5,19 +5,16 @@ variable "env" {}
 
 // Terraform State
 variable "prefix_org_setup" {}
+
 variable "prefix_project_setup" {}
 variable "prefix_org_policies" {}
 variable "state_bucket_name" {}
 variable "tf_state_project_setup_csoc" {}
 
 // Cloud SQL
-variable "sql_name" {
-    default = "test-sql-01"
-}
-variable "db_name" {
-    default = ["fence","sheepdog"]
-}
-#variable "network" {}
+variable "sql_name" {}
+
+variable "db_name" {}
 
 variable "cluster_region" {
   description = "The region that the cluster master and nodes should be created in."
@@ -59,13 +56,13 @@ variable "master_ipv4_cidr_block" {
 }
 
 variable "min_master_version" {
-  default     = "1.12.7-gke.10"
+  default = "1.12.7-gke.10"
 }
 
 variable "subnetwork_name" {
   description = "Name of the subnetwork in the VPC"
-  type = "list"
-  default = ["default"]
+  type        = "list"
+  default     = ["default"]
 }
 
 variable "node_tags" {
@@ -118,7 +115,6 @@ variable "kubernetes_dashboard" {
 }
 
 ########### Google Public Access Info#############################################
-
 
 variable "network_name" {
   description = "The name of the VPC network being created"
