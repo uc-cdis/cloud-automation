@@ -24,12 +24,25 @@ spec:
               value: ""
             - name: GEN3_NOPROXY
               value: none
+            - name: KUBECTL_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
           command: ["/bin/bash" ]
           args:
             - "-c"
             - |
               set -i
               source ~/.bashrc
+              cd $GEN3_HOME
+              git pull
               export JENKINS_HOME=none
-              gen3 gitops sync
+              export vpc_name="$(g3kubectl get configmap global -o json | jq -r .data.environment)"
+              env
+              if gen3 klock lock gitops-sync gitops 1800; then
+                gen3 gitops sync --slack
+                gen3 klock unlock gitops-sync gitops
+              else
+                echo "Failed to acquire gitops-sync lock: exiting without attempting to sync"
+              fi
               echo "Exit code: $?"

@@ -13,8 +13,11 @@ if [[ -z "$GEN3_NOPROXY" ]]; then
 fi
 
 export DEBIAN_FRONTEND=noninteractive
-vpc_name=${vpc_name:-$1}
+if [[ -z "$vpc_name" && $# -lt 1 ]]; then
+  vpc_name="$(g3kubectl get configmap global -o json | jq -r .data.environment)"
+fi
 
+vpc_name=${vpc_name:-$1}
 if [ -z "${vpc_name}" ]; then
   echo "ERROR: vpc_name variable not set - bailing out"
   exit 1
