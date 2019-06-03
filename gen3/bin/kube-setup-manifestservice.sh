@@ -34,7 +34,6 @@ EOM
   gen3 secrets sync "initialize manifestservice/config.json"
 fi
 
-
 # deploy manifest-service
 gen3 roll manifestservice
 g3kubectl apply -f "${GEN3_HOME}/kube/services/manifestservice/manifestservice-service.yaml"

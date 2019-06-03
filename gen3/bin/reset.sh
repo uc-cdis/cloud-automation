@@ -83,6 +83,49 @@ gen3_user_verify() {
   fi
 }
 
+#
+# both fence db and wts db are wiped out during reset
+#
+clear_wts_clientId() {
+  local appCredsPath
+  appCredsPath="$(gen3_secrets_folder)/g3auto/wts/appcreds.json"
+  if [ -f "$appCredsPath" ]; then
+      echo "Removing local wts cred file"
+      rm -v "$appCredsPath"
+  fi
+  if g3kubectl get secret wts-g3auto > /dev/null 2>&1; then
+      echo "Deleting wts secret appcreds.json key"
+      local dbCreds
+      dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)"
+      g3kubectl delete secret wts-g3auto || true
+      if [[ -n "$dbCreds" ]]; then
+        g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds"
+      fi
+  fi
+  echo "All clear for wts"
+}
+
+#
+# Helper in jenkins environment ...
+# We need to recreate a wts-client in fence after a reset,
+# but Jenkins doesn't have access to the master secrets
+# folder on the admin vm, so we just update the secret directly.
+# This is a horrible hack.  For example - `gen3 secrets sync`
+# from the admin vm will wipe out this update, but we'll do it
+# this way for now till we revamp our secrets handling again
+# (to support rotation, and administration off the admin vm).
+#
+new_wts_clientId() {
+  if [[ -n "$JENKINS_HOME" ]]; then # only do this in Jenkins
+    local clientInfo
+    local dbCreds
+    if dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)" && clientInfo="$(gen3 kube-setup-wts new-client)"; then
+        g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds" "--from-literal=appcreds.json=$clientInfo"
+        gen3 roll wts
+    fi
+  fi
+}
+
 # main ---------------------------
 
 gen3_user_verify "about to drop all service deployments"
@@ -127,7 +170,10 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 # try to make reset more reliable - especially in Jenkins
 #
 run_setup_jobs
+clear_wts_clientId
 gen3 roll all
+reset_wts_clientId
+
 run_post_roll_jobs
 
 gen3 klock unlock reset-lock "$LOCK_USER"
