@@ -69,10 +69,16 @@ RUN npm install elasticdump -g
 WORKDIR /home/ubuntu
 USER ubuntu
 
+#
 # install and set up gen3
+# Note:
+#  Do not remove the `git pull` or risk
+#  running weird versions of code in cron jobs, etc
+#
 RUN git clone https://github.com/uc-cdis/cloud-automation.git ~/cloud-automation \
     && echo "export GEN3_HOME=~/cloud-automation" >> ~/.bashrc \
     && echo "export ESHOST=esproxy-service:9200" >> ~/.bashrc \
+    && echo '(cd ~/cloud-automation && git pull)' >> ~/.bashrc \
     && echo 'source "${GEN3_HOME}/gen3/gen3setup.sh"' >> ~/.bashrc 
     
 CMD /bin/bash
