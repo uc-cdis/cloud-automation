@@ -149,13 +149,13 @@ g3k_kv_filter() {
     # introduce support for default value - KEY|DEFAULT|
     # Note: -E == extended regex
     #
-    sed -E -i.bak "s^${key}([|]-.+-[|])?^${value}^g" "$tempFile"
+    sed -E -i "s^${key}([|]-.+-[|])?^${value}^g" "$tempFile"
   done
   #
   # Finally - any put default values in place for any undefined variables
   # Note: -E == extended regex
   #
-  sed -E -i.bak 's^[a-zA-Z][a-zA-Z0-9_-]+[|]-(.*)-[|]^\1^g' "$tempFile"
+  sed -E -i 's^[a-zA-Z][a-zA-Z0-9_-]+[|]-(.*)-[|]^\1^g' "$tempFile"
   cat $tempFile
   /bin/rm "$tempFile"
   return 0
