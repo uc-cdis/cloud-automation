@@ -105,6 +105,27 @@ clear_wts_clientId() {
   echo "All clear for wts"
 }
 
+#
+# Helper in jenkins environment ...
+# We need to recreate a wts-client in fence after a reset,
+# but Jenkins doesn't have access to the master secrets
+# folder on the admin vm, so we just update the secret directly.
+# This is a horrible hack.  For example - `gen3 secrets sync`
+# from the admin vm will wipe out this update, but we'll do it
+# this way for now till we revamp our secrets handling again
+# (to support rotation, and administration off the admin vm).
+#
+new_wts_clientId() {
+  if [[ -n "$JENKINS_HOME" ]]; then # only do this in Jenkins
+    local clientInfo
+    local dbCreds
+    if dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)" && clientInfo="$(gen3 kube-setup-wts new-client)"; then
+        g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds" "--from-literal=appcreds.json=$clientInfo"
+        gen3 roll wts
+    fi
+  fi
+}
+
 # main ---------------------------
 
 gen3_user_verify "about to drop all service deployments"
