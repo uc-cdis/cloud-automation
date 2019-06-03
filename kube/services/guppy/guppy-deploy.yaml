@@ -68,7 +68,15 @@ spec:
           - name: GEN3_ES_ENDPOINT
             value: esproxy-service:9200
           - name: GEN3_ARBORIST_ENDPOINT
+            # This acts like the default value, overriding the default value "mock"
             value: http://arborist-service
+          - name: GEN3_ARBORIST_ENDPOINT_OVERRIDE
+            # This is the actual custom value optionally set in the manifest
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
+                optional: true
           - name: TIER_ACCESS_LEVEL
             valueFrom:
               configMapKeyRef:
