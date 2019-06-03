@@ -43,3 +43,15 @@ variable "create_vpc_secondary_ranges" {
   description = "Whether or not to create secondary ranges for vpc subnets (alias)"
   default = true
 }
+
+
+/*variable "google_apis_route" {
+  description = "Route to restricted Google APIs"
+}
+*/
+
+variable "routes" {
+  type        = "list"
+  description = "List of routes being created in this VPC"
+  default     = []
+}
