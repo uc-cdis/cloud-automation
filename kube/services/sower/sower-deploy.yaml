@@ -43,6 +43,9 @@ spec:
             items:
               - key: json
                 path: sower_config.json
+        - name: creds-volume
+          secret:
+            secretName: "pelicanservice-creds"
       containers:
       - name: sower
         GEN3_SOWER_IMAGE
@@ -70,3 +73,7 @@ spec:
             readOnly: true
             mountPath: /sower_config.json
             subPath: sower_config.json
+          - name: creds-volume
+            readOnly: true
+            mountPath: /creds.json
+            subPath: creds.json
