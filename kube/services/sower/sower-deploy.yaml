@@ -45,7 +45,7 @@ spec:
                 path: sower_config.json
         - name: creds-volume
           secret:
-            secretName: "pelicanservice-creds"
+            secretName: "pelicanservice-g3auto"
       containers:
       - name: sower
         GEN3_SOWER_IMAGE
