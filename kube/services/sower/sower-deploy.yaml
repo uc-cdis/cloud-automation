@@ -76,4 +76,4 @@ spec:
           - name: creds-volume
             readOnly: true
             mountPath: /creds.json
-            subPath: creds.json
+            subPath: config.json
