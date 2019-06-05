@@ -60,6 +60,8 @@ import time
 import re
 import copy
 import os
+import urllib.request
+import urllib.parse
 
 MESSAGE_BATCH_MAX_COUNT = 500 #limit from firehose put_record_batch api
 
@@ -80,6 +82,8 @@ syslog = { 'pattern' : '[JFMASOND][aepuco][nbrylgptvc]\s*([0-2]?[0-9]|3[01])\s*(
 squid = { 'pattern' : '[0-9]{10}\.[0-9]{3}', 'format' : None }
 
 different_datetimes = fluentd1, fluentd2, fluentd3, fluentd4, syslog, squid
+
+slower_checker = ["revproxy","sheepdog","peregrine"]
 
 
 def chunker(iterable, chunksize):
@@ -138,7 +142,78 @@ def date_it(line):
     line['timestamp'] = fecha
 
     return line
+
+
+def send_it_out(slack_text,response_time):
+
+    bar_color = "#FF0000"
+    data = {"text": slack_text,
+                "attachments": [
+                    {"title": "Slow Response notification: ({0} seconds)".format(response_time),
+                     "color": bar_color
+                    }]
+                }
+
+    json_data = json.dumps(data)
+    data = json_data.encode('ascii')
+
+    if os.environ.get('slack_webhook') is not None:
+        url = os.environ.get('slack_webhook')
+        slack_request  = urllib.request.Request(url=url,data=data, headers={"Content-type": "application/json"},method='POST')
+        slack_response = urllib.request.urlopen(slack_request,timeout=1)
+
+        respData = slack_response.read()
+
+        if respData.decode('utf-8') != 'ok':
+            print('\n Something went wrong. Unable to post pytest report on Slack channel. Slack Response:', str(respData))
+
+
+
+def check_speed(event,logGroup):
+    """
+    This function would check the speed in which the service in question took to respond and
+    would send out a notification to a slack channel expresed as env variable
+    """
+
+
+    if os.environ.get('threshold') is not None:
+        threshold = float(os.environ.get('threshold'))
+    else:
+        threshold = 4.00
+
+    response_time = 100.00
     
+
+    try:
+    
+        response_time = float(event["http_response_time"])
+        #print("response_time = " + str(response_time) + " threshold = " + str(threshold))
+    
+        if response_time > threshold:
+            bar_color = "#FF0000"
+
+            refer = event["http_referer"]
+            reque = event["http_request"]
+
+            if "?" in event["http_referer"]:
+                sub   = event["http_referer"].split("?")
+                refer = sub[0] + "?..."
+
+            if "?" in event["http_request"]:
+                sub   = event["http_request"].split("?")
+                reque = sub[0] + "?..."
+
+            slack_text = "Environment: {0}\n\tPod: {1}\n\tRequest: {2}\n\tReferer: {3}\n\tClient IP: {4}\n\tAccess Date: {5}" \
+                     "".format(logGroup, event["kubernetes"]["pod_name"], reque, refer,event["network_client_ip"],event["date_access"])
+
+            send_it_out(slack_text,event["http_response_time"])
+
+    except Exception as e:
+        if not str(e) == "'http_response_time'":
+            print(e)
+        #return
+
+
     
 def nice_it(r_data):
     """
@@ -147,11 +222,21 @@ def nice_it(r_data):
     individuals = []
     metadata = copy.deepcopy(r_data)
     del metadata['logEvents']
+
+    checkSpeed = False
+
+    if any(substring in r_data["logStream"] for substring in slower_checker):
+        checkSpeed = True
+
+
     for line in r_data['logEvents']:
         new_meta = copy.deepcopy(metadata)
         line = date_it(line)
         new_meta['timestamp'] = line['timestamp']
-        #new_meta['message'] = json.loads(json.dumps(line['message']))
+
+        if checkSpeed:
+            check_speed(json.loads(line['message']),r_data["logGroup"])
+
         try:
             # Let's see if it is JSONable, Fluentd stuff should
             cosa = json.loads(line['message'])
@@ -165,6 +250,8 @@ def nice_it(r_data):
     del metadata
     return individuals
     
+
+
 def handler(event, context):
     if os.environ.get('stream_name') is not None:
         client = boto3.client('firehose')
@@ -188,3 +275,4 @@ def handler(event, context):
     if 'output' in locals():
         print(output)
         return output
+

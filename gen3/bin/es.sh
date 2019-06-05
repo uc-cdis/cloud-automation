@@ -94,13 +94,22 @@ function es_export() {
   shift
   mkdir -p "$destFolder"
   indexList=$(es_indices 2> /dev/null | grep "arranger-projects-${projectName}[- ]" | awk '{ print $3 }')
+  install_elasticdump
   for name in $indexList; do
     echo $name
-    npx elasticdump --input http://$ESHOST/$name --output ${destFolder}/${name}__data.json --type data
-    npx elasticdump --input http://$ESHOST/$name --output ${destFolder}/${name}__mapping.json --type mapping
+    elasticdump --input http://$ESHOST/$name --output ${destFolder}/${name}__data.json --type data
+    elasticdump --input http://$ESHOST/$name --output ${destFolder}/${name}__mapping.json --type mapping
   done
 }
 
+function install_elasticdump() {
+  PATH=$PATH:$HOME/node_modules/.bin/
+  if ! type elasticdump > /dev/null 2>&1; then
+      cd $HOME
+      npm install elasticdump@latest
+      cd -
+  fi
+}
 #
 # Import the arranger config indexes dumped with es_export
 # @param sourceFolder with the es_export files
@@ -130,10 +139,11 @@ function es_import() {
   indexList=$(ls -1 $sourceFolder | sed 's/__.*json$//' | grep "arranger-projects-$projectName" | sort -u)
   local importCount
   importCount=0
+  install_elasticdump
   for name in $indexList; do
     echo $name
-    npx elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__mapping.json --type mapping
-    npx elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__data.json --type data
+    elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__mapping.json --type mapping
+    elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__data.json --type data
     let importCount+=1
   done
   if [[ $importCount == 0 ]]; then

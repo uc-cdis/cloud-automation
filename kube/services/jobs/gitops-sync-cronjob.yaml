@@ -43,5 +43,10 @@ spec:
                   set -i
                   source ~/.bashrc
                   export JENKINS_HOME=none
-                  gen3 gitops sync --slack
+                  if gen3 klock lock gitops-sync gitops 1800; then
+                    gen3 gitops sync --slack
+                    gen3 klock unlock gitops-sync gitops
+                  else
+                    echo "Failed to acquire gitops-sync lock: exiting without attempting to sync"
+                  fi
                   echo "Exit code: $?"

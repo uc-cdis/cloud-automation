@@ -32,13 +32,32 @@ run_setup_jobs() {
   # sheepdog wants its transaction tables to exist at startup
   # jobs run asynchronously ...
   #
+  for jobName in gdcdb-create indexd-userdb; do
+    echo "Launching job $jobName"
+    gen3 job run $jobName
+  done
+  echo "Waiting for jobs to finish, and late starting services to come up"
+  sleep 5
+  gen3 kube-wait4-pods
+  for jobName in gdcdb-create indexd-userdb; do
+    echo "--------------------"
+    echo "Logs for $jobName"
+    gen3 job logs "$jobName"
+  done
+}
+
+run_post_roll_jobs() {
+  local jobName
+  #
+  # Run some post roll jobs to restore some startup state.
+  #
   for jobName in gdcdb-create indexd-userdb usersync; do
     echo "Launching job $jobName"
     gen3 job run $jobName
   done
   echo "Waiting for jobs to finish, and late starting services to come up"
   sleep 5
-  gen3 kube-wait4-pods 
+  gen3 kube-wait4-pods
   for jobName in gdcdb-create indexd-userdb usersync; do
     echo "--------------------"
     echo "Logs for $jobName"
@@ -46,50 +65,59 @@ run_setup_jobs() {
   done
 }
 
+LOCK_USER="gen3-reset-$$"
+
+# 
+# Prompt the user with a given message, bail out if user does not reply "yes"
+gen3_user_verify() {
+  local message="$1"
+  local yesno="no"
+
+  # check for user consent before deleting and recreating tables
+  gen3_log_warn "$message - proceed? (y/n)"
+  read -r yesno
+  if [[ $yesno != "y" ]]; then
+      echo "$yesno response, unlocking klock and aborting"
+      gen3 klock unlock reset-lock "$LOCK_USER"
+      exit 1
+  fi
+}
+
+#
+# both fence db and wts db have been wiped out during reset
+# need to then remove local appcreds.json for wts and delete wts-g3auto secret
+# after these steps kube-setup-wts can recreate client
+#
+remove_wts_creds_secrets() {
+  appCredsPath="$(gen3_secrets_folder)/g3auto/wts/appcreds.json"
+  if [ -f "$appCredsPath" ]; then
+      echo "Removing local wts cred file"
+      rm -v "$appCredsPath"
+  fi
+  if g3kubectl get secret wts-g3auto > /dev/null 2>&1; then
+      echo "Deleting wts secret"
+      g3kubectl delete secret wts-g3auto || true
+  fi
+  echo "All clear for wts"
+}
+
 # main ---------------------------
 
-# check for user consent before deleting and recreating tables
-echo -e "$(red_color "WARNING: about to drop all service deployments - proceed? (y/n)")"
-read -r yesno
-if [[ ! $yesno =~ ^y ]]; then
-  exit 1
-fi
-
-gen3 klock lock reset-lock gen3-reset 3600 -w 60
-
+gen3_user_verify "about to drop all service deployments"
+gen3 klock lock reset-lock "$LOCK_USER" 3600 -w 60
 g3kubectl delete --all deployments --now
 # ssjdispatcher leaves jobs laying around when undeployed
 g3kubectl delete --all jobs --now
 wait_for_pods_down
 
-# drop and recreate all the postgres databases
-serviceCreds=( fence-creds sheepdog-creds indexd-creds )
-for serviceCred in ${serviceCreds[@]}; do
-    dbName="$(g3kubectl get secrets $serviceCred -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_database)"
-    service=${serviceCred%-creds}
-
-    # check for user consent before deleting and recreating tables
-    echo -e "$(red_color "WARNING: about to drop the $dbName database from the $service postgres server - proceed? (y/n)")"
-    read -r yesno
-    if [[ $yesno = "n" ]]; then
-        echo "'n' detected, unlocking klock and aborting"
-        gen3 klock unlock reset-lock gen3-reset
-        exit 1
-    fi
-    #
-    # Note: connect to --dbname=template1 to avoid erroring out in
-    # situation where the database does not yet exist
-    #
-    echo "DROP DATABASE \"${dbName}\"; CREATE DATABASE \"${dbName}\";" | gen3 psql $service  --dbname=template1
+#
+# Reset our databases
+#
+for serviceName in $(gen3 db services); do
+  if [[ "$serviceName" != "peregrine" ]]; then  # sheepdog and peregrine share the same db
+    gen3 db reset "$serviceName"
+  fi
 done
-
-# Make sure peregrine has permission to read the sheepdog db tables
-peregrine_db_user="$(g3kubectl get secrets peregrine-creds -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r  .db_username)"
-if [[ -n "$peregrine_db_user" ]]; then
-  gen3 psql sheepdog -c "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $peregrine_db_user; ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
-else
-  echo -e "$(red_color "WARNING: unable to determine peregrine db username")"
-fi
 
 #
 # integration tests may muck with user.yaml in fence configmap, so re-sync from S3
@@ -110,15 +138,16 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 /bin/rm "$useryaml"
 
 #
-# various weird race conditions 
+# various weird race conditions
 # where these setup jobs setup part of a service
 # database, and the service itself sets up other parts,
 # so run_setup_jobs both before and after roll all to
 # try to make reset more reliable - especially in Jenkins
-# 
+#
 run_setup_jobs
+remove_wts_creds_secrets
 gen3 roll all
-run_setup_jobs
+run_post_roll_jobs
 
-gen3 klock unlock reset-lock gen3-reset
+gen3 klock unlock reset-lock "$LOCK_USER"
 echo "All done"  # force 0 exit code

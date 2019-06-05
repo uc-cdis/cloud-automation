@@ -18,6 +18,8 @@ spec:
     metadata:
       labels:
         app: jenkins
+        # for network policy
+        netnolimit: "yes"
         GEN3_DATE_LABEL
     spec:
       serviceAccountName: jenkins-service

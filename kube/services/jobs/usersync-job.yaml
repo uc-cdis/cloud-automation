@@ -1,3 +1,27 @@
+#
+# run with:
+# gen3 job run usersync
+#
+# Optional Arguments:
+#     FORCE Force running full userync without doing diff of user.yaml
+#           default: false
+#           ex: gen3 job run usersync FORCE true
+#
+#     ADD_DBGAP Force attempting a dbgap sync if "true", falls back to manifest configuration
+#               by defualt. i.e. this isn't required for a dbGaP sync to happen
+#               default: "false" - fall back to manifest configuration
+#               ex: gen3 job run usersync ADD_DBGAP true
+#
+#     ONLY_DBGAP Forces ONLY a dbgap sync if "true", IGNORING user.yaml
+#                default: "false"
+#                ex: gen3 job run usersync ONLY_DBGAP true
+#
+# Examples
+# gen3 job run usersync
+# gen3 job run usersync FORCE true
+# gen3 job run usersync ADD_DBGAP true
+# gen3 job run usersync ONLY_DBGAP true
+#
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -64,6 +88,12 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: sync_from_dbgap
+          - name: FORCE
+            GEN3_FORCE|-value: "false"-|
+          - name: ADD_DBGAP
+            GEN3_ADD_DBGAP|-value: "false"-|
+          - name: ONLY_DBGAP
+            GEN3_ONLY_DBGAP|-value: "false"-|
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -126,20 +156,41 @@ spec:
               sleep 2
               let count=$count+1
             done
-            if [ ! "$SYNC_FROM_DBGAP" = True ]; then
+
+            if [[ "$ONLY_DBGAP" == "true" ]]; then
+              echo "ONLY_DBGAP arg provided... forcing a sync from dbGaP and IGNORING user.yaml"
+              fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml
+            elif [ ! "$SYNC_FROM_DBGAP" = True ]; then
               if [[ -f /mnt/shared/user.yaml ]]; then
-                echo "fence container user.yaml diff ..."
-                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
-                if [[ $? == 1 || "${userYamlS3Path}" = 'none' ]]; then
-                  echo "running fence-create"
+                # if manifest said not to sync from dbgap, there's a user.yaml, and
+                # ADD_DBGAP arg was provided, we should force a sync using dbgap AND the user.yaml
+                if [[ "$ADD_DBGAP" == "true" ]]; then
+                  echo "ADD_DBGAP arg provided... forcing a sync from both dbGaP AND user.yaml"
+                  fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
+                elif [[ "$FORCE" == "true" ]]; then
+                  echo "FORCE arg provided... ignoring user.yaml diff and forcing a usersync anyway"
                   fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
                 else
-                  echo "no difference found"
+                  echo "fence container user.yaml diff ..."
+                  diff /var/www/fence/user.yaml /mnt/shared/user.yaml
+                  if [[ $? == 1 || "${userYamlS3Path}" = 'none' ]]; then
+                    echo "running fence-create"
+                    fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
+                  else
+                    echo "no difference found"
+                  fi
                 fi
               else
+                # if manifest said not to sync from dbgap, there's NOT a user.yaml, and
+                # ADD_DBGAP arg was provided, we should at least force a sync using dbgap
+                if [[ "$ADD_DBGAP" == "true" ]]; then
+                  echo "ADD_DBGAP arg provided... forcing a sync from dbGaP"
+                  fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml
+                fi
                 echo "/mnt/shared/user.yaml did not appear within timeout :-("
               fi
             else
+              # manifest says to sync from dbgap, so check if there's also a user.yaml to sync
               if [[ -f /mnt/shared/user.yaml ]]; then
                 fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
               else
@@ -176,9 +227,7 @@ spec:
                 aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml
               done
               if [[ -f /mnt/shared/user.yaml ]]; then
-                echo "awshelper container user.yaml diff ..."
-                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
-                if [[ $? == 1 ]]; then
+                if [[ "$FORCE" == "true" ]]; then
                   echo "awshelper updating fence configmap"
                   kubectl delete configmap fence
                   kubectl create configmap fence --from-file=/mnt/shared/user.yaml
@@ -186,7 +235,18 @@ spec:
                     curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: Syncing users on ${gen3Env}\"}" "${slackWebHook}"
                   fi
                 else
-                  echo "no difference found"
+                  echo "awshelper container user.yaml diff ..."
+                  diff /var/www/fence/user.yaml /mnt/shared/user.yaml
+                  if [[ $? == 1 ]]; then
+                    echo "awshelper updating fence configmap"
+                    kubectl delete configmap fence
+                    kubectl create configmap fence --from-file=/mnt/shared/user.yaml
+                    if [ "${slackWebHook}" != 'None' ]; then
+                      curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: Syncing users on ${gen3Env}\"}" "${slackWebHook}"
+                    fi
+                  else
+                    echo "no difference found"
+                  fi
                 fi
               fi
             fi

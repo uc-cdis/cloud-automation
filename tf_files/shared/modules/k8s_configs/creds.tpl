@@ -79,5 +79,10 @@
     "es": {
         "aws_access_key_id": "${aws_user_key_id}",
         "aws_secret_access_key": "${aws_user_key}"
+    },
+    "mailgun": {
+        "mailgun_api_key": "${mailgun_api_key}",
+        "mailgun_api_url": "${mailgun_api_url}",
+        "mailgun_smtp_host": "${mailgun_smtp_host}"
     }
 }

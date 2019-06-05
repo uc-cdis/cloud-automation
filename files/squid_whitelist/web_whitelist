@@ -50,6 +50,7 @@ ftp.ussg.iu.edu
 gcr.io
 git.bionimbus.org
 git.io
+go.googlesource.com
 golang.org
 gopkg.in
 grafana.com
@@ -62,6 +63,7 @@ keyservice.opensciencedatacloud.org
 ks.osdc.io
 lib.stat.cmu.edu
 login.mathworks.com
+login.microsoftonline.com
 maven.restlet.org
 md.incommon.org
 mirror-centos.hostingswift.com
@@ -90,6 +92,7 @@ mirrors.syringanetworks.net
 neuro.debian.net
 neurodeb.pirsquared.org
 nginx.org
+orcid.org
 pgp.mit.edu
 ppa.launchpad.net
 pubmirrors.dal.corespace.com

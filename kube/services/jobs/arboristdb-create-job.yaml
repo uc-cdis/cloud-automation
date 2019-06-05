@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: arboristdb-create
+spec:
+  # not yet supported - backOffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: arborist-secret
+          secret:
+            secretName: "arborist-g3auto"
+      containers:
+      - name: arborist
+        GEN3_ARBORIST_IMAGE
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/arborist
+        volumeMounts:
+        - name: "arborist-secret"
+          readOnly: true
+          mountPath: "/var/www/arborist/dbcreds.json"
+          subPath: dbcreds.json
+        command: ["sh"]
+        args:
+          - "-c"
+          - |
+            # set env vars
+            export PGDATABASE=$(cat /var/www/arborist/dbcreds.json | jq -r '.db_database')
+            export PGUSER=$(cat /var/www/arborist/dbcreds.json | jq -r '.db_username')
+            export PGPASSWORD=$(cat /var/www/arborist/dbcreds.json | jq -r '.db_password')
+            export PGHOST=$(cat /var/www/arborist/dbcreds.json | jq -r '.db_host')
+            export PGPORT="5432"
+            export PGSSLMODE="disable"
+
+            # bring the database schema up to the latest version
+            /go/src/github.com/uc-cdis/arborist/migrations/latest
+
+            echo "Exit code: $?"
+      restartPolicy: Never

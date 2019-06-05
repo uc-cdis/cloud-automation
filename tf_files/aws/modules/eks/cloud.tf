@@ -13,9 +13,11 @@ module "jupyter_pool" {
   users_policy              = "${var.users_policy}"
   nodepool                  = "jupyter"
   vpc_name                  = "${var.vpc_name}"
-  csoc_cidr                 = "${var.csoc_cidr}"
-  #eks_cluster_endpoint     = "${aws_eks_cluster.eks_cluster.endpoint}"
-  #eks_cluster_ca           = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+  #csoc_cidr                 = "${var.csoc_cidr}"
+  #csoc_cidr                 = "${data.aws_vpc.peering_vpc.cidr_block}"
+  csoc_cidr                 = "${var.peering_cidr}"
+  eks_cluster_endpoint      = "${aws_eks_cluster.eks_cluster.endpoint}"
+  eks_cluster_ca            = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
   eks_private_subnets       = "${aws_subnet.eks_private.*.id}"
   control_plane_sg          = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg       = "${aws_security_group.eks_nodes_sg.id}"
@@ -25,6 +27,7 @@ module "jupyter_pool" {
   kernel                    = "${var.kernel}"
   bootstrap_script          = "${var.jupyter_bootstrap_script}"
   jupyter_worker_drive_size = "${var.jupyter_worker_drive_size}"
+  organization_name         = "${var.organization_name}"
 }
 
 
@@ -98,7 +101,7 @@ resource "aws_subnet" "eks_private" {
     map(
      "Name", "eks_private_${count.index}",
      "Environment", "${var.vpc_name}",
-     "Organization", "Basic Service",
+     "Organization", "${var.organization_name}",
      "kubernetes.io/cluster/${var.vpc_name}", "owned",
     )
   }"
@@ -125,7 +128,7 @@ resource "aws_subnet" "eks_public" {
     map(
      "Name", "eks_public_${count.index}",
      "Environment", "${var.vpc_name}",
-     "Organization", "Basic Service",
+     "Organization", "${var.organization_name}",
      "kubernetes.io/cluster/${var.vpc_name}", "shared",
      "kubernetes.io/role/elb", "",
      "KubernetesCluster", "${var.vpc_name}",
@@ -138,7 +141,31 @@ resource "aws_subnet" "eks_public" {
   }
 }
 
+resource "aws_vpc_endpoint" "ec2" {
+  vpc_id       = "${data.aws_vpc.the_vpc.id}"
+  service_name = "com.amazonaws.us-east-1.ec2"
+  vpc_endpoint_type = "Interface"
+  security_group_ids  = [
+    "${aws_security_group.eks_nodes_sg.id}"
+  ]
 
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+}
+
+
+resource "aws_vpc_endpoint" "ecr-dkr" {
+  vpc_id       = "${data.aws_vpc.the_vpc.id}"
+  service_name = "com.amazonaws.us-east-1.ecr.dkr"
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = [
+    "${aws_security_group.eks_nodes_sg.id}"
+  ]
+
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+}
 
 resource "aws_route_table" "eks_private" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
@@ -155,58 +182,74 @@ resource "aws_route_table" "eks_private" {
     cidr_block     = "52.0.0.0/8"
     nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
   }
-  route {
+  #route {
     # logs.us-east-1.amazonaws.com as well, these guys are not static, therefore whitelist the whole list
-    cidr_block     = "54.0.0.0/8"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
-  route {
+  #  cidr_block     = "54.0.0.0/8"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
+  #route {
     # .us-east-1.eks.amazonaws.com
-    cidr_block     = "34.192.0.0/10"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
+  #  cidr_block     = "34.192.0.0/10"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
 
-  route {
+  #route {
     # also eks service
-    cidr_block     = "18.128.0.0/9"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
+  #  cidr_block     = "18.128.0.0/9"
+  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+  #}
 
   route {
     #from the commons vpc to the csoc vpc via the peering connection
-    cidr_block                = "${var.csoc_cidr}"
+    #cidr_block                = "${var.csoc_cidr}"
+    #cidr_block                = "${data.aws_vpc.peering_vpc.cidr_block}"
+    cidr_block                = "${var.peering_cidr}"
     vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
   }
 
   tags {
     Name         = "eks_private"
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
+
+  lifecycle {
+    #ignore_changes = ["*"]
+  }
+}
+
+resource "aws_route" "skip_proxy" {
+  count                  = "${length(var.cidrs_to_route_to_gw)}"
+  route_table_id         = "${aws_route_table.eks_private.id}"
+  destination_cidr_block = "${element(var.cidrs_to_route_to_gw,count.index)}"
+  nat_gateway_id         = "${data.aws_nat_gateway.the_gateway.id}"
+  depends_on             = ["aws_route_table.eks_private"]
 }
 
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
-data "aws_subnet_ids" "private" {
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
-  tags {
-    Name = "eks_private_*"
-  }
-  depends_on = [
-    "aws_subnet.eks_private",
-  ]
-}
+#data "aws_subnet_ids" "private" {
+#  vpc_id = "${data.aws_vpc.the_vpc.id}"
+#  tags {
+#    Name = "eks_private_*"
+#  }
+#  depends_on = [
+#    "aws_subnet.eks_private",
+#  ]
+#}
 
 
 resource "aws_route_table_association" "private_kube" {
   #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
+  #subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
+  subnet_id      = "${aws_subnet.eks_private.*.id[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["id", "subnet_id","tags"]
+    ignore_changes = ["tags"]
   }
+  depends_on = ["aws_subnet.eks_private"]
 }
 
 
@@ -217,7 +260,24 @@ resource "aws_vpc_endpoint" "k8s-s3" {
   route_table_ids = ["${aws_route_table.eks_private.id}"]
 }
 
+# Cloudwatch logs endpoint
+resource "aws_vpc_endpoint" "k8s-logs" {
+  vpc_id              = "${data.aws_vpc.the_vpc.id}"
+  service_name        = "${data.aws_vpc_endpoint_service.logs.service_name}"
+  vpc_endpoint_type   = "Interface"
 
+  security_group_ids  = [
+    "${aws_security_group.eks_nodes_sg.id}"
+  ]
+
+  private_dns_enabled = true
+  #subnet_ids          = ["${data.aws_subnet_ids.private.ids}"]
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  #route_table_ids    = ["${aws_route_table.eks_private.id}"]
+  lifecycle {
+    #ignore_changes = ["subnet_ids"]
+  }
+}
 
 
 resource "aws_security_group" "eks_control_plane_sg" {
@@ -238,26 +298,27 @@ resource "aws_security_group" "eks_control_plane_sg" {
 
 
 # Apparently we cannot iterate over the resource, therefore I am querying them after creation
-data "aws_subnet_ids" "public_kube" {
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
-  tags {
-    Name = "eks_public_*"
-  }
-  depends_on = [
-    "aws_subnet.eks_public",
-  ]
-}
+#data "aws_subnet_ids" "public_kube" {
+#  vpc_id = "${data.aws_vpc.the_vpc.id}"
+#  tags {
+#    Name = "eks_public_*"
+#  }
+#  depends_on = [
+#    "aws_subnet.eks_public",
+#  ]
+#}
 
 
 resource "aws_route_table_association" "public_kube" {
   #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
+  #subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
+  subnet_id      = "${aws_subnet.eks_public.*.id[count.index]}"
   route_table_id = "${data.aws_route_table.public_kube.id}"
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["id", "subnet_id"]
+    #ignore_changes = ["id", "subnet_id"]
   }
 }
 
@@ -270,8 +331,9 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = "${var.eks_version}"
 
   vpc_config {
-    subnet_ids  = ["${aws_subnet.eks_private.*.id}"]
-    security_group_ids = ["${aws_security_group.eks_control_plane_sg.id}"]
+    subnet_ids              = ["${aws_subnet.eks_private.*.id}"]
+    security_group_ids      = ["${aws_security_group.eks_control_plane_sg.id}"]
+    endpoint_private_access = "true"
   }
 
   depends_on = [
@@ -483,19 +545,6 @@ resource "aws_security_group_rule" "nodes_interpool_communications" {
 # EC2 instances. This offers flexibility to scale up and down the worker nodes on demand when used in conjunction
 # with AutoScaling policies (not implemented here).
 
-# First, let us create a data source to fetch the latest Amazon Machine Image (AMI) that Amazon provides with an
-# EKS compatible Kubernetes baked in.
-
-data "aws_ami" "eks_worker" {
-  filter {
-    name   = "name"
-    #values = ["amazon-eks-node-*"]
-    values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
-  }
-
-  most_recent = true
-  owners      = ["602401143452"] # Amazon Account ID
-}
 
 # EKS currently documents this required userdata for EKS worker nodes to
 # properly configure Kubernetes applications on the EC2 instance.
@@ -594,7 +643,7 @@ resource "aws_security_group" "ssh" {
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
     Name         = "ssh_eks_${var.vpc_name}"
   }
 }

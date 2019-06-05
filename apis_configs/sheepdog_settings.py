@@ -49,6 +49,8 @@ config['OAUTH2'] = {
     'redirect_uri': 'https://%s/api/v0/oauth2/authorize'  % conf_data['hostname']
 }
 config['USER_API'] = 'http://fence-service/'
+# use the USER_API URL instead of the public issuer URL to accquire JWT keys
+config['FORCE_ISSUER'] = True
 config['DICTIONARY_URL'] = environ.get('DICTIONARY_URL','https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json')
 
 app_init(app)

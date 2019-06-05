@@ -1,0 +1,89 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: manifestservice-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: manifestservice
+      release: production
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: manifestservice
+        release: production
+        s3: "yes"
+        public: "yes"
+        userhelper: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - manifestservice
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "manifestservice-g3auto"
+        - name: cert-volume
+          secret:
+            secretName: "cert-manifestservice-service"
+        - name: ca-volume
+          secret:
+            secretName: "service-ca"
+      terminationGracePeriodSeconds: 50
+      containers:
+        - name: manifestservice
+          GEN3_MANIFESTSERVICE_IMAGE
+          env:
+          - name: REQUESTS_CA_BUNDLE
+            #
+            # override python 'requests' SSL certificate bundle
+            # to use system trusted certs
+            # which includes our private certificate authority
+            #
+            value: /etc/ssl/certs/ca-certificates.crt
+          - name: MANIFEST_SERVICE_CONFIG_PATH
+            value: /var/gen3/config/config.json
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/gen3/config/"  
+            - name: "cert-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/service.crt"
+              subPath: "service.crt"
+            - name: "cert-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/service.key"
+              subPath: "service.key"
+            - name: "ca-volume"
+              # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
+              readOnly: true
+              mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
+              subPath: "ca.pem"
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 0.5    
+            limits:
+              cpu: 1
+              memory: 1024Mi

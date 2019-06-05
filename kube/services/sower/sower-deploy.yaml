@@ -2,6 +2,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: sower-deployment
+  annotations:
+    gen3.io/network-ingress: "pidgin" 
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -17,6 +19,9 @@ spec:
     metadata:
       labels:
         app: sower
+        public: "yes"
+        netnolimit: "yes"
+        GEN3_DATE_LABEL
     spec:
       affinity:
         podAntiAffinity:
@@ -30,10 +35,17 @@ spec:
                   values:
                   - sower
               topologyKey: "kubernetes.io/hostname"
-      automountServiceAccountToken: true
+      serviceAccountName: sower-service-account
+      volumes:
+        - name: sower-config
+          configMap:
+            name: manifest-sower
+            items:
+              - key: json
+                path: sower_config.json
       containers:
       - name: sower
-        image: quay.io/cdis/sower:master
+        GEN3_SOWER_IMAGE
         livenessProbe:
           httpGet:
             path: /_status
@@ -53,4 +65,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-
+        volumeMounts:
+          - name: sower-config
+            readOnly: true
+            mountPath: /sower_config.json
+            subPath: sower_config.json

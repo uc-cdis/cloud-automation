@@ -12,9 +12,12 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 gen3 kube-setup-workvm
-gen3 kube-setup-secrets
+# kube-setup-roles runs before kube-setup-secrets -
+#    setup-secrets may launch a job that needs the useryaml-role
 gen3 kube-setup-roles
+gen3 kube-setup-secrets
 gen3 kube-setup-certs
+gen3 jupyter j-namespace setup
 
 echo "INFO: using manifest at $(g3k_manifest_path)"
 
@@ -59,6 +62,21 @@ else
   echo "INFO: not deploying arranger - no manifest entry for .versions.arranger"
 fi
 
+#
+# Do not do this - it may interrupt a running ETL
+#
+#if g3k_manifest_lookup .versions.spark 2> /dev/null; then
+#  gen3 kube-setup-spark
+#else
+#  echo "INFO: not deploying spark (required for ES ETL) - no manifest entry for .versions.spark"
+#fi
+
+if g3k_manifest_lookup .versions.guppy 2> /dev/null; then
+  gen3 kube-setup-guppy
+else
+  echo "INFO: not deploying guppy - no manifest entry for .versions.guppy"
+fi
+
 if g3k_manifest_lookup .versions.pidgin 2> /dev/null; then
   gen3 kube-setup-pidgin
 else
@@ -75,6 +93,18 @@ if g3k_manifest_lookup .versions.portal > /dev/null 2>&1; then
   g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
 fi
 
+if g3k_manifest_lookup .versions.wts 2> /dev/null; then
+  # go ahead and deploy the service, so the revproxy setup sees it
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-service.yaml"
+  # wait till after fence is up to do a full setup - see below
+fi
+
+if g3k_manifest_lookup .versions.manifestservice 2> /dev/null; then
+  gen3 kube-setup-manifestservice
+else
+  echo "INFO: not deploying manifestservice - no manifest entry for .versions.manifestservice"
+fi
+
 gen3 kube-setup-revproxy
 
 # Internal k8s systems
@@ -82,20 +112,36 @@ gen3 kube-setup-fluentd
 gen3 kube-setup-autoscaler
 gen3 kube-setup-kube-dns-autoscaler
 gen3 kube-setup-tiller || true
-gen3 kube-setup-networkpolicy
+#
+# Disable this stuff for now - ugh!
+#gen3 kube-setup-networkpolicy disable
+#gen3 kube-setup-networkpolicy noservice
+g3kubectl delete networkpolicies --all
+
+#
+# portal and wts are not happy until other services are up
+# If new pods are still rolling/starting up, then wait for that to finish
+#
+gen3 kube-wait4-pods || true
+
+if g3k_manifest_lookup .versions.wts 2> /dev/null; then
+  # this tries to kubectl exec into fence 
+  gen3 kube-setup-wts || true
+else
+  echo "INFO: not deploying wts - no manifest entry for .versions.wts"
+fi
 
 if g3k_manifest_lookup .versions.portal 2> /dev/null; then
-  # portal is not happy until other services are up
-  # If new pods are still rolling/starting up, then wait for that to finish
-  gen3 kube-wait4-pods || true
   gen3 kube-setup-portal
 else
   echo "INFO: not deploying portal - no manifest entry for .versions.portal"
 fi
 
-cat - <<EOM
-INFO: 'gen3 roll portal' if necessary to force a restart -
-   portal will not come up cleanly until after the reverse proxy
-   services is fully up.
+if g3kubectl get statefulset jupyterhub-deployment > /dev/null 2>&1 && [[ "$(g3kubectl get statefulsets jupyterhub-deployment -o json | jq -r '.metadata.labels.public')" != "yes" ]]; then 
+  gen3_log_info "roll-all" "rolling jupyterhub - need to update labels for network policy"
+  g3kubectl delete statefulset jupyterhub-deployment || true
+  gen3 roll jupyterhub
+fi
 
-EOM
+gen3_log_info "roll-all" "roll completed successfully!"
+#gen3 kube-setup-networkpolicy enable

@@ -2,6 +2,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: indexd-canary-deployment
+  annotations:
+    gen3.io/network-ingress: "fence,fenceshib,peregrine,sheepdog"  
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -19,6 +21,7 @@ spec:
       labels:
         app: indexd
         release: canary
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

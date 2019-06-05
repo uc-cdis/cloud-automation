@@ -20,6 +20,10 @@ RUN apt-get update && apt-get upgrade -y \
       python-dev \
       python-pip \
       python-setuptools \
+      python3 \
+      python3-dev \
+      python3-pip \
+      python3-setuptools \
       vim \
       less \
       jq \
@@ -30,14 +34,15 @@ RUN apt-get update && apt-get upgrade -y \
       iputils-ping \
       net-tools \
       sudo \
-      gettext-base \
-    && rm -rf /var/lib/apt/lists/*
+      gettext-base
 
-RUN  easy_install -U pip \
-    && python -m pip install --upgrade pip \
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python2 50; \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3 100
+
+RUN  python -m pip install --upgrade pip \
     && python -m pip install --upgrade setuptools \
     && python -m pip install -U crcmod \
-    && python -m pip install awscli==1.15.59 --upgrade \
+    && python -m pip install awscli --upgrade \
     && python -m pip install yq --upgrade
 
 # From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
@@ -55,23 +60,19 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     gcloud config set component_manager/disable_update_check true && \
     gcloud config set metrics/environment github_docker_image && \
     gcloud --version && \
-    kubectl version --client
+    kubectl version --client && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m -s /bin/bash ubuntu
-
 RUN npm install elasticdump -g
 
 WORKDIR /home/ubuntu
 USER ubuntu
 
-RUN git clone https://github.com/uc-cdis/gen3-arranger.git ~/gen3-arranger \
-    && echo "source  ~/gen3-arranger/Docker/Stacks/esearch/indexSetup.sh" >> ~/.bashrc \
-    && echo "export ESHOST=esproxy-service:9200" >> ~/.bashrc
-
 # install and set up gen3
 RUN git clone https://github.com/uc-cdis/cloud-automation.git ~/cloud-automation \
     && echo "export GEN3_HOME=~/cloud-automation" >> ~/.bashrc \
-    && echo '(cd ~/cloud-automation && git pull)' >> ~/.bashrc \
+    && echo "export ESHOST=esproxy-service:9200" >> ~/.bashrc \
     && echo 'source "${GEN3_HOME}/gen3/gen3setup.sh"' >> ~/.bashrc 
     
 CMD /bin/bash

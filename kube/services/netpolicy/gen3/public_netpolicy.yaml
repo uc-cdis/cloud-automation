@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netpolicy-public-ingress-to
+spec:
+  podSelector:
+    matchLabels:
+      public: "yes"
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: revproxy
+  policyTypes:
+   - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netpolicy-public-egress-to
+spec:
+  podSelector:
+    matchLabels:
+      app: revproxy
+  egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            public: "yes"
+  policyTypes:
+   - Egress
+

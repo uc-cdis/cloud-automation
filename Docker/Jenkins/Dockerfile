@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.169
+FROM jenkins/jenkins:2.177
 
 USER root
 
@@ -57,12 +57,11 @@ RUN set -xe \
     && curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update \
-    && apt-get install -y google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y google-chrome-stable
 
 # install terraform
-RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip
-RUN unzip /tmp/terraform.zip -d /usr/local/bin; /bin/rm /tmp/terraform.zip
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.14/terraform_0.11.14_linux_amd64.zip \
+   && unzip /tmp/terraform.zip -d /usr/local/bin && /bin/rm /tmp/terraform.zip
 
 # install packer
 RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.3.3/packer_1.3.3_linux_amd64.zip
@@ -86,7 +85,8 @@ RUN DISTRO="$(lsb_release -c -s)"  \
       && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
       && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
       && apt-get update \
-      && apt-get install -y postgresql-client-9.6
+      && apt-get install -y postgresql-client-9.6 \
+      && rm -rf /var/lib/apt/lists/*
 
 # add our custom start script
 COPY jenkins.sh /opt/cdis/bin/jenkins.sh

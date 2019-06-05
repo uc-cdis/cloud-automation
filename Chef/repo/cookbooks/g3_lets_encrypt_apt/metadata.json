@@ -1,0 +1,12 @@
+{
+  "name":"g3_lets_encrypt_apt",
+  "version":"1.0.0",
+  "description":"Install lets encrypt packages",
+  "dependencies":{"g3_dev_apt": ">=1.0.0"},
+  "long_description":"# [g3_lets_encrypt_apt](https://github.com/uc_cdis/cloud-automation)\n\n## License & Authors\n\nhttps://letsencrypt.org/docs/revoking/http://www.apache.org/licenses/LICENSE-2.0",
+  "maintainer":"admin@gen3.org","maintainer_email":"admin@gen3.org","license":"Apache-2.0",
+  "platforms":{"debian":">= 0.0.0","ubuntu":">= 0.0.0"},
+  "source_url":"https://github.com/uc_cdis/cloud-automation",
+  "issues_url":"https://github.com/uc_cdis/cloud-automation/issues",
+  "chef_version":[[">= 12.14"]],"ohai_version":[]
+}
