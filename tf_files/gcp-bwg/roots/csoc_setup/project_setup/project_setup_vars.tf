@@ -64,6 +64,11 @@ variable "region" {
 }
 
 ######## VPC RELATED VARS
+variable "create_vpc_secondary_ranges" {
+  description = "Whether or not to create secondary alias ranges"
+  default = "true"
+}
+
 variable "range_name_k8_service" {
   description = "The name for the cluster services."
   default     = "k8-services"
@@ -446,3 +451,107 @@ variable "peer_auto_create_routes" {
   description = "Whether or not to autocreate the routes for the vpc peer"
   default     = true
 }
+
+variable "google_apis_route" {
+  description = "Route to restricted Google APIs"
+}
+variable "csoc_ingress_priority" {}
+variable "csoc_ingress_enable_logging" {}
+
+variable "inbound_to_ingress_name" {}
+variable "inbound_to_ingress_network_name" {}
+variable "inbound_to_ingress_source_ranges" {
+  type = "list"
+}
+variable "inbound_to_ingress_target_tags"  {
+  type = "list"
+}
+variable "inbound_to_ingress_protocol"  {
+}
+variable "inbound_to_ingress_ports"  {
+  type = "list"
+}
+
+variable "inbound_to_commons001_name" {}
+variable "inbound_to_commons001_network_name" {}
+variable "inbound_to_commons001_source_ranges" {
+  type = "list"
+}
+variable "inbound_to_commons001_target_tags"  {
+  type = "list"
+}
+variable "inbound_to_commons001_protocol" {}
+variable "inbound_to_commons001_ports" {
+  type = "list"
+}
+
+variable "inbound_to_private_name" {}
+variable "inbound_to_private_network_name" {}
+variable "inbound_to_private_source_ranges"  {
+  type = "list"
+}
+
+variable "inbound_to_private_target_tags"  {
+  type = "list"
+}
+
+variable "inbound_to_private_protocol" {}
+variable "inbound_from_commons001_protocol"{}
+
+variable "inbound_from_commons001_name"{}
+variable "inbound_from_commons001_target_tags" {
+  type = "list"
+}
+
+variable "inbound_from_commons001_source_ranges"  {
+  type = "list"
+}
+
+variable "inbound_from_commons001_ports" {
+  type = "list"
+}
+
+variable "inbound_from_ingress_name"{}
+variable "inbound_from_ingress_protocol" {}
+variable "inbound_from_ingress_ports"  {
+  type = "list"
+}
+
+variable "inbound_from_ingress_source_ranges" {
+  type = "list"
+}
+
+variable "inbound_from_ingress_target_tags"  {
+  type = "list"
+}
+
+variable "inbound_from_gke_name" {}
+variable "inbound_from_gke_network_name" {}
+variable "inbound_from_gke_source_ranges" {
+ type = "list"
+}
+variable "inbound_from_gke_target_tags" {
+ type = "list"
+}
+variable "inbound_from_gke_ports" {
+ type = "list"
+}
+variable "inbound_from_gke_protocol" {}
+variable "inbound_from_gke_enable_logging" {}
+variable "inbound_from_gke_priority" {}
+
+variable "outbound_from_gke_name" {}
+variable "outbound_from_gke_network_name" {}
+variable "outbound_from_gke_destination_ranges" {
+ type = "list"
+}
+variable "outbound_from_gke_target_tags" {
+ type = "list"
+}
+variable "outbound_from_gke_ports" {
+ type = "list"
+}
+variable "outbound_from_gke_protocol" {}
+variable "outbound_from_gke_enable_logging" {}
+variable "outbound_from_gke_priority" {}
+
