@@ -175,11 +175,11 @@ def check_speed(event,logGroup):
     would send out a notification to a slack channel expresed as env variable
     """
 
-
+    # if there is no threshold, let's not even check
     if os.environ.get('threshold') is not None:
         threshold = float(os.environ.get('threshold'))
     else:
-        threshold = 4.00
+        return
 
     response_time = 100.00
     
