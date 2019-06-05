@@ -172,7 +172,7 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 run_setup_jobs
 clear_wts_clientId
 gen3 roll all
-reset_wts_clientId
+new_wts_clientId
 
 run_post_roll_jobs
 
