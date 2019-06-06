@@ -18,7 +18,7 @@ new_client() {
   # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
   if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
       # try delete client
-      g3kubectl exec $(gen3 pod fence) -- fence-create client-delete --client wts
+      g3kubectl exec $(gen3 pod fence) -- fence-create client-delete --client wts > /dev/null 2>&1
       secrets=$(g3kubectl exec $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
       if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
           gen3_log_err "kube-setup-wts" "Failed generating oidc client for workspace token service: $secrets"
