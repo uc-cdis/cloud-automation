@@ -140,6 +140,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	&& ln -sf /dev/stderr /var/log/nginx/error.log
 
 COPY nginx.conf /etc/nginx/nginx.conf
+COPY uwsgi.conf /etc/nginx/sites-available/
 
 # Standard set up Nginx finished
 
@@ -152,12 +153,9 @@ EXPOSE 443
 # Install uWSGI
 RUN apk add --no-cache uwsgi-python3
 
-# Make NGINX run on the foreground
-RUN echo "daemon off;" >> /etc/nginx/nginx.conf
-# Copy the modified Nginx conf
-COPY nginx-custom.conf /etc/nginx/conf.d/nginx.conf
 # Copy the base uWSGI ini file to enable default dynamic uwsgi process number
 COPY uwsgi.ini /etc/uwsgi/
+RUN ln -s /etc/nginx/sites-available/uwsgi.conf /etc/nginx/conf.d/uwsgi.conf
 
 # Install Supervisord
 RUN apk add --no-cache supervisor
