@@ -78,16 +78,17 @@ if [[ -z "$JENKINS_HOME" ]]; then
 
   namespace="$(gen3 db namespace)"
   g3k_kv_filter ${GEN3_HOME}/kube/services/wts/rolebinding-wts.yaml WTS_BINDING "name: wts-binding-$namespace" CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-service.yaml"
-
-  #
-  # Note - this is likely to fail first time after a reset due to exec into fence,
-  #   so do it last.  roll-all will call this again after waiting for fence to come up.
-  #   we want to get the service up, etc, so the revproxy will see it
-  #
   setup_creds || true
+elif ! g3kubectl describe secret wts-g3auto | grep appcreds.json > /dev/null 2>&1; then
+  # JENKINS test setup needs to re-create the wts client after wiping the fence db
+  (
+    if dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)" && clientInfo="$(gen3 kube-setup-wts new-client)"; then
+        g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds" "--from-literal=appcreds.json=$clientInfo"
+    fi
+  )
 fi
-  
+
+g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-service.yaml"  
 gen3 roll wts
 
 echo "The wts services has been deployed onto the k8s cluster."
