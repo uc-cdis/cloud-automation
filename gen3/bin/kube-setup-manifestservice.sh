@@ -16,7 +16,7 @@ bucketname="manifest-${hostname//./-}"
 mkdir -p $(gen3_secrets_folder)/g3auto/manifestservice
 credsFile="$(gen3_secrets_folder)/g3auto/manifestservice/config.json"
 
-if (! (g3kubectl describe secret manifestservice-g3auto 2> /dev/null | grep config.js > /dev/null 2>&1) \
+if (! (g3kubectl describe secret manifestservice-g3auto 2> /dev/null | grep config.js > /dev/null 2>&1)) \
   && [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; 
 then
   gen3_log_info "kube-seutp-manifestservice" "setting up manifest-service resources"
