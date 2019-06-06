@@ -191,6 +191,9 @@ ENV LISTEN_PORT 80
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+COPY dockerrun.sh /dockerrun.sh
+RUN chmod +x /dockerrun.sh
+
 ENTRYPOINT ["sh", "/entrypoint.sh"]
 
 # Add demo app
