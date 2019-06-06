@@ -122,6 +122,7 @@ new_wts_clientId() {
     if dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)" && clientInfo="$(gen3 kube-setup-wts new-client)"; then
         g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds" "--from-literal=appcreds.json=$clientInfo"
         gen3 roll wts
+        echo "The wts services has been deployed onto the k8s cluster."
     fi
   fi
 }

@@ -68,7 +68,10 @@ setup_creds() {
 # main --------------------------------------
 # deploy wts
 if [[ $# -gt 0 && "$1" == "new-client" ]]; then
+  # for Jenkins, don't roll wts after this
+  # wts will be rolled by new_wts_clientId() in reset.sh
   new_client
+  echo "The wts service hasn't been deployed yet. Please use 'gen3 roll wts' to deploy it."
   exit $?
 fi
 
@@ -86,8 +89,8 @@ if [[ -z "$JENKINS_HOME" ]]; then
   #   we want to get the service up, etc, so the revproxy will see it
   #
   setup_creds || true
+  
+  gen3 roll wts
+  
+  echo "The wts services has been deployed onto the k8s cluster."
 fi
-
-gen3 roll wts
-
-echo "The wts services has been deployed onto the k8s cluster."
