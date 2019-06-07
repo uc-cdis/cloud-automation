@@ -83,6 +83,7 @@ elif ! g3kubectl describe secret wts-g3auto | grep appcreds.json > /dev/null 2>&
   # JENKINS test setup needs to re-create the wts client after wiping the fence db
   (
     if dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)" && clientInfo="$(gen3 kube-setup-wts new-client)"; then
+        g3kubectl delete secret wts-g3auto
         g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds" "--from-literal=appcreds.json=$clientInfo"
     fi
   )
