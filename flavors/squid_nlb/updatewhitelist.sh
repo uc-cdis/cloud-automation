@@ -15,7 +15,7 @@ rsync -a /home/ubuntu/cloud-automation/files/authorized_keys/squid_authorized_ke
 fi
 
 if [ "$DIFF_AUTH2" != ""  ] ; then
-rsync -a /home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_keys_user /home/ubuntu/.ssh/authorized_keys
+rsync -a /home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_keys_user /home/sftpuser/.ssh/authorized_keys
 fi
 
 
