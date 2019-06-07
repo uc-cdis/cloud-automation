@@ -177,7 +177,7 @@ net_enable() {
 
 # main -----------------------------------
 
-if [[ "$(g3k_manifest_lookup .global.netpolicy)" == "frickjack" ]]; then
+if [[ "$(g3k_manifest_lookup .global.netpolicy)" == "on" ]]; then
   command="$1"
   shift
   if [[ ! "$command" =~ ^-*help$ ]]; then
