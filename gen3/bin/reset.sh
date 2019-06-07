@@ -83,6 +83,28 @@ gen3_user_verify() {
   fi
 }
 
+#
+# both fence db and wts db are wiped out during reset
+#
+clear_wts_clientId() {
+  local appCredsPath
+  appCredsPath="$(gen3_secrets_folder)/g3auto/wts/appcreds.json"
+  if [ -f "$appCredsPath" ]; then
+      echo "Removing local wts cred file"
+      rm -v "$appCredsPath"
+  fi
+  if g3kubectl get secret wts-g3auto > /dev/null 2>&1; then
+      echo "Deleting wts secret appcreds.json key"
+      local dbCreds
+      dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)"
+      g3kubectl delete secret wts-g3auto || true
+      if [[ -n "$dbCreds" ]]; then
+        g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds"
+      fi
+  fi
+  echo "All clear for wts"
+}
+
 # main ---------------------------
 
 gen3_user_verify "about to drop all service deployments"
@@ -127,7 +149,9 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 # try to make reset more reliable - especially in Jenkins
 #
 run_setup_jobs
+clear_wts_clientId
 gen3 roll all
+
 run_post_roll_jobs
 
 gen3 klock unlock reset-lock "$LOCK_USER"
