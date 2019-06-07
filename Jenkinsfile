@@ -34,8 +34,13 @@ node {
         sh 'npx jasmine helpersTest.js'
       }
     }
-    stage('base image dockerrun.sh test') {
+    stage('python 2 base image dockerrun.sh test') {
       dir('cloud-automation/Docker/python-nginx/python2.7-alpine3.7') {
+        sh 'sh dockerrun.sh --dryrun=True'
+      }
+    }
+    stage('python 3 base image dockerrun.sh test') {
+      dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
         sh 'sh dockerrun.sh --dryrun=True'
       }
     }
