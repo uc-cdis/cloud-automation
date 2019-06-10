@@ -35,7 +35,7 @@ spec:
             - name: START_DID
               GEN3_START_DID|-value: ""-|
             - name: USE_SHEEPDOG
-              GEN3_USE_SHEEPDOG|-value: ""-|
+              GEN3_USE_SHEEPDOG|-value: "true"-|
           volumeMounts:
             - name: "config-volume"
               readOnly: true
