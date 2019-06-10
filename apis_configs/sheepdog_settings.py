@@ -15,7 +15,7 @@ config["INTERNAL_AUTH"] = None
 
 # Signpost
 config['SIGNPOST'] = {
-    'host': environ.get('SIGNPOST_HOST', 'http://indexd-service'),
+    'host': environ.get('SIGNPOST_HOST') or 'http://indexd-service',
     'version': 'v0',
     'auth': ('gdcapi', conf_data.get('indexd_password', '{{indexd_password}}')),
 }
@@ -48,7 +48,7 @@ config['OAUTH2'] = {
     'oauth_provider': 'https://%s/user/oauth2/' % conf_data['hostname'],
     'redirect_uri': 'https://%s/api/v0/oauth2/authorize'  % conf_data['hostname']
 }
-config['USER_API'] = 'http://fence-service/'
+config['USER_API'] = environ.get('FENCE_URL') or 'http://fence-service/'
 # use the USER_API URL instead of the public issuer URL to accquire JWT keys
 config['FORCE_ISSUER'] = True
 config['DICTIONARY_URL'] = environ.get('DICTIONARY_URL','https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json')
