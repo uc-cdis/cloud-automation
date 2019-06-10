@@ -32,6 +32,10 @@ spec:
                   name: manifest-global
                   key: auth_namespace
                   optional: true
+            - name: START_DID
+              GEN3_START_DID|-value: ""-|
+            - name: USE_SHEEPDOG
+              GEN3_USE_SHEEPDOG|-value: ""-|
           volumeMounts:
             - name: "config-volume"
               readOnly: true
@@ -54,7 +58,9 @@ spec:
           args:
             - "-c"
             - |
-              db_uri=$(python - <<- EOF
+              flags="--path /var/www/indexd/ --arborist-url http://arborist-service"
+              if [[ "$USE_SHEEPDOG" == "true" ]]; then
+                db_uri=$(python - <<- EOF
               from base64 import b64decode
               import json
 
@@ -63,7 +69,12 @@ spec:
 
               print("postgres://{}:{}@{}:5432/{}".format(creds["db_username"], creds["db_password"], creds["db_host"], creds["db_database"]))
               EOF
-              )
-              python /indexd/bin/migrate_acl_authz.py --path "/var/www/indexd/" --sheepdog-db "$db_uri" --arborist-url "http://arborist-service"
+                )
+                flags="$flags --sheepdog-db $db_uri"
+              fi
+              if [[ -n "$START_DID" ]]; then
+                flags="$flags --start-did $START_DID"
+              fi
+              python /indexd/bin/migrate_acl_authz.py $flags
               echo "Exit code: $?"
       restartPolicy: Never
