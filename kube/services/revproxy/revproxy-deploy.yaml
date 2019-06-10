@@ -81,6 +81,12 @@ spec:
               configMapKeyRef:
                 name: manifest-canary
                 key: json
+          - name: ORIGINS_ALLOW_CREDENTIALS
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: origins_allow_credentials
+                optional: true
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true

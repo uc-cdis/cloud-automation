@@ -180,3 +180,37 @@ function getServiceReleases(req) {
 
   return releasesObjToString(updated_releases);
 }
+
+/**
+ * Controls the value of Access-Control-Allow-Credentials by environment variable
+ * ORIGINS_ALLOW_CREDENTIALS.
+ *
+ * ORIGINS_ALLOW_CREDENTIALS is supposed to be a list of origins in JSON string. Only
+ * requests with origins in this list are allowed to send credentials like cookies to
+ * this website. See also: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#Requests_with_credentials
+ *
+ * In most cases, credentials shouldn't be sent cross-site to mitigate CSRF attack risks.
+ * This is useful when Gen3 is deployed as an SSO and centralized service in a cross-site
+ * manner. The NDEF for example, serves two sub-commons at sub1.example.com and
+ * sub2.example.com with a centralized commons at example.com running Fence, Indexd and
+ * Arborist. When logged in at example.com, requests sent to both sub1 and sub2 are
+ * allowed to carry the same authentication cookie, therefore extra login is not needed
+ * for sub1 or sub2.
+ *
+ * @param req - nginx request object
+ * @returns {string} value used in Access-Control-Allow-Credentials header, empty string
+ *          to not include this header
+ */
+function isCredentialsAllowed(req) {
+  if (!!req.variables['http_origin']) {
+    var origins = JSON.parse(req.variables['origins_allow_credentials'] || '[]') || [];
+    for (var i = 0; i < origins.length; i++) {
+      // cannot use === to compare byte strings, whose "typeof" is also confusingly "string"
+      if (origins[i].fromUTF8().toLowerCase().trim() ===
+          req.variables['http_origin'].fromUTF8().toLowerCase().trim()) {
+        return 'true';
+      }
+    }
+  }
+  return '';
+}
