@@ -168,6 +168,14 @@ gcloud projects add-iam-policy-binding \
   --role="roles/resourcemanager.projectIamAdmin" \
   --user-output-enabled false
 
+ # Grant roles/iam.serviceAccountUser to the Seed Service Account on the Seed Project
+echo "Adding role roles/iam.serviceAccountUser..."
+gcloud projects add-iam-policy-binding \
+  "${SEED_PROJECT}" \
+  --member="serviceAccount:${SA_ID}" \
+  --role="roles/iam.serviceAccountUser" \
+  --user-output-enabled false
+
 # Enable required API's
 echo "Enabling APIs..."
 gcloud services enable \
