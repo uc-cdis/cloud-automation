@@ -1,8 +1,7 @@
 #!groovy
 
 // See 'Loading libraries dynamically' here: https://jenkins.io/doc/book/pipeline/shared-libraries/
-// bla
-library 'cdis-jenkins-lib@chore/verify'
+library 'cdis-jenkins-lib@master'
 
 node {
   kubectlNamespace = null
