@@ -157,7 +157,7 @@ gen3 cd
 
 `csoc_managed` same as in part 2, if you want it attahed to a csoc account. Default is yes.
 
-`peering_cidr` basically the vpc_id of the VM where you are running gen3. Pretty much the same as `csoc_vpc_id` for part two.
+`peering_cidr` basically the CIDR of the VPC where you are running gen3. Pretty much the same as `csoc_vpc_id` for part two.
 
 
 *Optional*
