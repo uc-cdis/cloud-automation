@@ -209,8 +209,6 @@ gen3_net_bydb_access() {
 }
 
 
-
-
 #
 # Generate a policy that allows ingress to pods
 # labeled with `app` equal to the first argument from pods
@@ -279,35 +277,37 @@ EOM
 
 # main -------------------------------
 
-command="$1"
-shift
-case "$command" in
-  "external")
-    gen3_net_external_access "$@";
-    ;;
-  "s3")
-    gen3_net_s3_access "$@"
-    ;;
-  "cidr")
-    gen3_net_cidr_access "$@"
-    ;;
-  "db")
-    gen3_net_db_access "$@"
-    ;;
-  "bydb")
-    gen3_net_bydb_access "$@"
-    ;;
-  ingress[tT]o)
-    gen3_net_ingress_to_app "$@"
-    ;;
-  egress[tT]o)
-    gen3_net_egress_to_app "$@"
-    ;;
-  is[Ii]p)
-    gen3_net_isIp "$@"
-    ;;
-  *)
-    gen3 help networkpolicy
-    ;;
-esac
-exit $?
+if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
+  command="$1"
+  shift
+  case "$command" in
+    "external")
+      gen3_net_external_access "$@";
+      ;;
+    "s3")
+      gen3_net_s3_access "$@"
+      ;;
+    "cidr")
+      gen3_net_cidr_access "$@"
+      ;;
+    "db")
+      gen3_net_db_access "$@"
+      ;;
+    "bydb")
+      gen3_net_bydb_access "$@"
+      ;;
+    ingress[tT]o)
+      gen3_net_ingress_to_app "$@"
+      ;;
+    egress[tT]o)
+      gen3_net_egress_to_app "$@"
+      ;;
+    is[Ii]p)
+      gen3_net_isIp "$@"
+      ;;
+    *)
+      gen3 help networkpolicy
+      ;;
+  esac
+  exit $?
+fi

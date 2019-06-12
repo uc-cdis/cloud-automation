@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd /home/ubuntu/cloud-automation
-git pull
+(cd /home/ubuntu/cloud-automation && git pull)
+(cd /home/sftpuser/cloud-automation && git pull)
 
 DIFF_AUTH1=$(diff "/home/ubuntu/cloud-automation/files/authorized_keys/squid_authorized_keys_admin" "/home/ubuntu/.ssh/authorized_keys")
 DIFF_AUTH2=$(diff "/home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_keys_user" "/home/sftpuser/.ssh/authorized_keys")

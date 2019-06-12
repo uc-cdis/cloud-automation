@@ -113,10 +113,8 @@ gen3 kube-setup-autoscaler
 gen3 kube-setup-kube-dns-autoscaler
 gen3 kube-setup-tiller || true
 #
-# Disable this stuff for now - ugh!
-#gen3 kube-setup-networkpolicy disable
-#gen3 kube-setup-networkpolicy noservice
-g3kubectl delete networkpolicies --all
+gen3 kube-setup-networkpolicy disable
+gen3 kube-setup-networkpolicy
 
 #
 # portal and wts are not happy until other services are up
@@ -144,4 +142,4 @@ if g3kubectl get statefulset jupyterhub-deployment > /dev/null 2>&1 && [[ "$(g3k
 fi
 
 gen3_log_info "roll-all" "roll completed successfully!"
-#gen3 kube-setup-networkpolicy enable
+gen3 kube-setup-networkpolicy "enable"
