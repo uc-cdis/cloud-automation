@@ -2,7 +2,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: fence-canary-deployment
+  name: fenceshib-canary-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
