@@ -86,6 +86,12 @@ spec:
                 name: manifest-global
                 key: logout_inactive_users
                 optional: true
+          - name: WORKSPACE_TIMEOUT_IN_MINUTES
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: workspace_timeout_in_minutes
+                optional: true
           - name: TIER_ACCESS_LEVEL
             valueFrom:
               configMapKeyRef:
