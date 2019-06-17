@@ -105,6 +105,12 @@ else
   echo "INFO: not deploying manifestservice - no manifest entry for .versions.manifestservice"
 fi
 
+if g3k_manifest_lookup .versions.sower 2> /dev/null; then
+  gen3 kube-setup-sower
+else
+  echo "INFO: not deploying sower - no manifest entry for .versions.sower"
+fi
+
 gen3 kube-setup-revproxy
 
 # Internal k8s systems
