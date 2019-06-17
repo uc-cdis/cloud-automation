@@ -1,10 +1,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: fence-canary-service
+  name: fenceshib-canary-service
 spec:
   selector:
-    app: fence
+    app: fenceshib
     release: canary
   ports:
     - protocol: TCP

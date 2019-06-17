@@ -144,7 +144,7 @@ function getServiceReleases(req) {
   var devOverride= !!req.variables['cookie_dev_canaries'];
   var release_cookie = req.variables['cookie_dev_canaries'] || req.variables['cookie_service_releases'] || '';
   // services to assign to a service (edit this if adding a new canary service)
-  var services = ['fence', 'sheepdog', 'indexd', 'peregrine'];
+  var services = ['fence', 'fenceshib', 'sheepdog', 'indexd', 'peregrine'];
   // weights for services - if given a default weight, use it; else use the default weight from this file
   var canary_weights = JSON.parse(req.variables['canary_percent_json']);
   if (typeof canary_weights['default'] === 'undefined') {
