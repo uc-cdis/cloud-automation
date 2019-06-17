@@ -133,15 +133,12 @@ net_delete_old_policies() {
 
 
 #
-# Accepts "noservice" as arg 1 to indicate to not
-# process service annotations - to save time in `gen3 roll all`
+# Apply all network policies
 #
 net_apply_all() {
   net_apply_gen3 "$@"
   net_apply_jupyter "$@"
-  if [[ "$1" != "noservice" ]]; then
-    net_apply_all_services "$@"
-  fi
+  net_apply_all_services "$@"
   net_delete_old_policies "$@"
 }
 
@@ -180,28 +177,29 @@ net_enable() {
 
 # main -----------------------------------
 
-command="$1"
-shift
-if [[ ! "$command" =~ ^-*help$ ]]; then
-  gen3 jupyter j-namespace setup
+if [[ "$(g3k_manifest_lookup .global.netpolicy)" == "on" ]]; then
+  command="$1"
+  shift
+  if [[ ! "$command" =~ ^-*help$ ]]; then
+    gen3 jupyter j-namespace setup
+  fi
+  case "$command" in
+    "disable"):
+      net_disable
+      ;;
+    "enable"):
+      net_enable
+      ;; 
+    "jupyter"):
+      net_apply_jupyter "$@"
+      ;;
+    "service"):
+      net_apply_service "$@"
+      ;;
+    *)
+      net_apply_all "$@"
+      ;;
+  esac
+else
+  gen3_log_info "kube-setup-networkpolicy $@" "- ignoring command - network policy not enabled in manifest"
 fi
-case "$command" in
-  "disable"):
-    net_disable
-    ;;
-  "enable"):
-    net_enable
-    ;; 
-  "jupyter"):
-    net_apply_jupyter "$@"
-    ;;
-  "service"):
-    net_apply_service "$@"
-    ;;
-  "noservice"):
-    net_apply_all noservice
-    ;;
-  *)
-    net_apply_all "$@"
-    ;;
-esac

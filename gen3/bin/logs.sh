@@ -14,9 +14,6 @@ if [[ -z "$vpc_name" ]]; then
   vpc_name="$(g3kubectl get configmap global -o json | jq -r .data.environment)"
 fi
 
-
-
-
 gen3_logs_help() {
   gen3 help logs
 }

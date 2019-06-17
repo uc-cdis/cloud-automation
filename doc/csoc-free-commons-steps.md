@@ -157,7 +157,7 @@ gen3 cd
 
 `csoc_managed` same as in part 2, if you want it attahed to a csoc account. Default is yes.
 
-`peering_vpc_id` basically the vpc_id of the VM where you are running gen3. Pretty much the same as `csoc_vpc_id` for part two.
+`peering_cidr` basically the CIDR of the VPC where you are running gen3. Pretty much the same as `csoc_vpc_id` for part two.
 
 
 *Optional*
@@ -291,4 +291,58 @@ kubectl get service revproxy-service-elb -o json | jq -r .status.loadBalancer.in
 
 8. Go to your registrar and point the desired domain to the outcome of above command.
 
+
+# Cleanup process
+
+Clean up is relatively easy. Because we use terraform to build up the infrastructure, we'll also use it to destroy them all.
+
+**NOTE:** Databases have a destroy prevention flag to avoid accidental deletion, therefore if you are deliverately deleting your commons, you may need to skip the flag.
+
+Run the following to remove the protection:
+
+```bash
+sed -i 's/prevent_destroy/#prevent_destroy/g' $HOME/cloud-automation/tf_files/aws/commons/kube.tf
+```
+
+
+## Destroing the kubernetes cluster
+
+Firstly you need to delete any resource that was not created by terraform. It'll most likely be an Elastic Load balancer that was created when you ran `gen3 roll all`. 
+
+
+You can view if you have a reverse proxy attached to an ELB through the following command:
+
+```bash
+kubectl get service revproxy-service-elb
+```
+
+To delete it, run the following:
+
+```bash
+kubectl delete service revproxy-service-elb
+```
+
+Now, let's delete kubernetes cluster:
+
+
+```bash
+gen3 workon cdistest commons-test_eks
+gen3 tfplan --destroy
+gen3 tfapply
+```
+
+
+Once that destroy is done, let's delete the base components
+
+## Destroy the base components
+
+
+```bash
+gen3 workon cdistest commons-test
+gen3 tfplan --destroy
+gen3 tfapply
+```
+
+**NOTES:**
+Some times, buckets created through `gen3` get populated with logs and other data, you may need to empty them before running the above commands. Otherwise, when you applying the plan it might fail to delete the bucket.
 

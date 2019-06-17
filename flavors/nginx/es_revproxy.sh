@@ -123,11 +123,14 @@ cat > /etc/nginx/sites-enabled/default  <<EOF
 # aws magic resolver IP
 resolver 169.254.169.253;
 
-upstream es_backend {
-    server ${ES_ENDPOINT}:443;
-
-    keepalive 100;
-}
+# do not use this -
+# upstream does not respect DNS TTL
+#   https://www.nginx.com/blog/dns-service-discovery-nginx-plus/
+#upstream es_backend {
+#    server ${ES_ENDPOINT}:443;
+#
+#    keepalive 100;
+#}
 
 server {
         listen 80;
@@ -150,7 +153,7 @@ server {
                 proxy_busy_buffers_size  64k;
                 client_max_body_size    256k;
                 client_body_buffer_size 128k;
-                proxy_pass              https://es_backend;
+                proxy_pass              https://\$es_server_name;
         }
 
         location ~ (/app/kibana|/app/timelion|/bundles|/es_admin|/plugins|/api|/ui|/elasticsearch) {
@@ -170,7 +173,7 @@ server {
                 proxy_busy_buffers_size  64k;
                 client_max_body_size    256k;
                 client_body_buffer_size 128k;
-                proxy_pass              https://es_backend;
+                proxy_pass              https://\$es_server_name;
         }
         # ELB Health Checks
         location /status {

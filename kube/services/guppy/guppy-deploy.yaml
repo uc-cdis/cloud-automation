@@ -68,7 +68,11 @@ spec:
           - name: GEN3_ES_ENDPOINT
             value: esproxy-service:9200
           - name: GEN3_ARBORIST_ENDPOINT
-            value: http://arborist-service
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
+                optional: true
           - name: TIER_ACCESS_LEVEL
             valueFrom:
               configMapKeyRef:

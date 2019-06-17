@@ -21,7 +21,7 @@ spec:
         app: wts
         release: production
         public: "yes"
-        internet: "yes"
+        netnolimit: "yes"
         userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
