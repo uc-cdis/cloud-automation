@@ -1,7 +1,7 @@
 #!/bin/bash
 
-cd /home/ubuntu/cloud-automation
-git pull
+(cd /home/ubuntu/cloud-automation && git pull)
+(cd /home/sftpuser/cloud-automation && git pull)
 
 echo "Checking if list of authorized keys have changed for admin"
 diff "/home/ubuntu/cloud-automation/files/authorized_keys/squid_authorized_keys_admin" "/home/ubuntu/.ssh/authorized_keys"

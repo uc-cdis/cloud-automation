@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: MONITOR_NAME
+spec:
+  containers:
+  - image: hharnisc/kube-scope-cli:9c02f636b8cb6d4f251af3e73d19248c2a31b3e1
+    name: MONITOR_NAME
+    stdin: true
+    tty: true
+    volumeMounts:
+    - mountPath: /var/run/docker.sock
+      name: docker-sock-volume
+    env:
+    - name: MATCH_NAME
+      value: ".*TO_MONITOR.*"
+    - name: SKIP_NAME
+      value: ".*POD.*"
+    # - name: MATCH_IMAGE
+    #   value: ".*my-image.*"
+    # - name: SKIP_IMAGE
+    #   value: ".*some-image.*"
+    # - name: DOCKER_SOCKET
+    #   value: /var/run/docker.sock
+  volumes:
+  - name: docker-sock-volume
+    hostPath:
+      path: /var/run/docker.sock
+  # pin kubescope to a specific node
+  nodeSelector:
+    kubernetes.io/hostname: NODE

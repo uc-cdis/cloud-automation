@@ -100,6 +100,18 @@ spec:
                 name: manifest-global
                 key: tier_access_limit
                 optional: true
+          - name: FENCE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: fence_url
+                optional: true
+          - name: INDEXD_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
         volumeMounts:
           - name: "cert-volume"
             readOnly: true

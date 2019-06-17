@@ -365,14 +365,16 @@ gen3_db_namespace() {
 
   if [[ -n "${KUBECTL_NAMESPACE}" ]]; then
     result="$KUBECTL_NAMESPACE"
-  else
-    ctx="$(g3kubectl config current-context)"
+  elif ctx="$(g3kubectl config current-context 2> /dev/null)"; then
     ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
     if [[ -n "${ctxNamespace}" && "${ctxNamespace}" != null ]]; then
       result="$ctxNamespace"
     else
       result="default"
     fi
+  else
+    # running in a cron job or some similar environment
+    result="default"
   fi
   echo "$result"
 }

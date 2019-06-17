@@ -20,14 +20,6 @@ policy roles are changing from an old set to a new set
 
 Remove the "allow everything" policy deployed by `kube-setup-networkpolicy disable`
 
-
-### gen3 kube-setup-networkpolicy noservice
-
-Deploys the network policies except for those
-specified by annotations on service deployments
-(saves time in `gen3 roll all`).
-
-
 ### gen3 kube-setup-networkpolicy jupyter
 
 Deploys the relevent policies to the jupyter namespace.
