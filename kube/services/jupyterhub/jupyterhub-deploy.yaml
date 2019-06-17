@@ -20,11 +20,6 @@ spec:
     spec:
       nodeSelector:
         role: jupyter
-      tolerations:
-      - key: "role"
-        operator: "Equal"
-        value: "jupyter"
-        effect: "NoSchedule"
       serviceAccountName: jupyter-service
       volumes:
         - name: config-volume
