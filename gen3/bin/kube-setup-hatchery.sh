@@ -29,6 +29,4 @@ g3k_kv_filter ${GEN3_HOME}/kube/services/hatchery/serviceaccount.yaml BINDING_ON
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/hatchery/hatchery-service.yaml"
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/netpolicy/networkpolicy_hatchery_templ.yaml"
-
 gen3 roll hatchery

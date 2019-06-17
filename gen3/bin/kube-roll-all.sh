@@ -108,8 +108,25 @@ fi
 if g3k_manifest_lookup .versions.ambassador 2> /dev/null; then
   gen3 kube-setup-ambassador
 else
-  echo "INFO: not deploying rstudio - no manifest entry for .versions.rstudio"
+  echo "INFO: not deploying ambassador - no manifest entry for .versions.ambassador"
 fi
+
+if g3k_manifest_lookup .versions.hatchery 2> /dev/null; then
+  gen3 kube-setup-hatchery
+else
+  echo "INFO: not deploying hatchery - no manifest entry for .versions.hatchery"
+fi
+
+if g3k_manifest_lookup .versions.hatchery 2> /dev/null && g3kubectl get statefulset jupyterhub-deployment > /dev/null 2>&1; then
+  echo "INFO: deleting jupyterhub-deployment because Hatchery is deployed"
+  g3kubectl delete statefulset jupyterhub-deployment || true
+fi
+
+if g3k_manifest_lookup .versions.hatchery 2> /dev/null && g3kubectl get service jupyterhub-service > /dev/null 2>&1; then
+  echo "INFO: deleting jupyterhub-service because Hatchery is deployed"
+  g3kubectl delete service jupyterhub-service || true
+fi
+
 gen3 kube-setup-revproxy
 
 # Internal k8s systems
@@ -140,12 +157,6 @@ if g3k_manifest_lookup .versions.portal 2> /dev/null; then
   gen3 kube-setup-portal
 else
   echo "INFO: not deploying portal - no manifest entry for .versions.portal"
-fi
-
-if g3kubectl get statefulset jupyterhub-deployment > /dev/null 2>&1 && [[ "$(g3kubectl get statefulsets jupyterhub-deployment -o json | jq -r '.metadata.labels.public')" != "yes" ]]; then 
-  gen3_log_info "roll-all" "rolling jupyterhub - need to update labels for network policy"
-  g3kubectl delete statefulset jupyterhub-deployment || true
-  gen3 roll jupyterhub
 fi
 
 gen3_log_info "roll-all" "roll completed successfully!"
