@@ -16,9 +16,12 @@ test_logs_curl() {
 }
 
 
-#
-# Little helper for test_logs_awk
-#
+test_logs_snapshot() {
+  # just make sure the snapshot thing works
+  (cd "$XDG_RUNTIME_DIR" && gen3 logs snapshot); because $? "gen3 logs snapshot should run ok"
+  ls "$XDG_RUNTIME_DIR/" | grep -E '\.log\.gz$'; because $? "gen3 logs snapshot should generate some service.container.log.gz files"
+}
+
 test_logs_awk() {
   local tempFile
   tempFile="$(mktemp $XDG_RUNTIME_DIR/awktest.txt_XXXXXX)"
@@ -66,3 +69,4 @@ fi
 
 shunit_runtest "test_logs_curl" "logs,local"
 shunit_runtest "test_logs_awk" "logs,local"
+shunit_runtest "test_logs_snapshot" "logs"
