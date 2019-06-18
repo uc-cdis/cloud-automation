@@ -19,7 +19,7 @@ mkdir -p $(gen3_secrets_folder)/g3auto/pelicanservice
 credsFile="$(gen3_secrets_folder)/g3auto/pelicanservice/config.json"
 if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
   gen3_log_info "initializing pelicanservice config.json"
-  user=$(gen3 secrets decode pelican-g3auto awsusercreds.json)
+  user=$(gen3 secrets decode $awsuser-g3auto awsusercreds.json)
   key_id=$(jq -r .id <<< $user)
   access_key=$(jq -r .secret <<< $user)
   cat - > "$credsFile" <<EOM
