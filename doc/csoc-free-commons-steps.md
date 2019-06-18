@@ -10,8 +10,8 @@ The following guide is intended to guide you through the process of bringing up 
 - [1. Requirements](#requirements)
 - [2. Setting up the adminVM](#first-part-setting-up-the-adminvm)
 - [3. Start gen3](#second-part-start-gen3)
-- [4. Deploy kubernetes](#third-part,-deploy-the-kubernetes-cluster)
-- [5. Bring up services in kubernetes](#forth-part-bring-up-services-in-kubernetes)
+- [4. Deploy kubernetes](#third-part-deploy-the-kubernetes-cluster)
+- [5. Bring up services in kubernetes](#fourth-part-bring-up-services-in-kubernetes)
 - [6. Cleanup process](#cleanup-process)
 
 
@@ -26,6 +26,7 @@ On the bright side, because we use terraform to deploy almost all resources, it 
 In order to move on, you must have an EC2 instance up with an admin like role attached to it. It shouldn't matter in which VPC it is and if it's behind a bastion node or not. 
 
 Additionally we recommend requesting a SSL certificate for the domain you are going to use to access your commons through AWS certificate manager before moving on, you'll need it later.
+
 
 
 
@@ -69,6 +70,7 @@ source ${HOME}/.bashrc
 ```
 
   It worth noting that additional information may be required in this file, everything would depend on your setup for the VM in question.
+
 
 
 
@@ -142,6 +144,7 @@ cp -r commons-test_output/ $HOME
 
 
 
+
 ## Third part, deploy the kubernetes cluster
 
 1. Initialize the EKS module
@@ -199,6 +202,7 @@ gen3 tfapply
 ```bash
 cp commons-test_output_EKS/kubeconfig $HOME
 ```
+
 
 
 
