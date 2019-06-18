@@ -76,6 +76,11 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: dictionary_url
+          - name: GEN3_HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: hostname
         volumeMounts:
           - name: sower-config
             readOnly: true
