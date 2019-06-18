@@ -11,8 +11,9 @@ hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
 short_hostname=$(echo "$hostname" | cut -f1 -d".")
 bucketname="${short_hostname}-pfb-export"
 gen3 s3 create "$bucketname"
-gen3 awsuser create pelican
-gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name pelican
+awsuser="${short_hostname}-pelican"
+gen3 awsuser create "${short_hostname}-pelican"
+gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name "${short_hostname}-pelican"
 
 mkdir -p $(gen3_secrets_folder)/g3auto/pelicanservice
 credsFile="$(gen3_secrets_folder)/g3auto/pelicanservice/config.json"
