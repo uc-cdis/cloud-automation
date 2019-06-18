@@ -1,14 +1,12 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: sower-deployment
-  annotations:
-    gen3.io/network-ingress: "pidgin" 
+  name: hatchery-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: sower
+      app: hatchery
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -18,9 +16,10 @@ spec:
   template:
     metadata:
       labels:
-        app: sower
+        app: hatchery
         public: "yes"
         netnolimit: "yes"
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -33,25 +32,19 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - sower
+                  - hatchery
               topologyKey: "kubernetes.io/hostname"
-      serviceAccountName: sower-service-account
+      serviceAccountName: hatchery-service-account
       volumes:
-        - name: sower-config
+        - name: hatchery-config
           configMap:
-            name: manifest-sower
+            name: manifest-hatchery
             items:
               - key: json
-                path: sower_config.json
-        - name: pelican-creds-volume
-          secret:
-            secretName: "pelicanservice-g3auto"
-        - name: peregrine-creds-volume
-          secret:
-            secretName: "peregrine-creds"
+                path: hatchery.json
       containers:
-      - name: sower
-        GEN3_SOWER_IMAGE
+      - name: hatchery
+        GEN3_HATCHERY_IMAGE
         livenessProbe:
           httpGet:
             path: /_status
@@ -71,21 +64,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          - name: DICTIONARY_URL
-            valueFrom:
-              configMapKeyRef:
-                name: manifest-global
-                key: dictionary_url
         volumeMounts:
-          - name: sower-config
+          - name: hatchery-config
             readOnly: true
-            mountPath: /sower_config.json
-            subPath: sower_config.json
-          - name: pelican-creds-volume
-            readOnly: true
-            mountPath: /pelican-creds.json
-            subPath: config.json
-          - name: "peregrine-creds-volume"
-            readOnly: true
-            mountPath: "/peregrine-creds.json"
-            subPath: creds.json
+            mountPath: /hatchery.json
+            subPath: hatchery.json

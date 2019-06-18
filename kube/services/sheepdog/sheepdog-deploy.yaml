@@ -79,7 +79,14 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: dictionary_url
+          # Signpost is deprecated; replace this w INDEX_CLIENT_HOST block
           - name: SIGNPOST_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: INDEX_CLIENT_HOST
             valueFrom:
               configMapKeyRef:
                 name: manifest-global

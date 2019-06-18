@@ -13,9 +13,14 @@ config["AUTH"] = 'https://auth.service.consul:5000/v3/'
 config["AUTH_ADMIN_CREDS"] = None
 config["INTERNAL_AUTH"] = None
 
-# Signpost
+# Signpost: deprecated, replaced by index client.
 config['SIGNPOST'] = {
     'host': environ.get('SIGNPOST_HOST') or 'http://indexd-service',
+    'version': 'v0',
+    'auth': ('gdcapi', conf_data.get('indexd_password', '{{indexd_password}}')),
+}
+config['INDEX_CLIENT'] = {
+    'host': environ.get('INDEX_CLIENT_HOST') or 'http://indexd-service',
     'version': 'v0',
     'auth': ('gdcapi', conf_data.get('indexd_password', '{{indexd_password}}')),
 }

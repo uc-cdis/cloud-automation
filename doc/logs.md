@@ -149,3 +149,7 @@ Retrieve aggregations from the `gen3-aggs-daily` index.
 ```
 $ gen3 logs history daily "start=-7 days" "vpc=all"
 ```
+
+### `gen3 logs snapshot`
+
+Snapshot the logs of currently running pods excluding jupyterhub to `.gz` files.

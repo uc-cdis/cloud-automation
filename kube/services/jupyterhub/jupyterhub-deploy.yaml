@@ -18,13 +18,6 @@ spec:
         userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
-      nodeSelector:
-        role: jupyter
-      tolerations:
-      - key: "role"
-        operator: "Equal"
-        value: "jupyter"
-        effect: "NoSchedule"
       serviceAccountName: jupyter-service
       volumes:
         - name: config-volume

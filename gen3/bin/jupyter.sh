@@ -96,7 +96,12 @@ gen3_jupyter_upgrade() {
   fi
   gen3 roll jupyterhub
 
-  gen3_jupyter_prepuller | g3kubectl apply -f -
+  local namespace
+  namespace="$(gen3 db namespace)"
+  if [[ "$namespace" == "default" ]]; then
+    # avoid deploying prepuller in dev/qa namespaces ...
+    gen3_jupyter_prepuller | g3kubectl apply -f -
+  fi
 }
 
 # main ----------------------
