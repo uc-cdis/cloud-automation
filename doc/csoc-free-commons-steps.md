@@ -3,6 +3,20 @@
 The following guide is intended to guide you through the process of bringing up a gen3 commons. This particular guide is intended for those who would build commons independetly from a centralized account, said kind of account we call it CSOC and is used basically to control multiple commons, and also collect logs from all of them for later process.
 
 
+
+# Table of contents
+
+
+- [1. Requirements](#requirements)
+- [2. Setting up the adminVM](#first-part-setting-up-the-adminvm)
+- [3. Start gen3](#second-part-start-gen3)
+- [4. Deploy kubernetes](#third-part-deploy-the-kubernetes-cluster)
+- [5. Bring up services in kubernetes](#fourth-part-bring-up-services-in-kubernetes)
+- [6. Cleanup process](#cleanup-process)
+
+
+
+
 ## Requirements
 
 To get stated, you must have an AWS account ready in which you will deploy all the resources required to stand up a commons. Unfortunatelly, the deployment may not be small enough, at least as for now, to enter into the free tier zone, therefore, costs may be involved if you decide to test this.
@@ -12,6 +26,9 @@ On the bright side, because we use terraform to deploy almost all resources, it 
 In order to move on, you must have an EC2 instance up with an admin like role attached to it. It shouldn't matter in which VPC it is and if it's behind a bastion node or not. 
 
 Additionally we recommend requesting a SSL certificate for the domain you are going to use to access your commons through AWS certificate manager before moving on, you'll need it later.
+
+
+
 
 
 ## First part, setting up the adminVM
@@ -53,6 +70,8 @@ source ${HOME}/.bashrc
 ```
 
   It worth noting that additional information may be required in this file, everything would depend on your setup for the VM in question.
+
+
 
 
 
@@ -124,6 +143,8 @@ cp -r commons-test_output/ $HOME
 
 
 
+
+
 ## Third part, deploy the kubernetes cluster
 
 1. Initialize the EKS module
@@ -181,6 +202,8 @@ gen3 tfapply
 ```bash
 cp commons-test_output_EKS/kubeconfig $HOME
 ```
+
+
 
 
 
@@ -290,6 +313,8 @@ kubectl get service revproxy-service-elb -o json | jq -r .status.loadBalancer.in
 ```
 
 8. Go to your registrar and point the desired domain to the outcome of above command.
+
+
 
 
 # Cleanup process
