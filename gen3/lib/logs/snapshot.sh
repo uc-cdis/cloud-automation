@@ -25,7 +25,7 @@ gen3_logs_snapshot_container() {
   fi
   local fileName
   fileName="${podName}.${containerName}.log"
-  if g3kubectl logs "$podName" -c "$containerName" --limit-bytes 250000 > "$fileName" && gzip "$fileName"; then
+  if g3kubectl logs "$podName" -c "$containerName" --limit-bytes 250000 > "$fileName" && gzip -f "$fileName"; then
     echo "${fileName}.gz"
     return 0
   fi
