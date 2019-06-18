@@ -17,13 +17,25 @@ and [cdis-manifest]
 # Table of contents
 
 - [1. TL;TR](#tltr)
-- [2. Workflows](#workflows)
-  - [2.1 AWS CSOC](#aws-csoc)
-  - [2.2 New account flow](#new-account-flow)
-  - [2.3 New adminVM](#new-adminvm)
-  - [2.4 New commons flow](#new-commons-flow)
-  - [2.5 Prerequisites for Commons](#prerequisites-for-commons)
+- [2. Independent Setup](#independent-setup)
+- [3. Workflows](#workflows)
+  - [3.1 AWS CSOC](#aws-csoc)
+  - [3.2 New account flow](#new-account-flow)
+  - [3.3 New adminVM](#new-adminvm)
+  - [3.4 New commons flow](#new-commons-flow)
+  - [3.5 Prerequisites for Commons](#prerequisites-for-commons)
 
+
+
+# Independent Setup
+
+There are a couple of ways you can build up a commons. The one we call CSOC free and the other attached to a CSOC account.
+
+CSOC stands for Commons Services Operations Center, which is a term used internally to refer to our centralized operation center for multiple commons. Visit [CSOC_Documentation.md](https://github.com/uc-cdis/cloud-automation/blob/master/CSOC_Documentation.md) for more information.
+
+For third party installs, the CSOC free is recommended. Commons attached to a CSOC account would be justified when managing multiple commons, where keeping up with daily tasks may become a little cumbersome.
+
+For setup instructions, please visit [csoc-free-commons-steps.md](https://github.com/uc-cdis/cloud-automation/blob/master/doc/csoc-free-commons-steps.md).
 
 
 # Workflows
