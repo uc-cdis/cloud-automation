@@ -7,9 +7,9 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-# hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
-hostname="qa-dcp"
-bucketname="${hostname}-pfb-export"
+hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
+short_hostname=$(echo "$hostname" | cut -f1 -d".")
+bucketname="${short_hostname}-pfb-export"
 gen3 s3 create "$bucketname"
 gen3 awsuser create pelican
 gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name pelican
