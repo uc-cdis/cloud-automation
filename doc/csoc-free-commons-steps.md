@@ -270,7 +270,10 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
       "subject"
     ]
   },
-"jupyterhub": {
+  "arborist": {
+    "deployment_version": "2"
+  },
+  "jupyterhub": {
     "enabled": "no"
   },
   "global": {
