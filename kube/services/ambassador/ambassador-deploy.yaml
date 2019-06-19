@@ -11,6 +11,9 @@ spec:
         "consul.hashicorp.com/connect-inject": "false"
       labels:
         service: ambassador
+        public: "yes"
+        netnolimit: "yes"
+        userhelper: "yes"
     spec:
       affinity:
         podAntiAffinity:
