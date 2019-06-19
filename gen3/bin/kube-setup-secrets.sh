@@ -306,10 +306,10 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update peregrine secrets
   cd "$(gen3_secrets_folder)"
   (
     version="$(g3kubectl get secrets/peregrine-secret -ojson 2> /dev/null | jq -r .metadata.labels.g3version)"
-    if [[ -z "$version" || "$version" == null || "$version" -lt 1 ]]; then
+    if [[ -z "$version" || "$version" == null || "$version" -lt 2 ]]; then
       g3kubectl delete secret peregrine-secret > /dev/null 2>&1 || true
       g3kubectl create secret generic peregrine-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/peregrine_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
-      g3kubectl label secret peregrine-secret g3version=1
+      g3kubectl label secret peregrine-secret g3version=2
     fi
   )
 fi
