@@ -91,6 +91,12 @@ spec:
                 name: manifest-global
                 key: fence_url
                 optional: true
+          - name: AUTH_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: auth_namespace
+                optional: true
           - name: REQUESTS_CA_BUNDLE
             #
             # override python 'requests' SSL certificate bundle
@@ -112,7 +118,7 @@ spec:
             - name: "config-helper"
               readOnly: true
               mountPath: "/var/www/sheepdog/config_helper.py"
-              subPath: config_helper.py  
+              subPath: config_helper.py
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"
