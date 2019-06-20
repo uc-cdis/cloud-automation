@@ -242,9 +242,6 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
     "This is the dev environment manifest",
     "That's all I have to say"
   ],
-  "jenkins": {
-    "autodeploy": "yes"
-  },
   "versions": {
     "arborist": "quay.io/cdis/arborist:master",
     "arranger": "quay.io/cdis/arranger:master",
@@ -261,6 +258,8 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
     "revproxy": "quay.io/cdis/nginx:1.15.5-ctds",
     "sheepdog": "quay.io/cdis/sheepdog:master",
     "spark": "quay.io/cdis/gen3-spark:master",
+    "manifestservice": "quay.io/cdis/manifestservice:master",
+    "wts": "quay.io/cdis/workspace-token-service:master",
     "tube": "quay.io/cdis/tube:master"
   },
   "arranger": {
@@ -285,7 +284,8 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
     "kube_bucket": "kube-commons-test-gen3",
     "logs_bucket": "logs-commons-test-gen3",
     "sync_from_dbgap": "False",
-    "useryaml_s3path": "s3://cdis-gen3-users/dev/user.yaml"
+    "useryaml_s3path": "s3://cdis-gen3-users/dev/user.yaml",
+    "netpolicy": "on"
   },
   "canary": {
     "default": 0
