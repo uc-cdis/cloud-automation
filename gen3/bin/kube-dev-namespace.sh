@@ -84,7 +84,7 @@ done
 # setup ~/vpc_name/credentials and kubeconfig
 cd /home/$namespace/${vpc_name}
 mkdir -p credentials
-for name in ca.pem ca-key.pem admin.pem admin-key.pem; do
+for name in ca.pem ca-key.pem; do
   cp ~/${vpc_name}/credentials/$name credentials/
 done
 sed -i.bak "s/default/$namespace/" kubeconfig
