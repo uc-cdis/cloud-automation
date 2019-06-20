@@ -2,14 +2,6 @@ variable "vpc_name" {
   default = "Commons1"
 }
 
-#variable "vpc_octet2" {
-#  default = 24
-#}
-
-#variable "vpc_octet3" {
-#  default = 17
-#}
-
 variable "vpc_cidr_block" {
   default = "172.24.17.0/20"
 }
@@ -26,9 +18,6 @@ variable "csoc_account_id" {
   default = "433568766270"
 }
 
-#variable "csoc_cidr" {
-#  default = "10.128.0.0/20"
-#}
 variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
@@ -172,13 +161,15 @@ variable "organization_name" {
 
 
 ## Mailgun variable defaults/definitions.
-variable "mailgun_api_key" {}
+variable "mailgun_api_key" {
+  default = ""
+}
 
 variable "mailgun_smtp_host" {
-    default = "smtp.mailgun.org"
+  default = "smtp.mailgun.org"
 }
 
 variable "mailgun_api_url" {
-    default = "https://api.mailgun.net/v3/"
+  default = "https://api.mailgun.net/v3/"
 }
 
