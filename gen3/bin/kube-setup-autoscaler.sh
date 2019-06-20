@@ -21,12 +21,12 @@ if (! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev
   #if [[ ${k8s_version} =~ -eks$ ]]; then tkv=$(echo ${k8s_version}| sed  's/\-eks//' ); k8s_version="${tkv}"; fi
   if [[ ${k8s_version} =~ -eks.*$ ]]; then tkv=${k8s_version//-eks*/}; k8s_version="${tkv}"; fi
   # sed "s/VPC_NAME/${vpc_name}/"  "${GEN3_HOME}/kube/services/autoscaler/cluster-autoscaler-autodiscover.yaml" | g3kubectl "--namespace=kube-system" apply -f -
-  # g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/cluster-autoscaler-autodiscover.yaml" VPC_NAME "${vpc_name}" | g3kubectl "--namespace=kube-system" apply -f -
+  g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/cluster-autoscaler-autodiscover.yaml" VPC_NAME "${vpc_name}" | g3kubectl "--namespace=kube-system" apply -f -
   # g3kubectl "--namespace=kube-system" apply -f "${GEN3_HOME}/kube/services/autoscaler/node-drainer-sa.yaml"
   # sed -e "s/VPC_NAME/${vpc_name}/" -e "s/K8S_VERSION/${k8s_version}/"  "${GEN3_HOME}/kube/services/autoscaler/kube-node-drainer-asg-status-updater-de.yaml" | g3kubectl "--namespace=kube-system" apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/kube-node-drainer-asg-status-updater-de.yaml" VPC_NAME "${vpc_name}" K8S_VERSION "${k8s_version}" | g3kubectl "--namespace=kube-system" apply -f -
+  # g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/kube-node-drainer-asg-status-updater-de.yaml" VPC_NAME "${vpc_name}" K8S_VERSION "${k8s_version}" | g3kubectl "--namespace=kube-system" apply -f -
   # sed "s/K8S_VERSION/${k8s_version}/"  "${GEN3_HOME}/kube/services/autoscaler/kube-node-drainer-ds.yaml" | g3kubectl "--namespace=kube-system" apply -f -
-  g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/kube-node-drainer-ds.yaml" K8S_VERSION "${k8s_version}" | g3kubectl "--namespace=kube-system" apply -f -
+  # g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/kube-node-drainer-ds.yaml" K8S_VERSION "${k8s_version}" | g3kubectl "--namespace=kube-system" apply -f -
 else
     echo "kube-setup-autoscaler exiting - cluster-autoscaler already deployed, use --force to redeploy"
 fi
