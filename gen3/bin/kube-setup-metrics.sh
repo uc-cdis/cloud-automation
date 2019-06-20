@@ -5,7 +5,14 @@
 #  https://docs.aws.amazon.com/eks/latest/userguide/metrics-server.html
 #  https://kubernetes.io/docs/tasks/debug-application-cluster/resource-metrics-pipeline/#metrics-server
 #  https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
-# 
+#
+# Note: you may need to run terraform (it has been patched)
+#     to update the security groups
+#     on the node pools to allow the control plane to access the
+#     metrics server
+#
+#   kubectl get apiservices.apiregistration.k8s.io
+#    
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
