@@ -350,18 +350,20 @@ gen3_gitops_configmaps() {
 declare -a gen3_gitops_repolist_arr=(
   uc-cdis/arborist
   uc-cdis/fence
-  uc-cdis/peregrine
   uc-cdis/gen3-arranger
   uc-cdis/gen3-spark
+  uc-cdis/guppy
   uc-cdis/indexd
+  uc-cdis/indexs3client
   uc-cdis/docker-nginx
+  uc-cdis/manifestservice
+  uc-cdis/peregrine
   uc-cdis/pidgin
   uc-cdis/data-portal
   uc-cdis/sheepdog
-  uc-cdis/tube
   uc-cdis/ssjdispatcher
-  uc-cdis/manifestservice
-  #frickjack/misc-stuff  # just for testing
+  uc-cdis/tube
+  uc-cdis/workspace-token-service
 )
 
 declare -a gen3_gitops_sshlist_arr=(

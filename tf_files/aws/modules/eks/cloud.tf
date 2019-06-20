@@ -507,7 +507,7 @@ resource "aws_security_group_rule" "https_nodes_to_plane" {
 # Control plane to the workers
 resource "aws_security_group_rule" "communication_plane_to_nodes" {
   type                     = "ingress"
-  from_port                = 1025
+  from_port                = 80
   to_port                  = 65534
   protocol                 = "tcp"
   security_group_id        = "${aws_security_group.eks_nodes_sg.id}"
