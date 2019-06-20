@@ -247,7 +247,7 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
   },
   "versions": {
     "arborist": "quay.io/cdis/arborist:master",
-    "arranger": "quay.io/cdis/arranger:feat_indices",
+    "arranger": "quay.io/cdis/arranger:master",
     "arranger-adminapi": "quay.io/cdis/arranger-server:master",
     "arranger-dashboard": "quay.io/cdis/arranger-dashboard:master",
     "aws-es-proxy": "abutaha/aws-es-proxy:0.8",
