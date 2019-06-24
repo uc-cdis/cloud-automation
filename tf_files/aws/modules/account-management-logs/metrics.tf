@@ -2,7 +2,7 @@
 
 resource "aws_cloudwatch_log_metric_filter" "metric_one" {
   name           = "SecurityGroupChangesMetricFilter"
-  pattern        = "($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup)"
+  pattern        = "{($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup)}"
   log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
 
   metric_transformation {
@@ -29,7 +29,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_one" {
 
 resource "aws_cloudwatch_log_metric_filter" "metric_two" {
   name           = "NetworkAclChangesMetricFilter"
-  pattern        = "($.eventName = CreateNetworkAcl) || ($.eventName = CreateNetworkAclEntry) || ($.eventName = DeleteNetworkAcl) || ($.eventName = DeleteNetworkAclEntry) || ($.eventName = ReplaceNetworkAclEntry) || ($.eventName = ReplaceNetworkAclAssociation)"
+  pattern        = "{($.eventName = CreateNetworkAcl) || ($.eventName = CreateNetworkAclEntry) || ($.eventName = DeleteNetworkAcl) || ($.eventName = DeleteNetworkAclEntry) || ($.eventName = ReplaceNetworkAclEntry) || ($.eventName = ReplaceNetworkAclAssociation)}"
   log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
 
   metric_transformation {
@@ -56,7 +56,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_two" {
 
 resource "aws_cloudwatch_log_metric_filter" "metric_three" {
   name           = "GatewayChangesMetricFilter"
-  pattern        = "($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway)"
+  pattern        = "{($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway)}"
   log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
 
   metric_transformation {
@@ -83,7 +83,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_three" {
 
 resource "aws_cloudwatch_log_metric_filter" "metric_four" {
   name           = "VpcChangesMetricFilter"
-  pattern        = "($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink)"
+  pattern        = "{($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink)}"
   log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
 
   metric_transformation {
@@ -110,7 +110,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_four" {
 
 resource "aws_cloudwatch_log_metric_filter" "metric_five" {
   name           = "EC2InstanceChangesMetricFilter"
-  pattern        = "($.eventName = RunInstances) || ($.eventName = RebootInstances) || ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName = TerminateInstances)"
+  pattern        = "{($.eventName = RunInstances) || ($.eventName = RebootInstances) || ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName = TerminateInstances)}"
   log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
 
   metric_transformation {
@@ -137,7 +137,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_five" {
 
 resource "aws_cloudwatch_log_metric_filter" "metric_six" {
   name           = "EC2LargeInstanceChangesMetricFilter"
-  pattern        = "($.eventName = RunInstances) && (($.requestParameters.instanceType = *.8xlarge) || ($.requestParameters.instanceType = *.4xlarge))"
+  pattern        = "{($.eventName = RunInstances) && (($.requestParameters.instanceType = *.8xlarge) || ($.requestParameters.instanceType = *.4xlarge))}"
   log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
 
   metric_transformation {
@@ -164,7 +164,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_six" {
 
 resource "aws_cloudwatch_log_metric_filter" "metric_seven" {
   name           = "CloudTrailChangesMetricFilter"
-  pattern        = "($.eventName = CreateTrail) || ($.eventName = UpdateTrail) || ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName = StopLogging)"
+  pattern        = "{($.eventName = CreateTrail) || ($.eventName = UpdateTrail) || ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName = StopLogging)}"
   log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
 
   metric_transformation {
@@ -191,7 +191,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_seven" {
 
 resource "aws_cloudwatch_log_metric_filter" "metric_eight" {
   name           = "ConsoleSignInFailuresMetricFilter"
-  pattern        = "($.eventName = ConsoleLogin) && ($.errorMessage = \"Failed authentication\")"
+  pattern        = "{($.eventName = ConsoleLogin) && ($.errorMessage = \"Failed authentication\")}"
   log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
 
   metric_transformation {
@@ -218,7 +218,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_eight" {
 
 resource "aws_cloudwatch_log_metric_filter" "metric_nine" {
   name           = "AuthorizationFailuresMetricFilter"
-  pattern        = "($.errorCode = \"*UnauthorizedOperation\") || ($.errorCode = \"AccessDenied*\")"
+  pattern        = "{($.errorCode = \"*UnauthorizedOperation\") || ($.errorCode = \"AccessDenied*\")}"
   log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
 
   metric_transformation {
@@ -245,7 +245,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm_nine" {
 
 resource "aws_cloudwatch_log_metric_filter" "metric_ten" {
   name           = "IAMPolicyChangesMetricFilter"
-  pattern        = "($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)"
+  pattern        = "{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}"
   log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
 
   metric_transformation {
