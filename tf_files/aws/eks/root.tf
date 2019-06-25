@@ -28,5 +28,8 @@ module "eks" {
   organization_name         = "${var.organization_name}"
   peering_vpc_id            = "${var.peering_vpc_id}"
   proxy_name                = "${var.proxy_name}"
+  jupyter_asg_desired_capacity = "${var.jupyter_asg_desired_capacity}"
+  jupyter_asg_max_size         = "${var.jupyter_asg_max_size}" 
+  jupyter_asg_min_size         = "${var.jupyter_asg_min_size}" 
 
 }

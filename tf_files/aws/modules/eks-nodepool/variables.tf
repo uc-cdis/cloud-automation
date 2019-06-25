@@ -61,14 +61,14 @@ variable "organization_name" {
   default = "Basic Service"
 }
 
-variable "asg_desired_capasity" {
+variable "jupyter_asg_desired_capasity" {
   default = 0
 }
 
-variable "asg_max_size" {
+variable "jupyter_asg_max_size" {
   default = 10
 }
 
-variable "asg_min_size" {
+variable "jupyter_asg_min_size" {
   default = 0
 }

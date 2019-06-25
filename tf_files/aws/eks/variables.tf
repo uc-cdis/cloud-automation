@@ -68,3 +68,16 @@ variable "organization_name" {
 variable "proxy_name" {
   default = " HTTP Proxy"
 }
+
+
+variable "jupyter_asg_desired_capasity" {
+  default = 0
+}
+
+variable "jupyter_asg_max_size" {
+  default = 10
+}
+
+variable "jupyter_asg_min_size" {
+  default = 0
+}

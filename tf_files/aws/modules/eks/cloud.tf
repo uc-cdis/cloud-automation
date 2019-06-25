@@ -28,6 +28,9 @@ module "jupyter_pool" {
   bootstrap_script          = "${var.jupyter_bootstrap_script}"
   jupyter_worker_drive_size = "${var.jupyter_worker_drive_size}"
   organization_name         = "${var.organization_name}"
+  jupyter_asg_desired_capacity = "${var.jupyter_asg_desired_capacity}"
+  jupyter_asg_max_size         = "${var.jupyter_asg_max_size}" 
+  jupyter_asg_min_size         = "${var.jupyter_asg_min_size}" 
 }
 
 
