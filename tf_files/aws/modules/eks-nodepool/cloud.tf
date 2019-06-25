@@ -285,10 +285,10 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
 
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
-  desired_capacity     = "${var.deploy_jupyter_pool == "yes" ? 3 : 0}"
+  desired_capacity     = "${var.asg_desired_capasity}"
   launch_configuration = "${aws_launch_configuration.eks_launch_configuration.id}"
-  max_size             = 10
-  min_size             = "${var.deploy_jupyter_pool == "yes" ? 3 : 0}"
+  max_size             = "${var.asg_max_size}"
+  min_size             = "${var.asg_min_size}" 
   name                 = "eks-${var.nodepool}worker-node-${var.vpc_name}"
   #vpc_zone_identifier  = ["${data.aws_subnet.eks_private.*.id}"]
   #vpc_zone_identifier  = ["${data.aws_subnet_ids.private.ids}"]
