@@ -285,7 +285,7 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
 
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
-  desired_capacity     = "${var.jupyter_asg_desired_capasity}"
+  desired_capacity     = "${var.jupyter_asg_desired_capacity}"
   launch_configuration = "${aws_launch_configuration.eks_launch_configuration.id}"
   max_size             = "${var.jupyter_asg_max_size}"
   min_size             = "${var.jupyter_asg_min_size}" 

@@ -32,9 +32,9 @@ variable "eks_version" {
   default = "1.11"
 }
 
-variable "deploy_jupyter_pool" {
-  default = "no"
-}
+#variable "deploy_jupyter_pool" {
+#  default = "no"
+#}
 
 variable "workers_subnet_size" {
   default = 24
@@ -70,7 +70,7 @@ variable "proxy_name" {
 }
 
 
-variable "jupyter_asg_desired_capasity" {
+variable "jupyter_asg_desired_capacity" {
   default = 0
 }
 

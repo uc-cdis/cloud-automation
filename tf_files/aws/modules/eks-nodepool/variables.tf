@@ -61,7 +61,7 @@ variable "organization_name" {
   default = "Basic Service"
 }
 
-variable "jupyter_asg_desired_capasity" {
+variable "jupyter_asg_desired_capacity" {
   default = 0
 }
 
