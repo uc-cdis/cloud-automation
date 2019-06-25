@@ -17,7 +17,7 @@ module "eks" {
   users_policy              = "${var.users_policy}"
   worker_drive_size         = "${var.worker_drive_size}"
   eks_version               = "${var.eks_version}"
-  deploy_jupyter_pool       = "${var.deploy_jupyter_pool}"
+#  deploy_jupyter_pool       = "${var.deploy_jupyter_pool}"
   jupyter_instance_type     = "${var.jupyter_instance_type}"
   workers_subnet_size       = "${var.workers_subnet_size}"
   bootstrap_script          = "${var.bootstrap_script}"
@@ -28,5 +28,8 @@ module "eks" {
   organization_name         = "${var.organization_name}"
   peering_vpc_id            = "${var.peering_vpc_id}"
   proxy_name                = "${var.proxy_name}"
+  jupyter_asg_desired_capacity = "${var.jupyter_asg_desired_capacity}"
+  jupyter_asg_max_size         = "${var.jupyter_asg_max_size}" 
+  jupyter_asg_min_size         = "${var.jupyter_asg_min_size}" 
 
 }

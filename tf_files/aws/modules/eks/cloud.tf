@@ -21,13 +21,16 @@ module "jupyter_pool" {
   eks_private_subnets       = "${aws_subnet.eks_private.*.id}"
   control_plane_sg          = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg       = "${aws_security_group.eks_nodes_sg.id}"
-  deploy_jupyter_pool       = "${var.deploy_jupyter_pool}"
+  #deploy_jupyter_pool       = "${var.deploy_jupyter_pool}"
   eks_version               = "${var.eks_version}"
   jupyter_instance_type     = "${var.jupyter_instance_type}"
   kernel                    = "${var.kernel}"
   bootstrap_script          = "${var.jupyter_bootstrap_script}"
   jupyter_worker_drive_size = "${var.jupyter_worker_drive_size}"
   organization_name         = "${var.organization_name}"
+  jupyter_asg_desired_capacity = "${var.jupyter_asg_desired_capacity}"
+  jupyter_asg_max_size         = "${var.jupyter_asg_max_size}" 
+  jupyter_asg_min_size         = "${var.jupyter_asg_min_size}" 
 }
 
 
