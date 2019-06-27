@@ -30,6 +30,13 @@ for name in $(g3kubectl get replicasets -l 'release!=production,release!=canary'
   g3kubectl label replicasets $name release=production || true
 done
 
+# Set up default storage class
+if ! g3kubectl get storageclass standard > /dev/null 2>&1; then
+  echo "INFO: Deploying the standard storage class for AWS"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/storageclass/aws-storageclass.yaml"
+fi
+
+
 gen3 kube-setup-indexd
 gen3 kube-setup-arborist || true
 gen3 kube-setup-fence
