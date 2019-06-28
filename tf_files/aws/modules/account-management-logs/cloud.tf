@@ -1,5 +1,12 @@
 # We need a bucket for cloud-trail to send logs
 
+module "metrics-alerts" {
+  source    = "../account-management-metrics"
+  cwl_group = "${aws_cloudwatch_log_group.management-logs_group.name}"
+}
+
+
+
 resource "aws_s3_bucket" "management-logs_bucket" {
   bucket = "${var.account_name}-management-logs"
   acl    = "private"

@@ -8,6 +8,3 @@ variable "account_name" {
 }
 
 
-variable "alarm_actions" {
-  default = ["arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"]
-}
