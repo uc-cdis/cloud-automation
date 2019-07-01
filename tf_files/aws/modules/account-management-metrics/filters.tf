@@ -65,7 +65,7 @@ resource "aws_cloudwatch_log_metric_filter" "metric_five" {
 
 resource "aws_cloudwatch_log_metric_filter" "metric_six" {
   name           = "EC2LargeInstanceChangesMetricFilter"
-  pattern        = "{($.eventName = RunInstances) && (($.requestParameters.instanceType = *.8xlarge) || ($.requestParameters.instanceType = *.4xlarge))}"
+  pattern        = "{($.eventName = RunInstances) && (($.requestParameters.instanceType = *.8xlarge) || ($.requestParameters.instanceType = *.4xlarge) || ($.requestParameters.instanceType = *.12xlarge) || ($.requestParameters.instanceType = *.24xlarge) || ($.requestParameters.instanceType = *.16xlarge) || ($.requestParameters = *.10xlarge) || ($.requestParameters = *.32xlarge) || ($.requestParameters = *.9xlarge) || ($.requestParameters = *.16xlarge) || ($.requestParameters = *.18xlarge))}"
   log_group_name = "${var.cwl_group}"
 
   metric_transformation {
