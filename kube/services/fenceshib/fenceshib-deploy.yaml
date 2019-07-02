@@ -85,6 +85,9 @@ spec:
         - name: fenceshib-secret
           secret:
             secretName: "fenceshib-g3auto"
+        - name: attribute-policy
+          configMap:
+            name: "fenceshib-attribute-policy"
       containers:
       - name: fenceshib
         GEN3_FENCESHIB_IMAGE
@@ -190,6 +193,10 @@ spec:
             readOnly: true
             mountPath: "/etc/shibboleth/inc-md-cert.pem"
             subPath: "inc-md-cert.pem"
+          - name: "attribute-policy"
+            readOnly: true
+            mountPath: "/etc/shibboleth/attribute-policy.xml"
+            subPath: "attribute-policy.xml"
         resources:
             limits:
               cpu: 2

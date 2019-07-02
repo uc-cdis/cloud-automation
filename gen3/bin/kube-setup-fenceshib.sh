@@ -8,6 +8,8 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
+scriptDir="${GEN3_HOME}/kube/services/fenceshib"
+
 gen3 kube-setup-secrets
 
 if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
@@ -24,6 +26,8 @@ if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   # avoid doing the previous block more than once or when not necessary ...
   touch "$(gen3_secrets_folder)/.rendered_fence_db"
 fi
+
+gen3 update_config fenceshib-attribute-policy "${scriptDir}/attribute-policy.xml"
 
 # deploy fenceshib
 gen3 roll fenceshib
