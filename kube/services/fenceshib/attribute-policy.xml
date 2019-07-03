@@ -28,9 +28,9 @@
         <Rule xsi:type="saml:AttributeScopeMatchesShibMDScope"/>
     </afp:PermitValueRule>
 
-    <afp:PermitValueRule id="EppnScopingRules" xsi:type="AND">
-        <Rule xsi:type="saml:AttributeScopeMatchesShibMDScope"/>
-    </afp:PermitValueRule>
+    <afp:AttributeRule attributeID="eppn">
+        <afp:PermitValueRule xsi:type="saml:AttributeScopeMatchesShibMDScope"/>
+    </afp:AttributeRule>
 
     <afp:AttributeFilterPolicy>
         <!-- This policy is in effect in all cases. -->
@@ -48,10 +48,6 @@
         </afp:AttributeRule>
         <afp:AttributeRule attributeID="primary-affiliation">
             <afp:PermitValueRuleReference ref="eduPersonAffiliationValues"/>
-        </afp:AttributeRule>
-
-        <afp:AttributeRule attributeID="eppn">
-            <afp:PermitValueRuleReference ref="EppnScopingRules"/>
         </afp:AttributeRule>
 
         <afp:AttributeRule attributeID="targeted-id">
