@@ -324,6 +324,11 @@ if [[ -f "$ETL_MAPPING_PATH" ]]; then
   gen3 update_config etl-mapping "$ETL_MAPPING_PATH"
 fi
 
+PRIVACY_POLICY="$(dirname $(g3k_manifest_path))/privacy_policy.md"
+if [[ -f "$PRIVACY_POLICY" ]]; then
+  gen3 update_config privacy-policy "$PRIVACY_POLICY"
+fi
+
 (
   version="$(g3kubectl get secrets/sheepdog-secret -ojson 2> /dev/null | jq -r .metadata.labels.g3version)"
   if [[ -z "$version" || "$version" == null || "$version" -lt 2 ]]; then

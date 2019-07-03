@@ -82,6 +82,9 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: privacy-policy
+          configMap:
+            name: "privacy-policy"
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -131,6 +134,9 @@ spec:
             readOnly: true
             mountPath: "/fence/fence/static/img/logo.svg"
             subPath: "logo.svg"
+          - name: "privacy-policy"
+            readOnly: true
+            mountPath: "/fence/fence/static/privacy_policy.md"
           - name: "config-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence-config.yaml"
