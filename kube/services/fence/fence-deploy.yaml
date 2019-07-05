@@ -96,7 +96,7 @@ spec:
         - name: PRIVACY_POLICY_URL
           valueFrom:
             configMapKeyRef:
-              name: global
+              name: manifest-global
               key: privacy_policy_url
               optional: true
         imagePullPolicy: Always
@@ -143,6 +143,7 @@ spec:
           - name: "privacy-policy"
             readOnly: true
             mountPath: "/fence/fence/static/privacy_policy.md"
+            subPath: "privacy_policy.md"
           - name: "config-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence-config.yaml"

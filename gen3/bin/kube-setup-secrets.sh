@@ -325,9 +325,11 @@ if [[ -f "$ETL_MAPPING_PATH" ]]; then
 fi
 
 PRIVACY_POLICY="$(dirname $(g3k_manifest_path))/privacy_policy.md"
-if [[ -f "$PRIVACY_POLICY" ]]; then
-  gen3 update_config privacy-policy "$PRIVACY_POLICY"
+if [[ ! -f "$PRIVACY_POLICY" ]]; then
+  # the file has to at least exist, otherwise fence will error out trying to mount it
+  touch $PRIVACY_POLICY
 fi
+gen3 update_config privacy-policy "$PRIVACY_POLICY"
 
 (
   version="$(g3kubectl get secrets/sheepdog-secret -ojson 2> /dev/null | jq -r .metadata.labels.g3version)"
