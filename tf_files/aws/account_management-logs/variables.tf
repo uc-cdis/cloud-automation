@@ -4,3 +4,7 @@ variable "csoc_account_id" {
 }
 
 variable "account_name" {}
+
+variable "alarm_actions" {
+  type = "list"
+}
