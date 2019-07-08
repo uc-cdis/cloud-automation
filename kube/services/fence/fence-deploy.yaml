@@ -93,12 +93,6 @@ spec:
           value: /var/www/fence
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
-        - name: PRIVACY_POLICY_URL
-          valueFrom:
-            configMapKeyRef:
-              name: manifest-global
-              key: privacy_policy_url
-              optional: true
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
