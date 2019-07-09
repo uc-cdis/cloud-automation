@@ -688,6 +688,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "dotag")
       gen3_gitops_repo_dotag "$@"
       ;;
+    "tfplan")
+      gen3_run_tfplan_vpc "$@"
+      ;;
     *)
       help
       ;;
