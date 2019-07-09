@@ -63,7 +63,7 @@ _check_cloud-automation_changes() {
 gen3_run_tfplan_vpc() {
 
   local plan
-  if [ _check_cloud-automation_Changes == "false" ];
+  if [[ $(_check_cloud-automation_Changes) == "false" ]];
   then
     gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name}
     plan=$(gen3 tfplan | grep "^Plan")
@@ -73,7 +73,8 @@ gen3_run_tfplan_vpc() {
       echo ${plan}
       aws sns publish --target-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message "${vpc_name} has unapplied plan \n${plan}"
     fi
-
+  else
+    aws sns publish --target-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message "${vpc_name} uncommited changes for cloud-automation"
   fi
 
 }
