@@ -65,7 +65,7 @@ gen3_run_tfplan_vpc() {
   local plan
   local slack_hook
   slack_hook="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
-  if [[ $(_check_cloud-automation_changes) == "true" ]];
+  if [[ $(_check_cloud-automation_changes) == "false" ]];
   then
     gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name} > /dev/null 2>&1
     plan=$(gen3 tfplan | grep "Plan")
@@ -101,7 +101,7 @@ gen3_run_tfplan_eks() {
   local plan
   local slack_hook
   slack_hook="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
-  if [[ $(_check_cloud-automation_changes) == "true" ]];
+  if [[ $(_check_cloud-automation_changes) == "false" ]];
   then
     gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name}_eks > /dev/null 2>&1
     plan=$(gen3 tfplan | grep "Plan")
