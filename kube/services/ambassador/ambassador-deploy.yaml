@@ -37,7 +37,10 @@ spec:
             memory: 100Mi
         env:
         - name: AMBASSADOR_NAMESPACE
-          value: "jupyter-pods"
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-hatchery
+              key: user-namespace
         - name: AMBASSADOR_SINGLE_NAMESPACE
           value: "true"
         ports:
