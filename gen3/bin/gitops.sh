@@ -42,6 +42,43 @@ _check_manifest_global_diff() {
 }
 
 #
+# Internal uptil for checking for differences in cloud-automation 
+# basicallt checking if through git 
+
+_check_cloud-automation_changes() {
+
+  cd ~/cloud-automation
+  if git diff-index --quiet HEAD --; then
+    echo "false"
+  else
+    echo "true"
+  fi
+}
+
+
+#
+# Function that checks 
+#
+#
+gen3_run_tfplan_vpc() {
+
+  local plan
+  if [ _check_cloud-automation_Changes == "false" ];
+  then
+    gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name}
+    plan=$(gen3 tfplan | grep "^Plan")
+
+    if ! [ -z ${plan} ];
+    then
+      echo ${plan}
+      aws sns publish --target-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message "${vpc_name} has unapplied plan \n${plan}"
+    fi
+
+  fi
+
+}
+
+#
 # command to update dictionary URL and image versions
 #
 gen3_gitops_sync() {
