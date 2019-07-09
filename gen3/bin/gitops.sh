@@ -57,21 +57,28 @@ _check_cloud-automation_changes() {
 
 
 #
-# Function that checks 
-#
+# Function that checks for uncomitter changes to cloud-automation
+# and also if there are unapplied changes to the vpc module
 #
 gen3_run_tfplan_vpc() {
 
   local plan
-  if [[ $(_check_cloud-automation_changes) == "false" ]];
+  local slack_hook
+  slack_hook="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+  if [[ $(_check_cloud-automation_changes) == "true" ]];
   then
-    gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name}
-    plan=$(gen3 tfplan | grep "^Plan")
+    gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name} > /dev/null 2>&1
+    plan=$(gen3 tfplan | grep "Plan")
 
-    if ! [ -z ${plan} ];
+    if [ -n "${plan}" ];
     then
-      echo ${plan}
-      aws sns publish --target-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message "${vpc_name} has unapplied plan \n${plan}"
+      #echo ${plan}
+      tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+      echo "${vpc_name} has unapplied plan:" > ${tempFile}
+      echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+      aws sns publish --target-arn ${slack_hook} --message file://${tempFile} > /dev/null 2>&1
+      #  "${vpc_name} has unapplied plan \n${plan}"
+      rm ${tempFile}
     fi
   else
     local changes
@@ -79,14 +86,48 @@ gen3_run_tfplan_vpc() {
     tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
     echo "${vpc_name} has uncommited changes for cloud-automation" > ${tempFile}
     git diff-index --name-only HEAD -- >> ${tempFile}
-    aws sns publish --target-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message file://${tempFile}
+    aws sns publish --target-arn ${slack_hook} --message file://${tempFile} > /dev/null 2>&1
     # "${vpc_name} has uncommited changes for cloud-automation \n${changes}"
     rm ${tempFile}
   fi
-
 }
 
 #
+# Function that checks for uncomitter changes to cloud-automation
+# and also if there are unapplied changes to the eks module
+#
+gen3_run_tfplan_eks() {
+
+  local plan
+  local slack_hook
+  slack_hook="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+  if [[ $(_check_cloud-automation_changes) == "true" ]];
+  then
+    gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name}_eks > /dev/null 2>&1
+    plan=$(gen3 tfplan | grep "Plan")
+
+    if [ -n "${plan}" ];
+    then
+      #echo ${plan}
+      tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+      echo "${vpc_name} has unapplied plan:" > ${tempFile}
+      echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+      aws sns publish --target-arn ${slack_hook} --message file://${tempFile} > /dev/null 2>&1
+      #  "${vpc_name} has unapplied plan \n${plan}"
+      rm ${tempFile}
+    fi
+  else
+    local changes
+    changes="$(git diff-index --name-only HEAD --)"
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name} has uncommited changes for cloud-automation" > ${tempFile}
+    git diff-index --name-only HEAD -- >> ${tempFile}
+    aws sns publish --target-arn ${slack_hook} --message file://${tempFile} > /dev/null 2>&1
+    # "${vpc_name} has uncommited changes for cloud-automation \n${changes}"
+    rm ${tempFile}
+  fi
+}
+
 # command to update dictionary URL and image versions
 #
 gen3_gitops_sync() {
@@ -696,8 +737,11 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "dotag")
       gen3_gitops_repo_dotag "$@"
       ;;
-    "tfplan")
+    "tfplan-vpc")
       gen3_run_tfplan_vpc "$@"
+      ;;
+    "tfplan-eks")
+      gen3_run_tfplan_eks "$@"
       ;;
     *)
       help
