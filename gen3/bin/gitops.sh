@@ -110,7 +110,7 @@ gen3_run_tfplan_eks() {
     then
       #echo ${plan}
       tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
-      echo "${vpc_name} has unapplied plan:" > ${tempFile}
+      echo "${vpc_name}_eks has unapplied plan:" > ${tempFile}
       echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
       aws sns publish --target-arn ${slack_hook} --message file://${tempFile} > /dev/null 2>&1
       #  "${vpc_name} has unapplied plan \n${plan}"
@@ -120,7 +120,7 @@ gen3_run_tfplan_eks() {
     local changes
     changes="$(git diff-index --name-only HEAD --)"
     tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
-    echo "${vpc_name} has uncommited changes for cloud-automation" > ${tempFile}
+    echo "${vpc_name}_eks has uncommited changes for cloud-automation" > ${tempFile}
     git diff-index --name-only HEAD -- >> ${tempFile}
     aws sns publish --target-arn ${slack_hook} --message file://${tempFile} > /dev/null 2>&1
     # "${vpc_name} has uncommited changes for cloud-automation \n${changes}"
