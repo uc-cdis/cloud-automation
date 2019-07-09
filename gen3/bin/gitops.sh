@@ -63,7 +63,7 @@ _check_cloud-automation_changes() {
 gen3_run_tfplan_vpc() {
 
   local plan
-  if [[ $(_check_cloud-automation_Changes) == "false" ]];
+  if [[ $(_check_cloud-automation_changes) == "false" ]];
   then
     gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name}
     plan=$(gen3 tfplan | grep "^Plan")
@@ -74,7 +74,14 @@ gen3_run_tfplan_vpc() {
       aws sns publish --target-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message "${vpc_name} has unapplied plan \n${plan}"
     fi
   else
-    aws sns publish --target-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message "${vpc_name} uncommited changes for cloud-automation"
+    local changes
+    changes="$(git diff-index --name-only HEAD --)"
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name} has uncommited changes for cloud-automation" > ${tempFile}
+    git diff-index --name-only HEAD -- >> ${tempFile}
+    aws sns publish --target-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message file://${tempFile}
+    # "${vpc_name} has uncommited changes for cloud-automation \n${changes}"
+    rm ${tempFile}
   fi
 
 }
