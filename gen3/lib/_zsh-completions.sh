@@ -34,7 +34,7 @@ _gen3_zsh_completions() {
     args)
       case $line[1] in
         gitops)
-          _values "gitops commands" configmaps rsync sshlist sync repolist taglist dotag && ret=0
+          _values "gitops commands" configmaps rsync sshlist sync repolist taglist dotag tfplan-vpc tfplan-eks && ret=0
           ;;
         job)
           if [[ "$line[2]" == "run" ]]; then
