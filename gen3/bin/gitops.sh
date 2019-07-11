@@ -73,10 +73,12 @@ gen3_run_tfplan() {
   module=$1
   changes=$(_check_cloud-automation_changes)
 
+  echo ${changes}
+
   if [[ ${changes} == "true" ]];
   then
-    local changes
-    changes="$(git diff-index --name-only HEAD --)"
+    #local files_changes
+    #changes="$(git diff-index --name-only HEAD --)"
     message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
     echo "${vpc_name} has uncommited changes for cloud-automation" > ${message}
     git diff-index --name-only HEAD -- >> ${message}
