@@ -73,7 +73,7 @@ gen3_run_tfplan() {
   module=$1
   changes=$(_check_cloud-automation_changes)
 
-  echo ${changes}
+  #echo ${changes}
 
   if [[ ${changes} == "true" ]];
   then
@@ -81,7 +81,7 @@ gen3_run_tfplan() {
     #changes="$(git diff-index --name-only HEAD --)"
     message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
     echo "${vpc_name} has uncommited changes for cloud-automation" > ${message}
-    git diff-index --name-only HEAD -- >> ${message}
+    git diff-index --name-only HEAD -- >> ${message} 2>&1
   elif [[ ${changes} == "false" ]];
   then
     # checking for the result of _check_cloud-automation_changes just in case it came out empty
@@ -98,7 +98,7 @@ gen3_run_tfplan() {
 
   if [ -n "${message}" ];
   then
-    aws sns publish --target-arn ${slack_hook} --message file://${message} > /dev/null #2>&1
+    aws sns publish --target-arn ${slack_hook} --message file://${message} > /dev/null 2>&1
     rm ${message}
   fi
 
