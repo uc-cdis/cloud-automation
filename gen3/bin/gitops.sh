@@ -50,7 +50,7 @@ _check_cloud-automation_changes() {
   cd ~/cloud-automation
   if git diff-index --quiet HEAD --; then
     # Should the repo has no changes, let's just pull, because why not
-    git pull
+    git pull > /dev/null 2>&1
     echo "false"
   else
     echo "true"
