@@ -221,7 +221,7 @@ bash kube-up.sh
 
 4. Move the kubeconfig file we copied previously into a newly created folder that `kube-up.sh` created for us.
 ```bash
-mv ${HOME}/kubconfig ${HOME}/commons-test/
+mv ${HOME}/kubeconfig ${HOME}/commons-test/
 ```
 
 3. Create a manifest folder
