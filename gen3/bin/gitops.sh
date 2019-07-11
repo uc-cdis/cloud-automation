@@ -73,10 +73,11 @@ gen3_run_tfplan() {
   module=$1
   changes=$(_check_cloud-automation_changes)
 
-  #echo ${changes}
+  echo ${changes}
 
   if [[ ${changes} == "true" ]];
   then
+    echo 1
     #local files_changes
     #changes="$(git diff-index --name-only HEAD --)"
     message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
@@ -84,6 +85,7 @@ gen3_run_tfplan() {
     git diff-index --name-only HEAD -- >> ${message} 2>&1
   elif [[ ${changes} == "false" ]];
   then
+    echo 2
     # checking for the result of _check_cloud-automation_changes just in case it came out empty
     # for whatever reson 
     case "$module" in
