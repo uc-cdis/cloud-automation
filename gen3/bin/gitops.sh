@@ -76,7 +76,7 @@ gen3_run_tfplan() {
 
   changes=$(_check_cloud-automation_changes)
 
-  echo ${changes}
+  #echo ${changes}
 
   cd ~/cloud-automation
   if [[ ${changes} == "true" ]];
@@ -92,22 +92,17 @@ gen3_run_tfplan() {
     # for whatever reson 
     case "$module" in
       "vpc")
-        echo "by VPC"
         message=$(_gen3_run_tfplan_vpc)
         ;;
       "eks")
-        echo "by EKS"
         message=$(_gen3_run_tfplan_eks)
         ;;
     esac
   fi
-  echo ${message}
-  echo $XDG_RUNTIME_DIR
-  ls -la $XDG_RUNTIME_DIR
 
   if [ -n "${message}" ];
   then
-    aws sns publish --target-arn ${sns_topic} --message file://${message} #> /dev/null 2>&1
+    aws sns publish --target-arn ${sns_topic} --message file://${message} > /dev/null 2>&1
     rm ${message}
   fi
 
@@ -123,7 +118,7 @@ _gen3_run_tfplan_vpc() {
   local slack_hook
   local tempFile
 
-  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name} #> /dev/null 2>&1
+  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name} > /dev/null 2>&1
   plan=$(gen3 tfplan | grep "Plan")
 
   if [ -n "${plan}" ];
