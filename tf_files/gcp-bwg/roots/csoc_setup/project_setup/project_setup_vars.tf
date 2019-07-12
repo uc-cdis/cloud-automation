@@ -60,13 +60,13 @@ variable "state_bucket_name" {
 
 variable "region" {
   description = "URL of the GCP region for this subnetwork."
-  default     = "us-central1"
+  type        = "string"
 }
 
 ######## VPC RELATED VARS
 variable "create_vpc_secondary_ranges" {
   description = "Whether or not to create secondary alias ranges"
-  default = "true"
+  default     = "true"
 }
 
 variable "range_name_k8_service" {
@@ -455,55 +455,65 @@ variable "peer_auto_create_routes" {
 variable "google_apis_route" {
   description = "Route to restricted Google APIs"
 }
+
 variable "csoc_ingress_priority" {}
 variable "csoc_ingress_enable_logging" {}
 
 variable "inbound_to_ingress_name" {}
 variable "inbound_to_ingress_network_name" {}
+
 variable "inbound_to_ingress_source_ranges" {
   type = "list"
 }
-variable "inbound_to_ingress_target_tags"  {
+
+variable "inbound_to_ingress_target_tags" {
   type = "list"
 }
-variable "inbound_to_ingress_protocol"  {
-}
-variable "inbound_to_ingress_ports"  {
+
+variable "inbound_to_ingress_protocol" {}
+
+variable "inbound_to_ingress_ports" {
   type = "list"
 }
 
 variable "inbound_to_commons001_name" {}
 variable "inbound_to_commons001_network_name" {}
+
 variable "inbound_to_commons001_source_ranges" {
   type = "list"
 }
-variable "inbound_to_commons001_target_tags"  {
+
+variable "inbound_to_commons001_target_tags" {
   type = "list"
 }
+
 variable "inbound_to_commons001_protocol" {}
+
 variable "inbound_to_commons001_ports" {
   type = "list"
 }
 
 variable "inbound_to_private_name" {}
 variable "inbound_to_private_network_name" {}
-variable "inbound_to_private_source_ranges"  {
+
+variable "inbound_to_private_source_ranges" {
   type = "list"
 }
 
-variable "inbound_to_private_target_tags"  {
+variable "inbound_to_private_target_tags" {
   type = "list"
 }
 
 variable "inbound_to_private_protocol" {}
-variable "inbound_from_commons001_protocol"{}
+variable "inbound_from_commons001_protocol" {}
 
-variable "inbound_from_commons001_name"{}
+variable "inbound_from_commons001_name" {}
+
 variable "inbound_from_commons001_target_tags" {
   type = "list"
 }
 
-variable "inbound_from_commons001_source_ranges"  {
+variable "inbound_from_commons001_source_ranges" {
   type = "list"
 }
 
@@ -511,9 +521,10 @@ variable "inbound_from_commons001_ports" {
   type = "list"
 }
 
-variable "inbound_from_ingress_name"{}
+variable "inbound_from_ingress_name" {}
 variable "inbound_from_ingress_protocol" {}
-variable "inbound_from_ingress_ports"  {
+
+variable "inbound_from_ingress_ports" {
   type = "list"
 }
 
@@ -521,37 +532,102 @@ variable "inbound_from_ingress_source_ranges" {
   type = "list"
 }
 
-variable "inbound_from_ingress_target_tags"  {
+variable "inbound_from_ingress_target_tags" {
   type = "list"
 }
 
 variable "inbound_from_gke_name" {}
 variable "inbound_from_gke_network_name" {}
+
 variable "inbound_from_gke_source_ranges" {
- type = "list"
+  type = "list"
 }
+
 variable "inbound_from_gke_target_tags" {
- type = "list"
+  type = "list"
 }
+
 variable "inbound_from_gke_ports" {
- type = "list"
+  type = "list"
 }
+
 variable "inbound_from_gke_protocol" {}
 variable "inbound_from_gke_enable_logging" {}
 variable "inbound_from_gke_priority" {}
 
 variable "outbound_from_gke_name" {}
 variable "outbound_from_gke_network_name" {}
+
 variable "outbound_from_gke_destination_ranges" {
- type = "list"
+  type = "list"
 }
+
 variable "outbound_from_gke_target_tags" {
- type = "list"
+  type = "list"
 }
+
 variable "outbound_from_gke_ports" {
- type = "list"
+  type = "list"
 }
+
 variable "outbound_from_gke_protocol" {}
 variable "outbound_from_gke_enable_logging" {}
 variable "outbound_from_gke_priority" {}
 
+variable "router_name" {
+  description = "The name of the router in which this NAT will be configured. Changing this forces a new NAT to be created."
+  default     = "cloud-router"
+}
+
+variable "router_region" {
+  description = "The region this NAT's router sits in."
+  default     = ""
+}
+
+variable "nat_name" {
+  description = "A unique name for Cloud NAT, required by GCE. Changing this forces a new NAT to be created."
+  default     = "cloud-nat"
+}
+
+variable "nat_ip_allocate_option" {
+  description = <<EOF
+    How external IPs should be allocated for this NAT. Valid values are AUTO_ONLY or MANUAL_ONLY.
+    Changing this forces a new NAT to be created.
+    EOF
+
+  default = "AUTO_ONLY"
+}
+
+variable "source_subnetwork_ip_ranges_to_nat" {
+  description = <<EOF
+    How NAT should be configured per Subnetwork.
+    Valid values include: ALL_SUBNETWORKS_ALL_IP_RANGES, ALL_SUBNETWORKS_ALL_PRIMARY_IP_RANGES, LIST_OF_SUBNETWORKS.
+    Changing this forces a new NAT to be created.
+    EOF
+
+  default = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+}
+
+variable "network_self_link" {
+  description = "The self_link of the network to NAT."
+  default     = ""
+}
+
+variable "log_filter" {
+  description = <<EOF
+    Specifies the desired filtering of logs on this NAT.
+    Valid values include: ALL, ERRORS_ONLY, TRANSLATIONS_ONLY
+    EOF
+
+  default = "ALL"
+}
+
+variable "log_filter_enable" {
+  description = "Whether to export logs."
+  default     = true
+}
+
+variable "nat_external_address_count" {
+  description = "Number of static external IP addresses to create."
+  default     = "1"
+}
