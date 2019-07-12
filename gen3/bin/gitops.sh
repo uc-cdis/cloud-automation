@@ -71,7 +71,6 @@ gen3_run_tfplan() {
   
 
   module=$1
-  echo $module
   sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
 
   changes=$(_check_cloud-automation_changes)
