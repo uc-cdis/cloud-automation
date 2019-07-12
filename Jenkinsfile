@@ -22,17 +22,25 @@ node {
 
     stage('pytest') {
       sh 'pip3 install boto3 --upgrade'
+      sh 'pip3 install kubernetes --upgrade'
       sh 'python -m pytest cloud-automation/apis_configs/'
+      sh 'python -m pytest cloud-automation/gen3/lib/dcf/'
       sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
       sh 'cd cloud-automation/kube/services/jupyterhub && python3 -m pytest test-jupyterhub_config.py'
+      sh 'bash cloud-automation/files/scripts/es-secgroup-sync.sh test'
     }
     stage('nginx helper test suite') {
       dir('cloud-automation/kube/services/revproxy') {
         sh 'npx jasmine helpersTest.js'
       }
     }
-    stage('base image dockerrun.sh test') {
+    stage('python 2 base image dockerrun.sh test') {
       dir('cloud-automation/Docker/python-nginx/python2.7-alpine3.7') {
+        sh 'sh dockerrun.sh --dryrun=True'
+      }
+    }
+    stage('python 3 base image dockerrun.sh test') {
+      dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
         sh 'sh dockerrun.sh --dryrun=True'
       }
     }
@@ -86,6 +94,10 @@ node {
     stage('Post') {
       kubeHelper.teardown(kubeLocks)
       testHelper.teardown()
+      // tear down network policies deployed by the tests
+      kubeHelper.kube(kubectlNamespace, {
+          sh(script: 'kubectl --namespace="' + kubectlNamespace + '" delete networkpolicies --all', returnStatus: true);
+        });
       pipelineHelper.teardown(currentBuild.result)
     }
   }

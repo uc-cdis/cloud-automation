@@ -13,15 +13,11 @@ spec:
     metadata:
       labels:
         app: jupyter-hub
+        public: "yes"
+        netnolimit: "yes"
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
-      nodeSelector:
-        role: jupyter
-      tolerations:
-      - key: "role"
-        operator: "Equal"
-        value: "jupyter"
-        effect: "NoSchedule"
       serviceAccountName: jupyter-service
       volumes:
         - name: config-volume
@@ -51,6 +47,18 @@ spec:
                 configMapKeyRef:
                   name: manifest-jupyterhub
                   key: containers
+                  optional: true
+            - name: NOTEBOOK_STORAGE_CAPACITY
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-jupyterhub
+                  key: nb_storage_size
+                  optional: true
+            - name: SIDECAR
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-jupyterhub
+                  key: sidecar
                   optional: true
           imagePullPolicy: Always
           resources:

@@ -16,13 +16,63 @@ fi
 
 overrides='{}'
 if g3kubectl get serviceaccounts/jenkins-service > /dev/null 2>&1; then
-  echo "devterm mounting jenkins service account" 1>&2
+  gen3_log_info "devterm" "mounting jenkins service account"
   overrides='{ "spec": { "serviceAccountName": "jenkins-service" }}'
 fi
 
-if [[ -z "$1" ]]; then
-  g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="app=gen3job,name=devterm" --restart=Never --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash
-else
-  commandStr="$1"
-  g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="app=gen3job,name=devterm" --restart=Never --image=quay.io/cdis/awshelper:master --image-pull-policy=Always --command -- /bin/bash -c "$commandStr"
-fi
+# some command line processing
+image=quay.io/cdis/awshelper:master
+labels="app=gen3job,name=devterm,netnolimit=yes"
+pullPolicy="IfNotPresent"
+declare -a command=("/bin/bash")
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -*labels)
+      shift
+      labels="$1"
+      shift
+      continue
+      ;;
+    -c)
+      shift
+      continue
+      ;;
+    --*command)
+      shift
+      continue
+      ;;
+    --*pull)
+      shift
+      pullPolicy="Always"
+      continue
+      ;;
+    --*image)
+      shift
+      image="$1"
+      shift
+      continue
+      ;;
+    sh)
+      command=(sh)
+      shift
+      continue
+      ;;
+    /bin/sh)
+      command=(/bin/sh)
+      shift
+      continue
+      ;;
+    -*)
+      command+=("$1")
+      shift
+      continue
+      ;;
+    *)
+      command+=("-c" "$*")
+      break
+      ;;
+  esac
+done
+gen3_log_info "devterm" "running $image with labels $labels command ${command[@]}"
+gen3_log_info g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --generator=run-pod/v1 --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"
+g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --generator=run-pod/v1 --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"

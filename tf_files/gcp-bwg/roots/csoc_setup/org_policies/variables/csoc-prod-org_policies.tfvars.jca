@@ -1,0 +1,47 @@
+########################################################
+#
+#   Vars for creating project level related resources
+#   (ie. vpc, firewall rules, vpc-peering, etc.)
+#
+########################################################
+
+#####Project setup info
+
+env = "csoc-prod"
+project_name = "jca-uchi-tf-csoc"
+billing_account = "01A7C1-F7ECC5-A7181E"
+credential_file = "../credentials.json"
+create_folder = true
+set_parent_folder = true
+folder = "csoc-production"
+region = "us-central1"
+organization = "prorelativity.com"
+org_id = "575228741867"
+prefix_org_setup = "org_setup_csoc"
+prefix_org_policies = "org_policies_csoc"
+prefix_project_setup = "project_setup_csoc"
+state_bucket_name = "jca-uchi-tf-state"
+
+### Uncomment this if not using our makefiles
+#terraform_workspace = "csoc_setup"
+
+constraint = ["constraints/compute.disableNestedVirtualization","constraints/compute.disableSerialPortAccess","constraints/compute.skipDefaultNetworkCreation"]
+
+
+### Uncomment this if not using our makefiles
+#terraform_workspace = "csoc_setup"
+
+org_administrator_org_binding=["group:devops@prorelativity.com"]
+projects_viewer_org_binding = ["user:cpereira@prorelativity.com"]
+org_viewer_org_binding = ["serviceAccount:project-factory-11662@prj-stage-wxyz-1e2471e8.iam.gserviceaccount.com"]
+network_admin_org_binding = ["user:ngold@prorelativity.com","serviceAccount:project-factory-11662@prj-stage-wxyz-1e2471e8.iam.gserviceaccount.com"]
+all_projects_org_owner = ["user:ngold@prorelativity.com","serviceAccount:project-factory-11662@prj-stage-wxyz-1e2471e8.iam.gserviceaccount.com"]
+billing_account_admin = ["user:ngold@prorelativity.com","serviceAccount:project-factory-11662@prj-stage-wxyz-1e2471e8.iam.gserviceaccount.com"]
+billing_account_user = ["serviceAccount:project-factory-11662@prj-stage-wxyz-1e2471e8.iam.gserviceaccount.com"]
+billing_account_viewer = ["group:finance@prorelativity.com","serviceAccount:project-factory-11662@prj-stage-wxyz-1e2471e8.iam.gserviceaccount.com"]
+log_viewer_org_binding = ["user:ngold@prorelativity.com","serviceAccount:project-factory-11662@prj-stage-wxyz-1e2471e8.iam.gserviceaccount.com"]
+org_policy_viewer_org_binding = ["user:ngold@prorelativity.com","serviceAccount:project-factory-11662@prj-stage-wxyz-1e2471e8.iam.gserviceaccount.com"]
+folder_viewer_org_binding = ["user:ngold@prorelativity.com","serviceAccount:project-factory-11662@prj-stage-wxyz-1e2471e8.iam.gserviceaccount.com"]
+stackdriver_monitoring_viewer_org_binding = ["user:ngold@prorelativity.com","serviceAccount:project-factory-11662@prj-stage-wxyz-1e2471e8.iam.gserviceaccount.com"]
+
+org_iam_externalipaccess = []

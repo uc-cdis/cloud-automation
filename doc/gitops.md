@@ -61,9 +61,10 @@ gen3 gitops sshlist
 ### sync
 
 Update the dictionary URL and image versions. The `--dryrun` flag can be used to display dictionary URL and image version check logs but do not want to roll pods.
+The optional `--slack` flag sends an update to the commons' slack channel (if any). 
 
 ```
-gen3 gitops sync
+gen3 gitops sync --slack
 gen3 --dryrun gitops sync
 ```
 
@@ -73,6 +74,17 @@ List the Gen3 source code repos.
 
 ```
 gen3 gitops repolist
+```
+
+### rollpath
+
+Derive the path to the `-deploy.yaml` for a service name
+(or service-canary), and an optional deployment version -
+pulled from the manifest if not given as an argument
+
+```
+gen3 gitops rollpath fence
+gen3 gitops rollpath arborist 2
 ```
 
 ### taglist

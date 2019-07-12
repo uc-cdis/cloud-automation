@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Save daily logs aggregations, and delete old indices.
-# Run as cron job in devplanetv1 or other selected user accounts:
+# Run as cron job in qaplanetv1@cdistest.csoc or other selected user accounts:
 #
 # PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # 2   2   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/es-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/es-cronjob.sh; else echo "no es-cronjob.sh"; fi) > $HOME/es-cronjob.log 2>&1

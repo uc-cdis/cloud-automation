@@ -133,6 +133,8 @@ gen3_workon_aws(){
   export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons"
   if [[ "$GEN3_WORKSPACE" =~ _user$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/user_vpc"
+  elif [[ "$GEN3_WORKSPACE" =~ _usergeneric$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/user_generic"
   elif [[ "$GEN3_WORKSPACE" =~ _snapshot$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/rds_snapshot"
   elif [[ "$GEN3_WORKSPACE" =~ _adminvm$ ]]; then
@@ -141,6 +143,8 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_common_logging"
   elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/data_bucket"
+  elif [[ "$GEN3_WORKSPACE" =~ _demolab$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/demolab"
   elif [[ "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _utilityvm$ ]]; then
@@ -167,6 +171,10 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/account_management-logs"
   elif [[ "$GEN3_WORKSPACE" =~ _squidauto$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_auto"
+  elif [[ "$GEN3_WORKSPACE" =~ _role$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role"
+  elif [[ "$GEN3_WORKSPACE" =~ _role_policy_attachment$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role_policy_attachment"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -268,7 +276,8 @@ EOM
     cat - <<EOM
   env_vpc_name         = "VPC-NAME"
   vpc_cidr             = "VPC_CIDR"
-  squid_proxy_subnet = "ASSIGNED SUBNET FOR SQUID SET-UP a /24"
+  squid_proxy_subnet = "ASSIGN SUBNET FOR SQUID SET-UP a /24"
+  env_squid_name     = "ASSING A SQUID NAME AS '<commons_name>_squid_auto_setup' "
 EOM
     return 0
   fi
@@ -288,6 +297,18 @@ EOM
     cat - <<EOM
 bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/[_\.]/-/g')-gen3"
 environment="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
+EOM
+    return 0
+  fi
+
+  # else ...
+  if [[ "$GEN3_WORKSPACE" =~ _demolab$ ]]; then
+    cat - <<EOM
+vpc_name="${GEN3_WORKSPACE//_demolab/}"
+instance_type="t3.small"
+instance_count=5
+# this is Reuben's key ...
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCfX+T2c3+iBP17DS0oPj93rcQH7OgTCKdjYS0f9s8sIKjErKCao0tRNy5wjBhAWqmq6xFGJeA7nt3UBJVuaGFbszIzs+yvjZYYVrJQdfl0yPbrKRMd/Ch77Jnqbu97Uyu8UxhGkzqEcxQrdBqhqkakhQULjcjZBnk0M1PrLwW+Pl1kRCnXnX/x3YzDR/Ltgjc57qjPbqz7+CBbuFo5OCYOY94pcXetHskvx1AAQ7ZT2c/F/p6vIH5jPKnCTjuqWuGoimp/alczLMO6n+aHgzqc9NKQUScxA0fCGxFeoEdd6b370E7j8xXMIA/xSmq8lFPam+fm3117nC4m29sRktoBI8YP4L7VPSkM/hLp/vRzVJf6U183GfvUSZPERrg+NvMeah9vgkTgzH0iN1+s2xPj6eFz7VUOQtLYTchMZ/qyyGhUzJznY0szocVd6iDbMAYm67R+QtgYEBD1hYrtUD052imb62nEXHFSL3V6369GaJ+k5BIUTGweOaUxGbJlb6fG2Aho4EWaigYRMtmlKgDFaCeJGjlQrFR9lKFzDBc3Af3RefPDVsavYGdQQRUAmueGjlks99Bvh2U53HQgQvc0iQg3ijey2YXBr6xFCMeG7MJZbPcrlQLXko4KygK94EcDPZnIH542CrtAySk/UxxwZv5u0dLsh7o+ZK9G6PO1+Q== reubenonrye@uchicago.edu"
 EOM
     return 0
   fi
@@ -389,6 +410,10 @@ EOM
       commonsName=${GEN3_WORKSPACE//_es/}
       cat - <<EOM
 vpc_name   = "${commonsName}"
+instance_type = "m4.large.elasticsearch"
+ebs_volume_size_gb = 20
+slack_webhook             = FILL THIS IN FOR CLOUDWATCH ALARMS
+secondary_slack_webhook   = FILL THIS IN FOR CLOUDWATCH ALARMS
 EOM
     return 0
   fi
@@ -469,7 +494,7 @@ vpc_name="$GEN3_WORKSPACE"
 # octets are legacy, we should now use the full CIDR
 #vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
 #vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
-vpc_cidr_block=172.X.Y.0/20
+vpc_cidr_block="172.X.Y.0/20"
 
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 portal_app="dev"
@@ -477,6 +502,7 @@ portal_app="dev"
 aws_cert_name="arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
 
 db_size=10
+db_instance="db.t2.micro"
 
 # This indexd guid prefix should come from Trevar/ZAC
 indexd_prefix=ENTER_UNIQUE_GUID_PREFIX
@@ -507,7 +533,6 @@ db_password_peregrine="$(random_alphanumeric 32)"
 
 db_password_indexd="$(random_alphanumeric 32)"
 
-db_instance="db.t2.micro"
 
 # password for write access to indexd
 gdcapi_indexd_password="$(random_alphanumeric 32)"
@@ -515,6 +540,10 @@ gdcapi_indexd_password="$(random_alphanumeric 32)"
 fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
+# mailgun for sending alert e-mails
+mailgun_api_key=""
+mailgun_api_url=""
+mailgun_smtp_host=""
 
 kube_ssh_key="${kube_ssh_key}"
 

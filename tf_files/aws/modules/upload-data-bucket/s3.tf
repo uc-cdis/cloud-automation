@@ -25,13 +25,24 @@ resource "aws_s3_bucket" "data_bucket" {
   }
 }
 
+
+resource "aws_s3_bucket_public_access_block" "data_bucket_privacy" {
+  bucket                      = "${aws_s3_bucket.data_bucket.id}"
+
+  block_public_acls           = true
+  block_public_policy         = true
+  ignore_public_acls          = true
+  restrict_public_buckets     = true
+}
+
+
 ##create an event for SNS
 resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = "${aws_s3_bucket.data_bucket.id}"
 
   topic {
     topic_arn     = "${module.data-bucket-queue.data-bucket_name}"
-    events        = ["s3:ObjectCreated:Put","s3:ObjectCreated:Post"]
+    events        = ["s3:ObjectCreated:Put", "s3:ObjectCreated:Post", "s3:ObjectCreated:Copy", "s3:ObjectCreated:CompleteMultipartUpload" ]
   }
 }
 
@@ -76,6 +87,15 @@ resource "aws_s3_bucket" "log_bucket" {
   }
 }
 
+
+resource "aws_s3_bucket_public_access_block" "data_bucket_logs_privacy" {
+  bucket                      = "${aws_s3_bucket.log_bucket.id}"
+
+  block_public_acls           = true
+  block_public_policy         = true
+  ignore_public_acls          = true
+  restrict_public_buckets     = true
+}
 
 
 

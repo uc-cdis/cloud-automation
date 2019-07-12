@@ -2,6 +2,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: peregrine-deployment
+  annotations:
+    gen3.io/network-ingress: "pidgin"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -19,6 +21,9 @@ spec:
       labels:
         app: peregrine
         release: production
+        public: "yes"
+        # to download dictionary
+        s3: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -69,6 +74,25 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: public_datasets
+                optional: true
+          # Signpost is deprecated; replace this w INDEX_CLIENT_HOST block
+          - name: SIGNPOST_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: INDEX_CLIENT_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: FENCE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: fence_url
                 optional: true
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|

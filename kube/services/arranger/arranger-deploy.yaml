@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: arranger
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -68,6 +69,12 @@ spec:
             value: esproxy-service:9200
           - name: GEN3_ARBORIST_ENDPOINT
             value: http://arborist-service
+          - name: GEN3_ARBORIST_ENDPOINT_OVERRIDE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
+                optional: true
           - name: GEN3_PROJECT_ID
             value: GEN3_ARRANGER_PROJECT_ID|-dev-|
           - name: GEN3_AUTH_FILTER_FIELD

@@ -1,7 +1,9 @@
-apiVersion: extensions/v1beta1 
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: indexd-deployment
+  annotations:
+    gen3.io/network-ingress: "fence,fenceshib,peregrine,sheepdog,ssjdispatcherjob"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -19,6 +21,7 @@ spec:
       labels:
         app: indexd
         release: production
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -61,6 +64,12 @@ spec:
               configMapKeyRef:
                 name: manifest-indexd
                 key: dist
+                optional: true
+          - name: ARBORIST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-indexd
+                key: arborist
                 optional: true
         imagePullPolicy: Always
         livenessProbe:

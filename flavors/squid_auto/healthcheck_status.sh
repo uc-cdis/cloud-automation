@@ -8,9 +8,11 @@ for i in {1..12}
 do
 timestamp=$(date)
 
-count_stat1=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names commons_squid_auto_autoscaling_grp --region us-east-1  --query AutoScalingGroups[].Instances[].HealthStatus --output text | grep -w Healthy | awk '{print NF}')
+COMMONS_SQUID_AUTO_ROLE=$(sed -n -e '/VAR4/ s/.*\= *//p' /home/ubuntu/squid_auto_user_variable)
 
-count_stat2=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names commons_squid_auto_autoscaling_grp --region us-east-1  --query AutoScalingGroups[].Instances[].HealthStatus --output text | grep -w Unhealthy | awk '{print NF}')
+count_stat1=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${COMMONS_SQUID_AUTO_ROLE}_autoscaling_grp --region us-east-1  --query AutoScalingGroups[].Instances[].HealthStatus --output text | grep -w Healthy | awk '{print NF}')
+
+count_stat2=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${COMMONS_SQUID_AUTO_ROLE}_autoscaling_grp --region us-east-1  --query AutoScalingGroups[].Instances[].HealthStatus --output text | grep -w Unhealthy | awk '{print NF}')
 
 
 

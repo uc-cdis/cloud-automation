@@ -103,7 +103,7 @@ g3k_manifest_path() {
   folder="$(g3k_manifest_init)"
   domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
   if [[ -z "$domain" ]]; then
-    echo -e $(red_color "g3k_manifest_path could not establish commons hostname") 1>&2
+    gen3_log_err "g3k_manifest_path" "could not establish commons hostname"
     return 1
   fi
   mpath="${folder}/${domain}/manifest.json"
@@ -111,7 +111,7 @@ g3k_manifest_path() {
   if [[ -f "$mpath" ]]; then
     return 0
   else
-    echo -e $(red_color "ERROR: The path g3k_manifest_path obtained was not a valid path. Does $mpath exist?") 1>&2
+    gen3_log_err "g3k_manifest_path" "path obtained was not a valid path. Does $mpath exist?"
     return 1
   fi
 }
@@ -149,13 +149,13 @@ g3k_kv_filter() {
     # introduce support for default value - KEY|DEFAULT|
     # Note: -E == extended regex
     #
-    sed -E -i.bak "s^${key}([|]-.+-[|])?^${value}^g" "$tempFile"
+    sed -E -i "s^${key}([|]-.+-[|])?^${value}^g" "$tempFile"
   done
   #
   # Finally - any put default values in place for any undefined variables
   # Note: -E == extended regex
   #
-  sed -E -i.bak 's^[a-zA-Z][a-zA-Z0-9_-]+[|]-(.*)-[|]^\1^g' "$tempFile"
+  sed -E -i 's^[a-zA-Z][a-zA-Z0-9_-]+[|]-(.*)-[|]^\1^g' "$tempFile"
   cat $tempFile
   /bin/rm "$tempFile"
   return 0

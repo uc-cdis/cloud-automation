@@ -1,3 +1,4 @@
+Chef/nodes/
 tf_files/*output/*
 tf_files/terraform.tfstate
 tf_files/terraform.tfstate.backup

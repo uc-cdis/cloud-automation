@@ -24,8 +24,8 @@ resource "aws_s3_bucket" "common_logging_bucket" {
     prefix = "forwarded*/"
 
     tags = {
-      "rule"      = "log"
-      "autoclean" = "true"
+      rule      = "log"
+      autoclean = "true"
     }
 
     transition {
@@ -43,6 +43,16 @@ resource "aws_s3_bucket" "common_logging_bucket" {
       days = 1827
     }
   }
+}
+
+
+resource "aws_s3_bucket_public_access_block" "data_bucket_privacy" {
+  bucket                      = "${aws_s3_bucket.common_logging_bucket.id}"
+
+  block_public_acls           = true
+  block_public_policy         = true
+  ignore_public_acls          = true
+  restrict_public_buckets     = true
 }
 
 ############################ Start Kinesis Stream and destination #################
@@ -384,9 +394,7 @@ resource "aws_lambda_function" "logs_decodeding" {
   }
 
   environment {
-    variables = {
-      stream_name = "${var.common_name}_firehose"
-    }
+    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}" } 
   }
 
   lifecycle {

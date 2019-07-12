@@ -25,12 +25,18 @@ variable "elasticsearch_domain" {
   default = "commons-logs"
 }
 
-variable "aws_access_key" 
-{
+variable "aws_access_key"{
   default = ""
 }
 
-variable "aws_secret_key" 
-{
+variable "aws_secret_key"{
+  default = ""
+}
+
+variable "threshold"{
+  default = ""
+}
+
+variable "slack_webhook"{
   default = ""
 }

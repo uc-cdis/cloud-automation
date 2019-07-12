@@ -29,7 +29,8 @@ data "aws_vpcs" "vpcs" {
 
 data "aws_instances" "squid_proxy" {
   instance_tags {
-    Name = "${var.vpc_name} HTTP Proxy"
+    #Name = "${var.vpc_name} HTTP Proxy"
+    Name = "${var.vpc_name}${var.proxy_name}"
   }
 }
 
@@ -54,6 +55,9 @@ data "aws_vpc_endpoint_service" "s3" {
   service = "s3"
 }
 
+data "aws_vpc_endpoint_service" "logs" {
+  service = "logs"
+}
 
 # get the route to public kube 
 data "aws_route_table" "public_kube" {
@@ -61,4 +65,19 @@ data "aws_route_table" "public_kube" {
   tags {
     Name = "main"
   }
+}
+
+
+# First, let us create a data source to fetch the latest Amazon Machine Image (AMI) that Amazon provides with an
+# EKS compatible Kubernetes baked in.
+
+data "aws_ami" "eks_worker" {
+  filter {
+    name   = "name"
+    # values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
+    values = ["amazon-eks-node-${var.eks_version}*"]
+  }
+
+  most_recent = true
+  owners      = ["602401143452"] # Amazon Account ID
 }

@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: guppy
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -33,6 +34,12 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
+        - name: guppy-config
+          configMap:
+            name: manifest-guppy
+            items:
+              - key: json
+                path: guppy_config.json
         - name: cert-volume
           secret:
             secretName: "cert-arranger-service"
@@ -45,26 +52,46 @@ spec:
           livenessProbe:
             httpGet:
               path: /_status
-              port: 3000
+              port: 80
             initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
               path: /_status
-              port: 3000
+              port: 80
           ports:
-          - containerPort: 3000
+          - containerPort: 80
           env:
+          - name: GUPPY_CONFIG_FILEPATH
+            value: /guppy/guppy_config.json
           - name: GEN3_ES_ENDPOINT
             value: esproxy-service:9200
           - name: GEN3_ARBORIST_ENDPOINT
-            value: http://arborist-service
-          - name: GEN3_ES_INDEX
-            value: GEN3_GUPPY_ES_INDEX|-gen3-subject-dev-|
-          - name: GEN3_ES_TYPE
-            value: GEN3_GUPPY_ES_TYPE|-subject-|
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
+                optional: true
+          - name: TIER_ACCESS_LEVEL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                # acceptable values for `tier_access_level` are: `libre`, `regular` and `private`. If omitted, by default common will be treated as `private`
+                key: tier_access_level
+                # for now making it optional so won't break anything
+                optional: true
+          - name: TIER_ACCESS_LIMIT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: tier_access_limit
+                optional: true
           volumeMounts:
+            - name: guppy-config
+              readOnly: true
+              mountPath: /guppy/guppy_config.json
+              subPath: guppy_config.json
             - name: "cert-volume"
               readOnly: true
               mountPath: "/mnt/ssl/service.crt"

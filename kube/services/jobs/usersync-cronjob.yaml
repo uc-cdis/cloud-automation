@@ -213,7 +213,14 @@ spec:
                   cp /var/www/fence/user.yaml /mnt/shared/user.yaml
                 else
                   echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
-                  aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml;
+                  n=0
+                  until [ $n -ge 5 ]
+                  do
+                    echo "Download attempt $n"
+                    aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml && break
+                    n=$[$n+1]
+                    sleep 2
+                  done
                   if [[ -f /mnt/shared/user.yaml ]]; then
                     echo "awshelper container user.yaml diff ..."
                     diff /var/www/fence/user.yaml /mnt/shared/user.yaml

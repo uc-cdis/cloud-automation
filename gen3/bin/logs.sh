@@ -9,13 +9,11 @@ gen3_load "gen3/lib/logs/utils"
 gen3_load "gen3/lib/logs/raw"
 gen3_load "gen3/lib/logs/daily"
 gen3_load "gen3/lib/logs/ubh"
+gen3_load "gen3/lib/logs/snapshot"
 
 if [[ -z "$vpc_name" ]]; then
   vpc_name="$(g3kubectl get configmap global -o json | jq -r .data.environment)"
 fi
-
-
-
 
 gen3_logs_help() {
   gen3 help logs
@@ -57,8 +55,14 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           ;;
       esac
       ;;
+    "job")
+      gen3_logs_rawlog_search qtype=job "$@"
+      ;;
     "raw")
       gen3_logs_rawlog_search "$@"
+      ;;
+    "jobq")  # echo raw query - mostly for test suite
+      gen3_logs_joblog_query "$@"
       ;;
     "rawq")  # echo raw query - mostly for test suite
       gen3_logs_rawlog_query "$@"
@@ -81,6 +85,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           exit 1
           ;;
       esac
+      ;;
+    "snapshot")
+      gen3_logs_snapshot_all "$@"
       ;;
     "user")
       gen3_logs_user_list "$@"
