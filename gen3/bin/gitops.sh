@@ -75,7 +75,7 @@ gen3_run_tfplan() {
 
   changes=$(_check_cloud-automation_changes)
 
-  #echo ${changes}
+  echo ${changes}
 
   cd ~/cloud-automation
   if [[ ${changes} == "true" ]];
@@ -98,6 +98,8 @@ gen3_run_tfplan() {
         ;;
     esac
   fi
+  echo ${message}
+  echo $XDG_RUNTIME_DIR
 
   if [ -n "${message}" ];
   then
