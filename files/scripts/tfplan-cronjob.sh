@@ -14,7 +14,7 @@ fi
 
 export GEN3_HOME="$HOME/cloud-automation"
 export KUBECONFIG="$HOME/${vpc_name}/kubeconfig"
-#export vpc_name="qaplanetv1"
+export vpc_name="$(grep vpc_name $HOME/.bashrc |cut -d\' -f2)"
 PATH="${PATH}:/usr/local/bin"
 
 if [[ -z "$XDG_DATA_HOME" ]]; then
