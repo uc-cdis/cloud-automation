@@ -95,6 +95,23 @@ output "peer2_vpc_state" {
   value = "${module.vpc-peering-csoc_private_to_ingress.peer2_vpc_state}"
 }
 
+############### CLOUD NAT OUTPUTS #####################
+output "cloud_nat_name" {
+  value = "${module.create_cloud_nat_csoc_private.cloud_nat_name}"
+}
+
+output "cloud_router_name" {
+  value = "${module.create_cloud_nat_csoc_private.cloud_router_name}"
+}
+
+output "cloud_nat_external_ip_self_link" {
+  value = "${module.create_cloud_nat_csoc_private.google_compute_address_self_link}"
+}
+
+output "cloud_nat_external_ip" {
+  value = "${module.create_cloud_nat_csoc_private.google_compute_address_ip}"
+}
+
 ############### FIREWALL OUTPUTS #####################
 # -----------------
 # Firewall Outputs

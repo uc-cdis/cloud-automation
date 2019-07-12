@@ -42,10 +42,6 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   network                 = "${data.google_compute_network.network.self_link}"
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = ["${google_compute_global_address.private_ip_address.name}"]
-
-  depends_on = [
-    "google_project_service.servicenetworking"
-  ]
 }
 
 # -------------------
@@ -62,16 +58,14 @@ resource "google_sql_database_instance" "instance" {
 
   depends_on = [
     "google_service_networking_connection.private_vpc_connection",
-    "google_project_service.servicenetworking"
   ]
 
   settings {
     tier = "${var.tier}"
 
     ip_configuration {
-      ipv4_enabled    = "${var.ipv4_enabled ? 1 : 0}"
-      private_network = "${data.google_compute_network.network.self_link}"
-
+      ipv4_enabled        = "${var.ipv4_enabled ? 1 : 0}"
+      private_network     = "${data.google_compute_network.network.self_link}"
       #authorized_networks = "${var.authorized_networks}"
     }
 
