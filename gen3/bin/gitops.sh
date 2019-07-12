@@ -42,6 +42,114 @@ _check_manifest_global_diff() {
 }
 
 #
+# Internal uptil for checking for differences in cloud-automation 
+# basicallt checking if through git 
+
+_check_cloud-automation_changes() {
+
+  cd ~/cloud-automation
+  if git diff-index --quiet HEAD --; then
+    # Should the repo has no changes, let's just pull, because why not
+    git pull > /dev/null 2>&1
+    echo "false"
+  else
+    echo "true"
+  fi
+}
+
+
+#
+# General tfplan function that depending on the value of next argument
+# it'll determine which subfuntion to send the payload
+#
+gen3_run_tfplan() {
+
+  local message
+  local sns_topic
+  local module
+  local changes
+  
+
+  module=$1
+  sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+
+  changes=$(_check_cloud-automation_changes)
+
+  #echo ${changes}
+
+  if [[ ${changes} == "true" ]];
+  then
+    #local files_changes
+    #changes="$(git diff-index --name-only HEAD --)"
+    message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name} has uncommited changes for cloud-automation" > ${message}
+    git diff-index --name-only HEAD -- >> ${message} 2>&1
+  elif [[ ${changes} == "false" ]];
+  then
+    # checking for the result of _check_cloud-automation_changes just in case it came out empty
+    # for whatever reson 
+    case "$module" in
+      "vpc")
+        message=$(_gen3_run_tfplan_vpc)
+        ;;
+      "eks")
+        message=$(_gen3_run_tfplan_eks)
+        ;;
+    esac
+  fi
+
+  if [ -n "${message}" ];
+  then
+    aws sns publish --target-arn ${sns_topic} --message file://${message} > /dev/null 2>&1
+    rm ${message}
+  fi
+
+}
+
+#
+# Function that checks for uncomitter changes to cloud-automation
+# and also if there are unapplied changes to the vpc module
+#
+_gen3_run_tfplan_vpc() {
+
+  local plan
+  local slack_hook
+  local tempFile
+
+  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name} > /dev/null 2>&1
+  plan=$(gen3 tfplan | grep "Plan")
+
+  if [ -n "${plan}" ];
+  then
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name} has unapplied plan:" > ${tempFile}
+    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+  fi
+  echo "${tempFile}"
+}
+
+#
+# Function that checks for uncomitter changes to cloud-automation
+# and also if there are unapplied changes to the eks module
+#
+_gen3_run_tfplan_eks() {
+
+  local plan
+  local slack_hook
+  local tempFile
+
+  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name}_eks > /dev/null 2>&1
+  plan=$(gen3 tfplan | grep "Plan")
+
+  if [ -n "${plan}" ];
+  then
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name}_eks has unapplied plan:" > ${tempFile}
+    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+  fi
+  echo "${tempFile}"
+}
+
 # command to update dictionary URL and image versions
 #
 gen3_gitops_sync() {
@@ -650,6 +758,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "dotag")
       gen3_gitops_repo_dotag "$@"
+      ;;
+    "tfplan")
+      gen3_run_tfplan "$@"
       ;;
     *)
       help
