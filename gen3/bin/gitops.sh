@@ -69,15 +69,24 @@ gen3_run_tfplan() {
   local module
   local changes
   
-  slack_hook="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+
   module=$1
+  if [ -z $2 ];
+  then
+    slack_hook="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+  elif [ $2 == "local_hook" ];
+  then
+    slack_hook=$(g3kubectl get configmap global -o jsonpath='{ .data.slack_webhook }')
+  else
+    slack_hook="$2"
+  fi
+
   changes=$(_check_cloud-automation_changes)
 
-  echo ${changes}
+  #echo ${changes}
 
   if [[ ${changes} == "true" ]];
   then
-    echo 1
     #local files_changes
     #changes="$(git diff-index --name-only HEAD --)"
     message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
@@ -85,7 +94,6 @@ gen3_run_tfplan() {
     git diff-index --name-only HEAD -- >> ${message} 2>&1
   elif [[ ${changes} == "false" ]];
   then
-    echo 2
     # checking for the result of _check_cloud-automation_changes just in case it came out empty
     # for whatever reson 
     case "$module" in
