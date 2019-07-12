@@ -77,6 +77,7 @@ gen3_run_tfplan() {
 
   #echo ${changes}
 
+  cd ~/cloud-automation
   if [[ ${changes} == "true" ]];
   then
     #local files_changes
