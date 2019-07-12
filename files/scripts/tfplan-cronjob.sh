@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Enforce repo sync on $HOME/cloud-automation and $HOME/cdis-manifest
-# Run as cron job in qa-* user accounts:
+# check for changes on $HOME/cloud-automation and if none, git pull
+# Run as cron job in * user accounts:
 #
 # 0   9   *   *   1-5    (if [ -f $HOME/cloud-automation/files/scripts/tfplan-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/tfplan-cronjob.sh; else echo "no qa-cronjob.sh"; fi) > $HOME/tfplan-cronjob.log 2>&1
 
