@@ -100,7 +100,7 @@ gen3_db_reset() {
   # install ltree extension (currently arborist requires this)
   # this will fail if the extension is already installed, so ignore that
   #
-  gen3_db_psql "$server" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname" || true
+  gen3_db_psql "$serverName" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname" || true
   return $result
 }
 
