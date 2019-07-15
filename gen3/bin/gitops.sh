@@ -47,7 +47,7 @@ _check_manifest_global_diff() {
 
 _check_cloud-automation_changes() {
 
-  cd ~/cloud-automation
+  #cd ~/cloud-automation
   if git diff-index --quiet HEAD --; then
     # Should the repo has no changes, let's just pull, because why not
     git pull > /dev/null 2>&1
@@ -73,37 +73,39 @@ gen3_run_tfplan() {
   module=$1
   sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
 
-  changes=$(_check_cloud-automation_changes)
+  (
+    cd ~/cloud-automation
+    changes=$(_check_cloud-automation_changes)
 
-  #echo ${changes}
+    #echo ${changes}
 
-  cd ~/cloud-automation
-  if [[ ${changes} == "true" ]];
-  then
-    #local files_changes
-    #changes="$(git diff-index --name-only HEAD --)"
-    message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
-    echo "${vpc_name} has uncommited changes for cloud-automation" > ${message}
-    git diff-index --name-only HEAD -- >> ${message} 2>&1
-  elif [[ ${changes} == "false" ]];
-  then
-    # checking for the result of _check_cloud-automation_changes just in case it came out empty
-    # for whatever reson 
-    case "$module" in
-      "vpc")
-        message=$(_gen3_run_tfplan_vpc)
-        ;;
-      "eks")
-        message=$(_gen3_run_tfplan_eks)
-        ;;
-    esac
-  fi
+    if [[ ${changes} == "true" ]];
+    then
+      #local files_changes
+      #changes="$(git diff-index --name-only HEAD --)"
+      message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+      echo "${vpc_name} has uncommited changes for cloud-automation" > ${message}
+      git diff-index --name-only HEAD -- >> ${message} 2>&1
+    elif [[ ${changes} == "false" ]];
+    then
+      # checking for the result of _check_cloud-automation_changes just in case it came out empty
+      # for whatever reson 
+      case "$module" in
+        "vpc")
+          message=$(_gen3_run_tfplan_vpc)
+          ;;
+        "eks")
+          message=$(_gen3_run_tfplan_eks)
+          ;;
+      esac
+    fi
 
-  if [ -n "${message}" ];
-  then
-    aws sns publish --target-arn ${sns_topic} --message file://${message} > /dev/null 2>&1
-    rm ${message}
-  fi
+    if [ -n "${message}" ];
+    then
+      aws sns publish --target-arn ${sns_topic} --message file://${message} > /dev/null 2>&1
+      rm ${message}
+    fi
+  )
 
 }
 
