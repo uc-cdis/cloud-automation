@@ -27,7 +27,7 @@ gen3 logs save ubh '-24 hours'
 gen3 logs save ubh '-12 hours'
 
 # Delete indices older than 3 weeks
-gen3_retry gen3 logs curl200 "*-w$(date -d '3 week ago' +%U)" -X DELETE
+gen3_retry gen3 logs curl200 "*-w$(date -d '2 week ago' +%U)" -X DELETE
 
 # re-create indices
 URL_ROOT="https://kibana.planx-pla.net"
