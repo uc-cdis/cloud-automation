@@ -183,7 +183,7 @@ gen3 cd
 
 *Optional*
 
-`eks_version` default set to 1.11, but you can change it to 1.10 or 1.12.
+`eks_version` default set to 1.12, but you can change it to 1.10 (EOL soon though) or 1.11.
 
 
 
