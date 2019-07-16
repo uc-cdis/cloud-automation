@@ -57,6 +57,16 @@ _check_cloud-automation_changes() {
   fi
 }
 
+#
+# Check the branch cloud-automation is on
+#
+_check_cloud-automation_branch() {
+
+  local branch
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  echo "${branch}"
+}
+
 
 #
 # General tfplan function that depending on the value of next argument
@@ -68,6 +78,7 @@ gen3_run_tfplan() {
   local sns_topic
   local module
   local changes
+  local current_branch
   
 
   module=$1
@@ -76,6 +87,7 @@ gen3_run_tfplan() {
   (
     cd ~/cloud-automation
     changes=$(_check_cloud-automation_changes)
+    current_branch=$(_check_cloud-automation_branch)
 
     #echo ${changes}
 
@@ -84,20 +96,29 @@ gen3_run_tfplan() {
       #local files_changes
       #changes="$(git diff-index --name-only HEAD --)"
       message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
-      echo "${vpc_name} has uncommited changes for cloud-automation" > ${message}
+      echo "${vpc_name} has uncommited changes for cloud-automation:" > ${message}
+      echo "For branch ${current_branch}" >> ${message}
       git diff-index --name-only HEAD -- >> ${message} 2>&1
     elif [[ ${changes} == "false" ]];
     then
       # checking for the result of _check_cloud-automation_changes just in case it came out empty
-      # for whatever reson 
-      case "$module" in
-        "vpc")
-          message=$(_gen3_run_tfplan_vpc)
-          ;;
-        "eks")
-          message=$(_gen3_run_tfplan_eks)
-          ;;
-      esac
+      # for whatever reson
+
+      if [[ ${local_branch} == "master" ]];
+      then
+        case "$module" in
+          "vpc")
+            message=$(_gen3_run_tfplan_vpc)
+            ;;
+          "eks")
+            message=$(_gen3_run_tfplan_eks)
+            ;;
+        esac
+      else
+        message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+        echo "cloud-automation for ${vpc_name} is not on the master branch:" > ${message}
+        echo "Branch ${current_branch}" >> ${message}
+      fi
     fi
 
     if [ -n "${message}" ];
