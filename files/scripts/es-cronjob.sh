@@ -28,3 +28,19 @@ gen3 logs save ubh '-12 hours'
 
 # Delete indices older than 3 weeks
 gen3_retry gen3 logs curl200 "*-w$(date -d '3 week ago' +%U)" -X DELETE
+
+# re-create indices
+URL_ROOT="https://kibana.planx-pla.net"
+curl "${URL_ROOT}/_cat/indices?v" | awk -F' ' '{print $3}' | awk -F'-' '{print $1}' | sort -u | while read -r prefix ; do
+  res=$(curl "${URL_ROOT}/.kibana/index-pattern/${prefix}-*")
+  found=$(echo $res | jq '.found')
+  if [ $found == "true" ]; then
+    timeFieldName=$(echo $res | jq '._source.timeFieldName')
+    curl -XDELETE "${URL_ROOT}/.kibana/index-pattern/${prefix}-*"
+    curl "${URL_ROOT}/.kibana/index-pattern/${prefix}-*/_create"\
+    -H "Content-Type: application/json"\
+    -H "Accept: application/json, text/plain, */*"\
+    -H "kbn-xsrf: $prefix-*"\
+    --data-binary "{\"title\":\"${prefix}-*\",\"timeFieldName\":$timeFieldName}" -w "\n"
+  fi
+done
