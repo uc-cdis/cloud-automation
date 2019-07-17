@@ -51,6 +51,7 @@ resource "aws_db_instance" "db_fence" {
   maintenance_window          = "SAT:09:00-SAT:09:59"
   backup_retention_period     = "4"
   backup_window               = "06:00-06:59"
+  multi_az                    = true
 
   tags {
     Environment               = "${var.vpc_name}"
@@ -83,6 +84,7 @@ resource "aws_db_instance" "db_gdcapi" {
   maintenance_window          = "SAT:10:00-SAT:10:59"
   backup_retention_period     = "4"
   backup_window               = "07:00-07:59"
+  multi_az                    = true
 
   tags {
     Environment               = "${var.vpc_name}"
@@ -115,6 +117,7 @@ resource "aws_db_instance" "db_indexd" {
   maintenance_window          = "SAT:11:00-SAT:11:59"
   backup_retention_period     = "4"
   backup_window               = "08:00-08:59"
+  multi_az                    = true
 
   tags {
     Environment               = "${var.vpc_name}"
