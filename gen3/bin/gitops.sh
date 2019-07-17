@@ -104,7 +104,7 @@ gen3_run_tfplan() {
       # checking for the result of _check_cloud-automation_changes just in case it came out empty
       # for whatever reson
 
-      if [[ ${current_branch} == "master" ]];
+      if [[ ${current_branch} == "fix/automated-tfplan" ]];
       then
         case "$module" in
           "vpc")
