@@ -172,4 +172,14 @@ variable "mailgun_smtp_host" {
 variable "mailgun_api_url" {
   default = "https://api.mailgun.net/v3/"
 }
+variable "fence_ha" {
+  default = true
+}
 
+variable "indexd_ha" {
+  default = true
+}
+
+variable "sheepdog_ha" {
+  default = true
+}
