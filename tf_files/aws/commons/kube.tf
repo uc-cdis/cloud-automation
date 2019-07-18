@@ -33,13 +33,13 @@ resource "aws_security_group" "kube-worker" {
 # Sort of a hack during userapi to fence switch over.
 #
 resource "aws_db_instance" "db_fence" {
-  allocated_storage           = "${var.db_size}"
+  allocated_storage           = "${var.fence_db_size}"
   identifier                  = "${var.vpc_name}-fencedb"
   storage_type                = "gp2"
   engine                      = "postgres"
   engine_version              = "9.6.11"
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
-  instance_class              = "${var.db_instance}"
+  instance_class              = "${var.fence_db_instance}"
   name                        = "fence"
   username                    = "fence_user"
   password                    = "${var.db_password_fence}"
@@ -66,13 +66,13 @@ resource "aws_db_instance" "db_fence" {
 }
 
 resource "aws_db_instance" "db_gdcapi" {
-  allocated_storage           = "${var.db_size}"
+  allocated_storage           = "${var.sheepdog_db_size}"
   identifier                  = "${var.vpc_name}-gdcapidb"
   storage_type                = "gp2"
   engine                      = "postgres"
   engine_version              = "9.6.11"
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
-  instance_class              = "${var.db_instance}"
+  instance_class              = "${var.sheepdog_db_instance}"
   name                        = "gdcapi"
   username                    = "sheepdog"
   password                    = "${var.db_password_sheepdog}"
@@ -99,13 +99,13 @@ resource "aws_db_instance" "db_gdcapi" {
 }
 
 resource "aws_db_instance" "db_indexd" {
-  allocated_storage           = "${var.db_size}"
+  allocated_storage           = "${var.indexd_db_size}"
   identifier                  = "${var.vpc_name}-indexddb"
   storage_type                = "gp2"
   engine                      = "postgres"
   engine_version              = "9.6.11"
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
-  instance_class              = "${var.db_instance}"
+  instance_class              = "${var.indexd_db_instance}"
   name                        = "indexd"
   username                    = "indexd_user"
   password                    = "${var.db_password_indexd}"
