@@ -1,0 +1,38 @@
+---
+
+- name: "awslogs | create directories"
+  file:
+    path: '{{ item }}'
+    state: directory
+    mode: 0755
+  with_items:
+    - '{{ awslogs_directory }}state'
+    - '{{ awslogs_directory }}etc'
+
+
+- name: "awslogs | ec2 instance facts collection"
+  ec2_instance_facts:
+    region: "us-east-1"
+    filters:
+      "tag:Name": '{{ ansible_nodename }}'
+  register: instance_facts
+
+- set_fact:
+    i_facts: '{{ instance_facts }}'
+
+- name: "awslogs | copy configuration"
+  template: 
+    src: awslogs.conf.j2 
+    dest: '{{ awslogs_directory }}etc/awslogs.conf'
+    owner: '{{ awslogs_config_owner }}'
+    group: '{{ awslogs_config_group }}'
+    mode: '{{ awslogs_config_mode }}'
+  notify: awslogs service restart
+
+
+- name: "awslogs | configure awslogs credentials"
+  template:
+    src: aws.conf.j2
+    dest: '{{ awslogs_directory }}etc/aws.conf'
+  when: awslogs_secret_access_key is defined
+  notify: restart awslogs

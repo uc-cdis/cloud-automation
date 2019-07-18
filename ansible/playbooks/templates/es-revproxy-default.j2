@@ -1,0 +1,69 @@
+#
+# gen3 ES proxy
+# see also:
+#      https://nginx.org/en/docs/http/ngx_http_upstream_module.html#keepalive
+#      https://ma.ttias.be/enable-keepalive-connections-in-nginx-upstream-proxy-configurations/
+#      https://discuss.elastic.co/t/reverse-proxy-with-nginx/80244/2
+#      https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_read_timeout
+#
+
+# aws magic resolver IP
+resolver 169.254.169.253;
+
+# do not use this -
+# upstream does not respect DNS TTL
+#   https://www.nginx.com/blog/dns-service-discovery-nginx-plus/
+#upstream es_backend {
+#    server {{ es_endpoint }}:443;
+#
+#    keepalive 100;
+#}
+
+server {
+        listen {{ http_port }};
+        listen [::]:{{ http_port }};
+        server_name {{ server_name }};
+        set {{ set_proxy_pass}} {{ es_endpoint }};
+
+        location / {
+                proxy_http_version      1.1;
+                proxy_set_header        Connection "";
+                proxy_set_header        Host $es_server_name;
+                #proxy_set_header        Connection "Keep-Alive";
+                #proxy_set_header        Proxy-Connection "Keep-Alive";
+                #auth_basic              "Restricted Content";
+                #auth_basic_user_file    /etc/nginx/.htpasswd;
+                proxy_set_header        Authorization "";
+                proxy_set_header        X-Real-IP {{ real_ip }};
+                proxy_redirect          {{ proxy_pass }}/ {{ proxy_redirect }}; 
+                proxy_buffers           16 64k;
+                proxy_busy_buffers_size 64k;
+                client_max_body_size    256k;
+                client_body_buffer_size 128k;
+                proxy_pass              {{ proxy_pass }};
+        }
+
+        location ~ (/app/kibana|/app/timelion|/bundles|/es_admin|/plugins|/api|/ui|/elasticsearch) {
+                proxy_http_version      1.1;
+                proxy_set_header        Connection "";
+                #proxy_set_header        Connection "Keep-Alive";
+                #proxy_set_header        Proxy-Connection "Keep-Alive";
+                proxy_set_header        Host $host;
+                proxy_set_header        X-Real-IP $remote_addr;
+                proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header        X-Forwarded-Proto $scheme;
+                proxy_set_header        X-Forwarded-Host $http_host;
+                #auth_basic              "Restricted Content";
+                #auth_basic_user_file    /etc/nginx/.htpasswd;
+                proxy_set_header        Authorization  "";
+                proxy_buffers           16 64k;
+                proxy_busy_buffers_size 64k;
+                client_max_body_size    256k;
+                client_body_buffer_size 128k;
+                proxy_pass              {{ proxy_pass }};
+        }
+        # ELB Health Checks
+        location /status {
+                root /usr/share/nginx/html/;
+        }
+}

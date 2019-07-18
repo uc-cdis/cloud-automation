@@ -1,0 +1,25 @@
+#- import_playbook: opsKeysInHost.yaml
+- hosts: "{{ _hosts }}"
+  tasks:
+  - authorized_key:
+      user: "{{ ansible_user_id }}"
+      #user: "{{ _user }}"
+      state: absent
+      #manage_dir: true
+      #key: '{{ lookup(''file'', ''../keys/kyle'') }}'
+      #      key: '{{ lookup(''file'', item ) }}'
+      key: '{{ lookup(''url'', ''https://github.com/'' + item) }}'
+    loop:
+      #      - ../keys/kyle
+      #      - ../keys/rarya.old
+      #      - ../keys/giangbui
+      #      - ../keys/thanhn
+      #      - ../keys/cgmeyer
+        #      - ../keys/avantol
+        #      - ../keys/tedsummer
+      - zflamig.keys 
+        #../keys/zflamig
+#  - authorized_key:
+#      user: "{{ _user }}"
+#      state: present
+#      key: '{{ lookup(''file'', ''../keys/rudy'') }}'

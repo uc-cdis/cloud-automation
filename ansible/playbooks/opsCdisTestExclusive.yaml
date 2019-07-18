@@ -1,0 +1,9 @@
+# Ops team so far
+- hosts: cdistest
+  tasks:
+  - authorized_key:
+      user: "{{ _user }}"
+      state: present
+      manage_dir: true
+      exclusive: true
+      key: '{{ lookup(''file'', ''/home/fauzi/planX/cloud-automation/files/authorized_keys/ops_team'') }}'

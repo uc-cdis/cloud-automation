@@ -1,0 +1,191 @@
+---
+all:
+  children:
+    adminvms:
+      hosts:
+        account_admin:
+          ansible_host: 10.128.2.245
+        anvil_admin:
+          ansible_host: 10.128.2.243
+        vadc_admin:
+          ansible_host: 10.128.2.165
+        braincommons_admin:
+          ansible_host: 10.128.2.81
+        dcfqa_admin:
+          ansible_host: 10.128.2.138
+        dcfprod_admin:
+          ansible_host: 10.128.2.109
+        cvbcommons_admin:
+          ansible_host: 10.128.2.247
+        genomel_admin:
+          ansible_host: 10.128.2.155
+        ibdgc_admin:
+          ansible_host: 10.128.2.89
+        occ_admin:
+          ansible_host: 10.128.2.64
+        occ-edc_admin:
+          ansible_host: 10.128.2.147
+        niaiddh_admin:
+          ansible_host: 10.128.2.156
+        gtex_admin:
+          ansible_host: 10.128.2.246
+        kf_admin:
+          ansible_host: 10.128.2.170
+        gmkfqa_admin:
+          ansible_host: 10.128.2.12
+        ncigdc_admin:
+          ansible_host: 10.128.2.112
+        ncicrdc_admin:
+          ansible_host: 10.128.2.131
+        pdcgen3_admin:
+          ansible_host: 10.128.2.241
+        dcfbuckets_admin:
+          ansible_host: 10.128.2.181
+        canine_admin:
+          ansible_host: 10.128.2.34
+        cdistest_admin:
+          ansible_host: 10.128.7.28
+      vars:
+        ansible_user: ubuntu
+
+    commons:
+      hosts:
+        account_commons:
+          ansible_user: accountprod
+          ansible_host: 10.128.2.245
+        anvil_commons:
+          ansible_user: anvilprod
+          ansible_host: 10.128.2.243
+        #anvil_staging:
+        #    ansible_user: anvilstaging
+        #    ansible_host: 10.128.2.243
+        vadc_commons:
+          ansible_user: vadcprod
+          ansible_host: 10.128.2.165
+        braincommons_commons:
+          ansible_user: bhcprodv2
+          ansible_host: 10.128.2.81
+        dcfstaging_commons:
+          ansible_user: staging
+          ansible_host: 10.128.2.109
+        dcfprod_commons:
+          ansible_user: dcfprod
+          ansible_host: 10.128.2.109
+        cvbcommons_commons:
+          ansible_user: cvbcommons
+          ansible_host: 10.128.2.247
+        genomel_commons:
+          ansible_user: genomelprod
+          ansible_host: 10.128.2.155
+        ibdgc_commons:
+          ansible_user: ibdgc
+          ansible_host: 10.128.2.89
+        occ_commons:
+          ansible_user: bloodv2
+          ansible_host: 10.128.2.64
+        occ-edc_commons:
+          ansible_user: edcprodv2
+          ansible_host: 10.128.2.147
+        niaiddh_commons:
+          ansible_user: niaidprod
+          ansible_host: 10.128.2.156
+        stage_commons:
+          ansible_user: stageprod
+          ansible_host: 10.128.2.246
+        dataguis_commons:
+          ansible_user: dataguids
+          ansible_host: 10.128.2.246
+        stagingdatastage_commons:
+          ansible_user: stagingdatastage
+          ansible_host: 10.128.2.246
+        #gtex_commons:
+          #ansible_user: gtexprod
+          #ansible_host: 10.128.2.246
+        kf_commons:
+          ansible_user: prodv1
+          ansible_host: 10.128.2.170
+        canine_commons:
+          ansible_user: canineprod
+          ansible_host: 10.128.2.34
+        loginbionimbus_commons:
+          ansible_user: loginbionimbus
+          ansible_host: 10.128.2.155
+        charlie_commons:
+          ansible_user: charlie
+          ansible_host: 10.128.2.156
+        tb_commons:
+          ansible_user: tb
+          ansible_host: 10.128.2.156
+        niaiddata_commons:
+          ansible_user: niaiddata
+          ansible_host: 10.128.2.156
+
+    qa:
+      hosts:
+        anvil_qa:
+          ansible_user: anvilstaging 
+          ansible_host: 10.128.2.243
+        dcfqa_qa:
+          ansible_user: dcfqav1
+          ansible_host: 10.128.2.138
+        #gtex:
+        #    ansible_user: 
+        #    ansible_host: 
+
+        kfqa_qa:
+          ansible_user: kfqa
+          ansible_host: 10.128.2.12
+        gmkfqa_qa:
+          ansible_user: skfqa
+          ansible_host: 10.128.2.12
+    demo:
+      hosts:
+        ncicrdc_demo:
+          ansible_user: ncicrdcdemo
+          ansible_host: 10.128.2.131
+
+    csoc:
+      hosts:
+        master:
+          ansible_host: 10.128.2.252
+          ansible_user: ubuntu
+
+    vpn:
+      hosts:
+        vpn_prod:
+          ansible_host: 10.128.5.14
+          ansible_user: ubuntu
+        vpn_dev:
+          ansible_host: 10.128.5.187
+          ansible_user: ubuntu
+    revproxy:
+      hosts:
+        es_a:
+          ansible_host: 10.128.7.8
+        es_b:
+          ansible_host: 10.128.7.23
+      vars:
+        ansible_user: ubuntu
+
+    cdistest:
+      hosts:
+        cdistest_fauzi:
+          ansible_host: 10.128.7.28 
+          ansible_user: fauziv1
+
+    csoc_squids:
+      hosts:
+        csocsquidnlbcentral1:
+          ansible_host: 10.128.4.101
+        csocsquidnlbcentral2:
+          ansible_host: 10.128.4.30
+        csocsquidnlbcentral3:
+          ansible_host: 10.128.4.169
+      vars:
+        ansible_user: ubuntu
+   
+    dummi:
+      hosts:
+        dummi1:
+          ansible_host: 10.128.5.142
+          ansible_user: ubuntu

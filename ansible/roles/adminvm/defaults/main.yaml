@@ -1,0 +1,11 @@
+---
+
+http_proxy: http://cloud-proxy.internal.io
+http_proxy_port: 3128
+
+https_proxy: http://cloud-proxy.internal.io #'{{ http_proxy }}'
+https_proxy_port: 3128 #'{{ https_proxy_port }}'
+
+no_proxy: localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com
+
+region: us-east-1

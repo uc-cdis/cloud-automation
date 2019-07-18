@@ -1,0 +1,21 @@
+# Ops team so far
+# diw  emalinowski  fauzi  jmazzone  phillis  rarya  rarya.old  reubenonrye  rpowell1  seapasulli  zflamig
+- hosts: cdistest
+  tasks:
+  - authorized_key:
+      user: fauziv1
+      state: present
+      manage_dir: true
+      #exclusive: true
+      key: '{{ lookup(''file'', item) }}'
+    loop:
+       - ../keys/fauzi
+       - ../keys/diw
+       - ../keys/emalinowski
+       - ../keys/jmazzone
+       - ../keys/rpowell1
+       - ../keys/seapasulli
+       - ../keys/rarya
+       - ../keys/zflamig
+       - ../keys/phillis
+       - ../keys/reubenonrye

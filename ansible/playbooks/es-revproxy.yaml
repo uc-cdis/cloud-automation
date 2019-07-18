@@ -1,0 +1,32 @@
+---
+- hosts: revproxy
+  vars:
+    es_endpoint: search-commons-logs-lqi5sot65fryjwvgp6ipyb65my.us-east-1.es.amazonaws.com
+    real_ip: 35.174.124.219
+    http_port: 80
+    server_name: _
+    proxy_redirect: https://kibana.planx-pla.net/_plugin/kibana/
+    proxy_pass: https://$es_server_name
+    set_proxy_pass: $es_server_name
+  remote_user: root
+  become: yes
+  tasks:
+  - name: ensure nginx is at the latest version
+    yum:
+      name: nginx
+      state: latest
+  - name: write the nginx default site file
+    template:
+      src: es-revproxy-default.j2
+      dest: /etc/nginx/sites-available/default
+    notify:
+    - restart nginx
+  - name: ensure nginx is running
+    service:
+      name: nginx
+      state: started
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
