@@ -12,9 +12,9 @@ if ! [[ -d "$HOME/cloud-automation" && -d "$HOME/cdis-manifest" ]]; then
   exit 1
 fi
 
+export vpc_name="$(grep 'vpc_name=' $HOME/.bashrc |cut -d\' -f2)"
 export GEN3_HOME="$HOME/cloud-automation"
 export KUBECONFIG="$HOME/${vpc_name}/kubeconfig"
-export vpc_name="$(grep vpc_name $HOME/.bashrc |cut -d\' -f2)"
 PATH="${PATH}:/usr/local/bin"
 
 if [[ -z "$XDG_DATA_HOME" ]]; then
