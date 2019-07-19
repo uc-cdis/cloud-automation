@@ -119,6 +119,11 @@ all:
         niaiddata_commons:
           ansible_user: niaiddata
           ansible_host: 10.128.2.156
+    dev:
+      hosts:
+        cdistest_dev:
+          ansible_user: devplanetv1
+          ansible_host: 10.128.7.28
 
     qa:
       hosts:
