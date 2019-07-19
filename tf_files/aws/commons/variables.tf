@@ -188,7 +188,6 @@ variable "mailgun_smtp_host" {
 variable "mailgun_api_url" {
   default = "https://api.mailgun.net/v3/"
 }
-<<<<<<< HEAD
 
 variable "fence_ha" {
   default = true
@@ -248,16 +247,4 @@ variable "sheepdog_engine_version" {
 
 variable "indexd_engine_version" {
   default = "9.6.11" 
-}
-=======
-variable "fence_ha" {
-  default = true
-}
-
-variable "sheepdog_ha" {
-  default = true
-}
-
-variable "indexd_ha" {
-  default = true
 }
