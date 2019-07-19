@@ -37,7 +37,7 @@ resource "aws_db_instance" "db_fence" {
   identifier                  = "${var.vpc_name}-fencedb"
   storage_type                = "gp2"
   engine                      = "postgres"
-  engine_version              = "9.6.11"
+  engine_version              = "${var.fence_engine_version}" 
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.fence_db_instance}"
   name                        = "fence"
@@ -48,9 +48,9 @@ resource "aws_db_instance" "db_fence" {
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
   allow_major_version_upgrade = true
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-fencedb"
-  maintenance_window          = "SAT:09:00-SAT:09:59"
-  backup_retention_period     = "4"
-  backup_window               = "06:00-06:59"
+  maintenance_window          = "${var.fence_maintenance_window}" 
+  backup_retention_period     = "${var.fence_backup_retention_period}" 
+  backup_window               = "${var.fence_backup_window}"  
   multi_az                    = "${var.fence_ha}" 
 
   tags {
@@ -70,7 +70,7 @@ resource "aws_db_instance" "db_gdcapi" {
   identifier                  = "${var.vpc_name}-gdcapidb"
   storage_type                = "gp2"
   engine                      = "postgres"
-  engine_version              = "9.6.11"
+  engine_version              = "${var.sheepdog_engine_version}" 
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.sheepdog_db_instance}"
   name                        = "gdcapi"
@@ -81,9 +81,9 @@ resource "aws_db_instance" "db_gdcapi" {
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
   allow_major_version_upgrade = true
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-gdcapidb"
-  maintenance_window          = "SAT:10:00-SAT:10:59"
-  backup_retention_period     = "4"
-  backup_window               = "07:00-07:59"
+  maintenance_window          = "${var.sheepdog_maintenance_window}" 
+  backup_retention_period     = "${var.sheepdog_backup_retention_period}" 
+  backup_window               = "${var.sheepdog_backup_window}" 
   multi_az                    = "${var.sheepdog_ha}" 
 
   tags {
@@ -103,7 +103,7 @@ resource "aws_db_instance" "db_indexd" {
   identifier                  = "${var.vpc_name}-indexddb"
   storage_type                = "gp2"
   engine                      = "postgres"
-  engine_version              = "9.6.11"
+  engine_version              = "${var.indexd_engine_version}" 
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.indexd_db_instance}"
   name                        = "indexd"
@@ -114,9 +114,9 @@ resource "aws_db_instance" "db_indexd" {
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
   allow_major_version_upgrade = true
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-indexddb"
-  maintenance_window          = "SAT:11:00-SAT:11:59"
-  backup_retention_period     = "4"
-  backup_window               = "08:00-08:59"
+  maintenance_window          = "${var.indexd_maintenance_window}" 
+  backup_retention_period     = "${var.indexd_backup_retention_period}" 
+  backup_window               = "${var.indexd_backup_window}" 
   multi_az                    = "${var.indexd_ha}" 
 
   tags {
