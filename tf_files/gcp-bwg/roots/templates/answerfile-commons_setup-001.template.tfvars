@@ -31,15 +31,17 @@ prefix_app_setup = "app_setup"
 # ----------------------------------
 
 # BUCKET NAME THAT HOSTS TERRAFORM STATE IN CSOC
-csoc_state_bucket_name = "terraform-state--<csoc_bucket_id>"
+state_bucket_name_csoc = "terraform-state--<csoc_bucket_id>"
 
 # FOLDERS INSIDE BUCKETS IN CSOC
-tf_state_org_setup_csoc = "csoc-org_setup_csoc"
-tf_state_project_setup_csoc = "csoc-project_setup_csoc"
-tf_state_app_setup_csoc = "csoc-app_setup_csoc"
 prefix_org_setup_csoc = "org_setup_csoc"
 prefix_app_setup_csoc = "app_setup_csoc"
 prefix_project_setup_csoc = "project_setup_csoc"
+
+# STATE FILE NAMES INSIDE BUCKET IN CSOC
+tf_state_org_setup_csoc = "csoc-org_setup_csoc"
+tf_state_project_setup_csoc = "csoc-project_setup_csoc"
+tf_state_app_setup_csoc = "csoc-app_setup_csoc"
 
 # ------------------------------------------------------------------
 #
