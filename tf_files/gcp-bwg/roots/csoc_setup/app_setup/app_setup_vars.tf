@@ -1,9 +1,13 @@
-########################################################################################
+#---------------------------------------------------------------------------------------
 #   Vars for General project settings
-########################################################################################
+#---------------------------------------------------------------------------------------
 
 variable "project_name" {
   description = "The ID of the project in which the resource belongs."
+}
+
+variable "env" {
+  description = "Development Environment suffix for project name."
 }
 
 variable "region" {
@@ -18,12 +22,12 @@ variable "credential_file" {
 
 variable "state_bucket_name" {
   description = "The cloud storage bucket being used to store the resulting remote state files"
-  default = "my-tf-state"
+  default     = "my-tf-state"
 }
 
 variable "terraform_workspace" {
   description = "The filename being used for the remote state storage on GCP Cloud Storage Buckets"
-  default = "my-workspace"
+  default     = "my-workspace"
 }
 
 variable "prefix_org_setup" {
@@ -48,9 +52,9 @@ variable "environment" {
   default     = "dev"
 }
 
-########################################################################################
+#---------------------------------------------------------------------------------------
 #   Vars for Compute Instance Creation
-########################################################################################
+#---------------------------------------------------------------------------------------
 
 variable "image_name" {
   description = "(Required) The name of a specific image or a family."
@@ -85,7 +89,7 @@ variable "bastion_compute_tags" {
 
 variable "compute_labels" {
   description = "a map of key value pairs describing the system or its environment"
-  type = "map"
+  type        = "map"
 }
 
 # Boot-disk Variables
@@ -114,8 +118,8 @@ variable "ingress_subnetwork_name" {
 }
 
 # Service Account block
-variable "scopes" {  
-  type        = "list"
+variable "scopes" {
+  type    = "list"
   default = ["userinfo-email", "compute-ro", "storage-ro", "https://www.googleapis.com/auth/cloud-platform", "https://www.googleapis.com/auth/compute"]
 }
 
@@ -130,3 +134,63 @@ variable "on_host_maintenance" {
   default     = "MIGRATE"
 }
 
+variable "ssh_user" {
+  type        = "string"
+  description = "The user we want to insert an ssh-key for"
+}
+
+variable "ssh_key_pub" {
+  type        = "string"
+  description = "The public key to insert for the ssh key we want to use"
+}
+
+variable "ssh_key" {
+  type        = "string"
+  description = "The ssh key to use"
+}
+
+#---------------------------------------------------------------------------------------
+#   Vars for Bucket Creation
+#---------------------------------------------------------------------------------------
+variable "bucket_data_access_logs" {
+  description = "Bucket name for data access logs."
+}
+
+variable "bucket_activity_logs" {
+  description = "Bucket name for admin activity logs."
+}
+
+variable "bucket_destroy" {
+  description = "Destroy the bucket and all the objects."
+  default     = "true"
+}
+
+variable "bucket_class" {
+  description = "Bucket storage class."
+  default     = "REGIONAL"
+}
+
+#---------------------------------------------------------------------------------------
+#   Vars for Organization Log Sink Creation
+#---------------------------------------------------------------------------------------
+variable "org_id" {
+  description = "The numeric ID of the organization to be exported to the sink."
+}
+
+variable "data_access_sink_name" {
+  description = "The name of the logging sink."
+}
+
+variable "activity_sink_name" {
+  description = "The name of the logging sink."
+}
+
+variable "data_access_filter" {
+  description = "The filter to apply when exporting logs."
+  default     = "logName:data_access"
+}
+
+variable "activity_filter" {
+  description = "The filter to apply when exporting logs."
+  default     = "logName:activity"
+}

@@ -46,6 +46,9 @@ spec:
       - name: sponsor-img-volume
         secret:
           secretName: "portal-sponsor-config"
+      - name: privacy-policy
+        configMap:
+          name: "privacy-policy"
       containers:
       - name: portal
         GEN3_PORTAL_IMAGE
@@ -118,6 +121,12 @@ spec:
                 name: manifest-global
                 key: indexd_url
                 optional: true
+          - name: PRIVACY_POLICY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: privacy_policy_url
+                optional: true
         volumeMounts:
           - name: "cert-volume"
             readOnly: true
@@ -148,6 +157,10 @@ spec:
             subPath: "gitops.css"
           - name: "sponsor-img-volume"
             mountPath: "/data-portal/custom/sponsors/gitops-sponsors"
+          - name: "privacy-policy"
+            readOnly: true
+            mountPath: "/data-portal/custom/privacy_policy.md"
+            subPath: "privacy_policy.md"
         readinessProbe:
           httpGet:
             path: /

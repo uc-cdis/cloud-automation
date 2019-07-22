@@ -8,7 +8,7 @@ gen3_completions() {
   elif [[ ${COMP_CWORD} -eq 2 && "${COMP_WORDS[1]}" == "es" ]]; then
     COMPREPLY=($(compgen -W "filter configmaps alias indices delete dump export import mapping port-forward" "${COMP_WORDS[2]}"))
   elif [[ ${COMP_CWORD} -eq 2 && "${COMP_WORDS[1]}" == "gitops" ]]; then
-    COMPREPLY=($(compgen -W "filter configmaps rsync sshlist sync repolist taglist dotag" "${COMP_WORDS[2]}"))
+    COMPREPLY=($(compgen -W "filter configmaps rsync sshlist sync repolist taglist dotag tfplan" "${COMP_WORDS[2]}"))
   elif [[ ${COMP_CWORD} -eq 2 && "${COMP_WORDS[1]}" == "job" ]]; then
     COMPREPLY=($(compgen -W "run logs" "${COMP_WORDS[2]}"))
   elif [[ ${COMP_CWORD} -eq 2 && "${COMP_WORDS[1]}" == "klock" ]]; then

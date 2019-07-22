@@ -1,15 +1,3 @@
-data "google_compute_subnetwork" "subnetwork" {
-  project = "${var.project}"
-  region  = "${var.region}"
-  name    = "${var.subnetwork_name}"
-}
-
-data "google_compute_zones" "available" {
-  region  = "${var.region}"
-  project = "${var.project}"
-  status  = "UP"
-}
-
 variable "count_compute" {
   description = "The total number of instances to create."
   default     = "1"
@@ -81,6 +69,7 @@ variable "auto_delete" {
 
 # Network Interface Variables
 variable "subnetwork_name" {
+  type = "string"
   description = "Name of the subnetwork in the VPC."
 }
 
@@ -100,4 +89,19 @@ variable "automatic_restart" {
 variable "on_host_maintenance" {
   description = "(Optional) Describes maintenance behavior for the instance. Can be MIGRATE or TERMINATE"
   default     = "MIGRATE"
+}
+
+variable "ssh_user" {
+  type = "string"
+  description = "The user we want to insert an ssh-key for"
+}
+
+variable "ssh_key_pub" {
+  type = "string"
+  description = "The public key to insert for the ssh key we want to use"
+}
+
+variable "ssh_key" {
+  type = "string"
+  description = "The ssh key to use"
 }

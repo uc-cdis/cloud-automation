@@ -10,6 +10,10 @@ output "project_number" {
   value = "${join("",google_project.project.*.number)}"
 }
 
+output "project_apis" {
+  value = "${join("",google_project_service.project.*.service)}"
+}
+
 /*
 output "service_account_id" {
   value       = "${google_service_account.default_service_account.account_id}"
