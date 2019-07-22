@@ -166,10 +166,15 @@ module "firewall-commons-to-gke" {
   target_tags = "${var.outbound_from_commons_target_tags}"
 }
 //******END FW RULE*********************************************
-
-/********************************************************
-*      Create VPC Peering commons_private_to_csoc2_private
-********************************************************/
+# --------------------------------------------------------------------------
+#      Create VPC Peering commons_private_to_csoc2_private
+# --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+#   GCP allow only one peering-related activity at a time across peered network.
+#   Ran into a race condition. Solution was to stager the VPC Peering builds.
+#   See open issue #3034 with TF
+# --------------------------------------------------------------------------
+# CREATE THIS VPC PEER FIRST
 module "vpc-peering-commons_private_to_csoc_private" {
   source = "../../../modules/vpc-peering"
 
@@ -186,10 +191,10 @@ module "vpc-peering-commons_private_to_csoc_private" {
 }
 
 ############ END CREATE VPC Peering ################################################
-
-/********************************************************
-*      Create VPC Peering commons_private_to_csoc2_egress
-********************************************************/
+# --------------------------------------------------------------------------
+#      Create VPC Peering commons_private_to_csoc2_egress
+# --------------------------------------------------------------------------
+# CREATE THIS VPC PEER SECOND
 module "vpc-peering-commons_private_to_csoc_egress" {
   source = "../../../modules/vpc-peering"
 
@@ -197,7 +202,7 @@ module "vpc-peering-commons_private_to_csoc_egress" {
   peer2_name = "${module.vpc-commons-private.network_name}-${data.terraform_remote_state.csoc_project_setup.network_name_csoc_egress}"
 
   peer1_root_self_link = "${data.terraform_remote_state.csoc_project_setup.network_self_link_csoc_egress}"
-  peer1_add_self_link  = "${module.vpc-commons-private.network_self_link}"
+  peer1_add_self_link = "${module.vpc-peering-commons_private_to_csoc_private.peered_network_link}"
 
   peer2_root_self_link = "${module.vpc-commons-private.network_self_link}"
   peer2_add_self_link  = "${data.terraform_remote_state.csoc_project_setup.network_self_link_csoc_egress}"

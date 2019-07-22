@@ -48,6 +48,10 @@ variable "tf_state_app_setup_csoc" {
     description = "The filename being used for the remote state storage of the app_setup in the CSOC project."
 }
 
+variable "state_bucket_name_csoc" {
+    description = "GCP Cloud Storage bucket name where CSOC terraform state lives."
+}
+
 variable "count_compute" {
   description = "The total number of instances to create."
   default     = "1"

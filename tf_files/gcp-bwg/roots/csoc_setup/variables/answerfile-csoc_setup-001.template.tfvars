@@ -313,8 +313,35 @@ instance_name = "adminvm"
 bastion_name = "bastionvm"
 
 # -------------------------------------
+#   OpenVPN Instance
+# -------------------------------------
+
+openvpn_instance_name = "openvpn"
+openvpn_compute_tags = ["openvpn", "proxy-access"]
+openvpn_count_compute = "1"
+
+# -------------------------------------
+#   SQUID MANAGED INSTANCE GROUP
+# -------------------------------------
+
+squid_name = "squid"
+squid_machine_type = "f1-micro"
+squid_target_size = "1"
+squid_metadata_startup_script = "../../../modules/compute-group/scripts/squid-install.sh"
+
+# -------------------------------------
+#   INTERNAL LOAD BALANCER FOR SQUID
+# -------------------------------------
+
+squid_lb_name = "squid-ilb"
+squid_lb_health_port = "3128"
+squid_lb_ports = ["3128"]
+squid_lb_target_tags = ["squid", "proxy"]
+
+# -------------------------------------
 #   Compute Instance Variables
 # -------------------------------------
+
 
 # SSH INFORMATION
 ssh_user = "<ssh_user>"
@@ -362,6 +389,8 @@ ingress_subnetwork_name = "csoc-ingress-kubecontrol"
 # Scheduling
 automatic_restart = "true"
 on_host_maintenance = "MIGRATE"
+
+
 
 # -------------------------------------
 #   Cloud Bucket Variables for Stackdriver Org Sink

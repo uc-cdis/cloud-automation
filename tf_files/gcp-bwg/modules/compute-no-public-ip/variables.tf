@@ -105,7 +105,3 @@ variable "ssh_key" {
   type = "string"
   description = "The ssh key to use"
 }
-
-variable "metadata_startup_script" {
-    default = ""
-}
