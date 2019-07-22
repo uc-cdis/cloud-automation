@@ -52,6 +52,7 @@ resource "aws_db_instance" "db_fence" {
   backup_retention_period     = "${var.fence_backup_retention_period}" 
   backup_window               = "${var.fence_backup_window}"  
   multi_az                    = "${var.fence_ha}" 
+  auto_minor_version_upgrade  = "${var.fence_auto_minor_version_upgrade}"
 
   tags {
     Environment               = "${var.vpc_name}"
@@ -85,6 +86,7 @@ resource "aws_db_instance" "db_gdcapi" {
   backup_retention_period     = "${var.sheepdog_backup_retention_period}" 
   backup_window               = "${var.sheepdog_backup_window}" 
   multi_az                    = "${var.sheepdog_ha}" 
+  auto_minor_version_upgrade  = "${var.sheepdog_auto_minor_version_upgrade}"
 
   tags {
     Environment               = "${var.vpc_name}"
@@ -118,6 +120,7 @@ resource "aws_db_instance" "db_indexd" {
   backup_retention_period     = "${var.indexd_backup_retention_period}" 
   backup_window               = "${var.indexd_backup_window}" 
   multi_az                    = "${var.indexd_ha}" 
+  auto_minor_version_upgrade  = "${var.indexd_auto_minor_version_upgrade}"
 
   tags {
     Environment               = "${var.vpc_name}"

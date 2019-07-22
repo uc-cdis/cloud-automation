@@ -248,3 +248,15 @@ variable "sheepdog_engine_version" {
 variable "indexd_engine_version" {
   default = "9.6.11" 
 }
+
+variable "fence_auto_minor_version_upgrade" {
+  default = "false"
+}
+
+variable "indexd_auto_minor_version_upgrade" {
+  default = "false"
+}
+
+variable "sheepdog_auto_minor_version_upgrade" {
+  default = "false"
+}
