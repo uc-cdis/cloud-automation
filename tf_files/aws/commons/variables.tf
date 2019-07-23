@@ -260,3 +260,6 @@ variable "indexd_auto_minor_version_upgrade" {
 variable "sheepdog_auto_minor_version_upgrade" {
   default = "true"
 }
+variable "bucket_name" {
+  default = "cdis-gen3-users"
+}
