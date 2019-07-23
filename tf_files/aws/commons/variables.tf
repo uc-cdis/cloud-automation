@@ -250,13 +250,13 @@ variable "indexd_engine_version" {
 }
 
 variable "fence_auto_minor_version_upgrade" {
-  default = "false"
+  default = "true"
 }
 
 variable "indexd_auto_minor_version_upgrade" {
-  default = "false"
+  default = "true"
 }
 
 variable "sheepdog_auto_minor_version_upgrade" {
-  default = "false"
+  default = "true"
 }
