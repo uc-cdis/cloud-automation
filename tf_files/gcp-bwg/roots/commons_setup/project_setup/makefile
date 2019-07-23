@@ -5,7 +5,7 @@
 #Change this bucket name
 CURRENT_FOLDER=$(shell basename "$$(pwd)")
 PARENT_FOLDER=$(shell basename "$$(echo $${PWD%/*})")
-VARS=../variables/answerfile-${PARENT_FOLDER}.$(USER).tfvars
+VARS=../variables/answerfile-${PARENT_FOLDER}-${TENANT}.$(USER).tfvars
 ENV=$(shell awk '$$1 == "env" {print $$NF}' ${VARS}|tr -d '"')
 PROJECT=$(shell awk '$$1 == "state_project_name" {print $$NF}' ${VARS}|tr -d '"')
 GCP_CREDENTIALS=$(shell awk '$$1 == "credential_file" {print $$NF}' ${VARS}|tr -d '"')

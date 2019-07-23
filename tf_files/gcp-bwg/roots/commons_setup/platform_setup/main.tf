@@ -62,7 +62,8 @@ module "commons-gke" {
   node_tags                     = "${var.node_tags}"
   master_version                = "${var.min_master_version}"
   master_authorized_network_name = "${var.master_authorized_network_name}"
-  master_authorized_cidr_block = "${var.master_authorized_cidr_block}"
+#  master_authorized_cidr_block = "${var.master_authorized_cidr_block}"
+  master_authorized_cidr_block  = "${data.terraform_remote_state.csoc_project_setup.cloud_nat_external_ip.0}/32"  # "${var.master_authorized_cidr_block}"
   use_ip_aliases = "${var.use_ip_aliases}"
   enable_private_endpoint	= "${var.enable_private_endpoint}"	
 

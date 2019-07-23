@@ -23,7 +23,7 @@ data "terraform_remote_state" "project_setup" {
 # ----------------------------------------------------------------------------
 #   TF State from the CSOC bucket for Organization information
 # ----------------------------------------------------------------------------
-data "terraform_remote_state" "csoc_org_setup" {
+data "terraform_remote_state" "org_setup_csoc" {
   backend   = "gcs"
   workspace = "${var.tf_state_org_setup_csoc}"
 

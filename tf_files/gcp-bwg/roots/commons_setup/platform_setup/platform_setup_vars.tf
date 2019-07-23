@@ -9,9 +9,11 @@ variable "prefix_project_setup" {}
 variable "prefix_org_policies" {}
 variable "state_bucket_name" {}
 variable "prefix_platform_setup" {}
+variable "state_bucket_name_csoc" {}
 variable "tf_state_project_setup_csoc" {
-  description = "The terraform state name in the csoc."
+  description = "The project_setup terraform state from the csoc."
 }
+variable "prefix_project_setup_csoc" {}
 
 // Cloud SQL ################################################################
 variable "sql_name" {

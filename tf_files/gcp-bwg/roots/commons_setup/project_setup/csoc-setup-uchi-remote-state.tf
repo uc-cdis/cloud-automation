@@ -26,7 +26,7 @@ data "terraform_remote_state" "csoc_project_setup" {
   workspace = "${var.tf_state_project_setup_csoc}"
 
   config {
-    bucket  = "${var.state_bucket_name}"
+    bucket  = "${var.state_bucket_name_csoc}"
     prefix  = "${var.prefix_project_setup_csoc}"
     credentials = "${file("${var.credential_file}")}"
   }

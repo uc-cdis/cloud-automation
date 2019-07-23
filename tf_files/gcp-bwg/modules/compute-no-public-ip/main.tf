@@ -50,8 +50,8 @@ resource "google_compute_instance" "default" {
     subnetwork = "${data.google_compute_subnetwork.subnetwork.self_link}"
     #subnetwork = "${var.subnetwork_name}"
 
-    # Uncomment if public IP needed
-    access_config {}
+    # Public Ephemeral IP. Uncomment if needed
+    # access_config {}
   }
 
   scheduling {

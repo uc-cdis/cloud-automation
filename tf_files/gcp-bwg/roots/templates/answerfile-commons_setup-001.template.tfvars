@@ -1,33 +1,25 @@
-########################################################
-#####Project setup info
-#   Vars for creating project level related resource
+# ------------------------------------------------------------------
+#
+#   Variables for creating project level related resources
 #   (ie. vpc, firewall rules, vpc-peering, etc.)
-
-#### Uncomment this if not using our makefiles
-#terraform_workspace = "commons001_setup"
-# ------------------------------------
-#   Project Variables
-# ------------------------------------
-
-credential_file = "<credential_file>"
-env = "<environment_name>"
-organization = "<organization_name>"
-org_id = "<organization_id>"
-billing_account = "<billing_account_id>"
-
-project_name = "new_project"
-region = "us-central1"
-folder = "Development"
-set_parent_folder = true
-create_folder = true
-
+#
+# ------------------------------------------------------------------
+# ------------------------------------------------------------------
+#
+#   TERRAFORM STATE VARIABLES
+#
+# ------------------------------------------------------------------
 # ------------------------------------
 #   Terraform State Variables
 # -------------------------------------
 
+env = "<environment_name>"
+
+# BUCKET NAME THAT HOSTS TERRAFORM STATE
 state_bucket_name = "terraform-state--<bucket_id>"
 state_project_name = "<seed_account_id>"
 
+# FOLDERS INSIDE BUCKETS
 prefix_org_policies = "org_policies"
 prefix_org_setup = "org_setup"
 prefix_platform_setup = "platform_setup"
@@ -38,40 +30,88 @@ prefix_app_setup = "app_setup"
 #   Terraform State in CSOC Variables
 # ----------------------------------
 
-csoc_state_bucket_name = "terraform-state--<csoc_bucket_id>"
+# BUCKET NAME THAT HOSTS TERRAFORM STATE IN CSOC
+state_bucket_name_csoc = "terraform-state--<csoc_bucket_id>"
 
-tf_state_org_setup_csoc = "csoc-org_setup_csoc"
-tf_state_project_setup_csoc = "csoc-project_setup_csoc"
-tf_state_app_setup_csoc = "csoc-app_setup_csoc"
+# FOLDERS INSIDE BUCKETS IN CSOC
 prefix_org_setup_csoc = "org_setup_csoc"
 prefix_app_setup_csoc = "app_setup_csoc"
 prefix_project_setup_csoc = "project_setup_csoc"
 
+# STATE FILE NAMES INSIDE BUCKET IN CSOC
+tf_state_org_setup_csoc = "csoc-org_setup_csoc"
+tf_state_project_setup_csoc = "csoc-project_setup_csoc"
+tf_state_app_setup_csoc = "csoc-app_setup_csoc"
 
+# ------------------------------------------------------------------
+#
+#   ORGANIZATION POLICIES SETUP
+#
+# ------------------------------------------------------------------
+# -------------------------------------
+#   Org Policy Variables
+# -------------------------------------
+
+# UNCOMMENT IF DESIRED
+constraint = ["constraints/compute.disableNestedVirtualization","constraints/compute.disableSerialPortAccess","constraints/compute.skipDefaultNetworkCreation"]
+org_iam_externalipaccess = []
+
+# ------------------------------------------------------------------
+#
+#   ORGANIZATION SETUP
+#
+# ------------------------------------------------------------------
+
+organization = "<organization_name>"
+org_id = "<organization_id>"
+billing_account = "<billing_account_id>"
+credential_file = "<credential_file>"
+
+# -------------------------------------
+#   Folder Variables
+# -------------------------------------
+
+create_folder = true
+set_parent_folder = true
+folder = "Development"
+
+# ------------------------------------
+#   Project Variables
+# ------------------------------------
+
+project_name = "<desire_project_name>"
+region = "<region>"
+
+# ------------------------------------------------------------------
+#
+#   PROJECT SETUP
+#
+# ------------------------------------------------------------------
 # ------------------------------------
 #   VPC Variables
 # ------------------------------------
 
-commons_private_subnet_ip = "<subnet_ip>"
-
-peer_auto_create_routes = true
+# VPC NETWORK
 commons_private_network_name = "commons-private"
+
+# VPC SUBNETWORK
 commons_private_subnet_name = "commons-private-kubecontrol"
-commons_private_region = "us-central1"
+commons_private_subnet_ip = "<subnet_ip>"
+commons_private_region = "<region>"
 commons_private_subnet_private_access = true
 commons_private_subnet_flow_logs = true
 
-####VPC (google_network) info
-create_vpc_secondary_ranges = true
-
-# ------------------------------------
-#   VPC Alias Variables
-# ------------------------------------
-
+# VPC SUBNETWORK ALIAS
 commons_private_subnet_secondary_name1 = "ip-cidr-range-k8-service"
 commons_private_subnet_secondary_name2 = "ip-cidr-range-k8-pod"
-commons_private_subnet_secondary_ip1 = "10.170.80.0/20"
-commons_private_subnet_secondary_ip2 = "10.56.0.0/14"
+commons_private_subnet_secondary_ip1 = "<cidr_block>"
+commons_private_subnet_secondary_ip2 = "<cidr_block>"
+
+# VPC PEERING INFORMATION
+peer_auto_create_routes = true
+
+# VPC (google_network) info
+create_vpc_secondary_ranges = true
 
 # ------------------------------------
 #   VPC Firewall Variables
@@ -146,11 +186,17 @@ fw_rule_allow_hc_ingress = "allow-healthcheck-ingress"
 fw_rule_allow_master_node_egress = "allow-master-node-egress"
 fw_rule_deny_all_egress = "deny-egress"
 
+# ------------------------------------------------------------------
+#
+#   PLATFORM SETUP
+#
+# ------------------------------------------------------------------
 # ------------------------------------
 #   GKE Variables
 # ------------------------------------
 
 cluster_name = "<cluster_name>"
+cluster_region = "<region>"
 
 cluster_secondary_range_name = "ip-cidr-range-k8-pod"
 services_secondary_range_name = "ip-cidr-range-k8-service"
@@ -172,9 +218,7 @@ node_tags = ["commons001-dev-ingress", "public-google", "ingress-from-csoc2-priv
 # ------------------------------------
 
 sql_name = "<sql_name>"
-
-db_name = ["fence", "sheepdog"]
-cluster_region = "us-east1"
+db_name = ["<db_name>"]
 global_address_name = "cloudsql-private-ip-address"
 global_address_purpose = "VPC_PEERING"
 global_address_type = "INTERNAL"
