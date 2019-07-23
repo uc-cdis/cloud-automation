@@ -190,15 +190,15 @@ variable "mailgun_api_url" {
 }
 
 variable "fence_ha" {
-  default = true
+  default = false
 }
 
 variable "sheepdog_ha" {
-  default = true
+  default = false
 }
 
 variable "indexd_ha" {
-  default = true
+  default = false
 }
 
 variable "fence_maintenance_window"{
