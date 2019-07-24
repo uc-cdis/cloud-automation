@@ -288,3 +288,16 @@ variable "indexd_db_username" {
   default = "indexd_user"
 }
 
+variable "fence_allow_major_version_upgrade" {
+  default = "true"
+}
+
+variable "sheepdog_allow_major_version_upgrade" {
+  default = "true"
+}
+
+variable "indexd_allow_major_version_upgrade" {
+  default = "true"
+}
+
+

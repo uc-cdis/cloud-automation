@@ -46,7 +46,7 @@ resource "aws_db_instance" "db_fence" {
   snapshot_identifier         = "${var.fence_snapshot}"
   db_subnet_group_name        = "${aws_db_subnet_group.private_group.id}"
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
-  allow_major_version_upgrade = true
+  allow_major_version_upgrade = "${var.fence_allow_major_version_upgrade}"
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-fencedb"
   maintenance_window          = "${var.fence_maintenance_window}" 
   backup_retention_period     = "${var.fence_backup_retention_period}" 
@@ -80,7 +80,7 @@ resource "aws_db_instance" "db_gdcapi" {
   snapshot_identifier         = "${var.gdcapi_snapshot}"
   db_subnet_group_name        = "${aws_db_subnet_group.private_group.id}"
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
-  allow_major_version_upgrade = true
+  allow_major_version_upgrade = "${var.sheepdog_allow_major_version_upgrade}"
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-gdcapidb"
   maintenance_window          = "${var.sheepdog_maintenance_window}" 
   backup_retention_period     = "${var.sheepdog_backup_retention_period}" 
@@ -114,7 +114,7 @@ resource "aws_db_instance" "db_indexd" {
   snapshot_identifier         = "${var.indexd_snapshot}"
   db_subnet_group_name        = "${aws_db_subnet_group.private_group.id}"
   vpc_security_group_ids      = ["${module.cdis_vpc.security_group_local_id}"]
-  allow_major_version_upgrade = true
+  allow_major_version_upgrade = "${var.indexd_allow_major_version_upgrade}"
   final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-indexddb"
   maintenance_window          = "${var.indexd_maintenance_window}" 
   backup_retention_period     = "${var.indexd_backup_retention_period}" 
