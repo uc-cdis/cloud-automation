@@ -263,3 +263,28 @@ variable "sheepdog_auto_minor_version_upgrade" {
 variable "bucket_name" {
   default = "cdis-gen3-users"
 }
+
+variable "fence_database_name" {
+  default = "fence"
+}
+
+variable "sheepdog_database_name" {
+  default = "gdcapi"
+}
+
+variable "indexd_database_name" {
+  default = "indexd"
+}
+
+variable "fence_db_username" {
+  default = "fence_user"
+}
+
+variable "sheepdog_db_username" {
+  default = "sheepdog"
+}
+
+variable "indexd_db_username" {
+  default = "indexd_user"
+}
+
