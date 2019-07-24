@@ -1,0 +1,64 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ambassador-gen3-service
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: GEN3_ARN
+    # supported in k8s 1.9
+    service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: "ELBSecurityPolicy-TLS-1-2-2017-01"
+    getambassador.io/config: |
+      apiVersion: ambassador/v1
+      kind: Module
+      name: ambassador
+      ambassador_id: "gen3"
+      config:
+        # see https://www.getambassador.io/reference/core/ambassador/#lua-scripts-lua_scripts
+        lua_scripts: |
+          function string_split(inputstr, sep)
+            if sep == nil then
+              sep = "%s"
+            end
+            local t={}
+            for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+              -- print (str)
+              table.insert(t, str)
+            end
+            return t
+          end
+
+          function envoy_on_request(request_handle)
+            -- Wait for the entire request body and add a request header with the body size.
+            local cookie_header = request_handle:headers():get("Cookie")
+            if cookie_header ~= nil then
+              cookie_table = string_split(cookie_header, ";")
+              jwt = nil
+              for i, cookie_item in ipairs(cookie_table) do
+                if string.find(cookie_item, "access_token") ~= nil then
+                  jwt = string.gsub(cookie_item, "access_token=", "")
+                end
+              end
+              if jwt ~= nil then
+                auth = "bearer " .. string.gsub(jwt, "^ ", "")
+                request_handle:headers():replace("Authorization", auth)
+              end
+            end
+          end
+
+          function envoy_on_response(response_handle)
+            response_handle:headers():add("Lua-Scripts-Enabled", "Processed")
+          end
+
+spec:
+  selector:
+    app: ambassador-gen3
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  - port: 443
+    targetPort: 8080
+    name: https
+  type: LoadBalancer
