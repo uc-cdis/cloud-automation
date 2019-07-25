@@ -234,6 +234,10 @@ resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
   destination_arn   = "arn:aws:logs:${data.aws_region.current.name}:${var.csoc_managed == "yes" ? var.csoc_account_id : data.aws_caller_identity.current.account_id}:destination:${var.vpc_name}_logs_destination"
   log_group_name    = "${var.vpc_name}"
   filter_pattern    = ""
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["distribution"]
+  }
 }
 
 data "aws_ami" "public_login_ami" {
