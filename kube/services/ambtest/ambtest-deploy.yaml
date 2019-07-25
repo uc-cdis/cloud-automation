@@ -36,12 +36,24 @@ spec:
                   - ambtest
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
+      volumes:
+      - name: ambtest-conf
+        configMap:
+          name: ambtest-conf
       containers:
       - name: ambtest
-        GEN3_AMBTEST_IMAGE
+        GEN3_AMBTEST_IMAGE|-image: kennship/http-echo-|
         imagePullPolicy: Always
+        env:
+        - name: PORT
+          value: "8080"
         ports:
-        - containerPort: 80
+        - containerPort: 8080
+        volumeMounts:
+        - name: "ambtest-conf"
+          readOnly: true
+          mountPath: "/etc/nginx/conf.d/default.conf"
+          subPath: default.conf
         resources:
           limits:
             cpu: 0.3
