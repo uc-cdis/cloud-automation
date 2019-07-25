@@ -235,7 +235,8 @@ resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
   log_group_name    = "${var.vpc_name}"
   filter_pattern    = ""
   lifecycle {
-    # allow user to change tags interactively - ex - new kube-aws cluster
+    # terraform keeps trying to remove the distribution even after it is properly set, there is no reason
+    # to no to ignore this
     ignore_changes = ["distribution"]
   }
 }
