@@ -1,0 +1,10 @@
+---
+- hosts: adminvms
+  remote_user: root
+  become: yes
+  tasks:
+  - name: ensure nginx is not running
+    service:
+      name: docker
+      state: stopped
+      enabled: no
