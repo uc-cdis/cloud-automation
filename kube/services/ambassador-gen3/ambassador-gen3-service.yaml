@@ -32,8 +32,8 @@ metadata:
           function lookup_cookie(cookie_table, cookie_name)
               local i, cookie_item
               for i, cookie_item in ipairs(cookie_table) do
-                if string.find(cookie_item, "access_token") ~= nil then
-                  return string.gsub(cookie_item, cookie_name .. "=", "")
+                if string.find(cookie_item, cookie_name) ~= nil then
+                  return string.gsub(string.gsub(cookie_item, cookie_name .. "=", ""), "^ ", "")
                 end
               end
               return nil
@@ -44,11 +44,19 @@ metadata:
             if cookie_table ~= nil and auth_header == nil then
               local jwt = lookup_cookie(cookie_table, "access_token")
               if jwt ~= nil then
-                local auth = "bearer " .. string.gsub(jwt, "^ ", "")
+                local auth = "bearer " .. jwt
                 request_handle:headers():replace("Authorization", auth)
               end
             end
             return true
+          end
+
+          function nill_check(str)
+            if str == nill then
+              return ""
+            else
+              return str
+            end
           end
 
           function handle_csrf(request_handle, cookie_table)
@@ -57,11 +65,11 @@ metadata:
             if auth_header == nil and (method == "POST" or method == "DELETE" or method == "PUT") then
               -- cookie authenticated update request - verify CSRF
               local csrf_header = request_handle:headers():get("x-csrf-token")
-              local csrf_cookie = cookie_lookup("csrftoken")
-              if csrf_header ~= nill or csrf_header ~= csrf_cookie then
+              local csrf_cookie = lookup_cookie(cookie_table, "csrftoken")
+              if csrf_header == nill or csrf_header ~= csrf_cookie then
                 request_handle:respond(
                   {[":status"] = "403", ["content-type"] = "application/json"},
-                  "{\"error\": \"failed csrf check\"}"
+                  "{\"error\": \"failed csrf " .. nill_check(csrf_header) .. " ?= " .. nill_check(csrf_cookie) .. " check\"}"
                 )
                 return false
               end
