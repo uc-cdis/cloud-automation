@@ -5,7 +5,7 @@
 #
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
-gen3_load "gen3/lib/kube-setup-init"
+gen3_load "gen3/gen3setup"
 
 # lib ------------------------
 
@@ -45,8 +45,11 @@ EOM
 
 # main -------------------
 
-command="$1"
-shift
+command=""
+if [[ $# -gt 0 ]]; then
+  command="$1"
+  shift
+fi
 
 case "$command" in
   "gateway")
@@ -56,7 +59,7 @@ case "$command" in
     deploy_hatchery_proxy "$@"
     ;;
   *)
-    deploy_hatcher_proxy "$@"
+    deploy_hatchery_proxy "$@"
     deploy_api_gateway "$@"
     ;;
 esac
