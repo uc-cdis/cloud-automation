@@ -123,6 +123,7 @@ gen3LogsVpcList=(
     "skfqa gen3qa.kidsfirstdrc.org kids first"
     "qaplanetv1 qa.planx-pla.net jenkins"
     "stageprod gen3.datastage.io"
+    "stagingdatastage staging.datastage.io"
     "vadcprod vpodc.org"
 )
 
