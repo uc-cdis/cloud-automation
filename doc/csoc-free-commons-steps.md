@@ -23,7 +23,22 @@ To get stated, you must have an AWS account ready in which you will deploy all t
 
 On the bright side, because we use terraform to deploy almost all resources, it is realtively easy to tear them all down.
 
-In order to move on, you must have an EC2 instance up with an admin like role attached to it. It shouldn't matter in which VPC it is and if it's behind a bastion node or not. 
+In order to move on, you must have an EC2 instance up with an admin like role attached to it. It shouldn't matter in which VPC it is and if it's behind a bastion node or not. In case you just don't want to give Full admin access to an EC2 instance, then you at least may need the following:
+```
+RDS
+EC2
+VPC
+IAM
+KMS
+Route53
+S3
+CloudWatch
+Lambda
+CloudTrail
+SNS
+SQS
+EKS
+```
 
 Additionally we recommend requesting a SSL certificate for the domain you are going to use to access your commons through AWS certificate manager before moving on, you'll need it later.
 
@@ -109,18 +124,21 @@ gen3 cd
 
 `hostname` domain which the commons will respond to
 
-`config_folder` folder for permissions. By default, commons would try to load a user.yaml file from s3://cdis-gen3-users/CONFIG_FOLDER/user.yaml. This bucket is not publicly accessible, you can later set a different one though. Just keep in mind that the folder with the name you are setting this var with needs to exist within the bucket and a user.yaml file within the folder in question. You can still set permissions based on a local file
+`config_folder` folder for permissions. By default, commons would try to load a user.yaml file from s3://cdis-gen3-users/CONFIG_FOLDER/user.yaml. This bucket is not publicly accessible, you can later set a different one though. Just keep in mind that the folder with the name you are setting this var will needs to exist within the bucket, and a user.yaml file within the folder in question. You can still set permissions based on a local file. 
+
 
 `google_client_secret` and `google_client_id`  Google set of API key so you can set google authentication. You can generate a new one through Google Cloud Console.
 
 
-**NOTE:** If the following variables are not in the file, just add the along with their values.
+**NOTE:** If the following variables are not in the file, just add them along with their values.
 
-`csoc_managed` if you are going to set up your commons hooked up to a central control management account. By default it is set to yes, any other value would assume that you don't want this to happen. If you leave the default value, you must run the logging module first, otherwise terraform will fail.
+`csoc_managed` if you are going to set up your commons hooked up to a central control management account. By default it is set to yes, any other value would assume that you don't want this to happen. If you leave the default value, you must run the logging module first, otherwise terraform will fail. But since this instruction are specifically for non attached deployments, you should set the value to "no".
 
-`peering_cidr` this is the CIDR that your adminVM belongs to. Since the commons would create it's own VPC, you need to pair them up to allow communication between them later. Basically, said peering would let you run kubectl commands agains the kubernetes cluster hosting the commons.
+`peering_cidr` this is the CIDR where your adminVM belongs to. Since the commons would create it's own VPC, you need to pair them up to allow communication between them later. Basically, said peering would let you run kubectl commands against the kubernetes cluster hosting the commons.
 
 `csoc_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
+
+`user_bucket_name` This has also have something to do with the user.yaml file. In case you need your commons to access a user.yaml file in a different bucket than `cdis-gen3-users`, then add this variable with the corresponding value. Terraform with ultimately create a policy allowing the Kubernetes worker nodes to access the bucket in question (Ex. `s3://<user_bucket_name>/<config_folder>/user.yaml`).
 
 **NOTE:** If you are hooking up your commons with a cetralized control management account, you may need to add additional variables to this file with more information about said account.
 
