@@ -121,6 +121,24 @@ spec:
                 name: manifest-global
                 key: indexd_url
                 optional: true
+          - name: WORKSPACE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: workspace_url
+                optional: true
+          - name: MANIFEST_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: manifest_service_url
+                optional: true
+          - name: WTS_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: wts_url
+                optional: true
           - name: PRIVACY_POLICY_URL
             valueFrom:
               configMapKeyRef:
