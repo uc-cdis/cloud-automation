@@ -10,7 +10,6 @@ gen3_load "gen3/lib/kube-setup-init"
 gen3 kube-setup-secrets
 gen3 kube-setup-aws-es-proxy || true
 
-local COUNT
 COUNT=0
 while [[ 'true' != $(g3kubectl get pods --selector=app=esproxy -o json | jq -r '.items[].status.containerStatuses[0].ready' | tr -d '\n') ]]; do
   if [[ COUNT -gt 10 ]]; then
