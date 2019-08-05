@@ -1,0 +1,29 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "statsd-exporter"
+  annotations:
+      gen3.io/network-ingress: "ambassador-gen3"
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: "statsd-exporter"
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: "statsd-exporter"
+        GEN3_DATE_LABEL
+    spec:
+      containers:
+      - name: "statsd-exporter"
+        GEN3_STATSD-EXPORTER_IMAGE
+        resources: {}
+      restartPolicy: Always

@@ -43,6 +43,16 @@ EOM
   yq --arg lua "$luaYamlStr" '.metadata.annotations["getambassador.io/config"]=$lua' < "${GEN3_HOME}/kube/services/ambassador-gen3/ambassador-gen3-service.yaml" | g3kubectl apply -f -
 }
 
+
+deploy_stats_sink() {
+  if ! g3k_manifest_lookup '.versions["statsd-exporter"]' 2> /dev/null; then
+    gen3_log_info "statsd-exporter not enabled in manifest"
+    return 0
+  fi
+  gen3 roll statsd-exporter
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/statsd-exporter/statsd-exporter-deploy.yaml"
+}
+
 # main -------------------
 
 command=""
@@ -58,8 +68,12 @@ case "$command" in
   "hatchery")
     deploy_hatchery_proxy "$@"
     ;;
+  "stats")
+    deploy_stats_sink "$@"
+    ;;
   *)
     deploy_hatchery_proxy "$@"
+    deploy_stats_sink "$@"
     deploy_api_gateway "$@"
     ;;
 esac
