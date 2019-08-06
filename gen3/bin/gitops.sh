@@ -79,9 +79,11 @@ gen3_run_tfplan() {
   local module
   local changes
   local current_branch
+  local quiet
   
 
   module=$1
+  quite=$2
   sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
 
   (
@@ -123,10 +125,23 @@ gen3_run_tfplan() {
 
     if [ -n "${message}" ];
     then
-      aws sns publish --target-arn ${sns_topic} --message file://${message} > /dev/null 2>&1
+      if [ -z "${quiet}" ];
+      then
+        aws sns publish --target-arn ${sns_topic} --message file://${message} > /dev/null 2>&1
+      fi
       rm ${message}
     fi
   )
+
+}
+
+#
+# Apply changes picket up by tfplan
+#
+gen3_run_tfapply() {
+
+  #local module
+  gen3 tfapply
 
 }
 
@@ -785,6 +800,10 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "tfplan")
       gen3_run_tfplan "$@"
+      ;;
+    "tfapply")
+      gen3_run_tfplan "$@"
+      gen3_run_tfapply
       ;;
     *)
       help
