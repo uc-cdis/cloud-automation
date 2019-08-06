@@ -83,7 +83,7 @@ gen3_run_tfplan() {
   
 
   module=$1
-  quite=$2
+  quiet=$2
   sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
 
   (
