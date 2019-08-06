@@ -36,11 +36,13 @@ if ! g3kubectl get storageclass standard > /dev/null 2>&1; then
   g3kubectl apply -f "${GEN3_HOME}/kube/services/storageclass/aws-storageclass.yaml"
 fi
 
-
+gen3 kube-setup-networkpolicy disable
+#
+# Hopefull core secrets/config in place - start bringing up services
+#
 gen3 kube-setup-indexd
 gen3 kube-setup-arborist || true
 gen3 kube-setup-fence
-
 
 if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
   gen3 kube-setup-ssjdispatcher
