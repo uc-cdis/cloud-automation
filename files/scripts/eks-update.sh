@@ -10,7 +10,7 @@
 #  3.) Addition/Deletion of ops_team keys [cloud-automation/files/authorized_keys/ops_team]
 #
 
-set -i
+#set -i
 
 if ! [[ -d "$HOME/cloud-automation" && -d "$HOME/cdis-manifest" ]]; then
   echo "ERROR: this does not look like a commons environment"
@@ -34,5 +34,5 @@ if [[ -z "$XDG_RUNTIME_DIR" ]]; then
 fi
 
 source "${GEN3_HOME}/gen3/gen3setup.sh"
-gen3 gitops tfplan eks
+gen3 gitops tfplan eks quiet
 gen3 gitops tfapply 
