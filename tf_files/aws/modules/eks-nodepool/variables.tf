@@ -10,7 +10,7 @@ variable "instance_type" {
 }
 
 variable "jupyter_instance_type"{
-  default = "t3.medium"
+  default = "t3.large"
 }
 
 variable "csoc_cidr" {
