@@ -80,6 +80,7 @@ gen3_run_tfplan() {
   local changes
   local current_branch
   local quiet
+  local apply
   
 
   module=$1
