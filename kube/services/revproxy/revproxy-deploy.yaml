@@ -87,6 +87,12 @@ spec:
                 name: manifest-global
                 key: origins_allow_credentials
                 optional: true
+          - name: COOKIE_DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: cookie_domain
+                optional: true
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true
