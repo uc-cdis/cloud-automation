@@ -84,12 +84,16 @@ gen3_run_tfplan() {
 
   module=$1
   quiet=$2
+  apply=$3
   sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+  #sns_topic="arn:aws:sns:us-east-1:433568766270:fauzi-alert-channel"
 
   (
     cd ~/cloud-automation
     changes=$(_check_cloud-automation_changes)
+    #changes="false"
     current_branch=$(_check_cloud-automation_branch)
+    #current_branch="master"
 
     #echo ${changes}
 
@@ -113,7 +117,7 @@ gen3_run_tfplan() {
             message=$(_gen3_run_tfplan_vpc)
             ;;
           "eks")
-            message=$(_gen3_run_tfplan_eks)
+            message=$(_gen3_run_tfplan_eks ${apply})
             ;;
         esac
       else
@@ -125,9 +129,12 @@ gen3_run_tfplan() {
 
     if [ -n "${message}" ];
     then
-      if [ -z "${quiet}" ];
+      if ! [ -n "${quiet}" -a "${quiet}" == "quiet" ];
       then
+	      #echo "${quiet}"
         aws sns publish --target-arn ${sns_topic} --message file://${message} > /dev/null 2>&1
+      else
+	      cat ${message}
       fi
       rm ${message}
     fi
@@ -138,11 +145,20 @@ gen3_run_tfplan() {
 #
 # Apply changes picket up by tfplan
 #
-gen3_run_tfapply() {
+_gen3_run_tfapply_eks() {
 
   #local module
-  gen3 tfapply
+  gen3_run_tfplan "$@"
+  #gen3 tfapply
 
+}
+
+# 
+# Public function to start tfapply, only for eks, for the VPC it might not be a good idea
+# or at least it needs some deeper supervisiohn
+#
+gen3_run_tfapply() {
+  _gen3_run_tfapply_eks "$@"
 }
 
 #
@@ -154,15 +170,29 @@ _gen3_run_tfplan_vpc() {
   local plan
   local slack_hook
   local tempFile
+  local output
+  local apply
+
+  apply=$1
 
   gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name} > /dev/null 2>&1
-  plan=$(gen3 tfplan | grep "Plan")
+  #plan=$(gen3 tfplan | grep "Plan")
+  output="$(gen3 tfplan)"
+  plan=$(echo -e "${output}" | grep "Plan")
 
   if [ -n "${plan}" ];
   then
     tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
     echo "${vpc_name} has unapplied plan:" > ${tempFile}
     echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+    if [ -n "$apply" -a "$apply" == "apply" ];
+    then
+      echo -e "${output}" >> ${tempFile}
+      gen3 tfapply >> ${tempFile} 2>&1
+      # gen3 tfapply >> ${tempFile}
+    else
+      echo "No apply this time" >> ${tempFile}
+    fi
   fi
   echo "${tempFile}"
 }
@@ -176,15 +206,28 @@ _gen3_run_tfplan_eks() {
   local plan
   local slack_hook
   local tempFile
+  local apply
+  local output
+
+  apply=$1
 
   gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name}_eks > /dev/null 2>&1
-  plan=$(gen3 tfplan | grep "Plan")
+  #plan=$(gen3 tfplan | grep "Plan")
+  output="$(gen3 tfplan)"
+  plan=$(echo -e "${output}" | grep "Plan")
 
   if [ -n "${plan}" ];
   then
     tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
     echo "${vpc_name}_eks has unapplied plan:" > ${tempFile}
     echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+    if [ -n "$apply" -a "$apply" == "apply" ];
+    then
+      echo -e "${output}" >> ${tempFile}
+      gen3 tfapply >> ${tempFile} 2>&1
+    else
+      echo "No apply this time" >> ${tempFile}
+    fi
   fi
   echo "${tempFile}"
 }
@@ -802,8 +845,8 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       gen3_run_tfplan "$@"
       ;;
     "tfapply")
-      gen3_run_tfplan "$@"
-      gen3_run_tfapply
+      #gen3_run_tfplan "$@"
+      gen3_run_tfapply "$@" "quiet" "apply"
       ;;
     *)
       help
