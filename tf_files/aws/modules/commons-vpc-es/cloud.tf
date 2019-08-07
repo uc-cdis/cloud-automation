@@ -87,7 +87,8 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
   domain_name           = "${var.vpc_name}-gen3-metadata"
   elasticsearch_version = "6.3"
   encrypt_at_rest {
-    enabled = "true"
+    # For small instance type like t2.medium, encryption is not available
+    enabled = "${var.encryption}"
   }
   vpc_options {
     security_group_ids = ["${aws_security_group.private_es.id}"]
@@ -95,7 +96,7 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
   }
   cluster_config {
     instance_type = "${var.instance_type}"
-    instance_count = 3
+    instance_count = "${var.instance_count}"
   }
   ebs_options {
     ebs_enabled = "true"
