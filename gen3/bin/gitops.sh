@@ -147,11 +147,7 @@ gen3_run_tfplan() {
 # Apply changes picket up by tfplan
 #
 _gen3_run_tfapply_eks() {
-
-  #local module
-  gen3_run_tfplan "$@"
-  #gen3 tfapply
-
+  gen3_run_tfplan "$@" "quiet" "apply"
 }
 
 # 
@@ -176,7 +172,7 @@ _gen3_run_tfplan_vpc() {
 
   apply=$1
 
-  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name} > /dev/null 2>&1
+  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1 |head -n1) ${vpc_name} > /dev/null 2>&1
   #plan=$(gen3 tfplan | grep "Plan")
   output="$(gen3 tfplan)"
   plan=$(echo -e "${output}" | grep "Plan")
@@ -212,8 +208,7 @@ _gen3_run_tfplan_eks() {
 
   apply=$1
 
-  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1) ${vpc_name}_eks > /dev/null 2>&1
-  #plan=$(gen3 tfplan | grep "Plan")
+  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1) ${vpc_name}_eks > /dev/null 2>&1
   output="$(gen3 tfplan)"
   plan=$(echo -e "${output}" | grep "Plan")
 
@@ -846,8 +841,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       gen3_run_tfplan "$@"
       ;;
     "tfapply")
-      #gen3_run_tfplan "$@"
-      gen3_run_tfapply "$@" "quiet" "apply"
+      gen3_run_tfapply "$@"
       ;;
     *)
       help
