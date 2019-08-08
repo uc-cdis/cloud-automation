@@ -143,6 +143,10 @@ all:
         gmkfqa_qa:
           ansible_user: skfqa
           ansible_host: 10.128.2.12
+        cdistest_qa:
+          ansible_user: qaplanetv1
+          ansible_host: 10.128.7.28
+
     demo:
       hosts:
         ncicrdc_demo:
