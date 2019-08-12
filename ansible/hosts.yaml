@@ -143,9 +143,15 @@ all:
         gmkfqa_qa:
           ansible_user: skfqa
           ansible_host: 10.128.2.12
+        kfqa2_qa:
+          ansible_user: kfqa2
+          ansible_host: 10.128.2.12
         cdistest_qa:
           ansible_user: qaplanetv1
           ansible_host: 10.128.7.28
+        braincommons_qa:
+          ansible_user: bhcqa
+          ansible_host: 10.128.2.81
 
     demo:
       hosts:
