@@ -93,7 +93,7 @@ spec:
                 name: manifest-global
                 key: cookie_domain
                 optional: true
-          - name: FENCE_NAMESPACE
+          - name: DES_NAMESPACE
             valueFrom:
               configMapKeyRef:
                 name: manifest-global
