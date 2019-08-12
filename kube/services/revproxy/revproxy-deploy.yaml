@@ -97,7 +97,7 @@ spec:
             valueFrom:
               configMapKeyRef:
                 name: manifest-global
-                key: fence_namespace
+                key: des_namespace
                 optional: true
         volumeMounts:
           - name: "revproxy-conf"
