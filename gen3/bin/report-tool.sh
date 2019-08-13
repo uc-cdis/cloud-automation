@@ -118,9 +118,13 @@ while getopts "$OPTSPEC" optchar; do
           #echo "Parsing option eq: '--${opt}', value: '${val}'" >&2
           main ${val}
           ;;
+        help)
+          HELP
+          ;;
         *)
           if [ "$OPTERR" = 1 ] && [ "${OPTSPEC:0:1}" != ":" ]; then
             echo "Unknown option --${OPTARG}" >&2
+            HELP
             exit 2
           fi
           ;;
@@ -129,9 +133,13 @@ while getopts "$OPTSPEC" optchar; do
       #echo "Parsing option: '${OPTARG}'" >&2
       main ${OPTARG}
       ;;
+    h)
+      HELP
+      ;;
     *)
       if [ "$OPTERR" != 1 ] || [ "${OPTSPEC:0:1}" = ":" ]; then
         echo "Non-option argument: '-${OPTARG}'" >&2
+        HELP
         exit 2
       fi
       ;;
