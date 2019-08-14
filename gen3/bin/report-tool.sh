@@ -79,6 +79,7 @@ REV='\e[1;32m'       # Bold Green
 
 #Help function
 function HELP {
+  gen3 help report-tool
   echo -e "${REV}Basic usage:${OFF} ${BOLD}$SCRIPT -r full ${OFF}"\\n
   echo -e "${REV}The following switches are recognized. $OFF "
   echo -e "${REV}-r --report ${OFF}  Print a report, valid types are 'full' only ${OFF}."
