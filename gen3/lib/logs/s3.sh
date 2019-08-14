@@ -1,3 +1,9 @@
+#
+# Some preliminary code for generating reports from
+# the S3 access logs.
+# Still under development
+#
+
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
