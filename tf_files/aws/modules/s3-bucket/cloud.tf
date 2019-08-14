@@ -23,7 +23,7 @@ resource "aws_s3_bucket" "mybucket" {
 
   logging {
     target_bucket = "${module.cdis_s3_logs.log_bucket_name}"
-    target_prefix = "log/${local.clean_bucket_name}"
+    target_prefix = "log/${local.clean_bucket_name}/"
   }
 
   tags {

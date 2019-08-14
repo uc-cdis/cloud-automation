@@ -15,7 +15,7 @@ resource "aws_s3_bucket" "data_bucket" {
 
   logging {
     target_bucket = "${aws_s3_bucket.log_bucket.id}"
-    target_prefix = "log/${var.vpc_name}-data-bucket"
+    target_prefix = "log/${var.vpc_name}-data-bucket/"
   }
 
   tags {
