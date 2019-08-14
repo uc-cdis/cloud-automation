@@ -77,11 +77,11 @@ EOM
 
 if [[ -z "$JENKINS_HOME" ]]; then # don't think jenkins can route to kibana.planx-pla.net ...
   shunit_runtest "test_logs" "logs,local"
+  shunit_runtest "test_logs_history" "logs,local"
 else
   gen3_log_info "test_logs" "skipping logs test - LOGPASSWORD not set"
 fi
 
 shunit_runtest "test_logs_curl" "logs,local"
 shunit_runtest "test_logs_awk" "logs,local"
-shunit_runtest "test_logs_history" "logs,local"
 shunit_runtest "test_logs_snapshot" "logs"
