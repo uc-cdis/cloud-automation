@@ -71,6 +71,7 @@ spec:
                 mountPath: "/gen3/tube/etlMapping.yaml"
                 subPath: "etlMapping.yaml"
               - name: "fence-yaml"
+                readOnly: true
                 mountPath: "/gen3/tube/user.yaml"
                 subPath: user.yaml
               resources:
