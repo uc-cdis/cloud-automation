@@ -44,6 +44,15 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         shift
       fi
       case "$subcommand" in
+        "codes")
+          gen3_logs_code_histogram "$@"
+          ;;
+        "rtimes")
+          gen3_logs_rtime_histogram "$@"
+          ;;
+        "users")
+          gen3_logs_user_count "$@"
+          ;;
         "daily")
           gen3_logs_history_daily "$@"
           ;;
@@ -51,7 +60,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           gen3_logs_ubh_history "$@"
           ;;
         *)
-          gen3_log_err "gen3_logs" "invalid history subcommand $subcommand"
+          gen3_log_err "gen3_logs" "invalid history subcommand $subcommand - try: gen3 help logs"
           ;;
       esac
       ;;

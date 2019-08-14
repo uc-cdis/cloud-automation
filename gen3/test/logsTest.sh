@@ -7,6 +7,20 @@ test_logs() {
   gen3 logs save ubh > /dev/null 2>&1; because $? "gen3 logs save ubh should work"
 }
 
+test_logs_history() {
+  local result
+  result=$(gen3 logs history codes vpc=qaplanetv1) && jq -e -r .aggregations.codes.buckets <<< "$result" > /dev/null 2>&1;
+      because $? "gen3 logs history codes should give a valid result: ${result:0:100}"
+  result=""
+
+  result=$(gen3 logs history rtimes vpc=qaplanetv1) && jq -e -r .aggregations.rtimes.buckets <<< "$result" > /dev/null 2>&1;
+      because $? "gen3 logs history rtimes should give a valid result: ${result:0:100}"
+  result=""
+
+  result=$(gen3 logs history users vpc=qaplanetv1) && jq -e -r .aggregations.unique_user_count <<< "$result" > /dev/null 2>&1;
+      because $? "gen3 logs history users should give a valid result: ${result:0:100}"
+  result=""
+}
 
 test_logs_curl() {
   gen3 logs curl200 https://www.google.com > /dev/null; because $? "gen3 logs curl200 should almost always work with www.google.com"
@@ -69,4 +83,5 @@ fi
 
 shunit_runtest "test_logs_curl" "logs,local"
 shunit_runtest "test_logs_awk" "logs,local"
+shunit_runtest "test_logs_history" "logs,local"
 shunit_runtest "test_logs_snapshot" "logs"
