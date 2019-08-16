@@ -104,3 +104,13 @@ We expect a user will usually run this command from his personal laptop which ho
 ```
 gen3 gitops dotag fence
 ```
+
+### tfplan
+
+Runs a terraform plan on an environment. It must be ran as the user that manages the commons.
+Execute this with extream precaution, it won't prompt for confirmation, will just apply.
+It takes a module as argument, like: vpc, eks.
+
+```
+gen3 gitops tfplan vpc
+```
