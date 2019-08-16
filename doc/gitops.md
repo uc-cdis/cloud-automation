@@ -107,10 +107,19 @@ gen3 gitops dotag fence
 
 ### tfplan
 
+Runs terraform to check on an environment. It'll just get the plan, it won't apply it.
+It must be ran as the user that manages the commons.
+It takes a module as argument, like: vpc, eks.
+
+```
+gen3 gitops tfplan vpc
+```
+
+### tfapply
 Runs a terraform plan on an environment. It must be ran as the user that manages the commons.
 Execute this with extream precaution, it won't prompt for confirmation, will just apply.
 It takes a module as argument, like: vpc, eks.
 
 ```
-gen3 gitops tfplan vpc
+gen3 gitops tfapply eks
 ```
