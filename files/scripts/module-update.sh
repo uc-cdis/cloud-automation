@@ -34,4 +34,4 @@ if [[ -z "$XDG_RUNTIME_DIR" ]]; then
 fi
 
 source "${GEN3_HOME}/gen3/gen3setup.sh"
-gen3 gitops tfapply eks
+gen3 gitops tfapply $1
