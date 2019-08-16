@@ -115,7 +115,7 @@ gen3_run_tfplan() {
       then
         case "$module" in
           "vpc")
-            message=$(_gen3_run_tfplan_vpc)
+            message=$(_gen3_run_tfplan_vpc ${apply})
             ;;
           "eks")
             message=$(_gen3_run_tfplan_eks ${apply})
@@ -132,10 +132,9 @@ gen3_run_tfplan() {
     then
       if ! [ -n "${quiet}" -a "${quiet}" == "quiet" ];
       then
-	      #echo "${quiet}"
         aws sns publish --target-arn ${sns_topic} --message file://${message} > /dev/null 2>&1
       else
-	      cat ${message}
+        cat ${message}
       fi
       rm ${message}
     fi
@@ -150,12 +149,29 @@ _gen3_run_tfapply_eks() {
   gen3_run_tfplan "$@" "quiet" "apply"
 }
 
-# 
+
+#
+# Apply changes picket up by tfplan
+#
+_gen3_run_tfapply_vpc() {
+  #echo "$@"
+  gen3_run_tfplan "$@" "quiet" "apply"
+}
+
+#
 # Public function to start tfapply, only for eks, for the VPC it might not be a good idea
 # or at least it needs some deeper supervisiohn
 #
+
 gen3_run_tfapply() {
-  _gen3_run_tfapply_eks "$@"
+  local module=$1
+  if [ ${module} == "vpc" ];
+  then
+    _gen3_run_tfapply_vpc "$@"
+  elif [ ${module} == "eks" ];
+  then
+    _gen3_run_tfapply_eks "$@"
+  fi
 }
 
 #
@@ -186,7 +202,6 @@ _gen3_run_tfplan_vpc() {
     then
       echo -e "${output}" >> ${tempFile}
       gen3 tfapply >> ${tempFile} 2>&1
-      # gen3 tfapply >> ${tempFile}
     else
       echo "No apply this time" >> ${tempFile}
     fi

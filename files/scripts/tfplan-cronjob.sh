@@ -28,6 +28,7 @@ if [[ -z "$XDG_RUNTIME_DIR" ]]; then
   mkdir -m 700 -p "$XDG_RUNTIME_DIR"
 fi
 
+
 source "${GEN3_HOME}/gen3/gen3setup.sh"
-gen3 gitops tfplan vpc
-gen3 gitops tfplan eks
+gen3 gitops tfplan vpc $1
+gen3 gitops tfplan eks $1
