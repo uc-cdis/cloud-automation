@@ -88,6 +88,12 @@ spec:
                 name: manifest-global
                 key: indexd_url
                 optional: true
+          - name: GRAPHQL_TIMEOUT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-peregrine
+                key: peregrine_timeout
+                optional: true
           - name: FENCE_URL
             valueFrom:
               configMapKeyRef:
