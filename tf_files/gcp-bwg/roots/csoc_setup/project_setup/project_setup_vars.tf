@@ -150,7 +150,7 @@ variable "csoc_private_subnet_private_access" {
 }
 
 #########Variables to create the subnets for each vpc#######
-
+/*
 variable "csoc_egress_subnet_octet1" {
   description = "first segment of the ip range for vpc subnet"
 }
@@ -170,11 +170,11 @@ variable "csoc_egress_subnet_octet4" {
 variable "csoc_egress_subnet_mask" {
   description = "subnet mask of the vpc subnet"
 }
-
+*/
 variable "csoc_egress_region" {
   description = "region vpc resides in"
 }
-
+/*
 variable "csoc_private_subnet_octet1" {
   description = "first segment of the ip range for vpc subnet"
 }
@@ -194,11 +194,11 @@ variable "csoc_private_subnet_octet4" {
 variable "csoc_private_subnet_mask" {
   description = "subnet mask of the vpc subnet"
 }
-
+*/
 variable "csoc_private_region" {
   description = "region vpc resides in"
 }
-
+/*
 variable "csoc_ingress_subnet_octet1" {
   description = "first segment of the ip range for vpc subnet"
 }
@@ -218,7 +218,7 @@ variable "csoc_ingress_subnet_octet4" {
 variable "csoc_ingress_subnet_mask" {
   description = "subnet mask of the vpc subnet"
 }
-
+*/
 variable "csoc_ingress_region" {
   description = "region vpc resides in"
 }

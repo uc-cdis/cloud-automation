@@ -102,33 +102,18 @@ csoc_private_network_name = "csoc-private"
 csoc_egress_subnet_name = "csoc-egress-kubecontrol"
 csoc_egress_subnet_ip = "172.29.31.0/24"
 csoc_egress_region = "us-central1"
-csoc_egress_subnet_octet1 = "172"
-csoc_egress_subnet_octet2 = "29"
-csoc_egress_subnet_octet3 = "31"
-csoc_egress_subnet_octet4 = "0"
-csoc_egress_subnet_mask = "24"
 csoc_egress_subnet_flow_logs = true
 csoc_egress_subnet_private_access = false
 
 csoc_ingress_subnet_name = "csoc-ingress-kubecontrol"
 csoc_ingress_subnet_ip = "172.29.30.0/24"
 csoc_ingress_region = "us-central1"
-csoc_ingress_subnet_octet1 = "172"
-csoc_ingress_subnet_octet2 = "29"
-csoc_ingress_subnet_octet3 = "30"
-csoc_ingress_subnet_octet4 = "0"
-csoc_ingress_subnet_mask = "24"
 csoc_ingress_subnet_flow_logs = true
 csoc_ingress_subnet_private_access = false
 
 csoc_private_subnet_name = "csoc-private-kubecontrol"
 csoc_private_subnet_ip = "172.29.29.0/24"
 csoc_private_region = "us-central1"
-csoc_private_subnet_octet1 = "172"
-csoc_private_subnet_octet2 = "29"
-csoc_private_subnet_octet3 = "29"
-csoc_private_subnet_octet4 = "0"
-csoc_private_subnet_mask = "24"
 csoc_private_subnet_flow_logs = true
 csoc_private_subnet_private_access = false
 
@@ -312,22 +297,67 @@ instance_name = "adminvm"
 
 bastion_name = "bastionvm"
 
-# -------------------------------------
-#   OpenVPN Instance
-# -------------------------------------
-
-openvpn_instance_name = "openvpn"
-openvpn_compute_tags = ["openvpn", "proxy-access"]
-openvpn_count_compute = "1"
 
 # -------------------------------------
-#   SQUID MANAGED INSTANCE GROUP
+#   OPENVPN MANAGED INSTANCE GROUP
 # -------------------------------------
 
-squid_name = "squid"
+openvpn_name = "<openvpn_name>"
+openvpn_machine_type = "f1-micro"
+openvpn_target_size = "1"
+openvpn_metadata_startup_script = "<script_location>"
+
+
+# -------------------------------------
+#   SQUID MANAGED INSTANCE AUTOHEAL GROUP
+# -------------------------------------
+
+squid_name = "<squid_name>"
 squid_machine_type = "f1-micro"
 squid_target_size = "1"
-squid_metadata_startup_script = "../../../modules/compute-group/scripts/squid-install.sh"
+squid_metadata_startup_script = "<script_location>"
+squid_hc_check_interval_sec = "5"
+squid_hc_timeout_sec = "5"
+squid_hc_healthy_threshold = "2"
+squid_hc_unhealthy_threshold = "10"
+squid_hc_tcp_health_check_port = "3128"
+
+# -------------------------------------
+#   OPENVPN AUTOSCALER
+# -------------------------------------
+
+openvpn_min_replicas = "1"
+openvpn_max_replicas = "3"
+openvpn_cpu_utilization_target = "0.6"
+openvpn_cooldown_period = "300"
+
+# -------------------------------------
+#   SQUID AUTOSCALER
+# -------------------------------------
+
+squid_min_replicas = "1"
+squid_max_replicas = "3"
+squid_cpu_utilization_target = "0.6"
+squid_cooldown_period = "300"
+
+
+# -------------------------------------
+#   OPENVPN AUTOSCALER
+# -------------------------------------
+
+openvpn_min_replicas = "1"
+openvpn_max_replicas = "3"
+openvpn_cpu_utilization_target = "0.6"
+openvpn_cooldown_period = "300"
+
+# -------------------------------------
+#   SQUID AUTOSCALER
+# -------------------------------------
+
+squid_min_replicas = "1"
+squid_max_replicas = "3"
+squid_cpu_utilization_target = "0.6"
+squid_cooldown_period = "300"
 
 # -------------------------------------
 #   INTERNAL LOAD BALANCER FOR SQUID
@@ -341,8 +371,6 @@ squid_lb_target_tags = ["squid", "proxy"]
 # -------------------------------------
 #   Compute Instance Variables
 # -------------------------------------
-
-
 # SSH INFORMATION
 ssh_user = "<ssh_user>"
 ssh_key_pub = "<ssh_key_pub>"
@@ -389,8 +417,6 @@ ingress_subnetwork_name = "csoc-ingress-kubecontrol"
 # Scheduling
 automatic_restart = "true"
 on_host_maintenance = "MIGRATE"
-
-
 
 # -------------------------------------
 #   Cloud Bucket Variables for Stackdriver Org Sink

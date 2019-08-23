@@ -150,20 +150,95 @@ variable "ssh_key" {
 }
 
 #---------------------------------------------------------------------------------------
-#   OpenVPN Variables
+#   OPENVPN INSTANCE GROUP Variables
 #---------------------------------------------------------------------------------------
 
-variable "openvpn_instance_name" {
-  description = "Name of the instance."
+variable "openvpn_name" {
+  description = "Name of the instance group."
 }
 
-variable "openvpn_compute_tags" {
-  description = "Firewall tags to assign to the instance."
+variable "openvpn_machine_type" {
+  description = "Name of the instance group."
+}
+
+variable "openvpn_metadata_startup_script" {
+  description = "Startup script"
+
+  #default     = "../../../modules/compute-group/scripts/squid-install.sh"
+}
+
+variable "openvpn_target_size" {
+  description = "The target number of instances in the group."
+}
+
+variable "openvpn_tags" {
+  description = "Firewall tags to be assigned to the instances."
+  default     = ["openvpn", "proxy-access"]
+}
+
+variable "openvpn_base_instance_name" {
+  description = "The name of the instances created in the group."
+  default     = "base-instance"
+}
+
+variable "openvpn_zone" {
+  description = "The zone which further specifies the region."
+  default     = "us-central1-c"
+}
+
+variable "openvpn_target_pool_name" {
+  description = "Name of target-pool."
+  default     = "target-pool"
+}
+
+variable "openvpn_source_image" {
+  description = "The image from which to initialize this disk."
+  default     = "debian-cloud/debian-9"
+}
+
+variable "openvpn_instance_template_name" {
+  description = "Name of the template."
+  default     = "template"
+}
+
+variable "openvpn_instance_group_manager_name" {
+  description = "Name of the instance group."
+  default     = "instance-group"
+}
+
+variable "openvpn_automatic_restart" {
+  description = "Specifies whether the instance should be automatically restarted if it is terminated by Compute Engine (not terminated by a user). This defaults to true."
+  default     = true
+}
+
+variable "openvpn_on_host_maintenance" {
+  description = "Defines the maintenance behavior for this instance."
+  default     = "MIGRATE"
+}
+
+variable "openvpn_labels" {
+  description = "A set of key/value label pairs to assign to instances created from this template."
+  type        = "map"
+  default     = {}
+}
+
+variable "openvpn_access_config" {
+  description = "The access config block for the instances. Set to [] to remove external IP."
   type        = "list"
+
+  default = [
+    {},
+  ]
 }
 
-variable "openvpn_count_compute" {
-  description = "The number of OpenVPN instances to create."
+variable "openvpn_network_ip" {
+  description = "Set the network IP of the instance in the template. Useful for instance groups of size 1."
+  default     = ""
+}
+
+variable "openvpn_can_ip_forward" {
+  description = "Allow ip forwarding."
+  default     = false
 }
 
 #---------------------------------------------------------------------------------------
@@ -258,6 +333,151 @@ variable "squid_can_ip_forward" {
   default     = false
 }
 
+variable "squid_hc_name" {
+  description = "Name of the health check resource."
+  default     = "health-check"
+}
+
+variable "squid_hc_check_interval_sec" {
+  description = "How often (in seconds) to send a health check. The default value is 5 seconds."
+}
+
+variable "squid_hc_timeout_sec" {
+  description = "How long (in seconds) to wait before claiming failure. The default value is 5 seconds."
+}
+
+variable "squid_hc_healthy_threshold" {
+  description = "A so-far unhealthy instance will be marked healthy after this many consecutive successes. The default value is 2."
+}
+
+variable "squid_hc_unhealthy_threshold" {
+  description = "A so-far healthy instance will be marked unhealthy after this many consecutive failures. The default value is 10."
+}
+
+variable "squid_hc_tcp_health_check_port" {
+  description = "The TCP port number for the TCP health check request. The default value is 443."
+}
+
+# -------------------------------------------------------------------------------------
+#   AUTOSCALER - OPENVPN
+# -------------------------------------------------------------------------------------
+
+variable "openvpn_min_replicas" {
+  description = "The minimum number of replicas that the autoscaler can scale down to."
+}
+
+variable "openvpn_max_replicas" {
+  description = "The maximum number of replicas that the autoscaler can scale down to."
+}
+
+variable "openvpn_cpu_utilization_target" {
+  description = "Defines the CPU utilization policy that allows the autoscaler to scale based on the average CPU utilization of a managed instance group. Must be a float value in the range (0, 1]"
+}
+
+variable "openvpn_cooldown_period" {
+  description = "The number of seconds that the autoscaler should wait before it starts collecting information from a new instance."
+}
+
+#---------------------------------------------------------------------------------------
+#   AUTOSCALER - SQUID
+#---------------------------------------------------------------------------------------
+
+variable "squid_min_replicas" {
+  description = "The minimum number of replicas that the autoscaler can scale down to."
+}
+
+variable "squid_max_replicas" {
+  description = "The maximum number of replicas that the autoscaler can scale down to."
+}
+
+variable "squid_cpu_utilization_target" {
+  description = "Defines the CPU utilization policy that allows the autoscaler to scale based on the average CPU utilization of a managed instance group. Must be a float value in the range (0, 1]"
+}
+
+variable "squid_cooldown_period" {
+  description = "The number of seconds that the autoscaler should wait before it starts collecting information from a new instance."
+}
+
+
+# -------------------------------------------------------------------------------------
+#   FIREWALL HEALTHCHECK - OPENVPN
+# -------------------------------------------------------------------------------------
+
+variable "openvpn_enable_logging" {
+  default = true
+}
+
+variable "openvpn_direction" {
+  description = "Ingress or Egress"
+  default     = "INGRESS"
+}
+
+variable "openvpn_priority" {
+  default = "1000"
+}
+
+variable "openvpn_fw_name" {
+  description = "Name of the Firewall rule"
+  default     = "health-check"
+}
+
+variable "openvpn_source_ranges" {
+  type        = "list"
+  description = "A list of source CIDR ranges that this firewall applies to. Can't be used for EGRESS"
+  default     = ["130.211.0.0/22", "209.85.152.0/22", "209.85.204.0/22"]
+}
+
+variable "openvpn_target_tags" {
+  type        = "list"
+  description = "A list of target tags for this firewall"
+  default     = ["openvpn", "proxy-access"]
+}
+
+variable "openvpn_protocol" {
+  description = "The name of the protocol to allow. This value can either be one of the following well known protocol strings (tcp, udp, icmp, esp, ah, sctp), or the IP protocol number, or all"
+  default     = "TCP"
+}
+
+# -------------------------------------------------------------------------------------
+#   FIREWALL HEALTHCHECK - SQUID
+# -------------------------------------------------------------------------------------
+
+variable "squid_fw_enable_logging" {
+  default = true
+}
+
+variable "squid_fw_direction" {
+  description = "Ingress or Egress"
+  default     = "INGRESS"
+}
+
+variable "squid_fw_priority" {
+  default = "1000"
+}
+
+variable "squid_fw_name" {
+  description = "Name of the Firewall rule"
+  default     = "health-check"
+}
+
+variable "squid_fw_source_ranges" {
+  type        = "list"
+  description = "A list of source CIDR ranges that this firewall applies to. Can't be used for EGRESS"
+  default     = ["130.211.0.0/22", "35.191.0.0/16"]
+}
+
+variable "squid_fw_target_tags" {
+  type        = "list"
+  description = "A list of target tags for this firewall"
+  default     = ["proxy", "web-access"]
+}
+
+variable "squid_fw_protocol" {
+  description = "The name of the protocol to allow. This value can either be one of the following well known protocol strings (tcp, udp, icmp, esp, ah, sctp), or the IP protocol number, or all"
+  default     = "TCP"
+}
+
+
 #---------------------------------------------------------------------------------------
 #   INTERNAL LOAD BALANCER
 #---------------------------------------------------------------------------------------
@@ -266,6 +486,7 @@ variable "squid_lb_name" {
   description = "Name for the forwarding rule and prefix for supporting resources."
 }
 
+/*
 variable "squid_lb_health_port" {
   description = "Port to perform health checks on."
 }
@@ -279,7 +500,7 @@ variable "squid_lb_target_tags" {
   description = "List of target tags to allow traffic using firewall rule."
   type        = "list"
 }
-
+*/
 variable "squid_lb_session_affinity" {
   description = "How to distribute load. Options are `NONE`, `CLIENT_IP` and `CLIENT_IP_PROTO`"
   default     = "NONE"
@@ -289,10 +510,10 @@ variable "squid_lb_load_balancing_scheme" {
   default = "INTERNAL"
 }
 
-variable "squid_lb_protocol" {
-  description = "An optional list of ports to which this rule applies.Options tcp,udp,icmp,esp,ah,sctp"
-  default     = "TCP"
-}
+#variable "squid_lb_protocol" {
+#  description = "An optional list of ports to which this rule applies.Options tcp,udp,icmp,esp,ah,sctp"
+#  default     = "TCP"
+#}
 
 variable "squid_lb_ip_address" {
   description = "IP address of the internal load balancer, if empty one will be assigned. Default is empty."

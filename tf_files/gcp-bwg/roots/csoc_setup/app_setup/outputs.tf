@@ -9,8 +9,26 @@ output "public_ssh_key" {
 }
 
 # ------------------------------------------------
+#   COMPUTE INSTANCE GROUP - OPENVPN
+# ------------------------------------------------
+output "openvpn_instance_group" {
+  description = "openvpn instance group name."
+  value       = "${module.openvpn_instance_group.instance_group}"
+}
+
+output "openvpn_instance_group_self_link" {
+  description = "openvpn instance group self link"
+  value       = "${module.openvpn_instance_group.instance_group_self_link}"
+}
+
+output "openvpn_instance_group_manager_self_link" {
+  value = "${module.openvpn_instance_group.instance_group_manager_self_link}"
+}
+
+# ------------------------------------------------
 #   COMPUTE INSTANCE GROUP - SQUID
 # ------------------------------------------------
+
 output "squid_instance_group" {
   description = "Squid instance group name."
   value       = "${module.squid_instance_group.instance_group}"
@@ -21,20 +39,11 @@ output "squid_instance_group_self_link" {
   value       = "${module.squid_instance_group.instance_group_self_link}"
 }
 
-# ------------------------------------------------
-#   COMPUTE INSTANCE GROUP - OPENVPN
-# ------------------------------------------------
-/*
-output "openvpn_instance_group" {
-  description = "OpenVPN instance group name."
-  value       = "${module.openvpn_instance_group.instance_group}"
+output "squid_instance_group_manager_self_link" {
+  value = "${module.squid_instance_group.instance_group_manager_self_link}"
 }
 
-output "openvpn_instance_group_self_link" {
-  description = "OpenVPN instance group self link."
-  value       = "${module.openvpn_instance_group.instance_group_self_link}"
-}
-*/
+
 # ------------------------------------------------
 #   INTERNAL LOAD BALANCER - SQUID
 # ------------------------------------------------

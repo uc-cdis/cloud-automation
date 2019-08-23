@@ -1,6 +1,8 @@
 output "instance_group_manager_self_link" {
-    description = "The URL of the created group mananger."
-    value = "${google_compute_instance_group_manager.instance_group.self_link}"
+  description = "The URL of the created group mananger."
+
+  #value = "${join(", ", google_compute_instance_group_manager.instance_group.self_link)}"
+  value = "${google_compute_instance_group_manager.instance_group.self_link}"
 }
 
 output "instance_group" {
