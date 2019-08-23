@@ -16,6 +16,10 @@ if [[ "$(g3kubectl get service peregrine-service -o json | jq -r .spec.type)" ==
   g3kubectl delete service peregrine-service
 fi
 
+if gen3 kube-setup-metrics check; then 
+  # metrics-server is deployed, so deploy hpa (horizontal pod autoscaling) 
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-hpa.yaml"
+fi
 g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-service.yaml"
 gen3 roll peregrine-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-canary-service.yaml"

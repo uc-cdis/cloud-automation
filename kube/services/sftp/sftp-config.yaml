@@ -11,6 +11,7 @@ data:
     USER F,USERF,eRA,PI,helloF@com,"123-456-789",active,phs000178.v9.p8.c1,"General Research Use",2013-03-19 12:32:12.600,2015-05-14 16:01:16.923,2016-05-14 00:00:00.000,
     USER B,USERB,eRA,PI,helloB@com,"123-456-789",active,phs000178.v9.p8.c1,"General Research Use",2013-03-19 12:32:12.600,2015-05-14 16:01:16.923,2016-05-14 00:00:00.000,
     USER C,USERC,eRA,PI,helloC@com,"123-456-789",active,phs000178.v9.p8.c1,"General Research Use",2013-03-19 12:32:12.600,2015-05-14 16:01:16.923,2016-05-14 00:00:00.000,
+    INTEGRATION USER,cdis.autotest@gmail.com,eRA,PI,helloTest@com,"123-456-789",active,phs000178.v9.p8.c1,"General Research Use",2013-03-19 12:32:12.600,2015-05-14 16:01:16.923,2016-05-14 00:00:00.000,
   authentication_file_phs000179.csv: |
     user name, login, authority, role, email, phone, status, phsid, permission set, created, updated, expires, downloader for
     USER D,USERD,eRA,PI,helloD@com,"123-456-789",active,phs000179.v9.p8.c1,"General Research Use",2013-03-19 12:32:12.600,2015-05-14 16:01:16.923,2016-05-14 00:00:00.000,

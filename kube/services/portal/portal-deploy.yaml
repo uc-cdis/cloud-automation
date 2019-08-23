@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         app: portal
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -45,6 +46,9 @@ spec:
       - name: sponsor-img-volume
         secret:
           secretName: "portal-sponsor-config"
+      - name: privacy-policy
+        configMap:
+          name: "privacy-policy"
       containers:
       - name: portal
         GEN3_PORTAL_IMAGE
@@ -79,6 +83,68 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: portal_app
+          - name: LOGOUT_INACTIVE_USERS
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: logout_inactive_users
+                optional: true
+          - name: WORKSPACE_TIMEOUT_IN_MINUTES
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: workspace_timeout_in_minutes
+                optional: true
+          - name: TIER_ACCESS_LEVEL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                # acceptable values for `tier_access_level` are: `libre`, `regular` and `private`. If omitted, by default common will be treated as `private`
+                key: tier_access_level
+                # for now making it optional so won't break anything
+                optional: true
+          - name: TIER_ACCESS_LIMIT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: tier_access_limit
+                optional: true
+          - name: FENCE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: fence_url
+                optional: true
+          - name: INDEXD_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: WORKSPACE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: workspace_url
+                optional: true
+          - name: MANIFEST_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: manifest_service_url
+                optional: true
+          - name: WTS_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: wts_url
+                optional: true
+          - name: PRIVACY_POLICY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: privacy_policy_url
+                optional: true
         volumeMounts:
           - name: "cert-volume"
             readOnly: true
@@ -109,6 +175,10 @@ spec:
             subPath: "gitops.css"
           - name: "sponsor-img-volume"
             mountPath: "/data-portal/custom/sponsors/gitops-sponsors"
+          - name: "privacy-policy"
+            readOnly: true
+            mountPath: "/data-portal/custom/privacy_policy.md"
+            subPath: "privacy_policy.md"
         readinessProbe:
           httpGet:
             path: /

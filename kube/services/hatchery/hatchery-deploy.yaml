@@ -1,0 +1,71 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: hatchery-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: hatchery
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: hatchery
+        public: "yes"
+        netnolimit: "yes"
+        userhelper: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - hatchery
+              topologyKey: "kubernetes.io/hostname"
+      serviceAccountName: hatchery-service-account
+      volumes:
+        - name: hatchery-config
+          configMap:
+            name: manifest-hatchery
+            items:
+              - key: json
+                path: hatchery.json
+      containers:
+      - name: hatchery
+        GEN3_HATCHERY_IMAGE
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 60
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 8000
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        volumeMounts:
+          - name: hatchery-config
+            readOnly: true
+            mountPath: /hatchery.json
+            subPath: hatchery.json

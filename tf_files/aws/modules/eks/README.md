@@ -55,12 +55,17 @@ users_policy = "fauziv1"
 * `csoc_cidr` By default set to 10.128.0.0/20.
 * `eks_version` Version of kubernetes to deploy for EKS, default is set to 1.10.
 * `worker_drive_size` Size of the root volume for the workers. Default is set to 30 GB.
-* `deploy_jupyter_pool` If you want the jupyter pool. If explicit "yes" is passed, then the autoscaling group would be set to a minimum of three instances, and same value for desired capasity. Default is no.
 * `jupyter_instance_type` Instance_type for nodepool by default this is set to t3.medium, but it can be changed if needed.
-* `bootstrap_script` Script to use to initialize the worker nodes. Default value `bootstrap-2.0.0.sh`
-* `jupyter_bootstrap_script` Script to intialize jupyter worekers. Default value `bootstrap-2.0.0.sh`
-* `kernel` If your bootstrap script requires a different kernel that what ships with the AMIs. Additionally, kernels will be uploaded onto `gen3-kernels` bucket in the CSOC account. Default value `"N/A"`
+* `bootstrap_script` Script to use to initialize the worker nodes. Default value `bootstrap-2.0.0.sh`.
+* `jupyter_bootstrap_script` Script to intialize jupyter worekers. Default value `bootstrap-2.0.0.sh`.
+* `kernel` If your bootstrap script requires a different kernel that what ships with the AMIs. Additionally, kernels will be uploaded onto `gen3-kernels` bucket in the CSOC account. Default value `"N/A"`.
 * `jupyter_worker_drive_size` Size of the jupyter workers drive. Default 30.
+* `cidrs_to_route_to_gw` CIDRs you would like to get out skiping the proxy. This var should be a list type, Ex: `cidrs_to_route_to_gw = ["192.170.230.192/26", "192.170.230.160/27"]`. Default, empty list.
+* `csoc_manged` If you want your commons attached to a CSOC accunt, just set the value of this one as "Yes", exactly like that. Any other value would be taken as no. Default is "Yes".
+* `peering_cidr` Basically the CIDR of the vpc your adminVM belongs to. Since the above variable default is "Yes" this variable default is PlanX CSOC account.
+* `jupyter_asg_desired_capacity` How many workers you want in your jupyter autoscaling group. Default 0
+* `jupyter_asg_max_size` The max number of workers you would allow your jupyter autoscaling group to grow. Default 10.
+* `jupyter_asg_min_size` The min number of workers you would allow your jupyter autoscaling group to shrink. Default 0.
 
 ## 5. Considerations
 

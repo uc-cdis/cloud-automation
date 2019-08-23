@@ -5,7 +5,7 @@ kind: CronJob
 metadata:
   name: google-verify-bucket-access-group
 spec:
-  schedule: "@hourly"
+  schedule: "25 * * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:

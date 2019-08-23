@@ -3,47 +3,6 @@ gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/g3k_manifest"
 
 
-#
-# Get the path to the yaml file to apply for a `gen3 roll name` command.
-# Supports deployment versions (ex: ...-deploy-1.0.0.yaml) and canary 
-# deployments (ex: fence-canary)
-# 
-# @param depName deployment name or alias
-# @param depVersion deployment version - if any - usually extracted from manifest - ignores "null" value
-# @return echo path to yaml, non-zero exit code if path does not exist
-#
-gen3_roll_path() {
-  local depName
-  local deployVersion
-
-  depName="$1"
-  if [[ -z "$depName" ]]; then
-    echo -e "$(red_color "ERROR: roll deployment name not specified")" 1>&2
-    return 1
-  fi
-  if [[ -f "$depName" ]]; then # path to yaml given
-    echo "$depName"
-    return 0
-  fi
-  deployVersion="${2:-""}"
-  local cleanName
-  local serviceName
-  local templatePath
-  cleanName=$(echo "$depName" | sed 's/[-_]deploy.*$//')
-  serviceName=$(echo "$cleanName" | sed 's/-canary//')
-  templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy.yaml"
-  if [[ -n "$deployVersion" && "$deployVersion" != null ]]; then
-    templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy-${deployVersion}.yaml"
-  fi
-  echo "$templatePath"
-  if [[ -f "$templatePath" ]]; then
-    return 0
-  else
-    echo -e "$(red_color "ERROR: roll path does not exist: $templatePath")" 1>&2
-    return 1
-  fi
-}
-
 g3k_wait4roll(){
   local appName
   appName="$1"
@@ -72,9 +31,9 @@ gen3_roll() {
   local waitRoll
   depName="$1"
   shift
-  waitRoll=$1
 
-  if [[ "$waitRoll" =~ --*w(ait)? ]]; then
+  if [[ $# -gt 1 && "$1" =~ --*w(ait)? ]]; then
+    waitRoll=$1
     shift;
   fi
   if [[ -z "$depName" ]]; then
@@ -89,37 +48,38 @@ gen3_roll() {
   fi
 
   if [[ "$depName" == "jupyter" ]]; then # special case
-    echo "gen3 kube-roll-jupyter" 1>&2
-    gen3 kube-roll-jupyter
+    gen3_log_warn "prefer to run gen3 jupyter upgrade directly"
+    gen3 jupyter upgrade
     return $?
   fi
 
   local manifestPath
   manifestPath="$(g3k_manifest_path)"
   if [[ ! -f "$manifestPath" ]]; then
-    echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
+    gen3_log_err "gen3_roll" "manifest does not exist - $manifestPath"
     return 1
   fi
+
   # check to see if there's a version override
-  local deployVersion
-  deployVersion="$(jq -r ".[\"$serviceName\"][\"deployment_version\"]" < "$manifestPath")"
   local templatePath
-  if ! templatePath="$(gen3_roll_path "$depName" "$deployVersion")"; then
+  if ! templatePath="$(gen3 gitops rollpath "$depName")"; then
     return 1
   fi
-  echo "INFO: roll selected template - $templatePath" 1>&2
-  
+  gen3_log_info "gen3_roll" "roll selected template - $templatePath"
+
   # Get the service name, so we can verify it's in the manifest
   local serviceName
   serviceName="$(basename "$templatePath" | sed 's/-deploy.*yaml$//')"
 
   if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
     if ! (g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -); then
-      echo -e "$(red_color "ERROR: bailing out of roll $serviceName")"
+      gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
       return 1
     fi
+    # update network policy - disable for now
+    gen3 kube-setup-networkpolicy service "$serviceName"
   else
-    echo -e "$(red_color "WARNING: not rolling $serviceName - no manifest entry in $manifestPath")" 1>&2
+    gen3_log_warn "gen3_roll" "not rolling $serviceName - no manifest entry in $manifestPath"
     return 1
   fi
 

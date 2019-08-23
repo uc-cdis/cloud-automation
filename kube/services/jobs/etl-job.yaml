@@ -16,6 +16,9 @@ spec:
       - name: etl-mapping
         configMap:
           name: etl-mapping
+      - name: fence-yaml
+        configMap:
+          name: fence
       containers:
       - name: tube
         imagePullPolicy: Always
@@ -35,11 +38,11 @@ spec:
         - name: HADOOP_HOST
           value: spark-service
         - name: HADOOP_CLIENT_OPTS
-          value: -Xmx512m
+          value: -Xmx1g
         - name: SPARK_EXECUTOR_MEMORY
-          value: 3g
+          value: 4g
         - name: SPARK_DRIVER_MEMORY
-          value: 512m
+          value: 6g
         - name: ETL_FORCED
           GEN3_ETL_FORCED|-value: "false"-|
         volumeMounts:
@@ -51,10 +54,14 @@ spec:
             readOnly: true
             mountPath: "/gen3/tube/etlMapping.yaml"
             subPath: "etlMapping.yaml"
+          - name: "fence-yaml"
+            readOnly: true
+            mountPath: "/gen3/tube/user.yaml"
+            subPath: user.yaml
         resources:
           limits:
             cpu: 1
-            memory: 4Gi
+            memory: 12Gi
         command: ["/bin/bash" ]
         args:
           - "-c"

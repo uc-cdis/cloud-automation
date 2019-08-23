@@ -1,0 +1,15 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netpolicy-metrics
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+      # let prometheus scrape metrics
+      - namespaceSelector:
+          matchLabels:
+            app: prometheus
+  policyTypes:
+   - Ingress

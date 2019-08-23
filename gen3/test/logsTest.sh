@@ -1,23 +1,41 @@
 test_logs() {
-  (set -e; gen3 logs raw vpc=all | jq -e -r .); because $? "gen3 logs raw should work ..."
-  (set -e; gen3 logs history daily vpc=all | jq -e -r .) > /dev/null 2>&1; because $? "gen3 logs history daily should work"
-  (set -e; gen3 logs history ubh vpc=all | jq -e -r .)  > /dev/null 2>&1; because $? "gen3 logs history ubh should work"
+  (set -e; gen3 logs raw vpc=all | jq -e -r > /dev/null); because $? "gen3 logs raw should work ..."
+  (set -e; gen3 logs job vpc=all | jq -e -r > /dev/null); because $? "gen3 logs job should work ..."
+  (set -e; gen3 logs history daily vpc=all | jq -e -r . > /dev/null) > /dev/null 2>&1; because $? "gen3 logs history daily should work"
+  (set -e; gen3 logs history ubh vpc=all | jq -e -r . > /dev/null)  > /dev/null 2>&1; because $? "gen3 logs history ubh should work"
   gen3 logs save daily > /dev/null 2>&1; because $? "gen3 logs save daily should work"
   gen3 logs save ubh > /dev/null 2>&1; because $? "gen3 logs save ubh should work"
 }
 
+test_logs_history() {
+  local result
+  result=$(gen3 logs history codes vpc=qaplanetv1) && jq -e -r .aggregations.codes.buckets <<< "$result" > /dev/null 2>&1;
+      because $? "gen3 logs history codes should give a valid result: ${result:0:100}"
+  result=""
+
+  result=$(gen3 logs history rtimes vpc=qaplanetv1) && jq -e -r .aggregations.rtimes.buckets <<< "$result" > /dev/null 2>&1;
+      because $? "gen3 logs history rtimes should give a valid result: ${result:0:100}"
+  result=""
+
+  result=$(gen3 logs history users vpc=qaplanetv1) && jq -e -r .aggregations.unique_user_count <<< "$result" > /dev/null 2>&1;
+      because $? "gen3 logs history users should give a valid result: ${result:0:100}"
+  result=""
+}
 
 test_logs_curl() {
-  gen3 logs curl200 https://www.google.com; because $? "gen3 logs curl200 should almost always work with www.google.com"
-  ! gen3 logs curl200 https://www.google.com -X DELETE; because $? "gen3 logs curl200 cannot DELETE www.google.com"
-  ! gen3 logs curljson https://www.google.com; because $? "gen3 logs curljson www.google.com does not return json"
+  gen3 logs curl200 https://www.google.com > /dev/null; because $? "gen3 logs curl200 should almost always work with www.google.com"
+  ! gen3 logs curl200 https://www.google.com -X DELETE > /dev/null 2>&1; because $? "gen3 logs curl200 cannot DELETE www.google.com"
+  ! gen3 logs curljson https://www.google.com > /dev/null 2>&1; because $? "gen3 logs curljson www.google.com does not return json"
   (gen3 logs curljson https://accounts.google.com/.well-known/openid-configuration | jq -e -r .); because $? "gen3 logs curljson should work with google oauth config"
 }
 
 
-#
-# Little helper for test_logs_awk
-#
+test_logs_snapshot() {
+  # just make sure the snapshot thing works
+  (cd "$XDG_RUNTIME_DIR" && gen3 logs snapshot); because $? "gen3 logs snapshot should run ok"
+  ls "$XDG_RUNTIME_DIR/" | grep -E '\.log\.gz$'; because $? "gen3 logs snapshot should generate some service.container.log.gz files"
+}
+
 test_logs_awk() {
   local tempFile
   tempFile="$(mktemp $XDG_RUNTIME_DIR/awktest.txt_XXXXXX)"
@@ -59,9 +77,11 @@ EOM
 
 if [[ -z "$JENKINS_HOME" ]]; then # don't think jenkins can route to kibana.planx-pla.net ...
   shunit_runtest "test_logs" "logs,local"
+  shunit_runtest "test_logs_history" "logs,local"
 else
   gen3_log_info "test_logs" "skipping logs test - LOGPASSWORD not set"
 fi
 
 shunit_runtest "test_logs_curl" "logs,local"
 shunit_runtest "test_logs_awk" "logs,local"
+shunit_runtest "test_logs_snapshot" "logs"

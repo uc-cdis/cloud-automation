@@ -2,6 +2,8 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: revproxy-deployment
+  annotations:
+    gen3.io/network-ingress: "portal"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -79,6 +81,24 @@ spec:
               configMapKeyRef:
                 name: manifest-canary
                 key: json
+          - name: ORIGINS_ALLOW_CREDENTIALS
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: origins_allow_credentials
+                optional: true
+          - name: COOKIE_DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: cookie_domain
+                optional: true
+          - name: DES_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: des_namespace
+                optional: true
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true

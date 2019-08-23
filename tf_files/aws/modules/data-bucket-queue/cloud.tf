@@ -4,6 +4,7 @@ resource "aws_sns_topic" "user_updates" {
 
 resource "aws_sqs_queue" "user_updates_queue" {
   name = "${var.bucket_name}_data_upload"
+  visibility_timeout_seconds = 300
 }
 
 resource "aws_sns_topic_subscription" "user_updates_sqs_target" {

@@ -25,28 +25,28 @@ gen3_healthcheck() {
   local RETRY=false
   local RETRY_PARAMS=""
   while [[ $# -gt 0 ]]; do
-    key="$1"
+    local key="$1"
     case $key in
       '--slack')
-	HEALTH_SEND_SLACK=true
+      	HEALTH_SEND_SLACK=true
         RETRY_PARAMS="${RETRY_PARAMS} --slack"
-	shift
-	;;
+        shift
+        ;;
       '--retry')
         RETRY=true
         shift
         ;;
       *)
-	echo "Unrecognized flag"
-	help
-	exit 1
-	;;
+        gen3_log_err "Unrecognized flag $key"
+        help
+        exit 1
+        ;;
     esac
   done
 
   # refer to k8s api docs for pod status info
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#podstatus-v1-core
-  echo "Getting all pods..." 1>&2
+  gen3_log_info "Getting all pods..."
   local allPods=$(g3kubectl get pods --all-namespaces -o json | \
     jq -r '[
       .items[] | {
@@ -54,7 +54,7 @@ gen3_healthcheck() {
         created: .metadata.creationTimestamp, waitingContainers: [ .status.containerStatuses[] | { state: .state, ready:.ready} ]
       }
     ]')
-  echo "Checking pods..." 1>&2
+  gen3_log_info "Checking pods..."
   local evictedPods=$(echo $allPods | jq -r '[.[] | select(.reason == "Evicted") ]')
   local pendingPods=$(echo $allPods | jq -r '[.[] | select(.phase == "Pending")]')
   local unknownPods=$(echo $allPods | jq -r '[.[] | select(.phase == "Unknown")]')
@@ -75,7 +75,7 @@ gen3_healthcheck() {
 
   # check for terminating pods
   # Unfortunately the only way to get termination duration is by grepping the `describe` output
-  echo "Checking terminating pods for timeout..." 1>&2
+  gen3_log_info "Checking terminating pods for timeout..."
   while read -r pod; do
     if [[ -z "$pod" ]]; then continue; fi
     local statusLine=$(g3kubectl describe pod $(echo $pod | jq -r '.name') --namespace $(echo $pod | jq -r '.namespace') | grep "Status:" -m 1)
@@ -101,21 +101,22 @@ gen3_healthcheck() {
   local notReadyNodes=$(echo $allNodes | jq -r '[.[] | select(.conditions.Ready != "True")]')
 
   # check internet access
-  echo "Checking internet access..." 1>&2
-  local curlCmd="curl --max-time 15 -s -o /dev/null -I -w "%{http_code}" https://www.google.com"
+  gen3_log_info "Checking internet access..."
+  local curlCmd="curl --max-time 15 -s -o /dev/null -I -w %{http_code} http://www.google.com"
   local statusCode=0
   if [[ $HOSTNAME == *"admin"* ]]; then # if in admin vm, run curl in fence pod
     statusCode=$(g3kubectl exec $(gen3 pod fence) -- $curlCmd)
   else # not inside adminvm, curl from here
-    statusCode=$(eval $curlCmd)
+    statusCode=$($curlCmd)
   fi
   local internetAccess=true
-  if [[ $statusCode -lt 200 || $statusCode -ge 400 ]]; then
+  gen3_log_info "internet access check got: $statusCode"
+  if [[ "$statusCode" -lt 200 || "$statusCode" -ge 400 ]]; then
     internetAccess=false
   fi
  
   # check internet access with explicit proxy
-  echo "Checking explicit proxy internet access..." 1>&2
+  gen3_log_info "Checking explicit proxy internet access..."
   local http_proxy="http://cloud-proxy.internal.io:3128"
   local statusCodeExplicit=0
   if [[ $HOSTNAME == *"admin"* ]]; then # inside adminvm, curl from fence pod
@@ -124,11 +125,12 @@ gen3_healthcheck() {
     statusCodeExplicit=$(
       export http_proxy=$http_proxy
       export https_proxy=$http_proxy
-      eval $curlCmd
+      $curlCmd
     )
   fi
+  gen3_log_info "internet access by explicity proxy check got: $statusCodeExplicit"
   local internetAccessExplicitProxy=true
-  if [[ $statusCodeExplicit -lt 200 || $statusCodeExplicit -ge 400 ]]; then
+  if [[ "$statusCodeExplicit" -lt 200 || "$statusCodeExplicit" -ge 400 ]]; then
     internetAccessExplicitProxy=false
   fi
 
@@ -153,31 +155,40 @@ gen3_healthcheck() {
       healthSimple="${healthSimple}\n*${statusKey}*\n${nameList}"
     fi
   done
-  if [[ "$internetAccess" = false || "$internetAccessExplicitProxy" = false ]]; then
+  if [[ "$internetAccess" == false || "$internetAccessExplicitProxy" == false ]]; then
     healthy=false
-    healthSimple="${healthSimple}\n\n*internetAccess*	$internetAccess\n\n*internetAccessExplicitProxy*	$internetAccessExplicitProxy\n"
   fi
+  healthSimple="${healthSimple}\n\n*internetAccess*	$internetAccess\n\n*internetAccessExplicitProxy*	$internetAccessExplicitProxy\n"
 
   if [[ "$RETRY" = true && "$healthy" = false ]]; then
-    echo $healthJson | jq -r '.' 1>&2
-    echo "INFO: Unhealthy. Waiting for 30 seconds then trying again..." 1>&2
+    jq -r '.' <<< "$healthJson" 1>&2
+    gen3_log_info "Unhealthy. Waiting for 30 seconds then trying again..."
     sleep 30
     gen3_healthcheck $RETRY_PARAMS
     exit $?
   fi
 
   # print final result to stdout
-  echo $healthJson | jq -r '.'
+  jq -r '.' <<< "$healthJson"
 
-  if [[ "$HEALTH_SEND_SLACK" = true && "$healthy" = false ]]; then
+  if [[ "$HEALTH_SEND_SLACK" = true && "$healthy" == false ]]; then
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
       slackWebHook=$(g3kubectl get configmap global -o jsonpath={.data.slack_webhook})
     fi
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
-      echo "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
+      gen3_log_err "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
     else
-      local formattedAttachment='{"title": "Statuses", "text": "'"$healthSimple"'", "color": "#FF0000", "mrkdwn_in": ["text"] }'
-      local payload='payload={"text": ":warning: Healthcheck failed", "attachments": ['"$formattedAttachment"']}'
+      local hostname="$(g3kubectl get configmap manifest-global -o json | jq -r '.data.hostname')"
+      local payload="$(cat - <<EOM
+payload={
+  "text": ":warning: Healthcheck failed for ${hostname}",
+  "attachments": [
+    {"title": "Statuses", "text": "$healthSimple", "color": "#FF0000", "mrkdwn_in": ["text"] }
+  ]
+}
+EOM
+)"
+      gen3_log_info "slack payload: $payload"
       curl --max-time 15 -X POST --data-urlencode "${payload}" "${slackWebHook}" 1>&2
     fi
   fi

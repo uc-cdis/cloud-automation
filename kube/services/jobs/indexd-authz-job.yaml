@@ -1,0 +1,80 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: indexd-authz
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "indexd-secret"
+        - name: "sheepdog-creds-volume"
+          secret:
+            secretName: "sheepdog-creds"
+        - name: "indexd-creds-volume"
+          secret:
+            secretName: "indexd-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
+      containers:
+        - name: indexd
+          GEN3_INDEXD_IMAGE
+          env:
+            - name: AUTH_NAMESPACE
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-global
+                  key: auth_namespace
+                  optional: true
+            - name: START_DID
+              GEN3_START_DID|-value: ""-|
+            - name: USE_SHEEPDOG
+              GEN3_USE_SHEEPDOG|-value: "true"-|
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/local_settings.py"
+              subPath: "local_settings.py"
+            - name: "sheepdog-creds-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/sheepdog_creds.json"
+              subPath: creds.json
+            - name: "indexd-creds-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/creds.json"
+              subPath: creds.json
+            - name: "config-helper"
+              readOnly: true
+              mountPath: "/var/www/indexd/config_helper.py"
+              subPath: config_helper.py
+          imagePullPolicy: Always
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - |
+              flags="--path /var/www/indexd/ --arborist-url http://arborist-service"
+              if [[ "$USE_SHEEPDOG" == "true" ]]; then
+                db_uri=$(python - <<- EOF
+              from base64 import b64decode
+              import json
+
+              with open("/var/www/indexd/sheepdog_creds.json") as f:
+                  creds = json.loads(f.read())
+
+              print("postgres://{}:{}@{}:5432/{}".format(creds["db_username"], creds["db_password"], creds["db_host"], creds["db_database"]))
+              EOF
+                )
+                flags="$flags --sheepdog-db $db_uri"
+              fi
+              if [[ -n "$START_DID" ]]; then
+                flags="$flags --start-did $START_DID"
+              fi
+              python /indexd/bin/migrate_acl_authz.py $flags
+              echo "Exit code: $?"
+      restartPolicy: Never

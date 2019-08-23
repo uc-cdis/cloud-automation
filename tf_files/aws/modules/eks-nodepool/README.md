@@ -40,10 +40,12 @@ All variables in this module are mandatory, however, since it is not intended to
 * `eks_private_subnets` list of cidr for private subneting.
 * `control_plane_sg` security group for the control plane to talk to the workers.
 * `default_nodepool_sg` Security group of the default pool. This hasn't been tested for additional pools other than jupyter, but theoretically you could create as many pools as you want.
-* `deploy_jupyter_pool` If expolicit "yes" provided, then the autoscaling group for the pool will be set for 3 as minimum and desired capasity. Default is no.
 * `bootstrap_script` Script to use to initialize the worker. Default value `bootstrap-2.0.0.sh`
 * `kernel` If your bootstrap script requires another kernel, you could point to it with this variable. Available kernels will be in `gen3-kernels` bucket. Default value `N/A`
 * `jupyter_worker_drive_size` size of the worker driver size. Default 30.
+* `jupyter_asg_desired_capacity` How many workers you want in your jupyter autoscaling group. Default 0
+* `jupyter_asg_max_size` The max number of workers you would allow your jupyter autoscaling group to grow. Default 10.
+* `jupyter_asg_min_size` The min number of workers you would allow your jupyter autoscaling group to shrink. Default 0.
 
 
 ## 5. Considerations

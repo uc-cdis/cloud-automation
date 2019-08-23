@@ -225,7 +225,7 @@ resource "aws_security_group_rule" "https_nodes_to_plane" {
 
 resource "aws_security_group_rule" "communication_plane_to_nodes" {
   type                     = "ingress"
-  from_port                = 1025
+  from_port                = 80
   to_port                  = 65534
   protocol                 = "tcp"
   security_group_id        = "${aws_security_group.eks_nodes_sg.id}"
@@ -285,10 +285,10 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
 
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
-  desired_capacity     = "${var.deploy_jupyter_pool == "yes" ? 3 : 0}"
+  desired_capacity     = "${var.jupyter_asg_desired_capacity}"
   launch_configuration = "${aws_launch_configuration.eks_launch_configuration.id}"
-  max_size             = 10
-  min_size             = "${var.deploy_jupyter_pool == "yes" ? 3 : 0}"
+  max_size             = "${var.jupyter_asg_max_size}"
+  min_size             = "${var.jupyter_asg_min_size}" 
   name                 = "eks-${var.nodepool}worker-node-${var.vpc_name}"
   #vpc_zone_identifier  = ["${data.aws_subnet.eks_private.*.id}"]
   #vpc_zone_identifier  = ["${data.aws_subnet_ids.private.ids}"]
@@ -364,7 +364,7 @@ resource "aws_security_group" "ssh" {
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
     Name         = "ssh_eks_${var.vpc_name}-nodepool-${var.nodepool}"
   }
 }

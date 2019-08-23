@@ -1,19 +1,26 @@
 ---
 cloud_providers: {}
 groups: {}
-resources:
-  - name: programs
-    subresources:
-      - name: QA
-        subresources:
-          - name: projects
-            subresources:
-              - {name: test}
-      - name: test
-        subresources:
-          - name: projects
-            subresources:
-              - {name: test}
+rbac:
+  resources:
+    - name: programs
+      subresources:
+        - name: QA
+          subresources:
+            - name: projects
+              subresources:
+                - name: test
+        - name: test
+          subresources:
+            - name: projects
+              subresources:
+                - name: test
+        - name: DEV
+        - name: jnkns
+          subresources:
+            - name: projects
+              subresources:
+                - name: jenkins
 users:
   dcf-integration-test-0@planx-pla.net:
     admin: false

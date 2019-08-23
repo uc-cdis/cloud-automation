@@ -2,12 +2,12 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: fence-canary-deployment
+  name: fenceshib-canary-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: fence
+      app: fenceshib
       release: canary
   revisionHistoryLimit: 2
   strategy:
@@ -18,8 +18,13 @@ spec:
   template:
     metadata:
       labels:
-        app: fence
+        app: fenceshib
         release: canary
+        authprovider: "yes"
+        # uses explicit proxy and AWS APIs
+        netnolimit: "yes"
+        dbfence: "yes"
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -79,7 +84,7 @@ spec:
             secretName: "service-ca"
       containers:
       - name: fence
-        GEN3_FENCE-CANARY_IMAGE|-GEN3_FENCE_IMAGE-|
+        GEN3_FENCESHIB-CANARY_IMAGE|-GEN3_FENCESHIB_IMAGE-|
         env:
         - name: PYTHONPATH
           value: /var/www/fence

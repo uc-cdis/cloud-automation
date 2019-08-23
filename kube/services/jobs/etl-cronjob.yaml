@@ -20,6 +20,9 @@ spec:
           - name: etl-mapping
             configMap:
               name: etl-mapping
+          - name: fence-yaml
+            configMap:
+              name: fence
           restartPolicy: Never
           containers:
             - name: tube
@@ -42,11 +45,11 @@ spec:
               - name: HADOOP_HOST
                 value: spark-service
               - name: HADOOP_CLIENT_OPTS
-                value: -Xmx512m
+                value: -Xmx1g
               - name: SPARK_EXECUTOR_MEMORY
-                value: 3g
+                value: 4g
               - name: SPARK_DRIVER_MEMORY
-                value: 512m
+                value: 6g
               - name: slackWebHook
                 valueFrom:
                     configMapKeyRef:
@@ -67,10 +70,14 @@ spec:
                 readOnly: true
                 mountPath: "/gen3/tube/etlMapping.yaml"
                 subPath: "etlMapping.yaml"
+              - name: "fence-yaml"
+                readOnly: true
+                mountPath: "/gen3/tube/user.yaml"
+                subPath: user.yaml
               resources:
                 limits:
                   cpu: 1
-                  memory: 1Gi
+                  memory: 12Gi
               command: ["/bin/bash"]
               args:
                 - "-c"

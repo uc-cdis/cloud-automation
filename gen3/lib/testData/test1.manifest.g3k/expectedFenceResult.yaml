@@ -20,6 +20,11 @@ spec:
       labels:
         app: fence
         release: production
+        # for network policy selectors
+        authprovider: "yes"
+        # uses explicit proxy and AWS APIs
+        netnolimit: "yes"
+        public: "yes"
         date: "1522344234"
     spec:
       affinity:
@@ -77,6 +82,9 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: privacy-policy
+          configMap:
+            name: "privacy-policy"
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
@@ -126,6 +134,10 @@ spec:
             readOnly: true
             mountPath: "/fence/fence/static/img/logo.svg"
             subPath: "logo.svg"
+          - name: "privacy-policy"
+            readOnly: true
+            mountPath: "/fence/fence/static/privacy_policy.md"
+            subPath: "privacy_policy.md"
           - name: "config-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence-config.yaml"

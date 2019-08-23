@@ -15,6 +15,9 @@ spec:
     metadata:
       labels:
         app: google-sa-validation
+        public: "yes"
+        internet: "yes"
+        dbfence: "yes"
         GEN3_DATE_LABEL
     spec:
       automountServiceAccountToken: false

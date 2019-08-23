@@ -207,6 +207,8 @@ gen3() {
   fi
   GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN:-"false"}
   GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
+  
+  unset GEN3_SOURCE_ONLY;  # cleanup if set - used by `gen3_load`
 
   # Remove leading flags (start with '-')
   while [[ $1 =~ ^-+.+ ]]; do

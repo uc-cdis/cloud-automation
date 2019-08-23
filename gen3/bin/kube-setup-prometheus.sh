@@ -53,6 +53,7 @@ function deploy_prometheus()
     if (! g3kubectl get namespace prometheus > /dev/null 2>&1);
     then
       g3kubectl create namespace prometheus
+      g3kubectl label namespace prometheus app=prometheus 
     fi
 
     if ( g3kubectl --namespace=prometheus get deployment prometheus-server > /dev/null 2>&1);
@@ -77,6 +78,7 @@ function deploy_grafana()
   if (! g3kubectl get namespace grafana > /dev/null 2>&1);
   then
     g3kubectl create namespace grafana
+    g3kubectl label namespace grafana app=grafana
   fi
 
   #create_grafana_secrets
@@ -97,11 +99,26 @@ function deploy_grafana()
     g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm install  stable/grafana --name grafana --namespace grafana -f -
     #gen3 arun helm install -f "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" stable/grafana --name grafana --namespace grafana
     #gen3 arun helm install -f "${TMPGRAFANAVALUES}" stable/grafana --name grafana --namespace grafana
+    gen3 kube-setup-revproxy
   else
     echo "Grafana is already installed, use --force to try redeploying"
   fi
 }
 
-
-deploy_prometheus ${1}
-deploy_grafana ${1} 
+command=""
+if [[ $# -gt 0 && ! "$1" =~ ^-*force ]]; then
+  command="$1"
+  shift
+fi
+case "$command" in
+  prometheus)
+    deploy_prometheus "$@"
+    ;;
+  grafana)
+    deploy_grafana "$@"
+    ;;
+  *)
+    deploy_prometheus "$@"
+    deploy_grafana "$@"
+    ;;
+esac

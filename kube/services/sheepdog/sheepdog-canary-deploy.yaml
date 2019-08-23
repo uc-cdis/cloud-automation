@@ -19,6 +19,7 @@ spec:
       labels:
         app: sheepdog
         release: canary
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -76,6 +77,25 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: dictionary_url
+          # Signpost is deprecated; replace this w INDEX_CLIENT_HOST block
+          - name: SIGNPOST_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: INDEX_CLIENT_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: FENCE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: fence_url
+                optional: true
           - name: REQUESTS_CA_BUNDLE
             #
             # override python 'requests' SSL certificate bundle

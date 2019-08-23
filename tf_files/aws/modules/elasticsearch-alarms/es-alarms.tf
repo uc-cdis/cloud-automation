@@ -15,7 +15,7 @@ resource "aws_cloudwatch_metric_alarm" "elasticsearch_alarm" {
   alarm_actions             = [ "${module.alarms-lambda.sns-topic}" ]
   metric_query {
     id = "storageSpacePercentage"
-    expression = "100 - freeDiskSpace/(${var.ebs_volume_size}*10000000)"
+    expression = "100 - freeDiskSpace/(${var.ebs_volume_size}*10)"
     label = "Free Disk Space elasticsearch ${var.vpc_name}"
     return_data = "true"
   }

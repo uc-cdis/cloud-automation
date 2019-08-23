@@ -22,7 +22,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update indexd secrets
     # Ugh - need to update fence with an indexd password
     # generate a password
     fenceIndexdPassword="$(gen3 random)"
-    
+
     # update creds.json
     gdcapiIndexdPassword="$(jq -r .sheepdog.indexd_password < creds.json)"
     cp creds.json creds.json.bak
@@ -141,6 +141,8 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
     mkdir jwt-keys/${timestamp}
     openssl genrsa -out jwt-keys/${timestamp}/jwt_private_key.pem 2048
     openssl rsa -in jwt-keys/${timestamp}/jwt_private_key.pem -pubout -out jwt-keys/${timestamp}/jwt_public_key.pem
+    # we want 'tar' suitcase below to have readable keys in it
+    chmod -R a+r jwt-keys/
   fi
 
   # sftp key
@@ -295,18 +297,26 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
   fi
 fi
 
-if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update peregrine secrets
-  if [ ! -d "$(gen3_secrets_folder)" ]; then
-    echo "$(gen3_secrets_folder) does not exist"
-    exit 1
-  fi
-
-  cd "$(gen3_secrets_folder)"
-  if ! g3kubectl get secrets/peregrine-secret > /dev/null 2>&1; then
+(
+  version="$(g3kubectl get secrets/peregrine-secret -ojson 2> /dev/null | jq -r .metadata.labels.g3version)"
+  if [[ -z "$version" || "$version" == null || "$version" -lt 2 ]]; then
+    g3kubectl delete secret peregrine-secret > /dev/null 2>&1 || true
     g3kubectl create secret generic peregrine-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/peregrine_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+    g3kubectl label secret peregrine-secret g3version=2
+  fi
+)
+
+##  update mailgun secret
+##+ if we need to make a creds file:
+##+ jq -r '.mailgun | keys[] as $k | "\($k) = \"\(.[$k])\""' creds.json > ${credsFile}
+
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
+  if ! g3kubectl get secrets/mailgun-creds > /dev/null 2>&1; then
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    jq -r '.mailgun' creds.json > "$credsFile"
+    g3kubectl create secret generic mailgun-creds "--from-file=creds.json=${credsFile}"
   fi
 fi
-
 
 # ETL mapping file for tube
 ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"
@@ -314,13 +324,24 @@ if [[ -f "$ETL_MAPPING_PATH" ]]; then
   gen3 update_config etl-mapping "$ETL_MAPPING_PATH"
 fi
 
-if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
-  
-  cd "$(gen3_secrets_folder)"
-  if ! g3kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic sheepdog-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/sheepdog_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
-  fi
+PRIVACY_POLICY="$(dirname $(g3k_manifest_path))/privacy_policy.md"
+if [[ ! -f "$PRIVACY_POLICY" ]]; then
+  # the file has to at least exist, otherwise fence will error out trying to mount it
+  touch $PRIVACY_POLICY
+fi
+gen3 update_config privacy-policy "$PRIVACY_POLICY"
 
+(
+  version="$(g3kubectl get secrets/sheepdog-secret -ojson 2> /dev/null | jq -r .metadata.labels.g3version)"
+  if [[ -z "$version" || "$version" == null || "$version" -lt 2 ]]; then
+    g3kubectl delete secret sheepdog-secret > /dev/null 2>&1 || true
+    g3kubectl create secret generic sheepdog-secret "--from-file=wsgi.py=${GEN3_HOME}/apis_configs/sheepdog_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
+    g3kubectl label secret sheepdog-secret g3version=2
+  fi
+)
+
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
+  cd "$(gen3_secrets_folder)"
   #
   # Create the 'sheepdog' and 'peregrine' postgres user if necessary
   #

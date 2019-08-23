@@ -161,9 +161,12 @@ resource "aws_instance" "login" {
   monitoring             = true
   key_name               = "${var.ssh_key_name}"
   vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
-
   #vpc_security_group_ids = ["${var.secgroup_adminvms}"]
   iam_instance_profile = "${aws_iam_instance_profile.child_role_profile.name}"
+
+  root_block_device  {
+    volume_size = 8
+  }
 
   tags {
     Name        = "${var.child_name}_admin"

@@ -10,18 +10,254 @@ help() {
 }
 
 #
+# Internal util for checking for differences between manifest-global
+# configmap and manifest.json
+#
+# @param keyName
+# @returns echos true if diff found, false if no diff
+#
+_check_manifest_global_diff() {
+  local keyName=$1
+  if [[ -z "$keyName" ]]; then
+    gen3_log_err "_check_manifest_global_diff: keyName argument missing"
+    return 1;
+  fi
+
+  local oldVal
+  if g3kubectl get configmap manifest-global > /dev/null; then
+    oldVal=$(g3kubectl get configmap manifest-global -o jsonpath={.data.${keyName}})
+  else
+    oldVal=$(g3kubectl get configmap global -o jsonpath={.data.${keyName}})
+  fi
+  local newVal=$(g3k_config_lookup ".global.${keyName}")
+  
+  if [[ ( -z "${newVal}" ) || ( "${newVal}" == "null" ) ]]; then
+    gen3_log_warn "Unable to find ${keyName} in manifest.json; skipping for diff"
+    echo "false"
+  elif [[ "${oldVal}" != "${newVal}" ]]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+#
+# Internal uptil for checking for differences in cloud-automation 
+# basicallt checking if through git 
+
+_check_cloud-automation_changes() {
+
+  #cd ~/cloud-automation
+  if git diff-index --quiet HEAD --; then
+    # Should the repo has no changes, let's just pull, because why not
+    git pull > /dev/null 2>&1
+    echo "false"
+  else
+    echo "true"
+  fi
+}
+
+#
+# Check the branch cloud-automation is on
+#
+_check_cloud-automation_branch() {
+
+  local branch
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  echo "${branch}"
+}
+
+
+#
+# General tfplan function that depending on the value of next argument
+# it'll determine which subfuntion to send the payload
+#
+gen3_run_tfplan() {
+
+  local message
+  local sns_topic
+  local module
+  local changes
+  local current_branch
+  local quiet
+  local apply
+  
+
+  module=$1
+  quiet=$2
+  apply=$3
+  sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+  #sns_topic="arn:aws:sns:us-east-1:433568766270:fauzi-alert-channel"
+
+  (
+    cd ~/cloud-automation
+    changes=$(_check_cloud-automation_changes)
+    #changes="false"
+    current_branch=$(_check_cloud-automation_branch)
+    #current_branch="master"
+
+    #echo ${changes}
+
+    if [[ ${changes} == "true" ]];
+    then
+      #local files_changes
+      #changes="$(git diff-index --name-only HEAD --)"
+      message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+      echo "${vpc_name} has uncommited changes for cloud-automation:" > ${message}
+      echo "For branch ${current_branch}" >> ${message}
+      git diff-index --name-only HEAD -- >> ${message} 2>&1
+    elif [[ ${changes} == "false" ]];
+    then
+      # checking for the result of _check_cloud-automation_changes just in case it came out empty
+      # for whatever reson
+
+      if [[ ${current_branch} == "master" ]];
+      then
+        case "$module" in
+          "vpc")
+            message=$(_gen3_run_tfplan_vpc ${apply})
+            ;;
+          "eks")
+            message=$(_gen3_run_tfplan_eks ${apply})
+            ;;
+        esac
+      else
+        message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+        echo "cloud-automation for ${vpc_name} is not on the master branch:" > ${message}
+        echo "Branch ${current_branch}" >> ${message}
+      fi
+    fi
+
+    if [ -n "${message}" ];
+    then
+      if ! [ -n "${quiet}" -a "${quiet}" == "quiet" ];
+      then
+        aws sns publish --target-arn ${sns_topic} --message file://${message} > /dev/null 2>&1
+      else
+        cat ${message}
+      fi
+      rm ${message}
+    fi
+  )
+
+}
+
+#
+# Apply changes picket up by tfplan
+#
+_gen3_run_tfapply_eks() {
+  gen3_run_tfplan "$@" "quiet" "apply"
+}
+
+
+#
+# Apply changes picket up by tfplan
+#
+_gen3_run_tfapply_vpc() {
+  #echo "$@"
+  gen3_run_tfplan "$@" "quiet" "apply"
+}
+
+#
+# Public function to start tfapply, only for eks, for the VPC it might not be a good idea
+# or at least it needs some deeper supervisiohn
+#
+
+gen3_run_tfapply() {
+  local module=$1
+  if [ ${module} == "vpc" ];
+  then
+    _gen3_run_tfapply_vpc "$@"
+  elif [ ${module} == "eks" ];
+  then
+    _gen3_run_tfapply_eks "$@"
+  fi
+}
+
+#
+# Function that checks for uncomitter changes to cloud-automation
+# and also if there are unapplied changes to the vpc module
+#
+_gen3_run_tfplan_vpc() {
+
+  local plan
+  local slack_hook
+  local tempFile
+  local output
+  local apply
+
+  apply=$1
+
+  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1 |head -n1) ${vpc_name} > /dev/null 2>&1
+  #plan=$(gen3 tfplan | grep "Plan")
+  output="$(gen3 tfplan)"
+  plan=$(echo -e "${output}" | grep "Plan")
+
+  if [ -n "${plan}" ];
+  then
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name} has unapplied plan:" > ${tempFile}
+    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+    if [ -n "$apply" -a "$apply" == "apply" ];
+    then
+      echo -e "${output}" >> ${tempFile}
+      gen3 tfapply >> ${tempFile} 2>&1
+    else
+      echo "No apply this time" >> ${tempFile}
+    fi
+  fi
+  echo "${tempFile}"
+}
+
+#
+# Function that checks for uncomitter changes to cloud-automation
+# and also if there are unapplied changes to the eks module
+#
+_gen3_run_tfplan_eks() {
+
+  local plan
+  local slack_hook
+  local tempFile
+  local apply
+  local output
+
+  apply=$1
+
+  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1) ${vpc_name}_eks > /dev/null 2>&1
+  output="$(gen3 tfplan)"
+  plan=$(echo -e "${output}" | grep "Plan")
+
+  if [ -n "${plan}" ];
+  then
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name}_eks has unapplied plan:" > ${tempFile}
+    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+    if [ -n "$apply" -a "$apply" == "apply" ];
+    then
+      echo -e "${output}" >> ${tempFile}
+      gen3 tfapply >> ${tempFile} 2>&1
+    else
+      echo "No apply this time" >> ${tempFile}
+    fi
+  fi
+  echo "${tempFile}"
+}
+
 # command to update dictionary URL and image versions
 #
 gen3_gitops_sync() {
   g3k_manifest_init
   local dict_roll=false
   local versions_roll=false
+  local portal_roll=false
   local slack=false
   local tmpHostname
   local resStr
   local color
   local dictAttachment
   local versionsAttachment
+  local commonsManifestDir
+  local portalDiffs
 
   if [[ $1 = '--slack' ]]; then
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
@@ -86,12 +322,75 @@ gen3_gitops_sync() {
       versions_roll=true
     fi
   fi
-  
+
+  # portal directory config check
+  commonsManifestDir=$(dirname $(g3k_manifest_path))
+  local defaultsDir="${GEN3_HOME}/kube/services/portal/defaults"
+  if [[ ! -d "${commonsManifestDir}/portal" ]]; then
+    gen3_log_info "Portal directory not found, skipping portal update"
+  else
+    # for each file in the portal defaults dir...
+    #   if file not found in commons's portal dir
+    #     use default file for comparison
+    #   else
+    #     use commons's file in manifest/portal dir
+    #
+    #   if file not in secret
+    #     roll portal
+    #   else if comparison file and secret are different
+    #     roll portal
+
+    local filename
+    local secretsFile
+    local comparingFile
+    local diffMsg
+    for defaultFilepath in $(find "${defaultsDir}/" -name "gitops*" -type f); do
+      diffMsg=""
+      filename=$(basename ${defaultFilepath})
+      commonsFilepath="${commonsManifestDir}/portal/$filename"
+      secretsFile=$(g3kubectl get secret portal-config -o json | jq -r '.data."'"${filename}"'"')
+
+      # get file contents from default file or commons's file
+      if [[ ! -f "${commonsFilepath}" ]]; then
+        comparingFile=$(base64 $defaultFilepath -w 0)
+        gen3_log_info "Comparing default portal file $defaultFilepath"
+      else
+        comparingFile=$(base64 $commonsFilepath -w 0)
+        gen3_log_info "Comparing commons's portal file $commonsFilepath"
+      fi
+
+      # check for a diff
+      if [[ "${secretsFile}" = null ]]; then
+        diffMsg="Diff in portal/${filename} - file not found in secret"
+      elif [[ "${secretsFile}" != "${comparingFile}" ]]; then
+        diffMsg="Diff in portal/${filename} - difference between file and secret"
+      fi
+      if [[ ! -z "${diffMsg}" ]]; then
+        portalDiffs="${portalDiffs} \n${diffMsg}"
+        gen3_log_info "$diffMsg"
+        portal_roll=true
+      fi
+    done
+  fi
+
+  # portal manifest config check
+  if [[ "$(_check_manifest_global_diff portal_app)" == "true" ]]; then
+    gen3_log_info "Diff in manifest global.portal_app"
+    portalDiffs="$portalDiffs \nDiff in manifest global.portal_app"
+    portal_roll=true
+  fi
+  if [[ "$(_check_manifest_global_diff tier_access_level)" == "true" ]]; then
+    gen3_log_info "Diff in manifest global.tier_access_level"
+    portalDiffs="$portalDiffs \nDiff in manifest global.tier_access_level"
+    portal_roll=true
+  fi
+
   echo "DRYRUN flag is: $GEN3_DRY_RUN"
   if [ "$GEN3_DRY_RUN" = true ]; then
     echo "DRYRUN flag detected, not rolling"
+    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll"
   else
-    if [ "$dict_roll" = true -o "$versions_roll" = true ]; then
+    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true ) ]]; then
       echo "changes detected, rolling"
       gen3 kube-roll-all
       rollRes=$?
@@ -110,7 +409,10 @@ gen3_gitops_sync() {
         if [[ "$versions_roll" = true ]]; then
           versionsAttachment="\"title\": \"New Versions\", \"text\": \"$(echo $newJson | sed s/\"/\\\\\"/g | sed s/,/,\\n/g)\", \"color\": \"${color}\""
         fi
-        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}]}" "${slackWebHook}"
+        if [[ "$portal_roll" = true ]]; then
+          portalAttachment="\"title\": \"Portal Diffs\", \"text\": \"${portalDiffs}\", \"color\": \"${color}\""
+        fi
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}]}" "${slackWebHook}"
       fi
     else
       echo "no changes detected, not rolling"
@@ -249,17 +551,20 @@ gen3_gitops_configmaps() {
 declare -a gen3_gitops_repolist_arr=(
   uc-cdis/arborist
   uc-cdis/fence
-  uc-cdis/peregrine
   uc-cdis/gen3-arranger
   uc-cdis/gen3-spark
+  uc-cdis/guppy
   uc-cdis/indexd
+  uc-cdis/indexs3client
   uc-cdis/docker-nginx
+  uc-cdis/manifestservice
+  uc-cdis/peregrine
   uc-cdis/pidgin
   uc-cdis/data-portal
   uc-cdis/sheepdog
-  uc-cdis/tube
   uc-cdis/ssjdispatcher
-  #frickjack/misc-stuff  # just for testing
+  uc-cdis/tube
+  uc-cdis/workspace-token-service
 )
 
 declare -a gen3_gitops_sshlist_arr=(
@@ -451,6 +756,56 @@ gen3_gitops_sshlist() {
   done
 }
 
+#
+# Get the path to the yaml file to apply for a `gen3 roll name` command.
+# Supports deployment versions (ex: ...-deploy-1.0.0.yaml) and canary
+# deployments (ex: fence-canary)
+#
+# @param depName deployment name or alias
+# @param depVersion deployment version - extracted from manifest if not set - ignores "null" value
+# @return echo path to yaml, non-zero exit code if path does not exist
+#
+gen3_roll_path() {
+  local depName
+  local deployVersion
+
+  depName="$1"
+  shift
+  if [[ -z "$depName" ]]; then
+    gen3_log_err "gen3_roll_path" "roll deployment name not specified"
+    return 1
+  fi
+  if [[ -f "$depName" ]]; then # path to yaml given
+    echo "$depName"
+    return 0
+  fi
+  if [[ $# -gt 0 ]]; then
+    deployVersion="${1}"
+    shift
+  else
+    local manifestPath
+    manifestPath="$(g3k_manifest_path)"
+    deployVersion="$(jq -r ".[\"$depName\"][\"deployment_version\"]" < "$manifestPath")"
+  fi
+  local cleanName
+  local serviceName
+  local templatePath
+  cleanName="${depName%[-_]deploy*}"
+  serviceName="${cleanName/-canary/}"
+  templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy.yaml"
+  if [[ -n "$deployVersion" && "$deployVersion" != null ]]; then
+    templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy-${deployVersion}.yaml"
+  fi
+  echo "$templatePath"
+  if [[ -f "$templatePath" ]]; then
+    return 0
+  else
+    gen3_log_err "gen3_roll_path" "roll path does not exist: $templatePath"
+    return 1
+  fi
+}
+
+
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   # Support sourcing this file for test suite
@@ -482,6 +837,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "repolist")
       gen3_gitops_repolist "$@"
       ;;
+    "rollpath")
+      gen3_roll_path "$@"
+      ;;
     "sshlist")
       gen3_gitops_sshlist "$@"
       ;;
@@ -493,6 +851,12 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "dotag")
       gen3_gitops_repo_dotag "$@"
+      ;;
+    "tfplan")
+      gen3_run_tfplan "$@"
+      ;;
+    "tfapply")
+      gen3_run_tfapply "$@"
       ;;
     *)
       help

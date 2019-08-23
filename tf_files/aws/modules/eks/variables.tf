@@ -10,11 +10,16 @@ variable "instance_type" {
 }
 
 variable "jupyter_instance_type"{
-  default = "t3.medium"
+  default = "t3.large"
 }
 
-variable "csoc_cidr" {
+#variable "csoc_cidr" {
+variable "peering_cidr" {
   default = "10.128.0.0/20"
+}
+
+variable "peering_vpc_id" {
+  default = "vpc-e2b51d99"
 }
 
 variable "users_policy" {}
@@ -24,11 +29,7 @@ variable "worker_drive_size" {
 }
 
 variable "eks_version" {
-  default = "1.10"
-}
-
-variable "deploy_jupyter_pool" {
-  default = "no"
+  default = "1.12"
 }
 
 variable "workers_subnet_size" {
@@ -49,4 +50,30 @@ variable "jupyter_bootstrap_script" {
 
 variable "jupyter_worker_drive_size" {
   default = 30
+}
+
+
+variable "cidrs_to_route_to_gw" {
+  default = []
+}
+
+variable "organization_name" {
+  default = "Basic Services"
+}
+
+variable "proxy_name" {
+  default = " HTTP Proxy"
+}
+
+
+variable "jupyter_asg_desired_capacity" {
+  default = 0
+}
+
+variable "jupyter_asg_max_size" {
+  default = 10
+}
+
+variable "jupyter_asg_min_size" {
+  default = 0
 }

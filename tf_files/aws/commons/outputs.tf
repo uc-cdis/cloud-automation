@@ -90,13 +90,13 @@ data "template_file" "cluster" {
 # instead just publish output variables
 #
 resource "null_resource" "config_setup" {
-  triggers {
-    cluster_change = "${data.template_file.cluster.rendered}"
-  }
+#  triggers {
+#    cluster_change = "${data.template_file.cluster.rendered}"
+#  }
 
-  provisioner "local-exec" {
-    command = "mkdir ${var.vpc_name}_output; echo '${data.template_file.cluster.rendered}' > ${var.vpc_name}_output/kube-aws.cluster.yaml"
-  }
+#  provisioner "local-exec" {
+#    command = "mkdir ${var.vpc_name}_output; echo '${data.template_file.cluster.rendered}' > ${var.vpc_name}_output/kube-aws.cluster.yaml"
+#  }
 
   provisioner "local-exec" {
     command = "echo \"${module.config_files.k8s_vars_sh}\" | cat - \"${path.module}/kube-up-body.sh\" > ${var.vpc_name}_output/kube-up.sh"
