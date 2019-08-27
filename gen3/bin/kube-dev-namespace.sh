@@ -48,7 +48,7 @@ fi
 sudo chmod a+rwx /home/$namespace
 #sudo chgrp ubuntu /home/$namespace/.bashrc
 sudo chmod a+rwx /home/$namespace/.bashrc
-mkdir -p /home/$namespace/${vpc_name}
+mkdir -p /home/$namespace/${vpc_name}/g3auto
 cd /home/$namespace
 
 # setup ~/.ssh
@@ -77,8 +77,13 @@ if [[ ! -d ./cdis-manifest ]]; then
 fi
 
 # setup ~/vpc_name
-for name in 00configmap.yaml apis_configs kubeconfig ssh-keys; do
-  cp -r ~/${vpc_name}/$name /home/$namespace/${vpc_name}/$name
+for name in 00configmap.yaml apis_configs kubeconfig ssh-keys g3auto/manifestservice g3auto/pelicanservice; do
+  if [[ -e ~/${vpc_name}/$name ]]; then
+    echo "copying ${vpc_name}/$name"
+    cp -r ~/${vpc_name}/$name /home/$namespace/${vpc_name}/$name
+  else
+    echo "no source for ${vpc_name}/$name"
+  fi
 done
 
 # setup ~/vpc_name/credentials and kubeconfig
@@ -116,8 +121,11 @@ done
 # update creds.json
 oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/${vpc_name}/creds.json)
 newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-1]*/$namespace/")
-sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/creds.json
-sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/apis_configs/fence-config.yaml
+
+for name in creds.json apis_configs/fence-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json; do
+  sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/$name
+done
+
 sed -i.bak "s@^\(DB: .*/\)[a-zA-Z0-9_]*\$@\1$dbname@g" /home/$namespace/${vpc_name}/apis_configs/fence-config.yaml
 
 #
