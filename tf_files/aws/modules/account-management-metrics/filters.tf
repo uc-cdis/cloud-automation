@@ -128,3 +128,27 @@ resource "aws_cloudwatch_log_metric_filter" "metric_ten" {
 }
 
 
+resource "aws_cloudwatch_log_metric_filter" "metric_eleven" {
+  name           = "IAMNewUser"
+  pattern        = "{($.eventName=CreateUser)}"
+  log_group_name = "${var.cwl_group}"
+
+  metric_transformation {
+    name      = "NewUserCount"
+    namespace = "CloudTrailMetrics"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_log_metric_filter" "metric_twelve" {
+  name           = "OutsideRegion"
+  # Filters out some events to reduce noise
+  pattern        = "{($.awsRegion!=us-east-1 && $.eventName!=Describe* && $.eventName!=*Get* && $.eventType!=AwsConsoleSignIn &&$.eventName!=*List* && $.eventName!=Assume* && $.eventName!=*Login*)}"
+  log_group_name = "${var.cwl_group}"
+
+  metric_transformation {
+    name      = "OutsideRegionCount"
+    namespace = "CloudTrailMetrics"
+    value     = "1"
+  }
+}
