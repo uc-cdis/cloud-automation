@@ -147,8 +147,7 @@ EOM
   cd ./repo
   /bin/rm -rf nodes
   # add -l debug for more verbose logging
-  chef-client --chef-license accept --version
-  chef-client --local-mode --node-name littlenode --override-runlist 'role[devbox]'
+  chef-client --chef-license accept --local-mode --node-name littlenode --override-runlist 'role[devbox]'
 ) 2>&1 | tee /var/log/gen3boot.log
   EOF
   
