@@ -1,0 +1,75 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "dashboard"
+  annotations:
+      gen3.io/network-ingress: "ambassador-gen3"
+spec:
+  selector:
+    # Deployment only select pods based on the 'app' label
+    matchLabels:
+      app: "dashboard"
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: "dashboard"
+        public: "yes"
+        s3: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - dashboard
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "dashboard-g3auto"
+      containers:
+      - name: "dashboard"
+        GEN3_DASHBOARD_IMAGE
+        args:
+          - "launch"
+        ports:
+          - containerPort: 4000
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/etc/gen3"
+        resources:
+          requests:
+            cpu: 0.3
+            memory: 200Mi
+          limits:
+            cpu: 0.5
+            memory: 500Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 4000
+          initialDelaySeconds: 10
+          periodSeconds: 60
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 4000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
