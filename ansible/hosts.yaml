@@ -56,9 +56,9 @@ all:
         anvil_commons:
           ansible_user: anvilprod
           ansible_host: 10.128.2.243
-        #anvil_staging:
-        #    ansible_user: anvilstaging
-        #    ansible_host: 10.128.2.243
+        anvil_staging:
+          ansible_user: anvilstaging
+          ansible_host: 10.128.2.243
         vadc_commons:
           ansible_user: vadcprod
           ansible_host: 10.128.2.165
