@@ -127,6 +127,7 @@ function HELP() {
   echo -e "${REV}Basic usage:${OFF} ${BOLD}$SCRIPT -r full ${OFF}"\\n
   echo -e "${REV}The following switches are recognized. $OFF "
   echo -e "${REV}-r --report ${OFF}  Print a report, valid types are 'full' only ${OFF}."
+  echo -e "${REV}-o --output ${OFF}  Output format, valid options are 'json' and 'plain', plain is set by default ${OFF}."
   echo -e "Example: ${BOLD}$SCRIPT -r full ${OFF}"\\n
   exit 1
 }
