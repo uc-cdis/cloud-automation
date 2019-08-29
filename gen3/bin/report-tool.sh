@@ -96,7 +96,7 @@ function print_report_full() {
   read -ra TABLE <<< "${table_header} ${table_content}"
   printf "%-30s%-10s%s\n" "${TABLE[@]}" 
 
-  images_id=$(echo -e ${instances_facts} | jq -r '.pool[]| to_entries[] | "\(.value | .AMIs[])"' sort |uniq)
+  images_id=$(echo -e ${instances_facts} | jq -r '.pool[]| to_entries[] | "\(.value | .AMIs[])"' |sort |uniq|tr '\n' ' ')
 
   echo
   echo -e "AMIs: "${images_id}
