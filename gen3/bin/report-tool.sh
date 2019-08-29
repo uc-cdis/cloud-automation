@@ -38,6 +38,7 @@ function eks_facts() {
   echo "${eks_information}"
 }
 
+# Get the facts for the instances associated to the commons 
 function instances_facts() {
 
   local blob='{"pool": [] }'
@@ -59,24 +60,9 @@ function instances_facts() {
   echo "${blob}"
 #  exit
 
-
-# local jupyter_instances_count=$(echo "${instance_names}" | grep jupyter | wc -l)
-# local default_instances_count=$(echo "${instance_names}" | grep -v jupyter | wc -l)
-
-# # echo -e ${instance_list} |jq -r '.Reservations[].Instances[] | select( .Tags[].Value=="'${instances_name}-jupyter'") | .Tags[] |select( .Key=="Name" )| .Value' |wc -l
-# local jupyter_instances="$(echo ${instance_list} |jq -r '.Reservations[].Instances[] | select( .Tags[].Value=="'${instances_name}-jupyter'")')"
-# local default_instances="$(echo ${instance_list} |jq -r '.Reservations[].Instances[] | select( .Tags[].Value=="'${instances_name}'")')"
-
-# #jupyter_instance_type="$(echo -e ${instance_list} |jq -r '.Reservations[].Instances[] | select( .Tags[].Value=="'${instances_name}-jupyter'") | .InstanceType' |sort |uniq)"
-# local jupyter_instance_type="$(echo "${jupyter_instances}" |jq .InstanceType | sort | uniq)"
-# #default_instance_type="$(echo -e ${instance_list} |jq -r '.Reservations[].Instances[] | select( .Tags[].Value=="'${instances_name}'") | .InstanceType' |sort |uniq)"
-# local default_instance_type="$(echo "${default_instances}" |jq .InstanceType | sort | uniq)"
-
-# local images_id=$(echo ${instance_list} | jq -r .Reservations[].Instances[].ImageId | sort |uniq)
-
-# blob=$(echo ${blobl} | jq '.pool | ')
 }
 
+# print a full report in json format
 function print_report_full_json() {
 
   echo -e "$(eks_facts)" "$(kube_facts)" "$(instances_facts)" |jq -s '.[0] * .[1] * .[2]'
@@ -109,11 +95,11 @@ function print_report_full() {
   local IFS=' '
   read -ra TABLE <<< "${table_header} ${table_content}"
   printf "%-30s%-10s%s\n" "${TABLE[@]}" 
-#  echo -e "default\t\t$(echo ${instances_facts} | jq -r '.pool[0]."eks-'${vpc_name}'".count')\t\t$(echo ${instances_facts} | jq -r '.pool[0]."eks-'${vpc_name}'".type[]')"
-#  echo -e "jupyter\t\t$(echo ${instances_facts} | jq -r '.pool[1]."eks-'${vpc_name}'-jupyter".count')\t\t$(echo ${instances_facts} | jq -r '.pool[1]."eks-'${vpc_name}'-jupyter".type[]')"
-#  echo -e "jupyter\t\t${jupyter_instances_count}\t\t$(echo ${jupyter_instance_type})"
-#  echo
-#  echo -e "AMIs: "${images_id}
+
+  images_id=$(echo -e ${instances_facts} | jq -r '.pool[]| to_entries[] | "\(.value | .AMIs[])"' sort |uniq)
+
+  echo
+  echo -e "AMIs: "${images_id}
 
 }
 
