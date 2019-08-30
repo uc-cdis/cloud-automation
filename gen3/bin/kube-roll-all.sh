@@ -33,7 +33,8 @@ done
 # Set up default storage class
 if ! g3kubectl get storageclass standard > /dev/null 2>&1; then
   gen3_log_info "Deploying the standard storage class for AWS"
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/storageclass/aws-storageclass.yaml"
+  # gitops sync cronjob may not have permission to do this ...
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/storageclass/aws-storageclass.yaml" || true
 fi
 
 gen3 kube-setup-networkpolicy disable
