@@ -247,6 +247,12 @@ gen3_log_info() {
   echo -e "$(green_color "INFO: $(date +%T) -") $*" 1>&2
 }
 
+gen3_log_debug() {
+  if [[ "$GEN3_DEBUG" == "true" ]]; then
+    echo -e "$(green_color "DEBUG: $(date +%T) -") $*" 1>&2
+  fi
+}
+
 gen3_log_warn() {
   echo -e "$(red_color "WARNING: $(date +%T) -") $*" 1>&2
 }
