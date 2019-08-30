@@ -149,3 +149,30 @@ resource "aws_cloudwatch_metric_alarm" "alarm_ten" {
   alarm_description         = "Alarms when an API call is made to change an IAM policy."
   alarm_actions             = "${var.alarm_actions}"
 }
+
+resource "aws_cloudwatch_metric_alarm" "alarm_eleven" {
+  alarm_name                = "NewUserAlarm"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "NewUserCount"
+  #metric_name               = "${aws_cloudwatch_log_metric_filter.metric_ten.name}"
+  namespace                 = "CloudTrailMetrics"
+  period                    = "300"
+  statistic                 = "Sum"
+  threshold                 = "1"
+  alarm_description         = "Alarms when a new user is created."
+  alarm_actions             = "${var.alarm_actions}"
+}
+resource "aws_cloudwatch_metric_alarm" "alarm_twelve" {
+  alarm_name                = "OutsideRegionAlarm"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  metric_name               = "OutsideRegionCount"
+  #metric_name               = "${aws_cloudwatch_log_metric_filter.metric_ten.name}"
+  namespace                 = "CloudTrailMetrics"
+  period                    = "300"
+  statistic                 = "Sum"
+  threshold                 = "1"
+  alarm_description         = "Alarms when events happen outside region."
+  alarm_actions             = "${var.alarm_actions}"
+}
