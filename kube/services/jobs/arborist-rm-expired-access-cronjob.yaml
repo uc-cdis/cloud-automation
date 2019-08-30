@@ -13,6 +13,10 @@ spec:
           labels:
             app: gen3job
         spec:
+          volumes:
+            - name: arborist-secret
+              secret:
+                secretName: "arborist-g3auto"
           serviceAccountName: arborist-rm-expired-access-job
           containers:
           - name: arborist
