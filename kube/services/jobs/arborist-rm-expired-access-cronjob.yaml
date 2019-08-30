@@ -41,3 +41,4 @@ spec:
 
                 # bring the database schema up to the latest version
                 /go/src/github.com/uc-cdis/arborist/jobs/delete_expired_access
+          restartPolicy: Never
