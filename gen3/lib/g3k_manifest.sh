@@ -75,7 +75,7 @@ g3k_manifest_init() {
       gitopsPath="https://github.com/uc-cdis/cdis-manifest.git"
     fi
     
-    echo "git clone $gitopsPath ${GEN3_MANIFEST_HOME}" 1>&2
+    gen3_log_info "git clone $gitopsPath ${GEN3_MANIFEST_HOME}"
     # This will fail if proxy is not set correctly
     git clone "$gitopsPath" "${GEN3_MANIFEST_HOME}" 1>&2
   fi
@@ -83,7 +83,7 @@ g3k_manifest_init() {
     # Don't do this when running tests in Jenkins ...
     local branch
     branch=${1:-$MANIFEST_BRANCH}
-    echo "INFO: git fetch branch $branch in $GEN3_MANIFEST_HOME" 1>&2
+    gen3_log_info "git fetch branch $branch in $GEN3_MANIFEST_HOME"
     (cd "$GEN3_MANIFEST_HOME" && git pull; git checkout $branch; git pull; git status) 1>&2
   fi
   touch "$doneFilePath"
@@ -127,13 +127,13 @@ g3k_manifest_path() {
 # ...
 #
 g3k_kv_filter() {
-  local templatePath=$1
+  local templatePath="$1"
   shift
   local key
   local value
 
   if [[ ! -f "$templatePath" ]]; then
-    echo -e "$(red_color "ERROR: kv template does not exist: $templatePath")" 1>&2
+    gen3_log_err "kv template does not exist: $templatePath"
     return 1
   fi
   local tempFile="$XDG_RUNTIME_DIR/g3k_manifest_filter_$$"
@@ -176,16 +176,17 @@ g3k_manifest_filter() {
   local manifestPath=$1
   shift || true
   if [[ ! -f "$templatePath" ]]; then
-    echo -e "$(red_color "ERROR: template does not exist: $templatePath")" 1>&2
+    gen3_log_err "template does not exist: $templatePath"
     return 1
   fi
   if [[ -z "$manifestPath" ]]; then
     manifestPath=$(g3k_manifest_path)
   fi
   if [[ ! -f "$manifestPath" ]]; then
-    echo -e "$(red_color "ERROR: unable to find manifest: $manifestPath")" 1>&2
+    gen3_log_err "unable to find manifest: $manifestPath"
     return 1
   fi
+  gen3_log_info "filtering $templatePath with $manifestPath"
 
   #
   # Load the substitution map
@@ -208,15 +209,18 @@ g3k_manifest_filter() {
     kvList+=("$kvKey" "image: $value")
   done
   for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
+    gen3_log_debug "harvesting key $key"
     for key2 in $(g3k_config_lookup ".[\"${key}\"] "' | to_entries | map(select((.value|type != "array") and (.value|type != "object"))) | map(.key)[]' "$manifestPath" | grep '^[a-zA-Z]'); do
-      value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
-      if [[ -n "$value" ]]; then
+      gen3_log_debug "harvesting key $key $key2"
+      if value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")" && [[ -n "$value" ]]; then
         # zsh friendly upper case
         kvKey=$(echo "GEN3_${key}_${key2}" | tr '[:lower:]' '[:upper:]')
+        gen3_log_debug "setting $kvKey to $value"
         kvList+=("$kvKey" "$value")
       fi
     done
   done
+  gen3_log_debug "harvested keys from manifest"
   while [[ $# -gt 0 ]]; do
     key="$1"
     shift
@@ -228,6 +232,7 @@ g3k_manifest_filter() {
     fi
     kvList+=("$key" "value: \"$value\"")
   done
+  gen3_log_debug "harvested option keys - $templatePath ${kvList[@]}"
   g3k_kv_filter "$templatePath" "${kvList[@]}"
   return 0
 }
@@ -256,7 +261,7 @@ g3k_config_lookup() {
   elif [[ "$configPath" =~ .yaml ]]; then
     yq -r -e "$queryStr" < "$configPath"
   else
-    echo "$(red_color ERROR: file is not .json or .yaml: $configPath)" 1>&2
+    gen3_log_err "file is not .json or .yaml: $configPath"
     return 1
   fi
 }

@@ -13,14 +13,14 @@ g3k_wait4job(){
   COUNT=0
   while [[ 1 == $(g3kubectl get jobs "$jobName" -o json | jq -r '.status.active') ]]; do
     if [[ (COUNT -gt 90) ]]; then
-      echo "wait too long"
+      gen3_log_err "wait too long"
       exit 1
     fi
     if [[ $(g3kubectl get jobs "$jobName" -o json | jq -r '.status.failed') != null ]]; then
       echo "job fail"
       exit 1
     fi
-    echo "waiting for $jobName to finish"
+    gen3_log_err "waiting for $jobName to finish"
     sleep 10
   done
 }
@@ -50,7 +50,7 @@ g3k_runjob() {
   fi  
 
   if [[ -z "$jobKey" ]]; then
-    echo "gen3 job run JOBNAME"
+    gen3_log_err "gen3 job run JOBNAME"
     return 1
   fi
   jobName="$jobKey"
@@ -67,19 +67,22 @@ g3k_runjob() {
     jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.yaml"
   fi
   jobScriptPath="${GEN3_HOME}/kube/services/jobs/${jobName}-job.sh"
+  gen3_log_debug "Checking $jobScriptPath"
   if [[ -f "$jobPath" ]]; then
     while [[ $# -gt 0 ]]; do
       kvList+=("$1")
       shift
     done
     tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "job.yaml_XXXXXX")
+    gen3_log_debug "filtering $jobPath ${kvList[@]} to $tempFile"
     g3k_manifest_filter "$jobPath" "" "${kvList[@]}" > "$tempFile"
+    gen3_log_debug "filtering ok: $?"
 
     local yamlName
     yamlName="$(yq -r .metadata.name < "$tempFile")"
     if [[ "$yamlName" != "$jobName" ]]; then
-      echo ".metadata.name $yamlName != $jobName in $jobPath"
-      cat "$tempFile"
+      gen3_log_err ".metadata.name $yamlName != $jobName in $jobPath"
+      cat "$tempFile" 1>&2
       return 1
     fi
 
@@ -91,15 +94,18 @@ g3k_runjob() {
 
     # delete previous job run and pods if any
     if g3kubectl get "$jobType/${jobName}" > /dev/null 2>&1; then
+      gen3_log_info "deleting old $jobType/$jobName"
       g3kubectl delete "$jobType/${jobName}"
     fi
     # run job helper script if present
     if [[ "$jobType" == "jobs" && -f "$jobScriptPath" ]]; then
       if ! bash "$jobScriptPath" "${kvList[@]}" "$tempFile"; then
-        echo "$jobScriptPath failed"
+        gen3_log_err "$jobScriptPath failed"
         return 1
       fi
     fi
+    
+    gen3_log_debug "Creating $tempFile"
     g3kubectl create -f "$tempFile"
     result=$?
     /bin/rm $tempFile
@@ -121,7 +127,7 @@ GEN3 TODO: switch cronjob to v1beta1 apiVersion to
 EOM
     fi
   else
-    echo "Could not find $jobPath and no cronjob"
+    gen3_log_info "Could not find $jobPath and no cronjob"
     result=1
   fi
 
