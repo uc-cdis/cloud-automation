@@ -8,7 +8,7 @@ spec:
       labels:
         app: gen3job
     spec:
-      serviceAccountName: arborist-rm-expired-access-job
+      automountServiceAccountToken: false
       volumes:
         - name: arborist-secret
           secret:

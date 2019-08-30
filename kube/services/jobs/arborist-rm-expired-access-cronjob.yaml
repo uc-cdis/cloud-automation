@@ -17,7 +17,7 @@ spec:
             - name: arborist-secret
               secret:
                 secretName: "arborist-g3auto"
-          serviceAccountName: arborist-rm-expired-access-job
+          automountServiceAccountToken: false
           containers:
           - name: arborist
             GEN3_ARBORIST_IMAGE
