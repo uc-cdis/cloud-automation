@@ -103,7 +103,7 @@ resource "aws_instance" "cluster" {
   iam_instance_profile   = "${aws_iam_instance_profile.profile.name}"
   root_block_device {
     volume_size = "${var.volume_size}"
-    encrypted   = true
+    encrypted = true
   }
 
   user_data = <<EOF
