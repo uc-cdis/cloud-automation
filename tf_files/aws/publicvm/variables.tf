@@ -22,3 +22,15 @@ variable "subnet_name" {
 variable "volume_size" {
   default = 500
 }
+
+variable "policies" {
+  default = []
+  type    = "list"
+}
+
+variable "ami" {
+  default = ""
+}
+
+variable "vm_name" {
+}

@@ -55,14 +55,55 @@ data "aws_security_group" "egress" {
 }
 
 
+
+resource "aws_iam_role" "role" {
+  name = "${var.vm_name}-${var.vpc_name}-public_role"
+  path = "/"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+
+  tags = {
+    tag-key = "${var.vpc_name}-public"
+  }
+}
+
+resource "aws_iam_instance_profile" "profile" {
+  name = "${var.vm_name}-${var.vpc_name}-public_instance-profile"
+  role = "${aws_iam_role.role.name}"
+}
+
+
+resource "aws_iam_policy_attachment" "profile-attach" {
+  count      = "${length(var.policies)}"
+  name       = "${var.vm_name}-${var.vpc_name}-public-${count.index}"
+  roles      = ["${aws_iam_role.role.name}"]
+  policy_arn = "${element(var.policies,count.index)}"
+}
+
+
 resource "aws_instance" "cluster" {
-  ami                    = "${data.aws_ami.ubuntu.id}"
+  ami                    = "${var.ami == "" ? data.aws_ami.ubuntu.id : var.ami}"
   instance_type          = "${var.instance_type}"
   monitoring             = false
   vpc_security_group_ids = ["${data.aws_security_group.ssh_in.id}", "${data.aws_security_group.egress.id}"]
   subnet_id              = "${data.aws_subnet.public.id}"
+  iam_instance_profile   = "${aws_iam_instance_profile.profile.name}"
   root_block_device {
     volume_size = "${var.volume_size}"
+    encrypted   = true
   }
 
   user_data = <<EOF
@@ -93,10 +134,13 @@ EOM
   fi
   git clone https://github.com/uc-cdis/cloud-automation.git 
   cd ./cloud-automation
+  cat ./files/authorized_keys/ops_team | tee -a /home/ubuntu/.ssh/authorized_keys
+
   if [[ ! -d ./Chef ]]; then
     # until the code gets merged
     git checkout chore/labvm
   fi
+
   cd ./Chef
   bash ./installClient.sh
   # hopefully chef-client is ready to run now
@@ -115,8 +159,8 @@ EOM
     ignore_changes = ["private_ip", "root_block_device", "ebs_block_device", "user_data"]
   }
   tags = {
-    Name        = "${var.vpc_name}-public"
-    Terraform = "true"
+    Name        = "${var.vm_name}-${var.vpc_name}-public"
+    Terraform   = "true"
     Environment = "${var.vpc_name}"
   }
 }
