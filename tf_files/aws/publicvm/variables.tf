@@ -29,5 +29,5 @@ variable "policies" {
 }
 
 variable "ami" {
-  default ""
+  default = ""
 }
