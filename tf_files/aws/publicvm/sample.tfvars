@@ -13,3 +13,5 @@ volume_size     = "for the vm - default is 500"
 policies        = ["list of policies ARNs to attach to the role that will be attached to this VM"]
 
 ami             = "ami to use, if empty (default) latest ubuntu available will be used"
+
+vm_name         = "Name for the vm, should be unique, there is no default value for this one, so you must set something here"

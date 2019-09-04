@@ -31,3 +31,6 @@ variable "policies" {
 variable "ami" {
   default = ""
 }
+
+variable "vm_name" {
+}

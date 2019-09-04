@@ -57,7 +57,7 @@ data "aws_security_group" "egress" {
 
 
 resource "aws_iam_role" "role" {
-  name = "${var.vpc_name}-public_role"
+  name = "${var.vm_name}-${var.vpc_name}-public_role"
   path = "/"
   assume_role_policy = <<EOF
 {
@@ -159,8 +159,8 @@ EOM
     ignore_changes = ["private_ip", "root_block_device", "ebs_block_device", "user_data"]
   }
   tags = {
-    Name        = "${var.vpc_name}-public"
-    Terraform = "true"
+    Name        = "${var.vm_name}-${var.vpc_name}-public"
+    Terraform   = "true"
     Environment = "${var.vpc_name}"
   }
 }
