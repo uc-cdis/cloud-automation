@@ -57,19 +57,19 @@ data "aws_security_group" "egress" {
 
 
 resource "aws_iam_role" "role" {
-  name = "${var.vpc-name}-public_role"
+  name = "${var.vpc_name}-public_role"
   path = "/"
 }
 
-resource "aws_iam_instance_profile" "test_profile" {
-  name = "test_profile"
+resource "aws_iam_instance_profile" "profile" {
+  name = "${var.vpc_name}-public_instance-profile"
   role = "${aws_iam_role.role.name}"
 }
 
 
-resource "aws_iam_policy_attachment" "test-attach" {
+resource "aws_iam_policy_attachment" "profile-attach" {
   count      = "${length(var.policies)}"
-  name       = "${var.vpc-name}-public-${count.index}"
+  name       = "${var.vpc_name}-public-${count.index}"
   roles      = ["${aws_iam_role.role.name}"]
   policy_arn = "${element(var.policies,count.index)}"
 }
@@ -81,7 +81,7 @@ resource "aws_instance" "cluster" {
   monitoring             = false
   vpc_security_group_ids = ["${data.aws_security_group.ssh_in.id}", "${data.aws_security_group.egress.id}"]
   subnet_id              = "${data.aws_subnet.public.id}"
-  iam_instance_profile   = "${aws_iam_instance_profile.test_profile.name}"
+  iam_instance_profile   = "${aws_iam_instance_profile.profile.name}"
   root_block_device {
     volume_size = "${var.volume_size}"
     encrypted   = true
