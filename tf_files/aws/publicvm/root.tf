@@ -59,6 +59,25 @@ data "aws_security_group" "egress" {
 resource "aws_iam_role" "role" {
   name = "${var.vpc_name}-public_role"
   path = "/"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+
+  tags = {
+    tag-key = "${var.vpc_name}-public"
+  }
 }
 
 resource "aws_iam_instance_profile" "profile" {
@@ -76,7 +95,7 @@ resource "aws_iam_policy_attachment" "profile-attach" {
 
 
 resource "aws_instance" "cluster" {
-  ami                    = "${data.aws_ami.ubuntu.id}"
+  ami                    = "${var.ami == "" ? data.aws_ami.ubuntu.id : var.ami}"
   instance_type          = "${var.instance_type}"
   monitoring             = false
   vpc_security_group_ids = ["${data.aws_security_group.ssh_in.id}", "${data.aws_security_group.egress.id}"]

@@ -27,3 +27,7 @@ variable "policies" {
   default = []
   type    = "list"
 }
+
+variable "ami" {
+  default ""
+}
