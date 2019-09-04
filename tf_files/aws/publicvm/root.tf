@@ -93,10 +93,13 @@ EOM
   fi
   git clone https://github.com/uc-cdis/cloud-automation.git 
   cd ./cloud-automation
+  cat ./files/authorized_keys/ops_team | tee -a /home/ubuntu/.ssh/authorized_keys
+
   if [[ ! -d ./Chef ]]; then
     # until the code gets merged
     git checkout chore/labvm
   fi
+
   cd ./Chef
   bash ./installClient.sh
   # hopefully chef-client is ready to run now
