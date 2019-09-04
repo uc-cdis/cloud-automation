@@ -202,7 +202,6 @@ _gen3_run_tfplan_vpc() {
     then
       echo -e "${output}" >> ${tempFile}
       gen3 tfapply >> ${tempFile} 2>&1
-      # gen3 tfapply >> ${tempFile}
     else
       echo "No apply this time" >> ${tempFile}
     fi
@@ -417,10 +416,14 @@ gen3_gitops_sync() {
   echo "DRYRUN flag is: $GEN3_DRY_RUN"
   if [ "$GEN3_DRY_RUN" = true ]; then
     echo "DRYRUN flag detected, not rolling"
-    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll; etl_roll: $etl_roll""
+    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll; etl_roll: $etl_roll"
   else
     if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true ) ]]; then
       echo "changes detected, rolling"
+      # run etl job before roll all so guppy can pick up changes
+      if [[ "$etl_roll" = true ]]; then
+          gen3 job run etl
+      fi
       gen3 kube-roll-all
       rollRes=$?
       # send result to slack
@@ -442,7 +445,6 @@ gen3_gitops_sync() {
           portalAttachment="\"title\": \"Portal Diffs\", \"text\": \"${portalDiffs}\", \"color\": \"${color}\""
         fi
         if [[ "$etl_roll" = true ]]; then
-          gen3 job run etl
           etlAttachment="\"title\": \"ETL Diffs\", \"text\": \"${etlDiffs}\", \"color\": \"${color}\""
         fi
         curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}, {${etlAttachment}}]}" "${slackWebHook}"
