@@ -81,14 +81,14 @@ EOF
 }
 
 resource "aws_iam_instance_profile" "profile" {
-  name = "${var.vpc_name}-public_instance-profile"
+  name = "${var.vm_name}-${var.vpc_name}-public_instance-profile"
   role = "${aws_iam_role.role.name}"
 }
 
 
 resource "aws_iam_policy_attachment" "profile-attach" {
   count      = "${length(var.policies)}"
-  name       = "${var.vpc_name}-public-${count.index}"
+  name       = "${var.vpc_name}-${var.vpc_name}-public-${count.index}"
   roles      = ["${aws_iam_role.role.name}"]
   policy_arn = "${element(var.policies,count.index)}"
 }
