@@ -3,6 +3,8 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+# lib -----------------------
+
 gen3_ec2_help() {
   gen3 help ec2
 }
@@ -154,6 +156,8 @@ gen3_ec2_terminate() {
     fi
   fi
 }
+
+# main -----------------------
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   # Support sourcing this file for test suite

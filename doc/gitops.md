@@ -32,12 +32,28 @@ Force the local `cdis-manifest/` and `cloud-automation/` folders to sync with gi
 gen3 gitops enforce
 ```
 
+### folder
+
+Get the active manifest folder path.
+
+```
+folder="$(gen3 gitops folder)"
+```
+
 ### history
 
 Show the git history of changes to the manifest folder
 
 ```
 gen3 gitops history
+```
+
+### manifest
+
+Get the path to the active manifest
+
+```
+path="$(gen3 gitops manifest)"
 ```
 
 ### rsync

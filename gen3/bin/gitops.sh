@@ -828,8 +828,14 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "enforce")
       gen3_gitops_enforcer "$@"
       ;;
+    "folder")
+      dirname "$(g3k_manifest_path)"
+      ;;
     "history")
       gen3_gitops_history "$@"
+      ;;
+    "manifest")
+      g3k_manifest_path
       ;;
     "rsync")
       gen3_gitops_rsync "$@"
