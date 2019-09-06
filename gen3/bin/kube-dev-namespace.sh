@@ -18,7 +18,6 @@ if [[ -z "$GEN3_NOPROXY" ]]; then
   export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com,kibana.planx-pla.net'}
 fi
 
-
 vpc_name=${vpc_name:-$1}
 namespace=${namespace:-$2}
 if [[ -z "$vpc_name" || -z "$namespace" || (! "$namespace" =~ ^[a-z][a-z0-9-]*$) ]]; then
@@ -40,13 +39,10 @@ if ! sudo -n true > /dev/null 2>&1; then
   exit 1
 fi
 
-# prepare a copy of the /home/ubuntu k8s workspace
 if ! grep "^$namespace" /etc/passwd > /dev/null 2>&1; then
   sudo useradd -m -s /bin/bash $namespace
 fi
-#sudo chgrp ubuntu /home/$namespace
 sudo chmod a+rwx /home/$namespace
-#sudo chgrp ubuntu /home/$namespace/.bashrc
 sudo chmod a+rwx /home/$namespace/.bashrc
 mkdir -p /home/$namespace/${vpc_name}/g3auto
 cd /home/$namespace
@@ -92,7 +88,10 @@ mkdir -p credentials
 for name in ca.pem ca-key.pem; do
   cp ~/${vpc_name}/credentials/$name credentials/
 done
-sed -i.bak "s/default/$namespace/" kubeconfig
+
+cp kubeconfig kubeconfig.bak
+rm kubeconfig
+cat kubeconfig.bak | yq -r --arg ns "$namespace" '.contexts[0].context.namespace = $ns' -y > kubeconfig
 
 ( 
   #
@@ -111,7 +110,7 @@ cp ~/${vpc_name}/creds.json /home/$namespace/${vpc_name}/creds.json
 dbname=$(echo $namespace | sed 's/-/_/g')
 # create new databases - don't break if already exists
 for name in indexd fence sheepdog; do
-  echo "CREATE DATABASE $dbname;" | gen3 psql $name || true
+  echo "CREATE DATABASE $dbname;" | gen3 psql $name -d template1 || true
 done
 # Remove "database initialized" markers
 for name in .rendered_fence_db .rendered_gdcapi_db; do
@@ -122,9 +121,19 @@ done
 oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/${vpc_name}/creds.json)
 newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-1]*/$namespace/")
 
-for name in creds.json apis_configs/fence-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json; do
-  sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/$name
+for name in creds.json apis_configs/fence-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json g3auto/dashboard/config.json; do
+  (
+    path="/home/$namespace/${vpc_name}/$name"
+    if [[ -f "$path" ]]; then
+      sed -i.bak "s/$oldHostname/$newHostname/g" "$path"
+    fi
+  )
 done
+
+if [[ -f "/home/$namespace/cdis-manifest/$oldHostName/manifest.json" && ! -d "/home/$namespace/cdis-manifest/$newHostName" ]]; then
+  cp -r "/home/$namespace/cdis-manifest/$oldHostName" "/home/$namespace/cdis-manifest/$newHostName"
+  sed -i.bak "s/$oldHostname/$newHostname/g" "/home/$namespace/cdis-manifest/$newHostName"
+fi
 
 sed -i.bak "s@^\(DB: .*/\)[a-zA-Z0-9_]*\$@\1$dbname@g" /home/$namespace/${vpc_name}/apis_configs/fence-config.yaml
 
@@ -133,7 +142,7 @@ sed -i.bak "s@^\(DB: .*/\)[a-zA-Z0-9_]*\$@\1$dbname@g" /home/$namespace/${vpc_na
 # we ceate a $namespace database on the fence, indexd, and sheepdog db servers with
 # the CREATE DATABASE commands above
 #
-jq -r '.[].db_database="'"$dbname"'"|.[].fence_database="'"$dbname"'"' < /home/$namespace/${vpc_name}/creds.json > $XDG_RUNTIME_DIR/creds.json
+jq -r  --arg dbname "$dbname" '.[].db_database=$dbname|.[].fence_database=$dbname' < /home/$namespace/${vpc_name}/creds.json > $XDG_RUNTIME_DIR/creds.json
 cp $XDG_RUNTIME_DIR/creds.json /home/$namespace/${vpc_name}/creds.json
 sed -i.bak "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/${vpc_name}/00configmap.yaml
 if [[ -f /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json ]]; then
@@ -174,5 +183,9 @@ sudo chown -R "${namespace}:" /home/$namespace /home/$namespace/.ssh /home/$name
 sudo chmod -R 0700 /home/$namespace/.ssh
 sudo chmod go-w /home/$namespace
 
-echo "The $namespace user is ready to login and run: gen3 roll all"
-echo "Be sure to verify that cdis-manifest/hostname is configured"
+echo "The $namespace user is ready to login and run: "
+echo "gen3 db server list  # run this first to bootstrap the database secrets"
+echo "configure cdis-manifest/$newHostname"
+echo "gen3 roll all"
+echo "add the load balancer service to DNS"
+echo "add the new domain to the parent OATH clients - or configure new clients"
