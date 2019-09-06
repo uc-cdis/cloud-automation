@@ -158,7 +158,7 @@ Retrieve response-code histogram for the given commons and date range.
 $ gen3 logs history codes "start=-7 days" "vpc=bhcprodv2"
 ```
 
-### `gen3 logs history codes`
+### `gen3 logs history rtimes`
 
 Retrieve response-time histogram for the given commons and date range.
 
