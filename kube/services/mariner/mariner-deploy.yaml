@@ -1,0 +1,64 @@
+# used ssjdispatcher deployment spec as a base
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mariner-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: mariner
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: mariner
+        release: test
+        netnolimit: "yes" # check
+        public: "yes"
+    spec:
+      serviceAccountName: mariner-service-account
+      volumes:
+        - name: mariner-config
+          configMap:
+            name: mariner-config
+            items:
+              - key: config
+                path: mariner-config.json
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - mariner
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: true
+      containers:
+      - name: mariner
+        image: quay.io/cdis/mariner-server:feat_k8s
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+        env:
+          - name: GEN3_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        volumeMounts:
+          - name: mariner-config
+            readOnly: true
+            mountPath: /mariner-config
+        ports:
+        - containerPort: 80
