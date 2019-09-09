@@ -98,12 +98,12 @@ all:
         loginbionimbus_commons:
           ansible_user: loginbionimbus
           ansible_host: 10.128.2.155
-        charlie_commons:
-          ansible_user: charlie
-          ansible_host: 10.128.2.156
-        tb_commons:
-          ansible_user: tb
-          ansible_host: 10.128.2.156
+          #        charlie_commons:
+          #          ansible_user: charlie
+          #          ansible_host: 10.128.2.156
+          #        tb_commons:
+          #          ansible_user: tb
+          #          ansible_host: 10.128.2.156
         niaiddata_commons:
           ansible_user: niaiddata
           ansible_host: 10.128.2.156
@@ -118,6 +118,14 @@ all:
         anvil_staging:
           ansible_user: anvilstaging
           ansible_host: 10.128.2.243
+    namespaces:
+      hosts:
+        charlie_commons:
+          ansible_user: charlie
+          ansible_host: 10.128.2.156
+        tb_commons:
+          ansible_user: tb
+          ansible_host: 10.128.2.156
 
     dev:
       hosts:
