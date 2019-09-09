@@ -27,6 +27,14 @@ test_env() {
   [[ -d "${GEN3_MANIFEST_HOME}/test1.manifest.g3k" ]]; because $? "cdis-manifest includes a test1.manifest.g3k domain"
 }
 
+test_logging() {
+  local temp
+  temp="$(gen3_log_info "hello" 2>&1)" && [[ "$temp" =~ INFO: ]]; because $? "gen3_log_info generates info strings"
+  temp="$(gen3_log_err "hello" 2>&1)" && [[ "$temp" =~ ERROR: ]]; because $? "gen3_log_err generates error strings"
+  (unset GEN3_DEBUG; temp="$(gen3_log_debug "hello" 2>&1)" && [[ -z "$temp" ]]); because $? "gen3_log_debug is NOOP if GEN3_DEBUG environment not set"
+  (export GEN3_DEBUG=true; temp="$(gen3_log_debug "hello" 2>&1)" && [[ "$temp" =~ DEBUG: ]]); because $? "gen3_log_debug generates debug strings when GEN3_DEBUG is set"
+}
+
 RETRY_TEST_HELPER=0
 
 retry_test_helper() {
@@ -62,4 +70,5 @@ shunit_runtest "test_semver" "local,utils"
 shunit_runtest "test_colors" "local,utils"
 shunit_runtest "test_env" "local,utils"
 shunit_runtest "test_is_number" "local,utils"
+shunit_runtest "test_logging" "local,utils"
 shunit_runtest "test_retry" "local,utils"

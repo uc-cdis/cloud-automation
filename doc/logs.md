@@ -136,7 +136,7 @@ uid:11,reubenonrye@sandwich.edu
 
 ### `gen3 logs save daily`
 
-Save aggregations from yesterday to the `gen3-aggs-daily` index.
+Save unique-user aggregations from yesterday to the `gen3-aggs-daily` index.
 
 ```
 $ gen3 logs save daily
@@ -144,10 +144,34 @@ $ gen3 logs save daily
 
 ### `gen3 logs history daily`
 
-Retrieve aggregations from the `gen3-aggs-daily` index.
+Retrieve unique-user aggregations from the `gen3-aggs-daily` index.
 
 ```
 $ gen3 logs history daily "start=-7 days" "vpc=all"
+```
+
+### `gen3 logs history codes`
+
+Retrieve response-code histogram for the given commons and date range.
+
+```
+$ gen3 logs history codes "start=-7 days" "vpc=bhcprodv2"
+```
+
+### `gen3 logs history rtimes`
+
+Retrieve response-time histogram for the given commons and date range.
+
+```
+$ gen3 logs history rtimes "start=-7 days" "vpc=bhcprodv2"
+```
+
+### `gen3 logs history users`
+
+Retrieve the number of unique users for the given commons and date range.
+
+```
+$ gen3 logs history rtimes "start=-7 days" "vpc=bhcprodv2"
 ```
 
 ### `gen3 logs snapshot`

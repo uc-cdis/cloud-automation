@@ -15,3 +15,11 @@ variable "instance_type" {
 variable "ebs_volume_size_gb" {
   default = 20
 }
+
+variable "encryption" {
+  default = "true"
+}
+
+variable "instance_count" {
+  default = 3
+}

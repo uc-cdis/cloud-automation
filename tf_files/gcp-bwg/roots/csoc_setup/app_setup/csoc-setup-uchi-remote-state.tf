@@ -1,6 +1,6 @@
 data "terraform_remote_state" "org_setup" {
   backend   = "gcs"
-  workspace = "${var.terraform_workspace}"
+  workspace = "${var.env}-${var.prefix_org_setup}"
 
   config {
     bucket      = "${var.state_bucket_name}"
@@ -11,7 +11,7 @@ data "terraform_remote_state" "org_setup" {
 
 data "terraform_remote_state" "project_setup" {
   backend   = "gcs"
-  workspace = "${var.terraform_workspace}"
+  workspace = "${var.env}-${var.prefix_project_setup}"
 
   config {
     bucket      = "${var.state_bucket_name}"

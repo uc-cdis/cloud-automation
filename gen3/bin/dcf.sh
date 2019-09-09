@@ -6,8 +6,8 @@ gen3_load "gen3/gen3setup"
 AWS_INPUT_BUCKET="data-refresh-manifest"
 AWS_OUTPUT_BUCKET="data-refresh-output"
 AWS_PROFILE="data_refresh"
-GS_INPUT_BUCKET="replication-input"
-GS_OUTPUT_BUCKET="datarefresh-log"
+GS_INPUT_BUCKET="data-refresh-manifest"
+GS_OUTPUT_BUCKET="dcf-prod"
 
 echo "Hello from dcf!"
 command=$1

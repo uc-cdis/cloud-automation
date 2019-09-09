@@ -117,12 +117,15 @@ gen3LogsVpcList=(
     "gtexprod dcp.bionimbus.org"
     "kfqa dcf-interop.kidsfirstdrc.org"
     "ibdgc-prod ibdgc.datacommons.io"
+    "loginbionimbus login.bionimbus.org"
     "ncicrdcdemo nci-crdc-demo.datacommons.io"
+    "niaiddata niaiddata.org"
     "niaidprod niaid.bionimbus.org"  
     "prodv1 data.kidsfirstdrc.org kids first"
     "skfqa gen3qa.kidsfirstdrc.org kids first"
     "qaplanetv1 qa.planx-pla.net jenkins"
     "stageprod gen3.datastage.io"
+    "stagingdatastage staging.datastage.io"
     "vadcprod vpodc.org"
 )
 

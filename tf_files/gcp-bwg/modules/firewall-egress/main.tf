@@ -6,7 +6,7 @@ resource "google_compute_firewall" "rule" {
   direction = "${var.direction}"
   priority  = "${var.priority}"
 
-  name    = "${lower(var.name)}-${lower(element(var.target_tags, 0) )}"
+  name    = "${lower(var.name)}"
   network = "${var.network}"
 
   allow {

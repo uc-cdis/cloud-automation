@@ -5,7 +5,7 @@ kind: CronJob
 metadata:
   name: google-init-proxy-groups
 spec:
-  schedule: "@hourly"
+  schedule: "5 * * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:

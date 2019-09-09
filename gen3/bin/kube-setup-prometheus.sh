@@ -105,6 +105,20 @@ function deploy_grafana()
   fi
 }
 
-
-deploy_prometheus ${1}
-deploy_grafana ${1} 
+command=""
+if [[ $# -gt 0 && ! "$1" =~ ^-*force ]]; then
+  command="$1"
+  shift
+fi
+case "$command" in
+  prometheus)
+    deploy_prometheus "$@"
+    ;;
+  grafana)
+    deploy_grafana "$@"
+    ;;
+  *)
+    deploy_prometheus "$@"
+    deploy_grafana "$@"
+    ;;
+esac

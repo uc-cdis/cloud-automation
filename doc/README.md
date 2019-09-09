@@ -12,6 +12,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [arun](./arun.md)
 * [devterm](./devterm.md)
 * [db](./db.md)
+* [dashboard](./dashboard.md)
 * [es](./es.md) - elastic search
 * [gitops](./gitops.md) - manifest filter, configmaps, history, sync, tagging releases, etc
 * [ec2](./ec2.md) - describe, reboot

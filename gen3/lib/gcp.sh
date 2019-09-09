@@ -44,6 +44,10 @@ gen3_workon_gcp(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/gcp/user_vpc"
   elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/gcp/data_bucket"
+  elif [[ -d "${GEN3_HOME}/tf_files/gcp/${GEN3_WORKSPACE#*__}" ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/gcp/${GEN3_WORKSPACE#*__}"
+  elif [[ -d "${GEN3_HOME}/tf_files/gcp-bwg/${GEN3_WORKSPACE#*__}" ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/gcp-bwg/${GEN3_WORKSPACE#*__}"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -103,6 +107,11 @@ bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/[_\.]/-/g')-gen3"
 environment="$(echo "$GEN3_WORKSPACE" | sed 's/_databucket$//')"
 EOM
     return 0
+  fi
+  # else
+  if [[ -f "${GEN3_TFSCRIPT_FOLDER}/sample.tfvars" ]]; then
+      cat "${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
+      return $?
   fi
 
   # else ...

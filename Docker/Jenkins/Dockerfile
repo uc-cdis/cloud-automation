@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.180
+FROM jenkins/jenkins:2.192
 
 USER root
 
@@ -19,8 +19,10 @@ RUN apt-get update \
      ca-certificates \
      curl \
      gnupg2 \
+     lua5.3 \
      software-properties-common \
-     sudo
+     sudo \
+  && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \

@@ -1,44 +1,86 @@
-data "google_client_config" "default" {}
+# Versioning
+terraform {
+  required_version = ">= 0.11.8"
 
-resource "google_storage_bucket" "default" {
-  count         = "${length(var.bucket_name)}"
-  name          = "${element(var.bucket_name, count.index)}"
-  location      = "${length(var.location) > 0 ? var.location : data.google_client_config.default.region}"
-  project       = "${length(var.project) > 0 ? var.project : data.google_client_config.default.project}"
+  required_providers {
+    google = ">= 1.14.0"
+  }
+}
+
+# Pull information from current gcloud client config
+data "google_client_config" "current" {}
+
+# Set the log bucket name
+locals {
+  log_bucket_name = "${var.bucket_name}_logs"
+}
+
+# Storage Bucket
+resource "google_storage_bucket" "bucket" {
+  name          = "${var.bucket_name}"
+  location      = "${var.location != "" ? var.location : data.google_client_config.current.region}"
+  project       = "${var.project != "" ? var.project : data.google_client_config.current.project}"
   storage_class = "${var.storage_class}"
   force_destroy = "${var.force_destroy}"
+  labels        = "${var.labels}"
 
-  lifecycle_rule {
-    action {
-      type          = "${var.action_type}"
-      storage_class = "${var.action_storage_class}"
-    }
+  # TODO Should be set to "${var.prevent_destroy}" once https://github.com/hashicorp/terraform/issues/3116 is fixed.
+  lifecycle {
+    prevent_destroy = false
+  }
 
-    condition {
-      age                   = "${var.age}"
-      created_before        = "${var.created_before}"
-      is_live               = "${var.is_live}"
-      matches_storage_class = "${var.matches_storage_class}"
-      num_newer_versions    = "${var.num_newer_versions}"
-    }
+  lifecycle_rule = "${var.lifecycle_rules}"
+
+  logging {
+    log_bucket = "${local.log_bucket_name}"
   }
 
   versioning {
     enabled = "${var.versioning_enabled}"
   }
+}
 
-  labels {
-    "data-commons" = "${var.label-datacommons}"
-    "department"   = "${var.label-department}"
-    "environment"  = "${var.label-env}"
-    "sponsor"      = "${var.label-sponsor}"
+# Logging for Storage Bucket
+resource "google_storage_bucket" "logging" {
+  count         = "${var.logging_enabled}"
+  name          = "${local.log_bucket_name}"
+  location      = "${var.location != "" ? var.location : data.google_client_config.current.region}"
+  project       = "${var.project != "" ? var.project : data.google_client_config.current.project}"
+  storage_class = "REGIONAL"
+  force_destroy = "${var.force_destroy}"
+  labels        = "${var.labels}"
+
+  # TODO Should be set to "${var.prevent_destroy}" once https://github.com/hashicorp/terraform/issues/3116 is fixed.
+  lifecycle {
+    prevent_destroy = false
+  }
+
+  lifecycle_rule {
+    "action" {
+      type = "Delete"
+    }
+
+    "condition" {
+      age = 60
+    }
   }
 }
 
-resource "google_storage_bucket_acl" "default" {
-  count       = "${length(var.role_entity) > 0 ? length(google_storage_bucket.default.*.name) : 0}"
+# Bucket ACL
+resource "google_storage_bucket_acl" "bucket_acl" {
+  bucket      = "${google_storage_bucket.bucket.name}"
   default_acl = "${var.default_acl}"
-  bucket      = "${element(google_storage_bucket.default.*.name, count.index)}"
+
+  role_entity = [
+    "${var.role_entity}",
+  ]
+}
+
+# Log Bucket ACL
+resource "google_storage_bucket_acl" "log_bucket_acl" {
+  count       = "${var.logging_enabled}"
+  bucket      = "${google_storage_bucket.logging.name}"
+  default_acl = "${var.default_acl}"
 
   role_entity = [
     "${var.role_entity}",

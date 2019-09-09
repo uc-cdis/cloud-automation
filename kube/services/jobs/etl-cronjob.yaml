@@ -20,6 +20,9 @@ spec:
           - name: etl-mapping
             configMap:
               name: etl-mapping
+          - name: fence-yaml
+            configMap:
+              name: fence
           restartPolicy: Never
           containers:
             - name: tube
@@ -67,6 +70,10 @@ spec:
                 readOnly: true
                 mountPath: "/gen3/tube/etlMapping.yaml"
                 subPath: "etlMapping.yaml"
+              - name: "fence-yaml"
+                readOnly: true
+                mountPath: "/gen3/tube/user.yaml"
+                subPath: user.yaml
               resources:
                 limits:
                   cpu: 1

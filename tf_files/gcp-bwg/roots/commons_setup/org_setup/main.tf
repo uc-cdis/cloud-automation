@@ -38,6 +38,9 @@ module "project" {
   enable_apis                 = "true"
   disable_services_on_destroy = "true"
 
+  add_csoc_service_account = true
+  csoc_project_id          = "${data.terraform_remote_state.org_setup_csoc.project_number}"
+
   activate_apis = [
     "compute.googleapis.com",
     "sqladmin.googleapis.com",

@@ -42,6 +42,207 @@ _check_manifest_global_diff() {
 }
 
 #
+# Internal uptil for checking for differences in cloud-automation 
+# basicallt checking if through git 
+
+_check_cloud-automation_changes() {
+
+  #cd ~/cloud-automation
+  if git diff-index --quiet HEAD --; then
+    # Should the repo has no changes, let's just pull, because why not
+    git pull > /dev/null 2>&1
+    echo "false"
+  else
+    echo "true"
+  fi
+}
+
+#
+# Check the branch cloud-automation is on
+#
+_check_cloud-automation_branch() {
+
+  local branch
+  branch=$(git rev-parse --abbrev-ref HEAD)
+  echo "${branch}"
+}
+
+
+#
+# General tfplan function that depending on the value of next argument
+# it'll determine which subfuntion to send the payload
+#
+gen3_run_tfplan() {
+
+  local message
+  local sns_topic
+  local module
+  local changes
+  local current_branch
+  local quiet
+  local apply
+  
+
+  module=$1
+  quiet=$2
+  apply=$3
+  sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+  #sns_topic="arn:aws:sns:us-east-1:433568766270:fauzi-alert-channel"
+
+  (
+    cd ~/cloud-automation
+    changes=$(_check_cloud-automation_changes)
+    #changes="false"
+    current_branch=$(_check_cloud-automation_branch)
+    #current_branch="master"
+
+    #echo ${changes}
+
+    if [[ ${changes} == "true" ]];
+    then
+      #local files_changes
+      #changes="$(git diff-index --name-only HEAD --)"
+      message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+      echo "${vpc_name} has uncommited changes for cloud-automation:" > ${message}
+      echo "For branch ${current_branch}" >> ${message}
+      git diff-index --name-only HEAD -- >> ${message} 2>&1
+    elif [[ ${changes} == "false" ]];
+    then
+      # checking for the result of _check_cloud-automation_changes just in case it came out empty
+      # for whatever reson
+
+      if [[ ${current_branch} == "master" ]];
+      then
+        case "$module" in
+          "vpc")
+            message=$(_gen3_run_tfplan_vpc ${apply})
+            ;;
+          "eks")
+            message=$(_gen3_run_tfplan_eks ${apply})
+            ;;
+        esac
+      else
+        message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+        echo "cloud-automation for ${vpc_name} is not on the master branch:" > ${message}
+        echo "Branch ${current_branch}" >> ${message}
+      fi
+    fi
+
+    if [ -n "${message}" ];
+    then
+      if ! [ -n "${quiet}" -a "${quiet}" == "quiet" ];
+      then
+        aws sns publish --target-arn ${sns_topic} --message file://${message} > /dev/null 2>&1
+      else
+        cat ${message}
+      fi
+      rm ${message}
+    fi
+  )
+
+}
+
+#
+# Apply changes picket up by tfplan
+#
+_gen3_run_tfapply_eks() {
+  gen3_run_tfplan "$@" "quiet" "apply"
+}
+
+
+#
+# Apply changes picket up by tfplan
+#
+_gen3_run_tfapply_vpc() {
+  #echo "$@"
+  gen3_run_tfplan "$@" "quiet" "apply"
+}
+
+#
+# Public function to start tfapply, only for eks, for the VPC it might not be a good idea
+# or at least it needs some deeper supervisiohn
+#
+
+gen3_run_tfapply() {
+  local module=$1
+  if [ ${module} == "vpc" ];
+  then
+    _gen3_run_tfapply_vpc "$@"
+  elif [ ${module} == "eks" ];
+  then
+    _gen3_run_tfapply_eks "$@"
+  fi
+}
+
+#
+# Function that checks for uncomitter changes to cloud-automation
+# and also if there are unapplied changes to the vpc module
+#
+_gen3_run_tfplan_vpc() {
+
+  local plan
+  local slack_hook
+  local tempFile
+  local output
+  local apply
+
+  apply=$1
+
+  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1 |head -n1) ${vpc_name} > /dev/null 2>&1
+  #plan=$(gen3 tfplan | grep "Plan")
+  output="$(gen3 tfplan)"
+  plan=$(echo -e "${output}" | grep "Plan")
+
+  if [ -n "${plan}" ];
+  then
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name} has unapplied plan:" > ${tempFile}
+    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+    if [ -n "$apply" -a "$apply" == "apply" ];
+    then
+      echo -e "${output}" >> ${tempFile}
+      gen3 tfapply >> ${tempFile} 2>&1
+    else
+      echo "No apply this time" >> ${tempFile}
+    fi
+  fi
+  echo "${tempFile}"
+}
+
+#
+# Function that checks for uncomitter changes to cloud-automation
+# and also if there are unapplied changes to the eks module
+#
+_gen3_run_tfplan_eks() {
+
+  local plan
+  local slack_hook
+  local tempFile
+  local apply
+  local output
+
+  apply=$1
+
+  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1) ${vpc_name}_eks > /dev/null 2>&1
+  output="$(gen3 tfplan)"
+  plan=$(echo -e "${output}" | grep "Plan")
+
+  if [ -n "${plan}" ];
+  then
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name}_eks has unapplied plan:" > ${tempFile}
+    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+    if [ -n "$apply" -a "$apply" == "apply" ];
+    then
+      echo -e "${output}" >> ${tempFile}
+      gen3 tfapply >> ${tempFile} 2>&1
+    else
+      echo "No apply this time" >> ${tempFile}
+    fi
+  fi
+  echo "${tempFile}"
+}
+
 # command to update dictionary URL and image versions
 #
 gen3_gitops_sync() {
@@ -627,8 +828,14 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "enforce")
       gen3_gitops_enforcer "$@"
       ;;
+    "folder")
+      dirname "$(g3k_manifest_path)"
+      ;;
     "history")
       gen3_gitops_history "$@"
+      ;;
+    "manifest")
+      g3k_manifest_path
       ;;
     "rsync")
       gen3_gitops_rsync "$@"
@@ -650,6 +857,12 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "dotag")
       gen3_gitops_repo_dotag "$@"
+      ;;
+    "tfplan")
+      gen3_run_tfplan "$@"
+      ;;
+    "tfapply")
+      gen3_run_tfapply "$@"
       ;;
     *)
       help

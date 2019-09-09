@@ -176,6 +176,14 @@ gen3_secrets_sync() {
         done
       )
     fi
+
+    #-------
+    # update fence-config too - why not?
+    if [[ -f "$(gen3_secrets_folder)/apis_configs/fence-config.yaml" ]]; then
+      g3kubectl delete secret "fence-config" > /dev/null 2>&1
+      g3kubectl create secret generic fence-config "--from-file=fence-config.yaml=$(gen3_secrets_folder)/apis_configs/fence-config.yaml"
+    fi
+
     return 0
   fi
   return 1
