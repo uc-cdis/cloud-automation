@@ -26,9 +26,9 @@ spec:
       volumes:
         - name: mariner-config
           configMap:
-            name: mariner-config
+            name: manifest-mariner
             items:
-              - key: config
+              - key: json
                 path: mariner-config.json
       affinity:
         podAntiAffinity:
