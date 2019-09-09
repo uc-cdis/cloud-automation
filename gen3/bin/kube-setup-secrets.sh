@@ -1,4 +1,4 @@
-#!/bin/bash
+/!/bin/bash
 #
 # Initializes the Gen3 k8s secrets and services.
 #
@@ -106,6 +106,16 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update aws-es-proxy secr
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .ssjdispatcher < creds.json > "$credsFile"
     g3kubectl create secret generic ssjdispatcher-creds "--from-file=credentials.json=${credsFile}"
+  fi
+fi
+
+# mariner 
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then 
+  cd "$(gen3_secrets_folder)"
+  if ! g3kubectl get secret workflow-bot-g3auto > /dev/null 2>&1; then
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    jq -r .mariner < creds.json > "$credsFile"
+    g3kubectl create secret generic workflow-bot-g3auto "--from-file=credentials.json=${credsFile}"
   fi
 fi
 
