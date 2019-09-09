@@ -250,6 +250,7 @@ gen3_gitops_sync() {
   local dict_roll=false
   local versions_roll=false
   local portal_roll=false
+  local etl_roll=false
   local slack=false
   local tmpHostname
   local resStr
@@ -258,6 +259,7 @@ gen3_gitops_sync() {
   local versionsAttachment
   local commonsManifestDir
   local portalDiffs
+  local etlDiffs
 
   if [[ $1 = '--slack' ]]; then
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
@@ -365,7 +367,7 @@ gen3_gitops_sync() {
       elif [[ "${secretsFile}" != "${comparingFile}" ]]; then
         diffMsg="Diff in portal/${filename} - difference between file and secret"
       fi
-      if [[ ! -z "${diffMsg}" ]]; then
+      if [[ -n "${diffMsg}" ]]; then
         portalDiffs="${portalDiffs} \n${diffMsg}"
         gen3_log_info "$diffMsg"
         portal_roll=true
@@ -385,13 +387,44 @@ gen3_gitops_sync() {
     portal_roll=true
   fi
 
+  if [[ ! -f "${commonsManifestDir}/etlMapping.yaml" ]]; then
+    gen3_log_info "etl mapping file not found, skipping etl update"
+  else
+    local filename
+    local configMapFile
+    local comparingFile
+    local diffMsg
+    diffMsg=""
+    filename="etlMapping.yaml"
+    commonsFilepath="${commonsManifestDir}/$filename"
+    configMapFile=$(g3kubectl get cm etl-mapping -o json | jq -r '.data."'"$filename"'"' | tr -d '\n')
+    # get file contents from default file or commons's file
+    comparingFile=$(cat $commonsFilepath | tr -d '\n')
+    # check for a diff
+    if [[ "${configMapFile}" = null ]]; then
+      diffMsg="Diff in etlMapping/${filename} - file not found in secret"
+    elif [[ "${configMapFile}" != "${comparingFile}" ]]; then
+      diffMsg="Diff in etlMapping/${filename} - difference between file and secret"
+    fi
+    if [[ -n "${diffMsg}" ]]; then
+      etlDiffs="${etlDiffs} \n${diffMsg}"
+      gen3_log_info "$diffMsg"
+      etl_roll=true
+    fi
+  fi
+
   echo "DRYRUN flag is: $GEN3_DRY_RUN"
   if [ "$GEN3_DRY_RUN" = true ]; then
     echo "DRYRUN flag detected, not rolling"
-    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll"
+    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll; etl_roll: $etl_roll"
   else
-    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true ) ]]; then
+    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true ) ]]; then
       echo "changes detected, rolling"
+      # run etl job before roll all so guppy can pick up changes
+      if [[ "$etl_roll" = true ]]; then
+          gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
+          gen3 job run etl --wait
+      fi
       gen3 kube-roll-all
       rollRes=$?
       # send result to slack
@@ -412,7 +445,10 @@ gen3_gitops_sync() {
         if [[ "$portal_roll" = true ]]; then
           portalAttachment="\"title\": \"Portal Diffs\", \"text\": \"${portalDiffs}\", \"color\": \"${color}\""
         fi
-        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}]}" "${slackWebHook}"
+        if [[ "$etl_roll" = true ]]; then
+          etlAttachment="\"title\": \"ETL Diffs\", \"text\": \"${etlDiffs}\", \"color\": \"${color}\""
+        fi
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}, {${etlAttachment}}]}" "${slackWebHook}"
       fi
     else
       echo "no changes detected, not rolling"
@@ -529,6 +565,10 @@ gen3_gitops_configmaps() {
   local key2
   local value
   local execString
+  local etlPath
+  
+  etlPath=$(dirname $(g3k_manifest_path))/etlMapping.yaml
+  gen3 update_config etl-mapping $etlPath
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
     if [[ $key != 'notes' ]]; then
