@@ -53,10 +53,18 @@ get_pods() {
 }
 
 update_config() {
-  if g3kubectl get configmap $1 > /dev/null 2>&1; then
-    g3kubectl delete configmap $1
+  local name="$1"
+  local args=()
+
+  shift
+  if g3kubectl get configmap "$name" > /dev/null 2>&1; then
+    g3kubectl delete configmap "$name"
   fi
-  g3kubectl create configmap $1 --from-file $2
+  local it
+  for it in "$@"; do
+    args+=("--from-file=${it##*/}=${it}")
+  done
+  g3kubectl create configmap "$name" "${args[@]}"
 }
 
 

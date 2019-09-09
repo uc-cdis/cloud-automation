@@ -28,3 +28,4 @@ echo "deb https://packages.chef.io/repos/apt/$CHANNEL $DISTRIBUTION main" > chef
 mv chef-stable.list /etc/apt/sources.list.d/
 apt update
 apt install -y chef chefdk
+chef-client --chef-license accept --version

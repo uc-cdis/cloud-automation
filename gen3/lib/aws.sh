@@ -175,6 +175,9 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role"
   elif [[ "$GEN3_WORKSPACE" =~ _role_policy_attachment$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role_policy_attachment"
+  elif [[ -d "${GEN3_HOME}/tf_files/aws/${GEN3_WORKSPACE#*__}" ]]; then
+    # NEW! support __FOLDER_NAME
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/${GEN3_WORKSPACE#*__}"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -358,8 +361,6 @@ EOM
     return 0
   fi
 
-
-
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _vpnnlbcentral$ ]]; then
     # rds snapshot vpc is simpler ...
@@ -383,7 +384,7 @@ EOM
      vpn_server_subnet = "10.128.X.X/Y"
 
 EOM
-    return 0
+      return 0
   fi
 
   # else ...
@@ -402,7 +403,7 @@ EOM
   # allowed_principals_list       = "[LIST OF AWS ACCOUNTS WHICH NEEDS TO BE WHITELISTED]"
   # e.g. of the list - ["arn:aws:iam::<AWS ACCOUNT1 ID>:root","arn:aws:iam::<AWS ACCOUNT2 ID>:root", ...]
 EOM
-    return 0
+      return 0
   fi
 
   # else ...
@@ -415,9 +416,8 @@ ebs_volume_size_gb = 20
 slack_webhook             = FILL THIS IN FOR CLOUDWATCH ALARMS
 secondary_slack_webhook   = FILL THIS IN FOR CLOUDWATCH ALARMS
 EOM
-    return 0
+      return 0
   fi
-
 
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _qualysvm$ ]]; then
@@ -426,10 +426,8 @@ EOM
 user_perscode   = "PERSCODE you receive from the Qualys master"
 env_vpc_octet3  = "3rd OCTET OF VPC CIDR FOR QUALYS SETUP"
 EOM
-    return 0
+      return 0
   fi
-
-
 
   # else ...
   if [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
@@ -440,7 +438,7 @@ instance_type = "t3.xlarge"
 ec2_keyname   = "someone@uchicago.edu"
 users_policy  = "${commonsName}"
 EOM
-    return 0
+      return 0
   fi
 
 
@@ -452,24 +450,29 @@ cluster_type = "EKS"
 emails = ["e1@uchicago.edu","e2@uchicago.edu"]
 topic_display = "Cronjob Monitor"
 EOM
-    return 0
+      return 0
   fi
 
   if [[ "$GEN3_WORKSPACE" == "management-logs" ]]; then
       cat - <<EOM
 account_id = ["830067555646", "474789003679", "655886864976", "663707118480", "728066667777", "433568766270", "733512436101", "584476192960", "236835632492", "662843554732", "803291393429", "446046036926", "980870151884", "562749638216", "707767160287", "302170346065", "636151780898", "895962626746", "222487244010", "369384647397", "547481746681"]
 EOM
-    return 0
+      return 0
   fi
 
   if [[ "$GEN3_WORKSPACE" =~ _management-logs$ ]]; then
       cat - <<EOM
 account_name = "${GEN3_WORKSPACE//_management-logs/}"
 EOM
-    return 0
+      return 0
   fi
-
-
+  # else
+  if [[ -f "${GEN3_TFSCRIPT_FOLDER}/sample.tfvars" ]]; then
+      cat "${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
+      return $?
+  fi
+  gen3_log_info "no sample vars file at ${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
+  
   # ssh key to be added to VMs and kube nodes
   local SSHADD=$(which ssh-add)
   if [ -f ~/.ssh/id_rsa.pub ];

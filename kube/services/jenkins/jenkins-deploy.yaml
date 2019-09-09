@@ -111,7 +111,7 @@ spec:
         - name: dockersock
           mountPath: "/var/run/docker.sock"
       - name: selenium
-        image: selenium/standalone-chrome:3.13.0-argon
+        image: selenium/standalone-chrome:3.14
         ports:
         - containerPort: 4444
         readinessProbe:

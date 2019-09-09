@@ -2,8 +2,75 @@
 
 GEN3_AGGS_DAILY="gen3-aggs-daily"
 
+
 #
-# Retry lamda supporting gen3_logs_save_daily
+# Get the number of unique users
+#
+gen3_logs_user_count() {
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
+    local aggs=$(cat - <<EOM
+  {
+      "unique_user_count" : {
+        "cardinality" : {
+            "field" : "message.user_id.keyword",
+            "precision_threshold": 1000
+        }
+      }
+  }
+EOM
+    )
+    queryStr=$(jq -r --argjson aggs "$aggs" '.aggs=$aggs' <<<${queryStr})
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+#
+# HTTP response code histogram
+#
+gen3_logs_code_histogram() {
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
+    local aggs=$(cat - <<EOM
+  {
+      "codes" : {
+          "histogram" : {
+              "field" : "message.http_status_code",
+              "interval" : 100,
+              "min_doc_count" : 1
+          }
+      }
+  }
+EOM
+    )
+    queryStr=$(jq -r --argjson aggs "$aggs" '.aggs=$aggs' <<<${queryStr})
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+#
+# Response time histogram
+#
+gen3_logs_rtime_histogram() {
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
+    local aggs=$(cat - <<EOM
+  {
+      "rtimes" : {
+          "histogram" : {
+              "field" : "message.response_secs",
+              "interval" : 0.1,
+              "min_doc_count" : 1
+          }
+      }
+  }
+EOM
+    )
+    queryStr=$(jq -r --argjson aggs "$aggs" '.aggs=$aggs' <<<${queryStr})
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+#
+# Fetch the unique users aggregations from 'gen3 logs raw aggs=yes'.
+# Internal helper for building up the unique users history table.
 #
 # @param dayArg like 'yesterday' or '03/01/2019' to fetch aggregations for
 # @return 0 on success, and cat json search data
@@ -33,6 +100,29 @@ gen3_logs_fetch_aggs() {
     return 1
   fi
 }
+
+#
+# Response time histogram
+#
+gen3_logs_uniques() {
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
+    local aggs=$(cat - <<EOM
+  {
+      "rtimes" : {
+          "histogram" : {
+              "field" : "message.response_secs",
+              "interval" : 0.1,
+              "min_doc_count" : 1
+          }
+      }
+  }
+EOM
+    )
+    queryStr=$(jq -r --argjson aggs "$aggs" '.aggs=$aggs' <<<${queryStr})
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
 
 #
 # Save per-commons aggregations for yesterday

@@ -6,7 +6,6 @@ terraform {
   required_providers = {
     gcp = ">=2.1.0"
   }
-
   backend "gcs" {}
 }
 
@@ -19,3 +18,4 @@ provider "google-beta" {
   credentials = "${file("${var.credential_file}")}"
   region      = "${var.region}"
 }
+

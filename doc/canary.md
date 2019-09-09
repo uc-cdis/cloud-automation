@@ -1,6 +1,21 @@
 # TL;DR
 
-We can deploy and manage canary versions of the fence, indexd, sheepdog, and peregrine services. The reverse proxy [readme](../kube/services/revproxy/README.md) has the more technical details.
+We can deploy and manage canary versions of the fence, fenceshib, indexd, sheepdog, and peregrine services. 
+
+# WARNING
+
+Running two different versions of a service side by side with 
+the same database is potentially dangerous if the two versions
+save data in incompatable ways or trigger different database
+migrations or probably other things too.
+
+Also - our canary support only affects external traffic 
+that routes through our api gateway (revproxy).  Internal
+traffic directly between services is not canary aware.
+
+## Overview
+
+The reverse proxy [readme](../kube/services/revproxy/README.md) has the more technical details.
 When the `service_releases` (or `dev_canaries` - see below) cookie is included in a request, the revproxy will use the release versions it finds in the cookie.
 When the cookie is not included, or for services that aren't in the cookie, revproxy uses the service weights from the manifest to determine which release version to use and sets the client's cookie with that configuration.
 

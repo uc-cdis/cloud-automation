@@ -22,7 +22,15 @@ variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
-variable "db_size" {
+variable "fence_db_size" {
+  default = 10
+}
+
+variable "sheepdog_db_size" {
+  default = 10
+}
+
+variable "indexd_db_size" {
   default = 10
 }
 
@@ -72,7 +80,15 @@ variable "indexd_snapshot" {
   default = ""
 }
 
-variable "db_instance" {
+variable "fence_db_instance" {
+  default = "db.t2.micro"
+}
+
+variable "sheepdog_db_instance" {
+  default = "db.t2.micro"
+}
+
+variable "indexd_db_instance" {
   default = "db.t2.micro"
 }
 
@@ -172,4 +188,117 @@ variable "mailgun_smtp_host" {
 variable "mailgun_api_url" {
   default = "https://api.mailgun.net/v3/"
 }
+
+variable "fence_ha" {
+  default = false
+}
+
+variable "sheepdog_ha" {
+  default = false
+}
+
+variable "indexd_ha" {
+  default = false
+}
+
+variable "fence_maintenance_window"{
+  default = "SAT:09:00-SAT:09:59" 
+}
+
+variable "sheepdog_maintenance_window"{
+  default = "SAT:10:00-SAT:10:59" 
+}
+
+variable "indexd_maintenance_window"{
+  default = "SAT:11:00-SAT:11:59" 
+}
+
+variable "fence_backup_retention_period" {
+  default = "4" 
+}
+
+variable "sheepdog_backup_retention_period" {
+  default = "4" 
+}
+
+variable "indexd_backup_retention_period" {
+  default = "4" 
+}
+
+variable "fence_backup_window" {
+  default = "06:00-06:59" 
+}
+
+variable "sheepdog_backup_window" {
+  default = "07:00-07:59" 
+}
+
+variable "indexd_backup_window" {
+  default = "08:00-08:59"
+}
+
+variable "fence_engine_version" {
+  default = "9.6.11" 
+}
+
+variable "sheepdog_engine_version" {
+  default = "9.6.11"
+}
+
+variable "indexd_engine_version" {
+  default = "9.6.11" 
+}
+
+variable "fence_auto_minor_version_upgrade" {
+  default = "true"
+}
+
+variable "indexd_auto_minor_version_upgrade" {
+  default = "true"
+}
+
+variable "sheepdog_auto_minor_version_upgrade" {
+  default = "true"
+}
+
+variable "users_bucket_name" {
+  default = "cdis-gen3-users"
+}
+
+variable "fence_database_name" {
+  default = "fence"
+}
+
+variable "sheepdog_database_name" {
+  default = "gdcapi"
+}
+
+variable "indexd_database_name" {
+  default = "indexd"
+}
+
+variable "fence_db_username" {
+  default = "fence_user"
+}
+
+variable "sheepdog_db_username" {
+  default = "sheepdog"
+}
+
+variable "indexd_db_username" {
+  default = "indexd_user"
+}
+
+variable "fence_allow_major_version_upgrade" {
+  default = "true"
+}
+
+variable "sheepdog_allow_major_version_upgrade" {
+  default = "true"
+}
+
+variable "indexd_allow_major_version_upgrade" {
+  default = "true"
+}
+
 

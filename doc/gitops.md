@@ -32,12 +32,28 @@ Force the local `cdis-manifest/` and `cloud-automation/` folders to sync with gi
 gen3 gitops enforce
 ```
 
+### folder
+
+Get the active manifest folder path.
+
+```
+folder="$(gen3 gitops folder)"
+```
+
 ### history
 
 Show the git history of changes to the manifest folder
 
 ```
 gen3 gitops history
+```
+
+### manifest
+
+Get the path to the active manifest
+
+```
+path="$(gen3 gitops manifest)"
 ```
 
 ### rsync
@@ -103,4 +119,23 @@ We expect a user will usually run this command from his personal laptop which ho
 
 ```
 gen3 gitops dotag fence
+```
+
+### tfplan
+
+Runs terraform to check on an environment. It'll just get the plan, it won't apply it.
+It must be ran as the user that manages the commons.
+It takes a module as argument, like: vpc, eks.
+
+```
+gen3 gitops tfplan vpc
+```
+
+### tfapply
+Runs a terraform plan on an environment. It must be ran as the user that manages the commons.
+Execute this with extream precaution, it won't prompt for confirmation, will just apply.
+It takes a module as argument, like: vpc, eks.
+
+```
+gen3 gitops tfapply eks
 ```

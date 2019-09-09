@@ -1,0 +1,15 @@
+---
+apiVersion: ambassador/v1
+kind: AuthService
+name: gen3-authentication
+ambassador_id: "gen3"
+auth_service: "example-auth:3000"
+path_prefix:  "/extauth"
+proto: http
+allowed_request_headers:
+- "x-example-header"
+allowed_authorization_headers:
+- "x-qotm-session"
+include_body:
+  max_bytes: 4096
+  allow_partial: true

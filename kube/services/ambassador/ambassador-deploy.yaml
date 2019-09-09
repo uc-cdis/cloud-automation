@@ -10,6 +10,7 @@ spec:
         sidecar.istio.io/inject: "false"
         "consul.hashicorp.com/connect-inject": "false"
       labels:
+        app: ambassador
         service: ambassador
         public: "yes"
         netnolimit: "yes"

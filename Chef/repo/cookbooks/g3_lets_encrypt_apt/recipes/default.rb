@@ -5,6 +5,7 @@
 include_recipe 'g3_dev_apt'
 
 apt_repository 'apt-lets-encrypt' do
+  arch  'amd64'
   uri   'ppa:certbot/certbot'
 end
 

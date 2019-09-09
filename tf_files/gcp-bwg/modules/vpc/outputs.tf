@@ -27,6 +27,10 @@ output "subnetwork_self_link" {
   value = "${data.google_compute_subnetwork.created_subnets.*.self_link}"
 }
 
+output "subnetwork_name" {
+  value = "${data.google_compute_subnetwork.created_subnets.*.name}"
+}
+
 output "secondary_range_name" {
   value = ["${google_compute_subnetwork.subnetwork.*.secondary_ip_range}"]
 }

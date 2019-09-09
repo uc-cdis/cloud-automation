@@ -17,6 +17,8 @@ USE: gen3 workon PROFILE_NAME WORKSPACE_NAME
      see: gen3 help
 ```
 
+The WORKSPACE_NAME may specify its terraform script folder with a `__FOLDER` suffix. For example, `gen3 workon commons labsetup__csoc_qualys_vm` will run the terraform scripts under `tf_files/aws/csoc_qualys_vm`.
+
 ## Example
 
 * `gen3 workon cdistest devplanetv1`

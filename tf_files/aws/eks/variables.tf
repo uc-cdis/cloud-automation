@@ -10,10 +10,9 @@ variable "instance_type" {
 }
 
 variable "jupyter_instance_type"{
-  default = "t3.medium"
+  default = "t3.large"
 }
 
-#variable "csoc_cidr" {
 variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
@@ -30,12 +29,9 @@ variable "worker_drive_size" {
 }
 
 variable "eks_version" {
-  default = "1.11"
+  default = "1.12"
 }
 
-#variable "deploy_jupyter_pool" {
-#  default = "no"
-#}
 
 variable "workers_subnet_size" {
   default = 24
