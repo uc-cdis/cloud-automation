@@ -367,7 +367,7 @@ gen3_gitops_sync() {
       elif [[ "${secretsFile}" != "${comparingFile}" ]]; then
         diffMsg="Diff in portal/${filename} - difference between file and secret"
       fi
-      if [[ ! -z "${diffMsg}" ]]; then
+      if [[ -n "${diffMsg}" ]]; then
         portalDiffs="${portalDiffs} \n${diffMsg}"
         gen3_log_info "$diffMsg"
         portal_roll=true
@@ -397,16 +397,16 @@ gen3_gitops_sync() {
     diffMsg=""
     filename="etlMapping.yaml"
     commonsFilepath="${commonsManifestDir}/$filename"
-    configMapFile=$(g3kubectl get cm etl-mapping -o json | jq -r '.data."'"$filename"'"' | tr -d '\n' | base64 -w 0)
+    configMapFile=$(g3kubectl get cm etl-mapping -o json | jq -r '.data."'"$filename"'"' | tr -d '\n')
     # get file contents from default file or commons's file
-    comparingFile=$(cat $commonsFilepath | tr -d '\n' | base64 -w 0)
+    comparingFile=$(cat $commonsFilepath | tr -d '\n')
     # check for a diff
     if [[ "${configMapFile}" = null ]]; then
       diffMsg="Diff in etlMapping/${filename} - file not found in secret"
     elif [[ "${configMapFile}" != "${comparingFile}" ]]; then
       diffMsg="Diff in etlMapping/${filename} - difference between file and secret"
     fi
-    if [[ ! -z "${diffMsg}" ]]; then
+    if [[ -n "${diffMsg}" ]]; then
       etlDiffs="${etlDiffs} \n${diffMsg}"
       gen3_log_info "$diffMsg"
       etl_roll=true
@@ -422,7 +422,8 @@ gen3_gitops_sync() {
       echo "changes detected, rolling"
       # run etl job before roll all so guppy can pick up changes
       if [[ "$etl_roll" = true ]]; then
-          gen3 job run etl
+          gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
+          gen3 job run etl --wait
       fi
       gen3 kube-roll-all
       rollRes=$?
