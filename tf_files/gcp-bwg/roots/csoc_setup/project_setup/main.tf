@@ -280,7 +280,6 @@ module "firewall-csoc-egress-outbound-web" {
 }
 
 // DENY ALL OUTBOUND TRAFFIC
-/*************** TURNING OFF DENY_ALL UNTILL SQUID IS BUILT
 module "firewall-csoc-egress-outbound-deny-all" {
   source     = "../../../modules/firewall-egress-deny"
   priority   = "${var.csoc_egress_outbound_deny_all_priority}"
@@ -289,7 +288,7 @@ module "firewall-csoc-egress-outbound-deny-all" {
   network    = "${module.vpc-csoc-egress.network_name}"
   protocol   = "${var.csoc_egress_outbound_deny_all_protocol}"
 }
-*/
+
 /************************************************************
  VPC-CSOC-INGRESS-RULES
 ************************************************************/
@@ -340,7 +339,6 @@ module "firewall-csoc-ingress-outbound-proxy" {
 }
 
 // DENY ALL OUTBOUND TRAFFIC
-/*********** TURNING OFF UNTIL SQUID PROXY IS BUILT
 module "firewall-csoc-ingress-outbound-deny-all" {
   source     = "../../../modules/firewall-egress-deny"
   priority   = "${var.csoc_ingress_outbound_deny_all_priority}"
@@ -349,7 +347,7 @@ module "firewall-csoc-ingress-outbound-deny-all" {
   network    = "${module.vpc-csoc-ingress.network_name}"
   protocol   = "${var.csoc_ingress_outbound_deny_all_protocol}"
 }
-*/
+
 /************************************************************
  VPC-CSOC-PRIVATE-RULES
 ************************************************************/
@@ -433,7 +431,6 @@ module "firewall-csoc-private-outbound-proxy" {
 }
 
 // DENY ALL OUTBOUND TRAFFIC
-/*********** TURNING OFF UNTIL SQUID PROXY IS BUILT
 module "firewall-csoc-private-outbound-deny-all" {
   source     = "../../../modules/firewall-egress-deny"
   priority   = "${var.csoc_private_outbound_deny_all_priority}"
@@ -442,7 +439,6 @@ module "firewall-csoc-private-outbound-deny-all" {
   network    = "${module.vpc-csoc-private.network_name}"
   protocol   = "${var.csoc_private_outbound_deny_all_protocol}"
 }
-*/
 ############ END CREATE FIREWALL    ################################################
 
 /**********************************************
