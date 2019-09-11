@@ -17,6 +17,7 @@ module "cloudwatch-events" {
   }
 }
 EOP
+#  depends_on = ["module.alerting-lambda"]
 }
 
 module "alerting-lambda" {
@@ -26,6 +27,7 @@ module "alerting-lambda" {
   lambda_function_description  = "Checking for things that should or might not happend"
   lambda_function_iam_role_arn = "${module.role-for-lambda.role_arn}"
   lambda_function_env          = {"topic"="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-for-bsd-security"}
+  lambda_function_handler      = "security_alerts.lambda_handler"
 }
 
 module "role-for-lambda" {
@@ -49,25 +51,30 @@ module "role-for-lambda" {
 EOP
 }
 
-data "aws_iam_policy_document" "security_alert_policy" {
+data "aws_iam_policy_document" "sns_access" {
   statement {
     actions = [
       "SNS:Publish",
-      "SNS:sns:GetTopicAttributes"
+      "SNS:GetTopicAttributes",
     ]
     effect = "Allow"
-    resources = ["arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-for-bsd-securitys"]
+    #resources = ["arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-for-bsd-securitys"]
+    resources = ["*"]
   }
 }
 
-
 resource "aws_iam_role_policy" "lambda_policy" {
   name                  = "${var.account_name}-security-alert-policy"
-  policy                = "${data.aws_iam_policy_document.security_alert_policy.json}"
+  policy                = "${data.aws_iam_policy_document.sns_access.json}"
   role                  = "${module.role-for-lambda.role_id}"
 }
 
-resource "aws_iam_role_policy_attachment" "sns-access" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
+resource "aws_iam_role_policy_attachment" "cloudwatch_access" {
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+  role       = "${module.role-for-lambda.role_id}"
+}
+
+resource "aws_iam_role_policy_attachment" "trail_access" {
+  policy_arn = "arn:aws:iam::aws:policy/AWSCloudTrailFullAccess"
   role       = "${module.role-for-lambda.role_id}"
 }

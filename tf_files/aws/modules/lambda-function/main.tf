@@ -16,7 +16,8 @@ resource "aws_lambda_function" "lambda_function" {
   # The filebase64sha256() function is available in Terraform 0.11.12 and later
   # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
 
-  source_code_hash = "${filebase64sha256(data.archive_file.lambda_function.output_base64sha256)}"
+  #source_code_hash = "${filebase64sha256(data.archive_file.lambda_function.output_base64sha256)}"
+  source_code_hash = "${data.archive_file.lambda_function.output_base64sha256}"
 
   runtime          = "${var.lambda_function_runtime}"
   timeout          = "${var.lambda_function_timeout}"

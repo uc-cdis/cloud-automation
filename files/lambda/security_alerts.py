@@ -25,5 +25,5 @@ def lambda_handler(event, context):
             print(event['detail']['eventName'])
     except Exception as e:
         print(e)
-        sys.exit();
+        #sys.exit();
 
