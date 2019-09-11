@@ -11,6 +11,7 @@ variable "role_assume_role_policy" {
 variable "role_tags" {
   description = "Tags for the role"
   type        = "list"
+  default     = []
 }
 
 variable "role_force_detach_policies" {

@@ -1,5 +1,5 @@
 
-variable "cwe_rule_name " {
+variable "cwe_rule_name" {
   description = "Name of the rule"
 }
 

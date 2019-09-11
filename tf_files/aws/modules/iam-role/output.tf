@@ -5,3 +5,4 @@ output "role_id" {
 
 output "role_arn" {
   value = "${aws_iam_role.the_role.arn}"
+}

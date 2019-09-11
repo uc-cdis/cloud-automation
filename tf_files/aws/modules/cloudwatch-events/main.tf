@@ -11,7 +11,7 @@ resource "aws_cloudwatch_event_rule" "event_rule" {
 resource "aws_cloudwatch_event_target" "sns" {
   rule      = "${aws_cloudwatch_event_rule.event_rule.name}"
 #  target_id = "SendToLambda"
-  arn       = "${var.event_target_arn}"
+  arn       = "${var.cwe_target_arn}"
 }
 
 
