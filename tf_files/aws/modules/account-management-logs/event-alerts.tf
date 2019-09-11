@@ -22,7 +22,7 @@ EOP
 
 module "alerting-lambda" {
   source                       = "../lambda-function/"
-  function_file                = "${path.module}/../../../../files/lambda/security_alerts.py"
+  lambda_function_file                = "${path.module}/../../../../files/lambda/security_alerts.py"
   lambda_function_name         = "${var.account_name}-security-alert-lambda"
   lambda_function_description  = "Checking for things that should or might not happend"
   lambda_function_iam_role_arn = "${module.role-for-lambda.role_arn}"
@@ -63,18 +63,64 @@ data "aws_iam_policy_document" "sns_access" {
   }
 }
 
-resource "aws_iam_role_policy" "lambda_policy" {
-  name                  = "${var.account_name}-security-alert-policy"
+
+data "aws_iam_policy_document" "cloudtrail_access" {
+
+  statement {
+    actions = [
+      "cloudtrail:DescribeTrails",
+      "cloudtrail:LookupEvents",
+      "cloudtrail:GetTrailStatus",
+      "cloudtrail:ListTags",
+      "cloudtrail:StartLogging"
+    ]
+    effect = "Allow"
+    resources = ["*"]
+  }
+}
+
+data "aws_iam_policy_document" "cloudwatchlogs_access" {
+
+  statement {
+    actions = [
+      "logs:List*",
+      "logs:Get*",
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    effect = "Allow"
+    resources = ["*"]
+  }
+}
+
+
+resource "aws_iam_role_policy" "lambda_policy_SNS" {
+  name                  = "${var.account_name}-security-alert-policy-for-SNS"
   policy                = "${data.aws_iam_policy_document.sns_access.json}"
   role                  = "${module.role-for-lambda.role_id}"
 }
 
-resource "aws_iam_role_policy_attachment" "cloudwatch_access" {
-  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
-  role       = "${module.role-for-lambda.role_id}"
+
+resource "aws_iam_role_policy" "lambda_policy_CT" {
+  name                  = "${var.account_name}-security-alert-policy-for-CloudTrail"
+  policy                = "${data.aws_iam_policy_document.cloudtrail_access.json}"
+  role                  = "${module.role-for-lambda.role_id}"
 }
 
-resource "aws_iam_role_policy_attachment" "trail_access" {
-  policy_arn = "arn:aws:iam::aws:policy/AWSCloudTrailFullAccess"
-  role       = "${module.role-for-lambda.role_id}"
+resource "aws_iam_role_policy" "lambda_policy_CWL" {
+  name                  = "${var.account_name}-security-alert-policy-for-CloudWatchLogs"
+  policy                = "${data.aws_iam_policy_document.cloudwatchlogs_access.json}"
+  role                  = "${module.role-for-lambda.role_id}"
 }
+
+#resource "aws_iam_role_policy_attachment" "cloudwatch_access" {
+#  policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+#  role       = "${module.role-for-lambda.role_id}"
+#}
+
+#resource "aws_iam_role_policy_attachment" "trail_access" {
+#  policy_arn = "arn:aws:iam::aws:policy/AWSCloudTrailFullAccess"
+#  role       = "${module.role-for-lambda.role_id}"
+#}
+

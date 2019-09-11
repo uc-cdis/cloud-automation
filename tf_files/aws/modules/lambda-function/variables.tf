@@ -1,6 +1,6 @@
 
 
-variable "function_file" {
+variable "lambda_function_file" {
   description = "Path to the function file"
 }
 
@@ -43,4 +43,8 @@ variable "lambda_function_env" {
   default     = {}
 }
 
-
+variable "lambda_function_tags" {
+  description = "Tags for the function"
+  type        = "map"
+  default     = {}
+}

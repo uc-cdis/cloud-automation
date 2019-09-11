@@ -2,7 +2,7 @@
 
 data "archive_file" "lambda_function" {
   type        = "zip"
-  source_file = "${var.function_file}"
+  source_file = "${var.lambda_function_file}"
   output_path = "lambda_function_payload.zip"
 }
 
@@ -22,6 +22,8 @@ resource "aws_lambda_function" "lambda_function" {
   runtime          = "${var.lambda_function_runtime}"
   timeout          = "${var.lambda_function_timeout}"
   memory_size      = "${var.lambda_function_memory_size}" 
+
+  tags             = "${var.lambda_function_tags}"
 
   environment {
     variables      = "${var.lambda_function_env}"
