@@ -72,10 +72,11 @@ usermfaAddUser() {
   fi
   if [[ -f "$userFolder/authorized_keys" ]]; then
     echo -e "INFO: copying ssh authorized_keys" 1>&2
-    sudo su -l -c "mkdir '/home/${userName}/.ssh'; touch '/home/${userName}/.ssh/authorized_keys'"
+    sudo su -l -c "mkdir '/home/${userName}/.ssh'; touch '/home/${userName}/.ssh/authorized_keys'" "$userName"
     sudo cp "$userFolder/authorized_keys" "/home/${userName}/.ssh/authorized_keys"
   fi
-  local googChart="https://www.google.com/chart?chs=200x200&chld=M|0&cht=qr&chl=otpauth://totp/${userName}@${mfaLabel}%3Fsecret%3D${mfaCode}%26issuer%3Dgen3"
+  sudo chmod -R go-rwX "/home/${userName}"
+  local googChart="https://www.google.com/chart?chs=200x200&chld=M|0&cht=qr&chl=otpauth://totp/${userName}@${label}%3Fsecret%3D${mfaCode}%26issuer%3Dgen3"
   local newInfo
   if ! newInfo="$(jq -e -r --arg googChart "$googChart" '.mfaChart=$googChart' < "$userFolder/info.json")"; then
     echo -e "ERROR: failed to update $userFolder/info.json" 1>&2
