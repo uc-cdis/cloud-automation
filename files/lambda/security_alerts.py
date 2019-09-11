@@ -10,11 +10,11 @@ import os
 def lambda_handler(event, context):
     #print(event)
     try:
-        client = boto3.client('cloudtrail')
         if event['detail']['eventName'] == 'StopLogging':
+            client = boto3.client('cloudtrail')
             response = client.start_logging(Name=event['detail']['requestParameters']['name'])
-            client2 = boto3.client('sns')
-            response = client2.publish(
+            client = boto3.client('sns')
+            response = client.publish(
                 TopicArn=os.environ['topic'],
                 Message=json.dumps({'default': json.dumps(event['detail'])}),
                 MessageStructure='json'
