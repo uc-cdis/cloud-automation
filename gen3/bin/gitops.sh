@@ -120,6 +120,9 @@ gen3_run_tfplan() {
           "eks")
             message=$(_gen3_run_tfplan_eks ${apply})
             ;;
+          "management-logs")
+            message=$(_gen3_run_tfplan_management-logs ${apply})
+            ;;
         esac
       else
         message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
@@ -162,7 +165,6 @@ _gen3_run_tfapply_vpc() {
 # Apply changes picket up by tfplan
 #
 _gen3_run_tfapply_management-logs() {
-  #echo "$@"
   gen3_run_tfplan "$@" "quiet" "apply"
 }
 
@@ -181,7 +183,7 @@ gen3_run_tfapply() {
     _gen3_run_tfapply_eks "$@"
   elif [ ${module} == "management-logs" ];
   then
-    _gen3_run_tfapply_management-logs
+    _gen3_run_tfapply_management-logs "$@"
   fi
 }
 
@@ -258,7 +260,7 @@ _gen3_run_tfplan_eks() {
 # Function that checks for uncomitted changes to cloud-automation
 # and also if there are unapplied changes to the eks module
 #
-_gen3_run_tfplan_managemt-logs() {
+_gen3_run_tfplan_management-logs() {
 
   local plan
   local slack_hook
