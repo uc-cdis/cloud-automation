@@ -15,6 +15,7 @@ spec:
         public: "yes"
         netnolimit: "yes"
         userhelper: "yes"
+        GEN3_DATE_LABEL
     spec:
       affinity:
         podAntiAffinity:
