@@ -20,6 +20,7 @@ spec:
         app: sheepdog
         release: canary
         public: "yes"
+        s3: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -95,6 +96,12 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: fence_url
+                optional: true
+          - name: AUTH_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: auth_namespace
                 optional: true
           - name: REQUESTS_CA_BUNDLE
             #
