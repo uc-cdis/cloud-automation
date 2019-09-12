@@ -568,7 +568,9 @@ gen3_gitops_configmaps() {
   local etlPath
   
   etlPath=$(dirname $(g3k_manifest_path))/etlMapping.yaml
-  gen3 update_config etl-mapping $etlPath
+  if [[ -f "$etlPath" ]]; then
+    gen3 update_config etl-mapping "$etlPath"
+  fi
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
     if [[ $key != 'notes' ]]; then

@@ -52,7 +52,9 @@ fi
 gen3 roll arborist
 g3kubectl apply -f "${GEN3_HOME}/kube/services/arborist/arborist-service.yaml"
 
-gen3 job run "${GEN3_HOME}/kube/services/jobs/arborist-rm-expired-access-cronjob.yaml"
+if [ "$deployVersion" -gt  "1" ]; then
+  gen3 job run "${GEN3_HOME}/kube/services/jobs/arborist-rm-expired-access-cronjob.yaml"
+fi
 
 cat <<EOM
 The arborist service has been deployed onto the kubernetes cluster.
