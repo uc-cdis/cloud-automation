@@ -12,7 +12,7 @@
 
 #set -i
 
-if ! [[ -d "$HOME/cloud-automation" && -d "$HOME/cdis-manifest" ]]; then
+if ! [[ -d "$HOME/cloud-automation" ]]; then
   echo "ERROR: this does not look like a commons environment"
   exit 1
 fi
