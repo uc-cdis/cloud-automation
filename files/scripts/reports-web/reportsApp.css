@@ -1,0 +1,22 @@
+
+header {
+  margin: auto;
+}
+
+main {
+	width: 100%;
+	min-width: 320px;
+	height: 100%;
+	min-height: 320px;
+  padding: 25px;
+}
+
+section {
+  width: 100%;
+  min-height: 100px;
+  margin-top: 10px;
+}
+
+.g3reports-status {
+  font-size: 0.8em;
+}
