@@ -1,0 +1,17 @@
+#
+# playbook to keep cloud-automation up to date
+# @variables:
+#   _hosts => hosts in which you want cloud-automation to be updated, depending on the host to use, the user will be selected automatically according to the information in hosts.yaml
+#
+# This playbook won't clone the repo if it doesn't exist, it'll just try to update it
+#
+# EX:
+#   ansible-playbook playbooks/cloud-automation.yaml -e _hosts=commons
+
+---
+- hosts: "{{ _hosts }}"
+  tasks:
+  - git:
+      repo: 'https://github.com/uc-cdis/cloud-automation.git'
+      dest: "{{ ansible_env.HOME }}/cloud-automation"
+      clone: no
