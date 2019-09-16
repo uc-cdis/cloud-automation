@@ -1,0 +1,69 @@
+
+- name: "docker | add docker source key"
+  apt_key:
+    url: '{{ docker_apt_key_url }}' #https://download.docker.com/linux/ubuntu/gpg
+    state: present 
+
+- name: "docker | add repo"
+  apt_repository:
+    repo: deb [arch=amd64] {{ docker_download_url }} {{ ansible_lsb.codename }} stable  #https://download.docker.com/linux/ubuntu
+    #repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu stable
+    state: present
+  notify: apt update
+
+# Notify above does not do anything ¯\_(ツ)_/¯
+- name: "docker | apt update"
+  apt:
+    update_cache: yes
+
+- name: "docker | install docker"
+  apt:
+    name: docker-ce
+    state: present
+
+- name: "docker | check on /etc/docker"
+  stat: path=/etc/docker
+  ignore_errors: true
+  register: etc_docker
+
+#- debug: etc_docker
+
+- name: "docker | /etc/docker"
+  file:
+    path: /etc/docker
+    state: directory
+  when: etc_docker.stat.exists == false
+
+- name: "docker | check on /etc/docker/daemon.json"
+  stat: path=/etc/docker/daemon.json
+  ignore_errors: true
+  register: daemon
+
+#- debug: daemon
+
+- name: "adminvm | daemon.json"
+  copy:
+    src: docker-daemon.json.j2
+    dest: /etc/docker/daemon.json
+    mode: 0644
+  when: daemon.stat.exists == false
+  notify: restart docker
+
+- name: "docker | let Ubuntu run docker"
+  user:
+    name: ubuntu
+    group: docker
+
+- name: "docker | change env configuration"
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    recurse: yes
+
+- name: "docker | add proxy"
+  template:
+    src: docker-proxy.conf.j2
+    dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+    backup: yes
+  notify: daemon reload
+

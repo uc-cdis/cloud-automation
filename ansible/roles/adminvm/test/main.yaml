@@ -1,0 +1,10 @@
+---
+
+# Test file for awslogs
+#
+# call example:
+#      ansible-playbook roles/adminvm/test/main.yaml --become  --diff -e "profile=cdistest" -e "account_id=707767160287"
+
+- hosts: dummi
+  roles:
+    - adminvm

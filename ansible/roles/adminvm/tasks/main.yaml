@@ -1,0 +1,17 @@
+---
+- include: configurations.yaml
+  tags:
+    - configuration
+    - files
+    - adminvm
+
+- include: packages.yaml
+  tags:
+    - packages
+    - adminvm
+
+
+- include: configure_aws.yaml
+  tags:
+    - aws
+    - adminvm

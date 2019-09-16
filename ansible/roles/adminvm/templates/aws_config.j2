@@ -1,0 +1,12 @@
+[default]
+output = json
+region = {{ region }}
+role_session_name = gen3-adminvm
+role_arn = arn:aws:iam::{{ account_id  }}:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
+[profile {{ profile  }}]
+output = json
+region = {{ region  }}
+role_session_name = gen3-adminvm
+role_arn = arn:aws:iam::{{ account_id  }}:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
