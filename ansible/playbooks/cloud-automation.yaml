@@ -5,6 +5,8 @@
 #
 # This playbook won't clone the repo if it doesn't exist, it'll just try to update it
 #
+# EX:
+#   ansible-playbook playbooks/cloud-automation.yaml -e _hosts=commons
 
 ---
 - hosts: "{{ _hosts }}"
