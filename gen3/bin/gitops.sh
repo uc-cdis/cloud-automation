@@ -120,6 +120,9 @@ gen3_run_tfplan() {
           "eks")
             message=$(_gen3_run_tfplan_eks ${apply})
             ;;
+          "management-logs")
+            message=$(_gen3_run_tfplan_management-logs ${apply})
+            ;;
         esac
       else
         message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
@@ -159,6 +162,13 @@ _gen3_run_tfapply_vpc() {
 }
 
 #
+# Apply changes picket up by tfplan
+#
+_gen3_run_tfapply_management-logs() {
+  gen3_run_tfplan "$@" "quiet" "apply"
+}
+
+#
 # Public function to start tfapply, only for eks, for the VPC it might not be a good idea
 # or at least it needs some deeper supervisiohn
 #
@@ -171,11 +181,14 @@ gen3_run_tfapply() {
   elif [ ${module} == "eks" ];
   then
     _gen3_run_tfapply_eks "$@"
+  elif [ ${module} == "management-logs" ];
+  then
+    _gen3_run_tfapply_management-logs "$@"
   fi
 }
 
 #
-# Function that checks for uncomitter changes to cloud-automation
+# Function that checks for uncomitted changes to cloud-automation
 # and also if there are unapplied changes to the vpc module
 #
 _gen3_run_tfplan_vpc() {
@@ -210,7 +223,7 @@ _gen3_run_tfplan_vpc() {
 }
 
 #
-# Function that checks for uncomitter changes to cloud-automation
+# Function that checks for uncomitted changes to cloud-automation
 # and also if there are unapplied changes to the eks module
 #
 _gen3_run_tfplan_eks() {
@@ -231,6 +244,40 @@ _gen3_run_tfplan_eks() {
   then
     tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
     echo "${vpc_name}_eks has unapplied plan:" > ${tempFile}
+    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+    if [ -n "$apply" -a "$apply" == "apply" ];
+    then
+      echo -e "${output}" >> ${tempFile}
+      gen3 tfapply >> ${tempFile} 2>&1
+    else
+      echo "No apply this time" >> ${tempFile}
+    fi
+  fi
+  echo "${tempFile}"
+}
+
+#
+# Function that checks for uncomitted changes to cloud-automation
+# and also if there are unapplied changes to the eks module
+#
+_gen3_run_tfplan_management-logs() {
+
+  local plan
+  local slack_hook
+  local tempFile
+  local apply
+  local output
+
+  apply=$1
+
+  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1) $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1)_management-logs > /dev/null 2>&1
+  output="$(gen3 tfplan)"
+  plan=$(echo -e "${output}" | grep "Plan")
+
+  if [ -n "${plan}" ];
+  then
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name}_management-logs has unapplied plan:" > ${tempFile}
     echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
     if [ -n "$apply" -a "$apply" == "apply" ];
     then
