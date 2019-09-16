@@ -8,7 +8,7 @@ GEN3_AGGS_DAILY="gen3-aggs-daily"
 #
 gen3_logs_user_count() {
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
-    local aggs=$(cat - <<EOM
+    local aggs="$(cat - <<EOM
   {
       "unique_user_count" : {
         "cardinality" : {
@@ -18,8 +18,15 @@ gen3_logs_user_count() {
       }
   }
 EOM
-    )
-    queryStr=$(jq -r --argjson aggs "$aggs" '.aggs=$aggs' <<<${queryStr})
+    )"
+    local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "default"
+}}
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool.must += [ $ns ]' <<<${queryStr})
+    
     gen3_log_info "$queryStr"
     gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
 }
@@ -41,7 +48,13 @@ gen3_logs_code_histogram() {
   }
 EOM
     )
-    queryStr=$(jq -r --argjson aggs "$aggs" '.aggs=$aggs' <<<${queryStr})
+    local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "default"
+}}
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool.must += [ $ns ]' <<<${queryStr})
     gen3_log_info "$queryStr"
     gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
 }
@@ -63,7 +76,13 @@ gen3_logs_rtime_histogram() {
   }
 EOM
     )
-    queryStr=$(jq -r --argjson aggs "$aggs" '.aggs=$aggs' <<<${queryStr})
+    local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "default"
+}}
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool.must += [ $ns ]' <<<${queryStr})
     gen3_log_info "$queryStr"
     gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
 }
