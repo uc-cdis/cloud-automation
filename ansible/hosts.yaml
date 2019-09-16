@@ -126,6 +126,9 @@ all:
         tb_commons:
           ansible_user: tb
           ansible_host: 10.128.2.156
+        bhc-datastaging_commons:
+          ansible_user: bhc-datastaging
+          ansible_host: 10.128.2.81
 
     dev:
       hosts:

@@ -1,9 +1,20 @@
+#
+# Playbook to add keys for all devops in PlanX on a specific host
+# 
+# @vars:
+#   _hosts => hosts in which to apply the playbook
+#   _user  => user which you want the authorized_keys file updated. And also as who you are going to SSH in.
+#
+# EX:
+#   ansible-playbook playbooks/addKeys.yaml -e _hosts=cdistest_admin
+
+---
 # Ops team so far
-# diw  emalinowski  fauzi  jmazzone  phillis  rarya  rarya.old  reubenonrye  rpowell1  seapasulli  zflamig
-- hosts: cdistest
+# diw  emalinowski  fauzi  jmazzone  rarya  reubenonrye  rpowell1  seapasulli  
+- hosts: '{{ _hosts }}'
   tasks:
   - authorized_key:
-      user: fauziv1
+      user: '{{ _user }}'
       state: present
       manage_dir: true
       #exclusive: true
@@ -16,6 +27,4 @@
        - ../keys/rpowell1
        - ../keys/seapasulli
        - ../keys/rarya
-       - ../keys/zflamig
-       - ../keys/phillis
        - ../keys/reubenonrye

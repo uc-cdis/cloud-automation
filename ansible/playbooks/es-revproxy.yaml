@@ -1,3 +1,10 @@
+#
+# playbook to configure a revproxy VM for elastic search 
+#
+# The playbook would look up for those hosts named `revproxy` in the inventory and apply this playbook
+#
+#
+
 ---
 - hosts: revproxy
   vars:
