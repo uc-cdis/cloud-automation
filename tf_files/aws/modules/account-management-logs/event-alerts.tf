@@ -17,12 +17,12 @@ module "cloudwatch-events" {
   }
 }
 EOP
-#  depends_on = ["module.alerting-lambda"]
 }
+
 
 module "alerting-lambda" {
   source                       = "../lambda-function/"
-  lambda_function_file                = "${path.module}/../../../../files/lambda/security_alerts.py"
+  lambda_function_file         = "${path.module}/../../../../files/lambda/security_alerts.py"
   lambda_function_name         = "${var.account_name}-security-alert-lambda"
   lambda_function_description  = "Checking for things that should or might not happend"
   lambda_function_iam_role_arn = "${module.role-for-lambda.role_arn}"
@@ -94,6 +94,15 @@ data "aws_iam_policy_document" "cloudwatchlogs_access" {
   }
 }
 
+
+resource "aws_lambda_permission" "allow_cloudwatch" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = "${module.alerting-lambda.function_name}"
+  principal     = "events.amazonaws.com"
+  source_arn    = "${module.cloudwatch-events.event_arn}"
+  #qualifier     = "${aws_lambda_alias.test_alias.name}"
+}
 
 resource "aws_iam_role_policy" "lambda_policy_SNS" {
   name                  = "${var.account_name}-security-alert-policy-for-SNS"
