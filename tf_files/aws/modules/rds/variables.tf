@@ -157,3 +157,13 @@ variable "rds_instance_performance_insights_retention_period" {
   type        = number
   default     = 7
 }
+
+variable "rds_instance_timeouts" {
+  description = "(Optional) Updated Terraform resource management timeouts. Applies to `aws_db_instance` in particular to permit resource management times"
+  type        = map(string)
+  default = {
+    create = "40m"
+    update = "80m"
+    delete = "40m"
+  }
+}
