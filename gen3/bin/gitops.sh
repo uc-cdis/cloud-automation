@@ -558,7 +558,7 @@ gen3_gitops_enforcer() {
       fi
       git checkout .
       git checkout -f master
-      git pull
+      git pull --prune
       git reset --hard origin/master
     )
   done

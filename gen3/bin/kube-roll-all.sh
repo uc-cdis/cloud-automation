@@ -198,4 +198,6 @@ fi
 
 gen3_log_info "roll-all" "roll completed successfully!"
 gen3 kube-setup-networkpolicy "enable"
-gen3 dashboard gitops-sync || true
+ 
+# this requires AWS permissions ...
+#gen3 dashboard gitops-sync || true
