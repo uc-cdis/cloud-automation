@@ -1,6 +1,7 @@
 
-variable "rds_instance_volume_size" {
+variable "rds_instance_allocated_storage" {
   description = "The allocated storage in gibibytes"
+  type        = number
   default     = 20
 }
 
@@ -21,7 +22,7 @@ variable "rds_instance_engine_version" {
 
 variable "rds_instance_class" {
   description = "The instance type of the RDS instance"
-  default     = "db.t3.micro"
+  default     = "db.t2.micro"
 }
 
 variable "rds_instance_name" {
@@ -46,27 +47,32 @@ variable "rds_instance_parameter_group_name" {
 
 variable "rds_instance_allow_major_version_update" {
   description = "Indicates that major version upgrades are allowed"
-  default     = "True"
+  type        = bool
+  default     = true
 }
 
 variable "rds_instance_apply_immediately" {
   description = "Specifies whether any database modifications are applied immediately, or during the next maintenance window"
-  default     = "False"
+  type        = bool
+  default     = false
 }
 
 variable "rds_instance_auto_minor_version_upgrade" {
   description = "Indicates that minor engine upgrades will be applied automatically to the DB instance during the maintenance window"
-  default     = "True"
+  type        = bool
+  default     = true
 }
 
 variable "rds_instance_az" {
   description = "The AZ for the RDS instance"
+  type        = string
   default     = ""
 }
 
 variable "rds_instance_backup_retention_period" {
   description = "The days to retain backups for. Must be between 0 and 35"
-  default     = "0"
+  type        = number
+  default     = 0
 }
 
 variable "rds_instance_backup_window" {
@@ -76,37 +82,44 @@ variable "rds_instance_backup_window" {
 
 variable "rds_instance_db_subnet_group_name" {
   description = "Name of DB subnet group. DB instance will be created in the VPC associated with the DB subnet group"
+  type        = string
 #  default     = ""
 }
 
 variable "rds_instance_maintenance_window" {
   description = "The window to perform maintenance in"
+  type        = string
   default     = "Mon:00:00-Mon:03:00"
 }
 
 variable "rds_instance_multi_az" {
   description = "Specifies if the RDS instance is multi-AZ"
-  default     = "False"
+  type        = bool
+  default     = false
 }
 
 variable "rds_instance_option_group_name" {
   description = "Name of the DB option group to associate"
-  default     = ""
+  type        = string 
+  default     = null
 }
 
 variable "rds_instance_publicly_accessible" {
   description = "Bool to control if instance is publicly accessible"
-  default     = "False"
+  type        = bool
+  default     = false
 }
 
 variable "rds_instance_skip_final_snapshot" {
   description = "rds_instance_skip_final_snapshot"
-  default     = "False"
+  type        = bool
+  default     = false
 }
 
 variable "rds_instance_storage_encrypted" {
   description = "Specifies whether the DB instance is encrypted"
-  default     = "False"
+  type        = bool
+  default     = false
 }
 
 variable "rds_instance_vpc_security_group_ids" {
@@ -123,11 +136,24 @@ variable "rds_instance_tags" {
 
 variable "rds_instance_port" {
   description = "The port on which the DB accepts connections"
+  type        = string
+#  default     = ""
+}
+
+variable "rds_instance_license_model" {
+  description = "License model information for this DB instance"
+  type        = string
   default     = ""
 }
 
-variable "rds_instance_licence_model" {
-  description = "License model information for this DB instance"
-  default     = null
+variable "rds_instance_performance_insights_enabled" {
+  description = "Specifies whether Performance Insights are enabled"
+  type        = bool
+  default     = false
 }
 
+variable "rds_instance_performance_insights_retention_period" {
+  description = "The amount of time in days to retain Performance Insights data. Either 7 (7 days) or 731 (2 years)."
+  type        = number
+  default     = 7
+}

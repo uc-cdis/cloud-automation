@@ -1,16 +1,16 @@
 
 output "rds_instance_username" {
-  value = "${aws_db_instance.rds_instance.rds_instance_username}"
+  value = "${module.aws_rds.rds_instance_username}"
 }
 
 output "rds_instance_password" {
-  value = "${aws_db_instance.rds_instance.rds_instance_password}"
+  value = "${module.aws_rds.rds_instance_password}"
 }
 
 output "rds_instance_endpoint" {
-  value = "${aws_db_instance.rds_instance.endpoint}"
+  value = "${module.aws_rds.rds_instance_endpoint}"
 }
 
 output "rds_instance_arn" {
-  value = "${aws_db_instance.rds_instance.arn}"
+  value = "${module.aws_rds.rds_instance_arn}"
 }
