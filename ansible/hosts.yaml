@@ -37,14 +37,19 @@ all:
           ansible_host: 10.128.2.112
         ncicrdc_admin:
           ansible_host: 10.128.2.131
-        pdcgen3_admin:
-          ansible_host: 10.128.2.241
         dcfbuckets_admin:
           ansible_host: 10.128.2.181
-        canine_admin:
-          ansible_host: 10.128.2.34
         cdistest_admin:
           ansible_host: 10.128.7.28
+      vars:
+        ansible_user: ubuntu
+
+    other_admins:
+      hosts:
+        canine_admin:
+          ansible_host: 10.128.2.34
+        pdcgen3_admin:
+          ansible_host: 10.128.2.241
       vars:
         ansible_user: ubuntu
 
@@ -92,12 +97,12 @@ all:
         kf_commons:
           ansible_user: prodv1
           ansible_host: 10.128.2.170
-        canine_commons:
-          ansible_user: canineprod
-          ansible_host: 10.128.2.34
         loginbionimbus_commons:
           ansible_user: loginbionimbus
           ansible_host: 10.128.2.155
+        canine_commons:
+          ansible_user: canineprod
+          ansible_host: 10.128.2.34
           #        charlie_commons:
           #          ansible_user: charlie
           #          ansible_host: 10.128.2.156
