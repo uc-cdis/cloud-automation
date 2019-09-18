@@ -76,7 +76,7 @@ resource "aws_iam_role_policy_attachment" "enhanced_monitoring" {
 }
 
 resource "aws_db_instance" "this" {
-  count = "${var.create && false == local.is_mssql ? 1 : 0}"
+  count = "${var.rds_instance_create && false == local.is_mssql ? 1 : 0}"
 
   identifier                            = "${var.rds_instance_identifier}"
 
@@ -93,7 +93,7 @@ resource "aws_db_instance" "this" {
   username                              = "${var.rds_instance_username}"
   password                              = "${var.rds_instance_password}"
   port                                  = "${var.rds_instance_port}"
-  iam_database_authentication_enabled   = "${var.iam_database_authentication_enabled}"
+  iam_database_authentication_enabled   = "${var.rds_instance_iam_database_authentication_enabled}"
 
   replicate_source_db                   = "${var.rds_instance_replicate_source_db}"
 
@@ -147,7 +147,7 @@ resource "aws_db_instance" "this" {
 }
 
 resource "aws_db_instance" "this_mssql" {
-  count = "${var.create && local.is_mssql ? 1 : 0}"
+  count = "${var.rds_instance_create && local.is_mssql ? 1 : 0}"
 
   identifier                            = "${var.rds_instance_identifier}"
 

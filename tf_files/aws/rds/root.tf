@@ -1,7 +1,8 @@
 
 module "aws_rds" {
   source                                             = "../modules/rds/"
-  rds_instance_volume_size                           = "${var.rds_instance_volume_size}"
+  rds_instance_create                                = "${var.rds_instance_create}"
+  rds_instance_allocated_storage                     = "${var.rds_instance_allocated_storage}"
   rds_instance_engine_version                        = "${var.rds_instance_engine_version}"
   rds_instance_storage_type                          = "${var.rds_instance_storage_type}"
   rds_instance_engine                                = "${var.rds_instance_engine}"
@@ -45,5 +46,7 @@ module "aws_rds" {
   rds_instance_monitoring_interval                   = "${var.rds_instance_monitoring_interval}"
   rds_instance_snapshot_identifier                   = "${var.rds_instance_snapshot_identifier}"
   rds_instance_replicate_source_db                   = "${var.rds_instance_replicate_source_db}"
+  rds_instance_create_monitoring_role                = "${var.rds_instance_create_monitoring_role}"
+  rds_instance_character_set_name                    = "${var.rds_instance_character_set_name}"
   
 }

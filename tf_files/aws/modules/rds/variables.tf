@@ -1,4 +1,10 @@
 
+variable "rds_instance_create" {
+  description = "Whether to create this resource or not?"
+#  type        = bool
+  default     = true
+}
+
 variable "rds_instance_allocated_storage" {
   description = "The allocated storage in gibibytes"
 #  type        = "number"
@@ -263,3 +269,16 @@ variable "rds_instance_replicate_source_db" {
   type        = "string"
   default     = ""
 }
+
+variable "rds_instance_create_monitoring_role" {
+  description = "Create IAM role with a defined name that permits RDS to send enhanced monitoring metrics to CloudWatch Logs."
+#  type        = bool
+  default     = false
+}
+
+variable "rds_instance_character_set_name" {
+  description = "(Optional) The character set name to use for DB encoding in Oracle instances. This can't be changed. See Oracle Character Sets Supported in Amazon RDS for more information"
+  type        = "string"
+  default     = ""
+}
+
