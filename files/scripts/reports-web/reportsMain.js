@@ -6,12 +6,13 @@ export function main() {
   const dataTables = {
     users: document.body.querySelector('.g3reports-users g3-reports-table'),
     rcodes: document.body.querySelector('.g3reports-rcodes g3-reports-table'),
-    rtimes: document.body.querySelector('.g3reports-rtimes g3-reports-table')
+    rtimes: document.body.querySelector('.g3reports-rtimes g3-reports-table'),
+    projects: document.body.querySelector('.g3reports-projects g3-reports-table')
   };
 
   statusDOM.innerHTML = `<p>Initializing</p>`;
   amap(
-    ['users', 'rcodes', 'rtimes'], 
+    Object.keys(dataTables), 
     (rtype) => fetchRecentData(rtype)
   ).then(
     (reportList) => {

@@ -27,6 +27,15 @@ h1,h2,h3,h4 {
   display: "flex";
 }
 
-.g3reports-section {
-	width: 100%;
+body::-webkit-scrollbar {
+  width: 6px;
+}
+
+body::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: 1px solid slategrey;
 }

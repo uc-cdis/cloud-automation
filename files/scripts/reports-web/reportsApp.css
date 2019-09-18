@@ -20,3 +20,11 @@ section {
 .g3reports-status {
   font-size: 0.8em;
 }
+
+.g3reports-datapanel {
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #4c80c4;
+}
