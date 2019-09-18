@@ -8,6 +8,8 @@ rds_instance_username                     = "usern ame for access"
 rds_instance_password                     = "password for access"
 rds_instance_port                         = "1433"
 rds_instance_identifier                   = "planx-tests-db"
+#rds_instance_db_subnet_group_name         = "subnet group name"
+#rds_instance_vpc_security_group_ids       = ["sg-XXXXXXXXXX"]
 
 
 # Optional variables, uncomment and change values accordingly
@@ -21,7 +23,6 @@ rds_instance_identifier                   = "planx-tests-db"
 #rds_instance_character_set_name                    = ""
 #rds_instance_copy_tags_to_snapshot                 = false
 #rds_instance_create                                = true
-#rds_instance_db_subnet_group_name                  = ""
 #rds_instance_deletion_protection                   = false
 #rds_instance_enabled_cloudwatch_logs_exports       = []
 #rds_instance_iam_database_authentication_enabled   = false
@@ -48,6 +49,5 @@ rds_instance_identifier                   = "planx-tests-db"
 #rds_instance_tags                                  = {"something"="stuff", "Something-else"="more-stuff"}
 #rds_instance_timeouts                              = {create = "40m", update = "80m", delete = "40m"}
 #rds_instance_timezone                              = ""
-#rds_instance_vpc_security_group_ids                = []
 
 
