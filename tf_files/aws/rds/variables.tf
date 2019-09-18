@@ -32,7 +32,7 @@ variable "rds_instance_name" {
 
 variable "rds_instance_identifier" {
   description = "The name of the RDS instance, if omitted, Terraform will assign a random, unique identifier"
-  type        = string
+  type        = "string"
 }
 
 variable "rds_instance_username" {
