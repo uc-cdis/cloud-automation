@@ -1,40 +1,3 @@
-/**
-resource "aws_db_instance" "rds_instance" {
-  allocated_storage           = "${var.rds_instance_allocated_storage}"
-  storage_type                = "${var.rds_instance_storage_type}"
-  engine                      = "${var.rds_instance_engine}"
-  engine_version              = "${var.rds_instance_engine_version}"
-  instance_class              = "${var.rds_instance_instance_class}"
-  name                        = "${var.rds_instance_name}"
-  username                    = "${var.rds_instance_username}"
-  password                    = "${var.rds_instance_password}"
-  parameter_group_name        = "${var.rds_instance_parameter_group_name}"
-  allow_major_version_upgrade = "${var.rds_instance_allow_major_version_update}"
-  apply_immediately           = "${var.rds_instance_apply_immediately}"
-  auto_minor_version_upgrade  = "${var.rds_instance_auto_minor_version_upgrade}"
-  availability_zone           = "${var.rds_instance_az}"
-  backup_retention_period     = "${var.rds_instance_backup_retention_period}"
-  backup_window               = "${var.rds_instance_backup_window}"
-  db_subnet_group_name        = "${var.rds_instance_db_subnet_group_name}"
-  maintenance_window          = "${var.rds_instance_maintenance_window}"
-  multi_az                    = "${var.rds_instance_multi_az}"
-  option_group_name           = "${var.rds_instance_option_group_name}"
-  publicly_accessible         = "${var.rds_instance_publicly_accessible}"
-  skip_final_snapshot         = "${var.rds_instance_skip_final_snapshot}"
-  storage_encrypted           = "${var.rds_instance_storage_encrypted}"
-  vpc_security_group_ids      = "${var.rds_instance_vpc_security_group_ids}"
-  final_snapshot_identifier   = "${replace(var.rds_instance_name,"_", "-")}-final-snapshot"
-  port                        = "${var.rds_instance_port}"
-  license_model               = "${var.rds_instance_license_model}"
-  
-  tags                        = "${var.rds_instance_tags}"
-
-  lifecycle {
-    prevent_destroy = true
-  }
-}
-**/
-
 
 
 locals {
@@ -60,12 +23,7 @@ resource "aws_iam_role" "enhanced_monitoring" {
   name               = "${var.rds_instance_monitoring_role_name}"
   assume_role_policy = "${data.aws_iam_policy_document.enhanced_monitoring.json}"
 
-#  tags = merge(
-#    {
-#      "Name" = "${format("%s", var.rds_instance_monitoring_role_name)}"
-#    },
-#    "${var.rds_instance_tags}",
-#  )
+  tags = "${merge(map("Name", format("%s", var.rds_instance_monitoring_role_name)), var.rds_instance_tags )}"
 }
 
 resource "aws_iam_role_policy_attachment" "enhanced_monitoring" {
@@ -109,7 +67,8 @@ resource "aws_db_instance" "this" {
   iops                                  = "${var.rds_instance_iops}"
   publicly_accessible                   = "${var.rds_instance_publicly_accessible}"
   monitoring_interval                   = "${var.rds_instance_monitoring_interval}"
-  monitoring_role_arn                   = "${coalesce(var.rds_instance_monitoring_role_arn, aws_iam_role.enhanced_monitoring.*.arn, null)}"
+  #monitoring_role_arn                   = "${coalesce(var.rds_instance_monitoring_role_arn, aws_iam_role.enhanced_monitoring.*.arn, "")}"
+  monitoring_role_arn                   = "${coalesce(var.rds_instance_monitoring_role_arn, join("",aws_iam_role.enhanced_monitoring.*.arn))}"
 
   allow_major_version_upgrade           = "${var.rds_instance_allow_major_version_upgrade}"
   auto_minor_version_upgrade            = "${var.rds_instance_auto_minor_version_upgrade}"
@@ -121,7 +80,7 @@ resource "aws_db_instance" "this" {
   max_allocated_storage                 = "${var.rds_instance_max_allocated_storage}"
 
   performance_insights_enabled          = "${var.rds_instance_performance_insights_enabled}"
-  performance_insights_retention_period = "${var.rds_instance_performance_insights_enabled == true ? var.rds_instance_performance_insights_retention_period : null}"
+  performance_insights_retention_period = "${var.rds_instance_performance_insights_enabled == true ? var.rds_instance_performance_insights_retention_period : 0}"
 
   backup_retention_period               = "${var.rds_instance_backup_retention_period}"
   backup_window                         = "${var.rds_instance_backup_window}"
@@ -132,17 +91,12 @@ resource "aws_db_instance" "this" {
 
   deletion_protection                   = "${var.rds_instance_deletion_protection}"
 
-#  tags = merge(
-#    var.tags,
-#    {
-#      "Name" = format("%s", var.rds_instance_identifier)
-#    },
-#  )
+  tags = "${merge(map("Name", format("%s", var.rds_instance_identifier)), var.rds_instance_tags )}"
 
   timeouts {
-    create = "${lookup(var.rds_instance_timeouts, "create", null)}"
-    delete = "${lookup(var.rds_instance_timeouts, "delete", null)}"
-    update = "${lookup(var.rds_instance_timeouts, "update", null)}"
+    create = "${lookup(var.rds_instance_timeouts, "create", "")}"
+    delete = "${lookup(var.rds_instance_timeouts, "delete", "")}"
+    update = "${lookup(var.rds_instance_timeouts, "update", "")}"
   }
 }
 
@@ -180,7 +134,8 @@ resource "aws_db_instance" "this_mssql" {
   iops                                  = "${var.rds_instance_iops}"
   publicly_accessible                   = "${var.rds_instance_publicly_accessible}"
   monitoring_interval                   = "${var.rds_instance_monitoring_interval}"
-  monitoring_role_arn                   = "${coalesce(var.rds_instance_monitoring_role_arn, aws_iam_role.enhanced_monitoring.*.arn, null)}"
+  #monitoring_role_arn                   = "${coalesce(var.rds_instance_monitoring_role_arn, length(aws_iam_role.enhanced_monitoring.*.arn) > 0 ? aws_iam_role.enhanced_monitoring.arn : "", "")}"
+  monitoring_role_arn                   = "${coalesce(var.rds_instance_monitoring_role_arn, join("",aws_iam_role.enhanced_monitoring.*.arn))}"
 
   allow_major_version_upgrade           = "${var.rds_instance_allow_major_version_upgrade}"
   auto_minor_version_upgrade            = "${var.rds_instance_auto_minor_version_upgrade}"
@@ -192,7 +147,7 @@ resource "aws_db_instance" "this_mssql" {
   max_allocated_storage                 = "${var.rds_instance_max_allocated_storage}"
 
   performance_insights_enabled          = "${var.rds_instance_performance_insights_enabled}"
-  performance_insights_retention_period = "${var.rds_instance_performance_insights_enabled == true ? var.rds_instance_performance_insights_retention_period : null}"
+  performance_insights_retention_period = "${var.rds_instance_performance_insights_enabled == true ? var.rds_instance_performance_insights_retention_period : 0}"
 
   backup_retention_period               = "${var.rds_instance_backup_retention_period}"
   backup_window                         = "${var.rds_instance_backup_window}"
@@ -203,16 +158,11 @@ resource "aws_db_instance" "this_mssql" {
 
   deletion_protection                   = "${var.rds_instance_deletion_protection}"
 
-#  tags = merge(
-#    var.tags,
-#    {
-#      "Name" = format("%s", var.rds_instance_identifier)
-#    },
-#  )
+  tags = "${merge(map("Name", format("%s", var.rds_instance_identifier)), var.rds_instance_tags )}"
 
   timeouts {
-    create = "${lookup(var.rds_instance_timeouts, "create", null)}"
-    delete = "${lookup(var.rds_instance_timeouts, "delete", null)}"
-    update = "${lookup(var.rds_instance_timeouts, "update", null)}"
+    create = "${lookup(var.rds_instance_timeouts, "create", "")}"
+    delete = "${lookup(var.rds_instance_timeouts, "delete", "")}"
+    update = "${lookup(var.rds_instance_timeouts, "update", "")}"
   }
 }

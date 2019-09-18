@@ -11,7 +11,7 @@ gen3 workon <profile> <commons_name>_eks
 
 Ex.
 ```
-$ gen3 workon cdistest fauziv1_ks
+$ gen3 workon cdistest test-commons_eks
 ```
 
 ## 2. Table of content
@@ -34,10 +34,10 @@ There are mandatory variables, and there are a few other optionals that are set 
 
 Ex.
 ```
-fauziv1@cdistest_admin ~ % cat .local/share/gen3/cdistest/fauziv1_eks/config.tfvars
-vpc_name   = "fauziv1"
-ec2_keyname = "fauziv1_automation_dev"
-users_policy = "fauziv1"
+fauziv1@cdistest_admin ~ % cat .local/share/gen3/cdistest/test-commons_eks/config.tfvars
+vpc_name   = "test-commons"
+ec2_keyname = "test-commons_automation_dev"
+users_policy = "test-commons"
 ```
 
 ## 4. Variables

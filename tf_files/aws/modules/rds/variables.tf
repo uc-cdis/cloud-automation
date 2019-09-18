@@ -8,7 +8,7 @@ variable "rds_instance_create" {
 variable "rds_instance_allocated_storage" {
   description = "The allocated storage in gibibytes"
 #  type        = "number"
-  default     = 20
+#  default     = 20
 }
 
 variable "rds_instance_storage_type" {
@@ -33,7 +33,7 @@ variable "rds_instance_instance_class" {
 
 variable "rds_instance_name" {
   description = "Name for the database to be created"
-#  default     = ""
+  default     = ""
 }
 
 variable "rds_instance_identifier" {
@@ -72,12 +72,6 @@ variable "rds_instance_auto_minor_version_upgrade" {
   description = "Indicates that minor engine upgrades will be applied automatically to the DB instance during the maintenance window"
 #  type        = "bool"
   default     = true
-}
-
-variable "rds_instance_az" {
-  description = "The AZ for the RDS instance"
-  type        = "string"
-  default     = ""
 }
 
 variable "rds_instance_backup_retention_period" {
@@ -201,7 +195,7 @@ variable "rds_instance_availability_zone" {
 variable "rds_instance_final_snapshot_identifier" {
   description = "The name of your final DB snapshot when this DB instance is deleted."
 #  type        = "string"
-  default     = "" #null
+  default     = false #null
 }
 
 variable "rds_instance_monitoring_role_arn" {
