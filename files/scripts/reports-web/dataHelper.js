@@ -109,7 +109,9 @@ function fetchBucketsSummary(pathDateList, aggName) {
 /**
  * numeric compare suitable for array sort()
  */
-function numCompare(a,b) {
+function numCompare(aIn,bIn) {
+  const a = +aIn;
+  const b = +bIn;
   return a < b ? -1 : a === b ? 0 : 1;
 }
 
