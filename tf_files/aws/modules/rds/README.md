@@ -88,7 +88,7 @@ There are mandatory variables, and there are a few other optionals that are set 
 | rds_instance_publicly\_accessible | Bool to control if instance is publicly accessible | bool | `"false"` | no |
 | rds_instance_replicate\_source\_db | Specifies that this resource is a Replicate database, and to use this value as the source database. This correlates to the identifier of another Amazon RDS Database to replicate. | string | `""` | no |
 | rds_instance_skip\_final\_snapshot | Determines whether a final DB snapshot is created before the DB instance is deleted. If true is specified, no DBSnapshot is created. If false is specified, a DB snapshot is created before the DB instance is deleted, using the value from final_snapshot_identifier | bool | `"true"` | no |
-| rds_instance_rds_instance_snapshot\_identifier | Specifies whether or not to create this database from a snapshot. This correlates to the snapshot ID you'd find in the RDS console, e.g: rds:production-2015-06-26-06-05. | string | `""` | no |
+| rds_instance_snapshot\_identifier | Specifies whether or not to create this database from a snapshot. This correlates to the snapshot ID you'd find in the RDS console, e.g: rds:production-2015-06-26-06-05. | string | `""` | no |
 | rds_instance_storage\_encrypted | Specifies whether the DB instance is encrypted | bool | `"false"` | no |
 | rds_instance_storage\_type | One of 'standard' (magnetic), 'gp2' (general purpose SSD), or 'io1' (provisioned IOPS SSD). The default is 'io1' if iops is specified, 'standard' if not. Note that this behaviour is different from the AWS web console, where the default is 'gp2'. | string | `"gp2"` | no |
 | rds_instance_tags | A mapping of tags to assign to all resources | map(string) | `{}` | no |
