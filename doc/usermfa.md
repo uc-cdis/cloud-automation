@@ -20,13 +20,15 @@ userFolder/
     authorized_keys
 ```
 
-The `mfaHostLabel` is either the IP address or hostname
+The `mfaHostLabel` argument is either the IP address or hostname
 at which the user accesses the VM.
 
 Ex:
 ```
 gen3 usermfa frickjack/ host.name
 ```
+
+Note that the `authorized_keys` file only accepts `openssh` format public keys: https://tutorialinux.com/convert-ssh2-openssh/
 
 ### gen3 usermfa qr label secret
 
