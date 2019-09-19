@@ -117,3 +117,4 @@ There are mandatory variables, and there are a few other optionals that are set 
 | rds_instance_\_instance\_resource\_id | The RDS Resource ID of this instance |
 | rds_instance_\_instance\_status | The RDS instance status |
 | rds_instance_\_instance\_username | The master username for the database |
+| rds_instance_\_instance\_password | The master password for the database |
