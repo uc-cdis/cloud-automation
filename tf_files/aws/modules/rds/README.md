@@ -10,7 +10,7 @@ gen3 workon <profile> <instance-name>__rds
 
 Ex.
 ```
-$ gen3 workon cdistest fauziv1__rds
+$ gen3 workon cdistest newdb__rds
 ```
 
 ## 2. Table of content
