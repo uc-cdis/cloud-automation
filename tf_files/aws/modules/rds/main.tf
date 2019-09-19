@@ -33,6 +33,16 @@ resource "aws_iam_role_policy_attachment" "enhanced_monitoring" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
 
+resource "random_string" "randommssql" {
+  length  = 16
+  special = false
+
+
+resource "random_string" "randomother" {
+  length  = 16
+  special = true
+}
+
 resource "aws_db_instance" "this" {
   count = "${var.rds_instance_create && false == local.is_mssql ? 1 : 0}"
 
@@ -49,7 +59,7 @@ resource "aws_db_instance" "this" {
 
   name                                  = "${var.rds_instance_name}"
   username                              = "${var.rds_instance_username}"
-  password                              = "${var.rds_instance_password}"
+  password                              = "${var.rds_instance_password == "" ? random_string.randommssql.result : var.rds_instance_password}"
   port                                  = "${var.rds_instance_port}"
   iam_database_authentication_enabled   = "${var.rds_instance_iam_database_authentication_enabled}"
 
@@ -116,7 +126,7 @@ resource "aws_db_instance" "this_mssql" {
 
   name                                  = "${var.rds_instance_name}"
   username                              = "${var.rds_instance_username}"
-  password                              = "${var.rds_instance_password}"
+  password                              = "${var.rds_instance_password == "" ? random_string.randomother.result : var.rds_instance_password}"
   port                                  = "${var.rds_instance_port}"
   iam_database_authentication_enabled   = "${var.rds_instance_iam_database_authentication_enabled}"
 

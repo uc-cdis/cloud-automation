@@ -40,9 +40,8 @@ There are mandatory variables, and there are a few other optionals that are set 
 |------|-------------|:----:|:-----:|:-----:|
 | rds_instance_allocated\_storage | The allocated storage in gigabytes | string | n/a | yes |
 | rds_instance_engine | The database engine to use | string | n/a | yes |
-| rds_instance_rds_instance_engine\_version | The engine version to use | string | n/a | yes |
+| rds_instance_engine\_version | The engine version to use | string | n/a | yes |
 | rds_instance_username | Username for the master DB user | string | n/a | yes |
-| rds_instance_rds_instance_password | Password for the master DB user. Note that this may show up in logs, and it will be stored in the state file | string | n/a | yes |
 | rds_instance_port | The port on which the DB accepts connections | string | n/a | yes |
 | rds_instance_identifier | The name of the RDS instance, if omitted, Terraform will assign a random, unique identifier | string | n/a | yes |
 
@@ -83,16 +82,17 @@ There are mandatory variables, and there are a few other optionals that are set 
 | rds_instance_name | The DB name to create. If omitted, no database is created initially | string | `""` | no |
 | rds_instance_option\_group\_name | Name of the DB option group to associate. | string | `""` | no |
 | rds_instance_parameter\_group\_name | Name of the DB parameter group to associate | string | `""` | no |
+| rds_instance_password | Password for the master DB user. Note that this may show up in logs, and it will be stored in the state file, if not provided, a random 16 char long password will be used | string | "" | no |
 | rds_instance_performance\_insights\_enabled | Specifies whether Performance Insights are enabled | bool | `"false"` | no |
 | rds_instance_performance\_insights\_retention\_period | The amount of time in days to retain Performance Insights data. Either 7 (7 days) or 731 (2 years). | number | `"7"` | no |
-| rds_instance_rds_instance_publicly\_accessible | Bool to control if instance is publicly accessible | bool | `"false"` | no |
+| rds_instance_publicly\_accessible | Bool to control if instance is publicly accessible | bool | `"false"` | no |
 | rds_instance_replicate\_source\_db | Specifies that this resource is a Replicate database, and to use this value as the source database. This correlates to the identifier of another Amazon RDS Database to replicate. | string | `""` | no |
 | rds_instance_skip\_final\_snapshot | Determines whether a final DB snapshot is created before the DB instance is deleted. If true is specified, no DBSnapshot is created. If false is specified, a DB snapshot is created before the DB instance is deleted, using the value from final_snapshot_identifier | bool | `"true"` | no |
 | rds_instance_rds_instance_snapshot\_identifier | Specifies whether or not to create this database from a snapshot. This correlates to the snapshot ID you'd find in the RDS console, e.g: rds:production-2015-06-26-06-05. | string | `""` | no |
 | rds_instance_storage\_encrypted | Specifies whether the DB instance is encrypted | bool | `"false"` | no |
 | rds_instance_storage\_type | One of 'standard' (magnetic), 'gp2' (general purpose SSD), or 'io1' (provisioned IOPS SSD). The default is 'io1' if iops is specified, 'standard' if not. Note that this behaviour is different from the AWS web console, where the default is 'gp2'. | string | `"gp2"` | no |
 | rds_instance_tags | A mapping of tags to assign to all resources | map(string) | `{}` | no |
-| rds_instance_rds_instance_timeouts | (Optional) Updated Terraform resource management timeouts. Applies to `aws_db_instance` in particular to permit resource management times | map(string) | `{ "create": "40m", "delete": "40m", "update": "80m" }` | no |
+| rds_instance_timeouts | (Optional) Updated Terraform resource management timeouts. Applies to `aws_db_instance` in particular to permit resource management times | map(string) | `{ "create": "40m", "delete": "40m", "update": "80m" }` | no |
 | rds_instance_timezone | (Optional) Time zone of the DB instance. timezone is currently only supported by Microsoft SQL Server. The timezone can only be set on creation. See MSSQL User Guide for more information. | string | `""` | no |
 | rds_instance_vpc\_security\_group\_ids | List of VPC security groups to associate | list(string) | `[]` | no |
 
