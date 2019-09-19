@@ -60,7 +60,7 @@ There are mandatory variables, and there are a few other optionals that are set 
 | rds_instance_auto\_minor\_version\_upgrade | Indicates that minor engine upgrades will be applied automatically to the DB instance during the maintenance window | bool | `"true"` | no |
 | rds_instance_availability\_zone | The Availability Zone of the RDS instance | string | `""` | no |
 | rds_instance_backup\_retention\_period | The days to retain backups for | number | `"1"` | no |
-| rds_instance_backup\_window | The daily time range (in UTC) during which automated backups are created if they are enabled. Example: '09:46-10:16'. Must not overlap with maintenance_window | string | n/a | yes |
+| rds_instance_backup\_window | The daily time range (in UTC) during which automated backups are created if they are enabled. Example: '09:46-10:16'. Must not overlap with maintenance_window | string | "03:46-04:16"" | no |
 | rds_instance_character\_set\_name | (Optional) The character set name to use for DB encoding in Oracle instances. This can't be changed. See Oracle Character Sets Supported in Amazon RDS for more information | string | `""` | no |
 | rds_instance_copy\_tags\_to\_snapshot | On delete, copy all Instance tags to the final snapshot (if final_snapshot_identifier is specified) | bool | `"false"` | no |
 | rds_instance_create | Whether to create this resource or not? | bool | `"true"` | no |
@@ -74,7 +74,7 @@ There are mandatory variables, and there are a few other optionals that are set 
 | rds_instance_iops | The amount of provisioned IOPS. Setting this implies a storage_type of 'io1' | number | `"0"` | no |
 | rds_instance_kms\_key\_id | The ARN for the KMS encryption key. If creating an encrypted replica, set this to the destination KMS ARN. If storage_encrypted is set to true and kms_key_id is not specified the default KMS key created in your account will be used | string | `""` | no |
 | rds_instance_license\_model | License model information for this DB instance. Optional, but required for some DB engines, i.e. Oracle SE1 | string | `""` | no |
-| rds_instance_maintenance\_window | The window to perform maintenance in. Syntax: 'ddd:hh24:mi-ddd:hh24:mi'. Eg: 'Mon:00:00-Mon:03:00' | string | n/a | yes |
+| rds_instance_maintenance\_window | The window to perform maintenance in. Syntax: 'ddd:hh24:mi-ddd:hh24:mi'. Eg: 'Mon:00:00-Mon:03:00' | string | "Mon:00:00-Mon:03:00" | no |
 | rds_instance_max\_allocated\_storage | Specifies the value for Storage Autoscaling | number | `"0"` | no |
 | rds_instance_monitoring\_interval | The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB instance. To disable collecting Enhanced Monitoring metrics, specify 0. The default is 0. Valid Values: 0, 1, 5, 10, 15, 30, 60. | number | `"0"` | no |
 | rds_instance_monitoring\_role\_arn | The ARN for the IAM role that permits RDS to send enhanced monitoring metrics to CloudWatch Logs. Must be specified if monitoring_interval is non-zero. | string | `""` | no |
