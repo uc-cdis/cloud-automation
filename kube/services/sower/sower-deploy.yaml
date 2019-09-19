@@ -43,12 +43,6 @@ spec:
             items:
               - key: json
                 path: sower_config.json
-        - name: pelican-creds-volume
-          secret:
-            secretName: "pelicanservice-g3auto"
-        - name: peregrine-creds-volume
-          secret:
-            secretName: "peregrine-creds"
       containers:
       - name: sower
         GEN3_SOWER_IMAGE
@@ -86,11 +80,3 @@ spec:
             readOnly: true
             mountPath: /sower_config.json
             subPath: sower_config.json
-          - name: pelican-creds-volume
-            readOnly: true
-            mountPath: /pelican-creds.json
-            subPath: config.json
-          - name: "peregrine-creds-volume"
-            readOnly: true
-            mountPath: "/peregrine-creds.json"
-            subPath: creds.json
