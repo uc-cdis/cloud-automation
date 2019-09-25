@@ -153,6 +153,9 @@ EOM
 chmod 755 /etc/init.d/awslogs
 systemctl enable awslogs
 systemctl restart awslogs
+cd /home/ubuntu
+git clone https://github.com/uc-cdis/cloud-automation.git
+cat cloud-automation/files/authorized_keys/ops_team > .ssh/authorized_keys
 EOF
 
   lifecycle {
