@@ -83,7 +83,7 @@ function createVolumesCopy()
                 VAL=$(echo $tags |awk '{print $2}')
                 if [ ${KEY} == "Name" ];
                 then
-                        VAL="copy-${VAL}"
+                        VAL="${NEW_VOLUME_PREFIX}${VAL}"
                 elif [ ${KEY} == "kubernetes.io/created-for/pv/name" ];
                 then
                         PVNAME="${VAL}"
