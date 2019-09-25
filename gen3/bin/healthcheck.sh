@@ -39,7 +39,7 @@ gen3_healthcheck() {
       *)
         gen3_log_err "Unrecognized flag $key"
         help
-        exit 1
+        return 1
         ;;
     esac
   done
@@ -47,48 +47,51 @@ gen3_healthcheck() {
   # refer to k8s api docs for pod status info
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#podstatus-v1-core
   gen3_log_info "Getting all pods..."
+        
   local allPods=$(g3kubectl get pods --all-namespaces -o json | \
     jq -r '[
       .items[] | {
         name: .metadata.name, namespace: .metadata.namespace, phase: .status.phase, reason: .status.reason,
-        created: .metadata.creationTimestamp, waitingContainers: [ .status.containerStatuses[] | { state: .state, ready:.ready} ]
+        created: .metadata.creationTimestamp  ,
+        waitingContainers: [ .status.containerStatuses // [] | .[] | { state: .state, ready:.ready} ]
       }
     ]')
   gen3_log_info "Checking pods..."
-  local evictedPods=$(echo $allPods | jq -r '[.[] | select(.reason == "Evicted") ]')
-  local pendingPods=$(echo $allPods | jq -r '[.[] | select(.phase == "Pending")]')
-  local unknownPods=$(echo $allPods | jq -r '[.[] | select(.phase == "Unknown")]')
-  local crashLoopPods=$(echo $allPods | jq -r '[.[] | select( .waitingContainers[].state.waiting.reason == "CrashLoopBackOff")]')
+  local evictedPods=$(jq -r '[.[] | select(.reason == "Evicted") ]' <<<"$allPods")
+  local pendingPods=$(jq -r '[.[] | select(.phase == "Pending")]' <<<"$allPods")
+  local failedPods=$(jq -r '[.[] | select(.phase == "Failed")]' <<<"$allPods")
+  local unknownPods=$(jq -r '[.[] | select(.phase == "Unknown")]' <<<"$allPods")
+  local crashLoopPods=$(jq -r '[.[] | select( .waitingContainers[].state.waiting.reason == "CrashLoopBackOff")]' <<<"$allPods")
   local terminatingPods=$(g3kubectl get pods --all-namespaces | grep "Terminating" | awk '{ print "{ \"namespace\": \"" $1 "\", "; print "\"name\": \"" $2 "\"}"; }' | jq -r '[inputs]')
   local terminatingTimeoutPods='[]'
   local pendingTimeoutPods='[]'
 
   # check for pods pending for more than 10 minutes
   while read -r pod; do
-    local podDate=$(echo $pod | jq -r '.created')
+    local podDate=$(jq -r '.created' <<< "$pod")
     local startTime=$(date --date="$podDate" '+%s')
     local secsPassed=$(( $(date '+%s') - $startTime ))
     if [[ $secsPassed -gt 600 ]]; then
-      pendingTimeoutPods=$(echo $pendingTimeoutPods | jq -r ". += [$pod]")
+      pendingTimeoutPods=$(jq -r ". += [$pod]" <<< "$pendingTimeoutPods")
     fi
-  done <<< "$(echo $pendingPods | jq -c '.[]')"
+  done <<< "$(jq -c '.[]' <<< "$pendingPods")"
 
   # check for terminating pods
   # Unfortunately the only way to get termination duration is by grepping the `describe` output
   gen3_log_info "Checking terminating pods for timeout..."
   while read -r pod; do
     if [[ -z "$pod" ]]; then continue; fi
-    local statusLine=$(g3kubectl describe pod $(echo $pod | jq -r '.name') --namespace $(echo $pod | jq -r '.namespace') | grep "Status:" -m 1)
-    if [[ "$(echo $statusLine | awk '{ print $2 }')" == "Terminating" ]]; then
+    local statusLine=$(g3kubectl describe pod $(jq -r '.name' <<< "$pod") --namespace $(jq -r '.namespace' <<< "$pod") | grep "Status:" -m 1)
+    if [[ "$(awk '{ print $2 }' <<< "$statusLine")" == "Terminating" ]]; then
       # check how long it's been terminating
-      local s=$(echo $statusLine | grep -oP "\d+(?=s)")
-      local m=$(echo $statusLine | grep -oP "\d+(?=m)")
-      local h=$(echo $statusLine | grep -oP "\d+(?=h)")
+      local s=$(grep -oP "\d+(?=s)" <<< "$statusLine")
+      local m=$(grep -oP "\d+(?=m)" <<< "$statusLine")
+      local h=$(grep -oP "\d+(?=h)" <<< "$statusLine")
       if [[ $m -gt 10 || $s -gt 300 || $h -gt 0 ]]; then
-        terminatingTimeoutPods=$(echo $terminatingTimeoutPods | jq -r ". += [$pod]")
+        terminatingTimeoutPods=$(jq -r ". += [$pod]" <<< "$terminatingTimeoutPods")
       fi
     fi
-  done <<< "$(echo $terminatingPods | jq -c '.[]')"
+  done <<< "$(jq -c '.[]' <<< "$terminatingPods")"
 
   # check status of nodes
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#nodestatus-v1-core
@@ -98,7 +101,7 @@ gen3_healthcheck() {
         name: .metadata.labels."kubernetes.io/hostname", conditions: [ .status.conditions[] | { (.type): .status }] | add
       }
     ]')
-  local notReadyNodes=$(echo $allNodes | jq -r '[.[] | select(.conditions.Ready != "True")]')
+  local notReadyNodes=$(jq -r '[.[] | select(.conditions.Ready != "True")]' <<< "$allNodes")
 
   # check internet access
   gen3_log_info "Checking internet access..."
@@ -128,28 +131,36 @@ gen3_healthcheck() {
       $curlCmd
     )
   fi
-  gen3_log_info "internet access by explicity proxy check got: $statusCodeExplicit"
+  gen3_log_info "internet access by explicit proxy check got: $statusCodeExplicit"
   local internetAccessExplicitProxy=true
   if [[ "$statusCodeExplicit" -lt 200 || "$statusCodeExplicit" -ge 400 ]]; then
     internetAccessExplicitProxy=false
   fi
 
-  local healthJson=$(echo '{}' | jq -r "{
-    pendingTimeoutPods: $pendingTimeoutPods,
-    terminatingTimeoutPods: $terminatingTimeoutPods,
-    unknownPods: $unknownPods,
-    crashLoopPods: $crashLoopPods,
-    evictedPods: $evictedPods,
-    notReadyNodes: $notReadyNodes,
-    internetAccess: $internetAccess,
-    internetAccessExplicitProxy: $internetAccessExplicitProxy
-  }")
-
+  local healthJson=$(cat - <<EOM
+  {
+    "pendingTimeoutPods": $pendingTimeoutPods,
+    "terminatingTimeoutPods": $terminatingTimeoutPods,
+    "failedPods": $failedPods,
+    "unknownPods": $unknownPods,
+    "crashLoopPods": $crashLoopPods,
+    "evictedPods": $evictedPods,
+    "notReadyNodes": $notReadyNodes,
+    "internetAccess": $internetAccess,
+    "internetAccessExplicitProxy": $internetAccessExplicitProxy
+  }
+EOM
+  )
+  
+  if ! jq -r . <<<"$healthJson"; then
+    gen3_log_err "failed to assemble valid json data: $healthJson"
+    return 1
+  fi
   local healthy=true
   local healthSimple=""
-  for statusKey in pendingTimeoutPods terminatingTimeoutPods unknownPods crashLoopPods evictedPods notReadyNodes; do
+  for statusKey in failedPods pendingTimeoutPods terminatingTimeoutPods unknownPods crashLoopPods evictedPods notReadyNodes; do
     # ".${yyy} | to_entries[] | [.key, .value] | @tsv"
-    local nameList=$(echo $healthJson | jq -r ".${statusKey}[] | [.namespace, .name] | @tsv")
+    local nameList=$(jq -r ".${statusKey}[] | [.namespace, .name] | @tsv" <<< "$healthJson")
     if [[ ! -z "$nameList" ]]; then
       healthy=false
       healthSimple="${healthSimple}\n*${statusKey}*\n${nameList}"
@@ -165,7 +176,7 @@ gen3_healthcheck() {
     gen3_log_info "Unhealthy. Waiting for 30 seconds then trying again..."
     sleep 30
     gen3_healthcheck $RETRY_PARAMS
-    exit $?
+    return $?
   fi
 
   # print final result to stdout

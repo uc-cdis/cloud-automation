@@ -331,25 +331,3 @@ export function amap(list, lambda, result=[]) {
   }
 }
 
-
-/**
- * Try to retrieve data for the last 5 days
- */
-function fetchRecentDataFromNetwork() {
-  const pathDateData = buildPathDateList();
-  const rawData = { users: [], rtimes: [], rcodes: [] };
-  fetchUserData(pathDateData.users
-  ).then(
-    function(userInfoList) {
-      rawData.users = userInfoList;
-      return fetchBucketsSummary(pathDateData.rcodes, );
-    }
-  ).then(
-    function(rcodesSummary) {
-      rawData.rcodes = rcodesSummary;
-    }
-  )
-}
-
-
-
