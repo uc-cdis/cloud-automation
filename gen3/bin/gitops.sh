@@ -470,7 +470,7 @@ gen3_gitops_sync() {
       # run etl job before roll all so guppy can pick up changes
       if [[ "$etl_roll" = true ]]; then
           gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
-          gen3 job run etl --wait
+          gen3 job run etl --wait ETL_FORCED TRUE
       fi
       gen3 kube-roll-all
       rollRes=$?
