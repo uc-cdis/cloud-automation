@@ -8,12 +8,12 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
-short_hostname=$(echo "$hostname" | cut -f1 -d".")
-bucketname="${short_hostname}-pfb-export"
+ref_hostname=$(echo "$hostname" | sed 's/\./-/g')
+bucketname="${ref_hostname}-pfb-export"
 gen3 s3 create "$bucketname"
-awsuser="${short_hostname}-pelican"
-gen3 awsuser create "${short_hostname}-pelican"
-gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name "${short_hostname}-pelican"
+awsuser="${ref_hostname}-pelican"
+gen3 awsuser create "${ref_hostname}-pelican"
+gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name "${ref_hostname}-pelican"
 
 mkdir -p $(gen3_secrets_folder)/g3auto/pelicanservice
 credsFile="$(gen3_secrets_folder)/g3auto/pelicanservice/config.json"
