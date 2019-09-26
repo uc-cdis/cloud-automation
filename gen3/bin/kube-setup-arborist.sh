@@ -52,7 +52,7 @@ fi
 gen3 roll arborist
 g3kubectl apply -f "${GEN3_HOME}/kube/services/arborist/arborist-service.yaml"
 
-if [ "$deployVersion" -gt  "1" ]; then
+if [[ "$deployVersion" -gt 1 && -z "$JENKINS_HOME" ]]; then
   gen3 job run "${GEN3_HOME}/kube/services/jobs/arborist-rm-expired-access-cronjob.yaml"
 fi
 
