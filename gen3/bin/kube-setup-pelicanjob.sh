@@ -8,21 +8,28 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
-ref_hostname=$(echo "$hostname" | sed 's/\./-/g')
-bucketname="${ref_hostname}-pfb-export"
-gen3 s3 create "$bucketname"
-awsuser="${ref_hostname}-pelican"
-gen3 awsuser create "${ref_hostname}-pelican"
-gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name "${ref_hostname}-pelican"
+short_hostname=$(echo "$hostname" | cut -f1 -d".")
+short_awsuser="${short_hostname}-pelican"
 
-mkdir -p $(gen3_secrets_folder)/g3auto/pelicanservice
-credsFile="$(gen3_secrets_folder)/g3auto/pelicanservice/config.json"
-if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
-  gen3_log_info "initializing pelicanservice config.json"
-  user=$(gen3 secrets decode $awsuser-g3auto awsusercreds.json)
-  key_id=$(jq -r .id <<< $user)
-  access_key=$(jq -r .secret <<< $user)
-  cat - > "$credsFile" <<EOM
+if ! g3kubectl describe secret $short_awsuser-g3auto | grep awsusercreds.json > /dev/null 2>&1; then
+  ref_hostname=$(echo "$hostname" | sed 's/\./-/g')
+  bucketname="${ref_hostname}-pfb-export"
+  awsuser="${ref_hostname}-pelican"
+
+  if ! g3kubectl describe secret $awsuser-g3auto | grep awsusercreds.json > /dev/null 2>&1; then
+    mkdir -p $(gen3_secrets_folder)/g3auto/pelicanservice
+    credsFile="$(gen3_secrets_folder)/g3auto/pelicanservice/config.json"
+
+    if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
+      gen3 s3 create "$bucketname"
+      gen3 awsuser create "${ref_hostname}-pelican"
+      gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name "${ref_hostname}-pelican"
+
+      gen3_log_info "initializing pelicanservice config.json"
+      user=$(gen3 secrets decode $awsuser-g3auto awsusercreds.json)
+      key_id=$(jq -r .id <<< $user)
+      access_key=$(jq -r .secret <<< $user)
+      cat - > "$credsFile" <<EOM
 {
   "manifest_bucket_name": "$bucketname",
   "hostname": "$hostname",
@@ -30,5 +37,6 @@ if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
   "aws_secret_access_key": "$access_key"
 }
 EOM
-  gen3 secrets sync "initialize pelicanservice/config.json"
+    gen3 secrets sync "initialize pelicanservice/config.json"
+  fi
 fi
