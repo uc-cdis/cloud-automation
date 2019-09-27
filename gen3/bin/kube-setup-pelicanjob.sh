@@ -32,5 +32,6 @@ if ! g3kubectl describe secret pelicanservice-g3auto | grep config.json > /dev/n
   "aws_secret_access_key": "$access_key"
 }
 EOM
-  gen3 secrets sync "initialize pelicanservice/config.json"
+    gen3 secrets sync "initialize pelicanservice/config.json"
+  fi
 fi
