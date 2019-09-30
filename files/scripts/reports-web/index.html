@@ -27,18 +27,40 @@
     <main>
       <section id="users" class="g3reports-datapanel g3reports-users">
         <h3>Unique Users</h3>
+        <p>
+          Daily unique authenticated users.
+        </p>
         <g3-reports-table></g3-reports-table>
 
       </section>
       <section id="rcodes" class="g3reports-datapanel g3reports-rcodes">
           <h3>Response Codes</h3>
+          <p>
+            Response codes histogram for requests over the last several days
+            (same date range as unique users above).
+          </p>
           <g3-reports-table></g3-reports-table>
 
       </section>
       <section id="rtimes" class="g3reports-datapanel g3reports-rtimes">
           <h3>Response Times (seconds)</h3>
-          <g3-reports-table></g3-reports-table>
+          <p>
+            Response time histogram for requests over the last several days
+            (same date range as unique users above).
+          </p>
+          <div class="g3reports-rtimes__scrollbox">
+            <g3-reports-table></g3-reports-table>
+          </div>
       </section>
+      <section id="projects" class="g3reports-datapanel g3reports-projects">
+        <h3>Users per project</h3>
+        <p>
+          Number of users with access to the given projects according to <em>fence</em>
+          as of the most recent sample taken (last 24 hours).
+        </p>
+        <g3-reports-table></g3-reports-table>
+      </section>
+  
       <section id="status" class="g3reports-status">
         <p>Loading ...</p>
       </section>

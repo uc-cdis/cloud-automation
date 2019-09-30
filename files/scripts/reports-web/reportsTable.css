@@ -11,5 +11,5 @@ g3-reports-table th, g3-reports-table td {
 }
 
 g3-reports-table tr:nth-child(even) {
-  background: #dddddd;
+  background: #eeeeee;
 }

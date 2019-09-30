@@ -152,7 +152,7 @@ gen3_healthcheck() {
 EOM
   )
   
-  if ! jq -r . <<<"$healthJson"; then
+  if ! jq -r . <<<"$healthJson" > /dev/null; then
     gen3_log_err "failed to assemble valid json data: $healthJson"
     return 1
   fi

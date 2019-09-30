@@ -1,14 +1,37 @@
 
 // shared functions
 
+export function amap(list, lambda, result=[]) {
+  if (list.length > 0) {
+    return lambda(list[0]).then(
+      (it) => {
+        result.push(it);
+        return amap(list.slice(1), lambda, result);
+      }
+    )
+  } else {
+    return Promise.resolve(result);
+  }
+}
+
+export function range(start, end, step=1) {
+  const result = [];
+  if (end > start && step > 0 || end < start && step < 0) {
+    for (let i=start; i < end; i += step) {
+      result.push(i);
+    }
+  }
+  return result;
+}
+
 /**
  * Assemble the paths to fetch to get the data for the last 5 days
  * 
  * @param prefix
  * @return [pathDateList]
  */
-function basicBuildPathList(prefix) {
-  return [5,4,3,2,1].map(
+function basicBuildPathList(prefix, num=5) {
+  return range(1, num+1).map(
     function(it) {
       const dt = new Date(Date.now() - it*24*60*60*1000);
       const part1 = `${dt.getUTCFullYear()}/${pad2(dt.getUTCMonth()+1)}/`;
@@ -34,25 +57,24 @@ function pad2(num) {
 /**
  * Given a table (list of rows) where column 2 holds the value,
  * append a list of up to 10 'stars' to each row where the
- * max row gets 10 stars and ever other row is relative to that.
+ * total row gets 10 stars and ever other row is relative to that.
  * 
  * @param table to change in place
  * @return table
  */
-function addStarColumn(table) {
-  const max = table.reduce(
+function addPercentColumn(table) {
+  const total = table.reduce(
     (acc,row) => {
-      if (typeof row[1] === 'number' && row[1] > acc) {
-        return row[1];
+      if (typeof row[1] === 'number') {
+        return row[1] + acc;
       }
       return acc;
     }, 0
   );
-  const stars='***************';
   table.forEach(
     (row) => {
-      if (max > 0) {
-        row.push(stars.substring(0, Math.floor(10*row[1]/max)));
+      if (total > 0) {
+        row.push(`${Math.floor(1000*row[1]/total)/10}%`);
       } else {
         row.push('');
       }
@@ -219,7 +241,9 @@ export class RCodesHandler {
   massageData(fetchedData) {
     return {
       reportType: "rcodes",
-      massage: Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0]))
+      massage: addPercentColumn(
+        Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0]))
+      )
     };
   }
 }
@@ -250,7 +274,51 @@ export class RTimesHandler {
   massageData(fetchedData) {
     return {
       reportType: "rtimes",
-      massage: Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0]))
+      massage: addPercentColumn(
+        Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0]))
+      )
+    };
+  }
+}
+
+/**
+ * Handler for result times report
+ */
+export class PassThroughHandler {
+  constructor(key) {
+    this.key = key;
+  }
+
+  buildPathDateList() {
+    return basicBuildPathList(this.key, 1);
+  }
+ 
+  fetchData(pathDateList) {
+    return fetch(pathDateList[0].path
+      ).then(
+        raw => raw.json()
+      ).then(
+        (data) => {
+          return {
+            reportType: this.key,
+            data: data.data
+          };
+        }
+      ).catch(
+        (err) => {
+          console.log(`failed fetch for ${this.key}`, err);
+          return {
+            reportType: this.key,
+            data: []
+          };
+        }
+      );
+  }
+
+  massageData(fetchedData) {
+    return {
+      reportType: this.key,
+      massage: fetchedData.data
     };
   }
 }
@@ -279,6 +347,12 @@ function fetchRecentDataMock() {
       data: [
 
       ]
+    },
+    projects: {
+      reportType: "rtimes",
+      data: [
+
+      ]
     }
   };
 
@@ -300,7 +374,8 @@ function fetchRecentDataMock() {
 const reportHandlers = {
   rtimes: new RTimesHandler(),
   rcodes: new RCodesHandler(),
-  users: new UniqueUsersHandler()
+  users: new UniqueUsersHandler(),
+  projects: new PassThroughHandler('projects')
 };
 
 
@@ -312,22 +387,8 @@ export function fetchRecentData(reportType) {
       (data) => {
         const result = handler.massageData(data);
         result.data = data.data;
-        addStarColumn(result.massage);
         return result;
       }
     );
-}
-
-export function amap(list, lambda, result=[]) {
-  if (list.length > 0) {
-    return lambda(list[0]).then(
-      (it) => {
-        result.push(it);
-        return amap(list.slice(1), lambda, result);
-      }
-    )
-  } else {
-    return Promise.resolve(result);
-  }
 }
 

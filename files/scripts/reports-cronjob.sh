@@ -49,7 +49,28 @@ gen3 logs history rtimes start='yesterday 00:00' end='today 00:00' "$@" | tee "r
 gen3 logs history codes start='yesterday 00:00' end='today 00:00' "$@" | tee "codes-${dateTime}.json" 
 gen3 logs history users start='yesterday 00:00' end='today 00:00' "$@" | tee "users-${dateTime}.json" 
 
-for name in "rtimes-${dateTime}.json" "codes-${dateTime}.json" "users-${dateTime}.json"; do
+csvToJson="$(cat - <<EOM
+BEGIN {
+  prefix="";
+  print "{ \"data\": [";
+};
+
+(\$0 ~ /,/) {
+  print prefix "[\"" \$1 "\"," \$2 "]"; prefix="," 
+};
+
+END { 
+  print "] }"
+};
+EOM
+)"
+
+gen3 psql fence -c 'COPY (SELECT name, COUNT(*) FROM project, access_privilege ap WHERE ap.project_id=project.id GROUP BY name ORDER BY name) TO STDOUT WITH (FORMAT csv)' | \
+  awk -F , "$csvToJson" | \
+  jq -r . | \
+  tee "projects-${dateTime}.json"
+
+for name in "rtimes-${dateTime}.json" "codes-${dateTime}.json" "users-${dateTime}.json" "projects-${dateTime}.json"; do
   gen3 dashboard publish secure "./$name" "${destFolder}/$name"
 done
 cd /tmp
