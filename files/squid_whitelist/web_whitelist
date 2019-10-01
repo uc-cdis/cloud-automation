@@ -66,6 +66,7 @@ k8s.gcr.io
 keyservice.opensciencedatacloud.org
 ks.osdc.io
 lib.stat.cmu.edu
+login.bionimbus.org/Shibboleth.sso/DiscoFeed
 login.mathworks.com
 login.microsoftonline.com
 maven.restlet.org
