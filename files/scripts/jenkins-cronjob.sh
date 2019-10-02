@@ -5,13 +5,14 @@
 # PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # vpc_name=YOUR-VPC-NAME
 # KUBECONFIG=path/to/kubeconfig
-# 1   1   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/jenkins-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/jenkins-cronjob.sh; else echo "no jenkins-cronjob.sh"; fi) > $HOME/jenkins-cronjob.log 2>&1
+# 1   1   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/jenkins-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/jenkins-cronjob.sh go; else echo "no jenkins-cronjob.sh"; fi) > $HOME/jenkins-cronjob.log 2>&1
 
-# put the shell in interactive mode
-set -i
+export GEN3_HOME="${GEN3_HOME:-"$HOME/cloud-automation"}"
 
-export GEN3_HOME="$HOME/cloud-automation"
-
+if [[ ! -d "$GEN3_HOME" ]]; then
+  echo "ERROR: GEN3_HOME does not exist: $GEN3_HOME" 1>&2
+  exit 1
+fi
 if [[ -z "$XDG_DATA_HOME" ]]; then
   export XDG_DATA_HOME="$HOME/.local/share"
 fi
@@ -25,12 +26,31 @@ fi
 
 source "${GEN3_HOME}/gen3/gen3setup.sh"
 
-jpod="$(gen3 pod jenkins)"
-if [[ -z "$jpod" ]]; then
-  gen3_log_info "exiting - it looks like jenkins is not running"
+command="help"
+if [[ $# -gt 0 && ("$1" == "go" || "$1" == "test") ]]; then
+  command="$1"
+  shift
+fi
+
+if [[ "$command" == "help" ]]; then
+  (cat - <<EOM
+  Use: base jenkins-cronjob.sh go|help|test
+EOM
+  ) 1>&2
   exit 0
 fi
 
-g3kubectl exec -c jenkins "$jpod" -- bash -c 'sudo /bin/rm -rf /tmp/* /var/jenkins_home/workspace/* /var/jenkins_home/jobs/*/branches /var/jenkins_home/jobs/*/jobs/*/branches'
-gen3 roll jenkins
-aws sns publish --topic-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message 'qaplanetv1 jenkins-cronjob complete'
+jpod="$(gen3 pod jenkins)"
+if [[ -z "$jpod" && "$command" != "test" ]]; then
+  gen3_log_info "exiting - it looks like jenkins is not running"
+  exit 1
+fi
+
+if [[ "$command" == "test" ]]; then
+  gen3_log_info "exiting test without touching jenkins pod: $jpod"
+  exit 0
+elif [[ "$command" == "go" ]]; then
+  g3kubectl exec -c jenkins "$jpod" -- bash -c 'sudo /bin/rm -rf /tmp/* /var/jenkins_home/workspace/* /var/jenkins_home/jobs/*/branches /var/jenkins_home/jobs/*/jobs/*/branches'
+  gen3 roll jenkins
+  aws sns publish --topic-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message 'qaplanetv1 jenkins-cronjob complete'
+fi
