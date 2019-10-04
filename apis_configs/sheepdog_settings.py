@@ -13,7 +13,7 @@ config["AUTH"] = 'https://auth.service.consul:5000/v3/'
 config["AUTH_ADMIN_CREDS"] = None
 config["INTERNAL_AUTH"] = None
 
-config["ARBORIST"] = "http://arborist-service/"
+ARBORIST_URL = environ.get("ARBORIST_URL", "http://arborist-service/")
 
 # Signpost: deprecated, replaced by index client.
 config['SIGNPOST'] = {
