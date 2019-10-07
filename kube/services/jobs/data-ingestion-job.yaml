@@ -21,15 +21,6 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 80
-          env:
-            - name: DBGAP_NUM
-              GEN3_DBGAP_NUM
-            - name: MANIFEST_URL
-              GEN3_MANIFEST_URL
-            - name: HOST_URL
-              GEN3_HOST_URL
-            - name: INDEXD_PASSWORD
-              GEN3_INDEXD_PASSWORD
         - name: fence
           GEN3_FENCE_IMAGE
           imagePullPolicy: Always
