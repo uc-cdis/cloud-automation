@@ -116,10 +116,6 @@ spec:
         public: "yes"
     spec:
       serviceAccountName: my-serviceaccount
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
       containers:
       - image: quay.io/cdis/awshelper:master
         name: generic-deployment
