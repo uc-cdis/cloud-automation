@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-ingestion
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+      - name: config-volume
+        configMap:
+          name: manifest-global
+      - name: creds-volume
+        secret:
+          secretName: indexd-creds
+      containers:
+        - name: manifest
+          image: quay.io/cdis/dataSTAGE-data-ingestion:feat_data-ingestion-pipeline
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 80
+          env:
+          - name: DBGAP_NUM
+            GEN3_DBGAP_NUM|-value: ""-|
+          - name: MANIFEST_URL
+            GEN3_MANIFEST_URL|-value: ""-|
+          - name: HOST_URL
+            GEN3_HOST_URL|-value: ""-|
+          - name: INDEXD_PASSWORD
+            GEN3_INDEXD_PASSWORD|-value: ""-|
+        - name: fence
+          GEN3_FENCE_IMAGE
+          imagePullPolicy: Always
+          env:
+            - name: PYTHONPATH
+              value: /var/www/fence
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/fence/fence-config.yaml"
+              subPath: fence-config.yaml
+            - name: "fence-google-app-creds-secret-volume"
+              readOnly: true
+              mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+              subPath: fence_google_app_creds_secret.json
+            - name: "fence-google-storage-creds-secret-volume"
+              readOnly: true
+              mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+              subPath: fence_google_storage_creds_secret.json
+            - name: "fence-yaml"
+              mountPath: "/var/www/fence/user.yaml"
+              subPath: user.yaml
+          imagePullPolicy: Always
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            ./run.sh
+      restartPolicy: Never
