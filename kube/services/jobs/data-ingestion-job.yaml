@@ -16,13 +16,8 @@ spec:
         secret:
           secretName: indexd-creds
       containers:
-        - name: data-ingestion-pipeline
-          image: quay.io/cdis/dataSTAGE-data-ingestion:feat_data-ingestion-pipeline
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 80
         - name: fence
-          image: GEN3_FENCE_IMAGE
+          GEN3_FENCE_IMAGE
           imagePullPolicy: Always
           env:
             - name: PYTHONPATH
@@ -44,6 +39,11 @@ spec:
               mountPath: "/var/www/fence/user.yaml"
               subPath: user.yaml
           imagePullPolicy: Always
+        - name: data-ingestion-pipeline
+          image: quay.io/cdis/dataSTAGE-data-ingestion:feat_data-ingestion-pipeline
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
         command: ["/bin/bash" ]
         args:
           - "-c"
