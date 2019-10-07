@@ -22,7 +22,7 @@ spec:
           ports:
             - containerPort: 80
         - name: fence
-          GEN3_FENCE_IMAGE
+          image: GEN3_FENCE_IMAGE
           imagePullPolicy: Always
           env:
             - name: PYTHONPATH
