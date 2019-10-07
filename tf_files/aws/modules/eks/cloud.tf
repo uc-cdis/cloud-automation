@@ -769,7 +769,8 @@ data "aws_iam_policy_document" "iam-serviceaccount" {
 
 resource "aws_iam_role" "iam-serviceaccount_role" {
   #count              = "${var.eks_version == "1.12" ? 0 : 1}"
-  count              = "${var.iam-serviceaccount ? 1 : 0}"
+  #count              = "${var.iam-serviceaccount ? 1 : 0}"
+  count              = "${var.iam-serviceaccount ? var.eks_version == "1.12" ? 0 : 1 : 0}"
   assume_role_policy = "${data.aws_iam_policy_document.iam-serviceaccount.json}"
   name               = "${var.vpc_name}-iam-serviceaccount"
   depends_on         = ["aws_iam_openid_connect_provider.identity_provider"]
