@@ -60,8 +60,6 @@ function create_service_account(){
   if ! [ $? == 0 ];
   then
     peae "There has been an error creating the service account in kubernetes, bailing out"
-#    echo "There has been an error creating the service account in kubernetes, bailing out"
-#    exit 2
   fi
 }
 
@@ -330,15 +328,12 @@ function delete_policy_in_role(){
   local role_name=${2}
 
   gen3_log_info "Entering delete_policy_in_role"
-#  if [ ${policy_type} == "managed" ];
   if [[ ${policy} =~ arn:aws:iam::aws:policy/[aA-zZ0-9]+ ]];
   then
     gen3_log_info "  aws iam detach-role-policy --role-name ${role_name} --policy-arn ${policy}"
     aws iam detach-role-policy --role-name "${role_name}" --policy-arn "${policy}"
     echo $?
-  #elif [ ${policy_type} == "inline" ];
   else
-  #then
     local policy2=$(echo ${policy} | sed -e 's/"//g')
     gen3_log_info "  aws iam delete-role-policy --role-name ${role_name} --policy-name ${policy2}"
     aws iam delete-role-policy --role-name "${role_name}" --policy-name ${policy2}
@@ -377,7 +372,7 @@ function list_policies_for_a_role(){
 
 ##
 #
-# main function that will redirect to subfunctions in this script
+# main function to redirect to subfunctions in this script
 #
 #
 ##
@@ -392,10 +387,6 @@ function main() {
     NAMESPACE_SCRIPT="default"
   fi
 
-#  echo ${SERVICE_ACCOUNT_NAME}
-#  echo ${POLICY_SCRIPT}
-#  echo ${UPDATE_ACTION}
-#  echo "starting script"
   if [ -z ${SERVICE_ACCOUNT_NAME} ];
   then
     echo "There is an error on the paramethers provided, please check them and run again"
@@ -415,11 +406,6 @@ function main() {
       policy_source="${policy_validation}"
     fi
   fi
-
-#  echo ${policy_validation}
-#  echo ${policy_source}
-#  echo ${role_name}
-#  echo ${XDG_RUNTIME_DIR}
 
 ## let's validate the options submitted
   if [ -v SERVICE_ACCOUNT_NAME ] && [ -v POLICY_SCRIPT ] && [ -v UPDATE_ACTION ] && [ -v ACTION ] && [ ${ACTION} == u ];
@@ -455,34 +441,22 @@ function main() {
   elif [ -v SERVICE_ACCOUNT_NAME ] && [ -v POLICY_SCRIPT ] && [ -z ${UPDATE_ACTION} ] && [ -v ACTION ] && [ ${ACTION} == c ];
   then
     # We are creating 
-    
-#    echo "Entering the create module"
     # let's check if the policy provided exist by name, by ARN
     local role_json
     local role_arn
 
-#    echo "Role to be created: ${role_name}"
-#    echo "Policy to be attach: ${policy_source}"
-    #exit
 
     role_json=$(create_role_with_policy "${policy_source}" "${role_name}")
-    # "${policy_source}")
     role_arn=$(echo ${role_json} | jq -r '.Role.RoleArn')
     create_service_account ${role_arn}
     gen3_log_info "Role and service account created successfully"
     gen3_log_info "  Role Name: $(echo ${role_json} | jq '.Role.RoleName')"
     gen3_log_info "  Serviceaccount Name: ${SERVICE_ACCOUNT_NAME}"
-#    echo "Role and service account created successfully"
-#    echo "  Role Name: $(echo ${role_json} | jq '.Role.RoleName')"
-#    echo "  Serviceaccount Name: ${SERVICE_ACCOUNT_NAME}"
   elif [ -v SERVICE_ACCOUNT_NAME ] && ! [ -v POLICY_SCRIPT ] && ! [ -v UPDATE_ACTION ] && [ -v ACTION ] && [ ${ACTION} == l ];
   then
-    #echo "Listing Policies for ${role_name}"
     list_policies_for_a_role "${role_name}"
   else
     gen3_log_err "Couldn't understand the paramethers, bailing out"
-#    echo "Couldn't understand the paramethers, bailing out"
-#    exit 3
   fi
 
   unset ACCOUNT_ID
