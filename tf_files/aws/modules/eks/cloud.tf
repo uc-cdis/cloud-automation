@@ -726,7 +726,8 @@ resource "null_resource" "config_setup" {
 
 resource "aws_iam_openid_connect_provider" "identity_provider" {
   #count           = "${var.eks_version == "1.12" ? 0 : 1}"
-  count           = "${var.iam-serviceaccount ? 1 : 0}"
+  #count           = "${var.iam-serviceaccount ? 1 : 0}"
+  count              = "${var.iam-serviceaccount ? var.eks_version == "1.12" ? 0 : 1 : 0}"
   url             = "${aws_eks_cluster.eks_cluster.identity.0.oidc.0.issuer}"
 
   client_id_list  = ["sts.amazonaws.com"]
@@ -734,45 +735,3 @@ resource "aws_iam_openid_connect_provider" "identity_provider" {
   depends_on      = ["aws_eks_cluster.eks_cluster"]
 }
 
-
-# data "aws_caller_identity" "current" {}
-
-/*
-data "aws_iam_policy_document" "iam-serviceaccount" {
-  #count = "${var.eks_version == "1.12" ? 0 : 1}"
-  count = "${var.iam-serviceaccount ? 1 : 0}"
-  statement {
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-    effect  = "Allow"
-
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(aws_iam_openid_connect_provider.identity_provider.url, "https://", "")}:sub"
-      values   = ["system:serviceaccount:default:${var.vpc_name}-iam-serviceaccount"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "${replace(aws_iam_openid_connect_provider.identity_provider.url, "https://", "")}:aud"
-      values   = ["sts.amazonaws.com"]
-    }
-
-    principals {
-      identifiers = ["${aws_iam_openid_connect_provider.identity_provider.arn}"]
-      type        = "Federated"
-    }
-  }
-  depends_on = ["aws_iam_openid_connect_provider.identity_provider"]
-}
-
-
-
-resource "aws_iam_role" "iam-serviceaccount_role" {
-  #count              = "${var.eks_version == "1.12" ? 0 : 1}"
-  #count              = "${var.iam-serviceaccount ? 1 : 0}"
-  count              = "${var.iam-serviceaccount ? var.eks_version == "1.12" ? 0 : 1 : 0}"
-  assume_role_policy = "${data.aws_iam_policy_document.iam-serviceaccount.json}"
-  name               = "${var.vpc_name}-iam-serviceaccount"
-  depends_on         = ["aws_iam_openid_connect_provider.identity_provider"]
-}
-*/
