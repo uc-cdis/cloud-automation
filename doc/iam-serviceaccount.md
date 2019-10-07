@@ -145,8 +145,8 @@ spec:
               path: token
 ``` 
 
-Note the volume and the volument mount, also you need to specify the serice account in the spects of the pod.
+Note the volume and the volument mount, also you need to specify the serice account in the specs of the pod.
 
 
-The pod that gets deployed off the deployment with the avobe configuration will be able to talk to S3, in this particular case a read only access.
+The pod that gets deployed off the deployment with the above configuration will be able to talk to S3, in this particular case a read only access.
 
