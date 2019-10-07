@@ -17,7 +17,7 @@ spec:
           secretName: indexd-creds
       containers:
         - name: fence
-          value: quay.io/cdis/fence:master
+          image: quay.io/cdis/fence:master
           imagePullPolicy: Always
           env:
             - name: PYTHONPATH
@@ -44,9 +44,9 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 80
-        command: ["/bin/bash" ]
-        args:
-          - "-c"
-          - |
-            ./run.sh
-      restartPolicy: Never
+          command: ["/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              ./run.sh
+          restartPolicy: Never
