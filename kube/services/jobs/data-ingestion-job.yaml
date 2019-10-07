@@ -49,4 +49,4 @@ spec:
             - "-c"
             - |
               ./run.sh
-        restartPolicy: Never
+      restartPolicy: Never
