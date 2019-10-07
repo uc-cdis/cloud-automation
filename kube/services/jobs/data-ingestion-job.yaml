@@ -17,7 +17,7 @@ spec:
           secretName: indexd-creds
       containers:
         - name: fence
-          GEN3_FENCE_IMAGE
+          value: quay.io/cdis/fence:master
           imagePullPolicy: Always
           env:
             - name: PYTHONPATH
