@@ -15,6 +15,9 @@ spec:
       - name: creds-volume
         secret:
           secretName: indexd-creds
+      - name: data-ingestion-secret
+          secret:
+            secretName: "data-ingestion-secret"
       containers:
         # - name: fence
         #   image: quay.io/cdis/fence:master
@@ -44,6 +47,11 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 80
+          volumeMounts:
+            - name: "data-ingestion-secret"
+              readOnly: true
+              mountPath: "/.aws/config"
+              subPath: config
           command: ["/bin/bash" ]
           args:
             - "-c"
