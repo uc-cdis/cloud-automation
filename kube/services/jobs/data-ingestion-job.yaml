@@ -16,29 +16,29 @@ spec:
         secret:
           secretName: indexd-creds
       containers:
-        - name: fence
-          image: quay.io/cdis/fence:master
-          imagePullPolicy: Always
-          env:
-            - name: PYTHONPATH
-              value: /var/www/fence
-          volumeMounts:
-            - name: "config-volume"
-              readOnly: true
-              mountPath: "/var/www/fence/fence-config.yaml"
-              subPath: fence-config.yaml
-            - name: "fence-google-app-creds-secret-volume"
-              readOnly: true
-              mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
-              subPath: fence_google_app_creds_secret.json
-            - name: "fence-google-storage-creds-secret-volume"
-              readOnly: true
-              mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
-              subPath: fence_google_storage_creds_secret.json
-            - name: "fence-yaml"
-              mountPath: "/var/www/fence/user.yaml"
-              subPath: user.yaml
-          imagePullPolicy: Always
+        # - name: fence
+        #   image: quay.io/cdis/fence:master
+        #   imagePullPolicy: Always
+        #   env:
+        #     - name: PYTHONPATH
+        #       value: /var/www/fence
+        #   volumeMounts:
+        #     - name: "config-volume"
+        #       readOnly: true
+        #       mountPath: "/var/www/fence/fence-config.yaml"
+        #       subPath: fence-config.yaml
+        #     - name: "fence-google-app-creds-secret-volume"
+        #       readOnly: true
+        #       mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+        #       subPath: fence_google_app_creds_secret.json
+        #     - name: "fence-google-storage-creds-secret-volume"
+        #       readOnly: true
+        #       mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+        #       subPath: fence_google_storage_creds_secret.json
+        #     - name: "fence-yaml"
+        #       mountPath: "/var/www/fence/user.yaml"
+        #       subPath: user.yaml
+        #   imagePullPolicy: Always
         - name: data-ingestion-pipeline
           image: quay.io/cdis/dataSTAGE-data-ingestion:feat_data-ingestion-pipeline
           imagePullPolicy: Always
