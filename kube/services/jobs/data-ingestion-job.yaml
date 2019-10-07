@@ -40,7 +40,7 @@ spec:
         #       subPath: user.yaml
         #   imagePullPolicy: Always
         - name: data-ingestion-pipeline
-          image: quay.io/cdis/dataSTAGE-data-ingestion:feat_data-ingestion-pipeline
+          image: quay.io/cdis/datastage-data-ingestion:feat_data-ingestion-pipeline
           imagePullPolicy: Always
           ports:
             - containerPort: 80
