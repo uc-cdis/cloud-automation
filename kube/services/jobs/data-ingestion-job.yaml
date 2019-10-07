@@ -16,20 +16,20 @@ spec:
         secret:
           secretName: indexd-creds
       containers:
-        - name: manifest
+        - name: data-ingestion-pipeline
           image: quay.io/cdis/dataSTAGE-data-ingestion:feat_data-ingestion-pipeline
           imagePullPolicy: Always
           ports:
-          - containerPort: 80
+            - containerPort: 80
           env:
-          - name: DBGAP_NUM
-            GEN3_DBGAP_NUM|-value: ""-|
-          - name: MANIFEST_URL
-            GEN3_MANIFEST_URL|-value: ""-|
-          - name: HOST_URL
-            GEN3_HOST_URL|-value: ""-|
-          - name: INDEXD_PASSWORD
-            GEN3_INDEXD_PASSWORD|-value: ""-|
+            - name: DBGAP_NUM
+              GEN3_DBGAP_NUM|-value: ""-|
+            - name: MANIFEST_URL
+              GEN3_MANIFEST_URL|-value: ""-|
+            - name: HOST_URL
+              GEN3_HOST_URL|-value: ""-|
+            - name: INDEXD_PASSWORD
+              GEN3_INDEXD_PASSWORD|-value: ""-|
         - name: fence
           GEN3_FENCE_IMAGE
           imagePullPolicy: Always
