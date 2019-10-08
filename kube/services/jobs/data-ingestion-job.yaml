@@ -15,9 +15,9 @@ spec:
       - name: creds-volume
         secret:
           secretName: indexd-creds
-      - name: data-ingestion-secret
+      - name: data-ingestion-job-secret
         secret:
-          secretName: data-ingestion-secret
+          secretName: data-ingestion-job-secret
       containers:
         # - name: fence
         #   image: quay.io/cdis/fence:master
@@ -48,7 +48,7 @@ spec:
           ports:
             - containerPort: 80
           volumeMounts:
-            - name: "data-ingestion-secret"
+            - name: "data-ingestion-job-secret"
               readOnly: true
               mountPath: "/.aws/config"
               subPath: config
@@ -56,12 +56,12 @@ spec:
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: data-ingestion-secret
+                  name: data-ingestion-job-secret
                   key: aws_access_key_id
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: data-ingestion-secret
+                  name: data-ingestion-job-secret
                   key: aws_secret_access_key
           command: ["/bin/bash" ]
           args:

@@ -119,6 +119,16 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
   fi
 fi
 
+# data-ingestion-job
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
+  cd "$(gen3_secrets_folder)"
+  if ! g3kubectl get secret data-ingestion-job-secret > /dev/null 2>&1; then
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    jq -r .data-ingestion-job < creds.json > "$credsFile"
+    g3kubectl create secret generic data-ingestion-job-secret "--from-file=credentials.json=${credsFile}"
+  fi
+fi
+
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
   cd "$(gen3_secrets_folder)"
   # Generate RSA private and public keys.
