@@ -101,7 +101,7 @@ test_db_backup_restore() {
     gen3 db backup $service > "$backupFile"; because $? "gen3 db backup $service should work"
     local newCreds
     local oldCreds
-    newCreds="$(gen3 db restore $service "$backupFile")"; because $? "gen3 db restore $service should work"
+    newCreds="$(gen3 db restore $service "$backupFile" 2> /dev/null)"; because $? "gen3 db restore $service should work"
     /bin/rm "$backupFile"
     oldCreds="$(gen3 db creds $service)"; because $? "gen3 db creds $service should work"
     local newDb
