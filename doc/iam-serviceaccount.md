@@ -26,6 +26,10 @@ What `gen3 iam-serviceaccount` does is basically the following:
 
 
 ```bash
+$ ISSUER_URL=$(aws eks describe-cluster \
+                       --name ${vpc_name} \
+                       --query cluster.identity.oidc.issuer \
+                       --output text)
 $ ISSUER_HOSTPATH=$(echo $ISSUER_URL | cut -f 3- -d'/')
 $ ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 $ PROVIDER_ARN="arn:aws:iam::$ACCOUNT_ID:oidc-provider/$ISSUER_HOSTPATH"
