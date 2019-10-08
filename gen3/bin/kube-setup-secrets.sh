@@ -136,14 +136,6 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
   fi
 fi
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
-  if ! g3kubectl get secrets/mailgun-creds > /dev/null 2>&1; then
-    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    jq -r '.mailgun' creds.json > "$credsFile"
-    g3kubectl create secret generic mailgun-creds "--from-file=creds.json=${credsFile}"
-  fi
-fi
-
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
   cd "$(gen3_secrets_folder)"
   # Generate RSA private and public keys.
