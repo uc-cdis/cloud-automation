@@ -127,7 +127,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
   if ! g3kubectl get secret data-ingestion-job-secret > /dev/null 2>&1; then
     echo 'in da next if block'
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    jq -r .data-ingestion-job < creds.json > "$credsFile"
+    jq -r .data_ingestion_job < creds.json > "$credsFile"
     g3kubectl create secret generic data-ingestion-job-secret "--from-file=credentials.json=${credsFile}"
     echo 'created da secret'
   fi
