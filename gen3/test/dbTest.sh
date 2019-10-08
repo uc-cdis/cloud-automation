@@ -87,7 +87,7 @@ test_db_snapshot_list() {
   local snapCount
   snapCount="$(jq -e -r '.DBSnapshots | length' <<<"$snapshotJson")"; 
     because $? "snap list json has expected structure"
-  [[ "$snapCount" =~ ^[0-9]+$ && "$snapCount" -gt 0 ]]; because "server1 has at least 1 snapshot"
+  [[ "$snapCount" =~ ^[0-9]+$ && "$snapCount" -gt 0 ]]; because $? "server1 has at least 1 snapshot"
 }
 
 test_db_snapshot_take() {
