@@ -33,7 +33,7 @@ credsFile="$(gen3_secrets_folder)/g3auto/data-ingestion-job/config.json"
 
 gen3_log_info "kube-setup-data-ingestion-job" "setting up data-ingestion-job resources"
 # gen3 s3 create "$bucketname"
-gen3 awsuser create data-ingestion-bot
+# gen3 awsuser create data-ingestion-bot
 # gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name data-ingestion-bot
 gen3_log_info "initializing data-ingestion-job config.json"
 user=$(gen3 secrets decode data-ingestion-job-secret credentials.json)
