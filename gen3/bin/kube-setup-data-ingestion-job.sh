@@ -14,10 +14,11 @@ gen3 kube-setup-secrets
 
 mkdir -p $(gen3_secrets_folder)/g3auto/data-ingestion-job
 credsFile="$(gen3_secrets_folder)/g3auto/data-ingestion-job/config.json"
-
+echo "kube-setup-data-ingestion-job line 17"
 if (! (g3kubectl describe secret data-ingestion-job-secret 2> /dev/null | grep config.js > /dev/null 2>&1)) \
   && [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; 
 then
+  echo "kube-setup-data-ingestion-job line 21"
   gen3_log_info "kube-setup-data-ingestion-job" "setting up data-ingestion-job resources"
   # gen3 s3 create "$bucketname"
   gen3 awsuser create data-ingestion-bot
@@ -26,6 +27,8 @@ then
   user=$(gen3 secrets decode data-ingestion-job-secret awsusercreds.json)
   key_id=$(jq -r .id <<< $user)
   access_key=$(jq -r .secret <<< $user)
+  echo "kube-setup-data-ingestion-job line 30"
+  echo "$key_id"
   cat - > "$credsFile" <<EOM
 {
   "aws_access_key_id": "$key_id",
@@ -35,6 +38,7 @@ EOM
   gen3 secrets sync "initialize data-ingestion-job/config.json"
 fi
 
+echo "kube-setup-data-ingestion-job line 38"
 # gen3 roll data-ingestion-job
 # g3kubectl apply -f "${GEN3_HOME}/kube/services/data-ingestion-job/data-ingestion-job-service.yaml"
 gen3 runjob data-ingestion-job
