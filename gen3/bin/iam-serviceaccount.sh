@@ -507,14 +507,14 @@ while getopts "$OPTSPEC" optchar; do
           ACTION="c"
           SERVICE_ACCOUNT_NAME=${OPTARG#*=}
           ;;
-	list)
+        list)
           ACTION="l"
           SERVICE_ACCOUNT_NAME="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
-	  ;;
-	list=*)
+          ;;
+        list=*)
           ACTION="l"
           SERVICE_ACCOUNT_NAME=${OPTARG#*=}
-	  ;;
+          ;;
         namespace)
           NAMESPACE_SCRIPT="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
           ;;
@@ -523,7 +523,7 @@ while getopts "$OPTSPEC" optchar; do
           ;;
         policy)
           POLICY_SCRIPT="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
-	        ;;
+          ;;
         policy=*)
           POLICY_SCRIPT=${OPTARG#*=}
           ;;
