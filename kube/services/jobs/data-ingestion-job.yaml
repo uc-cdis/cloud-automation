@@ -54,10 +54,10 @@ spec:
               subPath: config
           env:
             - name: AWS_ACCESS_KEY_ID
-            valueFrom:
-              secretKeyRef:
-                name: data-ingestion-secret
-                key: aws_access_key_id
+              valueFrom:
+                secretKeyRef:
+                  name: data-ingestion-secret
+                  key: aws_access_key_id
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
