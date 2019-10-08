@@ -17,7 +17,7 @@ spec:
           secretName: indexd-creds
       - name: data-ingestion-secret
           secret:
-            secretName: "data-ingestion-secret"
+            secretName: data-ingestion-secret
       containers:
         # - name: fence
         #   image: quay.io/cdis/fence:master

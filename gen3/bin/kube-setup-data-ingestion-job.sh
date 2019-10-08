@@ -39,6 +39,6 @@ fi
 # g3kubectl apply -f "${GEN3_HOME}/kube/services/data-ingestion-job/data-ingestion-job-service.yaml"
 gen3 runjob data-ingestion-job
 
-cat <<EOM
-The data ingestion job has been deployed onto the k8s cluster.
-EOM
+# cat <<EOM
+# The data ingestion job has been deployed onto the k8s cluster.
+# EOM
