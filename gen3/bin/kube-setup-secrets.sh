@@ -123,13 +123,24 @@ fi
 echo 'data-ingestion-job part of kube-setup-secrets.sh'
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
   echo 'in dat if block'
+  cat "$(gen3_secrets_folder)/creds.json"
   cd "$(gen3_secrets_folder)"
   if ! g3kubectl get secret data-ingestion-job-secret > /dev/null 2>&1; then
     echo 'in da next if block'
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .dataingestionjob < creds.json > "$credsFile"
+    cat "$credsFile"
+    echo "${credsFile}"
     g3kubectl create secret generic data-ingestion-job-secret "--from-file=credentials.json=${credsFile}"
     echo 'created da secret'
+  fi
+fi
+
+if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
+  if ! g3kubectl get secrets/mailgun-creds > /dev/null 2>&1; then
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    jq -r '.mailgun' creds.json > "$credsFile"
+    g3kubectl create secret generic mailgun-creds "--from-file=creds.json=${credsFile}"
   fi
 fi
 
