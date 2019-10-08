@@ -47,25 +47,25 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 80
-          volumeMounts:
-            - name: "data-ingestion-job-secret"
-              readOnly: true
-              mountPath: "/.aws/config"
-              subPath: config
-          env:
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: data-ingestion-job-secret
-                  key: aws_access_key_id
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: data-ingestion-job-secret
-                  key: aws_secret_access_key
+          # env:
+          #   - name: AWS_ACCESS_KEY_ID
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: data-ingestion-job-secret
+          #         key: aws_access_key_id
+          #   - name: AWS_SECRET_ACCESS_KEY
+          #     valueFrom:
+          #       secretKeyRef:
+          #         name: data-ingestion-job-secret
+          #         key: aws_secret_access_key
           command: ["/bin/bash" ]
           args:
             - "-c"
             - |
               ./run.sh
+
+              ls
+              echo "i think run is completed"
+
+              ls ..
       restartPolicy: Never
