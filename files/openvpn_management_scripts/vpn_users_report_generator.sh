@@ -16,7 +16,7 @@ function print_header(){
   echo "<html>"
   echo "  <head>"
   echo "    <meta charset=\"UTF-8\">"
-  echo "      <title>csoc-prod-vpn.planx-pla.net user report</title>"
+  echo "      <title>$(hostname -s) users report</title>"
   echo "    </meta>"
   echo "    <style>thead {color:white;}
                    tbody {color:#4d4d4d;}
