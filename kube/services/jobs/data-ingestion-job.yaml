@@ -57,7 +57,6 @@ spec:
           args:
             - "-c"
             - |
-              sleep 2000
               ./run.sh
 
               ls
