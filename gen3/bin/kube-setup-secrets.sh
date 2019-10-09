@@ -120,19 +120,10 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
 fi
 
 # data-ingestion-job
-echo 'data-ingestion-job part of kube-setup-secrets.sh'
-if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
-  echo 'in dat if block'
-  cat "$(gen3_secrets_folder)/creds.json"
-  cd "$(gen3_secrets_folder)"
+if [[ -f "$(gen3_secrets_folder)/apis_configs/data_ingestion_job_config.json" ]]; then
+  cd "$(gen3_secrets_folder)/apis_configs"
   if ! g3kubectl get secret data-ingestion-job-secret > /dev/null 2>&1; then
-    echo 'in da next if block'
-    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    jq -r .dataingestionjob < creds.json > "$credsFile"
-    cat "$credsFile"
-    echo "${credsFile}"
-    g3kubectl create secret generic data-ingestion-job-secret "--from-file=credentials.json=${credsFile}"
-    echo 'created da secret'
+    g3kubectl create secret generic data-ingestion-job-secret "--from-file=config.json=data_ingestion_job_config.json"
   fi
 fi
 

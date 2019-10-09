@@ -22,30 +22,29 @@ gen3 kube-setup-secrets
 # hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
 # bucketname="manifest-${hostname//./-}"
 
-mkdir -p $(gen3_secrets_folder)/g3auto/data-ingestion-job
-credsFile="$(gen3_secrets_folder)/g3auto/data-ingestion-job/config.json"
+# mkdir -p $(gen3_secrets_folder)/g3auto/data-ingestion-job
+# credsFile="$(gen3_secrets_folder)/g3auto/data-ingestion-job/config.json"
 
-gen3_log_info "kube-setup-data-ingestion-job" "setting up data-ingestion-job resources"
-# gen3 s3 create "$bucketname"
+# gen3_log_info "kube-setup-data-ingestion-job" "setting up data-ingestion-job resources"
 # gen3 awsuser create data-ingestion-bot
 # gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name data-ingestion-bot
-gen3_log_info "initializing data-ingestion-job config.json"
-user=$(gen3 secrets decode data-ingestion-job-secret credentials.json)
-key_id=$(jq -r .aws_access_key_id <<< $user)
-access_key=$(jq -r .aws_secret_access_key <<< $user)
-echo "${user}"
-echo "kube-setup-data-ingestion-job line 30"
-echo "$key_id"
-echo "$credsFile"
-cat - > "$credsFile" <<EOM
-{
-  "aws_access_key_id": "$key_id",
-  "aws_secret_access_key": "$access_key"
-}
-EOM
-gen3 secrets sync "initialize data-ingestion-job/config.json"
+# gen3_log_info "initializing data-ingestion-job config.json"
+# user=$(gen3 secrets decode data-ingestion-job-secret credentials.json)
+# key_id=$(jq -r .aws_access_key_id <<< $user)
+# access_key=$(jq -r .aws_secret_access_key <<< $user)
+# echo "${user}"
+# echo "kube-setup-data-ingestion-job line 30"
+# echo "$key_id"
+# echo "$credsFile"
+# cat - > "$credsFile" <<EOM
+# {
+#   "aws_access_key_id": "$key_id",
+#   "aws_secret_access_key": "$access_key"
+# }
+# EOM
+# gen3 secrets sync "initialize data-ingestion-job/config.json"
 
-echo "kube-setup-data-ingestion-job line 38"
+# echo "kube-setup-data-ingestion-job line 38"
 # gen3 roll data-ingestion-job
 # g3kubectl apply -f "${GEN3_HOME}/kube/services/data-ingestion-job/data-ingestion-job-service.yaml"
 gen3 runjob data-ingestion-job
