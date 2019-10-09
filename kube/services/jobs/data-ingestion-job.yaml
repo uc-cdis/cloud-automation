@@ -57,10 +57,13 @@ spec:
           args:
             - "-c"
             - |
+              sleep 2000
               ./run.sh
 
               ls
               echo "i think run is completed"
 
               ls ..
+
+
       restartPolicy: Never
