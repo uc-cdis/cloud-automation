@@ -81,6 +81,40 @@ test_db_services() {
   (gen3 db services | grep peregrine > /dev/null); because $? "gen3 db services includes peregrine"
 }
 
+test_db_snapshot_list() {
+  local snapshotJson
+  snapshotJson="$(gen3 db snapshot list server1)"; because $? "gen3 db snapshot list server1 should work"
+  local snapCount
+  snapCount="$(jq -e -r '.DBSnapshots | length' <<<"$snapshotJson")"; 
+    because $? "snap list json has expected structure"
+  [[ "$snapCount" =~ ^[0-9]+$ && "$snapCount" -gt 0 ]]; because $? "server1 has at least 1 snapshot"
+}
+
+test_db_snapshot_take() {
+  gen3 db snapshot take server1 --dryrun; because $? "gen3 db snapshot take server1 should work"
+}
+
+test_db_backup_restore() {
+  local service
+  for service in indexd fence sheepdog; do
+    local backupFile="$(mktemp "$XDG_RUNTIME_DIR/$service.backup_XXXXXX")"
+    gen3 db backup $service > "$backupFile"; because $? "gen3 db backup $service should work"
+    local newCreds
+    local oldCreds
+    newCreds="$(gen3 db restore $service "$backupFile" 2> /dev/null)"; because $? "gen3 db restore $service should work"
+    /bin/rm "$backupFile"
+    oldCreds="$(gen3 db creds $service)"; because $? "gen3 db creds $service should work"
+    local newDb
+    local oldDb
+    newDb="$(jq -r -e .db_database <<< "$newCreds")"; because $? "$service new creds should include .db_database"
+    oldDb="$(jq -r -e .db_database <<< "$oldCreds")"; because $? "$service old creds should include .db_database"
+    [[ "$newDb" != "$oldDb" ]]; because $? "$service restore should create a new db: $newDb ?= $oldDb"
+    # cleanup
+    gen3 psql $service -c "DROP DATABASE $newDb;"
+  done
+}
+
+shunit_runtest "test_db_backup_restore" "db"
 shunit_runtest "test_db_init" "db"
 shunit_runtest "test_db_psql" "db"
 shunit_runtest "test_db_random_server" "db"
@@ -89,3 +123,5 @@ shunit_runtest "test_db_namespace" "db"
 shunit_runtest "test_db_create" "db"
 shunit_runtest "test_db_creds" "db"
 shunit_runtest "test_db_services" "db"
+shunit_runtest "test_db_snapshot_list" "db"
+shunit_runtest "test_db_snapshot_take" "db"
