@@ -4,12 +4,6 @@
 # This is an optional service that's not part of gen3 core services
 # It only needs to be deployed to DataSTAGE
 
-
-
-
-
-
-
 # source "${GEN3_HOME}/gen3/lib/utils.sh"
 # gen3_load "gen3/lib/kube-setup-init"
 
