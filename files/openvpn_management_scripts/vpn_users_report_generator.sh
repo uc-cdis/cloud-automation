@@ -2,11 +2,13 @@
 
 ##
 #
-# the purpose of this script is to create a report of users and their certificate expiration dated 
+# the purpose of this script is to create a report of users and their certificate expiration dates
 # for openvpn services running in CTDS.
-# It'll just create a static html file and put it in the folder of choice 
+# It'll just create a static html file and put it in the folder of choice, in which our defalt is
+# /var/www/qrcode/users_report.html. CTDS openvpn servers also run an http service we can use to
+# show the repot.
 #
-# This script is intended to be put on /etc/cron.daily and let is run daily
+# this script is intended to be put on /etc/cron.daily and let is run daily
 #
 ##
 
