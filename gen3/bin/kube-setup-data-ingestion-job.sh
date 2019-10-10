@@ -25,7 +25,7 @@ if [ $# -eq 1 ]
     
 fi
 
-g3kubectl create configmap phs-id-list --from-file=PHS_ID_LIST_PATH
+g3kubectl create configmap phs-id-list --from-file=$PHS_ID_LIST_PATH
 
 # hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
 # bucketname="manifest-${hostname//./-}"
