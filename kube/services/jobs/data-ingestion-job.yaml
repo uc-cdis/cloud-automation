@@ -9,15 +9,18 @@ spec:
         app: gen3job
     spec:
       volumes:
-      - name: config-volume
-        configMap:
-          name: manifest-global
-      - name: creds-volume
-        secret:
-          secretName: indexd-creds
+      # - name: config-volume
+      #   configMap:
+      #     name: manifest-global
       - name: data-ingestion-job-secret
         secret:
           secretName: data-ingestion-job-secret
+        - name: phs-id-list
+          configMap:
+            name: phs-id-list
+            items:
+              - key: 
+                path: phs-id-list.txt
       containers:
         # - name: fence
         #   image: quay.io/cdis/fence:master
@@ -53,6 +56,10 @@ spec:
                 secretKeyRef:
                   name: data-ingestion-job-secret
                   key: config.json
+          volumeMounts:
+          - name: phs-id-list
+            readOnly: true
+            mountPath: /phs-id-list
           command: ["/bin/bash" ]
           args:
             - "-c"
