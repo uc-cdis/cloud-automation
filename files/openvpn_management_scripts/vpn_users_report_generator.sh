@@ -1,5 +1,14 @@
 #!/bin/bash 
 
+##
+#
+# the purpose of this script is to create a report of users and their certificate expiration dated 
+# for openvpn services running in CTDS.
+# It'll just create a static html file and put it in the folder of choice 
+#
+# This script is intended to be put on /etc/cron.daily and let is run daily
+#
+##
 
 CERTS_PATH="/etc/openvpn/easy-rsa/keys/"
 USERS_FILE="/etc/openvpn/user_passwd.csv"
@@ -98,6 +107,13 @@ function get_body(){
 
 }
 
+function print_additional_information() {
+  echo "</br>"
+  echo "Last update: $(date)"
+  echo "</br>"
+}
+
+
 function print_footer() {
   echo "</html>"
 }
@@ -105,6 +121,7 @@ function print_footer() {
 function main() {
   print_header > ${REPOR_LOCA}
   print_body >> ${REPOR_LOCA}
+  print_additional_information >> ${REPOR_LOCA}
   print_footer >> ${REPOR_LOCA}
 }
 
