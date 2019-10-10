@@ -70,8 +70,11 @@ spec:
                 echo "Error: google groups generation script is not present."
               fi
 
-              echo "scripts/output:"
-              ls scripts/output
+              ls
+              pwd
+
+              echo "scripts/joindure/output:"
+              ls scripts/joindure/output
 
 
       restartPolicy: Never
