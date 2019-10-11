@@ -70,9 +70,6 @@ spec:
                 echo "Error: google groups generation script is not present."
               fi
 
-              ls
-              pwd
-
               echo "scripts/joindure/output:"
               ls scripts/joindure/output
 
