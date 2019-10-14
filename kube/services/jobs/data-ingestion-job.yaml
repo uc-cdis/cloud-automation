@@ -103,9 +103,16 @@ spec:
               echo 'inside fence image'
               ls /data-ingestion-pipeline-output
               
-              while [ (ls -1 /data-ingestion-pipeline-output | wc -l) -lt 3 ]; do
-                sleep 5s
+              while true; do
+                  files=( /data-ingestion-pipeline-output/* )
+                  (( ${#files[@]} < 3 )) && break
+                  sleep 5s
               done
+              
+
+              # while [ (ls -1 /data-ingestion-pipeline-output | wc -l) -lt 3 ]; do
+              #   sleep 5s
+              # done
 
               fence-create google-list-authz-groups
               ./google-groups.sh
