@@ -4,15 +4,18 @@
 # on the autoscaling group every 5 secs. Please note the VM in autoscaling group only goes Unhealthy/ or not available
 # only for a sort duration like 20-25 secs
 
+availablity_zone=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)                                                                                                                                                                                                                                                                                               
+region=$(echo ${availability_zone::-1}) 
+
 for i in {1..12}
 do
 timestamp=$(date)
 
 COMMONS_SQUID_AUTO_ROLE=$(sed -n -e '/VAR4/ s/.*\= *//p' /home/ubuntu/squid_auto_user_variable)
 
-count_stat1=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${COMMONS_SQUID_AUTO_ROLE}_autoscaling_grp --region us-east-1  --query AutoScalingGroups[].Instances[].HealthStatus --output text | grep -w Healthy | awk '{print NF}')
+count_stat1=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${COMMONS_SQUID_AUTO_ROLE}_autoscaling_grp --region ${region}  --query AutoScalingGroups[].Instances[].HealthStatus --output text | grep -w Healthy | awk '{print NF}')
 
-count_stat2=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${COMMONS_SQUID_AUTO_ROLE}_autoscaling_grp --region us-east-1  --query AutoScalingGroups[].Instances[].HealthStatus --output text | grep -w Unhealthy | awk '{print NF}')
+count_stat2=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${COMMONS_SQUID_AUTO_ROLE}_autoscaling_grp --region ${region}  --query AutoScalingGroups[].Instances[].HealthStatus --output text | grep -w Unhealthy | awk '{print NF}')
 
 
 

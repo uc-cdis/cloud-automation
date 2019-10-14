@@ -27,12 +27,12 @@ data "aws_vpcs" "vpcs" {
 
 # Since we need to access the internet through the proxy, let's find it
 
-data "aws_instances" "squid_proxy" {
-  instance_tags {
+#data "aws_instances" "squid_proxy" {
+#  instance_tags {
     #Name = "${var.vpc_name} HTTP Proxy"
-    Name = "${var.vpc_name}${var.proxy_name}"
-  }
-}
+#    Name = "${var.vpc_name}${var.proxy_name}"
+#  }
+#}
 
 
 # Also we want to access AWS stuff directly though an existing 

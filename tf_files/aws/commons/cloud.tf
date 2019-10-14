@@ -22,7 +22,7 @@ module "cdis_vpc" {
   #peering_cidr                   = "${data.aws_vpc.csoc_vpc.cidr_block}" #"${var.peering_cidr}"
   peering_cidr                   = "${var.peering_cidr}"
   csoc_account_id                = "${var.csoc_account_id}"
-  squid-nlb-endpointservice-name = "${var.squid-nlb-endpointservice-name}"
+  #squid-nlb-endpointservice-name = "${var.squid-nlb-endpointservice-name}"
   organization_name              = "${var.organization_name}"
 
   csoc_managed                   = "${var.csoc_managed}"
@@ -109,10 +109,10 @@ resource "aws_vpc_endpoint" "k8s-s3" {
 resource "aws_route_table" "private_kube" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
 
-  route {
-    cidr_block                = "0.0.0.0/0"
-    instance_id               = "${module.cdis_vpc.proxy_id}"
-  }
+#  route {
+#    cidr_block                = "0.0.0.0/0"
+#    instance_id               = "${module.cdis_vpc.proxy_id}"
+#  }
 
   route {
     # cloudwatch logs route
