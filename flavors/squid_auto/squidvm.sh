@@ -3,7 +3,7 @@
 SUB_FOLDER="/home/ubuntu/cloud-automation/"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 AVAILABILITY_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
-REGION=$(echo ${availability_zone::-1})
+REGION=$(echo ${AVAILABILITY_ZONE::-1})
 
 
 if [ $# -eq 0 ]
