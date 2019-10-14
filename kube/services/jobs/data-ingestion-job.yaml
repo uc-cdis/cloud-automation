@@ -10,14 +10,14 @@ spec:
     spec:
       restartPolicy: Never
       volumes:
-        - name: shared-data
-          emptyDir: {}
-        - name: data-ingestion-job-secret
-          secret:
-            secretName: data-ingestion-job-secret
-        - name: phs-id-list
-          configMap:
-            name: phs-id-list
+      - name: shared-data
+        emptyDir: {}
+      - name: data-ingestion-job-secret
+        secret:
+          secretName: data-ingestion-job-secret
+      - name: phs-id-list
+        configMap:
+          name: phs-id-list
       containers:
         - name: data-ingestion-pipeline
           image: quay.io/cdis/datastage-data-ingestion:feat_data-ingestion-pipeline
