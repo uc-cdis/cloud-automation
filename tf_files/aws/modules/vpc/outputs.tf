@@ -1,13 +1,13 @@
 
 
 
-output "login_ami_id" {
-  value = "${aws_ami_copy.login_ami.id}"
-}
+#output "login_ami_id" {
+#  value = "${aws_ami_copy.login_ami.id}"
+#}
 
-output "proxy_id" {
-  value = "${module.squid_proxy.squid_id}"
-}
+#output "proxy_id" {
+#  value = "${module.squid_proxy.squid_id}"
+#}
 
 output "zone_zid" {
   value = "${aws_route53_zone.main.zone_id}"
@@ -37,9 +37,9 @@ output "gateway_id" {
   value = "${aws_internet_gateway.gw.id}"
 }
 
-output "logging_profile_name" {
-  value = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
-}
+#output "logging_profile_name" {
+#  value = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+#}
 
 output "public_subnet_id" {
   value = "${aws_subnet.public.id}"

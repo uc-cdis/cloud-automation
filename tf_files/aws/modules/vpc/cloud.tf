@@ -1,20 +1,37 @@
-module "squid_proxy" {
-  source               = "../squid"
-  #csoc_cidr            = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}" #"${data.aws_vpc.csoc_vpc.cidr_block}"
+#module "squid_proxy" {
+#  source               = "../squid"
+#  csoc_cidr            = "${var.peering_cidr}"
+#  env_vpc_name         = "${var.vpc_name}"
+#  env_public_subnet_id = "${aws_subnet.public.id}"
+#  env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
+#  env_vpc_id           = "${aws_vpc.main.id}"
+#  env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+#  env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
+#  ssh_key_name         = "${var.ssh_key_name}"
+#}
+
+/*
+module "squid_auto" {
+  source              = "../squid_auto"
   csoc_cidr            = "${var.peering_cidr}"
   env_vpc_name         = "${var.vpc_name}"
   env_public_subnet_id = "${aws_subnet.public.id}"
   env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
   env_vpc_id           = "${aws_vpc.main.id}"
-  ssh_key_name         = "${var.ssh_key_name}"
   env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
   env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
+  env_squid_name       = "${var.vpc_name}_squid_auto"
+  squid_proxy_subnet   = "192.168.145.0/24"
+  organization_name    = "${var.organization_name}"
+  ssh_key_name         = "${var.ssh_key_name}"
+   
+  image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 }
-
+*/
+  
 module "data-bucket" {
   source               = "../upload-data-bucket"
   vpc_name             = "${var.vpc_name}"
-#  cloudwatchlogs_group = "${module.cdis_vpc.cwlogs}"
   cloudwatchlogs_group = "${aws_cloudwatch_log_group.main_log_group.arn}"
   environment          = "${var.vpc_name}"
 }
@@ -26,7 +43,6 @@ module "fence-bot-user" {
 }
 
 resource "aws_vpc" "main" {
-  #cidr_block           = "172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"
   cidr_block           = "${var.vpc_cidr_block}"
   enable_dns_hostnames = true
 
@@ -44,14 +60,6 @@ resource "aws_vpc" "main" {
 data "aws_vpc_endpoint_service" "s3" {
   service = "s3"
 }
-
-#resource "aws_vpc_endpoint" "private-s3" {
-#  vpc_id = "${aws_vpc.main.id}"
-
-  #service_name = "com.amazonaws.us-east-1.s3"
-#  service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
-#  route_table_ids = ["${aws_route_table.private_user.id}"]
-#}
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.main.id}"
@@ -82,7 +90,6 @@ resource "aws_route_table" "public" {
 
   route {
     #from the commons vpc to the csoc vpc via the peering connection
-    #cidr_block                = "${var.csoc_cidr}"
     cidr_block                = "${var.peering_cidr}"
     vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
   }
@@ -95,45 +102,10 @@ resource "aws_route_table" "public" {
 }
 
 
-#resource "aws_route" "peering_route_public" {
-#  count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
-#  route_table_id            = "${aws_route_table.public.id}"
-  #destination_cidr_block    = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}" #"${data.aws_vpc.csoc_vpc.cidr_block}"
-#  destination_cidr_block    = "${var.peering_cidr}"
-#  vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
-#  depends_on                = ["aws_route_table.public"]
-#}
-
 resource "aws_eip" "nat_gw" {
   vpc = true
 }
 
-#resource "aws_route_table" "private_user" {
-#  vpc_id = "${aws_vpc.main.id}"
-
-#  route {
-#    cidr_block  = "0.0.0.0/0"
-#    instance_id = "${module.squid_proxy.squid_id}"
-#  }
-
-#  route {
-    # cloudwatch logs route
-#    cidr_block     = "54.224.0.0/12"
-#    nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
-#  }
-
-#  route {
-    #from the commons vpc to the csoc vpc via the peering connection
-#    cidr_block                = "${var.csoc_cidr}"
-#    vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
-#  }
-
-#  tags {
-#    Name         = "private_user"
-#    Environment  = "${var.vpc_name}"
-#    Organization = "Basic Service"
-#  }
-#}
 
 resource "aws_default_route_table" "default" {
   default_route_table_id = "${aws_vpc.main.default_route_table_id}"
@@ -149,16 +121,6 @@ resource "aws_default_route_table" "default" {
   }
 }
 
-#resource "aws_route" "peering_route_default" {
-#  count                     = "${var.csoc_managed == "yes" ? 1 : 0}"
-#  route_table_id            = "${aws_default_route_table.default.id}"
-  #destination_cidr_block    = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}" #"${data.aws_vpc.csoc_vpc.cidr_block}"
-#  destination_cidr_block    = "${var.peering_cidr}"
-#  vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
-#  depends_on                = ["aws_default_route_table.default"]
-#}
-
-
 resource "aws_main_route_table_association" "default" {
   vpc_id         = "${aws_vpc.main.id}"
   route_table_id = "${aws_default_route_table.default.id}"
@@ -169,10 +131,6 @@ resource "aws_route_table_association" "public" {
   route_table_id = "${aws_route_table.public.id}"
 }
 
-#resource "aws_route_table_association" "private_user" {
-#  subnet_id      = "${aws_subnet.private_user.id}"
-#  route_table_id = "${aws_route_table.private_user.id}"
-#}
 
 resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.main.id}"
@@ -190,26 +148,6 @@ resource "aws_subnet" "public" {
     ignore_changes = ["tags", "availability_zone"]
   }
 }
-
-#resource "aws_subnet" "private_user" {
-#  vpc_id                  = "${aws_vpc.main.id}"
-#  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 1}.0/24"
-#  map_public_ip_on_launch = false
-
-  # kube_ subnets are in availability zone [0], so put this in [1]
-#  availability_zone = "${data.aws_availability_zones.available.names[1]}"
-
-#  tags {
-#    Name         = "private_user"
-#    Environment  = "${var.vpc_name}"
-#    Organization = "Basic Service"
-#  }
-
-#  lifecycle {
-    # allow user to change tags interactively - ex - new kube-aws cluster
-#    ignore_changes = ["tags", "availability_zone"]
-#  }
-#}
 
 #
 # The need is to keep logs for no longer than 5 years so 
@@ -257,6 +195,7 @@ data "aws_ami" "public_login_ami" {
 # tf_files/aws/user-vpc and tf_files/aws/commons.
 # It's handy to have the encrypted AMI ready to use in a VPC I think.
 #
+/*
 resource "aws_ami_copy" "login_ami" {
   name              = "ub16-client-crypt-${var.vpc_name}-1.0.2"
   description       = "A copy of ubuntu16-client-1.0.2"
@@ -277,7 +216,9 @@ resource "aws_ami_copy" "login_ami" {
     ignore_changes = ["source_ami_id"]
   }
 }
+*/
 
+/*
 resource "aws_iam_role" "cluster_logging_cloudwatch" {
   name = "${var.vpc_name}_cluster_logging_cloudwatch"
   path = "/"
@@ -313,6 +254,7 @@ resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
   name = "${var.vpc_name}_cluster_logging_cloudwatch"
   role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
 }
+*/
 
 resource "aws_route53_zone" "main" {
   name    = "internal.io"
@@ -328,13 +270,13 @@ resource "aws_route53_zone" "main" {
   }
 }
 
-resource "aws_route53_record" "squid" {
-  zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "cloud-proxy"
-  type    = "A"
-  ttl     = "300"
-  records = ["${module.squid_proxy.squid_private_ip}"]
-}
+#resource "aws_route53_record" "squid" {
+#  zone_id = "${aws_route53_zone.main.zone_id}"
+#  name    = "cloud-proxy"
+#  type    = "A"
+#  ttl     = "300"
+#  records = ["${module.squid_proxy.squid_private_ip}"]
+#}
 
 # this is for vpc peering
 resource "aws_vpc_peering_connection" "vpcpeering" {
@@ -367,9 +309,6 @@ data "aws_route_tables" "control_routing_table" {
 
 resource "aws_route" "default_csoc" {
   count = "${var.csoc_managed == "yes" ? 0 : 1}"
-  #count                     = "${length(data.aws_route_tables.control_routing_table.ids)}"
-  #count                     = "${var.csoc_managed == "yes" ? 0 : length(data.aws_route_tables.control_routing_table.ids)}"
-  #route_table_id            = "${var.csoc_managed == "yes" ? "" : data.aws_route_tables.control_routing_table.ids[count.index]}"
   route_table_id            = "${data.aws_route_tables.control_routing_table.ids[count.index]}"
   destination_cidr_block    = "${var.vpc_cidr_block}"
   vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
