@@ -4,7 +4,7 @@
 # on the autoscaling group every 5 secs. Please note the VM in autoscaling group only goes Unhealthy/ or not available
 # only for a sort duration like 20-25 secs
 
-availablity_zone=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)                                                                                                                                                                                                                                                                                               
+availability_zone=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)                                                                                                                                                                                                                                                                                               
 region=$(echo ${availability_zone::-1}) 
 
 for i in {1..12}

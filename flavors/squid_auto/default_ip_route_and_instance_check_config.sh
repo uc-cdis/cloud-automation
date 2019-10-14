@@ -7,7 +7,7 @@ instance_ip=$(ip -f inet -o addr show $server_int|cut -d\  -f 7 | cut -d/ -f 1)
 route_table_id1=$(sed -n -e '/VAR2/ s/.*\= *//p' /home/ubuntu/squid_auto_user_variable)
 route_table_id2=$(sed -n -e '/VAR3/ s/.*\= *//p' /home/ubuntu/squid_auto_user_variable)
 
-availablity_zone=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
+availability_zone=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
 region=$(echo ${availability_zone::-1})
 
 squid_auto_interface_id=$(aws ec2 describe-instances  --filters "Name=network-interface.addresses.private-ip-address,Values=$instance_ip" --query 'Reservations[*].Instances[*].{ID:NetworkInterfaces[0].NetworkInterfaceId}' --region ${region} --output text)
