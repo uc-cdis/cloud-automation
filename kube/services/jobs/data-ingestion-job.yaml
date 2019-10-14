@@ -105,12 +105,14 @@ spec:
               
               while true; do
                   files=( /data-ingestion-pipeline-output/* )
-                  (( ${#files[@]} < 3 )) && break
+                  (( ${#files[@]} >= 3 )) && break
                   sleep 5s
               done
-              
+              echo 'line 111'
+
               ls /data-ingestion-pipeline-output/
 
+              echo 'line 115'
               # while [ (ls -1 /data-ingestion-pipeline-output | wc -l) -lt 3 ]; do
               #   sleep 5s
               # done
