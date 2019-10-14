@@ -219,8 +219,8 @@ cd /home/ubuntu/cloud-automation
 git pull
 
 # This is needed temporarily for testing purposes ; before merging the code to master
-#git checkout fix/squidauto_rolechange
-#git pull
+git checkout feat/ha-squid
+git pull
 
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
