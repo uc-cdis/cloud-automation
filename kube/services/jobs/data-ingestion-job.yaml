@@ -109,6 +109,7 @@ spec:
                   sleep 5s
               done
               
+              ls /data-ingestion-pipeline-output/
 
               # while [ (ls -1 /data-ingestion-pipeline-output | wc -l) -lt 3 ]; do
               #   sleep 5s
