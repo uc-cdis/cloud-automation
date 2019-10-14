@@ -30,7 +30,6 @@ spec:
         - name: config-helper
           configMap:
             name: config-helper
-# -----------------------------------------------------------------------------
         - name: config-volume
           secret:
             secretName: "fence-config"
@@ -64,9 +63,9 @@ spec:
             - |
               ./run.sh
 
-              if [ -f "scripts/google-groups.sh" ]; then
+              if [ -f "scripts/joindure/output/google-groups.sh" ]; then
                   echo "google-groups.sh contains:"
-                  cat scripts/google-groups.sh
+                  cat scripts/joindure/output/google-groups.sh
               else
                 echo "Error: google groups generation script is not present."
               fi
