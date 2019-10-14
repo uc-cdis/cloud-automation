@@ -2,12 +2,29 @@
 
 SUB_FOLDER="/home/ubuntu/cloud-automation/"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
+AVAILABILITY_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
+REGION=$(echo ${availability_zone::-1})
 
+
+if [ $# -eq 0 ]
+  then
+    echo "No arguments supplied"
+else
+    #OIFS=$IFS
+    IFS=';' read -ra ADDR <<< "$1"
+    for i in "${ADDR[@]}"; do
+      if [[ $i = *"cwl_group"* ]];
+      then
+        CWL_GROUP="$(echo ${i} | cut -d= -f2)"
+      fi
+    done
+    echo $1
+fi
 
 
 cd /home/ubuntu
 sudo apt-get update
-sudo apt-get install -y build-essential wget libssl-dev
+sudo apt-get install -y build-essential wget libssl1.0-dev
 wget http://www.squid-cache.org/Versions/v4/squid-4.0.24.tar.xz
 tar -xJf squid-4.0.24.tar.xz
 mkdir squid-build
@@ -83,7 +100,7 @@ sudo mkdir -p /home/ubuntu/.aws
 sudo cat <<EOT  >> /home/ubuntu/.aws/config
 [default]
 output = json
-region = us-east-1
+region = ${REGION}
 role_session_name = gen3-squidautovm
 role_arn = arn:aws:iam::${ACCOUNT_ID}:role/${COMMONS_SQUID_AUTO_ROLE}_role
 credential_source = Ec2InstanceMetadata
@@ -110,19 +127,19 @@ server_int=$(route | grep '^default' | grep -o '[^ ]*$')
 instance_ip=$(ip -f inet -o addr show $server_int|cut -d\  -f 7 | cut -d/ -f 1)
 IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
 
-sed -i 's/SERVER/http_proxy-auth-'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
-sed -i 's/VPC/'$($HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/SERVER/http_proxy-auth-'${HOSTNAME}'/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/VPC/'${CWL_GROUP}'/g' /var/awslogs/etc/awslogs.conf
 cat >> /var/awslogs/etc/awslogs.conf <<EOM
 [syslog]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog
-log_stream_name = http_proxy-syslog-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
+log_stream_name = http_proxy-syslog-${HOSTNAME}-$ip1 _$ip2 _$ip3 _$ip4
 time_zone = LOCAL
-log_group_name = $($HOSTNAME)_log_group
+log_group_name = ${CWL_GROUP}
 [squid/access.log]
 file = /var/log/squid/access.log*
-log_stream_name = http_proxy-squid_access-$($HOSTNAME)-$ip1 _$ip2 _$ip3 _$ip4
-log_group_name = $($HOSTNAME)_log_group
+log_stream_name = http_proxy-squid_access-${HOSTNAME}-$ip1 _$ip2 _$ip3 _$ip4
+log_group_name = ${HOSTNAME}_log_group
 EOM
 
 chmod 755 /etc/init.d/awslogs

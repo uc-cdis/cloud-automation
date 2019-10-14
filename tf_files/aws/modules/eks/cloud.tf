@@ -2,32 +2,44 @@
 #
 # Module to create a new EKS cluster for an existing commons
 #
-# fauzi@uchicago.edu
-#
 #####
+
+module "squid-auto" {
+  source                     = "../squid_auto"
+  csoc_cidr                  = "${var.peering_cidr}"
+  env_vpc_name               = "${var.vpc_name}"
+#  env_public_subnet_id       = "${data.aws_vpc.the_vpc.id}"
+  env_vpc_cidr               = "${data.aws_vpc.the_vpc.cidr_block}"
+  env_vpc_id                 = "${data.aws_vpc.the_vpc.id}"
+  #env_instance_profile       = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+  env_log_group              = "${var.vpc_name}" #"${aws_cloudwatch_log_group.main_log_group.name}"
+  env_squid_name             = "${var.vpc_name}_squid_auto"
+  eks_private_route_table_id = "${aws_route_table.eks_private.id}"
+  squid_proxy_subnet         = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , 1 )}"
+  organization_name          = "${var.organization_name}"
+  ssh_key_name               = "${var.vpc_name}_automation_dev"
+  image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
+}
 
 
 module "jupyter_pool" {
-  source                    = "../eks-nodepool/"
-  ec2_keyname               = "${var.ec2_keyname}"
-  users_policy              = "${var.users_policy}"
-  nodepool                  = "jupyter"
-  vpc_name                  = "${var.vpc_name}"
-  #csoc_cidr                 = "${var.csoc_cidr}"
-  #csoc_cidr                 = "${data.aws_vpc.peering_vpc.cidr_block}"
-  csoc_cidr                 = "${var.peering_cidr}"
-  eks_cluster_endpoint      = "${aws_eks_cluster.eks_cluster.endpoint}"
-  eks_cluster_ca            = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
-  eks_private_subnets       = "${aws_subnet.eks_private.*.id}"
-  control_plane_sg          = "${aws_security_group.eks_control_plane_sg.id}"
-  default_nodepool_sg       = "${aws_security_group.eks_nodes_sg.id}"
-  #deploy_jupyter_pool       = "${var.deploy_jupyter_pool}"
-  eks_version               = "${var.eks_version}"
-  jupyter_instance_type     = "${var.jupyter_instance_type}"
-  kernel                    = "${var.kernel}"
-  bootstrap_script          = "${var.jupyter_bootstrap_script}"
-  jupyter_worker_drive_size = "${var.jupyter_worker_drive_size}"
-  organization_name         = "${var.organization_name}"
+  source                       = "../eks-nodepool/"
+  ec2_keyname                  = "${var.ec2_keyname}"
+  users_policy                 = "${var.users_policy}"
+  nodepool                     = "jupyter"
+  vpc_name                     = "${var.vpc_name}"
+  csoc_cidr                    = "${var.peering_cidr}"
+  eks_cluster_endpoint         = "${aws_eks_cluster.eks_cluster.endpoint}"
+  eks_cluster_ca               = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+  eks_private_subnets          = "${aws_subnet.eks_private.*.id}"
+  control_plane_sg             = "${aws_security_group.eks_control_plane_sg.id}"
+  default_nodepool_sg          = "${aws_security_group.eks_nodes_sg.id}"
+  eks_version                  = "${var.eks_version}"
+  jupyter_instance_type        = "${var.jupyter_instance_type}"
+  kernel                       = "${var.kernel}"
+  bootstrap_script             = "${var.jupyter_bootstrap_script}"
+  jupyter_worker_drive_size    = "${var.jupyter_worker_drive_size}"
+  organization_name            = "${var.organization_name}"
   jupyter_asg_desired_capacity = "${var.jupyter_asg_desired_capacity}"
   jupyter_asg_max_size         = "${var.jupyter_asg_max_size}" 
   jupyter_asg_min_size         = "${var.jupyter_asg_min_size}" 
@@ -93,7 +105,6 @@ resource "random_shuffle" "az" {
 
 # The subnet where our cluster will live in
 resource "aws_subnet" "eks_private" {
-  #count = 3
   count                   = "${random_shuffle.az.result_count}"
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   cidr_block              = "${var.workers_subnet_size == 23 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 3 , ( 2 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index )) }"
@@ -173,10 +184,10 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
 resource "aws_route_table" "eks_private" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
 
-  route {
-    cidr_block  = "0.0.0.0/0"
-    instance_id = "${data.aws_instances.squid_proxy.ids[0]}"
-  }
+#  route {
+#    cidr_block  = "0.0.0.0/0"
+#    instance_id = "${data.aws_instances.squid_proxy.ids[0]}"
+#  }
 
   # We want to be able to talk to aws freely, therefore we are allowing
   # certain stuff overpass the proxy
@@ -230,22 +241,8 @@ resource "aws_route" "skip_proxy" {
 }
 
 
-# Apparently we cannot iterate over the resource, therefore I am querying them after creation
-#data "aws_subnet_ids" "private" {
-#  vpc_id = "${data.aws_vpc.the_vpc.id}"
-#  tags {
-#    Name = "eks_private_*"
-#  }
-#  depends_on = [
-#    "aws_subnet.eks_private",
-#  ]
-#}
-
-
 resource "aws_route_table_association" "private_kube" {
-  #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  #subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
   subnet_id      = "${aws_subnet.eks_private.*.id[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   lifecycle {
@@ -274,9 +271,7 @@ resource "aws_vpc_endpoint" "k8s-logs" {
   ]
 
   private_dns_enabled = true
-  #subnet_ids          = ["${data.aws_subnet_ids.private.ids}"]
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  #route_table_ids    = ["${aws_route_table.eks_private.id}"]
   lifecycle {
     #ignore_changes = ["subnet_ids"]
   }
@@ -299,23 +294,8 @@ resource "aws_security_group" "eks_control_plane_sg" {
 
 
 
-
-# Apparently we cannot iterate over the resource, therefore I am querying them after creation
-#data "aws_subnet_ids" "public_kube" {
-#  vpc_id = "${data.aws_vpc.the_vpc.id}"
-#  tags {
-#    Name = "eks_public_*"
-#  }
-#  depends_on = [
-#    "aws_subnet.eks_public",
-#  ]
-#}
-
-
 resource "aws_route_table_association" "public_kube" {
-  #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  #subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
   subnet_id      = "${aws_subnet.eks_public.*.id[count.index]}"
   route_table_id = "${data.aws_route_table.public_kube.id}"
 

@@ -7,8 +7,6 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
-    #cidr_blocks = ["${var.vpc_cidr_block}", "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"]
     cidr_blocks = ["${var.vpc_cidr_block}", "${var.peering_cidr}"]
   }
 
@@ -18,13 +16,12 @@ resource "aws_security_group" "local" {
     protocol  = "-1"
 
     # 54.224.0.0/12 logs.us-east-1.amazonaws.com
-    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "54.224.0.0/12"]
     cidr_blocks = ["${var.vpc_cidr_block}", "54.224.0.0/12"]
   }
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -37,8 +34,6 @@ resource "aws_security_group" "webservice" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
-    #cidr_blocks = ["${var.vpc_cidr_block}", "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"]
     cidr_blocks = ["${var.vpc_cidr_block}", "${var.peering_cidr}"]
   }
 
@@ -46,7 +41,6 @@ resource "aws_security_group" "webservice" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20"]
     cidr_blocks = ["${var.vpc_cidr_block}"]
   }
 
@@ -66,7 +60,7 @@ resource "aws_security_group" "webservice" {
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -84,7 +78,7 @@ resource "aws_security_group" "out" {
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -97,13 +91,11 @@ resource "aws_security_group" "proxy" {
     from_port   = 0
     to_port     = 3128
     protocol    = "TCP"
-    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
-    #cidr_blocks = ["${var.vpc_cidr_block}", "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"]
     cidr_blocks = ["${var.vpc_cidr_block}", "${var.peering_cidr}"]
   }
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
