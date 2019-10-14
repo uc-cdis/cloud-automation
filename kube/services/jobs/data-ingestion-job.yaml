@@ -118,6 +118,7 @@ spec:
               # done
 
               fence-create google-list-authz-groups
-              ./google-groups.sh
+              # TODO: uncomment this line
+              # ./google-groups.sh
 
 
