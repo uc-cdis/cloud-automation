@@ -160,11 +160,17 @@ resource "aws_vpc_endpoint" "ec2" {
   service_name = "com.amazonaws.us-east-1.ec2"
   vpc_endpoint_type = "Interface"
   security_group_ids  = [
-    "${aws_security_group.eks_nodes_sg.id}"
+    "${data.aws_security_group.local_traffic.id"
   ]
+    #"${aws_security_group.eks_nodes_sg.id}"
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  tags {
+    Name         = "to ec2"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 }
 
 
@@ -174,11 +180,17 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
   vpc_endpoint_type = "Interface"
 
   security_group_ids  = [
-    "${aws_security_group.eks_nodes_sg.id}"
+    "${data.aws_security_group.local_traffic.id"
   ]
+    #"${aws_security_group.eks_nodes_sg.id}"
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  tags {
+    Name         = "to ecr"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 }
 
 resource "aws_route_table" "eks_private" {
@@ -196,27 +208,10 @@ resource "aws_route_table" "eks_private" {
     cidr_block     = "52.0.0.0/8"
     nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
   }
-  #route {
-    # logs.us-east-1.amazonaws.com as well, these guys are not static, therefore whitelist the whole list
-  #  cidr_block     = "54.0.0.0/8"
-  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  #}
-  #route {
-    # .us-east-1.eks.amazonaws.com
-  #  cidr_block     = "34.192.0.0/10"
-  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  #}
 
-  #route {
-    # also eks service
-  #  cidr_block     = "18.128.0.0/9"
-  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  #}
 
   route {
     #from the commons vpc to the csoc vpc via the peering connection
-    #cidr_block                = "${var.csoc_cidr}"
-    #cidr_block                = "${data.aws_vpc.peering_vpc.cidr_block}"
     cidr_block                = "${var.peering_cidr}"
     vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
   }
@@ -257,7 +252,13 @@ resource "aws_route_table_association" "private_kube" {
 resource "aws_vpc_endpoint" "k8s-s3" {
   vpc_id          =  "${data.aws_vpc.the_vpc.id}"
   service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
-  route_table_ids = ["${aws_route_table.eks_private.id}"]
+ # route_table_ids = ["${aws_route_table.eks_private.id}"]
+  route_table_ids = ["${data.aws_route_table.public_kube.id}"]
+  tags {
+    Name         = "to s3"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 }
 
 # Cloudwatch logs endpoint
@@ -267,13 +268,19 @@ resource "aws_vpc_endpoint" "k8s-logs" {
   vpc_endpoint_type   = "Interface"
 
   security_group_ids  = [
-    "${aws_security_group.eks_nodes_sg.id}"
+    "${data.aws_security_group.local_traffic.id"
   ]
+    #"${aws_security_group.eks_nodes_sg.id}"
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
   lifecycle {
     #ignore_changes = ["subnet_ids"]
+  }
+  tags {
+    Name         = "to cloudwatch logs"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
   }
 }
 

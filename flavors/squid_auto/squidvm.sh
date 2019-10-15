@@ -127,20 +127,20 @@ server_int=$(route | grep '^default' | grep -o '[^ ]*$')
 instance_ip=$(ip -f inet -o addr show $server_int|cut -d\  -f 7 | cut -d/ -f 1)
 IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
 
-sed -i 's/SERVER/http_proxy-auth-'$(HOSTNAME)'/g' /var/awslogs/etc/awslogs.conf
+sed -i 's/SERVER/http_proxy-auth-'$(${HOSTNAME})'/g' /var/awslogs/etc/awslogs.conf
 sed -i 's/VPC/'${CWL_GROUP}'/g' /var/awslogs/etc/awslogs.conf
 cat >> /var/awslogs/etc/awslogs.conf <<EOM
 
 [syslog]
 datetime_format = %b %d %H:%M:%S
 file = /var/log/syslog
-log_stream_name = http_proxy-syslog-$(HOSTNAME)-${ip1}_${ip2}_${ip3}_$ip4
+log_stream_name = http_proxy-syslog-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_$ip4
 time_zone = LOCAL
 log_group_name = ${CWL_GROUP}
 [squid/access.log]
 file = /var/log/squid/access.log*
-log_stream_name = http_proxy-squid_access-$(HOSTNAME)-${ip1}_${ip2}_${ip3}_${ip4}
-log_group_name = $(HOSTNAME)_log_group
+log_stream_name = http_proxy-squid_access-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_${ip4}
+log_group_name = $(${HOSTNAME})_log_group
 EOM
 
 chmod 755 /etc/init.d/awslogs
