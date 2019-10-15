@@ -41,8 +41,8 @@ module "jupyter_pool" {
   jupyter_worker_drive_size    = "${var.jupyter_worker_drive_size}"
   organization_name            = "${var.organization_name}"
   jupyter_asg_desired_capacity = "${var.jupyter_asg_desired_capacity}"
-  jupyter_asg_max_size         = "${var.jupyter_asg_max_size}" 
-  jupyter_asg_min_size         = "${var.jupyter_asg_min_size}" 
+  jupyter_asg_max_size         = "${var.jupyter_asg_max_size}"
+  jupyter_asg_min_size         = "${var.jupyter_asg_min_size}"
 }
 
 
@@ -95,7 +95,8 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
 ####
 resource "random_shuffle" "az" {
 #  input = ["${data.aws_availability_zones.available.names}"]
-  input = ["us-east-1a", "us-east-1c", "us-east-1d"]
+#  input = ["us-east-1a", "us-east-1c", "us-east-1d"]
+  input = "${data.aws_region.current.name == "us-east-1" ? var.availablity_zones : data.aws_availability_zones.available.names}}"
   result_count = 3
   count = 1
 }
