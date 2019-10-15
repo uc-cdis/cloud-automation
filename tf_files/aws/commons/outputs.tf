@@ -75,7 +75,7 @@ data "template_file" "cluster" {
     subnet_id            = "${aws_subnet.private_kube.id}"
     subnet_cidr          = "${aws_subnet.private_kube.cidr_block}"
     subnet_zone          = "${aws_subnet.private_kube.availability_zone}"
-    security_group_id    = "${aws_security_group.kube-worker.id}"
+#    security_group_id    = "${aws_security_group.kube-worker.id}"
     kube_additional_keys = "${var.kube_additional_keys}"
     hosted_zone          = "${module.cdis_vpc.zone_id}"
     s3_bucket            = "${aws_s3_bucket.kube_bucket.id}"
