@@ -111,7 +111,7 @@ resource "aws_route_table" "private_kube" {
 #    cidr_block                = "0.0.0.0/0"
 #    instance_id               = "${module.cdis_vpc.proxy_id}"
 #  }
-
+/*
   route {
     # cloudwatch logs route
     cidr_block                = "54.224.0.0/12"
@@ -123,12 +123,27 @@ resource "aws_route_table" "private_kube" {
     cidr_block                  = "${var.peering_cidr}"
     vpc_peering_connection_id   = "${module.cdis_vpc.vpc_peering_id}"
   }
-
+*/
   tags {
     Name                      = "private_kube"
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
+}
+
+resource "aws_route" "to_aws" {
+  route_table_id            = "${aws_route_table.private_kube.id}"
+  destination_cidr_block    = "54.224.0.0/12"
+  nat_gateway_id            = "${module.cdis_vpc.nat_gw_id}"
+  depends_on                = ["aws_route_table.private_kube"]
+}
+
+
+resource "aws_route" "for_peering" {
+  route_table_id            = "${aws_route_table.private_kube.id}"
+  destination_cidr_block    = "${var.peering_cidr}"
+  vpc_peering_connection_id = "${module.cdis_vpc.vpc_peering_id}"
+  depends_on                = ["aws_route_table.private_kube"]
 }
 
 resource "aws_route_table_association" "private_kube" {
