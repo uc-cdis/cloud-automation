@@ -16,15 +16,18 @@ resource "aws_security_group" "local" {
     protocol  = "-1"
 
     # 54.224.0.0/12 logs.us-east-1.amazonaws.com
-    cidr_blocks = ["${var.vpc_cidr_block}", "54.224.0.0/12"]
+    #cidr_blocks = ["${var.vpc_cidr_block}", "54.224.0.0/12"]
+    cidr_blocks = ["${var.vpc_cidr_block}"]
   }
 
   tags {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
+    Name         = "${var.vpc_name}-local-sec-group"
   }
 }
 
+/*
 resource "aws_security_group" "webservice" {
   name        = "webservice"
   description = "security group that only allow internal tcp traffics"
@@ -63,6 +66,7 @@ resource "aws_security_group" "webservice" {
     Organization = "${var.organization_name}"
   }
 }
+*/
 
 resource "aws_security_group" "out" {
   name        = "out"
@@ -79,9 +83,11 @@ resource "aws_security_group" "out" {
   tags {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
+    Name         = "${var.vpc_name}-outbound-traffic"
   }
 }
 
+/*
 resource "aws_security_group" "proxy" {
   name        = "squid-proxy"
   description = "allow inbound tcp at 3128"
@@ -99,3 +105,4 @@ resource "aws_security_group" "proxy" {
     Organization = "${var.organization_name}"
   }
 }
+*/

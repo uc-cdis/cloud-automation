@@ -134,7 +134,6 @@ resource "aws_route_table_association" "public" {
 
 resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.main.id}"
-  #cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 0}.0/24"
   cidr_block              = "${cidrsubnet(var.vpc_cidr_block,4,0)}"
   map_public_ip_on_launch = true
 
@@ -179,6 +178,7 @@ resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
   }
 }
 
+/*
 data "aws_ami" "public_login_ami" {
   most_recent = true
 
@@ -189,6 +189,7 @@ data "aws_ami" "public_login_ami" {
 
   owners = ["${var.ami_account_id}"]
 }
+*/
 
 #
 # This AMI is no longer used here, but is referenced in 
@@ -262,7 +263,6 @@ resource "aws_route53_zone" "main" {
   vpc {
     vpc_id  = "${aws_vpc.main.id}"
   }
-  #vpc_id  = "${aws_vpc.main.id}"
   
   tags {
     Environment  = "${var.vpc_name}"
@@ -280,7 +280,6 @@ resource "aws_route53_zone" "main" {
 
 # this is for vpc peering
 resource "aws_vpc_peering_connection" "vpcpeering" {
-  #peer_owner_id = "${var.csoc_account_id}"
   peer_owner_id = "${var.csoc_managed == "yes" ? var.csoc_account_id : data.aws_caller_identity.current.account_id}"
   peer_vpc_id   = "${var.csoc_vpc_id}"
   vpc_id        = "${aws_vpc.main.id}"
