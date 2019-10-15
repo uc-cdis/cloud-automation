@@ -160,9 +160,8 @@ resource "aws_vpc_endpoint" "ec2" {
   service_name = "com.amazonaws.us-east-1.ec2"
   vpc_endpoint_type = "Interface"
   security_group_ids  = [
-    "${data.aws_security_group.local_traffic.id"
+    "${data.aws_security_group.local_traffic.id}"
   ]
-    #"${aws_security_group.eks_nodes_sg.id}"
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
@@ -180,7 +179,7 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
   vpc_endpoint_type = "Interface"
 
   security_group_ids  = [
-    "${data.aws_security_group.local_traffic.id"
+    "${data.aws_security_group.local_traffic.id}"
   ]
     #"${aws_security_group.eks_nodes_sg.id}"
 
@@ -196,6 +195,7 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
 resource "aws_route_table" "eks_private" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
 
+   # traffic out will now be handled by the ha-proxy cluster
 #  route {
 #    cidr_block  = "0.0.0.0/0"
 #    instance_id = "${data.aws_instances.squid_proxy.ids[0]}"
@@ -268,9 +268,8 @@ resource "aws_vpc_endpoint" "k8s-logs" {
   vpc_endpoint_type   = "Interface"
 
   security_group_ids  = [
-    "${data.aws_security_group.local_traffic.id"
+    "${data.aws_security_group.local_traffic.id}"
   ]
-    #"${aws_security_group.eks_nodes_sg.id}"
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
