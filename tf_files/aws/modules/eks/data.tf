@@ -49,7 +49,7 @@ data "aws_vpc_peering_connection" "pc" {
 }
 
 
-# Finally lets allow the nodes to access S3 directly 
+# data resources for endpoints 
 
 data "aws_vpc_endpoint_service" "s3" {
   service = "s3"
@@ -68,16 +68,21 @@ data "aws_route_table" "public_kube" {
 }
 
 
-# First, let us create a data source to fetch the latest Amazon Machine Image (AMI) that Amazon provides with an
+# let's create a data source to fetch the latest Amazon Machine Image (AMI) that Amazon provides with
 # EKS compatible Kubernetes baked in.
 
 data "aws_ami" "eks_worker" {
   filter {
     name   = "name"
-    # values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
     values = ["amazon-eks-node-${var.eks_version}*"]
   }
 
   most_recent = true
   owners      = ["602401143452"] # Amazon Account ID
+}
+
+
+data "aws_security_group" "local_traffic" {
+  vpc_id = "${data.aws_vpc.the_vpc.id}"
+  name   = "local"
 }

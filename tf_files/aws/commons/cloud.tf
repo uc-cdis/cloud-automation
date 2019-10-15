@@ -13,13 +13,9 @@ provider "aws" {}
 module "cdis_vpc" {
   ami_account_id                 = "${var.ami_account_id}"
   source                         = "../modules/vpc"
-  #vpc_octet2                    = "${var.vpc_octet2}"
-  #vpc_octet3                    = "${var.vpc_octet3}"
   vpc_cidr_block                 = "${var.vpc_cidr_block}"
   vpc_name                       = "${var.vpc_name}"
   ssh_key_name                   = "${aws_key_pair.automation_dev.key_name}"
-  #csoc_cidr                     = "${var.csoc_cidr}"
-  #peering_cidr                   = "${data.aws_vpc.csoc_vpc.cidr_block}" #"${var.peering_cidr}"
   peering_cidr                   = "${var.peering_cidr}"
   csoc_account_id                = "${var.csoc_account_id}"
   #squid-nlb-endpointservice-name = "${var.squid-nlb-endpointservice-name}"
@@ -97,7 +93,7 @@ module "cdis_alarms" {
   db_gdcapi                   = "${aws_db_instance.db_gdcapi.identifier}"
 }
 
-
+/*
 resource "aws_vpc_endpoint" "k8s-s3" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
 
@@ -105,10 +101,12 @@ resource "aws_vpc_endpoint" "k8s-s3" {
   service_name                = "${data.aws_vpc_endpoint_service.s3.service_name}"
   route_table_ids             = ["${aws_route_table.private_kube.id}"]
 }
+*/
 
 resource "aws_route_table" "private_kube" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
 
+# comenting this out as it'll be handled by squid_auto when eks comes up
 #  route {
 #    cidr_block                = "0.0.0.0/0"
 #    instance_id               = "${module.cdis_vpc.proxy_id}"
@@ -122,8 +120,6 @@ resource "aws_route_table" "private_kube" {
 
   route {
     #from the commons vpc to the csoc vpc via the peering connection
-    #cidr_block                  = "${var.csoc_cidr}"
-    #cidr_block                  = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"
     cidr_block                  = "${var.peering_cidr}"
     vpc_peering_connection_id   = "${module.cdis_vpc.vpc_peering_id}"
   }
@@ -142,11 +138,9 @@ resource "aws_route_table_association" "private_kube" {
 
 resource "aws_subnet" "private_kube" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
-  #cidr_block                  = "172.${var.vpc_octet2}.${var.vpc_octet3 + 2}.0/24"
   cidr_block                  = "${cidrsubnet(var.vpc_cidr_block,4,2)}"
   map_public_ip_on_launch     = false
   availability_zone           = "${data.aws_availability_zones.available.names[0]}"
-  #tags                        = "${map("Name", "private_kube", "Organization", var.organization_name, "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
   tags                        = "${map("Name", "int_services", "Organization", var.organization_name, "Environment", var.vpc_name )}"
 
   lifecycle {
@@ -177,7 +171,6 @@ resource "aws_subnet" "private_kube" {
 
 resource "aws_subnet" "private_db_alt" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
-  #cidr_block                  = "172.${var.vpc_octet2}.${var.vpc_octet3 + 3}.0/24"
   cidr_block                  = "${cidrsubnet(var.vpc_cidr_block,4,3)}"
   availability_zone           = "${data.aws_availability_zones.available.names[1]}"
   map_public_ip_on_launch     = false

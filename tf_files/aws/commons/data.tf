@@ -5,6 +5,6 @@ data "aws_vpc" "csoc_vpc" {
   id    = "${var.csoc_vpc_id}"
 }
 
-data "aws_vpc_endpoint_service" "s3" {
-  service = "s3"
-}
+#data "aws_vpc_endpoint_service" "s3" {
+#  service = "s3"
+#}
