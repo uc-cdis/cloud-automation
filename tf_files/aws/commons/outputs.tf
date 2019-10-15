@@ -60,7 +60,7 @@ output "data-bucket_name" {
 
 
 #-----------------------------
-
+/*
 data "template_file" "cluster" {
   template = "${file("${path.module}/cluster.yaml")}"
 
@@ -83,7 +83,7 @@ data "template_file" "cluster" {
     config_bucket_policy = "${aws_iam_policy.configbucket_reader.arn}"
   }
 }
-
+*/
 #--------------------------------------------------------------
 # Legacy stuff ...
 # We want to move away from generating output files, and
