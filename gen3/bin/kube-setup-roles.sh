@@ -37,6 +37,13 @@ if [[ -z "$JENKINS_HOME" ]]; then
     g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/ssjdispatcher-binding.yaml"
   fi
 
+  if ! g3kubectl get serviceaccounts/mariner-service-account > /dev/null 2>&1; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/mariner/mariner-service-account.yaml"
+  fi
+  if ! g3kubectl get rolebindings/mariner-binding > /dev/null 2>&1; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/mariner/mariner-binding.yaml"
+  fi
+
   ctx="$(g3kubectl config current-context)"
   ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
   # only do this if we are running in the default namespace

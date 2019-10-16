@@ -1,0 +1,15 @@
+galaxy_info:
+  author: Fauzi Gomez (fauzigo)
+  description: An ansible role to install and configure the AWS CloudWatch Logs
+  company: University of Chicago (CTDS)
+  license: "license (BSD, MIT)"
+  min_ansible_version: 2.7
+  platforms:
+    - name: Ubuntu
+      versions:
+      - 16.04
+  galaxy_tags:
+    - system
+    - cloud
+    - cloud:ec2
+dependencies: []

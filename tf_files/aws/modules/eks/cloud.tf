@@ -718,3 +718,20 @@ resource "null_resource" "config_setup" {
     "aws_autoscaling_group.eks_autoscaling_group",
   ]
 }
+
+
+
+#--------------------------------------------------------------
+# let's work towards EKS IAM-ServiceAccount integration
+
+resource "aws_iam_openid_connect_provider" "identity_provider" {
+  #count           = "${var.eks_version == "1.12" ? 0 : 1}"
+  #count           = "${var.iam-serviceaccount ? 1 : 0}"
+  count              = "${var.iam-serviceaccount ? var.eks_version == "1.12" ? 0 : 1 : 0}"
+  url             = "${aws_eks_cluster.eks_cluster.identity.0.oidc.0.issuer}"
+
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = "${var.oidc_eks_thumbprint}"
+  depends_on      = ["aws_eks_cluster.eks_cluster"]
+}
+

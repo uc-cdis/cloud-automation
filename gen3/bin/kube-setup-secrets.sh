@@ -109,6 +109,16 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update aws-es-proxy secr
   fi
 fi
 
+# mariner
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
+  cd "$(gen3_secrets_folder)"
+  if ! g3kubectl get secret workflow-bot-g3auto > /dev/null 2>&1; then
+    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+    jq -r .mariner < creds.json > "$credsFile"
+    g3kubectl create secret generic workflow-bot-g3auto "--from-file=credentials.json=${credsFile}"
+  fi
+fi
+
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
   cd "$(gen3_secrets_folder)"
   # Generate RSA private and public keys.
@@ -324,13 +334,15 @@ if [[ -f "$ETL_MAPPING_PATH" ]]; then
   gen3 update_config etl-mapping "$ETL_MAPPING_PATH"
 fi
 
-PRIVACY_POLICY="$(dirname $(g3k_manifest_path))/privacy_policy.md"
-if [[ ! -f "$PRIVACY_POLICY" ]]; then
-  # the file has to at least exist, otherwise fence will error out trying to mount it
-  touch $PRIVACY_POLICY
-fi
-gen3 update_config privacy-policy "$PRIVACY_POLICY"
-
+(
+  PRIVACY_POLICY="$(dirname $(g3k_manifest_path))/privacy_policy.md"
+  if [[ ! -f "$PRIVACY_POLICY" ]]; then
+    # the file has to at least exist, otherwise fence will error out trying to mount it
+    PRIVACY_POLICY="$XDG_RUNTIME_DIR/privacy_policy.md"
+    touch $PRIVACY_POLICY
+  fi
+  gen3 update_config privacy-policy "$PRIVACY_POLICY"
+)
 (
   version="$(g3kubectl get secrets/sheepdog-secret -ojson 2> /dev/null | jq -r .metadata.labels.g3version)"
   if [[ -z "$version" || "$version" == null || "$version" -lt 2 ]]; then

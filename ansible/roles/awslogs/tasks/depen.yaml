@@ -1,0 +1,16 @@
+---
+
+- name: "install packages"
+  apt:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - python3-pip
+
+
+- name: "install dependencies"
+  pip:
+    name: '{{ item }}'
+  loop:
+    - awscli
+    - boto3

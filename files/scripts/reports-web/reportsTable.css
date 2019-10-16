@@ -1,0 +1,15 @@
+
+g3-reports-table table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid gray;
+}
+
+g3-reports-table th, g3-reports-table td {
+  padding: 10px;
+}
+
+g3-reports-table tr:nth-child(even) {
+  background: #eeeeee;
+}

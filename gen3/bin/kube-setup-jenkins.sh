@@ -22,11 +22,11 @@ google_acct2_email="$(jq -r '.jenkins.google_acct2.email' < ${WORKSPACE}/qaplane
 google_acct2_password="$(jq -r '.jenkins.google_acct2.password' < ${WORKSPACE}/qaplanetv1/creds.json)"
 
 if [ -z "$aws_access_key_id" -o -z "$aws_secret_access_key" ]; then
-  echo 'ERROR: not configuring jenkins - could not extract secrets from aws configure'
+  gen3_log_err 'not configuring jenkins - could not extract secrets from aws configure'
   exit 1
 fi
 if [[ -z "$google_acct1_email" || -z "$google_acct1_password" || -z "$google_acct2_email" || -z "$google_acct2_password" ]]; then
-  echo "ERROR: missing google credentials in '.jenkins' of creds.json"
+  gen3_log_err "missing google credentials in '.jenkins' of creds.json"
   exit 1
 fi
 
@@ -41,8 +41,12 @@ if ! g3kubectl get secrets google-acct2 > /dev/null 2>&1; then
   g3kubectl create secret generic google-acct2 "--from-literal=email=${google_acct2_email}" "--from-literal=password=${google_acct2_password}"
 fi
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/10storageclass.yaml"
-g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/00pvc.yaml"
+if ! g3kubectl get storageclass gp2 > /dev/null 2>&1; then
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/10storageclass.yaml"
+fi
+if ! g3kubectl get persistentvolumeclaim datadir-jenkins > /dev/null 2>&1; then
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/00pvc.yaml"
+fi
 
 # Note: jenkins service account is configured by `kube-setup-roles`
 gen3 kube-setup-roles
@@ -61,5 +65,5 @@ export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_a
 if [[ ! -z $ARN ]]; then
   envsubst <"${GEN3_HOME}/kube/services/jenkins/jenkins-service.yaml" | g3kubectl apply -f -
 else
-  echo "Global configmap not configured - not launching service (require SSL cert ARN)"
+  gen3_log_info "Global configmap not configured - not launching service (require SSL cert ARN)"
 fi

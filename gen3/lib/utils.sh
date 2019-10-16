@@ -86,7 +86,7 @@ semver_ge() {
     else
       exit 1
     fi
-  )
+  ) 1>&2
 }
 
 # vt100 escape sequences - don't forget to pass -e to 'echo -e'

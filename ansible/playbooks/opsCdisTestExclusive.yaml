@@ -1,0 +1,21 @@
+#
+# Playbook to add keys for all devops in PlanX on a specific host.
+# This particular playbook uses the exclusive flag, which would wipe whatever is not in the file passed 
+# 
+# @vars:
+#   _hosts => hosts in which to apply the playbook
+#   _user  => user which you want the authorized_keys file updated. And also as who you are going to SSH in.
+#
+# EX:
+#   ansible-playbook playbooks/opsCdisTestExclusive.yaml -e _hosts=cdistest_admin
+
+---
+# Ops team so far
+- hosts: '{{ _hosts }}'
+  tasks:
+  - authorized_key:
+      user: "{{ _user }}"
+      state: present
+      manage_dir: true
+      exclusive: true
+      key: '{{ lookup(''file'', ''../..//files/authorized_keys/ops_team'') }}'

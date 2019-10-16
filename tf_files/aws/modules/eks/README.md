@@ -11,7 +11,7 @@ gen3 workon <profile> <commons_name>_eks
 
 Ex.
 ```
-$ gen3 workon cdistest fauziv1_ks
+$ gen3 workon cdistest test-commons_eks
 ```
 
 ## 2. Table of content
@@ -34,10 +34,10 @@ There are mandatory variables, and there are a few other optionals that are set 
 
 Ex.
 ```
-fauziv1@cdistest_admin ~ % cat .local/share/gen3/cdistest/fauziv1_eks/config.tfvars
-vpc_name   = "fauziv1"
-ec2_keyname = "fauziv1_automation_dev"
-users_policy = "fauziv1"
+fauziv1@cdistest_admin ~ % cat .local/share/gen3/cdistest/test-commons_eks/config.tfvars
+vpc_name   = "test-commons"
+ec2_keyname = "test-commons_automation_dev"
+users_policy = "test-commons"
 ```
 
 ## 4. Variables
@@ -66,6 +66,7 @@ users_policy = "fauziv1"
 * `jupyter_asg_desired_capacity` How many workers you want in your jupyter autoscaling group. Default 0
 * `jupyter_asg_max_size` The max number of workers you would allow your jupyter autoscaling group to grow. Default 10.
 * `jupyter_asg_min_size` The min number of workers you would allow your jupyter autoscaling group to shrink. Default 0.
+* `iam-serviceaccount` If you wish to enable iam/service account to your cluster, useful for permissions. Default false.
 
 ## 5. Considerations
 
@@ -77,3 +78,5 @@ users_policy = "fauziv1"
   `kubeconfig` is the config file for kubernetes, it is not saved automatically in the right path, therefore you must put it where your KUBECONFIG var points to.
 
    These outputs are also saved into a file in the terraform space. You can access it by running `gen3 cd`, there is a `<commons-name>_output_eks` folder which contains the files in question.
+
+* `iam-serviceaccount` should only be used with EKS 1.13+, if you are running 1.12 or bellow, you must upgrade first, also you won't be able to enable on the same run when you are upgrading. Upgrade must come first.

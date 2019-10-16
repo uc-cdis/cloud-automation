@@ -1,0 +1,29 @@
+---
+
+- name: "adminvm | create .aws"
+  file:
+    path: "{{ ansible_user_dir }}/.aws"
+    state: directory
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+
+- name: "adminvm | add .aws/config"
+  template:
+    src: aws_config.j2
+    dest: "{{ ansible_user_dir }}/.aws/config"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: 0644
+
+- name: "adminvm | ec2 instance facts collection"
+  ec2_instance_facts:
+    region: "{{ region }}"
+    filters:
+      private-ip-address: "{{ ansible_default_ipv4.address }}"
+      #      private-dns-name: "{{ ansible_fqdn }}"
+      #      "tag:Name": "{{ ansible_nodename }}"
+  register: instance_facts
+
+- set_fact:
+    i_facts: "{{ instance_facts }}"
+

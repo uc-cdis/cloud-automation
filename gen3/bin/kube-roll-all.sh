@@ -64,7 +64,6 @@ if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
   gen3 kube-setup-ssjdispatcher
 fi
 
-
 if g3kubectl get cronjob usersync >/dev/null 2>&1; then
     gen3 job run "${GEN3_HOME}/kube/services/jobs/usersync-cronjob.yaml"
 fi
@@ -181,7 +180,7 @@ gen3 kube-setup-networkpolicy
 gen3 kube-wait4-pods || true
 
 if g3k_manifest_lookup .versions.wts 2> /dev/null; then
-  # this tries to kubectl exec into fence 
+  # this tries to kubectl exec into fence
   gen3 kube-setup-wts || true
 else
   gen3_log_info "not deploying wts - no manifest entry for .versions.wts"
@@ -195,4 +194,6 @@ fi
 
 gen3_log_info "roll-all" "roll completed successfully!"
 gen3 kube-setup-networkpolicy "enable"
-gen3 dashboard gitops-sync || true
+
+# this requires AWS permissions ...
+#gen3 dashboard gitops-sync || true

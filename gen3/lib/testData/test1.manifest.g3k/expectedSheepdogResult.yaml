@@ -98,6 +98,12 @@ spec:
                 name: manifest-global
                 key: fence_url
                 optional: true
+          - name: ARBORIST_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
+                optional: true
           - name: AUTH_NAMESPACE
             valueFrom:
               configMapKeyRef:
