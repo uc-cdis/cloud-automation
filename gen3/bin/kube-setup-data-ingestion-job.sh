@@ -20,6 +20,8 @@ if [ $# -ge 2 ]
 fi
 
 g3kubectl create configmap phs-id-list --from-file=$PHS_ID_LIST_PATH
-g3kubectl create configmap data-requiring-manual-review --from-file=$DATA_REQUIRING_MANUAL_REVIEW_PATH
+if [ -f "$DATA_REQUIRING_MANUAL_REVIEW_PATH" ]; then
+  g3kubectl create configmap data-requiring-manual-review --from-file=$DATA_REQUIRING_MANUAL_REVIEW_PATH
+fi
 
 gen3 runjob data-ingestion-job
