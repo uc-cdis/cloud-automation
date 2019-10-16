@@ -9,8 +9,8 @@ module "vpc-csoc-private" {
   create_vpc_secondary_ranges = "${var.create_vpc_secondary_ranges}"
 
   /*********************************************
-             define subnets
-            *********************************************/
+                 define subnets
+                *********************************************/
   subnets = [
     {
       subnet_name           = "${var.csoc_private_subnet_name}"
@@ -22,8 +22,8 @@ module "vpc-csoc-private" {
   ]
 
   /*********************************************
-             define subnet alias's ***** Look for k8s in vars and tfvars
-            *********************************************/
+                 define subnet alias's ***** Look for k8s in vars and tfvars
+                *********************************************/
   secondary_ranges = {
     "${var.csoc_private_subnet_name}" = [
       {
@@ -67,8 +67,8 @@ module "vpc-csoc-ingress" {
   create_vpc_secondary_ranges = "${var.create_vpc_secondary_ranges}"
 
   /*********************************************
-             define subnets
-            *********************************************/
+                 define subnets
+                *********************************************/
   subnets = [
     {
       subnet_name           = "${var.csoc_ingress_subnet_name}"
@@ -80,8 +80,8 @@ module "vpc-csoc-ingress" {
   ]
 
   /*********************************************
-             define subnet alias's
-            *********************************************/
+                 define subnet alias's
+                *********************************************/
   secondary_ranges = {
     "$var.csoc_ingress_subnet_name}" = [
       {
@@ -125,8 +125,8 @@ module "vpc-csoc-egress" {
   create_vpc_secondary_ranges = "${var.create_vpc_secondary_ranges}"
 
   /*********************************************
-             define subnets
-            *********************************************/
+                 define subnets
+                *********************************************/
   subnets = [
     {
       subnet_name           = "${var.csoc_egress_subnet_name}"
@@ -138,8 +138,8 @@ module "vpc-csoc-egress" {
   ]
 
   /*********************************************
-             define subnet alias's
-            *********************************************/
+                 define subnet alias's
+                *********************************************/
   secondary_ranges = {
     "${var.csoc_egress_subnet_name}" = [
       {
@@ -280,6 +280,7 @@ module "firewall-csoc-egress-outbound-web" {
 }
 
 // DENY ALL OUTBOUND TRAFFIC
+
 module "firewall-csoc-egress-outbound-deny-all" {
   source     = "../../../modules/firewall-egress-deny"
   priority   = "${var.csoc_egress_outbound_deny_all_priority}"
@@ -293,6 +294,7 @@ module "firewall-csoc-egress-outbound-deny-all" {
  VPC-CSOC-INGRESS-RULES
 ************************************************************/
 // RULES TO ALLOW INBOUND TRAFFIC
+/*
 module "firewall-csoc-ingress-inbound-https" {
   source         = "../../../modules/firewall"
   enable_logging = "${var.https_ingress_enable_logging}"
@@ -305,7 +307,8 @@ module "firewall-csoc-ingress-inbound-https" {
   ports          = ["${var.https_ingress_ports}"]
   target_tags    = ["${var.https_ingress_target_tags}"]
 }
-
+*/
+/*
 module "firewall-csoc-ingress-inbound-ssh" {
   source      = "../../../modules/firewall"
   project_id  = "${data.terraform_remote_state.org_setup.project_id}"
@@ -315,7 +318,7 @@ module "firewall-csoc-ingress-inbound-ssh" {
   ports       = "${var.csoc_ingress_inbound_ssh_ports}"
   target_tags = "${var.csoc_ingress_inbound_ssh_tags}"
 }
-
+*/
 module "firewall-csoc-ingress-inbound-openvpn" {
   source      = "../../../modules/firewall"
   project_id  = "${data.terraform_remote_state.org_setup.project_id}"
@@ -336,6 +339,41 @@ module "firewall-csoc-ingress-outbound-proxy" {
   protocol    = "${var.csoc_ingress_outbound_proxy_protocol}"
   ports       = "${var.csoc_ingress_outbound_proxy_ports}"
   target_tags = "${var.csoc_ingress_outbound_proxy_tags}"
+}
+
+// RULE TO ALLOW EGRESS OPENVPN
+module "firewall_csoc_egress_allow_openvpn" {
+  source      = "../../../modules/firewall-egress"
+  priority    = "800"
+  project_id  = "${data.terraform_remote_state.org_setup.project_id}"
+  name        = "${module.vpc-csoc-ingress.network_name}-outbound-openvpn"
+  network     = "${module.vpc-csoc-ingress.network_name}"
+  protocol    = "TCP"
+  ports       = ["1194", "443"]
+  target_tags = ["allow-egress-openvpn"]
+}
+
+/*
+module "firewall_csoc_ingress_outbound_ssh" {
+  source = "../../../modules/firewall-egress"
+  priority = "1000"
+  project_id = "${data.terraform_remote_state.org_setup.project_id}"
+  name = "${module.vpc-csoc-ingress.network_name}-outbound-ssh"
+  network = "${module.vpc-csoc-ingress.network_name}"
+  protocol = "TCP"
+  ports = ["22"]
+  target_tags = ["allow-egress-ssh"]
+}
+*/
+module "firewall_csoc_ingress_outbound_ssh" {
+  source      = "../../../modules/firewall-egress"
+  priority    = "${var.firewall_csoc_ingress_outbound_ssh_priority}"
+  project_id  = "${data.terraform_remote_state.org_setup.project_id}"
+  name        = "${module.vpc-csoc-ingress.network_name}-outbound-ssh"
+  network     = "${module.vpc-csoc-ingress.network_name}"
+  protocol    = "${var.firewall_csoc_ingress_outbound_ssh_protocol}"
+  ports       = ["${var.firewall_csoc_ingress_outbound_ssh_ports}"]
+  target_tags = ["${var.firewall_csoc_ingress_outbound_ssh_tag}"]
 }
 
 // DENY ALL OUTBOUND TRAFFIC
@@ -384,7 +422,7 @@ module "firewall-csoc-private-inbound-qualys-tcp" {
 module "firewall-csoc-private-outbound-ssh" {
   source      = "../../../modules/firewall-egress"
   project_id  = "${data.terraform_remote_state.org_setup.project_id}"
-  name        = "${module.vpc-csoc-private.network_name}-outbound-shh"
+  name        = "${module.vpc-csoc-private.network_name}-outbound-ssh"
   network     = "${module.vpc-csoc-private.network_name}"
   protocol    = "${var.csoc_private_outbound_ssh_protocol}"
   ports       = "${var.csoc_private_outbound_ssh_ports}"
@@ -439,11 +477,13 @@ module "firewall-csoc-private-outbound-deny-all" {
   network    = "${module.vpc-csoc-private.network_name}"
   protocol   = "${var.csoc_private_outbound_deny_all_protocol}"
 }
+
 ############ END CREATE FIREWALL    ################################################
 
 /**********************************************
 *     Create FW Rule inbound-range
 **********************************************/
+/*
 module "firewall-inbound_to_ingress" {
   source         = "../../../modules/firewall-ingress"
   enable_logging = "${var.csoc_ingress_enable_logging}"
@@ -457,9 +497,9 @@ module "firewall-inbound_to_ingress" {
   source_ranges  = ["${var.inbound_to_ingress_source_ranges}"]
   target_tags    = ["${var.inbound_to_ingress_target_tags}"]
 }
-
+*/
 ############### End Create FW Rule##############################################################################
-
+/*
 module "firewall-inbound_from_ingress" {
   source         = "../../../modules/firewall-ingress"
   enable_logging = "${var.csoc_ingress_enable_logging}"
@@ -474,8 +514,9 @@ module "firewall-inbound_from_ingress" {
   target_tags    = ["${var.inbound_from_ingress_target_tags}"]
 }
 
+*/
 ############### End Create FW Rule##############################################################################
-
+/*
 module "firewall-inbound_from_commons001" {
   source         = "../../../modules/firewall-ingress"
   enable_logging = "${var.csoc_ingress_enable_logging}"
@@ -489,9 +530,9 @@ module "firewall-inbound_from_commons001" {
   source_ranges  = ["${var.inbound_from_commons001_source_ranges}"]
   target_tags    = ["${var.inbound_from_commons001_target_tags}"]
 }
-
+*/
 ############### End Create FW Rule##############################################################################
-
+/*
 module "firewall-inbound_to_commons001" {
   source         = "../../../modules/firewall-ingress"
   enable_logging = "${var.csoc_ingress_enable_logging}"
@@ -505,7 +546,7 @@ module "firewall-inbound_to_commons001" {
   source_ranges  = ["${var.inbound_to_commons001_source_ranges}"]
   target_tags    = ["${var.inbound_to_commons001_target_tags}"]
 }
-
+*/
 ############### End Create FW Rule##############################################################################
 
 /**********************************************
@@ -527,9 +568,11 @@ module "firewall-inbound-gke" {
 
 ############### End Create FW Rule##############################################################################
 
+
 /**********************************************
 *     Create FW Rule outbound-range
 **********************************************/
+
 module "firewall-outbound-gke" {
   source             = "../../../modules/firewall-egress"
   enable_logging     = "${var.outbound_from_gke_enable_logging}"

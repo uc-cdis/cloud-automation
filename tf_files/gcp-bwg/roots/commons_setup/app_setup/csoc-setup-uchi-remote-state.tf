@@ -21,12 +21,12 @@ data "terraform_remote_state" "project_setup" {
 }
 
 data "terraform_remote_state" "csoc_app_setup" {
-    backend = "gcs"
-    workspace = "${var.tf_state_app_setup_csoc}"
+  backend   = "gcs"
+  workspace = "${var.tf_state_app_setup_csoc}"
 
-    config {
-        bucket = "${var.state_bucket_name_csoc}"
-        prefix = "${var.prefix_app_setup_csoc}"
-        credentials = "${file("${var.credential_file}")}"
-    }
+  config {
+    bucket      = "${var.state_bucket_name_csoc}"
+    prefix      = "${var.prefix_app_setup_csoc}"
+    credentials = "${file("${var.credential_file}")}"
+  }
 }

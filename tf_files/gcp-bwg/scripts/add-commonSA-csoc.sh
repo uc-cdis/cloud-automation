@@ -67,6 +67,14 @@ gcloud projects add-iam-policy-binding \
  --role="roles/compute.networkAdmin" \
  --user-output-enabled false
 
+ # CSOC Seed permissions
+echo "Adding Security Admin to $CSOC_PROJECT"
+gcloud projects add-iam-policy-binding \
+ "${CSOC_PROJECT}" \
+ --member="serviceAccount:${1}" \
+ --role="roles/compute.securityAdmin" \
+ --user-output-enabled false
+
  # CSOC permissions
 echo "Adding to CSOC storage"
 

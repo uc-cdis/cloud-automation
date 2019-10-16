@@ -150,7 +150,7 @@ variable "csoc_private_subnet_private_access" {
 }
 
 #########Variables to create the subnets for each vpc#######
-
+/*
 variable "csoc_egress_subnet_octet1" {
   description = "first segment of the ip range for vpc subnet"
 }
@@ -170,11 +170,12 @@ variable "csoc_egress_subnet_octet4" {
 variable "csoc_egress_subnet_mask" {
   description = "subnet mask of the vpc subnet"
 }
-
+*/
 variable "csoc_egress_region" {
   description = "region vpc resides in"
 }
 
+/*
 variable "csoc_private_subnet_octet1" {
   description = "first segment of the ip range for vpc subnet"
 }
@@ -194,11 +195,12 @@ variable "csoc_private_subnet_octet4" {
 variable "csoc_private_subnet_mask" {
   description = "subnet mask of the vpc subnet"
 }
-
+*/
 variable "csoc_private_region" {
   description = "region vpc resides in"
 }
 
+/*
 variable "csoc_ingress_subnet_octet1" {
   description = "first segment of the ip range for vpc subnet"
 }
@@ -218,7 +220,7 @@ variable "csoc_ingress_subnet_octet4" {
 variable "csoc_ingress_subnet_mask" {
   description = "subnet mask of the vpc subnet"
 }
-
+*/
 variable "csoc_ingress_region" {
   description = "region vpc resides in"
 }
@@ -250,6 +252,7 @@ variable "csoc_egress_outbound_deny_all_priority" {}
 variable "csoc_egress_outbound_deny_all_protocol" {}
 
 // VPC-CSOC-INGRESS Variables
+/*
 variable "csoc_ingress_inbound_ssh_protocol" {}
 
 variable "csoc_ingress_inbound_ssh_ports" {
@@ -259,7 +262,7 @@ variable "csoc_ingress_inbound_ssh_ports" {
 variable "csoc_ingress_inbound_ssh_tags" {
   type = "list"
 }
-
+*/
 variable "csoc_ingress_inbound_openvpn_protocol" {}
 
 variable "csoc_ingress_inbound_openvpn_ports" {
@@ -279,6 +282,27 @@ variable "csoc_ingress_outbound_proxy_ports" {
 
 variable "csoc_ingress_outbound_proxy_tags" {
   type = "list"
+}
+
+variable "firewall_csoc_ingress_outbound_ssh_tag" {
+  description = "Target tags allowed outbound."
+  type = "list"
+}
+
+variable "firewall_csoc_ingress_outbound_ssh_ports" {
+  description = "Ports allowed out."
+  default     = ["22"]
+  type        = "list"
+}
+
+variable "firewall_csoc_ingress_outbound_ssh_protocol" {
+  description = "Protocol"
+  default     = "TCP"
+}
+
+variable "firewall_csoc_ingress_outbound_ssh_priority" {
+  description = "Priority of the rule."
+  default     = "1000"
 }
 
 variable "csoc_ingress_outbound_deny_all_priority" {}
@@ -353,6 +377,7 @@ variable "csoc_private_outbound_proxy_target_tags" {
 variable "csoc_private_outbound_deny_all_priority" {}
 variable "csoc_private_outbound_deny_all_protocol" {}
 
+/*
 variable "ssh_ingress_enable_logging" {
   description = "Whether or not to enable logging for inbound ssh firewall rule"
 }
@@ -383,7 +408,8 @@ variable "ssh_ingress_target_tags" {
   type        = "list"
   description = "Tag to identify systems allowed to use this rule"
 }
-
+*/
+/*
 variable "http_ingress_enable_logging" {
   description = "Whether or not to enable logging for inbound http firewall rule"
 }
@@ -445,7 +471,7 @@ variable "https_ingress_target_tags" {
   type        = "list"
   description = "Tag to identify systems allowed to use this rule"
 }
-
+*/
 ######## VPC PEERING RELATED VARS
 variable "peer_auto_create_routes" {
   description = "Whether or not to autocreate the routes for the vpc peer"
@@ -459,6 +485,7 @@ variable "google_apis_route" {
 variable "csoc_ingress_priority" {}
 variable "csoc_ingress_enable_logging" {}
 
+/*
 variable "inbound_to_ingress_name" {}
 variable "inbound_to_ingress_network_name" {}
 
@@ -475,7 +502,8 @@ variable "inbound_to_ingress_protocol" {}
 variable "inbound_to_ingress_ports" {
   type = "list"
 }
-
+*/
+/*
 variable "inbound_to_commons001_name" {}
 variable "inbound_to_commons001_network_name" {}
 
@@ -492,7 +520,8 @@ variable "inbound_to_commons001_protocol" {}
 variable "inbound_to_commons001_ports" {
   type = "list"
 }
-
+*/
+/*
 variable "inbound_to_private_name" {}
 variable "inbound_to_private_network_name" {}
 
@@ -505,6 +534,8 @@ variable "inbound_to_private_target_tags" {
 }
 
 variable "inbound_to_private_protocol" {}
+*/
+/*
 variable "inbound_from_commons001_protocol" {}
 
 variable "inbound_from_commons001_name" {}
@@ -520,7 +551,8 @@ variable "inbound_from_commons001_source_ranges" {
 variable "inbound_from_commons001_ports" {
   type = "list"
 }
-
+*/
+/*
 variable "inbound_from_ingress_name" {}
 variable "inbound_from_ingress_protocol" {}
 
@@ -535,8 +567,9 @@ variable "inbound_from_ingress_source_ranges" {
 variable "inbound_from_ingress_target_tags" {
   type = "list"
 }
-
+*/
 variable "inbound_from_gke_name" {}
+
 variable "inbound_from_gke_network_name" {}
 
 variable "inbound_from_gke_source_ranges" {
@@ -554,6 +587,7 @@ variable "inbound_from_gke_ports" {
 variable "inbound_from_gke_protocol" {}
 variable "inbound_from_gke_enable_logging" {}
 variable "inbound_from_gke_priority" {}
+
 
 variable "outbound_from_gke_name" {}
 variable "outbound_from_gke_network_name" {}

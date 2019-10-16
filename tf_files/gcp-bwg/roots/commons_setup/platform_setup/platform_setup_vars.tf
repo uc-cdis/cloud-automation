@@ -5,15 +5,26 @@ variable "env" {}
 
 // Terraform State
 variable "prefix_org_setup" {}
+
 variable "prefix_project_setup" {}
 variable "prefix_org_policies" {}
 variable "state_bucket_name" {}
 variable "prefix_platform_setup" {}
 variable "state_bucket_name_csoc" {}
+
 variable "tf_state_project_setup_csoc" {
   description = "The project_setup terraform state from the csoc."
 }
+
 variable "prefix_project_setup_csoc" {}
+
+variable "prefix_org_setup_csoc" {
+  description = "Terraform state folder name in the CSOC."
+}
+
+variable "tf_state_org_setup_csoc" {
+  description = "Terraform state file name in the CSOC for Organization."
+}
 
 // Cloud SQL ################################################################
 variable "sql_name" {
@@ -45,7 +56,6 @@ variable "global_address_prefix" {
   description = "The prefix length of the IP range. Not applicable if address type=EXTERNAL."
   default     = "16"
 }
-
 
 #### Database Version Supports POSTGRES_9_6 or MySQL_5_7 or MySQL_5_6
 variable "database_version" {
@@ -158,7 +168,6 @@ variable "db_user_password" {
 
 ############# END SQL ########################################################
 
-
 // GKE
 
 variable "cluster_name" {
@@ -196,7 +205,7 @@ variable "disk_size_gb" {
 
 variable "disk_type" {
   description = "Type of disk attached to each node, pd-ssd or pd-standard"
-  default = "pd-standard"
+  default     = "pd-standard"
 }
 
 variable "min_node_cout" {
@@ -231,7 +240,8 @@ variable "services_secondary_range_name" {
 
 variable "master_ipv4_cidr_block" {
   description = "The IP range in CIDR notation to use for the hosted master network"
-  default     = "172.16.0.0/28"
+
+  #  default     = "172.16.0.0/28"
 }
 
 variable "default_node_pool" {
@@ -311,15 +321,13 @@ variable "services_ipv4_cidr_block" {
 
 // Master Authorized Networks
 variable "master_authorized_network_name" {
-  default     = "csoc-network"
   description = "Field for users to identify CIDR blocks"
+  default     = "csoc-network"
 }
 
 variable "master_authorized_cidr_block" {
-  default = "172.29.29.0/24"
-
-  #default = "127.0.0.1/32"
   description = "External network that can access Kubernetes master through HTTPS. Must be specified in CIDR notation"
+  default     = "172.29.29.0/24"
 }
 
 // NODE POOL //
@@ -354,20 +362,21 @@ variable "node_labels" {
 variable "scopes" {
   description = "oauth scopes for node and cluster configs"
   description = "cluster service account rights"
-  default  = ["https://www.googleapis.com/auth/trace.append", 
-       "https://www.googleapis.com/auth/servicecontrol", 
-       "https://www.googleapis.com/auth/devstorage.read_only", 
-       "https://www.googleapis.com/auth/logging.write", 
-       "https://www.googleapis.com/auth/monitoring",
-       "https://www.googleapis.com/auth/userinfo.email", 
-       "https://www.googleapis.com/auth/service.management.readonly"]
+
+  default = ["https://www.googleapis.com/auth/trace.append",
+    "https://www.googleapis.com/auth/servicecontrol",
+    "https://www.googleapis.com/auth/devstorage.read_only",
+    "https://www.googleapis.com/auth/logging.write",
+    "https://www.googleapis.com/auth/monitoring",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/service.management.readonly",
+  ]
 }
 
 variable "image_type" {
   description = "The image to  build the node pool from"
-  default = "COS"
+  default     = "COS"
 }
-
 
 ########### Google Public Access Info#############################################
 
@@ -394,4 +403,20 @@ variable "fw_rule_allow_google_apis_egress" {
 variable "fw_rule_allow_master_node_egress" {
   description = "Allow egress to master node subnet"
 }
+
+############# Add Firewall rules to CSOC Private #####################################
+
+variable "csoc_private_egrees_gke_endpoint" {
+  description = "Name of the firewall rule egress rule to be added to csoc private."
+}
+
+variable "csoc_private_ingress_gke_endpoint" {
+  description = "Name of the firewall rule ingree rule to be added."
+}
+
+/*
+variable "csoc_private_ingress_gke_endpoint" {
+  description = "Name of the firewall rule ingress rule to be added to csoc private."
+}
+*/
 

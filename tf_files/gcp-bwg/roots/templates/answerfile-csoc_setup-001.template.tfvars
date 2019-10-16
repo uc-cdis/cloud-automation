@@ -99,36 +99,21 @@ csoc_ingress_network_name = "csoc-ingress"
 csoc_private_network_name = "csoc-private"
 
 # VPC SUBNETWORK
-csoc_egress_subnet_name = "csoc-egress-kubecontrol"
+csoc_egress_subnet_name = "csoc-egress-squid"
 csoc_egress_subnet_ip = "172.29.31.0/24"
 csoc_egress_region = "us-central1"
-csoc_egress_subnet_octet1 = "172"
-csoc_egress_subnet_octet2 = "29"
-csoc_egress_subnet_octet3 = "31"
-csoc_egress_subnet_octet4 = "0"
-csoc_egress_subnet_mask = "24"
 csoc_egress_subnet_flow_logs = true
 csoc_egress_subnet_private_access = false
 
 csoc_ingress_subnet_name = "csoc-ingress-kubecontrol"
 csoc_ingress_subnet_ip = "172.29.30.0/24"
 csoc_ingress_region = "us-central1"
-csoc_ingress_subnet_octet1 = "172"
-csoc_ingress_subnet_octet2 = "29"
-csoc_ingress_subnet_octet3 = "30"
-csoc_ingress_subnet_octet4 = "0"
-csoc_ingress_subnet_mask = "24"
 csoc_ingress_subnet_flow_logs = true
 csoc_ingress_subnet_private_access = false
 
 csoc_private_subnet_name = "csoc-private-kubecontrol"
 csoc_private_subnet_ip = "172.29.29.0/24"
 csoc_private_region = "us-central1"
-csoc_private_subnet_octet1 = "172"
-csoc_private_subnet_octet2 = "29"
-csoc_private_subnet_octet3 = "29"
-csoc_private_subnet_octet4 = "0"
-csoc_private_subnet_mask = "24"
 csoc_private_subnet_flow_logs = true
 csoc_private_subnet_private_access = false
 
@@ -150,29 +135,29 @@ nat_ip_allocate_option = "MANUAL_ONLY"
 #   Firewall Variables
 # -------------------------------------
 
-ssh_ingress_enable_logging = true
-ssh_ingress_priority = "1000"
-ssh_ingress_direction = "INGRESS"
-ssh_ingress_protocol = "tcp"
-ssh_ingress_ports = ["22"]
-ssh_ingress_source_ranges = ["172.21.1.0/24"]
-ssh_ingress_target_tags = ["ssh-in"]
+#ssh_ingress_enable_logging = true
+#ssh_ingress_priority = "1000"
+#ssh_ingress_direction = "INGRESS"
+#ssh_ingress_protocol = "tcp"
+#ssh_ingress_ports = ["22"]
+#ssh_ingress_source_ranges = ["172.21.1.0/24"]
+#ssh_ingress_target_tags = ["ssh-in"]
 
-http_ingress_enable_logging = true
-http_ingress_priority = "1001"
-http_ingress_direction = "INGRESS"
-http_ingress_protocol = "tcp"
-http_ingress_ports = ["80"]
-http_ingress_source_ranges = ["172.21.1.0/24"]
-http_ingress_target_tags = ["http-in"]
+#http_ingress_enable_logging = true
+#http_ingress_priority = "1001"
+#http_ingress_direction = "INGRESS"
+#http_ingress_protocol = "tcp"
+#http_ingress_ports = ["80"]
+#http_ingress_source_ranges = ["172.21.1.0/24"]
+#http_ingress_target_tags = ["http-in"]
 
-https_ingress_enable_logging = true
-https_ingress_priority = "1002"
-https_ingress_direction = "INGRESS"
-https_ingress_protocol = "tcp"
-https_ingress_ports = ["443"]
-https_ingress_source_ranges = ["172.21.1.0/24"]
-https_ingress_target_tags = ["https-in"]
+#https_ingress_enable_logging = true
+#https_ingress_priority = "1002"
+#https_ingress_direction = "INGRESS"
+#https_ingress_protocol = "tcp"
+#https_ingress_ports = ["443"]
+#https_ingress_source_ranges = ["172.21.1.0/24"]
+#https_ingress_target_tags = ["https-in"]
 
 // VPC-CSOC-EGRESS Variables
 csoc_egress_inboud_protocol = "TCP"
@@ -237,39 +222,39 @@ csoc_private_outbound_proxy_target_tags = ["proxy-access"]
 csoc_private_outbound_deny_all_priority = "65534"
 csoc_private_outbound_deny_all_protocol = "ALL"
 
-inbound_from_ingress_name = "csoc-private-from-csoc-ingress"
-inbound_from_ingress_network_name = "jca-uchi-csoc-private"
-inbound_from_ingress_source_ranges = ["172.29.30.0/24"]
-inbound_from_ingress_target_tags = ["csoc-private-from-csoc-ingress"]
-inbound_from_ingress_protocol = "tcp"
-inbound_from_ingress_ports = ["1-65535"]
+#inbound_from_ingress_name = "csoc-private-from-csoc-ingress"
+#inbound_from_ingress_network_name = "jca-uchi-csoc-private"
+#inbound_from_ingress_source_ranges = ["172.29.30.0/24"]
+#inbound_from_ingress_target_tags = ["csoc-private-from-csoc-ingress"]
+#inbound_from_ingress_protocol = "tcp"
+#inbound_from_ingress_ports = ["1-65535"]
 
-inbound_from_commons001_name = "csoc-private-from-commons001"
-inbound_from_commons001_network_name = "commons001-dev-private"
-inbound_from_commons001_source_ranges = ["172.30.30.0/24"]
-inbound_from_commons001_target_tags = ["csoc-private-from-commons001"]
-inbound_from_commons001_protocol = "tcp"
-inbound_from_commons001_ports = ["1-65535"]
+#inbound_from_commons001_name = "csoc-private-from-commons001"
+#inbound_from_commons001_network_name = "commons001-dev-private"
+#inbound_from_commons001_source_ranges = ["172.30.30.0/24"]
+#inbound_from_commons001_target_tags = ["csoc-private-from-commons001"]
+#inbound_from_commons001_protocol = "tcp"
+#inbound_from_commons001_ports = ["1-65535"]
 
-inbound_to_commons001_network_name = "commons001-dev-private"
-inbound_to_commons001_ports = ["1-65535"]
-inbound_to_commons001_source_ranges = ["0.0.0.0/0"]
-inbound_to_commons001_name = "inbound-to-commons001"
-inbound_to_commons001_target_tags = ["inbound-to-commons001"]
-inbound_to_commons001_protocol = "tcp"
+#inbound_to_commons001_network_name = "commons001-dev-private"
+#inbound_to_commons001_ports = ["1-65535"]
+#inbound_to_commons001_source_ranges = ["0.0.0.0/0"]
+#inbound_to_commons001_name = "inbound-to-commons001"
+#inbound_to_commons001_target_tags = ["inbound-to-commons001"]
+#inbound_to_commons001_protocol = "tcp"
 
-inbound_to_private_name = "inbound-to-private"
-inbound_to_private_target_tags = ["inbound-to-private"]
-inbound_to_private_network_name  = "jca-uchi-csoc-private"
-inbound_to_private_source_ranges = ["0.0.0.0/0"]
-inbound_to_private_protocol = "tcp"
+#inbound_to_private_name = "inbound-to-private"
+#inbound_to_private_target_tags = ["inbound-to-private"]
+#inbound_to_private_network_name  = "jca-uchi-csoc-private"
+#inbound_to_private_source_ranges = ["0.0.0.0/0"]
+#inbound_to_private_protocol = "tcp"
 
-inbound_to_ingress_ports = ["1-65535"]
-inbound_to_ingress_network_name = "jca-uchi-csoc-ingress"
-inbound_to_ingress_name = "inbound-to-ingress"
-inbound_to_ingress_source_ranges = ["0.0.0.0/0"]
-inbound_to_ingress_target_tags = ["inbound-to-ingress"]
-inbound_to_ingress_protocol = "tcp"
+#inbound_to_ingress_ports = ["1-65535"]
+#inbound_to_ingress_network_name = "jca-uchi-csoc-ingress"
+#inbound_to_ingress_name = "inbound-to-ingress"
+#inbound_to_ingress_source_ranges = ["0.0.0.0/0"]
+#inbound_to_ingress_target_tags = ["inbound-to-ingress"]
+#inbound_to_ingress_protocol = "tcp"
 
 inbound_from_gke_name = "inbound-from-gke"
 inbound_from_gke_network_name = ""
@@ -305,29 +290,97 @@ http_ingress_source_ranges = ["0.0.0.0/0"]
 # -------------------------------------
 
 instance_name = "adminvm"
+labels = {
+  "data-commons" = "data-commons"
+  "department" = "ctds"
+  "environment" = "production"
+  "sponsor" = "sponsor"
+}
 
 # -------------------------------------
 #   Bastion Instance
 # -------------------------------------
 
-bastion_name = "bastionvm"
+#bastion_name = "bastionvm"
+
 
 # -------------------------------------
-#   OpenVPN Instance
+#   OPENVPN MANAGED INSTANCE GROUP
 # -------------------------------------
 
-openvpn_instance_name = "openvpn"
-openvpn_compute_tags = ["openvpn", "proxy-access"]
-openvpn_count_compute = "1"
+openvpn_name = "<openvpn_name>"
+openvpn_machine_type = "f1-micro"
+openvpn_target_size = "1"
+openvpn_metadata_startup_script = "<script_location>"
+openvpn_labels = {
+  "data-commons" = "data-commons"
+  "department" = "ctds"
+  "environment" = "production"
+  "sponsor" = "sponsor"
+}
 
 # -------------------------------------
-#   SQUID MANAGED INSTANCE GROUP
+#   SQUID MANAGED INSTANCE AUTOHEAL GROUP
 # -------------------------------------
 
-squid_name = "squid"
+squid_name = "<squid_name>"
 squid_machine_type = "f1-micro"
 squid_target_size = "1"
-squid_metadata_startup_script = "../../../modules/compute-group/scripts/squid-install.sh"
+squid_metadata_startup_script = "<script_location>"
+squid_hc_check_interval_sec = "5"
+squid_hc_timeout_sec = "5"
+squid_hc_healthy_threshold = "2"
+squid_hc_unhealthy_threshold = "10"
+squid_hc_tcp_health_check_port = "3128"
+squid_labels = {
+  "data-commons" = "data-commons"
+  "department" = "ctds"
+  "environment" = "production"
+  "sponsor" = "sponsor"
+}
+
+# -------------------------------------
+#   OPENVPN AUTOSCALER
+# -------------------------------------
+
+openvpn_min_replicas = "1"
+openvpn_max_replicas = "3"
+openvpn_cpu_utilization_target = "0.8"
+openvpn_cooldown_period = "300"
+
+# -------------------------------------
+#   SQUID AUTOSCALER
+# -------------------------------------
+
+squid_min_replicas = "1"
+squid_max_replicas = "3"
+squid_cpu_utilization_target = "0.8"
+squid_cooldown_period = "300"
+
+
+# -------------------------------------
+#   OPENVPN AUTOSCALER
+# -------------------------------------
+
+#openvpn_min_replicas = "1"
+#openvpn_max_replicas = "3"
+#openvpn_cpu_utilization_target = "0.8"
+#openvpn_cooldown_period = "300"
+
+# -------------------------------------
+#   SQUID AUTOSCALER
+# -------------------------------------
+
+#squid_min_replicas = "1"
+#squid_max_replicas = "3"
+#squid_cpu_utilization_target = "0.8"
+#squid_cooldown_period = "300"
+
+# -------------------------------------
+#   EXTERNAL LOAD BALANCER FOR OPENVPN
+# ------------------------------------
+
+openvpn_lb_port = "1194"
 
 # -------------------------------------
 #   INTERNAL LOAD BALANCER FOR SQUID
@@ -341,8 +394,6 @@ squid_lb_target_tags = ["squid", "proxy"]
 # -------------------------------------
 #   Compute Instance Variables
 # -------------------------------------
-
-
 # SSH INFORMATION
 ssh_user = "<ssh_user>"
 ssh_key_pub = "<ssh_key_pub>"
@@ -356,8 +407,8 @@ machine_type_dev = "g1-small"
 machine_type_prod = "n1-standard-1"
 
 # Tags and Label Variables
-compute_tags = ["csoc-ingress-from-csoc-private", "csoc-ingress-to-csoc-private", "csoc-private-from-commons001", "csoc-private-from-csoc-ingress", "ssh-in-csoc-private","inbound-to-commons001","web-access"]
-bastion_compute_tags = ["csoc-ingress-from-csoc-private", "csoc-ingress-to-csoc-private", "csoc-private-from-commons001","ssh-in-csoc-ingress","web-access"]
+#compute_tags = ["csoc-ingress-from-csoc-private", "csoc-ingress-to-csoc-private", "csoc-private-from-commons001", "csoc-private-from-csoc-ingress", "ssh-in-csoc-private","inbound-to-commons001","web-access"]
+#bastion_compute_tags = ["csoc-ingress-from-csoc-private", "csoc-ingress-to-csoc-private", "csoc-private-from-commons001","ssh-in-csoc-ingress","web-access"]
 compute_labels = {
     "department"  = "ctds"
     "sponsor"     = "sponsor"
@@ -390,14 +441,25 @@ ingress_subnetwork_name = "csoc-ingress-kubecontrol"
 automatic_restart = "true"
 on_host_maintenance = "MIGRATE"
 
-
-
 # -------------------------------------
 #   Cloud Bucket Variables for Stackdriver Org Sink
 # -------------------------------------
 
 bucket_data_access_logs = "<unique_bucket_name>"
 bucket_activity_logs = "<unique_bucket_name>"
+
+bucket_activity_logs_labels = {
+    "department"  = "ctds"
+    "sponsor"     = "sponsor"
+    "envrionment" = "development"
+    "datacommons" = "commons"
+}
+bucket_data_access_logs_labels = {
+    "department"  = "ctds"
+    "sponsor"     = "sponsor"
+    "envrionment" = "development"
+    "datacommons" = "commons"
+}
 
 # -------------------------------------
 #   Stackdriver Org Sink Variables
