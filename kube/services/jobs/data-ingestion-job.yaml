@@ -61,7 +61,7 @@ spec:
             - name: phs-id-list
               readOnly: true
               mountPath: /phs-id-list
-            - name: /data-requiring-manual-review
+            - name: data-requiring-manual-review
               readOnly: true
               mountPath: /data-requiring-manual-review
           command: ["/bin/bash" ]
