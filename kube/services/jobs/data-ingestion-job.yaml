@@ -18,6 +18,10 @@ spec:
         - name: phs-id-list
           configMap:
             name: phs-id-list
+        - name: data-requiring-manual-review
+          configMap:
+            name: data-requiring-manual-review
+            optional: true
         - name: old-config-volume
           secret:
             secretName: "fence-secret"
@@ -57,6 +61,9 @@ spec:
             - name: phs-id-list
               readOnly: true
               mountPath: /phs-id-list
+            - name: /data-requiring-manual-review
+              readOnly: true
+              mountPath: /data-requiring-manual-review
           command: ["/bin/bash" ]
           args:
             - "-c"
