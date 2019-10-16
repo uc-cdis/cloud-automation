@@ -32,4 +32,5 @@ module "eks" {
   jupyter_asg_max_size         = "${var.jupyter_asg_max_size}" 
   jupyter_asg_min_size         = "${var.jupyter_asg_min_size}" 
   iam-serviceaccount           = "${var.iam-serviceaccount}"
+  availability_zones           = "${var.availability_zones}"
 }

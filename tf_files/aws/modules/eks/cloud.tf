@@ -96,7 +96,8 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
 resource "random_shuffle" "az" {
 #  input = ["${data.aws_availability_zones.available.names}"]
 #  input = ["us-east-1a", "us-east-1c", "us-east-1d"]
-  input = "${data.aws_region.current.name == "us-east-1" ? var.availablity_zones : data.aws_availability_zones.available.names}}"
+  input = "${var.availability_zones}"
+#  input = "${data.aws_region.current.name == "us-east-1" ? var.availability_zones : list(data.aws_availability_zones.available.names)}"
   result_count = 3
   count = 1
 }
@@ -201,7 +202,7 @@ resource "aws_route_table" "eks_private" {
 #    cidr_block  = "0.0.0.0/0"
 #    instance_id = "${data.aws_instances.squid_proxy.ids[0]}"
 #  }
-
+/*
   # We want to be able to talk to aws freely, therefore we are allowing
   # certain stuff overpass the proxy
   route {
@@ -216,7 +217,7 @@ resource "aws_route_table" "eks_private" {
     cidr_block                = "${var.peering_cidr}"
     vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
   }
-
+*/
   tags {
     Name         = "eks_private"
     Environment  = "${var.vpc_name}"
@@ -227,6 +228,20 @@ resource "aws_route_table" "eks_private" {
     #ignore_changes = ["*"]
   }
 }
+
+resource "aws_route" "to_aws" {
+  route_table_id            = "${aws_route_table.eks_private.id}"
+  destination_cidr_block    = "52.0.0.0/8"
+  nat_gateway_id            = "${data.aws_nat_gateway.the_gateway.id}"
+}
+
+
+resource "aws_route" "for_peering" {
+  route_table_id            = "${aws_route_table.eks_private.id}"
+  destination_cidr_block    = "${var.peering_cidr}"
+  vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
+}
+
 
 resource "aws_route" "skip_proxy" {
   count                  = "${length(var.cidrs_to_route_to_gw)}"
