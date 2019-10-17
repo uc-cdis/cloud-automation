@@ -1,0 +1,22 @@
+{
+  "gs_creds": {
+    "type": "service_account",
+    "project_id": "",
+    "private_key_id": "",
+    "private_key": "",
+    "client_email": "",
+    "client_id": "",
+    "auth_uri": "",
+    "token_uri": "",
+    "auth_provider_x509_cert_url": "",
+    "client_x509_cert_url": ""
+  }, 
+  "aws_creds": {
+    "aws_access_key_id": "",
+    "aws_secret_access_key": ""
+  },
+  "gcp_project_id": "",
+  "github_user_email": "",
+  "github_personal_access_token": "",
+  "github_user_name": ""
+}
