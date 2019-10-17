@@ -152,4 +152,5 @@ spec:
               cat $GOOGLE_GROUP_CREATE_SCRIPT_PRUNED_FILE
 
               chmod +x $GOOGLE_GROUP_CREATE_SCRIPT_PRUNED_FILE
-              ./$GOOGLE_GROUP_CREATE_SCRIPT_PRUNED_FILE
+              # TODO: uncomment this line before merge
+              # ./$GOOGLE_GROUP_CREATE_SCRIPT_PRUNED_FILE
