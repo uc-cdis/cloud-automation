@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 # Deploy data-ingestion-job into existing commons
-# This is an optional service that's not part of gen3 core services
-# It only needs to be deployed to DataSTAGE
+# This job is specific to DataSTAGE
+# Usage: gen3 kube-setup-data-ingestion-job <phs_id_list_filepath> <data_requiring_manual_review_filepath>
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"

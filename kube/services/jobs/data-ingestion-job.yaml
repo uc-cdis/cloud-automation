@@ -77,9 +77,6 @@ spec:
                 echo "Error: google groups generation script is not present."
               fi
 
-              echo "scripts/joindure/output:"
-              ls scripts/joindure/output
-
               cp -R scripts/joindure/output/. /this-directory-is-shared-with-fence/.
         - name: fence
           image: quay.io/cdis/fence:master
@@ -149,14 +146,10 @@ spec:
                 fi
               done < "$GOOGLE_GROUP_CREATE_SCRIPT_FILE"
 
-              rm $GOOGLE_GROUP_CREATE_SCRIPT_PRUNED_FILE
               printf "%s\n" "${NON_EXISTING_GROUPS[@]}" > $GOOGLE_GROUP_CREATE_SCRIPT_PRUNED_FILE
 
               echo "Pruned google groups commands:"
               cat $GOOGLE_GROUP_CREATE_SCRIPT_PRUNED_FILE
 
               chmod +x $GOOGLE_GROUP_CREATE_SCRIPT_PRUNED_FILE
-              # TODO: uncomment this line
-              # ./$GOOGLE_GROUP_CREATE_SCRIPT_PRUNED_FILE
-
-
+              ./$GOOGLE_GROUP_CREATE_SCRIPT_PRUNED_FILE
