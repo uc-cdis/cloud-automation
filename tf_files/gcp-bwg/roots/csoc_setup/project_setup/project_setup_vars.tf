@@ -284,23 +284,22 @@ variable "csoc_ingress_outbound_proxy_tags" {
   type = "list"
 }
 
-variable "firewall_csoc_ingress_outbound_ssh_tag" {
+variable "csoc_ingress_outbound_ssh_tag" {
   description = "Target tags allowed outbound."
   type = "list"
 }
 
-variable "firewall_csoc_ingress_outbound_ssh_ports" {
+variable "csoc_ingress_outbound_ssh_ports" {
   description = "Ports allowed out."
-  default     = ["22"]
   type        = "list"
 }
 
-variable "firewall_csoc_ingress_outbound_ssh_protocol" {
+variable "csoc_ingress_outbound_ssh_protocol" {
   description = "Protocol"
   default     = "TCP"
 }
 
-variable "firewall_csoc_ingress_outbound_ssh_priority" {
+variable "csoc_ingress_outbound_ssh_priority" {
   description = "Priority of the rule."
   default     = "1000"
 }

@@ -367,13 +367,13 @@ module "firewall_csoc_ingress_outbound_ssh" {
 */
 module "firewall_csoc_ingress_outbound_ssh" {
   source      = "../../../modules/firewall-egress"
-  priority    = "${var.firewall_csoc_ingress_outbound_ssh_priority}"
+  priority    = "${var.csoc_ingress_outbound_ssh_priority}"
   project_id  = "${data.terraform_remote_state.org_setup.project_id}"
   name        = "${module.vpc-csoc-ingress.network_name}-outbound-ssh"
   network     = "${module.vpc-csoc-ingress.network_name}"
-  protocol    = "${var.firewall_csoc_ingress_outbound_ssh_protocol}"
-  ports       = ["${var.firewall_csoc_ingress_outbound_ssh_ports}"]
-  target_tags = ["${var.firewall_csoc_ingress_outbound_ssh_tag}"]
+  protocol    = "${var.csoc_ingress_outbound_ssh_protocol}"
+  ports       = ["${var.csoc_ingress_outbound_ssh_ports}"]
+  target_tags = ["${var.csoc_ingress_outbound_ssh_tag}"]
 }
 
 // DENY ALL OUTBOUND TRAFFIC
