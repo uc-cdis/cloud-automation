@@ -19,6 +19,9 @@ if [ $# -ge 2 ]
   then DATA_REQUIRING_MANUAL_REVIEW_PATH=$1
 fi
 
+g3kubectl delete configmap phs-id-list
+g3kubectl delete configmap data-requiring-manual-review
+
 g3kubectl create configmap phs-id-list --from-file=$PHS_ID_LIST_PATH
 if [ -f "$DATA_REQUIRING_MANUAL_REVIEW_PATH" ]; then
   g3kubectl create configmap data-requiring-manual-review --from-file=$DATA_REQUIRING_MANUAL_REVIEW_PATH
