@@ -2,12 +2,7 @@
 #
 # Deploy data-ingestion-job into existing commons
 
-# This job is specific to DataSTAGE
-# Usage: gen3 kube-setup-data-ingestion-job [<phs_id_list_filepath>] [<data_requiring_manual_review_filepath>]
-# Both of these arguments are optional with default filepaths, and only the first file needs to actually exist, here: 
-# g3auto/data-ingestion-job/data-ingestion-job-phs-id-list.txt
-# This job also requires a config file with creds to be filled out in advance, here:
-# g3auto/data-ingestion-job/data_ingestion_job_config.json
+# See cloud-automation/doc/kube-setup-data-ingestion-job.md for information on how to use this script
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
