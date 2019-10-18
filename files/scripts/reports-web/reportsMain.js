@@ -21,6 +21,7 @@ export function main() {
 
   statusDOM.innerHTML = `<p>Initializing</p>`;
   
+  // Download data in the 'all' tabs
   amap(
     Object.keys(dataTables), 
     (rtype) => fetchRecentData(rtype)
@@ -28,10 +29,28 @@ export function main() {
     (reportList) => {
       reportList.map(
         (info) => {
-          dataTables[info.reportType].all.data = info.massage;
+          dataTables[info.reportType][info.service].data = info.massage;
         }
       );
-      statusDOM.innerHTML = `<p>Data downloaded</p>`;
+      statusDOM.innerHTML = `<p>Initial data downloaded ...</p>`;
+    }
+  );
+  // Go ahead and fetch data in other tabs now
+  amap(
+    reportList.slice(1).reduce((acc, serviceName) => {
+      ['rtimes', 'rcodes'].forEach((reportType) => { acc.push({serviceName, reportType}); });
+      return acc;
+    }, []),
+    ({reportType, serviceName}) => fetchRecentData(reportType, serviceName)
+  ).then(
+    (reportList) => {
+      reportList.map(
+        (info) => {
+          //console.log(`Rendering ${info.service} ${info.reportType}`, info);
+          dataTables[info.reportType][info.service].data = info.massage;
+        }
+      );
+      statusDOM.innerHTML = `<p>All data downloaded</p>`;
     }
   );
 }

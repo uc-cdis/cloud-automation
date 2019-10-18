@@ -277,6 +277,7 @@ export class RTimesHandler {
         (data) => {
           return {
             reportType: "rtimes",
+            service: this.service,
             data
           };
         }
