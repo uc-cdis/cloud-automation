@@ -45,7 +45,7 @@ spec:
             secretName: "fence-google-storage-creds-secret"
       containers:
         - name: data-ingestion-pipeline
-          image: quay.io/cdis/datastage-data-ingestion:feat_data-ingestion-pipeline
+          image: GEN3_DATA_INGESTION_JOB_IMAGE
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -79,7 +79,7 @@ spec:
 
               cp -R scripts/joindure/output/. /this-directory-is-shared-with-fence/.
         - name: fence
-          image: quay.io/cdis/fence:master
+          image: GEN3_FENCE_IMAGE
           imagePullPolicy: Always
           env:
             - name: PYTHONPATH

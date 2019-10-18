@@ -119,14 +119,6 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
   fi
 fi
 
-# data-ingestion-job
-if [[ -f "$(gen3_secrets_folder)/apis_configs/data_ingestion_job_config.json" ]]; then
-  cd "$(gen3_secrets_folder)/apis_configs"
-  if ! g3kubectl get secret data-ingestion-job-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic data-ingestion-job-secret "--from-file=config.json=data_ingestion_job_config.json"
-  fi
-fi
-
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
   cd "$(gen3_secrets_folder)"
   # Generate RSA private and public keys.
