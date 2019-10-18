@@ -1,4 +1,7 @@
 
+/**
+ * Simple table - takes a data attribute that is an array of arrays
+ */
 export class G3ReportsTable extends HTMLElement {
   constructor() {
     super();
@@ -37,4 +40,4 @@ export class G3ReportsTable extends HTMLElement {
   get data() { return this._data; }
 }
 
-window.customElements.define( "g3-reports-table", G3ReportsTable );
+window.customElements.define( "g3r-table", G3ReportsTable );

@@ -1,16 +1,26 @@
 import './reportsTable.js';
+import './reportsTabPanel.js';
 import { amap, fetchRecentData } from './dataHelper.js';
+
+const reportList = ['all', 'fence', 'guppy', 'indexd', 'peregrine', 'sheepdog'];
 
 export function main() {
   const statusDOM = document.getElementById('status');
   const dataTables = {
-    users: document.body.querySelector('.g3reports-users g3-reports-table'),
-    rcodes: document.body.querySelector('.g3reports-rcodes g3-reports-table'),
-    rtimes: document.body.querySelector('.g3reports-rtimes g3-reports-table'),
-    projects: document.body.querySelector('.g3reports-projects g3-reports-table')
+    projects: { 'all': document.body.querySelector('.g3reports-projects g3r-table') },
+    rcodes: reportList.reduce(
+      (acc,name) => { acc[name] = document.body.querySelector(`.g3reports-rcodes div[name="${name}"] g3r-table`); return acc; }, 
+      {}
+    ),
+    rtimes: reportList.reduce(
+      (acc,name) => { acc[name] = document.body.querySelector(`.g3reports-rtimes div[name="${name}"] g3r-table`); return acc; }, 
+      {}
+    ),
+    users: { 'all': document.body.querySelector('.g3reports-users g3r-table') },
   };
 
   statusDOM.innerHTML = `<p>Initializing</p>`;
+  
   amap(
     Object.keys(dataTables), 
     (rtype) => fetchRecentData(rtype)
@@ -18,7 +28,7 @@ export function main() {
     (reportList) => {
       reportList.map(
         (info) => {
-          dataTables[info.reportType].data = info.massage;
+          dataTables[info.reportType].all.data = info.massage;
         }
       );
       statusDOM.innerHTML = `<p>Data downloaded</p>`;

@@ -198,6 +198,7 @@ class UniqueUsersHandler {
       (data) => {
         return {
           reportType: "users",
+          service: "all",
           data
         };
       }
@@ -206,7 +207,7 @@ class UniqueUsersHandler {
  
   massageData(fetchedData) {
     return {
-      reportType: "users",
+      ... fetchedData,
       massage: fetchedData.data.map( 
         ({number,date}) => [ `${date.getUTCFullYear()}/${pad2(date.getUTCMonth()+1)}/${pad2(date.getUTCDate())}`, "" + number ] 
         )
@@ -219,11 +220,16 @@ class UniqueUsersHandler {
  * Handler for result codes report
  */
 export class RCodesHandler {
-  constructor() {
+  constructor(service) {
+    this.service = service || "all";
   }
 
   buildPathDateList() {
-    return basicBuildPathList("codes");
+    let prefix = `codes-${this.service}`;
+    if (this.service === 'all') {
+      prefix = 'codes';
+    }
+    return basicBuildPathList(prefix);
   }
 
   fetchData(pathDateList) {
@@ -232,6 +238,7 @@ export class RCodesHandler {
         (data) => {
           return {
             reportType: "rcodes",
+            service: this.service,
             data
           };
         }
@@ -240,7 +247,7 @@ export class RCodesHandler {
 
   massageData(fetchedData) {
     return {
-      reportType: "rcodes",
+      ... fetchedData,
       massage: addPercentColumn(
         Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0]))
       )
@@ -252,11 +259,16 @@ export class RCodesHandler {
  * Handler for result times report
  */
 export class RTimesHandler {
-  constructor() {
+  constructor(service) {
+    this.service = service || "all";
   }
 
   buildPathDateList() {
-    return basicBuildPathList("rtimes");
+    let prefix = `rtimes-${this.service}`;
+    if (this.service === 'all') {
+      prefix = 'rtimes';
+    }
+    return basicBuildPathList(prefix);
   }
  
   fetchData(pathDateList) {
@@ -273,7 +285,7 @@ export class RTimesHandler {
 
   massageData(fetchedData) {
     return {
-      reportType: "rtimes",
+      ... fetchedData,
       massage: addPercentColumn(
         Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0]))
       )
@@ -282,7 +294,8 @@ export class RTimesHandler {
 }
 
 /**
- * Handler for result times report
+ * Handler for dated data that is already in array-of-arrays
+ * format suitable to pass directly through to reports.
  */
 export class PassThroughHandler {
   constructor(key) {
@@ -301,6 +314,7 @@ export class PassThroughHandler {
         (data) => {
           return {
             reportType: this.key,
+            service: 'all',
             data: data.data
           };
         }
@@ -317,7 +331,7 @@ export class PassThroughHandler {
 
   massageData(fetchedData) {
     return {
-      reportType: this.key,
+      ... fetchedData,
       massage: fetchedData.data
     };
   }
@@ -325,63 +339,26 @@ export class PassThroughHandler {
 
 //----------------------------
 
-/**
- * Generate mock data for testing UX without backend
- */
-function fetchRecentDataMock() {
-  const result = {
-    users: {
-      reportType: "users",
-      data: [
-
-      ]
-    },
-    rcodes: {
-      reportType: "rcodes",
-      data: [
-
-      ]
-    },
-    rtimes: {
-      reportType: "rtimes",
-      data: [
-
-      ]
-    },
-    projects: {
-      reportType: "rtimes",
-      data: [
-
-      ]
-    }
-  };
-
-  Object.keys(result).map(
-    (k) => {
-      let bar='*';
-      for(let i=0; i < 5; ++i) {
-        result[k].data.push(
-          [ k, "" + i, bar ] 
-        );
-        bar += '*';
-      }
-    }
-  );
-  return Promise.resolve(result);
-}
-
-
+const reportGroups = ['all', 'fence', 'indexd', 'guppy', 'peregrine', 'sheepdog'];
 const reportHandlers = {
-  rtimes: new RTimesHandler(),
-  rcodes: new RCodesHandler(),
-  users: new UniqueUsersHandler(),
-  projects: new PassThroughHandler('projects')
+  rtimes: reportGroups.reduce((acc,it) => { acc[it] = new RTimesHandler(it); return acc; }, {}),
+  rcodes: reportGroups.reduce((acc,it) => { acc[it] = new RCodesHandler(it); return acc; }, {}),
+  users: {
+    all: new UniqueUsersHandler()
+  },
+  projects: {
+    all: new PassThroughHandler('projects')
+  }
 };
 
 
-
-export function fetchRecentData(reportType) {
-  const handler = reportHandlers[reportType];
+export function fetchRecentData(reportType, reportGroup='all') {
+  if (! (reportHandlers[reportType] && reportHandlers[reportType][reportGroup])) {
+    const message = `ERROR: invalid report ${reportType}/${reportGroup}`;
+    console.log(message);
+    return [[message]];
+  }
+  const handler = reportHandlers[reportType][reportGroup];
   return handler.fetchData(handler.buildPathDateList()
     ).then(
       (data) => {
