@@ -45,7 +45,7 @@ spec:
             secretName: "fence-google-storage-creds-secret"
       containers:
         - name: data-ingestion-pipeline
-          GEN3_DATA-INGESTION-JOB_IMAGE
+          GEN3_DATA-INGESTION-PIPELINE_IMAGE
           imagePullPolicy: Always
           ports:
             - containerPort: 80
