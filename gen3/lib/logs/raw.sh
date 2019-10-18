@@ -3,7 +3,7 @@ gen3_load "gen3/lib/logs/job"
 #
 # Process arguments of form 'key=value' to an Elastic Search query
 # Supported keys:
-#   vpc, start, end, user, visitor, session, service, aggs (yes, no), fields (log, all, none), page
+#   vpc, start, end, user, visitor, session, service, proxy, aggs (yes, no), fields (log, all, none), page
 #
 gen3_logs_rawlog_query() {
   local vpcName
@@ -12,6 +12,7 @@ gen3_logs_rawlog_query() {
   local startDate
   local endDate
   local serviceName
+  local proxyService
   local queryFile
   local userId
   local sessionId
@@ -29,6 +30,7 @@ gen3_logs_rawlog_query() {
   endDate="$(gen3_logs_fix_date "$(gen3_logs_get_arg end 'tomorrow 00:00' "$@")")"
   pageNum="$(gen3_logs_get_arg page 0 "$@")"
   serviceName="$(gen3_logs_get_arg service revproxy "$@")"
+  proxyService="$(gen3_logs_get_arg proxy "all" "$@")"
   statusMin="$(gen3_logs_get_arg statusmin 0 "$@")"
   statusMax="$(gen3_logs_get_arg statusmax 1000 "$@")"
   aggs="$(gen3_logs_get_arg aggs no "$@")"
@@ -99,6 +101,14 @@ ENESTED
           if [[ -n "$sessionId" ]]; then
             cat - <<ENESTED
             {"term": {"message.session_id.keyword": "$sessionId"}},
+ENESTED
+          else echo ""
+          fi
+        )
+        $(
+          if [[ "$serviceName" == "revproxy" && -n "$proxyService" && "$proxyService" != "all" ]]; then
+            cat - <<ENESTED
+            {"term": {"message.proxy_service.keyword": "$proxyService"}},
 ENESTED
           else echo ""
           fi

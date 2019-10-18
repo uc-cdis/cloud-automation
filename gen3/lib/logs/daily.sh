@@ -54,9 +54,6 @@ EOM
 }}
 EOM
     )";
-    # ******************** FRICKJACK!!!!
-    # message.proxy_service = fence|indexd|peregrine|sheepdog
-    # UX - squish historgram
     queryStr=$(jq -r --argjson aggs "$aggs" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool.must += [ $ns ]' <<<${queryStr})
     gen3_log_info "$queryStr"
     gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
@@ -72,7 +69,7 @@ gen3_logs_rtime_histogram() {
       "rtimes" : {
           "histogram" : {
               "field" : "message.response_secs",
-              "interval" : 1,
+              "interval" : 0.1,
               "min_doc_count" : 1
           }
       }
