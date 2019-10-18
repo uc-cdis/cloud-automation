@@ -8,7 +8,7 @@ how to test the reports webapp with the local sample data
 
 ```
 cd ${GEN3_HOME} && npm install  # if necessary
-node gen3/lib/nodejs/httpd/server.js /2019 files/scripts/reports-web/sampleData/2019 / files/scripts/reports-web/src/
+node gen3/lib/nodejs/httpd/server.js /2019/10 files/scripts/reports-web/sampleData/10 / files/scripts/reports-web/src/
 ```
 
 * connect to https://localhost:3380/index.html

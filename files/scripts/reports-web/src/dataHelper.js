@@ -26,14 +26,16 @@ export function range(start, end, step=1) {
 
 /**
  * Assemble the paths to fetch to get the data for the last 5 days
+ * Checks sessionStorage.gen3Now to trigger sample data date range - see ../README.md
  * 
  * @param prefix
  * @return [pathDateList]
  */
 function basicBuildPathList(prefix, num=5) {
+  const now = +(sessionStorage.getItem('gen3Now') || Date.now());
   return range(1, num+1).map(
     function(it) {
-      const dt = new Date(Date.now() - it*24*60*60*1000);
+      const dt = new Date(now - it*24*60*60*1000);
       const part1 = `${dt.getUTCFullYear()}/${pad2(dt.getUTCMonth()+1)}/`;
       const part3 = `-${dt.getUTCFullYear()}${pad2(dt.getUTCMonth()+1)}${pad2(dt.getUTCDate())}.json`
       return { path:`${part1}${prefix}${part3}`, date: dt};
