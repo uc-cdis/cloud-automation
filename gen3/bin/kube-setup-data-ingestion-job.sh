@@ -55,7 +55,7 @@ if [ $# -ge 1 ]
   then PHS_ID_LIST_PATH=$1
 fi
 if [ ! -f $PHS_ID_LIST_PATH ] 
-  then echo 'A file containing a list of study accessions was not found at $PHS_ID_LIST_PATH. Please provide one! Exiting.'
+  then echo "A file containing a list of study accessions was not found at $PHS_ID_LIST_PATH. Please provide one! Exiting."
   exit
 fi
 
