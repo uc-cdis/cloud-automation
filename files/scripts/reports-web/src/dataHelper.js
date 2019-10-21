@@ -85,6 +85,26 @@ function addPercentColumn(table) {
   return table;
 }
 
+/**
+ * Given a range mapping {label, min, max}, and a table (list of rows)
+ * where column 0 is in the range, and column1 is the accumulator,
+ * then squish the histogram according to the mapping
+ * 
+ * @param table of source data
+ * @param rangeMapping non-overlapping sorted [{label, min, max}]
+ * @return squashTable with column 0 equal to label, and column 1 the sum 
+ *        of all table rows that fall in the range
+ */
+function squash(table, rangeMapping) {
+  const result = rangeMapping.map(info => [info.label, 0]);
+  table.reduce((acc, row) => {
+    let index=0;
+    for (; index < rangeMapping.length-1 && rangeMapping[index].max <= row[0]; index++) {}
+    acc[index][1] += row[1];
+    return acc;
+  }, result);
+  return result;
+}
 
 /**
  * Fetch the result-codes data for each (date,path) pair,
@@ -290,7 +310,16 @@ export class RTimesHandler {
     return {
       ... fetchedData,
       massage: addPercentColumn(
-        Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0]))
+        //Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0])),
+        squash(
+          Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0])),
+          [ 
+            {label: '0-1 sec', min: 0, max: 1 },
+            {label: '1-5 sec', min: 1, max: 5 },
+            {label: '5-10 sec', min: 5, max: 10 },
+            {label: '10+ sec', min: 10, max: 100 },
+          ],
+        )
       )
     };
   }
@@ -326,6 +355,7 @@ export class PassThroughHandler {
           console.log(`failed fetch for ${this.key}`, err);
           return {
             reportType: this.key,
+            service: 'all',
             data: []
           };
         }
