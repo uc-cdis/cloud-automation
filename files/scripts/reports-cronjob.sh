@@ -90,6 +90,8 @@ for service in all fence guppy indexd peregrine sheepdog; do
 done
 fileName="users-${dateTime}.json"
 gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
+fileName="projects-${dateTime}.json"
+gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
 
 cd /tmp
 /bin/rm -rf "${dataFolder}"
