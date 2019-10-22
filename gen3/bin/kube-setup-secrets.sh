@@ -217,7 +217,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
       echo "job will also attempt to load old configuration into fence-config.yaml..."
       echo "NOTE: Some default config values from fence-config.yaml will be replaced"
       echo "      Run \"gen3 joblogs config-fence\" for details"
-      gen3 runjob config-fence CONVERT_OLD_CFG "true"
+      gen3 job run config-fence CONVERT_OLD_CFG "true"
 
       # dump fence-config secret into file so user can edit.
       let count=1

@@ -27,12 +27,15 @@ if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   touch "$(gen3_secrets_folder)/.rendered_fence_db"
 fi
 
+# migrate the database
+gen3_log_info "migrating fence db ..."
+gen3 job run fence-db-migrate --wait
+
 # deploy fence
 gen3 roll fence
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
 gen3 roll fence-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-canary-service.yaml"
+gen3_log_info "The fence services has been deployed onto the k8s cluster."
 
-cat <<EOM
-The fence services has been deployed onto the k8s cluster.
-EOM
+gen3 kube_setup_google
