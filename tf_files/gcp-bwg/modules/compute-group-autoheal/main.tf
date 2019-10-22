@@ -59,17 +59,45 @@ resource "google_compute_instance_template" "instance_template" {
   }
 }
 
+# ---------------------------------------------------------
+#   CREATE HEALTH CHECK
+# ---------------------------------------------------------
+
+resource "google_compute_health_check" "autohealing" {
+  name                = "${var.hc_name}"
+  project             = "${var.project}"
+  check_interval_sec  = "${var.hc_check_interval_sec}"
+  timeout_sec         = "${var.hc_timeout_sec}"
+  healthy_threshold   = "${var.hc_healthy_threshold}"
+  unhealthy_threshold = "${var.hc_unhealthy_threshold}"
+
+  tcp_health_check {
+    port = "${var.hc_tcp_health_check_port}"
+  }
+}
+
 # ----------------------------------------------------------
-#   CREATE INSTANCE GROUP
+#   CREATE INSTANCE GROUP AUTOHEAL
 # ----------------------------------------------------------
 
 resource "google_compute_instance_group_manager" "instance_group" {
+  provider           = "google-beta"
   project            = "${var.project}"
   name               = "${var.name}-${var.instance_group_manager_name}"
   base_instance_name = "${var.name}-${var.base_instance_name}"
-  instance_template  = "${google_compute_instance_template.instance_template.self_link}"
-  zone               = "${var.zone}"
 
-  #target_pools = ["${google_compute_target_pool.target_pool.self_link}"]
+  #instance_template  = "${google_compute_instance_template.instance_template.self_link}"
+  zone = "${var.zone}"
+
   target_size = "${var.target_size}"
+
+  auto_healing_policies {
+    health_check      = "${google_compute_health_check.autohealing.self_link}"
+    initial_delay_sec = 300
+  }
+
+  version {
+    name              = "instance_group"
+    instance_template = "${google_compute_instance_template.instance_template.self_link}"
+  }
 }

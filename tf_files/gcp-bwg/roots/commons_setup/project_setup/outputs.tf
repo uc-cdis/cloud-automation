@@ -27,6 +27,7 @@ output "subnetwork_self_link_commons_private" {
 output "secondary_range_name_commons_private" {
   value = ["${module.vpc-commons-private.secondary_range_name}"]
 }
+
 ######################################################################
 output "firewall_ingress_self_link" {
   value = "${module.firewall-inbound-commons.firewall_self_link}"
@@ -39,6 +40,7 @@ output "firwall_ingress_ports" {
 output "firewall_ingress_target_tags" {
   value = "${module.firewall-inbound-commons.firewall_target_tags}"
 }
+
 /*
 output "firewall_egress__self_link" {
   value = "${module.firewall-outbound-commons.firewall_self_link}"
@@ -52,3 +54,15 @@ output "firewall_egress_target_tags" {
   value = "${module.firewall-outbound-commons.firewall_target_tags}"
 }
 */
+
+output "firewall_egress_allow_squid_mig_target_tags" {
+  value = "${module.firewall_commons_egress_allow_squid_mig.firewall_egress_target_tags}"
+}
+
+output "firewall_commons_egress_allow_proxy_port_target_tags" {
+  value = "${module.firewall_commons_egress_allow_proxy_port.firewall_egress_target_tags}"
+}
+
+output "firewall_inbound_proxy_port_target_tags" {
+  value = "${module.firewall_inbound_proxy_port.firewall_target_tags}"
+}
