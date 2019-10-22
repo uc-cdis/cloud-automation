@@ -26,14 +26,16 @@ export function range(start, end, step=1) {
 
 /**
  * Assemble the paths to fetch to get the data for the last 5 days
+ * Checks sessionStorage.gen3Now to trigger sample data date range - see ../README.md
  * 
  * @param prefix
  * @return [pathDateList]
  */
 function basicBuildPathList(prefix, num=5) {
+  const now = +(sessionStorage.getItem('gen3Now') || Date.now());
   return range(1, num+1).map(
     function(it) {
-      const dt = new Date(Date.now() - it*24*60*60*1000);
+      const dt = new Date(now - it*24*60*60*1000);
       const part1 = `${dt.getUTCFullYear()}/${pad2(dt.getUTCMonth()+1)}/`;
       const part3 = `-${dt.getUTCFullYear()}${pad2(dt.getUTCMonth()+1)}${pad2(dt.getUTCDate())}.json`
       return { path:`${part1}${prefix}${part3}`, date: dt};
@@ -83,6 +85,26 @@ function addPercentColumn(table) {
   return table;
 }
 
+/**
+ * Given a range mapping {label, min, max}, and a table (list of rows)
+ * where column 0 is in the range, and column1 is the accumulator,
+ * then squish the histogram according to the mapping
+ * 
+ * @param table of source data
+ * @param rangeMapping non-overlapping sorted [{label, min, max}]
+ * @return squashTable with column 0 equal to label, and column 1 the sum 
+ *        of all table rows that fall in the range
+ */
+function squash(table, rangeMapping) {
+  const result = rangeMapping.map(info => [info.label, 0]);
+  table.reduce((acc, row) => {
+    let index=0;
+    for (; index < rangeMapping.length-1 && rangeMapping[index].max <= row[0]; index++) {}
+    acc[index][1] += row[1];
+    return acc;
+  }, result);
+  return result;
+}
 
 /**
  * Fetch the result-codes data for each (date,path) pair,
@@ -198,6 +220,7 @@ class UniqueUsersHandler {
       (data) => {
         return {
           reportType: "users",
+          service: "all",
           data
         };
       }
@@ -206,7 +229,7 @@ class UniqueUsersHandler {
  
   massageData(fetchedData) {
     return {
-      reportType: "users",
+      ... fetchedData,
       massage: fetchedData.data.map( 
         ({number,date}) => [ `${date.getUTCFullYear()}/${pad2(date.getUTCMonth()+1)}/${pad2(date.getUTCDate())}`, "" + number ] 
         )
@@ -219,11 +242,16 @@ class UniqueUsersHandler {
  * Handler for result codes report
  */
 export class RCodesHandler {
-  constructor() {
+  constructor(service) {
+    this.service = service || "all";
   }
 
   buildPathDateList() {
-    return basicBuildPathList("codes");
+    let prefix = `codes-${this.service}`;
+    if (this.service === 'all') {
+      prefix = 'codes';
+    }
+    return basicBuildPathList(prefix);
   }
 
   fetchData(pathDateList) {
@@ -232,6 +260,7 @@ export class RCodesHandler {
         (data) => {
           return {
             reportType: "rcodes",
+            service: this.service,
             data
           };
         }
@@ -240,7 +269,7 @@ export class RCodesHandler {
 
   massageData(fetchedData) {
     return {
-      reportType: "rcodes",
+      ... fetchedData,
       massage: addPercentColumn(
         Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0]))
       )
@@ -252,11 +281,16 @@ export class RCodesHandler {
  * Handler for result times report
  */
 export class RTimesHandler {
-  constructor() {
+  constructor(service) {
+    this.service = service || "all";
   }
 
   buildPathDateList() {
-    return basicBuildPathList("rtimes");
+    let prefix = `rtimes-${this.service}`;
+    if (this.service === 'all') {
+      prefix = 'rtimes';
+    }
+    return basicBuildPathList(prefix);
   }
  
   fetchData(pathDateList) {
@@ -265,6 +299,7 @@ export class RTimesHandler {
         (data) => {
           return {
             reportType: "rtimes",
+            service: this.service,
             data
           };
         }
@@ -273,16 +308,26 @@ export class RTimesHandler {
 
   massageData(fetchedData) {
     return {
-      reportType: "rtimes",
+      ... fetchedData,
       massage: addPercentColumn(
-        Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0]))
+        //Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0])),
+        squash(
+          Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0])),
+          [ 
+            {label: '0-1 sec', min: 0, max: 1 },
+            {label: '1-5 sec', min: 1, max: 5 },
+            {label: '5-10 sec', min: 5, max: 10 },
+            {label: '10+ sec', min: 10, max: 100 },
+          ],
+        )
       )
     };
   }
 }
 
 /**
- * Handler for result times report
+ * Handler for dated data that is already in array-of-arrays
+ * format suitable to pass directly through to reports.
  */
 export class PassThroughHandler {
   constructor(key) {
@@ -301,6 +346,7 @@ export class PassThroughHandler {
         (data) => {
           return {
             reportType: this.key,
+            service: 'all',
             data: data.data
           };
         }
@@ -309,6 +355,7 @@ export class PassThroughHandler {
           console.log(`failed fetch for ${this.key}`, err);
           return {
             reportType: this.key,
+            service: 'all',
             data: []
           };
         }
@@ -317,7 +364,7 @@ export class PassThroughHandler {
 
   massageData(fetchedData) {
     return {
-      reportType: this.key,
+      ... fetchedData,
       massage: fetchedData.data
     };
   }
@@ -325,63 +372,26 @@ export class PassThroughHandler {
 
 //----------------------------
 
-/**
- * Generate mock data for testing UX without backend
- */
-function fetchRecentDataMock() {
-  const result = {
-    users: {
-      reportType: "users",
-      data: [
-
-      ]
-    },
-    rcodes: {
-      reportType: "rcodes",
-      data: [
-
-      ]
-    },
-    rtimes: {
-      reportType: "rtimes",
-      data: [
-
-      ]
-    },
-    projects: {
-      reportType: "rtimes",
-      data: [
-
-      ]
-    }
-  };
-
-  Object.keys(result).map(
-    (k) => {
-      let bar='*';
-      for(let i=0; i < 5; ++i) {
-        result[k].data.push(
-          [ k, "" + i, bar ] 
-        );
-        bar += '*';
-      }
-    }
-  );
-  return Promise.resolve(result);
-}
-
-
+const reportGroups = ['all', 'fence', 'indexd', 'guppy', 'peregrine', 'sheepdog'];
 const reportHandlers = {
-  rtimes: new RTimesHandler(),
-  rcodes: new RCodesHandler(),
-  users: new UniqueUsersHandler(),
-  projects: new PassThroughHandler('projects')
+  rtimes: reportGroups.reduce((acc,it) => { acc[it] = new RTimesHandler(it); return acc; }, {}),
+  rcodes: reportGroups.reduce((acc,it) => { acc[it] = new RCodesHandler(it); return acc; }, {}),
+  users: {
+    all: new UniqueUsersHandler()
+  },
+  projects: {
+    all: new PassThroughHandler('projects')
+  }
 };
 
 
-
-export function fetchRecentData(reportType) {
-  const handler = reportHandlers[reportType];
+export function fetchRecentData(reportType, reportGroup='all') {
+  if (! (reportHandlers[reportType] && reportHandlers[reportType][reportGroup])) {
+    const message = `ERROR: invalid report ${reportType}/${reportGroup}`;
+    console.log(message);
+    return [[message]];
+  }
+  const handler = reportHandlers[reportType][reportGroup];
   return handler.fetchData(handler.buildPathDateList()
     ).then(
       (data) => {
