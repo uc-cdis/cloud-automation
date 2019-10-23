@@ -20,7 +20,7 @@ g3k_wait4job(){
       echo "job fail"
       exit 1
     fi
-    gen3_log_err "waiting for $jobName to finish"
+    gen3_log_info "waiting for $jobName to finish"
     sleep 10
   done
 }

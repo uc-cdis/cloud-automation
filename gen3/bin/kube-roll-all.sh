@@ -56,6 +56,8 @@ fi
 if g3k_manifest_lookup .versions.fence 2> /dev/null; then
   # data ecosystem sub-commons may not deploy fence ...
   gen3 kube-setup-fence
+elif g3k_manifest_lookup .versions.fenceshib 2> /dev/null; then
+  gen3 kube-setup-fenceshib
 else
   gen3_log_info "no manifest entry for fence"
 fi

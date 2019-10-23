@@ -174,3 +174,32 @@ spec:
             limits:
               cpu: 0.3
               memory: 1200Mi
+      initContainers:
+      - name: fence-init
+        GEN3_FENCE_IMAGE
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence-config.yaml"
+            subPath: fence-config.yaml
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
+          - name: "fence-yaml"
+            mountPath: "/var/www/fence/user.yaml"
+            subPath: user.yaml
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "Running db migration: fence-create migrate"
+            fence-create migrate
