@@ -33,4 +33,4 @@ gen3 roll fence-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-canary-service.yaml"
 gen3_log_info "The fence service has been deployed onto the k8s cluster."
 
-gen3 kube_setup_google
+gen3 kube-setup-google
