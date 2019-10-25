@@ -49,24 +49,25 @@ DATA_REQUIRING_MANUAL_REVIEW_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-j
 CREATE_GOOGLE_GROUPS=false
 
 while getopts ":a:" opt; do
-  case $opt in
+  case ${opt} in
     phs_id_list_filepath)
       if [ ! -z $OPTARG ]; then
         echo 'setting PHS_ID_LIST_PATH to $OPTARG'
         PHS_ID_LIST_PATH=$OPTARG
       fi
-    \?)
+      ;;
     data_requiring_manual_review_filepath)
       if [ ! -z $OPTARG ]; then
         echo 'setting DATA_REQUIRING_MANUAL_REVIEW_PATH to $OPTARG'
         DATA_REQUIRING_MANUAL_REVIEW_PATH=$OPTARG
       fi
-    \?)
+      ;;
     create_google_groups)
       if [ ! -z $OPTARG ]; then
         echo 'setting CREATE_GOOGLE_GROUPS to $OPTARG'
         CREATE_GOOGLE_GROUPS=$OPTARG
       fi
+      ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       exit 1
