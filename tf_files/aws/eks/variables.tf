@@ -32,7 +32,6 @@ variable "eks_version" {
   default = "1.12"
 }
 
-
 variable "workers_subnet_size" {
   default = 24
 }
@@ -65,7 +64,6 @@ variable "proxy_name" {
   default = " HTTP Proxy"
 }
 
-
 variable "jupyter_asg_desired_capacity" {
   default = 0
 }
@@ -89,5 +87,10 @@ variable "availability_zones" {
 
 variable "squid_image_search_criteria" {
   description = "Search criteria for squid AMI look up"
-  default     = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-"
+  default     = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
+}
+
+variable "squid_instance_drive_size" {
+  description = "Volume size for the squid instance"
+  default     = 8
 }
