@@ -93,3 +93,8 @@ variable "availability_zones" {
   type        = "list"
   default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
 }
+
+variable "squid_image_search_criteria" {
+  description = "Search criteria for squid AMI look up"
+  default     = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-"
+}
