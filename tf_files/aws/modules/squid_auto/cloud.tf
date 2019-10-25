@@ -208,6 +208,10 @@ resource "aws_launch_configuration" "squid_auto" {
   #iam_instance_profile        = "${var.env_instance_profile}"
   iam_instance_profile        = "${aws_iam_instance_profile.squid-auto_role_profile.id}"
   associate_public_ip_address = true
+  root_block_device {
+    volume_size = "${var.squid_instance_drive_size}"
+  }
+
 
 
 user_data = <<EOF

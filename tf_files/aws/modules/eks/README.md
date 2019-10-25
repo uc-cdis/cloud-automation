@@ -68,6 +68,11 @@ users_policy = "test-commons"
 * `jupyter_asg_min_size` The min number of workers you would allow your jupyter autoscaling group to shrink. Default 0.
 * `iam-serviceaccount` If you wish to enable iam/service account to your cluster, useful for permissions. Default false.
 
+#   After introducing HA-proxy
+
+* `squid_image_name_search_criteria` Search criteria for the AMI that would serve as image base for squid instances. Default: `ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*`
+* `squid_instance_drive_size` Size of the root volume of the squid instances.
+
 ## 5. Considerations
 
 * We are using AWS EKS ready AMIs, even though there might be other options out there, we are using this ones as for now, or at least until there are more mature solutions.
