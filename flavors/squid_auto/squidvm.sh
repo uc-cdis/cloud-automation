@@ -189,3 +189,11 @@ cd /home/ubuntu
 bash /home/ubuntu/default_ip_route_and_instance_check_config.sh
 bash /home/ubuntu/proxy_route53_config.sh
 
+cat >> /etc/cron.daily/squid <<EOF
+#!/bin/bash
+# Let's rotate the logs daily
+/usr/sbin/squid -k rotate
+EOF
+
+chmod +x /etc/cron.daily/squid
+
