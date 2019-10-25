@@ -147,5 +147,9 @@ spec:
         args:
           - "-c"
           - |
-            echo "Running db migration: fence-create migrate"
-            fence-create migrate
+            if fence-create migrate --help > /dev/null 2>&1; then
+              echo "Running db migration: fence-create migrate"
+              fence-create migrate
+            else
+              echo "Db migration not available in this version of fence"
+            fi
