@@ -3,6 +3,8 @@
 # Deploy data-ingestion-job into existing commons
 
 # See cloud-automation/doc/kube-setup-data-ingestion-job.md for information on how to use this script
+echo "in kube-setup-script"
+
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
