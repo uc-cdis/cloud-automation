@@ -1,7 +1,10 @@
 The data-ingestion-job is specific to DataSTAGE.
 
 Usage:
-`gen3 kube-setup-data-ingestion-job [<phs_id_list_filepath>] [<data_requiring_manual_review_filepath>]`
+`gen3 kube-setup-data-ingestion-job 
+	[-phs_id_list_filepath <phs_id_list_filepath>] 
+	[-data_requiring_manual_review_filepath <data_requiring_manual_review_filepath>] 
+	[-create_google_groups <bool>]`
 
 Both of these arguments are optional with default filepaths, and only the first file needs to actually exist. 
 The first file is by default expected to live here:

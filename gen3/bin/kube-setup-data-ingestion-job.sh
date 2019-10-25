@@ -44,20 +44,43 @@ EOM
   gen3 secrets sync "initialize manifestservice/config.json"
 fi
 
-
 PHS_ID_LIST_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data-ingestion-job-phs-id-list.txt
-if [ $# -ge 1 ]
-  then PHS_ID_LIST_PATH=$1
-fi
+DATA_REQUIRING_MANUAL_REVIEW_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv
+CREATE_GOOGLE_GROUPS=false
+
+while getopts ":a:" opt; do
+  case $opt in
+    phs_id_list_filepath)
+      if [ ! -z $OPTARG ]; then
+        echo 'setting PHS_ID_LIST_PATH to $OPTARG'
+        PHS_ID_LIST_PATH=$OPTARG
+      fi
+    \?)
+    data_requiring_manual_review_filepath)
+      if [ ! -z $OPTARG ]; then
+        echo 'setting DATA_REQUIRING_MANUAL_REVIEW_PATH to $OPTARG'
+        DATA_REQUIRING_MANUAL_REVIEW_PATH=$OPTARG
+      fi
+    \?)
+    create_google_groups)
+      if [ ! -z $OPTARG ]; then
+        echo 'setting CREATE_GOOGLE_GROUPS to $OPTARG'
+        CREATE_GOOGLE_GROUPS=$OPTARG
+      fi
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
 if [ ! -f $PHS_ID_LIST_PATH ] 
   then echo "A file containing a list of study accessions was not found at $PHS_ID_LIST_PATH. Please provide one! Exiting."
   exit
-fi
-
-
-DATA_REQUIRING_MANUAL_REVIEW_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv
-if [ $# -ge 2 ]
-  then DATA_REQUIRING_MANUAL_REVIEW_PATH=$1
 fi
 
 g3kubectl delete configmap phs-id-list
