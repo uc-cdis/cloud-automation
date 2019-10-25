@@ -37,11 +37,6 @@ variable "bootstrap_script" {
   default = "squidvm.sh"
 }
 
-#variable "env_instance_profile" {
-#  description = "instance profile to be attached to the squid instances"
-#  default     = ""
-#}
-
 variable "squid_instance_type" {
   description = "instance type that replicas of squid will be deployed into"
   default     = "t3.medium"
@@ -56,10 +51,6 @@ variable "env_log_group" {
   description = "log group in which to send logs from the instance"
 }
 
-#variable "env_public_subnet_id" {
-# description = "public subnet for the vpc where the proxy cluster will reside"
-#}
-
 variable "env_vpc_id" {
   description = "the vpc id where the proxy cluster will reside"
 }
@@ -70,4 +61,9 @@ variable "ssh_key_name" {
 
 variable "eks_private_route_table_id" {
   description = "routing table for the EKS private subnet"
+}
+
+variable "squid_instance_drive_size" { 
+  description = "Size of the root volume for the instance"
+  default     = 8
 }
