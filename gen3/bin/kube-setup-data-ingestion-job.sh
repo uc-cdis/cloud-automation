@@ -46,7 +46,7 @@ fi
 
 
 PHS_ID_LIST_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data-ingestion-job-phs-id-list.txt
-if [ $# -ge 1 && $1 != "CREATE_GOOGLE_GROUPS" ]
+if [ $# -ge 1 && -f "$1" ]
   then PHS_ID_LIST_PATH=$1
 fi
 if [ ! -f $PHS_ID_LIST_PATH ] 
@@ -56,8 +56,8 @@ fi
 
 
 DATA_REQUIRING_MANUAL_REVIEW_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv
-if [ $# -ge 2 && $1 != "CREATE_GOOGLE_GROUPS" ]
-  then DATA_REQUIRING_MANUAL_REVIEW_PATH=$1
+if [ $# -ge 2 && -f "$2" ]
+  then DATA_REQUIRING_MANUAL_REVIEW_PATH=$2
 fi
 
 
