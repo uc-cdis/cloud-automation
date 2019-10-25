@@ -46,7 +46,7 @@ fi
 
 
 PHS_ID_LIST_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data-ingestion-job-phs-id-list.txt
-if [ $# -ge 1 ]
+if [ $# -ge 1 && $1 != "CREATE_GOOGLE_GROUPS" ]
   then PHS_ID_LIST_PATH=$1
 fi
 if [ ! -f $PHS_ID_LIST_PATH ] 
@@ -56,13 +56,10 @@ fi
 
 
 DATA_REQUIRING_MANUAL_REVIEW_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv
-if [ $# -ge 2 ]
+if [ $# -ge 2 && $1 != "CREATE_GOOGLE_GROUPS" ]
   then DATA_REQUIRING_MANUAL_REVIEW_PATH=$1
 fi
 
-if [ $# -ge 3 ]
-  then DATA_REQUIRING_MANUAL_REVIEW_PATH=$1
-fi
 
 g3kubectl delete configmap phs-id-list
 g3kubectl delete configmap data-requiring-manual-review
