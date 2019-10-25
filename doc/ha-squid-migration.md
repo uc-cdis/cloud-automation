@@ -171,5 +171,37 @@ gen3 cd
 ```
 
 
+We need to also taint a resource for the eks module, for that, run the following:
+
+```bash
+gen3 tform taint -module eks aws_route_table.eks_private
+```
+
+When that's done, you may proceed as usual
+
+```bash
+gen3 tfplan
+```
+
+The plan for the EKS module should not delete any resource other than the one you just tainted. If otherwise, please check the plan thoroughly.
 
 
+```bash
+Plan: 22 to add, 8 to change, 1 to destroy.
+```
+
+Apply the plan
+
+```bash
+gen3 tfapply
+```
+
+
+
+## Considerations
+
+During the migration, when you first update the VPC module, the proxy will go away, leaving you temporarily without a connection to the internet from the worker nodes, you may want to plan accordingly. Nonetheless, services will be available to users, but if you use an internal authentication provider, like google, dbGap, among others, these ones may not work until there is an available proxy.
+
+After you update the EKS module the Squid instances may take a few minutes to fully start serving proxy services, Say it might take up to 20 minutes.
+
+There might not be any roll back procedure after you are done.
