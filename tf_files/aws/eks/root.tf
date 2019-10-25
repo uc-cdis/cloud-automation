@@ -33,4 +33,5 @@ module "eks" {
   iam-serviceaccount               = "${var.iam-serviceaccount}"
   availability_zones               = "${var.availability_zones}"
   squid_image_name_search_criteria = "${var.squid_image_search_criteria}"
+  squid_instance_drive_size        = "${var.squid_instance_drive_size}"
 }
