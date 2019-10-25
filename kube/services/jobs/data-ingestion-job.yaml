@@ -55,6 +55,8 @@ spec:
                 secretKeyRef:
                   name: data-ingestion-job-secret
                   key: config.json
+            - name: CREATE_GOOGLE_GROUPS
+            CREATE_GOOGLE_GROUPS|-value: "false"-|
           volumeMounts:
             - name: shared-data
               mountPath: /this-directory-is-shared-with-fence

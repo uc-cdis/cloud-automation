@@ -48,8 +48,6 @@ PHS_ID_LIST_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data-ingestion
 DATA_REQUIRING_MANUAL_REVIEW_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv
 CREATE_GOOGLE_GROUPS=false
 
-echo $TEST_VAR
-
 while getopts ":a:" opt; do
   case ${opt} in
     phs_id_list_filepath )
