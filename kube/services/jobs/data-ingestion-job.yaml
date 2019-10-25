@@ -55,6 +55,10 @@ spec:
                 secretKeyRef:
                   name: data-ingestion-job-secret
                   key: config.json
+            - name: PHS_ID_LIST_PATH
+              GEN3_PHS_ID_LIST_PATH|-value: "$(gen3_secrets_folder)/g3auto/data-ingestion-job/data-ingestion-job-phs-id-list.txt"-|
+            - name: DATA_REQUIRING_MANUAL_REVIEW_PATH
+              GEN3_DATA_REQUIRING_MANUAL_REVIEW_PATH|-value: "$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv"-|
             - name: CREATE_GOOGLE_GROUPS
               GEN3_CREATE_GOOGLE_GROUPS|-value: "false"-|
           volumeMounts:
