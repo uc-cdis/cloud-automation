@@ -18,7 +18,7 @@ module "squid-auto" {
   squid_proxy_subnet         = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , 1 )}"
   organization_name          = "${var.organization_name}"
   ssh_key_name               = "${var.vpc_name}_automation_dev"
-  image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
+  image_name_search_criteria = "${var.squid_image_search_criteria}"
 }
 
 
