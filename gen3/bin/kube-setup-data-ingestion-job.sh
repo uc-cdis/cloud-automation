@@ -44,13 +44,24 @@ EOM
   gen3 secrets sync "initialize manifestservice/config.json"
 fi
 
-PHS_ID_LIST_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data-ingestion-job-phs-id-list.txt
-DATA_REQUIRING_MANUAL_REVIEW_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv
-CREATE_GOOGLE_GROUPS=false
 
+PHS_ID_LIST_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data-ingestion-job-phs-id-list.txt
+if [ $# -ge 1 ]
+  then PHS_ID_LIST_PATH=$1
+fi
 if [ ! -f $PHS_ID_LIST_PATH ] 
   then echo "A file containing a list of study accessions was not found at $PHS_ID_LIST_PATH. Please provide one! Exiting."
   exit
+fi
+
+
+DATA_REQUIRING_MANUAL_REVIEW_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv
+if [ $# -ge 2 ]
+  then DATA_REQUIRING_MANUAL_REVIEW_PATH=$1
+fi
+
+if [ $# -ge 3 ]
+  then DATA_REQUIRING_MANUAL_REVIEW_PATH=$1
 fi
 
 g3kubectl delete configmap phs-id-list
