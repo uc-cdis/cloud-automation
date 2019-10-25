@@ -19,6 +19,7 @@ module "squid-auto" {
   organization_name          = "${var.organization_name}"
   ssh_key_name               = "${var.vpc_name}_automation_dev"
   image_name_search_criteria = "${var.squid_image_search_criteria}"
+  squid_instance_drive_size  = "${var.squid_instance_drive_size}"
 }
 
 
