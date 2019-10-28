@@ -113,20 +113,27 @@ ENESTED
           else echo ""
           fi
         )
+        $(
+          if [[ "$statusMin" -gt 0 || "$statusMax" -lt 1000 ]]; then
+            cat - <<ENESTED
+        { 
+          "range": {
+            "message.http_status_code": {
+              "gte": $statusMin,
+              "lte": $statusMax
+            }
+          }
+        },
+ENESTED
+          else echo ""
+          fi
+        )
         { 
           "range": {
             "timestamp": {
               "gte": "$startDate",
               "lte": "$endDate",
               "format": "yyyy/MM/dd HH:mm"
-            }
-          }
-        },
-        { 
-          "range": {
-            "message.http_status_code": {
-              "gte": $statusMin,
-              "lte": $statusMax
             }
           }
         }
