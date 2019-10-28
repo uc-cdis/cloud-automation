@@ -55,8 +55,6 @@ spec:
                 secretKeyRef:
                   name: data-ingestion-job-secret
                   key: config.json
-            - name: CREATE_GOOGLE_GROUPS
-              GEN3_CREATE_GOOGLE_GROUPS|-value: "false"-|
           volumeMounts:
             - name: shared-data
               mountPath: /this-directory-is-shared-with-fence
@@ -86,6 +84,8 @@ spec:
           env:
             - name: PYTHONPATH
               value: /var/www/fence
+            - name: CREATE_GOOGLE_GROUPS
+              GEN3_CREATE_GOOGLE_GROUPS|-value: "false"-|
           volumeMounts:
             - name: shared-data
               mountPath: /data-ingestion-pipeline-output
