@@ -113,4 +113,6 @@ spec:
 
               ls /data-ingestion-pipeline-output
               chmod +x /data-ingestion-pipeline-output/fence-image-commands.sh
-              ./data-ingestion-pipeline-output/fence-image-commands.sh
+              cd /data-ingestion-pipeline-output
+              ls
+              ./fence-image-commands.sh
