@@ -112,5 +112,5 @@ spec:
               done
 
               ls /data-ingestion-pipeline-output
-              
+              chmod +x /data-ingestion-pipeline-output/fence-image-commands.sh
               ./data-ingestion-pipeline-output/fence-image-commands.sh
