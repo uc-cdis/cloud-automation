@@ -56,6 +56,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: JWKS_ENDPOINT
+            value: "http://fence-service/.well-known/jwks"
         volumeMounts:
           - name: mariner-config
             readOnly: true
