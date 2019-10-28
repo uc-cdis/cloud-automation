@@ -105,4 +105,6 @@ spec:
           args:
             - "-c"
             - |
-              ./fence-image-commands.sh
+              ls
+              ls /data-ingestion-pipeline-output
+              ./data-ingestion-pipeline-output/fence-image-commands.sh
