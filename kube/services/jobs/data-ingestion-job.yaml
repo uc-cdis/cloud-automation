@@ -105,6 +105,12 @@ spec:
           args:
             - "-c"
             - |
-              ls
+              while true; do
+                  files=( /data-ingestion-pipeline-output/* )
+                  (( ${#files[@]} >= 3 )) && break
+                  sleep 5s
+              done
+
               ls /data-ingestion-pipeline-output
+              
               ./data-ingestion-pipeline-output/fence-image-commands.sh
