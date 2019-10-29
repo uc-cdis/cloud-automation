@@ -52,7 +52,7 @@ spec:
             memory: "256Mi"
             cpu: "250m"
         env:
-          - name: AWSUSERCREDS
+          - name: AWSCREDS
             valueFrom:
               secretKeyRef:
                 name: "workflow-bot-g3auto"
