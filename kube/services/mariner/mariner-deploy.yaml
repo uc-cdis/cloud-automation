@@ -52,6 +52,11 @@ spec:
             memory: "256Mi"
             cpu: "250m"
         env:
+          - name: AWSUSERCREDS
+            valueFrom:
+              secretKeyRef:
+                name: "workflow-bot-g3auto"
+                key: "awsusercreds.json"
           - name: GEN3_NAMESPACE
             valueFrom:
               fieldRef:
