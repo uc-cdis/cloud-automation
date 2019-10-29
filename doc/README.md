@@ -102,6 +102,7 @@ For example - `gen3 help aws` opens `aws.md`
 
 * [api](./api.md) - indexd-post-folder, access-token, new-program, new-project
 * [approve_vpcpeering_request](./approve_vpcpeering_request.md)
+* [ha-proxy](./ha-squid-migration.md) - Migration from a single squid instance to an HA proxy solution
 * [kube-backup](./kube-backup.md)
 * [kube-dev-namespace](./kube-dev-namespace.md)
 * [kube-extract-config](./kube-extract-config.md)
