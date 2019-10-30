@@ -13,13 +13,7 @@ bay.uchicago.edu
 bionimbus.tabix.oicrsofteng.org
 bits.netbeans.org
 cdis.slack.com
-*.slack-msgs.com
-*.slack-edge.com
-edgeapi.slack.com
-wss-primary.slack.com
-wss-backup.slack.com
-wss-mobile.slack.com
-app.slack.com
+slack-msgs.com
 centos.chicago.waneq.com
 centos.firehosted.com
 centos.mirror.ndchost.com
