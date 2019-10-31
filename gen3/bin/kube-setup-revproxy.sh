@@ -65,7 +65,7 @@ then
   fi
 fi
 
-gen3 kube-setup-secrets
+[[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 gen3 update_config revproxy-nginx-conf "${scriptDir}/nginx.conf"
 gen3 update_config revproxy-helper-js "${scriptDir}/helpers.js"
 

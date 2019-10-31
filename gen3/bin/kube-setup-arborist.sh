@@ -15,8 +15,8 @@ if [ -z "$deployVersion" ]; then
 fi
 
 if [ "$deployVersion" -gt  "1" ]; then
-  echo "setting up arborist deployment version 2..."
-  gen3 kube-setup-secrets
+  gen3_log_info "setting up arborist deployment version 2..."
+  [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
   # provision a new db and get creds (if doesn't exist already)
   if ! g3kubectl describe secret arborist-g3auto | grep dbcreds.json > /dev/null 2>&1; then

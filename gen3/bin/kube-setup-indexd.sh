@@ -6,7 +6,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-gen3 kube-setup-secrets
+[[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 set -e
 gen3 roll indexd

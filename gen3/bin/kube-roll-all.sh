@@ -11,6 +11,9 @@ export GEN3_HOME="${GEN3_HOME:-$(cd "${_roll_all_dir}/../.." && pwd)}"
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
+# Set flag, so we can avoid doing things over and over
+export GEN3_ROLL_ALL=true
+
 gen3 kube-setup-workvm
 # kube-setup-roles runs before kube-setup-secrets -
 #    setup-secrets may launch a job that needs the useryaml-role
@@ -88,14 +91,16 @@ else
   gen3_log_info "not deploying arranger - no manifest entry for .versions.arranger"
 fi
 
-#
-# Do not do this - it may interrupt a running ETL
-#
-#if g3k_manifest_lookup .versions.spark 2> /dev/null; then
-#  gen3 kube-setup-spark
-#else
-#  gen3_log_info "not deploying spark (required for ES ETL) - no manifest entry for .versions.spark"
-#fi
+if g3k_manifest_lookup .versions.spark 2> /dev/null; then
+  #
+  # Only if not already deployed - otherwise it may interrupt a running ETL
+  #
+  if ! g3kubectl get deployment spark-deployment > /dev/null 2>&1; then
+    gen3 kube-setup-spark
+  fi
+else
+  gen3_log_info "not deploying spark (required for ES ETL) - no manifest entry for .versions.spark"
+fi
 
 if g3k_manifest_lookup .versions.guppy 2> /dev/null; then
   gen3 kube-setup-guppy
@@ -190,8 +195,11 @@ else
   gen3_log_info "not deploying portal - no manifest entry for .versions.portal"
 fi
 
+gen3_log_info "enable network policy"
+gen3 kube-setup-networkpolicy "enable" || true
+gen3_log_info "apply pod scaling"
+gen3 scaling apply all || true
 gen3_log_info "roll-all" "roll completed successfully!"
-gen3 kube-setup-networkpolicy "enable"
 
 # this requires AWS permissions ...
 #gen3 dashboard gitops-sync || true
