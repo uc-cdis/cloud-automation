@@ -14,7 +14,13 @@
 
 CERTS_PATH="/etc/openvpn/easy-rsa/keys/"
 USERS_FILE="/etc/openvpn/user_passwd.csv"
-REPOR_LOCA="/var/www/qrcode/users_report.html"
+
+if ! [ -z $1 ];
+then
+  REPOR_LOCA="$1"
+else
+  REPOR_LOCA="/var/www/qrcode/users_report.html"
+fi
 
 function get_active_users(){
   local active_users="$(awk -F, '{print $1}'  ${USERS_FILE})"
