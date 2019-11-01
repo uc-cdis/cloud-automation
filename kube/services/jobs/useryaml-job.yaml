@@ -117,11 +117,7 @@ spec:
           # Script always succeeds if it runs (echo exits with 0)
           - |
             if [ "$SYNC_FROM_DBGAP" = True ]; then
-              if [[ ! -f /mnt/shared/user.yaml ]]; then
-                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
-              else
-                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml
-              fi
+              fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml
             else
               fence-create sync --arborist http://arborist-service --yaml /var/www/fence/user.yaml
             fi
