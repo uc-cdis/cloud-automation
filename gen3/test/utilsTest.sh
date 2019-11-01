@@ -21,6 +21,7 @@ test_colors() {
 }
 
 test_env() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   [[ ! -z $GEN3_HOME ]]; because $? "kubes.sh defines the GEN3_HOME environment variable"
   [[ ! -z $GEN3_MANIFEST_HOME ]]; because $? "kubes.sh defines the GEN3_MANIFEST_HOME environment variable"
   [[ -d $GEN3_MANIFEST_HOME ]]; because $? "kubes.sh checks out cdis-manifest if necessary"

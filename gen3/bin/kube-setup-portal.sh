@@ -13,7 +13,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 umask 0
-gen3 kube-setup-secrets
+[[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 defaultsDir="${GEN3_HOME}/kube/services/portal/defaults"
 manifestsDir="$(dirname $(g3k_manifest_path))/portal"

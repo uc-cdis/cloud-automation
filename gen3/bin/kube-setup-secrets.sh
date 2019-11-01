@@ -91,11 +91,12 @@ fi
 # Avoid creating configmaps more than once every two minutes
 # (gen3 roll all calls this over and over)
 if gen3_time_since configmaps_sync is 120; then
-  echo "creating manifest configmaps"
+  gen3_log_info "creating manifest configmaps"
   gen3 gitops configmaps
 fi
 
 if gen3_time_since secrets_sync is 120; then
+  gen3_log_info "gen3 secrets sync"
   gen3 secrets sync || true
 fi
 
