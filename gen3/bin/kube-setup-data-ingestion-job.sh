@@ -38,7 +38,9 @@ then
   "gcp_project_id": "",
   "github_user_email": "",
   "github_personal_access_token": "",
-  "github_user_name": ""
+  "github_user_name": "",
+  "git_org_to_pr_to": "",
+  "git_repo_to_pr_to": ""
 }
 EOM
   gen3 secrets sync "initialize manifestservice/config.json"
