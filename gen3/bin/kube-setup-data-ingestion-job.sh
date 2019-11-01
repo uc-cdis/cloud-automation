@@ -63,8 +63,11 @@ argc=$#
 argv=("$@")
 for (( j=0; j < argc - 1; j++ )); do
   if [ "${argv[j]}" == "CREATE_GOOGLE_GROUPS" ]; then
-      CREATE_GOOGLE_GROUPS="${argv[j+1]}"
-    fi
+    CREATE_GOOGLE_GROUPS="${argv[j+1]}"
+  fi
+  if [ "${argv[j]}" == "CREATE_GENOME_MANIFEST" ]; then
+    CREATE_GENOME_MANIFEST="${argv[j+1]}"
+  fi
 done
 
 g3kubectl delete configmap phs-id-list
@@ -75,4 +78,4 @@ if [ -f "$DATA_REQUIRING_MANUAL_REVIEW_PATH" ]; then
   g3kubectl create configmap data-requiring-manual-review --from-file=$DATA_REQUIRING_MANUAL_REVIEW_PATH
 fi
 
-gen3 runjob data-ingestion CREATE_GOOGLE_GROUPS $CREATE_GOOGLE_GROUPS
+gen3 runjob data-ingestion CREATE_GOOGLE_GROUPS $CREATE_GOOGLE_GROUPS CREATE_GENOME_MANIFEST $CREATE_GENOME_MANIFEST
