@@ -43,7 +43,7 @@ then
   "git_repo_to_pr_to": ""
 }
 EOM
-  gen3 secrets sync "initialize manifestservice/config.json"
+  gen3 secrets sync "initialize data-ingestion-job/data_ingestion_job_config.json"
 fi
 
 
