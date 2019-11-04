@@ -7,7 +7,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-gen3 kube-setup-secrets > /dev/null
+gen3 kube-setup-secrets
 
 mkdir -p "$(gen3_secrets_folder)/g3auto/data-ingestion-job"
 credsFile="$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_ingestion_job_config.json"
@@ -35,7 +35,8 @@ then
   },
   "local_data_aws_creds": {
     "aws_access_key_id": "",
-    "aws_secret_access_key": ""
+    "aws_secret_access_key": "",
+    "bucket_name": ""
   },
   "gcp_project_id": "",
   "github_user_email": "",
@@ -45,14 +46,14 @@ then
   "git_repo_to_pr_to": ""
 }
 EOM
-  gen3 secrets sync "initialize data-ingestion-job/data_ingestion_job_config.json" > /dev/null
+  gen3 secrets sync "initialize data-ingestion-job/data_ingestion_job_config.json"
 fi
 
 # Prep inputs to job
 
-PHS_ID_LIST_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/phsids.txt
-DATA_REQUIRING_MANUAL_REVIEW_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv
-GENOME_FILE_MANIFEST_PATH=$(gen3_secrets_folder)/g3auto/data-ingestion-job/genome_file_manifest.csv
+PHS_ID_LIST_PATH=$"(gen3_secrets_folder)/g3auto/data-ingestion-job/phsids.txt"
+DATA_REQUIRING_MANUAL_REVIEW_PATH="$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv"
+GENOME_FILE_MANIFEST_PATH="$(gen3_secrets_folder)/g3auto/data-ingestion-job/genome_file_manifest.csv"
 
 argc=$#
 argv=("$@")
@@ -78,9 +79,14 @@ fi
 
 add_genome_file_manifest_to_bucket() {
   hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
-  bucketname="data-ingestion-${hostname//./-}"
-  aws s3 cp "$GENOME_FILE_MANIFEST_PATH" "s3://$bucketname/genome_file_manifest.csv"
+  bucket_name=$(jq -r .local_data_aws_creds.bucket_name <<< $credsFile)
+  if [ -z "$bucket_name" ]; then
+    bucket_name="data-ingestion-${hostname//./-}"
+  fi
+  jq ".local_data_aws_creds.bucket_name = \"$bucket_name\"" "$credsFile" > test2.json
+  aws s3 cp "$GENOME_FILE_MANIFEST_PATH" "s3://$bucket_name/genome_file_manifest.csv"
   GENOME_FILE_MANIFEST_PATH="s3://$bucketname/genome_file_manifest.csv"
+  gen3 secrets sync "initialize data-ingestion-job/data_ingestion_job_config.json"
 }
 
 if [ -f "$GENOME_FILE_MANIFEST_PATH" ]; then
@@ -89,11 +95,10 @@ if [ -f "$GENOME_FILE_MANIFEST_PATH" ]; then
       read -p -r "Found a genome file manifest at $GENOME_FILE_MANIFEST_PATH. Would you like to use this file to skip the manifest creation step?" yn
       case $yn in
           [Yy]* ) add_genome_file_manifest_to_bucket; break;;
-          [Nn]* ) break;;
+          [Nn]* ) GENOME_FILE_MANIFEST_PATH=''; break;;
           * ) echo "Please answer yes or no.";;
       esac
   done
-  
 fi
 
 gen3 runjob data-ingestion CREATE_GOOGLE_GROUPS $CREATE_GOOGLE_GROUPS
