@@ -66,6 +66,9 @@ spec:
             - name: data-requiring-manual-review
               readOnly: true
               mountPath: /data-requiring-manual-review
+            - name: genome-file-manifest
+              readOnly: true
+              mountPath: /genome-file-manifest
           command: ["/bin/bash" ]
           args:
             - "-c"
