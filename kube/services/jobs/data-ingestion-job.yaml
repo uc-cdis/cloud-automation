@@ -22,6 +22,10 @@ spec:
           configMap:
             name: data-requiring-manual-review
             optional: true
+        - name: genome-file-manifest
+          configMap:
+            name: genome-file-manifest
+            optional: true
         - name: old-config-volume
           secret:
             secretName: "fence-secret"
