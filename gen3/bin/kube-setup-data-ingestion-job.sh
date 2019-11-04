@@ -76,7 +76,7 @@ if [ -f "$DATA_REQUIRING_MANUAL_REVIEW_PATH" ]; then
   g3kubectl create configmap data-requiring-manual-review --from-file="$DATA_REQUIRING_MANUAL_REVIEW_PATH"
 fi
 
-func add_genome_file_manifest_to_bucket() {
+add_genome_file_manifest_to_bucket() {
   hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
   bucketname="data-ingestion-${hostname//./-}"
   aws s3 cp "$GENOME_FILE_MANIFEST_PATH" "s3://$bucketname/genome_file_manifest.csv"
@@ -86,7 +86,7 @@ func add_genome_file_manifest_to_bucket() {
 if [ -f "$GENOME_FILE_MANIFEST_PATH" ]; then
   echo 
   while true; do
-      read -p "Found a genome file manifest at $GENOME_FILE_MANIFEST_PATH. Would you like to use this file to skip the manifest creation step?" yn
+      read -p -r "Found a genome file manifest at $GENOME_FILE_MANIFEST_PATH. Would you like to use this file to skip the manifest creation step?" yn
       case $yn in
           [Yy]* ) add_genome_file_manifest_to_bucket; break;;
           [Nn]* ) break;;
