@@ -11,6 +11,8 @@ It is by default expected to live here:
 This job also requires a config file with creds to be filled out in advance, here:
 `g3auto/data-ingestion-job/data_ingestion_job_config.json`
 
+If a genome_file
+
 The Dockerfile executable that this job runs can be found in this repository: https://github.com/uc-cdis/dataSTAGE-data-ingestion
 
 If the executable is run successfully, a new pull request will be created with the job outputs in this repository: https://github.com/uc-cdis/dataSTAGE-data-ingestion-private

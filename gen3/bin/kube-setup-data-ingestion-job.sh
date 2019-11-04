@@ -17,7 +17,7 @@ if (! (g3kubectl describe secret data-ingestion-job-secret 2> /dev/null | grep c
 then
   cat - > "$credsFile" <<EOM
 {
-  "gs_creds": {
+  "genome_bucket_gs_creds": {
     "type": "service_account",
     "project_id": "",
     "private_key_id": "",
@@ -29,7 +29,11 @@ then
     "auth_provider_x509_cert_url": "",
     "client_x509_cert_url": ""
   }, 
-  "aws_creds": {
+  "genome_bucket_aws_creds": {
+    "aws_access_key_id": "",
+    "aws_secret_access_key": ""
+  },
+  "local_data_aws_creds": {
     "aws_access_key_id": "",
     "aws_secret_access_key": ""
   },
@@ -72,9 +76,13 @@ if [ -f "$DATA_REQUIRING_MANUAL_REVIEW_PATH" ]; then
   g3kubectl create configmap data-requiring-manual-review --from-file=$DATA_REQUIRING_MANUAL_REVIEW_PATH
 fi
 
+
 if [ -f "$GENOME_FILE_MANIFEST_PATH" ]; then
   echo "Found a genome file manifest at $GENOME_FILE_MANIFEST_PATH; will use this file to skip manifest creation step."
-  g3kubectl create configmap genome-file-manifest --from-file=$GENOME_FILE_MANIFEST_PATH
+  hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
+  bucketname="data-ingestion-${hostname//./-}"
+  aws s3 cp $GENOME_FILE_MANIFEST_PATH "s3://$bucketname/genome_file_manifest.csv"
+  GENOME_FILE_MAMIFEST_PATH="s3://$bucketname/genome_file_manifest.csv"
 fi
 
 gen3 runjob data-ingestion CREATE_GOOGLE_GROUPS $CREATE_GOOGLE_GROUPS

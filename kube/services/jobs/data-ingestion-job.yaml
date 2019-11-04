@@ -59,8 +59,6 @@ spec:
                 secretKeyRef:
                   name: data-ingestion-job-secret
                   key: config.json
-            - name: CREATE_GENOME_MANIFEST
-              GEN3_CREATE_GENOME_MANIFEST|-value: "false"-|
           volumeMounts:
             - name: shared-data
               mountPath: /this-directory-is-shared-with-fence
