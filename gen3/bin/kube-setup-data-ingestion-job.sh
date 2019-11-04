@@ -51,7 +51,7 @@ fi
 
 # Prep inputs to job
 
-PHS_ID_LIST_PATH=$"(gen3_secrets_folder)/g3auto/data-ingestion-job/phsids.txt"
+PHS_ID_LIST_PATH="$(gen3_secrets_folder)/g3auto/data-ingestion-job/phsids.txt"
 DATA_REQUIRING_MANUAL_REVIEW_PATH="$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv"
 GENOME_FILE_MANIFEST_PATH="$(gen3_secrets_folder)/g3auto/data-ingestion-job/genome_file_manifest.csv"
 
