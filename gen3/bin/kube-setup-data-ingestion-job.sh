@@ -90,14 +90,13 @@ add_genome_file_manifest_to_bucket() {
 }
 
 if [ -f "$GENOME_FILE_MANIFEST_PATH" ]; then
-  echo 
   while true; do
-      read -p -r "Found a genome file manifest at $GENOME_FILE_MANIFEST_PATH. Would you like to use this file to skip the manifest creation step?" yn
-      case $yn in
-          [Yy]* ) add_genome_file_manifest_to_bucket; break;;
-          [Nn]* ) GENOME_FILE_MANIFEST_PATH=''; break;;
-          * ) echo "Please answer yes or no.";;
-      esac
+    read -p "Found a genome file manifest at $GENOME_FILE_MANIFEST_PATH. Would you like to use this file to skip the manifest creation step? " yn
+    case $yn in
+        [Yy]* ) add_genome_file_manifest_to_bucket; break;;
+        [Nn]* ) GENOME_FILE_MANIFEST_PATH=''; break;;
+        * ) echo "Please answer yes or no.";;
+    esac
   done
 fi
 
