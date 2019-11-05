@@ -91,7 +91,7 @@ add_genome_file_manifest_to_bucket() {
   echo "d"
   jq ".local_data_aws_creds.bucket_name = \"$bucket_name\"" "$credsFile" > test2.json
   echo "e"
-  aws s3 cp "$GENOME_FILE_MANIFEST_PATH" "s3://$bucket_name/genome_file_manifest.csv"
+  aws s3 cp "$GENOME_FILE_MANIFEST_PATH" "s3://$bucket_name/"
   echo "f"
   GENOME_FILE_MANIFEST_PATH="s3://$bucket_name/genome_file_manifest.csv"
   echo "g"
