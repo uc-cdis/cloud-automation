@@ -82,7 +82,7 @@ add_genome_file_manifest_to_bucket() {
   creds_json=`cat $credsFile`
   bucket_name=$(jq -r .local_data_aws_creds.bucket_name <<< $creds_json)
   echo $bucket_name
-  if [ -z "$bucket_name" ]; then
+  if [ -z "$bucket_name" ] || [ "$bucket_name" == "null" ]; then
     echo "87"
     bucket_name="data-ingestion-${hostname//./-}"
   fi
