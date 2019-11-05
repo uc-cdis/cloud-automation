@@ -90,7 +90,8 @@ add_genome_file_manifest_to_bucket() {
     bucket_name="data-ingestion-${hostname//./-}"
   fi
   gen3 s3 create "$bucket_name"
-  jq ".local_data_aws_creds.bucket_name = \"$bucket_name\"" "$credsFile" > "$credsFile"
+  jq ".local_data_aws_creds.bucket_name = \"$bucket_name\"" "$credsFile" > "tmpXX.json"
+  mv tmpXX.json $credsFile
   refresh_secret
   aws s3 cp "$GENOME_FILE_MANIFEST_PATH" "s3://$bucket_name/"
   GENOME_FILE_MANIFEST_PATH="s3://$bucket_name/genome_file_manifest.csv"
