@@ -123,8 +123,8 @@ spec:
               - name: gen3Env
                 valueFrom:
                     configMapKeyRef:
-                      name: global
-                      key: environment
+                      name: manifest-global
+                      key: hostname
             image: quay.io/cdis/awshelper:master
             volumeMounts:
               - name: shared-data
