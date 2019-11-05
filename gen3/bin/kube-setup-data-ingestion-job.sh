@@ -78,12 +78,11 @@ if [ -f "$DATA_REQUIRING_MANUAL_REVIEW_PATH" ]; then
 fi
 
 add_genome_file_manifest_to_bucket() {
-  echo "a"
   hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
-  echo "b"
-  bucket_name=$(jq -r .local_data_aws_creds.bucket_name <<< "$credsFile")
-  echo "c"
+  creds_json=`cat $credsFile`
+  bucket_name=$(jq -r .local_data_aws_creds.bucket_name <<< $creds_json)
   if [ -z "$bucket_name" ]; then
+    echo "87"
     bucket_name="data-ingestion-${hostname//./-}"
   fi
   echo "creating $bucketname"
