@@ -119,7 +119,7 @@ done
 
 # update creds.json
 oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/${vpc_name}/creds.json)
-newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-1]*/$namespace/")
+newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-9]*/$namespace/")
 
 for name in creds.json apis_configs/fence-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json g3auto/dashboard/config.json; do
   (
