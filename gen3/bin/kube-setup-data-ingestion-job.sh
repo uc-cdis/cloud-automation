@@ -86,6 +86,7 @@ add_genome_file_manifest_to_bucket() {
   if [ -z "$bucket_name" ]; then
     bucket_name="data-ingestion-${hostname//./-}"
   fi
+  echo "creating $bucketname"
   gen3 s3 create "$bucketname"
   echo "d"
   jq ".local_data_aws_creds.bucket_name = \"$bucket_name\"" "$credsFile" > test2.json
