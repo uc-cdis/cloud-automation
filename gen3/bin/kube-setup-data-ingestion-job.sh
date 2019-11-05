@@ -94,19 +94,20 @@ add_genome_file_manifest_to_bucket() {
   mv tmpXX.json $credsFile
   refresh_secret
   aws s3 cp "$GENOME_FILE_MANIFEST_PATH" "s3://$bucket_name/"
-  GENOME_FILE_MANIFEST_PATH="s3://$bucket_name/genome_file_manifest.csv"
+  # GENOME_FILE_MANIFEST_PATH="s3://$bucket_name/genome_file_manifest.csv"
+  CREATE_GENOME_MANIFEST='true'
   gen3 secrets sync "initialize data-ingestion-job/data_ingestion_job_config.json"
 }
 
-if [ -f "$GENOME_FILE_MANIFEST_PATH" ]; then
+if [ -f "$GENOME_FILE_MANIFEST_PATH" ]; thens
   while true; do
     read -p "Found a genome file manifest at $GENOME_FILE_MANIFEST_PATH. Would you like to use this file to skip the manifest creation step? " yn
     case $yn in
         [Yy]* ) add_genome_file_manifest_to_bucket; break;;
-        [Nn]* ) GENOME_FILE_MANIFEST_PATH=''; break;;
+        [Nn]* ) CREATE_GENOME_MANIFEST='false'; break;;
         * ) echo "Please answer yes or no.";;
     esac
   done
 fi
 
-gen3 runjob data-ingestion CREATE_GOOGLE_GROUPS $CREATE_GOOGLE_GROUPS
+gen3 runjob data-ingestion CREATE_GOOGLE_GROUPS $CREATE_GOOGLE_GROUPS CREATE_GENOME_MANIFEST $CREATE_GENOME_MANIFEST
