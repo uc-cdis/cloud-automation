@@ -59,6 +59,8 @@ spec:
                 secretKeyRef:
                   name: data-ingestion-job-secret
                   key: config.json
+            - name: CREATE_GENOME_MANIFEST
+              GEN3_CREATE_GENOME_MANIFEST|-value: "true"-|
           volumeMounts:
             - name: shared-data
               mountPath: /this-directory-is-shared-with-fence
@@ -100,8 +102,6 @@ spec:
               value: /var/www/fence
             - name: CREATE_GOOGLE_GROUPS
               GEN3_CREATE_GOOGLE_GROUPS|-value: "false"-|
-            - name: CREATE_GENOME_MANIFEST
-              GEN3_CREATE_GENOME_MANIFEST|-value: "true"-|
           volumeMounts:
             - name: shared-data
               mountPath: /data-ingestion-pipeline-output
