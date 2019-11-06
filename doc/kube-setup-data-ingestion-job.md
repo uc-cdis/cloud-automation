@@ -1,17 +1,15 @@
 The data-ingestion-job is specific to DataSTAGE.
 
+To prep: 
+Fill out the config file with creds here: `$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_ingestion_job_config.json`
+Place a newline-separated list of phs IDs here: `$(gen3_secrets_folder)/g3auto/data-ingestion-job/phsids.txt`
+Optionally place a "data_requiring_manual_review.tsv" file here: `$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv`
+Optionally place a "genome_file_manifest" here: `$(gen3_secrets_folder)/g3auto/data-ingestion-job/genome_file_manifest.csv`
+
 Usage:
-`gen3 kube-setup-data-ingestion-job [<phs_id_list_filepath>] [<data_requiring_manual_review_filepath>] [<genome_file_manifest_path>]
-CREATE_GOOGLE_GROUPS <bool>`
+`gen3 kube-setup-data-ingestion-job CREATE_GOOGLE_GROUPS <bool> CREATE_GENOME_MANIFEST <bool>`
 
-These arguments are optional with default filepaths, and only the phs id file needs to actually exist.
-It is by default expected to live here:
-`g3auto/data-ingestion-job/phsids.txt`
-
-This job also requires a config file with creds to be filled out in advance, here:
-`g3auto/data-ingestion-job/data_ingestion_job_config.json`
-
-If a genome_file
+If CREATE_GENOME_MANIFEST is true, the genome file manifest is required to live in `g3auto/data-ingestion-job/`.
 
 The Dockerfile executable that this job runs can be found in this repository: https://github.com/uc-cdis/dataSTAGE-data-ingestion
 

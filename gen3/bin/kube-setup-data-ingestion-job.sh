@@ -67,6 +67,9 @@ for (( j=0; j < argc - 1; j++ )); do
   if [ "${argv[j]}" == "CREATE_GOOGLE_GROUPS" ]; then
     CREATE_GOOGLE_GROUPS="${argv[j+1]}"
   fi
+  if [ "${argv[j]}" == "CREATE_GENOME_MANIFEST" ]; then
+    CREATE_GENOME_MANIFEST="${argv[j+1]}"
+  fi
 done
 
 g3kubectl delete configmap phs-id-list > /dev/null
