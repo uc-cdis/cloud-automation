@@ -108,8 +108,6 @@ add_genome_file_manifest_to_bucket() {
 
   refresh_secret
   aws s3 cp "$GENOME_FILE_MANIFEST_PATH" "s3://$bucket_name/"
-  # GENOME_FILE_MANIFEST_PATH="s3://$bucket_name/genome_file_manifest.csv"
-  CREATE_GENOME_MANIFEST='false'
   gen3 secrets sync "initialize data-ingestion-job/data_ingestion_job_config.json"
 }
 
@@ -118,20 +116,8 @@ if [ ! -f "$GENOME_FILE_MANIFEST_PATH" ] && [ "$CREATE_GENOME_MANIFEST" == "fals
   exit
 fi
 
-# If the user provides a genome file and answers Yes to this question, the file will be
-# placed in a bucket and then retrieved in the Dockerfile. 
-if [ -f "$GENOME_FILE_MANIFEST_PATH" ]; then
-  while true; do
-      read -p "Found a genome file manifest at $GENOME_FILE_MANIFEST_PATH.
-Would you like to use this file to skip the manifest creation step?" yn
-    case $yn in
-        [Yy]* ) add_genome_file_manifest_to_bucket; break;;
-        [Nn]* ) CREATE_GENOME_MANIFEST='true'; break;;
-        * ) echo "Please answer yes or no.";;
-    esac
-  done
+if [ -f "$GENOME_FILE_MANIFEST_PATH" ] && [ "$CREATE_GENOME_MANIFEST" == "false" ]; then
+  add_genome_file_manifest_to_bucket
 fi
-
-echo "130: $CREATE_GENOME_MANIFEST"
 
 gen3 runjob data-ingestion CREATE_GOOGLE_GROUPS $CREATE_GOOGLE_GROUPS CREATE_GENOME_MANIFEST $CREATE_GENOME_MANIFEST
