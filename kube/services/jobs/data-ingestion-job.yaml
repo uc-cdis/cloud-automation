@@ -76,6 +76,10 @@ spec:
             - "-c"
             - |
               ./run.sh
+              if [ $? -ne 0 ]; then
+                echo "The pipeline was not run successfully. Stopping execution."
+                exit 1
+              fi
 
               if [ -f "scripts/joindure/output/google-groups.sh" ]; then
                   echo "google-groups.sh contains:"
