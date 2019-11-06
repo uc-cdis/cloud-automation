@@ -52,6 +52,7 @@ then
 }
 EOM
   gen3 secrets sync "initialize data-ingestion-job/data_ingestion_job_config.json"
+  refresh_secret
 fi
 
 # Prep inputs to job
