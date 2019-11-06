@@ -113,6 +113,11 @@ add_genome_file_manifest_to_bucket() {
   gen3 secrets sync "initialize data-ingestion-job/data_ingestion_job_config.json"
 }
 
+if [ ! -f "$GENOME_FILE_MANIFEST_PATH" ] && [ "$CREATE_GENOME_MANIFEST" == "false" ]; then
+  echo "A genome file manifest was not found at $GENOME_FILE_MANIFEST_PATH. Please provide one! Exiting."
+  exit
+fi
+
 # If the user provides a genome file and answers Yes to this question, the file will be
 # placed in a bucket and then retrieved in the Dockerfile. 
 if [ -f "$GENOME_FILE_MANIFEST_PATH" ]; then
