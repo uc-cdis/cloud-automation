@@ -91,8 +91,21 @@ add_genome_file_manifest_to_bucket() {
     bucket_name="data-ingestion-${hostname//./-}"
   fi
   gen3 s3 create "$bucket_name"
+
+  username="data-ingestion-bot-${hostname//./-}"
+  gen3 awsuser create ${username}
+  gen3 s3 attach-bucket-policy "$bucket_name" --read-write --user-name ${username}
+  user=$(gen3 secrets decode ${username}-g3auto awsusercreds.json)
+  key_id=$(jq -r .id <<< $user)
+  access_key=$(jq -r .secret <<< $user)
+
   jq ".local_data_aws_creds.bucket_name = \"$bucket_name\"" "$credsFile" > "tmpXX.json"
   mv tmpXX.json $credsFile
+  jq ".local_data_aws_creds.aws_access_key_id = \"$key_id\"" "$credsFile" > "tmpXX.json"
+  mv tmpXX.json $credsFile
+  jq ".local_data_aws_creds.aws_secret_access_key = \"$access_key\"" "$credsFile" > "tmpXX.json"
+  mv tmpXX.json $credsFile
+
   refresh_secret
   aws s3 cp "$GENOME_FILE_MANIFEST_PATH" "s3://$bucket_name/"
   # GENOME_FILE_MANIFEST_PATH="s3://$bucket_name/genome_file_manifest.csv"
