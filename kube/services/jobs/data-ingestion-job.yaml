@@ -75,7 +75,10 @@ spec:
           args:
             - "-c"
             - |
+              sleep 50000
+              
               ./run.sh
+
               if [ $? -ne 0 ]; then
                 echo "The pipeline was not run successfully. Stopping execution."
                 exit 1
