@@ -163,7 +163,7 @@ csoc_ingress_outbound_proxy_ports = ["3128"]
 csoc_ingress_outbound_proxy_tags = ["proxy-access"]
 
 csoc_ingress_outbound_ssh_ports = ["22"]
-csoc_ingress_outbound_ssh_tags = ["outbound-ssh"]
+csoc_ingress_outbound_ssh_tag = ["outbound-ssh"]
 
 csoc_ingress_outbound_deny_all_priority = "65534"
 csoc_ingress_outbound_deny_all_protocol = "ALL"
