@@ -170,6 +170,18 @@ variable "db_user_password" {
 
 // GKE
 
+variable "commons_private_subnet_secondary_name1" {
+  description = "Network alias name for GKE services."
+}
+
+variable "commons_private_subnet_secondary_name2" {
+  description = "Network alias name for GKE pods."
+}
+
+variable "egress_allow_proxy_name" {
+  description = "Name for egress proxy"
+}
+
 variable "cluster_name" {
   description = "The name of the cluster, unique within the project and location."
 }
@@ -220,12 +232,7 @@ variable "max_node_count" {
 
 variable "min_master_version" {
   description = "The current version of the master in the cluster. "
-  default     = "1.13.6-gke.6"
-}
 
-variable "master_version" {
-  description = "The current version of the master in the cluster. "
-  default     = "1.13.6-gke.6"
 }
 
 variable "cluster_secondary_range_name" {
@@ -240,8 +247,6 @@ variable "services_secondary_range_name" {
 
 variable "master_ipv4_cidr_block" {
   description = "The IP range in CIDR notation to use for the hosted master network"
-
-  #  default     = "172.16.0.0/28"
 }
 
 variable "default_node_pool" {
@@ -380,9 +385,9 @@ variable "image_type" {
 
 ########### Google Public Access Info#############################################
 
-variable "network_name" {
-  description = "The name of the VPC network being created"
-}
+#variable "network_name" {
+#  description = "The name of the VPC network being created"
+#}
 
 variable "fw_rule_deny_all_egress" {
   description = "Deny all egress traffic out of VPC"

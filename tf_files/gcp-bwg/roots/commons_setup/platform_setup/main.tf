@@ -41,42 +41,27 @@ module "sql" {
 *      Create GKE commons-gke
 **********************************************/
 
-variable "commons_private_subnet_secondary_name1" {}
-variable "commons_private_subnet_secondary_name2" {}
-variable "egress_allow_proxy_name" {}
-
 module "commons-gke" {
-  source       = "../../../modules/gke"
-  project      = "${data.terraform_remote_state.org_setup.project_id}"
-  region       = "${var.cluster_region}"
-  cluster_name = "${var.cluster_name}"
-  node_name    = "${var.node_name}"
-  network      = "${data.terraform_remote_state.project_setup.network_name_commons_private}"
-
-  #  username               = "${var.username}"
-  #  password               = "${var.password}"
-  environment = "${var.env}"
-
-  create_subnetwork      = false
-  master_ipv4_cidr_block = "${var.master_ipv4_cidr_block}"
-
-  #  cluster_secondary_range_name   = "${var.cluster_secondary_range_name}"
-  cluster_secondary_range_name = "${var.commons_private_subnet_secondary_name2}"
-
-  #  services_secondary_range_name  = "${var.services_secondary_range_name}"
-  services_secondary_range_name = "${var.commons_private_subnet_secondary_name1}"
-  subnetwork_name               = "${element(data.terraform_remote_state.project_setup.subnetwork_name__commons_private, 0)}"
-  node_labels                   = "${var.node_labels}"
-
-  #  node_tags                      = "${var.node_tags}"
-  node_tags                      = ["${var.egress_allow_proxy_name}"]
+  source                         = "../../../modules/gke"
+  project                        = "${data.terraform_remote_state.org_setup.project_id}"
+  region                         = "${var.cluster_region}"
+  cluster_name                   = "${var.cluster_name}"
+  node_name                      = "${var.node_name}"
+  network                        = "${data.terraform_remote_state.project_setup.network_name_commons_private}"
+  environment                    = "${var.env}"
+  create_subnetwork              = false
+  master_ipv4_cidr_block         = "${var.master_ipv4_cidr_block}"
+  cluster_secondary_range_name   = "${var.commons_private_subnet_secondary_name2}"
+  services_secondary_range_name  = "${var.commons_private_subnet_secondary_name1}"
+  subnetwork_name                = "${element(data.terraform_remote_state.project_setup.subnetwork_name__commons_private, 0)}"
+  node_labels                    = "${var.node_labels}"
+#  node_tags                      = ["${var.egress_allow_proxy_name}"]
+  node_tags = ["${data.terraform_remote_state.project_setup.firewall_commons_egress_allow_proxy_port_target_tags}"]
   master_version                 = "${var.min_master_version}"
   master_authorized_network_name = "${var.master_authorized_network_name}"
-
-  #  master_authorized_cidr_block = "${var.master_authorized_cidr_block}"
-  master_authorized_cidr_block = "${data.terraform_remote_state.csoc_project_setup.cloud_nat_external_ip.0}/32" # "${var.master_authorized_cidr_block}"
-  use_ip_aliases               = "${var.use_ip_aliases}"
-  enable_private_endpoint      = "${var.enable_private_endpoint}"
+  master_authorized_cidr_block   = "${data.terraform_remote_state.csoc_project_setup.cloud_nat_external_ip.0}/32"              # "${var.master_authorized_cidr_block}"
+  use_ip_aliases                 = "${var.use_ip_aliases}"
+  enable_private_endpoint        = "${var.enable_private_endpoint}"
 
   node_ipv4_cidr_block       = "${var.node_ipv4_cidr_block}"
   initial_node_count         = "${var.initial_node_count}"
@@ -110,7 +95,7 @@ module "commons-gke" {
 module "commons-gke-priv-access" {
   source                           = "../../../modules/firewall-gke-priv"
   project_id                       = "${data.terraform_remote_state.org_setup.project_id}"
-  network_name                     = "${var.network_name}"
+  network_name                     = "${data.terraform_remote_state.project_setup.network_name_commons_private}"
   fw_rule_deny_all_egress          = "${var.fw_rule_deny_all_egress}"
   fw_rule_allow_hc_ingress         = "${var.fw_rule_allow_hc_ingress}"
   fw_rule_allow_hc_egress          = "${var.fw_rule_allow_hc_egress}"
@@ -143,36 +128,3 @@ resource "google_compute_firewall" "csoc_private_egress" {
 
   destination_ranges = ["${module.commons-gke.endpoint}"]
 }
-
-# ------------------------------------------
-# Add firewall rule to csoc private vpc ingress to GKE endpoint
-# ------------------------------------------
-
-// Get data info about csoc private vpc, like ip address
-/*
-data "google_compute_subnetwork" "csoc_private_subnetwork" {
-  project = "${data.terraform_remote_state.org_setup_csoc.project_id}"
-  name    = "${data.terraform_remote_state.csoc_project_setup.network_name_csoc_private}"
-}
-
-data "google_compute_network" "csoc_private_network" {
-  project = "${data.terraform_remote_state.org_setup_csoc.project_id}"
-  name = "${data.terraform_remote_state.csoc_project_setup.network_name_csoc_private}"
-
-}
-
-resource "google_compute_firewall" "csoc_private_ingress" {
-  project     = "${data.terraform_remote_state.org_setup_csoc.project_number}"
-  description = "Added from project: ${data.terraform_remote_state.org_setup.project_id} Terraform."
-  name        = "${data.terraform_remote_state.csoc_project_setup.network_name_csoc_private}-${var.csoc_private_ingress_gke_endpoint}"
-  network     = "${data.terraform_remote_state.csoc_project_setup.network_name_csoc_private}"
-  direction   = "INGRESS"
-  priority    = "900"
-
-  allow {
-    protocol = "all"
-  }
-
-  source_ranges = ["${data.google_compute_subnetwork.csoc_private_subnetwork.ip_cidr_range}"]
-}
-*/
