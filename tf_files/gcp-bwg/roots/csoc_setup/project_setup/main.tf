@@ -373,11 +373,7 @@ module "firewall_csoc_ingress_outbound_ssh" {
   network     = "${module.vpc-csoc-ingress.network_name}"
   protocol    = "${var.csoc_ingress_outbound_ssh_protocol}"
   ports       = ["${var.csoc_ingress_outbound_ssh_ports}"]
-<<<<<<< HEAD
   target_tags = ["${var.csoc_ingress_outbound_ssh_tag}"]
-=======
-  target_tags = ["${var.csoc_ingress_outbound_ssh_tags}"]
->>>>>>> chicago/master
 }
 
 // DENY ALL OUTBOUND TRAFFIC
