@@ -56,6 +56,25 @@ tf_state_app_setup_csoc = "csoc-app_setup_csoc"
 constraint = ["constraints/compute.disableNestedVirtualization","constraints/compute.disableSerialPortAccess","constraints/compute.skipDefaultNetworkCreation"]
 org_iam_externalipaccess = []
 
+#### Role Bindings to group and user accounts
+#org_administrator_org_binding=["group:org_admins@domain.com"]
+#org_viewer_org_binding = []
+#folder_viewer_org_binding = [""]
+#all_projects_org_owner = [""]
+#projects_viewer_org_binding = [""]
+#billing_account_admin = [""]
+#billing_account_user = [""]
+#billing_account_viewer = [""]
+#log_viewer_org_binding = [""]
+#log_viewer_folder_binding = [""]
+#org_policy_viewer_org_binding = [""]
+
+#network_admin_org_binding = [""]
+#stackdriver_monitoring_viewer_folder_binding = [""]
+#stackdriver_monitoring_viewer_org_binding = [""]
+#kubernetes_engine_viewer_folder_binding = [""]
+#compute_instance_viewer_folder_binding = [""]
+#service_account_creator_folder_level = [""]
 # ------------------------------------------------------------------
 #
 #   ORGANIZATION SETUP
