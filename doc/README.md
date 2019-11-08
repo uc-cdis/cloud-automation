@@ -24,6 +24,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-setup-revproxy](./kube-setup-revproxy.md)
 * [kube-setup-secrets](./kube-setup-secrets.md)
 * [kube-wait4-pods](./kube-wait4-pods.md)
+* [maintenance mode](./maintenance.md)
 * [psql](./psql.md)
 * [random](./random.md)
 * [replicas](./replicas.md)

@@ -1,6 +1,6 @@
 #
 # run with:
-# gen3 runjob gentestdata \
+# gen3 job run gentestdata \
 # SUBMISSION_USER submission_user \
 # TEST_PROGRAM "" \
 # TEST_PROJECT "" \

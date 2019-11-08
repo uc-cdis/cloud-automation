@@ -91,11 +91,12 @@ fi
 # Avoid creating configmaps more than once every two minutes
 # (gen3 roll all calls this over and over)
 if gen3_time_since configmaps_sync is 120; then
-  echo "creating manifest configmaps"
+  gen3_log_info "creating manifest configmaps"
   gen3 gitops configmaps
 fi
 
 if gen3_time_since secrets_sync is 120; then
+  gen3_log_info "gen3 secrets sync"
   gen3 secrets sync || true
 fi
 
@@ -217,7 +218,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
       echo "job will also attempt to load old configuration into fence-config.yaml..."
       echo "NOTE: Some default config values from fence-config.yaml will be replaced"
       echo "      Run \"gen3 joblogs config-fence\" for details"
-      gen3 runjob config-fence CONVERT_OLD_CFG "true"
+      gen3 job run config-fence CONVERT_OLD_CFG "true"
 
       # dump fence-config secret into file so user can edit.
       let count=1

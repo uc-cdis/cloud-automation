@@ -16,6 +16,7 @@ module "compute_instance" {
   ssh_user        = "${var.ssh_user}"
   ssh_key_pub     = "${var.ssh_key_pub}"
   ssh_key         = "${var.ssh_key}"
+  image_name      = "${var.image_name}"
 }
 
 /*

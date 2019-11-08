@@ -1,6 +1,7 @@
 test_logs() {
-  (set -e; gen3 logs raw vpc=all | jq -e -r > /dev/null); because $? "gen3 logs raw should work ..."
-  (set -e; gen3 logs job vpc=all | jq -e -r > /dev/null); because $? "gen3 logs job should work ..."
+  (set -e; gen3 logs raw vpc=all | jq -e -r . > /dev/null); because $? "gen3 logs raw should work ..."
+  (set -e; gen3 logs raw vpc=all proxy=fence | jq -e -r . > /dev/null); because $? "gen3 logs raw proxy=fence should work ..."
+  (set -e; gen3 logs job vpc=all format=json | jq -e -r . > /dev/null); because $? "gen3 logs job should work ..."
   (set -e; gen3 logs history daily vpc=all | jq -e -r . > /dev/null) > /dev/null 2>&1; because $? "gen3 logs history daily should work"
   (set -e; gen3 logs history ubh vpc=all | jq -e -r . > /dev/null)  > /dev/null 2>&1; because $? "gen3 logs history ubh should work"
   gen3 logs save daily > /dev/null 2>&1; because $? "gen3 logs save daily should work"

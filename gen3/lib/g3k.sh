@@ -19,16 +19,6 @@ patch_kube() {
   g3kubectl patch deployment "$depName" -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 }
 
-#
-# Patch replicas
-#
-g3k_replicas() {
-  if [[ -z "$1" || -z "$2" ]]; then
-    echo -e $(red_color "g3k replicas deployment-name replica-count")
-    return 1
-  fi
-  g3kubectl patch deployment $1 -p  '{"spec":{"replicas":'$2'}}'
-}
 
 get_pod() {
   local pod
@@ -94,9 +84,6 @@ g3k() {
         ;;
       "random")
         random_alphanumeric "$@"
-        ;;
-      "replicas")
-        g3k_replicas "$@"
         ;;
       "update_config")
         update_config "$@"
