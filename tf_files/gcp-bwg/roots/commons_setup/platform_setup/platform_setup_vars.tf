@@ -232,7 +232,6 @@ variable "max_node_count" {
 
 variable "min_master_version" {
   description = "The current version of the master in the cluster. "
-
 }
 
 variable "cluster_secondary_range_name" {

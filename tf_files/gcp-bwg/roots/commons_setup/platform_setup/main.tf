@@ -42,24 +42,25 @@ module "sql" {
 **********************************************/
 
 module "commons-gke" {
-  source                         = "../../../modules/gke"
-  project                        = "${data.terraform_remote_state.org_setup.project_id}"
-  region                         = "${var.cluster_region}"
-  cluster_name                   = "${var.cluster_name}"
-  node_name                      = "${var.node_name}"
-  network                        = "${data.terraform_remote_state.project_setup.network_name_commons_private}"
-  environment                    = "${var.env}"
-  create_subnetwork              = false
-  master_ipv4_cidr_block         = "${var.master_ipv4_cidr_block}"
-  cluster_secondary_range_name   = "${var.commons_private_subnet_secondary_name2}"
-  services_secondary_range_name  = "${var.commons_private_subnet_secondary_name1}"
-  subnetwork_name                = "${element(data.terraform_remote_state.project_setup.subnetwork_name__commons_private, 0)}"
-  node_labels                    = "${var.node_labels}"
-#  node_tags                      = ["${var.egress_allow_proxy_name}"]
-  node_tags = ["${data.terraform_remote_state.project_setup.firewall_commons_egress_allow_proxy_port_target_tags}"]
+  source                        = "../../../modules/gke"
+  project                       = "${data.terraform_remote_state.org_setup.project_id}"
+  region                        = "${var.cluster_region}"
+  cluster_name                  = "${var.cluster_name}"
+  node_name                     = "${var.node_name}"
+  network                       = "${data.terraform_remote_state.project_setup.network_name_commons_private}"
+  environment                   = "${var.env}"
+  create_subnetwork             = false
+  master_ipv4_cidr_block        = "${var.master_ipv4_cidr_block}"
+  cluster_secondary_range_name  = "${var.commons_private_subnet_secondary_name2}"
+  services_secondary_range_name = "${var.commons_private_subnet_secondary_name1}"
+  subnetwork_name               = "${element(data.terraform_remote_state.project_setup.subnetwork_name__commons_private, 0)}"
+  node_labels                   = "${var.node_labels}"
+
+  #  node_tags                      = ["${var.egress_allow_proxy_name}"]
+  node_tags                      = ["${data.terraform_remote_state.project_setup.firewall_commons_egress_allow_proxy_port_target_tags}"]
   master_version                 = "${var.min_master_version}"
   master_authorized_network_name = "${var.master_authorized_network_name}"
-  master_authorized_cidr_block   = "${data.terraform_remote_state.csoc_project_setup.cloud_nat_external_ip.0}/32"              # "${var.master_authorized_cidr_block}"
+  master_authorized_cidr_block   = "${data.terraform_remote_state.csoc_project_setup.cloud_nat_external_ip.0}/32"                        # "${var.master_authorized_cidr_block}"
   use_ip_aliases                 = "${var.use_ip_aliases}"
   enable_private_endpoint        = "${var.enable_private_endpoint}"
 
