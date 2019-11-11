@@ -273,7 +273,7 @@ _gen3_run_tfplan_x(){
       echo "No apply this time" >> ${tempFile}
     fi
   fi
-  gen3_log_info "${tmpFile}"
+  #gen3_log_info "${tempFile}"
   echo "${tempFile}"
 }
 
