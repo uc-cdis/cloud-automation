@@ -5,7 +5,7 @@
 #
 # 0   9   *   *   1-5    (if [ -f $HOME/cloud-automation/files/scripts/tfplan-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/tfplan-cronjob.sh; else echo "no qa-cronjob.sh"; fi) > $HOME/tfplan-cronjob.log 2>&1
 
-set -i
+# set -i
 
 if ! [[ -d "$HOME/cloud-automation" && -d "$HOME/cdis-manifest" ]]; then
   echo "ERROR: this does not look like a commons environment"
