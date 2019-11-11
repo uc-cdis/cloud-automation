@@ -56,6 +56,25 @@ tf_state_app_setup_csoc = "csoc-app_setup_csoc"
 constraint = ["constraints/compute.disableNestedVirtualization","constraints/compute.disableSerialPortAccess","constraints/compute.skipDefaultNetworkCreation"]
 org_iam_externalipaccess = []
 
+#### Role Bindings to group and user accounts
+#org_administrator_org_binding=["group:org_admins@domain.com"]
+#org_viewer_org_binding = []
+#folder_viewer_org_binding = [""]
+#all_projects_org_owner = [""]
+#projects_viewer_org_binding = [""]
+#billing_account_admin = [""]
+#billing_account_user = [""]
+#billing_account_viewer = [""]
+#log_viewer_org_binding = [""]
+#log_viewer_folder_binding = [""]
+#org_policy_viewer_org_binding = [""]
+
+#network_admin_org_binding = [""]
+#stackdriver_monitoring_viewer_folder_binding = [""]
+#stackdriver_monitoring_viewer_org_binding = [""]
+#kubernetes_engine_viewer_folder_binding = [""]
+#compute_instance_viewer_folder_binding = [""]
+#service_account_creator_folder_level = [""]
 # ------------------------------------------------------------------
 #
 #   ORGANIZATION SETUP
@@ -117,64 +136,6 @@ create_vpc_secondary_ranges = true
 #   VPC Firewall Variables
 # ------------------------------------
 
-###### COMMONS INGRESS ##########
-commons_ingress_direction = "INGRESS"
-commons_ingress_enable_logging = true
-commons_ingress_ports = ["22", "80", "443"]
-commons_ingress_priority = "1000"
-commons_ingress_protocol = "tcp"
-commons_ingress_source_ranges = ["172.30.30.0/24"]
-commons_ingress_target_tags = ["commons001-dev-ingress"]
-
-###### COMMONS EGRESS ##########
-commons_egress_destination_ranges = [""]
-commons_egress_direction = "EGRESS"
-commons_egress_enable_logging = true
-commons_egress_ports = ["80", "443"]
-commons_egress_priority = "1000"
-commons_egress_protocol = "tcp"
-commons_egress_target_tags = ["commons001-dev-egress"]
-
-###### OUTBOUND FROM GKE ##########
-outbound_from_gke_destination_ranges = ["172.16.0.0/28"]
-outbound_from_gke_enable_logging = true
-outbound_from_gke_name = "outbound-to-gke-fw"
-outbound_from_gke_network_name = ""
-outbound_from_gke_ports = ["1-65535"]
-outbound_from_gke_priority = "1000"
-outbound_from_gke_protocol = "tcp"
-outbound_from_gke_target_tags = ["outbound-to-gke"]
-
-###### INBOUND TO COMMONS ##########
-inbound_to_commons_enable_logging = true
-inbound_to_commons_name = "inbound-to-commons001-fw"
-inbound_to_commons_network_name = ""
-inbound_to_commons_ports = ["1-65535"]
-inbound_to_commons_priority = "1000"
-inbound_to_commons_protocol = "tcp"
-inbound_to_commons_source_ranges = ["172.16.0.0/28", "172.29.30.0/24", "172.29.29.0/24"]
-inbound_to_commons_target_tags = ["inbound-to-commons001"]
-
-###### OUTBOUND FROM COMMONS ##########
-outbound_from_commons_destination_ranges = ["172.29.30.0/24", "172.29.29.0/24", "172.16.0.0/28"]
-outbound_from_commons_enable_logging = true
-outbound_from_commons_name = "outbound-from-commons001-name"
-outbound_from_commons_network_name = ""
-outbound_from_commons_ports = ["1-65535"]
-outbound_from_commons_priority = "1000"
-outbound_from_commons_protocol = "tcp"
-outbound_from_commons_target_tags = ["outbound-from-commons001"]
-
-###### INBOUND FROM GKE ##########
-inbound_from_gke_enable_logging = true
-inbound_from_gke_name = "inbound-from-gke"
-inbound_from_gke_network_name = ""
-inbound_from_gke_ports = ["1-65535"]
-inbound_from_gke_priority = "1000"
-inbound_from_gke_protocol = "tcp"
-inbound_from_gke_source_ranges = ["172.16.0.0/28"]
-inbound_from_gke_target_tags = ["inbound-from-gke"]
-
 ###### INBOUND PROXY PORT
 inbound_proxy_port_priority = "800"
 inbound_proxy_port_name = "allow-inbound-proxy-port"
@@ -218,17 +179,10 @@ fw_rule_deny_all_egress = "deny-egress"
 
 cluster_name = "<cluster_name>"
 cluster_region = "<region>"
-
-#cluster_secondary_range_name = "ip-cidr-range-k8-pod"
-#services_secondary_range_name = "ip-cidr-range-k8-service"
-master_ipv4_cidr_block = "172.16.0.0/28"
-min_master_version = "1.13.6-gke.5"
-network_name = "commons001-dev-private"
+master_ipv4_cidr_block = "<master_cidr>/28"
+min_master_version = "<gke_min_master_version>"
 network_policy_config = true
-node_name = "commons001-dev-gke-1-node"
-node_tags = ["commons001-dev-ingress", "public-google", "ingress-from-csoc2-private"]
-node_tags = ["allow-connect-to-proxy"]
-
+node_name = "<node_names>"
 node_labels = {
   "data-commons" = "data-commons"
   "department" = "ctds"
@@ -236,11 +190,6 @@ node_labels = {
   "sponsor" = "sponsor"
 }
 
-#network                = "" #USE REMOTE_STATE
-#subnetwork_name        = "" #USE REMOTE_STATE
-#node_labels              = "" # USE A MAP
-#password               = "" # BASIC_AUTH DISABLED
-#username               = "" # BASIC_AUTH DISABLED
 # -----------------------------------
 #   Firewall Rules to add to CSOC PRIVATE
 # ------------------------------------
@@ -276,14 +225,10 @@ db_user_labels = {
   "sponsor" = "sponsor"
 }
 ipv4_enabled = "false"
-#db_network = "default"
-#sql_network = "default"
-#db_authorized_networks = []
 activation_policy = "ALWAYS"
 db_user_name = "postgres-user"
 db_user_host = "%"
 db_user_password = "admin123"
-#db_name = ["default"]
 
 # ------------------------------------
 #   Stackdriver Log Sink Variables
@@ -291,7 +236,6 @@ db_user_password = "admin123"
 
 data_access_sink_name = "data_access"
 activity_sink_name = "activity"
-
 
 # -------------------------------------
 #   SQUID MANAGED INSTANCE AUTOHEAL GROUP

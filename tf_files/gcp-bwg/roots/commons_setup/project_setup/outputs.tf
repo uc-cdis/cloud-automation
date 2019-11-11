@@ -29,6 +29,7 @@ output "secondary_range_name_commons_private" {
 }
 
 ######################################################################
+/*
 output "firewall_ingress_self_link" {
   value = "${module.firewall-inbound-commons.firewall_self_link}"
 }
@@ -41,7 +42,7 @@ output "firewall_ingress_target_tags" {
   value = "${module.firewall-inbound-commons.firewall_target_tags}"
 }
 
-/*
+
 output "firewall_egress__self_link" {
   value = "${module.firewall-outbound-commons.firewall_self_link}"
 }
