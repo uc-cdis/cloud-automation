@@ -92,9 +92,9 @@ gen3_run_tfplan() {
   (
     cd ~/cloud-automation
     changes=$(_check_cloud-automation_changes)
-    #changes="false"
+    changes="false"
     current_branch=$(_check_cloud-automation_branch)
-    #current_branch="master"
+    current_branch="master"
 
     #echo ${changes}
 
@@ -115,13 +115,16 @@ gen3_run_tfplan() {
       then
         case "$module" in
           "vpc")
-            message=$(_gen3_run_tfplan_vpc ${apply})
+            #message=$(_gen3_run_tfplan_vpc ${apply})
+            message=$(_gen3_run_tfplan_x ${apply} ${module})
             ;;
           "eks")
-            message=$(_gen3_run_tfplan_eks ${apply})
+            #message=$(_gen3_run_tfplan_eks ${apply})
+            message=$(_gen3_run_tfplan_x ${apply} ${module})
             ;;
           "management-logs")
-            message=$(_gen3_run_tfplan_management-logs ${apply})
+            #message=$(_gen3_run_tfplan_management-logs ${apply})
+            message=$(_gen3_run_tfplan_x ${apply} ${module})
             ;;
         esac
       else
@@ -146,7 +149,7 @@ gen3_run_tfplan() {
 }
 
 #
-# Apply changes picket up by tfplan
+# Apply changes picked up by tfplan
 #
 _gen3_run_tfapply_eks() {
   gen3_run_tfplan "$@" "quiet" "apply"
@@ -154,7 +157,7 @@ _gen3_run_tfapply_eks() {
 
 
 #
-# Apply changes picket up by tfplan
+# Apply changes picked up by tfplan
 #
 _gen3_run_tfapply_vpc() {
   #echo "$@"
@@ -162,7 +165,7 @@ _gen3_run_tfapply_vpc() {
 }
 
 #
-# Apply changes picket up by tfplan
+# Apply changes picked up by tfplan
 #
 _gen3_run_tfapply_management-logs() {
   gen3_run_tfplan "$@" "quiet" "apply"
@@ -175,16 +178,77 @@ _gen3_run_tfapply_management-logs() {
 
 gen3_run_tfapply() {
   local module=$1
-  if [ ${module} == "vpc" ];
+  gen3_run_tfplan "$@" "quiet" "apply"
+
+#  if [ ${module} == "vpc" ];
+#  then
+#    _gen3_run_tfapply_vpc "$@"
+#  elif [ ${module} == "eks" ];
+#  then
+#    _gen3_run_tfapply_eks "$@"
+#  elif [ ${module} == "management-logs" ];
+#  then
+#    _gen3_run_tfapply_management-logs "$@"
+#  fi
+}
+
+#
+#
+#
+#
+
+_gen3_run_tfplan_x(){
+
+  local plan
+  local slack_hook
+  local tempFile
+  local output
+  local apply
+  local module
+  local profile
+  local vpc_module
+
+  apply=$1
+  module=$2
+  profile=$(grep profile ~/.aws/config | awk '{print $2}' | cut -d] -f1 |head -n1)
+
+
+  
+  if [ -n ${module} ] && [ "${module}" != "vpc" ];
   then
-    _gen3_run_tfapply_vpc "$@"
-  elif [ ${module} == "eks" ];
+    vpc_module=${vpc_name}
+    #gen3_log_info "Entering gen3 workon ${profile} ${vpc_name}"
+    #gen3 workon ${profile} ${vpc_name} > /dev/null 2>&1
+  elif [ -n ${module} ];
   then
-    _gen3_run_tfapply_eks "$@"
-  elif [ ${module} == "management-logs" ];
-  then
-    _gen3_run_tfapply_management-logs "$@"
+    vpc_module="${vpc_name}_${module}"
+    #gen3_log_info "Entering gen3 workon ${profile} ${vpc_name}_${module}"
+    #gen3 workon ${profile} ${vpc_name}_${module} > /dev/null 2>&1
+  else
+    gen3_log_error "There has been an error running tfplan, no module has been selected"
+    exit 2
   fi
+    
+  gen3_log_info "Entering gen3 workon ${profile} ${vpc_module}"
+  gen3 workon ${profile} ${vpc_module} > /dev/null 2>&1
+
+  output="$(gen3 tfplan)"
+  plan=$(echo -e "${output}" |grep "Plan")
+
+  if [ -n "${plan}" ];
+  then
+    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
+    echo "${vpc_name}_${module} has unapplied plan:" > ${tempFile}
+    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
+    if [ -n "$apply" -a "$apply" == "apply" ];
+    then
+      echo -e "${output}" >> ${tempFile}
+      gen3 tfapply >> ${tempFile} 2>&1
+    else
+      echo "No apply this time" >> ${tempFile}
+    fi
+  fi
+  echo "${tempFile}"
 }
 
 #
