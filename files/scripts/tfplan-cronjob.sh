@@ -30,5 +30,5 @@ fi
 
 
 source "${GEN3_HOME}/gen3/gen3setup.sh"
-gen3 gitops tfplan vpc $1
-gen3 gitops tfplan eks $1
+gen3 gitops tfplan vpc $@
+gen3 gitops tfplan eks $@
