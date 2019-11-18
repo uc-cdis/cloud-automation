@@ -140,8 +140,11 @@ all:
         cdistest_dev:
           ansible_user: devplanetv1
           ansible_host: 10.128.7.28
-        cdistest_qa:
+        cdistest_qav1:
           ansible_user: qaplanetv1
+          ansible_host: 10.128.7.28
+        cdistest_qav2:
+          ansible_user: qaplanetv2
           ansible_host: 10.128.7.28
 
     qa:
