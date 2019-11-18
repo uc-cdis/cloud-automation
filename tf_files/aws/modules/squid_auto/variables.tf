@@ -67,3 +67,8 @@ variable "squid_instance_drive_size" {
   description = "Size of the root volume for the instance"
   default     = 8
 }
+
+variable "squid_availability_zones" {
+  description = "AZs on wich to associate the routes for the squid proxies"
+  type        = "list"
+}

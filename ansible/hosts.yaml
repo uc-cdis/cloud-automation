@@ -146,9 +146,9 @@ all:
 
     qa:
       hosts:
-        dcfqa_qa:
-          ansible_user: dcfqav1
-          ansible_host: 10.128.2.138
+        #dcfqa_qa:
+        #  ansible_user: dcfqav1
+        #  ansible_host: 10.128.2.138
         kfqa_qa:
           ansible_user: kfqa
           ansible_host: 10.128.2.12

@@ -55,12 +55,18 @@ data "aws_route53_zone" "vpczone" {
 # FOR PROD ENVIRONMENT:
 
 resource "aws_subnet" "squid_pub0" {
+  count                   = "${length(var.squid_availability_zones)}"
   vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              = "${cidrsubnet("${var.squid_proxy_subnet}",3,0)}"
-  availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  tags                    = "${map("Name", "${var.env_squid_name}_pub0", "Organization", var.organization_name, "Environment", var.env_squid_name)}"
+  cidr_block              = "${cidrsubnet("${var.squid_proxy_subnet}",3,count.index )}"
+  cidr_block              = "${cidrsubnet(var.squid_proxy_subnet,3,count.index )}"
+  #availability_zone       = "${data.aws_availability_zones.available.names[0]}"
+  #availability_zone       = "${element(var.squid_availability_zones,(count.index - 1))}"
+  availability_zone       = "${var.squid_availability_zones[count.index]}"
+  tags                    = "${map("Name", "${var.env_squid_name}_pub${count.index}", "Organization", var.organization_name, "Environment", var.env_squid_name)}"
 }
 
+
+/*
 resource "aws_subnet" "squid_pub1" {
   vpc_id                  = "${var.env_vpc_id}"
   cidr_block              =   "${cidrsubnet("${var.squid_proxy_subnet}",3,1)}"
@@ -96,7 +102,7 @@ resource "aws_subnet" "squid_pub5" {
   availability_zone = "${data.aws_availability_zones.available.names[5]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub2", "Organization", var.organization_name, "Environment", var.env_squid_name)}"
 }
-
+*/
 
 
 # Instance profile role and policies, we need the proxy to be able to talk to cloudwatchlogs groups 
@@ -161,11 +167,13 @@ data "aws_iam_policy_document" "squid_policy_document" {
 
 
 resource "aws_route_table_association" "squid_auto0" {
-  subnet_id      = "${aws_subnet.squid_pub0.id}"
+  count          = "${length(var.squid_availability_zones)}"
+  subnet_id      = "${aws_subnet.squid_pub0.*.id[count.index]}"
   #route_table_id = "${var.env_public_subnet_id}"
   route_table_id = "${data.aws_route_table.public_route_table.id}"
 }
 
+/*
 resource "aws_route_table_association" "squid_auto1" {
   subnet_id      = "${aws_subnet.squid_pub1.id}"
   #route_table_id = "${var.env_public_subnet_id}"
@@ -195,7 +203,7 @@ resource "aws_route_table_association" "squid_auto5" {
   #route_table_id = "${var.env_public_subnet_id}"
   route_table_id = "${data.aws_route_table.public_route_table.id}"
 }
-
+*/
 
 # Auto scaling group for squid auto
 
@@ -267,19 +275,20 @@ lifecycle {
 }
 
 resource "aws_autoscaling_group" "squid_auto" {
-  name = "${var.env_squid_name}_autoscaling_grp"
+  name = "${var.env_squid_name}"
 #If you define a list of subnet IDs split across the desired availability zones set them using vpc_zone_identifier 
 # and there is no need to set availability_zones.
 # (https://www.terraform.io/docs/providers/aws/r/autoscaling_group.html#availability_zones).
   desired_capacity = 2
   max_size = 2
   min_size = 1
-  vpc_zone_identifier = ["${aws_subnet.squid_pub0.id}", "${aws_subnet.squid_pub1.id}", "${aws_subnet.squid_pub2.id}","${aws_subnet.squid_pub3.id}","${aws_subnet.squid_pub4.id}","${aws_subnet.squid_pub5.id}"]
+#  vpc_zone_identifier = ["${aws_subnet.squid_pub0.id}", "${aws_subnet.squid_pub1.id}", "${aws_subnet.squid_pub2.id}","${aws_subnet.squid_pub3.id}","${aws_subnet.squid_pub4.id}","${aws_subnet.squid_pub5.id}"]
+  vpc_zone_identifier = ["${aws_subnet.squid_pub0.*.id}"] # ["${var.squid_availability_zones}"]
   launch_configuration = "${aws_launch_configuration.squid_auto.name}"
 
    tag {
     key                 = "Name"
-    value               = "${var.env_squid_name}_autoscaling_grp_member"
+    value               = "${var.env_squid_name}-grp-member"
     propagate_at_launch = true
   }
 }
