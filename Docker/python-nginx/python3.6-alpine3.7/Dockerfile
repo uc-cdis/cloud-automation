@@ -165,11 +165,12 @@ COPY supervisord.ini /etc/supervisor.d/supervisord.ini
 # Which uWSGI .ini file should be used, to make it customizable
 ENV UWSGI_INI /app/uwsgi.ini
 
-# By default, run 2 processes
-ENV UWSGI_CHEAPER 2
-
-# By default, when on demand, run up to 16 processes
-ENV UWSGI_PROCESSES 16
+# By default, disable uwsgi cheaper mode and run 2 processes.
+# If UWSGI_CHEAPER=N and UWSGI_PROCESSES=M, N is the min and M is the max
+# number of processes. UWSGI_CHEAPER must be lower than UWSGI_PROCESSES.
+# We set them here instead of in uwsgi.ini so that they can be overwritten.
+ENV UWSGI_CHEAPER=
+ENV UWSGI_PROCESSES=2
 
 # By default, allow unlimited file sizes, modify it to limit the file sizes
 # To have a maximum of 1 MB (Nginx's default) change the line to:
