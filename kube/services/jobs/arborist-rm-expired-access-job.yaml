@@ -9,6 +9,11 @@ spec:
         app: gen3job
     spec:
       automountServiceAccountToken: false
+      dnsConfig:
+        options:
+        - name: use-vc
+        - name: single-request-reopen
+      dnsPolicy: ClusterFirst
       volumes:
         - name: arborist-secret
           secret:

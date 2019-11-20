@@ -42,3 +42,8 @@ spec:
                 # run job to remove expired access from the database
                 /go/src/github.com/uc-cdis/arborist/jobs/delete_expired_access
           restartPolicy: Never
+          dnsConfig:
+            options:
+            - name: use-vc
+            - name: single-request-reopen
+          dnsPolicy: ClusterFirst
