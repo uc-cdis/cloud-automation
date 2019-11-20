@@ -211,6 +211,14 @@ all:
       vars:
         ansible_user: ubuntu
    
+    generic-commons:
+      hosts:
+        generic-admin:
+          ansible_host: 34.227.16.236
+          ansible_user: ubuntu
+        generic-common:
+          ansible_host: 34.227.16.236
+          ansible_user: generic-commons
     dummi:
       hosts:
         dummi1:
