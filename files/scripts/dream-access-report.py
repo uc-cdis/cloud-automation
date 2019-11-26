@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument("--team", "-t", help="DREAM team ID")
 parser.add_argument("--user", "-u", help="user audit log path")
 parser.add_argument("--cert", "-c", help="cert audit log path")
 parser.add_argument("--output", "-o", help="output TSV path")
@@ -17,6 +18,7 @@ if not args.user:
 
 user_audit_log = args.user
 cert_audit_log = args.cert
+dream_team_id = args.team
 
 output_content = []
 output_filename = "audit_logs.tsv"
@@ -44,7 +46,7 @@ if user_audit_log is not None:
                 if new_values["additional_info"]:
                     row["Synapse_id"] = new_values["additional_info"]["sub"]
                     row["Synapse_email"] = new_values["additional_info"]["email"]
-                    if new_values["additional_info"]["team"] and ("3396981" in new_values["additional_info"]["team"]):
+                    if new_values["additional_info"]["team"] and dream_team_id and (dream_team_id in new_values["additional_info"]["team"]):
                         row["Authorized_BEAT-PD"] = True
 
                 updated = False
