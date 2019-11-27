@@ -1,0 +1,42 @@
+# gen3 job run mssql-restore-job MSSQL_SCHEMA s3://<bucket>/schema.zip MSSQL_DUMP_S3 s3://<bucket>/cohortb_dump/ 
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mssql-restore-job
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+      - name: datadir
+        persistentVolumeClaim:
+          claimName: datadir-jenkins
+      containers:
+      - name: mssql-restore-job
+        imagePullPolicy: Always
+        image: quay.io/cdis/mssql-restore:master
+        env:
+        - name: ETL_FORCED
+          GEN3_ETL_FORCED|-value: "TRUE"-|
+        volumeMounts:
+          - name: datadir
+            mountPath: /data
+        resources:
+          limits:
+            cpu: 1
+            memory: 2Gi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            while true; do echo hello; sleep 10; done
+      initContainers:
+      - name: mssql-download-schema
+        image: quay.io/cdis/mssql-restore:master
+        command: ['bash', '-c', '/scripts/mssql-download-schema.sh']
+      - name: mssql-download-schema
+        image: quay.io/cdis/mssql-restore:master
+        command: ['bash', '-c', '/scripts/mssql-download-dump.sh']
+      restartPolicy: Never
