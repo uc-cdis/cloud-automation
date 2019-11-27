@@ -41,11 +41,14 @@ if user_audit_log is not None:
                     row["User_email"] = ""
                 row["Synapse_id"] = ""
                 row["Synapse_email"] = ""
+                row["Synapse_sub_id"] = ""
                 row["Authorized_BEAT-PD"] = False
                 row["ToU/PP"] = False
                 if new_values["additional_info"]:
-                    row["Synapse_id"] = new_values["additional_info"]["sub"]
+                    if "userid" in new_values["additional_info"]:
+                        row["Synapse_id"] = new_values["additional_info"]["userid"]
                     row["Synapse_email"] = new_values["additional_info"]["email"]
+                    row["Synapse_sub_id"] = new_values["additional_info"]["sub"]
                     if new_values["additional_info"]["team"] and dream_team_id and (dream_team_id in new_values["additional_info"]["team"]):
                         row["Authorized_BEAT-PD"] = True
 
