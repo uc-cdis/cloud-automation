@@ -29,7 +29,6 @@ fileName="Dream_access_report_$dateTime.tsv"
 dreamTeamID=$(g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode | yq .DREAM_CHALLENGE_TEAM | tr -d '\\"')
 
 logInterval=7
-
 if [ "$1" != "" ]; then
   numericRegex='^[0-9]+$'
   if ! [[ $1 =~ $numericRegex ]] ; then
