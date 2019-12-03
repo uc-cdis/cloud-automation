@@ -77,3 +77,6 @@ variable "jupyter_asg_max_size" {
 variable "jupyter_asg_min_size" {
   default = 0
 }
+ variable "iam-serviceaccount" {
+  default = false
+}

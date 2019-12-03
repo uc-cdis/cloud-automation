@@ -4,7 +4,7 @@ var app = express();
 {
     const args = process.argv.splice(2);
     if (args.length < 2 || args.length % 2 !== 0 || args[0].match(/^-*h[elp]/i)) {
-        console.log( `
+        console.log(`
 Use: npx little-server urlPath1 folderPath1 urlPath2 folderPath2 ...
         `);
         process.exit(0);

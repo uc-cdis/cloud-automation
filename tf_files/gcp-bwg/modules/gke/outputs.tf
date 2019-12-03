@@ -15,7 +15,7 @@ output "cluster_ca_certificate" {
 */
 
 output "endpoint" {
-  value = "${google_container_cluster.primary.*.endpoint}"
+  value = ["${google_container_cluster.primary.*.endpoint}"]
 }
 
 output "master_version" {

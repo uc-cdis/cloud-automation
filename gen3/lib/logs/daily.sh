@@ -41,7 +41,7 @@ gen3_logs_code_histogram() {
       "codes" : {
           "histogram" : {
               "field" : "message.http_status_code",
-              "interval" : 100,
+              "interval" : 1,
               "min_doc_count" : 1
           }
       }

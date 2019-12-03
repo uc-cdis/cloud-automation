@@ -3,21 +3,55 @@
 # Initializes the Gen3 k8s cronjobs.
 #
 
-set -e
-
 source "${GEN3_HOME}/gen3/lib/utils.sh"
-gen3_load "gen3/lib/kube-setup-init"
+gen3_load "gen3/gen3setup"
+
+cronList=(
+  "${GEN3_HOME}/kube/services/jobs/google-manage-keys-cronjob.yaml"
+  "${GEN3_HOME}/kube/services/jobs/google-manage-account-access-cronjob.yaml"
+  "${GEN3_HOME}/kube/services/jobs/google-init-proxy-groups-cronjob.yaml"
+  "${GEN3_HOME}/kube/services/jobs/google-delete-expired-service-account-cronjob.yaml"
+  "${GEN3_HOME}/kube/services/jobs/google-verify-bucket-access-group-cronjob.yaml"
+)
+
+# lib --------------------
+
+goog_launch() {
+  local path
+  for path in "${cronList[@]}"; do
+    gen3 job run "$path"
+  done
+  gen3 roll google-sa-validation
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/google-sa-validation/google-sa-validation-service.yaml"
+}
+
+goog_stop() {
+  local path
+  local jobName
+  for path in "${cronList[@]}"; do
+    if jobName="$(gen3 gitops filter "$path" | yq -r .metadata.name)" && [[ -n "$jobName" ]]; then
+      g3kubectl delete job "$jobName" > /dev/null 2>&1
+    fi
+  done
+}
+
+# main ----------------------
+
+isEnabled="$(g3kubectl get configmap manifest-google -o json 2> /dev/null | jq -e -r .data.enabled)"
 
 
-gen3 job run "${GEN3_HOME}/kube/services/jobs/google-manage-keys-cronjob.yaml"
+if [[ "yes" == "$isEnabled" ]]; then
+  command="launch"
+  if [[ $# -gt 0 && "$1" =~ ^-*stop$ ]]; then
+    command="stop"
+    shift
+  fi
 
-gen3 job run "${GEN3_HOME}/kube/services/jobs/google-manage-account-access-cronjob.yaml"
-
-gen3 job run "${GEN3_HOME}/kube/services/jobs/google-init-proxy-groups-cronjob.yaml"
-
-gen3 job run "${GEN3_HOME}/kube/services/jobs/google-delete-expired-service-account-cronjob.yaml"
-
-gen3 job run "${GEN3_HOME}/kube/services/jobs/google-verify-bucket-access-group-cronjob.yaml"
-
-gen3 roll google-sa-validation
-g3kubectl apply -f "${GEN3_HOME}/kube/services/google-sa-validation/google-sa-validation-service.yaml"
+  if [[ "launch" == "$command" ]]; then
+    goog_launch
+  elif [[ "stop" == "$command" ]]; then
+    goog_stop
+  fi
+else
+  gen3_log_info "google cron jobs are not enabled in the manifest"
+fi

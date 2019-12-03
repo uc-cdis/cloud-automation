@@ -14,9 +14,9 @@ command=$1
 release=$2
 
 # Activate google service account
-if [ -f "$(gen3_secrets_folder)/g3auto/dcf_dataservice/googleCreds.json" ]; then
-  gcloud auth activate-service-account --key-file=$(gen3_secrets_folder)/g3auto/dcf_dataservice/googleCreds.json
-  export GOOGLE_APPLICATION_CREDENTIALS=$(gen3_secrets_folder)/g3auto/dcf_dataservice/googleCreds.json
+if [ -f "$(gen3_secrets_folder)/g3auto/dcf-dataservice/googleCreds.json" ]; then
+  gcloud auth activate-service-account --key-file=$(gen3_secrets_folder)/g3auto/dcf-dataservice/googleCreds.json
+  export GOOGLE_APPLICATION_CREDENTIALS=$(gen3_secrets_folder)/g3auto/dcf-dataservice/googleCreds.json
 fi
 
 generate_aws_refresh_report() {

@@ -7,11 +7,12 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-gen3 kube-setup-secrets
+[[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 
 hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
 bucketname="manifest-${hostname//./-}"
+username="manifest-bot-${hostname//./-}"
 
 mkdir -p $(gen3_secrets_folder)/g3auto/manifestservice
 credsFile="$(gen3_secrets_folder)/g3auto/manifestservice/config.json"
@@ -21,10 +22,10 @@ if (! (g3kubectl describe secret manifestservice-g3auto 2> /dev/null | grep conf
 then
   gen3_log_info "kube-setup-manifestservice" "setting up manifest-service resources"
   gen3 s3 create "$bucketname"
-  gen3 awsuser create manifest-bot
-  gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name manifest-bot
+  gen3 awsuser create ${username}
+  gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name ${username}
   gen3_log_info "initializing manifestservice config.json"
-  user=$(gen3 secrets decode manifest-bot-g3auto awsusercreds.json)
+  user=$(gen3 secrets decode ${username}-g3auto awsusercreds.json)
   key_id=$(jq -r .id <<< $user)
   access_key=$(jq -r .secret <<< $user)
   cat - > "$credsFile" <<EOM

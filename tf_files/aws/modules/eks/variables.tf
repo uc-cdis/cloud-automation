@@ -77,3 +77,13 @@ variable "jupyter_asg_max_size" {
 variable "jupyter_asg_min_size" {
   default = 0
 }
+
+variable "iam-serviceaccount" {
+  default = false
+}
+
+variable "oidc_eks_thumbprint" {
+  description = "Thumbprint for the AWS OIDC identity provider"
+  type        = "list"
+  default     = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
+}

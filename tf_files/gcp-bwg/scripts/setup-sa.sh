@@ -168,6 +168,14 @@ gcloud organizations add-iam-policy-binding \
   --role="roles/logging.configWriter" \
   --user-output-enabled false
 
+# Grant roles/compute.instanceAdmin to the service account on the organization
+echo "Adding role roles/compute.instanceAdmin..."
+gcloud organizations add-iam-policy-binding \
+  "${ORG_ID}" \
+  --member="serviceAccount:${SA_ID}" \
+  --role="roles/compute.instanceAdmin" \
+  --user-output-enabled false
+
  # Grant roles/resourcemanager.projectIamAdmin to the Seed Service Account on the Seed Project
 echo "Adding role roles/resourcemanager.projectIamAdmin..."
 gcloud projects add-iam-policy-binding \

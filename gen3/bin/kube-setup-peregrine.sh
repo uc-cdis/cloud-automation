@@ -8,7 +8,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-gen3 kube-setup-secrets
+[[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 gen3 roll peregrine
 
 # Delete old service if necessary
@@ -16,10 +16,6 @@ if [[ "$(g3kubectl get service peregrine-service -o json | jq -r .spec.type)" ==
   g3kubectl delete service peregrine-service
 fi
 
-if gen3 kube-setup-metrics check; then 
-  # metrics-server is deployed, so deploy hpa (horizontal pod autoscaling) 
-  g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-hpa.yaml"
-fi
 g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-service.yaml"
 gen3 roll peregrine-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-canary-service.yaml"

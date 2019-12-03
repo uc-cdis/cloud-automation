@@ -15,5 +15,5 @@ resource "google_compute_firewall" "rule" {
   }
 
   target_tags        = "${var.target_tags}"
-  destination_ranges = "${var.destination_ranges}"
+  destination_ranges = ["${var.destination_ranges}"]
 }

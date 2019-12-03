@@ -16,8 +16,8 @@ all:
 	$(MAKE) -C org_setup plan && $(MAKE) -C org_setup apply; \
 	$(MAKE) -C project_setup plan && $(MAKE) -C project_setup apply; \
 	$(MAKE) -C platform_setup plan && $(MAKE) -C platform_setup apply;\
-	$(MAKE) -C app_setup plan && $(MAKE) -C app_setup apply;
-#	$(MAKE) -C org_policies plan && $(MAKE) -C org_policies apply; \
+	$(MAKE) -C app_setup plan && $(MAKE) -C app_setup apply; \
+	$(MAKE) -C org_policies plan && $(MAKE) -C org_policies apply;
 
 org_policies:
 	$(MAKE) -C org_policies plan && $(MAKE) -C org_policies apply

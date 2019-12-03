@@ -103,7 +103,7 @@ gen3 workon cdistest commons-test
 ```
 
   Note: The third argument of the above command (cdistest) refers to the profile in the config file setup in step five of the first part.
-        The forth argument (commons-test) would be the name of the commons you want to use; only lowercase letters and hyphens are permitted.
+        The forth argument (commons-test) would be the name of the commons you want to use; only lowercase letters and hyphens are permitted. Making the commmons-name unique is recommended.
 
 2. Go to the terraform workspace folder
 ```bash
@@ -113,6 +113,8 @@ gen3 cd
 3. Edit the `config.tfvars` file with your preferred text editor.
 
   Variables to pay attention to:
+
+`vpc_name` Make sure the vpc_name is unique as some bucket names are derived from the vpc_name.
 
 `vpc_cidr_block` CIDR where the commons resources would reside. EX: 172.16.192.0/20. As for now, only /20 subnets are supported. Your VPC must have only RFC1918 or CG NAT CIDRs.
 

@@ -1,10 +1,10 @@
-export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
 
 
 #
 # Test g3k_manifest_path
 #
 test_mpath() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   local mpath=$(g3k_manifest_path test1.manifest.g3k)
   [[ "$mpath" == "${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json" ]];
   because $? "g3k_manifest_path prefers domain/manifest.json if available: $mpath ?= ${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json"
@@ -18,6 +18,7 @@ test_mpath() {
 # Test g3k_manifest_filter - also tests g3k_kv_filter
 #
 test_mfilter() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   testFolder="${XDG_RUNTIME_DIR}/$$/g3kTest/mfilter"
   /bin/rm -rf "$testFolder"
   mkdir -p -m 0700 "$testFolder"
@@ -42,6 +43,7 @@ test_mfilter() {
 }
 
 test_mlookup() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   local mpath # manifest path
   mpath="$(g3k_manifest_path test1.manifest.g3k)"
   [[ "$(g3k_config_lookup .versions.fence "$mpath")" == "quay.io/cdis/fence:master" ]];
@@ -67,6 +69,7 @@ EOM
 }
 
 test_loader() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/lib/testData/gen3_load/a"
   gen3_load "gen3/lib/testData/gen3_load/b"
   [[ "$GEN3_LOAD_A" -eq 1 && "$GEN3_LOAD_B" -eq 1 ]]; because $? "gen3_load loads a file once"
@@ -90,6 +93,7 @@ test_random_alpha() {
 }
 
 test_roll_path() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/bin/gitops"
 
   ! tpath="$(gen3 gitops rollpath bogus "" 2> /dev/null)"; because $? "bogus service yaml does not exist"
@@ -113,6 +117,7 @@ test_roll_path() {
 }
 
 test_roll() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/bin/roll"
 
   # Mock g3kubectl
@@ -130,6 +135,7 @@ test_roll() {
 
 
 test_configmaps() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/bin/gitops"
 
   local mpath
