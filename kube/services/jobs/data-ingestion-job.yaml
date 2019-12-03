@@ -86,14 +86,14 @@ spec:
                 exit 1
               fi
 
-              if [ -f "scripts/joindure/output/google-groups.sh" ]; then
+              if [ -f "scripts/manifestmerge/output/google-groups.sh" ]; then
                   echo "google-groups.sh contains:"
-                  cat scripts/joindure/output/google-groups.sh
+                  cat scripts/manifestmerge/output/google-groups.sh
               else
                 echo "Error: google groups generation script is not present."
               fi
 
-              cp -R scripts/joindure/output/. /this-directory-is-shared-with-fence/.
+              cp -R scripts/manifestmerge/output/. /this-directory-is-shared-with-fence/.
         - name: fence
           GEN3_FENCE_IMAGE
           imagePullPolicy: Always
