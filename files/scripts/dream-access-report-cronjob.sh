@@ -30,8 +30,7 @@ dreamTeamID=$(g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-c
 
 logInterval=7
 if [ "$1" != "" ]; then
-  numericRegex='^[0-9]+$'
-  if ! [[ $1 =~ $numericRegex ]] ; then
+  if ! [[ $1 =~ '^[0-9]+$' ]] ; then
     echo "Input argument is not a number, using default value '$logInterval' days"
   else
     logInterval=$1
