@@ -16,35 +16,31 @@ shift
 
 case "$command" in
 "extract-secrets")
-  secretTemplateYaml=$GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml
-  inputConfigYaml="$1"
-  outputPath="$2"
-  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -e $secretTemplateYaml -c $inputConfigYaml > $outputPath
-  ;;
-"remove-secrets")
-  secretTemplateYaml=$GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml
-  inputConfigYaml="$1"
-  outputPath="$2"
-  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -d $secretTemplateYaml -c $inputConfigYaml > $outputPath
-  ;;
-"remove-secrets-by-template")
   inputConfigYaml="$1"
   outputPath="$2"
   secretTemplateYaml="$3"
-  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -d $secretTemplateYaml -c $inputConfigYaml > $outputPath
+  if [[ -z "$secretTemplateYaml" ]]; then
+    secretTemplateYaml=$GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml
+  fi
+  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -e $secretTemplateYaml -c $inputConfigYaml > $outputPath
   ;;
-"override")
-  curl -s https://raw.githubusercontent.com/uc-cdis/fence/master/fence/config-default.yaml > ./config-default.yaml
+"remove-secrets")
   inputConfigYaml="$1"
   outputPath="$2"
-  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -r $inputConfigYaml -c ./config-default.yaml > $outputPath
-  rm ./config-default.yaml
+  secretTemplateYaml="$3"
+  if [[ -z "$secretTemplateYaml" ]]; then
+    secretTemplateYaml=$GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml
+  fi
+  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -d $secretTemplateYaml -c $inputConfigYaml > $outputPath
   ;;
 "merge")
   curl -s https://raw.githubusercontent.com/uc-cdis/fence/master/fence/config-default.yaml > ./config-default.yaml
   inputSecretConfig="$1"
   inputPublicConfig="$2"
   outputPath="$3"
+  if [[ -z "$outputPath" ]]; then
+    outputPath=./merged-config.yaml
+  fi
   python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -r $inputSecretConfig -c ./config-default.yaml > ./tmp.yaml
   python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -r $inputPublicConfig -c ./tmp.yaml > $outputPath
   rm ./config-default.yaml ./tmp.yaml

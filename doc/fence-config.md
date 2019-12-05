@@ -3,30 +3,36 @@ Little helper to split/merge fence configs, or delete/extract/replace secrets fr
 
 ## Use
 
-* `gen3 fence-config extract-secrets [input-yaml-path] [output-json-path]`
+* `gen3 fence-config extract-secrets [input-yaml-path] [output-json-path] [secret-template-yaml]`
 
-  Extract secrets and output into a JSON file
+  Generate secrets file - Extract secrets and output into a JSON file.
+  Those secrets listed in template (by default $GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml) will be extracted and output to a JSON file.
+  * `input-yaml-path` required: yaml config to extract secrets from
+  * `output-json-path` required: the generated secret JSON file path
+  * `secret-template-yaml` optional: the secret template, by default: $GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml
 
-* `gen3 fence-config remove-secrets [input-yaml-path] [output-yaml-path]`
+* `gen3 fence-config remove-secrets [input-yaml-path] [output-yaml-path] [secret-template-yaml]`
 
-  Delete secrets and output into a yaml file, without losing comments. 
-  Those secrets listed in $GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml will be erased.
+  Generate public file - Delete secrets and output into a yaml file, without losing comments. 
+  Those secrets listed in template (by default $GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml) will be erased.
+  * `input-yaml-path` required: YAML config for input
+  * `output-yaml-path` required: the generated public YAML file path
+  * `secret-template-yaml` optional: the secret template, by default: $GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml
 
-* `gen3 fence-config remove-secrets-by-template [input-yaml-path] [output-yaml-path] [secret-template-json-path]`
   
-  Delete secrets and output into a yaml file using customized template. 
-
-* `gen3 fence-config override [input-yaml-path] [output-yaml-path]`
-
-  Override a default fence config. 
-  Default fence config link: https://raw.githubusercontent.com/uc-cdis/fence/master/fence/config-default.yaml. 
-  
-* `gen3 fence-config merge [input-secret-config] [input-public-config]`
+* `gen3 fence-config merge [input-secret-config] [input-public-config] [output-path]`
 
   Merge secret fence config and public fence config into default config. 
-  Order could change, but the latter config will always overrider the former config. 
+  Order could change, but the latter config will always override the former config. 
+  We use defaut fence config from: https://raw.githubusercontent.com/uc-cdis/fence/master/fence/config-default.yaml. 
+  * `input-secret-config` required: YAML config for input
+  * `input-public-config` required: the generated public YAML file path
+  * `output-path` optional: the output path, by default: ./merged-config.yaml
   
-* `gen3 fence-config split`
+* `gen3 fence-config split [input-config-yaml-path] [output-public-yaml] [output-secret-json]`
   
-  Split a fence config into secret json and public config. 
+  Split a fence config into public yaml config and secret json config. 
   Just a combination of `gen3 fence-config extract-secrets` and `gen3 fence-config remove-secrets`. 
+  * `input-config-yaml-path` required: YAML config for input
+  * `output-public-yaml` required: the generated public YAML config path
+  * `output-secret-json` required: the generated secret JSON config path
