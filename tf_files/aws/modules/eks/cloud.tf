@@ -161,7 +161,7 @@ resource "aws_subnet" "eks_public" {
 
 resource "aws_vpc_endpoint" "ec2" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.us-east-1.ec2"
+  service_name = "com.amazonaws.${data.aws_region.current.name}.ec2"
   vpc_endpoint_type = "Interface"
   security_group_ids  = [
     "${data.aws_security_group.local_traffic.id}"
@@ -177,9 +177,26 @@ resource "aws_vpc_endpoint" "ec2" {
 }
 
 
+resource "aws_vpc_endpoint" "autoscaling" {
+  vpc_id       = "${data.aws_vpc.the_vpc.id}"
+  service_name = "com.amazonaws.${data.aws_region.current.name}.autoscaling"
+  vpc_endpoint_type = "Interface"
+  security_group_ids  = [
+    "${data.aws_security_group.local_traffic.id}"
+  ]
+
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  tags {
+    Name         = "to autoscaling"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
+}
+
 resource "aws_vpc_endpoint" "ecr-dkr" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.us-east-1.ecr.dkr"
+  service_name = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
   vpc_endpoint_type = "Interface"
 
   security_group_ids  = [
@@ -208,7 +225,7 @@ resource "aws_route_table" "eks_private" {
   # We want to be able to talk to aws freely, therefore we are allowing
   # certain stuff overpass the proxy
   route {
-    # logs.us-east-1.amazonaws.com
+    # logs.${data.aws_region.current.name}.amazonaws.com
     cidr_block     = "52.0.0.0/8"
     nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
   }
