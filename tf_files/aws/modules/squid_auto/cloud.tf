@@ -263,7 +263,6 @@ sudo sed -i "s/PRIVATE_KUBE_ROUTETABLE_ID/${data.aws_route_table.private_kube_ro
 sudo sed -i "s/EKS_ROUTETABLE_ID/${var.eks_private_route_table_id}/" /home/ubuntu/squid_auto_user_variable
 sudo sed -i "s/COMMONS_SQUID_ROLE/${var.env_squid_name}/" /home/ubuntu/squid_auto_user_variable
 
-
 #####
 sudo bash "${var.bootstrap_path}${var.bootstrap_script}" cwl_group="${var.env_log_group}" 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
 EOF

@@ -100,3 +100,8 @@ variable "squid_instance_drive_size" {
   description = "Volume size for the squid instance"
   default     = 8
 }
+
+variable "url_test" {
+  description = "url for the lambda function to check for the proxy"
+  default     = "gen3.io"
+}
