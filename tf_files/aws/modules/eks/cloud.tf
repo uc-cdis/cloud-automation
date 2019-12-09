@@ -159,6 +159,7 @@ resource "aws_subnet" "eks_public" {
   }
 }
 
+/*
 resource "aws_vpc_endpoint" "ec2" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
   service_name = "com.amazonaws.${data.aws_region.current.name}.ec2"
@@ -213,6 +214,8 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
   }
 }
 
+*/
+
 resource "aws_route_table" "eks_private" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
 
@@ -224,11 +227,11 @@ resource "aws_route_table" "eks_private" {
 /*
   # We want to be able to talk to aws freely, therefore we are allowing
   # certain stuff overpass the proxy
-  route {
-    # logs.${data.aws_region.current.name}.amazonaws.com
-    cidr_block     = "52.0.0.0/8"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
+#  route {
+#    # logs.${data.aws_region.current.name}.amazonaws.com
+#    cidr_block     = "52.0.0.0/8"
+#    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
+#  }
 
 
   route {
