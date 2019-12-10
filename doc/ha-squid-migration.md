@@ -187,7 +187,7 @@ The plan for the EKS module should not delete any resource other than the one yo
 
 
 ```bash
-Plan: 22 to add, 8 to change, 1 to destroy.
+Plan: 27 to add, 8 to change, 1 to destroy.
 ```
 
 Apply the plan
