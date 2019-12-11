@@ -88,6 +88,16 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: sync_from_dbgap
+          - name: DBGAP_BACKUP_BUCKET
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: dbgap_backup_bucket
+          - name: DBGAP_DOWNLOAD_FOLDER
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: dbgap_download_folder
           - name: FORCE
             GEN3_FORCE|-value: "false"-|
           - name: ADD_DBGAP
