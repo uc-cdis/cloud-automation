@@ -177,10 +177,22 @@ resource "aws_cloudwatch_event_rule" "gw_checks_rule" {
   name                = "${var.vpc_name}-GW-checks-job"
   description         = "Check if the gateway is working every minute"
   schedule_expression = "rate(1 minute)"
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 }
 
 resource "aws_cloudwatch_event_target" "sns" {
   rule      = "${aws_cloudwatch_event_rule.gw_checks_rule.name}"
 #  target_id = "SendToSNS"
   arn       = "${aws_lambda_function.gw_checks.arn}"
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.gw_checks.function_name}"
+  principal     = "events.amazonaws.com"
+  source_arn    = "${aws_cloudwatch_event_rule.gw_checks_rule.arn}"
 }

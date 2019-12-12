@@ -86,3 +86,7 @@ data "aws_security_group" "local_traffic" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
   name   = "local"
 }
+
+data "aws_autoscaling_group" "squid_auto" {
+  name = "squid-auto-${var.vpc_name}"
+}

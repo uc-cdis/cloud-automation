@@ -10,6 +10,29 @@
 #  ssh_key_name         = "${var.ssh_key_name}"
 #}
 
+module "squid-auto" {
+  source                     = "../squid_auto"
+  csoc_cidr                  = "${var.peering_cidr}"
+  env_vpc_name               = "${var.vpc_name}"
+  #env_vpc_cidr               = "${data.aws_vpc.the_vpc.cidr_block}"
+  #env_vpc_id                 = "${data.aws_vpc.the_vpc.id}"
+  env_vpc_cidr               = "${aws_vpc.main.cidr_block}"
+  env_vpc_id                 = "${aws_vpc.main.id}"
+  #env_instance_profile       = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+  #env_log_group              = "${var.vpc_name}" #"${aws_cloudwatch_log_group.main_log_group.name}"
+  env_log_group              = "${aws_cloudwatch_log_group.main_log_group.name}"
+  env_squid_name             = "squid-auto-${var.vpc_name}"
+  #eks_private_route_table_id = "${aws_route_table.eks_private.id}"
+  #squid_proxy_subnet         = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , 1 )}"
+  squid_proxy_subnet         = "${cidrsubnet(aws_vpc.main.cidr_block, 4, 1)}"
+  organization_name          = "${var.organization_name}"
+  ssh_key_name               = "${var.vpc_name}_automation_dev"
+  image_name_search_criteria = "${var.squid_image_search_criteria}"
+  squid_instance_drive_size  = "${var.squid_instance_drive_size}"
+#  squid_availability_zones   = "${random_shuffle.az.result}"
+  squid_availability_zones   = "${var.availability_zones}"
+}
+
 /*
 module "squid_auto" {
   source              = "../squid_auto"

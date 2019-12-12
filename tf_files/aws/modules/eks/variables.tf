@@ -85,11 +85,11 @@ variable "oidc_eks_thumbprint" {
   default     = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
 }
 
-variable "availability_zones" {
-  description = "AZ to be used by EKS nodes"
-  type        = "list"
-  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
-}
+#variable "availability_zones" {
+#  description = "AZ to be used by EKS nodes"
+#  type        = "list"
+#  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
+#}
 
 variable "squid_image_search_criteria" {
   description = "Search criteria for squid AMI look up"

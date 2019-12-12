@@ -59,9 +59,9 @@ variable "ssh_key_name" {
   description = "ssh key name that instances in the cluster will use"
 }
 
-variable "eks_private_route_table_id" {
-  description = "routing table for the EKS private subnet"
-}
+#variable "eks_private_route_table_id" {
+#  description = "routing table for the EKS private subnet"
+#}
 
 variable "squid_instance_drive_size" { 
   description = "Size of the root volume for the instance"

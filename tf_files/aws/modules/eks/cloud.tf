@@ -4,6 +4,7 @@
 #
 #####
 
+/*
 module "squid-auto" {
   source                     = "../squid_auto"
   csoc_cidr                  = "${var.peering_cidr}"
@@ -20,8 +21,10 @@ module "squid-auto" {
   ssh_key_name               = "${var.vpc_name}_automation_dev"
   image_name_search_criteria = "${var.squid_image_search_criteria}"
   squid_instance_drive_size  = "${var.squid_instance_drive_size}"
-  squid_availability_zones   = "${random_shuffle.az.result}"
+#  squid_availability_zones   = "${random_shuffle.az.result}"
+  squid_availability_zones   = "${var.availability_zones}"
 }
+*/
 
 
 module "jupyter_pool" {
@@ -91,20 +94,18 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
 
 
 
-
 ####
 # * aws_eks_cluster.eks_cluster: error creating EKS Cluster (fauziv1): UnsupportedAvailabilityZoneException: Cannot create cluster 'fauziv1' because us-east-1e, the targeted availability zone, does not currently have sufficient capacity to support the cluster. Retry and choose from these availability zones: us-east-1a, us-east-1c, us-east-1d
 ####
 resource "random_shuffle" "az" {
 #  input = ["${data.aws_availability_zones.available.names}"]
 #  input = ["us-east-1a", "us-east-1c", "us-east-1d"]
-  input = "${var.availability_zones}"
+#  input = "${var.availability_zones}"
+  input = ["${data.aws_autoscaling_group.squid_auto.availability_zones}"]
 #  input = "${data.aws_region.current.name == "us-east-1" ? var.availability_zones : list(data.aws_availability_zones.available.names)}"
   result_count = 3
   count = 1
 }
-
-
 
 
 # The subnet where our cluster will live in
@@ -251,11 +252,11 @@ resource "aws_route_table" "eks_private" {
   }
 }
 
-resource "aws_route" "to_aws" {
-  route_table_id            = "${aws_route_table.eks_private.id}"
-  destination_cidr_block    = "52.0.0.0/8"
-  nat_gateway_id            = "${data.aws_nat_gateway.the_gateway.id}"
-}
+#resource "aws_route" "to_aws" {
+#  route_table_id            = "${aws_route_table.eks_private.id}"
+#  destination_cidr_block    = "52.0.0.0/8"
+#  nat_gateway_id            = "${data.aws_nat_gateway.the_gateway.id}"
+#}
 
 
 resource "aws_route" "for_peering" {

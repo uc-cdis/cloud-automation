@@ -221,6 +221,19 @@ def test_proxy(url):
     return response
     
 """
+  function that searches for a default gateway in a defined routing table
+
+  @var string rtid the id of the routing table to be queried
+
+  @return Dictionary with a boto response of the request
+"""
+def exist_default_gw(rtid):
+    client = boto3.client('ec2')
+    response = client.describe_route_tables(Filters=[{'Name': 'route.destination-cidr-block','Values':['0.0.0.0/0']}],RouteTableIds=[rtid])
+    del client
+    return response
+
+"""
   function to delete a default gateway of a routing table
 
   @var String rtid routing table id where you want the default GW deleted
@@ -244,7 +257,11 @@ def del_default_gw(rtid):
 def set_default_gw(eni,rtid):
     client = boto3.client('ec2')
     print(eni)
-    response = del_default_gw(rtid)
+
+    response = exist_default_gw(rtid)
+    if len(response['RouteTables']) > 0:
+        response = del_default_gw(rtid)
+
     if response['ResponseMetadata'] and response['ResponseMetadata']['HTTPStatusCode'] == 200:
         response = client.create_route(DestinationCidrBlock='0.0.0.0/0',NetworkInterfaceId=eni,RouteTableId=rtid)
         if response['Return'] and response['ResponseMetadata']['HTTPStatusCode'] == 200:
