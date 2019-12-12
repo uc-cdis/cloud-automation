@@ -79,11 +79,11 @@ variable "jupyter_asg_min_size" {
   default = false
 }
 
-variable "availability_zones" {
-  description = "AZ to be used by EKS nodes"
-  type        = "list"
-  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
-}
+#variable "availability_zones" {
+#  description = "AZ to be used by EKS nodes"
+#  type        = "list"
+#  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
+#}
 
 variable "squid_image_search_criteria" {
   description = "Search criteria for squid AMI look up"
