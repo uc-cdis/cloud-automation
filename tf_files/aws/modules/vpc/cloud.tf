@@ -14,44 +14,18 @@ module "squid-auto" {
   source                     = "../squid_auto"
   csoc_cidr                  = "${var.peering_cidr}"
   env_vpc_name               = "${var.vpc_name}"
-  #env_vpc_cidr               = "${data.aws_vpc.the_vpc.cidr_block}"
-  #env_vpc_id                 = "${data.aws_vpc.the_vpc.id}"
   env_vpc_cidr               = "${aws_vpc.main.cidr_block}"
   env_vpc_id                 = "${aws_vpc.main.id}"
-  #env_instance_profile       = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
-  #env_log_group              = "${var.vpc_name}" #"${aws_cloudwatch_log_group.main_log_group.name}"
   env_log_group              = "${aws_cloudwatch_log_group.main_log_group.name}"
   env_squid_name             = "squid-auto-${var.vpc_name}"
-  #eks_private_route_table_id = "${aws_route_table.eks_private.id}"
-  #squid_proxy_subnet         = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , 1 )}"
   squid_proxy_subnet         = "${cidrsubnet(aws_vpc.main.cidr_block, 4, 1)}"
   organization_name          = "${var.organization_name}"
   ssh_key_name               = "${var.vpc_name}_automation_dev"
   image_name_search_criteria = "${var.squid_image_search_criteria}"
   squid_instance_drive_size  = "${var.squid_instance_drive_size}"
-#  squid_availability_zones   = "${random_shuffle.az.result}"
   squid_availability_zones   = "${var.availability_zones}"
 }
 
-/*
-module "squid_auto" {
-  source              = "../squid_auto"
-  csoc_cidr            = "${var.peering_cidr}"
-  env_vpc_name         = "${var.vpc_name}"
-  env_public_subnet_id = "${aws_subnet.public.id}"
-  env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
-  env_vpc_id           = "${aws_vpc.main.id}"
-  env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
-  env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
-  env_squid_name       = "${var.vpc_name}_squid_auto"
-  squid_proxy_subnet   = "192.168.145.0/24"
-  organization_name    = "${var.organization_name}"
-  ssh_key_name         = "${var.ssh_key_name}"
-   
-  image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
-}
-*/
-  
 module "data-bucket" {
   source               = "../upload-data-bucket"
   vpc_name             = "${var.vpc_name}"
@@ -201,84 +175,6 @@ resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
   }
 }
 
-/*
-data "aws_ami" "public_login_ami" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu16-client-1.0.2-*"]
-  }
-
-  owners = ["${var.ami_account_id}"]
-}
-*/
-
-#
-# This AMI is no longer used here, but is referenced in 
-# tf_files/aws/user-vpc and tf_files/aws/commons.
-# It's handy to have the encrypted AMI ready to use in a VPC I think.
-#
-/*
-resource "aws_ami_copy" "login_ami" {
-  name              = "ub16-client-crypt-${var.vpc_name}-1.0.2"
-  description       = "A copy of ubuntu16-client-1.0.2"
-  source_ami_id     = "${data.aws_ami.public_login_ami.id}"
-  source_ami_region = "us-east-1"
-  encrypted         = true
-
-  tags {
-    Name = "login-${var.vpc_name}"
-  }
-
-  lifecycle {
-    #
-    # Do not force update when new ami becomes available.
-    # We still need to improve our mechanism for tracking .ssh/authorized_keys
-    # User can use 'terraform state taint' to trigger update.
-    #
-    ignore_changes = ["source_ami_id"]
-  }
-}
-*/
-
-/*
-resource "aws_iam_role" "cluster_logging_cloudwatch" {
-  name = "${var.vpc_name}_cluster_logging_cloudwatch"
-  path = "/"
-
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": "sts:AssumeRole",
-            "Principal": {
-               "Service": "ec2.amazonaws.com"
-            },
-            "Effect": "Allow",
-            "Sid": ""
-        }
-    ]
-}
-EOF
-}
-
-#
-# This could go here or in the squid module. But squid may go away soon
-# do not remove this
-#
-resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
-  name   = "${var.vpc_name}_cluster_logging_cloudwatch"
-  policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
-  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
-}
-
-resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
-  name = "${var.vpc_name}_cluster_logging_cloudwatch"
-  role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
-}
-*/
 
 resource "aws_route53_zone" "main" {
   name    = "internal.io"
