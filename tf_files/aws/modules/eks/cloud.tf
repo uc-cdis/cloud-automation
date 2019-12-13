@@ -4,28 +4,6 @@
 #
 #####
 
-/*
-module "squid-auto" {
-  source                     = "../squid_auto"
-  csoc_cidr                  = "${var.peering_cidr}"
-  env_vpc_name               = "${var.vpc_name}"
-#  env_public_subnet_id       = "${data.aws_vpc.the_vpc.id}"
-  env_vpc_cidr               = "${data.aws_vpc.the_vpc.cidr_block}"
-  env_vpc_id                 = "${data.aws_vpc.the_vpc.id}"
-  #env_instance_profile       = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
-  env_log_group              = "${var.vpc_name}" #"${aws_cloudwatch_log_group.main_log_group.name}"
-  env_squid_name             = "squid-auto-${var.vpc_name}"
-  eks_private_route_table_id = "${aws_route_table.eks_private.id}"
-  squid_proxy_subnet         = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , 1 )}"
-  organization_name          = "${var.organization_name}"
-  ssh_key_name               = "${var.vpc_name}_automation_dev"
-  image_name_search_criteria = "${var.squid_image_search_criteria}"
-  squid_instance_drive_size  = "${var.squid_instance_drive_size}"
-#  squid_availability_zones   = "${random_shuffle.az.result}"
-  squid_availability_zones   = "${var.availability_zones}"
-}
-*/
-
 
 module "jupyter_pool" {
   source                       = "../eks-nodepool/"
@@ -98,11 +76,7 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
 # * aws_eks_cluster.eks_cluster: error creating EKS Cluster (fauziv1): UnsupportedAvailabilityZoneException: Cannot create cluster 'fauziv1' because us-east-1e, the targeted availability zone, does not currently have sufficient capacity to support the cluster. Retry and choose from these availability zones: us-east-1a, us-east-1c, us-east-1d
 ####
 resource "random_shuffle" "az" {
-#  input = ["${data.aws_availability_zones.available.names}"]
-#  input = ["us-east-1a", "us-east-1c", "us-east-1d"]
-#  input = "${var.availability_zones}"
   input = ["${data.aws_autoscaling_group.squid_auto.availability_zones}"]
-#  input = "${data.aws_region.current.name == "us-east-1" ? var.availability_zones : list(data.aws_availability_zones.available.names)}"
   result_count = 3
   count = 1
 }
@@ -160,87 +134,10 @@ resource "aws_subnet" "eks_public" {
   }
 }
 
-/*
-resource "aws_vpc_endpoint" "ec2" {
-  vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.${data.aws_region.current.name}.ec2"
-  vpc_endpoint_type = "Interface"
-  security_group_ids  = [
-    "${data.aws_security_group.local_traffic.id}"
-  ]
-
-  private_dns_enabled = true
-  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  tags {
-    Name         = "to ec2"
-    Environment  = "${var.vpc_name}"
-    Organization = "${var.organization_name}"
-  }
-}
-
-
-resource "aws_vpc_endpoint" "autoscaling" {
-  vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.${data.aws_region.current.name}.autoscaling"
-  vpc_endpoint_type = "Interface"
-  security_group_ids  = [
-    "${data.aws_security_group.local_traffic.id}"
-  ]
-
-  private_dns_enabled = true
-  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  tags {
-    Name         = "to autoscaling"
-    Environment  = "${var.vpc_name}"
-    Organization = "${var.organization_name}"
-  }
-}
-
-resource "aws_vpc_endpoint" "ecr-dkr" {
-  vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
-  vpc_endpoint_type = "Interface"
-
-  security_group_ids  = [
-    "${data.aws_security_group.local_traffic.id}"
-  ]
-    #"${aws_security_group.eks_nodes_sg.id}"
-
-  private_dns_enabled = true
-  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  tags {
-    Name         = "to ecr"
-    Environment  = "${var.vpc_name}"
-    Organization = "${var.organization_name}"
-  }
-}
-
-*/
 
 resource "aws_route_table" "eks_private" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
 
-   # traffic out will now be handled by the ha-proxy cluster
-#  route {
-#    cidr_block  = "0.0.0.0/0"
-#    instance_id = "${data.aws_instances.squid_proxy.ids[0]}"
-#  }
-/*
-  # We want to be able to talk to aws freely, therefore we are allowing
-  # certain stuff overpass the proxy
-#  route {
-#    # logs.${data.aws_region.current.name}.amazonaws.com
-#    cidr_block     = "52.0.0.0/8"
-#    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-#  }
-
-
-  route {
-    #from the commons vpc to the csoc vpc via the peering connection
-    cidr_block                = "${var.peering_cidr}"
-    vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
-  }
-*/
   tags {
     Name         = "eks_private"
     Environment  = "${var.vpc_name}"
@@ -251,12 +148,6 @@ resource "aws_route_table" "eks_private" {
     #ignore_changes = ["*"]
   }
 }
-
-#resource "aws_route" "to_aws" {
-#  route_table_id            = "${aws_route_table.eks_private.id}"
-#  destination_cidr_block    = "52.0.0.0/8"
-#  nat_gateway_id            = "${data.aws_nat_gateway.the_gateway.id}"
-#}
 
 
 resource "aws_route" "for_peering" {
@@ -291,7 +182,6 @@ resource "aws_route_table_association" "private_kube" {
 resource "aws_vpc_endpoint" "k8s-s3" {
   vpc_id          =  "${data.aws_vpc.the_vpc.id}"
   service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
- # route_table_ids = ["${aws_route_table.eks_private.id}"]
   route_table_ids = ["${data.aws_route_table.public_kube.id}"]
   tags {
     Name         = "to s3"
@@ -750,8 +640,6 @@ resource "null_resource" "config_setup" {
 # let's work towards EKS IAM-ServiceAccount integration
 
 resource "aws_iam_openid_connect_provider" "identity_provider" {
-  #count           = "${var.eks_version == "1.12" ? 0 : 1}"
-  #count           = "${var.iam-serviceaccount ? 1 : 0}"
   count              = "${var.iam-serviceaccount ? var.eks_version == "1.12" ? 0 : 1 : 0}"
   url             = "${aws_eks_cluster.eks_cluster.identity.0.oidc.0.issuer}"
 

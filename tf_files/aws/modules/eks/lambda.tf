@@ -154,10 +154,6 @@ resource "aws_lambda_function" "gw_checks" {
   }
 
 
-  # The filebase64sha256() function is available in Terraform 0.11.12 and later
-  # For Terraform 0.11.11 and earlier, use the base64sha256() function and the file() function:
-  # source_code_hash = "${base64sha256(file("lambda_function_payload.zip"))}"
-  # source_code_hash = "${filebase64sha256("lambda_function_payload.zip")}"
   source_code_hash = "${data.archive_file.lambda_function.output_base64sha256}"
 
   runtime = "python3.8"
@@ -173,6 +169,27 @@ resource "aws_lambda_function" "gw_checks" {
 }
 
 
+/*
+https://discuss.hashicorp.com/t/conditional-and-lists-for-a-variable/3368
+
+module "lambda_function" {
+  source    = "../lambda-function"
+  with_vpc = true
+  lambda_function_file = "${path.module}/lambda_function.py"
+  lambda_function_name = "${var.vpc_name}-gw-checks-lambda"
+  lambda_function_description = "Checks for internet access from the worker nodes subnets"
+  lambda_function_iam_role_arn = "${module.iam_role.role_arn}"
+  lambda_function_handler = "lambda_function.lambda_handler"
+  lambda_function_runtime = "python3.8"
+  lambda_function_timeout = 60
+  lambda_function_tags  = {"Environment"  = "${var.vpc_name}", "Organization" = "${var.organization_name}" }
+  lambda_function_env = { "vpc_name" = "${var.vpc_name}", "url_test" = "${var.url_test}" }
+  lambda_subnets_id = ["${aws_subnet.eks_private.*.id}"]
+  lambda_security_groups = ["${aws_security_group.eks_nodes_sg.id}"]
+}
+*/
+  
+
 resource "aws_cloudwatch_event_rule" "gw_checks_rule" {
   name                = "${var.vpc_name}-GW-checks-job"
   description         = "Check if the gateway is working every minute"
@@ -187,12 +204,14 @@ resource "aws_cloudwatch_event_target" "sns" {
   rule      = "${aws_cloudwatch_event_rule.gw_checks_rule.name}"
 #  target_id = "SendToSNS"
   arn       = "${aws_lambda_function.gw_checks.arn}"
+#  arn       = "${module.lambda_function.function_arn}"
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.gw_checks.function_name}"
+#  function_name = "${module.lambda_function.function_name}"
   principal     = "events.amazonaws.com"
   source_arn    = "${aws_cloudwatch_event_rule.gw_checks_rule.arn}"
 }

@@ -48,3 +48,23 @@ variable "lambda_function_tags" {
   type        = "map"
   default     = {}
 }
+
+
+variable "with_vpc" {
+  description = "Will the function be attached to a vpc"
+  default     = false
+}
+
+variable "lambda_security_groups" {
+  description = "Security groups for the lambda function with a vpc"
+  type        = "list"
+  default     = []
+}
+
+variable "lambda_subnets_id" {
+  description = "Subnets for the lambda function with a vpc"
+  type        = "list"
+  default     = []
+}
+
+

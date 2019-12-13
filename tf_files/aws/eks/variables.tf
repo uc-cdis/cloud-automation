@@ -29,7 +29,7 @@ variable "worker_drive_size" {
 }
 
 variable "eks_version" {
-  default = "1.12"
+  default = "1.14"
 }
 
 variable "workers_subnet_size" {
@@ -60,10 +60,6 @@ variable "organization_name" {
   default = "Basic Services"
 }
 
-variable "proxy_name" {
-  default = " HTTP Proxy"
-}
-
 variable "jupyter_asg_desired_capacity" {
   default = 0
 }
@@ -77,22 +73,6 @@ variable "jupyter_asg_min_size" {
 }
  variable "iam-serviceaccount" {
   default = false
-}
-
-#variable "availability_zones" {
-#  description = "AZ to be used by EKS nodes"
-#  type        = "list"
-#  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
-#}
-
-variable "squid_image_search_criteria" {
-  description = "Search criteria for squid AMI look up"
-  default     = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
-}
-
-variable "squid_instance_drive_size" {
-  description = "Volume size for the squid instance"
-  default     = 8
 }
 
 variable "url_test" {
