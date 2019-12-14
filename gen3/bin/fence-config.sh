@@ -22,7 +22,7 @@ case "$command" in
   if [[ -z "$secretTemplateYaml" ]]; then
     secretTemplateYaml=$GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml
   fi
-  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -e $secretTemplateYaml -c $inputConfigYaml > $outputPath
+  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -e $secretTemplateYaml -c $inputConfigYaml -o $outputPath
   ;;
 "remove-secrets")
   inputConfigYaml="$1"
@@ -31,7 +31,7 @@ case "$command" in
   if [[ -z "$secretTemplateYaml" ]]; then
     secretTemplateYaml=$GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml
   fi
-  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -d $secretTemplateYaml -c $inputConfigYaml > $outputPath
+  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -d $secretTemplateYaml -c $inputConfigYaml -o $outputPath
   ;;
 "merge")
   curl -s https://raw.githubusercontent.com/uc-cdis/fence/master/fence/config-default.yaml > ./config-default.yaml
@@ -41,8 +41,8 @@ case "$command" in
   if [[ -z "$outputPath" ]]; then
     outputPath=./merged-config.yaml
   fi
-  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -r $inputSecretConfig -c ./config-default.yaml > ./tmp.yaml
-  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -r $inputPublicConfig -c ./tmp.yaml > $outputPath
+  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -r $inputSecretConfig -c ./config-default.yaml -o ./tmp.yaml
+  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -r $inputPublicConfig -c ./tmp.yaml -o $outputPath
   rm ./config-default.yaml ./tmp.yaml
   ;;
 "split")
