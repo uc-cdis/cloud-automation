@@ -51,8 +51,8 @@ case "$command" in
   inputConfigYaml="$1"
   outputPublicConfig="$2"
   outputSecretConfig="$3"
-  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -d $secretTemplateYaml -c $inputConfigYaml > $outputPublicConfig
-  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -e $secretTemplateYaml -c $inputConfigYaml > $outputSecretConfig
+  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -d $secretTemplateYaml -c $inputConfigYaml -o $outputPublicConfig
+  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -e $secretTemplateYaml -c $inputConfigYaml -o $outputSecretConfig
   rm ./config-default.yaml
   ;;
 *)

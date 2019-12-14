@@ -218,7 +218,7 @@ def _modify_config(action, yaml_config_str, path_to_key, replacement_value, star
 
     # this means no key found to be replaced, just leave early quietly
     if not matches:
-        print("Warning: cannot find path {} to replace".format(path_to_key))
+        print("Warning: cannot find path {} in input config".format(path_to_key))
         return yaml_config_str
 
     match_start = start + matches.start(0)
