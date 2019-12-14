@@ -1,0 +1,53 @@
+---
+#####
+# test1 simple key-value
+#####
+# some comments for test 1
+test1: ''
+
+
+#####
+# test2 nested properties
+#####
+# some comments
+test2:
+  prop: 'value in the template does not matter'
+  # some comments
+  test2_level1:
+    # some comments
+    test2_level2: 'a place holder'
+
+
+#####
+# test3 replace a null value: null, empty, or empty list
+#####
+test3_1: ''
+test3_2: ''
+test3_3: ''
+test3_level0:
+  prop_1: ''
+  prop_2: ''
+  prop_3: ''
+  test3_level1:
+    test3_level2_1: ''
+    test3_level2_2: ''
+    test3_level2_3: ''
+
+
+#####
+# test4 replace list
+#####
+test4_0: ''
+test4_1:
+  test4_level1: ''
+
+
+#####
+# test5 extract config that doesn't exist in source config
+#####
+test5_1: ''
+test5_level_0:
+  test5_level_1:
+    test5_level_2: ''
+  test5_level_1_1: ''
+

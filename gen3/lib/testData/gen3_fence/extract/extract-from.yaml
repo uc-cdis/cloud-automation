@@ -1,0 +1,48 @@
+---
+#####
+# test1 simple key-value
+#####
+# some comments for test 1
+test1: 'some secrets 1'
+
+
+#####
+# test2 nested properties
+#####
+# some comments
+test2:
+  prop: 'some secrets 2'
+  # some comments
+  test2_level1:
+    # some comments
+    test2_level2: 'some secrets 3'
+
+
+#####
+# test3 extract null values: null, empty, or empty list
+# expected: null and empty will be ignored, and empty list will be extracted
+#####
+test3_1: null
+test3_2: 
+test3_3: []
+test3_level0:
+  prop_1: null
+  prop_2: 
+  prop_3: []
+  test3_level1:
+    test3_level2_1: null
+    test3_level2_2: 
+    test3_level2_3: []
+
+
+#####
+# test4 extract list
+#####
+test4_0:
+  - 'some secrets 4'
+  - 'some secrets 5'
+test4_1:
+  test4_level1:
+    - 'some secrets 6'
+    - 'some secrets 7'
+

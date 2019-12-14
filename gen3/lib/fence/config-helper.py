@@ -1,8 +1,6 @@
 import json
-import os
 import argparse
 import re
-import types
 import yaml
 from enum import Enum
 
@@ -11,9 +9,13 @@ class ConfigAction(Enum):
     DELETE = 2
 
 def modify_config_from_files(file_path, config_file_path, action):
+    config_str = ''
+    with open(config_file_path, "r") as config_file:
+        config_str = config_file.read()
     configs_to_add = _load_config_file(file_path)
-    config_str = open(config_file_path, "r").read()
     for key, value in configs_to_add.items():
+        # for each key-value pair, we call _nested_modify_config 
+        # and replace config_str with returned modified config
         config_str = _nested_modify_config(action, config_str, key, value)
     return config_str
 
@@ -69,7 +71,7 @@ def _nested_extract_config(template, source):
     result_content = {}
     try:
         for inner_key, inner_value in template.items():
-            if source is not None and inner_key in source and source[inner_key] is not None:
+            if source.get(inner_key) is not None:
                 child_result = _nested_extract_config(template[inner_key], source[inner_key])
                 result_content[inner_key] = child_result
     except AttributeError:
@@ -92,48 +94,44 @@ def _load_config_file(file_path):
             configs = yaml.safe_load(yaml_file)
             yaml_file.close()
         else:
-            print((
-                "Cannot load config vars from a file with extention: {}".format(
+            raise Exception("Cannot load config vars from a file with extention: {}".format(
                     file_ext
-                )
-            ))
+                ))
     except Exception as exc:
         # if there's any issue reading the file, exit
-        print((
+        raise Exception(
             "Error reading {}. Cannot get configuration. Skipping this file. "
-            "Details: {}".format(file_list, str(exc))
-        ))
-        raise
+            "Details: {}".format(file_path, str(exc))
+        )
 
     return configs
 
 
-def _get_all_configs(file_list):
-    """
-    Attempt to parse given list of files and extract configuration variables and values
-    """
-    additional_configs = dict()
-    for file_path in file_list:
-        configs = _load_config_file(file_path)
-        if configs:
-            additional_configs.update(configs)
-
-    return additional_configs
-
-
 def _nested_modify_config(action, config_str, key, value, traverse_path=None):
+    """
+    A function that using DFS to replaces/deletes a nested key-value in a dictionary. 
+    It recursively calls itself to traverse, and call `_modify_config` function to
+    do the actual replacement/deletion work.
+
+    Args:
+        action (ConfigAction): DELETE, or REPLACE
+        config_str (str): a string representing a full configuration file, 
+            this string will be replaced inside the function during traverse
+            and will be returned
+        key (str): current key during traverse
+        value: current value during traverse
+        traverse_path (str): nested/path/to/key
+    """
     traverse_path = traverse_path or key
     try:
         for inner_key, inner_value in value.items():
-            temp_path = traverse_path
-            temp_path = temp_path + "/" + inner_key
+            temp_path = traverse_path + "/" + inner_key
             config_str = _nested_modify_config(
                 action, config_str, inner_key, inner_value, temp_path
             )
     except AttributeError:
         # not a dict so replace
-        if value is not None:
-            config_str = _modify_config(action, config_str, traverse_path, value)
+        config_str = _modify_config(action, config_str, traverse_path, value)
             
     return config_str
 
@@ -152,12 +150,15 @@ def _find_next_sibling_or_parent_position(yaml_config_str, start, nested_level):
     last_end_position = start
     last_child_end_position = start
     for line in lines:
-        line_without_leading_spaces = line.lstrip(' ')
-        is_comment = (len(line_without_leading_spaces) > 0 and line_without_leading_spaces[0] == "#")
+        is_comment = line.lstrip(' ').startswith("#")
         leading_spaces_cnt = len(line) - len(line.lstrip(' '))
         is_child = (leading_spaces_cnt > nested_level * 2)
-        is_empty_line = (len(line_without_leading_spaces) == 0)
+        is_empty_line = (len(line.lstrip(' ')) == 0)
         if not (is_empty_line or is_comment or is_child):
+            # If this line is not empty, not a comment, nor a child,
+            # then it means we found a non-child line! 
+            # Just return the ending position of the 
+            # last child (last_child_end_position)
             break
         else:
             last_end_position += len(line) + 1 # plus one because "\n"
@@ -177,8 +178,8 @@ def _find_comments_start_position(yaml_config_str, pos):
     """
     # get all previous lines
     lines = yaml_config_str[:pos].split("\n")
-    # last charactor is \n then the last item is emtpy, remove it
-    if len(lines[-1]) == 0:
+    # delete all trailing emtpy lines
+    while len(lines[-1]) == 0:
         del lines[-1]
     comments_start_pos = pos;
     for line in lines[::-1]:
@@ -208,15 +209,16 @@ def _modify_config(action, yaml_config_str, path_to_key, replacement_value, star
 
     # our regex looks for a specific number of spaces to ensure correct
     # level of nesting. It matches to the end of the line
-    # The regex should also matche commented line, assuming the line starts with a hash,
+    # The regex should also match commented line, assuming the line starts with a hash,
     # and commented contents are still correctly indented
     search_string = (
         "(#|# )?" + "  " * nested_level + "(\'|\")?" + nested_path[0] + "(\'|\")?:.*(\n|$)"
     )
     matches = re.search(search_string, yaml_config_str[start:])
 
-    # early return if we haven't found anything
+    # this means no key found to be replaced, just leave early quietly
     if not matches:
+        print("Warning: cannot find path {} to replace".format(path_to_key))
         return yaml_config_str
 
     match_start = start + matches.start(0)
@@ -244,6 +246,8 @@ def _modify_config(action, yaml_config_str, path_to_key, replacement_value, star
                 yaml_config_str[:comments_starting_position]
                 + yaml_config_str[next_starting_position:]
             )
+        else:
+            raise Exception("Cannot handle this action {}".format(action))
         return yaml_config_str
 
     # set new start point to past current match and move on to next match
@@ -257,6 +261,9 @@ def _modify_config(action, yaml_config_str, path_to_key, replacement_value, star
         start,
         nested_level + 1,
     )
+
+    # if this matched line is commented, don't forget to
+    # uncomment this line after traversing its all children 
     if action == ConfigAction.REPLACE:
         if yaml_config_str[match_start] == '#':
             replaced_result = (
@@ -268,11 +275,15 @@ def _modify_config(action, yaml_config_str, path_to_key, replacement_value, star
 
 
 def _get_yaml_replacement_value(value, nested_level=0):
-    if isinstance(value, str):
+    if value is None:
+        return "null"
+    elif isinstance(value, str):
         return "'" + value + "'"
     elif isinstance(value, bool):
         return str(value).lower()
     elif isinstance(value, list) or isinstance(value, set):
+        if len(value) == 0:
+            return "[]"
         output = ""
         for item in value:
             # spaces for nested level then spaces and hyphen for each list item
@@ -309,12 +320,23 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c", "--config_file", default="config.yaml", help="configuration yaml"
     )
+    parser.add_argument(
+        "-o", "--output_file", default="output.yaml", help="output file", required=True
+    )
     args = parser.parse_args()
 
     # these three options (-r, -d, -e) are mutually exclusive
+    output_file = args.output_file
     if args.file_to_replace:
-        print(modify_config_from_files(args.file_to_replace, args.config_file, ConfigAction.REPLACE))
-    if args.file_to_delete:
-        print(modify_config_from_files(args.file_to_delete, args.config_file, ConfigAction.DELETE))
-    if args.template_file:
-        print(extract_config_from_files(args.template_file, args.config_file))
+        result_yaml_str = modify_config_from_files(args.file_to_replace, args.config_file, ConfigAction.REPLACE)
+        yaml.safe_load(result_yaml_str) # check result yaml is correct
+        open(output_file, "w+").write(result_yaml_str)
+    elif args.file_to_delete:
+        result_yaml_str = modify_config_from_files(args.file_to_delete, args.config_file, ConfigAction.DELETE)
+        yaml.safe_load(result_yaml_str) # check result yaml is correct
+        open(output_file, "w+").write(result_yaml_str)
+    elif args.template_file:
+        result_json_str = extract_config_from_files(args.template_file, args.config_file)
+        json.loads(result_json_str) # check result JSON is correct
+        output_file.replace('.yaml', '.json')
+        open(output_file, "w+").write(result_json_str)

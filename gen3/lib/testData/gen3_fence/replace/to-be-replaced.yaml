@@ -1,0 +1,76 @@
+---
+#####
+# test1 simple key-value
+#####
+# some comments for test 1
+test1: '_________'
+
+
+#####
+# test2 nested properties
+#####
+# some comments
+test2:
+  prop: '_________'
+  # some comments
+  test2_level1:
+    # some comments
+    test2_level2: '_________'
+
+
+#####
+# test3 replace a null value: null, empty, or empty list
+#####
+test3_1: null
+test3_2: 
+test3_3: []
+test3_level0:
+  prop_1: null
+  prop_2: 
+  prop_3: []
+  test3_level1:
+    test3_level2_1: null
+    test3_level2_2: 
+    test3_level2_3: []
+
+
+#####
+# test4 replace with a null value: null, empty, or empty list
+#####
+test4_1: 'some value for test4_1'
+test4_2: 'some value for test4_2'
+test4_3: 'some value for test4_3'
+test4_level0:
+  prop_1: 'some value for prop_1'
+  prop_2: 'some value for prop_2'
+  prop_3: 'some value for prop_3'
+  test4_level1:
+    test4_level2_1: 'some value for test4_level2_1'
+    test4_level2_2: 'some value for test4_level2_2'
+    test4_level2_3: 'some value for test4_level2_3'
+
+
+#####
+# test5 commented object:
+#####
+# some comments
+# test5_1: '________'
+# test5_level_0:
+#   test5_level_1:
+#     test5_level_2: '________'
+#   test5_level_1_1: '________'
+
+
+#####
+# test6 replace list
+#####
+test6_0:
+  - item1
+  - item2
+test6_1:
+  test6_level1:
+    - item3
+    - item4
+test6_2: []
+#  - 'item1'
+#  - 'item2'

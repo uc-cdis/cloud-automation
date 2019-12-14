@@ -23,20 +23,13 @@ assertFilesSame() {
   fi
 }
 
-tmpSecretJSONFile="./secret.json"
-tmpPubYamlFile="./pub.yaml"
-secretTemplate="../testData/gen3_fence/simple-secret-template.yaml"
-configYaml="../testData/gen3_fence/test-simple-config.yaml"
-configTemplateYaml="../testData/gen3_fence/test-simple-config-default.yaml"
+python ./config-helper.py -r ../testData/gen3_fence/replace/to-replace.yaml -c ../testData/gen3_fence/replace/to-be-replaced.yaml -o tmp.yaml
+assertFilesSame "replace configs to a yaml file" tmp.yaml ../testData/gen3_fence/replace/expected.yaml
 
-python ./config-helper.py -e $secretTemplate -c $configYaml > $tmpSecretJSONFile
-assertFilesSame "extract secrets to a JSON file" $tmpSecretJSONFile ../testData/gen3_fence/expected-extracted-secrets.json
+python ./config-helper.py -e ../testData/gen3_fence/extract/template.yaml -c ../testData/gen3_fence/extract/extract-from.yaml -o tmp.json
+assertFilesSame "extract secrets to a JSON file" tmp.json ../testData/gen3_fence/extract/expected.json
 
-python ./config-helper.py -d $secretTemplate -c $configYaml > $tmpPubYamlFile
-assertFilesSame "delete secrets from a yaml file" $tmpPubYamlFile ../testData/gen3_fence/expected-public-configs.yaml
+python ./config-helper.py -d ../testData/gen3_fence/remove/template.yaml  -c ../testData/gen3_fence/remove/remove-from.yaml -o tmp.yaml
+assertFilesSame "delete secrets from a yaml file" tmp.yaml ../testData/gen3_fence/remove/expected.yaml
 
-python ./config-helper.py -r $tmpSecretJSONFile -c ../testData/gen3_fence/test-simple-config-default.yaml > tmp1.yaml
-python ./config-helper.py -r $tmpPubYamlFile -c tmp1.yaml > tmp.yaml
-assertFilesSame "merge (i.e., inject secrets and pub) configs to a yaml file" tmp.yaml ../testData/gen3_fence/expected-merged-configs.yaml
-
-rm $tmpPubYamlFile $tmpSecretJSONFile $tmpYamlFile
+rm ./tmp.yaml

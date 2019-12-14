@@ -1,0 +1,58 @@
+---
+#####
+# test1 simple key-value
+#####
+# some comments for test 1
+test1: 'values for test1'
+# some comments for test 1 secret
+test1_secret: 'secret values for test1'
+
+
+#####
+# test2 nested properties
+#####
+# some comments
+test2:
+  prop: 'values for test2'
+  # some comments for prop_secret
+  prop_secret: 'secret values for test2'
+  # some comments for test2_level1
+  test2_level1:
+    # some comments 1
+    test2_level2: 'values for test2'
+    # some comments 2
+    test2_level2_secret: 'secret values for test2'
+
+
+#####
+# test3 remove null values: null, empty, or empty list
+#####
+test3_1: null
+test3_2: 
+test3_3: []
+test3_level0:
+  prop_1: null
+  prop_2: 
+  prop_3: []
+  test3_level1:
+    test3_level2_1: null
+    test3_level2_2: 
+    test3_level2_3: []
+
+
+#####
+# test4 remove list
+#####
+test4_0:
+  - item1
+  - item2
+# some comments for test4_0_secret
+test4_0_secret:
+  - item1
+  # some comments for test4_0_secret item1
+  - item2
+test4_1:
+  # some comments for test4_level1_secret
+  test4_level1_secret:
+    - item3
+    - item4

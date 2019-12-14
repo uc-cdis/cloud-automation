@@ -1,0 +1,31 @@
+---
+#####
+# test1 simple key-value
+#####
+# some comments for test 1
+test1: 'values for test1'
+
+
+#####
+# test2 nested properties
+#####
+# some comments
+test2:
+  prop: 'values for test2'
+  # some comments for test2_level1
+  test2_level1:
+    # some comments 1
+    test2_level2: 'values for test2'
+
+
+test3_level0:
+  test3_level1:
+
+
+#####
+# test4 remove list
+#####
+test4_0:
+  - item1
+  - item2
+test4_1:
