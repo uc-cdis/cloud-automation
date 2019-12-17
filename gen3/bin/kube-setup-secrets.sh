@@ -428,29 +428,6 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
       PGPASSWORD="$sheepdog_db_password" psql -t -U "$sheepdog_db_user" -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
     fi
   fi
-
-  # setup the database ...
-  cd "$(gen3_secrets_folder)"
-  if [[ ! -f .rendered_gdcapi_db ]]; then
-    # job runs asynchronously ...
-    gen3 job run gdcdb-create
-    # also go ahead and setup the indexd auth secrets
-    gen3 job run indexd-userdb
-    echo "Sleep 10 seconds for gdcdb-create and indexd-userdb jobs"
-    sleep 10
-    gen3 job logs gdcb-create || true
-    gen3 job logs indexd-userdb || true
-    echo "Leaving the jobs running in the background if not already done"
-  elif [[ ! -f .rendered_indexd_userdb ]]; then
-    # may need to re-run just the indexd-job in some situations
-    gen3 job run indexd-userdb
-    echo "Sleep 10 seconds for indexd-userd job"
-    sleep 10
-    gen3 job logs indexd-userdb || true
-    echo "Leaving the job running in the background if not already done"
-  fi
-  # Avoid doing previous block more than once or when not necessary ...
-  touch .rendered_gdcapi_db .rendered_indexd_userdb
 fi
 
 if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then

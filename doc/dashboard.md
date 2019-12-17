@@ -1,6 +1,6 @@
 # TL;DR
 
-Helpers for interacting with the gen3 dashboard bakend.
+Helpers for interacting with the gen3 dashboard backend.
 
 ## Overview
 

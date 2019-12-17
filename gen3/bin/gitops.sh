@@ -535,9 +535,11 @@ gen3_gitops_configmaps() {
 
   local key
   local key2
-  local value
+  local valueList=()
+  local valueCount=0
   local execString
   local etlPath
+  local cMapName
   
   etlPath=$(dirname $(g3k_manifest_path))/etlMapping.yaml
   if [[ -f "$etlPath" ]]; then
@@ -546,20 +548,56 @@ gen3_gitops_configmaps() {
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
     if [[ $key != 'notes' ]]; then
-      local cMapName="manifest-$key"
+      valueList=()
+      valueCount=0
+      cMapName="manifest-$key"
       execString="g3kubectl create configmap $cMapName "
       for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
         if [[ -n "$value" ]]; then
-          execString+="--from-literal $key2='$value' "
+          valueList+=("$value")
+          execString+="--from-literal $key2=\"\${valueList[$valueCount]}\" "
+          valueCount=$((valueCount + 1))
         fi
       done
-      local jsonSection="--from-literal json='$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")'"
-      execString+=$jsonSection
+      value="$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")"
+      valueList+=("$value")
+      execString+="--from-literal json=\"\${valueList[$valueCount]}\" "
+      #gen3_log_info "$execString"
       eval $execString
       g3kubectl label configmap $cMapName app=manifest
     fi
   done
+
+  local manifestDir
+  manifestDir="$(dirname "$manifestPath")/manifests"
+  if [[ -d "$manifestDir" ]]; then
+    (
+      cd "$manifestDir"
+      for key in *; do
+        if [[ -d "$key" && "$key" =~ ^[0-9A-Za-z] ]]; then
+          cMapName="manifest-$key"
+          cd "$manifestDir/$key"
+          local gotData=false
+          execString="g3kubectl create configmap $cMapName "
+          for key2 in *; do
+            if [[ -f "$key2" ]]; then
+              gotData=true
+              execString+=" '--from-file=$key2'"
+              if [[ "$key2" == "${key}.json" ]]; then
+                # to help transition data out of the master manifest.json
+                execString+=" '--from-file=json=$key2'"
+              fi
+            fi
+          done
+          if [[ "$gotData" == "true" ]]; then
+            eval $execString
+            g3kubectl label configmap $cMapName app=manifest
+          fi
+        fi
+      done
+    )
+  fi
 }
 
 declare -a gen3_gitops_repolist_arr=(
