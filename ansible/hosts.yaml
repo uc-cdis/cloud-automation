@@ -99,7 +99,7 @@ all:
           ansible_host: 10.128.2.170
         loginbionimbus_commons:
           ansible_user: loginbionimbus
-          ansible_host: 10.128.2.155
+          ansible_host: 10.128.2.173
         canine_commons:
           ansible_user: canineprod
           ansible_host: 10.128.2.34
