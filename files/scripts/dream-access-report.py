@@ -1,4 +1,5 @@
 import json
+import os
 import csv
 import argparse
 from collections import OrderedDict
@@ -26,7 +27,7 @@ if args.output:
     print("Change output to:", args.output)
     output_filename = args.output
 
-if user_audit_log is not None:
+if user_audit_log is not None and os.stat(user_audit_log).st_size > 0:
     with open(user_audit_log) as json_file:
         data = json.load(json_file)
         for i in range(len(data)):
@@ -60,7 +61,7 @@ if user_audit_log is not None:
                 if not updated:
                     output_content.append(row.copy())
 
-if cert_audit_log is not None:
+if cert_audit_log is not None and os.stat(cert_audit_log).st_size > 0:
     with open(cert_audit_log) as json_file:
         data = json.load(json_file)
         for cert_data in data:
