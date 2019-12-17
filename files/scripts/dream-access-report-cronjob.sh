@@ -29,8 +29,9 @@ fileName="Dream_access_report_$dateTime.tsv"
 dreamTeamID=$(g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode | yq .DREAM_CHALLENGE_TEAM | tr -d '\\"')
 
 logInterval=7
+regexNum='^[0-9]+$'
 if [ "$1" != "" ]; then
-  if ! [[ $1 =~ '^[0-9]+$' ]] ; then
+  if ! [[ $1 =~ $regexNum ]] ; then
     echo "Input argument is not a number, using default value '$logInterval' days"
   else
     logInterval=$1
