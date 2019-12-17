@@ -103,6 +103,10 @@ all:
         canine_commons:
           ansible_user: canineprod
           ansible_host: 10.128.2.34
+        icgc_commons:
+          ansible_user: icgc
+          ansible_host: 10.128.2.173
+
           #        charlie_commons:
           #          ansible_user: charlie
           #          ansible_host: 10.128.2.156
@@ -149,9 +153,9 @@ all:
 
     qa:
       hosts:
-        #dcfqa_qa:
-        #  ansible_user: dcfqav1
-        #  ansible_host: 10.128.2.138
+        qa_biologin:
+          ansible_user: qa-biologin
+          ansible_host: 10.128.2.173
         kfqa_qa:
           ansible_user: kfqa
           ansible_host: 10.128.2.12
