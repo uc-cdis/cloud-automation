@@ -46,7 +46,6 @@ case "$command" in
   rm ./config-default.yaml ./tmp.yaml
   ;;
 "split")
-  curl -s https://raw.githubusercontent.com/uc-cdis/fence/master/fence/config-default.yaml > ./config-default.yaml
   secretTemplateYaml=$GEN3_HOME/gen3/lib/fence/fence-secret-config-template.yaml
   inputConfigYaml="$1"
   outputPublicConfig="$2"

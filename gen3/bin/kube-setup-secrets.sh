@@ -206,48 +206,36 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
   if ! g3kubectl get secrets/fence-config > /dev/null 2>&1; then
     # load updated fence-config.yaml into secret if it exists
     fence_config=$(gen3_secrets_folder)/apis_configs/fence-config.yaml
-    fence_pub_config=$(gen3_secrets_folder)/apis_configs/fence-config-public.yaml
-    fence_sec_config=$(gen3_secrets_folder)/apis_configs/fence-config-secret.json
-    if [[ -f ${fence_pub_config} && -f ${fence_sec_config} ]]; then
-      # merge public and secret configs and overwrite ${fence_config}
-      gen3 fence-config merge "${fence_pub_config}"  "${fence_sec_config}" "${fence_config}"
+    if [[ -f ${fence_config} ]]; then
+      echo "loading fence config from file..."
+      if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+        g3kubectl delete secret fence-config
+      fi
       g3kubectl create secret generic fence-config "--from-file=fence-config.yaml=${fence_config}"
     else
-      if [[ -f ${fence_config} ]]; then
-        echo "loading fence config from file..."
-        if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
-          g3kubectl delete secret fence-config
-        fi
-        g3kubectl create secret generic fence-config "--from-file=fence-config.yaml=${fence_config}"
-      else
-        echo "running job to create fence-config.yaml."
-        echo "job will inject creds.json into fence-config.yaml..."
-        echo "job will also attempt to load old configuration into fence-config.yaml..."
-        echo "NOTE: Some default config values from fence-config.yaml will be replaced"
-        echo "      Run \"gen3 joblogs config-fence\" for details"
-        gen3 job run config-fence CONVERT_OLD_CFG "true"
+      echo "running job to create fence-config.yaml."
+      echo "job will inject creds.json into fence-config.yaml..."
+      echo "job will also attempt to load old configuration into fence-config.yaml..."
+      echo "NOTE: Some default config values from fence-config.yaml will be replaced"
+      echo "      Run \"gen3 joblogs config-fence\" for details"
+      gen3 job run config-fence CONVERT_OLD_CFG "true"
 
-        # dump fence-config secret into file so user can edit.
-        let count=1
-        while ((count < 50)); do
-          if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
-            break
-          fi
-          echo "waiting for fence-config secret from job..."
-          sleep 2
-          let count=${count}+1
-        done
+      # dump fence-config secret into file so user can edit.
+      let count=1
+      while ((count < 50)); do
         if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
-          echo "found fence-config!"
-          echo "dumping fence configuration into file from fence-config secret..."
-          g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode > "${fence_config}"
-        else
-          echo "ERROR: could not find fence-config within the timeout!"
+          break
         fi
-      fi
-      # split ${fence_config} to public part ${fence_pub_config} and secret part ${fence_sec_config}
-      if [[ -f ${fence_config} ]]; then
-        gen3 fence-config split "${fence_config}"  "${fence_pub_config}" "${fence_sec_config}"
+        echo "waiting for fence-config secret from job..."
+        sleep 2
+        let count=${count}+1
+      done
+      if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
+        echo "found fence-config!"
+        echo "dumping fence configuration into file from fence-config secret..."
+        g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode > "${fence_config}"
+      else
+        echo "ERROR: could not find fence-config within the timeout!"
       fi
     fi
   fi
@@ -440,29 +428,6 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
       PGPASSWORD="$sheepdog_db_password" psql -t -U "$sheepdog_db_user" -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
     fi
   fi
-
-  # setup the database ...
-  cd "$(gen3_secrets_folder)"
-  if [[ ! -f .rendered_gdcapi_db ]]; then
-    # job runs asynchronously ...
-    gen3 job run gdcdb-create
-    # also go ahead and setup the indexd auth secrets
-    gen3 job run indexd-userdb
-    echo "Sleep 10 seconds for gdcdb-create and indexd-userdb jobs"
-    sleep 10
-    gen3 job logs gdcb-create || true
-    gen3 job logs indexd-userdb || true
-    echo "Leaving the jobs running in the background if not already done"
-  elif [[ ! -f .rendered_indexd_userdb ]]; then
-    # may need to re-run just the indexd-job in some situations
-    gen3 job run indexd-userdb
-    echo "Sleep 10 seconds for indexd-userd job"
-    sleep 10
-    gen3 job logs indexd-userdb || true
-    echo "Leaving the job running in the background if not already done"
-  fi
-  # Avoid doing previous block more than once or when not necessary ...
-  touch .rendered_gdcapi_db .rendered_indexd_userdb
 fi
 
 if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
