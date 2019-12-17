@@ -18,7 +18,7 @@ all:
         cvbcommons_admin:
           ansible_host: 10.128.2.247
         genomel_admin:
-          ansible_host: 10.128.2.155
+          ansible_host: 10.128.2.173
         ibdgc_admin:
           ansible_host: 10.128.2.89
         occ_admin:
@@ -75,7 +75,7 @@ all:
           ansible_host: 10.128.2.247
         genomel_commons:
           ansible_user: genomelprod
-          ansible_host: 10.128.2.155
+          ansible_host: 10.128.2.173
         ibdgc_commons:
           ansible_user: ibdgc
           ansible_host: 10.128.2.89
