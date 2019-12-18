@@ -55,7 +55,7 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
 }
 
 # ECR API endpoint 
-resource "aws_vpc_endpoint" "ecr-dkr" {
+resource "aws_vpc_endpoint" "ecr-api" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
   service_name = "com.amazonaws.${data.aws_region.current.name}.ecr.api"
   vpc_endpoint_type = "Interface"
