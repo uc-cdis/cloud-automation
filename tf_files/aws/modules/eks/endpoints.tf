@@ -35,7 +35,7 @@ resource "aws_vpc_endpoint" "autoscaling" {
   }
 }
 
-# ECR endpoint 
+# ECR DKR endpoint 
 resource "aws_vpc_endpoint" "ecr-dkr" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
   service_name = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
@@ -44,17 +44,34 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
   security_group_ids  = [
     "${data.aws_security_group.local_traffic.id}"
   ]
-    #"${aws_security_group.eks_nodes_sg.id}"
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
   tags {
-    Name         = "to ecr"
+    Name         = "to ecr dkr"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
 }
 
+# ECR API endpoint 
+resource "aws_vpc_endpoint" "ecr-dkr" {
+  vpc_id       = "${data.aws_vpc.the_vpc.id}"
+  service_name = "com.amazonaws.${data.aws_region.current.name}.ecr.api"
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = [
+    "${data.aws_security_group.local_traffic.id}"
+  ]
+
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  tags {
+    Name         = "to ecr api"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
+}
 
 # EBS endpoint
 resource "aws_vpc_endpoint" "ebs" {
@@ -68,7 +85,7 @@ resource "aws_vpc_endpoint" "ebs" {
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
   tags {
-    Name         = "to autoscaling"
+    Name         = "to ebs"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
