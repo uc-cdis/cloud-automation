@@ -52,7 +52,12 @@ case "$command" in
   outputSecretConfig="$3"
   python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -d $secretTemplateYaml -c $inputConfigYaml -o $outputPublicConfig
   python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -e $secretTemplateYaml -c $inputConfigYaml -o $outputSecretConfig
-  rm ./config-default.yaml
+  ;;
+"replace")
+  input="$1"
+  replaceWith="$2"
+  output="$3"
+  python3 $GEN3_HOME/gen3/lib/fence/config-helper.py -r $replaceWith -c $input -o $output
   ;;
 *)
   gen3 help fence-config

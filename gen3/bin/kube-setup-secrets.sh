@@ -211,7 +211,15 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
       if g3kubectl get secrets/fence-config > /dev/null 2>&1; then
         g3kubectl delete secret fence-config
       fi
-      g3kubectl create secret generic fence-config "--from-file=fence-config.yaml=${fence_config}"
+      fence_pub_config=$(dirname $(g3k_manifest_path))/fence/fence-config-public.yaml
+      if [[ -f ${fence_pub_config} ]]; then
+        fence_tmp_config=./tmp.yaml
+        gen3 fence-config replace ${fence_config} ${fence_pub_config} ${fence_tmp_config}
+        g3kubectl create secret generic fence-config "--from-file=${fence_tmp_config}"
+        rm ${fence_tmp_config}
+      elif
+        g3kubectl create secret generic fence-config "--from-file=fence-config.yaml=${fence_config}"
+      fi
     else
       echo "running job to create fence-config.yaml."
       echo "job will inject creds.json into fence-config.yaml..."
