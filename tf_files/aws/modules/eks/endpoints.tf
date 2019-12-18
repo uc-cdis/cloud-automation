@@ -86,7 +86,7 @@ resource "aws_vpc_endpoint" "k8s-s3" {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
-  depends_on     = ["${aws_route_table.eks_private}"]
+  depends_on     = ["aws_route_table.eks_private"]
 }
 
 # Cloudwatch logs endpoint
