@@ -178,11 +178,13 @@ resource "aws_route_table_association" "private_kube" {
 }
 
 
+/*
 #  S3 endpoint
 resource "aws_vpc_endpoint" "k8s-s3" {
   vpc_id          =  "${data.aws_vpc.the_vpc.id}"
   service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
-  route_table_ids = ["${data.aws_route_table.public_kube.id}"]
+  route_table_ids = ["${data.aws_route_table.public_kube.id}", "${aws_route_table.eks_private.*.id}"]
+#  route_table_ids = ["${data.aws_route_table.public_kube.id}"]
   tags {
     Name         = "to s3"
     Environment  = "${var.vpc_name}"
@@ -211,7 +213,7 @@ resource "aws_vpc_endpoint" "k8s-logs" {
     Organization = "${var.organization_name}"
   }
 }
-
+*/
 
 resource "aws_security_group" "eks_control_plane_sg" {
   name        = "${var.vpc_name}-control-plane"
