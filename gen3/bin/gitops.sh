@@ -558,6 +558,7 @@ gen3_gitops_configmap_folder() {
           eval echo $execString
           return $?
         else
+          g3kubectl delete configmap "$cMapName" 2> /dev/null
           eval $execString
           local result=$?
           g3kubectl label configmap $cMapName app=manifest
