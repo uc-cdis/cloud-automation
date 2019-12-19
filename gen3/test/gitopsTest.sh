@@ -1,4 +1,21 @@
+# test configmaps folder dry run
+test_configmaps_folder_dryrun() {
+  local testFolder="${GEN3_HOME}/gen3/lib/testData/manifests/frickjack"
+  local dryRunCommand
+  dryRunCommand="$(gen3 gitops configmaps "$testFolder" --dryRun)"; because $? "gitops configmaps should work with folder $testFolder"
+  gen3_log_info "configmaps $testFolder command: $dryRunCommand"
+  [[ "$dryRunCommand" =~ frickjack.json ]]; because $? "gitops configmaps folder command looks ok"
+}
 
+# create configmaps from folder
+test_configmaps_folder() {
+  local testFolder="${GEN3_HOME}/gen3/lib/testData/manifests/frickjack"
+  local dryRunCommand
+  gen3 gitops configmaps "$testFolder"; because $? "gitops configmaps should work with folder $testFolder"
+  local namespace
+  namespace="$(g3kubectl get configmap manifest-frickjack -o json | jq -e -r '.data["user-namespace"]')"; because $? "configmap looks ok"
+  [[ "$namespace" == "jupyter-pods" ]]; because $? "configmap got right namespace"
+}
 
 #
 # Test g3k_manifest_path
@@ -197,6 +214,8 @@ test_secrets_folder() {
   [[ "$secretFolder" == "$WORKSPACE/$vpc_name" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
 }
 
+shunit_runtest "test_configmaps_folder_dryrun" "local,gitops"
+shunit_runtest "test_configmaps_folder" "local,gitops"
 shunit_runtest "test_mpath" "local,gitops"
 shunit_runtest "test_mfilter" "local,gitops"
 shunit_runtest "test_mlookup" "local,gitops"
