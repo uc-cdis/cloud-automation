@@ -14,8 +14,51 @@ set -e
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+
+setup_indexd_gateway() {
+  if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
+    # don't try to setup these secrets off the admin vm
+    return 0
+  fi
+
+  local secret
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/gateway"
+  if ! secret="$(g3kubectl get secret gateway-g3auto -o json 2> /dev/null)" \
+    || [[ -z "$secret" || "false" == "$(jq -r '.data | has("creds.json")' <<< "$secret")" ]]; then
+    # gateway-g3auto secret does not exist
+    # maybe we just need to sync secrets from the file system
+    if [[ -f "${secretsFolder}/creds.json" ]]; then
+        gen3 secrets sync "setup gateway indexd creds in gateway-g3auto"
+        return $?
+    else
+      mkdir -p "$secretsFolder"
+    fi
+  else
+    # already configured
+    return 0
+  fi
+
+  # Check if the `gateway` indexd user has been configured
+  local gatewayIndexdPassword
+  if ! gatewayIndexdPassword="$(jq -e -r .indexd.user_db.gateway < "$(gen3_secrets_folder)/creds.json" 2> /dev/null)" \
+    || [[ -z "$gatewayIndexdPassword" && "$gatewayIndexdPassword" == null ]]; then
+    gatewayIndexdPassword="$(gen3 random)"
+    cp "$(gen3_secrets_folder)/creds.json" "$(gen3_secrets_folder)/creds.json.bak"
+    jq -r --arg password "$gatewayIndexdPassword" '.indexd.user_db.gateway=$password' < "$(gen3_secrets_folder)/creds.json.bak" > "$(gen3_secrets_folder)/creds.json"
+    /bin/rm $(gen3_secrets_folder)/creds.json.bak
+  fi
+  jq -r -n --arg password "$gatewayIndexdPassword"  --arg b64 "$(echo -n "gateway:$gatewayIndexdPassword" | base64)" '.indexdUser="gateway" | .indexdPassword=$password | .base64Authz=$b64' > "$secretsFolder/creds.json"
+  # make it easy for nginx to get the Authorization header ...
+  jq -r .base64Authz < "$secretsFolder/creds.json" > "$secretsFolder/base64Authz.txt"
+  gen3 secrets sync 'setup gateway indexd creds in gateway-g3auto'
+  # get the gateway user into the indexd userdb
+  gen3 job run indexd-userdb
+}
+
 #current_namespace=$(g3kubectl config view -o jsonpath={.contexts[].context.namespace})
 current_namespace=$(gen3 db namespace)
+
+setup_indexd_gateway
 
 scriptDir="${GEN3_HOME}/kube/services/revproxy"
 declare -a confFileList=()

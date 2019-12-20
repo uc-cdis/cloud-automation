@@ -105,6 +105,12 @@ spec:
                 name: manifest-global
                 key: des_namespace
                 optional: true
+          - name: INDEXD_AUTHZ
+            valueFrom:
+              secretKeyRef:
+                name: gateway-g3auto
+                key: base64Authz.txt
+                optional: true  
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true
