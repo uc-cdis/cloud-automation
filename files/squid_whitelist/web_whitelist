@@ -62,6 +62,7 @@ hooks.slack.com
 http.us.debian.org
 ifconfig.io
 internet2.edu
+internalstaging.datastage.io
 k8s.gcr.io
 keyservice.opensciencedatacloud.org
 ks.osdc.io
