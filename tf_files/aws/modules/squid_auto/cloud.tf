@@ -81,7 +81,8 @@ data "aws_iam_policy_document" "squid_policy_document" {
 resource "aws_route_table_association" "squid_auto0" {
   count          = "${length(var.squid_availability_zones)}"
   subnet_id      = "${aws_subnet.squid_pub0.*.id[count.index]}"
-  route_table_id = "${data.aws_route_table.public_route_table.id}"
+#  route_table_id = "${data.aws_route_table.public_route_table.id}"
+  route_table_id = "${var.main_public_route}"
 }
 
 
@@ -135,13 +136,15 @@ cp /home/ubuntu/cloud-automation/flavors/squid_auto/squid_auto_user_variable /ho
 
 # Replace the User variable for hostname, VPN subnet and VM subnet 
 
-sed -i "s/DNS_ZONE_ID/${data.aws_route53_zone.vpczone.zone_id}/" /home/ubuntu/squid_auto_user_variable
-sed -i "s/PRIVATE_KUBE_ROUTETABLE_ID/${data.aws_route_table.private_kube_route_table.id}/" /home/ubuntu/squid_auto_user_variable
+sed -i "s/DNS_ZONE_ID/${var.route_53_zone_id}/" /home/ubuntu/squid_auto_user_variable
+sed -i "s/PRIVATE_KUBE_ROUTETABLE_ID/${var.private_kube_route}/" /home/ubuntu/squid_auto_user_variable
 sed -i "s/COMMONS_SQUID_ROLE/${var.env_squid_name}/" /home/ubuntu/squid_auto_user_variable
 
 #####
 bash "${var.bootstrap_path}${var.bootstrap_script}" cwl_group="${var.env_log_group}" 2>&1 |tee --append /var/log/bootstrapping_script.log
 EOF
+#sed -i "s/PRIVATE_KUBE_ROUTETABLE_ID/${data.aws_route_table.private_kube_route_table.id}/" /home/ubuntu/squid_auto_user_variable
+#sed -i "s/DNS_ZONE_ID/${data.aws_route53_zone.vpczone.zone_id}/" /home/ubuntu/squid_auto_user_variable
 
 lifecycle {
     create_before_destroy = true

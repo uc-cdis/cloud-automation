@@ -1,14 +1,54 @@
-#module "squid_proxy" {
-#  source               = "../squid"
-#  csoc_cidr            = "${var.peering_cidr}"
-#  env_vpc_name         = "${var.vpc_name}"
-#  env_public_subnet_id = "${aws_subnet.public.id}"
-#  env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
-#  env_vpc_id           = "${aws_vpc.main.id}"
-#  env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
-#  env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
-#  ssh_key_name         = "${var.ssh_key_name}"
-#}
+/*
+module "squid_proxy" {
+  source               = "../squid"
+  csoc_cidr            = "${var.peering_cidr}"
+  env_vpc_name         = "${var.vpc_name}"
+  env_public_subnet_id = "${aws_subnet.public.id}"
+  env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
+  env_vpc_id           = "${aws_vpc.main.id}"
+  env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+  env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
+  ssh_key_name         = "${var.ssh_key_name}"
+}
+
+/
+resource "aws_iam_role" "cluster_logging_cloudwatch" {
+  name = "${var.vpc_name}_cluster_logging_cloudwatch"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+#
+# This could go here or in the squid module. But squid may go away soon
+# do not remove this
+#
+resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
+  name   = "${var.vpc_name}_cluster_logging_cloudwatch"
+  policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
+  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+}
+
+resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
+  name = "${var.vpc_name}_cluster_logging_cloudwatch"
+  role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+}
+*/
+
 
 module "squid-auto" {
   source                     = "../squid_auto"
@@ -24,6 +64,9 @@ module "squid-auto" {
   image_name_search_criteria = "${var.squid_image_search_criteria}"
   squid_instance_drive_size  = "${var.squid_instance_drive_size}"
   squid_availability_zones   = "${var.availability_zones}"
+  main_public_route          = "${aws_route_table.public.id}"
+  private_kube_route         = "${var.private_kube_route}"
+  route_53_zone_id           = "${aws_route53_zone.main.id}"
 }
 
 module "data-bucket" {

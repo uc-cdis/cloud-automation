@@ -77,7 +77,9 @@ data "aws_iam_policy_document" "without_resources" {
       "autoscaling:DescribeAutoScalingGroups",
       "ec2:DescribeVpcs",
       "ec2:DescribeSubnets",
-      "ec2:DescribeRouteTables"
+      "ec2:DescribeRouteTables",
+      "ec2:DescribeInstanceAttribute",
+      "ec2:ModifyInstanceAttribute"
     ]
     effect = "Allow"
     resources = ["*"]
@@ -140,7 +142,7 @@ resource "aws_lambda_function" "gw_checks" {
   function_name = "${var.vpc_name}-gw-checks-lambda"
   role          = "${module.iam_role.role_arn}" # "${aws_iam_role.iam_for_lambda.arn}"
   handler       = "lambda_function.lambda_handler"
-  timeout       = 120
+  timeout       = 45
   description   = "Checks for internet access from the worker nodes subnets"
 
   vpc_config {

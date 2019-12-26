@@ -72,3 +72,15 @@ variable "squid_availability_zones" {
   description = "AZs on wich to associate the routes for the squid proxies"
   type        = "list"
 }
+
+variable "main_public_route" {
+  description = "The route table that allows public access"
+}
+
+variable "private_kube_route" {
+  description = "public kube route table id"
+}
+
+variable "route_53_zone_id" {
+  description = "DNS zone for .internal.io"
+}

@@ -51,3 +51,7 @@ variable "squid_instance_drive_size" {
   description = "Volume size for the squid instance"
   default     = 8
 }
+
+variable "private_kube_route" {
+  description = "Id of the route fo plublic_kube subnet"
+}

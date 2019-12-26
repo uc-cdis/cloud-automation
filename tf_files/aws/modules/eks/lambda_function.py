@@ -363,6 +363,35 @@ def change_resource_record_sets(zone_id,name,action,type,ttl,value):
     except Exception as e:
         print(e)
     
+"""
+  function to find the instance attribute sourceDestinationCheck for a single instance
+           this must be set to false if we want our instance to serve as proxy and be 
+           the default gateway for a specific route table
+
+  @var string instance_id  the id of the instance we want to know the value of the attibue 
+
+  @return boolean True or False based on the attribute value
+"""
+def get_sourceDestinationCheck_attr(instance_id):
+    client = boto3.client('ec2')
+    response = client.describe_instance_attribute(InstanceId=instance_id, Attribute='sourceDestCheck')
+    del client
+    return response['SourceDestCheck']['Value']
+
+"""
+  function to set the attribute sourceDestinationCheck to false for a single instance
+
+
+  @var string instance_id  the id of the instance we want to know the value set to false
+
+  @return dictionary with the execution results 
+"""
+def set_sourceDestinationCheck_attr(instance_id,value=False):
+    client = boto3.client('ec2')
+    response = client.modify_instance_attribute(InstanceId=instance_id, SourceDestCheck={'Value': value})
+    del client
+    return response
+
     
 def lambda_handler(event, context):
     
@@ -402,6 +431,10 @@ def lambda_handler(event, context):
             
             for instance_id in instances_ids:
                 instance_priv_ip = get_instances_priv_ip([instance_id])
+
+                if not get_sourceDestinationCheck_attr(instance_id):
+                    set_sourceDestinationCheck_attr(instance_id)
+                    print("sourceDestinationCheck set to false for %s" % instance_id)
                 
                 if check_port(instance_priv_ip[0],proxy_port) == 0:
                     healthy_instance_eni = get_instances_eni([instance_id])
@@ -430,8 +463,10 @@ def lambda_handler(event, context):
                     
                     if exist_record_set(record_sets,'cloud-proxy'):
                         change_resource_record_sets(zone_id,'cloud-proxy.internal.io','UPSERT','A',300,instance_priv_ip[0])
+                        print("subdomain cloud-proxy.internal.io changed for %s" % zone_id)
                     else:
                         change_resource_record_sets(zone_id,'cloud-proxy.internal.io','CREATE','A',300,instance_priv_ip[0])
+                        print("subdomain cloud-proxy.internal.io created for %s" % zone_id)
                         
                     return {
                         'statusCode': 200,

@@ -23,6 +23,8 @@ module "cdis_vpc" {
 
   csoc_managed                   = "${var.csoc_managed}"
   csoc_vpc_id                    = "${var.csoc_vpc_id}"
+
+  private_kube_route             = "${aws_route_table.private_kube.id}"
 }
 
 # logs bucket for elb logs
