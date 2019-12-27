@@ -3,7 +3,7 @@ set -e
 
 if [ ! -z $NGINX_RATE_LIMIT ]; then
   # Add rate_limit config
-  rate_limit_conf="\ \ \ \ limit_req_zone $binary_remote_addr zone=one:10m rate=${NGINX_RATE_LIMIT}r/s;"
+  rate_limit_conf="\ \ \ \ limit_req_zone \$binary_remote_addr zone=one:10m rate=${NGINX_RATE_LIMIT}r/s;"
   sed -i "/http\ {/a ${rate_limit_conf}" /etc/nginx/nginx.conf
 fi
 
