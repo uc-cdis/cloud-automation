@@ -432,7 +432,7 @@ def lambda_handler(event, context):
             for instance_id in instances_ids:
                 instance_priv_ip = get_instances_priv_ip([instance_id])
 
-                if not get_sourceDestinationCheck_attr(instance_id):
+                if get_sourceDestinationCheck_attr(instance_id):
                     set_sourceDestinationCheck_attr(instance_id)
                     print("sourceDestinationCheck set to false for %s" % instance_id)
                 

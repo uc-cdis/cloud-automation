@@ -85,71 +85,88 @@ chown -R proxy:proxy /var/log/squid /var/cache/squid
 
 ## Enable the squid service
 systemctl enable squid
-service squid stop
-service squid start
+systemctl stop squid
+systemctl start squid
+
+#service squid stop
+#service squid start
 
 ## Logging set-up
 
 #Getting the account details
-apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev python3-pip
-pip install --upgrade pip
-pip3 install --upgrade pip
-ACCOUNT_ID=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn' |sed -e 's/.*:://' -e 's/:.*//')
+#apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev python3-pip
+#pip install --upgrade pip
+#pip3 install --upgrade pip
+#ACCOUNT_ID=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn' |sed -e 's/.*:://' -e 's/:.*//')
 #ROLE_NAME=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn'|sed -e 's/.*instance-profile\///' -e 's/_squid.*//')
-COMMONS_SQUID_AUTO_ROLE=$(sed -n -e '/VAR4/ s/.*\= *//p' /home/ubuntu/squid_auto_user_variable)
+#COMMONS_SQUID_AUTO_ROLE=$(sed -n -e '/VAR4/ s/.*\= *//p' /home/ubuntu/squid_auto_user_variable)
 # Let's install awscli and configure it
 # Adding AWS profile to the admin VM
-pip3 install awscli
-mkdir -p /home/ubuntu/.aws
-cat <<EOT  >> /home/ubuntu/.aws/config
-[default]
-output = json
-region = ${REGION}
-role_session_name = gen3-squidautovm
-role_arn = arn:aws:iam::${ACCOUNT_ID}:role/${COMMONS_SQUID_AUTO_ROLE}_role
-credential_source = Ec2InstanceMetadata
-EOT
+#pip3 install awscli
+#mkdir -p /home/ubuntu/.aws
+#cat <<EOT  >> /home/ubuntu/.aws/config
+#[default]
+#output = json
+#region = ${REGION}
+#role_session_name = gen3-squidautovm
+#role_arn = arn:aws:iam::${ACCOUNT_ID}:role/${COMMONS_SQUID_AUTO_ROLE}_role
+#credential_source = Ec2InstanceMetadata
+#EOT
 chown ubuntu:ubuntu -R /home/ubuntu
 
 
 ## download and install awslogs
-
-
-wget -O /tmp/awslogs-agent-setup.py https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
-chmod 775 /tmp/awslogs-agent-setup.py
-mkdir -p /var/awslogs/etc/
-cp ${SUB_FOLDER}/flavors/squid_auto/awslogs.conf /var/awslogs/etc/awslogs.conf
-curl -s ${MAGIC_URL}placement/availability-zone > /tmp/EC2_AVAIL_ZONE
-${PYTHON} /tmp/awslogs-agent-setup.py --region=$(awk '{print substr($0, 1, length($0)-1)}' /tmp/EC2_AVAIL_ZONE) --non-interactive -c ${SUB_FOLDER}flavors/squid_auto/awslogs.conf
-systemctl disable awslogs
-chmod 644 /etc/init.d/awslogs
+wget https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+dpkg -i -E ./amazon-cloudwatch-agent.deb
 
 # Configure the AWS logs
 
 HOSTNAME=$(which hostname)
-server_int=$(route | grep '^default' | grep -o '[^ ]*$')
-instance_ip=$(ip -f inet -o addr show $server_int|cut -d\  -f 7 | cut -d/ -f 1)
+#server_int=$(route | grep '^default' | grep -o '[^ ]*$')
+#server_int=$(ip route show |grep ^default |awk '{print $5}')
+#instance_ip=$(ip -f inet -o addr show $server_int|cut -d\  -f 7 | cut -d/ -f 1)
+#instance_ip=$(ip -f inet -o addr show ens5 |awk '{print $2}')
+instance_ip=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
 IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
 
-sed -i 's/SERVER/http_proxy-auth-'$(${HOSTNAME})'/g' /var/awslogs/etc/awslogs.conf
-sed -i 's/VPC/'${CWL_GROUP}'/g' /var/awslogs/etc/awslogs.conf
-cat >> /var/awslogs/etc/awslogs.conf <<EOM
+cat >> /opt/aws/amazon-cloudwatch-agent/bin/config.json <<EOF
+{
+        "agent": {
+                "run_as_user": "root"
+        },
+        "logs": {
+                "logs_collected": {
+                        "files": {
+                                "collect_list": [
+                                        {
+                                                "file_path": "/var/log/auth.log",
+                                                "log_group_name": "${CWL_GROUP}",
+                                                "log_stream_name": "http_proxy-squid_access-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_${ip4}",
+                                                "timestamp_format": "%b %d %H:%M:%S",
+                                                "timezone": "LOCAL"
+                                        },
+                                        {
+                                                "file_path": "/var/log/squid/access.log*",
+                                                "log_group_name": "${CWL_GROUP}",
+                                                "log_stream_name": "http_proxy-squid_access-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_${ip4}"
+                                        },
+                                        {
+                                                "file_path": "/var/log/syslog",
+                                                "log_group_name": "${CWL_GROUP}",
+                                                "log_stream_name": "http_proxy-syslog-squid-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_${ip4}",
+                                                "timestamp_format": "%b %d %H:%M:%S",
+                                                "timezone": "LOCAL"
+                                        }
+                                ]
+                        }
+                }
+        }
+}
+EOF
 
-[syslog]
-datetime_format = %b %d %H:%M:%S
-file = /var/log/syslog
-log_stream_name = http_proxy-syslog-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_$ip4
-time_zone = LOCAL
-log_group_name = ${CWL_GROUP}
-[squid/access.log]
-file = /var/log/squid/access.log*
-log_stream_name = http_proxy-squid_access-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_${ip4}
-log_group_name = $(${HOSTNAME})_log_group
-EOM
-
-chmod 755 /etc/init.d/awslogs
-systemctl enable awslogs
-systemctl restart awslogs
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
+systemctl enable amazon-cloudwatch-agent.service
+systemctl start amazon-cloudwatch-agent.service
 
 
 ## create a sftp user  and copy the key of the sftp user
@@ -157,7 +174,6 @@ useradd -m -s /bin/bash sftpuser
 mkdir /home/sftpuser/.ssh
 chmod 700 /home/sftpuser/.ssh
 cp -rp /home/ubuntu/cloud-automation /home/sftpuser
-#sudo chown -R sftpuser. /home/sftpuser
 cp /home/sftpuser/cloud-automation/files/authorized_keys/squid_authorized_keys_user /home/sftpuser/.ssh/authorized_keys
 chown -R sftpuser. /home/sftpuser
 
