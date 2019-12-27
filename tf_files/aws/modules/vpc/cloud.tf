@@ -1,3 +1,4 @@
+
 /*
 module "squid_proxy" {
   source               = "../squid"
@@ -97,14 +98,12 @@ resource "aws_vpc" "main" {
   }
 }
 
-data "aws_vpc_endpoint_service" "s3" {
-  service = "s3"
-}
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.main.id}"
 
   tags {
+    Name         = "${var.vpc_name}-igw"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -115,6 +114,7 @@ resource "aws_nat_gateway" "nat_gw" {
   subnet_id     = "${aws_subnet.public.id}"
 
   tags {
+    Name         = "${var.vpc_name}-ngw"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -144,6 +144,11 @@ resource "aws_route_table" "public" {
 
 resource "aws_eip" "nat_gw" {
   vpc = true
+  tags {
+    Name         = "${var.vpc_name}-ngw-eip"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 }
 
 
@@ -157,7 +162,9 @@ resource "aws_default_route_table" "default" {
   }
 
   tags {
-    Name = "default table"
+    Name         = "default table"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -232,14 +239,6 @@ resource "aws_route53_zone" "main" {
   }
 }
 
-#resource "aws_route53_record" "squid" {
-#  zone_id = "${aws_route53_zone.main.zone_id}"
-#  name    = "cloud-proxy"
-#  type    = "A"
-#  ttl     = "300"
-#  records = ["${module.squid_proxy.squid_private_ip}"]
-#}
-
 # this is for vpc peering
 resource "aws_vpc_peering_connection" "vpcpeering" {
   peer_owner_id = "${var.csoc_managed == "yes" ? var.csoc_account_id : data.aws_caller_identity.current.account_id}"
@@ -248,24 +247,12 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
   auto_accept   = true
 
   tags {
-    Name = "VPC Peering between ${var.vpc_name} and csoc_main_vpc"
+    Name         = "VPC Peering between ${var.vpc_name} and adminVM vpc"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
   }
 }
 
-
-
-# If this is an independent commons, then we should add the route on the VPC where the adminVM is, because we can
-
-data "aws_route_tables" "control_routing_table" {
-  count = "${var.csoc_managed == "yes" ? 0 : 1}"
-  vpc_id = "${var.csoc_vpc_id}"
-
-  # If we wanted to filter by tags later we could
-#  filter {
-#    name   = "tag:kubernetes.io/kops/role"
-#    values = ["private*"]
-#  }
-}
 
 
 resource "aws_route" "default_csoc" {
@@ -278,6 +265,10 @@ resource "aws_route" "default_csoc" {
 ##to be used by arranger when accessing the ES
 resource "aws_iam_user" "es_user" {
   name = "${var.vpc_name}_es_user"
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 }
 
 resource "aws_iam_access_key" "es_user_key" {

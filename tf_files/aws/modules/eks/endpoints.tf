@@ -2,7 +2,8 @@
 # EC2 endpoint
 resource "aws_vpc_endpoint" "ec2" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.${data.aws_region.current.name}.ec2"
+  #service_name = "com.amazonaws.${data.aws_region.current.name}.ec2"
+  service_name    = "${data.aws_vpc_endpoint_service.ec2.service_name}"
   vpc_endpoint_type = "Interface"
   security_group_ids  = [
     "${data.aws_security_group.local_traffic.id}"
@@ -20,7 +21,8 @@ resource "aws_vpc_endpoint" "ec2" {
 # Autoscaling endpoint
 resource "aws_vpc_endpoint" "autoscaling" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.${data.aws_region.current.name}.autoscaling"
+  #service_name = "com.amazonaws.${data.aws_region.current.name}.autoscaling"
+  service_name    = "${data.aws_vpc_endpoint_service.autoscaling.service_name}"
   vpc_endpoint_type = "Interface"
   security_group_ids  = [
     "${data.aws_security_group.local_traffic.id}"
@@ -38,7 +40,8 @@ resource "aws_vpc_endpoint" "autoscaling" {
 # ECR DKR endpoint 
 resource "aws_vpc_endpoint" "ecr-dkr" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
+  #service_name = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
+  service_name    = "${data.aws_vpc_endpoint_service.ecr_dkr.service_name}"
   vpc_endpoint_type = "Interface"
 
   security_group_ids  = [
@@ -57,7 +60,8 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
 # ECR API endpoint 
 resource "aws_vpc_endpoint" "ecr-api" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.${data.aws_region.current.name}.ecr.api"
+  #service_name = "com.amazonaws.${data.aws_region.current.name}.ecr.api"
+  service_name    = "${data.aws_vpc_endpoint_service.ecr_api.service_name}"
   vpc_endpoint_type = "Interface"
 
   security_group_ids  = [
@@ -76,7 +80,8 @@ resource "aws_vpc_endpoint" "ecr-api" {
 # EBS endpoint
 resource "aws_vpc_endpoint" "ebs" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.${data.aws_region.current.name}.ebs"
+  #service_name = "com.amazonaws.${data.aws_region.current.name}.ebs"
+  service_name    = "${data.aws_vpc_endpoint_service.ebs.service_name}"
   vpc_endpoint_type = "Interface"
   security_group_ids  = [
     "${data.aws_security_group.local_traffic.id}"
@@ -97,7 +102,6 @@ resource "aws_vpc_endpoint" "k8s-s3" {
   vpc_id          =  "${data.aws_vpc.the_vpc.id}"
   service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
   route_table_ids = ["${data.aws_route_table.public_kube.id}", "${aws_route_table.eks_private.*.id}"]
-#  route_table_ids = ["${data.aws_route_table.public_kube.id}"]
   tags {
     Name         = "to s3"
     Environment  = "${var.vpc_name}"

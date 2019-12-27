@@ -170,50 +170,9 @@ resource "aws_route_table_association" "private_kube" {
   count          = "${random_shuffle.az.result_count}"
   subnet_id      = "${aws_subnet.eks_private.*.id[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
-  lifecycle {
-    # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["tags"]
-  }
-  depends_on = ["aws_subnet.eks_private"]
+  depends_on     = ["aws_subnet.eks_private"]
 }
 
-
-/*
-#  S3 endpoint
-resource "aws_vpc_endpoint" "k8s-s3" {
-  vpc_id          =  "${data.aws_vpc.the_vpc.id}"
-  service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
-  route_table_ids = ["${data.aws_route_table.public_kube.id}", "${aws_route_table.eks_private.*.id}"]
-#  route_table_ids = ["${data.aws_route_table.public_kube.id}"]
-  tags {
-    Name         = "to s3"
-    Environment  = "${var.vpc_name}"
-    Organization = "${var.organization_name}"
-  }
-}
-
-# Cloudwatch logs endpoint
-resource "aws_vpc_endpoint" "k8s-logs" {
-  vpc_id              = "${data.aws_vpc.the_vpc.id}"
-  service_name        = "${data.aws_vpc_endpoint_service.logs.service_name}"
-  vpc_endpoint_type   = "Interface"
-
-  security_group_ids  = [
-    "${data.aws_security_group.local_traffic.id}"
-  ]
-
-  private_dns_enabled = true
-  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  lifecycle {
-    #ignore_changes = ["subnet_ids"]
-  }
-  tags {
-    Name         = "to cloudwatch logs"
-    Environment  = "${var.vpc_name}"
-    Organization = "${var.organization_name}"
-  }
-}
-*/
 
 resource "aws_security_group" "eks_control_plane_sg" {
   name        = "${var.vpc_name}-control-plane"
@@ -225,6 +184,11 @@ resource "aws_security_group" "eks_control_plane_sg" {
     to_port         = 0
     protocol        = "-1"
     cidr_blocks     = ["0.0.0.0/0"]
+  }
+  
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -261,6 +225,11 @@ resource "aws_eks_cluster" "eks_cluster" {
     "aws_iam_role_policy_attachment.eks-policy-AmazonEKSServicePolicy",
     "aws_subnet.eks_private",
   ]
+  
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 }
 
 
@@ -273,6 +242,10 @@ resource "aws_eks_cluster" "eks_cluster" {
 
 resource "aws_iam_role" "eks_node_role" {
   name = "eks_${var.vpc_name}_workers_role"
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 
   assume_role_policy = <<POLICY
 {
