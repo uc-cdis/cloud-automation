@@ -173,7 +173,7 @@ spec:
             subPath: "jwt-keys.tar"
         resources:
             limits:
-              cpu: 0.3
+              cpu: 0.5
               memory: 1200Mi
       initContainers:
       - name: fence-init
