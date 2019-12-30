@@ -38,7 +38,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - fence
+                  - presigned-url-fence
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
