@@ -90,6 +90,8 @@ spec:
       - name: fence
         GEN3_FENCE_IMAGE
         env:
+        - name: NGINX_RATE_LIMIT
+          value: "6"
         - name: PYTHONPATH
           value: /var/www/fence
         - name: GEN3_DEBUG
