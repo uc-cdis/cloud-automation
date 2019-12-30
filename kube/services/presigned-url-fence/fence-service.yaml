@@ -1,10 +1,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: fence-service
+  name: presigned-url-fence-service
 spec:
   selector:
-    app: fence
+    app: presigned-url-fence
     release: production
   ports:
     - protocol: TCP

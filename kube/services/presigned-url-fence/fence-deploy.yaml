@@ -2,12 +2,12 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: fence-deployment
+  name: presigned-url-fence-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: fence
+      app: presigned-url-fence
       release: production
   revisionHistoryLimit: 2
   strategy:
@@ -18,7 +18,7 @@ spec:
   template:
     metadata:
       labels:
-        app: fence
+        app: presigned-url-fence
         release: production
         # for network policy selectors
         authprovider: "yes"
