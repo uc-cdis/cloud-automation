@@ -1,0 +1,18 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: presigned-url-fence-service
+spec:
+  selector:
+    app: presigned-url-fence
+    release: production
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80 
+      name: http
+    - protocol: TCP 
+      port: 443 
+      targetPort: 443
+      name: https
+  type: NodePort
