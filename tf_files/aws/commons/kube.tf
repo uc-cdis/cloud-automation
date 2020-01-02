@@ -224,7 +224,6 @@ resource "aws_s3_bucket" "kube_bucket" {
   }
 }
 
-
 resource "aws_s3_bucket_public_access_block" "kube_bucket_privacy" {
   bucket                      = "${aws_s3_bucket.kube_bucket.id}"
 
@@ -232,6 +231,50 @@ resource "aws_s3_bucket_public_access_block" "kube_bucket_privacy" {
   block_public_policy         = true
   ignore_public_acls          = true
   restrict_public_buckets     = true
+}
+
+resource "aws_s3_bucket" "dbgap_backup_bucket" {
+  # S3 buckets are in a global namespace, so dns style naming
+  bucket                      = "${replace(var.vpc_name,"_", "-")}-dbgap-backup"
+  acl                         = "private"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  tags {
+    Name                      = "${replace(var.vpc_name,"_", "-")}-dbgap-backup"
+    Environment               = "${var.vpc_name}"
+    Description               = "Store backup dbgap files"
+  }
+
+  lifecycle {
+    # allow same bucket between stacks
+    ignore_changes = ["tags", "bucket"]
+  }
+}
+
+data "aws_iam_policy_document" "dbgapbucket_writer" {
+  statement {
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:ListBucket"
+    ]
+
+    effect    = "Allow"
+    resources = "arn:aws:s3:::${var.dbgap_backup_bucket}/*"
+  }
+}
+
+resource "aws_iam_policy" "dbgapbucket_writer" {
+  name                        = "bucket_reader_${var.dbgap_backup_bucket}"
+  description                 = "Access dbgap backup bucket ${var.dbgap_backup_bucket}"
+  policy                      = "${data.aws_iam_policy_document.dbgapbucket_writer.json}"
 }
 
 

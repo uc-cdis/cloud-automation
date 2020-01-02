@@ -58,6 +58,10 @@ output "data-bucket_name" {
   value = "${module.cdis_vpc.data-bucket_name}"
 }
 
+output "dbgap-backup-bucket_name" {
+  value = "${var.dbgap_backup_bucket}"
+}
+
 
 #-----------------------------
 
@@ -79,8 +83,10 @@ data "template_file" "cluster" {
     kube_additional_keys = "${var.kube_additional_keys}"
     hosted_zone          = "${module.cdis_vpc.zone_id}"
     s3_bucket            = "${aws_s3_bucket.kube_bucket.id}"
+    dbgap_backup_bucket  = "${aws_s3_bucket.dbgap_backup_bucket.id}"
     log_bucket_policy    = "${module.elb_logs.rw_policy_arn}"
     config_bucket_policy = "${aws_iam_policy.configbucket_reader.arn}"
+    dbgap_bucket_policy  = "${aws_iam_policy.dbgapbucket_writer.arn}"
   }
 }
 
