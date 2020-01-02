@@ -13,6 +13,7 @@ spec:
         podSelector:
           matchLabels:
             app: "jupyter-hub"
+    - from:
       - namespaceSelector:
           matchLabels:
             role: "gen3"
