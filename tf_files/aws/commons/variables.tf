@@ -301,4 +301,6 @@ variable "indexd_allow_major_version_upgrade" {
   default = "true"
 }
 
+variable "dbgap_backup_bucket" {}
+
 
