@@ -24,6 +24,7 @@ module "cdis_vpc" {
   csoc_vpc_id                    = "${var.csoc_vpc_id}"
 
   private_kube_route             = "${aws_route_table.private_kube.id}"
+  squid_instance_type            = "${var.squid_instance_type}"
 }
 
 # logs bucket for elb logs

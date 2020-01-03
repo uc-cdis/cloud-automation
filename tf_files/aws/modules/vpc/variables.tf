@@ -55,3 +55,8 @@ variable "squid_instance_drive_size" {
 variable "private_kube_route" {
   description = "Id of the route fo plublic_kube subnet"
 }
+
+variable "squid_instance_type" {
+  description = "Instance type for HA squid instances"
+  default     = "t3.medium"
+}
