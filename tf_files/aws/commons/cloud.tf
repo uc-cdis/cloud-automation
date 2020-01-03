@@ -65,7 +65,6 @@ module "config_files" {
 
   kube_bucket_name            = "${aws_s3_bucket.kube_bucket.id}"
   logs_bucket_name            = "${module.elb_logs.log_bucket_name}"
-  dbgap_bucket_name           = "${aws_s3_bucket.dbgap_backup_bucket.id}"
   dictionary_url              = "${var.dictionary_url}"
   portal_app                  = "${var.portal_app}"
   config_folder               = "${var.config_folder}"

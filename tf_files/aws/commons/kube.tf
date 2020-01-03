@@ -274,7 +274,7 @@ data "aws_iam_policy_document" "dbgapbucket_writer" {
 resource "aws_iam_policy" "dbgapbucket_writer" {
   name                        = "bucket_reader_${var.dbgap_backup_bucket}"
   description                 = "Access dbgap backup bucket ${var.dbgap_backup_bucket}"
-  policy                      = "${data.aws_iam_policy_document.dbgapbucket_writer.json}"
+  policy                      = ["${data.aws_iam_policy_document.dbgapbucket_writer.json}"]
 }
 
 
