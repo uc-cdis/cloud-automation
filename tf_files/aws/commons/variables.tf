@@ -305,3 +305,8 @@ variable "squid_instance_type" {
   description = "Instance type for HA squid"
   default     = "t3.medium"
 }
+
+variable "squid_instance_drive_size" {
+  description = "Volume size for HA squid instances"
+  default     = 8
+}

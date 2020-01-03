@@ -69,6 +69,7 @@ module "squid-auto" {
   private_kube_route         = "${var.private_kube_route}"
   route_53_zone_id           = "${aws_route53_zone.main.id}"
   squid_instance_type        = "${var.squid_instance_type}"
+  squid_instance_drive_size  = "${var.squid_instance_drive_size}"
 }
 
 module "data-bucket" {
