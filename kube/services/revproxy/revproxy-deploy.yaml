@@ -105,6 +105,12 @@ spec:
                 name: manifest-global
                 key: des_namespace
                 optional: true
+          - name: INDEXD_AUTHZ
+            valueFrom:
+              secretKeyRef:
+                name: gateway-g3auto
+                key: base64Authz.txt
+                optional: true  
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true
@@ -140,12 +146,15 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
-        #command: ["/bin/bash" ]
-        #args:
-        #  - "-c"
-        #  # Script always succeeds if it runs (echo exits with 0)
-        #  - |
-        #    while [[ ! -f /tmp/killme ]]; do
-        #      echo "revproxy container spinning";
-        #      sleep 10
-        #    done
+        command: ["/bin/sh" ]
+        args:
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
+          - |
+            for name in ngx_http_perl_module.so ngx_http_js_module.so ngx_http_headers_more_filter_module.so ngx_http_modsecurity_module.so; do
+              if [ -f /etc/nginx/modules/$name ]; then
+                echo "load_module modules/$name;" >> /etc/nginx/gen3_modules.conf
+              fi
+            done
+            exec nginx -g 'daemon off;'
+            
