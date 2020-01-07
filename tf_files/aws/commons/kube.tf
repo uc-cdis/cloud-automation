@@ -267,13 +267,13 @@ data "aws_iam_policy_document" "dbgapbucket_writer" {
     ]
 
     effect    = "Allow"
-    resources = ["arn:aws:s3:::${var.dbgap_backup_bucket}/*"]
+    resources = ["arn:aws:s3:::${aws_s3_bucket.dbgap_backup_bucket.bucket}/*"]
   }
 }
 
 resource "aws_iam_policy" "dbgapbucket_writer" {
-  name                        = "bucket_reader_${var.dbgap_backup_bucket}"
-  description                 = "Access dbgap backup bucket ${var.dbgap_backup_bucket}"
+  name                        = "bucket_reader_${aws_s3_bucket.dbgap_backup_bucket.bucket}"
+  description                 = "Access dbgap backup bucket ${aws_s3_bucket.dbgap_backup_bucket.bucket}"
   policy                      = "${data.aws_iam_policy_document.dbgapbucket_writer.json}"
 }
 
