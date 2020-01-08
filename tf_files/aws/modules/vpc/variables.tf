@@ -61,3 +61,7 @@ variable "squid_instance_type" {
   default     = "t3.medium"
 }
 
+variable "squid_bootstrap_script" {
+  description = "Script to run on deployment for the HA squid instances"
+  default     = "squidvm.sh"
+}
