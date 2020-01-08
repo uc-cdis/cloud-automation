@@ -209,6 +209,37 @@ generate_isb_manifest() {
 
 }
 
+create_gs_bucket() {
+  bucket_name=$2
+  phsid=$3
+  public=$4
+
+  echo "Start creating gs bucket ...."
+
+  if [[ $public == "False" ]]; then
+    kubectl exec $(get_pod fence) -- fence-create google-bucket-create --unique-name $bucket_name --storage-class MULTI_REGIONAL --public False --project-auth-id $phsid --access-logs-bucket dcf-logs
+  elif [[ $public == "True" ]]; then
+    kubectl exec $(get_pod fence) -- fence-create google-bucket-create --unique-name $bucket_name --storage-class MULTI_REGIONAL --public True --access-logs-bucket dcf-logs
+  else
+    echo "Can not create the bucket. $public is not supported"
+    exit 1
+  fi
+
+  # Activate dcf prod google service account
+  if [ -f "$(gen3_secrets_folder)/g3auto/dcf-dataservice/dcf_prod_buckets_creds.json" ]; then
+    gcloud auth activate-service-account --key-file=$(gen3_secrets_folder)/g3auto/dcf-dataservice/dcf_prod_buckets_creds.json
+    export GOOGLE_APPLICATION_CREDENTIALS=$(gen3_secrets_folder)/g3auto/dcf-dataservice/dcf_prod_buckets_creds.json
+
+    gsutil acl ch -u 415083718423-compute@developer.gserviceaccount.com:OWNER gs://$bucket_name
+    gsutil acl ch -u data-replication-dcf-prod@dcf-prod.iam.gserviceaccount.com:OWNER gs://$bucket_name
+    gsutil acl ch -u service-415083718423@dataflow-service-producer-prod.iam.gserviceaccount.com:OWNER gs://$bucket_name
+
+  fi
+
+  echo "Done"
+
+}
+
 case "$command" in
 "aws-refresh")
   generate_aws_refresh_report "$@"
@@ -227,5 +258,8 @@ case "$command" in
   ;;
 "redaction")
   redaction_rp "$@"
+  ;;
+"create-google-bucket")
+  create_gs_bucket "$@"
   ;;
 esac
