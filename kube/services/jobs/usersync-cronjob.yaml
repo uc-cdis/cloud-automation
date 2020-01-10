@@ -70,16 +70,19 @@ spec:
                   configMapKeyRef:
                     name: manifest-global
                     key: sync_from_dbgap
+                    optional: true
               - name: DBGAP_BACKUP_BUCKET
                 valueFrom:
                   configMapKeyRef:
                     name: manifest-global
                     key: dbgap_backup_bucket
+                    optional: true
               - name: DBGAP_DOWNLOAD_FOLDER
                 valueFrom:
                   configMapKeyRef:
                     name: manifest-global
                     key: dbgap_download_folder
+                    optional: true
               - name: SLACK_SEND_DBGAP
                 valueFrom:
                   configMapKeyRef:
