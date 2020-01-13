@@ -39,7 +39,7 @@ Little helper to split/merge fence configs, or delete/extract/replace secrets fr
 
 * `gen3 fence-config replace [input-config-yaml-path] [new-config-yaml-path] [output-yaml-path]`
 
-  Read configs in [input-config-yaml-path] and replace with the configs in [new-config-yaml-path], and output to [output-yaml-path]
+  Read configs in `input-config-yaml-path` and replace with the configs in `new-config-yaml-path`, and output to `output-yaml-path`
   * `input-config-yaml-path` required: the input YAML config
   * `new-config-yaml-path` required: YAML config to replace with
   * `output-yaml-path` required: the generated YAML config path
