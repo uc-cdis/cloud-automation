@@ -25,6 +25,7 @@ spec:
         # uses explicit proxy and AWS APIs
         netnolimit: "yes"
         public: "yes"
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

@@ -13,5 +13,12 @@ spec:
         podSelector:
           matchLabels:
             app: "jupyter-hub"
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            role: "gen3"
+        podSelector:
+          matchLabels:
+            app: "ambassador"
   policyTypes:
    - Ingress
