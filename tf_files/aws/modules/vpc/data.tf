@@ -1,5 +1,6 @@
-/*
+
 data "aws_iam_policy_document" "cluster_logging_cloudwatch" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   statement {
     actions = [
       "logs:CreateLogGroup",
@@ -15,7 +16,7 @@ data "aws_iam_policy_document" "cluster_logging_cloudwatch" {
     resources = ["*"]
   }
 }
-*/
+
 
 data "aws_region" "current" {}
 data "aws_availability_zones" "available" {}

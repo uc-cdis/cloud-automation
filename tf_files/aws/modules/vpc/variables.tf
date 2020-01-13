@@ -65,3 +65,8 @@ variable "squid_bootstrap_script" {
   description = "Script to run on deployment for the HA squid instances"
   default     = "squidvm.sh"
 }
+
+variable  "parallel_proxies" {
+  description = "Single instance plus HA"
+  default     = false
+}

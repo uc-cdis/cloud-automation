@@ -1,5 +1,5 @@
 
-/*
+
 module "squid_proxy" {
   source               = "../squid"
   csoc_cidr            = "${var.peering_cidr}"
@@ -10,10 +10,12 @@ module "squid_proxy" {
   env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
   env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
   ssh_key_name         = "${var.ssh_key_name}"
+  parallel_proxies     = "${var.parallel_proxies}"
 }
 
-/
+
 resource "aws_iam_role" "cluster_logging_cloudwatch" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   name = "${var.vpc_name}_cluster_logging_cloudwatch"
   path = "/"
 
@@ -39,16 +41,28 @@ EOF
 # do not remove this
 #
 resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   name   = "${var.vpc_name}_cluster_logging_cloudwatch"
   policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
   role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
 }
 
 resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   name = "${var.vpc_name}_cluster_logging_cloudwatch"
   role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
 }
-*/
+
+resource "aws_route53_record" "squid" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
+  zone_id = "${aws_route53_zone.main.zone_id}"
+  name    = "cloud-proxy"
+  type    = "A"
+  ttl     = "300"
+  records = ["${module.squid_proxy.squid_private_ip}"]
+}
+
+
 
 
 module "squid-auto" {

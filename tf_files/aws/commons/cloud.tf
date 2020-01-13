@@ -26,6 +26,7 @@ module "cdis_vpc" {
   private_kube_route             = "${aws_route_table.private_kube.id}"
   squid_instance_type            = "${var.squid_instance_type}"
   squid_instance_drive_size      = "${var.squid_instance_drive_size}"
+  parallel_proxies               = "${var.parallel_proxies}"
 }
 
 # logs bucket for elb logs

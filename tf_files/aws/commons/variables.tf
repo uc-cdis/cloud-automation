@@ -310,3 +310,9 @@ variable "squid_instance_drive_size" {
   description = "Volume size for HA squid instances"
   default     = 8
 }
+
+
+variable "parallel_proxies" {
+  description = "Single instance plus HA"
+  default     = false
+}

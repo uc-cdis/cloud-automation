@@ -11,6 +11,7 @@
 #}
 
 resource "aws_ami_copy" "squid_ami" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   name              = "ub16-squid-crypt-${var.env_vpc_name}-1.0.2"
   description       = "A copy of ubuntu16-squid-1.0.2"
   source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
@@ -32,6 +33,7 @@ resource "aws_ami_copy" "squid_ami" {
 }
 
 data "aws_ami" "public_squid_ami" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   most_recent = true
 
   filter {
@@ -45,6 +47,7 @@ data "aws_ami" "public_squid_ami" {
 # Security groups for the CSOC squid proxy
 
 resource "aws_security_group" "login-ssh" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   name        = "${var.env_vpc_name}-squid-login-ssh"
   description = "security group that only enables ssh from VPC nodes and CSOC"
   vpc_id      = "${var.env_vpc_id}"
@@ -67,6 +70,7 @@ resource "aws_security_group" "login-ssh" {
 }
 
 resource "aws_security_group" "proxy" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   name        = "${var.env_vpc_name}-squid-proxy"
   description = "allow inbound tcp at 3128"
   vpc_id      = "${var.env_vpc_id}"
@@ -85,6 +89,7 @@ resource "aws_security_group" "proxy" {
 }
 
 resource "aws_security_group" "out" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   name        = "${var.env_vpc_name}-squid-out"
   description = "security group that allow outbound traffics"
   vpc_id      = "${var.env_vpc_id}"
@@ -106,15 +111,18 @@ resource "aws_security_group" "out" {
 # assigning elastic ip to the squid proxy
 
 resource "aws_eip" "squid" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   vpc = true
 }
 
 resource "aws_eip_association" "squid_eip" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   instance_id   = "${aws_instance.proxy.id}"
   allocation_id = "${aws_eip.squid.id}"
 }
 
 resource "aws_instance" "proxy" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
   ami                    = "${aws_ami_copy.squid_ami.id}"
   subnet_id              = "${var.env_public_subnet_id}"
   instance_type          = "t2.micro"
@@ -159,3 +167,10 @@ EOF
     ignore_changes = ["ami", "key_name"]
   }
 }
+
+
+
+# cd /home/ubuntu
+# git clone https://github.com/uc-cdis/cloud-automation.git
+# chown -R ubuntu. /home/ubuntu
+# cat files/authorized_keys/ops_team |tee .ssh/autorized_keys

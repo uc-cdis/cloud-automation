@@ -47,3 +47,22 @@ resource "aws_security_group" "out" {
   }
 }
 
+
+resource "aws_security_group" "proxy" {
+  count                  = "${var.parallel_proxies ? 1 : 0 }"
+  name        = "squid-proxy"
+  description = "allow inbound tcp at 3128"
+  vpc_id      = "${aws_vpc.main.id}"
+
+  ingress {
+    from_port   = 0
+    to_port     = 3128
+    protocol    = "TCP"
+    cidr_blocks = ["${var.vpc_cidr_block}", "${var.peering_cidr}"]
+  }
+
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "Basic Service"
+  }
+}

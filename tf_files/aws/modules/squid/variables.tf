@@ -54,3 +54,8 @@ data "aws_iam_policy_document" "squid_logging_cloudwatch" {
     resources = ["*"]
   }
 }
+
+variable "parallel_proxies" {
+  description = "Should migration to HA-squid is ahead, then deploying in parallel might prevent any downtime"
+  default     = false
+}
