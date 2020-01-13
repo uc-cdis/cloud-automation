@@ -28,6 +28,6 @@ Those Gen3 commands are used to generate data refresh reports, augmented manifes
 
   Generate redaction report for data release 16
 
-* `gen3 dcf create-google-bucket gdc-target-phsxxx-controlled phsxxx False`
+* `gen3 dcf create-google-bucket gdc-target-phsxxx-controlled phsxxx controlled`
 
   Create controlled GS bucket with phsxxx
