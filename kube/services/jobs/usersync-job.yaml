@@ -94,6 +94,15 @@ spec:
             GEN3_ADD_DBGAP|-value: "false"-|
           - name: ONLY_DBGAP
             GEN3_ONLY_DBGAP|-value: "false"-|
+          - name: FENCE_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-fence
+                key: fence-config-public.yaml
+                optional: true
+          - name: YAML_MERGE_SCRIPT
+            value: |
+GEN3_YAML_MERGE
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -120,7 +129,7 @@ spec:
 # -----------------------------------------------------------------------------
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
@@ -150,6 +159,9 @@ spec:
           - "-c"
           # Script always succeeds if it runs (echo exits with 0)
           - |
+            echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             let count=0
             while [[ ! -f /mnt/shared/user.yaml && $count -lt 50 ]]; do
               echo "fence container waiting for /mnt/shared/user.yaml";

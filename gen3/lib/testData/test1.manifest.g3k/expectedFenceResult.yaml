@@ -26,7 +26,7 @@ spec:
         netnolimit: "yes"
         public: "yes"
         userhelper: "yes"
-        date: "1522344234"
+        date: "1579101573"
     spec:
       affinity:
         podAntiAffinity:
@@ -90,10 +90,47 @@ spec:
       - name: fence
         image: quay.io/cdis/fence:master
         env:
-          - name: PYTHONPATH
-            value: /var/www/fence
-          - name: GEN3_DEBUG
-            value: "False"
+        - name: PYTHONPATH
+          value: /var/www/fence
+        - name: FENCE_PUBLIC_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-fence
+              key: fence-config-public.yaml
+              optional: true
+        - name: GEN3_DEBUG
+          value: "False"
+        - name: YAML_MERGE_SCRIPT
+          value: |
+                      '''
+                      Little helper that merges a couple input yaml files,
+                      and spits out the output to stdout.
+                      Gets inlined into fence-deploy.yaml to merge
+                      public and private config files.
+                      
+                      Use: python yaml_merge.py a.yaml b.yaml
+                      
+                      Overrides b.yaml keys with values from a.yaml
+                      pip install -u json
+                      pip install -u yaml
+                      
+                      See gen3/test/yamlMergeTest.sh - gen3 testsuite --filter yamlMerge
+                      
+                      '''
+                      
+                      import sys
+                      import json
+                      from yaml import safe_load as yaml_load
+                      
+                      config1 = yaml_load(open(sys.argv[1]))
+                      config2 = yaml_load(open(sys.argv[2]))
+                      
+                      if config1 != None:
+                        for key in config1.keys():
+                          config2[key] = config1[key]
+                      
+                      print(json.dumps(config2, indent=2))
+        
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -141,7 +178,7 @@ spec:
             subPath: "privacy_policy.md"
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
@@ -175,6 +212,14 @@ spec:
             limits:
               cpu: 0.4
               memory: 1200Mi
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            bash /fence/dockerrun.bash && /dockerrun.sh
       initContainers:
       - name: fence-init
         image: quay.io/cdis/fence:master
@@ -182,10 +227,47 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: FENCE_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-fence
+                key: fence-config-public.yaml
+                optional: true
+          - name: YAML_MERGE_SCRIPT
+            value: |
+                      '''
+                      Little helper that merges a couple input yaml files,
+                      and spits out the output to stdout.
+                      Gets inlined into fence-deploy.yaml to merge
+                      public and private config files.
+                      
+                      Use: python yaml_merge.py a.yaml b.yaml
+                      
+                      Overrides b.yaml keys with values from a.yaml
+                      pip install -u json
+                      pip install -u yaml
+                      
+                      See gen3/test/yamlMergeTest.sh - gen3 testsuite --filter yamlMerge
+                      
+                      '''
+                      
+                      import sys
+                      import json
+                      from yaml import safe_load as yaml_load
+                      
+                      config1 = yaml_load(open(sys.argv[1]))
+                      config2 = yaml_load(open(sys.argv[2]))
+                      
+                      if config1 != None:
+                        for key in config1.keys():
+                          config2[key] = config1[key]
+                      
+                      print(json.dumps(config2, indent=2))
+
         volumeMounts:
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
@@ -202,8 +284,11 @@ spec:
         args:
           - "-c"
           - |
+            echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             if fence-create migrate --help > /dev/null 2>&1; then
-              if ! grep -E 'ENABLE_DB_MIGRATION: *false' /var/www/fence/fence-config.yaml; then
+              if ! grep -E 'ENABLE_DB_MIGRATION"?: *false' /var/www/fence/fence-config.yaml; then
                 echo "Running db migration: fence-create migrate"
                 fence-create migrate
               else

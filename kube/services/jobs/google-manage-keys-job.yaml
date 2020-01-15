@@ -47,6 +47,15 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: FENCE_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-fence
+                key: fence-config-public.yaml
+                optional: true
+          - name: YAML_MERGE_SCRIPT
+            value: |
+GEN3_YAML_MERGE
         volumeMounts:
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
@@ -71,7 +80,7 @@ spec:
 # -----------------------------------------------------------------------------
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
@@ -88,6 +97,9 @@ spec:
         args:
           - "-c"
           - |
+            echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             fence-create google-manage-keys
             if [[ $? != 0 ]]; then
               echo "WARNING: non zero exit code: $?"

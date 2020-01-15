@@ -59,4 +59,5 @@ gen3_load "gen3/test/secretsTest"
 gen3_load "gen3/test/shunitTest"
 gen3_load "gen3/test/terraformTest"
 gen3_load "gen3/test/utilsTest"
+gen3_load "gen3/test/yamlMergeTest"
 shunit_summary

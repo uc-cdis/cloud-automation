@@ -105,6 +105,15 @@ spec:
             value: /var/www/fence
           - name: SUBMISSION_USER
             GEN3_SUBMISSION_USER|-value: "reubenonrye@uchicago.edu"-|
+          - name: FENCE_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-fence
+                key: fence-config-public.yaml
+                optional: true
+          - name: YAML_MERGE_SCRIPT
+            value: |
+GEN3_YAML_MERGE   
         volumeMounts:
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
@@ -129,7 +138,7 @@ spec:
 # -----------------------------------------------------------------------------
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
           - name: "fence-jwt-keys"
             readOnly: true
@@ -141,6 +150,9 @@ spec:
         args:
             - "-c"
             - |
+              echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
+              echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+              python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
               if [ -f /fence/jwt-keys.tar ]; then
                 cd /fence
                 tar xvf jwt-keys.tar

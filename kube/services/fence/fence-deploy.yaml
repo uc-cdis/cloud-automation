@@ -94,6 +94,15 @@ spec:
           value: /var/www/fence
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
+        - name: FENCE_PUBLIC_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-fence
+              key: fence-config-public.yaml
+              optional: true
+        - name: YAML_MERGE_SCRIPT
+          value: |
+GEN3_YAML_MERGE        
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -141,7 +150,7 @@ spec:
             subPath: "privacy_policy.md"
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
@@ -175,6 +184,14 @@ spec:
             limits:
               cpu: 0.4
               memory: 1200Mi
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
       initContainers:
       - name: fence-init
         GEN3_FENCE_IMAGE
@@ -182,10 +199,19 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: FENCE_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-fence
+                key: fence-config-public.yaml
+                optional: true
+          - name: YAML_MERGE_SCRIPT
+            value: |
+GEN3_YAML_MERGE
         volumeMounts:
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
@@ -202,8 +228,11 @@ spec:
         args:
           - "-c"
           - |
+            echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             if fence-create migrate --help > /dev/null 2>&1; then
-              if ! grep -E 'ENABLE_DB_MIGRATION: *false' /var/www/fence/fence-config.yaml; then
+              if ! grep -E 'ENABLE_DB_MIGRATION"?: *false' /var/www/fence/fence-config.yaml; then
                 echo "Running db migration: fence-create migrate"
                 fence-create migrate
               else

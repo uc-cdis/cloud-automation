@@ -71,6 +71,15 @@ spec:
           value: /var/www/fence
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
+        - name: FENCE_PUBLIC_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-fence
+              key: fence-config-public.yaml
+              optional: true
+        - name: YAML_MERGE_SCRIPT
+          value: |
+GEN3_YAML_MERGE 
         # check the last modified time is within 30min
         livenessProbe:
           exec:
@@ -86,7 +95,11 @@ spec:
         command: ["/bin/bash"]
         args:
           - "-c"
-          - "/fence/bin/google-user-sa-validation.sh"
+          - |
+          echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
+          echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+          python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+          /fence/bin/google-user-sa-validation.sh
         volumeMounts:
           - name: "logo-volume"
             readOnly: true
@@ -115,7 +128,7 @@ spec:
 # -----------------------------------------------------------------------------
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
           - name: "fence-yaml"
             mountPath: "/var/www/fence/user.yaml"
