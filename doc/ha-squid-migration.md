@@ -1,18 +1,29 @@
 # TL;DR
 
-This procedure is intended to show the necessary steps to migrate from a single Squid proxy instance, to an HA/Multizone one.
+This procedure is intended to show the necessary steps required to migrate from a single Squid proxy instance, to an HA/Multizone one.
 
 
 ## Overview
 
-Currently, commons are using a single squid proxy to access the internet. Even though it works just file in most cases, sometimes it might fail, or the underlaying Hardware fails and AWS set it for decomision, or the drive gets full all the sudden which is undesirable. Furthermore, the AMI used as image base was created with Packer and tailored for the needs by that time.
+Currently, commons are using a single squid proxy to access the internet. Even though it works just file in most cases, sometimes it might fail, or the underlaying hrdware fails and consequently AWS set it for decomision, or the instance volume fills up  all the sudden. Furthermore, the AMI used as image base was created with Packer and tailored for the needs by that time.
 
 The new HA model will now use official Canonical Ubuntu's 18.04 image and can be easily told to check for the latest release by them.
 
-Moreover, we are placing all instances in an Auto-Scaling group, meaning that if one goes away, it'll be easily replasable, and require little to none supervision.
+Moreover, we are placing all instances in an Auto-Scaling group, meaning that if one goes away, it'll be easily replaceable, and require little to none supervision.
 
 
 ## Procedure
+
+The procedure has been broken down to two options. One would deploy HA-squid on top of the single instance, meaning they'll run simultaenously. The second, would just destroy the single instance one and deploy HA alone.
+
+The first option would mean little to no downltime, but would require more resources deployed at some point in time, which might mean of higher bills.
+
+The second option is instended for non critical environments as it might leave the kubernetes worker nodes without internet access while the HA squid instances come up. Which could take up to 30 mins, depending on the case and the instance type selected.
+
+It worth noting than for the first option you could destroy the single instance model once you know HQ is in place. The best way to determine if it is, is to check on the default gateway for the route table for `private_kube` and `eks_private`, both should be pointing to an ENI belonging to an instance in the HA squid cluster.
+
+The following steps would show what needs to be done in order to deploy HA-squid in your commons.
+
 
 ### 1. Update the VPC module
 
@@ -205,3 +216,6 @@ During the migration, when you first update the VPC module, the proxy will go aw
 After you update the EKS module the Squid instances may take a few minutes to fully start serving proxy services, Say it might take up to 20 minutes.
 
 There might not be any roll back procedure after you are done.
+
+
+aws lambda invoke --function-name S3toES2 --invocation-type Event --payload '{"prefix":"09/'$j'/'$i'"}' outfile

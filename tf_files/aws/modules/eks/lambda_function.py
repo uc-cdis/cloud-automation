@@ -439,73 +439,73 @@ def lambda_handler(event, context):
             autoscaling_group = get_asg("squid-auto-"+os.environ['vpc_name'])
             instances_ids = get_healthy_instances_id(autoscaling_group)
             
-            for instance_id in instances_ids:
-                instance_priv_ip = get_instances_priv_ip([instance_id])
-
-                if get_sourceDestinationCheck_attr(instance_id):
-                    set_sourceDestinationCheck_attr(instance_id)
-                    outcome['sourceDestinationCheck'] = "sourceDestinationCheck set to false for %s" % instance_id
-                    #print("sourceDestinationCheck set to false for %s" % instance_id)
-                
-                if check_port(instance_priv_ip[0],proxy_port) == 0:
-                    healthy_instance_eni = get_instances_eni([instance_id])
-                    healthy_instance_priv_ip = get_instances_priv_ip([instance_id])
+            if len(instances_ids) > 0:
+                for instance_id in instances_ids:
+                    instance_priv_ip = get_instances_priv_ip([instance_id])
+    
+                    if get_sourceDestinationCheck_attr(instance_id):
+                        set_sourceDestinationCheck_attr(instance_id)
+                        outcome['sourceDestinationCheck'] = "sourceDestinationCheck set to false for %s" % instance_id
+                        #print("sourceDestinationCheck set to false for %s" % instance_id)
                     
-                    vpc_id = get_instance_vpc_id(get_instances_info([instance_id]))
-                    eks_private_route_table_id = get_route_table_id(get_route_table(vpc_id,'eks_private'))
-                    private_kube_route_table_id = get_route_table_id(get_route_table(vpc_id,'private_kube'))
-                    
-                    try:
-                        set_default_gw(healthy_instance_eni[0],eks_private_route_table_id)
-                        outcome['eks_private'] = 'succefully changed the default route for eks_private routing table'
-                        #print('succefully changed the default route for eks_private routing table')
-                    except Exception as e:
-                        statusCode = statusCode + 1
-                        outcome['eks_private'] = e
-                        #print(e)
+                    if check_port(instance_priv_ip[0],proxy_port) == 0:
+                        healthy_instance_eni = get_instances_eni([instance_id])
+                        healthy_instance_priv_ip = get_instances_priv_ip([instance_id])
                         
-                    try:
-                        set_default_gw(healthy_instance_eni[0],private_kube_route_table_id)
-                        outcome['private_kube'] = 'succefully changed the default route for private_kube routing table'
-                        #print('succefully changed the default route for private_kube routing table')
-                    except Exception as e:
-                        statusCode = statusCode + 1
-                        outcome['private_kube'] = e
-                        #print(e)
+                        vpc_id = get_instance_vpc_id(get_instances_info([instance_id]))
+                        eks_private_route_table_id = get_route_table_id(get_route_table(vpc_id,'eks_private'))
+                        private_kube_route_table_id = get_route_table_id(get_route_table(vpc_id,'private_kube'))
                         
-                    zone = get_hosted_zone(os.environ['vpc_name'])
-                    zone_id = zone['Id']
-                    #print(zone_id)
-                    record_sets = get_record_sets(zone_id)
-                    
-                    if exist_record_set(record_sets,'cloud-proxy'):
                         try:
-                            change_resource_record_sets(zone_id,'cloud-proxy.internal.io','UPSERT','A',300,instance_priv_ip[0])
-                            outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io changed for %s" % zone_id
+                            set_default_gw(healthy_instance_eni[0],eks_private_route_table_id)
+                            outcome['eks_private'] = 'succefully changed the default route for eks_private routing table'
+                            #print('succefully changed the default route for eks_private routing table')
                         except Exception as e:
                             statusCode = statusCode + 1
-                            outcome['cloud-proxy'] = e
+                            outcome['eks_private'] = e
+                            #print(e)
                             
-                        #outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io changed for %s" % zone_id
-                        #print("subdomain cloud-proxy.internal.io changed for %s" % zone_id)
-                    else:
                         try:
-                            change_resource_record_sets(zone_id,'cloud-proxy.internal.io','CREATE','A',300,instance_priv_ip[0])
-                            outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io created for %s" % zone_id
+                            set_default_gw(healthy_instance_eni[0],private_kube_route_table_id)
+                            outcome['private_kube'] = 'succefully changed the default route for private_kube routing table'
+                            #print('succefully changed the default route for private_kube routing table')
                         except Exception as e:
                             statusCode = statusCode + 1
-                            outcome['cloud-proxy'] = e
-                        #print("subdomain cloud-proxy.internal.io created for %s" % zone_id)
+                            outcome['private_kube'] = e
+                            #print(e)
+                            
+                        zone = get_hosted_zone(os.environ['vpc_name'])
+                        zone_id = zone['Id']
+                        #print(zone_id)
+                        record_sets = get_record_sets(zone_id)
                         
-                    if statusCode != 200:
-                        outcome['message'] = 'Proxy switch partially successfull'
-                    else:
-                        outcome['message'] = 'Proxy switch successfull'
-                    
-                    print(json.dumps(outcome))
-                    return json.dumps(outcome)
-                    
-                    """return {
-                        'statusCode': 200,
-                        'body': json.dumps('Proxy switch successfull')
-                    }"""
+                        if exist_record_set(record_sets,'cloud-proxy'):
+                            try:
+                                change_resource_record_sets(zone_id,'cloud-proxy.internal.io','UPSERT','A',300,instance_priv_ip[0])
+                                outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io changed for %s" % zone_id
+                            except Exception as e:
+                                statusCode = statusCode + 1
+                                outcome['cloud-proxy'] = e
+                                
+                            #outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io changed for %s" % zone_id
+                            #print("subdomain cloud-proxy.internal.io changed for %s" % zone_id)
+                        else:
+                            try:
+                                change_resource_record_sets(zone_id,'cloud-proxy.internal.io','CREATE','A',300,instance_priv_ip[0])
+                                outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io created for %s" % zone_id
+                            except Exception as e:
+                                statusCode = statusCode + 1
+                                outcome['cloud-proxy'] = e
+                            #print("subdomain cloud-proxy.internal.io created for %s" % zone_id)
+                            
+                        if statusCode != 200:
+                            outcome['message'] = 'Proxy switch partially successfull'
+                        else:
+                            outcome['message'] = 'Proxy switch successfull'
+            else:
+                outcome['message'] = 'No healthy instances found'
+        else:
+            outcome['message'] = 'ERROR: The VPC name has not been specified, cannot continue'
+                
+        print(json.dumps(outcome))
+        return json.dumps(outcome)
