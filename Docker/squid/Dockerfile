@@ -39,6 +39,12 @@ RUN (cd /tmp \
     &&  make \
     && make install)
 
+RUN (cd /tmp \
+    && rm ${SQUID_VERSION}.tar.xz \
+    && rm -rf ${SQUID_VERSION} squid-build)
+
+COPY ./ERR_ACCESS_DENIED /usr/share/squid/errors/templates/ERR_ACCESS_DENIED
+    
 RUN mkdir ${SQUID_SYSCONFIG_DIR}/ssl \
     && openssl genrsa -out ${SQUID_SYSCONFIG_DIR}/ssl/squid.key 2048 \
     && openssl req -new -key ${SQUID_SYSCONFIG_DIR}/ssl/squid.key -out ${SQUID_SYSCONFIG_DIR}/ssl/squid.csr -subj '/C=XX/ST=XX/L=squid/O=squid/CN=squid' \
@@ -48,6 +54,8 @@ RUN mkdir ${SQUID_SYSCONFIG_DIR}/ssl \
     && chown -R ${SQUID_USER}. ${SQUID_LOG_DIR} ${SQUID_CACHE_DIR}
 
 EXPOSE 3128/tcp
+EXPOSE 3129/tcp
+EXPOSE 3130/tcp
 
 VOLUME ${SQUID_LOG_DIR} ${SQUID_CACHE_DIR}
 
