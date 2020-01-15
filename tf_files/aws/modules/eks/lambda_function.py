@@ -29,6 +29,8 @@ import socket
 import http.client
 
 
+outcome = {}
+
 """
   function to get autoscaling groups
 
@@ -178,9 +180,11 @@ def get_route_table(vpc_id,name):
   @return String the routing table id
 """
 def get_route_table_id(route_table):
-    for table in route_table['RouteTables']:
-        for association in table['Associations']:
-            return association['RouteTableId']
+    #for table in route_table['RouteTables']:
+    #    for association in table['Associations']:
+    #        return association['RouteTableId']
+    # There should always be one single RouteTables, otherwise we only care for the first one ?
+    return route_table['RouteTables'][0]['RouteTableId']
 
 """
   function to request an address from the internet. The whole lambda funtion is expected to be within a single VPC and 
@@ -209,7 +213,8 @@ def test_proxy(url):
         response = conn.getresponse().status
 
     except Exception as e:
-        print(e)
+        outcome['test_proxy'] = "The url '%s' check failed with the following message: '%s'" % (url,e)
+        #print(e)
         if str(e) == 'HTTP Error 403: Forbidden':
             response = 403
         elif 'Connection refused' in str(e):
@@ -256,7 +261,7 @@ def del_default_gw(rtid):
 """
 def set_default_gw(eni,rtid):
     client = boto3.client('ec2')
-    print(eni)
+    #print(eni)
 
     response = exist_default_gw(rtid)
     if len(response['RouteTables']) > 0:
@@ -265,11 +270,14 @@ def set_default_gw(eni,rtid):
     if response['ResponseMetadata'] and response['ResponseMetadata']['HTTPStatusCode'] == 200:
         response = client.create_route(DestinationCidrBlock='0.0.0.0/0',NetworkInterfaceId=eni,RouteTableId=rtid)
         if response['Return'] and response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            print("Route %s changed successfully" % rtid)
+            outcome[rtid] = "Route %s default GW successfully changed to %s" % (rtid,eni)
+            #print("Route %s changed successfully" % rtid)
         else:
-            print(response)
+            outcome[eni] = response
+            #print(response)
     else:
-        print(response)
+        outcome[eni] = response
+        #print(response)
 
     del client
     return response
@@ -425,6 +433,8 @@ def lambda_handler(event, context):
     
     if  http_code != 200:
         
+        statusCode = 200
+        
         if os.environ.get('vpc_name') is not None:
             autoscaling_group = get_asg("squid-auto-"+os.environ['vpc_name'])
             instances_ids = get_healthy_instances_id(autoscaling_group)
@@ -434,7 +444,8 @@ def lambda_handler(event, context):
 
                 if get_sourceDestinationCheck_attr(instance_id):
                     set_sourceDestinationCheck_attr(instance_id)
-                    print("sourceDestinationCheck set to false for %s" % instance_id)
+                    outcome['sourceDestinationCheck'] = "sourceDestinationCheck set to false for %s" % instance_id
+                    #print("sourceDestinationCheck set to false for %s" % instance_id)
                 
                 if check_port(instance_priv_ip[0],proxy_port) == 0:
                     healthy_instance_eni = get_instances_eni([instance_id])
@@ -446,15 +457,21 @@ def lambda_handler(event, context):
                     
                     try:
                         set_default_gw(healthy_instance_eni[0],eks_private_route_table_id)
-                        print('succefully changed the default route for eks_private routing table')
+                        outcome['eks_private'] = 'succefully changed the default route for eks_private routing table'
+                        #print('succefully changed the default route for eks_private routing table')
                     except Exception as e:
-                        print(e)
+                        statusCode = statusCode + 1
+                        outcome['eks_private'] = e
+                        #print(e)
                         
                     try:
                         set_default_gw(healthy_instance_eni[0],private_kube_route_table_id)
-                        print('succefully changed the default route for private_kube routing table')
+                        outcome['private_kube'] = 'succefully changed the default route for private_kube routing table'
+                        #print('succefully changed the default route for private_kube routing table')
                     except Exception as e:
-                        print(e)
+                        statusCode = statusCode + 1
+                        outcome['private_kube'] = e
+                        #print(e)
                         
                     zone = get_hosted_zone(os.environ['vpc_name'])
                     zone_id = zone['Id']
@@ -462,14 +479,33 @@ def lambda_handler(event, context):
                     record_sets = get_record_sets(zone_id)
                     
                     if exist_record_set(record_sets,'cloud-proxy'):
-                        change_resource_record_sets(zone_id,'cloud-proxy.internal.io','UPSERT','A',300,instance_priv_ip[0])
-                        print("subdomain cloud-proxy.internal.io changed for %s" % zone_id)
+                        try:
+                            change_resource_record_sets(zone_id,'cloud-proxy.internal.io','UPSERT','A',300,instance_priv_ip[0])
+                            outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io changed for %s" % zone_id
+                        except Exception as e:
+                            statusCode = statusCode + 1
+                            outcome['cloud-proxy'] = e
+                            
+                        #outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io changed for %s" % zone_id
+                        #print("subdomain cloud-proxy.internal.io changed for %s" % zone_id)
                     else:
-                        change_resource_record_sets(zone_id,'cloud-proxy.internal.io','CREATE','A',300,instance_priv_ip[0])
-                        print("subdomain cloud-proxy.internal.io created for %s" % zone_id)
+                        try:
+                            change_resource_record_sets(zone_id,'cloud-proxy.internal.io','CREATE','A',300,instance_priv_ip[0])
+                            outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io created for %s" % zone_id
+                        except Exception as e:
+                            statusCode = statusCode + 1
+                            outcome['cloud-proxy'] = e
+                        #print("subdomain cloud-proxy.internal.io created for %s" % zone_id)
                         
-                    return {
+                    if statusCode != 200:
+                        outcome['message'] = 'Proxy switch partially successfull'
+                    else:
+                        outcome['message'] = 'Proxy switch successfull'
+                    
+                    print(json.dumps(outcome))
+                    return json.dumps(outcome)
+                    
+                    """return {
                         'statusCode': 200,
                         'body': json.dumps('Proxy switch successfull')
-                    }
-    
+                    }"""
