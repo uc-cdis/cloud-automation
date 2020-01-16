@@ -9,6 +9,7 @@ node {
   kubeLocks = []
   pipeConfig = pipelineHelper.setupConfig([:])
   pipelineHelper.cancelPreviousRunningBuilds()
+  prLabels = githubHelper.fetchLabels()
 
   try {
     stage('FetchCode'){
