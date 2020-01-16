@@ -96,10 +96,10 @@ GEN3_YAML_MERGE
         args:
           - "-c"
           - |
-          echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
-          echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-          python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
-          /fence/bin/google-user-sa-validation.sh
+            echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            /fence/bin/google-user-sa-validation.sh
         volumeMounts:
           - name: "logo-volume"
             readOnly: true

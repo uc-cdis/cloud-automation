@@ -56,14 +56,14 @@ spec:
             env:
               - name: PYTHONPATH
                 value: /var/www/fence
-            - name: FENCE_PUBLIC_CONFIG
-              valueFrom:
-                configMapKeyRef:
-                  name: manifest-fence
-                  key: fence-config-public.yaml
-                  optional: true
-            - name: YAML_MERGE_SCRIPT
-              value: |
+              - name: FENCE_PUBLIC_CONFIG
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-fence
+                    key: fence-config-public.yaml
+                    optional: true
+              - name: YAML_MERGE_SCRIPT
+                value: |
 GEN3_YAML_MERGE
             volumeMounts:
 # -----------------------------------------------------------------------------
