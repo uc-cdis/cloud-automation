@@ -1,4 +1,3 @@
-
 FROM ubuntu:18.04
 
 ENV SQUID_VERSION="squid-4.8" \
@@ -7,12 +6,13 @@ ENV SQUID_VERSION="squid-4.8" \
     SQUID_CACHE_DIR="/var/cache/squid" \
     SQUID_LOG_DIR="/var/log/squid" \
     SQUID_SYSCONFIG_DIR="/etc/squid" \
+    SQUID_PID_DIR="/var/run/squid" \
     CFLAGS="-Os" \
     CXXFLAGS="-Os"
 
 
 RUN apt update \
-    && apt install -y build-essential wget libssl1.0-dev libcap2
+    && apt install -y build-essential wget libssl1.0-dev
 
 COPY ./entrypoint.sh /usr/sbin/entrypoint.sh
 
@@ -21,6 +21,7 @@ RUN chmod +x /usr/sbin/entrypoint.sh
 RUN (cd /tmp \
     && wget ${SQUID_DOWNLOAD_URL}${SQUID_VERSION}.tar.xz \
     && tar -xJf ${SQUID_VERSION}.tar.xz \
+    && sed -i 's/if (rawPid <= 1)/if (rawPid < 1)/' ${SQUID_VERSION}/src/Instance.cc \
     && mkdir squid-build \
     && cd squid-build \
     && ../${SQUID_VERSION}/configure \
@@ -31,7 +32,7 @@ RUN (cd /tmp \
     --localstatedir=/var \
     --datadir=/usr/share/squid \
     --with-logdir=${SQUID_LOG_DIR} \
-    --with-pidfile=/var/run/squid.pid \
+    --with-pidfile=${SQUID_PID_DIR}/squid.pid \
     --with-default-user=${SQUID_USER} \
     --enable-linux-netfilter \
     --with-openssl \
@@ -45,20 +46,13 @@ RUN (cd /tmp \
 
 COPY ./ERR_ACCESS_DENIED /usr/share/squid/errors/templates/ERR_ACCESS_DENIED
     
-RUN mkdir ${SQUID_SYSCONFIG_DIR}/ssl \
-    && openssl genrsa -out ${SQUID_SYSCONFIG_DIR}/ssl/squid.key 2048 \
-    && openssl req -new -key ${SQUID_SYSCONFIG_DIR}/ssl/squid.key -out ${SQUID_SYSCONFIG_DIR}/ssl/squid.csr -subj '/C=XX/ST=XX/L=squid/O=squid/CN=squid' \
-    && openssl x509 -req -days 3650 -in ${SQUID_SYSCONFIG_DIR}/ssl/squid.csr -signkey ${SQUID_SYSCONFIG_DIR}/ssl/squid.key -out ${SQUID_SYSCONFIG_DIR}/ssl/squid.crt \
-    && cat ${SQUID_SYSCONFIG_DIR}/ssl/squid.key ${SQUID_SYSCONFIG_DIR}/ssl/squid.crt | tee ${SQUID_SYSCONFIG_DIR}/ssl/squid.pem \
-    && mkdir -p ${SQUID_LOG_DIR} ${SQUID_CACHE_DIR} \
+RUN mkdir -p ${SQUID_LOG_DIR} ${SQUID_CACHE_DIR} \
     && chown -R ${SQUID_USER}. ${SQUID_LOG_DIR} ${SQUID_CACHE_DIR}
 
 EXPOSE 3128/tcp
 EXPOSE 3129/tcp
 EXPOSE 3130/tcp
 
-VOLUME ${SQUID_LOG_DIR} ${SQUID_CACHE_DIR}
+VOLUME ${SQUID_LOG_DIR} ${SQUID_CACHE_DIR} ${SQUID_PID_DIR} ${SQUID_SYSCONFIG_DIR}
 
 ENTRYPOINT ["/usr/sbin/entrypoint.sh"]
-
-
