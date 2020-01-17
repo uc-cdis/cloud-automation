@@ -5,7 +5,7 @@
 ###############################################################
 MAIN_HOME="/home/ubuntu"
 SFTP_HOME="/home/sftpuser"
-declare -s WHITELIST_FILES
+declare -a WHITELIST_FILES
 WHITELIST_FILES=( "web_whitelist" "web_wildcard_whitelist" "ftp_whitelist")
 
 ###############################################################
@@ -44,11 +44,11 @@ fi
 for i in ${WHITELIST_FILES}
 do
   diff "${MAIN_HOME}/cloud-automation/files/squid_whitelist/${i}" "/etc/squid/${i}"
-  DIFF_SQUID1=$?
+  DIFF_SQUID=$?
   if [ "$DIFF_SQUID" -ne 0  ] ; then
     echo "There has been a change in ${i}"
     rsync -a ${MAIN_HOME}/cloud-automation/files/squid_whitelist/${i} /etc/squid/${i}
-    docker cp /etc/squid/${i} squid_tres:/etc/squid/${i}
+    docker cp /etc/squid/${i} squid:/etc/squid/${i}
   fi
 done 
 
@@ -58,5 +58,6 @@ done
 ###############################################################
 if [ "$DIFF_SQUID" -ne 0 ] ; then
   echo "There is a change in one or more squid whitelist hence reload the squid the service"
-  sudo service squid reload
+  #sudo service squid reload
+  docker exec squid squid -k reconfigure
 fi
