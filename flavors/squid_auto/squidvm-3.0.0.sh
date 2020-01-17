@@ -60,8 +60,6 @@ function install_docker(){
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/docker-daemon.json /etc/docker/daemon.json
   chmod -R 0644 /etc/docker
   usermod -a -G docker ${WORK_USER}
-  # If we don't restart the service, iptables might not load properly sometimes
-  systemctl restart docker
 }
 
 function set_squid_config(){
@@ -229,6 +227,8 @@ function init(){
 
 function main(){
   init
+  # If we don't restart the service, iptables might not load properly sometimes
+  systemctl restart docker
   DOCKER=$(command -v docker)
   ${DOCKER} run --name squid -p 3128:3128 -p 3129:3129 -p 3130:3130 -d \
       --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
