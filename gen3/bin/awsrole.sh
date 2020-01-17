@@ -170,6 +170,143 @@ gen3_awsrole_list() {
   gen3_aws_run aws iam list-roles --path-prefix /gen3_service/
 }
 
+##
+# function to create a assume policy document to later attach to a role upon creation
+#
+# no argument is passed to the function, however the following global variables must be set:
+#         vpc_name
+#
+# @return a path to the temporary file where the policy is
+#
+##
+function create_assume_role_policy() {
+  local saname=${1}
+  local account_id=$(gen3_aws_run aws sts get-caller-identity --query Account --output text)
+  local namespace=$(g3kubectl config view | grep namespace: | cut -d':' -f2 | cut -d' ' -f2)
+  local tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_policy.XXXXXX")
+  local issuer_url=$(gen3_aws_run aws eks describe-cluster \
+                       --name ${vpc_name} \
+                       --query cluster.identity.oidc.issuer \
+                       --output text)
+
+  local issuer_hostpath=$(echo ${issuer_url}| cut -f 3- -d'/')
+  local account_id=$(gen3_aws_run aws sts get-caller-identity --query Account --output text)
+
+  local provider_arn="arn:aws:iam::${account_id}:oidc-provider/${issuer_hostpath}"
+  echo "${provider_arn}"
+
+  gen3_log_info "Entering create_assume_role_policy"
+
+  cat > ${tempFile} <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${provider_arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "${issuer_hostpath}:aud": "sts.amazonaws.com",
+          "${issuer_hostpath}:sub": "system:serviceaccount:${namespace}:${saname}"
+        }
+      }
+    }
+  ]
+}
+EOF
+
+  echo ${tempFile}
+  gen3_log_info "Exiting create_assume_role_policy"
+
+}
+
+#
+# Create assume role for servce account
+# This is to create role ready for service account. Doesn't nessesary to have service account created.
+#
+gen3_awsrole_assumerole() {
+  local saname=${1}
+  #creat tmp policy and attach to the assume role
+  local namespace=$(g3kubectl config view | grep namespace: | cut -d':' -f2 | cut -d' ' -f2)
+  local role_name="${namespace}-${saname}-role"
+  local assume_role_policy_path="$(create_assume_role_policy ${saname})"
+
+  gen3_log_info "Entering create_assumerole"
+
+  gen3_awsrole_create "${role_name}"
+
+  local role_json=$(gen3_aws_run aws iam update-assume-role-policy \
+                   --role-name ${role_name}\
+                   --policy-document file://${assume_role_policy_path})
+
+  if [ $? == 0 ];
+  then
+    echo ${role_json}
+  else
+   peae "There has been an error creating the role ${role_name}"
+  fi
+
+  gen3_log_info "Exiting create_role"
+}
+
+#
+# Create assume role for servce account
+#
+gen3_awsrole_createsa() {
+  local saname=${1}
+  local namespace=$(g3kubectl config view | grep namespace: | cut -d':' -f2 | cut -d' ' -f2)
+
+  if g3kubectl get sa | grep "${saname}" > /dev/null 2>&1; then
+    gen3_log_info "Service account-${saname} exists. Skipping service account creation."
+    return 0
+  elif ! g3kubectl -n "${namespace}" create sa "${saname}" > /dev/null 2>&1; then
+    gen3_log_err "Unexpected error creating service account ${saname} "
+    return 1
+  fi
+
+  gen3_log_info "${saname} service account created."
+}
+
+#
+# Annotate existing service account with assume role
+#
+gen3_awsrole_annotatesa() {
+  local saname=${1}
+  local rolename=${2}
+  local namespace=$(g3kubectl config view | grep namespace: | cut -d':' -f2 | cut -d' ' -f2)
+
+  gen3_log_info "Annotating service account-${saname} with role-${rolename} "
+
+  if ! _get_entity_type "${rolename}"> /dev/null 2>&1; then
+    gen3_log_err "Role-${rolename} doesn't exist. Role needs to be ceated."
+    return 1
+  fi
+
+  gen3_awsrole_createsa "${saname}"
+
+  rolearn=$(gen3_aws_run aws iam get-role --role-name ${rolename}| jq -r '.Role.Arn')
+  if g3kubectl describe sa ${saname} | grep eks.amazonaws.com/role-arn:  > /dev/null 2>&1; then
+    gen3_log_info "Service account ${saname} eks.amazonaws.com/role-arn got annotateed with already. Exiting annotation."
+    return 0
+  elif ! g3kubectl annotate serviceaccount -n ${namespace} ${saname} eks.amazonaws.com/role-arn=${rolearn} > /dev/null 2>&1; then
+    gen3_log_err "Unexpected error when annotating service account-${saname} wtih role-${rolename}"
+    return 1
+  fi
+}
+
+##
+#
+# short for print error and exit
+#
+##
+function peae(){
+  print_error_and_exit ${1}
+}
+
 #---------- main
 
 gen3_awsrole() {
@@ -187,6 +324,15 @@ gen3_awsrole() {
       ;;
     'list' | 'ls')
       gen3_awsrole_list "$@"
+      ;;
+    'create-sa')
+      gen3_awsrole_createsa "$@"
+      ;;
+    'create-assumerole')
+      gen3_awsrole_assumerole "$@"
+      ;;
+    'annotate-sa')
+      gen3_awsrole_annotatesa "$@"
       ;;
     *)
       gen3_awsrole_help

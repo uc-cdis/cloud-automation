@@ -9,6 +9,7 @@ spec:
       labels:
         app: gen3job
     spec:
+      serviceAccountName: useryaml-job
       automountServiceAccountToken: false
       volumes:
 # -----------------------------------------------------------------------------
@@ -50,6 +51,14 @@ spec:
         - name: projects
           configMap:
             name: "projects"
+        - name: aws-iam-token
+            projected:
+              defaultMode: 420
+              sources:
+                - serviceAccountToken:
+                    audience: sts.amazonaws.com
+                    expirationSeconds: 86400
+                    path: token
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -75,6 +84,14 @@ spec:
                 name: manifest-global
                 key: dbgap_download_folder
                 optional: true
+          - name: AWS_ROLE_ARN
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: aws_sa_rule_arn
+                optional: true
+          - name: AWS_WEB_IDENTITY_TOKEN_FILE
+            value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
         volumeMounts:
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
@@ -124,6 +141,9 @@ spec:
           - name: "projects"
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"
+          - name: "aws-iam-token"
+            mountPath: "/var/run/secrets/eks.amazonaws.com/serviceaccount"
+            readOnly: true
         command: ["/bin/bash" ]
         args:
           - "-c"

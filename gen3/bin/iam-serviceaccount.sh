@@ -422,7 +422,7 @@ function main() {
     if [ ${UPDATE_ACTION} == a ];
     then
       local addition_result=$(add_policy_to_role ${policy_source} ${role_name}) # ${policy_source})
-      if [ ${addition_result} == 0 ]; 
+      if [ ${addition_result} == 0 ];
       then
         echo "Policy added successfully"
       else
@@ -431,7 +431,7 @@ function main() {
     elif [ ${UPDATE_ACTION} == d ];
     then
       local deletion_result=$(delete_policy_in_role ${policy_source} ${role_name}) #${policy_type}
-      if [ ${deletion_result} == 0 ]; 
+      if [ ${deletion_result} == 0 ];
       then
         echo "Policy removed successfully"
       else
@@ -440,7 +440,7 @@ function main() {
     fi
   elif [ -v SERVICE_ACCOUNT_NAME ] && [ -v POLICY_SCRIPT ] && [ -z ${UPDATE_ACTION} ] && [ -v ACTION ] && [ ${ACTION} == c ];
   then
-    # We are creating 
+    # We are creating
     # let's check if the policy provided exist by name, by ARN
     local role_json
     local role_arn

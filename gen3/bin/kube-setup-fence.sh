@@ -7,6 +7,7 @@
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
+namespace=$(g3kubectl config view | grep namespace: | cut -d':' -f2 | cut -d' ' -f2)
 
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
@@ -25,6 +26,11 @@ if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   # avoid doing the previous block more than once or when not necessary ...
   touch "$(gen3_secrets_folder)/.rendered_fence_db"
 fi
+
+# create service account and a assume role attach to it
+gen3 awsrole create-assumerole fence
+gen3 awsrole annotate-sa fence "${namespace}"-fence-role
+
 
 # deploy fence
 gen3 roll fence
