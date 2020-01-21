@@ -114,33 +114,23 @@ git pull
 
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
-#instance_ip=$(ip -f inet -o addr show eth0|cut -d\  -f 7 | cut -d/ -f 1)
 echo "127.0.1.1 ${var.env_squid_name}" | tee --append /etc/hosts
 hostnamectl set-hostname ${var.env_squid_name}
+(
+  apt -y update
+  DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade 
 
-apt -y update
-DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade| sudo tee --append /var/log/bootstrapping_script.log
+  apt-get autoremove -y
+  apt-get clean
+  apt-get autoclean
 
-apt-get autoremove -y
-apt-get clean
-apt-get autoclean
+  cd /home/ubuntu
 
-cd /home/ubuntu
-
-#cp /home/ubuntu/cloud-automation/flavors/squid_auto/proxy_route53_config.sh /home/ubuntu/
-#cp /home/ubuntu/cloud-automation/flavors/squid_auto/default_ip_route_and_instance_check_config.sh /home/ubuntu/
-#cp /home/ubuntu/cloud-automation/flavors/squid_auto/squid_auto_user_variable /home/ubuntu/
-
-
-# Replace the User variable for hostname, VPN subnet and VM subnet 
-
-#sed -i "s/DNS_ZONE_ID/${var.route_53_zone_id}/" /home/ubuntu/squid_auto_user_variable
-#sed -i "s/PRIVATE_KUBE_ROUTETABLE_ID/${var.private_kube_route}/" /home/ubuntu/squid_auto_user_variable
-#sed -i "s/COMMONS_SQUID_ROLE/${var.env_squid_name}/" /home/ubuntu/squid_auto_user_variable
-
-#####
-bash "${var.bootstrap_path}${var.bootstrap_script}" cwl_group="${var.env_log_group}" 2>&1 |tee --append /var/log/bootstrapping_script.log
+  bash "${var.bootstrap_path}${var.bootstrap_script}" cwl_group="${var.env_log_group}" 2>&1 
+  git checkout master
+) > /var/log/bootstrapping_script.log
 EOF
+##| tee --append /var/log/bootstrapping_script.log
 #sed -i "s/PRIVATE_KUBE_ROUTETABLE_ID/${data.aws_route_table.private_kube_route_table.id}/" /home/ubuntu/squid_auto_user_variable
 #sed -i "s/DNS_ZONE_ID/${data.aws_route53_zone.vpczone.zone_id}/" /home/ubuntu/squid_auto_user_variable
 
