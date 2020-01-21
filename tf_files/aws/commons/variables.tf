@@ -316,3 +316,8 @@ variable "parallel_proxies" {
   description = "Single instance plus HA"
   default     = false
 }
+
+variable "squid_bootstrap_script" {
+  description = "Bootstrapt script for ha-squid instances"
+  default     = "squidmvm.sh"
+}
