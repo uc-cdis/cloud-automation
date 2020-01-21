@@ -289,8 +289,10 @@ gen3_awsrole_annotatesa() {
   gen3_awsrole_createsa "${saname}"
 
   rolearn=$(gen3_aws_run aws iam get-role --role-name ${rolename}| jq -r '.Role.Arn')
+  gen3_log_info "The Role ARN attached to service account is ${rolename}"
+
   if g3kubectl describe sa ${saname} | grep eks.amazonaws.com/role-arn:  > /dev/null 2>&1; then
-    gen3_log_info "Service account ${saname} eks.amazonaws.com/role-arn got annotateed with already. Exiting annotation."
+    gen3_log_info "Service account ${saname} eks.amazonaws.com/role-arn got annotateed with role ${rolename} already. Exiting annotation."
     return 0
   elif ! g3kubectl annotate serviceaccount -n ${namespace} ${saname} eks.amazonaws.com/role-arn=${rolearn} > /dev/null 2>&1; then
     gen3_log_err "Unexpected error when annotating service account-${saname} wtih role-${rolename}"
