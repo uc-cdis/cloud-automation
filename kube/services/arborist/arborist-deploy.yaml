@@ -78,6 +78,9 @@ spec:
         - name: projects
           configMap:
             name: "projects"
+        - name: yaml-merge
+          configMap:
+            name: "fence-yaml-merge"
       containers:
       - name: arborist
         GEN3_ARBORIST_IMAGE
@@ -112,9 +115,6 @@ spec:
                 name: manifest-fence
                 key: fence-config-public.yaml
                 optional: true
-          - name: YAML_MERGE_SCRIPT
-            value: |
-GEN3_YAML_MERGE   
         volumeMounts:
           - name: "old-config-volume"
             readOnly: true
@@ -128,6 +128,10 @@ GEN3_YAML_MERGE
             readOnly: true
             mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
           - name: "config-helper"
             readOnly: true
             mountPath: "/var/www/fence/config_helper.py"
@@ -171,7 +175,6 @@ GEN3_YAML_MERGE
           - "-c"
           # Script always succeeds if it runs (echo exits with 0)
           - |
-            echo "${YAML_MERGE_SCRIPT}" > "/var/www/fence/yaml_merge.py"
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             # point at localhost

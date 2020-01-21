@@ -201,8 +201,6 @@ g3k_manifest_filter() {
   declare -a kvList=()
 
   kvList+=('GEN3_DATE_LABEL' "date: \"$(date +%s)\"")
-  # GEN3_YAML_MERGE script used to merge fence-configs ... indent for yaml block indicator
-  kvList+=('GEN3_YAML_MERGE' "$(awk '{ printf "                     %s\\n",$0 }' < $GEN3_HOME/apis_configs/yaml_merge.py)")
 
   for key in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
     value="$(g3k_config_lookup ".versions[\"$key\"]" "$manifestPath")"
