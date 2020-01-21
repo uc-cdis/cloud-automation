@@ -37,6 +37,7 @@ RUN (cd /tmp \
     --enable-linux-netfilter \
     --with-openssl \
     --without-nettle \
+    --disable-arch-native \
     &&  make \
     && make install)
 
