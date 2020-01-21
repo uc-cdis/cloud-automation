@@ -169,7 +169,7 @@ function install_awslogs {
                                         {
                                                 "file_path": "/var/log/auth.log",
                                                 "log_group_name": "${CWL_GROUP}",
-                                                "log_stream_name": "http_proxy-squid_access-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_${ip4}",
+                                                "log_stream_name": "http_proxy-auth-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_${ip4}",
                                                 "timestamp_format": "%b %d %H:%M:%S",
                                                 "timezone": "LOCAL"
                                         },
@@ -181,7 +181,7 @@ function install_awslogs {
                                         {
                                                 "file_path": "/var/log/syslog",
                                                 "log_group_name": "${CWL_GROUP}",
-                                                "log_stream_name": "http_proxy-syslog-squid-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_${ip4}",
+                                                "log_stream_name": "http_proxy-syslog-$(${HOSTNAME})-${ip1}_${ip2}_${ip3}_${ip4}",
                                                 "timestamp_format": "%b %d %H:%M:%S",
                                                 "timezone": "LOCAL"
                                         }
