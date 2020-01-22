@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.200
+FROM jenkins/jenkins:2.215
 
 USER root
 
@@ -66,15 +66,8 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.14/
    && unzip /tmp/terraform.zip -d /usr/local/bin && /bin/rm /tmp/terraform.zip
 
 # install packer
-RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.3.3/packer_1.3.3_linux_amd64.zip
+RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
 RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
-
-# install r packages
-RUN Rscript -e 'install.packages("yaml",repos="http://cran.us.r-project.org");' \
-    && Rscript -e 'install.packages("curl",repos="http://cran.us.r-project.org");' \
-    && Rscript -e 'install.packages("httr",repos="http://cran.us.r-project.org");' \
-    && Rscript -e 'install.packages("stringr",repos="http://cran.us.r-project.org");' \
-    && Rscript -e 'install.packages("pryr",repos="http://cran.us.r-project.org");'
 
 # update /etc/sudoers
 RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \

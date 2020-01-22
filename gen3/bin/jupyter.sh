@@ -129,7 +129,7 @@ case "$command" in
     gen3_jupyter_upgrade "$@"
     ;;
   *)
-    gen3_db_help
+    gen3 help jupyter
     ;;
 esac
 exit $?

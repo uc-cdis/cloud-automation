@@ -9,6 +9,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 namespace=$(g3kubectl config view | grep namespace: | cut -d':' -f2 | cut -d' ' -f2)
 
+gen3 update_config fence-yaml-merge "${GEN3_HOME}/apis_configs/yaml_merge.py"
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
@@ -34,7 +35,10 @@ gen3 awsrole annotate-sa fence "${namespace}"-fence-role
 
 # deploy fence
 gen3 roll fence
+# deploy presigned-url-fence
+gen3 roll presigned-url-fence
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/presigned-url-fence/presigned-url-fence-service.yaml"
 gen3 roll fence-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-canary-service.yaml"
 gen3_log_info "The fence service has been deployed onto the k8s cluster."

@@ -23,17 +23,30 @@ dataFolder="$(mktemp -d -p "$XDG_RUNTIME_DIR" 'tempDreamReportDataFolder_XXXXXX'
 dateTime="$(date '+%Y-%m-%d_%H:%M')"
 destFolder="$HOME/Dream_access_reports"
 if [[ ! -e $destFolder ]]; then
-    mkdir $destFolder
+  mkdir $destFolder
 fi
 fileName="Dream_access_report_$dateTime.tsv"
 dreamTeamID=$(g3kubectl get secrets/fence-config -o json | jq -r '.data["fence-config.yaml"]' | base64 --decode | yq .DREAM_CHALLENGE_TEAM | tr -d '\\"')
+
+logInterval=7
+regexNum='^[0-9]+$'
+if [ "$1" != "" ]; then
+  if ! [[ $1 =~ $regexNum ]] ; then
+    echo "Input argument is not a number, using default value '$logInterval' days"
+  else
+    logInterval=$1
+    echo "Changing logInterval value to '$logInterval' days"
+  fi
+else
+  echo "logInterval value is '$logInterval' days"
+fi
 echo "Done!"
 
 echo "Generating user audit log..."
-gen3 psql fence -A -t -o "$dataFolder/user.json" -c "SELECT json_agg(t) FROM (SELECT * FROM user_audit_logs WHERE timestamp > CURRENT_DATE - INTERVAL '30' DAY) t;"
+gen3 psql fence -A -t -o "$dataFolder/user.json" -c "SELECT json_agg(t) FROM (SELECT * FROM user_audit_logs WHERE timestamp > CURRENT_DATE - INTERVAL '$logInterval' DAY) t;"
 echo "Done!"
 echo "Generating cert audit log..."
-gen3 psql fence -A -t -o "$dataFolder/cert.json" -c "SELECT json_agg(t) FROM (SELECT * FROM cert_audit_logs WHERE timestamp > CURRENT_DATE - INTERVAL '30' DAY) t;"
+gen3 psql fence -A -t -o "$dataFolder/cert.json" -c "SELECT json_agg(t) FROM (SELECT * FROM cert_audit_logs WHERE timestamp > CURRENT_DATE - INTERVAL '$logInterval' DAY) t;"
 echo "Done!"
 echo "Generating report TSV..."
 python3 $HOME/cloud-automation/files/scripts/dream-access-report.py -t "$dreamTeamID" -u "$dataFolder/user.json" -c "$dataFolder/cert.json" -o "$destFolder/$fileName"
