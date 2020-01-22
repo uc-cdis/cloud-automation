@@ -43,6 +43,7 @@ test_mfilter() {
   for name in fence sheepdog; do
     local capName=Fence
     if [[ "$name" == "sheepdog" ]]; then capName=Sheepdog; fi
+    local domain
     for domain in test1.manifest.g3k default; do
       local mpath
       mpath="$(g3k_manifest_path test1.manifest.g3k)"

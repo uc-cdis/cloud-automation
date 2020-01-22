@@ -26,7 +26,7 @@ spec:
         netnolimit: "yes"
         public: "yes"
         userhelper: "yes"
-        date: "1579648581"
+        date: "1579711361"
     spec:
       affinity:
         podAntiAffinity:
@@ -103,9 +103,6 @@ spec:
               name: manifest-fence
               key: fence-config-public.yaml
               optional: true
-        - name: YAML_MERGE_SCRIPT
-          value: |
-GEN3_YAML_MERGE        
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
