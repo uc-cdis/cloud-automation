@@ -31,22 +31,22 @@ function get_autoscaler_version(){
 
   case ${k8s_version} in
     "1.17+")
-      casv="1.17.0"
+      casv="v1.17.0"
       ;;
     "1.16+")
-      casv="1.16.3"
+      casv="v1.16.3"
       ;;
     "1.15+")
-      casv="1.15.4"
+      casv="v1.15.4"
       ;;
     "1.14+")
-      casv="1.14.7"
+      casv="v1.14.7"
       ;;
     "1.13+")
-      casv="1.13.9"
+      casv="v1.13.9"
       ;;
     "1.12+")
-      casv="1.12.8"
+      casv="v1.12.8"
       ;;
   esac
   echo ${casv}
