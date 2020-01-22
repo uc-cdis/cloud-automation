@@ -56,13 +56,14 @@ function get_autoscaler_version(){
 function deploy() {
 
   if (! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1) || [[ "$FORCE" == true ]]; then
-    if [ -z CAS_VERSION ];
+    if ! [ -z ${CAS_VERSION} ];
     then
-      cas_version=${CAS_VERSION}
+      casv=${CAS_VERSION}
     else
-      cas_version=$(get_autoscaler_version) # cas stands for ClusterAutoScaler
+      casv="$(get_autoscaler_version)" # cas stands for ClusterAutoScaler
     fi
-    g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/cluster-autoscaler-autodiscover.yaml" VPC_NAME "${vpc_name}" CAS_VERSION ${cas_Version} | g3kubectl "--namespace=kube-system" apply -f -
+    echo "Deploying cluster autoscaler ${casv} in ${vpc_name}"
+    g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/cluster-autoscaler-autodiscover.yaml" VPC_NAME "${vpc_name}" CAS_VERSION ${casv} | g3kubectl "--namespace=kube-system" apply -f -
   else
     echo "kube-setup-autoscaler exiting - cluster-autoscaler already deployed, use --force to redeploy"
   fi
@@ -70,28 +71,15 @@ function deploy() {
 }
 
 
-#if (! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
-  # k8s_version="$(g3kubectl version -o json |jq -r '.serverVersion.gitVersion')"
-  # if [[ ${k8s_version} =~ -eks.*$ ]]; then tkv=${k8s_version//-eks*/}; k8s_version="${tkv}"; fi
-  # k8s_version=$(get_kubernetes_server_version)
-  # k8s_major=$(get_kubernetes_server_version |jq '.major')
-  # k8s_minor=$(get_kubernetes_server_version |jq '.minor')
-#  cas_version=$(get_autoscaler_version) # cas stands for ClusterAutoScaler
-
-#  g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/cluster-autoscaler-autodiscover.yaml" VPC_NAME "${vpc_name}" CAS_VERSION ${cas_Version} | g3kubectl "--namespace=kube-system" apply -f -
-#else
-#    echo "kube-setup-autoscaler exiting - cluster-autoscaler already deployed, use --force to redeploy"
-#fi
-
-
 function HELP(){
   echo "Usage: $SCRIPT [-v] <version> [-f] "
   echo "Options:"
-  echo "No option is mandatory, however if you provide one of the following:"
+  echo "No option is mandatory, however you can provide the following:"
   echo "        -v num       --version num       --create=num        Cluster autoscaler version number"
   echo "        -f           --force                                 Force and update if it is already installed"
 }
 
+#echo $(get_autoscaler_version)
 
 OPTSPEC="hfv:-:"
 while getopts "$OPTSPEC" optchar; do
@@ -130,3 +118,5 @@ while getopts "$OPTSPEC" optchar; do
       ;;
     esac
 done
+
+deploy
