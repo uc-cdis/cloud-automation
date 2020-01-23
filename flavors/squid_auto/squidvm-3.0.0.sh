@@ -109,10 +109,10 @@ function set_boot_configuration(){
   ###############################################################
   # init files or script
   ###############################################################
-  cp /etc/rc.local /etc/rc.local.bak
-  sed -i 's/^exit/#exit/' /etc/rc.local
+  #cp /etc/rc.local /etc/rc.local.bak
+  #sed -i 's/^exit/#exit/' /etc/rc.local
   
-  cat >> /etc/rc.local <<EOF
+  cat > /etc/rc.local <<EOF
 #!/bin/bash
 if [ -f /var/run/squid/squid.pid ];
 then
@@ -135,6 +135,21 @@ fi
   exit 0
   
 EOF
+
+  # create the service to work onlu on boot with ExecStart
+  cat > /etc/systemd/system/rc_local.service <<EOF
+[Unit]
+Description=rc.local script
+
+[Service]
+ExecStart=/etc/rc.local
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  chmod +x /etc/systemd/system.rc_local.service
+  systemctl enable rc_local
   
   # Copy the updatewhitelist.sh script to the home directory 
   cp  ${SUB_FOLDER}/flavors/squid_auto/updatewhitelist-docker.sh ${HOME_FOLDER}/updatewhitelist.sh
@@ -144,11 +159,10 @@ EOF
   #chown -R ${WORK_USER}. ${HOME_FOLDER}
   crontab crontab_file
 
-  cat >> /etc/cron.daily/squid <<EOF
+  cat > /etc/cron.daily/squid <<EOF
 #!/bin/bash
 # Let's rotate the logs daily
-DOCKER=$(command -v docker)
-${DOCKER} exec squid squid -k rotate
+$(command -v docker) exec squid squid -k rotate
 EOF
 
   chmod +x /etc/cron.daily/squid
