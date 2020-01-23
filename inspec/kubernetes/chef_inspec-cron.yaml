@@ -1,0 +1,37 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: inspec-cron-job
+  namespace: default
+  labels:
+    app: inspec-cron-job
+spec:
+  schedule: "*/30 * * * *"
+  jobTemplate:
+    spec:
+      completetions: 1
+      parallelism: 1
+      template:
+        spec:
+          containers:
+            - name: burwood-inspec
+              image: 854033737818.dkr.ecr.us-east-2.amazonaws.com/burwood-inspec:03
+              env:
+                - name: AWS_REGION
+                  value: us-east-2
+                - name: AWS_PROFILE
+                  value: burwood
+                - name: AWS_CONFIG_FILE
+                  value: /etc/aws-creds/config
+                - name: AWS_SHARED_CREDENTIALS_FILE
+                  value: /etc/aws-creds/credentials
+
+              volumeMounts:
+                - name: aws-creds
+                  mountPath:  /etc/aws-creds
+                  readOnly: true
+          volumes:
+              - name: aws-creds
+                secret:
+                  secretName: aws-creds-2
+          restartPolicy: OnFailure
