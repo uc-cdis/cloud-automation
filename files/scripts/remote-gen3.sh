@@ -6,6 +6,11 @@
 #  1.) update a component of kubernetes 
 #  2.) deploy in kuberneted
 #
+# Usage:
+#
+# ssh cdistest.csoc -C "~/cloud-automation/files/script/remote-gen3.sh kube-setup-revproxy
+# ansible a-hosts -m shell -a "cloud-automation/files/script/remote-gen3.sh kube-setup-revproxy
+#
 
 #set -i
 
