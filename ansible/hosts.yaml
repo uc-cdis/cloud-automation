@@ -41,6 +41,8 @@ all:
           ansible_host: 10.128.2.181
         cdistest_admin:
           ansible_host: 10.128.7.28
+        jcoin_admin:
+          ansible_host: 10.128.2.57
       vars:
         ansible_user: ubuntu
 
@@ -106,16 +108,13 @@ all:
         icgc_commons:
           ansible_user: icgc
           ansible_host: 10.128.2.173
-
-          #        charlie_commons:
-          #          ansible_user: charlie
-          #          ansible_host: 10.128.2.156
-          #        tb_commons:
-          #          ansible_user: tb
-          #          ansible_host: 10.128.2.156
         niaiddata_commons:
           ansible_user: niaiddata
           ansible_host: 10.128.2.156
+        jcoin_commons:
+          ansible_user: jcoinprod
+          ansible_host: 10.128.2.57
+
     staging:
       hosts:
         stagingdatastage_commons:
