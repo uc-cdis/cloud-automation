@@ -113,10 +113,20 @@ function set_boot_configuration(){
   sed -i 's/^exit/#exit/' /etc/rc.local
   
   cat >> /etc/rc.local <<EOF
+#!/bin/bash
+if [ -f /var/run/squid/squid.pid ];
+then
+  rm /var/run/squid/squid.pid
+fi
+
+if ( docker inspect  squid -f '{{.State}}' > /dev/null 2>&1 );
+then
+  $(command -v docker) rm squid
+fi
+
   
-  iptables-restore < /etc/iptables.conf
-  DOCKER=$(command -v docker)
-  ${DOCKER} run --name squid -p 3128:3128 -p 3129:3129 -p 3130:3130 -d \
+#  iptables-restore < /etc/iptables.conf
+  $(command -v docker) run --name squid -p 3128:3128 -p 3129:3129 -p 3130:3130 -d \
       --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
       --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
       --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
