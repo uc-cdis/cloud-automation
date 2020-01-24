@@ -187,6 +187,7 @@ resource "aws_security_group" "eks_control_plane_sg" {
   }
   
   tags {
+    Name         = "${var.vpc_name}-control-plane-sg"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
