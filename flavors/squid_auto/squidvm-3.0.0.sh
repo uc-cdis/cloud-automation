@@ -112,7 +112,7 @@ function set_boot_configuration(){
   #cp /etc/rc.local /etc/rc.local.bak
   #sed -i 's/^exit/#exit/' /etc/rc.local
   
-  cat > /etc/rc.local <<EOF
+  cat > /etc/squid_boot.sh <<EOF
 #!/bin/bash
 if [ -f /var/run/squid/squid.pid ];
 then
@@ -124,32 +124,37 @@ then
   $(command -v docker) rm squid
 fi
 
+# At this point docker is already up and we dont want to restore the firewall and wipte all
+# docker nat rules
+#iptables-restore < /etc/iptables.conf
+
+iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3129
+iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 3130
   
-#  iptables-restore < /etc/iptables.conf
-  $(command -v docker) run --name squid -p 3128:3128 -p 3129:3129 -p 3130:3130 -d \
-      --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
-      --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
-      --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
-      --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR} \
-      quay.io/cdis/squid:${SQUID_IMAGE_TAG}
-  exit 0
+$(command -v docker) run --name squid -p 3128:3128 -p 3129:3129 -p 3130:3130 -d \
+    --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
+    --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
+    --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
+    --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR} \
+    quay.io/cdis/squid:${SQUID_IMAGE_TAG}
+exit 0
   
 EOF
 
   # create the service to work onlu on boot with ExecStart
-  cat > /etc/systemd/system/rc_local.service <<EOF
+  cat > /etc/systemd/system/squid_boot.service <<EOF
 [Unit]
-Description=rc.local script
+Description=squid_boot script
 
 [Service]
-ExecStart=/etc/rc.local
+ExecStart=/etc/squid_boot.sh
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-  chmod +x /etc/systemd/system.rc_local.service
-  systemctl enable rc_local
+  chmod +x /etc/systemd/system/squid_boot.service
+  systemctl enable squid_boot
   
   # Copy the updatewhitelist.sh script to the home directory 
   cp  ${SUB_FOLDER}/flavors/squid_auto/updatewhitelist-docker.sh ${HOME_FOLDER}/updatewhitelist.sh
