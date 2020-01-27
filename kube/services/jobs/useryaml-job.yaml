@@ -55,13 +55,13 @@ spec:
           configMap:
             name: "projects"
         - name: aws-iam-token
-            projected:
-              defaultMode: 420
-              sources:
-                - serviceAccountToken:
-                    audience: sts.amazonaws.com
-                    expirationSeconds: 86400
-                    path: token
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  audience: sts.amazonaws.com
+                  expirationSeconds: 86400
+                  path: token
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
