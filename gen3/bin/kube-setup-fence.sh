@@ -13,7 +13,7 @@ gen3 update_config fence-yaml-merge "${GEN3_HOME}/apis_configs/yaml_merge.py"
 
 if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   # Initialize fence database and user list
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
   if [[ ! -f .rendered_fence_db ]]; then
     gen3 job run fencedb-create
     gen3_log_info "Waiting 10 seconds for fencedb-create job"

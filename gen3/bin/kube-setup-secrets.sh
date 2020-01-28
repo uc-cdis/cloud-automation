@@ -53,10 +53,6 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update indexd secrets
     # Run the indexd-userdb job to update the indexd user database
     /bin/rm -rf .rendered_indexd_userdb
   fi
-
-  if ! g3kubectl get secrets/indexd-secret > /dev/null 2>&1; then
-    g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${GEN3_HOME}/apis_configs/indexd_settings.py" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
-  fi
 fi
 
 if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update aws-es-proxy secrets
@@ -321,7 +317,7 @@ fi
 ##+ if we need to make a creds file:
 ##+ jq -r '.mailgun | keys[] as $k | "\($k) = \"\(.[$k])\""' creds.json > ${credsFile}
 
-if [[ -f "${WORKSPACE}/${vpc_name}/creds.json" ]]; then # update secrets
+if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update secrets
   if ! g3kubectl get secrets/mailgun-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r '.mailgun' creds.json > "$credsFile"
