@@ -9,12 +9,44 @@ gen3_load "gen3/gen3setup"
 
 
 #
+# Run the stdin logstream through a filter to generate a report
+#
+# @param filter raw, accessCount, whoWhatWhen - see gen3_logs_s3_filer
+# @param prefix name of the bucket prefix the stream came from
+#
+gen3_logs_s3filter() {
+  local filterName
+  local prefix
+
+  filterName="$(gen3_logs_get_arg filter 'raw' "$@")"
+  prefix="$(gen3_logs_get_arg prefix 'unknown/' "$@")"
+  local logFolder="$(dirname "${prefix}")"
+  
+  if [[ "$prefix" =~ /$ ]]; then # no prefix really - just s3://bucket/
+    logFolder="${prefix%%/}"
+  fi
+  case "$filterName" in
+    "whoWhatWhen")
+      grep 'username' | grep GET | awk -v bucket="$logFolder" '{ gsub(/\[/, "", $3); gsub(/.+username=/, "", $11); gsub(/&.*/, "", $11); gsub(/%40/, "@", $11); print $3 "\t" $9 "\t" $11 "\t" bucket }' | sort
+      ;;
+    "accessCount")
+      grep 'username' | grep GET | awk '{ print $9 }' | sort | uniq -c
+      ;;
+    *)
+      cat -
+      ;;
+  esac
+}
+
+
+#
 # Generate access reports from S3 logs collected
 # over some date range
 #
 # @param start
 # @param end
 # @param prefix... s3 logs prefixes
+# @param filter raw, accessCount, whoWhatWhen - see gen3_logs_s3filter
 #
 gen3_logs_s3() {
   local s3Path
@@ -69,14 +101,13 @@ gen3_logs_s3() {
     timestamp="$((timestamp + 60*60*24))"
     it="$(date "-d@$timestamp" "+%Y-%m-%d")"
   done
-  cat "$resultTemp"
+  cat "$resultTemp" | gen3_logs_s3filter "$@"
   /bin/rm "$resultTemp" "$downloadTemp" "$lsTemp"
   return 0
 }
 
 
 # s3://qaplanetv1-data-bucket-logs/log/qaplanetv1-data-bucket2020
-# s3://s3logs-s3logs-mjff-databucket-gen3/log/
 # s3://jenkinsv1-data-bucket-logs/log/jenkinsv1-data-bucket2020
 #
 # s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3

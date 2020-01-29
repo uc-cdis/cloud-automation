@@ -102,6 +102,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "s3")
       gen3_logs_s3 "$@"
       ;;
+    "s3filter")
+      gen3_logs_s3filter "$@"
+      ;;
     "user")
       gen3_logs_user_list "$@"
       ;;
