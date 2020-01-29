@@ -25,8 +25,14 @@ gen3_logs_s3() {
   local outputName
   local lsFiles=()
 
-  startDate="$(date -d "$(gen3_logs_get_arg start 'yesterday' "$@")" "+%Y-%m-%d")"
-  endDate="$(date -d "$(gen3_logs_get_arg end 'tomorrow' "$@")" "+%Y-%m-%d")"
+  if ! startDate="$(date -d "$(gen3_logs_get_arg start 'yesterday' "$@")" "+%Y-%m-%d")"; then
+    gen3_log_err "Invalid start date"
+    return 1
+  fi
+  if ! endDate="$(date -d "$(gen3_logs_get_arg end 'tomorrow' "$@")" "+%Y-%m-%d")"; then
+    gen3_log_err "Invalid end date"
+    return 1
+  fi
   prefix="$(gen3_logs_get_arg prefix '' "$@")"
   if [[ -z "$prefix" ]]; then
     gen3_log_err "must specify logs bucket prefix"
@@ -40,18 +46,28 @@ gen3_logs_s3() {
   local lsTemp="$(mktemp "$XDG_RUNTIME_DIR/s3Ls_XXXXXX")"
   local downloadTemp="$(mktemp "$XDG_RUNTIME_DIR/s3Download_XXXXXX")"
   local resultTemp="$(mktemp "$XDG_RUNTIME_DIR/s3Result_XXXXXX")"
+  local logFolder="$(dirname "${prefix}")"
+  
+  if [[ "$prefix" =~ /$ ]]; then # no prefix really - just s3://bucket/
+    logFolder="${prefix%%/}"
+  fi
+  local it="${startDate}"
+  # iterate day by day
+  while [[ "$it" != "${endDate}" ]]; do
+    gen3_log_info "scanning ${prefix}${it}"
+    aws s3 ls "${prefix}${it}" | awk '{ print $4 }' | tee "${lsTemp}" 1>&2
+    local logPath
+    cat "${lsTemp}" | while read -r logPath; do
+      gen3_log_info "collecting $logFolder/$logPath"
+      if aws s3 cp "${logFolder}/${logPath}" "$downloadTemp" 1>&2; then
+        cat "$downloadTemp" >> "$resultTemp"
+      fi
+    done
 
-  gen3_log_info "scanning $prefix"
-  aws s3 ls "${prefix}${startDate}" | awk 'BEGIN { done="false"; }; (done == "false" && $4 ~ /'$endDate'/){ done="true"; }; (done == "false") { print $4 };' | tee "${lsTemp}" 1>&2
-  # download matching files
-  local logPath
-  local logFolder
-  logFolder="$(dirname "${prefix}")"
-  cat "${lsTemp}" | while read -r logPath; do
-    gen3_log_info "collecting $logFolder/$logPath"
-    if aws s3 cp "${logFolder}/${logPath}" "$downloadTemp" 1>&2; then
-      cat "$downloadTemp" >> "$resultTemp"
-    fi
+    local timestamp
+    timestamp="$(date -u -d "$it" "+%s")"
+    timestamp="$((timestamp + 60*60*24))"
+    it="$(date "-d@$timestamp" "+%Y-%m-%d")"
   done
   cat "$resultTemp"
   /bin/rm "$resultTemp" "$downloadTemp" "$lsTemp"
@@ -60,6 +76,11 @@ gen3_logs_s3() {
 
 
 # s3://qaplanetv1-data-bucket-logs/log/qaplanetv1-data-bucket2020
-# s3://bhc-bucket-logs s3://bhcprodv2-data-bucket-logs/log/ s3://s3logs-s3logs-mjff-databucket-gen3/log/
+# s3://s3logs-s3logs-mjff-databucket-gen3/log/
 # s3://jenkinsv1-data-bucket-logs/log/jenkinsv1-data-bucket2020
+#
+# s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3
+# s3://bhc-bucket-logs 
+# s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket2020 
+#
 # $ cat $XDG_RUNTIME_DIR/s3Result_aRSoKE | grep 'username' | grep GET | awk '{ print $9 }' | sort | uniq -c

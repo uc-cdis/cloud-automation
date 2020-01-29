@@ -104,6 +104,14 @@ Like `gen3 logs curl200`, but fails if the response payload is not json - sendin
 gen3 logs curl200 https://www.google.com -X DELETE
 ```
 
+### `gen3 logs s3 start=yesterday end=tomorrow prefix=...`
+
+Retrieve the access logs from the given s3 logs bucket prefix.
+
+Ex:
+```
+gen3 s3 logs start=2020-01-01 end=tomorrow prefix=s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 | grep 'username' | grep GET | awk '{ print $9 }' | sort | uniq -c
+```
 
 ### `gen3 logs vpc`
 
