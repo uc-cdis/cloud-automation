@@ -1,6 +1,6 @@
 # TL;DR
 
-You have a kubernetes cluster, and you one to run gen3.
+You have a kubernetes cluster, and you want to run gen3.
 
 ## Overview
 
@@ -62,11 +62,11 @@ The `gen3` CLI should now be enabled in your shell.
 
 The `gen3` tools support a [gitops](https://www.gitops.tech/) 
 configuration process which assumes that public configuration is 
-saved in a `cdis-manifest` git repository (like this [one](https://github.com/uc-cdis/cdis-manifest)), and secret configuration is saved in a git repository under the `$vpc_name` sibling folder.
+saved in a `cdis-manifest` git repository (like this [one](https://github.com/uc-cdis/cdis-manifest)), and secret configuration is saved in a git repository under the `Gen3Secrets` folder (or `$vpc_name/` in legacy commons) sibling folder.
 
 ```
-$ ls -1Fd cloud-automation cdis-manifest $vpc_name
-bhcprodv2/
+$ ls -1Fd cloud-automation cdis-manifest Gen3Secrets
+Gen3Secrets/
 cdis-manifest/
 cloud-automation/
 ```
@@ -74,9 +74,31 @@ cloud-automation/
 Before we can launch Gen3 services, we must first prepare the
 configuration that those services require.
 
-### 00configmap.yaml
+### global configmap - 00configmap.yaml
 
+Save a `Gen3Secrets/00configmap.yaml` with proper configuration for your environment:
+```
+$ cat 00configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: global
+data:
+  environment: devplanetv1
+  hostname: demo.planx-pla.net
+  revproxy_arn: arn:aws:acm:us-east-1:707767160287:certificate/c676c81c-9546-4e9a-9a72-725dd3912bc8
+  slack_webhook: None
 
+$ kubectl apply -f 00configmap.yaml
+```
+
+### cdis-manifest
+
+The `cdis-manifest/` folder holds a clone of a manifest repository 
+like this [one](https://github.com/uc-cdis/cdis-manifest).  
+Each git repository holds configuration for multiple commons.  The `gen3` tools
+use the hostname from the glob configmap to determine which `cdis-manifest/`
+subfolder applies - ex: `cdis-manifest/demo.planx-pla.net/`.
 
 ## CICD with gen3
 
