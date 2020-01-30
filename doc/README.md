@@ -8,8 +8,11 @@ For example - `gen3 help aws` opens `aws.md`
 
 ## Frequently used
 
-* [aws](./aws.md)
 * [arun](./arun.md)
+* [aws](./aws.md)
+* [awsrole](./awsrole.md)
+* [awsuser](./awsuser.md)
+* [iam-serviceaccount](./iam-serviceaccount.md)
 * [devterm](./devterm.md)
 * [db](./db.md)
 * [dashboard](./dashboard.md)
@@ -24,6 +27,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-setup-revproxy](./kube-setup-revproxy.md)
 * [kube-setup-secrets](./kube-setup-secrets.md)
 * [kube-wait4-pods](./kube-wait4-pods.md)
+* [maintenance mode](./maintenance.md)
 * [psql](./psql.md)
 * [random](./random.md)
 * [replicas](./replicas.md)

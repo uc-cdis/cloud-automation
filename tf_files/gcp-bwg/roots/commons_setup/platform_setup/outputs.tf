@@ -50,4 +50,3 @@ output "endpoint" {
 output "master_version" {
   value = "${module.commons-gke.master_version}"
 }
-

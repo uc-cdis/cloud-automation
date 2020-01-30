@@ -86,7 +86,7 @@ semver_ge() {
     else
       exit 1
     fi
-  )
+  ) 1>&2
 }
 
 # vt100 escape sequences - don't forget to pass -e to 'echo -e'
@@ -197,6 +197,10 @@ function random_alphanumeric() {
 # If the time period has expired, then also touches the file
 # under the assumption that the caller will go on to perform the operation:
 #     if gen3_time_since  "automation_gitsync" is 300; then ...
+#
+# @param operation
+# @param periodSecs
+# @return 0 if time has expired
 #
 function gen3_time_since() {
   local operation

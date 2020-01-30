@@ -216,3 +216,6 @@ all:
         dummi1:
           ansible_host: 10.128.5.142
           ansible_user: ubuntu
+        emalinowskiv1:
+          ansible_host: 10.128.7.28
+          ansible_user: emalinowskiv1

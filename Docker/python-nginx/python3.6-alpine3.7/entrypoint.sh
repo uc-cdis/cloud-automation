@@ -1,6 +1,16 @@
 #!/usr/bin/env sh
 set -e
 
+if [ ! -z $NGINX_RATE_LIMIT ]; then
+  # Add rate_limit config
+  rate_limit_conf="\ \ \ \ limit_req_zone \$binary_remote_addr zone=one:10m rate=${NGINX_RATE_LIMIT}r/s;"
+  sed -i "/http\ {/a ${rate_limit_conf}" /etc/nginx/nginx.conf
+  if [ -f /etc/nginx/sites-available/uwsgi.conf ]; then
+    limit_req_config="\ \ \ \ \ \ \ \ limit_req zone=one;"
+    sed -i "/location\ \/\ {/a ${limit_req_config}" /etc/nginx/sites-available/uwsgi.conf
+  fi
+fi
+
 # Get the maximum upload file size for Nginx, default to 0: unlimited
 USE_NGINX_MAX_UPLOAD=${NGINX_MAX_UPLOAD:-0}
 # Generate Nginx config for maximum upload file size

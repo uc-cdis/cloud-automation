@@ -91,7 +91,7 @@ spec:
         resources:
           limits:
             cpu: 0.9
-            memory: 6144Mi
+            memory: 8192Mi
         imagePullPolicy: Always
         volumeMounts:
         - name: datadir

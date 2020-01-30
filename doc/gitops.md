@@ -18,11 +18,25 @@ gen3 gitops filter cloud-automation/kube/services/fence/fence-deploy.yaml GEN3_D
 
 ### configmaps
 
-Update the manifest derived (`manifest-*`) configmaps.
+Update the `manifest.json` derived (`manifest-*`) configmaps.
 
 ```
 gen3 gitops configmaps
 ```
+
+The configmaps command also harvests configmaps from the `manifests/` subdirectory.
+For example:
+```
+cd $(dirname $(g3k_manifest_path))
+mkdir -p manifests/hatchery
+jq -r .hatchery < manifest.json | tee manifests/hatchery/hatchery.json
+```
+
+Given a folder `manifests/key/` with files `a.json` and `b.json` and `key.json` - gitops manifests will create a configmap `manifest-key` with keys `a.json`, `b.json` and `key.json`; and it will also create a key `json` with the same content as `key.json` (to make it easy to pull values out of the root `manifest.json`).
+
+Finally - the harvest also loads configuration from `${GEN3_HOME}/gen3/lib/manifestDefaults/` if that folder contains a key that does not already exist in `manifest.json` or the `manfiests/` folder.
+
+Note: if a key exists both under the `manifests/` folder and in `manifest.json`, then only the data under `manifests/` persists in the configmap
 
 ### enforce
 

@@ -1,10 +1,27 @@
-export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
+# test configmaps folder dry run
+test_configmaps_folder_dryrun() {
+  local testFolder="${GEN3_HOME}/gen3/lib/testData/manifests/frickjack"
+  local dryRunCommand
+  dryRunCommand="$(gen3 gitops configmaps "$testFolder" --dryRun)"; because $? "gitops configmaps should work with folder $testFolder"
+  gen3_log_info "configmaps $testFolder command: $dryRunCommand"
+  [[ "$dryRunCommand" =~ frickjack.json ]]; because $? "gitops configmaps folder command looks ok"
+}
 
+# create configmaps from folder
+test_configmaps_folder() {
+  local testFolder="${GEN3_HOME}/gen3/lib/testData/manifests/frickjack"
+  local dryRunCommand
+  gen3 gitops configmaps "$testFolder"; because $? "gitops configmaps should work with folder $testFolder"
+  local namespace
+  namespace="$(g3kubectl get configmap manifest-frickjack -o json | jq -e -r '.data["user-namespace"]')"; because $? "configmap looks ok"
+  [[ "$namespace" == "jupyter-pods" ]]; because $? "configmap got right namespace"
+}
 
 #
 # Test g3k_manifest_path
 #
 test_mpath() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   local mpath=$(g3k_manifest_path test1.manifest.g3k)
   [[ "$mpath" == "${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json" ]];
   because $? "g3k_manifest_path prefers domain/manifest.json if available: $mpath ?= ${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json"
@@ -18,17 +35,20 @@ test_mpath() {
 # Test g3k_manifest_filter - also tests g3k_kv_filter
 #
 test_mfilter() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   testFolder="${XDG_RUNTIME_DIR}/$$/g3kTest/mfilter"
   /bin/rm -rf "$testFolder"
   mkdir -p -m 0700 "$testFolder"
+  local name
   for name in fence sheepdog; do
-    capName=Fence
+    local capName=Fence
     if [[ "$name" == "sheepdog" ]]; then capName=Sheepdog; fi
+    local domain
     for domain in test1.manifest.g3k default; do
       local mpath
       mpath="$(g3k_manifest_path test1.manifest.g3k)"
       # Note: date timestamp will differ between saved snapshot and fresh template processing
-      echo "Writing: $testFolder/${name}-${domain}-a.yaml"
+      gen3_log_info "Writing: $testFolder/${name}-${domain}-a.yaml"
       gen3 gitops filter "${GEN3_HOME}/kube/services/$name/${name}-deploy.yaml" "$mpath" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-a.yaml"
       cat "$(dirname "$mpath")/expected${capName}Result.yaml" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-b.yaml"
       diff -w "$testFolder/${name}-${domain}-a.yaml" "$testFolder/${name}-${domain}-b.yaml"
@@ -42,6 +62,7 @@ test_mfilter() {
 }
 
 test_mlookup() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   local mpath # manifest path
   mpath="$(g3k_manifest_path test1.manifest.g3k)"
   [[ "$(g3k_config_lookup .versions.fence "$mpath")" == "quay.io/cdis/fence:master" ]];
@@ -67,6 +88,7 @@ EOM
 }
 
 test_loader() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/lib/testData/gen3_load/a"
   gen3_load "gen3/lib/testData/gen3_load/b"
   [[ "$GEN3_LOAD_A" -eq 1 && "$GEN3_LOAD_B" -eq 1 ]]; because $? "gen3_load loads a file once"
@@ -90,6 +112,7 @@ test_random_alpha() {
 }
 
 test_roll_path() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/bin/gitops"
 
   ! tpath="$(gen3 gitops rollpath bogus "" 2> /dev/null)"; because $? "bogus service yaml does not exist"
@@ -113,6 +136,7 @@ test_roll_path() {
 }
 
 test_roll() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/bin/roll"
 
   # Mock g3kubectl
@@ -130,6 +154,7 @@ test_roll() {
 
 
 test_configmaps() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/bin/gitops"
 
   local mpath
@@ -191,6 +216,8 @@ test_secrets_folder() {
   [[ "$secretFolder" == "$WORKSPACE/$vpc_name" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
 }
 
+shunit_runtest "test_configmaps_folder_dryrun" "local,gitops"
+shunit_runtest "test_configmaps_folder" "local,gitops"
 shunit_runtest "test_mpath" "local,gitops"
 shunit_runtest "test_mfilter" "local,gitops"
 shunit_runtest "test_mlookup" "local,gitops"

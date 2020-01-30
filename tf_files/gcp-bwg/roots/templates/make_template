@@ -1,28 +1,58 @@
-
+####################################################################################
+#
+#    Name:Makefile
+#    Author: James Anderton <james@janderton.com>
+#    Purpose: This file sets up the Terraform ENV and executes the terraform commands
+#             so as to build out a full Google Cloud Environment via Terraform and 
+#             store the remote state in a gcp cloud storage bucket
+#
+#   REQUIREMENTS: make sure you have a "TFVARS FILE" named and located where "VARS"
+#             in line 18 is pointing and have it named in the format prescribed.
+#             answerfile-<PARENT_FOLDER>-<TENANT>.<USER>.tfvars where PARENT_FOLDER is
+#             a directory consisting of "root files" that are calling terraform modules
+#             and TENANT is an arbitrary value like 001 that allows a user to have more
+#             than one terraform environment and $USER is the OS Environment variable 
+#             pointing to who you currently are logged in as.
+#
+#####################################################################################
+# Run everything in the same shell
 .ONESHELL:
+# Use Bash
 .SHELL := /usr/bin/bash
+# These are our rules to key on
 .PHONY: apply destroy destroy-target plan-destroy plan plan-target prep
-#Change this bucket name
+
+# Global Variables:
+#
+# VARS is used as an answerfile we'll pull everything else from
+VARS=../variables/answerfile-${PARENT_FOLDER}-${TENANT}.$(USER).tfvars
+#
 CURRENT_FOLDER=$(shell basename "$$(pwd)")
 PARENT_FOLDER=$(shell basename "$$(echo $${PWD%/*})")
-VARS=../variables/answerfile-${PARENT_FOLDER}-${TENANT}.$(USER).tfvars
 ENV=$(shell awk '$$1 == "env" {print $$NF}' ${VARS}|tr -d '"')
 PROJECT=$(shell awk '$$1 == "state_project_name" {print $$NF}' ${VARS}|tr -d '"')
+REGION=$(shell awk '$$1 == "region" {print $$NF}' ${VARS}|tr -d '"')
 GCP_CREDENTIALS=$(shell awk '$$1 == "credential_file" {print $$NF}' ${VARS}|tr -d '"')
+# Storing state to a google cloud storage bucket
 STATE_BUCKET=$(shell awk '$$1 == "state_bucket_name" {print $$NF}' ${VARS}|tr -d '"')
 GCLOUD_BUCKET=${STATE_BUCKET}
-REGION=$(shell awk '$$1 == "region" {print $$NF}' ${VARS}|tr -d '"')
+# Prefix is the directory to store the state file in
 PREFIX=$(shell awk '$$1 == "prefix_${CURRENT_FOLDER}" {print $$NF}' ${VARS}|tr -d '"')
+# Workspace is the file the state will be stored in
 WORKSPACE=${ENV}-${PREFIX}
+#
+# Setting colors for the stderror output
 BOLD=$(shell tput bold)
 RED=$(shell tput setaf 1)
 GREEN=$(shell tput setaf 2)
 YELLOW=$(shell tput setaf 3)
 RESET=$(shell tput sgr0)
 
+# Take all available make targets and append the comments from after each ## and print it all to stdout
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+# Make sure the proper ENV Variables are in place
 set-env:
 	@if [ -z ${ENV} ]; then \
 		echo "$(BOLD)$(RED)ENV was not set$(RESET)"; \
@@ -44,7 +74,9 @@ set-env:
 		echo "$(BOLD)$(RED)Could not find variables file: ${VARS}$(RESET)"; \
 		exit 1; \
 	 fi
-prep: set-env ## Prepare a new workspace (environment) if needed, configure the tfstate backend, update any modules, and switch to the workspace
+	@echo "$(BOLD)$(GREEN)Environment is ready for Terraforming"
+
+prep: set-env ## Verify the Cloud Storage Bucket exisists and Prepare a new workspace (environment) if needed, configure the tfstate backend, update any modules, and switch to the workspace
 	@echo "$(BOLD)Verifying that the GCloud Storage bucket ${GCLOUD_BUCKET} for remote state exists$(RESET)"
 	@if ! gsutil ls -p ${PROJECT} gs://${GCLOUD_BUCKET} > /dev/null 2>&1 ; then \
 		echo "$(RED)GCLOUD_BUCKET bucket ${GCLOUD_BUCKET} was not found. Please create a bucket with versioning enabled to store tfstate$(RESET)"; \
@@ -58,7 +90,7 @@ prep: set-env ## Prepare a new workspace (environment) if needed, configure the 
 		-upgrade \
 		-verify-plugins=true \
 		-backend=true \
-		-backend-config="bucket=${STATE_BUCKET}" \
+		-backend-config="bucket=${GCLOUD_BUCKET}" \
 		-backend-config="region=${REGION}" \
 		-backend-config="credentials=${GCP_CREDENTIALS}" \
 		-backend-config="project=${PROJECT}" \

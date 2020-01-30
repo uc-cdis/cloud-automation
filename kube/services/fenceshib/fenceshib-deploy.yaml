@@ -41,6 +41,9 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
+        - name: yaml-merge
+          configMap:
+            name: "fence-yaml-merge"
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
@@ -98,6 +101,12 @@ spec:
             configMapKeyRef:
               name: manifest-global
               key: hostname
+        - name: FENCE_PUBLIC_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-fence
+              key: fence-config-public.yaml
+              optional: true
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -144,8 +153,12 @@ spec:
             subPath: "logo.svg"
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
@@ -194,3 +207,10 @@ spec:
             limits:
               cpu: 2
               memory: 1200Mi
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi

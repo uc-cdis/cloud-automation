@@ -105,11 +105,9 @@ net_apply_jupyter() {
   local notebookNamespace
   local name
   
-  #
-  # Disable this till we bump to k8s 1.11 - 
-  # the jupyter network policies rely on compound label selectors
-  #
-  if false && g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
+  notebookNamespace="$(gen3 jupyter j-namespace)"
+
+  if g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
     for name in "${GEN3_HOME}/kube/services/netpolicy/base/"*.yaml; do
       (yq -r . < "$name") | jq -r --arg namespace "$notebookNamespace" '.metadata.namespace=$namespace' | g3kubectl apply -f -
     done

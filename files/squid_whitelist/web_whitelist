@@ -3,6 +3,7 @@
 172.16.191.254
 192.170.230.164
 accounts.google.com
+achecker.ca
 api-bionimbus-pdc.opensciencedatacloud.org
 api.immport.org
 api.login.yahoo.com
@@ -66,6 +67,7 @@ k8s.gcr.io
 keyservice.opensciencedatacloud.org
 ks.osdc.io
 lib.stat.cmu.edu
+login.bionimbus.org
 login.mathworks.com
 login.microsoftonline.com
 maven.restlet.org

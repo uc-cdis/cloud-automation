@@ -83,11 +83,25 @@ gen3_run_tfplan() {
   local apply
   
 
-  module=$1
-  quiet=$2
-  apply=$3
+  args=("$@")
+  ELEMENTS=${#args[@]}
+  for (( i=0;i<$ELEMENTS;i++)); do 
+    #echo ${args[${i}]} 
+    if [ "${args[${i}]}" == "vpc" ] || [ "${args[${i}]}" == "eks" ] || [ "${args[${i}]}" == "management-logs" ];
+    then
+      module="${args[${i}]}"
+    elif [ "${args[${i}]}" == "apply" ];
+    then
+      apply="${args[${i}]}"
+    elif [ "${args[${i}]}" == "quiet" ];
+    then
+      quiet="${args[${i}]}"
+    fi
+  done
+
   sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
   #sns_topic="arn:aws:sns:us-east-1:433568766270:fauzi-alert-channel"
+
 
   (
     cd ~/cloud-automation
@@ -113,17 +127,7 @@ gen3_run_tfplan() {
 
       if [[ ${current_branch} == "master" ]];
       then
-        case "$module" in
-          "vpc")
-            message=$(_gen3_run_tfplan_vpc ${apply})
-            ;;
-          "eks")
-            message=$(_gen3_run_tfplan_eks ${apply})
-            ;;
-          "management-logs")
-            message=$(_gen3_run_tfplan_management-logs ${apply})
-            ;;
-        esac
+        message=$(_gen3_run_tfplan_x ${module} ${apply})
       else
         message=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
         echo "cloud-automation for ${vpc_name} is not on the master branch:" > ${message}
@@ -145,71 +149,58 @@ gen3_run_tfplan() {
 
 }
 
-#
-# Apply changes picket up by tfplan
-#
-_gen3_run_tfapply_eks() {
-  gen3_run_tfplan "$@" "quiet" "apply"
-}
-
 
 #
-# Apply changes picket up by tfplan
+# Apply changes picked up by tfplan
 #
-_gen3_run_tfapply_vpc() {
-  #echo "$@"
-  gen3_run_tfplan "$@" "quiet" "apply"
-}
-
-#
-# Apply changes picket up by tfplan
-#
-_gen3_run_tfapply_management-logs() {
-  gen3_run_tfplan "$@" "quiet" "apply"
-}
-
-#
-# Public function to start tfapply, only for eks, for the VPC it might not be a good idea
-# or at least it needs some deeper supervisiohn
-#
-
 gen3_run_tfapply() {
   local module=$1
-  if [ ${module} == "vpc" ];
-  then
-    _gen3_run_tfapply_vpc "$@"
-  elif [ ${module} == "eks" ];
-  then
-    _gen3_run_tfapply_eks "$@"
-  elif [ ${module} == "management-logs" ];
-  then
-    _gen3_run_tfapply_management-logs "$@"
-  fi
+  gen3_run_tfplan "$@" "quiet" "apply"
 }
 
 #
-# Function that checks for uncomitted changes to cloud-automation
-# and also if there are unapplied changes to the vpc module
+# Run a terraform plan and output a short version of the plan
+# 
 #
-_gen3_run_tfplan_vpc() {
+_gen3_run_tfplan_x(){
 
   local plan
   local slack_hook
   local tempFile
   local output
   local apply
+  local module
+  local profile
+  local vpc_module
 
-  apply=$1
+  apply=$2
+  module=$1
+  profile=$(grep profile ~/.aws/config | awk '{print $2}' | cut -d] -f1 |head -n1)
 
-  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1 |head -n1) ${vpc_name} > /dev/null 2>&1
-  #plan=$(gen3 tfplan | grep "Plan")
+
+ 
+  if [ -n ${module} ] && [ "${module}" == "vpc" ];
+  then
+    vpc_module=${vpc_name}
+  elif [ -n ${module} ];
+  then
+    vpc_module="${vpc_name}_${module}"
+  else
+    gen3_log_error "There has been an error running tfplan, no module has been selected"
+    exit 2
+  fi
+    
+  gen3_log_info "Entering gen3 workon ${profile} ${vpc_module}"
+  gen3 workon ${profile} ${vpc_module} > /dev/null 2>&1
+
   output="$(gen3 tfplan)"
-  plan=$(echo -e "${output}" | grep "Plan")
+  plan=$(echo -e "${output}" |grep "Plan")
 
+  gen3_log_info ${plan}
   if [ -n "${plan}" ];
   then
     tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
-    echo "${vpc_name} has unapplied plan:" > ${tempFile}
+    echo "${vpc_name}_${module} has unapplied plan:" > ${tempFile}
     echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
     if [ -n "$apply" -a "$apply" == "apply" ];
     then
@@ -219,76 +210,10 @@ _gen3_run_tfplan_vpc() {
       echo "No apply this time" >> ${tempFile}
     fi
   fi
+  #gen3_log_info "${tempFile}"
   echo "${tempFile}"
 }
 
-#
-# Function that checks for uncomitted changes to cloud-automation
-# and also if there are unapplied changes to the eks module
-#
-_gen3_run_tfplan_eks() {
-
-  local plan
-  local slack_hook
-  local tempFile
-  local apply
-  local output
-
-  apply=$1
-
-  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1) ${vpc_name}_eks > /dev/null 2>&1
-  output="$(gen3 tfplan)"
-  plan=$(echo -e "${output}" | grep "Plan")
-
-  if [ -n "${plan}" ];
-  then
-    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
-    echo "${vpc_name}_eks has unapplied plan:" > ${tempFile}
-    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
-    if [ -n "$apply" -a "$apply" == "apply" ];
-    then
-      echo -e "${output}" >> ${tempFile}
-      gen3 tfapply >> ${tempFile} 2>&1
-    else
-      echo "No apply this time" >> ${tempFile}
-    fi
-  fi
-  echo "${tempFile}"
-}
-
-#
-# Function that checks for uncomitted changes to cloud-automation
-# and also if there are unapplied changes to the eks module
-#
-_gen3_run_tfplan_management-logs() {
-
-  local plan
-  local slack_hook
-  local tempFile
-  local apply
-  local output
-
-  apply=$1
-
-  gen3 workon $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1) $(grep profile ~/.aws/config  |awk '{print $2}'| cut -d] -f1|head -n1)_management-logs > /dev/null 2>&1
-  output="$(gen3 tfplan)"
-  plan=$(echo -e "${output}" | grep "Plan")
-
-  if [ -n "${plan}" ];
-  then
-    tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_plan.XXXXXX")
-    echo "${vpc_name}_management-logs has unapplied plan:" > ${tempFile}
-    echo -e "${plan}"| sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g" >> ${tempFile}
-    if [ -n "$apply" -a "$apply" == "apply" ];
-    then
-      echo -e "${output}" >> ${tempFile}
-      gen3 tfapply >> ${tempFile} 2>&1
-    else
-      echo "No apply this time" >> ${tempFile}
-    fi
-  fi
-  echo "${tempFile}"
-}
 
 # command to update dictionary URL and image versions
 #
@@ -470,7 +395,7 @@ gen3_gitops_sync() {
       # run etl job before roll all so guppy can pick up changes
       if [[ "$etl_roll" = true ]]; then
           gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
-          gen3 job run etl --wait
+          gen3 job run etl --wait ETL_FORCED TRUE
       fi
       gen3 kube-roll-all
       rollRes=$?
@@ -584,19 +509,90 @@ gen3_gitops_history() {
   )
 }
 
+
+#
+# Generate manifest entries for the files in the given folder
+#
+# @param folder to pull into manifest configmap
+# @param dryRun optional '--dryRun' flag
+#
+gen3_gitops_configmap_folder() {
+    local folder="$1"
+    shift
+    local dryRun="$1"
+    shift
+    if [[ -n "$folder" && -d "$folder" && "$(basename "$folder")" =~ ^[0-9A-Za-z] ]]; then
+      gen3_log_info "loading manifest configmaps from: $folder"
+      local key="$(basename "$folder")"
+      local cMapName="manifest-$key"
+      local execString
+      local gotData=false
+      execString="g3kubectl create configmap $cMapName "
+      local key2
+      local key3
+      local folderEntry
+      local valueList=()
+      local valueCount=0
+      for folderEntry in "$folder/"*; do
+        if [[ -f "$folderEntry" ]]; then
+          key2="$(basename "$folderEntry")"
+          gotData=true
+          execString+=" '--from-file=$folderEntry'"
+          if [[ "$key2" == "${key}.json" ]]; then
+            # to help transition data out of the master manifest.json
+            valueList=()
+            execString+=" '--from-file=json=$folderEntry'"
+            for key3 in $(jq -r '. | keys[]' < "$folderEntry" | grep '^[a-zA-Z]'); do
+              value="$(jq -r --arg key3 "$key3" '.[$key3]' < "$folderEntry")"
+              if [[ -n "$value" ]]; then
+                valueList+=("$value")
+                execString+=" --from-literal $key3=\"\${valueList[$valueCount]}\" "
+                valueCount=$((valueCount + 1))
+              fi
+            done
+          fi
+        fi
+      done
+      if [[ "$gotData" == "true" ]]; then
+        #gen3_log_info "$dryRun - $execString"
+        if [[ "$dryRun" =~ ^-*dryRun ]]; then
+          eval echo $execString
+          return $?
+        else
+          g3kubectl delete configmap "$cMapName" 2> /dev/null
+          eval $execString
+          local result=$?
+          g3kubectl label configmap $cMapName app=manifest
+          return $result
+        fi
+      fi
+    fi
+}
+
+
 #
 # g3k command to create configmaps from manifest
 #
+# @param folder optional parameter - if set, then scans folder for configmap
+# @param --dryRun optional - only available in conjunction with folder
+#
 gen3_gitops_configmaps() {
+  local folder
+
+  if [[ $# -gt 0 ]]; then
+      #gen3_log_info "processing folder $@"
+      gen3_gitops_configmap_folder "$@"
+      return $?
+  fi
   local manifestPath
   manifestPath=$(g3k_manifest_path)
   if [[ ! -f "$manifestPath" ]]; then
-    echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
+    gen3_log_err "manifest does not exist - $manifestPath"
     return 1
   fi
 
   if ! grep -q global $manifestPath; then
-    echo -e "$(red_color "ERROR: manifest does not have global section - $manifestPath")" 1>&2
+    gen3_log_err "manifest does not have global section - $manifestPath"
     return 1
   fi
 
@@ -610,9 +606,11 @@ gen3_gitops_configmaps() {
 
   local key
   local key2
-  local value
+  local valueList=()
+  local valueCount=0
   local execString
   local etlPath
+  local cMapName
   
   etlPath=$(dirname $(g3k_manifest_path))/etlMapping.yaml
   if [[ -f "$etlPath" ]]; then
@@ -620,19 +618,41 @@ gen3_gitops_configmaps() {
   fi
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
-    if [[ $key != 'notes' ]]; then
-      local cMapName="manifest-$key"
+    if [[ "$key" != 'notes' ]]; then
+      valueList=()
+      valueCount=0
+      cMapName="manifest-$key"
       execString="g3kubectl create configmap $cMapName "
       for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
         if [[ -n "$value" ]]; then
-          execString+="--from-literal $key2='$value' "
+          valueList+=("$value")
+          execString+="--from-literal $key2=\"\${valueList[$valueCount]}\" "
+          valueCount=$((valueCount + 1))
         fi
       done
-      local jsonSection="--from-literal json='$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")'"
-      execString+=$jsonSection
+      value="$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")"
+      valueList+=("$value")
+      execString+="--from-literal json=\"\${valueList[$valueCount]}\" "
+      #gen3_log_info "$execString"
       eval $execString
       g3kubectl label configmap $cMapName app=manifest
+    fi
+  done
+
+  local manifestDir
+  local folder
+  manifestDir="$(dirname "$manifestPath")/manifests"
+  if [[ -d "$manifestDir" ]]; then
+    for folder in "$manifestDir"/*; do
+      gen3_gitops_configmap_folder "$folder" 
+    done
+  fi
+  local defaultsDir="${GEN3_HOME}/gen3/lib/manifestDefaults"
+  for folder in "$defaultsDir"/*; do
+    key="$(basename "$folder")"
+    if [[ ! -d "$manifestDir/$key" ]] && ! jq -e -r ".[\"$key\"]" < "$manifestPath" > /dev/null 2>&1; then
+      gen3_gitops_configmap_folder "$folder"
     fi
   done
 }

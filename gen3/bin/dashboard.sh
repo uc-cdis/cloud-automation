@@ -46,7 +46,7 @@ gen3_board_publish() {
     gen3_log_err "unsupported security domain: $securityDomain"
     return 1
   fi
-  if [[ ! -f "$localPath" ]]; then
+  if [[ ! -e "$localPath" ]]; then
     gen3_log_err "local file does not exist: $localPath"
     return 1
   fi

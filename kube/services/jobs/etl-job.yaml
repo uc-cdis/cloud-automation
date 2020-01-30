@@ -44,7 +44,7 @@ spec:
         - name: SPARK_DRIVER_MEMORY
           value: 6g
         - name: ETL_FORCED
-          GEN3_ETL_FORCED|-value: "false"-|
+          GEN3_ETL_FORCED|-value: "TRUE"-|
         volumeMounts:
           - name: "creds-volume"
             readOnly: true
@@ -61,7 +61,7 @@ spec:
         resources:
           limits:
             cpu: 1
-            memory: 12Gi
+            memory: 10Gi
         command: ["/bin/bash" ]
         args:
           - "-c"

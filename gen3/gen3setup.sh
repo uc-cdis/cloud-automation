@@ -161,6 +161,12 @@ gen3_run() {
     )
     resultCode=$?
     ;;
+  replicas) # support legacy replicas
+    (
+      gen3_run scaling replicas "$@"
+    )
+    resultCode=$?
+    ;;
   runjob) # support legacy runjob
     (
       gen3_run job run "$@"

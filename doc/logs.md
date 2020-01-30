@@ -38,6 +38,7 @@ Accepts the following `key=value` arguments
 * `page=number|number-number|all` - default `0`
 * `vpc=$vpc_name|all` - default `${vpc_name:-all}` - see `gen3 logs vpc` below
 * `service=name|all` - default `revproxy`
+* `proxy=fence|indexd|...|all` - default `all` - filters `revproxy` service results
 * `start=datetime` - default `yesterday`
 * `end=datetime` - default `tomorrow`
 * `format=raw|json` - default `raw`

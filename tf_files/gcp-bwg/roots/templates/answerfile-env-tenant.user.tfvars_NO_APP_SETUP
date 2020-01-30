@@ -1,0 +1,262 @@
+########################################################
+#####Project setup info
+#   Vars for creating project level related resource
+#   (ie. vpc, firewall rules, vpc-peering, etc.)
+
+#### Uncomment this if not using our makefiles
+#terraform_workspace = "commons002_setup"
+
+#environment            = "" # USE env
+env = "commons002-dev"
+
+set_parent_folder = true
+
+folder = "commons002-development"
+
+billing_account = "01A7C1-F7ECC5-A7181E"
+
+create_folder = true
+
+credential_file = "/mnt/c/Users/janderton/source/creds/jca-tf-seed-creds.json"
+
+org_id = "575228741867"
+
+organization = "prorelativity.com"
+
+prefix_org_policies = "org_policies_commons002"
+
+prefix_org_setup = "org_setup_commons002"
+
+prefix_platform_setup = "platform_setup_commons002"
+
+prefix_project_setup = "project_setup_commons002"
+
+prefix_project_setup_csoc = "project_setup_csoc2"
+
+project_name = "commons002-dev-uchi"
+
+region = "us-east1"
+
+state_bucket_name = "jca-uchi-tf-state"
+
+state_project_name = "neural-aquifer-235915"
+
+### this is for peering over to the csoc project's networks
+tf_state_project_setup_csoc = "csoc-prod2-project_setup_csoc2"
+
+csoc_state_bucket_name = "jca-uchi-tf-state"
+
+####### VPC Peering info
+peer_auto_create_routes = true
+
+####VPC (google_network) info
+create_vpc_secondary_ranges = true
+
+commons_private_network_name = "commons002-dev-private"
+
+commons_private_region = "us-east1"
+
+commons_private_subnet_flow_logs = true
+
+commons_private_subnet_private_access = true
+
+commons_private_subnet_ip = "172.30.30.0/24"
+
+commons_private_subnet_name = "commons002-dev-private-kubecontrol"
+
+commons_private_subnet_secondary_ip1 = "10.170.80.0/20"
+
+commons_private_subnet_secondary_ip2 = "10.56.0.0/14"
+
+commons_private_subnet_secondary_name1 = "ip-cidr-range-k8-service"
+
+commons_private_subnet_secondary_name2 = "ip-cidr-range-k8-pod"
+
+###### Firewall Rule Info
+commons_egress_destination_ranges = [""]
+
+commons_egress_direction = "EGRESS"
+
+commons_egress_enable_logging = true
+
+commons_egress_ports = ["80", "443"]
+
+commons_egress_priority = "1000"
+
+commons_egress_protocol = "tcp"
+
+commons_egress_target_tags = ["commons002-dev-egress"]
+
+commons_ingress_direction = "INGRESS"
+
+commons_ingress_enable_logging = true
+
+commons_ingress_ports = ["22", "80", "443"]
+
+commons_ingress_priority = "1000"
+
+commons_ingress_protocol = "tcp"
+
+commons_ingress_source_ranges = ["172.30.30.0/24"]
+
+commons_ingress_target_tags = ["commons002-dev-ingress"]
+
+inbound_from_gke_enable_logging = true
+
+inbound_from_gke_name = "inbound-from-gke"
+
+inbound_from_gke_network_name = ""
+
+inbound_from_gke_ports = ["1-65535"]
+
+inbound_from_gke_priority = "1000"
+
+inbound_from_gke_protocol = "tcp"
+
+inbound_from_gke_source_ranges = ["172.16.0.0/28"]
+
+inbound_from_gke_target_tags = ["inbound-from-gke"]
+
+inbound_to_commons_enable_logging = true
+
+inbound_to_commons_name = "inbound-to-commons002-fw"
+
+inbound_to_commons_network_name = ""
+
+inbound_to_commons_ports = ["1-65535"]
+
+inbound_to_commons_priority = "1000"
+
+inbound_to_commons_protocol = "tcp"
+
+inbound_to_commons_source_ranges = ["172.16.0.0/28", "172.29.30.0/24", "172.29.29.0/24"]
+
+inbound_to_commons_target_tags = ["inbound-to-commons002"]
+
+outbound_from_commons_destination_ranges = ["172.29.30.0/24", "172.29.29.0/24", "172.16.0.0/28"]
+
+outbound_from_commons_enable_logging = true
+
+outbound_from_commons_name = "outbound-from-commons002-name"
+
+outbound_from_commons_network_name = ""
+
+outbound_from_commons_ports = ["1-65535"]
+
+outbound_from_commons_priority = "1000"
+
+outbound_from_commons_protocol = "tcp"
+
+outbound_from_commons_target_tags = ["outbound-from-commons002"]
+
+outbound_from_gke_destination_ranges = ["172.16.0.0/28"]
+
+outbound_from_gke_enable_logging = true
+
+outbound_from_gke_name = "outbound-to-gke-fw"
+
+outbound_from_gke_network_name = ""
+
+outbound_from_gke_ports = ["1-65535"]
+
+outbound_from_gke_priority = "1000"
+
+outbound_from_gke_protocol = "tcp"
+
+outbound_from_gke_target_tags = ["outbound-to-gke"]
+
+######### Google Public Access Info ###########################
+google_apis_route = "google-apis"
+
+fw_rule_allow_google_apis_egress = "allow-google-apis"
+
+fw_rule_allow_hc_egress = "allow-healthcheck-egress"
+
+fw_rule_allow_hc_ingress = "allow-healthcheck-ingress"
+
+fw_rule_allow_master_node_egress = "allow-master-node-egress"
+
+fw_rule_deny_all_egress = "deny-egress"
+
+### GKE SETUP Info
+cluster_name = "commons002-dev-gke-1"
+
+cluster_secondary_range_name = "ip-cidr-range-k8-pod"
+
+services_secondary_range_name = "ip-cidr-range-k8-service"
+
+master_ipv4_cidr_block = "172.16.0.0/28"
+
+min_master_version = "1.13.6-gke.5"
+
+network_name = "commons002-dev-private"
+
+network_policy_config = true
+
+node_name = "commons002-dev-gke-1-node"
+
+node_tags = ["commons002-dev-ingress", "public-google", "ingress-from-csoc2-private"]
+
+#network                = "" #USE REMOTE_STATE
+#subnetwork_name        = "" #USE REMOTE_STATE
+#node_labels              = "" # USE A MAP
+#password               = "" # BASIC_AUTH DISABLED
+#username               = "" # BASIC_AUTH DISABLED
+
+###GOOGLE CLOUD SQL INFO##################################
+db_name = ["fence", "sheepdog"]
+
+sql_name = "test-sql-06"
+
+cluster_region = "us-east1"
+
+global_address_name = "cloudsql-private-ip-address"
+
+global_address_purpose = "VPC_PEERING"
+
+global_address_type = "INTERNAL"
+
+global_address_prefix = "16"
+
+#database Version Supports POSTGRES_9_6 or MySQL_5_7 or MySQL_5_6
+database_version = "POSTGRES_9_6"
+
+db_instance_tier = "db-g1-small"
+
+availability_type = "REGIONAL"
+
+backup_enabled = "true"
+
+backup_start_time = "02:00"
+
+db_disk_autoresize = "true"
+
+db_disk_size = "10"
+
+db_disk_type = "PD_SSD"
+
+db_maintenance_window_day = "7"
+
+db_maintenance_window_hour = "2"
+
+db_maintenance_window_update_track = "stable"
+
+db_user_labels = {}
+
+ipv4_enabled = "false"
+
+db_network = "default"
+
+sql_network = "default"
+
+db_authorized_networks = []
+
+activation_policy = "ALWAYS"
+
+db_name = ["default"]
+
+db_user_name = "postgres-user"
+
+db_user_host = "%"
+
+db_user_password = "admin123"

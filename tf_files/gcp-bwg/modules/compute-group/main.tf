@@ -17,13 +17,13 @@ data "google_compute_subnetwork" "subnetwork" {
 # ----------------------------------------------------------
 
 resource "google_compute_instance_template" "instance_template" {
-  name        = "${var.name}-${var.instance_template_name}"
+  name_prefix        = "${var.name}-${var.instance_template_name}"
   project     = "${var.project}"
   description = "Managed by Terraform. This template is used to create ${var.name} instances."
 
   labels = "${var.labels}"
 
-  tags = "${var.tags}"
+  tags = ["${var.tags}"]
 
   network_interface {
     network       = "${data.google_compute_network.network.self_link}"

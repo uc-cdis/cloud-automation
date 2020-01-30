@@ -81,3 +81,34 @@ a server name may optionally be added to the command line.
 ex:
 gen3 db setup "service_name" "server1"
 ```
+
+### gen3 db snapshot list
+
+List the RDS snapshots associated with a given server
+
+```
+ex:
+gen3 db snapshot list server1
+```
+
+### gen3 db snapshot take [--dryrun]
+
+Trigger a new db snapshot for the specific server.
+
+```
+ex:
+gen3 db snapshot take server1
+```
+
+### gen3 db backup dbname
+
+`pg_dump` the given database to stdout; the output is suitable for `gen3 db restore backup.file dbname`
+
+### gen3 db restore dbname backup.file [--dryrun]
+
+Create a new database on the same server as `dbname` owned by the `dbname` owner, and restore `backup.file` into it, and output the credentials to connect to the database.
+
+```
+ex:
+gen3 db restore fence fence_20190101.backup
+```

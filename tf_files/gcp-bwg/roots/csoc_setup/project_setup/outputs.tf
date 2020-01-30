@@ -122,7 +122,7 @@ output "firewall-csoc-egress-inboud-proxy-port-self-link" {
 }
 
 output "firewall-csoc-egress-inboud-proxy-port-target-tags" {
-  value = "${module.firewall-csoc-egress-inboud-proxy-port.firewall_target_tags}"
+  value = ["${module.firewall-csoc-egress-inboud-proxy-port.firewall_target_tags}"]
 }
 
 output "firewall-csoc-egress-outbound-web-self-link" {
@@ -130,10 +130,11 @@ output "firewall-csoc-egress-outbound-web-self-link" {
 }
 
 output "firewall-csoc-egress-outbound-web-target-tags" {
-  value = "${module.firewall-csoc-egress-outbound-web.firewall_egress_target_tags}"
+  value = ["${module.firewall-csoc-egress-outbound-web.firewall_egress_target_tags}"]
 }
 
 // VPC-CSOC-INGRESS
+/*
 output "firewall-csoc-ingress-inbound-https-self-link" {
   value = "${module.firewall-csoc-ingress-inbound-https.firewall_self_link}"
 }
@@ -149,13 +150,14 @@ output "firewall-csoc-ingress-inbound-ssh-self-link" {
 output "firewall-csoc-ingress-inbound-ssh-target-tags" {
   value = "${module.firewall-csoc-ingress-inbound-ssh.firewall_target_tags}"
 }
+*/
 
 output "firewall-csoc-ingress-inbound-openvpn-self-link" {
   value = "${module.firewall-csoc-ingress-inbound-openvpn.firewall_self_link}"
 }
 
 output "firewall-csoc-ingress-inbound-openvpn-target-tags" {
-  value = "${module.firewall-csoc-ingress-inbound-openvpn.firewall_target_tags}"
+  value = ["${module.firewall-csoc-ingress-inbound-openvpn.firewall_target_tags}"]
 }
 
 output "firewall-csoc-ingress-outbound-proxy-self-link" {
@@ -163,7 +165,15 @@ output "firewall-csoc-ingress-outbound-proxy-self-link" {
 }
 
 output "firewall-csoc-ingress-outbound-proxy-target-tags" {
-  value = "${module.firewall-csoc-ingress-outbound-proxy.firewall_egress_target_tags}"
+  value = ["${module.firewall-csoc-ingress-outbound-proxy.firewall_egress_target_tags}"]
+}
+
+output "firewall_csoc_egress_allow_openvpn-target-tags" {
+  value = ["${module.firewall_csoc_egress_allow_openvpn.firewall_egress_target_tags}"]
+}
+
+output "firewall_csoc_ingress_outbound_ssh_target_tags" {
+  value = ["${module.firewall_csoc_ingress_outbound_ssh.firewall_egress_target_tags}"]
 }
 
 // VPC-CSOC-PRIVATE
@@ -172,7 +182,7 @@ output "firewall-csoc-private-inbound-ssh-self-link" {
 }
 
 output "firewall-csoc-private-inbound-ssh-target-tags" {
-  value = "${module.firewall-csoc-private-inbound-ssh.firewall_target_tags}"
+  value = ["${module.firewall-csoc-private-inbound-ssh.firewall_target_tags}"]
 }
 
 output "firewall-csoc-private-inbound-qualys-udp-self-link" {
@@ -191,12 +201,16 @@ output "firewall-csoc-private-inbound-qualys-tcp-target-tags" {
   value = "${module.firewall-csoc-private-inbound-qualys-tcp.firewall_target_tags}"
 }
 
+output "firewall-csoc-private-inboud-gke-target-tags" {
+  value = "${module.firewall-inbound-gke.firewall_target_tags}"
+}
+
 output "firewall-csoc-private-outbound-ssh-self-link" {
   value = "${module.firewall-csoc-private-outbound-ssh.firewall_egress_self_link}"
 }
 
 output "firewall-csoc-private-outbound-ssh-target-tags" {
-  value = "${module.firewall-csoc-private-outbound-ssh.firewall_egress_target_tags}"
+  value = ["${module.firewall-csoc-private-outbound-ssh.firewall_egress_target_tags}"]
 }
 
 output "firewall-csoc-private-outbound-qualys-update-self-link" {
@@ -228,5 +242,9 @@ output "firewall-csoc-private-outbound-proxy-self-link" {
 }
 
 output "firewall-csoc-private-outbound-proxy-target-tags" {
-  value = "${module.firewall-csoc-private-outbound-proxy.firewall_egress_target_tags}"
+  value = ["${module.firewall-csoc-private-outbound-proxy.firewall_egress_target_tags}"]
+}
+
+output "firewall-csoc-private-outbound-gke-target-tags" {
+  value = ["${module.firewall-outbound-gke.firewall_egress_target_tags}"]
 }

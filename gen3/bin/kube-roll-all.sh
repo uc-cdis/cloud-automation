@@ -11,6 +11,9 @@ export GEN3_HOME="${GEN3_HOME:-$(cd "${_roll_all_dir}/../.." && pwd)}"
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
+# Set flag, so we can avoid doing things over and over
+export GEN3_ROLL_ALL=true
+
 gen3 kube-setup-workvm
 # kube-setup-roles runs before kube-setup-secrets -
 #    setup-secrets may launch a job that needs the useryaml-role
@@ -56,6 +59,8 @@ fi
 if g3k_manifest_lookup .versions.fence 2> /dev/null; then
   # data ecosystem sub-commons may not deploy fence ...
   gen3 kube-setup-fence
+elif g3k_manifest_lookup .versions.fenceshib 2> /dev/null; then
+  gen3 kube-setup-fenceshib
 else
   gen3_log_info "no manifest entry for fence"
 fi
@@ -64,12 +69,12 @@ if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
   gen3 kube-setup-ssjdispatcher
 fi
 
-if g3kubectl get cronjob usersync >/dev/null 2>&1; then
-    gen3 job run "${GEN3_HOME}/kube/services/jobs/usersync-cronjob.yaml"
+if g3kubectl get cronjob etl >/dev/null 2>&1; then
+    gen3 job run etl-cronjob
 fi
 
-if g3kubectl get configmap manifest-google >/dev/null 2>&1; then
-  gen3 kube-setup-google
+if g3kubectl get cronjob usersync >/dev/null 2>&1; then
+    gen3 job run usersync-cronjob
 fi
 
 if g3k_manifest_lookup .versions.sheepdog 2> /dev/null; then
@@ -90,14 +95,16 @@ else
   gen3_log_info "not deploying arranger - no manifest entry for .versions.arranger"
 fi
 
-#
-# Do not do this - it may interrupt a running ETL
-#
-#if g3k_manifest_lookup .versions.spark 2> /dev/null; then
-#  gen3 kube-setup-spark
-#else
-#  gen3_log_info "not deploying spark (required for ES ETL) - no manifest entry for .versions.spark"
-#fi
+if g3k_manifest_lookup .versions.spark 2> /dev/null; then
+  #
+  # Only if not already deployed - otherwise it may interrupt a running ETL
+  #
+  if ! g3kubectl get deployment spark-deployment > /dev/null 2>&1; then
+    gen3 kube-setup-spark
+  fi
+else
+  gen3_log_info "not deploying spark (required for ES ETL) - no manifest entry for .versions.spark"
+fi
 
 if g3k_manifest_lookup .versions.guppy 2> /dev/null; then
   gen3 kube-setup-guppy
@@ -192,8 +199,11 @@ else
   gen3_log_info "not deploying portal - no manifest entry for .versions.portal"
 fi
 
+gen3_log_info "enable network policy"
+gen3 kube-setup-networkpolicy "enable" || true
+gen3_log_info "apply pod scaling"
+gen3 scaling apply all || true
 gen3_log_info "roll-all" "roll completed successfully!"
-gen3 kube-setup-networkpolicy "enable"
 
 # this requires AWS permissions ...
 #gen3 dashboard gitops-sync || true

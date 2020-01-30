@@ -58,17 +58,22 @@ gen3_jupyter_namespace_setup() {
   local notebookNamespace
   local namespace
   
-  namespace="$(gen3 db namespace)"
-  notebookNamespace="$(gen3_jupyter_namespace)"
+  # avoid doing this overly often
+  if gen3_time_since jupyter_setup is 300; then
+    namespace="$(gen3 db namespace)"
+    notebookNamespace="$(gen3_jupyter_namespace)"
 
-  if ! g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
-    gen3_log_info "gen3_jupyter_namespace_setup" "creating k8s namespace: ${notebookNamespace}" 
-    g3kubectl create namespace "${notebookNamespace}"
+    if ! g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
+      gen3_log_info "gen3_jupyter_namespace_setup" "creating k8s namespace: ${notebookNamespace}" 
+      g3kubectl create namespace "${notebookNamespace}"
+    else
+      gen3_log_info "gen3_jupyter_namespace_setup" "I think k8s namespace ${notebookNamespace} already exists"
+    fi
+    g3kubectl label namespace "${notebookNamespace}" "role=usercode" > /dev/null 2>&1 || true
+    g3kubectl label namespace "${namespace}" "role=gen3" > /dev/null 2>&1 || true
   else
-    gen3_log_info "gen3_jupyter_namespace_setup" "I think k8s namespace ${notebookNamespace} already exists"
+    gen3_log_info "Skipping jupyter namespace setup - already did it in last 5 minutes"
   fi
-  g3kubectl label namespace "${notebookNamespace}" "role=usercode" > /dev/null 2>&1 || true
-  g3kubectl label namespace "${namespace}" "role=gen3" > /dev/null 2>&1 || true
 }
 
 
@@ -124,7 +129,7 @@ case "$command" in
     gen3_jupyter_upgrade "$@"
     ;;
   *)
-    gen3_db_help
+    gen3 help jupyter
     ;;
 esac
 exit $?

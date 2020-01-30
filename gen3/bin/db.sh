@@ -380,6 +380,173 @@ gen3_db_namespace() {
 }
 
 #
+# Given a gen3 server name, determine the RDS instance id
+#
+gen3_db_server_rds_id() {
+  local address
+  local serverInfo
+
+  if ! serverInfo="$(gen3_db_server_info "$@")"; then
+    return 1
+  fi
+  local address
+  if ! address="$(jq -e -r .db_host <<<"$serverInfo")"; then
+    gen3_log_err "unable to determine address for $@"
+    return 1
+  fi
+  aws rds describe-db-instances | jq -e -r --arg address "$address" '.DBInstances[] | select(.Endpoint.Address==$address) | .DBInstanceIdentifier'
+}
+
+#
+# Take an RDS full server snapshot
+#
+# @param serverName
+# @return echo snapshotId
+#
+gen3_db_snapshot_take() {
+  local snapshotId
+  local serverName
+  local dryRun=false
+
+  if [[ $# -gt 0 ]]; then
+    serverName="$1"
+    shift
+  else
+    gen3_log_err "no server specified"
+    return 1
+  fi
+  if [[ "$1" =~ ^-*dry-?run ]]; then
+    dryRun=true
+  fi
+  local instanceId
+  if ! instanceId="$(gen3_db_server_rds_id "$serverName")"; then
+    gen3_log_err "failed to find rds instance id for server: $serverName"
+    return 1
+  fi
+  snapshotId="gen3-snapshot-${serverName}-$(date -u +%Y%m%d-%H%M%S)"
+  if [[ "$dryRun" == true ]]; then
+    gen3_log_info "dryrun mode - not taking snapshot"
+  else
+    aws rds create-db-snapshot --db-snapshot-identifier "$snapshotId" --db-instance-identifier "$instanceId"
+  fi
+}
+
+#
+# List the snapshots associated with a particular server
+#
+gen3_db_snapshot_list() {
+  local serverName
+
+  if [[ $# -gt 0 ]]; then
+    serverName="$1"
+    shift
+  else
+    gen3_log_err "no server specified"
+    return 1
+  fi
+  local instanceId
+  if ! instanceId="$(gen3_db_server_rds_id "$serverName")"; then
+    gen3_log_err "failed to find rds instance id for server: $serverName"
+    return 1
+  fi
+  aws rds describe-db-snapshots --db-instance-identifier "$instanceId"
+}
+
+
+#
+# pg_dump the specified database to stdout
+#
+# @param serviceName to backup
+# @return 0 on success, backup to stdout
+#
+gen3_db_backup() {
+  local serviceName="$1"
+  local creds
+  local database
+  local username
+  local password
+  local host
+  
+  if [[ -z "$serviceName" ]]; then
+    gen3_log_err "serviceName not provided"
+    return 1
+  fi
+  if ! creds="$(gen3_db_service_creds "$serviceName")"; then
+    gen3_log_err "unable to find creds for service $serviceName"
+    return 1
+  fi
+
+  database=$(jq -r ".db_database" <<< "$creds")
+  username=$(jq -r ".db_username" <<< "$creds")
+  password=$(jq -r ".db_password" <<< "$creds")
+  host=$(jq -r ".db_host" <<< "$creds")
+  PGPASSWORD="$password" pg_dump "--username=$username" "--dbname=$database" "--host=$host" --no-password --no-owner --no-privileges
+}
+
+#
+# pg_restore to a database with the given name
+#         on the given server
+#
+# @param serviceName to restore to
+# @param backupFile to restore from
+# @param --dryrun optional
+# @return 0 on success
+#
+gen3_db_restore() {
+  local serviceName
+  local creds
+  local database
+  local username
+  local password
+  local host
+  local backupFile
+  
+  if [[ $# -lt 2 ]]; then
+    gen3_log_err "service and backupFile are required arguments"
+    return 1
+  fi
+  serviceName="$1"
+  shift
+  if [[ -z "$serviceName" ]]; then
+    gen3_log_err "serviceName not provided"
+    return 1
+  fi
+  backupFile="$1"
+  shift
+  if [[ ! -f "$backupFile" ]]; then
+    gen3_log_err "backup file does not exist: $backupFile"
+    return 1
+  fi
+
+  local dryRun=false
+
+  if [[ "$1" =~ ^-*dry-?run ]]; then
+    dryRun=true
+    shift
+  fi
+
+  if ! creds="$(gen3_db_service_creds "$serviceName")"; then
+    gen3_log_err "unable to find creds for service $serviceName"
+    return 1
+  fi
+
+  username=$(jq -r ".db_username" <<< "$creds")
+  password=$(jq -r ".db_password" <<< "$creds")
+  host=$(jq -r ".db_host" <<< "$creds")
+  local dbname="${serviceName}_$(gen3_db_namespace)_restore_$(date -u +%Y%m%d_%H%M%S)"
+  if [[ "$dryRun" == false ]]; then
+    gen3_log_info "creating database $dbname"
+    gen3 psql "$serviceName" -c "CREATE DATABASE ${dbname};" 1>&2
+    gen3_log_info "restoring $dbname from $backupFile"
+    gen3 psql "$serviceName" -d "$dbname" -f "$backupFile" 1>&2
+    jq -r --arg dbname "$dbname" '.db_database = $dbname' <<< "$creds"
+  else
+    gen3_log_info "dryRun not creating new database"
+  fi
+}
+
+
+#
 # Create a new database (user, secret, ...) for a service
 #
 # @param service name of the service
@@ -493,6 +660,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   command="$1"
   shift
   case "$command" in
+    "backup")
+      gen3_db_backup "$@"
+      ;;
     "creds")
       gen3_db_service_creds "$@";
       ;;
@@ -507,6 +677,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "reset")
       gen3_db_reset "$@"
+      ;;
+    "restore")
+      gen3_db_restore "$@"
       ;;
     "server")
       if [[ "$1" == "list" ]]; then
@@ -525,6 +698,18 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "setup")
       gen3_db_service_setup "$@"
+      ;;
+    "snapshot")
+      if [[ "$1" == "list" ]]; then
+        shift
+        gen3_db_snapshot_list "$@"
+      elif [[ "$1" == "take" ]]; then
+        shift
+        gen3_db_snapshot_take "$@"
+      else
+        gen3_db_help
+        exit 1
+      fi
       ;;
     *)
       gen3_db_help
