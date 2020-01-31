@@ -30,7 +30,7 @@ fi
 
 # create service account and a assume role attach to it
 gen3 awsrole create-assumerole fence
-# gen3 awsrole annotate-sa fence "${namespace}"-fence-role
+gen3 awsrole annotate-sa fence "${namespace}"-fence-role
 
 
 # deploy fence
