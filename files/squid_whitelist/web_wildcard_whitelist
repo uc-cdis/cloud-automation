@@ -3,7 +3,10 @@
 .apache.org
 .archive.canonical.com
 .bioconductor.org
+.bionimbus.org
 .bitbucket.org
+.bloodpac.org
+.braincommons.org
 .bsc.es
 .cancer.gov
 .centos.org
@@ -28,12 +31,15 @@
 .hashicorp.com
 .jenkins-ci.org
 .k8s.io
+.kidsfirstdrc.org
 .letsencrypt.org
 .maven.org
 .metacpan.org
+.niaiddata.org
 .nih.gov
 .nodesource.com
 .novocraft.com
+.occ-data.org
 .oicr.on.ca
 .osuosl.org
 .perl.org
