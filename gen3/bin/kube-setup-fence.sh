@@ -11,7 +11,7 @@ gen3_load "gen3/lib/kube-setup-init"
 gen3 update_config fence-yaml-merge "${GEN3_HOME}/apis_configs/yaml_merge.py"
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
-if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
+if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # create database
   # Initialize fence database and user list
   cd "$(gen3_secrets_folder)"
   if [[ ! -f .rendered_fence_db ]]; then
