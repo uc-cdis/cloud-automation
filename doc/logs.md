@@ -136,7 +136,7 @@ gen3 logs s3 start=2020-01-01 end=tomorrow prefix=s3://s3logs-s3logs-mjff-databu
 ```
 start=2020-01-01
 end=tomorrow
-for prefix in s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 s3://bhc-bucket-logs/ s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket2020; do 
+for prefix in s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 s3://bhc-bucket-logs/ s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/; do 
 gen3 logs s3 start=$start end=$end prefix=$prefix | grep 'username' | grep GET | awk -v bucket=$prefix '{ print gensub(/\[/, "", "g", $3) "\t" $9 "\t" gensub(/&.*/, "", "g", gensub(/.+username=/, "", "g", $11)) "\t" bucket }' | sort
 done
 ```
@@ -146,7 +146,7 @@ or
 ```
 start=2020-01-01
 end=tomorrow
-for prefix in s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 s3://bhc-bucket-logs/ s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket2020; do 
+for prefix in s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 s3://bhc-bucket-logs/ s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket; do 
 gen3 logs s3 start=$start end=$end filter="whoWhatWhen" prefix=$prefix
 done
 ```

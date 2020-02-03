@@ -10,7 +10,7 @@ gen3_load "gen3/lib/g3k_manifest"
 
 mkdir -p "$(gen3_secrets_folder)/apis_configs"
 
-if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update indexd secrets
+if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # update indexd secrets
   #
   # Setup the files that will become secrets in "$(gen3_secrets_folder)/apis_configs"
   #
@@ -116,7 +116,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then
   fi
 fi
 
-if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update fence secrets
+if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # update fence secrets
   cd "$(gen3_secrets_folder)"
   # Generate RSA private and public keys.
   # TODO: generalize to list of key names?
@@ -317,7 +317,7 @@ fi
 ##+ if we need to make a creds file:
 ##+ jq -r '.mailgun | keys[] as $k | "\($k) = \"\(.[$k])\""' creds.json > ${credsFile}
 
-if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update secrets
+if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # update secrets
   if ! g3kubectl get secrets/mailgun-creds > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r '.mailgun' creds.json > "$credsFile"
@@ -349,7 +349,7 @@ fi
   fi
 )
 
-if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then  # update secrets
+if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then  # update secrets
   cd "$(gen3_secrets_folder)"
   #
   # Create the 'sheepdog' and 'peregrine' postgres user if necessary
