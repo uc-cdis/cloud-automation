@@ -194,7 +194,13 @@ spec:
                   exitcode=$?
                 else
                   if [[ -f /mnt/shared/user.yaml ]]; then
-                    output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml 2>&1)
+                    if [ ! -z "$DBGAP_BACKUP_BUCKET" || ! -z "$DBGAP_DOWNLOAD_FOLDER"]; then
+                      output=$(fence-create dbgap-download-access-files --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER 2>&1)
+                      aws s3 cp --recursive /mnt/shared/$(DBGAP_DOWNLOAD_FOLDER)/ $(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                      output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER 2>&1)
+                    else
+                      output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml 2>&1)
+                    fi
                   else
                     output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml 2>&1)
                   fi

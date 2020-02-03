@@ -165,9 +165,13 @@ spec:
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             if [ "$SYNC_FROM_DBGAP" = True ]; then
-              fence-create dbgap-download-access-files --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER)
-              aws s3 cp --recursive /mnt/shared/$(DBGAP_DOWNLOAD_FOLDER)/ $(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
-              fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER)
+              if [ ! -z "${DBGAP_BACKUP_BUCKET}" || ! -z "{$DBGAP_DOWNLOAD_FOLDER}"]; then
+                fence-create dbgap-download-access-files --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER)
+                aws s3 cp --recursive /mnt/shared/$(DBGAP_DOWNLOAD_FOLDER)/ $(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER)
+              else
+                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml
+              fi
             else
               fence-create sync --arborist http://arborist-service --yaml /var/www/fence/user.yaml
             fi

@@ -28,14 +28,6 @@ if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   touch "$(gen3_secrets_folder)/.rendered_fence_db"
 fi
 
-# create service account and a assume role attach to it
-gen3_log_info "Creating role for fence sa"
-gen3 awsrole create-assumerole fence
-gen3_log_info "Annotating fence sa role to service account"
-gen3 awsrole annotate-sa fence "${namespace}"-fence-role
-gen3_log_info "Fence kubernete sa got created with role attached"
-
-
 # deploy fence
 gen3 roll fence
 # deploy presigned-url-fence
