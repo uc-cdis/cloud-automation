@@ -29,7 +29,7 @@ if [ "$deployVersion" -gt  "1" ]; then
 
   if [[ -f "$(gen3_secrets_folder)/g3auto/arborist/dbcreds.json" ]]; then
     # Initialize arborist database and user list
-    cd "${WORKSPACE}/${vpc_name}"
+    cd "$(gen3_secrets_folder)"
     if [[ ! -f "$(gen3_secrets_folder)/.rendered_arborist_db" ]]; then
       gen3 job run arboristdb-create
       echo "Waiting 10 seconds for arboristdb-create job"

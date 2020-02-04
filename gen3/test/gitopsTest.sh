@@ -213,7 +213,7 @@ test_time_since() {
 test_secrets_folder() {
   vpc_name=SecretName
   secretFolder="$(gen3_secrets_folder)"
-  [[ "$secretFolder" == "$WORKSPACE/$vpc_name" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
+  [[ "$secretFolder" == "$(dirname $GEN3_HOME)/Gen3Secrets" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
 }
 
 shunit_runtest "test_configmaps_folder_dryrun" "local,gitops"

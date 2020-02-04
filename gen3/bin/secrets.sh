@@ -35,10 +35,11 @@ gen3_secrets_init_git() {
       # ensure a backup exists
       # see here for info about local backup config
       #   https://matthew-brett.github.io/curious-git/curious_remotes.html
-      if [[ ! -d "${WORKSPACE}/backup" ]]; then
-        echo -e "$(green_color "INFO: Initializing backup for $(gen3_secrets_folder)")"
-        git init --bare "${WORKSPACE}/backup/secrets.git"
-        git remote add secrets_backup "${WORKSPACE}/backup/secrets.git"
+      local backup="$(dirname "$(gen3_secrets_folder)")/backup"
+      if [[ ! -d "$backup" ]]; then
+        gen3_log_info "Initializing backup for $(gen3_secrets_folder)"
+        git init --bare "$backup/secrets.git"
+        git remote add secrets_backup "$backup/secrets.git"
       fi
 
       if [[ ! -f "$(gen3_secrets_folder)/.gitignore" ]]; then
