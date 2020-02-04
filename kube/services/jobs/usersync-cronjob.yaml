@@ -61,6 +61,14 @@ spec:
             - name: projects
               configMap:
                 name: "projects"
+            - name: aws-iam-token
+              projected:
+                defaultMode: 420
+                sources:
+                  - serviceAccountToken:
+                      audience: sts.amazonaws.com
+                      expirationSeconds: 86400
+                      path: token
           containers:
           - name: fence
             GEN3_FENCE_IMAGE
@@ -86,6 +94,14 @@ spec:
                     name: manifest-global
                     key: dbgap_download_folder
                     optional: true
+              - name: AWS_ROLE_ARN
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: aws_sa_rule_arn
+                    optional: true
+              - name: AWS_WEB_IDENTITY_TOKEN_FILE
+                value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
               - name: SLACK_SEND_DBGAP
                 valueFrom:
                   configMapKeyRef:
@@ -164,6 +180,9 @@ spec:
               - name: "projects"
                 mountPath: "/var/www/fence/projects.yaml"
                 subPath: "projects.yaml"
+              - name: "aws-iam-token"
+                mountPath: "/var/run/secrets/eks.amazonaws.com/serviceaccount"
+                readOnly: true
             command: ["/bin/bash" ]
             args:
               - "-c"
@@ -196,7 +215,7 @@ spec:
                   if [[ -f /mnt/shared/user.yaml ]]; then
                     if [ ! -z "$DBGAP_BACKUP_BUCKET" || ! -z "$DBGAP_DOWNLOAD_FOLDER"]; then
                       output=$(fence-create dbgap-download-access-files --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER 2>&1)
-                      aws s3 cp --recursive /mnt/shared/$(DBGAP_DOWNLOAD_FOLDER)/ $(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                      aws s3 cp --recursive /mnt/shared/$(DBGAP_DOWNLOAD_FOLDER)/ s3://$(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
                       output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER 2>&1)
                     else
                       output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml 2>&1)

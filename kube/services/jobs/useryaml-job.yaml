@@ -167,7 +167,7 @@ spec:
             if [ "$SYNC_FROM_DBGAP" = True ]; then
               if [ ! -z "${DBGAP_BACKUP_BUCKET}" || ! -z "{$DBGAP_DOWNLOAD_FOLDER}"]; then
                 fence-create dbgap-download-access-files --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER)
-                aws s3 cp --recursive /mnt/shared/$(DBGAP_DOWNLOAD_FOLDER)/ $(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                aws s3 cp --recursive /mnt/shared/$(DBGAP_DOWNLOAD_FOLDER)/ s3://$(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
                 fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER)
               else
                 fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml
