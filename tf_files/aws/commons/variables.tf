@@ -321,3 +321,10 @@ variable "squid_bootstrap_script" {
   description = "Bootstrapt script for ha-squid instances"
   default     = "squidmvm.sh"
 }
+
+variable "squid_extra_vars" {
+  description = "additional variables to pass along with the bootstrapscript"
+  type        = "list"
+  #default     = ["squid_image=master", "squid_version=squid-4.8"]
+}
+

@@ -28,6 +28,7 @@ module "cdis_vpc" {
   squid_instance_drive_size      = "${var.squid_instance_drive_size}"
   parallel_proxies               = "${var.parallel_proxies}"
   squid_bootstrap_script         = "${var.squid_bootstrap_script}"
+  squid_extra_vars               = "${var.squid_extra_vars}"
 }
 
 # logs bucket for elb logs
