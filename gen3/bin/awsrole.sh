@@ -182,7 +182,7 @@ gen3_awsrole_list() {
 function create_assume_role_policy() {
   local saname=${1}
   local account_id=$(gen3_aws_run aws sts get-caller-identity --query Account --output text)
-  local namespace=$(g3kubectl config view | grep namespace: | cut -d':' -f2 | cut -d' ' -f2)
+  local namespace=$(gen3 db namespace)
   local tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_policy.XXXXXX")
   local issuer_url=$(gen3_aws_run aws eks describe-cluster \
                        --name ${vpc_name} \
@@ -231,7 +231,7 @@ EOF
 gen3_awsrole_assumerole() {
   local saname=${1}
   #creat tmp policy and attach to the assume role
-  local namespace=$(g3kubectl config view | grep namespace: | cut -d':' -f2 | cut -d' ' -f2)
+  local namespace=$(gen3 db namespace)
   local role_name="${namespace}-${saname}-role"
   local assume_role_policy_path="$(create_assume_role_policy ${saname})"
 
@@ -258,7 +258,7 @@ gen3_awsrole_assumerole() {
 #
 gen3_awsrole_createsa() {
   local saname=${1}
-  local namespace=$(g3kubectl config view | grep namespace: | cut -d':' -f2 | cut -d' ' -f2)
+  local namespace=$(gen3 db namespace)
 
   if g3kubectl get sa | grep "${saname}" > /dev/null 2>&1; then
     gen3_log_info "Service account-${saname} exists. Skipping service account creation."
@@ -277,7 +277,7 @@ gen3_awsrole_createsa() {
 gen3_awsrole_annotatesa() {
   local saname=${1}
   local rolename=${2}
-  local namespace=$(g3kubectl config view | grep namespace: | cut -d':' -f2 | cut -d' ' -f2)
+  local namespace=$(gen3 db namespace)
 
   gen3_log_info "Annotating service account-${saname} with role-${rolename} "
 
@@ -286,7 +286,10 @@ gen3_awsrole_annotatesa() {
     return 1
   fi
 
-  gen3_awsrole_createsa "${saname}"
+  if ! g3kubectl get sa | grep "${saname}" > /dev/null 2>&1; then
+    gen3_log_err "Service account-${saname} doesn't exist. "
+    return 1
+  fi
 
   rolearn=$(gen3_aws_run aws iam get-role --role-name ${rolename}| jq -r '.Role.Arn')
   gen3_log_info "The Role ARN attached to service account is ${rolename}"
@@ -326,9 +329,6 @@ gen3_awsrole() {
       ;;
     'list' | 'ls')
       gen3_awsrole_list "$@"
-      ;;
-    'create-sa')
-      gen3_awsrole_createsa "$@"
       ;;
     'create-assumerole')
       gen3_awsrole_assumerole "$@"
