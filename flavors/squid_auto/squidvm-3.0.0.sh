@@ -34,7 +34,9 @@ then
 else
     #OIFS=$IFS
     IFS=';' read -ra ADDR <<< "$1"
+    echo ${ADDR[@]}
     for i in "${ADDR[@]}"; do
+      echo $i
       if [[ $i = *"cwl_group"* ]];
       then
         CWL_GROUP="$(echo ${i} | cut -d= -f2)"
