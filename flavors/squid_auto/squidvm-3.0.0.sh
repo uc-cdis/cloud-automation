@@ -16,8 +16,8 @@ SQUID_CONFIG_DIR="/etc/squid"
 SQUID_LOGS_DIR="/var/log/squid"
 SQUID_CACHE_DIR="/var/cache/squid"
 SQUID_PID_DIR="/var/run/squid"
-SQUID_IMAGE_TAG="feat_ha-squid"
-#SQUID_VERSION="squid-4.8"
+SQUID_IMAGE_TAG="master" #"feat_ha-squid"
+SQUID_VERSION="squid-4.8"
 
 HOSTNAME=$(command -v hostname)
 
@@ -38,6 +38,12 @@ else
       if [[ $i = *"cwl_group"* ]];
       then
         CWL_GROUP="$(echo ${i} | cut -d= -f2)"
+      else [[ ${i} = *"squid_image"* ]];
+      then
+        SQUID_IMAGE_TAG="$(echo ${i} | cut -d= -f2)"
+      else [[ ${i} = *"squid_version"* ]];
+      then
+        SQUID_VERSION="$(echo ${i} | cut -d= -f2)"
       fi
     done
     echo $1

@@ -129,7 +129,7 @@ hostnamectl set-hostname ${var.env_squid_name}
 
   cd /home/ubuntu
 
-  bash "${var.bootstrap_path}${var.bootstrap_script}" cwl_group="${var.env_log_group}" 2>&1 
+  bash "${var.bootstrap_path}${var.bootstrap_script}" cwl_group="${var.env_log_group}";${join(";",var.extra_vars)} 2>&1
   git checkout master
 ) > /var/log/bootstrapping_script.log
 EOF

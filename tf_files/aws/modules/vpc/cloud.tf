@@ -84,6 +84,7 @@ module "squid-auto" {
   route_53_zone_id           = "${aws_route53_zone.main.id}"
   squid_instance_type        = "${var.squid_instance_type}"
   bootstrap_script           = "${var.squid_bootstrap_script}"
+  extra_vars                 = "${var.squid_extra_vars}"
 }
 
 module "data-bucket" {

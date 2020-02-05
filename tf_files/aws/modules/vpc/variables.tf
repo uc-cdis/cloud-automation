@@ -70,3 +70,10 @@ variable  "parallel_proxies" {
   description = "Single instance plus HA"
   default     = false
 }
+
+variable "squid_extra_vars" {
+  description = "additional variables to pass along with the bootstrapscript"
+  type        = "list"
+  default     = ["squid_image=master", "squid_version=squid-4.8"]
+}
+
