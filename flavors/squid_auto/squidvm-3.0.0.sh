@@ -38,10 +38,10 @@ else
       if [[ $i = *"cwl_group"* ]];
       then
         CWL_GROUP="$(echo ${i} | cut -d= -f2)"
-      else [[ ${i} = *"squid_image"* ]];
+      elif [[ ${i} = *"squid_image"* ]];
       then
         SQUID_IMAGE_TAG="$(echo ${i} | cut -d= -f2)"
-      else [[ ${i} = *"squid_version"* ]];
+      elif [[ ${i} = *"squid_version"* ]];
       then
         SQUID_VERSION="$(echo ${i} | cut -d= -f2)"
       fi
