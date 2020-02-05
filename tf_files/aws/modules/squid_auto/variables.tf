@@ -84,3 +84,8 @@ variable "private_kube_route" {
 variable "route_53_zone_id" {
   description = "DNS zone for .internal.io"
 }
+
+variable "branch" {
+  description = "branch to use in bootstrap script"
+  default     = "master"
+}

@@ -131,11 +131,11 @@ fi
 iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3129
 iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 3130
   
-$(command -v docker) run --name squid -p 3128:3128 -p 3129:3129 -p 3130:3130 -d \
+$(command -v docker) run --name squid --network=host -d \
     --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
     --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
     --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
-    --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR} \
+    --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
     quay.io/cdis/squid:${SQUID_IMAGE_TAG}
 exit 0
   
@@ -261,12 +261,11 @@ function main(){
   init
   # If we don't restart the service, iptables might not load properly sometimes
   systemctl restart docker
-  DOCKER=$(command -v docker)
-  ${DOCKER} run --name squid -p 3128:3128 -p 3129:3129 -p 3130:3130 -d \
+  $(command -v docker) run --name squid --network=host -d \
       --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
       --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
       --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
-      --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR} \
+      --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
        quay.io/cdis/squid:${SQUID_IMAGE_TAG}
 }
 

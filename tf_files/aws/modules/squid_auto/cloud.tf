@@ -109,8 +109,11 @@ cd /home/ubuntu/cloud-automation
 git pull
 
 # This is needed temporarily for testing purposes ; before merging the code to master
-git checkout feat/ha-squid
-git pull
+if [ "${var.branch}" != "master" ];
+then
+  git checkout "${var.branch}"
+  git pull
+fi
 
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 
@@ -130,9 +133,6 @@ hostnamectl set-hostname ${var.env_squid_name}
   git checkout master
 ) > /var/log/bootstrapping_script.log
 EOF
-##| tee --append /var/log/bootstrapping_script.log
-#sed -i "s/PRIVATE_KUBE_ROUTETABLE_ID/${data.aws_route_table.private_kube_route_table.id}/" /home/ubuntu/squid_auto_user_variable
-#sed -i "s/DNS_ZONE_ID/${data.aws_route53_zone.vpczone.zone_id}/" /home/ubuntu/squid_auto_user_variable
 
 lifecycle {
     create_before_destroy = true
