@@ -33,6 +33,7 @@ then
     echo "No arguments supplied"
 else
     #OIFS=$IFS
+    echo $1
     IFS=';' read -ra ADDR <<< "$1"
     echo ${ADDR[@]}
     for i in "${ADDR[@]}"; do
@@ -50,8 +51,6 @@ else
     done
     echo $1
 fi
-
-cd ${HOME}
 
 
 function install_docker(){
