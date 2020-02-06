@@ -45,7 +45,8 @@ do
     FLAG=$(( FLAG + 1 ))
     echo "There has been a change in ${i}"
     cat ${MAIN_HOME}/cloud-automation/files/squid_whitelist/${i} |tee /etc/squid/${i}
-    docker cp /etc/squid/${i} squid:/etc/squid/${i}
+    # mounting the volume as RO from now on
+    # docker cp /etc/squid/${i} squid:/etc/squid/${i}
   fi
 done 
 
