@@ -1,0 +1,7 @@
+Chef Inspec is a tool that is used to audit infrastructure. It is based off of the ruby language. Chef Inspec can be used to test individual systems as well as cloud infrastructures such as AWS GCP AZURE.
+Chef Inspec can execute a single test or multiple test, but in production environments you normally create a profile and then underneath that profile all the test are executed. When executing the test you point to the profile name that was created and Inspec knows how to execute the test from there. 
+The test are underneath the control directory with .rb extension.
+
+I have set this up two ways to run, the first way is to run a cronjob from an EC2 instance using the bash script and once the test is executed the results will be uploaded to an s3 bucket.
+The second way to execute the Chef Inspec test is to create a Kubernetes Cron Job to run on EKS cluster per environment. I created a Dockerfile using Centos7 some refactoring could be done to make the image smaller. Initially I set this up to run by injecting credentials using a Kubernetes secret object mounted as a read-only volume in order for the profile to be able to execute the test in a specific environment. You can create an IAM role as well in order to execute the Inspec test.
+With the Dockerfile you need to create a docker image for your ECR repository and then add that image into the Kubernetes Cron Job Yaml and deploy the yaml to create the Kubernetes object.
