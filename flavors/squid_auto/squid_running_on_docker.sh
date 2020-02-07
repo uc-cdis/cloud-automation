@@ -53,6 +53,10 @@ else
 fi
 
 
+function install_basics(){
+  apt -y install atop
+}
+
 function install_docker(){
 
   ###############################################################
@@ -255,6 +259,7 @@ function set_user() {
 
 
 function init(){
+  install_basics
   install_docker
   set_squid_config
   configure_iptables

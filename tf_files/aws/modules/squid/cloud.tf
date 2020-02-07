@@ -10,8 +10,51 @@
 #  }
 #}
 
+###############################################################
+# IAM
+###############################################################
+resource "aws_iam_role" "cluster_logging_cloudwatch" {
+  count = "${var.deploy_single_proxy ? 1 : 0 }"
+  name  = "${var.env_vpc_name}_cluster_logging_cloudwatch"
+  path  = "/"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
+            "Effect": "Allow",
+            "Sid": ""
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
+  count  = "${var.deploy_single_proxy ? 1 : 0 }"
+  name   = "${var.env_vpc_name}_cluster_logging_cloudwatch"
+  policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
+  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+}
+
+resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
+  count  = "${var.deploy_single_proxy ? 1 : 0 }"
+  name   = "${var.env_vpc_name}_cluster_logging_cloudwatch"
+  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+}
+
+
+
+###############################################################
+# AMI
+###############################################################
 resource "aws_ami_copy" "squid_ami" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
+  count             = "${var.deploy_single_proxy ? 1 : 0 }"
   name              = "ub16-squid-crypt-${var.env_vpc_name}-1.0.2"
   description       = "A copy of ubuntu16-squid-1.0.2"
   source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
@@ -33,7 +76,7 @@ resource "aws_ami_copy" "squid_ami" {
 }
 
 data "aws_ami" "public_squid_ami" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
+  count       = "${var.deploy_single_proxy ? 1 : 0 }"
   most_recent = true
 
   filter {
@@ -44,10 +87,13 @@ data "aws_ami" "public_squid_ami" {
   owners = ["${var.ami_account_id}"]
 }
 
-# Security groups for the CSOC squid proxy
 
+
+###############################################################
+# SEC GROUPS 
+###############################################################
 resource "aws_security_group" "login-ssh" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
+  count       = "${var.deploy_single_proxy ? 1 : 0 }"
   name        = "${var.env_vpc_name}-squid-login-ssh"
   description = "security group that only enables ssh from VPC nodes and CSOC"
   vpc_id      = "${var.env_vpc_id}"
@@ -70,7 +116,7 @@ resource "aws_security_group" "login-ssh" {
 }
 
 resource "aws_security_group" "proxy" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
+  count       = "${var.deploy_single_proxy ? 1 : 0 }"
   name        = "${var.env_vpc_name}-squid-proxy"
   description = "allow inbound tcp at 3128"
   vpc_id      = "${var.env_vpc_id}"
@@ -89,7 +135,7 @@ resource "aws_security_group" "proxy" {
 }
 
 resource "aws_security_group" "out" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
+  count       = "${var.deploy_single_proxy ? 1 : 0 }"
   name        = "${var.env_vpc_name}-squid-out"
   description = "security group that allow outbound traffics"
   vpc_id      = "${var.env_vpc_id}"
@@ -108,21 +154,42 @@ resource "aws_security_group" "out" {
 }
 
 
-# assigning elastic ip to the squid proxy
+###############################################################
+# Route53 
+###############################################################
+resource "aws_route53_record" "squid" {
+  count   = "${var.deploy_single_proxy ? 1 : 0 }"
+  zone_id = "${var.zone_id}"
+  name    = "cloud-proxy"
+  type    = "A"
+  ttl     = "300"
+  records = ["${aws_instance.proxy.*.private_ip}"]
+  lifecycle = {
+    ignore_changes = ["records"]
+  }
+}
 
+###############################################################
+# EIP 
+###############################################################
 resource "aws_eip" "squid" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
-  vpc = true
+  count = "${var.deploy_single_proxy ? 1 : 0 }"
+  vpc   = true
 }
 
 resource "aws_eip_association" "squid_eip" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
+  count         = "${var.deploy_single_proxy ? 1 : 0 }"
   instance_id   = "${aws_instance.proxy.id}"
   allocation_id = "${aws_eip.squid.id}"
 }
 
+
+
+###############################################################
+# EC2 
+###############################################################
 resource "aws_instance" "proxy" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
+  count                  = "${var.deploy_single_proxy ? 1 : 0 }"
   ami                    = "${aws_ami_copy.squid_ami.id}"
   subnet_id              = "${var.env_public_subnet_id}"
   instance_type          = "t2.micro"
@@ -130,7 +197,8 @@ resource "aws_instance" "proxy" {
   source_dest_check      = false
   key_name               = "${var.ssh_key_name}"
   vpc_security_group_ids = ["${aws_security_group.proxy.id}", "${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
-  iam_instance_profile   = "${var.env_instance_profile}" 
+#  iam_instance_profile   = "${var.env_instance_profile}" 
+  iam_instance_profile   = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
 
   tags {
     Name         = "${var.env_vpc_name} HTTP Proxy"
@@ -169,8 +237,3 @@ EOF
 }
 
 
-
-# cd /home/ubuntu
-# git clone https://github.com/uc-cdis/cloud-automation.git
-# chown -R ubuntu. /home/ubuntu
-# cat files/authorized_keys/ops_team |tee .ssh/autorized_keys

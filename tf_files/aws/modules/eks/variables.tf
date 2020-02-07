@@ -40,11 +40,11 @@ variable "kernel" {
 }
 
 variable "bootstrap_script" {
-  default = "bootstrap-2.0.0.sh"
+  default = "bootstrap.sh"
 }
 
 variable "jupyter_bootstrap_script" {
-  default =  "bootstrap-2.0.0.sh"
+  default =  "bootstrap.sh"
 }
 
 variable "jupyter_worker_drive_size" {
@@ -85,23 +85,23 @@ variable "oidc_eks_thumbprint" {
   default     = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
 }
 
-#variable "availability_zones" {
-#  description = "AZ to be used by EKS nodes"
-#  type        = "list"
-#  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
-#}
-
-variable "squid_image_search_criteria" {
-  description = "Search criteria for squid AMI look up"
-  default     = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
+variable "availability_zones" {
+  description = "AZ to be used by EKS nodes"
+  type        = "list"
+  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
 }
 
-variable "squid_instance_drive_size" {
-  description = "Volume size for the squid instance"
-  default     = 8
-}
-
-variable "url_test" {
-  description = "url for the lambda function to check for the proxy"
+variable "domain_test" {
+  description = "Domain for the lambda function to check for the proxy"
   default     = "gen3.io"
+}
+
+variable "ha_proxy" {
+  description = "Is HA squid deployed?"
+  default     = false
+}
+
+variable "dual_proxy" {
+  description = "Single instance and HA"
+  #default     = false
 }

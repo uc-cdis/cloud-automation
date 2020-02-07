@@ -34,7 +34,7 @@ There are mandatory variables, and there are a few other optionals that are set 
 
 Ex.
 ```
-fauziv1@cdistest_admin ~ % cat .local/share/gen3/cdistest/test-commons_eks/config.tfvars
+generic-commons@cdistest_admin ~ % cat .local/share/gen3/cdistest/test-commons_eks/config.tfvars
 vpc_name   = "test-commons"
 ec2_keyname = "test-commons_automation_dev"
 users_policy = "test-commons"
@@ -44,29 +44,34 @@ users_policy = "test-commons"
 
 ### 4.1 Required Variables
 
-* `vpc_name` usually the same name as the commons, this VPC must be an existing one, otherwise the execution will fail. Additionally, it worth mentioning that logging and VPC must exist before running this.
-* `ec2_keyname` and existing key pair so we can ssh into the worker nodes. There might be a better way to achieve this, but as for now the key should exist. At the end, we replace the keys for what we put in terraform.
-* `users_policy` This is the policy that was created before that allows the cluster to access the users bucket in bionimbus. Usually the same name as the VPC, but not always.
-   You may want to look up the policy in AWS console. It should something like `bucket_reader_cdis-gen3-users_fauziv1` the part you need to set the value of `users_policy` is just the part that differentiates the commons. In this case `fauziv1`
+| Name | Description | Type | Default | Required |
+|------|-------------|:----:|:-----:|:-----:|
+| vpc_name | Usually the same name as the commons. This VPC must exists arelady otherwise, the execution will fail. Additionally, it worth mentioning that logging and vpc must esist before running this. | string | n/a |
+| ec2_keyname | An existing key pair in EC2 that we want in the k8s worker nodes. | string | n/a |
+| availability_zones | AZs where to deploy the kubernetes worker nodes. Could be automated. | list |  ["us-east-1a","us-east-1d","us-east-1d"] |
+| users_policy | This is the policy that was created before that allows the cluster to access the users bucket in bionimbus. Usually the same name as the VPC, but not always. | string | n/a |
 
 ### 4.2 Optional Variables
 
-* `instance_type` Instance_type for workers by default this is set to t3.large, but it can be changed if needed.
-* `csoc_cidr` By default set to 10.128.0.0/20.
-* `eks_version` Version of kubernetes to deploy for EKS, default is set to 1.10.
-* `worker_drive_size` Size of the root volume for the workers. Default is set to 30 GB.
-* `jupyter_instance_type` Instance_type for nodepool by default this is set to t3.medium, but it can be changed if needed.
-* `bootstrap_script` Script to use to initialize the worker nodes. Default value `bootstrap-2.0.0.sh`.
-* `jupyter_bootstrap_script` Script to intialize jupyter worekers. Default value `bootstrap-2.0.0.sh`.
-* `kernel` If your bootstrap script requires a different kernel that what ships with the AMIs. Additionally, kernels will be uploaded onto `gen3-kernels` bucket in the CSOC account. Default value `"N/A"`.
-* `jupyter_worker_drive_size` Size of the jupyter workers drive. Default 30.
-* `cidrs_to_route_to_gw` CIDRs you would like to get out skiping the proxy. This var should be a list type, Ex: `cidrs_to_route_to_gw = ["192.170.230.192/26", "192.170.230.160/27"]`. Default, empty list.
-* `csoc_manged` If you want your commons attached to a CSOC accunt, just set the value of this one as "Yes", exactly like that. Any other value would be taken as no. Default is "Yes".
-* `peering_cidr` Basically the CIDR of the vpc your adminVM belongs to. Since the above variable default is "Yes" this variable default is PlanX CSOC account.
-* `jupyter_asg_desired_capacity` How many workers you want in your jupyter autoscaling group. Default 0
-* `jupyter_asg_max_size` The max number of workers you would allow your jupyter autoscaling group to grow. Default 10.
-* `jupyter_asg_min_size` The min number of workers you would allow your jupyter autoscaling group to shrink. Default 0.
-* `iam-serviceaccount` If you wish to enable iam/service account to your cluster, useful for permissions. Default false.
+| Name | Description | Type | Default |
+|------|-------------|:----:|:-----:|
+| instance_type | For k8s workers | string | t3.large |
+| peering_cidr | CIDR were your adminVM belongs to. | string | 10.128.0.0/20 |
+| eks_version | Version for EKS cluster | string | 1.14 |
+| worker_drive_size | Volume size for the k8s workers | string | 30GB |
+| jupyter_instance_type | For k8s jupyter workers | string | t3.medium |
+| bootstrap_script | Script to initialize the workers | string | bootstrap-2.0.0.sh |
+| jupyter_bootstrap_script | Script to initialize the jupyter workers | string | bootstrap-2.0.0.sh |
+| jupyter_worker_drive_size | Drive Size for jupyter workers | string | bootstrap-2.0.0.sh |
+| peering_cidr | AdminVM's CIDR for peering connections | string | 10.128.0.0/20 (PlanX CSOC) | 
+| jupyter_asg_desired_capacity | # of jupyter workers | number | 0 |
+| jupyter_asg_max_size | Max # of jupyter workers | number | 10 |
+| jupyter_asg_min_size | Min # of jupyter workers | number | 0 |
+| iam-serviceaccount | iam/service account to your cluster | boolean | false |
+| oidc_eks_thumbprint | OIDC to use for service account intergration | string | <AWS DEFAULT> | 
+| domain_test | If ha-proxy a domain to check internet access | string | gen3.io | 
+| ha_proxy | If enabled, this should be set to true | boolean | false |
+| dual_proxy | If migrating from single to ha, set to true, should not disrrupt connectivity | false |
 
 
 ## 5. Considerations
@@ -80,4 +85,4 @@ users_policy = "test-commons"
 
    These outputs are also saved into a file in the terraform space. You can access it by running `gen3 cd`, there is a `<commons-name>_output_eks` folder which contains the files in question.
 
-* `iam-serviceaccount` should only be used with EKS 1.13+, if you are running 1.12 or bellow, you must upgrade first, also you won't be able to enable on the same run when you are upgrading. Upgrade must come first.
+* `iam-serviceaccount` should only be used with EKS 1.13+, if you are running 1.12 or bellow, you must upgrade first. Additionally, you won't be able to enable on the same run where you are upgrading. Upgrade must come first.

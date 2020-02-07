@@ -102,9 +102,19 @@ data "aws_security_group" "local_traffic" {
 }
 
 # we are going to use the same AZs used for the squid autoscaling group
+
 data "aws_autoscaling_group" "squid_auto" {
+  count         = "${var.ha_proxy ? 1 : 0}"
   name = "squid-auto-${var.vpc_name}"
 }
+
+data "aws_instances" "squid_proxy" {
+  count         = "${var.ha_proxy ? var.dual_proxy ? 1 : 0 : 1}"
+  instance_tags {
+    Name = "${var.vpc_name}${var.proxy_name}"
+  }
+}
+
 
 # get the private kube table id
 data "aws_route_table" "private_kube_route_table" {

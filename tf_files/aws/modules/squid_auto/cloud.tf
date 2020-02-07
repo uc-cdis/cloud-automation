@@ -7,7 +7,7 @@
 # FOR PROD ENVIRONMENT:
 
 resource "aws_subnet" "squid_pub0" {
-  count                   = "${length(var.squid_availability_zones)}"
+  count                   = "${var.deploy_ha_proxy ? length(var.squid_availability_zones) : 0}"
   vpc_id                  = "${var.env_vpc_id}"
   cidr_block              = "${cidrsubnet(var.squid_proxy_subnet,3,count.index )}"
   availability_zone       = "${var.squid_availability_zones[count.index]}"
@@ -20,8 +20,9 @@ resource "aws_subnet" "squid_pub0" {
 #
 ##########################
 resource "aws_iam_role" "squid-auto_role" {
-  name = "${var.env_squid_name}_role"
-  path = "/"
+  count = "${var.deploy_ha_proxy ? 1 : 0}"
+  name  = "${var.env_squid_name}_role"
+  path  = "/"
 
   assume_role_policy = <<EOF
 {
@@ -42,6 +43,7 @@ EOF
 
 
 resource "aws_iam_role_policy" "squid_policy" {
+  count = "${var.deploy_ha_proxy ? 1 : 0}"
   name   = "${var.env_squid_name}_policy"
   policy = "${data.aws_iam_policy_document.squid_policy_document.json}"
   role   = "${aws_iam_role.squid-auto_role.id}"
@@ -49,11 +51,13 @@ resource "aws_iam_role_policy" "squid_policy" {
 
 
 resource "aws_iam_instance_profile" "squid-auto_role_profile" {
+  count = "${var.deploy_ha_proxy ? 1 : 0}"
   name = "${var.env_vpc_name}_squid-auto_role_profile"
   role = "${aws_iam_role.squid-auto_role.id}"
 }
 
 data "aws_iam_policy_document" "squid_policy_document" {
+  count = "${var.deploy_ha_proxy ? 1 : 0}"
   statement {
     actions = [
       "ec2:*",
@@ -78,7 +82,8 @@ data "aws_iam_policy_document" "squid_policy_document" {
 
 
 resource "aws_route_table_association" "squid_auto0" {
-  count          = "${length(var.squid_availability_zones)}"
+  #count          = "${length(var.squid_availability_zones)}"
+  count                   = "${var.deploy_ha_proxy ? length(var.squid_availability_zones) : 0}"
   subnet_id      = "${aws_subnet.squid_pub0.*.id[count.index]}"
   route_table_id = "${var.main_public_route}"
 }
@@ -87,6 +92,7 @@ resource "aws_route_table_association" "squid_auto0" {
 # Auto scaling group for squid auto
 
 resource "aws_launch_configuration" "squid_auto" {
+  count = "${var.deploy_ha_proxy ? 1 : 0}"
   name_prefix                 = "${var.env_squid_name}_autoscaling_launch_config"
   image_id                    = "${data.aws_ami.public_squid_ami.id}"
   instance_type               = "${var.squid_instance_type}"
@@ -142,10 +148,11 @@ lifecycle {
 }
 
 resource "aws_autoscaling_group" "squid_auto" {
+  count = "${var.deploy_ha_proxy ? 1 : 0}"
   name = "${var.env_squid_name}"
-  desired_capacity = 2
-  max_size = 3
-  min_size = 1
+  desired_capacity = "${var.cluster_desired_capasity}"
+  max_size = "${var.cluster_max_size}"
+  min_size = "${var.cluster_min_size}"
   vpc_zone_identifier = ["${aws_subnet.squid_pub0.*.id}"] 
   launch_configuration = "${aws_launch_configuration.squid_auto.name}"
 
@@ -166,6 +173,7 @@ resource "aws_autoscaling_group" "squid_auto" {
 # Security groups for the Commons squid proxy
 
 resource "aws_security_group" "squidauto_in" {
+  count = "${var.deploy_ha_proxy ? 1 : 0}"
   name        = "${var.env_squid_name}-squidauto_in"
   description = "security group that only enables ssh from VPC nodes and CSOC"
   vpc_id      = "${var.env_vpc_id}"
@@ -177,7 +185,7 @@ resource "aws_security_group" "squidauto_in" {
     #
     # Do not do this - fence may ssh-bridge out for sftp access
     #
-    cidr_blocks = ["${var.csoc_cidr}", "${var.env_vpc_cidr}"]
+    cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}"]
   }
 
   tags {
@@ -228,6 +236,7 @@ resource "aws_security_group" "squidauto_in" {
 
 
 resource "aws_security_group" "squidauto_out" {
+  count = "${var.deploy_ha_proxy ? 1 : 0}"
   name        = "${var.env_squid_name}-squidauto_out"
   description = "security group that allow outbound traffics"
   vpc_id      = "${var.env_vpc_id}"

@@ -23,12 +23,19 @@ module "cdis_vpc" {
   csoc_managed                   = "${var.csoc_managed}"
   csoc_vpc_id                    = "${var.csoc_vpc_id}"
 
-  private_kube_route             = "${aws_route_table.private_kube.id}"
-  squid_instance_type            = "${var.squid_instance_type}"
-  squid_instance_drive_size      = "${var.squid_instance_drive_size}"
-  parallel_proxies               = "${var.parallel_proxies}"
-  squid_bootstrap_script         = "${var.squid_bootstrap_script}"
-  squid_extra_vars               = "${var.squid_extra_vars}"
+  #private_kube_route             = "${aws_route_table.private_kube.id}"
+  branch                         = "${var.branch}"
+  fence-bot_bucket_access_arns   = "${var.fence-bot_bucket_access_arns}"
+  deploy_ha_proxy                = "${var.deploy_ha_proxy}"
+  deploy_single_proxy            = "${var.deploy_single_proxy}"
+
+  squid_cluster_desired_capasity = "${var.ha-squid_cluster_desired_capasity}"
+  squid_cluster_min_size         = "${var.ha-squid_cluster_min_size}"
+  squid_cluster_max_size         = "${var.ha-squid_cluster_max_size}"
+  squid_instance_type            = "${var.ha-squid_instance_type}"
+  squid_instance_drive_size      = "${var.ha-squid_instance_drive_size}"
+  squid_bootstrap_script         = "${var.ha-squid_bootstrap_script}"
+  squid_extra_vars               = "${var.ha-squid_extra_vars}"
 }
 
 # logs bucket for elb logs

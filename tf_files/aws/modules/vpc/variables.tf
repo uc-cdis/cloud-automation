@@ -52,9 +52,9 @@ variable "squid_instance_drive_size" {
   default     = 8
 }
 
-variable "private_kube_route" {
-  description = "Id of the route fo plublic_kube subnet"
-}
+#variable "private_kube_route" {
+#  description = "Id of the route fo plublic_kube subnet"
+#}
 
 variable "squid_instance_type" {
   description = "Instance type for HA squid instances"
@@ -66,7 +66,7 @@ variable "squid_bootstrap_script" {
   default     = "squidvm.sh"
 }
 
-variable  "parallel_proxies" {
+variable  "deploy_single_proxy" {
   description = "Single instance plus HA"
   default     = false
 }
@@ -74,6 +74,36 @@ variable  "parallel_proxies" {
 variable "squid_extra_vars" {
   description = "additional variables to pass along with the bootstrapscript"
   type        = "list"
-  default     = ["squid_image=master"]
+  #default     = ["squid_image=master"]
 }
 
+variable "branch" {
+  description = "For testing purposes, when something else than the master"
+  default     = "master"
+}
+
+variable "fence-bot_bucket_access_arns" {
+  description = "When fence bot has to access another bucket that wasn't created by the VPC module"
+  type        = "list"
+  #default     = []
+}
+
+variable "deploy_ha_proxy" {
+  description = "should you want to deploy HA-squid"
+  default     = false
+}
+
+variable "squid_cluster_desired_capasity" {
+  description = "If ha squid is enabled and you want to set your own capasity"
+  default     = 2
+}
+
+variable "squid_cluster_min_size" {
+  description = "If ha squid is enabled and you want to set your own min size"
+  default     = 1
+}
+
+variable "squid_cluster_max_size" {
+  description = "If ha squid is enabled and you want to set your own max size"
+  default     = 3
+}

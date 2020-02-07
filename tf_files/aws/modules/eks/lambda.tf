@@ -1,10 +1,12 @@
 
 resource "aws_cloudwatch_log_group" "gwl_group" {
+  count         = "${var.ha_proxy ? 1 : 0}"
   name              = "/aws/lambda/${var.vpc_name}-gw-checks-lambda" 
   retention_in_days = 14
 }
 
 module "iam_role" {
+  #count         = "${var.ha_proxy ? 1 : 0}"
   source                  = "../iam-role"
   role_name               = "${var.vpc_name}-gw-checks-lambda-role"
   role_description        = "Role for ${var.vpc_name}-gw-checks-lambda"
@@ -29,12 +31,14 @@ EOF
 }
 
 resource "aws_iam_role_policy" "lambda_policy_resources" {
+  count         = "${var.ha_proxy ? 1 : 0}"
   name                  = "resources_acces"
   policy                = "${data.aws_iam_policy_document.with_resources.json}"
   role                  = "${module.iam_role.role_id}"
 }
 
 resource "aws_iam_role_policy" "lambda_policy_no_resources" {
+  count         = "${var.ha_proxy ? 1 : 0}"
   name                  = "no_resources_acces"
   policy                = "${data.aws_iam_policy_document.without_resources.json}"
   role                  = "${module.iam_role.role_id}"
@@ -42,6 +46,7 @@ resource "aws_iam_role_policy" "lambda_policy_no_resources" {
 
 
 module "iam_policy" {
+  #count         = "${var.ha_proxy ? 1 : 0}"
   source             = "../iam-policy"
   policy_name        = "${var.vpc_name}-gw-checks-lambda-cwlg"
   policy_path        = "/"
@@ -66,12 +71,14 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
+  count         = "${var.ha_proxy ? 1 : 0}"
   role       = "${module.iam_role.role_id}" 
   policy_arn = "${module.iam_policy.arn}" 
 }
 
 
 resource "aws_lambda_function" "gw_checks" {
+  count         = "${var.ha_proxy ? 1 : 0}"
   filename      = "lambda_function_payload.zip"
   function_name = "${var.vpc_name}-gw-checks-lambda"
   role          = "${module.iam_role.role_arn}" 
@@ -97,7 +104,7 @@ resource "aws_lambda_function" "gw_checks" {
   environment {
     variables = {
       vpc_name = "${var.vpc_name}",
-      url_test = "${var.url_test}"
+      domain_test = "${var.domain_test}"
     }
   }
   depends_on = ["aws_cloudwatch_log_group.gwl_group"]
@@ -106,6 +113,7 @@ resource "aws_lambda_function" "gw_checks" {
 
 
 resource "aws_cloudwatch_event_rule" "gw_checks_rule" {
+  count         = "${var.ha_proxy ? 1 : 0}"
   name                = "${var.vpc_name}-GW-checks-job"
   description         = "Check if the gateway is working every minute"
   schedule_expression = "rate(1 minute)"
@@ -116,11 +124,13 @@ resource "aws_cloudwatch_event_rule" "gw_checks_rule" {
 }
 
 resource "aws_cloudwatch_event_target" "cw_to_lambda" {
+  count         = "${var.ha_proxy ? 1 : 0}"
   rule      = "${aws_cloudwatch_event_rule.gw_checks_rule.name}"
   arn       = "${aws_lambda_function.gw_checks.arn}"
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch" {
+  count         = "${var.ha_proxy ? 1 : 0}"
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.gw_checks.function_name}"

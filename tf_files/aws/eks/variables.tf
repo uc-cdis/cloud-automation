@@ -37,11 +37,11 @@ variable "workers_subnet_size" {
 }
 
 variable "bootstrap_script" {
-  default = "bootstrap-2.0.0.sh"
+  default = "bootstrap.sh"
 }
 
 variable "jupyter_bootstrap_script" {
-  default = "bootstrap-2.0.0.sh"
+  default = "bootstrap.sh"
 }
 
 variable "kernel" {
@@ -71,11 +71,22 @@ variable "jupyter_asg_max_size" {
 variable "jupyter_asg_min_size" {
   default = 0
 }
- variable "iam-serviceaccount" {
+
+variable "iam-serviceaccount" {
   default = false
 }
 
-variable "url_test" {
+variable "domain_test" {
   description = "url for the lambda function to check for the proxy"
   default     = "gen3.io"
+}
+
+variable "ha_proxy" {
+  description = "IS HA squid deployed?"
+  default     = false
+}
+
+variable "dual_proxy" {
+  description = "Single instance and HA"
+  default     = false
 }

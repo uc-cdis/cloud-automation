@@ -34,5 +34,7 @@ module "eks" {
 #  availability_zones               = "${var.availability_zones}"
   #squid_image_search_criteria      = "${var.squid_image_search_criteria}"
   #squid_instance_drive_size        = "${var.squid_instance_drive_size}"
-  url_test                         = "${var.url_test}"
+  domain_test                      = "${var.domain_test}"
+  ha_proxy                         = "${var.ha_proxy}"
+  dual_proxy                       = "${var.dual_proxy}"
 }

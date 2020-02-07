@@ -6,7 +6,7 @@ lambda_function.py  is a script file destinated to be executed by AWS lambda ser
   Data comes in likes the following, or at least it is what the 'event' argument should look like:
 
   {
-    "url_test": "www.google.com",
+    "domain_test": "www.google.com",
     "proxy_port": 3128
   }
 
@@ -208,7 +208,7 @@ def test_proxy(url):
         # The only reason we don't do https on checkups  is because in the proxy only the IP is reported instead of the domain.
         # We want to know the domain this function is calling out
         # conn = http.client.HTTPSConnection(url)
-        conn = http.client.HTTPConnection(url,timeout=10)
+        conn = http.client.HTTPConnection(url,timeout=3)
         conn.request("GET", "/")
         response = conn.getresponse().status
 
@@ -292,6 +292,7 @@ def set_default_gw(eni,rtid):
 """
 def check_port(addr,port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(5.0)
     result = sock.connect_ex((addr, port))
     sock.close
     return result
@@ -403,21 +404,21 @@ def set_sourceDestinationCheck_attr(instance_id,value=False):
     
 def lambda_handler(event, context):
     
-    if os.environ.get('url_test') is not None:
-        url = os.environ['url_test']
-    elif 'url_test' in event:
-        url = event['url']
+    if os.environ.get('domain_test') is not None:
+        domain = os.environ['domain_test']
+    elif 'domain_test' in event:
+        domain = event['domain']
     else:
-        url = 'gen3.io'
-    #print(url)
-    http_code = test_proxy(url)
+        domain = 'gen3.io'
+    #print(domain)
+    http_code = test_proxy(domain)
     
     #print (http_code)
     
-    #data = socket.gethostbyname_ex(url)
+    #data = socket.gethostbyname_ex(domain)
     #print ("\n\nThe IP Address of the Domain Name is: "+repr(data))
     
-    #conn = http.client.HTTPSConnection(url)
+    #conn = http.client.HTTPSConnection(domain)
     #conn.request("GET", "/")
     #r1 = conn.getresponse()
     #print(r1.status, r1.reason)
@@ -502,6 +503,7 @@ def lambda_handler(event, context):
                             outcome['message'] = 'Proxy switch partially successfull'
                         else:
                             outcome['message'] = 'Proxy switch successfull'
+                            break
             else:
                 outcome['message'] = 'No healthy instances found'
         else:

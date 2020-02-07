@@ -21,15 +21,15 @@ output "vpc_cidr_block" {
 }
 
 output "indexd_rds_id" {
-  value = "${aws_db_instance.db_indexd.id}"
+  value = "${aws_db_instance.db_indexd.*.id}"
 }
 
 output "fence_rds_id" {
-  value = "${aws_db_instance.db_fence.id}"
+  value = "${aws_db_instance.db_fence.*.id}"
 }
 
 output "gdcapi_rds_id" {
-  value = "${aws_db_instance.db_gdcapi.id}"
+  value = "${aws_db_instance.db_gdcapi.*.id}"
 }
 
 output "fence-bot_user_secret" {

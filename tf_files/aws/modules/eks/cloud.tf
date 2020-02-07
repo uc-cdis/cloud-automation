@@ -72,11 +72,11 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
 
 
 
-####
-# * aws_eks_cluster.eks_cluster: error creating EKS Cluster (fauziv1): UnsupportedAvailabilityZoneException: Cannot create cluster 'fauziv1' because us-east-1e, the targeted availability zone, does not currently have sufficient capacity to support the cluster. Retry and choose from these availability zones: us-east-1a, us-east-1c, us-east-1d
-####
 resource "random_shuffle" "az" {
-  input = ["${data.aws_autoscaling_group.squid_auto.availability_zones}"]
+  #input = ["${data.aws_autoscaling_group.squid_auto.availability_zones}"]
+  #input = ["${data.aws_availability_zones.available.names}"]
+  #input = "${length(var.availability_zones) > 0 ? var.availability_zones : data.aws_autoscaling_group.squid_auto.availability_zones }"
+  input = "${var.availability_zones}"
   result_count = 3
   count = 1
 }
@@ -165,6 +165,12 @@ resource "aws_route" "skip_proxy" {
   depends_on             = ["aws_route_table.eks_private"]
 }
 
+resource "aws_route" "public_access" {
+  count                  = "${var.ha_proxy ? var.dual_proxy ? 1 : 0 : 1}"
+  destination_cidr_block = "0.0.0.0/0"
+  route_table_id         = "${aws_route_table.eks_private.id}"
+  instance_id            = "${data.aws_instances.squid_proxy.ids[0]}"
+}
 
 resource "aws_route_table_association" "private_kube" {
   count          = "${random_shuffle.az.result_count}"

@@ -7,84 +7,93 @@ module "squid_proxy" {
   env_public_subnet_id = "${aws_subnet.public.id}"
   env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
   env_vpc_id           = "${aws_vpc.main.id}"
-  env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+  #env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+  #env_instance_profile = "${var.vpc_name}_cluster_logging_cloudwatch"
+  zone_id              = "${aws_route53_zone.main.zone_id}"
   env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
   ssh_key_name         = "${var.ssh_key_name}"
-  parallel_proxies     = "${var.parallel_proxies}"
+  deploy_single_proxy     = "${var.deploy_single_proxy}"
 }
 
 
-resource "aws_iam_role" "cluster_logging_cloudwatch" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
-  name = "${var.vpc_name}_cluster_logging_cloudwatch"
-  path = "/"
+#resource "aws_iam_role" "cluster_logging_cloudwatch" {
+#  count                  = "${var.deploy_single_proxy ? 1 : 0 }"
+#  name = "${var.vpc_name}_cluster_logging_cloudwatch"
+#  path = "/"
 
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": "sts:AssumeRole",
-            "Principal": {
-               "Service": "ec2.amazonaws.com"
-            },
-            "Effect": "Allow",
-            "Sid": ""
-        }
-    ]
-}
-EOF
-}
+#  assume_role_policy = <<EOF
+#{
+#    "Version": "2012-10-17",
+#    "Statement": [
+#        {
+#            "Action": "sts:AssumeRole",
+#            "Principal": {
+#               "Service": "ec2.amazonaws.com"
+#            },
+#            "Effect": "Allow",
+#            "Sid": ""
+#        }
+#    ]
+#}
+#EOF
+#}
 
 #
 # This could go here or in the squid module. But squid may go away soon
 # do not remove this
 #
-resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
-  name   = "${var.vpc_name}_cluster_logging_cloudwatch"
-  policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
-  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
-}
+#resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
+#  count                  = "${var.deploy_single_proxy ? 1 : 0 }"
+#  name   = "${var.vpc_name}_cluster_logging_cloudwatch"
+#  policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
+#  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+#}
 
-resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
-  name = "${var.vpc_name}_cluster_logging_cloudwatch"
-  role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
-}
+#resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
+#  count                  = "${var.deploy_single_proxy ? 1 : 0 }"
+#  name = "${var.vpc_name}_cluster_logging_cloudwatch"
+#  role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+#}
 
-resource "aws_route53_record" "squid" {
-  count                  = "${var.parallel_proxies ? 1 : 0 }"
-  zone_id = "${aws_route53_zone.main.zone_id}"
-  name    = "cloud-proxy"
-  type    = "A"
-  ttl     = "300"
-  records = ["${module.squid_proxy.squid_private_ip}"]
-}
+#resource "aws_route53_record" "squid" {
+#  count                  = "${var.deploy_single_proxy ? 1 : 0 }"
+#  zone_id = "${aws_route53_zone.main.zone_id}"
+#  name    = "cloud-proxy"
+#  type    = "A"
+#  ttl     = "300"
+#  records = ["${module.squid_proxy.squid_private_ip}"]
+#  lifecycle = {
+#    ignore_changes = ["records"]
+#  }
+#}
 
 
 
 
 module "squid-auto" {
-  source                     = "../squid_auto"
-  csoc_cidr                  = "${var.peering_cidr}"
-  env_vpc_name               = "${var.vpc_name}"
-  env_vpc_cidr               = "${aws_vpc.main.cidr_block}"
-  env_vpc_id                 = "${aws_vpc.main.id}"
-  env_log_group              = "${aws_cloudwatch_log_group.main_log_group.name}"
-  env_squid_name             = "squid-auto-${var.vpc_name}"
-  squid_proxy_subnet         = "${cidrsubnet(aws_vpc.main.cidr_block, 4, 1)}"
-  organization_name          = "${var.organization_name}"
-  ssh_key_name               = "${var.vpc_name}_automation_dev"
-  image_name_search_criteria = "${var.squid_image_search_criteria}"
-  squid_instance_drive_size  = "${var.squid_instance_drive_size}"
-  squid_availability_zones   = "${var.availability_zones}"
-  main_public_route          = "${aws_route_table.public.id}"
-  private_kube_route         = "${var.private_kube_route}"
-  route_53_zone_id           = "${aws_route53_zone.main.id}"
-  squid_instance_type        = "${var.squid_instance_type}"
-  bootstrap_script           = "${var.squid_bootstrap_script}"
-  extra_vars                 = "${var.squid_extra_vars}"
+  source                         = "../squid_auto"
+  peering_cidr                   = "${var.peering_cidr}"
+  env_vpc_name                   = "${var.vpc_name}"
+  env_vpc_cidr                   = "${aws_vpc.main.cidr_block}"
+  env_vpc_id                     = "${aws_vpc.main.id}"
+  env_log_group                  = "${aws_cloudwatch_log_group.main_log_group.name}"
+  env_squid_name                 = "squid-auto-${var.vpc_name}"
+  squid_proxy_subnet             = "${cidrsubnet(aws_vpc.main.cidr_block, 4, 1)}"
+  organization_name              = "${var.organization_name}"
+  ssh_key_name                   = "${var.ssh_key_name}"
+  image_name_search_criteria     = "${var.squid_image_search_criteria}"
+  squid_instance_drive_size      = "${var.squid_instance_drive_size}"
+  squid_availability_zones       = "${var.availability_zones}"
+  main_public_route              = "${aws_route_table.public.id}"
+  route_53_zone_id               = "${aws_route53_zone.main.id}"
+  squid_instance_type            = "${var.squid_instance_type}"
+  bootstrap_script               = "${var.squid_bootstrap_script}"
+  extra_vars                     = "${var.squid_extra_vars}"
+  branch                         = "${var.branch}"
+  deploy_ha_proxy                = "${var.deploy_ha_proxy}"
+  cluster_max_size               = "${var.squid_cluster_max_size}"
+  cluster_min_size               = "${var.squid_cluster_min_size}"
+  cluster_desired_capasity       = "${var.squid_cluster_desired_capasity}"
 }
 
 module "data-bucket" {
@@ -98,6 +107,7 @@ module "fence-bot-user" {
   source               = "../fence-bot-user"
   vpc_name             = "${var.vpc_name}"
   bucket_name          = "${module.data-bucket.data-bucket_name}"
+  bucket_access_arns   = "${var.fence-bot_bucket_access_arns}"
 }
 
 resource "aws_vpc" "main" {

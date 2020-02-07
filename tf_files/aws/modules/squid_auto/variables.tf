@@ -24,7 +24,7 @@ variable "image_name_search_criteria" {
   default = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 }
 
-variable "csoc_cidr" {
+variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
@@ -34,7 +34,7 @@ variable "bootstrap_path" {
 }
 
 variable "bootstrap_script" {
-  default = "squidvm.sh"
+  default = "squid_running_on_docker.sh"
 }
 
 variable "squid_instance_type" {
@@ -59,10 +59,6 @@ variable "ssh_key_name" {
   description = "ssh key name that instances in the cluster will use"
 }
 
-#variable "eks_private_route_table_id" {
-#  description = "routing table for the EKS private subnet"
-#}
-
 variable "squid_instance_drive_size" { 
   description = "Size of the root volume for the instance"
   default     = 8
@@ -75,10 +71,6 @@ variable "squid_availability_zones" {
 
 variable "main_public_route" {
   description = "The route table that allows public access"
-}
-
-variable "private_kube_route" {
-  description = "public kube route table id"
 }
 
 variable "route_53_zone_id" {
@@ -94,4 +86,24 @@ variable "extra_vars" {
   description = "additional variables to pass along with the bootstrapscript"
   type        = "list"
   default     = ["squid_image=master"]
+}
+
+variable "deploy_ha_proxy" {
+  description = "Should this module be deployed"
+  default     = true
+}
+
+variable "cluster_desired_capasity" {
+  description = "Desired capasity for the ha squid proxy"
+  default     = 2
+}
+
+variable "cluster_max_size" {
+  description = "Max size of the autoscaling group"
+  default     = 3
+}
+
+variable "cluster_min_size" { 
+  description = "Min size of the autoscaling group"
+  default     = 1
 }
