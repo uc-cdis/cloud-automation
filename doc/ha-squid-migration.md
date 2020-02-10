@@ -5,11 +5,17 @@ This procedure is intended to show the necessary steps required to migrate from 
 
 ## Overview
 
-Currently, commons are using a single squid proxy to access the internet. Even though it works just file in most cases, sometimes it might fail, or the underlaying hrdware fails and consequently AWS set it for decomision, or the instance volume fills up  all the sudden. Furthermore, the AMI used as image base was created with Packer and tailored for the needs by that time.
+Currently, commons are using a single squid proxy to access the internet. Even though it works just file in most cases, sometimes it fails, or the underlaying hardware fails and consequently AWS sets it for decomision, or the instance volume fills up all the sudden, among others. Furthermore, the AMI used as image base was created with Packer and tailored for the needs by that time.
 
-The new HA model will now use official Canonical Ubuntu's 18.04 image and can be easily told to check for the latest release by them.
+The new HA model will now use official Canonical Ubuntu's 18.04 image and can be easily told to check for the latest release by them. This leaves the burden to keep the instance updated and check on it.
 
-Moreover, we are placing all instances in an Auto-Scaling group, meaning that if one goes away, it'll be easily replaceable, and require little to none supervision.
+Logs are sent over to cloudwatch for historical data. Therefore, instances are disposable. 
+
+Keeping at least two instances always up, one as active and the second as standby, would decrease the amount of time commons are left out of internet access. The standby instance would come in place if the active one fails for whatever reason, there'll be a lambda function checking for http access from within the very same VPC where the commons lives and port 3128 on each individual instance. Should those two succeed, then the proxy is switched to the stand by.
+
+The switching happens at the network level, the default route for kubernetes workers is an instance ENI in the autoscaling group that manages the squid cluster. If http access fails, then each instance in squid autoscaling group is checked on port 3128, the first one that works is set as the new active.
+
+This new module, or addition, has been though to be optional. You can decide to keep the single instance model or switch to HA. If you don't want to incurd in additional charged that represents keeping an standby EC2 instance, then you can always set the cluster min and desired size of 1.
 
 
 ## Procedure
@@ -27,6 +33,11 @@ The following steps would show what needs to be done in order to deploy HA-squid
 
 ### 1. Update the VPC module
 
+Note: All these steps showed here were done on a deployment that runed on the latest master prior ha squid was introduced, the amount of resources terraform would need to add/modify/destroy might differ for each environment. Proceed with precausion.
+
+      Also, this guide will go through a parallel deployent of squid instance, and then removal of the single instance. This way, the amount of time the a cluster won't have internet access gets reduced to maximun a minute, which is the frequency lambda runs and checks.
+
+
 Start by working on the module:
 
 ```bash
@@ -34,134 +45,103 @@ gen3 workon cdistest generic-commons
 gen3 cd
 ```
 
-After accessing the module configuration folder, we need to terraform taint a particular resorce othewise, things might fail later. 
+After accessing the module configuration folder, we need to terraform taint a particular resorce othewise, terraform might fail later. There is a route table creation that used to come already populated with routes that will now be deployed empty and routes will be added accordingly.
 
-The route for the default gateway is now dynamic and will be handled by the squid instances, depending on which becomes the active one.
+The route for the default gateway is now dynamic and will be handled by a lambda function, depending on which becomes the active one.
+
+Before you move on, you can try opening a devterm (`gen3 devterm`) and run the following:
+
+```bash 
+for i in {1..500}; do curl http://ifconfig.io --connect-timeout 1; sleep 5; done
+```
+
+The above command would try accessing the url passed along, it is usefull to check network continuity throught the implementation.
 
 
 ```bash
 gen3 tform taint aws_route_table.private_kube
 ```
 
-When the resource is tainted, you may proceed as you would regularly do. The plan that will becreated may want to delete a few resources, that's alright, it is inteded. The proxy and a few other will go away for this module
+When the resource is tainted, you may proceed as you would regularly do. The plan to be created may want to delete a few resources, that's alright, it is inteded.
+
+Tell terraform you want to deploy HA squid in config.tfvars 
+
+```
+deploy_ha_proxy = true
+```
+
 
 ```gen3
 gen3 tfplan
 ```
 
-The plan should look like:
+The plan should look show the following: 
 
-```bash
-Terraform will perform the following actions:
+Tainted resources:
 
-  + aws_route.for_peering
-      id:                                   <computed>
-      destination_cidr_block:               "172.25.64.0/24"
-      destination_prefix_list_id:           <computed>
-      egress_only_gateway_id:               <computed>
-      gateway_id:                           <computed>
-      instance_id:                          <computed>
-      instance_owner_id:                    <computed>
-      nat_gateway_id:                       <computed>
-      network_interface_id:                 <computed>
-      origin:                               <computed>
-      route_table_id:                       "${aws_route_table.private_kube.id}"
-      state:                                <computed>
-      vpc_peering_connection_id:            "pcx-07cb885401660d19a"
-
-  + aws_route.to_aws
-      id:                                   <computed>
-      destination_cidr_block:               "54.224.0.0/12"
-      destination_prefix_list_id:           <computed>
-      egress_only_gateway_id:               <computed>
-      gateway_id:                           <computed>
-      instance_id:                          <computed>
-      instance_owner_id:                    <computed>
-      nat_gateway_id:                       "nat-06b494d1f42f1f2fb"
-      network_interface_id:                 <computed>
-      origin:                               <computed>
-      route_table_id:                       "${aws_route_table.private_kube.id}"
-      state:                                <computed>
-
+-/+ destroy and then create replacement
 -/+ aws_route_table.private_kube (tainted) (new resource required)
-      id:                                   "rtb-0eef28cd989935468" => <computed> (forces new resource)
-      owner_id:                             "707767160287" => <computed>
-      propagating_vgws.#:                   "0" => <computed>
-      route.#:                              "3" => <computed>
-      tags.%:                               "3" => "3"
-      tags.Environment:                     "generic-commons" => "generic-commons"
-      tags.Name:                            "private_kube" => "private_kube"
-      tags.Organization:                    "Basic Service" => "Basic Service"
-      vpc_id:                               "vpc-0a23ca51a42b14464" => "vpc-0a23ca51a42b14464"
 
+
+Add:
+
+  + create
+  + aws_route.for_peering
+  + module.cdis_vpc.module.squid-auto.aws_autoscaling_group.squid_auto
+  + module.cdis_vpc.module.squid-auto.aws_iam_instance_profile.squid-auto_role_profile
+  + module.cdis_vpc.module.squid-auto.aws_iam_role.squid-auto_role
+  + module.cdis_vpc.module.squid-auto.aws_iam_role_policy.squid_policy
+  + module.cdis_vpc.module.squid-auto.aws_launch_configuration.squid_auto
+  + module.cdis_vpc.module.squid-auto.aws_route_table_association.squid_auto0[0]
+  + module.cdis_vpc.module.squid-auto.aws_route_table_association.squid_auto0[1]
+  + module.cdis_vpc.module.squid-auto.aws_route_table_association.squid_auto0[2]
+  + module.cdis_vpc.module.squid-auto.aws_security_group.squidauto_in
+  + module.cdis_vpc.module.squid-auto.aws_security_group.squidauto_out
+  + module.cdis_vpc.module.squid-auto.aws_subnet.squid_pub0[0]
+  + module.cdis_vpc.module.squid-auto.aws_subnet.squid_pub0[1]
+  + module.cdis_vpc.module.squid-auto.aws_subnet.squid_pub0[2]
+  + module.cdis_vpc.module.squid_proxy.aws_iam_instance_profile.cluster_logging_cloudwatch
+  + module.cdis_vpc.module.squid_proxy.aws_iam_role.cluster_logging_cloudwatch
+  + module.cdis_vpc.module.squid_proxy.aws_iam_role_policy.cluster_logging_cloudwatch
+  + module.cdis_vpc.module.squid_proxy.aws_route53_record.squid
+
+
+Modify:
+
+  ~ update in-place
   ~ aws_route_table_association.private_kube
-      route_table_id:                       "rtb-0eef28cd989935468" => "${aws_route_table.private_kube.id}"
-
-  - aws_security_group.kube-worker
-
-  - aws_vpc_endpoint.k8s-s3
-
-  - module.cdis_vpc.aws_ami_copy.login_ami
-
-  - module.cdis_vpc.aws_iam_instance_profile.cluster_logging_cloudwatch
-
-  - module.cdis_vpc.aws_iam_role.cluster_logging_cloudwatch
-
-  - module.cdis_vpc.aws_iam_role_policy.cluster_logging_cloudwatch
-
-  - module.cdis_vpc.aws_route53_record.squid
-
+  ~ module.cdis_vpc.aws_default_route_table.default
+  ~ module.cdis_vpc.aws_eip.nat_gw
+  ~ module.cdis_vpc.aws_iam_user.es_user
+  ~ module.cdis_vpc.aws_internet_gateway.gw
+  ~ module.cdis_vpc.aws_nat_gateway.nat_gw
   ~ module.cdis_vpc.aws_security_group.local
-      egress.3234615024.cidr_blocks.#:      "0" => "1"
-      egress.3234615024.cidr_blocks.0:      "" => "192.168.144.0/20"
-      egress.3234615024.description:        "" => ""
-      egress.3234615024.from_port:          "" => "0"
-      egress.3234615024.ipv6_cidr_blocks.#: "0" => "0"
-      egress.3234615024.prefix_list_ids.#:  "0" => "0"
-      egress.3234615024.protocol:           "" => "-1"
-      egress.3234615024.security_groups.#:  "0" => "0"
-      egress.3234615024.self:               "" => "false"
-      egress.3234615024.to_port:            "" => "0"
-      egress.3505169447.cidr_blocks.#:      "2" => "0"
-      egress.3505169447.cidr_blocks.0:      "192.168.144.0/20" => ""
-      egress.3505169447.cidr_blocks.1:      "54.224.0.0/12" => ""
-      egress.3505169447.description:        "" => ""
-      egress.3505169447.from_port:          "0" => "0"
-      egress.3505169447.ipv6_cidr_blocks.#: "0" => "0"
-      egress.3505169447.prefix_list_ids.#:  "0" => "0"
-      egress.3505169447.protocol:           "-1" => ""
-      egress.3505169447.security_groups.#:  "0" => "0"
-      egress.3505169447.self:               "false" => "false"
-      egress.3505169447.to_port:            "0" => "0"
-      tags.%:                               "2" => "3"
-      tags.Name:                            "" => "generic-commons-local-sec-group"
-
   ~ module.cdis_vpc.aws_security_group.out
-      tags.%:                               "2" => "3"
-      tags.Name:                            "" => "generic-commons-outbound-traffic"
+  ~ module.cdis_vpc.aws_vpc_peering_connection.vpcpeering
+  ~ module.elb_logs.aws_s3_bucket.log_bucket
 
-  - module.cdis_vpc.aws_security_group.proxy
 
+Destroy:
+
+  - destroy
+  - aws_security_group.kube-worker
+  - aws_vpc_endpoint.k8s-s3
+  - module.cdis_vpc.aws_ami_copy.login_ami
+  - module.cdis_vpc.aws_iam_instance_profile.cluster_logging_cloudwatch
+  - module.cdis_vpc.aws_iam_role.cluster_logging_cloudwatch
+  - module.cdis_vpc.aws_iam_role_policy.cluster_logging_cloudwatch
+  - module.cdis_vpc.aws_route53_record.squid
   - module.cdis_vpc.aws_security_group.webservice
 
-  - module.cdis_vpc.module.squid_proxy.aws_ami_copy.squid_ami
-
-  - module.cdis_vpc.module.squid_proxy.aws_eip.squid
-
-  - module.cdis_vpc.module.squid_proxy.aws_eip_association.squid_eip
-
-  - module.cdis_vpc.module.squid_proxy.aws_instance.proxy
-
-  - module.cdis_vpc.module.squid_proxy.aws_security_group.login-ssh
-
-  - module.cdis_vpc.module.squid_proxy.aws_security_group.out
-
-  - module.cdis_vpc.module.squid_proxy.aws_security_group.proxy
 
 
-Plan: 3 to add, 3 to change, 17 to destroy.
+
+
+Terraform will perform the following actions:
+
+```bash
+Plan: 19 to add, 10 to change, 9 to destroy.
 ```
-
 
 If it doesn't look like above, make sure the no harm will be done to production clusters. Then apply the plan.
 
@@ -170,17 +150,47 @@ If it doesn't look like above, make sure the no harm will be done to production 
 gen3 tfapply
 ```
 
+Sometimes terraform might fail applying a plan due to different reasouns, you can run the plan again and apply.
+
+
+Errors might occur because resouces were moved from one module to another and terraform might confuse when they are still deployed or not, therefore it complains. For example:
+
+```bash
+Error: Error applying plan:
+
+2 errors occurred:
+        * module.cdis_vpc.module.squid_proxy.aws_iam_role.cluster_logging_cloudwatch: 1 error occurred:
+        * aws_iam_role.cluster_logging_cloudwatch: Error creating IAM Role generic-commons_cluster_logging_cloudwatch: EntityAlreadyExists: Role with name generic-commons_cluster_logging_cloudwatch already exists.
+        status code: 409, request id: f8b86cfe-dcd2-4423-8be3-ba300ce49b81
+
+
+        * module.cdis_vpc.module.squid_proxy.aws_route53_record.squid: 1 error occurred:
+        * aws_route53_record.squid: [ERR]: Error building changeset: InvalidChangeBatch: [Tried to create resource record set [name='cloud-proxy.internal.io.', type='A'] but it already exists]
+        status code: 400, request id: 9a6f2845-403f-4776-b11a-b7c890aaf805
+```
+
+At this point it is alright to plan and apply again.
+
+The cluster should still have connectivity at this point, the single squid instance should still be servicing as proxy. The HA ones should also be deployed, but not serving as default gateway and proxying HTTP{,S} traffic yet. 
+
 
 ### 2. Update the EKS module
 
 
 Start by initializing the module:
 
+
 ```bash
 gen3 workon cdistest generic_commons_eks
 gen3 cd
 ```
 
+In order to ensure internet connectivity dure the transition, add the following variables to your `config.tfvars`
+
+```bash
+ha_proxy   = true
+dual_proxy = true
+```
 
 We need to also taint a resource for the eks module, for that, run the following:
 
