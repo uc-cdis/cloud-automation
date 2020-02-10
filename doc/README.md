@@ -8,8 +8,11 @@ For example - `gen3 help aws` opens `aws.md`
 
 ## Frequently used
 
-* [aws](./aws.md)
 * [arun](./arun.md)
+* [aws](./aws.md)
+* [awsrole](./awsrole.md)
+* [awsuser](./awsuser.md)
+* [iam-serviceaccount](./iam-serviceaccount.md)
 * [devterm](./devterm.md)
 * [db](./db.md)
 * [dashboard](./dashboard.md)

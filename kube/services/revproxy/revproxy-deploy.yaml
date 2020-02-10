@@ -41,6 +41,9 @@ spec:
         - name: revproxy-subconf
           configMap:
             name: revproxy-nginx-subconf
+        - name: modsec-conf
+          configMap:
+            name: manifest-modsec
         - name: helper-js
           configMap:
             name: revproxy-helper-js
@@ -119,6 +122,9 @@ spec:
           - name: "revproxy-subconf"
             readOnly: true
             mountPath: "/etc/nginx/gen3.conf"
+          - name: "modsec-conf"
+            readOnly: true
+            mountPath: "/etc/nginx/modsec"
           - name: "helper-js"
             readOnly: true
             mountPath: "/etc/nginx/helpers.js"
@@ -150,11 +156,16 @@ spec:
         args:
           - "-c"
           # Script always succeeds if it runs (echo exits with 0)
+          # Launch script handles different nginx versions, etc
           - |
             for name in ngx_http_perl_module.so ngx_http_js_module.so ngx_http_headers_more_filter_module.so ngx_http_modsecurity_module.so; do
               if [ -f /etc/nginx/modules/$name ]; then
                 echo "load_module modules/$name;" >> /etc/nginx/gen3_modules.conf
               fi
             done
+            if [ -f /etc/nginx/modules/ngx_http_modsecurity_module.so -a -f /etc/nginx/modsec/main.conf ]; then
+              echo "modsecurity on;" >> /etc/nginx/gen3_server_modsec.conf
+              echo "modsecurity_rules_file /etc/nginx/modsec/main.conf;" >> /etc/nginx/gen3_server_modsec.conf
+            fi
             exec nginx -g 'daemon off;'
             

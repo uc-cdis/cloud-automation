@@ -39,14 +39,16 @@ test_mfilter() {
   testFolder="${XDG_RUNTIME_DIR}/$$/g3kTest/mfilter"
   /bin/rm -rf "$testFolder"
   mkdir -p -m 0700 "$testFolder"
+  local name
   for name in fence sheepdog; do
-    capName=Fence
+    local capName=Fence
     if [[ "$name" == "sheepdog" ]]; then capName=Sheepdog; fi
+    local domain
     for domain in test1.manifest.g3k default; do
       local mpath
       mpath="$(g3k_manifest_path test1.manifest.g3k)"
       # Note: date timestamp will differ between saved snapshot and fresh template processing
-      echo "Writing: $testFolder/${name}-${domain}-a.yaml"
+      gen3_log_info "Writing: $testFolder/${name}-${domain}-a.yaml"
       gen3 gitops filter "${GEN3_HOME}/kube/services/$name/${name}-deploy.yaml" "$mpath" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-a.yaml"
       cat "$(dirname "$mpath")/expected${capName}Result.yaml" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-b.yaml"
       diff -w "$testFolder/${name}-${domain}-a.yaml" "$testFolder/${name}-${domain}-b.yaml"
@@ -211,7 +213,7 @@ test_time_since() {
 test_secrets_folder() {
   vpc_name=SecretName
   secretFolder="$(gen3_secrets_folder)"
-  [[ "$secretFolder" == "$WORKSPACE/$vpc_name" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
+  [[ "$secretFolder" == "$(dirname $GEN3_HOME)/Gen3Secrets" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
 }
 
 shunit_runtest "test_configmaps_folder_dryrun" "local,gitops"

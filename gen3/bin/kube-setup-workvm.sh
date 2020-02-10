@@ -163,6 +163,8 @@ export s3_bucket='$s3_bucket'
 
 if [ -f "${WORKSPACE}/\$vpc_name/kubeconfig" ]; then
   export KUBECONFIG="${WORKSPACE}/\$vpc_name/kubeconfig"
+elif [ -f "${WORKSPACE}/Gen3Secrets/kubeconfig" ]; then
+  export KUBECONFIG="${WORKSPACE}/Gen3Secrets/kubeconfig"
 fi
 
 EOF
