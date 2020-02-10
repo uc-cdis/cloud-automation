@@ -102,6 +102,24 @@ def get_instances_status(id_list):
     del client
     return status
 
+
+"""
+  function to get an instance information based on a ENI id
+  
+  @var string ENI the eni id
+  
+  @returm dictionary with the result of describe_instances
+"""
+def get_instance_by_eni(eni):
+    client = boto3.client('ec2')
+    reservations = client.describe_instances(Filters=[{'Name':'network-interface.network-interface-id','Values': [eni]}])
+    del client
+    for reservation in reservations['Reservations']:
+        for instance in reservation['Instances']:
+            return instance
+            
+    #return instance['Reservations'][0]['Instances'][0]
+
 """
   function to get the eni ids of an instance
 
@@ -180,11 +198,11 @@ def get_route_table(vpc_id,name):
   @return String the routing table id
 """
 def get_route_table_id(route_table):
-    #for table in route_table['RouteTables']:
-    #    for association in table['Associations']:
-    #        return association['RouteTableId']
+    for table in route_table['RouteTables']:
+        for association in table['Associations']:
+            return association['RouteTableId']
     # There should always be one single RouteTables, otherwise we only care for the first one ?
-    return route_table['RouteTables'][0]['RouteTableId']
+    #return route_table['RouteTables'][0]['RouteTableId']
 
 """
   function to request an address from the internet. The whole lambda funtion is expected to be within a single VPC and 
@@ -339,6 +357,22 @@ def exist_record_set(record_sets, name):
             return True
     return False
 
+
+"""
+  function to get a vpc base upon its name 
+  
+  @var string name name of the vpc you want
+  
+  @return dictionary with the vpc description
+"""
+def get_vpc(name): 
+    client = boto3.client('ec2') 
+    vpcs   = client.describe_vpcs(Filters=[{'Name':'tag:Name','Values':[name]}]) 
+    del client
+    for vpc in vpcs['Vpcs']:
+        return vpc
+    
+
 """
   function to set a recordset in a hosted zone
 
@@ -432,9 +466,10 @@ def lambda_handler(event, context):
     
     #return
     
+    #internal controls
+    statusCode = 200
+    
     if  http_code != 200:
-        
-        statusCode = 200
         
         if os.environ.get('vpc_name') is not None:
             autoscaling_group = get_asg("squid-auto-"+os.environ['vpc_name'])
@@ -483,7 +518,7 @@ def lambda_handler(event, context):
                         if exist_record_set(record_sets,'cloud-proxy'):
                             try:
                                 change_resource_record_sets(zone_id,'cloud-proxy.internal.io','UPSERT','A',300,instance_priv_ip[0])
-                                outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io changed for %s" % zone_id
+                                outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io changed for %s with ip: %s" % (zone_id,instance_priv_ip[0])
                             except Exception as e:
                                 statusCode = statusCode + 1
                                 outcome['cloud-proxy'] = e
@@ -493,7 +528,7 @@ def lambda_handler(event, context):
                         else:
                             try:
                                 change_resource_record_sets(zone_id,'cloud-proxy.internal.io','CREATE','A',300,instance_priv_ip[0])
-                                outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io created for %s" % zone_id
+                                outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io created for %s with ip: %s" % (zone_id,instance_priv_ip[0])
                             except Exception as e:
                                 statusCode = statusCode + 1
                                 outcome['cloud-proxy'] = e
@@ -508,6 +543,41 @@ def lambda_handler(event, context):
                 outcome['message'] = 'No healthy instances found'
         else:
             outcome['message'] = 'ERROR: The VPC name has not been specified, cannot continue'
-                
+        
         print(json.dumps(outcome))
         return json.dumps(outcome)
+        
+    else:
+        zone = get_hosted_zone(os.environ['vpc_name'])
+        zone_id = zone['Id']
+        record_sets = get_record_sets(zone_id)
+        if not exist_record_set(record_sets,'cloud-proxy'):
+            try:
+                vpc_id = get_vpc(os.environ['vpc_name'])
+                #print(vpc_id)
+                route_tables = get_route_table(vpc_id['VpcId'],'eks_private')
+                ip = ''
+                for route_table in route_tables['RouteTables']:
+                    for route in route_table['Routes']:
+                        if route['DestinationCidrBlock'] == '0.0.0.0/0':
+                            ip = get_instance_by_eni(route['NetworkInterfaceId'])['PrivateIpAddress']
+                            break
+                if ip:
+                    change_resource_record_sets(zone_id,'cloud-proxy.internal.io','CREATE','A',300,ip)
+                    outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io created for %s with ip: %s" % (zone_id,ip)
+                else:
+                    statusCode = statusCode + 1
+                    outcome['cloud-proxy'] = "subdomain cloud-proxy.internal.io could not be created for %s, no ip was found" % zone_id
+            except Exception as e:
+                statusCode = statusCode + 1
+                outcome['cloud-proxy'] = e
+                
+            if statusCode != 200:
+                outcome['message'] = 'Proxy switch partially successfull'
+            else:
+                outcome['message'] = 'Proxy switch successfull'
+            
+            print(json.dumps(outcome))
+            return json.dumps(outcome)
+        
+

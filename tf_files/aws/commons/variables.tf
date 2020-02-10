@@ -319,7 +319,7 @@ variable "deploy_single_proxy" {
 
 variable "ha-squid_bootstrap_script" {
   description = "Bootstrapt script for ha-squid instances"
-  default     = "squidmvm.sh"
+  default     = "squid_running_on_docker.sh"
 }
 
 variable "ha-squid_extra_vars" {
