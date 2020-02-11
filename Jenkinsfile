@@ -76,7 +76,8 @@ node {
         testHelper.runIntegrationTests(
           kubectlNamespace,
           pipeConfig.serviceTesting.name,
-          ""
+          "",
+          "false"
         )
       }
       stage('CleanS3') {
