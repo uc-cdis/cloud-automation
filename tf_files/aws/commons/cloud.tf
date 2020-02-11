@@ -21,12 +21,12 @@ module "cdis_vpc" {
   organization_name              = "${var.organization_name}"
 
   csoc_managed                   = "${var.csoc_managed}"
-  csoc_vpc_id                    = "${var.csoc_vpc_id}"
+  peering_vpc_id                 = "${var.peering_vpc_id}"
 
   #private_kube_route             = "${aws_route_table.private_kube.id}"
   branch                         = "${var.branch}"
   fence-bot_bucket_access_arns   = "${var.fence-bot_bucket_access_arns}"
-  deploy_ha_proxy                = "${var.deploy_ha_proxy}"
+  deploy_ha_squid                = "${var.deploy_ha_squid}"
   deploy_single_proxy            = "${var.deploy_single_proxy}"
 
   squid_cluster_desired_capasity = "${var.ha-squid_cluster_desired_capasity}"

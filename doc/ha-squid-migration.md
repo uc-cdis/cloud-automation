@@ -84,7 +84,7 @@ Tell terraform you want to deploy HA squid in config.tfvars
 
 
 ```bash
-deploy_ha_proxy = true
+deploy_ha_squid = true
 ```
 
 

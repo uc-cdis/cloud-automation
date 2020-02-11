@@ -20,16 +20,12 @@ variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
-variable "csoc_vpc_id" {
+variable "peering_vpc_id" {
   default = "vpc-e2b51d99"
 }
 
-variable "squid-nlb-endpointservice-name" {
-  default = "com.amazonaws.vpce.us-east-1.vpce-svc-0ce2261f708539011"
-}
-
 variable "csoc_managed" {
-  default = "yes"
+  default = true
 }
 
 variable "organization_name" {
@@ -52,9 +48,6 @@ variable "squid_instance_drive_size" {
   default     = 8
 }
 
-#variable "private_kube_route" {
-#  description = "Id of the route fo plublic_kube subnet"
-#}
 
 variable "squid_instance_type" {
   description = "Instance type for HA squid instances"
@@ -63,7 +56,7 @@ variable "squid_instance_type" {
 
 variable "squid_bootstrap_script" {
   description = "Script to run on deployment for the HA squid instances"
-  default     = "squidvm.sh"
+  default     = "squid_running_on_docker.sh"
 }
 
 variable  "deploy_single_proxy" {
@@ -88,7 +81,7 @@ variable "fence-bot_bucket_access_arns" {
   #default     = []
 }
 
-variable "deploy_ha_proxy" {
+variable "deploy_ha_squid" {
   description = "should you want to deploy HA-squid"
   default     = false
 }

@@ -138,7 +138,7 @@ variable "ami_account_id" {
   default = "707767160287"
 }
 
-variable "csoc_vpc_id" {
+variable "peering_vpc_id" {
   default = "vpc-e2b51d99"
 }
 
@@ -340,7 +340,7 @@ variable "fence-bot_bucket_access_arns" {
   default     = []
 }
 
-variable "deploy_ha_proxy" {
+variable "deploy_ha_squid" {
   description = "Should you want to deploy HA-squid"
   default     = false
 }

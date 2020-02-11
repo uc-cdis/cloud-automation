@@ -88,7 +88,7 @@ variable "extra_vars" {
   default     = ["squid_image=master"]
 }
 
-variable "deploy_ha_proxy" {
+variable "deploy_ha_squid" {
   description = "Should this module be deployed"
   default     = true
 }

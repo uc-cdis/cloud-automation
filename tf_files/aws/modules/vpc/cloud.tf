@@ -7,67 +7,11 @@ module "squid_proxy" {
   env_public_subnet_id = "${aws_subnet.public.id}"
   env_vpc_cidr         = "${aws_vpc.main.cidr_block}"
   env_vpc_id           = "${aws_vpc.main.id}"
-  #env_instance_profile = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
-  #env_instance_profile = "${var.vpc_name}_cluster_logging_cloudwatch"
   zone_id              = "${aws_route53_zone.main.zone_id}"
   env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
   ssh_key_name         = "${var.ssh_key_name}"
-  deploy_single_proxy     = "${var.deploy_single_proxy}"
+  deploy_single_proxy  = "${var.deploy_single_proxy}"
 }
-
-
-#resource "aws_iam_role" "cluster_logging_cloudwatch" {
-#  count                  = "${var.deploy_single_proxy ? 1 : 0 }"
-#  name = "${var.vpc_name}_cluster_logging_cloudwatch"
-#  path = "/"
-
-#  assume_role_policy = <<EOF
-#{
-#    "Version": "2012-10-17",
-#    "Statement": [
-#        {
-#            "Action": "sts:AssumeRole",
-#            "Principal": {
-#               "Service": "ec2.amazonaws.com"
-#            },
-#            "Effect": "Allow",
-#            "Sid": ""
-#        }
-#    ]
-#}
-#EOF
-#}
-
-#
-# This could go here or in the squid module. But squid may go away soon
-# do not remove this
-#
-#resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
-#  count                  = "${var.deploy_single_proxy ? 1 : 0 }"
-#  name   = "${var.vpc_name}_cluster_logging_cloudwatch"
-#  policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
-#  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
-#}
-
-#resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
-#  count                  = "${var.deploy_single_proxy ? 1 : 0 }"
-#  name = "${var.vpc_name}_cluster_logging_cloudwatch"
-#  role = "${aws_iam_role.cluster_logging_cloudwatch.id}"
-#}
-
-#resource "aws_route53_record" "squid" {
-#  count                  = "${var.deploy_single_proxy ? 1 : 0 }"
-#  zone_id = "${aws_route53_zone.main.zone_id}"
-#  name    = "cloud-proxy"
-#  type    = "A"
-#  ttl     = "300"
-#  records = ["${module.squid_proxy.squid_private_ip}"]
-#  lifecycle = {
-#    ignore_changes = ["records"]
-#  }
-#}
-
-
 
 
 module "squid-auto" {
@@ -90,7 +34,7 @@ module "squid-auto" {
   bootstrap_script               = "${var.squid_bootstrap_script}"
   extra_vars                     = "${var.squid_extra_vars}"
   branch                         = "${var.branch}"
-  deploy_ha_proxy                = "${var.deploy_ha_proxy}"
+  deploy_ha_squid                = "${var.deploy_ha_squid}"
   cluster_max_size               = "${var.squid_cluster_max_size}"
   cluster_min_size               = "${var.squid_cluster_min_size}"
   cluster_desired_capasity       = "${var.squid_cluster_desired_capasity}"
@@ -115,7 +59,7 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   tags {
-    Name         = "${var.vpc_name}"
+    Name         = "${var.vpc_name}_vpc"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -239,10 +183,10 @@ resource "aws_cloudwatch_log_group" "main_log_group" {
 
 #This needs vars from other branches, so hopefully will work just fine when they are merge
 resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
-  count             = "${var.csoc_managed == "yes" ? 1 : 0}"
+  count             = "${var.csoc_managed ? 1 : 0}"
   name              = "${var.vpc_name}_subscription"
   #destination_arn   = "arn:aws:logs:${data.aws_region.current.name}:${var.csoc_account_id}:destination:${var.vpc_name}_logs_destination"
-  destination_arn   = "arn:aws:logs:${data.aws_region.current.name}:${var.csoc_managed == "yes" ? var.csoc_account_id : data.aws_caller_identity.current.account_id}:destination:${var.vpc_name}_logs_destination"
+  destination_arn   = "arn:aws:logs:${data.aws_region.current.name}:${var.csoc_managed ? var.csoc_account_id : data.aws_caller_identity.current.account_id}:destination:${var.vpc_name}_logs_destination"
   log_group_name    = "${var.vpc_name}"
   filter_pattern    = ""
   lifecycle {
@@ -268,8 +212,8 @@ resource "aws_route53_zone" "main" {
 
 # this is for vpc peering
 resource "aws_vpc_peering_connection" "vpcpeering" {
-  peer_owner_id = "${var.csoc_managed == "yes" ? var.csoc_account_id : data.aws_caller_identity.current.account_id}"
-  peer_vpc_id   = "${var.csoc_vpc_id}"
+  peer_owner_id = "${var.csoc_managed ? var.csoc_account_id : data.aws_caller_identity.current.account_id}"
+  peer_vpc_id   = "${var.peering_vpc_id}"
   vpc_id        = "${aws_vpc.main.id}"
   auto_accept   = true
 
@@ -283,7 +227,7 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
 
 
 resource "aws_route" "default_csoc" {
-  count = "${var.csoc_managed == "yes" ? 0 : 1}"
+  count = "${var.csoc_managed ? 0 : 1}"
   route_table_id            = "${data.aws_route_tables.control_routing_table.ids[count.index]}"
   destination_cidr_block    = "${var.vpc_cidr_block}"
   vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"

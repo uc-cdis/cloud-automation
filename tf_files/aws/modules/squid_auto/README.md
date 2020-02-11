@@ -20,7 +20,7 @@ gen3 workon <profile> <commons-mane>_squidauto
 - [4. Variables](#4-variables)
   - [4.1 Required Variables](#41-required-variables)
   - [4.2 Optional Variables](#42-optional-variables)
-- [5. Considerations](#5-considerations)
+- [5. Output](#5-output)
 
 
 
@@ -53,17 +53,22 @@ There are mandatory variables, and there are a few other optionals that are set 
 
 ### 4.2 Optional Variables
 
-
-
 | Name | Description | Type | Default |
 |------|-------------|:----:|:-----:|
 | ami_account_id | AWS account id owner of the AMI to be used by squid | string | "099720109477" |
 | image_name_search_criteria | Criteria to be used to search for AMIs in the account specified | string | "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-\*" |
 | bootstrap_path | Folder that contains the bootstrapscript in cloud-automation | string | "cloud-automation/flavors/squid_auto/" |
-| bootstrap_script | Script within the above folder | string | squidvm.sh |
+| bootstrap_script | Script within the above folder | string | [squid_running_on_docker.sh](https://github.com/uc-cdis/cloud-automation/tree/master/flavors/squid_auto) |
 | squid_instance_type | Instance type for squid instances  | string | t3.medium  |
 | organization_name | For tagging purposes  | string | Basic Services  |
 | squid_instance_drive_size | Volume size for the root partition  | integer | 8 |
 | extra_vars | Additional information to be bassed on the bootstrap script | list | ["squid_image=master"] |
-| deploy_ha_proxy | If to deploy this module | boolean | true |
+| deploy_ha_squid | If to deploy this module | boolean | true |
 
+
+
+### 5. Output
+
+| Name | Description |
+|------|-------------|
+|      |             |
