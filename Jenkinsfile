@@ -76,6 +76,7 @@ node {
         testHelper.runIntegrationTests(
           kubectlNamespace,
           pipeConfig.serviceTesting.name,
+          "",
           ""
         )
       }
