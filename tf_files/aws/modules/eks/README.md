@@ -72,7 +72,7 @@ users_policy = "test-commons"
 | iam-serviceaccount | iam/service account to your cluster | boolean | false |
 | oidc_eks_thumbprint | OIDC to use for service account intergration | string | \<AWS DEFAULT\> |
 | domain_test | If ha-proxy a domain to check internet access | string | gen3.io |
-| ha_proxy | If enabled, this should be set to true | boolean | false |
+| ha_squid | If enabled, this should be set to true | boolean | false |
 | dual_proxy | If migrating from single to ha, set to true, should not disrrupt connectivity | boolean | false |
 
 

@@ -81,8 +81,8 @@ variable "domain_test" {
   default     = "gen3.io"
 }
 
-variable "ha_proxy" {
-  description = "IS HA squid deployed?"
+variable "ha_squid" {
+  description = "Is HA squid deployed?"
   default     = false
 }
 

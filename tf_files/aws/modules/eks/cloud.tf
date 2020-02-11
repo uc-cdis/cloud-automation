@@ -166,7 +166,7 @@ resource "aws_route" "skip_proxy" {
 }
 
 resource "aws_route" "public_access" {
-  count                  = "${var.ha_proxy ? var.dual_proxy ? 1 : 0 : 1}"
+  count                  = "${var.ha_squid ? var.dual_proxy ? 1 : 0 : 1}"
   destination_cidr_block = "0.0.0.0/0"
   route_table_id         = "${aws_route_table.eks_private.id}"
   instance_id            = "${data.aws_instances.squid_proxy.ids[0]}"
