@@ -1,7 +1,10 @@
 title "Test AWS Security Groups Across All Regions For an Account Disallow FTP"
-control 'uchi-aws-multi-region-security-group-ftp-1.0' do
-  impact 1.0
+control "uchi-aws-multi-region-security-group-ftp" do
+  tag impact_score: 1.0
   tag severity: ['High']
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['1.0']
+  tag nist_800_53: ['SI-4']
 
   aws_regions.region_names.each do |region|
     aws_security_groups(aws_region: region).group_ids.each do |security_group_id|
@@ -14,9 +17,11 @@ control 'uchi-aws-multi-region-security-group-ftp-1.0' do
 end
 
 title "Uchi allowable default ports are opened"
-control "uchi-aws-security-group-allowable-ports-1.0" do
-  impact 0.7
+control "uchi-aws-security-group-allowable-ports" do
+  tag impact_score: 0.7
   tag severity: ['High']
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag nist_800_53: ['SI-4']
 
   aws_regions.region_names.each do |region|
     aws_security_groups(aws_region: region).group_ids.each do |security_group_id|
@@ -33,11 +38,11 @@ control "uchi-aws-security-group-allowable-ports-1.0" do
 end
 
 title "Ensure the default security group of every VPC restricts all traffic"
-control "uchi-cis-aws-foundation-4.4" do
-  impact 0.7
-  tag nist: ['SC-7(5)','Rev_4']
-  tag cce_id: ['CCE-79201-0']
-  tag csc_control: ['9.2','6.0']
+control "uchi-cis-aws-foundation" do
+  tag impact_score: 0.7
+  tag nist_csf: ['PR.DS-5']
+  tag cis_aws: ['4.4']
+  tag nist_800_53: ['SC-7']
 
   aws_vpcs.vpc_ids.each do |vpc|
     describe aws_security_group(group_name: 'default' , vpc_id: vpc) do
@@ -54,10 +59,11 @@ control "uchi-cis-aws-foundation-4.4" do
 end
 
 title  "Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389"
-control "uchi-cis-aws-foundations-4.2" do
-  impact 0.3
-  tag nist: ['SC-7(5)','Rev_4']
-  tag csf: ['PR.IP-1']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.DS-5']
+  tag cis_aws: ['4.2']
+  tag nist_800_53: ['SC-7']
 
   aws_security_groups.group_ids.each do |group_id|
     describe aws_security_group(group_id) do
@@ -68,9 +74,11 @@ end
 
 
 title 'Ensure no aws_security_groups allow ingress from 0.0.0.0/0 to port 22'
-control "uchi-cis-aws-foundations-4.1" do
-  impact 0.3
-  tag nist: ['SC-7(5)','Rev_4']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.DS-5']
+  tag cis_aws: ['4.1']
+  tag nist_800_53: ['SC-7']
 
   aws_security_groups.group_ids.each do |group_id|
     describe aws_security_group(group_id) do

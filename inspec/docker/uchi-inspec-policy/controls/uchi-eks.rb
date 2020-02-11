@@ -1,7 +1,9 @@
 title "Ensure eks cluster is not using the default Security Group"
 control "eks-cluster not using default security group" do
-  impact 0.3
+  tag impact_score: 0.3
   tag severity: ['high']
+  tag nist_csf: ['PR.DS-5']
+  tag nist_800_53: ['SC-7']
 
 
   aws_eks_clusters.names.each do |eks|

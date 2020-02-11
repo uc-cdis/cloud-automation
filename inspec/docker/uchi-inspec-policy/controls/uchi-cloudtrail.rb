@@ -1,10 +1,9 @@
 title "Ensure CloudTrail is enabled in all regions"
-control 'uchi-cis-aws-foundations-2.1' do
-  impact 0.3
-  tag nist: ['AU-2','Rev_4']
-  tag csf: ['PR.DS-1','PR-DS-2']
-  tag cce_id: ['CCE-78913-1']
-  tag csc_control: ['14.6','6.0']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.DS-1','PR-DS-2']
+  tag cis_aws: ['2.1']
+  tag nist_800_53: ['AU-12']
 
   describe aws_cloudtrail_trails do
     it { should exist }
@@ -20,12 +19,11 @@ end
 
 
 title "Ensure CloudTrail logs are encrypted at rest using KMS CMKs"
-control 'cis-aws-foundations-2.7' do
-  impact 0.7
-  tag nist: ['AU-9','Rev_4']
-  tag csf: ['PR.DS-1','PR-DS-2']
-  tag cce_id: ['CCE-78913-1']
-  tag csc_control: ['13.1','6.0']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.7
+  tag nist_csf: ['PR.DS-1','PR-DS-2']
+  tag cis_aws: ['2.7']
+  tag nist_800_53: ['AU-9']
 
  describe aws_cloudtrail_trails do
    it { should exist }
@@ -39,11 +37,11 @@ control 'cis-aws-foundations-2.7' do
 end
 
 title "Ensure a log metric filter and alarm exist for unauthorized API calls"
-control 'uchi-aws-foundation-3.1' do
-  impact 0.7
-  tag nist: ['SI-4(5)','Rev_4']
-  tag csf: ['PR.PT-1','DE-AE-3']
-  tag cce_id: ['CCE-79186-3']
+control "uchi-cis-aws-foundation" do
+  tag impact_score: 0.7
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['3.1']
+  tag nist_800_53: ['SI-4']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -63,12 +61,11 @@ end
 
 title "Ensure a log metric filter and alarm exist for AWS Config
 configuration changes"
-control 'cis-aws-foundations-3.9' do
-  impact 0.7
-  tag nist: ['AC-2(4)','Rev_4']
-  tag csf: ['ID.AM-1','PR-DS-3']
-  tag cce_id: ['CCE-79194-7']
-  tag csc_control: ['5.4','6.0']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.7
+  tag nist_csf: ['ID.AM-1','PR-DS-3']
+  tag cis_aws: ['3.9']
+  tag nist_800_53: ['AU-12']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -118,12 +115,11 @@ end
 
 title "Ensure a log metric filter and alarm exist for S3 bucket policy
 changes"
-control 'cis-aws-foundations-3.8' do
-  impact 0.3
-  tag nist: ['SI-4(5) Rev_4']
-  tag csf: ['PR.PT-1','PR-DS-4']
-  tag cce_id: ['CCE-79193-9']
-
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
+  tag cis_aws: ['3.8']
+  tag nist_800_53: ['SI-4']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -173,10 +169,11 @@ end
 
 title "Ensure a log metric filter and alarm exist for disabling or scheduled
 deletion of customer created CMKs"
-control 'cis-aws-foundations-3.7' do
-  impact 0.7
-  tag nist: ['SI-4(5)','Rev_4']
-  tag cce_id: ['CCE-79192-1']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.7
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['3.7']
+  tag nist_800_53: ['SI-4']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -226,10 +223,11 @@ end
 
 title "Ensure a log metric filter and alarm exist for AWS Management Console
 authentication failures"
-control 'cis-aws-foundations-3.6' do
-  impact 0.7
-  tag nist: ['SI-4(5)','Rev_4']
-  tag cce_id:['CCE-79191-3']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.7
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['3.6']
+  tag nist_800_53: ['SI-4']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -279,10 +277,11 @@ end
 
 title "Ensure a log metric filter and alarm exist for CloudTrail
 configuration changes"
-control 'cis-aws-foundations-3.5' do
-  impact 0.3
-  tag nist: ['SI-4(5)','Rev_4']
-  tag cce_id: ['CCE-79190-5']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['3.5']
+  tag nist_800_53: ['SI-4']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -331,10 +330,12 @@ describe aws_cloudtrail_trails do
 end
 
 title 'Ensure a log metric filter and alarm exist for IAM policy changes'
-control 'cis-aws-foundations-3.4' do
-  impact 0.3
-  tag nist: ['SI-4(5)','Rev_4']
-  tag cce_id: ['CCE-79189-7']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['3.4']
+  tag nist_800_53: ['SI-4']
+
 describe aws_cloudtrail_trails do
     it { should exist }
   end
@@ -382,11 +383,11 @@ describe aws_cloudtrail_trails do
 end
 
 title "Ensure a log metric filter and alarm exist for usage of root account"
-control 'cis-aws-foundations-3.3' do
-  impact 0.3
-  tag nist: ['AU-6(5)','AC-6(9)','AU-2','Rev_4']
-  tag cce_id: ['CCE-79188-9']
-  tag csc_control: ['4.6','5.1','5.5','6.0']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
+  tag cis_aws: ['3.3']
+  tag nist_800_53: ['AU-12']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -437,10 +438,12 @@ end
 title "Ensure a log metric filter and alarm exist for Management Console
 sign-in without MFA"
 control 'cis-aws-foundations-3.2' do
-impact 0.3
-tag nist: ['AU-2','Rev_4']
-tag cce_id: ['CCE-79187-1']
-tag csc_control: ['5.5','6.0']
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
+  tag csc_control: ['5.5','6.0']
+  tag cis_aws: ['3.2']
+  tag nist_800_53: ['AU-12']
+
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -489,10 +492,11 @@ describe aws_cloudtrail_trails do
 end
 
 title 'Ensure a log metric filter and alarm exist for VPC changes'
-control 'cis-aws-foundations-3.14' do
-  impact 0.3
-  tag nist: ['SI-4(5)','Rev_4']
-  tag cce_id: ['CCE-79199-6']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['3.14']
+  tag nist_800_53: ['SI-4']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -541,11 +545,11 @@ describe aws_cloudtrail_trails do
 end
 
 title 'Ensure a log metric filter and alarm exist for route table changes'
-control 'cis-aws-foundations-3.13' do
-  impact 0.3
-  tag nist: ['SI-4(5)','Rev_4']
-  tag csf: ['PR.PT-1','PR-DS-4']
-  tag cce_id: ['CCE-79199-6']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['3.13']
+  tag nist_800_53: ['SI-4']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -595,11 +599,11 @@ end
 
 title 'Ensure a log metric filter and alarm exist for changes to network
 gateways'
-control 'cis-aws-foundations-3.12' do
-  impact 0.3
-  tag nist: ['SI-4(5)','Rev_4']
-  tag csf: ['PR.PT-1','PR-DS-4']
-  tag cce_id: ['CCE-79197-0']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['3.12']
+  tag nist_800_53: ['SI-4']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -649,10 +653,11 @@ end
 
 title "Ensure a log metric filter and alarm exist for changes to Network
 Access Control Lists (NACL)"
-control 'cis-aws-foundations-3.11' do
-  impact 0.7
-  tag nist: ['SI-4(5)','Rev_4']
-  tag cce_id: ['CCE-79196-2']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.7
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['3.11']
+  tag nist_800_53: ['SI-4']
 
 describe aws_cloudtrail_trails do
     it { should exist }
@@ -701,10 +706,11 @@ describe aws_cloudtrail_trails do
 end
 
 title 'Ensure a log metric filter and alarm exist for security group changes'
-control 'cis-aws-foundations-3.10' do
-  impact 0.7
-  tag nist: ['SI-4(5)','Rev_4']
-  tag cce_id: ['CCE-79195-4']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.7
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['3.10']
+  tag nist_800_53: ['SI-4']
 
  describe aws_cloudtrail_trails do
     it { should exist }
@@ -753,10 +759,11 @@ control 'cis-aws-foundations-3.10' do
 end
 
 title "Ensure CloudTrail log file validation is enabled"
-control "cis-aws-foundations-2.2" do
-  impact 0.7
-  tag nist: ['AU-4','Rev_4']
-  tag cce_id: ['CCE-79195-4']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.7
+  tag nist_csf: ['PR.PT-1','DE.AE-3']
+  tag cis_aws: ['2.2']
+  tag nist_800_53: ['AU-4']
 
    describe aws_cloudtrail_trails do
     it { should exist }
@@ -770,10 +777,11 @@ control "cis-aws-foundations-2.2" do
 end
 
 title "Ensure the S3 bucket CloudTrail logs to is not publicly accessible"
-control "cis-aws-foundations-2.3" do
-  impact 0.3
-  tag nist: ['AU-9','Rev_4']
-  tag cce_id: ['CCE-78915-6']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','DE-AE-3']
+  tag cis_aws: ['2.3']
+  tag nist_800_53: ['AU-9']
 
   describe aws_cloudtrail_trails do
     it { should exist }
@@ -789,12 +797,11 @@ control "cis-aws-foundations-2.3" do
 
 
 title "Ensure CloudTrail trails are integrated with CloudWatch Logs"
-control  "uchi-cis-aws-foundations-2.4" do
-  impact 0.3
-  tag nist: ['SI-4(2)','AU-2','Rev_4']
-  tag csf: ['PR.PT-1','PR-DS-4']
-  tag cce_id: ['CCE-78916-4']
-  tag csc_control: ['6.6','14.6','6.0']
+control  "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['ID-AM-4','DE-CM-7']
+  tag cis_aws: ['2.4']
+  tag nist_800_53: ['AU-12']
 
   describe aws_cloudtrail_trails do
     it { should exist }

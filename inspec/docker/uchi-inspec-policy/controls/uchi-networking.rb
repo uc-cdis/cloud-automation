@@ -1,7 +1,9 @@
 title "Ensure VPC flow logging is enabled in all VPCs"
-control "uchi-cis-aws-foundations-4.3" do
-  impact 0.7
-  tag nist: ['SI-4(4)', 'Rev_4']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.7
+  tag nist_csf: ['ID-AM-4','DE-CM-7' ]
+  tag cis_aws: ['4.3']
+  tag nist_800_53: ['SI-4']
 
   aws_vpcs.vpc_ids.each do |vpc|
     describe aws_vpc(vpc) do
@@ -24,9 +26,11 @@ control "uchi-cis-aws-foundations-4.3" do
 end
 
 title "Ensure the default security group of every VPC restricts all traffic"
-control "uchi-cis-aws-foundations-4.4" do
-  impact 0.7
-  tag  nist: ['SC-7(5)', 'Rev_4']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.7
+  tag  nist_csf: ['PR.DS-5']
+  tag cis_aws: ['4.4']
+  tag nist_800_53: ['SC-7']
 
   aws_vpcs.vpc_ids.each do |vpc|
     describe aws_security_group(group_name: 'default', vpc_id: vpc) do
@@ -42,9 +46,11 @@ control "uchi-cis-aws-foundations-4.4" do
 end
 
 title "Ensure routing tables for VPC peering are 'least access"
-control "uchi-cis-aws-foundations-4.5" do
-  impact 0.7
-  tag nist: ['SC-7', 'Rev_4']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.7
+  tag nist_csf: ['PR.DS-5']
+  tag cis_aws: ['4.5']
+  tag nist_800_53: ['SC-7']
 
   aws_route_tables.route_table_ids.each do |route_table_id|
     aws_route_table(route_table_id).routes.each do |route|

@@ -1,11 +1,9 @@
 title "Verify root account"
 control "uchi-cis-aws-foundation" do
-  impact 0.3
-  tag nist: ['AC-6.9','Rev_4']
-  tag csf:  ['AC-1']
-  tag csc_control: ['5.1','6.0']
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.1']
-  tag sp_800_53: ['AC-6.9']
+  tag nist_800_53: ['AC-6']
 
   describe aws_iam_root_user do
     it { should have_mfa_enabled }
@@ -16,12 +14,10 @@ end
 
 title "IAM user has password less than 90 days"
 control "uchi-cis-aws-foundation" do
- impact 0.7
- tag nist: ['IA-4','Rev_4']
- tag csf: ['AC-1']
- tag csc_control: ['5.1','6.0']
+ tag impact_score: 0.7
+ tag nist_csf: ['PR.PT-1','PR-DS-4']
  tag cis_aws: ['1.3']
- tag sp_800_53: ['IA-5']
+ tag nist_800_53: ['IA-5']
 
 
    aws_iam_users.usernames.each do |usernames|
@@ -36,12 +32,10 @@ control "uchi-cis-aws-foundation" do
 
 title "Password policy requirement"
 control "uchi-cis-aws-foundation" do
-  impact 0.7
-  tag nist: ['IA-5.1','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78902-4']
+  tag impact_score: 0.7
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.4']
-  tag sp_800_53: ['IA-5']
+  tag nist_800_53: ['IA-5']
 
   describe aws_iam_password_policy do
     it { should require_uppercase_characters }
@@ -56,12 +50,10 @@ end
 
 title "IAM-user-inline policies"
 control "uchi-cis-aws-foundation" do
-  impact 0.7
-  tag nist: ['IA-5.1','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78903-2']
+  tag impact_score: 0.7
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.5']
-  tag sp_800_53: ['IA-5.1']
+  tag nist_800_53: ['IA-5']
 
   describe aws_iam_users.where(has_inline_policies: true) do
     its('usernames') { should be_empty }
@@ -71,11 +63,10 @@ end
 title "Do not setup access keys during initial user setup for all IAM users
 that have a console password"
 control "uchi-cis-aws-foundations" do
-  impact 0.3
-  tag nist: ['AC-6','Rev_4']
-  tag csf: ['AC-1']
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.23']
-  tag sp_800_53: ['AC-6']
+  tag nist_800_53: ['AC-6']
 
     aws_iam_access_keys.entries.each do |key|
       describe key.username do
@@ -93,12 +84,10 @@ control "uchi-cis-aws-foundations" do
 
 title "Ensure IAM policies that allow full '*:*' administrative privileges are not created"
 control "uchi-cis-aws-foundations" do
-  impact 0.3
-  tag nist: ['AC-6','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78912-3']
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.24']
-  tag sp_800_53: ['AC-6']
+  tag nist_800_53: ['AC-6']
 
     aws_iam_policies.where { attachment_count > 0 }.policy_names.each do |policy|
       describe "Attached Policies #{policy} allows full '*:*' privileges?" do
@@ -119,12 +108,10 @@ control "uchi-cis-aws-foundations" do
 
 title "Ensure IAM password policy prevents password reuse"
 control "uchi-cis-aws-foundations-1.10" do
-  impact 0.3
-  tag nist: ['IA-5.1','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78908-1']
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.10']
-  tag sp_800_53: ['IA-5.1']
+  tag nist_800_53: ['IA-5']
 
     describe aws_iam_password_policy do
       it { should exist }
@@ -138,12 +125,10 @@ control "uchi-cis-aws-foundations-1.10" do
 
 title "Ensure IAM password policy expires passwords within number of days"
 control "uchi-cis-aws-foundations" do
-  impact 0.3
-  tag nist: ['IA-5.1','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78909-9']
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.11']
-  tag sp_800_53: ['IA-5.1']
+  tag nist_800_53: ['IA-5']
 
     describe aws_iam_password_policy do
       it { should exist }
@@ -157,13 +142,10 @@ control "uchi-cis-aws-foundations" do
 
 title "Ensure no root account access key exists"
 control "uchi-cis-aws-foundations" do
-  impact 0.3
-  tag nist: ['AC-6.9','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78910-7']
-  tag csc_control: ['5.1','6.0']
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.12']
-  tag sp_800_53: ['AC-6.9']
+  tag nist_800_53: ['AC-6']
 
   describe aws_iam_root_user do
     it { should_not have_access_key }
@@ -172,13 +154,10 @@ end
 
 title "Ensure MFA is enabled for the 'root' account"
 control "uchi-cis-aws-foundations-1.13" do
-  impact 0.3
-  tag  nist: ['IA-2.1','SC-23','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78911-5']
-  tag csc_control: ['5.6','11.4','12.6','16.11','6.0']
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.13']
-  tag sp_800_53: ['IA-2.1','SC-23']
+  tag nist_800_53: ['IA-2.1','SC-23']
 
   describe aws_iam_root_user do
     it { should have_mfa_enabled }
@@ -187,13 +166,10 @@ end
 
 title "Ensure hardware MFA is enabled for the root account"
 control "uchi-cis-aws-foundations" do
-  impact 0.7
-  tag nist: ['IA-2.1','SC-23','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78911-5']
-  tag csc_control: ['5.6','11.4','12.6','16.11','6.0']
+  tag impact_score: 0.7
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.14']
-  tag sp_800_53: ['IA-2.1','SC-23']
+  tag nist_800_53: ['IA-2','SC-23']
 
   describe aws_iam_root_user do
     it { should have_mfa_enabled }
@@ -204,13 +180,10 @@ end
 title "Ensure multi-factor authentication (MFA) is enabled for all IAM users
 that have a console password"
 control "uchi-cis-aws-foundations" do
-  impact 0.3
-  tag nist: ['IA-2.1','SC-23','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78901-6']
-  tag csc_control: ['5.6','11.4','12.6','16.11','6.0']
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.2']
-  tag sp_800_53: ['IA-2.1','SC-23']
+  tag nist_800_53: ['IA-2','SC-23']
 
   describe 'The active IAM users that do not have MFA enabled' do
       subject { users_without_mfa }
@@ -221,11 +194,10 @@ end
 title "Ensure a support role has been created to manage incidents with AWS
 Support"
 control "uchi-cis-aws-foundations" do
-  impact 0.3
-  tag nist: ['IR-7','Rev_4']
-  tag csf: ['AC-1']
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.22']
-  tag sp_800_53: ['IR-7']
+  tag nist_800_53: ['IR-7']
 
   describe aws_iam_policy('AWSSupportAccess') do
     it { should be_attached }
@@ -233,14 +205,11 @@ control "uchi-cis-aws-foundations" do
 end
 
 title "Ensure credentials unused for 90 days or greater are disabled"
-control "uchi-cis-aws-foundations-1.3" do
-  impact 0.3
-  tag nist: ['IA-4','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78900-8']
-  tag csc_control: ['16.6','6.0']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.3']
-  tag sp_800_53: ['IA-4']
+  tag nist_800_53: ['IA-4']
 
   describe aws_iam_users.where(has_console_password?: true).where(password_never_used?: true) do
     it { should_not exist }
@@ -267,13 +236,11 @@ end
 
 title "Ensure access keys are rotated every number of days"
 
-control "uchi-cis-aws-foundations-1.4" do
-  impact 0.3
-  tag nist: ['IA-5.1','Rev_4']
-  tag csf: ['AC-1']
-  tag cce_id: ['CCE-78902-4']
+control "uchi-cis-aws-foundations" do
+  tag impact_score: 0.3
+  tag nist_csf: ['PR.PT-1','PR-DS-4']
   tag cis_aws: ['1.4']
-  tag sp_800_53: ['IA-5.1']
+  tag nist_800_53: ['IA-5']
 
   aws_iam_access_keys.where(active: true).entries.each do |key|
     describe key.username do
