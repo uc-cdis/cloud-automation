@@ -44,12 +44,13 @@ users_policy = "test-commons"
 
 ### 4.1 Required Variables
 
-| Name | Description | Type | Default | Required |
-|------|-------------|:----:|:-----:|:-----:|
+| Name | Description | Type | Default |
+|------|-------------|:----:|:-----:|
 | vpc_name | Usually the same name as the commons. This VPC must exists arelady otherwise, the execution will fail. Additionally, it worth mentioning that logging and vpc must esist before running this. | string | n/a |
 | ec2_keyname | An existing key pair in EC2 that we want in the k8s worker nodes. | string | n/a |
 | availability_zones | AZs where to deploy the kubernetes worker nodes. Could be automated. | list |  ["us-east-1a","us-east-1d","us-east-1d"] |
 | users_policy | This is the policy that was created before that allows the cluster to access the users bucket in bionimbus. Usually the same name as the VPC, but not always. | string | n/a |
+
 
 ### 4.2 Optional Variables
 
@@ -60,29 +61,39 @@ users_policy = "test-commons"
 | eks_version | Version for EKS cluster | string | 1.14 |
 | worker_drive_size | Volume size for the k8s workers | string | 30GB |
 | jupyter_instance_type | For k8s jupyter workers | string | t3.medium |
-| bootstrap_script | Script to initialize the workers | string | bootstrap-2.0.0.sh |
-| jupyter_bootstrap_script | Script to initialize the jupyter workers | string | bootstrap-2.0.0.sh |
-| jupyter_worker_drive_size | Drive Size for jupyter workers | string | bootstrap-2.0.0.sh |
-| peering_cidr | AdminVM's CIDR for peering connections | string | 10.128.0.0/20 (PlanX CSOC) | 
+| bootstrap_script | Script to initialize the workers | string | bootstrap.sh |
+| jupyter_bootstrap_script | Script to initialize the jupyter workers | string | bootstrap.sh |
+| jupyter_worker_drive_size | Drive Size for jupyter workers | string | bootstrap.sh |
+| peering_cidr | AdminVM's CIDR for peering connections | string | 10.128.0.0/20 (PlanX CSOC) |
 | jupyter_asg_desired_capacity | # of jupyter workers | number | 0 |
 | jupyter_asg_max_size | Max # of jupyter workers | number | 10 |
 | jupyter_asg_min_size | Min # of jupyter workers | number | 0 |
 | iam-serviceaccount | iam/service account to your cluster | boolean | false |
-| oidc_eks_thumbprint | OIDC to use for service account intergration | string | <AWS DEFAULT> | 
-| domain_test | If ha-proxy a domain to check internet access | string | gen3.io | 
+| oidc_eks_thumbprint | OIDC to use for service account intergration | string | \<AWS DEFAULT\> |
+| domain_test | If ha-proxy a domain to check internet access | string | gen3.io |
 | ha_proxy | If enabled, this should be set to true | boolean | false |
-| dual_proxy | If migrating from single to ha, set to true, should not disrrupt connectivity | false |
+| dual_proxy | If migrating from single to ha, set to true, should not disrrupt connectivity | boolean | false |
+
+
+## 5. Outputs
+
+| Name | Description | 
+|------|-------------|
+| kubeconfig | kubeconfig file to talk to kubernetes |
+| config_map_aws_auth | configmap that sets permissions to incorporate the worker nodes into the cluster |
 
 
 ## 5. Considerations
 
-* We are using AWS EKS ready AMIs, even though there might be other options out there, we are using this ones as for now, or at least until there are more mature solutions.
-  Said AMIs uses amazon linux, which default user is `ec2-user`.
+* We are using AWS EKS ready AMIs, even though there might be other options out there, we are using these ones as for now.
 
-* When tfapply is ran, there will be two main outputs `config_map_aws_auth` and `kubeconfig`.
-  `config_map_aws_auth` is a configmap that sets permission to the cluster to incorporate the worker nodes into the cluster. This is applied automatically, but in case it doesn't copy this output and apply it to the cluster.
-  `kubeconfig` is the config file for kubernetes, it is not saved automatically in the right path, therefore you must put it where your KUBECONFIG var points to.
+Said AMIs uses amazon linux, which default user is `ec2-user`.
 
-   These outputs are also saved into a file in the terraform space. You can access it by running `gen3 cd`, there is a `<commons-name>_output_eks` folder which contains the files in question.
+* When tfapply is ran, there will be two outputs `config_map_aws_auth` and `kubeconfig`.
 
-* `iam-serviceaccount` should only be used with EKS 1.13+, if you are running 1.12 or bellow, you must upgrade first. Additionally, you won't be able to enable on the same run where you are upgrading. Upgrade must come first.
+`config_map_aws_auth` is a configmap that sets permissions to incorporate the worker nodes into the cluster. This is applied automatically, but in case it doesn't, copy this output and apply it to the cluster.
+`kubeconfig` is the config file for kubernetes, it is not saved automatically in the right path, therefore you must put it where your KUBECONFIG var points to.
+
+These outputs are also saved into a file in terraform space. You can access it by running `gen3 cd`, there is a `<commons-name>_output_eks` folder that  contains the files in question.
+
+* `iam-serviceaccount` must only be used with EKS 1.13+, if you are running 1.12 or bellow, you must upgrade first. Additionally, you won't be able to enable this on the same run for upgrading out of 1.12. Upgrade must come first.
