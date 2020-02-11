@@ -1,11 +1,11 @@
 # TL;DR
 
-This procedure is intended to show the necessary steps required to migrate from a single Squid proxy instance, to an HA/Multizone one.
+This procedure is intended to show steps required to migrate from a single Squid proxy instance, to an HA/Multizone one.
 
 
 ## Overview
 
-Currently, commons are using a single squid proxy to access the internet. Even though it works just file in most cases, sometimes it fails, or the underlaying hardware fails and consequently AWS sets it for decomision, or the instance volume fills up all the sudden, among others. Furthermore, the AMI used as image base was created with Packer and tailored for the needs by that time.
+Currently, commons' Kubernetes clusters are using a single squid proxy to access the internet. Even though it works just file in most cases, sometimes it fails, or the underlaying hardware fails and consequently AWS sets it for decomision, or the instance volume fills up all the sudden, among others. Furthermore, the AMI used as image base was created with Packer and tailored for the needs by that time.
 
 The new HA model will now use official Canonical Ubuntu's 18.04 image and can be easily told to check for the latest release by them. This leaves the burden to keep the instance updated and check on it.
 
@@ -15,7 +15,7 @@ Keeping at least two instances always up, one as active and the second as standb
 
 The switching happens at the network level, the default route for kubernetes workers is an instance ENI in the autoscaling group that manages the squid cluster. If http access fails, then each instance in squid autoscaling group is checked on port 3128, the first one that works is set as the new active.
 
-This new module, or addition, has been though to be optional. You can decide to keep the single instance model or switch to HA. If you don't want to incurd in additional charged that represents keeping an standby EC2 instance, then you can always set the cluster min and desired size of 1.
+This new module, or addition, has been thought to be optional. You can decide to keep the single instance model or switch to HA. If you don't want to incurd in additional charged that represents keeping an standby EC2 instance, then you can always set the cluster min and desired size of 1.
 
 
 ## Procedure
@@ -24,9 +24,9 @@ The procedure has been broken down to two options. One would deploy HA-squid on 
 
 The first option would mean little to no downltime, but would require more resources deployed at some point in time, which might mean of higher bills.
 
-The second option is instended for non critical environments as it might leave the kubernetes worker nodes without internet access while the HA squid instances come up. Which could take up to 30 mins, depending on the case and the instance type selected.
+The second option is intended for non critical environments as it might leave the kubernetes worker nodes without internet access while the HA squid instances come up. Which could take up to 30 mins, depending on the case and the instance type selected.
 
-It worth noting than for the first option you could destroy the single instance model once you know HQ is in place. The best way to determine if it is, is to check on the default gateway for the route table for `private_kube` and `eks_private`, both should be pointing to an ENI belonging to an instance in the HA squid cluster.
+It worth noting than for the first option, you could destroy the single instance model once you know HA is in place. The best way to determine if it is, is to check on the default gateway for the route table for `private_kube` and `eks_private`, both should be pointing to an ENI belonging to an instance in the HA squid cluster.
 
 The following steps would show what needs to be done in order to deploy HA-squid in your commons.
 
@@ -35,7 +35,9 @@ The following steps would show what needs to be done in order to deploy HA-squid
 
 Note: All these steps showed here were done on a deployment that runed on the latest master prior ha squid was introduced, the amount of resources terraform would need to add/modify/destroy might differ for each environment. Proceed with precausion.
 
-      Also, this guide will go through a parallel deployent of squid instance, and then removal of the single instance. This way, the amount of time the a cluster won't have internet access gets reduced to maximun a minute, which is the frequency lambda runs and checks.
+Also, this guide will go through a parallel deployent of squid instances, and then removal of the single instance. This way, the amount of time the a cluster won't have internet access gets reduced to maximun a minute, which is the frequency lambda runs and checks.
+
+
 
 
 Start by working on the module:
@@ -62,29 +64,34 @@ The above command would try accessing the url passed along, it is usefull to che
 gen3 tform taint aws_route_table.private_kube
 ```
 
-When the resource is tainted, you may proceed as you would regularly do. The plan to be created may want to delete a few resources, that's alright, it is inteded.
 
-Tell terraform you want to deploy HA squid in config.tfvars 
+Tell terraform you want to deploy HA squid in config.tfvars
 
-```
+
+```bash
 deploy_ha_proxy = true
 ```
 
 
-```gen3
+When the resource is tainted, you may proceed as you would regularly do. The plan to be created may want to delete a few resources, that's alright, it is inteded.
+
+```bash
 gen3 tfplan
 ```
 
-The plan should look show the following: 
+The plan should show the following changes:
 
 Tainted resources:
 
+```bash
 -/+ destroy and then create replacement
 -/+ aws_route_table.private_kube (tainted) (new resource required)
+```
 
 
 Add:
 
+```bash
   + create
   + aws_route.for_peering
   + module.cdis_vpc.module.squid-auto.aws_autoscaling_group.squid_auto
@@ -104,10 +111,12 @@ Add:
   + module.cdis_vpc.module.squid_proxy.aws_iam_role.cluster_logging_cloudwatch
   + module.cdis_vpc.module.squid_proxy.aws_iam_role_policy.cluster_logging_cloudwatch
   + module.cdis_vpc.module.squid_proxy.aws_route53_record.squid
+```
 
 
 Modify:
 
+```bash
   ~ update in-place
   ~ aws_route_table_association.private_kube
   ~ module.cdis_vpc.aws_default_route_table.default
@@ -119,10 +128,12 @@ Modify:
   ~ module.cdis_vpc.aws_security_group.out
   ~ module.cdis_vpc.aws_vpc_peering_connection.vpcpeering
   ~ module.elb_logs.aws_s3_bucket.log_bucket
+```
 
 
 Destroy:
 
+```bash
   - destroy
   - aws_security_group.kube-worker
   - aws_vpc_endpoint.k8s-s3
@@ -132,9 +143,7 @@ Destroy:
   - module.cdis_vpc.aws_iam_role_policy.cluster_logging_cloudwatch
   - module.cdis_vpc.aws_route53_record.squid
   - module.cdis_vpc.aws_security_group.webservice
-
-
-
+```
 
 
 Terraform will perform the following actions:
@@ -150,10 +159,11 @@ If it doesn't look like above, make sure the no harm will be done to production 
 gen3 tfapply
 ```
 
-Sometimes terraform might fail applying a plan due to different reasouns, you can run the plan again and apply.
+Sometimes terraform might fail applying a plan due to different reasons, you can run the plan again and apply.
 
 
-Errors might occur because resouces were moved from one module to another and terraform might confuse when they are still deployed or not, therefore it complains. For example:
+Errors might occur because resouces were moved from one module to another and terraform might get confused when trying to create a resource that was to be destroyed before, therefore it complains. For example:
+
 
 ```bash
 Error: Error applying plan:
@@ -171,7 +181,8 @@ Error: Error applying plan:
 
 At this point it is alright to plan and apply again.
 
-The cluster should still have connectivity at this point, the single squid instance should still be servicing as proxy. The HA ones should also be deployed, but not serving as default gateway and proxying HTTP{,S} traffic yet. 
+The cluster should still have connectivity, the single squid instance should still be servicing as proxy. The HA ones should also be deployed, but not serving as default gateway and proxying HTTP{,S} traffic yet. 
+
 
 
 ### 2. Update the EKS module
@@ -204,11 +215,63 @@ When that's done, you may proceed as usual
 gen3 tfplan
 ```
 
-The plan for the EKS module should not delete any resource other than the one you just tainted. If otherwise, please check the plan thoroughly.
+The plan should show the following changes:
+
+
+Destroy and then create: 
+
+```bash
+-/+ destroy and then create replacement
+-/+ module.eks.aws_launch_configuration.eks_launch_configuration (new resource required)
+-/+ module.eks.aws_route_table.eks_private (tainted) (new resource required)
+-/+ module.eks.module.jupyter_pool.aws_launch_configuration.eks_launch_configuration (new resource required)
+```
+
+Add:
+
+```bash
+  + create
+  + module.eks.aws_cloudwatch_event_rule.gw_checks_rule
+  + module.eks.aws_cloudwatch_event_target.cw_to_lambda
+  + module.eks.aws_cloudwatch_log_group.gwl_group
+  + module.eks.aws_iam_role_policy.lambda_policy_no_resources
+  + module.eks.aws_iam_role_policy.lambda_policy_resources
+  + module.eks.aws_iam_role_policy_attachment.lambda_logs
+  + module.eks.aws_lambda_function.gw_checks
+  + module.eks.aws_lambda_permission.allow_cloudwatch
+  + module.eks.aws_route.for_peering
+  + module.eks.aws_route.public_access
+  + module.eks.aws_vpc_endpoint.autoscaling
+  + module.eks.aws_vpc_endpoint.ebs
+  + module.eks.aws_vpc_endpoint.ecr-api
+  + module.eks.module.iam_policy.aws_iam_policy.policy
+  + module.eks.module.iam_role.aws_iam_role.the_role
+```
+
+
+Modify:
+
+```bash
+  ~ update in-place
+  ~ module.eks.aws_autoscaling_group.eks_autoscaling_group
+  ~ module.eks.aws_eks_cluster.eks_cluster
+  ~ module.eks.aws_iam_role.eks_node_role
+  ~ module.eks.aws_route_table_association.private_kube[0]
+  ~ module.eks.aws_route_table_association.private_kube[1]
+  ~ module.eks.aws_route_table_association.private_kube[2]
+  ~ module.eks.aws_security_group.eks_control_plane_sg
+  ~ module.eks.aws_vpc_endpoint.ec2
+  ~ module.eks.aws_vpc_endpoint.ecr-dkr
+  ~ module.eks.aws_vpc_endpoint.k8s-logs
+  ~ module.eks.aws_vpc_endpoint.k8s-s3
+  ~ module.eks.module.jupyter_pool.aws_autoscaling_group.eks_autoscaling_group
+  ~ module.eks.module.jupyter_pool.aws_security_group.eks_nodes_sg
+```
+
 
 
 ```bash
-Plan: 27 to add, 8 to change, 1 to destroy.
+Plan: 18 to add, 13 to change, 3 to destroy.
 ```
 
 Apply the plan
@@ -218,14 +281,135 @@ gen3 tfapply
 ```
 
 
+### 3. Removing the single proxy instance
+
+
+Asumming you come straight from #2. you won't need to initialize the EKS module, but if you must then:
+
+```bash
+gen3 workon cdistest generic_commons_eks
+gen3 cd
+```
+
+Commment out the dual_proxy variable
+
+```bash
+#dual_proxy=true
+```
+
+Create the plan
+
+```bash
+gen3 tfplan
+```
+
+The following resources will change:
+
+Destroy:
+
+```bash
+  - destroy
+  - module.eks.aws_route.public_access
+```
+
+
+This plan would remove the default route for the subnets associated with kubernetes workers, therefore workers might lose internet connection until the lambda function sees the issue and make tthe respective changes to remediate this and use any of the HA instances.
+
+
+```bash
+gen3 tfapply
+```
+
+
+You could track connectivity status by running something like the following command from devterm 
+
+```bash
+for i in {1..500}; do curl -L -s -o /dev/null -w "%{http_code}" http://ifconfig.io --connect-timeout 1; echo; sleep 5; done
+```
+
+In this particular case it took about 4 iterations (or 20 seconds) to flip over HA. It should not take longer than one minute, if it does you could revert back by uncommenting `dual_proxy=true` in your config.tfvars
+
+
+
+
+```bash
+ubuntu@awshelper-devterm-1581045795:~$ for i in {1..500}; do curl -L -s -o /dev/null -w "%{http_code}" http://ifconfig.io --connect-timeout 1; echo; sleep 5; done
+200
+200
+000
+000
+000
+000
+200
+200
+```
+
+
+### 4. Remove the squid single instance 
+
+
+Initialize the module 
+
+
+```bash
+gen3 workon cdistest generic_commons
+gen3 cd
+```
+
+Add the following line to your `config.tfvars` file:
+
+```bash
+deploy_single_proxy = false
+```
+
+Create the plan
+
+```bash
+gen3 tfplan
+```
+
+The following changes should be shown:
+
+```bash
+  - destroy
+  - module.cdis_vpc.aws_security_group.proxy
+  - module.cdis_vpc.module.squid_proxy.aws_ami_copy.squid_ami
+  - module.cdis_vpc.module.squid_proxy.aws_eip.squid
+  - module.cdis_vpc.module.squid_proxy.aws_eip_association.squid_eip
+  - module.cdis_vpc.module.squid_proxy.aws_iam_instance_profile.cluster_logging_cloudwatch
+  - module.cdis_vpc.module.squid_proxy.aws_iam_role.cluster_logging_cloudwatch
+  - module.cdis_vpc.module.squid_proxy.aws_iam_role_policy.cluster_logging_cloudwatch
+  - module.cdis_vpc.module.squid_proxy.aws_instance.proxy
+  - module.cdis_vpc.module.squid_proxy.aws_route53_record.squid
+  - module.cdis_vpc.module.squid_proxy.aws_security_group.login-ssh
+  - module.cdis_vpc.module.squid_proxy.aws_security_group.out
+  - module.cdis_vpc.module.squid_proxy.aws_security_group.proxy
+```
+
+
+```bash
+Plan: 0 to add, 0 to change, 12 to destroy.
+```
+
+If the plan looks like above then go ahead and apply, if otherwise, check that nothing is to be destroyed that is not supposed to.
+
+```bash
+gen3 tfapply
+```
+
+
 
 ## Considerations
 
-During the migration, when you first update the VPC module, the proxy will go away, leaving you temporarily without a connection to the internet from the worker nodes, you may want to plan accordingly. Nonetheless, services will be available to users, but if you use an internal authentication provider, like google, dbGap, among others, these ones may not work until there is an available proxy.
+During the migration, internet connectivity from the kubernetes worker nodes might suffer a hiccup, especially if you do not want to deploy a dual proxy option. Even in that case, it should not last longer a few minutes. 
 
-After you update the EKS module the Squid instances may take a few minutes to fully start serving proxy services, Say it might take up to 20 minutes.
+If it goes for longer, you may want to revert.
 
 There might not be any roll back procedure after you are done.
 
 
-aws lambda invoke --function-name S3toES2 --invocation-type Event --payload '{"prefix":"09/'$j'/'$i'"}' outfile
+The lambda function can be invoked through awscli for testing purposes or to for a run when necessary:
+
+```bash
+aws lambda invoke --function-name ${vpc_name}-gw-checks-lambda --invocation-type Event --payload '{"domain_test":"gen3.io","vpc_name":"'${vpc_name}'"}' outfile
+```

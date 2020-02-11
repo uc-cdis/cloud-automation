@@ -438,12 +438,12 @@ def set_sourceDestinationCheck_attr(instance_id,value=False):
     
 def lambda_handler(event, context):
     
-    if os.environ.get('domain_test') is not None:
+    if 'domain_test' in event:
+        domain = event['domain_test']
+    elif os.environ.get('domain_test') is not None:
         domain = os.environ['domain_test']
-    elif 'domain_test' in event:
-        domain = event['domain']
     else:
-        domain = 'gen3.io'
+        domain = 'gen3.org'
     #print(domain)
     http_code = test_proxy(domain)
     
@@ -457,10 +457,10 @@ def lambda_handler(event, context):
     #r1 = conn.getresponse()
     #print(r1.status, r1.reason)
     
-    if os.environ.get('proxy_port') is not None:
-        proxy_port = os.environ['proxy_port']
-    elif 'proxy_port' in event:
+    if 'proxy_port' in event:
         proxy_port = event['proxy_port']
+    elif os.environ.get('proxy_port') is not None:
+        proxy_port = os.environ['proxy_port']
     else:
         proxy_port = 3128
     
