@@ -208,6 +208,8 @@ spec:
                 name: manifest-fence
                 key: fence-config-public.yaml
                 optional: true
+          - name: UWSGI_PROCESSES
+            value: 1
         volumeMounts:
           - name: "config-volume"
             readOnly: true
