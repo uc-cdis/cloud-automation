@@ -114,6 +114,12 @@ spec:
                 name: gateway-g3auto
                 key: base64Authz.txt
                 optional: true  
+          - name: MDS_AUTHZ
+            valueFrom:
+              secretKeyRef:
+                name: metadata-g3auto
+                key: base64Authz.txt
+                optional: true  
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true
