@@ -4,7 +4,6 @@ tf_files/terraform.tfstate
 tf_files/terraform.tfstate.backup
 .terraform/
 client/*
-images/*
 node_modules/
 Secrets/
 terraform
