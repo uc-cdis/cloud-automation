@@ -22,7 +22,8 @@ $ gen3 workon cdistest test-commons_eks
 - [4. Variables](#4-variables)
   - [4.1 Required Variables](#41-required-variables)
   - [4.2 Optional Variables](#42-optional-variables)
-- [5. Considerations](#5-considerations)
+- [5. Outputs](#5-outputs)
+- [6. Considerations](#6-considerations)
 
 
 
@@ -61,9 +62,9 @@ users_policy = "test-commons"
 | eks_version | Version for EKS cluster | string | 1.14 |
 | worker_drive_size | Volume size for the k8s workers | string | 30GB |
 | jupyter_instance_type | For k8s jupyter workers | string | t3.medium |
-| bootstrap_script | Script to initialize the workers | string | bootstrap.sh |
-| jupyter_bootstrap_script | Script to initialize the jupyter workers | string | bootstrap.sh |
-| jupyter_worker_drive_size | Drive Size for jupyter workers | string | bootstrap.sh |
+| bootstrap_script | Script to initialize the workers | string | [bootstrap.sh](https://github.com/uc-cdis/cloud-automation/tree/master/flavors/eks) |
+| jupyter_bootstrap_script | Script to initialize the jupyter workers | string | [bootstrap.sh](https://github.com/uc-cdis/cloud-automation/tree/master/flavors/eks) |
+| jupyter_worker_drive_size | Drive Size for jupyter workers | string | 30GB |
 | peering_cidr | AdminVM's CIDR for peering connections | string | 10.128.0.0/20 (PlanX CSOC) |
 | jupyter_asg_desired_capacity | # of jupyter workers | number | 0 |
 | jupyter_asg_max_size | Max # of jupyter workers | number | 10 |
@@ -83,7 +84,7 @@ users_policy = "test-commons"
 | config_map_aws_auth | configmap that sets permissions to incorporate the worker nodes into the cluster |
 
 
-## 5. Considerations
+## 6. Considerations
 
 * We are using AWS EKS ready AMIs, even though there might be other options out there, we are using these ones as for now.
 
