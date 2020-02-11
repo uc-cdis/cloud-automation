@@ -2,20 +2,34 @@
 
 This procedure is intended to show steps required to migrate from a single Squid proxy instance, to an HA/Multizone one.
 
+## Table of content
+
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+- [Procedure](#procedure)
+  - [1. Update the VPC module](#1-update-the-vpc-module)
+  - [2. Update the EKS module](#2-update-the-eks-module)
+  - [3. Removing the single proxy instance route](#3-removing the single proxy instance route)
+  - [4. Update the EKS module](#4-remove the squid single instance)
+- [Considerations](#considerations)
+- [Extras](#extras)
+
+
 
 ## Overview
 
-Currently, commons' Kubernetes clusters are using a single squid proxy to access the internet. Even though it works just file in most cases, sometimes it fails, or the underlaying hardware fails and consequently AWS sets it for decomision, or the instance volume fills up all the sudden, among others. Furthermore, the AMI used as image base was created with Packer and tailored for the needs by that time.
+Currently, commons' Kubernetes clusters are using a single squid proxy to access the internet. Even though it works just fine in most cases, sometimes it fails, or the underlaying hardware fails and consequently AWS sets it for decomision, or the instance volume fills up all the sudden, among others. Furthermore, the AMI used as image base was created with Packer and tailored for the needs by that time.
 
 The new HA model will now use official Canonical Ubuntu's 18.04 image and can be easily told to check for the latest release by them. This leaves the burden to keep the instance updated and check on it.
 
 Logs are sent over to cloudwatch for historical data. Therefore, instances are disposable. 
 
-Keeping at least two instances always up, one as active and the second as standby, would decrease the amount of time commons are left out of internet access. The standby instance would come in place if the active one fails for whatever reason, there'll be a lambda function checking for http access from within the very same VPC where the commons lives and port 3128 on each individual instance. Should those two succeed, then the proxy is switched to the stand by.
+Keeping at least two instances always up, one as active and the second as standby, would decrease the amount of time commons are left out of internet access. The standby instance would come in place if the active one fails for whatever reason. A lambda function will check for http access from within the very same VPC where the commons lives and port 3128 on each individual instance. Should those two succeed, then the proxy is switched to the stand by.
 
-The switching happens at the network level, the default route for kubernetes workers is an instance ENI in the autoscaling group that manages the squid cluster. If http access fails, then each instance in squid autoscaling group is checked on port 3128, the first one that works is set as the new active.
+The switching happens at the network level, the default route for kubernetes workers is an instance's ENI in the autoscaling group that manages the squid cluster. If http access fails, then each instance in squid autoscaling group is checked on port 3128, the first one that works is set as the new active.
 
 This new module, or addition, has been thought to be optional. You can decide to keep the single instance model or switch to HA. If you don't want to incurd in additional charged that represents keeping an standby EC2 instance, then you can always set the cluster min and desired size of 1.
+
 
 
 ## Procedure
@@ -29,6 +43,7 @@ The second option is intended for non critical environments as it might leave th
 It worth noting than for the first option, you could destroy the single instance model once you know HA is in place. The best way to determine if it is, is to check on the default gateway for the route table for `private_kube` and `eks_private`, both should be pointing to an ENI belonging to an instance in the HA squid cluster.
 
 The following steps would show what needs to be done in order to deploy HA-squid in your commons.
+
 
 
 ### 1. Update the VPC module
@@ -185,6 +200,8 @@ The cluster should still have connectivity, the single squid instance should sti
 
 
 
+
+
 ### 2. Update the EKS module
 
 
@@ -281,7 +298,8 @@ gen3 tfapply
 ```
 
 
-### 3. Removing the single proxy instance
+
+### 3. Removing the single proxy instance route
 
 
 Asumming you come straight from #2. you won't need to initialize the EKS module, but if you must then:
@@ -345,7 +363,8 @@ ubuntu@awshelper-devterm-1581045795:~$ for i in {1..500}; do curl -L -s -o /dev/
 ```
 
 
-### 4. Remove the squid single instance 
+
+### 4. Remove the squid single instance
 
 
 Initialize the module 
@@ -405,11 +424,20 @@ During the migration, internet connectivity from the kubernetes worker nodes mig
 
 If it goes for longer, you may want to revert.
 
-There might not be any roll back procedure after you are done.
+There might not be any full roll back procedure after you are done.
 
 
-The lambda function can be invoked through awscli for testing purposes or to for a run when necessary:
+The lambda function can be invoked through awscli for testing purposes or to force a run when necessary:
 
 ```bash
-aws lambda invoke --function-name ${vpc_name}-gw-checks-lambda --invocation-type Event --payload '{"domain_test":"gen3.io","vpc_name":"'${vpc_name}'"}' outfile
+aws lambda invoke --function-name ${vpc_name}-gw-checks-lambda --invocation-type RequestResponse --payload '{"url":"http://ifconfig.io"}' outfile
 ```
+
+
+## Extras 
+
+Please refear to [squid-auto](https://github.com/uc-cdis/cloud-automation/tree/master/flavors/squid_auto) for scripts to bootstrap squid instances. Currently there are two options, either running squid directly on the instance as systemd, or on a container.
+
+Deploying directly on the instance might be a bit easier to maintain (if that's required) and troubleshooting, but squid is downloaded from source, compiled and then run, which could take up to 15 mins, depending on the instance type chosen. The smaler the slower. 
+
+Deploying as a container would download our squid image from quay and start the service right away. It might take up to 3 mins to fully complete the bootstraping and start the service. Check the docker file used for the inmage here [Dockerfile](https://github.com/uc-cdis/cloud-automation/tree/master/Docker/squid/Dockerfile).
