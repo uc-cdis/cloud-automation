@@ -16,7 +16,7 @@ setup_database() {
   fi
   if ! g3kubectl describe secret metadata-g3auto > /dev/null 2>&1; then
     if ! gen3 db setup metadata; then
-      gen3_log_err "Failed setting up database for arborist"
+      gen3_log_err "Failed setting up database for metadata service"
       return 1
     fi
   fi
