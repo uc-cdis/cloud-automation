@@ -168,7 +168,7 @@ variable "alarm_threshold" {
 
 
 variable "csoc_managed" {
-  default = "yes"
+  default = true
 }
 
 variable "organization_name" {
