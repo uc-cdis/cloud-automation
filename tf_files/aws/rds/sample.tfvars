@@ -49,5 +49,6 @@ rds_instance_identifier                   = "planx-tests-db"
 #rds_instance_tags                                  = {"something"="stuff", "Something-else"="more-stuff"}
 #rds_instance_timeouts                              = {create = "40m", update = "80m", delete = "40m"}
 #rds_instance_timezone                              = ""
+#rds_instance_final_snapshot_identifier             = ""
 
 

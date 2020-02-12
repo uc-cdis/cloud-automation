@@ -78,7 +78,7 @@ variable "iam-serviceaccount" {
 
 variable "domain_test" {
   description = "url for the lambda function to check for the proxy"
-  default     = "gen3.io"
+  default     = "gen3.org"
 }
 
 variable "ha_squid" {

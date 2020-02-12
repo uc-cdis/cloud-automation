@@ -138,7 +138,7 @@ gen3 cd
 
 `peering_cidr` this is the CIDR where your adminVM belongs to. Since the commons would create it's own VPC, you need to pair them up to allow communication between them later. Basically, said pairing would let you run kubectl commands against the kubernetes cluster hosting the commons.
 
-`csoc_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
+`peering_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
 
 `user_bucket_name` This also has something to do with the user.yaml file. In case you need your commons to access a user.yaml file in a different bucket than `cdis-gen3-users`, then add this variable with the corresponding value. Terraform with ultimately create a policy allowing the Kubernetes worker nodes to access the bucket in question (Ex. `s3://<user_bucket_name>/<config_folder>/user.yaml`).
 
