@@ -290,3 +290,12 @@ Get Cloudwatch Logs
 
 There is a python script that will pull json events for all of the streams from cloudwatch log and it will send the output to an S3 bucket.You
 need to provide a group_name, bucket name
+
+
+Get Ebs volume and check to see if they are encrypted
+
+There is a python script the runs a report and uploads the report as a csv file into an s3 bucket of choice. The report list the volume, volume type, iops, size, created from a snapshot (if) the instances it is attached and if it is encrypted or not. The command takes argument of region if the instance has sufficient IAM role it should run. I know each environment is different and how you pass credentials will vary. You will need to go down the line in the code near the bottom where it says bucket and change to your bucket. You can also set the default regions in the code and dropp the argument --regions when executing the script
+
+Example:
+ebs-report.py --regions us-east-2 --file my-ebs-report.csv
+
