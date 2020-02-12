@@ -81,12 +81,6 @@ spec:
                 name: manifest-global
                 key: dbgap_backup_bucket
                 optional: true
-          - name: DBGAP_DOWNLOAD_FOLDER
-            valueFrom:
-              configMapKeyRef:
-                name: manifest-global
-                key: dbgap_download_folder
-                optional: true
           - name: AWS_ROLE_ARN
             valueFrom:
               configMapKeyRef:
@@ -165,10 +159,10 @@ spec:
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             if [ "$SYNC_FROM_DBGAP" = True ]; then
-              if [ ! -z "${DBGAP_BACKUP_BUCKET}" || ! -z "{$DBGAP_DOWNLOAD_FOLDER}" ]; then
-                fence-create dbgap-download-access-files --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER)
-                aws s3 cp --recursive /mnt/shared/$(DBGAP_DOWNLOAD_FOLDER)/ s3://$(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
-                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml --folder $(DBGAP_DOWNLOAD_FOLDER)
+              if [ ! -z "${DBGAP_BACKUP_BUCKET}" ]; then
+                fence-create dbgap-download-access-files --folder dbgap
+                aws s3 cp --recursive ./dbgap/ s3://$(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml --folder dbgap
               else
                 fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml
               fi
