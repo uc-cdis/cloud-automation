@@ -20,15 +20,15 @@ This procedure is intended to show steps required to migrate from a single Squid
 
 Currently, commons' Kubernetes clusters are using a single squid proxy to access the internet. Even though it works just fine in most cases, sometimes it fails, or the underlaying hardware fails and consequently AWS sets it for decomision, or the instance volume fills up all the sudden, among others. Furthermore, the AMI used as image base was created with Packer and tailored for the needs by that time.
 
-The new HA model will now use official Canonical Ubuntu's 18.04 image and can be easily told to check for the latest release by them. This leaves the burden to keep the instance updated and check on it.
+The new HA model will now use official Canonical Ubuntu's 18.04 image and can be easily told to check for the latest release by them. This leaves the burden of keeping the instance updated and frequently checking on its health.
 
-Logs are sent over to cloudwatch for historical data. Therefore, instances are disposable. 
+Logs are sent over to cloudwatch for historical data. Therefore, instances are disposable.
 
-Keeping at least two instances always up, one as active and the second as standby, would decrease the amount of time commons are left out of internet access. The standby instance would come in place if the active one fails for whatever reason. A lambda function will check for http access from within the very same VPC where the commons lives and port 3128 on each individual instance. Should those two succeed, then the proxy is switched to the stand by.
+Keeping at least two instances always up, one as active and the second as standby, would decrease the amount of time commons are left out of internet access in the case of an event involving any of the instances. The standby instance would come in place if the active one fails for whatever reason. A lambda function will check for http access, from within the very same VPC where the commons lives, and port 3128 on each individual instance. Should those two succeed, then the proxy is switched to the stand by consequently becoming the active one.
 
 The switching happens at the network level, the default route for kubernetes workers is an instance's ENI in the autoscaling group that manages the squid cluster. If http access fails, then each instance in squid autoscaling group is checked on port 3128, the first one that works is set as the new active.
 
-This new module, or addition, has been thought to be optional. You can decide to keep the single instance model or switch to HA. If you don't want to incurd in additional charged that represents keeping an standby EC2 instance, then you can always set the cluster min and desired size of 1.
+This new module, or addition, has been thought to be optional. You can decide to keep the single instance model or switch to HA. If you don't want to incurd in additional charged that represents keeping an standby EC2 instance, then you can always set the cluster min and desired size of 1. The HA design, in any model, is advised over the old single instance deployment.
 
 
 
