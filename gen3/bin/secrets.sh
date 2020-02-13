@@ -19,7 +19,7 @@ gen3_secrets_init_git() {
     
       # initialize secrets folder as a git repo
       if [[ ! -d "$(gen3_secrets_folder)/.git" ]]; then
-        echo -e "$(green_color "INFO: Initializing $(gen3_secrets_folder) directory as git repo")"
+        gen3_log_info "Initializing $(gen3_secrets_folder) directory as git repo"
         git init
       fi
       if [[ -z "$(git config user.name)" ]]; then
