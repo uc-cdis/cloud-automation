@@ -11,7 +11,8 @@ sysctl fs.inotify.max_user_watches=12000
 
 
 ## Ensure filesystem integrity is regularly checked
-crontab -l > crontab_file; echo "0 5 * * * /usr/sbin/aide --check" >> crontab_file
+crontab -l > crontab_file; 
+echo "0 5 * * * /usr/sbin/aide --check" |tee -a  crontab_file
 crontab crontab_file
 
 
