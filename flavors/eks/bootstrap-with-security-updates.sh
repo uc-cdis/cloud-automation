@@ -7,7 +7,7 @@ cat >> /home/ec2-user/.ssh/authorized_keys <<EFO
 ${ssh_keys}
 EFO
 
-sysctl fs.inotify.max_user_watches=12000
+sysctl -w fs.inotify.max_user_watches=12000
 
 KUBELET_EXTRA_ARGUMENTS="--node-labels=role=${nodepool}"
 
@@ -19,11 +19,6 @@ fi
 
 
 ## Ensure filesystem integrity is regularly checked
-#(cd /tmp
-#crontab -l > crontab_file; 
-#echo "0 5 * * * /usr/sbin/aide --check" |tee -a  crontab_file
-#crontab crontab_file
-#)
 echo "0 5 * * * /usr/sbin/aide --check" |tee  /etc/cron.daily/filesystem_integrity
 chmod +x /etc/cron.daily/filesystem_integrity 
 
