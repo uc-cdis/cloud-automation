@@ -10,7 +10,7 @@ This procedure is intended to show steps required to migrate from a single Squid
   - [1. Update the VPC module](#1-update-the-vpc-module)
   - [2. Update the EKS module](#2-update-the-eks-module)
   - [3. Removing the single proxy instance route](#3-removing-the-single-proxy-instance-route)
-  - [4. Update the EKS module](#4-remove-the-squid-single-instance)
+  - [4. Remove the squid single instance](#4-remove-the-squid-single-instance)
 - [Considerations](#considerations)
 - [Extras](#extras)
 
