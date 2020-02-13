@@ -1,13 +1,14 @@
 #!/bin/bash
 
-SUB_FOLDER="/home/ubuntu/cloud-automation/"
+HOME_FOLDER="/home/ubuntu/"
+SUB_FOLDER="${HOME_FOLDER}cloud-automation/"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 AVAILABILITY_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/availability-zone -s)
 REGION=$(echo ${AVAILABILITY_ZONE::-1})
-
+SQUID_VERSION="squid-4.8"
 
 # Copy the authorized keys for the admin user
-sudo cp /home/ubuntu/cloud-automation/files/authorized_keys/squid_authorized_keys_admin /home/ubuntu/.ssh/authorized_keys
+cp ${SUB_FOLDER}/files/authorized_keys/squid_authorized_keys_admin ${HOME_FOLDER}.ssh/authorized_keys
 
 if [ $# -eq 0 ]
   then
@@ -24,36 +25,47 @@ else
     echo $1
 fi
 
+cd ${HOME}
 
-cd /home/ubuntu
+#####################
+# Let's get squid
+#####################
+
 apt-get update
 apt-get install -y build-essential wget libssl1.0-dev
-wget http://www.squid-cache.org/Versions/v4/squid-4.0.24.tar.xz
-tar -xJf squid-4.0.24.tar.xz
+wget http://www.squid-cache.org/Versions/v4/${SQUID_VERSION}.tar.xz
+tar -xJf ${SQUID_VERSION}.tar.xz
 mkdir squid-build
+cd ${HOME}squid-build
 
-#git clone https://github.com/uc-cdis/images.git
+# let's compile
+CFLAGS="-Os"
+CXXFLAGS="-Os"
+../${SQUID_VERSION}/configure \
+--prefix=/usr \
+--exec-prefix=/usr \
+--sysconfdir=/etc/squid \
+--sharedstatedir=/var/lib \
+--localstatedir=/var \
+--datadir=/usr/share/squid \
+--with-logdir=/var/log/squid \
+--with-pidfile=/var/run/squid.pid \
+--with-default-user=proxy \
+--enable-linux-netfilter \
+--with-openssl \
+--without-nettle
 
-cp ${SUB_FOLDER}files/squid_whitelist/ftp_whitelist /tmp/ftp_whitelist
-cp ${SUB_FOLDER}files/squid_whitelist/web_whitelist /tmp/web_whitelist
-cp ${SUB_FOLDER}files/squid_whitelist/web_wildcard_whitelist /tmp/web_wildcard_whitelist
-cp ${SUB_FOLDER}flavors/squid_auto/startup_configs/squid.conf /tmp/squid.conf
-cp ${SUB_FOLDER}flavors/squid_auto/startup_configs/squid-build.sh /home/ubuntu/squid-build/squid-build.sh
-cp ${SUB_FOLDER}flavors/squid_auto/startup_configs/iptables.conf /tmp/iptables.conf
-cp ${SUB_FOLDER}flavors/squid_auto/startup_configs/iptables-rules /tmp/iptables-rules
-cp ${SUB_FOLDER}flavors/squid_auto/startup_configs/squid.service /tmp/squid.service
-
-cd /home/ubuntu/squid-build/
-sed -i -e 's/squid-3.5.26/squid-4.0.24/g' squid-build.sh
-bash squid-build.sh
+NPROC=$(nproc)
+make -j${NPROC}
 make install
 
-mv /tmp/ftp_whitelist /etc/squid/ftp_whitelist
-mv /tmp/web_whitelist /etc/squid/web_whitelist
-mv /tmp/web_wildcard_whitelist /etc/squid/web_wildcard_whitelist
-mv /tmp/squid.conf /etc/squid/squid.conf
-mv /tmp/iptables.conf /etc/iptables.conf
-mv /tmp/iptables-rules /etc/network/if-up.d/iptables-rules
+
+cp ${SUB_FOLDER}files/squid_whitelist/ftp_whitelist /etc/squid/ftp_whitelist
+cp ${SUB_FOLDER}files/squid_whitelist/web_whitelist /etc/squid/web_whitelist
+cp ${SUB_FOLDER}files/squid_whitelist/web_wildcard_whitelist /etc/squid/web_wildcard_whitelist
+cp ${SUB_FOLDER}flavors/squid_auto/startup_configs/squid.conf /etc/squid/squid.conf
+cp ${SUB_FOLDER}flavors/squid_auto/startup_configs/iptables.conf /etc/iptables.conf
+cp ${SUB_FOLDER}flavors/squid_auto/startup_configs/iptables-rules /etc/network/if-up.d/iptables-rules
 
 chown root: /etc/network/if-up.d/iptables-rules
 chmod 0755 /etc/network/if-up.d/iptables-rules
@@ -71,12 +83,16 @@ echo "iptables-restore < /etc/iptables.conf" | sudo tee -a /etc/rc.local
 echo exit 0 | sudo tee -a /etc/rc.local
 
 
+#####################
+# for HTTPS 
+#####################
 mkdir /etc/squid/ssl
 openssl genrsa -out /etc/squid/ssl/squid.key 2048
 openssl req -new -key /etc/squid/ssl/squid.key -out /etc/squid/ssl/squid.csr -subj '/C=XX/ST=XX/L=squid/O=squid/CN=squid'
 openssl x509 -req -days 3650 -in /etc/squid/ssl/squid.csr -signkey /etc/squid/ssl/squid.key -out /etc/squid/ssl/squid.crt
 cat /etc/squid/ssl/squid.key /etc/squid/ssl/squid.crt | sudo tee /etc/squid/ssl/squid.pem
-mv /tmp/squid.service /etc/systemd/system/
+#mv /tmp/squid.service /etc/systemd/system/
+cp ${SUB_FOLDER}flavors/squid_auto/startup_configs/squid.service /etc/systemd/system/squid.service
 chmod 0755 /etc/systemd/system/squid.service
 mkdir -p /var/log/squid /var/cache/squid
 chown -R proxy:proxy /var/log/squid /var/cache/squid
@@ -88,30 +104,9 @@ systemctl enable squid
 systemctl stop squid
 systemctl start squid
 
-#service squid stop
-#service squid start
 
 ## Logging set-up
 
-#Getting the account details
-#apt install -y curl jq python-pip apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev python3-pip
-#pip install --upgrade pip
-#pip3 install --upgrade pip
-#ACCOUNT_ID=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn' |sed -e 's/.*:://' -e 's/:.*//')
-#ROLE_NAME=$(curl -s ${MAGIC_URL}iam/info | jq '.InstanceProfileArn'|sed -e 's/.*instance-profile\///' -e 's/_squid.*//')
-#COMMONS_SQUID_AUTO_ROLE=$(sed -n -e '/VAR4/ s/.*\= *//p' /home/ubuntu/squid_auto_user_variable)
-# Let's install awscli and configure it
-# Adding AWS profile to the admin VM
-#pip3 install awscli
-#mkdir -p /home/ubuntu/.aws
-#cat <<EOT  >> /home/ubuntu/.aws/config
-#[default]
-#output = json
-#region = ${REGION}
-#role_session_name = gen3-squidautovm
-#role_arn = arn:aws:iam::${ACCOUNT_ID}:role/${COMMONS_SQUID_AUTO_ROLE}_role
-#credential_source = Ec2InstanceMetadata
-#EOT
 chown ubuntu:ubuntu -R /home/ubuntu
 
 
@@ -122,10 +117,6 @@ dpkg -i -E ./amazon-cloudwatch-agent.deb
 # Configure the AWS logs
 
 HOSTNAME=$(which hostname)
-#server_int=$(route | grep '^default' | grep -o '[^ ]*$')
-#server_int=$(ip route show |grep ^default |awk '{print $5}')
-#instance_ip=$(ip -f inet -o addr show $server_int|cut -d\  -f 7 | cut -d/ -f 1)
-#instance_ip=$(ip -f inet -o addr show ens5 |awk '{print $2}')
 instance_ip=$(ip route get 1.1.1.1 | grep -oP 'src \K\S+')
 IFS=. read ip1 ip2 ip3 ip4 <<< "$instance_ip"
 

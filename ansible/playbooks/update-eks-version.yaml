@@ -1,0 +1,9 @@
+- hosts: "{{ _hosts }}"
+  serial: 4
+  tasks:
+  - name: update-eks-version
+    #  serial: 3
+  #  gather_facts: False
+    command: "/bin/bash {{ ansible_env.HOME }}/cloud-automation/files/scripts/module-update.sh eks quiet"
+    #    args:
+    #      executable: /bin/bash
