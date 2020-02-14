@@ -299,3 +299,9 @@ There is a python script the runs a report and uploads the report as a csv file 
 Example:
 ebs-report.py --regions us-east-2 --file my-ebs-report.csv
 
+
+
+
+CloudTrail Logs
+
+Bash script to pull CloudTrail logs us just have to provide the values in the script Bucket Name Account Number and Region
