@@ -192,7 +192,7 @@ resource "aws_instance" "proxy" {
   count                  = "${var.deploy_single_proxy ? 1 : 0 }"
   ami                    = "${aws_ami_copy.squid_ami.id}"
   subnet_id              = "${var.env_public_subnet_id}"
-  instance_type          = "t2.micro"
+  instance_type          = "${var.instance_type}"
   monitoring             = true
   source_dest_check      = false
   key_name               = "${var.ssh_key_name}"
@@ -232,7 +232,8 @@ systemctl restart awslogs
 EOF
 
   lifecycle {
-    ignore_changes = ["ami", "key_name"]
+    ignore_changes = ["ami", "key_name"],
+    create_before_destroy = true
   }
 }
 

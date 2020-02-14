@@ -100,3 +100,7 @@ variable "squid_cluster_max_size" {
   description = "If ha squid is enabled and you want to set your own max size"
   default     = 3
 }
+
+variable "single_squid_instance_type" {
+  description = "Single squid instance type"
+}
