@@ -37,11 +37,11 @@ variable "workers_subnet_size" {
 }
 
 variable "bootstrap_script" {
-  default = "bootstrap-with-security-updates.sh "
+  default = "bootstrap-with-security-updates.sh"
 }
 
 variable "jupyter_bootstrap_script" {
-  default = "bootstrap-with-security-updates.sh "
+  default = "bootstrap-with-security-updates.sh"
 }
 
 variable "kernel" {
