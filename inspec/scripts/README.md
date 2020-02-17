@@ -292,7 +292,7 @@ There is a python script that will pull json events for all of the streams from 
 need to provide a group_name, bucket name
 
 
-Get Ebs volume and check to see if they are encrypted
+Get EBS volume and check to see if they are encrypted
 
 There is a python script the runs a report and uploads the report as a csv file into an s3 bucket of choice. The report list the volume, volume type, iops, size, created from a snapshot (if) the instances it is attached and if it is encrypted or not. The command takes argument of region if the instance has sufficient IAM role it should run. I know each environment is different and how you pass credentials will vary. You will need to go down the line in the code near the bottom where it says bucket and change to your bucket. You can also set the default regions in the code and dropp the argument --regions when executing the script
 
@@ -313,7 +313,6 @@ This cloudtrail_lambda.py function will get cloudtrail events and send the event
 When you are setting up the log group you select cloudwatch log group select action select stream to lambda then select other then you will put in stream pattern. Here is the stream pattern that you can set for all actions against IAM activity 
 { ( ($.eventSource = "iam.amazonaws.com") && (($.eventName = "Add*") || ($.eventName = "Attach*") || ($.eventName = "Change*") || ($.eventName = "Create*") || ($.eventName = "Deactivate*") || ($.eventName = "Delete*") || ($.eventName = "Detach*") || ($.eventName = "Enable*") || ($.eventName = "Put*") || ($.eventName = "Remove*") || ($.eventName = "Set*") || ($.eventName = "Update*") || ($.eventName = "Upload*")) ) }
 
-
-
-
 When you stream cloudwatch logs to lambda that will create trigger on lambda.
+
+
