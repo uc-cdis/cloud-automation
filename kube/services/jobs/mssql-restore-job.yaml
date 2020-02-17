@@ -1,4 +1,4 @@
-# gen3 job run mssql-restore-job MSSQL_SCHEMA s3://<bucket>/schema.zip MSSQL_DUMP_S3 s3://<bucket>/cohortb_dump/ 
+# gen3 job run mssql-restore-job DRYRUN False MSSQL_SCHEMA s3://<bucket>/schema.zip MSSQL_DUMP_S3 s3://<bucket>/cohortb_dump/ 
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -12,14 +12,18 @@ spec:
       volumes:
       - name: datadir
         persistentVolumeClaim:
-          claimName: datadir-jenkins
+          claimName: datadir-mssql-dump
       containers:
       - name: mssql-restore-job
         imagePullPolicy: Always
         image: quay.io/cdis/mssql-restore:master
         env:
-        - name: ETL_FORCED
-          GEN3_ETL_FORCED|-value: "TRUE"-|
+        - name: MSSQL_SCHEMA
+          GEN3_MSSQL_SCHEMA|-value: ""-|
+        - name: MSSQL_DUMP_S3
+          GEN3_MSSQL_DUMP_S3|-value: ""-|
+        - name: GEN3_DRYRUN
+          GEN3_MSSQL_DUMP_S3|-value: "True"-|
         volumeMounts:
           - name: datadir
             mountPath: /data
@@ -31,7 +35,7 @@ spec:
         args:
           - "-c"
           - |
-            while true; do echo hello; sleep 10; done
+            /scripts/mssql-bcp-dump-restore.sh --dryrun=$GEN3_DRYRUN --restore-schema=$GEN3_MSSQL_SCHEMA --restore-dump=$GEN3_MSSQL_DUMP_S3
       initContainers:
       - name: mssql-download-schema
         image: quay.io/cdis/mssql-restore:master
