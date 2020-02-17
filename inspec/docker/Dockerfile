@@ -6,20 +6,16 @@ WORKDIR /inspec
 MAINTAINER Rodney Bizzell
 
 RUN yum update -y \
-    && yum install -y https://centos7.iuscommunity.org/ius-release.rpm \
-    && yum install -y python36u python36u-libs python36u-devel python36u-pip \ yum install -y dnf \
-    && yum clean all && \
-    rm -rf /var/cache/yum
+    && yum install -y python3 python3-libs python3-devel python3-pip dnf \
+    && yum clean all \
+    && rm -rf /var/cache/yum
 
-
-
-RUN pip3.6 install  --upgrade
-RUN ln -s /usr/bin/pip3.6 /bin/pip
-RUN rm /usr/bin/python
+RUN ln -s /usr/bin/pip3 /usr/bin/pip 
+RUN unlink /usr/bin/python
 # python must be pointing to python3.6
 RUN ln -s /usr/bin/python3.6 /usr/bin/python
-RUN dnf install python3-pip
-RUN pip3 install awscli  --upgrade
+#RUN dnf install python3-pip
+RUN pip install awscli 
 RUN curl https://omnitruck.chef.io/install.sh |  bash -s -- -P inspec
 RUN inspec plugin install train-aws --chef-license accept
 
