@@ -310,3 +310,10 @@ Bash script to pull CloudTrail logs us just have to provide the values in the sc
 CloudTrail Lambda Function
 
 This cloudtrail_lambda.py function will get cloudtrail events and send the events to and s3 bucket as text file. This lambda function is invoked from iam activity. You need to have a cloudtrail trail setup and cloudwatch logging setup to receive the logs. The time for the lambda function should be set to 5 minutes if you want it check all regions. The lambda function was executed using Python 3.8 and this lambda function will need permissions to access 33 bucket, cloudtrail and cloudwatch and will vary depending on the security protocol for your environment.
+When you are setting up the log group you select cloudwatch log group select action select stream to lambda then select other then you will put in stream pattern. Here is the stream pattern that you can set for all actions against IAM activity 
+{ ( ($.eventSource = "iam.amazonaws.com") && (($.eventName = "Add*") || ($.eventName = "Attach*") || ($.eventName = "Change*") || ($.eventName = "Create*") || ($.eventName = "Deactivate*") || ($.eventName = "Delete*") || ($.eventName = "Detach*") || ($.eventName = "Enable*") || ($.eventName = "Put*") || ($.eventName = "Remove*") || ($.eventName = "Set*") || ($.eventName = "Update*") || ($.eventName = "Upload*")) ) }
+
+
+
+
+When you stream cloudwatch logs to lambda that will create trigger on lambda.
