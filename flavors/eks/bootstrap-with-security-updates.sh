@@ -2,7 +2,7 @@
 
 # User data for our EKS worker nodes basic arguments to call the bootstrap script for EKS images 
 # More info https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html
- 
+
 cat >> /home/ec2-user/.ssh/authorized_keys <<EFO
 ${ssh_keys}
 EFO
@@ -19,12 +19,19 @@ fi
 
 
 ## Ensure filesystem integrity is regularly checked
-echo "0 5 * * * /usr/sbin/aide --check" |tee  /etc/cron.daily/filesystem_integrity
-chmod +x /etc/cron.daily/filesystem_integrity 
-
-
 ## Ensure updates, patches, and additional security software are installed 
 yum -y update --security
+yum -y install aide
+
+$(command -v aide) --init
+mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
+
+#echo "/usr/sbin/aide --check" |tee  /etc/cron.daily/filesystem_integrity
+cat > /etc/cron.daily/filesystem_integrity <<EOF
+#!/bin/bash
+$(command -v aide) --check
+EOF
+chmod +x /etc/cron.daily/filesystem_integrity 
 
 
 
