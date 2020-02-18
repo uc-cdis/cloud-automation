@@ -18,22 +18,6 @@ fi
 /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} --apiserver-endpoint ${eks_endpoint} --b64-cluster-ca ${eks_ca}
 
 
-## Ensure filesystem integrity is regularly checked
-## Ensure updates, patches, and additional security software are installed 
-yum -y update --security
-yum -y install aide
-
-$(command -v aide) --init
-mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
-
-#echo "/usr/sbin/aide --check" |tee  /etc/cron.daily/filesystem_integrity
-cat > /etc/cron.daily/filesystem_integrity <<EOF
-#!/bin/bash
-$(command -v aide) --check
-EOF
-chmod +x /etc/cron.daily/filesystem_integrity 
-
-
 
 ## Ensure source routed packets are not accepted
 sysctl -w net.ipv4.conf.all.accept_source_route=0
@@ -68,3 +52,20 @@ echo "KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellma
 ## Ensure SSH Idle Timeout Interval is configured
 echo "ClientAliveInterval 300" >> /etc/ssh/sshd_config
 echo "ClientAliveCountMax 0" >> /etc/ssh/sshd_config
+
+
+## Ensure filesystem integrity is regularly checked
+## Ensure updates, patches, and additional security software are installed 
+yum -y update --security
+yum -y install aide
+
+$(command -v aide) --init
+mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
+
+#echo "/usr/sbin/aide --check" |tee  /etc/cron.daily/filesystem_integrity
+cat > /etc/cron.daily/filesystem_integrity <<EOF
+#!/bin/bash
+$(command -v aide) --check
+EOF
+chmod +x /etc/cron.daily/filesystem_integrity 
+
