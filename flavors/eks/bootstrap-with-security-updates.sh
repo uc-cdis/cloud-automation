@@ -59,13 +59,12 @@ echo "ClientAliveCountMax 0" >> /etc/ssh/sshd_config
 yum -y update --security
 yum -y install aide
 
-$(command -v aide) --init
-mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
-
-#echo "/usr/sbin/aide --check" |tee  /etc/cron.daily/filesystem_integrity
 cat > /etc/cron.daily/filesystem_integrity <<EOF
 #!/bin/bash
 $(command -v aide) --check
 EOF
 chmod +x /etc/cron.daily/filesystem_integrity 
+
+$(command -v aide) --init
+mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
 
