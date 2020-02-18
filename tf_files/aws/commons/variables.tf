@@ -389,3 +389,8 @@ variable "indexd_engine" {
   description = "Engine to deploy the db instance"
   default     = "postgres"
 }
+
+variable "single_squid_instance_type" {
+  description = "Instance type for the single proxy instance"
+  default     = "t2.micro"
+}

@@ -11,6 +11,7 @@ module "squid_proxy" {
   env_log_group        = "${aws_cloudwatch_log_group.main_log_group.name}"
   ssh_key_name         = "${var.ssh_key_name}"
   deploy_single_proxy  = "${var.deploy_single_proxy}"
+  instance_type = "${var.single_squid_instance_type}"
 }
 
 

@@ -228,4 +228,7 @@ resource "aws_iam_policy" "configbucket_reader" {
   name                        = "bucket_reader_cdis-gen3-users_${var.vpc_name}"
   description                 = "Read cdis-gen3-users/${var.config_folder}"
   policy                      = "${data.aws_iam_policy_document.configbucket_reader.json}"
+  lifecycle {
+    ignore_changes = ["policy"]
+  }
 }

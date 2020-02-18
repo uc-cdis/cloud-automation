@@ -44,3 +44,8 @@ variable "deploy_single_proxy" {
 variable "zone_id" {
   description = "Route53 zone in which to create a new record for cloud-proxy.internal.io"
 }
+
+variable "instance_type" {
+  description = "Instance type of the squid instance"
+  default     = "t2.micro"
+}
