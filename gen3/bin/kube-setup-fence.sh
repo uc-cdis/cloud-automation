@@ -27,6 +27,11 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # cr
   touch "$(gen3_secrets_folder)/.rendered_fence_db"
 fi
 
+# run db migration job
+gen3_log_info "Launching db migrate job"
+gen3 job run fence-db-migrate -w || true
+gen3 job logs fence-db-migrate -f || true
+
 # deploy fence
 gen3 roll fence
 # deploy presigned-url-fence
