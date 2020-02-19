@@ -50,7 +50,7 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
-variable = "organization_name" {
+variable "organization_name" {
   description = "For tagging purposes"
   default     = "Basic Service"
 }
