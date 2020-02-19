@@ -6,7 +6,7 @@ g3k_wait4job(){
   local jobName
   jobName="$1"
   if [[ -z "$jobName" ]]; then
-    echo "gen3 job wait4 JOB-NAME"
+    gen3_log_err "gen3 job wait4 requires JOB-NAME"
     return 1
   fi
   local COUNT
@@ -17,7 +17,7 @@ g3k_wait4job(){
       exit 1
     fi
     if [[ $(g3kubectl get jobs "$jobName" -o json | jq -r '.status.failed') != null ]]; then
-      echo "job fail"
+      gen3_log_err "job fail"
       exit 1
     fi
     gen3_log_info "waiting for $jobName to finish"
