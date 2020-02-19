@@ -50,7 +50,7 @@ if [[ "$command" == "test" ]]; then
   gen3_log_info "exiting test without touching jenkins pod: $jpod"
   exit 0
 elif [[ "$command" == "go" ]]; then
-  g3kubectl exec -c jenkins "$jpod" -- bash -c 'sudo /bin/rm -rf /tmp/* /var/jenkins_home/workspace/* /var/jenkins_home/jobs/*/branches /var/jenkins_home/jobs/*/jobs/*/branches'
+  g3kubectl exec -c jenkins "$jpod" -- bash -c 'sudo /bin/rm -rf /tmp/* /var/jenkins_home/workspace/*'
   gen3 roll jenkins
   aws sns publish --topic-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message 'qaplanetv1 jenkins-cronjob complete'
 fi

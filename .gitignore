@@ -6,7 +6,6 @@ tf_files/terraform.tfstate.backup
 client/*
 images/*
 node_modules/
-packer
 Secrets/
 terraform
 *.lock*

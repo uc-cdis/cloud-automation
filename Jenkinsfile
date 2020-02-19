@@ -4,6 +4,7 @@
 library 'cdis-jenkins-lib@master'
 
 node {
+  List<String> namespaces = ['jenkins-blood', 'jenkins-brain', 'jenkins-niaid', 'jenkins-dcp', 'jenkins-genomel']
   kubectlNamespace = null
   kubeLocks = []
   pipeConfig = pipelineHelper.setupConfig([:])
@@ -46,7 +47,7 @@ node {
       }
     }
     stage('SelectNamespace') {
-      (kubectlNamespace, lock) = kubeHelper.selectAndLockNamespace(pipeConfig['UID'])
+      (kubectlNamespace, lock) = kubeHelper.selectAndLockNamespace(pipeConfig['UID'], namespaces)
       kubeLocks << lock
     }
     stage('K8sReset') {
@@ -75,7 +76,8 @@ node {
         testHelper.runIntegrationTests(
           kubectlNamespace,
           pipeConfig.serviceTesting.name,
-          ""
+          "",
+          "false"
         )
       }
       stage('CleanS3') {

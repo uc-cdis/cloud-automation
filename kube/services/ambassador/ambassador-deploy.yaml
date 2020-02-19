@@ -4,6 +4,10 @@ kind: Deployment
 metadata:
   name: ambassador-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: ambassador
   template:
     metadata:
       annotations:

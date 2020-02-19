@@ -20,12 +20,8 @@
       #user: "{{ _user }}"
       state: absent
       #      key: '{{ lookup(''file'', ''../keys/kyle'') }}'
-      #      key: '{{ lookup(''file'', item ) }}'
-      key: '{{ lookup(''url'', ''https://github.com/'' + item) }}'
+      key: '{{ lookup(''file'', item ) }}'
+      #key: '{{ lookup(''url'', ''https://github.com/'' + item) }}'
     loop:
-      #      - ../keys/kyle
-      #      - ../keys/rarya.old
-      #      - ../keys/giangbui
-      #      - ../keys/thanhn
-      #      - ../keys/cgmeyer
-      - zflamig.keys 
+      - ../keys/jmazzone
+      # - user.keys 

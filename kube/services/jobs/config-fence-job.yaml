@@ -47,7 +47,7 @@ spec:
           - name: PYTHONPATH
             value: /var/www/fence
           - name: CONVERT_OLD_CFG
-            GEN3_CONVERT_OLD_CFG
+            GEN3_CONVERT_OLD_CFG|-value: ""-|
         volumeMounts:
           - name: "creds-volume"
             readOnly: true

@@ -15,13 +15,6 @@ export GEN3_HOME="${GEN3_HOME:-$(cd "${_setup_workvm_dir}/../.." && pwd)}"
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-(
-  cd "$GEN3_HOME"
-  if [[ -f ./package.json ]]; then
-    npm install
-  fi
-)
-
 if [[ -n "$JENKINS_HOME" ]]; then
   echo "Jenkins skipping workvm setup: $JENKINS_HOME"
   exit 0
@@ -170,6 +163,8 @@ export s3_bucket='$s3_bucket'
 
 if [ -f "${WORKSPACE}/\$vpc_name/kubeconfig" ]; then
   export KUBECONFIG="${WORKSPACE}/\$vpc_name/kubeconfig"
+elif [ -f "${WORKSPACE}/Gen3Secrets/kubeconfig" ]; then
+  export KUBECONFIG="${WORKSPACE}/Gen3Secrets/kubeconfig"
 fi
 
 EOF
@@ -197,3 +192,10 @@ credential_source = Ec2InstanceMetadata
 EOF
   fi
 fi
+
+(
+  cd "$GEN3_HOME"
+  if [[ -f ./package.json ]]; then
+    npm install || true
+  fi
+)

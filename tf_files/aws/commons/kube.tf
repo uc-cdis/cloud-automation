@@ -1,42 +1,14 @@
-resource "aws_security_group" "kube-worker" {
-  name                        = "kube-worker"
-  description                 = "security group that open ports to vpc, this needs to be attached to kube worker"
-  vpc_id                      = "${module.cdis_vpc.vpc_id}"
-
-  ingress {
-    from_port                 = 30000
-    to_port                   = 30100
-    protocol                  = "TCP"
-    #cidr_blocks = ["172.${var.vpc_octet2}.${var.vpc_octet3}.0/20", "${var.csoc_cidr}"]
-    #cidr_blocks = ["${var.vpc_cidr_block}","${var.csoc_cidr}"]
-    #cidr_blocks               = ["${var.vpc_cidr_block}","${var.csoc_managed == "yes" ? var.peering_cidr : ""}"]
-    cidr_blocks               = ["${var.vpc_cidr_block}","${var.peering_cidr}"]
-  }
-
-  ingress {
-    from_port                 = 443
-    to_port                   = 443
-    protocol                  = "TCP"
-    #cidr_blocks               = ["${var.csoc_cidr}"]
-    #cidr_blocks               = ["${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"]
-    cidr_blocks               = ["${var.peering_cidr}"]
-  }
-
-  tags {
-    Environment               = "${var.vpc_name}"
-    Organization              = "${var.organization_name}"
-  }
-}
 
 #
 # Only create db_fence if var.db_password_fence is set.
 # Sort of a hack during userapi to fence switch over.
 #
 resource "aws_db_instance" "db_fence" {
+  count                       = "${var.deploy_fence_db ? 1 : 0}"
   allocated_storage           = "${var.fence_db_size}"
   identifier                  = "${var.vpc_name}-fencedb"
   storage_type                = "gp2"
-  engine                      = "postgres"
+  engine                      = "${var.fence_engine}"
   engine_version              = "${var.fence_engine_version}" 
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.fence_db_instance}"
@@ -67,10 +39,11 @@ resource "aws_db_instance" "db_fence" {
 }
 
 resource "aws_db_instance" "db_gdcapi" {
+  count                       = "${var.deploy_sheepdog_db ? 1 : 0}"
   allocated_storage           = "${var.sheepdog_db_size}"
   identifier                  = "${var.vpc_name}-gdcapidb"
   storage_type                = "gp2"
-  engine                      = "postgres"
+  engine                      = "${var.sheepdog_engine}"
   engine_version              = "${var.sheepdog_engine_version}" 
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.sheepdog_db_instance}"
@@ -101,10 +74,11 @@ resource "aws_db_instance" "db_gdcapi" {
 }
 
 resource "aws_db_instance" "db_indexd" {
+  count                       = "${var.deploy_indexd_db ? 1 : 0}"
   allocated_storage           = "${var.indexd_db_size}"
   identifier                  = "${var.vpc_name}-indexddb"
   storage_type                = "gp2"
-  engine                      = "postgres"
+  engine                      = "${var.indexd_engine}"
   engine_version              = "${var.indexd_engine_version}" 
   parameter_group_name        = "${aws_db_parameter_group.rds-cdis-pg.name}"
   instance_class              = "${var.indexd_db_instance}"
@@ -254,4 +228,7 @@ resource "aws_iam_policy" "configbucket_reader" {
   name                        = "bucket_reader_cdis-gen3-users_${var.vpc_name}"
   description                 = "Read cdis-gen3-users/${var.config_folder}"
   policy                      = "${data.aws_iam_policy_document.configbucket_reader.json}"
+  lifecycle {
+    ignore_changes = ["policy"]
+  }
 }

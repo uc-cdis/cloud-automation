@@ -89,17 +89,10 @@ resource "aws_iam_policy" "vpn_policy" {
   policy      = "${data.aws_iam_policy_document.vpn_policy_document.json}"
 }
 
-#resource "aws_iam_role_policy_attachment" "vpn_policy_attachment" {
-#  role       = "${aws_iam_role.vpn-nlb_role.name}"
-#  policy_arn = "${aws_iam_policy.vpn_policy.arn}"
-  
-#}
-
 resource "aws_iam_policy_attachment" "vpn_policy_attachment" {
   name        = "${var.env_vpn_nlb_name}_policy_attach"
   roles       = ["${aws_iam_role.vpn-nlb_role.name}"]
   policy_arn = "${aws_iam_policy.vpn_policy.arn}"
-  users = ["${aws_iam_user.vpn_s3_user.name}"]
 }
 
 
@@ -363,10 +356,6 @@ mkdir -p /root/.aws
 echo "[default]" > /root/.aws/config
 echo "region = us-east-1" >> /root/.aws/config
 
-echo "[default]" > /root/.aws/credentials
-echo "aws_access_key_id = ${aws_iam_access_key.vpn_s3_user_key.id}" >> /root/.aws/credentials
-echo "aws_secret_access_key = ${aws_iam_access_key.vpn_s3_user_key.secret}" >> /root/.aws/credentials
-
 EOF
 
 lifecycle {
@@ -519,15 +508,6 @@ resource "aws_route53_record" "vpn-nlb" {
   records = ["${aws_lb.vpn_nlb.dns_name}"]
 }
 
-
-# aws account for s3 storage of VPN certs
-resource "aws_iam_user" "vpn_s3_user" {
-  name = "${var.env_vpn_nlb_name}-vpn-s3-user"
-}
-
-resource "aws_iam_access_key" "vpn_s3_user_key" {
-  user = "${aws_iam_user.vpn_s3_user.name}"
-}
 
 resource "aws_s3_bucket" "vpn-certs-and-files" {
   bucket = "vpn-certs-and-files-${var.env_vpn_nlb_name}"

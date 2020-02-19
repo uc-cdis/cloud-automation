@@ -3,6 +3,7 @@
 172.16.191.254
 192.170.230.164
 accounts.google.com
+achecker.ca
 api-bionimbus-pdc.opensciencedatacloud.org
 api.immport.org
 api.login.yahoo.com
@@ -51,8 +52,8 @@ ftp.sanger.ac.uk
 ftp.usf.edu
 ftp.ussg.iu.edu
 gcr.io
+gen3.org
 gist.githubusercontent.com
-git.bionimbus.org
 git.io
 go.googlesource.com
 golang.org
@@ -66,7 +67,6 @@ k8s.gcr.io
 keyservice.opensciencedatacloud.org
 ks.osdc.io
 lib.stat.cmu.edu
-login.bionimbus.org
 login.mathworks.com
 login.microsoftonline.com
 maven.restlet.org
@@ -121,7 +121,6 @@ sa-update.secnap.net
 sa-update.space-pro.be
 security.debian.org
 services.mathworks.com
-source.bionimbus.org
 streaming.stat.iastate.edu
 www.google.com
 www.mathworks.com
