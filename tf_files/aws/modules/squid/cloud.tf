@@ -107,7 +107,7 @@ resource "aws_security_group" "login-ssh" {
 
   tags {
     Environment  = "${var.env_vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 
   lifecycle {
@@ -130,7 +130,7 @@ resource "aws_security_group" "proxy" {
 
   tags {
     Environment  = "${var.env_vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -149,7 +149,7 @@ resource "aws_security_group" "out" {
 
   tags {
     Environment  = "${var.env_vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -203,7 +203,7 @@ resource "aws_instance" "proxy" {
   tags {
     Name         = "${var.env_vpc_name} HTTP Proxy"
     Environment  = "${var.env_vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 
   user_data = <<EOF

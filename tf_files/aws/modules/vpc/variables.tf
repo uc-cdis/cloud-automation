@@ -29,7 +29,8 @@ variable "csoc_managed" {
 }
 
 variable "organization_name" {
-  default = "Basic Service"
+  description = "for tagging purposes"
+  default     = "Basic Service"
 }
 
 variable "availability_zones" {
