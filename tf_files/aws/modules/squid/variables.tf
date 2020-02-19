@@ -49,3 +49,8 @@ variable "instance_type" {
   description = "Instance type of the squid instance"
   default     = "t2.micro"
 }
+
+variable = "organization_name" {
+  description = "For tagging purposes"
+  default     = "Basic Service"
+}

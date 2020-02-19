@@ -70,3 +70,8 @@ variable "proxy" {
 variable "authorized_keys" {
   default = "files/authorized_keys/ops_team"
 }
+
+variable "organization_name" {
+  description = "For tagging purposes"
+  default     = "Basic Service"
+}
