@@ -16,13 +16,9 @@ WHITELIST_FILES=( "web_whitelist" "web_wildcard_whitelist" "ftp_whitelist")
 
 
 ###############################################################
-# check keys
-# we should stop updating keys in cron; If in the case something changes
-# in the keys, instances should be purged instead, they would 
-# containt the lastest files we want to actually be in the 
-# vm
+# updating only the additional user keys in case the change.
 ###############################################################
-for user_home in ${MAIN_HOME} ${SFTP_HOME};
+for user_home in ${SFTP_HOME};
 do
   echo "Checking if the list of authorized keys have changed for users"
   diff "${user_home}/cloud-automation/files/authorized_keys/squid_authorized_keys_user" "${user_home}/.ssh/authorized_keys"
@@ -57,11 +53,11 @@ done
 if [ ${FLAG} -ne 0 ] ; then
   echo "There are changes in one or more squid whitelists, reloading"
   #check if configuration is good to go first 
-  docker exec squid3 squid -k check
+  docker exec squid squid -k check
   if [ $? == 0 ];
   then
     #config should be good to go
-    docker exec squid3 squid -k reconfigure
+    docker exec squid squid -k reconfigure
   fi
 
 fi
