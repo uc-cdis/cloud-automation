@@ -110,12 +110,12 @@ user_data = <<EOF
 #!/bin/bash
 
 USER="ubuntu"
-USER_HOME="/home/${USER}"
-CLOUD_AUTOMATION="${USER_HOME}/cloud-automation"
+USER_HOME="/home/$USER"
+CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
 (
-  cd ${USER_HOME}
+  cd $USER_HOME
   git clone https://github.com/uc-cdis/cloud-automation.git
-  cd ${CLOUD_AUTOMATION}
+  cd $CLOUD_AUTOMATION
   git pull
 
   # This is needed temporarily for testing purposes ; before merging the code to master
@@ -124,7 +124,7 @@ CLOUD_AUTOMATION="${USER_HOME}/cloud-automation"
     git checkout "${var.branch}"
     git pull
   fi
-  chown -R ubuntu. ${CLOUD_AUTOMATION}
+  chown -R ubuntu. $CLOUD_AUTOMATION
 
   echo "127.0.1.1 ${var.env_squid_name}" | tee --append /etc/hosts
   hostnamectl set-hostname ${var.env_squid_name}
@@ -136,10 +136,10 @@ CLOUD_AUTOMATION="${USER_HOME}/cloud-automation"
   apt clean
   apt autoclean
 
-  cd ${USER_HOME}
+  cd $USER_HOME
 
   bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${var.env_log_group};${join(";",var.extra_vars)}" 2>&1
-  cd ${CLOUD_AUTOMATION}
+  cd $CLOUD_AUTOMATION
   git checkout master
 ) > /var/log/bootstrapping_script.log
 EOF
