@@ -33,7 +33,7 @@ done
 # check whitelists
 ###############################################################
 FLAG=0
-for i in ${WHITELIST_FILES}
+for i in ${WHITELIST_FILES[@]}
 do
   diff "${MAIN_HOME}/cloud-automation/files/squid_whitelist/${i}" "/etc/squid/${i}"
   DIFF_SQUID=$?
