@@ -65,9 +65,12 @@ spec:
             mountPath: "/src/.env"
             subPath: "metadata.env"
         resources:
+          requests:
+            cpu: 0.4
+            memory: 512Mi
           limits:
-            cpu: 0.8
-            memory: 512Mi      
+            cpu: 1
+            memory: 2048Mi        
       initContainers:
         - name: metadata-db-migrate
           GEN3_METADATA_IMAGE
