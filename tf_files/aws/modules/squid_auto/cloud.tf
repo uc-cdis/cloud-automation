@@ -108,34 +108,38 @@ resource "aws_launch_configuration" "squid_auto" {
 
 user_data = <<EOF
 #!/bin/bash
-cd /home/ubuntu
-git clone https://github.com/uc-cdis/cloud-automation.git
-chown -R ubuntu. /home/ubuntu/cloud-automation
-cd /home/ubuntu/cloud-automation
-git pull
 
-# This is needed temporarily for testing purposes ; before merging the code to master
-if [ "${var.branch}" != "master" ];
-then
-  git checkout "${var.branch}"
-  git pull
-fi
-
-sudo chown -R ubuntu. /home/ubuntu/cloud-automation
-
-echo "127.0.1.1 ${var.env_squid_name}" | tee --append /etc/hosts
-hostnamectl set-hostname ${var.env_squid_name}
+USER="ubuntu"
+USER_HOME="/home/$USER"
+CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
 (
+  cd $USER_HOME
+  git clone https://github.com/uc-cdis/cloud-automation.git
+  cd $CLOUD_AUTOMATION
+  git pull
+
+  # This is needed temporarily for testing purposes ; before merging the code to master
+  if [ "${var.branch}" != "master" ];
+  then
+    git checkout "${var.branch}"
+    git pull
+  fi
+  chown -R ubuntu. $CLOUD_AUTOMATION
+
+  echo "127.0.1.1 ${var.env_squid_name}" | tee --append /etc/hosts
+  hostnamectl set-hostname ${var.env_squid_name}
+
   apt -y update
   DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade 
 
-  apt-get autoremove -y
-  apt-get clean
-  apt-get autoclean
+  apt autoremove -y
+  apt clean
+  apt autoclean
 
-  cd /home/ubuntu
+  cd $USER_HOME
 
   bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${var.env_log_group};${join(";",var.extra_vars)}" 2>&1
+  cd $CLOUD_AUTOMATION
   git checkout master
 ) > /var/log/bootstrapping_script.log
 EOF
