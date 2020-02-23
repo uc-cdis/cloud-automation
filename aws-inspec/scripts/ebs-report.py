@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import csv
 import os, sys
 import datetime
@@ -14,7 +15,7 @@ AWS_REGIONS = u'us-east-2|us-west-1|us-west-2|eu-west-1|ap-southeast-1|ap-northe
 
 def open_file(filepath):
     """
-    Opens the output files, promts whether to overwrite
+    Opens the output files, prompts whether to overwrite
     """
     goaheadandopen = True
     if os.path.exists(filepath):
