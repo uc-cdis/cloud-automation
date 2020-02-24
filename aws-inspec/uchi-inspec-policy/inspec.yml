@@ -1,0 +1,12 @@
+name: uchi
+title: AWS InSpec Profile
+maintainer: uchi
+license: Apache-2.0
+summary: An InSpec Compliance Profile For AWS
+version: 0.1.0
+inspec_version: '>=4.6.9'
+depends:
+  - name: inspec-aws
+    url:  https://github.com/inspec/inspec-aws/archive/v1.6.1.tar.gz
+supports:
+  - platform: aws
