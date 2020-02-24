@@ -11,7 +11,7 @@ from botocore.exceptions import ClientError
 AWS_ACCESS_KEY = None
 AWS_SECRET_KEY = None
 AWS_REGIONS = u'us-east-2|us-west-1|us-west-2|eu-west-1|ap-southeast-1|ap-northeast-1|ap-southeast-2|sa-east-1'
-
+REPORT = 'ebs_report.csv'
 
 def open_file(filepath):
     """
@@ -192,7 +192,7 @@ if __name__ == '__main__':
                         help='AWS regions to create the report on, can add multiple with | as separator. Default will assume all regions')
     parser.add_argument('--access_key', default=AWS_ACCESS_KEY, help='AWS API access key.  If missing default is used')
     parser.add_argument('--secret_key', default=AWS_SECRET_KEY, help='AWS API secret key.  If missing default is used')
-    parser.add_argument('--file', required=True, help='Path for output CSV file')
+    parser.add_argument('--file', default=REPORT,   help='Path for output CSV file')
     bucket = 'inspec-data'
     destination_file = ''
 
