@@ -75,7 +75,7 @@ fi
 
 # setup ~/Gen3Secrets
 for name in 00configmap.yaml apis_configs kubeconfig ssh-keys g3auto/manifestservice g3auto/pelicanservice; do
-  if [[ -e ~/Gen3Secrets/$name ]]; then
+  if [[ -e "$(gen3_secrets_folder)/$name" ]]; then
     gen3_log_info "copying $(gen3_secrets_folder)/$name"
     cp -r "$(gen3_secrets_folder)/$name" /home/$namespace/Gen3Secrets/$name
   else
