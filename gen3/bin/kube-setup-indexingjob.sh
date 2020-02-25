@@ -26,6 +26,7 @@ if ! g3kubectl describe secret manifestindexing-g3auto | grep config.json > /dev
 {
   "hostname": "$hostname",
   "indexd_password": "$indexd_pwd",
+  "bucket": "$bucketname",
   "aws_access_key_id": "$key_id",
   "aws_secret_access_key": "$access_key"
 }
