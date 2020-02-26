@@ -216,7 +216,7 @@ gen3 cd
 In order to ensure internet connectivity dure the transition, add the following variables to your `config.tfvars`
 
 ```bash
-ha_proxy   = true
+ha_squid   = true
 dual_proxy = true
 ```
 
