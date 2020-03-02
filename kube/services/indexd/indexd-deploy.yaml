@@ -71,6 +71,12 @@ spec:
                 name: manifest-indexd
                 key: arborist
                 optional: true
+          - name: FENCE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: fence_url
+                optional: true
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

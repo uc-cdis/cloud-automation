@@ -61,6 +61,4 @@ else:
         )
     )
 
-CONFIG["PRESIGNED_URL_ENDPT"] = "http://presigned-url-fence-service/"
-
 settings = {"config": CONFIG, "auth": AUTH}
