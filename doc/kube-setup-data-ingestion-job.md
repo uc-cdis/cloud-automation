@@ -20,7 +20,7 @@ The Dockerfile executable that this job runs can be found in this repository: `h
 
 If the executable is run successfully, a new pull request will be created with the job outputs in the repository specified in the config file below. (Likely `https://github.com/uc-cdis/dataSTAGE-data-ingestion-private`)
 
-Config file example:
+Config file example, with some fields pre-filled:
 
     {
     "gs_creds": {
