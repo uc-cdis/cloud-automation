@@ -2,7 +2,7 @@ The data-ingestion-job is specific to DataSTAGE.
 
 To prep:
 
-Specify an image for the pipeline in the versions block of your manifest, for example:
+Specify an image for the pipeline in the `versions` block of your manifest, for example:
 `"data-ingestion-pipeline": "quay.io/cdis/datastage-data-ingestion"`
 
 Fill out the config file (see below for example format) with creds here: `$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_ingestion_job_config.json`
@@ -11,12 +11,10 @@ Place a newline-separated list of phs IDs here: `$(gen3_secrets_folder)/g3auto/d
 
 Optionally place a "data\_requiring\_manual\_review.tsv" file here: `$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_requiring_manual_review.tsv`
 
-Optionally place a "genome\_file\_manifest" here: `$(gen3_secrets_folder)/g3auto/data-ingestion-job/genome_file_manifest.csv`
+If CREATE\_GENOME\_MANIFEST is false, the genome file manifest is required to live in `g3auto/data-ingestion-job/`. Optionally place a "genome\_file\_manifest" here: `$(gen3_secrets_folder)/g3auto/data-ingestion-job/genome_file_manifest.csv`
 
 Usage:
 `gen3 kube-setup-data-ingestion-job CREATE\_GOOGLE\_GROUPS <bool> CREATE\_GENOME\_MANIFEST <bool>`
-
-If CREATE\_GENOME\_MANIFEST is false, the genome file manifest is required to live in `g3auto/data-ingestion-job/`.
 
 The Dockerfile executable that this job runs can be found in this repository: `https://github.com/uc-cdis/dataSTAGE-data-ingestion`
 
