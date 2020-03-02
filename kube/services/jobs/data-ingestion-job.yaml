@@ -122,6 +122,7 @@ spec:
             - "-c"
             - |
               while true; do
+                  # Wait for the output from the data ingestion pipeline image
                   files=( /data-ingestion-pipeline-output/* )
                   (( ${#files[@]} >= 3 )) && break
                   sleep 5s
