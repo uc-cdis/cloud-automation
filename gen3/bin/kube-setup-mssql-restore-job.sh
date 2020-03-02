@@ -12,4 +12,3 @@ fi
 if ! g3kubectl get persistentvolumeclaim datadir-mssql-dump > /dev/null 2>&1; then
   g3kubectl apply -f "${GEN3_HOME}/kube/services/jobs/mssql-restore-job/00pvc.yaml"
 fi
-

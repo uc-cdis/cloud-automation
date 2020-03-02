@@ -1,8 +1,8 @@
-# gen3 job run mssql-restore-job DRYRUN False MSSQL_SCHEMA s3://<bucket>/schema.zip MSSQL_DUMP_S3 s3://<bucket>/cohortb_dump/ 
+# gen3 job run mssql-restore-job DRYRUN True RESTORE_SCHEMA s3://<bucket>/schema.zip RESTORE_DUMP s3://<bucket>/cohortb_dump/
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: mssql-restore-job
+  name: mssql-restore
 spec:
   template:
     metadata:
@@ -13,34 +13,67 @@ spec:
       - name: datadir
         persistentVolumeClaim:
           claimName: datadir-mssql-dump
+      - name: db-creds-volume
+        secret:
+          secretName: "mssql-restore-job-g3auto"
       containers:
       - name: mssql-restore-job
         imagePullPolicy: Always
-        image: quay.io/cdis/mssql-restore:master
+        image: quay.io/cdis/mssql-restore:feat_job-image
         env:
         - name: MSSQL_SCHEMA
-          GEN3_MSSQL_SCHEMA|-value: ""-|
+          GEN3_RESTORE_SCHEMA|-value: ""-|
         - name: MSSQL_DUMP_S3
-          GEN3_MSSQL_DUMP_S3|-value: ""-|
-        - name: GEN3_DRYRUN
-          GEN3_MSSQL_DUMP_S3|-value: "True"-|
+          GEN3_RESTORE_DUMP|-value: ""-|
+        - name: DRYRUN
+          GEN3_DRYRUN|-value: "TRUE"-|
         volumeMounts:
           - name: datadir
             mountPath: /data
+          - name: db-creds-volume
+            readOnly: true
+            mountPath: /creds.json
+            subPath: creds.json
         resources:
           limits:
             cpu: 1
             memory: 2Gi
-        command: ["/bin/bash" ]
+        command: ["/bin/bash"]
         args:
-          - "-c"
-          - |
-            /scripts/mssql-bcp-dump-restore.sh --dryrun=$GEN3_DRYRUN --restore-schema=$GEN3_MSSQL_SCHEMA --restore-dump=$GEN3_MSSQL_DUMP_S3
+        - "-c"
+        - |
+          /scripts/mssql-bcp-dump-restore.sh --dryrun=$DRYRUN --restore-schema=$MSSQL_SCHEMA --restore-dump=$MSSQL_DUMP_S3
       initContainers:
       - name: mssql-download-schema
-        image: quay.io/cdis/mssql-restore:master
-        command: ['bash', '-c', '/scripts/mssql-download-schema.sh']
-      - name: mssql-download-schema
-        image: quay.io/cdis/mssql-restore:master
-        command: ['bash', '-c', '/scripts/mssql-download-dump.sh']
+        imagePullPolicy: Always
+        image: quay.io/cdis/mssql-restore:feat_job-image
+        command: ['/bin/bash']
+        args:
+        - "-c"
+        - |
+          /scripts/mssql-download-schema.sh --dryrun=$DRYRUN --schema=$MSSQL_SCHEMA
+        env:
+        - name: MSSQL_SCHEMA
+          GEN3_RESTORE_SCHEMA|-value: ""-|
+        - name: DRYRUN
+          GEN3_DRYRUN|-value: "TRUE"-|
+        volumeMounts:
+        - name: datadir
+          mountPath: /data
+      - name: mssql-download-dump
+        imagePullPolicy: Always
+        image: quay.io/cdis/mssql-restore:feat_job-image
+        command: ['/bin/bash']
+        args:
+        - "-c"
+        - |
+          /scripts/mssql-download-dump.sh --dryrun=$DRYRUN --dump=$MSSQL_DUMP
+        env:
+        - name: MSSQL_DUMP
+          GEN3_RESTORE_DUMP|-value: ""-|
+        - name: DRYRUN
+          GEN3_DRYRUN|-value: "TRUE"-|
+        volumeMounts:
+        - name: datadir
+          mountPath: /data
       restartPolicy: Never
