@@ -18,7 +18,7 @@ all:
         cvbcommons_admin:
           ansible_host: 10.128.2.247
         genomel_admin:
-          ansible_host: 10.128.2.155
+          ansible_host: 10.128.2.173
         ibdgc_admin:
           ansible_host: 10.128.2.89
         occ_admin:
@@ -41,6 +41,8 @@ all:
           ansible_host: 10.128.2.181
         cdistest_admin:
           ansible_host: 10.128.7.28
+        jcoin_admin:
+          ansible_host: 10.128.2.57
       vars:
         ansible_user: ubuntu
 
@@ -75,7 +77,7 @@ all:
           ansible_host: 10.128.2.247
         genomel_commons:
           ansible_user: genomelprod
-          ansible_host: 10.128.2.155
+          ansible_host: 10.128.2.173
         ibdgc_commons:
           ansible_user: ibdgc
           ansible_host: 10.128.2.89
@@ -99,19 +101,20 @@ all:
           ansible_host: 10.128.2.170
         loginbionimbus_commons:
           ansible_user: loginbionimbus
-          ansible_host: 10.128.2.155
+          ansible_host: 10.128.2.173
         canine_commons:
           ansible_user: canineprod
           ansible_host: 10.128.2.34
-          #        charlie_commons:
-          #          ansible_user: charlie
-          #          ansible_host: 10.128.2.156
-          #        tb_commons:
-          #          ansible_user: tb
-          #          ansible_host: 10.128.2.156
+        icgc_commons:
+          ansible_user: icgc
+          ansible_host: 10.128.2.173
         niaiddata_commons:
           ansible_user: niaiddata
           ansible_host: 10.128.2.156
+        jcoin_commons:
+          ansible_user: jcoinprod
+          ansible_host: 10.128.2.57
+
     staging:
       hosts:
         stagingdatastage_commons:
@@ -140,15 +143,18 @@ all:
         cdistest_dev:
           ansible_user: devplanetv1
           ansible_host: 10.128.7.28
+        cdistest_qav1:
+          ansible_user: qaplanetv1
+          ansible_host: 10.128.7.28
+        cdistest_qav2:
+          ansible_user: qaplanetv2
+          ansible_host: 10.128.7.28
 
     qa:
       hosts:
-        anvil_qa:
-          ansible_user: anvilstaging 
-          ansible_host: 10.128.2.243
-        dcfqa_qa:
-          ansible_user: dcfqav1
-          ansible_host: 10.128.2.138
+        qa_biologin:
+          ansible_user: qa-biologin
+          ansible_host: 10.128.2.173
         kfqa_qa:
           ansible_user: kfqa
           ansible_host: 10.128.2.12
@@ -158,9 +164,6 @@ all:
         kfqa2_qa:
           ansible_user: kfqa2
           ansible_host: 10.128.2.12
-        cdistest_qa:
-          ansible_user: qaplanetv1
-          ansible_host: 10.128.7.28
         braincommons_qa:
           ansible_user: bhcqa
           ansible_host: 10.128.2.81
@@ -211,8 +214,19 @@ all:
       vars:
         ansible_user: ubuntu
    
+    generic_commons:
+      hosts:
+        generic_admin:
+          ansible_host: 34.227.16.236
+          ansible_user: ubuntu
+        generic_common:
+          ansible_host: 34.227.16.236
+          ansible_user: generic-commons
     dummi:
       hosts:
         dummi1:
           ansible_host: 10.128.5.142
           ansible_user: ubuntu
+        emalinowskiv1:
+          ansible_host: 10.128.7.28
+          ansible_user: emalinowskiv1

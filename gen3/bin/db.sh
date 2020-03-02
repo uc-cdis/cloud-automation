@@ -533,10 +533,21 @@ gen3_db_restore() {
   username=$(jq -r ".db_username" <<< "$creds")
   password=$(jq -r ".db_password" <<< "$creds")
   host=$(jq -r ".db_host" <<< "$creds")
+
+  local serverName
+  # get the server root user
+  serverName="$(gen3_db_farm_json | jq -e --arg host "$host" -r '. | to_entries | map(select(.value.db_host==$host)) | .[0].key')"
+  if [[ -z "$serverName" ]]; then
+    gen3_log_err "failed to retrieve creds for server $host"
+    return 1
+  fi
+
   local dbname="${serviceName}_$(gen3_db_namespace)_restore_$(date -u +%Y%m%d_%H%M%S)"
   if [[ "$dryRun" == false ]]; then
     gen3_log_info "creating database $dbname"
-    gen3 psql "$serviceName" -c "CREATE DATABASE ${dbname};" 1>&2
+    # create the db as the root user, then grant permissions to the service user
+    gen3 psql "$serverName" -c "CREATE DATABASE ${dbname};" 1>&2
+    gen3 psql "$serverName" -c  "GRANT ALL ON DATABASE ${dbname} TO $username WITH GRANT OPTION;" 1>&2
     gen3_log_info "restoring $dbname from $backupFile"
     gen3 psql "$serviceName" -d "$dbname" -f "$backupFile" 1>&2
     jq -r --arg dbname "$dbname" '.db_database = $dbname' <<< "$creds"

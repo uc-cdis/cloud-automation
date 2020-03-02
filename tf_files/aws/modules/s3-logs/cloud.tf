@@ -24,7 +24,8 @@ resource "aws_s3_bucket" "log_bucket" {
     }
 
     expiration {
-      days = 120
+      # 5 years
+      days = 1825
     }
   }
 

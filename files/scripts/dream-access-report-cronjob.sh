@@ -43,10 +43,10 @@ fi
 echo "Done!"
 
 echo "Generating user audit log..."
-gen3 psql fence -A -t -o "$dataFolder/user.json" -c "SELECT json_agg(t) FROM (SELECT * FROM user_audit_logs WHERE timestamp > CURRENT_DATE - INTERVAL '$logInterval' DAY) t;"
+gen3 psql fence -A -t -o "$dataFolder/user.json" -c "SELECT json_agg(t) FROM (SELECT * FROM user_audit_logs WHERE timestamp > CURRENT_DATE - INTERVAL '$logInterval' DAY ORDER BY id ASC) t;"
 echo "Done!"
 echo "Generating cert audit log..."
-gen3 psql fence -A -t -o "$dataFolder/cert.json" -c "SELECT json_agg(t) FROM (SELECT * FROM cert_audit_logs WHERE timestamp > CURRENT_DATE - INTERVAL '$logInterval' DAY) t;"
+gen3 psql fence -A -t -o "$dataFolder/cert.json" -c "SELECT json_agg(t) FROM (SELECT * FROM cert_audit_logs WHERE timestamp > CURRENT_DATE - INTERVAL '$logInterval' DAY ORDER BY id ASC) t;"
 echo "Done!"
 echo "Generating report TSV..."
 python3 $HOME/cloud-automation/files/scripts/dream-access-report.py -t "$dreamTeamID" -u "$dataFolder/user.json" -c "$dataFolder/cert.json" -o "$destFolder/$fileName"

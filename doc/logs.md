@@ -104,6 +104,68 @@ Like `gen3 logs curl200`, but fails if the response payload is not json - sendin
 gen3 logs curl200 https://www.google.com -X DELETE
 ```
 
+### `gen3 logs s3 start=yesterday end=tomorrow filter=raw prefix=...`
+
+Retrieve the access logs from the given s3 logs bucket prefix.
+ 
+#### file access count report
+
+```
+gen3 logs s3 start=2020-01-01 end=tomorrow prefix=s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 | grep 'username' | grep GET | awk '{ print $9 }' | sort | uniq -c
+```
+
+or
+
+```
+gen3 logs s3 start=2020-01-01 end=tomorrow filter=accessCount prefix=s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 
+```
+
+```
+gen3 logs s3 start=2020-01-01 end=tomorrow filter=accessCount prefix=s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3
+```
+
+or
+
+```
+gen3 logs s3 start=2020-01-01 end=tomorrow prefix=s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 | gen3 logs s3filter filter=accessCount
+```
+
+
+#### who downloaded what when
+
+```
+start=2020-01-01
+end=tomorrow
+for prefix in s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 s3://bhc-bucket-logs/ s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/; do 
+gen3 logs s3 start=$start end=$end prefix=$prefix | grep 'username' | grep GET | awk -v bucket=$prefix '{ print gensub(/\[/, "", "g", $3) "\t" $9 "\t" gensub(/&.*/, "", "g", gensub(/.+username=/, "", "g", $11)) "\t" bucket }' | sort
+done
+```
+
+or
+
+```
+start=2020-01-01
+end=tomorrow
+for prefix in s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 s3://bhc-bucket-logs/ s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket; do 
+gen3 logs s3 start=$start end=$end filter="whoWhatWhen" prefix=$prefix
+done
+```
+
+or
+
+```
+start=2020-01-01
+end=tomorrow
+for prefix in s3://s3logs-s3logs-mjff-databucket-gen3/log/mjff-databucket-gen3 s3://bhc-bucket-logs/ s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket2020; do 
+gen3 logs s3 start=$start end=$end prefix=$prefix | gen3 logs s3filter filter=whoWhatWhen prefix=$prefix
+done
+```
+
+### `gen3 logs s3filter filter=raw prefix=unknown/`
+
+Apply filters to an s3 logs stream.
+See the examples under `gen3 logs s3 ...` ...
+
 
 ### `gen3 logs vpc`
 

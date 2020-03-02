@@ -522,6 +522,7 @@ gen3_gitops_configmap_folder() {
     local dryRun="$1"
     shift
     if [[ -n "$folder" && -d "$folder" && "$(basename "$folder")" =~ ^[0-9A-Za-z] ]]; then
+      gen3_log_info "loading manifest configmaps from: $folder"
       local key="$(basename "$folder")"
       local cMapName="manifest-$key"
       local execString
@@ -617,7 +618,7 @@ gen3_gitops_configmaps() {
   fi
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
-    if [[ $key != 'notes' ]]; then
+    if [[ "$key" != 'notes' ]]; then
       valueList=()
       valueCount=0
       cMapName="manifest-$key"
@@ -640,13 +641,20 @@ gen3_gitops_configmaps() {
   done
 
   local manifestDir
+  local folder
   manifestDir="$(dirname "$manifestPath")/manifests"
   if [[ -d "$manifestDir" ]]; then
-    local folder
     for folder in "$manifestDir"/*; do
       gen3_gitops_configmap_folder "$folder" 
     done
   fi
+  local defaultsDir="${GEN3_HOME}/gen3/lib/manifestDefaults"
+  for folder in "$defaultsDir"/*; do
+    key="$(basename "$folder")"
+    if [[ ! -d "$manifestDir/$key" ]] && ! jq -e -r ".[\"$key\"]" < "$manifestPath" > /dev/null 2>&1; then
+      gen3_gitops_configmap_folder "$folder"
+    fi
+  done
 }
 
 declare -a gen3_gitops_repolist_arr=(

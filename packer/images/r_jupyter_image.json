@@ -1,0 +1,68 @@
+{
+  "variables": {
+    "aws_region": "us-east-1",
+    "aws_instance_type": "m3.medium",
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "source_ami": ""
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `aws_region`}}",
+      "source_ami": "{{user `source_ami`}}",
+      "instance_type": "{{user `aws_instance_type`}}",
+      "ssh_username": "ubuntu",
+      "ami_name": "r-jupyter-image {{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sleep 30",
+        "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 51716619E084DAB9",
+        "sudo add-apt-repository 'deb [arch=amd64,i386] https://cran.rstudio.com/bin/linux/ubuntu trusty/'",
+        "sudo apt-get update",
+        "sudo apt-get install -y r-base gdebi-core ipython ipython-notebook python-pip python-dev libssl-dev libcurl4-openssl-dev",
+        "wget https://download2.rstudio.org/rstudio-server-1.0.143-amd64.deb",
+        "sudo gdebi --non-interactive rstudio-server-1.0.143-amd64.deb",
+        "sudo -H pip install --upgrade pip",
+        "sudo -H pip install --upgrade six",
+        "sudo -H pip install jupyter"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "configs/Rprofile.site",
+      "destination": "/tmp/Rprofile.site"
+    },
+    {
+      "type": "file",
+      "source": "configs/Renviron.site",
+      "destination": "/tmp/Renviron.site"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo mv /tmp/Rprofile.site /etc/R/Rprofile.site"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "echo \"install.packages('devtools')\" | sudo R --no-save",
+        "echo \"devtools::install_github('IRkernel/IRkernel')\" | sudo R --no-save",
+        "echo \"IRkernel::installspec()\" | R --no-save"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo mv /tmp/Renviron.site /etc/R/Renviron.site"
+      ]
+    }
+  ]
+}

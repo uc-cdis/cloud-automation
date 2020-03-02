@@ -187,13 +187,18 @@ spec:
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
         resources:
-            limits:
+            requests:
               cpu: 0.4
               memory: 1200Mi
+            limits:
+              cpu: 1.0
+              memory: 2400Mi  
         command: ["/bin/bash"]
         args:
           - "-c"
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            echo -e "ENABLE_DB_MIGRATION: false" > "/var/www/fence/fence-config-bonus1.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config-step1.yaml
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-bonus1.yaml /var/www/fence/fence-config-step1.yaml > /var/www/fence/fence-config.yaml
             bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi

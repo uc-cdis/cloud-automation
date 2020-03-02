@@ -152,7 +152,6 @@ subnets:
     availabilityZone: "${subnet_zone}"
     instanceCIDR: "${subnet_cidr}"
     securityGroupIds:
-      - ${security_group_id}
     mapPublicIPs: false
 stackTags:
   Environment: ${cluster_name}
