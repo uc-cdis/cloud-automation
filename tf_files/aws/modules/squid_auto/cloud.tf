@@ -201,7 +201,7 @@ resource "aws_security_group" "squidauto_in" {
     from_port   = 3128
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["${var.env_vpc_cidr}"]
+    cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}"]
   }
 
   tags {
