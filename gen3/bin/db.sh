@@ -193,7 +193,7 @@ gen3_db_service_creds() {
   local server
   dbHost="$(jq -r .db_host < "$tempResult")"
   server="$(gen3_db_farm_json | jq -r --arg dbHost "$dbHost" '. | to_entries | map(select(.value.db_host==$dbHost)) | map(.key) | .[]')"
-  jq -r --arg g3FarmServer "$server" '.g3FarmServer = $g3FarmServer' < "$tempResult"
+  jq -r --arg g3FarmServer "$server" '.g3FarmServer = $g3FarmServer | del(.fence_host) | del(.fence_username) | del(.fence_password) | del(.fence_database)' < "$tempResult"
   rm "$tempResult"
   return 0
 }
@@ -534,10 +534,12 @@ gen3_db_restore() {
   password=$(jq -r ".db_password" <<< "$creds")
   host=$(jq -r ".db_host" <<< "$creds")
 
+  local serverUser
   local serverName
   # get the server root user
-  serverName="$(gen3_db_farm_json | jq -e --arg host "$host" -r '. | to_entries | map(select(.value.db_host==$host)) | .[0].key')"
-  if [[ -z "$serverName" ]]; then
+  serverName="$(jq -r .g3FarmServer <<<"$creds")"
+  serverUser="$(gen3_db_server_info "$server" | jq -r .db_username)"
+  if [[ -z "$serverName" || -z "serverUser" ]]; then
     gen3_log_err "failed to retrieve creds for server $host"
     return 1
   fi
