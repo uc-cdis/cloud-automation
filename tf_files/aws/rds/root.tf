@@ -49,6 +49,6 @@ module "aws_rds" {
   rds_instance_vpc_security_group_ids                = "${var.rds_instance_vpc_security_group_ids}"
 
   rds_instance_backup_enabled                        = "${var.rds_instance_backup_enabled}"
-  rds_instance_backupkms_key                         = "${var.rds_instance_backupkms_key}"
+  rds_instance_backup_kms_key                        = "${var.rds_instance_backup_kms_key}"
   rds_instance_backup_bucket_name                    = "${var.rds_instance_backup_bucket_name}"
 }

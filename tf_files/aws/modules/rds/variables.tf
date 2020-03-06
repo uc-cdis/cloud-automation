@@ -278,11 +278,11 @@ variable "rds_instance_character_set_name" {
 
 
 variable "rds_instance_backup_enabled" {
-  descripion = "To enable backups onto S3"
-  default    = "false"
+  description = "To enable backups onto S3"
+  default    = false
 }
 
-variable "rds_instance_backupkms_key" {
+variable "rds_instance_backup_kms_key" {
   description = "KMS to enable backups onto S3"
   default     = ""
 }
