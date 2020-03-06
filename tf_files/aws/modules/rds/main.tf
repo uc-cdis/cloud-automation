@@ -46,6 +46,230 @@ resource "random_string" "randomother" {
   special = true
 }
 
+resource "aws_db_option_group" "example" {
+  count                    = "${var.rds_instance_option_group_name == "" ? 1 : 0}"
+  name                     = "${var.rds_instance_identifier}-option-group"
+  option_group_description = "Additional options to the database"
+  engine_name              = "${var.rds_instance_engine}"
+  major_engine_version     = "${local.is_mssql ? substr(var.rds_instance_engine_version,0,5) : var.rds_instance_enging_version}"
+  tags                     = "${merge(map("Name", format("%s", var.rds_instance_monitoring_role_name)), var.rds_instance_tags )}"
+
+  option {
+    option_name = "Timezone"
+
+    option_settings {
+      name  = "TIME_ZONE"
+      value = "UTC"
+    }
+  }
+
+  option {
+    option_name = "SQLSERVER_BACKUP_RESTORE"
+
+    option_settings {
+      name  = "IAM_ROLE_ARN"
+      value = "${aws_iam_role.rds_backup_role.arn}"
+    }
+  }
+}
+
+
+
+## Role for backup
+
+resource "aws_iam_role" "rds_backup_role" {
+  count = "${var.rds_instance_option_group_name == "" && rds_instance_backup_enabled ? 1 : 0}"
+  name  = "${var.rds_instance_identifier}-backup-role"
+  tags  = "${merge(map("Name", format("%s", var.rds_instance_monitoring_role_name)), var.rds_instance_tags )}"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "rds.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+/*
+resource "aws_iam_policy" "backup_bucket_access" {
+  count       = "${var.rds_instance_backup_kms_key == "" ? 1 : 0}"
+  name        = "${var.rds_instace_indentifier}_backup_bucket_access"
+  description = "Allow access to the backup bucket"
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement":
+    [
+        {
+        "Effect": "Allow",
+        "Action":
+            [
+                "s3:ListBucket",
+                "s3:GetBucketLocation"
+            ],
+        "Resource": "arn:aws:s3:::${var.rds_instance_backup_bucket_name}"
+        },
+        {
+        "Effect": "Allow",
+        "Action":
+            [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListMultipartUploadParts",
+                "s3:AbortMultipartUpload"
+            ],
+        "Resource": "arn:aws:s3:::${var.rds_instance_backup_bucket_name}/*"
+        }
+    ]
+}
+EOF
+}
+*/
+
+data "aws_iam_policy_document" "backup_bucket_access" {
+  count       = "${var.rds_instance_backup_kms_key == "" ? 1 : 0}"
+
+  statement {
+    actions = [
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
+      ],
+    resources = ["arn:aws:s3:::${var.rds_instance_backup_bucket_name}"]
+    effect = "Allow"
+  }
+
+  statemet {
+    actions = [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:ListMultipartUploadParts",
+        "s3:AbortMultipartUpload"
+      ],
+    resources = ["arn:aws:s3:::${var.rds_instance_backup_bucket_name}"]
+    effect = "Allow"
+  }
+}
+
+
+data "aws_iam_policy_document" "backup_bucket_access_kms" {
+  count       = "${var.rds_instance_backup_kms_key == "" ? 0 : 1}"
+  statement {
+    actions = [
+        "kms:DescribeKey",
+        "kms:GenerateDataKey",
+        "kms:Encrypt",
+        "kms:Decrypt"
+      ],
+    resources = ["arn:aws:kms:region:${data.aws_caller_identity.current.account_id}:key/${var.rds_instance_backup_kms_key}"]
+    effect = "Allow"
+  }
+
+  statement {
+    actions = [
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
+      ],
+    resources = ["arn:aws:s3:::${var.rds_instance_backup_bucket_name}"]
+    effect = "Allow"
+  }
+
+  statemet {
+    actions = [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:ListMultipartUploadParts",
+        "s3:AbortMultipartUpload"
+      ],
+    resources = ["arn:aws:s3:::${var.rds_instance_backup_bucket_name}"]
+    effect = "Allow"
+  }
+}
+
+resource "aws_iam_role_policy" "backup_bucket_access" {
+  count  = "${var.rds_instance_backups_enabled ? 1 : 0}"
+  name   = "${var.rds_instance_identifier}_backup_bucket_access"
+  policy = "${data.aws_iam_policy_document.sns_access.json}"
+  role   = "${aws_iam_role.rds_backup_role.id}"
+}
+
+/*
+resource "aws_iam_policy" "backup_bucket_access_kms" {
+  count       = "${var.rds_instance_backup_kms_key == "" ? 0 : 1}"
+  name        = "${var.rds_instace_indentifier}_backup_bucket_access"
+  description = "Allow access to the backup bucket"
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement":
+    [
+        {
+        "Effect": "Allow",
+        "Action":
+            [
+                "kms:DescribeKey",
+                "kms:GenerateDataKey",
+                "kms:Encrypt",
+                "kms:Decrypt"
+            ],
+        "Resource": "arn:aws:kms:region:${data.aws_caller_identity.current.account_id}:key/${var.rds_instance_backup_kms_key}"
+        },
+        {
+        "Effect": "Allow",
+        "Action":
+            [
+                "s3:ListBucket",
+                "s3:GetBucketLocation"
+            ],
+        "Resource": "arn:aws:s3:::${var.rds_instance_backup_bucket_name}"
+        },
+        {
+        "Effect": "Allow",
+        "Action":
+            [
+                "s3:GetObject",
+                "s3:PutObject",
+                "s3:ListMultipartUploadParts",
+                "s3:AbortMultipartUpload"
+            ],
+        "Resource": "arn:aws:s3:::${var.rds_instance_backup_bucket_name}/*"
+        }
+    ]
+}
+EOF
+}
+*/
+
+/*
+resouce "aws_iam_policy" "backup_bucket_access" {
+  count  = "${var.rds_instance_backup_bucket_name == "" ? 0 : 1}"
+  name   = "${var.rds_instance_identifier}"
+}
+*/
+
+/*
+resource "aws_iam_role_policy_attachment" "rds_access_backup_bucket" {
+  policy_arn = ""
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+*/
+
+
+resource "aws_db_instance_role_association" "backup_association" {
+  count                  = "${var.rds_instance_create ? 1 : 0}"
+  db_instance_identifier = "${local.is_mssql ? aws_db_instance.this_mssql.id : aws_db_instance.this.id}"
+  feature_name           = "S3_INTEGRATION"
+  role_arn               = "${aws_iam_role.example.id}"
+}
+
+
 resource "aws_db_instance" "this" {
   count = "${var.rds_instance_create && false == local.is_mssql ? 1 : 0}"
 
