@@ -24,66 +24,20 @@ if [[ -z "$JENKINS_HOME" && -f "$(gen3_secrets_folder)/creds.json" ]]; then
   # Create the 'sheepdog' and 'peregrine' postgres user if necessary
   #
 
-  gdcapi_db_user=$(jq -r .gdcapi.db_username < creds.json)
-  gdcapi_db_password=$(jq -r .gdcapi.db_password < creds.json)
-  sheepdog_db_user=$(jq -r .sheepdog.db_username < creds.json)
-  sheepdog_db_password=$(jq -r .sheepdog.db_password < creds.json)
-  peregrine_db_user=$(jq -r .peregrine.db_username < creds.json)
-  gdcapi_db_host=$(jq -r .gdcapi.db_host < creds.json)
-  gdcapi_db_database=$(jq -r .gdcapi.db_database < creds.json)
-  export PGPASSWORD="$gdcapi_db_password"
+  peregrine_db_user="$(gen3 db creds peregrine | jq -r '.db_username')"
 
   declare -a sqlList
   # Avoid doing this over and over ...
   if gen3_time_since postgres_checkup is 120; then
-    # Create peregrine and sheepdog db users if necessary
-    for user in sheepdog peregrine; do
-      new_db_user=$(jq -r .${user}.db_username < creds.json)
-      new_db_password=$(jq -r .${user}.db_password < creds.json)
-
-      if [[ "$gdcapi_db_user" != "$new_db_user" ]]; then
-        new_user_count=$(psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "SELECT COUNT(*) FROM pg_catalog.pg_user WHERE usename='$new_db_user';")
-        if [[ $new_user_count -eq 0 ]]; then
-          echo "Creating postgres user $new_db_user"
-          sql="CREATE USER $new_db_user WITH PASSWORD '$new_db_password';"
-          echo "Running: $sql"
-          psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql"
-        fi
-      fi
-    done
-
     # Grant permissions to peregrine
     sqlList=(
       "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $peregrine_db_user;"
       "ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
     );
     for sql in "${sqlList[@]}"; do
-      echo "Running: $sql"
-      psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
+      gen3_log_info "Running: $sql"
+      gen3 psql sheepdog -c "$sql" || true
     done
-
-    # GRANT permissions to sheepdog
-    declare -a sqlList;
-    if [[ "$gdcapi_db_user" != "$sheepdog_db_user" ]]; then
-      # sheepdog needs some extra permissions if it is not already the db owner
-      sqlList=(
-        "GRANT ALL ON ALL TABLES IN SCHEMA public TO $sheepdog_db_user;"
-        "GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO $sheepdog_db_user;"
-        "GRANT ALL ON SCHEMA public TO $sheepdog_db_user;"
-        "ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $sheepdog_db_user;"
-        "ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $sheepdog_db_user;"
-      );
-      for sql in "${sqlList[@]}"; do
-        echo "Running: $sql"
-        psql -t -U $gdcapi_db_user -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
-      done
-      # sheepdog user needs to grant peregrine privileges
-      # on postgres stuff sheepdog creates in the future if sheepdog user is not the
-      # same as the 'gdcapi' user - which is the case when migrating legacy commons ...
-      sql="ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
-      echo "Running: $sql"
-      PGPASSWORD="$sheepdog_db_password" psql -t -U "$sheepdog_db_user" -h $gdcapi_db_host -d $gdcapi_db_database -c "$sql" || true
-    fi
   fi
 
   if [[ ! -f "$(gen3_secrets_folder)/.rendered_gdcapi_db" ]]; then

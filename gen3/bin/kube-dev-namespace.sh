@@ -74,7 +74,7 @@ if [[ ! -d ./cdis-manifest ]]; then
 fi
 
 # setup ~/Gen3Secrets
-for name in 00configmap.yaml apis_configs kubeconfig ssh-keys g3auto/manifestservice g3auto/pelicanservice; do
+for name in 00configmap.yaml apis_configs kubeconfig ssh-keys g3auto/dbfarm g3auto/manifestservice g3auto/pelicanservice; do
   if [[ -e "$(gen3_secrets_folder)/$name" ]]; then
     gen3_log_info "copying $(gen3_secrets_folder)/$name"
     cp -r "$(gen3_secrets_folder)/$name" /home/$namespace/Gen3Secrets/$name
@@ -106,21 +106,41 @@ cat kubeconfig.bak | yq -r --arg ns "$namespace" '.contexts[0].context.namespace
   fi
 )
 
-cp "$(gen3_secrets_folder)/creds.json" /home/$namespace/Gen3Secrets/creds.json
+cp "$(gen3_secrets_folder)/creds.json" "/home/$namespace/Gen3Secrets/creds.json"
 
-dbname=$(echo $namespace | sed 's/-/_/g')
+dbsuffix=$(echo $namespace | sed 's/-/_/g')
+credsTemp="$(mktemp "$XDG_RUNTIME_DIR/credsTemp.json_XXXXXX")"
+credsMaster="/home/$namespace/Gen3Secrets/creds.json"
+
 # create new databases - don't break if already exists
 for name in indexd fence sheepdog; do
-  echo "CREATE DATABASE $dbname;" | gen3 psql $name -d template1 || true
+  dbname="${name}_$dbsuffix"
+  if ! newCreds="$(gen3 secrets rotate newdb $name $dbname)"; then
+    gen3_log_err "Failed to setup new db $dbname"
+  fi
+  # update creds.json
+  if jq -r --arg key $name --argjson value "$newCreds" '.[$key]=$value | del(.gdcapi)' < "$credsMaster" > "$credsTemp"; then
+    cp "$credsTemp" "$credsMaster"
+  fi
+  if [[ "$name" == "fence" ]]; then # update fence-config.yaml too
+    fenceYaml="/home/$namespace/Gen3Secrets/apis_configs/fence-config.yaml"
+    dbuser="$(jq -r .db_username <<< "$newCreds")"
+    dbhost="$(jq -r .db_host <<< "$newCreds")"
+    dbpassword="$(jq -r .db_password <<< "$newCreds")"
+    dbdatabase="$(jq -r .db_database <<< "$newCreds")"
+    dblogin="postgresql://${dbuser}:${dbpassword}@${dbhost}:5432/${dbdatabase}"
+    sed -i -E "s%^DB:.*$%DB: $dblogin%" "$fenceYaml"
+  fi
 done
+
 # Remove "database initialized" markers
 for name in .rendered_fence_db .rendered_gdcapi_db; do
   /bin/rm -rf "/home/$namespace/Gen3Secrets/$name"
 done
 
 # update creds.json
-oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/Gen3Secrets/creds.json)
-newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-9]*/$namespace/")
+oldHostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)"
+newHostname="$(sed "s/^[a-zA-Z0-9]*/$namespace/" <<< "$oldHostname")"
 
 for name in creds.json apis_configs/fence-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json g3auto/dashboard/config.json; do
   (
@@ -141,18 +161,9 @@ if [[ -f "/home/$namespace/cdis-manifest/$oldHostName/manifest.json" && ! -d "/h
   sed -i.bak "s/$oldHostname/$newHostname/g" "/home/$namespace/cdis-manifest/$newHostName/manifest.json"
 fi
 
-sed -i.bak "s@^\(DB: .*/\)[a-zA-Z0-9_]*\$@\1$dbname@g" /home/$namespace/Gen3Secrets/apis_configs/fence-config.yaml
-
-#
-# Update creds.json - replace every '.db_databsae' and '.fence_database' with $namespace -
-# we ceate a $namespace database on the fence, indexd, and sheepdog db servers with
-# the CREATE DATABASE commands above
-#
-jq -r  --arg dbname "$dbname" '.[].db_database=$dbname|.[].fence_database=$dbname' < /home/$namespace/Gen3Secrets/creds.json > $XDG_RUNTIME_DIR/creds.json
-cp $XDG_RUNTIME_DIR/creds.json /home/$namespace/Gen3Secrets/creds.json
-sed -i.bak "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/Gen3Secrets/00configmap.yaml
+sed -i "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/Gen3Secrets/00configmap.yaml
 if [[ -f /home/$namespace/Gen3Secrets/apis_configs/fence_credentials.json ]]; then
-  sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/Gen3Secrets/apis_configs/fence_credentials.json
+  sed -i "s/$oldHostname/$newHostname/g" /home/$namespace/Gen3Secrets/apis_configs/fence_credentials.json
 fi
 
 # setup ~/.bashrc
@@ -177,9 +188,11 @@ sudo chown -R "${namespace}:" /home/$namespace /home/$namespace/.ssh /home/$name
 sudo chmod -R 0700 /home/$namespace/.ssh
 sudo chmod go-w /home/$namespace
 
-echo "The $namespace user is ready to login and run: "
-echo "gen3 db server list  # run this first to bootstrap the database secrets"
-echo "configure cdis-manifest/$newHostname"
-echo "gen3 roll all"
-echo "add the load balancer service to DNS"
-echo "add the new domain to the parent OATH clients - or configure new clients"
+cat - <<EOM
+The $namespace user is ready to login and run:
+
+configure cdis-manifest/$newHostname
+gen3 roll all
+add the load balancer service to DNS
+add the new domain to the parent OATH clients - or configure new clients
+EOM
