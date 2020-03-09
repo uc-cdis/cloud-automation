@@ -1,0 +1,80 @@
+#
+# Generate S3 access and Dream-challenger user login reports for 
+# the brain commons, and publish to dashboard service
+#
+# Run as cron:
+# GEN3_HOME=/home/bhcprodv2/cloud-automation
+# PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# 2   2   *   *   1    (if [ -f $GEN3_HOME/files/scripts/braincommons/brain-custom-reports.sh ]; then bash $GEN3_HOME/files/scripts/braincommons/brain-custom-reports.sh; else echo "no brain-custom-reports.sh"; fi) > $HOME/brain-custom-reports.log 2>&1
+
+
+source "${GEN3_HOME}/gen3/gen3setup.sh"
+
+
+# lib -------------------------
+
+BEATPD="${GEN3_HOME}/files/scripts/braincommons/beatpd-files.txt"
+beatpdFilter() {
+  while read -r LINE; do
+    local path
+    if path="$(awk '{ print $2 }' <<<"$LINE")" && grep "$path" "$BEATPD" > /dev/null 2>&1; then
+      echo -e "$LINE"
+    else
+      gen3_log_info "SKIPPING $LINE - not in beatpd"
+    fi
+  done
+}
+
+# main ------------------------
+
+numDays=7
+
+if [[ $# -lt 1 || !"$1" =~ ^[0-9]+$ ]]; then
+  gen3_log_err "Use: brain-custom-reports.sh numberOfDays"
+  exit 1
+fi
+
+numDays="$1"
+shift
+
+# to simplify testing - optionally take an already existing workfolder
+if [[ $# -gt 0 && -f "$1/raw.txt" ]]; then
+  workFolder="$1"
+  shift
+  folderName="$(basename "$workFolder")"
+else
+  folderName="$(date -d"$numDays days ago" -u +%Y%m%d)-$(date -u +%Y%m%d_%H%M%S)"
+  workFolder="$(mktemp -d -p "$XDG_RUNTIME_DIR" brainCustomReport_XXXXXX)/$folderName"
+fi
+mkdir -p "$workFolder"
+cd "$workFolder"
+gen3_log_info "working in $workFolder"
+
+if [[ -f raw.txt ]]; then
+  gen3_log_info "using existing raw.txt - probably testing something"
+else
+  gen3 logs s3 start="$numDays days ago" filter=raw prefix=s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/ > raw.txt
+fi
+gen3 logs s3filter filter=accessCount < raw.txt > accessCountRaw.tsv
+gen3 logs s3filter filter=whoWhatWhen < raw.txt > whoWhatWhenRaw.tsv 
+
+if dreamReport="$(bash "${GEN3_HOME}/files/scripts/braincommons/dream-access-report-cronjob.sh" "$numDays" | tail -1)" && [[ -f "$dreamReport" ]]; then
+  gen3_log_info "cp $dreamReport to $workFolder/dream_access_report.tsv"
+  cp "$dreamReport" dream_access_report.tsv
+else
+  gen3_log_err "Failed to generate Dream access report"
+fi  
+
+# Some customization for the brain-commons beat-pd dream challenge case
+echo -e "Access_count\tdid\tfilename" > accessCountBrain.tsv
+grep dg.7519/ accessCountRaw.tsv | beatpdFilter | sed -E 's@(dg.7519/.+)/(.+)@\1\t\2@' | tee -a accessCountBrain.tsv
+
+echo -e "Date_time\tdid\tfilename\tUser_id" > whoWhatWhenBrain.tsv
+grep dg.7519/ whoWhatWhenRaw.tsv | beatpdFilter | sed -E 's@(dg.7519/.+)/(.+)@\1\t\2@' >> whoWhatWhenBrain.tsv
+
+if [[ -d "$workFolder" ]]; then
+  gen3 dashboard publish secure "$workFolder" "dreamAccess/$(date -u +%Y)/$folderName"
+  cd "$XDG_RUNTIME_DIR"
+  gen3_log_info "cleaning up $workFolder"
+  /bin/rm -rf "$workFolder"
+fi

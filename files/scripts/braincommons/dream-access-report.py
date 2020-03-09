@@ -45,7 +45,7 @@ if user_audit_log is not None and os.stat(user_audit_log).st_size > 0:
                     row["Synapse_email"] = ""
                     row["Synapse_sub_id"] = ""
                     row["Authorized_BEAT-PD"] = False
-                    row["ToU/PP"] = False
+                    row["ToU/PP"] = "FALSE"
                     if new_values["additional_info"]:
                         if "userid" in new_values["additional_info"]:
                             row["Synapse_id"] = new_values["additional_info"]["userid"]
@@ -72,7 +72,7 @@ if cert_audit_log is not None and os.stat(cert_audit_log).st_size > 0:
                 if cert_data["user_id"]:
                     for output_content_i, output_content_row in enumerate(output_content):
                         if output_content_row["User_id"] == cert_data["user_id"]:
-                            output_content[output_content_i]["ToU/PP"] = True
+                            output_content[output_content_i]["ToU/PP"] = "TRUE"
     except Exception as e: 
         print(e)
 

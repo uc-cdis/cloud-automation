@@ -9,6 +9,14 @@ gen3_load "gen3/gen3setup"
 
 
 #
+# urldecode the given argument
+#
+gen3_logs_urldecode() {
+  echo -e ${1//\%/\\x}
+}
+
+
+#
 # Run the stdin logstream through a filter to generate a report
 #
 # @param filter raw, accessCount, whoWhatWhen - see gen3_logs_s3_filer
@@ -27,10 +35,17 @@ gen3_logs_s3filter() {
   fi
   case "$filterName" in
     "whoWhatWhen")
-      grep 'username' | grep GET | awk -v bucket="$logFolder" '{ gsub(/\[/, "", $3); gsub(/.+username=/, "", $11); gsub(/&.*/, "", $11); gsub(/%40/, "@", $11); print $3 "\t" $9 "\t" $11 "\t" bucket }' | sort
+      if [[ "$logFolder" != "unknown" ]]; then
+        echo -e "Date_time\tPath\tUser_id\tBucket_name"
+        grep 'username' | grep GET | awk -v bucket="$logFolder" '{ gsub(/\[/, "", $3); gsub(/.+username=/, "", $11); gsub(/&.*/, "", $11); gsub(/%40/, "@", $11); print $3 "\t" $9 "\t" $11 "\t" bucket }' | sort | sed -E 's/\%[0-9]+/_/g'
+      else
+        echo -e "Date_time\tPath\tUser_id"
+        grep 'username' | grep GET | awk -v bucket="$logFolder" '{ gsub(/\[/, "", $3); gsub(/.+username=/, "", $11); gsub(/&.*/, "", $11); gsub(/%40/, "@", $11); print $3 "\t" $9 "\t" $11 }' | sort | sed -E 's/\%[0-9]+/_/g'
+      fi
       ;;
     "accessCount")
-      grep 'username' | grep GET | awk '{ print $9 }' | sort | uniq -c
+      echo -e "Access_count\tPath"
+      grep 'username' | grep GET | awk '{ print $9 }' | sort | uniq -c | awk '{ print $1 "\t" $2 }'
       ;;
     *)
       cat -
