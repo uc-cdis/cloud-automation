@@ -46,7 +46,7 @@ resource "random_string" "randomother" {
   special = true
 }
 
-resource "aws_db_option_group" "example" {
+resource "aws_db_option_group" "rds_instance_new_option_group" {
   count                    = "${var.rds_instance_option_group_name == "" ? 1 : 0}"
   name                     = "${var.rds_instance_identifier}-option-group"
   option_group_description = "Additional options to the database"
@@ -134,6 +134,7 @@ EOF
 }
 */
 
+/*
 data "aws_iam_policy_document" "backup_bucket_access" {
   count       = "${var.rds_instance_backup_kms_key == "" ? 1 : 0}"
 
@@ -157,10 +158,11 @@ data "aws_iam_policy_document" "backup_bucket_access" {
     effect = "Allow"
   }
 }
+*/
 
 
 data "aws_iam_policy_document" "backup_bucket_access_kms" {
-  count       = "${var.rds_instance_backup_kms_key == "" ? 0 : 1}"
+  count       = "${var.rds_instance_backup_enabled == "" ? 1 : 0}"
   statement {
     actions = [
         "kms:DescribeKey",
