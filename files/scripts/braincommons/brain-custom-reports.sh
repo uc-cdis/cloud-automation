@@ -27,15 +27,27 @@ beatpdFilter() {
 
 # main ------------------------
 
-numDays=7
+# pin start date to January 13
+startDate="2020-01-13"
+numDays=0
 
-if [[ $# -lt 1 || !"$1" =~ ^[0-9]+$ ]]; then
-  gen3_log_err "Use: brain-custom-reports.sh numberOfDays"
+if [[ $# -lt 1 || "$1" != "go" ]]; then
+  gen3_log_err "Use: brain-custom-reports.sh go"
   exit 1
 fi
-
-numDays="$1"
 shift
+
+#startDate="$1"
+startSecs="$(date -u -d"$startDate" +%s)"
+endSecs="$(date -u -d"00:00" +%s)"
+numDays="$(( (endSecs - startSecs)/(24*60*60) ))"
+gen3_log_info "$numDays days since $startDate"
+
+dropDeadSecs="$(date -u -d2020-05-01 +%s)"
+if [[ "$endSecs" -gt "$dropDeadSecs" ]]; then
+  gen3_log_err "This script will not process logs after 2020-05-01"
+  exit 1
+fi
 
 # to simplify testing - optionally take an already existing workfolder
 if [[ $# -gt 0 && -f "$1/raw.txt" ]]; then
@@ -50,10 +62,19 @@ mkdir -p "$workFolder"
 cd "$workFolder"
 gen3_log_info "working in $workFolder"
 
+# cache raw data from last run, and add to it incrementally
+cacheDate="2020-03-05"
+cacheFile="${XDG_DATA_HOME}/gen3/cache/brain-custom-report_2020-01-13_to_2020-03-05_raw.txt"
+if [[ ! -f "$cacheFile" ]]; then
+  gen3_log_err "Please generate cache $cacheFile : gen3 logs s3 start=2020-01-13 end=2020-03-05 filter=raw prefix=s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/ > brain-custom-report_2020-01-13_to_2020-03-05_raw.txt"
+  exit 1
+fi
+
 if [[ -f raw.txt ]]; then
   gen3_log_info "using existing raw.txt - probably testing something"
 else
-  gen3 logs s3 start="$numDays days ago" filter=raw prefix=s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/ > raw.txt
+  gen3 logs s3 start="$cacheDate 00:00" end="00:00" filter=raw prefix=s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/ > "raw-${cacheDate}.txt"
+  cat "$cacheFile" "raw-${cacheDate}.txt" > "raw.txt"
 fi
 gen3 logs s3filter filter=accessCount < raw.txt > accessCountRaw.tsv
 gen3 logs s3filter filter=whoWhatWhen < raw.txt > whoWhatWhenRaw.tsv 
@@ -70,7 +91,7 @@ echo -e "Access_count\tdid\tfilename" > accessCountBrain.tsv
 grep dg.7519/ accessCountRaw.tsv | beatpdFilter | sed -E 's@(dg.7519/.+)/(.+)@\1\t\2@' | tee -a accessCountBrain.tsv
 
 echo -e "Date_time\tdid\tfilename\tUser_id" > whoWhatWhenBrain.tsv
-grep dg.7519/ whoWhatWhenRaw.tsv | beatpdFilter | sed -E 's@(dg.7519/.+)/(.+)@\1\t\2@' >> whoWhatWhenBrain.tsv
+grep dg.7519/ whoWhatWhenRaw.tsv | beatpdFilter | sed -E 's@(dg.7519/.+)/(.+)@\1\t\2@' | sed 's/__Synapse_ID_/ (Synapse ID)/g' >> whoWhatWhenBrain.tsv
 
 if [[ -d "$workFolder" ]]; then
   gen3 dashboard publish secure "$workFolder" "dreamAccess/$(date -u +%Y)/$folderName"
