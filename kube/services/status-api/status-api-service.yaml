@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: status-api-service
+  labels:
+    app: status-api
+spec:
+  ports:
+  - name: http
+    nodePort: 32555
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: status-api
+  type: NodePort
+  sessionAffinity: None

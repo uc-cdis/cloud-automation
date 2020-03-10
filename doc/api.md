@@ -4,6 +4,14 @@ Helpers for interacting with the gen3 api
 
 ## Use
 
+### indexd-download-all
+
+Helper downloads all the records from indexd to a folder
+
+```
+ex:$ gen3 api indexd-download-all domain.commons.io ./destFolder
+```
+
 ### indexd-post-folder
 
 Helper uploads a folder of json indexd records.

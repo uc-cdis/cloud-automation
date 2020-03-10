@@ -54,7 +54,7 @@ gen3_curl_json() {
   method="POST"
   jsonFile=""
   if [[ $# -lt 2 || -z "$1" ]]; then
-    echo -e "$(red_color "ERROR: USE: gen3_curl_json path username jsonFile")" 2>1
+    gen3_log_err "USE: gen3_curl_json path username jsonFile"
     return 1
   fi
   path="$1"
@@ -65,7 +65,7 @@ gen3_curl_json() {
     jsonFile="$1"
     shift
     if [[ ! -f "$jsonFile" ]]; then
-      echo -e "$(red_color "ERROR: unable to read json file $jsonFile")"
+      gen3_log_err "unable to read json file $jsonFile"
       return 1
     fi
   else
@@ -73,12 +73,12 @@ gen3_curl_json() {
   fi
   accessToken="$(gen3_access_token "$userName")"
   if [[ -z "$accessToken" ]]; then
-    echo -e "$(red_color "ERROR: unable to acquire token for $userName")"
+    gen3_log_err "unable to acquire token for $userName"
     return 1
   fi
   hostname="$(g3kubectl get configmap manifest-global -o json | jq -r '.data["hostname"]')"
   if [[ -z "$hostname" ]]; then
-    echo -e "$(red_color "ERROR: unable to determine hostname for commons API")"
+    gen3_log_err "unable to determine hostname for commons API"
     return 1
   fi
 
@@ -105,7 +105,7 @@ gen3_new_project() {
   local result
 
   if [[ $# -lt 3 || -z "$1" || -z "$2" || -z "$3" ]]; then
-    echo -e "$(red_color "ERROR: USE: gen3 api new-project prog-name proj-name username")" 2>1
+    gen3_log_err "USE: gen3 api new-project prog-name proj-name username"
     return 1
   fi
   progName="$1"
@@ -145,7 +145,7 @@ gen3_new_program() {
   local result
 
   if [[ $# -lt 2 || -z "$1" || -z "$2" ]]; then
-    echo -e "$(red_color "ERROR: USE: gen3 api new-program prog-name username")" 2>1
+    gen3_log_err "USE: gen3 api new-program prog-name username"
     return 1
   fi
   progName="$1"
@@ -192,7 +192,7 @@ gen3_indexd_post_folder() {
   fi
 
   if [[ ! -d "${DATA_DIR}" ]]; then
-    echo -e "$(red_color "ERROR: ") DATA_DIR, ${DATA_DIR}, does not exist"
+    gen3_log_err "DATA_DIR, ${DATA_DIR}, does not exist"
     gen3_indexd_post_folder_help
     return 1
   fi
@@ -212,6 +212,60 @@ gen3_indexd_post_folder() {
   done
 }
 
+#
+# Download all the indexd records from the given domain -
+# manage the paging.
+# Ex:
+#    gen3 api indexd-download domain.commons.io data/
+#
+gen3_indexd_download_all() {
+  local DOMAIN
+  local DEST_DIR
+  local INDEXD_USER
+  local INDEXD_SECRET
+
+  if [[ $# -lt 2 ]]; then
+      gen3_log_err "gen3_indexd_download_all takes 2 arguments: domain and destintation folder"
+      return 1
+  fi
+  DOMAIN="$1"
+  shift
+  DATA_DIR="${1%%/}"
+  shift
+
+  if [[ ! -d "${DATA_DIR}" ]]; then
+    gen3_log_err "destination folder, ${DATA_DIR}, does not exist"
+    return 1
+  fi
+
+  local stats
+  local totalFiles=0
+  local fetchUrl="https://${DOMAIN}/index/_stats"
+  if ! stats="$(curl -s "$fetchUrl")" || ! totalFiles="$(jq -e -r .fileCount <<<"$stats")"; then
+      gen3_log_err "Failed to retrieve https://${DOMAIN}/index/_stats"
+      return 1
+  fi
+  gen3_log_info "Preparing to fetch $totalFiles from $DOMAIN to $DATA_DIR/ in batches of 1000"
+  local count=0
+  local start=""
+  local dataFile
+  while true; do
+    fetchUrl="https://${DOMAIN}/index/index?limit=1000"
+    dataFile="${DATA_DIR}/indexd_${DOMAIN//./_}_${count}.json"
+    if [[ -n "$start" ]]; then
+      fetchUrl="${fetchUrl}&start=$start"
+    fi
+    gen3_log_info "Fetching $fetchUrl into $dataFile"
+    curl -s "$fetchUrl" > "$dataFile"
+    start="$(jq -r '.records[-1].did' < "$dataFile")"
+    count=$((count + 1))
+    if [[ "$start" == null || $((count * 1000)) -gt "$totalFiles" ]]; then 
+      break
+    fi
+    sleep 1
+  done
+}
+
 
 #---------- main
 
@@ -220,6 +274,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   command="$1"
   shift
   case "$command" in
+    "indexd-download-all")
+      gen3_indexd_download_all "$@"
+      ;;
     "indexd-post-folder")
       gen3_indexd_post_folder "$@"
       ;;
