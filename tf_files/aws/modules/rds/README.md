@@ -37,7 +37,7 @@ There are mandatory variables, and there are a few other optionals that are set 
 ### 4.1 Required Variables
 
 | Name | Description | Type | Default |
-|------|-------------|:----:|:-----:|:-----:|
+|------|-------------|:----:|:-----:|
 | rds_instance_allocated\_storage | The allocated storage in gigabytes | string | n/a |
 | rds_instance_engine | The database engine to use | string | n/a |
 | rds_instance_engine\_version | The engine version to use | string | n/a |
@@ -53,7 +53,7 @@ There are mandatory variables, and there are a few other optionals that are set 
 
 
 | Name | Description | Type | Default |
-|------|-------------|:----:|:-----:|:-----:|
+|------|-------------|:----:|:-----:|
 | rds_instance_allow\_major\_version\_upgrade | Indicates that major version upgrades are allowed. Changing this parameter does not result in an outage and the change is asynchronously applied as soon as possible | bool | `"false"` |
 | rds_instance_apply\_immediately | Specifies whether any database modifications are applied immediately, or during the next maintenance window | bool | `"false"` |
 | rds_instance_auto\_minor\_version\_upgrade | Indicates that minor engine upgrades will be applied automatically to the DB instance during the maintenance window | bool | `"true"` |
