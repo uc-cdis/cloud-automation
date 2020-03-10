@@ -1,0 +1,45 @@
+
+header {
+  margin: auto;
+}
+
+main {
+	width: 100%;
+	min-width: 320px;
+	height: 100%;
+	min-height: 320px;
+  padding: 0px;
+}
+
+section {
+  width: 100%;
+  min-height: 100px;
+  margin-top: 10px;
+}
+
+button.p2m-input__button {
+  background-color: green;
+  color: white;
+  padding: 5px;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.p2m-input__data {
+  width: 100%;
+  background-color: #dddddd;
+}
+
+.p2m-content-root {
+	width: 100%;
+	min-width: 320px;
+	height: 100%;
+	min-height: 320px;
+  padding: 10px;
+  display: "flex";
+}
+
+section.p2m-input__container {
+  display: flex;
+  flex-direction: col;
+}
