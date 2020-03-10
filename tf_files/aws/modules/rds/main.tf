@@ -48,7 +48,7 @@ resource "random_string" "randomother" {
 
 resource "aws_db_option_group" "rds_instance_new_option_group" {
   #count                    = "${var.rds_instance_option_group_name == "" ? 1 : 0}"
-  count                    = "${var.rds_instance_option_group_name == "" && var.rds_instance_backup_enabled ? 1 : 0}"
+  #count                    = "${var.rds_instance_option_group_name == "" && var.rds_instance_backup_enabled ? 1 : 0}"
   name                     = "${var.rds_instance_identifier}-option-group"
   option_group_description = "Additional options to the database"
   engine_name              = "${var.rds_instance_engine}"
@@ -79,7 +79,7 @@ resource "aws_db_option_group" "rds_instance_new_option_group" {
 ## Role for backup
 
 resource "aws_iam_role" "rds_backup_role" {
-  count = "${var.rds_instance_option_group_name == "" && var.rds_instance_backup_enabled ? 1 : 0}"
+  #count = "${var.rds_instance_option_group_name == "" && var.rds_instance_backup_enabled ? 1 : 0}"
   name  = "${var.rds_instance_identifier}-backup-role"
   tags  = "${merge(map("Name", format("%s", var.rds_instance_monitoring_role_name)), var.rds_instance_tags )}"
 
@@ -101,7 +101,7 @@ POLICY
 
 
 data "aws_iam_policy_document" "backup_bucket_access_kms" {
-  count       = "${var.rds_instance_backup_enabled ? 1 : 0}"
+  #count       = "${var.rds_instance_backup_enabled ? 1 : 0}"
   statement {
     actions = [
         "kms:DescribeKey",
@@ -136,7 +136,7 @@ data "aws_iam_policy_document" "backup_bucket_access_kms" {
 
 
 resource "aws_iam_role_policy" "backup_bucket_access" {
-  count  = "${var.rds_instance_backup_enabled ? 1 : 0}"
+  #count  = "${var.rds_instance_backup_enabled ? 1 : 0}"
   name   = "${var.rds_instance_identifier}_backup_bucket_access"
   policy = "${data.aws_iam_policy_document.backup_bucket_access_kms.json}"
   role   = "${aws_iam_role.rds_backup_role.id}"
@@ -237,7 +237,6 @@ resource "aws_db_instance" "this_mssql" {
   vpc_security_group_ids                = "${var.rds_instance_vpc_security_group_ids}"
   db_subnet_group_name                  = "${var.rds_instance_db_subnet_group_name}"
   parameter_group_name                  = "${var.rds_instance_parameter_group_name}"
-  #option_group_name                     = "${var.rds_instance_option_group_name}"
   option_group_name                     = "${var.rds_instance_option_group_name == "" && var.rds_instance_backup_enabled ? aws_db_option_group.rds_instance_new_option_group.name : var.rds_instance_option_group_name}"
 
   availability_zone                     = "${var.rds_instance_availability_zone}"
