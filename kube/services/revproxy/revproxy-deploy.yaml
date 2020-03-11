@@ -64,12 +64,14 @@ spec:
           - -g
           - 'daemon off;'
         livenessProbe:
-          tcpSocket:
+          httpGet:
+            path: /_status
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 30
         readinessProbe:
-          tcpSocket:
+          httpGet:
+            path: /_status
             port: 80
         ports:
         - containerPort: 80
