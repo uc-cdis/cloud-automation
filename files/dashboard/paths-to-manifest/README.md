@@ -1,6 +1,6 @@
 # TL;DR 
 
-how to test the reports webapp with the local sample data
+The paths-to-manifest webapp converts a list of S3 paths pasted into a text area to a gen3-client manifest using a lookup table precomputed from indexd.
 
 ## Dev-test
 
