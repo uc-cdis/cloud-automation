@@ -56,15 +56,6 @@ resource "aws_db_option_group" "rds_instance_new_option_group" {
   tags                     = "${merge(map("Name", format("%s", var.rds_instance_monitoring_role_name)), var.rds_instance_tags )}"
 
   option {
-    option_name = "Timezone"
-
-    option_settings {
-      name  = "TIME_ZONE"
-      value = "UTC"
-    }
-  }
-
-  option {
     option_name = "SQLSERVER_BACKUP_RESTORE"
 
     option_settings {
