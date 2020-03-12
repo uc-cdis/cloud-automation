@@ -28,9 +28,9 @@ function gen3_gitops_swap_proxy() {
   gen3_log_info "Executing Proxy swap at ${squidLibDir}proxy_switch.py"
   if [ ${1} == "bash" ];
   then
-    ${squidLibDir}proxy_switch.sh
+    bash ${squidLibDir}proxy_switch.sh
   else
-    ${squidLibDir}proxy_switch.sh
+    bash ${squidLibDir}proxy_switch.py
   fi
 
   if [ $? -gt 0 ]; 
