@@ -60,7 +60,7 @@ gen3 workers-cycle --all=500
 
 If you are going to cycle all the nodes in a cluster, try to provide an interval long enough for a new node to come into the cluster before the next run. Four minutes should be suffice.
 
-Also, it's recommended that if you are cycling all nodes, to run this commmand in a tmux session or screen just in case you loose connectivity to the adminVM
+Also, it's recommended that if you are cycling all nodes, to run this commmand in a tmux session or screen just in case you lose connection to the adminVM
 
 
 
