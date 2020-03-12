@@ -26,10 +26,25 @@ function gen3_gitops_swap_proxy() {
   local squidLibDir="${GEN3_HOME}/gen3/lib/squid/"
   
   gen3_log_info "Executing Proxy swap at ${squidLibDir}proxy_switch.py"
-  ${squidLibDir}proxy_switch.py
+  if [ ${1} == "bash" ];
+  then
+    ${squidLibDir}proxy_switch.sh
+  else
+    ${squidLibDir}proxy_switch.sh
+  fi
+
+  if [ $? -gt 0 ]; 
+  then
+    gen3_log_error "There has been an error during the swap, please review the output"
+  else
+    gen3_log_info "all good"
+  fi
 }
 
 
+help() {
+  gen3 help squid
+}
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   # Support sourcing this file for test suite
