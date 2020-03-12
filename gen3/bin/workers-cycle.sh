@@ -1,9 +1,14 @@
 #!/bin/bash
+##
+# Stcript to cycle nodes in a kubernetes cluster 
+# 
+##
 
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/lib/kube-setup-init"
 
+SCRIPT=$(basename ${BASH_SOURCE[0]})
 
-
-for i in $(kubectl get node -o name |cut -d/ -f2); do kubectl drain $i --ignore-daemonsets --delete-local-data; IDs=$(aws ec2 describe-instances --query "Reservations[].Instances[].InstanceId" --filters "Name=private-dns-name,Values=${i}"  --output text); aws ec2 stop-instances --instance-ids ${IDs}; sleep 500; done
 
 function drain_node(){
 
@@ -12,11 +17,12 @@ function drain_node(){
   g3kubectl drain ${instanceName} --ignore-daemonsets --delete-local-data
 }
 
+
 function stop_instance() {
 
   # Let's get the instance id
   local instanceName=${1}
-  local instanceId=$(aws ec2 describe-instances --query "Reservations[].Instances{}.InstanceId" --filter "Name=private-dns-name,Values=${instanceName}")
+  local instanceId=$(aws ec2 describe-instances --query "Reservations[].Instances[].InstanceId" --filter "Name=private-dns-name,Values=${instanceName}" --output text)
 
   if [ $? == 0 ];
   then
@@ -38,10 +44,11 @@ function main() {
     drain_node ${instance}
     stop_instance ${instance}
   else
-    for i in $(kubectl get node -o name | cut -d/ -f2);
+    for i in $(g3kubectl get node -o name | cut -d/ -f2);
     do
-      drain_node ${instance}
-      stop_instance ${instance}
+      drain_node ${i}
+      stop_instance ${i}
+      gen3_log_info "Next run in ${INTERVAL} seconds"
       sleep ${INTERVAL}
     done
   fi
@@ -67,6 +74,7 @@ while getopts "$OPTSPEC" optchar; do
         all=*)
           INSTANCE="ALL"
           INTERVAL=${OPTARG#*=}
+          ;;
         help)
           help
           exit
@@ -80,10 +88,11 @@ while getopts "$OPTSPEC" optchar; do
           ;;
       esac;;
     s)
-      INSTANCE==${OPTARG}
+      INSTANCE=${OPTARG}
       ;;
     a)
       INSTANCE="ALL"
+      INTERVAL=${OPTARG}
       ;;
     h)
       help
@@ -100,15 +109,13 @@ while getopts "$OPTSPEC" optchar; do
 done
 
 
-
-case ${INTERVAL} in
-    ''|*[!0-9]*) 
-      echo "bad interval, please correct it" 
-      exit 
-      ;;
-    *) 
+re='^[0-9]+$'
+if ! [[ ${INTERVAL} =~ $re ]] &&  [ ${INSTANCE} == "ALL" ] ; 
+then
+  echo "bad interval, please correct it"
+  exit 1
+else
       main ${INSTANCE}
-      ;;
-esac
+fi
 
 
