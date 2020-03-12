@@ -93,7 +93,7 @@ variable "availability_zones" {
 
 variable "domain_test" {
   description = "Domain for the lambda function to check for the proxy"
-  default     = "gen3.org"
+  default     = "www.google.com"
 }
 
 variable "ha_squid" {
