@@ -93,6 +93,12 @@ spec:
       - name: fence
         image: quay.io/cdis/fence:master
         env:
+         - name: GEN3_UWSGI_TIMEOUT
+           valueFrom:
+             configMapKeyRef:
+               name: manifest-global
+               key: uwsgi-timeout
+               optional: true
         - name: PYTHONPATH
           value: /var/www/fence
         - name: GEN3_DEBUG
