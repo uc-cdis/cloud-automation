@@ -89,7 +89,7 @@ EOF
 }
 
 function get_available_proxies(){
-  local availProxies=$(aws autoscaling describe-auto-scaling-instances  | jq '.AutoScalingInstances[] | select(.AutoScalingGroupName=="squid-auto-generic-commons") .InstanceId' -r)
+  local availProxies=$(aws autoscaling describe-auto-scaling-instances  | jq '.AutoScalingInstances[] | select(.AutoScalingGroupName=="squid-auto-'${vpc_name}'") .InstanceId' -r)
   gen3_log_info "The available proxies are: ${availProxies}"
   echo ${availProxies}
 }
