@@ -83,8 +83,6 @@ function change_dns_record(){
 EOF
 
   local zoneId=$(get_zone_id ${vpc_name})
-  #gen3_log_info "aws route53 change-resource-record-sets --hosted-zone-id $(get_zone_id ${vpc_name}) --change-batch file://${tmpRecordSetLocation}"
-  gen3_log_info "The zone ID found is ${zoneId}"
   aws route53 change-resource-record-sets --hosted-zone-id ${zoneId} --change-batch file://${tmpRecordSetLocation}
 
   rm ${tmpRecordSetLocation}
