@@ -48,7 +48,7 @@ function main() {
     do
       drain_node ${i}
       stop_instance ${i}
-      gen3_log_info "Next run in ${INTERVAL} seconds"
+      gen3_log_info "Next run in ${INTERVAL} seconds, @ $(date -d "+${INTERVAL} seconds")"
       sleep ${INTERVAL}
     done
   fi
