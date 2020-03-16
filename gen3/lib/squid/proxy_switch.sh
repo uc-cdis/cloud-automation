@@ -28,7 +28,7 @@ function switch_default_gw(){
 
   if [ $? == 0 ];
   then
-    gen3_log_info "Default route for ${rtId} has been created to go though ${enId}"
+    gen3_log_info "Default route for ${rtId} has been created to go through ${eniId}"
   else
     gen3_log_err "There was an error trying to delete the default route for ${rtId}"
   fi
@@ -55,7 +55,7 @@ function get_current_proxy() {
 
 function get_zone_id(){
   local zoneId=$(aws route53 list-hosted-zones |jq '.HostedZones[] | select(.Config.Comment | contains("'${vpc_name}'")) | .Id' -r |awk -F/ '{print $3}')
-  gen3_log_info "The Zone id for the route53 Hosted zone .internal.io"
+  gen3_log_info "The Zone id for the route53 Hosted zone .internal.io  ${zoneId}"
   echo ${zoneId}
 }
 
@@ -82,8 +82,10 @@ function change_dns_record(){
 }
 EOF
 
-  #ZONEID=$(aws route53 list-hosted-zones |jq '.HostedZones[] | select(.Config.Comment | contains("'${vpc_name}'")) | .Id' -r |awk -F/ '{print $3}')
-  aws route53 change-resource-record-sets --hosted-zone-id $(get_zone_id ${vpc_name}) --change-batch file://${tmpRecordSetLocation}
+  local zoneId=$(get_zone_id ${vpc_name})
+  #gen3_log_info "aws route53 change-resource-record-sets --hosted-zone-id $(get_zone_id ${vpc_name}) --change-batch file://${tmpRecordSetLocation}"
+  gen3_log_info "The zone ID found is ${zoneId}"
+  aws route53 change-resource-record-sets --hosted-zone-id ${zoneId} --change-batch file://${tmpRecordSetLocation}
 
   rm ${tmpRecordSetLocation}
 }
@@ -111,7 +113,7 @@ function disable_source_check() {
 
 function main(){
 
-  local currentProxy=$(get_current_proxy)
+  local currentProxy="$(get_current_proxy)"
   local availableProxies="$(get_available_proxies)"
 
   for i in ${availableProxies};
@@ -122,6 +124,7 @@ function main(){
       local newProxy="$(aws ec2 describe-instances --instance-ids ${i})"
       local newProxyId="$(echo ${newProxy} | jq '.Reservations[].Instances[].InstanceId' -r)"
       gen3_log_info "The new proxy will be ${newProxyId}"
+      disable_source_check ${newProxyId}
       local newProxyENI="$(echo ${newProxy} | jq '.Reservations[].Instances[].NetworkInterfaces[].NetworkInterfaceId' -r)"
       local newProxyIP="$(echo ${newProxy} | jq '.Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddress' -r)"
       break
@@ -135,7 +138,7 @@ function main(){
   do
     local rtid=$(get_route_table_id ${i} ${vpc_name})
     gen3_log_info "eks_private routing table id: ${rtid}"
-    switch_default_gw ${rtid} ${newProxyENI}
+    switch_default_gw ${rtid} "${newProxyENI}"
   done
 
   change_dns_record ${newProxyIP}
