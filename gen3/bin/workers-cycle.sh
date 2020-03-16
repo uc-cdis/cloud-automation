@@ -44,12 +44,17 @@ function main() {
     drain_node ${instance}
     stop_instance ${instance}
   else
-    for i in $(g3kubectl get node -o name | cut -d/ -f2);
+    local nodeList=($(g3kubectl get node -o name | cut -d/ -f2))
+   
+    for i in ${!nodeList[@]};
     do
-      drain_node ${i}
-      stop_instance ${i}
-      gen3_log_info "Next run in ${INTERVAL} seconds, @ $(date -d "+${INTERVAL} seconds")"
-      sleep ${INTERVAL}
+      drain_node ${nodeList[$i]}
+      stop_instance ${nodeList[$i]}
+      if ! [ $(( i + 1 )) == ${#nodeList[*]} ];
+      then
+        gen3_log_info "Next run in ${INTERVAL} seconds, @ $(date -d "+${INTERVAL} seconds")"
+        sleep ${INTERVAL}
+      fi
     done
   fi
 }
