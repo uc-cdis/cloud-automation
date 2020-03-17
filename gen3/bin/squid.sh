@@ -31,7 +31,13 @@ function gen3_gitops_swap_proxy() {
     bash ${squidLibDir}proxy_switch.sh
   else
     gen3_log_info "Executing Proxy swap at ${squidLibDir}proxy_switch.py"
-    python3 ${squidLibDir}proxy_switch.py
+    command -v python3
+    if [ $? == 0 ];
+    then
+      python3 ${squidLibDir}proxy_switch.py
+    else
+      gen3_log_err "python3 is not installed, either install it or try `gen3 squid swap bash`"
+    fi
   fi
 
   if [ $? -gt 0 ]; 
