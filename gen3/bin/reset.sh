@@ -114,6 +114,8 @@ g3kubectl delete --all deployments --now
 g3kubectl delete --all "jobs" --now
 # also clean out network policies
 g3kubectl delete networkpolicies --all
+# just delete every damn thing
+g3kubectl delete --all "pods" --now
 wait_for_pods_down
 
 #
