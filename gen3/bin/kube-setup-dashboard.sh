@@ -83,4 +83,10 @@ setup_dashboard_service() {
   gen3 roll dashboard
 }
 
-setup_dashboard_service
+if g3k_manifest_lookup .versions.dashboard > /dev/null 2>&1; then
+  if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # create database
+    setup_dashboard_service
+  else
+    gen3 roll dashboard
+  fi
+fi
