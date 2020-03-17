@@ -52,6 +52,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-setup-jupyterhub](./kube-setup-jupyterhub.md)
 * [kube-setup-peregrine](./kube-setup-peregrine.md)
 * [kube-setup-pidgin](./kube-setup-pidgin.md)
+* [waf - webapp firewall](./waf.md)
 
 ## Terraform related
 

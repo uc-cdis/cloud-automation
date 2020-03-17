@@ -46,6 +46,94 @@ resource "random_string" "randomother" {
   special = true
 }
 
+resource "aws_db_option_group" "rds_instance_new_option_group" {
+  #count                    = "${var.rds_instance_option_group_name == "" ? 1 : 0}"
+  #count                    = "${var.rds_instance_option_group_name == "" && var.rds_instance_backup_enabled ? 1 : 0}"
+  name                     = "${var.rds_instance_identifier}-option-group"
+  option_group_description = "Additional options to the database"
+  engine_name              = "${var.rds_instance_engine}"
+  major_engine_version     = "${local.is_mssql ? substr(var.rds_instance_engine_version,0,5) : var.rds_instance_engine_version}"
+  tags                     = "${merge(map("Name", format("%s", var.rds_instance_monitoring_role_name)), var.rds_instance_tags )}"
+
+  option {
+    option_name = "SQLSERVER_BACKUP_RESTORE"
+
+    option_settings {
+      name  = "IAM_ROLE_ARN"
+      value = "${aws_iam_role.rds_backup_role.arn}"
+    }
+  }
+}
+
+
+
+## Role for backup
+
+resource "aws_iam_role" "rds_backup_role" {
+  #count = "${var.rds_instance_option_group_name == "" && var.rds_instance_backup_enabled ? 1 : 0}"
+  name  = "${var.rds_instance_identifier}-backup-role"
+  tags  = "${merge(map("Name", format("%s", var.rds_instance_monitoring_role_name)), var.rds_instance_tags )}"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "rds.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+
+data "aws_iam_policy_document" "backup_bucket_access_kms" {
+  #count       = "${var.rds_instance_backup_enabled ? 1 : 0}"
+  statement {
+    actions = [
+        "kms:DescribeKey",
+        "kms:GenerateDataKey",
+        "kms:Encrypt",
+        "kms:Decrypt"
+      ],
+    resources = ["arn:aws:kms:region:${data.aws_caller_identity.current.account_id}:key/${var.rds_instance_backup_kms_key}"]
+    effect = "Allow"
+  }
+
+  statement {
+    actions = [
+        "s3:ListBucket",
+        "s3:GetBucketLocation"
+      ],
+    resources = ["arn:aws:s3:::${var.rds_instance_backup_bucket_name}"]
+    effect = "Allow"
+  }
+
+  statement {
+    actions = [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:ListMultipartUploadParts",
+        "s3:AbortMultipartUpload"
+      ],
+    resources = ["arn:aws:s3:::${var.rds_instance_backup_bucket_name}"]
+    effect = "Allow"
+  }
+}
+
+
+resource "aws_iam_role_policy" "backup_bucket_access" {
+  #count  = "${var.rds_instance_backup_enabled ? 1 : 0}"
+  name   = "${var.rds_instance_identifier}_backup_bucket_access"
+  policy = "${data.aws_iam_policy_document.backup_bucket_access_kms.json}"
+  role   = "${aws_iam_role.rds_backup_role.id}"
+}
+
+
 resource "aws_db_instance" "this" {
   count = "${var.rds_instance_create && false == local.is_mssql ? 1 : 0}"
 
@@ -73,14 +161,14 @@ resource "aws_db_instance" "this" {
   vpc_security_group_ids                = "${var.rds_instance_vpc_security_group_ids}"
   db_subnet_group_name                  = "${var.rds_instance_db_subnet_group_name}"
   parameter_group_name                  = "${var.rds_instance_parameter_group_name}"
-  option_group_name                     = "${var.rds_instance_option_group_name}"
+  #option_group_name                     = "${var.rds_instance_option_group_name}"
+  option_group_name                     = "${var.rds_instance_option_group_name == "" && var.rds_instance_backup_enabled ? aws_db_option_group.rds_instance_new_option_group.name : var.rds_instance_option_group_name}"
 
   availability_zone                     = "${var.rds_instance_availability_zone}"
   multi_az                              = "${var.rds_instance_multi_az}"
   iops                                  = "${var.rds_instance_iops}"
   publicly_accessible                   = "${var.rds_instance_publicly_accessible}"
   monitoring_interval                   = "${var.rds_instance_monitoring_interval}"
-  #monitoring_role_arn                   = "${coalesce(var.rds_instance_monitoring_role_arn, aws_iam_role.enhanced_monitoring.*.arn, "")}"
   monitoring_role_arn                   = "${coalesce(var.rds_instance_monitoring_role_arn, join("",aws_iam_role.enhanced_monitoring.*.arn))}"
 
   allow_major_version_upgrade           = "${var.rds_instance_allow_major_version_upgrade}"
@@ -140,14 +228,13 @@ resource "aws_db_instance" "this_mssql" {
   vpc_security_group_ids                = "${var.rds_instance_vpc_security_group_ids}"
   db_subnet_group_name                  = "${var.rds_instance_db_subnet_group_name}"
   parameter_group_name                  = "${var.rds_instance_parameter_group_name}"
-  option_group_name                     = "${var.rds_instance_option_group_name}"
+  option_group_name                     = "${var.rds_instance_option_group_name == "" && var.rds_instance_backup_enabled ? aws_db_option_group.rds_instance_new_option_group.name : var.rds_instance_option_group_name}"
 
   availability_zone                     = "${var.rds_instance_availability_zone}"
   multi_az                              = "${var.rds_instance_multi_az}"
   iops                                  = "${var.rds_instance_iops}"
   publicly_accessible                   = "${var.rds_instance_publicly_accessible}"
   monitoring_interval                   = "${var.rds_instance_monitoring_interval}"
-  #monitoring_role_arn                   = "${coalesce(var.rds_instance_monitoring_role_arn, length(aws_iam_role.enhanced_monitoring.*.arn) > 0 ? aws_iam_role.enhanced_monitoring.arn : "", "")}"
   monitoring_role_arn                   = "${coalesce(var.rds_instance_monitoring_role_arn, join("",aws_iam_role.enhanced_monitoring.*.arn))}"
 
   allow_major_version_upgrade           = "${var.rds_instance_allow_major_version_upgrade}"

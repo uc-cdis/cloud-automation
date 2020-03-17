@@ -134,7 +134,7 @@ gen3 cd
 
 **NOTE:** If the following variables are not in the file, just add them along with their values.
 
-`csoc_managed` if you are going to set up your commons hooked up to a central control management account. By default it is set to yes, any other value would assume that you don't want this to happen. If you leave the default value, you must run the logging module first, otherwise terraform will fail. But since this instruction is specifically for non-attached deployments, you should set the value to "no".
+`csoc_managed` if you are going to set up your commons hooked up to a central control management account. By default it is set to true. If you leave the default value, you must run the logging module first, otherwise terraform will fail. But since this instruction is specifically for non-attached deployments, you should set the value to false.
 
 `peering_cidr` this is the CIDR where your adminVM belongs to. Since the commons would create it's own VPC, you need to pair them up to allow communication between them later. Basically, said pairing would let you run kubectl commands against the kubernetes cluster hosting the commons.
 
@@ -196,7 +196,7 @@ gen3 cd
 
 `peering_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
 
-`csoc_managed` same as in part 2, if you want it attached to a csoc account. Default is yes.
+`csoc_managed` same as in part 2, if you want it attached to a csoc account. Default is true.
 
 `peering_cidr` basically the CIDR of the VPC where you are running gen3. Pretty much the same as `csoc_vpc_id` for part two.
 
