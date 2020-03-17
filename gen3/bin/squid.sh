@@ -25,7 +25,7 @@ function gen3_gitops_swap_proxy() {
 
   local squidLibDir="${GEN3_HOME}/gen3/lib/squid/"
   
-  if [ ${1} == "bash" ];
+  if ! [ -z ${1} ] && [ ${1} == "bash" ];
   then
     gen3_log_info "Executing Proxy swap at ${squidLibDir}proxy_switch.sh"
     bash ${squidLibDir}proxy_switch.sh
