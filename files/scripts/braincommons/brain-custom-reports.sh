@@ -5,7 +5,7 @@
 # Run as cron:
 # GEN3_HOME=/home/bhcprodv2/cloud-automation
 # PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-# 2   2   *   *   1    (if [ -f $GEN3_HOME/files/scripts/braincommons/brain-custom-reports.sh ]; then bash $GEN3_HOME/files/scripts/braincommons/brain-custom-reports.sh; else echo "no brain-custom-reports.sh"; fi) > $HOME/brain-custom-reports.log 2>&1
+# 2   2   *   *   1    (if [ -f $GEN3_HOME/files/scripts/braincommons/brain-custom-reports.sh ]; then bash $GEN3_HOME/files/scripts/braincommons/brain-custom-reports.sh go; else echo "no brain-custom-reports.sh"; fi) > $HOME/brain-custom-reports.log 2>&1
 
 
 source "${GEN3_HOME}/gen3/gen3setup.sh"
