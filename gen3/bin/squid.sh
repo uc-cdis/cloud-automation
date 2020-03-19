@@ -54,7 +54,7 @@ function gen3_proxy_info() {
   command -v python3
   if [ $? == 0 ];
   then
-    python3 ${SQUID_LIB_DIR}proxy_switch.py
+    python3 ${SQUID_LIB_DIR}proxy_info.py
   else
     gen3_log_err "python3 is not installed, either install it or try `gen3 squid swap bash`"
   fi
