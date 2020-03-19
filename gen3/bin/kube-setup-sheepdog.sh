@@ -23,8 +23,19 @@ if [[ -z "$JENKINS_HOME" && -f "$(gen3_secrets_folder)/creds.json" ]]; then
   #
   # Create the 'sheepdog' and 'peregrine' postgres user if necessary
   #
+  creds="$(gen3 db creds peregrine)"
+  peregrine_db_user="$(jq -r .db_username <<<"$creds")"
+  server="$(jq -r .g3FarmServer <<<"$creds")"
 
-  peregrine_db_user="$(gen3 db creds peregrine | jq -r '.db_username')"
+  new_user_count="$(gen3 psql "$server" -t -c "SELECT COUNT(*) FROM pg_catalog.pg_user WHERE usename='$peregrine_db_user';")"
+  if [[ $new_user_count -eq 0 ]]; then
+    gen3_log_info "Creating postgres user $peregrine_db_user"    
+    new_db_password="$(jq -r .db_password <<<"$creds")"
+    sql="CREATE USER $peregrine_db_user WITH PASSWORD '$new_db_password';"
+    gen3 psql "$server" -c "$sql"
+  else
+    gen3_log_info "peregrine user already exists"
+  fi
 
   declare -a sqlList
   # Avoid doing this over and over ...
