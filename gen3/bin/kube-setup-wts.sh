@@ -34,12 +34,15 @@ new_client() {
 
   cat - <<EOM
 {
-    "oidc_client_id": "$client_id",
-    "oidc_client_secret": "$client_secret",
+    "wts_base_url": "https://${hostname}/wts/",
     "encryption_key": "$encryption_key",
     "secret_key": "$secret_key",
+
     "fence_base_url": "https://${hostname}/user/",
-    "wts_base_url": "https://${hostname}/wts/"
+    "oidc_client_id": "$client_id",
+    "oidc_client_secret": "$client_secret",
+
+    "external_oidc": []
 }
 EOM
 }
