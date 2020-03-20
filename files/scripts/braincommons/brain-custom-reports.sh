@@ -87,11 +87,11 @@ else
 fi  
 
 # Some customization for the brain-commons beat-pd dream challenge case
-echo -e "Access_count\tdid\tfilename" > accessCountBrain.tsv
-grep dg.7519/ accessCountRaw.tsv | beatpdFilter | sed -E 's@(dg.7519/.+)/(.+)@\1\t\2@' | tee -a accessCountBrain.tsv
+echo -e "Access_count\tdid\tfilename" > DREAM_Download_Summary.tsv
+grep dg.7519/ accessCountRaw.tsv | beatpdFilter | sed -E 's@(dg.7519/.+)/(.+)@\1\t\2@' | tee -a DREAM_Download_Summary.tsv
 
-echo -e "Date_time\tdid\tfilename\tUser_id" > whoWhatWhenBrain.tsv
-grep dg.7519/ whoWhatWhenRaw.tsv | beatpdFilter | sed -E 's@(dg.7519/.+)/(.+)@\1\t\2@' | sed 's/__Synapse_ID_/ (Synapse ID)/g' >> whoWhatWhenBrain.tsv
+echo -e "Date_time\tdid\tfilename\tUser_id" > DREAM_Download_Details.tsv
+grep dg.7519/ whoWhatWhenRaw.tsv | beatpdFilter | sed -E 's@(dg.7519/.+)/(.+)@\1\t\2@' | sed 's/__Synapse_ID_/ (Synapse ID)/g' >> DREAM_Download_Details.tsv
 
 if [[ -d "$workFolder" ]]; then
   gen3 dashboard publish secure "$workFolder" "dreamAccess/$(date -u +%Y)/$folderName"
