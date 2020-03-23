@@ -1,9 +1,9 @@
-The data-ingestion-job is specific to DataSTAGE.
+The data-ingestion-job is specific to the BioData Catalyst project.
 
 To prep:
 
 Specify an image for the pipeline in the `versions` block of your manifest, for example:
-`"data-ingestion-pipeline": "quay.io/cdis/datastage-data-ingestion"`
+`"data-ingestion-pipeline": "quay.io/cdis/bdcat-data-ingestion"`
 
 Fill out the config file (see below for example format) with creds here: `$(gen3_secrets_folder)/g3auto/data-ingestion-job/data_ingestion_job_config.json`
 
@@ -16,7 +16,7 @@ If `CREATE_GENOME_MANIFEST` is false, the genome file manifest is required to li
 Usage:
 `gen3 kube-setup-data-ingestion-job CREATE_GOOGLE_GROUPS <bool> CREATE_GENOME_MANIFEST <bool>`
 
-The Dockerfile executable that this job runs can be found in this repository: `https://github.com/uc-cdis/dataSTAGE-data-ingestion`
+The Dockerfile executable that this job runs can be found in this repository: `https://github.com/uc-cdis/bdcat-data-ingestion`
 
 If the executable is run successfully, a new pull request will be created with the job outputs in the repository specified in the config file below. (Likely `https://github.com/uc-cdis/dataSTAGE-data-ingestion-private`)
 
