@@ -219,6 +219,8 @@ gen3_secrets_decode() {
     shift
     if jq -e -r ".data[\"$keyName\"]" < "$tempFile" > /dev/null 2>&1; then
       jq -e -r ".data[\"$keyName\"]" < "$tempFile" | base64 --decode
+    elif jq -e -r ".data[]"  < "$tempFile" | base64 --decode | yq ".\"$keyName\"" > /dev/null 2>&1; then
+      jq -e -r ".data[]"  < "$tempFile" | base64 --decode | yq ".\"$keyName\""
     else
       gen3_log_err "gen3_secrets_decode" "$secretName has no key $keyName"
       result=1
