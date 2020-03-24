@@ -16,7 +16,7 @@ SQUID_CONFIG_DIR="/etc/squid"
 SQUID_LOGS_DIR="/var/log/squid"
 SQUID_CACHE_DIR="/var/cache/squid"
 SQUID_PID_DIR="/var/run/squid"
-SQUID_IMAGE_TAG="master" #"feat_ha-squid"
+SQUID_IMAGE_TAG="feat_ha-squid"
 #SQUID_VERSION="squid-4.8"
 
 HOSTNAME=$(command -v hostname)
@@ -33,29 +33,18 @@ then
     echo "No arguments supplied"
 else
     #OIFS=$IFS
-    echo $1
     IFS=';' read -ra ADDR <<< "$1"
-    echo ${ADDR[@]}
     for i in "${ADDR[@]}"; do
-      echo $i
       if [[ $i = *"cwl_group"* ]];
       then
         CWL_GROUP="$(echo ${i} | cut -d= -f2)"
-      elif [[ ${i} = *"squid_image"* ]];
-      then
-        SQUID_IMAGE_TAG="$(echo ${i} | cut -d= -f2)"
-#      elif [[ ${i} = *"squid_version"* ]];
-#      then
-#        SQUID_VERSION="$(echo ${i} | cut -d= -f2)"
       fi
     done
     echo $1
 fi
 
+cd ${HOME}
 
-function install_basics(){
-  apt -y install atop
-}
 
 function install_docker(){
 
@@ -123,50 +112,37 @@ function set_boot_configuration(){
   #cp /etc/rc.local /etc/rc.local.bak
   #sed -i 's/^exit/#exit/' /etc/rc.local
   
-  cat > /etc/squid_boot.sh <<EOF
-#!/bin/bash
-if [ -f /var/run/squid/squid.pid ];
-then
-  rm /var/run/squid/squid.pid
-fi
-
-if ( docker inspect  squid -f '{{.State}}' > /dev/null 2>&1 );
-then
-  $(command -v docker) rm squid
-fi
-
-# At this point docker is already up and we dont want to restore the firewall and wipte all
-# docker nat rules
+  cat >> /etc/rc.local <<EOF
+#!/bin/bash  
 #iptables-restore < /etc/iptables.conf
 
-iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3129
-iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 3130
-  
-$(command -v docker) run --name squid --network=host -d \
+$(command -v docker) run --name squid -p 3128:3128 -p 3129:3129 -p 3130:3130 -d \
     --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
     --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
     --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
-    --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
+    --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR} \
     quay.io/cdis/squid:${SQUID_IMAGE_TAG}
+
 exit 0
   
 EOF
 
-  # create the service to work onlu on boot with ExecStart
-  cat > /etc/systemd/system/squid_boot.service <<EOF
+  cat > /etc/systemd/system/rc_local.service <<EOF
 [Unit]
-Description=squid_boot script
+Description=rc.local script
 
 [Service]
-ExecStart=/etc/squid_boot.sh
+ExecStart=/etc/rc.local
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-  chmod +x /etc/systemd/system/squid_boot.service
-  systemctl enable squid_boot
+
   
+  chmow +x /etc/rc.local
+  systemctl enable rc_local
+
   # Copy the updatewhitelist.sh script to the home directory 
   cp  ${SUB_FOLDER}/flavors/squid_auto/updatewhitelist-docker.sh ${HOME_FOLDER}/updatewhitelist.sh
   chmod +x ${HOME_FOLDER}/updatewhitelist.sh
@@ -175,10 +151,11 @@ EOF
   #chown -R ${WORK_USER}. ${HOME_FOLDER}
   crontab crontab_file
 
-  cat > /etc/cron.daily/squid <<EOF
+  cat >> /etc/cron.daily/squid <<EOF
 #!/bin/bash
 # Let's rotate the logs daily
-$(command -v docker) exec squid squid -k rotate
+DOCKER=$(command -v docker)
+${DOCKER} exec squid squid -k rotate
 EOF
 
   chmod +x /etc/cron.daily/squid
@@ -259,7 +236,6 @@ function set_user() {
 
 
 function init(){
-  install_basics
   install_docker
   set_squid_config
   configure_iptables
@@ -273,11 +249,12 @@ function main(){
   init
   # If we don't restart the service, iptables might not load properly sometimes
   systemctl restart docker
-  $(command -v docker) run --name squid --network=host -d \
+  DOCKER=$(command -v docker)
+  ${DOCKER} run --name squid -p 3128:3128 -p 3129:3129 -p 3130:3130 -d \
       --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
       --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
       --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
-      --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
+      --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR} \
        quay.io/cdis/squid:${SQUID_IMAGE_TAG}
 }
 

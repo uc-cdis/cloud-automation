@@ -203,7 +203,7 @@ gen3 cd
 
 *Optional*
 
-`eks_version` default set to 1.12, but you can change it to 1.10 (EOL soon though) or 1.11.
+`eks_version` default set to 1.14, but you can change it to 1.13 or 1.15.
 
 
 
@@ -254,7 +254,7 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
 
 4. Create a manifest file
 
-  With the test editor of your preference, create a new file and open it, Ex: `${HOME}/cdis-manifest/commons-test.planx-pla.net.json`. The content of the file shold be similar to:
+  With the text editor of your preference, create a new file and open it, Ex: `${HOME}/cdis-manifest/commons-test.planx-pla.net/manifest.json`. The content of the file shold be similar to:
 
 ```json
 {
@@ -264,9 +264,6 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
   ],
   "versions": {
     "arborist": "quay.io/cdis/arborist:master",
-    "arranger": "quay.io/cdis/arranger:master",
-    "arranger-adminapi": "quay.io/cdis/arranger-server:master",
-    "arranger-dashboard": "quay.io/cdis/arranger-dashboard:master",
     "aws-es-proxy": "abutaha/aws-es-proxy:0.8",
     "fence": "quay.io/cdis/fence:master",
     "fluentd": "fluent/fluentd-kubernetes-daemonset:v1.2-debian-cloudwatch",
@@ -280,14 +277,6 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
     "spark": "quay.io/cdis/gen3-spark:master",
     "manifestservice": "quay.io/cdis/manifestservice:master",
     "wts": "quay.io/cdis/workspace-token-service:master",
-    "tube": "quay.io/cdis/tube:master"
-  },
-  "arranger": {
-    "project_id": "dev",
-    "auth_filter_field": "gen3_resource_path",
-    "auth_filter_node_types": [
-      "subject"
-    ]
   },
   "arborist": {
     "deployment_version": "2"
