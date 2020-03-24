@@ -65,7 +65,7 @@ spec:
           - name: hatchery-config
             readOnly: true
             mountPath: /hatchery.json
-            subPath: hatchery.json
+            subPath: json
           - name: hatchery-config
             readOnly: true
             mountPath: /hatchery-more-configs
