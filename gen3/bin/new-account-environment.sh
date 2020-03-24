@@ -18,7 +18,7 @@
 
 if [ -z $1 ];
 then    
-        echo "Please specify an account"
+        echo "Please specify an username"
         exit    
 else    
         echo "Creating new user and setting the directory ready for $1"
