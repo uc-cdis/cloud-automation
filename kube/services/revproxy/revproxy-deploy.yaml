@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: revproxy
+        # allow access from workspaces
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

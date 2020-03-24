@@ -20,6 +20,8 @@ spec:
         app: metadata
         release: production
         public: "yes"
+        # allow access from workspaces
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
