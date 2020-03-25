@@ -12,7 +12,6 @@ The following guide is intended to guide you through the process of bringing up 
 - [3. Start gen3](#second-part-start-gen3)
 - [4. Deploy kubernetes](#third-part-deploy-the-kubernetes-cluster)
 - [5. Bring up services in kubernetes](#fourth-part-bring-up-services-in-kubernetes)
-- [6. Cleanup process](#cleanup-process)
 
 
 
@@ -371,5 +370,4 @@ kubectl get service revproxy-service-elb -o json | jq -r .status.loadBalancer.in
 ```
 
 8. Go to your registrar and point the desired domain to the outcome of above command.
-
 
