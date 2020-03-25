@@ -12,7 +12,7 @@ spec:
       containers:
       - name: tube
         imagePullPolicy: Always
-        GEN3_COVID19_ETL_IMAGE
+        GEN3_COVID19-ETL_IMAGE
         env:
         - name: DICTIONARY_URL
           valueFrom:
