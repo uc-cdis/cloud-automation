@@ -1,0 +1,29 @@
+# gen3 job run covid19-etl
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: covid19-etl
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      containers:
+      - name: tube
+        imagePullPolicy: Always
+        GEN3_COVID19_ETL_IMAGE
+        env:
+        - name: DICTIONARY_URL
+          valueFrom:
+            secretKeyRef:
+              name: covid19-etl-access-token
+              key: access_token
+        resources:
+          limits:
+            cpu: 0.5
+            memory: 512Mi
+        command: ["python3"]
+        args:
+          - "/johns_hopkins_etl.py"
+      restartPolicy: Never
