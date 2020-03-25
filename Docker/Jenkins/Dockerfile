@@ -4,7 +4,7 @@ USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-adduser _apt --force-badname
+RUN adduser _apt --force-badname
 
 # install python and pip and aws cli
 RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3.6 python3-pip build-essential zip unzip jq less vim gettext-base
