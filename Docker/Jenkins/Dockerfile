@@ -57,7 +57,7 @@ RUN chmod +x /root/tmp/install-python3.6.sh; sync && \
 # Install pip3 for Python 3.6.1
 RUN rm -rf /usr/local/lib/python3.6/site-packages/pip* && \
 	wget https://bootstrap.pypa.io/get-pip.py && \
-	python3 get-pip.py && \
+	python3.6 get-pip.py && \
 	rm get-pip.py
 
 #
