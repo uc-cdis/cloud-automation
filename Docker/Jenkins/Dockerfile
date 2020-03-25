@@ -52,7 +52,7 @@ COPY install-python3.6.sh /root/tmp/install-python3.6.sh
 RUN chmod +x /root/tmp/install-python3.6.sh; sync && \
 	./root/tmp/install-python3.6.sh && \
 	rm -rf /root/tmp/install-python3.6.sh && \
-	ln -s /Python-3.6.1/python /usr/bin/python3
+	ln -s /Python-3.6.1/python /usr/bin/python3.6
 
 # Install pip3 for Python 3.6.1
 RUN rm -rf /usr/local/lib/python3.6/site-packages/pip* && \
