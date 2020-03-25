@@ -3,7 +3,6 @@
 # Runs daily COVID-19 John's Hopkins University data ETL
 # Run as cron job in covid19@adminvm user account
 #
-# vpc_name=YOUR-VPC-NAME
 # USER=USER
 # 3   3   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/covid19-etl-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/covid19-etl-cronjob.sh; else echo "no reports-cronjob.sh"; fi) > $HOME/reports-cronjob.log 2>&1
 
@@ -24,7 +23,7 @@ source "${GEN3_HOME}/gen3/gen3setup.sh"
 
 help() {
   cat - <<EOM
-Use: bash ./covid19-etl-cronjob vpc=YOUR_VPC_NAME
+Use: bash ./covid19-etl-cronjob.sh
 EOM
 }
 
@@ -33,6 +32,8 @@ EOM
 
 if [[ -z "$USER" ]]; then
   gen3_log_err "$$USER variable required"
+  help
+  exit 1
 fi
 
 accessToken="$(gen3 api access_token $USER)"
