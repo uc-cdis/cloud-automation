@@ -36,4 +36,4 @@ if [[ -z "$USER" ]]; then
 fi
 
 accessToken="$(gen3 api access_token $USER)"
-gen3 job run etl-job ACCESS_TOKEN "$accessToken"
+gen3 job run covid19-etl ACCESS_TOKEN "$accessToken"
