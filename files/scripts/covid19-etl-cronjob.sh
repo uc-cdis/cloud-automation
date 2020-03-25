@@ -31,10 +31,10 @@ EOM
 # main -----------------------
 
 if [[ -z "$USER" ]]; then
-  gen3_log_err "$$USER variable required"
+  gen3_log_err "\$USER variable required"
   help
   exit 1
 fi
 
-accessToken="$(gen3 api access_token $USER)"
+accessToken="$(gen3 api access-token $USER)"
 gen3 job run covid19-etl ACCESS_TOKEN "$accessToken"
