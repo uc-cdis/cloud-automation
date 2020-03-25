@@ -49,7 +49,6 @@ users_policy = "test-commons"
 |------|-------------|:----:|:-----:|
 | vpc_name | Usually the same name as the commons. This VPC must exists arelady otherwise, the execution will fail. Additionally, it worth mentioning that logging and vpc must esist before running this. | string | n/a |
 | ec2_keyname | An existing key pair in EC2 that we want in the k8s worker nodes. | string | n/a |
-| availability_zones | AZs where to deploy the kubernetes worker nodes. Could be automated. | list |  ["us-east-1a","us-east-1d","us-east-1d"] |
 | users_policy | This is the policy that was created before that allows the cluster to access the users bucket in bionimbus. Usually the same name as the VPC, but not always. | string | n/a |
 
 
@@ -60,6 +59,7 @@ users_policy = "test-commons"
 | instance_type | For k8s workers | string | t3.large |
 | peering_cidr | CIDR were your adminVM belongs to. | string | 10.128.0.0/20 |
 | eks_version | Version for EKS cluster | string | 1.14 |
+| availability_zones | AZs where to deploy the kubernetes worker nodes. Could be automated. | list |  ["us-east-1a","us-east-1d","us-east-1d"] |
 | worker_drive_size | Volume size for the k8s workers | string | 30GB |
 | jupyter_instance_type | For k8s jupyter workers | string | t3.medium |
 | bootstrap_script | Script to initialize the workers | string | [bootstrap.sh](https://github.com/uc-cdis/cloud-automation/tree/master/flavors/eks) |
@@ -70,6 +70,8 @@ users_policy = "test-commons"
 | jupyter_asg_max_size | Max # of jupyter workers | number | 10 |
 | jupyter_asg_min_size | Min # of jupyter workers | number | 0 |
 | iam-serviceaccount | iam/service account to your cluster | boolean | false |
+| cidrs_to_route_to_gw | CIDR you want to skip the proxy when going out | list | [] |
+| workers_subnet_size | Weather you want your workers on a /24 or /23 subnet | number | 24 |
 | oidc_eks_thumbprint | OIDC to use for service account intergration | string | \<AWS DEFAULT\> |
 | domain_test | If ha-proxy a domain to check internet access | string | gen3.io |
 | ha_squid | If enabled, this should be set to true | boolean | false |
