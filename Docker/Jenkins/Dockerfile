@@ -1,4 +1,4 @@
-FROM bitnami/jenkins:2-debian-10
+FROM jenkins/jenkins:2.219
 
 USER root
 
