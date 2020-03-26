@@ -37,6 +37,7 @@ module "cdis_vpc" {
   squid_bootstrap_script         = "${var.ha-squid_bootstrap_script}"
   squid_extra_vars               = "${var.ha-squid_extra_vars}"
   single_squid_instance_type     = "${var.single_squid_instance_type}"
+  network_expansion              = "${var.network_expansion}"
 }
 
 # logs bucket for elb logs
