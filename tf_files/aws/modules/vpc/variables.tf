@@ -105,3 +105,8 @@ variable "squid_cluster_max_size" {
 variable "single_squid_instance_type" {
   description = "Single squid instance type"
 }
+
+variable "network_expansion" {
+  description = "Let k8s wokers use /22 subnets per AZ"
+  default     = false
+}

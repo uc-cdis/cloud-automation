@@ -394,3 +394,8 @@ variable "single_squid_instance_type" {
   description = "Instance type for the single proxy instance"
   default     = "t2.micro"
 }
+
+variable "network_expansion" {
+  description = "Let k8s workers be on a /22 subnet per AZ"
+  default     = false
+}
