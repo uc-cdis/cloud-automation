@@ -256,7 +256,6 @@ def exist_record_set(record_sets, name):
 
   @return dictionary with the recordset details
 """
-def exist_record_set(record_sets, name):
 def get_record_set(record_sets, name):
     for record_set in record_sets['ResourceRecordSets']:
         if name in record_set['Name']:
