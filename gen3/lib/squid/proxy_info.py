@@ -202,6 +202,67 @@ def myconverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
+"""
+  function to get a hosted zone in route53 based on the comments
+
+  @var String comment what you are looking for
+
+  @return Dict with the hosted zone information
+"""
+def get_hosted_zone(comment):
+     client = boto3.client('route53')
+     zones = client.list_hosted_zones()
+     del client
+     for zone in zones['HostedZones']:
+         if 'Comment' in zone['Config'] and comment in zone['Config']['Comment']:
+             return zone
+
+
+"""
+  function to get the recordsets of a hosted zone
+
+  @var String zone_id id of the zone you want the recordsets
+
+  @return Dict with the recordsets
+"""
+def get_record_sets(zone_id):
+     client = boto3.client('route53')
+     record_sets = client.list_resource_record_sets(HostedZoneId=zone_id)
+     del client
+     return record_sets
+
+
+"""
+  function to determine if a recordset exist in a hosted zone
+
+  @var list record_sets expected the value of the function get_record_sets
+       String name name of the record set you are looking for
+
+  @return Boool if it exist or not
+"""
+def exist_record_set(record_sets, name):
+    for record_set in record_sets['ResourceRecordSets']:
+        if name in record_set['Name']:
+            return True
+    return False
+
+
+
+"""
+  function to get a record set
+
+  @var list record_sets expected the value of the function get_record_sets
+       String name name of the record set you are looking for
+
+  @return dictionary with the recordset details
+"""
+def exist_record_set(record_sets, name):
+def get_record_set(record_sets, name):
+    for record_set in record_sets['ResourceRecordSets']:
+        if name in record_set['Name']:
+            return record_set
+
+
 
 def main():
 
@@ -255,6 +316,17 @@ def main():
             instance["active"] = False
 
         instances_info[instance_id] = instance
+
+
+    zone = get_hosted_zone(os.environ['vpc_name'])
+    zone_id = zone['Id']
+    record_sets = get_record_sets(zone_id)
+    dns_info = get_record_set(record_sets,'cloud-proxy')
+
+    if exist_record_set(record_sets,'cloud-proxy'):
+        instances_info['cloud-proxy.internal.io'] = get_record_set(record_sets,'cloud-proxy')
+    else:
+        instances_info['cloud-proxy.internal.io'] = 'NONE'
 
          
     print(json.dumps(instances_info))
