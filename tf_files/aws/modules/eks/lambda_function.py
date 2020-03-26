@@ -327,7 +327,7 @@ def get_hosted_zone(comment):
      zones = client.list_hosted_zones() 
      del client 
      for zone in zones['HostedZones']: 
-         if comment in zone['Config']['Comment']: 
+         if 'Comment' in zone['Config'] and comment in zone['Config']['Comment']:
              return zone
     
 """

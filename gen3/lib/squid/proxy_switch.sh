@@ -54,7 +54,7 @@ function get_current_proxy() {
 
 
 function get_zone_id(){
-  local zoneId=$(aws route53 list-hosted-zones |jq '.HostedZones[] | select(.Config.Comment | contains("'${vpc_name}'")) | .Id' -r |awk -F/ '{print $3}')
+  local zoneId=$(aws route53 list-hosted-zones |jq '.HostedZones[] | select(.Config.Comment != null) | select(.Config.Comment | contains("'${vpc_name}'")) | .Id' -r |awk -F/ '{print $3}')
   gen3_log_info "The Zone id for the route53 Hosted zone .internal.io  ${zoneId}"
   echo ${zoneId}
 }
