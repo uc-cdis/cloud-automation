@@ -41,6 +41,7 @@ module "squid-auto" {
   cluster_max_size               = "${var.squid_cluster_max_size}"
   cluster_min_size               = "${var.squid_cluster_min_size}"
   cluster_desired_capasity       = "${var.squid_cluster_desired_capasity}"
+  network_expansion              = "${var.network_expansion}"
 }
 
 module "data-bucket" {
