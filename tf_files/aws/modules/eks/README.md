@@ -71,7 +71,7 @@ users_policy = "test-commons"
 | jupyter_asg_min_size | Min # of jupyter workers | number | 0 |
 | iam-serviceaccount | iam/service account to your cluster | boolean | false |
 | cidrs_to_route_to_gw | CIDR you want to skip the proxy when going out | list | [] |
-| workers_subnet_size | Weather you want your workers on a /24 or /23 subnet | number | 24 |
+| workers_subnet_size | Weather you want your workers on a /24 or /23 subnet, /22 is available, but the VPC module should have been deployed using the `network_expansion = true` variable, otherwise wks will fail | number | 24 |
 | oidc_eks_thumbprint | OIDC to use for service account intergration | string | \<AWS DEFAULT\> |
 | domain_test | If ha-proxy a domain to check internet access | string | gen3.io |
 | ha_squid | If enabled, this should be set to true | boolean | false |

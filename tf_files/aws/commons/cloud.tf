@@ -152,7 +152,7 @@ resource "aws_route_table_association" "private_kube" {
 resource "aws_subnet" "private_kube" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
   #cidr_block                  = "${cidrsubnet(var.vpc_cidr_block,4,2)}"
-  cidr_block                  = "${var.network_expansion ? cidrsubnet(var.vpc_cidr_block,6,1) : cidrsubnet(var.vpc_cidr_block,4,2)}"
+  cidr_block                  = "${var.network_expansion ? cidrsubnet(var.vpc_cidr_block,5,0) : cidrsubnet(var.vpc_cidr_block,4,2)}"
   map_public_ip_on_launch     = false
   availability_zone           = "${data.aws_availability_zones.available.names[0]}"
   tags                        = "${map("Name", "int_services", "Organization", var.organization_name, "Environment", var.vpc_name )}"
@@ -166,7 +166,7 @@ resource "aws_subnet" "private_kube" {
 resource "aws_subnet" "private_db_alt" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
   #cidr_block                  = "${cidrsubnet(var.vpc_cidr_block,4,3)}"
-  cidr_block                  = "${var.network_expansion ? cidrsubnet(var.vpc_cidr_block,6,2) : cidrsubnet(var.vpc_cidr_block,4,3)}"
+  cidr_block                  = "${var.network_expansion ? cidrsubnet(var.vpc_cidr_block,5,1) : cidrsubnet(var.vpc_cidr_block,4,3)}"
   availability_zone           = "${data.aws_availability_zones.available.names[1]}"
   map_public_ip_on_launch     = false
 
