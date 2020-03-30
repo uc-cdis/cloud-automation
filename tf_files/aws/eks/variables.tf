@@ -90,3 +90,8 @@ variable "dual_proxy" {
   description = "Single instance and HA"
   default     = false
 }
+
+variable "single_az_for_jupyter" {
+  description = "Jupyter notebooks on a single AZ"
+  default     = false
+}

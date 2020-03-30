@@ -52,8 +52,8 @@ output "data-bucket_name" {
 # We want to move away from generating output files, and
 # instead just publish output variables
 #
-resource "null_resource" "config_setup" {
-  provisioner "local-exec" {
-    command = "echo \"${module.config_files.k8s_vars_sh}\" | cat - \"${path.module}/kube-up-body.sh\" > ${var.vpc_name}_output/kube-up.sh"
-  }
-}
+#resource "null_resource" "config_setup" {
+#  provisioner "local-exec" {
+#    command = "echo \"${module.config_files.k8s_vars_sh}\" | cat - \"${path.module}/kube-up-body.sh\" > ${var.vpc_name}_output/kube-up.sh"
+#  }
+#}

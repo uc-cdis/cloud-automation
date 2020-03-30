@@ -24,7 +24,8 @@ module "squid-auto" {
   env_vpc_id                     = "${aws_vpc.main.id}"
   env_log_group                  = "${aws_cloudwatch_log_group.main_log_group.name}"
   env_squid_name                 = "squid-auto-${var.vpc_name}"
-  squid_proxy_subnet             = "${cidrsubnet(aws_vpc.main.cidr_block, 4, 1)}"
+  #squid_proxy_subnet             = "${cidrsubnet(aws_vpc.main.cidr_block, 4, 1)}"
+  squid_proxy_subnet             = "${var.network_expansion ? cidrsubnet(var.vpc_cidr_block,5,3) : cidrsubnet(var.vpc_cidr_block,4,1)}"
   organization_name              = "${var.organization_name}"
   ssh_key_name                   = "${var.ssh_key_name}"
   image_name_search_criteria     = "${var.squid_image_search_criteria}"
@@ -40,6 +41,7 @@ module "squid-auto" {
   cluster_max_size               = "${var.squid_cluster_max_size}"
   cluster_min_size               = "${var.squid_cluster_min_size}"
   cluster_desired_capasity       = "${var.squid_cluster_desired_capasity}"
+  network_expansion              = "${var.network_expansion}"
 }
 
 module "data-bucket" {
@@ -154,7 +156,8 @@ resource "aws_route_table_association" "public" {
 
 resource "aws_subnet" "public" {
   vpc_id                  = "${aws_vpc.main.id}"
-  cidr_block              = "${cidrsubnet(var.vpc_cidr_block,4,0)}"
+  #cidr_block              = "${cidrsubnet(var.vpc_cidr_block,4,0)}"
+  cidr_block              = "${var.network_expansion ? cidrsubnet(var.vpc_cidr_block,5,2) : cidrsubnet(var.vpc_cidr_block,4,0)}"
   map_public_ip_on_launch = true
 
   # kube_ subnets are in availability zone [0], so put this in [1]

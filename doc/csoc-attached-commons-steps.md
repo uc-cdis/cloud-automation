@@ -339,7 +339,7 @@ for fileName in 00configmap.yaml creds.json; do
 done
 ```
 
-2. Move the kubeconfig file we copied previously into a newly created folder that `kube-up.sh` created for us.
+2. Move the kubeconfig file we copied previously into Gen3Secrets.
 ```bash
 mv ${HOME}/kubeconfig ${HOME}/Gen3Secrets/
 ```
@@ -352,13 +352,18 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
   Note: The cdis-manifest folder is required, if you want to use your own manifest folder name you must make changes to the code, the file containing the line is `cloud-automation/gen3/lib/g3k_manifest.sh`.
         Moreover, a subfolder named the same as your hostname is required.
 
+4. Apply the global manifest
+```bash
+$ kubectl apply -f ~/Gen3Secrets/00configmap.yaml
+```
 
-4. Verify that kubernetes is up. After sourcing our local bashrc file we should be able to talk to kubernetes:
+
+5. Verify that kubernetes is up. After sourcing our local bashrc file we should be able to talk to kubernetes:
 ```bash
 kubectl get nodes
 ```
 
-5. Roll services
+6. Roll services
 ```bash
 gen3 roll all
 ```

@@ -9,7 +9,8 @@
 resource "aws_subnet" "squid_pub0" {
   count                   = "${var.deploy_ha_squid ? length(var.squid_availability_zones) : 0}"
   vpc_id                  = "${var.env_vpc_id}"
-  cidr_block              = "${cidrsubnet(var.squid_proxy_subnet,3,count.index )}"
+  #cidr_block              = "${cidrsubnet(var.squid_proxy_subnet,3,count.index )}"
+  cidr_block              = "${var.network_expansion ? cidrsubnet(var.squid_proxy_subnet,2,count.index) : cidrsubnet(var.squid_proxy_subnet,3,count.index )}"
   availability_zone       = "${var.squid_availability_zones[count.index]}"
   tags                    = "${map("Name", "${var.env_squid_name}_pub${count.index}", "Organization", var.organization_name, "Environment", var.env_squid_name)}"
 }
@@ -83,7 +84,7 @@ data "aws_iam_policy_document" "squid_policy_document" {
 
 resource "aws_route_table_association" "squid_auto0" {
   #count          = "${length(var.squid_availability_zones)}"
-  count                   = "${var.deploy_ha_squid ? length(var.squid_availability_zones) : 0}"
+  count          = "${var.deploy_ha_squid ? length(var.squid_availability_zones) : 0}"
   subnet_id      = "${aws_subnet.squid_pub0.*.id[count.index]}"
   route_table_id = "${var.main_public_route}"
 }

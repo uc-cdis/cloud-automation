@@ -229,19 +229,23 @@ cp commons-test_output_EKS/kubeconfig $HOME
 
 ## Fourth part, bring up services in kubernetes
 
-1. Access the folder copied to the home folder
+
+1. Copy the esential files onto `Gen3Secrets` folder
 ```bash
 cd ${HOME}/commons-test_output/
+for fileName in 00configmap.yaml creds.json; do
+  if [[ -f "${fileName}" && ! -f ~/Gen3Secrets ]]; then
+    cp ${fileName} ~/Gen3Secrets/
+    mv "${fileName}" "${fileName}.bak"
+  else
+    echo "Using existing ~/Gen3Secrets/${fileName}"
+  fi
+done
 ```
 
-2. Run `kube-up.sh`
+2. Move the kubeconfig file copied previously into Gen3Secrets
 ```bash
-bash kube-up.sh
-```
-
-4. Move the kubeconfig file we copied previously into a newly created folder that `kube-up.sh` created for us.
-```bash
-mv ${HOME}/kubeconfig ${HOME}/commons-test/
+mv ${HOME}/kubeconfig ${HOME}/Gen3Secrets/
 ```
 
 3. Create a manifest folder
@@ -303,28 +307,51 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
 ```
 
 
-4. kube-up.sh added a few lines to our local bashrc file, let's load them up.
+5. Check your `.bashrc` file to make sure it'll make gen3 work properly and source it.
+
+The file should look something like the following at the bottom of it:
 ```bash
-source ${HOME}/.bashrc
+export vpc_name='commons-test'
+export s3_bucket='kube-commons-test-gen3'
+
+export KUBECONFIG=~/Gen3Secrets/kubeconfig
+export GEN3_HOME=~/cloud-automation
+if [ -f "${GEN3_HOME}/gen3/gen3setup.sh" ]; then
+  source "${GEN3_HOME}/gen3/gen3setup.sh"
+fi
+alias kubectl=g3kubectl
+export GEN3_NOPROXY='no'
+if [[ -z "$GEN3_NOPROXY" ]]; then
+  export http_proxy='http://cloud-proxy.internal.io:3128'
+  export https_proxy='http://cloud-proxy.internal.io:3128'
+  export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com,kibana.planx-pla.net'
+fi
 ```
 
-5. Verify that kubernetes is up. After sourcing our local bashrc file we should be able to talk to kubernetes:
+If it doesn't, adjust accordingly. If it does, source it:
+```bash
+source ~/.bashrrc
+```
+
+
+6. Verify that kubernetes is up. After sourcing our local bashrc file we should be able to talk to kubernetes:
 ```bash
 kubectl get nodes
 ```
 
-6. Roll services
+7. Roll services
 ```bash
 gen3 roll all
 ```
   Note: it might take a few minutes to complete; let it run.
 
-7. Get the newly created ELB endpoint so you can point your domain to it.
+
+8. Get the newly created ELB endpoint so you can point your domain to it.
 ```bash
 kubectl get service revproxy-service-elb -o json | jq -r .status.loadBalancer.ingress[].hostname
 ```
 
-8. Go to your registrar and point the desired domain to the outcome of above command.
+9. Go to your registrar and point the desired domain to the outcome of above command.
 
 
 

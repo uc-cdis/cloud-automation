@@ -32,4 +32,5 @@ module "eks" {
   domain_test                      = "${var.domain_test}"
   ha_squid                         = "${var.ha_squid}"
   dual_proxy                       = "${var.dual_proxy}"
+  single_az_for_jupyter            = "${var.single_az_for_jupyter}"
 }

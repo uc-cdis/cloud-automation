@@ -31,6 +31,10 @@ data "aws_vpcs" "vpcs" {
 # nat gateway instead than going through the proxy
 data "aws_nat_gateway" "the_gateway" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
+
+  tags = {
+    Name = "${var.vpc_name}-ngw"
+  }
 }
 
 # Also let's allow comminication through the peering
