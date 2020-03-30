@@ -27,7 +27,7 @@ eks_public_0 | 192.168.154.0/24
 eks_public_1 | 192.168.155.0/24
 eks_public_2 | 192.168.156.0/24
 
-[architecture](CommonsNetowrkingDiagram-24.svg)
+![Architecture](CommonsNetowrkingDiagram-24.svg)
 
 
 ## 2. Use /23
@@ -47,7 +47,7 @@ eks_public_0 | 192.168.154.0/24
 eks_public_1 | 192.168.155.0/24
 eks_public_2 | 192.168.156.0/24
 
-[architecture](CommonsNetowrkingDiagram-23.svg)
+![Architecture](CommonsNetowrkingDiagram-23.svg)
 
 
 ## 3. Use /22
@@ -67,9 +67,12 @@ eks_private_0 | 192.168.148.0/22
 eks_private_1 | 192.168.152.0/22
 eks_private_2 | 192.168.156.0/22
 
-[architecture](CommonsNetowrkingDiagram-22.svg)
+![Architecture](CommonsNetowrkingDiagram-22.svg)
 
 
 ## Recomendations
 
 Although the default in terraform is to deploy clusters using /24 for eks_private (where the kubernetes workers live), it is advisable to always use /22.
+
+If you later decide to change the subnet distribution, unfortunatelly, new resources might be required, especially the EKS clsuter, meaning than the current one might get destroyed first. So plan accordingly.
+
