@@ -4,7 +4,8 @@
 # Run as cron job in covid19@adminvm user account
 #
 # USER=USER
-# 3   3   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/covid19-etl-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/covid19-etl-cronjob.sh; else echo "no covid19-etl-cronjob.sh"; fi) > $HOME/covid19-etl-cronjob.log 2>&1
+# KUBECONFIG=path/to/kubeconfig
+# 0   0   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/covid19-etl-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/covid19-etl-cronjob.sh; else echo "no codiv19-etl-cronjob.sh"; fi) > $HOME/covid19-etl-cronjob.log 2>&1
 
 # setup --------------------
 
