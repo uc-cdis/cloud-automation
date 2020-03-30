@@ -148,6 +148,10 @@ spec:
             args:
               - "-c"
               - |
+                if [[ ! "$slackWebHook" =~ ^http ]]; then
+                  echo "Slack webhook not set"
+                  exit 0
+                fi
                 if ! [ -f /mnt/shared/success ]; then
                   # AZ=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
                   # RE=${AZ::-1}
