@@ -2,13 +2,14 @@
 # Some helpers for interacting with cloudwatch logs
 #
 gen3_logs_cwstreams() {
-  local logGroup
-  # assume it's the environment name
-  if ! logGroup="$(g3kubectl get configmap global -o json | jq -r -e .data.environment)"; then
+  local logGroup=""
+
+  logGroup="$(gen3_logs_get_arg group "$logGroup" "$@")"
+  if [[ -z "$logGroup" ]] && ! logGroup="$(g3kubectl get configmap global -o json | jq -r -e .data.environment)"; then
+    # assume it's the environment name
     gen3_log_err "Failed to retrieve environment from global configmap"
     return 1
   fi
-  logGroup="$(gen3_logs_get_arg group "$logGroup" "$@")"
 
   local grepFor="$(gen3_logs_get_arg grep '' "$@")"
   local startDate
@@ -23,6 +24,7 @@ gen3_logs_cwstreams() {
   local count=0
   while [[ "$lastTime" -gt "$startDate" && "$count" -lt 10 ]]; do
     count=$((count+1))
+    gen3_log_info "loading page $count from cloudwatch"
     (
       if [[ -n "$nextToken" ]]; then
         aws logs describe-log-streams --log-group-name "$logGroup" --order-by LastEventTime --descending  --page-size 50 --max-items 1000 --starting-token "$nextToken" > "$temp"
@@ -49,19 +51,20 @@ gen3_logs_cwstreams() {
     fi
     (
       if [[ -n "$grepFor" ]]; then
-        cat "$temp" | jq --arg grepFor "$grepFor" -e -r '.logStreams[] | .ctime=(.creationTime/1000 | todate) | .ltime=(.lastEventTimestamp/1000 | todate) | select(.logStreamName | contains($grepFor))'
+        jq --arg grepFor "$grepFor" -r '.logStreams[] | .ctime=(.creationTime/1000 | todate) | .ltime=(.lastEventTimestamp/1000 | todate) | select(.logStreamName | contains($grepFor))' < "$temp"
       else
-        cat "$temp" | jq -e -r '.logStreams[] | .ctime=(.creationTime/1000 | todate) | .ltime=(.lastEventTimestamp/1000 | todate)'
+        jq -r '.logStreams[] | .ctime=(.creationTime/1000 | todate) | .ltime=(.lastEventTimestamp/1000 | todate)' < "$temp"
       fi
     )
     if [[ $? -ne 0 ]]; then
       gen3_log_err "Failed to parse log stream $temp"
       return 1
     fi
+    gen3_log_info "lastTime is $(date -u -d@$((lastTime/1000)))"
+    gen3_log_info "nextToken is $nextToken"
     if [[ $count -gt 9 ]]; then
       gen3_log_info "batch count limit reached: $count"
     fi
-    gen3_log_info "lastTime is $(date -u -d@$((lastTime/1000)))"
     sleep 2  # rate limit
   done
   rm "$temp"
@@ -73,13 +76,14 @@ gen3_logs_cwstreams() {
 # Retrieve log events
 #
 gen3_logs_cwevents() {
-  local logGroup
-  # assume it's the environment name
-  if ! logGroup="$(g3kubectl get configmap global -o json | jq -r -e .data.environment)"; then
+  local logGroup=""
+
+  logGroup="$(gen3_logs_get_arg group "$logGroup" "$@")"
+  if [[ -z "$logGroup" ]] && ! logGroup="$(g3kubectl get configmap global -o json | jq -r -e .data.environment)"; then
+    # assume it's the environment name
     gen3_log_err "Failed to retrieve environment from global configmap"
     return 1
   fi
-  logGroup="$(gen3_logs_get_arg group "$logGroup" "$@")"
 
   local name
   for name in "$@"; do

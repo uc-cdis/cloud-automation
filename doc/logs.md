@@ -108,8 +108,14 @@ gen3 logs curl200 https://www.google.com -X DELETE
 
 Retrieve the 1000 cloudwatch streams with the most recent events, and optionally filter by name.
 
+Ex 1:
 ```
 gen3 logs cloudwatch streams grep=fence-deployment | tee ~/trash/streams.njson
+```
+
+Ex 2:
+```
+gen3 logs cloudwatch streams group=bhcprodv2 start='2 days ago' grep='fence-deployment'
 ```
 
 ### `gen3 logs cloudwatch events [group="environment"] stream1 stream2 ...`
