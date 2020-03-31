@@ -12,7 +12,7 @@ However, you can only use VPCs with a /20 CIDR
 
 ## 1. Use /24
 
-The network would be distributed like the following if `192.168.144.0/24` is used as VPC CIDR:
+The network would be distributed like the following if `192.168.144.0/20` is used as VPC CIDR:
 
 Subnet Name | Subnet
  --- | ---
@@ -32,7 +32,7 @@ eks_public_2 | 192.168.156.0/24
 
 ## 2. Use /23
 
-The network would be distributed like the following if `192.168.144.0/24` is used as VPC CIDR:
+The network would be distributed like the following if `192.168.144.0/20` is used as VPC CIDR:
 
 Subnet Name | Subnet
  --- | ---
@@ -52,7 +52,7 @@ eks_public_2 | 192.168.156.0/24
 
 ## 3. Use /22
 
-The network would be distributed like the following if `192.168.144.0/24` is used as VPC CIDR:
+The network would be distributed like the following if `192.168.144.0/20` is used as VPC CIDR:
 
 Subnet Name | Subnet
  --- | ---
