@@ -34,3 +34,7 @@ gen3 jupyter prepuller
 ### gen3 jupyter upgrade
 
 Sync the jupyter configmaps, and reset the jupyter prepuller and hub.
+
+### gen3 jupyter pvclear $grepFor
+
+list persistent volumes and persistent volume claims to clear
