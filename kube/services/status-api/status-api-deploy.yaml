@@ -1,0 +1,40 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: status-api-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: status-api
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: status-api
+        netnolimit: "yes"
+    spec:
+      containers:
+      - name: status-api
+        image: "quay.io/cdis/status-dashboard:latest"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: config-manifest
+          mountPath: /etc/manifest/manifest.json
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+            memory: 512Mi
+      volumes:
+      - name: config-manifest
+        configMap:
+          name: manifest-all

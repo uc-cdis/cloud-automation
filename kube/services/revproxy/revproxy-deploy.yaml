@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: revproxy
+        # allow access from workspaces
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -41,6 +43,9 @@ spec:
         - name: revproxy-subconf
           configMap:
             name: revproxy-nginx-subconf
+        - name: modsec-conf
+          configMap:
+            name: manifest-modsec
         - name: helper-js
           configMap:
             name: revproxy-helper-js
@@ -61,12 +66,14 @@ spec:
           - -g
           - 'daemon off;'
         livenessProbe:
-          tcpSocket:
+          httpGet:
+            path: /_status
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 30
         readinessProbe:
-          tcpSocket:
+          httpGet:
+            path: /_status
             port: 80
         ports:
         - containerPort: 80
@@ -105,6 +112,18 @@ spec:
                 name: manifest-global
                 key: des_namespace
                 optional: true
+          - name: INDEXD_AUTHZ
+            valueFrom:
+              secretKeyRef:
+                name: gateway-g3auto
+                key: base64Authz.txt
+                optional: true  
+          - name: MDS_AUTHZ
+            valueFrom:
+              secretKeyRef:
+                name: metadata-g3auto
+                key: base64Authz.txt
+                optional: true  
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true
@@ -113,6 +132,9 @@ spec:
           - name: "revproxy-subconf"
             readOnly: true
             mountPath: "/etc/nginx/gen3.conf"
+          - name: "modsec-conf"
+            readOnly: true
+            mountPath: "/etc/nginx/modsec"
           - name: "helper-js"
             readOnly: true
             mountPath: "/etc/nginx/helpers.js"
@@ -140,12 +162,27 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
-        #command: ["/bin/bash" ]
-        #args:
-        #  - "-c"
-        #  # Script always succeeds if it runs (echo exits with 0)
-        #  - |
-        #    while [[ ! -f /tmp/killme ]]; do
-        #      echo "revproxy container spinning";
-        #      sleep 10
-        #    done
+        resources:
+          requests:
+            cpu: 0.5
+            memory: 1024Mi
+          limits:
+            cpu: 1.0
+            memory: 2048Mi    
+        command: ["/bin/sh" ]
+        args:
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
+          # Launch script handles different nginx versions, etc
+          - |
+            for name in ngx_http_perl_module.so ngx_http_js_module.so ngx_http_headers_more_filter_module.so ngx_http_modsecurity_module.so; do
+              if [ -f /etc/nginx/modules/$name ]; then
+                echo "load_module modules/$name;" >> /etc/nginx/gen3_modules.conf
+              fi
+            done
+            if [ -f /etc/nginx/modules/ngx_http_modsecurity_module.so -a -f /etc/nginx/modsec/main.conf ]; then
+              echo "modsecurity on;" >> /etc/nginx/gen3_server_modsec.conf
+              echo "modsecurity_rules_file /etc/nginx/modsec/main.conf;" >> /etc/nginx/gen3_server_modsec.conf
+            fi
+            exec nginx -g 'daemon off;'
+            

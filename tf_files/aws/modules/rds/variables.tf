@@ -276,3 +276,18 @@ variable "rds_instance_character_set_name" {
   default     = ""
 }
 
+
+variable "rds_instance_backup_enabled" {
+  description = "To enable backups onto S3"
+  default    = false
+}
+
+variable "rds_instance_backup_kms_key" {
+  description = "KMS to enable backups onto S3"
+  default     = ""
+}
+
+variable "rds_instance_backup_bucket_name" {
+  description = "The bucket to send bacups to"
+  default     = ""
+}

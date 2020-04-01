@@ -16,25 +16,97 @@ variable "csoc_account_id" {
   default = "433568766270"
 }
 
-#variable "csoc_cidr" {
-#  default = "10.128.0.0/20"
-#}
 variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
-variable "csoc_vpc_id" {
+variable "peering_vpc_id" {
   default = "vpc-e2b51d99"
 }
 
-variable "squid-nlb-endpointservice-name" {
-  default = "com.amazonaws.vpce.us-east-1.vpce-svc-0ce2261f708539011"
-}
-
 variable "csoc_managed" {
-  default = "yes"
+  default = true
 }
 
 variable "organization_name" {
-  default = "Basic Service"
+  description = "for tagging purposes"
+  default     = "Basic Service"
+}
+
+variable "availability_zones" {
+  description = "AZ to be used by EKS nodes"
+  type        = "list"
+  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
+}
+
+variable "squid_image_search_criteria" {
+  description = "Search criteria for squid AMI look up"
+  default     = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
+}
+
+variable "squid_instance_drive_size" {
+  description = "Volume size for the squid instance"
+  default     = 8
+}
+
+
+variable "squid_instance_type" {
+  description = "Instance type for HA squid instances"
+  default     = "t3.medium"
+}
+
+variable "squid_bootstrap_script" {
+  description = "Script to run on deployment for the HA squid instances"
+  default     = "squid_running_on_docker.sh"
+}
+
+variable  "deploy_single_proxy" {
+  description = "Single instance plus HA"
+  default     = false
+}
+
+variable "squid_extra_vars" {
+  description = "additional variables to pass along with the bootstrapscript"
+  type        = "list"
+  #default     = ["squid_image=master"]
+}
+
+variable "branch" {
+  description = "For testing purposes, when something else than the master"
+  default     = "master"
+}
+
+variable "fence-bot_bucket_access_arns" {
+  description = "When fence bot has to access another bucket that wasn't created by the VPC module"
+  type        = "list"
+  #default     = []
+}
+
+variable "deploy_ha_squid" {
+  description = "should you want to deploy HA-squid"
+  default     = false
+}
+
+variable "squid_cluster_desired_capasity" {
+  description = "If ha squid is enabled and you want to set your own capasity"
+  default     = 2
+}
+
+variable "squid_cluster_min_size" {
+  description = "If ha squid is enabled and you want to set your own min size"
+  default     = 1
+}
+
+variable "squid_cluster_max_size" {
+  description = "If ha squid is enabled and you want to set your own max size"
+  default     = 3
+}
+
+variable "single_squid_instance_type" {
+  description = "Single squid instance type"
+}
+
+variable "network_expansion" {
+  description = "Let k8s wokers use /22 subnets per AZ"
+  default     = false
 }

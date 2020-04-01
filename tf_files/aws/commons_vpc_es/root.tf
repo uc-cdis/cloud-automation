@@ -16,5 +16,6 @@ module "commons_vpc_es" {
   ebs_volume_size_gb      = "${var.ebs_volume_size_gb}"
   encryption              = "${var.encryption}"
   instance_count          = "${var.instance_count}"
+  organization_name       = "${var.organization_name}"
 }
 

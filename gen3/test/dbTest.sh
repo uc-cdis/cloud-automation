@@ -43,7 +43,10 @@ test_db_create() {
   namespace="$(gen3 db namespace)"
   if [[ ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
     # gen3 db setup checks that creds.json exists to avoid accidental execution - 
-    # let's bypass that check
+    # let's bypass that check - setup a temp secrets folder
+    local tempRoot="$(mktemp -d "$XDG_RUNTIME_DIR/testDbCreate_XXXXXX")"
+    export GEN3_SECRETS_HOME="${tempRoot}/Gen3Secrets"
+    [[ "$(gen3_secrets_folder)" == $GEN3_SECRETS_HOME ]]; because $? "Temp secrets setup worked as expected"
     mkdir -p "$(gen3_secrets_folder)"
     echo '{}' > "$(gen3_secrets_folder)/creds.json"
   fi

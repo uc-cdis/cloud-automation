@@ -69,8 +69,12 @@ if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
   gen3 kube-setup-ssjdispatcher
 fi
 
+if g3kubectl get cronjob etl >/dev/null 2>&1; then
+    gen3 job run etl-cronjob
+fi
+
 if g3kubectl get cronjob usersync >/dev/null 2>&1; then
-    gen3 job run "${GEN3_HOME}/kube/services/jobs/usersync-cronjob.yaml"
+    gen3 job run usersync-cronjob
 fi
 
 if g3k_manifest_lookup .versions.sheepdog 2> /dev/null; then
@@ -140,6 +144,12 @@ if g3k_manifest_lookup .versions.ambassador 2> /dev/null; then
   gen3 kube-setup-ambassador
 else
   gen3_log_info "not deploying ambassador - no manifest entry for .versions.ambassador"
+fi
+
+if g3k_manifest_lookup .versions.dashboard > /dev/null 2>&1; then
+  gen3 kube-setup-dashboard
+else
+  gen3_log_info "not deploying dashboard - no manifest entry for .versions.dashboard"
 fi
 
 if g3k_manifest_lookup .versions.hatchery 2> /dev/null; then

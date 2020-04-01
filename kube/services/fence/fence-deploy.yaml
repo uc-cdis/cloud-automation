@@ -25,6 +25,7 @@ spec:
         # uses explicit proxy and AWS APIs
         netnolimit: "yes"
         public: "yes"
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -85,6 +86,9 @@ spec:
         - name: privacy-policy
           configMap:
             name: "privacy-policy"
+        - name: yaml-merge
+          configMap:
+            name: "fence-yaml-merge"    
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -93,6 +97,12 @@ spec:
           value: /var/www/fence
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
+        - name: FENCE_PUBLIC_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-fence
+              key: fence-config-public.yaml
+              optional: true
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -140,8 +150,12 @@ spec:
             subPath: "privacy_policy.md"
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
@@ -171,9 +185,19 @@ spec:
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
         resources:
-            limits:
-              cpu: 0.3
+            requests:
+              cpu: 0.4
               memory: 1200Mi
+            limits:
+              cpu: 1.0
+              memory: 2400Mi  
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
       initContainers:
       - name: fence-init
         GEN3_FENCE_IMAGE
@@ -181,11 +205,21 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: FENCE_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-fence
+                key: fence-config-public.yaml
+                optional: true
         volumeMounts:
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
@@ -201,9 +235,15 @@ spec:
         args:
           - "-c"
           - |
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             if fence-create migrate --help > /dev/null 2>&1; then
-              echo "Running db migration: fence-create migrate"
-              fence-create migrate
+              if ! grep -E 'ENABLE_DB_MIGRATION"?: *false' /var/www/fence/fence-config.yaml; then
+                echo "Running db migration: fence-create migrate"
+                fence-create migrate
+              else
+                echo "Db migration disabeld in fence-config"
+              fi
             else
               echo "Db migration not available in this version of fence"
             fi

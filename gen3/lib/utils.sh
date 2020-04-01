@@ -20,10 +20,22 @@ export XDG_RUNTIME_DIR
 
 CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
 
+
+GEN3_SECRETS_ROOT="$(cd "${GEN3_HOME}/.." && pwd)"
+
+
 gen3_secrets_folder() {
+  if [[ -n "$GEN3_SECRETS_HOME" ]]; then
+    echo "$GEN3_SECRETS_HOME"
+    return 0
+  fi
   local folderName
   folderName="${vpc_name:-Gen3Secrets}"
-  echo "$WORKSPACE/$folderName"
+  local secretFolder="$GEN3_SECRETS_ROOT/$folderName"
+  if [[ ! -d "$secretFolder" ]]; then
+    secretFolder="$GEN3_SECRETS_ROOT/Gen3Secrets"
+  fi
+  echo "$secretFolder"
 }
 
 (

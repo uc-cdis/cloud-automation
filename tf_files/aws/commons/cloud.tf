@@ -13,20 +13,31 @@ provider "aws" {}
 module "cdis_vpc" {
   ami_account_id                 = "${var.ami_account_id}"
   source                         = "../modules/vpc"
-  #vpc_octet2                    = "${var.vpc_octet2}"
-  #vpc_octet3                    = "${var.vpc_octet3}"
   vpc_cidr_block                 = "${var.vpc_cidr_block}"
   vpc_name                       = "${var.vpc_name}"
   ssh_key_name                   = "${aws_key_pair.automation_dev.key_name}"
-  #csoc_cidr                     = "${var.csoc_cidr}"
-  #peering_cidr                   = "${data.aws_vpc.csoc_vpc.cidr_block}" #"${var.peering_cidr}"
   peering_cidr                   = "${var.peering_cidr}"
   csoc_account_id                = "${var.csoc_account_id}"
-  squid-nlb-endpointservice-name = "${var.squid-nlb-endpointservice-name}"
   organization_name              = "${var.organization_name}"
 
   csoc_managed                   = "${var.csoc_managed}"
-  csoc_vpc_id                    = "${var.csoc_vpc_id}"
+  peering_vpc_id                 = "${var.peering_vpc_id}"
+
+  #private_kube_route             = "${aws_route_table.private_kube.id}"
+  branch                         = "${var.branch}"
+  fence-bot_bucket_access_arns   = "${var.fence-bot_bucket_access_arns}"
+  deploy_ha_squid                = "${var.deploy_ha_squid}"
+  deploy_single_proxy            = "${var.deploy_single_proxy}"
+
+  squid_cluster_desired_capasity = "${var.ha-squid_cluster_desired_capasity}"
+  squid_cluster_min_size         = "${var.ha-squid_cluster_min_size}"
+  squid_cluster_max_size         = "${var.ha-squid_cluster_max_size}"
+  squid_instance_type            = "${var.ha-squid_instance_type}"
+  squid_instance_drive_size      = "${var.ha-squid_instance_drive_size}"
+  squid_bootstrap_script         = "${var.ha-squid_bootstrap_script}"
+  squid_extra_vars               = "${var.ha-squid_extra_vars}"
+  single_squid_instance_type     = "${var.single_squid_instance_type}"
+  network_expansion              = "${var.network_expansion}"
 }
 
 # logs bucket for elb logs
@@ -97,42 +108,40 @@ module "cdis_alarms" {
   db_gdcapi                   = "${aws_db_instance.db_gdcapi.identifier}"
 }
 
-
+/*
 resource "aws_vpc_endpoint" "k8s-s3" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
 
-  #service_name               = "com.amazonaws.us-east-1.s3"
   service_name                = "${data.aws_vpc_endpoint_service.s3.service_name}"
   route_table_ids             = ["${aws_route_table.private_kube.id}"]
 }
+*/
+
 
 resource "aws_route_table" "private_kube" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
-
-  route {
-    cidr_block                = "0.0.0.0/0"
-    instance_id               = "${module.cdis_vpc.proxy_id}"
-  }
-
-  route {
-    # cloudwatch logs route
-    cidr_block                = "54.224.0.0/12"
-    nat_gateway_id            = "${module.cdis_vpc.nat_gw_id}"
-  }
-
-  route {
-    #from the commons vpc to the csoc vpc via the peering connection
-    #cidr_block                  = "${var.csoc_cidr}"
-    #cidr_block                  = "${var.csoc_managed == "yes" ? var.peering_cidr : data.aws_vpc.csoc_vpc.cidr_block}"
-    cidr_block                  = "${var.peering_cidr}"
-    vpc_peering_connection_id   = "${module.cdis_vpc.vpc_peering_id}"
-  }
 
   tags {
     Name                      = "private_kube"
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
+}
+
+
+#resource "aws_route" "to_aws" {
+#  route_table_id            = "${aws_route_table.private_kube.id}"
+#  destination_cidr_block    = "54.224.0.0/12"
+#  nat_gateway_id            = "${module.cdis_vpc.nat_gw_id}"
+#  depends_on                = ["aws_route_table.private_kube"]
+#}
+
+
+resource "aws_route" "for_peering" {
+  route_table_id            = "${aws_route_table.private_kube.id}"
+  destination_cidr_block    = "${var.peering_cidr}"
+  vpc_peering_connection_id = "${module.cdis_vpc.vpc_peering_id}"
+  depends_on                = ["aws_route_table.private_kube"]
 }
 
 resource "aws_route_table_association" "private_kube" {
@@ -142,11 +151,10 @@ resource "aws_route_table_association" "private_kube" {
 
 resource "aws_subnet" "private_kube" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
-  #cidr_block                  = "172.${var.vpc_octet2}.${var.vpc_octet3 + 2}.0/24"
-  cidr_block                  = "${cidrsubnet(var.vpc_cidr_block,4,2)}"
+  #cidr_block                  = "${cidrsubnet(var.vpc_cidr_block,4,2)}"
+  cidr_block                  = "${var.network_expansion ? cidrsubnet(var.vpc_cidr_block,5,0) : cidrsubnet(var.vpc_cidr_block,4,2)}"
   map_public_ip_on_launch     = false
   availability_zone           = "${data.aws_availability_zones.available.names[0]}"
-  #tags                        = "${map("Name", "private_kube", "Organization", var.organization_name, "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "owned")}"
   tags                        = "${map("Name", "int_services", "Organization", var.organization_name, "Environment", var.vpc_name )}"
 
   lifecycle {
@@ -155,33 +163,12 @@ resource "aws_subnet" "private_kube" {
   }
 }
 
-#resource "aws_route_table_association" "public_kube" {
-#  subnet_id      = "${aws_subnet.public_kube.id}"
-#  route_table_id = "${module.cdis_vpc.public_route_table_id}"
-#}
-
-#resource "aws_subnet" "public_kube" {
-#  vpc_id                  = "${module.cdis_vpc.vpc_id}"
-#  cidr_block              = "172.${var.vpc_octet2}.${var.vpc_octet3 + 4}.0/24"
-#  map_public_ip_on_launch = true
-#  availability_zone       = "${data.aws_availability_zones.available.names[0]}"
-
-  # Note: KubernetesCluster tag is required by kube-aws to identify the public subnet for ELBs
-#  tags = "${map("Name", "public_kube", "Organization", ${var.organization_name}, "Environment", var.vpc_name, "kubernetes.io/cluster/${var.vpc_name}", "shared", "kubernetes.io/role/elb", "", "KubernetesCluster", "${local.cluster_name}")}"
-
-#  lifecycle {
-    # allow user to change tags interactively - ex - new kube-aws cluster
-#    ignore_changes = ["tags", "availability_zone"]
-#  }
-#}
-
 resource "aws_subnet" "private_db_alt" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
-  #cidr_block                  = "172.${var.vpc_octet2}.${var.vpc_octet3 + 3}.0/24"
-  cidr_block                  = "${cidrsubnet(var.vpc_cidr_block,4,3)}"
+  #cidr_block                  = "${cidrsubnet(var.vpc_cidr_block,4,3)}"
+  cidr_block                  = "${var.network_expansion ? cidrsubnet(var.vpc_cidr_block,5,1) : cidrsubnet(var.vpc_cidr_block,4,3)}"
   availability_zone           = "${data.aws_availability_zones.available.names[1]}"
   map_public_ip_on_launch     = false
-  #availability_zone           = "${data.aws_availability_zones.available.names[1]}"
 
   tags {
     Name                      = "private_db_alt"
@@ -208,32 +195,3 @@ resource "aws_db_subnet_group" "private_group" {
   description                 = "Private subnet group"
 }
 
-
-## This is for endpoint service needed to acccess the squid nlb in CSOC VPC. We need to add the subnets for both private_user and
-# private_kube; hence have the code in here
-
-resource "aws_vpc_endpoint" "squid-nlb" {
-  count                      = "${var.csoc_managed == "yes" ? 1 : 0}"
-  vpc_id                     = "${module.cdis_vpc.vpc_id}"
-  service_name               = "${var.squid-nlb-endpointservice-name}"
-  vpc_endpoint_type          = "Interface"
-
-  # we need to supply it a subnet id ; so that it can create the dns name for the endpoint which is then added to the route53 for cloud-proxy
-  #subnet_ids                 = ["${module.cdis_vpc.private_subnet_id}", "${aws_subnet.public_kube.id}"]
-  subnet_ids                 = ["${aws_subnet.private_kube.id}"]
-  private_dns_enabled        = false
-  
-  security_group_ids = [
-     "${module.cdis_vpc.security_group_local_id}"
-  ]
-}
-
-
-resource "aws_route53_record" "squid-nlb" {
-  count                      = "${var.csoc_managed == "yes" ? 1 : 0}"
-  zone_id                    = "${module.cdis_vpc.zone_id}"
-  name                       = "csoc-cloud-proxy.${module.cdis_vpc.zone_name}"
-  type                       = "CNAME"
-  ttl                        = "300"
-  records                    = ["${lookup(aws_vpc_endpoint.squid-nlb.dns_entry[0], "dns_name")}"]
-}

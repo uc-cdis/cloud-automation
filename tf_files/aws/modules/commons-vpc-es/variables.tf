@@ -24,3 +24,8 @@ variable "encryption" {
 variable "instance_count" {
   default = 3
 }
+
+variable "organization_name" {
+  description = "For tagging purposes"
+  default     = "Basic Service"
+}

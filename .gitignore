@@ -4,9 +4,7 @@ tf_files/terraform.tfstate
 tf_files/terraform.tfstate.backup
 .terraform/
 client/*
-images/*
 node_modules/
-packer
 Secrets/
 terraform
 *.lock*
@@ -25,4 +23,3 @@ kube/services/fluentd/dockerlogs/
 *.cache
 *pyc
 !doc/terraform
-*.json

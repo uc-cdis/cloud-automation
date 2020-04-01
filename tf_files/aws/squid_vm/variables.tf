@@ -26,28 +26,7 @@ variable "env_vpc_id" {
   #default = "vpc-e2b51d99"
 }
 
-variable "env_instance_profile" {
-  #default = "common_name_cloudwatch_access_profile"
-}
-
-variable "env_log_group" {
-  #default = "common_name"
-}
-
-
-data "aws_iam_policy_document" "squid_logging_cloudwatch" {
-  statement {
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:GetLogEvents",
-      "logs:PutLogEvents",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutRetentionPolicy",
-    ]
-
-    effect    = "Allow"
-    resources = ["*"]
-  }
+variable "instance_type" {
+  description = "Instance type for the squid instance"
+  default     = "t2.micro"
 }

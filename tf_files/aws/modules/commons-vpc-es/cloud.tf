@@ -12,13 +12,6 @@ resource "aws_iam_service_linked_role" "es" {
   aws_service_name = "es.amazonaws.com"
 }
 
-#resource "random_shuffle" "az" {
-#  input = ["${data.aws_availability_zones.available.names}"]
-#  result_count = 1
-#  count = 1
-#}
-
-
 resource "aws_security_group" "private_es" {
   name        = "private_es"
   description = "security group that allow es port out"
@@ -40,23 +33,9 @@ resource "aws_security_group" "private_es" {
 
   tags {
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
   }
 }
-
-
-#resource "aws_subnet" "private_sn_es" {
-#  vpc_id                  = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
-#  cidr_block              = "${cidrhost(data.aws_vpc.the_vpc.cidr_block, 256 * 6 )}/24"
-#  availability_zone       = "${element(random_shuffle.az.result, count.index)}"
-#  map_public_ip_on_launch = false
-
-#  tags {
-#    Name         = "private_es"
-#    Environment  = "${var.vpc_name}"
-#    Organization = "Basic Service"
-#  }
-#}
 
 
 resource "aws_cloudwatch_log_resource_policy" "es_logs" {
@@ -121,7 +100,7 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
   tags {
     Name         = "gen3_metadata"
     Environment  = "${var.vpc_name}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
 
   }
    access_policies = <<CONFIG

@@ -1,9 +1,13 @@
 .alpinelinux.org
 .amazonaws.com
+.amazoncognito.com
 .apache.org
 .archive.canonical.com
 .bioconductor.org
+.bionimbus.org
 .bitbucket.org
+.bloodpac.org
+.braincommons.org
 .bsc.es
 .cancer.gov
 .centos.org
@@ -14,6 +18,7 @@
 .completegenomics.com
 .cpan.org
 .datacommons.io
+.datastage.io
 .docker.com
 .docker.io
 .dockerproject.org
@@ -27,12 +32,16 @@
 .hashicorp.com
 .jenkins-ci.org
 .k8s.io
+.kidsfirstdrc.org
 .letsencrypt.org
 .maven.org
 .metacpan.org
+.newrelic.com
+.niaiddata.org
 .nih.gov
 .nodesource.com
 .novocraft.com
+.occ-data.org
 .oicr.on.ca
 .osuosl.org
 .perl.org
@@ -51,6 +60,7 @@
 .sourceforge.net
 .ubuntu.com
 .ucsc.edu
+.veracode.com
 .virtualbox.org
 .xmission.com
 .yahooapis.com

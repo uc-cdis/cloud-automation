@@ -18,24 +18,25 @@ if [[ -z "$GEN3_NOPROXY" ]]; then
   export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com,kibana.planx-pla.net'}
 fi
 
-vpc_name=${vpc_name:-$1}
-namespace=${namespace:-$2}
-if [[ -z "$vpc_name" || -z "$namespace" || (! "$namespace" =~ ^[a-z][a-z0-9-]*$) ]]; then
-  echo "Usage: bash kube-dev-namespace.sh vpc_name namespace, namespace is alphanumeric"
+namespace="$1"
+if ! shift || [[ -z "$namespace" || (! "$namespace" =~ ^[a-z][a-z0-9-]*$) || "$namespace" == "$vpc_name" ]]; then
+  gen3_log_err "Use: bash kube-dev-namespace.sh namespace, namespace is alphanumeric"
   exit 1
 fi
 
-gen3_load "gen3/lib/kube-setup-init"
+gen3_log_info "About to create user and namespace: $namespace"
+gen3_log_info "Cntrl-C in next 5 seconds to bail out"
+sleep 5
 
-for checkDir in ~/"${vpc_name}"; do
+for checkDir in "$(gen3_secrets_folder)"; do
   if [[ ! -d "$checkDir" ]]; then
-    echo "ERROR: $checkDir does not exist"
+    gen3_log_err "$checkDir does not exist"
     exit 1
   fi
 done
 
 if ! sudo -n true > /dev/null 2>&1; then
-  echo "User must have sudo privileges"
+  gen3_log_err "User must have sudo privileges"
   exit 1
 fi
 
@@ -44,7 +45,7 @@ if ! grep "^$namespace" /etc/passwd > /dev/null 2>&1; then
 fi
 sudo chmod a+rwx /home/$namespace
 sudo chmod a+rwx /home/$namespace/.bashrc
-mkdir -p /home/$namespace/${vpc_name}/g3auto
+mkdir -p /home/$namespace/Gen3Secrets/g3auto
 cd /home/$namespace
 
 # setup ~/.ssh
@@ -72,21 +73,21 @@ if [[ ! -d ./cdis-manifest ]]; then
   (cd cdis-manifest && git checkout master)
 fi
 
-# setup ~/vpc_name
-for name in 00configmap.yaml apis_configs kubeconfig ssh-keys g3auto/manifestservice g3auto/pelicanservice; do
-  if [[ -e ~/${vpc_name}/$name ]]; then
-    echo "copying ${vpc_name}/$name"
-    cp -r ~/${vpc_name}/$name /home/$namespace/${vpc_name}/$name
+# setup ~/Gen3Secrets
+for name in 00configmap.yaml apis_configs kubeconfig ssh-keys g3auto/dbfarm g3auto/manifestservice g3auto/pelicanservice; do
+  if [[ -e "$(gen3_secrets_folder)/$name" ]]; then
+    gen3_log_info "copying $(gen3_secrets_folder)/$name"
+    cp -r "$(gen3_secrets_folder)/$name" /home/$namespace/Gen3Secrets/$name
   else
-    echo "no source for ${vpc_name}/$name"
+    gen3_log_info "no source for $(gen3_secrets_folder)/$name"
   fi
 done
 
-# setup ~/vpc_name/credentials and kubeconfig
-cd /home/$namespace/${vpc_name}
+# setup ~/Gen3Secrets/credentials and kubeconfig
+cd /home/$namespace/Gen3Secrets
 mkdir -p credentials
 for name in ca.pem ca-key.pem; do
-  cp ~/${vpc_name}/credentials/$name credentials/
+  cp $(gen3_secrets_folder)/credentials/$name credentials/
 done
 
 cp kubeconfig kubeconfig.bak
@@ -97,84 +98,88 @@ cat kubeconfig.bak | yq -r --arg ns "$namespace" '.contexts[0].context.namespace
   #
   # subshell - need to keep KUBECONFIG at current env for gen3 psql to work below
   #
-  export KUBECONFIG="/home/$namespace/${vpc_name}/kubeconfig"
-  echo "Testing new KUBECONFIG at $KUBECONFIG"
+  export KUBECONFIG="/home/$namespace/Gen3Secrets/kubeconfig"
+  gen3_log_info "Testing new KUBECONFIG at $KUBECONFIG"
   # setup the namespace
   if ! g3kubectl get namespace $namespace > /dev/null 2>&1; then
     g3kubectl create namespace $namespace
   fi
 )
 
-cp ~/${vpc_name}/creds.json /home/$namespace/${vpc_name}/creds.json
+cp "$(gen3_secrets_folder)/creds.json" "/home/$namespace/Gen3Secrets/creds.json"
 
-dbname=$(echo $namespace | sed 's/-/_/g')
+dbsuffix=$(echo $namespace | sed 's/-/_/g')
+credsTemp="$(mktemp "$XDG_RUNTIME_DIR/credsTemp.json_XXXXXX")"
+credsMaster="/home/$namespace/Gen3Secrets/creds.json"
+
 # create new databases - don't break if already exists
 for name in indexd fence sheepdog; do
-  echo "CREATE DATABASE $dbname;" | gen3 psql $name -d template1 || true
+  dbname="${name}_$dbsuffix"
+  if ! newCreds="$(gen3 secrets rotate newdb $name $dbname)"; then
+    gen3_log_err "Failed to setup new db $dbname"
+  fi
+  # update creds.json
+  if jq -r --arg key $name --argjson value "$newCreds" '.[$key]=$value | del(.gdcapi)' < "$credsMaster" > "$credsTemp"; then
+    cp "$credsTemp" "$credsMaster"
+  fi
+  if [[ "$name" == "fence" ]]; then # update fence-config.yaml too
+    fenceYaml="/home/$namespace/Gen3Secrets/apis_configs/fence-config.yaml"
+    dbuser="$(jq -r .db_username <<< "$newCreds")"
+    dbhost="$(jq -r .db_host <<< "$newCreds")"
+    dbpassword="$(jq -r .db_password <<< "$newCreds")"
+    dbdatabase="$(jq -r .db_database <<< "$newCreds")"
+    dblogin="postgresql://${dbuser}:${dbpassword}@${dbhost}:5432/${dbdatabase}"
+    sed -i -E "s%^DB:.*$%DB: $dblogin%" "$fenceYaml"
+  fi
 done
+
 # Remove "database initialized" markers
 for name in .rendered_fence_db .rendered_gdcapi_db; do
-  /bin/rm -rf "/home/$namespace/${vpc_name}/$name"
+  /bin/rm -rf "/home/$namespace/Gen3Secrets/$name"
 done
 
 # update creds.json
-oldHostname=$(jq -r '.fence.hostname' < /home/$namespace/${vpc_name}/creds.json)
-newHostname=$(echo $oldHostname | sed "s/^[a-zA-Z0-9]*/$namespace/")
+oldHostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)"
+newHostname="$(sed "s/^[a-zA-Z0-9]*/$namespace/" <<< "$oldHostname")"
 
 for name in creds.json apis_configs/fence-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json g3auto/dashboard/config.json; do
   (
-    path="/home/$namespace/${vpc_name}/$name"
+    path="/home/$namespace/Gen3Secrets/$name"
     if [[ -f "$path" ]]; then
       sed -i.bak "s/$oldHostname/$newHostname/g" "$path"
+      if [[ "$name" =~ manifestservice ]]; then
+        # make sure a prefix gets set
+        cp "$path" "${path}.bak"
+        jq --arg prefix "$newHostname" -r '.prefix=$prefix' < "${path}.bak" > "$path"
+      fi
     fi
   )
 done
 
 if [[ -f "/home/$namespace/cdis-manifest/$oldHostName/manifest.json" && ! -d "/home/$namespace/cdis-manifest/$newHostName" ]]; then
   cp -r "/home/$namespace/cdis-manifest/$oldHostName" "/home/$namespace/cdis-manifest/$newHostName"
-  sed -i.bak "s/$oldHostname/$newHostname/g" "/home/$namespace/cdis-manifest/$newHostName"
+  sed -i.bak "s/$oldHostname/$newHostname/g" "/home/$namespace/cdis-manifest/$newHostName/manifest.json"
 fi
 
-sed -i.bak "s@^\(DB: .*/\)[a-zA-Z0-9_]*\$@\1$dbname@g" /home/$namespace/${vpc_name}/apis_configs/fence-config.yaml
-
-#
-# Update creds.json - replace every '.db_databsae' and '.fence_database' with $namespace -
-# we ceate a $namespace database on the fence, indexd, and sheepdog db servers with
-# the CREATE DATABASE commands above
-#
-jq -r  --arg dbname "$dbname" '.[].db_database=$dbname|.[].fence_database=$dbname' < /home/$namespace/${vpc_name}/creds.json > $XDG_RUNTIME_DIR/creds.json
-cp $XDG_RUNTIME_DIR/creds.json /home/$namespace/${vpc_name}/creds.json
-sed -i.bak "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/${vpc_name}/00configmap.yaml
-if [[ -f /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json ]]; then
-  sed -i.bak "s/$oldHostname/$newHostname/g" /home/$namespace/${vpc_name}/apis_configs/fence_credentials.json
+sed -i "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/Gen3Secrets/00configmap.yaml
+if [[ -f /home/$namespace/Gen3Secrets/apis_configs/fence_credentials.json ]]; then
+  sed -i "s/$oldHostname/$newHostname/g" /home/$namespace/Gen3Secrets/apis_configs/fence_credentials.json
 fi
 
 # setup ~/.bashrc
 if ! grep GEN3_HOME /home/${namespace}/.bashrc > /dev/null 2>&1; then
-  echo "Adding variables to .bashrc"
+  gen3_log_info "Adding variables to .bashrc"
   cat >> /home/${namespace}/.bashrc << EOF
 export http_proxy=http://cloud-proxy.internal.io:3128
 export https_proxy=http://cloud-proxy.internal.io:3128
 export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com,kibana.planx-pla.net'
 
-export KUBECONFIG=~/${vpc_name}/kubeconfig
+export KUBECONFIG=~/Gen3Secrets/kubeconfig
 export GEN3_HOME=~/cloud-automation
 if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
   source "\${GEN3_HOME}/gen3/gen3setup.sh"
 fi
 alias kubectl=g3kubectl
-EOF
-fi
-# a provisioner should only work with one vpc
-if ! grep 'vpc_name=' /home/${namespace}/.bashrc > /dev/null; then
-  #
-  # Stash in ~/.bashrc, so the user doesn't have to keep passing the vpc_name to kube-setup- scripts.
-  # Also, the s3_bucket makes 'g3k backup' work -
-  # which makes it easy to backup the k8s certificate authority, etc.
-  #
-  cat - >>/home/${namespace}/.bashrc <<EOF
-export vpc_name='$vpc_name'
-export s3_bucket='$s3_bucket'
 EOF
 fi
 
@@ -183,9 +188,11 @@ sudo chown -R "${namespace}:" /home/$namespace /home/$namespace/.ssh /home/$name
 sudo chmod -R 0700 /home/$namespace/.ssh
 sudo chmod go-w /home/$namespace
 
-echo "The $namespace user is ready to login and run: "
-echo "gen3 db server list  # run this first to bootstrap the database secrets"
-echo "configure cdis-manifest/$newHostname"
-echo "gen3 roll all"
-echo "add the load balancer service to DNS"
-echo "add the new domain to the parent OATH clients - or configure new clients"
+cat - <<EOM
+The $namespace user is ready to login and run:
+
+configure cdis-manifest/$newHostname
+gen3 roll all
+add the load balancer service to DNS
+add the new domain to the parent OATH clients - or configure new clients
+EOM

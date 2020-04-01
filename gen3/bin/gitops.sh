@@ -509,19 +509,90 @@ gen3_gitops_history() {
   )
 }
 
+
+#
+# Generate manifest entries for the files in the given folder
+#
+# @param folder to pull into manifest configmap
+# @param dryRun optional '--dryRun' flag
+#
+gen3_gitops_configmap_folder() {
+    local folder="$1"
+    shift
+    local dryRun="$1"
+    shift
+    if [[ -n "$folder" && -d "$folder" && "$(basename "$folder")" =~ ^[0-9A-Za-z] ]]; then
+      gen3_log_info "loading manifest configmaps from: $folder"
+      local key="$(basename "$folder")"
+      local cMapName="manifest-$key"
+      local execString
+      local gotData=false
+      execString="g3kubectl create configmap $cMapName "
+      local key2
+      local key3
+      local folderEntry
+      local valueList=()
+      local valueCount=0
+      for folderEntry in "$folder/"*; do
+        if [[ -f "$folderEntry" ]]; then
+          key2="$(basename "$folderEntry")"
+          gotData=true
+          execString+=" '--from-file=$folderEntry'"
+          if [[ "$key2" == "${key}.json" ]]; then
+            # to help transition data out of the master manifest.json
+            valueList=()
+            execString+=" '--from-file=json=$folderEntry'"
+            for key3 in $(jq -r '. | keys[]' < "$folderEntry" | grep '^[a-zA-Z]'); do
+              value="$(jq -r --arg key3 "$key3" '.[$key3]' < "$folderEntry")"
+              if [[ -n "$value" ]]; then
+                valueList+=("$value")
+                execString+=" --from-literal $key3=\"\${valueList[$valueCount]}\" "
+                valueCount=$((valueCount + 1))
+              fi
+            done
+          fi
+        fi
+      done
+      if [[ "$gotData" == "true" ]]; then
+        #gen3_log_info "$dryRun - $execString"
+        if [[ "$dryRun" =~ ^-*dryRun ]]; then
+          eval echo $execString
+          return $?
+        else
+          g3kubectl delete configmap "$cMapName" 2> /dev/null
+          eval $execString
+          local result=$?
+          g3kubectl label configmap $cMapName app=manifest
+          return $result
+        fi
+      fi
+    fi
+}
+
+
 #
 # g3k command to create configmaps from manifest
 #
+# @param folder optional parameter - if set, then scans folder for configmap
+# @param --dryRun optional - only available in conjunction with folder
+#
 gen3_gitops_configmaps() {
+  local folder
+
+  if [[ $# -gt 0 ]]; then
+      #gen3_log_info "processing folder $@"
+      gen3_gitops_configmap_folder "$@"
+      return $?
+  fi
   local manifestPath
   manifestPath=$(g3k_manifest_path)
   if [[ ! -f "$manifestPath" ]]; then
-    echo -e "$(red_color "ERROR: manifest does not exist - $manifestPath")" 1>&2
+    gen3_log_err "manifest does not exist - $manifestPath"
     return 1
   fi
 
   if ! grep -q global $manifestPath; then
-    echo -e "$(red_color "ERROR: manifest does not have global section - $manifestPath")" 1>&2
+    gen3_log_err "manifest does not have global section - $manifestPath"
     return 1
   fi
 
@@ -535,9 +606,11 @@ gen3_gitops_configmaps() {
 
   local key
   local key2
-  local value
+  local valueList=()
+  local valueCount=0
   local execString
   local etlPath
+  local cMapName
   
   etlPath=$(dirname $(g3k_manifest_path))/etlMapping.yaml
   if [[ -f "$etlPath" ]]; then
@@ -545,19 +618,41 @@ gen3_gitops_configmaps() {
   fi
 
   for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
-    if [[ $key != 'notes' ]]; then
-      local cMapName="manifest-$key"
+    if [[ "$key" != 'notes' ]]; then
+      valueList=()
+      valueCount=0
+      cMapName="manifest-$key"
       execString="g3kubectl create configmap $cMapName "
       for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
         value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
         if [[ -n "$value" ]]; then
-          execString+="--from-literal $key2='$value' "
+          valueList+=("$value")
+          execString+="--from-literal $key2=\"\${valueList[$valueCount]}\" "
+          valueCount=$((valueCount + 1))
         fi
       done
-      local jsonSection="--from-literal json='$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")'"
-      execString+=$jsonSection
+      value="$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")"
+      valueList+=("$value")
+      execString+="--from-literal json=\"\${valueList[$valueCount]}\" "
+      #gen3_log_info "$execString"
       eval $execString
       g3kubectl label configmap $cMapName app=manifest
+    fi
+  done
+
+  local manifestDir
+  local folder
+  manifestDir="$(dirname "$manifestPath")/manifests"
+  if [[ -d "$manifestDir" ]]; then
+    for folder in "$manifestDir"/*; do
+      gen3_gitops_configmap_folder "$folder" 
+    done
+  fi
+  local defaultsDir="${GEN3_HOME}/gen3/lib/manifestDefaults"
+  for folder in "$defaultsDir"/*; do
+    key="$(basename "$folder")"
+    if [[ ! -d "$manifestDir/$key" ]] && ! jq -e -r ".[\"$key\"]" < "$manifestPath" > /dev/null 2>&1; then
+      gen3_gitops_configmap_folder "$folder"
     fi
   done
 }

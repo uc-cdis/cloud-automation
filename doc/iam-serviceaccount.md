@@ -4,7 +4,7 @@ Applying iam intergraion with service accounts in kubernetes
 
 ## Overview
 
-IAM integration with service accounts in kunernetes requires a few things to be in place.
+IAM integration with service accounts in kubernetes requires a few things to be in place.
 
 Firstly, since gen3 is mostly hosted on AWS, we need to create and OIDC [OpenID Connect (protocol)] in AWS. This will allow service accounts in kubernetes pull IAM roles defined in the account your k8s (EKS in our case) is running, and let pods attached to service accounts talk to endpoints or services the roles in question are allowing.
 

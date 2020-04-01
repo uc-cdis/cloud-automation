@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.200
+FROM jenkins/jenkins:2.219
 
 USER root
 
@@ -16,6 +16,17 @@ RUN apt-get update \
      r-base \
      libssl-dev \
      libcurl4-openssl-dev \
+     zlib1g-dev \
+     libncurses5-dev \
+     libncursesw5-dev \
+     libreadline-dev \
+     libsqlite3-dev \
+     libgdbm-dev \
+     libdb5.3-dev \
+     libbz2-dev \
+     libexpat1-dev \
+     liblzma-dev \
+     tk-dev \
      ca-certificates \
      curl \
      gnupg2 \
@@ -33,6 +44,21 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
           google-cloud-sdk-cbt \
           kubectl \
           zsh
+
+# Copy sh script responsible for installing Python
+COPY install-python3.6.sh /root/tmp/install-python3.6.sh
+
+# Run the script responsible for installing Python 3.6.1 and link it to /usr/bin/python3
+RUN chmod +x /root/tmp/install-python3.6.sh; sync && \
+	./root/tmp/install-python3.6.sh && \
+	rm -rf /root/tmp/install-python3.6.sh && \
+	ln -s /Python-3.6.1/python /usr/bin/python3.6
+
+# Install pip3 for Python 3.6.1
+RUN rm -rf /usr/local/lib/python3.6/site-packages/pip* && \
+	wget https://bootstrap.pypa.io/get-pip.py && \
+	python3.6 get-pip.py && \
+	rm get-pip.py
 
 #
 # install docker tools:
@@ -66,15 +92,8 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.14/
    && unzip /tmp/terraform.zip -d /usr/local/bin && /bin/rm /tmp/terraform.zip
 
 # install packer
-RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.3.3/packer_1.3.3_linux_amd64.zip
+RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
 RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
-
-# install r packages
-RUN Rscript -e 'install.packages("yaml",repos="http://cran.us.r-project.org");' \
-    && Rscript -e 'install.packages("curl",repos="http://cran.us.r-project.org");' \
-    && Rscript -e 'install.packages("httr",repos="http://cran.us.r-project.org");' \
-    && Rscript -e 'install.packages("stringr",repos="http://cran.us.r-project.org");' \
-    && Rscript -e 'install.packages("pryr",repos="http://cran.us.r-project.org");'
 
 # update /etc/sudoers
 RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \

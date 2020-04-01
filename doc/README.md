@@ -8,8 +8,11 @@ For example - `gen3 help aws` opens `aws.md`
 
 ## Frequently used
 
-* [aws](./aws.md)
 * [arun](./arun.md)
+* [aws](./aws.md)
+* [awsrole](./awsrole.md)
+* [awsuser](./awsuser.md)
+* [iam-serviceaccount](./iam-serviceaccount.md)
 * [devterm](./devterm.md)
 * [db](./db.md)
 * [dashboard](./dashboard.md)
@@ -49,6 +52,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [kube-setup-jupyterhub](./kube-setup-jupyterhub.md)
 * [kube-setup-peregrine](./kube-setup-peregrine.md)
 * [kube-setup-pidgin](./kube-setup-pidgin.md)
+* [waf - webapp firewall](./waf.md)
 
 ## Terraform related
 
@@ -103,6 +107,7 @@ For example - `gen3 help aws` opens `aws.md`
 
 * [api](./api.md) - indexd-post-folder, access-token, new-program, new-project
 * [approve_vpcpeering_request](./approve_vpcpeering_request.md)
+* [ha-proxy](./ha-squid-migration.md) - Migration from a single squid instance to an HA proxy solution
 * [kube-backup](./kube-backup.md)
 * [kube-dev-namespace](./kube-dev-namespace.md)
 * [kube-extract-config](./kube-extract-config.md)

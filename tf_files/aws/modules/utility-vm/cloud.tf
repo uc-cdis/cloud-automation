@@ -4,7 +4,7 @@ resource "aws_cloudwatch_log_group" "csoc_log_group" {
 
   tags {
     Environment  = "${var.environment}"
-    Organization = "Basic Services"
+    Organization = "${var.organization_name}"
   }
 }
 
@@ -68,7 +68,7 @@ resource "aws_security_group" "ssh" {
 
   tags {
     Environment  = "${var.environment}"
-    Organization = "Basic Service"
+    Organization = "${var.organization_name}"
     name         = "ssh_${var.vm_name}"
   }
 }

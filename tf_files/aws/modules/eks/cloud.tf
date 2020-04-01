@@ -2,35 +2,31 @@
 #
 # Module to create a new EKS cluster for an existing commons
 #
-# fauzi@uchicago.edu
-#
 #####
 
 
 module "jupyter_pool" {
-  source                    = "../eks-nodepool/"
-  ec2_keyname               = "${var.ec2_keyname}"
-  users_policy              = "${var.users_policy}"
-  nodepool                  = "jupyter"
-  vpc_name                  = "${var.vpc_name}"
-  #csoc_cidr                 = "${var.csoc_cidr}"
-  #csoc_cidr                 = "${data.aws_vpc.peering_vpc.cidr_block}"
-  csoc_cidr                 = "${var.peering_cidr}"
-  eks_cluster_endpoint      = "${aws_eks_cluster.eks_cluster.endpoint}"
-  eks_cluster_ca            = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
-  eks_private_subnets       = "${aws_subnet.eks_private.*.id}"
-  control_plane_sg          = "${aws_security_group.eks_control_plane_sg.id}"
-  default_nodepool_sg       = "${aws_security_group.eks_nodes_sg.id}"
-  #deploy_jupyter_pool       = "${var.deploy_jupyter_pool}"
-  eks_version               = "${var.eks_version}"
-  jupyter_instance_type     = "${var.jupyter_instance_type}"
-  kernel                    = "${var.kernel}"
-  bootstrap_script          = "${var.jupyter_bootstrap_script}"
-  jupyter_worker_drive_size = "${var.jupyter_worker_drive_size}"
-  organization_name         = "${var.organization_name}"
+  source                       = "../eks-nodepool/"
+  ec2_keyname                  = "${var.ec2_keyname}"
+  users_policy                 = "${var.users_policy}"
+  nodepool                     = "jupyter"
+  vpc_name                     = "${var.vpc_name}"
+  csoc_cidr                    = "${var.peering_cidr}"
+  eks_cluster_endpoint         = "${aws_eks_cluster.eks_cluster.endpoint}"
+  eks_cluster_ca               = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+  eks_private_subnets          = "${aws_subnet.eks_private.*.id}"
+  #eks_private_subnets          = "${var.single_az_for_jupyter ? aws_subnet.eks_private.id : aws_subnet.eks_private.*.id}"
+  control_plane_sg             = "${aws_security_group.eks_control_plane_sg.id}"
+  default_nodepool_sg          = "${aws_security_group.eks_nodes_sg.id}"
+  eks_version                  = "${var.eks_version}"
+  jupyter_instance_type        = "${var.jupyter_instance_type}"
+  kernel                       = "${var.kernel}"
+  bootstrap_script             = "${var.jupyter_bootstrap_script}"
+  jupyter_worker_drive_size    = "${var.jupyter_worker_drive_size}"
+  organization_name            = "${var.organization_name}"
   jupyter_asg_desired_capacity = "${var.jupyter_asg_desired_capacity}"
-  jupyter_asg_max_size         = "${var.jupyter_asg_max_size}" 
-  jupyter_asg_min_size         = "${var.jupyter_asg_min_size}" 
+  jupyter_asg_max_size         = "${var.jupyter_asg_max_size}"
+  jupyter_asg_min_size         = "${var.jupyter_asg_min_size}"
 }
 
 
@@ -77,26 +73,22 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
 
 
 
-
-####
-# * aws_eks_cluster.eks_cluster: error creating EKS Cluster (fauziv1): UnsupportedAvailabilityZoneException: Cannot create cluster 'fauziv1' because us-east-1e, the targeted availability zone, does not currently have sufficient capacity to support the cluster. Retry and choose from these availability zones: us-east-1a, us-east-1c, us-east-1d
-####
 resource "random_shuffle" "az" {
-#  input = ["${data.aws_availability_zones.available.names}"]
-  input = ["us-east-1a", "us-east-1c", "us-east-1d"]
+  #input = ["${data.aws_autoscaling_group.squid_auto.availability_zones}"]
+  #input = ["${data.aws_availability_zones.available.names}"]
+  #input = "${length(var.availability_zones) > 0 ? var.availability_zones : data.aws_autoscaling_group.squid_auto.availability_zones }"
+  input = "${var.availability_zones}"
   result_count = 3
   count = 1
 }
 
 
-
-
 # The subnet where our cluster will live in
 resource "aws_subnet" "eks_private" {
-  #count = 3
   count                   = "${random_shuffle.az.result_count}"
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              = "${var.workers_subnet_size == 23 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 3 , ( 2 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index )) }"
+  #cidr_block              = "${var.workers_subnet_size == 23 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 3 , ( 2 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index )) }"
+  cidr_block              = "${var.workers_subnet_size == 22 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 2 , ( 1 + count.index )) : var.workers_subnet_size == 23 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 3 , ( 2 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index )) }"
   availability_zone       = "${random_shuffle.az.result[count.index]}"
   map_public_ip_on_launch = false
 
@@ -121,7 +113,8 @@ resource "aws_subnet" "eks_public" {
   #count                   = 3
   count                   = "${random_shuffle.az.result_count}"
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 10 + count.index ))}"
+  #cidr_block              = "${cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 10 + count.index ))}"
+  cidr_block              = "${var.workers_subnet_size == 22 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 5 , ( 4 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 10 + count.index ))}"
   map_public_ip_on_launch = true
   availability_zone       = "${random_shuffle.az.result[count.index]}"
 
@@ -144,71 +137,9 @@ resource "aws_subnet" "eks_public" {
   }
 }
 
-resource "aws_vpc_endpoint" "ec2" {
-  vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.us-east-1.ec2"
-  vpc_endpoint_type = "Interface"
-  security_group_ids  = [
-    "${aws_security_group.eks_nodes_sg.id}"
-  ]
-
-  private_dns_enabled = true
-  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-}
-
-
-resource "aws_vpc_endpoint" "ecr-dkr" {
-  vpc_id       = "${data.aws_vpc.the_vpc.id}"
-  service_name = "com.amazonaws.us-east-1.ecr.dkr"
-  vpc_endpoint_type = "Interface"
-
-  security_group_ids  = [
-    "${aws_security_group.eks_nodes_sg.id}"
-  ]
-
-  private_dns_enabled = true
-  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-}
 
 resource "aws_route_table" "eks_private" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
-
-  route {
-    cidr_block  = "0.0.0.0/0"
-    instance_id = "${data.aws_instances.squid_proxy.ids[0]}"
-  }
-
-  # We want to be able to talk to aws freely, therefore we are allowing
-  # certain stuff overpass the proxy
-  route {
-    # logs.us-east-1.amazonaws.com
-    cidr_block     = "52.0.0.0/8"
-    nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  }
-  #route {
-    # logs.us-east-1.amazonaws.com as well, these guys are not static, therefore whitelist the whole list
-  #  cidr_block     = "54.0.0.0/8"
-  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  #}
-  #route {
-    # .us-east-1.eks.amazonaws.com
-  #  cidr_block     = "34.192.0.0/10"
-  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  #}
-
-  #route {
-    # also eks service
-  #  cidr_block     = "18.128.0.0/9"
-  #  nat_gateway_id = "${data.aws_nat_gateway.the_gateway.id}"
-  #}
-
-  route {
-    #from the commons vpc to the csoc vpc via the peering connection
-    #cidr_block                = "${var.csoc_cidr}"
-    #cidr_block                = "${data.aws_vpc.peering_vpc.cidr_block}"
-    cidr_block                = "${var.peering_cidr}"
-    vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
-  }
 
   tags {
     Name         = "eks_private"
@@ -221,6 +152,14 @@ resource "aws_route_table" "eks_private" {
   }
 }
 
+
+resource "aws_route" "for_peering" {
+  route_table_id            = "${aws_route_table.eks_private.id}"
+  destination_cidr_block    = "${var.peering_cidr}"
+  vpc_peering_connection_id = "${data.aws_vpc_peering_connection.pc.id}"
+}
+
+
 resource "aws_route" "skip_proxy" {
   count                  = "${length(var.cidrs_to_route_to_gw)}"
   route_table_id         = "${aws_route_table.eks_private.id}"
@@ -229,57 +168,18 @@ resource "aws_route" "skip_proxy" {
   depends_on             = ["aws_route_table.eks_private"]
 }
 
-
-# Apparently we cannot iterate over the resource, therefore I am querying them after creation
-#data "aws_subnet_ids" "private" {
-#  vpc_id = "${data.aws_vpc.the_vpc.id}"
-#  tags {
-#    Name = "eks_private_*"
-#  }
-#  depends_on = [
-#    "aws_subnet.eks_private",
-#  ]
-#}
-
+resource "aws_route" "public_access" {
+  count                  = "${var.ha_squid ? var.dual_proxy ? 1 : 0 : 1}"
+  destination_cidr_block = "0.0.0.0/0"
+  route_table_id         = "${aws_route_table.eks_private.id}"
+  instance_id            = "${data.aws_instances.squid_proxy.ids[0]}"
+}
 
 resource "aws_route_table_association" "private_kube" {
-  #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  #subnet_id      = "${data.aws_subnet_ids.private.ids[count.index]}"
   subnet_id      = "${aws_subnet.eks_private.*.id[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
-  lifecycle {
-    # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["tags"]
-  }
-  depends_on = ["aws_subnet.eks_private"]
-}
-
-
-#  S3 endpoint
-resource "aws_vpc_endpoint" "k8s-s3" {
-  vpc_id          =  "${data.aws_vpc.the_vpc.id}"
-  service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
-  route_table_ids = ["${aws_route_table.eks_private.id}"]
-}
-
-# Cloudwatch logs endpoint
-resource "aws_vpc_endpoint" "k8s-logs" {
-  vpc_id              = "${data.aws_vpc.the_vpc.id}"
-  service_name        = "${data.aws_vpc_endpoint_service.logs.service_name}"
-  vpc_endpoint_type   = "Interface"
-
-  security_group_ids  = [
-    "${aws_security_group.eks_nodes_sg.id}"
-  ]
-
-  private_dns_enabled = true
-  #subnet_ids          = ["${data.aws_subnet_ids.private.ids}"]
-  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  #route_table_ids    = ["${aws_route_table.eks_private.id}"]
-  lifecycle {
-    #ignore_changes = ["subnet_ids"]
-  }
+  depends_on     = ["aws_subnet.eks_private"]
 }
 
 
@@ -294,28 +194,19 @@ resource "aws_security_group" "eks_control_plane_sg" {
     protocol        = "-1"
     cidr_blocks     = ["0.0.0.0/0"]
   }
+  
+  tags {
+    Name         = "${var.vpc_name}-control-plane-sg"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 }
 
 
 
 
-
-# Apparently we cannot iterate over the resource, therefore I am querying them after creation
-#data "aws_subnet_ids" "public_kube" {
-#  vpc_id = "${data.aws_vpc.the_vpc.id}"
-#  tags {
-#    Name = "eks_public_*"
-#  }
-#  depends_on = [
-#    "aws_subnet.eks_public",
-#  ]
-#}
-
-
 resource "aws_route_table_association" "public_kube" {
-  #count          = 3
   count          = "${random_shuffle.az.result_count}"
-  #subnet_id      = "${data.aws_subnet_ids.public_kube.ids[count.index]}"
   subnet_id      = "${aws_subnet.eks_public.*.id[count.index]}"
   route_table_id = "${data.aws_route_table.public_kube.id}"
 
@@ -344,6 +235,11 @@ resource "aws_eks_cluster" "eks_cluster" {
     "aws_iam_role_policy_attachment.eks-policy-AmazonEKSServicePolicy",
     "aws_subnet.eks_private",
   ]
+  
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 }
 
 
@@ -356,6 +252,10 @@ resource "aws_eks_cluster" "eks_cluster" {
 
 resource "aws_iam_role" "eks_node_role" {
   name = "eks_${var.vpc_name}_workers_role"
+  tags {
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
 
   assume_role_policy = <<POLICY
 {
@@ -725,8 +625,6 @@ resource "null_resource" "config_setup" {
 # let's work towards EKS IAM-ServiceAccount integration
 
 resource "aws_iam_openid_connect_provider" "identity_provider" {
-  #count           = "${var.eks_version == "1.12" ? 0 : 1}"
-  #count           = "${var.iam-serviceaccount ? 1 : 0}"
   count              = "${var.iam-serviceaccount ? var.eks_version == "1.12" ? 0 : 1 : 0}"
   url             = "${aws_eks_cluster.eks_cluster.identity.0.oidc.0.issuer}"
 

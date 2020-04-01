@@ -69,6 +69,13 @@ spec:
           readOnly: true
           mountPath: "/var/www/arborist/dbcreds.json"
           subPath: dbcreds.json
+        resources:
+          requests:
+            cpu: 0.4
+            memory: 1200Mi
+          limits:
+            cpu: 0.8
+            memory: 2400Mi
         command: ["sh"]
         args:
           - "-c"

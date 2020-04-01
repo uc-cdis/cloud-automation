@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: indexd-deployment
   annotations:
-    gen3.io/network-ingress: "fence,fenceshib,peregrine,sheepdog,ssjdispatcherjob"
+    gen3.io/network-ingress: "fence,presigned-url-fence,fenceshib,peregrine,sheepdog,ssjdispatcherjob"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -71,6 +71,11 @@ spec:
                 name: manifest-indexd
                 key: arborist
                 optional: true
+          - name: HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: hostname
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -109,6 +114,9 @@ spec:
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
         resources:
+          requests:
+            cpu: 0.5
+            memory: 1024Mi
           limits:
             cpu: 1.0
-            memory: 1024Mi
+            memory: 2048Mi
