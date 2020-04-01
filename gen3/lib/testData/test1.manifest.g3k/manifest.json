@@ -18,7 +18,7 @@
     "portal": "quay.io/cdis/data-portal:master",
     "fluentd": "fluent/fluentd-kubernetes-daemonset:cloudwatch",
     "jupyterhub": "quay.io/occ_data/jupyterhub:master",
-    "data-ingestion-pipeline": "quay.io/cdis/datastage-data-ingestion:master"
+    "data-ingestion-pipeline": "quay.io/cdis/bdcat-data-ingestion:master"
   },
   "jupyterhub": {
     "enabled": "yes"
