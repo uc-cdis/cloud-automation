@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: covid19-etl
+  name: covid19-idph-etl
 spec:
   template:
     metadata:
@@ -10,9 +10,9 @@ spec:
         app: gen3job
     spec:
       containers:
-      - name: covid19-etl
+      - name: covid19-idph-etl
         imagePullPolicy: Always
-        GEN3_COVID19-ETL_IMAGE
+        GEN3_COVID19-IDPH-ETL_IMAGE
         env:
         - name: ACCESS_TOKEN
           GEN3_ACCESS_TOKEN|-value: ""-|
@@ -22,5 +22,5 @@ spec:
             memory: 512Mi
         command: ["python3"]
         args:
-          - "/johns_hopkins_etl.py"
+          - "/idph_etl.py"
       restartPolicy: Never
