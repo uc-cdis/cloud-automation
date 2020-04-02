@@ -544,7 +544,7 @@ gen3_db_restore() {
     return 1
   fi
 
-  local dbname="${serviceName}_$(gen3_db_namespace)_restore_$(date -u +%Y%m%d_%H%M%S)"
+  local dbname="$(echo ${serviceName}_$(gen3_db_namespace)_restore_$(date -u +%Y%m%d_%H%M%S) | tr - _)"
   if [[ "$dryRun" == false ]]; then
     gen3_log_info "creating database $dbname"
     # create the db as the root user, then grant permissions to the service user
