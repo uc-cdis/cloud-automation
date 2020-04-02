@@ -1,0 +1,135 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: data-ingestion
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      restartPolicy: Never
+      volumes:
+        - name: shared-data
+          emptyDir: {}
+        - name: data-ingestion-job-secret
+          secret:
+            secretName: data-ingestion-job-secret
+        - name: phs-id-list
+          configMap:
+            name: phs-id-list
+        - name: data-requiring-manual-review
+          configMap:
+            name: data-requiring-manual-review
+            optional: true
+        - name: genome-file-manifest
+          configMap:
+            name: genome-file-manifest
+            optional: true
+        - name: old-config-volume
+          secret:
+            secretName: "fence-secret"
+        - name: json-secret-volume
+          secret:
+            secretName: "fence-json-secret"
+        - name: creds-volume
+          secret:
+            secretName: "fence-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
+        - name: config-volume
+          secret:
+            secretName: "fence-config"
+        - name: fence-google-app-creds-secret-volume
+          secret:
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
+      containers:
+        - name: data-ingestion-pipeline
+          GEN3_DATA-INGESTION-PIPELINE_IMAGE
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: CREDS_JSON
+              valueFrom:
+                secretKeyRef:
+                  name: data-ingestion-job-secret
+                  key: config.json
+            - name: CREATE_GENOME_MANIFEST
+              GEN3_CREATE_GENOME_MANIFEST|-value: "true"-|
+          volumeMounts:
+            - name: shared-data
+              mountPath: /this-directory-is-shared-with-fence
+            - name: phs-id-list
+              readOnly: true
+              mountPath: /phs-id-list
+            - name: data-requiring-manual-review
+              readOnly: true
+              mountPath: /data-requiring-manual-review
+            - name: genome-file-manifest
+              readOnly: true
+              mountPath: /genome-file-manifest
+          command: ["/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              source ./setup_env.sh
+              
+              ./run.sh
+
+              if [ $? -ne 0 ]; then
+                echo "The pipeline was not run successfully. Stopping execution."
+                exit 1
+              fi
+
+              if [ -f "scripts/manifestmerge/output/google-groups.sh" ]; then
+                  echo "google-groups.sh contains:"
+                  cat scripts/manifestmerge/output/google-groups.sh
+              else
+                echo "Error: google groups generation script is not present."
+              fi
+
+              cp -R scripts/manifestmerge/output/. /this-directory-is-shared-with-fence/.
+        - name: fence
+          GEN3_FENCE_IMAGE
+          imagePullPolicy: Always
+          env:
+            - name: PYTHONPATH
+              value: /var/www/fence
+            - name: CREATE_GOOGLE_GROUPS
+              GEN3_CREATE_GOOGLE_GROUPS|-value: "false"-|
+          volumeMounts:
+            - name: shared-data
+              mountPath: /data-ingestion-pipeline-output
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/fence/fence-config.yaml"
+              subPath: fence-config.yaml
+            - name: "fence-google-app-creds-secret-volume"
+              readOnly: true
+              mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+              subPath: fence_google_app_creds_secret.json
+            - name: "fence-google-storage-creds-secret-volume"
+              readOnly: true
+              mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+              subPath: fence_google_storage_creds_secret.json
+          command: ["/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              while true; do
+                  # Wait for the output from the data ingestion pipeline image
+                  files=( /data-ingestion-pipeline-output/* )
+                  (( ${#files[@]} >= 3 )) && break
+                  sleep 5s
+              done
+
+              ls /data-ingestion-pipeline-output
+              chmod +x /data-ingestion-pipeline-output/fence-image-commands.sh
+              cd /data-ingestion-pipeline-output
+              ls
+              ./fence-image-commands.sh

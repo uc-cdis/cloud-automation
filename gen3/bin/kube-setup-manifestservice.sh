@@ -20,7 +20,7 @@ credsFile="$(gen3_secrets_folder)/g3auto/manifestservice/config.json"
 if (! (g3kubectl describe secret manifestservice-g3auto 2> /dev/null | grep config.js > /dev/null 2>&1)) \
   && [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; 
 then
-  gen3_log_info "kube-seutp-manifestservice" "setting up manifest-service resources"
+  gen3_log_info "kube-setup-manifestservice" "setting up manifest-service resources"
   gen3 s3 create "$bucketname"
   gen3 awsuser create ${username}
   gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name ${username}
