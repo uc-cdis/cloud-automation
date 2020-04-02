@@ -393,12 +393,19 @@ gen3_gitops_sync() {
     if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true ) ]]; then
       echo "changes detected, rolling"
       # run etl job before roll all so guppy can pick up changes
+      etlRes=0
       if [[ "$etl_roll" = true ]]; then
           gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
           gen3 job run etl --wait ETL_FORCED TRUE
+          etlRes=$?
       fi
-      gen3 kube-roll-all
-      rollRes=$?
+      if [[ $etlRes != 0 ]]; then
+        gen3_log_error "ETL failed exiting job"
+        rollRes=$etlRes
+      else
+        gen3 kube-roll-all
+        rollRes=$?
+      fi
       # send result to slack
       if [[ $slack = true ]]; then
         tmpHostname=$(g3kubectl get configmap manifest-global -o jsonpath={.data.hostname})
