@@ -236,6 +236,11 @@ gen3_bootstrap_fenceconfig() {
 
 
 gen3_bootstrap_go() {
+  if [[ -n "$JENKINS_HOME" ]]; then
+    gen3_log_err "Do not do this in CICD!"
+    exit 1
+  fi
+
   if [[ $# -lt 1 ]]; then
     gen3_log_err "Use: bootstrap go config.json"
     return 1
@@ -262,11 +267,6 @@ gen3_bootstrap_go() {
 }
 
 # main -----------------------------
-
-if [[ -n "$JENKINS_HOME" ]]; then
-  gen3_log_err "Do not do this in CICD!"
-  exit 1
-fi
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   # Support sourcing this file for test suite
