@@ -106,6 +106,44 @@ gen3_bootstrap_dashboard() {
   rsync -av "$GEN3_HOME/files/dashboard/maintenance-page/" "$folder/maintenance-page/"
 }
 
+gen3_bootstrap_sower() {
+  local config
+  config="$1"
+  shift
+  local manifestFolder
+  manifestFolder="$(gen3_bootstrap_manfolder "$config")" || return 1
+  
+  local configFile="$manifestFolder/manifests/sower/sower.json"
+  
+  if [[ -e "$configFile" ]]; then
+    gen3_log_info "sower.json already exists $configFile"
+    return 0
+  fi
+  local templatePath="$GEN3_TEMPLATE_FOLDER/cdis-manifest/manifests/sower/sower.json"
+  gen3_log_info "installing $configFile"
+  mkdir -p "$(dirname "$configFile")"
+  cp "$templatePath" "$configFile"
+}
+
+gen3_bootstrap_manifest() {
+  local config
+  config="$1"
+  shift
+  local manifestFolder
+  manifestFolder="$(gen3_bootstrap_manfolder "$config")" || return 1
+  
+  local configFile="$manifestFolder/manifest.json"
+  
+  if [[ -e "$configFile" ]]; then
+    gen3_log_info "manifest.json already exists $configFile"
+    return 0
+  fi
+  local templatePath="$GEN3_TEMPLATE_FOLDER/cdis-manifest/manifest.json"
+  gen3_log_info "installing $configFile"
+  mkdir -p "$(dirname "$configFile")"
+  cp "$templatePath" "$configFile"
+}
+
 gen3_bootstrap_00configmap() {
   local confFile="$(gen3_secrets_folder)/00configmap.yaml"
   
@@ -215,6 +253,10 @@ gen3_bootstrap_go() {
   gen3_bootstrap_credsjson "$config"
   echo "" 1>&2
   gen3_bootstrap_fenceconfig "$config"
+  echo "" 1>&2
+  gen3_bootstrap_manifest "$config"
+  echo "" 1>&2
+  gen3_bootstrap_sower "$config"
   echo "" 1>&2
   gen3_bootstrap_dashboard "$config"
 }
