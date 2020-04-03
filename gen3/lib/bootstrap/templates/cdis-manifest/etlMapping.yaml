@@ -1,0 +1,212 @@
+mappings:
+  - name: bhc_etl
+    doc_type: case
+    type: aggregator
+    root: case
+    props:
+      - name: submitter_id
+      - name: project_id
+      - name: gender
+      - name: ethnicity
+      - name: race
+      - name: age_at_enrollment
+      - name: experimental_group
+    aggregated_props:
+      - name: veteran_status
+        path: visits.demographics
+        src: veteran_status
+        fn: set
+      - name: education_years
+        path: visits.demographics
+        src: education_years
+        fn: max
+      - name: age_at_onset
+        path: visits.diagnoses
+        src: age_at_onset
+        fn: min
+      - name: mds_updrs
+        value_mappings:
+          - uploaded: MDS-UPDRS
+          - md5summed: MDS-UPDRS
+          - validating: MDS-UPDRS
+          - validated: MDS-UPDRS
+          - released: MDS-UPDRS
+        path: visits.mds_unified_pd_ratings
+        src: state
+        fn: set
+      - name: unified_parkinsons_disease_ratings
+        value_mappings:
+          - uploaded: UPDRS
+          - md5summed: UPDRS
+          - validating: UPDRS
+          - validated: UPDRS
+          - released: UPDRS
+        path: visits.unified_parkinsons_disease_ratings
+        src: state
+        fn: set
+      - name: hopkins_verbal_learning_tests
+        value_mappings:
+          - uploaded: HVLT-R
+          - md5summed: HVLT-R
+          - validating: HVLT-R
+          - validated: HVLT-R
+          - released: HVLT-R
+        path: visits.hopkins_verbal_learning_tests
+        src: state
+        fn: set
+      - name: scales_for_outcomes_in_pds
+        value_mappings:
+          - uploaded: Scales for Outcomes in Parkinson’s Disease - Autonomic
+          - md5summed: Scales for Outcomes in Parkinson’s Disease - Autonomic
+          - validating: Scales for Outcomes in Parkinson’s Disease - Autonomic
+          - validated: Scales for Outcomes in Parkinson’s Disease - Autonomic
+          - released: Scales for Outcomes in Parkinson’s Disease - Autonomic
+        path: visits.scales_for_outcomes_in_pds
+        src: state
+        fn: set
+      - name: modified_schwab_england_scales
+        value_mappings:
+          - uploaded: Modified Schwab
+          - md5summed: Modified Schwab
+          - validating: Modified Schwab
+          - validated: Modified Schwab
+          - released: Modified Schwab
+        path: visits.modified_schwab_england_scales
+        src: state
+        fn: set
+      - name: baseline_dyspnea_indexes
+        value_mappings:
+          - uploaded: BDI
+          - md5summed: BDI
+          - validating: BDI
+          - validated: BDI
+          - released: BDI
+        path: visits.baseline_dyspnea_indexes
+        src: state
+        fn: set
+      - name: hamilton_depression_ratings
+        value_mappings:
+          - uploaded: Hamilton
+          - md5summed: Hamilton
+          - validating: Hamilton
+          - validated: Hamilton
+          - released: Hamilton
+        path: visits.hamilton_depression_ratings
+        src: state
+        fn: set
+      - name: state_trait_anxiety_inventories
+        value_mappings:
+          - uploaded: Anxiety – State-Trait Anxiety Inventory (STAI)
+          - md5summed: Anxiety – State-Trait Anxiety Inventory (STAI)
+          - validating: Anxiety – State-Trait Anxiety Inventory (STAI)
+          - validated: Anxiety – State-Trait Anxiety Inventory (STAI)
+          - released: Anxiety – State-Trait Anxiety Inventory (STAI)
+        path: visits.state_trait_anxiety_inventories
+        src: state
+        fn: set
+      - name: upenn_smell_tests
+        value_mappings:
+          - uploaded: UPSIT
+          - md5summed: UPSIT
+          - validating: UPSIT
+          - validated: UPSIT
+          - released: UPSIT
+        path: visits.upenn_smell_tests
+        src: state
+        fn: set
+      - name: geriatric_depression_scales
+        value_mappings:
+          - uploaded: Geriatric Depression Scale Short Form Questionnaire
+          - md5summed: Geriatric Depression Scale Short Form Questionnaire
+          - validating: Geriatric Depression Scale Short Form Questionnaire
+          - validated: Geriatric Depression Scale Short Form Questionnaire
+          - released: Geriatric Depression Scale Short Form Questionnaire
+        path: visits.geriatric_depression_scales
+        src: state
+        fn: set
+      - name: montreal_cognitive_functional_tests
+        value_mappings:
+          - uploaded: MOCA
+          - md5summed: MOCA
+          - validating: MOCA
+          - validated: MOCA
+          - released: MOCA
+        path: visits.montreal_cognitive_functional_tests
+        src: state
+        fn: set
+      - name: mini_mental_status_exams
+        value_mappings:
+          - uploaded: MMSE
+          - md5summed: MMSE
+          - validating: MMSE
+          - validated: MMSE
+          - released: MMSE
+        path: visits.mini_mental_status_exams
+        src: state
+        fn: set
+      - name: rem_sleep_behaviors
+        value_mappings:
+          - uploaded: REM Sleep Behavior Disorder Questionnaire
+          - md5summed: REM Sleep Behavior Disorder Questionnaire
+          - validating: REM Sleep Behavior Disorder Questionnaire
+          - validated: REM Sleep Behavior Disorder Questionnaire
+          - released: REM Sleep Behavior Disorder Questionnaire
+        path: visits.rem_sleep_behaviors
+        src: state
+        fn: set
+      - name: epworth_sleepiness_scales
+        value_mappings:
+          - uploaded: Epworth Sleepiness Scale
+          - md5summed: Epworth Sleepiness Scale
+          - validating: Epworth Sleepiness Scale
+          - validated: Epworth Sleepiness Scale
+          - released: Epworth Sleepiness Scale
+        path: visits.epworth_sleepiness_scales
+        src: state
+        fn: set
+      - name: _samples_count
+        path: visits.samples
+        fn: count
+      - name: _aliquots_count
+        path: visits.samples.aliquots
+        fn: count
+      - name: _read_group_count
+        path: visits.samples.aliquots.read_groups
+        fn: count
+      - name: _submitted_expression_arrays_count
+        path: visits.samples.aliquots.submitted_expression_array_files
+        fn: count
+      - name: _submitted_unaligned_reads_count
+        path: visits.samples.aliquots.read_groups.submitted_unaligned_reads_files
+        fn: count
+    joining_props:
+      - index: file
+        join_on: case_id
+        props:
+          - name: data_format
+            src: data_format
+            fn: set
+          - name: data_type
+            src: data_type
+            fn: set
+  - name: bhc_file
+    doc_type: file
+    type: collector
+    root: None
+    category: data_file
+    props:
+      - name: object_id
+      - name: md5sum
+      - name: file_name
+      - name: file_size
+      - name: data_format
+      - name: data_type
+      - name: state
+    injecting_props:
+      case:
+        props:
+          - name: case_id
+            src: id
+            fn: set
+          - name: project_id
+            fn: set

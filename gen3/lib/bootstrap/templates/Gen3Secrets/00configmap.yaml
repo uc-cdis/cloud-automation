@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: global
+data:
+  environment: ""
+  hostname: ""
+  revproxy_arn: ""
+  slack_webhook: None
+  useryaml_s3path: ""
+  gitops_path: "https://github.com/uc-cdis/cdis-manifest.git"

@@ -187,7 +187,7 @@ gen3_run() {
       g3k "$commandStr" "$@"
       resultCode=$?
       if [[ $resultCode -eq 2 ]]; then
-        echo "ERROR unknown command $commandStr"
+        gen3_log_err "unknown command $commandStr"
         bash "$GEN3_HOME/gen3/bin/usage.sh" "$commandStr"
       fi
     fi
@@ -197,7 +197,7 @@ gen3_run() {
   if [[ ! -z "$scriptName" ]]; then
     local scriptPath="$scriptFolder/$scriptName"
     if [[ ! -f "$scriptPath" ]]; then
-      echo "ERROR - internal bug - $scriptPath does not exist"
+      gen3_log_err "internal bug - $scriptPath does not exist"
       return 1
     fi
     GEN3_DRY_RUN=$GEN3_DRY_RUN_FLAG GEN3_VERBOSE=$GEN3_VERBOSE_FLAG bash "$GEN3_HOME/gen3/bin/$scriptName" "$@"
