@@ -5,7 +5,7 @@
 #
 # USER=USER
 # KUBECONFIG=path/to/kubeconfig
-# 0   0   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/covid19-idph-etl-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/covid19-idph-etl-cronjob.sh; else echo "no codiv19-idph-etl-cronjob.sh"; fi) > $HOME/covid19-idph-etl-cronjob.log 2>&1
+# 0   0   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/covid19-etl-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/covid19-etl-cronjob.sh; else echo "no codiv19-etl-cronjob.sh"; fi) > $HOME/covid19-etl-cronjob.log 2>&1
 
 # setup --------------------
 
@@ -44,4 +44,4 @@ if [[ -z "$JOB_NAME" ]]; then
 fi
 
 accessToken="$(gen3 api access-token $USER)"
-gen3 job run covid19-idph-etl ACCESS_TOKEN "$accessToken" JOB_NAME "$JOB_NAME"
+gen3 job run covid19-etl ACCESS_TOKEN "$accessToken" JOB_NAME "$JOB_NAME"
