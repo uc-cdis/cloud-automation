@@ -12,12 +12,12 @@ spec:
       containers:
       - name: covid19-etl
         imagePullPolicy: Always
-        GEN3_COVID19-IDPH-ETL_IMAGE
+        GEN3_COVID19-ETL_IMAGE
         env:
         - name: ACCESS_TOKEN
           GEN3_ACCESS_TOKEN|-value: ""-|
         - name: JOB_NAME
-          GEN3_ACCESS_TOKEN|-value: ""-|
+          GEN3_JOB_NAME|-value: ""-|
         resources:
           limits:
             cpu: 0.5
