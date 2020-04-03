@@ -29,7 +29,7 @@ spec:
             secretName: "aws-es-proxy"
       containers:
       - name: esproxy
-        GEN3_ESPROXY_IMAGE|-image: abutaha/aws-es-proxy:0.8-|
+        GEN3_AWS-ES-PROXY_IMAGE|-image: abutaha/aws-es-proxy:0.8-|
         imagePullPolicy: Always
         ports:
         - containerPort: 9200
@@ -46,7 +46,16 @@ spec:
         args:
           - "-c"
           - |
-            ./aws-es-proxy -endpoint "https://$ES_ENDPOINT" -verbose -listen ":9200"
+            if [ -f /usr/local/bin/aws-es-proxy ];
+            then
+              # 0.9
+              BINARY=/usr/local/bin/aws-es-proxy
+            elif [ -f /go/src/github.com/abutaha/aws-es-proxy/aws-es-proxy ];
+            then
+              # 0.8
+              BINARY=/go/src/github.com/abutaha/aws-es-proxy/aws-es-proxy
+            fi
+            ${BINARY} -endpoint "https://$ES_ENDPOINT" -verbose -listen ":9200"
         resources:
           limits:
             cpu: 0.3
