@@ -37,5 +37,11 @@ if [[ -z "$USER" ]]; then
   exit 1
 fi
 
+if [[ -z "$JOB_NAME" ]]; then
+  gen3_log_err "\$JOB_NAME variable required"
+  help
+  exit 1
+fi
+
 accessToken="$(gen3 api access-token $USER)"
 gen3 job run covid19-idph-etl ACCESS_TOKEN "$accessToken" JOB_NAME "$JOB_NAME"
