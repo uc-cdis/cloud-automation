@@ -1,0 +1,28 @@
+# gen3 job run covid19-etl ACCESS_TOKEN <access_token> JOB_NAME <job_name>
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: covid19-etl
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      containers:
+      - name: covid19-etl
+        imagePullPolicy: Always
+        GEN3_COVID19-IDPH-ETL_IMAGE
+        env:
+        - name: ACCESS_TOKEN
+          GEN3_ACCESS_TOKEN|-value: ""-|
+        - name: JOB_NAME
+          GEN3_ACCESS_TOKEN|-value: ""-|
+        resources:
+          limits:
+            cpu: 0.5
+            memory: 512Mi
+        command: ["python3"]
+        args:
+          - "/covid19-etl/main.py"
+      restartPolicy: Never
