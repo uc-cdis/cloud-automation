@@ -116,11 +116,7 @@ spec:
         - containerPort: 4444
         readinessProbe:
           httpGet:
-            path: /wd/hub/sessions
-            port: 4444
-        readinessProbe:
-          httpGet:
-            path: /wd/hub/sessions
+            path: /status
             port: 4444
         imagePullPolicy: Always
       volumes:
