@@ -11,13 +11,12 @@ Example output:
 ```console
              username             |  auth_id
 ----------------------------------+-----------
- USER_A                           | phs000178
- USER_A                           | test
- USER_A                           | phs000218
- USER_B                           | test
- USER_B                           | phs000178
- USER_B                           | phs000218
- USER_C                           | test
+ USER_A                           | test1
+ USER_A                           | test2
+ USER_B                           | test1
+ USER_B                           | test2
+ USER_B                           | test3
+ USER_C                           | test2
 
 ```
 
@@ -32,9 +31,8 @@ Example output:
 ```console
                  name                    |  auth_id  |                                 email                            
 -----------------------------------------+-----------+-------------------------------------------------------------------
- gdc-tcga-phs000178-controlled-staging   | phs000178 | gdc-tcga-phs000178-controlled_write_gbag@nci-crdc.datacommons.io
- test-bucket-with-data                   | test      | test-bucket-with-data_read_gbag@nci-crdc.datacommons.io
- test-bucket-with-data                   | test      | test-bucket-with-data_write_gbag@nci-crdc.datacommons.io
+ test-bucket-with-data                   | test      | test-bucket-with-data_read_gbag@test.datacommons.io
+ test-bucket-with-data                   | test      | test-bucket-with-data_write_gbag@test.datacommons.io
 ```
 
 ### Get Registered Google Service Account(s) Project Access and Expiration
@@ -51,10 +49,10 @@ Example output:
 ```console
   google_project_id   |                               email                               |  auth_id  |  expires   
 ----------------------+-------------------------------------------------------------------+-----------+------------
- tmp-dcf-staging-test | 244858185756-compute@developer.gserviceaccount.com                | phs000218 | 1543254638
- tmp-dcf-staging-test | test-service-account@tmp-dcf-staging-test.iam.gserviceaccount.com | phs000178 | 1543254614
- tmp-dcf-staging-test | test-service-account@tmp-dcf-staging-test.iam.gserviceaccount.com | phs000218 | 1543254614
- foobar               | blahblahblahb@foobar.iam.gserviceaccount.com                      | phs000218 | 1543254897
+ tmp-test             | 1234567890-compute@developer.gserviceaccount.com                  | test1     | 1543254638
+ tmp-test             | test-service-account@tmp-test.iam.gserviceaccount.com             | test2     | 1543254614
+ tmp-test             | test-service-account@tmp-test.iam.gserviceaccount.com             | test1     | 1543254614
+ foobar               | blahblahblahb@foobar.iam.gserviceaccount.com                      | test1     | 1543254897
 
  
 ```
@@ -64,18 +62,18 @@ Example output:
 ### Get access by username and resource paths
 
 ```sql
-SELECT policies.name, path FROM (SELECT * FROM usr INNER JOIN usr_policy ON usr_policy.usr_id = usr.id WHERE usr.name = 'cdis.autotest@gmail.com') AS policies JOIN policy_resource ON policy_resource.policy_id = policies.policy_id JOIN resource ON resource.id = policy_resource.resource_id;
+SELECT policies.name, path FROM (SELECT * FROM usr INNER JOIN usr_policy ON usr_policy.usr_id = usr.id WHERE usr.name = 'test@gmail.com') AS policies JOIN policy_resource ON policy_resource.policy_id = policies.policy_id JOIN resource ON resource.id = policy_resource.resource_id;
 ```
 
-Replace `cdis.autotest@gmail.com` with whatever, or just remove the WHERE to get everything. This will *not* include policies granted by a user's group membership.
+Replace `test@gmail.com` with whatever, or just remove the WHERE to get everything. This will *not* include policies granted by a user's group membership.
 
 Example output: 
 ```
           name           |               path
 -------------------------+----------------------------------
- cdis.autotest@gmail.com | workspace
- cdis.autotest@gmail.com | prometheus
- cdis.autotest@gmail.com | data_file
- cdis.autotest@gmail.com | programs.jnkns
- cdis.autotest@gmail.com | programs.jnkns.projects.jenkins
+ test@gmail.com          | workspace
+ test@gmail.com          | prometheus
+ test@gmail.com          | data_file
+ test@gmail.com          | programs.jnkns
+ test@gmail.com          | programs.jnkns.projects.jenkins
 ```

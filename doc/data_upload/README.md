@@ -2,8 +2,6 @@
 
 This document describes the architecture for the data upload flow which the Gen3
 stack supports.<br/>
-[kickoff slides](https://docs.google.com/presentation/d/1ic6i1d9z7sNYghPMWdEuMKcz2x8XRC3nx7s51YEw7JY/edit?usp=sharing)<br/>
-[UI specs](https://uchicago.app.box.com/folder/57909760759)
 
 ## User Flow
 
