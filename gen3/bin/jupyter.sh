@@ -109,6 +109,33 @@ gen3_jupyter_upgrade() {
   fi
 }
 
+gen3_jupyter_pv_clear() {
+  local grepFor
+  local doIt="false"
+  if [[ $# -lt 1 ]]; then
+    gen3_log_err 'use: pvclear $grepFor -- just outputs a list of commands'
+    return 1
+  fi
+  grepFor="$1"
+  shift
+  # grep for jupyter pods
+  # note - this is building up an array/list
+  local claims=($(g3kubectl get persistentvolumes | grep pods | grep "$grepFor" | awk '{ print $1 "  " $6 }'))
+  local i
+  local pv
+  local pvc
+  local pvcNamespace
+  for ((i=0; i < "${#claims[@]}"; i+=2)); do
+    pv="${claims[$i]}"
+    pvc="$(awk -F / '{ print $1 }' <<<"${claims[$((i+1))]}")"
+    pvcNamespace="$(awk -F / '{ print $2 }' <<<"${claims[$((i+1))]}")"
+
+    gen3_log_info "$i" 
+    gen3_log_info "g3kubectl delete persistentvolumeclaim --namespace $pvcNamespace $pvc"
+    gen3_log_info "g3kubectl delete persistentvolume $pv"
+  done
+}
+
 # main ----------------------
 
 command="$1"
@@ -127,6 +154,9 @@ case "$command" in
     ;;
   "upgrade")
     gen3_jupyter_upgrade "$@"
+    ;;
+  "pvclear")
+    gen3_jupyter_pv_clear "$@"
     ;;
   *)
     gen3 help jupyter

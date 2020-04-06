@@ -104,6 +104,29 @@ Like `gen3 logs curl200`, but fails if the response payload is not json - sendin
 gen3 logs curl200 https://www.google.com -X DELETE
 ```
 
+### `gen3 logs cloudwatch streams [group="environment"] [grep=""]`
+
+Retrieve the 1000 cloudwatch streams with the most recent events, and optionally filter by name.
+
+Ex 1:
+```
+gen3 logs cloudwatch streams grep=fence-deployment | tee ~/trash/streams.njson
+```
+
+Ex 2:
+```
+gen3 logs cloudwatch streams group=bhcprodv2 start='2 days ago' grep='fence-deployment'
+```
+
+### `gen3 logs cloudwatch events [group="environment"] stream1 stream2 ...`
+
+Retrieve the events in the given streams of the given group.
+Generates local files in the current directory for each stream.
+
+```
+gen3 logs cloudwatch events kubernetes.gen3.json.kubernetes.var.log.containers.wts-deployment-8545b5647c-bstw4_abby_wts-2d887daa161c23041e293c75582adb800252f38d88b7e4386069df3d58e19d47.log kubernetes.gen3.json.kubernetes.var.log.containers.wts-deployment-555944564c-fd5xf_marcelo_wts-fc7e5592229b5bea68778e2e681a55fb3711e9679cbd0561a7cc1db370aa5706.log
+```
+
 ### `gen3 logs s3 start=yesterday end=tomorrow filter=raw prefix=...`
 
 Retrieve the access logs from the given s3 logs bucket prefix.

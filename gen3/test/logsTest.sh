@@ -8,6 +8,10 @@ test_logs() {
   gen3 logs save ubh > /dev/null 2>&1; because $? "gen3 logs save ubh should work"
 }
 
+test_logs_cloudwatch() {
+  gen3 logs cloudwatch streams start='1 hour ago' > /dev/null; because $? "gen3 logs cloudwatch streams should work"
+}
+
 test_logs_history() {
   local result
   result=$(gen3 logs history codes vpc=qaplanetv1) && jq -e -r .aggregations.codes.buckets <<< "$result" > /dev/null 2>&1;
@@ -100,6 +104,7 @@ fi
 
 shunit_runtest "test_logs_curl" "logs,local"
 shunit_runtest "test_logs_awk" "logs,local"
+shunit_runtest "test_logs_cloudwatch" "logs"
 shunit_runtest "test_logs_snapshot" "logs"
 shunit_runtest "test_logs_s3" "logs"
 shunit_runtest "test_logs_s3filter" "logs,local"
