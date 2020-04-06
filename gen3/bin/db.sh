@@ -221,7 +221,9 @@ gen3_db_random_server() {
 # List the servers - one per line
 #
 gen3_db_server_list() {
-  gen3_db_farm_json | jq -r '. | keys | join("\n")'
+  local info
+  info="$(gen3_db_farm_json)" || return 1
+  jq -r '. | keys | join("\n")' <<< "$info"
 }
 
 #
@@ -236,7 +238,9 @@ gen3_db_server_info() {
   fi
   server="$1"
   shift
-  gen3_db_farm_json | jq -e -r ".[\"$server\"]"
+  local info
+  info="$(gen3_db_farm_json)" || return 1
+  jq -e -r --arg server "$server" '.[$server]' <<< "$info"
 }
 
 

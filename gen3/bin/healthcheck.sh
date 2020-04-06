@@ -105,7 +105,7 @@ gen3_healthcheck() {
 
   # check internet access
   gen3_log_info "Checking internet access..."
-  local curlCmd="curl --max-time 15 -s -o /dev/null -I -w %{http_code} http://www.google.com"
+  local curlCmd="curl --max-time 15 -s -o /dev/null -I -w %{http_code} https://www.google.com"
   local statusCode=0
   if [[ $HOSTNAME == *"admin"* ]]; then # if in admin vm, run curl in fence pod
     statusCode=$(g3kubectl exec $(gen3 pod fence) -- $curlCmd)

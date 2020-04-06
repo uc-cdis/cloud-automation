@@ -1,0 +1,49 @@
+{
+  "notes": [
+    "This is the dev environment manifest",
+    "That's all I have to say"
+  ],
+  "versions": {
+    "ambassador": "quay.io/datawire/ambassador:0.60.3",
+    "arborist": "quay.io/cdis/arborist:2020.03",
+    "aws-es-proxy": "abutaha/aws-es-proxy:0.8",
+    "dashboard": "quay.io/cdis/gen3-statics:2020.03",
+    "fence": "quay.io/cdis/fence:2020.03",
+    "fluentd": "fluent/fluentd-kubernetes-daemonset:v1.2-debian-cloudwatch",
+    "hatchery": "quay.io/cdis/hatchery:2020.03",
+    "indexd": "quay.io/cdis/indexd:2020.03",
+    "manifestservice": "quay.io/cdis/manifestservice:2020.03",
+    "metadata": "quay.io/cdis/metadata-service:2020.03",
+    "peregrine": "quay.io/cdis/peregrine:2020.03",
+    "pidgin": "quay.io/cdis/pidgin:2020.03",
+    "portal": "quay.io/cdis/data-portal:2020.03",
+    "revproxy": "quay.io/cdis/nginx:1.17.6-ctds-1.0.1",
+    "sheepdog": "quay.io/cdis/sheepdog:2020.03",
+    "sower": "quay.io/cdis/sower:2020.03",
+    "spark": "quay.io/cdis/gen3-spark:2020.03",
+    "wts": "quay.io/cdis/workspace-token-service:2020.03",
+    "tube": "quay.io/cdis/tube:2020.03"
+  },
+  "arborist": {
+    "deployment_version": "2"
+  },
+  "indexd": {
+    "arborist": "true"
+  },
+  "google": {
+    "enabled": "no"
+  },
+  "global": {
+    "environment": "",
+    "hostname": "",
+    "revproxy_arn": "",
+    "dictionary_url": "https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json",
+    "portal_app": "dev",
+    "sync_from_dbgap": "False",
+    "useryaml_s3path": "",
+    "netpolicy": "on"
+  },
+  "canary": {
+    "default": 0
+  }
+}

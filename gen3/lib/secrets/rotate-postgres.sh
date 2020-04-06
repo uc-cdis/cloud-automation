@@ -4,6 +4,7 @@
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
+gen3_load "gen3/bin/db"
 
 #
 # Revoke all permissions for the given user from the given database,
@@ -89,12 +90,13 @@ gen3_secrets_rotate_pguser() {
     if [[ ! "$username" =~ ^$service ]]; then
       username="${service}_$username"  
     fi
+    server="$(gen3_db_random_server)"
   else
     dbname="$(jq -r .db_database <<<"$creds")"
     username="${service}_$(gen3 db namespace)_$(date -u +%Y%m%d_%H%M)"
+    server="$(jq -r .g3FarmServer <<<"$creds")"
   fi
   password="$(gen3 random)"
-  server="$(jq -r .g3FarmServer <<<"$creds")"
 
   if [[ "$createdb" == true ]]; then
     if ! gen3 db psql "$server" -c "CREATE DATABASE $dbname;" 1>&2; then

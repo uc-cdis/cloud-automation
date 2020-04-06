@@ -1,0 +1,60 @@
+{
+  "fence": {
+    "db_host": "",
+    "db_username": "",
+    "db_password": "",
+    "db_database": "",
+    "hostname": ""
+  },
+  "sheepdog": {
+    "db_host": "",
+    "db_username": "",
+    "db_password_old": "",
+    "db_password": "",
+    "db_database": "",
+    "indexd_password": ""
+  },
+  "peregrine": {
+    "db_host": "",
+    "db_username": "",
+    "db_password": "",
+    "db_database": ""
+  },
+  "indexd": {
+    "db_host": "",
+    "db_username": "",
+    "db_password": "",
+    "db_database": "",
+    "user_db": {
+    }
+  },
+  "es": {
+    "aws_access_key_id": "",
+    "aws_secret_access_key": ""
+  },
+  "ssjdispatcher": {
+    "AWS": {
+      "region": "us-east-1",
+      "user_name": "",
+      "aws_access_key_id": "",
+      "aws_secret_access_key": ""
+    },
+    "SQS": {
+      "url": ""
+    },
+    "JOBS": [
+      {
+        "name": "indexing",
+        "pattern": "s3://bucket/*",
+	"image": "quay.io/cdis/indexs3client:2020.03",
+        "imageConfig": {
+          "url": "http://indexd-service/index",
+          "username": "",
+          "password": ""
+        },
+        "RequestCPU": "500m",
+        "RequestMem": "0.5Gi"
+      }
+    ]
+  }
+}

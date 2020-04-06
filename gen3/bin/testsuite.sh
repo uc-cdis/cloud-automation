@@ -39,6 +39,7 @@ done
 gen3_load "gen3/test/apiTest"
 gen3_load "gen3/test/awsuserTest"
 gen3_load "gen3/test/awsroleTest"
+gen3_load "gen3/test/bootstrapTest"
 gen3_load "gen3/test/cronjobTest"
 gen3_load "gen3/test/dashboardTest"
 gen3_load "gen3/test/dbTest"
