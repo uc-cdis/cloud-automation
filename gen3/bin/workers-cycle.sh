@@ -13,7 +13,7 @@ SCRIPT=$(basename ${BASH_SOURCE[0]})
 function drain_node(){
   local instanceName=${1}
   gen3_log_info "Draining ${instanceName}"
-  g3kubectl drain ${instanceName} --ignore-daemonsets --delete-local-data
+  g3kubectl drain ${instanceName} --ignore-daemonsets --delete-local-data --force
 }
 
 
