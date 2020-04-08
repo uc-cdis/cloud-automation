@@ -1,0 +1,29 @@
+# gen3 job run nb-etl S3_BUCKET <S3_BUCKET>
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: nb-etl
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: s3-access-opencdn-databucket-gen3
+      restartPolicy: Never
+      containers:
+      - name: nb-etl
+        imagePullPolicy: Always
+        GEN3_NB-ETL_IMAGE
+        ports:
+        - containerPort: 80
+        env:
+        - name: S3_BUCKET
+          GEN3_S3_BUCKET
+        resources:
+          limits:
+            cpu: 0.5
+            memory: 512Mi
+        command: ["/bin/bash"]
+        args:
+          - "/seir-forecast/run_seir_forecast.sh"
