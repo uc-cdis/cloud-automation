@@ -4,7 +4,7 @@ kind: CronJob
 metadata:
   name: nb-etl
 spec:
-  schedule: "@daily"
+  schedule: "0 */3 * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:
