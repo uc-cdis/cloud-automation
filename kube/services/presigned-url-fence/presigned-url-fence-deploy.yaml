@@ -47,7 +47,7 @@ spec:
             name: "fence-yaml-merge"
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
-#             for fence.
+#             for fence
 # -----------------------------------------------------------------------------
         - name: old-config-volume
           secret:
