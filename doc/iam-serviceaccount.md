@@ -123,33 +123,15 @@ spec:
       containers:
       - image: quay.io/cdis/awshelper:master
         name: generic-deployment
-        env:
-        - name: AWS_ROLE_ARN
-          value: arn:aws:iam::707767160287:role/generic-commons-my-serviceaccount-role  # if you created the role using gen3 commands, the name of the role created will follow this pattern ${vpc_name}-<service-account-name>-role
-        - name: AWS_WEB_IDENTITY_TOKEN_FILE
-          value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
         command: ["/bin/bash" ]
         args:
           - "-c"
           - |
             while true; do echo "I am here"; echo $(whoami); sleep 60; done
         imagePullPolicy: Always
-        volumeMounts:
-        - mountPath: /var/run/secrets/eks.amazonaws.com/serviceaccount
-          name: aws-iam-token
-          readOnly: true
-      volumes:
-      - name: aws-iam-token
-        projected:
-          defaultMode: 420
-          sources:
-          - serviceAccountToken:
-              audience: sts.amazonaws.com
-              expirationSeconds: 86400
-              path: token
-``` 
+```
 
-Note the volume and the volument mount, also you need to specify the serice account in the specs of the pod.
+Note: environmental variables and mounts are not required, and will be automatically populated by K8s according `service-account`.
 
 
 The pod that gets deployed off the deployment with the above configuration will be able to talk to S3, in this particular case a read only access.
