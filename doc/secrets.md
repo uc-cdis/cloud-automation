@@ -86,3 +86,50 @@ gen3 secrets revoke postgres indexd indexd_old_user
 server="$(gen3 db creds indexd | jq -r .g3FarmServer)"
 gen3 psql $server -c 'DROP USER indexd_old_user;'
 ```
+
+### gen3 secrets gcp $sub-command ...
+
+helper for rotating GCP keys
+
+#### gen3 secrets gcp rotate $keyfile
+
+* the `$keyfile` argument is a sub-path under `Gen3Secrets/`
+* garbage collect old keys associated with the keyfile (the newest key is left in place)
+* create a new key, and save the new key into the file
+* `gen3 secrets commit ...`
+
+the caller is responsible updating the appropriate kubernetes secrets, and rotating services as required
+
+ex:
+
+```
+gen3 secrets rotate apis_configs/fence_google_app_creds_secret.json
+```
+
+also accepts the service account key file as an argument
+
+#### gen3 secrets gcp new-key $serviceAccountId
+
+generate a new key for the given service account
+you can list the currently available keys with:
+
+```
+gcloud iam service-accounts keys list --managed-by user --iam-account "$serviceAccountId" --format json --sort-by 'validAfterTime'
+```
+
+also accepts the service account key file as an argument
+
+#### gen3 secrets gcp list $serviceAccountId
+
+shortcut for:
+```
+gcloud iam service-accounts keys list --managed-by user --iam-account "$serviceAccountId" --format json --sort-by 'validAfterTime'
+```
+
+also accepts the service account key file as an argument
+
+#### gen3 secrets gcp garbage-collect $serviceAccountId
+
+delete all but the newest key for the given service account
+
+also accepts the service account key file as an argument

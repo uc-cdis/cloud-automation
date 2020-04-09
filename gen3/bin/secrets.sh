@@ -2,6 +2,7 @@
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
+gen3_load "gen3/lib/secrets/rotate-gcp"
 gen3_load "gen3/lib/secrets/rotate-postgres"
 
 # lib --------------------------------------
@@ -287,6 +288,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   case "$command" in
     "commit")
       gen3_secrets_commit "$@"
+      ;;
+    "gcp")
+      gen3_secrets_gcp "$@"
       ;;
     "sync")
       gen3_secrets_sync "$@"

@@ -261,7 +261,7 @@ if ! g3kubectl get secrets/fence-google-app-creds-secret > /dev/null 2>&1; then
   if [[ ! -f "./apis_configs/fence_google_app_creds_secret.json" ]]; then
     touch "./apis_configs/fence_google_app_creds_secret.json"
   fi
-  echo "create fence-google-app-creds-secret using current creds file apis_configs/fence_google_app_creds_secret.json"
+  gen3_log_info "create fence-google-app-creds-secret using current creds file apis_configs/fence_google_app_creds_secret.json"
   g3kubectl create secret generic fence-google-app-creds-secret --from-file=fence_google_app_creds_secret.json=./apis_configs/fence_google_app_creds_secret.json
 fi
 
@@ -269,7 +269,7 @@ if ! g3kubectl get secrets/fence-google-storage-creds-secret > /dev/null 2>&1; t
   if [[ ! -f "./apis_configs/fence_google_storage_creds_secret.json" ]]; then
     touch "./apis_configs/fence_google_storage_creds_secret.json"
   fi
-  echo "create fence-google-storage-creds-secret using current creds file apis_configs/fence_google_storage_creds_secret.json"
+  gen3_log_info "create fence-google-storage-creds-secret using current creds file apis_configs/fence_google_storage_creds_secret.json"
   g3kubectl create secret generic fence-google-storage-creds-secret --from-file=fence_google_storage_creds_secret.json=./apis_configs/fence_google_storage_creds_secret.json
 fi
 

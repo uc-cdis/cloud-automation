@@ -9,7 +9,7 @@ Currently CTDS deploys Gen3 services for a commons to an EKS kubernetes cluster 
 ## csoc-adminvm service account
 
 Create a `csoc-adminvm` service account for each project that you want to interact with from the adminvm via `gcloud`, `gsutil`, or `terraform`.  Give the service account the roles for administrative privileges on all the GCP services that the commons might rely on:
-*  Storage Admin 
+* Storage Admin
 * Project IAM Admin
 * Google Cloud Managed Identity Admin
 * roles/iam.serviceAccountKeyAdmin
@@ -45,3 +45,7 @@ Finally, verify that everything works:
 ```
 gsutil ls
 ```
+
+## Key Rotation
+
+See the documentation for the [gen3 secrets gcp](./secrets.md) command line tools.
