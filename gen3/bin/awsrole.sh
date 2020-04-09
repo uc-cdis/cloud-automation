@@ -65,7 +65,8 @@ _tfapply_role() {
     return 1
   fi
 
-  gen3 trash --apply
+  # leave the terraform artifacts
+  #gen3 trash --apply
 }
 
 #
