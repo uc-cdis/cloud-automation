@@ -61,6 +61,31 @@ function es_indices() {
   curl -s -X GET "${ESHOST}/_cat/indices?v"
 }
 
+
+#
+# Create a new index
+#
+# @param index name
+# @param mapping json file
+#
+es_create() {
+  if [[ $# -lt 2 ]]; then
+    gen3_log_err "use: es_create indexName mappingFile.json"
+    return 1
+  fi
+  local name="$1"
+  shift
+  local mappingFile="$1"
+  shift
+  if [[ ! -f "$mappingFile" ]]; then
+    gen3_log_err "mapping file does not exist: $mappingFile"
+    return 1
+  fi
+  # Need to create arranger-projects index by hand
+  curl -iv -X PUT "${ESHOST}/$name" -H 'Content-Type: application/json' "-d@$mappingFile"
+}
+
+
 #
 # Delete a given index
 #
@@ -257,6 +282,9 @@ case "$command" in
   ;;
 "indices")
   es_indices
+  ;;
+"create")
+  es_create "$@"
   ;;
 "delete")
   es_delete "$@"
