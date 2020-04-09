@@ -78,7 +78,7 @@ function create_assume_role_policy() {
   local issuer_url=$(aws eks describe-cluster \
                        --name ${vpc_name} \
                        --query cluster.identity.oidc.issuer \
-                       --output text)
+                       --output text | sed -e 's#^https://##')
 
   local issuer_hostpath=$(echo ${issuer_url}| cut -f 3- -d'/')
   local account_id=$(aws sts get-caller-identity --query Account --output text)
