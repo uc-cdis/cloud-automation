@@ -33,6 +33,7 @@ $ gen3 workon cdistest fauziv1_es
 Once you workon the workspace, you may want to edit the config.tfvars accordingly. However, assuming you used the example above, you may not need to. You must check the file nonetheless.
 
 Ex.
+```
 $ cat ~/.local/share/gen3/cdistest/test-commons_es/config.tfvars
 vpc_name   = "test-commons"
 ```
