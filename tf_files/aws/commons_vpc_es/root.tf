@@ -17,5 +17,7 @@ module "commons_vpc_es" {
   encryption              = "${var.encryption}"
   instance_count          = "${var.instance_count}"
   organization_name       = "${var.organization_name}"
+  es_version              = "${var.es_version}"
+  es_linked_role          = "${var.es_linked_role}"
 }
 

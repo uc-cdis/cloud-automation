@@ -29,3 +29,13 @@ variable "organization_name" {
   description = "For tagging purposes"
   default     = "Basic Service"
 }
+
+varialbe "es_version" {
+  description = "What version to use when deploying ES"
+  default     = "7.4"
+}
+
+variable "es_linked_role" {
+  description = "Whether or no to deploy a linked roll for ES"
+  default     = true
+}
