@@ -13,7 +13,7 @@ gen3 workon <profile> <commons_name>_es
 
 Ex.
 ```
-$ gen3 workon cdistest fauziv1_es
+$ gen3 workon cdistest test-commons_es
 ```
 
 ## 2. Table of content
@@ -47,7 +47,7 @@ vpc_name   = "test-commons"
 | vpc_name | The name of the commons you are deploying ES for | string | |
 
 
-By default the vpc_name would be configured properly at the moment workon is executed. There are no more variables for this module.
+By default the vpc_name variable is filled up by gen3 with the name of the commons used at the moment of workon.
 
 
 ### 4.2 Optional Variables
