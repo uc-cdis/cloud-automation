@@ -78,7 +78,7 @@ function create_assume_role_policy() {
   local issuer_url=$(aws eks describe-cluster \
                        --name ${vpc_name} \
                        --query cluster.identity.oidc.issuer \
-                       --output text)
+                       --output text | sed -e 's#^https://##')
 
   local issuer_hostpath=$(echo ${issuer_url}| cut -f 3- -d'/')
   local account_id=$(aws sts get-caller-identity --query Account --output text)
@@ -447,7 +447,7 @@ function main() {
 
 
     role_json=$(create_role_with_policy "${policy_source}" "${role_name}")
-    role_arn=$(echo ${role_json} | jq -r '.Role.RoleArn')
+    role_arn=$(echo ${role_json} | jq -r '.Role.Arn')
     create_service_account ${role_arn}
     gen3_log_info "Role and service account created successfully"
     gen3_log_info "  Role Name: $(echo ${role_json} | jq '.Role.RoleName')"
