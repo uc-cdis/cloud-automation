@@ -30,7 +30,7 @@ variable "organization_name" {
   default     = "Basic Service"
 }
 
-varialbe "es_version" {
+variable "es_version" {
   description = "What version to use when deploying ES"
   default     = "7.4"
 }
