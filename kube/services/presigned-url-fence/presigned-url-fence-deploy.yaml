@@ -47,7 +47,7 @@ spec:
             name: "fence-yaml-merge"
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
-#             for fence.
+#             for fence
 # -----------------------------------------------------------------------------
         - name: old-config-volume
           secret:
@@ -201,4 +201,4 @@ spec:
             echo -e "ENABLE_DB_MIGRATION: false" > "/var/www/fence/fence-config-bonus1.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config-step1.yaml
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-bonus1.yaml /var/www/fence/fence-config-step1.yaml > /var/www/fence/fence-config.yaml
-            bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
+            bash /entrypoint.sh && /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
