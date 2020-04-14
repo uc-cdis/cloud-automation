@@ -4,7 +4,7 @@ module "cloudwatch-events" {
   source               = "../cloudwatch-events/"
   cwe_rule_name        = "${var.account_name}-cloudtrail-StopLogging"
   cwe_rule_description = "Lets check if someone dares to stop logging"
-  cwe_target_arn       = "${module.alerting-lambda.function_arn}"
+  cwe_target_arn       = "${element(module.alerting-lambda.function_arn,0)}"
   cwe_rule_pattern     = <<EOP
 {
   "source": [
@@ -98,7 +98,7 @@ data "aws_iam_policy_document" "cloudwatchlogs_access" {
 resource "aws_lambda_permission" "allow_cloudwatch" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = "${module.alerting-lambda.function_name}"
+  function_name = "${element(module.alerting-lambda.function_name,0)}"
   principal     = "events.amazonaws.com"
   source_arn    = "${module.cloudwatch-events.event_arn}"
   #qualifier     = "${aws_lambda_alias.test_alias.name}"
