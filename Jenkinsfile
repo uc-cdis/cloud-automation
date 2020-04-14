@@ -77,7 +77,8 @@ node {
           kubectlNamespace,
           pipeConfig.serviceTesting.name,
           "",
-          "false"
+          "false",
+          ""
         )
       }
       stage('CleanS3') {
