@@ -82,11 +82,28 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       /bin/rm "${XDG_RUNTIME_DIR}/terraform.zip"
     }
 
+    install_terraform12() {
+      mkdir "${XDG_RUNTIME_DIR}/t12"
+      curl -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
+      sudo /bin/rm -rf /usr/local/bin/terraform12 > /dev/null 2>&1 || true
+      unzip "${XDG_RUNTIME_DIR}/t12/terraform12.zip" -d "${XDG_RUNTIME_DIR}/t12";
+      sudo cp "${XDG_RUNTIME_DIR}/t12/terraform" "/usr/local/bin/terraform12"
+      /bin/rm -rf "${XDG_RUNTIME_DIR}/t12"
+    }
+
     if ! which terraform > /dev/null 2>&1; then
       install_terraform  
     else
       TERRAFORM_VERSION=$(terraform --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
       if ! semver_ge "$TERRAFORM_VERSION" "0.11.14"; then
+        install_terraform
+      fi
+    fi
+    if ! which terraform12 > /dev/null 2>&1; then
+      install_terraform12  
+    else
+      T12_VERSION=$(terraform12 --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
+      if ! semver_ge "$T12_VERSION" "0.12.24"; then
         install_terraform
       fi
     fi

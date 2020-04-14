@@ -74,5 +74,5 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 gen3_log_info "devterm" "running $image with labels $labels command ${command[@]}"
-gen3_log_info g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --generator=run-pod/v1 --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"
-g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --generator=run-pod/v1 --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"
+gen3_log_info g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"
+g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"

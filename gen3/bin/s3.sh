@@ -61,7 +61,9 @@ _tfapply_s3() {
     gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in ${GEN3_WORKSPACE}"
     return 1
   fi
-  gen3 trash --apply
+
+  # leave terraform artifacts in place
+  #gen3 trash --apply
 }
 
 #
