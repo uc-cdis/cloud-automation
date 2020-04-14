@@ -112,7 +112,7 @@ gdcapi_indexd_password="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 | sheepdog_db_size | Volume size for sheepdog database | number | 10 |
 | indexd_db_size | Volume size for indexd database | 10 |
 | db_password_gdcapi | Password for GDCAPI (gdcapi now deprecated in favor of sheepdog + peregrine) | string | "" |
-| portal_app | passed through to portal's APP environment to customize for environment | string | "dev" |
+| portal_app | Passed through to portal's APP environment to customize it | string | "dev" |
 | fence_snapshot | Should fence database come from a snapshot, specify the name of the snapshot in RDS | string | "" |
 | sheepdog_snapshot | Should sheepdog database come from a snapshot, specify the name of the snapshot in RDS | string | "" |
 | indexd_snapshot | Should indexd database come from a snapshot, specify the name of the snapshot in RDS | string | "" |
@@ -128,7 +128,7 @@ gdcapi_indexd_password="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 | peering_vpc_id | Peering VPC ID. Directly related to `peering_cidr`. | string | "vpc-e2b51d99" |
 | slack_webhook | Slack webhook for your commons, it might be used to send out notifications. | string | "" |
 | secondary_slack_webhook | Similar as above, but if you want to send notifications to a second channel. | string | "" |
-| alarm_threshold | Threshold for database storage utilization, when reached, slack webhooks would be used for the alarms, the value is a number, but represents percentages | string | "85" |
+| alarm_threshold | Threshold for database storage utilization, when reached, slack webhooks would be used for alarms, the value is a number, but represents percentages | string | "85" |
 | csoc_managed | If the commons will be hooked to a CSOC account | boolean | true |
 | organization_name | For resource tagging purposes | string | "Basic Service" |
 | fence_ha | Should you want high availability fence database | boolean | false |
@@ -149,7 +149,7 @@ gdcapi_indexd_password="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 | fence_auto_minor_version_upgrade | Should fence database minor version updates happen automatically | string | "true" |
 | sheepdog_auto_minor_version_upgrade | Should sheepdog database minor version updates happen automatically | string | "true" |
 | indexd_auto_minor_version_upgrade | Should indexd database minor version updates happen automatically | string | "true" |
-| users_bucket_name | Bucket name where to pull users.yaml for permissions, This one should replace the bucker used in `config_folder` | string | default "cdis-gen3-users" |
+| users_bucket_name | Bucket name where to pull users.yaml for permissions, This one should replace the bucket used in `config_folder` | string | default "cdis-gen3-users" |
 | fence_database_name | Name of fence database. Not the same as instance identifier | string | "fence" |
 | sheepdog_database_name | Name of sheepdog database. Not the same as instance identifier | string | "gdcapi" |
 | indexd_database_name | Name of indexd database. Not the same as instance identifier | string | "indexd" |
