@@ -1,4 +1,3 @@
-output "sns_topic" {
-  value = "${module.commons_sns.topic_arn}"
+output "manifest_lambda" {
+  value = "${module.bucket-lambda-function.function_arn}"
 }
-

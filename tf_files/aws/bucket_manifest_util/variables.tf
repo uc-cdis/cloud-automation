@@ -2,6 +2,7 @@
 
 variable "lambda_function_file" {
   description = "Path to the function file"
+  default     = ""
 }
 
 variable "lambda_function_name" {
