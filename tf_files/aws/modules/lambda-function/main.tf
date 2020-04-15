@@ -7,7 +7,7 @@ data "archive_file" "lambda_function" {
 }
 
 resource "aws_lambda_function" "lambda_function" {
-  count            = "${var.with_vpc ? 0 : 1 }"
+  count            = "${var.lambda_function_with_vpc ? 0 : 1 }"
   filename         = "${data.archive_file.lambda_function.output_path}"
   function_name    = "${var.lambda_function_name}"
   description      = "${var.lambda_function_description}"
