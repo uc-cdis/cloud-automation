@@ -57,7 +57,7 @@ This module would zip the provided path and send it to lambda.
 | Name | Description | Type | Default |
 |------|-------------|:----:|:-----:|
 | lambda_function_description | A brief description for your lambda function | string | "" |
-| lambda_function_handler | Handler of the fuction | string | lambda_funtion.funtion_handler |
+| lambda_function_handler | Handler of the fuction | string | lambda_function.function_handler |
 | lambda_function_runtime | Language that the function will run | string | python 3.7 |
 | lambda_function_timeout | How long in seconds for the function to declare a timeout | number | 3 |
 | lambda_function_memory | Maximum amount of memoryi, in Mb, the function will consume upon execution. | number | 128 |
