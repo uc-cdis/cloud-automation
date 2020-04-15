@@ -80,6 +80,14 @@ EOF
   if ! _tfplan_lambda "$@"; then
     return 1
   fi
+  gen3 cd
+  gen3 tfapply 2>&1
+  if [[ $? != 0 ]]; then
+    gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in ${GEN3_WORKSPACE}"
+    return 1
+  fi
+
+  gen3 trash --apply
   return 0
 }
 
