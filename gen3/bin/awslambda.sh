@@ -110,7 +110,7 @@ EOF
     # That function is already used
     gen3_log_info "A function with that name already exists"
     return 0
-  if ! _tfplan_user $funcname "$@"; then
+  if ! _tfplan_lambda $funcname "$@"; then
     return 1
   fi
   return 0

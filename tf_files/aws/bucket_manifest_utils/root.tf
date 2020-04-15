@@ -14,7 +14,7 @@ provider "aws" {}
 # lambda_function_iam_role_arn = "arn:aws:iam::707767160287:role/lambda-generate-metadata"
 # lambda_function_timeout      = 10
 # lambda_function_handler      = "object_metadata_lambda.lambda_handler"
-# lambda_function_env          = {"k"="v"}
+# lambda_function_env          = {"key1"="value1"}
 module "bucket-lambda-function" {
   source          = "../modules/lambda-function/"
   lambda_function_file         = "${path.module}/${var.lambda_function_file}"
