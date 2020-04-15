@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Describe and create s3 buckets
+# Describe and create lambda functions
 #
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
@@ -30,63 +30,30 @@ _lambda_exists() {
 # Util to tfplan creation of lambda function
 #
 _tfplan_lambda() {
-  local lambda=$1
-  local function_file=$2
-  local description=$3
-  local role=$4
+  local funcname=$1
+  local description=$2
+  local role=$3
 
-  gen3 workon default "${username}_bucket_manifest_utils"
+  gen3 workon default "${USER}__bucket_manifest_utils"
   gen3 cd
   cat << EOF > config.tfvars
-lambda_function_file         = "../../../files/lambda/{lambda}.py"
-lambda_function_name         = "$lambda"
+lambda_function_file         = "../../../files/lambda/${funcname}.py"
+lambda_function_name         = "$funcname"
 lambda_function_description  = "$description"
 lambda_function_iam_role_arn = "$role"
 lambda_function_timeout      = 10
-lambda_function_handler      = "${lambda}.lambda_handler"
+lambda_function_handler      = "${funcname}.lambda_handler"
 lambda_function_env          = {"key1"="value1"}
 EOF
   gen3 tfplan 2>&1
 }
 
 #
-# Util for applying tfplan and updating secrets
+# Create aws lambda 
 #
-_tfapply_update_secrets() {
-  local username=$1
-  if [[ -z "$GEN3_WORKSPACE" ]]; then
-    gen_log_err "GEN3_WORKSPACE not set - unable to apply s3 bucket"
-    return 1
-  fi
-  gen3 cd
-  gen3 tfapply 2>&1
-  if [[ $? != 0 ]]; then
-    gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in ${GEN3_WORKSPACE}"
-    return 1
-  fi
-
-  # Update aws secrets
-  local key_id=$(gen3 tfoutput key_id)
-  local key_secret=$(gen3 tfoutput key_secret)
-  local aws_secrets_dir="$(gen3_secrets_folder)/g3auto/$username"
-  mkdir -p $aws_secrets_dir
-  cd $aws_secrets_dir
-  cat << EOF > awsusercreds.json
-{
-  "id": "$key_id",
-  "secret": "$key_secret"
-}
-EOF
-  gen3 secrets sync
-  
-  gen3 trash --apply
-}
-
-#
-# Create aws user with an access key that's added to kube secrets
-# Created secrets are in <secrets_dir>/g3auto/<username>/awsusercreds.json
-#
-# @param username
+# @param funcname
+# @param description
+# @param role_arn
 #
 gen3_awslambda_create() {
   local funcname=$1
@@ -103,14 +70,14 @@ EOF
     return 1
   fi
 
-  # check if the name is already used by another entity
-  local entity_type
+  # check if the name is already used
   ret=$(_lambda_exists $funcname)
   if [[ $? == 0 ]]; then
     # That function is already used
     gen3_log_info "A function with that name already exists"
     return 0
-  if ! _tfplan_lambda $funcname "$@"; then
+  fi
+  if ! _tfplan_lambda "$@"; then
     return 1
   fi
   return 0
