@@ -7,7 +7,7 @@ data "archive_file" "lambda_function" {
 }
 
 resource "aws_lambda_function" "lambda_function" {
-  count            = "${var.with_vpc ? 0 : 1 }"
+  count            = "${var.lambda_function_with_vpc ? 0 : 1 }"
   filename         = "${data.archive_file.lambda_function.output_path}"
   function_name    = "${var.lambda_function_name}"
   description      = "${var.lambda_function_description}"
@@ -32,7 +32,7 @@ resource "aws_lambda_function" "lambda_function" {
 }
 
 resource "aws_lambda_function" "lambda_function_with_vpc" {
-  count            = "${var.with_vpc ? 1 : 0 }"
+  count            = "${var.lambda_function_with_vpc ? 1 : 0 }"
   filename         = "${data.archive_file.lambda_function.output_path}"
   function_name    = "${var.lambda_function_name}"
   description      = "${var.lambda_function_description}"
@@ -56,7 +56,7 @@ resource "aws_lambda_function" "lambda_function_with_vpc" {
   }
  
   vpc_config {
-    subnet_ids         = "${var.lambda_subnets_id}"
-    security_group_ids = "${var.lambda_security_groups}"
+    subnet_ids         = "${var.lambda_function_subnets_id}"
+    security_group_ids = "${var.lambda_function_security_groups}"
   }
 }

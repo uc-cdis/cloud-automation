@@ -50,18 +50,18 @@ variable "lambda_function_tags" {
 }
 
 
-variable "with_vpc" {
+variable "lambda_function_with_vpc" {
   description = "Will the function be attached to a vpc"
   default     = false
 }
 
-variable "lambda_security_groups" {
+variable "lambda_function_security_groups" {
   description = "Security groups for the lambda function with a vpc"
   type        = "list"
   default     = []
 }
 
-variable "lambda_subnets_id" {
+variable "lambda_function_subnets_id" {
   description = "Subnets for the lambda function with a vpc"
   type        = "list"
   default     = []

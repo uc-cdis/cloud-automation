@@ -35,7 +35,7 @@ module "alerting-lambda" {
 
 ## 3. Overview
 
-Basically  you'll need an AWS lambda capable function in a path somewhere reacheable. 
+Basically you'll need an AWS lambda capable function in a path somewhere reacheable. 
 
 This module would zip the provided path and send it to lambda.
 
@@ -44,20 +44,27 @@ This module would zip the provided path and send it to lambda.
 
 ### 4.1 Required Variables
 
-* `function_file` path to the function file.
-* `lambda_function_name` how do you want the funtion to be named.
-* `lambda_function_iam_role_arn` role to attach to the function.
+| Name | Description | Type | Default |
+|------|-------------|:----:|:-----:|
+| function_file | Path to the function file | string | |
+| lambda_function_name | The name you want for the lambda function | String | |
+| lambda_function_iam_role_arn | ARN of the role you want attached to the function | string | |
+| lambda_function_env | Environmental variables for your funtion | list | [] |
+
 
 ### 4.2 Optional Variables
 
-* `lambda_function_description` a brief description of the function.
-* `lambda_funtion_env` environmental variables for the function. This is a map type variable.
-* `lambda_funtion_handler` handler for the function. Basically it'll be filename(minus the extension).function_name. Defaulted to lambda_function.function_handler.
-* `lambda_function_runtime` language the function is going to use. Default python3.7.
-* `lambda_function_timeout` how long in seconds for the funtion to declare a timeout. Default 3.
-* `lambda_function_memory_size` How much memory will be used in MB. Default 128.
-* `lambda_function_tags` tags you want associated with your function. This variable is map type variable.
-
+| Name | Description | Type | Default |
+|------|-------------|:----:|:-----:|
+| lambda_function_description | A brief description for your lambda function | string | "" |
+| lambda_function_handler | Handler of the fuction | string | lambda_function.function_handler |
+| lambda_function_runtime | Language that the function will run | string | python 3.7 |
+| lambda_function_timeout | How long in seconds for the function to declare a timeout | number | 3 |
+| lambda_function_memory | Maximum amount of memoryi, in Mb, the function will consume upon execution. | number | 128 |
+| lambda_function_tags | Tags you want the function associated with. | map | {} |
+| lambda_function_with_vpc | Should the function be deployed within a VPC only | boolean | false | 
+| lambda_function_security_groups | Security group to associate the function with. Only works if the function is deployed within a VPC | list | [] |
+| lambda_function_subnets_id | Subnets wihthing the VPC the function will belong to | list | [] | 
 
 ## 5. Considerations
 
