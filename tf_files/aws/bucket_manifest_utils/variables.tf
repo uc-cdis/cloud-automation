@@ -30,7 +30,7 @@ variable "lambda_function_runtime" {
 
 variable "lambda_function_timeout" {
   description = "Timeout of the function in seconds"
-  default     = 3600
+  default     = 3
 }
 
 variable "lambda_function_memory_size" {
