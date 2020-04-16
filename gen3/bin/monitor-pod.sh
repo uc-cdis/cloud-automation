@@ -17,59 +17,56 @@ fi
 
 if [ $# -eq 0 ];
 then
-	echo "please provide a pod to monitor"
-	exit 1
+  echo "please provide a pod to monitor"
+  exit 1
 fi
 
 
 function deploy-KS() {
-	local node
-	local threshold
+  local node
+  local threshold=10
+  local now=$(date +%s)
+  local name="${1}-${now}"
+  local what="${2}"
+  local node="${3}"
 
-	threshold=5
-
-	g3k_kv_filter "${GEN3_HOME}/kube/services/kubescope/kubescope-cli.yaml" MONITOR_NAME $1 TO_MONITOR $2 NODE $3  |  g3kubectl apply -f -
-	sleep 2
-	while [ $threshold -ge 0 ];
-	do
-		g3kubectl get pod $1
-		if [ $? -eq 0 ]; 
-		then
-			g3kubectl attach -it $1
-			break;
-		fi
-		threshold=$(( $threshold - 1 ))
-		sleep 2
-	done
+  g3k_kv_filter "${GEN3_HOME}/kube/services/kubescope/kubescope-cli.yaml" MONITOR_NAME ${name} TO_MONITOR ${what} NODE ${node}  |  g3kubectl apply -f -
+  sleep 2
+  while [ ${threshold} -ge 0 ];
+  do
+    g3kubectl get pod ${name}
+    if [ $? -eq 0 ];
+    then
+      local ready=$(g3kubectl get pod ${name} -o jsonpath='{.status.containerStatuses[].ready}')
+      if [ "${ready}" == "true" ];
+      then
+        g3kubectl attach -it ${name}
+        break;
+      fi
+    fi
+    threshold=$(( threshold - 1 ))
+    sleep 2
+  done
 }
 
 
 echo "Reviewing provided arguments"
 
-if ( g3kubectl get pod $1 > /dev/null 2>&1); 
+
+if ( g3kubectl get pod ${1} > /dev/null 2>&1); 
 then
-	pod=$1
-	name="$(echo $pod | egrep -o "^[a-z0-9]*\-[a-z0-9]*")-monitor"
-	node=$(g3kubectl get pod $pod -o jsonpath="{.spec.nodeName}")
-	deploy-KS $name $pod $node
+  pod=${1}
+  name="$(echo ${pod} | egrep -o "^[a-z0-9]*\-[a-z0-9]*")-monitor"
+  node=$(g3kubectl get pod ${pod} -o jsonpath="{.spec.nodeName}")
 else
-	pod=$(gen3 pod $1)
-	if [ $? -eq 0 ];
-	then
-		name="$(echo $pod | egrep -o "^[a-z0-9]*\-[a-z0-9]*")-monitor"
-		node=$(g3kubectl get pod $pod -o jsonpath="{.spec.nodeName}")
-		podi=$(echo $pod | egrep -o "^[a-z0-9]*\-[a-z0-9]*")
-		deploy-KS $name $pod $node
-	fi
+  pod=$(gen3 pod ${1})
+  if [ $? -eq 0 ];
+  then
+    name="$(echo ${pod} | egrep -o "^[a-z0-9]*\-[a-z0-9]*")-monitor"
+    node=$(g3kubectl get pod ${pod} -o jsonpath="{.spec.nodeName}")
+    #podi=$(echo $pod | egrep -o "^[a-z0-9]*\-[a-z0-9]*")
+#    deploy-KS $name $pod $node
+  fi
 fi
 
-		
-	
-#elif ( g3kubectl get pod -o name |grep $1 > /dev/null 2>&1);
-#then
-#	pod=$1
-#	name="$1-monitor"
-#	node=$(g3kubectl get pod $1 -o jsonpath="{.spec.nodeName}")
-#	deploy-KS $name $pod $node
-#fi
-
+deploy-KS ${name} ${pod} ${node}
