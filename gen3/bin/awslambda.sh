@@ -34,7 +34,7 @@ _tfplan_lambda() {
   local description=$2
   local role=$3
 
-  gen3 workon default "${USER}__bucket_manifest_utils"
+  gen3 workon default "${funcname}__bucket_manifest_utils"
   gen3 cd
   cat << EOF > config.tfvars
 lambda_function_file         = "../../../files/lambda/${funcname}.py"
