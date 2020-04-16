@@ -15,12 +15,12 @@ Copy objects from source bucket to destination bucket, if destination bucket is 
 or if in other account
 
 ```bash
-  gen3 replicate bucket <source bucket> <destination bucket> <destination account id> <profile>
+  gen3 replicate bucket <source bucket> <destination bucket> <profile>
 ```
 
 ### status
 Checks the status of a s3 batch operations job
 
 ```bash
-  gen3 replicate status <job is>
+  gen3 replicate status <job id>
 ```

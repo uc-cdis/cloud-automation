@@ -16,8 +16,8 @@ gen3_replicate_create_manifest() {
   local bucket=$1
   local destination=$2
   if [[ -f $WORKSPACE/tempKeyFile ]]; then
-    gen3_log_info "previous key file found. Delete"
-    rm tempKeyFile
+    gen3_log_info "previous key file found. Deleting"
+    rm $WORKSPACE/tempKeyFile
   fi
   aws s3api list-objects --bucket "$bucket" --query 'Contents[].{Key: Key}' | jq -r '.[].Key' >> "$WORKSPACE/tempKeyFile"
   if [[ -f $WORKSPACE/manifest.csv ]]; then
@@ -32,7 +32,7 @@ gen3_replicate_create_manifest() {
   else
     gen3_aws_run aws s3 cp $WORKSPACE/manifest.csv s3://"$destination"
   fi
-
+  rm $WORKSPACE/manifest.csv
 }
 
 # function to create job
