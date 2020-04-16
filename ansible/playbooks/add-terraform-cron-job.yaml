@@ -1,3 +1,13 @@
+#
+# Playbook to add a cronjob to commons users to check on terraform resources 
+#
+# @variables:
+#   _hosts => hosts in which you want the playbook to be applied
+#             it must exists in hosts.yaml
+# Ex:
+# ansible-playbook playbooks/add-terraform-cron-job.yaml -e "_hosts=generic_common"
+# 
+
 - hosts : '{{ _hosts }}'
   tasks :
   - name : add crontab terraform checks entry
