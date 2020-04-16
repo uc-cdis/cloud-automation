@@ -4,52 +4,56 @@ all:
     adminvms:
       hosts:
         account_admin:
-          ansible_host: 10.128.2.245
+          ansible_host: account.csoc
         anvil_admin:
-          ansible_host: 10.128.2.243
+          ansible_host: anvil.csoc
         vadc_admin:
-          ansible_host: 10.128.2.165
+          ansible_host: vadc.csoc
         braincommons_admin:
-          ansible_host: 10.128.2.81
+          ansible_host: braincommons.csoc
         dcfqa_admin:
-          ansible_host: 10.128.2.138
+          ansible_host: covid19.csoc8
         dcfprod_admin:
-          ansible_host: 10.128.2.109
-        cvbcommons_admin:
-          ansible_host: 10.128.2.247
+          ansible_host: dcfprod.csoc
         genomel_admin:
-          ansible_host: 10.128.2.173
+          ansible_host: genomel.csoc
         ibdgc_admin:
-          ansible_host: 10.128.2.89
+          ansible_host: ibdgc.csoc
         occ_admin:
-          ansible_host: 10.128.2.64
+          ansible_host: occ.csoc
         occ-edc_admin:
-          ansible_host: 10.128.2.147
+          ansible_host: occ-edc.csoc
         niaiddh_admin:
-          ansible_host: 10.128.2.156
+          ansible_host: niaiddh.csoc
         gtex_admin:
-          ansible_host: 10.128.2.246
+          ansible_host: gtex.csoc
         kf_admin:
-          ansible_host: 10.128.2.170
+          ansible_host: kf.csoc
         gmkfqa_admin:
-          ansible_host: 10.128.2.12
-        ncigdc_admin:
-          ansible_host: 10.128.2.112
+          ansible_host: gmkfqa.csoc
         ncicrdc_admin:
-          ansible_host: 10.128.2.131
-        dcfbuckets_admin:
-          ansible_host: 10.128.2.181
+          ansible_host: ncicrdc.csoc
         cdistest_admin:
-          ansible_host: 10.128.7.28
+          ansible_host: cdistest.csoc
         jcoin_admin:
-          ansible_host: 10.128.2.57
+          ansible_host: jcoin.csoc
+        oadc_admin:
+          ansible_host: oadc.csoc
+        vhdc_admin:
+          ansible_host: vhdc.csoc
+        covid19_admin:
+          ansible_host: covid19.csoc
       vars:
         ansible_user: ubuntu
 
     other_admins:
       hosts:
         canine_admin:
-          ansible_host: 10.128.2.34
+          ansible_host: canine.csoc
+        ncigdc_admin:
+          ansible_host: 10.128.2.112
+        dcfbuckets_admin:
+          ansible_host: 10.128.2.181
         pdcgen3_admin:
           ansible_host: 10.128.2.241
       vars:
@@ -57,136 +61,163 @@ all:
 
     commons:
       hosts:
-        account_commons:
+        accountprod_commons:
           ansible_user: accountprod
-          ansible_host: 10.128.2.245
-        anvil_commons:
+          ansible_host: account.csoc
+        anvilprod_commons:
           ansible_user: anvilprod
-          ansible_host: 10.128.2.243
-        vadc_commons:
+          ansible_host: anvil.csoc
+        vadcprod_commons:
           ansible_user: vadcprod
-          ansible_host: 10.128.2.165
-        braincommons_commons:
+          ansible_host: vadc.csoc
+        bhcprodv2_commons:
           ansible_user: bhcprodv2
-          ansible_host: 10.128.2.81
+          ansible_host: braincommons.csoc
         dcfprod_commons:
           ansible_user: dcfprod
-          ansible_host: 10.128.2.109
-        cvbcommons_commons:
-          ansible_user: cvbcommons
-          ansible_host: 10.128.2.247
-        genomel_commons:
+          ansible_host: dcfprod.csoc
+        qa-biologin_commons:
+          ansible_user: qa-biologin
+          ansible_host: genomel.csoc
+        genomelprod_commons:
           ansible_user: genomelprod
-          ansible_host: 10.128.2.173
+          ansible_host: genomel.csoc
         ibdgc_commons:
           ansible_user: ibdgc
-          ansible_host: 10.128.2.89
-        occ_commons:
+          ansible_host: ibdgc.csoc
+        bloodv2_commons:
           ansible_user: bloodv2
-          ansible_host: 10.128.2.64
-        occ-edc_commons:
+          ansible_host: occ.csoc
+        edcprodv2_commons:
           ansible_user: edcprodv2
-          ansible_host: 10.128.2.147
-        niaiddh_commons:
+          ansible_host: occ-edc.csoc
+        niaidprod_commons:
           ansible_user: niaidprod
-          ansible_host: 10.128.2.156
-        stage_commons:
+          ansible_host: niaiddh.csoc
+        stageprod_commons:
           ansible_user: stageprod
-          ansible_host: 10.128.2.246
+          ansible_host: gtex.csoc
         dataguis_commons:
           ansible_user: dataguids
-          ansible_host: 10.128.2.246
-        kf_commons:
+          ansible_host: gtex.csoc
+        prodv1_commons:
           ansible_user: prodv1
-          ansible_host: 10.128.2.170
+          ansible_host: kf.csoc
+        bdcatprod_commons:
+          ansible_user: bdcatprod
+          ansible_host: gtex.csoc
         loginbionimbus_commons:
           ansible_user: loginbionimbus
-          ansible_host: 10.128.2.173
-        canine_commons:
+          ansible_host: genomel.csoc
+        canineprod_commons:
           ansible_user: canineprod
-          ansible_host: 10.128.2.34
+          ansible_host: canine.csoc
         icgc_commons:
           ansible_user: icgc
-          ansible_host: 10.128.2.173
+          ansible_host: genomel.csoc
         niaiddata_commons:
           ansible_user: niaiddata
-          ansible_host: 10.128.2.156
-        jcoin_commons:
+          ansible_host: niaiddh.csoc
+        jcoinprod_commons:
           ansible_user: jcoinprod
-          ansible_host: 10.128.2.57
+          ansible_host: jcoin.csoc
+        oadc_commons:
+          ansible_user: oadc
+          ansible_host: oadc.csoc
+        vhdcprod_commons:
+          ansible_user: vhdcprod
+          ansible_host: vhdc.csoc
+        covid19prod_commons:
+          ansible_user: covid19prod
+          ansible_host: covid19.csoc
 
     staging:
       hosts:
         stagingdatastage_commons:
           ansible_user: stagingdatastage
-          ansible_host: 10.128.2.246
+          ansible_host: gtex.csoc
         dcfstaging_commons:
           ansible_user: staging
-          ansible_host: 10.128.2.109
+          ansible_host: dcfprod.csoc
         anvil_staging:
           ansible_user: anvilstaging
-          ansible_host: 10.128.2.243
+          ansible_host: anvil.csoc
+        bhcstaging_commons:
+          ansible_user: bhcstaging
+          ansible_host: braincommons.csoc
     namespaces:
       hosts:
         charlie_commons:
           ansible_user: charlie
-          ansible_host: 10.128.2.156
+          ansible_host: niaiddh.csoc
         tb_commons:
           ansible_user: tb
-          ansible_host: 10.128.2.156
+          ansible_host: niaiddh.csoc
+        microbiome_commons:
+          ansible_user: microbiome
+          ansible_host: niaiddh.csoc
+        flu_commons:
+          ansible_user: flu
+          ansible_host: niaiddh.csoc
+        preprod_commons:
+          ansible_user: bdcat-internalstaging
+          ansible_host: gtex.csoc
         bhc-datastaging_commons:
           ansible_user: bhc-datastaging
-          ansible_host: 10.128.2.81
+          ansible_host: braincommons.csoc
+        va-testing_commons:
+          ansible_user: va-testing
+          ansible_host: vhdc.csoc
 
     dev:
       hosts:
         cdistest_dev:
           ansible_user: devplanetv1
-          ansible_host: 10.128.7.28
+          ansible_host: cdistest.csoc
         cdistest_qav1:
           ansible_user: qaplanetv1
-          ansible_host: 10.128.7.28
+          ansible_host: cdistest.csoc
         cdistest_qav2:
           ansible_user: qaplanetv2
-          ansible_host: 10.128.7.28
+          ansible_host: cdistest.csoc
 
     qa:
       hosts:
         qa_biologin:
           ansible_user: qa-biologin
-          ansible_host: 10.128.2.173
+          ansible_host: genomel.csoc
         kfqa_qa:
           ansible_user: kfqa
-          ansible_host: 10.128.2.12
+          ansible_host: gmkfqa.csoc
         gmkfqa_qa:
           ansible_user: skfqa
-          ansible_host: 10.128.2.12
+          ansible_host: gmkfqa.csoc
         kfqa2_qa:
           ansible_user: kfqa2
-          ansible_host: 10.128.2.12
+          ansible_host: gmkfqa.csoc
         braincommons_qa:
           ansible_user: bhcqa
-          ansible_host: 10.128.2.81
+          ansible_host: braincommons.csoc
 
     demo:
       hosts:
         ncicrdc_demo:
           ansible_user: ncicrdcdemo
-          ansible_host: 10.128.2.131
+          ansible_host: covid19.csoc1
 
     csoc:
       hosts:
         master:
-          ansible_host: 10.128.2.252
+          ansible_host: csoc
           ansible_user: ubuntu
 
     vpn:
       hosts:
         vpn_prod:
-          ansible_host: 10.128.5.14
+          ansible_host: csoc-prod-vpn.planx-pla.net
           ansible_user: ubuntu
         vpn_dev:
-          ansible_host: 10.128.5.187
+          ansible_host: csoc-dev-vpn.planx-pla.net
           ansible_user: ubuntu
     revproxy:
       hosts:
@@ -200,7 +231,7 @@ all:
     cdistest:
       hosts:
         cdistest_fauzi:
-          ansible_host: 10.128.7.28 
+          ansible_host: cdistest.csoc 
           ansible_user: fauziv1
 
     csoc_squids:
@@ -228,5 +259,5 @@ all:
           ansible_host: 10.128.5.142
           ansible_user: ubuntu
         emalinowskiv1:
-          ansible_host: 10.128.7.28
+          ansible_host: cdistest.csoc
           ansible_user: emalinowskiv1
