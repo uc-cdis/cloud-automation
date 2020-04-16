@@ -16,11 +16,11 @@ gen3_awslambda_help() {
 }
 
 #
-# Util for checking if user already exists
+# Util for checking if the function already exists
 #
 _lambda_exists() {
-  local lambda=$1
-  if gen3_aws_run aws lambda get-function --function-name $lambda > /dev/null 2>&1; then
+  local funcname=$1
+  if gen3_aws_run aws lambda get-function --function-name $funcname > /dev/null 2>&1; then
     return 0
   fi
   return 1
