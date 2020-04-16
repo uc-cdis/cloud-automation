@@ -25,17 +25,22 @@ fi
 function deploy-KS() {
 	local node
 	local threshold
+  local now=$(date +%s)
 
-	threshold=5
+	threshold=10
 
-	g3k_kv_filter "${GEN3_HOME}/kube/services/kubescope/kubescope-cli.yaml" MONITOR_NAME $1 TO_MONITOR $2 NODE $3  |  g3kubectl apply -f -
+	g3k_kv_filter "${GEN3_HOME}/kube/services/kubescope/kubescope-cli.yaml" MONITOR_NAME $1-${now} TO_MONITOR $2 NODE $3  |  g3kubectl apply -f -
 	sleep 2
 	while [ $threshold -ge 0 ];
 	do
 		g3kubectl get pod $1
-		if [ $? -eq 0 ]; 
+		if [ $? -eq 0 ];
 		then
-			g3kubectl attach -it $1
+      local ready=$(g3kubectl get pod $1 -o jsonpath='{.status.containerStatuses[].ready}')
+      if [ "${ready}" == "true" ];
+      then
+        g3kubectl attach -it $1
+      fi
 			break;
 		fi
 		threshold=$(( $threshold - 1 ))
@@ -45,6 +50,7 @@ function deploy-KS() {
 
 
 echo "Reviewing provided arguments"
+
 
 if ( g3kubectl get pod $1 > /dev/null 2>&1); 
 then
@@ -58,18 +64,8 @@ else
 	then
 		name="$(echo $pod | egrep -o "^[a-z0-9]*\-[a-z0-9]*")-monitor"
 		node=$(g3kubectl get pod $pod -o jsonpath="{.spec.nodeName}")
-		podi=$(echo $pod | egrep -o "^[a-z0-9]*\-[a-z0-9]*")
+		#podi=$(echo $pod | egrep -o "^[a-z0-9]*\-[a-z0-9]*")
 		deploy-KS $name $pod $node
 	fi
 fi
-
-		
-	
-#elif ( g3kubectl get pod -o name |grep $1 > /dev/null 2>&1);
-#then
-#	pod=$1
-#	name="$1-monitor"
-#	node=$(g3kubectl get pod $1 -o jsonpath="{.spec.nodeName}")
-#	deploy-KS $name $pod $node
-#fi
 
