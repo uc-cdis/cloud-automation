@@ -103,9 +103,6 @@ all:
         prodv1_commons:
           ansible_user: prodv1
           ansible_host: kf.csoc
-        bdcatprod_commons:
-          ansible_user: bdcatprod
-          ansible_host: gtex.csoc
         loginbionimbus_commons:
           ansible_user: loginbionimbus
           ansible_host: genomel.csoc
@@ -130,6 +127,9 @@ all:
         covid19prod_commons:
           ansible_user: covid19prod
           ansible_host: covid19.csoc
+        bdcatprod_commons:
+          ansible_user: bdcatprod
+          ansible_host: gtex.csoc
 
     staging:
       hosts:
@@ -139,7 +139,7 @@ all:
         dcfstaging_commons:
           ansible_user: staging
           ansible_host: dcfprod.csoc
-        anvil_staging:
+        anvilstaging_commons:
           ansible_user: anvilstaging
           ansible_host: anvil.csoc
         bhcstaging_commons:
@@ -164,6 +164,9 @@ all:
           ansible_host: gtex.csoc
         bhc-datastaging_commons:
           ansible_user: bhc-datastaging
+          ansible_host: braincommons.csoc
+        bhc-staging_commons:
+          ansible_user: staging
           ansible_host: braincommons.csoc
         va-testing_commons:
           ansible_user: va-testing
@@ -195,7 +198,7 @@ all:
         kfqa2_qa:
           ansible_user: kfqa2
           ansible_host: gmkfqa.csoc
-        braincommons_qa:
+        gen3testing_commons:
           ansible_user: bhcqa
           ansible_host: braincommons.csoc
 
@@ -203,7 +206,7 @@ all:
       hosts:
         ncicrdc_demo:
           ansible_user: ncicrdcdemo
-          ansible_host: covid19.csoc1
+          ansible_host: ncicrdc.csoc
 
     csoc:
       hosts:
