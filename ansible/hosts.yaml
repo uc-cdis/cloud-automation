@@ -130,6 +130,9 @@ all:
         covid19prod_commons:
           ansible_user: covid19prod
           ansible_host: covid19.csoc
+        bdcatprod_commons:
+          ansible_user: bdcatprod
+          ansible_host: gtex.csoc
 
     staging:
       hosts:
@@ -165,6 +168,9 @@ all:
         bhc-datastaging_commons:
           ansible_user: bhc-datastaging
           ansible_host: braincommons.csoc
+        bhc-staging_commons:
+          ansible_user: staging
+          ansible_host: braincommons.csoc
         va-testing_commons:
           ansible_user: va-testing
           ansible_host: vhdc.csoc
@@ -195,7 +201,7 @@ all:
         kfqa2_qa:
           ansible_user: kfqa2
           ansible_host: gmkfqa.csoc
-        braincommons_qa:
+        gen3testing_commons:
           ansible_user: bhcqa
           ansible_host: braincommons.csoc
 
