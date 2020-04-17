@@ -91,7 +91,7 @@ EOF
   return 0
 }
 
-#---------- main
+#---------- main-------------
 
 gen3_awslambda() {
   command="$1"
@@ -110,4 +110,3 @@ gen3_awslambda() {
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   gen3_awslambda "$@"
 fi
-
