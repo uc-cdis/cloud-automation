@@ -209,7 +209,13 @@ gen3_log_info "enable network policy"
 gen3 kube-setup-networkpolicy "enable" || true
 gen3_log_info "apply pod scaling"
 gen3 scaling apply all || true
-gen3_log_info "roll-all" "roll completed successfully!"
+
+if gen3 kube-wait4-pods; then
+  gen3_log_info "roll-all" "roll completed successfully!"
+else
+  gen3_log_err "looks like not everything is healthy"
+  exit 1
+fi
 
 # this requires AWS permissions ...
 #gen3 dashboard gitops-sync || true
