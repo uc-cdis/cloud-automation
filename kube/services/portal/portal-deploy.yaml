@@ -34,9 +34,9 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
-      - name: cert-volume
+      - name: portal-secrets
         secret:
-          secretName: "cert-portal-service"
+          secretName: "portal-g3auto"
       - name: ca-volume
         secret:
           secretName: "service-ca"
@@ -49,6 +49,9 @@ spec:
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
+      - name: cert-volume
+        secret:
+          secretName: "cert-portal-service"
       containers:
       - name: portal
         GEN3_PORTAL_IMAGE
@@ -145,6 +148,8 @@ spec:
                 name: manifest-global
                 key: privacy_policy_url
                 optional: true
+          - name: TOKEN_CONFIG
+            value: "/var/www/portal/mapcreds.json"
         volumeMounts:
           - name: "cert-volume"
             readOnly: true
@@ -179,6 +184,10 @@ spec:
             readOnly: true
             mountPath: "/data-portal/custom/privacy_policy.md"
             subPath: "privacy_policy.md"
+          - name: "portal-secrets"
+            readOnly: true
+            mountPath: "/var/www/portal/mapcreds.json"
+            subPath: mapcreds.json
         readinessProbe:
           httpGet:
             path: /
