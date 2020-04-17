@@ -103,9 +103,6 @@ all:
         prodv1_commons:
           ansible_user: prodv1
           ansible_host: kf.csoc
-        bdcatprod_commons:
-          ansible_user: bdcatprod
-          ansible_host: gtex.csoc
         loginbionimbus_commons:
           ansible_user: loginbionimbus
           ansible_host: genomel.csoc
