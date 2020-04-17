@@ -139,7 +139,7 @@ all:
         dcfstaging_commons:
           ansible_user: staging
           ansible_host: dcfprod.csoc
-        anvil_staging:
+        anvilstaging_commons:
           ansible_user: anvilstaging
           ansible_host: anvil.csoc
         bhcstaging_commons:
@@ -203,7 +203,7 @@ all:
       hosts:
         ncicrdc_demo:
           ansible_user: ncicrdcdemo
-          ansible_host: covid19.csoc1
+          ansible_host: ncicrdc.csoc
 
     csoc:
       hosts:
