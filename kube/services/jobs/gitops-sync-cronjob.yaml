@@ -51,7 +51,7 @@ spec:
                   cd "$GEN3_HOME"
                   git pull
                   env
-                  if gen3 klock lock gitops-sync gitops 1800; then
+                  if gen3 klock lock gitops-sync gitops 2700; then
                     gen3 gitops sync --slack
                     gen3 klock unlock gitops-sync gitops
                   else
