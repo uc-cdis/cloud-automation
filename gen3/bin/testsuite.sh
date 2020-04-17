@@ -36,29 +36,11 @@ while [[ $# > 0 ]]; do
   fi
 done
 
-gen3_load "gen3/test/apiTest"
-gen3_load "gen3/test/awsuserTest"
-gen3_load "gen3/test/awsroleTest"
-gen3_load "gen3/test/bootstrapTest"
-gen3_load "gen3/test/cronjobTest"
-gen3_load "gen3/test/dashboardTest"
-gen3_load "gen3/test/dbTest"
-gen3_load "gen3/test/fenceStuffTest"
-gen3_load "gen3/test/gitopsTest"
-gen3_load "gen3/test/healthcheckTest"
-gen3_load "gen3/test/jupyterTest"
-gen3_load "gen3/test/klockTest"
-gen3_load "gen3/test/luaTest"
-gen3_load "gen3/test/logsTest"
-gen3_load "gen3/test/metricsTest"
-gen3_load "gen3/test/netpolicyTest"
-gen3_load "gen3/test/nrunTest"
-gen3_load "gen3/test/report-toolTest"
-gen3_load "gen3/test/route53Test"
-gen3_load "gen3/test/s3Test"
-gen3_load "gen3/test/scalingTest"
-gen3_load "gen3/test/secretsTest"
-gen3_load "gen3/test/shunitTest"
-gen3_load "gen3/test/terraformTest"
-gen3_load "gen3/test/utilsTest"
+# load all the tests from gen3/test/*Test.sh
+for name in "${GEN3_HOME}"/gen3/test/*Test.sh; do
+  name="${name##*/}"
+  name="${name%.sh}"
+  gen3_load "gen3/test/$name"
+done
+
 shunit_summary
