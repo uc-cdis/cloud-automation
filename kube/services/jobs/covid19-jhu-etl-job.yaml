@@ -4,6 +4,7 @@ kind: Job
 metadata:
   name: covid19-jhu-etl
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:
@@ -16,11 +17,42 @@ spec:
         env:
         - name: ACCESS_TOKEN
           GEN3_ACCESS_TOKEN|-value: ""-|
+        - name: doSlack
+          GEN3_DO_SLACK|-value: "true"-|
+        - name: gen3Env
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: hostname
+        - name: slackWebHook
+          valueFrom:
+            configMapKeyRef:
+              name: global
+              key: slack_webhook
+
         resources:
           limits:
             cpu: 0.5
             memory: 512Mi
-        command: ["python3"]
+        command: ["/bin/bash" ]
         args:
-          - "/johns_hopkins_etl.py"
+          - "-c"
+          - |
+            message="SUCCESS: covid19-jhu-etl success in $gen3Env"
+            result=0
+            if ! python3 "/johns_hopkins_etl.py"; then
+              result=1
+              message="FAIL: covid19-jhu-etl failure in $gen3Env"
+            fi
+            echo "$message"
+            # no curl - ugh  
+            cat - > /tmp/slack.py <<EOM
+            import requests
+            payload={"text": "$message"}
+            r = requests.post("${slackWebHook}", json=payload)
+            EOM
+            if [[ -n "$slackWebHook" && "$doSlack" == "true" ]]; then
+              python3 /tmp/slack.py
+            fi
+            exit $result
       restartPolicy: Never
