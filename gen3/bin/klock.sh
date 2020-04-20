@@ -34,10 +34,9 @@ lock() {
       endWaitTime=$(($(date +%s)+$5))
     fi
     lockName="$1"
-    owner="$2"
+    owner="${2:0:45}"
     lockDurationSecs=$3
   fi
-
 
   # create locks ConfigMap if it does not already exist, and set the lock we are 
   # currently trying to lock to unlocked with no owner
@@ -108,7 +107,7 @@ unlock() {
     exit 0
   else
     lockName="$1"
-    owner="$2"
+    owner="${2:0:45}"
   fi
 
   # create locks ConfigMap if it does not already exist, and set the lock we are 
