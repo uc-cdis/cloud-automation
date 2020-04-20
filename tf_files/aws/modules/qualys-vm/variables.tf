@@ -35,6 +35,12 @@ variable "image_name_search_criteria" {
   default     = "a04e299c-fb8e-4ee2-9a75-94b76cf20fb2"
 }
 
+
+variable "image_desc_search_criteria" {
+  description = "Search criteria to search for AMI"
+  default     = ""
+}
+
 variable "ami_account_id" {
   description = "Account id of the AMI owner"
   default     = "679593333241"
