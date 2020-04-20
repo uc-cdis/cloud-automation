@@ -333,25 +333,29 @@ If it doesn't, adjust accordingly. If it does, source it:
 source ~/.bashrrc
 ```
 
+6. Apply the global manifest
+```bash
+$ kubectl apply -f ~/Gen3Secrets/00configmap.yaml
+```
 
-6. Verify that kubernetes is up. After sourcing our local bashrc file we should be able to talk to kubernetes:
+7. Verify that kubernetes is up. After sourcing our local bashrc file we should be able to talk to kubernetes:
 ```bash
 kubectl get nodes
 ```
 
-7. Roll services
+8. Roll services
 ```bash
 gen3 roll all
 ```
   Note: it might take a few minutes to complete; let it run.
 
 
-8. Get the newly created ELB endpoint so you can point your domain to it.
+9. Get the newly created ELB endpoint so you can point your domain to it.
 ```bash
 kubectl get service revproxy-service-elb -o json | jq -r .status.loadBalancer.ingress[].hostname
 ```
 
-9. Go to your registrar and point the desired domain to the outcome of above command.
+10. Go to your registrar and point the desired domain to the outcome of above command.
 
 
 
