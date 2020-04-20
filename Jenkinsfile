@@ -57,7 +57,7 @@ node {
       }
       stage('VerifyClusterHealth') {
         kubeHelper.waitForPods(kubectlNamespace)
-        testHelper.checkPodHealth(kubectlNamespace)
+        testHelper.checkPodHealth(kubectlNamespace, "")
       }
       stage('GenerateData') {
         testHelper.simulateData(kubectlNamespace)
