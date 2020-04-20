@@ -3,7 +3,7 @@
 resource "aws_security_group" "ssh" {
   name        = "ssh_${var.vm_name}"
   description = "security group that only enables ssh"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = "${var.vpc_id}"
 
   ingress {
     from_port   = 22
@@ -22,7 +22,7 @@ resource "aws_security_group" "ssh" {
 resource "aws_security_group" "local" {
   name        = "local_${var.vm_name}"
   description = "security group that only allow internal tcp traffics"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = "${var.vpc_id}"
  egress {
     from_port   = 0
     to_port     = 0
@@ -43,8 +43,8 @@ resource "aws_security_group" "local" {
 ## Creating a new subnet for Qualys VM launch 
 
 resource "aws_subnet" "qualys_pub" {
-  vpc_id                  = "${var.csoc_vpc_id}"
-  cidr_block              = "10.128.${var.env_vpc_octet3}.0/24"
+  vpc_id                  = "${var.vpc_id}"
+  cidr_block              = "${var.env_vpc_subnet}"
   tags                    = "${map("Name", "${var.vm_name}_pub", "Organization", var.organization, "Environment", var.environment, "Association", var.vm_name)}"
 }
 
@@ -58,7 +58,7 @@ resource "aws_route_table_association" "qualys_pub" {
 ## Launching the Qualys VM
 
 resource "aws_instance" "qualys" {
-  ami                         = "${data.aws_ami.qualys_ami"
+  ami                         = "${data.aws_ami.qualys_ami.id}"
   subnet_id                   = "${aws_subnet.qualys_pub.id}"
   instance_type               = "${var.instance_type}"
   monitoring                  = true

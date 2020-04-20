@@ -4,7 +4,7 @@ variable "vm_name" {
 #  default     = "qualys_scanner_prod"
 }
 
-variable "csoc_vpc_id" {
+variable "vpc_id" {
   description = "VPC ID where to deploy the VM"
   default     = "vpc-e2b51d99"
 }
@@ -48,4 +48,9 @@ variable "organization" {
 variable "environment" {
   description = "Environment for tag purposes"
   default     = "CSOC"
+}
+
+variable "instance_type" {
+  description = "Instance type for the VM"
+  default     = "t3.medium"
 }
