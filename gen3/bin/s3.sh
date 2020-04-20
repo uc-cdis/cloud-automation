@@ -138,7 +138,9 @@ EOF
   fi
   _tfapply_s3
   if [[ $? != 0 ]]; then
-    return 1
+    gen3_log_info "let's try that again ..."
+    _tfplan_s3 $bucketName $environmentName
+    _tfapply_s3 || return 1
   fi
 
   if [[ $cloudtrailFlag =~ ^.*add-cloudtrail$ ]]; then

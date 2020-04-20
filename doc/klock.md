@@ -12,7 +12,7 @@ Attempts to lock the lock lock-name in the namespace that KUBECTL_NAMESPACE
 is set to. Exits 0 if the lock is obtained and 1 if it is not obtained.
 
   - lock-name: string, name of lock
-  - owner: string, name of owner
+  - owner: string, name of owner - silently truncated to 45 characters
   - max-age: int, number of seconds for the lock to persist before expiring
   -  -w, --wait: option to make lock spin wait
   - wait-time: int, number of seconds to spin wait for
@@ -23,7 +23,7 @@ is set to. Exits 0 if the lock is obtained and 1 if it is not obtained.
 ```
 
 Attempts to unlock the lock lock-name in the namespace that KUBECTL_NAMESPACE 
-is set to. Exits 0 if the lock is unlocked and 1 if it fails.
+is set to. Exits 0 if the lock is unlocked and 1 if it fails.  The owner is silently truncated to 45 characters.
 
 ### list
 ```
