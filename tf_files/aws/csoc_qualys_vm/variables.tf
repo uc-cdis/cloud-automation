@@ -7,7 +7,7 @@ variable "vpc_id" {
 }
 
 variable "env_vpc_subnet" {
-  default = "3"
+  default = "10.128.3.0/24"
 }
 
 variable "qualys_pub_subnet_routetable_id"{
@@ -26,6 +26,11 @@ variable "user_perscode"{
 variable "image_name_search_criteria" {
   description = "Search criteria to search for AMI"
   default     = "a04e299c-fb8e-4ee2-9a75-94b76cf20fb2"
+}
+
+variable "image_desc_search_criteria" {
+  description = "Search criteria to search for AMI"
+  default     = ""
 }
 
 variable "ami_account_id" {
