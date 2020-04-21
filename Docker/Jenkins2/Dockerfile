@@ -10,12 +10,6 @@ RUN set -xe && python -m pip install awscli --upgrade && python -m pip install p
 RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade
 RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade
 
-# update /etc/sudoers
-RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
-  && /bin/echo -e "\n%sudo    ALL=(ALL:ALL) NOPASSWD:ALL\n" >> /etc/sudoers.bak \
-  && cp /etc/sudoers.bak /etc/sudoers \
-  && usermod -G sudo jenkins
-
 # add our custom start script
 COPY jenkins2.sh /opt/cdis/bin/jenkins2.sh
 RUN chmod -R a+rx /opt/cdis
