@@ -39,7 +39,7 @@ variable "ssh_key_name" {
 }
 
 variable "environment" {
-  Description = "For tagging purposes"
+  description = "For tagging purposes"
   default     = "CSOC"
 }
 
