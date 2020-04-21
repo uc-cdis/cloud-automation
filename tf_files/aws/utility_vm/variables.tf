@@ -75,3 +75,7 @@ variable "organization_name" {
   description = "For tagging purposes"
   default     = "Basic Service"
 }
+
+vairable "branch" {
+  default = "master"
+}
