@@ -6,8 +6,8 @@ master:
   adminUser: "admin"
   # adminPassword: ""
 
-  image: "jenkins/jenkins"
-  tag: "2.233"
+  image: "quay.io/cdis/k8s-jenkins-master"
+  tag: "latest"
 
   installPlugins: false
 
