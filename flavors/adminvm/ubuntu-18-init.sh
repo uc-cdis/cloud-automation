@@ -31,6 +31,9 @@ else
       if [[ $i = *"account_id"* ]];
       then
         ACCOUNT_ID="$(echo ${i} | cut -d= -f2)"
+      elif [[ $i = *"vm_role"* ]];
+      then
+        VM_ROLE="$(echo ${i} | cut -d= -f2)"
       fi
     done
     echo $1
@@ -166,7 +169,6 @@ function install_terraform(){
   unzip ${download_path} -d /usr/local/bin
   chmod +x /usr/local/bin/terraform
 }
-}
 
 function configure_gen3(){
 
@@ -184,6 +186,27 @@ function configure_gen3(){
   gen3 kube-setup-workvm
 }
 
+function elevate_permissions(){
+
+  cat >> /tmp/adminVM.json <<EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+            {
+                "Action": "sts:AssumeRole",
+                "Resource": "arn:aws:iam::${ACCOUNT_ID}:role/csoc_adminvm",
+                "Effect": "Allow",
+                "Sid": ""
+            }
+    ]
+}
+EOF
+
+  cd ${HOME_FOLDER}
+  sudo -H -u ${WORK_USER} bash -c "$(command -v aws) iam put-role-policy --role-name ${VM_ROLE} --policy-name ${VM_ROLE}_assume_policy --policy-document file:///tmp/adminVM.json"
+
+}
+
 function main(){
   install_basics
   configure_awscli
@@ -192,6 +215,7 @@ function main(){
   install_docker
   install_terraform
   configure_gen3
+  elevate_permissions
 }
 
 main
