@@ -20,7 +20,8 @@ gen3_load "gen3/lib/kube-setup-init"
 
 export vpc_name="$(grep 'vpc_name=' $HOME/.bashrc |cut -d\' -f2)"
 export GEN3_HOME="$HOME/cloud-automation"
-export KUBECONFIG="$HOME/${vpc_name}/kubeconfig"
+#export KUBECONFIG="$HOME/${vpc_name}/kubeconfig"
+export KUBECONFIG="$(gen3_secrets_folder)/kubeconfig"
 PATH="${PATH}:/usr/local/bin"
 
 #aws ec2 describe-instances --query 'Reservations[*].Instances[*].[InstanceId,PrivateIpAddress,Tags[?Key==`Name`].Value]' --filter "Name=tag:Name,Values=*${vpc_name}"
