@@ -64,7 +64,7 @@ variable "vm_hostname" {
 }
 
 variable "proxy" {
-  default = "yes"
+  default = true
 }
 
 variable "authorized_keys" {
