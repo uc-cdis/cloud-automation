@@ -1,4 +1,4 @@
-# Jenkins 2
+# Jenkins 2 (aka: k8s-jenkins-master)
 
 Jenkins2 is installed through a Helm chart whose tarball (gen3-jenkins-1.8.0.tgz) has been uploaded to s3://cdis-terraform-state/Jenkins2Backup/
 
