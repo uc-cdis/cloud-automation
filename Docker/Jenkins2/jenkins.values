@@ -30,7 +30,7 @@ master:
   - /sbin/tini
   args:
   - --
-  - /opt/cdis/bin/jenkins.sh
+  - /opt/cdis/bin/jenkins2.sh
 
 rbac:
   create: true
