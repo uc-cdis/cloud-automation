@@ -76,6 +76,6 @@ variable "organization_name" {
   default     = "Basic Service"
 }
 
-vairable "branch" {
+variable "branch" {
   default = "master"
 }
