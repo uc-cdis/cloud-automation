@@ -35,6 +35,8 @@ data "aws_nat_gateway" "the_gateway" {
   tags = {
     Name = "${var.vpc_name}-ngw"
   }
+
+  state = "available"
 }
 
 # Also let's allow comminication through the peering
