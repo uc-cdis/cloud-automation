@@ -56,26 +56,27 @@ function configure_awscli() {
   # Adding AWS profile to the admin VM
   mkdir -p /home/ubuntu/.aws
   cat <<EOT > /home/ubuntu/.aws/config
-  [default]
-  output = json
-  region = ${REGION}
-  role_session_name = gen3-adminvm
-  role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csoc_adminvm
-  credential_source = Ec2InstanceMetadata
-  [profile csoc]
-  output = json
-  region = ${REGION}
-  role_session_name = gen3-adminvm
-  role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csoc_adminvm
-  credential_source = Ec2InstanceMetadata
+[default]
+output = json
+region = ${REGION}
+role_session_name = gen3-adminvm
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
+
+[profile csoc]
+output = json
+region = ${REGION}
+role_session_name = gen3-adminvm
+role_arn = arn:aws:iam::${ACCOUNT_ID}:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
 EOT
 }
 
 function configure_ssh() {
 
-#  cp $(dirname $0)/sshd_config /etc/ssh/sshd_config
-#  chown root:root /etc/ssh/sshd_config
-#  chmod 0644 /etc/ssh/sshd_config
+  cp $(dirname $0)/sshd_config /etc/ssh/sshd_config
+  chown root:root /etc/ssh/sshd_config
+  chmod 0644 /etc/ssh/sshd_config
 
   mkdir -p /usr/local/etc/ssh
   cp $(dirname $0)/krlfile /usr/local/etc/ssh/krlfile
@@ -218,7 +219,7 @@ function main(){
   install_docker
   install_terraform
   configure_gen3
-  elevate_permissions
+  #elevate_permissions
 }
 
 main
