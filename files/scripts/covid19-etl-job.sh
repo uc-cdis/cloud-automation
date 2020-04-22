@@ -24,7 +24,7 @@ source "${GEN3_HOME}/gen3/gen3setup.sh"
 
 help() {
   cat - <<EOM
-Use: bash ./covid19-etl-cronjob.sh
+Use: bash ./covid19-etl-job.sh
 EOM
 }
 
