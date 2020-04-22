@@ -43,7 +43,15 @@ if [[ -z "$JOB_NAME" ]]; then
   exit 1
 fi
 
+# temporary file for the job
+tempFile="$(mktemp "$XDG_RUNTIME_DIR/covid19-etl-$JOB_NAME.yaml")"
+
+# populate the job variable and change it's name to reflect the ETL being run
 ACCESS_TOKEN="$(gen3 api access-token $USER)"
 gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-etl-job.yaml ACCESS_TOKEN "$ACCESS_TOKEN" JOB_NAME "$JOB_NAME" \
-  | sed "s|COVID19_JOB_NAME_PLACEHOLDER|$JOB_NAME|g" \
-  | g3kubectl apply -f -
+  | sed "s|COVID19_JOB_NAME_PLACEHOLDER|$JOB_NAME|g" > "$tempFile"
+
+gen3 job run "$tempFile"
+
+# cleanup
+rm "$tempFile"
