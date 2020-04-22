@@ -1,8 +1,8 @@
-# gen3 job run covid19-etl ACCESS_TOKEN <access_token> JOB_NAME <job_name>
+# gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-etl-job.yaml ACCESS_TOKEN $ACCESS_TOKEN JOB_NAME $JOB_NAME | sed "s|#COVID19_JOB_NAME_PLACEHOLDER#|$COVID19_ETL_NAME|g" | g3kubectl apply -f -
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: covid19-etl
+  name: covid19-etl-#COVID19_JOB_NAME_PLACEHOLDER#
 spec:
   backoffLimit: 0
   template:
