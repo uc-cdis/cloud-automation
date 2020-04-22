@@ -29,7 +29,8 @@ RevokedKeys /usr/local/etc/ssh/krlfile
 PermitRootLogin without-password
 PasswordAuthentication no
 UsePAM yes
-Ciphers aes256-ctr,blowfish-cbc
+#Ciphers aes256-ctr,blowfish-cbc
+Ciphers +aes256-cbc,aes192-cbc,aes128-cbc
 MACs hmac-ripemd160,hmac-sha2-256,hmac-sha2-512
 ListenAddress 0.0.0.0
 KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
