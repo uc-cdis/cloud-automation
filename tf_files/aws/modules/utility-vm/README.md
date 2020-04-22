@@ -59,15 +59,6 @@ This variables would be initialized when you first `workon` the module. They sti
 | vpc_cidr_list | List of CIDRs to overpass the proxy | list | ["10.128.0.0/20", "54.0.0.0/8", "52.0.0.0/8"] |
 
 
-
-* bootstrap_path: folder where the custom bootstrap script is located. Can be absolute or relative. If you want to use relative, keep in mind that you will be located in `/home/ubuntu`.
-* bootstrap_script: strip to execute located at the path previously set.
-* vm_name: how would you like the VM to be named. This is basically to identify the VM within AWS console (name and Name tag).
-* vm_hostname: `hostnamectl set-hostname <vm_hostname>` would be executed in which would set the VM hostname. You can always change this later.
-* vpc_cidr_list: list of cidrs that would overpass the proxy.
-* extra_vars: in case you want to use some vars within the bootstrap script. Must be `;` separated if you want to provide more than one. You can leave the list empty.
-
-
 ### 4.2 Optional Variables
 
 This variables are not initialized but you can change them if needed.
@@ -81,7 +72,7 @@ This variables are not initialized but you can change them if needed.
 | vpc_subnet_id | Subnet within vpc_id. | string | "vpc_subnet_id" |
 | ssh_key_name | This one will most likely be overwritten, but in case something goes wrong with the execution script, you might still be able to access the VM. | string | "fauzi@uchicago.edu" |
 | environment | For tagging purposes | string | "CSOC" |
-| instance_type | Self explanatory | string | t2.micro | 
+| instance_type | Self explanatory | string | t3.micro | 
 | proxy | If the VM will be behind a proxy | boolean | yes |
 | authorized_keys | Path to file containing ssh keys that will be copied to `/home/ubuntu/.ssh/authorized_keys`. | string | "files/authorized_keys/ops_team" |
 | branch | For testing purposes | string | "master" |
