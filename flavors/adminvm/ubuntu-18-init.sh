@@ -73,9 +73,9 @@ EOT
 
 function configure_ssh() {
 
-  cp $(dirname $0)/sshd_config /etc/ssh/sshd_config
-  chown root:root /etc/ssh/sshd_config
-  chmod 0644 /etc/ssh/sshd_config
+#  cp $(dirname $0)/sshd_config /etc/ssh/sshd_config
+#  chown root:root /etc/ssh/sshd_config
+#  chmod 0644 /etc/ssh/sshd_config
 
   mkdir -p /usr/local/etc/ssh
   cp $(dirname $0)/krlfile /usr/local/etc/ssh/krlfile
