@@ -44,7 +44,7 @@ if [[ -z "$JOB_NAME" ]]; then
 fi
 
 # temporary file for the job
-tempFile="$(mktemp "$XDG_RUNTIME_DIR/covid19-etl-$JOB_NAME.yaml")"
+tempFile="$(mktemp "$XDG_RUNTIME_DIR/covid19-etl-$JOB_NAME.yaml_XXXXXX")"
 
 # populate the job variable and change it's name to reflect the ETL being run
 ACCESS_TOKEN="$(gen3 api access-token $USER)"
