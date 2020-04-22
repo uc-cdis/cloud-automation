@@ -223,7 +223,7 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
 
   cd $USER_HOME
 
-  bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${aws_cloudwatch_log_group.csoc_log_group.name};vm_role=${aws_iam_role.vm_role.name};account_id=${var.account_id};${join(";",var.extra_vars)}" 2>&1
+  bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${aws_cloudwatch_log_group.csoc_log_group.name};vm_role=${aws_iam_role.vm_role.name};account_id=${var.aws_account_id};${join(";",var.extra_vars)}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
 ) > /var/log/bootstrapping_script.log
