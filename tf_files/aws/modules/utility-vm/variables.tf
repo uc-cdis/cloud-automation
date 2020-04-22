@@ -45,12 +45,12 @@ variable "environment" {
 
 variable "instance_type" {
   description = "Instance type to be deploy the VM on"
-  default     = "t2.micro"
+  default     = "t3.micro"
 }
 
 variable "image_name_search_criteria" {
   description = "Searc criteria for the AMI"
-  default     = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
+  default     = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 }
 
 variable "extra_vars" {
