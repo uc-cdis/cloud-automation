@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: covid19-etl-#COVID19_JOB_NAME_PLACEHOLDER#-job
+  name: covid19-etl-#COVID19_JOB_NAME_PLACEHOLDER#
 spec:
   backoffLimit: 0
   template:
