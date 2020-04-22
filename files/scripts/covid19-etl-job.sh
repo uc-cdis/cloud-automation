@@ -5,7 +5,7 @@
 #
 # USER=USER
 # KUBECONFIG=path/to/kubeconfig
-# 0   0   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/covid19-etl-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/covid19-etl-cronjob.sh; else echo "no codiv19-etl-cronjob.sh"; fi) > $HOME/covid19-etl-cronjob.log 2>&1
+# 0   0   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/covid19-etl-job.sh ]; then JOB_NAME=<JOB_NAME> bash $HOME/cloud-automation/files/scripts/covid19-etl-job.sh; else echo "no codiv19-etl-job.sh"; fi) > $HOME/covid19-etl-$JOB_NAME-job.log 2>&1
 
 # setup --------------------
 
@@ -43,5 +43,7 @@ if [[ -z "$JOB_NAME" ]]; then
   exit 1
 fi
 
-accessToken="$(gen3 api access-token $USER)"
-gen3 job run covid19-etl ACCESS_TOKEN "$accessToken" JOB_NAME "$JOB_NAME"
+ACCESS_TOKEN="$(gen3 api access-token $USER)"
+gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-etl-job.yaml ACCESS_TOKEN "$ACCESS_TOKEN" JOB_NAME "$JOB_NAME" \
+  | sed "s|COVID19_JOB_NAME_PLACEHOLDER|$JOB_NAME|g" \
+  | g3kubectl apply -f -
