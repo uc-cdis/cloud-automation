@@ -18,6 +18,7 @@ data "aws_ami" "public_ami" {
 
   owners = ["${var.ami_account_id}"]
 }
+
 #
 # This guy should only have access to Cloudwatch and nothing more
 #
@@ -38,3 +39,5 @@ data "aws_iam_policy_document" "vm_policy_document" {
   }
 }
 
+
+data "aws_region" "current" {}

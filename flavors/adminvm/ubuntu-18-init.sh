@@ -34,6 +34,9 @@ else
       elif [[ $i = *"vm_role"* ]];
       then
         VM_ROLE="$(echo ${i} | cut -d= -f2)"
+      elif [[ $i = *"cwl_group"* ]];
+      then
+        CWL_GROUP="$(echo ${i} | cut -d= -f2)"
       fi
     done
     echo $1
