@@ -69,7 +69,7 @@ setup_sowerjobs() {
 
     key_id=$(jq -r .id <<< $user)
     access_key=$(jq -r .secret <<< $user)
-    cat - > "$credsFile" <<EOM
+    cat - > "${secretsFolder}/creds.json" <<EOM
 {
   "index-object-manifest": {
     "job_requires": {
