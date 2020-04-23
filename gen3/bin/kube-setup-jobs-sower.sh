@@ -7,26 +7,26 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 #
-# sower-jobs require access to an S3 bucket
+# jobs-sower require access to an S3 bucket
 #
-setup_sower-jobs() {
+setup_sower_jobs() {
   local secret
-  local secretsFolder="$(gen3_secrets_folder)/g3auto/sower-jobs"
-  if ! secret="$(g3kubectl get secret sower-jobs-g3auto -o json 2> /dev/null)" \
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/jobs-sower"
+  if ! secret="$(g3kubectl get secret jobs-sower-g3auto -o json 2> /dev/null)" \
     || "false" == "$(jq -r '.data | has("creds.json")' <<< "$secret")"; then
-    # sower-jobs-g3auto secret does not exist
+    # jobs-sower-g3auto secret does not exist
     # maybe we just need to sync secrets from the file system
     if [[ -f "${secretsFolder}/creds.json" ]]; then
-        gen3 secrets sync "setup sower-jobs secrets"
+        gen3 secrets sync "setup jobs-sower secrets"
     else
       mkdir -p "$secretsFolder"
     fi
   fi
-  if ! secret="$(g3kubectl get secret sower-jobs-g3auto -o json 2> /dev/null)" \
+  if ! secret="$(g3kubectl get secret jobs-sower-g3auto -o json 2> /dev/null)" \
     || "false" == "$(jq -r '.data | and has("creds.json")' <<< "$secret")"; then
     gen3_log_info "setting up secrets for sower jobs"
     #
-    # sower-jobs-g3auto secret still does not exist
+    # jobs-sower-g3auto secret still does not exist
     # we need to setup an S3 bucket and IAM creds
     # let's avoid creating multiple buckets for different
     # deployments to the same k8s cluseter (dev, etc)
@@ -38,22 +38,22 @@ setup_sower-jobs() {
       gen3_log_err "could not determine account numer"
     fi
     if ! environment="$(g3kubectl get configmap manifest-global -o json | jq -r .data.environment)"; then
-      gen3_log_err "could not determine environment from manifest-global - bailing out of sower-jobs setup"
+      gen3_log_err "could not determine environment from manifest-global - bailing out of jobs-sower setup"
       return 1
     fi
     # try to come up with a unique but composable bucket name
-    bucketName="sower-jobs-${accountNumber}-${environment//_/-}-gen3"
+    bucketName="jobs-sower-${accountNumber}-${environment//_/-}-gen3"
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
-      gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/sower-jobs"
+      gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/jobs-sower"
       # continue on ...
     elif ! gen3 s3 create "${bucketName}"; then
       gen3_log_err "maybe failed to create bucket ${bucketName}, but maybe not, because the terraform script is flaky"
     fi
 
     local userName
-    userName="sower-jobs-${environment}-bot"
+    userName="jobs-sower-${environment}-bot"
     if aws iam get-user --user-name "$userName" > /dev/null 2>&1; then
-      gen3_log_err "${userName} iam user already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/sower-jobs"
+      gen3_log_err "${userName} iam user already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/jobs-sower"
       return 1
     elif ! gen3 awsuser create "$userName"; then
       gen3_log_err "failed to create ${userName} iam user"
@@ -63,12 +63,9 @@ setup_sower-jobs() {
 
     local creds
     creds="$(gen3 secrets decode "${userName}-g3auto" "awsusercreds.json")"
-    local hostname
-    hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
-    user=$(gen3 secrets decode ${username}-g3auto awsusercreds.json)
 
-    key_id=$(jq -r .id <<< $user)
-    access_key=$(jq -r .secret <<< $user)
+    key_id=$(jq -r .id <<< $creds)
+    access_key=$(jq -r .secret <<< $creds)
     cat - > "${secretsFolder}/creds.json" <<EOM
 {
   "index-object-manifest": {
@@ -111,14 +108,14 @@ setup_sower-jobs() {
   }
 }
 EOM
-    gen3 secrets sync 'setup sower-jobs credentials'
+    gen3 secrets sync 'setup jobs-sower credentials'
   fi
 }
 
 if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then
-    setup_sower-jobs
+    setup_sower_jobs
 fi
 
 cat <<EOM
-The sower-jobs bucket has been configured and the secret setup for use by sower jobs.
+The jobs-sower bucket has been configured and the secret setup for use by sower jobs.
 EOM

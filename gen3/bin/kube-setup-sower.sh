@@ -9,7 +9,6 @@ gen3_load "gen3/lib/kube-setup-init"
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/sower/serviceaccount.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/sower/sower-service.yaml"
-gen3 kube-setup-sowerjobs
 gen3 roll sower
 
 cat <<EOM
