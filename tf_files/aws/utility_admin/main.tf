@@ -27,6 +27,12 @@ module "utility_vm" {
   organization_name          = "${var.organization_name}"
   branch                     = "${var.branch}"
   
-
   # put other variables here ...
+}
+
+
+resource "aws_iam_role_policy" "vm_assume_policy" {
+  name   = "${var.vm_name}_policy"
+  policy = "${data.aws_iam_policy_document.assume_role_policy_document.json}"
+  role   = "${module.utility_vm.role_id}"
 }
