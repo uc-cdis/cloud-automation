@@ -5,7 +5,6 @@
 accounts.google.com
 achecker.ca
 ctds-planx.atlassian.net
-api-bionimbus-pdc.opensciencedatacloud.org
 api.immport.org
 api.login.yahoo.com
 api.snapcraft.io
@@ -66,7 +65,6 @@ http.us.debian.org
 ifconfig.io
 internet2.edu
 k8s.gcr.io
-keyservice.opensciencedatacloud.org
 ks.osdc.io
 lib.stat.cmu.edu
 login.mathworks.com
