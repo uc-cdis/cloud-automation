@@ -12,7 +12,11 @@ export GEN3_HOME="$HOME/cloud-automation"
 export vpc_name="${vpc_name:-"qaplanetv1"}"
 export KUBECONFIG="${KUBECONFIG:-"$HOME/${vpc_name}/kubeconfig"}"
 
-if ! [[ -d "$HOME/cloud-automation" && -d "$HOME/cdis-manifest" && -f "$HOME/${vpc_name}/kubeconfig" ]]; then
+if [[ ! -f "$KUBECONFIG" ]]; then
+  KUBECONFIG="$HOME/Gen3Secrets/kubeconfig"
+fi
+
+if ! [[ -d "$HOME/cloud-automation" && -d "$HOME/cdis-manifest" && -f "$KUBECONFIG" ]]; then
   echo "ERROR: this does not look like a QA environment"
   exit 1
 fi
