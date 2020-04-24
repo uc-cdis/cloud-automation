@@ -212,10 +212,6 @@ resource "aws_lb_listener" "vpn_nlb-tcp" {
     target_group_arn = "${aws_lb_target_group.vpn_nlb-tcp.arn}"
     type             = "forward"
   }
-  tags {
-    Environment  = "${var.env_vpn_nlb_name}"
-    Organization = "${var.organization_name}"
-  }
 }
 
 
