@@ -31,64 +31,6 @@ gen3_create_manifest() {
   rm $WORKSPACE/manifest.csv
 }
 
-# function to create job
-## creates job and returns command to check job status after completed
-gen3_replicate_create_job() {
-  local source=$1
-  local destination=$2
-  if [[ ! -z $3 ]]; then
-    local profile=$3
-    local etag=$(gen3_aws_run aws s3api list-objects --profile $profile --bucket $2 --output json --query '{Name: Contents[].{Key: ETag}}' --prefix manifest.csv | jq -r .Name[].Key | sed -e 's/"//g')
-    local OPERATION='{"S3PutObjectCopy": {"TargetResource": "arn:aws:s3:::'$destination'"}}'
-    local MANIFEST='{"Spec": {"Format": "S3BatchOperations_CSV_20180820","Fields": ["Bucket","Key"]},"Location": {"ObjectArn": "arn:aws:s3:::'$destination'/manifest.csv","ETag": "'$etag'"}}'
-    local REPORT='{"Bucket": "arn:aws:s3:::'$destination'","Format": "Report_CSV_20180820","Enabled": true,"Prefix": "reports/copy-with-replace-metadata","ReportScope": "AllTasks"}'
-    local roleArn=$(gen3_aws_run aws iam get-role --profile $profile --role-name batch-operations-role | jq -r .Role.Arn)
-    local accountId=$(gen3_aws_run aws iam get-role --profile $profile --role-name batch-operations-role | jq -r .Role.Arn | cut -d : -f 5)
-    status=$(gen3_aws_run aws s3control create-job --profile $profile --account-id $accountId --manifest "${MANIFEST//$'\n'}" --operation "${OPERATION//$'\n'/}" --report "${REPORT//$'\n'}" --priority 10 --role-arn $roleArn  --region us-east-1 --description "Copy with Replace Metadata" --no-confirmation-required | jq -r .JobId)
-  else
-    local etag=$(gen3_aws_run aws s3api list-objects --bucket $2 --output json --query '{Name: Contents[].{Key: ETag}}' --prefix manifest.csv | jq -r .Name[].Key | sed -e 's/"//g')
-    local OPERATION='{"S3PutObjectCopy": {"TargetResource": "arn:aws:s3:::'$destination'"}}'
-    local MANIFEST='{"Spec": {"Format": "S3BatchOperations_CSV_20180820","Fields": ["Bucket","Key"]},"Location": {"ObjectArn": "arn:aws:s3:::'$destination'/manifest.csv","ETag": "'$etag'"}}'
-    local REPORT='{"Bucket": "arn:aws:s3:::'$destination'","Format": "Report_CSV_20180820","Enabled": true,"Prefix": "reports/copy-with-replace-metadata","ReportScope": "AllTasks"}'
-    local roleArn=$(gen3_aws_run aws iam get-role --role-name batch-operations-role | jq -r .Role.Arn)
-    local accountId=$(gen3_aws_run aws iam get-role --role-name batch-operations-role | jq -r .Role.Arn |cut -d : -f 5)
-    status=$(gen3_aws_run aws s3control create-job --account-id "$accountId" --manifest "${MANIFEST//$'\n'}" --operation "${OPERATION//$'\n'/}" --report "${REPORT//$'\n'}" --priority 10 --role-arn $roleArn --client-request-token "$(uuidgen)" --region us-east-1 --description "Copy with Replace Metadata" --no-confirmation-required | jq -r .JobId)
-  fi
-  echo $status
-}
-
-# function to check job status
-gen3_replicate_status() {
-  local jobId=$1
-  counter=0
-  ## fix to account for other profile
-  if [[ ! -z $2 ]]; then
-    local profile=$2
-    local accountId=$(gen3_aws_run aws iam get-role --role-name batch-operations-role --profile $profile --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
-    local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --profile $profile --region us-east-1 | jq -r .Job.Status)
-    while [[ $status != 'Complete' ]] || [[ $counter > 90 ]]; do
-      gen3_log_info "Waiting for job to complete. Current status $status"
-      local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --profile $profile --region us-east-1 | jq -r .Job.Status)
-      let counter=counter+1
-      sleep 10
-    done
-  else
-    local accountId=$(gen3_aws_run aws iam get-role --role-name batch-operations-role --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
-    local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.Status)
-    while [[ $status != 'Complete' ]] || [[ $counter > 90 ]]; do
-      gen3_log_info "Waiting for job to complete. Current status $status"
-      local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.Status)
-      let counter=counter+1
-      sleep 10      
-    done
-  fi
-  if [[ $counter > 90 ]]; then
-    gen3_log_err "Job $jobId timed out trying to run. The job will clean up and if the job is still in progress it's permissions will be removed and will become broken."
-  fi
-  echo $status
-}
-
-
 
 ####### IAM part
 
@@ -190,19 +132,105 @@ EOF
     if [ ! $? == 0 ]; then
       gen3_log_info " Can not create S3BatchJobRole role"
       exit 1
+    else
+      local access_key=$(gen3_aws_run aws iam list-access-keys --user-name fence_bot | jq -r .AccessKeyMetadata[0].AccessKeyId)
     fi
   else
     gen3_log_info "S3BatchJobRole role already exist"
   fi
-  
+
+  local lambda_arn=$(gen3_aws_run aws lambda get-function --function-name object-metadata-compute | jq -r .Configuration.FunctionArn)
+
+  cat << EOF > $WORKSPACE/policy.json
+{
+   "Version":"2012-10-17",
+  "Statement":[
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${manifest_bucket}/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "lambda:InvokeFunction",
+      "Resource": "${lambda_arn}"
+    }
+  ]
+}
+EOF
+  aws iam put-role-policy \
+  --role-name  S3BatchJobRole\
+  --policy-name S3BatchJobRolePolicy \
+  --policy-document file://policy.json
+
+  rm $WORKSPACE/policy.json
   
 }
+
+# function to create job
+## creates job and returns command to check job status after completed
+gen3_bucket_manifest_create_job() {
+  local manifest_bucket=$2
+  echo "manifest bucket" ${manifest_bucket}
+  local lambda_arn=$(gen3_aws_run aws lambda get-function --function-name object-metadata-compute | jq -r .Configuration.FunctionArn)
+  local accountId=$(gen3_aws_run aws iam get-role --role-name S3BatchJobRole | jq -r .Role.Arn |cut -d : -f 5)
+  local etag=$(gen3_aws_run aws s3api list-objects --bucket ${manifest_bucket} --output json --query '{Name: Contents[].{Key: ETag}}' --prefix test_manifest | jq -r .Name[].Key | sed -e 's/"//g')
+  local OPERATION='{"LambdaInvoke": { "FunctionArn": "'${lambda_arn}'" } }'
+  local MANIFEST='{"Spec": {"Format": "S3BatchOperations_CSV_20180820","Fields": ["Bucket","Key"]},"Location": {"ObjectArn": "arn:aws:s3:::'${manifest_bucket}'/test_manifest","ETag": "'$etag'"}}'
+  local REPORT='{"Bucket": "arn:aws:s3:::'${manifest_bucket}'","Format": "Report_CSV_20180820","Enabled": true,"Prefix": "reports/object_metadata","ReportScope": "AllTasks"}'
+  local roleArn=$(gen3_aws_run aws iam get-role --role-name S3BatchJobRole | jq -r .Role.Arn)
+  status=$(gen3_aws_run aws s3control create-job --account-id "$accountId" --manifest "${MANIFEST//$'\n'}" --operation "${OPERATION//$'\n'/}" --report "${REPORT//$'\n'}" --priority 10 --role-arn $roleArn --client-request-token "$(uuidgen)" --region us-east-1 --description "Copy with Replace Metadata" --no-confirmation-required | jq -r .JobId)
+  echo "operation" $OPERATION
+  echo "report" $REPORT
+  echo "roleArn" $roleArn
+  echo "etag" $etag
+  echo "manifest:" $MANIFEST
+  echo $status
+}
+
+# function to check job status
+gen3_replicate_status() {
+  local jobId=$1
+  counter=0
+  ## fix to account for other profile
+  if [[ ! -z $2 ]]; then
+    local profile=$2
+    local accountId=$(gen3_aws_run aws iam get-role --role-name S3BatchJobRole --profile $profile --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
+    local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --profile $profile --region us-east-1 | jq -r .Job.Status)
+    while [[ $status != 'Complete' ]] || [[ $counter > 90 ]]; do
+      gen3_log_info "Waiting for job to complete. Current status $status"
+      local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --profile $profile --region us-east-1 | jq -r .Job.Status)
+      let counter=counter+1
+      sleep 10
+    done
+  else
+    local accountId=$(gen3_aws_run aws iam get-role --role-name batch-operations-role --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
+    local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.Status)
+    while [[ $status != 'Complete' ]] || [[ $counter > 90 ]]; do
+      gen3_log_info "Waiting for job to complete. Current status $status"
+      local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.Status)
+      let counter=counter+1
+      sleep 10      
+    done
+  fi
+  if [[ $counter > 90 ]]; then
+    gen3_log_err "Job $jobId timed out trying to run. The job will clean up and if the job is still in progress it's permissions will be removed and will become broken."
+  fi
+  echo $status
+}
+
 gen3_generate_manifest() {
   if [[ $# -lt 2 ]]; then
     gen3_log_info "The input and manifest buckets are required "
     exit 1
   fi  
   initialization $@
+  gen3_bucket_manifest_create_job $@
 }
 
 gen3_bucket_manifest_help() {
