@@ -481,12 +481,12 @@ function main() {
   set -u
   install_custom_scripts
   #  if [! -d "/etc/openvpn/easy-rsa"]; then
-  aws s3 ls s3://${S3_BUCKET}/ || install_easyrsa
+  aws s3 ls s3://${S3_BUCKET}/${VPN_NLB_NAME}/ || install_easyrsa
 
   install_settings
 
   # if [! -d "/etc/openvpn/easy-rsa"]; then
-  aws s3 ls s3://${S3_BUCKET}/ || build_PKI
+  aws s3 ls s3://${S3_BUCKET}/${VPN_NLB_NAME}/ || build_PKI
   #fi
 
   configure_ovpn
