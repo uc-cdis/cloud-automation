@@ -7,26 +7,26 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 #
-# jobs-sower require access to an S3 bucket
+# sower-jobs require access to an S3 bucket
 #
 setup_sower_jobs() {
   local secret
-  local secretsFolder="$(gen3_secrets_folder)/g3auto/jobs-sower"
-  if ! secret="$(g3kubectl get secret jobs-sower-g3auto -o json 2> /dev/null)" \
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/sower-jobs"
+  if ! secret="$(g3kubectl get secret sower-jobs-g3auto -o json 2> /dev/null)" \
     || "false" == "$(jq -r '.data | has("creds.json")' <<< "$secret")"; then
-    # jobs-sower-g3auto secret does not exist
+    # sower-jobs-g3auto secret does not exist
     # maybe we just need to sync secrets from the file system
     if [[ -f "${secretsFolder}/creds.json" ]]; then
-        gen3 secrets sync "setup jobs-sower secrets"
+        gen3 secrets sync "setup sower-jobs secrets"
     else
       mkdir -p "$secretsFolder"
     fi
   fi
-  if ! secret="$(g3kubectl get secret jobs-sower-g3auto -o json 2> /dev/null)" \
+  if ! secret="$(g3kubectl get secret sower-jobs-g3auto -o json 2> /dev/null)" \
     || "false" == "$(jq -r '.data | and has("creds.json")' <<< "$secret")"; then
     gen3_log_info "setting up secrets for sower jobs"
     #
-    # jobs-sower-g3auto secret still does not exist
+    # sower-jobs-g3auto secret still does not exist
     # we need to setup an S3 bucket and IAM creds
     # let's avoid creating multiple buckets for different
     # deployments to the same k8s cluseter (dev, etc)
@@ -38,34 +38,47 @@ setup_sower_jobs() {
       gen3_log_err "could not determine account numer"
     fi
     if ! environment="$(g3kubectl get configmap manifest-global -o json | jq -r .data.environment)"; then
-      gen3_log_err "could not determine environment from manifest-global - bailing out of jobs-sower setup"
+      gen3_log_err "could not determine environment from manifest-global - bailing out of sower-jobs setup"
       return 1
     fi
     # try to come up with a unique but composable bucket name
-    bucketName="jobs-sower-${accountNumber}-${environment//_/-}-gen3"
+    bucketName="sower-jobs-${accountNumber}-${environment//_/-}-gen3"
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
-      gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/jobs-sower"
+      gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/sower-jobs"
       # continue on ...
     elif ! gen3 s3 create "${bucketName}"; then
       gen3_log_err "maybe failed to create bucket ${bucketName}, but maybe not, because the terraform script is flaky"
     fi
 
-    local userName
-    userName="jobs-sower-${environment}-bot"
-    if aws iam get-user --user-name "$userName" > /dev/null 2>&1; then
-      gen3_log_err "${userName} iam user already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/jobs-sower"
-      return 1
-    elif ! gen3 awsuser create "$userName"; then
-      gen3_log_err "failed to create ${userName} iam user"
-      return 1
-    fi
-    gen3 s3 attach-bucket-policy "$bucketName" --read-only --user-name "${userName}"
+    cat - > "sower-jobs-aws-policy.json" <<EOM
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:PutObjectLegalHold",
+                "s3:DeleteObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::sower-jobs-?-gen3/*",
+                "arn:aws:s3:::sower-jobs-?-gen3"
+            ]
+        }
+    ]
+}
+EOM
+    local saName="sower-jobs-${environment//_/-}-sa0"
+    local role_name="$(gen3 iam-serviceaccount -c "${saName}" -p ./sower-jobs-aws-policy.json)"
+    gen3_log_info "created service account '${saName}' with s3 access"
+    # TODO do I need the following: ???
+    # gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${role_name}"
+    # gen3_log_info "attached read-write bucket policy to '${bucketName}' for role '${role_name}'"
 
-    local creds
-    creds="$(gen3 secrets decode "${userName}-g3auto" "awsusercreds.json")"
-
-    key_id=$(jq -r .id <<< $creds)
-    access_key=$(jq -r .secret <<< $creds)
     cat - > "${secretsFolder}/creds.json" <<EOM
 {
   "index-object-manifest": {
@@ -73,8 +86,6 @@ setup_sower_jobs() {
       "arborist_url": "http://arborist-service",
       "job_access_req": []
     },
-    "aws_access_key_id": "$key_id",
-    "aws_secret_access_key": "$access_key",
     "bucket": "$bucketName",
     "indexd_user": "",
     "indexd_password": ""
@@ -84,8 +95,6 @@ setup_sower_jobs() {
       "arborist_url": "http://arborist-service",
       "job_access_req": []
     },
-    "aws_access_key_id": "$key_id",
-    "aws_secret_access_key": "$access_key",
     "bucket": "$bucketName"
   },
   "get-dbgap-metadata": {
@@ -93,8 +102,6 @@ setup_sower_jobs() {
       "arborist_url": "http://arborist-service",
       "job_access_req": []
     },
-    "aws_access_key_id": "$key_id",
-    "aws_secret_access_key": "$access_key",
     "bucket": "$bucketName"
   },
   "ingest-metadata-manifest": {
@@ -102,13 +109,11 @@ setup_sower_jobs() {
       "arborist_url": "http://arborist-service",
       "job_access_req": []
     },
-    "aws_access_key_id": "$key_id",
-    "aws_secret_access_key": "$access_key",
     "bucket": "$bucketName"
   }
 }
 EOM
-    gen3 secrets sync 'setup jobs-sower credentials'
+    gen3 secrets sync 'setup sower-jobs credentials'
   fi
 }
 
@@ -117,5 +122,5 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then
 fi
 
 cat <<EOM
-The jobs-sower bucket has been configured and the secret setup for use by sower jobs.
+The sower-jobs bucket has been configured and the secret setup for use by sower jobs.
 EOM
