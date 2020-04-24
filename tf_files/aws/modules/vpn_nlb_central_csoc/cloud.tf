@@ -1,7 +1,8 @@
 ### Logging stuff
 
 resource "aws_cloudwatch_log_group" "vpn_log_group" {
-  name              = "${var.env_vpn_nlb_name}.planx-pla.net_log_group"
+#  name              = "${var.env_vpn_nlb_name}.planx-pla.net_log_group"
+  name              = "${var.cwl_group_name}"
   retention_in_days = 1827
 
   tags {
@@ -297,6 +298,9 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
 
   cat $CLOUD_AUTOMATION/${var.authorized_keys} | sudo tee --append $USER_HOME/.ssh/authorized_keys
   echo "127.0.1.1 ${var.env_vpn_nlb_name}" | sudo tee --append /etc/hosts
+  #hostnamectl set-hostname ${var.env_vpn_nlb_name}
+  echo ${var.env_cloud_name} | tee /etc/hostname
+  hostnamectl set-hostname ${var.env_cloud_name}
 
   apt -y update
   DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade

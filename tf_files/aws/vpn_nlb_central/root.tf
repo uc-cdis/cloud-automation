@@ -30,6 +30,7 @@ module "vpn_nlb" {
   env_cloud_name               = "${var.env_cloud_name}"
   organization_name            = "${var.organization_name}"
   branch                       = "${var.branch}"
+  cwl_group_name               = "${var.cwl_group_name}"
   # put other variables here ...
   
 }

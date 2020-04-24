@@ -97,3 +97,8 @@ variable "authorized_keys" {
   default     = "files/authorized_keys/ops_team"
 }
 
+
+variable "cwl_group_name" {
+  description = "Logs group name of instance logs"
+  default     = "csoc-prod-vpn.planx-pla.net_log_group"
+}

@@ -84,3 +84,7 @@ variable "organization_name" {
 variable "branch" {
   default = "master"
 }
+
+variable "cwl_group_name" {
+  default     = "csoc-prod-vpn.planx-pla.net_log_group"
+}
