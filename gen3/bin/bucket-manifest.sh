@@ -115,9 +115,9 @@ EOF
     gen3_log_info "Lambda function object-metadata-compute already exists"
   fi
 
-  if [[ -z $(gen3_aws_run aws iam list-roles | jq -r .Roles[].RoleName | grep S3BatchJobRole) ]]; then
-    gen3_log_info "Creating S3BatchJobRole role"
-    gen3_aws_run aws iam create-role --role-name S3BatchJobRole --assume-role-policy-document '{
+  if [[ -z $(gen3_aws_run aws iam list-roles | jq -r .Roles[].RoleName | grep s3-batch-operation) ]]; then
+    gen3_log_info "Creating s3-batch-operation role"
+    gen3_aws_run aws iam create-role --role-name s3-batch-operation --assume-role-policy-document '{
         "Version": "2012-10-17",
         "Statement": [
         {
@@ -130,13 +130,13 @@ EOF
         ]
     }'
     if [ ! $? == 0 ]; then
-      gen3_log_info " Can not create S3BatchJobRole role"
+      gen3_log_info " Can not create s3-batch-operation role"
       exit 1
     else
       local access_key=$(gen3_aws_run aws iam list-access-keys --user-name fence_bot | jq -r .AccessKeyMetadata[0].AccessKeyId)
     fi
   else
-    gen3_log_info "S3BatchJobRole role already exist"
+    gen3_log_info "s3-batch-operation role already exist"
   fi
 
   local lambda_arn=$(gen3_aws_run aws lambda get-function --function-name object-metadata-compute | jq -r .Configuration.FunctionArn)
@@ -164,8 +164,8 @@ EOF
 }
 EOF
   aws iam put-role-policy \
-  --role-name  S3BatchJobRole\
-  --policy-name S3BatchJobRolePolicy \
+  --role-name  s3-batch-operation\
+  --policy-name s3-batch-operation-policy \
   --policy-document file://policy.json
 
   rm $WORKSPACE/policy.json
@@ -178,13 +178,13 @@ gen3_bucket_manifest_create_job() {
   local manifest_bucket=$2
   echo "manifest bucket" ${manifest_bucket}
   local lambda_arn=$(gen3_aws_run aws lambda get-function --function-name object-metadata-compute | jq -r .Configuration.FunctionArn)
-  local accountId=$(gen3_aws_run aws iam get-role --role-name S3BatchJobRole | jq -r .Role.Arn |cut -d : -f 5)
-  local etag=$(gen3_aws_run aws s3api list-objects --bucket ${manifest_bucket} --output json --query '{Name: Contents[].{Key: ETag}}' --prefix test_manifest | jq -r .Name[].Key | sed -e 's/"//g')
+  local accountId=$(gen3_aws_run aws iam get-role --role-name s3-batch-operation | jq -r .Role.Arn |cut -d : -f 5)
+  local etag=$(gen3_aws_run aws s3api list-objects --bucket ${manifest_bucket} --output json --query '{Name: Contents[].{Key: ETag}}' --prefix manifest.csv | jq -r .Name[].Key | sed -e 's/"//g')
   local OPERATION='{"LambdaInvoke": { "FunctionArn": "'${lambda_arn}'" } }'
-  local MANIFEST='{"Spec": {"Format": "S3BatchOperations_CSV_20180820","Fields": ["Bucket","Key"]},"Location": {"ObjectArn": "arn:aws:s3:::'${manifest_bucket}'/test_manifest","ETag": "'$etag'"}}'
+  local MANIFEST='{"Spec": {"Format": "S3BatchOperations_CSV_20180820","Fields": ["Bucket","Key"]},"Location": {"ObjectArn": "arn:aws:s3:::'${manifest_bucket}'/manifest.csv","ETag": "'$etag'"}}'
   local REPORT='{"Bucket": "arn:aws:s3:::'${manifest_bucket}'","Format": "Report_CSV_20180820","Enabled": true,"Prefix": "reports/object_metadata","ReportScope": "AllTasks"}'
-  local roleArn=$(gen3_aws_run aws iam get-role --role-name S3BatchJobRole | jq -r .Role.Arn)
-  status=$(gen3_aws_run aws s3control create-job --account-id "$accountId" --manifest "${MANIFEST//$'\n'}" --operation "${OPERATION//$'\n'/}" --report "${REPORT//$'\n'}" --priority 10 --role-arn $roleArn --client-request-token "$(uuidgen)" --region us-east-1 --description "Copy with Replace Metadata" --no-confirmation-required | jq -r .JobId)
+  local roleArn=$(gen3_aws_run aws iam get-role --role-name s3-batch-operation | jq -r .Role.Arn)
+  status=$(gen3_aws_run aws s3control create-job --account-id "$accountId" --manifest "${MANIFEST//$'\n'}" --operation "${OPERATION//$'\n'/}" --report "${REPORT//$'\n'}" --priority 10 --role-arn $roleArn --client-request-token "$(uuidgen)" --region us-east-1 --description "Copy with Replace Metadata" --no-confirmation-required)
   echo "operation" $OPERATION
   echo "report" $REPORT
   echo "roleArn" $roleArn
@@ -200,7 +200,7 @@ gen3_replicate_status() {
   ## fix to account for other profile
   if [[ ! -z $2 ]]; then
     local profile=$2
-    local accountId=$(gen3_aws_run aws iam get-role --role-name S3BatchJobRole --profile $profile --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
+    local accountId=$(gen3_aws_run aws iam get-role --role-name s3-batch-operation --profile $profile --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
     local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --profile $profile --region us-east-1 | jq -r .Job.Status)
     while [[ $status != 'Complete' ]] || [[ $counter > 90 ]]; do
       gen3_log_info "Waiting for job to complete. Current status $status"
