@@ -12,6 +12,7 @@ REGION=$(echo ${AVAILABILITY_ZONE::-1})
 #DOCKER_DOWNLOAD_URL="https://download.docker.com/linux/ubuntu"
 AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
 #TERRAFORM_DOWNLOAD_URL="https://releases.hashicorp.com/terraform/0.11.14/terraform_0.11.14_linux_amd64.zip"
+OPENVPN_INSTALL_SCRIPT="install_ovpn_ubuntu18.sh"
 
 
 ###############################################################
@@ -62,6 +63,8 @@ function install_basics() {
   debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
   apt -y install postfix mailutils python-virtualenv uuid-runtime lighttpd
 
+  echo "************ basics installed ***********"
+
 }
 
 
@@ -74,7 +77,7 @@ function configure_basics() {
   # Different buckets for different CSOC vpn environments
   sed -i "s/WHICHVPN/vpn-certs-and-files-${VPN_NLB_NAME}\/${VPN_NLB_NAME}/" ${dest_path}/push_to_s3.sh
   sed -i "s/WHICHVPN/vpn-certs-and-files-${VPN_NLB_NAME}\/${VPN_NLB_NAME}/" ${dest_path}/recover_from_s3.sh
-  sed -i "s/WHICHVPN/vpn-certs-and-files-${VPN_NLB_NAME}\/${VPN_NLB_NAME}/" ${dest_path}/install_ovpn.sh
+  sed -i "s/WHICHVPN/vpn-certs-and-files-${VPN_NLB_NAME}\/${VPN_NLB_NAME}/" ${dest_path}/${OPENVPN_INSTALL_SCRIPT}
 
   # Replace the User variable for hostname, VPN subnet and VM subnet
   sed -i "s/SERVERNAME/${VPN_NLB_NAME}/" ${dest_path}/csoc_vpn_user_variable
@@ -90,7 +93,12 @@ function configure_basics() {
   VM_SUBNET_MASK_BITS=$( sipcalc $VM_SUBNET | perl -ne 'm|Network mask \(bits\)\s+-\s+(\S+)| && print "$1"' )
   sed -i "s/VM_SUBNET/$VM_SUBNET_BASE\/$VM_SUBNET_MASK_BITS/" ${dest_path}/csoc_vpn_user_variable
 
+  echo "aws s3 ls s3://vpn-certs-and-files-${VPN_NLB_NAME}/${VPN_NLB_NAME}/ && ${dest_path}/recover_from_s3.sh"
   aws s3 ls s3://vpn-certs-and-files-${VPN_NLB_NAME}/${VPN_NLB_NAME}/ && ${dest_path}/recover_from_s3.sh
+  echo $(date)
+
+
+  echo "********* basics configured ***********"
 
 }
 
@@ -114,6 +122,8 @@ EOT
 output = json
 region = us-east-1
 EOF
+
+echo " *********  AWS configured *********"
 
 }
 
@@ -175,6 +185,8 @@ EOF
     systemctl enable amazon-cloudwatch-agent.service
     systemctl start amazon-cloudwatch-agent.service
   fi
+
+  echo "************** cloudwatch logs installed **************"
 }
 
 
@@ -208,7 +220,7 @@ function install_openvpn() {
   echo "${FQDN} -- ${cloud} -- ${SERVER_PEM} -- ${VPN_SUBNET} -- ${VPN_SUBNET_BASE} -- ${VPN_SUBNET_MASK_BITS} --/ ${VM_SUBNET} -- ${VM_SUBNET_BASE} -- ${VM_SUBNET_MASK_BITS}"
   echo "*******"
   #export FQDN="$SERVERNAME.planx-pla.net"; export cloud="$CLOUDNAME"; export SERVER_PEM="/root/server.pem"; 
-  bash ${dest_path}/install_ovpn_ubuntu18.sh
+  bash ${dest_path}/${OPENVPN_INSTALL_SCRIPT}
 
   cp /etc/openvpn/bin/templates/lighttpd.conf.template  /etc/lighttpd/lighttpd.conf
   mkdir -p --mode=750 /var/www/qrcode
@@ -218,6 +230,8 @@ function install_openvpn() {
   service lighttpd restart
 
   systemctl restart openvpn
+
+  echo "********************* openvpn installed ***************"
 
 }
 
