@@ -72,12 +72,12 @@ setup_sower_jobs() {
     ]
 }
 EOM
-    local saName="sower-jobs-${environment//_/-}-sa0"
+    local saName="sower-jobs-${environment//_/-}-sa1"
     local role_name="$(gen3 iam-serviceaccount -c "${saName}" -p ./sower-jobs-aws-policy.json)"
     gen3_log_info "created service account '${saName}' with s3 access"
     # TODO do I need the following: ???
-    # gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${role_name}"
-    # gen3_log_info "attached read-write bucket policy to '${bucketName}' for role '${role_name}'"
+    gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${role_name}"
+    gen3_log_info "attached read-write bucket policy to '${bucketName}' for role '${role_name}'"
 
     cat - > "${secretsFolder}/creds.json" <<EOM
 {
