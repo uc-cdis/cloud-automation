@@ -77,9 +77,10 @@ variable "csoc_account_id" {
 
 
 
+variable "organization_name" {
+  default = "Basic Service"
+}
 
-
-
-
-
-
+variable "branch" {
+  default = "master"
+}

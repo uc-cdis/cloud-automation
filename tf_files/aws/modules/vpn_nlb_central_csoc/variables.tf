@@ -25,7 +25,6 @@ variable "env_cloud_name" {
 }
 
 
-
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
   default = "099720109477"
@@ -77,10 +76,12 @@ variable "csoc_account_id" {
 }
 
 
+variable "organization_name" {
+  description = "For tagging purposes"
+  default     = "Basic Service"
+}
 
-
-
-
-
-
-
+variable "branch" {
+  description = "For testing purposes"
+  default     = "master"
+}
