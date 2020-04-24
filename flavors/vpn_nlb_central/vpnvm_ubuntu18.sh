@@ -338,6 +338,7 @@ build_PKI() {
   logs_helper "building pki"
     cd $EASYRSA_PATH
     source $VARS_PATH ## execute your new vars file
+    ln -s openssl-1.0.0.cnf openssl.cnf
     echo "This is long"
     ./clean-all  ## Setup the easy-rsa directory (Deletes all keys)
     ./build-dh  ## takes a while consider backgrounding
@@ -443,7 +444,7 @@ misc() {
   logs_helper "installing misc"
     cd $OPENVPN_PATH
     mkdir -p easy-rsa/keys/ovpn_files
-    mkdir -p  easy-rsa/keys/user_certs
+    mkdir -p easy-rsa/keys/user_certs
     ln -sfn easy-rsa/keys/ovpn_files
 
     #If openvpn fails to start its cause perms. Init needs root rw to start, but service needs openvpn  rw to work
