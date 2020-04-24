@@ -75,7 +75,7 @@ fi
 S3_BUCKET="vpn-certs-and-files-${VPN_NLB_NAME}"
 
 function logs_helper(){
-  echo -e "****************** ${1} ******************${2}"
+  echo -e "****************** ${1} ******************"
 }
 
 function install_basics() {
