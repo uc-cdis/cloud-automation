@@ -342,6 +342,7 @@ build_PKI() {
     cd $EASYRSA_PATH
     source $VARS_PATH ## execute your new vars file
     ln -s openssl-1.0.0.cnf openssl.cnf
+    touch .rnd
     echo "This is long"
     ./clean-all  ## Setup the easy-rsa directory (Deletes all keys)
     ./build-dh  ## takes a while consider backgrounding
