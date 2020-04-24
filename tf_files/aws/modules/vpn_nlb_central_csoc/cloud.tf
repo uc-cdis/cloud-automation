@@ -34,49 +34,6 @@ resource "aws_iam_role" "vpn-nlb_role" {
 EOF
 }
 
-# These VPN VMs should only have access to Cloudwatch and nothing more
-
-data "aws_iam_policy_document" "vpn_policy_document" {
-  statement {
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:GetLogEvents",
-      "logs:PutLogEvents",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutRetentionPolicy",
-    ]
-
-    effect    = "Allow"
-    resources = ["*"]
-  }
-
-  statement {
-    actions = [
-      "s3:Get*",
-      "s3:List*",
-    ]
-
-    effect    = "Allow"
-    resources = ["${aws_s3_bucket.vpn-certs-and-files.arn}", "${aws_s3_bucket.vpn-certs-and-files.arn}/*"]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:PutObject",
-      "s3:GetObject",
-      "s3:DeleteObject",
-    ]
-
-    resources = ["${aws_s3_bucket.vpn-certs-and-files.arn}", "${aws_s3_bucket.vpn-certs-and-files.arn}/*"]
-  }
-
-}
-
-
 
 resource "aws_iam_instance_profile" "vpn-nlb_role_profile" {
   name = "${var.env_vpn_nlb_name}_vpn-nlb_role_profile"
@@ -98,7 +55,6 @@ resource "aws_iam_policy_attachment" "vpn_policy_attachment" {
 
 #Launching the pubate subnets for the VPN VMs
 
-data "aws_availability_zones" "available" {}
 
 
 resource "aws_subnet" "vpn_pub0" {
@@ -157,7 +113,7 @@ resource "aws_subnet" "vpn_pub5" {
 
 
 resource "aws_route_table_association" "vpn_nlb0" {
-  count          = "${length(aws_subnet.vpc_pub0.*.id}"
+  count          = "${length(aws_subnet.vpn_pub0.*.id)}"
   subnet_id      = "${aws_subnet.vpn_pub0.*.id[count.index]}"
   route_table_id = "${var.env_pub_subnet_routetable_id}"
 }
@@ -351,7 +307,7 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
 
   cd $USER_HOME
 
-  bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${aws_cloudwatch_log_group.csoc_log_group.name};vpn_nlb_name=${var.env_vpn_nlb_name};account_id=${var.aws_account_id};csoc_vpn_subnet=${var.csoc_vpn_subnet};csoc_vm_subnet=${var.csoc_vm_subnet};cloud_name=${var.env_cloud_name};${join(";",var.extra_vars)}" 2>&1
+  bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${aws_cloudwatch_log_group.vpn_log_group.name};vpn_nlb_name=${var.env_vpn_nlb_name};account_id=${data.aws_caller_identity.current.account_id};csoc_vpn_subnet=${var.csoc_vpn_subnet};csoc_vm_subnet=${var.csoc_vm_subnet};cloud_name=${var.env_cloud_name};${join(";",var.extra_vars)}" 2>&1
 
   apt autoremove -y
   apt clean

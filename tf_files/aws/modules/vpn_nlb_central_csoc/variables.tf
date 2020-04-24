@@ -85,3 +85,15 @@ variable "branch" {
   description = "For testing purposes"
   default     = "master"
 }
+
+variable "extra_vars" {
+  description = "Additional variables for the bootstrap script"
+  type        = "list"
+  default     = []
+}
+
+variable "authorized_keys" {
+  description = "This file content will be appended to the users .ssh/authorized_keys"
+  default     = "files/authorized_keys/ops_team"
+}
+
