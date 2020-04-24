@@ -97,8 +97,10 @@ gen3_replicate_status() {
 ## if no policy create policy, if policy modify policy to support new endpoints
 
 initialization() {
+
   source_bucket=$1
   manifest_bucket=$2  
+
   ####### Create lambda-generate-metadata role ################
   if [[ -z $(gen3_aws_run aws iam list-roles | jq -r .Roles[].RoleName | grep lambda-generate-metadata) ]]; then
     gen3_log_info " Creating lambda-generate-metadata role ...."
@@ -122,7 +124,7 @@ initialization() {
     gen3_log_info "lambda-generate-metadata role already exist"
   fi
 
-  cat << EOF > policy.json
+  cat << EOF > $WORKSPACE/policy.json
 {
    "Version":"2012-10-17",
   "Statement":[
@@ -155,12 +157,22 @@ EOF
   --policy-name LambdaMetadataJobPolicy \
   --policy-document file://policy.json
 
+  rm $WORKSPACE/policy.json
+
+  if [[ -z $(gen3_aws_run aws lambda list-functions | jq -r .Functions[].FunctionName | grep object-hash-compute) ]] then;
+    gen3_log_info " Creating lambda function ...."
+    gen3 awslambda create 
+  fi
 
   
 }
 gen3_generate_manifest() {
   initialization $@
 }
+
+if [[ $# -lt 2 ]]; then
+    gen3_log_info "lambda-generate-metadata role already exist"
+fi
 
 command="$1"
 shift
