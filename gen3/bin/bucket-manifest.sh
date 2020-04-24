@@ -104,7 +104,7 @@ initialization() {
   ####### Create lambda-generate-metadata role ################
   if [[ -z $(gen3_aws_run aws iam list-roles | jq -r .Roles[].RoleName | grep lambda-generate-metadata) ]]; then
     gen3_log_info " Creating lambda-generate-metadata role ...."
-    aws iam create-role --role-name lambda-generate-metadata --assume-role-policy-document '{
+    gen3_aws_run aws iam create-role --role-name lambda-generate-metadata --assume-role-policy-document '{
         "Version": "2012-10-17",
         "Statement": [
         {
@@ -159,20 +159,55 @@ EOF
 
   rm $WORKSPACE/policy.json
 
-  if [[ -z $(gen3_aws_run aws lambda list-functions | jq -r .Functions[].FunctionName | grep object-hash-compute) ]] then;
+  if [[ -z $(gen3_aws_run aws lambda list-functions | jq -r .Functions[].FunctionName | grep object-metadata-compute) ]]; then
     gen3_log_info " Creating lambda function ...."
-    gen3 awslambda create 
+    role_arn=$(gen3_aws_run aws iam get-role --role-name lambda-generate-metadata | jq -r .Role.Arn)
+    gen3 awslambda create object-metadata-compute "function to compute object metadata" $role_arn
+    if [ ! $? == 0 ]; then
+      gen3_log_info "Can not create lambda function"
+      exit 1
+    else
+      gen3_log_info "Successfully create lambda function"
+    fi
+  else
+    gen3_log_info "Lambda function object-metadata-compute already exists"
   fi
 
+  if [[ -z $(gen3_aws_run aws iam list-roles | jq -r .Roles[].RoleName | grep S3BatchJobRole) ]]; then
+    gen3_log_info "Creating S3BatchJobRole role"
+    gen3_aws_run aws iam create-role --role-name S3BatchJobRole --assume-role-policy-document '{
+        "Version": "2012-10-17",
+        "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+          "Service": "batchoperations.s3.amazonaws.com"
+          },
+          "Action": "sts:AssumeRole"
+        }
+        ]
+    }'
+    if [ ! $? == 0 ]; then
+      gen3_log_info " Can not create S3BatchJobRole role"
+      exit 1
+    fi
+  else
+    gen3_log_info "S3BatchJobRole role already exist"
+  fi
+  
   
 }
 gen3_generate_manifest() {
+  if [[ $# -lt 2 ]]; then
+    gen3_log_info "The input and manifest buckets are required "
+    exit 1
+  fi  
   initialization $@
 }
 
-if [[ $# -lt 2 ]]; then
-    gen3_log_info "lambda-generate-metadata role already exist"
-fi
+gen3_bucket_manifest_help() {
+  gen3_log_info "the utility to generate bucket manifest"
+}
 
 command="$1"
 shift
@@ -184,10 +219,10 @@ case "$command" in
     gen3_replicate_status "$@"
     ;;
   'help')
-    gen3_replicate_help "$@"
+    gen3_bucket_manifest_help "$@"
     ;;
   *)
-    gen3_replicate_help
+    gen3_bucket_manifest_help
     ;;
 esac
 exit $?
