@@ -467,7 +467,7 @@ misc() {
     chmod g+rwx /etc/openvpn/clients.d/tmp
     systemctl restart openvpn
 
-    logs_heper "misc done"
+    logs_helper "misc done"
 }
 
 function main() {
