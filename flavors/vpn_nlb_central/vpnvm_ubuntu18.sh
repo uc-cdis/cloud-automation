@@ -181,7 +181,9 @@ EOF
 
 function install_openvpn() {
 
-  #local dest_path="/root/openvpn_management_scripts"
+  cd /root
+  touch .rnd
+  local dest_path="/root/openvpn_management_scripts"
   #local SERVERNAME=$(sed -n -e '/VAR1/ s/.*\= *//p' ${dest_path}/csoc_vpn_user_variable)
   #local VPN_SUBNET=$(sed -n -e '/VAR2/ s/.*\= *//p' ${dest_path}/csoc_vpn_user_variable)
   #local VM_SUBNET=$(sed -n -e '/VAR3/ s/.*\= *//p' ${dest_path}/csoc_vpn_user_variable)

@@ -293,13 +293,13 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
   # This is needed temporarily for testing purposes ; before merging the code to master
   if [ "${var.branch}" != "master" ];
   then
+    cd $CLOUD_AUTOMATION
     git checkout "${var.branch}"
     git pull
   fi
 
 
   cat $CLOUD_AUTOMATION/${var.authorized_keys} | sudo tee --append $USER_HOME/.ssh/authorized_keys
-  chown -R $USER. $USER_HOME
   echo "127.0.1.1 ${var.env_vpn_nlb_name}" | sudo tee --append /etc/hosts
 
   apt -y update
@@ -315,6 +315,7 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
 
   cd $CLOUD_AUTOMATION
   git checkout master
+  chown -R $USER. $USER_HOME
 ) > /var/log/bootstrapping_script.log
 
 EOF

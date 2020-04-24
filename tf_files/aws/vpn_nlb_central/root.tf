@@ -7,7 +7,7 @@ terraform {
 provider "aws" {
   # We need atleast version 1.18.0 to enable the proxy_protocol v2 as per https://github.com/terraform-providers/terraform-provider-aws/issues/2560
   # By default it seems to be taking 1.17.0
-  version = "1.18.0"
+  version = "2.59"
 }
 
 module "vpn_nlb" {
