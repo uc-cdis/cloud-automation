@@ -23,7 +23,7 @@ setup_sower_jobs() {
     fi
   fi
   if ! secret="$(g3kubectl get secret sower-jobs-g3auto -o json 2> /dev/null)" \
-    || "false" == "$(jq -r '.data | and has("creds.json")' <<< "$secret")"; then
+    || "false" == "$(jq -r '.data | has("creds.json")' <<< "$secret")"; then
     gen3_log_info "setting up secrets for sower jobs"
     #
     # sower-jobs-g3auto secret still does not exist
