@@ -51,7 +51,7 @@ else
       echo $i
       if [[ $i = *"cwl_group"* ]];
       then
-        CWL_GROUP="$(echo ${i} | cut -d= -f2)"
+        CWL_GROUP="${CWL_GROUP:-$(echo ${i} | cut -d= -f2)}"
       elif [[ ${i} = *"vpn_nlb_name"* ]];
       then
         VPN_NLB_NAME="$(echo ${i} | cut -d= -f2)"
@@ -67,6 +67,9 @@ else
       elif [[ $i = *"account_id"* ]];
       then
         ACCOUNT_ID="$(echo ${i} | cut -d= -f2)"
+      elif [[ $i = *"alternate_cwlg"* ]];
+      then
+        CWL_GROUP="$(echo ${i} | cut -d= -f2)"
       fi
     done
     echo $1
@@ -168,7 +171,7 @@ function install_awslogs {
   logs_helper "Installing AWSLOGS"
   local config_json="/opt/aws/amazon-cloudwatch-agent/bin/config.json"
   local hostname_bin="$(command -v hostname)"
-  local hostname="$(${hostname_bin} -a)"
+  local hostname="$(${hostname_bin})"
   wget ${AWSLOGS_DOWNLOAD_URL} -O amazon-cloudwatch-agent.deb
   dpkg -i -E ./amazon-cloudwatch-agent.deb
 
@@ -359,7 +362,7 @@ configure_ovpn() {
 
   logs_helper "configuring openvpn"
     OVPNCONF_PATH="/etc/openvpn/openvpn.conf"
-    cp "$OPENVPN_PATH/bin/templates/openvpn.conf.template" "$OVPNCONF_PATH"
+    cp "$OPENVPN_PATH/bin/templates/openvpn.conf.template-ubuntu18" "$OVPNCONF_PATH"
 
     perl -p -i -e "s|#FQDN#|$FQDN|" $OVPNCONF_PATH
 
