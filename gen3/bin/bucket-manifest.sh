@@ -15,7 +15,7 @@ gen3_create_manifest() {
     gen3_log_info "previous key file found. Deleting"
     rm $WORKSPACE/tempKeyFile
   fi
-  aws s3api list-objects --bucket "$bucket" --query 'Contents[].{Key: Key}' | jq -r '.[].Key' >> "$WORKSPACE/tempKeyFile"
+  aws s3api --profile fence_bot list-objects --bucket "$bucket" --query 'Contents[].{Key: Key}' | jq -r '.[].Key' >> "$WORKSPACE/tempKeyFile"
   if [[ -f $WORKSPACE/manifest.csv ]]; then
     rm $WORKSPACE/manifest.csv
   fi
@@ -110,10 +110,15 @@ EOF
       exit 1
     else
       gen3_log_info "Successfully create lambda function"
+      aws lambda update-function-configuration --function-name object-metadata-compute \
+      --environment "Variables={ACCESS_KEY_ID=$access_key,SECRET_ACCESS_KEY=$secret_key}"
     fi
   else
     gen3_log_info "Lambda function object-metadata-compute already exists"
   fi
+
+  local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
+  local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_secret_access_key)
 
   if [[ -z $(gen3_aws_run aws iam list-roles | jq -r .Roles[].RoleName | grep s3-batch-operation) ]]; then
     gen3_log_info "Creating s3-batch-operation role"
@@ -132,8 +137,6 @@ EOF
     if [ ! $? == 0 ]; then
       gen3_log_info " Can not create s3-batch-operation role"
       exit 1
-    else
-      local access_key=$(gen3_aws_run aws iam list-access-keys --user-name fence_bot | jq -r .AccessKeyMetadata[0].AccessKeyId)
     fi
   else
     gen3_log_info "s3-batch-operation role already exist"
@@ -194,7 +197,7 @@ gen3_bucket_manifest_create_job() {
 }
 
 # function to check job status
-gen3_replicate_status() {
+gen3_manifest_generating_status() {
   local jobId=$1
   counter=0
   ## fix to account for other profile
@@ -224,7 +227,7 @@ gen3_replicate_status() {
   echo $status
 }
 
-gen3_generate_manifest() {
+gen3_manifest_generating() {
   if [[ $# -lt 2 ]]; then
     gen3_log_info "The input and manifest buckets are required "
     exit 1
@@ -241,10 +244,10 @@ command="$1"
 shift
 case "$command" in
   'bucket')
-    gen3_generate_manifest "$@"
+    gen3_manifest_generating "$@"
     ;;
   'status')
-    gen3_replicate_status "$@"
+    gen3_manifest_generating_status "$@"
     ;;
   'help')
     gen3_bucket_manifest_help "$@"
