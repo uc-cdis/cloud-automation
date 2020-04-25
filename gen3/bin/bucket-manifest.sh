@@ -198,32 +198,19 @@ gen3_bucket_manifest_create_job() {
 
 # function to check job status
 gen3_manifest_generating_status() {
+  if [[ $# -lt 1 ]]; then
+    gen3_log_info "The job id is required "
+    exit 1
+  fi  
+
   local jobId=$1
-  counter=0
-  ## fix to account for other profile
-  if [[ ! -z $2 ]]; then
-    local profile=$2
-    local accountId=$(gen3_aws_run aws iam get-role --role-name s3-batch-operation --profile $profile --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
-    local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --profile $profile --region us-east-1 | jq -r .Job.Status)
-    while [[ $status != 'Complete' ]] || [[ $counter > 90 ]]; do
-      gen3_log_info "Waiting for job to complete. Current status $status"
-      local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --profile $profile --region us-east-1 | jq -r .Job.Status)
-      let counter=counter+1
-      sleep 10
-    done
-  else
-    local accountId=$(gen3_aws_run aws iam get-role --role-name batch-operations-role --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
+  local accountId=$(gen3_aws_run aws iam get-role --role-name s3-batch-operation --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
+  local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.Status)
+  while [[ $status != 'Complete' ]] || [[ $counter > 90 ]]; do
+    gen3_log_info "Waiting for job to complete. Current status $status"
     local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.Status)
-    while [[ $status != 'Complete' ]] || [[ $counter > 90 ]]; do
-      gen3_log_info "Waiting for job to complete. Current status $status"
-      local status=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.Status)
-      let counter=counter+1
-      sleep 10      
-    done
-  fi
-  if [[ $counter > 90 ]]; then
-    gen3_log_err "Job $jobId timed out trying to run. The job will clean up and if the job is still in progress it's permissions will be removed and will become broken."
-  fi
+    sleep 10      
+  done
   echo $status
 }
 
@@ -234,6 +221,15 @@ gen3_manifest_generating() {
   fi  
   initialization $@
   gen3_bucket_manifest_create_job $@
+}
+
+gen3_manifest_generating_cleanup() {
+  gen3_aws_run aws iam delete-role-policy --role-name lambda-generate-metadata --policy-name LambdaMetadataJobPolicy
+  gen3_aws_run aws iam delete-role --role-name lambda-generate-metadata
+  gen3_aws_run aws lambda delete-function --function-name object-metadata-compute
+  gen3_aws_run aws iam delete-role-policy --role-name s3-batch-operation --policy-name  s3-batch-operation-policy
+  gen3_aws_run aws iam delete-role  --role-name s3-batch-operation
+
 }
 
 gen3_bucket_manifest_help() {
@@ -248,6 +244,9 @@ case "$command" in
     ;;
   'status')
     gen3_manifest_generating_status "$@"
+    ;;
+  'cleanup')
+    gen3_manifest_generating_cleanup
     ;;
   'help')
     gen3_bucket_manifest_help "$@"
