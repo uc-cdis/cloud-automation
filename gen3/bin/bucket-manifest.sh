@@ -62,6 +62,7 @@ initialization() {
         gen3_log_info " Can not create lambda-generate-metadata role"
         exit 1
     fi
+    sleep 5
   else
     gen3_log_info "lambda-generate-metadata role already exist"
   fi
@@ -111,6 +112,7 @@ initialization() {
     else
       gen3_log_info "Successfully create lambda function"
     fi
+    sleep 10
   else
     gen3_log_info "Lambda function object-metadata-compute already exists"
   fi
@@ -138,6 +140,7 @@ initialization() {
       gen3_log_info " Can not create s3-batch-operation role"
       exit 1
     fi
+    sleep 5
   else
     gen3_log_info "s3-batch-operation role already exist"
   fi
