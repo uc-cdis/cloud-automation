@@ -97,7 +97,7 @@ EOF
   aws iam put-role-policy \
   --role-name lambda-generate-metadata \
   --policy-name LambdaMetadataJobPolicy \
-  --policy-document file://policy.json
+  --policy-document file://$WORKSPACE/policy.json
 
   rm $WORKSPACE/policy.json
 
@@ -169,7 +169,7 @@ EOF
   aws iam put-role-policy \
   --role-name  s3-batch-operation\
   --policy-name s3-batch-operation-policy \
-  --policy-document file://policy.json
+  --policy-document file://$WORKSPACE/policy.json
 
   rm $WORKSPACE/policy.json
   
@@ -250,6 +250,7 @@ gen3_get_output_manifest() {
   else
     content=$(<$WORKSPACE/manifest.json)
     echo $content | jq -r .Results | jq .
+    rm $WORKSPACE/manifest.json
   fi
 }
 
