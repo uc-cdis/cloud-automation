@@ -110,8 +110,6 @@ EOF
       exit 1
     else
       gen3_log_info "Successfully create lambda function"
-      aws lambda update-function-configuration --function-name object-metadata-compute \
-      --environment "Variables={ACCESS_KEY_ID=$access_key,SECRET_ACCESS_KEY=$secret_key}"
     fi
   else
     gen3_log_info "Lambda function object-metadata-compute already exists"
@@ -119,6 +117,8 @@ EOF
 
   local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
   local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_secret_access_key)
+  aws lambda update-function-configuration --function-name object-metadata-compute \
+  --environment "Variables={ACCESS_KEY_ID=$access_key,SECRET_ACCESS_KEY=$secret_key}"
 
   if [[ -z $(gen3_aws_run aws iam list-roles | jq -r .Roles[].RoleName | grep s3-batch-operation) ]]; then
     gen3_log_info "Creating s3-batch-operation role"
@@ -188,11 +188,6 @@ gen3_bucket_manifest_create_job() {
   local REPORT='{"Bucket": "arn:aws:s3:::'${manifest_bucket}'","Format": "Report_CSV_20180820","Enabled": true,"Prefix": "reports/object_metadata","ReportScope": "AllTasks"}'
   local roleArn=$(gen3_aws_run aws iam get-role --role-name s3-batch-operation | jq -r .Role.Arn)
   status=$(gen3_aws_run aws s3control create-job --account-id "$accountId" --manifest "${MANIFEST//$'\n'}" --operation "${OPERATION//$'\n'/}" --report "${REPORT//$'\n'}" --priority 10 --role-arn $roleArn --client-request-token "$(uuidgen)" --region us-east-1 --description "Copy with Replace Metadata" --no-confirmation-required)
-  echo "operation" $OPERATION
-  echo "report" $REPORT
-  echo "roleArn" $roleArn
-  echo "etag" $etag
-  echo "manifest:" $MANIFEST
   echo $status
 }
 
@@ -212,15 +207,17 @@ gen3_manifest_generating_status() {
     sleep 10      
   done
   echo $status
+  echo $(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.ProgressSummary)
 }
 
 gen3_manifest_generating() {
   if [[ $# -lt 2 ]]; then
     gen3_log_info "The input and manifest buckets are required "
     exit 1
-  fi  
-  initialization $@
-  gen3_bucket_manifest_create_job $@
+  fi
+  gen3_create_manifest $@
+  #initialization $@
+  #gen3_bucket_manifest_create_job $@
 }
 
 gen3_manifest_generating_cleanup() {
@@ -236,6 +233,29 @@ gen3_bucket_manifest_help() {
   gen3_log_info "the utility to generate bucket manifest"
 }
 
+gen3_output_manifest() {
+  if [[ $# -lt 1 ]]; then
+    gen3_log_info "The job id is required "
+    exit 1
+  fi  
+  local jobId=$1
+  local accountId=$(gen3_aws_run aws iam get-role --role-name s3-batch-operation --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
+  local report=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.Report)
+  local bucket=$(echo $report | jq -r .Bucket) | cut -d ':::' -f2
+  local prefix=$(echo $report | jq -r .Prefix)
+  
+  gen3_log_info $bucket
+  gen3_log_info $prefix
+
+  gen3_aws_run aws s3 cp s3://$bucket/$prefix/job-$jobId/manifest.json $WORKSPACE/
+  if [ ! $? == 0 ]; then
+    gen3_log_info "Can not find the output manifest.json"
+  else
+    content=$(<$WORKSPACE/manifest.json)
+    gen3_log_info $(echo content | jq -r .Results)
+  fi
+}
+
 command="$1"
 shift
 case "$command" in
@@ -247,6 +267,9 @@ case "$command" in
     ;;
   'cleanup')
     gen3_manifest_generating_cleanup
+    ;;
+  'output')
+    gen3_get_output_manifest "$@"
     ;;
   'help')
     gen3_bucket_manifest_help "$@"
