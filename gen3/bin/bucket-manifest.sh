@@ -66,8 +66,10 @@ initialization() {
     gen3_log_info "lambda-generate-metadata role already exist"
   fi
 
-  cat << EOF > $WORKSPACE/policy.json
-{
+  aws iam put-role-policy \
+  --role-name lambda-generate-metadata \
+  --policy-name LambdaMetadataJobPolicy \
+  --policy-document '{
    "Version":"2012-10-17",
   "Statement":[
     {
@@ -78,7 +80,7 @@ initialization() {
         "s3:GetBucketLocation"
       ],
       "Resource": [
-        "arn:aws:s3:::${source_bucket}/*"
+        "arn:aws:s3:::'${source_bucket}'/*"
       ]
     },
     {
@@ -88,18 +90,16 @@ initialization() {
         "s3:PutObject"
       ],
       "Resource": [
-        "arn:aws:s3:::${manifest_bucket}/*"
+        "arn:aws:s3:::'${manifest_bucket}'/*"
       ]
     }
   ]
-}
-EOF
-  aws iam put-role-policy \
-  --role-name lambda-generate-metadata \
-  --policy-name LambdaMetadataJobPolicy \
-  --policy-document file://$WORKSPACE/policy.json
+}'
 
-  rm $WORKSPACE/policy.json
+  if [ ! $? == 0 ]; then
+      gen3_log_info " Can update role policy for s3-batch-operation role"
+      exit 1
+  fi
 
   if [[ -z $(gen3_aws_run aws lambda list-functions | jq -r .Functions[].FunctionName | grep object-metadata-compute) ]]; then
     gen3_log_info " Creating lambda function ...."
@@ -144,9 +144,11 @@ EOF
 
   local lambda_arn=$(gen3_aws_run aws lambda get-function --function-name object-metadata-compute | jq -r .Configuration.FunctionArn)
 
-  cat << EOF > $WORKSPACE/policy.json
-{
-   "Version":"2012-10-17",
+  gen3_aws_run aws iam put-role-policy \
+  --role-name  s3-batch-operation\
+  --policy-name s3-batch-operation-policy \
+  --policy-document '{
+  "Version":"2012-10-17",
   "Statement":[
     {
       "Effect": "Allow",
@@ -155,24 +157,21 @@ EOF
         "s3:PutObject"
       ],
       "Resource": [
-        "arn:aws:s3:::${manifest_bucket}/*"
+        "arn:aws:s3:::'${manifest_bucket}'/*"
       ]
     },
     {
       "Effect": "Allow",
       "Action": "lambda:InvokeFunction",
-      "Resource": "${lambda_arn}"
+      "Resource": "'${lambda_arn}'"
     }
   ]
-}
-EOF
-  aws iam put-role-policy \
-  --role-name  s3-batch-operation\
-  --policy-name s3-batch-operation-policy \
-  --policy-document file://$WORKSPACE/policy.json
+}'
+  if [ ! $? == 0 ]; then
+      gen3_log_info " Can update role policy for 3-batch-operation role"
+      exit 1
+  fi
 
-  rm $WORKSPACE/policy.json
-  
 }
 
 # function to create job
@@ -217,6 +216,10 @@ gen3_manifest_generating() {
   fi
   gen3_create_manifest $@
   initialization $@
+  if [ ! $? == 0 ]; then
+      gen3_log_info "Intialization failed!!!"
+      exit 1
+  fi
   gen3_bucket_manifest_create_job $@
 }
 
@@ -233,6 +236,23 @@ gen3_bucket_manifest_help() {
   gen3_log_info "the utility to generate bucket manifest"
 }
 
+write_to_file() {
+  while IFS= read -r line
+  do
+    local bucket=$(echo $line | cut -d ',' -f1)
+    local key=$(echo $line | cut -d ',' -f2)
+    res=$(echo $line | cut -d ',' -f7-8)
+    ok=$(echo $line | cut -d ',' -f4)
+    if [[ $ok == 'succeeded' ]]; then
+      md5=$(echo $res | sed 's/"{/{/g' | sed 's/}"/}/g' | sed 's/""/"/g' | jq -r .md5)
+      size=$(echo $res | sed 's/"{/{/g' | sed 's/}"/}/g' | sed 's/""/"/g' | jq -r .size)
+    else
+      md5=$res  
+      size=""
+    fi
+    echo "$bucket,$key,$size,$md5" >> $2
+  done < "$1"
+}
 gen3_get_output_manifest() {
   if [[ $# -lt 1 ]]; then
     gen3_log_info "The job id is required "
@@ -244,13 +264,29 @@ gen3_get_output_manifest() {
   local bucket=$(echo $report | jq -r .Bucket | cut -d ':' -f6)
   local prefix=$(echo $report | jq -r .Prefix)
   
-  gen3_aws_run aws s3 cp s3://$bucket/$prefix/job-$jobId/manifest.json $WORKSPACE/
+  gen3_aws_run aws s3 cp s3://$bucket/$prefix/job-$jobId/manifest.json $XDG_RUNTIME_DIR/
   if [ ! $? == 0 ]; then
     gen3_log_info "Can not find the output manifest.json"
   else
-    content=$(<$WORKSPACE/manifest.json)
+    if [[ -f $WORKSPACE/output.tsv ]]; then
+      rm $WORKSPACE/output.tsv
+    fi
+
+    local content=$(<$XDG_RUNTIME_DIR/manifest.json)
     echo $content | jq -r .Results | jq .
-    rm $WORKSPACE/manifest.json
+    local key=$(echo $content | jq -r .Results[0].Key)
+    gen3_aws_run aws s3 cp s3://$bucket/$key $XDG_RUNTIME_DIR/output.txt
+    write_to_file $XDG_RUNTIME_DIR/output.txt $WORKSPACE/output.tsv
+
+    key=$(echo $content | jq -r .Results[1].Key)
+    if [ ! -n "${key}" ]; then
+      gen3_aws_run aws s3 cp s3://$bucket/$key $XDG_RUNTIME_DIR/output.txt
+      write_to_file $XDG_RUNTIME_DIR/output.txt $WORKSPACE/output.tsv
+    fi
+
+    gen3_log_info "The manifest is saved to $WORKSPACE/output.tsv"
+
+    rm $XDG_RUNTIME_DIR/manifest.json
   fi
 }
 
