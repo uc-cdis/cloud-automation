@@ -216,8 +216,8 @@ gen3_manifest_generating() {
     exit 1
   fi
   gen3_create_manifest $@
-  #initialization $@
-  #gen3_bucket_manifest_create_job $@
+  initialization $@
+  gen3_bucket_manifest_create_job $@
 }
 
 gen3_manifest_generating_cleanup() {
@@ -233,7 +233,7 @@ gen3_bucket_manifest_help() {
   gen3_log_info "the utility to generate bucket manifest"
 }
 
-gen3_output_manifest() {
+gen3_get_output_manifest() {
   if [[ $# -lt 1 ]]; then
     gen3_log_info "The job id is required "
     exit 1
@@ -241,18 +241,15 @@ gen3_output_manifest() {
   local jobId=$1
   local accountId=$(gen3_aws_run aws iam get-role --role-name s3-batch-operation --region us-east-1 | jq -r .Role.Arn | cut -d : -f 5)
   local report=$(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.Report)
-  local bucket=$(echo $report | jq -r .Bucket) | cut -d ':::' -f2
+  local bucket=$(echo $report | jq -r .Bucket | cut -d ':' -f6)
   local prefix=$(echo $report | jq -r .Prefix)
   
-  gen3_log_info $bucket
-  gen3_log_info $prefix
-
   gen3_aws_run aws s3 cp s3://$bucket/$prefix/job-$jobId/manifest.json $WORKSPACE/
   if [ ! $? == 0 ]; then
     gen3_log_info "Can not find the output manifest.json"
   else
     content=$(<$WORKSPACE/manifest.json)
-    gen3_log_info $(echo content | jq -r .Results)
+    echo $content | jq -r .Results | jq .
   fi
 }
 
