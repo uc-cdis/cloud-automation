@@ -136,3 +136,23 @@ Note: environmental variables and mounts are not required, and will be automatic
 
 The pod that gets deployed off the deployment with the above configuration will be able to talk to S3, in this particular case a read only access.
 
+## Help
+
+```
+Usage: iam-serviceaccount.sh [-c|-u|-l] <name> -p <name|arn|filepath> -a <u for update|d for delete> [-n namespace]
+Options:
+For Service account and role manipulation
+        -c name        --create name        --create=name        Service Account to create, it'll also create a role
+                                                                 with the name minikube-commons-<name>-role in aws
+        -u name        --update name        --update=name        Update a service account
+        -l name        --list name          --list=name          List policies for a role
+If you create or update a service account role, you must also pass: 
+        -p policy      --policy policy      --policy=policy      Policy you wish to add, delete. I can be either a file
+                                                                 a policy name, or ARN. To delete policies on a role, you
+                                                                 must not use a file, only name
+If you are updating aservice account role you must also provide the action to take:
+        -a action      --action action      --action=action      a for adding and d for deleting
+
+If the service account is inteded for a different namespace than the default: 
+        -n namespace   --namespace namespace --namepace=namespace The namespace to manipulate
+```

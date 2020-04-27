@@ -27,20 +27,7 @@ ACOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 #
 ##
 function peae(){
-  print_error_and_exit ${1}
-}
-
-##
-#
-# function to just print and error and exit
-#
-# @arg string message to print
-#
-##
-function print_error_and_exit() {
-  local message="${1}"
-  #echo -e "${message}"
-  gen3_log_err ${message}
+  gen3_log_err "$@"
   exit 2
 }
 
@@ -55,11 +42,9 @@ function print_error_and_exit() {
 function create_service_account(){
   gen3_log_info "Entering create_service_account"
   local role_arn=${1}
-  g3kubectl -n ${NAMESPACE_SCRIPT} create sa ${SERVICE_ACCOUNT_NAME}
-  g3kubectl -n ${NAMESPACE_SCRIPT} annotate sa ${SERVICE_ACCOUNT_NAME} eks.amazonaws.com/role-arn=${role_arn}
-
-  if ! [ $? == 0 ];
-  then
+  if ! (g3kubectl -n ${NAMESPACE_SCRIPT} create sa ${SERVICE_ACCOUNT_NAME} \
+      || g3kubectl -n ${NAMESPACE_SCRIPT} annotate --overwrite sa ${SERVICE_ACCOUNT_NAME} eks.amazonaws.com/role-arn=${role_arn}
+  ) 1>&2; then
     peae "There has been an error creating the service account in kubernetes, bailing out"
   fi
   gen3_log_info "Exitting create_service_account"
@@ -75,7 +60,6 @@ function create_service_account(){
 #
 ##
 function create_assume_role_policy() {
-
   local tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_policy.XXXXXX")
   local issuer_url=$(aws eks describe-cluster \
                        --name ${vpc_name} \
@@ -138,10 +122,10 @@ function create_role(){
   gen3_log_info "  ${role_name}"
   gen3_log_info "  ${assume_role_policy_path}"
 
-  local role_json=$(aws iam create-role \
+  local role_json
+  role_json=$(aws iam create-role \
                    --role-name ${role_name} \
                    --assume-role-policy-document file://${assume_role_policy_path})
-
   if [ $? == 0 ];
   then
     echo ${role_json}
@@ -164,10 +148,8 @@ function create_role(){
 #
 ##
 function add_policy_to_role(){
-
-  local policy=${1}
-  local role_name=${2}
-#  local policy_source=${3}
+  local policy="${1}"
+  local role_name="${2}"
 
   gen3_log_info "Entering add_policy_to_role"
   gen3_log_info "  ${policy}"
@@ -178,17 +160,21 @@ function add_policy_to_role(){
   then
     gen3_log_info "    by ARN"
     gen3_log_info "    aws iam attach-role-policy --role-name "${role_name}" --policy-arn "${policy}""
-    aws iam attach-role-policy --role-name "${role_name}" --policy-arn "${policy}"
-    echo $?
-  elif [ -f ${policy} ];
+    aws iam attach-role-policy --role-name "${role_name}" --policy-arn "${policy}" 1>&2
+    return $?
+  elif [ -f "${policy}" ];
   then
     gen3_log_info "    by file"
     gen3_log_info "    aws iam put-role-policy --role-name "${role_name}" --policy-document file://${policy} --policy-name $(basename ${policy})-$(date +%s)"
-    aws iam put-role-policy --role-name "${role_name}" --policy-document file://${policy} --policy-name $(basename ${policy})-$(date +%s)
-    echo $?
+    local pname="$(basename ${policy})"
+    pname="${pname%%.*}"  # delete suffix
+    pname="${pname}-$(date +%s)"
+    aws iam put-role-policy --role-name "${role_name}" --policy-document file://${policy} --policy-name "$pname" 1>&2
+    return $?
   else
     # at this point we should have made sure the policy exist with a given name so
-    gen3_log_info "    Something is not right: $policy"
+    gen3_log_err "    Something is not right: $policy"
+    return 1
   fi
   gen3_log_info "Exiting add_policy_to_role"
 }
@@ -204,33 +190,28 @@ function add_policy_to_role(){
 #
 ##
 function create_role_with_policy() {
-  local policy=${1}
-  local role_name=${2}
-#  local policy_source=${3}
+  local policy="${1}"
+  local role_name="${2}"
 
   gen3_log_info "Entering create_role_with_policy"
   gen3_log_info "  ${policy}"
   gen3_log_info "  ${role_name}"
 
-  local created_role_json="$(create_role ${role_name})"
-  local created_role_arn="$(echo ${created_role_json} | jq -r '.Role.Arn' )"
+  local created_role_json
+  created_role_json="$(create_role ${role_name})" || return $?
+  local created_role_arn
+  created_role_arn="$(echo ${created_role_json} | jq -r '.Role.Arn' )" || return $?
   gen3_log_info "  ${created_role_json}"
 
   #Just to make sure the role was created
   role_name=$(echo "${created_role_json}" | jq -r '.Role.RoleName')
-  local addition_result=$(add_policy_to_role "${policy}" "${role_name}")
-
-  gen3_log_info "  ${addition_result}"
-
-  if [ "${addition_result}" = "0" ];
-  then
+  if add_policy_to_role "${policy}" "${role_name}"; then
     echo "${created_role_json}"
   else
     peae "There has been an error attaching the policy to the role ${role_name}"
   fi
 
   gen3_log_info "Exiting create_role_with_policy"
-
 }
 
 
@@ -245,9 +226,8 @@ function create_role_with_policy() {
 #         arn if found in aws for the account being worked on
 ##
 function check_policy() {
-
-  local policy_provided=${1}
-  local role_name=${2}
+  local policy_provided="${1}"
+  local role_name="${2}"
   local policy_arn
 
   gen3_log_info "Entering check_policy"
@@ -258,21 +238,23 @@ function check_policy() {
     if [ $? == 0 ];
     then
       echo 1
+      return 0
     else
       echo 0
+      return 1
     fi
   elif [[ ${policy_provided} =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]];
   then
-    policy_arn=$(aws iam get-policy --policy-arn ${policy_provided} |jq  '.Policy.Arn' -r)
-    if [ $? == 0 ];
+    if policy_arn=$(aws iam get-policy --policy-arn ${policy_provided} |jq  '.Policy.Arn' -r)
     then
       echo ${policy_arn}
     else
       echo 0
+      return 1
     fi
   else
-    policy_arn="$(aws iam list-policies | jq '.Policies[] | select( .PolicyName == "'${policy_provided}'") | .Arn' -r)"
-    if ! [ -z ${policy_arn} ] && [[ ${policy_arn}  =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]];
+    if policy_arn="$(aws iam list-policies --scope Local --only-attached | jq '.Policies[] | select( .PolicyName == "'${policy_provided}'") | .Arn' -r)" \
+      && [ -n ${policy_arn} ] && [[ ${policy_arn}  =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]];
     then
       echo ${policy_arn}
     else
@@ -285,6 +267,7 @@ function check_policy() {
         echo ${policy_name}
       else
         echo 0
+        return 1
       fi
     fi
   fi
@@ -301,18 +284,9 @@ function check_policy() {
 #
 ##
 function check_role(){
-
-  local role_provided=${1}
-  local role_json
-
-  local role_json="$(aws iam get-role --role-name ${role_name} --query Role 2>/dev/null)"
-
-  if [ $? == 0 ];
-  then
-    echo ${role_json}
-  else
-    echo 0
-  fi
+  local role_provided="${1}"
+  # Note: local assignment (local x=bla) loses the exit code
+  aws iam get-role --role-name ${role_name} --query Role
 }
 
 ##
@@ -326,22 +300,23 @@ function check_role(){
 #
 ##
 function delete_policy_in_role(){
-  local policy=${1}
-  local role_name=${2}
+  local policy="${1}"
+  local role_name="${2}"
 
   gen3_log_info "Entering delete_policy_in_role"
   if [[ ${policy} =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]];
   then
     gen3_log_info "  aws iam detach-role-policy --role-name ${role_name} --policy-arn ${policy}"
-    aws iam detach-role-policy --role-name "${role_name}" --policy-arn "${policy}"
-    echo $?
+    aws iam detach-role-policy --role-name "${role_name}" --policy-arn "${policy}" 1>&2
+    return $?
   else
     local policy2=$(echo ${policy} | sed -e 's/"//g')
     gen3_log_info "  aws iam delete-role-policy --role-name ${role_name} --policy-name ${policy2}"
-    aws iam delete-role-policy --role-name "${role_name}" --policy-name ${policy2}
-    echo $?
+    aws iam delete-role-policy --role-name "${role_name}" --policy-name ${policy2} 1>&2
+    return $?
   fi
   gen3_log_info "Exiting delete_policy_in_role"
+  return 0
 }
 
 
@@ -355,21 +330,17 @@ function delete_policy_in_role(){
 ##
 function list_policies_for_a_role(){
 
-  local role_name=${1}
-  local role_validation="$(check_role  ${role_name})"
-
-
-  if [ "${role_validation}" == 0 ] || [ -z "${role_validation}" ];
-  then
-    echo "The role provided to update can't be found, please check the value"
-  else
-    echo "Managed Policies: "
-    aws iam list-attached-role-policies --role-name ${role_name} |jq  -r '.AttachedPolicies[].PolicyName'
-    echo
-    echo "Inline Policies: "
-    aws iam list-role-policies --role-name ${role_name} |jq  -r '.PolicyNames[]'
-    echo
+  local role_name="${1}"
+  local role_validation
+  
+  if ! role_validation="$(check_role  ${role_name})" || [ -z "${role_validation}" ]; then
+    gen3_log_err "The role provided to update can't be found, please check the value"
+    return 1
   fi
+  gen3_log_info "Managed Policies: "
+  aws iam list-attached-role-policies --role-name ${role_name} |jq  -r '.AttachedPolicies[].PolicyName'
+  gen3_log_info "Inline Policies: "
+  aws iam list-role-policies --role-name ${role_name} |jq  -r '.PolicyNames[]'
 }
 
 ##
@@ -386,7 +357,7 @@ function main() {
 
   if [ -z ${NAMESPACE_SCRIPT} ];
   then
-    NAMESPACE_SCRIPT="default"
+    NAMESPACE_SCRIPT="$(gen3 db namespace)"
   fi
 
   if [ -z ${SERVICE_ACCOUNT_NAME} ];
@@ -399,7 +370,7 @@ function main() {
 
     if ([ ${policy_validation} == 0 ] || [ -z ${policy_validation} ]) && [ -v UPDATE_ACTION ] && [ ${UPDATE_ACTION} <> "d" ];
     then
-      echo "There is something wrong with the policy provided ${POLICY_SCRIPT}, check the value and try again"
+      gen3_log_err "There is something wrong with the policy provided ${POLICY_SCRIPT}, check the value and try again"
       exit 2
     elif [ ${policy_validation} == 1 ];
     then
@@ -409,35 +380,31 @@ function main() {
     fi
   fi
 
-## let's validate the options submitted
+  ## let's validate the options submitted
   if [ -v SERVICE_ACCOUNT_NAME ] && [ -v POLICY_SCRIPT ] && [ -v UPDATE_ACTION ] && [ -v ACTION ] && [ ${ACTION} == u ];
   then
-
-    local role_validation=$(check_role  ${role_name})
-    if [ "${role_validation}" == 0 ];
-    then
-      echo "The role provided to update can't be found, please check the value"
+    local role_validation
+    if ! role_validation="$(check_role  ${role_name})"; then
+      gen3_log_err "The role provided to update can't be found, please check the value"
       exit 2
     fi
 
-#    echo "Entering the update module"
+    #    echo "Entering the update module"
     if [ ${UPDATE_ACTION} == a ];
     then
-      local addition_result=$(add_policy_to_role ${policy_source} ${role_name}) # ${policy_source})
-      if [ ${addition_result} == 0 ];
-      then
-        echo "Policy added successfully"
+      if add_policy_to_role ${policy_source} ${role_name}; then
+        gen3_log_info "Policy added successfully"
       else
-        echo "Policy coudn't not be added"
+        gen3_log_err "Policy coudn't not be added"
+        false
       fi
     elif [ ${UPDATE_ACTION} == d ];
     then
-      local deletion_result=$(delete_policy_in_role ${policy_source} ${role_name}) #${policy_type}
-      if [ ${deletion_result} == 0 ];
-      then
-        echo "Policy removed successfully"
+      if delete_policy_in_role ${policy_source} ${role_name}; then
+        gen3_log_info "Policy removed successfully"
       else
-        echo "Policy coudn't not be removed"
+        gen3_log_err "Policy coudn't not be removed"
+        false
       fi
     fi
   elif [ -v SERVICE_ACCOUNT_NAME ] && [ -v POLICY_SCRIPT ] && [ -z ${UPDATE_ACTION} ] && [ -v ACTION ] && [ ${ACTION} == c ];
@@ -447,28 +414,28 @@ function main() {
     local role_json
     local role_arn
 
-
     role_json=$(create_role_with_policy "${policy_source}" "${role_name}")
     role_arn=$(echo "${role_json}" | jq -r '.Role.Arn')
     create_service_account ${role_arn}
     gen3_log_info "Role and service account created successfully"
     gen3_log_info "  Role Name: $(echo "${role_json}" | jq '.Role.RoleName')"
     gen3_log_info "  Serviceaccount Name: ${SERVICE_ACCOUNT_NAME}"
+    echo $role_name
   elif [ -v SERVICE_ACCOUNT_NAME ] && ! [ -v POLICY_SCRIPT ] && ! [ -v UPDATE_ACTION ] && [ -v ACTION ] && [ ${ACTION} == l ];
   then
     list_policies_for_a_role "${role_name}"
   else
     gen3_log_err "Couldn't understand the paramethers, bailing out"
+    return 1
   fi
-
-  echo $role_name
-
+  result=$?
   unset ACCOUNT_ID
   unset UPDATE_ACTION
   unset SERVICE_ACCOUNT_NAME
   unset NAMESPACE_SCRIPT
   unset POLICY_SCRIPT
   unset SCRIPT
+  return "$result"
 }
 
 function HELP(){
@@ -489,7 +456,6 @@ function HELP(){
   echo
   echo "If the service account is inteded for a different namespace than the default: "
   echo "        -n namespace   --namespace namespace --namepace=namespace The namespace to manipulate"
-
 }
 
 OPTSPEC="hc:u:p:a:n:l:-:"

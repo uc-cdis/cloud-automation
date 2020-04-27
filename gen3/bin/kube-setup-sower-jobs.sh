@@ -32,15 +32,21 @@ setup_sower_jobs() {
     # deployments to the same k8s cluseter (dev, etc)
     #
     local accountNumber
-    local environment
+    local hostname
     local bucketName
+    local environment
     if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
       gen3_log_err "could not determine account numer"
+    fi
+    if ! hostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)"; then
+      gen3_log_err "could not determine hostname from manifest-global - bailing out of sower-jobs setup"
+      return 1
     fi
     if ! environment="$(g3kubectl get configmap manifest-global -o json | jq -r .data.environment)"; then
       gen3_log_err "could not determine environment from manifest-global - bailing out of sower-jobs setup"
       return 1
     fi
+
     # try to come up with a unique but composable bucket name
     bucketName="sower-jobs-${accountNumber}-${environment//_/-}-gen3"
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
@@ -72,14 +78,20 @@ setup_sower_jobs() {
     ]
 }
 EOM
-    local saName="sower-jobs-${environment//_/-}-sa1"
-    local role_name="$(gen3 iam-serviceaccount -c "${saName}" -p ./sower-jobs-aws-policy.json)"
-    gen3_log_info "created service account '${saName}' with s3 access"
-    gen3_log_info "created role name '${role_name}'"
-    # TODO do I need the following: ???
-    gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${role_name}"
-    gen3_log_info "attached read-write bucket policy to '${bucketName}' for role '${role_name}'"
-
+    local saName="sower-jobs-${hostname//./-}-sa1"
+    if ! g3kubectl get sa "$saName" > /dev/null 2>&1; then
+      local role_name
+      if ! role_name="$(gen3 iam-serviceaccount -c "${saName}" -p ./sower-jobs-aws-policy.json)" || [[ -z "$role_name" ]]; then
+        gen3_log_err "Failed to create iam service account"
+        return 1
+      fi
+      gen3_log_info "created service account '${saName}' with s3 access"
+      gen3_log_info "created role name '${role_name}'"
+      # TODO do I need the following: ???
+      gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${role_name}"
+      gen3_log_info "attached read-write bucket policy to '${bucketName}' for role '${role_name}'"
+    fi
+    
     cat - > "${secretsFolder}/creds.json" <<EOM
 {
   "index-object-manifest": {
