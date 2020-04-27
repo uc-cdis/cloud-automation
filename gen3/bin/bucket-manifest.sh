@@ -7,26 +7,31 @@ gen3_load "gen3/gen3setup"
 
 # lib -----------------------------------
 
-# Creates
+# Creates a bucket manifest as a input for s3 batch job
+# The manifest contains bucket and key only
+#
+# @param source_bucket
+# @param manifest_bucket
+#
 gen3_create_manifest() {
-  local bucket=$1
-  local destination=$2
+  local source_bucket=$1
+  local manifest_bucket=$2
   if [[ -f $WORKSPACE/tempKeyFile ]]; then
     gen3_log_info "previous key file found. Deleting"
     rm $WORKSPACE/tempKeyFile
   fi
-  aws s3api --profile fence_bot list-objects --bucket "$bucket" --query 'Contents[].{Key: Key}' | jq -r '.[].Key' >> "$WORKSPACE/tempKeyFile"
+  aws s3api --profile fence_bot list-objects --bucket "$source_bucket" --query 'Contents[].{Key: Key}' | jq -r '.[].Key' >> "$WORKSPACE/tempKeyFile"
   if [[ -f $WORKSPACE/manifest.csv ]]; then
     rm $WORKSPACE/manifest.csv
   fi
   while read line; do
-    echo "$bucket,$line" >> $WORKSPACE/manifest.csv
+    echo "$source_bucket,$line" >> $WORKSPACE/manifest.csv
   done<$WORKSPACE/tempKeyFile
   rm $WORKSPACE/tempKeyFile
   if [[ ! -z $3 ]]; then
-    gen3_aws_run aws s3 cp $WORKSPACE/manifest.csv s3://"$destination" --profile $3
+    gen3_aws_run aws s3 cp $WORKSPACE/manifest.csv s3://"$manifest_bucket" --profile $3
   else
-    gen3_aws_run aws s3 cp $WORKSPACE/manifest.csv s3://"$destination"
+    gen3_aws_run aws s3 cp $WORKSPACE/manifest.csv s3://"$manifest_bucket"
   fi
   rm $WORKSPACE/manifest.csv
 }
@@ -37,7 +42,10 @@ gen3_create_manifest() {
 # function to check if role/policy exists
 ## if no role call create role
 ## if no policy create policy, if policy modify policy to support new endpoints
-
+#
+# @param source_bucket
+# @param manifest_bucket
+#
 initialization() {
 
   source_bucket=$1
@@ -178,7 +186,11 @@ initialization() {
 }
 
 # function to create job
-## creates job and returns command to check job status after completed
+# creates job and returns command to check job status after completed
+#
+# @param source_bucket
+# @param manifest_bucket
+#
 gen3_bucket_manifest_create_job() {
   local manifest_bucket=$2
   echo "manifest bucket" ${manifest_bucket}
@@ -194,6 +206,9 @@ gen3_bucket_manifest_create_job() {
 }
 
 # function to check job status
+#
+# @param job-id
+#
 gen3_manifest_generating_status() {
   if [[ $# -lt 1 ]]; then
     gen3_log_info "The job id is required "
@@ -212,6 +227,11 @@ gen3_manifest_generating_status() {
   echo $(gen3_aws_run aws s3control describe-job --account-id $accountId --job-id $jobId --region us-east-1 | jq -r .Job.ProgressSummary)
 }
 
+# Creates a S3 batch job
+#
+# @param source_bucket
+# @param manifest_bucket
+#
 gen3_manifest_generating() {
   if [[ $# -lt 2 ]]; then
     gen3_log_info "The input and manifest buckets are required "
@@ -226,6 +246,8 @@ gen3_manifest_generating() {
   gen3_bucket_manifest_create_job $@
 }
 
+# Delete all roles, policies and lambda function
+
 gen3_manifest_generating_cleanup() {
   gen3_aws_run aws iam delete-role-policy --role-name lambda-generate-metadata --policy-name LambdaMetadataJobPolicy
   gen3_aws_run aws iam delete-role --role-name lambda-generate-metadata
@@ -235,10 +257,17 @@ gen3_manifest_generating_cleanup() {
 
 }
 
+# Show help
+
 gen3_bucket_manifest_help() {
   gen3 help bucket-manifest
 }
 
+# Parse the report manifest to create the output manifest
+#
+# @param report_file
+# @param output_manifest_file
+#
 write_to_file() {
   while IFS= read -r line
   do
@@ -256,6 +285,11 @@ write_to_file() {
     echo "$bucket,$key,$size,$md5" >> $2
   done < "$1"
 }
+
+# Get output manifest of a S3 batch job 
+#
+# @param job-id
+#
 gen3_get_output_manifest() {
   if [[ $# -lt 1 ]]; then
     gen3_log_info "The job id is required "
