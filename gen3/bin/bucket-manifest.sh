@@ -305,7 +305,7 @@ case "$command" in
   'cleanup')
     gen3_manifest_generating_cleanup
     ;;
-  'output')
+  'get-manifest')
     gen3_get_output_manifest "$@"
     ;;
   'help')

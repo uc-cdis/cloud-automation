@@ -6,7 +6,7 @@ A tool to generate a bucket manifest of a s3 bucket
 
 ### generate
 
-Copy objects from source bucket to destination bucket, if destination bucket is in other account you need to give the destination account id and a profile, defined in ~/.aws/credentials that has IAM/S3/Batch permissions in the destination account.
+Launch a S3 batch operation job to generate a manfest of the source bucket, the result will be put on the manifest bucket
 
 ```bash
   gen3 bucket-manifest create <source bucket> <manifest bucket>
@@ -20,7 +20,7 @@ Checks the status of a s3 batch operations job
 ```
 
 ### cleanup
-Delete all temporary roles and policies
+Delete all temporary roles, policies and lambda functions
 
 ```bash
   gen3 bucket-manifest cleanup
