@@ -257,7 +257,7 @@ $ gen3 logs history rtimes "start=-7 days" "vpc=bhcprodv2"
 Retrieve the number of unique users for the given commons and date range.
 
 ```
-$ gen3 logs history rtimes "start=-7 days" "vpc=bhcprodv2"
+$ gen3 logs history users "start=-7 days" "vpc=bhcprodv2"
 ```
 
 ### `gen3 logs snapshot`

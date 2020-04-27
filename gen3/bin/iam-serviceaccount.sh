@@ -42,8 +42,8 @@ function peae(){
 function create_service_account(){
   gen3_log_info "Entering create_service_account"
   local role_arn=${1}
-  if ! (g3kubectl -n ${NAMESPACE_SCRIPT} create sa ${SERVICE_ACCOUNT_NAME} \
-      || g3kubectl -n ${NAMESPACE_SCRIPT} annotate --overwrite sa ${SERVICE_ACCOUNT_NAME} eks.amazonaws.com/role-arn=${role_arn}
+  if ! (g3kubectl -n ${NAMESPACE_SCRIPT} create sa "${SERVICE_ACCOUNT_NAME}"; \
+        g3kubectl -n ${NAMESPACE_SCRIPT} annotate --overwrite sa "${SERVICE_ACCOUNT_NAME}" eks.amazonaws.com/role-arn=${role_arn}
   ) 1>&2; then
     peae "There has been an error creating the service account in kubernetes, bailing out"
   fi
