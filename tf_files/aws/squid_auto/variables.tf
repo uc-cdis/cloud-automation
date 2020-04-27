@@ -108,5 +108,6 @@ variable "network_expansion" {
   default = true
 }
 
-
-
+variable "deploy_ha_squid" {
+  default = true
+}
