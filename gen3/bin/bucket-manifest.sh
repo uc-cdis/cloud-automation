@@ -236,7 +236,7 @@ gen3_manifest_generating_cleanup() {
 }
 
 gen3_bucket_manifest_help() {
-  gen3_log_info "the utility to generate bucket manifest"
+  gen3 help bucket-manifest
 }
 
 write_to_file() {
@@ -296,7 +296,7 @@ gen3_get_output_manifest() {
 command="$1"
 shift
 case "$command" in
-  'bucket')
+  'create')
     gen3_manifest_generating "$@"
     ;;
   'status')
