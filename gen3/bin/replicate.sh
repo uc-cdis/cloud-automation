@@ -20,7 +20,7 @@ gen3_replicate_create_manifest() {
     rm $WORKSPACE/tempKeyFile
   fi
   gen3_log_info "Creating manifest of objects in the source account. Could take a while depending on the size of the bucket."
-  gen3_aws_run aws s3api list-objects --bucket "$sourceBucket" --query 'Contents[].{Key: Key}' --profile $profileWithSourceBucket | jq -r '.[].Key' >> "$WORKSPACE/tempKeyFile"
+  aws s3api list-objects --bucket "$sourceBucket" --query 'Contents[].{Key: Key}' --profile $profileWithSourceBucket | jq -r '.[].Key' >> "$WORKSPACE/tempKeyFile"
   if [[ -f $WORKSPACE/manifest.csv ]]; then
     rm $WORKSPACE/manifest.csv
   fi
@@ -28,19 +28,19 @@ gen3_replicate_create_manifest() {
     echo "$destinationBucket,$line" >> $WORKSPACE/manifest.csv
   done<$WORKSPACE/tempKeyFile
   rm $WORKSPACE/tempKeyFile
-  gen3_aws_run aws s3 cp $WORKSPACE/manifest.csv s3://"$destinationBucket" --profile $profileWithDestinationBucket
+  aws s3 cp $WORKSPACE/manifest.csv s3://"$destinationBucket" --profile $profileWithDestinationBucket
   rm $WORKSPACE/manifest.csv
 }
 
 # function to create job
 ## creates job and returns command to check job status after completed
 gen3_replicate_create_job() {
-  local etag=$(gen3_aws_run aws s3api list-objects --profile $profileWithDestinationBucket --bucket $destinationBucket --output json --query '{Name: Contents[].{Key: ETag}}' --prefix manifest.csv | jq -r .Name[].Key | sed -e 's/"//g')
+  local etag=$(aws s3api list-objects --profile $profileWithDestinationBucket --bucket $destinationBucket --output json --query '{Name: Contents[].{Key: ETag}}' --prefix manifest.csv | jq -r .Name[].Key | sed -e 's/"//g')
   local OPERATION='{"S3PutObjectCopy": {"TargetResource": "arn:aws:s3:::'$destinationBucket'", "MetadataDirective": "REPLACE", "CannedAccessControlList": "bucket-owner-full-control"}}'
   local MANIFEST='{"Spec": {"Format": "S3BatchOperations_CSV_20180820","Fields": ["Bucket","Key"]},"Location": {"ObjectArn": "arn:aws:s3:::'$destinationBucket'/manifest.csv","ETag": "'$etag'"}}'
   local REPORT='{"Bucket": "arn:aws:s3:::'$destinationBucket'","Format": "Report_CSV_20180820","Enabled": true,"Prefix": "reports/copy-with-replace-metadata","ReportScope": "AllTasks"}'
-  local roleArn=$(gen3_aws_run aws iam get-role --profile $profileWithRole --role-name batch-operations-role | jq -r .Role.Arn)
-  status=$(gen3_aws_run aws s3control create-job --profile $profileWithRole --account-id $roleAccountId --manifest "${MANIFEST//$'\n'}" --operation "${OPERATION//$'\n'/}" --report "${REPORT//$'\n'}" --priority 10 --role-arn $roleArn  --region us-east-1 --description "Copy with Replace Metadata" --no-confirmation-required | jq -r .JobId)
+  local roleArn=$(aws iam get-role --profile $profileWithRole --role-name batch-operations-role | jq -r .Role.Arn)
+  status=$(aws s3control create-job --profile $profileWithRole --account-id $roleAccountId --manifest "${MANIFEST//$'\n'}" --operation "${OPERATION//$'\n'/}" --report "${REPORT//$'\n'}" --priority 10 --role-arn $roleArn  --region us-east-1 --description "Copy with Replace Metadata" --no-confirmation-required | jq -r .JobId)
   echo $status
 }
 
@@ -48,10 +48,10 @@ gen3_replicate_create_job() {
 gen3_replicate_status() {
   local jobId=$1
   local counter=0
-  local status=$(gen3_aws_run aws s3control describe-job --account-id $roleAccountId --job-id $jobId --profile $profileWithRole --region us-east-1 | jq -r .Job.Status)
+  local status=$(aws s3control describe-job --account-id $roleAccountId --job-id $jobId --profile $profileWithRole --region us-east-1 | jq -r .Job.Status)
   while [[ $status != 'Complete' ]] || [[ $counter > 90 ]]; do
     gen3_log_info "Waiting for job to complete. Current status $status"
-    local status=$(gen3_aws_run aws s3control describe-job --account-id $roleAccountId --job-id $jobId --profile $profileWithRole --region us-east-1 | jq -r .Job.Status)
+    local status=$(aws s3control describe-job --account-id $roleAccountId --job-id $jobId --profile $profileWithRole --region us-east-1 | jq -r .Job.Status)
     let counter=counter+1
     sleep 10
   done
@@ -65,12 +65,12 @@ gen3_replicate_status() {
 gen3_replicate_verify_bucket_access() {
   # check if profile with role has permissions to create roles
   gen3_log_info "Checking source profile $profileWithSourceBucket has permissions to source bucket $sourceBucket"
-  if [[ -z $(gen3_aws_run aws s3 ls $sourceBucket --profile $profileWithSourceBucket) ]]; then
+  if [[ -z $(aws s3 ls $sourceBucket --profile $profileWithSourceBucket) ]]; then
     gen3_log_err "Source bucket $sourceBucket does not exist or source profile $profileWithSourceBucket does not have permissions to it"
     exit 1
   fi
   gen3_log_info "Checking destination profile $profileWithDestinationBucket has permissions to destination bucket $destinationBucket"
-  if [[ -z $(gen3_aws_run aws s3 ls $destinationBucket --profile $profileWithDestinationBucket) ]]; then
+  if [[ -z $(aws s3 ls $destinationBucket --profile $profileWithDestinationBucket) ]]; then
     gen3_log_err "Destination bucket $destinationBucket does not exist or destination profile $profileWithDestinationBucket does not have permissions to it"
     exit 1
   fi 
@@ -98,23 +98,23 @@ gen3_replicate_init() {
   # Verify profile can reach buckets
   gen3_replicate_verify_bucket_access
   # Check if batch operations role exists. Create if it doesn't.
-  if [[ -z $(gen3_aws_run aws iam list-roles --profile $profileWithRole | jq -r .Roles[].RoleName | grep batch-operations-role) ]]; then
+  if [[ -z $(aws iam list-roles --profile $profileWithRole | jq -r .Roles[].RoleName | grep batch-operations-role) ]]; then
     gen3_log_info "Creating batch operations role using profile $profileWithRole"
     local trustRelationship="{\"Version\": \"2012-10-17\",\"Statement\": [{\"Effect\": \"Allow\",\"Principal\": {\"Service\": \"batchoperations.s3.amazonaws.com\"},\"Action\": \"sts:AssumeRole\"}]}"
-    gen3_aws_run aws iam create-role --role-name batch-operations-role --assume-role-policy-document "$trustRelationship"  --profile $profileWithRole
+    aws iam create-role --role-name batch-operations-role --assume-role-policy-document "$trustRelationship"  --profile $profileWithRole
   fi
   # If the role is not created after that it implies the profile does not have permission to create the role and the process should be stopped.
-  if [[ -z $(gen3_aws_run aws iam list-roles --profile $profileWithRole | jq -r .Roles[].RoleName | grep batch-operations-role) ]]; then
+  if [[ -z $(aws iam list-roles --profile $profileWithRole | jq -r .Roles[].RoleName | grep batch-operations-role) ]]; then
     gen3_log_err "Could not successfully create role. Please ensure profile $profileWithRole has permissions to create roles"
     exit 1
   fi
-  roleAccountId=$(gen3_aws_run aws iam get-role --role-name batch-operations-role --profile "$profileWithRole" | jq -r .Role.Arn | cut -d : -f 5)
+  roleAccountId=$(aws iam get-role --role-name batch-operations-role --profile "$profileWithRole" | jq -r .Role.Arn | cut -d : -f 5)
   local destinationRolePolicy="{\"Version\": \"2012-10-17\",\"Statement\": [{\"Sid\": \"AllowBatchOperationsDestinationObjectCOPY\",\"Effect\": \"Allow\",\"Action\": [\"s3:PutObject\",\"s3:PutObjectVersionAcl\",\"s3:PutObjectAcl\",\"s3:PutObjectVersionTagging\",\"s3:PutObjectTagging\",\"s3:GetObject\",\"s3:GetObjectVersion\",\"s3:GetObjectAcl\",\"s3:GetObjectTagging\",\"s3:GetObjectVersionAcl\",\"s3:GetObjectVersionTagging\"],\"Resource\": [\"arn:aws:s3:::$sourceBucket/*\",\"arn:aws:s3:::$destinationBucket/*\"]}]}"
   # need to only make a joint policy if there was a policy previously.
   gen3_log_info "Checking for old policies and modfying bucket policy to add batch operations policy"
   # Save the old bucket policy to reset after so that fence-bot and potentially other service accounts don't lose access to the buckets
-  resetSourceBucketPolicy=$(gen3_aws_run aws s3api get-bucket-policy --bucket $sourceBucket --profile $profileWithSourceBucket | jq -r .Policy )
-  local oldSourceBucketPolicy=$(gen3_aws_run aws s3api get-bucket-policy --bucket $sourceBucket --profile $profileWithSourceBucket | jq -r .Policy | jq -r .Statement[] )
+  resetSourceBucketPolicy=$(aws s3api get-bucket-policy --bucket $sourceBucket --profile $profileWithSourceBucket | jq -r .Policy )
+  local oldSourceBucketPolicy=$(aws s3api get-bucket-policy --bucket $sourceBucket --profile $profileWithSourceBucket | jq -r .Policy | jq -r .Statement[] )
   local newSourceBucketPolicy=$(echo "{\"Sid\": \"AllowBatchOperationsSourceManfiestRead\",\"Effect\": \"Allow\",\"Principal\": {\"AWS\": [\"arn:aws:iam::$roleAccountId:role/batch-operations-role\"]},\"Action\": [\"s3:GetObject\",\"s3:GetObjectVersion\"],\"Resource\": \"arn:aws:s3:::$sourceBucket/*\"}" |jq -r .)
   if [[ -z $oldSourceBucketPolicy ]]; then
     local sourceBucketPolicy='{"Version": "2012-10-17", "Statement": ['$newSourceBucketPolicy']}'
@@ -124,11 +124,11 @@ gen3_replicate_init() {
   fi
   # sleep to allow role to fully generate for policy
   sleep 5
-  gen3_aws_run aws s3api put-bucket-policy --bucket $sourceBucket --policy "$sourceBucketPolicy" --profile $profileWithSourceBucket 
+  aws s3api put-bucket-policy --bucket $sourceBucket --policy "$sourceBucketPolicy" --profile $profileWithSourceBucket 
   # If running from source account on cross account replicate, make sure to add bucket policy to allow to put the report and read the manifest
   if [[ ! -z $runFromSource ]]; then
-    destinationBucketResetPolicy=$(gen3_aws_run aws s3api get-bucket-policy --bucket $destinationBucket --profile $profileWithDestinationBucket | jq -r .Policy )
-    local oldDestinationBucketPolicy=$(gen3_aws_run aws s3api get-bucket-policy --bucket $destinationBucket --profile $profileWithDestinationBucket | jq -r .Policy | jq -r .Statement[] )
+    destinationBucketResetPolicy=$(aws s3api get-bucket-policy --bucket $destinationBucket --profile $profileWithDestinationBucket | jq -r .Policy )
+    local oldDestinationBucketPolicy=$(aws s3api get-bucket-policy --bucket $destinationBucket --profile $profileWithDestinationBucket | jq -r .Policy | jq -r .Statement[] )
     local newDestinationBucketPolicy=$(echo "{\"Sid\": \"AllowBatchOperationsSourceManfiestRead\",\"Effect\": \"Allow\",\"Principal\": {\"AWS\": [\"arn:aws:iam::$roleAccountId:role/batch-operations-role\"]},\"Action\": [\"s3:Get*\",\"s3:Put*\"],\"Resource\": \"arn:aws:s3:::$destinationBucket/*\"}" |jq -r .)
     if [[ -z $oldDestinationBucketPolicy ]]; then
       local destinationBucketPolicy='{"Version": "2012-10-17", "Statement": ['$newDestinationBucketPolicy']}'
@@ -136,16 +136,16 @@ gen3_replicate_init() {
       gen3_log_info "Found old bucket policy on destination bucket $oldDestinationBucketPolicy Modifying it to add batch operations bucket policy"
       local destinationBucketPolicy='{"Version": "2012-10-17", "Statement": ['$oldDestinationBucketPolicy','$newDestinationBucketPolicy']}'
     fi
-    gen3_aws_run aws s3api put-bucket-policy --bucket $destinationBucket --policy "$destinationBucketPolicy" --profile $profileWithDestinationBucket 
+    aws s3api put-bucket-policy --bucket $destinationBucket --policy "$destinationBucketPolicy" --profile $profileWithDestinationBucket 
   fi
-  if [[ ! -z $(gen3_aws_run aws iam list-role-policies --role-name batch-operations-role --profile "$profileWithRole" | jq -r .PolicyNames[]) ]]; then
+  if [[ ! -z $(aws iam list-role-policies --role-name batch-operations-role --profile "$profileWithRole" | jq -r .PolicyNames[]) ]]; then
     gen3_log_info "Old policy exists. Removing in favor of new policy"
-    gen3_aws_run aws iam delete-role-policy --role-name batch-operations-role --policy-name batch-operations-policy --profile "$profileWithRole"
+    aws iam delete-role-policy --role-name batch-operations-role --policy-name batch-operations-policy --profile "$profileWithRole"
   fi
   local policy="{\"Version\": \"2012-10-17\", \"Statement\": [ { \"Action\": [ \"s3:PutObject\", \"s3:PutObjectAcl\", \"s3:PutObjectTagging\" ], \"Effect\": \"Allow\", \"Resource\": \"arn:aws:s3:::$destinationBucket/*\" }, { \"Action\": [ \"s3:GetObject\", \"s3:GetObjectAcl\", \"s3:GetObjectTagging\" ], \"Effect\": \"Allow\", \"Resource\": \"arn:aws:s3:::$sourceBucket/*\" }, { \"Effect\": \"Allow\", \"Action\": [ \"s3:GetObject\", \"s3:GetObjectVersion\", \"s3:GetBucketLocation\" ], \"Resource\": [ \"arn:aws:s3:::$destinationBucket/*\" ] }, { \"Effect\": \"Allow\", \"Action\": [ \"s3:PutObject\", \"s3:GetBucketLocation\" ], \"Resource\": [ \"arn:aws:s3:::$destinationBucket/*\" ] }    ]}"
-  gen3_aws_run aws iam put-role-policy --role-name batch-operations-role --policy-name batch-operations-policy --policy-document "${policy//$'\n'}" --profile $profileWithRole
+  aws iam put-role-policy --role-name batch-operations-role --policy-name batch-operations-policy --policy-document "${policy//$'\n'}" --profile $profileWithRole
   # If the role policy is not created after that it implies the profile does not have permission to create the policy and the process should be stopped.
-  if [[ -z $(gen3_aws_run aws iam list-role-policies --role-name batch-operations-role --profile $profileWithRole | jq -r .PolicyNames[]) ]]; then
+  if [[ -z $(aws iam list-role-policies --role-name batch-operations-role --profile $profileWithRole | jq -r .PolicyNames[]) ]]; then
     gen3_log_err "Could not successfully create role policy. Please ensure profile $profileWithRole has permissions to create policies"
     exit 1
   fi
@@ -164,24 +164,24 @@ gen3_replicate_cleanup() {
   # if you are running from the source account, implies there is a destination account too
   # need to also just check source profile is there without run from source
   gen3_log_info "Deleting role policy"
-  gen3_aws_run aws iam delete-role-policy --role-name batch-operations-role --policy-name batch-operations-policy --profile $profileWithRole
+  aws iam delete-role-policy --role-name batch-operations-role --policy-name batch-operations-policy --profile $profileWithRole
   gen3_log_info "Deleting role"
-  gen3_aws_run aws iam delete-role --role-name batch-operations-role --profile $profileWithRole
+  aws iam delete-role --role-name batch-operations-role --profile $profileWithRole
   # always on source profile, use what was initialized for profile
   if [[ ! -z $resetSourceBucketPolicy ]]; then
     gen3_log_info "Old source bucket policy found. Reverting back to it."
-    gen3_aws_run aws s3api put-bucket-policy --bucket $sourceBucket --policy "$resetSourceBucketPolicy" --profile $profileWithSourceBucket
+    aws s3api put-bucket-policy --bucket $sourceBucket --policy "$resetSourceBucketPolicy" --profile $profileWithSourceBucket
   else
     gen3_log_info "Deleting source bucket policy"
-    gen3_aws_run aws s3api delete-bucket-policy --bucket $sourceBucket --profile $profileWithSourceBucket
+    aws s3api delete-bucket-policy --bucket $sourceBucket --profile $profileWithSourceBucket
   fi
   # always on source profile, use what was initialized for profile
   if [[ ! -z $resetDestinationBucketPolicy ]]; then
     gen3_log_info "Old destination bucket policy found. Reverting back to it."
-    gen3_aws_run aws s3api put-bucket-policy --bucket $destinationBucket --policy "$resetDestinationBucketPolicy" --profile $profileWithSourceBucket
+    aws s3api put-bucket-policy --bucket $destinationBucket --policy "$resetDestinationBucketPolicy" --profile $profileWithSourceBucket
   else
     gen3_log_info "Deleting destination bucket policy"
-    gen3_aws_run aws s3api delete-bucket-policy --bucket $destinationBucket --profile $profileWithDestinationBucket
+    aws s3api delete-bucket-policy --bucket $destinationBucket --profile $profileWithDestinationBucket
   fi 
 }
 
