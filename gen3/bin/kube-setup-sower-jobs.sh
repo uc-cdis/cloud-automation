@@ -78,7 +78,7 @@ setup_sower_jobs() {
     ]
 }
 EOM
-    local saName="sower-jobs-${hostname//./-}-sa1"
+    local saName="sower-jobs-${hostname//./-}-sa"
     if ! g3kubectl get sa "$saName" > /dev/null 2>&1; then
       local role_name
       if ! role_name="$(gen3 iam-serviceaccount -c "${saName}" -p ./sower-jobs-aws-policy.json)" || [[ -z "$role_name" ]]; then
