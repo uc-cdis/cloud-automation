@@ -78,12 +78,12 @@ function create_assume_role_policy() {
   local issuer_url=$(aws eks describe-cluster \
                        --name ${vpc_name} \
                        --query cluster.identity.oidc.issuer \
-                       --output text | sed -e 's#^https://##')
+                       --output text) # | sed -e 's#^https://##')
 
   local issuer_hostpath=$(echo ${issuer_url}| cut -f 3- -d'/')
   local account_id=$(aws sts get-caller-identity --query Account --output text)
 
-  local provider_arn="arn:aws:iam::${account_id}:oidc-provider/${issuer_url}"
+  local provider_arn="arn:aws:iam::${account_id}:oidc-provider/${issuer_hostpath}"
 
   gen3_log_info "Entering create_assume_role_policy"
   gen3_log_info "  ${tempFile}"
@@ -172,7 +172,7 @@ function add_policy_to_role(){
   gen3_log_info "  ${role_name}"
 
   local result
-  if [[ ${policy} =~ arn:aws:iam::aws:policy/[aA-zZ0-9]+ ]]
+  if [[ ${policy} =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]]
   then
     gen3_log_info "    by ARN" 
     gen3_log_info "    aws iam attach-role-policy --role-name "${role_name}" --policy-arn "${policy}""
@@ -235,7 +235,7 @@ function create_role_with_policy() {
 ##
 # Function that checks the policy provided in either `-p` or `--policy` or `--policy=`
 #
-# @arg string with policy, it must be either [aA-zZ0-9]+, or a valid and existing ARN, or path to a file 
+# @arg string with policy, it must be either [a-zA-Z0-9]+, or a valid and existing ARN, or path to a file 
 # with a json valid policy ( this last is difficult to validate unless amazon tell us is wrong
 #
 # @return 0 if there is something wrong with the value inputed
@@ -259,7 +259,7 @@ function check_policy() {
     else
       echo 0
     fi
-  elif [[ ${policy_provided} =~ arn:aws:iam::aws:policy/[aA-zZ0-9]+ ]];
+  elif [[ ${policy_provided} =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]];
   then
     policy_arn=$(aws iam get-policy --policy-arn ${policy_provided} |jq  '.Policy.Arn' -r)
     if [ $? == 0 ];
@@ -270,7 +270,7 @@ function check_policy() {
     fi
   else
     policy_arn="$(aws iam list-policies | jq '.Policies[] | select( .PolicyName == "'${policy_provided}'") | .Arn' -r)"
-    if ! [ -z ${policy_arn} ] && [[ ${policy_arn}  =~ arn:aws:iam::aws:policy/[aA-zZ0-9]+ ]];
+    if ! [ -z ${policy_arn} ] && [[ ${policy_arn}  =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]];
     then
       echo ${policy_arn}
     else
@@ -328,7 +328,7 @@ function delete_policy_in_role(){
   local role_name=${2}
 
   gen3_log_info "Entering delete_policy_in_role"
-  if [[ ${policy} =~ arn:aws:iam::aws:policy/[aA-zZ0-9]+ ]];
+  if [[ ${policy} =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]];
   then
     gen3_log_info "  aws iam detach-role-policy --role-name ${role_name} --policy-arn ${policy}"
     aws iam detach-role-policy --role-name "${role_name}" --policy-arn "${policy}"
