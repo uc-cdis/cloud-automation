@@ -7,22 +7,6 @@ terraform {
 provider "aws" {}
 
 
-resource "aws_iam_role" "new_role" {
-  name = "${var.role_name}"
-  description = "${var.role_description}"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": {
-    "Effect": "Allow",
-    "Principal": {"Service": "lambda.amazonaws.com"},
-    "Action": "sts:AssumeRole"
-  }
-}
-EOF
-}
-
 resource "aws_batch_job_definition" "new_batch_job_definition" {
   name = "${var.batch_job_definition_name}"
   type = "container"
