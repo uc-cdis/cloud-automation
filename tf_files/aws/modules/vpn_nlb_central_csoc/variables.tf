@@ -25,7 +25,6 @@ variable "env_cloud_name" {
 }
 
 
-
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
   default = "099720109477"
@@ -35,10 +34,9 @@ variable "image_name_search_criteria" {
   default = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
 }
 
-variable "csoc_cidr" {
-  default = "10.128.0.0/20"
-}
-
+#variable "csoc_cidr" {
+#  default = "10.128.0.0/20"
+#}
 
 
 variable "env_pub_subnet_routetable_id" {
@@ -72,15 +70,34 @@ variable "bootstrap_script" {
 #}
 
 
-variable "csoc_account_id" {
-  default = "433568766270"
+#variable "csoc_account_id" {
+#  default = "433568766270"
+#}
+
+
+variable "organization_name" {
+  description = "For tagging purposes"
+  default     = "Basic Service"
+}
+
+variable "branch" {
+  description = "For testing purposes"
+  default     = "master"
+}
+
+variable "extra_vars" {
+  description = "Additional variables for the bootstrap script"
+  type        = "list"
+  default     = []
+}
+
+variable "authorized_keys" {
+  description = "This file content will be appended to the users .ssh/authorized_keys"
+  default     = "files/authorized_keys/ops_team"
 }
 
 
-
-
-
-
-
-
-
+variable "cwl_group_name" {
+  description = "Logs group name of instance logs"
+  default     = "csoc-prod-vpn.planx-pla.net_log_group"
+}
