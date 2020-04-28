@@ -30,7 +30,7 @@ resource "aws_batch_job_definition" "new_batch_job_definition" {
   container_properties = <<CONTAINER_PROPERTIES
 {
     "command": ["ls", "-la"],
-    "image": "busybox",
+    "image": "${var.batch_job_image}",
     "memory": 1024,
     "vcpus": 1,
     "volumes": [
@@ -42,7 +42,7 @@ resource "aws_batch_job_definition" "new_batch_job_definition" {
       }
     ],
     "environment": [
-        {"name": "VARNAME", "value": "VARVAL"}
+        {"name": "key", "value": "test_value"}
     ],
     "mountPoints": [
         {
