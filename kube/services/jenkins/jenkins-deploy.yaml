@@ -112,6 +112,9 @@ spec:
           mountPath: "/var/run/docker.sock"
       - name: selenium
         image: selenium/standalone-chrome:3.14
+        env:
+          - name: NODE_MAX_SESSION
+            value: 2
         ports:
         - containerPort: 4444
         readinessProbe:
