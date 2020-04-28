@@ -66,7 +66,6 @@ function create_assume_role_policy() {
                        --query cluster.identity.oidc.issuer \
                        --output text | sed -e 's#^https://##')
 
-  local issuer_hostpath=$(echo ${issuer_url}| cut -f 3- -d'/')
   local account_id=$(aws sts get-caller-identity --query Account --output text)
 
   local provider_arn="arn:aws:iam::${account_id}:oidc-provider/${issuer_url}"
@@ -74,7 +73,6 @@ function create_assume_role_policy() {
   gen3_log_info "Entering create_assume_role_policy"
   gen3_log_info "  ${tempFile}"
   gen3_log_info "  ${issuer_url}"
-  gen3_log_info "  ${issuer_hostpath}"
   gen3_log_info "  ${account_id}"
   gen3_log_info "  ${provider_arn}"
 
@@ -91,8 +89,8 @@ function create_assume_role_policy() {
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "${issuer_hostpath}:aud": "sts.amazonaws.com",
-          "${issuer_hostpath}:sub": "system:serviceaccount:${NAMESPACE_SCRIPT}:${SERVICE_ACCOUNT_NAME}"
+          "${issuer_url}:aud": "sts.amazonaws.com",
+          "${issuer_url}:sub": "system:serviceaccount:${NAMESPACE_SCRIPT}:${SERVICE_ACCOUNT_NAME}"
         }
       }
     }

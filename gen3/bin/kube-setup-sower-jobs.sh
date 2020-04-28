@@ -71,8 +71,8 @@ setup_sower_jobs() {
                 "s3:DeleteObject"
             ],
             "Resource": [
-                "arn:aws:s3:::sower-jobs-?-gen3/*",
-                "arn:aws:s3:::sower-jobs-?-gen3"
+                "arn:aws:s3:::sower-jobs-*-gen3/*",
+                "arn:aws:s3:::sower-jobs-*-gen3"
             ]
         }
     ]
