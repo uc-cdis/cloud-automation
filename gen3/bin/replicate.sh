@@ -56,10 +56,13 @@ gen3_replicate_status() {
     sleep 10
     if [[ $status == "Failed" ]]; then
       gen3_log_err "Job has failed. Check the logs in the s3 console."
-      counter=91
+      gen3_replicate_cleanup
+      exit 1
     fi
     if [[ $counter > 90 ]]; then
       gen3_log_err "Job $jobId timed out trying to run. The job will clean up and if the job is still in progress it's permissions will be removed and will become broken."
+      gen3_replicate_cleanup
+      exit 1
     fi
   done
   echo $status
@@ -145,7 +148,7 @@ gen3_replicate_init() {
   aws iam put-role-policy --role-name batch-operations-role --policy-name batch-operations-policy --policy-document "${policy//$'\n'}" --profile $profileWithRole
   # If the role policy is not created after that it implies the profile does not have permission to create the policy and the process should be stopped.
   local counter=0
-  while [[ -z $(aws iam list-role-policies --role-name batch-operations-role --profile $profileWithRole | jq -r .PolicyNames[]) ]] && [[ "$(aws s3api get-bucket-policy --bucket $sourceBucket | jq -rc .Policy)" == *"AllowBatchOperationsSourceManfiestRead"* ]]; do
+  while [[ -z $(aws iam list-role-policies --role-name batch-operations-role --profile $profileWithRole | jq -r .PolicyNames[]) ]] && [[ "$(aws s3api get-bucket-policy --bucket $sourceBucket | jq -rc .Policy)" != *"AllowBatchOperationsSourceManfiestRead"* ]]; do
     gen3_log_info "Waiting for role and policies to be verified"
     let counter=counter+1
     if [[ $counter > 6 ]]; then
