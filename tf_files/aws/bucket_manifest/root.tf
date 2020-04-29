@@ -110,16 +110,15 @@ resource "aws_security_group" "sample" {
   }
 }
 
-# resource "aws_vpc" "sample" {
-#   #cidr_block = "10.1.0.0/16"
-#   cidr_block = "172.16.0.0/16"
-# }
+resource "aws_vpc" "sample" {
+  cidr_block = "172.16.0.0/16"
+}
 
-# resource "aws_subnet" "sample" {
-#   vpc_id     = "${aws_vpc.sample.id}"
-#   #cidr_block = "10.1.1.0/24"
-#   cidr_block = "172.16.1.0/24"
-# }
+resource "aws_subnet" "sample" {
+  vpc_id     = "${aws_vpc.sample.id}"
+  cidr_block = "172.16.0.0/24"
+  map_public_ip_on_launch = true
+}
 
 resource "aws_batch_compute_environment" "new_batch_compute_environment" {
   compute_environment_name = "giangb"
@@ -140,16 +139,11 @@ resource "aws_batch_compute_environment" "new_batch_compute_environment" {
     security_group_ids = [
       "${aws_security_group.sample.id}",
     ]
-    # security_group_ids = [
-    #   "sg-003238f78a4d0b443",
-    # ]
 
-    # subnets = [
-    #   "${aws_subnet.sample.id}",
-    # ]
     subnets = [
-      "subnet-80d559e4","subnet-2f826072","subnet-e1a390ed"
+      "${aws_subnet.sample.id}",
     ]
+   
 
     type = "EC2"
   }
@@ -167,34 +161,3 @@ resource "aws_batch_job_queue" "batch-job-queue" {
   priority             = 10
   compute_environments = ["${aws_batch_compute_environment.new_batch_compute_environment.arn}"]
 }
-
-
-
-# data "aws_ami" "ubuntu" {
-#   most_recent = true
-
-#   filter {
-#     name   = "name"
-#     values = ["ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-*"]
-#   }
-
-#   filter {
-#     name   = "virtualization-type"
-#     values = ["hvm"]
-#   }
-
-#   owners = ["099720109477"] # Canonical
-
-# }
-
-# resource "aws_instance" "web" {
-#   ami           = "${data.aws_ami.ubuntu.id}"
-#   instance_type = "t2.micro"
-
-#   tags = {
-#     Name = "giangb-test"
-#   }
-#   key_name = "giangb"
-#   #vpc_security_group_ids=["vpc-28d17650"]
-#   security_groups = ["sg-08609db84ed542c77"]
-# }
