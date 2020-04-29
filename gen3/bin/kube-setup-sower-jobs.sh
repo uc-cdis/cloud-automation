@@ -74,6 +74,7 @@ setup_sower_jobs() {
 }
 EOM
 
+    echo "enabling CORS on the bucket"
     aws s3api put-bucket-cors --bucket "$bucketName" --cors-configuration file://cors.json
 
     cat - > "sower-jobs-aws-policy.json" <<EOM
