@@ -34,7 +34,6 @@ setup_sower_jobs() {
     local accountNumber
     local hostname
     local bucketName
-    local environment
     if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
       gen3_log_err "could not determine account numer"
     fi
@@ -42,19 +41,40 @@ setup_sower_jobs() {
       gen3_log_err "could not determine hostname from manifest-global - bailing out of sower-jobs setup"
       return 1
     fi
-    if ! environment="$(g3kubectl get configmap manifest-global -o json | jq -r .data.environment)"; then
-      gen3_log_err "could not determine environment from manifest-global - bailing out of sower-jobs setup"
-      return 1
-    fi
 
     # try to come up with a unique but composable bucket name
-    bucketName="sower-jobs-${accountNumber}-${environment//_/-}-gen3"
+    bucketName="sower-jobs-${accountNumber}-${hostname/./-}-gen3"
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
       gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/sower-jobs"
       # continue on ...
     elif ! gen3 s3 create "${bucketName}"; then
       gen3_log_err "maybe failed to create bucket ${bucketName}, but maybe not, because the terraform script is flaky"
     fi
+
+    local allowedOrigin
+    allowedOrigin="https://$hostname"
+
+    cat - > "cors.json" <<EOM
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": ["$allowedOrigin"],
+      "AllowedHeaders": ["*"],
+      "AllowedMethods": ["PUT", "POST", "DELETE"],
+      "MaxAgeSeconds": 3000,
+      "ExposeHeaders": ["x-amz-server-side-encryption"]
+    },
+    {
+      "AllowedOrigins": ["*"],
+      "AllowedHeaders": ["Authorization"],
+      "AllowedMethods": ["GET"],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}
+EOM
+
+    aws s3api put-bucket-cors --bucket "$bucketName" --cors-configuration file://cors.json
 
     cat - > "sower-jobs-aws-policy.json" <<EOM
 {
@@ -91,7 +111,7 @@ EOM
       gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${role_name}"
       gen3_log_info "attached read-write bucket policy to '${bucketName}' for role '${role_name}'"
     fi
-    
+
     cat - > "${secretsFolder}/creds.json" <<EOM
 {
   "index-object-manifest": {
