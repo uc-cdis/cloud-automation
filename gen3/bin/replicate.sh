@@ -83,21 +83,24 @@ gen3_replicate_verify_bucket_access() {
 
 # initialize the profiles, roles and policies
 gen3_replicate_init() {
-  # the if run from source should take priority in the if statement becuase it implies there is a destination account and not all run in the same account
+  # The runFromSource should take priority in the if statement becuase it implies there is a destination account and not all run in the same account
   if [[ ! -z $runFromSource ]]; then
     profileWithRole=$sourceProfile
     profileWithSourceBucket=$sourceProfile
     profileWithDestinationBucket=$destinationProfile
+    roleAccountId=$(aws sts get-caller-identity --profile $sourceProfile |jq -r .Account)
   # if destination is set but you are not running from source account then you will be running from destination account with the source bucke in either adminvm account if sourceprofile not set or in specified source profile
   elif [[ ! -z $destinationProfile ]]; then
     profileWithRole=$destinationProfile
     profileWithSourceBucket=$sourceProfile
     profileWithDestinationBucket=$destinationProfile
+    roleAccountId=$(aws sts get-caller-identity --profile $destinationProfile |jq -r .Account)
   # If these are not set then assume everything is run from sourceProfile, sourceProfile defaults to default profile (adminvm profile) if not set
   else
     profileWithRole=$sourceProfile
     profileWithSourceBucket=$sourceProfile
     profileWithDestinationBucket=$sourceProfile
+    roleAccountId=$(aws sts get-caller-identity --profile $sourceProfile |jq -r .Account)
   fi
   # Verify profile can reach buckets
   gen3_replicate_verify_bucket_access
@@ -107,12 +110,6 @@ gen3_replicate_init() {
     local trustRelationship="{\"Version\": \"2012-10-17\",\"Statement\": [{\"Effect\": \"Allow\",\"Principal\": {\"Service\": \"batchoperations.s3.amazonaws.com\"},\"Action\": \"sts:AssumeRole\"}]}"
     aws iam create-role --role-name batch-operations-role --assume-role-policy-document "$trustRelationship"  --profile $profileWithRole
   fi
-  # If the role is not created after that it implies the profile does not have permission to create the role and the process should be stopped.
-  if [[ -z $(aws iam list-roles --profile $profileWithRole | jq -r .Roles[].RoleName | grep batch-operations-role) ]]; then
-    gen3_log_err "Could not successfully create role. Please ensure profile $profileWithRole has permissions to create roles"
-    exit 1
-  fi
-  roleAccountId=$(aws iam get-role --role-name batch-operations-role --profile "$profileWithRole" | jq -r .Role.Arn | cut -d : -f 5)
   local destinationRolePolicy="{\"Version\": \"2012-10-17\",\"Statement\": [{\"Sid\": \"AllowBatchOperationsDestinationObjectCOPY\",\"Effect\": \"Allow\",\"Action\": [\"s3:PutObject\",\"s3:PutObjectVersionAcl\",\"s3:PutObjectAcl\",\"s3:PutObjectVersionTagging\",\"s3:PutObjectTagging\",\"s3:GetObject\",\"s3:GetObjectVersion\",\"s3:GetObjectAcl\",\"s3:GetObjectTagging\",\"s3:GetObjectVersionAcl\",\"s3:GetObjectVersionTagging\"],\"Resource\": [\"arn:aws:s3:::$sourceBucket/*\",\"arn:aws:s3:::$destinationBucket/*\"]}]}"
   # need to only make a joint policy if there was a policy previously.
   gen3_log_info "Checking for old policies and modfying bucket policy to add batch operations policy"
@@ -126,12 +123,10 @@ gen3_replicate_init() {
     gen3_log_info "Found old bucket policy on source bucket $oldSourceBucketPolicy Modifying it to add batch operations bucket policy"
     local sourceBucketPolicy='{"Version": "2012-10-17", "Statement": ['$oldSourceBucketPolicy','$newSourceBucketPolicy']}'
   fi
-  # sleep to allow role to fully generate for policy
-  sleep 5
   aws s3api put-bucket-policy --bucket $sourceBucket --policy "$sourceBucketPolicy" --profile $profileWithSourceBucket 
   # If running from source account on cross account replicate, make sure to add bucket policy to allow to put the report and read the manifest
   if [[ ! -z $runFromSource ]]; then
-    destinationBucketResetPolicy=$(aws s3api get-bucket-policy --bucket $destinationBucket --profile $profileWithDestinationBucket | jq -r .Policy )
+    resetDestinationBucketPolicy=$(aws s3api get-bucket-policy --bucket $destinationBucket --profile $profileWithDestinationBucket | jq -r .Policy )
     local oldDestinationBucketPolicy=$(aws s3api get-bucket-policy --bucket $destinationBucket --profile $profileWithDestinationBucket | jq -r .Policy | jq -r .Statement[] )
     local newDestinationBucketPolicy=$(echo "{\"Sid\": \"AllowBatchOperationsSourceManfiestRead\",\"Effect\": \"Allow\",\"Principal\": {\"AWS\": [\"arn:aws:iam::$roleAccountId:role/batch-operations-role\"]},\"Action\": [\"s3:Get*\",\"s3:Put*\"],\"Resource\": \"arn:aws:s3:::$destinationBucket/*\"}" |jq -r .)
     if [[ -z $oldDestinationBucketPolicy ]]; then
@@ -149,10 +144,17 @@ gen3_replicate_init() {
   local policy="{\"Version\": \"2012-10-17\", \"Statement\": [ { \"Action\": [ \"s3:PutObject\", \"s3:PutObjectAcl\", \"s3:PutObjectTagging\" ], \"Effect\": \"Allow\", \"Resource\": \"arn:aws:s3:::$destinationBucket/*\" }, { \"Action\": [ \"s3:GetObject\", \"s3:GetObjectAcl\", \"s3:GetObjectTagging\" ], \"Effect\": \"Allow\", \"Resource\": \"arn:aws:s3:::$sourceBucket/*\" }, { \"Effect\": \"Allow\", \"Action\": [ \"s3:GetObject\", \"s3:GetObjectVersion\", \"s3:GetBucketLocation\" ], \"Resource\": [ \"arn:aws:s3:::$destinationBucket/*\" ] }, { \"Effect\": \"Allow\", \"Action\": [ \"s3:PutObject\", \"s3:GetBucketLocation\" ], \"Resource\": [ \"arn:aws:s3:::$destinationBucket/*\" ] }    ]}"
   aws iam put-role-policy --role-name batch-operations-role --policy-name batch-operations-policy --policy-document "${policy//$'\n'}" --profile $profileWithRole
   # If the role policy is not created after that it implies the profile does not have permission to create the policy and the process should be stopped.
-  if [[ -z $(aws iam list-role-policies --role-name batch-operations-role --profile $profileWithRole | jq -r .PolicyNames[]) ]]; then
-    gen3_log_err "Could not successfully create role policy. Please ensure profile $profileWithRole has permissions to create policies"
-    exit 1
-  fi
+  local counter=0
+  while [[ -z $(aws iam list-role-policies --role-name batch-operations-role --profile $profileWithRole | jq -r .PolicyNames[]) ]] && [[ "$(aws s3api get-bucket-policy --bucket $sourceBucket | jq -rc .Policy)" == *"AllowBatchOperationsSourceManfiestRead"*) ]]; do
+    gen3_log_info "Waiting for role and policies to be verified"
+    let counter=counter+1
+    if [[ $counter > 6 ]]; then
+      gen3_log_err "Could not successfully create role policy. Please ensure profile $profileWithRole has permissions to create policies"
+      gen3_replicate_cleanup
+      exit 1
+    fi
+    sleep 10
+  done
 }
 
 gen3_replication() {
