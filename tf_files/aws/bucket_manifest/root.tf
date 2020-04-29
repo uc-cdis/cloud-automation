@@ -110,29 +110,14 @@ resource "aws_security_group" "sample" {
   }
 }
 
-resource "aws_vpc" "sample" {
-  cidr_block = "172.16.0.0/16"
-}
-
-resource "aws_subnet" "sample" {
-  vpc_id     = "${aws_vpc.sample.id}"
-  cidr_block = "172.16.0.0/24"
-  map_public_ip_on_launch = true
-}
-
 resource "aws_batch_compute_environment" "new_batch_compute_environment" {
-  compute_environment_name = "giangb"
+  compute_environment_name = "${var.compute_environment_name}"
 
   compute_resources {
     instance_role = "${aws_iam_instance_profile.ecs_instance_role.arn}"
 
-    instance_type = [
-      "c4.large",
-    ]
+    instance_type = "${var.instance_type}"
 
-    ec2_key_pair = "giangb"
-
-    
     max_vcpus = 256
     min_vcpus = 0
 
@@ -140,10 +125,7 @@ resource "aws_batch_compute_environment" "new_batch_compute_environment" {
       "${aws_security_group.sample.id}",
     ]
 
-    subnets = [
-      "${aws_subnet.sample.id}",
-    ]
-   
+    subnets = "${var.subnets}"
 
     type = "EC2"
   }
