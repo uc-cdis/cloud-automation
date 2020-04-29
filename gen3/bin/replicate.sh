@@ -56,7 +56,7 @@ gen3_replicate_status() {
     sleep 10
     if [[ $status == "Failed" ]]; then
       gen3_log_err "Job has failed. Check the logs in the s3 console."
-      count=91
+      counter=91
     fi
     if [[ $counter > 90 ]]; then
       gen3_log_err "Job $jobId timed out trying to run. The job will clean up and if the job is still in progress it's permissions will be removed and will become broken."
