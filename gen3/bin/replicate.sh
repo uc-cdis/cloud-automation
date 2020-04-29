@@ -59,7 +59,7 @@ gen3_replicate_status() {
       gen3_replicate_cleanup
       exit 1
     fi
-    if [[ $counter > 90 ]]; then
+    if [[ $counter > 9000 ]]; then
       gen3_log_err "Job $jobId timed out trying to run. The job will clean up and if the job is still in progress it's permissions will be removed and will become broken."
       gen3_replicate_cleanup
       exit 1
