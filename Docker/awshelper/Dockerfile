@@ -1,7 +1,7 @@
 # To run: docker run -d -v /path/to/local_settings.py:/var/www/fence/local_settings.py --name=fence -p 80:80 fence
 # To check running container: docker exec -it fence /bin/bash
 
-FROM ubuntu:18.04
+FROM ubuntu:16.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -16,6 +16,10 @@ RUN apt-get update && apt-get upgrade -y \
       git \
       openssh-client \
       postgresql-client \
+      python2.7 \
+      python-dev \
+      python-pip \
+      python-setuptools \
       python3 \
       python3-dev \
       python3-pip \
@@ -30,26 +34,22 @@ RUN apt-get update && apt-get upgrade -y \
       iputils-ping \
       net-tools \
       sudo \
-      unzip \
       gettext-base
 
-WORKDIR /tmp
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python2 50; \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3 100
 
-RUN  python3 -m pip install --upgrade pip \
-    && python3 -m pip install --upgrade setuptools \
-    && python3 -m pip install -U crcmod \
-    && python3 -m pip install yq --upgrade
-
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
-    && unzip awscliv2.zip \
-    && ./aws/install \
-    && /bin/rm -rf awscliv2.zip ./aws
+RUN  python -m pip install --upgrade pip \
+    && python -m pip install --upgrade setuptools \
+    && python -m pip install -U crcmod \
+    && python -m pip install awscli --upgrade \
+    && python -m pip install yq --upgrade
 
 # From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
+    curl -sL https://deb.nodesource.com/setup_10.x | bash - && \
     apt-get update && \
     apt-get install -y google-cloud-sdk \
         google-cloud-sdk-cbt \
