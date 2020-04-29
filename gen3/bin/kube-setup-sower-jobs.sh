@@ -43,7 +43,7 @@ setup_sower_jobs() {
     fi
 
     # try to come up with a unique but composable bucket name
-    bucketName="sower-jobs-${accountNumber}-${hostname/./-}-gen3"
+    bucketName="sower-jobs-${accountNumber}-${hostname//./-}-gen3"
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
       gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/sower-jobs"
       # continue on ...
