@@ -145,7 +145,7 @@ gen3_replicate_init() {
   aws iam put-role-policy --role-name batch-operations-role --policy-name batch-operations-policy --policy-document "${policy//$'\n'}" --profile $profileWithRole
   # If the role policy is not created after that it implies the profile does not have permission to create the policy and the process should be stopped.
   local counter=0
-  while [[ -z $(aws iam list-role-policies --role-name batch-operations-role --profile $profileWithRole | jq -r .PolicyNames[]) ]] && [[ "$(aws s3api get-bucket-policy --bucket $sourceBucket | jq -rc .Policy)" == *"AllowBatchOperationsSourceManfiestRead"*) ]]; do
+  while [[ -z $(aws iam list-role-policies --role-name batch-operations-role --profile $profileWithRole | jq -r .PolicyNames[]) ]] && [[ "$(aws s3api get-bucket-policy --bucket $sourceBucket | jq -rc .Policy)" == *"AllowBatchOperationsSourceManfiestRead"* ]]; do
     gen3_log_info "Waiting for role and policies to be verified"
     let counter=counter+1
     if [[ $counter > 6 ]]; then
