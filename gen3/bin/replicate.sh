@@ -158,6 +158,9 @@ gen3_replicate_init() {
     fi
     sleep 10
   done
+  sleep 30
+  # Wait a little extra to ensure policies are actually in effect after they're applied
+  gen3_log_info "Waiting for policies to take effect"
 }
 
 gen3_replication() {
