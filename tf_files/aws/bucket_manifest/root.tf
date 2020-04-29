@@ -15,7 +15,7 @@ resource "aws_batch_job_definition" "new_batch_job_definition" {
 {
     "command": ["ls", "-la"],
     "image": "${var.batch_job_image}",
-    "memory": 1024,
+    "memory": 256,
     "vcpus": 1,
     "volumes": [
       {
@@ -37,9 +37,9 @@ resource "aws_batch_job_definition" "new_batch_job_definition" {
     ],
     "ulimits": [
       {
-        "hardLimit": 1024,
+        "hardLimit": 256,
         "name": "nofile",
-        "softLimit": 1024
+        "softLimit": 256
       }
     ]
 }
@@ -110,14 +110,16 @@ resource "aws_security_group" "sample" {
   }
 }
 
-resource "aws_vpc" "sample" {
-  cidr_block = "10.1.0.0/16"
-}
+# resource "aws_vpc" "sample" {
+#   #cidr_block = "10.1.0.0/16"
+#   cidr_block = "172.16.0.0/16"
+# }
 
-resource "aws_subnet" "sample" {
-  vpc_id     = "${aws_vpc.sample.id}"
-  cidr_block = "10.1.1.0/24"
-}
+# resource "aws_subnet" "sample" {
+#   vpc_id     = "${aws_vpc.sample.id}"
+#   #cidr_block = "10.1.1.0/24"
+#   cidr_block = "172.16.1.0/24"
+# }
 
 resource "aws_batch_compute_environment" "new_batch_compute_environment" {
   compute_environment_name = "giangb"
@@ -132,15 +134,21 @@ resource "aws_batch_compute_environment" "new_batch_compute_environment" {
     ec2_key_pair = "giangb"
 
     
-    max_vcpus = 16
+    max_vcpus = 256
     min_vcpus = 0
 
     security_group_ids = [
       "${aws_security_group.sample.id}",
     ]
+    # security_group_ids = [
+    #   "sg-003238f78a4d0b443",
+    # ]
 
+    # subnets = [
+    #   "${aws_subnet.sample.id}",
+    # ]
     subnets = [
-      "${aws_subnet.sample.id}",
+      "subnet-80d559e4","subnet-2f826072","subnet-e1a390ed"
     ]
 
     type = "EC2"
