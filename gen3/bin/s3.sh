@@ -61,7 +61,9 @@ _tfapply_s3() {
     gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in ${GEN3_WORKSPACE}"
     return 1
   fi
-  gen3 trash --apply
+
+  # leave terraform artifacts in place
+  #gen3 trash --apply
 }
 
 #
@@ -136,7 +138,9 @@ EOF
   fi
   _tfapply_s3
   if [[ $? != 0 ]]; then
-    return 1
+    gen3_log_info "let's try that again ..."
+    _tfplan_s3 $bucketName $environmentName
+    _tfapply_s3 || return 1
   fi
 
   if [[ $cloudtrailFlag =~ ^.*add-cloudtrail$ ]]; then
