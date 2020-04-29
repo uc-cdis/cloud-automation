@@ -34,7 +34,8 @@ resource "aws_s3_bucket" "mybucket" {
 }
 
 resource "aws_iam_role" "mybucket_reader" {
-  name = "bucket_reader_${local.clean_bucket_name}"
+  #name = "bucket_reader_${local.clean_bucket_name}"
+  name = "${length("bucket_reader_${local.clean_bucket_name}") > 64 ? substr("bucket_reader_${local.clean_bucket_name}",0,64) : "bucket_reader_${local.clean_bucket_name}"}"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -68,7 +69,8 @@ data "aws_iam_policy_document" "mybucket_reader" {
 
 resource "aws_iam_policy" "mybucket_reader" {
   # This name is used in the `gen3 s3 info` function
-  name        = "bucket_reader_${local.clean_bucket_name}"
+  #name        = "bucket_reader_${local.clean_bucket_name}"
+  name        = "${length("bucket_reader_${local.clean_bucket_name}") > 64 ? substr("bucket_reader_${local.clean_bucket_name}",0,64) : "bucket_reader_${local.clean_bucket_name}"}"
   description = "Read ${local.clean_bucket_name}"
   policy      = "${data.aws_iam_policy_document.mybucket_reader.json}"
 }
@@ -85,14 +87,16 @@ resource "aws_iam_role_policy_attachment" "mybucket_reader" {
 #}
 
 resource "aws_iam_instance_profile" "mybucket_reader" {
-  name = "bucket_reader_${local.clean_bucket_name}"
+  #name = "bucket_reader_${local.clean_bucket_name}"
+  name = "${length("bucket_reader_${local.clean_bucket_name}") > 64 ? substr("bucket_reader_${local.clean_bucket_name}",0,64) : "bucket_reader_${local.clean_bucket_name}"}"
   role = "${aws_iam_role.mybucket_reader.id}"
 }
 
 #----------------------
 
 resource "aws_iam_role" "mybucket_writer" {
-  name = "bucket_writer_${local.clean_bucket_name}"
+  #name = "bucket_writer_${local.clean_bucket_name}"
+  name = "${length("bucket_writer_${local.clean_bucket_name}") > 64 ? substr("bucket_writer_${local.clean_bucket_name}",0,64) : "bucket_writer_${local.clean_bucket_name}"}"
   path = "/"
 
   assume_role_policy = <<EOF
@@ -138,7 +142,8 @@ data "aws_iam_policy_document" "mybucket_writer" {
 
 resource "aws_iam_policy" "mybucket_writer" {
   # This name is used in the `gen3 s3 info` function
-  name        = "bucket_writer_${local.clean_bucket_name}"
+  #name        = "bucket_writer_${local.clean_bucket_name}"
+  name        = "${length("bucket_writer_${local.clean_bucket_name}") > 64 ? substr("bucket_writer_${local.clean_bucket_name}",0,64) : "bucket_writer_${local.clean_bucket_name}"}"
   description = "Read or write ${local.clean_bucket_name}"
   policy      = "${data.aws_iam_policy_document.mybucket_writer.json}"
 }
@@ -155,7 +160,8 @@ resource "aws_iam_role_policy_attachment" "mybucket_writer" {
 #}
 
 resource "aws_iam_instance_profile" "mybucket_writer" {
-  name = "bucket_writer_${local.clean_bucket_name}"
+  #name = "bucket_writer_${local.clean_bucket_name}"
+  name  = "${length("bucket_writer_${local.clean_bucket_name}") > 64 ? substr("bucket_writer_${local.clean_bucket_name}",0,64) : "bucket_writer_${local.clean_bucket_name}"}"
   role = "${aws_iam_role.mybucket_writer.id}"
 }
 

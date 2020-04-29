@@ -61,9 +61,7 @@ _tfapply_s3() {
     gen3_log_err "Unexpected error running gen3 tfapply. Please cleanup workspace in ${GEN3_WORKSPACE}"
     return 1
   fi
-
-  # leave terraform artifacts in place
-  #gen3 trash --apply
+  gen3 trash --apply
 }
 
 #
@@ -138,9 +136,7 @@ EOF
   fi
   _tfapply_s3
   if [[ $? != 0 ]]; then
-    gen3_log_info "let's try that again ..."
-    _tfplan_s3 $bucketName $environmentName
-    _tfapply_s3 || return 1
+    return 1
   fi
 
   if [[ $cloudtrailFlag =~ ^.*add-cloudtrail$ ]]; then
@@ -160,6 +156,17 @@ gen3_s3_info() {
   local writerName="bucket_writer_$1"
   local readerName="bucket_reader_$1"
   local AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
+
+  if [ ${#writerName} -gt 64 ];
+  then
+    local tmpw="${writerName:0:64}"
+    writerName="${tmpw}"
+  fi
+  if [ ${#readerName} -gt 64 ];
+  then
+    local tmpr="${readerName:0:64}"
+    readerName="${tmpr}"
+  fi
   if [[ -z "$AWS_ACCOUNT_ID" ]]; then
     gen3_log_err "Unable to fetch AWS account ID."
     return 1
