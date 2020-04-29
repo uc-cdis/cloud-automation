@@ -54,10 +54,13 @@ gen3_replicate_status() {
     local status=$(aws s3control describe-job --account-id $roleAccountId --job-id $jobId --profile $profileWithRole --region us-east-1 | jq -r .Job.Status)
     let counter=counter+1
     sleep 10
+    if [[ $status == "Failed" ]]; then
+      gen3_log_err "Job has failed. Check the logs in the s3 console."
+    fi
+    if [[ $counter > 90 ]]; then
+      gen3_log_err "Job $jobId timed out trying to run. The job will clean up and if the job is still in progress it's permissions will be removed and will become broken."
+    fi
   done
-  if [[ $counter > 90 ]]; then
-    gen3_log_err "Job $jobId timed out trying to run. The job will clean up and if the job is still in progress it's permissions will be removed and will become broken."
-  fi
   echo $status
 }
 
