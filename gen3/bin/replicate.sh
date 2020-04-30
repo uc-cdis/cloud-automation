@@ -48,7 +48,7 @@ gen3_replicate_create_job() {
 gen3_replicate_status() {
   local jobId=$1
   local status=$(aws s3control describe-job --account-id $roleAccountId --job-id $jobId --profile $profileWithRole --region us-east-1 | jq -r .Job.Status)
-  while [[ $status != 'Complete' ]] || [[ $counter > 90 ]]; do
+  while [[ $status != 'Complete' ]]; do
     gen3_log_info "Waiting for job to complete. Current status $status"
     local status=$(aws s3control describe-job --account-id $roleAccountId --job-id $jobId --profile $profileWithRole --region us-east-1 | jq -r .Job.Status)
     sleep 10
