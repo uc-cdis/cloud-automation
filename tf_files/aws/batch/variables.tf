@@ -1,22 +1,26 @@
-variable "role_name" {
-  description = "role name"
-}
-
-variable "role_description" {
-  description = "role description"
-}
-
 variable "batch_job_definition_name" {
   description = "batch job defintion name"
 }
 
-variable "batch_job_image" {
-  description = "batch job image"
+variable "container_properties" {
+  description = "container properties"
+  
 }
 
-variable "batch_job_cmd" {
-  type = "list"
-  default = ["ls", "-la"]
+variable "iam_instance_role" {
+  
+}
+
+variable "iam_instance_profile_role" {
+  
+}
+
+variable "aws_batch_service_role" {
+  
+}
+
+variable "aws_batch_compute_environment_sg" {
+  
 }
 
 variable "compute_environment_name" {
@@ -54,8 +58,13 @@ variable "compute_env_type" {
   description = "The type of compute environment. Valid items are EC2 or SPOT"
 }
 
+variable "compute_type" {
+  default = "MANAGED"
+  description = "MANAGED or UNMANAGED"
+}
+
 variable "ec2_key_pair" {
-  default = ""
+  default = "giangb"
   description = "The EC2 key pair that is used for instances launched in the compute environment."
 }
 
