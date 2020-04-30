@@ -118,8 +118,8 @@ resource "aws_batch_compute_environment" "new_batch_compute_environment" {
 
     instance_type = "${var.instance_type}"
 
-    max_vcpus = 256
-    min_vcpus = 0
+    max_vcpus = "${var.max_vcpus}"
+    min_vcpus = "${var.min_vcpus}"
 
     security_group_ids = [
       "${aws_security_group.sample.id}",
@@ -127,7 +127,7 @@ resource "aws_batch_compute_environment" "new_batch_compute_environment" {
 
     subnets = "${var.subnets}"
 
-    type = "EC2"
+    type = "${var.compute_env_type}"
   }
 
   service_role = "${aws_iam_role.aws_batch_service_role.arn}"
@@ -140,6 +140,6 @@ resource "aws_batch_compute_environment" "new_batch_compute_environment" {
 resource "aws_batch_job_queue" "batch-job-queue" {
   name = "${var.batch_job_queue_name}"
   state                = "ENABLED"
-  priority             = 10
+  priority             = "${var.priority}"
   compute_environments = ["${aws_batch_compute_environment.new_batch_compute_environment.arn}"]
 }
