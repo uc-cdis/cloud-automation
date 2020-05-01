@@ -24,6 +24,6 @@ spec:
           protocol: TCP
         readinessProbe:
           httpGet:
-            path: /status
+            path: /wd/hub/sessions
             port: 4444
       terminationGracePeriodSeconds: 30
