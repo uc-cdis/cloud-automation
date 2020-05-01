@@ -22,4 +22,8 @@ spec:
         ports:
         - containerPort: 4444
           protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 4444
       terminationGracePeriodSeconds: 30
