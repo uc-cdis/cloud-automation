@@ -34,9 +34,6 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
-      - name: cert-volume
-        secret:
-          secretName: "cert-portal-service"
       - name: ca-volume
         secret:
           secretName: "service-ca"
@@ -49,6 +46,9 @@ spec:
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
+      - name: cert-volume
+        secret:
+          secretName: "cert-portal-service"
       containers:
       - name: portal
         GEN3_PORTAL_IMAGE
@@ -144,6 +144,13 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: privacy_policy_url
+                optional: true
+          - name: MAPBOX_API_TOKEN
+            # Optional token for mapbox api
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: mapbox_token
                 optional: true
         volumeMounts:
           - name: "cert-volume"

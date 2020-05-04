@@ -77,9 +77,14 @@ variable "csoc_account_id" {
 
 
 
+variable "organization_name" {
+  default = "Basic Service"
+}
 
+variable "branch" {
+  default = "master"
+}
 
-
-
-
-
+variable "cwl_group_name" {
+  default     = "csoc-prod-vpn.planx-pla.net_log_group"
+}

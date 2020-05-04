@@ -14,17 +14,6 @@ resources:
       subresources:
       - {name: test}
 users:
-  abbygeorge@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload, read-storage]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
   aprokh@uchicago.edu:
     admin: true
     projects:

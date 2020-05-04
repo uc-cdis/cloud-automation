@@ -98,6 +98,7 @@ resource "aws_subnet" "eks_private" {
      "Environment", "${var.vpc_name}",
      "Organization", "${var.organization_name}",
      "kubernetes.io/cluster/${var.vpc_name}", "owned",
+     "kubernetes.io/role/internal-elb", "1",
     )
   }"
 
@@ -126,7 +127,7 @@ resource "aws_subnet" "eks_public" {
      "Environment", "${var.vpc_name}",
      "Organization", "${var.organization_name}",
      "kubernetes.io/cluster/${var.vpc_name}", "shared",
-     "kubernetes.io/role/elb", "",
+     "kubernetes.io/role/elb", "1",
      "KubernetesCluster", "${var.vpc_name}",
     )
   }"

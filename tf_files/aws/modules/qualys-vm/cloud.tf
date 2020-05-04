@@ -3,7 +3,7 @@
 resource "aws_security_group" "ssh" {
   name        = "ssh_${var.vm_name}"
   description = "security group that only enables ssh"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = "${var.vpc_id}"
 
   ingress {
     from_port   = 22
@@ -13,15 +13,16 @@ resource "aws_security_group" "ssh" {
   }
 
   tags {
-    Environment  = "${var.vm_name}"
-    Organization = "Basic Service"
+    Environment  = "${var.environment}"
+    Organization = "${var.organization}"
+    Association  = "${var.vm_name}"
   }
 }
 
 resource "aws_security_group" "local" {
   name        = "local_${var.vm_name}"
   description = "security group that only allow internal tcp traffics"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = "${var.vpc_id}"
  egress {
     from_port   = 0
     to_port     = 0
@@ -30,7 +31,9 @@ resource "aws_security_group" "local" {
   }
 
   tags {
-    Environment = "${var.vm_name}"
+    Environment  = "${var.environment}"
+    Organization = "${var.organization}"
+    Association  = "${var.vm_name}"
   }
 }
 
@@ -40,9 +43,9 @@ resource "aws_security_group" "local" {
 ## Creating a new subnet for Qualys VM launch 
 
 resource "aws_subnet" "qualys_pub" {
-  vpc_id                  = "${var.csoc_vpc_id}"
-  cidr_block              = "10.128.${var.env_vpc_octet3}.0/24"
-  tags                    = "${map("Name", "${var.vm_name}_pub", "Organization", "Basic Service", "Environment", var.vm_name)}"
+  vpc_id                  = "${var.vpc_id}"
+  cidr_block              = "${var.env_vpc_subnet}"
+  tags                    = "${map("Name", "${var.vm_name}_pub", "Organization", var.organization, "Environment", var.environment, "Association", var.vm_name)}"
 }
 
 
@@ -55,18 +58,19 @@ resource "aws_route_table_association" "qualys_pub" {
 ## Launching the Qualys VM
 
 resource "aws_instance" "qualys" {
-  ami                    = "ami-5f2e6520"
-  subnet_id              = "${aws_subnet.qualys_pub.id}"
-  instance_type          = "t2.large"
-  monitoring             = true
-  key_name               = "${var.ssh_key_name}"
-  vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
+  ami                         = "${data.aws_ami.qualys_ami.id}"
+  subnet_id                   = "${aws_subnet.qualys_pub.id}"
+  instance_type               = "${var.instance_type}"
+  monitoring                  = true
+  key_name                    = "${var.ssh_key_name}"
+  vpc_security_group_ids      = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
   associate_public_ip_address = true
-  disable_api_termination = true
+  disable_api_termination     = true
 
   tags {
-    Name        = "${var.vm_name}_CSOC"
-    Environment = "${var.vm_name}"
+    Name         = "${var.vm_name}"
+    Environment  = "${var.environment}"
+    Organization = "${var.organization}"
   }
 
   lifecycle {
