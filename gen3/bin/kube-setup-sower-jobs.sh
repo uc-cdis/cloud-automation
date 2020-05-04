@@ -43,7 +43,7 @@ setup_sower_jobs() {
     fi
 
     # try to come up with a unique but composable bucket name
-    bucketName=$(echo "sower-jobs-${accountNumber}-${hostname//./-}-gen3" | head -c63)
+    bucketName=$(echo "jobs-${accountNumber}-${hostname//./-}" | head -c63)
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
       gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/sower-jobs"
       # continue on ...
@@ -99,7 +99,7 @@ EOM
     ]
 }
 EOM
-    local saName="sower-jobs-${hostname//./-}-sa"
+    local saName=$(echo "jobs-${hostname//./-}" | head -c63)
     if ! g3kubectl get sa "$saName" > /dev/null 2>&1; then
       local role_name
       if ! role_name="$(gen3 iam-serviceaccount -c "${saName}" -p ./sower-jobs-aws-policy.json)" || [[ -z "$role_name" ]]; then
