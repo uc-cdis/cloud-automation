@@ -12,6 +12,7 @@ namespace="$(gen3 db namespace)"
 notebookNamespace="$(gen3 jupyter j-namespace)"
 
 gen3 jupyter j-namespace setup
+[[ -z "$GEN3_ROLL_ALL" ]] && gen3 gitops configmaps
 
 #
 # this may fail in gitops-sync if the cron job
