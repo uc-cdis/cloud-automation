@@ -78,8 +78,7 @@ data "aws_iam_policy_document" "log_bucket_writer" {
 # allow it to configure ELB logging
 #
 resource "aws_iam_policy" "log_bucket_writer" {
-  #name        = "bucket_writer_${local.clean_bucket_name}"
-  name        = "${length("bucket_writer_${local.clean_bucket_name}") > 64 ? substr("bucket_writer_${local.clean_bucket_name}",0,64) : "bucket_writer_${local.clean_bucket_name}"}"
+  name        = "bucket_writer_${local.clean_bucket_name}"
   description = "Read or write ${local.clean_bucket_name}"
   policy      = "${data.aws_iam_policy_document.log_bucket_writer.json}"
 }
