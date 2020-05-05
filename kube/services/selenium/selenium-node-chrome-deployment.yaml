@@ -26,6 +26,10 @@ spec:
           value: selenium-hub
         - name: HUB_PORT_4444_TCP_PORT
           value: "4444"
+        - name: NODE_MAX_SESSION
+          value: "5"
+        - name: NODE_MAX_INSTANCES
+          value: "2"
         image: selenium/node-chrome:3.141
         imagePullPolicy: always
         name: node-chrome
