@@ -32,10 +32,58 @@ resource "aws_iam_role" "iam_instance_role" {
 EOF
 }
 
+resource "aws_iam_policy" "new_iam_policy" {
+  name        = "test_policy"
+  path        = "/"
+  description = "My test policy"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+      "ec2:DescribeTags",
+      "ecs:CreateCluster",
+      "ecs:DeregisterContainerInstance",
+      "ecs:DiscoverPollEndpoint",
+      "ecs:Poll",
+      "ecs:RegisterContainerInstance",
+      "ecs:StartTelemetrySession",
+      "ecs:UpdateContainerInstancesState",
+      "ecs:Submit*",
+      "ecr:GetAuthorizationToken",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "sqs:ListQueues",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "sqs:*",
+      "Resource": "arn:aws:sqs:us-east-1:707767160287:terraform-example-queue"
+    }
+  ]
+}
+EOF
+}
+
+
 resource "aws_iam_role_policy_attachment" "ecs_instance_role" {
   role       = "${aws_iam_role.iam_instance_role.name}"
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+  policy_arn = "${aws_iam_policy.new_iam_policy.id}"
+  #policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
+
 
 resource "aws_iam_instance_profile" "iam_instance_profile_role" {
   name = "${var.iam_instance_profile_role}"
@@ -117,4 +165,10 @@ resource "aws_batch_job_queue" "batch-job-queue" {
   state                = "ENABLED"
   priority             = "${var.priority}"
   compute_environments = ["${aws_batch_compute_environment.new_batch_compute_environment.arn}"]
+}
+
+
+resource "aws_sqs_queue" "terraform_queue" {
+  name                      = "terraform-example-queue"
+  message_retention_seconds = 86400
 }
