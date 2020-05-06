@@ -16,7 +16,10 @@ spec:
         app: selenium-hub
     spec:
       containers:
-      - image: selenium/hub:3.141
+      - env:
+        - name: GRID_MAX_SESSION
+          value: "20"
+        image: selenium/hub:3.141
         imagePullPolicy: always
         name: hub
         ports:
