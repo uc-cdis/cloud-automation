@@ -24,10 +24,13 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
       fluentdVersion="$(g3k_manifest_lookup '.versions["fluentd"]' "$manifestPath" |awk -F: '{print $2}')"
       export KUBECTL_NAMESPACE=logging
 
+      # let's check the the version of fluentd, and use the right configuration
+      # as of 2020-05-06 the latest version is v1.10.2
       if [ ${fluentdVersion} == "v1.10.2-debian-cloudwatch-1.0" ];
       then
         fluentdConfigmap="${GEN3_HOME}/kube/services/fluentd/gen3-1.10.2.conf"
       else
+        # for legacy backward compatability
         fluentdConfigmap="${GEN3_HOME}/kube/services/fluentd/gen3.conf"
       fi
       gen3_log_info "Using fluentd configuration ${fluentdConfigmap}"
