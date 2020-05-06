@@ -24,17 +24,20 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
       fluentdVersion="$(g3k_manifest_lookup '.versions["fluentd"]' "$manifestPath" |awk -F: '{print $2}')"
       export KUBECTL_NAMESPACE=logging
 
-      # let's check the the version of fluentd, and use the right configuration
+      # lets check the the version of fluentd, and use the right configuration
       # as of 2020-05-06 the latest version is v1.10.2
       if [ ${fluentdVersion} == "v1.10.2-debian-cloudwatch-1.0" ];
       then
-        fluentdConfigmap="${GEN3_HOME}/kube/services/fluentd/gen3-1.10.2.conf"
+        fluentdConfigmap="${XDG_RUNTIME_DIR}/gen3.conf"
+        cat ${GEN3_HOME}/kube/services/fluentd/gen3-1.10.2.conf | tee ${fluentdConfigmap} > /dev/null
+        gen3 update_config fluentd-gen3 "${fluentdConfigmap}"
+        rm ${fluentdConfigmap}
       else
         # for legacy backward compatability
         fluentdConfigmap="${GEN3_HOME}/kube/services/fluentd/gen3.conf"
+        gen3 update_config fluentd-gen3 "${fluentdConfigmap}"
       fi
       gen3_log_info "Using fluentd configuration ${fluentdConfigmap}"
-      gen3 update_config fluentd-gen3 "${fluentdConfigmap}"
       g3kubectl apply -f "${GEN3_HOME}/kube/services/fluentd/fluentd-serviceaccount.yaml"
       if g3kubectl --namespace=kube-system get daemonset fluentd > /dev/null 2>&1; then
         g3kubectl "--namespace=kube-system" delete daemonset fluentd
