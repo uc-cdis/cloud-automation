@@ -140,7 +140,7 @@ spec:
                     configMapKeyRef:
                       name: manifest-global
                       key: hostname       
-            image: quay.io/cdis/awshelper:master
+            GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
             volumeMounts:
               - name: shared-data
                 mountPath: /mnt/shared
