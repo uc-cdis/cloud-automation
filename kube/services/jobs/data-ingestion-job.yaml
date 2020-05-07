@@ -57,7 +57,7 @@ spec:
             - name: CREDS_JSON
               valueFrom:
                 secretKeyRef:
-                  name: data-ingestion-job-secret
+                  name: data-ingestion-job-g3auto
                   key: data_ingestion_job_config.json
             - name: CREATE_GENOME_MANIFEST
               GEN3_CREATE_GENOME_MANIFEST|-value: "true"-|
