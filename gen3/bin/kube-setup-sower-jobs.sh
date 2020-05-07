@@ -43,7 +43,7 @@ setup_sower_jobs() {
     fi
 
     # try to come up with a unique but composable bucket name
-    bucketName=$(echo "jobs-${accountNumber}-${hostname//./-}" | head -c63)
+    bucketName=$(echo "jobs-${accountNumber}-${hostname//./-}" | head -c 50)
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
       gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/sower-jobs"
       # continue on ...
@@ -92,8 +92,8 @@ EOM
                 "s3:DeleteObject"
             ],
             "Resource": [
-                "arn:aws:s3:::sower-jobs-*-gen3/*",
-                "arn:aws:s3:::sower-jobs-*-gen3"
+                "arn:aws:s3:::jobs-*/*",
+                "arn:aws:s3:::jobs-*"
             ]
         }
     ]
