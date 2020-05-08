@@ -300,6 +300,7 @@ EOM
     cat - <<EOM
 bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/[_\.]/-/g')-gen3"
 environment="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
+cloud_trail_count=0
 EOM
     return 0
   fi
