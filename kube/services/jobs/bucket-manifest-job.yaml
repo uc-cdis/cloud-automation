@@ -52,6 +52,6 @@ spec:
             [default]
             region: us-east-1
             """ > /home/ubuntu/.aws/config
-            python bucket_manifest_job.py bucket_manifest --bucket $BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION} --sqs $SQS --out-bucket ${OUT_BUCKET}
+            python bucket_manifest_job.py create_manifest --bucket $BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION} --sqs $SQS --out-bucket ${OUT_BUCKET}
             echo "All done - exit status $?"
       restartPolicy: Never
