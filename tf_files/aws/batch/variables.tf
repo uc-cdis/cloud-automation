@@ -71,3 +71,8 @@ variable "ec2_key_pair" {
 variable "batch_job_queue_name" {
   description = "batch job queue name"
 }
+
+
+variable "sqs_queue_name" {
+  description = "sqs queue name"
+}
