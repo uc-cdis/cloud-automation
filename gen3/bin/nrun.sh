@@ -7,8 +7,7 @@ gen3_load "gen3/gen3setup"
 # Install node apps under ${GEN3_HOME}
 #
 function gen3_nrun_install() {
-  if [[ ! -f "${GEN3_HOME}/node_modules/.bin" || "$1" == "--force" ]] || \
-    gen3_time_since "npm_install" is 36000; then
+  if [[ ! -d "${GEN3_HOME}/node_modules/.bin" || "$1" == "--force" ]]; then
     (
       cd $GEN3_HOME
       npm ci
