@@ -23,7 +23,7 @@ fi
 # some command line processing
 image=quay.io/cdis/awshelper:master
 labels="app=gen3job,name=devterm,netnolimit=yes"
-pullPolicy="IfNotPresent"
+pullPolicy="Always"
 declare -a command=("/bin/bash")
 while [[ $# -gt 0 ]]; do
   case "$1" in
