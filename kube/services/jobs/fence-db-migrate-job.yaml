@@ -30,7 +30,7 @@ spec:
           emptyDir: {}
       initContainers:
         - name: usersync-disable
-          image: quay.io/cdis/awshelper:master
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
           imagePullPolicy: Always
           env:
             - name: gen3Env
@@ -46,11 +46,9 @@ spec:
           args:
             - "-c"
             - |
-              set -i
-              source ~/.bashrc
               echo "disabling usersync before migration"
-              g3kubectl patch cronjobs usersync -p '{"spec" : {"suspend" : true }}'
-              while [ ! -z "$(g3kubectl get pods | grep 'usersync\|useryaml' | grep 'Running\|Pending\|ContainerCreating\|ImagePullBackOff\|ErrImagePull')" ]
+              kubectl patch cronjobs usersync -p '{"spec" : {"suspend" : true }}'
+              while [ ! -z "$(kubectl get pods | grep 'usersync\|useryaml' | grep 'Running\|Pending\|ContainerCreating\|ImagePullBackOff\|ErrImagePull')" ]
               do
                 sleep 5
                 echo "waiting for current usersync to finish"
@@ -103,7 +101,7 @@ spec:
             fi
             touch /tmp/pod/completed
       - name: usersync-enable
-        image: quay.io/cdis/awshelper:master
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
         imagePullPolicy: Always
         env:
           - name: gen3Env
@@ -123,13 +121,11 @@ spec:
         args:
           - "-c"
           - |
-            set -i
-            source ~/.bashrc
             while [ ! -f /tmp/pod/completed ]
             do
               sleep 5
               echo "waiting for migration to end"
             done
             echo "migration completed enabling usersync"
-            g3kubectl patch cronjobs usersync -p '{"spec" : {"suspend" : false }}'
+            kubectl patch cronjobs usersync -p '{"spec" : {"suspend" : false }}'
       restartPolicy: Never

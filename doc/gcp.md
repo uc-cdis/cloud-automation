@@ -12,7 +12,7 @@ Create a `csoc-adminvm` service account for each project that you want to intera
 * Storage Admin
 * Project IAM Admin
 * Google Cloud Managed Identity Admin
-* roles/iam.serviceAccountKeyAdmin
+* Service Account Key Admin
 
 Create a key for the service account, then upload it to the admin vm, and save it under `Gen3Secrets/gcp/`.  Finally, log the new secret in the local git repo:
 

@@ -27,7 +27,7 @@ spec:
                 secretName: "aws-sync-creds-secret"
           containers:
             - name: awshelper
-              image: quay.io/cdis/awshelper:master
+              GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
               imagePullPolicy: Always
               env:
                 - name: slackWebHook

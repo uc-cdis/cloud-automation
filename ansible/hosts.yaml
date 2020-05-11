@@ -118,6 +118,9 @@ all:
         jcoinprod_commons:
           ansible_user: jcoinprod
           ansible_host: jcoin.csoc
+        fitbirprod_commons:
+          ansible_user: fitbirprod
+          ansible_host: oadc.csoc
         oadc_commons:
           ansible_user: oadc
           ansible_host: oadc.csoc

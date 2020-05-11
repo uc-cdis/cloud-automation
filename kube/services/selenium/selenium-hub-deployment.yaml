@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Deployment
+metadata:
+  labels:
+    app: selenium-hub
+  name: selenium-hub
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium-hub
+  template:
+    metadata:
+      labels:
+        app: selenium-hub
+    spec:
+      containers:
+      - env:
+        - name: GRID_MAX_SESSION
+          value: "20"
+        image: selenium/hub:3.141
+        imagePullPolicy: always
+        name: hub
+        ports:
+        - containerPort: 4444
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /wd/hub/sessions
+            port: 4444
+      terminationGracePeriodSeconds: 30

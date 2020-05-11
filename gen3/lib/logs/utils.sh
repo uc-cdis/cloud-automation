@@ -106,7 +106,9 @@ gen3LogsVpcList=(
     "anvilprod theanvil.io"
     "anvilstaging staging.theavil.io"
     "bloodv2 data.bloodpac.org"
-    "bhcprodv2 data.braincommons.org cvb"
+    "bhcprodv2 data.braincommons.org"
+    "canineprod caninedc.org"
+    "covid19prod chicagoland.pandemicresponsecommons.org"
     "dataguids dataguids.org"
     "dcfqav1 qa.dcf.planx-pla.net"
     "dcfprod nci-crdc.datacommons.io"
@@ -120,13 +122,15 @@ gen3LogsVpcList=(
     "loginbionimbus login.bionimbus.org"
     "ncicrdcdemo nci-crdc-demo.datacommons.io"
     "niaiddata niaiddata.org"
-    "niaidprod niaid.bionimbus.org"  
+    "niaidprod niaid.bionimbus.org"
+    "oadc gen3.datacommons.io"  
     "prodv1 data.kidsfirstdrc.org kids first"
     "skfqa gen3qa.kidsfirstdrc.org kids first"
     "qaplanetv1 qa.planx-pla.net jenkins"
     "stageprod gen3.datastage.io"
     "stagingdatastage staging.datastage.io"
     "vadcprod vpodc.org"
+    "vhdcprod va.datacommons.io"
 )
 
 #

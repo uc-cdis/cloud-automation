@@ -195,6 +195,8 @@ test_configmaps() {
 }
 
 test_gitops_taglist() {
+  gen3_log_info "gitops taglist is not used - skipping slow test"
+  return 0
   gen3 gitops taglist | grep -E 'fence *[0-9]+\.[0-9]+\.[0-9]+'; because $? "gen3 gitops taglist should list some tag for fence"
 }
 
@@ -217,7 +219,7 @@ test_secrets_folder() {
 }
 
 shunit_runtest "test_configmaps_folder_dryrun" "local,gitops"
-shunit_runtest "test_configmaps_folder" "local,gitops"
+shunit_runtest "test_configmaps_folder" "gitops"
 shunit_runtest "test_mpath" "local,gitops"
 shunit_runtest "test_mfilter" "local,gitops"
 shunit_runtest "test_mlookup" "local,gitops"

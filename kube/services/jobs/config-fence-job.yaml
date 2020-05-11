@@ -103,7 +103,7 @@ spec:
             cp new-fence-config.yaml /mnt/shared/new-fence-config.yaml
 
       - name: awshelper
-        image: quay.io/cdis/awshelper:master
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
         imagePullPolicy: Always
         volumeMounts:
           - name: shared-data

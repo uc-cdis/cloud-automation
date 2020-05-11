@@ -14,7 +14,7 @@ spec:
           emptyDir: {}
         - name: data-ingestion-job-secret
           secret:
-            secretName: data-ingestion-job-secret
+            secretName: data-ingestion-job-g3auto
         - name: phs-id-list
           configMap:
             name: phs-id-list
@@ -57,8 +57,8 @@ spec:
             - name: CREDS_JSON
               valueFrom:
                 secretKeyRef:
-                  name: data-ingestion-job-secret
-                  key: config.json
+                  name: data-ingestion-job-g3auto
+                  key: data_ingestion_job_config.json
             - name: CREATE_GENOME_MANIFEST
               GEN3_CREATE_GENOME_MANIFEST|-value: "true"-|
           volumeMounts:

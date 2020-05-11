@@ -18,7 +18,7 @@ spec:
           serviceAccountName: jenkins-service
           containers:
             - name: awshelper
-              image: quay.io/cdis/awshelper:master
+              GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
               imagePullPolicy: Always
               env:
                 - name: slackWebHook
@@ -44,12 +44,11 @@ spec:
               args:
                 - "-c"
                 - |
-                  set -i
-                  source ~/.bashrc
+                  export GEN3_HOME="$HOME/cloud-automation"
+                  source "$GEN3_HOME/gen3/gen3setup.sh"
                   export JENKINS_HOME=none
                   export vpc_name="$(g3kubectl get configmap global -o json | jq -r .data.environment)"
                   cd "$GEN3_HOME"
-                  git pull
                   env
                   if gen3 klock lock gitops-sync gitops 2700; then
                     gen3 gitops sync --slack

@@ -43,7 +43,7 @@ endSecs="$(date -u -d"00:00" +%s)"
 numDays="$(( (endSecs - startSecs)/(24*60*60) ))"
 gen3_log_info "$numDays days since $startDate"
 
-dropDeadSecs="$(date -u -d2020-05-01 +%s)"
+dropDeadSecs="$(date -u -d2020-06-01 +%s)"
 if [[ "$endSecs" -gt "$dropDeadSecs" ]]; then
   gen3_log_err "This script will not process logs after 2020-05-01"
   exit 1
@@ -63,10 +63,10 @@ cd "$workFolder"
 gen3_log_info "working in $workFolder"
 
 # cache raw data from last run, and add to it incrementally
-cacheDate="2020-03-05"
-cacheFile="${XDG_DATA_HOME}/gen3/cache/brain-custom-report_2020-01-13_to_2020-03-05_raw.txt"
+cacheDate="2020-05-06"
+cacheFile="${XDG_DATA_HOME}/gen3/cache/brain-custom-report_2020-01-13_to_2020-05-06_raw.txt"
 if [[ ! -f "$cacheFile" ]]; then
-  gen3_log_err "Please generate cache $cacheFile : gen3 logs s3 start=2020-01-13 end=2020-03-05 filter=raw prefix=s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/ > brain-custom-report_2020-01-13_to_2020-03-05_raw.txt"
+  gen3_log_err "Please generate cache $cacheFile : gen3 logs s3 start=2020-01-13 end=2020-05-06 filter=raw prefix=s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/ > brain-custom-report_2020-01-13_to_2020-05-06_raw.txt"
   exit 1
 fi
 
