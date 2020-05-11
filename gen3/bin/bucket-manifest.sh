@@ -35,6 +35,7 @@ gen3_create_aws_batch() {
   gen3 workon default ${prefix}__batch
   gen3 cd
 
+  local accountId=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
   # Get aws credetial of fence_bot iam user
   local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
   local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_secret_access_key)
@@ -79,17 +80,17 @@ EOF
         {
              "Effect": "Allow",
              "Action": "sqs:*",
-             "Resource": "arn:aws:sqs:us-east-1:707767160287:${sqs_name}"
+             "Resource": "arn:aws:sqs:us-east-1:${accountId}:${sqs_name}"
         },
         {
              "Effect": "Allow",
              "Action": "batch:*",
-             "Resource": "arn:aws:batch:us-east-1:707767160287:job-definition/${job_definition}"
+             "Resource": "arn:aws:batch:us-east-1:${accountId}:job-definition/${job_definition}"
         },
         {
              "Effect": "Allow",
              "Action": "batch:*",
-             "Resource":"arn:aws:batch:us-east-1:707767160287:job-queue/${job_queue}"
+             "Resource":"arn:aws:batch:us-east-1:${accountId}:job-queue/${job_queue}"
         }
     ]
 }
