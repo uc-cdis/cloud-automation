@@ -140,10 +140,10 @@ gen3_bucket_manifest_list() {
   done
 }
 
-# Delete all roles, policies and lambda function
+# tear down the infrastructure 
 gen3_batch_cleanup() {
   if [[ $# -lt 1 ]]; then
-    gen3_log_info "Need to provide a token "
+    gen3_log_info "Need to provide a job-id "
     exit 1
   fi
   jobId=$1

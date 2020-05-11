@@ -9,7 +9,7 @@ The tool can be used to any kind of task that requires batch operations. Users w
 
 ## Use
 
-### generate
+### create
 
 Launch a AWS batch operation job to generate a manfest of the source bucket with provided subnets. The result will be put on the manifest bucket.
 
@@ -30,14 +30,14 @@ Checks the status of a job
 ```
 
 ### list
-List all aws batch job
+List all aws batch jobs
 
 ```bash
   gen3 bucket-manifest list
 ```
 
 ### cleanup
-Tear down the infractures
+Tear down the infrastructure of given job_id
 
 ```bash
   gen3 bucket-manifest cleanup <job_id>
