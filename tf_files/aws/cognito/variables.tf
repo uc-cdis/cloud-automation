@@ -52,3 +52,11 @@ variable "cognito_callback_urls" {
 variable "cognito_provider_name" {
   description = "Provider name"
 }
+
+variable "tags" {
+  description = "Tags for the resource"
+  type        = "map"
+  default     = {
+    "Organization" = "PlanX"
+    "Environment"  = "CSOC"
+}
