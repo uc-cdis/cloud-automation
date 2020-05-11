@@ -59,4 +59,5 @@ variable "tags" {
   default     = {
     "Organization" = "PlanX"
     "Environment"  = "CSOC"
+  }
 }
