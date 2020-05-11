@@ -39,3 +39,16 @@ variable "cognito_provider_details" {
 variable "vpc_name" {
   description = "Commons name in which the cognito user pool will be created"
 }
+
+variable "cognito_domain_name" {
+  description = "Domain name for the user pool"
+}
+
+variable "cognito_callback_urls" {
+  description = "Callback URLs below that you will include in your sign in requests"
+  type        = "list"
+}
+
+variable "cognito_provider_name" {
+  description = "Provider name"
+}
