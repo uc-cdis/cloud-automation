@@ -35,3 +35,7 @@ variable "cognito_provider_details" {
   type        = "map"
   default     = {}
 }
+
+variable "vpc_name" {
+  description = "Commons name in which the cognito user pool will be created"
+}
