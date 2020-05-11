@@ -59,7 +59,7 @@ gen3_logs_s3filter() {
 # over some date range
 #
 # @param start
-# @param end
+# @param end up to, but not including end date
 # @param prefix... s3 logs prefixes
 # @param filter raw, accessCount, whoWhatWhen - see gen3_logs_s3filter
 #

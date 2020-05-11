@@ -9,26 +9,25 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 if [[ -n "$JENKINS_HOME" ]]; then
-  echo "Jenkins skipping fluentd setup: $JENKINS_HOME"
+  gen3_log_info "Jenkins skipping prometheus/grafana setup: $JENKINS_HOME"
   exit 0
 fi
 
 
 function delete_prometheus()
 {
-      gen3 arun helm delete prometheus
-      gen3 arun helm del --purge prometheus
+  gen3 arun helm delete prometheus
+  gen3 arun helm del --purge prometheus
 }
 
 function delete_grafana()
 {
-      gen3 arun helm delete grafana
-      gen3 arun helm del --purge grafana
+  gen3 arun helm delete grafana
+  gen3 arun helm del --purge grafana
 }
 
 function create_grafana_secrets()
 {
-
   if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     creds="$(base64 /dev/urandom | head -c 12)"
@@ -69,7 +68,7 @@ function deploy_prometheus()
     fi
     gen3 arun helm install  stable/prometheus --name prometheus --namespace prometheus -f "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" 
   else
-    echo "Prometheus is already installed, use --force to try redeploying"
+    gen3_log_info "Prometheus is already installed, use --force to try redeploying"
   fi
 }
 
