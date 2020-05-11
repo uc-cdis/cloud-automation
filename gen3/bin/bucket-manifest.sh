@@ -4,7 +4,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 if ! hostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)"; then
-    gen3_log_err "could not determine hostname from manifest-global - bailing out of sower-jobs setup"
+    gen3_log_err "could not determine hostname from manifest-global - bailing out"
     return 1
 fi
 
@@ -28,13 +28,16 @@ gen3_create_aws_batch() {
   bucket=$1
   out_bucket=$2
   echo $prefix
+
   local job_queue=$(echo "${prefix}_queue_job" | head -c63)
   local sqs_name=$(echo "${prefix}-sqs" | head -c63)
   local job_definition=$(echo "${prefix}-batch_job_definition" | head -c63)
+
   gen3 workon default ${prefix}__batch
   gen3 cd
 
   local accountId=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
+
   # Get aws credetial of fence_bot iam user
   local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
   local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_secret_access_key)
@@ -94,8 +97,7 @@ EOF
 }
 EOF
 
-  gen3 tfplan 2>&1
-  
+  gen3 tfplan 2>&1 
   gen3 tfapply 2>&1
   if [[ $? != 0 ]]; then
     gen3_log_err "Unexpected error running gen3 tfapply."
