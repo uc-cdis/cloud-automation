@@ -50,6 +50,13 @@ node {
       (kubectlNamespace, lock) = kubeHelper.selectAndLockNamespace(pipeConfig['UID'], namespaces)
       kubeLocks << lock
     }
+    stage('ModifyManifest') {
+      manifestHelper.editService(
+        kubeHelper.getHostname(kubectlNamespace),
+        "awshelper",
+        pipeConfig.serviceTesting.branch
+      )
+    }
     stage('K8sReset') {
         // adding the reset-lock lock in case reset fails before unlocking
         kubeLocks << kubeHelper.newKubeLock(kubectlNamespace, "gen3-reset", "reset-lock")
