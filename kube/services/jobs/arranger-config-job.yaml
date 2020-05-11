@@ -24,7 +24,7 @@ spec:
             name: arranger-config
       containers:
         - name: awshelper
-          image: quay.io/cdis/awshelper:master
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
           volumeMounts:
             - name: "arranger-config"
               readOnly: true
