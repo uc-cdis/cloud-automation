@@ -8,13 +8,15 @@ provider "aws" {}
 
 resource "aws_vpc" "new_vpc" {
   cidr_block = "10.1.0.0/16"
+  tags = {
+    Organization = "gen3"
+  }
 }
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.new_vpc.id}"
-
   tags = {
-    Name = "main"
+    Organization = "gen3"
   }
 }
 
@@ -22,6 +24,9 @@ resource "aws_subnet" "new_subnet" {
   vpc_id     = "${aws_vpc.new_vpc.id}"
   map_public_ip_on_launch = true
   cidr_block = "10.1.1.0/21"
+  tags = {
+    Organization = "gen3"
+  }
 }
 
 
@@ -30,6 +35,9 @@ resource "aws_route_table" "new_route" {
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = "${aws_internet_gateway.gw.id}"
+  }
+  tags = {
+    Organization = "gen3"
   }
 }
 
@@ -41,6 +49,9 @@ resource "aws_route_table_association" "new_association" {
 resource "aws_sqs_queue" "new_sqs_queue" {
   name                      = "${var.sqs_queue_name}"
   message_retention_seconds = 86400
+  tags = {
+    Organization = "gen3"
+  }
 }
 
 resource "aws_batch_job_definition" "new_batch_job_definition" {
@@ -163,6 +174,10 @@ resource "aws_security_group" "new_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Organization = "gen3"
+  }
 }
 
 resource "aws_batch_compute_environment" "new_batch_compute_environment" {
@@ -182,8 +197,6 @@ resource "aws_batch_compute_environment" "new_batch_compute_environment" {
 
     ec2_key_pair = "${var.ec2_key_pair}"
 
-
-    #subnets = "${var.subnets}"
     subnets = ["${aws_subnet.new_subnet.id}"]
 
     type = "${var.compute_env_type}"

@@ -14,7 +14,7 @@ prefix="${hostname//./-}-bucket-manifest-${jobId}"
 saName=$(echo "${prefix}-sa" | head -c63)
 
 
-# function to create jo creates job and returns the job id
+# function to create an job and returns a job id
 #
 # @param bucket: the input bucket
 # @param subnets: the subnets where the batch jobs live
@@ -148,6 +148,22 @@ gen3_batch_cleanup() {
     exit 1
   fi
   jobId=$1
+
+  local search_dir="$HOME/.local/share/gen3/default"
+  local is_jobid=0
+  for entry in `ls $search_dir`; do
+    if [[ $entry == *"__batch" ]]; then
+      item=$(echo $entry | sed -n "s/^.*-\(\S*\)__batch$/\1/p")
+      if [[ "$item" == "$jobId" ]]; then
+        is_jobid=1
+      fi
+    fi
+  done
+  if [[ "$is_jobid" == 0 ]]; then
+    gen3_log_err "job id does not exist"
+    exit 1
+  fi
+
   local prefix="${hostname//./-}-bucket-manifest-${jobId}"
   local saName=$(echo "${prefix}-sa" | head -c63)
 

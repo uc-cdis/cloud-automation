@@ -11,7 +11,7 @@ The tool can be used to any kind of task that requires batch operations. Users w
 
 ### create
 
-Launch a AWS batch operation job to generate a manfest of the source bucket with provided subnets. The result will be put on the manifest bucket.
+Launch a AWS batch operation job to generate a manfest of the source bucket. The result will be put on the manifest bucket.
 
 ```bash
   gen3 bucket-manifest create <source bucket> <manifest bucket>
