@@ -46,6 +46,12 @@ node {
         sh 'sh dockerrun.sh --dryrun=True'
       }
     }
+    stage('WaitForQuayBuild') {
+      quayHelper.waitForBuild(
+          "awshelper",
+          pipeConfig['currentBranchFormatted']
+        )
+    }
     stage('SelectNamespace') {
       (kubectlNamespace, lock) = kubeHelper.selectAndLockNamespace(pipeConfig['UID'], namespaces)
       kubeLocks << lock
