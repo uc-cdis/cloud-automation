@@ -41,7 +41,7 @@ lambda_function_file         = "../../../files/lambda/${funcname}.py"
 lambda_function_name         = "$funcname"
 lambda_function_description  = "$description"
 lambda_function_iam_role_arn = "$role"
-lambda_function_timeout      = 10
+lambda_function_timeout      = 900
 lambda_function_handler      = "${funcname}.lambda_handler"
 lambda_function_env          = {"key1"="value1"}
 EOF
