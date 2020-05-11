@@ -449,7 +449,7 @@ function HELP(){
   echo "        -p policy      --policy policy      --policy=policy      Policy you wish to add, delete. I can be either a file"
   echo "                                                                 a policy name, or ARN. To delete policies on a role, you"
   echo "                                                                 must not use a file, only name"
-  echo "If you are updating aservice account role you must also provide the action to take:"
+  echo "If you are updating a service account role you must also provide the action to take:"
   echo "        -a action      --action action      --action=action      a for adding and d for deleting"
   echo
   echo "If the service account is inteded for a different namespace than the default: "
