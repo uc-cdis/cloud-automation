@@ -8,7 +8,7 @@ if ! hostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.h
     return 1
 fi
 
-jobId=$(head /dev/urandom | tr -dc -Za-zA0-9 | head -c 4 ; echo '')
+jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
 
 prefix="${hostname//./-}-bucket-manifest-${jobId}"
 saName=$(echo "${prefix}-sa" | head -c63)
@@ -21,13 +21,12 @@ saName=$(echo "${prefix}-sa" | head -c63)
 # @param out_bucket: the bucket that stores the output manifest
 #
 gen3_create_aws_batch() {
-  if [[ $# -lt 3 ]]; then
-    gen3_log_info "The input bucket and subnets are required "
+  if [[ $# -lt 2 ]]; then
+    gen3_log_info "The input and output buckets are required "
     exit 1
   fi
   bucket=$1
-  subnets=$2
-  out_bucket=$3
+  out_bucket=$2
   echo $prefix
   local job_queue=$(echo "${prefix}_queue_job" | head -c63)
   local sqs_name=$(echo "${prefix}-sqs" | head -c63)
@@ -63,7 +62,6 @@ aws_batch_compute_environment_sg = "${prefix}-compute_env_sg"
 role_description             = "${prefix}-role to run aws batch"
 batch_job_definition_name    = "${prefix}-batch_job_definition"
 compute_environment_name     = "${prefix}-compute-env"
-subnets                      = ${subnets}
 batch_job_queue_name         = "${job_queue}"
 sqs_queue_name               = "${sqs_name}"
 EOF

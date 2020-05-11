@@ -14,12 +14,12 @@ The tool can be used to any kind of task that requires batch operations. Users w
 Launch a AWS batch operation job to generate a manfest of the source bucket with provided subnets. The result will be put on the manifest bucket.
 
 ```bash
-  gen3 bucket-manifest create <source bucket> <subnets> <manifest bucket>
+  gen3 bucket-manifest create <source bucket> <manifest bucket>
 ```
 
 Ex.
 ```
-gen3 bucket-manifest create cdistest-giangb-bucket1-databucket-gen3 '["subnet-80d559e4","subnet-2f826072","subnet-e1a390ed"]' giangb-bucket-manifest-test
+gen3 bucket-manifest create cdistest-giangb-bucket1-databucket-gen3 giangb-bucket-manifest-test
 ```
 
 ### status

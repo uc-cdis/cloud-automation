@@ -32,11 +32,6 @@ variable "instance_type" {
   default  =  ["c4.large"]
 }
 
-variable "subnets" {
-  type = "list"
-  description = "list of subnets job instances will live"
-}
-
 variable "priority" {
   default = 10
   description = "job priority"

@@ -6,6 +6,38 @@ terraform {
 
 provider "aws" {}
 
+resource "aws_vpc" "new_vpc" {
+  cidr_block = "10.1.0.0/16"
+}
+
+resource "aws_internet_gateway" "gw" {
+  vpc_id = "${aws_vpc.new_vpc.id}"
+
+  tags = {
+    Name = "main"
+  }
+}
+
+resource "aws_subnet" "new_subnet" {
+  vpc_id     = "${aws_vpc.new_vpc.id}"
+  map_public_ip_on_launch = true
+  cidr_block = "10.1.1.0/21"
+}
+
+
+resource "aws_route_table" "new_route" {
+  vpc_id = "${aws_vpc.new_vpc.id}"
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_internet_gateway.gw.id}"
+  }
+}
+
+resource "aws_route_table_association" "new_association" {
+  subnet_id      = "${aws_subnet.new_subnet.id}"
+  route_table_id = "${aws_route_table.new_route.id}"
+}
+
 resource "aws_sqs_queue" "new_sqs_queue" {
   name                      = "${var.sqs_queue_name}"
   message_retention_seconds = 86400
@@ -117,6 +149,7 @@ resource "aws_iam_role_policy_attachment" "aws_batch_service_role" {
 
 resource "aws_security_group" "new_sg" {
   name = "${var.aws_batch_compute_environment_sg}"
+  vpc_id = "${aws_vpc.new_vpc.id}"
 
   egress {
     from_port   = 0
@@ -150,7 +183,8 @@ resource "aws_batch_compute_environment" "new_batch_compute_environment" {
     ec2_key_pair = "${var.ec2_key_pair}"
 
 
-    subnets = "${var.subnets}"
+    #subnets = "${var.subnets}"
+    subnets = ["${aws_subnet.new_subnet.id}"]
 
     type = "${var.compute_env_type}"
   }
