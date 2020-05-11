@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: bucket-manifest
+  name: bucket-manifest#PLACEHOLDER#
 spec:
   template:
     metadata:
