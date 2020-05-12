@@ -347,8 +347,16 @@ gen3_encode_uri_component() {
   )
   local str="${1:-""}"
   local it=0
-  for ((it=0; it < ${#codes[@]}; it=it+2)); do
-    str="${str//${codes[$it]}/${codes[$((it+1))]}}"
-  done
-  echo "$str"
+  (
+    # ugh - zsh!
+    if [[ -z "${BASH_VERSION}" ]]; then
+      set -o BASH_REMATCH  # zsh signal
+      set -o KSH_ARRAYS
+    fi
+
+    for ((it=0; it < ${#codes[@]}; it=it+2)); do
+      str="${str//${codes[$it]}/${codes[$((it+1))]}}"
+    done
+    echo "$str"
+  )
 }
