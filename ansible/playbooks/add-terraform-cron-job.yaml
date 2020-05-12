@@ -17,5 +17,5 @@
       hour    : "14"
       weekday : 1-5
       job     : (if [ -f $HOME/cloud-automation/files/scripts/tfplan-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/tfplan-cronjob.sh; else echo "no tfplan-cronjob.sh"; fi) > $HOME/tfplan-cronjob.log 2>&1
-      state   : present
+      state   : '{{ _state }}'
 
