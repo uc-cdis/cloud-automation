@@ -72,7 +72,7 @@ test_encode_uri_component() {
   local expectedOut='sum%20by%20(envoy_cluster_name)%20(rate(envoy_cluster_upstream_rq_total%7Bkubernetes_namespace%3D%22frickjack%22%7D%5B12h%5D))'
   local testOut
   testOut="$(gen3_encode_uri_component "$testIn")" && [[ "$testOut" == "$expectedOut" ]]; because $? "encode_uri_component works - got: $testOut"
-  testIn="!@#$^*;"
+  testIn='!@#$^*;'
   expectedOut="!%40%23%24%5E*%3B"
   testOut="$(gen3_encode_uri_component "$testIn")" && [[ "$testOut" == "$expectedOut" ]]; because $? "encode_uri_component works - got: $testOut"
 }
