@@ -21,7 +21,7 @@ if g3kubectl get serviceaccounts/jenkins-service > /dev/null 2>&1; then
 fi
 
 # some command line processing
-image=quay.io/cdis/awshelper:master
+image="$(g3k_config_lookup .versions.awshelper)" || image=quay.io/cdis/awshelper:master
 labels="app=gen3job,name=devterm,netnolimit=yes"
 pullPolicy="Always"
 declare -a command=("/bin/bash")
@@ -75,4 +75,4 @@ while [[ $# -gt 0 ]]; do
 done
 gen3_log_info "devterm" "running $image with labels $labels command ${command[@]}"
 gen3_log_info g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"
-g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"
+g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --env="JENKINS_HOME=devterm" --env="KUBECTL_NAMESPACE=$(gen3 db namespace)" --command -- "${command[@]}"

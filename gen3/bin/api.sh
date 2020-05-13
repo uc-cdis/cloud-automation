@@ -178,7 +178,7 @@ gen3_new_project() {
   "releasable": true
 }
 EOM
-  gen3_curl_json "/api/v0/submission/$progName" "$userName" "$jsonFile"
+  gen3_curl_json "api/v0/submission/$progName" "$userName" "$jsonFile"
   result=$?
   rm $jsonFile
   return $result
@@ -213,7 +213,7 @@ gen3_new_program() {
   "dbgap_accession_number": "$progName"
 }
 EOM
-  gen3_curl_json "/api/v0/submission/" "$userName" "$jsonFile"
+  gen3_curl_json "api/v0/submission/" "$userName" "$jsonFile"
   result=$?
   rm $jsonFile
   return $result

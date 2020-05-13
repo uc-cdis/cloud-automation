@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: "statsd-exporter"
   annotations:
-      gen3.io/network-ingress: "ambassador-gen3"
+      gen3.io/network-ingress: "ambassador-gen3,ambassador,hatchery"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -24,6 +24,6 @@ spec:
     spec:
       containers:
       - name: "statsd-exporter"
-        GEN3_STATSD-EXPORTER_IMAGE
+        GEN3_STATSD-EXPORTER_IMAGE|-image: prom/statsd-exporter:v0.15.0-|
         resources: {}
       restartPolicy: Always

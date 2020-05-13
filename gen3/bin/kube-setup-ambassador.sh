@@ -45,6 +45,8 @@ EOM
 
 
 deploy_stats_sink() {
+  gen3_log_info "stats sink deprecated - ambassador exports :8787/metrics directly"
+  return 0
   if ! g3k_manifest_lookup '.versions["statsd-exporter"]' 2> /dev/null; then
     gen3_log_info "statsd-exporter not enabled in manifest"
     return 0
@@ -67,13 +69,11 @@ case "$command" in
     ;;
   "hatchery")
     deploy_hatchery_proxy "$@"
-    ;;
-  "stats")
-    deploy_stats_sink "$@"
+    gen3 kube-setup-prometheus prometheus
     ;;
   *)
     deploy_hatchery_proxy "$@"
-    deploy_stats_sink "$@"
     deploy_api_gateway "$@"
+    gen3 kube-setup-prometheus prometheus
     ;;
 esac

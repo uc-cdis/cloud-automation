@@ -40,10 +40,6 @@ spec:
             cpu: 200m
             memory: 100Mi
         env:
-        - name: STATSD_ENABLED
-          value: "true"
-        - name: STATSD_HOST
-          value: "statsd-exporter"
         - name: AMBASSADOR_NAMESPACE
           valueFrom:
             fieldRef:

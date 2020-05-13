@@ -325,3 +325,38 @@ gen3_retry() {
 gen3_is_number() {
   [[ $# == 1 && "$1" =~ ^[0-9]+$ ]]
 }
+
+gen3_encode_uri_component() {
+  local codes=(
+    "%" "%25"
+    " " "%20" 
+    "=" "%3D" 
+    "[" "%5B" 
+    "]" "%5D" 
+    "{" "%7B" 
+    "}" "%7D" 
+    '"' "%22"
+    '\?' "%3F"
+    "&" "%26"
+    "," "%2C"
+    "@" "%40"
+    "#" "%23"
+    "$" "%24"
+    "^" "%5E"
+    ";" "%3B"
+  )
+  local str="${1:-""}"
+  local it=0
+  (
+    # ugh - zsh!
+    if [[ -z "${BASH_VERSION}" ]]; then
+      set -o BASH_REMATCH  # zsh signal
+      set -o KSH_ARRAYS
+    fi
+
+    for ((it=0; it < ${#codes[@]}; it=it+2)); do
+      str="${str//${codes[$it]}/${codes[$((it+1))]}}"
+    done
+    echo "$str"
+  )
+}

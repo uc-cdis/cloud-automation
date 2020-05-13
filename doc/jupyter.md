@@ -4,6 +4,24 @@ Helpers for operating jupyterhub.
 
 ## Use
 
+### gen3 jupyter idle [apiKey]
+
+List the idle hatchery services (according to prometheus)
+for the current namespace.  Accepts an optional `gen3 api curl` api
+key - otherwise assumes the call is running on cluster with
+a direct route to prometheus.  Note that only the `default`
+namespace exposes a public (guarded by `arborist` policy) `/prometheus/` route.
+
+Ex:
+```
+on-cluster $ gen3 jupyter idle
+```
+
+Ex:
+```
+off-cluster $ KUBECTL_NAMESPACE=my-namespace gen3 jupyter idle defaultNamespaceKey.json
+```
+
 ### gen3 jupyter j-namespace
 
 Echo the name of the jupyter namespace (derived from the current namespace).

@@ -136,6 +136,38 @@ gen3_jupyter_pv_clear() {
   done
 }
 
+
+#
+# Try to identify the hatchery pods that have been idle for
+# over 12 hours, so we can shut them down.
+# This works by querying prometheus for the request rate
+# handled by the ambassador reverse proxy that routes traffic
+# to an app, so we usually to run this on the cluster to get the
+# route out to prometheus.
+#
+# @param tokenKey either "none" if running on the cluster (can route directly to prometheus),
+#      or a user or api-key where gen3 api curl /prometheus/... $tokenKey works
+# @see https://prometheus.io/docs/prometheus/latest/querying/examples/
+# @see 
+gen3_jupyter_idle_services() {
+  local ttl=12h
+  local promQuery="sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{kubernetes_namespace=\"$(gen3 db namespace)\"}[${ttl}]))"
+  local urlPath="prometheus/api/v1/query?query=$(gen3_encode_uri_component "$promQuery")"
+  local tokenKey="none"
+  if [[ $# -gt 0 ]]; then
+    tokenKey="${1:-none}"
+    shift
+  fi
+
+  (
+    if [[ -z "$tokenKey" || "$tokenKey" == "none" ]]; then
+      curl -s -H 'Accept: application/json' "http://prometheus-server.prometheus.svc.cluster.local/$urlPath" 
+    else
+      gen3 api curl "$urlPath" "$tokenKey"
+    fi
+  ) | jq -e -r '.data.result[] | { "cluster": .metric.envoy_cluster_name, "rate": .value[1] } | select(.rate != "0")'
+}
+
 # main ----------------------
 
 command="$1"
@@ -148,6 +180,9 @@ case "$command" in
     else
       gen3_jupyter_namespace "$@";
     fi
+    ;;
+  "idle")
+    gen3_jupyter_idle_services "$@"
     ;;
   "prepuller")
     gen3_jupyter_prepuller "$@"

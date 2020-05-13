@@ -1,7 +1,7 @@
 # Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -12,13 +12,12 @@ RUN apt-get update && apt-get upgrade -y \
       curl \
       dnsutils \
       ftp \
-      jq \
-      less \
-      ssh \
       gcc \
       git \
       groff-base \
       iputils-ping \
+      jq \
+      less \
       lsb-release \
       netcat-openbsd \
       net-tools \
@@ -28,6 +27,7 @@ RUN apt-get update && apt-get upgrade -y \
       python3-dev \
       python3-pip \
       python3-setuptools \
+      ssh \
       sudo \
       unzip \
       vim \
@@ -39,8 +39,14 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 100
 RUN  python3 -m pip install --upgrade pip \
     && python3 -m pip install --upgrade setuptools \
     && python3 -m pip install -U crcmod \
-    && python3 -m pip install awscli --upgrade \
-    && python3 -m pip install yq --upgrade
+    && python3 -m pip install yq --upgrade \
+    && pip install gen3
+
+# aws cli v2
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+    && unzip awscliv2.zip \
+    && ./aws/install \
+    && /bin/rm -rf awscliv2.zip ./aws
 
 # From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
