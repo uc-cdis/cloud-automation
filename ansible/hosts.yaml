@@ -133,6 +133,8 @@ all:
         bdcatprod_commons:
           ansible_user: bdcatprod
           ansible_host: gtex.csoc
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
 
     staging:
       hosts:
@@ -148,6 +150,8 @@ all:
         bhcstaging_commons:
           ansible_user: bhcstaging
           ansible_host: braincommons.csoc
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
     namespaces:
       hosts:
         charlie_commons:
@@ -174,6 +178,8 @@ all:
         va-testing_commons:
           ansible_user: va-testing
           ansible_host: vhdc.csoc
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
 
     dev:
       hosts:
@@ -186,6 +192,8 @@ all:
         cdistest_qav2:
           ansible_user: qaplanetv2
           ansible_host: cdistest.csoc
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
 
     qa:
       hosts:
@@ -204,6 +212,8 @@ all:
         gen3testing_commons:
           ansible_user: bhcqa
           ansible_host: braincommons.csoc
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
 
     demo:
       hosts:
@@ -259,6 +269,8 @@ all:
         generic_common:
           ansible_host: 34.227.16.236
           ansible_user: generic-commons
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
     dummi:
       hosts:
         dummi1:
