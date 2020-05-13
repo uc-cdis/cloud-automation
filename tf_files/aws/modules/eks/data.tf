@@ -192,3 +192,12 @@ data "aws_iam_policy_document" "without_resources" {
   }
 }
 
+# Policy for access to CSOC sns
+data "aws_iam_policy_document" "planx-csoc-alerts-topic_access" {
+  count = "${var.sns_topic_arn != "" ? 1 : 0 }"
+  statement {
+    actions   = [ "sns:Publish" ]
+    effect    = "Allow"
+    resources = "${var.sns_topic_arn}" 
+  }
+}

@@ -110,3 +110,8 @@ variable "single_az_for_jupyter" {
   description = "Jupyter notebooks on a single AZ"
   default     = false
 }
+
+variable "sns_topic_access" {
+  description = "SNS topic ARN for alerts"
+  default     = "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+}

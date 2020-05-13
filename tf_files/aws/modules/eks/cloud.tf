@@ -329,6 +329,13 @@ resource "aws_iam_policy" "asg_access" {
 EOF
 }
 
+resource "aws_iam_role_policy" "lambda_policy_no_resources" {
+  count  = "${var.sns_topic_arn ? 1 : 0}"
+  name   = "${var.vpc_name}_CSOC_alert_SNS_topic_acess"
+  policy = "${data.aws_iam_policy_document.planx-csoc-alerts-topic_access.json}"
+  role   = "${aws_iam_role.eks_node_role.id}"
+}
+
 resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = "${aws_iam_role.eks_node_role.name}"
