@@ -40,3 +40,53 @@ subjects:
 - kind: ServiceAccount
   name: fluentd-restart
   namespace: default
+---
+# Note: change to batch/v1beta1 once we bump to k8s 1.8
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: fluentd-restart
+#  namespace: cronjobs
+spec:
+  schedule: "0 0 * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          serviceAccountName: fluentd-restart
+          containers:
+          - name: awshelper
+            image: quay.io/cdis/awshelper:master
+            imagePullPolicy: Always
+            command: ["/bin/bash" ]
+            args:
+              - "-c"
+              - |
+                sns_topic="arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+                count=0
+                restarted=0
+                for i in $(kubectl get pod -n logging -o json | jq .items[].metadata.name -r);
+                do
+                  kubectl exec -n logging ${i} -- kill -s HUP 1
+                  if [ $? == 0 ];
+                  then
+                    restarted=$(( restarted + 1 ))
+                  else
+                    echo "couldn't restart ${i}"
+                  fi
+                  count=$(( count + 1 ))
+                done
+                aws sns publish --target-arn ${sns_topic} --message "${restarted} out of ${count} fluentd services restarted in ${gen3Env}"
+            env:
+              - name: gen3Env
+                valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: environment
+          restartPolicy: Never

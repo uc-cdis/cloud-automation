@@ -111,7 +111,7 @@ variable "single_az_for_jupyter" {
   default     = false
 }
 
-variable "sns_topic_access" {
+variable "sns_topic_arn" {
   description = "SNS topic ARN for alerts"
   default     = "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
 }
