@@ -12,9 +12,32 @@ git clone https://github.com/bioteam/dictionaryutils.git
 cd dictionaryutils
 python setup.py develop
 ```
+### Create IAM Policy for travis-ci user
+From within the AWS console, create an IAM policy e.g. *travis-ci-policy* granting access to **only** your public bucket.
+```bash
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::bms-gen3-dev"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": "s3:*",
+            "Resource": "arn:aws:s3:::bms-gen3-dev/*"
+        }
+    ]
+}
+```
+### Create IAM user for travis-ci
+From within the AWS console, create an IAM user e.g. *travis-ci* with `Programmatic access`, adding the above inline policy.
 ### Modify travis.yml
 ```bash
-access_key_id: <Your_AWS_Access_Key_ID>
+access_key_id: <Travis_AWS_Access_Key_ID>
 ...
 bucket: <your-public-s3-bucket>
 ...
@@ -27,7 +50,7 @@ repo: <your-git-org/your-public-repo>
 travis login
 # Username: <github_user@example.com>
 # Password for <github_user@example.com>: ***************
-travis encrypt <your_aws_secret_access_key> --add deploy.secret_access_key
+travis encrypt <travis_aws_secret_access_key> --add deploy.secret_access_key
 ```
 ### Development Cycle
 1. Modify `gdcdictionary/schemas/*.yaml`
