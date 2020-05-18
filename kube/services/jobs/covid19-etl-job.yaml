@@ -1,4 +1,4 @@
-# gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-etl-job.yaml ACCESS_TOKEN $ACCESS_TOKEN JOB_NAME $JOB_NAME | sed "s|#COVID19_JOB_NAME_PLACEHOLDER#|$COVID19_ETL_NAME|g" | g3kubectl apply -f -
+# gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-etl-job.yaml ACCESS_TOKEN $ACCESS_TOKEN JOB_NAME $JOB_NAME S3_BUCKET $S3_BUCKET | sed "s|#COVID19_JOB_NAME_PLACEHOLDER#|$COVID19_ETL_NAME|g" | g3kubectl apply -f -
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -10,6 +10,8 @@ spec:
       labels:
         app: gen3job
     spec:
+      serviceAccountName: s3-access-opencdn-databucket-gen3
+      restartPolicy: Never
       containers:
       - name: covid19-etl
         imagePullPolicy: Always
@@ -19,6 +21,8 @@ spec:
           GEN3_ACCESS_TOKEN|-value: ""-|
         - name: JOB_NAME
           GEN3_JOB_NAME|-value: ""-|
+        - name: S3_BUCKET
+          GEN3_S3_BUCKET|-value: ""-|
         - name: doSlack
           GEN3_DO_SLACK|-value: "true"-|
         - name: gen3Env
@@ -56,4 +60,3 @@ spec:
               python3 /tmp/slack.py
             fi
             exit $result
-      restartPolicy: Never

@@ -1,9 +1,10 @@
 #!/bin/bash
 #
-# Runs daily COVID-19 Illinois Department for Public Health
+# Runs daily COVID-19 ETLs
 # Run as cron job in covid19@adminvm user account
 #
-# USER=USER
+# USER=<USER>
+# S3_BUCKET=<S3_BUCKET>
 # KUBECONFIG=path/to/kubeconfig
 # 0   0   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/covid19-etl-job.sh ]; then JOB_NAME=<JOB_NAME> bash $HOME/cloud-automation/files/scripts/covid19-etl-job.sh; else echo "no codiv19-etl-job.sh"; fi) > $HOME/covid19-etl-$JOB_NAME-job.log 2>&1
 
@@ -43,13 +44,21 @@ if [[ -z "$JOB_NAME" ]]; then
   exit 1
 fi
 
+if [[ -z "$S3_BUCKET" ]]; then
+  gen3_log_err "\$S3_BUCKET variable required"
+  help
+  exit 1
+fi
+
+SAFE_JOB_NAME=${JOB_NAME//_/-} # `_` to `-`
+
 # temporary file for the job
-tempFile="$(mktemp "$XDG_RUNTIME_DIR/covid19-etl-$JOB_NAME-job.yaml_XXXXXX")"
+tempFile="$(mktemp "$XDG_RUNTIME_DIR/covid19-etl-$SAFE_JOB_NAME-job.yaml_XXXXXX")"
 
 # populate the job variable and change it's name to reflect the ETL being run
 ACCESS_TOKEN="$(gen3 api access-token $USER)"
-gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-etl-job.yaml ACCESS_TOKEN "$ACCESS_TOKEN" JOB_NAME "$JOB_NAME" \
-  | sed "s|#COVID19_JOB_NAME_PLACEHOLDER#|$JOB_NAME|g" > "$tempFile"
+gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-etl-job.yaml ACCESS_TOKEN "$ACCESS_TOKEN" JOB_NAME "$JOB_NAME" S3_BUCKET "$S3_BUCKET" \
+  | sed "s|#COVID19_JOB_NAME_PLACEHOLDER#|$SAFE_JOB_NAME|g" > "$tempFile"
 
 gen3 job run "$tempFile"
 
