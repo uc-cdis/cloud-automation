@@ -3,9 +3,10 @@
 # Runs daily COVID-19 ETLs
 # Run as cron job in covid19@adminvm user account
 #
-# USER=USER
+# USER=<USER>
+# S3_BUCKET=<S3_BUCKET>
 # KUBECONFIG=path/to/kubeconfig
-# 0   0   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/covid19-etl-job.sh ]; then USER=<USER> S3_BUCKET=<S3_BUCKET> JOB_NAME=<JOB_NAME> bash $HOME/cloud-automation/files/scripts/covid19-etl-job.sh; else echo "no codiv19-etl-job.sh"; fi) > $HOME/covid19-etl-$JOB_NAME-job.log 2>&1
+# 0   0   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/covid19-etl-job.sh ]; then JOB_NAME=<JOB_NAME> bash $HOME/cloud-automation/files/scripts/covid19-etl-job.sh; else echo "no codiv19-etl-job.sh"; fi) > $HOME/covid19-etl-$JOB_NAME-job.log 2>&1
 
 # setup --------------------
 
