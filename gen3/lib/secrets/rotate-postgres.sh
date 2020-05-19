@@ -90,12 +90,11 @@ gen3_secrets_rotate_pguser() {
     if [[ ! "$username" =~ ^$service ]]; then
       username="${service}_$username"  
     fi
-    server="$(gen3_db_random_server)"
   else
     dbname="$(jq -r .db_database <<<"$creds")"
     username="${service}_$(gen3 db namespace)_$(date -u +%Y%m%d_%H%M)"
-    server="$(jq -r .g3FarmServer <<<"$creds")"
   fi
+  server="$(jq -r .g3FarmServer <<<"$creds")"
   password="$(gen3 random)"
 
   if [[ "$createdb" == true ]]; then
@@ -152,7 +151,7 @@ gen3_secrets_update_pgpasswd() {
   local creds
 
   if [[ $# -lt 1 ]]; then
-    gen3_log_err "gen3_secrets_rotate_pguser takes 1 arguments - service: $@"
+    gen3_log_err "gen3_secrets_update_pgpasswd takes 1 arguments - service: $@"
     return 1
   fi
   service="$1"

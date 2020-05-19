@@ -74,7 +74,7 @@ if [[ ! -d ./cdis-manifest ]]; then
 fi
 
 # setup ~/Gen3Secrets
-for name in 00configmap.yaml apis_configs kubeconfig ssh-keys g3auto/dbfarm g3auto/manifestservice g3auto/pelicanservice; do
+for name in 00configmap.yaml apis_configs kubeconfig ssh-keys g3auto/dbfarm g3auto/manifestservice g3auto/pelicanservice g3auto/dashboard; do
   if [[ -e "$(gen3_secrets_folder)/$name" ]]; then
     gen3_log_info "copying $(gen3_secrets_folder)/$name"
     cp -r "$(gen3_secrets_folder)/$name" /home/$namespace/Gen3Secrets/$name
@@ -108,12 +108,13 @@ cat kubeconfig.bak | yq -r --arg ns "$namespace" '.contexts[0].context.namespace
 
 cp "$(gen3_secrets_folder)/creds.json" "/home/$namespace/Gen3Secrets/creds.json"
 
+
 dbsuffix=$(echo $namespace | sed 's/-/_/g')
 credsTemp="$(mktemp "$XDG_RUNTIME_DIR/credsTemp.json_XXXXXX")"
 credsMaster="/home/$namespace/Gen3Secrets/creds.json"
 
 # create new databases - don't break if already exists
-for name in indexd fence sheepdog; do
+for name in fence indexd sheepdog; do
   dbname="${name}_$dbsuffix"
   if ! newCreds="$(gen3 secrets rotate newdb $name $dbname)"; then
     gen3_log_err "Failed to setup new db $dbname"
@@ -176,6 +177,7 @@ export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1
 
 export KUBECONFIG=~/Gen3Secrets/kubeconfig
 export GEN3_HOME=~/cloud-automation
+export vpc_name="$vpc_name"
 if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
   source "\${GEN3_HOME}/gen3/gen3setup.sh"
 fi
