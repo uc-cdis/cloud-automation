@@ -21,6 +21,6 @@ urlPath="prometheus/api/v1/query?query=$(gen3_encode_uri_component "$promQuery")
 curl -s -H 'Accept: application/json' "http://prometheus-server.prometheus.svc.cluster.local/$urlPath" | jq -r .
 ```
 
-
 The prometheus site has more [query documentation](https://prometheus.io/docs/prometheus/latest/querying/functions/).
 
+The [jupyter idle](./jupyter.md#idle) 
