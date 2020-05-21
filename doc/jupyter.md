@@ -4,16 +4,21 @@ Helpers for operating jupyterhub.
 
 ## Use
 
-### gen3 jupyter idle [apiKey]
+### gen3 jupyter idle [apiKey] [list|kill]
 
 List the idle hatchery services (according to prometheus)
-for the current namespace.  Accepts an optional `gen3 api curl` api
+for the current namespace.  
+
+Accepts an optional `gen3 api curl` api
 key - otherwise assumes the call is running on cluster with
 a direct route to prometheus.  Note that only the `default`
 namespace exposes a public (guarded by `arborist` policy) `/prometheus/` route.
 
+Also accepts an optional command (defaults to `list`).  When given the `kill` command the tool attempts to kill the idle hatchery app pods it discovers.
+
 Ex:
 ```
+admin-vm $ gen3 devterm --sa hatchery-service-account
 on-cluster $ gen3 jupyter idle
 ```
 
@@ -21,6 +26,8 @@ Ex:
 ```
 off-cluster $ KUBECTL_NAMESPACE=my-namespace gen3 jupyter idle defaultNamespaceKey.json
 ```
+
+
 
 ### gen3 jupyter j-namespace
 

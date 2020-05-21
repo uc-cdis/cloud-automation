@@ -39,12 +39,18 @@ EOM
 #
 # Echo the user namespace where jupyter notebooks run.
 #
+# @param gen3Namespace defaults to current namespace (gen3 db namespace)
+#
 gen3_jupyter_namespace() {
   local notebookNamespace
-  local namespace
-  # If you change this name you need to change it in the kube/.../jupyterhub-config.py too
+  local namespace="$(gen3 db namespace)"
+
+  # If you change this name you need to change it in the hatchery configs too
   notebookNamespace="jupyter-pods"
-  namespace="$(gen3 db namespace)"
+  if [[ $# -gt 0 && -n "$1" ]]; then
+    namespace="$1"
+    shift
+  fi
   if [[ -n "$namespace" && "$namespace" != "default" ]]; then
     notebookNamespace="jupyter-pods-$namespace"
   fi
@@ -147,25 +153,66 @@ gen3_jupyter_pv_clear() {
 #
 # @param tokenKey either "none" if running on the cluster (can route directly to prometheus),
 #      or a user or api-key where gen3 api curl /prometheus/... $tokenKey works
+# @param namespace where ambassador is running - defaults to current namespace
+# @param command defaults to list, also supports "kill"
 # @see https://prometheus.io/docs/prometheus/latest/querying/examples/
-# @see 
-gen3_jupyter_idle_services() {
+#
+gen3_jupyter_idle_pods() {
   local ttl=12h
-  local promQuery="sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{kubernetes_namespace=\"$(gen3 db namespace)\"}[${ttl}]))"
-  local urlPath="prometheus/api/v1/query?query=$(gen3_encode_uri_component "$promQuery")"
+  local namespace="$(gen3 db namespace)"
   local tokenKey="none"
+  local command="list"
+
   if [[ $# -gt 0 ]]; then
     tokenKey="${1:-none}"
     shift
   fi
+  if [[ $# -gt 0 ]]; then
+    namespace="${1:-$namespace}"
+    shift
+  fi
+  if [[ $# -gt 0 ]]; then
+    command="${1:-$command}"
+    shift
+  fi
 
+  # Get the list of idle ambassador clusters from prometheus
+  local promQuery="sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{kubernetes_namespace=\"${namespace}\"}[${ttl}]))"
+  local urlPath="prometheus/api/v1/query?query=$(gen3_encode_uri_component "$promQuery")"
+  local tempClusterFile="$(mktemp "$XDG_RUNTIME_DIR/idle_apps.json_XXXXXX")"
   (
     if [[ -z "$tokenKey" || "$tokenKey" == "none" ]]; then
       curl -s -H 'Accept: application/json' "http://prometheus-server.prometheus.svc.cluster.local/$urlPath" 
     else
       gen3 api curl "$urlPath" "$tokenKey"
     fi
-  ) | jq -e -r '.data.result[] | { "cluster": .metric.envoy_cluster_name, "rate": .value[1] } | select(.rate != "0")'
+  ) | jq -e -r '.data.result[] | { "cluster": .metric.envoy_cluster_name, "rate": .value[1] } | select(.rate == "0")' | tee "$tempClusterFile" 1>&2
+  if [[ $? != 0 ]]; then
+    rm "$tempClusterFile"
+    return 0
+  fi
+  
+  # Get the list of app services in the user namespace
+  local jnamespace="$(gen3_jupyter_namespace "$namespace")"
+  local podList
+  podList="$(g3kubectl get pods --namespace "$jnamespace" -o json | jq -r '.items[] | .metadata.name')" || return 1
+  for name in $podList; do
+    # leverage hatchery naming convention here ...
+    local serviceName="h-${name##hatchery-}-s"
+    local clusterName="cluster_${serviceName//-/_}-0"
+    gen3_log_info "Scanning for $clusterName"
+    if jq -r --arg cluster "$clusterName" 'select(.cluster == $cluster)' < "$tempClusterFile" | grep "$clusterName" > /dev/null; then
+      echo "$name"
+      if [[ "$command" == "kill" ]]; then
+        gen3_log_info "try to kill pod $name in $jnamespace"
+        g3kubectl delete pod --namespace "$jnamespace" "$name" 1>&2
+      fi
+    else
+      gen3_log_info "$clusterName not in $(cat $tempClusterFile)"
+    fi
+  done
+  rm "$tempClusterFile"
+  return 0
 }
 
 # main ----------------------
@@ -182,7 +229,7 @@ case "$command" in
     fi
     ;;
   "idle")
-    gen3_jupyter_idle_services "$@"
+    gen3_jupyter_idle_pods "$@"
     ;;
   "prepuller")
     gen3_jupyter_prepuller "$@"
