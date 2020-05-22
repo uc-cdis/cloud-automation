@@ -33,14 +33,19 @@ gen3_create_aws_batch() {
   local sqs_name=$(echo "${prefix}-sqs" | head -c63)
   local job_definition=$(echo "${prefix}-batch_job_definition" | head -c63)
 
+  # Get aws credetial of fence_bot iam user
+  local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot2.aws_access_key_id)
+  local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot2.aws_secret_access_key)
+
+  if [ "$secret_key" = "null" ]; then
+    gen3_log_err "No fence_bot aws credential block in fence_config.yaml"
+    return 1
+  fi
+
   gen3 workon default ${prefix}__batch
   gen3 cd
 
   local accountId=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
-
-  # Get aws credetial of fence_bot iam user
-  local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
-  local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_secret_access_key)
 
   mkdir -p $(gen3_secrets_folder)/g3auto/bucketmanifest/
   credsFile="$(gen3_secrets_folder)/g3auto/bucketmanifest/creds.json"
