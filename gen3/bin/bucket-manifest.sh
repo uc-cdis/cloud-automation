@@ -42,6 +42,17 @@ gen3_create_aws_batch() {
   local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
   local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_secret_access_key)
 
+  mkdir -p $(gen3_secrets_folder)/g3auto/bucketmanifest/
+  credsFile="$(gen3_secrets_folder)/g3auto/bucketmanifest/creds.json"
+  cat - > "$credsFile" <<EOM
+{
+  "region": "us-east-1",
+  "aws_access_key_id": "$access_key",
+  "aws_secret_access_key": "$secret_key"
+}
+EOM
+  gen3 secrets sync "initialize bucketmanifest/creds.json"
+
   cat << EOF > ${prefix}-job-definition.json
 {
     "image": "quay.io/cdis/object_metadata:master",
@@ -179,6 +190,10 @@ gen3_batch_cleanup() {
   gen3_aws_run aws iam delete-role-policy --role-name $role --policy-name $policyName
   gen3_aws_run aws iam delete-role --role-name $role
   g3kubectl delete serviceaccount $saName
+
+  # Delete creds
+  credsFile="$(gen3_secrets_folder)/g3auto/bucketmanifest/creds.json"
+  rm -f $credsFile
 }
 
 command="$1"

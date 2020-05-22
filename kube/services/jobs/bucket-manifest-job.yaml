@@ -16,7 +16,7 @@ spec:
             secretName: "bucketmanifest-g3auto"
       containers:
       - name: bucket-manifest
-        image: quay.io/cdis/bucket-manifest:feat_bucket-manifest
+        image: quay.io/cdis/bucket-manifest:master
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -49,6 +49,6 @@ spec:
             [default]
             region: us-east-1
             """ > /home/ubuntu/.aws/config
-            python bucket_manifest_job.py create_manifest --bucket $BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION} --sqs $SQS --out_bucket ${OUT_BUCKET}
+            python batch_jobs/bin/run_bucket_manifest_job.py create_manifest --bucket $BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION} --sqs $SQS --out_bucket ${OUT_BUCKET}
             echo "All done - exit status $?"
       restartPolicy: Never
