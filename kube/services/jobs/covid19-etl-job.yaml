@@ -43,11 +43,11 @@ spec:
         args:
           - "-c"
           - |
-            message="SUCCESS: covid19-etl success in $gen3Env"
+            message="SUCCESS: covid19-etl-$JOB_NAME success in $gen3Env"
             result=0
             if ! python3 /covid19-etl/main.py; then
               result=1
-              message="FAIL: covid19-etl failure in $gen3Env"
+              message="FAIL: covid19-etl-$JOB_NAME failure in $gen3Env"
             fi
             echo "$message"
             # no curl - ugh  
