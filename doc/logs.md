@@ -14,6 +14,7 @@ gen3 logs raw
 Get the logs for a kubernetes cron job (usersync by default).
 
 Accepts the following `key=value` arguments
+* `app=gen3job|ssjdispatcherjob|...` - default `gen3job`
 * `page=number|number-number|all` - default `0`
 * `vpc=$vpc_name|all` - default `${vpc_name:-all}` - see `gen3 logs vpc` below
 * `jname=name` - job name prefix - default `usersync`
@@ -26,6 +27,7 @@ Ex:
 ```
 $ gen3 logs job vpc=dcfprod jname=google
 $ gen3 logs job vpc=all jname=user start='2 hours ago'
+$ gen3 logs job vpc=bdcatprod jname=indexing app=ssjdispatcherjob start='3 days ago'
 ```
 
 Note: `gen3 logs vpc` gives the available VPC codes
