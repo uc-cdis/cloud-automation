@@ -181,6 +181,7 @@ gen3_jupyter_idle_pods() {
   local urlPath="prometheus/api/v1/query?query=$(gen3_encode_uri_component "$promQuery")"
   local tempClusterFile="$(mktemp "$XDG_RUNTIME_DIR/idle_apps.json_XXXXXX")"
   (
+    gen3_log_info "Loading prometheus data: $urlPath"
     if [[ -z "$tokenKey" || "$tokenKey" == "none" ]]; then
       curl -s -H 'Accept: application/json' "http://prometheus-server.prometheus.svc.cluster.local/$urlPath" 
     else
