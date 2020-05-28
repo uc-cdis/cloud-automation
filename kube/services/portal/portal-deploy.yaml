@@ -69,6 +69,14 @@ spec:
           # portal sometimes takes a long time to come up ... -
           # has to fetch the dictionary, relay compile, etc
           failureThreshold: 6
+        resources:
+          requests:
+            cpu: 0.6
+            memory: 512Mi
+          limits:
+            # portal pigs out on resources at startup, then settles down
+            cpu: 2
+            memory: 4096Mi
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -186,8 +194,4 @@ spec:
             readOnly: true
             mountPath: "/data-portal/custom/privacy_policy.md"
             subPath: "privacy_policy.md"
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
         imagePullPolicy: Always

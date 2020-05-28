@@ -157,6 +157,22 @@ gen3_ec2_terminate() {
   fi
 }
 
+
+#
+# Snapshot the root disk attached to the given ec2 instance
+#
+gen3_ec2_snapshot() {
+  local details
+  details=$(gen3_ec2_describe "$@") || return 1
+  local volume
+  volume="$(jq -e -r '.Reservations[0].Instances[0] | .RootDeviceName as $deviceName | .BlockDeviceMappings | map(select(.DeviceName == $deviceName)) | .[].Ebs.VolumeId' <<< "$details")" || return 1
+  local tags
+  tags="$(jq -e -c -r '.Reservations[0].Instances[0].Tags' <<< "$details")" || return 1
+  tags="${tags//\"/}"
+  tags="${tags//:/=}"
+  aws ec2 create-snapshot --volume-id "$volume" --description "backup $(date)" --tag-specifications "ResourceType=snapshot,Tags=$tags"
+} 
+
 # main -----------------------
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
@@ -175,6 +191,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "public-ip")
       gen3_ec2_public_ip "$@"
+      ;;
+    "snapshot")
+      gen3_ec2_snapshot "$@"
       ;;
     *)
       gen3_ec2_help

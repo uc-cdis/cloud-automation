@@ -43,9 +43,8 @@ gen3_secrets_init_git() {
         git remote add secrets_backup "$backup/secrets.git"
       fi
 
-      if [[ ! -f "$(gen3_secrets_folder)/.gitignore" ]]; then
+      if [[ ! -f "$(gen3_secrets_folder)/.gitignore" ]] || grep '\.env' "$(gen3_secrets_folder)/.gitignore" > /dev/null 2>&1; then
         cat - > "$(gen3_secrets_folder)/.gitignore" <<EOM
-*.env
 *.bak
 *.old
 *~

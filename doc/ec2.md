@@ -32,6 +32,13 @@ gen3 ec2 reboot <node.ip.address>
 Options:
 - node.ip.address: node ip address (private ip)
 
+### snapshot
+
+Snapshot the root drive of an ebs disk
+```
+gen3 ec2 snapshot (zero or more filters)
+```
+
 ### terminate
 Terminates an EC2 instance
 ```

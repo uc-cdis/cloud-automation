@@ -116,7 +116,7 @@ gen3LogsVpcList=(
     "devplanetv1 dev.planx-pla.net"
     "edcprodv2 portal.occ-data.org environmental data commons"
     "genomelprod genomel.bionimbus.org"
-    "gtexprod dcp.bionimbus.org"
+    "bdcatprod gen3.biodatacatalyst.nhlbi.nih.gov"
     "kfqa dcf-interop.kidsfirstdrc.org"
     "ibdgc-prod ibdgc.datacommons.io"
     "loginbionimbus login.bionimbus.org"
@@ -128,7 +128,7 @@ gen3LogsVpcList=(
     "skfqa gen3qa.kidsfirstdrc.org kids first"
     "qaplanetv1 qa.planx-pla.net jenkins"
     "stageprod gen3.datastage.io"
-    "stagingdatastage staging.datastage.io"
+    "stagingdatastage staging.gen3.biodatacatalyst.nhlbi.nih.gov"
     "vadcprod vpodc.org"
     "vhdcprod va.datacommons.io"
 )
