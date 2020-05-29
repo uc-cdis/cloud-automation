@@ -34,8 +34,8 @@ gen3_create_aws_batch() {
   local job_definition=$(echo "${prefix}-batch_job_definition" | head -c63)
 
   # Get aws credetial of fence_bot iam user
-  local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot2.aws_access_key_id)
-  local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot2.aws_secret_access_key)
+  local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
+  local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_secret_access_key)
 
   if [ "$secret_key" = "null" ]; then
     gen3_log_err "No fence_bot aws credential block in fence_config.yaml"
@@ -113,13 +113,13 @@ EOF
 }
 EOF
 
-  gen3 tfplan 2>&1 
+  gen3 tfplan 2>&1
   gen3 tfapply 2>&1
   if [[ $? != 0 ]]; then
     gen3_log_err "Unexpected error running gen3 tfapply."
     return 1
   fi
-  sleep 10     
+  sleep 10
 
   # Create a service account for k8s job for submitting jobs and consuming sqs
   gen3 iam-serviceaccount -c $saName -p sa.json
@@ -157,7 +157,7 @@ gen3_bucket_manifest_list() {
   done
 }
 
-# tear down the infrastructure 
+# tear down the infrastructure
 gen3_batch_cleanup() {
   if [[ $# -lt 1 ]]; then
     gen3_log_info "Need to provide a job-id "
