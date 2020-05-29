@@ -25,8 +25,24 @@ spec:
         ports:
         - containerPort: 4444
           protocol: TCP
-        readinessProbe:
+        livenessProbe:
+          failureThreshold: 3
           httpGet:
-            path: /wd/hub/sessions
+            path: /wd/hub/status
             port: 4444
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /wd/hub/status
+            port: 4444
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5      
       terminationGracePeriodSeconds: 30
