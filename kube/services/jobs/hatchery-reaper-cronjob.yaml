@@ -6,6 +6,7 @@ spec:
   schedule: "@daily"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       backoffLimit: 0

@@ -8,6 +8,7 @@ spec:
   schedule: "25 * * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       # not yet supported - backOffLimit: 3

@@ -5,6 +5,7 @@ metadata:
   name: usersync
 spec:
   schedule: "@hourly"
+  concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:
