@@ -16,7 +16,7 @@ fi
 
 
 # some command line processing
-image="$(g3k_config_lookup .versions.awshelper)" || image=quay.io/cdis/awshelper:master
+image="$(g3k_config_lookup .versions.automation)" || image=quay.io/cdis/awshelper:master
 labels="app=gen3job,name=devterm,netnolimit=yes"
 pullPolicy="Always"
 saName="jenkins-service"
