@@ -12,7 +12,8 @@ spec:
       serviceAccountName: jenkins-service
       containers:
         - name: awshelper
-          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          # often do not want pinned awshelper in gitops-sync
+          GEN3_AUTOMATION_IMAGE|-image: quay.io/cdis/awshelper:master-|
           imagePullPolicy: Always
           env:
             - name: gen3Env

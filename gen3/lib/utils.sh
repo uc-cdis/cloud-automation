@@ -211,6 +211,7 @@ function random_alphanumeric() {
 #     if gen3_time_since  "automation_gitsync" is 300; then ...
 #
 # @param operation
+# @param verb should be "is"
 # @param periodSecs
 # @return 0 if time has expired
 #
@@ -224,7 +225,7 @@ function gen3_time_since() {
   local flagFolder
 
   if [[ $# -lt 3 ]]; then
-    echo -e "$(red_color "ERROR: gen3_time_since_last got $@")" 1>&2
+    gen3_log_err "gen3_time_since got $@"
     return 1
   fi
   operation="$1"
@@ -234,7 +235,7 @@ function gen3_time_since() {
   periodSecs="$1"
   shift
   if ! [[ -n "$operation" && -n "$verb" && "$periodSecs" =~ ^[0-9]+$ ]]; then
-    echo -e "$(red_color "ERROR: gen3_time_since_last got $operation $verb $periodSecs")" 1>&2
+    gen3_log_err "gen3_time_since_last got $operation $verb $periodSecs"
     return 1
   fi
   flagFolder="${GEN3_CACHE_DIR}/flagFiles"
