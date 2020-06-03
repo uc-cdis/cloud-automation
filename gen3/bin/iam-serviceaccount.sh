@@ -114,6 +114,10 @@ EOF
 ##
 function create_role(){
   local role_name="${vpc_name}-${SERVICE_ACCOUNT_NAME}-role"
+  if [[ ${#role_name} -gt 63 ]]; then
+    role_name = $(echo "$role_name" | head -c63)
+    gen3_log_warning "Role name has been truncated, due to amazon role name 64 character limit. New role name is $role_name"
+  fi
   local assume_role_policy_path="$(create_assume_role_policy)"
 
   gen3_log_info "Entering create_role"
