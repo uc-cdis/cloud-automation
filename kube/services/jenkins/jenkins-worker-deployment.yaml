@@ -1,26 +1,18 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: jenkins-deployment
+  name: jenkins-worker-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: jenkins
-  revisionHistoryLimit: 2
-  strategy:
-    #
-    # rolling update does not work, since
-    # persistent volume claim cannot be shared
-    #
-    type: Recreate
+      app: jenkins-worker
   template:
     metadata:
       labels:
-        app: jenkins
+        app: jenkins-worker
         # for network policy
         netnolimit: "yes"
-        GEN3_DATE_LABEL
     spec:
       serviceAccountName: jenkins-service
       securityContext:
@@ -31,21 +23,22 @@ spec:
       # See for details on running docker in a pod:
       #   https://estl.tech/accessing-docker-from-a-kubernetes-pod-68996709c04b
       #
-      - name: jenkins
-        GEN3_JENKINS_IMAGE
+      - name: jenkins-worker
+        image: "registry.hub.docker.com/jenkins/jnlp-slave:4.3-1"
         ports:
         - containerPort: 8080
-          name: http
-          protocol: TCP
-        - containerPort: 50000
-          name: slavelistener
-          protocol: TCP
         env:
-          - name: HOSTNAME
+          - name: JENKINS_URL
+            value: "https://jenkins.planx-pla.net"
+          - name: JENKINS_SECRET
             valueFrom:
-              configMapKeyRef:
-                name: global
-                key: hostname
+              secretKeyRef:
+                name: jenkins-worker-g3auto
+                key: jenkins-jnlp-agent-secret 
+          - name: JENKINS_AGENT_NAME
+            value: "gen3-qa-worker"
+          - name: JENKINS_TUNNEL
+            value: "jenkins-agent:50000"
           - name: AWS_DEFAULT_REGION
             value: us-east-1
           - name: JAVA_OPTS
@@ -60,10 +53,6 @@ spec:
               secretKeyRef:
                 name: jenkins-secret
                 key: aws_secret_access_key
-          - name: JENKINS_S3_PATH
-            # Just hard code for now 
-            # Bucket in cdistest account used for backups
-            value: "s3://cdis-terraform-state/JenkinsBackup"
           - name: GOOGLE_EMAIL_AUX1
             valueFrom:
               secretKeyRef:
@@ -89,18 +78,12 @@ spec:
               secretKeyRef:
                 name: jenkins-g3auto
                 key: google_app_creds.json
-        readinessProbe:
-          httpGet:
-            path: /login
-            port: 8080
         resources:
           limits:
-            cpu: 0.9
-            memory: 8192Mi
+            cpu: 0.6
+            memory: 2048Mi
         imagePullPolicy: Always
         volumeMounts:
-        - name: datadir
-          mountPath: /var/jenkins_home
         - name: "cert-volume"
           readOnly: true
           mountPath: "/mnt/ssl/service.crt"
@@ -115,23 +98,8 @@ spec:
           subPath: "ca.pem"
         - name: dockersock
           mountPath: "/var/run/docker.sock"
-      - name: selenium
-        image: selenium/standalone-chrome:3.14
-        ports:
-        - containerPort: 4444
-        readinessProbe:
-          httpGet:
-            path: /wd/hub/sessions
-            port: 4444
-        readinessProbe:
-          httpGet:
-            path: /wd/hub/sessions
-            port: 4444
         imagePullPolicy: Always
       volumes:
-      - name: datadir
-        persistentVolumeClaim:
-          claimName: datadir-jenkins
       - name: cert-volume
         secret:
           secretName: "cert-jenkins-service"
