@@ -178,17 +178,10 @@ gen3_jupyter_idle_pods() {
 
   # Get the list of idle ambassador clusters from prometheus
   local promQuery="sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{kubernetes_namespace=\"${namespace}\"}[${ttl}]))"
-  local urlPath="prometheus/api/v1/query?query=$(gen3_encode_uri_component "$promQuery")"
   local tempClusterFile="$(mktemp "$XDG_RUNTIME_DIR/idle_apps.json_XXXXXX")"
-  (
-    gen3_log_info "Loading prometheus data: $urlPath"
-    if [[ -z "$tokenKey" || "$tokenKey" == "none" ]]; then
-      curl -s -H 'Accept: application/json' "http://prometheus-server.prometheus.svc.cluster.local/$urlPath" 
-    else
-      gen3 api curl "$urlPath" "$tokenKey"
-    fi
-  ) | jq -e -r '.data.result[] | { "cluster": .metric.envoy_cluster_name, "rate": .value[1] } | select(.rate == "0")' | tee "$tempClusterFile" 1>&2
+  gen3 prometheus query "$promQuery" "${tokenKey#none}" | jq -e -r '.data.result[] | { "cluster": .metric.envoy_cluster_name, "rate": .value[1] } | select(.rate == "0")' | tee "$tempClusterFile" 1>&2
   if [[ $? != 0 ]]; then
+    gen3_log_info "no idle ambassadore clusters found"
     rm "$tempClusterFile"
     return 0
   fi
@@ -197,6 +190,10 @@ gen3_jupyter_idle_pods() {
   local jnamespace="$(gen3_jupyter_namespace "$namespace")"
   local podList
   podList="$(g3kubectl get pods --namespace "$jnamespace" -o json | jq -r '.items[] | .metadata.name')" || return 1
+  if [[ -z "$podList" ]]; then
+    gen3_log_info "no pods found in namespace: $jnamespace"
+    return 0
+  fi
   for name in $podList; do
     # leverage hatchery naming convention here ...
     local serviceName="h-${name##hatchery-}-s"
