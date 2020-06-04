@@ -19,8 +19,18 @@ test_authz() {
   curl -i -s https://${hostname}/gen3-authz-test | head -10 | grep -E '^HTTP/[0-9\.]* 40[13]' > /dev/null; because $? "should be denied access to /gen3-authz-test with 401 or 403"
 }
 
+test_sower_template() {
+  local commandJson
+  for name in pfb; do
+    commandJson="$(gen3 api sower-template "$name")" && jq -e -r . <<< "$commandJson" > /dev/null;
+      because $? "api sower-template $name looks ok: $commandJson"
+  done
+}
+
 shunit_runtest "test_api" "api"
-if [[ $SHUNIT_FILTERS =~ authz$ ]]; then
+shunit_runtest "test_sower_template" "local,api"
+
+if [[ "$SHUNIT_FILTERS" =~ authz$ ]]; then
   #
   # only run this test if explicitly asked - 
   # requires revproxy and arborist deployment.
