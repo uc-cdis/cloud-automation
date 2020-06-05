@@ -98,8 +98,46 @@ Curl the endpoint of the given commons with the user's access token - POST jsonF
 ```
   gen3 api curl path user-email jsonFile
 ```
+or
+```
+  gen3 api curl path path/to/apikey.json jsonFile
+```
 
 ex:
 ```
   gen3 api curl /user/user reubenonrye@uchicago.edu
+```
+
+### sower-run
+
+Submit the given command file to sower to launch a job,
+then wait for the job to finish, and fetch the job output.
+Note - see `sower-template` below for help generating a
+sower command file.
+
+* run on an admin vm with a user name - fetches an access-token for that user from fence
+```  
+  gen3 api sower-run commandFile.json user-email
+```
+
+* run on any machine with an api key
+```
+  gen3 api sower-run commandFile.json path/to/apikey.json
+```
+
+### sower-template
+
+Generate a skeleton for a sower job, so it can be used with `gen3 api sower-job` or some similar tool.  Currently only supports the following job types:
+
+* pfb
+```
+$ gen3 api sower-template pfb | tee commandFile.json
+{
+  "action": "export",
+  "input": {
+    "filter": {
+      "AND": []
+    }
+  }
+}
 ```

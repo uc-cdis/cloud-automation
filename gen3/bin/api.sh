@@ -320,6 +320,73 @@ gen3_indexd_download_all() {
 }
 
 
+gen3_sower_template() {
+  local name="$1"
+  
+  case "$name" in
+    "pfb")
+      cat - <<EOM
+{
+  "action": "export",
+  "input": {
+    "filter": {
+      "AND": []
+    }
+  }
+}
+EOM
+      ;;
+    *)
+      gen3_log_err "unknown template name: $name"
+      return 1
+      ;;
+  esac
+}
+
+gen3_sower_run() {  
+  local commandFile="$1"
+  local apiKey="$2"
+  if [[ $# -lt 2 ]]; then
+    gen3_log_err "use: gen3_sower_run commandFile apiKey|username"
+    return 1
+  fi
+  shift
+  shift
+  if [[ ! -f "$commandFile" ]] || ! jq -e -r . < "$commandFile" 1>&2; then
+    gen3_log_err "sower command file does not exist or is not valid json: $commandFile"
+    return 1
+  fi
+
+  local response
+  if ! response="$(gen3 api curl "job/dispatch" "$apiKey" "$commandFile")"; then
+    gen3_log_err "failed to submit sower command - $response"
+    return 1
+  fi
+  gen3_log_info "got response: $response"
+  local uid
+  if ! uid="$(jq -e -r .uid <<< "$response")"; then
+    gen3_log_err "failed to retrieve uid from response: $response"
+    return 1
+  fi
+  local count=0
+  local status=""
+  while [[ "$count" -lt 100 ]]; do
+      gen3_log_info "waiting for job with uid: $uid"
+      sleep 10
+      if ! response="$(gen3 api curl "job/status?UID=$uid" "$apiKey")"; then
+        gen3_log_warn "failed status query - got response: $response"
+      else
+        gen3_log_info "got response: $response"
+      fi
+      status="$(jq -r .status <<< "$response")"
+      gen3_log_info "got status: $status"
+      if [[ "$status" != "Running" ]]; then count=100; fi
+      count=$((count + 1))
+  done
+  gen3_log_info "fetching output for $uid"
+  gen3 api curl "job/output?UID=$uid" "$apiKey"
+}
+
 #---------- main
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
@@ -341,6 +408,12 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "new-project")
       gen3_new_project "$@"
+      ;;
+    "sower-run")
+      gen3_sower_run "$@"
+      ;;
+    "sower-template")
+      gen3_sower_template "$@"
       ;;
     "curl")
       gen3_curl_json "$@"
