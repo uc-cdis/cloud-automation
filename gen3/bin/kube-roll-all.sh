@@ -148,6 +148,7 @@ fi
 
 if g3k_manifest_lookup .versions.dashboard > /dev/null 2>&1; then
   gen3 kube-setup-dashboard
+  gen3 dashboard gitops-sync
 else
   gen3_log_info "not deploying dashboard - no manifest entry for .versions.dashboard"
 fi
@@ -175,9 +176,6 @@ else
 fi
 
 gen3 kube-setup-metadata
-
-gen3 kube-setup-dashboard
-gen3 dashboard gitops-sync
 
 gen3 kube-setup-revproxy
 
