@@ -176,6 +176,9 @@ fi
 
 gen3 kube-setup-metadata
 
+gen3 kube-setup-dashboard
+gen3 dashboard gitops-sync
+
 gen3 kube-setup-revproxy
 
 # Internal k8s systems
