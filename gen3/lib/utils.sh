@@ -345,6 +345,7 @@ gen3_encode_uri_component() {
     "$" "%24"
     "^" "%5E"
     ";" "%3B"
+    "+" "%2B"
   )
   local str="${1:-""}"
   local it=0
