@@ -1,7 +1,5 @@
 #!/bin/bash
 #
-# Little elastic-search helper
-#
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
@@ -41,7 +39,7 @@ function gen3_prom_query() {
     gen3_log_err "use: gen3_prom_query query"
     return 1
   fi
-  gen3_prom_curl "query?query=$(gen3_encode_uri_component "$query")"    
+  gen3_prom_curl "query?query=$(gen3_encode_uri_component "$query")" "$@"
 }
 
 gen3_prom_list() {

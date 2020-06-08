@@ -174,6 +174,8 @@ else
   gen3_log_info "not deploying sower - no manifest entry for .versions.sower"
 fi
 
+gen3 kube-setup-metadata
+
 gen3 kube-setup-revproxy
 
 # Internal k8s systems

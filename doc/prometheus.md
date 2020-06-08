@@ -37,7 +37,7 @@ The prometheus site has more [query documentation](https://prometheus.io/docs/pr
 
 The [jupyter idle](./jupyter.md#idle) job queries prometheus to identify applications that have not been accessed by ambassador.
 
-## Hepers
+## Command Reference
 
 ### gen3 prometheus query $query $apiToken
 
@@ -83,3 +83,25 @@ Ex:
 ```
 gen3 prometheus curl label/__name__/values
 ```
+
+## Examples
+
+* Find the hatchery apps which have not received client network traffic (via ambassador) over the last 12 hours:
+
+```
+namespace="default"
+ttl=12h
+promQuery="sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{kubernetes_namespace=\"${namespace}\"}[${ttl}]))"
+gen3 prometheus query "$promQuery" "${tokenKey}"
+```
+
+* Show a history over the last 2 days of the number of nodes in a kubernetes cluster broken down by node role ("jupyter" or "default")
+
+```
+promQuery='sum by (label_role) (rate(kube_node_labels[1h]) +1)[2d:2h]'
+gen3 prometheus query "$promQuery"
+```
+
+## Resources
+
+* https://prometheus.io/docs/prometheus/latest/querying/examples/
