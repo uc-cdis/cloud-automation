@@ -40,14 +40,17 @@ gen3_ebs_snapshot() {
     gen3_log_info "Use: gen3 ebs snapshot volume"
     return 1
   fi
+  local tags
   (
     set -e
-    check=$(aws ec2 describe-volumes --volume-id $volume| jq -r .Volumes[0])
-    if [[ -z $check ]]; then
+    tags="$(aws ec2 describe-volumes --volume-id "$volume" | jq -r .Volumes[0].Tags)"
+    tags="${tags//\"/}"
+    tags="${tags//:/=}"
+    if [[ -z $tags ]]; then
       gen3_log_err "Unable to find volume with is $volume"
       exit 1
     fi
-    snapshot=$(gen3 aws ec2 create-snapshot --volume-id $volume | jq -r .SnapshotId)
+    snapshot=$((gen3 aws ec2 create-snapshot --tag-specifications "ResourceType=snapshot,Tags=$tags" --volume-id $volume || echo "ERROR creating snapshot") | jq -r .SnapshotId) || exit 1
     gen3_log_info "Found volume $volume taking snapshot"
     while [ "$state" != "completed" ]; do
       sleep 2s
