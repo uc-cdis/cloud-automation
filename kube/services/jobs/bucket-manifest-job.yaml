@@ -16,7 +16,7 @@ spec:
             secretName: "bucketmanifest-g3auto"
       containers:
       - name: aws-bucket-manifest
-        GEN3_AWS-BUCKET-MANIFEST_IMAGE
+        GEN3_AWS-BUCKET-MANIFEST_IMAGE|-image: quay.io/cdis/bucket-manifest:master-|
         imagePullPolicy: Always
         ports:
         - containerPort: 80
