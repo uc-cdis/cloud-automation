@@ -135,8 +135,7 @@ EOF
 
   # Create a service account for k8s job for submitting jobs and consuming sqs
   gen3 iam-serviceaccount -c $saName -p sa.json
-  if [[ "$authz" != "" ]] && [[ $authz != s3://* ]]; then
-    echo "=================Upload $authz to the bucket $temp_bucket ======================"
+  if [[ "$authz" != "" ]]; then
     aws s3 cp "$authz" "s3://${temp_bucket}/authz.tsv"
     authz="s3://${temp_bucket}/authz.tsv"
   fi
