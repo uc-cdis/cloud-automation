@@ -67,7 +67,10 @@ variable "batch_job_queue_name" {
   description = "batch job queue name"
 }
 
-
 variable "sqs_queue_name" {
   description = "sqs queue name"
+}
+
+variable "output_bucket_name" {
+  description = "output bucket"
 }

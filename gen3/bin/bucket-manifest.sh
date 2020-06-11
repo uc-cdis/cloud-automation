@@ -17,21 +17,24 @@ saName=$(echo "${prefix}-sa" | head -c63)
 # function to create an job and returns a job id
 #
 # @param bucket: the input bucket
-# @param subnets: the subnets where the batch jobs live
-# @param out_bucket: the bucket that stores the output manifest
 #
 gen3_create_aws_batch() {
-  if [[ $# -lt 2 ]]; then
-    gen3_log_info "The input and output buckets are required "
+  if [[ $# -lt 1 ]]; then
+    gen3_log_info "The input bucket is required "
     exit 1
   fi
   bucket=$1
-  out_bucket=$2
+  authz=$2
+  if [[ "$authz" != "" ]] && [[ $authz != s3://* ]] && [[ $authz != /* ]]; then
+    gen3_log_info "Please provide the absolute path "
+    exit 1
+  fi
   echo $prefix
 
   local job_queue=$(echo "${prefix}_queue_job" | head -c63)
   local sqs_name=$(echo "${prefix}-sqs" | head -c63)
   local job_definition=$(echo "${prefix}-batch_job_definition" | head -c63)
+  local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
 
   # Get aws credetial of fence_bot iam user
   local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
@@ -83,6 +86,7 @@ batch_job_definition_name    = "${prefix}-batch_job_definition"
 compute_environment_name     = "${prefix}-compute-env"
 batch_job_queue_name         = "${job_queue}"
 sqs_queue_name               = "${sqs_name}"
+output_bucket_name           = "${temp_bucket}"
 EOF
 
   cat << EOF > sa.json
@@ -108,6 +112,14 @@ EOF
              "Effect": "Allow",
              "Action": "batch:*",
              "Resource":"arn:aws:batch:us-east-1:${accountId}:job-queue/${job_queue}"
+        },
+        {
+             "Effect": "Allow",
+             "Action": "s3:*",
+             "Resource":[
+               "arn:aws:s3:::${temp_bucket}",
+               "arn:aws:s3:::${temp_bucket}/*"
+             ]
         }
     ]
 }
@@ -119,14 +131,19 @@ EOF
     gen3_log_err "Unexpected error running gen3 tfapply."
     return 1
   fi
-  sleep 10
+  sleep 30
 
   # Create a service account for k8s job for submitting jobs and consuming sqs
   gen3 iam-serviceaccount -c $saName -p sa.json
+  if [[ "$authz" != "" ]] && [[ $authz != s3://* ]]; then
+    echo "=================Upload $authz to the bucket $temp_bucket ======================"
+    aws s3 cp "$authz" "s3://${temp_bucket}/authz.tsv"
+    authz="s3://${temp_bucket}/authz.tsv"
+  fi
 
   # Run k8s jobs to submitting jobs and consuming sqs
   local sqsUrl=$(aws sqs get-queue-url --queue-name $sqs_name | jq -r .QueueUrl)
-  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/bucket-manifest-job.yaml BUCKET $bucket JOB_QUEUE $job_queue JOB_DEFINITION $job_definition SQS $sqsUrl OUT_BUCKET $out_bucket | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|bucket-manifest#PLACEHOLDER#|bucket-manifest-${jobId}|g" > ./bucket-manifest-${jobId}-job.yaml
+  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/bucket-manifest-job.yaml BUCKET $bucket JOB_QUEUE $job_queue JOB_DEFINITION $job_definition SQS $sqsUrl AUTHZ $authz OUT_BUCKET $temp_bucket | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|bucket-manifest#PLACEHOLDER#|bucket-manifest-${jobId}|g" > ./bucket-manifest-${jobId}-job.yaml
   gen3 job run ./bucket-manifest-${jobId}-job.yaml
   gen3_log_info "The job is started. Job ID: ${jobId}"
 
@@ -182,7 +199,9 @@ gen3_batch_cleanup() {
 
   local prefix="${hostname//./-}-bucket-manifest-${jobId}"
   local saName=$(echo "${prefix}-sa" | head -c63)
+  local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
 
+  gen3_aws_run aws s3 rm "s3://${temp_bucket}" --recursive
   gen3 workon default ${prefix}__batch
   gen3 cd
   gen3_load "gen3/lib/terraform"
