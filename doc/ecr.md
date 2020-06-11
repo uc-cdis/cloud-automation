@@ -67,3 +67,12 @@ Copy an image from the given repo with the given tag to its corresponding ecr re
 ```
 gen3 ecr quay-sync fence 2020.05
 ```
+
+### update-policy
+
+Update the access policy on an ECR repo
+
+Ex:
+```
+gen3 ecr update-policy gen3/fence
+```

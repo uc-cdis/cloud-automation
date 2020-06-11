@@ -75,6 +75,15 @@ ex:
   gen3 api new-program jnkns reubenonrye@uchicago.edu
 ```
 
+### hostname
+
+Shortcut for `g3kubectl get configmap manifest-global -o json | jq -r .data.hostname`
+
+ex:
+```
+  gen3 api hostname
+```
+
 ### new-project
 
 Attempt to create a new project using a default template -

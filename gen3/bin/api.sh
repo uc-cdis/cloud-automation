@@ -224,12 +224,20 @@ gen3_indexd_post_folder_help() {
   cat - <<EOM
   gen3 indexd-post-folder [folder]:
       Post the .json files under the given folder to indexd
-      in the current environment: $DEST_DOMAIN
+      in the current environment
       Note - currently only works with new records - does not
          attempt to update existing records.
 EOM
   return 0
 }
+
+#
+# Shortcut for querying manifest-global .data.hostname
+#
+gen3_api_hostname() {
+  (g3kubectl get configmap manifest-global -o json || echo "ERROR - breaking pipeline") | jq  -e -r '.data.hostname'
+}
+
 
 gen3_indexd_post_folder() {
   local DEST_DOMAIN
@@ -250,7 +258,7 @@ gen3_indexd_post_folder() {
     return 1
   fi
 
-  DEST_DOMAIN=$(g3kubectl get configmap global -o json | jq -r '.data.hostname')
+  DEST_DOMAIN="$(gen3_api_hostname)"
   INDEXD_USER=gdcapi
   # grab the gdcapi indexd password from sheepdog creds
   INDEXD_SECRET="$(g3kubectl get secret sheepdog-creds -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r '.indexd_password')"
@@ -402,6 +410,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "access-token")
       gen3_access_token "$@"
+      ;;
+    "hostname")
+      gen3_api_hostname "$@"
       ;;
     "new-program")
       gen3_new_program "$@"

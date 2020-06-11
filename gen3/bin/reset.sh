@@ -109,13 +109,9 @@ clear_wts_clientId() {
 
 gen3_user_verify "about to drop all service deployments"
 gen3 klock lock reset-lock "$LOCK_USER" 3600 -w 60
-g3kubectl delete --all deployments --now
-# ssjdispatcher leaves jobs laying around when undeployed
-g3kubectl delete --all "jobs" --now
+gen3 shutdown namespace
 # also clean out network policies
 g3kubectl delete networkpolicies --all
-# just delete every damn thing
-g3kubectl delete --all "pods" --now
 wait_for_pods_down
 
 #
