@@ -15,8 +15,8 @@ spec:
           secret:
             secretName: "bucketmanifest-g3auto"
       containers:
-      - name: bucket-manifest
-        image: quay.io/cdis/bucket-manifest:master
+      - name: aws-bucket-manifest
+        GEN3_AWS-BUCKET-MANIFEST_IMAGE
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -31,6 +31,8 @@ spec:
           GEN3_JOB_DEFINITION
         - name: SQS
           GEN3_SQS
+        - name: AUTHZ
+          GEN3_AUTHZ|-value: ""-|
         - name: OUT_BUCKET
           GEN3_OUT_BUCKET
         volumeMounts:
@@ -49,6 +51,11 @@ spec:
             [default]
             region: us-east-1
             """ > /home/ubuntu/.aws/config
-            python batch_jobs/bin/run_bucket_manifest_job.py create_manifest --bucket $BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION} --sqs $SQS --out_bucket ${OUT_BUCKET}
+            if [[ "$AUTHZ" == "" ]]; then
+              python batch_jobs/bin/run_bucket_manifest_job.py create_manifest --bucket $BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION} --sqs $SQS --out_bucket ${OUT_BUCKET}
+            else
+              aws s3 cp "$AUTHZ" /bucket-manifest/authz.tsv
+              python batch_jobs/bin/run_bucket_manifest_job.py create_manifest --bucket $BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION} --sqs $SQS --authz /bucket-manifest/authz.tsv --out_bucket ${OUT_BUCKET}
+            fi
             echo "All done - exit status $?"
       restartPolicy: Never

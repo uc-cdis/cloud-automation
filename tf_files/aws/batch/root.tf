@@ -214,3 +214,7 @@ resource "aws_batch_job_queue" "batch-job-queue" {
   priority             = "${var.priority}"
   compute_environments = ["${aws_batch_compute_environment.new_batch_compute_environment.arn}"]
 }
+
+resource "aws_s3_bucket" "new_bucker" {
+  bucket = "${var.output_bucket_name}"
+}
