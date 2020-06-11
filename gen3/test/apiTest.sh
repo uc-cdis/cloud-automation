@@ -27,7 +27,14 @@ test_sower_template() {
   done
 }
 
+test_api_hostname() {
+  local hostname
+  hostname="$(gen3 api hostname)" && [[ "$hostname" == "$(g3kubectl get configmap global -o json | jq -r .data.hostname)" ]]
+    because $? "api hostname gives same value as global configmap: $hostname"
+}
+
 shunit_runtest "test_api" "api"
+shunit_runtest "test_api_hostname" "api"
 shunit_runtest "test_sower_template" "local,api"
 
 if [[ "$SHUNIT_FILTERS" =~ authz$ ]]; then
