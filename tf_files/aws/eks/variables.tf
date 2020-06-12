@@ -95,3 +95,9 @@ variable "single_az_for_jupyter" {
   description = "Jupyter notebooks on a single AZ"
   default     = false
 }
+
+variable "oidc_eks_thumbprint" {
+  description = "Thumbprint for the AWS OIDC identity provider"
+  type        = "list"
+  default     = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
+}
