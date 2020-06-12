@@ -18,23 +18,24 @@ temp_bucket="${prefix}_temp_bucket"
 # function to create an job and returns a job id
 #
 # @param bucket: the input bucket
-# @param subnets: the subnets where the batch jobs live
-# @param out_bucket: the bucket that stores the output manifest
+# @param service_account: the service account has access to the input bucket
 #
 gen3_create_google_dataflow() {
   if [[ $# -lt 1 ]]; then
-    gen3_log_info "A input bucket and a service account are required "
+    gen3_log_info "A input bucket"
     exit 1
   fi
   bucket=$1
   service_account=$2
+
+  # use default service account if it is not provided
+  if [[ "$service_account" == "" ]]; then
+    service_account=$(gcloud config get-value account)
+  fi
+
   echo $prefix
 
   local project=$(gcloud config get-value project)
-  echo $project
-  echo "$bucket"
-  echo "creating $temp_bucket "
-  echo "${service_account}"
 
   gsutil mb -c standard gs://"$temp_bucket"
 
@@ -91,10 +92,10 @@ gen3_bucket_manifest_help() {
 
 # function to list all jobs
 gen3_bucket_manifest_list() {
-  local search_dir="$HOME/.local/share/gen3/default"
+  local search_dir="$HOME/.local/share/gen3/gcp-default"
   for entry in `ls $search_dir`; do
-    if [[ $entry == *"__batch" ]]; then
-      jobid=$(echo $entry | sed -n "s/^.*-\(\S*\)__batch$/\1/p")
+    if [[ $entry == *"__dataflow" ]]; then
+      jobid=$(echo $entry | sed -n "s/^.*-\(\S*\)__dataflow$/\1/p")
       echo $jobid
     fi
   done
@@ -126,7 +127,7 @@ gen3_batch_cleanup() {
   local prefix="${hostname//./-}-gcp-bucket-manifest-${jobId}"
   local temp_bucket="${prefix}_temp_bucket"
 
-  gen3 workon default ${prefix}__dataflow
+  gen3 workon gcp-default ${prefix}__dataflow
   gen3 cd
   gen3_load "gen3/lib/terraform"
   gen3_terraform destroy

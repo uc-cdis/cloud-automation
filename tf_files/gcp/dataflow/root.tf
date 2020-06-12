@@ -32,3 +32,27 @@ resource "google_dataflow_job" "big_data_job" {
     pub_topic = "${google_pubsub_topic.new_topic.name}"
   }
 }
+
+resource "google_project_iam_binding" "dataflow_worker" {
+  project = "${var.project_id}"
+  role    = "roles/dataflow.worker"
+  members = [
+    "serviceAccount:${var.service_account_email}"
+  ]
+}
+
+resource "google_project_iam_binding" "pubsub_admin" {
+  project = "${var.project_id}"
+  role    = "roles/pubsub.admin"
+  members = [
+    "serviceAccount:${var.service_account_email}"
+  ]
+}
+
+resource "google_project_iam_binding" "storage_admin" {
+  project = "${var.project_id}"
+  role    = "roles/storage.admin"
+  members = [
+    "serviceAccount:${var.service_account_email}"
+  ]
+}
