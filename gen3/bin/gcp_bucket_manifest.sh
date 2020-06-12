@@ -22,7 +22,7 @@ temp_bucket="${prefix}_temp_bucket"
 #
 gen3_create_google_dataflow() {
   if [[ $# -lt 1 ]]; then
-    gen3_log_info "A input bucket"
+    gen3_log_info "A input bucket is required"
     exit 1
   fi
   bucket=$1
@@ -42,13 +42,14 @@ gen3_create_google_dataflow() {
   gen3 workon gcp-default ${prefix}__dataflow
   gen3 cd
 
+  # Download code to build a google template
   virtualenv venv
   source venv/bin/activate
   git clone https://github.com/uc-cdis/google-bucket-manifest && cd google-bucket-manifest && git checkout feat/bucket_manifest
   pip install -r requirements.txt
-  
+
+  # Build a template
   python bucket_manifest_pipeline.py --runner DataflowRunner  --project "$project" --bucket "$bucket" --temp_location gs://"$temp_bucket"/temp  --template_location gs://"$temp_bucket"/templates/pipeline_template --region us-central1 --setup_file ./setup.py --service_account_email "${service_account}"
-  #python bucket_manifest_pipeline.py --runner DataflowRunner  --project dcf-integration --bucket dcf-integration-test --temp_location gs://dcf-dataflow-bucket/temp  --template_location gs://dcf-dataflow-bucket/templates/pipe_line_example2.tpl --region us-central1 --setup_file ./setup.py --service_account_email giang-test-sa3@dcf-integration.iam.gserviceaccount.com
   gen3 cd
 
   # build google template
@@ -71,7 +72,12 @@ EOF
   fi
   sleep 10
 
-  # gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/bucket-manifest-job.yaml BUCKET $bucket JOB_QUEUE $job_queue JOB_DEFINITION $job_definition SQS $sqsUrl OUT_BUCKET $out_bucket | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|bucket-manifest#PLACEHOLDER#|bucket-manifest-${jobId}|g" > ./bucket-manifest-${jobId}-job.yaml
+  if [[ "$authz" != "" ]]; then
+    gsutil cp "$authz" "gs://${temp_bucket}/authz.tsv"
+    authz="gs://${temp_bucket}/authz.tsv"
+  fi
+
+  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/gcple-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB "${prefix}-pubsub_sub_name" AUTHZ $authz OUT_BUCKET $out_bucket | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|gcp-bucket-manifest#PLACEHOLDER#|gcp-bucket-manifest-${jobId}|g" > ./gcp-bucket-manifest-${jobId}-job.yaml
   # gen3 job run ./bucket-manifest-${jobId}-job.yaml
   gen3_log_info "The job is started. Job ID: ${jobId}"
 }
@@ -81,7 +87,7 @@ EOF
 # @param job-id
 #
 gen3_manifest_generating_status() {
-  gen3_log_info "Please use kubectl logs -f bucket-manifest-{jobid}-xxx command"
+  gen3_log_info "Please use kubectl logs -f gcp-bucket-manifest-{jobid}-xxx command"
 }
 
 

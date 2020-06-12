@@ -1,0 +1,45 @@
+# gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/bucket-manifest-job.yaml BUCKET cdistest-giangb-bucket1-databucket-gen3 JOB_QUEUE giang_batch_job_queue_name JOB_DEFINITION batch_job_definition_name SQS https://sqs.us-east-1.amazonaws.com/707767160287/terraform-example-queue OUT_BUCKET cdistest-giangb-bucket1-databucket-gen3 | sed "s|sa-#SA_NAME_PLACEHOLDER#|giangb-aws-batch-operations-account|g"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gcp-bucket-manifest#PLACEHOLDER#
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: sa-#SA_NAME_PLACEHOLDER#
+      containers:
+      - name: gcp-bucket-manifest
+        GEN3_GCP-BUCKET-MANIFEST_IMAGE|-image: quay.io/cdis/google-bucket-manifest:master-|
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: PROJECT
+          GEN3_PROJECT
+        - name: PUBSUB_SUB
+          GEN3_PUBSUB_SUB
+        - name: N_MESSAGES
+          GEN3_N_MESSAGES
+        - name: AUTHZ
+          GEN3_AUTHZ|-value: ""-|
+        - name: OUT_BUCKET
+          GEN3_OUT_BUCKET
+        resources:
+          limits:
+            cpu: 2
+            memory: 8Gi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            if [[ "$AUTHZ" == "" ]]; then
+              python bucket_manifest/sub.py $PROJECT ${PUBSUB_SUB} ${N_MESSAGES} ${OUT_BUCKET}
+            else
+              gsutil cp "$AUTHZ" /google-bucket-manifest/authz.tsv
+              python bucket_manifest/sub.py $PROJECT ${PUBSUB_SUB} ${N_MESSAGES} ${OUT_BUCKET} $AUTHZ
+            fi
+            echo "All done - exit status $?"
+      restartPolicy: Never
