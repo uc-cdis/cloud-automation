@@ -46,12 +46,12 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
           zsh
 
 # Copy sh script responsible for installing Python
-COPY install-python3.6.sh /root/tmp/install-python3.6.sh
+COPY install-python3.6.sh /tmp/install-python3.6.sh
 
 # Run the script responsible for installing Python 3.6.1 and link it to /usr/bin/python3
-RUN chmod +x /root/tmp/install-python3.6.sh; sync && \
-	./root/tmp/install-python3.6.sh && \
-	rm -rf /root/tmp/install-python3.6.sh && \
+RUN chmod +x /tmp/install-python3.6.sh; sync && \
+        /tmp/install-python3.6.sh && \
+	rm -rf /tmp/install-python3.6.sh && \
 	ln -s /Python-3.6.1/python /usr/bin/python3.6
 
 # Install pip3 for Python 3.6.1
