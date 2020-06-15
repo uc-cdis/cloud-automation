@@ -11,7 +11,6 @@ fi
 jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
 
 prefix="${hostname//./-}-gcp-bucket-manifest-${jobId}"
-saName=$(echo "${prefix}-sa" | head -c63)
 temp_bucket="${prefix}_temp_bucket"
 
 
@@ -21,17 +20,18 @@ temp_bucket="${prefix}_temp_bucket"
 # @param service_account: the service account has access to the input bucket
 #
 gen3_create_google_dataflow() {
-  if [[ $# -lt 1 ]]; then
-    gen3_log_info "A input bucket is required"
+  if [[ $# -lt 2 ]]; then
+    gen3_log_info "A input bucket and a service account are required"
     exit 1
   fi
   bucket=$1
   service_account=$2
+  authz=$3
 
-  # use default service account if it is not provided
-  if [[ "$service_account" == "" ]]; then
-    service_account=$(gcloud config get-value account)
-  fi
+  # # use default service account if it is not provided
+  # if [[ "$service_account" == "" ]]; then
+  #   service_account=$(gcloud config get-value account)
+  # fi
 
   echo $prefix
 
@@ -76,9 +76,12 @@ EOF
     gsutil cp "$authz" "gs://${temp_bucket}/authz.tsv"
     authz="gs://${temp_bucket}/authz.tsv"
   fi
-
-  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/gcple-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB "${prefix}-pubsub_sub_name" AUTHZ $authz OUT_BUCKET $out_bucket | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|gcp-bucket-manifest#PLACEHOLDER#|gcp-bucket-manifest-${jobId}|g" > ./gcp-bucket-manifest-${jobId}-job.yaml
-  # gen3 job run ./bucket-manifest-${jobId}-job.yaml
+  pubsub_sub="${prefix}-pubsub_sub_name"
+  n_messages="$(gsutil du gs://${bucket} | wc -l)"
+  #gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub} AUTHZ $authz N_MESSAGES ${n_messages} OUT_BUCKET ${temp_bucket} | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|gcp-bucket-manifest#PLACEHOLDER#|gcp-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
+  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub} AUTHZ "$authz" N_MESSAGES $n_messages OUT_BUCKET $temp_bucket | sed "s|google-bucket-manifest#PLACEHOLDER#|google-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
+  gen3 secrets sync "initialize gcp-bucket-manifest/config.json"
+  gen3 job run ./google-bucket-manifest-${jobId}-job.yaml
   gen3_log_info "The job is started. Job ID: ${jobId}"
 }
 
