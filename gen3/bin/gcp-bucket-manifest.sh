@@ -30,6 +30,13 @@ gen3_create_google_dataflow() {
 
   echo $prefix
 
+  g3kubectl get secret gcp-bucket-manifest-g3auto
+  if [ $? -eq 1 ]
+  then
+    echo "Need to setup gcp-bucket-manifest-g3auto secret that stores a service account credential. This SA needs storage admin and pubsub read accesses"
+    exit 1
+  fi
+
   local project=$(gcloud config get-value project)
   gcloud projects get-iam-policy ${project} --flatten="bindings[].members" --format='table(bindings.role)' --filter="bindings.members:${service_account}" | grep roles/pubsub.admin
   if [ $? -eq 1 ]
