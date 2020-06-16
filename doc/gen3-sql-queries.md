@@ -35,6 +35,20 @@ Example output:
  test-bucket-with-data                   | test      | test-bucket-with-data_write_gbag@test.datacommons.io
 ```
 
+### Get User Proxy Google Groups within Google Bucket Access Group specified
+
+```sql
+select google_proxy_group.email, google_bucket_access_group.email from google_proxy_group_to_google_bucket_access_group INNER JOIN google_proxy_group ON google_proxy_group_to_google_bucket_access_group.proxy_group_id=google_proxy_group.id INNER JOIN google_bucket_access_group ON google_proxy_group_to_google_bucket_access_group.access_group_id=google_bucket_access_group.id where google_bucket_access_group.email='prefix_phs0000123.c1_read_gbag@example.com';
+```
+
+Example output:
+```console
+                              email                              |                        email
+-----------------------------------------------------------------+-----------------------------------------------------
+ prefix-username1-1@example.com                                  | prefix_phs0000123.c1_read_gbag@example.com
+ prefix-username2-2@example.com                                  | prefix_phs0000123.c1_read_gbag@example.com
+```
+
 ### Get Registered Google Service Account(s) Project Access and Expiration
 To determine which user service accounts currently have access to controlled data (and their associated Google Project).
 
