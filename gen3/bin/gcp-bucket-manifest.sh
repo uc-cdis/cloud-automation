@@ -21,21 +21,36 @@ temp_bucket="${prefix}_temp_bucket"
 #
 gen3_create_google_dataflow() {
   if [[ $# -lt 2 ]]; then
-    gen3_log_info "A input bucket and a service account are required"
+    gen3_log_info "An input bucket and a service account are required"
     exit 1
   fi
   bucket=$1
   service_account=$2
   authz=$3
 
-  # # use default service account if it is not provided
-  # if [[ "$service_account" == "" ]]; then
-  #   service_account=$(gcloud config get-value account)
-  # fi
-
   echo $prefix
 
   local project=$(gcloud config get-value project)
+  gcloud projects get-iam-policy ${project} --flatten="bindings[].members" --format='table(bindings.role)' --filter="bindings.members:${service_account}" | grep roles/pubsub.admin
+  if [ $? -eq 1 ]
+  then
+    echo "The service account does not have admin access to pub/sub service"
+    exit 1
+  fi
+  
+  gcloud projects get-iam-policy ${project} --flatten="bindings[].members" --format='table(bindings.role)' --filter="bindings.members:${service_account}" | grep roles/storage.admin
+  if [ $? -eq 1 ]
+  then
+    echo "The service account does not have admin access to storage service"
+    exit 1
+  fi
+  
+  gcloud projects get-iam-policy ${project} --flatten="bindings[].members" --format='table(bindings.role)' --filter="bindings.members:${service_account}" | grep roles/dataflow.worker
+  if [ $? -eq 1 ]
+  then
+    echo "The service account does not have dataflow.worker role"
+    exit 1
+  fi
 
   gsutil mb -c standard gs://"$temp_bucket"
 
@@ -45,7 +60,7 @@ gen3_create_google_dataflow() {
   # Download code to build a google template
   virtualenv venv
   source venv/bin/activate
-  git clone https://github.com/uc-cdis/google-bucket-manifest && cd google-bucket-manifest && git checkout feat/bucket_manifest
+  git clone https://github.com/uc-cdis/google-bucket-manifest && cd google-bucket-manifest
   pip install -r requirements.txt
 
   # Build a template
@@ -90,13 +105,19 @@ EOF
 # @param job-id
 #
 gen3_manifest_generating_status() {
-  gen3_log_info "Please use kubectl logs -f gcp-bucket-manifest-{jobid}-xxx command"
+  if [[ $# -lt 1 ]]; then
+    gen3_log_info "An jobId is required"
+    exit 1
+  fi
+  jobid=$1
+  pod_name=$(g3kubectl get pod | grep google-bucket-manifest-$jobid | grep -e Completed -e Running | cut -d' ' -f1)
+  g3kubectl logs -f ${pod_name}
 }
 
 
 # Show help
 gen3_bucket_manifest_help() {
-  gen3 help bucket-manifest
+  gen3 help gcp-bucket-manifest
 }
 
 # function to list all jobs
@@ -143,6 +164,7 @@ gen3_batch_cleanup() {
   gen3 trash --apply
 
   gsutil rm -r gs://"${temp_bucket}"
+  g3kubectl delete job google-bucket-manifest-${jobId}
 }
 
 command="$1"
@@ -155,7 +177,7 @@ case "$command" in
     gen3_batch_cleanup "$@"
     ;;
   'status')
-    gen3_manifest_generating_status
+    gen3_manifest_generating_status "$@"
     ;;
   'list' )
     gen3_bucket_manifest_list
