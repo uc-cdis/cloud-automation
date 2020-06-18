@@ -25,8 +25,8 @@ spec:
           GEN3_PUBSUB_SUB
         - name: N_MESSAGES
           GEN3_N_MESSAGES
-        - name: AUTHZ
-          GEN3_AUTHZ|-value: ""-|
+        - name: METADATA_FILE
+          GEN3_METADATA_FILE|-value: ""-|
         - name: OUT_BUCKET
           GEN3_OUT_BUCKET
         volumeMounts:
@@ -44,11 +44,11 @@ spec:
             gcloud auth activate-service-account --key-file=/google-bucket-manifest/config.json
             export GOOGLE_APPLICATION_CREDENTIALS=/google-bucket-manifest/config.json
 
-            if [[ "$AUTHZ" == "" ]]; then
+            if [[ "${METADATA_FILE}" == "" ]]; then
               python bucket_manifest/sub.py create_manifest --project_id $PROJECT --subscription_id ${PUBSUB_SUB} --n_expected_messages ${N_MESSAGES} --bucket_name ${OUT_BUCKET}
             else
-              gsutil cp "$AUTHZ" /google-bucket-manifest/authz.tsv
-              python bucket_manifest/sub.py create_manifest --project_id $PROJECT --subscription_id ${PUBSUB_SUB} --n_expected_messages ${N_MESSAGES} --bucket_name ${OUT_BUCKET} --authz_file /google-bucket-manifest/authz.tsv
+              gsutil cp "${METADATA_FILE}" /google-bucket-manifest/metadata_file.tsv
+              python bucket_manifest/sub.py create_manifest --project_id $PROJECT --subscription_id ${PUBSUB_SUB} --n_expected_messages ${N_MESSAGES} --bucket_name ${OUT_BUCKET} --metadata_file /google-bucket-manifest/metadata_file.tsv
             fi
             echo "All done - exit status $?"
       restartPolicy: Never
