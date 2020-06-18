@@ -24,6 +24,3 @@ spec:
           limits:
             cpu: 0.5
             memory: 512Mi
-        command: ["/bin/bash"]
-        args:
-          - "/seir-forecast/run_seir_forecast.sh"
