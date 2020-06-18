@@ -12,12 +12,12 @@ The tool will spin up a google dataflow a pubsub topic and a pubsub subscription
 Launch a google dataflow job to generate a manifest of the source bucket. A service account that has read access to the source bucket is required.
 
 ```bash
-  gen3 gcp-bucket-manifest create <source bucket> <service account> [authz_path|gs_path]
+  gen3 gcp-bucket-manifest create <source bucket> <service account> [metadata_file|gs_path]
 ```
 
 Ex.
 ```
-gen3 gcp-bucket-manifest create dcf-integration-test giang-test-sa3@dcf-integration.iam.gserviceaccount.com /home/giang/authz.tsv
+gen3 gcp-bucket-manifest create dcf-integration-test giang-test-sa3@dcf-integration.iam.gserviceaccount.com /home/giangb/metadata_file.tsv
 ```
 
 ### status

@@ -26,7 +26,7 @@ gen3_create_google_dataflow() {
   fi
   bucket=$1
   service_account=$2
-  authz=$3
+  metadata_file=$3
 
   echo $prefix
 
@@ -94,14 +94,19 @@ EOF
   fi
   sleep 10
 
-  if [[ "$authz" != "" ]]; then
-    gsutil cp "$authz" "gs://${temp_bucket}/authz.tsv"
-    authz="gs://${temp_bucket}/authz.tsv"
+  if [[ "${metadata_file}" != "" ]]; then
+    gsutil cp "${metadata_file}" "gs://${temp_bucket}/metadata_file.tsv"
+    if [[ $? != 0 ]]; then
+      gen3_log_err "Unexpected error uploading ${metadata_file} to ${temp_bucket}."
+      exit 1
+    fi
+
+    metadata_file="gs://${temp_bucket}/metadata_file.tsv"
   fi
   pubsub_sub="${prefix}-pubsub_sub_name"
   n_messages="$(gsutil du gs://${bucket} | wc -l)"
-  #gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub} AUTHZ $authz N_MESSAGES ${n_messages} OUT_BUCKET ${temp_bucket} | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|gcp-bucket-manifest#PLACEHOLDER#|gcp-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
-  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub} AUTHZ "$authz" N_MESSAGES $n_messages OUT_BUCKET $temp_bucket | sed "s|google-bucket-manifest#PLACEHOLDER#|google-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
+  #gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub} AUTHZ ${metadata_file} N_MESSAGES ${n_messages} OUT_BUCKET ${temp_bucket} | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|gcp-bucket-manifest#PLACEHOLDER#|gcp-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
+  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub} METADATA_FILE "${metadata_file}" N_MESSAGES $n_messages OUT_BUCKET $temp_bucket | sed "s|google-bucket-manifest#PLACEHOLDER#|google-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
   gen3 secrets sync "initialize gcp-bucket-manifest/config.json"
   gen3 job run ./google-bucket-manifest-${jobId}-job.yaml
   gen3_log_info "The job is started. Job ID: ${jobId}"
@@ -118,6 +123,10 @@ gen3_manifest_generating_status() {
   fi
   jobid=$1
   pod_name=$(g3kubectl get pod | grep google-bucket-manifest-$jobid | grep -e Completed -e Running | cut -d' ' -f1)
+  if [[ $? != 0 ]]; then
+    gen3_log_err "The job has not been started. Check it again"
+    exit 0
+  fi
   g3kubectl logs -f ${pod_name}
 }
 
