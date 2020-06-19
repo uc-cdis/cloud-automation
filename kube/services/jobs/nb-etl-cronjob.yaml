@@ -35,5 +35,5 @@ spec:
                 GEN3_S3_BUCKET
               resources:
                 limits:
-                  cpu: 1
-                  memory: 8Gi # guess on upper bound - want to overshoot
+                  cpu: 4
+                  memory: 16Gi # guess on upper bound
