@@ -29,5 +29,5 @@ spec:
           GEN3_S3_BUCKET
         resources:
           limits:
-            cpu: 4
-            memory: 16Gi # guess on upper bound
+            cpu: 2
+            memory: 8Gi # guess on upper bound
