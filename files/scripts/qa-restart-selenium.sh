@@ -24,4 +24,5 @@ if [[ -z "$USER" ]]; then
   export USER="$(basename "$HOME")"
 fi
 
-kubectl delete pods $(kubectl get pods | grep selenium | awk '{ print $1 }')
+source "${GEN3_HOME}/gen3/gen3setup.sh"
+g3kubectl delete pods $(kubectl get pods | grep selenium | awk '{ print $1 }')
