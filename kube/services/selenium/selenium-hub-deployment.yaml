@@ -18,7 +18,9 @@ spec:
       containers:
       - env:
         - name: GRID_MAX_SESSION
-          value: "20"
+          value: "42"
+        - name: GRID_BROWSER_TIMEOUT
+          value: "0"
         image: selenium/hub:3.141
         imagePullPolicy: Always
         name: hub
