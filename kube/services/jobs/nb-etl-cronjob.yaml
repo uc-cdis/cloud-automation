@@ -17,6 +17,13 @@ spec:
         spec:
           serviceAccountName: s3-access-opencdn-databucket-gen3
           restartPolicy: Never
+          nodeSelector:
+            role: "jupyter"
+          tolerations:
+            - key: "role" 
+              operator: "Equal"
+              value: "jupyter" 
+              effect: "NoSchedule"
           containers:
             - name: nb-etl
               imagePullPolicy: Always
@@ -27,6 +34,9 @@ spec:
               - name: S3_BUCKET
                 GEN3_S3_BUCKET
               resources:
+                requests:
+                  cpu: 2
+                  memory: 8Gi
                 limits:
-                  cpu: 0.5
-                  memory: 512Mi
+                  cpu: 2
+                  memory: 8Gi # guess on upper bound
