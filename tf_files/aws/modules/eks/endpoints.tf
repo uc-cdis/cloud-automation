@@ -18,6 +18,24 @@ resource "aws_vpc_endpoint" "ec2" {
   }
 }
 
+# Required for sa-linked IAM roles
+resource "aws_vpc_endpoint" "sts" {
+  vpc_id       = "${data.aws_vpc.the_vpc.id}"
+  service_name    = "${data.aws_vpc_endpoint_service.sts.service_name}"
+  vpc_endpoint_type = "Interface"
+  security_group_ids  = [
+    "${data.aws_security_group.local_traffic.id}"
+  ]
+
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  tags {
+    Name         = "to ec2"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
+}
+
 # Autoscaling endpoint
 resource "aws_vpc_endpoint" "autoscaling" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"
