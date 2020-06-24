@@ -25,4 +25,4 @@ if [[ -z "$USER" ]]; then
 fi
 
 source "${GEN3_HOME}/gen3/gen3setup.sh"
-g3kubectl delete pods $(kubectl get pods | grep selenium | awk '{ print $1 }')
+g3kubectl delete pods $(g3kubectl get pods | grep selenium | awk '{ print $1 }')
