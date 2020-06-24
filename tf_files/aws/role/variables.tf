@@ -12,3 +12,19 @@ variable "path" {
   default     = "/"
 }
 
+variable "ar_policy" {
+  description = "assume-role policy to attach to the role"
+  default     = <<EOR
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {"Service": "ec2.amazonaws.com"},
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+
+EOR
+}
