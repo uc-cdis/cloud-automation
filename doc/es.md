@@ -36,6 +36,30 @@ fetch the type-mapping for the given index
 
 forward the es-proxy to localhost, and `export ESHOST`
 
-### `gen3 es create $indexName mappingFile.json
+### `gen3 es create $indexName mappingFile.json`
 
 create a new ES index with the given type mappings
+
+Sample mapping file:
+```
+{
+    "mappings" : {
+      "_doc" : {
+        "properties" : {
+          "array" : {
+            "type" : "keyword"
+          },
+          "timestamp" : {
+            "type" : "date"
+          }
+        }
+      }
+    }
+}
+```
+
+Also see the [jenkins setup scripts](https://github.com/uc-cdis/gen3-qa/blob/master/suites/guppy/jenkinsSetup/jenkinsSetup.sh) in the gen3-qa repo.
+
+### `gen3 es health`
+
+Hit the `_cluster/health` endpoint.

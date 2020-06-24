@@ -49,3 +49,11 @@ gsutil ls
 ## Key Rotation
 
 See the documentation for the [gen3 secrets gcp](./secrets.md) command line tools.
+
+## Other
+
+### SA roles
+
+```
+gcloud projects get-iam-policy dcf-integration  --flatten="bindings[].members" --format='table(bindings.role)' --filter="bindings.members:csoc-adminvm@dcf-integration.iam.gserviceaccount.com"
+```
