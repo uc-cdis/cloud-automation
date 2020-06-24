@@ -8,41 +8,26 @@ resource "aws_cloudwatch_log_group" "csoc_log_group" {
   }
 }
 
-data "aws_ami" "public_cdis_ami" {
-  most_recent = true
+# https://www.andreagrandi.it/2017/08/25/getting-latest-ubuntu-ami-with-terraform/
+data "aws_ami" "ubuntu" {
+    most_recent = true
 
-  filter {
-    name   = "name"
-    values = ["ubuntu16-docker-base-1.0.2-*"]
-  }
+    filter {
+        name   = "name"
+        values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
+    }
 
-  owners = ["${var.ami_account_id}"]
+    filter {
+        name   = "virtualization-type"
+        values = ["hvm"]
+    }
+
+    owners = ["099720109477"] # Canonical
 }
 
-resource "aws_ami_copy" "cdis_ami" {
-  name              = "ub16-cdis-crypt-1.0.2-${var.child_name}"
-  description       = "A copy of ubuntu16-docker-base-1.0.2"
-  source_ami_id     = "${data.aws_ami.public_cdis_ami.id}"
-  source_ami_region = "us-east-1"
-  encrypted         = true
 
-  tags {
-    Name        = "cdis"
-    Environment = "${var.child_name}"
-  }
-
-  lifecycle {
-    #
-    # Do not force update when new ami becomes available.
-    # We still need to improve our mechanism for tracking .ssh/authorized_keys
-    # User can use 'terraform state taint' to trigger update.
-    #
-    ignore_changes = ["source_ami_id"]
-  }
-}
 
 # Security group to access peered networks from the csoc admin VM
-
 resource "aws_security_group" "ssh" {
   name        = "ssh_${var.child_name}"
   description = "security group that only enables ssh"
@@ -155,7 +140,7 @@ resource "aws_iam_instance_profile" "child_role_profile" {
 }
 
 resource "aws_instance" "login" {
-  ami                    = "${aws_ami_copy.cdis_ami.id}"
+  ami                    = "${data.aws_ami.ubuntu.id}"
   subnet_id              = "${var.csoc_subnet_id}"
   instance_type          = "t2.micro"
   monitoring             = true
@@ -163,9 +148,10 @@ resource "aws_instance" "login" {
   vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
   #vpc_security_group_ids = ["${var.secgroup_adminvms}"]
   iam_instance_profile = "${aws_iam_instance_profile.child_role_profile.name}"
-
+  
   root_block_device  {
-    volume_size = 8
+    volume_size = 24
+    encrypted   = true
   }
 
   tags {
@@ -174,7 +160,7 @@ resource "aws_instance" "login" {
   }
 
   lifecycle {
-    ignore_changes = ["ami", "key_name"]
+    ignore_changes = ["ami", "key_name", "root_block_device"]
   }
 
   user_data = <<EOF
