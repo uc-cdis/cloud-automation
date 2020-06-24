@@ -211,6 +211,8 @@ spec:
         env:
           - name: PYTHONPATH
             value: /var/www/fence
+          - name: AWS_STS_REGIONAL_ENDPOINTS
+            value: regional
           - name: FENCE_PUBLIC_CONFIG
             valueFrom:
               configMapKeyRef:

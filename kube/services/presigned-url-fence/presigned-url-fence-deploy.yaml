@@ -97,6 +97,8 @@ spec:
           value: "6"
         - name: PYTHONPATH
           value: /var/www/fence
+        - name: AWS_STS_REGIONAL_ENDPOINTS
+          value: regional
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
         - name: FENCE_PUBLIC_CONFIG
