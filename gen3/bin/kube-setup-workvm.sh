@@ -5,7 +5,6 @@
 # Assumes 'sudo' access.
 #
 
-vpc_name="${vpc_name:-${1:-unknown}}"
 s3_bucket="${s3_bucket:-${2:-unknown}}"
 
 # Make it easy to run this directly ...
@@ -173,7 +172,7 @@ EOF
   fi
 
 # a user login should only work with one vpc
-if [[ "$vpc_name" != "unknown" ]] && ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
+if [[ -n "$vpc_name" && "$vpc_name" != "unknown" ]] && ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
   cat - >>${WORKSPACE}/.${RC_FILE} <<EOF
 export vpc_name='$vpc_name'
 export s3_bucket='$s3_bucket'

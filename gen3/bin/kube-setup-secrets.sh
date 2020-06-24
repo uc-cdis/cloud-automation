@@ -71,7 +71,7 @@ if ! g3kubectl get configmaps global > /dev/null 2>&1; then
   if [[ -f "$(gen3_secrets_folder)/00configmap.yaml" ]]; then
     g3kubectl apply -f "$(gen3_secrets_folder)/00configmap.yaml"
   else
-    echo "ERROR: unable to configure global configmap - missing $(gen3_secrets_folder)/00configmap.yaml"
+    gen3_log_err "ERROR: unable to configure global configmap - missing $(gen3_secrets_folder)/00configmap.yaml"
     exit 1
   fi
 fi
@@ -128,6 +128,7 @@ if ! g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   else
     echo "WARNING: creds.json does not include AWS elastic search credentials - not initializing aws-es-proxy secret"
   fi
+  rm "$credsFile"
 fi
 
 
@@ -143,6 +144,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update aws-es-proxy secr
     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
     jq -r .ssjdispatcher < creds.json > "$credsFile"
     g3kubectl create secret generic ssjdispatcher-creds "--from-file=credentials.json=${credsFile}"
+    rm "$credsFile"
   fi
 fi
 
@@ -152,6 +154,7 @@ if ! g3kubectl get secret workflow-bot-g3auto > /dev/null 2>&1; then
   credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
   jq -r .mariner < creds.json > "$credsFile"
   g3kubectl create secret generic workflow-bot-g3auto "--from-file=credentials.json=${credsFile}"
+  rm "$credsFile"
 fi
 
 # Generate RSA private and public keys.
@@ -329,6 +332,7 @@ if ! g3kubectl get secrets/mailgun-creds > /dev/null 2>&1; then
   credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
   jq -r '.mailgun' creds.json > "$credsFile"
   g3kubectl create secret generic mailgun-creds "--from-file=creds.json=${credsFile}"
+  rm "$credsFile"
 fi
 
 if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
@@ -337,9 +341,8 @@ if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
   if [[ "$creds" != null ]]; then
     echo ${creds} > ${credsFile}
     g3kubectl create secret generic grafana-admin "--from-file=credentials=${credsFile}"
-    #shred ${credsFile}
-    rm -f ${credsFile}
   else
     echo "WARNING: there was an error creating the secrets for grafana"
   fi
+  rm -f "${credsFile}"
 fi

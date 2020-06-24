@@ -140,7 +140,7 @@ for name in .rendered_fence_db .rendered_gdcapi_db; do
 done
 
 # update creds.json
-oldHostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)"
+oldHostname="$(gen3 api hostname)"
 newHostname="$(sed "s/^[a-zA-Z0-9]*/$namespace/" <<< "$oldHostname")"
 
 for name in creds.json apis_configs/fence-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json g3auto/dashboard/config.json; do

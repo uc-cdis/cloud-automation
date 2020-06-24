@@ -31,12 +31,30 @@ test_awsrole_create() {
     return 0
   }
 
-  ! gen3_awsrole_create "3badname"; because $? "when name starts with number it fails"
-  ! gen3_awsrole_create "name/word"; because $? "when name not alphanumeric or - it fails"
-  gen3_awsrole_create "test-suite-user"; because $? "when role doesn't exist it is created successfully"
-  gen3_awsrole_create "existing-role"; because $? "when role already exists it succeeds"
-  ! gen3_awsrole_create "existing-group"; because $? "when group with name already exists it fails"
-  ! gen3_awsrole_create "existing-user"; because $? "when user with name already exists it fails"
+  ! gen3_awsrole_create "3badname" "mockSaName"; because $? "when name starts with number it fails"
+  ! gen3_awsrole_create "name/word" "mockSaName"; because $? "when name not alphanumeric or - it fails"
+  gen3_awsrole_create "test-suite-user" "mockSaName"; because $? "when role doesn't exist it is created successfully"
+  gen3_awsrole_create "existing-role" "mockSaName"; because $? "when role already exists it succeeds"
+  ! gen3_awsrole_create "existing-group" "mockSaName"; because $? "when group with name already exists it fails"
+  ! gen3_awsrole_create "existing-user" "mockSaName"; because $? "when user with name already exists it fails"
+}
+
+test_awsrole_ar_policy() {
+  local arDoc
+  arDoc="$(gen3 awsrole ar-policy saFrickjack)"; because $? "ar-policy ran ok"
+  [[ -n "$arDoc" ]] && jq -r . <<< "$arDoc" > /dev/null; because $? "ar-policy looks like json: $arDoc"
+}
+
+test_awsrole_setup() {
+  local testRoleName="awsrole-testsuite"
+  local testSaName="sa-awsrole-testsuite"
+  aws iam delete-role --role-name "$testRoleName" > /dev/null 2>&1
+  gen3 awsrole create "$testRoleName" "$testSaName"; because $? "awsrole create ran ok for role: $testRoleName"
+  local info
+  info="$(gen3 awsrole info "$testRoleName")" && (jq -e -r . <<< "$info" > /dev/null); because $? "able to retrieve info for new role $testRoleName: $info"
+  g3kubectl get sa "$testSaName"; because $? "awsrole create setup service account: $testSaName"
 }
 
 shunit_runtest "test_awsrole_create" "awsrole"
+shunit_runtest "test_awsrole_setup" "awsrole"
+shunit_runtest "test_awsrole_ar_policy" "awsrole"

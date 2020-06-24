@@ -268,6 +268,12 @@ function es_mapping() {
   curl -X GET $ESHOST/${indexName}/_mapping?pretty=true
 }
 
+#
+# Get the cluster health
+#
+function es_health() {
+  curl -X GET $ESHOST/_cluster/health
+}
 
 
 if [[ -z "$1" || "$1" =~ ^-*help$ ]]; then
@@ -301,6 +307,9 @@ case "$command" in
   ;;
 "export")
   es_export "$@"
+  ;;
+"health")
+  es_health "$@"
   ;;
 "import")
   es_import "$@"

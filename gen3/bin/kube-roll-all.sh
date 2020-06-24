@@ -27,6 +27,8 @@ if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   gen3 kube-setup-secrets
   gen3 kube-setup-certs
   gen3 jupyter j-namespace setup
+else
+  gen3_log_info "roll fast mode - skipping secrets setup"
 fi
 
 gen3_log_info "using manifest at $(g3k_manifest_path)"
@@ -196,6 +198,8 @@ if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   #
   gen3 kube-setup-networkpolicy disable
   gen3 kube-setup-networkpolicy
+else
+  gen3_log_info "roll fast mode - skipping k8s base services and netpolicy setup"
 fi
 
 #
@@ -223,6 +227,8 @@ gen3 kube-setup-networkpolicy "enable" || true
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   gen3_log_info "apply pod scaling"
   gen3 scaling apply all || true
+else
+  gen3_log_info "roll fast mode - skipping scaling config"
 fi
 
 if gen3 kube-wait4-pods; then

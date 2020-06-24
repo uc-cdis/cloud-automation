@@ -37,7 +37,7 @@ setup_sower_jobs() {
     if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
       gen3_log_err "could not determine account numer"
     fi
-    if ! hostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)"; then
+    if ! hostname="$(gen3 api hostname)"; then
       gen3_log_err "could not determine hostname from manifest-global - bailing out of sower-jobs setup"
       return 1
     fi
