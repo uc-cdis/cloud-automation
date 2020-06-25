@@ -4,7 +4,9 @@ kind: CronJob
 metadata:
   name: nb-etl
 spec:
-  schedule: "0 */3 * * *"
+  # 12:00 Chicago time
+  # 17:00 UTC time
+  schedule: "0 17 * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   concurrencyPolicy: Forbid
