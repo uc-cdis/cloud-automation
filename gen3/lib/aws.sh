@@ -98,15 +98,14 @@ gen3_aws_run() {
 #
 gen3_workon_aws(){
   if ! ( aws configure get "${1}.region" > /dev/null ); then
-    echo -e "$(red_color "PROFILE $1 not properly configured with default region for aws cli")"
-    return 3
+    gen3_log_warn "PROFILE $1 not properly configured with default region for aws cli - will assume us-east-1"
   fi
   export GEN3_PROFILE="$1"
   export GEN3_WORKSPACE="$2"
   export GEN3_FLAVOR=AWS
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}"
   export AWS_PROFILE="$GEN3_PROFILE"
-  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")
+  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region" || echo us-east-1)
   export AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
 
   # S3 bucket where we save terraform state, etc
@@ -193,7 +192,7 @@ gen3_AWS.backend.tfvars() {
 bucket = "$GEN3_S3_BUCKET"
 encrypt = "true"
 key = "$GEN3_WORKSPACE/terraform.tfstate"
-region = "$(aws configure get "$GEN3_PROFILE.region")"
+region = "${AWS_DEFAULT_REGION:-us-east-1}"
 EOM
 }
 
