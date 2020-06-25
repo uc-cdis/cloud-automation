@@ -98,7 +98,8 @@ gen3_aws_run() {
 #
 gen3_workon_aws(){
   if ! ( aws configure get "${1}.region" > /dev/null ); then
-    gen3_log_warn "PROFILE $1 not properly configured with default region for aws cli - will assume us-east-1"
+    gen3_log_err "PROFILE $1 not properly configured with default region for aws cli"
+    return 3
   fi
   export GEN3_PROFILE="$1"
   export GEN3_WORKSPACE="$2"

@@ -65,5 +65,7 @@ test_awsrole_setup() {
 }
 
 shunit_runtest "test_awsrole_create" "awsrole"
-shunit_runtest "test_awsrole_setup" "awsrole"
+if [[ -z "$JENKINS_HOME" ]]; then
+  shunit_runtest "test_awsrole_setup" "awsrole"
+fi
 shunit_runtest "test_awsrole_ar_policy" "awsrole"
