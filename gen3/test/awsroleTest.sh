@@ -1,6 +1,10 @@
 test_awsrole_create() {
   gen3_load "gen3/bin/awsrole"
 
+  gen3_awsrole_sa_annotate() {
+    return 0
+  }
+
   # Mock util b/c it makes aws calls
   function _get_entity_type() {
     local username=$1
@@ -46,13 +50,18 @@ test_awsrole_ar_policy() {
 }
 
 test_awsrole_setup() {
+  local klockOwner="awsroleTest_$$"
   local testRoleName="awsrole-testsuite"
   local testSaName="sa-awsrole-testsuite"
+  gen3 klock lock awsroleTest "$klockOwner" 300 -w 300; because $? "must acquire a lock to run test_awsrole_setup"
+
   aws iam delete-role --role-name "$testRoleName" > /dev/null 2>&1
+  g3kubectl delete sa "$testSaName" > /dev/null 2>&1
   gen3 awsrole create "$testRoleName" "$testSaName"; because $? "awsrole create ran ok for role: $testRoleName"
   local info
   info="$(gen3 awsrole info "$testRoleName")" && (jq -e -r . <<< "$info" > /dev/null); because $? "able to retrieve info for new role $testRoleName: $info"
-  g3kubectl get sa "$testSaName"; because $? "awsrole create setup service account: $testSaName"
+  g3kubectl get sa "$testSaName"; because $? "awsrole create sets up the service account: $testSaName"
+  gen3 klock unlock awsroleTest "$klockOwner"
 }
 
 shunit_runtest "test_awsrole_create" "awsrole"
