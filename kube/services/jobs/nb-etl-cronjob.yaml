@@ -37,8 +37,8 @@ spec:
                 GEN3_S3_BUCKET
               resources:
                 requests:
-                  cpu: 2
+                  cpu: 4
                   memory: 8Gi
                 limits:
-                  cpu: 2
+                  cpu: 4
                   memory: 8Gi # guess on upper bound
