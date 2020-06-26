@@ -16,7 +16,9 @@ spec:
             app: gen3job
         spec:
           restartPolicy: Never
-          serviceAccountName: jenkins-service
+          serviceAccountName: gitops-sa
+          securityContext:
+            fsGroup: 1000
           containers:
             - name: awshelper
               GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
@@ -33,6 +35,8 @@ spec:
                     configMapKeyRef:
                       name: global
                       key: environment
+                - name: AWS_STS_REGIONAL_ENDPOINTS
+                  value: regional          
                 - name: JENKINS_HOME
                   value: ""
                 - name: GEN3_NOPROXY

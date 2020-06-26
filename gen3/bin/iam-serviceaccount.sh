@@ -18,7 +18,7 @@ gen3_load "gen3/lib/kube-setup-init"
 
 SCRIPT=$(basename ${BASH_SOURCE[0]})
 ACOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-
+vpc_name="$(gen3 api environment)"
 
 
 ##

@@ -401,7 +401,7 @@ gen3_gitops_sync() {
       rollRes=$?
       # send result to slack
       if [[ $slack = true ]]; then
-        tmpHostname=$(g3kubectl get configmap manifest-global -o jsonpath={.data.hostname})
+        tmpHostname=$(gen3 api hostname)
         resStr="SUCCESS"
         color="#1FFF00"
         if [[ $rollRes != 0 ]]; then

@@ -3,7 +3,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-if ! hostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)"; then
+if ! hostname="$(gen3 api hostname)"; then
     gen3_log_err "could not determine hostname from manifest-global - bailing out"
     return 1
 fi

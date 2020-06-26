@@ -80,7 +80,7 @@ done
 overrides='{}'
 if g3kubectl get serviceaccounts $saName > /dev/null 2>&1; then
   gen3_log_info "mounting service account: $saName"
-  overrides='{ "spec": { "serviceAccountName": "'$saName'" }}'
+  overrides='{ "spec": { "serviceAccountName": "'$saName'", "securityContext": { "fsGroup": 1000 } }}'
 else
   gen3_log_info "ignoring service account that does not exist: $saName"
 fi

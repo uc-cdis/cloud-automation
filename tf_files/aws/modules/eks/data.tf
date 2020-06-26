@@ -77,6 +77,9 @@ data "aws_vpc_endpoint_service" "ebs" {
   service = "ebs"
 }
 
+data "aws_vpc_endpoint_service" "sts" {
+  service = "sts"
+}
 
 
 # get the route to public kube 

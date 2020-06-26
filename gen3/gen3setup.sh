@@ -40,6 +40,7 @@ fi
 GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN:-"false"}
 GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
 
+
 #
 # Little helper to gen3_run to set gen3 workon environment variables
 # after some basic validation
@@ -222,6 +223,10 @@ gen3() {
   GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN:-"false"}
   GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
   
+  # Initialize frequently accessed varialbes
+  g3k_hostname > /dev/null || gen3_log_warn "GEN3 unable to determine namespace hostname"
+  g3k_environment > /dev/null || gen3_log_warn "GEN3 unable to determine namespace environment"
+
   unset GEN3_SOURCE_ONLY;  # cleanup if set - used by `gen3_load`
 
   # Remove leading flags (start with '-')

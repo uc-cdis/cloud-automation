@@ -29,12 +29,33 @@ test_sower_template() {
 
 test_api_hostname() {
   local hostname
-  hostname="$(gen3 api hostname)" && [[ "$hostname" == "$(g3kubectl get configmap global -o json | jq -r .data.hostname)" ]]
-    because $? "api hostname gives same value as global configmap: $hostname"
+  hostname="$(gen3 api hostname)" && [[ "$hostname" == "$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)" ]]
+    because $? "api hostname gives same value as manifest-global configmap: $hostname"
+}
+
+test_api_environment() {
+  local environ
+  environ="$(gen3 api environment)" && [[ -n "$environ" && "$environ" == "$(g3kubectl get configmap global -o json | jq -r .data.environment)" ]]
+    because $? "api hostname gives same value as global configmap: $environ"
+}
+
+test_api_namespace() {
+  local ns
+  ns="$(gen3 api namespace)" && [[ -n "$ns" && "$ns" == "$(gen3 db namespace)" ]]
+    because $? "api namespace gives same value as gen3 db namespace: $ns"
+}
+
+test_api_safename() {
+  local result
+  result="$(gen3 api safe-name frickjack)" && [[ "$result" =~ ^.+--.+--frickjack$ ]];
+    because $? "gen3 api safe-name gave expected result: $result"
 }
 
 shunit_runtest "test_api" "api"
+shunit_runtest "test_api_environment" "api"
 shunit_runtest "test_api_hostname" "api"
+shunit_runtest "test_api_namespace" "api"
+shunit_runtest "test_api_safename" "api"
 shunit_runtest "test_sower_template" "local,api"
 
 if [[ "$SHUNIT_FILTERS" =~ authz$ ]]; then

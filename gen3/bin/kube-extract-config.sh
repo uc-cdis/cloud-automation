@@ -53,7 +53,7 @@ fi
 g3kubectl get configmaps/global -o yaml > 00configmap.yaml
 
 # Note that legacy commons may not have the dictonary_url set ...
-hostname=$(g3kubectl get configmaps/global -o=jsonpath='{.data.hostname}')
+hostname=$(gen3 api hostname)
 dictionaryUrl=$(g3kubectl get configmaps/global -o=jsonpath='{.data.dictionary_url}')
 revproxyArn=$(g3kubectl get configmaps/global -o=jsonpath='{.data.revproxy_arn}')
 

@@ -10,7 +10,7 @@ gen3_load "gen3/gen3setup"
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 
-hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
+hostname="$(gen3 api hostname)"
 bucketname="manifest-${hostname//./-}"
 username="manifest-bot-${hostname//./-}"
 

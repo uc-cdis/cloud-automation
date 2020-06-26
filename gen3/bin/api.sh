@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
-gen3_load "gen3/lib/kube-setup-init"
+gen3_load "gen3/gen3setup"
 
 
 gen3_api_help() {
@@ -232,10 +232,37 @@ EOM
 }
 
 #
-# Shortcut for querying manifest-global .data.hostname
+# Shortcut for querying manifest-global .data.hostname, with a cache
 #
 gen3_api_hostname() {
-  (g3kubectl get configmap manifest-global -o json || echo "ERROR - breaking pipeline") | jq  -e -r '.data.hostname'
+  g3k_hostname
+}
+
+#
+# Shortcut for querying global .data.environment, with a cache
+#
+gen3_api_environment() {
+  g3k_environment
+}
+
+#
+# Alias - since gen3 db namespace is kind of a weird place to put that
+#
+gen3_api_namespace() {
+  gen3 db namespace
+}
+
+#
+# Generate a collision-safe name less than 64 characters 
+# from the given base name.
+# If no name is provided, then generate a random name.
+#
+gen3_api_safename() {
+  local base="${1:-$(gen3 random)}"
+  local env
+  local namespace="$(gen3_api_namespace)"
+  env="$(gen3_api_environment)" || return 1
+  echo "${env}--${namespace}--${base}" | head -c63
 }
 
 
@@ -411,8 +438,14 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "access-token")
       gen3_access_token "$@"
       ;;
+    "environment")
+      gen3_api_environment "$@"
+      ;;
     "hostname")
       gen3_api_hostname "$@"
+      ;;
+    "namespace")
+      gen3_api_namespace "$@"
       ;;
     "new-program")
       gen3_new_program "$@"
@@ -428,6 +461,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "curl")
       gen3_curl_json "$@"
+      ;;
+    "safe-name")
+      gen3_api_safename "$@"
       ;;
     *)
       gen3_api_help

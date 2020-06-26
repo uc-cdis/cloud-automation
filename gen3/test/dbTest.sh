@@ -51,7 +51,8 @@ test_db_create() {
     echo '{}' > "$(gen3_secrets_folder)/creds.json"
   fi
   [[ -n "$namespace" ]]; because $? "gen3_db_namespace should give a valid value: $namespace"
-  gen3 klock lock dbctest dbctest 300 -w 300; because $? "must acquire a lock to run test_db_create"
+  local klockOwner="dbctest_$$"
+  gen3 klock lock dbctest "$klockOwner" 300 -w 300; because $? "must acquire a lock to run test_db_create"
 
   # cleanup from previous run if necessary
   g3kubectl delete secret "${serviceName}-g3auto"
@@ -71,7 +72,7 @@ test_db_create() {
   serverName="$(gen3 db creds "$serviceName" | jq -r '.g3FarmServer')"
   [[ "$serverName" == "server1" ]]; because $? "db creds includes new service the farm server: $serverName"
   
-  gen3 klock unlock dbctest dbctest
+  gen3 klock unlock dbctest "$klockOwner"
 }
 
 test_db_creds() {

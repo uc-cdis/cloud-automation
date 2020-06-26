@@ -15,18 +15,18 @@ if [[ "$(gen3 db namespace)" != "default" ]]; then
   exit 1
 fi
 
-export KUBECTL_NAMESPACE=sftp
+SFTP_NAMESPACE=sftp
 
 if [[ $# -gt 0 ]]; then
-  KUBECTL_NAMESPACE="$1"
+  SFTP_NAMESPACE="$1"
   shift
 fi
 if [[ "$KUBECTL_NAMESPACE" =~ ^-*h(elp)?$ ]]; then
-  gen3_log_info "gen3 kube-setup-sftp [$namespace=sftp]"
+  gen3_log_info "gen3 kube-setup-sftp [\$namespace=sftp]"
   exit 0
 fi
 
-secretFolder="$(gen3_secrets_folder)/sftp/${KUBECTL_NAMESPACE}"
+secretFolder="$(gen3_secrets_folder)/sftp/${SFTP_NAMESPACE}"
 secretFile="${secretFolder}/dbgap-key"
 
 if [[ ! -f "$secretFile" ]]; then
@@ -40,10 +40,13 @@ if [[ ! -f "$secretFile" ]]; then
     gen3_log_info "saving new sftp k8s secret to $secretFile"
     gen3 random > "$secretFile"
   fi
-  gen3 secrets commit "saving sftp secret for ns: $KUBECTL_NAMESPACE"
+  gen3 secrets commit "saving sftp secret for ns: $SFTP_NAMESPACE"
 fi
 
 (
+  # subshell
+  export KUBECTL_NAMESPACE="${SFTP_NAMESPACE}"
+
   if ! g3kubectl get secret sftp-secret > /dev/null 2>&1; then
       password="$(cat "$secretFile")"
       g3kubectl create secret generic sftp-secret --from-literal=dbgap-key=$password

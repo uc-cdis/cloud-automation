@@ -43,7 +43,7 @@ gen3_roll() {
 
   if [[ "$depName" == "all" ]]; then # special case
     echo "gen3 kube-roll-all" 1>&2
-    gen3 kube-roll-all
+    gen3 kube-roll-all "$@"
     return $?
   fi
 

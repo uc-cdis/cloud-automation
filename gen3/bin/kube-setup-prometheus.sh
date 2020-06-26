@@ -94,7 +94,7 @@ function deploy_grafana()
     fi
     
     local HOSTNAME
-    HOSTNAME=$(g3kubectl get configmaps manifest-global -o jsonpath="{.data.hostname}")
+    HOSTNAME=$(gen3 api hostname)
     #sed "s/DOMAIN/${HOSTNAME}/" "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" |  gen3 arun helm install  stable/grafana --name grafana --namespace grafana -f -
     g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm install  stable/grafana --name grafana --namespace grafana -f -
     #gen3 arun helm install -f "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" stable/grafana --name grafana --namespace grafana

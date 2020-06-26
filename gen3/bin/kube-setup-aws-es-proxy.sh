@@ -11,7 +11,7 @@ gen3_load "gen3/lib/kube-setup-init"
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
-  envname="$(g3kubectl get configmap global -o json | jq -r .data.environment)"
+  envname="$(gen3 api environment)"
   if ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names ${envname}-gen3-metadata --query "DomainStatusList[*].Endpoints" --output text)" \
       && [[ -n "${ES_ENDPOINT}" && -n "${envname}" ]]; then
     gen3 roll aws-es-proxy GEN3_ES_ENDPOINT "${ES_ENDPOINT}"

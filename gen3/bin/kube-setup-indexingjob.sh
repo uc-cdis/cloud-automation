@@ -4,7 +4,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 if ! g3kubectl describe secret manifestindexing-g3auto | grep config.json > /dev/null 2>&1; then
-  hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
+  hostname="$(gen3 api hostname)"
   ref_hostname=$(echo "$hostname" | sed 's/\./-/g')
   bucketname="${ref_hostname}-sowerjobs"
   awsuser="${ref_hostname}-manifest-indexing"
