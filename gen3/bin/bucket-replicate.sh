@@ -16,7 +16,8 @@ saName=$(echo "${prefix}-sa")
 
 # function to create an job and returns a job id
 #
-# @param bucket: the input bucket
+# @param source_bucket: the bucket where objects will be copied from
+# @param destination_bucket: the bucket where objects will be copied to
 #
 gen3_create_aws_batch() {
   if [[ $# -lt 1 ]]; then
@@ -58,7 +59,7 @@ EOM
 
   cat << EOF > ${prefix}-job-definition.json
 {
-    "image": "quay.io/cdis/object_copy:feat_bucket-replicate",
+    "image": "quay.io/cdis/object_copy:master",
     "memory": 256,
     "vcpus": 1,
     "environment": [
@@ -111,10 +112,6 @@ EOF
     ]
 }
 EOF
-
-
-apt-get now supports a 'mirror' method that will automatically select a good mirror based on your location. Putting:\n\ndeb mirror://mirrors.ubuntu.com/mirrors.txt precise main restricted universe multiverse\ndeb mirror://mirrors.ubuntu.com/mirrors.txt precise-updates main restricted universe multiverse\ndeb mirror://mirrors.ubuntu.com/mirrors.txt precise-backports main restricted universe multiverse\ndeb mirror://mirrors.ubuntu.com/mirrors.txt precise-security main restricted universe multiverse
-
 
   gen3 tfplan 2>&1
   gen3 tfapply 2>&1
