@@ -15,7 +15,7 @@ spec:
             secretName: "bucketreplicate-g3auto"
       containers:
       - name: aws-bucket-replicate
-        GEN3_AWS-BUCKET-MANIFEST_IMAGE|-image: quay.io/cdis/bucket-replicate:feat_bucket-replicate-|
+        GEN3_AWS-BUCKET-MANIFEST_IMAGE|-image: quay.io/cdis/bucket-replicate:master-|
         imagePullPolicy: Always
         ports:
         - containerPort: 80
