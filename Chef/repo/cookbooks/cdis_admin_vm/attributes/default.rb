@@ -1,5 +1,7 @@
 default["adminvm"]["devUsers"] = []
 
+default["adminvm"]["qaUsers"] = []
+
 default["adminvm"]["adminUsers"] = []
 
 default["adminvm"]["aptPackages"] = ["git", "jq", "pwgen", "python-dev", "python-pip", "unzip", "python3-dev", "python3-pip", "nodejs","postgresql-client-9.6", "google-cloud-sdk", "google-cloud-sdk-cbt", "kubectl"]

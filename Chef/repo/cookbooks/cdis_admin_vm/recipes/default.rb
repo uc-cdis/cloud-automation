@@ -7,6 +7,7 @@
 # Load keys from ssh keys databag
 adminUserKeys = data_bag_item("users", "admin")
 devUserKeys = data_bag_item("users", "dev")
+qaUserKeys = data_bag_item("users", "qa")
 
 # Setup users that dev's should have access to and set ssh authorized keys to the dev authorized keys databag
 node["adminvm"]["devUsers"].each do |devUser|
@@ -41,6 +42,42 @@ node["adminvm"]["devUsers"].each do |devUser|
     owner devUser
     group devUser
     variables(userName: devUser)
+  end
+end
+
+
+node["adminvm"]["qaUsers"].each do |qaUser|
+  user "#{qaUser}" do
+    home "/home/#{qaUser}"
+    shell "/bin/bash"
+    action :create
+  end
+  directory "/home/#{qaUser}/.ssh" do
+    owner adminUser
+    group adminUser
+    mode "0755"
+    recursive true
+    action :create
+  end
+  file "/home/#{qaUser}/.ssh/authorized_keys" do
+    content qaUserKeys["keys"]
+    mode "0600"
+    owner adminUser
+    group adminUser
+  end
+  directory "/home/#{qaUser}/.config" do
+    owner adminUser
+    group adminUser
+    mode "0775"
+    recursive true
+    action :create
+  end
+  template "/home/#{qaUser}/.bashrc" do
+    source 'bashrc.erb'
+    mode '0655'
+    owner adminUser
+    group adminUser
+    variables(userName: qaUser)
   end
 end
 
