@@ -28,6 +28,8 @@ Ex:
 $ gen3 logs job vpc=dcfprod jname=google
 $ gen3 logs job vpc=all jname=user start='2 hours ago'
 $ gen3 logs job vpc=bdcatprod jname=indexing app=ssjdispatcherjob start='3 days ago'
+$ gen3 logs job vpc=bdcatprod jname="" app=sowerjob fields=all start='3 days ago'
+$ gen3 logs job vpc=bdcatprod jname="pelican" app=sowerjob
 ```
 
 Note: `gen3 logs vpc` gives the available VPC codes

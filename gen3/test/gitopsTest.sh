@@ -17,6 +17,31 @@ test_configmaps_folder() {
   [[ "$namespace" == "jupyter-pods" ]]; because $? "configmap got right namespace"
 }
 
+test_configmaps_list() {
+  local expectedList=(
+all
+etl-mapping
+global
+hatchery
+jenkins
+jupyterhub
+modsec
+reuben
+scaling
+service1
+service2
+service3
+versions
+  )
+  local it
+  local result
+  result="$(gen3 gitops configmaps-list "$GEN3_HOME/gen3/lib/testData/default")"; because $? "gitops configmaps-list should work - got: $result"
+  for it in "${expectedList[@]}"; do
+    grep "^$it\$" <<< "$result" > /dev/null; because $? "gitops configmaps-list includes expected service $it"
+  done
+}
+
+
 #
 # Test g3k_manifest_path
 #
@@ -185,13 +210,11 @@ test_configmaps() {
   
   # Mock g3k_manifest_path to manifest with global
   function g3k_manifest_path() { echo "$mpathGlobal"; }
-  gen3_gitops_configmaps | grep -q created; because $? "gen3_gitops_configmaps should create configmaps"
-  gen3_gitops_configmaps | grep -q labeled; because $? "gen3_gitops_configmaps should label configmaps"
-  g3kubectl delete configmaps -l app=manifest
-
-  gen3_gitops_configmaps; 
+  gen3_gitops_configmaps 2>&1 | grep -q created; because $? "gen3_gitops_configmaps should create configmaps"
+ 
+  gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should run ok"
   gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should not bomb out, even if the configmaps already exist"
-  gen3_gitops_configmaps | grep -q deleted; because $? "gen3_gitops_configmaps delete previous configmaps"
+  gen3_gitops_configmaps 2>&1 | grep -q deleted; because $? "gen3_gitops_configmaps delete previous configmaps"
 }
 
 test_gitops_taglist() {
@@ -218,6 +241,7 @@ test_secrets_folder() {
   [[ "$secretFolder" == "$(dirname $GEN3_HOME)/Gen3Secrets" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
 }
 
+shunit_runtest "test_configmaps_list" "local,gitops"
 shunit_runtest "test_configmaps_folder_dryrun" "local,gitops"
 shunit_runtest "test_configmaps_folder" "gitops"
 shunit_runtest "test_mpath" "local,gitops"
