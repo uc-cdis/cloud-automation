@@ -35,6 +35,12 @@ RUN apt-get update \
      sudo \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
+# install k6 to run load tests
+RUN sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 379CE192D401AB61 \
+  && echo "deb https://dl.bintray.com/loadimpact/deb stable main" | sudo tee -a /etc/apt/sources.list \
+  && sudo apt-get update \
+  && sudo apt-get install k6
+
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
     && echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list \
