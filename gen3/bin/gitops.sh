@@ -530,9 +530,9 @@ gen3_gitops_json_to_configmap() {
     local keyList
     # make sure it's valid json object or array
     keyList="$(jq -r '. | keys[]' <<< "$json")" || return 1
-    # create configmap entries only for object keys that start with a letter
-    if keyList="$(grep '^[a-zA-Z]' <<< "$keyList")"; then
-      for key in $keyList; do
+    # convert to array, only consider keys that start with a letter
+    if keyList=( $(grep '^[a-zA-Z]' <<< "$keyList") ); then
+      for key in "${keyList[@]}"; do
         value="$(jq -r --arg key "$key" '.[$key]' <<< "$json")"
         if [[ -n "$value" ]]; then
           argList+=("--from-literal" "$key=$value")
@@ -637,9 +637,9 @@ gen3_gitops_configmaps() {
   manifestFolder="$(dirname "$manifestPath")"
   local keyList
   if [[ $# -gt 0 ]]; then
-    keyList="$@"
+    keyList=( "$@" )
   else
-    keyList="$(gen3_gitops_configmaps_list)" || return 1
+    keyList=( $(gen3_gitops_configmaps_list) ) || return 1
   fi
 
   local key
@@ -652,7 +652,7 @@ gen3_gitops_configmaps() {
 
   # delete everything in a single call for performance
   local deleteList=()
-  for key in $keyList; do
+  for key in "${keyList[@]}"; do
     if [[ "$key" == "etl-mapping" ]]; then
       deleteList+=( "$key" )
     else
@@ -661,7 +661,7 @@ gen3_gitops_configmaps() {
   done
   g3kubectl delete configmaps "${deleteList[@]}"
 
-  for key in $keyList; do
+  for key in "${keyList[@]}"; do
     if [[ "$key" == "etl-mapping" ]]; then
       if [[ -f "$etlPath" ]]; then
         gen3_gitops_json_to_configmap "$key" "" "--from-file=${etlPath##*/}=${etlPath}"

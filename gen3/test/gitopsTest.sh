@@ -187,10 +187,11 @@ test_configmaps() {
   }
 
 
-  gen3_gitops_configmaps; because !$? "gen3_gitops_configmaps should exit with code 1 if the manifest does not have a global section"
+  ! gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should exit with code 1 if the manifest does not have a global section"
   
   # Mock g3k_manifest_path to manifest with global
   function g3k_manifest_path() { echo "$mpathGlobal"; }
+  gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should run ok"
   gen3_gitops_configmaps 2>&1 | grep -q created; because $? "gen3_gitops_configmaps should create configmaps"
  
   gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should run ok"
