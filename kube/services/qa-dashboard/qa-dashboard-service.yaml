@@ -1,0 +1,17 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: qa-dashboard-service
+spec:
+  selector:
+    app: qa-metrics
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3030
+      name: http
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 443
+  type: NodePort
