@@ -61,12 +61,14 @@ function create_service_account(){
 ##
 function create_assume_role_policy() {
   local tempFile=$(mktemp -p "$XDG_RUNTIME_DIR" "tmp_policy.XXXXXX")
-  local issuer_url=$(aws eks describe-cluster \
+  local issuer_url
+  issuer_url="$(aws eks describe-cluster \
                        --name ${vpc_name} \
                        --query cluster.identity.oidc.issuer \
-                       --output text | sed -e 's#^https://##')
+                       --output text | sed -e 's#^https://##')" || return 1
 
-  local account_id=$(aws sts get-caller-identity --query Account --output text)
+  local account_id
+  account_id="$(aws sts get-caller-identity --query Account --output text)" || return 1
 
   local provider_arn="arn:aws:iam::${account_id}:oidc-provider/${issuer_url}"
 

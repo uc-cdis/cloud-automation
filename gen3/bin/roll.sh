@@ -76,7 +76,6 @@ gen3_roll() {
       gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
       return 1
     fi
-    # update network policy - disable for now
     gen3 kube-setup-networkpolicy service "$serviceName"
   # Set the same img version for both fence & presigned-url-fence
   elif [[ "$depName" == "presigned-url-fence" ]]; then

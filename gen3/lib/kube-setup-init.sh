@@ -18,11 +18,11 @@ if [[ -z "$vpc_name" ]]; then
     if [[ -f "$(gen3_secrets_folder)/00configmap.yaml" ]]; then
       g3kubectl apply -f "$(gen3_secrets_folder)/00configmap.yaml"
     else
-      gen3_log_err "ERROR: unable to configure global configmap - missing $(gen3_secrets_folder)/00configmap.yaml"
+      gen3_log_err "ERROR: to determine vpc_name from environment, also unable to configure global configmap - missing $(gen3_secrets_folder)/00configmap.yaml"
       exit 1
     fi
   fi
-  vpc_name="$(gen3 api environment)" || exit 1
+  vpc_name="$(gen3 api environment)" || vpc_name=""  # catch errors below
 fi
 
 if [ -z "${vpc_name}" ]; then

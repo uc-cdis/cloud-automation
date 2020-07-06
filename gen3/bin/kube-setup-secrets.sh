@@ -8,15 +8,8 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 gen3_load "gen3/lib/g3k_manifest"
 
-# ETL mapping file for tube
-ETL_MAPPING_PATH="$(dirname $(g3k_manifest_path))/etlMapping.yaml"
-if [[ -f "$ETL_MAPPING_PATH" ]]; then
-  gen3 update_config etl-mapping "$ETL_MAPPING_PATH"
-fi
 
-if ! g3kubectl get configmap config-helper > /dev/null 2>&1; then
-  gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
-fi
+gen3 update_config config-helper "${GEN3_HOME}/apis_configs/config_helper.py"
 
 if ! g3kubectl get configmaps/logo-config > /dev/null 2>&1; then
   #
@@ -34,10 +27,12 @@ if ! g3kubectl get configmaps/logo-config > /dev/null 2>&1; then
   g3kubectl create configmap logo-config --from-file="${logoPath}"
 fi
 
+#
 # Avoid creating configmaps more than once every two minutes
 # (gen3 roll all calls this over and over)
+#
 if gen3_time_since configmaps_sync is 120; then
-  gen3_log_info "creating manifest configmaps"
+  gen3_log_info "creating manifest-* and etl-mapping configmaps"
   gen3 gitops configmaps
 fi
 
