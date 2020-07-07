@@ -114,7 +114,7 @@ test_db_backup_restore() {
     oldDb="$(jq -r -e .db_database <<< "$oldCreds")"; because $? "$service old creds should include .db_database"
     [[ "$newDb" != "$oldDb" ]]; because $? "$service restore should create a new db: $newDb ?= $oldDb"
     # cleanup
-    gen3 psql $service -c "DROP DATABASE $newDb;"
+    gen3 psql $service -c "DROP DATABASE $newDb;" || true
   done
 }
 
