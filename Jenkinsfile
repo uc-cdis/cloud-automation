@@ -11,9 +11,6 @@ node {
   pipelineHelper.cancelPreviousRunningBuilds()
 
   try {
-    stage('CleanWorkspace') {
-      cleanWs()
-    }
     stage('FetchCode'){
       gitHelper.fetchAllRepos(pipeConfig['currentRepoName'])
     }
