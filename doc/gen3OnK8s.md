@@ -169,7 +169,7 @@ The `creds.json` file includes database secrets for the core (legacy) gen3 servi
     "aws_access_key_id": "XXXXX",
     "aws_secret_access_key": "XXXXXXXXX"
   },
-  "ssjdispatcher-from-zlchitty": {
+  "ssjdispatcher": {
     "AWS": {
       "region": "us-east-1",
       "user_name": "test_ssjdispatcher",
@@ -177,12 +177,12 @@ The `creds.json` file includes database secrets for the core (legacy) gen3 servi
       "aws_secret_access_key": "XXXXXXXX"
     },
     "SQS": {
-      "url": "https://sqs.us-east-1.amazonaws.com/707767160287/zoe-dataupload"
+      "url": "https://sqs.us-east-1.amazonaws.com/xxx/test-sqs-queue"
     },
     "JOBS": [
       {
         "name": "indexing",
-        "pattern": "s3://devplanetv1-data-bucket/*",
+        "pattern": "s3://test-indexing-data-bucket/*",
         "imageConfig": {
           "url": "http://indexd-service/index",
           "username": "gdcapi",
