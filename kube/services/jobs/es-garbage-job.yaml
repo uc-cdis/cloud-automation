@@ -3,13 +3,13 @@ kind: Job
 metadata:
   name: es-garbage
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:
         app: gen3job
     spec:
       restartPolicy: Never
-      backOffLimit: 0
       serviceAccountName: gitops-sa
       securityContext:
         fsGroup: 1000
@@ -25,6 +25,12 @@ spec:
               value: none
             - name: JENKINS_HOME
               value: none
+            - name: slackWebHook
+              valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: slack_webhook
+                    optional: true
           command: ["/bin/bash" ]
           args:
             - "-c"
@@ -35,8 +41,11 @@ spec:
                 repoList="$(gen3 es garbage)"
                 for indexName in $repoList; do
                   echo "deleting index $indexName"
-                  gen3 es delete "$indexName"
+                  echo gen3 es delete "$indexName"
                 done
+                if [[ -n "$repoList" && -n "$slackWebHook" && "$slackWebHook" != "None" ]]; then
+                  curl -X POST --data-urlencode "payload={\"text\": \"es-garbage-collect in $(gen3 api hostname): \n\`\`\`\n${repoList}\n\`\`\`\"}" "${slackWebHook}"
+                fi
                 gen3 klock unlock es-garbage-job gitops
               else
                 echo "Failed to acquire es-garbage-job lock: exiting without attempting to sync"

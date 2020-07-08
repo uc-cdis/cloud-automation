@@ -24,6 +24,14 @@ dump the contents of an ES index (ex: arranger-projects)
 
 ### `gen3 es import srcFolder project-name`
 
+### `gen3 es garbage`
+
+list the ES indices that can be garbage collected
+* select indices not referenced by an alias ignoring time_ aliases
+* select indices that look like an ETL index: NAME_NUMBER
+* group the remaining NAME_NUMBER indices by NAME, and remove the largest NUMBER index from each group
+* return the remaining indices
+
 ### `gen3 es indices`
 
 list the elastic search indices
