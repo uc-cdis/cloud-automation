@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: es-garbage
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      restartPolicy: Never
+      backOffLimit: 0
+      serviceAccountName: gitops-sa
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: awshelper
+          # often do not want pinned awshelper in gitops-sync
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          imagePullPolicy: Always
+          env:
+            - name: AWS_STS_REGIONAL_ENDPOINTS
+              value: regional
+            - name: GEN3_NOPROXY
+              value: none
+            - name: JENKINS_HOME
+              value: none
+          command: ["/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              export GEN3_HOME="$HOME/cloud-automation"
+              source "$GEN3_HOME/gen3/gen3setup.sh"
+              if gen3 klock lock es-garbage-job gitops 900; then
+                repoList="$(gen3 es garbage)"
+                for indexName in $repoList; do
+                  echo "deleting index $indexName"
+                  gen3 es delete "$indexName"
+                done
+                gen3 klock unlock es-garbage-job gitops
+              else
+                echo "Failed to acquire es-garbage-job lock: exiting without attempting to sync"
+              fi
+              echo "Exit code: $?"

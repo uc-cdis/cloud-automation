@@ -6,7 +6,9 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-help() {
+export ESHOST="${ESHOST:-"esproxy-service:9200"}"
+
+es_help() {
   gen3 help es
 }
 
@@ -275,9 +277,19 @@ function es_health() {
   curl -X GET $ESHOST/_cluster/health
 }
 
+#
+# Get a list of garbage indices. 
+# * not referenced by an alias - ignoring "time_" aliases
+# * of form bla_bla_bla_NUMBER
+# * where NUMBER is not the largest in the bla_bla_bla_ group of not-aliased indices
+#
+function es_garbage() {
+  gen3 es 'alias' | jq -e -r '. | to_entries | map(.value = (.value.aliases | keys | map(select(. | test("^time_") | not)))) | map(select(.value | length == 0)) | map(select(.key | test("^[a-zA-Z].+_[0-9]+$"))) | map(.prefix = (.key | sub("_[0-9]+$"; "")) | .index = (.key | sub("^.+_"; "") | tonumber)) | group_by(.prefix) | map(sort_by(.index) | del(.[length - 1])[]) | .[].key'
+}
+
 
 if [[ -z "$1" || "$1" =~ ^-*help$ ]]; then
-  help
+  es_help
   exit 0
 fi
 
@@ -300,13 +312,16 @@ case "$command" in
 "dump")
   indexName="$1"
   if [[ -z "$indexName" ]]; then
-    help
+    es_help
     exit 1
   fi
   es_dump "$@"
   ;;
 "export")
   es_export "$@"
+  ;;
+"garbage")
+  es_garbage "$@"
   ;;
 "health")
   es_health "$@"
@@ -321,7 +336,7 @@ case "$command" in
   es_port_forward
   ;;
 *)
-  help
+  es_help
   exit 1
   ;;
 esac
