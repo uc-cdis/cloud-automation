@@ -4,7 +4,7 @@ metadata:
   # Little test job - run with: gen3 runjob envtest REUBEN frickjack
   name: envtest
 spec:
-  # not yet supported - backOffLimit: 3
+  backoffLimit: 0
   template:
     metadata:
       labels:

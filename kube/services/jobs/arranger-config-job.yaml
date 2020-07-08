@@ -11,12 +11,12 @@ metadata:
   #
   name: arranger-config
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:
         app: gen3job
     spec:
-      # not yet supported - backOffLimit: 3
       automountServiceAccountToken: false
       volumes:
         - name: arranger-config
