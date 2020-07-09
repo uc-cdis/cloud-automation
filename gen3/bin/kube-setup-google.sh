@@ -11,7 +11,6 @@ cronList=(
   "${GEN3_HOME}/kube/services/jobs/google-manage-account-access-cronjob.yaml"
   "${GEN3_HOME}/kube/services/jobs/google-init-proxy-groups-cronjob.yaml"
   "${GEN3_HOME}/kube/services/jobs/google-delete-expired-service-account-cronjob.yaml"
-  "${GEN3_HOME}/kube/services/jobs/google-verify-bucket-access-group-cronjob.yaml"
 )
 
 # lib --------------------
