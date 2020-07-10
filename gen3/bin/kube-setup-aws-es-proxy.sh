@@ -26,6 +26,7 @@ if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
     gen3 kube-setup-networkpolicy service aws-es-proxy
     g3kubectl patch deployment "aws-es-proxy-deployment" -p  '{"spec":{"template":{"metadata":{"labels":{"netvpc":"yes"}}}}}' || true
   fi
+  gen3 job cron es-garbage '@daily'
 else
   gen3_log_info "kube-setup-aws-es-proxy"  "Not deploying aws-es-proxy - secret is not configured"
   exit 1

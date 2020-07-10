@@ -41,7 +41,7 @@ spec:
                 repoList="$(gen3 es garbage)"
                 for indexName in $repoList; do
                   echo "deleting index $indexName"
-                  echo gen3 es delete "$indexName"
+                  gen3 es delete "$indexName"
                 done
                 if [[ -n "$repoList" && -n "$slackWebHook" && "$slackWebHook" != "None" ]]; then
                   curl -X POST --data-urlencode "payload={\"text\": \"es-garbage-collect in $(gen3 api hostname): \n\`\`\`\n${repoList}\n\`\`\`\"}" "${slackWebHook}"

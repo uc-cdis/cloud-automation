@@ -10,10 +10,11 @@ spec:
       labels:
         app: gen3job
     spec:
+      restartPolicy: Never
       automountServiceAccountToken: false
       containers:
       - name: fence
-        GEN3_FENCE_IMAGE
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
         imagePullPolicy: Always
         env:
           - name: REUBEN
@@ -25,4 +26,3 @@ spec:
           - |
             echo "Rueben is a ${REUBEN}"
             echo "Exit code: $?"
-      restartPolicy: Never
