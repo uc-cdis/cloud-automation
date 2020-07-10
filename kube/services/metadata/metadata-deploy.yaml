@@ -22,6 +22,8 @@ spec:
         public: "yes"
         # allow access from workspaces
         userhelper: "yes"
+        # for network policy
+        netnolimit: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
