@@ -25,7 +25,7 @@ variable "elasticsearch_domain" {
 }
 
 variable "threshold" {
-  default = ""
+  default = "65.0"
 }
 
 variable "slack_webhook" {

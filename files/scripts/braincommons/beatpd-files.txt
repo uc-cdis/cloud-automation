@@ -1,0 +1,13 @@
+s3://bhcprodv2-data-bucket/dg.7519/1090d55e-a04c-49f1-82af-98b1080031eb/real-pd.testing_data_updated.tar.bz2
+s3://bhcprodv2-data-bucket/dg.7519/11283b92-583d-4bd8-b25e-de43c897941f/cis-pd.ancillary_data.tar.bz2
+s3://bhcprodv2-data-bucket/dg.7519/2798041a-5165-472e-994b-c0ed419f9c49/cis-pd.testing_data.tar.bz2
+s3://bhcprodv2-data-bucket/dg.7519/4ebe9c9e-20e0-4374-9837-e43f39f1858a/cis-pd.training_data.tar.bz2
+s3://bhcprodv2-data-bucket/dg.7519/54aee383-5bd5-48b1-a4e7-00c404684f3f/BEAT-PD_Challenge_Data_Dictionary.csv
+s3://bhcprodv2-data-bucket/dg.7519/69df65dd-6550-4fe0-b037-333280c0c2db/cis-pd.data_labels.tar.bz2
+s3://bhcprodv2-data-bucket/dg.7519/73ce9ceb-a774-4dd2-b011-fcbd5943f6dd/cis-pd.clinical_data.tar.bz2
+s3://bhcprodv2-data-bucket/dg.7519/88ab7900-b0c1-4ee1-a710-fe909cf9b0fd/real-pd.data_labels.tar.bz2
+s3://bhcprodv2-data-bucket/dg.7519/8c1a8185-7098-4f21-be9e-7b53c1d69737/real-pd.REAL-PD_Test_Data_IDs.csv
+s3://bhcprodv2-data-bucket/dg.7519/8f67f4b9-21ab-40e0-af4c-914ebdc2df17/real-pd.clinical_data.tar.bz2
+s3://bhcprodv2-data-bucket/dg.7519/ce1b8a45-2504-4433-99be-2f373894d71b/real-pd.ancillary_data_updated.tar.bz2
+s3://bhcprodv2-data-bucket/dg.7519/d244cea7-5e45-4185-ae2b-a7f6440b1d59/real-pd.training_data_updated.tar.bz2
+s3://bhcprodv2-data-bucket/dg.7519/e5ef9c59-b44b-456d-b82d-e4e049c3eb27/cis-pd.CIS-PD_Test_Data_IDs.csv

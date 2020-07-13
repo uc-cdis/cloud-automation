@@ -56,7 +56,7 @@ g3k_runjob() {
   jobName="$jobKey"
   jobPath="$jobKey"
   if [[ -f "$jobPath" ]]; then
-    jobName="$(basename $jobPath | sed -E 's/-(cron)?job.yaml$//')"
+    jobName="$(basename $jobPath | sed -E 's/-(cron)?job.yaml.*$//')"
   elif [[ "$jobName" =~ ^[^/]+-(cron)?job$ ]]; then
     jobPath="${GEN3_HOME}/kube/services/jobs/${jobName}.yaml"
     jobName="$(echo $jobName | sed -E 's/-(cron)?job$//')"

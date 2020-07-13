@@ -183,4 +183,3 @@ resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
   log_group_name  = "${aws_cloudwatch_log_group.management-logs_group.name}"
   filter_pattern  = ""
 }
-

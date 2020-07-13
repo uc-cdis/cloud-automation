@@ -41,6 +41,12 @@ resource "aws_iam_user_policy" "fence-bot_policy" {
   ]
 }
 EOF
+
+
+  lifecycle {
+    ignore_changes = ["policy"]
+  }
+
 }
 
 resource "aws_iam_user_policy" "fence-bot_extra_policy" {

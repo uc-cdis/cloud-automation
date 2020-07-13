@@ -7,6 +7,7 @@ spec:
   schedule: "0 * * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
@@ -18,7 +19,7 @@ spec:
           serviceAccountName: jenkins-service
           containers:
             - name: awshelper
-              image: quay.io/cdis/awshelper:master
+              GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
               imagePullPolicy: Always
               env:
                 - name: slackWebHook
@@ -40,7 +41,7 @@ spec:
               args:
                 - "-c"
                 - |
-                  set -i
-                  source ~/.bashrc
+                  export GEN3_HOME="$HOME/cloud-automation"
+                  source "$GEN3_HOME/gen3/gen3setup.sh"
                   gen3 healthcheck --slack --retry
                   echo "All Done!"

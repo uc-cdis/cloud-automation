@@ -5,11 +5,12 @@ metadata:
   name: usersync
 spec:
   schedule: "@hourly"
+  concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   jobTemplate:
     spec:
-      # not yet supported - backOffLimit: 3
+      backoffLimit: 0
       template:
         metadata:
           labels:
@@ -203,6 +204,7 @@ spec:
                     fi
                   else
                     echo "/mnt/shared/user.yaml did not appear within timeout :-("
+                    false  # non-zero exit code
                   fi
                   exitcode=$?
                 else
@@ -241,9 +243,10 @@ spec:
                   fi
                 fi
                 echo "Exit code: $exitcode"
+                exit "$exitcode"
 
           - name: awshelper
-            image: quay.io/cdis/awshelper:master
+            GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
             imagePullPolicy: Always
             volumeMounts:
               - name: "fence-yaml"
@@ -268,6 +271,7 @@ spec:
                     n=$[$n+1]
                     sleep 2
                   done
+                  exitcode=0
                   if [[ -f /mnt/shared/user.yaml ]]; then
                     echo "awshelper container user.yaml diff ..."
                     diff /var/www/fence/user.yaml /mnt/shared/user.yaml
@@ -281,9 +285,12 @@ spec:
                     else
                       echo "no difference found"
                     fi
+                  else
+                    exitcode=1
                   fi
                 fi
-                echo "Helper exit code: $?"
+                echo "Helper exit code: $exitcode"
+                exit "$exitcode"
             env:
               - name: userYamlS3Path
                 valueFrom:

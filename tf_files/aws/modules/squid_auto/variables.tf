@@ -107,3 +107,8 @@ variable "cluster_min_size" {
   description = "Min size of the autoscaling group"
   default     = 1
 }
+
+variable "network_expansion" {
+  description = "let k8s workers run on a /22 subnet"
+  default     = false
+}

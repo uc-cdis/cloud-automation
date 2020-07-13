@@ -66,14 +66,7 @@ test_databucket_workspace() {
 }
 
 test_gcp_workspace() {
-  GEN3_TEST_PROFILE="gcp-${GEN3_TEST_PROFILE}"
-  if [[ ! -f "${GEN3_ETC_FOLDER}/gcp/${GEN3_TEST_PROFILE}.json" ]]; then
-    cat > "${GEN3_ETC_FOLDER}/gcp/${GEN3_TEST_PROFILE}.json" <<EOM
-{
-  "project_id": "testsuite"
-}
-EOM
-  fi
+  GEN3_TEST_PROFILE="gcp-dcf-integration"
   test_workspace
 }
 
@@ -133,7 +126,10 @@ shunit_runtest "test_workspace" "terraform"
 shunit_runtest "test_user_workspace" "terraform"
 shunit_runtest "test_snapshot_workspace" "terraform"
 shunit_runtest "test_databucket_workspace" "terraform"
-shunit_runtest "test_gcp_workspace" "terraform"
+if [[ -z "$JENKINS_HOME" ]]; then
+  # jenkins does not have Google configurations yet
+  shunit_runtest "test_gcp_workspace" "terraform"
+fi
 shunit_runtest "test_onprem_workspace" "terraform"
 shunit_runtest "test_trash" "terraform"
 shunit_runtest "test_refresh" "terraform"

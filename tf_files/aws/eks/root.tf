@@ -29,7 +29,9 @@ module "eks" {
   jupyter_asg_max_size             = "${var.jupyter_asg_max_size}" 
   jupyter_asg_min_size             = "${var.jupyter_asg_min_size}" 
   iam-serviceaccount               = "${var.iam-serviceaccount}"
+  oidc_eks_thumbprint              = "${var.oidc_eks_thumbprint}"
   domain_test                      = "${var.domain_test}"
   ha_squid                         = "${var.ha_squid}"
   dual_proxy                       = "${var.dual_proxy}"
+  single_az_for_jupyter            = "${var.single_az_for_jupyter}"
 }

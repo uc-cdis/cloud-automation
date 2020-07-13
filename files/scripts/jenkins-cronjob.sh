@@ -51,6 +51,7 @@ if [[ "$command" == "test" ]]; then
   exit 0
 elif [[ "$command" == "go" ]]; then
   g3kubectl exec -c jenkins "$jpod" -- bash -c 'sudo /bin/rm -rf /tmp/* /var/jenkins_home/workspace/*'
+  g3kubectl exec -c jenkins "$jpod" -- bash -c "sudo find /var/jenkins_home/jobs/ -name builds -type d -mtime +5 -prune -print -exec /bin/rm -rf '{}' ';'"
   gen3 roll jenkins
   aws sns publish --topic-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message 'qaplanetv1 jenkins-cronjob complete'
 fi

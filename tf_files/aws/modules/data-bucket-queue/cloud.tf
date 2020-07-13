@@ -13,6 +13,27 @@ resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
   endpoint  = "${aws_sqs_queue.user_updates_queue.arn}"
 }
 
+#
+# optional SNS notification hookup -
+# optional because the upload_data_bucket module already
+# sets up a subscription
+#
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  count = "${var.configure_bucket_notifications ? 1 : 0}"
+  bucket = "${var.bucket_name}"
+
+  topic {
+    topic_arn     = "${aws_sns_topic.user_updates.arn}"
+    events        = ["s3:ObjectCreated:Put", "s3:ObjectCreated:Post", "s3:ObjectCreated:Copy", "s3:ObjectCreated:CompleteMultipartUpload" ]
+  }
+  lifecycle {
+    # ignore manual changes
+    ignore_changes = ["topic_arn", "events"]
+  }
+
+}
+
+
 ##sqs policy
 resource "aws_sqs_queue_policy" "subscribe_sns" {
   queue_url = "${aws_sqs_queue.user_updates_queue.id}"
@@ -45,6 +66,7 @@ resource "aws_sns_topic_policy" "default" {
 
   policy = "${data.aws_iam_policy_document.sns-topic-policy.json}"
 }
+
 
 data "aws_iam_policy_document" "sns-topic-policy" {
   policy_id = "__default_policy_ID"

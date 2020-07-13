@@ -12,7 +12,7 @@ gen3_load "gen3/lib/kube-setup-init"
 # Helper for gen3 reset
 #
 new_client() {
-  local hostname=$(g3kubectl get configmaps/global -o=jsonpath='{.data.hostname}')
+  local hostname=$(gen3 api hostname)
   gen3_log_info "kube-setup-wts" "creating fence oidc client for $hostname"
   local secrets=$(g3kubectl exec $(gen3 pod fence) -- fence-create client-create --client wts --urls "https://${hostname}/wts/oauth2/authorize" --username wts --auto-approve | tail -1)
   # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
@@ -34,12 +34,15 @@ new_client() {
 
   cat - <<EOM
 {
-    "oidc_client_id": "$client_id",
-    "oidc_client_secret": "$client_secret",
+    "wts_base_url": "https://${hostname}/wts/",
     "encryption_key": "$encryption_key",
     "secret_key": "$secret_key",
+
     "fence_base_url": "https://${hostname}/user/",
-    "wts_base_url": "https://${hostname}/wts/"
+    "oidc_client_id": "$client_id",
+    "oidc_client_secret": "$client_secret",
+
+    "external_oidc": []
 }
 EOM
 }

@@ -34,7 +34,7 @@ variable "aws_secret_key"{
 }
 
 variable "threshold"{
-  default = ""
+#  default = ""
 }
 
 variable "slack_webhook"{

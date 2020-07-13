@@ -4,6 +4,7 @@ kind: Job
 metadata:
   name: etl
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:
@@ -72,5 +73,7 @@ spec:
             else
               python run_config.py && python run_etl.py
             fi
-            echo "All done - exit status $?"
+            exitcode=$?
+            echo "Exit code: $exitcode"
+            exit "$exitcode"
       restartPolicy: Never

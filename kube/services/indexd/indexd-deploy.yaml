@@ -71,6 +71,11 @@ spec:
                 name: manifest-indexd
                 key: arborist
                 optional: true
+          - name: HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: hostname
         imagePullPolicy: Always
         livenessProbe:
           httpGet:

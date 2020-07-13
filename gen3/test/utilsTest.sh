@@ -67,8 +67,19 @@ test_is_number() {
   ! gen3_is_number -1; because $? "is_number does not recognize negative numbers"
 }
 
+test_encode_uri_component() {
+  local testIn='sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{kubernetes_namespace="frickjack"}[12h]))'
+  local expectedOut='sum%20by%20(envoy_cluster_name)%20(rate(envoy_cluster_upstream_rq_total%7Bkubernetes_namespace%3D%22frickjack%22%7D%5B12h%5D))'
+  local testOut
+  testOut="$(gen3_encode_uri_component "$testIn")" && [[ "$testOut" == "$expectedOut" ]]; because $? "encode_uri_component works - got: $testOut"
+  testIn='!@#$^*;'
+  expectedOut="!%40%23%24%5E*%3B"
+  testOut="$(gen3_encode_uri_component "$testIn")" && [[ "$testOut" == "$expectedOut" ]]; because $? "encode_uri_component works - got: $testOut"
+}
+
 shunit_runtest "test_semver" "local,utils"
 shunit_runtest "test_colors" "local,utils"
+shunit_runtest "test_encode_uri_component" "local,utils"
 shunit_runtest "test_env" "local,utils"
 shunit_runtest "test_is_number" "local,utils"
 shunit_runtest "test_logging" "local,utils"

@@ -118,3 +118,70 @@ This launches a NLB with a target group pointing to the VM running  VPN service.
 
 ```/etc/openvpn/bin/push_to_s3.sh```
 
+
+## Overview
+
+Once you workon the workspace, you may want to edit the config.tfvars accordingly.
+
+There are mandatory variables, and there are a few other optionals that are set by default in the variables.tf file, but you could change them accordingly.
+
+Ex.
+```
+env_vpn_nlb_name             = "occ-dev-vpn"
+env_cloud_name               = "occ-dev-vpn.occ-pla.net"
+env_vpc_id                   = "vpc-0f8c7b18c1596fd73"
+env_pub_subnet_routetable_id = "rtb-064af9f9b08de3dd8"
+csoc_planx_dns_zone_id       = "Z043146513PFJKDJS33N1"
+csoc_vpn_subnet              = "192.168.250.0/24"
+csoc_vm_subnet               = "192.168.16.0/24"
+vpn_server_subnet            = "192.168.17.0/24"
+image_name_search_criteria   = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-\*"
+ssh_key_name                 = "fauzi@uchicago.edu"
+csoc_account_id              = "504226487987"
+organization_name            = "occ"
+bootstrap_script             = "vpnvm_ubuntu18.sh"
+cwl_group_name               = "occ-dev-vpn.planx-pla.net_log_group"
+
+```
+
+## Variables
+
+### Required Variables
+
+| Name | Description | Type | Default |
+|------|-------------|:----:|:-----:|
+| csoc_vpn_subnet | | string | |
+| csoc_vm_subnet | Subnet where the vpn server will be | string | |
+| vpn_server_subnet | Subnet that the service will allocate to clients | string | |
+
+
+
+### Optional Variables
+
+
+| Name | Description | Type | Default |
+|------|-------------|:----:|:-----:|
+| env_vpc_id | VPC ID where where the instances will be. | string | "vpc-e2b51d99" |
+| env_vpn_nlb_name | Name for the instances. | string | "csoc-vpn-nlb" |
+| env_cloud_name | This one will be used as hostname. | string | "planxprod" |
+| ami_account_id | AWS account id to use for AMIs look up. | strint | "099720109477" |
+| image_name_search_criteria | AMI name intended to be used for the VM. deployment | string | "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*" |
+| env_pub_subnet_routetable_id | Route table id used for public access.  | string | "rtb-1cb66860" |
+| csoc_planx_dns_zone_id | Route53 host zone id to use for adding the vpn hostname. | string | "ZG153R4AYDHHK" |
+| ssh_key_name | Key to access the VM. It must exist already in the account. | string | "rarya_id_rsa" |
+| bootstrap_path | Path where the bootstrap scrip is. | string | "cloud-automation/flavors/vpn_nlb_central/" |
+| bootstrap_script | The actual bootstrap script in the path set above| string | "vpnvm.sh" |
+| organization_name | For tagging purposes | string | "Basic Service" |
+| extra_vars | Additional variables for the bootstrap script. Ex. `key=value` | list | [] |
+| authorized_keys | This file content will be appended to the users .ssh/authorized_keys | string | "files/authorized_keys/ops_team" |
+| cwl_group_name | Logs group name for instances logs | string | "csoc-prod-vpn.planx-pla.net_log_group" |
+| branch | For testing purposes | string | "master" |
+
+
+## Outputs 
+
+| Name | Description |
+|------|-------------|
+| vpn_nlb_dns_name | DNS name placed in the Route53 hosted zone specified as variable |
+
+

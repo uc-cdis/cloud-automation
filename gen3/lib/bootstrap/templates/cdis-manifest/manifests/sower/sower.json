@@ -1,0 +1,114 @@
+[
+  {
+    "name": "pelican-export",
+    "action": "export",
+    "container": {
+      "name": "job-task",
+      "image": "quay.io/cdis/pelican-export:2020.03",
+      "pull_policy": "Always",
+      "env": [
+        {
+          "name": "DICTIONARY_URL",
+          "valueFrom": {
+            "configMapKeyRef": {
+              "name": "manifest-global",
+              "key": "dictionary_url"
+            }
+          }
+        },
+        {
+          "name": "GEN3_HOSTNAME",
+          "valueFrom": {
+            "configMapKeyRef": {
+              "name": "manifest-global",
+              "key": "hostname"
+            }
+          }
+        },
+        {
+          "name": "ROOT_NODE",
+          "value": "case"
+        }
+      ],
+      "volumeMounts": [
+        {
+          "name": "pelican-creds-volume",
+          "readOnly": true,
+          "mountPath": "/pelican-creds.json",
+          "subPath": "config.json"
+        },
+        {
+          "name": "peregrine-creds-volume",
+          "readOnly": true,
+          "mountPath": "/peregrine-creds.json",
+          "subPath": "creds.json"
+        }
+      ],
+      "cpu-limit": "1",
+      "memory-limit": "4Gi"
+    },
+    "volumes": [
+      {
+        "name": "pelican-creds-volume",
+        "secret": {
+          "secretName": "pelicanservice-g3auto"
+        }
+      },
+      {
+        "name": "peregrine-creds-volume",
+        "secret": {
+          "secretName": "peregrine-creds"
+        }
+      }
+    ],
+    "restart_policy": "Never"
+  },
+  {
+    "name": "pelican-import",
+    "action": "import",
+    "container": {
+      "name": "job-task",
+      "image": "quay.io/cdis/pelican-import:master",
+      "pull_policy": "Always",
+      "env": [
+        {
+          "name": "DICTIONARY_URL",
+          "valueFrom": {
+            "configMapKeyRef": {
+              "name": "manifest-global",
+              "key": "dictionary_url"
+            }
+          }
+        },
+        {
+          "name": "GEN3_HOSTNAME",
+          "valueFrom": {
+            "configMapKeyRef": {
+              "name": "manifest-global",
+              "key": "hostname"
+            }
+          }
+        }
+      ],
+      "volumeMounts": [
+        {
+          "name": "sheepdog-creds-volume",
+          "readOnly": true,
+          "mountPath": "/sheepdog-creds.json",
+          "subPath": "creds.json"
+        }
+      ],
+      "cpu-limit": "1",
+      "memory-limit": "4Gi"
+    },
+    "volumes": [
+      {
+        "name": "sheepdog-creds-volume",
+        "secret": {
+          "secretName": "sheepdog-creds"
+        }
+      }
+    ],
+    "restart_policy": "Never"
+  }
+]

@@ -5,7 +5,7 @@
   "sidecar": {
     "cpu-limit": "0.8",
     "memory-limit": "256Mi",
-    "image": "quay.io/cdis/gen3fuse-sidecar:chore_sidecar",
+    "image": "quay.io/cdis/gen3fuse-sidecar:2020.03",
     "env": {
       "NAMESPACE": "default",
       "HOSTNAME": "data.bloodpac.org"

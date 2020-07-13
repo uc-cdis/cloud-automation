@@ -21,7 +21,7 @@ es_port_forward() {
   local portNum
   portNum="$(ps uxwwww | grep port-forward | grep 9200 | grep -v grep | sed 's/.* \([0-9]*\):9200/\1/')"
   if [[ -n "$portNum" ]]; then
-    echo "It looks like a port-forward process is already running" 1>&2
+    gen3_log_info "It looks like a port-forward process is already running"
   else
     local OFFSET
     OFFSET=$((RANDOM % 1000))
@@ -46,7 +46,7 @@ function es_dump() {
   size="${1:-100}"
 
 curl -s -X GET "${ESHOST}/${indexName}/_search?pretty=true&size=$size" \
--H 'Content-Type: application/json' -d'
+-H 'Content-Type: application/json' -H 'Accept: application/json' -d'
 {
   "query": { "match_all": {} }
 }
@@ -61,6 +61,31 @@ function es_indices() {
   curl -s -X GET "${ESHOST}/_cat/indices?v"
 }
 
+
+#
+# Create a new index
+#
+# @param index name
+# @param mapping json file
+#
+es_create() {
+  if [[ $# -lt 2 ]]; then
+    gen3_log_err "use: es_create indexName mappingFile.json"
+    return 1
+  fi
+  local name="$1"
+  shift
+  local mappingFile="$1"
+  shift
+  if [[ ! -f "$mappingFile" ]]; then
+    gen3_log_err "mapping file does not exist: $mappingFile"
+    return 1
+  fi
+  # Need to create arranger-projects index by hand
+  curl -iv -X PUT "${ESHOST}/$name" -H 'Content-Type: application/json' -H 'Accept: application/json' "-d@$mappingFile"
+}
+
+
 #
 # Delete a given index
 #
@@ -70,7 +95,8 @@ function es_delete() {
   if [[ -n "$name" ]]; then
     curl -iv -X DELETE "${ESHOST}/$name"
   else
-    echo 'Use: es_delete INDEX_NAME'
+    gen3_log_err 'Use: es_delete INDEX_NAME'
+    return 1
   fi
 }
 
@@ -85,7 +111,7 @@ function es_export() {
   local indexList
 
   if [[ $# -lt 2 ]]; then
-    echo 'USE: es_export destFolderPath arrangerProjectName'
+    gen3_log_err 'USE: es_export destFolderPath arrangerProjectName'
     return 1
   fi
   destFolder="$1"
@@ -113,7 +139,7 @@ function es_import() {
   local indexList
 
   if [[ $# -lt 2 ]]; then
-    echo 'USE: es_import srcFolderPath arrangerProjectName'
+    gen3_log_err 'USE: es_import srcFolderPath arrangerProjectName'
     return 1
   fi
 
@@ -123,7 +149,7 @@ function es_import() {
   shift
 
   if es_indices | grep "arranger-projects-${projectName}[- ]" > /dev/null 2>&1; then
-    echo "ERROR: arranger project already exists - abandoning import: $projectName" 1>&2
+    gen3_log_err "arranger project already exists - abandoning import: $projectName"
     return 1
   fi
 
@@ -132,20 +158,20 @@ function es_import() {
   local importCount
   importCount=0
   for name in $indexList; do
-    echo $name
+    gen3_log_info $name
     gen3 nrun elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__mapping.json --type mapping
     gen3 nrun elasticdump --output http://$ESHOST/$name --input $sourceFolder/${name}__data.json --type data
     let importCount+=1
   done
   if [[ $importCount == 0 ]]; then
-    echo "ERROR: no .json files found matching $projectName" 1>&2
+    gen3_log_err "no .json files found matching $projectName"
     return 1
   fi
   # make sure arranger-projects index has an entry for our project id
   if ! gen3 es indices | awk '{ print $3 }' | grep -e '^arranger-projects$' > /dev/null 2>&1; then
     # Need to create arranger-projects index by hand
     curl -iv -X PUT "${ESHOST}/arranger-projects" \
--H 'Content-Type: application/json' -d'
+-H 'Content-Type: application/json' -H 'Accept: application/json' -d'
 {
     "mappings" : {
       "arranger-projects" : {
@@ -174,7 +200,7 @@ function es_import() {
   local dayStr
   dayStr="$(date +%Y-%m-%d)"
   curl -X PUT $ESHOST/arranger-projects/arranger-projects/$projectName?pretty=true \
-    -H 'Content-Type: application/json' -d"
+    -H 'Content-Type: application/json' -H 'Accept: application/json' -d"
         {
           \"id\" : \"$projectName\",
           \"active\" : true,
@@ -219,6 +245,7 @@ function es_alias() {
   done
   curl -X POST $ESHOST/_aliases \
    -H 'Content-Type: application/json' \
+   -H 'Accept: application/json' \
    -d"
 {
     \"actions\" : [
@@ -241,6 +268,12 @@ function es_mapping() {
   curl -X GET $ESHOST/${indexName}/_mapping?pretty=true
 }
 
+#
+# Get the cluster health
+#
+function es_health() {
+  curl -X GET $ESHOST/_cluster/health
+}
 
 
 if [[ -z "$1" || "$1" =~ ^-*help$ ]]; then
@@ -258,6 +291,9 @@ case "$command" in
 "indices")
   es_indices
   ;;
+"create")
+  es_create "$@"
+  ;;
 "delete")
   es_delete "$@"
   ;;
@@ -271,6 +307,9 @@ case "$command" in
   ;;
 "export")
   es_export "$@"
+  ;;
+"health")
+  es_health "$@"
   ;;
 "import")
   es_import "$@"

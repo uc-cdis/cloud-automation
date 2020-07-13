@@ -51,4 +51,8 @@ rds_instance_identifier                   = "planx-tests-db"
 #rds_instance_timezone                              = ""
 #rds_instance_final_snapshot_identifier             = ""
 
+# backups 
+#rds_instance_backup_enabled                         = false
+#rds_instance_backup_kms_key                         = ""
+#rds_instance_backup_bucket_name                     = ""
 

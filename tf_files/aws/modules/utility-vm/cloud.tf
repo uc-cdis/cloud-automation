@@ -1,3 +1,4 @@
+
 resource "aws_cloudwatch_log_group" "csoc_log_group" {
   name              = "${var.vm_hostname}"
   retention_in_days = 1827
@@ -6,27 +7,6 @@ resource "aws_cloudwatch_log_group" "csoc_log_group" {
     Environment  = "${var.environment}"
     Organization = "${var.organization_name}"
   }
-}
-
-data "aws_ami" "public_ami" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["${var.image_name_search_criteria}"] 
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  filter { 
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-
-  owners = ["${var.ami_account_id}"]
 }
 
 resource "aws_ami_copy" "cdis_ami" {
@@ -69,7 +49,7 @@ resource "aws_security_group" "ssh" {
   tags {
     Environment  = "${var.environment}"
     Organization = "${var.organization_name}"
-    name         = "ssh_${var.vm_name}"
+    Name         = "ssh_${var.vm_name}"
   }
 }
 
@@ -96,8 +76,9 @@ resource "aws_security_group" "local" {
   }
 
   tags {
-    Environment = "${var.environment}"
-    name        = "local_${var.vm_name}"
+    Environment  = "${var.environment}"
+    Organization = "${var.organization_name}"
+    Name         = "local_${var.vm_name}"
   }
 }
 
@@ -126,27 +107,14 @@ resource "aws_iam_role" "vm_role" {
   ]
 }
 EOF
-}
 
-#
-# This guy should only have access to Cloudwatch and nothing more
-#
-data "aws_iam_policy_document" "vm_policy_document" {
-  statement {
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:GetLogEvents",
-      "logs:PutLogEvents",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutRetentionPolicy",
-    ]
-
-    effect    = "Allow"
-    resources = ["*"]
+  tags = {
+    Environment  = "${var.environment}"
+    Organization = "${var.organization_name}"
+    Name         = "local_${var.vm_name}"
   }
 }
+
 
 resource "aws_iam_role_policy" "vm_policy" {
   name   = "${var.vm_name}_policy"
@@ -172,6 +140,11 @@ Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";
 Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";
 EOF
 
+  profile_d = <<EOF
+#!/bin/bash
+export http{,s}_proxy=http://cloud-proxy.internal.io:3128
+export no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.${data.aws_region.current.name}.amazonaws.com"
+EOF
 }
 
 resource "aws_instance" "utility_vm" {
@@ -185,8 +158,9 @@ resource "aws_instance" "utility_vm" {
   iam_instance_profile = "${aws_iam_instance_profile.vm_role_profile.name}"
 
   tags {
-    Name        = "${var.vm_name}"
-    Environment = "${var.environment}"
+    Name         = "${var.vm_name}"
+    Environment  = "${var.environment}"
+    Organization = "${var.organization_name}"
   }
 
   lifecycle {
@@ -194,8 +168,8 @@ resource "aws_instance" "utility_vm" {
   }
 
   provisioner "file" {
-    content     = "${var.proxy == "yes" ? local.proxy_config_environment : ""}"
-    destination = "/tmp/environment"
+    content     = "${var.proxy ? local.proxy_config_apt : ""}"
+    destination = "/tmp//01proxy"
     connection {
       type     = "ssh"
       user     = "ubuntu"
@@ -203,8 +177,8 @@ resource "aws_instance" "utility_vm" {
   }
 
   provisioner "file" {
-    content     = "${var.proxy == "yes" ? local.proxy_config_apt : ""}"
-    destination = "/tmp/01proxy"
+    content     = "${var.proxy ? local.profile_d : ""}"
+    destination = "/tmp/99-proxy.sh"
     connection {
       type     = "ssh"
       user     = "ubuntu"
@@ -214,39 +188,46 @@ resource "aws_instance" "utility_vm" {
   user_data = <<EOF
 #!/bin/bash 
 
-#Proxy configuration and hostname assigment for the adminVM
-#echo http_proxy=http://cloud-proxy.internal.io:3128 >> /etc/environment
-#echo https_proxy=http://cloud-proxy.internal.io:3128/ >> /etc/environment
-#echo no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com"  >> /etc/environment
-#echo 'Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
-#echo 'Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";' >> /etc/apt/apt.conf.d/01proxy
+cat /tmp/01proxy | tee -a /etc/apt/apt.conf.d/01proxy
+cat /tmp/99-proxy.sh | tee /etc/profile.d/99-proxy.sh
+chmod +x /etc/profile.d/99-proxy.sh
 
-cat /tmp/environment >> /etc/environment
-cat /tmp/01proxy >> /etc/apt/apt.conf.d/01proxy
+USER="ubuntu"
+USER_HOME="/home/$USER"
+CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
+(
+  source /etc/profile.d/99-proxy.sh
+  cd $USER_HOME
+  git clone https://github.com/uc-cdis/cloud-automation.git
+  cd $CLOUD_AUTOMATION
+  git pull
+  cat $CLOUD_AUTOMATION/${var.authorized_keys} | sudo tee --append $USER_HOME/.ssh/authorized_keys
 
-cd /home/ubuntu
-sudo git clone https://github.com/uc-cdis/cloud-automation.git
-sudo chown -R ubuntu. cloud-automation
+  # This is needed temporarily for testing purposes ; before merging the code to master
+  if [ "${var.branch}" != "master" ];
+  then
+    git checkout "${var.branch}"
+    git pull
+  fi
+  chown -R ubuntu. $CLOUD_AUTOMATION
 
-#sudo mkdir -p /root/.ssh/
-#sudo cat cloud-automation/files/authorized_keys/ops_team | sudo tee --append /home/ubuntu/.ssh/authorized_keys
-sudo cat cloud-automation/${var.authorized_keys} | sudo tee --append /home/ubuntu/.ssh/authorized_keys
+  echo "127.0.1.1 ${var.vm_hostname}" | tee --append /etc/hosts
+  hostnamectl set-hostname ${var.vm_hostname}
 
+  apt -y update
+  DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade
 
-echo '127.0.1.1 ${var.vm_hostname}' | sudo tee --append /etc/hosts
-sudo hostnamectl set-hostname ${var.vm_hostname}
+  apt autoremove -y
+  apt clean
+  apt autoclean
 
-sudo apt -y update
-sudo DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade| sudo tee --append /var/log/bootstrapping_script.log
+  cd $USER_HOME
 
-sudo apt-get autoremove -y
-sudo apt-get clean
-sudo apt-get autoclean
+  bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${aws_cloudwatch_log_group.csoc_log_group.name};vm_role=${aws_iam_role.vm_role.name};account_id=${var.aws_account_id};${join(";",var.extra_vars)}" 2>&1
+  cd $CLOUD_AUTOMATION
+  git checkout master
+) > /var/log/bootstrapping_script.log
 
-cd /home/ubuntu
-
-
-sudo bash "${var.bootstrap_path}${var.bootstrap_script}" ${join(";",var.extra_vars)} 2>&1 |sudo tee --append /var/log/bootstrapping_script.log
 
 EOF
 }
