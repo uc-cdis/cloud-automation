@@ -205,8 +205,10 @@ gen3_batch_cleanup() {
   gen3 cd
   gen3_load "gen3/lib/terraform"
   gen3_terraform destroy
-  gen3 trash --apply
-
+  if [[ $? == 0 ]]; then
+    gen3 trash --apply
+  fi
+  
   # Delete service acccount, role and policy attached to it
   role=$(g3kubectl describe serviceaccount $saName | grep Annotations | sed -n "s/^.*:role\/\(\S*\)$/\1/p")
   policyName=$(gen3_aws_run aws iam list-role-policies --role-name $role | jq -r .PolicyNames[0])
