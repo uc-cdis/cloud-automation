@@ -30,7 +30,7 @@ resource "aws_vpc_endpoint" "sts" {
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
   tags {
-    Name         = "to ec2"
+    Name         = "to sts"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
