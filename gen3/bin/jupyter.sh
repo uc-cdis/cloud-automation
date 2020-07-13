@@ -197,9 +197,9 @@ gen3_jupyter_idle_pods() {
   for name in $podList; do
     # leverage hatchery naming convention here ...
     local serviceName="h-${name##hatchery-}-s"
-    local clusterName="cluster_${serviceName//-/_}-0"
+    local clusterName="cluster_${serviceName//-/_}"
     gen3_log_info "Scanning for $clusterName"
-    if jq -r --arg cluster "$clusterName" 'select(.cluster == $cluster)' < "$tempClusterFile" | grep "$clusterName" > /dev/null; then
+    if jq -r --arg cluster "$clusterName" 'select(.cluster | startswith($cluster))' < "$tempClusterFile" | grep "$clusterName" > /dev/null; then
       echo "$name"
       if [[ "$command" == "kill" ]]; then
         gen3_log_info "try to kill pod $name in $jnamespace"

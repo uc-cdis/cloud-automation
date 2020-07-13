@@ -3,6 +3,7 @@ kind: Job
 metadata:
   name: gitops-sync
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:

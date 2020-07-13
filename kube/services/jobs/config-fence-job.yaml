@@ -12,7 +12,7 @@ kind: Job
 metadata:
   name: config-fence
 spec:
-  # not yet supported - backOffLimit: 3
+  backoffLimit: 0
   template:
     metadata:
       labels:

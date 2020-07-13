@@ -215,6 +215,7 @@ gen3_run() {
   return $resultCode
 }
 
+
 gen3() {
   if [[ ! -d "$GEN3_HOME/gen3/bin" ]]; then
     echo "ERROR $GEN3_HOME/gen3/bin does not exist"
@@ -223,10 +224,6 @@ gen3() {
   GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN:-"false"}
   GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
   
-  # Initialize frequently accessed varialbes
-  g3k_hostname > /dev/null || gen3_log_warn "GEN3 unable to determine namespace hostname"
-  g3k_environment > /dev/null || gen3_log_warn "GEN3 unable to determine namespace environment"
-
   unset GEN3_SOURCE_ONLY;  # cleanup if set - used by `gen3_load`
 
   # Remove leading flags (start with '-')

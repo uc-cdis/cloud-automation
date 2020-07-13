@@ -12,6 +12,8 @@ spec:
     spec:
       restartPolicy: Never
       serviceAccountName: hatchery-service-account
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: awshelper
           GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
@@ -23,11 +25,11 @@ spec:
                   name: global
                   key: slack_webhook
                   optional: true
-            - name: gen3Env
+            - name: gen3Hostname
               valueFrom:
                 configMapKeyRef:
-                  name: global
-                  key: environment
+                  name: manifest-global
+                  key: hostname
             - name: JENKINS_HOME
               value: "whatever"
           command: ["/bin/bash" ]
@@ -36,5 +38,7 @@ spec:
             - |
               export GEN3_HOME="$HOME/cloud-automation"
               source "$GEN3_HOME/gen3/gen3setup.sh"
-              gen3 jupyter idle none "$(gen3 db namespace)" kill
+              if appList="$(gen3 jupyter idle none "$(gen3 db namespace)" kill)" && [[ -n "$appList" && -n "$slackWebHook" && "$slackWebHook" != "None" ]]; then
+                curl -X POST --data-urlencode "payload={\"text\": \"hatchery-reaper in $gen3Hostname: \n\`\`\`\n${appList}\n\`\`\`\"}" "${slackWebHook}"
+              fi
               echo "All Done!"

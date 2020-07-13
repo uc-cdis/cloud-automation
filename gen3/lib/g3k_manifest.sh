@@ -96,11 +96,13 @@ g3k_manifest_init() {
 # inheritted by child processes
 export GEN3_CACHE_HOSTNAME="${GEN3_CACHE_HOSTNAME:-""}"
 export GEN3_CACHE_ENVIRONMENT="${GEN3_CACHE_ENVIRONMENT:-""}"
+export GEN3_CACHE_NAMESPACE="${GEN3_CACHE_NAMESPACE:-""}"
 
-# Do not trust the cache value from a parent process if KUBECTL_NAMESPACE is set
-if [[ -n "$KUBECTL_NAMESPACE" ]]; then
+# Ensure cache from parent process is from current namespace
+if [[ "$GEN3_CACHE_NAMESPACE" != "$KUBECTL_NAMESPACE" ]]; then
   GEN3_CACHE_HOSTNAME=""
   GEN3_CACHE_ENVIRONMENT=""
+  GEN3_CACHE_NAMESPACE="$KUBECTL_NAMESPACE"
 fi
 
 #
@@ -122,6 +124,11 @@ g3k_environment() {
   fi
   echo "$GEN3_CACHE_ENVIRONMENT"
 }
+
+# Initialize the cache
+g3k_hostname > /dev/null 2>&1 || true
+g3k_environment > /dev/null 2>&1 || true
+
 
 #
 # Get the path to the manifest appropriate for this commons

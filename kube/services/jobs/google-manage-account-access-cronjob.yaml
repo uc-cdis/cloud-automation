@@ -11,7 +11,7 @@ spec:
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
-      # not yet supported - backOffLimit: 3
+      backoffLimit: 0
       template:
         metadata:
           labels:

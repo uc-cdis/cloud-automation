@@ -24,7 +24,7 @@ kind: Job
 metadata:
   name: gentestdata
 spec:
-  # not yet supported - backOffLimit: 3
+  backoffLimit: 0
   template:
     metadata:
       labels:
