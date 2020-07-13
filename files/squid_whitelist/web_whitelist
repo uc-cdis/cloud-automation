@@ -4,7 +4,7 @@
 192.170.230.164
 accounts.google.com
 achecker.ca
-api-bionimbus-pdc.opensciencedatacloud.org
+ctds-planx.atlassian.net
 api.immport.org
 api.login.yahoo.com
 api.snapcraft.io
@@ -64,7 +64,6 @@ http.us.debian.org
 ifconfig.io
 internet2.edu
 k8s.gcr.io
-keyservice.opensciencedatacloud.org
 ks.osdc.io
 lib.stat.cmu.edu
 login.mathworks.com
@@ -94,6 +93,7 @@ mirrors.gigenet.com
 mirrors.lga7.us.voxel.net
 mirrors.nics.utk.edu
 mirrors.syringanetworks.net
+mran.microsoft.com
 neuro.debian.net
 neurodeb.pirsquared.org
 nginx.org
@@ -101,7 +101,6 @@ orcid.org
 pgp.mit.edu
 ppa.launchpad.net
 pubmirrors.dal.corespace.com
-quay.io
 raw.githubusercontent.com
 reflector.westga.edu
 registry.npmjs.org
@@ -127,4 +126,5 @@ www.mathworks.com
 www.oracle.com
 www.rabbitmq.com
 www.uniprot.org
+vpodc.org
 yahoo.com

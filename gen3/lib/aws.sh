@@ -98,7 +98,7 @@ gen3_aws_run() {
 #
 gen3_workon_aws(){
   if ! ( aws configure get "${1}.region" > /dev/null ); then
-    echo -e "$(red_color "PROFILE $1 not properly configured with default region for aws cli")"
+    gen3_log_err "PROFILE $1 not properly configured with default region for aws cli"
     return 3
   fi
   export GEN3_PROFILE="$1"
@@ -106,7 +106,7 @@ gen3_workon_aws(){
   export GEN3_FLAVOR=AWS
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}"
   export AWS_PROFILE="$GEN3_PROFILE"
-  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")
+  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region" || echo us-east-1)
   export AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
 
   # S3 bucket where we save terraform state, etc
@@ -193,7 +193,7 @@ gen3_AWS.backend.tfvars() {
 bucket = "$GEN3_S3_BUCKET"
 encrypt = "true"
 key = "$GEN3_WORKSPACE/terraform.tfstate"
-region = "$(aws configure get "$GEN3_PROFILE.region")"
+region = "${AWS_DEFAULT_REGION:-us-east-1}"
 EOM
 }
 
@@ -300,6 +300,7 @@ EOM
     cat - <<EOM
 bucket_name="$(echo "$GEN3_WORKSPACE" | sed 's/[_\.]/-/g')-gen3"
 environment="${vpc_name:-$(g3kubectl get configmap global -o jsonpath="{.data.environment}")}"
+cloud_trail_count=0
 EOM
     return 0
   fi
@@ -424,7 +425,6 @@ EOM
       #commonsName=${GEN3_WORKSPACE//_es/}
       cat - <<EOM
 user_perscode   = "PERSCODE you receive from the Qualys master"
-env_vpc_octet3  = "3rd OCTET OF VPC CIDR FOR QUALYS SETUP"
 EOM
       return 0
   fi
@@ -455,7 +455,7 @@ EOM
 
   if [[ "$GEN3_WORKSPACE" == "management-logs" ]]; then
       cat - <<EOM
-account_id = ["830067555646", "474789003679", "655886864976", "663707118480", "728066667777", "433568766270", "733512436101", "584476192960", "236835632492", "662843554732", "803291393429", "446046036926", "980870151884", "562749638216", "707767160287", "302170346065", "636151780898", "895962626746", "222487244010", "369384647397", "547481746681"]
+account_id = ["830067555646", "474789003679", "655886864976", "663707118480", "728066667777", "433568766270", "733512436101", "584476192960", "236835632492", "662843554732", "803291393429", "446046036926", "980870151884", "562749638216", "707767160287", "302170346065", "636151780898", "895962626746", "222487244010", "369384647397", "547481746681","199578515826","236714345101","345060017512","258867494168"]
 EOM
       return 0
   fi

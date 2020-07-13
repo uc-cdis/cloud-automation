@@ -34,9 +34,6 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
-      - name: cert-volume
-        secret:
-          secretName: "cert-portal-service"
       - name: ca-volume
         secret:
           secretName: "service-ca"
@@ -49,6 +46,9 @@ spec:
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
+      - name: cert-volume
+        secret:
+          secretName: "cert-portal-service"
       containers:
       - name: portal
         GEN3_PORTAL_IMAGE
@@ -69,6 +69,14 @@ spec:
           # portal sometimes takes a long time to come up ... -
           # has to fetch the dictionary, relay compile, etc
           failureThreshold: 6
+        resources:
+          requests:
+            cpu: 0.6
+            memory: 512Mi
+          limits:
+            # portal pigs out on resources at startup, then settles down
+            cpu: 2
+            memory: 4096Mi
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -145,6 +153,13 @@ spec:
                 name: manifest-global
                 key: privacy_policy_url
                 optional: true
+          - name: MAPBOX_API_TOKEN
+            # Optional token for mapbox api
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: mapbox_token
+                optional: true
         volumeMounts:
           - name: "cert-volume"
             readOnly: true
@@ -179,8 +194,4 @@ spec:
             readOnly: true
             mountPath: "/data-portal/custom/privacy_policy.md"
             subPath: "privacy_policy.md"
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 80
         imagePullPolicy: Always

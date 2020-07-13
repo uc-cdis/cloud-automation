@@ -1,0 +1,71 @@
+# 1. create secret with gen3 kube setup bucket-replicatejob
+# 2. For cross account replications you will need an IAM user with permissions in other accounts. You can also specify another source profile to use.
+# You need to add the access keys to the secrets folder, g3auto/bucketreplicate/credentials, then run gen3 kube-setup-secrets
+# 3. job must invoke with:
+#  gen3 job run bucket-replicate  SOURCE_BUCKET <source-bucket> TARGET_BUCKET <target-bucket> 
+#  ...optional SOURCE_PROFILE <source-profile> DESTINATION_PROFILE <destination-profile> USE_SOURCE_ACCOUNT
+#####REQUIRED VARIABLE########
+#SOURCE_BUCKET
+#TARGET_BUCKET
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bucket-replicate
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: batch-operations-account
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      volumes:
+        - name: aws-vol
+          emptyDir: {}
+        - name: cred-volume
+          secret:
+            secretName: "bucketreplicate-g3auto"
+            defaultMode: 0544
+      containers:
+      - name: replicate
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: SOURCE_BUCKET
+          GEN3_SOURCE_BUCKET|-value: ""-|
+        - name: DESTINATION_BUCKET
+          GEN3_DESTINATION_BUCKET|-value: ""-|
+        - name: SOURCE_PROFILE
+          GEN3_SOURCE_PROFILE|-value: "default"-|
+        - name: DESTINATION_PROFILE
+          GEN3_DESTINATION_PROFILE|-value: "default"-|
+        - name: USE_SOURCE_ACCOUNT
+          GEN3_USE_SOURCE_ACCOUNT|-value: "false"-|
+        volumeMounts:
+          - name: "aws-vol"
+            mountPath: "/home/ubuntu/.aws"
+          - name: "cred-volume"
+            mountPath: "/home/ubuntu/.aws/credentials"
+            subPath: credentials
+        resources:
+          limits:
+            cpu: 1
+            memory: 5Gi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            export GEN3_HOME="$HOME/cloud-automation"
+            source "$GEN3_HOME/gen3/gen3setup.sh"
+            cd "$GEN3_HOME"
+            if [[ $USE_SOURCE_ACCOUNT != "false" ]]; then
+              gen3 replicate --source-bucket $SOURCE_BUCKET --destination-bucket $DESTINATION_BUCKET --destination-profile $DESTINATION_PROFILE --source-profile $SOURCE_PROFILE --use-source-account
+            else
+              gen3 replicate --source-bucket $SOURCE_BUCKET --destination-bucket $DESTINATION_BUCKET --destination-profile $DESTINATION_PROFILE --source-profile $SOURCE_PROFILE
+            fi
+            echo "All done - exit status $?"
+      restartPolicy: Never

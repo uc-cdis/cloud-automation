@@ -64,7 +64,7 @@ variable "vm_hostname" {
 }
 
 variable "proxy" {
-  default = "yes"
+  default = true
 }
 
 variable "authorized_keys" {
@@ -74,4 +74,8 @@ variable "authorized_keys" {
 variable "organization_name" {
   description = "For tagging purposes"
   default     = "Basic Service"
+}
+
+variable "branch" {
+  default = "master"
 }

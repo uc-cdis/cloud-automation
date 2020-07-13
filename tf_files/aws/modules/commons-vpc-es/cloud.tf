@@ -9,6 +9,7 @@ module "elasticsearch_alarms" {
 }
 
 resource "aws_iam_service_linked_role" "es" {
+  count            = "${var.es_linked_role ? 1 : 0}"
   aws_service_name = "es.amazonaws.com"
 }
 
@@ -64,7 +65,7 @@ CONFIG
 
 resource "aws_elasticsearch_domain" "gen3_metadata" {
   domain_name           = "${var.vpc_name}-gen3-metadata"
-  elasticsearch_version = "6.3"
+  elasticsearch_version = "${var.es_version}"
   encrypt_at_rest {
     # For small instance type like t2.medium, encryption is not available
     enabled = "${var.encryption}"

@@ -78,7 +78,7 @@ variable "iam-serviceaccount" {
 
 variable "domain_test" {
   description = "url for the lambda function to check for the proxy"
-  default     = "gen3.org"
+  default     = "www.google.com"
 }
 
 variable "ha_squid" {
@@ -89,4 +89,15 @@ variable "ha_squid" {
 variable "dual_proxy" {
   description = "Single instance and HA"
   default     = false
+}
+
+variable "single_az_for_jupyter" {
+  description = "Jupyter notebooks on a single AZ"
+  default     = false
+}
+
+variable "oidc_eks_thumbprint" {
+  description = "Thumbprint for the AWS OIDC identity provider"
+  type        = "list"
+  default     = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
 }

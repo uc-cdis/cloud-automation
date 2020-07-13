@@ -1,5 +1,5 @@
 
-variable "vpc_cidr"{
+variable "env_vpc_cidr"{
   #default = 172.24.192.0/20
 }
 
@@ -24,7 +24,7 @@ variable "image_name_search_criteria" {
   default = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 }
 
-variable "csoc_cidr" {
+variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
@@ -92,7 +92,22 @@ variable "extra_vars" {
   default     = ["squid_image=master"]
 }
 
+variable "cluster_desired_capasity" {
+  default = 2
+}
 
+variable "cluster_max_size" {
+  default = 3
+}
 
+variable "cluster_min_size" {
+  default = 1
+}
 
+variable "network_expansion" {
+  default = true
+}
 
+variable "deploy_ha_squid" {
+  default = true
+}

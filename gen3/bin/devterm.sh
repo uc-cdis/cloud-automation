@@ -14,22 +14,25 @@ EOM
   exit 0
 fi
 
-overrides='{}'
-if g3kubectl get serviceaccounts/jenkins-service > /dev/null 2>&1; then
-  gen3_log_info "devterm" "mounting jenkins service account"
-  overrides='{ "spec": { "serviceAccountName": "jenkins-service" }}'
-fi
 
 # some command line processing
-image=quay.io/cdis/awshelper:master
+image="$(g3k_config_lookup .versions.automation)" || image=quay.io/cdis/awshelper:master
 labels="app=gen3job,name=devterm,netnolimit=yes"
-pullPolicy="IfNotPresent"
+pullPolicy="Always"
+saName="jenkins-service"
+
 declare -a command=("/bin/bash")
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -*labels)
       shift
       labels="$1"
+      shift
+      continue
+      ;;
+    -*sa)
+      shift
+      saName="$1"
       shift
       continue
       ;;
@@ -41,9 +44,9 @@ while [[ $# -gt 0 ]]; do
       shift
       continue
       ;;
-    --*pull)
+    --*nopull)
       shift
-      pullPolicy="Always"
+      pullPolicy="IfNotPresent"
       continue
       ;;
     --*image)
@@ -73,6 +76,15 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+overrides='{}'
+if g3kubectl get serviceaccounts $saName > /dev/null 2>&1; then
+  gen3_log_info "mounting service account: $saName"
+  overrides='{ "spec": { "serviceAccountName": "'$saName'", "securityContext": { "fsGroup": 1000 } }}'
+else
+  gen3_log_info "ignoring service account that does not exist: $saName"
+fi
+
 gen3_log_info "devterm" "running $image with labels $labels command ${command[@]}"
-gen3_log_info g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --generator=run-pod/v1 --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"
-g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --generator=run-pod/v1 --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"
+gen3_log_info g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --command -- "${command[@]}"
+g3kubectl run "awshelper-devterm-$(date +%s)" -it --rm=true --overrides "$overrides" --labels="$labels" --restart=Never --image=$image --image-pull-policy=$pullPolicy --env="JENKINS_HOME=devterm" --env="KUBECTL_NAMESPACE=$(gen3 db namespace)" --command -- "${command[@]}"

@@ -211,6 +211,7 @@ function random_alphanumeric() {
 #     if gen3_time_since  "automation_gitsync" is 300; then ...
 #
 # @param operation
+# @param verb should be "is"
 # @param periodSecs
 # @return 0 if time has expired
 #
@@ -224,7 +225,7 @@ function gen3_time_since() {
   local flagFolder
 
   if [[ $# -lt 3 ]]; then
-    echo -e "$(red_color "ERROR: gen3_time_since_last got $@")" 1>&2
+    gen3_log_err "gen3_time_since got $@"
     return 1
   fi
   operation="$1"
@@ -234,7 +235,7 @@ function gen3_time_since() {
   periodSecs="$1"
   shift
   if ! [[ -n "$operation" && -n "$verb" && "$periodSecs" =~ ^[0-9]+$ ]]; then
-    echo -e "$(red_color "ERROR: gen3_time_since_last got $operation $verb $periodSecs")" 1>&2
+    gen3_log_err "gen3_time_since_last got $operation $verb $periodSecs"
     return 1
   fi
   flagFolder="${GEN3_CACHE_DIR}/flagFiles"
@@ -324,4 +325,40 @@ gen3_retry() {
 #
 gen3_is_number() {
   [[ $# == 1 && "$1" =~ ^[0-9]+$ ]]
+}
+
+gen3_encode_uri_component() {
+  local codes=(
+    "%" "%25"
+    " " "%20" 
+    "=" "%3D" 
+    "[" "%5B" 
+    "]" "%5D" 
+    "{" "%7B" 
+    "}" "%7D" 
+    '"' "%22"
+    '\?' "%3F"
+    "&" "%26"
+    "," "%2C"
+    "@" "%40"
+    "#" "%23"
+    "$" "%24"
+    "^" "%5E"
+    ";" "%3B"
+    "+" "%2B"
+  )
+  local str="${1:-""}"
+  local it=0
+  (
+    # ugh - zsh!
+    if [[ -z "${BASH_VERSION}" ]]; then
+      set -o BASH_REMATCH  # zsh signal
+      set -o KSH_ARRAYS
+    fi
+
+    for ((it=0; it < ${#codes[@]}; it=it+2)); do
+      str="${str//${codes[$it]}/${codes[$((it+1))]}}"
+    done
+    echo "$str"
+  )
 }

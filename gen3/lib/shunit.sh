@@ -206,6 +206,10 @@ EOM
 # 
 shunit_because() {
   local exitCode
+  if [[ $# -lt 2 ]]; then
+    echo -e "\n\x1B[31m$SHUNIT_CURRENT_TEST - Assertion failed:\x1B[39m because takes 2 arguments: code message"
+    exit 1
+  fi
   let exitCode=$1
   let SHUNIT_ASSERT_COUNT+=1
   if [[ $exitCode != 0 ]]; then

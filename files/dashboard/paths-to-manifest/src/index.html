@@ -1,0 +1,44 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="Content-Security-Policy" 
+    content="default-src 'none'; 
+    img-src 'self' data: https://www.google-analytics.com; 
+    script-src 'self' https://www.google-analytics.com; 
+    style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; 
+    object-src 'none'; 
+    worker-src 'self';
+    connect-src 'self';
+    font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com"
+    >
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+
+  <link href="./base.css" rel="stylesheet" />
+  <link href="./p2mApp.css" rel="stylesheet" />
+</head>
+
+<body>
+    <header class="p2m-header">
+        <h1>Paths to Manifest</h1>
+
+    </header>
+    <main>
+      <section class="p2m-input">
+          <h2>Manifest Paths</h2>
+
+          <div class="p2m-input__container">
+            <textarea rows="20" class="p2m-input__data"></textarea>
+            <button class="p2m-input__button">Generate Manifest</button>
+
+            <pre class="p2m-input__results">
+
+            </pre>
+          </div>
+      </section>
+    </main>
+
+    <script type="module" src="p2mMain.js"></script>
+</body>
+
+</html>

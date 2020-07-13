@@ -26,6 +26,12 @@ if [[ -z "$JENKINS_HOME" ]]; then
   if ! g3kubectl get serviceaccounts/jenkins-service > /dev/null 2>&1; then  
     g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/serviceaccount.yaml"
   fi
+  if ! g3kubectl get sa gitops-sa > /dev/null 2>&1; then
+    roleName="$(gen3 api safe-name gitops)"
+    gen3 awsrole create "$roleName" gitops-sa
+    # do this here, since we added the new role to this binding
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml"
+  fi
   if ! g3kubectl get rolebindings/devops-binding > /dev/null 2>&1; then
     g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml"
   fi
@@ -48,13 +54,13 @@ if [[ -z "$JENKINS_HOME" ]]; then
   fi
 
   ctx="$(g3kubectl config current-context)"
-  ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
+  ctxNamespace="$(gen3 db namespace)"
   # only do this if we are running in the default namespace
   if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
     g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrolebinding-devops.yaml"
   fi
 else
-  echo "Not setting up roles in Jenkins: $JENKINS_HOME"
+  gen3_log_info "Not setting up roles in Jenkins: $JENKINS_HOME"
 fi
 
-echo "kube-setup-roles done" # force zero exit code
+gen3_log_info "kube-setup-roles done" # force zero exit code

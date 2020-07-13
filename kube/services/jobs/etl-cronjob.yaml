@@ -6,8 +6,10 @@ spec:
   schedule: "@daily"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
+      backoffLimit: 0
       template:
         metadata:
           labels:
@@ -88,3 +90,5 @@ spec:
                     curl -X POST --data-urlencode "payload={\"text\": \"JOBFAILED: ETL job on ${gen3Env}\"}" "${slackWebHook}"
                   fi
                   echo "Exit code: $exitcode"
+                  exit "$exitcode"
+

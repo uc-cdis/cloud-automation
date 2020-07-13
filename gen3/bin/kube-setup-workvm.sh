@@ -5,7 +5,6 @@
 # Assumes 'sudo' access.
 #
 
-vpc_name="${vpc_name:-${1:-unknown}}"
 s3_bucket="${s3_bucket:-${2:-unknown}}"
 
 # Make it easy to run this directly ...
@@ -13,6 +12,14 @@ _setup_workvm_dir="$(dirname -- "${BASH_SOURCE:-$0}")"
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_setup_workvm_dir}/../.." && pwd)}"
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/gen3setup"
+
+#
+# We want kube-setup-workvm to run even if vpc_name
+# is not configured, but kube-setup-init will bomb out
+# if it cannot derive the vpc_name
+#
+vpc_name="${vpc_name:-"$(gen3 api environment || echo unknown)"}"
 gen3_load "gen3/lib/kube-setup-init"
 
 if [[ -n "$JENKINS_HOME" ]]; then
@@ -82,11 +89,28 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       /bin/rm "${XDG_RUNTIME_DIR}/terraform.zip"
     }
 
+    install_terraform12() {
+      mkdir "${XDG_RUNTIME_DIR}/t12"
+      curl -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
+      sudo /bin/rm -rf /usr/local/bin/terraform12 > /dev/null 2>&1 || true
+      unzip "${XDG_RUNTIME_DIR}/t12/terraform12.zip" -d "${XDG_RUNTIME_DIR}/t12";
+      sudo cp "${XDG_RUNTIME_DIR}/t12/terraform" "/usr/local/bin/terraform12"
+      /bin/rm -rf "${XDG_RUNTIME_DIR}/t12"
+    }
+
     if ! which terraform > /dev/null 2>&1; then
       install_terraform  
     else
       TERRAFORM_VERSION=$(terraform --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
       if ! semver_ge "$TERRAFORM_VERSION" "0.11.14"; then
+        install_terraform
+      fi
+    fi
+    if ! which terraform12 > /dev/null 2>&1; then
+      install_terraform12  
+    else
+      T12_VERSION=$(terraform12 --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
+      if ! semver_ge "$T12_VERSION" "0.12.24"; then
         install_terraform
       fi
     fi
@@ -156,7 +180,7 @@ EOF
   fi
 
 # a user login should only work with one vpc
-if [[ "$vpc_name" != "unknown" ]] && ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
+if [[ -n "$vpc_name" && "$vpc_name" != "unknown" ]] && ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
   cat - >>${WORKSPACE}/.${RC_FILE} <<EOF
 export vpc_name='$vpc_name'
 export s3_bucket='$s3_bucket'

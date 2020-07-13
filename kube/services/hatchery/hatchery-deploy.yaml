@@ -39,9 +39,6 @@ spec:
         - name: hatchery-config
           configMap:
             name: manifest-hatchery
-            items:
-              - key: json
-                path: hatchery.json
       containers:
       - name: hatchery
         GEN3_HATCHERY_IMAGE
@@ -68,4 +65,7 @@ spec:
           - name: hatchery-config
             readOnly: true
             mountPath: /hatchery.json
-            subPath: hatchery.json
+            subPath: json
+          - name: hatchery-config
+            readOnly: true
+            mountPath: /hatchery-more-configs

@@ -93,7 +93,7 @@ variable "availability_zones" {
 
 variable "domain_test" {
   description = "Domain for the lambda function to check for the proxy"
-  default     = "gen3.org"
+  default     = "www.google.com"
 }
 
 variable "ha_squid" {
@@ -104,4 +104,9 @@ variable "ha_squid" {
 variable "dual_proxy" {
   description = "Single instance and HA"
   #default     = false
+}
+
+variable "single_az_for_jupyter" {
+  description = "Jupyter notebooks on a single AZ"
+  default     = false
 }

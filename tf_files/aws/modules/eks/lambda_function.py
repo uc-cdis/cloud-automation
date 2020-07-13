@@ -171,10 +171,10 @@ def get_instances_info(id_list):
 
   @return Dict containing the vpc data
 """
-def get_vpc(vpc_id):
-    client = boto3.resource('ec2')
-    vpc = client.Vpc(vpc_id)
-    return vpc
+# def get_vpc(vpc_id):
+#     client = boto3.resource('ec2')
+#     vpc = client.Vpc(vpc_id)
+#     return vpc
 
 """
   function to get route tables information
@@ -327,7 +327,7 @@ def get_hosted_zone(comment):
      zones = client.list_hosted_zones() 
      del client 
      for zone in zones['HostedZones']: 
-         if comment in zone['Config']['Comment']: 
+         if 'Comment' in zone['Config'] and comment in zone['Config']['Comment']:
              return zone
     
 """

@@ -11,6 +11,9 @@ node {
   pipelineHelper.cancelPreviousRunningBuilds()
 
   try {
+    stage('CleanWorkspace') {
+      cleanWs()
+    }
     stage('FetchCode'){
       gitHelper.fetchAllRepos(pipeConfig['currentRepoName'])
     }
@@ -46,10 +49,24 @@ node {
         sh 'sh dockerrun.sh --dryrun=True'
       }
     }
+    stage('WaitForQuayBuild') {
+      quayHelper.waitForBuild(
+          "awshelper",
+          pipeConfig['currentBranchFormatted']
+        )
+    }
     stage('SelectNamespace') {
       (kubectlNamespace, lock) = kubeHelper.selectAndLockNamespace(pipeConfig['UID'], namespaces)
       kubeLocks << lock
     }
+    stage('ModifyManifest') {
+      manifestHelper.editService(
+        kubeHelper.getHostname(kubectlNamespace),
+        "awshelper",
+        pipeConfig.serviceTesting.branch
+      )
+    }
+    
     stage('K8sReset') {
         // adding the reset-lock lock in case reset fails before unlocking
         kubeLocks << kubeHelper.newKubeLock(kubectlNamespace, "gen3-reset", "reset-lock")
@@ -57,7 +74,7 @@ node {
       }
       stage('VerifyClusterHealth') {
         kubeHelper.waitForPods(kubectlNamespace)
-        testHelper.checkPodHealth(kubectlNamespace)
+        testHelper.checkPodHealth(kubectlNamespace, "")
       }
       stage('GenerateData') {
         testHelper.simulateData(kubectlNamespace)

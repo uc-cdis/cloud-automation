@@ -31,6 +31,12 @@ data "aws_vpcs" "vpcs" {
 # nat gateway instead than going through the proxy
 data "aws_nat_gateway" "the_gateway" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
+
+  tags = {
+    Name = "${var.vpc_name}-ngw"
+  }
+
+  state = "available"
 }
 
 # Also let's allow comminication through the peering
@@ -71,6 +77,9 @@ data "aws_vpc_endpoint_service" "ebs" {
   service = "ebs"
 }
 
+data "aws_vpc_endpoint_service" "sts" {
+  service = "sts"
+}
 
 
 # get the route to public kube 

@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: google-bucket-manifest#PLACEHOLDER#
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "gcp-bucket-manifest-g3auto"
+      containers:
+      - name: gcp-bucket-manifest
+        GEN3_GCP-BUCKET-MANIFEST_IMAGE|-image: quay.io/cdis/google-bucket-manifest:master-|
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: PROJECT
+          GEN3_PROJECT
+        - name: PUBSUB_SUB
+          GEN3_PUBSUB_SUB
+        - name: N_MESSAGES
+          GEN3_N_MESSAGES
+        - name: METADATA_FILE
+          GEN3_METADATA_FILE|-value: ""-|
+        - name: OUT_BUCKET
+          GEN3_OUT_BUCKET
+        volumeMounts:
+          - name: "cred-volume"
+            mountPath: "/google-bucket-manifest/config.json"
+            subPath: "config.json"
+        resources:
+          limits:
+            cpu: 2
+            memory: 8Gi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            gcloud auth activate-service-account --key-file=/google-bucket-manifest/config.json
+            export GOOGLE_APPLICATION_CREDENTIALS=/google-bucket-manifest/config.json
+
+            if [[ "${METADATA_FILE}" == "" ]]; then
+              python bucket_manifest/sub.py create_manifest --project_id $PROJECT --subscription_id ${PUBSUB_SUB} --n_expected_messages ${N_MESSAGES} --bucket_name ${OUT_BUCKET}
+            else
+              gsutil cp "${METADATA_FILE}" /google-bucket-manifest/metadata_file.tsv
+              python bucket_manifest/sub.py create_manifest --project_id $PROJECT --subscription_id ${PUBSUB_SUB} --n_expected_messages ${N_MESSAGES} --bucket_name ${OUT_BUCKET} --metadata_file /google-bucket-manifest/metadata_file.tsv
+            fi
+            echo "All done - exit status $?"
+      restartPolicy: Never

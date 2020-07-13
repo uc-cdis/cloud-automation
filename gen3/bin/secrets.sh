@@ -2,7 +2,8 @@
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
-
+gen3_load "gen3/lib/secrets/rotate-gcp"
+gen3_load "gen3/lib/secrets/rotate-postgres"
 
 # lib --------------------------------------
 
@@ -42,9 +43,8 @@ gen3_secrets_init_git() {
         git remote add secrets_backup "$backup/secrets.git"
       fi
 
-      if [[ ! -f "$(gen3_secrets_folder)/.gitignore" ]]; then
+      if [[ ! -f "$(gen3_secrets_folder)/.gitignore" ]] || grep '\.env' "$(gen3_secrets_folder)/.gitignore" > /dev/null 2>&1; then
         cat - > "$(gen3_secrets_folder)/.gitignore" <<EOM
-*.env
 *.bak
 *.old
 *~
@@ -236,6 +236,49 @@ gen3_secrets_decode() {
   return $result
 }
 
+gen3_secrets_rotate() {
+  if [[ $# -lt 1 ]]; then
+    gen3_log_err "use: rotate postgres|whatever - see gen3 secrets help"
+    return 1
+  fi
+  local command="$1"
+  shift
+  case "$command" in
+    "postgres")
+      gen3_secrets_rotate_postgres "$@"
+      ;;
+    "newdb")
+      if [[ $# -lt 2 ]]; then
+        gen3_log_err "2 arguments required: gen3 secrets rotate newdb $serviceName $dbName"
+        return 1
+      fi
+      gen3_secrets_rotate_pguser "$@"
+      ;;
+    *)
+      gen3_log_err "unknown rotate command: $command"
+      return 1
+      ;;
+  esac
+}
+
+gen3_secrets_revoke() {
+  if [[ $# -lt 1 ]]; then
+    gen3_log_err "use: revoke postgres|whatever - see gen3 secrets help"
+    return 1
+  fi
+  local command="$1"
+  shift
+  case "$command" in
+    "postgres")
+      gen3_secrets_revoke_postgres "$@"
+      ;;
+    *)
+      gen3_log_err "unknown rotate command: $command"
+      return 1
+      ;;
+  esac
+}
+
 # main -----------------------------
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
@@ -245,11 +288,20 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "commit")
       gen3_secrets_commit "$@"
       ;;
+    "gcp")
+      gen3_secrets_gcp "$@"
+      ;;
     "sync")
       gen3_secrets_sync "$@"
       ;;
     "decode")
       gen3_secrets_decode "$@"
+      ;;
+    "rotate")
+      gen3_secrets_rotate "$@"
+      ;;
+    "revoke")
+      gen3_secrets_revoke "$@"
       ;;
     *)
       gen3 help secrets

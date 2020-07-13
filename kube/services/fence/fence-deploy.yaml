@@ -88,11 +88,22 @@ spec:
             name: "privacy-policy"
         - name: yaml-merge
           configMap:
-            name: "fence-yaml-merge"    
+            name: "fence-yaml-merge"
+      securityContext:
+        # nginx group in current images
+        fsGroup: 101
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
         env:
+        - name: GEN3_UWSGI_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: uwsgi-timeout
+              optional: true
+        - name: AWS_STS_REGIONAL_ENDPOINTS
+          value: regional
         - name: PYTHONPATH
           value: /var/www/fence
         - name: GEN3_DEBUG

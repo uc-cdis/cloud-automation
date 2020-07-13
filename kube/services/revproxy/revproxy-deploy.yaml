@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: revproxy-deployment
   annotations:
-    gen3.io/network-ingress: "portal"
+    gen3.io/network-ingress: "portal,sowerjob"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: revproxy
+        # allow access from workspaces
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -64,12 +66,14 @@ spec:
           - -g
           - 'daemon off;'
         livenessProbe:
-          tcpSocket:
+          httpGet:
+            path: /_status
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 30
         readinessProbe:
-          tcpSocket:
+          httpGet:
+            path: /_status
             port: 80
         ports:
         - containerPort: 80
@@ -158,6 +162,13 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
+        resources:
+          requests:
+            cpu: 0.5
+            memory: 1024Mi
+          limits:
+            cpu: 1.0
+            memory: 2048Mi    
         command: ["/bin/sh" ]
         args:
           - "-c"
