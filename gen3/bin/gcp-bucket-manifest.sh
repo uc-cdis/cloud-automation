@@ -177,7 +177,10 @@ gen3_batch_cleanup() {
   gen3 cd
   gen3_load "gen3/lib/terraform"
   gen3_terraform destroy
-  gen3 trash --apply
+  
+  if [[ $? == 0 ]]; then
+    gen3 trash --apply
+  fi
 
   gsutil rm -r gs://"${temp_bucket}"
   g3kubectl delete job google-bucket-manifest-${jobId}

@@ -142,8 +142,8 @@ EOF
 
   # Run k8s jobs to submitting jobs and consuming sqs
   local sqsUrl=$(aws sqs get-queue-url --queue-name $sqs_name | jq -r .QueueUrl)
-  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/bucket-manifest-job.yaml BUCKET $bucket JOB_QUEUE $job_queue JOB_DEFINITION $job_definition SQS $sqsUrl AUTHZ "$authz" OUT_BUCKET $temp_bucket | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|bucket-manifest#PLACEHOLDER#|bucket-manifest-${jobId}|g" > ./bucket-manifest-${jobId}-job.yaml
-  gen3 job run ./bucket-manifest-${jobId}-job.yaml
+  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/bucket-manifest-job.yaml BUCKET $bucket JOB_QUEUE $job_queue JOB_DEFINITION $job_definition SQS $sqsUrl AUTHZ "$authz" OUT_BUCKET $temp_bucket | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|bucket-manifest#PLACEHOLDER#|bucket-manifest-${jobId}|g" > ./aws-bucket-manifest-${jobId}-job.yaml
+  gen3 job run ./aws-bucket-manifest-${jobId}-job.yaml
   gen3_log_info "The job is started. Job ID: ${jobId}"
 
 }
@@ -153,7 +153,17 @@ EOF
 # @param job-id
 #
 gen3_manifest_generating_status() {
-  gen3_log_info "Please use kubectl logs -f bucket-manifest-{jobid}-xxx command"
+  if [[ $# -lt 1 ]]; then
+    gen3_log_info "An jobId is required"
+    exit 1
+  fi
+  jobid=$1
+  pod_name=$(g3kubectl get pod | grep aws-bucket-manifest-$jobid | grep -e Completed -e Running | cut -d' ' -f1)
+  if [[ $? != 0 ]]; then
+    gen3_log_err "The job has not been started. Check it again"
+    exit 0
+  fi
+  g3kubectl logs -f ${pod_name}
 }
 
 
@@ -231,7 +241,7 @@ case "$command" in
     gen3_batch_cleanup "$@"
     ;;
   'status')
-    gen3_manifest_generating_status
+    gen3_manifest_generating_status "$@"
     ;;
   'list' )
     gen3_bucket_manifest_list
