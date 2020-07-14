@@ -18,7 +18,7 @@ gen3_create_aws_batch_jenkins() {
   local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
   cat - > "./paramFile.json" <<EOF
 {
-    "job_id": "${job_id}",
+    "job_id": "${jobId}",
     "bucket_name": "${temp_bucket}"
 }
 EOF
