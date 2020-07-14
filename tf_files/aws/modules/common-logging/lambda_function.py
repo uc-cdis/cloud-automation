@@ -260,11 +260,14 @@ def send_to_logDNA(payload):
     else:
         return
 
-    lambda_client = boto3.client('lambda')
-    lambda_client.invoke_async(
-        FunctionName = log_dna_function,
-        InvokeArgs = payload
-    )
+    try:
+        lambda_client = boto3.client('lambda')
+        lambda_client.invoke_async(
+            FunctionName = log_dna_function,
+            InvokeArgs = payload
+        )
+    except Exception as e:
+        print(e)
 
 def handler(event, context):
     if os.environ.get('stream_name') is not None:
