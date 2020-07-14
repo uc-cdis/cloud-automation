@@ -13,6 +13,19 @@ jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
 prefix="${hostname//./-}-bucket-manifest-${jobId}"
 saName=$(echo "${prefix}-sa" | head -c63)
 
+gen3_create_aws_batch_jenkins() {
+  local prefix="${hostname//./-}-bucket-manifest-${jobId}"
+  local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
+  cat - > "$paramFile" <<EOF
+{
+    "job_id": "${job_id}",
+    "bucket_name": "${temp_bucket}"
+}
+EOF
+  echo $paramFile > ./paramFile.json 
+  gen3_create_aws_batch $@
+}
+
 
 # function to create an job and returns a job id
 #
@@ -236,6 +249,9 @@ shift
 case "$command" in
   'create')
     gen3_create_aws_batch "$@"
+    ;;
+  'create-jenkins')
+    gen3_create_aws_batch_jenkins "$@"
     ;;
   'cleanup')
     gen3_batch_cleanup "$@"
