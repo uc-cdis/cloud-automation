@@ -110,7 +110,7 @@ gdcapi_indexd_password="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 | csoc_account_id | Account id of the CSOC account | string | "433568766270" |
 | fence_db_size | Volume size for fence database | number | 10 |
 | sheepdog_db_size | Volume size for sheepdog database | number | 10 |
-| indexd_db_size | Volume size for indexd database | 10 |
+| indexd_db_size | Volume size for indexd database | number | 10 |
 | db_password_gdcapi | Password for GDCAPI (gdcapi now deprecated in favor of sheepdog + peregrine) | string | "" |
 | portal_app | Passed through to portal's APP environment to customize it | string | "dev" |
 | fence_snapshot | Should fence database come from a snapshot, specify the name of the snapshot in RDS | string | "" |
