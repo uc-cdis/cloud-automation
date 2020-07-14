@@ -256,7 +256,7 @@ def send_to_logDNA(payload):
 
     # if there is no threshold, let's not even check
     if os.environ.get('log_dna_function') is not None:
-        log_dna_function = float(os.environ.get('log_dna_function'))
+        log_dna_function = os.environ.get('log_dna_function')
     else:
         return
 
