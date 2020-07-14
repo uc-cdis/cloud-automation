@@ -40,3 +40,8 @@ variable "threshold"{
 variable "slack_webhook"{
   default = ""
 }
+
+variable "log_dna_function"{
+  description = "Lambda function ARN for logDNA"
+  default     = ""
+}
