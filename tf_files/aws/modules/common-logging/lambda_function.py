@@ -251,23 +251,32 @@ def nice_it(r_data):
     return individuals
     
 
+##
+#
+# send_to_logDNA function that invokes amother lambda function, in this case specifically, our logDNA lambda function
+#
+# @var payload String log stream to send
+# 
+# @return null
+#
+##
+
 def send_to_logDNA(payload):
 
 
-    # if there is no threshold, let's not even check
-    if os.environ.get('log_dna_function') is not None:
-        log_dna_function = os.environ.get('log_dna_function')
-    else:
-        return
-
     try:
-        lambda_client = boto3.client('lambda')
-        lambda_client.invoke_async(
-            FunctionName = log_dna_function,
-            InvokeArgs = payload
-        )
+        # if there is no threshold, let's not even check
+        if os.environ.get('log_dna_function') is not None:
+            log_dna_function = os.environ.get('log_dna_function')
+            lambda_client = boto3.client('lambda')
+            lambda_client.invoke_async(
+                FunctionName = log_dna_function,
+                InvokeArgs = payload
+            )
     except Exception as e:
+        # for debuggin only, otherwise useless
         print(e)
+
 
 def handler(event, context):
     if os.environ.get('stream_name') is not None:
