@@ -16,13 +16,12 @@ saName=$(echo "${prefix}-sa" | head -c63)
 gen3_create_aws_batch_jenkins() {
   local prefix="${hostname//./-}-bucket-manifest-${jobId}"
   local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
-  cat - > "$paramFile" <<EOF
+  cat - > "./paramFile.json" <<EOF
 {
-    "job_id": "${job_id}",
+    "job_id": "${jobId}",
     "bucket_name": "${temp_bucket}"
 }
 EOF
-  echo $paramFile > ./paramFile.json 
   gen3_create_aws_batch $@
 }
 
