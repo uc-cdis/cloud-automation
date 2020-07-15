@@ -7,6 +7,7 @@ if ! hostname="$(gen3 api hostname)"; then
     gen3_log_err "could not determine hostname from manifest-global - bailing out"
     return 1
 fi
+hostname=$(echo $hostname | head -c25)
 
 jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
 
