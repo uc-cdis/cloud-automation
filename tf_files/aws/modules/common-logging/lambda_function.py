@@ -266,7 +266,7 @@ def send_to_logDNA(payload):
 
     try:
         # if there is no threshold, let's not even check
-        if os.environ.get('log_dna_function') is not None:
+        if os.environ.get('log_dna_function') is not None and re.search("^arn:aws:lambda:[a-zA-Z0-9\-]*:[0-9]{12}:function:[a-z0-9_\-]*$",os.environ.get('log_dna_function')):
             log_dna_function = os.environ.get('log_dna_function')
             lambda_client = boto3.client('lambda')
             lambda_client.invoke_async(
