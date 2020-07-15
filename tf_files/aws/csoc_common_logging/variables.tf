@@ -41,5 +41,5 @@ variable "timeout" {
 }
 
 variable "memory_size" {
-  default = 128
+  default = 512
 }
