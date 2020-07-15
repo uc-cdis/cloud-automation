@@ -410,9 +410,9 @@ resource "aws_lambda_function" "logs_decodeding" {
     variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}", log_dna_function = "${var.log_dna_function}" }
   }
 
-  lifecycle {
-    ignore_changes = ["memory_size"]
-  }
+  #lifecycle {
+  #  ignore_changes = ["memory_size"]
+  #}
 }
 
 ############################ End Lambda function  ############################
