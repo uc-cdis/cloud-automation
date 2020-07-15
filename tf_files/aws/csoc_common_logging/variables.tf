@@ -35,3 +35,11 @@ variable "slack_webhook" {
 variable "log_dna_function" {
   default = "arn:aws:lambda:us-east-1:433568766270:function:cdistest-to-log-dna"
 }
+
+variable "timeout" {
+  default = 300
+}
+
+variable "memory_size" {
+  default = 128
+}

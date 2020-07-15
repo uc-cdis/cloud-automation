@@ -397,9 +397,10 @@ resource "aws_lambda_function" "logs_decodeding" {
   handler       = "lambda_function.handler"
 
   source_code_hash = "${data.archive_file.lambda_function.output_base64sha256}"
-  description      = "Decode incoming stream"
+  description      = "Decode incoming log stream"
   runtime          = "python3.6"
-  timeout          = 60
+  timeout          = "${var.timeout}" #300
+  memory_size      = "${var.memory_size}"
 
   tracing_config {
     mode = "PassThrough"
