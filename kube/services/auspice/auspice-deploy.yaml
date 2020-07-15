@@ -45,10 +45,10 @@ spec:
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
-              path: /_status
-              port: 80
+              path: /
+              port: 4000
           ports:
-          - containerPort: 80
+          - containerPort: 4000
           imagePullPolicy: Always
           resources:
             requests:
