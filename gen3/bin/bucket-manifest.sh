@@ -48,6 +48,11 @@ gen3_create_aws_batch() {
   local sqs_name=$(echo "${prefix}-sqs" | head -c63)
   local job_definition=$(echo "${prefix}-batch_job_definition" | head -c63)
   local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
+  local iam_instance_profile_role=$(echo "${prefix}-iam_ins_profile_role" | head -c63)
+  local aws_batch_service_role=$(echo "${prefix}-aws_service_role" | head -c63)
+  local iam_instance_role=$(echo "${prefix}-iam_ins_role" | head -c63)
+  local aws_batch_compute_environment_sg=$(echo "${prefix}-compute_env_sg" | head -c63)
+  local compute_environment_name=$(echo "${prefix}-compute-env" | head -c63)
 
   # Get aws credetial of fence_bot iam user
   local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
@@ -90,13 +95,13 @@ EOM
 EOF
   cat << EOF > config.tfvars
 container_properties         = "./${prefix}-job-definition.json"
-iam_instance_role            = "${prefix}-iam_ins_role"
-iam_instance_profile_role    = "${prefix}-iam_ins_profile_role"
-aws_batch_service_role       = "${prefix}-aws_service_role"
-aws_batch_compute_environment_sg = "${prefix}-compute_env_sg"
+iam_instance_role            = "${iam_instance_role}"
+iam_instance_profile_role    = "${iam_instance_profile_role}"
+aws_batch_service_role       = "${aws_batch_service_role}"
+aws_batch_compute_environment_sg = "${aws_batch_compute_environment_sg}"
 role_description             = "${prefix}-role to run aws batch"
 batch_job_definition_name    = "${job_definition}"
-compute_environment_name     = "${prefix}-compute-env"
+compute_environment_name     = "${compute_environment_name}"
 batch_job_queue_name         = "${job_queue}"
 sqs_queue_name               = "${sqs_name}"
 output_bucket_name           = "${temp_bucket}"
@@ -190,8 +195,10 @@ gen3_bucket_manifest_list() {
   local search_dir="$HOME/.local/share/gen3/default"
   for entry in `ls $search_dir`; do
     if [[ $entry == *"__batch" ]]; then
-      jobid=$(echo $entry | sed -n "s/^.*-\(\S*\)__batch$/\1/p")
-      echo $jobid
+      jobid=$(echo $entry | sed -n "s/${hostname//./-}-bucket-manifest-\(\S*\)__batch$/\1/p")
+      if [[ $jobid != "" ]]; then
+        echo $jobid
+      fi
     fi
   done
 }
