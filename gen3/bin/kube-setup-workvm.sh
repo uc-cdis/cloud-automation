@@ -153,10 +153,17 @@ EOM
     sudo unzip "${XDG_RUNTIME_DIR}/packer.zip" -d /usr/local/bin
     /bin/rm "${XDG_RUNTIME_DIR}/packer.zip"
   fi
-  if ! which heptio-authenticator-aws > /dev/null 2>&1; then
-    curl -Lo "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.3.0/heptio-authenticator-aws_0.3.0_linux_amd64
-    sudo mv "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" /usr/local/bin
-    sudo chmod +x /usr/local/bin/heptio-authenticator-aws
+  # https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
+  if ! which aws-iam-authenticator > /dev/null 2>&1; then
+    (
+      gen3_log_info "installing aws-iam-authenticator"
+      cd /usr/local/bin
+      sudo curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.17.7/2020-07-08/bin/linux/amd64/aws-iam-authenticator
+      sudo chmod a+rx ./aws-iam-authenticator
+      sudo rm /usr/local/bin/heptio-authenticator-aws || true
+      # link heptio-authenticator-aws for backward compatability with old scripts
+      sudo ln -s /usr/local/bin/aws-iam-authenticator heptio-authenticator-aws
+    )
   fi
   if ! which helm > /dev/null 2>&1; then
     helm_release_URL="https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz"

@@ -36,7 +36,7 @@ g3kubectl() {
   else
     theKubectl=$(which kubectl)
   fi
-  if [[ -n "$KUBECONFIG" ]] && grep heptio "$KUBECONFIG" > /dev/null 2>&1; then
+  if [[ -n "$KUBECONFIG" ]] && grep -e heptio -e aws-iam "$KUBECONFIG" > /dev/null 2>&1; then
     # Then it's EKS - run with AWS creds!
     (
       # avoid weird process loops with g3kubectl and cache initialization
