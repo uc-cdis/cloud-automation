@@ -1,3 +1,46 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluentd-restart
+#  namespace: cronjobs
+
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: fluentd-restart
+  #namespace: logging
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/exec
+  verbs:
+  - create
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: fluentd-restart
+roleRef:
+  kind: ClusterRole
+  name: fluentd-restart
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: fluentd-restart
+  namespace: default
+---
 # Note: change to batch/v1beta1 once we bump to k8s 1.8
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -19,7 +62,7 @@ spec:
           serviceAccountName: fluentd-restart
           containers:
           - name: awshelper
-            image: quay.io/cdis/awshelper:master
+            GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
             imagePullPolicy: Always
             command: ["/bin/bash" ]
             args:
