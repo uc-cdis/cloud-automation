@@ -204,9 +204,12 @@ spec:
             mountPath: "/etc/shibboleth/inc-md-cert.pem"
             subPath: "inc-md-cert.pem"
         resources:
+            requests:
+              cpu: 0.8
+              memory: 2400Mi
             limits:
-              cpu: 2
-              memory: 1200Mi
+              cpu: 2.0
+              memory: 6400Mi
         command: ["/bin/bash"]
         args:
           - "-c"
