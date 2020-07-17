@@ -8,11 +8,6 @@ if ! hostname="$(gen3 api hostname)"; then
     return 1
 fi
 
-jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
-
-prefix="${hostname//./-}-bucket-manifest-${jobId}"
-saName=$(echo "${prefix}-sa" | head -c63)
-
 # function to create an job and returns a job id
 #
 # @param bucket: the input bucket
@@ -256,7 +251,7 @@ gen3_batch_cleanup() {
 }
 
 OPTIND=1 
-OPTSPEC="-:"
+OPTSPEC=":-:"
 while getopts "$OPTSPEC" optchar; do
   case "${optchar}" in
     -)
@@ -332,6 +327,9 @@ if $runCreate && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runList ]
     gen3_log_info "The input bucket is required "
     exit 1
   else
+    jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
+    prefix="${hostname//./-}-bucket-manifest-${jobId}"
+    saName=$(echo "${prefix}-sa" | head -c63)
     gen3_create_aws_batch
   fi
 elif $runCleanup && [[ -z $runCreate ]] && [[ -z $runStatus ]] && [[ -z $runList ]]; then
