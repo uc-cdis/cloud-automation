@@ -9,6 +9,7 @@ if ! hostname="$(gen3 api hostname)"; then
 fi
 hostname=$(echo $hostname | head -c25)
 
+
 jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
 
 prefix="${hostname//./-}-bucket-manifest-${jobId}"
@@ -26,18 +27,11 @@ EOF
   gen3_create_aws_batch $@
 }
 
-
 # function to create an job and returns a job id
 #
 # @param bucket: the input bucket
 #
 gen3_create_aws_batch() {
-  if [[ $# -lt 1 ]]; then
-    gen3_log_info "The input bucket is required "
-    exit 1
-  fi
-  bucket=$1
-  authz=$2
   if [[ "$authz" != "" ]] && [[ $authz != s3://* ]] && [[ $authz != /* ]]; then
     gen3_log_info "Please provide the absolute path "
     exit 1
@@ -53,11 +47,26 @@ gen3_create_aws_batch() {
   local iam_instance_role=$(echo "${prefix}-iam_ins_role" | head -c63)
   local aws_batch_compute_environment_sg=$(echo "${prefix}-compute_env_sg" | head -c63)
   local compute_environment_name=$(echo "${prefix}-compute-env" | head -c63)
-
+  if $outputVariables; then
+    cat - > "./paramFile.json" <<EOF
+{
+    "job_id": "${jobId}",
+    "bucket_name": "${temp_bucket}"
+}
+EOF
+  fi
   # Get aws credetial of fence_bot iam user
   local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
   local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_secret_access_key)
 
+  if [[ ! -z $roleToAssume ]]; then
+    export AWS_ACCESS_KEY=$access_key
+    export AWS_SECRET_ACCESS_KEY=$secret_key
+    assumedCreds=$(aws sts assume-role --role-arn $roleToAssume --role-session-name batch-copy-$jobId)
+    access_key=$(echo $assumedCreds | jq -r .Credentials.AccessKeyId)
+    secret_key=$(echo $assumedCreds | jq -r .Credentials.SecretAccessKey)
+    session_token=$(echo $assumedCreds | jq -r .Credentials.SessionToken)
+  fi
   if [ "$secret_key" = "null" ]; then
     gen3_log_err "No fence_bot aws credential block in fence_config.yaml"
     return 1
@@ -70,16 +79,38 @@ gen3_create_aws_batch() {
 
   mkdir -p $(gen3_secrets_folder)/g3auto/bucketmanifest/
   credsFile="$(gen3_secrets_folder)/g3auto/bucketmanifest/creds.json"
-  cat - > "$credsFile" <<EOM
+  if [[ ! -z $roleToAssume ]]; then
+    cat - > "$credsFile" <<EOM
+{
+  "region": "us-east-1",
+  "aws_access_key_id": "$access_key",
+  "aws_secret_access_key": "$secret_key",
+  "aws_session_token": "$session_token"
+}
+EOM
+    cat << EOF > ${prefix}-job-definition.json
+{
+    "image": "quay.io/cdis/object_metadata:master",
+    "memory": 256,
+    "vcpus": 1,
+    "environment": [
+        {"name": "ACCESS_KEY_ID", "value": "${access_key}"},
+        {"name": "SECRET_ACCESS_KEY", "value": "${secret_key}"},
+        {"name": "AWS_SESSION_TOKEN", "value": "${session_token}"},
+        {"name": "BUCKET", "value": "${bucket}"},
+        {"name": "SQS_NAME", "value": "${sqs_name}"}
+    ]
+}
+EOF
+  else
+    cat - > "$credsFile" <<EOM
 {
   "region": "us-east-1",
   "aws_access_key_id": "$access_key",
   "aws_secret_access_key": "$secret_key"
 }
 EOM
-  gen3 secrets sync "initialize bucketmanifest/creds.json"
-
-  cat << EOF > ${prefix}-job-definition.json
+   cat << EOF > ${prefix}-job-definition.json
 {
     "image": "quay.io/cdis/object_metadata:master",
     "memory": 256,
@@ -91,8 +122,11 @@ EOM
         {"name": "SQS_NAME", "value": "${sqs_name}"}
     ]
 }
-
 EOF
+  fi
+  gen3 secrets sync "initialize bucketmanifest/creds.json"
+
+
   cat << EOF > config.tfvars
 container_properties         = "./${prefix}-job-definition.json"
 iam_instance_role            = "${iam_instance_role}"
@@ -171,11 +205,6 @@ EOF
 # @param job-id
 #
 gen3_manifest_generating_status() {
-  if [[ $# -lt 1 ]]; then
-    gen3_log_info "An jobId is required"
-    exit 1
-  fi
-  jobid=$1
   pod_name=$(g3kubectl get pod | grep aws-bucket-manifest-$jobid | grep -e Completed -e Running | cut -d' ' -f1)
   if [[ $? != 0 ]]; then
     gen3_log_err "The job has not been started. Check it again"
@@ -205,12 +234,6 @@ gen3_bucket_manifest_list() {
 
 # tear down the infrastructure
 gen3_batch_cleanup() {
-  if [[ $# -lt 1 ]]; then
-    gen3_log_info "Need to provide a job-id "
-    exit 1
-  fi
-  jobId=$1
-
   local search_dir="$HOME/.local/share/gen3/default"
   local is_jobid=0
   for entry in `ls $search_dir`; do
@@ -238,7 +261,7 @@ gen3_batch_cleanup() {
   if [[ $? == 0 ]]; then
     gen3 trash --apply
   fi
-  
+
   # Delete service acccount, role and policy attached to it
   role=$(g3kubectl describe serviceaccount $saName | grep Annotations | sed -n "s/^.*:role\/\(\S*\)$/\1/p")
   policyName=$(gen3_aws_run aws iam list-role-policies --role-name $role | jq -r .PolicyNames[0])
@@ -251,29 +274,109 @@ gen3_batch_cleanup() {
   rm -f $credsFile
 }
 
-command="$1"
-shift
-case "$command" in
-  'create')
-    gen3_create_aws_batch "$@"
-    ;;
-  'create-jenkins')
-    gen3_create_aws_batch_jenkins "$@"
-    ;;
-  'cleanup')
-    gen3_batch_cleanup "$@"
-    ;;
-  'status')
-    gen3_manifest_generating_status "$@"
-    ;;
-  'list' )
-    gen3_bucket_manifest_list
-    ;;
-  'help')
-    gen3_bucket_manifest_help "$@"
-    ;;
-  *)
-    gen3_bucket_manifest_help
-    ;;
-esac
+OPTIND=1
+OPTSPEC=":-:"
+while getopts "$OPTSPEC" optchar; do
+  case "${optchar}" in
+    -)
+      case "${OPTARG}" in
+        create)
+          runCreate=true
+          ;;
+        cleanup)
+          runCleanup=true
+          ;;
+        status)
+          runStatus=true
+          ;;
+        list)
+          runList=true
+          ;;
+        help)
+          runHelp=true
+          ;;
+        job-id=*)
+          jobId=${OPTARG#*=}
+          ;;
+        job-id)
+          jobId="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+          ;;
+        bucket=*)
+          bucket=${OPTARG#*=}
+          ;;
+        bucket)
+          bucket="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+          ;;
+        authz=*)
+          authz=${OPTARG#*=}
+          ;;
+        authz)
+          authz="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+          ;;
+        assume-role=*)
+          roleToAssume=${OPTARG#*=}
+          ;;
+        assume-role)
+          roleToAssume="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+          ;;
+        output-variables)
+          outputVariables=true
+          ;;
+        help)
+          gen3_replicate_help
+          exit
+          ;;
+        *)
+          if [ "$OPTERR" = 1 ] && [ "${OPTSPEC:0:1}" != ":" ]; then
+            echo "Unknown option --${OPTARG}" >&2
+            gen3_replicate_help
+            exit 2
+          fi
+          ;;
+      esac;;
+    *)
+      if [ "$OPTERR" != 1 ] || [ "${OPTSPEC:0:1}" = ":" ]; then
+        echo "Non-option argument: '-${OPTARG}'" >&2
+        gen3_replicate_help
+        exit 2
+      fi
+      ;;
+    esac
+done
+
+
+# Stop if required params are not set
+if $runCreate && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runList ]]; then
+  if [[ -z $bucket ]]; then
+    gen3_log_info "The input bucket is required "
+    exit 1
+  else
+    jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
+    prefix="${hostname//./-}-bucket-manifest-${jobId}"
+    saName=$(echo "${prefix}-sa" | head -c63)
+    gen3_create_aws_batch
+  fi
+elif $runCleanup && [[ -z $runCreate ]] && [[ -z $runStatus ]] && [[ -z $runList ]]; then
+  if [[ -z $jobId ]]; then
+    gen3_log_info "Need to provide a job-id "
+    exit 1
+  else
+    gen3_batch_cleanup
+  fi
+elif $runStatus && [[ -z $runCleanup ]] && [[ -z $runCreate ]] && [[ -z $runList ]]; then
+  if [[ -z $jobId ]]; then
+    gen3_log_info "Need to provide a job-id "
+    exit 1
+  else
+    gen3_manifest_generating_status
+  fi
+elif $runList && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runCreate ]]; then
+  gen3_bucket_manifest_list
+elif $runHelp; then
+  gen3_bucket_manifest_help
+else
+  gen3_bucket_manifest_help
+fi
+
+
 exit $?
