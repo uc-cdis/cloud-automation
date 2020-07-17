@@ -24,19 +24,18 @@ gen3_create_aws_batch() {
   local job_definition=$(echo "${prefix}-batch_job_definition" | head -c63)
   local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
   if $outputVariables; then
-    cat - > "$paramFile" <<EOF
+    cat - > "./paramFile.json" <<EOF
 {
-    "job_id": "${job_id}",
+    "job_id": "${jobId}",
     "bucket_name": "${temp_bucket}"
 }
 EOF
-    echo $paramFile > ./paramFile.json
   fi
   # Get aws credetial of fence_bot iam user
   local access_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_access_key_id)
   local secret_key=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .AWS_CREDENTIALS.fence_bot.aws_secret_access_key)
 
-  if $roleToAssume; then
+  if [[ ! -z $roleToAssume ]]; then
     export AWS_ACCESS_KEY=$access_key
     export AWS_SECRET_ACCESS_KEY=$secret_key
     assumedCreds=$(aws sts assume-role --role-arn $roleToAssume --role-session-name batch-copy-$jobId)
@@ -44,7 +43,6 @@ EOF
     secret_key=$(echo $assumedCreds | jq -r .Credentials.SecretAccessKey)
     session_token=$(echo $assumedCreds | jq -r .Credentials.SessionToken)
   fi
-
   if [ "$secret_key" = "null" ]; then
     gen3_log_err "No fence_bot aws credential block in fence_config.yaml"
     return 1
@@ -57,7 +55,7 @@ EOF
 
   mkdir -p $(gen3_secrets_folder)/g3auto/bucketmanifest/
   credsFile="$(gen3_secrets_folder)/g3auto/bucketmanifest/creds.json"
-  if $roleToAssume; then
+  if [[ ! -z $roleToAssume ]]; then
     cat - > "$credsFile" <<EOM
 {
   "region": "us-east-1",
@@ -237,7 +235,7 @@ gen3_batch_cleanup() {
   if [[ $? == 0 ]]; then
     gen3 trash --apply
   fi
-  
+
   # Delete service acccount, role and policy attached to it
   role=$(g3kubectl describe serviceaccount $saName | grep Annotations | sed -n "s/^.*:role\/\(\S*\)$/\1/p")
   policyName=$(gen3_aws_run aws iam list-role-policies --role-name $role | jq -r .PolicyNames[0])
@@ -250,7 +248,7 @@ gen3_batch_cleanup() {
   rm -f $credsFile
 }
 
-OPTIND=1 
+OPTIND=1
 OPTSPEC=":-:"
 while getopts "$OPTSPEC" optchar; do
   case "${optchar}" in
@@ -297,7 +295,7 @@ while getopts "$OPTSPEC" optchar; do
           ;;
         output-variables)
           outputVariables=true
-          ;;         
+          ;;
         help)
           gen3_replicate_help
           exit
