@@ -7,6 +7,25 @@ if ! hostname="$(gen3 api hostname)"; then
     gen3_log_err "could not determine hostname from manifest-global - bailing out"
     return 1
 fi
+hostname=$(echo $hostname | head -c25)
+
+
+jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
+
+prefix="${hostname//./-}-bucket-manifest-${jobId}"
+saName=$(echo "${prefix}-sa" | head -c63)
+
+gen3_create_aws_batch_jenkins() {
+  local prefix="${hostname//./-}-bucket-manifest-${jobId}"
+  local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
+  cat - > "./paramFile.json" <<EOF
+{
+    "job_id": "${jobId}",
+    "bucket_name": "${temp_bucket}"
+}
+EOF
+  gen3_create_aws_batch $@
+}
 
 # function to create an job and returns a job id
 #
@@ -23,6 +42,11 @@ gen3_create_aws_batch() {
   local sqs_name=$(echo "${prefix}-sqs" | head -c63)
   local job_definition=$(echo "${prefix}-batch_job_definition" | head -c63)
   local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
+  local iam_instance_profile_role=$(echo "${prefix}-iam_ins_profile_role" | head -c63)
+  local aws_batch_service_role=$(echo "${prefix}-aws_service_role" | head -c63)
+  local iam_instance_role=$(echo "${prefix}-iam_ins_role" | head -c63)
+  local aws_batch_compute_environment_sg=$(echo "${prefix}-compute_env_sg" | head -c63)
+  local compute_environment_name=$(echo "${prefix}-compute-env" | head -c63)
   if $outputVariables; then
     cat - > "./paramFile.json" <<EOF
 {
@@ -105,13 +129,13 @@ EOF
 
   cat << EOF > config.tfvars
 container_properties         = "./${prefix}-job-definition.json"
-iam_instance_role            = "${prefix}-iam_ins_role"
-iam_instance_profile_role    = "${prefix}-iam_ins_profile_role"
-aws_batch_service_role       = "${prefix}-aws_service_role"
-aws_batch_compute_environment_sg = "${prefix}-compute_env_sg"
+iam_instance_role            = "${iam_instance_role}"
+iam_instance_profile_role    = "${iam_instance_profile_role}"
+aws_batch_service_role       = "${aws_batch_service_role}"
+aws_batch_compute_environment_sg = "${aws_batch_compute_environment_sg}"
 role_description             = "${prefix}-role to run aws batch"
-batch_job_definition_name    = "${prefix}-batch_job_definition"
-compute_environment_name     = "${prefix}-compute-env"
+batch_job_definition_name    = "${job_definition}"
+compute_environment_name     = "${compute_environment_name}"
 batch_job_queue_name         = "${job_queue}"
 sqs_queue_name               = "${sqs_name}"
 output_bucket_name           = "${temp_bucket}"
@@ -200,8 +224,10 @@ gen3_bucket_manifest_list() {
   local search_dir="$HOME/.local/share/gen3/default"
   for entry in `ls $search_dir`; do
     if [[ $entry == *"__batch" ]]; then
-      jobid=$(echo $entry | sed -n "s/^.*-\(\S*\)__batch$/\1/p")
-      echo $jobid
+      jobid=$(echo $entry | sed -n "s/${hostname//./-}-bucket-manifest-\(\S*\)__batch$/\1/p")
+      if [[ $jobid != "" ]]; then
+        echo $jobid
+      fi
     fi
   done
 }

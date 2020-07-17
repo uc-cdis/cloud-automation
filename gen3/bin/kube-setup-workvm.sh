@@ -115,15 +115,55 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       fi
     fi
   )
+
+  if [[ -f /etc/systemd/timesyncd.conf ]] \
+    && ! grep 169.254.169.123 /etc/systemd/timesyncd.conf > /dev/null \
+    && curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > /dev/null; then
+      (
+      gen3_log_info "updating /etc/systemd/timesyncd.conf to use aws ntp"
+      # update ntp to work on AWS in private subnet
+      sudo cp /etc/systemd/timesyncd.conf /etc/systemd/timesyncd.conf.bak
+      sudo bash -c 'cat - > /etc/systemd/timesyncd.conf' <<EOM
+#  Installed by gen3 kube-setup-workvm
+#  This file is part of systemd.
+#
+#  systemd is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation; either version 2.1 of the License, or
+#  (at your option) any later version.
+#
+# Entries in this file show the compile time defaults.
+# You can change settings by editing this file.
+# Defaults can be restored by simply deleting this file.
+#
+# See timesyncd.conf(5) for details.
+
+[Time]
+NTP=169.254.169.123
+#FallbackNTP=ntp.ubuntu.com
+RootDistanceMaxSec=5
+PollIntervalMinSec=32
+PollIntervalMaxSec=2048
+EOM
+    sudo systemctl restart systemd-timesyncd
+    )
+  fi
   if ! which packer > /dev/null 2>&1; then
     curl -o "${XDG_RUNTIME_DIR}/packer.zip" https://releases.hashicorp.com/packer/1.2.1/packer_1.2.1_linux_amd64.zip
     sudo unzip "${XDG_RUNTIME_DIR}/packer.zip" -d /usr/local/bin
     /bin/rm "${XDG_RUNTIME_DIR}/packer.zip"
   fi
-  if ! which heptio-authenticator-aws > /dev/null 2>&1; then
-    curl -Lo "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.3.0/heptio-authenticator-aws_0.3.0_linux_amd64
-    sudo mv "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" /usr/local/bin
-    sudo chmod +x /usr/local/bin/heptio-authenticator-aws
+  # https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
+  if ! which aws-iam-authenticator > /dev/null 2>&1; then
+    (
+      gen3_log_info "installing aws-iam-authenticator"
+      cd /usr/local/bin
+      sudo curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.17.7/2020-07-08/bin/linux/amd64/aws-iam-authenticator
+      sudo chmod a+rx ./aws-iam-authenticator
+      sudo rm /usr/local/bin/heptio-authenticator-aws || true
+      # link heptio-authenticator-aws for backward compatability with old scripts
+      sudo ln -s /usr/local/bin/aws-iam-authenticator heptio-authenticator-aws
+    )
   fi
   if ! which helm > /dev/null 2>&1; then
     helm_release_URL="https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz"
