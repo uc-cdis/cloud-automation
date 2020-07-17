@@ -280,7 +280,7 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
     "sheepdog": "quay.io/cdis/sheepdog:master",
     "spark": "quay.io/cdis/gen3-spark:master",
     "manifestservice": "quay.io/cdis/manifestservice:master",
-    "wts": "quay.io/cdis/workspace-token-service:master",
+    "wts": "quay.io/cdis/workspace-token-service:master"
   },
   "arborist": {
     "deployment_version": "2"
