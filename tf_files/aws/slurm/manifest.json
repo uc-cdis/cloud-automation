@@ -1,0 +1,5 @@
+{
+  "terraform": {
+    "version" : "0.12"
+  }
+}
