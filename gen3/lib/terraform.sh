@@ -68,3 +68,26 @@ EOM
     terraform "$@"
   fi
 }
+
+
+#
+# To help us out with a smooth transition into terraform 12
+# we have added a new helper to invoke the right version of thereof
+#
+gen3_terraform12() {
+  if [[ "$GEN3_FLAVOR" == "AWS" ]]; then
+    cat - 1>&2 <<EOM
+gen3_aws_run terraform12 $@
+EOM
+    gen3_aws_run terraform "$@"
+  elif [[ "$GEN3_FLAVOR" == "ONPREM" ]]; then
+    cat - 1>&2 <<EOM
+ONPREM NOOP terraform $@
+EOM
+  else
+      cat - 1>&2 <<EOM
+terraform $@
+EOM
+    terraform12 "$@"
+  fi
+}

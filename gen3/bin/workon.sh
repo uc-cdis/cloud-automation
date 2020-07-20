@@ -81,6 +81,27 @@ refreshFromBackend() {
   return 0
 }
 
+
+#
+# if the module has a manifest, most likely there is a terraform version
+# value that would help us determine which terraform version to use
+#
+checkTerraformModuleCompatibility() {
+
+  local module_manifest=${GEN3_TFSCRIPT_FOLDER}/manifest.json
+  local tversion
+
+  if [ -f ${module_manifest} ];
+  then
+    local full_tversion=$(jq '.terraform.module_version' ${manifest})
+    if [ ${full_tversion} == "0.12" ];
+    then
+      tversion=12
+    fi
+  fi
+  echo ${tversion}
+}
+
 for fileName in config.tfvars backend.tfvars README.md; do
   filePath="${GEN3_WORKDIR}/$fileName"
   if [[ ! -f "$filePath" ]]; then
@@ -127,5 +148,8 @@ EOM
   fi
 fi
 
+tversion=$(checkTerraformModuleCompatibility)
+
+
 echo "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/"
-gen3_terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
+gen3_terraform${tversion} init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
