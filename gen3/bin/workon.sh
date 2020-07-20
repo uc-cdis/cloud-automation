@@ -155,5 +155,5 @@ fi
 tversion=$(checkTerraformModuleCompatibility)
 
 
-echo "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/"
+echo "Running: terraform${tversion} init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/"
 gen3_terraform${tversion} init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
