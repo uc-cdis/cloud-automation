@@ -33,7 +33,11 @@ gen3_shutdown_namespace() {
       # ssjdispatcher leaves jobs laying around when undeployed
       g3kubectl delete --all "jobs" --now
       # ssjdispatcher leaves jobs laying around when undeployed
-      g3kubectl delete --all "cronjobs" --now
+      if ! [ ${namespace}  == "default" ];
+      then
+        g3kubectl delete --all "cronjobs" --now
+      fi
+
       # just delete every damn thing
       g3kubectl delete --all "pods" --now
     )
