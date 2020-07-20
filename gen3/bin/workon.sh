@@ -91,12 +91,16 @@ checkTerraformModuleCompatibility() {
   local module_manifest=${GEN3_TFSCRIPT_FOLDER}/manifest.json
   local tversion
 
+  gen3_log_info "Entering module manifest checks"
   if [ -f ${module_manifest} ];
   then
-    local full_tversion=$(jq '.terraform.module_version' ${manifest})
+    local full_tversion=$(jq '.terraform.module_version' ${module_manifest})
     if [ ${full_tversion} == "0.12" ];
     then
       tversion=12
+      gen3_log_info "Moving on with terraform ${full_tversion}"
+    else
+      gen3_log_info "Moving on with terraform 0.11.x"
     fi
   fi
   echo ${tversion}
