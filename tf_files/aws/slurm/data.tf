@@ -4,20 +4,20 @@ data "aws_ami" "public_ami" {
 
   filter {
     name   = "name"
-    values = var.slurm_cluster_image["search_criteria"]
+    values = "${var.slurm_cluster_image["search_criteria"]}"
   }
 
   filter {
     name   = "virtualization-type"
-    values = var.slurm_cluster_image["virtualization-type"]
+    values = "${var.slurm_cluster_image["virtualization-type"]}"
   }
 
   filter {
     name   = "root-device-type"
-    values = var.slurm_cluster_image["root-device-type"]
+    values = "${var.slurm_cluster_image["root-device-type"]}"
   }
 
-  owners   = var.slurm_cluster_image["aws_accounts"]
+  owners   = "${var.slurm_cluster_image["aws_accounts"]}"
 }
 
 #

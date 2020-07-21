@@ -48,7 +48,7 @@ variable "ami_account" {
 
 variable "slurm_cluster_image" {
   description = "Information about the AMI we want to use for our cluster"
-  type        = map
+  type        = map(list(string))
   default     = {
     "aws_accounts"         = ["099720109477"]
     "search_criteria"     = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
@@ -57,16 +57,51 @@ variable "slurm_cluster_image" {
   }
 }
 
-variable "slurm_controller" {
+variable "slurm_asgs" {
   description = "Information to use for the slurm crontrollers"
-  type        = map
+  type        = map(object({
+    asg_name               = string
+    instance_type          = string
+    security_groups        = list(string)
+    subnets_id             = list(string)
+    public_ip              = bool
+    recreate_on_lc_changes = bool
+    desired_capasity       = number
+    min_size               = number
+    max_size               = number
+    health_check_type      = string
+    root_block             = map(string)
+    tags                   = map(string)
+  }))
   default     = {
-    "asg_name"               = "slurm-controllers"
-    "instance_type"          = "t2.micro"
-    "security_groups"        = []
-    "public_ip"              = false
-    "recreate_on_lc_changes" = false
-    "subnets_id"             = []
- }
+    controllers = {
+      asg_name               = "slurm-controllers"
+      instance_type          = "t3.medium"
+      security_groups        = []
+      subnets_id             = []
+      public_ip              = false
+      recreate_on_lc_changes = false
+      desired_capasity       = 1
+      min_size               = 1
+      max_size               = 1
+      health_check_type      = "EC2"
+      root_block             = {"volume_size" = "50", "volume_type" = "gp2", "delete_on_termination" = "true"}
+      tags                   = {"Environment" = "Production", "Project" = "slurm"}
+    },
+    workers = {
+      asg_name               = "slurm-workers"
+      instance_type          = "t3.large"
+      security_groups        = []
+      subnets_id             = []
+      public_ip              = false
+      recreate_on_lc_changes = false
+      desired_capasity       = 1
+      min_size               = 1
+      max_size               = 1
+      health_check_type      = "EC2"
+      root_block             = {"volume_size" = "50", "volume_type" = "gp2", "delete_on_termination" = "true"}
+      tags                   = {"Environment" = "Production", "Project" = "slurm"}
+    }
+  }
 }
     
