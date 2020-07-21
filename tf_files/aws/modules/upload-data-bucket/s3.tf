@@ -23,6 +23,10 @@ resource "aws_s3_bucket" "data_bucket" {
     Environment = "${var.environment}"
     Purpose     = "data bucket"
   }
+
+  lifecycle = {
+    ignore_changes = ["cors_rule"]
+  }
 }
 
 
