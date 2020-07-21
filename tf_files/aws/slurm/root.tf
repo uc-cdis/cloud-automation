@@ -20,27 +20,6 @@ provider "aws" {
 }
 
 
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name = "name"
-
-    values = [
-      "amzn-ami-hvm-*-x86_64-gp2",
-    ]
-  }
-
-  filter {
-    name = "owner-alias"
-
-    values = [
-      "amazon",
-    ]
-  }
-}
-
 locals {
   user_data = <<EOF
 #!/bin/bash
@@ -52,12 +31,12 @@ EOF
 module "slurm-controllers" {
 
   source  = "../modules/aws-autoscaling"
-  version = "~> 3.0"
+#  version = "~> 3.0"
 
   name    = var.slurm_controllers_asg_name
-  lc_name = var.slurm_controllers_asg_name"_launch_configuration"
+  lc_name = "${var.slurm_controllers_asg_name}_launch_configuration"
 
-  image_id                     = data.aws_ami.amazon_linux.id
+  image_id                     = data.aws_ami.public_ami.id
   instance_type                = var.slurm_controller_instance_type
 #  security_groups              = [data.aws_security_group.default.id]
   security_groups              = var.slurm_controller_sec_group
