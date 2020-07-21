@@ -24,7 +24,7 @@ spec:
             secretName: "dcf-dataservice-json-secret"
       containers:
       - name: googlereplicate
-        image: quay.io/cdis/dcf-dataservice:master
+        GEN3_AWSREPLICATE_IMAGE
         resources:
           requests:
             cpu: "2"

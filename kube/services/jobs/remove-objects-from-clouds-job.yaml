@@ -26,7 +26,7 @@ spec:
             secretName: "dcf-dataservice-json-secret"
       containers:
       - name: awsreplicate
-        image: quay.io/cdis/dcf-dataservice:master
+        GEN3_AWSREPLICATE_IMAGE
         imagePullPolicy: Always
         env:
           - name: RELEASE

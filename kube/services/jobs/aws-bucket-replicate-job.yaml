@@ -1,13 +1,4 @@
-# run with 
-# g3k runjob aws-bucket-sync \
-# GDC_BUCKET_NAME a_bucket_name \
-# CHUNK_SIZE chunk_size \
-# MANIFEST manifest_file \
-# THREAD_NUM number of threads \
-# LOG_BUCKET log buckets
-# 
-# HOW TO RUN
-# Ex. gen3 job run jobs/aws-bucket-replicate-job.yaml RELEASE DR16 GDC_BUCKET_NAME mybucket20018 MANIFEST_S3 s3://giang816test/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv THREAD_NUM 5 LOG_BUCKET xssxs CHUNK_SIZE 1
+# Ex. gen3 job run aws-bucket-replicate RELEASE DR16 GDC_BUCKET_NAME mybucket20018 MANIFEST_S3 s3://giang816test/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv THREAD_NUM 5 LOG_BUCKET xssxs CHUNK_SIZE 1
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -31,7 +22,7 @@ spec:
             secretName: "dcf-dataservice-json-secret"
       containers:
       - name: awsreplicate
-        image: quay.io/cdis/dcf-dataservice:master
+        GEN3_AWSREPLICATE_IMAGE
         resources:
           limits:
             memory: "32Gi"
