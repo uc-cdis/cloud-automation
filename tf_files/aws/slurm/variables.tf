@@ -24,13 +24,13 @@ variable "slurm_controller_sec_group" {
 
 variable "slurm_controller_associate_public_ip" {
   description = "Associate the controller to a public IP"
-  type        = boolean
+  type        = bool
   default     = false
 }
 
 variable "slurm_controller_recreate_when_lc_changes" {
   description = "Should the autoscaling group recreate after changes in the launch configuration"
-  type        = boolean
+  type        = bool
   default     = false
 }
 

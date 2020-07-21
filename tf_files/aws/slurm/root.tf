@@ -5,12 +5,18 @@ terraform {
   backend "s3" {
     encrypt = "true"
   }
+
+  required_version = "~> 0.12.6"
+
+  required_providers {
+    aws = "~> 2.41"
+  }
 }
 
 # Inject credentials via the AWS_PROFILE environment variable and shared credentials file and/or EC2 metadata service
 #
 provider "aws" {
-  region = "${var.slurm_cluster_region}"
+  region = var.slurm_cluster_region
 }
 
 
@@ -48,8 +54,8 @@ module "slurm-controllers" {
   source  = "../modules/aws-autoscaling"
   version = "~> 3.0"
 
-  name    = "${var.slurm_controllers_asg_name}"
-  lc_name = "${var.slurm_controllers_asg_name}_launch_configuration"
+  name    = var.slurm_controllers_asg_name
+  lc_name = var.slurm_controllers_asg_name"_launch_configuration"
 
   image_id                     = data.aws_ami.amazon_linux.id
   instance_type                = var.slurm_controller_instance_type
@@ -57,7 +63,6 @@ module "slurm-controllers" {
   security_groups              = var.slurm_controller_sec_group
   associate_public_ip_address  = var.slurm_controller_associate_public_ip
   recreate_asg_when_lc_changes = var.slurm_controller_recreate_when_lc_changes
-
 
 
   user_data_base64 = base64encode(local.user_data)
@@ -80,7 +85,8 @@ module "slurm-controllers" {
   ]
 
   # Auto scaling group
-  asg_name                  = "example-asg"
+#  asg_name                  = "example-asg"
+  asg_name                  = var.slurm_controllers_asg_name
 #  vpc_zone_identifier       = data.aws_subnet_ids.all.ids
   vpc_zone_identifier       = var.slurm_controller_subnet_id
   health_check_type         = "EC2"
@@ -88,7 +94,7 @@ module "slurm-controllers" {
   max_size                  = 1
   desired_capacity          = 0
   wait_for_capacity_timeout = 0
-  service_linked_role_arn   = aws_iam_service_linked_role.autoscaling.arn
+#  service_linked_role_arn   = aws_iam_service_linked_role.autoscaling.arn
 
   tags = [
     {
