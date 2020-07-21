@@ -21,8 +21,8 @@ spec:
           secret:
             secretName: "dcf-dataservice-json-secret"
       containers:
-      - name: awsreplicate
-        GEN3_AWSREPLICATE_IMAGE
+      - name: datareplicate
+        GEN3_DATAREPLICATE_IMAGE
         resources:
           limits:
             memory: "32Gi"
