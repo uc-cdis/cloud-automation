@@ -362,3 +362,29 @@ gen3_encode_uri_component() {
     echo "$str"
   )
 }
+
+
+#
+# if the module has a manifest, most likely there is a terraform version
+# value that would help us determine which terraform version to use
+#
+checkTerraformModule() {
+
+  local module_manifest=${1}/manifest.json
+  local tversion
+
+  gen3_log_info "Entering module manifest checks"
+  gen3_log_info "Module loaded ${module_manifest}"
+  if [ -f ${module_manifest} ];
+  then
+    local full_tversion=$(jq  -r '.terraform.module_version' ${module_manifest})
+    if [ ${full_tversion} == "0.12" ];
+    then
+      tversion=12
+      gen3_log_info "Moving on with terraform ${full_tversion}"
+    else
+      gen3_log_info "Moving on with terraform 0.11.x"
+    fi
+  fi
+  echo ${tversion}
+}
