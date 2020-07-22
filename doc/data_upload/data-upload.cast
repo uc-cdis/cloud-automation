@@ -179,7 +179,7 @@
 [27.305471, "o", "10.128.4.24, 10.128.4.37, 10.128.4.80, ...\r\nConnecting to cloud-proxy.internal.io (cloud-proxy.internal.io)|10.128.4.24|:3128... "]
 [27.307784, "o", "connected.\r\n"]
 [27.321715, "o", "Proxy request sent, awaiting response... "]
-[27.388955, "o", "302 Found\r\nLocation: https://github-production-release-asset-2e65be.s3.amazonaws.com/87456459/06019300-1362-11e9-8486-cff9b85b6bcd?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20190116%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20190116T164231Z&X-Amz-Expires=300&X-Amz-Signature=ad4dcae6ab30ecc049c5d43bd848c113bf1e802a284f0fc380887c768c0c80cd&X-Amz-SignedHeaders=host&actor_id=0&response-content-disposition=attachment%3B%20filename%3Ddataclient_linux.zip&response-content-type=application%2Foctet-stream [following]\r\n--2019-01-16 16:43:15--  https://github-production-release-asset-2e65be.s3.amazonaws.com/87456459/06019300-1362-11e9-8486-cff9b85b6bcd?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20190116%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20190116T164231Z&X-Amz-Expires=300&X-Amz-Signature=ad4dcae6ab30ecc049c5d43bd848c113bf1e802a284f0fc380887c768c0c80cd&X-Amz-SignedHeaders=host&actor_id=0&response-content-disposition=attachment%3B%20filename%3Ddataclien"]
+[27.388955, "o", "302 Found\r\nLocation: https://github-production-release-asset-2e65be.s3.amazonaws.com/87456459/06019300-1362-11e9-8486-cff9b85b6bcd?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=..."]
 [27.389402, "o", "t_linux.zip&response-content-type=application%2Foctet-stream\r\nConnecting to cloud-proxy.internal.io (cloud-proxy.internal.io)|10.128.4.24|:3128... "]
 [27.390596, "o", "connected."]
 [27.390884, "o", "\r\n"]
