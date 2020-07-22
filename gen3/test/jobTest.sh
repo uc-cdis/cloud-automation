@@ -6,7 +6,7 @@
 excludeJob() {
   local jobKey="$1"
   local excludeList=(
-    /bucket- /covid19- /data-ingestion- /google- /nb-etl- /s3sync-
+    /aws-bucket- /bucket- /covid19- /data-ingestion- /google- /nb-etl- /remove-objects-from- /replicate- /s3sync-
   )
   for exclude in "${excludeList[@]}"; do
     if [[ "$it" =~ $exclude ]]; then return 0; fi
