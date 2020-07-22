@@ -312,6 +312,25 @@ EOF
   gen3_log_info "Successfully attached policy"
 }
 
+
+#
+# Attach an SQS to the given bucket
+#
+gen3_s3_attach_sns_sqs() {
+  local bucketName="$1"
+  shift || return 1
+  ( # subshell - do not pollute parent environment
+    gen3 workon default "${bucketName}__data_bucket_queue" 1>&2
+    gen3 cd 1>&2
+    cat - > config.tfvars <<EOM
+bucket_name="$bucketName"
+EOM
+    gen3 tfplan 1>&2 || exit 1
+    gen3 tfapply 1>&2 || exit 1
+    gen3 tfoutput
+  )
+}
+
 #---------- main
 
 gen3_s3() {
@@ -329,6 +348,9 @@ gen3_s3() {
       ;;
     'attach-bucket-policy')
       gen3_s3_attach_bucket_policy "$@"
+      ;;
+    'attach-sns-sqs')
+      gen3_s3_attach_sns_sqs "$@"
       ;;
     *)
       gen3_s3_help

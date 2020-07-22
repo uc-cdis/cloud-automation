@@ -117,7 +117,7 @@ gen3_secrets_sync() {
 
     local keys
     # exclude deprecated or specially handled secrets
-    keys="$(jq -r '((.|keys)-["gdcapi", "userapi", "ssjdispatcher"])|join("\n")' < "$credsFile")"
+    keys="$(jq -r '((.|keys)-["gdcapi", "userapi"])|join("\n")' < "$credsFile")"
     local serviceName
     local secretName
     local secretValueFile
@@ -130,11 +130,16 @@ gen3_secrets_sync() {
       g3kubectl delete secret "$secretName" > /dev/null 2>&1
     done
     sleep 1  # I think delete is async - give backend a second to finish
+    local secretFileName
     for serviceName in $keys; do
+      secretFileName="creds.json"
+      if [[ "$serviceName" == "ssjdispatcher" ]]; then # special case
+        secretFileName=credentials.json
+      fi
       secretName="${serviceName}-creds"
       secretValueFile="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXX")"
       jq -r ".[\"$serviceName\"]" > "$secretValueFile" < "$credsFile"
-      g3kubectl create secret generic "$secretName" "--from-file=creds.json=${secretValueFile}"
+      g3kubectl create secret generic "$secretName" "--from-file=${secretFileName}=${secretValueFile}"
       rm "$secretValueFile"
     done
   

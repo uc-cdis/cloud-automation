@@ -132,17 +132,6 @@ if gen3_time_since secrets_sync is 120; then
   gen3 secrets sync || true
 fi
 
-# ssjdispatcher
-if [[ -f "$(gen3_secrets_folder)/creds.json" ]]; then # update aws-es-proxy secrets
-  cd "$(gen3_secrets_folder)"
-  if ! g3kubectl get secret ssjdispatcher-creds > /dev/null 2>&1; then
-    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    jq -r .ssjdispatcher < creds.json > "$credsFile"
-    g3kubectl create secret generic ssjdispatcher-creds "--from-file=credentials.json=${credsFile}"
-    rm "$credsFile"
-  fi
-fi
-
 # mariner
 cd "$(gen3_secrets_folder)"
 if ! g3kubectl get secret workflow-bot-g3auto > /dev/null 2>&1; then

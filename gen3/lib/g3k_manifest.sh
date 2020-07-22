@@ -36,19 +36,12 @@ g3kubectl() {
   else
     theKubectl=$(which kubectl)
   fi
-  if [[ -n "$KUBECONFIG" ]] && grep -e heptio -e aws-iam "$KUBECONFIG" > /dev/null 2>&1; then
-    # Then it's EKS - run with AWS creds!
-    (
-      # avoid weird process loops with g3kubectl and cache initialization
-      export GEN3_CACHE_ENVIRONMENT="${GEN3_CACHE_ENVIRONMENT:-IGNORE_ARUN}"
-      export GEN3_CACHE_HOSTNAME="${GEN3_CACHE_HOSTNAME:-IGNORE_ARUN}"
-      awsVars=$(gen3 arun env | grep AWS_ | grep -v PROFILE | sed 's/^A/export A/' | sed 's/[\r\n]+/;/')
-      eval "$awsVars"
-      "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
-    )
-  else
-    "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+  if [[ -n "$KUBECONFIG" ]] && grep -e heptio -e aws-iam "$KUBECONFIG" > /dev/null 2>&1 && [[ ! -x /usr/local/bin/aws-iam-authenticator ]]; then
+    # Then it's EKS - we need to upgrade to aws-iam-authenticator - run with AWS creds!
+    gen3_log_err "/usr/local/bin/aws-iam-authenticator not installed - run gen3 kube-setup-workvm as a user with sudo"
+    exit 1
   fi
+  "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
 }
 
 #

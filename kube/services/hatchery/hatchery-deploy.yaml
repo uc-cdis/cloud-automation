@@ -35,6 +35,8 @@ spec:
                   - hatchery
               topologyKey: "kubernetes.io/hostname"
       serviceAccountName: hatchery-service-account
+      securityContext:
+        fsGroup: 1001
       volumes:
         - name: hatchery-config
           configMap:
