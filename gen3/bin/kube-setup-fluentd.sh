@@ -51,6 +51,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
       if [ ${fluentdVersion} == "v1.10.2-debian-cloudwatch-1.0" ];
       then
         gen3 job cron fluentd-restart '0 0 * * *'
+      fi
     )
   else
     echo "kube-setup-fluentd exiting - fluentd already deployed, use --force to redeploy"
