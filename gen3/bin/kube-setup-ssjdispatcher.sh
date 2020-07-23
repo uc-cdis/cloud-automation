@@ -9,6 +9,11 @@ gen3_load "gen3/lib/kube-setup-init"
 # lib -----------
 
 setupSsjInfra() {
+  # always setup service accounts and bindings for backward compatability with
+  # old setup that passed AWS user creds in config
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/serviceaccount.yaml"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/ssjdispatcher-binding.yaml"
+
   local credsFile
   credsFile="$(gen3_secrets_folder)/creds.json"
   if [[ -n "$JENKINS_HOME" || ! -f "$credsFile" ]]; then
@@ -30,14 +35,7 @@ setupSsjInfra() {
   accountNumber="$(aws sts get-caller-identity --output text --query 'Account')" || return 1
   autoBucketName="$(gen3 api safe-name "${accountNumber}-upload")"
   autoBucketName="${autoBucketName//--/-}"
-
-  if ! g3kubectl get serviceaccounts "$saName" > /dev/null 2>&1; then
-    g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/serviceaccount.yaml"
-  fi
-  if ! g3kubectl get rolebindings/ssjdispatcher-binding > /dev/null 2>&1; then
-    g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/ssjdispatcher-binding.yaml"
-  fi
-
+  
   if jq -r -e .ssjdispatcher.SQS.url < "$credsFile" > /dev/null 2>&1; then
     gen3_log_info "looks like ssj has already been configured with SQS"
     return 0
