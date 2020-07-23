@@ -94,7 +94,7 @@ EOM
   if ! gen3 awsrole info "$roleNameForJob" > /dev/null; then # setup role
     gen3_log_info "creating IAM role for ssj job: $roleNameForJob, linking to sa $saNameForJob"
     gen3 awsrole create "$roleNameForJob" "$saNameForJob" || return 1
-    gen3 s3 attach-bucket-policy "$bucketName" --read-only --role-name "${roleName}"
+    gen3 s3 attach-bucket-policy "$bucketName" --read-only --role-name "${roleNameForJob}"
   fi
 
   # finally setup sqs
