@@ -194,7 +194,7 @@ EOF
 
   # Run k8s jobs to submitting jobs and consuming sqs
   local sqsUrl=$(aws sqs get-queue-url --queue-name $sqs_name | jq -r .QueueUrl)
-  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/bucket-manifest-job.yaml BUCKET $bucket JOB_QUEUE $job_queue JOB_DEFINITION $job_definition SQS $sqsUrl AUTHZ "$authz" OUT_BUCKET $temp_bucket | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|bucket-manifest#PLACEHOLDER#|bucket-manifest-${jobId}|g" > ./aws-bucket-manifest-${jobId}-job.yaml
+  gen3 gitops filter $GEN3_HOME/kube/services/jobs/bucket-manifest-job.yaml BUCKET $bucket JOB_QUEUE $job_queue JOB_DEFINITION $job_definition SQS $sqsUrl AUTHZ "$authz" OUT_BUCKET $temp_bucket | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|bucket-manifest#PLACEHOLDER#|bucket-manifest-${jobId}|g" > ./aws-bucket-manifest-${jobId}-job.yaml
   gen3 job run ./aws-bucket-manifest-${jobId}-job.yaml
   gen3_log_info "The job is started. Job ID: ${jobId}"
 
