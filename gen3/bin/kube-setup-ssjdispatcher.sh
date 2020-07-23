@@ -8,6 +8,12 @@ gen3_load "gen3/lib/kube-setup-init"
 
 # lib -----------
 
+#
+# See gen3 help kube-setup-ssjdispatcher for setup instructions
+#
+# @param bucketName optional
+# @param ssjUrl optional
+#
 setupSsjInfra() {
   # always setup service accounts and bindings for backward compatability with
   # old setup that passed AWS user creds in config
@@ -28,6 +34,7 @@ setupSsjInfra() {
   local roleNameForJob
   local accountNumber
   local bucketName="$1"
+  local sqsUrl="$2"
   local autoBucketName
 
   roleName="$(gen3 api safe-name ssj)" || return 1
@@ -91,11 +98,13 @@ EOM
   fi
 
   # finally setup sqs
-  gen3_log_info "setting up sns-sqs for $bucketName"
-  local sqsInfo
-  sqsInfo="$(gen3 s3 attach-sns-sqs "$bucketName")" || return 1
-  local sqsUrl
-  sqsUrl="$(jq -e -r '.["sqs-url"].value' <<< "$sqsInfo")" || return 1
+  if [[ -z "$sqsUrl" ]]; then
+    local sqsInfo
+    gen3_log_info "setting up sns-sqs for $bucketName"
+    sqsInfo="$(gen3 s3 attach-sns-sqs "$bucketName")" || return 1
+    sqsUrl="$(jq -e -r '.["sqs-url"].value' <<< "$sqsInfo")" || return 1
+  fi
+
   local credsBak="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXXX")"
   local indexdPassword
   local updateIndexd=false
