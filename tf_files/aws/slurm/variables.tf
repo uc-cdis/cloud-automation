@@ -5,52 +5,12 @@ variable "slurm_cluster_region" {
   default     = "us-east-1"
 }
 
-variable "slurm_controllers_asg_name" {
-  description = "Name for the Autoscaling Group that would handle controller instances"
-  type        = string
-  default     = "slurm-controllers"
-}
-
-variable "slurm_controller_instance_type" {
-  description = "Instance type for the crontrollers"
-  type        = string
-  default     = "t2.micro"
-}
-
-variable "slurm_controller_sec_group" {
-  description = "Security group to associate the controllers with"
-  type        = list(string)
-}
-
-variable "slurm_controller_associate_public_ip" {
-  description = "Associate the controller to a public IP"
-  type        = bool
-  default     = false
-}
-
-variable "slurm_controller_recreate_when_lc_changes" {
-  description = "Should the autoscaling group recreate after changes in the launch configuration"
-  type        = bool
-  default     = false
-}
-
-variable "slurm_controller_subnet_id" {
-  description = "Subnet ids to assoaciate the controllers"
-  type        = list(string)
-}
-
-variable "ami_account" {
-  description = "AWS account ID AMI owner that will be used on the compute instaces that will power the slurm cluster"
-  type        = string
-  # Let's default to canonical's official AWS account 
-  default     = "099720109477"
-}
 
 variable "slurm_cluster_image" {
   description = "Information about the AMI we want to use for our cluster"
   type        = map(list(string))
   default     = {
-    "aws_accounts"         = ["099720109477"]
+    "aws_accounts"        = ["099720109477"]
     "search_criteria"     = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
     "virtualization-type" = ["hvm"]
     "root-device-type"    = ["ebs"]
@@ -104,4 +64,48 @@ variable "slurm_asgs" {
     }
   }
 }
+
+
+variable "rds_instance" {
+  description = "Information about the database for the slurm cluster"
+  type        = map(object({
+    engine                              = string
+    engine_version                      = string
+    family                              = string
+    major_engine_version                = string
+    instance_class                      = string
+    name                                = string
+    username                            = string
+    password                            = string
+    port                                = string
+    maintenance_window                  = string
+    backup_window                       = string
+    allocated_storage                   = number
+    final_snapshot_identifier           = string
+    vpc_security_group_ids              = list(string)
+    subnet_ids                          = list(string)
+    deletion_protection                 = bool
+    parameters                          = list(map(string))
+    iam_database_authentication_enabled = bool
+  }))
+  default     = {
+    engine                 = "mysql"
+    engine_version         = "5.7.19"
+    family                 = "mysql5.7"
+    major_engine_version   = "5.7"
+    instance_class         = "db.t3.small"
+    allocated_storage      = 8
+    name                   = "demodb"
+    username               = "user"
+    password               = "YourPwdShouldBeLongAndSecure!"
+    port                   = "3306"
+    vpc_security_group_ids = ""
+    maintenance_window     = "Mon:00:00-Mon:03:00"
+    backup_window          = "03:00-06:00"
+    subnet_ids             = ""
+    deletion_protection    = true
     
+    final_snapshot_identifier = "slurm-database-final-ss"
+    iam_database_authentication_enabled = true
+
+

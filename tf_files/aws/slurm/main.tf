@@ -32,7 +32,9 @@ EOF
 
 module "slurm-controllers" {
 
-  source  = "../modules/aws-autoscaling"
+  #source  = "../modules/aws-autoscaling"
+  source  = "terraform-aws-modules/autoscaling/aws"
+  version = "~> 3.0"
 
   name    = var.slurm_asgs["controllers"]["asg_name"]
   lc_name = "${var.slurm_asgs["controllers"]["asg_name"]}_launch_configuration"
@@ -44,7 +46,8 @@ module "slurm-controllers" {
   recreate_asg_when_lc_changes = var.slurm_asgs["controllers"]["recreate_on_lc_changes"]
 
 
-  user_data_base64 = base64encode(local.user_data)
+#  user_data_base64 = base64encode(local.user_data)
+  user_data         = local.user_data
 
   root_block_device = [
     {
@@ -70,7 +73,9 @@ module "slurm-controllers" {
 
 module "slurm-workers" {
 
-  source  = "../modules/aws-autoscaling"
+  #source  = "../modules/aws-autoscaling"
+  source  = "terraform-aws-modules/autoscaling/aws"
+  version = "~> 3.0"
 
   name    = var.slurm_asgs["workers"]["asg_name"]
   lc_name = "${var.slurm_asgs["workers"]["asg_name"]}_launch_configuration"
@@ -82,7 +87,8 @@ module "slurm-workers" {
   recreate_asg_when_lc_changes = var.slurm_asgs["workers"]["recreate_on_lc_changes"]
 
 
-  user_data_base64 = base64encode(local.user_data)
+  #user_data_base64 = base64encode(local.user_data)
+  user_data         = local.user_data
 
   root_block_device = [
     {
