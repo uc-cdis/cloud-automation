@@ -120,7 +120,7 @@ for name in fence indexd sheepdog; do
     gen3_log_err "Failed to setup new db $dbname"
   fi
   # update creds.json
-  if jq -r --arg key $name --argjson value "$newCreds" '.[$key]=$value | del(.gdcapi)' < "$credsMaster" > "$credsTemp"; then
+  if jq -r --arg key $name --argjson value "$newCreds" '.[$key]=$value | del(.gdcapi) | del(.ssjdispatcher)' < "$credsMaster" > "$credsTemp"; then
     cp "$credsTemp" "$credsMaster"
   fi
   if [[ "$name" == "fence" ]]; then # update fence-config.yaml too
@@ -131,6 +131,8 @@ for name in fence indexd sheepdog; do
     dbdatabase="$(jq -r .db_database <<< "$newCreds")"
     dblogin="postgresql://${dbuser}:${dbpassword}@${dbhost}:5432/${dbdatabase}"
     sed -i -E "s%^DB:.*$%DB: $dblogin%" "$fenceYaml"
+    # try to avoid new namespace using same upload bucket
+    sed -i -E "s%DATA_UPLOAD_BUCKET%#DATA_UPLOAD_BUCKET%" "$fenceYaml"
   fi
 done
 

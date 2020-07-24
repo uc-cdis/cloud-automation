@@ -51,6 +51,8 @@ spec:
             mountPath: "/credentials.json"
             subPath: credentials.json
         env:
+          - name: AWS_REGION
+            value: us-east-1
           - name: GEN3_NAMESPACE
             valueFrom:
               fieldRef:
