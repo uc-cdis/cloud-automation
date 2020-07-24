@@ -15,18 +15,6 @@ jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
 prefix="${hostname//./-}-bucket-manifest-${jobId}"
 saName=$(echo "${prefix}-sa" | head -c63)
 
-gen3_create_aws_batch_jenkins() {
-  local prefix="${hostname//./-}-bucket-manifest-${jobId}"
-  local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
-  cat - > "./paramFile.json" <<EOF
-{
-    "job_id": "${jobId}",
-    "bucket_name": "${temp_bucket}"
-}
-EOF
-  gen3_create_aws_batch $@
-}
-
 # function to create an job and returns a job id
 #
 # @param bucket: the input bucket
@@ -139,6 +127,8 @@ compute_environment_name     = "${compute_environment_name}"
 batch_job_queue_name         = "${job_queue}"
 sqs_queue_name               = "${sqs_name}"
 output_bucket_name           = "${temp_bucket}"
+job_id                       = "${jobId}"
+prefix                       = "${prefix}"
 EOF
 
   cat << EOF > sa.json
@@ -252,6 +242,7 @@ gen3_batch_cleanup() {
   local prefix="${hostname//./-}-bucket-manifest-${jobId}"
   local saName=$(echo "${prefix}-sa" | head -c63)
   local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
+  local secretName=$(g3kubectl get secrets |grep $prefix | cut -d ' ' -f 1)
 
   gen3_aws_run aws s3 rm "s3://${temp_bucket}" --recursive
   gen3 workon default ${prefix}__batch
@@ -268,10 +259,32 @@ gen3_batch_cleanup() {
   gen3_aws_run aws iam delete-role-policy --role-name $role --policy-name $policyName
   gen3_aws_run aws iam delete-role --role-name $role
   g3kubectl delete serviceaccount $saName
-
+  g3kubectl delete secret $secretName
   # Delete creds
   credsFile="$(gen3_secrets_folder)/g3auto/bucketmanifest/creds.json"
   rm -f $credsFile
+}
+
+gen3_batch_clean_all {
+  job_ids=$(aws ec2 describe-vpcs --filters '{"Name":"tag:description","Values":["Created by bucket-manifest job"]}' | jq -r '.Vpcs[].Tags[] | .Key + ":" + .Value' |grep prefix |cut -d ':' -f 2)
+  secrets=$(g3kubectl get secrets | grep bucket-manifest | cut -d ' ' -f 1)
+  serviceAccounts=$(g3kubectl get sa | grep bucket-manifest | cut -d ' ' -f 1)
+  for item in $job_ids; do
+    gen3_log_info "cleaning $item"
+    gen3 workon default $item__batch
+    gen3 tfplan --destroy
+    gen3 tfapply -auto-approve
+  done
+  gen3_log_info "deleting secrets"
+  for item in $secrets; do
+    gen3_log_info "cleaning $item"
+    g3kubectl delete secret $item
+  done
+  gen3_log_info "deleting service accounts"
+  for item in $serviceAccounts; do
+    gen3_log_info "cleaning $item"
+    g3kubectl delete sa $item
+  done
 }
 
 OPTIND=1
@@ -286,6 +299,10 @@ while getopts "$OPTSPEC" optchar; do
         cleanup)
           runCleanup=true
           ;;
+        clean-all)
+          runCleanAll=true
+          ;;
+
         status)
           runStatus=true
           ;;
@@ -346,7 +363,7 @@ done
 
 
 # Stop if required params are not set
-if $runCreate && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runList ]]; then
+if $runCreate && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runList ]] && [[ -z $runCleanAll ]]; then
   if [[ -z $bucket ]]; then
     gen3_log_info "The input bucket is required "
     exit 1
@@ -356,22 +373,24 @@ if $runCreate && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runList ]
     saName=$(echo "${prefix}-sa" | head -c63)
     gen3_create_aws_batch
   fi
-elif $runCleanup && [[ -z $runCreate ]] && [[ -z $runStatus ]] && [[ -z $runList ]]; then
+elif $runCleanup && [[ -z $runCreate ]] && [[ -z $runStatus ]] && [[ -z $runList ]] && [[ -z $runCleanAll ]]; then
   if [[ -z $jobId ]]; then
     gen3_log_info "Need to provide a job-id "
     exit 1
   else
     gen3_batch_cleanup
   fi
-elif $runStatus && [[ -z $runCleanup ]] && [[ -z $runCreate ]] && [[ -z $runList ]]; then
+elif $runStatus && [[ -z $runCleanup ]] && [[ -z $runCreate ]] && [[ -z $runList ]] && [[ -z $runCleanAll ]]; then
   if [[ -z $jobId ]]; then
     gen3_log_info "Need to provide a job-id "
     exit 1
   else
     gen3_manifest_generating_status
   fi
-elif $runList && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runCreate ]]; then
+elif $runList && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runCreate ]] && [[ -z $runCleanAll ]]; then
   gen3_bucket_manifest_list
+elif $runCleanAll && [[ -z $runCreate ]] && [[ -z $runStatus ]] && [[ -z $runList ]] && [[ -z $runCleanup ]]; then
+  gen3_batch_clean_all
 elif $runHelp; then
   gen3_bucket_manifest_help
 else
