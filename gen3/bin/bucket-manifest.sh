@@ -128,6 +128,7 @@ batch_job_queue_name         = "${job_queue}"
 sqs_queue_name               = "${sqs_name}"
 output_bucket_name           = "${temp_bucket}"
 job_id                       = "${jobId}"
+prefix                       = "${prefix}"
 EOF
 
   cat << EOF > sa.json
@@ -263,6 +264,16 @@ gen3_batch_cleanup() {
   rm -f $credsFile
 }
 
+gen3_batch_clean_all {
+  job_ids=$(aws ec2 describe-vpcs --filters '{"Name":"tag:description","Values":["Created by bucket-manifest job"]}' | jq -r '.Vpcs[].Tags[] | .Key + ":" + .Value' |grep prefix |cut -d ':' -f 2)
+  for item in $job_ids; do
+    gen3_log_info "cleaning $item"
+    gen3 workon default $item__batch
+    gen3 tfplan --destroy
+    gen3 tfapply -auto-approve
+  done
+}
+
 OPTIND=1
 OPTSPEC=":-:"
 while getopts "$OPTSPEC" optchar; do
@@ -275,6 +286,10 @@ while getopts "$OPTSPEC" optchar; do
         cleanup)
           runCleanup=true
           ;;
+        clean-all)
+          runCleanAll=true
+          ;;
+
         status)
           runStatus=true
           ;;
@@ -335,7 +350,7 @@ done
 
 
 # Stop if required params are not set
-if $runCreate && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runList ]]; then
+if $runCreate && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runList ]] && [[ -z $runCleanAll ]]; then
   if [[ -z $bucket ]]; then
     gen3_log_info "The input bucket is required "
     exit 1
@@ -345,22 +360,24 @@ if $runCreate && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runList ]
     saName=$(echo "${prefix}-sa" | head -c63)
     gen3_create_aws_batch
   fi
-elif $runCleanup && [[ -z $runCreate ]] && [[ -z $runStatus ]] && [[ -z $runList ]]; then
+elif $runCleanup && [[ -z $runCreate ]] && [[ -z $runStatus ]] && [[ -z $runList ]] && [[ -z $runCleanAll ]]; then
   if [[ -z $jobId ]]; then
     gen3_log_info "Need to provide a job-id "
     exit 1
   else
     gen3_batch_cleanup
   fi
-elif $runStatus && [[ -z $runCleanup ]] && [[ -z $runCreate ]] && [[ -z $runList ]]; then
+elif $runStatus && [[ -z $runCleanup ]] && [[ -z $runCreate ]] && [[ -z $runList ]] && [[ -z $runCleanAll ]]; then
   if [[ -z $jobId ]]; then
     gen3_log_info "Need to provide a job-id "
     exit 1
   else
     gen3_manifest_generating_status
   fi
-elif $runList && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runCreate ]]; then
+elif $runList && [[ -z $runCleanup ]] && [[ -z $runStatus ]] && [[ -z $runCreate ]] && [[ -z $runCleanAll ]]; then
   gen3_bucket_manifest_list
+elif $runCleanAll && [[ -z $runCreate ]] && [[ -z $runStatus ]] && [[ -z $runList ]] && [[ -z $runCleanup ]]; then
+  gen3_batch_clean_all
 elif $runHelp; then
   gen3_bucket_manifest_help
 else
