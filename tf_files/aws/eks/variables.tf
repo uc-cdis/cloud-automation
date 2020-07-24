@@ -101,3 +101,8 @@ variable "oidc_eks_thumbprint" {
   type        = "list"
   default     = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
 }
+
+variable "sns_topic_arn" {
+  description = "SNS topic ARN for alerts"
+  default     = "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+}

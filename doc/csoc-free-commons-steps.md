@@ -204,6 +204,8 @@ gen3 cd
 *Optional*
 
 `eks_version` default set to 1.14, but you can change it to 1.13 or 1.15.
+`sns_topic_arn` The kubernetes cluster that runs gen3 commons run a fluentd daemonset that sends logs onto CloudWatchLogGroups. If using fluentd version `v1.10.2-debian-cloudwatch-1.0` (set in the manifest), the configuration used would create new CloudWatchLogs Streams with the date as prefix, for this to work and rotate daily , a cron job must be running on the cluster that does this for us. 
+                Said job would publish an SNS topic of your choice. Should you want this enable, set this variable with a valid SNS so the kubernetes workers can access the service.
 
 
 
