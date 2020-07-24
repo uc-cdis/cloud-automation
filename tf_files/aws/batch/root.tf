@@ -9,14 +9,18 @@ provider "aws" {}
 resource "aws_vpc" "new_vpc" {
   cidr_block = "10.1.0.0/16"
   tags = {
-    Organization = "gen3"
+    Organization = "gen3",
+    description  = "Created by bucket-manifest job",
+    job-id       = "${var.job_id}"
   }
 }
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.new_vpc.id}"
   tags = {
-    Organization = "gen3"
+    Organization = "gen3",
+    description  = "Created by bucket-manifest job",
+    job-id       = "${var.job_id}"
   }
 }
 
@@ -25,7 +29,9 @@ resource "aws_subnet" "new_subnet" {
   map_public_ip_on_launch = true
   cidr_block = "10.1.1.0/21"
   tags = {
-    Organization = "gen3"
+    Organization = "gen3",
+    description  = "Created by bucket-manifest job",
+    job-id       = "${var.job_id}"
   }
 }
 
@@ -37,7 +43,9 @@ resource "aws_route_table" "new_route" {
     gateway_id = "${aws_internet_gateway.gw.id}"
   }
   tags = {
-    Organization = "gen3"
+    Organization = "gen3",
+    description  = "Created by bucket-manifest job",
+    job-id       = "${var.job_id}"
   }
 }
 
@@ -50,7 +58,9 @@ resource "aws_sqs_queue" "new_sqs_queue" {
   name                      = "${var.sqs_queue_name}"
   message_retention_seconds = 86400
   tags = {
-    Organization = "gen3"
+    Organization = "gen3",
+    description  = "Created by bucket-manifest job",
+    job-id       = "${var.job_id}"
   }
 }
 
@@ -176,7 +186,9 @@ resource "aws_security_group" "new_sg" {
   }
 
   tags = {
-    Organization = "gen3"
+    Organization = "gen3",
+    description  = "Created by bucket-manifest job",
+    job-id       = "${var.job_id}"
   }
 }
 

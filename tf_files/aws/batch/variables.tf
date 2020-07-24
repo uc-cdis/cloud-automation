@@ -1,3 +1,7 @@
+variable "job_id" {
+
+}
+
 variable "batch_job_definition_name" {
   description = "batch job defintion name"
 }
