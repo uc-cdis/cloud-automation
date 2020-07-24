@@ -242,6 +242,7 @@ gen3_batch_cleanup() {
   local prefix="${hostname//./-}-bucket-manifest-${jobId}"
   local saName=$(echo "${prefix}-sa" | head -c63)
   local temp_bucket=$(echo "${prefix}-temp-bucket" | head -c63)
+  local secretName=$(g3kubectl get secrets |grep $prefix | cut -d ' ' -f 1)
 
   gen3_aws_run aws s3 rm "s3://${temp_bucket}" --recursive
   gen3 workon default ${prefix}__batch
@@ -258,7 +259,7 @@ gen3_batch_cleanup() {
   gen3_aws_run aws iam delete-role-policy --role-name $role --policy-name $policyName
   gen3_aws_run aws iam delete-role --role-name $role
   g3kubectl delete serviceaccount $saName
-
+  g3kubectl delete secret $secretName
   # Delete creds
   credsFile="$(gen3_secrets_folder)/g3auto/bucketmanifest/creds.json"
   rm -f $credsFile
@@ -266,11 +267,23 @@ gen3_batch_cleanup() {
 
 gen3_batch_clean_all {
   job_ids=$(aws ec2 describe-vpcs --filters '{"Name":"tag:description","Values":["Created by bucket-manifest job"]}' | jq -r '.Vpcs[].Tags[] | .Key + ":" + .Value' |grep prefix |cut -d ':' -f 2)
+  secrets=$(g3kubectl get secrets | grep bucket-manifest | cut -d ' ' -f 1)
+  serviceAccounts=$(g3kubectl get sa | grep bucket-manifest | cut -d ' ' -f 1)
   for item in $job_ids; do
     gen3_log_info "cleaning $item"
     gen3 workon default $item__batch
     gen3 tfplan --destroy
     gen3 tfapply -auto-approve
+  done
+  gen3_log_info "deleting secrets"
+  for item in $secrets; do
+    gen3_log_info "cleaning $item"
+    g3kubectl delete secret $item
+  done
+  gen3_log_info "deleting service accounts"
+  for item in $serviceAccounts; do
+    gen3_log_info "cleaning $item"
+    g3kubectl delete sa $item
   done
 }
 
