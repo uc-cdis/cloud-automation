@@ -265,7 +265,7 @@ gen3_batch_cleanup() {
   rm -f $credsFile
 }
 
-gen3_batch_clean_all {
+gen3_batch_clean_all() {
   job_ids=$(aws ec2 describe-vpcs --filters '{"Name":"tag:description","Values":["Created by bucket-manifest job"]}' | jq -r '.Vpcs[].Tags[] | .Key + ":" + .Value' |grep prefix |cut -d ':' -f 2)
   secrets=$(g3kubectl get secrets | grep bucket-manifest | cut -d ' ' -f 1)
   serviceAccounts=$(g3kubectl get sa | grep bucket-manifest | cut -d ' ' -f 1)
