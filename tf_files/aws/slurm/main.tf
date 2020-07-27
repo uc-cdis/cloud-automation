@@ -85,7 +85,7 @@ EOF
 
 EOF
 
-  user_workers_data - <<EOF
+  user_workers_data = <<EOF
 
 (
   cd $USER_HOME
