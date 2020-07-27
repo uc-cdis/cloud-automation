@@ -146,21 +146,13 @@ variable "cwlg_name" {
 
 variable "controller_info" {
   description = "Information about the controller instances needed for bootstraping"
-  type        = map(string)
-  default     = {
-    bootstrap_script = "files/slurm/controller.sh"
-    vm_role          = ""
-    extra_vars       = ""
-  }
+  type        = list(string)
+  default     = ["bootstrap_script=files/slurm/controller.sh","vm_role=","extra_vars="]
 }
   
 variable "worker_info" {
   description = "Information about the workers instances needed for bootstraping"
-  type        = map(string)
-  default     = {
-    bootstrap_script = "files/slurm/worker.sh"
-    vm_role          = ""
-    extra_vars       = ""
-  }
+  type        = list(string)
+  default     = ["bootstrap_script=files/slurm/worker.sh","vm_role=","extra_vars="]
 }
   

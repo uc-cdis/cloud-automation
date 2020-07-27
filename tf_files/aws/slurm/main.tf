@@ -158,7 +158,7 @@ module "slurm-workers" {
 
   #user_data_base64 = base64encode(local.user_data)
   #user_data         = local.user_data
-  user_data         = "${local.user_common_data} ${local.user_worker_data}"
+  user_data         = "${local.user_common_data} ${local.user_workers_data}"
 
   root_block_device = [
     {
