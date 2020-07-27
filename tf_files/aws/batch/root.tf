@@ -12,7 +12,7 @@ resource "aws_vpc" "new_vpc" {
     Organization = "gen3",
     description  = "Created by bucket-manifest job",
     job-id       = "${var.job_id}",
-    prefix       = "${prefix}"
+    prefix       = "${var.prefix}"
   }
 }
 

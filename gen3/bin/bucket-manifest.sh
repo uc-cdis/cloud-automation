@@ -271,7 +271,7 @@ gen3_batch_clean_all() {
   serviceAccounts=$(g3kubectl get sa | grep bucket-manifest | cut -d ' ' -f 1)
   for item in $job_ids; do
     gen3_log_info "cleaning $item"
-    gen3 workon default $item__batch
+    gen3 workon default $item"__batch"
     gen3 tfplan --destroy
     gen3 tfapply -auto-approve
   done
