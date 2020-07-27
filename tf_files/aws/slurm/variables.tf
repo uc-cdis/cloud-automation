@@ -66,7 +66,7 @@ variable "slurm_asgs" {
 }
 
 
-variable "rds_instance" {
+variable "slurm_rds" {
   description = "Information about the database for the slurm cluster"
   type        = map(object({
     engine                              = string
@@ -80,32 +80,48 @@ variable "rds_instance" {
     port                                = string
     maintenance_window                  = string
     backup_window                       = string
-    allocated_storage                   = number
     final_snapshot_identifier           = string
+    db_subnet_group_name                = string
+    allocated_storage                   = number
     vpc_security_group_ids              = list(string)
     subnet_ids                          = list(string)
-    deletion_protection                 = bool
     parameters                          = list(map(string))
+    deletion_protection                 = bool
     iam_database_authentication_enabled = bool
+    tags                                = map(string)
   }))
   default     = {
-    engine                 = "mysql"
-    engine_version         = "5.7.19"
-    family                 = "mysql5.7"
-    major_engine_version   = "5.7"
-    instance_class         = "db.t3.small"
-    allocated_storage      = 8
-    name                   = "demodb"
-    username               = "user"
-    password               = "YourPwdShouldBeLongAndSecure!"
-    port                   = "3306"
-    vpc_security_group_ids = ""
-    maintenance_window     = "Mon:00:00-Mon:03:00"
-    backup_window          = "03:00-06:00"
-    subnet_ids             = ""
-    deletion_protection    = true
-    
-    final_snapshot_identifier = "slurm-database-final-ss"
-    iam_database_authentication_enabled = true
+    slurmdb = {
+      engine                              = "mysql"
+      engine_version                      = "5.7.19"
+      family                              = "mysql5.7"
+      major_engine_version                = "5.7"
+      instance_class                      = "db.t3.small"
+      name                                = "demodb"
+      username                            = "user"
+      password                            = "YourPwdShouldBeLongAndSecure!"
+      port                                = "3306"
+      maintenance_window                  = "Mon:00:00-Mon:03:00"
+      backup_window                       = "03:00-06:00"
+      db_subnet_group_name                = ""
+      allocated_storage                   = 8
+      vpc_security_group_ids              = []
+      subnet_ids                          = []
+      deletion_protection                 = true
+      iam_database_authentication_enabled = true
+      parameters                          = [{
+          name = "character_set_client"
+          value = "utf8"
+        },
+        {
+          name = "character_set_server"
+          value = "utf8"
+        }
+      ]
+      final_snapshot_identifier           = "slurm-database-final-ss"
+      tags                                = {"Environment" = "Production", "Project" = "slurm"}
+    }
+  }
+}
 
 

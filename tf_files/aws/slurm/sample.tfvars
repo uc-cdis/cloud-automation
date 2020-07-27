@@ -1,9 +1,4 @@
 
-slurm_controllers_asg_name = "controllers_asg"
-
-slurm_controller_subnet_id = ["", ""]
-slurm_controller_sec_group = [""]
-
 slurm_asgs = {
   "controllers" = {
       asg_name               = "slurm-controllers"
@@ -34,3 +29,38 @@ slurm_asgs = {
       tags                   = {"Environment" = "Production", "Project" = "slurm"}
   }
 }
+
+
+slurm_rds = {
+  "slurmdb" = {
+      engine                              = "mysql"
+      engine_version                      = "5.7.19"
+      family                              = "mysql5.7"
+      major_engine_version                = "5.7"
+      instance_class                      = "db.t3.small"
+      name                                = "demodb"
+      username                            = "user"
+      password                            = "YourPwdShouldBeLongAndSecure!"
+      port                                = "3306"
+      db_subnet_group_name                = ""
+      maintenance_window                  = "Mon:00:00-Mon:03:00"
+      backup_window                       = "03:00-06:00"
+      vpc_security_group_ids              = []
+      subnet_ids                          = []
+      allocated_storage                   = 8
+      deletion_protection                 = true
+      iam_database_authentication_enabled = true
+      parameters                          = [{
+          name = "character_set_client"
+          value = "utf8"
+        },
+        {
+          name = "character_set_server"
+          value = "utf8"
+        }
+      ]
+      final_snapshot_identifier           = "slurm-database-final-ss"
+      tags                                = {"Environment" = "Production", "Project" = "slurm"}
+  }
+}
+
