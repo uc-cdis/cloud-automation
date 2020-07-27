@@ -23,10 +23,79 @@ provider "aws" {
 
 
 locals {
-  user_data = <<EOF
+  user_common_data = <<EOF
 #!/bin/bash
-echo "Hello Terraform!"
+
+cat > /etc/environment  <<ENVPROXY
+http_proxy=http://cloud-proxy.internal.io:3128
+https_proxy=http://cloud-proxy.internal.io:3128
+no_proxy=localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com
+ENVPROXY
+
+cat > /etc/apt/apt.conf.d/01proxy <<APTPROXY
+Acquire::http::Proxy "http://cloud-proxy.internal.io:3128";
+Acquire::https::Proxy "http://cloud-proxy.internal.io:3128";
+APTPROXY
+
+cat > /etc/profile.d/99-proxy.sh <<PROFILEPROXY
+#!/bin/bash
+export http{,s}_proxy=http://cloud-proxy.internal.io:3128
+export no_proxy="localhost,127.0.0.1,localaddress,169.254.169.254,.internal.io,logs.${data.aws_region.current.name}.amazonaws.com"
+PROFILEPROXY
+
+chmod +x /etc/profile.d/99-proxy.sh
+
+USER="${var.main_os_user}"
+USER_HOME="/home/$USER"
+CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
+
+source /etc/profile.d/99-proxy.sh
+cd $USER_HOME
+git clone https://github.com/uc-cdis/cloud-automation.git
+cd $CLOUD_AUTOMATION
+git pull
+
+# In case we want test branches while deploying
+if [ "${var.branch}" != "master" ];
+then
+  git checkout "${var.branch}"
+  git pull
+fi
+cat $CLOUD_AUTOMATION/${var.authorized_keys} | sudo tee --append $USER_HOME/.ssh/authorized_keys
+chown -R ubuntu. $CLOUD_AUTOMATION
+
+apt -y update
+DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade
+
+apt autoremove -y
+apt clean
+apt autoclean
+
 EOF
+
+  user_controller_data = <<EOF
+
+(
+  cd $USER_HOME
+
+  bash "${var.controller_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.controller_info["vm_role"]};${join(";",var.controller_info["extra_vars"])}" 2>&1
+  cd $CLOUD_AUTOMATION
+  git checkout master
+) > /var/log/bootstrapping_script.log
+
+EOF
+
+  user_workers_data - <<EOF
+
+(
+  cd $USER_HOME
+
+  bash "${var.worker_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.worker_info["vm_role"]};${join(";",var.worker_info["extra_vars"])}" 2>&1
+  cd $CLOUD_AUTOMATION
+  git checkout master
+) > /var/log/bootstrapping_script.log
+EOF
+  
 }
 
 
@@ -47,7 +116,7 @@ module "slurm-controllers" {
 
 
 #  user_data_base64 = base64encode(local.user_data)
-  user_data         = local.user_data
+  user_data         = "${local.user_common_data} ${local.user_controller_data}"
 
   root_block_device = [
     {
@@ -88,7 +157,8 @@ module "slurm-workers" {
 
 
   #user_data_base64 = base64encode(local.user_data)
-  user_data         = local.user_data
+  #user_data         = local.user_data
+  user_data         = "${local.user_common_data} ${local.user_worker_data}"
 
   root_block_device = [
     {

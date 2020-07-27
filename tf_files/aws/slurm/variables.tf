@@ -125,3 +125,42 @@ variable "slurm_rds" {
 }
 
 
+variable "main_os_user" {
+  description = "Admin user for instances"
+  default     = "ubuntu"
+}
+
+variable "branch" {
+  description = "for testing purposes"
+  default     = "main"
+}
+
+variable "authorized_keys" {
+  description = "Keys file taken from cloud automation to set on the main use for troubleshooting bootstraping issues that might occur"
+  default     = "files/authorized_keys/ops_team"
+}
+
+variable "cwlg_name" {
+  description = "CloudWatch Log Group in which you want to send logs for this cluster"
+}
+
+variable "controller_info" {
+  description = "Information about the controller instances needed for bootstraping"
+  type        = map(string)
+  default     = {
+    bootstrap_script = "files/slurm/controller.sh"
+    vm_role          = ""
+    extra_vars       = ""
+  }
+}
+  
+variable "worker_info" {
+  description = "Information about the workers instances needed for bootstraping"
+  type        = map(string)
+  default     = {
+    bootstrap_script = "files/slurm/worker.sh"
+    vm_role          = ""
+    extra_vars       = ""
+  }
+}
+  
