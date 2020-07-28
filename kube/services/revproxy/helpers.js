@@ -1,7 +1,9 @@
 /**
  * This is a helper script used in the reverse proxy
  * Note that this is not technically javascript, but nginscript (or njs)
- * See here for info: http://nginx.org/en/docs/njs/
+ * See here for info: 
+ *    - http://nginx.org/en/docs/njs/
+ *    - https://www.nginx.com/blog/introduction-nginscript/
  */
 
 /** global supporting atob polyfill below */
@@ -213,4 +215,41 @@ function isCredentialsAllowed(req) {
     }
   }
   return '';
+}
+
+/**
+ * Test whether the given ipAddrStr is in the global blackListStr.
+ * Currently does not support CIDR format - just list of IP's
+ * 
+ * @param {string} ipAddrStr 
+ * @param {string} blackListStr comma separated black list - defaults to globalBlackListStr (see below)
+ * @return {boolean} true if ipAddrStr is in the black list
+ */
+function isOnBlackList(ipAddrStr, blackListStr) {
+  return blackListStr.includes(ipAddrStr);
+}
+
+/**
+ * Call via nginx.conf js_set after setting the blackListStr and
+ * ipAddrStr variables via set:
+ * 
+ *    set blackListStr="whatever"
+ *    set ipAddrStr="whatever"
+ *    js_set blackListCheck checkBlackList
+ * 
+ * Note: kube-setup-revproxy generates gen3-blacklist.conf - which
+ *   gets sucked into the nginx.conf config
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @return "ok" or "block" - fail to "ok" in ambiguous situation
+ */
+function checkBlackList(req,res) {
+  var ipAddrStr = req.variables["ip_addr_str"];
+  var blackListStr = req.variables["black_list_str"];
+
+  if (ipAddrStr && blackListStr && isOnBlackList(ipAddrStr, blackListStr)) {
+    return "block";
+  }
+  return "ok"; // + "-" + ipAddrStr + "-" + blackListStr;
 }
