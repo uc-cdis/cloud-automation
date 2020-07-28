@@ -78,7 +78,7 @@ EOF
 (
   cd $USER_HOME
 
-  bash "${var.controller_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.controller_info["vm_role"]};${join(";",var.controller_info["extra_vars"])}" 2>&1
+  bash "${var.controller_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.controller_info["vm_role"]};${var.controller_info["extra_vars"]}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
 ) > /var/log/bootstrapping_script.log
@@ -90,7 +90,7 @@ EOF
 (
   cd $USER_HOME
 
-  bash "${var.worker_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.worker_info["vm_role"]};${join(";",var.worker_info["extra_vars"])}" 2>&1
+  bash "${var.worker_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.worker_info["vm_role"]};${var.worker_info["extra_vars"]}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
 ) > /var/log/bootstrapping_script.log
