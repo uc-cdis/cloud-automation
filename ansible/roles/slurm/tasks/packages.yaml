@@ -1,0 +1,19 @@
+---
+
+- name: "slurm| install packages"
+  apt:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - build-essential
+    - libmunge-dev
+    - python
+    - munge
+    - supervisor
+    - mysql-client
+    - libmysqlclient-dev
+    - htop
+    - samtools
+    - sysstat
+    - dnsmasq
+  become: yes

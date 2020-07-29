@@ -1,0 +1,32 @@
+---
+
+- name: "slurm | apt proxy"
+  template:
+    src: 01proxy.j2
+    dest: /etc/apt/apt.conf.d/01proxy
+    #backup: yes
+  become: yes
+  notify: update apt cache
+
+- name: "slurm | set environment"
+  template:
+    src: environment.j2
+    dest: /etc/environment
+  become: yes
+
+- name: "adminvm | set keys"
+  authorized_key:
+    user: "{{ ansible_user_id }}"
+    state: present
+    manage_dir: true
+    exclusive: true
+    key: '{{ lookup(''file'', ''../../../../planX/cloud-automation/files/authorized_keys/ops_team'') }}'
+
+- name: "mungkey"
+  file:
+    path: /etc/munge/munge.key
+    owner: munge
+    group: munge
+    mode: 400
+    
+  

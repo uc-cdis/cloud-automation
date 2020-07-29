@@ -12,7 +12,7 @@ all:
         braincommons_admin:
           ansible_host: braincommons.csoc
         dcfqa_admin:
-          ansible_host: covid19.csoc8
+          ansible_host: dcfqa.csoc
         dcfprod_admin:
           ansible_host: dcfprod.csoc
         genomel_admin:
