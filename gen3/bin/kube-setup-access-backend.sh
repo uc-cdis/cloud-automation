@@ -30,12 +30,13 @@ setup_access_backend() {
   # Setup .env file that access-backend-service consumes
   if [[ ! -f "$secretsFolder/access-backend.env" ]]; then
     local secretsFolder="$(gen3_secrets_folder)/g3auto/access-backend"
-    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-      if ! gen3 db setup access-backend; then
-        gen3_log_err "Failed setting up database for access-backend service"
-        return 1
-      fi
-    fi
+    # if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
+    #   if ! gen3 db setup access-backend; then
+    #     gen3_log_err "Failed setting up database for access-backend service"
+    #     return 1
+    #   fi
+    # fi
+    touch "$secretsFolder/dbcreds.json"
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
       gen3_log_err "dbcreds not present in Gen3Secrets/"
       return 1
@@ -71,12 +72,8 @@ setup_access_backend() {
         {
             "Sid": "",
             "Effect": "Allow",
-            "Action": [
-                "Action": "dynamodb:*"
-            ],
-            "Resource": [
-                "arn:aws:dynamodb:::table/*"
-            ]
+            "Action": "dynamodb:*",
+            "Resource": "arn:aws:dynamodb:::table/*"
         }
     ]
 }
