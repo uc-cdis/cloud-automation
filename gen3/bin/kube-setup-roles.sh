@@ -9,9 +9,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-if [[ -z "$_KUBES_SH" ]]; then
-  source "$GEN3_HOME/gen3/gen3setup.sh"
-fi # else already sourced this file ...
+kubectl patch serviceaccount default -p 'automountServiceAccountToken: false'
 
 # Don't do this in a Jenkins job
 if [[ -z "$JENKINS_HOME" ]]; then
