@@ -21,6 +21,12 @@ setup_access_backend() {
       mkdir -p "$secretsFolder"
     fi
   fi
+  local hostname
+  if ! hostname="$(gen3 api hostname)"; then
+    gen3_log_err "could not determine hostname from manifest-global - bailing out of sower-jobs setup"
+    return 1
+  fi
+
   gen3_log_info "setting up access-backend service ..."
 
   if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
