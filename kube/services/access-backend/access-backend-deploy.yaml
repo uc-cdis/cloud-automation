@@ -43,7 +43,7 @@ spec:
             secretName: "access-backend-g3auto"
       containers:
       - name: access-backend
-        GEN3_METADATA_IMAGE
+        GEN3_ACCESS-BACKEND_IMAGE
         env:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|

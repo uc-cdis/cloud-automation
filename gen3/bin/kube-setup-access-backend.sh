@@ -115,9 +115,18 @@ EOM
 }
 
 if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then
-    setup_access_backend
+  if ! setup_access_backend; then
+    gen3_log_err "kube-setup-access-backend bailing out - failed setup"
+    exit 1
+  fi
 fi
 
-cat <<EOM
-The access-backend bucket has been configured and the secret setup for use by access backend.
-EOM
+gen3 roll access-backend
+g3kubectl apply -f "${GEN3_HOME}/kube/services/access-backend/access-backend-service.yaml"
+
+if [[ -z "$GEN3_ROLL_ALL" ]]; then
+  gen3 kube-setup-networkpolicy
+  gen3 kube-setup-revproxy
+fi
+
+gen3_log_info "The access-backend service has been deployed onto the kubernetes cluster"
