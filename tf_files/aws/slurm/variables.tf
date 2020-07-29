@@ -132,7 +132,7 @@ variable "main_os_user" {
 
 variable "branch" {
   description = "for testing purposes"
-  default     = "main"
+  default     = "master"
 }
 
 variable "authorized_keys" {
@@ -163,4 +163,12 @@ variable "worker_info" {
     extra_vars       = ""
   }
 }
-  
+ 
+variable "vpc_name" {
+  description = "Given the fact that slurm clusters are to be deploying within exisings VPCs (commons environment), we want them assocuated somehow"
+}
+
+variable "organization_name" {
+  description = "for tagging purposes"
+  default     = "Basic Service"
+}

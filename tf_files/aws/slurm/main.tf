@@ -130,13 +130,13 @@ EOF
 
 resource "aws_iam_role_policy" "slurm_instances_role" {
   name                  = "basicAccess"
-  policy                = "${data.aws_iam_policy_document.vm_policy_document.json}"
-  role                  = "${aws_iam_role.the_role.role_id}"
+  policy                = data.aws_iam_policy_document.vm_policy_document.json
+  role                  = aws_iam_role.the_role.id
 }
 
-resource "aws_iam_instance_profile" "slrum_nodes_instance_profile" {
+resource "aws_iam_instance_profile" "slurm_nodes_instance_profile" {
   name = "${var.vpc_name}_slurm_instances"
-  role = "${aws_iam_role.the_role.name}"
+  role = aws_iam_role.the_role.name
 }
 
 
@@ -153,7 +153,7 @@ module "slurm-controllers" {
   security_groups              = var.slurm_asgs["controllers"]["security_groups"]
   associate_public_ip_address  = var.slurm_asgs["controllers"]["public_ip"]
   recreate_asg_when_lc_changes = var.slurm_asgs["controllers"]["recreate_on_lc_changes"]
-  iam_instance_profile         = aws_iam_instance_profile.slurm_nodes_instance_profile
+  iam_instance_profile         = aws_iam_instance_profile.slurm_nodes_instance_profile.id
 
 
 #  user_data_base64 = base64encode(local.user_data)
@@ -202,7 +202,7 @@ module "slurm-workers" {
   security_groups              = var.slurm_asgs["workers"]["security_groups"]
   associate_public_ip_address  = var.slurm_asgs["workers"]["public_ip"]
   recreate_asg_when_lc_changes = var.slurm_asgs["workers"]["recreate_on_lc_changes"]
-  iam_instance_profile         = aws_iam_instance_profile.slurm_nodes_instance_profile
+  iam_instance_profile         = aws_iam_instance_profile.slurm_nodes_instance_profile.id
 
 
   #user_data_base64 = base64encode(local.user_data)

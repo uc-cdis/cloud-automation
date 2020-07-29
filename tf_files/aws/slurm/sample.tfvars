@@ -1,4 +1,9 @@
 
+vpc_name          = "PUT SOMETHING HERE, usually ${vpc_name}"
+organization_name = "For taggin purposes"
+cwlg_name         = "which CloudWatch Log group you want logs to be sent over"
+
+
 slurm_asgs = {
   "controllers" = {
       asg_name               = "slurm-controllers"
@@ -67,7 +72,7 @@ slurm_rds = {
 
 
 main_os_user    = "ubuntu"
-cwlg_name       = ""
+
 controller_info = {
   bootstrap_script = "flavors/slurm/controller.sh"
   vm_role          = ""
