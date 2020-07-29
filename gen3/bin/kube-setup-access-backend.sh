@@ -70,7 +70,7 @@ setup_access_backend() {
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "",
+            "Sid": "GlobalDynamodbAdmin",
             "Effect": "Allow",
             "Action": "dynamodb:*",
             "Resource": "arn:aws:dynamodb:::table/*"
@@ -78,7 +78,7 @@ setup_access_backend() {
     ]
 }
 EOM
-    local saName=$(echo "jobs-${hostname//./-}" | head -c63)
+    local saName=$(echo "access-${hostname//./-}" | head -c63)
     if ! g3kubectl get sa "$saName" > /dev/null 2>&1; then
       local role_name
       if ! role_name="$(gen3 iam-serviceaccount -c "${saName}" -p ./access-backend-aws-policy.json)" || [[ -z "$role_name" ]]; then
