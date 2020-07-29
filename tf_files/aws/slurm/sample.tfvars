@@ -69,13 +69,13 @@ slurm_rds = {
 main_os_user    = "ubuntu"
 cwlg_name       = ""
 controller_info = {
-  bootstrap_script = "files/slurm/controller.sh"
+  bootstrap_script = "flavors/slurm/controller.sh"
   vm_role          = ""
   extra_vars       = ""
 }
 
 worker_info     = {
-  bootstrap_script = "files/slurm/worker.sh"
+  bootstrap_script = "flavors/slurm/worker.sh"
   vm_role          = ""
   extra_vars       = ""
 }

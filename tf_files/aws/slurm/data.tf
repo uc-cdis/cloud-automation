@@ -33,6 +33,7 @@ data "aws_iam_policy_document" "vm_policy_document" {
       "logs:DescribeLogGroups",
       "logs:DescribeLogStreams",
       "logs:PutRetentionPolicy",
+      "ec2:DescribeTags",
     ]
 
     effect    = "Allow"

@@ -78,7 +78,7 @@ EOF
 (
   cd $USER_HOME
 
-  bash "${var.controller_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.controller_info["vm_role"]};${var.controller_info["extra_vars"]}" 2>&1
+#  bash "${var.controller_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.controller_info["vm_role"]};${var.controller_info["extra_vars"]}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
 ) > /var/log/bootstrapping_script.log
@@ -90,7 +90,7 @@ EOF
 (
   cd $USER_HOME
 
-  bash "${var.worker_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.worker_info["vm_role"]};${var.worker_info["extra_vars"]}" 2>&1
+#  bash "${var.worker_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.worker_info["vm_role"]};${var.worker_info["extra_vars"]}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
 ) > /var/log/bootstrapping_script.log
@@ -99,9 +99,49 @@ EOF
 }
 
 
+resource "aws_iam_role" "the_role" {
+  name                  = "slurm_instances_role"
+  description           = "Role for slurm instances"
+  force_detach_policies = true
+
+  assume_role_policy    =  <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+
+  tags                  =  {
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+  }
+}
+
+
+
+resource "aws_iam_role_policy" "slurm_instances_role" {
+  name                  = "basicAccess"
+  policy                = "${data.aws_iam_policy_document.vm_policy_document.json}"
+  role                  = "${aws_iam_role.the_role.role_id}"
+}
+
+resource "aws_iam_instance_profile" "slrum_nodes_instance_profile" {
+  name = "${var.vpc_name}_slurm_instances"
+  role = "${aws_iam_role.the_role.name}"
+}
+
+
 module "slurm-controllers" {
 
-  #source  = "../modules/aws-autoscaling"
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "~> 3.0"
 
@@ -113,6 +153,7 @@ module "slurm-controllers" {
   security_groups              = var.slurm_asgs["controllers"]["security_groups"]
   associate_public_ip_address  = var.slurm_asgs["controllers"]["public_ip"]
   recreate_asg_when_lc_changes = var.slurm_asgs["controllers"]["recreate_on_lc_changes"]
+  iam_instance_profile         = aws_iam_instance_profile.slurm_nodes_instance_profile
 
 
 #  user_data_base64 = base64encode(local.user_data)
@@ -137,12 +178,19 @@ module "slurm-controllers" {
   wait_for_capacity_timeout = 0
 
   tags_as_map = var.slurm_asgs["controllers"]["tags"]
+
+  tags = [
+    {
+      key   = "slurm-type"
+      value = "controller"
+      propagate_at_launch = true
+    }
+  ]
 }
 
 
 module "slurm-workers" {
 
-  #source  = "../modules/aws-autoscaling"
   source  = "terraform-aws-modules/autoscaling/aws"
   version = "~> 3.0"
 
@@ -154,6 +202,7 @@ module "slurm-workers" {
   security_groups              = var.slurm_asgs["workers"]["security_groups"]
   associate_public_ip_address  = var.slurm_asgs["workers"]["public_ip"]
   recreate_asg_when_lc_changes = var.slurm_asgs["workers"]["recreate_on_lc_changes"]
+  iam_instance_profile         = aws_iam_instance_profile.slurm_nodes_instance_profile
 
 
   #user_data_base64 = base64encode(local.user_data)
@@ -179,6 +228,14 @@ module "slurm-workers" {
   wait_for_capacity_timeout = 0
 
   tags_as_map = var.slurm_asgs["workers"]["tags"]
+
+  tags = [
+    {
+      key   = "slurm-type"
+      value = "worker"
+      propagate_at_launch = true
+    }
+  ]
 }
 
 
