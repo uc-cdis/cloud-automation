@@ -132,7 +132,7 @@ EOF
 }
 
 #
-# Util for applying tfplan 
+# Util for applying tfplan
 #
 _tfapply_role() {
   local rolename=$1
@@ -221,14 +221,14 @@ gen3_awsrole_info() {
 
 #
 # Attach policy to a role
-# 
+#
 # @param rolename
 # @param policyarn
 #
 gen3_awsrole_attachpolicy() {
   local rolename=$1
   local policyarn=$2
-  
+
   # verify policy and role exist
   if ! gen3_aws_run aws iam get-role --role-name $rolename > /dev/null 2>&1; then
     gen3_log_err "Unable to find role with given name"

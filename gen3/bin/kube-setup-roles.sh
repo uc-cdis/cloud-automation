@@ -41,6 +41,9 @@ if [[ -z "$JENKINS_HOME" ]]; then
   if ! g3kubectl get rolebindings/mariner-binding > /dev/null 2>&1; then
     g3kubectl apply -f "${GEN3_HOME}/kube/services/mariner/mariner-binding.yaml"
   fi
+  if ! g3kubectl get rolebindings/fence > /dev/null 2>&1; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-serviceaccount.yaml"
+  fi
 
   ctx="$(g3kubectl config current-context)"
   ctxNamespace="$(gen3 db namespace)"

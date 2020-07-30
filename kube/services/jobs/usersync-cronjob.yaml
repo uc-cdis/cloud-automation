@@ -61,6 +61,14 @@ spec:
             - name: projects
               configMap:
                 name: "projects"
+            - name: aws-iam-token
+              projected:
+                defaultMode: 420
+                sources:
+                  - serviceAccountToken:
+                      audience: sts.amazonaws.com
+                      expirationSeconds: 86400
+                      path: token
           containers:
           - name: fence
             GEN3_FENCE_IMAGE
@@ -73,6 +81,21 @@ spec:
                   configMapKeyRef:
                     name: manifest-global
                     key: sync_from_dbgap
+                    optional: true
+              - name: DBGAP_BACKUP_BUCKET
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: dbgap_backup_bucket
+                    optional: true
+              - name: AWS_ROLE_ARN
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: aws_sa_rule_arn
+                    optional: true
+              - name: AWS_WEB_IDENTITY_TOKEN_FILE
+                value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
               - name: SLACK_SEND_DBGAP
                 valueFrom:
                   configMapKeyRef:
@@ -151,6 +174,9 @@ spec:
               - name: "projects"
                 mountPath: "/var/www/fence/projects.yaml"
                 subPath: "projects.yaml"
+              - name: "aws-iam-token"
+                mountPath: "/var/run/secrets/eks.amazonaws.com/serviceaccount"
+                readOnly: true
             command: ["/bin/bash" ]
             args:
               - "-c"
@@ -182,7 +208,13 @@ spec:
                   exitcode=$?
                 else
                   if [[ -f /mnt/shared/user.yaml ]]; then
-                    output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml 2>&1)
+                    if [ ! -z "$DBGAP_BACKUP_BUCKET" ]; then
+                      output=$(fence-create dbgap-download-access-files --folder dbgap 2>&1)
+                      aws s3 cp --recursive ./dbgap/ s3://$(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                      output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml --folder dbgap 2>&1)
+                    else
+                      output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml 2>&1)
+                    fi
                   else
                     output=$(fence-create sync --arborist http://arborist-service --sync_from_dbgap "$SYNC_FROM_DBGAP" --projects /var/www/fence/projects.yaml 2>&1)
                   fi

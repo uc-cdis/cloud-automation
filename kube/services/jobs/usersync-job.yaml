@@ -79,6 +79,14 @@ spec:
         - name: projects
           configMap:
             name: "projects"
+        - name: aws-iam-token
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  audience: sts.amazonaws.com
+                  expirationSeconds: 86400
+                  path: token
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -91,6 +99,21 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: sync_from_dbgap
+                optional: true
+          - name: DBGAP_BACKUP_BUCKET
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: dbgap_backup_bucket
+                optional: true
+          - name: AWS_ROLE_ARN
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: aws_sa_rule_arn
+                optional: true
+          - name: AWS_WEB_IDENTITY_TOKEN_FILE
+            value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
           - name: FORCE
             GEN3_FORCE|-value: "false"-|
           - name: ADD_DBGAP
@@ -158,6 +181,9 @@ spec:
           - name: "projects"
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"
+          - name: "aws-iam-token"
+            mountPath: "/var/run/secrets/eks.amazonaws.com/serviceaccount"
+            readOnly: true
         command: ["/bin/bash" ]
         args:
           - "-c"
@@ -174,14 +200,26 @@ spec:
 
             if [[ "$ONLY_DBGAP" == "true" ]]; then
               echo "ONLY_DBGAP arg provided... forcing a sync from dbGaP and IGNORING user.yaml"
-              fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml
+              if [ ! -z "$DBGAP_BACKUP_BUCKET" ]; then
+                fence-create dbgap-download-access-files --folder dbgap
+                aws s3 cp --recursive ./dbgap/ s3://$(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml --folder dbgap
+              else
+                fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml
+              fi
             elif [ ! "$SYNC_FROM_DBGAP" = True ]; then
               if [[ -f /mnt/shared/user.yaml ]]; then
                 # if manifest said not to sync from dbgap, there's a user.yaml, and
                 # ADD_DBGAP arg was provided, we should force a sync using dbgap AND the user.yaml
                 if [[ "$ADD_DBGAP" == "true" ]]; then
                   echo "ADD_DBGAP arg provided... forcing a sync from both dbGaP AND user.yaml"
-                  fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
+                  if [ ! -z "$DBGAP_BACKUP_BUCKET" ]; then
+                    fence-create dbgap-download-access-files --folder dbgap
+                    aws s3 cp --recursive ./dbgap/ s3://$(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                    fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml --folder dbgap
+                  else
+                    fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
+                  fi
                 elif [[ "$FORCE" == "true" ]]; then
                   echo "FORCE arg provided... ignoring user.yaml diff and forcing a usersync anyway"
                   fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
@@ -200,7 +238,13 @@ spec:
                 # ADD_DBGAP arg was provided, we should at least force a sync using dbgap
                 if [[ "$ADD_DBGAP" == "true" ]]; then
                   echo "ADD_DBGAP arg provided... forcing a sync from dbGaP"
-                  fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml
+                  if [ ! -z "$DBGAP_BACKUP_BUCKET" ]; then
+                    fence-create dbgap-download-access-files --folder dbgap
+                    aws s3 cp --recursive ./dbgap/ s3://$(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                    fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml --folder dbgap
+                  else
+                    fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml
+                  fi
                 fi
                 echo "/mnt/shared/user.yaml did not appear within timeout :-("
                 exit 1
@@ -208,7 +252,13 @@ spec:
             else
               # manifest says to sync from dbgap, so check if there's also a user.yaml to sync
               if [[ -f /mnt/shared/user.yaml ]]; then
-                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
+                if [ ! -z "$DBGAP_BACKUP_BUCKET" ]; then
+                  fence-create dbgap-download-access-files --folder dbgap
+                  aws s3 cp --recursive ./dbgap/ s3://$(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                  fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml --folder dbgap
+                else
+                  fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml
+                fi
               else
                 fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
               fi

@@ -9,6 +9,7 @@ spec:
       labels:
         app: gen3job
     spec:
+      serviceAccountName: useryaml-job
       automountServiceAccountToken: false
       volumes:
         - name: yaml-merge
@@ -53,6 +54,14 @@ spec:
         - name: projects
           configMap:
             name: "projects"
+        - name: aws-iam-token
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  audience: sts.amazonaws.com
+                  expirationSeconds: 86400
+                  path: token
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -65,6 +74,21 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: sync_from_dbgap
+                optional: true
+          - name: DBGAP_BACKUP_BUCKET
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: dbgap_backup_bucket
+                optional: true
+          - name: AWS_ROLE_ARN
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: aws_sa_rule_arn
+                optional: true
+          - name: AWS_WEB_IDENTITY_TOKEN_FILE
+            value: /var/run/secrets/eks.amazonaws.com/serviceaccount/token
           - name: FENCE_PUBLIC_CONFIG
             valueFrom:
               configMapKeyRef:
@@ -124,6 +148,9 @@ spec:
           - name: "projects"
             mountPath: "/var/www/fence/projects.yaml"
             subPath: "projects.yaml"
+          - name: "aws-iam-token"
+            mountPath: "/var/run/secrets/eks.amazonaws.com/serviceaccount"
+            readOnly: true
         command: ["/bin/bash" ]
         args:
           - "-c"
@@ -132,7 +159,13 @@ spec:
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             if [ "$SYNC_FROM_DBGAP" = True ]; then
-              fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml
+              if [ ! -z "${DBGAP_BACKUP_BUCKET}" ]; then
+                fence-create dbgap-download-access-files --folder dbgap
+                aws s3 cp --recursive ./dbgap/ s3://$(DBGAP_BACKUP_BUCKET)/$(date "+%Y%m%d-%H")/
+                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml --folder dbgap
+              else
+                fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml --yaml /var/www/fence/user.yaml
+              fi
             else
               fence-create sync --arborist http://arborist-service --yaml /var/www/fence/user.yaml
             fi

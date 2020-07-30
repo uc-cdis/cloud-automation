@@ -46,6 +46,10 @@ output "data-bucket_name" {
   value = "${module.cdis_vpc.data-bucket_name}"
 }
 
+output "dbgap-backup-bucket_name" {
+  value = "${var.dbgap_backup_bucket}"
+}
+
 
 #--------------------------------------------------------------
 # Legacy stuff ...

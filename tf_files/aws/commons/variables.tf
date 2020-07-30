@@ -301,6 +301,10 @@ variable "indexd_allow_major_version_upgrade" {
   default = "true"
 }
 
+variable "dbgap_backup_bucket" {
+  default = ""
+}
+
 variable "ha-squid_instance_type" {
   description = "Instance type for HA squid"
   default     = "t3.medium"

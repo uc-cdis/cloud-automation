@@ -336,7 +336,7 @@ function list_policies_for_a_role(){
 
   local role_name="${1}"
   local role_validation
-  
+
   if ! role_validation="$(check_role  ${role_name})" || [ -z "${role_validation}" ]; then
     gen3_log_err "The role provided to update can't be found, please check the value"
     return 1
