@@ -93,6 +93,24 @@ spec:
         # nginx group in current images
         fsGroup: 101
       containers:
+      - name: nginx-prometheus-exporter
+        image: registry.hub.docker.com/nginx/nginx-prometheus-exporter:0.8.0
+        command: ['-nginx.scrape-uri http://127.0.0.1/nginx_status']
+        ports:
+        - containerPort: 9113
+      - name: timonwong/uwsgi-exporter
+        image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0
+        command: ['--stats.uri http://127.0.0.1/uwsgi_status']
+        ports:
+        - containerPort: 9117
+      - name: nginx-logs-exporter
+        image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1
+        command: ['/mnt/nginxlogs/access_not_json.log']
+        ports:
+        - containerPort: 4040
+        volumeMounts:
+        - name: logs-folder
+          mountPath: "/mnt/nginxlogs/"
       - name: fence
         GEN3_FENCE_IMAGE
         env:
@@ -195,6 +213,8 @@ spec:
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
+          - name: logs-folder
+            mountPath: "/var/log/nginx/"
         resources:
             requests:
               cpu: 0.4
