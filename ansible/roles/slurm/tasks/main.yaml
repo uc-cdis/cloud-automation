@@ -1,17 +1,70 @@
 ---
-- include: configurations.yaml
-  tags:
-    - configuration
-    - files
-    - adminvm
+# tasks file for slurm
+
+- name: collect facts about system services
+  service_facts:
+
+- name: ec2 instance tags
+  ec2_tag:
+    region: "{{ region }}"
+    resource: "{{ instance_id.content }}"
+    state: list
+  register: ec2_tags
+
+- name: print info
+  debug: var="ec2_tags.tags["slurm-type"]"
+
+- set_fact:
+    i_facts: "{{ ec2_tags }}"
 
 - include: packages.yaml
   tags:
     - packages
-    - adminvm
+    - slurm
 
-
-- include: configure_aws.yaml
+- include: packages_workers.yaml
   tags:
-    - aws
-    - adminvm
+    - dependencies
+    - workers
+    - slurm
+
+- include: configurations.yaml
+  tags:
+    - configuration
+    - slurm
+
+- name: check on slurm
+  command: command -v slurmctld
+  register: slurmctld
+  changed_when: false
+
+- name: download and unarchive slurm source
+  unarchive:
+    src: "{{ slurm_source_url }}{{ slurm_version }}.tar.gz"
+    dest: /tmp
+  environment:
+    http_proxy: "{{ http_proxy }}:{{ http_proxy_port }}"
+    https_proxy: "{{ https_proxy }}:{{ https_proxy_port }}"
+
+- name: install slurm
+  command: /tmp/slurm-slurm-17-02-9-1 && ./configure > /tmp/configure.log && make > /tmp/make.log && make install > /tmp/makeinstall.log && rm -rf /tmp/slurm-*
+  when: '/slurmctld' no in slurmctld.stdout
+  become: yes
+
+- name: stop munge
+  systemd:
+    name: munge
+    state: stopped
+    enabled: no
+  become: yes
+
+- name: /var/log/slurmjobs
+  file:
+    dest: /var/log/slurmjobs
+    owner: root
+    group: root
+    mode: '0755'
+  become: yes
+
+  
+

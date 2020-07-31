@@ -1,0 +1,62 @@
+
+
+# Policies
+{% set environment = pillar["environment"] -%}
+{% set cluster = grains['cluster_name'] -%}
+ClusterName={{cluster}}
+{% for host, ip in salt['mine.get']('G@service:slurm and G@node_roles:controller and G@cluster_name:'~cluster, 'network.ip_addrs', 'compound').items() -%}
+{% for val in ip %}{% if '172.17' not in val -%}
+ControlMachine={{host}}
+ControlAddr={{ val }}{% endif %}{% endfor %}{% endfor %}
+SlurmUser=slurm
+SlurmctldPort=7012
+SlurmdPort=7013
+AuthType=auth/munge
+CryptoType=crypto/munge
+CompleteWait=30
+KillWait=60
+SlurmdTimeout=1800
+#DebugFlags=Gres,NO_CONF_HASH
+TmpFS=/mnt
+MaxJobCount=100000
+
+#Plugins
+TaskPlugin=task/affinity
+
+# Accounting
+AccountingStorageType=accounting_storage/slurmdbd
+{% for host, ip in salt['mine.get']('G@service:slurm and G@node_roles:controller and G@cluster_name:'~cluster, 'network.ip_addrs', 'compound').items() -%}
+{% for val in ip %}{% if '172.17' not in val -%}
+AccountingStorageHost={{ val }}{% endif %}{% endfor %}{% endfor %}
+JobAcctGatherType=jobacct_gather/linux
+JobAcctGatherParams=NoOverMemoryKill
+#VSizeFactor=101
+AccountingStoragePort=6819
+AccountingStorageEnforce=associations
+
+# Scheduling
+FastSchedule=0
+SchedulerType=sched/backfill
+SchedulerParameters=bf_max_job_start=50,bf_interval=30
+SchedulerPort=7321
+SelectType=select/cons_res
+SelectTypeParameters=CR_CPU_Memory
+PriorityType=priority/basic
+PropagatePrioProcess=1
+
+# Logging & State
+SlurmdPidFile=/var/run/slurmd.pid
+SlurmdLogFile=/var/log/slurmd/slurmd.%n.log.%h
+SlurmdSpoolDir=/var/spool/slurmd
+SlurmctldPidFile=/var/run/slurmctld.pid
+SlurmctldLogFile=/var/log/slurmctld/slurmctld.log
+SlurmSchedLogFile=/var/log/slurmctld/sched.log
+StateSaveLocation=/var/spool/slurmd
+ReturnToService=2
+
+# Jobs
+JobCompType=jobcomp/filetxt
+JobCompLoc=/var/log/slurmctld/jobcomp.log
+ProctrackType=proctrack/linuxproc
+JobContainerType=job_container/none
+JobRequeue=0

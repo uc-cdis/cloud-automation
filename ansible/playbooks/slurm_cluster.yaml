@@ -1,0 +1,9 @@
+---
+- hosts: workers 
+  tasks:
+    - debug:
+        msg: "before we run our role"
+    - import_role:
+        name: aws_common
+      vars:
+        region: 'us-east-1'

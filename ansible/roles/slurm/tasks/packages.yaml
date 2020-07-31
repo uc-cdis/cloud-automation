@@ -1,9 +1,10 @@
 ---
 
-- name: "slurm| install packages"
+- name: "slurm | install basic packages"
   apt:
     name: '{{ item }}'
     state: present
+    update_cache: yes
   loop:
     - build-essential
     - libmunge-dev
