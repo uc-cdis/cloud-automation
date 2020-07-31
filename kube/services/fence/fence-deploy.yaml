@@ -46,6 +46,8 @@ spec:
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
 # -----------------------------------------------------------------------------
+        - name: logs-folder
+          emptyDir: {}
         - name: old-config-volume
           secret:
             secretName: "fence-secret"
@@ -94,18 +96,21 @@ spec:
         fsGroup: 101
       containers:
       - name: nginx-prometheus-exporter
-        image: registry.hub.docker.com/nginx/nginx-prometheus-exporter:0.8.0
-        command: ['-nginx.scrape-uri http://127.0.0.1/nginx_status']
+        image: "registry.hub.docker.com/nginx/nginx-prometheus-exporter:0.8.0"
+        command:
+        - "-nginx.scrape-uri http://127.0.0.1/nginx_status"
         ports:
         - containerPort: 9113
       - name: timonwong/uwsgi-exporter
-        image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0
-        command: ['--stats.uri http://127.0.0.1/uwsgi_status']
+        image: "registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0"
+        command: 
+        - "--stats.uri http://127.0.0.1/uwsgi_status"
         ports:
         - containerPort: 9117
       - name: nginx-logs-exporter
-        image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1
-        command: ['/mnt/nginxlogs/access_not_json.log']
+        image: "quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1"
+        command:
+        - "/mnt/nginxlogs/access_not_json.log"
         ports:
         - containerPort: 4040
         volumeMounts:
