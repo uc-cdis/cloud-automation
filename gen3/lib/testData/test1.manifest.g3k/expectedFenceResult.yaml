@@ -158,7 +158,7 @@ spec:
 #             for fence.
 # -----------------------------------------------------------------------------
           - name: logs-folder
-            mountPath: "/mnt/nginxlogs/"
+            mountPath: "/var/log/nginx/"
           - name: "old-config-volume"
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
