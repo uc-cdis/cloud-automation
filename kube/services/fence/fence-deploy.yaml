@@ -157,6 +157,8 @@ spec:
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
 # -----------------------------------------------------------------------------
+          - name: logs-folder
+            mountPath: "/var/log/nginx/"
           - name: "old-config-volume"
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
@@ -218,8 +220,6 @@ spec:
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
-          - name: logs-folder
-            mountPath: "/var/log/nginx/"
         resources:
             requests:
               cpu: 0.4
