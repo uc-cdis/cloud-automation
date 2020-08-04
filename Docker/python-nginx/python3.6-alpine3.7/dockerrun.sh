@@ -99,5 +99,6 @@ fi
   fi
   run uwsgi --ini /etc/uwsgi/uwsgi.ini
 ) &
+while true; do logrotate --force /etc/logrotate.d/nginx; sleep 86400; done &
 run nginx -g 'daemon off;'
 wait
