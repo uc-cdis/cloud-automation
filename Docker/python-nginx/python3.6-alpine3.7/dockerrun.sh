@@ -102,5 +102,8 @@ fi
 (
   while true; do logrotate --force /etc/logrotate.d/nginx; sleep 86400; done
 ) &
+(
+  while true; do curl http://127.0.0.1:9117/metrics > /var/www/metrics/metrics.txt && curl http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt && curl http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt; sleep 10; done
+) &
 run nginx -g 'daemon off;'
 wait
