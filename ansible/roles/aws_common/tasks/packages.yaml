@@ -42,8 +42,7 @@
   become: yes
     
 - name: configure cloudwatchlog agent
-  shell:
-    cmd: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
+  shell: /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json -s
   become: yes
   when: ansible_facts.services["amazon-cloudwatch-agent.service"].status != "enabled"
   notify: enable cloudwatchlogs agent

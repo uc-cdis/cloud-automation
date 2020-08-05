@@ -1,13 +1,11 @@
 
 
 # Policies
-{% set environment = pillar["environment"] -%}
-{% set cluster = grains['cluster_name'] -%}
 ClusterName={{cluster}}
-{% for host, ip in salt['mine.get']('G@service:slurm and G@node_roles:controller and G@cluster_name:'~cluster, 'network.ip_addrs', 'compound').items() -%}
-{% for val in ip %}{% if '172.17' not in val -%}
-ControlMachine={{host}}
-ControlAddr={{ val }}{% endif %}{% endfor %}{% endfor %}
+{% for host in groups['controller'] %}
+ControlMachine={{hostvars[host]['ansible_host']}}
+ControlAddr={{hostvars[host]['ansible_default_ipv4']['address']}}
+{% endfor %}
 SlurmUser=slurm
 SlurmctldPort=7012
 SlurmdPort=7013
@@ -25,9 +23,9 @@ TaskPlugin=task/affinity
 
 # Accounting
 AccountingStorageType=accounting_storage/slurmdbd
-{% for host, ip in salt['mine.get']('G@service:slurm and G@node_roles:controller and G@cluster_name:'~cluster, 'network.ip_addrs', 'compound').items() -%}
-{% for val in ip %}{% if '172.17' not in val -%}
-AccountingStorageHost={{ val }}{% endif %}{% endfor %}{% endfor %}
+{% for host in groups['controller'] %}
+AccountingStorageHost={{hostvars[host]['ansible_host']}} 
+{% endfor %}
 JobAcctGatherType=jobacct_gather/linux
 JobAcctGatherParams=NoOverMemoryKill
 #VSizeFactor=101
@@ -60,3 +58,12 @@ JobCompLoc=/var/log/slurmctld/jobcomp.log
 ProctrackType=proctrack/linuxproc
 JobContainerType=job_container/none
 JobRequeue=0
+
+# Compute
+GresTypes=SCRATCH
+
+NodeName={% for host in groups['workers'] %}{{hostvars[host]['ansible_host']}}{% endfor %} CPUs={{ workers_cpu }} Gres=SCRATCH:{{ workers_gres }} state=UNKNOWN
+PartitionName=all Nodes={% for host in groups['workers'] %}{{hostvars[host]['ansible_host']}}{% endfor %} Default=YES PriorityTier=1 MaxTime=INFINITE State=UP
+
+
+

@@ -1,6 +1,5 @@
 ---
 
-
 - name: /var/run/munge
   file:
     path: /var/run/munge
@@ -8,6 +7,7 @@
     group: munge
     state: directory
     mode: '0755'
+  become: yes
 
 - name: prepare munge key
   file:
@@ -16,6 +16,7 @@
     group: munge
     state: directory
     mode: '0700'
+  become: yes
 
 - name:  read mungkey secret
   copy:
@@ -24,6 +25,7 @@
     owner: munge
     group: munge
     mode: '0400'
+  become: yes
 
 
 - name: /var/lib/munge
@@ -33,6 +35,7 @@
     group: munge
     state: directory
     mode: '0711'
+  become: yes
 
 
 - name: /var/log/munge
@@ -42,61 +45,85 @@
     group: munge
     state: directory
     mode: '0700'
+  become: yes
+
+- name: slurm group
+  group:
+    name: slurm
+    state: present
+  become: yes
 
 - name: slurm user
   user:
     name: slurm
-    description: Slurm user
+    comment: Slurm user
     group: slurm
     uid: 2001
+  become: yes
 
-- name: /etc/slurmd
+- name:  /etc/slurmd
   file:
     path: /etc/slurmd
     owner: slurm
     group: slurm
+    state: directory
+  become: yes
 
 - name: /var/log/slurmd
   file:
     path: /var/log/slurmd
     owner: slurm
     group: slurm
+    state: directory
+  become: yes
 
 - name: /var/log/slurmctld
   file:
     path: /var/log/slurmctld
     owner: slurm
     group: slurm
+    state: directory
+  become: yes
 
 - name: /var/log/slurmdbd
   file:
     path: /var/log/slurmdbd
     owner: slurm
     group: slurm
+    state: directory
+  become: yes
 
 - name: /var/log/slurmsched
   file:
     path: /var/log/slurmsched
     owner: slurm
     group: slurm
+    state: directory
+  become: yes
 
 - name: /var/spool/slurmd
   file:
     path: /var/spool/slurmd
     owner: slurm
     group: slurm
+    state: directory
+  become: yes
 
 - name: /var/spool/slurmd/node_state
   file:
     path: /var/spool/slurmd/node_state
     owner: slurm
     group: slurm
+    state: touch
+  become: yes
 
 - name: /var/spool/slurmd/sicp_state
   file:
     path: /var/spool/slurmd/sicp_state
     owner: slurm
     group: slurm
+    state: touch
+  become: yes
 
 - name: /usr/local/etc/slurm.conf
   template:
@@ -104,5 +131,4 @@
     dest: /usr/local/etc/slurm.conf
     owner: slurm
     group: slurm
-  
-    
+  become: yes

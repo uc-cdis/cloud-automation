@@ -4,12 +4,14 @@ all:
     controller:
       hosts:
         slurm_controller:
-          ansible_host: ip-172-24-66-25.ec2.internal
+          ansible_host: ip-172-24-66-80.ec2.internal
       vars:
         ansible_user: ubuntu
+        ansible_python_interpreter: /usr/bin/python3
     workers:
       hosts:
         worker1:
-          ansible_host: ip-172-24-66-95.ec2.internal
+          ansible_host: ip-172-24-66-104.ec2.internal
       vars:
         ansible_user: ubuntu
+        ansible_python_interpreter: /usr/bin/python3

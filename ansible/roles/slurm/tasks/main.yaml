@@ -4,6 +4,16 @@
 - name: collect facts about system services
   service_facts:
 
+- name: get instance-id
+  uri:
+    url: "http://169.254.169.254/latest/meta-data/instance-id"
+    return_content: yes
+    method: GET
+  register: instance_id
+
+#- name: print info
+#  debug: var="ansible_facts.services"
+
 - name: ec2 instance tags
   ec2_tag:
     region: "{{ region }}"
@@ -28,28 +38,78 @@
     - workers
     - slurm
 
+- include: packages_controllers.yaml
+  tags:
+    - dependencies
+    - workers
+    - slurm
+
 - include: configurations.yaml
   tags:
     - configuration
     - slurm
 
+- include: configure_controllers.yaml
+  tags:
+    - configuration
+    - controllers
+  when: ec2_tags.tags["slurm-type"] == 'controller'
+
 - name: check on slurm
-  command: command -v slurmctld
+  command: which slurmctld
   register: slurmctld
-  changed_when: false
+  ignore_errors: true
+#  changed_when: false
 
 - name: download and unarchive slurm source
   unarchive:
     src: "{{ slurm_source_url }}{{ slurm_version }}.tar.gz"
     dest: /tmp
+    remote_src: yes
   environment:
     http_proxy: "{{ http_proxy }}:{{ http_proxy_port }}"
     https_proxy: "{{ https_proxy }}:{{ https_proxy_port }}"
 
-- name: install slurm
-  command: /tmp/slurm-slurm-17-02-9-1 && ./configure > /tmp/configure.log && make > /tmp/make.log && make install > /tmp/makeinstall.log && rm -rf /tmp/slurm-*
-  when: '/slurmctld' no in slurmctld.stdout
+- name: install slurm 
+  shell: ./configure > /tmp/configure.log ; make > /tmp/make.log ; make install > /tmp/makeinstall.log
+  when: "'/slurmctld' not in slurmctld.stdout"
   become: yes
+  args:
+    chdir: /tmp/slurm-{{ slurm_version }}
+
+- name: install cleanup
+  file:
+    dest: /tmp/slurm-{{ slurm_version }}
+    state: absent
+  become: yes
+
+#- name: install slurm 2
+#  command: make > /tmp/make.log 
+#  when: "'/slurmctld' not in slurmctld.stdout"
+#  become: yes
+#  args:
+#    chdir: /tmp/slurm-{{ slurm_version }}
+
+#- name: install slurm 3
+#  command: make > /tmp/make.log
+#  when: "'/slurmctld' not in slurmctld.stdout"
+#  become: yes
+#  args:
+#    chdir: /tmp/slurm-{{ slurm_version }}
+
+#- name: install slurm 3
+#  command: make install > /tmp/makeinstall.log 
+#  when: "'/slurmctld' not in slurmctld.stdout"
+#  become: yes
+#  args:
+#    chdir: /tmp/slurm-{{ slurm_version }}
+
+#- name: install slurm 4
+#  command: rm -rf /tmp/slurm-*
+#  when: "'/slurmctld' not in slurmctld.stdout"
+#  become: yes
+#  args:
+#    chdir: /tmp/slurm-{{ slurm_version }}
 
 - name: stop munge
   systemd:
@@ -64,6 +124,7 @@
     owner: root
     group: root
     mode: '0755'
+    state: directory
   become: yes
 
   

@@ -1,12 +1,13 @@
 ---
-
+  
 - name: "slurm | install dependencies"
-  pip:
+  apt:
     name: '{{ item }}'
-    executable: pip3
   loop:
-    - virtualenvwrapper
-  environment: 
+    - libpq-dev
+    - libffi-dev
+  environment:
     http_proxy: "{{ http_proxy }}:{{ http_proxy_port }}"
     https_proxy: "{{ https_proxy }}:{{ https_proxy_port }}"
-  when: ec2_tags.tags["slurm-type"] == 'worker'
+  when: ec2_tags.tags["slurm-type"] == 'controller'
+  become: yes
