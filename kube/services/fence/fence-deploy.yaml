@@ -100,19 +100,19 @@ spec:
         fsGroup: 101
       containers:
       - name: nginx-prometheus-exporter
-        image: registry.hub.docker.com/nginx/nginx-prometheus-exporter:0.8.0
+        GEN3_NGINX_PROMETHEUS_EXPORTER_IMAGE|-image: registry.hub.docker.com/nginx/nginx-prometheus-exporter:0.8.0-|
         args:
         - "-nginx.scrape-uri http://127.0.0.1/nginx_status"
         ports:
         - containerPort: 9113
       - name: uwsgi-exporter
-        image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0
+        GEN3_UWSGI_EXPORTER_IMAGE|-image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0-|
         args: 
         - "--stats.uri http://127.0.0.1/uwsgi_status"
         ports:
         - containerPort: 9117
       - name: nginx-logs-exporter
-        image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1
+        GEN3_NGINX_LOGS_EXPORTER_IMAGE|-image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1-|
         args:
         - "/mnt/nginxlogs/access_not_json.log"
         ports:
