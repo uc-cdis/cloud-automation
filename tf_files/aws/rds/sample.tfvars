@@ -3,9 +3,8 @@
 rds_instance_allocated_storage            = 20
 rds_instance_engine                       = "MySQL,postgres,oracle,aurora,SQL,MariaDB"
 rds_instance_engine_version               = "version for your engine, basically depends on the variable above"
-rds_instance_name                         = "what are you naming the db"
 rds_instance_username                     = "usern ame for access"
-rds_instance_password                     = "password for access"
+#rds_instance_password                     = "password for access"
 rds_instance_port                         = "1433"
 rds_instance_identifier                   = "planx-tests-db"
 #rds_instance_db_subnet_group_name         = "subnet group name"
@@ -14,6 +13,7 @@ rds_instance_identifier                   = "planx-tests-db"
 
 # Optional variables, uncomment and change values accordingly
 
+#rds_instance_name                                  = "what are you naming the db"
 #rds_instance_allow_major_version_upgrade           = true
 #rds_instance_apply_immediately                     = false
 #rds_instance_auto_minor_version_upgrade            = true
@@ -49,5 +49,10 @@ rds_instance_identifier                   = "planx-tests-db"
 #rds_instance_tags                                  = {"something"="stuff", "Something-else"="more-stuff"}
 #rds_instance_timeouts                              = {create = "40m", update = "80m", delete = "40m"}
 #rds_instance_timezone                              = ""
+#rds_instance_final_snapshot_identifier             = ""
 
+# backups 
+#rds_instance_backup_enabled                         = false
+#rds_instance_backup_kms_key                         = ""
+#rds_instance_backup_bucket_name                     = ""
 

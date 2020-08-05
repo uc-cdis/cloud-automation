@@ -51,6 +51,8 @@ spec:
             mountPath: "/credentials.json"
             subPath: credentials.json
         env:
+          - name: AWS_REGION
+            value: us-east-1
           - name: GEN3_NAMESPACE
             valueFrom:
               fieldRef:
@@ -80,3 +82,10 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        resources:
+          requests:
+            cpu: 0.4
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 2400Mi  

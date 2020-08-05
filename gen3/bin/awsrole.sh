@@ -16,6 +16,79 @@ gen3_awsrole_help() {
 }
 
 #
+# Assume-role policy - allows SA's to assume role.
+# NOTE: service-account to role is 1 to 1
+#
+# @param serviceAccount to link to the role
+#
+function gen3_awsrole_ar_policy() {
+  local serviceAccount="$1"
+  shift || return 1
+  local issuer_url
+  local account_id
+  local vpc_name
+  vpc_name="$(gen3 api environment)" || return 1
+  issuer_url="$(aws eks describe-cluster \
+                       --name ${vpc_name} \
+                       --query cluster.identity.oidc.issuer \
+                       --output text)" || return 1
+  issuer_url="${issuer_url#https://}"
+  account_id=$(aws sts get-caller-identity --query Account --output text) || return 1
+
+  local provider_arn="arn:aws:iam::${account_id}:oidc-provider/${issuer_url}"
+
+  cat - <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {"Service": "ec2.amazonaws.com"},
+      "Action": "sts:AssumeRole"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${provider_arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "${issuer_url}:aud": "sts.amazonaws.com",
+          "${issuer_url}:sub": "system:serviceaccount:$(gen3 db namespace):${serviceAccount}"
+        }
+      }
+    }
+  ]
+}
+EOF
+}
+
+#
+# Annotate the given service account with the given IAM role
+#
+# @param saName
+# @param roleName
+#
+gen3_awsrole_sa_annotate() {
+  local saName="$1"
+  shift || return 1
+  local roleName="$1"
+  shift || return 1
+  local roleArn
+  local roleInfo
+  roleInfo="$(aws iam get-role --role-name "$roleName")" || return 1
+  roleArn="$(jq -e -r .Role.Arn <<< "$roleInfo")"
+
+  if ! g3kubectl get sa "$saName" > /dev/null; then
+    g3kubectl create sa "$saName" || return 1
+  fi
+
+  g3kubectl annotate --overwrite sa "$saName" "eks.amazonaws.com/role-arn=$roleArn"
+}
+
+#
 # Echos type of entity for given name. If not found, it returns non zero exit code
 #
 _get_entity_type() {
@@ -36,15 +109,24 @@ _get_entity_type() {
 # Util to tfplan creation of role
 #
 # @param rolename
+# @param saName for assume-role policy document
 #
 _tfplan_role() {
-  local rolename=$1
+  local rolename="$1"
+  shift || return 1
+  local saName="$1"
+  shift || return 1
+  local arDoc
+  arDoc="$(gen3_awsrole_ar_policy "$saName")" || return 1
   gen3 workon default "${rolename}_role"
   gen3 cd
   cat << EOF > config.tfvars
 rolename="$rolename"
 description="Role created with gen3 awsrole"
 path="/gen3_service/"
+ar_policy=<<EDOC
+$arDoc
+EDOC
 EOF
   gen3 tfplan 2>&1
 }
@@ -65,23 +147,36 @@ _tfapply_role() {
     return 1
   fi
 
-  gen3 trash --apply
+  # leave the terraform artifacts
+  #gen3 trash --apply
 }
 
 #
-# Create aws role 
+# Create aws role - attach "assume-role" policy document that
+# allows the given service account to assume the role.
+# Also attempts to annotate the service account.
 #
 # @param rolename
+# @param serviceAccountName
 #
 gen3_awsrole_create() {
-  local rolename=$1
+  local rolename="$1"
+  if ! shift || [[ -z "$rolename" ]]; then
+    gen3_log_err "use: gen3 awsrole create roleName saName"
+    return 1
+  fi
+  local saName="$1"
+  if ! shift || [[ -z "$saName" ]]; then
+    gen3_log_err "use: gen3 awsrole create roleName saName"
+    return 1
+  fi
   # do simple validation of name
   local regexp="^[a-z][a-z0-9\-]*$"
   if [[ ! $rolename =~ $regexp ]];then
     local errMsg=$(cat << EOF
-ERROR: Username does not meet the following requirements:
+ERROR: name - $rolename - does not meet the following requirements:
   - starts with a-z
-  - contains only a-z, 0-9, and dashes, "-"
+  - contains only a-z, 0-9, _, and dashes, "-"
 EOF
     )
     gen3_log_err $errMsg
@@ -95,7 +190,8 @@ EOF
     # That name is already used.
     if [[ "$entity_type" =~ role ]]; then
       gen3_log_info "A role with that name already exists"
-      return 0
+      gen3_awsrole_sa_annotate "$saName" "$rolename"
+      return $?
     else
       gen3_log_err "A $entity_type with that name already exists"
       return 1
@@ -103,14 +199,14 @@ EOF
   fi
 
   TF_IN_AUTOMATION="true"
-  if ! _tfplan_role $rolename; then
+  if ! _tfplan_role $rolename $saName; then
     return 1
   fi
   if ! _tfapply_role $rolename; then
     return 1
   fi
 
-  return 0
+  gen3_awsrole_sa_annotate "$saName" "$rolename"
 }
 
 #
@@ -184,6 +280,12 @@ gen3_awsrole() {
       ;;
     'attach-policy')
       gen3_awsrole_attachpolicy "$@"
+      ;;
+    'ar-policy')
+      gen3_awsrole_ar_policy "$@"
+      ;;
+    'sa-annotate')
+      gen3_awsrole_sa_annotate "$@"
       ;;
     'list' | 'ls')
       gen3_awsrole_list "$@"

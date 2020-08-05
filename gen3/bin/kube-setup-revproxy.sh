@@ -127,7 +127,7 @@ else
   # Do not do this automatically as it will trigger an elb
   # change in existing commons
   #
-  echo "Ensure the commons DNS references the -elb revproxy which support http proxy protocol"
+  gen3_log_info "Ensure the commons DNS references the -elb revproxy which support http proxy protocol"
 fi
 
 #
@@ -142,10 +142,16 @@ if [[ "$1" =~ ^-*dry-run ]]; then
   DRY_RUN="--dry-run"
 fi
 
-export LOGGING_CONFIG=""
-bucketName=$(g3kubectl get configmap global --output=jsonpath='{.data.logs_bucket}')
-if [[ $? -eq 0 && -n "$bucketName" ]]; then
-  LOGGING_CONFIG=$(cat - <<EOM
+export MORE_ELB_CONFIG=""
+#
+# DISABLE LOGGING
+# TODO: We need to give the controller S3 permissions before we
+# can auto-apply S3 logging.  Will have to enable logging by hand util we fix that ...
+#
+if false \
+  && bucketName=$(g3kubectl get configmap global --output=jsonpath='{.data.logs_bucket}') \
+  && [[ -n "$bucketName" ]]; then
+  MORE_ELB_CONFIG=$(cat - <<EOM
     service.beta.kubernetes.io/aws-load-balancer-access-log-enabled: "true"
     service.beta.kubernetes.io/aws-load-balancer-access-log-emit-interval: "60"
     # The interval for publishing the access logs. You can specify an interval of either 5 or 60 (minutes).
@@ -156,11 +162,25 @@ EOM
 fi
 
 #
-# DISABLE LOGGING
-# TODO: We need to give the controller S3 permissions before we
-# can auto-apply S3 logging.  Will have to enable logging by hand util we fix that ...
+# Set 
+#    global.lb_type: "internal"
+# in the manifest for internal (behind a VPN) load balancer
 #
-LOGGING_CONFIG=""
+LB_TYPE=$(g3kubectl get configmap manifest-global --output=jsonpath='{.data.lb_type}')
+if [[ "$LB_TYPE" != "internal" ]]; then
+  LB_TYPE="public"
+else
+  #
+  # Note - for this to work you also have to tag the eks_private* subnets with:
+  #    key: kubernetes.io/role/internal-elb, value: 1
+  # https://docs.aws.amazon.com/eks/latest/userguide/load-balancing.html
+  #
+  MORE_ELB_CONFIG="$(cat - <<EOM
+$MORE_ELB_CONFIG
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+EOM
+  )"
+fi
 
 export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
 #
@@ -192,15 +212,15 @@ elif [[ "$ARN" == "ONPREM" ]]; then
   # port 83 - http listener - redirects to https
   export TARGET_PORT_HTTP=83
 elif [[ ! "$ARN" =~ ^arn ]]; then
-  echo "WARNING: global configmap not configured with TLS certificate ARN"
+  gen3_log_warn "global configmap not configured with TLS certificate ARN"
 fi
 
 if [[ -z "$DRY_RUN" ]]; then
   envsubst <$scriptDir/revproxy-service-elb.yaml | g3kubectl apply -f -
 else
-  echo "DRY RUN"
+  gen3_log_info "DRY RUN"
   envsubst <$scriptDir/revproxy-service-elb.yaml
-  echo "DRY RUN"
+  gen3_log_info "DRY RUN"
 fi
 
 # Don't automatically apply this right now

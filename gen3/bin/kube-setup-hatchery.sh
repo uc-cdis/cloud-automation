@@ -12,6 +12,7 @@ namespace="$(gen3 db namespace)"
 notebookNamespace="$(gen3 jupyter j-namespace)"
 
 gen3 jupyter j-namespace setup
+[[ -z "$GEN3_ROLL_ALL" ]] && gen3 gitops configmaps
 
 #
 # this may fail in gitops-sync if the cron job
@@ -21,3 +22,4 @@ gen3 jupyter j-namespace setup
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/hatchery/hatchery-service.yaml"
 gen3 roll hatchery
+gen3 job cron hatchery-reaper '@daily'

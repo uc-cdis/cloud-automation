@@ -1,0 +1,5 @@
+variables.json
+*.bak
+*.log
+*~
+*.swp

@@ -29,20 +29,19 @@ variable "worker_drive_size" {
 }
 
 variable "eks_version" {
-  default = "1.12"
+  default = "1.14"
 }
-
 
 variable "workers_subnet_size" {
   default = 24
 }
 
 variable "bootstrap_script" {
-  default = "bootstrap-2.0.0.sh"
+  default = "bootstrap-with-security-updates.sh"
 }
 
 variable "jupyter_bootstrap_script" {
-  default = "bootstrap-2.0.0.sh"
+  default = "bootstrap-with-security-updates.sh"
 }
 
 variable "kernel" {
@@ -61,11 +60,6 @@ variable "organization_name" {
   default = "Basic Services"
 }
 
-variable "proxy_name" {
-  default = " HTTP Proxy"
-}
-
-
 variable "jupyter_asg_desired_capacity" {
   default = 0
 }
@@ -77,6 +71,38 @@ variable "jupyter_asg_max_size" {
 variable "jupyter_asg_min_size" {
   default = 0
 }
- variable "iam-serviceaccount" {
+
+variable "iam-serviceaccount" {
   default = false
+}
+
+variable "domain_test" {
+  description = "url for the lambda function to check for the proxy"
+  default     = "www.google.com"
+}
+
+variable "ha_squid" {
+  description = "Is HA squid deployed?"
+  default     = false
+}
+
+variable "dual_proxy" {
+  description = "Single instance and HA"
+  default     = false
+}
+
+variable "single_az_for_jupyter" {
+  description = "Jupyter notebooks on a single AZ"
+  default     = false
+}
+
+variable "oidc_eks_thumbprint" {
+  description = "Thumbprint for the AWS OIDC identity provider"
+  type        = "list"
+  default     = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
+}
+
+variable "sns_topic_arn" {
+  description = "SNS topic ARN for alerts"
+  default     = "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
 }

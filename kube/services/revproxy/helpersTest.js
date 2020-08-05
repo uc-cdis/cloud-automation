@@ -1,5 +1,6 @@
 /**
- * Tests for the nginx javascript helper
+ * Tests for the nginx javascript helper:
+ * gen3 testsuite --filter revproxy
  */
 
 // Hacky way of getting our functions into node.js scripts
@@ -201,4 +202,15 @@ describe("Nginx helper function", function() {
     const serviceReleases = getServiceReleases(nginxRequest);
     expect(serviceReleases).toMatch('fence.production');
   });
+
+  it("can check an item against a black list", function() {
+    const blackList = "quick,brown,fox";
+    blackList.split(',').forEach(
+      (testStr) => {
+        expect(isOnBlackList(testStr, blackList)).toBe(true, `${testStr} is on black list ${blackList}`);
+      }
+    );
+    const testStr="frickjack";
+    expect(isOnBlackList(testStr, blackList)).toBe(false, `${testStr} is not on black list ${blackList}`);
+  })
 });

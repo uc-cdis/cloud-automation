@@ -19,6 +19,10 @@ gen3_completions() {
     COMPREPLY=($(compgen -W "list job raw" "${COMP_WORDS[2]}"))
   elif [[ ${COMP_CWORD} -eq 2 && "${COMP_WORDS[1]}" == "roll" ]]; then
     COMPREPLY=($(compgen -W "$(/bin/ls "${GEN3_HOME}/kube/services" | grep -v -e job -e netpolicy)" "${COMP_WORDS[2]}"))
+  elif [[ ${COMP_CWORD} -eq 2 && "${COMP_WORDS[1]}" == "secrets" ]]; then
+    COMPREPLY=($(compgen -W "commit decode gcp sync" "${COMP_WORDS[2]}"))
+  elif [[ ${COMP_CWORD} -eq 3 && "${COMP_WORDS[1]}" == "secrets" && "${COMP_WORDS[2]}" == "gcp" ]]; then
+    COMPREPLY=($(compgen -W "new-key garbage-collect rotate" "${COMP_WORDS[3]}"))
   elif [[ ${COMP_CWORD} -eq 3 && "${COMP_WORDS[1]}" == "job" && ("${COMP_WORDS[2]}" == "run" || "${COMP_WORDS[2]}" == "logs") ]]; then
     COMPREPLY=($(compgen -W "$(/bin/ls "${GEN3_HOME}/kube/services/jobs" | grep -e yaml | sed -e 's/\.yaml$//' | grep -e '-job' -e '-cronjob' | sed -e 's/-job.*$//')" "${COMP_WORDS[3]}"))
   elif [[ ${COMP_CWORD} -eq 3 && "${COMP_WORDS[1]}" == "update_config" ]]; then

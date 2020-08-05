@@ -1,0 +1,19 @@
+{
+  "name": "cdistest",
+  "description": "This is an example role defined as JSON",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "default_attributes": {
+    "adminvm": {
+      "devUsers": ["abby", "andrew","atharva","avantol","binamb","ci-env-1","ci-env-2","diw","diwv1","emalinowski","fantix","fauzi","fauziv1","galaxy","gcp-dev-commons","gen3demo","giangb","gkuffel","hara","jiaqi","john","kmhernan","loki","loki-dev","loki-qa","marcelo","mattgarvin1","mingfei","mlukowski","mpingram","pauline","qa-acct","qa-aids","qa-anvil","qa-bloodpac","qa-brain","qa-canine","qa-covid19","qa-dcf","qa-dcfdemo","qa-dcp","qa-dcp2","qa-dcp-stageprod","qa-flu","qa-ibd","qa-jcoin","qa-kidsfirst","qa-mickey","qa-microbiome","qa-nde","qa-niaid","qa-release","qa-tb","rarya","raryav1","reuben","test-env-2","thanhnd","tkrizzle","zakir","zlchitty"],
+      "qaUsers": ["jenkins-blood","jenkins-brain","jenkins-dcp","jenkins-genomel ","jenkins-innovationday","jenkins-niaid","jenkins-perf","qaplanetv1","qaplanetv2"],
+      "adminUsers": ["ubuntu","emalinowskiv1","devplanetv1"]
+
+    }
+  },
+  "override_attributes": {
+  },
+  "run_list": [
+      "recipe[cdis_admin_vm]"
+  ]
+}

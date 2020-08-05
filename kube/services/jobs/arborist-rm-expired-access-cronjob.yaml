@@ -6,6 +6,7 @@ spec:
   schedule: "@hourly"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:

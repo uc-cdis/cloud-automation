@@ -1,0 +1,44 @@
+# gen3 job run etl ETL_FORCED TRUE
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hatchery-reaper
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      restartPolicy: Never
+      serviceAccountName: hatchery-service-account
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: awshelper
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          imagePullPolicy: Always
+          env:
+            - name: slackWebHook
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: slack_webhook
+                  optional: true
+            - name: gen3Hostname
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-global
+                  key: hostname
+            - name: JENKINS_HOME
+              value: "whatever"
+          command: ["/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              export GEN3_HOME="$HOME/cloud-automation"
+              source "$GEN3_HOME/gen3/gen3setup.sh"
+              if appList="$(gen3 jupyter idle none "$(gen3 db namespace)" kill)" && [[ -n "$appList" && -n "$slackWebHook" && "$slackWebHook" != "None" ]]; then
+                curl -X POST --data-urlencode "payload={\"text\": \"hatchery-reaper in $gen3Hostname: \n\`\`\`\n${appList}\n\`\`\`\"}" "${slackWebHook}"
+              fi
+              echo "All Done!"

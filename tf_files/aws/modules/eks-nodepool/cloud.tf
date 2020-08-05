@@ -198,7 +198,7 @@ resource "aws_security_group" "eks_nodes_sg" {
 
   tags = "${
     map(
-     "Name", "${var.vpc_name}-nodes-sg",
+     "Name", "${var.vpc_name}-nodes-sg-${var.nodepool}",
      "kubernetes.io/cluster/${var.vpc_name}", "owned",
     )
   }"

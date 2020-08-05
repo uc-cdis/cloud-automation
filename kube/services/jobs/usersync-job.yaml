@@ -27,7 +27,7 @@ kind: Job
 metadata:
   name: usersync
 spec:
-  # not yet supported - backOffLimit: 3
+  backoffLimit: 0
   template:
     metadata:
       labels:
@@ -203,6 +203,7 @@ spec:
                   fence-create sync --arborist http://arborist-service --sync_from_dbgap True --projects /var/www/fence/projects.yaml
                 fi
                 echo "/mnt/shared/user.yaml did not appear within timeout :-("
+                exit 1
               fi
             else
               # manifest says to sync from dbgap, so check if there's also a user.yaml to sync
@@ -212,10 +213,12 @@ spec:
                 fence-create sync --arborist http://arborist-service --sync_from_dbgap $(SYNC_FROM_DBGAP) --projects /var/www/fence/projects.yaml
               fi
             fi
-            echo "Exit code: $?"
+            exitcode=$?
+            echo "Exit code: $exitcode"
+            exit "$exitcode"
 
       - name: awshelper
-        image: quay.io/cdis/awshelper:master
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
         imagePullPolicy: Always
         volumeMounts:
           - name: "fence-yaml"
@@ -263,6 +266,9 @@ spec:
                     echo "no difference found"
                   fi
                 fi
+              else
+                echo "download failed"
+                exit 1
               fi
             fi
         env:

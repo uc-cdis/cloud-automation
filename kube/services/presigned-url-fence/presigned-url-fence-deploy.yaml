@@ -47,7 +47,7 @@ spec:
             name: "fence-yaml-merge"
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
-#             for fence.
+#             for fence
 # -----------------------------------------------------------------------------
         - name: old-config-volume
           secret:
@@ -89,6 +89,9 @@ spec:
         - name: privacy-policy
           configMap:
             name: "privacy-policy"
+      securityContext:
+        # nginx group in current images
+        fsGroup: 101
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -97,6 +100,8 @@ spec:
           value: "6"
         - name: PYTHONPATH
           value: /var/www/fence
+        - name: AWS_STS_REGIONAL_ENDPOINTS
+          value: regional
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
         - name: FENCE_PUBLIC_CONFIG
@@ -187,13 +192,18 @@ spec:
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
         resources:
-            limits:
+            requests:
               cpu: 0.4
               memory: 1200Mi
+            limits:
+              cpu: 1.0
+              memory: 2400Mi  
         command: ["/bin/bash"]
         args:
           - "-c"
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
-            bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
+            echo -e "ENABLE_DB_MIGRATION: false" > "/var/www/fence/fence-config-bonus1.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config-step1.yaml
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-bonus1.yaml /var/www/fence/fence-config-step1.yaml > /var/www/fence/fence-config.yaml
+            ([[ ! -f /entrypoint.sh ]] || bash /entrypoint.sh) && /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi

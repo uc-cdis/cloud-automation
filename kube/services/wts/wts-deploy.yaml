@@ -77,7 +77,36 @@ spec:
             port: 80
         resources:
           requests:
-            cpu: 1
+            cpu: 0.8
+            memory: 512Mi
           limits:
             cpu: 2
-            memory: 1024Mi
+            memory: 2048Mi
+      initContainers:
+        - name: wts-db-migrate
+          GEN3_WTS_IMAGE
+          imagePullPolicy: Always
+          volumeMounts:
+          - name: "wts-secret"
+            readOnly: true
+            mountPath: "/var/www/wts/dbcreds.json"
+            subPath: dbcreds.json
+          env:
+          - name: POSTGRES_CREDS_FILE
+            value: "/var/www/wts/dbcreds.json"
+          resources:
+            limits:
+              cpu: 0.8
+              memory: 512Mi
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              if hash alembic 2>/dev/null; then
+                echo "Running DB migration"
+                cd /wts
+                alembic upgrade head
+              else
+                # WTS < 0.3.0 does not have the DB migration setup
+                echo "Alembic not installed - not running DB migration"
+              fi

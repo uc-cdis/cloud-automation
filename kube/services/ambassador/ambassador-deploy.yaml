@@ -13,6 +13,10 @@ spec:
       annotations:
         sidecar.istio.io/inject: "false"
         "consul.hashicorp.com/connect-inject": "false"
+        # see: https://github.com/helm/charts/tree/master/stable/prometheus
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8877"
       labels:
         app: ambassador
         service: ambassador

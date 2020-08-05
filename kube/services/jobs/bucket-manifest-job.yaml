@@ -1,0 +1,61 @@
+# gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/bucket-manifest-job.yaml BUCKET cdistest-giangb-bucket1-databucket-gen3 JOB_QUEUE giang_batch_job_queue_name JOB_DEFINITION batch_job_definition_name SQS https://sqs.us-east-1.amazonaws.com/707767160287/terraform-example-queue OUT_BUCKET cdistest-giangb-bucket1-databucket-gen3 | sed "s|sa-#SA_NAME_PLACEHOLDER#|giangb-aws-batch-operations-account|g"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: aws-bucket-manifest#PLACEHOLDER#
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: sa-#SA_NAME_PLACEHOLDER#
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "bucketmanifest-g3auto"
+      containers:
+      - name: aws-bucket-manifest
+        GEN3_AWS-BUCKET-MANIFEST_IMAGE|-image: quay.io/cdis/bucket-manifest:master-|
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: REGION
+          GEN3_REGION|-value: "us-east-1"-|
+        - name: BUCKET
+          GEN3_BUCKET
+        - name: JOB_QUEUE
+          GEN3_JOB_QUEUE
+        - name: JOB_DEFINITION
+          GEN3_JOB_DEFINITION
+        - name: SQS
+          GEN3_SQS
+        - name: AUTHZ
+          GEN3_AUTHZ|-value: ""-|
+        - name: OUT_BUCKET
+          GEN3_OUT_BUCKET
+        volumeMounts:
+          - name: "cred-volume"
+            mountPath: "/bucket-manifest/creds.json"
+            subPath: "creds.json"
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            echo """
+            [default]
+            region: us-east-1
+            """ > /home/ubuntu/.aws/config
+            if [[ "$AUTHZ" == "" ]]; then
+              python batch_jobs/bin/run_bucket_manifest_job.py create_manifest --bucket $BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION} --sqs $SQS --out_bucket ${OUT_BUCKET}
+            else
+              aws s3 cp "$AUTHZ" /bucket-manifest/authz.tsv
+              python batch_jobs/bin/run_bucket_manifest_job.py create_manifest --bucket $BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION} --sqs $SQS --authz /bucket-manifest/authz.tsv --out_bucket ${OUT_BUCKET}
+            fi
+            echo "All done - exit status $?"
+      restartPolicy: Never

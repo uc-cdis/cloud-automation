@@ -14,14 +14,12 @@ fi
 #alias kubectl=g3kubectl
 
 #KUBECTL=$(bash which kubectl)
-if ! $(bash which kubectl) --kubeconfig "${kubeconfig_path}" get daemonsets -n kube-system calico-node > /dev/null 2>&1; then
-  $(bash which kubectl) --kubeconfig "${kubeconfig_path}" apply -f kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-1.5/config/v1.5/calico.yaml
-                                                                                  # https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.4/calico.yaml
-                                                                                  # https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-1.1/config/v1.1/calico.yaml
+if ! $(command -v kubectl) --kubeconfig "${kubeconfig_path}" get daemonsets -n kube-system calico-node > /dev/null 2>&1; then
+  $(command -v kubectl) --kubeconfig "${kubeconfig_path}" apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-1.5/config/v1.5/calico.yaml
 fi
 
-if ! $(bash which kubectl) --kubeconfig "${kubeconfig_path}" get configmap -n kube-system aws-auth > /dev/null 2>&1; then
-  $(bash which kubectl) --kubeconfig "${kubeconfig_path}" apply -f "${auth_configmap}"
+if ! $(command -v kubectl) --kubeconfig "${kubeconfig_path}" get configmap -n kube-system aws-auth > /dev/null 2>&1; then
+  $(command -v kubectl) --kubeconfig "${kubeconfig_path}" apply -f "${auth_configmap}"
 fi
 
 

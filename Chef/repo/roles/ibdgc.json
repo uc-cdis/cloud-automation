@@ -1,0 +1,16 @@
+{
+  "name": "ibdgc",
+  "description": "This is an example role defined as JSON",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "default_attributes": {
+    "adminvm": {
+      "adminUsers": ["ubuntu","ibdgc"]
+    }
+  },
+  "override_attributes": {
+  },
+  "run_list": [
+      "recipe[cdis_admin_vm]"
+  ]
+}

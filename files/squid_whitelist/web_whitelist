@@ -4,7 +4,8 @@
 192.170.230.164
 accounts.google.com
 achecker.ca
-api-bionimbus-pdc.opensciencedatacloud.org
+biodata-integration-tests.net
+ctds-planx.atlassian.net
 api.immport.org
 api.login.yahoo.com
 api.snapcraft.io
@@ -52,8 +53,8 @@ ftp.sanger.ac.uk
 ftp.usf.edu
 ftp.ussg.iu.edu
 gcr.io
+gen3.org
 gist.githubusercontent.com
-git.bionimbus.org
 git.io
 go.googlesource.com
 golang.org
@@ -64,10 +65,8 @@ http.us.debian.org
 ifconfig.io
 internet2.edu
 k8s.gcr.io
-keyservice.opensciencedatacloud.org
 ks.osdc.io
 lib.stat.cmu.edu
-login.bionimbus.org
 login.mathworks.com
 login.microsoftonline.com
 maven.restlet.org
@@ -95,6 +94,7 @@ mirrors.gigenet.com
 mirrors.lga7.us.voxel.net
 mirrors.nics.utk.edu
 mirrors.syringanetworks.net
+mran.microsoft.com
 neuro.debian.net
 neurodeb.pirsquared.org
 nginx.org
@@ -102,7 +102,6 @@ orcid.org
 pgp.mit.edu
 ppa.launchpad.net
 pubmirrors.dal.corespace.com
-quay.io
 raw.githubusercontent.com
 reflector.westga.edu
 registry.npmjs.org
@@ -122,11 +121,11 @@ sa-update.secnap.net
 sa-update.space-pro.be
 security.debian.org
 services.mathworks.com
-source.bionimbus.org
 streaming.stat.iastate.edu
 www.google.com
 www.mathworks.com
 www.oracle.com
 www.rabbitmq.com
 www.uniprot.org
+vpodc.org
 yahoo.com

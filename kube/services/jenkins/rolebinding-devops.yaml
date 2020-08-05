@@ -5,7 +5,8 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: jenkins-service
-  apiGroup: ""
+- kind: ServiceAccount
+  name: gitops-sa
 roleRef:
   kind: ClusterRole
   name: admin

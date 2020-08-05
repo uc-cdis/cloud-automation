@@ -59,7 +59,7 @@ spec:
             cpu: 0.3
             memory: 512Mi
       - name: awshelper
-        image: quay.io/cdis/awshelper:master
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
         imagePullPolicy: Always
         command: ["/bin/bash" ]
         args:

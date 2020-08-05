@@ -36,16 +36,12 @@ g3kubectl() {
   else
     theKubectl=$(which kubectl)
   fi
-  if [[ -n "$KUBECONFIG" ]] && grep heptio "$KUBECONFIG" > /dev/null 2>&1; then
-    # Then it's EKS - run with AWS creds!
-    (
-       awsVars=$(gen3 arun env | grep AWS_ | grep -v PROFILE | sed 's/^A/export A/' | sed 's/[\r\n]+/;/')
-       eval "$awsVars"
-       "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
-    )
-  else
-    "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
+  if [[ -n "$KUBECONFIG" ]] && grep -e heptio -e aws-iam "$KUBECONFIG" > /dev/null 2>&1 && [[ ! -x /usr/local/bin/aws-iam-authenticator ]]; then
+    # Then it's EKS - we need to upgrade to aws-iam-authenticator - run with AWS creds!
+    gen3_log_err "/usr/local/bin/aws-iam-authenticator not installed - run gen3 kube-setup-workvm as a user with sudo"
+    return 1
   fi
+  "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
 }
 
 #
@@ -90,6 +86,43 @@ g3k_manifest_init() {
   echo "$GEN3_MANIFEST_HOME"
 }
 
+# inheritted by child processes
+export GEN3_CACHE_HOSTNAME="${GEN3_CACHE_HOSTNAME:-""}"
+export GEN3_CACHE_ENVIRONMENT="${GEN3_CACHE_ENVIRONMENT:-""}"
+export GEN3_CACHE_NAMESPACE="${GEN3_CACHE_NAMESPACE:-""}"
+
+# Ensure cache from parent process is from current namespace
+if [[ "$GEN3_CACHE_NAMESPACE" != "$KUBECTL_NAMESPACE" ]]; then
+  GEN3_CACHE_HOSTNAME=""
+  GEN3_CACHE_ENVIRONMENT=""
+  GEN3_CACHE_NAMESPACE="$KUBECTL_NAMESPACE"
+fi
+
+#
+# Lookup and cache hostname - most gen3 scripts should use: gen3 api hostname
+#
+g3k_hostname() {
+  if [[ -z "$GEN3_CACHE_HOSTNAME" ]]; then
+    GEN3_CACHE_HOSTNAME="$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')" || return 1
+  fi
+  echo "$GEN3_CACHE_HOSTNAME"  
+}
+
+#
+# Lookup and cache environment - most gen3 scripts should use: gen3 api environment
+#
+g3k_environment() {
+  if [[ -z "$GEN3_CACHE_ENVIRONMENT" ]]; then
+    GEN3_CACHE_ENVIRONMENT="$(g3kubectl get configmaps global -ojsonpath='{ .data.environment }')" || return 1
+  fi
+  echo "$GEN3_CACHE_ENVIRONMENT"
+}
+
+# Initialize the cache
+g3k_hostname > /dev/null 2>&1 || true
+g3k_environment > /dev/null 2>&1 || true
+
+
 #
 # Get the path to the manifest appropriate for this commons
 #
@@ -101,8 +134,7 @@ g3k_manifest_path() {
   local mpath
 
   folder="$(g3k_manifest_init)"
-  domain=${1:-$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')}
-  if [[ -z "$domain" ]]; then
+  if ! domain="${1:-$(g3k_hostname)}" || [[ -z "$domain" ]]; then
     gen3_log_err "g3k_manifest_path" "could not establish commons hostname"
     return 1
   fi

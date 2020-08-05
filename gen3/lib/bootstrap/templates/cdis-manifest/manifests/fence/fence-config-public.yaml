@@ -1,0 +1,391 @@
+# This file contains public fence configuration, and
+# is merged over the Gen3Secrets/apis_config/fence-config.yaml
+# secret at runtime to form a unified configuration.
+#
+# This file was originally copied from the fence github repo.
+
+# README:
+# - This is initially configured for minimal local development with reasonable defaults.
+# - Descriptions for each of the configurations (if any) will be *above* the variable as
+#   comments.
+# - Some configuration variables will have examples commented out below them.
+# - This is broken up into 2 main sections for REQUIRED and OPTIONAL configurations.
+#     - Optional configs will note what features or endpoints they support
+# - Underneath each main section the variables are logically grouped under named
+#   sections.
+#
+# NOTE: Login is NOT ready out of the box. Fill out REQUIRED configurations first
+
+########################################################################################
+#                               REQUIRED CONFIGURATIONS                                #
+########################################################################################
+
+APP_NAME: 'Gen3 Data Commons'
+# Where fence microservice is deployed
+BASE_URL: 'http://localhost/user'
+
+# //////////////////////////////////////////////////////////////////////////////////////
+# DEBUG & SECURITY SETTINGS
+#   - Modify based on whether you're in a dev environment or in production
+# //////////////////////////////////////////////////////////////////////////////////////
+# flask's debug setting
+# WARNING: DO NOT ENABLE IN PRODUCTION (for testing purposes only)
+DEBUG: true
+# if true, will automatically login a user with username "test"
+# WARNING: DO NOT ENABLE IN PRODUCTION (for testing purposes only)
+MOCK_AUTH: false
+# if true, will fake a successful login response from Google in /login/google
+#     NOTE: this will also modify the behavior of /link/google endpoints
+# WARNING: DO NOT ENABLE IN PRODUCTION (for testing purposes only)
+# will login as the username set in cookie DEV_LOGIN_COOKIE_NAME
+MOCK_GOOGLE_AUTH: false
+DEV_LOGIN_COOKIE_NAME: "dev_login"
+# if true, will ignore anything configured in STORAGE_CREDENTIALS
+MOCK_STORAGE: true
+# allow OIDC traffic on http for development. By default it requires https.
+#
+# WARNING: ONLY set to true when fence will be deployed in such a way that it will
+#          ONLY receive traffic from internal clients and can safely use HTTP.
+AUTHLIB_INSECURE_TRANSPORT: true
+
+# set if you want browsers to only send cookies with requests over HTTPS
+SESSION_COOKIE_SECURE: true
+
+ENABLE_CSRF_PROTECTION: true
+
+# fence (at the moment) attempts a migration on startup. setting this to false will disable that
+# WARNING: ONLY set to false if you do NOT want to automatically migrate your database.
+#          You should be careful about incompatible versions of your db schema with what
+#          fence expects. In other words, things could be broken if you update to a later
+#          fence that expects a schema your database isn't migrated to.
+# NOTE: We are working to improve the migration process in the near future
+ENABLE_DB_MIGRATION: true
+
+# these are the *possible* scopes a client can be given, NOT scopes that are
+# given to all clients. You can be more restrictive during client creation
+CLIENT_ALLOWED_SCOPES:
+  - "openid"
+  - "user"
+  - "data"
+  - "google_credentials"
+  - "google_service_account"
+  - "google_link"
+
+# these are the scopes that CAN be included in a user's own access_token
+USER_ALLOWED_SCOPES:
+  - "fence"
+  - "openid"
+  - "user"
+  - "data"
+  - "admin"
+  - "google_credentials"
+  - "google_service_account"
+  - "google_link"
+
+# these are the scopes that a browser session can create for a user (very
+# similar to USER_ALLOWED_SCOPES, as the session will actually create access_tokens
+# for an actively logged in user)
+SESSION_ALLOWED_SCOPES:
+  - "openid"
+  - "user"
+  - "credentials"
+  - "data"
+  - "admin"
+  - "google_credentials"
+  - "google_service_account"
+  - "google_link"
+
+# List of enabled login options (used by data-portal to display login buttons).
+# Each option must be configured with a "name" and an "idp".
+# - "idp" must be a configured provider in OPENID_CONNECT section.
+# Multiple options can be configured with the same idp.
+# - if provider_id is "fence", "fence_idp" can be any of the providers
+# supported by the other Fence. If not specified, will default to NIH login.
+# - if provider_id is "fence" and fence_idp is "shibboleth", a list of
+# "shib_idps" can be configured for InCommon login. If not specified, will
+# default to NIH login.
+# - Optional parameters: "desc" (description) and "secondary" (boolean - can
+# be used by the frontend to display secondary buttons differently).
+LOGIN_OPTIONS: [] # !!! remove the empty list to enable login options!
+  # - name: 'Login from Google'
+  #   desc: 'description'
+  #   idp: google
+  #   secondary: True
+  # - name: 'ORCID Login'
+  #   idp: orcid
+  # - name: 'Microsoft Login'
+  #   idp: microsoft
+  # - name: 'NIH Login'
+  #   idp: fence
+  #   fence_idp: shibboleth
+  # - name: 'ORCID Login through other Fence'
+  #   idp: fence
+  #   fence_idp: orcid
+  # - name: 'InCommon Login'
+  #   idp: fence
+  #   fence_idp: shibboleth
+  #   # "shib_idps" can be '*' or a list of one or more entity IDs
+  #   shib_idps:
+  #     - urn:mace:incommon:nih.gov
+  #     - urn:mace:incommon:uchicago.edu
+# The following can be used for shibboleth login, simply uncomment.
+# NOTE: Don't enable shibboleth if the deployment is not protected by
+# shibboleth module, the shib module takes care of preventing header
+# spoofing.
+  # - name: 'Shibboleth Login'
+  #   idp: shibboleth
+
+# Default login provider:
+# - must be configured in LOGIN_OPTIONS and OPENID_CONNECT
+# - if several options in LOGIN_OPTIONS are defined for this IDP, will default
+# to the first one.
+# Default login URL:
+# - Google? Use: '{{BASE_URL}}/login/google'
+# - Multi-tenant fence (e.g. another fence instance)? Use: '{{BASE_URL}}/login/fence'
+# - Sibboleth? Use: '{{BASE_URL}}/login/shib'
+DEFAULT_LOGIN_IDP: null
+DEFAULT_LOGIN_URL: '{{BASE_URL}}/login/google'
+
+# `LOGIN_REDIRECT_WHITELIST` is a list of extra whitelisted URLs which can be redirected
+# to by the `/login/*` endpoints. Fence automatically populates this with the redirect
+# URLs for any registered OAuth clients, and its own URL. When validating the redirects,
+# fence chesk whether the domain for the redirect matches a domain in the whitelist (so
+# only the domains for the additional desired redirects are necessary here).
+LOGIN_REDIRECT_WHITELIST: []
+
+# //////////////////////////////////////////////////////////////////////////////////////
+# LIBRARY CONFIGURATION (authlib & flask)
+#   - Already contains reasonable defaults
+# //////////////////////////////////////////////////////////////////////////////////////
+# authlib-specific configs for OIDC flow and JWTs
+# NOTE: the OAUTH2_JWT_KEY cfg gets set automatically by fence if keys are setup
+#       correctly
+OAUTH2_JWT_ALG: 'RS256'
+OAUTH2_JWT_ENABLED: true
+OAUTH2_JWT_ISS: '{{BASE_URL}}'
+OAUTH2_PROVIDER_ERROR_URI: '/api/oauth2/errors'
+
+# used for flask, "path mounted under by the application / web server"
+# since we deploy as microservices, fence is typically under {{base}}/user
+# this is also why our BASE_URL default ends in /user
+APPLICATION_ROOT: '/user'
+
+
+# //////////////////////////////////////////////////////////////////////////////////////
+# Tokens, Lifetimes, & Expirations
+#   - Already contains reasonable defaults
+# //////////////////////////////////////////////////////////////////////////////////////
+# The name of the browser cookie in which the access token will be stored.
+ACCESS_TOKEN_COOKIE_NAME: "access_token"
+
+# The name of the browser cookie in which the session token will be stored.
+# Note that the session token also stores information for the
+# ``flask.session`` in the ``context`` field of the token.
+SESSION_COOKIE_NAME: "fence"
+
+# The domain of the browser cookie in which the session token will be stored.
+# Leave unset (not empty string!) for normal single-site deployment.
+SESSION_COOKIE_DOMAIN:
+
+OAUTH2_TOKEN_EXPIRES_IN:
+  "authorization_code": 1200
+  "implicit": 1200
+
+# The number of seconds after an access token is issued until it expires.
+ACCESS_TOKEN_EXPIRES_IN: 1200
+
+# The number of seconds after a refresh token is issued until it expires.
+REFRESH_TOKEN_EXPIRES_IN: 2592000
+
+# The number of seconds after which a browser session is considered stale.
+SESSION_TIMEOUT: 1800
+
+# The maximum session lifetime in seconds.
+SESSION_LIFETIME: 28800
+
+# The number of seconds the user's Google service account key used for
+# url signing will last before being expired/rotated
+# 30 days: 2592000 seconds
+GOOGLE_SERVICE_ACCOUNT_KEY_FOR_URL_SIGNING_EXPIRES_IN: 2592000
+
+# The number of seconds after a User's Google Service account is added to bucket
+# access until it expires.
+# 7 days: 604800 seconds
+GOOGLE_USER_SERVICE_ACCOUNT_ACCESS_EXPIRES_IN: 604800
+
+# The number of seconds after a User's Google account is added to bucket
+# access until it expires.
+GOOGLE_ACCOUNT_ACCESS_EXPIRES_IN: 86400
+
+# The number of seconds after a pre-signed url is issued until it expires.
+MAX_PRESIGNED_URL_TTL: 3600
+
+# The number of seconds after an API KEY is issued until it expires.
+MAX_API_KEY_TTL: 2592000
+
+# The number of seconds after an access token is issued until it expires.
+MAX_ACCESS_TOKEN_TTL: 3600
+
+# TEMPORARY: The maximum number of projects allowed in token claims.
+# This config var should be removed after sheepdog and peregrine support
+# auth checks against Arborist, and no longer check the token.
+TOKEN_PROJECTS_CUTOFF: 15
+
+########################################################################################
+#                               OPTIONAL CONFIGURATIONS                                #
+########################################################################################
+
+# For displaying a privacy policy to users, we can either link to the URL specified by
+# PRIVACY_POLICY_URL, or default to the `static/privacy_policy.md` file in fence.
+PRIVACY_POLICY_URL: null
+
+# //////////////////////////////////////////////////////////////////////////////////////
+# SUPPORT INFO
+# //////////////////////////////////////////////////////////////////////////////////////
+# If you want an email address to show up when an unhandled error occurs, provide one
+# here. Something like: support@example.com
+SUPPORT_EMAIL_FOR_ERRORS: null
+
+# //////////////////////////////////////////////////////////////////////////////////////
+# SHIBBOLETH
+#   - Support using `shibboleth` in LOGIN_OPTIONS
+#   - Contains defaults for using NIH's Login.
+# //////////////////////////////////////////////////////////////////////////////////////
+# assumes shibboleth is deployed under {{BASE_URL}}/shibboleth
+SHIBBOLETH_HEADER: 'persistent_id'
+SSO_URL: 'https://auth.nih.gov/affwebservices/public/saml2sso?SPID={{BASE_URL}}/shibboleth&RelayState='
+ITRUST_GLOBAL_LOGOUT: 'https://auth.nih.gov/siteminderagent/smlogout.asp?mode=nih&AppReturnUrl='
+
+# Regex to match an assession number that has consent information in forms like:
+#   phs00301123.c999
+#   phs000123.v3.p1.c3
+#   phs000123.c3
+#   phs00301123.v3.p4.c999
+# Will NOT MATCH forms like: phs000123
+#
+# WARNING: Do not change this without consulting the code that uses it
+DBGAP_ACCESSION_WITH_CONSENT_REGEX: '(?P<phsid>phs[0-9]+)(.(?P<version>v[0-9]+)){0,1}(.(?P<participant_set>p[0-9]+)){0,1}.(?P<consent>c[0-9]+)'
+
+# NOTE: the region is optonal for s3_buckets, however it should be specified to avoid a
+# call to GetBucketLocation which you make lack the AWS ACLs for.
+S3_BUCKETS: {}
+# NOTE: Remove the {} and supply buckets if needed. Example in comments below
+#   bucket1:
+#     cred: 'CRED1'
+#     region: 'us-east-1'
+#     # optionally you can manually specify an s3-compliant endpoint for this bucket
+#     endpoint_url: 'https://cleversafe.example.com/'
+#   bucket2:
+#     cred: 'CRED2'
+#     region: 'us-east-1'
+#   bucket3:
+#     cred: '*'
+#     region: 'us-east-1'
+#   bucket4:
+#     cred: 'CRED1'
+#     region: 'us-east-1'
+#     role-arn: 'arn:aws:iam::role1'
+
+# `DATA_UPLOAD_BUCKET` specifies an S3 bucket to which data files are uploaded,
+# using the `/data/upload` endpoint. This must be one of the first keys under
+# `S3_BUCKETS` (since these are the buckets fence has credentials for).
+DATA_UPLOAD_BUCKET: 'bucket1'
+
+# //////////////////////////////////////////////////////////////////////////////////////
+# PROXY
+#   - Optional: If the api is behind firewall that needs to set http proxy
+# //////////////////////////////////////////////////////////////////////////////////////
+# NOTE: leave as-is to not use proxy
+# this is only used by the Google Oauth2Client at the moment if provided
+HTTP_PROXY:
+  host: null
+  port: 3128
+
+# when service accounts or google projects are determined invalid, an email is sent
+# to the project owners. These settings are for that email
+REMOVE_SERVICE_ACCOUNT_EMAIL_NOTIFICATION:
+  enable: false
+  # this domain MUST exist in GUN_MAIL config
+  domain: 'example.com'
+  from: 'do-not-reply@example.com'
+  subject: 'User service account removal notification'
+  # the {} gets replaced dynamically in the Python code to be the Project ID
+  content: >
+    Service accounts were removed from access control data because some users or
+    service accounts of GCP Project {} are not authorized to access the data sets
+    associated to the service accounts, or do not adhere to the security policies.
+  # this admin email will be included as a recipient to *any* email to anyone about
+  # service account removal.
+  #
+  # WARNING: This is NOT a bcc so the email is visible to the end-user
+  admin:
+    - 'admin@example.edu'
+
+PROBLEM_USER_EMAIL_NOTIFICATION:
+  # this domain MUST exist in GUN_MAIL config
+  domain: 'example.com'
+  from: 'do-not-reply@example.com'
+  subject: 'Account access error notification'
+  # the {} gets replaced dynamically in the Python code to be the Project ID
+  content: >
+    The Data Commons Framework utilizes dbGaP for data access authorization.
+    Another member of a Google project you belong to ({}) is attempting to
+    register a service account to the following additional datasets ({}).
+    Please contact dbGaP to request access.
+  # this admin email will be included as a recipient to *any* email to anyone about
+  # service account removal.
+  #
+  # WARNING: This is NOT a bcc so the email is visible to the end-user
+  admin:
+    - 'admin@example.edu'
+
+# Service account email domains that represent a service account that Google owns.
+# These are usually created when a sepcific GCP service is enabled.
+# This is used for Service Account Validation for Data Access.
+GOOGLE_MANAGED_SERVICE_ACCOUNT_DOMAINS:
+  - 'dataflow-service-producer-prod.iam.gserviceaccount.com'
+  - 'cloudbuild.gserviceaccount.com'
+  - 'cloud-ml.google.com.iam.gserviceaccount.com'
+  - 'container-engine-robot.iam.gserviceaccount.com'
+  - 'dataflow-service-producer-prod.iam.gserviceaccount.com'
+  - 'sourcerepo-service-accounts.iam.gserviceaccount.com'
+  - 'dataproc-accounts.iam.gserviceaccount.com'
+  - 'gae-api-prod.google.com.iam.gserviceaccount.com'
+  - 'genomics-api.google.com.iam.gserviceaccount.com'
+  - 'containerregistry.iam.gserviceaccount.com'
+  - 'container-analysis.iam.gserviceaccount.com'
+  - 'cloudservices.gserviceaccount.com'
+  - 'stackdriver-service.iam.gserviceaccount.com'
+  - 'appspot.gserviceaccount.com'
+  - 'partnercontent.gserviceaccount.com'
+  - 'trifacta-gcloud-prod.iam.gserviceaccount.com'
+  - 'gcf-admin-robot.iam.gserviceaccount.com'
+  - 'compute-system.iam.gserviceaccount.com'
+  - 'gcp-sa-websecurityscanner.iam.gserviceaccount.com'
+  - 'storage-transfer-service.iam.gserviceaccount.com'
+  - 'firebase-sa-management.iam.gserviceaccount.com'
+  - 'firebase-rules.iam.gserviceaccount.com'
+  - 'gcp-sa-cloudbuild.iam.gserviceaccount.com'
+  - 'gcp-sa-automl.iam.gserviceaccount.com'
+  - 'gcp-sa-datalabeling.iam.gserviceaccount.com'
+  - 'gcp-sa-cloudscheduler.iam.gserviceaccount.com'
+
+# The types of service accounts that are allowed to be registered at
+# /google/service_accounts endpoints
+ALLOWED_USER_SERVICE_ACCOUNT_DOMAINS:
+  # compute engine default service account
+  - 'developer.gserviceaccount.com'
+  # app engine default service account
+  - 'appspot.gserviceaccount.com'
+  # user-managed service account
+  - 'iam.gserviceaccount.com'
+
+# Synapse integration and DREAM challenge mapping. Team is from Synapse, and group is
+# providing the actual permission in Arborist. User will be added to the group for TTL
+# seconds if the team matches.
+DREAM_CHALLENGE_TEAM: 'DREAM'
+DREAM_CHALLENGE_GROUP: 'DREAM'
+SYNAPSE_URI: 'https://repo-prod.prod.sagebase.org/auth/v1'
+SYNAPSE_JWKS_URI:
+SYNAPSE_DISCOVERY_URL:
+SYNAPSE_AUTHZ_TTL: 86400

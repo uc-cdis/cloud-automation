@@ -1,0 +1,10 @@
+notes
+=====
+
+Build base image like this:
+  packer build -var 'aws_access_key=BLAHBLAH' -var 'aws_secret_key=BLAHBLAH' base_image.json
+
+Note down the ami (from amazon's web interface only??), and use that for building the next images
+
+The rest of the images should be built something like this:
+  packer build -var 'aws_access_key=BLAHBLAH' -var 'aws_secret_key=BLAHBLAH' -var 'source_ami=ami-251e4632' some_other_image.json

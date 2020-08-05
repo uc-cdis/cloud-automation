@@ -1,0 +1,53 @@
+{
+  "variables": {
+    "aws_region": "us-east-1",
+    "aws_instance_type": "m3.medium",
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "source_ami": ""
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `aws_region`}}",
+      "source_ami": "{{user `source_ami`}}",
+      "instance_type": "{{user `aws_instance_type`}}",
+      "ssh_username": "ubuntu",
+      "encrypt_boot": true,
+      "ami_name": "client-image {{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "sleep 30"
+      ]
+    },
+    {
+      "type": "file",
+      "source":"configs/login_ack.sh",
+      "destination":"/tmp/login_ack.sh"
+    },
+    {
+      "type": "file",
+      "source": "configs/docker",
+      "destination": "/tmp/docker"
+    },
+    {
+      "type": "file",
+      "source": "configs/01proxy",
+      "destination": "/tmp/01proxy"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo mv /tmp/docker /etc/default/docker",
+        "sudo mv /tmp/01proxy /etc/apt/apt.conf.d/01proxy",
+        "sudo mv /tmp/login_ack.sh /etc/profile.d/"
+      ]
+    }
+  ]
+}

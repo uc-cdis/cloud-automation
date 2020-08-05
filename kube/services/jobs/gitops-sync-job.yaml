@@ -3,16 +3,20 @@ kind: Job
 metadata:
   name: gitops-sync
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:
         app: gen3job
     spec:
       restartPolicy: Never
-      serviceAccountName: jenkins-service
+      serviceAccountName: gitops-sa
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: awshelper
-          image: quay.io/cdis/awshelper:master
+          # often do not want pinned awshelper in gitops-sync
+          GEN3_AUTOMATION_IMAGE|-image: quay.io/cdis/awshelper:master-|
           imagePullPolicy: Always
           env:
             - name: gen3Env
@@ -20,6 +24,8 @@ spec:
                 configMapKeyRef:
                   name: global
                   key: environment
+            - name: AWS_STS_REGIONAL_ENDPOINTS
+              value: regional      
             - name: JENKINS_HOME
               value: ""
             - name: GEN3_NOPROXY
@@ -32,10 +38,9 @@ spec:
           args:
             - "-c"
             - |
-              set -i
-              source ~/.bashrc
-              cd $GEN3_HOME
-              git pull
+              export GEN3_HOME="$HOME/cloud-automation"
+              source "$GEN3_HOME/gen3/gen3setup.sh"
+              cd "$GEN3_HOME"
               export JENKINS_HOME=none
               export vpc_name="$(g3kubectl get configmap global -o json | jq -r .data.environment)"
               env

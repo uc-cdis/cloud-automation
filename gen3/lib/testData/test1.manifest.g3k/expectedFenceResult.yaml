@@ -88,11 +88,22 @@ spec:
             name: "privacy-policy"
         - name: yaml-merge
           configMap:
-            name: "fence-yaml-merge"    
+            name: "fence-yaml-merge"
+      securityContext:
+        # nginx group in current images
+        fsGroup: 101
       containers:
       - name: fence
         image: quay.io/cdis/fence:master
         env:
+        - name: GEN3_UWSGI_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: uwsgi-timeout
+              optional: true
+        - name: AWS_STS_REGIONAL_ENDPOINTS
+          value: regional
         - name: PYTHONPATH
           value: /var/www/fence
         - name: GEN3_DEBUG
@@ -185,9 +196,12 @@ spec:
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
         resources:
-            limits:
-              cpu: 0.4
-              memory: 1200Mi
+          requests:
+            cpu: 0.4
+            memory: 1200Mi
+          limits:
+            cpu: 1.0
+            memory: 2400Mi  
         command: ["/bin/bash"]
         args:
           - "-c"

@@ -34,9 +34,24 @@ variable "aws_secret_key"{
 }
 
 variable "threshold"{
-  default = ""
+#  default = ""
 }
 
 variable "slack_webhook"{
   default = ""
+}
+
+variable "log_dna_function"{
+  description = "Lambda function ARN for logDNA"
+  default     = ""
+}
+
+variable "timeout" {
+  description = "Timeout threshold for the function"
+  default     = 300
+}
+
+variable "memory_size" {
+  description = "Memory allocation for the function"
+  default     = 128
 }

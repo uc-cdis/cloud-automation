@@ -193,7 +193,7 @@ gen3_db_service_creds() {
   local server
   dbHost="$(jq -r .db_host < "$tempResult")"
   server="$(gen3_db_farm_json | jq -r --arg dbHost "$dbHost" '. | to_entries | map(select(.value.db_host==$dbHost)) | map(.key) | .[]')"
-  jq -r --arg g3FarmServer "$server" '.g3FarmServer = $g3FarmServer' < "$tempResult"
+  jq -r --arg g3FarmServer "$server" '.g3FarmServer = $g3FarmServer | del(.fence_host) | del(.fence_username) | del(.fence_password) | del(.fence_database)' < "$tempResult"
   rm "$tempResult"
   return 0
 }
@@ -221,7 +221,9 @@ gen3_db_random_server() {
 # List the servers - one per line
 #
 gen3_db_server_list() {
-  gen3_db_farm_json | jq -r '. | keys | join("\n")'
+  local info
+  info="$(gen3_db_farm_json)" || return 1
+  jq -r '. | keys | join("\n")' <<< "$info"
 }
 
 #
@@ -236,7 +238,9 @@ gen3_db_server_info() {
   fi
   server="$1"
   shift
-  gen3_db_farm_json | jq -e -r ".[\"$server\"]"
+  local info
+  info="$(gen3_db_farm_json)" || return 1
+  jq -e -r --arg server "$server" '.[$server]' <<< "$info"
 }
 
 
@@ -533,10 +537,23 @@ gen3_db_restore() {
   username=$(jq -r ".db_username" <<< "$creds")
   password=$(jq -r ".db_password" <<< "$creds")
   host=$(jq -r ".db_host" <<< "$creds")
-  local dbname="${serviceName}_$(gen3_db_namespace)_restore_$(date -u +%Y%m%d_%H%M%S)"
+
+  local serverUser
+  local serverName
+  # get the server root user
+  serverName="$(jq -r .g3FarmServer <<<"$creds")"
+  serverUser="$(gen3_db_server_info "$server" | jq -r .db_username)"
+  if [[ -z "$serverName" || -z "serverUser" ]]; then
+    gen3_log_err "failed to retrieve creds for server $host"
+    return 1
+  fi
+
+  local dbname="$(echo ${serviceName}_$(gen3_db_namespace)_restore_$(date -u +%Y%m%d_%H%M%S) | tr - _)"
   if [[ "$dryRun" == false ]]; then
     gen3_log_info "creating database $dbname"
-    gen3 psql "$serviceName" -c "CREATE DATABASE ${dbname};" 1>&2
+    # create the db as the root user, then grant permissions to the service user
+    gen3 psql "$serverName" -c "CREATE DATABASE ${dbname};" 1>&2
+    gen3 psql "$serverName" -c  "GRANT ALL ON DATABASE ${dbname} TO $username WITH GRANT OPTION;" 1>&2
     gen3_log_info "restoring $dbname from $backupFile"
     gen3 psql "$serviceName" -d "$dbname" -f "$backupFile" 1>&2
     jq -r --arg dbname "$dbname" '.db_database = $dbname' <<< "$creds"

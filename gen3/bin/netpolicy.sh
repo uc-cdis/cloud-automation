@@ -63,8 +63,16 @@ EOM
   # whitelist the squid proxy if we can identify it
   local squidAddr
   local result
-  squidAddr="$(dig +short cloud-proxy.internal.io)"
+
+  if [[ -z "$JENKINS_HOME" && -f "$(gen3_secrets_folder)/creds.json" ]]; then
+    # looks like an admin vm
+    squidAddr="$(gen3 devterm -c 'dig +short cloud-proxy.internal.io' | head -1 | tr -d "\r\n")"
+  else
+    # looks like we're on the cluster
+    squidAddr="$(dig +short cloud-proxy.internal.io)"
+  fi
   if gen3_net_isIp "$squidAddr"; then
+    gen3_log_info "netpolicy external whitelisting the squid at $squidAddr"
     cat - >> "$cidrList" <<EOM
 {
   "ipBlock": {
@@ -74,6 +82,7 @@ EOM
 EOM
     jq -r -e --slurpfile data "$cidrList" '.spec.egress[1].to=$data' < "$basePolicy"
   else
+    gen3_log_info "Unable to white list squid - got invalid addr: $squidAddr"
     cat "$basePolicy"
   fi
   result=$?

@@ -1,0 +1,36 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: inspec-cron-job
+  namespace: default
+  labels:
+    app: inspec-cron-job
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: planx-inspec
+              image: quay.io/cdis/aws-inspec:latest 
+              args:
+              env:
+                - name: AWS_REGION
+                  value: us-east-1
+                - name: AWS_PROFILE
+                  value: planx
+                - name: AWS_CONFIG_FILE
+                  value: /etc/aws-creds/config
+                - name: AWS_SHARED_CREDENTIALS_FILE
+                  value: /etc/aws-creds/credentials
+
+              volumeMounts:
+                - name: aws-creds
+                  mountPath:  /etc/aws-creds
+                  readOnly: true
+          volumes:
+              - name: aws-creds
+                secret:
+                  secretName: aws-creds-2
+          restartPolicy: OnFailure
