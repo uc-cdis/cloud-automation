@@ -156,6 +156,7 @@ spec:
         ports:
         - containerPort: 80
         - containerPort: 443
+        - containerPort: 6567
         volumeMounts:
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
