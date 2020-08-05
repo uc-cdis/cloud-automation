@@ -102,6 +102,8 @@ fi
 (
   while true; do logrotate --force /etc/logrotate.d/nginx; sleep 86400; done
 ) &
+
+mkdir /var/www/metrics
 (
   while true; do
     curl -s http://127.0.0.1:9117/metrics > /var/www/metrics/metrics.txt
