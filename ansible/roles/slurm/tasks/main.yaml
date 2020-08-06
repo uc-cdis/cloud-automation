@@ -37,12 +37,14 @@
     - dependencies
     - workers
     - slurm
+  when: ec2_tags.tags["slurm-type"] == 'worker'
 
 - include: packages_controllers.yaml
   tags:
     - dependencies
     - workers
     - slurm
+  when: ec2_tags.tags["slurm-type"] == 'controller'
 
 - include: configurations.yaml
   tags:
@@ -55,11 +57,16 @@
     - controllers
   when: ec2_tags.tags["slurm-type"] == 'controller'
 
+- include: configure_workers.yaml
+  tags:
+    - configuration
+    - controllers
+  when: ec2_tags.tags["slurm-type"] == 'worker'
+
 - name: check on slurm
   command: which slurmctld
   register: slurmctld
   ignore_errors: true
-#  changed_when: false
 
 - name: download and unarchive slurm source
   unarchive:
@@ -82,34 +89,6 @@
     dest: /tmp/slurm-{{ slurm_version }}
     state: absent
   become: yes
-
-#- name: install slurm 2
-#  command: make > /tmp/make.log 
-#  when: "'/slurmctld' not in slurmctld.stdout"
-#  become: yes
-#  args:
-#    chdir: /tmp/slurm-{{ slurm_version }}
-
-#- name: install slurm 3
-#  command: make > /tmp/make.log
-#  when: "'/slurmctld' not in slurmctld.stdout"
-#  become: yes
-#  args:
-#    chdir: /tmp/slurm-{{ slurm_version }}
-
-#- name: install slurm 3
-#  command: make install > /tmp/makeinstall.log 
-#  when: "'/slurmctld' not in slurmctld.stdout"
-#  become: yes
-#  args:
-#    chdir: /tmp/slurm-{{ slurm_version }}
-
-#- name: install slurm 4
-#  command: rm -rf /tmp/slurm-*
-#  when: "'/slurmctld' not in slurmctld.stdout"
-#  become: yes
-#  args:
-#    chdir: /tmp/slurm-{{ slurm_version }}
 
 - name: stop munge
   systemd:
