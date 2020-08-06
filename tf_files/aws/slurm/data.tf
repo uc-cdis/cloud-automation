@@ -42,4 +42,25 @@ data "aws_iam_policy_document" "vm_policy_document" {
 }
 
 
+data "aws_iam_policy_document" "source_bucket_acccess" {
+  count = length(var.source_buckets)
+  statement {
+    actions = [
+      "s3:Get*",
+      "s3:List*"
+    ]
+    effect    = "Allow"
+    resources = ["arn:aws:s3:::${element(var.source_buckets,count.index)}", "arn:aws:s3:::${element(var.source_buckets,count.index)}/*"]
+  }
+}
+
+
+data "aws_iam_policy_document" "output_bucket_access" {
+  statement {
+    actions   = ["*"]
+    effect    = "Allow"
+    resources = ["${aws_s3_bucket.data_bucket.arn}", "${aws_s3_bucket.data_bucket.arn}/*"]
+  }
+}
+
 data "aws_region" "current" {}

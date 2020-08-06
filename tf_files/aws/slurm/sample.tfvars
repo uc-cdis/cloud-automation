@@ -45,7 +45,7 @@ slurm_rds = {
       instance_class                      = "db.t3.small"
       name                                = "demodb"
       username                            = "user"
-      password                            = "YourPwdShouldBeLongAndSecure!"
+      password                            = ""
       port                                = "3306"
       db_subnet_group_name                = ""
       maintenance_window                  = "Mon:00:00-Mon:03:00"
@@ -84,3 +84,5 @@ worker_info     = {
   vm_role          = ""
   extra_vars       = ""
 }
+
+source_buckets = ["sorce1","source3"]

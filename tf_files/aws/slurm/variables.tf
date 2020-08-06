@@ -99,7 +99,7 @@ variable "slurm_rds" {
       instance_class                      = "db.t3.small"
       name                                = "demodb"
       username                            = "user"
-      password                            = "YourPwdShouldBeLongAndSecure!"
+      password                            = ""
       port                                = "3306"
       maintenance_window                  = "Mon:00:00-Mon:03:00"
       backup_window                       = "03:00-06:00"
@@ -171,4 +171,9 @@ variable "vpc_name" {
 variable "organization_name" {
   description = "for tagging purposes"
   default     = "Basic Service"
+}
+
+variable "source_buckets" {
+  description = "Where is the data that this cluster is going to access in s3"
+  type        = list
 }

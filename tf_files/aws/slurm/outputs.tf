@@ -10,3 +10,7 @@ output "rds_user" {
 output "rds_password" {
   value = module.db.this_db_instance_password
 }
+
+output "output_bucket" {
+  value = aws_s3_bucket.data_bucket.id
+}

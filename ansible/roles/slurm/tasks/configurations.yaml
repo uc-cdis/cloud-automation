@@ -132,3 +132,13 @@
     owner: slurm
     group: slurm
   become: yes
+
+- name: aws directory
+  file:
+    path: /home/ubuntu/.aws
+    state: directory
+
+- name: .aws/config
+  template:
+    src: aws_config.j2
+    dest: /home/ubuntu/.aws/config

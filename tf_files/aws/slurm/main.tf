@@ -78,7 +78,7 @@ EOF
 (
   cd $USER_HOME
 
-#  bash "${var.controller_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.controller_info["vm_role"]};${var.controller_info["extra_vars"]}" 2>&1
+#  bash "${var.controller_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};${var.controller_info["extra_vars"]}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
 ) > /var/log/bootstrapping_script.log
@@ -90,7 +90,7 @@ EOF
 (
   cd $USER_HOME
 
-#  bash "${var.worker_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};vm_role=${var.worker_info["vm_role"]};${var.worker_info["extra_vars"]}" 2>&1
+#  bash "${var.worker_info["bootstrap_script"]}" "cwl_group=${var.cwlg_name};;${var.worker_info["extra_vars"]}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
 ) > /var/log/bootstrapping_script.log
@@ -134,11 +134,54 @@ resource "aws_iam_role_policy" "slurm_instances_role" {
   role                  = aws_iam_role.the_role.id
 }
 
+resource "aws_iam_role_policy" "slurm_access_to_data_bucket" {
+  count  = length(data.aws_iam_policy_document.source_bucket_acccess)
+  name   = "access_to_data_buckets_${count.index}"
+  policy = data.aws_iam_policy_document.source_bucket_acccess[count.index].json
+  ### element(data.aws_iam_policy_document.source_bucket_acccess, count.index)
+  role   = aws_iam_role.the_role.id
+}
+
+resource "aws_iam_role_policy" "slurm_access_to_output_bucket" {
+  name   = "access_to_output_bucket"
+  policy = data.aws_iam_policy_document.output_bucket_access.json
+  role   = aws_iam_role.the_role.id
+}
+
 resource "aws_iam_instance_profile" "slurm_nodes_instance_profile" {
   name = "${var.vpc_name}_slurm_instances"
   role = aws_iam_role.the_role.name
 }
 
+resource "aws_s3_bucket" "data_bucket" {
+  bucket = "${var.vpc_name}-slurm-data-bucket"
+  acl    = "private"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  tags  = {
+    Name         = "${var.vpc_name}-data-bucket"
+    Organization = var.organization_name
+    Purpose      = "data bucket"
+  }
+
+}
+
+
+resource "aws_s3_bucket_public_access_block" "data_bucket_privacy" {
+  bucket                      = aws_s3_bucket.data_bucket.id
+
+  block_public_acls           = true
+  block_public_policy         = true
+  ignore_public_acls          = true
+  restrict_public_buckets     = true
+}
 
 module "slurm-controllers" {
 
@@ -284,33 +327,4 @@ module "db" {
   # The following is assuming we want this instances in existing subnets groups
   db_subnet_group_name                = var.slurm_rds["slurmdb"]["db_subnet_group_name"]
 
-/* [
-    {
-      name = "character_set_client"
-      value = "utf8"
-    },
-    {
-      name = "character_set_server"
-      value = "utf8"
-    }
-  ]
-
-
-  options = [
-    {
-      option_name = "MARIADB_AUDIT_PLUGIN"
-
-      option_settings = [
-        {
-          name  = "SERVER_AUDIT_EVENTS"
-          value = "CONNECT"
-        },
-        {
-          name  = "SERVER_AUDIT_FILE_ROTATIONS"
-          value = "37"
-        },
-      ]
-    },
-  ]
-*/
 }
