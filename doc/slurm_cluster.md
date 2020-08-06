@@ -2,6 +2,10 @@
 
 Deploy a slurm cluster in a VPC
 
+This module and anything else related to slurm was taken from https://github.com/NCI-GDC/tungsten/tree/develop/salt/srv/services/slurm
+
+So please refer to that repo for additinal information
+
 ## Deploy resources in with Terraform
 
 Firstly, you want to load the module
