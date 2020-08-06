@@ -112,3 +112,12 @@ Create a new database on the same server as `dbname` owned by the `dbname` owner
 ex:
 gen3 db restore fence fence_20190101.backup
 ```
+
+### gen3 db encrypt account profile
+
+Used to encrypt the rds databases. You should use the account/profile from gen3 workon. There is also an extra argument you can add to specify the directory to hold the db snapshots. This should be used for larger db's where the root volume is not large enough to store the snapshots.
+
+```bash
+ex.
+gen3 db encrypt cdistest emalinowskiv1 </mnt/extravolume>
+```

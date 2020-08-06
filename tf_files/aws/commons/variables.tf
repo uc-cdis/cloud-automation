@@ -362,17 +362,17 @@ variable "ha-squid_cluster_max_size" {
 
 variable "deploy_sheepdog_db" {
   description = "Whether or not to deploy the database instance"
-  default     = true
+  default     = false
 }
 
 variable "deploy_fence_db" {
   description = "Whether or not to deploy the database instance"
-  default     = true
+  default     = false
 }
 
 variable "deploy_indexd_db" {
   description = "Whether or not to deploy the database instance"
-  default     = true
+  default     = false
 }
 
 variable "sheepdog_engine" {
@@ -402,4 +402,19 @@ variable "network_expansion" {
 
 variable "rds_instance_storage_encrypted"{
   default = true
+}
+
+variable "deploy_encrypted_sheepdog_db" {
+  description = "Whether or not to deploy the database instance"
+  default     = true
+}
+
+variable "deploy_encrypted_fence_db" {
+  description = "Whether or not to deploy the database instance"
+  default     = true
+}
+
+variable "deploy_encrypted_indexd_db" {
+  description = "Whether or not to deploy the database instance"
+  default     = true
 }

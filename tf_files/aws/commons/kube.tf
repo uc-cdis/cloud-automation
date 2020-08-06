@@ -35,7 +35,7 @@ resource "aws_db_instance" "db_fence" {
   lifecycle {
     prevent_destroy = true
     #ignore_changes  = ["*"]
-    ignore_changes = ["engine_version","storage_encrypted"]
+    ignore_changes = ["engine_version","storage_encrypted","identifier"]
   }
 }
 
@@ -71,7 +71,7 @@ resource "aws_db_instance" "db_gdcapi" {
   lifecycle {
     prevent_destroy = true
     #ignore_changes  = ["*"]
-    ignore_changes = ["engine_version","storage_encrypted"]
+    ignore_changes = ["engine_version","storage_encrypted","identifier"]
   }
 }
 
@@ -107,7 +107,7 @@ resource "aws_db_instance" "db_indexd" {
   lifecycle {
     prevent_destroy = true
     #ignore_changes  = ["*"]
-    ignore_changes = ["engine_version","storage_encrypted"]
+    ignore_changes = ["engine_version","storage_encrypted","identifier"]
   }
 }
 
