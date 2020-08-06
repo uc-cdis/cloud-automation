@@ -568,7 +568,11 @@ gen3_db_encrypt() {
   # Can optionally take the dump directory to define where to place the psql dumps. Useful for large databases where we want to store the dumps on an extra ebs volume
   local account=$1
   local profile=$2
-  local dumpDir=$3
+  if [[ -z $3 ]]; then
+    local dumpDir='.'
+  else
+    local dumpDir=$3
+  fi
   # We want to get the security/parameter groups and subnets from the current rds so we can have it match the old ones
   local securityGroupId=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-fencedb"]}' | jq -r .DBInstances[0].VpcSecurityGroups[0].VpcSecurityGroupId)
   local dbSubnet=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-fencedb"]}' | jq -r .DBInstances[0].DBSubnetGroup.DBSubnetGroupName)
@@ -576,19 +580,12 @@ gen3_db_encrypt() {
   gen3_log_info "Taking snapshots. Please check that you have enough disk space and stop if disk space gets filled"
   gen3_log_info "If the databases are large consider mounting a new volume and adding a third parameter to this command to specify a different snapshot directory"
 
-  if [[ -z $dumpDir ]]; then
-    gen3 db backup indexd  > indexd-backup.sql
-    gen3 db backup fence  >  fence-backup.sql
-    gen3 db backup gdcapi  > gdcapidb-backup.sql
-    gen3 db backup arborist  > arborist-backup.sql
-    gen3 db backup metadata  > metadata-backup.sql
-  else
-    gen3 db backup indexd  > /$dumpDir/indexd-backup.sql
-    gen3 db backup fence  > /$dumpDir/fence-backup.sql
-    gen3 db backup gdcapi  > /$dumpDir/gdcapidb-backup.sql
-    gen3 db backup arborist  > /$dumpDir/arborist-backup.sql
-    gen3 db backup metadata  > /$dumpDir/metadata-backup.sql
-  fi
+  gen3 db backup indexd  > $dumpDir/indexd-backup.sql
+  gen3 db backup fence  > $dumpDir/fence-backup.sql
+  gen3 db backup gdcapi  > $dumpDir/gdcapidb-backup.sql
+  gen3 db backup arborist  > $dumpDir/arborist-backup.sql
+  gen3 db backup metadata  > $dumpDir/metadata-backup.sql
+  gen3 db backup wts  > $dumpDir/wts-backup.sql
 
   # Quick check to ensure the snapshots were taken successfully. Will prevent new db from getting incomplete data.
   echo "Did the snapshots get created correctly?(yes/no)"
@@ -627,56 +624,41 @@ gen3_db_encrypt() {
   grep -rl $originalGdcApiDbUrl "$(gen3_secrets_folder)" | xargs sed -i "s/$originalGdcApiDbUrl/$newGdcApiDbUrl/g"
 
   gen3_log_info "Disabling gitops sync before updating secrets to ensure services not rolled during db setup"
-  kubectl delete cronjob gitops-sync
+  g3kubectl delete cronjob gitops-sync
   mv "$(gen3_secrets_folder)"/g3auto/arborist "$(gen3_secrets_folder)"/g3auto/arb-backup
   mv "$(gen3_secrets_folder)"/g3auto/metadata "$(gen3_secrets_folder)"/g3auto/mtdta-backup
   gen3 kube-setup-secrets
   if [[ -d "$(gen3_secrets_folder)"/g3auto/arb-backup ]]; then
-    kubectl delete secret arborist-g3auto
+    g3kubectl delete secret arborist-g3auto
     gen3 db setup arborist
   fi
   if [[ -d "$(gen3_secrets_folder)"/g3auto/mtdta-backup ]]; then
-    kubectl delete secret metadata-g3auto
+    g3kubectl delete secret metadata-g3auto
     gen3 db setup metadata
   fi
-  # Restore the databases from the snapshots
-  if [[ -z $dumpDir ]]; then
-    gen3_log_info "restoring indexd db"
-    gen3_db_reset "indexd"
-    gen3 psql indexd  < indexd-backup.sql
-    gen3_log_info "restoring fence db"
-    gen3_db_reset "fence"
-    gen3 psql fence  <  fence-backup.sql
-    gen3_log_info "restoring sheepdogd db"
-    gen3_db_reset "sheepdog"
-    gen3 psql gdcapi  < gdcapidb-backup.sql
-    gen3_log_info "restoring arborist db"
-    gen3_db_psql "fence" -c "CREATE DATABASE \"arborist\";"
-    gen3_db_reset "arborist"
-    gen3 psql arborist  < arborist-backup.sql
-    gen3_log_info "restoring metadata db"
-    gen3_db_psql "sheepdog" -c "CREATE DATABASE \"metadata\";"
-    gen3_db_reset "metadata"
-    gen3 psql metadata  < metadata-backup.sql
-  else
-    gen3_log_info "restoring indexd db"
-    gen3_db_reset "indexd"
-    gen3 psql indexd  < /$dumpDir/iindexd-backup.sql
-    gen3_log_info "restoring fence db"
-    gen3_db_reset "fence"
-    gen3 psql fence  <  /$dumpDir/ifence-backup.sql
-    gen3_log_info "restoring sheepdogd db"
-    gen3_db_reset "sheepdog"
-    gen3 psql gdcapi  < /$dumpDir/igdcapidb-backup.sql
-    gen3_log_info "restoring arborist db"
-    gen3_db_psql "fence" -c "CREATE DATABASE \"arborist\";"
-    gen3_db_reset "arborist"
-    gen3 psql arborist  < /$dumpDir/iarborist-backup.sql
-    gen3_log_info "restoring metadata db"
-    gen3_db_psql "sheepdog" -c "CREATE DATABASE \"metadata\";"
-    gen3_db_reset "metadata"
-    gen3 psql metadata  < /$dumpDir/imetadata-backup.sql
+  if [[ -d "$(gen3_secrets_folder)"/g3auto/wts-backup ]]; then
+    g3kubectl delete secret wts-g3auto
+    gen3 db setup wts
   fi
+  gen3_log_info "restoring indexd db"
+  gen3_db_reset "indexd"
+  gen3 psql indexd  < $dumpDir/indexd-backup.sql
+  gen3_log_info "restoring fence db"
+  gen3_db_reset "fence"
+  gen3 psql fence  <  $dumpDir/fence-backup.sql
+  gen3_log_info "restoring sheepdogd db"
+  gen3_db_reset "sheepdog"
+  gen3 psql gdcapi  < $dumpDir/gdcapidb-backup.sql
+  gen3_log_info "restoring arborist db"
+  gen3_db_reset "arborist"
+  gen3 psql arborist  < /$dumpDir/arborist-backup.sql
+  gen3_log_info "restoring metadata db"
+  gen3_db_reset "metadata"
+  gen3 psql metadata  < $dumpDir/metadata-backup.sql
+  gen3_log_info "restoring wts db"
+  gen3_db_reset "wts"
+  gen3 psql wts  < $dumpDir/wts-backup.sql
+
 
   # dbs are now working but we should update the terraform state to ensure db's can still be managed through the main commons terraform
   gen3 workon $account $profile

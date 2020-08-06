@@ -113,9 +113,9 @@ ex:
 gen3 db restore fence fence_20190101.backup
 ```
 
-### gen3 db encrypt account profile
+### gen3 db encrypt profile workspace
 
-Used to encrypt the rds databases. You should use the account/profile from gen3 workon. There is also an extra argument you can add to specify the directory to hold the db snapshots. This should be used for larger db's where the root volume is not large enough to store the snapshots.
+Used to encrypt the rds databases. You should use the profile/workspace from gen3 workon used to setup the vpc/rds. There is also an extra argument you can add to specify the directory to hold the db snapshots. This should be used for larger db's where the root volume is not large enough to store the snapshots. This will take care of updating the databases in the account you run it from but you will need to update the rds endpoints for any other namespaces. Once the new rds instances have been verified to be working you can manually delete them using the aws cli/console.
 
 ```bash
 ex.
