@@ -109,8 +109,262 @@ GH_KEY=
 JWT_ISSUERS=
 REVIEW_REQUESTS_ACCESS=
 JWT_SIGNING_KEYS=
+BASE_USERYAML_PATH=user.yaml
 EOM
     gen3 secrets sync 'setup access-backend credentials'
+  fi
+
+  # Setup default user.yaml file that access-backend-service consumes
+  if [[ ! -f "$secretsFolder/user.yaml" ]]; then
+    cat - > "$secretsFolder/user.yaml" <<EOM
+clients:
+  gen3testclient:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  gen3implicit:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+authz:
+  all_users_policies:
+  - open_data_reader
+  - sower
+  - workspace
+  anonymous_policies:
+  - open_data_reader
+
+  groups:
+  - name: 'developers'
+    policies:
+    - 'all_programs_reader'
+    users: {}
+
+  - name: 'data_submitters'
+    policies:
+    - 'all_programs_writer'
+    - 'services.sheepdog-admin'
+    - 'data_upload'
+    users: {}
+
+  - name: 'gen3_admins'
+    policies:
+    - 'all_programs_reader'
+    - 'workspace'
+    - 'prometheus'
+    - 'sower'
+    - 'data_upload'
+    - 'indexd_admin'
+    users: {}
+
+  - name: 'gen3_developers'
+    policies:
+    - 'all_programs_reader'
+    - 'workspace'
+    - 'prometheus'
+    - 'sower'
+    users: {}
+
+  resources:
+  - name: data_file
+  - name: workspace
+  - name: prometheus
+  - name: sower
+  - name: open
+  - description: commons /mds-admin
+    name: mds_gateway
+  - name: services
+    subresources:
+    - name: sheepdog
+      subresources:
+      - name: submission
+        subresources:
+        - name: program
+        - name: project
+  - name: programs
+    subresources:
+    - name: tutorial
+    - name: open_access
+      subresources:
+      - name: projects
+        subresources:
+        - name: 1000Genomes
+  policies:
+  - description: ''
+    id: open_data_reader
+    resource_paths:
+    - /open
+    - /programs/tutorial
+    - /programs/open_access
+    role_ids:
+    - reader
+    - storage_reader
+  - description: full access to indexd API
+    id: indexd_admin
+    resource_paths:
+    - /programs
+    role_ids:
+    - indexd_admin
+  - description: ''
+    id: open_data_admin
+    resource_paths:
+    - /open
+    - /programs/tutorial
+    - /programs/open_access
+    role_ids:
+    - creator
+    - reader
+    - updater
+    - deleter
+    - storage_writer
+    - storage_reader
+  - description: ''
+    id: all_programs_reader
+    resource_paths:
+    - /programs
+    role_ids:
+    - reader
+    - storage_reader
+  - id: 'all_programs_writer'
+    description: ''
+    role_ids:
+    - 'creator'
+    - 'updater'
+    - 'storage_writer'
+    resource_paths: ['/programs']
+  - description: upload raw data files to S3 (for new data upload flow)
+    id: data_upload
+    resource_paths:
+    - /data_file
+    role_ids:
+    - file_uploader
+  - description: be able to use workspace
+    id: workspace
+    resource_paths:
+    - /workspace
+    role_ids:
+    - workspace_user
+  - description: be able to use prometheus
+    id: prometheus
+    resource_paths:
+    - /prometheus
+    role_ids:
+    - prometheus_user
+  - description: be able to use sower job
+    id: sower
+    resource_paths:
+    - /sower
+    role_ids:
+    - sower_user
+  - description: be able to use metadata service
+    id: mds_admin
+    resource_paths:
+    - /mds_gateway
+    role_ids:
+    - mds_user
+  - description: CRUD access to programs and projects
+    id: services.sheepdog-admin
+    resource_paths:
+    - /services/sheepdog/submission/program
+    - /services/sheepdog/submission/project
+    role_ids:
+    - sheepdog_admin
+  roles:
+  - id: file_uploader
+    permissions:
+    - action:
+        method: file_upload
+        service: '*'
+      id: file_upload
+  - id: indexd_admin
+    permissions:
+    - action:
+        method: '*'
+        service: indexd
+      id: indexd_admin
+  - id: workspace_user
+    permissions:
+    - action:
+        method: access
+        service: jupyterhub
+      id: workspace_access
+  - id: prometheus_user
+    permissions:
+    - action:
+        method: access
+        service: prometheus
+      id: prometheus_access
+  - id: sower_user
+    permissions:
+    - action:
+        method: access
+        service: job
+      id: sower_access
+  - description: ''
+    id: admin
+    permissions:
+    - action:
+        method: '*'
+        service: '*'
+      id: admin
+  - description: ''
+    id: creator
+    permissions:
+    - action:
+        method: create
+        service: '*'
+      id: creator
+  - description: ''
+    id: reader
+    permissions:
+    - action:
+        method: read
+        service: '*'
+      id: reader
+  - description: ''
+    id: updater
+    permissions:
+    - action:
+        method: update
+        service: '*'
+      id: updater
+  - description: ''
+    id: deleter
+    permissions:
+    - action:
+        method: delete
+        service: '*'
+      id: deleter
+  - description: ''
+    id: storage_writer
+    permissions:
+    - action:
+        method: write-storage
+        service: '*'
+      id: storage_creator
+  - description: ''
+    id: storage_reader
+    permissions:
+    - action:
+        method: read-storage
+        service: '*'
+      id: storage_reader
+  - id: mds_user
+    permissions:
+    - action:
+        method: access
+        service: mds_gateway
+      id: mds_access
+  - description: sheepdog admin role for program project crud
+    id: sheepdog_admin
+    permissions:
+    - action:
+        method: '*'
+        service: sheepdog
+      id: sheepdog_admin_action
+users: {}
+EOM
+    gen3 secrets sync 'setup access-backend default user.yaml'
   fi
 }
 
