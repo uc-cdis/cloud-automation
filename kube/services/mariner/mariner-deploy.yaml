@@ -45,7 +45,7 @@ spec:
       automountServiceAccountToken: true
       containers:
       - name: mariner
-        image: quay.io/cdis/mariner-server:feat_k8s
+        GEN3_MARINER_IMAGE
         imagePullPolicy: Always
         resources:
           limits:
