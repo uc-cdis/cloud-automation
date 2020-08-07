@@ -99,27 +99,6 @@ spec:
         # nginx group in current images
         fsGroup: 101
       containers:
-      - name: nginx-prometheus-exporter
-        GEN3_NGINX_PROMETHEUS_EXPORTER_IMAGE|-image: registry.hub.docker.com/nginx/nginx-prometheus-exporter:0.8.0-|
-        args:
-        - "-nginx.scrape-uri http://127.0.0.1/nginx_status"
-        ports:
-        - containerPort: 9113
-      - name: uwsgi-exporter
-        GEN3_UWSGI_EXPORTER_IMAGE|-image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0-|
-        args: 
-        - "--stats.uri http://127.0.0.1/uwsgi_status"
-        ports:
-        - containerPort: 9117
-      - name: nginx-logs-exporter
-        GEN3_NGINX_LOGS_EXPORTER_IMAGE|-image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1-|
-        args:
-        - "/mnt/nginxlogs/access_not_json.log"
-        ports:
-        - containerPort: 4040
-        volumeMounts:
-        - name: logs-folder
-          mountPath: "/mnt/nginxlogs/"
       - name: fence
         GEN3_FENCE_IMAGE
         env:
@@ -239,6 +218,24 @@ spec:
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
+      - name: nginx-prometheus-exporter
+        GEN3_NGINX_PROMETHEUS_EXPORTER_IMAGE|-image: registry.hub.docker.com/nginx/nginx-prometheus-exporter:0.8.0-|
+        args: ["-nginx.scrape-uri", "http://127.0.0.1/nginx_status"]
+        ports:
+        - containerPort: 9113
+      - name: uwsgi-exporter
+        GEN3_UWSGI_EXPORTER_IMAGE|-image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0-|
+        args: ["--stats.uri", "http://127.0.0.1/uwsgi_status"]
+        ports:
+        - containerPort: 9117
+      - name: nginx-logs-exporter
+        GEN3_NGINX_LOGS_EXPORTER_IMAGE|-image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1-|
+        args: ["/mnt/nginxlogs/access_not_json.log"]
+        ports:
+        - containerPort: 4040
+        volumeMounts:
+        - name: logs-folder
+          mountPath: "/mnt/nginxlogs/"      
       initContainers:
       - name: fence-init
         GEN3_FENCE_IMAGE
