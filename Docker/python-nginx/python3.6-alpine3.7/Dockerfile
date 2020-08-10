@@ -192,7 +192,7 @@ COPY logrotate-nginx.conf /etc/logrotate.d/nginx
 RUN chmod +x /entrypoint.sh
 
 COPY dockerrun.sh /dockerrun.sh
-RUN chmod +x /dockerrun.sh
+RUN mkdir -p /var/www/metrics/ && chmod +x /dockerrun.sh
 
 ENTRYPOINT ["sh", "/entrypoint.sh"]
 
