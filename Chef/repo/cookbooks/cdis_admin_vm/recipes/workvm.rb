@@ -1,12 +1,21 @@
 include_recipe 'cdis_admin_vm::apt'
 
+list = ["gpg", "curl", "ca-certificates", "wget"]
+list.each do |aptPackage|
+  apt_package aptPackage do
+    package_name aptPackage
+    action :install
+  end
+end
+
 # Setup apt repo's
 node["adminvm"]["aptRepos"].each do | aptDist, aptVariables |
   apt_repository aptDist do
-    uri          aptVariables["repo"]
-    key    aptVariables["keyserver"]
-    distribution aptDist
-    components   ['main']
+    uri           aptVariables["repo"]
+    key           aptVariables["keyserver"]
+    distribution  aptDist
+    components    ['main']
+    trusted       true
   end
 end
 
