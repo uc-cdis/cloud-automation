@@ -22,7 +22,7 @@ end
 # Setup nodejs repo
 
 execute 'node setup' do
-  command 'curl -sL https://deb.nodesource.com/setup_12.x | bash'
+  command 'curl -sL https://deb.nodesource.com/setup_12.x |  bash'
 end
 
 # Install apt packages
