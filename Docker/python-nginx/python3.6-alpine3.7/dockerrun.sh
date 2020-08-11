@@ -99,26 +99,26 @@ fi
   fi
   run uwsgi --ini /etc/uwsgi/uwsgi.ini
 ) &
-(
-  while true; do
-    logrotate --force /etc/logrotate.d/nginx
-    sleep 86400
-    if [[ $GEN3_DRYRUN == "True" ]]; then
-      break;
-    fi
-  done
-) &
 
-(
-  while true; do
-    curl -s http://127.0.0.1:9117/metrics > /var/www/metrics/metrics.txt
-    curl -s http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt
-    curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
-    sleep 10
-    if [[ $GEN3_DRYRUN == "True" ]]; then
-      break;
-    fi
-  done
-) &
+if [[ $GEN3_DRYRUN == "False" ]]; then
+  (
+    while true; do
+      logrotate --force /etc/logrotate.d/nginx
+      sleep 86400
+    done
+  ) &
+fi
+
+if [[ $GEN3_DRYRUN == "False" ]]; then
+  (
+    while true; do
+      curl -s http://127.0.0.1:9117/metrics > /var/www/metrics/metrics.txt
+      curl -s http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt
+      curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
+      sleep 10
+    done
+  ) &
+fi
+
 run nginx -g 'daemon off;'
 wait
