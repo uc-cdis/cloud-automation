@@ -73,7 +73,7 @@ variable "jupyter_asg_min_size" {
 }
 
 variable "iam-serviceaccount" {
-  default = false
+  default = true
 }
 
 variable "domain_test" {
