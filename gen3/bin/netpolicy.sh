@@ -26,7 +26,7 @@ gen3_net_external_access() {
   cidrList="$(mktemp "$XDG_RUNTIME_DIR/cidrList.ndjson_XXXXXX")"
   cat - > "$basePolicy" <<EOM
 {
-    "apiVersion": "extensions/v1beta1",
+    "apiVersion": "networking.k8s.io/v1",
     "kind": "NetworkPolicy",
     "metadata": {
         "name": "netpolicy-external-egress"
