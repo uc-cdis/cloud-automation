@@ -56,6 +56,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         "users")
           gen3_logs_user_count "$@"
           ;;
+        "byuser")
+          gen3_logs_user_histogram "$@"
+          ;;
         "daily")
           gen3_logs_history_daily "$@"
           ;;

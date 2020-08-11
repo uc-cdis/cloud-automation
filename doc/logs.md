@@ -264,6 +264,14 @@ Retrieve the number of unique users for the given commons and date range.
 $ gen3 logs history users "start=-7 days" "vpc=bhcprodv2"
 ```
 
+### `gen3 logs history byuser`
+
+Retrieve hit counts for the top 100 users.
+
+```
+$ gen3 logs history byuser "start=-4 days" "end=-3 days" "vpc=bhcprodv2"
+```
+
 ### `gen3 logs snapshot`
 
 Snapshot the logs of currently running pods excluding jupyterhub to `.gz` files.
