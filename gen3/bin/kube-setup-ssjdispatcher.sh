@@ -90,6 +90,9 @@ EOM
     gen3_log_info "creating IAM role for ssj: $roleName, linking to sa $saName"
     gen3 awsrole create "$roleName" "$saName" || return 1
     aws iam attach-role-policy --role-name "$roleName" --policy-arn 'arn:aws:iam::aws:policy/AmazonSQSFullAccess' 1>&2
+  else
+    # update the annotation - just to be thorough
+    gen3 awsrole sa-annotate "$saName" "$roleName"
   fi
   if ! gen3 awsrole info "$roleNameForJob" > /dev/null; then # setup role
     gen3_log_info "creating IAM role for ssj job: $roleNameForJob, linking to sa $saNameForJob"
