@@ -97,6 +97,15 @@
     enabled: no
   become: yes
 
+- name: /run/munge mod
+  file:
+    dest: /run/munge
+    owner: munge
+    group: munge
+    mode: '0755'
+    state: directory
+  become: yes
+
 - name: /var/log/slurmjobs
   file:
     dest: /var/log/slurmjobs
@@ -106,5 +115,10 @@
     state: directory
   become: yes
 
-  
+- name: start supervisor
+  systemd:
+    name: supervisor
+    state: restarted
+    enabled: yes
+  become: yes  
 

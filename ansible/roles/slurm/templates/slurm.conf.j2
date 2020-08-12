@@ -3,7 +3,7 @@
 # Policies
 ClusterName={{cluster}}
 {% for host in groups['controller'] %}
-ControlMachine={{hostvars[host]['ansible_host']}}
+ControlMachine={{hostvars[host]['ansible_hostname']}}
 ControlAddr={{hostvars[host]['ansible_default_ipv4']['address']}}
 {% endfor %}
 SlurmUser=slurm
@@ -62,8 +62,8 @@ JobRequeue=0
 # Compute
 GresTypes=SCRATCH
 
-NodeName={% for host in groups['workers'] %}{{hostvars[host]['ansible_host']}}{% endfor %} CPUs={{ workers_cpu }} Gres=SCRATCH:{{ workers_gres }} state=UNKNOWN
-PartitionName=all Nodes={% for host in groups['workers'] %}{{hostvars[host]['ansible_host']}}{% endfor %} Default=YES PriorityTier=1 MaxTime=INFINITE State=UP
+NodeName={% for host in groups['workers'] %}{{hostvars[host]['ansible_host']}},{% endfor %} CPUs={{ workers_cpu }} Gres=SCRATCH:{{ workers_gres }} state=UNKNOWN
+PartitionName=all Nodes={% for host in groups['workers'] %}{{hostvars[host]['ansible_host']}},{% endfor %} Default=YES PriorityTier=1 MaxTime=INFINITE State=UP
 
 
 

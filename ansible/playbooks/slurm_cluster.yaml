@@ -1,5 +1,8 @@
 ---
-- hosts: all
+- hosts: controller
+  name: gather controller facts
+  tasks: [ ]
+- hosts: worker2
   tasks:
     - debug:
         msg: "before we run our role"

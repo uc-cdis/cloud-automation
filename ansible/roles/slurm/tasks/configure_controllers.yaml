@@ -10,3 +10,9 @@
     src: supervisoe_slurm.conf.j2
     dest: /etc/supervisor/conf.d/slurm.conf
   become: yes
+
+- name: /etc/supervisor/conf.d/slurm.conf
+  template:
+    src: supervisor_controller_slurm.conf.j2
+    dest: /etc/supervisor/conf.d/slurm.conf
+  become: yes

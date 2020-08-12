@@ -49,3 +49,9 @@
     path: /etc/default/docker
     line: export TMPDIR="/mnt/docker-tmp"
   become: yes
+
+- name: /etc/supervisor/conf.d/slurm.conf
+  template:
+    src: supervisor_worker_slurm.conf.j2
+    dest: /etc/supervisor/conf.d/slurm.conf
+  become: yes
