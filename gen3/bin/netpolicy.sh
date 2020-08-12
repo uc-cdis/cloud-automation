@@ -126,7 +126,7 @@ EOM
   done
   (cat - <<EOM
 {
-    "apiVersion": "extensions/v1beta1",
+    "apiVersion": "apps/v1",
     "kind": "NetworkPolicy",
     "metadata": {
         "name": "$name"
