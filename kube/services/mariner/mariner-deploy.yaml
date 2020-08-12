@@ -45,17 +45,24 @@ spec:
       automountServiceAccountToken: true
       containers:
       - name: mariner
-        image: quay.io/cdis/mariner-server:feat_k8s
+        GEN3_MARINER_IMAGE
         imagePullPolicy: Always
         resources:
           limits:
             memory: "256Mi"
             cpu: "250m"
         env:
+          - name: AWSCREDS
+            valueFrom:
+              secretKeyRef:
+                name: "workflow-bot-g3auto"
+                key: "awsusercreds.json"
           - name: GEN3_NAMESPACE
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: JWKS_ENDPOINT
+            value: "http://fence-service/.well-known/jwks"
         volumeMounts:
           - name: mariner-config
             readOnly: true

@@ -39,7 +39,7 @@ g3kubectl() {
   if [[ -n "$KUBECONFIG" ]] && grep -e heptio -e aws-iam "$KUBECONFIG" > /dev/null 2>&1 && [[ ! -x /usr/local/bin/aws-iam-authenticator ]]; then
     # Then it's EKS - we need to upgrade to aws-iam-authenticator - run with AWS creds!
     gen3_log_err "/usr/local/bin/aws-iam-authenticator not installed - run gen3 kube-setup-workvm as a user with sudo"
-    exit 1
+    return 1
   fi
   "$theKubectl" ${KUBECTL_NAMESPACE/[[:alnum:]-]*/--namespace=${KUBECTL_NAMESPACE}} "$@"
 }
