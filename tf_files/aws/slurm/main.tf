@@ -100,7 +100,7 @@ EOF
 
 
 resource "aws_iam_role" "the_role" {
-  name                  = "slurm_instances_role"
+  name                  = "${var.vpc_name}_slurm_instances_role"
   description           = "Role for slurm instances"
   force_detach_policies = true
 
@@ -146,6 +146,11 @@ resource "aws_iam_role_policy" "slurm_access_to_output_bucket" {
   name   = "access_to_output_bucket"
   policy = data.aws_iam_policy_document.output_bucket_access.json
   role   = aws_iam_role.the_role.id
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonSSMManagedInstanceCore" {
+  role       = aws_iam_role.the_role.name
+  policy_arn = data.aws_iam_policy.AmazonSSMManagedInstanceCore.arn
 }
 
 resource "aws_iam_instance_profile" "slurm_nodes_instance_profile" {

@@ -3,13 +3,16 @@
   systemd:
     daemon_reload: yes
     name: docker
-    #state: restarted
+    state: restarted
+  become: yes
 
 - name: restart docker
   systemd:
     state: restarted
     name: docker
+  become: yes
 
 - name: apt update
   apt:
     update_cache: yes
+  become: yes

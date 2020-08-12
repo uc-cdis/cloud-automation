@@ -45,14 +45,14 @@
 
 #- debug: daemon
 
-- name: "adminvm | daemon.json"
-  copy:
-    src: docker-daemon.json.j2
-    dest: /etc/docker/daemon.json
-    mode: 0644
-  when: daemon.stat.exists == false
-  notify: restart docker
-  become: yes
+#- name: "adminvm | daemon.json"
+#  copy:
+#    src: docker-daemon.json.j2
+#    dest: /etc/docker/daemon.json
+#    mode: 0644
+#  when: daemon.stat.exists == false
+#  notify: restart docker
+#  become: yes
 
 - name: "docker | let Ubuntu run docker"
   user:
@@ -71,7 +71,7 @@
   template:
     src: docker-proxy.conf.j2
     dest: /etc/systemd/system/docker.service.d/http-proxy.conf
-    backup: yes
+#    backup: yes
   notify: daemon reload
   become: yes
 

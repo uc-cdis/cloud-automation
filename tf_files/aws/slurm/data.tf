@@ -64,3 +64,7 @@ data "aws_iam_policy_document" "output_bucket_access" {
 }
 
 data "aws_region" "current" {}
+
+data "aws_iam_policy" "AmazonSSMManagedInstanceCore" {
+  arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
