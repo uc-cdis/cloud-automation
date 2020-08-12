@@ -126,7 +126,7 @@ EOM
   done
   (cat - <<EOM
 {
-    "apiVersion": "apps/v1",
+    "apiVersion": "networking.k8s.io/v1",
     "kind": "NetworkPolicy",
     "metadata": {
         "name": "$name"
