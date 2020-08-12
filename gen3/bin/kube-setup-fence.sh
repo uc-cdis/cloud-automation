@@ -36,10 +36,15 @@ fi
 
 # deploy fence
 gen3 roll fence
-# deploy presigned-url-fence
-gen3 roll presigned-url-fence
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
-g3kubectl apply -f "${GEN3_HOME}/kube/services/presigned-url-fence/presigned-url-fence-service.yaml"
+
+portalApp="$(g3k_manifest_lookup .global.portal_app)"
+if ! [[ "$portalApp" =~ ^GEN3-WORKSPACE ]]; then
+  # deploy presigned-url-fence
+  gen3 roll presigned-url-fence
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/presigned-url-fence/presigned-url-fence-service.yaml"
+fi
+
 gen3 roll fence-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-canary-service.yaml"
 gen3_log_info "The fence service has been deployed onto the k8s cluster."

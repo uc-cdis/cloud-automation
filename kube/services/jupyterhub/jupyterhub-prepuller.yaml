@@ -1,6 +1,6 @@
 # Prepuller for images used by notebooks
 # Should be synced with jupyterhub-config
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: jupyterhub-prepuller
