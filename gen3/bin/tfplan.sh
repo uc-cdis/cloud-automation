@@ -27,10 +27,10 @@ done
 cd $GEN3_WORKDIR
 /bin/rm -f plan.terraform
 
-tversion=$(checkTerraformModule ${GEN3_TFSCRIPT_FOLDER})
+#tversion=$(checkTerraformModule ${GEN3_TFSCRIPT_FOLDER})
 
 echo "Running terraform${tversion} plan $destroyFlag "${targetList[@]}" --var-file ./config.tfvars out plan.terraform $GEN3_TFSCRIPT_FOLDER/"
-gen3_terraform${tversion} plan $destroyFlag "${targetList[@]}" --var-file ./config.tfvars -out plan.terraform "$GEN3_TFSCRIPT_FOLDER/" 2>&1 | tee plan.log
+gen3_terraform plan $destroyFlag "${targetList[@]}" --var-file ./config.tfvars -out plan.terraform "$GEN3_TFSCRIPT_FOLDER/" 2>&1 | tee plan.log
 let exitCode=${PIPESTATUS[0]}
 if [[ $exitCode -ne 0 ]]; then
   echo -e "${RED_COLOR}non zero exit code from terraform plan: ${exitCode}${DEFAULT_COLOR}"

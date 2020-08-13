@@ -23,6 +23,8 @@ CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
 
 GEN3_SECRETS_ROOT="$(cd "${GEN3_HOME}/.." && pwd)"
 
+check_terraform_module
+
 
 gen3_secrets_folder() {
   if [[ -n "$GEN3_SECRETS_HOME" ]]; then
@@ -368,7 +370,8 @@ gen3_encode_uri_component() {
 # if the module has a manifest, most likely there is a terraform version
 # value that would help us determine which terraform version to use
 #
-checkTerraformModule() {
+#checkTerraformModule() {
+check_terraform_module() {
 
   local module_manifest=${1}/manifest.json
   local tversion
@@ -380,7 +383,7 @@ checkTerraformModule() {
     local full_tversion=$(jq  -r '.terraform.module_version' ${module_manifest})
     if [ ${full_tversion} == "0.12" ];
     then
-      tversion=12
+      export tversion=12
       gen3_log_info "Moving on with terraform ${full_tversion}"
     else
       gen3_log_info "Moving on with terraform 0.11.x"

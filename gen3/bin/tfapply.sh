@@ -20,10 +20,10 @@ fi
 
 $GEN3_DRY_RUN && "Running in DRY_RUN mode ..."
 
-tversion=$(checkTerraformModule ${GEN3_TFSCRIPT_FOLDER})
+#tversion=$(checkTerraformModule ${GEN3_TFSCRIPT_FOLDER})
 
 echo "Running: terraform${tversion} apply plan.terraform"
-if ! ($GEN3_DRY_RUN || gen3_terraform${tversion} apply plan.terraform); then
+if ! ($GEN3_DRY_RUN || gen3_terraform apply plan.terraform); then
   echo "apply failed, bailing out"
   exit 1
 fi
