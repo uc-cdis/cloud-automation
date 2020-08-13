@@ -2,6 +2,8 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/g3k_manifest"
 
+# Assure cloud-automation is latest
+git -C ${GEN3_HOME} pull
 
 g3k_wait4roll(){
   local appName
