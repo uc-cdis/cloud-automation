@@ -19,6 +19,7 @@ if [[ ! -f plan.terraform ]]; then
 fi
 
 $GEN3_DRY_RUN && "Running in DRY_RUN mode ..."
+
 echo "Running: terraform apply plan.terraform"
 if ! ($GEN3_DRY_RUN || gen3_terraform apply plan.terraform); then
   echo "apply failed, bailing out"

@@ -11,10 +11,10 @@ EOM
 }
 
 source "$GEN3_HOME/gen3/lib/utils.sh"
-gen3_load "gen3/lib/terraform"
 gen3_load "gen3/lib/aws"
 gen3_load "gen3/lib/gcp"
 gen3_load "gen3/lib/onprem"
+gen3_load "gen3/lib/terraform"
 
 #
 # Create any missing files
@@ -80,6 +80,7 @@ refreshFromBackend() {
   fi
   return 0
 }
+
 
 for fileName in config.tfvars backend.tfvars README.md; do
   filePath="${GEN3_WORKDIR}/$fileName"

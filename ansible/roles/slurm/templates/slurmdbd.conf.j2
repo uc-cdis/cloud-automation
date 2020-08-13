@@ -1,0 +1,18 @@
+ArchiveEvents=yes
+ArchiveJobs=yes
+ArchiveSteps=no
+ArchiveSuspend=no
+{% for host in groups['controller'] %}
+DbdHost={{hostvars[host]['ansible_hostname']}}
+{% endfor %}
+DbdPort=6819
+AuthType=auth/munge
+SlurmUser=slurm
+StorageHost={{ mysql_db_endpoint }}
+StorageLoc={{ mysql_db_name }}
+StoragePass={{ mysql_db_pass }}
+StorageUser={{ mysql_db_user }}
+StorageType=accounting_storage/mysql
+DebugLevel=1
+LogFile=/var/log/slurmdbd/slurmdbd.log
+LogTimeFormat=short

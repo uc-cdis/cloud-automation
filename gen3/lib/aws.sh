@@ -491,12 +491,6 @@ cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
 vpc_name="$GEN3_WORKSPACE"
 #
-# for vpc_octet see https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md
-#  CIDR becomes 172.{vpc_octet2}.{vpc_octet3}.0/20
-#
-# octets are legacy, we should now use the full CIDR
-#vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
-#vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
 vpc_cidr_block="172.X.Y.0/20"
 
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
@@ -504,8 +498,13 @@ portal_app="dev"
 
 aws_cert_name="arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
 
-db_size=10
-db_instance="db.t2.micro"
+fence_db_size    = 10
+sheepdog_db_size = 10
+indexd_db_size   = 10
+
+fence_db_instance    = "db.t2.micro"
+sheepdog_db_instance = "db.t2.micro"
+indexd_db_instance   = "db.t2.micro"
 
 # This indexd guid prefix should come from Trevar/ZAC
 indexd_prefix=ENTER_UNIQUE_GUID_PREFIX
