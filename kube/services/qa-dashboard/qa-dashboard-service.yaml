@@ -10,8 +10,10 @@ spec:
       port: 80
       targetPort: 3030
       name: http
+      nodePort: null
     - name: https
       port: 443
       protocol: TCP
       targetPort: 443
-  type: NodePort
+      nodePort: null
+  type: ClusterIP

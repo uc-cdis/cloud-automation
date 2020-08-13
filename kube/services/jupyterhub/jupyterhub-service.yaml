@@ -10,4 +10,5 @@ spec:
       port: 8000
       targetPort: 8000
       name: proxy
-  type: NodePort
+      nodePort: null
+  type: ClusterIP
