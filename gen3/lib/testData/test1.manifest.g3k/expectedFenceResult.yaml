@@ -218,7 +218,6 @@ spec:
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
-
       - name: nginx-prometheus-exporter-wrapper
         image: quay.io/cdis/nginx-prometheus-exporter-wrapper:latest
         command: ["/bin/bash"]
