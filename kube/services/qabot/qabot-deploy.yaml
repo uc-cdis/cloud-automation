@@ -38,7 +38,7 @@ spec:
             secretKeyRef:
               name: qabot-g3auto
               key: "jenkins_job_token.json"
-        - name: JENKINS1_USER_API_TOKEN
+        - name: JENKINS_USER_API_TOKEN
           valueFrom:
             secretKeyRef:
               name: qabot-g3auto
