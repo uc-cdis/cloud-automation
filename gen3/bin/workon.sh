@@ -11,10 +11,10 @@ EOM
 }
 
 source "$GEN3_HOME/gen3/lib/utils.sh"
-gen3_load "gen3/lib/terraform"
 gen3_load "gen3/lib/aws"
 gen3_load "gen3/lib/gcp"
 gen3_load "gen3/lib/onprem"
+gen3_load "gen3/lib/terraform"
 
 #
 # Create any missing files
@@ -128,8 +128,5 @@ EOM
   fi
 fi
 
-tversion=$(checkTerraformModule ${GEN3_TFSCRIPT_FOLDER})
-
-
-echo "Running: terraform${tversion} init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/"
-gen3_terraform${tversion} init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
+echo "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/"
+gen3_terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"

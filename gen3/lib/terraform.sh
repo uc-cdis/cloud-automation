@@ -43,6 +43,9 @@ if [[ $1 =~ ^-*help$ ]]; then
   exit 0
 fi
 
+#check_terraform_module ${GEN3_TFSCRIPT_FOLDER}
+#gen3_log_info  "terraform versionxx ${tversion}"
+
 # Little string to prepend to info messages
 DRY_RUN_STR=""
 if $GEN3_DRY_RUN; then DRY_RUN_STR="--dryrun"; fi
@@ -52,6 +55,7 @@ if $GEN3_DRY_RUN; then DRY_RUN_STR="--dryrun"; fi
 # an AWS project
 #
 gen3_terraform() {
+  local tversion=$(check_terraform_module ${GEN3_TFSCRIPT_FOLDER})
   if [[ "$GEN3_FLAVOR" == "AWS" ]]; then
     cat - 1>&2 <<EOM
 gen3_aws_run terraform${tversion} $@
