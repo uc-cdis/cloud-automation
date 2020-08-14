@@ -189,11 +189,10 @@ ENV LISTEN_PORT 80
 
 # Copy the entrypoint that will generate Nginx additional configs
 COPY entrypoint.sh /entrypoint.sh
-COPY logrotate-nginx.conf /etc/logrotate.d/nginx
 RUN chmod +x /entrypoint.sh
 
 COPY dockerrun.sh /dockerrun.sh
-RUN mkdir -p /var/www/metrics/ && chmod +x /dockerrun.sh
+RUN chmod +x /dockerrun.sh
 
 ENTRYPOINT ["sh", "/entrypoint.sh"]
 
