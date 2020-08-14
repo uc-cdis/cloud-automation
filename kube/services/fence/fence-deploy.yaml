@@ -17,10 +17,6 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/path: /aggregated_metrics
-        prometheus.io/port: "6567"
       labels:
         app: fence
         release: production
@@ -50,8 +46,6 @@ spec:
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
 # -----------------------------------------------------------------------------
-        - name: logs-folder
-          emptyDir: {}
         - name: old-config-volume
           secret:
             secretName: "fence-secret"
@@ -135,14 +129,11 @@ spec:
         ports:
         - containerPort: 80
         - containerPort: 443
-        - containerPort: 6567
         volumeMounts:
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
 # -----------------------------------------------------------------------------
-          - name: logs-folder
-            mountPath: "/var/log/nginx/"
           - name: "old-config-volume"
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
@@ -218,33 +209,6 @@ spec:
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
-      - name: nginx-prometheus-exporter-wrapper
-        GEN3_NGINX_PROMETHEUS_EXPORTER_WRAPPER_IMAGE|-image: quay.io/cdis/nginx-prometheus-exporter-wrapper:latest-|
-        command: ["/bin/bash"]
-        args:
-          - "-c"
-          - |
-            nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
-            if [ "$nginx_status_response" != 200 ]; then
-              sleep infinity
-            else
-              /usr/bin/exporter -nginx.scrape-uri http://127.0.0.1/nginx_status
-            fi
-        ports:
-        - containerPort: 9113
-      - name: uwsgi-exporter
-        GEN3_UWSGI_EXPORTER_IMAGE|-image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0-|
-        args: ["--stats.uri", "http://127.0.0.1/uwsgi_status"]
-        ports:
-        - containerPort: 9117
-      - name: nginx-logs-exporter
-        GEN3_NGINX_LOGS_EXPORTER_IMAGE|-image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1-|
-        args: ["/mnt/nginxlogs/access_not_json.log"]
-        ports:
-        - containerPort: 4040
-        volumeMounts:
-        - name: logs-folder
-          mountPath: "/mnt/nginxlogs/"      
       initContainers:
       - name: fence-init
         GEN3_FENCE_IMAGE
