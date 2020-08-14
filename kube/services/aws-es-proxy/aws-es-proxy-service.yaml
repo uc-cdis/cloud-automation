@@ -10,5 +10,6 @@ spec:
       port: 9200 
       targetPort: 9200
       name: https
-  type: NodePort
+      nodePort: null
+  type: ClusterIP
 

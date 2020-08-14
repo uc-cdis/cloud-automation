@@ -10,28 +10,35 @@ spec:
       port: 80
       targetPort: 80
       name: http
+      nodePort: null
     - protocol: TCP
       port: 9000
       targetPort: 9000
       name: hdfs
+      nodePort: null
     - protocol: TCP
       port: 8030
       targetPort: 8030
       name: yarn-scheduler
+      nodePort: null
     - protocol: TCP
       port: 8031
       targetPort: 8031
       name: yarn-resource-tracker
+      nodePort: null
     - protocol: TCP
       port: 8032
       targetPort: 8032
       name: yarn-address-manager
+      nodePort: null
     - protocol: TCP
       port: 22
       targetPort: 22
       name: ssl
+      nodePort: null
     - protocol: TCP
       port: 7077
       targetPort: 7077
       name: spark-master
-  type: NodePort
+      nodePort: null
+  type: ClusterIP
