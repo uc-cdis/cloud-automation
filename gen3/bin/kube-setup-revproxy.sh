@@ -64,7 +64,9 @@ setup_indexd_gateway() {
 #current_namespace=$(g3kubectl config view -o jsonpath={.contexts[].context.namespace})
 current_namespace=$(gen3 db namespace)
 
-setup_indexd_gateway
+if g3k_manifest_lookup .versions.indexd 2> /dev/null; then
+  setup_indexd_gateway
+fi
 
 scriptDir="${GEN3_HOME}/kube/services/revproxy"
 declare -a confFileList=()
