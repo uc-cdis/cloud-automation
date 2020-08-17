@@ -83,7 +83,7 @@ if g3kubectl get cronjob etl >/dev/null 2>&1; then
 fi
 
 if g3kubectl get cronjob usersync >/dev/null 2>&1; then
-    gen3 job run usersync-cronjob
+    gen3 job cron usersync '@hourly'
 fi
 
 if g3k_manifest_lookup .versions.sheepdog 2> /dev/null; then

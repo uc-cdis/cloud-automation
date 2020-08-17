@@ -91,6 +91,12 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: portal_app
+          - name: GEN3_BUNDLE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-portal
+                key: GEN3_BUNDLE
+                optional: true
           - name: LOGOUT_INACTIVE_USERS
             valueFrom:
               configMapKeyRef:
