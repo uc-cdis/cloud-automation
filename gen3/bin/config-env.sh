@@ -26,8 +26,8 @@ gen3_config-env_copy() {
   local env="$2"
   git clone https://github.com/uc-cdis/${repo}.git ~/temp_manifest
   if [[ $? != 0 ]]; then
-          gen3_log_err "Something went wrong with getting source env check arguments\n Attempted to clone https://github.com/uc-cdis/${repo}.git"
-          return 1
+    gen3_log_err "Something went wrong with getting source env check arguments\n Attempted to clone https://github.com/uc-cdis/${repo}.git"
+    return 1
   fi
   srcenv=~/temp_manifest/${env}
   cmd="copy -s ${srcenv} -e ${tgt_env}"
@@ -50,10 +50,10 @@ gen3_config-env_apply() {
 
 gen3_config-env_run() {
   if [[ -e ~/gen3release ]]; then
-          git -C ~/gen3release checkout master
-          git -C ~/gen3release pull
+    git -C ~/gen3release checkout master
+    git -C ~/gen3release pull
   else
-          git clone https://github.com/uc-cdis/gen3-release-utils.git ~/gen3release
+    git clone https://github.com/uc-cdis/gen3-release-utils.git ~/gen3release
   fi
 
   cd ~/gen3release/gen3release-sdk
@@ -63,8 +63,8 @@ gen3_config-env_run() {
   check_error=$?
   yes | rm -r ~/temp_manifest
   if [[ $check_error != 0 ]]; then
-          gen3_log_err "Something went wrong in gen3release script, exited with code $check_error"
-          return 1
+    gen3_log_err "Something went wrong in gen3release script, exited with code $check_error"
+    return 1
   fi
 
   cd $tgt_env
@@ -78,12 +78,12 @@ gen3_config-env() {
   command="$1"
   shift
   case "$command" in
-          'copy')
-          gen3_config-env_copy "$@"
-          ;;
-          'apply')
-          gen3_config-env_apply "$@"
-          ;;
+    'copy')
+    gen3_config-env_copy "$@"
+    ;;
+    'apply')
+    gen3_config-env_apply "$@"
+    ;;
   esac
 }
 
