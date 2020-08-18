@@ -89,6 +89,8 @@ spec:
         - name: privacy-policy
           configMap:
             name: "privacy-policy"
+        - name: logs-folder
+          emptyDir: {}
       securityContext:
         # nginx group in current images
         fsGroup: 101
@@ -191,6 +193,8 @@ spec:
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
+          - name: logs-folder
+            mountPath: "/mnt/nginxlogs/"
         resources:
             requests:
               cpu: 0.4
