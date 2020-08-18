@@ -24,7 +24,7 @@ tgt_env=~/cdis-manifest/${USER}.planx-pla.net
 if [[ "$1" == "copy" ]]; then
         git clone https://github.com/uc-cdis/${2}.git ~/temp_manifest
         if [[ $? != 0 ]]; then
-        gen3_log_err "Something went wrong with getting source env check arguments\n Attempted to clone https://github.com/uc-cdis/${2}.git"
+                gen3_log_err "Something went wrong with getting source env check arguments\n Attempted to clone https://github.com/uc-cdis/${2}.git"
                 return 1
         fi
         srcenv=~/temp_manifest/$3
@@ -47,7 +47,7 @@ if [[ -e ~/gen3release ]]; then
         git -C ~/gen3release checkout master
         git -C ~/gen3release pull
 else
-git clone https://github.com/uc-cdis/gen3-release-utils.git ~/gen3release
+        git clone https://github.com/uc-cdis/gen3-release-utils.git ~/gen3release
 fi
 
 cd ~/gen3release/gen3release-sdk
