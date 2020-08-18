@@ -24,6 +24,7 @@ spec:
         netnolimit: "yes"
         GEN3_DATE_LABEL
     spec:
+      serviceAccountName: access-backend-sa
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

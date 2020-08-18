@@ -71,7 +71,13 @@ setup_access_backend() {
 #     echo "enabling CORS on the bucket"
 #     aws s3api put-bucket-cors --bucket "$bucketName" --cors-configuration file://cors.json
 
-    cat - > "access-backend-aws-policy.json" <<EOM
+    local saName=$(echo "access-${hostname//./-}" | head -c63)
+    if ! g3kubectl get sa "$saName" > /dev/null 2>&1; then
+      local role_name
+      if ! g3kubectl get sa access-backend-sa > /dev/null 2>&1; then
+        roleName="$(gen3 api safe-name access-backend)"
+        gen3 awsrole create "$roleName" gitops-sa
+        cat - > "access-backend-aws-policy.json" <<EOM
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -84,12 +90,11 @@ setup_access_backend() {
     ]
 }
 EOM
-    local saName=$(echo "access-${hostname//./-}" | head -c63)
-    if ! g3kubectl get sa "$saName" > /dev/null 2>&1; then
-      local role_name
-      if ! role_name="$(gen3 iam-serviceaccount -c "${saName}" -p ./access-backend-aws-policy.json)" || [[ -z "$role_name" ]]; then
-        gen3_log_err "Failed to create iam service account"
-        return 1
+        policy=$(cat access-backend-aws-policy.json)
+        aws iam create-policy --policy-name $roleName --policy-document "$policy"
+        accountNumber=$(aws sts get-caller-identity | jq -r .Account)
+        sleep 15
+        gen3 awsrole attach-policy $roleName arn:aws:iam::$accountNumber:policy/$roleName
       fi
       gen3_log_info "created service account '${saName}' with dynamodb access"
       gen3_log_info "created role name '${role_name}'"
