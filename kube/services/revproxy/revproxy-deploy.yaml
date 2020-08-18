@@ -61,6 +61,8 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: logs-folder
+          emptyDir: {}
       containers:
       - name: revproxy
         GEN3_REVPROXY_IMAGE|-image: nginx:1.13.9-perl-|
@@ -81,6 +83,7 @@ spec:
         ports:
         - containerPort: 80
         - containerPort: 443
+        - containerPort: 6567
         env:
           - name: POD_NAMESPACE
             valueFrom:
@@ -168,6 +171,8 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
+          - name: logs-folder
+            mountPath: "/var/log/nginx/"
         resources:
           requests:
             cpu: 0.5
@@ -191,4 +196,25 @@ spec:
               echo "modsecurity_rules_file /etc/nginx/modsec/main.conf;" >> /etc/nginx/gen3_server_modsec.conf
             fi
             exec nginx -g 'daemon off;'
-            
+      - name: nginx-prometheus-exporter-wrapper
+        GEN3_NGINX_PROMETHEUS_EXPORTER_WRAPPER_IMAGE|-image: quay.io/cdis/nginx-prometheus-exporter-wrapper:pybase3-1.4.0-|
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
+            if [ "$nginx_status_response" != 200 ]; then
+              sleep infinity
+            else
+              /usr/bin/exporter -nginx.scrape-uri http://127.0.0.1/nginx_status
+            fi
+        ports:
+        - containerPort: 9113
+      - name: nginx-logs-exporter
+        GEN3_NGINX_LOGS_EXPORTER_IMAGE|-image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1-|
+        args: ["/mnt/nginxlogs/access_not_json.log"]
+        ports:
+        - containerPort: 4040
+        volumeMounts:
+        - name: logs-folder
+          mountPath: "/mnt/nginxlogs/"    
