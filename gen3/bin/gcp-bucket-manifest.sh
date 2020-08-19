@@ -11,7 +11,7 @@ fi
 jobId=$(head /dev/urandom | tr -dc a-z0-9 | head -c 4 ; echo '')
 
 prefix="${hostname//./-}-gcp-bucket-manifest-${jobId}"
-temp_bucket="${prefix}_temp_bucket"
+temp_bucket=$(echo "${prefix}_temp_bucket" | head -c63)
 
 
 # function to create an job and returns a job id
@@ -74,12 +74,16 @@ gen3_create_google_dataflow() {
   python bucket_manifest_pipeline.py --runner DataflowRunner  --project "$project" --bucket "$bucket" --temp_location gs://"$temp_bucket"/temp  --template_location gs://"$temp_bucket"/templates/pipeline_template --region us-central1 --setup_file ./setup.py --service_account_email "${service_account}"
   gen3 cd
 
+  local pubsub_topic_name=$(echo "${prefix}-pubsub_topic_name" | head -c63)
+  local pubsub_sub_name=$(echo "${prefix}-pubsub_sub_name" | head -c63)
+  local dataflow_name=$(echo "${prefix}-dataflow_name" | head -c63)
+
   # build google template
   cat << EOF > config.tfvars
 project_id              = "${project}"
-pubsub_topic_name        = "${prefix}-pubsub_topic_name"
-pubsub_sub_name          = "${prefix}-pubsub_sub_name"
-dataflow_name            = "${prefix}-dataflow_name"
+pubsub_topic_name        = "${pubsub_topic_name}"
+pubsub_sub_name          = "${pubsub_sub_name}"
+dataflow_name            = "${dataflow_name}"
 template_gcs_path        = "gs://${temp_bucket}/templates/pipeline_template"
 temp_gcs_location        = "gs://${temp_bucket}/temp"
 service_account_email    = "${service_account}"
@@ -103,10 +107,9 @@ EOF
 
     metadata_file="gs://${temp_bucket}/metadata_file.tsv"
   fi
-  pubsub_sub="${prefix}-pubsub_sub_name"
   n_messages="$(gsutil du gs://${bucket} | wc -l)"
   #gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub} AUTHZ ${metadata_file} N_MESSAGES ${n_messages} OUT_BUCKET ${temp_bucket} | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|gcp-bucket-manifest#PLACEHOLDER#|gcp-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
-  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub} METADATA_FILE "${metadata_file}" N_MESSAGES $n_messages OUT_BUCKET $temp_bucket | sed "s|google-bucket-manifest#PLACEHOLDER#|google-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
+  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub_name} METADATA_FILE "${metadata_file}" N_MESSAGES $n_messages OUT_BUCKET $temp_bucket | sed "s|google-bucket-manifest#PLACEHOLDER#|google-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
   gen3 secrets sync "initialize gcp-bucket-manifest/config.json"
   gen3 job run ./google-bucket-manifest-${jobId}-job.yaml
   gen3_log_info "The job is started. Job ID: ${jobId}"
@@ -171,7 +174,7 @@ gen3_batch_cleanup() {
   fi
 
   local prefix="${hostname//./-}-gcp-bucket-manifest-${jobId}"
-  local temp_bucket="${prefix}_temp_bucket"
+  local temp_bucket=$(echo "${prefix}_temp_bucket" | head -c63)
 
   gen3 workon gcp-default ${prefix}__dataflow
   gen3 cd
