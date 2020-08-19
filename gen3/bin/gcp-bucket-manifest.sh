@@ -107,7 +107,7 @@ EOF
 
     metadata_file="gs://${temp_bucket}/metadata_file.tsv"
   fi
-  n_messages="$(gsutil du gs://${bucket} | wc -l)"
+  n_messages="$(gsutil ls -r gs://${bucket}/** | wc -l)"
   #gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub} AUTHZ ${metadata_file} N_MESSAGES ${n_messages} OUT_BUCKET ${temp_bucket} | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|gcp-bucket-manifest#PLACEHOLDER#|gcp-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
   gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub_name} METADATA_FILE "${metadata_file}" N_MESSAGES $n_messages OUT_BUCKET $temp_bucket | sed "s|google-bucket-manifest#PLACEHOLDER#|google-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
   gen3 secrets sync "initialize gcp-bucket-manifest/config.json"
