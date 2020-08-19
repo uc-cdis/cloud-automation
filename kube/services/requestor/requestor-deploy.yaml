@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: requestor-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: requestor
+      release: production
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: requestor
+        release: production
+        public: "yes"
+        # for network policy
+        netnolimit: "yes" # TODO do i need this?
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - requestor
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "requestor-g3auto"
+      containers:
+      - name: requestor
+        GEN3_REQUESTOR_IMAGE
+        env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/src/.env"
+            subPath: "requestor.env"
+        resources:
+          requests:
+            cpu: 0.4
+            memory: 512Mi
+          limits:
+            cpu: 0.8
+            memory: 512Mi
+      initContainers:
+        - name: requestor-db-migrate
+          GEN3_REQUESTOR_IMAGE
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/src/.env"
+              subPath: "requestor.env"
+          resources:
+            limits:
+              cpu: 0.8
+              memory: 512Mi
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              /env/bin/alembic upgrade head

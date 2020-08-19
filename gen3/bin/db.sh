@@ -586,6 +586,7 @@ gen3_db_encrypt() {
   gen3 db backup arborist  > $dumpDir/arborist-backup.sql
   gen3 db backup metadata  > $dumpDir/metadata-backup.sql
   gen3 db backup wts  > $dumpDir/wts-backup.sql
+  gen3 db backup requestor  > $dumpDir/requestor-backup.sql
 
   # Quick check to ensure the snapshots were taken successfully. Will prevent new db from getting incomplete data.
   echo "Did the snapshots get created correctly?(yes/no)"
@@ -640,6 +641,10 @@ gen3_db_encrypt() {
     g3kubectl delete secret wts-g3auto
     gen3 db setup wts
   fi
+  if [[ -d "$(gen3_secrets_folder)"/g3auto/requestor-backup ]]; then
+    g3kubectl delete secret requestor-g3auto
+    gen3 db setup requestor
+  fi
   gen3_log_info "restoring indexd db"
   gen3_db_reset "indexd"
   gen3 psql indexd  < $dumpDir/indexd-backup.sql
@@ -658,6 +663,9 @@ gen3_db_encrypt() {
   gen3_log_info "restoring wts db"
   gen3_db_reset "wts"
   gen3 psql wts  < $dumpDir/wts-backup.sql
+  gen3_log_info "restoring requestor db"
+  gen3_db_reset "requestor"
+  gen3 psql requestor  < $dumpDir/requestor-backup.sql
 
 
   # dbs are now working but we should update the terraform state to ensure db's can still be managed through the main commons terraform

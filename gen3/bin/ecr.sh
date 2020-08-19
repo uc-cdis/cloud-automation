@@ -23,6 +23,7 @@ workspace-token-service
 manifestservice
 gen3-statics
 metadata-service
+requestor
 )
 # ambassador
 #repoList=( fence )
