@@ -1,0 +1,39 @@
+# gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-etl-job.yaml ACCESS_TOKEN $ACCESS_TOKEN JOB_NAME $JOB_NAME S3_BUCKET $S3_BUCKET | sed "s|#COVID19_JOB_NAME_PLACEHOLDER#|$COVID19_ETL_NAME|g" | g3kubectl apply -f -
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: augur
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          serviceAccountName: s3-access-opencdn-databucket-gen3
+          restartPolicy: Never
+          containers:
+          - name: augur
+            imagePullPolicy: Always
+            GEN3_AUGUR_IMAGE
+            env:
+            - name: ACCESS_TOKEN
+              GEN3_ACCESS_TOKEN|-value: ""-|
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-global
+                  key: hostname
+            resources:
+              limits:
+                cpu: 1
+                memory: 1Gi
+            command: ["/bin/bash" ]
+            args:
+              - "-c"
+              - |
+                $ACCESS_TOKEN > /config/credential.json
+                result=0
+                gen3-augur.sh >> logs/run_pipeline.log
+                exit $result
+    
