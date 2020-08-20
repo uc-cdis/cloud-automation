@@ -45,8 +45,14 @@ spec:
       - name: requestor
         GEN3_REQUESTOR_IMAGE
         env:
-          - name: GEN3_DEBUG
+          - name: DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: ARBORIST_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
+                optional: true
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
