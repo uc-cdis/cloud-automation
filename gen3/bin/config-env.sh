@@ -68,7 +68,6 @@ gen3_config-env_run() {
   fi
 
   cd $tgt_env
-  git add *
   set -- 
   source ${GEN3_HOME}/gen3/bin/roll.sh
   gen3 roll all 
