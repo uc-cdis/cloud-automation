@@ -1,34 +1,14 @@
-import { amap, fetchRecentData, range, simpleDateFormat } from './dataHelper.js';
+import { amap, fetchRecentData } from './dataHelper.js';
 import './datePicker.js';
 import './reportsTable.js';
 import './reportsTabPanel.js';
+import './windowSizer.js';
 
 const reportList = ['all', 'fence', 'guppy', 'indexd', 'peregrine', 'sheepdog'];
 
 export function main() {
-  let endDate = new Date();
-  const dateDOM = document.querySelector('g3r-date-picker');
-  const button = document.querySelector('button#button-go');
-  button.addEventListener('click', (ev) => {
-    const dt = dateDOM.date;
-    const href = document.location.href.replace(/\?.+$/, `?end=${simpleDateFormat(dt)}`);
-    document.location = href;
-  });
-
-  const queryParam = document.location.search.substring(1).split('&').reduce(
-    (acc,it) => {
-      const split = it.split('=');
-      if (split.length === 2) {
-        acc[split[0]] = split[1];
-      }
-      return acc;
-    }, {}
-  );
-  if (queryParam['end']) {
-    endDate = new Date(queryParam['end']);
-    dateDOM.date = endDate;
-  }
-  const dateRange = range(1, 11).map(it => new Date(endDate - it*24*60*60*1000));
+  const windowDOM = document.querySelector('g3r-window-sizer');
+  const dateRange = windowDOM.dateRange;
   const statusDOM = document.getElementById('status');
   const dataTables = {
     projects: { 'all': document.body.querySelector('.g3reports-projects g3r-table') },
@@ -50,8 +30,8 @@ export function main() {
     Object.keys(dataTables), 
     (rtype) => fetchRecentData(rtype, 'all', dateRange)
   ).then(
-    (reportList) => {
-      reportList.map(
+    (infoList) => {
+      infoList.map(
         (info) => {
           dataTables[info.reportType][info.service].data = info.massage;
         }
@@ -67,8 +47,8 @@ export function main() {
     }, []),
     ({reportType, serviceName}) => fetchRecentData(reportType, serviceName, dateRange)
   ).then(
-    (reportList) => {
-      reportList.map(
+    (infoList) => {
+      infoList.map(
         (info) => {
           //console.log(`Rendering ${info.service} ${info.reportType}`, info);
           dataTables[info.reportType][info.service].data = info.massage;

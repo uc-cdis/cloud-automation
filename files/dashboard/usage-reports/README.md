@@ -7,8 +7,8 @@ how to test the reports webapp with the local sample data
 * launch a local web server
 
 ```
-cd ${GEN3_HOME} && npm install  # if necessary
-cd "${GEN3_HOME}/files/dashboard/usage-reports
+cd "${GEN3_HOME}" && npm install  # if necessary
+cd "${GEN3_HOME}/files/dashboard/usage-reports"
 npm install
 npm start
 ```
@@ -25,9 +25,9 @@ then running `gen3 dashboard gitops-sync`:
 * update the manifest, and merge the pr
 ```
 (
-  myCommons="your.commons"
+  myCommons="${myCommons:-"your.commons"}"
   rsync -av ${GEN3_HOME}/files/dashboard/usage-reports/src/ cdis-manifest/$myCommons/dashboard/Secure/reports/
-  rsync -av ${GEN3_HOME}/files/dashboard/usage-reports/src/node_modules/ cdis-manifest/$myCommons/dashboard/Secure/reports/modules/
+  rsync -av ${GEN3_HOME}/files/dashboard/usage-reports/node_modules/ cdis-manifest/$myCommons/dashboard/Secure/reports/modules/
 )
 
 ```

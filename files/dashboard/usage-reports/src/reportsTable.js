@@ -1,4 +1,4 @@
-import {html, render} from "../modules/lit-html/lit-html.js";
+import {html, render} from "./modules/lit-html/lit-html.js";
 
 /**
  * Simple table - takes a data attribute that is an array of arrays

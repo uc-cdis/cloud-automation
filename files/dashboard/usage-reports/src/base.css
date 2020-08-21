@@ -54,7 +54,7 @@ button {
   border-radius: 3px;
 }
 
-button.button__action {
+button.button_action {
   background-color: var(--action-bg-color);
   color: var(--action-fg-color);
   font-weight: bold;
