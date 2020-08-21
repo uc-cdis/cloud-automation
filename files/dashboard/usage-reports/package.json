@@ -1,0 +1,16 @@
+{
+  "name": "usage-reports",
+  "version": "1.0.0",
+  "description": "how to test the reports webapp with the local sample data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node \"${GEN3_HOME}/gen3/lib/nodejs/httpd/server.js\" /2019 ./sampleData /modules ./node_modules / ./src"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jasmine-core": "^3.6.0",
+    "lit-html": "^1.3.0"
+  }
+}
