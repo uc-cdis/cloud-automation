@@ -1,3 +1,4 @@
+import {html, render} from "./modules/lit-html/lit-html.js";
 
 /**
  * Simple table - takes a data attribute that is an array of arrays
@@ -13,23 +14,21 @@ export class G3ReportsTable extends HTMLElement {
   }
 
   _render() {
-    if (this._data.length > 0) {
-      this.innerHTML = `
+      render( html`
         <table>
         <tbody>
         ${
-          this._data.map(
-            row => `<tr>${
-              row.map(td => `<td>${td}</td>`).join("")
-            }</tr>`
-          ).join("\n")
+          this._data.length > 0 ?
+            this._data.map(
+              row => html`<tr>${
+                row.map(td => html`<td>${td}</td>`)
+              }</tr>`
+            )
+            : html`<tr><td>No Data</td></tr>`
         }
         </tbody>
         </table>
-      `;
-    } else {
-      this.innerHTML = `<table><tbody><tr><td>No Data</td></tr></tbody></table>`;
-    }
+      `, this);
   }
 
   set data(value) {

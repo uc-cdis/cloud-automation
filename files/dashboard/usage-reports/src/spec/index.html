@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <meta http-equiv="Content-Security-Policy" 
+        content="default-src 'none'; 
+        img-src 'self' data: https://www.google-analytics.com; 
+        script-src 'self' https://www.google-analytics.com; 
+        style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; 
+        object-src 'none'; 
+        worker-src 'self';
+        connect-src 'self';
+        font-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com"
+        >
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+    
+      <title>g3r tests</title>
+
+      <link href="../base.css" rel="stylesheet" />
+      <link href="../reportsTable.css" rel="stylesheet" />
+      <link href="../reportsTabPanel.css" rel="stylesheet" />
+      <link href="../reportsApp.css" rel="stylesheet" />
+      <link href="../windowSizer.css" rel="stylesheet" />
+
+      <link rel="stylesheet" type="text/css" href="../modules/jasmine-core/lib/jasmine-core/jasmine.css" />
+      <script src="../modules/jasmine-core/lib/jasmine-core/jasmine.js"></script>
+      <script src="../modules/jasmine-core/lib/jasmine-core/jasmine-html.js"></script>
+      <script src="./boot.js"></script>
+  </head>
+  <body>
+    <script src="./main.js" type="module"></script>
+  </body>
+</html>

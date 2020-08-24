@@ -1,10 +1,18 @@
 * {
   box-sizing: border-box;
 }
+
+:root {
+  --bg-color: #fefefe;
+  --fg-color: #222222;
+  --action-bg-color: green;
+  --action-fg-color: white;
+}
+
 body {
   font-family: sans-serif;
-  color: #222222;
-  background-color: #fefefe;
+  color: var(--foreground-color);
+  background-color: var(--bg-color);
   width: 100%;
   min-width: 320px;
   height: 100%;
@@ -39,4 +47,15 @@ body::-webkit-scrollbar-track {
 body::-webkit-scrollbar-thumb {
   background-color: darkgrey;
   outline: 1px solid slategrey;
+}
+
+button {
+  padding: 5px 15px 5px 15px;
+  border-radius: 3px;
+}
+
+button.button_action {
+  background-color: var(--action-bg-color);
+  color: var(--action-fg-color);
+  font-weight: bold;
 }
