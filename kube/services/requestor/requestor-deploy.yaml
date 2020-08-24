@@ -70,8 +70,8 @@ spec:
         volumeMounts:
           - name: "config-volume"
             readOnly: true
-            mountPath: "/src/.env"
-            subPath: "requestor.env"
+            mountPath: "/src/requestor-config.yaml"
+            subPath: "requestor-config.yaml"
         resources:
           requests:
             cpu: 0.4
@@ -86,8 +86,8 @@ spec:
           volumeMounts:
             - name: "config-volume"
               readOnly: true
-              mountPath: "/src/.env"
-              subPath: "requestor.env"
+              mountPath: "/src/requestor-config.yaml"
+              subPath: "requestor-config.yaml"
           resources:
             limits:
               cpu: 0.8

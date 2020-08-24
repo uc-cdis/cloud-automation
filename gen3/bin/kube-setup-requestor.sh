@@ -18,8 +18,8 @@ setup_database() {
     gen3_log_err "skipping db setup in non-adminvm environment"
     return 0
   fi
-  # Setup .env file that requestor consumes
-  if [[ ! -f "$secretsFolder/requestor.env" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
+  # Setup config file that requestor consumes
+  if [[ ! -f "$secretsFolder/requestor-config.yaml" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
     local secretsFolder="$(gen3_secrets_folder)/g3auto/requestor"
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then    
       if ! gen3 db setup requestor; then
@@ -32,12 +32,17 @@ setup_database() {
       return 1
     fi
   
-    cat - > "$secretsFolder/requestor.env" <<EOM
-DEBUG=0
-DB_HOST=$(jq -r .db_host < "$secretsFolder/dbcreds.json")
-DB_USER=$(jq -r .db_username < "$secretsFolder/dbcreds.json")
-DB_PASSWORD=$(jq -r .db_password < "$secretsFolder/dbcreds.json")
-DB_DATABASE=$(jq -r .db_database < "$secretsFolder/dbcreds.json")
+    cat - > "$secretsFolder/requestor-config.yaml" <<EOM
+# Server
+
+DEBUG: false
+
+# Database
+
+DB_HOST: $(jq -r .db_host < "$secretsFolder/dbcreds.json")
+DB_USER: $(jq -r .db_username < "$secretsFolder/dbcreds.json")
+DB_PASSWORD: $(jq -r .db_password < "$secretsFolder/dbcreds.json")
+DB_DATABASE: $(jq -r .db_database < "$secretsFolder/dbcreds.json")
 EOM
     # make it easy for nginx to get the Authorization header ...
     # echo -n "gateway:$password" | base64 > "$secretsFolder/base64Authz.txt"
