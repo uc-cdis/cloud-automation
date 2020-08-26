@@ -1,4 +1,3 @@
-
 - Setup roles and identity provider for our Grouper integration
 - Enable basic cloud trail
 - Enable EBS encryption by default
