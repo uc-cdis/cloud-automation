@@ -1,0 +1,26 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListSAMLProviders",
+                "iam:ListPolicies",
+                "iam:ListRolePolicies",
+                "iam:ListGroupPolicies",
+                "iam:ListGroupsForUser",
+                "iam:ListRoles",
+                "iam:ListRoleTags",
+                "iam:ListUsers",
+                "iam:ListGroups",
+                "iam:ListAccountAliases",
+                "iam:GetGroup",
+                "iam:GetRole",
+                "iam:ListAccountAliases",
+                "iam:GetAccountSummary"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
