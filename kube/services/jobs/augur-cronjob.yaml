@@ -32,7 +32,7 @@
             args:
               - "-c"
               - |
-                $ACCESS_TOKEN > /config/credential.json
+                $ACCESS_TOKEN > /gen3-augur/config/credential.json
                 result=0
                 gen3-augur.sh >> logs/run_pipeline.log
                 exit $result
