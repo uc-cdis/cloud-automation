@@ -9,6 +9,7 @@ node {
   List<String> selectedTests = []
   kubectlNamespace = null
   kubeLocks = []
+  testedEnv = "" // for manifest pipeline
   pipeConfig = pipelineHelper.setupConfig([:])
   pipelineHelper.cancelPreviousRunningBuilds()
   prLabels = githubHelper.fetchLabels()
