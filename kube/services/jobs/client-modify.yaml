@@ -1,0 +1,105 @@
+ 
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: all-client-modify
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+      - name: fence-yaml
+        configMap:
+          name: fence
+      - name: config-volume
+        secret:
+          secretName: "fence-config"
+      - name: fence-google-app-creds-secret-volume
+        secret:
+          secretName: "fence-google-app-creds-secret"
+      - name: fence-google-storage-creds-secret-volume
+        secret:
+          secretName: "fence-google-storage-creds-secret"
+      - name: fence-yaml
+        configMap:
+          name: fence
+      containers:
+      - name: fence
+        GEN3_FENCE_IMAGE
+        imagePullPolicy: Always
+        env:
+            - name: PYTHONPATH
+              value: /var/www/fence
+            - name: UNIQUE_BUCKET_NAME
+              GEN3_UNIQUE_BUCKET_NAME
+            - name: STORAGE_CLASS
+              GEN3_STORAGE_CLASS
+            - name: PUBLIC_BUCKET
+              GEN3_PUBLIC_BUCKET
+            - name: REQUESTER_PAYS
+              GEN3_REQUESTER_PAYS
+            - name: GOOGLE_PROJECT_ID
+              GEN3_GOOGLE_PROJECT_ID
+            - name: PROJECT_AUTH_ID
+              GEN3_PROJECT_AUTH_ID
+            - name: ACCESS_LOGS_BUCKET
+              GEN3_ACCESS_LOGS_BUCKET
+            - name: FENCE_PUBLIC_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-fence
+                  key: fence-config-public.yaml
+                  optional: true
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
+            subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
+          - name: "fence-yaml"
+            mountPath: "/var/www/fence/user.yaml"
+            subPath: user.yaml
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+
+            #need a way to grab all the clients. 
+            if [[ -z "$FIELD" ]]; then
+                echo Cannot update field. FIELD_NAME variable must be sepcified.
+                exit 1 # terminate and indicate error
+            fi
+            if [[ -z "$ADD" ]]; then
+                echo Cannot update field. ADD variable must be sepcified.
+                exit 1 # terminate and indicate error
+            fi
+
+            create_command="client-create --client $CLIENT_NAME --append"
+
+            if [[ -n "$FIELD_NAME" ]]; then
+                create_command+=" --$FIELD_NAME"
+            fi
+            if [[ -n "$ADD" ]]; then 
+                create_command+=" $ADD"
+            fi
+
+            fence-create ${create_command}
+
+            if [[ $? != 0 ]]; then
+                echo "WARNING: non zero exit code: $?"
+            fi
+
+      restartPolicy: Never
