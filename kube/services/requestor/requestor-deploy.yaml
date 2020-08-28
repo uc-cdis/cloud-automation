@@ -19,9 +19,9 @@ spec:
       labels:
         app: requestor
         release: production
+        dbrequestor: "yes"
+        # for revproxy authz
         public: "yes"
-        # for network policy
-        netnolimit: "yes" # TODO do i need this?
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -78,7 +78,7 @@ spec:
             memory: 512Mi
           limits:
             cpu: 0.8
-            memory: 512Mi
+            memory: 1024Mi
       initContainers:
         - name: requestor-db-migrate
           GEN3_REQUESTOR_IMAGE
