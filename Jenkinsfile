@@ -4,11 +4,14 @@
 library 'cdis-jenkins-lib@master'
 
 node {
-  List<String> namespaces = ['jenkins-blood', 'jenkins-brain', 'jenkins-niaid', 'jenkins-dcp', 'jenkins-genomel']
+  def AVAILABLE_NAMESPACES = ['jenkins-blood', 'jenkins-brain', 'jenkins-niaid', 'jenkins-dcp', 'jenkins-genomel']
+  List<String> namespaces = []
+  List<String> selectedTests = []
   kubectlNamespace = null
   kubeLocks = []
   pipeConfig = pipelineHelper.setupConfig([:])
   pipelineHelper.cancelPreviousRunningBuilds()
+  prLabels = githubHelper.fetchLabels()
 
   try {
     stage('CleanWorkspace') {
@@ -19,6 +22,53 @@ node {
     }
     stage('gen3 helper test suite') {
       sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
+    }
+    stage('CheckPRLabels') {
+      // giving a chance for auto-label gh actions to catch up
+      sleep(10)
+      for(label in prLabels) {
+        println(label['name']);
+        switch(label['name']) {
+          case ~/^test-.*/:
+            println('Select a specific test suite and feature')
+            selectedTestLabel = label['name'].split("-")
+            println "selected test: suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
+            selectedTest = "suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
+            selectedTests.add(selectedTest)
+            break
+          case "doc-only":
+            println('Skip tests if git diff matches expected criteria')
+            doNotRunTests = docOnlyHelper.checkTestSkippingCriteria()
+            break
+          case "debug":
+            println("Call npm test with --debug")
+            println("leverage CodecepJS feature require('codeceptjs').output.debug feature")
+            break
+          case "not-ready-for-ci":
+            currentBuild.result = 'ABORTED'
+            error('This PR is not ready for CI yet, aborting...')
+            break
+          case AVAILABLE_NAMESPACES:
+            println('found this namespace label! ' + label['name']);
+            namespaces.add(label['name'])
+            break
+          case "qaplanetv2":
+            println('This PR check will run in a qaplanetv2 environment! ');
+            namespaces.add('ci-env-1')
+            break
+          default:
+            println('no-effect label')
+            break
+        }
+      }
+      // If none of the jenkins envs. have been selected pick one at random
+      if (namespaces.size == 0) {
+        namespaces = AVAILABLE_NAMESPACES
+      }
+      // If a specific test suite is not specified, run them all
+      if (selectedTests.size == 0) {
+	  selectedTests.add("all")
+      }
     }
     stage('gen3 helper test suite with zsh') {
       sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome zsh cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
@@ -50,36 +100,61 @@ node {
       }
     }
     stage('WaitForQuayBuild') {
-      quayHelper.waitForBuild(
+      if(!doNotRunTests) {
+        quayHelper.waitForBuild(
           "awshelper",
           pipeConfig['currentBranchFormatted']
         )
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+      }
     }
     stage('SelectNamespace') {
-      (kubectlNamespace, lock) = kubeHelper.selectAndLockNamespace(pipeConfig['UID'], namespaces)
-      kubeLocks << lock
+     if(!doNotRunTests) {
+        (kubectlNamespace, lock) = kubeHelper.selectAndLockNamespace(pipeConfig['UID'], namespaces)
+        kubeLocks << lock
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+      }
     }
     stage('ModifyManifest') {
-      manifestHelper.editService(
-        kubeHelper.getHostname(kubectlNamespace),
-        "awshelper",
-        pipeConfig.serviceTesting.branch
-      )
+      if(!doNotRunTests) {
+        manifestHelper.editService(
+          kubeHelper.getHostname(kubectlNamespace),
+          "awshelper",
+          pipeConfig.serviceTesting.branch
+        )
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+      }
     }
     
     stage('K8sReset') {
+      if(!doNotRunTests) {
         // adding the reset-lock lock in case reset fails before unlocking
         kubeLocks << kubeHelper.newKubeLock(kubectlNamespace, "gen3-reset", "reset-lock")
         kubeHelper.reset(kubectlNamespace)
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
       }
-      stage('VerifyClusterHealth') {
+    }
+    stage('VerifyClusterHealth') {
+      if(!doNotRunTests) {
         kubeHelper.waitForPods(kubectlNamespace)
         testHelper.checkPodHealth(kubectlNamespace, "")
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
       }
-      stage('GenerateData') {
+    }
+    stage('GenerateData') {
+      if(!doNotRunTests) {    
         testHelper.simulateData(kubectlNamespace)
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
       }
-      stage('FetchDataClient') {
+    }
+    stage('FetchDataClient') {
+      if(!doNotRunTests) {
         // we get the data client from master, unless the service being
         // tested is the data client itself, in which case we get the
         // executable for the current branch
@@ -88,25 +163,41 @@ node {
           dataCliBranch = env.CHANGE_BRANCH
         }
         testHelper.fetchDataClient(dataCliBranch)
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
       }
-      stage('RunTests') {
+    }
+    stage('RunTests') {
+      if(!doNotRunTests) {
         testHelper.runIntegrationTests(
-          kubectlNamespace,
-          pipeConfig.serviceTesting.name,
-          "",
-          "true"
+            kubectlNamespace,
+            pipeConfig.serviceTesting.name,
+            testedEnv,
+            "true",
+            selectedTests
         )
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
       }
-      stage('CleanS3') {
+    }
+    stage('CleanS3') {
+      if(!doNotRunTests) {    
         testHelper.cleanS3()
-      }
-      stage('authzTest') {
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+      }    
+    }
+    stage('authzTest') {
+      if(!doNotRunTests) {
         // test revproxy+arborist /gen3-authz stuff
         kubeHelper.kube(kubectlNamespace, {
           sh('bash cloud-automation/gen3/bin/testsuite.sh --filter authz');
         });
-      }
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+      }   
     }
+  }
   catch (e) {
     pipelineHelper.handleError(e)
   }
