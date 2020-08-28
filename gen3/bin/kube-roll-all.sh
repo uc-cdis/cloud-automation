@@ -184,6 +184,12 @@ else
   gen3_log_info "not deploying sower - no manifest entry for .versions.sower"
 fi
 
+if g3k_manifest_lookup .versions.requestor 2> /dev/null; then
+  gen3 kube-setup-requestor
+else
+  gen3_log_info "not deploying requestor - no manifest entry for .versions.requestor"
+fi
+
 gen3 kube-setup-metadata
 
 gen3 kube-setup-revproxy
