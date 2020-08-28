@@ -22,6 +22,8 @@ spec:
         dbrequestor: "yes"
         # for revproxy authz
         public: "yes"
+        # for network policy
+        netnolimit: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
