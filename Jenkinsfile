@@ -6,7 +6,7 @@ library 'cdis-jenkins-lib@master'
 node {
   def AVAILABLE_NAMESPACES = ['jenkins-blood', 'jenkins-brain', 'jenkins-niaid', 'jenkins-dcp', 'jenkins-genomel']
   List<String> namespaces = []
-  List<String> selectedTests = []
+  List<String> listOfSelectedTests = []
   kubectlNamespace = null
   kubeLocks = []
   testedEnv = "" // for manifest pipeline
@@ -35,7 +35,7 @@ node {
             selectedTestLabel = label['name'].split("-")
             println "selected test: suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
             selectedTest = "suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
-            selectedTests.add(selectedTest)
+            listOfSelectedTests.add(selectedTest)
             break
           case "doc-only":
             println('Skip tests if git diff matches expected criteria')
@@ -67,8 +67,8 @@ node {
         namespaces = AVAILABLE_NAMESPACES
       }
       // If a specific test suite is not specified, run them all
-      if (selectedTests.length == 0) {
-	  selectedTests.add("all")
+      if (listOfSelectedTests.size == 0) {
+	  listOfSelectedTests.add("all")
       }
     }
     stage('gen3 helper test suite with zsh') {
@@ -175,7 +175,7 @@ node {
             pipeConfig.serviceTesting.name,
             testedEnv,
             "true",
-            selectedTests
+            listOfSelectedTests
         )
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
