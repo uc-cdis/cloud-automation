@@ -63,11 +63,11 @@ node {
         }
       }
       // If none of the jenkins envs. have been selected pick one at random
-      if (namespaces.size == 0) {
+      if (namespaces.length == 0) {
         namespaces = AVAILABLE_NAMESPACES
       }
       // If a specific test suite is not specified, run them all
-      if (selectedTests.size == 0) {
+      if (selectedTests.length == 0) {
 	  selectedTests.add("all")
       }
     }
