@@ -276,6 +276,6 @@ function gen3_workspace_authorize_handler(req) {
     req.return(302, location);
   } else {
     req.headersOut["Content-Type"] = "application/json"
-    req.return(400, '{ "status": "redirect failed validation ' + req.uri + '" }');
+    req.return(400, '{ "status": "redirect failed validation" }');
   }
 }
