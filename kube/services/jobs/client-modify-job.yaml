@@ -109,9 +109,7 @@ spec:
 
             echo Starting to collect client list      
             
-            $LIST = fence-create client-list
-
-            echo $LIST
+            fence-create client-list
 
             echo {$FIELD_NAME}
 
