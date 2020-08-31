@@ -1,4 +1,6 @@
- 
+# Modify the fence client table. Currently use only for appending new urls or allowed-scopes.
+# FIELD_NAME options: "allowed-scopes", "urls"
+# ex: gen3 job run client-modify FIELD_NAME "allowed-scopes" ADD "new_scopes"
 apiVersion: batch/v1
 kind: Job
 metadata:
