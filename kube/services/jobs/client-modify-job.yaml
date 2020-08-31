@@ -50,7 +50,9 @@ spec:
             - name: PYTHONPATH
               value: /var/www/fence
             - name: FIELD_NAME
+              GEN3_FIELD_NAME
             - name: ADD
+              GEN3_ADD
             - name: FENCE_PUBLIC_CONFIG
               valueFrom:
                 configMapKeyRef:
@@ -102,16 +104,19 @@ spec:
         args:
           - "-c"
           - |
-            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"         
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
 
             #need a way to grab all the clients. 
 
-            echo Starting to collect client list      
-            
-            fence-create client-list
+            echo Starting to collect client list     
 
-            echo {$FIELD_NAME}
+            CLIENT_LIST=$(fence-create client-list | grep "'name'")
+            CLIENT_LIST=${CLIENT_LIST//"'name': "/}
+            CLIENT_LIST=${CLIENT_LIST//"'"/}
+            CLIENT_LIST=${CLIENT_LIST//","/}
+            CLIENT_LIST=($(echo $CLIENT_LIST | tr " "))
 
             if [[ -z "$FIELD_NAME" ]]; then
                 echo Cannot update field. FIELD_NAME variable must be sepcified.
@@ -122,7 +127,7 @@ spec:
                 exit 1 # terminate and indicate error
             fi
 
-            create_command="client-create --client $CLIENT_NAME --append"
+            create_command="fence-create client-modify --append"
 
             if [[ -n "$FIELD_NAME" ]]; then
                 create_command+=" --$FIELD_NAME"
@@ -131,9 +136,10 @@ spec:
                 create_command+=" $ADD"
             fi
 
-            echo create_command ${create_command}
-
-            #            fence-create ${create_command}
+            for index in "${!CLIENT_LIST[@]}"
+            do
+                $create_command --client ${CLIENT_LIST[index]}
+            done
 
             if [[ $? != 0 ]]; then
                 echo "WARNING: non zero exit code: $?"
