@@ -165,12 +165,39 @@ EOM
       sudo ln -s /usr/local/bin/aws-iam-authenticator heptio-authenticator-aws
     )
   fi
-  if ! which helm > /dev/null 2>&1; then
-    helm_release_URL="https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz"
-    curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
-    tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
-    sudo mv "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
-  fi
+  ( # in a subshell install helm
+    install_helm() {
+      helm_release_URL="https://get.helm.sh/helm-v3.3.0-linux-amd64.tar.gz"
+      curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
+      tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
+      sudo mv -f "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
+
+      # helm3 has no default repo, need to add it manually
+      helm repo add stable https://kubernetes-charts.storage.googleapis.com
+      helm repo update
+    }
+
+    migrate_helm() {
+      if ! helm plugin list | grep 2to3 > /dev/null 2>&1; then
+        helm plugin install https://github.com/helm/helm-2to3.git
+      fi
+      helm 2to3 convert grafana
+      helm 2to3 convert prometheus
+      
+      # delete tiller and other helm2 data/configs
+      helm 2to3 cleanup --skip-confirmation
+    }
+
+    if ! which helm > /dev/null 2>&1; then
+      install_helm
+    else 
+      # Overwrite helm2 with helm3
+      if ! helm version --short | grep v3 > /dev/null 2>&1; then
+        install_helm
+        migrate_helm
+      fi
+    fi
+  )
 
   # install "update and reboot" cron job
   sudo cp "${GEN3_HOME}/files/scripts/updateAndRebootCron" /etc/cron.d/

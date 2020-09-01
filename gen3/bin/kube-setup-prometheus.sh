@@ -16,14 +16,12 @@ fi
 
 function delete_prometheus()
 {
-  gen3 arun helm delete prometheus
-  gen3 arun helm del --purge prometheus
+  gen3 arun helm delete prometheus --namespace prometheus
 }
 
 function delete_grafana()
 {
-  gen3 arun helm delete grafana
-  gen3 arun helm del --purge grafana
+  gen3 arun helm delete grafana --namespace grafana
 }
 
 function create_grafana_secrets()
@@ -59,14 +57,10 @@ function deploy_prometheus()
     then
       delete_prometheus
     fi
-    # We need to give helm permission to do certain stuff for us, including some admin access so we can deploy prometheus
-    g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/helm-rbac.yaml"
-
-    # now prometheus
     if ! g3kubectl get storageclass prometheus > /dev/null 2>&1; then
       g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/prometheus-storageclass.yaml"
     fi
-    gen3 arun helm install  stable/prometheus --name prometheus --namespace prometheus -f "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" 
+    gen3 arun helm upgrade --sinstall prometheus stable/prometheus --namespace prometheus -f "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" 
   else
     gen3_log_info "Prometheus is already installed, use --force to try redeploying"
   fi
@@ -95,10 +89,8 @@ function deploy_grafana()
     
     local HOSTNAME
     HOSTNAME=$(gen3 api hostname)
-    #sed "s/DOMAIN/${HOSTNAME}/" "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" |  gen3 arun helm install  stable/grafana --name grafana --namespace grafana -f -
-    g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm install  stable/grafana --name grafana --namespace grafana -f -
-    #gen3 arun helm install -f "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" stable/grafana --name grafana --namespace grafana
-    #gen3 arun helm install -f "${TMPGRAFANAVALUES}" stable/grafana --name grafana --namespace grafana
+    
+    g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm install grafana stable/grafana  --namespace grafana -f -
     gen3 kube-setup-revproxy
   else
     echo "Grafana is already installed, use --force to try redeploying"
