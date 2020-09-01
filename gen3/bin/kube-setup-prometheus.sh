@@ -60,7 +60,7 @@ function deploy_prometheus()
     if ! g3kubectl get storageclass prometheus > /dev/null 2>&1; then
       g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/prometheus-storageclass.yaml"
     fi
-    gen3 arun helm upgrade --sinstall prometheus stable/prometheus --namespace prometheus -f "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" 
+    gen3 arun helm upgrade --install prometheus stable/prometheus --namespace prometheus -f "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" 
   else
     gen3_log_info "Prometheus is already installed, use --force to try redeploying"
   fi
@@ -90,7 +90,7 @@ function deploy_grafana()
     local HOSTNAME
     HOSTNAME=$(gen3 api hostname)
     
-    g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm install grafana stable/grafana  --namespace grafana -f -
+    g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm upgrade --install grafana stable/grafana  --namespace grafana -f -
     gen3 kube-setup-revproxy
   else
     echo "Grafana is already installed, use --force to try redeploying"
