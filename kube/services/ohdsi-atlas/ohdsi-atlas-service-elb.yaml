@@ -1,0 +1,18 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ohdsi-atlas-service-elb
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: see-kube-setup-ohdsi-atlas
+    service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: "ELBSecurityPolicy-TLS-1-2-2017-01"
+spec:
+  selector:
+    app: ohdsi-atlas
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 80
+      name: https
+  type: LoadBalancer
