@@ -569,7 +569,7 @@ gen3_db_encrypt() {
   local account=$1
   local profile=$2
   if [[ -z $3 ]]; then
-    local dumpDir='.'
+    local dumpDir=$WORKSPACE
   else
     local dumpDir=$3
   fi
@@ -628,6 +628,8 @@ gen3_db_encrypt() {
   g3kubectl delete cronjob gitops-sync
   mv "$(gen3_secrets_folder)"/g3auto/arborist "$(gen3_secrets_folder)"/g3auto/arb-backup
   mv "$(gen3_secrets_folder)"/g3auto/metadata "$(gen3_secrets_folder)"/g3auto/mtdta-backup
+  mv "$(gen3_secrets_folder)"/g3auto/wts "$(gen3_secrets_folder)"/g3auto/wts-backup
+  mv "$(gen3_secrets_folder)"/g3auto/requestor "$(gen3_secrets_folder)"/g3auto/requestor-backup
   gen3 kube-setup-secrets
   if [[ -d "$(gen3_secrets_folder)"/g3auto/arb-backup ]]; then
     g3kubectl delete secret arborist-g3auto
@@ -651,12 +653,12 @@ gen3_db_encrypt() {
   gen3_log_info "restoring fence db"
   gen3_db_reset "fence"
   gen3 psql fence  <  $dumpDir/fence-backup.sql
-  gen3_log_info "restoring sheepdogd db"
+  gen3_log_info "restoring sheepdog db"
   gen3_db_reset "sheepdog"
   gen3 psql gdcapi  < $dumpDir/gdcapidb-backup.sql
   gen3_log_info "restoring arborist db"
   gen3_db_reset "arborist"
-  gen3 psql arborist  < /$dumpDir/arborist-backup.sql
+  gen3 psql arborist  < $dumpDir/arborist-backup.sql
   gen3_log_info "restoring metadata db"
   gen3_db_reset "metadata"
   gen3 psql metadata  < $dumpDir/metadata-backup.sql
