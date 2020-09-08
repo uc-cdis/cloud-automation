@@ -14,6 +14,16 @@
 
 # Based on https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html
 
+kubeproxy=${kubeproxy:-1.15.11}
+coredns=${coredns:-1.6.6}
+cni=${cni:-1.6}
+while [ $# -gt 0 ]; do
+   if [[ $1 == *"--"* ]]; then
+        param="${1/--/}"
+        declare $param="$2"
+   fi
+  shift
+done
 
 if ! [[ -d "$HOME/cloud-automation" ]]; then
   echo "ERROR: this does not look like a commons environment"
@@ -22,8 +32,8 @@ fi
 
 export vpc_name="$(grep 'vpc_name=' $HOME/.bashrc |cut -d\' -f2)"
 export GEN3_HOME="$HOME/cloud-automation"
-export KUBECONFIG="$HOME/${vpc_name}/kubeconfig"
-PATH="${PATH}:/usr/local/bin"
+#export KUBECONFIG="$HOME/${vpc_name}/kubeconfig"
+#PATH="${PATH}:/usr/local/bin"
 
 
 if [[ -z "$XDG_DATA_HOME" ]]; then
@@ -40,13 +50,13 @@ fi
 source "${GEN3_HOME}/gen3/gen3setup.sh"
 #gen3 gitops tfplan $@
 
-kube_proxy_version="1.14.7"
-kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kube_proxy_version}"
 
-coredns_version="1.3.1"
-coredns_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/coredns:v${coredns_version}"
+kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kubeproxy}"
 
-cni_image="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-1.5/config/v1.5/aws-k8s-cni.yaml"
+
+coredns_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/coredns:v${coredns}"
+
+cni_image="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-${cni}/config/v${cni}/aws-k8s-cni.yaml"
 
 
 g3kubectl set image daemonset.apps/kube-proxy -n kube-system kube-proxy=${kube_proxy_image}
