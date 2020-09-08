@@ -628,6 +628,8 @@ gen3_db_encrypt() {
   g3kubectl delete cronjob gitops-sync
   mv "$(gen3_secrets_folder)"/g3auto/arborist "$(gen3_secrets_folder)"/g3auto/arb-backup
   mv "$(gen3_secrets_folder)"/g3auto/metadata "$(gen3_secrets_folder)"/g3auto/mtdta-backup
+  mv "$(gen3_secrets_folder)"/g3auto/wts "$(gen3_secrets_folder)"/g3auto/wts-backup
+  mv "$(gen3_secrets_folder)"/g3auto/requestor "$(gen3_secrets_folder)"/g3auto/requestor-backup
   gen3 kube-setup-secrets
   if [[ -d "$(gen3_secrets_folder)"/g3auto/arb-backup ]]; then
     g3kubectl delete secret arborist-g3auto
