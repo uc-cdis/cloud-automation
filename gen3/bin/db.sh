@@ -658,7 +658,7 @@ gen3_db_encrypt() {
   gen3 psql gdcapi  < $dumpDir/gdcapidb-backup.sql
   gen3_log_info "restoring arborist db"
   gen3_db_reset "arborist"
-  gen3 psql arborist  < /$dumpDir/arborist-backup.sql
+  gen3 psql arborist  < $dumpDir/arborist-backup.sql
   gen3_log_info "restoring metadata db"
   gen3_db_reset "metadata"
   gen3 psql metadata  < $dumpDir/metadata-backup.sql
