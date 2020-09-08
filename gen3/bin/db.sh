@@ -653,7 +653,7 @@ gen3_db_encrypt() {
   gen3_log_info "restoring fence db"
   gen3_db_reset "fence"
   gen3 psql fence  <  $dumpDir/fence-backup.sql
-  gen3_log_info "restoring sheepdogd db"
+  gen3_log_info "restoring sheepdog db"
   gen3_db_reset "sheepdog"
   gen3 psql gdcapi  < $dumpDir/gdcapidb-backup.sql
   gen3_log_info "restoring arborist db"
