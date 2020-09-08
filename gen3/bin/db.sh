@@ -569,7 +569,7 @@ gen3_db_encrypt() {
   local account=$1
   local profile=$2
   if [[ -z $3 ]]; then
-    local dumpDir='.'
+    local dumpDir=$WORKSPACE
   else
     local dumpDir=$3
   fi

@@ -25,7 +25,7 @@ resource "aws_db_instance" "db_fence" {
   backup_window               = "${var.fence_backup_window}"
   multi_az                    = "${var.fence_ha}"
   auto_minor_version_upgrade  = "${var.fence_auto_minor_version_upgrade}"
-
+  storage_encrypted           = "${var.rds_instance_storage_encrypted}"
   tags {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
@@ -58,7 +58,7 @@ resource "aws_db_instance" "db_gdcapi" {
   backup_window               = "${var.sheepdog_backup_window}"
   multi_az                    = "${var.sheepdog_ha}"
   auto_minor_version_upgrade  = "${var.sheepdog_auto_minor_version_upgrade}"
-
+  storage_encrypted           = "${var.rds_instance_storage_encrypted}"
   tags {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
