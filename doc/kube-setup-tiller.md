@@ -1,3 +1,3 @@
 # TL;DR
 
-devops only - deploy the k8s tiller backend to support helm
+devops only - Removes the k8s tiller backend for helm2 and migrates releases from helm2 to helm3
