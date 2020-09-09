@@ -10,7 +10,7 @@ default["adminvm"]["pythonPackages"] = ["awscli", "jinja2", "yq"]
 
 default["adminvm"]["aptRepos"] = {
   "cloud-sdk-bionic": {
-    "repo": "https://packages.cloud.google.com/apt/", 
+    "repo": "http://packages.cloud.google.com/apt/", 
     "keyserver": "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
   },
   "bionic-pgdg": {

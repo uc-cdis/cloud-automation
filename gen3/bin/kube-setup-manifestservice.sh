@@ -33,7 +33,8 @@ then
   "manifest_bucket_name": "$bucketname",
   "hostname": "$hostname",
   "aws_access_key_id": "$key_id",
-  "aws_secret_access_key": "$access_key"
+  "aws_secret_access_key": "$access_key",
+  "prefix": "$hostname"
 }
 EOM
   gen3 secrets sync "initialize manifestservice/config.json"

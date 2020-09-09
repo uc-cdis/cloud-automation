@@ -1,6 +1,15 @@
 
 // shared functions
 
+/**
+ * Map the given asynchronous function over the given list
+ * synchronously, so that each element of the list is processed
+ * after the lambda for the previous elements has resolved
+ * 
+ * @param {[I]} list 
+ * @param {I => T} lambda 
+ * @param {Promise<T>} result 
+ */
 export function amap(list, lambda, result=[]) {
   if (list.length > 0) {
     return lambda(list[0]).then(
@@ -14,6 +23,15 @@ export function amap(list, lambda, result=[]) {
   }
 }
 
+/**
+ * Construct list of numbers (start, end] by step -
+ * including start, not including end
+ * 
+ * @param {number} start 
+ * @param {number} end 
+ * @param {number} step
+ * @return {[number]} 
+ */
 export function range(start, end, step=1) {
   const result = [];
   if (end > start && step > 0 || end < start && step < 0) {
@@ -25,20 +43,38 @@ export function range(start, end, step=1) {
 }
 
 /**
- * Assemble the paths to fetch to get the data for the last 5 days
- * Checks sessionStorage.gen3Now to trigger sample data date range - see ../README.md
+ * Date to %Y/%m/%d string
+ * @param {Date} dt
+ * @param {string} joinToken defaults to '/'
+ * @return year/month/day string - / is from join token
+ */
+export function simpleDateFormat(dt, joinToken='/') {
+  return [ dt.getUTCFullYear(), pad2(dt.getUTCMonth()+1), pad2(dt.getUTCDate())].join(joinToken);
+}
+
+/**
+ * Assemble the paths to fetch to get the data for the given date range
  * 
  * @param prefix
+ * @param {number|array} dateRange if a number indicates number of days back from now,
+ *              otherwise should be an array of date strings in "year/month/day" format
  * @return [pathDateList]
  */
-function basicBuildPathList(prefix, num=5) {
-  const now = +(sessionStorage.getItem('gen3Now') || Date.now());
-  return range(1, num+1).map(
-    function(it) {
-      const dt = new Date(now - it*24*60*60*1000);
+export function basicBuildPathList(prefix, dateRange=5) {
+  const dateList = (function() {
+    if (typeof dateRange === 'object') {
+      return dateRange.map(it => new Date(it));
+    } else {
+      const num = dateRange;
+      const now = +(sessionStorage.getItem('gen3Now') || Date.now());
+      return range(1, num+1).map(it => new Date(now - it*24*60*60*1000));
+    }
+  })();
+  return dateList.map(
+    (dt) => {
       const part1 = `${dt.getUTCFullYear()}/${pad2(dt.getUTCMonth()+1)}/`;
-      const part3 = `-${dt.getUTCFullYear()}${pad2(dt.getUTCMonth()+1)}${pad2(dt.getUTCDate())}.json`
-      return { path:`${part1}${prefix}${part3}`, date: dt};
+      const part3 = `-${simpleDateFormat(dt, '')}.json`
+      return { path:`${part1}${prefix}${part3}`, date: dt };
     }
   );
 }
@@ -48,7 +84,7 @@ function basicBuildPathList(prefix, num=5) {
  * @param {number} num
  * @return str possibly with leading 0 
  */
-function pad2(num) {
+export function pad2(num) {
   const str = "" + num;
   if (str.length > 1) {
     return str;
@@ -166,9 +202,13 @@ function numCompare(aIn,bIn) {
 Handler interface {
 
    *
-   * Build the list of paths and dates to fetch for data for the last 5 days
+   * Build the list of paths and dates to fetch for data for the given date range
    * 
-   buildPathDateList()
+   * @param {number|array} dateRange if a number indicates number of days back from now,
+   *              otherwise should be an array of date strings in "year/month/day" format
+   * @return [pathDateList]
+   * 
+  buildPathDateList(dateRange)
 
    *
    * Helper to massage fetchData result into list of lists 
@@ -196,8 +236,8 @@ class UniqueUsersHandler {
   constructor() {
   }
 
-  buildPathDateList() {
-    return basicBuildPathList("users");
+  buildPathDateList(dateRange) {
+    return basicBuildPathList("users", dateRange);
   }
 
   fetchData(pathDateList) {
@@ -246,12 +286,12 @@ export class RCodesHandler {
     this.service = service || "all";
   }
 
-  buildPathDateList() {
+  buildPathDateList(dateRange) {
     let prefix = `codes-${this.service}`;
     if (this.service === 'all') {
       prefix = 'codes';
     }
-    return basicBuildPathList(prefix);
+    return basicBuildPathList(prefix, dateRange);
   }
 
   fetchData(pathDateList) {
@@ -285,12 +325,12 @@ export class RTimesHandler {
     this.service = service || "all";
   }
 
-  buildPathDateList() {
+  buildPathDateList(dateRange) {
     let prefix = `rtimes-${this.service}`;
     if (this.service === 'all') {
       prefix = 'rtimes';
     }
-    return basicBuildPathList(prefix);
+    return basicBuildPathList(prefix, dateRange);
   }
  
   fetchData(pathDateList) {
@@ -385,14 +425,14 @@ const reportHandlers = {
 };
 
 
-export function fetchRecentData(reportType, reportGroup='all') {
+export function fetchRecentData(reportType, reportGroup='all', dateRange=10) {
   if (! (reportHandlers[reportType] && reportHandlers[reportType][reportGroup])) {
     const message = `ERROR: invalid report ${reportType}/${reportGroup}`;
     console.log(message);
     return [[message]];
   }
   const handler = reportHandlers[reportType][reportGroup];
-  return handler.fetchData(handler.buildPathDateList()
+  return handler.fetchData(handler.buildPathDateList(dateRange)
     ).then(
       (data) => {
         const result = handler.massageData(data);
