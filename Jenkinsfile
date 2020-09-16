@@ -7,6 +7,7 @@ node {
   def AVAILABLE_NAMESPACES = ['jenkins-blood', 'jenkins-brain', 'jenkins-niaid', 'jenkins-dcp', 'jenkins-genomel']
   List<String> namespaces = []
   List<String> listOfSelectedTests = []
+  doNotRunTests = false
   kubectlNamespace = null
   kubeLocks = []
   testedEnv = "" // for manifest pipeline
@@ -72,32 +73,52 @@ node {
       }
     }
     stage('gen3 helper test suite with zsh') {
-      sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome zsh cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
+      if(!doNotRunTests) {
+        sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome zsh cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+      }
     }
 
     stage('pytest') {
-      sh 'pip3 install boto3 --upgrade'
-      sh 'pip3 install kubernetes --upgrade'
-      sh 'python -m pytest cloud-automation/apis_configs/'
-      sh 'python -m pytest cloud-automation/gen3/lib/dcf/'
-      sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
-      sh 'cd cloud-automation/files/lambda && python3 -m pytest test-security_alerts.py'
-      sh 'cd cloud-automation/kube/services/jupyterhub && python3 -m pytest test-jupyterhub_config.py'
-      sh 'bash cloud-automation/files/scripts/es-secgroup-sync.sh test'
+      if(!doNotRunTests) {
+        sh 'pip3 install boto3 --upgrade'
+        sh 'pip3 install kubernetes --upgrade'
+        sh 'python -m pytest cloud-automation/apis_configs/'
+        sh 'python -m pytest cloud-automation/gen3/lib/dcf/'
+        sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
+        sh 'cd cloud-automation/files/lambda && python3 -m pytest test-security_alerts.py'
+        sh 'cd cloud-automation/kube/services/jupyterhub && python3 -m pytest test-jupyterhub_config.py'
+        sh 'bash cloud-automation/files/scripts/es-secgroup-sync.sh test'
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+      }
     }
     stage('nginx helper test suite') {
-      dir('cloud-automation/kube/services/revproxy') {
-        sh 'npx jasmine helpersTest.js'
+      if(!doNotRunTests) {
+        dir('cloud-automation/kube/services/revproxy') {
+          sh 'npx jasmine helpersTest.js'
+        }
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
       }
     }
     stage('python 2 base image dockerrun.sh test') {
-      dir('cloud-automation/Docker/python-nginx/python2.7-alpine3.7') {
-        sh 'sh dockerrun.sh --dryrun=True'
+      if(!doNotRunTests) {
+        dir('cloud-automation/Docker/python-nginx/python2.7-alpine3.7') {
+          sh 'sh dockerrun.sh --dryrun=True'
+        }
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
       }
     }
     stage('python 3 base image dockerrun.sh test') {
-      dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
-        sh 'sh dockerrun.sh --dryrun=True'
+      if(!doNotRunTests) {
+        dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
+          sh 'sh dockerrun.sh --dryrun=True'
+        }
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
       }
     }
     stage('WaitForQuayBuild') {
