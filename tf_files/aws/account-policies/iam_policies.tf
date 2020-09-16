@@ -57,10 +57,10 @@ locals  {
 }
 
 resource "aws_iam_policy" "policy" {
-  for_each = fileset("custom_iam_policies", "*")
+  for_each = fileset("${path.module}/custom_iam_policies", "*")
   name        =  split(".", each.value)[0]
   path        = "/"
-  policy = file("custom_iam_policies/${each.value}")
+  policy = file("${path.module}/custom_iam_policies/${each.value}")
 }
 
 

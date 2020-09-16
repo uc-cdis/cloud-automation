@@ -50,6 +50,7 @@ setup_dashboard_service() {
     local environment
     if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
       gen3_log_err "could not determine account numer"
+      return 1
     fi
     if ! environment="$(g3kubectl get configmap manifest-global -o json | jq -r .data.environment)"; then
       gen3_log_err "could not determine environment from manifest-global - bailing out of dashboard setup"

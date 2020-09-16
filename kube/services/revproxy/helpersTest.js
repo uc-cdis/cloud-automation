@@ -1,6 +1,7 @@
 /**
- * Tests for the nginx javascript helper:
- * gen3 testsuite --filter revproxy
+ * Tests for the nginx javascript helper
+ * Run with:
+ *     gen3 testsuite --filter revproxy
  */
 
 // Hacky way of getting our functions into node.js scripts
@@ -212,5 +213,43 @@ describe("Nginx helper function", function() {
     );
     const testStr="frickjack";
     expect(isOnBlackList(testStr, blackList)).toBe(false, `${testStr} is not on black list ${blackList}`);
-  })
+  });
+
+  function ReqMock(query) {
+    return Object.assign(this, {
+      uri: "/workspace-authorize/",
+      variables: {
+        host: "workspace.planx-pla.net",
+        args: query
+      },
+      headersOut: {},
+      returnArgs: [],
+      "return": function(code, content) {
+        this.returnArgs.push({code, content});
+      }
+    });
+  }
+
+  it("can handle a valid wts authorize redirect", function() {
+    const goodReq = new ReqMock("code=whateer&state=frick123-bla&bla");
+    gen3_workspace_authorize_handler(goodReq);
+    expect(goodReq.returnArgs.length).toBe(1);
+    expect(goodReq.returnArgs[0].code).toBe(302);
+    expect(goodReq.returnArgs[0].content).toBe("https://frick123.workspace.planx-pla.net/wts/oauth2/authorize?code=whateer&state=frick123-bla&bla");
+  });
+
+  it("can handle invalid wts authorize redirects", function() {
+    [
+      "code=whateer&state=frick123.bad-bla&bla",
+      "code=whateer&state=bla&bla"
+    ].forEach(
+      (badUri) => {
+        const badReq = new ReqMock(badUri);
+        gen3_workspace_authorize_handler(badReq);
+        expect(badReq.returnArgs.length).toBe(1);
+        expect(badReq.returnArgs[0].code).toBe(400);
+      }
+    );
+  });
+
 });

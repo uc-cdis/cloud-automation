@@ -17,6 +17,7 @@
     "peregrine": "quay.io/cdis/peregrine:2020.03",
     "pidgin": "quay.io/cdis/pidgin:2020.03",
     "portal": "quay.io/cdis/data-portal:2020.03",
+    "requestor": "quay.io/cdis/requestor:master",
     "revproxy": "quay.io/cdis/nginx:1.17.6-ctds-1.0.1",
     "sheepdog": "quay.io/cdis/sheepdog:2020.03",
     "sower": "quay.io/cdis/sower:2020.03",
