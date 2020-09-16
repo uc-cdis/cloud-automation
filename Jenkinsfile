@@ -22,6 +22,7 @@ node {
       gitHelper.fetchAllRepos(pipeConfig['currentRepoName'])
     }
     stage('gen3 helper test suite') {
+      println('meh')
       sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
     }
     stage('CheckPRLabels') {
