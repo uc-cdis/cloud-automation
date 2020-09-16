@@ -62,12 +62,12 @@ setup_mariner_service() {
 
   if ! gen3 awsrole info "$roleName" > /dev/null; then # setup role
     gen3 awsrole create "$roleName" "$saName" || return 1
-    gen3 s3 attach-bucket-policy "$bucketName" --read-only --role-name "${roleName}"
+    gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${roleName}"
   fi
   if ! aws iam get-user --user-name "$userName" > /dev/null 2>&1; then
     # TODO - transition mariner to use the SA-linked role
     gen3 awsuser create "$userName" || return 1
-    gen3 s3 attach-bucket-policy "$bucketName" --read-only --user-name "${userName}"
+    gen3 s3 attach-bucket-policy "$bucketName" --read-write --user-name "${userName}"
     cp "$(gen3_secrets_folder)/g3auto/${userName}/awsusercreds.json" "$secretsFolder/"
   fi
   gen3 secrets sync 'chore(mariner): setup secrets'
