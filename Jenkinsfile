@@ -64,7 +64,8 @@ node {
         }
       }
       // If none of the jenkins envs. have been selected pick one at random
-      if (namespaces.length == 0) {
+      if (namespaces.isEmpty()) {
+        println('populating namespaces with list of available namespaces...')
         namespaces = AVAILABLE_NAMESPACES
       }
       // If a specific test suite is not specified, run them all
