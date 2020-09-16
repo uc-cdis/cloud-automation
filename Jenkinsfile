@@ -23,7 +23,7 @@ node {
     }
     stage('gen3 helper test suite') {
       println('meh')
-      sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
+      //sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
     }
     stage('CheckPRLabels') {
       // giving a chance for auto-label gh actions to catch up
