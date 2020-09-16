@@ -26,7 +26,7 @@ node {
     }
     stage('CheckPRLabels') {
       // giving a chance for auto-label gh actions to catch up
-      sleep(10)
+      // sleep(10)
       for(label in prLabels) {
         println(label['name']);
         switch(label['name']) {
@@ -66,6 +66,7 @@ node {
       if (namespaces.length == 0) {
         namespaces = AVAILABLE_NAMESPACES
       }
+      println(listOfSelectedTests)
       // If a specific test suite is not specified, run them all
       if (listOfSelectedTests.size == 0) {
 	  listOfSelectedTests.add("all")
