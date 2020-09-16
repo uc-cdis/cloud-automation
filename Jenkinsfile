@@ -37,6 +37,8 @@ node {
             println "selected test: suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
             selectedTest = "suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
             listOfSelectedTests.add(selectedTest)
+            println(listOfSelectedTests.getClass())
+            println(listOfSelectedTests.metaClass.respondsTo(listOfSelectedTests, "size"))
             break
           case "doc-only":
             println('Skip tests if git diff matches expected criteria')
