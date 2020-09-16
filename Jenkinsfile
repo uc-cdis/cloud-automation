@@ -22,8 +22,7 @@ node {
       gitHelper.fetchAllRepos(pipeConfig['currentRepoName'])
     }
     stage('gen3 helper test suite') {
-      println('meh')
-      //sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
+      sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
     }
     stage('CheckPRLabels') {
       // giving a chance for auto-label gh actions to catch up
@@ -37,7 +36,6 @@ node {
             println "selected test: suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
             selectedTest = "suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
             listOfSelectedTests.add(selectedTest)
-            println(listOfSelectedTests.getClass())
             break
           case "doc-only":
             println('Skip tests if git diff matches expected criteria')
@@ -68,9 +66,6 @@ node {
       if (namespaces.length == 0) {
         namespaces = AVAILABLE_NAMESPACES
       }
-      println(listOfSelectedTests.getClass())
-      println(listOfSelectedTests)
-      println(listOfSelectedTests.isEmpty())
       // If a specific test suite is not specified, run them all
       if (listOfSelectedTests.isEmpty()) {
 	  listOfSelectedTests.add("all")
