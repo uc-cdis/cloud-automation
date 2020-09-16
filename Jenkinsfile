@@ -38,7 +38,6 @@ node {
             selectedTest = "suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
             listOfSelectedTests.add(selectedTest)
             println(listOfSelectedTests.getClass())
-            println(listOfSelectedTests.metaClass.respondsTo(listOfSelectedTests, "size"))
             break
           case "doc-only":
             println('Skip tests if git diff matches expected criteria')
@@ -69,9 +68,11 @@ node {
       if (namespaces.length == 0) {
         namespaces = AVAILABLE_NAMESPACES
       }
+      println(listOfSelectedTests.getClass())
       println(listOfSelectedTests)
+      println(listOfSelectedTests.isEmpty())
       // If a specific test suite is not specified, run them all
-      if (listOfSelectedTests.size == 0) {
+      if (listOfSelectedTests.isEmpty()) {
 	  listOfSelectedTests.add("all")
       }
     }
