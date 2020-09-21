@@ -33,6 +33,10 @@ spec:
                   - ohdsi-broadsea-webtools
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
+      volumes:
+        - name: broadsea-config-local
+          configMap:
+            name: broadsea-config-local
       containers:
         - name: ohdsi-broadsea-webtools
           GEN3_OHDSI_BROADSEA_WEBTOOLS_IMAGE|-image: ohdsi/broadsea-webtools:latest-|
@@ -52,6 +56,11 @@ spec:
           envFrom:
             - secretRef:
                 name: ohdsi-broadsea-webtools-config
+          volumeMounts:
+            - name: broadsea-config-local
+              readOnly: true
+              mountPath: /usr/local/tomcat/webapps/atlas/js/config-local.js
+              subPath: config-local.js
           imagePullPolicy: Always
           resources:
             requests:
