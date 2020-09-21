@@ -56,7 +56,7 @@ spec:
           volumeMounts:
             - name: "ohdsi-webapi-settings"
               readOnly: true
-              mountPath: "/var/lib/ohdsi/webapi/META-INF/maven/org.ohdsi/WebAPI/WebAPIConfig/settings.xml"
+              mountPath: "/root/.m2/settings.xml"
               subPath: "settings.xml"
           imagePullPolicy: Always
           resources:
