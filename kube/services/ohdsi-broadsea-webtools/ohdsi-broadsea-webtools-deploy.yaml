@@ -37,6 +37,9 @@ spec:
         - name: broadsea-config-local
           configMap:
             name: broadsea-config-local
+        - name: broadsea-app-local
+          configMap:
+            name: broadsea-app-local
       containers:
         - name: ohdsi-broadsea-webtools
           GEN3_OHDSI_BROADSEA_WEBTOOLS_IMAGE|-image: ohdsi/broadsea-webtools:latest-|
@@ -61,6 +64,10 @@ spec:
               readOnly: true
               mountPath: /usr/local/tomcat/webapps/atlas/js/config-local.js
               subPath: config-local.js
+            - name: broadsea-app-local
+              readOnly: true
+              mountPath: /usr/local/tomcat/webapps/atlas/js/config/app.js
+              subPath: app.js
           imagePullPolicy: Always
           resources:
             requests:
