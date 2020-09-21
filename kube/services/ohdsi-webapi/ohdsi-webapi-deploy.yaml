@@ -33,6 +33,10 @@ spec:
                   - ohdsi-webapi
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
+      volumes:
+        - name: ohdsi-webapi-settings
+          secret:
+            secretName: "ohdsi-webapi-settings"
       containers:
         - name: ohdsi-webapi
           GEN3_OHDSI_WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
@@ -49,10 +53,15 @@ spec:
               port: 8080
           ports:
           - containerPort: 8080
+          volumeMounts:
+            - name: "ohdsi-webapi-settings"
+              readOnly: true
+              mountPath: "/var/lib/ohdsi/webapi/WebAPIConfig/"
+              subPath: "settings.xml"
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 0.5
+              cpu: 1
               memory: 1024Mi
             limits:
               cpu: 1
