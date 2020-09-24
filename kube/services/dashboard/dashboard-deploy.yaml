@@ -1,5 +1,5 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: "dashboard"
@@ -43,10 +43,7 @@ spec:
         - name: config-volume
           secret:
             secretName: "dashboard-g3auto"
-      # SA linked IAM role support - uncomment this
-      # after the new dashboard code with WebToken auth
-      # support rolls out:
-      #serviceAccountName: dashboard-sa
+      serviceAccountName: dashboard-sa
       securityContext:
         fsGroup: 1001
       containers:
@@ -63,9 +60,6 @@ spec:
           - name: "config-volume"
             readOnly: true
             mountPath: "/etc/gen3"
-            # Switch to this after full transition to SA-linked IAM role:
-            #mountPath: "/etc/gen3/config.json"
-            #subPath: "config.json"
         resources:
           requests:
             cpu: 0.3

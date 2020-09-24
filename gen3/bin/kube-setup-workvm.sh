@@ -30,7 +30,7 @@ fi
 if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   # -E passes through *_proxy environment
   sudo -E apt-get update
-  sudo -E apt-get install -y git jq pwgen python-dev python-pip unzip python3-dev python3-pip
+  sudo -E apt-get install -y git jq pwgen python-dev python-pip unzip python3-dev python3-pip python3-venv
   sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install --upgrade pip
   sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install awscli --upgrade
   # jinja2 needed by render_creds.py
@@ -165,12 +165,39 @@ EOM
       sudo ln -s /usr/local/bin/aws-iam-authenticator heptio-authenticator-aws
     )
   fi
-  if ! which helm > /dev/null 2>&1; then
-    helm_release_URL="https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz"
-    curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
-    tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
-    sudo mv "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
-  fi
+  ( # in a subshell install helm
+    install_helm() {
+      helm_release_URL="https://get.helm.sh/helm-v3.3.0-linux-amd64.tar.gz"
+      curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
+      tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
+      sudo mv -f "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
+
+      # helm3 has no default repo, need to add it manually
+      helm repo add stable https://kubernetes-charts.storage.googleapis.com
+      helm repo update
+    }
+
+    migrate_helm() {
+      if ! helm plugin list | grep 2to3 > /dev/null 2>&1; then
+        helm plugin install https://github.com/helm/helm-2to3.git
+      fi
+      helm 2to3 convert grafana
+      helm 2to3 convert prometheus
+      
+      # delete tiller and other helm2 data/configs
+      helm 2to3 cleanup --skip-confirmation
+    }
+
+    if ! which helm > /dev/null 2>&1; then
+      install_helm
+    else 
+      # Overwrite helm2 with helm3
+      if ! helm version --short | grep v3 > /dev/null 2>&1; then
+        install_helm
+        migrate_helm
+      fi
+    fi
+  )
 
   # install "update and reboot" cron job
   sudo cp "${GEN3_HOME}/files/scripts/updateAndRebootCron" /etc/cron.d/

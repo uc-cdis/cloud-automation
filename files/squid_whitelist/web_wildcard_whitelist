@@ -34,6 +34,7 @@
 .github.com
 .gitlab.com
 .googleapis.com
+.googleusercontent.com
 .hashicorp.com
 .jenkins-ci.org
 .k8s.io
@@ -65,6 +66,7 @@
 .sks-keyservers.net
 .slack-msgs.com
 .sourceforge.net
+.southsideweekly.com
 .theanvil.io
 .ubuntu.com
 .ucsc.edu
@@ -77,3 +79,4 @@
 .rstudio.com
 .gstatic.com
 .visitdata.org
+.caninedc.org

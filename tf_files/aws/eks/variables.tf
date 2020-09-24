@@ -29,7 +29,7 @@ variable "worker_drive_size" {
 }
 
 variable "eks_version" {
-  default = "1.14"
+  default = "1.15"
 }
 
 variable "workers_subnet_size" {
@@ -73,7 +73,7 @@ variable "jupyter_asg_min_size" {
 }
 
 variable "iam-serviceaccount" {
-  default = false
+  default = true
 }
 
 variable "domain_test" {

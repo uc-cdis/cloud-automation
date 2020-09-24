@@ -1,0 +1,12 @@
+---
+
+- name: "slurm | install dependencies"
+  pip:
+    name: '{{ item }}'
+    executable: pip3
+  loop:
+    - virtualenvwrapper
+  environment: 
+    http_proxy: "{{ http_proxy }}:{{ http_proxy_port }}"
+    https_proxy: "{{ https_proxy }}:{{ https_proxy_port }}"
+  when: ec2_tags.tags["slurm-type"] == 'worker'

@@ -181,6 +181,9 @@ gdcapi_indexd_password="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 | mailgun_api_key | Mailgun api key (NO CURRENTLY IN USE) | string | "" |
 | mailgun_smtp_host | Mailgun SMTP (NO CURRENTLY IN USE) | string | "smtp.mailgun.org" | 
 | mailgun_api_url | Mailgun api url (NO CURRENTLY IN USE) | string | "https://api.mailgun.net/v3/" |
+| fence_max_allocated_storage | Maximum storage allocation for autoscaling | number | 0 |
+| sheepdog_max_allocated_storage | Maximum storage allocation for autoscaling | number | 0 |
+| indexd_max_allocated_storage | Maximum storage allocation for autoscaling | number | 0 |
 
 
 ## 5. Outputs

@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: portal-deployment
@@ -11,8 +11,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+      maxSurge: 2
+      maxUnavailable: 25%
   template:
     metadata:
       labels:
@@ -91,6 +91,12 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: portal_app
+          - name: GEN3_BUNDLE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-portal
+                key: GEN3_BUNDLE
+                optional: true
           - name: LOGOUT_INACTIVE_USERS
             valueFrom:
               configMapKeyRef:

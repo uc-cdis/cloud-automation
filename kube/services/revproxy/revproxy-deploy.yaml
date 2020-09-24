@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: revproxy-deployment
@@ -46,6 +46,9 @@ spec:
         - name: modsec-conf
           configMap:
             name: manifest-modsec
+        - name: revproxy-manifest-conf
+          configMap:
+            name: manifest-revproxy
         - name: helper-js
           configMap:
             name: revproxy-helper-js
@@ -135,6 +138,9 @@ spec:
           - name: "modsec-conf"
             readOnly: true
             mountPath: "/etc/nginx/modsec"
+          - name: "revproxy-manifest-conf"
+            readOnly: true
+            mountPath: "/etc/nginx/manifest-revproxy"
           - name: "helper-js"
             readOnly: true
             mountPath: "/etc/nginx/helpers.js"

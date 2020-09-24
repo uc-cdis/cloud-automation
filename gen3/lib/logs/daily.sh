@@ -13,7 +13,7 @@ gen3_logs_user_count() {
       "unique_user_count" : {
         "cardinality" : {
             "field" : "message.user_id.keyword",
-            "precision_threshold": 1000
+            "precision_threshold": 10
         }
       }
   }
@@ -55,6 +55,31 @@ EOM
 EOM
     )";
     queryStr=$(jq -r --argjson aggs "$aggs" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool.must += [ $ns ]' <<<${queryStr})
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+gen3_logs_user_histogram() {
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
+    local aggs="$(cat - <<EOM
+  {
+      "users" : {
+          "terms" : {
+              "field" : "message.user_id.keyword",
+              "size"  : 100
+          }
+      }
+  }
+EOM
+    )"
+    local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "default"
+}}
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool.must += [ $ns ]' <<<${queryStr})
+    
     gen3_log_info "$queryStr"
     gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
 }

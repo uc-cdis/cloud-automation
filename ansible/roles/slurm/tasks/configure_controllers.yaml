@@ -1,0 +1,18 @@
+---
+- name: /usr/local/etc/slurmdbd.conf
+  template:
+    src: slurmdbd.conf.j2
+    dest: /usr/local/etc/slurmdbd.conf
+  become: yes
+
+- name: /etc/supervisor/conf.d/slurm.conf
+  template:
+    src: supervisoe_slurm.conf.j2
+    dest: /etc/supervisor/conf.d/slurm.conf
+  become: yes
+
+- name: /etc/supervisor/conf.d/slurm.conf
+  template:
+    src: supervisor_controller_slurm.conf.j2
+    dest: /etc/supervisor/conf.d/slurm.conf
+  become: yes

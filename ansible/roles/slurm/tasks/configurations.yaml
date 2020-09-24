@@ -1,0 +1,144 @@
+---
+
+- name: /var/run/munge
+  file:
+    path: /var/run/munge
+    owner: munge
+    group: munge
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: prepare munge key
+  file:
+    path: /etc/munge
+    owner: munge
+    group: munge
+    state: directory
+    mode: '0700'
+  become: yes
+
+- name:  read mungkey secret
+  copy:
+    src: /home/ubuntu/munge/munke.key
+    dest: /etc/munge/munge.key
+    owner: munge
+    group: munge
+    mode: '0400'
+  become: yes
+
+
+- name: /var/lib/munge
+  file:
+    path: /var/run/munge
+    owner: munge
+    group: munge
+    state: directory
+    mode: '0711'
+  become: yes
+
+
+- name: /var/log/munge
+  file:
+    path: /var/run/munge
+    owner: munge
+    group: munge
+    state: directory
+    mode: '0700'
+  become: yes
+
+- name: slurm group
+  group:
+    name: slurm
+    state: present
+  become: yes
+
+- name: slurm user
+  user:
+    name: slurm
+    comment: Slurm user
+    group: slurm
+    uid: 2001
+  become: yes
+
+- name:  /etc/slurmd
+  file:
+    path: /etc/slurmd
+    owner: slurm
+    group: slurm
+    state: directory
+  become: yes
+
+- name: /var/log/slurmd
+  file:
+    path: /var/log/slurmd
+    owner: slurm
+    group: slurm
+    state: directory
+  become: yes
+
+- name: /var/log/slurmctld
+  file:
+    path: /var/log/slurmctld
+    owner: slurm
+    group: slurm
+    state: directory
+  become: yes
+
+- name: /var/log/slurmdbd
+  file:
+    path: /var/log/slurmdbd
+    owner: slurm
+    group: slurm
+    state: directory
+  become: yes
+
+- name: /var/log/slurmsched
+  file:
+    path: /var/log/slurmsched
+    owner: slurm
+    group: slurm
+    state: directory
+  become: yes
+
+- name: /var/spool/slurmd
+  file:
+    path: /var/spool/slurmd
+    owner: slurm
+    group: slurm
+    state: directory
+  become: yes
+
+- name: /var/spool/slurmd/node_state
+  file:
+    path: /var/spool/slurmd/node_state
+    owner: slurm
+    group: slurm
+    state: touch
+  become: yes
+
+- name: /var/spool/slurmd/sicp_state
+  file:
+    path: /var/spool/slurmd/sicp_state
+    owner: slurm
+    group: slurm
+    state: touch
+  become: yes
+
+- name: /usr/local/etc/slurm.conf
+  template:
+    src: slurm.conf.j2
+    dest: /usr/local/etc/slurm.conf
+    owner: slurm
+    group: slurm
+  become: yes
+
+- name: aws directory
+  file:
+    path: /home/ubuntu/.aws
+    state: directory
+
+- name: .aws/config
+  template:
+    src: aws_config.j2
+    dest: /home/ubuntu/.aws/config

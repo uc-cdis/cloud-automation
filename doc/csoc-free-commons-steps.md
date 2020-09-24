@@ -81,7 +81,6 @@ source ${HOME}/.bashrc
   [profile cdistest]
   output = json
   region = us-east-1
-  credential_source = Ec2InstanceMetadata
 ```
 
   It's worth noting that additional information may be required in this file but that will depend on your setup for the VM in question.

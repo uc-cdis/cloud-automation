@@ -1,0 +1,27 @@
+{
+        "agent": {
+                "run_as_user": "root"
+        },
+        "logs": {
+                "logs_collected": {
+                        "files": {
+                                "collect_list": [
+                                        {
+                                                "file_path": "/var/log/auth.log",
+                                                "log_group_name": "{{ cloudwatch_log_group }}",
+                                                "log_stream_name": "auth-{{ ansible_hostname }}",
+                                                "timestamp_format": "%b %d %H:%M:%S",
+                                                "timezone": "LOCAL"
+                                        },
+                                        {
+                                                "file_path": "/var/log/syslog",
+                                                "log_group_name": "{{ cloudwatch_log_group }}",
+                                                "log_stream_name": "syslog-{{ ansible_hostname }}",
+                                                "timestamp_format": "%b %d %H:%M:%S",
+                                                "timezone": "LOCAL"
+                                        }
+                                ]
+                        }
+                }
+        }
+}

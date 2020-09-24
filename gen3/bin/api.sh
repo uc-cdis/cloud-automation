@@ -48,7 +48,11 @@ gen3_access_token_from_cache() {
 #
 gen3_access_token() {
   local username
+  local exp
   username="$1"
+  exp="$2"
+  skip_cache=$3
+
   if [[ -z "$username" ]]; then
     gen3_api_help
     return 1
@@ -58,8 +62,14 @@ gen3_access_token() {
     return $?
   fi
 
-  gen3_access_token_from_cache "$username" && return 0
-  g3kubectl exec $(gen3 pod fence) -- fence-create token-create --scopes openid,user,fence,data,credentials,google_service_account --type access_token --exp 3600 --username ${username} | tail -1 | gen3_access_token_to_cache "$username"
+  if [[ -z "$exp" ]]; then
+    exp=3600
+  fi
+
+  if [ "$skip_cache" != "true" ]; then
+    gen3_access_token_from_cache "$username" && return 0
+  fi
+  g3kubectl exec -c fence $(gen3 pod fence) -- fence-create token-create --scopes openid,user,fence,data,credentials,google_service_account --type access_token --exp ${exp} --username ${username} | tail -1 | gen3_access_token_to_cache "$username"
 }
 
 

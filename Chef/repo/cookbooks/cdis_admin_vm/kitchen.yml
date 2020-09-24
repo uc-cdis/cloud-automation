@@ -1,6 +1,6 @@
 ---
 driver:
-  name: vagrant
+  name: kubernetes
 
 ## The forwarded_port port feature lets you connect to ports on the VM guest via
 ## localhost on the host.
@@ -11,7 +11,8 @@ driver:
 
 provisioner:
   name: chef_zero
-
+  client_rb:
+    chef_license: accept
   ## product_name and product_version specifies a specific Chef product and version to install.
   ## see the Chef documentation for more details: https://docs.chef.io/workstation/config_yml_kitchen/
   #  product_name: chef

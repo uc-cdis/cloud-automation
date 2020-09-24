@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: acronymbot-deployment
@@ -28,6 +28,11 @@ spec:
             secretKeyRef:
               name: acronymbot-g3auto
               key: 'slacktoken.json'
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: acronymbot-g3auto
+              key: "githubtoken.json"
         imagePullPolicy: Always
         resources:
           requests:

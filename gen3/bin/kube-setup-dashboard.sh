@@ -17,6 +17,12 @@ setup_dashboard_service() {
     gen3_log_info "not deploying dashboard service - no manifest entry"
     return 0
   fi
+  local saName="dashboard-sa"
+  g3kubectl create sa "$saName" > /dev/null 2>&1 || true
+  if ! [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # create database
+    gen3_log_info "kube-setup-dashboard skipping full db setup in non-admin environment"
+    return 0
+  fi
 
   local secret
   local secretsFolder="$(gen3_secrets_folder)/g3auto/dashboard"
@@ -44,6 +50,7 @@ setup_dashboard_service() {
     local environment
     if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
       gen3_log_err "could not determine account numer"
+      return 1
     fi
     if ! environment="$(g3kubectl get configmap manifest-global -o json | jq -r .data.environment)"; then
       gen3_log_err "could not determine environment from manifest-global - bailing out of dashboard setup"
@@ -58,39 +65,17 @@ setup_dashboard_service() {
       gen3_log_err "maybe failed to create bucket ${bucketName}, but maybe not, because the terraform script is flaky"
     fi
 
-    if true; then # transitioning to use role+service account, but
-      # continue creating IAM user until the dashboard updates
-      # necessary for IAM-linked service accounts are available.
-      #
-      local userName
-      userName="dashboard-${environment}-bot"
-      if aws iam get-user --user-name "$userName" > /dev/null 2>&1; then
-        gen3_log_err "${userName} iam user already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/dashboard"
-        return 1
-      elif ! gen3 awsuser create "$userName"; then
-        gen3_log_err "failed to create ${userName} iam user"
-        return 1
-      fi
-      gen3 s3 attach-bucket-policy "$bucketName" --read-only --user-name "${userName}"
-    
-      local creds
-      creds="$(gen3 secrets decode "${userName}-g3auto" "awsusercreds.json")"
-      jq -r -n --argjson creds "${creds}" '.AWS=$creds' > "${secretsFolder}/creds.json"
-    fi
-
     local hostname
     hostname="$(gen3 api hostname)"
-
     jq -r -n --arg bucket "${bucketName}" --arg hostname "${hostname}" '.bucket=$bucket | .prefix=$hostname' > "${secretsFolder}/config.json"
     gen3 secrets sync 'setup dashboard credentials'
   fi
 
   local roleName
-  local saName="dashboard-sa"
   roleName="$(gen3 api safe-name dashboard)" || return 1
     
   if ! gen3 awsrole info "$roleName" > /dev/null; then # setup role
-    bucketName="$((gen3 secrets decode dashboard-g3auto config.json || echo ERROR) | jq -r .bucket)" || return 1
+    bucketName="$( (gen3 secrets decode dashboard-g3auto config.json || echo ERROR) | jq -r .bucket)" || return 1
     gen3 awsrole create "$roleName" "$saName" || return 1
     #echo gen3 s3 attach-bucket-policy "$bucketName" --read-only --role-name "${roleName}"
     gen3 s3 attach-bucket-policy "$bucketName" --read-only --role-name "${roleName}"
@@ -100,15 +85,11 @@ setup_dashboard_service() {
     gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${gitopsRoleName}"
   fi
 
-  gen3_log_info "rolling dashboard service"
   g3kubectl apply -f "${GEN3_HOME}/kube/services/dashboard/dashboard-service.yaml"
-  gen3 roll dashboard
 }
 
 if g3k_manifest_lookup .versions.dashboard > /dev/null 2>&1; then
-  if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # create database
-    setup_dashboard_service
-  else
-    gen3 roll dashboard
-  fi
+  gen3_log_info "rolling dashboard service"
+  setup_dashboard_service
+  gen3 roll dashboard
 fi

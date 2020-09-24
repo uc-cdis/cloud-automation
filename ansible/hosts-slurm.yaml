@@ -1,0 +1,21 @@
+---
+all:
+  children:
+    controller:
+      hosts:
+        slurm_controller:
+          ansible_host: ip-172-24-66-242.ec2.internal
+      vars:
+        ansible_user: ubuntu
+        ansible_python_interpreter: /usr/bin/python3
+    workers:
+      hosts:
+        worker1:
+          ansible_host: ip-172-24-66-40.ec2.internal
+        worker2:
+          ansible_host: ip-172-24-66-150.ec2.internal
+        worker3:
+          ansible_host: ip-172-24-66-136.ec2.internal
+      vars:
+        ansible_user: ubuntu
+        ansible_python_interpreter: /usr/bin/python3

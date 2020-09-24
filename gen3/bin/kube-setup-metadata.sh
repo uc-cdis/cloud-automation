@@ -48,7 +48,7 @@ EOM
   gen3 secrets sync 'setup metadata-g3auto secrets'
 }
 
-if !g3k_manifest_lookup .versions.metadata 2> /dev/null; then
+if ! g3k_manifest_lookup .versions.metadata 2> /dev/null; then
   gen3_log_info "kube-setup-metadata exiting - metadata service not in manifest"
   exit 0
 fi
