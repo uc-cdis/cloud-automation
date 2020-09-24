@@ -48,6 +48,8 @@ spec:
         env:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: AWS_DEFAULT_REGION
+            value: "us-east-1"
         imagePullPolicy: Always
         ports:
         - containerPort: 80
