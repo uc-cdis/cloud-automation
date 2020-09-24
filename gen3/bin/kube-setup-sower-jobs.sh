@@ -170,7 +170,6 @@ EOM
 if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then
     setup_sower_jobs
 fi
-gen3 secrets sync "setup sower-jobs secrets"
 
 cat <<EOM
 The sower-jobs bucket has been configured and the secret setup for use by sower jobs.
