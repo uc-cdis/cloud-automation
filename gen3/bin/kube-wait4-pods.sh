@@ -48,7 +48,6 @@ fi
         let COUNT+=1
         if [[ COUNT -gt "$MAX_RETRIES" ]]; then
           gen3_log_err "pods still not ready after $((MAX_RETRIES * 10)) seconds - bailing out"
-          save_logs_from_failed_pods
           exit 1
         fi
         sleep 10

@@ -390,23 +390,3 @@ check_terraform_module() {
   fi
   echo ${tversion}
 }
-
-save_logs_from_failed_pods() {
-  # image pull errors
-  array_of_img_pull_errors=($(g3kubectl get pods | grep -E "ErrImagePull|ImagePullBackOff" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
-  
-  for pod in "${array_of_img_pull_errors[@]}"; do
-    pod_name=$(echo $pod | xargs)
-    gen3_log_info "storing kubectl describe output into k8s_reset_${pod_name}.log..."
-    g3kubectl describe pod $pod_name > img_pull_error_${pod_name}.log
-  done
-
-  # container / service startup errors
-  array_of_svc_startup_errors=($(g3kubectl get pods | grep -E "Failed|CrashLoopBackOff" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
-
-  for pod in "${array_of_svc_startup_errors[@]}"; do
-    pod_name=$(echo $pod | xargs)
-    gen3_log_info "storing kubectl logs output into svc_startup_error_${pod_name}.log..."
-    g3kubectl logs $pod_name > svc_startup_error_${pod_name}.log
-  done
-}
