@@ -97,6 +97,12 @@ spec:
                 name: manifest-portal
                 key: GEN3_BUNDLE
                 optional: true
+          - name: IFRAME_APPLICATION_URLS
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-portal
+                key: iframe_application_urls
+                optional: true
           - name: LOGOUT_INACTIVE_USERS
             valueFrom:
               configMapKeyRef:
