@@ -122,6 +122,14 @@ resource "aws_iam_role_policy" "vm_policy" {
   role   = "${aws_iam_role.vm_role.id}"
 }
 
+resource "aws_iam_role_policy" "vm_user_policy" {
+  name   = "${var.vm_name}_user_policy"
+  role   = "${aws_iam_role.vm_role.id}"
+  #policy = "${var.user_policy}"
+  policy = "${var.user_policy}"
+}
+
+
 resource "aws_iam_instance_profile" "vm_role_profile" {
   name = "${var.vm_name}_role_profile"
   role = "${aws_iam_role.vm_role.id}"
