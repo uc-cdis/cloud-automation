@@ -23,6 +23,12 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/influxdb
           name: influxdb-data
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "max-values-per-tag = 0" >> "/etc/influxdb/influxdb.conf"
+            ./init-influxdb.sh
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
