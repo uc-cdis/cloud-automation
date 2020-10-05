@@ -321,13 +321,31 @@ EOM
   if [[ "$GEN3_WORKSPACE" =~ _utilityvm$ ]]; then
      vmName=${GEN3_WORKSPACE//_utilityvm/}
      cat - <<EOM
-bootstrap_path = "cloud-automation/flavors/"
-bootstrap_script = "FILE-IN-ABOVE-PATH"
+bootstrap_path = "cloud-automation/flavors/adminvm/"
+bootstrap_script = "ubuntu-18-init.sh"
 vm_name = "${vmName}"
 vm_hostname = "${vmName}"
+# secgroup egress whitelist
 vpc_cidr_list = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8"]
 aws_account_id = "ACCOUNT-ID"
 extra_vars = []
+user_policy = <<EOPOLICY
+THIS IS JUST AN EXAMPLE - REPLACE ACCOUNT-ID ON ADMIN VM's, 
+DELETE user_policy IF YOU DO NOT NEED THIS TO FALL BACK TO DEFAULT
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Resource": [
+        "arn:aws:iam::ACCOUNT-ID:role/csoc_adminvm"
+      ],
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOPOLICY
 EOM
     return 0
   fi

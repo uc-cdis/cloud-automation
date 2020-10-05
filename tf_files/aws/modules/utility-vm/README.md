@@ -6,6 +6,7 @@ Originally, modules would use a custom AMI created though Packer, although this 
 
 The main advantage of this utilityVM module is the ability to add custom bootstrap script without altering the user_data portion in terraform and also the custom script in the packer image creation.
 
+TODO: migrate this thing to deploy a chef role instead of a `flavor/` script ...
 
 ## 1. QuickStart
 
@@ -76,4 +77,4 @@ This variables are not initialized but you can change them if needed.
 | proxy | If the VM will be behind a proxy | boolean | yes |
 | authorized_keys | Path to file containing ssh keys that will be copied to `/home/ubuntu/.ssh/authorized_keys`. | string | "files/authorized_keys/ops_team" |
 | branch | For testing purposes | string | "master" |
-
+| user_policy | additional policy for the role | string | "" |
