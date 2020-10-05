@@ -29,25 +29,6 @@ setup_access_backend() {
 
   gen3_log_info "setting up access-backend service ..."
 
-  if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
-    gen3_log_err "skipping db setup in non-adminvm environment"
-    return 0
-  fi
-  # Setup .env file that access-backend-service consumes
-  if [[ ! -f "$secretsFolder/access-backend.env" ]]; then
-    local secretsFolder="$(gen3_secrets_folder)/g3auto/access-backend"
-    # if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-    #   if ! gen3 db setup access-backend; then
-    #     gen3_log_err "Failed setting up database for access-backend service"
-    #     return 1
-    #   fi
-    # fi
-    touch "$secretsFolder/dbcreds.json"
-    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
-      gen3_log_err "dbcreds not present in Gen3Secrets/"
-      return 1
-    fi
-
 #     cat - > "cors.json" <<EOM
 # {
 #   "CORSRules": [
@@ -71,13 +52,11 @@ setup_access_backend() {
 #     echo "enabling CORS on the bucket"
 #     aws s3api put-bucket-cors --bucket "$bucketName" --cors-configuration file://cors.json
 
-    local saName=$(echo "access-${hostname//./-}" | head -c63)
-    if ! g3kubectl get sa "$saName" > /dev/null 2>&1; then
-      local role_name
-      if ! g3kubectl get sa access-backend-sa > /dev/null 2>&1; then
-        roleName="$(gen3 api safe-name access-backend)"
-        gen3 awsrole create "$roleName" gitops-sa
-        cat - > "access-backend-aws-policy.json" <<EOM
+  if ! g3kubectl get sa access-backend-sa > /dev/null 2>&1; then
+    local role_name
+    roleName="$(gen3 api safe-name access-backend)"
+    gen3 awsrole create "$roleName" gitops-sa
+    cat - > "access-backend-aws-policy.json" <<EOM
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -90,17 +69,36 @@ setup_access_backend() {
     ]
 }
 EOM
-        policy=$(cat access-backend-aws-policy.json)
-        aws iam create-policy --policy-name $roleName --policy-document "$policy"
-        accountNumber=$(aws sts get-caller-identity | jq -r .Account)
-        sleep 15
-        gen3 awsrole attach-policy $roleName arn:aws:iam::$accountNumber:policy/$roleName
-      fi
-      gen3_log_info "created service account '${saName}' with dynamodb access"
-      gen3_log_info "created role name '${role_name}'"
-      # TODO do I need the following: ???
-      # gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${role_name}"
-      # gen3_log_info "attached read-write bucket policy to '${bucketName}' for role '${role_name}'"
+    policy=$(cat access-backend-aws-policy.json)
+    aws iam create-policy --policy-name $roleName --policy-document "$policy"
+    accountNumber=$(aws sts get-caller-identity | jq -r .Account)
+    sleep 15
+    gen3 awsrole attach-policy $roleName arn:aws:iam::$accountNumber:policy/$roleName
+    
+    gen3_log_info "created service account access-backend-sa with dynamodb access"
+    gen3_log_info "created role name '${role_name}'"
+    # TODO do I need the following: ???
+    # gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${role_name}"
+    # gen3_log_info "attached read-write bucket policy to '${bucketName}' for role '${role_name}'"
+  fi
+    
+  if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
+    gen3_log_err "skipping db setup in non-adminvm environment"
+    return 0
+  fi
+  # Setup .env file that access-backend-service consumes
+  if [[ ! -f "$secretsFolder/access-backend.env" ]]; then
+    local secretsFolder="$(gen3_secrets_folder)/g3auto/access-backend"
+    # if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
+    #   if ! gen3 db setup access-backend; then
+    #     gen3_log_err "Failed setting up database for access-backend service"
+    #     return 1
+    #   fi
+    # fi
+    touch "$secretsFolder/dbcreds.json"
+    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
+      gen3_log_err "dbcreds not present in Gen3Secrets/"
+      return 1
     fi
 
     cat - > "$secretsFolder/access-backend.env" <<EOM
