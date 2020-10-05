@@ -76,7 +76,7 @@ setup_access_backend() {
       local role_name
       if ! g3kubectl get sa access-backend-sa > /dev/null 2>&1; then
         roleName="$(gen3 api safe-name access-backend)"
-        gen3 awsrole create "$roleName" gitops-sa
+        gen3 awsrole create "$roleName" access-backend-sa
         cat - > "access-backend-aws-policy.json" <<EOM
 {
     "Version": "2012-10-17",
