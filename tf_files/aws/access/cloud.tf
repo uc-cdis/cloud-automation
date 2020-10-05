@@ -2,38 +2,16 @@ resource "aws_s3_bucket" "access" {
   bucket = "${var.access_url}"
   acl = "public-read"
   cors_rule {
-      allowed_headers = ["\*"]
+      allowed_headers = ["*"]
       allowed_methods = ["PUT","POST"]
-      allowed_origins = ["\*"]
+      allowed_origins = ["*"]
       expose_headers = ["ETag"]
       max_age_seconds = 3000
   }
-  policy = <<EOF
-{
-    "Version": "2008-10-17",
-    "Statement": [
-    {
-        "Sid": "PublicReadForGetBucketObjects",
-        "Effect": "Allow",
-        "Principal": {
-            "AWS": "\*"
-         },
-         "Action": "s3:GetObject",
-         "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/\*"
-    }, {
-        "Sid": "",
-        "Effect": "Allow",
-        "Principal": {
-            "AWS": "${aws_iam_user.prod_user.arn}"
-        },
-        "Action": "s3:\*",
-        "Resource": [
-            "arn:aws:s3:::YOUR-BUCKET-NAME",
-            "arn:aws:s3:::YOUR-BUCKET-NAME/\*"
-        ]
-    }]
-}
-EOF
+  website {
+    index_document = "index.html"
+    error_document = "index.html"
+  }
 }
 
 locals {
@@ -42,28 +20,26 @@ locals {
 
 resource "aws_cloudfront_distribution" "access" {
   origin {
-    domain_name = "${var.access_url}"
+    domain_name = "${aws_s3_bucket.access.website_endpoint}"
     origin_id   = "${local.s3_origin_id}"
-
-
+    custom_origin_config {
+      http_port              = "80"
+      https_port             = "443"
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
+    }
   }
 
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
 
-  logging_config {
-    include_cookies = false
-    bucket          = "mylogs.s3.amazonaws.com"
-    prefix          = "myprefix"
-  }
-
   aliases = ["${var.access_url}"]
 
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = local.s3_origin_id
+    target_origin_id = "${local.s3_origin_id}"
 
     forwarded_values {
       query_string = false
@@ -89,7 +65,6 @@ resource "aws_cloudfront_distribution" "access" {
     acm_certificate_arn = "${var.access_cert}"
     cloudfront_default_certificate = true
     ssl_support_method = "sni-only"
-
   }
 
   restrictions {
