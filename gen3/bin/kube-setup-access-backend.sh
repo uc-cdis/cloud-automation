@@ -85,7 +85,16 @@ setup_access_backend() {
             "Sid": "GlobalDynamodbAdmin",
             "Effect": "Allow",
             "Action": "dynamodb:*",
-            "Resource": "arn:aws:dynamodb:::table/*"
+            "Resource": [
+                "arn:aws:dynamodb:::table/*",
+                "arn:aws:dynamodb:*:*:table/*"
+            ]
+        },
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "kms:*",
+            "Resource": "*"
         }
     ]
 }
