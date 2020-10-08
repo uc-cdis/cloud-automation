@@ -8,7 +8,7 @@ class BucketsParallel(object):
     """Finds total object size for all buckets"""
     def __init__(self, creds=''):
         if creds:
-          self.s3 = boto3.client('s3', region_name='us-east-1', aws_access_key_id=creds["AWS_ACCESS_KEY_ID"], aws_secret_access_key=creds["AWS_SECRET_ACCESS_KEY"])
+          self.s3 = boto3.client('s3', region_name='us-east-1', aws_access_key_id=creds["aws_access_key_id"], aws_secret_access_key=creds["aws_secret_key"])
         else:
           self.s3 = boto3.client('s3', region_name='us-east-1')
         self.bucket_list = dict()
@@ -88,7 +88,7 @@ def send_email(list, total, config):
                  f"Total Size: {total}"
                 )
     CHARSET = "UTF-8"
-    client = boto3.client('ses',region_name='us-east-1', aws_access_key_id=config["AWS_ACCESS_KEY_ID"], aws_secret_access_key=config["AWS_SECRET_ACCESS_KEY"])
+    client = boto3.client('ses',region_name='us-east-1', aws_access_key_id=config["aws_access_key_id"], aws_secret_access_key=config["aws_secret_key"])
     try:
         response = client.send_email(
             Destination={
@@ -132,4 +132,3 @@ else:
   buckets = BucketsParallel()
   total = buckets.total_size()
   print(f"Total volume size: {total}")
-  send_email(buckets.bucket_list, total, ses_data)
