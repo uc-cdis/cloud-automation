@@ -28,6 +28,10 @@ spec:
           readOnly: true
           mountPath: "/ses-creds.json"
           subPath: ses-creds.json
+        resources:
+          limits:
+            cpu: 3
+            memory: 12Gi
         command: [ "/bin/bash" ]
         args:
             - "-c"

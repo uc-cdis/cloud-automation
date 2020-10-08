@@ -1,12 +1,16 @@
 import boto3
 import json
+import os
 from multiprocessing import Process, Pipe
 from botocore.exceptions import ClientError
 
 class BucketsParallel(object):
     """Finds total object size for all buckets"""
-    def __init__(self, creds):
-        self.s3 = boto3.client('s3', region_name='us-east-1', aws_access_key_id=creds["AWS_ACCESS_KEY_ID"], aws_secret_access_key=creds["AWS_SECRET_ACCESS_KEY"])
+    def __init__(self, creds=''):
+        if creds:
+          self.s3 = boto3.client('s3', region_name='us-east-1', aws_access_key_id=creds["AWS_ACCESS_KEY_ID"], aws_secret_access_key=creds["AWS_SECRET_ACCESS_KEY"])
+        else:
+          self.s3 = boto3.client('s3', region_name='us-east-1')
         self.bucket_list = dict()
 
     def add_size(self, bucket, size):
@@ -76,10 +80,10 @@ class BucketsParallel(object):
 def send_email(list, total, config):
     for key in list:
         list[key]=str(list[key])+"\n"
-    SENDER = "Edward Malinowski <emalinowski@uchicago.edu>"
+    SENDER = f"{config['sender']}"
     RECIPIENT = f"{config['recipient']}"
     AWS_REGION = "us-east-1"
-    SUBJECT = "Monthly Bucket Size Report"
+    SUBJECT = "Bucket Size Report"
     BODY_TEXT = ("Buckets with sizes:\n" f"{' '.join([key +': '+str(list[key]) for key in list.keys()])}"
                  f"Total Size: {total}"
                 )
@@ -112,12 +116,20 @@ def send_email(list, total, config):
         print("Email sent! Message ID:"),
         print(response['MessageId'])
 
-with open('/creds.json') as f:
-  data = json.load(f)
-with open('/ses-creds.json') as f:
-  ses_data = json.load(f)
-for credential in data["credentials"]:
-  buckets = BucketsParallel(credential)
+
+# Check if there are creds files, which denotes running in a job, if not use the current environments creds.
+if os.path.exists('/creds.json') and os.path.exists('/ses-creds.json'):
+  with open('/ses-creds.json') as f:
+    ses_data = json.load(f)
+  with open('/creds.json') as f:
+    data = json.load(f)
+  for credential in data["credentials"]:
+    buckets = BucketsParallel(credential)
+    total = buckets.total_size()
+    print(f"Total volume size: {total}")
+    send_email(buckets.bucket_list, total, ses_data)
+else:
+  buckets = BucketsParallel()
   total = buckets.total_size()
   print(f"Total volume size: {total}")
   send_email(buckets.bucket_list, total, ses_data)
