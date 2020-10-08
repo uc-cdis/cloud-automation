@@ -83,6 +83,8 @@ spec:
             GEN3_TEST_PROJECT|-value: "test"-|
           - name: MAX_EXAMPLES
             GEN3_MAX_EXAMPLES|-value: "10"-|
+          - name: SUBMISSION_ORDER
+            GEN3_MAX_EXAMPLES|-value: "submitted_unaligned_reads"-|
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -99,6 +101,9 @@ spec:
 
             mkdir -p /TestData
             data-simulator simulate --url $DICTIONARY_URL --path /TestData --program $TEST_PROGRAM --project $TEST_PROJECT --max_samples $MAX_EXAMPLES
+
+            echo "define submission order"
+            data-simulator submission_order --url $DICTIONARY_URL --path /TestData --node_name $SUBMISSION_ORDER
 
             echo "Preparing to submit data"
             data-simulator submitting_data --host https://$HOSTNAME --dir /TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
