@@ -120,6 +120,9 @@ EOM
     /bin/rm "$credsBak"
     updateIndexd=true
   fi
+  local mdsCreds="$(grep ADMIN_LOGINS= < "$(gen3_secrets_folder)/g3auto/metadata/metadata.env" | cut -d '=' -f2)"
+  local mdsUser="$(echo $mdsCreds | cut -d ':' -f1)"
+  local mdsPassword="$(echo $mdsCreds | cut -d ':' -f2)"
   local ssjConfig="$(cat - <<EOM
 {
     "SQS": {
@@ -130,9 +133,16 @@ EOM
         "name": "indexing",
         "pattern": "s3://$bucketName/*",
         "imageConfig": {
-          "url": "http://indexd-service/index",
-          "username": "ssj",
-          "password": "${indexdPassword}"
+          "indexd": {
+            "url": "http://indexd-service/index",
+            "username": "ssj",
+            "password": "${indexdPassword}"
+          },
+          "metadataService": {
+            "url": "http://revproxy-service/mds",
+            "username": "${mdsUser}",
+            "password": "${mdsPassword}"
+          }
         },
         "RequestCPU": "500m",
         "RequestMem": "0.5Gi"
