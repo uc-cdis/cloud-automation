@@ -109,20 +109,6 @@ EOM
   fi
 
   local credsBak="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXXX")"
-  local indexdPassword
-  local updateIndexd=false
-  # create new indexd user if necessary
-  if ! indexdPassword="$(jq -e -r .indexd.user_db.ssj < "$(gen3_secrets_folder)/creds.json" 2> /dev/null)" \
-    || [[ -z "$indexdPassword" && "$indexdPassword" == null ]]; then
-    indexdPassword="$(gen3 random)"
-    cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
-    jq -r --arg password "$indexdPassword" '.indexd.user_db.ssj=$password' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
-    /bin/rm "$credsBak"
-    updateIndexd=true
-  fi
-  local mdsCreds="$(grep ADMIN_LOGINS= < "$(gen3_secrets_folder)/g3auto/metadata/metadata.env" | cut -d '=' -f2)"
-  local mdsUser="$(echo $mdsCreds | cut -d ':' -f1)"
-  local mdsPassword="$(echo $mdsCreds | cut -d ':' -f2)"
   local ssjConfig="$(cat - <<EOM
 {
     "SQS": {
@@ -132,18 +118,7 @@ EOM
       {
         "name": "indexing",
         "pattern": "s3://$bucketName/*",
-        "imageConfig": {
-          "indexd": {
-            "url": "http://indexd-service/index",
-            "username": "ssj",
-            "password": "${indexdPassword}"
-          },
-          "metadataService": {
-            "url": "http://revproxy-service/mds",
-            "username": "${mdsUser}",
-            "password": "${mdsPassword}"
-          }
-        },
+        "imageConfig": {},
         "RequestCPU": "500m",
         "RequestMem": "0.5Gi"
       }
@@ -155,10 +130,57 @@ EOM
   cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
   jq -r --argjson ssjConfig "$ssjConfig" '.ssjdispatcher=$ssjConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
   /bin/rm "$credsBak"
-  gen3 secrets sync "chore(ssjdispatcher): setup"
+  # XXX run at end
+  # gen3 secrets sync "chore(ssjdispatcher): setup"
+}
+
+setupIndexdConfig() {
+  local credsBak="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXXX")"
+  local indexdPassword
+  local updateIndexd=false
+  # create new indexd user if necessary
+  if ! indexdPassword="$(jq -e -r .indexd.user_db.ssj < "$(gen3_secrets_folder)/creds.json" 2> /dev/null)" \
+    || [[ -z "$indexdPassword" && "$indexdPassword" == null ]]; then
+    indexdPassword="$(gen3 random)"
+    cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
+    jq -r --arg password "$indexdPassword" '.indexd.user_db.ssj=$password' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
+    /bin/rm "$credsBak"
+    updateIndexd=true
+  fi
+
+  local indexdConfig="$(cat - <<EOM
+{
+  "url": "http://indexd-service/index",
+  "username": "ssj",
+  "password": "${indexdPassword}"
+}
+EOM
+  )"
+  cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
+  jq -r --argjson indexdConfig "$indexdConfig" '.ssjdispatcher.JOBS.imageConfig.indexd=$indexdConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
+  /bin/rm "$credsBak"
+
   if [[ "$updateIndexd" != "false" ]]; then
     gen3 job run indexd-userdb
   fi
+}
+
+setupMDSConfig() {
+  local credsBak="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXXX")"
+  local mdsCreds="$(grep ADMIN_LOGINS= < "$(gen3_secrets_folder)/g3auto/metadata/metadata.env" | cut -d '=' -f2)"
+  local mdsUser="$(echo $mdsCreds | cut -d ':' -f1)"
+  local mdsPassword="$(echo $mdsCreds | cut -d ':' -f2)"
+  local mdsConfig="$(cat - <<EOM
+{
+  "url": "http://revproxy-service/mds",
+  "username": "${mdsUser}",
+  "password": "${mdsPassword}"
+}
+EOM
+  )"
+  cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
+  jq -r --argjson mdsConfig "$mdsConfig" '.ssjdispatcher.JOBS.imageConfig.metadataService=$mdsConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
+  /bin/rm "$credsBak"
 }
 
 
@@ -172,6 +194,8 @@ fi
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 setupSsjInfra "$@"
+setupIndexdConfig
+setupMDSConfig
 gen3 roll ssjdispatcher
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/ssjdispatcher-service.yaml"
 
