@@ -40,8 +40,8 @@ creds.json
 {
   "credentials": [
     {
-      "AWS_ACCESS_KEY_ID": "", #pragma: allowlist secret
-      "AWS_SECRET_ACCESS_KEY": "" #pragma: allowlist secret
+      "aws_access_key_id": "",
+      "aws_secret_key: ""
     }
   ]
 }
@@ -51,8 +51,8 @@ ses-creds.json
 
 ``` json
 {
-  "AWS_ACCESS_KEY_ID": "", #pragma: allowlist secret
-  "AWS_SECRET_ACCESS_KEY": "", #pragma: allowlist secret
+  "aws_access_key_id": "",
+  "aws_secret_key": "",
   "sender": "",
   "recipient": ""
 }
