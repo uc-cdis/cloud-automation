@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bucket-size-report
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      restartPolicy: Never
+      securityContext:
+        fsGroup: 1000
+      volumes:
+      - name: "creds"
+        secret:
+          secretName: "bucket-size-report-g3auto"
+      containers:
+      - name: awshelper
+        image: quay.io/cdis/awshelper:master
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: "creds"
+          readOnly: true
+          mountPath: "/creds.json"
+          subPath: creds.json
+        - name: "creds"
+          readOnly: true
+          mountPath: "/ses-creds.json"
+          subPath: ses-creds.json
+        resources:
+          limits:
+            cpu: 3
+            memory: 12Gi
+        command: [ "/bin/bash" ]
+        args:
+            - "-c"
+            - |
+              pip3 install boto3
+              python3 cloud-automation/files/scripts/bucket-size-report.py
+              echo "Exit code: $?"
