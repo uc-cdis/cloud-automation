@@ -19,6 +19,29 @@ USE: gen3 workon PROFILE_NAME WORKSPACE_NAME
 
 The WORKSPACE_NAME may specify its terraform script folder with a `__FOLDER` suffix. For example, `gen3 workon commons labsetup__csoc_qualys_vm` will run the terraform scripts under `tf_files/aws/csoc_qualys_vm`.
 
+The WORKSPACE_NAME may specify its terraform script folder as `__custom` to
+indicate that the workspace will define its own script.  For example:
+
+```
+  gen3 workon cdistest reubenbucket__custom
+  gen3 cd
+  cat - > bucket.tf <<EOM
+provider "aws" {}
+
+module "s3_bucket" {
+  bucket_name       = "frickjack-crazy-test"
+  environment       = "qaplanetv1"
+  source            = "../../../../../cloud-automation/tf_files/aws/modules/s3-bucket"
+  cloud_trail_count = "0"
+}
+EOM
+
+# run workon to re-init local modules
+gen3 workon . .
+gen3 tfplan
+gen3 tfapply
+```
+
 ## Example
 
 * `gen3 workon cdistest devplanetv1`

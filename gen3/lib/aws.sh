@@ -176,8 +176,9 @@ gen3_workon_aws(){
   elif [[ "$GEN3_WORKSPACE" =~ _role_policy_attachment$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role_policy_attachment"
   elif [[ -d "${GEN3_HOME}/tf_files/aws/${GEN3_WORKSPACE#*__}" ]]; then
-    # NEW! support __FOLDER_NAME
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/${GEN3_WORKSPACE#*__}"
+  elif [[ "${GEN3_WORKSPACE}" =~ __custom$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_WORKDIR}"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -490,7 +491,16 @@ EOM
       return $?
   fi
   gen3_log_info "no sample vars file at ${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
-  
+
+  # else
+  if [[ "$GEN3_WORKSPACE" =~ __custom$ ]]; then
+      cat - <<EOM
+# put your custom variable values here
+EOM
+      return 0
+  fi
+
+  # else ... commons tfvars
   # ssh key to be added to VMs and kube nodes
   local SSHADD=$(which ssh-add)
   if [ -f ~/.ssh/id_rsa.pub ];
