@@ -6,7 +6,7 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 #data "aws_vpc" "the_vpc" {
-#tags {
+#tags = {
 #    Name = "${var.env_vpc_name}"
 #  }
 #}
@@ -17,7 +17,7 @@ data "aws_region" "current" {}
 # get public route table 
 #data "aws_route_table" "public_route_table" {
 #  vpc_id      = "${data.aws_vpc.the_vpc.id}"
-#  tags {
+#  tags = {
 #    Name = "main"
 #  }
 #}
@@ -26,7 +26,7 @@ data "aws_region" "current" {}
 # get the private kube table id 
 #data "aws_route_table" "private_kube_route_table" {
 #  vpc_id      = "${var.env_vpc_id}"
-#  tags {
+#  tags = {
 #    Name = "private_kube"
 #  }
 #}

@@ -5,7 +5,7 @@
 #  name              = "${var.env_vpc_name}"
 #  retention_in_days = 1827
 #
-#  tags {
+#  tags = {
 #    Environment = "${var.env_vpc_name}"
 #  }
 #}
@@ -61,7 +61,7 @@ resource "aws_ami_copy" "squid_ami" {
   source_ami_region = "us-east-1"
   encrypted         = true
 
-  tags {
+  tags = {
     Name = "squid-${var.env_vpc_name}"
   }
 
@@ -105,7 +105,7 @@ resource "aws_security_group" "login-ssh" {
     cidr_blocks = ["${var.env_vpc_cidr}", "${var.csoc_cidr}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -128,7 +128,7 @@ resource "aws_security_group" "proxy" {
     cidr_blocks = ["${var.env_vpc_cidr}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -147,7 +147,7 @@ resource "aws_security_group" "out" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -200,7 +200,7 @@ resource "aws_instance" "proxy" {
 #  iam_instance_profile   = "${var.env_instance_profile}" 
   iam_instance_profile   = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
 
-  tags {
+  tags = {
     Name         = "${var.env_vpc_name} HTTP Proxy"
     Environment  = "${var.env_vpc_name}"
     Organization = "${var.organization_name}"

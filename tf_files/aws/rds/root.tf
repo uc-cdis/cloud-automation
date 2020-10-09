@@ -1,3 +1,6 @@
+terraform {
+  backend "s3" {}
+}
 
 module "aws_rds" {
   source                                             = "../modules/rds/"

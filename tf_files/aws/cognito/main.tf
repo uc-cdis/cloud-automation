@@ -1,3 +1,6 @@
+terraform {
+  backend "s3" {}
+}
 
 resource "aws_cognito_user_pool" "pool" {
   name = "${var.vpc_name}_user_pool"

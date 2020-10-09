@@ -91,7 +91,7 @@ resource "aws_lambda_function" "gw_checks" {
     security_group_ids = ["${aws_security_group.eks_nodes_sg.id}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -117,7 +117,7 @@ resource "aws_cloudwatch_event_rule" "gw_checks_rule" {
   name                = "${var.vpc_name}-GW-checks-job"
   description         = "Check if the gateway is working every minute"
   schedule_expression = "rate(1 minute)"
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
