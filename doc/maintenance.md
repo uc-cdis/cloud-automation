@@ -14,7 +14,7 @@ gen3 kube-setup-dashboard
 * deploy an "under maintenance" page to the [dashboard](./dashboard.md)
     - install `manifest-folder/dashboard/Public/maintenance-page/index.html` via the normal `cdis-manifest` PR process
     - `gen3 dashboard gitops-sync` to deploy files to the dashboard
-    - note: there is a sample maintenance page under `cloud-automation/files/maintenance-page/`, and you may customize it with different logo images
+    - note: there is a sample maintenance page under `cloud-automation/files/dashboard/maintenance-page/`, and you may customize it with different logo images
 * enable the the maintenance page by setting `global.maintenance_mode` to `on` in the `manifest.json`
     - you can make and revoke this change locally on the admin vm
     - `gen3 kube-setup-revproxy` to update the proxy
