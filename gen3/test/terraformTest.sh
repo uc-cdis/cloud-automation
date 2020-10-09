@@ -50,7 +50,7 @@ test_workspace() {
 
 workspace_cleanup() {
   # try to avoid accidentally erasing the user's data ...
-  cd /tmp && [[ -n "$GEN3_WORKDIR" && "$GEN3_WORKDIR" =~ share/gen3/ && -f "$GEN3_WORKDIR/config.tfvars" ]] && /bin/rm -rf "$GEN3_WORKDIR";
+  cd /tmp && [[ -n "$GEN3_WORKDIR" && "$GEN3_WORKDIR" =~ /gen3/ && -f "$GEN3_WORKDIR/config.tfvars" ]] && /bin/rm -rf "$GEN3_WORKDIR";
     because $? "was able to cleanup $GEN3_WORKDIR"
 }
 
@@ -173,19 +173,25 @@ EOM
 test_custom_workspace() {
   GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}__custom"
   test_workspace
+
+  local sourceFolder="../../../../../cloud-automation/tf_files/aws/modules/s3-bucket"
+  if [[ ! -d "$sourceFolder" ]]; then
+    # Jenkins has a different relative path setup
+    sourceFolder="../../../../cloud-automation/tf_files/aws/modules/s3-bucket"
+  fi
   cat - > bucket.tf <<EOM
 provider "aws" {}
 
 module "s3_bucket" {
   bucket_name       = "frickjack-crazy-test"
   environment       = "qaplanetv1"
-  source            = "../../../../../cloud-automation/tf_files/aws/modules/s3-bucket"
+  source            = "$sourceFolder"
   cloud_trail_count = "0"
 }
 EOM
   gen3 workon . .
   gen3 tfplan; because $? "tfplan __custom should run ok"
-workspace_cleanup
+  workspace_cleanup
 }
 
 test_rds_workspace() {
