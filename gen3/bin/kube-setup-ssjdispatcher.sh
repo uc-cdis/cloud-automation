@@ -144,6 +144,7 @@ setupIndexdConfig() {
     indexdPassword="$(gen3 random)"
     cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
     jq -r --arg password "$indexdPassword" '.indexd.user_db.ssj=$password' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
+    # XXX needed below?
     /bin/rm "$credsBak"
     updateIndexd=true
   fi
@@ -157,7 +158,7 @@ setupIndexdConfig() {
 EOM
   )"
   cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
-  jq -r --argjson indexdConfig "$indexdConfig" '.ssjdispatcher.JOBS[] | select(.name=="indexing") | .imageConfig.indexd=$indexdConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
+  jq -r --argjson indexdConfig "$indexdConfig" '(.ssjdispatcher.JOBS[] | select(.name == "indexing") | .imageConfig.indexd)=$indexdConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
   /bin/rm "$credsBak"
 
   if [[ "$updateIndexd" != "false" ]]; then
@@ -180,7 +181,7 @@ setupMDSConfig() {
 EOM
   )"
   cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
-  jq -r --argjson mdsConfig "$mdsConfig" '.ssjdispatcher.JOBS[] | select(.name=="indexing") | .imageConfig.metadataService=$mdsConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
+  jq -r --argjson mdsConfig "$mdsConfig" '(.ssjdispatcher.JOBS[] | select(.name == "indexing") | .imageConfig.metadataService)=$mdsConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
   /bin/rm "$credsBak"
 }
 
