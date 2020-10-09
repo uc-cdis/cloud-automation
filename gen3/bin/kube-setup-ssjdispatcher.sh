@@ -157,7 +157,7 @@ setupIndexdConfig() {
 EOM
   )"
   cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
-  jq -r --argjson indexdConfig "$indexdConfig" '.ssjdispatcher.JOBS.imageConfig.indexd=$indexdConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
+  jq -r --argjson indexdConfig "$indexdConfig" '.ssjdispatcher.JOBS[] | select(.name=="indexing") | .imageConfig.indexd=$indexdConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
   /bin/rm "$credsBak"
 
   if [[ "$updateIndexd" != "false" ]]; then
@@ -166,6 +166,7 @@ EOM
 }
 
 setupMDSConfig() {
+  # XXX check that mds is deployed
   local credsBak="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXXX")"
   local mdsCreds="$(grep ADMIN_LOGINS= < "$(gen3_secrets_folder)/g3auto/metadata/metadata.env" | cut -d '=' -f2)"
   local mdsUser="$(echo $mdsCreds | cut -d ':' -f1)"
@@ -179,7 +180,7 @@ setupMDSConfig() {
 EOM
   )"
   cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
-  jq -r --argjson mdsConfig "$mdsConfig" '.ssjdispatcher.JOBS.imageConfig.metadataService=$mdsConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
+  jq -r --argjson mdsConfig "$mdsConfig" '.ssjdispatcher.JOBS[] | select(.name=="indexing") | .imageConfig.metadataService=$mdsConfig' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
   /bin/rm "$credsBak"
 }
 
