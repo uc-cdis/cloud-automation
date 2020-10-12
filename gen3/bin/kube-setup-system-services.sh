@@ -19,6 +19,9 @@ gen3_load "gen3/gen3setup"
 kubeproxy=${kubeproxy:-1.15.11}
 coredns=${coredns:-1.6.6}
 cni=${cni:-1.6}
+calico=${calico:-1.7.5}
+
+
 while [ $# -gt 0 ]; do
    if [[ $1 == *"--"* ]]; then
         param="${1/--/}"
@@ -30,10 +33,12 @@ done
 kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kubeproxy}"
 coredns_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/coredns:v${coredns}"
 cni_image="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-${cni}/config/v${cni}/aws-k8s-cni.yaml"
+calico_yaml="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v${calico}/config/v$(echo ${calico} | sed -e 's/\.[0-9]\+$//')/calico.yaml"
 
 g3kubectl set image daemonset.apps/kube-proxy -n kube-system kube-proxy=${kube_proxy_image}
 g3kubectl set image --namespace kube-system deployment.apps/coredns coredns=${coredns_image}
 g3kubectl apply -f ${cni_image}
+g3kubectl apply ${calico_yaml}
 
 # let's make sure the coredns configmap is up to date
 # see: https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html
