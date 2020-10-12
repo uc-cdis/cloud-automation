@@ -150,7 +150,6 @@ db_password_peregrine="whatever"
 
 db_password_indexd="g6pmYkcoR7qECjGoErzVb5gkX3kum0yo"
 
-
 # password for write access to indexd
 gdcapi_indexd_password="oYva39mIPV5uXskv7jWnKuVZBUFBQcxd"
 
@@ -164,7 +163,7 @@ mailgun_smtp_host=""
 
 kube_ssh_key=""
 EOM
-  [[ "$(pwd)" =~ "/$GEN3_WORKSPACE"$ ]]; because "commons workspace should have base $GEN3_WORKSPACE - $(pwd)"
+  [[ "$(pwd)" =~ "/$GEN3_WORKSPACE"$ ]]; because $? "commons workspace should have base $GEN3_WORKSPACE - $(pwd)"
   gen3 tfplan; because $? "tfplan should run even with some invalid config variables"
   [[ -f "$GEN3_WORKDIR/plan.terraform" ]]; because $? "'gen3 tfplan' generates a plan.terraform file used by 'gen3 tfapply'"
   workspace_cleanup

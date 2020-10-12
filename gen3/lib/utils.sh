@@ -380,16 +380,16 @@ check_terraform_module() {
   gen3_log_info "Entering module manifest checks"
   gen3_log_info "Module loaded ${module_manifest}"
   if [ -f "${module_manifest}" ]; then
-    full_tversion=$(jq  -r '.terraform.module_version' ${module_manifest})
+    full_tversion="$(jq  -r '.terraform.module_version' ${module_manifest})"
   elif [[ "${tf_folder}" =~ __custom/*$ ]]; then
     # force __custom scripts to at least terraform 12
     full_tversion="0.12"
   fi
-  if [ ${full_tversion} == "0.12" ]; then
+  if [[ "${full_tversion}" == "0.12" ]]; then
     export tversion=12
     gen3_log_info "Moving on with terraform ${full_tversion}"
   else
     gen3_log_info "Moving on with terraform 0.11.x"
   fi
-  echo ${tversion}
+  echo "${tversion}"
 }
