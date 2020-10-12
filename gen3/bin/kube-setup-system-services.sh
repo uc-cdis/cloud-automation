@@ -38,7 +38,7 @@ calico_yaml="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v${calico}
 g3kubectl set image daemonset.apps/kube-proxy -n kube-system kube-proxy=${kube_proxy_image}
 g3kubectl set image --namespace kube-system deployment.apps/coredns coredns=${coredns_image}
 g3kubectl apply -f ${cni_image}
-g3kubectl apply ${calico_yaml}
+g3kubectl apply -f ${calico_yaml}
 
 # let's make sure the coredns configmap is up to date
 # see: https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html
