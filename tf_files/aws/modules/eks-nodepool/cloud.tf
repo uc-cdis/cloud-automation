@@ -215,12 +215,24 @@ resource "aws_security_group_rule" "https_nodes_to_plane" {
   from_port                = 443
   to_port                  = 443
   protocol                 = "tcp"
-  #security_group_id        = "${aws_security_group.eks_control_plane_sg.id}"
   security_group_id        = "${var.control_plane_sg}"
   source_security_group_id = "${aws_security_group.eks_nodes_sg.id}"
-  #depends_on               = ["aws_security_group.eks_nodes_sg", "aws_security_group.eks_control_plane_sg" ]
   depends_on               = ["aws_security_group.eks_nodes_sg"]
+  description              = "from the notebooks to the control plane"
 }
+
+# peering talk to Control plane
+resource "aws_security_group_rule" "https_nodes_to_plane" {
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = "${var.control_plane_sg}"
+  cidr_blocks              = "${var.peering_cidr}"
+  depends_on               = ["aws_security_group.eks_nodes_sg"]
+  description              = "from the adminvm to the control plane"
+}
+
 
 
 resource "aws_security_group_rule" "communication_plane_to_nodes" {

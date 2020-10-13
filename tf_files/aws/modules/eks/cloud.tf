@@ -229,6 +229,7 @@ resource "aws_eks_cluster" "eks_cluster" {
     subnet_ids              = ["${aws_subnet.eks_private.*.id}"]
     security_group_ids      = ["${aws_security_group.eks_control_plane_sg.id}"]
     endpoint_private_access = "true"
+    endpoint_public_access  = "false"
   }
 
   depends_on = [
@@ -413,6 +414,18 @@ resource "aws_security_group_rule" "https_nodes_to_plane" {
   source_security_group_id = "${aws_security_group.eks_nodes_sg.id}"
   depends_on               = ["aws_security_group.eks_nodes_sg", "aws_security_group.eks_control_plane_sg" ]
   description              = "from the workers to the control plane"
+}
+
+# peering talk to Control plane
+resource "aws_security_group_rule" "https_nodes_to_plane" {
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = "${aws_security_group.eks_control_plane_sg.id}"
+  cidr_blocks              = "${var.peering_cidr}"
+  depends_on               = ["aws_security_group.eks_nodes_sg", "aws_security_group.eks_control_plane_sg" ]
+  description              = "from the adminvm to the control plane"
 }
 
 # Control plane to the workers
