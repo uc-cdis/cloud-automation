@@ -165,6 +165,11 @@ all:
         ansible_python_interpreter: /usr/bin/python3
 ```
 
+Should you need to list all the workers in an account (supposing there is only on single slurm cluster per account), you can run the following one liner:
+
+```bash
+aws ec2 describe-instances --instance-ids $(aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGroups[]| select(.AutoScalingGroupName |contains("slurm-workers")) |.Instances[].InstanceId') --query 'Reservations[].Instances[].PrivateDnsName'
+```
 
 ### the playbook
 Then execute the playbook like this
