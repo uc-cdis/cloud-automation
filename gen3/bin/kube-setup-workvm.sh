@@ -91,7 +91,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
 
     install_terraform12() {
       mkdir "${XDG_RUNTIME_DIR}/t12"
-      curl -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
+      curl -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.29/terraform_0.12.29_linux_amd64.zip
       sudo /bin/rm -rf /usr/local/bin/terraform12 > /dev/null 2>&1 || true
       unzip "${XDG_RUNTIME_DIR}/t12/terraform12.zip" -d "${XDG_RUNTIME_DIR}/t12";
       sudo cp "${XDG_RUNTIME_DIR}/t12/terraform" "/usr/local/bin/terraform12"
@@ -110,7 +110,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       install_terraform12  
     else
       T12_VERSION=$(terraform12 --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
-      if ! semver_ge "$T12_VERSION" "0.12.24"; then
+      if ! semver_ge "$T12_VERSION" "0.12.29"; then
         install_terraform
       fi
     fi
@@ -149,7 +149,7 @@ EOM
     )
   fi
   if ! which packer > /dev/null 2>&1; then
-    curl -o "${XDG_RUNTIME_DIR}/packer.zip" https://releases.hashicorp.com/packer/1.2.1/packer_1.2.1_linux_amd64.zip
+    curl -o "${XDG_RUNTIME_DIR}/packer.zip" https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
     sudo unzip "${XDG_RUNTIME_DIR}/packer.zip" -d /usr/local/bin
     /bin/rm "${XDG_RUNTIME_DIR}/packer.zip"
   fi

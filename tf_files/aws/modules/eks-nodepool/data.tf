@@ -6,7 +6,7 @@ data "aws_region" "current" {}
 # Let's grab the vpc we already created in the VPC module.
 
 data "aws_vpcs" "vpcs" {
-  tags {
+  tags = {
     Name = "${var.vpc_name}"
   }
 }

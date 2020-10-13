@@ -62,7 +62,7 @@ resource "aws_vpc" "main" {
   cidr_block           = "${var.vpc_cidr_block}"
   enable_dns_hostnames = true
 
-  tags {
+  tags = {
     Name         = "${var.vpc_name}"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -77,7 +77,7 @@ resource "aws_vpc" "main" {
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.main.id}"
 
-  tags {
+  tags = {
     Name         = "${var.vpc_name}-igw"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -88,7 +88,7 @@ resource "aws_nat_gateway" "nat_gw" {
   allocation_id = "${aws_eip.nat_gw.id}"
   subnet_id     = "${aws_subnet.public.id}"
 
-  tags {
+  tags = {
     Name         = "${var.vpc_name}-ngw"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -109,7 +109,7 @@ resource "aws_route_table" "public" {
     vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
   }
 
-  tags {
+  tags = {
     Name         = "main"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -119,7 +119,7 @@ resource "aws_route_table" "public" {
 
 resource "aws_eip" "nat_gw" {
   vpc = true
-  tags {
+  tags = {
     Name         = "${var.vpc_name}-ngw-eip"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -136,7 +136,7 @@ resource "aws_default_route_table" "default" {
     vpc_peering_connection_id = "${aws_vpc_peering_connection.vpcpeering.id}"
   }
 
-  tags {
+  tags = {
     Name         = "default table"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -180,7 +180,7 @@ resource "aws_cloudwatch_log_group" "main_log_group" {
   name              = "${var.vpc_name}"
   retention_in_days = "1827"
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -209,7 +209,7 @@ resource "aws_route53_zone" "main" {
     vpc_id  = "${aws_vpc.main.id}"
   }
   
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -222,7 +222,7 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
   vpc_id        = "${aws_vpc.main.id}"
   auto_accept   = true
 
-  tags {
+  tags = {
     Name         = "VPC Peering between ${var.vpc_name} and adminVM vpc"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -241,7 +241,7 @@ resource "aws_route" "default_csoc" {
 ##to be used by arranger when accessing the ES
 resource "aws_iam_user" "es_user" {
   name = "${var.vpc_name}_es_user"
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }

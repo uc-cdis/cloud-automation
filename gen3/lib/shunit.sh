@@ -223,5 +223,5 @@ shunit_because() {
 }
 
 because() {
-  shunit_because $1 "$2"
+  shunit_because "$@"
 }

@@ -11,7 +11,7 @@ resource "aws_vpc_endpoint" "ec2" {
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  tags {
+  tags = {
     Name         = "to ec2"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -29,7 +29,7 @@ resource "aws_vpc_endpoint" "sts" {
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  tags {
+  tags = {
     Name         = "to sts"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -48,7 +48,7 @@ resource "aws_vpc_endpoint" "autoscaling" {
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  tags {
+  tags = {
     Name         = "to autoscaling"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -68,7 +68,7 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  tags {
+  tags = {
     Name         = "to ecr dkr"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -88,7 +88,7 @@ resource "aws_vpc_endpoint" "ecr-api" {
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  tags {
+  tags = {
     Name         = "to ecr api"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -107,7 +107,7 @@ resource "aws_vpc_endpoint" "ebs" {
 
   private_dns_enabled = true
   subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
-  tags {
+  tags = {
     Name         = "to ebs"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -120,7 +120,7 @@ resource "aws_vpc_endpoint" "k8s-s3" {
   vpc_id          =  "${data.aws_vpc.the_vpc.id}"
   service_name    = "${data.aws_vpc_endpoint_service.s3.service_name}"
   route_table_ids = ["${data.aws_route_table.public_kube.id}", "${aws_route_table.eks_private.*.id}"]
-  tags {
+  tags = {
     Name         = "to s3"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -143,7 +143,7 @@ resource "aws_vpc_endpoint" "k8s-logs" {
   lifecycle {
     #ignore_changes = ["subnet_ids"]
   }
-  tags {
+  tags = {
     Name         = "to cloudwatch logs"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"

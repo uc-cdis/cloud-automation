@@ -235,4 +235,3 @@ We have two automation scripts:
 The latest versions of the customized ubuntu 16.04 AMI's required by the terraform automation
 are published as public images under the AWS `cdis-test` account.
 Build new AMIs using [images](https://github.com/uc-cdis/images).
-
