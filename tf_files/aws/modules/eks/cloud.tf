@@ -423,7 +423,7 @@ resource "aws_security_group_rule" "adminvm_to_plane" {
   to_port                  = 443
   protocol                 = "tcp"
   security_group_id        = "${aws_security_group.eks_control_plane_sg.id}"
-  cidr_blocks              = "${var.peering_cidr}"
+  cidr_blocks              = ["${var.peering_cidr}"]
   depends_on               = ["aws_security_group.eks_nodes_sg", "aws_security_group.eks_control_plane_sg" ]
   description              = "from the adminvm to the control plane"
 }
