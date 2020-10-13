@@ -417,7 +417,7 @@ resource "aws_security_group_rule" "https_nodes_to_plane" {
 }
 
 # peering talk to Control plane
-resource "aws_security_group_rule" "https_nodes_to_plane" {
+resource "aws_security_group_rule" "adminvm_to_plane" {
   type                     = "ingress"
   from_port                = 443
   to_port                  = 443
