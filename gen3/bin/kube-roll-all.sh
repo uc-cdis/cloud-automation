@@ -74,10 +74,6 @@ else
   gen3_log_info "no manifest entry for fence"
 fi
 
-if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
-  gen3 kube-setup-ssjdispatcher
-fi
-
 if g3kubectl get cronjob etl >/dev/null 2>&1; then
     gen3 job run etl-cronjob
 fi
@@ -191,6 +187,10 @@ else
 fi
 
 gen3 kube-setup-metadata
+
+if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
+  gen3 kube-setup-ssjdispatcher
+fi
 
 gen3 kube-setup-revproxy
 
