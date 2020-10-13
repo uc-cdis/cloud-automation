@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleversafe-copy#PLACEHOLDER#
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: sa-#SA_NAME_PLACEHOLDER#
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "cleversafe-copy-g3auto"
+      containers:
+      - name: cleversafe-copy
+        GEN3_AWS-BUCKET-MANIFEST_IMAGE|-image: quay.io/cdis/cleversafe-copy:master-|
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: REGION
+          GEN3_REGION|-value: "us-east-1"-|
+        - name: SOURCE_BUCKET
+          GEN3_SOURCE_BUCKET
+        - name: DESTINATION_BUCKET
+          GEN3_DESTINATION_BUCKET
+        - name: JOB_QUEUE
+          GEN3_JOB_QUEUE
+        - name: JOB_DEFINITION
+          GEN3_JOB_DEFINITION
+        - name: PROJECT
+          GEN3_PROJECT
+        - name: TEMP_BUCKET
+          GEN3_TEMP_BUCKET
+        - name: SQS
+          GEN3_SQS
+        volumeMounts:       
+        volumeMounts:
+          - name: "cred-volume"
+            mountPath: "/creds.json"
+            subPath: "creds.json"
+          - name: "cred-volume"
+            mountPath: "/google-sa.json"
+            subPath: "fence_google_app_creds_secret.json"
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            gcloud auth activate-service-account --key-file=/google-sa.json
+            gcloud config set project $PROJECT
+            export GOOGLE_APPLICATION_CREDENTIALS=/google-sa.json
+            python batch_jobs/bin/run_cleversafe_copy_job.py cleversafe-copy --source_bucket $SOURCE_BUCKET --destination_bucket $DESTINATION_BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION} --project $PROJECT --out_bucket $TEMP_BUCKET  --sqs $SQS
+            echo "All done - exit status $?"
+      restartPolicy: Never
