@@ -653,7 +653,7 @@ gen3_gitops_configmaps() {
   # delete everything in a single call for performance
   # grab existing configmaps from k8s env 
   local deleteList
-  mapfile -t deleteList < <( kubectl get configmaps -o custom-columns=:.metadata.name --no-headers=true | grep "manifest-\|etl-" )
+  mapfile -t deleteList < <( g3kubectl get configmaps -o custom-columns=:.metadata.name --no-headers=true | grep "manifest-\|etl-" )
   g3kubectl delete configmaps "${deleteList[@]}"
 
   for key in "${keyList[@]}"; do
