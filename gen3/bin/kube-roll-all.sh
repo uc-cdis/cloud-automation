@@ -186,6 +186,12 @@ else
   gen3_log_info "not deploying requestor - no manifest entry for .versions.requestor"
 fi
 
+if g3k_manifest_lookup .versions.access-backend 2> /dev/null; then
+  gen3 kube-setup-access-backend
+else
+  gen3_log_info "not deploying access-backend - no manifest entry for .versions.access-backend"
+fi
+
 gen3 kube-setup-metadata
 
 if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
