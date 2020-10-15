@@ -109,6 +109,7 @@ function configure_basics() {
   # Different buckets for different CSOC vpn environments
   sed -i "s/WHICHVPN/${S3_BUCKET}\/${VPN_NLB_NAME}/" ${dest_path}/push_to_s3.sh
   sed -i "s/WHICHVPN/${S3_BUCKET}\/${VPN_NLB_NAME}/" ${dest_path}/recover_from_s3.sh
+  sed -i "s/WHICHVPN/${S3_BUCKET}\/${VPN_NLB_NAME}/" ${dest_path}/send_email.sh
   sed -i "s/WHICHVPN/${S3_BUCKET}\/${VPN_NLB_NAME}/" ${dest_path}/${OPENVPN_INSTALL_SCRIPT}
 
   # Replace the User variable for hostname, VPN subnet and VM subnet
