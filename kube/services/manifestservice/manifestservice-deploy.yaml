@@ -52,6 +52,8 @@ spec:
         - name: manifestservice
           GEN3_MANIFESTSERVICE_IMAGE
           env:
+          - name: UWSGI_CHEAPER
+            value: "1"
           - name: REQUESTS_CA_BUNDLE
             #
             # override python 'requests' SSL certificate bundle
