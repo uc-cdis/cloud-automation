@@ -36,6 +36,7 @@ TEMP_DIR="$TEMP_ROOT/$username-$CLOUD_NAME"
 mkdir -p $TEMP_DIR;
 mkdir -p $TEMP_DIR/linux;
 cp $KEY_DIR/ovpn_files/$username-$CLOUD_NAME.ovpn $TEMP_DIR/; 
+cp "$VPN_BIN_ROOT/OpenVPN_for_PLANX_Installation_Guide.pdf" "$TEMP_DIR/"
 cp $KEY_DIR/ovpn_files_seperated/$username-$CLOUD_NAME-seperated.tgz $TEMP_DIR/; 
 cp $KEY_DIR/ovpn_files_systemd/${username}-${CLOUD_NAME}-systemd.ovpn $TEMP_DIR/linux/;
 cp $KEY_DIR/ovpn_files_resolvconf/${username}-${CLOUD_NAME}-resolvconf.ovpn $TEMP_DIR/linux/;

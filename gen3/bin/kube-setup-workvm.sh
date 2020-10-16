@@ -111,7 +111,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     else
       T12_VERSION=$(terraform12 --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
       if ! semver_ge "$T12_VERSION" "0.12.29"; then
-        install_terraform
+        install_terraform12
       fi
     fi
   )
