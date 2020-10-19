@@ -165,10 +165,16 @@ all:
         ansible_python_interpreter: /usr/bin/python3
 ```
 
+Should you need to list all the workers in an account (supposing there is only on single slurm cluster per account), you can run the following one liner:
+
+```bash
+aws ec2 describe-instances --instance-ids $(aws autoscaling describe-auto-scaling-groups |jq -r '.AutoScalingGroups[]| select(.AutoScalingGroupName |contains("slurm-workers")) |.Instances[].InstanceId') --query 'Reservations[].Instances[].PrivateDnsName'
+```
 
 ### the playbook
 Then execute the playbook like this
 
+[slurm_cluster.yanl](https://github.com/uc-cdis/cloud-automation/blob/master/ansible/playbooks/slurm_cluster.yaml)
 
 
 ```bash
@@ -179,11 +185,17 @@ devplanetv1@cdistest_dev_admin:~/cloud-automation/ansible$ ansible-playbook -i h
 ```
 
 `cloudwatch_log_group` is where to send instances logs.
+
 `cluster` how you want you cluster named.
+
 `workers_cpu` the vCPU of instances selected for the workers (it depends on the instance type.
+
 `workers_gres` this has to be slightly less than the volume size selected for the workers.
-`mysql_db_endpoint` outputed by terraform at the moment of deployment
-`mysql_db_name` the name of the database slurm will use
+
+`mysql_db_endpoint` outputed by terraform at the moment of deployment.
+
+`mysql_db_name` the name of the database slurm will use.
+
 `mysql_db_pass` the password to access the database 
 
 
