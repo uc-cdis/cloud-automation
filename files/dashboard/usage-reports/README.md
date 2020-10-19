@@ -4,13 +4,20 @@ how to test the reports webapp with the local sample data
 
 ## Dev-test
 
-* launch a local web server
-
+* first, if necessary:
 ```
-cd "${GEN3_HOME}" && npm install  # if necessary
-cd "${GEN3_HOME}/files/dashboard/usage-reports"
-npm install
-npm start
+(
+  cd "${GEN3_HOME}" && npm install  # if necessary
+)
+```
+
+* launch a local web server
+```
+(
+  cd "${GEN3_HOME}/files/dashboard/usage-reports"
+  npm install
+  npm start
+)
 ```
 
 * connect to http://localhost:3380/index.html?end=2019/10/18
