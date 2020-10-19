@@ -1,0 +1,25 @@
+:root {
+    --bg-color: #fefefe;
+    --fg-color: #222222;
+    --action-bg-color: green;
+    --action-fg-color: white;
+  }
+  
+  body {
+    font-family: sans-serif;
+    color: var(--foreground-color);
+    background-color: var(--bg-color);
+    width: 100%;
+    min-width: 320px;
+    height: 100%;
+    min-height: 320px;
+    font-size: 12px;
+    box-sizing: border-box;
+  }
+  
+  button.g3-button_action {
+      color: var(--action-fg-color);
+      background-color: var(--action-bg-color);
+      padding: 10px;
+      border-radius: 3px;
+  }
