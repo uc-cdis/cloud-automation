@@ -485,7 +485,6 @@ account_name = "${GEN3_WORKSPACE//_management-logs/}"
 EOM
       return 0
   fi
-
   # else
   if [[ -f "${GEN3_TFSCRIPT_FOLDER}/sample.tfvars" ]]; then
       cat "${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
