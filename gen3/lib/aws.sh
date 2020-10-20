@@ -485,6 +485,15 @@ account_name = "${GEN3_WORKSPACE//_management-logs/}"
 EOM
       return 0
   fi
+
+  if [[ "$GEN3_WORKSPACE" =~ _sftp$ ]]; then
+      cat - <<EOM
+ssh_key = ""
+s3_bucket_name = ""
+EOM
+      return 0
+  fi
+
   # else
   if [[ -f "${GEN3_TFSCRIPT_FOLDER}/sample.tfvars" ]]; then
       cat "${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
