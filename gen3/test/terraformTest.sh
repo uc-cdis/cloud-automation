@@ -272,6 +272,16 @@ EOM
   gen3 tfplan; because $? "tfplan data-bucket-queue should run ok"
 }
 
+test_sftp_workspace() {
+  GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}__sftp"
+  test_workspace
+  cat - > config.tfvars <<EOM
+ssh_key = "test-key"
+s3_bucket_name = "test-bucket"
+EOM
+  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/sftp" ]]; because $? "a __sftp workspace should use the ./aws/sftp resources: $GEN3_TFSCRIPT_FOLDER"
+  gen3 tfplan; because $? "tfplan sftp should run ok"
+}
 
 test_gcp_workspace() {
   GEN3_TEST_PROFILE="gcp-dcf-integration"
@@ -336,6 +346,7 @@ if [[ -z "$JENKINS_HOME" ]]; then
   shunit_runtest "test_gcp_workspace" "terraform"
 fi
 shunit_runtest "test_onprem_workspace" "terraform"
+shunit_runtest "test_sftp_workspace" "terraform"
 shunit_runtest "test_trash" "terraform"
 shunit_runtest "test_refresh" "terraform"
 shunit_runtest "test_tfoutput" "terraform"
