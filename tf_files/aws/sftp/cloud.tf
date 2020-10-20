@@ -9,14 +9,14 @@ provider "aws" {}
 
 
 resource "aws_s3_bucket" "sftp_bucket" {
-  bucket = "${var.s3_bucket_name}"
+  bucket = var.s3_bucket_name
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
         sse_algorithm     = "AES256"
       }
     }
-  }  
+  }
 }
 
 
@@ -41,7 +41,7 @@ EOF
 
 resource "aws_iam_role_policy" "sftp" {
   name = "sftp_policy"
-  role = "${aws_iam_role.sftp_role.id}"
+  role = aws_iam_role.sftp_role.id
 
   policy = <<POLICY
 {
@@ -67,18 +67,18 @@ POLICY
 
 resource "aws_transfer_server" "sftp_server" {
   identity_provider_type = "SERVICE_MANAGED"
-  logging_role           = "${aws_iam_role.sftp_role.arn}"
+  logging_role           = aws_iam_role.sftp_role.arn
 }
 
 resource "aws_transfer_user" "sftp_user" {
-  server_id = "${aws_transfer_server.sftp_server.id}"
+  server_id = aws_transfer_server.sftp_server.id
   user_name = "sftp_user"
-  role      = "${aws_iam_role.sftp_role.arn}"
+  role      = aws_iam_role.sftp_role.arn
   home_directory = "/${aws_s3_bucket.sftp_bucket.bucket}/sftp_user"
 }
 
 resource "aws_transfer_ssh_key" "ssh_keys" {
-  server_id = "${aws_transfer_server.sftp_server.id}"
-  user_name = "${aws_transfer_user.sftp_user.user_name}"
-  body      = "${var.ssh_key}"
+  server_id = aws_transfer_server.sftp_server.id
+  user_name = aws_transfer_user.sftp_user.user_name
+  body      = var.ssh_key
 }
