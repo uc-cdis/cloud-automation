@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: workspace-metrics
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      restartPolicy: Never
+      serviceAccountName: dashboard-sa
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: awshelper
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          imagePullPolicy: Always
+          env:
+            - name: slackWebHook
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: slack_webhook
+                  optional: true
+          command: ["/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              export GEN3_HOME="$HOME/cloud-automation"
+              source "$GEN3_HOME/gen3/gen3setup.sh"
+              kubectl get --raw "/apis/metrics.k8s.io/v1beta1/namespaces/$gen3 jupyter j-namespace/pods"  | jq -e -r '.items' | tee workspace-$(date '+%Y%m%d').json
+              echo "All Done!"
