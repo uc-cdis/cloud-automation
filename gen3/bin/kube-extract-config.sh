@@ -167,6 +167,21 @@ cat - > creds.json <<EOM
         "oauth2_client_id": "",
         "oauth2_client_secret": ""
     },
+    "pcdcanalysistools": {
+        "fence_host": "",
+        "fence_username": "${fenceDbUser}",
+        "fence_password": "${fenceDbPassword}",
+        "fence_database": "${fenceDbSchema}",
+        "db_host": "",
+        "db_username": "sheepdog",
+        "db_password": "${sheepdogDbPassword}",
+        "db_database": "${gdcapiDbSchema}",
+        "gdcapi_secret_key": "",
+        "indexd_password": "${gdcapiIndexdSecret}",
+        "hostname": "${hostname}",
+        "oauth2_client_id": "",
+        "oauth2_client_secret": ""
+    },
     "peregrine": {
         "fence_host": "",
         "fence_username": "${fenceDbUser}",

@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sheepdog-deployment
+  name: pcdcanalysistools-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: sheepdog
+      app: pcdcanalysistools
       release: production
   revisionHistoryLimit: 2
   strategy:
@@ -17,7 +17,7 @@ spec:
   template:
     metadata:
       labels:
-        app: sheepdog
+        app: pcdcanalysistools
         release: production
         public: "yes"
         # to download dictionary
@@ -34,13 +34,13 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - sheepdog
+                  - pcdcanalysistools
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:
-            secretName: "sheepdog-secret"
+            secretName: "pcdcanalysistools-secret"
         - name: creds-volume
           secret:
             secretName: "sheepdog-creds"
@@ -49,16 +49,22 @@ spec:
             name: config-helper
         - name: cert-volume
           secret:
-            secretName: "cert-sheepdog-service"
+            secretName: "cert-pcdcanalysistools-service"
         - name: ca-volume
           secret:
             secretName: "service-ca"
-      # sheepdog transactions take forever -
+        - name: analysis-jwt-keys
+          secret:
+            secretName: "analysis-jwt-keys-g3auto"
+            items:
+              - key: jwt_private_key.pem
+                path: jwt_private_key.pem
+      # pcdcanalysistools transactions take forever -
       # try to let the complete before termination
       terminationGracePeriodSeconds: 50
       containers:
-        - name: sheepdog
-          GEN3_SHEEPDOG_IMAGE
+        - name: pcdcanalysistools
+          GEN3_PCDCANALYSISTOOLS_IMAGE
           livenessProbe:
             httpGet:
               path: /_status?timeout=20
@@ -79,11 +85,6 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: dictionary_url
-          - name: AUTHZ_ENTITY_NAME 
-            valueFrom:
-              configMapKeyRef:
-                name: manifest-global
-                key: authz_entity_name
           # Signpost is deprecated; replace this w INDEX_CLIENT_HOST block
           - name: SIGNPOST_HOST
             valueFrom:
@@ -127,15 +128,15 @@ spec:
           volumeMounts:
             - name: "config-volume"
               readOnly: true
-              mountPath: "/var/www/sheepdog/wsgi.py"
+              mountPath: "/var/www/PcdcAnalysisTools/wsgi.py"
               subPath: "wsgi.py"
             - name: "creds-volume"
               readOnly: true
-              mountPath: "/var/www/sheepdog/creds.json"
+              mountPath: "/var/www/PcdcAnalysisTools/creds.json"
               subPath: creds.json
             - name: "config-helper"
               readOnly: true
-              mountPath: "/var/www/sheepdog/config_helper.py"
+              mountPath: "/var/www/PcdcAnalysisTools/config_helper.py"
               subPath: config_helper.py
             - name: "cert-volume"
               readOnly: true
@@ -150,6 +151,10 @@ spec:
               readOnly: true
               mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
               subPath: "ca.pem"
+            - name: "analysis-jwt-keys"
+              readOnly: true
+              mountPath: "/var/www/PcdcAnalysisTools/jwt_private_key.pem"
+              subPath: "jwt_private_key.pem"
           imagePullPolicy: Always
           resources:
             requests:

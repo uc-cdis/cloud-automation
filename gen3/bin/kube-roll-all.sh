@@ -92,6 +92,12 @@ else
   gen3_log_info "not deploying sheepdog - no manifest entry for .versions.sheepdog"
 fi
 
+if g3k_manifest_lookup .versions.pcdcanalysistools 2> /dev/null; then
+  gen3 kube-setup-pcdcanalysistools
+else
+  gen3_log_info "not deploying pcdcanalysistools - no manifest entry for .versions.pcdcanalysistools"
+fi
+
 if g3k_manifest_lookup .versions.peregrine 2> /dev/null; then
   gen3 kube-setup-peregrine
 else
