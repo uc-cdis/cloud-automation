@@ -248,6 +248,37 @@ EOM
   gen3 tfplan; because $? "tfplan encrypted-rds should run ok"
 }
 
+test_eks_workspace() {
+  GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}_eks"
+  test_workspace
+  cat - > config.tfvars <<EOM
+vpc_name                     = "devplanetv1"
+instance_type                = "t3.2xlarge"
+jupyter_instance_type        = "t3.xlarge"
+ec2_keyname                  = "devplanetv1_automation_dev"
+users_policy                 = "devplanetv1"
+worker_drive_size            = 50
+eks_version                  = "1.15"
+#deploy_jupyter_pool         = "yes"
+#kernel                       = "4.19.30"
+workers_subnet_size          = 23
+#jupyter_bootstrap_script     = "bootstrap-2.1.0.sh"
+#bootstrap_script             = "bootstrap-2.0.0.sh"
+jupyter_worker_drive_size    = 80
+#proxy_name                   = "_squid_auto_setup_autoscaling_grp_member"
+jupyter_asg_desired_capacity = 3
+jupyter_asg_max_size         = 10
+jupyter_asg_min_size         = 3
+iam-serviceaccount           = true
+domain_test                  = "www.google.com"
+ha_squid                     = true
+jupyter_asg_desired_capacity = 0
+jupyter_asg_min_size = 0
+EOM
+  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/eks" ]]; because $? "a _eks workspace should use the ./aws/eks resources: $GEN3_TFSCRIPT_FOLDER"
+  gen3 tfplan; because $? "tfplan eks should run ok"
+}
+
 test_encrypted-rds_workspace() {
   GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}__encrypted-rds"
   test_workspace
@@ -325,6 +356,7 @@ shunit_runtest "test_arp_workspace" "terraform"
 shunit_runtest "test_custom_workspace" "terraform"
 shunit_runtest "test_commons_workspace" "terraform"
 shunit_runtest "test_databucket_workspace" "terraform"
+shunit_runtest "test_eks_workspace" "terraform"
 shunit_runtest "test_encrypted-rds_workspace" "terraform"
 shunit_runtest "test_rds_workspace" "terraform"
 shunit_runtest "test_role_workspace" "terraform"

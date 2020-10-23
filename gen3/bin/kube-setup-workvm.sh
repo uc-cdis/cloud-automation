@@ -158,7 +158,7 @@ EOM
     (
       gen3_log_info "installing aws-iam-authenticator"
       cd /usr/local/bin
-      sudo curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.17.7/2020-07-08/bin/linux/amd64/aws-iam-authenticator
+      sudo curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.8/2020-09-18/bin/linux/amd64/aws-iam-authenticator
       sudo chmod a+rx ./aws-iam-authenticator
       sudo rm /usr/local/bin/heptio-authenticator-aws || true
       # link heptio-authenticator-aws for backward compatability with old scripts
@@ -194,7 +194,7 @@ EOM
       # Overwrite helm2 with helm3
       if ! helm version --short | grep v3 > /dev/null 2>&1; then
         install_helm
-        migrate_helm
+        migrate_helm || true
       fi
     fi
   )

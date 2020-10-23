@@ -11,7 +11,8 @@ gen3_load "gen3/lib/g3k_manifest"
 manifestPath=$(g3k_manifest_path)
 deployVersion="$(jq -r ".[\"arborist\"][\"deployment_version\"]" < "$manifestPath")"
 if [ -z "$deployVersion" ]; then
-  deployVersion="1"
+  gen3_log_err "must set arborst.deployment_version to 2 in manifest.json"
+  exit 1
 fi
 
 if [ "$deployVersion" -gt  "1" ]; then
