@@ -95,13 +95,13 @@ EOM
 
 test_etlconvert() {
   local temp="$(mktemp "$XDG_RUNTIME_DIR/test_etlconvert_XXXXXX")"
-  local path
+  local yaml
   for num in 1 2; do
-    path="$GEN3_HOME/gen3/lib/testData/etlconvert/users${num}.yaml"
-    gen3 gitops etl-convert < "$path" > $temp
-        because $? "etl-convert should work on $path"
+    yaml="$GEN3_HOME/gen3/lib/testData/etlconvert/users${num}.yaml"
+    gen3 gitops etl-convert < "$yaml" > $temp
+        because $? "etl-convert should work on $yaml"
     diff -w "$temp" "$GEN3_HOME/gen3/lib/testData/etlconvert/expected${num}.yaml"
-        because $? "etl-convert gave expected result for $path"
+        because $? "etl-convert gave expected result for $yaml"
   done
   rm "$temp"
 }
