@@ -614,6 +614,12 @@ gen3_gitops_configmaps_list() {
   rm "$keyList"
 }
 
+#
+# Extract project-mapping from user.yaml for etl
+#
+gen3_gitops_etlconvert() {
+  yq -r '[ (.users | .[] | .projects // [] | .[] | { "key": .auth_id, "value": .resource }), (.rbac.user_project_to_resource // {} | to_entries | .[]), (.authz.user_project_to_resource // {} | to_entries | .[]) ] | map(select(.value != null)) | sort_by(.key) | from_entries | { authz: { user_project_to_resource: . } }'
+}
 
 #
 # g3k command to create configmaps from manifest
@@ -970,6 +976,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "enforce")
       gen3_gitops_enforcer "$@"
+      ;;
+    "etl-convert")
+      gen3_gitops_etlconvert "$@"
       ;;
     "folder")
       dirname "$(g3k_manifest_path)"
