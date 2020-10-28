@@ -30,5 +30,13 @@ spec:
             - |
               export GEN3_HOME="$HOME/cloud-automation"
               source "$GEN3_HOME/gen3/gen3setup.sh"
-              kubectl get --raw "/apis/metrics.k8s.io/v1beta1/namespaces/$gen3 jupyter j-namespace/pods"  | jq -e -r '.items' | tee workspace-$(date '+%Y%m%d').json
+              if ! bucketName="$(gen3 secrets decode dashboard-g3auto config.json | jq -e -r '"s3://" + .bucket + "/" + .prefix')"; then
+                gen3_log_err "failed to acquire dashboard prefix info - is dashboard deployed?"
+                return 1
+              fi
+              gen3 jupyter metrics
+              if [ $? -eq 0 ] ; then
+                echo "Uploading metrics file to S3 bucket"
+                aws s3 copy workspace-$(date '+%Y%m%d').json s3://$bucketName/$(date +'%Y')/$(date +'%m')/$(date +%d)/
+              fi
               echo "All Done!"

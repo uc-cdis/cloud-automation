@@ -63,3 +63,7 @@ Sync the jupyter configmaps, and reset the jupyter prepuller and hub.
 ### gen3 jupyter pvclear $grepFor
 
 list persistent volumes and persistent volume claims to clear
+
+### gen3 jupyter metrics
+
+Get the jupyter nodepool metrics from kubernetes API

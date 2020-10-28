@@ -215,11 +215,12 @@ gen3_jupyter_idle_pods() {
 
 #
 # get the metrics of jupyter nodepool from kubernetes metrics
+# download the workspace-$(date '+%Y%m%d').json to current folder
 #
 gen3_jupyter_metrics() {
   local namespace="$(gen3 db namespace)"
   local jnamespace="$(gen3_jupyter_namespace "$namespace")"
-  kubectl get --raw "/apis/metrics.k8s.io/v1beta1/namespaces/$jnamespace/pods"  | jq -e -r '.items' | tee workspace-$(date '+%Y%m%d').json 1>&2
+  g3kubectl get --raw "/apis/metrics.k8s.io/v1beta1/namespaces/$jnamespace/pods"  | jq -e -r '.items' | tee workspace-$(date '+%Y%m%d').json > /dev/null
 }
 
 # main ----------------------
