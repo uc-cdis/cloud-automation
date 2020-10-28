@@ -53,6 +53,14 @@ Force the local `cdis-manifest/` and `cloud-automation/` folders to sync with gi
 gen3 gitops enforce
 ```
 
+## etl-convert
+
+Extract the project to resource mapping required by the etl from a `user.yaml` file:
+
+```
+gen3 gitops etl-convert < user.yaml
+```
+
 ### folder
 
 Get the active manifest folder path.
