@@ -10,8 +10,12 @@ gen3_load "gen3/gen3setup"
 setup_mariner_service() {
   local secretName=workflow-bot-g3auto
   local saName=mariner-service-account
+  local scName=mariner-storage
   local secretsFolder="$(gen3_secrets_folder)/g3auto/workflow-bot"
 
+  if ! g3kubectl get storageclasses "$scName" > /dev/null 2>&1; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/mariner/mariner-storage.yaml"
+  fi
   if ! g3kubectl get serviceaccounts "$saName" > /dev/null 2>&1; then
     g3kubectl apply -f "${GEN3_HOME}/kube/services/mariner/mariner-service-account.yaml"
   fi
