@@ -213,6 +213,15 @@ gen3_jupyter_idle_pods() {
   return 0
 }
 
+#
+# get the metrics of jupyter nodepool from kubernetes metrics
+#
+gen3_jupyter_metrics() {
+  local namespace="$(gen3 db namespace)"
+  local jnamespace="$(gen3_jupyter_namespace "$namespace")"
+  kubectl get --raw "/apis/metrics.k8s.io/v1beta1/namespaces/$jnamespace/pods"  | jq -e -r '.items' | tee workspace-$(date '+%Y%m%d').json 1>&2
+}
+
 # main ----------------------
 
 command="$1"
@@ -228,6 +237,9 @@ case "$command" in
     ;;
   "idle")
     gen3_jupyter_idle_pods "$@"
+    ;;
+  "metrics")
+    gen3_jupyter_metrics "$@"
     ;;
   "prepuller")
     gen3_jupyter_prepuller "$@"
