@@ -97,9 +97,10 @@ clear_wts_clientId() {
       gen3_log_info "Deleting wts secret appcreds.json key"
       local dbCreds
       dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)"
+      clientInfo="$(gen3 kube-setup-wts new-client)"
       g3kubectl delete secret wts-g3auto || true
-      if [[ -n "$dbCreds" ]]; then
-        g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds"
+      if [[ -n "$dbCreds" && -n ]]; then
+        g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds" "--from-literal=appcreds.json=$clientInfo"
       fi
   fi
   gen3_log_info "All clear for wts"
