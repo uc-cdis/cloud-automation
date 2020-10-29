@@ -67,3 +67,7 @@ list persistent volumes and persistent volume claims to clear
 ### gen3 jupyter metrics
 
 Get the jupyter nodepool metrics from kubernetes API
+
+### gen3 jupyter metrics upload
+
+Get the jupyter nodepool metrics from kubernetes API and upload metrics file to dashboard s3 bucket Secure folderß

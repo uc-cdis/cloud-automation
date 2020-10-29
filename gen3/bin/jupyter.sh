@@ -223,6 +223,22 @@ gen3_jupyter_metrics() {
   g3kubectl get --raw "/apis/metrics.k8s.io/v1beta1/namespaces/$jnamespace/pods"  | jq -e -r '.items' | tee workspace-$(date '+%Y%m%d').json > /dev/null
 }
 
+#
+# get the metrics of jupyter nodepool from kubernetes metrics
+# upload the metrics json file to dashboard s3 bucket Secure folder
+#
+gen3_jupyter_metrics_upload() {
+  local bucketName
+  if ! bucketName="$(gen3 secrets decode dashboard-g3auto config.json | jq -e -r '"s3://" + .bucket + "/" + .prefix')"; then
+    gen3_log_err "failed to acquire dashboard prefix info - is dashboard deployed?"
+    return 1
+  fi
+  gen3 jupyter metrics
+  if [ $? -eq 0 ] ; then
+    echo "Uploading metrics file to S3 bucket"
+    aws s3 cp workspace-$(date '+%Y%m%d').json $bucketName/Secure/$(date +'%Y')/$(date +'%m')/$(date +%d)/
+  fi
+}
 # main ----------------------
 
 command="$1"
@@ -240,7 +256,12 @@ case "$command" in
     gen3_jupyter_idle_pods "$@"
     ;;
   "metrics")
-    gen3_jupyter_metrics "$@"
+    if [[ $# -gt 0 && "$1" == "upload" ]]; then
+      shift
+      gen3_jupyter_metrics_upload "$@";
+    else
+      gen3_jupyter_metrics "$@"
+    fi
     ;;
   "prepuller")
     gen3_jupyter_prepuller "$@"
