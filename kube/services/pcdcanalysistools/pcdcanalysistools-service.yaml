@@ -1,0 +1,22 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: pcdcanalysistools-service
+spec:
+  selector:
+    app: pcdcanalysistools
+    release: production
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: http
+      nodePort: null
+    - protocol: TCP
+      port: 443
+      targetPort: 443
+      name: https
+      nodePort: null
+  type: ClusterIP
+
+

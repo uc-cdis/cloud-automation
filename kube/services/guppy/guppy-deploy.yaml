@@ -46,6 +46,12 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: analysis-jwt-keys
+          secret:
+            secretName: "analysis-jwt-keys-g3auto"
+            items:
+              - key: jwt_public_key.pem
+                path: jwt_public_key.pem
       containers:
         - name: guppy
           GEN3_GUPPY_IMAGE|-image: quay.io/cdis/guppy:master-|
@@ -69,6 +75,8 @@ spec:
             value: /guppy/guppy_config.json
           - name: GEN3_ES_ENDPOINT
             value: esproxy-service:9200
+          - name: PUBLIC_KEY_PATH
+            value: /guppy/jwt_public_key.pem
           - name: GEN3_ARBORIST_ENDPOINT
             valueFrom:
               configMapKeyRef:
@@ -103,6 +111,10 @@ spec:
               readOnly: true
               mountPath: "/usr/local/share/ca-certificates/cdis-ca.crt"
               subPath: "ca.pem"
+            - name: "analysis-jwt-keys"
+              readOnly: true
+              mountPath: "/guppy/jwt_public_key.pem"
+              subPath: "jwt_public_key.pem"
           imagePullPolicy: Always
           resources:
             requests:
