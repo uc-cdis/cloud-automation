@@ -120,8 +120,13 @@ for name in fence indexd sheepdog; do
     gen3_log_err "Failed to setup new db $dbname"
   fi
   # update creds.json
-  if jq -r --arg key $name --argjson value "$newCreds" '.[$key]=$value | del(.gdcapi) | del(.ssjdispatcher)' < "$credsMaster" > "$credsTemp"; then
+  if jq -r --arg key $name --argjson value "$newCreds" '.[$key]=$value | del(.gdcapi) | del(.ssjdispatcher) | del(.user)' < "$credsMaster" > "$credsTemp"; then
     cp "$credsTemp" "$credsMaster"
+  fi
+  if [[ "$name" == "sheepdog" ]]; then # update peregrine too
+    if jq -r '.peregrine.db_database=.sheepdog.db_database' < "$credsMaster" > "$credsTemp"; then
+      cp "$credsTemp" "$credsMaster"
+    fi
   fi
   if [[ "$name" == "fence" ]]; then # update fence-config.yaml too
     fenceYaml="/home/$namespace/Gen3Secrets/apis_configs/fence-config.yaml"

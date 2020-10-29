@@ -12,6 +12,7 @@ in `creds.json`.
 * create an upload bucket
 * create sns and sqs
 * setup indexd creds
+* setup metadata service creds if they are present
 
 If `auto` is provided as the bucket name, then the script constructs a
 safe name for the bucket.  The caller must configure the `DATA_UPLOAD_BUCKET` in `fence-config-public`.

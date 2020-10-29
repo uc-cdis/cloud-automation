@@ -23,6 +23,7 @@ workspace-token-service
 manifestservice
 gen3-statics
 metadata-service
+requestor
 )
 # ambassador
 #repoList=( fence )
@@ -45,6 +46,7 @@ accountList=(
 662843554732
 663707118480
 728066667777
+813684607867
 830067555646
 895962626746
 980870151884

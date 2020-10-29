@@ -91,7 +91,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
 
     install_terraform12() {
       mkdir "${XDG_RUNTIME_DIR}/t12"
-      curl -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
+      curl -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.29/terraform_0.12.29_linux_amd64.zip
       sudo /bin/rm -rf /usr/local/bin/terraform12 > /dev/null 2>&1 || true
       unzip "${XDG_RUNTIME_DIR}/t12/terraform12.zip" -d "${XDG_RUNTIME_DIR}/t12";
       sudo cp "${XDG_RUNTIME_DIR}/t12/terraform" "/usr/local/bin/terraform12"
@@ -110,8 +110,8 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       install_terraform12  
     else
       T12_VERSION=$(terraform12 --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
-      if ! semver_ge "$T12_VERSION" "0.12.24"; then
-        install_terraform
+      if ! semver_ge "$T12_VERSION" "0.12.29"; then
+        install_terraform12
       fi
     fi
   )
@@ -149,7 +149,7 @@ EOM
     )
   fi
   if ! which packer > /dev/null 2>&1; then
-    curl -o "${XDG_RUNTIME_DIR}/packer.zip" https://releases.hashicorp.com/packer/1.2.1/packer_1.2.1_linux_amd64.zip
+    curl -o "${XDG_RUNTIME_DIR}/packer.zip" https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
     sudo unzip "${XDG_RUNTIME_DIR}/packer.zip" -d /usr/local/bin
     /bin/rm "${XDG_RUNTIME_DIR}/packer.zip"
   fi
@@ -158,19 +158,46 @@ EOM
     (
       gen3_log_info "installing aws-iam-authenticator"
       cd /usr/local/bin
-      sudo curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.17.7/2020-07-08/bin/linux/amd64/aws-iam-authenticator
+      sudo curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.8/2020-09-18/bin/linux/amd64/aws-iam-authenticator
       sudo chmod a+rx ./aws-iam-authenticator
       sudo rm /usr/local/bin/heptio-authenticator-aws || true
       # link heptio-authenticator-aws for backward compatability with old scripts
       sudo ln -s /usr/local/bin/aws-iam-authenticator heptio-authenticator-aws
     )
   fi
-  if ! which helm > /dev/null 2>&1; then
-    helm_release_URL="https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz"
-    curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
-    tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
-    sudo mv "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
-  fi
+  ( # in a subshell install helm
+    install_helm() {
+      helm_release_URL="https://get.helm.sh/helm-v3.3.0-linux-amd64.tar.gz"
+      curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
+      tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
+      sudo mv -f "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
+
+      # helm3 has no default repo, need to add it manually
+      helm repo add stable https://kubernetes-charts.storage.googleapis.com
+      helm repo update
+    }
+
+    migrate_helm() {
+      if ! helm plugin list | grep 2to3 > /dev/null 2>&1; then
+        helm plugin install https://github.com/helm/helm-2to3.git
+      fi
+      helm 2to3 convert grafana
+      helm 2to3 convert prometheus
+      
+      # delete tiller and other helm2 data/configs
+      helm 2to3 cleanup --skip-confirmation
+    }
+
+    if ! which helm > /dev/null 2>&1; then
+      install_helm
+    else 
+      # Overwrite helm2 with helm3
+      if ! helm version --short | grep v3 > /dev/null 2>&1; then
+        install_helm
+        migrate_helm || true
+      fi
+    fi
+  )
 
   # install "update and reboot" cron job
   sudo cp "${GEN3_HOME}/files/scripts/updateAndRebootCron" /etc/cron.d/

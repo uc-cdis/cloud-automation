@@ -193,7 +193,7 @@ resource "aws_security_group" "squidauto_in" {
     cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_squid_name}"
     Organization = "${var.organization_name}"
   }
@@ -205,7 +205,7 @@ resource "aws_security_group" "squidauto_in" {
     cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_squid_name}"
     Organization = "${var.organization_name}"
   }
@@ -217,11 +217,6 @@ resource "aws_security_group" "squidauto_in" {
     cidr_blocks = ["${var.env_vpc_cidr}"]
   }
 
-  tags {
-    Environment  = "${var.env_squid_name}"
-    Organization = "${var.organization_name}"
-  }
-
   ingress {
     from_port   = 443
     to_port     = 443
@@ -229,7 +224,7 @@ resource "aws_security_group" "squidauto_in" {
     cidr_blocks = ["${var.env_vpc_cidr}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_squid_name}"
     Organization = "${var.organization_name}"
   }
@@ -253,7 +248,7 @@ resource "aws_security_group" "squidauto_out" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_squid_name}"
     Organization = "${var.organization_name}"
   }

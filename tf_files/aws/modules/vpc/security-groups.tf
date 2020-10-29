@@ -20,7 +20,7 @@ resource "aws_security_group" "local" {
     cidr_blocks = ["${var.vpc_cidr_block}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
     Name         = "${var.vpc_name}-local-sec-group"
@@ -40,7 +40,7 @@ resource "aws_security_group" "out" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
     Name         = "${var.vpc_name}-outbound-traffic"
@@ -61,7 +61,7 @@ resource "aws_security_group" "proxy" {
     cidr_blocks = ["${var.vpc_cidr_block}", "${var.peering_cidr}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
   }

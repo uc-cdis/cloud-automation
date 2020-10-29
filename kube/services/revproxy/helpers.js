@@ -253,3 +253,29 @@ function checkBlackList(req,res) {
   }
   return "ok"; // + "-" + ipAddrStr + "-" + blackListStr;
 }
+
+
+/**
+ * Handle the js_content callout from /workspace-authorize.
+ * Basically - redirect to a subdomain /wts/authorize endpoint
+ * based on the state=SUBDOMAIN-... query parameter with
+ * some guards to stop attacks.
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ */
+function gen3_workspace_authorize_handler(req) {
+  var subdomain = '';
+  var query = req.variables["args"] || "";
+  var matchGroups = null;
+
+  if (matchGroups = query.match(/(^state=|&state=)(\w+)-/)) {
+    subdomain = matchGroups[2];
+    var location = "https://" + subdomain + "." + req.variables["host"] +
+      "/wts/oauth2/authorize?" + query;
+    req.return(302, location);
+  } else {
+    req.headersOut["Content-Type"] = "application/json"
+    req.return(400, '{ "status": "redirect failed validation" }');
+  }
+}

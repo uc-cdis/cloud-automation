@@ -1,8 +1,6 @@
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "${local.clean_bucket_name}"
-  acl    = "bucket-owner-full-control" #log-delivery-write
   acl    = "log-delivery-write"
-
 
   server_side_encryption_configuration {
     rule {
@@ -18,9 +16,9 @@ resource "aws_s3_bucket" "log_bucket" {
 
     prefix = "/"
 
-    tags {
-      "rule"      = "log"
-      "autoclean" = "true"
+    tags = {
+      rule      = "log"
+      autoclean = "true"
     }
 
     expiration {
@@ -29,7 +27,7 @@ resource "aws_s3_bucket" "log_bucket" {
     }
   }
 
-  tags {
+  tags = {
     Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "logs bucket"
@@ -103,7 +101,6 @@ resource "aws_s3_bucket_policy" "log_bucket_writer_by_ct" {
       "Action": "s3:GetBucketAcl",
       "Resource": "${aws_s3_bucket.log_bucket.arn}"
     },
-
     {
       "Sid": "AWSCloudTrailWrite20150319",
      "Effect": "Allow",

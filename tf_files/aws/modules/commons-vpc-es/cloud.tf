@@ -32,7 +32,7 @@ resource "aws_security_group" "private_es" {
     cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -98,7 +98,7 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
     automated_snapshot_start_hour = 23
   }
 
-  tags {
+  tags = {
     Name         = "gen3_metadata"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"

@@ -569,7 +569,7 @@ gen3_db_encrypt() {
   local account=$1
   local profile=$2
   if [[ -z $3 ]]; then
-    local dumpDir='.'
+    local dumpDir=$WORKSPACE
   else
     local dumpDir=$3
   fi
@@ -586,6 +586,7 @@ gen3_db_encrypt() {
   gen3 db backup arborist  > $dumpDir/arborist-backup.sql
   gen3 db backup metadata  > $dumpDir/metadata-backup.sql
   gen3 db backup wts  > $dumpDir/wts-backup.sql
+  gen3 db backup requestor  > $dumpDir/requestor-backup.sql
 
   # Quick check to ensure the snapshots were taken successfully. Will prevent new db from getting incomplete data.
   echo "Did the snapshots get created correctly?(yes/no)"
@@ -627,6 +628,8 @@ gen3_db_encrypt() {
   g3kubectl delete cronjob gitops-sync
   mv "$(gen3_secrets_folder)"/g3auto/arborist "$(gen3_secrets_folder)"/g3auto/arb-backup
   mv "$(gen3_secrets_folder)"/g3auto/metadata "$(gen3_secrets_folder)"/g3auto/mtdta-backup
+  mv "$(gen3_secrets_folder)"/g3auto/wts "$(gen3_secrets_folder)"/g3auto/wts-backup
+  mv "$(gen3_secrets_folder)"/g3auto/requestor "$(gen3_secrets_folder)"/g3auto/requestor-backup
   gen3 kube-setup-secrets
   if [[ -d "$(gen3_secrets_folder)"/g3auto/arb-backup ]]; then
     g3kubectl delete secret arborist-g3auto
@@ -640,24 +643,31 @@ gen3_db_encrypt() {
     g3kubectl delete secret wts-g3auto
     gen3 db setup wts
   fi
+  if [[ -d "$(gen3_secrets_folder)"/g3auto/requestor-backup ]]; then
+    g3kubectl delete secret requestor-g3auto
+    gen3 db setup requestor
+  fi
   gen3_log_info "restoring indexd db"
   gen3_db_reset "indexd"
   gen3 psql indexd  < $dumpDir/indexd-backup.sql
   gen3_log_info "restoring fence db"
   gen3_db_reset "fence"
   gen3 psql fence  <  $dumpDir/fence-backup.sql
-  gen3_log_info "restoring sheepdogd db"
+  gen3_log_info "restoring sheepdog db"
   gen3_db_reset "sheepdog"
   gen3 psql gdcapi  < $dumpDir/gdcapidb-backup.sql
   gen3_log_info "restoring arborist db"
   gen3_db_reset "arborist"
-  gen3 psql arborist  < /$dumpDir/arborist-backup.sql
+  gen3 psql arborist  < $dumpDir/arborist-backup.sql
   gen3_log_info "restoring metadata db"
   gen3_db_reset "metadata"
   gen3 psql metadata  < $dumpDir/metadata-backup.sql
   gen3_log_info "restoring wts db"
   gen3_db_reset "wts"
   gen3 psql wts  < $dumpDir/wts-backup.sql
+  gen3_log_info "restoring requestor db"
+  gen3_db_reset "requestor"
+  gen3 psql requestor  < $dumpDir/requestor-backup.sql
 
 
   # dbs are now working but we should update the terraform state to ensure db's can still be managed through the main commons terraform

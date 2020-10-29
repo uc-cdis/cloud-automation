@@ -142,7 +142,7 @@ resource "aws_subnet" "eks_public" {
 resource "aws_route_table" "eks_private" {
   vpc_id = "${data.aws_vpc.the_vpc.id}"
 
-  tags {
+  tags = {
     Name         = "eks_private"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -196,7 +196,7 @@ resource "aws_security_group" "eks_control_plane_sg" {
     cidr_blocks     = ["0.0.0.0/0"]
   }
   
-  tags {
+  tags = {
     Name         = "${var.vpc_name}-control-plane-sg"
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
@@ -237,7 +237,7 @@ resource "aws_eks_cluster" "eks_cluster" {
     "aws_subnet.eks_private",
   ]
   
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -253,7 +253,7 @@ resource "aws_eks_cluster" "eks_cluster" {
 
 resource "aws_iam_role" "eks_node_role" {
   name = "eks_${var.vpc_name}_workers_role"
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
   }
@@ -552,7 +552,7 @@ resource "aws_security_group" "ssh" {
     #cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
     Name         = "ssh_eks_${var.vpc_name}"

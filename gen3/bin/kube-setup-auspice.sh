@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Deploy pidgin into existing commons
+# Deploy auspice into existing commons
 # This fragment is pasted into kube-services.sh by kube.tf.
 #
 

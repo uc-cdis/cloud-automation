@@ -18,7 +18,7 @@ module "vpc" {
   tags = {
     Environment = "${local.environment}"
   }
-  vpc_tags {
+  vpc_tags = {
     Name = "${local.environment}"
   }
 }
@@ -35,7 +35,7 @@ resource "aws_security_group" "all_out" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${local.environment}"
     Organization = "gen3"
   }
@@ -59,7 +59,7 @@ resource "aws_security_group" "web_in" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${local.environment}"
     Organization = "gen3"
   }
@@ -77,7 +77,7 @@ resource "aws_security_group" "ssh_in" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${local.environment}"
     Organization = "gen3"
   }

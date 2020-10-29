@@ -37,7 +37,7 @@ resource "aws_security_group" "login-ssh" {
     cidr_blocks = ["${aws_instance.login.private_ip}/32", "${var.csoc_cidr}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
   }
@@ -55,7 +55,7 @@ resource "aws_security_group" "ssh" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"
   }
@@ -70,7 +70,7 @@ resource "aws_instance" "login" {
   vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${module.cdis_vpc.security_group_local_id}"]
   iam_instance_profile   = "${module.cdis_vpc.logging_profile_name}"
 
-  tags {
+  tags = {
     Name         = "${var.vpc_name} Login Node"
     Environment  = "${var.vpc_name}"
     Organization = "Basic Service"

@@ -23,6 +23,9 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/influxdb
           name: influxdb-data
+        env:
+          - name: "INFLUXDB_DATA_MAX_VALUES_PER_TAG"
+            value: "0"
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

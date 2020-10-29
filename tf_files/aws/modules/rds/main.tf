@@ -29,7 +29,7 @@ resource "aws_iam_role" "enhanced_monitoring" {
 resource "aws_iam_role_policy_attachment" "enhanced_monitoring" {
   count = "${var.rds_instance_create_monitoring_role ? 1 : 0}"
 
-  role       = "${aws_iam_role.enhanced_monitoring.name}"
+  role       = "${aws_iam_role.enhanced_monitoring.*.name[count.index]}"
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
 
@@ -99,7 +99,7 @@ data "aws_iam_policy_document" "backup_bucket_access_kms" {
         "kms:GenerateDataKey",
         "kms:Encrypt",
         "kms:Decrypt"
-      ],
+      ]
     resources = ["arn:aws:kms:region:${data.aws_caller_identity.current.account_id}:key/${var.rds_instance_backup_kms_key}"]
     effect = "Allow"
   }
@@ -108,7 +108,7 @@ data "aws_iam_policy_document" "backup_bucket_access_kms" {
     actions = [
         "s3:ListBucket",
         "s3:GetBucketLocation"
-      ],
+      ]
     resources = ["arn:aws:s3:::${var.rds_instance_backup_bucket_name}"]
     effect = "Allow"
   }
@@ -119,7 +119,7 @@ data "aws_iam_policy_document" "backup_bucket_access_kms" {
         "s3:PutObject",
         "s3:ListMultipartUploadParts",
         "s3:AbortMultipartUpload"
-      ],
+      ]
     resources = ["arn:aws:s3:::${var.rds_instance_backup_bucket_name}"]
     effect = "Allow"
   }
@@ -150,7 +150,7 @@ resource "aws_db_instance" "this" {
 
   name                                  = "${var.rds_instance_name}"
   username                              = "${var.rds_instance_username}"
-  password                              = "${var.rds_instance_password == "" ? random_string.randomother.result : var.rds_instance_password}"
+  password                              = "${var.rds_instance_password == "" ? random_string.randomother.*.result[count.index] : var.rds_instance_password}"
   port                                  = "${var.rds_instance_port}"
   iam_database_authentication_enabled   = "${var.rds_instance_iam_database_authentication_enabled}"
 
@@ -217,7 +217,7 @@ resource "aws_db_instance" "this_mssql" {
 
   name                                  = "${var.rds_instance_name}"
   username                              = "${var.rds_instance_username}"
-  password                              = "${var.rds_instance_password == "" ? random_string.randommssql.result : var.rds_instance_password}"
+  password                              = "${var.rds_instance_password == "" ? random_string.randommssql.*.result[count.index] : var.rds_instance_password}"
   port                                  = "${var.rds_instance_port}"
   iam_database_authentication_enabled   = "${var.rds_instance_iam_database_authentication_enabled}"
 

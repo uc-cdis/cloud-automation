@@ -3,10 +3,6 @@
 # gen3 job run usersync
 #
 # Optional Arguments:
-#     FORCE Force running full userync without doing diff of user.yaml
-#           default: false
-#           ex: gen3 job run usersync FORCE true
-#
 #     ADD_DBGAP Force attempting a dbgap sync if "true", falls back to manifest configuration
 #               by defualt. i.e. this isn't required for a dbGaP sync to happen
 #               default: "false" - fall back to manifest configuration
@@ -66,9 +62,6 @@ spec:
         - name: fence-google-storage-creds-secret-volume
           secret:
             secretName: "fence-google-storage-creds-secret"
-        - name: fence-yaml
-          configMap:
-            name: fence
         - name: fence-ssh-keys
           secret:
             secretName: "fence-ssh-keys"
@@ -91,8 +84,6 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: sync_from_dbgap
-          - name: FORCE
-            GEN3_FORCE|-value: "false"-|
           - name: ADD_DBGAP
             GEN3_ADD_DBGAP|-value: "false"-|
           - name: ONLY_DBGAP
@@ -160,9 +151,6 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
             subPath: fence_google_storage_creds_secret.json
-          - name: "fence-yaml"
-            mountPath: "/var/www/fence/user.yaml"
-            subPath: user.yaml
           - name: "fence-ssh-keys"
             mountPath: "/root/.ssh/id_rsa"
             subPath: "id_rsa"
@@ -191,14 +179,8 @@ spec:
             done
             if [[ "$SYNC_FROM_DBGAP" != True && "$ADD_DBGAP" != "true" ]]; then
               if [[ -f /mnt/shared/user.yaml ]]; then
-                echo "fence container user.yaml diff ..."
-                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
-                if [[ $? == 1 || "${userYamlS3Path}" = 'none' || "$FORCE" == "true" ]]; then
-                  echo "running fence-create"
-                  time fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
-                else
-                  echo "no difference found"
-                fi
+                echo "running fence-create"
+                time fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
               else
                 echo "/mnt/shared/user.yaml did not appear within timeout :-("
                 false  # non-zero exit code
@@ -238,53 +220,49 @@ spec:
             fi
             echo "Exit code: $exitcode"
             exit "$exitcode"
-
       - name: awshelper
         GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
         imagePullPolicy: Always
         volumeMounts:
-          - name: "fence-yaml"
-            mountPath: "/var/www/fence/user.yaml"
-            subPath: user.yaml
           - name: shared-data
             mountPath: /mnt/shared
         command: ["/bin/bash" ]
         args:
           - "-c"
           - |
+            GEN3_HOME=/home/ubuntu/cloud-automation
+            source "${GEN3_HOME}/gen3/lib/utils.sh"
+            gen3_load "gen3/gen3setup"
+
             if [ "${userYamlS3Path}" = 'none' ]; then
-              echo "s3 yaml not provided, using local yaml"
-              cp /var/www/fence/user.yaml /mnt/shared/user.yaml
-            else
-              echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
-              n=0
-              until [ $n -ge 5 ]
-              do
-                echo "Download attempt $n"
-                aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml && break
-                n=$[$n+1]
-                sleep 2
-              done
-              exitcode=0
-              if [[ -f /mnt/shared/user.yaml ]]; then
-                echo "awshelper container user.yaml diff ..."
-                diff /var/www/fence/user.yaml /mnt/shared/user.yaml
-                if [[ $? == 1 ]]; then
-                  echo "awshelper updating fence configmap"
-                  kubectl delete configmap fence
-                  kubectl create configmap fence --from-file=/mnt/shared/user.yaml
-                  if [ "${slackWebHook}" != 'None' ]; then
-                    curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: Syncing users on ${gen3Env}\"}" "${slackWebHook}"
-                  fi
-                else
-                  echo "no difference found"
-                fi
-              else
-                exitcode=1
-              fi
+              echo "s3 yaml not provided - bailing out"
+              exit 1
             fi
-            echo "Helper exit code: $exitcode"
-            exit "$exitcode"
+            #-----------------
+            echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
+            n=0
+            until [ $n -ge 5 ]; do
+              echo "Download attempt $n"
+              aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml && break
+              n=$[$n+1]
+              sleep 2
+            done
+            if [[ ! -f /mnt/shared/user.yaml ]]; then
+              echo "awshelper failed to download /mnt/shared/user.yaml"
+              exit 1
+            fi
+            #-----------
+            echo "awshelper updating etl configmap"
+            if ! gen3 gitops etl-convert < /mnt/shared/user.yaml > /tmp/user.yaml; then
+              echo "ERROR: failed to generate ETL config"
+              exit 1
+            fi
+            kubectl delete configmap fence > /dev/null 2>&1
+            kubectl create configmap fence --from-file=/tmp/user.yaml
+            if [ "${slackWebHook}" != 'None' ]; then
+              curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: Syncing users on ${gen3Env}\"}" "${slackWebHook}"
+            fi
+            echo "Helper exit ok"
         env:
           - name: userYamlS3Path
             valueFrom:

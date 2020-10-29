@@ -151,6 +151,85 @@ EOM
   fi
 }
 
+setupMDSConfig() {
+  local ssjCredsFile
+  ssjCredsFile="$(gen3_secrets_folder)/creds.json"
+  # don't log nonexistence of $ssjCredsFile since that would have already been logged in setupSsjInfra function
+  [[ -f "$ssjCredsFile" ]] || return 0
+  if ! g3k_manifest_lookup .versions.metadata > /dev/null 2>&1; then
+    gen3_log_info "skipping verifying or syncing metadata service creds because metadata service not in manifest"
+    return 0
+  fi
+
+  mdsCredsFile="$(gen3_secrets_folder)/g3auto/metadata/metadata.env"
+  if [[ ! -f "$mdsCredsFile" ]]; then
+    gen3_log_warn "skipping verifying or syncing metadata service creds because metadata service creds file could not be found"
+    return 0
+  fi
+
+  local jobImageConfig
+  if ! jobImageConfig="$(jq -r -e '.ssjdispatcher.JOBS[] | select(.name == "indexing").imageConfig' < "$ssjCredsFile" 2> /dev/null)"; then
+    gen3_log_warn "skipping verifying or syncing metadata service creds because an \"indexing\" job image configuration could not be found in $ssjCredsFile"
+    return 0
+  fi
+
+  local mdsCreds
+  local mdsUsername
+  local mdsPassword
+  # [[ $? == 1 ]] added here so that if `set -e -o pipefail` were used in the
+  # future and grep can't find 'ADMIN_LOGINS=', kube-setup-ssjdispatcher won't
+  # exit with an error code, but will instead log a warning and exit with 0
+  mdsCreds="$( (grep 'ADMIN_LOGINS=' "$mdsCredsFile" 2> /dev/null || [[ $? == 1 ]]) | cut -s -d '=' -f 2- 2> /dev/null )"
+  mdsUsername="$(cut -s -d ':' -f 1 <<< "$mdsCreds" 2> /dev/null)"
+  mdsPassword="$(cut -s -d ':' -f 2- <<< "$mdsCreds" 2> /dev/null)"
+
+  if [[ -z "$mdsCreds" || -z "$mdsUsername" || -z "$mdsPassword" ]]; then
+    gen3_log_warn "could not parse metadata service basic auth creds from $mdsCredsFile"
+    return 0
+  fi
+
+  local ssjMdsCreds
+  # check that metadata service creds match those configured for ssjdispatcher
+  if ssjMdsCreds="$(jq -r -e '.metadataService' <<< "$jobImageConfig" 2> /dev/null)"; then
+    local ssjMdsUsername
+    local ssjMdsPassword
+    ssjMdsUsername="$(jq -r -e '.username' <<< "$ssjMdsCreds" 2> /dev/null)"
+    ssjMdsPassword="$(jq -r -e '.password' <<< "$ssjMdsCreds" 2> /dev/null)"
+    if [[ "$ssjMdsUsername" != "$mdsUsername" || "$ssjMdsPassword" != "$mdsPassword" ]]; then
+      if [[ -n "$JENKINS_HOME" ]]; then
+        gen3_log_err "metadata service creds already configured for ssjdispatcher are not up-to-date with the metadata service: $ssjCredsFile"
+        return 1
+      fi
+      gen3_log_warn "metadata service creds already configured for ssjdispatcher were not up-to-date with the metadata service before running kube-setup-ssjdispatcher: $ssjCredsFile"
+    else
+      gen3_log_info "metadata service creds configured for ssjdispatcher were verified to already be up-to-date with the metadata service"
+      return 0
+    fi
+  fi
+
+  if [[ -n "$JENKINS_HOME" ]]; then
+    gen3_log_info "running in jenkins, skipping setting up metadata service creds"
+    return 0
+  fi
+
+  gen3_log_info "setting up metadata service creds"
+  local mdsConfig
+  mdsConfig="$(cat - <<EOM
+{
+  "url": "http://revproxy-service/mds",
+  "username": "${mdsUsername}",
+  "password": "${mdsPassword}"
+}
+EOM
+  )"
+  local credsBak
+  credsBak="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXXX")"
+  cp "$ssjCredsFile" "$credsBak"
+  jq -r -e --argjson mdsConfig "$mdsConfig" '(.ssjdispatcher.JOBS[] | select(.name == "indexing") | .imageConfig.metadataService)=$mdsConfig' < "$credsBak" > "$ssjCredsFile"
+  /bin/rm "$credsBak"
+
+  gen3 secrets sync "chore(ssjdispatcher): set up metadata service creds"
+}
 
 # main -------------------
 
@@ -162,6 +241,7 @@ fi
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 setupSsjInfra "$@"
+setupMDSConfig
 gen3 roll ssjdispatcher
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ssjdispatcher/ssjdispatcher-service.yaml"
 
