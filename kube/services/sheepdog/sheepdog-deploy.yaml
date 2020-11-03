@@ -79,7 +79,7 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: dictionary_url
-          - name: AUTHZ_ENTITY_NAME 
+          - name: AUTHZ_ENTITY_NAME
             valueFrom:
               configMapKeyRef:
                 name: manifest-global
