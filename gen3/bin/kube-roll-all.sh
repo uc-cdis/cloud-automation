@@ -223,7 +223,7 @@ gen3 kube-wait4-pods || true
 
 if g3k_manifest_lookup .versions.wts 2> /dev/null; then
   # this tries to kubectl exec into fence
-  gen3 kube-setup-wts || true
+  gen3 kube-setup-wts
 else
   gen3_log_info "not deploying wts - no manifest entry for .versions.wts"
 fi
