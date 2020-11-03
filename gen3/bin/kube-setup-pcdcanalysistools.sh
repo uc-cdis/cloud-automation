@@ -71,4 +71,3 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/pcdcanalysistools/pcdcanalysistoo
 cat <<EOM
 The pcdcanalysistools services has been deployed onto the k8s cluster.
 EOM
-
