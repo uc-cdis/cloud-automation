@@ -43,9 +43,6 @@ spec:
         - name: cert-volume
           secret:
             secretName: "cert-arranger-service"
-        - name: cert-volume
-          secret:
-            secretName: "cert-arranger-service"
         - name: ca-volume
           secret:
             secretName: "service-ca"
@@ -100,8 +97,6 @@ spec:
                 name: manifest-global
                 key: tier_access_limit
                 optional: true
-          - name: PUBLIC_KEY_PATH
-            value: /guppy/jwt_public_key.pem
           volumeMounts:
             - name: guppy-config
               readOnly: true
