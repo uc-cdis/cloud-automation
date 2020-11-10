@@ -55,9 +55,10 @@ setup_creds() {
           gen3 secrets sync
           return 0
       fi
+      mkdir -p "$(dirname "$credsPath")"
       if ! new_client > "$credsPath"; then
-        rm "$credsPath"
         gen3_log_err "Failed to setup WTS client"
+        rm "$credsPath" || true
         return 1
       fi
       gen3 secrets sync
