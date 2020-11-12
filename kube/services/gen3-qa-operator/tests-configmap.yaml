@@ -7,9 +7,9 @@ data:
   list-of-tests: |-
     {
       "fence": [
-        'google-bucket-access-test'
+        'test-apis-googleBucketAccessTest'
       ],
       "metadata-service": [
-        'attest-presence-of-metadata'
+        'test-apis-attestPresenceOfMetadata'
       ]
     }
