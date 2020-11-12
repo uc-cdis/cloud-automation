@@ -1,0 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: gen3-qa-operator
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3-qa-operator
+        netnolimit: "yes"
+    spec:
+      serviceAccountName: jenkins-service
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: gen3-qa-operator
+        image: "quay.io/cdis/gen3-qa-worker:master"
+        command: ['/bin/bash','-c','sleep infinity']
+        env:
+          - name: LIST_OF_TESTS
+            valueFrom:
+              configMapKeyRef:
+                name: tests-config
+                key: list-of-tests
+          - name: PARALLEL_RUN
+            value: "False"
+        resources:
+          limits:
+            cpu: 0.6
+            memory: 2048Mi
+        imagePullPolicy: Always
+      serviceAccount: gen3-qa-operator-service-account
+      serviceAccountName: gen3-qa-operator-service-account

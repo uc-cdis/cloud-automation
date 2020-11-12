@@ -1,0 +1,15 @@
+# temporary configmap for POC purposes
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: tests-config
+data:
+  list-of-tests: |-
+    {
+      "fence": [
+        'google-bucket-access-test'
+      ],
+      "metadata-service": [
+        'attest-presence-of-metadata'
+      ]
+    }
