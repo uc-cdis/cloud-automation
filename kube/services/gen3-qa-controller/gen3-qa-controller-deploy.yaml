@@ -13,14 +13,12 @@ spec:
         app: gen3-qa-controller
         netnolimit: "yes"
     spec:
-      serviceAccountName: jenkins-service
       securityContext:
         runAsUser: 1000
         fsGroup: 1000
       containers:
-      - name: gen3-qa-controller
-        image: "quay.io/cdis/gen3-qa-worker:master"
-        command: ['/bin/bash','-c','sleep infinity']
+      - name: gen3-qa-controlleri
+        GEN3_GEN3_QA_CONTROLLER_IMAGE|-image: quay.io/cdis/gen3-qa-controller:0.1-|
         env:
           - name: PARALLEL_RUN
             value: "False"
