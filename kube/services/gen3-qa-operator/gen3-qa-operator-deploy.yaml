@@ -5,6 +5,10 @@ metadata:
 spec:
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "6567"
       labels:
         app: gen3-qa-operator
         netnolimit: "yes"
