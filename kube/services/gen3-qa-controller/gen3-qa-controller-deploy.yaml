@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: gen3-qa-operator
+  name: gen3-qa-controller
 spec:
   template:
     metadata:
@@ -10,7 +10,7 @@ spec:
         prometheus.io/path: /metrics
         prometheus.io/port: "6567"
       labels:
-        app: gen3-qa-operator
+        app: gen3-qa-controller
         netnolimit: "yes"
     spec:
       serviceAccountName: jenkins-service
@@ -18,7 +18,7 @@ spec:
         runAsUser: 1000
         fsGroup: 1000
       containers:
-      - name: gen3-qa-operator
+      - name: gen3-qa-controller
         image: "quay.io/cdis/gen3-qa-worker:master"
         command: ['/bin/bash','-c','sleep infinity']
         env:
@@ -42,5 +42,5 @@ spec:
             path: tests.json
           name: tests-config
         name: tests-config
-      serviceAccount: gen3-qa-operator-service-account
-      serviceAccountName: gen3-qa-operator-service-account
+      serviceAccount: gen3-qa-controller-service-account
+      serviceAccountName: gen3-qa-controller-service-account

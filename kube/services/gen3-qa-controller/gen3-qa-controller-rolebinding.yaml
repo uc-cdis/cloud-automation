@@ -1,11 +1,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: gen3-qa-operator-rolebinding
+  name: gen3-qa-controller-rolebinding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: gen3-qa-operator-role
+  name: gen3-qa-controller-role
 subjects:
 - kind: ServiceAccount
-  name: gen3-qa-operator-service-account
+  name: gen3-qa-controller-service-account
