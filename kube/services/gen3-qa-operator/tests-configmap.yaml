@@ -9,7 +9,7 @@ data:
       "fence": [
         'test-apis-googleBucketAccessTest'
       ],
-      "metadata-service": [
+      "metadata": [
         'test-apis-attestPresenceOfMetadata'
       ]
     }
