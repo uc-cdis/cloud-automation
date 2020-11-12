@@ -22,17 +22,25 @@ spec:
         image: "quay.io/cdis/gen3-qa-worker:master"
         command: ['/bin/bash','-c','sleep infinity']
         env:
-          - name: LIST_OF_TESTS
-            valueFrom:
-              configMapKeyRef:
-                name: tests-config
-                key: list-of-tests
           - name: PARALLEL_RUN
             value: "False"
+        volumeMounts:
+        - mountPath: /tests_config.json
+          name: tests-config
+          readOnly: true
+          subPath: tests.json
         resources:
           limits:
             cpu: 0.6
             memory: 2048Mi
         imagePullPolicy: Always
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: list-of-tests
+            path: tests.json
+          name: tests-config
+        name: tests-config
       serviceAccount: gen3-qa-operator-service-account
       serviceAccountName: gen3-qa-operator-service-account
