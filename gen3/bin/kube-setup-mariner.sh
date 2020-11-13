@@ -6,7 +6,40 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+#- lib ---------------------------
 
+#
+# Check for local info.json file - otherwise
+# generate a unique name
+#
+get_mariner_bucketname() {
+  if ! [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then
+    gen3_log_info "kube-setup-mariner get_mariner_bucketname only works on admin vm"
+    return 1
+  fi
+
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/workflow-bot"
+  # use existing bucket if already configured ...
+  if [[ -f "$secretsFolder/info.json" ]]; then
+    bucketName="$(jq -r .bucketName < "$secretsFolder/info.json")"
+  fi
+  if [[ -z "$bucketName" ]]; then
+    local accountNumber
+
+    if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
+      gen3_log_err "could not determine account numer"
+      return 1
+    fi
+    bucketName="$(gen3 api safe-name mariner-$accountNumber)" || return 1
+  fi
+  echo "$bucketName"
+}
+
+#
+# kube-setup-ws-storage also calls this - the
+# ws-storage service and mariner both access the
+# same underlying bucket
+#
 setup_mariner_service() {
   local secretName=workflow-bot-g3auto
   local saName=mariner-service-account
@@ -34,25 +67,13 @@ setup_mariner_service() {
   local roleName
   local userName
   local bucketName
-  local accountNumber
 
-  if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
-    gen3_log_err "could not determine account numer"
-    return 1
-  fi
-
+  bucketName="$(get_mariner_bucketname)" || return 1
   roleName="$(gen3 api safe-name mariner)" || return 1
   # TODO - transition mariner to using SA-linked role
   userName="$(gen3 api safe-name marineruser)" || return 1
 
   mkdir -p "$secretsFolder"
-  # use existing bucket if already configured ...
-  if [[ -f "$secretsFolder/info.json" ]]; then
-    bucketName="$(jq -r .bucketName < "$secretsFolder/info.json")"
-  fi
-  if [[ -z "$bucketName" ]]; then
-    bucketName="$(gen3 api safe-name mariner-$accountNumber)" || return 1
-  fi
 
   if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
     gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $secretsFolder/"
@@ -77,16 +98,19 @@ setup_mariner_service() {
   gen3 secrets sync 'chore(mariner): setup secrets'
 }
 
+#-- main ------------------------
 
-if ! g3k_manifest_lookup .versions.mariner > /dev/null 2>&1; then
-  gen3_log_info "not deploying mariner service - no manifest entry"
-  exit 0
+if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
+  if ! g3k_manifest_lookup .versions.mariner > /dev/null 2>&1; then
+    gen3_log_info "not deploying mariner service - no manifest entry"
+    exit 0
+  fi
+
+  [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
+
+  setup_mariner_service
+  gen3 roll mariner 
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/mariner/mariner-service.yaml"
+
+  gen3_log_info "the mariner service has been deployed onto the kubernetes cluster"
 fi
-
-[[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
-
-setup_mariner_service
-gen3 roll mariner 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/mariner/mariner-service.yaml"
-
-gen3_log_info "the mariner service has been deployed onto the kubernetes cluster"
