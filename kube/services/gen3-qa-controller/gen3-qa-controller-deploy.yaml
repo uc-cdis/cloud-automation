@@ -20,6 +20,10 @@ spec:
       - name: gen3-qa-controlleri
         GEN3_GEN3_QA_CONTROLLER_IMAGE|-image: quay.io/cdis/gen3-qa-controller:0.1-|
         env:
+          - name: MY_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
           - name: PARALLEL_RUN
             value: "False"
         volumeMounts:
