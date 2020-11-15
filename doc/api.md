@@ -77,12 +77,25 @@ ex:
 
 ### hostname
 
-Shortcut for `g3kubectl get configmap manifest-global -o json | jq -r .data.hostname`
+Shortcut for `g3kubectl get configmap global -o json | jq -r .data.hostname`
 
 ex:
 ```
   gen3 api hostname
 ```
+
+### environment
+
+Shortcut for `g3kubectl get configmap global -o json | jq -r .data.environment`
+
+ex:
+```
+  gen3 api environment
+```
+
+### namespace
+
+Alias for `gen3 db namespace` - echo kubectl namespace best guess
 
 ### new-project
 
@@ -132,6 +145,15 @@ sower command file.
 * run on any machine with an api key
 ```
   gen3 api sower-run commandFile.json path/to/apikey.json
+```
+
+### safe-name
+
+Generate a name that is safe from collisions across environments and namespaces and is less than 64 characters from the given base name - envname--namespace--basename.  If no base name is given, then a random base is generated.
+
+ex:
+```
+gen3 api safe-name myName
 ```
 
 ### sower-template

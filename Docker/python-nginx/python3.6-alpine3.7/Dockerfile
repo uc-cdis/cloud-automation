@@ -68,6 +68,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 		libxslt-dev \
 		gd-dev \
 		geoip-dev \
+		logrotate \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
 	&& export GNUPGHOME="$(mktemp -d)" \
@@ -188,10 +189,11 @@ ENV LISTEN_PORT 80
 
 # Copy the entrypoint that will generate Nginx additional configs
 COPY entrypoint.sh /entrypoint.sh
+COPY logrotate-nginx.conf /etc/logrotate.d/nginx
 RUN chmod +x /entrypoint.sh
 
 COPY dockerrun.sh /dockerrun.sh
-RUN chmod +x /dockerrun.sh
+RUN mkdir -p /var/www/metrics/ && chmod +x /dockerrun.sh
 
 ENTRYPOINT ["sh", "/entrypoint.sh"]
 

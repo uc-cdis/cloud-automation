@@ -17,15 +17,22 @@
   <link href="./base.css" rel="stylesheet" />
   <link href="./reportsTable.css" rel="stylesheet" />
   <link href="./reportsTabPanel.css" rel="stylesheet" />
+  <link href="./windowSizer.css" rel="stylesheet" />    
+
+
   <link href="./reportsApp.css" rel="stylesheet" />
 </head>
 
 <body>
     <header class="g3reports-header">
         <h1>Gen3 Reports</h1>
-
     </header>
     <main>
+      <section id="daterange">
+        <h3>Report Window</h3>
+
+        <g3r-window-sizer></g3r-window-sizer>
+      </section>
       <section id="users" class="g3reports-datapanel g3reports-users">
         <h3>Unique Users</h3>
         <p>

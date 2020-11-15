@@ -81,7 +81,6 @@ source ${HOME}/.bashrc
   [profile cdistest]
   output = json
   region = us-east-1
-  credential_source = Ec2InstanceMetadata
 ```
 
   It's worth noting that additional information may be required in this file but that will depend on your setup for the VM in question.
@@ -140,7 +139,7 @@ gen3 cd
 
 `peering_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
 
-`user_bucket_name` This also has something to do with the user.yaml file. In case you need your commons to access a user.yaml file in a different bucket than `cdis-gen3-users`, then add this variable with the corresponding value. Terraform with ultimately create a policy allowing the Kubernetes worker nodes to access the bucket in question (Ex. `s3://<user_bucket_name>/<config_folder>/user.yaml`).
+`users_bucket_name` This also has something to do with the user.yaml file. In case you need your commons to access a user.yaml file in a different bucket than `cdis-gen3-users`, then add this variable with the corresponding value. Terraform with ultimately create a policy allowing the Kubernetes worker nodes to access the bucket in question (Ex. `s3://<user_bucket_name>/<config_folder>/user.yaml`).
 
 **NOTE:** If you are hooking up your commons with a centralized control management account, you may need to add additional variables to this file with more information about said account.
 
@@ -204,6 +203,8 @@ gen3 cd
 *Optional*
 
 `eks_version` default set to 1.14, but you can change it to 1.13 or 1.15.
+`sns_topic_arn` The kubernetes cluster that runs gen3 commons run a fluentd daemonset that sends logs onto CloudWatchLogGroups. If using fluentd version `v1.10.2-debian-cloudwatch-1.0` (set in the manifest), the configuration used would create new CloudWatchLogs Streams with the date as prefix, for this to work and rotate daily , a cron job must be running on the cluster that does this for us. 
+                Said job would publish an SNS topic of your choice. Should you want this enable, set this variable with a valid SNS so the kubernetes workers can access the service.
 
 
 
@@ -280,7 +281,7 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
     "sheepdog": "quay.io/cdis/sheepdog:master",
     "spark": "quay.io/cdis/gen3-spark:master",
     "manifestservice": "quay.io/cdis/manifestservice:master",
-    "wts": "quay.io/cdis/workspace-token-service:master",
+    "wts": "quay.io/cdis/workspace-token-service:master"
   },
   "arborist": {
     "deployment_version": "2"

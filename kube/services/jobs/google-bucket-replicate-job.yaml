@@ -1,0 +1,85 @@
+# run with 
+# Ex. gen3 job run jobs/google-bucket-replicate-job.yaml PROJECT cdis-test-188416 MAX_WORKERS 4 RELEASE DR16 MANIFEST_FILE gs://data-flow-code/input/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv IGNORED_FILE gs://data-flow-code/ignored/ignored_files_manifest.csv LOG_BUCKET data-flow-code
+# Ex. gen3 runjob  jobs/google-bucket-replicate-job.yaml PROJECT dcf-prod-buckets MAX_WORKERS 80 RELEASE DR16 MANIFEST_FILE gs://replication-input/GDC_full_sync_active_manifest_20190326_post_DR16.0.tsv IGNORED_FILE gs://replication-input/ignored_files_manifest.csv LOG_BUCKET datarefresh-log
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: google-bucket-replicate
+spec:
+  # not yet supported - backOffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "google-creds-secret"
+        - name: setting-volume
+          secret:
+            secretName: "dcf-dataservice-settings-secrets"
+        - name: creds-json-volume
+          secret:
+            secretName: "dcf-dataservice-json-secret"
+      containers:
+      - name: datareplicate
+        GEN3_DATAREPLICATE_IMAGE
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+        imagePullPolicy: Always
+        env:
+          - name: PROJECT
+            GEN3_PROJECT
+          - name: MAX_WORKERS
+            GEN3_MAX_WORKERS
+          - name: RELEASE
+            GEN3_RELEASE
+          - name: MANIFEST_FILE
+            GEN3_MANIFEST_FILE
+          - name: IGNORED_FILE
+            GEN3_IGNORED_FILE
+          - name: LOG_BUCKET
+            GEN3_LOG_BUCKET
+          - name: AUTH_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: auth_namespace
+                optional: true
+        volumeMounts:
+          - name: cred-volume
+            mountPath: "/secrets/google_service_account_creds"
+            subPath: google_service_account_creds
+          - name: "setting-volume"
+            mountPath: "/secrets/dcf_dataservice_settings"
+            subPath: "dcf_dataservice_settings"
+          - name: "creds-json-volume"
+            mountPath: "/secrets/dcf_dataservice_credentials.json"
+            subPath: "dcf_dataservice_credentials.json"
+        command: ["/bin/bash" ]
+        args: 
+          - "-c"
+          - |
+            cat /secrets/dcf_dataservice_settings > ./scripts/settings.py
+            gcloud auth activate-service-account --key-file=/secrets/google_service_account_creds
+            export GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_service_account_creds
+            export http_proxy='http://cloud-proxy.internal.io:3128'
+            export https_proxy='http://cloud-proxy.internal.io:3128/'
+            gsutil cp $IGNORED_FILE /dcf-dataservice/ignored_files_manifest.csv
+            if [[ "$MANIFEST_FILE" == *"active"* ]]; then
+              type="active"
+            elif [[ "$MANIFEST_FILE" == *"legacy"* ]]; then
+              type="legacy"
+            else
+              type="unknown"
+            fi
+            if [[ "$type" == "active" || "$type" == "legacy" ]]; then
+              rand_str="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 5 | head -n 1)"
+              python dataflow_pipeline.py  --runner DataflowRunner --project $PROJECT --job_name dcf-dataservice --autoscaling_algorithm NONE --num_worker $MAX_WORKERS --maxNumWorkers $MAX_WORKERS --staging_location gs://$LOG_BUCKET/$RELEASE/staging --temp_location gs://$LOG_BUCKET/$RELEASE/temp --output gs://$LOG_BUCKET/$RELEASE/$type/output_$rand_str --setup_file ./setup.py --input $MANIFEST_FILE --global_config "{\"release\": \"$RELEASE/$type\", \"log_bucket\": \"$LOG_BUCKET\"}" --requirements_file requirements.txt --extra_package indexclient-1.6.0.zip --requirements_file scripts/requirements.txt
+            else
+              echo "Neither active nor legacy manifest is provided. Please check the manifest name!!!"
+            fi
+      restartPolicy: Never

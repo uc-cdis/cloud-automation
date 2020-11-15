@@ -18,7 +18,7 @@ data "aws_availability_zones" "available" {
 
 # Let's grab the vpc we already created in the VPC module.
 data "aws_vpcs" "vpcs" {
-  tags {
+  tags = {
     Name = "${var.vpc_name}"
   }
 }
@@ -77,12 +77,15 @@ data "aws_vpc_endpoint_service" "ebs" {
   service = "ebs"
 }
 
+data "aws_vpc_endpoint_service" "sts" {
+  service = "sts"
+}
 
 
 # get the route to public kube 
 data "aws_route_table" "public_kube" {
   vpc_id      = "${data.aws_vpc.the_vpc.id}"
-  tags {
+  tags = {
     Name = "main"
   }
 }
@@ -116,7 +119,7 @@ data "aws_autoscaling_group" "squid_auto" {
 
 data "aws_instances" "squid_proxy" {
   count         = "${var.ha_squid ? var.dual_proxy ? 1 : 0 : 1}"
-  instance_tags {
+  instance_tags = {
     Name = "${var.vpc_name}${var.proxy_name}"
   }
 }
@@ -125,7 +128,7 @@ data "aws_instances" "squid_proxy" {
 # get the private kube table id
 data "aws_route_table" "private_kube_route_table" {
   vpc_id      = "${data.aws_vpc.the_vpc.id}"
-  tags {
+  tags = {
     Name = "private_kube"
   }
 }
@@ -189,3 +192,12 @@ data "aws_iam_policy_document" "without_resources" {
   }
 }
 
+# Policy for access to CSOC sns
+data "aws_iam_policy_document" "planx-csoc-alerts-topic_access" {
+  count = "${var.sns_topic_arn != "" ? 1 : 0 }"
+  statement {
+    actions   = [ "sns:Publish" ]
+    effect    = "Allow"
+    resources = [ "${var.sns_topic_arn}" ]
+  }
+}

@@ -10,7 +10,7 @@ gen3_load "gen3/gen3setup"
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 
-hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
+hostname="$(gen3 api hostname)"
 bucketname="manifest-${hostname//./-}"
 username="manifest-bot-${hostname//./-}"
 
@@ -33,7 +33,8 @@ then
   "manifest_bucket_name": "$bucketname",
   "hostname": "$hostname",
   "aws_access_key_id": "$key_id",
-  "aws_secret_access_key": "$access_key"
+  "aws_secret_access_key": "$access_key",
+  "prefix": "$hostname"
 }
 EOM
   gen3 secrets sync "initialize manifestservice/config.json"

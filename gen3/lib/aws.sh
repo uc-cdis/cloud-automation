@@ -98,7 +98,7 @@ gen3_aws_run() {
 #
 gen3_workon_aws(){
   if ! ( aws configure get "${1}.region" > /dev/null ); then
-    echo -e "$(red_color "PROFILE $1 not properly configured with default region for aws cli")"
+    gen3_log_err "PROFILE $1 not properly configured with default region for aws cli"
     return 3
   fi
   export GEN3_PROFILE="$1"
@@ -106,7 +106,7 @@ gen3_workon_aws(){
   export GEN3_FLAVOR=AWS
   export GEN3_WORKDIR="$XDG_DATA_HOME/gen3/${GEN3_PROFILE}/${GEN3_WORKSPACE}"
   export AWS_PROFILE="$GEN3_PROFILE"
-  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region")
+  export AWS_DEFAULT_REGION=$(aws configure get "${AWS_PROFILE}.region" || echo us-east-1)
   export AWS_ACCOUNT_ID=$(gen3_aws_run aws sts get-caller-identity | jq -r .Account)
 
   # S3 bucket where we save terraform state, etc
@@ -176,8 +176,9 @@ gen3_workon_aws(){
   elif [[ "$GEN3_WORKSPACE" =~ _role_policy_attachment$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role_policy_attachment"
   elif [[ -d "${GEN3_HOME}/tf_files/aws/${GEN3_WORKSPACE#*__}" ]]; then
-    # NEW! support __FOLDER_NAME
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/${GEN3_WORKSPACE#*__}"
+  elif [[ "${GEN3_WORKSPACE}" =~ __custom$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_WORKDIR}"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -193,7 +194,7 @@ gen3_AWS.backend.tfvars() {
 bucket = "$GEN3_S3_BUCKET"
 encrypt = "true"
 key = "$GEN3_WORKSPACE/terraform.tfstate"
-region = "$(aws configure get "$GEN3_PROFILE.region")"
+region = "${AWS_DEFAULT_REGION:-us-east-1}"
 EOM
 }
 
@@ -321,13 +322,31 @@ EOM
   if [[ "$GEN3_WORKSPACE" =~ _utilityvm$ ]]; then
      vmName=${GEN3_WORKSPACE//_utilityvm/}
      cat - <<EOM
-bootstrap_path = "cloud-automation/flavors/"
-bootstrap_script = "FILE-IN-ABOVE-PATH"
+bootstrap_path = "cloud-automation/flavors/adminvm/"
+bootstrap_script = "ubuntu-18-init.sh"
 vm_name = "${vmName}"
 vm_hostname = "${vmName}"
+# secgroup egress whitelist
 vpc_cidr_list = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8"]
 aws_account_id = "ACCOUNT-ID"
 extra_vars = []
+user_policy = <<EOPOLICY
+THIS IS JUST AN EXAMPLE - REPLACE ACCOUNT-ID ON ADMIN VM's, 
+DELETE user_policy IF YOU DO NOT NEED THIS TO FALL BACK TO DEFAULT
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Resource": [
+        "arn:aws:iam::ACCOUNT-ID:role/csoc_adminvm"
+      ],
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOPOLICY
 EOM
     return 0
   fi
@@ -472,7 +491,16 @@ EOM
       return $?
   fi
   gen3_log_info "no sample vars file at ${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
-  
+
+  # else
+  if [[ "$GEN3_WORKSPACE" =~ __custom$ ]]; then
+      cat - <<EOM
+# put your custom variable values here
+EOM
+      return 0
+  fi
+
+  # else ... commons tfvars
   # ssh key to be added to VMs and kube nodes
   local SSHADD=$(which ssh-add)
   if [ -f ~/.ssh/id_rsa.pub ];
@@ -491,12 +519,6 @@ cat - <<EOM
 # VPC name is also used in DB name, so only alphanumeric characters
 vpc_name="$GEN3_WORKSPACE"
 #
-# for vpc_octet see https://github.com/uc-cdis/cdis-wiki/blob/master/ops/AWS-Accounts.md
-#  CIDR becomes 172.{vpc_octet2}.{vpc_octet3}.0/20
-#
-# octets are legacy, we should now use the full CIDR
-#vpc_octet2=GET_A_UNIQUE_VPC_172_OCTET2
-#vpc_octet3=GET_A_UNIQUE_VPC_172_OCTET3
 vpc_cidr_block="172.X.Y.0/20"
 
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
@@ -504,8 +526,13 @@ portal_app="dev"
 
 aws_cert_name="arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
 
-db_size=10
-db_instance="db.t2.micro"
+fence_db_size    = 10
+sheepdog_db_size = 10
+indexd_db_size   = 10
+
+fence_db_instance    = "db.t2.micro"
+sheepdog_db_instance = "db.t2.micro"
+indexd_db_instance   = "db.t2.micro"
 
 # This indexd guid prefix should come from Trevar/ZAC
 indexd_prefix=ENTER_UNIQUE_GUID_PREFIX

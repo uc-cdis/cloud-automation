@@ -1,0 +1,23 @@
+---
+# handlers file for aws_common
+
+- name: enable cloudwatchlogs agent
+  systemd:
+    name: amazon-cloudwatch-agent.service
+    state: started
+    enabled: yes
+
+- name: start cloudwatch agent
+  systemd:
+    name: amazon-cloudwatch-agent.service
+    state: started
+
+- name: reload cloudwatch agent
+  systemd:
+    name: amazon-cloudwatch-agent.service
+    state: reloaded
+
+- name: restart cloudwatch agent
+  systemd:
+    name: amazon-cloudwatch-agent.service
+    state: restarted

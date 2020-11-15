@@ -43,9 +43,6 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-        - name: fence-yaml
-          configMap:
-            name: fence
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -97,9 +94,6 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
             subPath: fence_google_storage_creds_secret.json
-          - name: "fence-yaml"
-            mountPath: "/var/www/fence/user.yaml"
-            subPath: user.yaml
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/keys"

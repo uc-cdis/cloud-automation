@@ -5,6 +5,7 @@
 # TEST_PROGRAM "" \
 # TEST_PROJECT "" \
 # MAX_EXAMPLES "" \
+# GEN3_SUBMISSION_ORDER "" \
 # NOTE: "" indicates an optional argument. Leave as "" for default
 #
 # SUBMISSION_USER
@@ -16,6 +17,9 @@
 # MAX_EXAMPLES(optional)
 #   Number of maximum examples for each node. Default 100
 #
+# GEN3_SUBMISSION_ORDER(optional)
+#   Node that defines the order of the data submission. Default SUR (submitted_unaligned_reads)
+#
 # Example
 # gen3 job run gentestdata TEST_PROGRAM jnkns TEST_PROJECT jenkins MAX_EXAMPLES 10 SUBMISSION_USER cdis.autotest@gmail.com
 #
@@ -24,7 +28,7 @@ kind: Job
 metadata:
   name: gentestdata
 spec:
-  # not yet supported - backOffLimit: 3
+  backoffLimit: 0
   template:
     metadata:
       labels:
@@ -83,6 +87,8 @@ spec:
             GEN3_TEST_PROJECT|-value: "test"-|
           - name: MAX_EXAMPLES
             GEN3_MAX_EXAMPLES|-value: "10"-|
+          - name: SUBMISSION_ORDER
+            GEN3_SUBMISSION_ORDER|-value: "submitted_unaligned_reads"-|
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -99,6 +105,9 @@ spec:
 
             mkdir -p /TestData
             data-simulator simulate --url $DICTIONARY_URL --path /TestData --program $TEST_PROGRAM --project $TEST_PROJECT --max_samples $MAX_EXAMPLES
+
+            echo "define submission order"
+            data-simulator submission_order --url $DICTIONARY_URL --path /TestData --node_name $SUBMISSION_ORDER
 
             echo "Preparing to submit data"
             data-simulator submitting_data --host https://$HOSTNAME --dir /TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt

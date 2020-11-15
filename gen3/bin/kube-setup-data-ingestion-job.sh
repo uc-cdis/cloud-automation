@@ -80,7 +80,7 @@ if [ -f "$DATA_REQUIRING_MANUAL_REVIEW_PATH" ]; then
 fi
 
 add_genome_file_manifest_to_bucket() {
-  hostname="$(g3kubectl get configmap global -o json | jq -r .data.hostname)"
+  hostname="$(gen3 api hostname)"
   creds_json=`cat $credsFile`
   bucket_name=$(jq -r .local_data_aws_creds.bucket_name <<< $creds_json)
   if [ -z "$bucket_name" ] || [ "$bucket_name" == "null" ]; then

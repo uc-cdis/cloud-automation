@@ -37,7 +37,7 @@ setup_sower_jobs() {
     if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
       gen3_log_err "could not determine account numer"
     fi
-    if ! hostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)"; then
+    if ! hostname="$(gen3 api hostname)"; then
       gen3_log_err "could not determine hostname from manifest-global - bailing out of sower-jobs setup"
       return 1
     fi
@@ -113,6 +113,19 @@ EOM
       gen3_log_info "attached read-write bucket policy to '${bucketName}' for role '${role_name}'"
     fi
 
+    local credsBak="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXXX")"
+    local indexdPassword=""
+    local updateIndexd=false
+    # create new indexd user if necessary
+    if ! indexdPassword="$(jq -e -r .indexd.user_db.diirm < "$(gen3_secrets_folder)/creds.json" 2> /dev/null)" \
+      || [[ -z "$indexdPassword" && "$indexdPassword" == null ]]; then
+      indexdPassword="$(gen3 random)"
+      cp "$(gen3_secrets_folder)/creds.json" "$credsBak"
+      jq -r --arg password "$indexdPassword" '.indexd.user_db.diirm=$password' < "$credsBak" > "$(gen3_secrets_folder)/creds.json"
+      /bin/rm "$credsBak"
+      updateIndexd=true
+    fi
+
     cat - > "${secretsFolder}/creds.json" <<EOM
 {
   "index-object-manifest": {
@@ -121,8 +134,8 @@ EOM
       "job_access_req": []
     },
     "bucket": "$bucketName",
-    "indexd_user": "",
-    "indexd_password": ""
+    "indexd_user": "diirm",
+    "indexd_password": "$indexdPassword"
   },
   "download-indexd-manifest": {
     "job_requires": {
@@ -148,6 +161,9 @@ EOM
 }
 EOM
     gen3 secrets sync 'setup sower-jobs credentials'
+    if [[ "$updateIndexd" != "false" ]]; then
+      gen3 job run indexd-userdb
+    fi
   fi
 }
 

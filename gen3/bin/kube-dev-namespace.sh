@@ -120,8 +120,13 @@ for name in fence indexd sheepdog; do
     gen3_log_err "Failed to setup new db $dbname"
   fi
   # update creds.json
-  if jq -r --arg key $name --argjson value "$newCreds" '.[$key]=$value | del(.gdcapi)' < "$credsMaster" > "$credsTemp"; then
+  if jq -r --arg key $name --argjson value "$newCreds" '.[$key]=$value | del(.gdcapi) | del(.ssjdispatcher) | del(.user)' < "$credsMaster" > "$credsTemp"; then
     cp "$credsTemp" "$credsMaster"
+  fi
+  if [[ "$name" == "sheepdog" ]]; then # update peregrine too
+    if jq -r '.peregrine.db_database=.sheepdog.db_database' < "$credsMaster" > "$credsTemp"; then
+      cp "$credsTemp" "$credsMaster"
+    fi
   fi
   if [[ "$name" == "fence" ]]; then # update fence-config.yaml too
     fenceYaml="/home/$namespace/Gen3Secrets/apis_configs/fence-config.yaml"
@@ -131,6 +136,8 @@ for name in fence indexd sheepdog; do
     dbdatabase="$(jq -r .db_database <<< "$newCreds")"
     dblogin="postgresql://${dbuser}:${dbpassword}@${dbhost}:5432/${dbdatabase}"
     sed -i -E "s%^DB:.*$%DB: $dblogin%" "$fenceYaml"
+    # try to avoid new namespace using same upload bucket
+    sed -i -E "s%DATA_UPLOAD_BUCKET%#DATA_UPLOAD_BUCKET%" "$fenceYaml"
   fi
 done
 
@@ -140,7 +147,7 @@ for name in .rendered_fence_db .rendered_gdcapi_db; do
 done
 
 # update creds.json
-oldHostname="$(g3kubectl get configmap manifest-global -o json | jq -r .data.hostname)"
+oldHostname="$(gen3 api hostname)"
 newHostname="$(sed "s/^[a-zA-Z0-9]*/$namespace/" <<< "$oldHostname")"
 
 for name in creds.json apis_configs/fence-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json g3auto/dashboard/config.json; do

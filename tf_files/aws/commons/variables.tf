@@ -81,15 +81,15 @@ variable "indexd_snapshot" {
 }
 
 variable "fence_db_instance" {
-  default = "db.t2.micro"
+  default = "db.t2.small"
 }
 
 variable "sheepdog_db_instance" {
-  default = "db.t2.micro"
+  default = "db.t2.small"
 }
 
 variable "indexd_db_instance" {
-  default = "db.t2.micro"
+  default = "db.t2.small"
 }
 
 variable "hostname" {
@@ -398,4 +398,23 @@ variable "single_squid_instance_type" {
 variable "network_expansion" {
   description = "Let k8s workers be on a /22 subnet per AZ"
   default     = false
+}
+
+variable "rds_instance_storage_encrypted"{
+  default = true
+}
+
+variable "fence_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
+}
+
+variable "sheepdog_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
+}
+
+variable "indexd_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
 }

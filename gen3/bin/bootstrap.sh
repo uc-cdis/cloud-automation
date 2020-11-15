@@ -16,10 +16,10 @@ unset vpc_name
 #
 gen3_bootstrap_template() {  
   local hostname=""
-  hostname="$(g3kubectl get configmap global -o json | jq -e -r .data.hostname)"
+  hostname="$(gen3 api hostname)"
   local environment="${vpc_name:-""}"
   local temp
-  if temp="$(g3kubectl get configmap global -o json | jq -e -r .data.environment)"; then
+  if temp="$(gen3 api environment)"; then
     environment="${temp}"
   fi
   local result="$(cat - <<EOM

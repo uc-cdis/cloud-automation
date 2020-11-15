@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: arborist-deployment
@@ -65,9 +65,6 @@ spec:
         - name: fence-google-storage-creds-secret-volume
           secret:
             secretName: "fence-google-storage-creds-secret"
-        - name: fence-yaml
-          configMap:
-            name: fence
         - name: fence-ssh-keys
           secret:
             secretName: "fence-ssh-keys"
@@ -148,9 +145,6 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
             subPath: fence_google_storage_creds_secret.json
-          - name: "fence-yaml"
-            mountPath: "/var/www/fence/user.yaml"
-            subPath: user.yaml
           - name: "fence-ssh-keys"
             mountPath: "/root/.ssh/id_rsa"
             subPath: "id_rsa"
@@ -175,50 +169,5 @@ spec:
           - "-c"
           # Script always succeeds if it runs (echo exits with 0)
           - |
-            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
-            # point at localhost
-            cat /var/www/fence/local_settings.py.original | sed s/arborist-service/localhost/g > /var/www/fence/local_settings.py
-            count=0
-            sleep 30   # wait for service to come up
-            while (! curl --fail http://localhost/health) && [[ $count -lt 50 ]]; do
-              echo "fence container waiting for arborist to startup";
-              sleep 3
-              let count=$count+1
-            done
-            if [[ ! "$SYNC_FROM_DBGAP" = True ]]; then
-              if [[ -f /var/www/fence/user.yaml ]]; then
-                echo "running fence-create"
-                count=0
-                while ! fence-create sync --arborist http://localhost --yaml /var/www/fence/user.yaml; do
-                  let count=$count+1
-                  if [[ $count -lt 4 ]]; then
-                    #
-                    # retry a few times - race conditions exist if fence-create
-                    # and fence-pod startup run at the same time against an empty db
-                    #
-                    echo "Looks like fence-create failed"
-                    echo "sleep 60 and retry"
-                    sleep 60
-                  else
-                    # if user.yaml is corrupt or some other error - might as well give up
-                    echo "Fence-create still failing - giving up"
-                    exit 1
-                  fi
-                done
-                # fence-create succeeded - touch the readyness probe file
-                touch /tmp/healthy
-              else
-                echo "/var/www/fence/user.yaml is not mounted :-("
-                # just bomb out - arborist is useless in this case
-                exit 1
-              fi
-            else
-              echo "Not running fence-create in arborist pod when DBGAP sync is enabled"
-              touch /tmp/healthy
-            fi
-            # Keep arborist company
-            while curl --fail --silent --show-error http://localhost/health; do
-              echo "arborist is healthy, so fence will keep company - sleep 300";
-              sleep 300
-            done
+            echo "DEPRECATED - set arborist.deployment_version 2 in the manifest"
+            exit 1

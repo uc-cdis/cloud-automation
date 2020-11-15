@@ -14,7 +14,13 @@ set -e
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-
+#
+# Setup indexd basic-auth gateway user creds enforced
+# by the revproxy to grant indexd_admin policy users update
+# access to indexd.  
+# That authz flow is deprecated in favor of centralized-auth
+# indexd policies.
+#
 setup_indexd_gateway() {
   if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
     # don't try to setup these secrets off the admin vm
@@ -58,7 +64,9 @@ setup_indexd_gateway() {
 #current_namespace=$(g3kubectl config view -o jsonpath={.contexts[].context.namespace})
 current_namespace=$(gen3 db namespace)
 
-setup_indexd_gateway
+if g3k_manifest_lookup .versions.indexd 2> /dev/null; then
+  setup_indexd_gateway
+fi
 
 scriptDir="${GEN3_HOME}/kube/services/revproxy"
 declare -a confFileList=()
@@ -73,9 +81,9 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
   fi
 done
 
-if g3kubectl get namespace prometheus > /dev/null 2>&1;
+if [[ $current_namespace == "default" ]];
 then
-  if [[ $current_namespace == "default" ]];
+  if g3kubectl get namespace prometheus > /dev/null 2>&1;
   then
     for prometheus in $(g3kubectl get services -n prometheus -o jsonpath='{.items[*].metadata.name}');
     do
@@ -88,10 +96,8 @@ then
 fi
 
 #echo "${confFileList[@]}" $BASHPID
-if g3kubectl get namespace grafana > /dev/null 2>&1;
-then
-  if [[ $current_namespace == "default" ]];
-  then
+if [[ $current_namespace == "default" ]]; then
+  if g3kubectl get namespace grafana > /dev/null 2>&1; then
     for grafana in $(g3kubectl get services -n grafana -o jsonpath='{.items[*].metadata.name}');
     do
       filePath="$scriptDir/gen3.nginx.conf/${grafana}.conf"
@@ -106,6 +112,15 @@ then
       #rm -f ${tmpCredsFile}
     done
   fi
+fi
+
+#
+# Funny hook to load the portal-workspace-parent nginx config
+#
+portalApp="$(g3k_manifest_lookup .global.portal_app)"
+if [[ "GEN3-WORKSPACE-PARENT" == "$portalApp" ]]; then
+  filePath="$scriptDir/gen3.nginx.conf/portal-workspace-parent.conf"
+  confFileList+=("--from-file" "$filePath")
 fi
 
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets

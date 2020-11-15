@@ -94,9 +94,6 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
             subPath: fence_google_storage_creds_secret.json
-          - name: "fence-yaml"
-            mountPath: "/var/www/fence/user.yaml"
-            subPath: user.yaml
         command: ["/bin/bash"]
         args:
           - "-c"

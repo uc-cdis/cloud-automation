@@ -163,7 +163,6 @@ gen3_run_tfapply() {
 # 
 #
 _gen3_run_tfplan_x(){
-
   local plan
   local slack_hook
   local tempFile
@@ -177,8 +176,6 @@ _gen3_run_tfplan_x(){
   module=$1
   profile=$(grep profile ~/.aws/config | awk '{print $2}' | cut -d] -f1 |head -n1)
 
-
- 
   if [ -n ${module} ] && [ "${module}" == "vpc" ];
   then
     vpc_module=${vpc_name}
@@ -279,9 +276,9 @@ gen3_gitops_sync() {
     versions_roll=true
   else 
     changeFlag=0
-    for key in $(echo $newJson | jq -r "keys[]"); do
-      newVersion=$(echo $newJson | jq ".\"$key\"")
-      oldVersion=$(echo $oldJson | jq ".\"$key\"") 
+    for key in $(jq -r "keys[]" <<< "$newJson"); do
+      newVersion=$(jq ".\"$key\"" <<< "$newJson")
+      oldVersion=$(jq ".\"$key\"" <<< "$oldJson") 
       echo "$key old Version is: $oldVersion"
       echo "$key new Version is: $newVersion"
       if [ "$oldVersion" !=  "$newVersion" ]; then
@@ -401,7 +398,7 @@ gen3_gitops_sync() {
       rollRes=$?
       # send result to slack
       if [[ $slack = true ]]; then
-        tmpHostname=$(g3kubectl get configmap manifest-global -o jsonpath={.data.hostname})
+        tmpHostname=$(gen3 api hostname)
         resStr="SUCCESS"
         color="#1FFF00"
         if [[ $rollRes != 0 ]]; then
@@ -511,79 +508,125 @@ gen3_gitops_history() {
 
 
 #
+# Create a manifest- configmap from the given json blob.
+# Pass additional arguments through to kubectl
+#
+# @param configMapName
+# @param json string to process - ignored if ""
+# @param varargs other arguments to pass to kubectl create configmap
+#
+gen3_gitops_json_to_configmap() {
+  local argList=()
+  local configMapName="$1"
+  shift || return 1
+  local json="$1"
+  shift || return 1
+  if [[ $# -gt 0 ]]; then
+    argList+=("$@")
+  fi
+  if [[ -n "$json" ]]; then
+    local key
+    local value
+    local keyList
+    # make sure it's valid json object or array
+    keyList="$(jq -r '. | keys[]' <<< "$json")" || return 1
+    # convert to array, only consider keys that start with a letter
+    if keyList=( $(grep '^[a-zA-Z]' <<< "$keyList") ); then
+      for key in "${keyList[@]}"; do
+        value="$(jq -r --arg key "$key" '.[$key]' <<< "$json")"
+        if [[ -n "$value" ]]; then
+          argList+=("--from-literal" "$key=$value")
+        fi
+      done
+    fi
+    argList+=("--from-literal" "json=$json")
+  fi
+  gen3_log_info "create configmap $configMapName"
+  # for debugging - gen3_log_info "g3kubectl create configmap $configMapName ${argList[@]}"
+  g3kubectl create configmap "$configMapName" "${argList[@]}"
+}
+
+
+#
 # Generate manifest entries for the files in the given folder
 #
 # @param folder to pull into manifest configmap
-# @param dryRun optional '--dryRun' flag
 #
 gen3_gitops_configmap_folder() {
-    local folder="$1"
-    shift
-    local dryRun="$1"
-    shift
-    if [[ -n "$folder" && -d "$folder" && "$(basename "$folder")" =~ ^[0-9A-Za-z] ]]; then
-      gen3_log_info "loading manifest configmaps from: $folder"
-      local key="$(basename "$folder")"
-      local cMapName="manifest-$key"
-      local execString
-      local gotData=false
-      execString="g3kubectl create configmap $cMapName "
-      local key2
-      local key3
-      local folderEntry
-      local valueList=()
-      local valueCount=0
-      for folderEntry in "$folder/"*; do
-        if [[ -f "$folderEntry" ]]; then
-          key2="$(basename "$folderEntry")"
-          gotData=true
-          execString+=" '--from-file=$folderEntry'"
-          if [[ "$key2" == "${key}.json" ]]; then
-            # to help transition data out of the master manifest.json
-            valueList=()
-            execString+=" '--from-file=json=$folderEntry'"
-            for key3 in $(jq -r '. | keys[]' < "$folderEntry" | grep '^[a-zA-Z]'); do
-              value="$(jq -r --arg key3 "$key3" '.[$key3]' < "$folderEntry")"
-              if [[ -n "$value" ]]; then
-                valueList+=("$value")
-                execString+=" --from-literal $key3=\"\${valueList[$valueCount]}\" "
-                valueCount=$((valueCount + 1))
-              fi
-            done
-          fi
-        fi
-      done
-      if [[ "$gotData" == "true" ]]; then
-        #gen3_log_info "$dryRun - $execString"
-        if [[ "$dryRun" =~ ^-*dryRun ]]; then
-          eval echo $execString
-          return $?
-        else
-          g3kubectl delete configmap "$cMapName" 2> /dev/null
-          eval $execString
-          local result=$?
-          g3kubectl label configmap $cMapName app=manifest
-          return $result
+  local folder="$1"
+  shift || return 1
+  if [[ -n "$folder" && -d "$folder" && "$(basename "$folder")" =~ ^[0-9A-Za-z] ]]; then
+    local key="$(basename "$folder")"
+    local cMapName="manifest-$key"
+    local gotData=false
+    local key2
+    local json=""
+    local folderEntry
+    local argList=()
+    for folderEntry in "$folder/"*; do
+      if [[ -f "$folderEntry" ]]; then
+        key2="$(basename "$folderEntry")"
+        gotData=true
+        argList+=("--from-file=$folderEntry")
+        if [[ "$key2" == "${key}.json" ]]; then
+          # to help transition data out of the master manifest.json
+          json="$(cat "$folderEntry")"
         fi
       fi
+    done
+    if [[ "$gotData" == "true" ]]; then
+      gen3_gitops_json_to_configmap "manifest-$key" "$json" "${argList[@]}"
+      return $?
     fi
+  fi
+  gen3_log_err "invalid manifest folder: $folder"
+  return 1
 }
 
+#
+# Get the sorted list of all the configmap keys from
+# manifest.json, manifests/ folder, and gen3/lib/manifestDefaults/
+#
+# @param manifestFolder optional - defaults to (dirname g3k_manifest_path)
+gen3_gitops_configmaps_list() {
+  local manifestFolder="$1"
+  shift || manifestFolder="$(dirname $(g3k_manifest_path))"
+  if ! [[ -n "$manifestFolder" && -d "$manifestFolder" && -f "$manifestFolder/manifest.json" ]]; then
+    gen3_log_err "failed to establish manifest folder - $manifestFolder"
+    return 1
+  fi
+  local keyList="$(mktemp "$XDG_RUNTIME_DIR/cfmap_list_XXXXXX")"
+  # keys from manifest.json
+  jq -r '. | keys[]' < "$manifestFolder/manifest.json" > "$keyList" || return $?
+  # keys from manifests/ folder
+  if [[ -d "$manifestFolder/manifests" ]]; then
+    (cd "$manifestFolder" && find manifests -mindepth 2 -maxdepth 2 -type f | awk -F / '{ print $2 }') >> "$keyList" || return $?
+  fi
+  # keys from manifestDefaults/ folder
+  if [[ -d "$GEN3_HOME/gen3/lib/manifestDefaults" ]]; then
+    (cd "$GEN3_HOME/gen3/lib/" && find manifestDefaults -mindepth 2 -maxdepth 2 -type f | awk -F / '{ print $2 }') >> "$keyList"
+  else
+    gen3_log_warn "failed to find manifestDefaults folder: $GEN3_HOME/gen3/lib/manifestDefaults"
+  fi
+  echo "etl-mapping" >> "$keyList"
+  echo "all" >> "$keyList"
+  sort -u < "$keyList" | grep -v -e '^[[:space:]]*$' | grep -v '^notes$'
+  rm "$keyList"
+}
+
+#
+# Extract project-mapping from user.yaml for etl
+#
+gen3_gitops_etlconvert() {
+  yq -r '[ (.users | .[] | .projects // [] | .[] | { "key": .auth_id, "value": .resource }), (.rbac.user_project_to_resource // {} | to_entries | .[]), (.authz.user_project_to_resource // {} | to_entries | .[]) ] | map(select(.value != null)) | sort_by(.key) | from_entries | { authz: { user_project_to_resource: . } }'
+}
 
 #
 # g3k command to create configmaps from manifest
 #
 # @param folder optional parameter - if set, then scans folder for configmap
-# @param --dryRun optional - only available in conjunction with folder
 #
 gen3_gitops_configmaps() {
-  local folder
-
-  if [[ $# -gt 0 ]]; then
-      #gen3_log_info "processing folder $@"
-      gen3_gitops_configmap_folder "$@"
-      return $?
-  fi
   local manifestPath
   manifestPath=$(g3k_manifest_path)
   if [[ ! -f "$manifestPath" ]]; then
@@ -596,65 +639,65 @@ gen3_gitops_configmaps() {
     return 1
   fi
 
-  # if old configmaps are found, deletes them
-  if g3kubectl get configmaps -l app=manifest | grep -q NAME; then
-    g3kubectl delete configmaps -l app=manifest
+  local manifestFolder
+  manifestFolder="$(dirname "$manifestPath")"
+  local keyList
+  local deleteList
+  if [[ $# -gt 0 ]]; then
+    keyList=( "$@" )
+    for key in "${keyList[@]}"; do
+      if [[ "$key" == "etl-mapping" ]]; then
+        deleteList+=( "$key" )
+      else
+        deleteList+=( "manifest-$key" )
+      fi
+    done
+  else
+    keyList=( $(gen3_gitops_configmaps_list) ) || return 1
+    mapfile -t deleteList < <( g3kubectl get configmaps -o custom-columns=:.metadata.name --no-headers=true | grep "manifest-\|etl-" )
   fi
-
-  g3kubectl create configmap manifest-all --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
-  g3kubectl label configmap manifest-all app=manifest
 
   local key
   local key2
-  local valueList=()
-  local valueCount=0
-  local execString
-  local etlPath
+  local etlPath="$manifestFolder/etlMapping.yaml"
   local cMapName
-  
-  etlPath=$(dirname $(g3k_manifest_path))/etlMapping.yaml
-  if [[ -f "$etlPath" ]]; then
-    gen3 update_config etl-mapping "$etlPath"
-  fi
-
-  for key in $(g3k_config_lookup 'keys[]' "$manifestPath"); do
-    if [[ "$key" != 'notes' ]]; then
-      valueList=()
-      valueCount=0
-      cMapName="manifest-$key"
-      execString="g3kubectl create configmap $cMapName "
-      for key2 in $(g3k_config_lookup ".[\"$key\"] | keys[]" "$manifestPath" | grep '^[a-zA-Z]'); do
-        value="$(g3k_config_lookup ".[\"$key\"][\"$key2\"]" "$manifestPath")"
-        if [[ -n "$value" ]]; then
-          valueList+=("$value")
-          execString+="--from-literal $key2=\"\${valueList[$valueCount]}\" "
-          valueCount=$((valueCount + 1))
-        fi
-      done
-      value="$(g3k_config_lookup ".[\"$key\"]" "$manifestPath")"
-      valueList+=("$value")
-      execString+="--from-literal json=\"\${valueList[$valueCount]}\" "
-      #gen3_log_info "$execString"
-      eval $execString
-      g3kubectl label configmap $cMapName app=manifest
-    fi
-  done
-
-  local manifestDir
-  local folder
-  manifestDir="$(dirname "$manifestPath")/manifests"
-  if [[ -d "$manifestDir" ]]; then
-    for folder in "$manifestDir"/*; do
-      gen3_gitops_configmap_folder "$folder" 
-    done
-  fi
+  local json
   local defaultsDir="${GEN3_HOME}/gen3/lib/manifestDefaults"
-  for folder in "$defaultsDir"/*; do
-    key="$(basename "$folder")"
-    if [[ ! -d "$manifestDir/$key" ]] && ! jq -e -r ".[\"$key\"]" < "$manifestPath" > /dev/null 2>&1; then
-      gen3_gitops_configmap_folder "$folder"
+  local result=0
+
+  # delete everything in a single call for performance
+  # grab existing configmaps from k8s env 
+  g3kubectl delete configmaps "${deleteList[@]}"
+
+  for key in "${keyList[@]}"; do
+    if [[ "$key" == "etl-mapping" ]]; then
+      if [[ -f "$etlPath" ]]; then
+        gen3_gitops_json_to_configmap "$key" "" "--from-file=${etlPath##*/}=${etlPath}"
+        result=$((result + $?))
+      else
+        gen3_log_warn "no etl-mapping at $etlPath"
+      fi
+    elif [[ "$key" == "all" ]]; then
+      g3kubectl create configmap manifest-all --from-literal json="$(g3k_config_lookup "." "$manifestPath")"
+      result=$((result + $?))
+    elif [[ -d "$manifestFolder/manifests/$key" ]]; then
+      gen3_log_info "loading $key from $manifestFolder/manifests/$key"
+      gen3_gitops_configmap_folder "$manifestFolder/manifests/$key"
+      result=$((result + $?))
+    elif json="$(jq -e -r --arg key "$key" '.[$key]' < "$manifestPath")" && [[ -n "$json" ]]; then
+      gen3_log_info "loading $key from $manifestPath"
+      cMapName="manifest-$key"
+      gen3_gitops_json_to_configmap "$cMapName" "$json"
+      result=$((result + $?))
+    elif [[ -d "$defaultsDir/$key" ]]; then
+      gen3_log_info "loading $key from $defaultsDir/$key"
+      gen3_gitops_configmap_folder "$defaultsDir/$key"
+      result=$((result + $?))
+    else
+      gen3_log_err "ignoring invalid manifest key: $key"
     fi
   done
+  return $result
 }
 
 declare -a gen3_gitops_repolist_arr=(
@@ -674,6 +717,7 @@ declare -a gen3_gitops_repolist_arr=(
   uc-cdis/ssjdispatcher
   uc-cdis/tube
   uc-cdis/workspace-token-service
+  uc-cdis/requestor
 )
 
 declare -a gen3_gitops_sshlist_arr=(
@@ -934,8 +978,14 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "configmaps")
       gen3_gitops_configmaps "$@"
       ;;
+    "configmaps-list")
+      gen3_gitops_configmaps_list "$@"
+      ;;
     "enforce")
       gen3_gitops_enforcer "$@"
+      ;;
+    "etl-convert")
+      gen3_gitops_etlconvert "$@"
       ;;
     "folder")
       dirname "$(g3k_manifest_path)"

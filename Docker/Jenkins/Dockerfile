@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.230
+FROM jenkins/jenkins:2.260
 
 USER root
 
@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # install python and pip and aws cli
 RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential zip unzip jq less vim gettext-base
-RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade
+RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade && python -m pip install lxml --upgrade
 RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade
 RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade
 
@@ -77,7 +77,7 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
 
 
 # install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 
 # install chrome (supports headless mode)
@@ -90,6 +90,9 @@ RUN set -xe \
 # install terraform
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.14/terraform_0.11.14_linux_amd64.zip \
    && unzip /tmp/terraform.zip -d /usr/local/bin && /bin/rm /tmp/terraform.zip
+
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.29/terraform_0.12.29_linux_amd64.zip \
+   && unzip /tmp/terraform.zip -d /tmp && mv /tmp/terraform /usr/local/bin/terraform12 && /bin/rm /tmp/terraform.zip
 
 # install packer
 RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip

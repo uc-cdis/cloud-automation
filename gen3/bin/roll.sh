@@ -43,7 +43,7 @@ gen3_roll() {
 
   if [[ "$depName" == "all" ]]; then # special case
     echo "gen3 kube-roll-all" 1>&2
-    gen3 kube-roll-all
+    gen3 kube-roll-all "$@"
     return $?
   fi
 
@@ -76,7 +76,6 @@ gen3_roll() {
       gen3_log_err "gen3_roll" "bailing out of roll $serviceName"
       return 1
     fi
-    # update network policy - disable for now
     gen3 kube-setup-networkpolicy service "$serviceName"
   # Set the same img version for both fence & presigned-url-fence
   elif [[ "$depName" == "presigned-url-fence" ]]; then

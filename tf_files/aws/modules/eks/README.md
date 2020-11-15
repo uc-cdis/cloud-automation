@@ -76,6 +76,7 @@ users_policy = "test-commons"
 | domain_test | If ha-proxy a domain to check internet access | string | gen3.io |
 | ha_squid | If enabled, this should be set to true | boolean | false |
 | dual_proxy | If migrating from single to ha, set to true, should not disrrupt connectivity | boolean | false |
+| sns_topic_arn | SNS topic ARN for alerts | string | "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic" |
 
 
 ## 5. Outputs

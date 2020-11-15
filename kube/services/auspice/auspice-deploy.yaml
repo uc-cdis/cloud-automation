@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auspice-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: auspice
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: auspice
+        public: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - auspice
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      containers:
+        - name: auspice
+          GEN3_AUSPICE_IMAGE|-image: quay.io/cdis/gen3-auspice:master-|
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 4000
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 4000
+          ports:
+          - containerPort: 4000
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 0.5
+              memory: 1024Mi
+            limits:
+              cpu: 1
+              memory: 2400Mi  

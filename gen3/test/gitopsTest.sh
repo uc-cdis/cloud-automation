@@ -1,21 +1,27 @@
-# test configmaps folder dry run
-test_configmaps_folder_dryrun() {
-  local testFolder="${GEN3_HOME}/gen3/lib/testData/manifests/frickjack"
-  local dryRunCommand
-  dryRunCommand="$(gen3 gitops configmaps "$testFolder" --dryRun)"; because $? "gitops configmaps should work with folder $testFolder"
-  gen3_log_info "configmaps $testFolder command: $dryRunCommand"
-  [[ "$dryRunCommand" =~ frickjack.json ]]; because $? "gitops configmaps folder command looks ok"
+test_configmaps_list() {
+  local expectedList=(
+all
+etl-mapping
+global
+hatchery
+jenkins
+jupyterhub
+modsec
+reuben
+scaling
+service1
+service2
+service3
+versions
+  )
+  local it
+  local result
+  result="$(gen3 gitops configmaps-list "$GEN3_HOME/gen3/lib/testData/default")"; because $? "gitops configmaps-list should work - got: $result"
+  for it in "${expectedList[@]}"; do
+    grep "^$it\$" <<< "$result" > /dev/null; because $? "gitops configmaps-list includes expected service $it"
+  done
 }
 
-# create configmaps from folder
-test_configmaps_folder() {
-  local testFolder="${GEN3_HOME}/gen3/lib/testData/manifests/frickjack"
-  local dryRunCommand
-  gen3 gitops configmaps "$testFolder"; because $? "gitops configmaps should work with folder $testFolder"
-  local namespace
-  namespace="$(g3kubectl get configmap manifest-frickjack -o json | jq -e -r '.data["user-namespace"]')"; because $? "configmap looks ok"
-  [[ "$namespace" == "jupyter-pods" ]]; because $? "configmap got right namespace"
-}
 
 #
 # Test g3k_manifest_path
@@ -85,6 +91,19 @@ EOM
   [[ "$blaFoo" == "frick" ]];
   because $? "g3k_config_lookup got expected value from yaml: $blaFoo"
   /bin/rm -rf "$testFolder"
+}
+
+test_etlconvert() {
+  local temp="$(mktemp "$XDG_RUNTIME_DIR/test_etlconvert_XXXXXX")"
+  local yaml
+  for num in 1 2; do
+    yaml="$GEN3_HOME/gen3/lib/testData/etlconvert/users${num}.yaml"
+    gen3 gitops etl-convert < "$yaml" > $temp
+        because $? "etl-convert should work on $yaml"
+    diff -w "$temp" "$GEN3_HOME/gen3/lib/testData/etlconvert/expected${num}.yaml"
+        because $? "etl-convert gave expected result for $yaml"
+  done
+  rm "$temp"
 }
 
 test_loader() {
@@ -181,17 +200,16 @@ test_configmaps() {
   }
 
 
-  gen3_gitops_configmaps; because !$? "gen3_gitops_configmaps should exit with code 1 if the manifest does not have a global section"
+  ! gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should exit with code 1 if the manifest does not have a global section"
   
   # Mock g3k_manifest_path to manifest with global
   function g3k_manifest_path() { echo "$mpathGlobal"; }
-  gen3_gitops_configmaps | grep -q created; because $? "gen3_gitops_configmaps should create configmaps"
-  gen3_gitops_configmaps | grep -q labeled; because $? "gen3_gitops_configmaps should label configmaps"
-  g3kubectl delete configmaps -l app=manifest
-
-  gen3_gitops_configmaps; 
+  gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should run ok"
+  gen3_gitops_configmaps 2>&1 | grep -q created; because $? "gen3_gitops_configmaps should create configmaps"
+ 
+  gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should run ok"
   gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should not bomb out, even if the configmaps already exist"
-  gen3_gitops_configmaps | grep -q deleted; because $? "gen3_gitops_configmaps delete previous configmaps"
+  gen3_gitops_configmaps 2>&1 | grep -q deleted; because $? "gen3_gitops_configmaps delete previous configmaps"
 }
 
 test_gitops_taglist() {
@@ -218,8 +236,8 @@ test_secrets_folder() {
   [[ "$secretFolder" == "$(dirname $GEN3_HOME)/Gen3Secrets" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
 }
 
-shunit_runtest "test_configmaps_folder_dryrun" "local,gitops"
-shunit_runtest "test_configmaps_folder" "gitops"
+shunit_runtest "test_configmaps_list" "local,gitops"
+shunit_runtest "test_etlconvert" "local,gitops"
 shunit_runtest "test_mpath" "local,gitops"
 shunit_runtest "test_mfilter" "local,gitops"
 shunit_runtest "test_mlookup" "local,gitops"

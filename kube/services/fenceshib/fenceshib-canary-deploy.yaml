@@ -1,5 +1,5 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fenceshib-canary-deployment
@@ -76,9 +76,6 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-        - name: fence-yaml
-          configMap:
-            name: fence
         - name: cert-volume
           secret:
             secretName: "cert-fence-service"
@@ -156,9 +153,6 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
             subPath: fence_google_storage_creds_secret.json
-          - name: "fence-yaml"
-            mountPath: "/var/www/fence/user.yaml"
-            subPath: user.yaml
           - name: "cert-volume"
             readOnly: true
             mountPath: "/mnt/ssl/service.crt"

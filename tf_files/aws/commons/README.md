@@ -110,7 +110,7 @@ gdcapi_indexd_password="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 | csoc_account_id | Account id of the CSOC account | string | "433568766270" |
 | fence_db_size | Volume size for fence database | number | 10 |
 | sheepdog_db_size | Volume size for sheepdog database | number | 10 |
-| indexd_db_size | Volume size for indexd database | 10 |
+| indexd_db_size | Volume size for indexd database | number | 10 |
 | db_password_gdcapi | Password for GDCAPI (gdcapi now deprecated in favor of sheepdog + peregrine) | string | "" |
 | portal_app | Passed through to portal's APP environment to customize it | string | "dev" |
 | fence_snapshot | Should fence database come from a snapshot, specify the name of the snapshot in RDS | string | "" |
@@ -181,6 +181,9 @@ gdcapi_indexd_password="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 | mailgun_api_key | Mailgun api key (NO CURRENTLY IN USE) | string | "" |
 | mailgun_smtp_host | Mailgun SMTP (NO CURRENTLY IN USE) | string | "smtp.mailgun.org" | 
 | mailgun_api_url | Mailgun api url (NO CURRENTLY IN USE) | string | "https://api.mailgun.net/v3/" |
+| fence_max_allocated_storage | Maximum storage allocation for autoscaling | number | 0 |
+| sheepdog_max_allocated_storage | Maximum storage allocation for autoscaling | number | 0 |
+| indexd_max_allocated_storage | Maximum storage allocation for autoscaling | number | 0 |
 
 
 ## 5. Outputs

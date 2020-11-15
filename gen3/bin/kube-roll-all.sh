@@ -8,19 +8,28 @@ set -e
 _roll_all_dir="$(dirname -- "${BASH_SOURCE:-$0}")"
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_roll_all_dir}/../.." && pwd)}"
 
+if [[ "$1" =~ ^-*fast$ ]]; then
+  GEN3_ROLL_FAST=true
+  shift
+fi
+
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 # Set flag, so we can avoid doing things over and over
 export GEN3_ROLL_ALL=true
 
-gen3 kube-setup-workvm
-# kube-setup-roles runs before kube-setup-secrets -
-#    setup-secrets may launch a job that needs the useryaml-role
-gen3 kube-setup-roles
-gen3 kube-setup-secrets
-gen3 kube-setup-certs
-gen3 jupyter j-namespace setup
+if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
+  gen3 kube-setup-workvm
+  # kube-setup-roles runs before kube-setup-secrets -
+  #    setup-secrets may launch a job that needs the useryaml-role
+  gen3 kube-setup-roles
+  gen3 kube-setup-secrets
+  gen3 kube-setup-certs
+  gen3 jupyter j-namespace setup
+else
+  gen3_log_info "roll fast mode - skipping secrets setup"
+fi
 
 gen3_log_info "using manifest at $(g3k_manifest_path)"
 
@@ -65,16 +74,12 @@ else
   gen3_log_info "no manifest entry for fence"
 fi
 
-if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
-  gen3 kube-setup-ssjdispatcher
-fi
-
 if g3kubectl get cronjob etl >/dev/null 2>&1; then
     gen3 job run etl-cronjob
 fi
 
 if g3kubectl get cronjob usersync >/dev/null 2>&1; then
-    gen3 job run usersync-cronjob
+    gen3 job cron usersync '@hourly'
 fi
 
 if g3k_manifest_lookup .versions.sheepdog 2> /dev/null; then
@@ -148,6 +153,7 @@ fi
 
 if g3k_manifest_lookup .versions.dashboard > /dev/null 2>&1; then
   gen3 kube-setup-dashboard
+  gen3 dashboard gitops-sync || true
 else
   gen3_log_info "not deploying dashboard - no manifest entry for .versions.dashboard"
 fi
@@ -174,19 +180,40 @@ else
   gen3_log_info "not deploying sower - no manifest entry for .versions.sower"
 fi
 
+if g3k_manifest_lookup .versions.requestor 2> /dev/null; then
+  gen3 kube-setup-requestor
+else
+  gen3_log_info "not deploying requestor - no manifest entry for .versions.requestor"
+fi
+
 gen3 kube-setup-metadata
+
+if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
+  gen3 kube-setup-ssjdispatcher
+fi
+
+if g3k_manifest_lookup .versions.access-backend 2> /dev/null; then
+  gen3 kube-setup-access-backend
+else
+  gen3_log_info "not deploying access-backend - no manifest entry for .versions.access-backend"
+fi
 
 gen3 kube-setup-revproxy
 
-# Internal k8s systems
-gen3 kube-setup-fluentd
-gen3 kube-setup-autoscaler
-gen3 kube-setup-kube-dns-autoscaler
-gen3 kube-setup-metrics deploy || true
-gen3 kube-setup-tiller || true
-#
-gen3 kube-setup-networkpolicy disable
-gen3 kube-setup-networkpolicy
+if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
+  # Internal k8s systems
+  gen3 kube-setup-fluentd
+  gen3 kube-setup-autoscaler
+  gen3 kube-setup-kube-dns-autoscaler
+  gen3 kube-setup-metrics deploy || true
+  gen3 kube-setup-tiller || true
+  gen3 kube-setup-prometheus || true
+  #
+  gen3 kube-setup-networkpolicy disable
+  gen3 kube-setup-networkpolicy
+else
+  gen3_log_info "roll fast mode - skipping k8s base services and netpolicy setup"
+fi
 
 #
 # portal and wts are not happy until other services are up
@@ -196,9 +223,21 @@ gen3 kube-wait4-pods || true
 
 if g3k_manifest_lookup .versions.wts 2> /dev/null; then
   # this tries to kubectl exec into fence
-  gen3 kube-setup-wts || true
+  gen3 kube-setup-wts
 else
   gen3_log_info "not deploying wts - no manifest entry for .versions.wts"
+fi
+
+if g3k_manifest_lookup .versions.mariner 2> /dev/null; then
+  gen3 kube-setup-mariner
+else
+  gen3_log_info "not deploying mariner - no manifest entry for .versions.mariner"
+fi
+
+if g3k_manifest_lookup '.versions["ws-storage"]' 2> /dev/null; then
+  gen3 kube-setup-ws-storage
+else
+  gen3_log_info "not deploying ws-storage - no manifest entry for '.versions[\"ws-storage\"]'"
 fi
 
 if g3k_manifest_lookup .versions.portal 2> /dev/null; then
@@ -209,8 +248,13 @@ fi
 
 gen3_log_info "enable network policy"
 gen3 kube-setup-networkpolicy "enable" || true
-gen3_log_info "apply pod scaling"
-gen3 scaling apply all || true
+
+if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
+  gen3_log_info "apply pod scaling"
+  gen3 scaling apply all || true
+else
+  gen3_log_info "roll fast mode - skipping scaling config"
+fi
 
 if gen3 kube-wait4-pods; then
   gen3_log_info "roll-all" "roll completed successfully!"

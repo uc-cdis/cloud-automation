@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hatchery-deployment
@@ -35,6 +35,8 @@ spec:
                   - hatchery
               topologyKey: "kubernetes.io/hostname"
       serviceAccountName: hatchery-service-account
+      securityContext:
+        fsGroup: 1001
       volumes:
         - name: hatchery-config
           configMap:

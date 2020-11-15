@@ -189,7 +189,7 @@ EOM
     if [[ "${slackWebHook}" == 'None' || -z "${slackWebHook}" ]]; then
       gen3_log_err "WARNING: slackWebHook is None or doesn't exist; not sending results to Slack"
     else
-      local hostname="$(g3kubectl get configmap manifest-global -o json | jq -r '.data.hostname')"
+      local hostname="$(gen3 api hostname)"
       local payload="$(cat - <<EOM
 payload={
   "text": ":warning: Healthcheck failed for ${hostname}",

@@ -28,6 +28,13 @@ test_env() {
   [[ -d "${GEN3_MANIFEST_HOME}/test1.manifest.g3k" ]]; because $? "cdis-manifest includes a test1.manifest.g3k domain"
 }
 
+test_tform_version() {
+  local vcheck
+  vcheck="$(check_terraform_module "$GEN3_HOME/tf_files/aws/bogus")" && [[ -z "$vcheck" ]]; because $? "should default to terraform 0.11"
+  vcheck="$(check_terraform_module "$GEN3_HOME/tf_files/aws/data_bucket")" && [[ "$vcheck" == "12" ]]; because $? "data_bucket terraform should pickup version 12"
+  vcheck="$(check_terraform_module "bogus/something__custom")" && [[ "$vcheck" == "12" ]]; because $? "__custom terraform workspaces should pickup version 12"
+}
+
 test_logging() {
   local temp
   temp="$(gen3_log_info "hello" 2>&1)" && [[ "$temp" =~ INFO: ]]; because $? "gen3_log_info generates info strings"
@@ -84,3 +91,4 @@ shunit_runtest "test_env" "local,utils"
 shunit_runtest "test_is_number" "local,utils"
 shunit_runtest "test_logging" "local,utils"
 shunit_runtest "test_retry" "local,utils"
+shunit_runtest "test_tform_version" "local,utils"

@@ -14,6 +14,7 @@
 .census.gov
 .centos.org
 .ceph.com
+.chef.io
 .clamav.net
 .cloud.google.com
 .cloudfront.net
@@ -33,6 +34,7 @@
 .github.com
 .gitlab.com
 .googleapis.com
+.googleusercontent.com
 .hashicorp.com
 .jenkins-ci.org
 .k8s.io
@@ -64,6 +66,7 @@
 .sks-keyservers.net
 .slack-msgs.com
 .sourceforge.net
+.southsideweekly.com
 .theanvil.io
 .ubuntu.com
 .ucsc.edu
@@ -74,3 +77,6 @@
 .pandemicresponsecommons.org
 .occ-pla.net
 .rstudio.com
+.gstatic.com
+.visitdata.org
+.caninedc.org

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Deploy pidgin into existing commons
+# Deploy guppy into existing commons
 # This fragment is pasted into kube-services.sh by kube.tf.
 #
 
@@ -12,7 +12,7 @@ gen3 kube-setup-aws-es-proxy || true
 
 COUNT=0
 while [[ 'true' != $(g3kubectl get pods --selector=app=esproxy -o json | jq -r '.items[].status.containerStatuses[0].ready' | tr -d '\n') ]]; do
-  if [[ COUNT -gt 10 ]]; then
+  if [[ COUNT -gt 50 ]]; then
     echo "wait too long for esproxy"
     exit 1
   fi

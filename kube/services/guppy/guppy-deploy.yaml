@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: guppy-deployment
@@ -52,17 +52,19 @@ spec:
           livenessProbe:
             httpGet:
               path: /_status
-              port: 80
+              port: 8000
             initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
               path: /_status
-              port: 80
+              port: 8000
           ports:
-          - containerPort: 80
+          - containerPort: 8000
           env:
+          - name: GUPPY_PORT
+            value: "8000"
           - name: GUPPY_CONFIG_FILEPATH
             value: /guppy/guppy_config.json
           - name: GEN3_ES_ENDPOINT

@@ -87,17 +87,28 @@ if [ -f ./wsgi.py ] && [ "$GEN3_DEBUG" = "True" ]; then
 fi
 
 (
-  # Wait for nginx to create uwsgi.sock in a sub-process
-  count=0
-  while [ ! -e /var/run/gen3/uwsgi.sock ] && [ $count -lt 10 ]; do
-    echo "... waiting for /var/run/gen3/uwsgi.sock to appear"
-    sleep 2
-    count="$(($count+1))"
-  done
-  if [ ! -e /var/run/gen3/uwsgi.sock ]; then
-    echo "WARNING: /var/run/gen3/uwsgi.sock does not exist!!!"
-  fi
   run uwsgi --ini /etc/uwsgi/uwsgi.ini
 ) &
+
+if [[ $GEN3_DRYRUN == "False" ]]; then
+  (
+    while true; do
+      logrotate --force /etc/logrotate.d/nginx
+      sleep 86400
+    done
+  ) &
+fi
+
+if [[ $GEN3_DRYRUN == "False" ]]; then
+  (
+    while true; do
+      curl -s http://127.0.0.1:9117/metrics > /var/www/metrics/metrics.txt
+      curl -s http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt
+      curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
+      sleep 10
+    done
+  ) &
+fi
+
 run nginx -g 'daemon off;'
 wait

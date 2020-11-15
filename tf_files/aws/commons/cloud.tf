@@ -121,7 +121,7 @@ resource "aws_vpc_endpoint" "k8s-s3" {
 resource "aws_route_table" "private_kube" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"
 
-  tags {
+  tags = {
     Name                      = "private_kube"
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
@@ -170,7 +170,7 @@ resource "aws_subnet" "private_db_alt" {
   availability_zone           = "${data.aws_availability_zones.available.names[1]}"
   map_public_ip_on_launch     = false
 
-  tags {
+  tags = {
     Name                      = "private_db_alt"
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
@@ -186,7 +186,7 @@ resource "aws_db_subnet_group" "private_group" {
   name                        = "${var.vpc_name}_private_group"
   subnet_ids                  = ["${aws_subnet.private_kube.id}", "${aws_subnet.private_db_alt.id}"]
 
-  tags {
+  tags = {
     Name                      = "Private subnet group"
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"

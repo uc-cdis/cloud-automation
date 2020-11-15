@@ -11,7 +11,7 @@ spec:
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
-      # not yet supported - backOffLimit: 3
+      backoffLimit: 0
       template:
         metadata:
           labels:
@@ -51,9 +51,6 @@ spec:
             - name: fence-jwt-keys
               secret:
                 secretName: "fence-jwt-keys"
-            - name: fence-yaml
-              configMap:
-                name: fence
             - name: shared-data
               emptyDir: {}
           initContainers:
@@ -107,9 +104,6 @@ spec:
                 readOnly: true
                 mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
                 subPath: fence_google_storage_creds_secret.json
-              - name: "fence-yaml"
-                mountPath: "/var/www/fence/user.yaml"
-                subPath: user.yaml
               - name: "fence-jwt-keys"
                 readOnly: true
                 mountPath: "/fence/keys"

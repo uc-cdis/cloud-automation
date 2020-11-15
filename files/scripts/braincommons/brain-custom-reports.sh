@@ -27,8 +27,10 @@ beatpdFilter() {
 
 # main ------------------------
 
-# pin start date to January 13
-startDate="2020-01-13"
+# pin start date to June 1
+startDate="2020-06-01"
+#endDate="2020-09-01"
+endDate="00:00"
 numDays=0
 
 if [[ $# -lt 1 || "$1" != "go" ]]; then
@@ -37,15 +39,14 @@ if [[ $# -lt 1 || "$1" != "go" ]]; then
 fi
 shift
 
-#startDate="$1"
 startSecs="$(date -u -d"$startDate" +%s)"
-endSecs="$(date -u -d"00:00" +%s)"
+endSecs="$(date -u -d"$endDate" +%s)"
 numDays="$(( (endSecs - startSecs)/(24*60*60) ))"
 gen3_log_info "$numDays days since $startDate"
 
-dropDeadSecs="$(date -u -d2020-06-01 +%s)"
+dropDeadSecs="$(date -u -d2020-09-02 +%s)"
 if [[ "$endSecs" -gt "$dropDeadSecs" ]]; then
-  gen3_log_err "This script will not process logs after 2020-05-01"
+  gen3_log_err "This script will not process logs after 2020-09-02"
   exit 1
 fi
 
@@ -63,17 +64,18 @@ cd "$workFolder"
 gen3_log_info "working in $workFolder"
 
 # cache raw data from last run, and add to it incrementally
-cacheDate="2020-05-06"
-cacheFile="${XDG_DATA_HOME}/gen3/cache/brain-custom-report_2020-01-13_to_2020-05-06_raw.txt"
+cacheStart="2020-06-01"
+cacheDate="2020-09-01"
+cacheFile="${XDG_DATA_HOME}/gen3/cache/brain-custom-report_${cacheStart}_to_${cacheDate}_raw.txt"
 if [[ ! -f "$cacheFile" ]]; then
-  gen3_log_err "Please generate cache $cacheFile : gen3 logs s3 start=2020-01-13 end=2020-05-06 filter=raw prefix=s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/ > brain-custom-report_2020-01-13_to_2020-05-06_raw.txt"
+  gen3_log_err "Please generate cache $cacheFile : gen3 logs s3 start=$cacheStart end=$cacheDate filter=raw prefix=s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/ > brain-custom-report_2020-06-01_to_${cacheDate}_raw.txt"
   exit 1
 fi
 
 if [[ -f raw.txt ]]; then
   gen3_log_info "using existing raw.txt - probably testing something"
 else
-  gen3 logs s3 start="$cacheDate 00:00" end="00:00" filter=raw prefix=s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/ > "raw-${cacheDate}.txt"
+  gen3 logs s3 start="$cacheDate 00:00" end="$endDate" filter=raw prefix=s3://bhcprodv2-data-bucket-logs/log/bhcprodv2-data-bucket/ > "raw-${cacheDate}.txt"
   cat "$cacheFile" "raw-${cacheDate}.txt" > "raw.txt"
 fi
 gen3 logs s3filter filter=accessCount < raw.txt > accessCountRaw.tsv

@@ -25,8 +25,10 @@ resource "aws_db_instance" "db_fence" {
   backup_window               = "${var.fence_backup_window}"  
   multi_az                    = "${var.fence_ha}" 
   auto_minor_version_upgrade  = "${var.fence_auto_minor_version_upgrade}"
+  storage_encrypted           = "${var.rds_instance_storage_encrypted}"
+  max_allocated_storage       = "${var.fence_max_allocated_storage}"
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   } 
@@ -34,7 +36,7 @@ resource "aws_db_instance" "db_fence" {
   lifecycle {
     prevent_destroy = true
     #ignore_changes  = ["*"]
-    ignore_changes = ["engine_version"]
+    ignore_changes = ["engine_version","storage_encrypted","identifier"]
   }
 }
 
@@ -60,8 +62,10 @@ resource "aws_db_instance" "db_gdcapi" {
   backup_window               = "${var.sheepdog_backup_window}" 
   multi_az                    = "${var.sheepdog_ha}" 
   auto_minor_version_upgrade  = "${var.sheepdog_auto_minor_version_upgrade}"
+  storage_encrypted           = "${var.rds_instance_storage_encrypted}"
+  max_allocated_storage       = "${var.sheepdog_max_allocated_storage}"
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
@@ -69,7 +73,7 @@ resource "aws_db_instance" "db_gdcapi" {
   lifecycle {
     prevent_destroy = true
     #ignore_changes  = ["*"]
-    ignore_changes = ["engine_version"]
+    ignore_changes = ["engine_version","storage_encrypted","identifier"]
   }
 }
 
@@ -95,8 +99,10 @@ resource "aws_db_instance" "db_indexd" {
   backup_window               = "${var.indexd_backup_window}" 
   multi_az                    = "${var.indexd_ha}" 
   auto_minor_version_upgrade  = "${var.indexd_auto_minor_version_upgrade}"
+  storage_encrypted           = "${var.rds_instance_storage_encrypted}"
+  max_allocated_storage       = "${var.indexd_max_allocated_storage}"
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
@@ -104,7 +110,7 @@ resource "aws_db_instance" "db_indexd" {
   lifecycle {
     prevent_destroy = true
     #ignore_changes  = ["*"]
-    ignore_changes = ["engine_version"]
+    ignore_changes = ["engine_version","storage_encrypted","identifier"]
   }
 }
 
@@ -157,7 +163,7 @@ resource "aws_kms_key" "kube_key" {
   description                 = "encryption/decryption key for kubernete"
   enable_key_rotation         = true
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
@@ -186,7 +192,7 @@ resource "aws_s3_bucket" "kube_bucket" {
     }
   }
 
-  tags {
+  tags = {
     Name                      = "kube-${replace(var.vpc_name,"_", "-")}-gen3"
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"

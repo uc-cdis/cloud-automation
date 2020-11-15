@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jenkins-deployment
@@ -35,6 +35,11 @@ spec:
         GEN3_JENKINS_IMAGE
         ports:
         - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 50000
+          name: slavelistener
+          protocol: TCP
         env:
           - name: HOSTNAME
             valueFrom:

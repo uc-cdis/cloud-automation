@@ -5,7 +5,7 @@ resource "aws_s3_bucket" "management-logs_bucket" {
   bucket = "management-logs-remote-accounts"
   acl    = "private"
 
-  tags {
+  tags = {
     Environment  = "ALL"
     Organization = "CTDS"
   }
@@ -51,7 +51,7 @@ resource "aws_kinesis_stream" "management-logs_stream" {
   name        = "management-logs_stream"
   shard_count = 1
 
-  tags {
+  tags = {
     Environment  = "ALL"
     Organization = "CTDS"
   }
@@ -215,7 +215,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
 
 resource "aws_cloudwatch_log_group" "management-logs_group" {
   name = "management-logs"
-  tags {
+  tags = {
     Environment = "ALL"
     Organization = "CTDS"
   }

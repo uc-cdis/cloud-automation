@@ -14,31 +14,31 @@ The tool can be used to any kind of task that requires batch operations. Users w
 Launch a AWS batch operation job to generate a manifest of the source bucket
 
 ```bash
-  gen3 bucket-manifest create <source bucket> [authz_path|s3_path]
+  gen3 bucket-manifest --create --bucket <source bucket> [--authz authz_path|s3_path] [--output-variables] [--assume-role roleArn]
 ```
 
 Ex.
 ```
-gen3 bucket-manifest create cdistest-giangb-bucket1-databucket-gen3 /home/giang/authz.tsv
+gen3 bucket-manifest --create cdistest-giangb-bucket1-databucket-gen3 --authz /home/giang/authz.tsv
 ```
 
 ### status
 Checks the status of a job
 
 ```bash
-  gen3 bucket-manifest status <job_id>
+  gen3 bucket-manifest --status --job-id <job_id>
 ```
 
 ### list
 List all aws batch jobs
 
 ```bash
-  gen3 bucket-manifest list
+  gen3 bucket-manifest --list
 ```
 
 ### cleanup
 Tear down the infrastructure of given job_id
 
 ```bash
-  gen3 bucket-manifest cleanup <job_id>
+  gen3 bucket-manifest --cleanup --job-id <job_id>
 ```

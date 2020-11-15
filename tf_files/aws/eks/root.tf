@@ -34,4 +34,5 @@ module "eks" {
   ha_squid                         = "${var.ha_squid}"
   dual_proxy                       = "${var.dual_proxy}"
   single_az_for_jupyter            = "${var.single_az_for_jupyter}"
+  sns_topic_arn                    = "${var.sns_topic_arn}"
 }

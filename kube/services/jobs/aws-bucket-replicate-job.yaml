@@ -1,0 +1,76 @@
+# Ex. gen3 job run aws-bucket-replicate RELEASE DR16 GDC_BUCKET_NAME mybucket20018 MANIFEST_S3 s3://giang816test/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv THREAD_NUM 5 LOG_BUCKET xssxs CHUNK_SIZE 1
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: aws-bucket-replicate
+spec:
+  # not yet supported - backOffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "dcf-aws-creds-secret"
+        - name: project-map-volume
+          configMap:
+            name: project-map-manifest
+        - name: creds-json-volume
+          secret:
+            secretName: "dcf-dataservice-json-secret"
+      containers:
+      - name: datareplicate
+        GEN3_DATAREPLICATE_IMAGE
+        resources:
+          limits:
+            memory: "32Gi"
+          requests:
+            cpu: "14"
+            memory: "24Gi"
+        imagePullPolicy: Always
+        env:
+          - name: GDC_BUCKET_NAME
+            GEN3_GDC_BUCKET_NAME
+          - name: RELEASE
+            GEN3_RELEASE
+          - name: LOG_BUCKET
+            GEN3_LOG_BUCKET
+          - name: CHUNK_SIZE
+            GEN3_CHUNK_SIZE
+          - name: THREAD_NUM
+            GEN3_THREAD_NUM
+          - name: MANIFEST_S3
+            GEN3_MANIFEST_S3
+          - name: QUICK_TEST
+            GEN3_QUICK_TEST|-value: "False"-|
+          - name: AUTH_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: auth_namespace
+                optional: true
+        volumeMounts:
+          - name: cred-volume
+            mountPath: "/root/.aws/credentials"
+            subPath: credentials
+          - name: "project-map-volume"
+            mountPath: "/dcf-dataservice/GDC_project_map.json"
+            subPath: "GDC_project_map.json"
+          - name: "creds-json-volume"
+            mountPath: "/secrets/dcf_dataservice_credentials.json"
+            subPath: "dcf_dataservice_credentials.json"
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            echo """
+            [default]
+            region: us-east-1
+            """ > ~/.aws/config
+            aws configure set default.s3.max_concurrent_requests 1000
+            aws configure set default.s3.max_queue_size 10000
+            python replicate.py aws_replicate --release $RELEASE --quick_test $QUICK_TEST --bucket $GDC_BUCKET_NAME --thread_num $THREAD_NUM --manifest_file $MANIFEST_S3 --global_config "{\"chunk_size\": $CHUNK_SIZE, \"log_bucket\": \"$LOG_BUCKET\"}"
+            # python scripts/replicate.py indexing  --thread_num 20 --manifest_file $MANIFEST_S3 --global_config "{\"chunk_size\": 3, \"log_bucket\": \"$LOG_BUCKET\"}"
+      restartPolicy: Never

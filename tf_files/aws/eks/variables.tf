@@ -29,7 +29,7 @@ variable "worker_drive_size" {
 }
 
 variable "eks_version" {
-  default = "1.14"
+  default = "1.15"
 }
 
 variable "workers_subnet_size" {
@@ -73,7 +73,7 @@ variable "jupyter_asg_min_size" {
 }
 
 variable "iam-serviceaccount" {
-  default = false
+  default = true
 }
 
 variable "domain_test" {
@@ -100,4 +100,9 @@ variable "oidc_eks_thumbprint" {
   description = "Thumbprint for the AWS OIDC identity provider"
   type        = "list"
   default     = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
+}
+
+variable "sns_topic_arn" {
+  description = "SNS topic ARN for alerts"
+  default     = "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
 }

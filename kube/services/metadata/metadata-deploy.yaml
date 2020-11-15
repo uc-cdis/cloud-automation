@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: metadata-deployment
@@ -22,6 +22,8 @@ spec:
         public: "yes"
         # allow access from workspaces
         userhelper: "yes"
+        # for network policy
+        netnolimit: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:

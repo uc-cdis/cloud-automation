@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: google-sa-validation
@@ -57,9 +57,6 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-        - name: fence-yaml
-          configMap:
-            name: fence
         - name: cert-volume
           secret:
             secretName: "cert-fence-service"
@@ -133,9 +130,6 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/yaml_merge.py"
             subPath: yaml_merge.py
-          - name: "fence-yaml"
-            mountPath: "/var/www/fence/user.yaml"
-            subPath: user.yaml
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_google_app_creds_secret.json"

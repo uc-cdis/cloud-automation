@@ -18,7 +18,7 @@ EOM
 }
 
 
-MAX_RETRIES=90
+MAX_RETRIES=180
 
 if [[ $# -gt 0 ]]; then
   if [[ "$1" =~ ^[0-9]+$ ]]; then

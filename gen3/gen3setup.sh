@@ -40,6 +40,7 @@ fi
 GEN3_DRY_RUN_FLAG=${GEN3_DRY_RUN:-"false"}
 GEN3_VERBOSE_FLAG=${GEN3_VERBOSE:-"false"}
 
+
 #
 # Little helper to gen3_run to set gen3 workon environment variables
 # after some basic validation
@@ -213,6 +214,7 @@ gen3_run() {
   fi
   return $resultCode
 }
+
 
 gen3() {
   if [[ ! -d "$GEN3_HOME/gen3/bin" ]]; then

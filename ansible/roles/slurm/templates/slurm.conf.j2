@@ -1,0 +1,69 @@
+
+
+# Policies
+ClusterName={{cluster}}
+{% for host in groups['controller'] %}
+ControlMachine={{hostvars[host]['ansible_hostname']}}
+ControlAddr={{hostvars[host]['ansible_default_ipv4']['address']}}
+{% endfor %}
+SlurmUser=slurm
+SlurmctldPort=7012
+SlurmdPort=7013
+AuthType=auth/munge
+CryptoType=crypto/munge
+CompleteWait=30
+KillWait=60
+SlurmdTimeout=1800
+#DebugFlags=Gres,NO_CONF_HASH
+TmpFS=/mnt
+MaxJobCount=100000
+
+#Plugins
+TaskPlugin=task/affinity
+
+# Accounting
+AccountingStorageType=accounting_storage/slurmdbd
+{% for host in groups['controller'] %}
+AccountingStorageHost={{hostvars[host]['ansible_host']}} 
+{% endfor %}
+JobAcctGatherType=jobacct_gather/linux
+JobAcctGatherParams=NoOverMemoryKill
+#VSizeFactor=101
+AccountingStoragePort=6819
+AccountingStorageEnforce=associations
+
+# Scheduling
+# FastSchedule=0
+SchedulerType=sched/backfill
+SchedulerParameters=bf_max_job_start=50,bf_interval=30
+SchedulerPort=7321
+SelectType=select/cons_res
+SelectTypeParameters=CR_CPU_Memory
+PriorityType=priority/basic
+PropagatePrioProcess=1
+
+# Logging & State
+SlurmdPidFile=/var/run/slurmd.pid
+SlurmdLogFile=/var/log/slurmd/slurmd.%n.log.%h
+SlurmdSpoolDir=/var/spool/slurmd
+SlurmctldPidFile=/var/run/slurmctld.pid
+SlurmctldLogFile=/var/log/slurmctld/slurmctld.log
+SlurmSchedLogFile=/var/log/slurmctld/sched.log
+StateSaveLocation=/var/spool/slurmd
+ReturnToService=2
+
+# Jobs
+JobCompType=jobcomp/filetxt
+JobCompLoc=/var/log/slurmctld/jobcomp.log
+ProctrackType=proctrack/linuxproc
+JobContainerType=job_container/none
+JobRequeue=0
+
+# Compute
+GresTypes=SCRATCH
+
+NodeName={% for host in groups['workers'] %}{{hostvars[host]['ansible_host']}},{% endfor %} CPUs={{ workers_cpu }} Gres=SCRATCH:{{ workers_gres }} state=UNKNOWN
+PartitionName=all Nodes={% for host in groups['workers'] %}{{hostvars[host]['ansible_host']}},{% endfor %} Default=YES PriorityTier=1 MaxTime=INFINITE State=UP
+
+
+
