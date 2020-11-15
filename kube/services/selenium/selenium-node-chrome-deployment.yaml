@@ -22,8 +22,12 @@ spec:
     spec:
       containers:
       - env:
-        - name: HUB_HOST
+        - name: SE_EVENT_BUS_HOST
           value: selenium-hub
+        - name: SE_EVENT_BUS_PUBLISH_PORT
+          value: "4442"
+        - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+          value: "4443"
         - name: NODE_MAX_SESSION
           value: "5"
         - name: NODE_MAX_INSTANCES
