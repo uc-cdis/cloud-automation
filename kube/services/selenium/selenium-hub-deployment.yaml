@@ -17,20 +17,23 @@ spec:
     spec:
       containers:
       - env:
-        - name: GRID_MAX_SESSION
           value: "42"
         - name: GRID_BROWSER_TIMEOUT
           value: "0"
-        image: selenium/hub:3.141
+        image: selenium/hub:4
         imagePullPolicy: Always
         name: hub
         ports:
         - containerPort: 4444
           protocol: TCP
+        - containerPort: 4442
+          protocol: TCP
+        - containerPort: 4443
+          protocol: TCP
         livenessProbe:
           failureThreshold: 3
           httpGet:
-            path: /wd/hub/status
+            path: /status
             port: 4444
             scheme: HTTP
           initialDelaySeconds: 30
@@ -40,7 +43,7 @@ spec:
         readinessProbe:
           failureThreshold: 3
           httpGet:
-            path: /wd/hub/status
+            path: /status
             port: 4444
             scheme: HTTP
           initialDelaySeconds: 30
