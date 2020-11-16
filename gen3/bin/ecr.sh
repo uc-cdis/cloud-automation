@@ -115,7 +115,7 @@ gen3_quay_login() {
 gen3_ecr_copy_image() {
   local srcTag="$1"
   local destTag="$2"
-  if [[ $destTag == "*quay.io*" ]]; then 
+  if [[ "$destTag" == *"quay.io"* ]]; then 
     gen3_quay_login || return 1
   else
     gen3_ecr_login || return 1
