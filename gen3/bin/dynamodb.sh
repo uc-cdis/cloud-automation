@@ -55,7 +55,7 @@ gen3_dynamodb_create_backup() {
   fi
 }
 
-
+# Used to list all backups for a prefix
 gen3_dynamodb_list_backups() {
   # Takes the table prefix qa/internalstaing/etc. as optional positional argument
   local tablePrefix
@@ -86,8 +86,7 @@ gen3_dynamodb_list_backups() {
 }
 
 
-
-## Needs to be able to handle the internalstaging tables as well, not restore those with the prod when command is called
+# Used to restore backups to table
 gen3_dynamodb_restore_backup() {
   # Takes the table prefix qa/internalstaing/etc. as optional positional argument
   local tablePrefix=$1
