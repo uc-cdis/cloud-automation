@@ -4,7 +4,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 gen3_dynamodb_help() {
-  gen3 help db
+  gen3 help dynamodb
 }
 
 # Used to create backup of tables
