@@ -37,8 +37,8 @@ spec:
               key: slack_webhook
         resources:
           limits:
-            cpu: 0.5
-            memory: 1024Mi
+            cpu: 1
+            memory: 2048
         command: ["/bin/bash" ]
         args:
           - "-c"
