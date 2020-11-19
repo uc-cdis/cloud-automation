@@ -38,7 +38,7 @@ spec:
         resources:
           limits:
             cpu: 1
-            memory: 2048
+            memory: 2048Mi
         command: ["/bin/bash" ]
         args:
           - "-c"
