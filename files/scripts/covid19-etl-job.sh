@@ -54,7 +54,7 @@ SAFE_JOB_NAME=${JOB_NAME//_/-} # `_` to `-`
 
 # default token life is 3600 sec. some jobs need the token to last longer.
 # also skip access-token cache since jobs need fresh tokens
-EXP=14400 # 4 hours
+EXP=28800 # 8 hours
 ACCESS_TOKEN="$(gen3 api access-token $USER $EXP true)"
 
 # temporary file for the job
