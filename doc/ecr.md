@@ -51,6 +51,16 @@ Ex:
 gen3 ecr login
 ```
 
+### login to quay
+
+Authenticate docker with the quay.io if necessary.
+Ex:
+```
+gen3 ecr quaylogin
+```
+
+This requires that the password for the cdis+gen3 robot account is present in `~/Gen3Secrets/quay/login`
+
 ### copy
 
 Copy an image from a source tag to a destination tag (pull, tag, push).
@@ -58,6 +68,12 @@ Ex:
 ```
 gen3 ecr copy quay.io/cdis/fence:2020.05 "$(gen3 ecr registry)/gen3/fence:2020.05"
 gen3 ecr copy "$(gen3 ecr registry)/gen3/fence:2020.05" "$(gen3 ecr registry)/gen3/fence:master"
+```
+
+### copy from dockerhub to quay 
+Copy an image from a source tag in dockerhub to a destination tag in quay.io (pull, tag, push).
+```
+gen3 ecr dh-quay ubuntu:18.04 quay.io/cdis/ubuntu:18.04
 ```
 
 ### quay-sync

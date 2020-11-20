@@ -59,6 +59,7 @@ gen3_config-env_run() {
 
   cd ~/gen3release/gen3release-sdk
   python3 -m pip install poetry
+  poetry run pip install -U pip # pygit2 needs pip version >19
   poetry install
   poetry run gen3release ${cmd}
   check_error=$?

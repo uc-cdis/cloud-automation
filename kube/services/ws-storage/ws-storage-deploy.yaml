@@ -1,0 +1,94 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "ws-storage"
+  annotations:
+      gen3.io/network-ingress: "ambassador-gen3"
+      sidecar.istio.io/inject: "false"
+      "consul.hashicorp.com/connect-inject": "false"
+      # see: https://github.com/helm/charts/tree/master/stable/prometheus
+      prometheus.io/scrape: "true"
+      prometheus.io/path: /metrics
+      prometheus.io/port: "8000"
+spec:
+  selector:
+    # Deployment only select pods based on the 'app' label
+    matchLabels:
+      app: "ws-storage"
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: "ws-storage"
+        public: "yes"
+        s3: "yes"
+        # for sts VPC endpoint access
+        netvpc: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - ws-storage
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "ws-storage-g3auto"
+      serviceAccountName: ws-storage-sa
+      securityContext:
+        fsGroup: 1001
+      containers:
+      - name: "ws-storage"
+        GEN3_WS-STORAGE_IMAGE
+        args:
+          - "/ws-storage/bin/ws-storage"
+          - "--config"
+          - "/etc/gen3-ws-storage/config.json"
+        ports:
+          - containerPort: 8000
+        env:
+          - name: AWS_REGION
+            value: us-east-1
+          - name: AWS_STS_REGIONAL_ENDPOINTS
+            value: regional
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/etc/gen3-ws-storage"
+        resources:
+          requests:
+            cpu: 0.3
+            memory: 200Mi
+          limits:
+            cpu: 0.5
+            memory: 500Mi
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /ws-storage/healthy
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 60
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ws-storage/healthy
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5

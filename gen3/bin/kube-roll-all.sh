@@ -229,9 +229,21 @@ gen3 kube-wait4-pods || true
 
 if g3k_manifest_lookup .versions.wts 2> /dev/null; then
   # this tries to kubectl exec into fence
-  gen3 kube-setup-wts || true
+  gen3 kube-setup-wts
 else
   gen3_log_info "not deploying wts - no manifest entry for .versions.wts"
+fi
+
+if g3k_manifest_lookup .versions.mariner 2> /dev/null; then
+  gen3 kube-setup-mariner
+else
+  gen3_log_info "not deploying mariner - no manifest entry for .versions.mariner"
+fi
+
+if g3k_manifest_lookup '.versions["ws-storage"]' 2> /dev/null; then
+  gen3 kube-setup-ws-storage
+else
+  gen3_log_info "not deploying ws-storage - no manifest entry for '.versions[\"ws-storage\"]'"
 fi
 
 if g3k_manifest_lookup .versions.portal 2> /dev/null; then

@@ -30,7 +30,7 @@ fi
 if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   # -E passes through *_proxy environment
   sudo -E apt-get update
-  sudo -E apt-get install -y git jq pwgen python-dev python-pip unzip python3-dev python3-pip python3-venv
+  sudo -E apt-get install -y git jq pwgen python-dev python-pip unzip python3-dev python3-pip python3-venv 
   sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install --upgrade pip
   sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install awscli --upgrade
   # jinja2 needed by render_creds.py

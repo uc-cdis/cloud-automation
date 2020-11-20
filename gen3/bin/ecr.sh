@@ -95,6 +95,17 @@ gen3_ecr_login() {
   fi
 }
 
+gen3_quay_login() {
+  if [[ -f ~/Gen3Secrets/quay/login ]]; then
+    if gen3_time_since quay-login is 36000; then
+      cat ~/Gen3Secrets/quay/login | docker login --username cdis+gen3 --password-stdin quay.io
+    fi
+  else 
+    gen3_log_err "Place credentials for the quay robot account (cdis+gen3) in this file ~/Gen3Secrets/quay/login"
+    exit 1
+  fi
+}
+
 #
 # Copy a docker image from one repo to another
 #
@@ -104,8 +115,11 @@ gen3_ecr_login() {
 gen3_ecr_copy_image() {
   local srcTag="$1"
   local destTag="$2"
-
-  gen3_ecr_login || return 1
+  if [[ "$destTag" == *"quay.io"* ]]; then 
+    gen3_quay_login || return 1
+  else
+    gen3_ecr_login || return 1
+  fi
   if [[ $# -lt 2 || -z "$srcTag" || -z "$destTag" ]]; then
     gen3_log_err "use: gen3_ecr_copy_image source dest"
     return 1
@@ -140,6 +154,17 @@ gen3_ecr_quay_sync() {
   gen3_ecr_copy_image "$srcImage" "$destImage"
 }
 
+gen3_dh_quay_sync () {
+  local srcImage="$1"
+  shift
+  local  destImage="$1"
+
+  if ! shift; then
+    gen3_log_err "use: gen3_dh_quay_sync srcImage destImage"
+    return 1
+  fi
+  gen3_ecr_copy_image "$srcImage" "$destImage"
+}
 
 #
 # Update the policy on the specified repository.
@@ -176,6 +201,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "list")
       gen3_ecr_repolist "$@"
       ;;
+    "quaylogin")
+      gen3_quay_login "$@"
+      ;;
     "login")
       gen3_ecr_login "$@"
       ;;
@@ -190,6 +218,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "quay-sync")
       gen3_ecr_quay_sync "$@"
+      ;;
+    "dh-quay")
+      gen3_dh_quay_sync "$@"
       ;;
     *)
       gen3 help ecr

@@ -132,15 +132,6 @@ if gen3_time_since secrets_sync is 120; then
   gen3 secrets sync || true
 fi
 
-# mariner
-cd "$(gen3_secrets_folder)"
-if ! g3kubectl get secret workflow-bot-g3auto > /dev/null 2>&1; then
-  credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-  jq -r .mariner < creds.json > "$credsFile"
-  g3kubectl create secret generic workflow-bot-g3auto "--from-file=credentials.json=${credsFile}"
-  rm "$credsFile"
-fi
-
 # Generate RSA private and public keys.
 # TODO: generalize to list of key names?
 cd "$(gen3_secrets_folder)"

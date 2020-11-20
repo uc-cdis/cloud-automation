@@ -22,15 +22,17 @@ spec:
     spec:
       containers:
       - env:
-        - name: HUB_PORT_4444_TCP_ADDR
+        - name: SE_EVENT_BUS_HOST
           value: selenium-hub
-        - name: HUB_PORT_4444_TCP_PORT
-          value: "4444"
+        - name: SE_EVENT_BUS_PUBLISH_PORT
+          value: "4442"
+        - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+          value: "4443"
         - name: NODE_MAX_SESSION
           value: "5"
         - name: NODE_MAX_INSTANCES
           value: "3"
-        image: selenium/node-chrome:3.141
+        image: selenium/node-chrome:4
         imagePullPolicy: Always
         name: node-chrome
       terminationGracePeriodSeconds: 30

@@ -642,10 +642,19 @@ gen3_gitops_configmaps() {
   local manifestFolder
   manifestFolder="$(dirname "$manifestPath")"
   local keyList
+  local deleteList
   if [[ $# -gt 0 ]]; then
     keyList=( "$@" )
+    for key in "${keyList[@]}"; do
+      if [[ "$key" == "etl-mapping" ]]; then
+        deleteList+=( "$key" )
+      else
+        deleteList+=( "manifest-$key" )
+      fi
+    done
   else
     keyList=( $(gen3_gitops_configmaps_list) ) || return 1
+    mapfile -t deleteList < <( g3kubectl get configmaps -o custom-columns=:.metadata.name --no-headers=true | grep "manifest-\|etl-" )
   fi
 
   local key
@@ -658,8 +667,6 @@ gen3_gitops_configmaps() {
 
   # delete everything in a single call for performance
   # grab existing configmaps from k8s env 
-  local deleteList
-  mapfile -t deleteList < <( g3kubectl get configmaps -o custom-columns=:.metadata.name --no-headers=true | grep "manifest-\|etl-" )
   g3kubectl delete configmaps "${deleteList[@]}"
 
   for key in "${keyList[@]}"; do
