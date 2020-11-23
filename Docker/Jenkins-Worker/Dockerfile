@@ -35,7 +35,7 @@ RUN apt-get update \
      sudo \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
-# install Ruby
+# install Ruby.
 sudo apt install ruby-full
 
 # install k6 to run load tests
