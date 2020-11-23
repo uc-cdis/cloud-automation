@@ -36,7 +36,7 @@ RUN apt-get update \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
 # install Ruby.
-sudo apt install ruby-full
+RUN sudo apt install ruby-full
 
 # install k6 to run load tests
 RUN sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 379CE192D401AB61 \
