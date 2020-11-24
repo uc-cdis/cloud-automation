@@ -17,6 +17,7 @@ EOM
 
 test="${GEN3QA_TEST:-""}"
 accessCheckMode="${accessCheckMode:-"ACLAUTHZ"}"
+username="${username:-"marceloc@uchicago.edu"}"
 pathToGuidsFile="${pathToGuidsFile:-""}"
 
 while [[ $# -gt 0 ]]; do
@@ -32,6 +33,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     accessCheckMode)
       accessCheckMode="$value"
+      ;;
+    username)
+      username="$value"
       ;;
     pathToGuidsFile)
       pathToGuidsFile="$value"
@@ -54,6 +58,12 @@ if [[ -z "$test" ]]; then
 fi
 
 echo "running..."
+
+# TODO: Run kubectl exec to obtain an access token from one of the fence pods
+fence_pod=$(gen3 pod fence $KUBECTL_NAMESPACE)
+access_token=$(g3kubectl exec $fence_pod -- fence-create token-create --scopes openid,user,fence,data,credentials,google_service_account,google_credentials --type access_token --exp 1800 --username $username | tail -n1)
+
+# TODO: Create a k8s secret to store the access token
 
 token-for-access-check
 
