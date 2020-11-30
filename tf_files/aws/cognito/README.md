@@ -81,11 +81,17 @@ cognito_provider_details = {"MetadataURL"="https://microsoftserver.domain.tld/fe
 
 After the resource is deployed, there are additional steps to be made in order for the integration commons-SAML to work. The SAML side must allow your endpoint to access it.
 
-The `cognito_user_pool_id` and cognito domain (the full domain, not just the prefix), must be configured on the Active Directory for the full intergration. Additionally, the raw output must be completed before handing the information.
+The `cognito_user_pool_id` and cognito domain (the full domain, not just the prefix) must be configured on the Active Directory for the full integration. You will need to contact the administrators of the Active Directory (or whatever SAML IdP you are trying to integrate with) in order to have them configure your Cognito user pool as an RP. They will need at the very least a "Relying Party Trust Identifier" (aka SAML Entity ID) and a "Relying Party SAML 2.0 SSO service URL", and possibly also SAML Claim Rules. Provide the administrators with the following, substituting variables `cognito_user_pool_id`, `cognito_domain` etc with the values from the raw output:
 
-For cognito_user_pool, you might want to refer as "relying party trust identifier" and provide it like `urn:amazon:cognito:sp:<congnito_user_pool_id>`, usually will end up like `urn:amazon:cognito:sp:us-east-1_blabla`.
-
-For cognito domain, the output is just a prefix, the full domain usually is like `https://<cognito_domain>.auth.<region>.amazoncognito.com`.
+1. Relying party trust identifier (SAML Entity ID): `urn:amazon:cognito:sp:<cognito_user_pool_id>`; this will look something like `urn:amazon:cognito:sp:us-east-1_blabla`.
+1. Relying party SAML 2.0 SSO Service URL: `https://<cognito_domain>.auth.<region>.amazoncognito.com/saml2/idpresponse`
+1. SAML Claim Rules: 
+    ```
+    Template: Send LDAP Attributes as Claims
+    Attribute store: Active Directory
+    E-Mail-Addresses => E-Mail Address
+    E-Mail-Addresses => Name ID
+    ```
 
 
 Then you must configure fence on the commons side to play along with cognito:
