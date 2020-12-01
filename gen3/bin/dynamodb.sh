@@ -37,7 +37,7 @@ gen3_dynamodb_create_backup() {
     # Use new tables var to create backups postfixed with date
     for table in $tables; do
       # Prepend prod for easy back listing/restoration
-      aws dynamodb create-backup --table-name $table --backup-name prod-$table-$timestamp
+      aws dynamodb create-backup --table-name="$table" --backup-name="prod-$table-$timestamp"
     done
     backupList=$(aws dynamodb list-backups | jq -r .BackupSummaries[].BackupName)
     backupsToRestore=$(echo $backupList | grep $prefix-)
@@ -49,7 +49,7 @@ gen3_dynamodb_create_backup() {
     for table in $tables; do
       # Do next check to make sure its actual table prefix
       if [[ $table = $tablePrefix* ]]; then
-        aws dynamodb create-backup --table-name $table --backup-name $table-$timestamp
+        aws dynamodb create-backup --table-name="$table" --backup-name="$table-$timestamp"
       fi
     done
   fi
