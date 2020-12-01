@@ -173,7 +173,7 @@ EOM
       sudo mv -f "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
 
       # helm3 has no default repo, need to add it manually
-      helm repo add stable https://kubernetes-charts.storage.googleapis.com
+      helm repo add stable https://charts.helm.sh/stable
       helm repo update
     }
 
