@@ -1,0 +1,78 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "tty"
+spec:
+  selector:
+    # Deployment only select pods based on the 'app' label
+    matchLabels:
+      app: "tty"
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: "tty"
+        public: "yes"
+        s3: "yes"
+        # for sts VPC endpoint access
+        netvpc: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - tty
+              topologyKey: "kubernetes.io/hostname"
+      serviceAccountName: tty-sa
+      securityContext:
+        fsGroup: 1001
+      containers:
+      - name: "tty"
+        GEN3_TTY_IMAGE|-image: quay.io/cdis/ws-wetty:2020.09.1-|
+        ports:
+          - containerPort: 3000
+        environment:
+          - name: SSHHOST
+            value: localhost
+          - name: SSHPASS
+            value: gen3
+          - name: SSHUSER
+            value: gen3
+          - name: SSHPORT
+            value: 22
+          - name: BASE
+            value: /lw-workspace/proxy/wetty/
+        resources:
+          requests:
+            cpu: 0.3
+            memory: 200Mi
+          limits:
+            cpu: 0.5
+            memory: 500Mi
+        imagePullPolicy: Always
+      - name: awshelper
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+        imagePullPolicy: Always
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            while true; do echo "sleep 20"; sleep 20; done
+        env:
+          - name: KUBECTL_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
