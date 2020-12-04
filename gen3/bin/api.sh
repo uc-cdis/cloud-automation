@@ -298,7 +298,7 @@ gen3_indexd_post_folder() {
   DEST_DOMAIN="$(gen3_api_hostname)"
   INDEXD_USER=gdcapi
   # grab the gdcapi indexd password from sheepdog creds
-  INDEXD_SECRET="$(g3kubectl get secret sheepdog-creds -o json | jq -r '.data["creds.json"]' | base64 --decode | jq -r '.indexd_password')"
+  INDEXD_SECRET="$(gen3 secrets decode sheepdog-creds creds.json | jq -r '.indexd_password')"
 
   ls -1f "${DATA_DIR}" | while read -r name; do 
     if [[ $name =~ .json$ ]]; then
@@ -362,6 +362,31 @@ gen3_indexd_download_all() {
     fi
     sleep 1
   done
+}
+
+gen3_indexd_delete() {
+  local did="$1"
+  if ! shift || [[ -z "$did" ]]; then
+    gen3_log_err "invalid did: $did"
+    return 1
+  fi
+  local INDEXD_USER=gdcapi
+  local INDEXD_SECRET
+  # grab the gdcapi indexd password from sheepdog creds
+  INDEXD_SECRET="$(gen3 secrets decode sheepdog-creds creds.json | jq -r '.indexd_password')" || return 1
+  local dest
+  dest="$(gen3 api hostname)" || return 1
+  local record
+  record="$(curl -s "https://$dest/index/$did")"
+  gen3_log_info "loaded https://$dest/index/$did : $record"
+  if rev="$(jq -e -r .rev <<< "$record")"; then
+    # record exists - need to delete it
+    local deleteUrl="https://$dest/index/index/${did}?rev=$rev"
+    gen3_log_info "DELETE to $deleteUrl"
+    curl -s -u "$INDEXD_USER:$INDEXD_SECRET" -X DELETE "$deleteUrl" -H 'Content-Type: application/json' | tee "$logfile"
+  else
+    gen3_log_err "unable to resolve revision for $did"
+  fi
 }
 
 
@@ -444,6 +469,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "indexd-post-folder")
       gen3_indexd_post_folder "$@"
+      ;;
+    "indexd-delete")
+      gen3_indexd_delete "$@"
       ;;
     "access-token")
       gen3_access_token "$@"
