@@ -383,7 +383,7 @@ gen3_indexd_delete() {
     # record exists - need to delete it
     local deleteUrl="https://$dest/index/index/${did}?rev=$rev"
     gen3_log_info "DELETE to $deleteUrl"
-    curl -s -u "$INDEXD_USER:$INDEXD_SECRET" -X DELETE "$deleteUrl" -H 'Content-Type: application/json' | tee "$logfile"
+    curl -s -u "$INDEXD_USER:$INDEXD_SECRET" -X DELETE "$deleteUrl" -H 'Content-Type: application/json'
   else
     gen3_log_err "unable to resolve revision for $did"
   fi
