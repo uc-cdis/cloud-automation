@@ -9,6 +9,7 @@ RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
       apt-utils \
       apt-transport-https \
+      bash-completion \
       curl \
       dnsutils \
       ftp \
