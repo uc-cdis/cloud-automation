@@ -19,8 +19,7 @@ spec:
       labels:
         app: "tty"
         public: "yes"
-        s3: "yes"
-        # for sts VPC endpoint access
+        internet: "yes"
         netvpc: "yes"
         GEN3_DATE_LABEL
     spec:
@@ -36,16 +35,15 @@ spec:
                   values:
                   - tty
               topologyKey: "kubernetes.io/hostname"
-      #serviceAccountName: tty-sa
-      serviceAccountName: jenkins-service
+      serviceAccountName: tty-sa
       securityContext:
-        fsGroup: 1001
+        fsGroup: 1000
       containers:
       - name: "tty"
         GEN3_TTY_IMAGE|-image: quay.io/cdis/ws-wetty:2020.09.1-|
         ports:
           - containerPort: 3000
-        environment:
+        env:
           - name: SSHHOST
             value: localhost
           - name: SSHPASS
@@ -53,9 +51,9 @@ spec:
           - name: SSHUSER
             value: ubuntu
           - name: SSHPORT
-            value: 2222
+            value: "2222"
           - name: BASE
-            value: /tty/
+            value: /tty/admin/
         resources:
           requests:
             cpu: 0.3
@@ -69,7 +67,11 @@ spec:
         imagePullPolicy: Always
         command: ["/bin/bash" ]
         args:
-          - /opt/usersshd/sshdStart.sh
+          - "-c"
+          - |
+            echo "export JENKINS_HOME=true" >> /home/ubuntu/.bashrc
+            env | grep ^KUBE | awk '{ print "export " $0 }' >> /home/ubuntu/.bashrc
+            exec bash /opt/usersshd/sshdStart.sh
         env:
           - name: KUBECTL_NAMESPACE
             valueFrom:
