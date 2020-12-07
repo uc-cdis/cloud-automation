@@ -69,34 +69,36 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     gcloud config set metrics/environment github_docker_image && \
     gcloud --version && \
     kubectl version --client && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/log/*
 
-RUN useradd -m -s /bin/bash ubuntu
-RUN useradd -m -s /bin/bash gen3 && \
+RUN useradd -m -s /bin/bash ubuntu && \
     ( echo "ubuntu:gen3" | chpasswd )
 
 RUN npm install elasticdump -g
 
+# Setup scripts to run sshd for wetty - see kube/services/tty
+RUN mkdir -p /opt/usersshd \
+    && chown -R ubuntu: /opt/usersshd \
+    && chmod -R a+rwX /run
+
 EXPOSE 2222
+
+#-------------
+
+USER ubuntu
 WORKDIR /home/ubuntu
 
 #
 # install and set up gen3
-# Note:
 #
-COPY . cloud-automation/
+COPY --chown=ubuntu:ubuntu . cloud-automation/
 
 # COPY generates files owned by root regardless of USER
-RUN /bin/rm -rf ./cloud-automation/node_modules \
-    && chown -R ubuntu: ./cloud-automation
+RUN /bin/rm -rf ./cloud-automation/node_modules
 
-# Setup scripts to run sshd for wetty - see kube/services/tty
-RUN mkdir -p /opt/usersshd \
-    && cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
-    && cp cloud-automation/Docker/awshelper/sshd_config /opt/usersshd/ \
-    && chown -R ubuntu: /opt/usersshd
-
-USER ubuntu
+RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
+    && cp cloud-automation/Docker/awshelper/sshd_config /opt/usersshd/
 
 RUN cd ./cloud-automation \
     && npm ci \

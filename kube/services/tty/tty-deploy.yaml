@@ -36,7 +36,8 @@ spec:
                   values:
                   - tty
               topologyKey: "kubernetes.io/hostname"
-      serviceAccountName: tty-sa
+      #serviceAccountName: tty-sa
+      serviceAccountName: jenkins-service
       securityContext:
         fsGroup: 1001
       containers:
@@ -50,11 +51,11 @@ spec:
           - name: SSHPASS
             value: gen3
           - name: SSHUSER
-            value: gen3
+            value: ubuntu
           - name: SSHPORT
-            value: 22
+            value: 2222
           - name: BASE
-            value: /lw-workspace/proxy/wetty/
+            value: /tty/
         resources:
           requests:
             cpu: 0.3
@@ -68,9 +69,7 @@ spec:
         imagePullPolicy: Always
         command: ["/bin/bash" ]
         args:
-          - "-c"
-          - |
-            while true; do echo "sleep 20"; sleep 20; done
+          - /opt/usersshd/sshdStart.sh
         env:
           - name: KUBECTL_NAMESPACE
             valueFrom:

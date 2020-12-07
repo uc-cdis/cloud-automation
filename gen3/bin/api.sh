@@ -8,7 +8,6 @@ gen3_api_help() {
   gen3 help api
 }
 
-
 gen3_access_token_to_cache() {
   local key="$1"
   if [[ -z "$key" ]]; then
