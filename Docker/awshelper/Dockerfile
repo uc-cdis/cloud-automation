@@ -103,10 +103,7 @@ RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
 
 RUN cd ./cloud-automation \
     && npm ci \
-    && echo 'source <(kubectl completion bash)' >> ~/.bashrc \
-    && echo 'export GEN3_HOME="$HOME/cloud-automation"' >> ~/.bashrc \
-    && echo 'export ESHOST=esproxy-service:9200' >> ~/.bashrc \
-    && echo 'source "${GEN3_HOME}/gen3/gen3setup.sh"' >> ~/.bashrc 
+    && cat cloud-automation/Docker/awshelper/bash_suffix.sh >> ~/.bashrc
 
 # smoke test
 RUN export GEN3_HOME="$HOME/cloud-automation" \

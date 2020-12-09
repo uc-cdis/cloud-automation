@@ -69,7 +69,6 @@ spec:
         args:
           - "-c"
           - |
-            echo "export JENKINS_HOME=true" >> /home/ubuntu/.bashrc
             env | grep ^KUBE | awk '{ print "export " $0 }' >> /home/ubuntu/.bashrc
             exec bash /opt/usersshd/sshdStart.sh
         env:
