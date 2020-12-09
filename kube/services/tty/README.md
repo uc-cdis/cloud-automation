@@ -4,4 +4,5 @@ Web-tty into an awshelper pod for simple administrative tasks.
 
 ## References
 
-[wetty github repo](https://github.com/uc-cdis/ws-storage)
+* [gen3 wetty image](https://github.com/uc-cdis/rstudio-containers/tree/master/wetty)
+* [wetty github repo](https://github.com/butlerx/wetty)

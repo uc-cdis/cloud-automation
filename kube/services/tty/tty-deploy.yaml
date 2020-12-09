@@ -40,7 +40,7 @@ spec:
         fsGroup: 1000
       containers:
       - name: "tty"
-        GEN3_TTY_IMAGE|-image: quay.io/cdis/ws-wetty:2020.09.1-|
+        GEN3_TTY_IMAGE|-image: quay.io/cdis/ws-wetty:2020.12-|
         ports:
           - containerPort: 3000
         env:
@@ -54,6 +54,8 @@ spec:
             value: "2222"
           - name: BASE
             value: /tty/admin/
+          - name: TITLE
+            value: "Gen3 Terminal"
         # add hook to refresh access token
         command: ["/bin/bash" ]
         args:
