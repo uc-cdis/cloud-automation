@@ -54,6 +54,17 @@ spec:
             value: "2222"
           - name: BASE
             value: /tty/admin/
+        # add hook to refresh access token
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            for path in node_modules/wetty/build/client/wetty.js node_modules/wetty/dist/client/index.js; do 
+              if [[ -f "$path" ]]; then
+                echo -e '\n\nsetInterval(function(){fetch("/user/user");}, 180000);' >> "$path"
+              fi
+            done
+            exec npm start
         resources:
           requests:
             cpu: 0.3
