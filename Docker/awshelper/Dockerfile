@@ -103,7 +103,7 @@ RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
 
 RUN cd ./cloud-automation \
     && npm ci \
-    && cat ./Docker/awshelper/bash_suffix.sh >> ~/.bashrc
+    && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
 # smoke test
 RUN export GEN3_HOME="$HOME/cloud-automation" \
