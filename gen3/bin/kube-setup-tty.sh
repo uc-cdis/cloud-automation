@@ -20,8 +20,8 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: tty-gen3-role
 rules:
-- apiGroups: ["", "apps"]
-  resources: ["pods", "pods/log", "configmaps", "deployments", "replicasets", "services"]
+- apiGroups: ["", "apps", "batch"]
+  resources: ["pods", "pods/log", "configmaps", "deployments", "jobs", "cronjobs", "replicasets", "services"]
   verbs: ["*"]
   #verbs: ["get", "list", "create", "update", "patch", "delete"] # You can also use ["*"]
 EOM
