@@ -1,0 +1,7 @@
+Port 2222
+HostKey /opt/usersshd/ssh_host_rsa_key
+HostKey /opt/usersshd/ssh_host_dsa_key
+AuthorizedKeysFile  .ssh/authorized_keys
+ChallengeResponseAuthentication no
+UsePAM yes
+PidFile /opt/usersshd/sshd.pid
