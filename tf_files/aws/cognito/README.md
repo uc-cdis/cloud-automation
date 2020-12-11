@@ -25,6 +25,7 @@ $ gen3 workon cdistest generic__cognito
   - [4.2 Optional Variables](#42-optional-variables)
 - [5. Outputs](#5-outputs)
 - [6. Considerations](#6-considerations)
+- [7. More documentation](#7-more-documentation)
 
 
 
@@ -112,4 +113,10 @@ LOGIN_OPTIONS:
     idp: cognito
 ```
 
+## 7. More Documentation
 
+[This doc](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-configuring-federation-with-saml-2-0-idp.html) provides an overview of the process of adding a SAML IdP to your Cognito user pool. 
+
+The first part of that doc describes how the admin of the SAML IdP would add your user pool as a relying party. You probably will not be the person doing this, but the doc provides context helpful for understanding what it is you are sending over to the IdP admin in #6 and why you are sending it. For even more information on this step see [here](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-integrating-3rd-party-saml-providers.html); that page also has some provider-specific tips.
+
+The second part of that doc details the process of manually adding a SAML IdP to your user pool; [here](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-managing-saml-idp-cli-api.html) are the same instructions but for the AWS CLI. You should not need to do this since Terraform will output a user pool already configured with a SAML IdP, given your `cognito_provider_name` and `cognito_provider_details` variables. 
