@@ -9,14 +9,14 @@ help() {
   cat - <<EOM
 Gen3QA k8s job test launch script.
 Use:
-  gen3 gen3qa-run [[--test=]GEN3QA_TEST] [--accessCheckMode=]ACLAUTHZ] [--pathToGuidsFile=pathToGuidsFile]]
+  gen3 gen3qa-run [[--test=]GEN3QA_TEST] [--indexdQueryFilter=][acl|authz|all]] [--pathToGuidsFile=pathToGuidsFile]]
     --test default is GEN3QA_TEST:-access-check
-    --accessCheckMode default is ACLAUTHZ
+    --indexdQueryFilter default is all
 EOM
 }
 
-test="${GEN3QA_TEST:-""}"
-accessCheckMode="${accessCheckMode:-"ACLAUTHZ"}"
+test="${GEN3QA_TEST:-"access-check"}"
+accessCheckMode="${indexdQueryFilter:-"all"}"
 username="${username:-"marceloc@uchicago.edu"}"
 pathToGuidsFile="${pathToGuidsFile:-""}"
 
@@ -29,10 +29,10 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     test)
-      service="$value"
+      test="$value"
       ;;
-    accessCheckMode)
-      accessCheckMode="$value"
+    indexdQueryFilter)
+      indexdQueryFilter="$value"
       ;;
     username)
       username="$value"
@@ -57,14 +57,12 @@ if [[ -z "$test" ]]; then
   exit 0
 fi
 
-echo "running..."
+echo "running ${test}..."
 
-# TODO: Run kubectl exec to obtain an access token from one of the fence pods
-fence_pod=$(gen3 pod fence $KUBECTL_NAMESPACE)
-access_token=$(g3kubectl exec $fence_pod -- fence-create token-create --scopes openid,user,fence,data,credentials,google_service_account,google_credentials --type access_token --exp 1800 --username $username | tail -n1)
-
-# TODO: Create a k8s secret to store the access token
-
-token-for-access-check
+case "$test" in
+  access-check)
+    gen3 job run gen3qa-check-bucket-access INDEXD_QUERY_FILTER $indexdQueryFilter ACCESS_TOKEN $(gen3 api access-token $username)
+    ;;
+esac
 
 exit $?

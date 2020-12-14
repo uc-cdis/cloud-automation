@@ -1,4 +1,3 @@
----
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -9,49 +8,23 @@ spec:
       labels:
         app: gen3job
     spec:
-      volumes:
-        - name: access-token-check-bucket-access
-          secret:
-            secretName: "token-for-access-check"
-        - name: list-of-guids-check-bucket-access
-          configMap:
-            name: "list-of-guids-for-access-check"
       containers:
       - name: gen3qa-check-bucket-access
         GEN3_GEN3_QA_CONTROLLER_IMAGE|-image: quay.io/cdis/gen3-qa-controller:0.1-|
         imagePullPolicy: Always
         env:
-# ----------------------------------------------------------------------------
-# DEFAULT: ACLAUTHZ => Running access check against list of acl/authz (trying each indexd record from each project). 
-# LIST_OF_GUIDS => Mount a guids.txt file as a configmap and iterate through each GUID to check its access.
-# -----------------------------------------------------------------------------
-          - name: ACCESS_CHECK_MODE
-            GEN3_ACCESS_CHECK_MODE|-value: "ACLAUTHZ"-|
-        volumeMounts:
-          - name: access-token-check-bucket-access
-            readOnly: true
-            mountPath: "/var/access_token"
-            subPath: access_token
-          - name: list-of-guids-for-access-check
-            mountPath: /var/guids.txt
-            subPath: guids.txt
+          - name: INDEXD_QUERY_FILTER
+            GEN3_INDEXD_QUERY_FILTER|-value: "all"-|
+          - name: ACCESS_TOKEN
+            GEN3_ACCESS_TOKEN|-value: ""-|
+        command: ["/bin/sh"]
         args:
           - "-c"
           - |
-            RC=1
-            if [ "ACCESS_CHECK_MODE" == "ACLAUTHZ" ]; then
-              echo "running checkAllProjectsGoogleBucketAccessTest.js..."
-              GEN3_SKIP_PROJ_SETUP=true RUNNING_LOCAL=true npm test -- suites/google/checkAllProjectsGoogleBucketAccessTest.js
-              RC=$?
-            elif [ "ACCESS_CHECK_MODE" == "LIST_OF_GUIDS" ]; then
-              if [ -s /var/guids.txt ]; then
-                echo "run some other script..."
-                RC=$?
-              else
-                echo "ERROR: The guids.txt file is empty"
-              fi
-            fi
-            fence-create bucket-access-group-verify
+            set +x
+            echo "running checkAllProjectsGoogleBucketAccessTest.js..."
+            INDEXD_FILTER=$INDEXD_QUERY_FILTER GEN3_SKIP_PROJ_SETUP=true RUNNING_LOCAL=true npm test -- suites/google/checkAllProjectsGoogleBucketAccessTest.js
+            RC=$?
             if [[ $RC != 0 ]]; then
               echo "ERROR: non zero exit code: $?"
             fi
