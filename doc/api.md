@@ -4,6 +4,14 @@ Helpers for interacting with the gen3 api
 
 ## Use
 
+### indexd-delete
+
+Delete a record out of indexd using basic-auth creds:
+
+```
+  gen3 api indexd-delete $did
+```
+
 ### indexd-download-all
 
 Helper downloads all the records from indexd to a folder
