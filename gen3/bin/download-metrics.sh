@@ -3,17 +3,10 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-#
-# Some helpers for managing multiple databases
-# on each of a set of db servers.
-#
-
-# gen3 logs raw vpc=bdcatprod proxy=presigned-url-fence statusmin=199 statusmax=210 | grep /data/download | jq -r .
-
 # lib -----------------------------------
 
 gen3_download_metrics_help() {
-  gen3 help db
+  gen3 help download-metrics
 }
 
 gen3_download_metrics_task() {
@@ -25,7 +18,6 @@ gen3_download_metrics() {
   destFolder="reports/$(date --date 'yesterday 00:00' +%Y)/$(date --date 'yesterday 00:00' +%m)"
   local date
   local user
-  echo
   gen3 logs raw vpc=$vpc proxy=presigned-url-fence statusmin=199 statusmax=210 | grep /data/download | jq -r . > $XDG_RUNTIME_DIR/DOWNLOADS
   if [[ -z $preserveUsernames ]]; then
     cat $XDG_RUNTIME_DIR/DOWNLOADS | jq -r .http_request > $XDG_RUNTIME_DIR/RESULT
@@ -36,7 +28,7 @@ gen3_download_metrics() {
   if [[ ! -z  $bucketName ]]; then
      gen3 psql indexd -c "select did from index_record_url where url like '$bucketType://$bucketName/%';" >> $XDG_RUNTIME_DIR/GUIDS
     while read line; do
-      ((i=i%N)); ((i++==0)) && wait
+      ((i=i%5)); ((i++==0)) && wait
       gen3_download_metrics_task "$line" "$bucketType" &
     done<$XDG_RUNTIME_DIR/GUIDS
     mv $XDG_RUNTIME_DIR/TEMPRESULT $XDG_RUNTIME_DIR/RESULT
