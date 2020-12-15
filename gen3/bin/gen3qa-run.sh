@@ -16,7 +16,7 @@ EOM
 }
 
 test="${GEN3QA_TEST:-"access-check"}"
-accessCheckMode="${indexdQueryFilter:-"all"}"
+indexdQueryFilter="${indexdQueryFilter:-"all"}"
 username="${username:-"marceloc@uchicago.edu"}"
 pathToGuidsFile="${pathToGuidsFile:-""}"
 
