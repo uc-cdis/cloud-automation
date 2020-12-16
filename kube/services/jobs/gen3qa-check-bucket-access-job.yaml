@@ -32,11 +32,14 @@ spec:
               echo "ERROR: non zero exit code: $?"
             fi
       - name: selenium
-        image: selenium/standalone-chrome:3.14
+        image: selenium/standalone-chrome:4
         ports:
         - containerPort: 4444
         readinessProbe:
           httpGet:
-            path: /wd/hub/sessions
+            path: /status
             port: 4444
+          successThreshold: 2
+          initialDelaySeconds: 5
+          periodSeconds: 5
       restartPolicy: Never
