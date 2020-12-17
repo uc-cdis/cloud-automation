@@ -83,6 +83,7 @@ node {
       }
     }
     stage('gen3 helper test suite') {
+      println("selectedNamespace: ${listOfSelectedTests}")
       if(!skipUnitTests) {
         sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
       } else {
