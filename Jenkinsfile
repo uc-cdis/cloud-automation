@@ -3,6 +3,8 @@
 // See 'Loading libraries dynamically' here: https://jenkins.io/doc/book/pipeline/shared-libraries/
 library 'cdis-jenkins-lib@master'
 
+import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
+
 node {
   def AVAILABLE_NAMESPACES = ['jenkins-blood', 'jenkins-brain', 'jenkins-niaid', 'jenkins-dcp', 'jenkins-genomel']
   List<String> namespaces = []
@@ -83,7 +85,7 @@ node {
       }
     }
     stage('gen3 helper test suite') {
-      println("selectedNamespace: ${listOfSelectedTests}")
+      println("namespaces: ${namespaces}")
       if(!skipUnitTests) {
         sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
       } else {
