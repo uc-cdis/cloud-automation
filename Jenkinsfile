@@ -7,6 +7,8 @@ node {
   def AVAILABLE_NAMESPACES = ['jenkins-blood', 'jenkins-brain', 'jenkins-niaid', 'jenkins-dcp', 'jenkins-genomel']
   List<String> namespaces = []
   List<String> listOfSelectedTests = []
+  skipUnitTests = false
+  skipQuayImgBuildWait = false
   doNotRunTests = false
   kubectlNamespace = null
   kubeLocks = []
@@ -38,9 +40,19 @@ node {
             selectedTest = "suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
             listOfSelectedTests.add(selectedTest)
             break
+          case "skip-gen3-helper-tests":
+            println('Skipping unit tests assuming they have been verified in a previous PR check iteration...')
+            skipUnitTests = true
+            break
+          case "skip-awshelper-build-wait":
+            println('Skipping the WaitForQuayBuild stage as it is not necessary for every PR...')
+            skipQuayImgBuildWait = true
+            break
           case "doc-only":
             println('Skip tests if git diff matches expected criteria')
             doNotRunTests = docOnlyHelper.checkTestSkippingCriteria()
+            skipUnitTests = true
+            skipQuayImgBuildWait = true
             break
           case "debug":
             println("Call npm test with --debug")
@@ -96,7 +108,7 @@ node {
       }
     }
     stage('nginx helper test suite') {
-      if(!doNotRunTests) {
+      if(!skipUnitTests) {
         dir('cloud-automation/kube/services/revproxy') {
           sh 'npx jasmine helpersTest.js'
         }
@@ -105,7 +117,7 @@ node {
       }
     }
     stage('python 2 base image dockerrun.sh test') {
-      if(!doNotRunTests) {
+      if(!skipUnitTests) {
         dir('cloud-automation/Docker/python-nginx/python2.7-alpine3.7') {
           sh 'sh dockerrun.sh --dryrun=True'
         }
@@ -114,7 +126,7 @@ node {
       }
     }
     stage('python 3 base image dockerrun.sh test') {
-      if(!doNotRunTests) {
+      if(!skipUnitTests) {
         dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
           sh 'sh dockerrun.sh --dryrun=True'
         }
@@ -123,7 +135,7 @@ node {
       }
     }
     stage('WaitForQuayBuild') {
-      if(!doNotRunTests) {
+      if(!skipQuayImgBuildWait) {
         quayHelper.waitForBuild(
           "awshelper",
           pipeConfig['currentBranchFormatted']
