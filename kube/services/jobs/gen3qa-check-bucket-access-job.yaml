@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
       - name: gen3qa-check-bucket-access
-        GEN3_GEN3_QA_CONTROLLER_IMAGE|-image: quay.io/cdis/gen3-qa-controller:0.2-|
+        GEN3_GEN3_QA_CONTROLLER_IMAGE|-image: quay.io/cdis/gen3-qa-controller:0.3-|
         workingDir: /var/sdet_home
         imagePullPolicy: Always
         env:
@@ -26,17 +26,20 @@ spec:
           - |
             set +x
             echo "running checkAllProjectsGoogleBucketAccessTest.js..."
-            INDEXD_FILTER=$INDEXD_QUERY_FILTER GEN3_SKIP_PROJ_SETUP=true RUNNING_LOCAL=true npm test -- suites/google/checkAllProjectsGoogleBucketAccessTest.js
+            INDEXD_FILTER=$INDEXD_QUERY_FILTER GEN3_SKIP_PROJ_SETUP=true npm test -- suites/google/checkAllProjectsGoogleBucketAccessTest.js
             RC=$?
             if [[ $RC != 0 ]]; then
               echo "ERROR: non zero exit code: $?"
             fi
       - name: selenium
-        image: selenium/standalone-chrome:3.14
+        image: selenium/standalone-chrome:4
         ports:
         - containerPort: 4444
         readinessProbe:
           httpGet:
-            path: /wd/hub/sessions
+            path: /status
             port: 4444
+          successThreshold: 2
+          initialDelaySeconds: 5
+          periodSeconds: 5
       restartPolicy: Never
