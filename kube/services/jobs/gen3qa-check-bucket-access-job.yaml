@@ -37,7 +37,7 @@ spec:
         - containerPort: 4444
         readinessProbe:
           httpGet:
-            path: /status
+            path: /wd/hub
             port: 4444
           successThreshold: 2
           initialDelaySeconds: 5
