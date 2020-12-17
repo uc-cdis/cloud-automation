@@ -62,6 +62,30 @@ echo "running ${test}..."
 case "$test" in
   access-check)
     gen3 job run gen3qa-check-bucket-access INDEXD_QUERY_FILTER $indexdQueryFilter ACCESS_TOKEN $(gen3 api access-token $username)
+    sleep 2
+    podName=$(gen3 pod gen3qa-check-bucket-access)
+    jobPodCreationDate=$(g3kubectl get pod $podName -o jsonpath='{.metadata.creationTimestamp}')
+    echo "Found pod ${podName}. Creation date: ${jobPodCreationDate}"
+
+    while true
+    do
+      attempt=0
+      maxAttempts=12
+      jobPodStatus=$(g3kubectl get pod $podName -o jsonpath='{.status.phase}')
+      echo "Pod ${podName} status is: ${jobPodStatus}"
+      if [ "$jobPodStatus" == "Running" ]; then
+        g3kubectl logs $(gen3 pod gen3qa-check-bucket-access) -c gen3qa-check-bucket-access -f
+        break
+      else
+	echo "Not yet ready to run the gen3qa-check-bucket-access test..."
+	sleep 5
+	if [ $attempt -eq $maxAttempts ];then
+          echo "The pod was never initialized properly, aborting automated test."
+	  exit 1
+	fi
+	attempt=$(( $attempt + 1 ));
+      fi
+    done
     ;;
 esac
 
