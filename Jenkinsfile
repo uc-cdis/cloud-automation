@@ -3,10 +3,14 @@
 // See 'Loading libraries dynamically' here: https://jenkins.io/doc/book/pipeline/shared-libraries/
 library 'cdis-jenkins-lib@master'
 
+import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
+
 node {
   def AVAILABLE_NAMESPACES = ['jenkins-blood', 'jenkins-brain', 'jenkins-niaid', 'jenkins-dcp', 'jenkins-genomel']
   List<String> namespaces = []
   List<String> listOfSelectedTests = []
+  skipUnitTests = false
+  skipQuayImgBuildWait = false
   doNotRunTests = false
   kubectlNamespace = null
   kubeLocks = []
@@ -22,9 +26,6 @@ node {
     stage('FetchCode'){
       gitHelper.fetchAllRepos(pipeConfig['currentRepoName'])
     }
-    stage('gen3 helper test suite') {
-      sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
-    }
     stage('CheckPRLabels') {
       // giving a chance for auto-label gh actions to catch up
       // sleep(10)
@@ -38,9 +39,19 @@ node {
             selectedTest = "suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
             listOfSelectedTests.add(selectedTest)
             break
+          case "skip-gen3-helper-tests":
+            println('Skipping unit tests assuming they have been verified in a previous PR check iteration...')
+            skipUnitTests = true
+            break
+          case "skip-awshelper-build-wait":
+            println('Skipping the WaitForQuayBuild stage as it is not necessary for every PR...')
+            skipQuayImgBuildWait = true
+            break
           case "doc-only":
             println('Skip tests if git diff matches expected criteria')
             doNotRunTests = docOnlyHelper.checkTestSkippingCriteria()
+            skipUnitTests = true
+            skipQuayImgBuildWait = true
             break
           case "debug":
             println("Call npm test with --debug")
@@ -73,16 +84,23 @@ node {
 	  listOfSelectedTests.add("all")
       }
     }
+    stage('gen3 helper test suite') {
+      println("namespaces: ${namespaces}")
+      if(!skipUnitTests) {
+        sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+      }
+    }
     stage('gen3 helper test suite with zsh') {
-      if(!doNotRunTests) {
+      if(!skipUnitTests) {
         sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome zsh cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
     }
-
     stage('pytest') {
-      if(!doNotRunTests) {
+      if(!skipUnitTests) {
         sh 'pip3 install boto3 --upgrade'
         sh 'pip3 install kubernetes --upgrade'
         sh 'python -m pytest cloud-automation/apis_configs/'
@@ -96,7 +114,7 @@ node {
       }
     }
     stage('nginx helper test suite') {
-      if(!doNotRunTests) {
+      if(!skipUnitTests) {
         dir('cloud-automation/kube/services/revproxy') {
           sh 'npx jasmine helpersTest.js'
         }
@@ -105,7 +123,7 @@ node {
       }
     }
     stage('python 2 base image dockerrun.sh test') {
-      if(!doNotRunTests) {
+      if(!skipUnitTests) {
         dir('cloud-automation/Docker/python-nginx/python2.7-alpine3.7') {
           sh 'sh dockerrun.sh --dryrun=True'
         }
@@ -114,7 +132,7 @@ node {
       }
     }
     stage('python 3 base image dockerrun.sh test') {
-      if(!doNotRunTests) {
+      if(!skipUnitTests) {
         dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
           sh 'sh dockerrun.sh --dryrun=True'
         }
@@ -123,7 +141,7 @@ node {
       }
     }
     stage('WaitForQuayBuild') {
-      if(!doNotRunTests) {
+      if(!skipQuayImgBuildWait) {
         quayHelper.waitForBuild(
           "awshelper",
           pipeConfig['currentBranchFormatted']
