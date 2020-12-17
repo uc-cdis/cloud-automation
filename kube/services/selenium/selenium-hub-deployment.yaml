@@ -17,9 +17,12 @@ spec:
     spec:
       containers:
       - env:
+        - name: GRID_MAX_SESSION
           value: "42"
         - name: GRID_BROWSER_TIMEOUT
           value: "0"
+        - name: SE_SESSION_REQUEST_TIMEOUT
+          value: "480"
         image: selenium/hub:4
         imagePullPolicy: Always
         name: hub
