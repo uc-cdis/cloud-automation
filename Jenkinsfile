@@ -24,9 +24,6 @@ node {
     stage('FetchCode'){
       gitHelper.fetchAllRepos(pipeConfig['currentRepoName'])
     }
-    stage('gen3 helper test suite') {
-      sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
-    }
     stage('CheckPRLabels') {
       // giving a chance for auto-label gh actions to catch up
       // sleep(10)
@@ -85,16 +82,22 @@ node {
 	  listOfSelectedTests.add("all")
       }
     }
+    stage('gen3 helper test suite') {
+      if(!skipUnitTests) {
+        sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
+      } else {
+        Utils.markStageSkippedForConditional(STAGE_NAME)
+      }
+    }
     stage('gen3 helper test suite with zsh') {
-      if(!doNotRunTests) {
+      if(!skipUnitTests) {
         sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome zsh cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
     }
-
     stage('pytest') {
-      if(!doNotRunTests) {
+      if(!skipUnitTests) {
         sh 'pip3 install boto3 --upgrade'
         sh 'pip3 install kubernetes --upgrade'
         sh 'python -m pytest cloud-automation/apis_configs/'
