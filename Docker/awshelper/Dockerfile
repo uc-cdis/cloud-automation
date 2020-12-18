@@ -1,7 +1,7 @@
 # Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
-FROM ubuntu:18.04
+FROM quay.io/cdis/ubuntu:18.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -9,6 +9,7 @@ RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y \
       apt-utils \
       apt-transport-https \
+      bash-completion \
       curl \
       dnsutils \
       ftp \
@@ -22,6 +23,7 @@ RUN apt-get update && apt-get upgrade -y \
       netcat-openbsd \
       net-tools \
       openssh-client \
+      openssh-server \
       postgresql-client \
       python3 \
       python3-dev \
@@ -29,12 +31,16 @@ RUN apt-get update && apt-get upgrade -y \
       python3-setuptools \
       ssh \
       sudo \
+      tmux \
       unzip \
       vim \
       wget \
       gettext-base
 
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 100
+RUN mkdir /var/run/sshd \
+  && touch /var/log/lastlog \
+  && update-alternatives --install /usr/bin/python python /usr/bin/python3 100 \
+  && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 100
 
 RUN  python3 -m pip install --upgrade pip \
     && python3 -m pip install --upgrade setuptools \
@@ -52,7 +58,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
+    curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
     apt-get update && \
     apt-get install -y google-cloud-sdk \
         google-cloud-sdk-cbt \
@@ -64,29 +70,40 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     gcloud config set metrics/environment github_docker_image && \
     gcloud --version && \
     kubectl version --client && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/log/*
 
-RUN useradd -m -s /bin/bash ubuntu
+RUN useradd -m -s /bin/bash ubuntu && \
+    ( echo "ubuntu:gen3" | chpasswd )
+
 RUN npm install elasticdump -g
 
+# Setup scripts to run sshd for wetty - see kube/services/tty
+RUN mkdir -p /opt/usersshd \
+    && chown -R ubuntu: /opt/usersshd \
+    && chmod -R a+rwX /run
+
+EXPOSE 2222
+
+#-------------
+
+USER ubuntu
 WORKDIR /home/ubuntu
 
 #
 # install and set up gen3
-# Note:
 #
-COPY . cloud-automation/
-RUN /bin/rm -rf ./cloud-automation/node_modules \
-    && chown -R ubuntu: ./cloud-automation \
-    && chmod u+rwX ./cloud-automation
+COPY --chown=ubuntu:ubuntu . cloud-automation/
 
-USER ubuntu
-RUN chmod -R u+rwX ./cloud-automation \
-    && cd ./cloud-automation \
+# COPY generates files owned by root regardless of USER
+RUN /bin/rm -rf ./cloud-automation/node_modules
+
+RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
+    && cp cloud-automation/Docker/awshelper/sshd_config /opt/usersshd/
+
+RUN cd ./cloud-automation \
     && npm ci \
-    && echo 'export GEN3_HOME="$HOME/cloud-automation"' >> ~/.bashrc \
-    && echo 'export ESHOST=esproxy-service:9200' >> ~/.bashrc \
-    && echo 'source "${GEN3_HOME}/gen3/gen3setup.sh"' >> ~/.bashrc 
+    && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
 # smoke test
 RUN export GEN3_HOME="$HOME/cloud-automation" \
