@@ -127,7 +127,6 @@ fi
 gen3 update_config revproxy-nginx-conf "${scriptDir}/nginx.conf"
 gen3 update_config logrotate-nginx-conf "${scriptDir}/logrotate-nginx.conf"
 gen3 update_config revproxy-helper-js "${scriptDir}/helpers.js"
-gen3 update_config logrotate-revproxy-conf "${scriptDir}/logrotate-nginx.conf"
 
 if g3kubectl get configmap revproxy-nginx-subconf > /dev/null 2>&1; then
   g3kubectl delete configmap revproxy-nginx-subconf

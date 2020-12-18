@@ -67,9 +67,9 @@ spec:
             secretName: "service-ca"
         - name: logs-folder
           emptyDir: {}
-        - name: logrotate-revproxy-conf
+        - name: logrotate-nginx-conf
           configMap:
-            name: logrotate-revproxy-conf
+            name: logrotate-nginx-conf
       containers:
       - name: revproxy
         GEN3_REVPROXY_IMAGE|-image: nginx:1.13.9-perl-|
@@ -176,7 +176,7 @@ spec:
             subPath: "ca.pem"
           - name: logs-folder
             mountPath: "/var/log/nginx/"
-          - name: "logrotate-revproxy-conf"
+          - name: "logrotate-nginx-conf"
             readOnly: true
             mountPath: "/etc/logrotate.d/nginx"
             subPath: nginx
