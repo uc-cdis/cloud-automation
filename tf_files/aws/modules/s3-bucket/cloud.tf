@@ -26,7 +26,7 @@ resource "aws_s3_bucket" "mybucket" {
     target_prefix = "log/${local.clean_bucket_name}/"
   }
 
-  tags {
+  tags = {
     Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "data bucket"
@@ -217,8 +217,8 @@ resource "aws_iam_policy" "trail_writer" {
 
 resource "aws_iam_role_policy_attachment" "trail_writer_role" {
   count      = "${var.cloud_trail_count}"
-  role       = "${aws_iam_role.cloudtrail_writer.name}"
-  policy_arn = "${aws_iam_policy.trail_writer.arn}"
+  role       = "${aws_iam_role.cloudtrail_writer.*.name[count.index]}"
+  policy_arn = "${aws_iam_policy.trail_writer.*.arn[count.index]}"
 }
 
 
@@ -230,7 +230,7 @@ resource "aws_cloudtrail" "logger_trail" {
   s3_bucket_name                = "${module.cdis_s3_logs.log_bucket_name}"
   s3_key_prefix                 = "trailLogs"
   include_global_service_events = false
-  cloud_watch_logs_role_arn     = "${aws_iam_role.cloudtrail_writer.arn}"
+  cloud_watch_logs_role_arn     = "${aws_iam_role.cloudtrail_writer.*.arn[count.index]}"
   cloud_watch_logs_group_arn    = "${data.aws_cloudwatch_log_group.logs_destination.arn}"
 
   event_selector {
@@ -244,7 +244,7 @@ resource "aws_cloudtrail" "logger_trail" {
       values = ["${aws_s3_bucket.mybucket.arn}/"]
     }
   }
-  tags {
+  tags = {
     Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "trail_for_${local.clean_bucket_name}_data_bucket"

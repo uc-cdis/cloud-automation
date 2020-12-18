@@ -99,3 +99,21 @@ variable "branch" {
   description = "For testing purposes"
   default     = "master"
 }
+
+variable "user_policy" {
+  default = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": ["*"],
+      "Sid": ""
+    }
+  ]
+}
+  POLICY
+}

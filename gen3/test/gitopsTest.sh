@@ -93,6 +93,19 @@ EOM
   /bin/rm -rf "$testFolder"
 }
 
+test_etlconvert() {
+  local temp="$(mktemp "$XDG_RUNTIME_DIR/test_etlconvert_XXXXXX")"
+  local yaml
+  for num in 1 2; do
+    yaml="$GEN3_HOME/gen3/lib/testData/etlconvert/users${num}.yaml"
+    gen3 gitops etl-convert < "$yaml" > $temp
+        because $? "etl-convert should work on $yaml"
+    diff -w "$temp" "$GEN3_HOME/gen3/lib/testData/etlconvert/expected${num}.yaml"
+        because $? "etl-convert gave expected result for $yaml"
+  done
+  rm "$temp"
+}
+
 test_loader() {
   export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/lib/testData/gen3_load/a"
@@ -224,6 +237,7 @@ test_secrets_folder() {
 }
 
 shunit_runtest "test_configmaps_list" "local,gitops"
+shunit_runtest "test_etlconvert" "local,gitops"
 shunit_runtest "test_mpath" "local,gitops"
 shunit_runtest "test_mfilter" "local,gitops"
 shunit_runtest "test_mlookup" "local,gitops"

@@ -52,11 +52,15 @@ fi
 
 SAFE_JOB_NAME=${JOB_NAME//_/-} # `_` to `-`
 
+# default token life is 3600 sec. some jobs need the token to last longer.
+# also skip access-token cache since jobs need fresh tokens
+EXP=28800 # 8 hours
+ACCESS_TOKEN="$(gen3 api access-token $USER $EXP true)"
+
 # temporary file for the job
 tempFile="$(mktemp "$XDG_RUNTIME_DIR/covid19-etl-$SAFE_JOB_NAME-job.yaml_XXXXXX")"
 
 # populate the job variable and change it's name to reflect the ETL being run
-ACCESS_TOKEN="$(gen3 api access-token $USER)"
 gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/covid19-etl-job.yaml ACCESS_TOKEN "$ACCESS_TOKEN" JOB_NAME "$JOB_NAME" S3_BUCKET "$S3_BUCKET" \
   | sed "s|#COVID19_JOB_NAME_PLACEHOLDER#|$SAFE_JOB_NAME|g" > "$tempFile"
 

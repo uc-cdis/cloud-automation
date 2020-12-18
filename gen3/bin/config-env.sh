@@ -24,6 +24,7 @@ tgt_env=~/cdis-manifest/${USER}.planx-pla.net
 gen3_config-env_copy() {
   local repo="$1"
   local env="$2"
+  yes | rm -r ~/temp_manifest
   git clone https://github.com/uc-cdis/${repo}.git ~/temp_manifest
   if [[ $? != 0 ]]; then
     gen3_log_err "Something went wrong with getting source env check arguments\n Attempted to clone https://github.com/uc-cdis/${repo}.git"
@@ -58,6 +59,7 @@ gen3_config-env_run() {
 
   cd ~/gen3release/gen3release-sdk
   python3 -m pip install poetry
+  poetry run pip install -U pip # pygit2 needs pip version >19
   poetry install
   poetry run gen3release ${cmd}
   check_error=$?

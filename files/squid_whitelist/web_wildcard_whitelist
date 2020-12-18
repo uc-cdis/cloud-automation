@@ -2,6 +2,7 @@
 .alpinelinux.org
 .amazonaws.com
 .amazoncognito.com
+.anaconda.com
 .apache.org
 .archive.canonical.com
 .bioconductor.org
@@ -11,6 +12,7 @@
 .braincommons.org
 .bsc.es
 .cancer.gov
+.caninedc.org
 .census.gov
 .centos.org
 .ceph.com
@@ -34,6 +36,7 @@
 .github.com
 .gitlab.com
 .googleapis.com
+.googleusercontent.com
 .hashicorp.com
 .jenkins-ci.org
 .k8s.io
@@ -78,3 +81,4 @@
 .rstudio.com
 .gstatic.com
 .visitdata.org
+.yarnpkg.com

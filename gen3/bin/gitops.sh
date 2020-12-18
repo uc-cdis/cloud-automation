@@ -614,6 +614,12 @@ gen3_gitops_configmaps_list() {
   rm "$keyList"
 }
 
+#
+# Extract project-mapping from user.yaml for etl
+#
+gen3_gitops_etlconvert() {
+  yq -r '[ (.users | .[] | .projects // [] | .[] | { "key": .auth_id, "value": .resource }), (.rbac.user_project_to_resource // {} | to_entries | .[]), (.authz.user_project_to_resource // {} | to_entries | .[]) ] | map(select(.value != null)) | sort_by(.key) | from_entries | { authz: { user_project_to_resource: . } }'
+}
 
 #
 # g3k command to create configmaps from manifest
@@ -636,10 +642,19 @@ gen3_gitops_configmaps() {
   local manifestFolder
   manifestFolder="$(dirname "$manifestPath")"
   local keyList
+  local deleteList
   if [[ $# -gt 0 ]]; then
     keyList=( "$@" )
+    for key in "${keyList[@]}"; do
+      if [[ "$key" == "etl-mapping" ]]; then
+        deleteList+=( "$key" )
+      else
+        deleteList+=( "manifest-$key" )
+      fi
+    done
   else
     keyList=( $(gen3_gitops_configmaps_list) ) || return 1
+    mapfile -t deleteList < <( g3kubectl get configmaps -o custom-columns=:.metadata.name --no-headers=true | grep "manifest-\|etl-" )
   fi
 
   local key
@@ -651,14 +666,7 @@ gen3_gitops_configmaps() {
   local result=0
 
   # delete everything in a single call for performance
-  local deleteList=()
-  for key in "${keyList[@]}"; do
-    if [[ "$key" == "etl-mapping" ]]; then
-      deleteList+=( "$key" )
-    else
-      deleteList+=( "manifest-$key" )
-    fi
-  done
+  # grab existing configmaps from k8s env 
   g3kubectl delete configmaps "${deleteList[@]}"
 
   for key in "${keyList[@]}"; do
@@ -709,6 +717,7 @@ declare -a gen3_gitops_repolist_arr=(
   uc-cdis/ssjdispatcher
   uc-cdis/tube
   uc-cdis/workspace-token-service
+  uc-cdis/requestor
 )
 
 declare -a gen3_gitops_sshlist_arr=(
@@ -974,6 +983,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "enforce")
       gen3_gitops_enforcer "$@"
+      ;;
+    "etl-convert")
+      gen3_gitops_etlconvert "$@"
       ;;
     "folder")
       dirname "$(g3k_manifest_path)"

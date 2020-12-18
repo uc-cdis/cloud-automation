@@ -5,7 +5,9 @@
 accounts.google.com
 achecker.ca
 biodata-integration-tests.net
+biorender.com
 ctds-planx.atlassian.net
+dataguids.org
 api.immport.org
 api.login.yahoo.com
 api.snapcraft.io
@@ -22,8 +24,11 @@ centos.mirrors.hoobly.com
 centos.mirrors.tds.net
 centos.mirrors.wvstateu.edu
 cernvm.cern.ch
+charts.helm.sh
 cloud.r-project.org
+conda.anaconda.org
 coreos.com
+covidstoplight.org
 cpan.mirrors.tds.net
 cran.case.edu
 cran.cnr.berkeley.edu
@@ -41,6 +46,7 @@ dl.google.com
 dmas.berkeley.edu
 docker-auth.elastic.co
 docker.elastic.co
+docs.google.com
 download.java.net
 download.oracle.com
 dream.annailabs.com
@@ -54,12 +60,14 @@ ftp.usf.edu
 ftp.ussg.iu.edu
 gcr.io
 gen3.org
+get.helm.sh
 gist.githubusercontent.com
 git.io
 go.googlesource.com
 golang.org
 gopkg.in
 grafana.com
+gstatic.com
 hooks.slack.com
 http.us.debian.org
 ifconfig.io
@@ -98,6 +106,7 @@ mran.microsoft.com
 neuro.debian.net
 neurodeb.pirsquared.org
 nginx.org
+opportunityinsights.org
 orcid.org
 pgp.mit.edu
 ppa.launchpad.net

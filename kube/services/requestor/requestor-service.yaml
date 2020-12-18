@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: requestor-service
+spec:
+  selector:
+    app: requestor
+    release: production
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80 
+      name: http
+  type: ClusterIP
+

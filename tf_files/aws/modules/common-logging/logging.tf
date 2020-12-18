@@ -5,7 +5,7 @@ resource "aws_s3_bucket" "common_logging_bucket" {
   bucket = "${var.common_name}-logging"
   acl    = "private"
 
-  tags {
+  tags = {
     Environment  = "${var.common_name}"
     Organization = "Basic Service"
   }
@@ -61,7 +61,7 @@ resource "aws_kinesis_stream" "common_stream" {
   name        = "${var.common_name}_stream"
   shard_count = 1
 
-  tags {
+  tags = {
     Environment  = "${var.common_name}"
     Organization = "Basic Service"
   }
@@ -232,7 +232,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
 
 resource "aws_cloudwatch_log_group" "csoc_common_log_group" {
   name = "${var.common_name}"
-  tags {
+  tags = {
     Environment = "${var.common_name}"
     Organization = "Basic Services"
   }

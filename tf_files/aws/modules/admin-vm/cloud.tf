@@ -2,7 +2,7 @@ resource "aws_cloudwatch_log_group" "csoc_log_group" {
   name              = "${var.child_name}"
   retention_in_days = 1827
 
-  tags {
+  tags = {
     Environment  = "${var.child_name}"
     Organization = "Basic Services"
   }
@@ -40,7 +40,7 @@ resource "aws_security_group" "ssh" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.child_name}"
     Organization = "Basic Service"
   }
@@ -65,7 +65,7 @@ resource "aws_security_group" "local" {
     cidr_blocks = ["10.128.0.0/20", "54.224.0.0/12", "${var.vpc_cidr_list}"]
   }
 
-  tags {
+  tags = {
     Environment = "${var.child_name}"
   }
 }
@@ -154,7 +154,7 @@ resource "aws_instance" "login" {
     encrypted   = true
   }
 
-  tags {
+  tags = {
     Name        = "${var.child_name}_admin"
     Environment = "${var.child_name}"
   }

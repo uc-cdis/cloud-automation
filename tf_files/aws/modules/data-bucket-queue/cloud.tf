@@ -28,7 +28,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   }
   lifecycle {
     # ignore manual changes
-    ignore_changes = ["topic_arn", "events"]
+    ignore_changes = ["topic"]
   }
 
 }

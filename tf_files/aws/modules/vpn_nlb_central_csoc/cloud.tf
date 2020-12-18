@@ -5,7 +5,7 @@ resource "aws_cloudwatch_log_group" "vpn_log_group" {
   name              = "${var.cwl_group_name}"
   retention_in_days = 1827
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpn_nlb_name}"
     Organization = "${var.organization_name}"
   }
@@ -185,7 +185,7 @@ resource "aws_lb" "vpn_nlb" {
   enable_deletion_protection       = true
   enable_cross_zone_load_balancing = true
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpn_nlb_name}"
     Organization = "${var.organization_name}"
   }
@@ -199,7 +199,7 @@ resource "aws_lb_target_group" "vpn_nlb-tcp" {
   protocol = "TCP"
   vpc_id   = "${var.env_vpc_id}"
   #proxy_protocol_v2 = "True"
-  tags {
+  tags = {
     Environment  = "${var.env_vpn_nlb_name}"
     Organization = "${var.organization_name}"
   }
@@ -243,7 +243,7 @@ resource "aws_lb_target_group" "vpn_nlb-ssh" {
   protocol = "TCP"
   vpc_id   = "${var.env_vpc_id}"
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpn_nlb_name}"
     Organization = "${var.organization_name}"
   }
@@ -401,7 +401,7 @@ resource "aws_security_group" "vpnnlb_in" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpn_nlb_name}"
     Organization = "${var.organization_name}"
   }
@@ -413,7 +413,7 @@ resource "aws_security_group" "vpnnlb_in" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpn_nlb_name}"
     Organization = "${var.organization_name}"
   }
@@ -425,7 +425,7 @@ resource "aws_security_group" "vpnnlb_in" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpn_nlb_name}"
     Organization = "${var.organization_name}"
   }
@@ -437,7 +437,7 @@ resource "aws_security_group" "vpnnlb_in" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpn_nlb_name}"
     Organization = "${var.organization_name}"
   }
@@ -460,7 +460,7 @@ resource "aws_security_group" "vpnnlb_out" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.env_vpn_nlb_name}"
     Organization = "${var.organization_name}"
   }
@@ -499,7 +499,7 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
     }
   }
 
-  tags {
+  tags = {
     Name        = "vpn-certs-and-files-${var.env_vpn_nlb_name}"
     Environment = "${var.env_vpn_nlb_name}"
     Purpose     = "data bucket"

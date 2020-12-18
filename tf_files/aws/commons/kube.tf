@@ -28,7 +28,7 @@ resource "aws_db_instance" "db_fence" {
   storage_encrypted           = "${var.rds_instance_storage_encrypted}"
   max_allocated_storage       = "${var.fence_max_allocated_storage}"
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   } 
@@ -65,7 +65,7 @@ resource "aws_db_instance" "db_gdcapi" {
   storage_encrypted           = "${var.rds_instance_storage_encrypted}"
   max_allocated_storage       = "${var.sheepdog_max_allocated_storage}"
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
@@ -102,7 +102,7 @@ resource "aws_db_instance" "db_indexd" {
   storage_encrypted           = "${var.rds_instance_storage_encrypted}"
   max_allocated_storage       = "${var.indexd_max_allocated_storage}"
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
@@ -163,7 +163,7 @@ resource "aws_kms_key" "kube_key" {
   description                 = "encryption/decryption key for kubernete"
   enable_key_rotation         = true
 
-  tags {
+  tags = {
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
@@ -192,7 +192,7 @@ resource "aws_s3_bucket" "kube_bucket" {
     }
   }
 
-  tags {
+  tags = {
     Name                      = "kube-${replace(var.vpc_name,"_", "-")}-gen3"
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"

@@ -1,0 +1,730 @@
+clients:
+  BioDataCatalyst-HMS-Integration:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  Data Aggregation for Precision Medicine:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  Fair4Cures Staging:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  accessgui:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  broad:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  broad-prod:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  datastageio:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  gdcapi:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  gen3client:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  gen3implicit:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  gen3qatestclient:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  gen3test:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  gen3testclient:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  gen3testimplicit:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  nhlbidatastage:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  openpicsure:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  picsure:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  preprodopenpicsure:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  preprodpicsure:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  sbg:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  sbg-dev:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  sbg-staging:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  sbg-topmed-dev:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+  wts:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+cloud_providers: {}
+groups: {}
+rbac:
+  all_users_policies:
+  - open_data_reader
+  - sower
+  - workspace
+  anonymous_policies:
+  - open_data_reader
+  policies:
+  - description: ''
+    id: open_data_reader
+    resource_paths:
+    - /open
+    - /programs/tutorial
+    - /programs/open_access
+    role_ids:
+    - reader
+    - storage_reader
+  - description: full access to indexd API
+    id: indexd_admin
+    resource_paths:
+    - /programs
+    role_ids:
+    - indexd_admin
+  - description: ''
+    id: open_data_admin
+    resource_paths:
+    - /open
+    - /programs/tutorial
+    - /programs/open_access
+    role_ids:
+    - creator
+    - reader
+    - updater
+    - deleter
+    - storage_writer
+    - storage_reader
+  - description: ''
+    id: all_programs_reader
+    resource_paths:
+    - /programs
+    role_ids:
+    - reader
+    - storage_reader
+  - description: upload raw data files to S3 (for new data upload flow)
+    id: data_upload
+    resource_paths:
+    - /data_file
+    role_ids:
+    - file_uploader
+  - description: be able to use workspace
+    id: workspace
+    resource_paths:
+    - /workspace
+    role_ids:
+    - workspace_user
+  - description: be able to use prometheus
+    id: prometheus
+    resource_paths:
+    - /prometheus
+    role_ids:
+    - prometheus_user
+  - description: be able to use sower job
+    id: sower
+    resource_paths:
+    - /sower
+    role_ids:
+    - sower_user
+  - description: be able to use metadata service
+    id: mds_admin
+    resource_paths:
+    - /mds_gateway
+    role_ids:
+    - mds_user
+  - description: CRUD access to programs and projects
+    id: services.sheepdog-admin
+    resource_paths:
+    - /services/sheepdog/submission/program
+    - /services/sheepdog/submission/project
+    role_ids:
+    - sheepdog_admin
+  resources:
+  - name: data_file
+  - name: workspace
+  - name: prometheus
+  - name: sower
+  - name: open
+  - description: commons /mds-admin
+    name: mds_gateway
+  - name: services
+    subresources:
+    - name: sheepdog
+      subresources:
+      - name: submission
+        subresources:
+        - name: program
+        - name: project
+  - name: programs
+    subresources:
+    - name: topmed
+      subresources:
+      - name: projects
+        subresources:
+        - name: AACAC_DS-DHD-IRB-COL-NPU
+        - name: AACAC_HMB-IRB-COL-NPU
+        - name: AFLMU_HMB-IRB-PUB-COL-NPU-MDS
+        - name: ARIC_DS-CVD-IRB
+        - name: ARIC_HMB-IRB
+        - name: Amish_HMB-IRB-MDS
+        - name: AustralianFamilialAF_HMB-NPU-MDS
+        - name: BAGS_GRU-IRB
+        - name: BioMe_HMB-NPU
+        - name: BioVU_AF_HMB-GSO
+        - name: CAMP_DS-AST-COPD
+        - name: CARDIA_HMB-IRB
+        - name: CARDIA_HMB-IRB-NPU
+        - name: CARE_BADGER_DS-ASTHMA-IRB-COL
+        - name: CARE_CLIC_DS-ASTHMA-IRB-COL
+        - name: CARE_PACT_DS-ASTHMA-IRB-COL
+        - name: CARE_TREXA_DS-ASTHMA-IRB-COL
+        - name: CCAF_AF_GRU-IRB
+        - name: CFS_DS-HLBS-IRB-NPU
+        - name: CHIRAH_DS-ASTHMA-IRB-COL
+        - name: CHS_DS-CVD-NPU-MDS
+        - name: CHS_HMB-MDS
+        - name: CHS_HMB-NPU-MDS
+        - name: COPDGene_DS-CS-RD
+        - name: COPDGene_HMB
+        - name: CRA_DS-ASTHMA-IRB-MDS-RD
+        - name: ChildrensHS_GAP_GRU
+        - name: ChildrensHS_IGERA_GRU
+        - name: ChildrensHS_MetaAir_GRU
+        - name: DECAF_GRU
+        - name: ECLIPSE_DS-COPD-MDS-RD
+        - name: EGCUT_GRU
+        - name: EOCOPD_DS-CS-RD
+        - name: FHS_HMB-IRB-MDS
+        - name: FHS_HMB-IRB-NPU-MDS
+        - name: GALAII_DS-LD-IRB-COL
+        - name: GENAF_HMB-NPU
+        - name: GENOA_DS-ASC-RF-NPU
+        - name: GGAF_GRU
+        - name: GOLDN_DS-CVD-IRB
+        - name: GenSalt_DS-HCR-IRB
+        - name: GeneSTAR_DS-CVD-IRB-NPU-MDS
+        - name: HCHS-SOL_HMB
+        - name: HCHS-SOL_HMB-NPU
+        - name: HVH_DS-CVD-IRB-MDS
+        - name: HVH_HMB-IRB-MDS
+        - name: HyperGEN_DS-CVD-IRB-RD
+        - name: HyperGEN_GRU-IRB
+        - name: INSPIRE_AF_DS-MULTIPLE_DISEASES-MDS
+        - name: IPF_DS-ILD-IRB-NPU
+        - name: IPF_DS-LD-IRB-NPU
+        - name: IPF_DS-PFIB-IRB-NPU
+        - name: IPF_DS-PUL-ILD-IRB-NPU
+        - name: IPF_HMB-IRB-NPU
+        - name: JHS_DS-FDO-IRB
+        - name: JHS_DS-FDO-IRB-NPU
+        - name: JHS_HMB-IRB
+        - name: JHS_HMB-IRB-NPU
+        - name: JHU_AF_HMB-NPU-MDS
+        - name: LTRC_HMB-MDS
+        - name: MESA_HMB
+        - name: MESA_HMB-NPU
+        - name: MGH_AF_DS-AF-IRB-RD
+        - name: MGH_AF_HMB-IRB
+        - name: MLOF_HMB-PUB
+        - name: MPP_HMB-NPU-MDS
+        - name: Mayo_VTE_GRU
+        - name: OMG_SCD_DS-SCD-IRB-PUB-COL-MDS-RD
+        - name: PARTNERS_HMB
+        - name: PCGC_CHD_DS-CHD
+        - name: PCGC_CHD_HMB
+        - name: PIMA_DS-ASTHMA-IRB-COL
+        - name: PUSH_SCD_DS-SCD-IRB-PUB-COL
+        - name: REDS-III_Brazil_SCD_GRU-IRB-PUB-NPU
+        - name: SAFHS_DS-DHD-IRB-PUB-MDS-RD
+        - name: SAGE_DS-LD-IRB-COL
+        - name: SAPPHIRE_asthma_DS-ASTHMA-IRB-COL
+        - name: SARP_GRU
+        - name: SAS_GRU-IRB-PUB-COL-NPU-GSO
+        - name: Sarcoidosis_DS-SAR-IRB
+        - name: THRV_DS-CVD-IRB-COL-NPU-RD
+        - name: VAFAR_HMB-IRB
+        - name: VU_AF_GRU-IRB
+        - name: WGHS_HMB
+        - name: WHI_HMB-IRB
+        - name: WHI_HMB-IRB-NPU
+        - name: Walk_PHaSST_SCD_DS-SCD-IRB-PUB-COL-NPU-MDS-RD
+        - name: Walk_PHaSST_SCD_HMB-IRB-PUB-COL-NPU-MDS-GSO
+        - name: miRhythm_GRU
+        - name: pharmHU_DS-SCD
+        - name: pharmHU_DS-SCD-RD
+        - name: pharmHU_HMB
+    - name: parent
+      subresources:
+      - name: projects
+        subresources:
+        - name: ARIC_DS-CVD-IRB_
+        - name: ARIC_HMB-IRB_
+        - name: Asthma_GRU_
+        - name: CARDIA_IRB-NPU_
+        - name: CARDIA_IRB_
+        - name: CATHGEN_DS-CVD-IRB_
+        - name: CCAF_GRU_
+        - name: CFS_DS-HLBS-IRB-NPU_
+        - name: CHS_DS-CVD-IRB-MDS_
+        - name: CHS_DS-CVD-IRB-NPU-MDS_
+        - name: CHS_HMB-IRB-MDS_
+        - name: CHS_HMB-IRB-NPU-MDS_
+        - name: COPDGene_DS-CS_
+        - name: COPDGene_HMB_
+        - name: DHS_DS-DRC-IRB_
+        - name: ECLIPSE_DS-COPD-RD_
+        - name: FHS_HMB-IRB-MDS_
+        - name: FHS_HMB-IRB-NPU-MDS_
+        - name: GALAII_DS-LD-RD_
+        - name: GENOA_DS-ASC-RF-NPU_
+        - name: GOLDN_DS-CVD-IRB_
+        - name: GenSalt_GRU-IRB_
+        - name: GeneSTAR_DS-CVD-IRB-NPU-RD_
+        - name: HCHS-SOL_HMB_
+        - name: HCHS-SOL_HMB_NPU_
+        - name: HCHS-SOL_HMB-NPU_
+        - name: HVH_DS-CVD-IRB-MDS_
+        - name: HVH_HMB-IRB-MDS_
+        - name: JHS_DS-FDO-IRB-NPU_
+        - name: JHS_DS-FDO-IRB_
+        - name: JHS_HMB-IRB-NPU_
+        - name: JHS_HMB-IRB_
+        - name: MESA_HMB-NPU_
+        - name: MESA_HMB_
+        - name: MGH_AF_DS-AF-IRB-RD_
+        - name: MGH_AF_HMB-IRB_
+        - name: Mayo_VTE_GRU_
+        - name: PCGC_DS-CHD_
+        - name: PCGC_HMB_
+        - name: PGRN-RIKEN_AF_GRU_
+        - name: SAS_GRU-IRB-PUB-COL-NPU-GSO_
+        - name: SHARP_ARR_
+        - name: WHI_HMB-IRB-NPU_
+        - name: WHI_HMB-IRB_
+    - name: admin
+      subresources:
+      - name: projects
+        subresources: []
+    - name: TOPMed_Common_Exchange_Area
+      subresources:
+      - name: projects
+        subresources:
+        - name: Freeze_5b
+        - name: Freeze_8
+    - name: tutorial
+      subresources:
+      - name: projects
+        subresources:
+        - name: synthetic_data_set_1
+    - name: open_access
+      subresources:
+      - name: projects
+        subresources:
+        - name: 1000Genomes
+  roles:
+  - id: file_uploader
+    permissions:
+    - action:
+        method: file_upload
+        service: fence
+      id: file_upload
+  - id: indexd_admin
+    permissions:
+    - action:
+        method: '*'
+        service: indexd
+      id: indexd_admin
+  - id: workspace_user
+    permissions:
+    - action:
+        method: access
+        service: jupyterhub
+      id: workspace_access
+  - id: prometheus_user
+    permissions:
+    - action:
+        method: access
+        service: prometheus
+      id: prometheus_access
+  - id: sower_user
+    permissions:
+    - action:
+        method: access
+        service: job
+      id: sower_access
+  - description: ''
+    id: admin
+    permissions:
+    - action:
+        method: '*'
+        service: '*'
+      id: admin
+  - description: ''
+    id: creator
+    permissions:
+    - action:
+        method: create
+        service: '*'
+      id: creator
+  - description: ''
+    id: reader
+    permissions:
+    - action:
+        method: read
+        service: '*'
+      id: reader
+  - description: ''
+    id: updater
+    permissions:
+    - action:
+        method: update
+        service: '*'
+      id: updater
+  - description: ''
+    id: deleter
+    permissions:
+    - action:
+        method: delete
+        service: '*'
+      id: deleter
+  - description: ''
+    id: storage_writer
+    permissions:
+    - action:
+        method: write-storage
+        service: '*'
+      id: storage_creator
+  - description: ''
+    id: storage_reader
+    permissions:
+    - action:
+        method: read-storage
+        service: '*'
+      id: storage_reader
+  - id: mds_user
+    permissions:
+    - action:
+        method: access
+        service: mds_gateway
+      id: mds_access
+  - description: sheepdog admin role for program project crud
+    id: sheepdog_admin
+    permissions:
+    - action:
+        method: '*'
+        service: sheepdog
+      id: sheepdog_admin_action
+users:
+  1:
+    admin: false
+    policies:
+    - workspace
+    - sower
+    projects:
+    - auth_id: phs001024.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/PARTNERS_HMB
+    - auth_id: phs001040.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/WGHS_HMB
+    - auth_id: phs000179.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/parent/projects/COPDGene_DS-CS_
+    - auth_id: phs000179.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/parent/projects/COPDGene_HMB_
+    - auth_id: phs000946.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/EOCOPD_DS-CS-RD
+    - auth_id: phs000951.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/COPDGene_HMB
+    - auth_id: phs000951.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/COPDGene_DS-CS-RD
+  2:
+    admin: false
+    policies:
+    - workspace
+    - sower
+    projects:
+    - auth_id: phs000179.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/parent/projects/COPDGene_HMB_
+    - auth_id: phs000179.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/parent/projects/COPDGene_DS-CS_
+    - auth_id: phs000951.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/COPDGene_HMB
+    - auth_id: phs000951.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/COPDGene_DS-CS-RD
+  3:
+    admin: false
+    policies:
+    - workspace
+    - sower
+    projects:
+    - auth_id: phs000964.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/JHS_HMB-IRB-NPU
+    - auth_id: phs000964.c3
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/JHS_HMB-IRB
+    - auth_id: phs000964.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/JHS_DS-FDO-IRB-NPU
+    - auth_id: phs000964.c4
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/JHS_DS-FDO-IRB
+    - auth_id: phs000972.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/SAS_GRU-IRB-PUB-COL-NPU-GSO
+    - auth_id: phs000954.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/CFS_DS-HLBS-IRB-NPU
+    - auth_id: phs000974.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/FHS_HMB-IRB-MDS
+    - auth_id: phs000974.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/FHS_HMB-IRB-NPU-MDS
+    - auth_id: phs000956.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/Amish_HMB-IRB-MDS
+    - auth_id: phs000988.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/CRA_DS-ASTHMA-IRB-MDS-RD
+    - auth_id: phs000993.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/HVH_DS-CVD-IRB-MDS
+    - auth_id: phs000993.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/HVH_HMB-IRB-MDS
+    - auth_id: phs001032.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/VU_AF_GRU-IRB
+    - auth_id: phs001024.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/PARTNERS_HMB
+    - auth_id: phs001040.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/WGHS_HMB
+    - auth_id: phs000997.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/VAFAR_HMB-IRB
+    - auth_id: phs001062.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/MGH_AF_DS-AF-IRB-RD
+    - auth_id: phs001062.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/MGH_AF_HMB-IRB
+    - auth_id: phs001143.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/BAGS_GRU-IRB
+    - auth_id: phs001189.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/CCAF_AF_GRU-IRB
+    - auth_id: phs001211.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/ARIC_HMB-IRB
+    - auth_id: phs001237.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/WHI_HMB-IRB
+    - auth_id: phs001359.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/GOLDN_DS-CVD-IRB
+    - auth_id: phs001368.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/CHS_HMB-NPU-MDS
+    - auth_id: phs001412.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/AACAC_HMB-IRB-COL-NPU
+    - auth_id: phs001412.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/AACAC_DS-DHD-IRB-COL-NPU
+    - auth_id: phs001237.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/WHI_HMB-IRB-NPU
+    - auth_id: phs000951.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/COPDGene_HMB
+    - auth_id: phs000951.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/COPDGene_DS-CS-RD
+  4:
+    admin: false
+    policies:
+    - workspace
+    - sower
+    projects:
+    - auth_id: phs000956.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/Amish_HMB-IRB-MDS
+    - auth_id: phs000179.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/parent/projects/COPDGene_DS-CS_
+    - auth_id: phs000179.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/parent/projects/COPDGene_HMB_
+  5:
+    admin: false
+    policies:
+    - workspace
+    - sower
+    projects:
+    - auth_id: phs000179.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/parent/projects/COPDGene_HMB_
+    - auth_id: phs000179.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/parent/projects/COPDGene_DS-CS_
+    - auth_id: phs000951.c1
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/COPDGene_HMB
+    - auth_id: phs000951.c2
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed/projects/COPDGene_DS-CS-RD
+    - auth_id: parent
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/parent
+    - auth_id: topmed
+      privilege:
+      - read
+      - read-storage
+      resource: /programs/topmed

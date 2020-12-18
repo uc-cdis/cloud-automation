@@ -50,6 +50,8 @@ gen3_workon_gcp(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/gcp/${GEN3_WORKSPACE#*__}"
   elif [[ -d "${GEN3_HOME}/tf_files/gcp-bwg/${GEN3_WORKSPACE#*__}" ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/gcp-bwg/${GEN3_WORKSPACE#*__}"
+  elif [[ "${GEN3_WORKSPACE}" =~ __custom$ ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_WORKDIR}"
   fi
 
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
@@ -115,8 +117,12 @@ EOM
       cat "${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
       return $?
   fi
-
-  # else ...
-  echo "# No template at ${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
+  # else
+  gen3_log_info "# No template at ${GEN3_TFSCRIPT_FOLDER}/sample.tfvars"
+  if [[ "$GEN3_WORKSPACE" =~ __custom$ ]]; then
+      cat - <<EOM
+# put your custom variable values here
+EOM
+      return 0
+  fi
 }
-

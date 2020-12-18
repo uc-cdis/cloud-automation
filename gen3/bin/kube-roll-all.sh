@@ -74,10 +74,6 @@ else
   gen3_log_info "no manifest entry for fence"
 fi
 
-if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
-  gen3 kube-setup-ssjdispatcher
-fi
-
 if g3kubectl get cronjob etl >/dev/null 2>&1; then
     gen3 job run etl-cronjob
 fi
@@ -184,7 +180,23 @@ else
   gen3_log_info "not deploying sower - no manifest entry for .versions.sower"
 fi
 
+if g3k_manifest_lookup .versions.requestor 2> /dev/null; then
+  gen3 kube-setup-requestor
+else
+  gen3_log_info "not deploying requestor - no manifest entry for .versions.requestor"
+fi
+
 gen3 kube-setup-metadata
+
+if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
+  gen3 kube-setup-ssjdispatcher
+fi
+
+if g3k_manifest_lookup .versions.access-backend 2> /dev/null; then
+  gen3 kube-setup-access-backend
+else
+  gen3_log_info "not deploying access-backend - no manifest entry for .versions.access-backend"
+fi
 
 gen3 kube-setup-revproxy
 
@@ -195,6 +207,7 @@ if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   gen3 kube-setup-kube-dns-autoscaler
   gen3 kube-setup-metrics deploy || true
   gen3 kube-setup-tiller || true
+  gen3 kube-setup-prometheus || true
   #
   gen3 kube-setup-networkpolicy disable
   gen3 kube-setup-networkpolicy
@@ -210,9 +223,21 @@ gen3 kube-wait4-pods || true
 
 if g3k_manifest_lookup .versions.wts 2> /dev/null; then
   # this tries to kubectl exec into fence
-  gen3 kube-setup-wts || true
+  gen3 kube-setup-wts
 else
   gen3_log_info "not deploying wts - no manifest entry for .versions.wts"
+fi
+
+if g3k_manifest_lookup .versions.mariner 2> /dev/null; then
+  gen3 kube-setup-mariner
+else
+  gen3_log_info "not deploying mariner - no manifest entry for .versions.mariner"
+fi
+
+if g3k_manifest_lookup '.versions["ws-storage"]' 2> /dev/null; then
+  gen3 kube-setup-ws-storage
+else
+  gen3_log_info "not deploying ws-storage - no manifest entry for '.versions[\"ws-storage\"]'"
 fi
 
 if g3k_manifest_lookup .versions.portal 2> /dev/null; then

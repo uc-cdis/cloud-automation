@@ -18,7 +18,7 @@ resource "aws_s3_bucket" "data_bucket" {
     target_prefix = "log/${var.vpc_name}-data-bucket/"
   }
 
-  tags {
+  tags = {
     Name        = "${var.vpc_name}-data-bucket"
     Environment = "${var.environment}"
     Purpose     = "data bucket"
@@ -74,7 +74,7 @@ resource "aws_s3_bucket" "log_bucket" {
 
     prefix = "/"
 
-    tags {
+    tags = {
       "rule"      = "log"
       "autoclean" = "true"
     }
@@ -84,7 +84,7 @@ resource "aws_s3_bucket" "log_bucket" {
     }
   }
 
-  tags {
+  tags = {
     Name        = "${var.vpc_name}"
     Environment = "${var.environment}"
     Purpose     = "logs bucket"

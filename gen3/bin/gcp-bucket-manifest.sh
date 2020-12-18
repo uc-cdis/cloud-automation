@@ -44,14 +44,14 @@ gen3_create_google_dataflow() {
     echo "The service account does not have admin access to pub/sub service"
     exit 1
   fi
-  
+
   gcloud projects get-iam-policy ${project} --flatten="bindings[].members" --format='table(bindings.role)' --filter="bindings.members:${service_account}" | grep roles/storage.admin
   if [ $? -eq 1 ]
   then
     echo "The service account does not have admin access to storage service"
     exit 1
   fi
-  
+
   gcloud projects get-iam-policy ${project} --flatten="bindings[].members" --format='table(bindings.role)' --filter="bindings.members:${service_account}" | grep roles/dataflow.worker
   if [ $? -eq 1 ]
   then
@@ -109,7 +109,7 @@ EOF
   fi
   n_messages="$(gsutil ls -r gs://${bucket}/** | wc -l)"
   #gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub} AUTHZ ${metadata_file} N_MESSAGES ${n_messages} OUT_BUCKET ${temp_bucket} | sed "s|sa-#SA_NAME_PLACEHOLDER#|$saName|g" | sed "s|gcp-bucket-manifest#PLACEHOLDER#|gcp-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
-  gen3 gitops filter $HOME/cloud-automation/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub_name} METADATA_FILE "${metadata_file}" N_MESSAGES $n_messages OUT_BUCKET $temp_bucket | sed "s|google-bucket-manifest#PLACEHOLDER#|google-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
+  gen3 gitops filter $GEN3_HOME/kube/services/jobs/google-bucket-manifest-job.yaml PROJECT $project PUBSUB_SUB ${pubsub_sub_name} METADATA_FILE "${metadata_file}" N_MESSAGES $n_messages OUT_BUCKET $temp_bucket | sed "s|google-bucket-manifest#PLACEHOLDER#|google-bucket-manifest-${jobId}|g" > ./google-bucket-manifest-${jobId}-job.yaml
   gen3 secrets sync "initialize gcp-bucket-manifest/config.json"
   gen3 job run ./google-bucket-manifest-${jobId}-job.yaml
   gen3_log_info "The job is started. Job ID: ${jobId}"
@@ -180,7 +180,7 @@ gen3_batch_cleanup() {
   gen3 cd
   gen3_load "gen3/lib/terraform"
   gen3_terraform destroy
-  
+
   if [[ $? == 0 ]]; then
     gen3 trash --apply
   fi

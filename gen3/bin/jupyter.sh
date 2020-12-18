@@ -195,9 +195,15 @@ gen3_jupyter_idle_pods() {
     return 0
   fi
   for name in $podList; do
-    # leverage hatchery naming convention here ...
+    # leverage hatchery pod/service naming convention here ...
     local serviceName="h-${name##hatchery-}-s"
     local clusterName="cluster_${serviceName//-/_}"
+    #
+    # there appears to be a 42 character limit on the ambassador cluster name:
+    #    cluster_h_${serviceName//-/_}_${namespace}-${number}
+    # , but '-${number}' is always there, so just match on the first say 39 chars
+    #
+    clusterName="$(cut -c -39 <<< "$clusterName")"
     gen3_log_info "Scanning for $clusterName"
     if jq -r --arg cluster "$clusterName" 'select(.cluster | startswith($cluster))' < "$tempClusterFile" | grep "$clusterName" > /dev/null; then
       echo "$name"

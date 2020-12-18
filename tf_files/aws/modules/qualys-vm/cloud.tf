@@ -12,7 +12,7 @@ resource "aws_security_group" "ssh" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.environment}"
     Organization = "${var.organization}"
     Association  = "${var.vm_name}"
@@ -30,7 +30,7 @@ resource "aws_security_group" "local" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.environment}"
     Organization = "${var.organization}"
     Association  = "${var.vm_name}"
@@ -67,7 +67,7 @@ resource "aws_instance" "qualys" {
   associate_public_ip_address = true
   disable_api_termination     = true
 
-  tags {
+  tags = {
     Name         = "${var.vm_name}"
     Environment  = "${var.environment}"
     Organization = "${var.organization}"

@@ -3,7 +3,7 @@ resource "aws_cloudwatch_log_group" "csoc_log_group" {
   name              = "${var.vm_hostname}"
   retention_in_days = 1827
 
-  tags {
+  tags = {
     Environment  = "${var.environment}"
     Organization = "${var.organization_name}"
   }
@@ -16,7 +16,7 @@ resource "aws_ami_copy" "cdis_ami" {
   source_ami_region = "${var.aws_region}"
   encrypted         = true
 
-  tags {
+  tags = {
     Name        = "cdis"
     Environment = "${var.environment}"
   }
@@ -46,7 +46,7 @@ resource "aws_security_group" "ssh" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.environment}"
     Organization = "${var.organization_name}"
     Name         = "ssh_${var.vm_name}"
@@ -75,7 +75,7 @@ resource "aws_security_group" "local" {
     cidr_blocks = ["${var.vpc_cidr_list}"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.environment}"
     Organization = "${var.organization_name}"
     Name         = "local_${var.vm_name}"
@@ -122,6 +122,14 @@ resource "aws_iam_role_policy" "vm_policy" {
   role   = "${aws_iam_role.vm_role.id}"
 }
 
+resource "aws_iam_role_policy" "vm_user_policy" {
+  name   = "${var.vm_name}_user_policy"
+  role   = "${aws_iam_role.vm_role.id}"
+  #policy = "${var.user_policy}"
+  policy = "${var.user_policy}"
+}
+
+
 resource "aws_iam_instance_profile" "vm_role_profile" {
   name = "${var.vm_name}_role_profile"
   role = "${aws_iam_role.vm_role.id}"
@@ -157,7 +165,7 @@ resource "aws_instance" "utility_vm" {
 
   iam_instance_profile = "${aws_iam_instance_profile.vm_role_profile.name}"
 
-  tags {
+  tags = {
     Name         = "${var.vm_name}"
     Environment  = "${var.environment}"
     Organization = "${var.organization_name}"

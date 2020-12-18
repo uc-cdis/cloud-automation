@@ -53,6 +53,8 @@ spec:
         env:
           - name: AWS_REGION
             value: us-east-1
+          - name: AWS_STS_REGIONAL_ENDPOINTS
+            value: regional  
           - name: GEN3_NAMESPACE
             valueFrom:
               fieldRef:

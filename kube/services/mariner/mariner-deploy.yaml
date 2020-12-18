@@ -21,6 +21,7 @@ spec:
         release: test
         netnolimit: "yes" # check
         public: "yes"
+        GEN3_DATE_LABEL
     spec:
       serviceAccountName: mariner-service-account
       volumes:

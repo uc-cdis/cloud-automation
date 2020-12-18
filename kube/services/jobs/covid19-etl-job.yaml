@@ -11,6 +11,10 @@ spec:
         app: gen3job
     spec:
       serviceAccountName: s3-access-opencdn-databucket-gen3
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "covid19-etl-g3auto"
       restartPolicy: Never
       containers:
       - name: covid19-etl
@@ -35,14 +39,18 @@ spec:
             configMapKeyRef:
               name: global
               key: slack_webhook
+        volumeMounts:
+          - name: cred-volume
+            mountPath: "/secrets/credentials"
         resources:
           limits:
-            cpu: 0.5
-            memory: 512Mi
+            cpu: 1
+            memory: 2048Mi
         command: ["/bin/bash" ]
         args:
           - "-c"
           - |
+            export GOOGLE_APPLICATION_CREDENTIALS=/secrets/credentials/default.json
             message="SUCCESS: covid19-etl-$JOB_NAME success in $gen3Env"
             result=0
             if ! python3 /covid19-etl/main.py; then
@@ -50,7 +58,7 @@ spec:
               message="FAIL: covid19-etl-$JOB_NAME failure in $gen3Env"
             fi
             echo "$message"
-            # no curl - ugh  
+            # no curl - ugh
             cat - > /tmp/slack.py <<EOM
             import requests
             payload={"text": "$message"}

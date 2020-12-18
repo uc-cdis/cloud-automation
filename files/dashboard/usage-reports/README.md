@@ -4,22 +4,24 @@ how to test the reports webapp with the local sample data
 
 ## Dev-test
 
+* first, if necessary:
+```
+(
+  cd "${GEN3_HOME}" && npm install  # if necessary
+)
+```
+
 * launch a local web server
-
 ```
-cd ${GEN3_HOME} && npm install  # if necessary
-node gen3/lib/nodejs/httpd/server.js /2019/10 files/dashboard/usage-reports/sampleData/10 / files/dashboard/usage-reports/src/
-```
-
-* connect to http://localhost:3380/index.html
-* open the browser dev tools
-* set a flag in the browser console, so the webapp will load the sample data
-
-```
-sessionStorage.setItem('gen3Now', '1571437338314');
+(
+  cd "${GEN3_HOME}/files/dashboard/usage-reports"
+  npm install
+  npm start
+)
 ```
 
-* reload and go!
+* connect to http://localhost:3380/index.html?end=2019/10/18
+* the jasmine test suite runs in the browser at http://localhost:3380/spec/index.html
 
 ## Deploy
 
@@ -29,7 +31,12 @@ then running `gen3 dashboard gitops-sync`:
 
 * update the manifest, and merge the pr
 ```
-rsync -av ${GEN3_HOME}/files/dashboard/usage-reports/src/ cdis-manifest/my.commons/dashboard/Secure/reports/
+(
+  myCommons="${myCommons:-"your.commons"}"
+  rsync -av ${GEN3_HOME}/files/dashboard/usage-reports/src/ cdis-manifest/$myCommons/dashboard/Secure/reports/
+  rsync -av ${GEN3_HOME}/files/dashboard/usage-reports/node_modules/ cdis-manifest/$myCommons/dashboard/Secure/reports/modules/
+)
+
 ```
 * on the admin vm:
 ```
