@@ -61,6 +61,7 @@ echo "running ${test}..."
 
 case "$test" in
   access-check)
+    # TODO: Refactor polling logic by moving it to a function to run diff tests
     gen3 job run gen3qa-check-bucket-access INDEXD_QUERY_FILTER $indexdQueryFilter ACCESS_TOKEN $(gen3 api access-token $username)
     sleep 2
     podName=$(gen3 pod gen3qa-check-bucket-access)
@@ -69,23 +70,25 @@ case "$test" in
 
     attempt=0
     maxAttempts=12
-    
+
     while true
     do
       jobPodStatus=$(g3kubectl get pod $podName -o jsonpath='{.status.phase}')
       echo "Pod ${podName} status is: ${jobPodStatus}"
       if [ "$jobPodStatus" == "Running" ]; then
-        g3kubectl logs $(gen3 pod gen3qa-check-bucket-access) -c gen3qa-check-bucket-access -f
-        break
-      else
-	echo "Not yet ready to run the gen3qa-check-bucket-access test..."
-	sleep 5
-	if [ $attempt -eq $maxAttempts ];then
-          echo "The pod was never initialized properly, aborting automated test."
-	  exit 1
+        if (g3kubectl logs $podName -c selenium | grep "from DOWN to UP") > /dev/null 2>&1; then
+          g3kubectl logs $(gen3 pod gen3qa-check-bucket-access) -c gen3qa-check-bucket-access -f
+          break
 	fi
-	attempt=$(( $attempt + 1 ));
       fi
+
+      echo "Not yet ready to run the gen3qa-check-bucket-access test..."
+      sleep 5
+      if [ $attempt -eq $maxAttempts ];then
+        echo "The pod was never initialized properly, aborting automated test."
+        exit 1
+      fi
+      attempt=$(( $attempt + 1 ));
     done
     ;;
 esac
