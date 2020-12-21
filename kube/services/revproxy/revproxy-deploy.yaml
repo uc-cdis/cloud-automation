@@ -225,6 +225,9 @@ spec:
           - "-c"
           - |
             nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
+            echo "initializing nginx-prometheus-exporter..."
+            sleep 5
+            echo "nginx_status_response: $nginx_status_response"
             if [ "$nginx_status_response" != 200 ]; then
               sleep infinity
             else
