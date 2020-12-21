@@ -203,20 +203,27 @@ spec:
               echo "modsecurity on;" >> /etc/nginx/gen3_server_modsec.conf
               echo "modsecurity_rules_file /etc/nginx/modsec/main.conf;" >> /etc/nginx/gen3_server_modsec.conf
             fi
-            mkdir -p /var/www/metrics/
-            (
-              while true; do
-                logrotate --force /etc/logrotate.d/logrotate-nginx.conf
-                sleep 86400
+  
+            which logrotate
+            RC=$?
+            if [ $RC != 0 ]; then
+              echo "logrotate is not installed. Do not collect metrics..."
+            else
+              mkdir -p /var/www/metrics/
+              (
+                while true; do
+                  logrotate --force /etc/logrotate.d/logrotate-nginx.conf
+                  sleep 86400
+                  done
+              ) &
+              (
+                while true; do
+                  curl -s http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt
+                  curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
+                  sleep 10
                 done
-            ) &
-            (
-              while true; do
-                curl -s http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt
-                curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
-                sleep 10
-              done
-            ) &
+              ) &
+            fi
             exec nginx -g 'daemon off;'
       - name: nginx-prometheus-exporter-wrapper
         GEN3_NGINX_PROMETHEUS_EXPORTER_WRAPPER_IMAGE|-image: quay.io/cdis/nginx-prometheus-exporter-wrapper:pybase3-1.4.0-|
