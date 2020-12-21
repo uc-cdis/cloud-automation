@@ -73,6 +73,7 @@ spec:
       containers:
       - name: revproxy
         GEN3_REVPROXY_IMAGE|-image: nginx:1.13.9-perl-|
+        imagePullPolicy: Always
         livenessProbe:
           httpGet:
             path: /_status
@@ -178,8 +179,8 @@ spec:
             mountPath: "/var/log/nginx/"
           - name: "logrotate-nginx-conf"
             readOnly: true
-            mountPath: "/etc/logrotate.d/nginx"
-            subPath: nginx
+            mountPath: "/etc/logrotate.d/logrotate-nginx.conf"
+            subPath: logrotate-nginx.conf
         resources:
           requests:
             cpu: 0.5
@@ -202,9 +203,10 @@ spec:
               echo "modsecurity on;" >> /etc/nginx/gen3_server_modsec.conf
               echo "modsecurity_rules_file /etc/nginx/modsec/main.conf;" >> /etc/nginx/gen3_server_modsec.conf
             fi
+            mkdir -p /var/www/metrics/
             (
               while true; do
-                logrotate --force /etc/logrotate.d/nginx
+                logrotate --force /etc/logrotate.d/logrotate-nginx.conf
                 sleep 86400
                 done
             ) &
