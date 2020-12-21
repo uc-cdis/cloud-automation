@@ -67,10 +67,11 @@ case "$test" in
     jobPodCreationDate=$(g3kubectl get pod $podName -o jsonpath='{.metadata.creationTimestamp}')
     echo "Found pod ${podName}. Creation date: ${jobPodCreationDate}"
 
+    attempt=0
+    maxAttempts=12
+    
     while true
     do
-      attempt=0
-      maxAttempts=12
       jobPodStatus=$(g3kubectl get pod $podName -o jsonpath='{.status.phase}')
       echo "Pod ${podName} status is: ${jobPodStatus}"
       if [ "$jobPodStatus" == "Running" ]; then
