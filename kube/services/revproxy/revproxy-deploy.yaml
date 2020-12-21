@@ -242,4 +242,4 @@ spec:
         - containerPort: 4040
         volumeMounts:
         - name: logs-folder
-          mountPath: "/mnt/nginxlogs/"    
+          mountPath: "/mnt/nginxlogs/"
