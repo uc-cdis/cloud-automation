@@ -229,7 +229,7 @@ spec:
 
             while true
             do
-              nginx_status_response=$(curl -L -s -o /dev/null -w \"%{http_code}\" -X GET http://localhost/nginx_status)
+              nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
               echo "initializing nginx-prometheus-exporter..."
               echo "nginx_status_response: $nginx_status_response"
               
