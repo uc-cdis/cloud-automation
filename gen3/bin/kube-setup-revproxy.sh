@@ -125,6 +125,7 @@ fi
 
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 gen3 update_config revproxy-nginx-conf "${scriptDir}/nginx.conf"
+gen3 update_config logrotate-nginx-conf "${scriptDir}/logrotate-nginx.conf"
 gen3 update_config revproxy-helper-js "${scriptDir}/helpers.js"
 
 if g3kubectl get configmap revproxy-nginx-subconf > /dev/null 2>&1; then

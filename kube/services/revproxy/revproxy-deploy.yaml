@@ -17,6 +17,10 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /aggregated_metrics
+        prometheus.io/port: "6567"
       labels:
         app: revproxy
         # allow access from workspaces
@@ -61,13 +65,15 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: logs-folder
+          emptyDir: {}
+        - name: logrotate-nginx-conf
+          configMap:
+            name: logrotate-nginx-conf
       containers:
       - name: revproxy
         GEN3_REVPROXY_IMAGE|-image: nginx:1.13.9-perl-|
-        command:
-          - /usr/sbin/nginx
-          - -g
-          - 'daemon off;'
+        imagePullPolicy: Always
         livenessProbe:
           httpGet:
             path: /_status
@@ -80,6 +86,8 @@ spec:
             port: 80
         ports:
         - containerPort: 80
+        - containerPort: 443
+        - containerPort: 6567
         env:
           - name: POD_NAMESPACE
             valueFrom:
@@ -167,6 +175,12 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
+          - name: logs-folder
+            mountPath: "/var/log/nginx/"
+          - name: "logrotate-nginx-conf"
+            readOnly: true
+            mountPath: "/etc/logrotate.d/logrotate-nginx.conf"
+            subPath: logrotate-nginx.conf
         resources:
           requests:
             cpu: 0.5
@@ -189,5 +203,63 @@ spec:
               echo "modsecurity on;" >> /etc/nginx/gen3_server_modsec.conf
               echo "modsecurity_rules_file /etc/nginx/modsec/main.conf;" >> /etc/nginx/gen3_server_modsec.conf
             fi
+  
+            which logrotate
+            RC=$?
+            if [ $RC != 0 ]; then
+              echo "logrotate is not installed. Do not collect metrics..."
+            else
+              mkdir -p /var/www/metrics/
+              (
+                while true; do
+                  logrotate --force /etc/logrotate.d/logrotate-nginx.conf
+                  sleep 86400
+                  done
+              ) &
+              (
+                while true; do
+                  curl -s http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt
+                  curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
+                  sleep 10
+                done
+              ) &
+            fi
             exec nginx -g 'daemon off;'
-            
+      - name: nginx-prometheus-exporter-wrapper
+        GEN3_NGINX_PROMETHEUS_EXPORTER_WRAPPER_IMAGE|-image: quay.io/cdis/nginx-prometheus-exporter-wrapper:pybase3-1.4.0-|
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            attempt=0
+            maxAttempts=12
+
+            while true
+            do
+              nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
+              echo "initializing nginx-prometheus-exporter..."
+              echo "nginx_status_response: $nginx_status_response"
+              
+              if [ "$nginx_status_response" == 200 ]; then
+                echo "nginx_status is finally up and running. Proceed with the metrics exporting..."
+                /usr/bin/exporter -nginx.scrape-uri http://127.0.0.1/nginx_status
+              else
+                echo "The nginx_status endpoint is not ready yet... attempt #${attempt}"
+                sleep 5
+                if [ $attempt -eq $maxAttempts ];then
+                  echo "The nginx_status endpoint was never initialized properly, keep the sidecar running in sleep mode to prevent the entire pod from failing..."
+                  sleep infinity
+                fi
+              fi
+              attempt=$(( $attempt + 1 ));
+            done
+        ports:
+        - containerPort: 9113
+      - name: nginx-logs-exporter
+        GEN3_NGINX_LOGS_EXPORTER_IMAGE|-image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1-|
+        args: ["/mnt/nginxlogs/access_not_json.log"]
+        ports:
+        - containerPort: 4040
+        volumeMounts:
+        - name: logs-folder
+          mountPath: "/mnt/nginxlogs/"
