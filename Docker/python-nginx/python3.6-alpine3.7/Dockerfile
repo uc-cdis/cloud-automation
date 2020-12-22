@@ -1,6 +1,6 @@
 # Dockerfile written by Sebastian Ramirez <tiangolo@gmail.com> at https://github.com/tiangolo/uwsgi-nginx-docker
 
-FROM python:3.6-alpine3.7
+FROM quay.io/cdis/python:3.6-alpine3.7
 
 # Standard set up Nginx Alpine
 # https://github.com/nginxinc/docker-nginx/blob/f3fc4d5753f0ebb9107738183b9c5cea1bf3f618/mainline/alpine/Dockerfile
