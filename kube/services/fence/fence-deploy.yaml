@@ -204,7 +204,7 @@ spec:
               memory: 1200Mi
             limits:
               cpu: 1.0
-              memory: 2400Mi  
+              memory: 2400Mi
         command: ["/bin/bash"]
         args:
           - "-c"
@@ -254,7 +254,7 @@ spec:
         - containerPort: 4040
         volumeMounts:
         - name: logs-folder
-          mountPath: "/mnt/nginxlogs/"      
+          mountPath: "/mnt/nginxlogs/"
       initContainers:
       - name: fence-init
         GEN3_FENCE_IMAGE
