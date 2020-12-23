@@ -1,0 +1,92 @@
+---
+# Start installing and configuring AWSlogs
+#
+
+#- stat: path={{ awslogs_directory }}
+#  register: st
+
+- name: "awslogs | update apt cache"
+  apt:
+    update_cache: yes
+    cache_valid_time: 86400
+  when: ansible_os_family == 'Debian'
+
+  
+- name: "awslogs | check if the service exists"
+  stat: 
+    path: /etc/init.d/awslogs
+  register: service_status
+
+
+- name: "awslogs | download the install script"
+  get_url: 
+    url: '{{ awslogs_download_link }}'
+    dest: '{{ awslogs_script_dest }}'
+    owner: '{{ awslogs_script_owner }}'
+    group: '{{ awslogs_script_group }}'
+    mode: '{{ awslogs_script_mode }}'
+  when: service_status.stat.exists == false
+
+
+- name: "awslogs | create systemd unit file"
+  copy:
+    src: awslogs.service
+    dest: '{{ awslogs_unitfile_dest }}'
+    owner: '{{ awslogs_unitfile_owner }}'
+    group: '{{ awslogs_unitfile_group }}'
+    mode: '{{ awslogs_unitfile_mode }}'
+    backup: yes
+  when: service_status.stat.exists == false and ansible_service_mgr is defined and ansible_service_mgr == "systemd"
+
+
+- name: "awslogs | enable systemd unit"
+  systemd: 
+    enabled: yes 
+    name: awslogs.service
+  when: service_status.stat.exists == false and ansible_service_mgr is defined and ansible_service_mgr == "systemd"
+
+
+- name: "awslogs | create service files location"
+  file: 
+    path: '{{ item }}'
+    state: directory
+    recurse: yes
+  with_items:
+    - '{{ awslogs_directory }}state/'
+    - '{{ awslogs_directory }}etc/'
+
+
+#- name: "awslogs | upload temporary awslogs.conf"
+#  template:
+#    src: awslogs.conf.j2
+#    dest: /tmp/awslogs.conf
+#    owner: root
+#    group: root
+#    mode: 0644
+#  when: service_status.stat.exists == false
+#
+
+- name: "awslogs | metadata_facts"
+  ec2_metadata_facts:
+  register: metadata_facts
+
+- set_fact:
+    m_facts: '{{ metadata_facts }}'
+
+- name: "awslogs | install it"
+  script: '{{ awslogs_script_dest }} --region={{ m_facts.ansible_facts.ansible_ec2_placement_region }} --non-interactive -c {{ awslogs_directory }}etc/awslogs.conf'
+  args:
+    executable: python
+    creates: "/etc/init.d/awslogs"
+
+
+- name: "awslogs | configure awslogs proxy configuration"
+  template:
+    src: proxy.conf.j2
+    dest: /var/awslogs/etc/proxy.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: awslogs service restart
+  when: (awslogs_http_proxy is defined) or (awslogs_https_proxy is defined) or (awslogs_noproxy is defined)
+

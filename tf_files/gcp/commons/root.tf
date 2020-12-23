@@ -59,4 +59,8 @@ module "config_files" {
   portal_app             = "${var.portal_app}"
   config_folder          = "${var.config_folder}"
   ssl_certificate_id     = "GCP"
+  aws_user_key           = "es AWS key - ignore"
+  aws_user_key_id        = "es AWS key - ignore"
+  indexd_prefix          = "add later"
+  mailgun_api_key        = "ignore for now"
 }

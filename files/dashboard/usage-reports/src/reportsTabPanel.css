@@ -1,0 +1,40 @@
+ul.g3r-tabpanel__buttonlist {
+    margin: 0;
+    padding: 0;
+}
+ul.g3r-tabpanel__buttonlist {
+    list-style-type: none;
+    /* width: 400px;*/
+    background: whiteSmoke;
+    overflow: auto;
+    margin: 0 auto;
+}
+li.g3r-tabpanel__button {
+    float: left;
+    width: 60px;
+    height: 60px;
+    margin: 0;
+    text-align: center;
+    color: white;
+    background-color: gray;
+    border-radius: 5px 5px 0px 0px;
+    padding-top: 10px;
+}
+
+li.g3r-tabpanel__button_selected {
+  background-color: #ccaaaa;
+}
+
+
+.g3r-tabpanel__tab {
+  display: none;
+}
+
+.g3r-tabpanel__tab_selected {
+  display: block;
+}
+
+.g3r-tabpanel__controller {
+  background-color: #fff;
+}
+

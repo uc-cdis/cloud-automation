@@ -5,6 +5,7 @@
 include_recipe 'g3_base_apt'
 
 apt_repository 'google-apt-repo' do
+  arch  'amd64'
   uri   'https://packages.cloud.google.com/apt'
   key   'https://packages.cloud.google.com/apt/doc/apt-key.gpg'
   distribution "cloud-sdk-bionic"

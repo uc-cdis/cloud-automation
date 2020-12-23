@@ -1,0 +1,15 @@
+
+g3r-table table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid gray;
+}
+
+g3r-table th, g3r-table td {
+  padding: 10px;
+}
+
+g3r-table tr:nth-child(even) {
+  background: #eeeeee;
+}

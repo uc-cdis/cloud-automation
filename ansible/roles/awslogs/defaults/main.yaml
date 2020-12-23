@@ -1,0 +1,35 @@
+---
+awslogs_directory:     /var/awslogs/
+awslogs_download_link: https://s3.amazonaws.com/aws-cloudwatch/downloads/latest/awslogs-agent-setup.py
+awslogs_script_dest:   /tmp/awslogs-agent-setup.py
+awslogs_script_mode:   0600
+awslogs_script_owner:  root
+awslogs_script_group:  root
+
+
+awslogs_config_owner: root
+awslogs_config_group: root
+awslogs_config_mode:  0644
+
+awslogs_unitfile_dest:  /lib/systemd/system/awslogs.service
+awslogs_unitfile_owner: root
+awslogs_unitfile_group: root
+awslogs_unitfile_mode:  0644
+
+
+#awslogs_logs:
+#  - file: /var/log/syslog
+#    format: "%b %d %H:%M:%S"
+#    time_zone: "LOCAL"
+#    initial_position: "end_of_file"
+#    group_name: ""
+#    stream_name: "login_node-syslog-{hostname}-{instance_id}"
+
+
+## Proxy related configuration variables
+# awslogs_http_proxy: http://user:pass@proxy.host:80/
+# awslogs_https_proxy: '{{ awslogs_http_proxy }}'
+# awslogs_noproxy: 127.0.0.1
+awslogs_http_proxy: http://cloud-proxy.internal.io:3128
+awslogs_https_proxy: '{{ awslogs_http_proxy }}'
+awslogs_noproxy: 127.0.0.1,.internal.io

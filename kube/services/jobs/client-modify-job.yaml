@@ -1,0 +1,144 @@
+# Modify the fence client table. Currently use only for appending new urls or allowed-scopes.
+# FIELD_NAME options: "allowed-scopes", "urls"
+# ex: gen3 job run client-modify FIELD_NAME "allowed-scopes" ADD "new_scopes"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: client-modify
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+      - name: yaml-merge
+        configMap:
+          name: "fence-yaml-merge"
+# -----------------------------------------------------------------------------
+# DEPRECATED! Remove when all commons are no longer using local_settings.py
+#             for fence.
+# -----------------------------------------------------------------------------
+      - name: creds-volume
+        secret:
+          secretName: "fence-creds"
+      - name: old-config-volume
+        secret:
+          secretName: "fence-secret"
+      - name: config-helper
+        configMap:
+          name: config-helper
+      - name: json-secret-volume
+        secret:
+          secretName: "fence-json-secret"
+# -----------------------------------------------------------------------------
+      - name: config-volume
+        secret:
+          secretName: "fence-config"
+      - name: fence-google-app-creds-secret-volume
+        secret:
+          secretName: "fence-google-app-creds-secret"
+      - name: fence-google-storage-creds-secret-volume
+        secret:
+          secretName: "fence-google-storage-creds-secret"
+      containers:
+      - name: fence
+        GEN3_FENCE_IMAGE
+        imagePullPolicy: Always
+        env:
+            - name: PYTHONPATH
+              value: /var/www/fence
+            - name: FIELD_NAME
+              GEN3_FIELD_NAME|-value: ""-|
+            - name: ADD
+              GEN3_ADD|-value: ""-|
+            - name: FENCE_PUBLIC_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-fence
+                  key: fence-config-public.yaml
+                  optional: true
+        volumeMounts:
+# -----------------------------------------------------------------------------
+# DEPRECATED! Remove when all commons are no longer using local_settings.py
+#             for fence.
+# -----------------------------------------------------------------------------
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+            subPath: creds.json
+          - name: "old-config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/local_settings.py"
+            subPath: local_settings.py
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/fence/config_helper.py"
+            subPath: config_helper.py
+          - name: "json-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_credentials.json"
+            subPath: fence_credentials.json
+# -----------------------------------------------------------------------------
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py      
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
+            subPath: fence-config.yaml
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"         
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+
+            #need a way to grab all the clients. 
+
+            echo Starting to collect client list     
+
+            CLIENT_LIST=$(fence-create client-list | grep "'name'")
+            CLIENT_LIST=${CLIENT_LIST//"'name': "/}
+            CLIENT_LIST=${CLIENT_LIST//"'"/}
+            CLIENT_LIST=${CLIENT_LIST//","/}
+            CLIENT_LIST=($(echo $CLIENT_LIST | tr " "))
+
+            if [[ -z "$FIELD_NAME" ]]; then
+                echo Cannot update field. FIELD_NAME variable must be sepcified.
+                exit 1 # terminate and indicate error
+            fi
+            if [[ -z "$ADD" ]]; then
+                echo Cannot update field. ADD variable must be sepcified.
+                exit 1 # terminate and indicate error
+            fi
+
+            create_command="fence-create client-modify --append"
+
+            if [[ -n "$FIELD_NAME" ]]; then
+                create_command+=" --$FIELD_NAME"
+            fi
+            if [[ -n "$ADD" ]]; then 
+                create_command+=" $ADD"
+            fi
+
+            for index in "${!CLIENT_LIST[@]}"
+            do
+                $create_command --client ${CLIENT_LIST[index]}
+            done
+
+            if [[ $? != 0 ]]; then
+                echo "WARNING: non zero exit code: $?"
+            fi
+
+      restartPolicy: Never

@@ -1,0 +1,125 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fence-db-migrate
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: useryaml-job
+      volumes:
+        - name: yaml-merge
+          configMap:
+            name: "fence-yaml-merge"
+        - name: config-volume
+          secret:
+            secretName: "fence-config"
+        - name: fence-google-app-creds-secret-volume
+          secret:
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
+        - name: tmp-pod
+          emptyDir: {}
+      initContainers:
+        - name: usersync-disable
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: ""
+            - name: GEN3_NOPROXY
+              value: none
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              echo "disabling usersync before migration"
+              kubectl patch cronjobs usersync -p '{"spec" : {"suspend" : true }}'
+              while [ ! -z "$(kubectl get pods | grep 'usersync\|useryaml' | grep 'Running\|Pending\|ContainerCreating\|ImagePullBackOff\|ErrImagePull')" ]
+              do
+                sleep 5
+                echo "waiting for current usersync to finish"
+              done
+              echo "no usersync containers running"
+      containers:
+      - name: fence
+        GEN3_FENCE_IMAGE
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
+          - name: FENCE_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-fence
+                key: fence-config-public.yaml
+                optional: true
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
+            subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
+          - mountPath: /tmp/pod
+            name: tmp-pod
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            fence-create migrate
+            if [[ $? != 0 ]]; then
+              echo "WARNING: non zero exit code: $?"
+            fi
+            touch /tmp/pod/completed
+      - name: usersync-enable
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+        imagePullPolicy: Always
+        env:
+          - name: gen3Env
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: environment
+          - name: JENKINS_HOME
+            value: ""
+          - name: GEN3_NOPROXY
+            value: none
+        volumeMounts:
+          - mountPath: /tmp/pod
+            name: tmp-pod
+            readOnly: true
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            while [ ! -f /tmp/pod/completed ]
+            do
+              sleep 5
+              echo "waiting for migration to end"
+            done
+            echo "migration completed enabling usersync"
+            kubectl patch cronjobs usersync -p '{"spec" : {"suspend" : false }}'
+      restartPolicy: Never

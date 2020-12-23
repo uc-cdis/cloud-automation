@@ -1,5 +1,5 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fence-deployment
@@ -17,6 +17,10 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /aggregated_metrics
+        prometheus.io/port: "6567"
       labels:
         app: fence
         release: production
@@ -25,6 +29,7 @@ spec:
         # uses explicit proxy and AWS APIs
         netnolimit: "yes"
         public: "yes"
+        userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -45,6 +50,8 @@ spec:
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
 # -----------------------------------------------------------------------------
+        - name: logs-folder
+          emptyDir: {}
         - name: old-config-volume
           secret:
             secretName: "fence-secret"
@@ -73,23 +80,43 @@ spec:
         - name: fence-jwt-keys
           secret:
             secretName: "fence-jwt-keys"
-        - name: fence-yaml
-          configMap:
-            name: fence
         - name: cert-volume
           secret:
             secretName: "cert-fence-service"
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: privacy-policy
+          configMap:
+            name: "privacy-policy"
+        - name: yaml-merge
+          configMap:
+            name: "fence-yaml-merge"
+      securityContext:
+        # nginx group in current images
+        fsGroup: 101
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
         env:
+        - name: GEN3_UWSGI_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: uwsgi-timeout
+              optional: true
+        - name: AWS_STS_REGIONAL_ENDPOINTS
+          value: regional
         - name: PYTHONPATH
           value: /var/www/fence
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
+        - name: FENCE_PUBLIC_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-fence
+              key: fence-config-public.yaml
+              optional: true
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -105,11 +132,14 @@ spec:
         ports:
         - containerPort: 80
         - containerPort: 443
+        - containerPort: 6567
         volumeMounts:
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
 # -----------------------------------------------------------------------------
+          - name: logs-folder
+            mountPath: "/var/log/nginx/"
           - name: "old-config-volume"
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
@@ -131,10 +161,18 @@ spec:
             readOnly: true
             mountPath: "/fence/fence/static/img/logo.svg"
             subPath: "logo.svg"
+          - name: "privacy-policy"
+            readOnly: true
+            mountPath: "/fence/fence/static/privacy_policy.md"
+            subPath: "privacy_policy.md"
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
@@ -143,9 +181,6 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
             subPath: fence_google_storage_creds_secret.json
-          - name: "fence-yaml"
-            mountPath: "/var/www/fence/user.yaml"
-            subPath: user.yaml
           - name: "cert-volume"
             readOnly: true
             mountPath: "/mnt/ssl/service.crt"
@@ -164,6 +199,89 @@ spec:
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
         resources:
-            limits:
-              cpu: 0.3
+            requests:
+              cpu: 0.4
               memory: 1200Mi
+            limits:
+              cpu: 1.0
+              memory: 2400Mi  
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
+      - name: nginx-prometheus-exporter-wrapper
+        GEN3_NGINX_PROMETHEUS_EXPORTER_WRAPPER_IMAGE|-image: quay.io/cdis/nginx-prometheus-exporter-wrapper:pybase3-1.4.0-|
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
+            if [ "$nginx_status_response" != 200 ]; then
+              sleep infinity
+            else
+              /usr/bin/exporter -nginx.scrape-uri http://127.0.0.1/nginx_status
+            fi
+        ports:
+        - containerPort: 9113
+      - name: uwsgi-exporter
+        GEN3_UWSGI_EXPORTER_IMAGE|-image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0-|
+        args: ["--stats.uri", "http://127.0.0.1/uwsgi_status"]
+        ports:
+        - containerPort: 9117
+      - name: nginx-logs-exporter
+        GEN3_NGINX_LOGS_EXPORTER_IMAGE|-image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1-|
+        args: ["/mnt/nginxlogs/access_not_json.log"]
+        ports:
+        - containerPort: 4040
+        volumeMounts:
+        - name: logs-folder
+          mountPath: "/mnt/nginxlogs/"      
+      initContainers:
+      - name: fence-init
+        GEN3_FENCE_IMAGE
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
+          - name: FENCE_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-fence
+                key: fence-config-public.yaml
+                optional: true
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
+            subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            if fence-create migrate --help > /dev/null 2>&1; then
+              if ! grep -E 'ENABLE_DB_MIGRATION"?: *false' /var/www/fence/fence-config.yaml; then
+                echo "Running db migration: fence-create migrate"
+                fence-create migrate
+              else
+                echo "Db migration disabeld in fence-config"
+              fi
+            else
+              echo "Db migration not available in this version of fence"
+            fi

@@ -1,0 +1,41 @@
+# Automatically created by the clamav-freshclam postinst
+# Comments will get lost when you reconfigure the clamav-freshclam package
+
+#mostly stock, slightly templated for the proxy
+
+DatabaseOwner clamav
+UpdateLogFile /var/log/clamav/freshclam.log
+LogVerbose false
+LogSyslog false
+LogFacility LOG_LOCAL6
+LogFileMaxSize 0
+LogRotate true
+LogTime true
+Foreground false
+Debug false
+MaxAttempts 5
+DatabaseDirectory /var/lib/clamav
+#DNSDatabaseInfo current.cvd.clamav.net
+DNSDatabaseInfo false
+AllowSupplementaryGroups false
+PidFile /var/run/clamav/freshclam.pid
+ConnectTimeout 30
+ReceiveTimeout 30
+TestDatabases yes
+ScriptedUpdates yes
+CompressLocalDatabase no
+Bytecode true
+# Check for new database 24 times a day
+Checks 24
+DatabaseMirror db.local.clamav.net
+DatabaseMirror database.clamav.net
+#ks 2017-06-26: Manually setting this for now, due to DNS resolution
+#issue (theirs not ours)
+DatabaseMirror db.us.rr.clamav.net
+
+<% if node.include?'proxy' %>
+  <% if node['proxy'].include?'server' and node['proxy'].include?'port' %>
+HTTPProxyServer <%= node['proxy']['server'] %>
+HTTPProxyPort <%= node['proxy']['port'] %>
+  <% end %>
+<% end %>

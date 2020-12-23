@@ -50,10 +50,10 @@ resource "google_container_cluster" "primary" {
   }
 
   # Setting an empty username and password explicitly disables basic auth
-  master_auth {
-    username = "${var.username}"
-    password = "${var.password}"
-  }
+  #master_auth {
+  #  username = "${var.username}"
+  #  password = "${var.password}"
+  #}
 
   # Duration of the time windows for maintenance
   maintenance_policy {
@@ -78,14 +78,9 @@ resource "google_container_cluster" "primary" {
   resource_labels = "${var.node_labels}"
 
   node_config {
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/compute",
-      "https://www.googleapis.com/auth/devstorage.read_only",
-      "https://www.googleapis.com/auth/logging.write",
-      "https://www.googleapis.com/auth/monitoring",
-    ]
+    oauth_scopes = ["${var.oauth_scopes}"]
 
-    #tags = ["foo", "bar"]
+    tags = ["${var.node_tags}"]
 
     timeouts {
       create = "30m"
@@ -139,24 +134,19 @@ resource "google_container_node_pool" "node_pool" {
   }
 
   node_config {
-    image_type = "COS"
+    image_type = "${var.image_type}"
     labels     = "${var.node_labels}"
 
     #metadata = ""
     #taint = ""
     tags = ["${var.node_tags}"]
-
+  
+    disk_type = "${var.disk_type}"
     disk_size_gb = "${var.disk_size_gb}"
 
-    #disk_type = ""
     preemptible  = "${var.preemptible}"
     machine_type = "${var.environment == "prod" ? var.prod_machine_type : var.dev_machine_type}"
 
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/compute",
-      "https://www.googleapis.com/auth/devstorage.read_only",
-      "https://www.googleapis.com/auth/logging.write",
-      "https://www.googleapis.com/auth/monitoring",
-    ]
+    oauth_scopes =  ["${var.oauth_scopes}" ]
   }
 }

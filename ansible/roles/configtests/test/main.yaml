@@ -1,0 +1,10 @@
+---
+
+# Test file for awslogs
+
+- hosts: dummi
+  #  connection: local
+
+  roles:
+    - configtests
+

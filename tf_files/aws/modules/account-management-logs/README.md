@@ -2,6 +2,9 @@
 
 Create a cloudtrail to send management logs onto S3 and Cloudwatch for an specific account. Also hook the CloudWatchLogGroup created to the CSOC account through a Subscription filter.
 
+2019-09-11
+This module would also deploy a set of security alarms based on Cloudwatch Alerts.
+
 ## 1. QuickStart
 
 ```

@@ -20,10 +20,24 @@ export XDG_RUNTIME_DIR
 
 CURRENT_SHELL="$(echo $SHELL | awk -F'/' '{print $NF}')"
 
+
+GEN3_SECRETS_ROOT="$(cd "${GEN3_HOME}/.." && pwd)"
+
+#check_terraform_module
+
+
 gen3_secrets_folder() {
+  if [[ -n "$GEN3_SECRETS_HOME" ]]; then
+    echo "$GEN3_SECRETS_HOME"
+    return 0
+  fi
   local folderName
   folderName="${vpc_name:-Gen3Secrets}"
-  echo "$WORKSPACE/$folderName"
+  local secretFolder="$GEN3_SECRETS_ROOT/$folderName"
+  if [[ ! -d "$secretFolder" ]]; then
+    secretFolder="$GEN3_SECRETS_ROOT/Gen3Secrets"
+  fi
+  echo "$secretFolder"
 }
 
 (
@@ -86,7 +100,7 @@ semver_ge() {
     else
       exit 1
     fi
-  )
+  ) 1>&2
 }
 
 # vt100 escape sequences - don't forget to pass -e to 'echo -e'
@@ -198,6 +212,11 @@ function random_alphanumeric() {
 # under the assumption that the caller will go on to perform the operation:
 #     if gen3_time_since  "automation_gitsync" is 300; then ...
 #
+# @param operation
+# @param verb should be "is"
+# @param periodSecs
+# @return 0 if time has expired
+#
 function gen3_time_since() {
   local operation
   local periodSecs
@@ -208,7 +227,7 @@ function gen3_time_since() {
   local flagFolder
 
   if [[ $# -lt 3 ]]; then
-    echo -e "$(red_color "ERROR: gen3_time_since_last got $@")" 1>&2
+    gen3_log_err "gen3_time_since got $@"
     return 1
   fi
   operation="$1"
@@ -218,7 +237,7 @@ function gen3_time_since() {
   periodSecs="$1"
   shift
   if ! [[ -n "$operation" && -n "$verb" && "$periodSecs" =~ ^[0-9]+$ ]]; then
-    echo -e "$(red_color "ERROR: gen3_time_since_last got $operation $verb $periodSecs")" 1>&2
+    gen3_log_err "gen3_time_since_last got $operation $verb $periodSecs"
     return 1
   fi
   flagFolder="${GEN3_CACHE_DIR}/flagFiles"
@@ -245,6 +264,12 @@ gen3_log_err() {
 
 gen3_log_info() {
   echo -e "$(green_color "INFO: $(date +%T) -") $*" 1>&2
+}
+
+gen3_log_debug() {
+  if [[ "$GEN3_DEBUG" == "true" ]]; then
+    echo -e "$(green_color "DEBUG: $(date +%T) -") $*" 1>&2
+  fi
 }
 
 gen3_log_warn() {
@@ -302,4 +327,69 @@ gen3_retry() {
 #
 gen3_is_number() {
   [[ $# == 1 && "$1" =~ ^[0-9]+$ ]]
+}
+
+gen3_encode_uri_component() {
+  local codes=(
+    "%" "%25"
+    " " "%20" 
+    "=" "%3D" 
+    "[" "%5B" 
+    "]" "%5D" 
+    "{" "%7B" 
+    "}" "%7D" 
+    '"' "%22"
+    '\?' "%3F"
+    "&" "%26"
+    "," "%2C"
+    "@" "%40"
+    "#" "%23"
+    "$" "%24"
+    "^" "%5E"
+    ";" "%3B"
+    "+" "%2B"
+  )
+  local str="${1:-""}"
+  local it=0
+  (
+    # ugh - zsh!
+    if [[ -z "${BASH_VERSION}" ]]; then
+      set -o BASH_REMATCH  # zsh signal
+      set -o KSH_ARRAYS
+    fi
+
+    for ((it=0; it < ${#codes[@]}; it=it+2)); do
+      str="${str//${codes[$it]}/${codes[$((it+1))]}}"
+    done
+    echo "$str"
+  )
+}
+
+
+#
+# if the module has a manifest, most likely there is a terraform version
+# value that would help us determine which terraform version to use
+#
+check_terraform_module() {
+  local tf_folder="$1"
+  shift || tf_folder="."
+  local module_manifest="$tf_folder/manifest.json"
+  local tversion=""
+  local full_tversion="0.11"
+
+  gen3_log_info "Entering module manifest checks"
+  gen3_log_info "Module loaded ${module_manifest}"
+  if [ -f "${module_manifest}" ]; then
+    full_tversion="$(jq  -r '.terraform.module_version' ${module_manifest})"
+  elif [[ "${tf_folder}" =~ __custom/*$ ]]; then
+    # force __custom scripts to at least terraform 12
+    full_tversion="0.12"
+  fi
+  if [[ "${full_tversion}" == "0.12" ]]; then
+    export tversion=12
+    gen3_log_info "Moving on with terraform ${full_tversion}"
+  else
+    gen3_log_info "Moving on with terraform 0.11.x"
+  fi
+  echo "${tversion}"
 }

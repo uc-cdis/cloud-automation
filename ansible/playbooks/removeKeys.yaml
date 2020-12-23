@@ -1,0 +1,27 @@
+#
+# Playbook to handle keys in a particular host
+#
+# @variables:
+#   _hosts => hosts in which you want the playbook to be applied
+#             it must exists in hosts.yaml
+# Options:
+#   There are multiple ways to handle which kes you want removed from the host you are referencing.
+#     - you can point to a ssh key in github
+#     - you can loop around multiple keys in the keys/ folder
+#     - you can you can just select a single key file in the keys/ folder
+# 
+
+
+#- import_playbook: opsKeysInHost.yaml
+- hosts: "{{ _hosts }}"
+  tasks:
+  - authorized_key:
+      user: "{{ ansible_user_id }}"
+      #user: "{{ _user }}"
+      state: absent
+      #      key: '{{ lookup(''file'', ''../keys/kyle'') }}'
+      key: '{{ lookup(''file'', item ) }}'
+      #key: '{{ lookup(''url'', ''https://github.com/'' + item) }}'
+    loop:
+      - ../keys/jmazzone
+      # - user.keys 

@@ -1,0 +1,47 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: bucket-replication#PLACEHOLDER#
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: sa-#SA_NAME_PLACEHOLDER#
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "bucketreplicate-g3auto"
+      containers:
+      - name: aws-bucket-replicate
+        GEN3_AWS-BUCKET-MANIFEST_IMAGE|-image: quay.io/cdis/bucket-replicate:master-|
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: REGION
+          GEN3_REGION|-value: "us-east-1"-|
+        - name: SOURCE_BUCKET
+          GEN3_SOURCE_BUCKET
+        - name: DESTINATION_BUCKET
+          GEN3_DESTINATION_BUCKET
+        - name: JOB_QUEUE
+          GEN3_JOB_QUEUE
+        - name: JOB_DEFINITION
+          GEN3_JOB_DEFINITION
+        volumeMounts:
+          - name: "cred-volume"
+            mountPath: "/bucket-replicate/creds.json"
+            subPath: "creds.json"
+        resources:
+          limits:
+            cpu: 1
+            memory: 1Gi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            python batch_jobs/bin/run_bucket_replicate_job.py replicate-bucket --source_bucket $SOURCE_BUCKET --destination_bucket $DESTINATION_BUCKET --job_queue ${JOB_QUEUE} --job_definition ${JOB_DEFINITION}
+            echo "All done - exit status $?"
+      restartPolicy: Never

@@ -1,10 +1,11 @@
 #
 # run with:
-# gen3 runjob gentestdata \
+# gen3 job run gentestdata \
 # SUBMISSION_USER submission_user \
 # TEST_PROGRAM "" \
 # TEST_PROJECT "" \
 # MAX_EXAMPLES "" \
+# GEN3_SUBMISSION_ORDER "" \
 # NOTE: "" indicates an optional argument. Leave as "" for default
 #
 # SUBMISSION_USER
@@ -16,6 +17,9 @@
 # MAX_EXAMPLES(optional)
 #   Number of maximum examples for each node. Default 100
 #
+# GEN3_SUBMISSION_ORDER(optional)
+#   Node that defines the order of the data submission. Default SUR (submitted_unaligned_reads)
+#
 # Example
 # gen3 job run gentestdata TEST_PROGRAM jnkns TEST_PROJECT jenkins MAX_EXAMPLES 10 SUBMISSION_USER cdis.autotest@gmail.com
 #
@@ -24,7 +28,7 @@ kind: Job
 metadata:
   name: gentestdata
 spec:
-  # not yet supported - backOffLimit: 3
+  backoffLimit: 0
   template:
     metadata:
       labels:
@@ -32,6 +36,9 @@ spec:
     spec:
       serviceAccountName: useryaml-job
       volumes:
+        - name: yaml-merge
+          configMap:
+            name: "fence-yaml-merge"
         - name: shared-data
           emptyDir: {}
 # -----------------------------------------------------------------------------
@@ -80,6 +87,8 @@ spec:
             GEN3_TEST_PROJECT|-value: "test"-|
           - name: MAX_EXAMPLES
             GEN3_MAX_EXAMPLES|-value: "10"-|
+          - name: SUBMISSION_ORDER
+            GEN3_SUBMISSION_ORDER|-value: "submitted_unaligned_reads"-|
         volumeMounts:
           - name: shared-data
             mountPath: /mnt/shared
@@ -97,6 +106,9 @@ spec:
             mkdir -p /TestData
             data-simulator simulate --url $DICTIONARY_URL --path /TestData --program $TEST_PROGRAM --project $TEST_PROJECT --max_samples $MAX_EXAMPLES
 
+            echo "define submission order"
+            data-simulator submission_order --url $DICTIONARY_URL --path /TestData --node_name $SUBMISSION_ORDER
+
             echo "Preparing to submit data"
             data-simulator submitting_data --host https://$HOSTNAME --dir /TestData/ --project "$TEST_PROGRAM/$TEST_PROJECT" --access_token /mnt/shared/access_token.txt
             echo "All Done - always succeed to avoid k8s retries"
@@ -108,6 +120,12 @@ spec:
             value: /var/www/fence
           - name: SUBMISSION_USER
             GEN3_SUBMISSION_USER|-value: "reubenonrye@uchicago.edu"-|
+          - name: FENCE_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-fence
+                key: fence-config-public.yaml
+                optional: true
         volumeMounts:
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
@@ -132,8 +150,12 @@ spec:
 # -----------------------------------------------------------------------------
           - name: "config-volume"
             readOnly: true
-            mountPath: "/var/www/fence/fence-config.yaml"
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
             subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
           - name: "fence-jwt-keys"
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
@@ -144,6 +166,8 @@ spec:
         args:
             - "-c"
             - |
+              echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+              python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
               if [ -f /fence/jwt-keys.tar ]; then
                 cd /fence
                 tar xvf jwt-keys.tar

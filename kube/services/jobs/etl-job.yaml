@@ -4,6 +4,7 @@ kind: Job
 metadata:
   name: etl
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:
@@ -16,6 +17,9 @@ spec:
       - name: etl-mapping
         configMap:
           name: etl-mapping
+      - name: fence-yaml
+        configMap:
+          name: fence
       containers:
       - name: tube
         imagePullPolicy: Always
@@ -41,7 +45,7 @@ spec:
         - name: SPARK_DRIVER_MEMORY
           value: 6g
         - name: ETL_FORCED
-          GEN3_ETL_FORCED|-value: "false"-|
+          GEN3_ETL_FORCED|-value: "TRUE"-|
         volumeMounts:
           - name: "creds-volume"
             readOnly: true
@@ -51,10 +55,14 @@ spec:
             readOnly: true
             mountPath: "/gen3/tube/etlMapping.yaml"
             subPath: "etlMapping.yaml"
+          - name: "fence-yaml"
+            readOnly: true
+            mountPath: "/gen3/tube/user.yaml"
+            subPath: user.yaml
         resources:
           limits:
             cpu: 1
-            memory: 12Gi
+            memory: 10Gi
         command: ["/bin/bash" ]
         args:
           - "-c"
@@ -65,5 +73,7 @@ spec:
             else
               python run_config.py && python run_etl.py
             fi
-            echo "All done - exit status $?"
+            exitcode=$?
+            echo "Exit code: $exitcode"
+            exit "$exitcode"
       restartPolicy: Never

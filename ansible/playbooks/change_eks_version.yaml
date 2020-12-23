@@ -1,0 +1,9 @@
+
+#path="~/.local/share/gen3/\$(grep profile .aws/config  |awk '{print \$2}'| cut -d] -f1 |head -n1)/\$(grep 'vpc_name=' \$HOME/.bashrc |cut -d\' -f2)_eks/config.tfvars" -a "regexp='eks_version.*'" -a 'line=eks_version="1.13"'
+
+
+- name: Change eks version in config.tfvars
+  lineinfile:
+    path: '{ _path }'
+    regexp: 'eks_version.*'
+    line: eks_version="'{ _version }'"

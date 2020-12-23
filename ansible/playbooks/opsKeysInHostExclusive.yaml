@@ -1,0 +1,13 @@
+#
+# Playbook to be ran like:
+#  ansible-playbook playbooks/opsKeysInHostExclusive.yaml -e _user=root -e _hosts=adminvms --become
+# 
+
+- hosts: "{{ _hosts }}"
+  tasks:
+  - authorized_key:
+      user: "{{ _user }}"
+      state: present
+      manage_dir: true
+      exclusive: true
+      key: '{{ lookup(''file'', ''~/planX/cloud-automation/files/authorized_keys/ops_team'') }}'

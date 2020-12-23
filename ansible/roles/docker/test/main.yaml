@@ -1,0 +1,9 @@
+---
+
+# Test file for awslogs
+
+- hosts: dummi
+
+  roles:
+    - docker
+

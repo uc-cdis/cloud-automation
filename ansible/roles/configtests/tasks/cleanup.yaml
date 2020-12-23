@@ -1,0 +1,9 @@
+---
+
+- name: "awslogs | remove installation files"
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /tmp/awslogs.conf
+    - /tmp/awslogs-agent-setup.py

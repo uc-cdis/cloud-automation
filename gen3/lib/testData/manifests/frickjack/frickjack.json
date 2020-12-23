@@ -1,0 +1,43 @@
+{
+  "user-namespace": "jupyter-pods",
+  "sub-dir": "/lw-workspace",
+  "user-volume-size": "10Gi",
+  "sidecar": {
+    "cpu-limit": "1.0",
+    "memory-limit": "256Mi",
+    "image": "quay.io/cdis/gen3fuse-sidecar:chore_sidecar",
+    "env": {
+      "NAMESPACE": "default",
+      "HOSTNAME": "jenkins-brain.planx-pla.net"
+    },
+    "args": [],
+    "command": [
+      "/bin/bash",
+      "/sidecarDockerrun.sh"
+    ],
+    "lifecycle-pre-stop": [
+      "su",
+      "-c",
+      "echo test",
+      "-s",
+      "/bin/sh",
+      "root"
+    ]
+  },
+  "containers": [
+    {
+      "target-port": 8787,
+      "cpu-limit": "1.0",
+      "memory-limit": "512Mi",
+      "name": "R Studio",
+      "image": "heliumdatastage/rstudio-server:1",
+      "env": {
+        "DISABLE_AUTH": "true"
+      },
+      "args": [],
+      "path-rewrite": "/",
+      "use-tls": "false",
+      "ready-probe": "/"
+    }
+  ]
+}

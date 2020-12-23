@@ -251,6 +251,32 @@ def nice_it(r_data):
     return individuals
     
 
+##
+#
+# send_to_logDNA function that invokes amother lambda function, in this case specifically, our logDNA lambda function
+#
+# @var payload String log stream to send
+# 
+# @return null
+#
+##
+
+def send_to_logDNA(payload):
+
+
+    try:
+        # if there is no threshold, let's not even check
+        if os.environ.get('log_dna_function') is not None and re.search("^arn:aws:lambda:[a-zA-Z0-9\-]*:[0-9]{12}:function:[a-z0-9_\-]*$",os.environ.get('log_dna_function')):
+            log_dna_function = os.environ.get('log_dna_function')
+            lambda_client = boto3.client('lambda')
+            lambda_client.invoke_async(
+                FunctionName = log_dna_function,
+                InvokeArgs = payload
+            )
+    except Exception as e:
+        # for debuggin only, otherwise useless
+        print(e)
+
 
 def handler(event, context):
     if os.environ.get('stream_name') is not None:
@@ -261,6 +287,12 @@ def handler(event, context):
     for record in event['Records']:
         compressed_record_data = record['kinesis']['data']
         record_data = nice_it(json.loads(zlib.decompress(base64.b64decode(compressed_record_data), 16+zlib.MAX_WBITS).decode('utf-8')))
+
+        ## for logDNA
+        data_kinesis = { "awslogs" : { "data": compressed_record_data } }
+        send_to_logDNA(json.dumps(data_kinesis))
+        ##
+
         #record_data = nice_it(record_data)
         for log_event_chunk in chunker(record_data, MESSAGE_BATCH_MAX_COUNT):
             message_batch = [{'Data': json.dumps(x)} for x in log_event_chunk]

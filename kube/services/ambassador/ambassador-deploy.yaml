@@ -1,19 +1,29 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ambassador-deployment
 spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: ambassador
   template:
     metadata:
       annotations:
         sidecar.istio.io/inject: "false"
         "consul.hashicorp.com/connect-inject": "false"
+        # see: https://github.com/helm/charts/tree/master/stable/prometheus
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8877"
       labels:
+        app: ambassador
         service: ambassador
         public: "yes"
         netnolimit: "yes"
         userhelper: "yes"
+        GEN3_DATE_LABEL
     spec:
       affinity:
         podAntiAffinity:

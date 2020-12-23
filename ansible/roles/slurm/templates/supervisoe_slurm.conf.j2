@@ -1,0 +1,11 @@
+[program:munged]
+user=munge
+command=/usr/sbin/munged --foreground --syslog
+stdout_logfile=/var/log/munge/munge.log
+redirect_stderr=true
+[program:slurmctld]
+command=slurmctld -D
+redirect_stderr=true
+[program:slurmdbd]
+command=slurmdbd -Dvvvv
+redirect_stderr=true

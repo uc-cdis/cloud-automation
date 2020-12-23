@@ -1,0 +1,5 @@
+---
+- name: Enable service awslogs, and not touch the state
+  service:
+    name: awslogs
+    enabled: yes

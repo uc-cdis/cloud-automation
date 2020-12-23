@@ -1,3 +1,8 @@
+#####################################################
+# DO NOT CHANGE THIS FILE                           #
+# config updates should be done in the service code #
+#####################################################
+
 from sheepdog.api import app, app_init
 from os import environ
 import config_helper
@@ -12,6 +17,10 @@ config = app.config
 config["AUTH"] = 'https://auth.service.consul:5000/v3/'
 config["AUTH_ADMIN_CREDS"] = None
 config["INTERNAL_AUTH"] = None
+
+# ARBORIST deprecated, replaced by ARBORIST_URL
+# ARBORIST_URL is initialized in app_init() directly
+config["ARBORIST"] = "http://arborist-service/"
 
 # Signpost: deprecated, replaced by index client.
 config['SIGNPOST'] = {

@@ -1,0 +1,38 @@
+
+# ------------------------------------------
+# CONFIGURATION DETAILS
+# ------------------------------------------
+
+[general]
+# Path to the CloudWatch Logs agent's state file. The agent uses this file to maintain
+# client side state across its executions.
+state_file = /var/awslogs/state/agent-state
+
+
+{% for log in awslogs_logs %}
+[{{ log.file }}]
+{% if log.time_zone is defined %}
+time_zone = {{ log.time_zone }}
+{% endif %}
+{% if log.format is defined %}
+datetime_format = {{ log.format }}
+{% endif %}
+{% if log.initial_position is defined %}
+initial_position = {{ log.initial_position }}
+{% endif %}
+file = {{ log.file }}
+{% if log.buffer_duration is defined %}
+buffer_duration = {{ log.buffer_duration }}
+{% else %}
+buffer_duration = 5000
+{% endif %}
+{% if log.file_fingerprint_lines is defined %}
+file_fingerprint_lines = {{ log.file_fingerprint_lines }}
+{% endif %}
+log_group_name = '{{ i_facts.instances[0].tags.Environment }}'
+log_stream_name = {{ log.stream_name }}
+{% if log.multi_line_start_pattern is defined %}
+multi_line_start_pattern = {{ log.multi_line_start_pattern }}
+{% endif %}
+
+{% endfor %}

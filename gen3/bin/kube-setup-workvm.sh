@@ -5,7 +5,6 @@
 # Assumes 'sudo' access.
 #
 
-vpc_name="${vpc_name:-${1:-unknown}}"
 s3_bucket="${s3_bucket:-${2:-unknown}}"
 
 # Make it easy to run this directly ...
@@ -13,6 +12,14 @@ _setup_workvm_dir="$(dirname -- "${BASH_SOURCE:-$0}")"
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_setup_workvm_dir}/../.." && pwd)}"
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/gen3setup"
+
+#
+# We want kube-setup-workvm to run even if vpc_name
+# is not configured, but kube-setup-init will bomb out
+# if it cannot derive the vpc_name
+#
+vpc_name="${vpc_name:-"$(gen3 api environment || echo unknown)"}"
 gen3_load "gen3/lib/kube-setup-init"
 
 if [[ -n "$JENKINS_HOME" ]]; then
@@ -23,17 +30,17 @@ fi
 if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   # -E passes through *_proxy environment
   sudo -E apt-get update
-  sudo -E apt-get install -y git jq pwgen python-dev python-pip unzip
-  sudo -E XDG_CACHE_HOME=/var/cache python -m pip install --upgrade pip
-  sudo -E XDG_CACHE_HOME=/var/cache python -m pip install awscli --upgrade
+  sudo -E apt-get install -y git jq pwgen python-dev python-pip unzip python3-dev python3-pip python3-venv 
+  sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install --upgrade pip
+  sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install awscli --upgrade
   # jinja2 needed by render_creds.py
-  sudo -E XDG_CACHE_HOME=/var/cache python -m pip install jinja2
+  sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install jinja2
   # yq === jq for yaml
-  sudo -E XDG_CACHE_HOME=/var/cache python -m pip install yq
+  sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install yq
 
   # install nodejs
   if ! which node > /dev/null 2>&1; then
-    curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
     sudo -E apt-get update
     sudo -E apt-get install -y nodejs
   fi
@@ -82,6 +89,15 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       /bin/rm "${XDG_RUNTIME_DIR}/terraform.zip"
     }
 
+    install_terraform12() {
+      mkdir "${XDG_RUNTIME_DIR}/t12"
+      curl -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.29/terraform_0.12.29_linux_amd64.zip
+      sudo /bin/rm -rf /usr/local/bin/terraform12 > /dev/null 2>&1 || true
+      unzip "${XDG_RUNTIME_DIR}/t12/terraform12.zip" -d "${XDG_RUNTIME_DIR}/t12";
+      sudo cp "${XDG_RUNTIME_DIR}/t12/terraform" "/usr/local/bin/terraform12"
+      /bin/rm -rf "${XDG_RUNTIME_DIR}/t12"
+    }
+
     if ! which terraform > /dev/null 2>&1; then
       install_terraform  
     else
@@ -90,23 +106,98 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
         install_terraform
       fi
     fi
+    if ! which terraform12 > /dev/null 2>&1; then
+      install_terraform12  
+    else
+      T12_VERSION=$(terraform12 --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
+      if ! semver_ge "$T12_VERSION" "0.12.29"; then
+        install_terraform12
+      fi
+    fi
   )
+
+  if [[ -f /etc/systemd/timesyncd.conf ]] \
+    && ! grep 169.254.169.123 /etc/systemd/timesyncd.conf > /dev/null \
+    && curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > /dev/null; then
+      (
+      gen3_log_info "updating /etc/systemd/timesyncd.conf to use aws ntp"
+      # update ntp to work on AWS in private subnet
+      sudo cp /etc/systemd/timesyncd.conf /etc/systemd/timesyncd.conf.bak
+      sudo bash -c 'cat - > /etc/systemd/timesyncd.conf' <<EOM
+#  Installed by gen3 kube-setup-workvm
+#  This file is part of systemd.
+#
+#  systemd is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU Lesser General Public License as published by
+#  the Free Software Foundation; either version 2.1 of the License, or
+#  (at your option) any later version.
+#
+# Entries in this file show the compile time defaults.
+# You can change settings by editing this file.
+# Defaults can be restored by simply deleting this file.
+#
+# See timesyncd.conf(5) for details.
+
+[Time]
+NTP=169.254.169.123
+#FallbackNTP=ntp.ubuntu.com
+RootDistanceMaxSec=5
+PollIntervalMinSec=32
+PollIntervalMaxSec=2048
+EOM
+    sudo systemctl restart systemd-timesyncd
+    )
+  fi
   if ! which packer > /dev/null 2>&1; then
-    curl -o "${XDG_RUNTIME_DIR}/packer.zip" https://releases.hashicorp.com/packer/1.2.1/packer_1.2.1_linux_amd64.zip
+    curl -o "${XDG_RUNTIME_DIR}/packer.zip" https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
     sudo unzip "${XDG_RUNTIME_DIR}/packer.zip" -d /usr/local/bin
     /bin/rm "${XDG_RUNTIME_DIR}/packer.zip"
   fi
-  if ! which heptio-authenticator-aws > /dev/null 2>&1; then
-    curl -Lo "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.3.0/heptio-authenticator-aws_0.3.0_linux_amd64
-    sudo mv "${XDG_RUNTIME_DIR}/heptio-authenticator-aws" /usr/local/bin
-    sudo chmod +x /usr/local/bin/heptio-authenticator-aws
+  # https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
+  if ! which aws-iam-authenticator > /dev/null 2>&1; then
+    (
+      gen3_log_info "installing aws-iam-authenticator"
+      cd /usr/local/bin
+      sudo curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.8/2020-09-18/bin/linux/amd64/aws-iam-authenticator
+      sudo chmod a+rx ./aws-iam-authenticator
+      sudo rm /usr/local/bin/heptio-authenticator-aws || true
+      # link heptio-authenticator-aws for backward compatability with old scripts
+      sudo ln -s /usr/local/bin/aws-iam-authenticator heptio-authenticator-aws
+    )
   fi
-  if ! which helm > /dev/null 2>&1; then
-    helm_release_URL="https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz"
-    curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
-    tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
-    sudo mv "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
-  fi
+  ( # in a subshell install helm
+    install_helm() {
+      helm_release_URL="https://get.helm.sh/helm-v3.3.0-linux-amd64.tar.gz"
+      curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
+      tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
+      sudo mv -f "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
+
+      # helm3 has no default repo, need to add it manually
+      helm repo add stable https://kubernetes-charts.storage.googleapis.com
+      helm repo update
+    }
+
+    migrate_helm() {
+      if ! helm plugin list | grep 2to3 > /dev/null 2>&1; then
+        helm plugin install https://github.com/helm/helm-2to3.git
+      fi
+      helm 2to3 convert grafana
+      helm 2to3 convert prometheus
+      
+      # delete tiller and other helm2 data/configs
+      helm 2to3 cleanup --skip-confirmation
+    }
+
+    if ! which helm > /dev/null 2>&1; then
+      install_helm
+    else 
+      # Overwrite helm2 with helm3
+      if ! helm version --short | grep v3 > /dev/null 2>&1; then
+        install_helm
+        migrate_helm || true
+      fi
+    fi
+  )
 
   # install "update and reboot" cron job
   sudo cp "${GEN3_HOME}/files/scripts/updateAndRebootCron" /etc/cron.d/
@@ -156,13 +247,15 @@ EOF
   fi
 
 # a user login should only work with one vpc
-if [[ "$vpc_name" != "unknown" ]] && ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
+if [[ -n "$vpc_name" && "$vpc_name" != "unknown" ]] && ! grep 'vpc_name=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
   cat - >>${WORKSPACE}/.${RC_FILE} <<EOF
 export vpc_name='$vpc_name'
 export s3_bucket='$s3_bucket'
 
 if [ -f "${WORKSPACE}/\$vpc_name/kubeconfig" ]; then
   export KUBECONFIG="${WORKSPACE}/\$vpc_name/kubeconfig"
+elif [ -f "${WORKSPACE}/Gen3Secrets/kubeconfig" ]; then
+  export KUBECONFIG="${WORKSPACE}/Gen3Secrets/kubeconfig"
 fi
 
 EOF
@@ -190,3 +283,10 @@ credential_source = Ec2InstanceMetadata
 EOF
   fi
 fi
+
+(
+  cd "$GEN3_HOME"
+  if [[ -f ./package.json ]]; then
+    npm install || true
+  fi
+)

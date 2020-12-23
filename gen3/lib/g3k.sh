@@ -19,16 +19,6 @@ patch_kube() {
   g3kubectl patch deployment "$depName" -p   "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 }
 
-#
-# Patch replicas
-#
-g3k_replicas() {
-  if [[ -z "$1" || -z "$2" ]]; then
-    echo -e $(red_color "g3k replicas deployment-name replica-count")
-    return 1
-  fi
-  g3kubectl patch deployment $1 -p  '{"spec":{"replicas":'$2'}}'
-}
 
 get_pod() {
   local pod
@@ -53,10 +43,18 @@ get_pods() {
 }
 
 update_config() {
-  if g3kubectl get configmap $1 > /dev/null 2>&1; then
-    g3kubectl delete configmap $1
+  local name="$1"
+  local args=()
+
+  shift
+  if g3kubectl get configmap "$name" > /dev/null 2>&1; then
+    g3kubectl delete configmap "$name"
   fi
-  g3kubectl create configmap $1 --from-file $2
+  local it
+  for it in "$@"; do
+    args+=("--from-file=${it##*/}=${it}")
+  done
+  g3kubectl create configmap "$name" "${args[@]}"
 }
 
 
@@ -87,14 +85,11 @@ g3k() {
       "random")
         random_alphanumeric "$@"
         ;;
-      "replicas")
-        g3k_replicas "$@"
-        ;;
       "update_config")
         update_config "$@"
         ;;
       *)
-        echo "ERROR: unknown command (g3k): $command"
+        gen3_log_err "unknown command (g3k): $command"
         exit 2
         ;;
       esac

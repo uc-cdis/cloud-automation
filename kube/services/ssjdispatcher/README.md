@@ -5,7 +5,7 @@ The SQS S3 Job Dispatcher is designed for centralizing all gen3 jobs. It monitor
 To create the service in a Commons that doesn't have ssjdispatcher before, you will need to:
 ```
 PULL LATEST CLOUD-AUTOMATION
-kubectl delete secret ssjdispatcher_creds
+kubectl delete secret ssjdispatcher-creds
 gen3 kube-setup-networkpolicy
 gen3 kube-setup-ssjdispatcher
 ```

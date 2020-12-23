@@ -1,14 +1,11 @@
 
 test_secrets() {
-  #
-  # this should force gen3_secrets_folder over to a test folder
-  # note - Jenkins may run multiple copies of this test in parallel
-  #
-  export vpc_name="testSecrets"
   export WORKSPACE="$XDG_RUNTIME_DIR/testSecretsWorkspace-$$"
+  export GEN3_SECRETS_HOME="$WORKSPACE/Gen3Secrets"
+
   unset JENKINS_HOME
-  [[ "$(gen3_secrets_folder)" == "$WORKSPACE/$vpc_name" ]]; because $? "setting vpc_name should affect secrets folder"
-  if [[ ! "$(gen3_secrets_folder)" == "$WORKSPACE/$vpc_name" ]]; then
+  [[ "$(gen3_secrets_folder)" == "$WORKSPACE/Gen3Secrets" ]]; because $? "got expected secrets folder $(gen3_secrets_folder)"
+  if [[ ! "$(gen3_secrets_folder)" == "$WORKSPACE/Gen3Secrets" ]]; then
     # tests below are destructive - do not run if not in test folder
     gen3_log_err "test_secrets" "bailing out - unexpected secrets folder location: $(gen3_secrets_folder)"
     return 1
@@ -34,8 +31,8 @@ EOM
   find "$(gen3_secrets_folder)"
   gen3 secrets sync; because $? "secrets sync should have non-zero exit code"
   [[ -d "$(gen3_secrets_folder)/.git" ]]; because $? "secrets sync initializes git if necessary"
-  [[ -d "$WORKSPACE/backup" ]]; because $? "secrets syncc initializes backup if necessary"
-  gen3 secrets commit; because $? "commit should not be necessary after sync - should be ok"
+  [[ -d "$WORKSPACE/backup" ]]; because $? "secrets sync initializes backup if necessary"
+  gen3 secrets commit; because $? "2nd commit should not be necessary - should be ok"
   ! gen3 secrets decode bogus; because $? "secrets decode should fail on bogus secret"
   ! gen3 secrets decode testservice-g3auto bogus; because $? "secrets decode should fail on bogus key"
   gen3 secrets decode testservice-g3auto frickjack.txt; because $? "secrets decode should succeed on valid key"

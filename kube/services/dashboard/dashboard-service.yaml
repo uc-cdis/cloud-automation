@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: dashboard
+  name: dashboard
+spec:
+  ports:
+  - protocol: TCP
+    port: 4000
+    targetPort: 4000 
+    name: dashboard
+  selector:
+    app: dashboard

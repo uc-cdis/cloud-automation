@@ -8,11 +8,11 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-gen3 kube-setup-secrets
+[[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   # Initialize fence database and user list
-  cd "${WORKSPACE}/${vpc_name}"
+  cd "$(gen3_secrets_folder)"
   if [[ ! -f .rendered_fence_db ]]; then
     gen3 job run fencedb-create
     echo "Waiting 10 seconds for fencedb-create job"

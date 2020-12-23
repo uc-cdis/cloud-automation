@@ -6,11 +6,12 @@ metadata:
     service: ambassador-admin
   name: ambassador-admin
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
   - name: ambassador-admin
     port: 8877
     targetPort: 8877
+    nodePort: null
   selector:
     service: ambassador
 ---

@@ -1,0 +1,12 @@
+[default]
+output = json
+region = {{ i_facts.instances[0].placement.availability_zone[-1] }}
+role_session_name = gen3-adminvm
+role_arn = arn:aws:iam::{{ i_facts.instances[0].network_interfaces[0].owner_id }}:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata
+[profile {{ i_facts.instances[0].network_interfaces[0].private_ip_addresses[0].association[0].ip_owner_id }}]
+output = json
+region = {{ i_facts.instances[0].placement.availability_zone[-1] }}
+role_session_name = gen3-adminvm
+role_arn = arn:aws:iam::{{ i_facts.instances[0].network_interfaces[0].owner_id }}:role/csoc_adminvm
+credential_source = Ec2InstanceMetadata

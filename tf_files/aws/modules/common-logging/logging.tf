@@ -5,7 +5,7 @@ resource "aws_s3_bucket" "common_logging_bucket" {
   bucket = "${var.common_name}-logging"
   acl    = "private"
 
-  tags {
+  tags = {
     Environment  = "${var.common_name}"
     Organization = "Basic Service"
   }
@@ -61,7 +61,7 @@ resource "aws_kinesis_stream" "common_stream" {
   name        = "${var.common_name}_stream"
   shard_count = 1
 
-  tags {
+  tags = {
     Environment  = "${var.common_name}"
     Organization = "Basic Service"
   }
@@ -232,7 +232,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
 
 resource "aws_cloudwatch_log_group" "csoc_common_log_group" {
   name = "${var.common_name}"
-  tags {
+  tags = {
     Environment = "${var.common_name}"
     Organization = "Basic Services"
   }
@@ -353,6 +353,18 @@ data "aws_iam_policy_document" "lamda_policy_document" {
       "${aws_kinesis_firehose_delivery_stream.firehose_to_s3.arn}",
     ]
   }
+
+  statement {
+    actions = [
+      "lambda:InvokeFunction"
+    ]
+
+    resources = [
+       "${var.log_dna_function}"
+    ]
+
+    effect = "Allow"
+  }
 }
 
 resource "aws_iam_role_policy" "lambda_policy" {
@@ -385,21 +397,22 @@ resource "aws_lambda_function" "logs_decodeding" {
   handler       = "lambda_function.handler"
 
   source_code_hash = "${data.archive_file.lambda_function.output_base64sha256}"
-  description      = "Decode incoming stream"
+  description      = "Decode incoming log stream"
   runtime          = "python3.6"
-  timeout          = 60
+  timeout          = "${var.timeout}" #300
+  memory_size      = "${var.memory_size}"
 
   tracing_config {
     mode = "PassThrough"
   }
 
   environment {
-    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}" } 
+    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}", log_dna_function = "${var.log_dna_function}" }
   }
 
-  lifecycle {
-    ignore_changes = ["memory_size"]
-  }
+  #lifecycle {
+  #  ignore_changes = ["memory_size"]
+  #}
 }
 
 ############################ End Lambda function  ############################

@@ -1,0 +1,18 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: ambassador-gen3-service
+  annotations:
+    getambassador.io/config: ""
+spec:
+  selector:
+    app: ambassador-gen3
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  - port: 443
+    targetPort: 8080
+    name: https
+  type: ClusterIP

@@ -1,0 +1,166 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pcdcanalysistools-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: pcdcanalysistools
+      release: production
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: pcdcanalysistools
+        release: production
+        public: "yes"
+        # to download dictionary
+        s3: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - pcdcanalysistools
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "pcdcanalysistools-secret"
+        - name: creds-volume
+          secret:
+            secretName: "sheepdog-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
+        - name: cert-volume
+          secret:
+            secretName: "cert-pcdcanalysistools-service"
+        - name: ca-volume
+          secret:
+            secretName: "service-ca"
+        - name: analysis-jwt-keys
+          secret:
+            secretName: "analysis-jwt-keys-g3auto"
+            items:
+              - key: jwt_private_key.pem
+                path: jwt_private_key.pem
+      # pcdcanalysistools transactions take forever -
+      # try to let the complete before termination
+      terminationGracePeriodSeconds: 50
+      containers:
+        - name: pcdcanalysistools
+          GEN3_PCDCANALYSISTOOLS_IMAGE
+          livenessProbe:
+            httpGet:
+              path: /_status?timeout=20
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /_status?timeout=2
+              port: 80
+          ports:
+          - containerPort: 80
+          - containerPort: 443
+          env:
+          - name: DICTIONARY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: dictionary_url
+          # Signpost is deprecated; replace this w INDEX_CLIENT_HOST block
+          - name: SIGNPOST_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: INDEX_CLIENT_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: FENCE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: fence_url
+                optional: true
+          - name: ARBORIST_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
+                optional: true
+          - name: AUTH_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: auth_namespace
+                optional: true
+          - name: REQUESTS_CA_BUNDLE
+            #
+            # override python 'requests' SSL certificate bundle
+            # to use system trusted certs
+            # which includes our private certificate authority
+            #
+            value: /etc/ssl/certs/ca-certificates.crt
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+          volumeMounts:
+            - name: "config-volume"
+              readOnly: true
+              mountPath: "/var/www/PcdcAnalysisTools/wsgi.py"
+              subPath: "wsgi.py"
+            - name: "creds-volume"
+              readOnly: true
+              mountPath: "/var/www/PcdcAnalysisTools/creds.json"
+              subPath: creds.json
+            - name: "config-helper"
+              readOnly: true
+              mountPath: "/var/www/PcdcAnalysisTools/config_helper.py"
+              subPath: config_helper.py
+            - name: "cert-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/service.crt"
+              subPath: "service.crt"
+            - name: "cert-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/service.key"
+              subPath: "service.key"
+            - name: "ca-volume"
+              # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
+              readOnly: true
+              mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
+              subPath: "ca.pem"
+            - name: "analysis-jwt-keys"
+              readOnly: true
+              mountPath: "/var/www/PcdcAnalysisTools/jwt_private_key.pem"
+              subPath: "jwt_private_key.pem"
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 0.8
+              memory: 1024Mi
+            limits:
+              cpu: 2
+              memory: 2048Mi
+

@@ -1,0 +1,25 @@
+---
+
+- name: "adminvm | install packages"
+  apt:
+    name: '{{ item }}'
+    state: present
+  loop:
+    - jq
+    - python3-pip
+    - aptitude
+  become: yes
+
+- name: "adminvm | install dependencies"
+  pip:
+    name: '{{ item }}'
+    executable: pip3
+  loop:
+    - awscli
+    - boto
+    - boto3
+    - yq
+  environment: 
+    http_proxy: "{{ http_proxy }}:{{ http_proxy_port }}"
+    https_proxy: "{{ https_proxy }}:{{ https_proxy_port }}"
+  become: yes

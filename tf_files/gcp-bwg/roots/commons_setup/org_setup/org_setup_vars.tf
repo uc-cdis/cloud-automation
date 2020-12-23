@@ -5,7 +5,7 @@ variable "org_id" {
 }
 
 variable "env" {
-    description = "Environment variable."
+  description = "Environment variable."
 }
 
 variable "project_name" {
@@ -31,6 +31,18 @@ variable "prefix_org_setup" {
 
 variable "prefix_project_setup" {
   default = "project_setup"
+}
+
+variable "state_bucket_name_csoc" {
+  description = "Terraform state bucketname in the CSOC."
+}
+
+variable "prefix_org_setup_csoc" {
+  description = "Terraform state folder name in the CSOC."
+}
+
+variable "tf_state_org_setup_csoc" {
+  description = "Terraform state file name in the CSOC for Organization."
 }
 
 variable "region" {

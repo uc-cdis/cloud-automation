@@ -7,6 +7,7 @@
 include_recipe 'g3_dev_apt'
 
 apt_repository 'docker-apt-repo' do
+  arch  'amd64'
   uri   'https://download.docker.com/linux/ubuntu'
   key   'https://download.docker.com/linux/ubuntu/gpg'
   components ['stable']

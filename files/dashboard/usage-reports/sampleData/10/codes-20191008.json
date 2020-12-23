@@ -1,0 +1,51 @@
+{
+  "took" : 2972,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 356,
+    "successful" : 296,
+    "failed" : 60,
+    "failures" : [
+      {
+        "shard" : 0,
+        "index" : "accountprod-2019-w40",
+        "node" : "57ZB1_JYRNar9HgSg4LqWA",
+        "reason" : {
+          "type" : "illegal_argument_exception",
+          "reason" : "Fielddata is disabled on text fields by default. Set fielddata=true on [message.http_status_code] in order to load fielddata in memory by uninverting the inverted index. Note that this can however use significant memory. Alternatively use a keyword field instead."
+        }
+      }
+    ]
+  },
+  "hits" : {
+    "total" : 20323,
+    "max_score" : 0.0,
+    "hits" : [ ]
+  },
+  "aggregations" : {
+    "codes" : {
+      "buckets" : [
+        {
+          "key" : 100.0,
+          "doc_count" : 4
+        },
+        {
+          "key" : 200.0,
+          "doc_count" : 16419
+        },
+        {
+          "key" : 300.0,
+          "doc_count" : 3696
+        },
+        {
+          "key" : 400.0,
+          "doc_count" : 68
+        },
+        {
+          "key" : 500.0,
+          "doc_count" : 136
+        }
+      ]
+    }
+  }
+}

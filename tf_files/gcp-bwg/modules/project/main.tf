@@ -21,12 +21,21 @@ resource "google_project" "project" {
 }
 
 resource "google_project_service" "project" {
-  count               = "${var.set_parent_folder == true ? 1:0}"
   count                      = "${var.enable_apis ? length(var.activate_apis) : 0}"
   project                    = "${google_project.project.project_id}"
   service                    = "${element(var.activate_apis, count.index)}"
   disable_on_destroy         = "${var.disable_services_on_destroy}"
   disable_dependent_services = "true"
+
+  depends_on = ["google_project.project"]
+}
+
+// Add the GCE default service as a GKE Viewer
+resource "google_project_iam_binding" "kubernetes_engine_viewer_folder_binding" {
+  count = "${var.add_csoc_service_account ? 1 : 0}"  
+  project = "${google_project.project.project_id}"
+  role    = "roles/container.viewer"
+  members = ["serviceAccount:${var.csoc_project_id}-compute@developer.gserviceaccount.com"]
 
   depends_on = ["google_project.project"]
 }

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qa-metrics-deployment
+spec:
+  selector:
+    matchLabels:
+      app: qa-metrics
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: qa-metrics
+        public: "yes"
+        netnolimit: "yes"
+    spec:
+      containers:
+      - name: qa-metrics
+        image: "quay.io/cdis/qa-metrics:latest"
+        ports:
+        - containerPort: 3030
+        env:
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qa-metrics-g3auto
+              key: "githubtoken.json"
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+            memory: 512Mi
+        volumeMounts:
+        - name: githubtoken
+          mountPath: "/secret/githubtoken.json"
+      volumes:
+      - name: githubtoken
+        secret:
+          secretName: qa-metrics-g3auto

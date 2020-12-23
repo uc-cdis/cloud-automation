@@ -15,13 +15,17 @@ resource "aws_s3_bucket" "data_bucket" {
 
   logging {
     target_bucket = "${aws_s3_bucket.log_bucket.id}"
-    target_prefix = "log/${var.vpc_name}-data-bucket"
+    target_prefix = "log/${var.vpc_name}-data-bucket/"
   }
 
-  tags {
+  tags = {
     Name        = "${var.vpc_name}-data-bucket"
     Environment = "${var.environment}"
     Purpose     = "data bucket"
+  }
+
+  lifecycle = {
+    ignore_changes = ["cors_rule"]
   }
 }
 
@@ -70,7 +74,7 @@ resource "aws_s3_bucket" "log_bucket" {
 
     prefix = "/"
 
-    tags {
+    tags = {
       "rule"      = "log"
       "autoclean" = "true"
     }
@@ -80,7 +84,7 @@ resource "aws_s3_bucket" "log_bucket" {
     }
   }
 
-  tags {
+  tags = {
     Name        = "${var.vpc_name}"
     Environment = "${var.environment}"
     Purpose     = "logs bucket"

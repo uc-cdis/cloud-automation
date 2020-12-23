@@ -22,7 +22,15 @@ variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
-variable "db_size" {
+variable "fence_db_size" {
+  default = 10
+}
+
+variable "sheepdog_db_size" {
+  default = 10
+}
+
+variable "indexd_db_size" {
   default = 10
 }
 
@@ -72,8 +80,16 @@ variable "indexd_snapshot" {
   default = ""
 }
 
-variable "db_instance" {
-  default = "db.t2.micro"
+variable "fence_db_instance" {
+  default = "db.t2.small"
+}
+
+variable "sheepdog_db_instance" {
+  default = "db.t2.small"
+}
+
+variable "indexd_db_instance" {
+  default = "db.t2.small"
 }
 
 variable "hostname" {
@@ -122,7 +138,7 @@ variable "ami_account_id" {
   default = "707767160287"
 }
 
-variable "csoc_vpc_id" {
+variable "peering_vpc_id" {
   default = "vpc-e2b51d99"
 }
 
@@ -152,7 +168,7 @@ variable "alarm_threshold" {
 
 
 variable "csoc_managed" {
-  default = "yes"
+  default = true
 }
 
 variable "organization_name" {
@@ -173,3 +189,232 @@ variable "mailgun_api_url" {
   default = "https://api.mailgun.net/v3/"
 }
 
+variable "fence_ha" {
+  default = false
+}
+
+variable "sheepdog_ha" {
+  default = false
+}
+
+variable "indexd_ha" {
+  default = false
+}
+
+variable "fence_maintenance_window"{
+  default = "SAT:09:00-SAT:09:59" 
+}
+
+variable "sheepdog_maintenance_window"{
+  default = "SAT:10:00-SAT:10:59" 
+}
+
+variable "indexd_maintenance_window"{
+  default = "SAT:11:00-SAT:11:59" 
+}
+
+variable "fence_backup_retention_period" {
+  default = "4" 
+}
+
+variable "sheepdog_backup_retention_period" {
+  default = "4" 
+}
+
+variable "indexd_backup_retention_period" {
+  default = "4" 
+}
+
+variable "fence_backup_window" {
+  default = "06:00-06:59" 
+}
+
+variable "sheepdog_backup_window" {
+  default = "07:00-07:59" 
+}
+
+variable "indexd_backup_window" {
+  default = "08:00-08:59"
+}
+
+variable "fence_engine_version" {
+  default = "9.6.11" 
+}
+
+variable "sheepdog_engine_version" {
+  default = "9.6.11"
+}
+
+variable "indexd_engine_version" {
+  default = "9.6.11" 
+}
+
+variable "fence_auto_minor_version_upgrade" {
+  default = "true"
+}
+
+variable "indexd_auto_minor_version_upgrade" {
+  default = "true"
+}
+
+variable "sheepdog_auto_minor_version_upgrade" {
+  default = "true"
+}
+
+variable "users_bucket_name" {
+  default = "cdis-gen3-users"
+}
+
+variable "fence_database_name" {
+  default = "fence"
+}
+
+variable "sheepdog_database_name" {
+  default = "gdcapi"
+}
+
+variable "indexd_database_name" {
+  default = "indexd"
+}
+
+variable "fence_db_username" {
+  default = "fence_user"
+}
+
+variable "sheepdog_db_username" {
+  default = "sheepdog"
+}
+
+variable "indexd_db_username" {
+  default = "indexd_user"
+}
+
+variable "fence_allow_major_version_upgrade" {
+  default = "true"
+}
+
+variable "sheepdog_allow_major_version_upgrade" {
+  default = "true"
+}
+
+variable "indexd_allow_major_version_upgrade" {
+  default = "true"
+}
+
+variable "ha-squid_instance_type" {
+  description = "Instance type for HA squid"
+  default     = "t3.medium"
+}
+
+variable "ha-squid_instance_drive_size" {
+  description = "Volume size for HA squid instances"
+  default     = 8
+}
+
+
+variable "deploy_single_proxy" {
+  description = "Single instance plus HA"
+  default     = true
+}
+
+variable "ha-squid_bootstrap_script" {
+  description = "Bootstrapt script for ha-squid instances"
+  default     = "squid_running_on_docker.sh"
+}
+
+variable "ha-squid_extra_vars" {
+  description = "additional variables to pass along with the bootstrapscript"
+  type        = "list"
+  #default     = ["squid_image=master", "squid_version=squid-4.8"]
+  default     = ["squid_image=master"]
+}
+
+variable "branch" {
+  description = "For testing purposes, when something else than the master"
+  default     = "master"
+}
+
+variable "fence-bot_bucket_access_arns" {
+  description = "When fence bot has to access another bucket that wasn't created by the VPC module"
+  type        = "list"
+  default     = []
+}
+
+variable "deploy_ha_squid" {
+  description = "Should you want to deploy HA-squid"
+  default     = false
+}
+
+variable "ha-squid_cluster_desired_capasity" {
+  description = "If ha squid is enabled and you want to set your own capasity"
+  default     = 2
+}
+
+variable "ha-squid_cluster_min_size" {
+  description = "If ha squid is enabled and you want to set your own min size"
+  default     = 1
+}
+
+variable "ha-squid_cluster_max_size" {
+  description = "If ha squid is enabled and you want to set your own max size"
+  default     = 3
+}
+
+variable "deploy_sheepdog_db" {
+  description = "Whether or not to deploy the database instance"
+  default     = true
+}
+
+variable "deploy_fence_db" {
+  description = "Whether or not to deploy the database instance"
+  default     = true
+}
+
+variable "deploy_indexd_db" {
+  description = "Whether or not to deploy the database instance"
+  default     = true
+}
+
+variable "sheepdog_engine" {
+  description = "Engine to deploy the db instance"
+  default     = "postgres"
+}
+
+variable "fence_engine" {
+  description = "Engine to deploy the db instance"
+  default     = "postgres"
+}
+
+variable "indexd_engine" {
+  description = "Engine to deploy the db instance"
+  default     = "postgres"
+}
+
+variable "single_squid_instance_type" {
+  description = "Instance type for the single proxy instance"
+  default     = "t2.micro"
+}
+
+variable "network_expansion" {
+  description = "Let k8s workers be on a /22 subnet per AZ"
+  default     = false
+}
+
+variable "rds_instance_storage_encrypted"{
+  default = true
+}
+
+variable "fence_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
+}
+
+variable "sheepdog_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
+}
+
+variable "indexd_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
+}

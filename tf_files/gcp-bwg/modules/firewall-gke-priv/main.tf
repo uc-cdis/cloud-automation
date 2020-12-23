@@ -64,5 +64,12 @@ resource "google_compute_firewall" "allow-master-node-egress" {
   }
 
   direction          = "EGRESS"
-  destination_ranges = ["172.15.0.0/28"]
+  #destination_ranges = ["172.16.0.0/28"]
+  destination_ranges = "${var.gke_master_node_address}"
+}
+
+variable "gke_master_node_address" {
+  description = "GKE Master Node IP address."
+  type = "list"
+  default = []
 }

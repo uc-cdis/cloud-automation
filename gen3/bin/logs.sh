@@ -7,7 +7,10 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/logs/utils"
 gen3_load "gen3/lib/logs/raw"
+
+gen3_load "gen3/lib/logs/cloudwatch"
 gen3_load "gen3/lib/logs/daily"
+gen3_load "gen3/lib/logs/s3"
 gen3_load "gen3/lib/logs/ubh"
 gen3_load "gen3/lib/logs/snapshot"
 
@@ -44,6 +47,18 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         shift
       fi
       case "$subcommand" in
+        "codes")
+          gen3_logs_code_histogram "$@"
+          ;;
+        "rtimes")
+          gen3_logs_rtime_histogram "$@"
+          ;;
+        "users")
+          gen3_logs_user_count "$@"
+          ;;
+        "byuser")
+          gen3_logs_user_histogram "$@"
+          ;;
         "daily")
           gen3_logs_history_daily "$@"
           ;;
@@ -51,7 +66,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           gen3_logs_ubh_history "$@"
           ;;
         *)
-          gen3_log_err "gen3_logs" "invalid history subcommand $subcommand"
+          gen3_log_err "gen3_logs" "invalid history subcommand $subcommand - try: gen3 help logs"
           ;;
       esac
       ;;
@@ -88,6 +103,15 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "snapshot")
       gen3_logs_snapshot_all "$@"
+      ;;
+    "cloudwatch")
+      gen3_logs_cw "$@"
+      ;;
+    "s3")
+      gen3_logs_s3 "$@"
+      ;;
+    "s3filter")
+      gen3_logs_s3filter "$@"
       ;;
     "user")
       gen3_logs_user_list "$@"

@@ -72,3 +72,25 @@ When determining which release to direct a client to, the revproxy goes through 
   * if its release is not in the cookie, hash the request info into an integer between 0 and 99; if the value is less than the manifest defined weight, set the service to canary in the cookie, else set to production
 3. Add a header to set the cookie to the updated version
 4. Direct client to production or canary depending on the value in the cookie
+
+### Modsecurity
+
+The [modsecurity](https://modsecurity.org) web application firewall
+support in recent [cdis nginx](https://github.com/uc-cdis/docker-nginx) load configuration rules via the `manifest-modsec` configmap.  The default [OWASP](https://www.modsecurity.org/crs/) based rules are in `cloud-automation/gen3/lib/manifestDefaults/modsec/`.  [This document (waf.md)](../../../doc/waf.md) has more details.
+
+### Workspace Parent Deployment
+
+When the manifests `global.portal_app` property is set to `GEN3-WORKSPACE-PARENT`, then `kube-setup-revproxy` assumes that we are deploying a multi-account workspace parent rather than a traditional Gen3 commons.  In this mode the reverse proxy deploys the `portal-workspace-parent` nginx configuration with different rules than the normal portal configuration.
+* redirects unmapped traffic to `/dashboard/Public/index.html` - a custom webapp - possibly based on the code in [cloud-automation/files/dashboard/workspace-public/](../../../files/dashboard/workspace-public/)
+* a `/workspace-authorize/` endpoint that redirects clients to a subdomain's `/wts/oath2/authorize` endpoint where the subdomain is identified from the state query parameter
+
+### Other stuff
+
+Too lazy to document this stuff.
+
+* CSRF check
+* user token parsing
+* arborist auth integration
+* [IP blacklist](../../../gen3/lib/manifestDefaults/revproxy/)
+* [maintenance mode](../../../doc/maintenance.md)
+* [gen3 kube-setup-revproxy](../../../doc/kube-setup-revproxy.md)

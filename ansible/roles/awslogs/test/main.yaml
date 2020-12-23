@@ -1,0 +1,25 @@
+---
+
+# Test file for awslogs
+
+- hosts: dummi
+  #  connection: local
+
+  vars:
+    awslogs_logs:
+      - file: /var/log/syslog
+        format: "%b %d %H:%M:%S"
+        time_zone: "LOCAL"
+        initial_position: "end_of_file"
+        stream_name: "login_node-syslog-{hostname}-{instance_id}"
+
+
+#        group_name: {{ ec2_instance_facts."tag:Environment" }}
+#      - file: /var/log/auth.log
+#        time_zone: "UTC"
+#        initial_position: "start_of_file"
+#        group_name: boot
+
+  roles:
+    - awslogs
+

@@ -25,9 +25,21 @@ variable "elasticsearch_domain" {
 }
 
 variable "threshold" {
-  default = ""
+  default = "65.0"
 }
 
 variable "slack_webhook" {
  default = ""
+}
+
+variable "log_dna_function" {
+  default = "arn:aws:lambda:us-east-1:433568766270:function:logdna_cloudwatch"
+}
+
+variable "timeout" {
+  default = 300
+}
+
+variable "memory_size" {
+  default = 512
 }

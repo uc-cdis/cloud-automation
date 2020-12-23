@@ -15,11 +15,11 @@ wait_for_pods_down() {
     while [[ podsDownFlag -ne 0 ]]; do
         g3kubectl get pods
         if [[ 0 == "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.labels.app } ] | map(select(.name=="fence" or .name=="sheepdog" or .name=="peregrine" or .name=="indexd")) | length')" ]]; then
-            echo "pods are down, ready to drop databases"
+            gen3_log_info "pods are down, ready to drop databases"
             podsDownFlag=0
         else
             sleep 10
-            echo "pods not done terminating, waiting"
+            gen3_log_info "pods not done terminating, waiting"
         fi
     done
     return 0
@@ -32,16 +32,16 @@ run_setup_jobs() {
   # sheepdog wants its transaction tables to exist at startup
   # jobs run asynchronously ...
   #
-  for jobName in gdcdb-create indexd-userdb; do
-    echo "Launching job $jobName"
+  for jobName in gdcdb-create indexd-userdb fence-db-migrate; do
+    gen3_log_info "Launching job $jobName"
     gen3 job run $jobName
   done
-  echo "Waiting for jobs to finish, and late starting services to come up"
+  gen3_log_info "Waiting for jobs to finish, and late starting services to come up"
   sleep 5
   gen3 kube-wait4-pods
-  for jobName in gdcdb-create indexd-userdb; do
-    echo "--------------------"
-    echo "Logs for $jobName"
+  for jobName in gdcdb-create indexd-userdb fence-db-migrate; do
+    gen3_log_info "--------------------"
+    gen3_log_info "Logs for $jobName"
     gen3 job logs "$jobName"
   done
 }
@@ -52,15 +52,15 @@ run_post_roll_jobs() {
   # Run some post roll jobs to restore some startup state.
   #
   for jobName in gdcdb-create indexd-userdb usersync; do
-    echo "Launching job $jobName"
+    gen3_log_info "Launching job $jobName"
     gen3 job run $jobName
   done
-  echo "Waiting for jobs to finish, and late starting services to come up"
+  gen3_log_info "Waiting for jobs to finish, and late starting services to come up"
   sleep 5
   gen3 kube-wait4-pods
   for jobName in gdcdb-create indexd-userdb usersync; do
-    echo "--------------------"
-    echo "Logs for $jobName"
+    gen3_log_info "--------------------"
+    gen3_log_info "Logs for $jobName"
     gen3 job logs "$jobName"
   done
 }
@@ -77,7 +77,7 @@ gen3_user_verify() {
   gen3_log_warn "$message - proceed? (y/n)"
   read -r yesno
   if [[ $yesno != "y" ]]; then
-      echo "$yesno response, unlocking klock and aborting"
+      gen3_log_info "$yesno response, unlocking klock and aborting"
       gen3 klock unlock reset-lock "$LOCK_USER"
       exit 1
   fi
@@ -90,11 +90,11 @@ clear_wts_clientId() {
   local appCredsPath
   appCredsPath="$(gen3_secrets_folder)/g3auto/wts/appcreds.json"
   if [ -f "$appCredsPath" ]; then
-      echo "Removing local wts cred file"
+      gen3_log_info "Removing local wts cred file"
       rm -v "$appCredsPath"
   fi
   if g3kubectl get secret wts-g3auto > /dev/null 2>&1; then
-      echo "Deleting wts secret appcreds.json key"
+      gen3_log_info "Deleting wts secret appcreds.json key"
       local dbCreds
       dbCreds="$(gen3 secrets decode wts-g3auto dbcreds.json)"
       g3kubectl delete secret wts-g3auto || true
@@ -102,16 +102,14 @@ clear_wts_clientId() {
         g3kubectl create secret generic wts-g3auto "--from-literal=dbcreds.json=$dbCreds"
       fi
   fi
-  echo "All clear for wts"
+  gen3_log_info "All clear for wts"
 }
 
 # main ---------------------------
 
 gen3_user_verify "about to drop all service deployments"
 gen3 klock lock reset-lock "$LOCK_USER" 3600 -w 60
-g3kubectl delete --all deployments --now
-# ssjdispatcher leaves jobs laying around when undeployed
-g3kubectl delete --all "jobs" --now
+gen3 shutdown namespace
 # also clean out network policies
 g3kubectl delete networkpolicies --all
 wait_for_pods_down
@@ -152,9 +150,20 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 #
 run_setup_jobs
 clear_wts_clientId
-gen3 roll all
+
+result=0
+if ! gen3 roll all; then
+  gen3_log_err "the cluster does not look healthy"
+  result=1
+fi
 
 run_post_roll_jobs
 
 gen3 klock unlock reset-lock "$LOCK_USER"
-echo "All done"  # force 0 exit code
+
+if [[ "$result" == 0 ]]; then
+  gen3_log_info "All done"
+else
+  gen3_log_err "roll-all had non-zero exit code"
+  exit 1
+fi

@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: peregrine-deployment
@@ -88,11 +88,23 @@ spec:
                 name: manifest-global
                 key: indexd_url
                 optional: true
+          - name: GRAPHQL_TIMEOUT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-peregrine
+                key: peregrine_timeout
+                optional: true
           - name: FENCE_URL
             valueFrom:
               configMapKeyRef:
                 name: manifest-global
                 key: fence_url
+                optional: true
+          - name: ARBORIST_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
                 optional: true
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
@@ -122,6 +134,7 @@ spec:
           resources:
             requests:
               cpu: 1
+              memory: 1024Mi
             limits:
               cpu: 2
               memory: 2048Mi

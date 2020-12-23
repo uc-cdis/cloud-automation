@@ -1,0 +1,7 @@
+---
+- name: awslogs service restart
+  service: 
+    name: awslogs 
+    state: restarted
+    enabled: yes
+  ignore_errors: yes

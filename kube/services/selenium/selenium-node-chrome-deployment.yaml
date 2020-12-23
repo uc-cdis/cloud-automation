@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: selenium-node-chrome
+  name: selenium-node-chrome
+  namespace: default
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: selenium-node-chrome
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: selenium-node-chrome
+    spec:
+      containers:
+      - env:
+        - name: SE_EVENT_BUS_HOST
+          value: selenium-hub
+        - name: SE_EVENT_BUS_PUBLISH_PORT
+          value: "4442"
+        - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+          value: "4443"
+        - name: NODE_MAX_SESSION
+          value: "5"
+        - name: NODE_MAX_INSTANCES
+          value: "3"
+        image: selenium/node-chrome:4
+        imagePullPolicy: Always
+        name: node-chrome
+      terminationGracePeriodSeconds: 30

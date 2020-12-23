@@ -1,4 +1,7 @@
-apiVersion: extensions/v1beta1
+---
+# tube deployment - only for testing
+# normally use tube via: gen3 job run etl
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tube-deployment
@@ -40,6 +43,9 @@ spec:
         - name: etl-mapping
           configMap:
             name: etl-mapping
+        - name: fence-yaml
+          configMap:
+            name: fence
       containers:
         - name: tube
           imagePullPolicy: Always
@@ -73,6 +79,9 @@ spec:
               readOnly: true
               mountPath: "/gen3/tube/etlMapping.yaml"
               subPath: "etlMapping.yaml"
+            - name: "fence-yaml"
+              mountPath: "/gen3/tube/user.yaml"
+              subPath: user.yaml
           resources:
             limits:
               cpu: 1

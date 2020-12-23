@@ -100,7 +100,7 @@ gen3_db_reset() {
   # install ltree extension (currently arborist requires this)
   # this will fail if the extension is already installed, so ignore that
   #
-  gen3_db_psql "$server" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname" || true
+  gen3_db_psql "$serverName" -c "CREATE EXTENSION IF NOT EXISTS ltree;" --dbname "$dbname" || true
   return $result
 }
 
@@ -193,7 +193,7 @@ gen3_db_service_creds() {
   local server
   dbHost="$(jq -r .db_host < "$tempResult")"
   server="$(gen3_db_farm_json | jq -r --arg dbHost "$dbHost" '. | to_entries | map(select(.value.db_host==$dbHost)) | map(.key) | .[]')"
-  jq -r --arg g3FarmServer "$server" '.g3FarmServer = $g3FarmServer' < "$tempResult"
+  jq -r --arg g3FarmServer "$server" '.g3FarmServer = $g3FarmServer | del(.fence_host) | del(.fence_username) | del(.fence_password) | del(.fence_database)' < "$tempResult"
   rm "$tempResult"
   return 0
 }
@@ -221,7 +221,9 @@ gen3_db_random_server() {
 # List the servers - one per line
 #
 gen3_db_server_list() {
-  gen3_db_farm_json | jq -r '. | keys | join("\n")'
+  local info
+  info="$(gen3_db_farm_json)" || return 1
+  jq -r '. | keys | join("\n")' <<< "$info"
 }
 
 #
@@ -236,7 +238,9 @@ gen3_db_server_info() {
   fi
   server="$1"
   shift
-  gen3_db_farm_json | jq -e -r ".[\"$server\"]"
+  local info
+  info="$(gen3_db_farm_json)" || return 1
+  jq -e -r --arg server "$server" '.[$server]' <<< "$info"
 }
 
 
@@ -380,6 +384,315 @@ gen3_db_namespace() {
 }
 
 #
+# Given a gen3 server name, determine the RDS instance id
+#
+gen3_db_server_rds_id() {
+  local address
+  local serverInfo
+
+  if ! serverInfo="$(gen3_db_server_info "$@")"; then
+    return 1
+  fi
+  local address
+  if ! address="$(jq -e -r .db_host <<<"$serverInfo")"; then
+    gen3_log_err "unable to determine address for $@"
+    return 1
+  fi
+  aws rds describe-db-instances | jq -e -r --arg address "$address" '.DBInstances[] | select(.Endpoint.Address==$address) | .DBInstanceIdentifier'
+}
+
+#
+# Take an RDS full server snapshot
+#
+# @param serverName
+# @return echo snapshotId
+#
+gen3_db_snapshot_take() {
+  local snapshotId
+  local serverName
+  local dryRun=false
+
+  if [[ $# -gt 0 ]]; then
+    serverName="$1"
+    shift
+  else
+    gen3_log_err "no server specified"
+    return 1
+  fi
+  if [[ "$1" =~ ^-*dry-?run ]]; then
+    dryRun=true
+  fi
+  local instanceId
+  if ! instanceId="$(gen3_db_server_rds_id "$serverName")"; then
+    gen3_log_err "failed to find rds instance id for server: $serverName"
+    return 1
+  fi
+  snapshotId="gen3-snapshot-${serverName}-$(date -u +%Y%m%d-%H%M%S)"
+  if [[ "$dryRun" == true ]]; then
+    gen3_log_info "dryrun mode - not taking snapshot"
+  else
+    aws rds create-db-snapshot --db-snapshot-identifier "$snapshotId" --db-instance-identifier "$instanceId"
+  fi
+}
+
+#
+# List the snapshots associated with a particular server
+#
+gen3_db_snapshot_list() {
+  local serverName
+
+  if [[ $# -gt 0 ]]; then
+    serverName="$1"
+    shift
+  else
+    gen3_log_err "no server specified"
+    return 1
+  fi
+  local instanceId
+  if ! instanceId="$(gen3_db_server_rds_id "$serverName")"; then
+    gen3_log_err "failed to find rds instance id for server: $serverName"
+    return 1
+  fi
+  aws rds describe-db-snapshots --db-instance-identifier "$instanceId"
+}
+
+
+#
+# pg_dump the specified database to stdout
+#
+# @param serviceName to backup
+# @return 0 on success, backup to stdout
+#
+gen3_db_backup() {
+  local serviceName="$1"
+  local creds
+  local database
+  local username
+  local password
+  local host
+  
+  if [[ -z "$serviceName" ]]; then
+    gen3_log_err "serviceName not provided"
+    return 1
+  fi
+  if ! creds="$(gen3_db_service_creds "$serviceName")"; then
+    gen3_log_err "unable to find creds for service $serviceName"
+    return 1
+  fi
+
+  database=$(jq -r ".db_database" <<< "$creds")
+  username=$(jq -r ".db_username" <<< "$creds")
+  password=$(jq -r ".db_password" <<< "$creds")
+  host=$(jq -r ".db_host" <<< "$creds")
+  PGPASSWORD="$password" pg_dump "--username=$username" "--dbname=$database" "--host=$host" --no-password --no-owner --no-privileges
+}
+
+#
+# pg_restore to a database with the given name
+#         on the given server
+#
+# @param serviceName to restore to
+# @param backupFile to restore from
+# @param --dryrun optional
+# @return 0 on success
+#
+gen3_db_restore() {
+  local serviceName
+  local creds
+  local database
+  local username
+  local password
+  local host
+  local backupFile
+  
+  if [[ $# -lt 2 ]]; then
+    gen3_log_err "service and backupFile are required arguments"
+    return 1
+  fi
+  serviceName="$1"
+  shift
+  if [[ -z "$serviceName" ]]; then
+    gen3_log_err "serviceName not provided"
+    return 1
+  fi
+  backupFile="$1"
+  shift
+  if [[ ! -f "$backupFile" ]]; then
+    gen3_log_err "backup file does not exist: $backupFile"
+    return 1
+  fi
+
+  local dryRun=false
+
+  if [[ "$1" =~ ^-*dry-?run ]]; then
+    dryRun=true
+    shift
+  fi
+
+  if ! creds="$(gen3_db_service_creds "$serviceName")"; then
+    gen3_log_err "unable to find creds for service $serviceName"
+    return 1
+  fi
+
+  username=$(jq -r ".db_username" <<< "$creds")
+  password=$(jq -r ".db_password" <<< "$creds")
+  host=$(jq -r ".db_host" <<< "$creds")
+
+  local serverUser
+  local serverName
+  # get the server root user
+  serverName="$(jq -r .g3FarmServer <<<"$creds")"
+  serverUser="$(gen3_db_server_info "$server" | jq -r .db_username)"
+  if [[ -z "$serverName" || -z "serverUser" ]]; then
+    gen3_log_err "failed to retrieve creds for server $host"
+    return 1
+  fi
+
+  local dbname="$(echo ${serviceName}_$(gen3_db_namespace)_restore_$(date -u +%Y%m%d_%H%M%S) | tr - _)"
+  if [[ "$dryRun" == false ]]; then
+    gen3_log_info "creating database $dbname"
+    # create the db as the root user, then grant permissions to the service user
+    gen3 psql "$serverName" -c "CREATE DATABASE ${dbname};" 1>&2
+    gen3 psql "$serverName" -c  "GRANT ALL ON DATABASE ${dbname} TO $username WITH GRANT OPTION;" 1>&2
+    gen3_log_info "restoring $dbname from $backupFile"
+    gen3 psql "$serviceName" -d "$dbname" -f "$backupFile" 1>&2
+    jq -r --arg dbname "$dbname" '.db_database = $dbname' <<< "$creds"
+  else
+    gen3_log_info "dryRun not creating new database"
+  fi
+}
+
+# Used to encrypt each db
+gen3_db_encrypt() {
+  # Need the account and profile used in gen3 workon to be able to setup terraform
+  # Can optionally take the dump directory to define where to place the psql dumps. Useful for large databases where we want to store the dumps on an extra ebs volume
+  local account=$1
+  local profile=$2
+  if [[ -z $3 ]]; then
+    local dumpDir=$WORKSPACE
+  else
+    local dumpDir=$3
+  fi
+  # We want to get the security/parameter groups and subnets from the current rds so we can have it match the old ones
+  local securityGroupId=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-fencedb"]}' | jq -r .DBInstances[0].VpcSecurityGroups[0].VpcSecurityGroupId)
+  local dbSubnet=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-fencedb"]}' | jq -r .DBInstances[0].DBSubnetGroup.DBSubnetGroupName)
+  local dbParameterGroupName=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-fencedb"]}' | jq -r .DBInstances[0].DBParameterGroups[0].DBParameterGroupName)
+  gen3_log_info "Taking snapshots. Please check that you have enough disk space and stop if disk space gets filled"
+  gen3_log_info "If the databases are large consider mounting a new volume and adding a third parameter to this command to specify a different snapshot directory"
+
+  gen3 db backup indexd  > $dumpDir/indexd-backup.sql
+  gen3 db backup fence  > $dumpDir/fence-backup.sql
+  gen3 db backup gdcapi  > $dumpDir/gdcapidb-backup.sql
+  gen3 db backup arborist  > $dumpDir/arborist-backup.sql
+  gen3 db backup metadata  > $dumpDir/metadata-backup.sql
+  gen3 db backup wts  > $dumpDir/wts-backup.sql
+  gen3 db backup requestor  > $dumpDir/requestor-backup.sql
+
+  # Quick check to ensure the snapshots were taken successfully. Will prevent new db from getting incomplete data.
+  echo "Did the snapshots get created correctly?(yes/no)"
+  read snapshotBool
+
+  if [[ $snapshotBool != "yes" ]]; then
+    gen3_log_err "Snapshots were not indicated to be taken correctly. Please clean up the old ones and try again"
+    gen3_log_err "If you ran out of space please setup a new volume and use the third parameter to this command to specify a different snapshot directory"
+    exit 1
+  fi
+
+  # Switch to the main commons terraform to grab current config then create new terraform and use original config with added parameters
+  gen3 workon $account $profile
+  gen3 cd
+  configFile=$(cat config.tfvars)
+  gen3 workon $account "$profile"__encrypted-rds
+  gen3 cd
+  mv config.tfvars config.tfvars-backup
+  echo "$configFile">>config.tfvars
+  echo "security_group_local_id=\"$securityGroupId\"" >> config.tfvars
+  echo "aws_db_subnet_group_name=\"$dbSubnet\"" >> config.tfvars
+  echo "db_pg_name=\"$dbParameterGroupName\"" >> config.tfvars
+  gen3 tfplan
+  gen3 tfapply
+
+  # Use sed to update all secrets, remove the arborist and metadata g3auto folders to recreate those db's then run kube-setup-secrets 
+  local newFenceDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-fencedb"]}' | jq -r .DBInstances[0].Endpoint.Address)
+  local newIndexdDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-indexddb"]}' | jq -r .DBInstances[0].Endpoint.Address)
+  local newGdcApiDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-gdcapidb"]}' | jq -r .DBInstances[0].Endpoint.Address)
+  local originalFenceDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-fencedb"]}' | jq -r .DBInstances[0].Endpoint.Address)
+  local originalIndexdDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-indexddb"]}' | jq -r .DBInstances[0].Endpoint.Address)
+  local originalGdcApiDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-gdcapidb"]}' | jq -r .DBInstances[0].Endpoint.Address)
+  gen3_log_info "Updating fence db name from $originalFenceDbUrl to $newFenceDbUrl in $(gen3_secrets_folder)"
+  grep -rl $originalFenceDbUrl "$(gen3_secrets_folder)" | xargs sed -i "s/$originalFenceDbUrl/$newFenceDbUrl/g"
+  grep -rl $originalIndexdDbUrl "$(gen3_secrets_folder)" | xargs sed -i "s/$originalIndexdDbUrl/$newIndexdDbUrl/g"
+  grep -rl $originalGdcApiDbUrl "$(gen3_secrets_folder)" | xargs sed -i "s/$originalGdcApiDbUrl/$newGdcApiDbUrl/g"
+
+  gen3_log_info "Disabling gitops sync before updating secrets to ensure services not rolled during db setup"
+  g3kubectl delete cronjob gitops-sync
+  mv "$(gen3_secrets_folder)"/g3auto/arborist "$(gen3_secrets_folder)"/g3auto/arb-backup
+  mv "$(gen3_secrets_folder)"/g3auto/metadata "$(gen3_secrets_folder)"/g3auto/mtdta-backup
+  mv "$(gen3_secrets_folder)"/g3auto/wts "$(gen3_secrets_folder)"/g3auto/wts-backup
+  mv "$(gen3_secrets_folder)"/g3auto/requestor "$(gen3_secrets_folder)"/g3auto/requestor-backup
+  gen3 kube-setup-secrets
+  if [[ -d "$(gen3_secrets_folder)"/g3auto/arb-backup ]]; then
+    g3kubectl delete secret arborist-g3auto
+    gen3 db setup arborist
+  fi
+  if [[ -d "$(gen3_secrets_folder)"/g3auto/mtdta-backup ]]; then
+    g3kubectl delete secret metadata-g3auto
+    gen3 db setup metadata
+  fi
+  if [[ -d "$(gen3_secrets_folder)"/g3auto/wts-backup ]]; then
+    g3kubectl delete secret wts-g3auto
+    gen3 db setup wts
+  fi
+  if [[ -d "$(gen3_secrets_folder)"/g3auto/requestor-backup ]]; then
+    g3kubectl delete secret requestor-g3auto
+    gen3 db setup requestor
+  fi
+  gen3_log_info "restoring indexd db"
+  gen3_db_reset "indexd"
+  gen3 psql indexd  < $dumpDir/indexd-backup.sql
+  gen3_log_info "restoring fence db"
+  gen3_db_reset "fence"
+  gen3 psql fence  <  $dumpDir/fence-backup.sql
+  gen3_log_info "restoring sheepdog db"
+  gen3_db_reset "sheepdog"
+  gen3 psql gdcapi  < $dumpDir/gdcapidb-backup.sql
+  gen3_log_info "restoring arborist db"
+  gen3_db_reset "arborist"
+  gen3 psql arborist  < $dumpDir/arborist-backup.sql
+  gen3_log_info "restoring metadata db"
+  gen3_db_reset "metadata"
+  gen3 psql metadata  < $dumpDir/metadata-backup.sql
+  gen3_log_info "restoring wts db"
+  gen3_db_reset "wts"
+  gen3 psql wts  < $dumpDir/wts-backup.sql
+  gen3_log_info "restoring requestor db"
+  gen3_db_reset "requestor"
+  gen3 psql requestor  < $dumpDir/requestor-backup.sql
+
+
+  # dbs are now working but we should update the terraform state to ensure db's can still be managed through the main commons terraform
+  gen3 workon $account $profile
+  gen3 cd
+  gen3 tform state rm aws_db_instance.db_gdcapi
+  gen3 tform import --config ~/cloud-automation/tf_files/aws/commons aws_db_instance.db_gdcapi  $vpc_name-encrypted-gdcapidb
+  gen3 tform state rm aws_db_instance.db_fence
+  gen3 tform import --config ~/cloud-automation/tf_files/aws/commons aws_db_instance.db_fence  $vpc_name-encrypted-fencedb
+  gen3 tform state rm aws_db_instance.db_indexd
+  gen3 tform import --config ~/cloud-automation/tf_files/aws/commons aws_db_instance.db_indexd  $vpc_name-encrypted-indexddb
+
+  echo "Would you like to re-enable gitops-sync?(yes/no)"
+  read gitopsBool
+  if [[ $gitopsBool != "yes" ]]; then
+    gen3_log_info "Gitops-sync not re-enabled"
+    exit 0
+  else
+    gen3 job cron gitops-sync '*/5 * * * *'
+    gen3_log_info "Gitops-sync re-enabled"
+    exit 0
+  fi
+}
+
+#
 # Create a new database (user, secret, ...) for a service
 #
 # @param service name of the service
@@ -493,8 +806,14 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   command="$1"
   shift
   case "$command" in
+    "backup")
+      gen3_db_backup "$@"
+      ;;
     "creds")
       gen3_db_service_creds "$@";
+      ;;
+    "encrypt")
+      gen3_db_encrypt "$@";
       ;;
     "list")
       gen3_db_list "$@"
@@ -507,6 +826,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "reset")
       gen3_db_reset "$@"
+      ;;
+    "restore")
+      gen3_db_restore "$@"
       ;;
     "server")
       if [[ "$1" == "list" ]]; then
@@ -525,6 +847,18 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "setup")
       gen3_db_service_setup "$@"
+      ;;
+    "snapshot")
+      if [[ "$1" == "list" ]]; then
+        shift
+        gen3_db_snapshot_list "$@"
+      elif [[ "$1" == "take" ]]; then
+        shift
+        gen3_db_snapshot_take "$@"
+      else
+        gen3_db_help
+        exit 1
+      fi
       ;;
     *)
       gen3_db_help

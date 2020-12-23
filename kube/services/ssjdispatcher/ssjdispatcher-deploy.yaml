@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ssjdispatcher-deployment
@@ -51,6 +51,10 @@ spec:
             mountPath: "/credentials.json"
             subPath: credentials.json
         env:
+          - name: AWS_REGION
+            value: us-east-1
+          - name: AWS_STS_REGIONAL_ENDPOINTS
+            value: regional  
           - name: GEN3_NAMESPACE
             valueFrom:
               fieldRef:
@@ -80,3 +84,10 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        resources:
+          requests:
+            cpu: 0.4
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 2400Mi  

@@ -1,0 +1,5 @@
+
+- include: install.yaml
+  tags:
+    - docker
+    - install

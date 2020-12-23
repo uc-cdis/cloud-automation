@@ -1,0 +1,12 @@
+[Unit]
+Description=The CloudWatch Logs agent
+After=rc-local.service
+
+[Service]
+Type=simple
+Restart=always
+TimeoutSec=infinity
+ExecStart=/var/awslogs/bin/awslogs-agent-launcher.sh
+
+[Install]
+WantedBy=multi-user.target

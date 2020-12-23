@@ -1,0 +1,13 @@
+---
+  
+- name: "slurm | install dependencies"
+  apt:
+    name: '{{ item }}'
+  loop:
+    - libpq-dev
+    - libffi-dev
+  environment:
+    http_proxy: "{{ http_proxy }}:{{ http_proxy_port }}"
+    https_proxy: "{{ https_proxy }}:{{ https_proxy_port }}"
+  when: ec2_tags.tags["slurm-type"] == 'controller'
+  become: yes

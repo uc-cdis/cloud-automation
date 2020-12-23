@@ -64,9 +64,36 @@ variable "vm_hostname" {
 }
 
 variable "proxy" {
-  default = "yes"
+  default = true
 }
 
 variable "authorized_keys" {
   default = "files/authorized_keys/ops_team"
+}
+
+variable "organization_name" {
+  description = "For tagging purposes"
+  default     = "Basic Service"
+}
+
+variable "branch" {
+  default = "master"
+}
+
+variable "user_policy" {
+  default = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "logs:PutLogEvents"
+      ],
+      "Effect": "Allow",
+      "Resource": ["*"],
+      "Sid": ""
+    }
+  ]
+}
+  POLICY
 }

@@ -16,8 +16,8 @@ variable "tf_state_project_setup_csoc" {
   description = "TF State bucket name that hosts project setup VPC self links."
 }
 
-variable "csoc_state_bucket_name" {
-  description = "Terraform state bucket name in the csoc account. Used to for VPC peering."
+variable "state_bucket_name_csoc" {
+  description = "Terraform state bucket name in the csoc2 account. Used to for VPC peering."
 }
 
 variable "org_id" {
@@ -68,6 +68,10 @@ variable "prefix_project_setup" {
   default = "project_setup"
 }
 
+variable "prefix_project_setup_csoc" {
+  default = "project_setup_csoc"
+}
+
 variable "state_bucket_name" {
   default = "tf-state"
 }
@@ -78,27 +82,27 @@ variable "region" {
 }
 
 ####### VPC (google_network) info
-variable "commons001-dev_private_network_name" {
+variable "commons_private_network_name" {
   default = "my-network"
 }
 
-variable "commons001-dev_private_subnet_name" {
+variable "commons_private_subnet_name" {
   default = "my-subnet"
 }
 
-variable "commons001-dev_private_subnet_ip" {
+variable "commons_private_subnet_ip" {
   default = "172.16.0.0/24"
 }
 
-variable "commons001-dev_private_region" {
+variable "commons_private_region" {
   default = "us-central1"
 }
 
-variable "commons001-dev_private_subnet_flow_logs" {
+variable "commons_private_subnet_flow_logs" {
   default = true
 }
 
-variable "commons001-dev_private_subnet_private_access" {
+variable "commons_private_subnet_private_access" {
   default = false
 }
 
@@ -106,81 +110,216 @@ variable "create_vpc_secondary_ranges" {
   default = true
 }
 
-variable "commons001-dev_private_subnet_secondary_name1" {
+variable "commons_private_subnet_secondary_name1" {
   default = "my-alias-network"
 }
 
-variable "commons001-dev_private_subnet_secondary_ip1" {
+variable "commons_private_subnet_secondary_ip1" {
   default = "10.128.1.0/24"
 }
 
-variable "commons001-dev_private_subnet_secondary_name2" {
+variable "commons_private_subnet_secondary_name2" {
   default = "my-alias-network"
 }
 
-variable "commons001-dev_private_subnet_secondary_ip2" {
+variable "commons_private_subnet_secondary_ip2" {
   default = "10.128.1.0/24"
 }
 
 ###### Firewall Rule Info
-variable "commons001-dev_ingress_enable_logging" {
+variable "commons_ingress_enable_logging" {
   default = true
 }
 
-variable "commons001-dev_ingress_priority" {
+variable "commons_ingress_priority" {
   default = "1000"
 }
 
-variable "commons001-dev_ingress_direction" {
+variable "commons_ingress_direction" {
   default = "INGRESS"
 }
 
-variable "commons001-dev_ingress_protocol" {
+variable "commons_ingress_protocol" {
   default = "tcp"
 }
 
-variable "commons001-dev_ingress_ports" {
-  type = "list"
-}
+#variable "commons_ingress_ports" {
+#  type = "list"
+#}
 
-variable "commons001-dev_ingress_source_ranges" {
-  type = "list"
-}
+#variable "commons_ingress_source_ranges" {
+#  type = "list"
+#}
 
-variable "commons001-dev_ingress_target_tags" {
+variable "commons_ingress_target_tags" {
   type    = "list"
-  default = ["commons001-dev-ingress"]
+  default = ["commons-ingress"]
 }
 
 ###
-variable "commons001-dev_egress_enable_logging" {
+variable "commons_egress_enable_logging" {
   default = true
 }
 
-variable "commons001-dev_egress_priority" {
+variable "commons_egress_priority" {
   default = "1000"
 }
 
-variable "commons001-dev_egress_direction" {
+variable "commons_egress_direction" {
   default = "INGRESS"
 }
 
-variable "commons001-dev_egress_protocol" {
+variable "commons_egress_protocol" {
   default = "tcp"
 }
 
-variable "commons001-dev_egress_ports" {
-  type = "list"
-}
+#variable "commons_egress_ports" {
+#  type = "list"
+#}
 
-variable "commons001-dev_egress_destination_ranges" {
-  type = "list"
-}
+#variable "commons_egress_destination_ranges" {
+#  type = "list"
+#}
 
-variable "commons001-dev_egress_target_tags" {
+variable "commons_egress_target_tags" {
   type    = "list"
-  default = ["commons001-dev-egress"]
+  default = ["commons-egress"]
 }
+/*
+variable "outbound_from_gke_name" {}
+variable "outbound_from_gke_network_name" {}
+
+variable "outbound_from_gke_destination_ranges" {
+  type = "list"
+}
+
+variable "outbound_from_gke_target_tags" {
+  type = "list"
+}
+
+variable "outbound_from_gke_ports" {
+  type = "list"
+}
+
+variable "outbound_from_gke_protocol" {}
+variable "outbound_from_gke_enable_logging" {}
+variable "outbound_from_gke_priority" {}
+
+
+variable "inbound_to_commons_name" {}
+variable "inbound_to_commons_network_name" {}
+
+variable "inbound_to_commons_source_ranges" {
+  type = "list"
+}
+
+variable "inbound_to_commons_target_tags" {
+  type = "list"
+}
+
+variable "inbound_to_commons_ports" {
+  type = "list"
+}
+
+variable "inbound_to_commons_protocol" {}
+variable "inbound_to_commons_enable_logging" {}
+variable "inbound_to_commons_priority" {}
+
+variable "outbound_from_commons_name" {}
+variable "outbound_from_commons_network_name" {}
+
+variable "outbound_from_commons_destination_ranges" {
+  type = "list"
+}
+
+variable "outbound_from_commons_target_tags" {
+  type = "list"
+}
+
+variable "outbound_from_commons_ports" {
+  type = "list"
+}
+
+variable "outbound_from_commons_protocol" {}
+variable "outbound_from_commons_enable_logging" {}
+variable "outbound_from_commons_priority" {}
+
+variable "inbound_from_gke_name" {}
+variable "inbound_from_gke_network_name" {}
+
+variable "inbound_from_gke_source_ranges" {
+  type = "list"
+}
+
+variable "inbound_from_gke_target_tags" {
+  type = "list"
+}
+
+variable "inbound_from_gke_ports" {
+  type = "list"
+}
+
+variable "inbound_from_gke_protocol" {}
+variable "inbound_from_gke_enable_logging" {}
+variable "inbound_from_gke_priority" {}
+*/
+variable "inbound_proxy_port_enable_logging" {
+  default     = true
+  description = "Enable firewall logging."
+}
+
+variable "inbound_proxy_port_priority" {
+  description = "Firewall priority."
+}
+
+variable "inbound_proxy_port_name" {}
+
+variable "inbound_proxy_port_protocl" {
+  default = "TCP"
+}
+
+variable "inbound_proxy_port_ports" {
+  type = "list"
+}
+
+variable "egress_allow_proxy_mig_enable_logging" {
+  default = true
+}
+
+variable "egress_allow_proxy_mig_direction" {
+  default = "EGRESS"
+}
+
+variable "egress_allow_proxy_mig_destination" {
+  type    = "list"
+  default = ["0.0.0.0/0"]
+}
+
+variable "egress_allow_proxy_mig_priority" {}
+variable "egress_allow_proxy_mig_name" {}
+variable "egress_allow_proxy_mig_protocol" {}
+
+variable "egress_allow_proxy_enable_logging" {
+  default = true
+}
+
+variable "egress_allow_proxy_direction" {
+  default = "EGRESS"
+}
+
+variable "egress_allow_proxy_priority" {}
+variable "egress_allow_proxy_name" {}
+variable "egress_allow_proxy_protocol" {}
+
+variable "egress_allow_proxy_ports" {
+  type = "list"
+}
+
+####### DENY ALL FIREWALL RULE
+variable "egress_deny_all_priority" {}
+
+variable "egress_deny_all_name" {}
+variable "egress_deny_all_protocol" {}
 
 ####### VPC Peering info
 variable "peer_auto_create_routes" {

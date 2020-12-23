@@ -1,6 +1,6 @@
-# Commons built up steps 
+# Commons build up steps 
 
-The following guide is intended to guide you through the process of bringing up a gen3 commons. This particular guide is intended for those who would build commons independetly from a centralized account, said kind of account we call it CSOC and is used basically to control multiple commons, and also collect logs from all of them for later process.
+The following guide is intended to guide you through the process of bringing up a gen3 commons. This particular guide is intended for those who would build commons independently from a centralized account. Said account will be called CSOC and is used to control multiple commons and also collect logs from them for later processing. 
 
 
 
@@ -19,13 +19,28 @@ The following guide is intended to guide you through the process of bringing up 
 
 ## Requirements
 
-To get stated, you must have an AWS account ready in which you will deploy all the resources required to stand up a commons. Unfortunatelly, the deployment may not be small enough, at least as for now, to enter into the free tier zone, therefore, costs may be involved if you decide to test this.
+To get started, you must have an AWS account ready in which you will deploy all the resources required to build up a commons. Unfortunately, the deployment may not be small enough, at least as for now, to enter into the free tier zone, therefore, costs may be involved if you decide to test this.
 
 On the bright side, because we use terraform to deploy almost all resources, it is realtively easy to tear them all down.
 
-In order to move on, you must have an EC2 instance up with an admin like role attached to it. It shouldn't matter in which VPC it is and if it's behind a bastion node or not. 
+In order to move on, you must have an EC2 instance up with an admin-like role attached to it. It shouldn't matter in which VPC it is or if it's behind a bastion node or not. In case you don't want to give Full admin access to an EC2 instance, then you will minimally need the following:
+```
+RDS
+EC2
+VPC
+IAM
+KMS
+Route53
+S3
+CloudWatch
+Lambda
+CloudTrail
+SNS
+SQS
+EKS
+```
 
-Additionally we recommend requesting a SSL certificate for the domain you are going to use to access your commons through AWS certificate manager before moving on, you'll need it later.
+Additionally, we recommend requesting a SSL certificate for the domain you are going to use to access your commons through AWS certificate manager before moving on because you'll need it later.
 
 
 
@@ -38,13 +53,13 @@ Additionally we recommend requesting a SSL certificate for the domain you are go
 git clone https://github.com/uc-cdis/cloud-automation.git
 ```
 
-2. If no proxy is needded then 
+2. If no proxy is needed then 
 ```bash
 export GEN3_NOPROXY='no'
 ```
    If a proxy is required, then gen3 would assume cloud-proxy.internal.io:3128 is your proxy for http and https. 
 
-3. Install dependencies, you must run this part as a sudo access user
+3. Install dependencies; you must run this part as a sudo access user.
 ```bash 
 bash cloud-automation/gen3/bin/kube-setup-workvm.sh
 ```
@@ -66,10 +81,9 @@ source ${HOME}/.bashrc
   [profile cdistest]
   output = json
   region = us-east-1
-  credential_source = Ec2InstanceMetadata
 ```
 
-  It worth noting that additional information may be required in this file, everything would depend on your setup for the VM in question.
+  It's worth noting that additional information may be required in this file but that will depend on your setup for the VM in question.
 
 
 
@@ -87,42 +101,47 @@ Ex:
 gen3 workon cdistest commons-test
 ```
 
-  Note: The third argument of the above command (cdistest) refers to the profile in the config file setup in step five of the fist part.
-        The forth argument (commons-test) would be the name of commons you want to use, only lowercase letters and hyphen are permitted.
+  Note: The third argument of the above command (cdistest) refers to the profile in the config file setup in step five of the first part.
+        The forth argument (commons-test) would be the name of the commons you want to use; only lowercase letters and hyphens are permitted. Making the commmons-name unique is recommended.
 
 2. Go to the terraform workspace folder
 ```bash
 gen3 cd
 ```
 
-3. Edit the `config.tfvars` file with a text editor of preference.
+3. Edit the `config.tfvars` file with your preferred text editor.
 
   Variables to pay attention to:
 
+`vpc_name` Make sure the vpc_name is unique as some bucket names are derived from the vpc_name.
+
 `vpc_cidr_block` CIDR where the commons resources would reside. EX: 172.16.192.0/20. As for now, only /20 subnets are supported. Your VPC must have only RFC1918 or CG NAT CIDRs.
 
-`dictionary_url` url where the dictionary schema is, it must be in json format.
+`dictionary_url` url where the dictionary schema is; it must be in json format.
 
 `portal_app` 
 
-`aws_cert_name` AWS ARN for the certificate to use on the Load Balancer that will be in front. Access to commons is strictly through HTTPS, therefore you need one. You may want request it previously this step.
+`aws_cert_name` AWS ARN for the certificate to use on the Load Balancer that will be in front. Access to commons is strictly through HTTPS; therefore you need one. You may want request it previously this step.
 
 `hostname` domain which the commons will respond to
 
-`config_folder` folder for permissions. By default, commons would try to load a user.yaml file from s3://cdis-gen3-users/CONFIG_FOLDER/user.yaml. This bucket is not publicly accessible, you can later set a different one though. Just keep in mind that the folder with the name you are setting this var with needs to exist within the bucket and a user.yaml file within the folder in question. You can still set permissions based on a local file
+`config_folder` folder for permissions. By default, commons would try to load a user.yaml file from s3://cdis-gen3-users/CONFIG_FOLDER/user.yaml. This bucket is not publicly accessible however you can set a different one later. Keep in mind that the folder with the name you are setting this var will need to exist within the bucket and a user.yaml file within the folder in question. You can still set permissions based on a local file. 
+
 
 `google_client_secret` and `google_client_id`  Google set of API key so you can set google authentication. You can generate a new one through Google Cloud Console.
 
 
-**NOTE:** If the following variables are not in the file, just add the along with their values.
+**NOTE:** If the following variables are not in the file, just add them along with their values.
 
-`csoc_managed` if you are going to set up your commons hooked up to a central control management account. By default it is set to yes, any other value would assume that you don't want this to happen. If you leave the default value, you must run the logging module first, otherwise terraform will fail.
+`csoc_managed` if you are going to set up your commons hooked up to a central control management account. By default it is set to true. If you leave the default value, you must run the logging module first, otherwise terraform will fail. But since this instruction is specifically for non-attached deployments, you should set the value to false.
 
-`peering_cidr` this is the CIDR that your adminVM belongs to. Since the commons would create it's own VPC, you need to pair them up to allow communication between them later. Basically, said peering would let you run kubectl commands agains the kubernetes cluster hosting the commons.
+`peering_cidr` this is the CIDR where your adminVM belongs to. Since the commons would create it's own VPC, you need to pair them up to allow communication between them later. Basically, said pairing would let you run kubectl commands against the kubernetes cluster hosting the commons.
 
-`csoc_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
+`peering_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
 
-**NOTE:** If you are hooking up your commons with a cetralized control management account, you may need to add additional variables to this file with more information about said account.
+`users_bucket_name` This also has something to do with the user.yaml file. In case you need your commons to access a user.yaml file in a different bucket than `cdis-gen3-users`, then add this variable with the corresponding value. Terraform with ultimately create a policy allowing the Kubernetes worker nodes to access the bucket in question (Ex. `s3://<user_bucket_name>/<config_folder>/user.yaml`).
+
+**NOTE:** If you are hooking up your commons with a centralized control management account, you may need to add additional variables to this file with more information about said account.
 
 
 4. Create a terraform plan
@@ -152,15 +171,15 @@ cp -r commons-test_output/ $HOME
 gen3 workon cdistest commons-test_eks
 ```
 
-  Note: The third argument of the above command (cdistest) refers to the profile in the config file setup in step five of the fist part.
-        The forth argument would be the name of commons you want to use, only lowercase letters and hyphen are permitted. You must add `_eks` to the name in order to invoke the EKS module.
+  Note: The third argument of the above command (cdistest) refers to the profile in the config file setup in step five of the first part.
+        The forth argument would be the name of the commons you want to use; only lowercase letters and hyphens are permitted. You must add `_eks` to the name in order to invoke the EKS module.
 
 2. Go to the terraform workspace folder
 ```bash
 gen3 cd
 ```
 
-3. Edit the `config.tfvars` file with a text editor of prefference. 
+3. Edit the `config.tfvars` file with a preferred text editor. 
 
   Variables to pay attention to:
 
@@ -172,18 +191,20 @@ gen3 cd
 
 `ec2_keyname` an existing Key Pair in EC2 for the workers for deployment. More keys can be added automatically if you specify them in $HOME/cloud-automation/files/authorized_keys/ops_team.
 
-**NOTE:** If the following variables are not in the file, just add the along with their values.
+**NOTE:** If the following variables are not in the file, just add them along with their values.
 
 `peering_vpc_id` VPC id from where you are running gen3 commands, must be in the same region as where you are running gen3.
 
-`csoc_managed` same as in part 2, if you want it attahed to a csoc account. Default is yes.
+`csoc_managed` same as in part 2, if you want it attached to a csoc account. Default is true.
 
 `peering_cidr` basically the CIDR of the VPC where you are running gen3. Pretty much the same as `csoc_vpc_id` for part two.
 
 
 *Optional*
 
-`eks_version` default set to 1.11, but you can change it to 1.10 or 1.12.
+`eks_version` default set to 1.14, but you can change it to 1.13 or 1.15.
+`sns_topic_arn` The kubernetes cluster that runs gen3 commons run a fluentd daemonset that sends logs onto CloudWatchLogGroups. If using fluentd version `v1.10.2-debian-cloudwatch-1.0` (set in the manifest), the configuration used would create new CloudWatchLogs Streams with the date as prefix, for this to work and rotate daily , a cron job must be running on the cluster that does this for us. 
+                Said job would publish an SNS topic of your choice. Should you want this enable, set this variable with a valid SNS so the kubernetes workers can access the service.
 
 
 
@@ -209,19 +230,23 @@ cp commons-test_output_EKS/kubeconfig $HOME
 
 ## Fourth part, bring up services in kubernetes
 
-1. Access the folder copied to the home folder
+
+1. Copy the esential files onto `Gen3Secrets` folder
 ```bash
 cd ${HOME}/commons-test_output/
+for fileName in 00configmap.yaml creds.json; do
+  if [[ -f "${fileName}" && ! -f ~/Gen3Secrets ]]; then
+    cp ${fileName} ~/Gen3Secrets/
+    mv "${fileName}" "${fileName}.bak"
+  else
+    echo "Using existing ~/Gen3Secrets/${fileName}"
+  fi
+done
 ```
 
-2. Run `kube-up.sh`
+2. Move the kubeconfig file copied previously into Gen3Secrets
 ```bash
-bash kube-up.sh
-```
-
-4. Move the kubeconfig file we copied previously into a newly created folder that `kube-up.sh` created for us.
-```bash
-mv ${HOME}/kubconfig ${HOME}/commons-test/
+mv ${HOME}/kubeconfig ${HOME}/Gen3Secrets/
 ```
 
 3. Create a manifest folder
@@ -234,7 +259,7 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
 
 4. Create a manifest file
 
-  With the test editor of your preference, create new file and open it, Ex: `${HOME}/cdis-manifest/commons-test.planx-pla.net.json`. The content of the file shold be similar to:
+  With the text editor of your preference, create a new file and open it, Ex: `${HOME}/cdis-manifest/commons-test.planx-pla.net/manifest.json`. The content of the file shold be similar to:
 
 ```json
 {
@@ -244,9 +269,6 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
   ],
   "versions": {
     "arborist": "quay.io/cdis/arborist:master",
-    "arranger": "quay.io/cdis/arranger:master",
-    "arranger-adminapi": "quay.io/cdis/arranger-server:master",
-    "arranger-dashboard": "quay.io/cdis/arranger-dashboard:master",
     "aws-es-proxy": "abutaha/aws-es-proxy:0.8",
     "fence": "quay.io/cdis/fence:master",
     "fluentd": "fluent/fluentd-kubernetes-daemonset:v1.2-debian-cloudwatch",
@@ -259,15 +281,7 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
     "sheepdog": "quay.io/cdis/sheepdog:master",
     "spark": "quay.io/cdis/gen3-spark:master",
     "manifestservice": "quay.io/cdis/manifestservice:master",
-    "wts": "quay.io/cdis/workspace-token-service:master",
-    "tube": "quay.io/cdis/tube:master"
-  },
-  "arranger": {
-    "project_id": "dev",
-    "auth_filter_field": "gen3_resource_path",
-    "auth_filter_node_types": [
-      "subject"
-    ]
+    "wts": "quay.io/cdis/workspace-token-service:master"
   },
   "arborist": {
     "deployment_version": "2"
@@ -294,28 +308,55 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
 ```
 
 
-4. kube-up.sh added a few lines to our local bashrc file, let's load the up.
+5. Check your `.bashrc` file to make sure it'll make gen3 work properly and source it.
+
+The file should look something like the following at the bottom of it:
 ```bash
-source ${HOME}/.bashrc
+export vpc_name='commons-test'
+export s3_bucket='kube-commons-test-gen3'
+
+export KUBECONFIG=~/Gen3Secrets/kubeconfig
+export GEN3_HOME=~/cloud-automation
+if [ -f "${GEN3_HOME}/gen3/gen3setup.sh" ]; then
+  source "${GEN3_HOME}/gen3/gen3setup.sh"
+fi
+alias kubectl=g3kubectl
+export GEN3_NOPROXY='no'
+if [[ -z "$GEN3_NOPROXY" ]]; then
+  export http_proxy='http://cloud-proxy.internal.io:3128'
+  export https_proxy='http://cloud-proxy.internal.io:3128'
+  export no_proxy='localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com,kibana.planx-pla.net'
+fi
 ```
 
-5. Verify that kubernetes is up. After sourcing our local bashrc file we should be able to talk to kubernetes:
+If it doesn't, adjust accordingly. If it does, source it:
+```bash
+source ~/.bashrrc
+```
+
+6. Apply the global manifest
+```bash
+$ kubectl apply -f ~/Gen3Secrets/00configmap.yaml
+```
+
+7. Verify that kubernetes is up. After sourcing our local bashrc file we should be able to talk to kubernetes:
 ```bash
 kubectl get nodes
 ```
 
-6. Roll services
+8. Roll services
 ```bash
 gen3 roll all
 ```
-  Note: it might take a few minutes to complete, let it run.
+  Note: it might take a few minutes to complete; let it run.
 
-7. Get the newly created ELB endpoint so you can point your domain to it.
+
+9. Get the newly created ELB endpoint so you can point your domain to it.
 ```bash
 kubectl get service revproxy-service-elb -o json | jq -r .status.loadBalancer.ingress[].hostname
 ```
 
-8. Go to your registrar and point the desired domain to the outcome of above command.
+10. Go to your registrar and point the desired domain to the outcome of above command.
 
 
 
@@ -333,9 +374,9 @@ sed -i 's/prevent_destroy/#prevent_destroy/g' $HOME/cloud-automation/tf_files/aw
 ```
 
 
-## Destroing the kubernetes cluster
+## Destroying the kubernetes cluster
 
-Firstly you need to delete any resource that was not created by terraform. It'll most likely be an Elastic Load balancer that was created when you ran `gen3 roll all`. 
+First you need to delete any resource that was not created by terraform. It will most likely be an Elastic Load balancer that was created when you ran `gen3 roll all`. 
 
 
 You can view if you have a reverse proxy attached to an ELB through the following command:
@@ -360,7 +401,7 @@ gen3 tfapply
 ```
 
 
-Once that destroy is done, let's delete the base components
+Once that destroy is done, let's delete the base components.
 
 ## Destroy the base components
 
@@ -372,5 +413,5 @@ gen3 tfapply
 ```
 
 **NOTES:**
-Some times, buckets created through `gen3` get populated with logs and other data, you may need to empty them before running the above commands. Otherwise, when you applying the plan it might fail to delete the bucket.
+Sometimes buckets created through `gen3` get populated with logs and other data. You may need to empty them before running the above commands. Otherwise, when applying the plan it might fail to delete the bucket.
 

@@ -4,10 +4,11 @@ variable "network_name" {
 variable "project_id" {
   description = "The ID of the project where this VPC will be created"
 }
+/*
 variable "region" {
   description = "URL of the GCP region for this subnetwork."
-  default = "us-central1"
 }
+*/
 variable "auto_create_subnetworks" {
   description = "Set to false to use custom network. If set to true will use default network."
   default = "false"

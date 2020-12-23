@@ -4,9 +4,10 @@
 .PHONY: apply destroy destroy-target plan-destroy plan plan-target prep
 #Change this bucket name
 CURRENT_FOLDER=$(shell basename "$$(pwd)")
-VARS=variables/commons-${CURRENT_FOLDER}.tfvars
+PARENT_FOLDER=$(shell basename "$$(echo $${PWD%/*})")
+VARS=../variables/answerfile-${PARENT_FOLDER}-${TENANT}.$(USER).tfvars
 ENV=$(shell awk '$$1 == "env" {print $$NF}' ${VARS}|tr -d '"')
-PROJECT=$(shell awk '$$1 == "project_name" {print $$NF}' ${VARS}|tr -d '"')
+PROJECT=$(shell awk '$$1 == "state_project_name" {print $$NF}' ${VARS}|tr -d '"')
 GCP_CREDENTIALS=$(shell awk '$$1 == "credential_file" {print $$NF}' ${VARS}|tr -d '"')
 STATE_BUCKET=$(shell awk '$$1 == "state_bucket_name" {print $$NF}' ${VARS}|tr -d '"')
 GCLOUD_BUCKET=${STATE_BUCKET}
@@ -101,6 +102,7 @@ apply: prep ## Have terraform do the things. This will cost money.
 destroy: prep ## Destroy the things
 	@ TF_WARN_OUTPUT_ERRORS=1 terraform destroy \
 		-input=false \
+                -auto-approve \
 		-refresh=true \
 		-var-file="$(VARS)" \
 		-var="terraform_workspace=${WORKSPACE}"
@@ -110,6 +112,7 @@ destroy-target: prep ## Destroy a specific resource. Caution though, this destro
 	@read -p "Destroy target: " DATA && \
 		terraform destroy \
 		-input=false \
+                -auto-approve \
 		-refresh=true \
 		-var-file=$(VARS) \
 		-var="terraform_workspace=${WORKSPACE}" \

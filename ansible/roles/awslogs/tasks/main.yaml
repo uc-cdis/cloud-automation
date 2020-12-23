@@ -1,0 +1,26 @@
+---
+- include: depen.yaml
+  tags:
+    - dependencies
+    - awslogs
+- include: conf.yaml
+  tags:
+    - configure
+    - awslogs
+
+- include: install.yaml
+  tags:
+    - install
+    - awslogs
+
+- include: start.yaml
+  tags:
+    - start
+    - restart
+    - service
+    - awslogs
+
+- include: cleanup.yaml
+  tags:
+    - cleanup
+    - awslogs

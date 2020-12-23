@@ -9,6 +9,7 @@ include_recipe 'g3_base_apt'
 #   https://deb.nodesource.com/setup_12.x
 #
 apt_repository 'nodejs-apt-repo' do
+  arch  'amd64'
   uri   'https://deb.nodesource.com/node_12.x'
   key   'https://deb.nodesource.com/gpgkey/nodesource.gpg.key'
   components ['main']
@@ -39,5 +40,6 @@ execute 'g3-install-pipstuff' do
     export XDG_CACHE_HOME=/var/cache
     python -m pip install awscli --upgrade
     python -m pip install yq --upgrade
+    python -m pip install aws-sam-cli --upgrade
     EOF
 end

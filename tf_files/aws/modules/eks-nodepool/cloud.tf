@@ -198,7 +198,7 @@ resource "aws_security_group" "eks_nodes_sg" {
 
   tags = "${
     map(
-     "Name", "${var.vpc_name}-nodes-sg",
+     "Name", "${var.vpc_name}-nodes-sg-${var.nodepool}",
      "kubernetes.io/cluster/${var.vpc_name}", "owned",
     )
   }"
@@ -362,7 +362,7 @@ resource "aws_security_group" "ssh" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags {
+  tags = {
     Environment  = "${var.vpc_name}"
     Organization = "${var.organization_name}"
     Name         = "ssh_eks_${var.vpc_name}-nodepool-${var.nodepool}"

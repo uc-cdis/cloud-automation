@@ -1,0 +1,5 @@
+---
+- include: conf.yaml
+  tags:
+    - configure
+    - awslogs

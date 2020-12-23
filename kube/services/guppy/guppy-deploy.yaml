@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: guppy-deployment
@@ -46,27 +46,37 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: analysis-jwt-keys
+          secret:
+            secretName: "analysis-jwt-keys-g3auto"
+            items:
+              - key: jwt_public_key.pem
+                path: jwt_public_key.pem
       containers:
         - name: guppy
           GEN3_GUPPY_IMAGE|-image: quay.io/cdis/guppy:master-|
           livenessProbe:
             httpGet:
               path: /_status
-              port: 80
+              port: 8000
             initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
               path: /_status
-              port: 80
+              port: 8000
           ports:
-          - containerPort: 80
+          - containerPort: 8000
           env:
+          - name: GUPPY_PORT
+            value: "8000"
           - name: GUPPY_CONFIG_FILEPATH
             value: /guppy/guppy_config.json
           - name: GEN3_ES_ENDPOINT
             value: esproxy-service:9200
+          - name: PUBLIC_KEY_PATH
+            value: /guppy/jwt_public_key.pem
           - name: GEN3_ARBORIST_ENDPOINT
             valueFrom:
               configMapKeyRef:
@@ -101,9 +111,16 @@ spec:
               readOnly: true
               mountPath: "/usr/local/share/ca-certificates/cdis-ca.crt"
               subPath: "ca.pem"
+            - name: "analysis-jwt-keys"
+              readOnly: true
+              mountPath: "/guppy/jwt_public_key.pem"
+              subPath: "jwt_public_key.pem"
+
           imagePullPolicy: Always
           resources:
+            requests:
+              cpu: 0.5
+              memory: 1024Mi
             limits:
-              cpu: 0.3
-              memory: 512Mi
-          
+              cpu: 1
+              memory: 2400Mi  

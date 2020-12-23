@@ -1,10 +1,33 @@
-export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
+test_configmaps_list() {
+  local expectedList=(
+all
+etl-mapping
+global
+hatchery
+jenkins
+jupyterhub
+modsec
+reuben
+scaling
+service1
+service2
+service3
+versions
+  )
+  local it
+  local result
+  result="$(gen3 gitops configmaps-list "$GEN3_HOME/gen3/lib/testData/default")"; because $? "gitops configmaps-list should work - got: $result"
+  for it in "${expectedList[@]}"; do
+    grep "^$it\$" <<< "$result" > /dev/null; because $? "gitops configmaps-list includes expected service $it"
+  done
+}
 
 
 #
 # Test g3k_manifest_path
 #
 test_mpath() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   local mpath=$(g3k_manifest_path test1.manifest.g3k)
   [[ "$mpath" == "${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json" ]];
   because $? "g3k_manifest_path prefers domain/manifest.json if available: $mpath ?= ${GEN3_MANIFEST_HOME}/test1.manifest.g3k/manifest.json"
@@ -18,17 +41,20 @@ test_mpath() {
 # Test g3k_manifest_filter - also tests g3k_kv_filter
 #
 test_mfilter() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   testFolder="${XDG_RUNTIME_DIR}/$$/g3kTest/mfilter"
   /bin/rm -rf "$testFolder"
   mkdir -p -m 0700 "$testFolder"
+  local name
   for name in fence sheepdog; do
-    capName=Fence
+    local capName=Fence
     if [[ "$name" == "sheepdog" ]]; then capName=Sheepdog; fi
+    local domain
     for domain in test1.manifest.g3k default; do
       local mpath
       mpath="$(g3k_manifest_path test1.manifest.g3k)"
       # Note: date timestamp will differ between saved snapshot and fresh template processing
-      echo "Writing: $testFolder/${name}-${domain}-a.yaml"
+      gen3_log_info "Writing: $testFolder/${name}-${domain}-a.yaml"
       gen3 gitops filter "${GEN3_HOME}/kube/services/$name/${name}-deploy.yaml" "$mpath" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-a.yaml"
       cat "$(dirname "$mpath")/expected${capName}Result.yaml" | sed 's/.*date:.*$//' > "$testFolder/${name}-${domain}-b.yaml"
       diff -w "$testFolder/${name}-${domain}-a.yaml" "$testFolder/${name}-${domain}-b.yaml"
@@ -42,6 +68,7 @@ test_mfilter() {
 }
 
 test_mlookup() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   local mpath # manifest path
   mpath="$(g3k_manifest_path test1.manifest.g3k)"
   [[ "$(g3k_config_lookup .versions.fence "$mpath")" == "quay.io/cdis/fence:master" ]];
@@ -66,7 +93,21 @@ EOM
   /bin/rm -rf "$testFolder"
 }
 
+test_etlconvert() {
+  local temp="$(mktemp "$XDG_RUNTIME_DIR/test_etlconvert_XXXXXX")"
+  local yaml
+  for num in 1 2; do
+    yaml="$GEN3_HOME/gen3/lib/testData/etlconvert/users${num}.yaml"
+    gen3 gitops etl-convert < "$yaml" > $temp
+        because $? "etl-convert should work on $yaml"
+    diff -w "$temp" "$GEN3_HOME/gen3/lib/testData/etlconvert/expected${num}.yaml"
+        because $? "etl-convert gave expected result for $yaml"
+  done
+  rm "$temp"
+}
+
 test_loader() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/lib/testData/gen3_load/a"
   gen3_load "gen3/lib/testData/gen3_load/b"
   [[ "$GEN3_LOAD_A" -eq 1 && "$GEN3_LOAD_B" -eq 1 ]]; because $? "gen3_load loads a file once"
@@ -90,6 +131,7 @@ test_random_alpha() {
 }
 
 test_roll_path() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/bin/gitops"
 
   ! tpath="$(gen3 gitops rollpath bogus "" 2> /dev/null)"; because $? "bogus service yaml does not exist"
@@ -113,6 +155,7 @@ test_roll_path() {
 }
 
 test_roll() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/bin/roll"
 
   # Mock g3kubectl
@@ -130,6 +173,7 @@ test_roll() {
 
 
 test_configmaps() {
+  export GEN3_MANIFEST_HOME="${GEN3_HOME}/gen3/lib/testData"
   gen3_load "gen3/bin/gitops"
 
   local mpath
@@ -156,20 +200,21 @@ test_configmaps() {
   }
 
 
-  gen3_gitops_configmaps; because !$? "gen3_gitops_configmaps should exit with code 1 if the manifest does not have a global section"
+  ! gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should exit with code 1 if the manifest does not have a global section"
   
   # Mock g3k_manifest_path to manifest with global
   function g3k_manifest_path() { echo "$mpathGlobal"; }
-  gen3_gitops_configmaps | grep -q created; because $? "gen3_gitops_configmaps should create configmaps"
-  gen3_gitops_configmaps | grep -q labeled; because $? "gen3_gitops_configmaps should label configmaps"
-  g3kubectl delete configmaps -l app=manifest
-
-  gen3_gitops_configmaps; 
+  gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should run ok"
+  gen3_gitops_configmaps 2>&1 | grep -q created; because $? "gen3_gitops_configmaps should create configmaps"
+ 
+  gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should run ok"
   gen3_gitops_configmaps; because $? "gen3_gitops_configmaps should not bomb out, even if the configmaps already exist"
-  gen3_gitops_configmaps | grep -q deleted; because $? "gen3_gitops_configmaps delete previous configmaps"
+  gen3_gitops_configmaps 2>&1 | grep -q deleted; because $? "gen3_gitops_configmaps delete previous configmaps"
 }
 
 test_gitops_taglist() {
+  gen3_log_info "gitops taglist is not used - skipping slow test"
+  return 0
   gen3 gitops taglist | grep -E 'fence *[0-9]+\.[0-9]+\.[0-9]+'; because $? "gen3 gitops taglist should list some tag for fence"
 }
 
@@ -188,9 +233,11 @@ test_time_since() {
 test_secrets_folder() {
   vpc_name=SecretName
   secretFolder="$(gen3_secrets_folder)"
-  [[ "$secretFolder" == "$WORKSPACE/$vpc_name" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
+  [[ "$secretFolder" == "$(dirname $GEN3_HOME)/Gen3Secrets" ]]; because $? "gen3_secrets_folder gave expected result: $secretFolder"
 }
 
+shunit_runtest "test_configmaps_list" "local,gitops"
+shunit_runtest "test_etlconvert" "local,gitops"
 shunit_runtest "test_mpath" "local,gitops"
 shunit_runtest "test_mfilter" "local,gitops"
 shunit_runtest "test_mlookup" "local,gitops"

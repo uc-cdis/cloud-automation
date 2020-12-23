@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sower-deployment
@@ -43,12 +43,6 @@ spec:
             items:
               - key: json
                 path: sower_config.json
-        - name: pelican-creds-volume
-          secret:
-            secretName: "pelicanservice-g3auto"
-        - name: peregrine-creds-volume
-          secret:
-            secretName: "peregrine-creds"
       containers:
       - name: sower
         GEN3_SOWER_IMAGE
@@ -86,11 +80,11 @@ spec:
             readOnly: true
             mountPath: /sower_config.json
             subPath: sower_config.json
-          - name: pelican-creds-volume
-            readOnly: true
-            mountPath: /pelican-creds.json
-            subPath: config.json
-          - name: "peregrine-creds-volume"
-            readOnly: true
-            mountPath: "/peregrine-creds.json"
-            subPath: creds.json
+        resources:
+          requests:
+            cpu: 0.4
+            memory: 1200Mi
+          limits:
+            cpu: 1.0
+            memory: 2400Mi  
+  
