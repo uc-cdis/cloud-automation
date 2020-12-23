@@ -6,7 +6,7 @@ metadata:
   name: selenium-node-chrome
   namespace: default
 spec:
-  replicas: 5
+  replicas: 10
   selector:
     matchLabels:
       app: selenium-node-chrome
@@ -28,9 +28,7 @@ spec:
           value: "4442"
         - name: SE_EVENT_BUS_SUBSCRIBE_PORT
           value: "4443"
-        - name: NODE_MAX_SESSION
-          value: "5"
-        - name: NODE_MAX_INSTANCES
+        - name: SE_NODE_MAX_CONCURRENT_SESSIONS
           value: "3"
         image: selenium/node-chrome:4
         imagePullPolicy: Always
