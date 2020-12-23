@@ -204,7 +204,7 @@ spec:
             memory: 1200Mi
           limits:
             cpu: 1.0
-            memory: 2400Mi  
+            memory: 2400Mi
         command: ["/bin/bash"]
         args:
           - "-c"
@@ -218,12 +218,26 @@ spec:
         args:
           - "-c"
           - |
-            nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
-            if [ "$nginx_status_response" != 200 ]; then
-              sleep infinity
-            else
-              /usr/bin/exporter -nginx.scrape-uri http://127.0.0.1/nginx_status
-            fi
+            attempt=0
+            maxAttempts=12
+            while true
+            do
+              nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
+              echo "initializing nginx-prometheus-exporter..."
+              echo "nginx_status_response: $nginx_status_response"
+              if [ "$nginx_status_response" == 200 ]; then
+                echo "nginx_status is finally up and running. Proceed with the metrics exporting..."
+                /usr/bin/exporter -nginx.scrape-uri http://127.0.0.1/nginx_status
+              else
+                echo "The nginx_status endpoint is not ready yet... attempt #${attempt}"
+                sleep 5
+                if [ $attempt -eq $maxAttempts ];then
+                  echo "The nginx_status endpoint was never initialized properly, keep the sidecar running in sleep mode to prevent the entire pod from failing..."
+                  sleep infinity
+                fi
+              fi
+              attempt=$(( $attempt + 1 ));
+            done
         ports:
         - containerPort: 9113
       - name: uwsgi-exporter
