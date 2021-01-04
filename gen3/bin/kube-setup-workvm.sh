@@ -185,7 +185,7 @@ EOM
       helm 2to3 convert prometheus
       
       # delete tiller and other helm2 data/configs
-      helm 2to3 cleanup --skip-confirmation
+      helm 2to3 cleanup --skip-confirmation || true
     }
 
     if ! which helm > /dev/null 2>&1; then
