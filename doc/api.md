@@ -64,7 +64,7 @@ Allocate a one-hour access-token for the given user, or re-use one from cache if
 Assumes that a `fence` pod is running in the current environment.
 
 ```
-  gen3 api access-token [user-email]
+  gen3 api access-token [user-email] [expires-in (default: 3600)] [skip-cache (default: false)]
 ```
 
 ### new-program
