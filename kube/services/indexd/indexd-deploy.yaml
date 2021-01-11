@@ -18,6 +18,10 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /aggregated_metrics
+        prometheus.io/port: "6567"
       labels:
         app: indexd
         release: production
@@ -53,6 +57,8 @@ spec:
         - name: ca-volume
           secret:
             secretName: "service-ca"
+        - name: logs-folder
+          emptyDir: {}
       containers:
       - name: indexd
         GEN3_INDEXD_IMAGE
@@ -87,6 +93,7 @@ spec:
         ports:
         - containerPort: 80
         - containerPort: 443
+        - containerPort: 6567
         volumeMounts:
           - name: "config-volume"
             readOnly: true
@@ -113,6 +120,8 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
+          - name: logs-folder
+            mountPath: "/var/log/nginx/"
         resources:
           requests:
             cpu: 0.5
@@ -120,3 +129,44 @@ spec:
           limits:
             cpu: 1.0
             memory: 2048Mi
+      - name: nginx-prometheus-exporter-wrapper
+        GEN3_NGINX_PROMETHEUS_EXPORTER_WRAPPER_IMAGE|-image: quay.io/cdis/nginx-prometheus-exporter-wrapper:pybase3-1.4.0-|
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            attempt=0
+            maxAttempts=12
+            while true
+            do
+              nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
+              echo "initializing nginx-prometheus-exporter..."
+              echo "nginx_status_response: $nginx_status_response"
+              if [ "$nginx_status_response" == 200 ]; then
+                echo "nginx_status is finally up and running. Proceed with the metrics exporting..."
+                /usr/bin/exporter -nginx.scrape-uri http://127.0.0.1/nginx_status
+              else
+                echo "The nginx_status endpoint is not ready yet... attempt #${attempt}"
+                sleep 5
+                if [ $attempt -eq $maxAttempts ];then
+                  echo "The nginx_status endpoint was never initialized properly, keep the sidecar running in sleep mode to prevent the entire pod from failing..."
+                  sleep infinity
+                fi
+              fi
+              attempt=$(( $attempt + 1 ));
+            done
+        ports:
+        - containerPort: 9113
+      - name: uwsgi-exporter
+        GEN3_UWSGI_EXPORTER_IMAGE|-image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0-|
+        args: ["--stats.uri", "http://127.0.0.1/uwsgi_status"]
+        ports:
+        - containerPort: 9117
+      - name: nginx-logs-exporter
+        GEN3_NGINX_LOGS_EXPORTER_IMAGE|-image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1-|
+        args: ["/mnt/nginxlogs/access_not_json.log"]
+        ports:
+        - containerPort: 4040
+        volumeMounts:
+        - name: logs-folder
+          mountPath: "/mnt/nginxlogs/"
