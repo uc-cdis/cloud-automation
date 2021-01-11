@@ -100,14 +100,30 @@ if [[ $GEN3_DRYRUN == "False" ]]; then
 fi
 
 if [[ $GEN3_DRYRUN == "False" ]]; then
-  (
-    while true; do
-      curl -s http://127.0.0.1:9117/metrics > /var/www/metrics/metrics.txt
-      curl -s http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt
-      curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
-      sleep 10
-    done
-  ) &
+  metrics_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/metrics)
+  echo "metrics_status_response: $metrics_status_response"
+  if [ "$metrics_status_response" == 200 ]; then
+    echo "starting metrics aggregation with service metrics..."
+    (
+      while true; do
+        curl -s http://127.0.0.1/metrics > /var/www/metrics/metrics.txt
+        curl -s http://127.0.0.1:9117/metrics >> /var/www/metrics/metrics.txt
+        curl -s http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt
+        curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
+        sleep 10
+      done
+    ) &
+  else
+    echo "starting metrics aggregation without service metrics..."
+    (
+      while true; do
+        curl -s http://127.0.0.1:9117/metrics > /var/www/metrics/metrics.txt
+        curl -s http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt
+        curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
+        sleep 10
+      done
+    ) &
+  fi
 fi
 
 run nginx -g 'daemon off;'
