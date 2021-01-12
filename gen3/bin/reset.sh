@@ -67,7 +67,7 @@ run_post_roll_jobs() {
 
 LOCK_USER="gen3-reset-$$"
 
-# 
+#
 # Prompt the user with a given message, bail out if user does not reply "yes"
 gen3_user_verify() {
   local message="$1"
@@ -148,6 +148,7 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 # so run_setup_jobs both before and after roll all to
 # try to make reset more reliable - especially in Jenkins
 #
+aws sqs purge-queue --queue-url https://sqs.us-east-1.amazonaws.com/707767160287/jenkins-${KUBECTL_NAMESPACE}-databucket-gen3_data_upload
 run_setup_jobs
 clear_wts_clientId
 
