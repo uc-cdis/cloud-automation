@@ -22,7 +22,8 @@ gen3_logs_cwstreams() {
   local temp="$(mktemp "$XDG_RUNTIME_DIR/logGroups.json_XXXXXX")"
   local lastTime="$((1000*$(date +%s)))"
   local count=0
-  while [[ "$lastTime" -gt "$startDate" && "$count" -lt 10 ]]; do
+  local maxloop=200
+  while [[ "$lastTime" -gt "$startDate" && "$count" -lt $maxloop ]]; do
     count=$((count+1))
     gen3_log_info "loading page $count from cloudwatch"
     (
@@ -62,7 +63,7 @@ gen3_logs_cwstreams() {
     fi
     gen3_log_info "lastTime is $(date -u -d@$((lastTime/1000)))"
     gen3_log_info "nextToken is $nextToken"
-    if [[ $count -gt 9 ]]; then
+    if [[ $count -ge $maxloop ]]; then
       gen3_log_info "batch count limit reached: $count"
     fi
     sleep 2  # rate limit
