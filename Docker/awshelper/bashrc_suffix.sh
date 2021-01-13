@@ -11,7 +11,10 @@ source <(kubectl completion bash)
 export JENKINS_HOME=true
 export GEN3_HOME="$HOME/cloud-automation"
 export ESHOST="esproxy-service:9200"
-source "${GEN3_HOME}/gen3/gen3setup.sh"
+
+if [[ -f "${GEN3_HOME}/gen3/gen3setup.sh" ]]; then
+  source "${GEN3_HOME}/gen3/gen3setup.sh"
+fi
 
 PATH="${PATH}:${HOME}/.poetry/bin"
 
