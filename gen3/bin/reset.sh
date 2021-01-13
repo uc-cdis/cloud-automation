@@ -148,7 +148,10 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 # so run_setup_jobs both before and after roll all to
 # try to make reset more reliable - especially in Jenkins
 #
-aws sqs purge-queue --queue-url https://sqs.us-east-1.amazonaws.com/707767160287/jenkins-${KUBECTL_NAMESPACE}-databucket-gen3_data_upload
+if g3kubectl get secret ssjdispatcher-creds > /dev/null 2>&1; then
+    aws sqs purge-queue --queue-url="$(gen3 secrets decode ssjdispatcher-creds credentials.json | jq -r .SQS.url)"
+fi
+
 run_setup_jobs
 clear_wts_clientId
 
