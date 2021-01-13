@@ -1,4 +1,4 @@
-FROM jenkins/jnlp-slave:4.3-1 
+FROM jenkins/jnlp-slave:4.3-1
 
 USER root
 
@@ -89,7 +89,7 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
 
 
 # install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 
 # install chrome (supports headless mode)
