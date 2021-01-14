@@ -72,6 +72,11 @@ spec:
                 print("user_db['%s']='%s'" % (user, user_db[user]))
               EOM
               )
+              curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+              source $HOME/.poetry/env
+              cd /indexd
+              poetry install -vv
+              poetry update
               for user in "${!user_db[@]}"; do
                 python /indexd/bin/index_admin.py create --username "$user" --password "${user_db[$user]}"
               done
