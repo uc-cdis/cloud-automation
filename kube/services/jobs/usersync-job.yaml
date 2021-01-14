@@ -78,7 +78,7 @@ spec:
         imagePullPolicy: Always
         env:
           - name: prometheus_multiproc_dir
-            value: /var/tmp/uwsgi_flask_metrics
+            value: /tmp
           - name: PYTHONPATH
             value: /var/www/fence
           - name: SYNC_FROM_DBGAP
