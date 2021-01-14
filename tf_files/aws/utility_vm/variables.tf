@@ -21,13 +21,12 @@ variable "vpc_subnet_id" {
 }
 
 variable "vpc_cidr_list" {
-  type = "list"
+  type = list
   default = ["10.128.0.0/20", "54.0.0.0/8", "52.0.0.0/8"]
 }
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {
-  default = "fauzi@uchicago.edu"
 }
 
 variable "environment" {
@@ -43,7 +42,7 @@ variable "image_name_search_criteria" {
 }
 
 variable "extra_vars" {
-  type = "list"
+  type = list
   #default = ["hostname=stuff","accountid=34534534534"]
 }
 
