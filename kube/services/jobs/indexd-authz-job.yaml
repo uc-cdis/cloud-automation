@@ -75,6 +75,12 @@ spec:
               if [[ -n "$START_DID" ]]; then
                 flags="$flags --start-did $START_DID"
               fi
-              python /indexd/bin/migrate_acl_authz.py $flags
+              curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+              source $HOME/.poetry/env
+              cd /indexd
+              poetry install -vv
+              poetry update
+              python ./bin/migrate_acl_authz.py $flags
+              cd ..
               echo "Exit code: $?"
       restartPolicy: Never
