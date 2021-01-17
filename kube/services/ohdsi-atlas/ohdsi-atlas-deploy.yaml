@@ -33,6 +33,13 @@ spec:
                   - ohdsi-atlas
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
+      volumes:
+        - name: ohdsi-atlas-config-local
+          configMap:
+            name: ohdsi-atlas-config-local
+        - name: ohdsi-atlas-config-gis
+          configMap:
+            name: ohdsi-atlas-config-gis
       containers:
         - name: ohdsi-atlas
           GEN3_OHDSI_ATLAS_IMAGE|-image: quay.io/cdis/ohdsi-atlas:latest-|
@@ -50,8 +57,17 @@ spec:
           ports:
           - containerPort: 80
           envFrom:
-            - secretRef:
-                name: ohdsi-broadsea-webtools-config
+            - configMapRef:
+                name: ohdsi-atlas-config
+          volumeMounts:
+            - name: ohdsi-atlas-config-local
+              readOnly: true
+              mountPath: /usr/share/nginx/html/atlas/js/config-local.js
+              subPath: config-local.js
+            - name: ohdsi-atlas-config-gis
+              readOnly: true
+              mountPath: /usr/share/nginx/html/atlas/js/config-gis.js
+              subPath: config-gis.js
           imagePullPolicy: Always
           resources:
             requests:

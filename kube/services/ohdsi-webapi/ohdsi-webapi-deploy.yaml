@@ -51,7 +51,7 @@ spec:
           - containerPort: 8080
           envFrom:
             - secretRef:
-                name: ohdsi-broadsea-webtools-config
+                name: ohdsi-webapi-config
           imagePullPolicy: Always
           resources:
             requests:
