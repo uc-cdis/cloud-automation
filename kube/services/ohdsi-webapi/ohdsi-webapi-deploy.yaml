@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ohdsi-broadsea-webtools-deployment
+  name: ohdsi-webapi-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: ohdsi-broadsea-webtools
+      app: ohdsi-webapi
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       labels:
-        app: ohdsi-broadsea-webtools
+        app: ohdsi-webapi
         public: "yes"
         GEN3_DATE_LABEL
     spec:
@@ -30,44 +30,28 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - ohdsi-broadsea-webtools
+                  - ohdsi-webapi
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
-      volumes:
-        - name: broadsea-config-local
-          configMap:
-            name: broadsea-config-local
-        - name: broadsea-app-local
-          configMap:
-            name: broadsea-app-local
       containers:
-        - name: ohdsi-broadsea-webtools
-          GEN3_OHDSI_BROADSEA_WEBTOOLS_IMAGE|-image: ohdsi/broadsea-webtools:latest-|
+        - name: ohdsi-webapi
+          GEN3_OHDSI_WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
           livenessProbe:
             httpGet:
-              path: /atlas/
+              path: /
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
-              path: /atlas/
+              path: /
               port: 8080
           ports:
           - containerPort: 8080
           envFrom:
             - secretRef:
                 name: ohdsi-broadsea-webtools-config
-          volumeMounts:
-            - name: broadsea-config-local
-              readOnly: true
-              mountPath: /usr/local/tomcat/webapps/atlas/js/config-local.js
-              subPath: config-local.js
-            - name: broadsea-app-local
-              readOnly: true
-              mountPath: /usr/local/tomcat/webapps/atlas/js/config/app.js
-              subPath: app.js
           imagePullPolicy: Always
           resources:
             requests:
