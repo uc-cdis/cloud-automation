@@ -49,11 +49,14 @@ spec:
               port: 80
           ports:
           - containerPort: 80
+          envFrom:
+            - secretRef:
+                name: ohdsi-broadsea-webtools-config
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 0.5
-              memory: 1024Mi
+              cpu: 1
+              memory: 1Gi
             limits:
               cpu: 1
-              memory: 2400Mi  
+              memory: 1Gi  

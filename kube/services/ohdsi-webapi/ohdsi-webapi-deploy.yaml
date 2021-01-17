@@ -32,20 +32,20 @@ spec:
                   values:
                   - ohdsi-webapi
               topologyKey: "kubernetes.io/hostname"
-      automountServiceAccountToken: false
+ohdsi-webapi-deployment-69b8875f96-dwrvd      automountServiceAccountToken: false
       containers:
         - name: ohdsi-webapi
           GEN3_OHDSI_WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
           livenessProbe:
             httpGet:
-              path: /
+              path: /WebAPI/source/sources
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
-              path: /
+              path: /WebAPI/source/sources
               port: 8080
           ports:
           - containerPort: 8080
@@ -56,7 +56,7 @@ spec:
           resources:
             requests:
               cpu: 1
-              memory: 1024Mi
+              memory: 1Gi
             limits:
               cpu: 1
-              memory: 2400Mi  
+              memory: 1Gi  
