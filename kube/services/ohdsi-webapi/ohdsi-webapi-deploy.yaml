@@ -32,7 +32,7 @@ spec:
                   values:
                   - ohdsi-webapi
               topologyKey: "kubernetes.io/hostname"
-ohdsi-webapi-deployment-69b8875f96-dwrvd      automountServiceAccountToken: false
+      automountServiceAccountToken: false
       containers:
         - name: ohdsi-webapi
           GEN3_OHDSI_WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
