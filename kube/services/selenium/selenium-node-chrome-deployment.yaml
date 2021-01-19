@@ -30,7 +30,7 @@ spec:
           value: "4443"
         - name: SE_NODE_MAX_CONCURRENT_SESSIONS
           value: "3"
-        image: selenium/node-chrome:4
+        image: selenium/node-chrome:4.0.0-beta-1-prerelease-20201202
         imagePullPolicy: Always
         name: node-chrome
       terminationGracePeriodSeconds: 30
