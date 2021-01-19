@@ -355,6 +355,29 @@ EOM
   workspace_cleanup
 }
 
+test_utilityadmin_workspace() {
+  GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}__utility_admin"
+  test_workspace
+  test_workspace
+  cat - > config.tfvars <<EOM
+bootstrap_path = "cloud-automation/flavors/adminvm/"
+bootstrap_script = "ubuntu-18-init.sh"
+vm_name = "admintest"
+vm_hostname = "admintest"
+vpc_id = "vpc-00d2fc7e8fd84fce8"
+vpc_subnet_id = "subnet-07929c80bc1a6619e"
+# secgroup egress whitelist
+vpc_cidr_list = ["172.26.128.0/20", "52.0.0.0/8", "54.0.0.0/8"]
+aws_account_id = "707767160287"
+extra_vars = []
+instance_type = "t3.micro"
+ssh_key_name = "reubenplanetv1_automation_dev"
+EOM
+  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/utility_admin" ]]; because $? "a __sftp workspace should use the ./aws/sftp resources: $GEN3_TFSCRIPT_FOLDER"
+  gen3 tfplan; because $? "tfplan utility_admin should run ok"
+  workspace_cleanup
+}
+
 test_trash() {
   gen3 workon $GEN3_TEST_PROFILE $GEN3_TEST_WORKSPACE; because $? "Calling gen3 workon multiple times should be harmless"
   [[ -d $GEN3_WORKDIR ]]; because $? "gen3 workon should create $GEN3_WORKDIR"
@@ -403,6 +426,7 @@ shunit_runtest "test_snapshot_workspace" "terraform"
 shunit_runtest "test_usergeneric_workspace" "terraform"
 shunit_runtest "test_uservpc_workspace" "terraform"
 shunit_runtest "test_utilityvm_workspace" "terraform"
+shunit_runtest "test_utilityadmin_workspace" "terraform"
 if [[ -z "$JENKINS_HOME" ]]; then
   # jenkins does not have Google configurations yet
   shunit_runtest "test_gcp_workspace" "terraform"
