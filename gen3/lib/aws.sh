@@ -34,16 +34,17 @@ gen3_aws_run() {
 
     # Try to use cached creds if possible
     if [[ -f $gen3CredsCache ]]; then
-      local nowPlus5
+      local nowPlus40
+      # leave 40 minutes in the session - some terraform plans run long
       if [[ $(uname -s) == "Linux" ]]; then
-        nowPlus5="$(date --utc --date '+5 mins' +%Y-%m-%dT%H:%M)"
+        nowPlus40="$(date --utc --date '+40 mins' +%Y-%m-%dT%H:%M)"
       else
         # date on Mac is not sophisticated
-        nowPlus5="$(date -u +%Y-%m-%dT%H:%M)"
+        nowPlus40="$(date -u +%Y-%m-%dT%H:%M)"
       fi
       gen3AwsExpire=$(jq -r '.Credentials.Expiration' < $gen3CredsCache)
 
-      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$nowPlus5" ]]; then
+      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$nowPlus40" ]]; then
         cacheIsValid="yes"
       fi
     fi
@@ -330,6 +331,8 @@ vm_hostname = "${vmName}"
 vpc_cidr_list = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8"]
 aws_account_id = "ACCOUNT-ID"
 extra_vars = []
+instance_type = "t3.micro"
+ssh_key_name = "your key name -- see aws ec2 describe-key-pairs"
 user_policy = <<EOPOLICY
 THIS IS JUST AN EXAMPLE - REPLACE ACCOUNT-ID ON ADMIN VM's, 
 DELETE user_policy IF YOU DO NOT NEED THIS TO FALL BACK TO DEFAULT

@@ -121,3 +121,6 @@ RUN chmod -R a+rx /opt/cdis
 ENTRYPOINT ["/sbin/tini", "--", "/opt/cdis/bin/jenkins.sh"]
 
 USER jenkins
+
+RUN git config --global user.email jenkins \
+    && git config --global user.name jenkins

@@ -41,8 +41,8 @@ RUN apt-get update && apt-get upgrade -y \
 RUN  python3 -m pip install --upgrade pip \
     && python3 -m pip install --upgrade setuptools \
     && python3 -m pip install -U crcmod \
-    && python3 -m pip install yq --upgrade \
-    && python3 -m pip install gen3
+    && python3 -m pip install --upgrade yq \
+    && python3 -m pip install --upgrade 'gen3>4'
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
@@ -108,6 +108,9 @@ RUN cd ./cloud-automation \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+
+RUN git config --global user.email gen3 \
+    && git config --global user.name gen3
 
 # smoke test
 RUN export GEN3_HOME="$HOME/cloud-automation" \

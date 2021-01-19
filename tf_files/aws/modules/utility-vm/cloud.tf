@@ -1,24 +1,24 @@
 
 resource "aws_cloudwatch_log_group" "csoc_log_group" {
-  name              = "${var.vm_hostname}"
+  name              = var.vm_hostname
   retention_in_days = 1827
 
   tags = {
-    Environment  = "${var.environment}"
-    Organization = "${var.organization_name}"
+    Environment  = var.environment
+    Organization = var.organization_name
   }
 }
 
 resource "aws_ami_copy" "cdis_ami" {
   name              = "${var.vm_name}_ami"
   description       = "A copy of ${data.aws_ami.public_ami.name}"
-  source_ami_id     = "${data.aws_ami.public_ami.id}"
-  source_ami_region = "${var.aws_region}"
+  source_ami_id     = data.aws_ami.public_ami.id
+  source_ami_region = var.aws_region
   encrypted         = true
 
   tags = {
     Name        = "cdis"
-    Environment = "${var.environment}"
+    Environment = var.environment
   }
 
   lifecycle {
@@ -27,7 +27,7 @@ resource "aws_ami_copy" "cdis_ami" {
     # We still need to improve our mechanism for tracking .ssh/authorized_keys
     # User can use 'terraform state taint' to trigger update.
     #
-    ignore_changes = ["source_ami_id"]
+    ignore_changes = [source_ami_id]
   }
 }
 
@@ -37,7 +37,7 @@ resource "aws_ami_copy" "cdis_ami" {
 resource "aws_security_group" "ssh" {
   name        = "ssh_${var.vm_name}"
   description = "security group that only enables ssh"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
   ingress {
     from_port   = 22
@@ -47,8 +47,8 @@ resource "aws_security_group" "ssh" {
   }
 
   tags = {
-    Environment  = "${var.environment}"
-    Organization = "${var.organization_name}"
+    Environment  = var.environment
+    Organization = var.organization_name
     Name         = "ssh_${var.vm_name}"
   }
 }
@@ -59,7 +59,7 @@ resource "aws_security_group" "ssh" {
 resource "aws_security_group" "local" {
   name        = "local_${var.vm_name}"
   description = "security group that only allow internal tcp traffics"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
   ingress {
     from_port   = 0
@@ -72,12 +72,12 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${var.vpc_cidr_list}"]
+    cidr_blocks = var.vpc_cidr_list
   }
 
   tags = {
-    Environment  = "${var.environment}"
-    Organization = "${var.organization_name}"
+    Environment  = var.environment
+    Organization = var.organization_name
     Name         = "local_${var.vm_name}"
   }
 }
@@ -109,8 +109,8 @@ resource "aws_iam_role" "vm_role" {
 EOF
 
   tags = {
-    Environment  = "${var.environment}"
-    Organization = "${var.organization_name}"
+    Environment  = var.environment
+    Organization = var.organization_name
     Name         = "local_${var.vm_name}"
   }
 }
@@ -118,21 +118,21 @@ EOF
 
 resource "aws_iam_role_policy" "vm_policy" {
   name   = "${var.vm_name}_policy"
-  policy = "${data.aws_iam_policy_document.vm_policy_document.json}"
-  role   = "${aws_iam_role.vm_role.id}"
+  policy = data.aws_iam_policy_document.vm_policy_document.json
+  role   = aws_iam_role.vm_role.id
 }
 
 resource "aws_iam_role_policy" "vm_user_policy" {
   name   = "${var.vm_name}_user_policy"
-  role   = "${aws_iam_role.vm_role.id}"
-  #policy = "${var.user_policy}"
-  policy = "${var.user_policy}"
+  role   = aws_iam_role.vm_role.id
+  #policy = var.user_policy
+  policy = var.user_policy
 }
 
 
 resource "aws_iam_instance_profile" "vm_role_profile" {
   name = "${var.vm_name}_role_profile"
-  role = "${aws_iam_role.vm_role.id}"
+  role = aws_iam_role.vm_role.id
 }
 
 locals {
@@ -156,40 +156,42 @@ EOF
 }
 
 resource "aws_instance" "utility_vm" {
-  ami                    = "${aws_ami_copy.cdis_ami.id}"
-  subnet_id              = "${var.vpc_subnet_id}"
-  instance_type          = "${var.instance_type}"
+  ami                    = aws_ami_copy.cdis_ami.id
+  subnet_id              = var.vpc_subnet_id
+  instance_type          = var.instance_type
   monitoring             = true
-  key_name               = "${var.ssh_key_name}"
-  vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
+  key_name               = var.ssh_key_name
+  vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.local.id]
 
-  iam_instance_profile = "${aws_iam_instance_profile.vm_role_profile.name}"
+  iam_instance_profile = aws_iam_instance_profile.vm_role_profile.name
 
   tags = {
-    Name         = "${var.vm_name}"
-    Environment  = "${var.environment}"
-    Organization = "${var.organization_name}"
+    Name         = var.vm_name
+    Environment  = var.environment
+    Organization = var.organization_name
   }
 
   lifecycle {
-    ignore_changes = ["ami", "key_name"]
+    ignore_changes = [ami, key_name]
   }
 
   provisioner "file" {
-    content     = "${var.proxy ? local.proxy_config_apt : ""}"
-    destination = "/tmp//01proxy"
+    content     = var.proxy ? local.proxy_config_apt : ""
+    destination = "/tmp/01proxy"
     connection {
       type     = "ssh"
       user     = "ubuntu"
+      host     = self.private_ip
     }
   }
 
   provisioner "file" {
-    content     = "${var.proxy ? local.profile_d : ""}"
+    content     = var.proxy ? local.profile_d : ""
     destination = "/tmp/99-proxy.sh"
     connection {
       type     = "ssh"
       user     = "ubuntu"
+      host     = self.private_ip
     }
   }
 
