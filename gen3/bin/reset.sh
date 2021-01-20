@@ -150,6 +150,7 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 #
 if g3kubectl get secret ssjdispatcher-creds > /dev/null 2>&1; then
     aws sqs purge-queue --queue-url="$(gen3 secrets decode ssjdispatcher-creds credentials.json | jq -r .SQS.url)"
+    g3kubectl delete pods $(g3kubectl get pods | grep indexing | awk '{ print $1 }')
 fi
 
 run_setup_jobs
