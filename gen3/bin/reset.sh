@@ -149,6 +149,7 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 # try to make reset more reliable - especially in Jenkins
 #
 if g3kubectl get secret ssjdispatcher-creds > /dev/null 2>&1; then
+    echo "about to purge all aws sqs msgs from the ${KUBECTL_NAMESPACE}-databucket-gen3_data_upload queue..."
     aws sqs purge-queue --queue-url="$(gen3 secrets decode ssjdispatcher-creds credentials.json | jq -r .SQS.url)"
     g3kubectl delete pods $(g3kubectl get pods | grep indexing | awk '{ print $1 }')
 fi
