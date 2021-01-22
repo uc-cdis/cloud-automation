@@ -98,6 +98,27 @@ test_arp_workspace() {
   workspace_cleanup
 }
 
+test_cognito_workspace() {
+  GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}__cognito"
+  test_workspace
+  cat - > config.tfvars <<EOM
+vpc_name                 = "qaplanetv1"
+cognito_provider_name    = "bogus.federation.tld"
+cognito_domain_name      = "qaplanetv1"
+cognito_callback_urls    = ["https://qa.planx-pla.net/","https://qa.planx-pla.net/login/cognito/login/","https://qa.planx-pla.net/user/login/cognito/login/"]
+cognito_provider_details = {"MetadataURL"="https://bogus.federation.tld/federationmetadata/2007-06/federationmetadata.xml"}
+
+tags                     = {
+  "Organization" = "PlanX"
+  "Environment"  = "qaplanetv1"
+}
+EOM
+  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/cognito" ]]; because $? "a __cognito workspace should use the ./aws/congnito resources: $GEN3_TFSCRIPT_FOLDER"
+  gen3 tfplan; because $? "tfplan cognito should run ok"
+  workspace_cleanup
+}
+
+
 test_commons_workspace() {
   test_workspace
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/commons" ]]; because $? "a generic workspace should use the ./aws/commons resources: $GEN3_TFSCRIPT_FOLDER"
@@ -246,7 +267,7 @@ arpolicy=<<EDOC
 EDOC
 EOM
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/role" ]]; because $? "a _role workspace should use the ./aws/role resources: $GEN3_TFSCRIPT_FOLDER"
-  gen3 tfplan; because $? "tfplan encrypted-rds should run ok"
+  gen3 tfplan; because $? "tfplan role should run ok"
   workspace_cleanup
 }
 
@@ -415,8 +436,9 @@ test_tfoutput() {
 
 shunit_runtest "test_workspace" "terraform"
 shunit_runtest "test_arp_workspace" "terraform"
-shunit_runtest "test_custom_workspace" "terraform"
+shunit_runtest "test_cognito_workspace" "terraform"
 shunit_runtest "test_commons_workspace" "terraform"
+shunit_runtest "test_custom_workspace" "terraform"
 shunit_runtest "test_databucket_workspace" "terraform"
 shunit_runtest "test_eks_workspace" "terraform"
 shunit_runtest "test_encrypted-rds_workspace" "terraform"

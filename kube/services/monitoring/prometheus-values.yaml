@@ -706,7 +706,7 @@ server:
 
     ## Prometheus server data Persistent Volume size
     ##
-    size: 110Gi
+    size: 220Gi
 
     ## Prometheus server data Persistent Volume Storage Class
     ## If defined, storageClassName: <storageClass>
@@ -784,7 +784,7 @@ server:
 
   ## Prometheus data retention period (i.e 360h)
   ##
-  retention: "360h"
+  retention: "240h"
 
 pushgateway:
   ## If false, pushgateway will not be installed
