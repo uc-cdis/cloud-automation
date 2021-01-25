@@ -314,7 +314,7 @@ node {
     stage('CleanS3') {
      try {
       if(!doNotRunTests) {
-        testHelper.cleanS3()
+        testHelper.cleanS3(kubectlNamespace)
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
