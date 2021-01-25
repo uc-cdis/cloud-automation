@@ -26,6 +26,10 @@ variable "fence_db_size" {
   default = 10
 }
 
+variable "amanuensis_db_size" {
+  default = 10
+}
+
 variable "sheepdog_db_size" {
   default = 10
 }
@@ -35,6 +39,8 @@ variable "indexd_db_size" {
 }
 
 variable "db_password_fence" {}
+
+variable "db_password_amanuensis" {}
 
 variable "db_password_gdcapi" {
   # gdcapi now deprecated in favor of sheepdog + peregrine
@@ -60,7 +66,7 @@ variable "portal_app" {
   default = "dev"
 }
 
-variable "fence_snapshot" {
+variable "amanuensis_snapshot" {
   default = ""
 }
 
@@ -81,6 +87,10 @@ variable "indexd_snapshot" {
 }
 
 variable "fence_db_instance" {
+  default = "db.t2.small"
+}
+
+variable "amanuensis_db_instance" {
   default = "db.t2.small"
 }
 
@@ -193,6 +203,10 @@ variable "fence_ha" {
   default = false
 }
 
+variable "amanuensis_ha" {
+  default = false
+}
+
 variable "sheepdog_ha" {
   default = false
 }
@@ -202,6 +216,10 @@ variable "indexd_ha" {
 }
 
 variable "fence_maintenance_window"{
+  default = "SAT:09:00-SAT:09:59" 
+}
+
+variable "amanuensis_maintenance_window"{
   default = "SAT:09:00-SAT:09:59" 
 }
 
@@ -217,6 +235,10 @@ variable "fence_backup_retention_period" {
   default = "4" 
 }
 
+variable "amanuensis_backup_retention_period" {
+  default = "4" 
+}
+
 variable "sheepdog_backup_retention_period" {
   default = "4" 
 }
@@ -226,6 +248,10 @@ variable "indexd_backup_retention_period" {
 }
 
 variable "fence_backup_window" {
+  default = "06:00-06:59" 
+}
+
+variable "amanuensis_backup_window" {
   default = "06:00-06:59" 
 }
 
@@ -241,6 +267,10 @@ variable "fence_engine_version" {
   default = "9.6.11" 
 }
 
+variable "amanuensis_engine_version" {
+  default = "9.6.11" 
+}
+
 variable "sheepdog_engine_version" {
   default = "9.6.11"
 }
@@ -250,6 +280,10 @@ variable "indexd_engine_version" {
 }
 
 variable "fence_auto_minor_version_upgrade" {
+  default = "true"
+}
+
+variable "amanuensis_auto_minor_version_upgrade" {
   default = "true"
 }
 
@@ -269,6 +303,10 @@ variable "fence_database_name" {
   default = "fence"
 }
 
+variable "amanuensis_database_name" {
+  default = "amanuensis"
+}
+
 variable "sheepdog_database_name" {
   default = "gdcapi"
 }
@@ -281,6 +319,10 @@ variable "fence_db_username" {
   default = "fence_user"
 }
 
+variable "amanuensis_db_username" {
+  default = "amanuensis_user"
+}
+
 variable "sheepdog_db_username" {
   default = "sheepdog"
 }
@@ -290,6 +332,10 @@ variable "indexd_db_username" {
 }
 
 variable "fence_allow_major_version_upgrade" {
+  default = "true"
+}
+
+variable "amanuensis_allow_major_version_upgrade" {
   default = "true"
 }
 
@@ -340,6 +386,12 @@ variable "fence-bot_bucket_access_arns" {
   default     = []
 }
 
+variable "amanuensis-bot_bucket_access_arns" {
+  description = "When amanuensis bot has to access another bucket that wasn't created by the VPC module"
+  type        = "list"
+  default     = []
+}
+
 variable "deploy_ha_squid" {
   description = "Should you want to deploy HA-squid"
   default     = false
@@ -370,6 +422,11 @@ variable "deploy_fence_db" {
   default     = true
 }
 
+variable "deploy_amanuensis_db" {
+  description = "Whether or not to deploy the database instance"
+  default     = true
+}
+
 variable "deploy_indexd_db" {
   description = "Whether or not to deploy the database instance"
   default     = true
@@ -381,6 +438,11 @@ variable "sheepdog_engine" {
 }
 
 variable "fence_engine" {
+  description = "Engine to deploy the db instance"
+  default     = "postgres"
+}
+
+variable "amanuensis_engine" {
   description = "Engine to deploy the db instance"
   default     = "postgres"
 }
@@ -405,6 +467,11 @@ variable "rds_instance_storage_encrypted"{
 }
 
 variable "fence_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
+}
+
+variable "amanuensis_max_allocated_storage" {
   description = "Maximum allocated storage for autosacaling"
   default     = 0
 }

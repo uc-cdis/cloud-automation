@@ -116,10 +116,12 @@ aws_cert_name="arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
 fence_db_size    = 10
 sheepdog_db_size = 10
 indexd_db_size   = 10
+amanuensis_db_size  = 10
 
 fence_db_instance    = "db.t2.micro"
 sheepdog_db_instance = "db.t2.micro"
 indexd_db_instance   = "db.t2.micro"
+amanuensis_db_instance  = "db.t2.micro"
 
 # This indexd guid prefix should come from Trevar/ZAC
 #indexd_prefix=ENTER_UNIQUE_GUID_PREFIX
@@ -148,6 +150,8 @@ db_password_gdcapi="whatever"
 db_password_sheepdog="whatever"
 db_password_peregrine="whatever"
 
+db_password_amanuensis="whatever"
+
 db_password_indexd="g6pmYkcoR7qECjGoErzVb5gkX3kum0yo"
 
 # password for write access to indexd
@@ -156,6 +160,7 @@ gdcapi_indexd_password="oYva39mIPV5uXskv7jWnKuVZBUFBQcxd"
 fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
+amanuensis_snapshot=""
 # mailgun for sending alert e-mails
 mailgun_api_key=""
 mailgun_api_url=""
@@ -288,6 +293,7 @@ db_password_fence = "fence"
 db_password_sheepdog = "sheepdog"
 db_password_peregrine = "peregrine"
 db_password_indexd = "indexd"
+db_password_amanuensisdb = "amanuensis"
 EOM
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/encrypted-rds" ]]; because $? "a __encrypted-rds workspace should use the ./aws/encrypted-rds resources: $GEN3_TFSCRIPT_FOLDER"
   gen3 tfplan; because $? "tfplan encrypted-rds should run ok"

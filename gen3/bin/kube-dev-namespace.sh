@@ -114,7 +114,7 @@ credsTemp="$(mktemp "$XDG_RUNTIME_DIR/credsTemp.json_XXXXXX")"
 credsMaster="/home/$namespace/Gen3Secrets/creds.json"
 
 # create new databases - don't break if already exists
-for name in fence indexd sheepdog; do
+for name in fence indexd sheepdog amanuensis; do
   dbname="${name}_$dbsuffix"
   if ! newCreds="$(gen3 secrets rotate newdb $name $dbname)"; then
     gen3_log_err "Failed to setup new db $dbname"
@@ -139,6 +139,17 @@ for name in fence indexd sheepdog; do
     # try to avoid new namespace using same upload bucket
     sed -i -E "s%DATA_UPLOAD_BUCKET%#DATA_UPLOAD_BUCKET%" "$fenceYaml"
   fi
+  if [[ "$name" == "amanuensis" ]]; then # update amanuensis-config.yaml too
+    amanuensisYaml="/home/$namespace/Gen3Secrets/apis_configs/amanuensis-config.yaml"
+    dbuser="$(jq -r .db_username <<< "$newCreds")"
+    dbhost="$(jq -r .db_host <<< "$newCreds")"
+    dbpassword="$(jq -r .db_password <<< "$newCreds")"
+    dbdatabase="$(jq -r .db_database <<< "$newCreds")"
+    dblogin="postgresql://${dbuser}:${dbpassword}@${dbhost}:5432/${dbdatabase}"
+    sed -i -E "s%^DB:.*$%DB: $dblogin%" "$amanuensisYaml"
+    # try to avoid new namespace using same upload bucket
+    sed -i -E "s%DATA_UPLOAD_BUCKET%#DATA_UPLOAD_BUCKET%" "$amanuensisYaml"
+  fi
 done
 
 # Remove "database initialized" markers
@@ -146,11 +157,15 @@ for name in .rendered_fence_db .rendered_gdcapi_db; do
   /bin/rm -rf "/home/$namespace/Gen3Secrets/$name"
 done
 
+for name in .rendered_amanuensis_db .rendered_gdcapi_db; do
+  /bin/rm -rf "/home/$namespace/Gen3Secrets/$name"
+done
+
 # update creds.json
 oldHostname="$(gen3 api hostname)"
 newHostname="$(sed "s/^[a-zA-Z0-9]*/$namespace/" <<< "$oldHostname")"
 
-for name in creds.json apis_configs/fence-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json g3auto/dashboard/config.json; do
+for name in creds.json apis_configs/fence-config.yaml apis_configs/amanuensis-config.yaml g3auto/manifestservice/config.json g3auto/pelicanservice/config.json g3auto/dashboard/config.json; do
   (
     path="/home/$namespace/Gen3Secrets/$name"
     if [[ -f "$path" ]]; then
@@ -172,6 +187,9 @@ fi
 sed -i "s/$oldHostname/$newHostname/g; s/namespace:.*//" /home/$namespace/Gen3Secrets/00configmap.yaml
 if [[ -f /home/$namespace/Gen3Secrets/apis_configs/fence_credentials.json ]]; then
   sed -i "s/$oldHostname/$newHostname/g" /home/$namespace/Gen3Secrets/apis_configs/fence_credentials.json
+fi
+if [[ -f /home/$namespace/Gen3Secrets/apis_configs/amanuensis_credentials.json ]]; then
+  sed -i "s/$oldHostname/$newHostname/g" /home/$namespace/Gen3Secrets/apis_configs/amanuensis_credentials.json
 fi
 
 # setup ~/.bashrc
