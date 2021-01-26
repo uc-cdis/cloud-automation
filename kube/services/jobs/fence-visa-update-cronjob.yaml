@@ -107,8 +107,10 @@ spec:
             args:
               - "-c"
               - |
-
+                echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"         
+                python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
                 fence-create visa-update
                 echo "Exit code: $?"
-
+          
+          restartPolicy: Never
 
