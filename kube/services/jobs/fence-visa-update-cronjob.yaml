@@ -103,5 +103,6 @@ spec:
               - |
                 fence-create visa-update
                 echo "Exit code: $?"
+
     restartPolicy: Never
 
