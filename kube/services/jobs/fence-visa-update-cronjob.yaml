@@ -98,12 +98,12 @@ spec:
             mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
             subPath: fence_google_storage_creds_secret.json
         command: ["/bin/bash" ]
-            args:
-              - "-c"
-              - |
+        args:
+          - "-c"
+          - |
 
-                fence-create visa-update
-                echo "Exit code: $?"
+            fence-create visa-update
+            echo "Exit code: $?"
 
       restartPolicy: Never
 
