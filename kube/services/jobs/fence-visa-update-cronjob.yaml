@@ -114,7 +114,7 @@ spec:
                 echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"         
                 python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
                 
-                create_command="fence-create visa-update"
+                create_command="fence-create update-visas"
 
                 if [[ -z "$WINDOW_SIZE" ]]; then
                     create_command+=" --window_size $WINDOW_SIZE"
