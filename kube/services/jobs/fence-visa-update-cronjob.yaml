@@ -55,10 +55,14 @@ spec:
             env:
                 - name: PYTHONPATH
                   value: /var/www/fence
-                - name: FIELD_NAME
-                  GEN3_FIELD_NAME|-value: ""-|
-                - name: ADD
-                  GEN3_ADD|-value: ""-|
+                - name: CONCURRENCY
+                  GEN3_CONCURRENCY|-value: ""-|
+                - name: WINDOW_SIZE
+                  GEN3_WINDOW_SIZE|-value: ""-|
+                - name: THREAD_POOL_SIZE
+                  GEN3_THREAD_POOL_SIZE|-value: ""-|
+                - name: BUFFER_SIZE
+                  GEN3_BUFFER_SIZE|-value: ""-|
                 - name: FENCE_PUBLIC_CONFIG
                   valueFrom:
                     configMapKeyRef:
@@ -109,8 +113,27 @@ spec:
               - |
                 echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"         
                 python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
-                fence-create visa-update
-                echo "Exit code: $?"
+                
+                create_command="fence-create visa-update"
+
+                if [[ -z "$WINDOW_SIZE" ]]; then
+                    create_command+=" --window_size $WINDOW_SIZE"
+                fi
+                if [[ -z "THREAD_POOL_SIZE" ]]; then
+                    create_command+=" --thread-pool-size $THREAD_POOL_SIZE"
+                fi
+                if [[ -z "BUFFER_SIZE" ]]; then
+                    create_command+=" --buffer-size $BUFFER_SIZE"
+                fi
+                if [[ -z "CONCURRENCY" ]]; then
+                    create_command+=" --concurrency $CONCURRENCY"
+                fi
+
+                $create_command
+
+                if [[ $? != 0 ]]; then
+                  echo "Warning: non zero exit code: $?"
+                fi
           
           restartPolicy: Never
 
