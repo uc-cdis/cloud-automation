@@ -16,7 +16,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-kubeproxy=${kubeproxy:-1.15.11}
+kubeproxy=${kubeproxy:-1.16.15}
 coredns=${coredns:-1.6.6}
 cni=${cni:-1.6}
 calico=${calico:-1.7.5}
