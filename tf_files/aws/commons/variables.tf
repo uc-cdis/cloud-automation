@@ -66,6 +66,10 @@ variable "portal_app" {
   default = "dev"
 }
 
+variable "fence_snapshot" {
+  default = ""
+}
+
 variable "amanuensis_snapshot" {
   default = ""
 }
