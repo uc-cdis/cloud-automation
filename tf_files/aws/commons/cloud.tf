@@ -53,6 +53,9 @@ module "config_files" {
   db_fence_address            = "${aws_db_instance.db_fence.address}"
   db_fence_password           = "${var.db_password_fence}"
   db_fence_name               = "${aws_db_instance.db_fence.name}"
+  db_amanuensis_address            = "${aws_db_instance.db_amanuensis.address}"
+  db_amanuensis_password           = "${var.db_password_amanuensis}"
+  db_amanuensis_name               = "${aws_db_instance.db_amanuensis.name}"
   db_gdcapi_address           = "${aws_db_instance.db_gdcapi.address}"
   db_gdcapi_username          = "${aws_db_instance.db_gdcapi.username}"
 
@@ -101,9 +104,11 @@ module "cdis_alarms" {
   vpc_name                    = "${var.vpc_name}"
   alarm_threshold             = "${var.alarm_threshold}"
   db_fence_size               = "${aws_db_instance.db_fence.allocated_storage}"
+  db_amanuensis_size               = "${aws_db_instance.db_amanuensis.allocated_storage}"
   db_indexd_size              = "${aws_db_instance.db_indexd.allocated_storage}"
   db_gdcapi_size              = "${aws_db_instance.db_gdcapi.allocated_storage}"
   db_fence                    = "${aws_db_instance.db_fence.identifier}"
+  db_amanuensis                    = "${aws_db_instance.db_amanuensis.identifier}"
   db_indexd                   = "${aws_db_instance.db_indexd.identifier}"
   db_gdcapi                   = "${aws_db_instance.db_gdcapi.identifier}"
 }

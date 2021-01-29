@@ -28,6 +28,10 @@ output "fence_rds_id" {
   value = "${aws_db_instance.db_fence.*.id}"
 }
 
+output "amanuensis_rds_id" {
+  value = "${aws_db_instance.db_amanuensis.*.id}"
+}
+
 output "gdcapi_rds_id" {
   value = "${aws_db_instance.db_gdcapi.*.id}"
 }
