@@ -153,11 +153,7 @@ for name in fence indexd sheepdog amanuensis; do
 done
 
 # Remove "database initialized" markers
-for name in .rendered_fence_db .rendered_gdcapi_db; do
-  /bin/rm -rf "/home/$namespace/Gen3Secrets/$name"
-done
-
-for name in .rendered_amanuensis_db .rendered_gdcapi_db; do
+for name in .rendered_fence_db .rendered_amanuensis_db .rendered_gdcapi_db; do
   /bin/rm -rf "/home/$namespace/Gen3Secrets/$name"
 done
 
