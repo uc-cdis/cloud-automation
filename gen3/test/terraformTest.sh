@@ -118,10 +118,10 @@ sheepdog_db_size = 10
 indexd_db_size   = 10
 amanuensis_db_size  = 10
 
-fence_db_instance    = "db.t2.micro"
-sheepdog_db_instance = "db.t2.micro"
-indexd_db_instance   = "db.t2.micro"
-amanuensis_db_instance  = "db.t2.micro"
+fence_db_instance    = "db.t2.small"
+sheepdog_db_instance = "db.t2.small"
+indexd_db_instance   = "db.t2.small"
+amanuensis_db_instance  = "db.t2.small"
 
 # This indexd guid prefix should come from Trevar/ZAC
 #indexd_prefix=ENTER_UNIQUE_GUID_PREFIX

@@ -6,10 +6,6 @@ output "fence_db_ip" {
   value = "${google_sql_database_instance.fence-master.ip_address.0.ip_address}"
 }
 
-output "amanuensis_db_ip" {
-  value = "${google_sql_database_instance.amanuensis-master.ip_address.0.ip_address}"
-}
-
 output "sheepdog_db_ip" {
   value = "${google_sql_database_instance.sheepdog-master.ip_address.0.ip_address}"
 }
