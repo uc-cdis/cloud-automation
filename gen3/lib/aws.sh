@@ -245,6 +245,7 @@ vpc_name="${commonsName}"
 indexd_rds_id="${commonsName}-indexddb"
 fence_rds_id="${commonsName}-fencedb"
 sheepdog_rds_id="${commonsName}-gdcapidb"
+amanuensis_rds_id="${commonsName}-amanuensisdb"
 EOM
     return 0
   fi
@@ -526,13 +527,15 @@ portal_app="dev"
 
 aws_cert_name="arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
 
-fence_db_size    = 10
-sheepdog_db_size = 10
-indexd_db_size   = 10
+fence_db_size       = 10
+sheepdog_db_size    = 10
+indexd_db_size      = 10
+amanuensis_db_size  = 10
 
-fence_db_instance    = "db.t2.micro"
-sheepdog_db_instance = "db.t2.micro"
-indexd_db_instance   = "db.t2.micro"
+fence_db_instance       = "db.t2.small"
+sheepdog_db_instance    = "db.t2.small"
+indexd_db_instance      = "db.t2.small"
+amanuensis_db_instance  = "db.t2.small"
 
 # This indexd guid prefix should come from Trevar/ZAC
 indexd_prefix=ENTER_UNIQUE_GUID_PREFIX
@@ -563,6 +566,8 @@ db_password_peregrine="$(random_alphanumeric 32)"
 
 db_password_indexd="$(random_alphanumeric 32)"
 
+db_password_amanuensis="$(random_alphanumeric 32)"
+
 
 # password for write access to indexd
 gdcapi_indexd_password="$(random_alphanumeric 32)"
@@ -570,6 +575,7 @@ gdcapi_indexd_password="$(random_alphanumeric 32)"
 fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
+amanuensis_snapshot=""
 # mailgun for sending alert e-mails
 mailgun_api_key=""
 mailgun_api_url=""

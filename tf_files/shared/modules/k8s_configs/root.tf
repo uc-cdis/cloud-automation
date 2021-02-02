@@ -6,6 +6,12 @@ data "template_file" "creds" {
     fence_user  = "${var.db_fence_username}"
     fence_pwd   = "${var.db_fence_password}"
     fence_db    = "${var.db_fence_name}"
+
+    amanuensis_host  = "${var.db_amanuensis_address}"
+    amanuensis_user  = "${var.db_amanuensis_username}"
+    amanuensis_pwd   = "${var.db_amanuensis_password}"
+    amanuensis_db    = "${var.db_amanuensis_name}"
+
     gdcapi_host = "${var.db_gdcapi_address}"
     gdcapi_user = "${var.db_gdcapi_username}"
 
