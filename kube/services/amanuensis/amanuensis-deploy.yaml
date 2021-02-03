@@ -1,0 +1,196 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amanuensis-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: amanuensis
+      release: production
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /aggregated_metrics
+        prometheus.io/port: "6567"
+      labels:
+        app: amanuensis
+        release: production
+        # for network policy selectors
+        authprovider: "yes"
+        # uses explicit proxy and AWS APIs
+        netnolimit: "yes"
+        public: "yes"
+        userhelper: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - amanuensis
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: logo-volume
+          configMap:
+            name: "logo-config"
+        - name: config-volume
+          secret:
+            secretName: "amanuensis-config"
+        - name: yaml-merge
+          configMap:
+            name: "amanuensis-yaml-merge"
+      securityContext:
+        # nginx group in current images
+        fsGroup: 101
+      containers:
+      - name: amanuensis
+        GEN3_AMANUENSIS_IMAGE
+        env:
+        - name: GEN3_UWSGI_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: uwsgi-timeout
+              optional: true
+        - name: AWS_STS_REGIONAL_ENDPOINTS
+          value: regional
+        - name: PYTHONPATH
+          value: /var/www/amanuensis
+        - name: GEN3_DEBUG
+          GEN3_DEBUG_FLAG|-value: "False"-|
+        - name: AMANUENSIS_PUBLIC_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-amanuensis
+              key: amanuensis-config-public.yaml
+              optional: true
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        - containerPort: 6567
+        volumeMounts:
+          - name: "logo-volume"
+            readOnly: true
+            mountPath: "/amanuensis/amanuensis/static/img/logo.svg"
+            subPath: "logo.svg"
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/amanuensis/amanuensis-config-secret.yaml"
+            subPath: amanuensis-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/amanuensis/yaml_merge.py"
+            subPath: yaml_merge.py
+        resources:
+            requests:
+              cpu: 0.4
+              memory: 1200Mi
+            limits:
+              cpu: 1.0
+              memory: 2400Mi
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${AMANUENSIS_PUBLIC_CONFIG:-""}" > "/var/www/amanuensis/amanuensis-config-public.yaml"
+            python /var/www/amanuensis/yaml_merge.py /var/www/amanuensis/amanuensis-config-public.yaml /var/www/amanuensis/amanuensis-config-secret.yaml > /var/www/amanuensis/amanuensis-config.yaml
+            bash /amanuensis/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
+      - name: nginx-prometheus-exporter-wrapper
+        GEN3_NGINX_PROMETHEUS_EXPORTER_WRAPPER_IMAGE|-image: quay.io/cdis/nginx-prometheus-exporter-wrapper:pybase3-1.4.0-|
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            attempt=0
+            maxAttempts=12
+            while true
+            do
+              nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
+              echo "initializing nginx-prometheus-exporter..."
+              echo "nginx_status_response: $nginx_status_response"
+              if [ "$nginx_status_response" == 200 ]; then
+                echo "nginx_status is finally up and running. Proceed with the metrics exporting..."
+                /usr/bin/exporter -nginx.scrape-uri http://127.0.0.1/nginx_status
+              else
+                echo "The nginx_status endpoint is not ready yet... attempt #${attempt}"
+                sleep 5
+                if [ $attempt -eq $maxAttempts ];then
+                  echo "The nginx_status endpoint was never initialized properly, keep the sidecar running in sleep mode to prevent the entire pod from failing..."
+                  sleep infinity
+                fi
+              fi
+              attempt=$(( $attempt + 1 ));
+            done
+        ports:
+        - containerPort: 9113
+      - name: uwsgi-exporter
+        GEN3_UWSGI_EXPORTER_IMAGE|-image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0-|
+        args: ["--stats.uri", "http://127.0.0.1/uwsgi_status"]
+        ports:
+        - containerPort: 9117
+      # initContainers:
+      # - name: amanuensis-init
+        GEN3_AMANUENSIS_IMAGE
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/amanuensis
+          - name: AMANUENSIS_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-amanuensis
+                key: amanuensis-config-public.yaml
+                optional: true
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/amanuensis/amanuensis-config-secret.yaml"
+            subPath: amanuensis-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/amanuensis/yaml_merge.py"
+            subPath: yaml_merge.py
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${AMANUENSIS_PUBLIC_CONFIG:-""}" > "/var/www/amanuensis/amanuensis-config-public.yaml"
+            python /var/www/amanuensis/yaml_merge.py /var/www/amanuensis/amanuensis-config-public.yaml /var/www/amanuensis/amanuensis-config-secret.yaml > /var/www/amanuensis/amanuensis-config.yaml
+            if amanuensis-create migrate --help > /dev/null 2>&1; then
+              if ! grep -E 'ENABLE_DB_MIGRATION"?: *false' /var/www/amanuensis/amanuensis-config.yaml; then
+                echo "Running db migration: amanuensis-create migrate"
+                amanuensis-create migrate
+              else
+                echo "Db migration disabeld in amanuensis-config"
+              fi
+            else
+              echo "Db migration not available in this version of amanuensis"
+            fi

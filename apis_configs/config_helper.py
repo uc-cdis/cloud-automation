@@ -97,6 +97,35 @@ def inject_creds_into_fence_config(creds_file_path, config_file_path):
 
     open(config_file_path, "w+").write(config_file)
 
+def inject_creds_into_amanuensis_config(creds_file_path, config_file_path):
+    creds_file = open(creds_file_path, "r")
+    creds = json.load(creds_file)
+    creds_file.close()
+
+    # get secret values from creds.json file
+    db_host = _get_nested_value(creds, "db_host")
+    db_username = _get_nested_value(creds, "db_username")
+    db_password = _get_nested_value(creds, "db_password")
+    db_database = _get_nested_value(creds, "db_database")
+    hostname = _get_nested_value(creds, "hostname")
+    db_path = "postgresql://{}:{}@{}:5432/{}".format(
+        db_username, db_password, db_host, db_database
+    )
+
+    config_file = open(config_file_path, "r").read()
+
+    print("  DB injected with value(s) from creds.json")
+    config_file = _replace(config_file, "DB", db_path)
+
+    print("  BASE_URL injected with value(s) from creds.json")
+    config_file = _replace(config_file, "BASE_URL", "https://{}/".format(hostname))
+
+    print("  ENCRYPTION_KEY injected with value(s) from creds.json")
+    config_file = _replace(config_file, "ENCRYPTION_KEY", hmac_key)
+
+
+    open(config_file_path, "w+").write(config_file)
+
 
 def set_prod_defaults(config_file_path):
     config_file = open(config_file_path, "r").read()
@@ -367,7 +396,10 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    inject_creds_into_fence_config(args.creds_file_to_inject, args.config_file)
+    if args.config_file == "amanuensis-config":
+        inject_creds_into_amanuensis_config(args.creds_file_to_inject, args.config_file)
+    else:
+        inject_creds_into_fence_config(args.creds_file_to_inject, args.config_file)
     set_prod_defaults(args.config_file)
 
     if args.other_files_to_inject:

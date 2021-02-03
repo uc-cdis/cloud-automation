@@ -189,7 +189,7 @@ fi
 # Analysis jwt keys
 # make directories for temporary credentials
 timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-# generate private and public key for fence
+# generate private and public key for pcdcanalysistool
 yearMonth="$(date +%Y-%m)"
 if [[ ! -d ./analysis-jwt-keys ]] || ! (ls ./analysis-jwt-keys | grep "$yearMonth" > /dev/null 2>&1); then
   echo "Generating analysis OAUTH key pairs - analysis-jwt-keys"
@@ -278,6 +278,43 @@ if ! g3kubectl get secrets/fence-google-storage-creds-secret > /dev/null 2>&1; t
   fi
   gen3_log_info "create fence-google-storage-creds-secret using current creds file apis_configs/fence_google_storage_creds_secret.json"
   g3kubectl create secret generic fence-google-storage-creds-secret --from-file=fence_google_storage_creds_secret.json=./apis_configs/fence_google_storage_creds_secret.json
+fi
+
+# amanuensis-config secret
+if ! g3kubectl get secrets/amanuensis-config > /dev/null 2>&1; then
+  # load updated amanuensis-config.yaml into secret if it exists
+  amanuensis_config=$(gen3_secrets_folder)/apis_configs/amanuensis-config.yaml
+  if [[ -f ${amanuensis_config} ]]; then
+    echo "loading amanuensis config from file..."
+    if g3kubectl get secrets/amanuensis-config > /dev/null 2>&1; then
+      g3kubectl delete secret amanuensis-config
+    fi
+    g3kubectl create secret generic amanuensis-config "--from-file=amanuensis-config.yaml=${amanuensis_config}"
+  else
+    echo "running job to create amanuensis-config.yaml."
+    echo "job will inject creds.json into amanuensis-config.yaml..."
+    echo "NOTE: Some default config values from amanuensis-config.yaml will be replaced"
+    echo "      Run \"gen3 joblogs config-amanuensis\" for details"
+    gen3 job run config-amanuensis CONVERT_OLD_CFG "true"
+
+    # dump amanuensis-config secret into file so user can edit.
+    let count=1
+    while ((count < 50)); do
+      if g3kubectl get secrets/amanuensis-config > /dev/null 2>&1; then
+        break
+      fi
+      echo "waiting for amanuensis-config secret from job..."
+      sleep 2
+      let count=${count}+1
+    done
+    if g3kubectl get secrets/amanuensis-config > /dev/null 2>&1; then
+      echo "found amanuensis-config!"
+      echo "dumping amanuensis configuration into file from amanuensis-config secret..."
+      g3kubectl get secrets/amanuensis-config -o json | jq -r '.data["amanuensis-config.yaml"]' | base64 --decode > "${amanuensis_config}"
+    else
+      echo "ERROR: could not find amanuensis-config within the timeout!"
+    fi
+  fi
 fi
 
 if ! g3kubectl get configmaps/projects > /dev/null 2>&1; then

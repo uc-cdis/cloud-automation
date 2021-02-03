@@ -234,6 +234,29 @@ gen3_bootstrap_fenceconfig() {
   return 1
 }
 
+gen3_bootstrap_amanuensisconfig() {
+  local confFile="$(gen3_secrets_folder)/apis_configs/amanuensis-config.yaml"
+
+  if [[ -e "$confFile" ]]; then
+    gen3_log_info "amanuensis-config already exists: $confFile"
+    return 0
+  fi
+  local manifestFolder
+  manifestFolder="$(gen3_bootstrap_manfolder "$config")" || return 1
+  local pubConfFile="$manifestFolder/manifests/amanuensis/amanuensis-config-public.yaml"
+  gen3_log_info "Copying private amanuensis-config template into place at $confFile"
+  mkdir -p "$(dirname "$confFile")"
+  cp "$GEN3_TEMPLATE_FOLDER/Gen3Secrets/apis_configs/amanuensis-config.yaml" "$confFile"
+  if [[ -e "$pubConfFile" ]]; then
+    gen3_log_err "amanuensis-config-public already exists - $pubConfFile"
+    gen3_log_err "verify amanuensis-config-public is consistent with the private config at $confFile"
+    return 1
+  fi  
+  mkdir -p "$(dirname "$pubConfFile")"
+  cp "$GEN3_TEMPLATE_FOLDER/cdis-manifest/manifests/amanuensis/amanuensis-config-public.yaml" "$pubConfFile"
+  return 1
+}
+
 
 gen3_bootstrap_go() {
   if [[ -n "$JENKINS_HOME" ]]; then
@@ -258,6 +281,8 @@ gen3_bootstrap_go() {
   gen3_bootstrap_credsjson "$config"
   echo "" 1>&2
   gen3_bootstrap_fenceconfig "$config"
+  echo "" 1>&2
+  gen3_bootstrap_amanuensisconfig "$config"
   echo "" 1>&2
   gen3_bootstrap_manifest "$config"
   echo "" 1>&2
