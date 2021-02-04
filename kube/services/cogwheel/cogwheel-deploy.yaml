@@ -13,9 +13,6 @@ spec:
         GEN3_DATE_LABEL
     spec:
       volumes:
-      - name: internal-tls-cert
-        secret:
-          secretName: cert-cogwheel-service
       - name: cogwheel-g3auto
         secret:
           secretName: cogwheel-g3auto
@@ -26,12 +23,6 @@ spec:
         - containerPort: 80
         - containerPort: 443
         volumeMounts:
-        # - mountPath: "/etc/pki/tls/certs/localhost.crt"
-        #   subPath: "service.crt"
-        #   name: internal-tls-cert
-        # - mountPath: "/etc/pki/tls/private/localhost.key"
-        #   subPath: "service.key"
-        #   name: internal-tls-cert
         - mountPath: "/etc/shibboleth/sp-encrypt-cert.pem"
           subPath: "sp-encrypt-cert.pem"
           name: cogwheel-g3auto
