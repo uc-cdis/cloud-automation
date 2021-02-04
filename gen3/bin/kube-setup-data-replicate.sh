@@ -16,13 +16,13 @@ if [[ -d ${secret_folder}/apis_configs/dcf_dataservice ]]; then
   if g3kubectl get secret google-creds-secret; then
     g3kubectl delete secret google-creds-secret
   fi
-  if g3kubectl get secret dcf-dataservice-json-secret
+  if g3kubectl get secret dcf-dataservice-json-secret; then
     g3kubectl delete secret dcf-dataservice-json-secret
   fi
-  if g3kubectl get secret dcf-dataservice-settings-secrets
+  if g3kubectl get secret dcf-dataservice-settings-secrets; then
     g3kubectl delete secret dcf-dataservice-settings-secrets
   fi
-  if g3kubectl get configmap project-map-manifest
+  if g3kubectl get configmap project-map-manifest; then
     g3kubectl delete configmap project-map-manifest
   fi
  
