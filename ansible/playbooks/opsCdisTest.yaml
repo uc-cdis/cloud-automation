@@ -9,8 +9,6 @@
 #   ansible-playbook playbooks/addKeys.yaml -e _hosts=cdistest_admin
 
 ---
-# Ops team so far
-# diw  emalinowski  fauzi  jmazzone  rarya  reubenonrye  rpowell1  seapasulli  
 - hosts: '{{ _hosts }}'
   tasks:
   - authorized_key:
@@ -20,11 +18,7 @@
       #exclusive: true
       key: '{{ lookup(''file'', item) }}'
     loop:
-       - ../keys/fauzi
-       - ../keys/diw
        - ../keys/emalinowski
        - ../keys/jmazzone
-       - ../keys/rpowell1
-       - ../keys/seapasulli
+       - ../keys/qureshi
        - ../keys/rarya
-       - ../keys/reubenonrye

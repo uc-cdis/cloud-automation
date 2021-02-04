@@ -107,7 +107,7 @@ spec:
           - name: PYTHONPATH
             value: /var/www/fence
           - name: SUBMISSION_USER
-            GEN3_SUBMISSION_USER|-value: "reubenonrye@uchicago.edu"-|
+            GEN3_SUBMISSION_USER|-value: "cdis.autotest@gmail.com"-|
           - name: FENCE_PUBLIC_CONFIG
             valueFrom:
               configMapKeyRef:
