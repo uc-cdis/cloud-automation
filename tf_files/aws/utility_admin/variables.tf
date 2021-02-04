@@ -27,7 +27,6 @@ variable "vpc_cidr_list" {
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {
-  default = "fauzi@uchicago.edu"
 }
 
 variable "environment" {

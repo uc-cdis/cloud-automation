@@ -3,9 +3,6 @@ data "aws_region" "current" {}
 data "aws_availability_zones" "available" {}
 data "aws_caller_identity" "current" {}
 
-data "aws_vpc_endpoint_service" "s3" {
-  service = "s3"
-}
 
 data "aws_route_tables" "control_routing_table" {
   count   = "${var.csoc_managed ? 0 : 1}"

@@ -113,15 +113,6 @@ module "cdis_alarms" {
   db_gdcapi                   = "${aws_db_instance.db_gdcapi.identifier}"
 }
 
-/*
-resource "aws_vpc_endpoint" "k8s-s3" {
-  vpc_id                      = "${module.cdis_vpc.vpc_id}"
-
-  service_name                = "${data.aws_vpc_endpoint_service.s3.service_name}"
-  route_table_ids             = ["${aws_route_table.private_kube.id}"]
-}
-*/
-
 
 resource "aws_route_table" "private_kube" {
   vpc_id                      = "${module.cdis_vpc.vpc_id}"

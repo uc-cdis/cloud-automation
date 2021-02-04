@@ -71,6 +71,30 @@ gen3_access_token() {
   g3kubectl exec -c fence $(gen3 pod fence) -- fence-create token-create --scopes openid,user,fence,data,credentials,google_service_account --type access_token --exp ${exp} --username ${username} | tail -1 | gen3_access_token_to_cache "$username"
 }
 
+#
+# Little helper to make a new api key for a user
+#
+gen3_api_key() {
+  local scopes
+  local user
+  user="$1"
+  if ! shift; then
+    gen3_log_err "gen3_api_key must specify user"
+    return 1
+  fi
+  scopes="$(mktemp $XDG_RUNTIME_DIR/scopes.json_XXXXXX)"
+  (cat - <<EOM
+{
+  "scope": [ "data", "user" ]
+}
+EOM
+  ) > "$scopes"
+  gen3 api curl user/credentials/cdis/ "$user" "$scopes"
+  local resultCode=$?
+  rm "$scopes"
+  return "$resultCode"
+}
+
 
 #
 # Try to retrieve an access token given an api key
@@ -100,7 +124,8 @@ gen3_access_token_from_apikey() {
 #
 # @param path {string} below path
 # @param user {string} to get access token for
-# @param jsonFile {string} path to file to post - GET instead of POST if jsonFile is ""
+# @param jsonFile {string} path to file to post - GET instead of POST if jsonFile is "",
+# @param method can be set to DELETE
 #
 gen3_curl_json() {
   local path
@@ -124,8 +149,12 @@ gen3_curl_json() {
     jsonFile="$1"
     shift
     if [[ ! -f "$jsonFile" ]]; then
-      gen3_log_err "unable to read json file $jsonFile"
-      return 1
+      if [[ "$jsonFile" == "DELETE" ]]; then
+        method="DELETE"
+      else
+        gen3_log_err "unable to read json file $jsonFile"
+        return 1
+      fi
     fi
   else
     method="GET"
@@ -145,6 +174,9 @@ gen3_curl_json() {
   if [[ "$method" == "POST" ]]; then
     gen3_log_info "posting to $url"
     curl -s -X POST "$url" -H "Authorization: bearer $accessToken" -H "Content-Type: application/json" -H "Accept: aplication/json" "-d@$jsonFile"
+  elif [[ "$method" == "DELETE" ]]; then
+    gen3_log_info "deleting $url"
+    curl -s -X DELETE "$url" -H "Authorization: bearer $accessToken" -H "Content-Type: application/json" -H "Accept: aplication/json"
   else
     gen3_log_info "getting $url"
     curl -s -X GET "$url" -H "Authorization: bearer $accessToken" -H "Accept: aplication/json"
@@ -474,6 +506,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "access-token")
       gen3_access_token "$@"
+      ;;
+    "api-key")
+      gen3_api_key "$@"
       ;;
     "environment")
       gen3_api_environment "$@"

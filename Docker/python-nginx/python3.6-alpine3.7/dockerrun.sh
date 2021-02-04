@@ -101,10 +101,31 @@ fi
 
 if [[ $GEN3_DRYRUN == "False" ]]; then
   (
+    ENABLE_SVC_METRICS_SCRAPING="false"
+
+    attempt=0
+    maxAttempts=10
+
     while true; do
+
       curl -s http://127.0.0.1:9117/metrics > /var/www/metrics/metrics.txt
       curl -s http://127.0.0.1:9113/metrics >> /var/www/metrics/metrics.txt
       curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
+
+      if [ $attempt -lt $maxAttempts ]; then
+        if [ "ENABLE_SVC_METRICS_SCRAPING" == "false" ]; then      
+          service_metrics_endpoint=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/metrics)
+
+          if [ "$service_metrics_endpoint" == 200 ]; then
+            ENABLE_SVC_METRICS_SCRAPING="true"
+          else
+            attempt=$(( $attempt + 1 ));
+          fi
+        else
+          curl -s http://127.0.0.1/metrics >> /var/www/metrics/metrics.txt
+        fi
+      fi
+
       sleep 10
     done
   ) &

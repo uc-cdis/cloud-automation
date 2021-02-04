@@ -79,7 +79,10 @@ if g3kubectl get cronjob etl >/dev/null 2>&1; then
 fi
 
 if g3kubectl get cronjob usersync >/dev/null 2>&1; then
-    gen3 job cron usersync '@hourly'
+    # stagger usersync jobs, so they don't all hit
+    # NIH at the same time
+    ustart=$((20 + (RANDOM % 20)))
+    gen3 job cron usersync "$ustart * * * *"
 fi
 
 if g3k_manifest_lookup .versions.sheepdog 2> /dev/null; then

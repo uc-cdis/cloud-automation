@@ -31,8 +31,42 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   # -E passes through *_proxy environment
   sudo -E apt-get update
   sudo -E apt-get install -y git jq pwgen python-dev python-pip unzip python3-dev python3-pip python3-venv 
+  
+  ( # subshell
+    # install aws cli v2 - https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
+    # increase min version periodically - see https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst
+    update_awscli() {
+      local version="0.0.0"
+      if aws --version; then
+        version="$(aws --version | awk '{ print $1 }' | awk -F / '{ print $2 }')"
+      fi
+      if semver_ge "$version" "2.1.15"; then
+        gen3_log_info "awscli up to date"
+        return 0
+      fi
+      # update to latest version
+      ( # subshell
+        export DEBIAN_FRONTEND=noninteractive
+        if [[ -f /usr/local/bin/aws ]] && ! semver_ge "$version" "2.0.0"; then
+          sudo rm /usr/local/bin/aws
+        fi
+        cd "$XDG_RUNTIME_DIR"
+        curl -o awscli.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        unzip awscli.zip
+        if semver_ge "$version" "2.0.0"; then
+          yes | sudo ./aws/install --update
+        else
+          yes | sudo ./aws/install
+        fi
+        # cleanup
+        rm -rf aws
+      )
+    }
+
+    update_awscli
+  )
+
   sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install --upgrade pip
-  sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install awscli --upgrade
   # jinja2 needed by render_creds.py
   sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install jinja2
   # yq === jq for yaml
@@ -63,6 +97,8 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       sudo -E apt-get install -y postgresql-client-9.6
     )
   fi
+  # gen3sdk currently requires this
+  sudo -E apt-get install -y libpq-dev
   if ! which gcloud > /dev/null 2>&1; then
     (
       export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
@@ -185,7 +221,7 @@ EOM
       helm 2to3 convert prometheus
       
       # delete tiller and other helm2 data/configs
-      helm 2to3 cleanup --skip-confirmation
+      helm 2to3 cleanup --skip-confirmation || true
     }
 
     if ! which helm > /dev/null 2>&1; then
@@ -235,11 +271,11 @@ EOF
   fi
 
   if ! grep "aws_.*completer" ${WORKSPACE}/.${RC_FILE} > /dev/null ; then
-    if [[ ${CURRENT_SHELL} == "zsh" ]]; then
+    if [[ ${CURRENT_SHELL} == "zsh" && -f /usr/local/bin/aws_zsh_completer.sh ]]; then
       cat - >>${WORKSPACE}/.${RC_FILE} << EOF
 source /usr/local/bin/aws_zsh_completer.sh
 EOF
-    elif [[ ${CURRENT_SHELL} == "bash" ]]; then
+    elif [[ ${CURRENT_SHELL} == "bash" && -f /usr/local/bin/aws_completer ]]; then
       cat - >>${WORKSPACE}/.${RC_FILE} << EOF
 complete -C '/usr/local/bin/aws_completer' aws
 EOF

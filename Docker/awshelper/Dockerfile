@@ -19,6 +19,7 @@ RUN apt-get update && apt-get upgrade -y \
       iputils-ping \
       jq \
       less \
+      libpq-dev \
       lsb-release \
       netcat-openbsd \
       net-tools \
@@ -37,16 +38,11 @@ RUN apt-get update && apt-get upgrade -y \
       wget \
       gettext-base
 
-RUN mkdir /var/run/sshd \
-  && touch /var/log/lastlog \
-  && update-alternatives --install /usr/bin/python python /usr/bin/python3 100 \
-  && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 100
-
 RUN  python3 -m pip install --upgrade pip \
     && python3 -m pip install --upgrade setuptools \
     && python3 -m pip install -U crcmod \
-    && python3 -m pip install yq --upgrade \
-    && pip install gen3
+    && python3 -m pip install --upgrade yq \
+    && python3 -m pip install --upgrade 'gen3>4'
 
 # aws cli v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
@@ -83,6 +79,12 @@ RUN mkdir -p /opt/usersshd \
     && chown -R ubuntu: /opt/usersshd \
     && chmod -R a+rwX /run
 
+RUN mkdir /var/run/sshd \
+  && touch /var/log/lastlog \
+  && update-alternatives --install /usr/bin/python python /usr/bin/python3 100 \
+  && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 100 \
+  && [ "Python 3" = "$(python --version | awk -F . '{ print $1 }')" ]
+
 EXPOSE 2222
 
 #-------------
@@ -104,6 +106,11 @@ RUN cp cloud-automation/Docker/awshelper/sshdStart.sh /opt/usersshd/ \
 RUN cd ./cloud-automation \
     && npm ci \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
+
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+
+RUN git config --global user.email gen3 \
+    && git config --global user.name gen3
 
 # smoke test
 RUN export GEN3_HOME="$HOME/cloud-automation" \

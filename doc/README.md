@@ -8,6 +8,7 @@ For example - `gen3 help aws` opens `aws.md`
 
 ## Frequently used
 
+* [api](./api.md) - indexd-post-folder, access-token, new-program, new-project
 * [arun](./arun.md)
 * [aws](./aws.md)
 * [awsrole](./awsrole.md)
@@ -18,7 +19,7 @@ For example - `gen3 help aws` opens `aws.md`
 * [dashboard](./dashboard.md)
 * [es](./es.md) - elastic search
 * [gitops](./gitops.md) - manifest filter, configmaps, history, sync, tagging releases, etc
-* [ec2](./ec2.md) - describe, reboot
+* [ec2](./ec2.md) - describe, reboot, snapshot
 * [job logs|pods|run](./job.md)
 * [joblogs](./job.md) - see [job logs](./job.md)
 * [jupyter](./jupyter.md) - j-namespace, upgrade
@@ -105,7 +106,6 @@ For example - `gen3 help aws` opens `aws.md`
 
 ## More
 
-* [api](./api.md) - indexd-post-folder, access-token, new-program, new-project
 * [approve_vpcpeering_request](./approve_vpcpeering_request.md)
 * [ha-proxy](./ha-squid-migration.md) - Migration from a single squid instance to an HA proxy solution
 * [kube-backup](./kube-backup.md)
