@@ -1,0 +1,45 @@
+# Run: gen3 job run cogwheel-register-client
+#
+# This will set up a client in the Cogwheel database,
+#   client_name="fence-client",
+#   redirect_uris=["https://[your-hostname]/user/login/cognito/login/"]
+#
+# You must then look in the database for your client and get the creds.
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cogwheel-register-client
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+        - name: cogwheel-g3auto
+          secret:
+            secretName: cogwheel-g3auto
+      containers:
+        - name: cogwheel
+          GEN3_COGWHEEL_IMAGE
+          imagePullPolicy: Always
+          env:
+          - name: HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: hostname
+          - name: CLIENT_NAME
+            value: "fence-client"
+          command: ["poetry", "run", "python", "src/register_client.py"]
+          args: ["--name=$(CLIENT_NAME)", "--redirect_uri=https://$(HOSTNAME)/user/login/cognito/login/"]
+          volumeMounts:
+          - mountPath: "/etc/cogwheel/wsgi_settings.py"
+            subPath: "wsgi_settings.py"
+            name: cogwheel-g3auto
+          - mountPath: "/etc/cogwheel/oauth2_metadata.json"
+            subPath: "oauth2_metadata.json"
+            name: cogwheel-g3auto
+      restartPolicy: Never
