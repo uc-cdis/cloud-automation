@@ -1,0 +1,90 @@
+---
+# invoke with:
+# gen3 runjob config-amanuensis 
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: config-amanuensis
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: useryaml-job
+      volumes:
+        - name: shared-data
+          emptyDir: {}
+        - name: creds-volume
+          secret:
+            secretName: "amanuensis-creds"
+        - name: config-helper
+          configMap:
+            name: config-helper
+      containers:
+      - name: amanuensis
+        GEN3_AMANUENSIS_IMAGE
+        imagePullPolicy: Always
+        env:
+        volumeMounts:
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/amanuensis/creds.json"
+            subPath: creds.json
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/amanuensis/config_helper.py"
+            subPath: config_helper.py
+          - name: shared-data
+            mountPath: /mnt/shared
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
+          - |
+            echo "generating default amanuensis configuration..."
+            python /amanuensis/cfg_help.py create --config_path new-amanuensis-config.yaml
+
+            if [[ -f /var/www/amanuensis/creds.json ]]; then
+              echo ""
+              echo "injecting creds.json into amanuensis configuration..."
+              python /var/www/amanuensis/config_helper.py -i /var/www/amanuensis/creds.json -c new-amanuensi-config.yaml
+            else
+              echo "ERROR: /var/www/amanuensis/creds.json not found!"
+              echo "       Only generating default config..."
+            fi
+
+            cp new-amanuensis-config.yaml /mnt/shared/new-amanuensis-config.yaml
+
+      - name: awshelper
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: shared-data
+            mountPath: /mnt/shared
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            # wait for other image to generate config
+            let count=0
+            while [[ ! -f /mnt/shared/new-amanuensis-config.yaml && $count -lt 50 ]]; do
+              echo "waiting for /mnt/shared/new-amanuensis-config.yaml"
+              sleep 2
+              let count=$count+1
+            done
+
+            if [[ -f /mnt/shared/new-amanuensis-config.yaml ]]; then
+              # load yaml file into secrets
+              if kubectl get secrets/amanuensis-config > /dev/null 2>&1; then
+                kubectl delete secret amanuensis-config
+              fi
+              echo "saving amanuensis configuration into amanuensis-config secret..."
+              kubectl create secret generic amanuensis-config "--from-file=amanuensis-config.yaml=/mnt/shared/new-amanuensis-config.yaml"
+            else
+              echo "/mnt/shared/new-amanuensis-config.yaml did not appear within timeout :-("
+            fi
+
+      restartPolicy: Never
