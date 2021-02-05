@@ -74,6 +74,12 @@ else
   gen3_log_info "no manifest entry for fence"
 fi
 
+if g3k_manifest_lookup .versions.amanuensis 2> /dev/null; then
+  gen3 kube-setup-amanuensis
+else
+  gen3_log_info "no manifest entry for amanuensis"
+fi
+
 if g3kubectl get cronjob etl >/dev/null 2>&1; then
     gen3 job run etl-cronjob
 fi

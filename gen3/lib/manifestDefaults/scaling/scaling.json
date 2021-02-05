@@ -11,6 +11,12 @@
       "max": 4,
       "targetCpu": 40
     },
+    "amanuensis": {
+      "strategy": "auto",
+      "min": 2,
+      "max": 4,
+      "targetCpu": 40
+    },
     "indexd": {
       "strategy": "auto",
       "min": 2,
