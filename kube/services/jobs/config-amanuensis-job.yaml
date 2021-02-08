@@ -50,7 +50,7 @@ spec:
             if [[ -f /var/www/amanuensis/creds.json ]]; then
               echo ""
               echo "injecting creds.json into amanuensis configuration..."
-              python /var/www/amanuensis/config_helper.py -i /var/www/amanuensis/creds.json -c new-amanuensi-config.yaml
+              python /var/www/amanuensis/config_helper.py -i /var/www/amanuensis/creds.json -c new-amanuensis-config.yaml
             else
               echo "ERROR: /var/www/amanuensis/creds.json not found!"
               echo "       Only generating default config..."

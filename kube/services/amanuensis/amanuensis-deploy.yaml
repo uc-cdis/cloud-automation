@@ -166,39 +166,39 @@ spec:
         - containerPort: 9117
       # initContainers:
       # - name: amanuensis-init
-        GEN3_AMANUENSIS_IMAGE
-        imagePullPolicy: Always
-        env:
-          - name: PYTHONPATH
-            value: /var/www/amanuensis
-          - name: AMANUENSIS_PUBLIC_CONFIG
-            valueFrom:
-              configMapKeyRef:
-                name: manifest-amanuensis
-                key: amanuensis-config-public.yaml
-                optional: true
-        volumeMounts:
-          - name: "config-volume"
-            readOnly: true
-            mountPath: "/var/www/amanuensis/amanuensis-config-secret.yaml"
-            subPath: amanuensis-config.yaml
-          - name: "yaml-merge"
-            readOnly: true
-            mountPath: "/var/www/amanuensis/yaml_merge.py"
-            subPath: yaml_merge.py
-        command: ["/bin/bash"]
-        args:
-          - "-c"
-          - |
-            echo "${AMANUENSIS_PUBLIC_CONFIG:-""}" > "/var/www/amanuensis/amanuensis-config-public.yaml"
-            python /var/www/amanuensis/yaml_merge.py /var/www/amanuensis/amanuensis-config-public.yaml /var/www/amanuensis/amanuensis-config-secret.yaml > /var/www/amanuensis/amanuensis-config.yaml
-            if amanuensis-create migrate --help > /dev/null 2>&1; then
-              if ! grep -E 'ENABLE_DB_MIGRATION"?: *false' /var/www/amanuensis/amanuensis-config.yaml; then
-                echo "Running db migration: amanuensis-create migrate"
-                amanuensis-create migrate
-              else
-                echo "Db migration disabeld in amanuensis-config"
-              fi
-            else
-              echo "Db migration not available in this version of amanuensis"
-            fi
+        # GEN3_AMANUENSIS_IMAGE
+        # imagePullPolicy: Always
+        # env:
+        #   - name: PYTHONPATH
+        #     value: /var/www/amanuensis
+        #   - name: AMANUENSIS_PUBLIC_CONFIG
+        #     valueFrom:
+        #       configMapKeyRef:
+        #         name: manifest-amanuensis
+        #         key: amanuensis-config-public.yaml
+        #         optional: true
+        # volumeMounts:
+        #   - name: "config-volume"
+        #     readOnly: true
+        #     mountPath: "/var/www/amanuensis/amanuensis-config-secret.yaml"
+        #     subPath: amanuensis-config.yaml
+        #   - name: "yaml-merge"
+        #     readOnly: true
+        #     mountPath: "/var/www/amanuensis/yaml_merge.py"
+        #     subPath: yaml_merge.py
+        # command: ["/bin/bash"]
+        # args:
+        #   - "-c"
+        #   - |
+        #     echo "${AMANUENSIS_PUBLIC_CONFIG:-""}" > "/var/www/amanuensis/amanuensis-config-public.yaml"
+        #     python /var/www/amanuensis/yaml_merge.py /var/www/amanuensis/amanuensis-config-public.yaml /var/www/amanuensis/amanuensis-config-secret.yaml > /var/www/amanuensis/amanuensis-config.yaml
+        #     if amanuensis-create migrate --help > /dev/null 2>&1; then
+        #       if ! grep -E 'ENABLE_DB_MIGRATION"?: *false' /var/www/amanuensis/amanuensis-config.yaml; then
+        #         echo "Running db migration: amanuensis-create migrate"
+        #         amanuensis-create migrate
+        #       else
+        #         echo "Db migration disabeld in amanuensis-config"
+        #       fi
+        #     else
+        #       echo "Db migration not available in this version of amanuensis"
+        #     fi
