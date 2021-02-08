@@ -57,8 +57,8 @@ spec:
                   value: /var/www/fence
                 - name: CONCURRENCY
                   GEN3_CONCURRENCY|-value: ""-|
-                - name: WINDOW_SIZE
-                  GEN3_WINDOW_SIZE|-value: ""-|
+                - name: CHUNK_SIZE
+                  GEN3_CHUNK_SIZE|-value: ""-|
                 - name: THREAD_POOL_SIZE
                   GEN3_THREAD_POOL_SIZE|-value: ""-|
                 - name: BUFFER_SIZE
@@ -116,8 +116,8 @@ spec:
                 
                 create_command="fence-create update-visas"
 
-                if [[ -z "$WINDOW_SIZE" ]]; then
-                    create_command+=" --window_size $WINDOW_SIZE"
+                if [[ -z "$CHUNK_SIZE" ]]; then
+                    create_command+=" --chunk-size $CHUNK_SIZE"
                 fi
                 if [[ -z "THREAD_POOL_SIZE" ]]; then
                     create_command+=" --thread-pool-size $THREAD_POOL_SIZE"
