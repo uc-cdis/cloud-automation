@@ -55,6 +55,9 @@ spec:
         - name: yaml-merge
           configMap:
             name: "amanuensis-yaml-merge"
+        - name: amanuensis-volume
+          secret:
+            secretName: "amanuensis-creds"
       securityContext:
         # nginx group in current images
         fsGroup: 101
@@ -109,6 +112,10 @@ spec:
             readOnly: true
             mountPath: "/var/www/amanuensis/yaml_merge.py"
             subPath: yaml_merge.py
+          - name: "amanuensis-volume"
+            readOnly: true
+            mountPath: "/var/www/amanuensis/creds.json"
+            subPath: creds.json
         resources:
             requests:
               cpu: 0.4
