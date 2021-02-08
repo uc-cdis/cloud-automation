@@ -122,7 +122,8 @@ spec:
           - |
             echo "${AMANUENSIS_PUBLIC_CONFIG:-""}" > "/var/www/amanuensis/amanuensis-config-public.yaml"
             python /var/www/amanuensis/yaml_merge.py /var/www/amanuensis/amanuensis-config-public.yaml /var/www/amanuensis/amanuensis-config-secret.yaml > /var/www/amanuensis/amanuensis-config.yaml
-            bash /amanuensis/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
+            #bash /amanuensis/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
+            bash /dockerrun.sh
       - name: nginx-prometheus-exporter-wrapper
         GEN3_NGINX_PROMETHEUS_EXPORTER_WRAPPER_IMAGE|-image: quay.io/cdis/nginx-prometheus-exporter-wrapper:pybase3-1.4.0-|
         command: ["/bin/bash"]
