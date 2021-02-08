@@ -182,6 +182,40 @@ def set_prod_defaults(config_file_path):
 
     open(config_file_path, "w+").write(config_file)
 
+def set_prod_defaults_amanuensis(config_file_path):
+    config_file = open(config_file_path, "r").read()
+
+    print("  INDEXD set as http://indexd-service/")
+    config_file = _replace(config_file, "INDEXD", "http://indexd-service/")
+
+    print("  ARBORIST set as http://arborist-service/")
+    config_file = _replace(config_file, "ARBORIST", "http://arborist-service/")
+
+    print("  HTTP_PROXY/host set as cloud-proxy.internal.io")
+    config_file = _replace(config_file, "HTTP_PROXY/host", "cloud-proxy.internal.io")
+
+    print("  HTTP_PROXY/port set as 3128")
+    config_file = _replace(config_file, "HTTP_PROXY/port", 3128)
+
+    print("  DEBUG set to false")
+    config_file = _replace(config_file, "DEBUG", False)
+
+    print("  MOCK_AUTH set to false")
+    config_file = _replace(config_file, "MOCK_AUTH", False)
+
+    print("  MOCK_GOOGLE_AUTH set to false")
+    config_file = _replace(config_file, "MOCK_GOOGLE_AUTH", False)
+
+    print("  AUTHLIB_INSECURE_TRANSPORT set to true")
+    config_file = _replace(config_file, "AUTHLIB_INSECURE_TRANSPORT", True)
+
+    print("  SESSION_COOKIE_SECURE set to true")
+    config_file = _replace(config_file, "SESSION_COOKIE_SECURE", True)
+
+    print("  ENABLE_CSRF_PROTECTION set to true")
+    config_file = _replace(config_file, "ENABLE_CSRF_PROTECTION", True)
+
+    open(config_file_path, "w+").write(config_file)
 
 def inject_other_files_into_fence_config(other_files, config_file_path):
     additional_cfgs = _get_all_additional_configs(other_files)
@@ -396,11 +430,12 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if args.config_file == "amanuensis-config":
+    if args.config_file == "new-amanuensis-config.yaml":
         inject_creds_into_amanuensis_config(args.creds_file_to_inject, args.config_file)
+        set_prod_defaults_amanuensis(args.config_file)
     else:
         inject_creds_into_fence_config(args.creds_file_to_inject, args.config_file)
-    set_prod_defaults(args.config_file)
+        set_prod_defaults(args.config_file)
 
     if args.other_files_to_inject:
         inject_other_files_into_fence_config(
