@@ -34,9 +34,6 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
-        - name: ohdsi-atlas-config-local
-          configMap:
-            name: ohdsi-atlas-config-local
         - name: ohdsi-atlas-config-gis
           configMap:
             name: ohdsi-atlas-config-gis
@@ -60,10 +57,6 @@ spec:
             - configMapRef:
                 name: ohdsi-atlas-config
           volumeMounts:
-            - name: ohdsi-atlas-config-local
-              readOnly: true
-              mountPath: /usr/share/nginx/html/atlas/js/config-local.js
-              subPath: config-local.js
             - name: ohdsi-atlas-config-gis
               readOnly: true
               mountPath: /usr/share/nginx/html/atlas/js/config-gis.js
