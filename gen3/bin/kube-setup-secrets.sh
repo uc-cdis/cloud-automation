@@ -289,7 +289,7 @@ if ! g3kubectl get secrets/amanuensis-config > /dev/null 2>&1; then
     if g3kubectl get secrets/amanuensis-config > /dev/null 2>&1; then
       g3kubectl delete secret amanuensis-config
     fi
-    g3kubectl create secret generic amanuensis-config "--from-file=amanuensis-config.yaml=${amanuensis_config}"
+    g3kubectl create secret generic amanuensis-config "--from-file=amanuensis-config.yaml=${amanuensis_config}" "--from-file=${GEN3_HOME}/apis_configs/config_helper.py"
   else
     echo "running job to create amanuensis-config.yaml."
     echo "job will inject creds.json into amanuensis-config.yaml..."
