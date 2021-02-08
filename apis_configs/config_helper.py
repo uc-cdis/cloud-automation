@@ -118,7 +118,10 @@ def inject_creds_into_amanuensis_config(creds_file_path, config_file_path):
     config_file = _replace(config_file, "DB", db_path)
 
     print("  BASE_URL injected with value(s) from creds.json")
-    config_file = _replace(config_file, "BASE_URL", "https://{}/".format(hostname))
+    config_file = _replace(config_file, "BASE_URL", "https://{}/amanuensis".format(hostname))
+
+    print("  HOSTNAME injected with value(s) from creds.json")
+    config_file = _replace(config_file, "HOSTNAME", "https://{}/".format(hostname))
 
     # print("  ENCRYPTION_KEY injected with value(s) from creds.json")
     # config_file = _replace(config_file, "ENCRYPTION_KEY", hmac_key)
