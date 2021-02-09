@@ -114,7 +114,7 @@ credsTemp="$(mktemp "$XDG_RUNTIME_DIR/credsTemp.json_XXXXXX")"
 credsMaster="/home/$namespace/Gen3Secrets/creds.json"
 
 # create new databases - don't break if already exists
-for name in fence indexd sheepdog; do
+for name in fence indexd sheepdog amanuensis; do
   dbname="${name}_$dbsuffix"
   if ! newCreds="$(gen3 secrets rotate newdb $name $dbname)"; then
     gen3_log_err "Failed to setup new db $dbname"
@@ -154,7 +154,7 @@ for name in fence indexd sheepdog; do
 done
 
 # Remove "database initialized" markers
-for name in .rendered_fence_db .rendered_gdcapi_db; do
+for name in .rendered_fence_db .rendered_amanuensis_db .rendered_gdcapi_db; do
   /bin/rm -rf "/home/$namespace/Gen3Secrets/$name"
 done
 

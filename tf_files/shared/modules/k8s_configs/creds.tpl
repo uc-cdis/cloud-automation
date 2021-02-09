@@ -10,6 +10,14 @@
         "google_client_id": "${google_client_id}",
         "hmac_key": "${hmac_encryption_key}"
     },
+    "amanuensis": {
+        "db_host": "${amanuensis_host}",
+        "db_username": "${amanuensis_user}",
+        "db_password": "${amanuensis_pwd}",
+        "db_database": "${amanuensis_db}",
+        "hostname": "${hostname}",
+        "indexd_password": ""
+    },
     "sheepdog": {
         "fence_host": "${fence_host}",
         "fence_username": "${fence_user}",

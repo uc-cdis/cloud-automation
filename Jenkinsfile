@@ -27,6 +27,7 @@ node {
       gitHelper.fetchAllRepos(pipeConfig['currentRepoName'])
     }
     stage('CheckPRLabels') {
+     try {
       // giving a chance for auto-label gh actions to catch up
       // sleep(10)
       for(label in prLabels) {
@@ -83,23 +84,41 @@ node {
       if (listOfSelectedTests.isEmpty()) {
 	  listOfSelectedTests.add("all")
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)  
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('gen3 helper test suite') {
+     try {
       println("namespaces: ${namespaces}")
       if(!skipUnitTests) {
         sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('gen3 helper test suite with zsh') {
+     try {
       if(!skipUnitTests) {
         sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome zsh cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('pytest') {
+     try {
       if(!skipUnitTests) {
         sh 'pip3 install boto3 --upgrade'
         sh 'pip3 install kubernetes --upgrade'
@@ -112,8 +131,14 @@ node {
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('nginx helper test suite') {
+     try {
       if(!skipUnitTests) {
         dir('cloud-automation/kube/services/revproxy') {
           sh 'npx jasmine helpersTest.js'
@@ -121,8 +146,14 @@ node {
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('python 2 base image dockerrun.sh test') {
+     try {
       if(!skipUnitTests) {
         dir('cloud-automation/Docker/python-nginx/python2.7-alpine3.7') {
           sh 'sh dockerrun.sh --dryrun=True'
@@ -130,8 +161,14 @@ node {
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('python 3 base image dockerrun.sh test') {
+     try {
       if(!skipUnitTests) {
         dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
           sh 'sh dockerrun.sh --dryrun=True'
@@ -139,8 +176,14 @@ node {
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('WaitForQuayBuild') {
+     try {
       if(!skipQuayImgBuildWait) {
         quayHelper.waitForBuild(
           "awshelper",
@@ -149,16 +192,28 @@ node {
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('SelectNamespace') {
-     if(!doNotRunTests) {
+     try {
+      if(!doNotRunTests) {
         (kubectlNamespace, lock) = kubeHelper.selectAndLockNamespace(pipeConfig['UID'], namespaces)
         kubeLocks << lock
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('ModifyManifest') {
+     try {
       if(!doNotRunTests) {
         manifestHelper.editService(
           kubeHelper.getHostname(kubectlNamespace),
@@ -168,9 +223,15 @@ node {
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     
     stage('K8sReset') {
+     try {
       if(!doNotRunTests) {
         // adding the reset-lock lock in case reset fails before unlocking
         kubeLocks << kubeHelper.newKubeLock(kubectlNamespace, "gen3-reset", "reset-lock")
@@ -178,23 +239,41 @@ node {
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('VerifyClusterHealth') {
+     try {
       if(!doNotRunTests) {
         kubeHelper.waitForPods(kubectlNamespace)
         testHelper.checkPodHealth(kubectlNamespace, "")
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('GenerateData') {
+     try {
       if(!doNotRunTests) {    
         testHelper.simulateData(kubectlNamespace)
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('FetchDataClient') {
+     try {
       if(!doNotRunTests) {
         // we get the data client from master, unless the service being
         // tested is the data client itself, in which case we get the
@@ -207,8 +286,14 @@ node {
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('RunTests') {
+     try {
       if(!doNotRunTests) {
         testHelper.runIntegrationTests(
             kubectlNamespace,
@@ -220,15 +305,27 @@ node {
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
     stage('CleanS3') {
-      if(!doNotRunTests) {    
-        testHelper.cleanS3()
+     try {
+      if(!doNotRunTests) {
+        testHelper.cleanS3(kubectlNamespace)
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
-      }    
+      }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true) 
     }
     stage('authzTest') {
+     try {
       if(!doNotRunTests) {
         // test revproxy+arborist /gen3-authz stuff
         kubeHelper.kube(kubectlNamespace, {
@@ -236,11 +333,17 @@ node {
         });
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
-      }   
-    }
+      }
+     } catch (ex) {
+        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+        throw ex
+     }
+     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
+   }
   }
   catch (e) {
     pipelineHelper.handleError(e)
+    throw e
   }
   finally {
     stage('Post') {

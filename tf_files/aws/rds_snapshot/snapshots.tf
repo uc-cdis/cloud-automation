@@ -16,6 +16,11 @@ resource "aws_db_snapshot" "fence" {
   db_snapshot_identifier = "${var.vpc_name}-fence"
 }
 
+resource "aws_db_snapshot" "amanuensis" {
+  db_instance_identifier = "${var.amanuensis_rds_id}"
+  db_snapshot_identifier = "${var.vpc_name}-amanuensis"
+}
+
 resource "aws_db_snapshot" "sheepdog" {
   db_instance_identifier = "${var.sheepdog_rds_id}"
   db_snapshot_identifier = "${var.vpc_name}-sheepdog"

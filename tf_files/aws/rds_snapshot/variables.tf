@@ -11,4 +11,7 @@ variable "indexd_rds_id" {}
 variable "fence_rds_id" {}
 
 # rds instance id
+variable "amanuensis_rds_id" {}
+
+# rds instance id
 variable "sheepdog_rds_id" {}

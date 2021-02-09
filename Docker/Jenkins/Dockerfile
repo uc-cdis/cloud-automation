@@ -1,11 +1,11 @@
-FROM jenkins/jenkins:2.260
+FROM jenkins/jenkins:2.273
 
 USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 # install python and pip and aws cli
-RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential zip unzip jq less vim gettext-base
+RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip python3-venv build-essential zip unzip jq less vim gettext-base
 RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade && python -m pip install lxml --upgrade
 RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade
 RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade
@@ -13,10 +13,11 @@ RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq -
 RUN apt-get update \
   && apt-get install -y lsb-release \
      apt-transport-https \
-     r-base \
+     ca-certificates \
+     curl \
+     gnupg2 \
      libssl-dev \
      libcurl4-openssl-dev \
-     zlib1g-dev \
      libncurses5-dev \
      libncursesw5-dev \
      libreadline-dev \
@@ -26,14 +27,17 @@ RUN apt-get update \
      libbz2-dev \
      libexpat1-dev \
      liblzma-dev \
-     tk-dev \
-     ca-certificates \
-     curl \
-     gnupg2 \
+     python-virtualenv \
      lua5.3 \
+     r-base \
      software-properties-common \
      sudo \
+     tk-dev \
+     zlib1g-dev \
+     zsh \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
+
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
@@ -42,8 +46,7 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
     && apt-get update \
     && apt-get install -y google-cloud-sdk \
           google-cloud-sdk-cbt \
-          kubectl \
-          zsh
+          kubectl
 
 # Copy sh script responsible for installing Python
 COPY install-python3.6.sh /root/tmp/install-python3.6.sh
@@ -109,7 +112,7 @@ RUN DISTRO="$(lsb_release -c -s)"  \
       && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
       && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
       && apt-get update \
-      && apt-get install -y postgresql-client-9.6 \
+      && apt-get install -y postgresql-client-9.6 libpq-dev \
       && rm -rf /var/lib/apt/lists/*
 
 # add our custom start script
@@ -118,3 +121,6 @@ RUN chmod -R a+rx /opt/cdis
 ENTRYPOINT ["/sbin/tini", "--", "/opt/cdis/bin/jenkins.sh"]
 
 USER jenkins
+
+RUN git config --global user.email jenkins \
+    && git config --global user.name jenkins

@@ -10,6 +10,10 @@ output "fence_snapshot_id" {
   value = "${aws_db_snapshot.fence.db_instance_identifier}"
 }
 
+output "amanuensis_snapshot_id" {
+  value = "${aws_db_snapshot.amanuensis.db_instance_identifier}"
+}
+
 output "sheepdog_snapshot_id" {
   value = "${aws_db_snapshot.sheepdog.db_instance_identifier}"
 }

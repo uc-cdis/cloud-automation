@@ -77,6 +77,8 @@ spec:
         GEN3_FENCE_IMAGE
         imagePullPolicy: Always
         env:
+          - name: prometheus_multiproc_dir
+            value: /tmp
           - name: PYTHONPATH
             value: /var/www/fence
           - name: SYNC_FROM_DBGAP

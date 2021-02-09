@@ -40,6 +40,7 @@ cran.stat.ucla.edu
 cran.wustl.edu
 cri-app02.bsd.uchicago.edu
 csc.mcs.sdsmt.edu
+dap.digitalgov.gov
 decider.oicrsofteng.org
 dl.bintray.com
 dl.google.com
@@ -78,6 +79,7 @@ login.mathworks.com
 login.microsoftonline.com
 maven.restlet.org
 md.incommon.org
+mdq.incommon.org
 mirror-centos.hostingswift.com
 mirror.ash.fastserv.com
 mirror.chpc.utah.edu
@@ -114,6 +116,7 @@ raw.githubusercontent.com
 reflector.westga.edu
 registry.npmjs.org
 registry.terraform.io
+github-releases.githubusercontent.com
 rendersnake.googlecode.com
 repo-prod.prod.sagebase.org
 repo-staging.prod.sagebase.org
