@@ -41,6 +41,7 @@ cran.wustl.edu
 cri-app02.bsd.uchicago.edu
 csc.mcs.sdsmt.edu
 dap.digitalgov.gov
+data.kidsfirstdrc.org
 decider.oicrsofteng.org
 dl.bintray.com
 dl.google.com
@@ -61,6 +62,8 @@ ftp.usf.edu
 ftp.ussg.iu.edu
 gcr.io
 gen3.org
+gen3.theanvil.io
+gen3.biodatacatalyst.nhlbi.nih.gov
 get.helm.sh
 gist.githubusercontent.com
 git.io
@@ -107,9 +110,11 @@ mran.microsoft.com
 neuro.debian.net
 neurodeb.pirsquared.org
 nginx.org
+nci-crdc.datacommons.io
 opportunityinsights.org
 orcid.org
 pgp.mit.edu
+portal.occ-data.org
 ppa.launchpad.net
 pubmirrors.dal.corespace.com
 raw.githubusercontent.com
