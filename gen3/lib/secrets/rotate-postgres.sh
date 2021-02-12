@@ -262,6 +262,40 @@ gen3_secrets_rotate_fence() {
   gen3_log_info "creds.json and fence-config updated - dbfarm may still reference the old password - update that password after the service rolls to its new creds"
 }
 
+gen3_secrets_rotate_amanuensis() {
+  gen3_log_info "generating new amanuensis db password"
+  local newCreds
+
+  if ! newCreds="$(gen3_secrets_update_pgpasswd amanuensis)"; then
+    return 1
+  fi
+  local newCredsJson="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXXX")"
+  jq -r --argjson amanuensis "$newCreds" '. | .amanuensis = $amanuensis' < "$(gen3_secrets_folder)/creds.json" > "$newCredsJson"
+  cp "$newCredsJson" "$(gen3_secrets_folder)/creds.json"
+  /bin/rm "$newCredsJson"
+
+  local amanuensisYaml="$(gen3_secrets_folder)/apis_configs/amanuensis-config.yaml"
+  local dbuser
+  local dbpassword
+  local dbhost
+  local dbdatabase
+  if [[ -f "$amanuensisYaml" ]] && \
+    dbuser="$(jq -r '.db_username' <<< "$newCreds")" && \
+    dbpassword="$(jq -r '.db_password' <<< "$newCreds")" && \
+    dbhost="$(jq -r '.db_host' <<< "$newCreds")" && \
+    dbdatabase="$(jq -r '.db_database' <<< "$newCreds")"; then
+
+    gen3_log_info "updating amanuensis-config.yaml"
+  else
+    gen3_log_err "failed to process creds for amanuensis-config"
+    return 1
+  fi
+  local dblogin="postgresql://${dbuser}:${dbpassword}@${dbhost}:5432/${dbdatabase}"
+  sed -i -E "s%^DB:.*$%DB: $dblogin%" "$amanuensisYaml"
+  cp "$newAmanuensisYaml" "$amanuensisYaml"
+  gen3_log_info "creds.json and amanuensis-config updated - dbfarm may still reference the old password - update that password after the service rolls to its new creds"
+}
+
 gen3_secrets_rotate_indexd_creds() {
   gen3_log_info "generating new indexd creds for fence and sheepdog"
   gen3_log_err "not yet implemented"
@@ -291,6 +325,9 @@ gen3_secrets_rotate_postgres() {
   case "$service" in
     "fence")
       gen3_secrets_rotate_fence
+      ;;
+    "amanuensis")
+      gen3_secrets_rotate_amanuensis
       ;;
     "indexd")
       gen3_secrets_rotate_indexd

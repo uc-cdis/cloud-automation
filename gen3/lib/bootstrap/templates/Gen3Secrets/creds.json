@@ -6,6 +6,13 @@
     "db_database": "",
     "hostname": ""
   },
+  "amanuensis": {
+    "db_host": "",
+    "db_username": "",
+    "db_password": "",
+    "db_database": "",
+    "hostname": ""
+  },
   "sheepdog": {
     "db_host": "",
     "db_username": "",

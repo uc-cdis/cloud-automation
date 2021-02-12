@@ -22,6 +22,9 @@ indexdDbSchema=""
 fenceDbUser=""
 fenceDbPassword=""
 fenceDbSchema=""
+amanuensisDbUser=""
+amanuensisDbPassword=""
+amanuensisDbSchema=""
 googleClientId=""
 googleClientSecret=""
 gdcapiDbUser=""
@@ -103,6 +106,20 @@ if [[ ! -z "${fencePyFile}" ]]; then
   googleClientSecret=$(grep client_secret ${fencePyFile} | sed "s/.*:\s*//" | sed "s/[', ]*//g")
 fi
 
+amanuensisPyFile=""
+if g3kubectl get secrets/amanuensis-config > /dev/null 2>&1; then
+  amanuensisPyFile=apis_configs/amanuensis-config.yaml
+  g3kubectl get secrets/amanuensis-config -o json | jq -r '.data["amanuensis-config.yaml"]' | base64 --decode > "${amanuensisPyFile}"
+fi
+
+# TODO may need to update these
+if [[ ! -z "${amanuensisPyFile}" ]]; then
+  amanuensisDbUser=$(grep ^DB ${amanuensisPyFile} | sed 's@^.*postgresql://@@' | sed 's/:.*$//')
+  amanuensisDbPassword=$(grep ^DB ${amanuensisPyFile} | sed "s/^.*_user://" | sed 's/@.*$//')
+  amanuensisDbSchema=$(grep ^DB ${amanuensisPyFile} | sed 's@^.*5432/@@' | sed "s/'\$//")
+fi
+
+
 if g3kubectl get secrets/sheepdog-secret > /dev/null 2>&1; then
   g3kubectl get secrets/sheepdog-secret -o json | jq -r '.data["wsgi.py"]' | base64 --decode > apis_configs/sheepdog_settings.py
   gdcapiDbUser="sheepdog"
@@ -141,6 +158,13 @@ cat - > creds.json <<EOM
         "google_client_secret": "${googleClientSecret}",
         "google_client_id": "${googleClientId}",
         "hmac_key": ""
+    },
+    "amanuensis": {
+        "db_host": "",
+        "db_username": "${amanuensisDbUser}",
+        "db_password": "${amanuensisDbPassword}",
+        "db_database": "${amanuensisDbSchema}",
+        "hostname": ""
     },
     "userapi": {
         "db_host": "",
@@ -243,6 +267,7 @@ gdcapi_secret_key="$(random_alphanumeric 50)"
 
 # don't use ( ) " ' { } < > @ in password
 db_password_fence="${fenceDbPassword}"
+db_password_amanuensis="${amanuensisDbPassword}"
 db_password_gdcapi="${gdcapiDbPassword}"
 db_password_sheepdog="${sheepdogDbPassword}"
 db_password_peregrine="${peregrineDbPassword}"
@@ -253,6 +278,7 @@ db_instance="db.t2.micro"
 # password for write access to indexd
 gdcapi_indexd_password="${gdcapiIndexdSecret}"
 
+amanuensis_snapshot=""
 fence_snapshot=""
 gdcapi_snapshot=""
 indexd_snapshot=""
