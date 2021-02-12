@@ -44,7 +44,6 @@ spec:
                   values:
                   - ws-storage
               topologyKey: "kubernetes.io/hostname"
-      automountServiceAccountToken: false
       volumes:
         - name: config-volume
           secret:

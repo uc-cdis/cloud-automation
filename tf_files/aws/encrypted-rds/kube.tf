@@ -39,6 +39,39 @@ resource "aws_db_instance" "db_fence" {
   }
 }
 
+resource "aws_db_instance" "db_amanuensis" {
+  count                       = "${var.deploy_amanuensis_db ? 1 : 0}"
+  allocated_storage           = "${var.amanuensis_db_size}"
+  identifier                  = "${var.vpc_name}-encrypted-amanuensisdb"
+  storage_type                = "gp2"
+  engine                      = "${var.amanuensis_engine}"
+  engine_version              = "${var.amanuensis_engine_version}"
+  parameter_group_name        = "${var.db_pg_name}"
+  instance_class              = "${var.amanuensis_db_instance}"
+  name                        = "${var.amanuensis_database_name}"
+  username                    = "${var.amanuensis_db_username}"
+  password                    = "${var.db_password_amanuensis}"
+  snapshot_identifier         = "${var.amanuensis_snapshot}"
+  db_subnet_group_name        = "${var.aws_db_subnet_group_name}"
+  vpc_security_group_ids      = ["${var.security_group_local_id}"]
+  allow_major_version_upgrade = "${var.amanuensis_allow_major_version_upgrade}"
+  final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-amanuensisdb"
+  maintenance_window          = "${var.amanuensis_maintenance_window}"
+  backup_retention_period     = "${var.amanuensis_backup_retention_period}"
+  backup_window               = "${var.amanuensis_backup_window}"
+  multi_az                    = "${var.amanuensis_ha}"
+  auto_minor_version_upgrade  = "${var.amanuensis_auto_minor_version_upgrade}"
+  storage_encrypted           = "${var.rds_instance_storage_encrypted}"
+  tags = {
+    Environment               = "${var.vpc_name}"
+    Organization              = "${var.organization_name}"
+  }
+
+  lifecycle {
+    ignore_changes = ["identifier"]
+  }
+}
+
 resource "aws_db_instance" "db_gdcapi" {
   count                       = "${var.deploy_sheepdog_db ? 1 : 0}"
   allocated_storage           = "${var.sheepdog_db_size}"

@@ -10,6 +10,10 @@ variable "db_fence_size" {
   default = "10"
 }
 
+variable "db_amanuensis_size" {
+  default = "10"
+}
+
 variable "db_indexd_size" {
   default = "10"
 }
@@ -27,6 +31,10 @@ variable "vpc_name" {
 }
 
 variable "db_fence" {
+  default = ""
+}
+
+variable "db_amanuensis" {
   default = ""
 }
 

@@ -49,10 +49,6 @@ data "aws_vpc_peering_connection" "pc" {
 
 # data resources for endpoints 
 
-data "aws_vpc_endpoint_service" "s3" {
-  service = "s3"
-}
-
 data "aws_vpc_endpoint_service" "logs" {
   service = "logs"
 }

@@ -114,14 +114,15 @@ gen3_db_init() {
   secretPath="$(gen3_secrets_folder)/g3auto/dbfarm/servers.json"
   if [[ (! -f "$secretPath") && -z "$JENKINS_HOME" && -d "$(gen3_secrets_folder)" ]]; then
     mkdir -p -m 0700 "$(dirname $secretPath)"
-    # initialize the dbfarm with info for the fence, indexd, and sheepdog db servers
+    # initialize the dbfarm with info for the fence, indexd, amanuensis and sheepdog db servers
     if ! gen3 secrets decode dbfarm-g3auto servers.json > /dev/null 2>&1; then
       # create a new server list
           (cat - <<EOM
 {
   "server1": $(gen3_db_service_creds fence | jq -r '.farmEnabled=true'),
   "server2": $(gen3_db_service_creds indexd | jq -r '.farmEnabled=true'),
-  "server3": $(gen3_db_service_creds sheepdog | jq -r '.farmEnabled=false')
+  "server3": $(gen3_db_service_creds sheepdog | jq -r '.farmEnabled=false'),
+  "server4": $(gen3_db_service_creds amanuensis | jq -r '.farmEnabled=true'),
 }
 EOM
       ) | jq -r . > "$secretPath"
@@ -280,6 +281,7 @@ gen3_db_user_list() {
 gen3_db_service_list() {
   cat - <<EOM
 fence
+amanuensis
 indexd
 sheepdog
 peregrine
@@ -582,6 +584,7 @@ gen3_db_encrypt() {
 
   gen3 db backup indexd  > $dumpDir/indexd-backup.sql
   gen3 db backup fence  > $dumpDir/fence-backup.sql
+  gen3 db backup amanuensis > $dumpDir/amanuensis-backup.sql
   gen3 db backup gdcapi  > $dumpDir/gdcapidb-backup.sql
   gen3 db backup arborist  > $dumpDir/arborist-backup.sql
   gen3 db backup metadata  > $dumpDir/metadata-backup.sql
@@ -614,13 +617,16 @@ gen3_db_encrypt() {
 
   # Use sed to update all secrets, remove the arborist and metadata g3auto folders to recreate those db's then run kube-setup-secrets 
   local newFenceDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-fencedb"]}' | jq -r .DBInstances[0].Endpoint.Address)
+  local newAmanuensisDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-amanuensisdb"]}' | jq -r .DBInstances[0].Endpoint.Address)  
   local newIndexdDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-indexddb"]}' | jq -r .DBInstances[0].Endpoint.Address)
   local newGdcApiDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-gdcapidb"]}' | jq -r .DBInstances[0].Endpoint.Address)
   local originalFenceDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-fencedb"]}' | jq -r .DBInstances[0].Endpoint.Address)
+  local originalAmanuensisDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-amanuensisdb"]}' | jq -r .DBInstances[0].Endpoint.Address)
   local originalIndexdDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-indexddb"]}' | jq -r .DBInstances[0].Endpoint.Address)
   local originalGdcApiDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-gdcapidb"]}' | jq -r .DBInstances[0].Endpoint.Address)
   gen3_log_info "Updating fence db name from $originalFenceDbUrl to $newFenceDbUrl in $(gen3_secrets_folder)"
   grep -rl $originalFenceDbUrl "$(gen3_secrets_folder)" | xargs sed -i "s/$originalFenceDbUrl/$newFenceDbUrl/g"
+  grep -rl $originalAmanuensisDbUrl "$(gen3_secrets_folder)" | xargs sed -i "s/$originalAmanuensisDbUrl/$newAmanuensisDbUrl/g"
   grep -rl $originalIndexdDbUrl "$(gen3_secrets_folder)" | xargs sed -i "s/$originalIndexdDbUrl/$newIndexdDbUrl/g"
   grep -rl $originalGdcApiDbUrl "$(gen3_secrets_folder)" | xargs sed -i "s/$originalGdcApiDbUrl/$newGdcApiDbUrl/g"
 
@@ -653,6 +659,9 @@ gen3_db_encrypt() {
   gen3_log_info "restoring fence db"
   gen3_db_reset "fence"
   gen3 psql fence  <  $dumpDir/fence-backup.sql
+  gen3_log_info "restoring amanuensis db"
+  gen3_db_reset "amanuensis"
+  gen3 psql amanuensis  <  $dumpDir/amanuensis-backup.sql
   gen3_log_info "restoring sheepdog db"
   gen3_db_reset "sheepdog"
   gen3 psql gdcapi  < $dumpDir/gdcapidb-backup.sql
@@ -677,6 +686,8 @@ gen3_db_encrypt() {
   gen3 tform import --config ~/cloud-automation/tf_files/aws/commons aws_db_instance.db_gdcapi  $vpc_name-encrypted-gdcapidb
   gen3 tform state rm aws_db_instance.db_fence
   gen3 tform import --config ~/cloud-automation/tf_files/aws/commons aws_db_instance.db_fence  $vpc_name-encrypted-fencedb
+  gen3 tform state rm aws_db_instance.db_amanuensis
+  gen3 tform import --config ~/cloud-automation/tf_files/aws/commons aws_db_instance.db_amanuensis  $vpc_name-encrypted-amanuensisdb
   gen3 tform state rm aws_db_instance.db_indexd
   gen3 tform import --config ~/cloud-automation/tf_files/aws/commons aws_db_instance.db_indexd  $vpc_name-encrypted-indexddb
 

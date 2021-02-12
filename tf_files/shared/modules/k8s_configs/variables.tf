@@ -74,6 +74,20 @@ variable "db_fence_username" {
 
 variable "db_fence_address" {}
 
+variable "db_amanuensis_name" {
+  # legacy commons might carry forward `userapi` names
+  default = "amanuensis"
+}
+
+variable "db_amanuensis_password" {}
+
+variable "db_amanuensis_username" {
+  # legacy commons might carry forward `userapi` names
+  default = "amanuensis_user"
+}
+
+variable "db_amanuensis_address" {}
+
 variable "db_indexd_name" {
   default = "indexd"
 }

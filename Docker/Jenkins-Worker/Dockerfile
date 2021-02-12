@@ -1,4 +1,4 @@
-FROM jenkins/jnlp-slave:4.3-1 
+FROM jenkins/jnlp-slave:4.3-1
 
 USER root
 
@@ -34,6 +34,9 @@ RUN apt-get update \
      software-properties-common \
      sudo \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
+
+# install Ruby.
+RUN sudo apt-get install -y ruby-full
 
 # install k6 to run load tests
 RUN sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 379CE192D401AB61 \
@@ -86,7 +89,7 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
 
 
 # install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 
 # install chrome (supports headless mode)

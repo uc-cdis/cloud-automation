@@ -33,6 +33,34 @@ resource "aws_cloudwatch_metric_alarm" "fence_db_alarm" {
   }
 }
 
+resource "aws_cloudwatch_metric_alarm" "amanuensis_db_alarm" {
+  alarm_name                = "db_disk_space_amanuensis_alarm-${var.vpc_name}"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "1"
+  threshold                 = "${var.alarm_threshold}"
+  alarm_description         = "amanuensis db for ${var.vpc_name} storage usage over ${var.alarm_threshold}"
+  insufficient_data_actions = []
+  alarm_actions             = [ "${module.alarms-lambda.sns-topic}" ]
+  metric_query {
+    id = "storageSpacePercentage"
+    expression = "100 - freeDiskSpace/(${var.db_amanuensis_size}*10000000)"
+    label = "Free Disk Space amanuensis ${var.vpc_name}"
+    return_data = "true"
+  }
+  metric_query {
+    id = "freeDiskSpace"
+    metric {
+      metric_name = "FreeStorageSpace"
+      namespace   = "AWS/RDS"
+      period      = "120"
+      stat        = "Average"
+      dimensions = {
+        DBInstanceIdentifier = "${var.db_amanuensis}",
+      }
+    }
+  }
+}
+
 resource "aws_cloudwatch_metric_alarm" "gdcapi_db_alarm" {
   alarm_name                = "db_disk_space_gdcapi_alarm-${var.vpc_name}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"

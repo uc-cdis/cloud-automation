@@ -74,12 +74,21 @@ else
   gen3_log_info "no manifest entry for fence"
 fi
 
+if g3k_manifest_lookup .versions.amanuensis 2> /dev/null; then
+  gen3 kube-setup-amanuensis
+else
+  gen3_log_info "no manifest entry for amanuensis"
+fi
+
 if g3kubectl get cronjob etl >/dev/null 2>&1; then
     gen3 job run etl-cronjob
 fi
 
 if g3kubectl get cronjob usersync >/dev/null 2>&1; then
-    gen3 job cron usersync '@hourly'
+    # stagger usersync jobs, so they don't all hit
+    # NIH at the same time
+    ustart=$((20 + (RANDOM % 20)))
+    gen3 job cron usersync "$ustart * * * *"
 fi
 
 if g3k_manifest_lookup .versions.sheepdog 2> /dev/null; then
