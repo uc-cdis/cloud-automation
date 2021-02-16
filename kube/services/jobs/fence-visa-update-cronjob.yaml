@@ -131,9 +131,9 @@ spec:
 
                 $create_command
 
-                if [[ $? != 0 ]]; then
-                  echo "Warning: non zero exit code: $?"
-                fi
-          
+                exitcode=$?
+                
+                echo "Exit code: $exitcode"
+                exit "$exitcode"
           restartPolicy: Never
 
