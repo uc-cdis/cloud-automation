@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: fence-visa-update
 spec:
-  schedule: 20 * * * *
+  schedule: 30 * * * *
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   concurrencyPolicy: Forbid
