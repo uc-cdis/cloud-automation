@@ -63,6 +63,17 @@ spec:
                   GEN3_THREAD_POOL_SIZE|-value: ""-|
                 - name: BUFFER_SIZE
                   GEN3_BUFFER_SIZE|-value: ""-|
+                - name: slackWebHook
+                  valueFrom:
+                      configMapKeyRef:
+                        name: global
+                        key: slack_webhook
+                        optional: true
+                - name: gen3Env
+                  valueFrom:
+                      configMapKeyRef:
+                        name: global
+                        key: environment
                 - name: FENCE_PUBLIC_CONFIG
                   valueFrom:
                     configMapKeyRef:
@@ -132,7 +143,9 @@ spec:
                 $create_command
 
                 exitcode=$?
-                
+                if [[ $exitcode == 1 && "${slackWebHook}" != 'None' ]]; then
+                  curl -X POST --data-urlencode "payload={\"text\" :\"JOBFAILED: Visa Update job on ${gen3Env}\"}" "${slackWebHook}"
+                fi
                 echo "Exit code: $exitcode"
                 exit "$exitcode"
           restartPolicy: Never
