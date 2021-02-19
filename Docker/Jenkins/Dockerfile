@@ -51,11 +51,11 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
 # Copy sh script responsible for installing Python
 COPY install-python3.8.sh /root/tmp/install-python3.8.sh
 
-# Run the script responsible for installing Python 3.8.0 and link it to /usr/bin/python3
+# Run the script responsible for installing Python 3.8.0 and link it to /usr/bin/python
 RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
 	./root/tmp/install-python3.8.sh && \
 	rm -rf /root/tmp/install-python3.8.sh && \
-        mv /usr/bin/python /usr/bin/python2.7 && \
+        unlink /usr/bin/python && \
 	ln -s /Python-3.8.0/python /usr/bin/python
 
 # Install pip3 for Python 3.8.0
