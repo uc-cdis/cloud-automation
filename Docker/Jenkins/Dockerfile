@@ -55,6 +55,7 @@ COPY install-python3.8.sh /root/tmp/install-python3.8.sh
 RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
 	./root/tmp/install-python3.8.sh && \
 	rm -rf /root/tmp/install-python3.8.sh && \
+        mv /usr/bin/python /usr/bin/python2.7 && \
 	ln -s /Python-3.8.0/python /usr/bin/python
 
 # Install pip3 for Python 3.8.0
