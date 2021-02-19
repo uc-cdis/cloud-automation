@@ -16,6 +16,7 @@ RUN apt-get update \
      ca-certificates \
      curl \
      gnupg2 \
+     libffi-dev \
      libssl-dev \
      libcurl4-openssl-dev \
      libncurses5-dev \
