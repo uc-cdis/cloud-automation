@@ -141,7 +141,9 @@ spec:
                 fi
 
                 $create_command
-
+                if [ "${slackWebHook}" != 'None' ]; then
+                  curl -X POST --data-urlencode "payload={\"text\": \"VisaUpdate: Updating visas for users on ${gen3Env}\"}" "${slackWebHook}"
+                fi
                 exitcode=$?
                 if [[ $exitcode == 1 && "${slackWebHook}" != 'None' ]]; then
                   curl -X POST --data-urlencode "payload={\"text\" :\"JOBFAILED: Visa Update job on ${gen3Env}\"}" "${slackWebHook}"
