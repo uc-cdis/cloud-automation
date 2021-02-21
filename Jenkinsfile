@@ -120,6 +120,7 @@ node {
     stage('pytest') {
      try {
       if(!skipUnitTests) {
+        sh 'pip3 install pytest --upgrade'
         sh 'pip3 install boto3 --upgrade'
         sh 'pip3 install kubernetes --upgrade'
         sh 'python -m pytest cloud-automation/apis_configs/'
