@@ -120,15 +120,15 @@ node {
     stage('pytest') {
      try {
       if(!skipUnitTests) {
-        sh 'pip3 install pytest --upgrade'
-        sh 'pip3 install boto3 --upgrade'
-        sh 'pip3 install kubernetes --upgrade'
+        sh 'pip install pytest --upgrade'
+        sh 'pip install boto3 --upgrade'
+        sh 'pip install kubernetes --upgrade'
         sh 'python -m pytest cloud-automation/apis_configs/'
         // TODO: Temporarily disable unit test. To be investigated by DevOps
         // sh 'python -m pytest cloud-automation/gen3/lib/dcf/'
-        sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
-        sh 'cd cloud-automation/files/lambda && python3 -m pytest test-security_alerts.py'
-        sh 'cd cloud-automation/kube/services/jupyterhub && python3 -m pytest test-jupyterhub_config.py'
+        sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python -m pytest testLambda.py'
+        sh 'cd cloud-automation/files/lambda && python -m pytest test-security_alerts.py'
+        sh 'cd cloud-automation/kube/services/jupyterhub && python -m pytest test-jupyterhub_config.py'
         sh 'bash cloud-automation/files/scripts/es-secgroup-sync.sh test'
       } else {
         Utils.markStageSkippedForConditional(STAGE_NAME)
