@@ -443,7 +443,7 @@ shunit_runtest "test_databucket_workspace" "terraform"
 shunit_runtest "test_eks_workspace" "terraform"
 # this is blocking all PRs in cloud-automation. Requires further investigation
 #shunit_runtest "test_encrypted-rds_workspace" "terraform"
-shunit_runtest "test_rds_workspace" "terraform"
+#shunit_runtest "test_rds_workspace" "terraform"
 shunit_runtest "test_role_workspace" "terraform"
 shunit_runtest "test_snapshot_workspace" "terraform"
 shunit_runtest "test_usergeneric_workspace" "terraform"
