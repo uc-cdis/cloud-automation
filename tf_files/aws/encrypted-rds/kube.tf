@@ -2,6 +2,8 @@ terraform {
   backend "s3" {}
 }
 
+# Pinning the aws version to avoid a bug in 3.29.0 
+# https://github.com/hashicorp/terraform-provider-aws/issues/17712
 provider "aws" {
   version = "= 3.28.0"
 }
