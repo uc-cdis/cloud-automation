@@ -54,12 +54,6 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
         unlink /usr/bin/python3 && \
         ln -s /Python-3.8.0/python /usr/bin/python3
 
-# Install pip
-RUN rm -rf /usr/local/lib/python3.8/site-packages/pip* && \
-	wget https://bootstrap.pypa.io/get-pip.py && \
-	python3 get-pip.py && \
-	rm get-pip.py
-
 # install aws cli and pytest
 RUN set -xe && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade
 
