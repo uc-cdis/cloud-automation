@@ -4,6 +4,9 @@ USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# install python
+RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip python3-venv build-essential zip unzip jq less vim gettext-base
+
 RUN apt-get update \
   && apt-get install -y lsb-release \
      apt-transport-https \
@@ -57,8 +60,7 @@ RUN rm -rf /usr/local/lib/python3.8/site-packages/pip* && \
 	python get-pip.py && \
 	rm get-pip.py
 
-# install python and pip and aws cli
-RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils build-essential zip unzip jq less vim gettext-base python3-pip
+# install aws cli and pytest
 RUN set -xe && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade
 
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
