@@ -51,14 +51,14 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
         unlink /usr/bin/python3 && \
         ln -s /Python-3.8.0/python /usr/bin/python3
 
-# Install pip3 for Python 3.8.0
+# Install pip
 RUN rm -rf /usr/local/lib/python3.8/site-packages/pip* && \
 	wget https://bootstrap.pypa.io/get-pip.py && \
-	python3.8 get-pip.py && \
+	python get-pip.py && \
 	rm get-pip.py
 
 # install python and pip and aws cli
-RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils build-essential zip unzip jq less vim gettext-base
+RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils build-essential zip unzip jq less vim gettext-base python3-pip
 RUN set -xe && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade
 
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
