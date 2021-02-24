@@ -57,7 +57,7 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
 # Install pip
 RUN rm -rf /usr/local/lib/python3.8/site-packages/pip* && \
 	wget https://bootstrap.pypa.io/get-pip.py && \
-	python get-pip.py && \
+	python3 get-pip.py && \
 	rm get-pip.py
 
 # install aws cli and pytest
