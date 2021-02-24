@@ -51,9 +51,7 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
 	./root/tmp/install-python3.8.sh && \
 	rm -rf /root/tmp/install-python3.8.sh && \
         unlink /usr/bin/python && \
-        unlink /usr/bin/python3 && \
-	ln -s /Python-3.8.0/python /usr/bin/python && \
-        ln -s /Python-3.8.0/python /usr/bin/python3
+	ln -s /Python-3.8.0/python /usr/bin/python
 
 # Install pip3 for Python 3.8.0
 RUN rm -rf /usr/local/lib/python3.8/site-packages/pip* && \
@@ -67,6 +65,10 @@ RUN set -xe && python -m pip install awscli --upgrade && python -m pip install p
 RUN set -xe && python -m pip install yq --upgrade
 
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+
+# link python3 to python3.8
+RUN unlink /usr/bin/python3 && \
+    ln -s /Python-3.8.0/python /usr/bin/python3
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
