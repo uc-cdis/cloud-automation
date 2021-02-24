@@ -57,7 +57,7 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
         ln -s /usr/bin/lsb_release /usr/local/lib/python3.8/site-packages/lsb_release.py
 
 # reconfigure lsb_release
-RUN apt-get reinstall -y lsb-release
+RUN apt-get install --reinstall -y lsb-release
 
 # Install pip3 for Python 3.8.0
 RUN rm -rf /usr/local/lib/python3.8/site-packages/pip* && \
