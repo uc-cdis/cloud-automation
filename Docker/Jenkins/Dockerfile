@@ -58,8 +58,8 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
 RUN sed -i 's/python3/python3.5/' /usr/bin/lsb_release && \
     sed -i 's/python3/python3.5/' /usr/bin/add-apt-repository
 
-# install aws cli and pytest
-RUN set -xe && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade
+# install aws cli, poetry, pytest, etc.
+RUN set -xe && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install poetry && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade
 
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
 
