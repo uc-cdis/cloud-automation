@@ -1,4 +1,4 @@
-FROM quay.io/cdis/dockerhubjenkins:2.273
+FROM jenkins/jenkins:2.273
 
 USER root
 
