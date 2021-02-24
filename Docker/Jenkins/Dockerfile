@@ -56,6 +56,9 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
         ln -s /Python-3.8.0/python /usr/bin/python3 && \
         ln -s /usr/bin/lsb_release /usr/local/lib/python3.8/site-packages/lsb_release.py
 
+# reconfigure lsb_release
+RUN apt reinstall lsb-release
+
 # Install pip3 for Python 3.8.0
 RUN rm -rf /usr/local/lib/python3.8/site-packages/pip* && \
 	wget https://bootstrap.pypa.io/get-pip.py && \
