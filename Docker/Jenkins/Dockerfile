@@ -32,8 +32,6 @@ RUN apt-get update \
      zsh \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
     && echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list \
@@ -50,14 +48,8 @@ COPY install-python3.8.sh /root/tmp/install-python3.8.sh
 RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
 	./root/tmp/install-python3.8.sh && \
 	rm -rf /root/tmp/install-python3.8.sh && \
-        unlink /usr/bin/python && \
         unlink /usr/bin/python3 && \
-	ln -s /Python-3.8.0/python /usr/bin/python && \
-        ln -s /Python-3.8.0/python /usr/bin/python3 && \
-        ln -s /usr/bin/lsb_release /usr/local/lib/python3.8/site-packages/lsb_release.py
-
-# reconfigure lsb_release
-RUN apt-get install --reinstall -y lsb-release
+        ln -s /Python-3.8.0/python /usr/bin/python3
 
 # Install pip3 for Python 3.8.0
 RUN rm -rf /usr/local/lib/python3.8/site-packages/pip* && \
@@ -67,10 +59,9 @@ RUN rm -rf /usr/local/lib/python3.8/site-packages/pip* && \
 
 # install python and pip and aws cli
 RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils build-essential zip unzip jq less vim gettext-base
-RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade && python -m pip install lxml --upgrade
-RUN set -xe && python -m pip install yq --upgrade
+RUN set -xe && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
