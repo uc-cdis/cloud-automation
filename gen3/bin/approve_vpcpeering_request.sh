@@ -10,7 +10,7 @@ if [ -n "$vpcpeering_pending_acceptence" ]; then
     vpcpeerconnid=$(aws ec2 describe-vpc-peering-connections --filters Name=status-code,Values=pending-acceptance --query 'VpcPeeringConnections[*].VpcPeeringConnectionId' --output text)
     vpccidrblock=$(aws ec2 describe-vpc-peering-connections --filters Name=status-code,Values=pending-acceptance --query 'VpcPeeringConnections[*].RequesterVpcInfo.CidrBlock' --output text)
     acceptervpcid=$(aws ec2 describe-vpc-peering-connections --filters Name=status-code,Values=pending-acceptance --query 'VpcPeeringConnections[*].AccepterVpcInfo.VpcId' --output text)
-    ROUTE_TABLES=(rtb-23b6685f rtb-rtb-7ee06301)
+    ROUTE_TABLES=(rtb-23b6685f rtb-7ee06301)
     if [ $# -eq 2 ]; then
         while test $# -gt 0; do
             case "$2" in
