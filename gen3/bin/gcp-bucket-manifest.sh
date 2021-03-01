@@ -69,10 +69,11 @@ gen3_create_google_dataflow() {
   source venv/bin/activate
   git clone https://github.com/uc-cdis/google-bucket-manifest && cd google-bucket-manifest
   git checkout chore/migrate_to_poetry
-  pip install -r requirements.txt
+  
+  poetry install -vv --no-dev
 
   # Build a template
-  python bucket_manifest_pipeline.py --runner DataflowRunner  --project "$project" --bucket "$bucket" --temp_location gs://"$temp_bucket"/temp  --template_location gs://"$temp_bucket"/templates/pipeline_template --region us-central1 --setup_file ./setup.py --service_account_email "${service_account}"
+  poetry run python bucket_manifest_pipeline.py --runner DataflowRunner  --project "$project" --bucket "$bucket" --temp_location gs://"$temp_bucket"/temp  --template_location gs://"$temp_bucket"/templates/pipeline_template --region us-central1 --setup_file ./setup.py --service_account_email "${service_account}"
   gen3 cd
 
   local pubsub_topic_name=$(echo "${prefix}-pubsub_topic_name" | head -c63)
