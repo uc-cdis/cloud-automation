@@ -68,7 +68,7 @@ gen3_create_google_dataflow() {
   virtualenv venv
   source venv/bin/activate
   git clone https://github.com/uc-cdis/google-bucket-manifest && cd google-bucket-manifest
-  git checkout chore/potential_fix_for_gcp_bucket_manifest
+  git checkout chore/migrate_to_poetry
   pip install -r requirements.txt
 
   # Build a template
