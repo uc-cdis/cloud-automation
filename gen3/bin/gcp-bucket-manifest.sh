@@ -69,6 +69,7 @@ gen3_create_google_dataflow() {
   git checkout chore/migrate_to_poetry
   
   poetry install -vv --no-dev
+  poetry run poetry2setup > setup.py
 
   gcloud config set proxy/type http
   gcloud config set proxy/address cloud-proxy.internal.io
