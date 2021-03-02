@@ -77,6 +77,8 @@ gen3_create_google_dataflow() {
   poetry run python bucket_manifest_pipeline.py --runner DataflowRunner  --project "$project" --bucket "$bucket" --temp_location gs://"$temp_bucket"/temp  --template_location gs://"$temp_bucket"/templates/pipeline_template --region us-central1 --setup_file ./setup.py --service_account_email "${service_account}"
   gen3 cd
 
+  unset https_proxy
+
   local pubsub_topic_name=$(echo "${prefix}-pubsub_topic_name" | head -c63)
   local pubsub_sub_name=$(echo "${prefix}-pubsub_sub_name" | head -c63)
   local dataflow_name=$(echo "${prefix}-dataflow_name" | head -c63)
