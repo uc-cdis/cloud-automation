@@ -71,11 +71,6 @@ gen3_create_google_dataflow() {
   poetry install -vv --no-dev
   poetry run poetry2setup > setup.py
 
-  # unblocks gsutil cp commands
-  gcloud config set proxy/type http
-  gcloud config set proxy/address cloud-proxy.internal.io
-  gcloud config set proxy/port 3128
-
   # the following proxy config unblocks apache_beam.runners.dataflow.internal.apiclient GCS upload operations
   # however, this blocks the g3kubectl commands
   # (causes "Unable to connect to the server: Forbidden" error)
