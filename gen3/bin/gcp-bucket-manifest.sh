@@ -66,7 +66,6 @@ gen3_create_google_dataflow() {
 
   # Download code to build a google template
   git clone https://github.com/uc-cdis/google-bucket-manifest && cd google-bucket-manifest
-  git checkout chore/migrate_to_poetry
   
   poetry install -vv --no-dev
   poetry run poetry2setup > setup.py
