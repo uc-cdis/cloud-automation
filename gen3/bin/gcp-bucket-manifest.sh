@@ -71,9 +71,7 @@ gen3_create_google_dataflow() {
   poetry install -vv --no-dev
   poetry run poetry2setup > setup.py
 
-  gcloud config set proxy/type http
-  gcloud config set proxy/address cloud-proxy.internal.io
-  gcloud config set proxy/port 3128
+  export https_proxy='http://cloud-proxy.internal.io:3128'
 
   # Build a template
   poetry run python bucket_manifest_pipeline.py --runner DataflowRunner  --project "$project" --bucket "$bucket" --temp_location gs://"$temp_bucket"/temp  --template_location gs://"$temp_bucket"/templates/pipeline_template --region us-central1 --setup_file ./setup.py --service_account_email "${service_account}"
