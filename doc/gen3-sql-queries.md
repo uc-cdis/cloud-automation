@@ -119,5 +119,5 @@ Replace dg.XXXX with the original prefix and dg.YYYY with the new prefix.
 If you want to find all the buckets currently configured in indexd you can run the following. It is tailored for s3, but can be done for gs as well, if you replace the s3 with gs.
 
 ```sql
-select distinct(regexp_replace(ltrim(url,'s3://'), '/.*', '')) from index_record_url where url like 's3://%';
+select distinct(regexp_replace(regexp_replace(url,'s3://', ''), '/.*', '')) from index_record_url where url like 's3://%';
 ```
