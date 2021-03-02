@@ -71,7 +71,16 @@ gen3_create_google_dataflow() {
   poetry install -vv --no-dev
   poetry run poetry2setup > setup.py
 
-  # export https_proxy='http://cloud-proxy.internal.io:3128'
+  # unblocks gsutil cp commands
+  gcloud config set proxy/type http
+  gcloud config set proxy/address cloud-proxy.internal.io
+  gcloud config set proxy/port 3128
+
+  # the following proxy config unblocks apache_beam.runners.dataflow.internal.apiclient GCS upload operations
+  # however, this blocks the g3kubectl commands
+  # (causes "Unable to connect to the server: Forbidden" error)
+  # that is why it can only be declared after "g3kubectl get secret gcp-bucket-manifest-g3auto"
+  export https_proxy='http://cloud-proxy.internal.io:3128'
 
   # Build a template
   poetry run python bucket_manifest_pipeline.py --runner DataflowRunner  --project "$project" --bucket "$bucket" --temp_location gs://"$temp_bucket"/temp  --template_location gs://"$temp_bucket"/templates/pipeline_template --region us-central1 --setup_file ./setup.py --service_account_email "${service_account}"
