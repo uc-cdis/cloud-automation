@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: audit-service-deployment
+  annotations:
+    gen3.io/network-ingress: "fence,presigned-url-fence"
 spec:
   selector:
     # Only select pods based on the 'app' label
