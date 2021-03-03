@@ -45,6 +45,7 @@ spec:
             export GOOGLE_APPLICATION_CREDENTIALS=/google-bucket-manifest/config.json
 
             source $HOME/.poetry/env
+            poetry install --no-dev --no-interaction
 
             if [[ "${METADATA_FILE}" == "" ]]; then
               poetry run python bucket_manifest/sub.py create_manifest --project_id $PROJECT --subscription_id ${PUBSUB_SUB} --n_expected_messages ${N_MESSAGES} --bucket_name ${OUT_BUCKET}
