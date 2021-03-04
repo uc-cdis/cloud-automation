@@ -49,6 +49,12 @@ docker-auth.elastic.co
 docker.elastic.co
 docs.google.com
 download.java.net
+qualysguard.qg3.apps.qualys.com:443
+distribution.qg3.apps.qualys.com:443
+monitoring.qg3.apps.qualys.com:443
+qgadmin.qg3.apps.qualys.com:443
+scanservice1.qg3.apps.qualys.com:443
+qualysapi.qg3.apps.qualys.com:443
 download.oracle.com
 dream.annailabs.com
 ecsft.cern.ch
