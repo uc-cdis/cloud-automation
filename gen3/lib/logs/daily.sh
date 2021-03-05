@@ -85,6 +85,149 @@ EOM
 }
 
 #
+# /ga4gh response codes
+#
+gen3_logs_ga4ghrcodes_histogram() {
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes | jq -r '. | del(.query.bool.must[0])')"
+    local aggs="$(cat - <<EOM
+  {
+    "aggs": {
+      "terms": {
+        "field": "message.http_status_code"
+      }
+    }
+  }
+EOM
+    )"
+    local query="$(cat - <<EOM
+    [
+    {
+      "match_phrase": {
+        "message.http_request": {
+          "query": "/ga4gh/drs/v1/objects"
+        }
+      }
+    },
+    {
+      "match_phrase": {
+        "message.kubernetes.labels.app": {
+          "query": "indexd"
+        }
+      }
+    }
+    ]
+EOM
+  )"
+    local namespace="$(cat - <<EOM
+  {
+    "term": {
+      "message.kubernetes.namespace_name.keyword": "default"
+    }
+  }
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson ns "$namespace" --argjson query "$query" '.aggregations=$aggs  | .query.bool.must += [ $ns ] | .query.bool.must += $query ' <<<${queryStr})
+    
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+#
+# Download protocol buckets
+#
+gen3_logs_protocol_histogram() {
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
+    local aggs="$(cat - <<EOM
+  {
+      "aggs": {
+        "terms": {
+          "script": {
+            "inline": "def p = doc['message.http_request.keyword'].value; def i = p.indexOf('protocol='); def s = p.substring(i+9, p.length());return s"
+          }
+        }
+      }
+  }
+EOM
+    )"
+    local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "default"
+}}
+EOM
+    )";
+    local protocol="$(cat - <<EOM
+    { "should": [
+    {
+      "match_phrase": {
+        "message.http_request": "protocol"
+      }
+    },
+    {
+      "match_phrase": {
+        "message.http_request": "\\/user\\/data\\/download\\/"
+      }
+    }
+  ],
+  "minimum_should_match": 2}
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson protocol "$protocol" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool +=  $protocol | .query.bool.must += [ $ns ]' <<<${queryStr})
+    
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+#
+# Login provider buckets
+#
+gen3_logs_loginprovider_histogram() {
+    local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
+    local aggs="$(cat - <<EOM
+  {
+    "aggs": {
+      "terms": {
+        "script": {
+          "inline": "def p = doc['message.http_request.keyword'].value; def i = p.indexOf('/user/login/'); def s = p.substring(i+12, p.indexOf('/', 12));return s"
+        }
+      }
+    }
+  }
+EOM
+    )"
+    local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "default"
+}}
+EOM
+    )";
+    local query_should="$(cat - <<EOM
+    { "should": [
+        {
+          "match_phrase": {
+            "message.http_request": "/user/login/fence/login"
+          }
+        },
+        {
+          "match_phrase": {
+            "message.http_request": "/user/login/google/login"
+          }
+        },
+        {
+          "match_phrase": {
+            "message.http_request": "/user/login/ras/callback"
+          }
+        }
+      ],
+      "minimum_should_match": 1}
+EOM
+    )";
+    queryStr=$(jq -r --argjson aggs "$aggs" --argjson protocol "$query_should" --argjson ns "$namespace" '.aggregations=$aggs | .query.bool +=  $protocol | .query.bool.must += [ $ns ]' <<<${queryStr})
+    
+    gen3_log_info "$queryStr"
+    gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}"  
+}
+
+#
 # Response time histogram
 #
 gen3_logs_rtime_histogram() {
