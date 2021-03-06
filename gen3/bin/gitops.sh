@@ -718,6 +718,7 @@ declare -a gen3_gitops_repolist_arr=(
   uc-cdis/tube
   uc-cdis/workspace-token-service
   uc-cdis/requestor
+  uc-cdis/audit-service
 )
 
 declare -a gen3_gitops_sshlist_arr=(

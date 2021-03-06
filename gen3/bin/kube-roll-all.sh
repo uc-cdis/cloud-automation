@@ -195,10 +195,16 @@ if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
   gen3 kube-setup-ssjdispatcher
 fi
 
-if g3k_manifest_lookup .versions.access-backend 2> /dev/null; then
+if g3k_manifest_lookup '.versions["access-backend"]' 2> /dev/null; then
   gen3 kube-setup-access-backend
 else
   gen3_log_info "not deploying access-backend - no manifest entry for .versions.access-backend"
+fi
+
+if g3k_manifest_lookup '.versions["audit-service"]' 2> /dev/null; then
+  gen3 kube-setup-audit-service
+else
+  gen3_log_info "not deploying audit-service - no manifest entry for .versions.audit-service"
 fi
 
 gen3 kube-setup-revproxy

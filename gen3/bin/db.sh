@@ -587,6 +587,7 @@ gen3_db_encrypt() {
   gen3 db backup metadata  > $dumpDir/metadata-backup.sql
   gen3 db backup wts  > $dumpDir/wts-backup.sql
   gen3 db backup requestor  > $dumpDir/requestor-backup.sql
+  gen3 db backup audit  > $dumpDir/audit-backup.sql
 
   # Quick check to ensure the snapshots were taken successfully. Will prevent new db from getting incomplete data.
   echo "Did the snapshots get created correctly?(yes/no)"
@@ -630,6 +631,7 @@ gen3_db_encrypt() {
   mv "$(gen3_secrets_folder)"/g3auto/metadata "$(gen3_secrets_folder)"/g3auto/mtdta-backup
   mv "$(gen3_secrets_folder)"/g3auto/wts "$(gen3_secrets_folder)"/g3auto/wts-backup
   mv "$(gen3_secrets_folder)"/g3auto/requestor "$(gen3_secrets_folder)"/g3auto/requestor-backup
+  mv "$(gen3_secrets_folder)"/g3auto/audit "$(gen3_secrets_folder)"/g3auto/audit-backup
   gen3 kube-setup-secrets
   if [[ -d "$(gen3_secrets_folder)"/g3auto/arb-backup ]]; then
     g3kubectl delete secret arborist-g3auto
@@ -646,6 +648,10 @@ gen3_db_encrypt() {
   if [[ -d "$(gen3_secrets_folder)"/g3auto/requestor-backup ]]; then
     g3kubectl delete secret requestor-g3auto
     gen3 db setup requestor
+  fi
+  if [[ -d "$(gen3_secrets_folder)"/g3auto/audit-backup ]]; then
+    g3kubectl delete secret audit-g3auto
+    gen3 db setup audit
   fi
   gen3_log_info "restoring indexd db"
   gen3_db_reset "indexd"
@@ -668,6 +674,9 @@ gen3_db_encrypt() {
   gen3_log_info "restoring requestor db"
   gen3_db_reset "requestor"
   gen3 psql requestor  < $dumpDir/requestor-backup.sql
+  gen3_log_info "restoring audit db"
+  gen3_db_reset "audit"
+  gen3 psql audit  < $dumpDir/audit-backup.sql
 
 
   # dbs are now working but we should update the terraform state to ensure db's can still be managed through the main commons terraform
