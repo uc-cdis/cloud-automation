@@ -59,6 +59,15 @@ done
 fileName="users-${dateTime}.json"
 gen3 logs history users start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
+fileName="protocol-${dateTime}.json"
+gen3 logs history protocol start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
+
+fileName="loginproviders-${dateTime}.json"
+gen3 logs history loginproviders start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
+
+fileName="ga4ghrcodes-${dateTime}.json"
+gen3 logs history ga4gs_rtimes start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
+
 csvToJson="$(cat - <<EOM
 BEGIN {
   prefix="";
@@ -93,6 +102,11 @@ fileName="users-${dateTime}.json"
 gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
 fileName="projects-${dateTime}.json"
 gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
-
+fileName="protocol-${dateTime}.json"
+gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
+fileName="loginproviders-${dateTime}.json"
+gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
+fileName="ga4ghrcodes-${dateTime}.json"
+gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
 cd /tmp
 /bin/rm -rf "${dataFolder}"
