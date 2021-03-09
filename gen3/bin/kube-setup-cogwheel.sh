@@ -12,7 +12,6 @@ mkdir -p $(gen3_secrets_folder)/g3auto/cogwheel
 
 # Set up database if it does not already exist, along with Fence client
 if gen3 db services | grep cogwheel &> /dev/null; then
-#if g3kubectl describe secret cogwheel-g3auto | grep dbcreds.json &> /dev/null; then
         gen3_log_info "Found existing Cogwheel DB. Skipping setup for DB, Fence client, and wsgi_settings.py."
 else
         gen3_log_info "No Cogwheel DB found. If this is first-time setup, see also cloud-automation/doc/cogwheel-setup.md for more information."
