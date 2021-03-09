@@ -1,6 +1,7 @@
 master:
   # Used for label app.kubernetes.io/component
   componentName: "gen3-devops-jenkins-master-deployment"
+  imageTag: "quay.io/cdis/gen3-devops-jenkins-master:poc1
   serviceType: NodePort
   NodePort: 32324
   adminUser: "admin"
