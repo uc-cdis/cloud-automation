@@ -96,6 +96,12 @@ if [[ ! -f "ssl.conf" ]]; then
         gen3_log_info "Downloading and editing template ssl.conf..."
         curl https://raw.githubusercontent.com/uc-cdis/cogwheel/master/template.ssl.conf > ssl.conf
         sed -i "s/^#ServerName www.example.com:443/ServerName $GEN3_CACHE_HOSTNAME/" ssl.conf
+
+        sed -i "/ShibRequestSetting requireSession 1/a\ \ ShibRequestSetting REMOTE_ADDR \"X-Forwarded-For\"" ssl.conf
+        sed -i "s/\/oauth\/token/\/cogwheel\/oauth\/token/" ssl.conf
+        sed -i "s/\/.well-known\/oauth-authorization-server/\/cogwheel\/.well-known\/oauth-authorization-server/" ssl.conf
+        sed -i "s/\/jwks.json/\/cogwheel\/jwks.json/" ssl.conf
+
         gen3_log_info "Generated ssl.conf."
 else
         gen3_log_info "Found existing ssl.conf."
