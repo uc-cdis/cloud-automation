@@ -74,6 +74,13 @@ spec:
               python run_config.py && python run_etl.py
             fi
             exitcode=$?
+            if [[ "${slackWebHook}" != 'None' ]]; then
+              if [[ $exitcode == 1 ]]; then
+                curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: ETL job on ${gen3Env}\"}" "${slackWebHook}"
+              else
+                curl -X POST --data-urlencode "payload={\"text\": \"SUCCESS: ETL job on ${gen3Env}\"}" "${slackWebHook}"
+              fi
+            fi
             echo "Exit code: $exitcode"
             exit "$exitcode"
       restartPolicy: Never

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Deploy the metdata service.
+# Deploy the requestor service.
 #
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
@@ -8,7 +8,7 @@ gen3_load "gen3/gen3setup"
 
 
 setup_database() {
-  gen3_log_info "setting up requestor service ..."
+  gen3_log_info "setting up requestor service..."
 
   if g3kubectl describe secret requestor-g3auto > /dev/null 2>&1; then
     gen3_log_info "requestor-g3auto secret already configured"
@@ -35,7 +35,7 @@ setup_database() {
     cat - > "$secretsFolder/requestor-config.yaml" <<EOM
 # Server
 
-DEBUG: false
+DEBUG: true
 
 # Database
 
