@@ -45,11 +45,6 @@ else
         echo "DEBUG = False" >> wsgi_settings.py
         echo "SQLALCHEMY_DATABASE_URI = $(jq '@uri "postgresql://\(.db_username):\(.db_password)@\(.db_host)/\(.db_database)"' dbcreds.json)" >> wsgi_settings.py
         cd -
-
-        # Create Fence client
-        gen3_log_info "Creating new Fence client: Kicking off cogwheel-register-client k8s job. Check pod logs for details. Remember to edit your Fence config."
-        gen3 secrets sync
-        gen3 job run cogwheel-register-client
 fi
 
 
@@ -139,16 +134,24 @@ else
 fi
 
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/cogwheel/cogwheel-service.yaml"
+# Create Fence client if first-time setup
+if [[ -f ".first_time_setup_flag" ]]; then
+        gen3_log_warn "Creating new Fence client: Kicking off cogwheel-register-client k8s job. Check pod logs for details. Remember to edit your Fence config."
+        gen3 secrets sync
+        gen3 job run cogwheel-register-client
+fi
+
 
 # Deploy unless first-time setup
 if [[ -f ".first_time_setup_flag" ]]; then
         gen3_log_info "Assuming this was first time setup; will not auto deploy Cogwheel. Edit necessary config and rerun kube-setup-cogwheel."
-        rm .first_time_setup_flag
 else
         gen3_log_info "Deploying Cogwheel service..."
+        gen3 secrets sync
         gen3 roll cogwheel
+        g3kubectl apply -f "${GEN3_HOME}/kube/services/cogwheel/cogwheel-service.yaml"
 fi
 
+rm -f .first_time_setup_flag
 
 gen3_log_info "Finished Cogwheel setup."
