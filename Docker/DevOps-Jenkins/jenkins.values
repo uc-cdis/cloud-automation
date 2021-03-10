@@ -1,7 +1,8 @@
 master:
   # Used for label app.kubernetes.io/component
   componentName: "gen3-devops-jenkins-master-deployment"
-  imageTag: "quay.io/cdis/gen3-devops-jenkins-master:poc1
+  image: "quay.io/cdis/gen3-devops-jenkins-master"
+  tag: "poc1"
   serviceType: NodePort
   NodePort: 32324
   adminUser: "admin"
@@ -26,7 +27,8 @@ master:
 
   customInitContainers:
   - name: awshelper
-    image: "quay.io/cdis/awshelper:master"
+    image: "quay.io/cdis/awshelper"
+    tag: "master"
     command:
     - /bin/bash
     args:
