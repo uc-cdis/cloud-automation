@@ -13,7 +13,7 @@ if [ "$JENKINS_HOME" = "/tmp/var/jenkins_home" ]; then
 fi
 
 if [ -z "$JENKINS_S3_PATH" ]; then
-  JENKINS_S3_PATH="s3://cdis-terraform-state/Jenkins2Backup"
+  JENKINS_S3_PATH="s3://cdis-terraform-state/DevOpsJenkinsBackup"
 fi
 
 # Setup ~/.aws to support cloud-automation/gen3 
