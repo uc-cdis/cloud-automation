@@ -5,8 +5,6 @@ master:
   tag: "poc1"
   serviceType: NodePort
   NodePort: 32324
-  adminUser: "admin"
-  adminPassword: <redacted>
 
   installPlugins: false
 
@@ -25,55 +23,12 @@ master:
           name: jenkins-secret
           key: aws_secret_access_key
 
-  customInitContainers:
-  - name: awshelper
-    image: "quay.io/cdis/awshelper"
-    tag: "master"
-    command:
-    - /bin/bash
-    args:
-    - -c
-    - |
-      # Setup ~/.aws to support cloud-automation/gen3
-      mkdir -p ~/.aws
-      cat - > ~/.aws/config <<EOM
-      [profile jenkins]
-      output = json
-      region = us-east-1
-      EOM
-      cat - > ~/.aws/credentials <<EOM
-      [jenkins]
-      aws_access_key_id = $AWS_ACCESS_KEY_ID
-      aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
-      EOM
-      aws --version
-      aws s3 cp s3://cdis-terraform-state/DevOpsJenkinsBackup/jenkins_plugins.tar /tmp/jenkins_plugins.tar --profile jenkins
-    env:
-    - name: AWS_ACCESS_KEY_ID
-      valueFrom:
-        secretKeyRef:
-          name: jenkins-secret
-          key: aws_access_key_id
-    - name: AWS_SECRET_ACCESS_KEY
-      valueFrom:
-        secretKeyRef:
-          name: jenkins-secret
-          key: aws_secret_access_key
-    volumeMounts:
-    - mountPath: /tmp/
-      name: plugin-dir
-
-  # Executed command when side container gets started
   command:
   - /bin/bash
   args:
   - -c
   - |
-    mkdir -p /var/jenkins_home/plugins
-    sed -i 's#jenkins.io#jenkins-ci.org#' /var/jenkins_home/hudson.model.UpdateCenter.xml
-    tar -xvf /usr/share/jenkins/ref/plugins/jenkins_plugins.tar -C /var/jenkins_home/plugins/
-    /sbin/tini -- /usr/local/bin/devops-jenkins.sh --argumentsRealm.passwd.$(ADMIN_USER)=$(ADMIN_PASSWORD) --argumentsRealm.roles.$(ADMIN_USER)=admin
-
+    /sbin/tini -- /opt/cdis/bin/jenkins.sh
 rbac:
   create: true
 persistence:
