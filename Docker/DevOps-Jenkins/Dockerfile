@@ -11,7 +11,7 @@ RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install
 RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade
 
 # add our custom start script
-COPY devops-jenkins.sh /opt/cdis/bin/devops-jenkins.sh
+COPY devops-jenkins.sh /opt/cdis/bin/jenkins.sh
 RUN chmod -R a+rx /opt/cdis
 ENTRYPOINT ["/sbin/tini", "--", "/opt/cdis/bin/jenkins.sh"]
 
