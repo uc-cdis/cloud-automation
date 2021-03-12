@@ -25,6 +25,18 @@ spec:
         ports:
         - containerPort: 80
         env:
+        - name: doSlack
+          GEN3_DO_SLACK|-value: "true"-|
+        - name: slackWebHook
+          valueFrom:
+            configMapKeyRef:
+              name: global
+              key: slack_webhook
+        - name: gen3Env
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: hostname
         - name: S3_BUCKET
           GEN3_S3_BUCKET
         resources:
