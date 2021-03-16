@@ -30,7 +30,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kubeproxy}"
+kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kubeproxy}-eksbuild.1"
 coredns_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/coredns:v${coredns}"
 cni_image="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v${cni}/config/v1.7/aws-k8s-cni.yaml"
 calico_yaml="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v${calico}/config/v$(echo ${calico} | sed -e 's/\.[0-9]\+$//')/calico.yaml"
