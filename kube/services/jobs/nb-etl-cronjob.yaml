@@ -4,9 +4,8 @@ kind: CronJob
 metadata:
   name: nb-etl
 spec:
-  # 12:00 Chicago time
-  # 17:00 UTC time
-  schedule: "0 17 * * *"
+  # Weekly Thursday 6:00PM Chicago time == Friday 12:00AM UTC
+  schedule: "0 0 * * 5"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   concurrencyPolicy: Forbid
@@ -35,6 +34,18 @@ spec:
               env:
               - name: S3_BUCKET
                 GEN3_S3_BUCKET
+              - name: doSlack
+                GEN3_DO_SLACK|-value: "true"-|
+              - name: slackWebHook
+                valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: slack_webhook
+              - name: gen3Env
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: hostname
               resources:
                 requests:
                   cpu: 4

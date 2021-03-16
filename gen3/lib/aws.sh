@@ -34,16 +34,17 @@ gen3_aws_run() {
 
     # Try to use cached creds if possible
     if [[ -f $gen3CredsCache ]]; then
-      local nowPlus5
+      local nowPlus40
+      # leave 40 minutes in the session - some terraform plans run long
       if [[ $(uname -s) == "Linux" ]]; then
-        nowPlus5="$(date --utc --date '+5 mins' +%Y-%m-%dT%H:%M)"
+        nowPlus40="$(date --utc --date '+40 mins' +%Y-%m-%dT%H:%M)"
       else
         # date on Mac is not sophisticated
-        nowPlus5="$(date -u +%Y-%m-%dT%H:%M)"
+        nowPlus40="$(date -u +%Y-%m-%dT%H:%M)"
       fi
       gen3AwsExpire=$(jq -r '.Credentials.Expiration' < $gen3CredsCache)
 
-      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$nowPlus5" ]]; then
+      if [[ "$gen3AwsExpire" =~ ^[0-9]+ && "$gen3AwsExpire" > "$nowPlus40" ]]; then
         cacheIsValid="yes"
       fi
     fi
@@ -312,8 +313,7 @@ EOM
 vpc_name="${GEN3_WORKSPACE//_demolab/}"
 instance_type="t3.small"
 instance_count=5
-# this is Reuben's key ...
-ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCfX+T2c3+iBP17DS0oPj93rcQH7OgTCKdjYS0f9s8sIKjErKCao0tRNy5wjBhAWqmq6xFGJeA7nt3UBJVuaGFbszIzs+yvjZYYVrJQdfl0yPbrKRMd/Ch77Jnqbu97Uyu8UxhGkzqEcxQrdBqhqkakhQULjcjZBnk0M1PrLwW+Pl1kRCnXnX/x3YzDR/Ltgjc57qjPbqz7+CBbuFo5OCYOY94pcXetHskvx1AAQ7ZT2c/F/p6vIH5jPKnCTjuqWuGoimp/alczLMO6n+aHgzqc9NKQUScxA0fCGxFeoEdd6b370E7j8xXMIA/xSmq8lFPam+fm3117nC4m29sRktoBI8YP4L7VPSkM/hLp/vRzVJf6U183GfvUSZPERrg+NvMeah9vgkTgzH0iN1+s2xPj6eFz7VUOQtLYTchMZ/qyyGhUzJznY0szocVd6iDbMAYm67R+QtgYEBD1hYrtUD052imb62nEXHFSL3V6369GaJ+k5BIUTGweOaUxGbJlb6fG2Aho4EWaigYRMtmlKgDFaCeJGjlQrFR9lKFzDBc3Af3RefPDVsavYGdQQRUAmueGjlks99Bvh2U53HQgQvc0iQg3ijey2YXBr6xFCMeG7MJZbPcrlQLXko4KygK94EcDPZnIH542CrtAySk/UxxwZv5u0dLsh7o+ZK9G6PO1+Q== reubenonrye@uchicago.edu"
+ssh_public_key = PUT A KEY HERE - use quotes ""
 EOM
     return 0
   fi
@@ -330,6 +330,8 @@ vm_hostname = "${vmName}"
 vpc_cidr_list = ["10.128.0.0/20", "52.0.0.0/8", "54.0.0.0/8"]
 aws_account_id = "ACCOUNT-ID"
 extra_vars = []
+instance_type = "t3.micro"
+ssh_key_name = "your key name -- see aws ec2 describe-key-pairs"
 user_policy = <<EOPOLICY
 THIS IS JUST AN EXAMPLE - REPLACE ACCOUNT-ID ON ADMIN VM's, 
 DELETE user_policy IF YOU DO NOT NEED THIS TO FALL BACK TO DEFAULT

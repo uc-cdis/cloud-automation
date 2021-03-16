@@ -67,6 +67,24 @@ Assumes that a `fence` pod is running in the current environment.
   gen3 api access-token [user-email] [expires-in (default: 3600)] [skip-cache (default: false)]
 ```
 
+### api-key
+
+Generate a new api key for a given user or service account.
+
+```
+gen3 api api-key <username>
+```
+
+List old api keys with curl:
+```
+gen3 api curl credentials/cdis/ <username>
+```
+
+Delete an old api key with curl:
+```
+gen3 api curl credentials/cdis/<kid> <username> DELETE
+```
+
 ### new-program
 
 Attempt to create a new program using a default template -
@@ -123,7 +141,7 @@ Where `user-email` specifies the user to act as (via `gen3 api access-token`)
 
 ### curl
 
-Curl the endpoint of the given commons with the user's access token - POST jsonFile if given
+Curl the endpoint of the given commons with the user's access token, POST jsonFile if given, DELETE if method specified
 
 ```
   gen3 api curl path user-email jsonFile
@@ -131,6 +149,10 @@ Curl the endpoint of the given commons with the user's access token - POST jsonF
 or
 ```
   gen3 api curl path path/to/apikey.json jsonFile
+```
+or
+```
+  gen3 api curl path path/to/apikey.json DELETE
 ```
 
 ex:

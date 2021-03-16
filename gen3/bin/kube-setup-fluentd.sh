@@ -8,7 +8,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 if [[ -n "$JENKINS_HOME" ]]; then
-  echo "Jenkins skipping fluentd setup: $JENKINS_HOME"
+  gen3_log_info "Jenkins skipping fluentd setup: $JENKINS_HOME"
   exit 0
 fi
 
@@ -50,12 +50,15 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
       g3kubectl apply -f "${GEN3_HOME}/kube/services/fluentd/fluent-jobs-serviceaccount.yaml" -n default
       if [ ${fluentdVersion} == "v1.10.2-debian-cloudwatch-1.0" ];
       then
+      (
+        unset KUBECTL_NAMESPACE
         gen3 job cron fluentd-restart '0 0 * * *'
+      )
       fi
     )
   else
-    echo "kube-setup-fluentd exiting - fluentd already deployed, use --force to redeploy"
+    gen3_log_info "kube-setup-fluentd exiting - fluentd already deployed, use --force to redeploy"
   fi
 else
-  echo "kube-setup-fluentd exiting - only deploys in default namespace"
+  gen3_log_info "kube-setup-fluentd exiting - only deploys in default namespace"
 fi

@@ -13,6 +13,14 @@ if [[ -n "$JENKINS_HOME" ]]; then
   exit 0
 fi
 
+function helm_repository()
+{
+  if ! helm repo list > /dev/null 2>&1; then
+    # helm3 has no default repo, need to add it manually
+    helm repo add stable https://charts.helm.sh/stable --force-update
+    helm repo update
+  fi
+}
 
 function delete_prometheus()
 {
@@ -46,6 +54,7 @@ function deploy_prometheus()
   # We may have multiple commons running on the same k8s cluster,
   # but we only have one prometheus.
   #
+  helm_repository
   if (! g3kubectl --namespace=prometheus get deployment prometheus-server > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
     if (! g3kubectl get namespace prometheus > /dev/null 2>&1);
     then
@@ -69,6 +78,7 @@ function deploy_prometheus()
 
 function deploy_grafana()
 {
+  helm_repository
   if (! g3kubectl get namespace grafana > /dev/null 2>&1);
   then
     g3kubectl create namespace grafana

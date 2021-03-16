@@ -2,6 +2,10 @@ terraform {
   backend "s3" {}
 }
 
+provider "aws" {
+  version = "= 3.28.0"
+}
+
 module "aws_rds" {
   source                                             = "../modules/rds/"
   rds_instance_allocated_storage                     = "${var.rds_instance_allocated_storage}"

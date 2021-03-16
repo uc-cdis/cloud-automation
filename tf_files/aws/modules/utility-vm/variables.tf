@@ -28,14 +28,13 @@ variable "vpc_subnet_id" {
 
 variable "vpc_cidr_list" {
   description = "CIDRs that will skip the proxy"
-  type        = "list"
+  type        = list
   default     = ["10.128.0.0/20", "54.0.0.0/8", "52.0.0.0/8"]
 }
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {
   description = "SSH key required to deploy the VM"
-  default     = "fauzi@uchicago.edu"
 }
 
 variable "environment" {
@@ -55,7 +54,7 @@ variable "image_name_search_criteria" {
 
 variable "extra_vars" {
   description = "List of variables that terraform will send to the bootstrapscript"
-  type        = "list"
+  type        = list
   #default     = ["hostname=stuff","accountid=34534534534"]
 }
 
