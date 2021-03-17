@@ -1,4 +1,3 @@
-set -e
 #!/bin/bash
 #
 # script to reset kubernetes namespace gen3 objects/services
