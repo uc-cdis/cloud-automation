@@ -15,7 +15,7 @@ spec:
       containers:
         - name: awshelper
           # often do not want pinned awshelper in gitops-sync
-          GEN3_AUTOMATION_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          GEN3_AUTOMATION_IMAGE|-image: 707767160287.dkr.ecr.us-east-1.amazonaws.com/gen3/awshelper:master-|
           imagePullPolicy: Always
           command: ["/bin/bash" ]
           args:

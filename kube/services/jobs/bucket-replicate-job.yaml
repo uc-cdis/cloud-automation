@@ -30,7 +30,7 @@ spec:
             defaultMode: 0544
       containers:
       - name: replicate
-        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+        GEN3_AWSHELPER_IMAGE|-image: 707767160287.dkr.ecr.us-east-1.amazonaws.com/gen3/awshelper:master-|
         imagePullPolicy: Always
         ports:
         - containerPort: 80

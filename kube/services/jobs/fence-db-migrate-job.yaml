@@ -27,7 +27,7 @@ spec:
           emptyDir: {}
       initContainers:
         - name: usersync-disable
-          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          GEN3_AWSHELPER_IMAGE|-image: 707767160287.dkr.ecr.us-east-1.amazonaws.com/gen3/awshelper:master-|
           imagePullPolicy: Always
           env:
             - name: gen3Env
@@ -95,7 +95,7 @@ spec:
             fi
             touch /tmp/pod/completed
       - name: usersync-enable
-        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+        GEN3_AWSHELPER_IMAGE|-image: 707767160287.dkr.ecr.us-east-1.amazonaws.com/gen3/awshelper:master-|
         imagePullPolicy: Always
         env:
           - name: gen3Env

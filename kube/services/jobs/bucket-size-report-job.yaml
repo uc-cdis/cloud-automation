@@ -17,7 +17,7 @@ spec:
           secretName: "bucket-size-report-g3auto"
       containers:
       - name: awshelper
-        image: quay.io/cdis/awshelper:master
+        image: 707767160287.dkr.ecr.us-east-1.amazonaws.com/gen3/awshelper:master
         imagePullPolicy: Always
         volumeMounts:
         - name: "creds"
