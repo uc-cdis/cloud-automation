@@ -1,9 +1,8 @@
-# gen3 job run nb-etl S3_BUCKET <S3_BUCKET>
-# deprecated; replaced by covid19-nb-etl-cronjob.yaml; delete once we're ready
+# gen3 job run covid19-notebook-etl S3_BUCKET <S3_BUCKET>
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: nb-etl
+  name: covid19-notebook-etl
 spec:
   # Weekly Thursday 6:00PM Chicago time == Friday 12:00AM UTC
   schedule: "0 0 * * 5"
@@ -27,11 +26,11 @@ spec:
               value: "jupyter"
               effect: "NoSchedule"
           containers:
-            - name: nb-etl
+            - name: covid19-notebook-etl
               imagePullPolicy: Always
               ports:
               - containerPort: 80
-              GEN3_NB-ETL_IMAGE
+              GEN3_COVID19-NOTEBOOK-ETL_IMAGE
               env:
               - name: S3_BUCKET
                 GEN3_S3_BUCKET
