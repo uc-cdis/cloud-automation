@@ -4,8 +4,7 @@ kind: CronJob
 metadata:
   name: covid19-notebook-etl
 spec:
-  # Weekly Thursday 6:00PM Chicago time == Friday 12:00AM UTC
-  schedule: "0 0 * * 5"
+  schedule: "0 10 * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   concurrencyPolicy: Forbid
