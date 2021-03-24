@@ -1,4 +1,4 @@
-# gen3 job run covid19-notebook-etl S3_BUCKET <S3_BUCKET>
+# gen3 job run covid19-notebook-etl-cronjob S3_BUCKET <S3_BUCKET>
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -33,8 +33,6 @@ spec:
               env:
               - name: S3_BUCKET
                 GEN3_S3_BUCKET
-              - name: doSlack
-                GEN3_DO_SLACK|-value: "true"-|
               - name: slackWebHook
                 valueFrom:
                   configMapKeyRef:
