@@ -65,6 +65,12 @@ else
   gen3_log_info "no manifest entry for arborist"
 fi
 
+if g3k_manifest_lookup '.versions["audit-service"]' 2> /dev/null; then
+  gen3 kube-setup-audit-service
+else
+  gen3_log_info "not deploying audit-service - no manifest entry for .versions.audit-service"
+fi
+
 if g3k_manifest_lookup .versions.fence 2> /dev/null; then
   # data ecosystem sub-commons may not deploy fence ...
   gen3 kube-setup-fence
@@ -211,12 +217,6 @@ if g3k_manifest_lookup '.versions["access-backend"]' 2> /dev/null; then
   gen3 kube-setup-access-backend
 else
   gen3_log_info "not deploying access-backend - no manifest entry for .versions.access-backend"
-fi
-
-if g3k_manifest_lookup '.versions["audit-service"]' 2> /dev/null; then
-  gen3 kube-setup-audit-service
-else
-  gen3_log_info "not deploying audit-service - no manifest entry for .versions.audit-service"
 fi
 
 gen3 kube-setup-revproxy

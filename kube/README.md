@@ -58,7 +58,7 @@ Template processing of this manifest yields the following key-value replacements
 
 The `gen3 roll arranger` command processes the `arranger-deploy.yaml` template:
 ```
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: arranger-deployment
@@ -87,7 +87,7 @@ spec:
 ```
 to generate a `yaml` output to send to kubernetes that looks like this:
 ```
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: arranger-deployment
