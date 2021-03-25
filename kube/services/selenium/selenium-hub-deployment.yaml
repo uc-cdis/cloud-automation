@@ -22,8 +22,8 @@ spec:
         - name: GRID_BROWSER_TIMEOUT
           value: "0"
         - name: SE_SESSION_REQUEST_TIMEOUT
-          value: "480"
-        image: selenium/hub:4
+          value: "1200"
+        image: selenium/hub:4.0.0-beta-1-prerelease-20201202
         imagePullPolicy: Always
         name: hub
         ports:
@@ -52,5 +52,5 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
           successThreshold: 1
-          timeoutSeconds: 5      
+          timeoutSeconds: 5
       terminationGracePeriodSeconds: 30
