@@ -44,11 +44,14 @@ spec:
             gcloud auth activate-service-account --key-file=/google-bucket-manifest/config.json
             export GOOGLE_APPLICATION_CREDENTIALS=/google-bucket-manifest/config.json
 
+            source $HOME/.poetry/env
+            poetry install --no-dev --no-interaction
+
             if [[ "${METADATA_FILE}" == "" ]]; then
-              python bucket_manifest/sub.py create_manifest --project_id $PROJECT --subscription_id ${PUBSUB_SUB} --n_expected_messages ${N_MESSAGES} --bucket_name ${OUT_BUCKET}
+              poetry run python bucket_manifest/sub.py create_manifest --project_id $PROJECT --subscription_id ${PUBSUB_SUB} --n_expected_messages ${N_MESSAGES} --bucket_name ${OUT_BUCKET}
             else
               gsutil cp "${METADATA_FILE}" /google-bucket-manifest/metadata_file.tsv
-              python bucket_manifest/sub.py create_manifest --project_id $PROJECT --subscription_id ${PUBSUB_SUB} --n_expected_messages ${N_MESSAGES} --bucket_name ${OUT_BUCKET} --metadata_file /google-bucket-manifest/metadata_file.tsv
+              poetry run python bucket_manifest/sub.py create_manifest --project_id $PROJECT --subscription_id ${PUBSUB_SUB} --n_expected_messages ${N_MESSAGES} --bucket_name ${OUT_BUCKET} --metadata_file /google-bucket-manifest/metadata_file.tsv
             fi
             echo "All done - exit status $?"
       restartPolicy: Never

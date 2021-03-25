@@ -53,6 +53,15 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         "rtimes")
           gen3_logs_rtime_histogram "$@"
           ;;
+        "loginproviders")
+          gen3_logs_loginprovider_histogram "$@"
+          ;;
+        "protocol")
+          gen3_logs_protocol_histogram "$@"
+          ;;
+        "ga4gs_rtimes")
+          gen3_logs_ga4ghrcodes_histogram "$@"
+          ;;
         "users")
           gen3_logs_user_count "$@"
           ;;

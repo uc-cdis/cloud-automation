@@ -24,6 +24,7 @@ manifestservice
 gen3-statics
 metadata-service
 requestor
+audit-service
 )
 # ambassador
 #repoList=( fence )
