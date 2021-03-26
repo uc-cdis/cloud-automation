@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 #
 # script to reset kubernetes namespace gen3 objects/services
 #
@@ -108,6 +109,7 @@ clear_wts_clientId() {
 # main ---------------------------
 
 gen3_user_verify "about to drop all service deployments"
+gen3_log_info "gen3 klock lock reset-lock "$LOCK_USER" 3600 -w 60"
 gen3 klock lock reset-lock "$LOCK_USER" 3600 -w 60
 gen3 shutdown namespace
 # also clean out network policies
