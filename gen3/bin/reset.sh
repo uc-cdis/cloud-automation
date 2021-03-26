@@ -106,6 +106,16 @@ clear_wts_clientId() {
   gen3_log_info "All clear for wts"
 }
 
+#
+# `set -e` can result in locked environment, because on error it will exit without unlocking the environment
+#
+cleanup() {
+  ARG=$?
+  gen3 klock unlock reset-lock "$LOCK_USER"
+  exit $ARG
+}
+trap cleanup EXIT
+
 # main ---------------------------
 
 gen3_user_verify "about to drop all service deployments"
