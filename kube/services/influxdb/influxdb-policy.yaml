@@ -16,5 +16,3 @@ spec:
   policyTypes:
   - Ingress
   - Egress
-qaplanetv2@cdistest_dev_admin:~$ kc apply -f influxdb-policy.yaml
-networkpolicy.networking.k8s.io/influxdb-policy created
