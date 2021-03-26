@@ -1,0 +1,20 @@
+kind: NetworkPolicy
+metadata:
+  annotations:
+  name: influxdb-policy
+  namespace: default
+spec:
+  egress:
+  - {}
+  ingress:
+  - ports:
+    - port: 8086
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app: influxdb
+  policyTypes:
+  - Ingress
+  - Egress
+qaplanetv2@cdistest_dev_admin:~$ kc apply -f influxdb-policy.yaml
+networkpolicy.networking.k8s.io/influxdb-policy created
