@@ -92,96 +92,96 @@ node {
     }
     parallel(
       stage('gen3 helper test suite') {
-      try {
-        println("namespaces: ${namespaces}")
-        if(!skipUnitTests) {
-          sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
-        } else {
-          Utils.markStageSkippedForConditional(STAGE_NAME)
+        try {
+          println("namespaces: ${namespaces}")
+          if(!skipUnitTests) {
+            sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome bash cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
+          } else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+          }
+        } catch (ex) {
+            metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+            throw ex
         }
-      } catch (ex) {
-          metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-          throw ex
-      }
-      metricsHelper.writeMetricWithResult(STAGE_NAME, true)
-      }
+        metricsHelper.writeMetricWithResult(STAGE_NAME, true)
+      },
       stage('gen3 helper test suite with zsh') {
-      try {
-        if(!skipUnitTests) {
-          sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome zsh cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
-        } else {
-          Utils.markStageSkippedForConditional(STAGE_NAME)
-        }
-      } catch (ex) {
+        try {
+          if(!skipUnitTests) {
+            sh 'GEN3_HOME=$WORKSPACE/cloud-automation XDG_DATA_HOME=$WORKSPACE/dataHome zsh cloud-automation/gen3/bin/testsuite.sh --profile jenkins'
+          } else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+          }
+        } catch (ex) {
           metricsHelper.writeMetricWithResult(STAGE_NAME, false)
           throw ex
-      }
-      metricsHelper.writeMetricWithResult(STAGE_NAME, true)
-      }
+        }
+        metricsHelper.writeMetricWithResult(STAGE_NAME, true)
+      },
       stage('pytest') {
-      try {
-        if(!skipUnitTests) {
-          sh 'pip3 install boto3 --upgrade'
-          sh 'pip3 install kubernetes --upgrade'
-          sh 'python3 -m pytest cloud-automation/apis_configs/'
-          sh 'python3 -m pytest cloud-automation/gen3/lib/dcf/'
-          sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
-          sh 'cd cloud-automation/files/lambda && python3 -m pytest test-security_alerts.py'
-          sh 'cd cloud-automation/kube/services/jupyterhub && python3 -m pytest test-jupyterhub_config.py'
-          sh 'bash cloud-automation/files/scripts/es-secgroup-sync.sh test'
-        } else {
-          Utils.markStageSkippedForConditional(STAGE_NAME)
+        try {
+          if(!skipUnitTests) {
+            sh 'pip3 install boto3 --upgrade'
+            sh 'pip3 install kubernetes --upgrade'
+            sh 'python3 -m pytest cloud-automation/apis_configs/'
+            sh 'python3 -m pytest cloud-automation/gen3/lib/dcf/'
+            sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
+            sh 'cd cloud-automation/files/lambda && python3 -m pytest test-security_alerts.py'
+            sh 'cd cloud-automation/kube/services/jupyterhub && python3 -m pytest test-jupyterhub_config.py'
+            sh 'bash cloud-automation/files/scripts/es-secgroup-sync.sh test'
+          } else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
+          }
+        } catch (ex) {
+            metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+            throw ex
         }
-      } catch (ex) {
-          metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-          throw ex
-      }
-      metricsHelper.writeMetricWithResult(STAGE_NAME, true)
-      }
+        metricsHelper.writeMetricWithResult(STAGE_NAME, true)
+      },
       stage('nginx helper test suite') {
-      try {
-        if(!skipUnitTests) {
-          dir('cloud-automation/kube/services/revproxy') {
-            sh 'npx jasmine helpersTest.js'
+        try {
+          if(!skipUnitTests) {
+            dir('cloud-automation/kube/services/revproxy') {
+              sh 'npx jasmine helpersTest.js'
+            }
+          } else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
           }
-        } else {
-          Utils.markStageSkippedForConditional(STAGE_NAME)
+        } catch (ex) {
+            metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+            throw ex
         }
-      } catch (ex) {
-          metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-          throw ex
-      }
-      metricsHelper.writeMetricWithResult(STAGE_NAME, true)
-      }
+        metricsHelper.writeMetricWithResult(STAGE_NAME, true)
+      },
       stage('python 2 base image dockerrun.sh test') {
-      try {
-        if(!skipUnitTests) {
-          dir('cloud-automation/Docker/python-nginx/python2.7-alpine3.7') {
-            sh 'sh dockerrun.sh --dryrun=True'
+        try {
+          if(!skipUnitTests) {
+            dir('cloud-automation/Docker/python-nginx/python2.7-alpine3.7') {
+              sh 'sh dockerrun.sh --dryrun=True'
+            }
+          } else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
           }
-        } else {
-          Utils.markStageSkippedForConditional(STAGE_NAME)
+        } catch (ex) {
+            metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+            throw ex
         }
-      } catch (ex) {
-          metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-          throw ex
-      }
-      metricsHelper.writeMetricWithResult(STAGE_NAME, true)
-      }
+        metricsHelper.writeMetricWithResult(STAGE_NAME, true)
+      },
       stage('python 3 base image dockerrun.sh test') {
-      try {
-        if(!skipUnitTests) {
-          dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
-            sh 'sh dockerrun.sh --dryrun=True'
+        try {
+          if(!skipUnitTests) {
+            dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
+              sh 'sh dockerrun.sh --dryrun=True'
+            }
+          } else {
+            Utils.markStageSkippedForConditional(STAGE_NAME)
           }
-        } else {
-          Utils.markStageSkippedForConditional(STAGE_NAME)
+        } catch (ex) {
+            metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+            throw ex
         }
-      } catch (ex) {
-          metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-          throw ex
-      }
-      metricsHelper.writeMetricWithResult(STAGE_NAME, true)
+        metricsHelper.writeMetricWithResult(STAGE_NAME, true)
       }
     )
     stage('WaitForQuayBuild') {
