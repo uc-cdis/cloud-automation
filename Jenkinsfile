@@ -92,7 +92,7 @@ node {
     }
     stage('Parallel Tests'){
       parallel(
-        "gen3 helper test suite" {
+        "gen3 helper test suite": {
           stage('gen3 helper test suite') {
             try {
               println("namespaces: ${namespaces}")
@@ -108,7 +108,7 @@ node {
             metricsHelper.writeMetricWithResult(STAGE_NAME, true)
           }
         },
-        "gen3 helper test suite with zsh" {
+        "gen3 helper test suite with zsh": {
           stage('gen3 helper test suite with zsh') {
             try {
               if(!skipUnitTests) {
@@ -123,7 +123,7 @@ node {
             metricsHelper.writeMetricWithResult(STAGE_NAME, true)
           }
         },
-        "pytest" {
+        "pytest": {
           stage('pytest') {
             try {
               if(!skipUnitTests) {
@@ -145,7 +145,7 @@ node {
             metricsHelper.writeMetricWithResult(STAGE_NAME, true)
           }
         },
-        "nginx helper test suite" {
+        "nginx helper test suite": {
           stage('nginx helper test suite') {
             try {
               if(!skipUnitTests) {
@@ -162,7 +162,7 @@ node {
             metricsHelper.writeMetricWithResult(STAGE_NAME, true)
           }
         },
-        "python 2 base image dockerrun.sh test" {
+        "python 2 base image dockerrun.sh test": {
           stage('python 2 base image dockerrun.sh test') {
             try {
               if(!skipUnitTests) {
@@ -179,7 +179,7 @@ node {
             metricsHelper.writeMetricWithResult(STAGE_NAME, true)
           }
         },
-        "python 3 base image dockerrun.sh test" {
+        "python 3 base image dockerrun.sh test": {
           stage('python 3 base image dockerrun.sh test') {
             try {
               if(!skipUnitTests) {
