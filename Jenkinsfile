@@ -120,7 +120,7 @@ node {
             throw ex
           }
           metricsHelper.writeMetricWithResult(STAGE_NAME, true)
-        },
+        }
       },
       "pytest" {
         stage('pytest') {
