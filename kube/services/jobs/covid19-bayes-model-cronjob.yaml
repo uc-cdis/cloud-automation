@@ -1,0 +1,52 @@
+# gen3 job run covid19-bayes-model-cronjob S3_BUCKET <S3_BUCKET>
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: covid19-bayes-model
+spec:
+  schedule: "0 10 * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          serviceAccountName: s3-access-opencdn-databucket-gen3
+          restartPolicy: Never
+          nodeSelector:
+            role: "jupyter"
+          tolerations:
+            - key: "role"
+              operator: "Equal"
+              value: "jupyter"
+              effect: "NoSchedule"
+          containers:
+            - name: covid19-bayes-model
+              imagePullPolicy: Always
+              ports:
+              - containerPort: 80
+              GEN3_COVID19-BAYES-MODEL_IMAGE
+              env:
+              - name: S3_BUCKET
+                GEN3_S3_BUCKET
+              - name: slackWebHook
+                valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: slack_webhook
+              - name: gen3Env
+                valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: hostname
+              resources:
+                requests:
+                  cpu: 4
+                  memory: 16Gi
+                limits:
+                  cpu: 4
+                  memory: 16Gi # guess on upper bound
