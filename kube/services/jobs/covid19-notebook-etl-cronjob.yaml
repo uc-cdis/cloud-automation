@@ -44,9 +44,6 @@ spec:
                     name: manifest-global
                     key: hostname
               resources:
-                requests:
-                  cpu: 4
-                  memory: 16Gi
                 limits:
-                  cpu: 4
-                  memory: 16Gi # guess on upper bound
+                  cpu: 0.5
+                  memory: 512Mi

@@ -38,9 +38,6 @@ spec:
         - name: S3_BUCKET
           GEN3_S3_BUCKET
         resources:
-          requests:
-            cpu: 4
-            memory: 16Gi
           limits:
-            cpu: 4
-            memory: 16Gi # guess on upper bound
+            cpu: 0.5
+            memory: 512Mi
