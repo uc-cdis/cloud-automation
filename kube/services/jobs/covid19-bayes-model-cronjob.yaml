@@ -1,8 +1,8 @@
-# gen3 job run covid19-notebook-etl-cronjob S3_BUCKET <S3_BUCKET>
+# gen3 job run covid19-bayes-model-cronjob S3_BUCKET <S3_BUCKET>
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: covid19-notebook-etl
+  name: covid19-bayes-model
 spec:
   schedule: "0 10 * * *"
   successfulJobsHistoryLimit: 2
@@ -25,11 +25,11 @@ spec:
               value: "jupyter"
               effect: "NoSchedule"
           containers:
-            - name: covid19-notebook-etl
+            - name: covid19-bayes-model
               imagePullPolicy: Always
               ports:
               - containerPort: 80
-              GEN3_COVID19-NOTEBOOK-ETL_IMAGE
+              GEN3_COVID19-BAYES-MODEL_IMAGE
               env:
               - name: S3_BUCKET
                 GEN3_S3_BUCKET
@@ -44,6 +44,9 @@ spec:
                     name: manifest-global
                     key: hostname
               resources:
+                requests:
+                  cpu: 4
+                  memory: 16Gi
                 limits:
-                  cpu: 0.5
-                  memory: 512Mi
+                  cpu: 4
+                  memory: 16Gi # guess on upper bound
