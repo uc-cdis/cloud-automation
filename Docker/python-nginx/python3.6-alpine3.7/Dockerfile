@@ -71,8 +71,8 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 		logrotate \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz -o nginx.tar.gz \
 	&& curl -fSL https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
-        # install Rust
-        && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh \
+	# install Rust
+	&& curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=stable \
 	&& export GNUPGHOME="$(mktemp -d)" \
 	&& found=''; \
 	for server in \
@@ -193,6 +193,8 @@ ENV LISTEN_PORT 80
 COPY entrypoint.sh /entrypoint.sh
 COPY logrotate-nginx.conf /etc/logrotate.d/nginx
 RUN chmod +x /entrypoint.sh
+
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 COPY dockerrun.sh /dockerrun.sh
 RUN mkdir -p /var/www/metrics/ && chmod +x /dockerrun.sh
