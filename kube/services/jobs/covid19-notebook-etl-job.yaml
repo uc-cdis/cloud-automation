@@ -10,6 +10,10 @@ spec:
         app: gen3job
     spec:
       serviceAccountName: s3-access-opencdn-databucket-gen3
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "covid19-etl-g3auto"
       restartPolicy: Never
       nodeSelector:
         role: "jupyter"
@@ -37,7 +41,16 @@ spec:
               key: hostname
         - name: S3_BUCKET
           GEN3_S3_BUCKET
+        volumeMounts:
+          - name: cred-volume
+            mountPath: "/secrets/credentials"
         resources:
           limits:
             cpu: 0.5
             memory: 512Mi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            export GOOGLE_APPLICATION_CREDENTIALS=/secrets/credentials/default.json
+            bash /src/covid19-notebook-etl-run-with-slack.sh
