@@ -14,7 +14,7 @@ module "jupyter_pool" {
   csoc_cidr                    = "${var.peering_cidr}"
   eks_cluster_endpoint         = "${aws_eks_cluster.eks_cluster.endpoint}"
   eks_cluster_ca               = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
-  eks_private_subnets          = ["${aws_subnet.eks_private.0.id}"]
+  eks_private_subnets          = "${aws_subnet.eks_private.*.id}"
   #eks_private_subnets          = "${var.single_az_for_jupyter ? aws_subnet.eks_private.id : aws_subnet.eks_private.*.id}"
   control_plane_sg             = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg          = "${aws_security_group.eks_nodes_sg.id}"
