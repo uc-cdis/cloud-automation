@@ -1,9 +1,8 @@
-# gen3 job run nb-etl S3_BUCKET <S3_BUCKET>
-# deprecated; replaced by covid19-nb-etl-job.yaml; delete once we're ready
+# gen3 job run covid19-notebook-etl S3_BUCKET <S3_BUCKET>
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: nb-etl
+  name: covid19-notebook-etl
 spec:
   template:
     metadata:
@@ -11,6 +10,10 @@ spec:
         app: gen3job
     spec:
       serviceAccountName: s3-access-opencdn-databucket-gen3
+      volumes:
+        - name: cred-volume
+          secret:
+            secretName: "covid19-etl-g3auto"
       restartPolicy: Never
       nodeSelector:
         role: "jupyter"
@@ -20,14 +23,12 @@ spec:
           value: "jupyter"
           effect: "NoSchedule"
       containers:
-      - name: nb-etl
+      - name: covid19-notebook-etl
         imagePullPolicy: Always
-        GEN3_NB-ETL_IMAGE
+        GEN3_COVID19-NOTEBOOK-ETL_IMAGE
         ports:
         - containerPort: 80
         env:
-        - name: doSlack
-          GEN3_DO_SLACK|-value: "true"-|
         - name: slackWebHook
           valueFrom:
             configMapKeyRef:
@@ -40,10 +41,16 @@ spec:
               key: hostname
         - name: S3_BUCKET
           GEN3_S3_BUCKET
+        volumeMounts:
+          - name: cred-volume
+            mountPath: "/secrets/credentials"
         resources:
-          requests:
-            cpu: 4
-            memory: 16Gi
           limits:
-            cpu: 4
-            memory: 16Gi # guess on upper bound
+            cpu: 0.5
+            memory: 512Mi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            export GOOGLE_APPLICATION_CREDENTIALS=/secrets/credentials/default.json
+            bash /src/covid19-notebook-etl-run-with-slack.sh
