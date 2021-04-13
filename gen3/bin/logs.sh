@@ -53,6 +53,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         "rtimes")
           gen3_logs_rtime_histogram "$@"
           ;;
+        "oidclogins")
+          gen3_logs_oidc_logins "$@"
+          ;;
         "loginproviders")
           gen3_logs_loginprovider_histogram "$@"
           ;;
