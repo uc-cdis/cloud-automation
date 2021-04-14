@@ -152,6 +152,14 @@ lifecycle {
 
 }
 
+resource "null_resource" "service_depends_on" {
+  triggers = {
+    # This reference creates an implicit dependency on the variable, and thus
+    # transitively on everything the variable itself depends on.
+    deps = "${jsonencode(var.squid_depends_on)}"
+  }
+}
+
 resource "aws_autoscaling_group" "squid_auto" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
   name = "${var.env_squid_name}"
@@ -160,7 +168,7 @@ resource "aws_autoscaling_group" "squid_auto" {
   min_size = "${var.cluster_min_size}"
   vpc_zone_identifier = ["${aws_subnet.squid_pub0.*.id}"] 
   launch_configuration = "${aws_launch_configuration.squid_auto.name}"
-
+  depends_on           = ["null_resource.service_depends_on"]
   tag {
     key                 = "Name"
     value               = "${var.env_squid_name}-grp-member"

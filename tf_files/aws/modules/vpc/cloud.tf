@@ -42,6 +42,7 @@ module "squid-auto" {
   cluster_min_size               = "${var.squid_cluster_min_size}"
   cluster_desired_capasity       = "${var.squid_cluster_desired_capasity}"
   network_expansion              = "${var.network_expansion}"
+  squid_depends_on               = "${aws_internet_gateway.gw.id}"
 }
 
 module "data-bucket" {
