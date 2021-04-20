@@ -300,6 +300,7 @@ node {
             pipeConfig.serviceTesting.name,
             testedEnv,
             "true",
+            "false",
             listOfSelectedTests
         )
       } else {
