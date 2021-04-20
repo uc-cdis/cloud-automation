@@ -33,5 +33,6 @@ for pod in "${array_of_svc_startup_errors[@]}"; do
   pod_name=$(echo $pod | xargs)
   gen3_log_info "storing kubectl logs output into svc_startup_error_${pod_name}.log..."
   g3kubectl logs $pod_name > svc_startup_error_${pod_name}.log
-  echo "$(date): Done capturing logs" > save-failed-pod-logs.log
 done
+
+echo "$(date): Done capturing logs" > save-failed-pod-logs.log
