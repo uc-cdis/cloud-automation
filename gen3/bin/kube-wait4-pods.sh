@@ -19,6 +19,7 @@ EOM
 
 
 MAX_RETRIES=180
+IS_K8S_RESET="false"
 
 if [[ $# -gt 0 ]]; then
   if [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -26,6 +27,15 @@ if [[ $# -gt 0 ]]; then
     shift
   else
     gen3_log_err "ignoring invalid retry count: $1"
+  fi
+
+  if [[ -z $1 ]]; then
+    if [[ "$1" =~ "true|false" ]]; then
+      IS_K8S_RESET=$1
+    else
+      gen3_log_err "invalid MY_OTHER_VAR (needs to be true or false): $1"
+      exit 1
+    fi
   fi
 fi
 
@@ -48,6 +58,9 @@ fi
         let COUNT+=1
         if [[ COUNT -gt "$MAX_RETRIES" ]]; then
           gen3_log_err "pods still not ready after $((MAX_RETRIES * 10)) seconds - bailing out"
+          if [ "$IS_K8S_RESET" == "true" ]; then
+            gen3 save-failed-pod-logs
+          fi
           exit 1
         fi
         sleep 10
