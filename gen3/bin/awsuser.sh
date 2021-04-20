@@ -137,6 +137,58 @@ EOF
   return 0
 }
 
+gen3_awsuser_attach_policy() {
+  local policyArn=$1
+  local entityTypeFlag=$2
+  local entityName=$3
+
+  if [[ -z "$entityName" ]]; then
+    gen3_log_err "Username must not be empty"
+    return 1
+  fi
+
+  # local policyArn
+  # policyArn=$(_fetch_bucket_policy_arn $bucketName $policyType)
+  # if [[ $? != 0 ]]; then
+  #   return 1
+  # fi
+
+  # check the iam entity type
+  local entityType
+  if [[ $entityTypeFlag =~ "username" ]]; then
+    entityType="user"
+  else
+    gen3_log_err "Invalid entity type provided: $entityTypeFlag"
+    return 1
+  fi
+
+  local alreadyHasPolicy=$(_entity_has_policy $entityType $entityName $policyArn)
+  if [[ $? != 0 ]]; then
+    gen3_log_err "Failed to determine if entity already has policy"
+    return 1
+  fi
+  if [[ "true" == "$alreadyHasPolicy" ]]; then
+    gen3_log_info "Policy already attached"
+    return 0
+  fi
+
+  # attach the policy to the entity
+  local attachStdout
+  attachStdout=$(gen3_aws_run aws iam attach-${entityType}-policy --${entityType}-name $entityName --policy-arn $policyArn 2>&1)
+  if [[ $? != 0 ]]; then
+    local errMsg=$(
+      cat << EOF
+Failed to attach policy:
+$attachStdout
+EOF
+    )
+    gen3_log_err $errMsg
+    return 1
+  fi
+
+  gen3_log_info "Successfully attached policy"
+}
+
 #---------- main
 
 gen3_awsuser() {
@@ -145,6 +197,9 @@ gen3_awsuser() {
   case "$command" in
     'create')
       gen3_awsuser_create "$@"
+      ;;
+    'attach-policy')
+      gen3_awsuser_attach_policy "$@"
       ;;
     *)
       gen3_awsuser_help

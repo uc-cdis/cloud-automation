@@ -1,0 +1,1 @@
+variable "sqs_name" {}
