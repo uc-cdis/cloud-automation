@@ -18,25 +18,18 @@ EOM
 }
 
 
-MAX_RETRIES=180
-IS_K8S_RESET="false"
+MAX_RETRIES=${1:-180}
+IS_K8S_RESET="${2:-false}"
 
-if [[ $# -gt 0 ]]; then
-  if [[ "$1" =~ ^[0-9]+$ ]]; then
-    MAX_RETRIES="$1"
-    shift
-  else
-    gen3_log_err "ignoring invalid retry count: $1"
-  fi
+if [[ ! "$MAX_RETRIES" =~ ^[0-9]+$ ]];
+then
+  gen3_log_err "ignoring invalid retry count: $1"
+fi
 
-  if [[ -z $1 ]]; then
-    if [[ "$1" =~ "true|false" ]]; then
-      IS_K8S_RESET=$1
-    else
-      gen3_log_err "invalid MY_OTHER_VAR (needs to be true or false): $1"
-      exit 1
-    fi
-  fi
+if [[ ! "$IS_K8S_RESET" =~ ^(true$|false$) ]];
+then
+  gen3_log_err "invalid IS_K8S_RESET (needs to be true or false): $IS_K8S_RESET"
+  exit 1
 fi
 
 (
