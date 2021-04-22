@@ -17,6 +17,8 @@ EOM
   return 0
 }
 
+gen3_log_info "capturing and archiving logs from failed pods (if any)..."
+
 # image pull errors
 array_of_img_pull_errors=($(g3kubectl get pods | grep -E "ErrImagePull|ImagePullBackOff" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
   
@@ -34,3 +36,5 @@ for pod in "${array_of_svc_startup_errors[@]}"; do
   gen3_log_info "storing kubectl logs output into svc_startup_error_${pod_name}.log..."
   g3kubectl logs $pod_name > svc_startup_error_${pod_name}.log
 done
+
+echo "$(date): Done capturing logs" > save-failed-pod-logs.log
