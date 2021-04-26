@@ -38,6 +38,12 @@ spec:
           env:
             - name: HOST
               value: "0.0.0.0"
+            - name: MAPBOX_API_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: mapbox_token
+                  optional: true
           GEN3_AUSPICE_IMAGE|-image: quay.io/cdis/gen3-auspice:master-|
           livenessProbe:
             httpGet:
