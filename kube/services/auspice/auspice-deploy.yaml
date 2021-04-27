@@ -35,6 +35,9 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: auspice
+          command:
+            - /bin/sh
+            - ./dockerStart.sh
           env:
             - name: HOST
               value: "0.0.0.0"
