@@ -228,6 +228,78 @@ EOM
 }
 
 #
+# Fence OIDC logins
+#
+oidc_clientid_toname() {
+  id=$1
+  name=$(echo "select name from client where client_id='$id';" | gen3 psql fence --no-align --tuples-only)
+  if [ -z "$name" ]; then
+    name=$id
+  fi
+  echo "$name"
+}
+oidc_aggs_output() {
+  results="$1"
+  output='{ "aggregations": {"aggs": {"buckets": []}}}' 
+  while IFS= read -r line; do
+    read count id <<< $line
+    name=$(oidc_clientid_toname $id)
+    output=$(jq --arg id "$name" --arg count "$count" '.aggregations.aggs.buckets += [{"key": $id, "doc_count": ($count | tonumber)}]' <<<${output})
+  done <<< "$results"
+  echo "$output"
+}
+
+gen3_logs_oidc_logins() {
+  local queryStr="$(gen3 logs rawq "$@" | jq -r '. | del(.query.bool.must[0])')"
+  local namespace="$(cat - <<EOM
+{"term": {
+  "message.kubernetes.namespace_name.keyword": "default"
+}}
+EOM
+)" 
+  local src='"message.http_request"'
+  echo $src | jq -r 
+  local query="$(cat - <<EOM
+    [
+      {
+        "match_phrase": {
+          "message.http_request": {
+            "query": "/oauth2/authorize?"
+          }
+        }
+      },
+      {
+        "match_phrase": {
+          "message.kubernetes.labels.app": {
+            "query": "fence"
+          }
+        }
+      },
+      {
+        "match_phrase": {
+          "message.http_status_code": {
+            "query": "200"
+          }
+        }
+      },
+      {
+        "match_phrase": {
+          "message.http_verb": {
+            "query": "POST"
+          }
+        }
+      }
+    ]
+EOM
+  )"
+  queryStr=$(jq -r --argjson src "$src" --argjson ns "$namespace" --argjson query "$query" '.query.bool.must += $query | ._source = [$src]' <<<${queryStr})
+  gen3_log_info "$queryStr"
+  results=$(gen3_retry gen3_logs_curljson "_all/_search?pretty=true" "-d${queryStr}" | jq -r '.hits.hits[]._source.message.http_request | .[index("client_id="):index("&red")]'| egrep -o "client_id=([^&]*)" | awk -F = '{print $2}' | sort | uniq -c | sort -nr )
+  ret=$(oidc_aggs_output "$results")
+  echo "$ret"
+}
+
+#
 # Response time histogram
 #
 gen3_logs_rtime_histogram() {

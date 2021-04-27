@@ -35,6 +35,9 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: auspice
+          env:
+            - name: HOST
+              value: "0.0.0.0"
           GEN3_AUSPICE_IMAGE|-image: quay.io/cdis/gen3-auspice:master-|
           livenessProbe:
             httpGet:

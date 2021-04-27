@@ -38,9 +38,9 @@ resource "aws_s3_bucket" "common_logging_bucket" {
       storage_class = "GLACIER"
     }
 
-    #Logs are being sent over to CSOC, there is no need to keep 5 years worth of logs on both account
+    #Logs are being sent over to CSOC, there is no need to keep 6 years worth of logs on both account
     expiration {
-      days = 1827
+      days = 2190
     }
   }
 }
@@ -236,7 +236,7 @@ resource "aws_cloudwatch_log_group" "csoc_common_log_group" {
     Environment = "${var.common_name}"
     Organization = "Basic Services"
   }
-  retention_in_days = 1827
+  retention_in_days = 2190
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
