@@ -34,7 +34,7 @@ array_of_svc_startup_errors=($(g3kubectl get pods | grep -E "Failed|CrashLoopBac
 for pod in "${array_of_svc_startup_errors[@]}"; do
   pod_name=$(echo $pod | xargs)
   gen3_log_info "storing kubectl logs output into svc_startup_error_${pod_name}.log..."
-  container_name=$(kc get pod ${pod_name} -o jsonpath='{.spec.containers[*].name}')
+  container_name=$(g3kubectl get pod ${pod_name} -o jsonpath='{.spec.containers[*].name}')
   g3kubectl logs $pod_name -c ${container_name} > svc_startup_error_${pod_name}.log
 done
 
