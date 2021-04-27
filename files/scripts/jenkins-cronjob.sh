@@ -7,6 +7,7 @@
 # KUBECONFIG=path/to/kubeconfig
 # 1   1   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/jenkins-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/jenkins-cronjob.sh go; else echo "no jenkins-cronjob.sh"; fi) > $HOME/jenkins-cronjob.log 2>&1
 
+set -xe
 export GEN3_HOME="${GEN3_HOME:-"$HOME/cloud-automation"}"
 
 if [[ ! -d "$GEN3_HOME" ]]; then
