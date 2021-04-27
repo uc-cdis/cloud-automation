@@ -7,7 +7,7 @@ metadata:
     app: ambassador-gen3
 spec:
   scaleTargetRef:
-    apiVersion: apps/v1beta1
+    apiVersion: apps/v1
     kind: Deployment
     name: ambassador-gen3-deployment
   minReplicas: 2

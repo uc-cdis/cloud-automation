@@ -55,17 +55,6 @@ users:
     - auth_id: DEV
       privilege: [create, read, update, delete, upload, read-storage]
       resource: /programs/DEV
-  giangbui@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
   kbrennen@uchicago.edu:
     projects:
     - auth_id: QA
