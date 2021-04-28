@@ -66,13 +66,12 @@ setup_sqs() {
   gen3_log_info "setting up audit-service SQS"
   local sqsName="$(gen3 api safe-name audit-sqs)"
   local sqsInfo="$(gen3 sqs create-queue $sqsName)" || exit 1
-  sqsUrl="$(jq -e -r '.["sqs-url"].value' <<< "$sqsInfo")" || exit 1
+  sqsUrl="$(jq -e -r '.["sqs-url"].value' <<< "$sqsInfo")" || { echo "Cannot get 'sqs-url' from output: $sqsInfo"; exit 1; }
   gen3_log_info "audit-service SQS URL: $sqsUrl"
-  local sqsSendMessageArn="$(jq -e -r '.["send-message-arn"].value' <<< "$sqsInfo")" || exit 1
-  local sqsReceiveMessageArn="$(jq -e -r '.["receive-message-arn"].value' <<< "$sqsInfo")" || exit 1
+  local sqsSendMessageArn="$(jq -e -r '.["send-message-arn"].value' <<< "$sqsInfo")" || { echo "Cannot get 'send-message-arn' from output: $sqsInfo"; exit 1; }
+  local sqsReceiveMessageArn="$(jq -e -r '.["receive-message-arn"].value' <<< "$sqsInfo")" || { echo "Cannot get 'receive-message-arn' from output: $sqsInfo"; exit 1; }
 
   local username
-
   gen3_log_info "Attaching send-message policy"
   username="$sqsName-sender-bot"
   gen3 awsuser create ${username}
