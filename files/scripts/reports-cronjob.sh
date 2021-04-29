@@ -5,6 +5,7 @@
 #
 # PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # vpc_name=YOUR-VPC-NAME
+# ns=KUBERNETES_NAMESPACE (optional, defaults to "default")
 # USER=USER
 # KUBECONFIG=path/to/kubeconfig
 # 3   3   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/reports-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/reports-cronjob.sh "vpc=$vpc_name"; else echo "no reports-cronjob.sh"; fi) > $HOME/reports-cronjob.log 2>&1
@@ -58,6 +59,8 @@ for service in all fence guppy indexd peregrine sheepdog; do
 done
 fileName="users-${dateTime}.json"
 gen3 logs history users start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
+
+exit 1
 
 fileName="protocol-${dateTime}.json"
 gen3 logs history protocol start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"

@@ -1,12 +1,16 @@
 # support for: gen3 logs history daily, gen3 logs save daily
 
 GEN3_AGGS_DAILY="gen3-aggs-daily"
-
+GEN3_NAMESPACE="$(gen3_logs_get_arg ns "default" "$@")"
 
 #
 # Get the number of unique users
 #
 gen3_logs_user_count() {
+    echo "************"
+    echo $@
+    echo "************"
+    exit 1
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs="$(cat - <<EOM
   {
@@ -21,7 +25,7 @@ EOM
     )"
     local namespace="$(cat - <<EOM
 {"term": {
-  "message.kubernetes.namespace_name.keyword": "default"
+  "message.kubernetes.namespace_name.keyword": "$GEN3_NAMESPACE"
 }}
 EOM
     )";
@@ -50,7 +54,7 @@ EOM
     )
     local namespace="$(cat - <<EOM
 {"term": {
-  "message.kubernetes.namespace_name.keyword": "default"
+  "message.kubernetes.namespace_name.keyword": "$GEN3_NAMESPACE"
 }}
 EOM
     )";
@@ -74,7 +78,7 @@ EOM
     )"
     local namespace="$(cat - <<EOM
 {"term": {
-  "message.kubernetes.namespace_name.keyword": "default"
+  "message.kubernetes.namespace_name.keyword": "$GEN3_NAMESPACE"
 }}
 EOM
     )";
@@ -121,7 +125,7 @@ EOM
     local namespace="$(cat - <<EOM
   {
     "term": {
-      "message.kubernetes.namespace_name.keyword": "default"
+      "message.kubernetes.namespace_name.keyword": "$GEN3_NAMESPACE"
     }
   }
 EOM
@@ -151,7 +155,7 @@ EOM
     )"
     local namespace="$(cat - <<EOM
 {"term": {
-  "message.kubernetes.namespace_name.keyword": "default"
+  "message.kubernetes.namespace_name.keyword": "$GEN3_NAMESPACE"
 }}
 EOM
     )";
@@ -196,7 +200,7 @@ EOM
     )"
     local namespace="$(cat - <<EOM
 {"term": {
-  "message.kubernetes.namespace_name.keyword": "default"
+  "message.kubernetes.namespace_name.keyword": "$GEN3_NAMESPACE"
 }}
 EOM
     )";
@@ -253,7 +257,7 @@ gen3_logs_oidc_logins() {
   local queryStr="$(gen3 logs rawq "$@" | jq -r '. | del(.query.bool.must[0])')"
   local namespace="$(cat - <<EOM
 {"term": {
-  "message.kubernetes.namespace_name.keyword": "default"
+  "message.kubernetes.namespace_name.keyword": "$GEN3_NAMESPACE"
 }}
 EOM
 )" 
@@ -318,7 +322,7 @@ EOM
     )
     local namespace="$(cat - <<EOM
 {"term": {
-  "message.kubernetes.namespace_name.keyword": "default"
+  "message.kubernetes.namespace_name.keyword": "$GEN3_NAMESPACE"
 }}
 EOM
     )";
