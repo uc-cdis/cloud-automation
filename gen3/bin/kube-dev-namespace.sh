@@ -17,7 +17,7 @@ if [[ -z "$GEN3_NOPROXY" ]]; then
   export https_proxy=${https_proxy:-'http://cloud-proxy.internal.io:3128'}
   export no_proxy=${no_proxy:-'localhost,127.0.0.1,169.254.169.254,.internal.io,logs.us-east-1.amazonaws.com,kibana.planx-pla.net'}
 fi
-#the first argument need to be <namespace> string
+#the first argument need to be "<namespace>" string
 namespace="$1"
 if ! shift || [[ -z "$namespace" || (! "$namespace" =~ ^[a-z][a-z0-9-]*$) || "$namespace" == "$vpc_name" ]]; then
   gen3_log_err "Use: bash kube-dev-namespace.sh namespace, namespace is alphanumeric and new namespace has to be different than $vpc_name"
