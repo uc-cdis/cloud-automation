@@ -20,7 +20,7 @@ fi
 #the first argument need to be <namespace> string
 namespace="$1"
 if ! shift || [[ -z "$namespace" || (! "$namespace" =~ ^[a-z][a-z0-9-]*$) || "$namespace" == "$vpc_name" ]]; then
-  gen3_log_err "new namespace has to be different than vpc name"
+  gen3_log_err "Use: bash kube-dev-namespace.sh namespace, namespace is alphanumeric and new namespace has to be different than $vpc_name"
   exit 1
 fi
 
