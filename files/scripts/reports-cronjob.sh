@@ -5,10 +5,10 @@
 #
 # PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # vpc_name=YOUR-VPC-NAME
-# ns=KUBERNETES_NAMESPACE (optional, defaults to "default")
+# ns_name=K8S_NAMESPACE (optional, defaults to "default")
 # USER=USER
 # KUBECONFIG=path/to/kubeconfig
-# 3   3   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/reports-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/reports-cronjob.sh "vpc=$vpc_name" "ns=$ns"; else echo "no reports-cronjob.sh"; fi) > $HOME/reports-cronjob.log 2>&1
+# 3   3   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/reports-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/reports-cronjob.sh "vpc=$vpc_name" "ns_name=$ns_name"; else echo "no reports-cronjob.sh"; fi) > $HOME/reports-cronjob.log 2>&1
 
 # setup --------------------
 
