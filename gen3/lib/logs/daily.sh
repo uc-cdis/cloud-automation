@@ -6,7 +6,7 @@ GEN3_AGGS_DAILY="gen3-aggs-daily"
 # Get the number of unique users
 #
 gen3_logs_user_count() {
-    local gen3_namespace = "$(gen3_logs_get_arg ns_name "default" "$@")"
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs="$(cat - <<EOM
   {
@@ -35,7 +35,7 @@ EOM
 # HTTP response code histogram
 #
 gen3_logs_code_histogram() {
-    local gen3_namespace = "$(gen3_logs_get_arg ns_name "default" "$@")"
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs=$(cat - <<EOM
   {
@@ -61,7 +61,7 @@ EOM
 }
 
 gen3_logs_user_histogram() {
-    local gen3_namespace = "$(gen3_logs_get_arg ns_name "default" "$@")"
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs="$(cat - <<EOM
   {
@@ -90,7 +90,7 @@ EOM
 # /ga4gh response codes
 #
 gen3_logs_ga4ghrcodes_histogram() {
-    local gen3_namespace = "$(gen3_logs_get_arg ns_name "default" "$@")"
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
     local queryStr="$(gen3 logs rawq "$@" aggs=yes | jq -r '. | del(.query.bool.must[0])')"
     local aggs="$(cat - <<EOM
   {
@@ -139,7 +139,7 @@ EOM
 # Download protocol buckets
 #
 gen3_logs_protocol_histogram() {
-    local gen3_namespace = "$(gen3_logs_get_arg ns_name "default" "$@")"
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs="$(cat - <<EOM
   {
@@ -185,7 +185,7 @@ EOM
 # Login provider buckets
 #
 gen3_logs_loginprovider_histogram() {
-    local gen3_namespace = "$(gen3_logs_get_arg ns_name "default" "$@")"
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs="$(cat - <<EOM
   {
@@ -255,7 +255,7 @@ oidc_aggs_output() {
 }
 
 gen3_logs_oidc_logins() {
-  local gen3_namespace = "$(gen3_logs_get_arg ns_name "default" "$@")"
+  local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
   local queryStr="$(gen3 logs rawq "$@" | jq -r '. | del(.query.bool.must[0])')"
   local namespace="$(cat - <<EOM
 {"term": {
@@ -309,7 +309,7 @@ EOM
 # Response time histogram
 #
 gen3_logs_rtime_histogram() {
-    local gen3_namespace = "$(gen3_logs_get_arg ns_name "default" "$@")"
+    local gen3_namespace="$(gen3_logs_get_arg ns_name "default" "$@")"
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs=$(cat - <<EOM
   {
