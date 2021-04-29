@@ -7,10 +7,6 @@ GEN3_NAMESPACE="$(gen3_logs_get_arg ns "default" "$@")"
 # Get the number of unique users
 #
 gen3_logs_user_count() {
-    echo "************"
-    echo $@
-    echo "************"
-    exit 1
     local queryStr="$(gen3 logs rawq "$@" aggs=yes)"
     local aggs="$(cat - <<EOM
   {
