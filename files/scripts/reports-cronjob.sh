@@ -8,7 +8,7 @@
 # ns=KUBERNETES_NAMESPACE (optional, defaults to "default")
 # USER=USER
 # KUBECONFIG=path/to/kubeconfig
-# 3   3   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/reports-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/reports-cronjob.sh "vpc=$vpc_name"; else echo "no reports-cronjob.sh"; fi) > $HOME/reports-cronjob.log 2>&1
+# 3   3   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/reports-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/reports-cronjob.sh "vpc=$vpc_name" "ns=$ns"; else echo "no reports-cronjob.sh"; fi) > $HOME/reports-cronjob.log 2>&1
 
 # setup --------------------
 
@@ -27,7 +27,7 @@ source "${GEN3_HOME}/gen3/gen3setup.sh"
 
 help() {
   cat - <<EOM
-Use: bash ./reports-cronjob.sh vpc=YOUR_VPC_NAME
+Use: bash ./reports-cronjob.sh vpc=YOUR_VPC_NAME [ns=K8S_NAMESPACE]
 EOM
 }
 
