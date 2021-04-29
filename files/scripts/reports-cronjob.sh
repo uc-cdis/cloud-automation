@@ -27,7 +27,7 @@ source "${GEN3_HOME}/gen3/gen3setup.sh"
 
 help() {
   cat - <<EOM
-Use: bash ./reports-cronjob.sh vpc=YOUR_VPC_NAME [ns=K8S_NAMESPACE]
+Use: bash ./reports-cronjob.sh vpc=YOUR_VPC_NAME [ns_name=K8S_NAMESPACE]
 EOM
 }
 
