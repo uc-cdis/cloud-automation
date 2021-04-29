@@ -60,8 +60,6 @@ done
 fileName="users-${dateTime}.json"
 gen3 logs history users start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
-exit 1
-
 fileName="protocol-${dateTime}.json"
 gen3 logs history protocol start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
