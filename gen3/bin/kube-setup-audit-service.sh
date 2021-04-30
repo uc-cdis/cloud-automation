@@ -44,8 +44,8 @@ PULL_FROM_QUEUE: true
 QUEUE_CONFIG:
   type: aws_sqs
   sqs_url: ${sqsUrl}
-  aws_access_key_id:
-  aws_secret_access_key:
+  aws_access_key_id: ${receive_key_id}
+  aws_secret_access_key: ${receive_access_key}
 
 ####################
 # DATABASE         #
@@ -82,10 +82,11 @@ setup_sqs() {
 
   gen3_log_info "Attaching receive-message policy"
   username="$sqsName-receiver-bot"
+  gen3 awsuser create ${username}
   gen3 awsuser attach-policy ${sqsReceiveMessageArn} --username ${username}
   local user=$(gen3 secrets decode ${username}-g3auto awsusercreds.json)
-  send_key_id=$(jq -r .id <<< $user)
-  send_access_key=$(jq -r .secret <<< $user)
+  receive_key_id=$(jq -r .id <<< $user)
+  receive_access_key=$(jq -r .secret <<< $user)
 }
 
 if ! g3k_manifest_lookup '.versions["audit-service"]' 2> /dev/null; then
