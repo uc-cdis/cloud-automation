@@ -130,7 +130,7 @@ gen3LogsVpcList=(
     "stageprod gen3.datastage.io"
     "stagingdatastage staging.gen3.biodatacatalyst.nhlbi.nih.gov"
     "vadcprod vpodc.org"
-    "vhdcprod va.datacommons.io"
+    "vhdcprod va.data-commons.org"
 )
 
 #
