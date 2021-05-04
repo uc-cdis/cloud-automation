@@ -28,8 +28,7 @@ for pod in "${array_of_img_pull_errors[@]}"; do
   g3kubectl describe pod $pod_name > img_pull_error_${pod_name}.log
 done
 
-# get array of pods
-container / service startup errors
+# container / service startup errors
 array_of_svc_startup_errors=($(g3kubectl get pods | grep -E "Failed|CrashLoopBackOff" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
 
 for pod in "${array_of_svc_startup_errors[@]}"; do
@@ -39,9 +38,7 @@ for pod in "${array_of_svc_startup_errors[@]}"; do
   g3kubectl logs $pod_name -c ${container_name} > svc_startup_error_${pod_name}.log
 done
 
-# check if the restartCount is greater than zero
-# kc get pod metadata-deployment-5b897b7cfd-s2kmt -o jsonpath='{.status.containerStatuses[0].restartCount}'
-
+# get array of pods
 array_of_pods=($(g3kubectl get pods | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
 
 for pod in "${array_of_pods[@]}"; do
