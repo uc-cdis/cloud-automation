@@ -67,7 +67,7 @@ fileName="loginproviders-${dateTime}.json"
 gen3 logs history loginproviders start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
 fileName="oidclogins-${dateTime}.json"
-gen3 logs history ga4gs_rtimes start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
+gen3 logs history oidclogins start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
 fileName="ga4ghrcodes-${dateTime}.json"
 gen3 logs history ga4gs_rtimes start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
