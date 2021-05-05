@@ -100,7 +100,7 @@ RUN set -xe \
     && apt-get install -y google-chrome-stable
 
 # install terraform
-RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.14/terraform_0.11.14_linux_amd64.zip \
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
    && unzip /tmp/terraform.zip -d /usr/local/bin && /bin/rm /tmp/terraform.zip
 
 # install packer

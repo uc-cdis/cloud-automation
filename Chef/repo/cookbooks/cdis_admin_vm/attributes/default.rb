@@ -26,7 +26,7 @@ default["adminvm"]["remotePackages"] = {
     "exName": "helm"
   },
   "terraform12": {
-    "repo": "https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip",
+    "repo": "https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip",
     "fileName": "terraform12.zip"
   },
   "packer": {

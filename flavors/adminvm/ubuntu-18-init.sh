@@ -11,7 +11,7 @@ AVAILABILITY_ZONE=$(curl http://169.254.169.254/latest/meta-data/placement/avail
 REGION=$(echo ${AVAILABILITY_ZONE::-1})
 DOCKER_DOWNLOAD_URL="https://download.docker.com/linux/ubuntu"
 AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
-TERRAFORM_DOWNLOAD_URL="https://releases.hashicorp.com/terraform/0.11.14/terraform_0.11.14_linux_amd64.zip"
+TERRAFORM_DOWNLOAD_URL="https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip"
 
 HOSTNAME_BIN=$(command -v hostname)
 HOSTNAME=$(${HOSTNAME_BIN})
