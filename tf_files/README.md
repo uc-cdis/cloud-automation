@@ -8,7 +8,7 @@ We typically run terraform from a "state folder" where a local state for a parti
 
 ```
 $ cd state/folder
-$ terraform init --backend-config ./vars1.tfvars --backend-config ./vars2.tfvars ~/Code/cloud-automation/tf_files/SUBFOLDER
+$ terraform init -verify-plugins=false --backend-config ./vars1.tfvars --backend-config ./vars2.tfvars ~/Code/cloud-automation/tf_files/SUBFOLDER
 ```
 
 * tf_files/aws - rules for resources in an AWS commons VPC
