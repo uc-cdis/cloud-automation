@@ -229,7 +229,7 @@ node {
      }
      metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
-    
+
     stage('K8sReset') {
      try {
       if(!doNotRunTests) {
@@ -240,8 +240,14 @@ node {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
      } catch (ex) {
-        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-        throw ex
+       // ignore aborted pipelines (not a failure, just some subsequent commit that initiated a new build)
+       if (ex.getClass().getCanonicalName() != "hudson.AbortException" &&
+          ex.getClass().getCanonicalName() != "org.jenkinsci.plugins.workflow.steps.FlowInterruptedException") {
+         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+         kubeHelper.sendSlackNotification(kubectlNamespace, isNightlyBuild)
+         kubeHelper.saveLogs(kubectlNamespace)
+       }
+       throw ex
      }
      metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }

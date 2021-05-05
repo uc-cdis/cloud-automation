@@ -45,7 +45,7 @@ done
 gen3_log_info "looking for pods with restarting containers..."
 
 # get array of pods
-array_of_pods=($(g3kubectl get pods | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
+array_of_pods=( $(g3kubectl get pods | tail -n +2 | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " ") )
 
 for pod in "${array_of_pods[@]}"; do
   # trim whitespaces
