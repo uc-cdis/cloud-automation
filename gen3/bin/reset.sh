@@ -57,7 +57,7 @@ run_post_roll_jobs() {
   done
   gen3_log_info "Waiting for jobs to finish, and late starting services to come up"
   sleep 5
-  gen3 kube-wait4-pods
+  gen3 kube-wait4-pods default true
   for jobName in gdcdb-create indexd-userdb usersync; do
     gen3_log_info "--------------------"
     gen3_log_info "Logs for $jobName"

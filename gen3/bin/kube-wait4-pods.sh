@@ -51,6 +51,7 @@ fi
         let COUNT+=1
         if [[ COUNT -gt "$MAX_RETRIES" ]]; then
           gen3_log_err "pods still not ready after $((MAX_RETRIES * 10)) seconds - bailing out"
+          gen3_log_info "### ## IS_K8S_RESET: $IS_K8S_RESET"
           if [ "$IS_K8S_RESET" == "true" ]; then
             gen3 save-failed-pod-logs
           fi
