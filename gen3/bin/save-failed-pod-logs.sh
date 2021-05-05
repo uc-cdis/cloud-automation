@@ -60,6 +60,7 @@ for pod in "${array_of_pods[@]}"; do
     gen3_log_info "Pod $pod_name restarted $restart_count times... let us capture some logs."
     container_name=$(g3kubectl get pod ${pod_name} -o jsonpath='{.spec.containers[0].name}')
     g3kubectl logs $pod_name -c ${container_name} > svc_startup_error_${pod_name}.log
+    realpath svc_startup_error_${pod_name}.log
   fi
 done
 
