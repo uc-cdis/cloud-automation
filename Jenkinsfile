@@ -244,7 +244,7 @@ node {
        if (ex.getClass().getCanonicalName() != "hudson.AbortException" &&
           ex.getClass().getCanonicalName() != "org.jenkinsci.plugins.workflow.steps.FlowInterruptedException") {
          metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-         kubeHelper.sendSlackNotification(kubectlNamespace, isNightlyBuild)
+         kubeHelper.sendSlackNotification(kubectlNamespace, "false")
          kubeHelper.saveLogs(kubectlNamespace)
        }
        throw ex
