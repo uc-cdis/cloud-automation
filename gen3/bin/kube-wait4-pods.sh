@@ -24,6 +24,7 @@ IS_K8S_RESET="${2:-false}"
 if [[ ! "$MAX_RETRIES" =~ ^[0-9]+$ ]];
 then
   gen3_log_err "ignoring invalid retry count: $1"
+  MAX_RETRIES=180
 fi
 
 if [[ ! "$IS_K8S_RESET" =~ ^(true$|false$) ]];
