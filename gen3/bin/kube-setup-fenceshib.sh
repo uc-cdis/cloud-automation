@@ -25,6 +25,11 @@ if [[ -d "$(gen3_secrets_folder)/creds.json" ]]; then # create database
   touch "$(gen3_secrets_folder)/.rendered_fence_db"
 fi
 
+# setup configmap
+ if ! g3kubectl get configmaps/fenceshib-config > /dev/null 2>&1; then
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/fenceshib/fenceshib-configmap.yaml"
+fi
+
 # deploy fenceshib
 gen3 roll fenceshib
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fenceshib/fenceshib-service.yaml"
