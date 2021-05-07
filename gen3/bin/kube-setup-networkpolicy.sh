@@ -103,7 +103,7 @@ net_apply_all_services() {
 net_apply_jupyter() {
   local notebookNamespace
   local name
-  
+
   notebookNamespace="$(gen3 jupyter j-namespace)"
 
   if g3kubectl get namespace "$notebookNamespace" > /dev/null 2>&1; then
@@ -141,7 +141,7 @@ net_apply_all() {
 
 #
 # Deploy an "allow everything" network policy.
-# May want to do this during `roll all` when 
+# May want to do this during `roll all` when
 # policy roles are changing from an old set to a new set
 #
 net_disable() {
@@ -151,12 +151,12 @@ kind: NetworkPolicy
 metadata:
   name: netpolicy-nolimit-inout
 spec:
-  podSelector: 
+  podSelector:
     matchLabels: {}
-  egress: 
+  egress:
     - {}
   ingress:
-    - {}  
+    - {}
   policyTypes:
    - Egress
    - Ingress
@@ -186,7 +186,7 @@ if [[ "$(g3k_manifest_lookup .global.netpolicy)" == "on" ]]; then
       ;;
     "enable"):
       net_enable
-      ;; 
+      ;;
     "jupyter"):
       net_apply_jupyter "$@"
       ;;

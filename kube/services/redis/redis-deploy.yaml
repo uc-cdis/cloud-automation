@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: redis
+      release: production
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: redis
+        release: production
+        dbrequestor: "no"
+        # for network policy
+        netnolimit: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - requestor
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      containers:
+      - name: redis
+        GEN3_REDIS_IMAGE
+        env:
+          - name: DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            cpu: 0.4
+            memory: 512Mi
+          limits:
+            cpu: 0.8
+            memory: 1024Mi

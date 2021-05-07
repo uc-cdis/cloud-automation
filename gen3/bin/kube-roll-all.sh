@@ -195,6 +195,8 @@ else
   gen3_log_info "not deploying requestor - no manifest entry for .versions.requestor"
 fi
 
+gen3 kube-setup-redis
+
 gen3 kube-setup-metadata
 
 if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then

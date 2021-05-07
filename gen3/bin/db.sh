@@ -61,7 +61,7 @@ gen3_db_reset() {
 
   local serverName
   # got the server host and db associated with this service - get the server root user
-  serverName=$(gen3_db_farm_json | jq -e -r ". | to_entries | map(select(.value.db_host==\"$dbhost\")) | .[0].key"); 
+  serverName=$(gen3_db_farm_json | jq -e -r ". | to_entries | map(select(.value.db_host==\"$dbhost\")) | .[0].key");
   if [[ -z "$serverName" ]]; then
     gen3_log_err "failed to retrieve creds for server $dbhost"
     return 1
@@ -83,7 +83,7 @@ gen3_db_reset() {
   local result
   echo "DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;" | gen3 psql "$serverName"
   result=$?
-  if [[ "$serviceName" == "sheepdog" ]]; then 
+  if [[ "$serviceName" == "sheepdog" ]]; then
     # special case - peregrine shares the database
     # Make sure peregrine has permission to read the sheepdog db tables
     gen3_log_info "gen3_db_reset" "granting db access permissions to peregrine"
@@ -110,7 +110,7 @@ gen3_db_reset() {
 #
 gen3_db_init() {
   local secretPath
-  
+
   secretPath="$(gen3_secrets_folder)/g3auto/dbfarm/servers.json"
   if [[ (! -f "$secretPath") && -z "$JENKINS_HOME" && -d "$(gen3_secrets_folder)" ]]; then
     mkdir -p -m 0700 "$(dirname $secretPath)"
@@ -137,9 +137,9 @@ EOM
 #
 # Validate that the given server name is in gen3DbServerList
 # The idea is we have multiple services distributed over
-# a smaller set of servers.  
+# a smaller set of servers.
 # The current servers are fence, indexd, and sheepdog.
-# Note that currently a server is also a service, 
+# Note that currently a server is also a service,
 # but a service may not be a server
 #
 gen3_db_validate_server() {
@@ -173,7 +173,7 @@ gen3_db_service_creds() {
     gen3_log_err "gen3_db_service_creds: No serviceName specified"
     return 1
   fi
-  
+
   if g3kubectl get secret "${key}-creds" > /dev/null 2>&1; then
     # prefer to pull creds from secret
     g3kubectl get secret "${key}-creds" -o json | jq -r '.data["creds.json"]' | base64 --decode > "$tempResult"
@@ -298,7 +298,7 @@ EOM
 gen3_db_psql() {
   local key=$1
   shift
-  
+
   if [[ -z "$key" ]]; then
     gen3_log_err "gen3_db_psql: No target specified"
     return 1
@@ -311,7 +311,7 @@ gen3_db_psql() {
   local database
   local arg
   credsPath="$(mktemp "${XDG_RUNTIME_DIR}/creds.json.XXXXXX")"
-  
+
   if [[ "$key" =~ ^server[0-9]+$ ]]; then
     if ! gen3_db_server_info "$key" > "$credsPath"; then
       gen3_log_err "gen3_db_psql - unable to find creds for server $key"
@@ -334,7 +334,7 @@ gen3_db_psql() {
   rm "$credsPath"
 
   #
-  # Allow the client to override the database we connect to - 
+  # Allow the client to override the database we connect to -
   # useful in `gen3 reset` to connect to template1
   #
   local userdb
@@ -355,7 +355,7 @@ gen3_db_psql() {
   if [[ "false" == "$userdb" ]]; then
     extraArgs+=("-d" "$database")
   fi
-  
+
   PGPASSWORD="$password" psql "${extraArgs[@]}" "$@"
 }
 
@@ -470,7 +470,7 @@ gen3_db_backup() {
   local username
   local password
   local host
-  
+
   if [[ -z "$serviceName" ]]; then
     gen3_log_err "serviceName not provided"
     return 1
@@ -504,7 +504,7 @@ gen3_db_restore() {
   local password
   local host
   local backupFile
-  
+
   if [[ $# -lt 2 ]]; then
     gen3_log_err "service and backupFile are required arguments"
     return 1
@@ -613,7 +613,7 @@ gen3_db_encrypt() {
   gen3 tfplan
   gen3 tfapply
 
-  # Use sed to update all secrets, remove the arborist and metadata g3auto folders to recreate those db's then run kube-setup-secrets 
+  # Use sed to update all secrets, remove the arborist and metadata g3auto folders to recreate those db's then run kube-setup-secrets
   local newFenceDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-fencedb"]}' | jq -r .DBInstances[0].Endpoint.Address)
   local newIndexdDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-indexddb"]}' | jq -r .DBInstances[0].Endpoint.Address)
   local newGdcApiDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-gdcapidb"]}' | jq -r .DBInstances[0].Endpoint.Address)
@@ -746,14 +746,14 @@ gen3_db_service_setup() {
     gen3_log_err "gen3_db_setup invalid server $server"
     return 1
   fi
-  
+
   # ok - we're going to create a new database - maybe a new user too ...
   local dbname
   local username
   local namespace
   local password
   local it
-  
+
   namespace="$(gen3_db_namespace)"
   dbname="${service}_${namespace}"
   username="${service}_${namespace}"
