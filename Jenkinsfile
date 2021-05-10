@@ -6,7 +6,7 @@ library 'cdis-jenkins-lib@master'
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 node {
-  def AVAILABLE_NAMESPACES = ciEnsPoolHelper.fetchCIEnvs()
+  def AVAILABLE_NAMESPACES = ciEnvsHelper.fetchCIEnvs()
   List<String> namespaces = []
   List<String> listOfSelectedTests = []
   skipUnitTests = false
