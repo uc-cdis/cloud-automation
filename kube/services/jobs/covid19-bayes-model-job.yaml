@@ -1,8 +1,10 @@
-# gen3 job run covid19-notebook-etl S3_BUCKET <S3_BUCKET>
+# gen3 job run covid19-bayes-model S3_BUCKET <S3_BUCKET> STATE_LIST=<states>
+# "states" format: "Illinois,NewYork" or "all"
+
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: covid19-notebook-etl
+  name: covid19-bayes-model
 spec:
   template:
     metadata:
@@ -10,10 +12,6 @@ spec:
         app: gen3job
     spec:
       serviceAccountName: s3-access-opencdn-databucket-gen3
-      volumes:
-        - name: cred-volume
-          secret:
-            secretName: "covid19-etl-g3auto"
       restartPolicy: Never
       nodeSelector:
         role: "jupyter"
@@ -23,9 +21,9 @@ spec:
           value: "jupyter"
           effect: "NoSchedule"
       containers:
-      - name: covid19-notebook-etl
+      - name: covid19-bayes-model
         imagePullPolicy: Always
-        GEN3_COVID19-NOTEBOOK-ETL_IMAGE
+        GEN3_COVID19-BAYES-MODEL_IMAGE
         ports:
         - containerPort: 80
         env:
@@ -41,16 +39,12 @@ spec:
               key: hostname
         - name: S3_BUCKET
           GEN3_S3_BUCKET
-        volumeMounts:
-          - name: cred-volume
-            mountPath: "/secrets/credentials"
+        - name: STATE_LIST
+          GEN3_STATE_LIST
         resources:
+          requests:
+            cpu: 4
+            memory: 20Gi
           limits:
-            cpu: 0.5
-            memory: 512Mi
-        command: ["/bin/bash" ]
-        args:
-          - "-c"
-          - |
-            export GOOGLE_APPLICATION_CREDENTIALS=/secrets/credentials/default.json
-            bash /src/covid19-notebook-etl-run-with-slack.sh
+            cpu: 4
+            memory: 20Gi # guess on upper bound

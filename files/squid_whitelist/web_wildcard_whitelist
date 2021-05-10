@@ -39,6 +39,8 @@
 .googleapis.com
 .googleusercontent.com
 .hashicorp.com
+.healdata.org
+.idph.illinois.gov
 .jenkins-ci.org
 .jenkins.io
 .k8s.io
@@ -53,6 +55,7 @@
 .novocraft.com
 .occ-data.org
 .oicr.on.ca
+.okta.com
 .opensciencedatacloud.org
 .osuosl.org
 .perl.org

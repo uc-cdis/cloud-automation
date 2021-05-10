@@ -23,6 +23,7 @@ export function main() {
     users: { 'all': document.body.querySelector('.g3reports-users g3r-table') },
     protocol: { 'all': document.body.querySelector('.g3reports-downloadprotocol g3r-table') },
     loginproviders: { 'all': document.body.querySelector('.g3reports-loginproviders g3r-table') },
+    oidclogins: { 'all': document.body.querySelector('.g3reports-oidclogins g3r-table') },
     ga4ghrcodes: { 'all': document.body.querySelector('.g3reports-drsrcodes g3r-table') },
   };
 

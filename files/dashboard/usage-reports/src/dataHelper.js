@@ -463,6 +463,9 @@ const reportHandlers = {
   loginproviders: {
     all: new ESAggregationsHandler('loginproviders')
   },
+  oidclogins: {
+    all: new ESAggregationsHandler('oidclogins')
+  },
   ga4ghrcodes: {
     all: new ESAggregationsHandler('ga4ghrcodes')
   }
