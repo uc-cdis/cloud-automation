@@ -1,11 +1,13 @@
 resource "aws_sqs_queue" "my_queue" {
   name = var.sqs_name
-  # message_retention_seconds = 86400
+  # 5 min visilibity timeout; avoid consuming the same message twice
+  visibility_timeout_seconds = 300
+  # 1209600s = 14 days (max value); time AWS will keep unread messages in the queue
+  message_retention_seconds = 1209600
   tags = {
     Organization = "gen3",
     description  = "Created by SQS module"
   }
-  # TODO? visibility_timeout_seconds = 300
 }
 
 data "aws_iam_policy_document" "my_queue_send_message" {
@@ -29,6 +31,7 @@ data "aws_iam_policy_document" "my_queue_receive_message" {
     actions = [
       "sqs:ReceiveMessage",
       "sqs:GetQueueAttributes",
+      "sqs:DeleteMessage",
     ]
     effect = "Allow"
     resources = ["${aws_sqs_queue.my_queue.arn}"]

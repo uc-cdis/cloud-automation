@@ -137,26 +137,29 @@ EOF
   return 0
 }
 
+#
+# Attach a policy to a user or role
+#
+# @param policyArn
+# @param entityTypeFlag: "--user-name" or "--role-name"
+# @param entityName
+#
 gen3_awsuser_attach_policy() {
   local policyArn=$1
   local entityTypeFlag=$2
   local entityName=$3
 
   if [[ -z "$entityName" ]]; then
-    gen3_log_err "Username must not be empty"
+    gen3_log_err "User/Role name must not be empty"
     return 1
   fi
 
-  # local policyArn
-  # policyArn=$(_fetch_bucket_policy_arn $bucketName $policyType)
-  # if [[ $? != 0 ]]; then
-  #   return 1
-  # fi
-
   # check the iam entity type
   local entityType
-  if [[ $entityTypeFlag =~ "username" ]]; then
+  if [[ $entityTypeFlag =~ "user-name" ]]; then
     entityType="user"
+  elif [[ $entityTypeFlag =~ "role-name" ]]; then
+    entityType="role"
   else
     gen3_log_err "Invalid entity type provided: $entityTypeFlag"
     return 1
