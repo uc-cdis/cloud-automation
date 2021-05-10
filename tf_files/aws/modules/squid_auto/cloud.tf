@@ -168,7 +168,7 @@ resource "aws_autoscaling_group" "squid_auto" {
   min_size = "${var.cluster_min_size}"
   vpc_zone_identifier = ["${aws_subnet.squid_pub0.*.id}"] 
   launch_configuration = "${aws_launch_configuration.squid_auto.name}"
-  depends_on           = ["null_resource.service_depends_on"]
+  depends_on           = ["null_resource.service_depends_on", "aws_route_table_association.squid_auto0"]
   tag {
     key                 = "Name"
     value               = "${var.env_squid_name}-grp-member"
