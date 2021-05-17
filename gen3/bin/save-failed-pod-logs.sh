@@ -33,7 +33,7 @@ done
 # container / service startup errors
 array_of_svc_startup_errors=($(g3kubectl get pods | grep -E "Failed|CrashLoopBackOff|Evicted" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
 
-gen3_log_info "looking for pods with Failed or CrashLoopBackOff..."
+gen3_log_info "looking for pods in Failed, CrashLoopBackOff of Evicted state..."
 
 for pod in "${array_of_svc_startup_errors[@]}"; do
   pod_name=$(echo $pod | xargs)
