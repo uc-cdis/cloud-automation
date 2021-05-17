@@ -31,7 +31,7 @@ for pod in "${array_of_img_pull_errors[@]}"; do
 done
 
 # container / service startup errors
-array_of_svc_startup_errors=($(g3kubectl get pods | grep -E "Failed|CrashLoopBackOff" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
+array_of_svc_startup_errors=($(g3kubectl get pods | grep -E "Failed|CrashLoopBackOff|Evicted" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
 
 gen3_log_info "looking for pods with Failed or CrashLoopBackOff..."
 
@@ -40,6 +40,8 @@ for pod in "${array_of_svc_startup_errors[@]}"; do
   gen3_log_info "storing kubectl logs output into svc_startup_error_${pod_name}.log..."
   container_name=$(g3kubectl get pod ${pod_name} -o jsonpath='{.spec.containers[0].name}')
   g3kubectl logs $pod_name -c ${container_name} > svc_startup_error_${pod_name}.log
+  gen3_log_info "capturing kube events..."
+  g3kubectl get events > kubectl_get_events.log
 done
 
 gen3_log_info "looking for pods with restarting containers..."
