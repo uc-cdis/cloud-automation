@@ -301,7 +301,7 @@ node {
     stage('RunTests') {
      try {
       if(!doNotRunTests) {
-        testHelper.runIntegrationTests(
+        testHelper.soonToBeLegacyRunIntegrationTests(
             kubectlNamespace,
             pipeConfig.serviceTesting.name,
             testedEnv,
