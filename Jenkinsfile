@@ -355,7 +355,7 @@ node {
   finally {
     stage('Post') {
       kubeHelper.teardown(kubeLocks)
-      testHelper.teardown()
+      testHelper.teardown(doNotRunTests)
       if(!skipUnitTests) {
         // tear down network policies deployed by the tests
         kubeHelper.kube(kubectlNamespace, {
