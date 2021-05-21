@@ -100,7 +100,7 @@ spec:
         GEN3_FENCE_IMAGE
         env:
         - name: NGINX_RATE_LIMIT
-          value: "6"
+          value: "18"
         - name: PYTHONPATH
           value: /var/www/fence
         - name: AWS_STS_REGIONAL_ENDPOINTS
