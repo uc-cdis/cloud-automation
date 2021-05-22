@@ -6,10 +6,11 @@ if [ ! -z $NGINX_RATE_LIMIT ]; then
   contains_rate_limit_override=$(cat /var/www/${appname}/${appname}-config.yaml | grep OVERRIDE_NGINX_RATE_LIMIT)
   RC=$?
   if [[ $RC -eq 0 ]]; then
-    rate_limit=$(echo $contains_rate_limit_override | cut -d"=" -f 2 | xargs)
-    echo "Applying new Nginx rate limit ${rate_limit}..."
+    rate_limit=$(echo $contains_rate_limit_override | cut -d":" -f 2 | xargs | sed 's/.$//')
+    echo "Overriding Nginx rate limit with new value ${rate_limit}..."
   else
     rate_limit=$NGINX_RATE_LIMIT
+    echo "Applying Nginx rate limit from k8s deployment descriptor..."
   fi
 
   # Add rate_limit config
