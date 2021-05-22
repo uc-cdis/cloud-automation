@@ -2,8 +2,18 @@
 set -e
 
 if [ ! -z $NGINX_RATE_LIMIT ]; then
+  echo "Found NGINX_RATE_LIMIT environment variable..."
+  contains_rate_limit_override=$(cat /var/www/fence/fence-config.yaml | grep OVERRIDE_NGINX_RATE_LIMIT)
+  RC=$?
+  if [[ $RC -eq 0 ]]; then
+    rate_limit=$(echo $contains_rate_limit_override | cut -d"=" -f 2 | xargs)
+    echo "Applying new Nginx rate limit ${rate_limit}..."
+  else
+    rate_limit=$NGINX_RATE_LIMIT
+  fi
+
   # Add rate_limit config
-  rate_limit_conf="\ \ \ \ limit_req_zone \$binary_remote_addr zone=one:10m rate=${NGINX_RATE_LIMIT}r/s;"
+  rate_limit_conf="\ \ \ \ limit_req_zone \$binary_remote_addr zone=one:10m rate=${rate_limit}r/s;"
   sed -i "/http\ {/a ${rate_limit_conf}" /etc/nginx/nginx.conf
   if [ -f /etc/nginx/sites-available/uwsgi.conf ]; then
     limit_req_config="\ \ \ \ \ \ \ \ limit_req zone=one;"
