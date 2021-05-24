@@ -1,12 +1,11 @@
 #!/usr/bin/env sh
 set -e
 
+rate_limit=""
 if [ ! -z $NGINX_RATE_LIMIT ]; then
   echo "Found NGINX_RATE_LIMIT environment variable..."
-  contains_rate_limit_override=$(cat /${appname}/${appname}/config-default.yaml | grep OVERRIDE_NGINX_RATE_LIMIT)
-  RC=$?
-  if [[ $RC -eq 0 ]]; then
-    rate_limit=$(echo $contains_rate_limit_override | cut -d":" -f 2 | xargs | sed 's/.$//')
+  if [ ! -z $OVERRIDE_NGINX_RATE_LIMIT ]; then
+    rate_limit=$OVERRIDE_NGINX_RATE_LIMIT
     echo "Overriding Nginx rate limit with new value ${rate_limit}..."
   else
     rate_limit=$NGINX_RATE_LIMIT
