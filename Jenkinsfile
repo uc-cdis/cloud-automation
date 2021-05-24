@@ -301,7 +301,7 @@ node {
     stage('RunTests') {
      try {
       if(!doNotRunTests) {
-        testHelper.runIntegrationTests(
+        testHelper.soonToBeLegacyRunIntegrationTests(
             kubectlNamespace,
             pipeConfig.serviceTesting.name,
             testedEnv,
@@ -355,7 +355,7 @@ node {
   finally {
     stage('Post') {
       kubeHelper.teardown(kubeLocks)
-      testHelper.teardown()
+      testHelper.teardown(doNotRunTests)
       if(!skipUnitTests) {
         // tear down network policies deployed by the tests
         kubeHelper.kube(kubectlNamespace, {
