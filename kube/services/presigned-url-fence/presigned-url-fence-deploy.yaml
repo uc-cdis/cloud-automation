@@ -204,12 +204,17 @@ spec:
         args:
           - "-c"
           - |
-            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-            echo -e "ENABLE_DB_MIGRATION: false" > "/var/www/fence/fence-config-bonus1.yaml"
-            export OVERRIDE_NGINX_RATE_LIMIT=$(cat /fence/fence/config-default.yaml | sed -n -e 's/^.*OVERRIDE_NGINX_RATE_LIMIT: //p')
-            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config-step1.yaml
-            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-bonus1.yaml /var/www/fence/fence-config-step1.yaml > /var/www/fence/fence-config.yaml
-            ([[ ! -f /entrypoint.sh ]] || bash /entrypoint.sh) && /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
+          echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+          echo -e "ENABLE_DB_MIGRATION: false" > "/var/www/fence/fence-config-bonus1.yaml"
+          python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config-step1.yaml
+          python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-bonus1.yaml /var/www/fence/fence-config-step1.yaml > /var/www/fence/fence-config.yaml
+          sed -i '/.*ENABLE_DB_MIGRATION.*/a     \"OVERRIDE_NGINX_RATE_LIMIT\": 19,' /var/www/fence/fence-config.yaml
+          nginx_limit=$(cat /var/www/fence/fence-config.yaml | sed -n -e 's/^.*\"OVERRIDE_NGINX_RATE_LIMIT\": //p' | sed 's/.$//')
+          if [ -z "$nginx_limit" ]; then
+            nginx_limit=$(cat /fence/fence/config-default.yaml | sed -n -e 's/^.*OVERRIDE_NGINX_RATE_LIMIT: //p')
+          fi
+          export OVERRIDE_NGINX_RATE_LIMIT="$nginx_limit"
+          ([[ ! -f /entrypoint.sh ]] || bash /entrypoint.sh) && /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
       - name: nginx-prometheus-exporter-wrapper
         GEN3_NGINX_PROMETHEUS_EXPORTER_WRAPPER_IMAGE|-image: quay.io/cdis/nginx-prometheus-exporter-wrapper:pybase3-1.4.0-|
         command: ["/bin/bash"]
