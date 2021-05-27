@@ -239,7 +239,13 @@ g3k_manifest_filter() {
     # zsh friendly upper case
     kvKey=$(echo "GEN3_${key}_IMAGE" | tr '[:lower:]' '[:upper:]')
     kvList+=("$kvKey" "image: $value")
+    kvLabelKey=$(echo "GEN3_${key}_VERSION" | tr '[:lower:]' '[:upper:]')
+    version=$(echo $value | rev | cut -d ':' -f 1 | rev)
+    kvList+=("$kvLabelKey" "tags.datadoghq.com/version: '$version'")
   done
+  environment="$(g3k_config_lookup ".global.environment" "$manifestPath")"
+  kvEnvKey=$(echo "GEN3_ENV_LABEL" | tr '[:lower:]' '[:upper:]')
+  kvList+=("$kvEnvKey" "tags.datadoghq.com/env: $environment")
   for key in $(g3k_config_lookup '. | keys[]' "$manifestPath"); do
     gen3_log_debug "harvesting key $key"
     for key2 in $(g3k_config_lookup ".[\"${key}\"] "' | to_entries | map(select((.value|type != "array") and (.value|type != "object"))) | map(.key)[]' "$manifestPath" | grep '^[a-zA-Z]'); do
