@@ -34,6 +34,11 @@ RUN apt-get update \
      software-properties-common \
      sudo \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
+ 
+# install git 
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y git
 
 # install Ruby.
 RUN sudo apt-get install -y ruby-full
