@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: metadata-service
+  name: thor-service
 spec:
   selector:
     app: thor
