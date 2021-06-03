@@ -38,6 +38,9 @@ RUN apt-get update \
 # install Ruby.
 RUN sudo apt-get install -y ruby-full
 
+# install GIT
+RUN sudo apt-get -t=2.28.0 install git
+
 # install k6 to run load tests
 RUN sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 \
   && echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list \
