@@ -69,11 +69,12 @@ setup_sqs() {
   local sqsInfo="$(gen3 sqs info $sqsName)"
   sqsUrl="$(jq -e -r '.["QueueUrl"]' <<< "$sqsInfo")"
   if [ -n "$sqsUrl" ]; then
-    gen3_log_info "audit-service SQS has already been setup - skipping"
+    gen3_log_info "the audit-service SQS already exists: skipping SQS setup"
     return 0
   fi
 
   gen3_log_info "setting up audit-service SQS"
+
   sqsInfo="$(gen3 sqs create-queue $sqsName)" || exit 1
   sqsUrl="$(jq -e -r '.["sqs-url"].value' <<< "$sqsInfo")" || { echo "Cannot get 'sqs-url' from output: $sqsInfo"; exit 1; }
   local sqsSendMessageArn="$(jq -e -r '.["send-message-arn"].value' <<< "$sqsInfo")" || { echo "Cannot get 'send-message-arn' from output: $sqsInfo"; exit 1; }
@@ -90,7 +91,7 @@ setup_sqs() {
     gen3 awsrole create "$roleName" "$saName" || exit 1
   fi
   gen3_log_info "Attaching send-message policy to role '${roleName}'"
-  gen3 awsuser attach-policy ${sqsSendMessageArn} --role-name ${roleName} || exit 1
+  gen3 awsrole attach-policy ${sqsSendMessageArn} --role-name ${roleName} || exit 1
 
   # audit-service can pull messages from the queue
   saName="audit-service-sa"
@@ -100,7 +101,7 @@ setup_sqs() {
     gen3 awsrole create "$roleName" "$saName" || exit 1
   fi
   gen3_log_info "Attaching receive-message policy to role '${roleName}'"
-  gen3 awsuser attach-policy ${sqsReceiveMessageArn} --role-name ${roleName} || exit 1
+  gen3 awsrole attach-policy ${sqsReceiveMessageArn} --role-name ${roleName} || exit 1
 }
 
 gen3_log_info "setting up audit-service..."

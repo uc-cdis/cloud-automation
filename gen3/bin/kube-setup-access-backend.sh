@@ -103,7 +103,7 @@ EOM
         aws iam create-policy --policy-name $roleName --policy-document "$policy"
         accountNumber=$(aws sts get-caller-identity | jq -r .Account)
         sleep 15
-        gen3 awsrole attach-policy $roleName arn:aws:iam::$accountNumber:policy/$roleName
+        gen3 awsrole attach-policy arn:aws:iam::$accountNumber:policy/$roleName --role-name $roleName
       fi
       gen3_log_info "created service account '${saName}' with dynamodb access"
       gen3_log_info "created role name '${roleName}'"
