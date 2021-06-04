@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: marinerdb-create
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: mariner-secret
+          secret:
+            secretName: "mariner-g3auto"
+      containers:
+      - name: mariner
+        GEN3_MARINER_IMAGE
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/mariner
+        volumeMounts:
+        - name: "mariner-secret"
+          readOnly: true
+          mountPath: "/var/www/mariner/dbcreds.json"
+          subPath: dbcreds.json
+        command: ["sh"]
+        args:
+          - "-c"
+          - |
+            # set env vars
+            export PGDATABASE=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_database')
+            export PGUSER=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_username')
+            export PGPASSWORD=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_password')
+            export PGHOST=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_host')
+            export PGPORT="5432"
+            export PGSSLMODE="disable"
+
+            # TODO: bring db schema up to latest version
+            #/go/src/github.com/uc-cdis/mariner/migrations/latest
+
+            echo "Exit code: $?"
+      restartPolicy: Never
