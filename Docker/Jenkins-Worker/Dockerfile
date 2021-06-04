@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential zip unzip less vim gettext-base
 RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade && python -m pip install lxml --upgrade
 RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade
-RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade
+RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade && python3 -m pip install pandas --upgrade
 
 RUN apt-get update \
   && apt-get install -y lsb-release \
@@ -38,9 +38,12 @@ RUN apt-get update \
 # install Ruby.
 RUN sudo apt-get install -y ruby-full
 
+# install GIT
+RUN sudo apt-get -t=2.28.0 install git
+
 # install k6 to run load tests
-RUN sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 379CE192D401AB61 \
-  && echo "deb https://dl.bintray.com/loadimpact/deb stable main" | sudo tee -a /etc/apt/sources.list \
+RUN sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 \
+  && echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list \
   && sudo apt-get update \
   && sudo apt-get install k6
 
@@ -122,3 +125,4 @@ RUN DISTRO="$(lsb_release -c -s)"  \
       && rm -rf /var/lib/apt/lists/*
 
 USER jenkins
+

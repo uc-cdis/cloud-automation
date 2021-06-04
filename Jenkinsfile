@@ -6,7 +6,7 @@ library 'cdis-jenkins-lib@master'
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 node {
-  def AVAILABLE_NAMESPACES = ciEnsPoolHelper.fetchCIEnvs()
+  def AVAILABLE_NAMESPACES = ciEnvsHelper.fetchCIEnvs()
   List<String> namespaces = []
   List<String> listOfSelectedTests = []
   skipUnitTests = false
@@ -301,7 +301,7 @@ node {
     stage('RunTests') {
      try {
       if(!doNotRunTests) {
-        testHelper.runIntegrationTests(
+        testHelper.soonToBeLegacyRunIntegrationTests(
             kubectlNamespace,
             pipeConfig.serviceTesting.name,
             testedEnv,
@@ -355,7 +355,7 @@ node {
   finally {
     stage('Post') {
       kubeHelper.teardown(kubeLocks)
-      testHelper.teardown()
+      testHelper.teardown(doNotRunTests)
       if(!skipUnitTests) {
         // tear down network policies deployed by the tests
         kubeHelper.kube(kubectlNamespace, {
