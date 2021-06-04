@@ -113,7 +113,7 @@ if [[ $GEN3_DRYRUN == "False" ]]; then
       curl -s http://127.0.0.1:4040/metrics >> /var/www/metrics/metrics.txt
 
       if [ $attempt -lt $maxAttempts ]; then
-        if [ "ENABLE_SVC_METRICS_SCRAPING" == "false" ]; then      
+        if [ "$ENABLE_SVC_METRICS_SCRAPING" == "false" ]; then      
           service_metrics_endpoint=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/metrics)
 
           if [ "$service_metrics_endpoint" == 200 ]; then
