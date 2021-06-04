@@ -87,7 +87,8 @@ lock() {
         exit 1
       fi
     fi
-  else 
+  else
+    set -x 
     if [[ $wait = true ]]; then
       while [[ $endWaitTime -gt $(date +%s) ]]; do
         if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
@@ -100,6 +101,8 @@ lock() {
           exit 0
         fi
       done
+      echo "### ## wait var: $wait"
+      g3kubectl get configmap locks -o yaml
       gen3_log_err "Lock already exists and timed out waiting for lock to unlock"
       exit 1
     else 
