@@ -124,7 +124,7 @@ setup_mariner_db() {
       fi
       gen3 secrets sync
  fi
- if [[ -f "$(gen3_secrets_folder)/g3auto/mariner/dbcreds.json"]]; then
+ if [[ -f "$(gen3_secrets_folder)/g3auto/mariner/dbcreds.json" ]]; then
   cd "$(gen3_secrets_folder)"
   if [[ ! -f "$(gen3_secrets_folder)/.rendered_mariner_db" ]]; then
     gen3 job run marinerdb-create
