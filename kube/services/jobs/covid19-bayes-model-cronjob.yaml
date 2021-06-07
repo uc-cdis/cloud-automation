@@ -5,7 +5,8 @@ kind: CronJob
 metadata:
   name: covid19-bayes-model
 spec:
-  schedule: "0 10 * * *"
+  # Weekly Monday 6:00PM Chicago time == Tuesday 12:00AM UTC
+  schedule: "0 0 * * 2"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   concurrencyPolicy: Forbid

@@ -6,7 +6,7 @@ library 'cdis-jenkins-lib@master'
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 node {
-  def AVAILABLE_NAMESPACES = ciEnsPoolHelper.fetchCIEnvs()
+  def AVAILABLE_NAMESPACES = ciEnvsHelper.fetchCIEnvs()
   List<String> namespaces = []
   List<String> listOfSelectedTests = []
   skipUnitTests = false
@@ -229,7 +229,7 @@ node {
      }
      metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
-    
+
     stage('K8sReset') {
      try {
       if(!doNotRunTests) {
@@ -240,8 +240,14 @@ node {
         Utils.markStageSkippedForConditional(STAGE_NAME)
       }
      } catch (ex) {
-        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-        throw ex
+       // ignore aborted pipelines (not a failure, just some subsequent commit that initiated a new build)
+       if (ex.getClass().getCanonicalName() != "hudson.AbortException" &&
+          ex.getClass().getCanonicalName() != "org.jenkinsci.plugins.workflow.steps.FlowInterruptedException") {
+         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+         kubeHelper.sendSlackNotification(kubectlNamespace, "false")
+         kubeHelper.saveLogs(kubectlNamespace)
+       }
+       throw ex
      }
      metricsHelper.writeMetricWithResult(STAGE_NAME, true)
     }
@@ -295,7 +301,7 @@ node {
     stage('RunTests') {
      try {
       if(!doNotRunTests) {
-        testHelper.runIntegrationTests(
+        testHelper.soonToBeLegacyRunIntegrationTests(
             kubectlNamespace,
             pipeConfig.serviceTesting.name,
             testedEnv,
@@ -349,7 +355,7 @@ node {
   finally {
     stage('Post') {
       kubeHelper.teardown(kubeLocks)
-      testHelper.teardown()
+      testHelper.teardown(doNotRunTests)
       if(!skipUnitTests) {
         // tear down network policies deployed by the tests
         kubeHelper.kube(kubectlNamespace, {

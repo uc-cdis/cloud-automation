@@ -1,9 +1,19 @@
 #!/usr/bin/env sh
 set -e
 
+rate_limit=""
 if [ ! -z $NGINX_RATE_LIMIT ]; then
+  echo "Found NGINX_RATE_LIMIT environment variable..."
+  if [ ! -z $OVERRIDE_NGINX_RATE_LIMIT ]; then
+    rate_limit=$OVERRIDE_NGINX_RATE_LIMIT
+    echo "Overriding Nginx rate limit with new value ${rate_limit}..."
+  else
+    rate_limit=$NGINX_RATE_LIMIT
+    echo "Applying Nginx rate limit from k8s deployment descriptor..."
+  fi
+
   # Add rate_limit config
-  rate_limit_conf="\ \ \ \ limit_req_zone \$binary_remote_addr zone=one:10m rate=${NGINX_RATE_LIMIT}r/s;"
+  rate_limit_conf="\ \ \ \ limit_req_zone \$binary_remote_addr zone=one:10m rate=${rate_limit}r/s;"
   sed -i "/http\ {/a ${rate_limit_conf}" /etc/nginx/nginx.conf
   if [ -f /etc/nginx/sites-available/uwsgi.conf ]; then
     limit_req_config="\ \ \ \ \ \ \ \ limit_req zone=one;"
