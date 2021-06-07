@@ -5,7 +5,11 @@ gen3_load "gen3/gen3setup"
 
 set -xe
 
-# TODO: Add comment here to explain what's going on
+# script for mutating the guppy configuration on jenkins env
+# the incoming PR's guppy configuration is mutated to Jenkins environment
+
+# how it is executed?
+# gen3 mutate-guppy-config {PR} {repoName}
 
 prNumber=$1
 repoName=$2

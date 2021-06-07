@@ -5,7 +5,11 @@ gen3_load "gen3/gen3setup"
 
 set -xe
 
-# TODO: Add comment here to explain what's going on
+# script for mutating the ETLMapping.yaml on jenkins env
+# the incoming PR environment's ETLMapping.yaml is mutated to Jenkins environment
+
+# how it is executed?
+# gen3 mutate-etl-mapping-config {PR} {repoName}
 
 echo "hello world"
 
