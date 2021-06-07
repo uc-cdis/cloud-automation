@@ -71,6 +71,12 @@ else
   gen3_log_info "not deploying audit-service - no manifest entry for .versions.audit-service"
 fi
 
+if g3k_manifest_lookup .versions.auspice 2> /dev/null; then
+  gen3 kube-setup-auspice
+else
+  gen3_log_info "not deploying auspice - no manifest entry for .versions.auspice"
+fi
+
 if g3k_manifest_lookup .versions.fence 2> /dev/null; then
   # data ecosystem sub-commons may not deploy fence ...
   gen3 kube-setup-fence

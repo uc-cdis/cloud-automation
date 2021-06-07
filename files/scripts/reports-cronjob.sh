@@ -5,9 +5,10 @@
 #
 # PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # vpc_name=YOUR-VPC-NAME
+# ns_name=K8S_NAMESPACE (optional, defaults to "default")
 # USER=USER
 # KUBECONFIG=path/to/kubeconfig
-# 3   3   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/reports-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/reports-cronjob.sh "vpc=$vpc_name"; else echo "no reports-cronjob.sh"; fi) > $HOME/reports-cronjob.log 2>&1
+# 3   3   *   *   *    (if [ -f $HOME/cloud-automation/files/scripts/reports-cronjob.sh ]; then bash $HOME/cloud-automation/files/scripts/reports-cronjob.sh "vpc=$vpc_name" "ns_name=$ns_name"; else echo "no reports-cronjob.sh"; fi) > $HOME/reports-cronjob.log 2>&1
 
 # setup --------------------
 
@@ -26,7 +27,7 @@ source "${GEN3_HOME}/gen3/gen3setup.sh"
 
 help() {
   cat - <<EOM
-Use: bash ./reports-cronjob.sh vpc=YOUR_VPC_NAME
+Use: bash ./reports-cronjob.sh vpc=YOUR_VPC_NAME [ns_name=K8S_NAMESPACE]
 EOM
 }
 
@@ -64,6 +65,9 @@ gen3 logs history protocol start='yesterday 00:00' end='today 00:00' "$@" | tee 
 
 fileName="loginproviders-${dateTime}.json"
 gen3 logs history loginproviders start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
+
+fileName="oidclogins-${dateTime}.json"
+gen3 logs history oidclogins start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
 fileName="ga4ghrcodes-${dateTime}.json"
 gen3 logs history ga4gs_rtimes start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
@@ -107,6 +111,8 @@ gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
 fileName="loginproviders-${dateTime}.json"
 gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
 fileName="ga4ghrcodes-${dateTime}.json"
+gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
+fileName="oidclogins-${dateTime}.json"
 gen3 dashboard publish secure "./$fileName" "${destFolder}/$fileName"
 cd /tmp
 /bin/rm -rf "${dataFolder}"

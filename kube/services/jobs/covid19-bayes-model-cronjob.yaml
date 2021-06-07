@@ -1,10 +1,12 @@
-# gen3 job run covid19-bayes-model-cronjob S3_BUCKET <S3_BUCKET>
+# gen3 job run covid19-bayes-model-cronjob S3_BUCKET <S3_BUCKET> STATE_LIST=<states>
+# "states" format: "Illinois,NewYork" or "all"
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: covid19-bayes-model
 spec:
-  schedule: "0 10 * * *"
+  # Weekly Monday 6:00PM Chicago time == Tuesday 12:00AM UTC
+  schedule: "0 0 * * 2"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   concurrencyPolicy: Forbid
@@ -33,6 +35,8 @@ spec:
               env:
               - name: S3_BUCKET
                 GEN3_S3_BUCKET
+              - name: STATE_LIST
+                GEN3_STATE_LIST
               - name: slackWebHook
                 valueFrom:
                   configMapKeyRef:
@@ -46,7 +50,7 @@ spec:
               resources:
                 requests:
                   cpu: 4
-                  memory: 16Gi
+                  memory: 20Gi
                 limits:
                   cpu: 4
-                  memory: 16Gi # guess on upper bound
+                  memory: 20Gi # guess on upper bound

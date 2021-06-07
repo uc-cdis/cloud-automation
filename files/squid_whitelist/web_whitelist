@@ -50,6 +50,7 @@ docker.elastic.co
 docs.google.com
 download.java.net
 download.oracle.com
+download.pytorch.org
 dream.annailabs.com
 ecsft.cern.ch
 edelivery.oracle.com
@@ -121,6 +122,7 @@ releases.rancher.com
 rendersnake.googlecode.com
 repo-prod.prod.sagebase.org
 repo-staging.prod.sagebase.org
+repo.continuum.io
 repo.dimenoc.com
 repos.mia.quadranet.com
 repos.redrockhost.com
