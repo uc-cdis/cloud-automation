@@ -102,6 +102,12 @@ spec:
       - name: fence
         GEN3_FENCE_IMAGE
         env:
+        - name: DD_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: dd_enabled
+              optional: true
         - name: DD_ENV
           valueFrom:
             fieldRef:
@@ -130,8 +136,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
-        - name: DD_LOGS_INJECTION
-          value: "true"
         - name: AWS_STS_REGIONAL_ENDPOINTS
           value: regional
         - name: PYTHONPATH
@@ -236,10 +240,7 @@ spec:
         args:
           - "-c"
           - |
-            pip install ddtrace
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-            echo "import=ddtrace.bootstrap.sitecustomize" >> /etc/uwsgi/uwsgi.ini
-            sed -i 's/run uwsgi/ddtrace-run uwsgi --enable-threads/g' /dockerrun.sh
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
             bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then bash /dockerrun.sh; fi
       - name: nginx-prometheus-exporter-wrapper
