@@ -31,7 +31,6 @@ spec:
         public: "yes"
         userhelper: "yes"
         tags.datadoghq.com/service: "fence"
-        tags.datadoghq.com/service: "fence"
         tags.datadoghq.com/env: null
         tags.datadoghq.com/version: 'master'
     spec:
