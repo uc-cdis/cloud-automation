@@ -17,10 +17,6 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/path: /aggregated_metrics
-        prometheus.io/port: "6567"
       labels:
         app: revproxy
         # allow access from workspaces
