@@ -68,3 +68,8 @@ chmod +x /etc/cron.daily/filesystem_integrity
 $(command -v aide) --init
 mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
 
+# Install qualys agent if the activtion and customer id provided
+if [[ ! -z $activation_id ]] || [[ ! -z $customer_id ]]; then
+    sudo dpkg --install QualysCloudAgent.deb
+    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${activation_id} CustomerId=${customer_id}
+fi

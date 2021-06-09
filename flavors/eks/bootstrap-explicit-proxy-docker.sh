@@ -43,3 +43,9 @@ fi
 # forcing a restart of docker at the very end, it seems like the changes are not picked up for some reason
 systemctl daemon-reload
 systemctl restart docker
+
+# Install qualys agent if the activtion and customer id provided
+if [[ ! -z $activation_id ]] || [[ ! -z $customer_id ]]; then
+    sudo dpkg --install QualysCloudAgent.deb
+    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${activation_id} CustomerId=${customer_id}
+fi

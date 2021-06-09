@@ -16,3 +16,9 @@ then
     KUBELET_EXTRA_ARGUMENTS="$KUBELET_EXTRA_ARGUMENTS --register-with-taints=role=${nodepool}:NoSchedule"
 fi
 /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} --apiserver-endpoint ${eks_endpoint} --b64-cluster-ca ${eks_ca}
+
+# Install qualys agent if the activtion and customer id provided
+if [[ ! -z $activation_id ]] || [[ ! -z $customer_id ]]; then
+    sudo dpkg --install QualysCloudAgent.deb
+    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${activation_id} CustomerId=${customer_id}
+fi
