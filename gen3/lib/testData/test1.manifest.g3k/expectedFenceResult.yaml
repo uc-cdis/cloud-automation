@@ -33,6 +33,7 @@ spec:
         tags.datadoghq.com/service: "fence"
         tags.datadoghq.com/env: null
         tags.datadoghq.com/version: 'master'
+        date: "1579711361"
     spec:
       affinity:
         podAntiAffinity:
