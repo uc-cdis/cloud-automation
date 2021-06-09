@@ -30,6 +30,9 @@ spec:
         netnolimit: "yes"
         public: "yes"
         userhelper: "yes"
+        tags.datadoghq.com/service: "presigned-url-fence"
+        GEN3_ENV_LABEL
+        GEN3_FENCE_VERSION
         GEN3_DATE_LABEL
     spec:
       affinity:
@@ -99,6 +102,34 @@ spec:
       - name: fence
         GEN3_FENCE_IMAGE
         env:
+        - name: DD_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: dd_enabled
+              optional: true
+        - name: DD_ENV
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/env']
+        - name: DD_SERVICE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/service']
+        - name: DD_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/version']
+        - name: DD_LOGS_INJECTION
+          value: "true"
+        - name: DD_PROFILING_ENABLED
+          value: "true"
+        - name: DD_TRACE_SAMPLE_RATE
+          value: "1"
+        - name: DD_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         - name: NGINX_RATE_LIMIT
           value: "6"
         - name: PYTHONPATH
@@ -213,7 +244,7 @@ spec:
               nginx_limit=$(cat /fence/fence/config-default.yaml | sed -n -e 's/^.*OVERRIDE_NGINX_RATE_LIMIT: //p')
             fi
             export OVERRIDE_NGINX_RATE_LIMIT="$nginx_limit"
-            ([[ ! -f /entrypoint.sh ]] || bash /entrypoint.sh) && /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
+            ([[ ! -f /entrypoint.sh ]] || bash /entrypoint.sh) && /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then bash /dockerrun.sh; fi
       - name: nginx-prometheus-exporter-wrapper
         GEN3_NGINX_PROMETHEUS_EXPORTER_WRAPPER_IMAGE|-image: quay.io/cdis/nginx-prometheus-exporter-wrapper:pybase3-1.4.0-|
         command: ["/bin/bash"]
