@@ -6,10 +6,9 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-# TODO: Add logic to support other types of toggable storage (s3, postgres, redis, etc) 
+ manifestPath=$(g3k_manifest_path)
 
-manifestPath=$(g3k_manifest_path)
-
+# TODO: Add logic to support other types of toggable storage (s3, postgres, redis, etc)
 # extract storage settings from manifest
 withDB="$(jq -r ".[\"mariner\"][\"with_db\"]" < "$manifestPath")"
 withCache="$(jq -r ".[\"mariner\"][\"with_cache\"]" < "$manifestPath")"
@@ -19,6 +18,18 @@ if [ "$withDB" == "yes" ]; then
   gen3_log_info "setting up mariner with database"
 else
   gen3_log_info "setting up mariner without database, must set to yes in manifest.json"
+fi
+
+if [ "$withCache" == "yes" ]; then
+  gen3_log_info "setting up mariner with an in-memory data store"
+else
+  gen3_log_info "setting up mariner without an in-memory data store, must set to yes in manifest.json"
+fi
+
+if [ "$withS3" == "yes" ]; then
+  gen3_log_info "setting up mariner with S3"
+else
+  gen3_log_info "setting up mariner without S3, must set to yes in manifest.json"
 fi
 
 #- lib ---------------------------

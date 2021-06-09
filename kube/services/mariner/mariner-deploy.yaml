@@ -31,6 +31,9 @@ spec:
             items:
               - key: json
                 path: mariner-config.json
+        - name: mariner-secret
+          secret:
+            secretName: "mariner-g3auto"
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -49,6 +52,9 @@ spec:
         GEN3_MARINER_IMAGE
         imagePullPolicy: Always
         resources:
+          requests:
+            cpu: 0.4
+            memory: 1200Mi
           limits:
             memory: "256Mi"
             cpu: "250m"
@@ -68,5 +74,27 @@ spec:
           - name: mariner-config
             readOnly: true
             mountPath: /mariner-config
+          - name: "mariner-secret"
+            readOnly: true
+            mountPath: "/var/www/mariner/dbcreds.json"
+            subPath: dbcreds.json
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - |
+              # set env vars
+              export PGDATABASE=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_database')
+              export PGUSER=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_username')
+              export PGPASSWORD=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_password')
+              export PGHOST=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_host')
+              export PGPORT="5432"
+              export PGSSLMODE="disable"
+
+              # TODO: bring db schema up to latest version
+              #/go/src/github.com/uc-cdis/mariner/migrations/latest
+              
+              # Run Mariner
+              /go/src/github.com/uc-cdis/mariner/bin/mariner listen
+              echo "Exit code: $?"
         ports:
         - containerPort: 80

@@ -26,7 +26,7 @@ spec:
           readOnly: true
           mountPath: "/var/www/mariner/dbcreds.json"
           subPath: dbcreds.json
-        command: ["/bin/sh"]
+        command: ["/bin/bash"]
         args:
           - "-c"
           - |
