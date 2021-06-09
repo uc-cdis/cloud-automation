@@ -18,6 +18,7 @@ setup_database_and_config() {
     gen3_log_err "skipping db setup in non-adminvm environment"
     return 0
   fi
+
   # Setup config file that audit-service consumes
   if [[ ! -f "$secretsFolder/audit-service-config.yaml" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
     local secretsFolder="$(gen3_secrets_folder)/g3auto/audit"
@@ -64,44 +65,20 @@ EOM
   gen3 secrets sync 'setup audit-g3auto secrets'
 }
 
-setup_sqs() {
+setup_audit_sqs() {
   local sqsName="$(gen3 api safe-name audit-sqs)"
-  local sqsInfo="$(gen3 sqs info $sqsName)"
-  sqsUrl="$(jq -e -r '.["QueueUrl"]' <<< "$sqsInfo")"
-  if [ -n "$sqsUrl" ]; then
-    gen3_log_info "the audit-service SQS already exists: skipping SQS setup"
-    return 0
-  fi
+  sqsInfo="$(gen3 sqs create-queue-if-not-exist $sqsName)" || exit 1
+  sqsUrl="$(jq -e -r '.["url"]' <<< "$sqsInfo")" || { echo "Cannot get 'sqs-url' from output: $sqsInfo"; exit 1; }
+  sqsArn="$(jq -e -r '.["arn"]' <<< "$sqsInfo")" || { echo "Cannot get 'sqs-arn' from output: $sqsInfo"; exit 1; }
 
-  gen3_log_info "setting up audit-service SQS"
-
-  sqsInfo="$(gen3 sqs create-queue $sqsName)" || exit 1
-  sqsUrl="$(jq -e -r '.["sqs-url"].value' <<< "$sqsInfo")" || { echo "Cannot get 'sqs-url' from output: $sqsInfo"; exit 1; }
-  local sqsSendMessageArn="$(jq -e -r '.["send-message-arn"].value' <<< "$sqsInfo")" || { echo "Cannot get 'send-message-arn' from output: $sqsInfo"; exit 1; }
-  local sqsReceiveMessageArn="$(jq -e -r '.["receive-message-arn"].value' <<< "$sqsInfo")" || { echo "Cannot get 'receive-message-arn' from output: $sqsInfo"; exit 1; }
-
-  local saName
-  local roleName
-
-  # fence can push messages to the queue
-  saName="fence-sa"
-  roleName="$(gen3 api safe-name audit-sqs-sender)" || exit 1
+  # audit-service can pull messages from the audit queue
+  local saName="audit-service-sa"
+  local roleName="$(gen3 api safe-name audit-sqs-receiver)" || exit 1
   gen3_log_info "setting up service account '$saName' with role '${roleName}'"
   if ! gen3 awsrole info "$roleName" > /dev/null; then # create role
     gen3 awsrole create "$roleName" "$saName" || exit 1
   fi
-  gen3_log_info "Attaching send-message policy to role '${roleName}'"
-  gen3 awsrole attach-policy ${sqsSendMessageArn} --role-name ${roleName} || exit 1
-
-  # audit-service can pull messages from the queue
-  saName="audit-service-sa"
-  roleName="$(gen3 api safe-name audit-sqs-receiver)" || exit 1
-  gen3_log_info "setting up service account '$saName' with role '${roleName}'"
-  if ! gen3 awsrole info "$roleName" > /dev/null; then # create role
-    gen3 awsrole create "$roleName" "$saName" || exit 1
-  fi
-  gen3_log_info "Attaching receive-message policy to role '${roleName}'"
-  gen3 awsrole attach-policy ${sqsReceiveMessageArn} --role-name ${roleName} || exit 1
+  gen3 sqs attach-receiver-policy-to-role $sqsArn $roleName || exit 1
 }
 
 gen3_log_info "setting up audit-service..."
@@ -111,13 +88,13 @@ if ! g3k_manifest_lookup '.versions["audit-service"]' 2> /dev/null; then
   exit 0
 fi
 
-if ! setup_sqs; then
-  gen3_log_err "kube-setup-audit-service bailing out - SQS failed setup"
+if ! setup_audit_sqs; then
+  gen3_log_err "kube-setup-audit-service bailing out - failed to setup audit SQS"
   exit 1
 fi
 
 if ! setup_database_and_config; then
-  gen3_log_err "kube-setup-audit-service bailing out - database failed setup"
+  gen3_log_err "kube-setup-audit-service bailing out - database/config failed setup"
   exit 1
 fi
 

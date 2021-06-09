@@ -8,6 +8,22 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
+setup_audit_sqs() {
+  local sqsName="$(gen3 api safe-name audit-sqs)"
+  sqsInfo="$(gen3 sqs create-queue-if-not-exist $sqsName)" || exit 1
+  sqsUrl="$(jq -e -r '.["url"]' <<< "$sqsInfo")" || { echo "Cannot get 'sqs-url' from output: $sqsInfo"; exit 1; }
+  sqsArn="$(jq -e -r '.["arn"]' <<< "$sqsInfo")" || { echo "Cannot get 'sqs-arn' from output: $sqsInfo"; exit 1; }
+
+  # fence can push messages to the audit queue
+  local saName="fence-sa"
+  local roleName="$(gen3 api safe-name audit-sqs-sender)" || exit 1
+  gen3_log_info "setting up service account '$saName' with role '${roleName}'"
+  if ! gen3 awsrole info "$roleName" > /dev/null; then # create role
+    gen3 awsrole create "$roleName" "$saName" || exit 1
+  fi
+  gen3 sqs attach-sender-policy-to-role $sqsArn $roleName || exit 1
+}
+
 gen3 update_config fence-yaml-merge "${GEN3_HOME}/apis_configs/yaml_merge.py"
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
@@ -25,6 +41,11 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # cr
   fi
   # avoid doing the previous block more than once or when not necessary ...
   touch "$(gen3_secrets_folder)/.rendered_fence_db"
+fi
+
+if ! setup_audit_sqs; then
+  gen3_log_err "kube-setup-fence bailing out - failed to setup audit SQS"
+  exit 1
 fi
 
 # run db migration job - disable, because this still causes locking in dcf 
