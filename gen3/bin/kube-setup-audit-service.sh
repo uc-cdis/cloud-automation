@@ -47,8 +47,9 @@ DEBUG: true
 PULL_FROM_QUEUE: true
 QUEUE_CONFIG:
   type: aws_sqs
-  sqs_url: ${sqsUrl}
-  region: ${region}
+  aws_sqs_config:
+    sqs_url: ${sqsUrl}
+    region: ${region}
 
 ####################
 # DATABASE         #
