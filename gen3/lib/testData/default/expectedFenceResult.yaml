@@ -28,6 +28,7 @@ spec:
         userhelper: "yes"
         date: "1579711382"
     spec:
+      serviceAccountName: fence-sa
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

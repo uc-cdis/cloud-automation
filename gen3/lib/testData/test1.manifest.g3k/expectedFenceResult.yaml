@@ -35,6 +35,7 @@ spec:
         tags.datadoghq.com/version: 'master'
         date: "1579711361"
     spec:
+      serviceAccountName: fence-sa
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

@@ -35,6 +35,7 @@ spec:
         GEN3_FENCE_VERSION
         GEN3_DATE_LABEL
     spec:
+      serviceAccountName: fence-sa
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
