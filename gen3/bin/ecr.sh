@@ -192,7 +192,7 @@ gen3_ecr_repolist() {
 # @param tagName
 #
 gen3_describe_image() {
-    local repoName="$1"
+    local repoName="gen3/$1"
     shift
     local tagName="$1"
 
@@ -200,8 +200,7 @@ gen3_describe_image() {
       gen3_log_err "use: gen3_describe_images repoName tagName"
       return 1
     fi
-    local repo_name="gen3/$repoName"
-    aws ecr describe-images --registry-id ${ecrReg} --repository-name ${repo_name} --image-ids imageTag=${tag_name}
+    aws ecr describe-images --repository-name ${repoName} --image-ids imageTag=${tagName}
 }
 
 gen3_ecr_registry() {
