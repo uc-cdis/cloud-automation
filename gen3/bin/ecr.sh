@@ -202,7 +202,7 @@ gen3_describe_image() {
     fi
     local repo_name="$ecrReg/gen3/$repoName"
     local tag_name="$ecrReg/gen3/$repoName:$tagName"
-    aws ecr describe-images --repository-name="$repo_name" --image-ids imageTag="$tag_name"
+    aws ecr describe-images --repository-name="$repo_name" --image-ids imageDigest="****",imageTag="$tag_name"
 }
 
 gen3_ecr_registry() {
