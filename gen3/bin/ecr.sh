@@ -194,7 +194,7 @@ gen3_ecr_repolist() {
 gen3_describe_image() {
     local repoName="$1"
     shift
-    local tagName="$2"
+    local tagName="$1"
 
     if ! shift; then
       gen3_log_err "use: gen3_describe_images repoName tagName"
