@@ -225,6 +225,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "copy")
       gen3_ecr_copy_image "$@"
       ;;
+    "describe-image")
+      gen3_describe_image "$@"
+      ;;
     "registry")
       gen3_ecr_registry "$@"
       ;;
