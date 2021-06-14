@@ -89,7 +89,7 @@ if ! g3k_manifest_lookup '.versions["audit-service"]' 2> /dev/null; then
   exit 0
 fi
 
-if [[ ! -n "$JENKINS_HOME" ]]; then
+if ! [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
   if ! setup_audit_sqs; then
     gen3_log_err "kube-setup-audit-service bailing out - failed to setup audit SQS"
     exit 1

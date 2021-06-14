@@ -43,7 +43,7 @@ if [[ -f "$(gen3_secrets_folder)/creds.json" && -z "$JENKINS_HOME" ]]; then # cr
   touch "$(gen3_secrets_folder)/.rendered_fence_db"
 fi
 
-if [[ ! -n "$JENKINS_HOME" ]]; then
+if ! [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
   if ! setup_audit_sqs; then
     gen3_log_err "kube-setup-fence bailing out - failed to setup audit SQS"
     exit 1
