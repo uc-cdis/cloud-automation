@@ -200,9 +200,8 @@ gen3_describe_image() {
       gen3_log_err "use: gen3_describe_images repoName tagName"
       return 1
     fi
-    local repo_name="$ecrReg/gen3/$repoName"
-    local tag_name="$ecrReg/gen3/$repoName:$tagName"
-    aws ecr describe-images --repository-name "$repo_name" --image-ids imageTag="$tag_name"
+    local repo_name="gen3/$repoName"
+    aws ecr describe-images --registry-id ${ecrReg} --repository-name ${repo_name} --image-ids imageTag=${tag_name}
 }
 
 gen3_ecr_registry() {
