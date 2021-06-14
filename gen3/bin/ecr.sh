@@ -101,7 +101,7 @@ gen3_quay_login() {
     if gen3_time_since quay-login is 36000; then
       cat ~/Gen3Secrets/quay/login | docker login --username cdis+gen3 --password-stdin quay.io
     fi
-  else 
+  else
     gen3_log_err "Place credentials for the quay robot account (cdis+gen3) in this file ~/Gen3Secrets/quay/login"
     exit 1
   fi
@@ -116,7 +116,7 @@ gen3_quay_login() {
 gen3_ecr_copy_image() {
   local srcTag="$1"
   local destTag="$2"
-  if [[ "$destTag" == *"quay.io"* ]]; then 
+  if [[ "$destTag" == *"quay.io"* ]]; then
     gen3_quay_login || return 1
   else
     gen3_ecr_login || return 1
@@ -179,7 +179,6 @@ gen3_ecr_update_policy() {
   aws ecr set-repository-policy --repository-name "$repoName" --policy-text "$policy"
 }
 
-
 #
 # List the `gen3/` repository names (in the current account)
 #
@@ -187,6 +186,18 @@ gen3_ecr_repolist() {
   aws ecr describe-repositories | jq -r '.repositories[] | .repositoryName' | grep '^gen3/'
 }
 
+# Check if the Quay image exists in ECR repository
+gen3_describe_image() {
+    local repoName="$1"
+    shift
+    local imageName="$2"
+
+    if ! shift; then
+      gen3_log_err "use: gen3_describe_image repo_name tag_name"
+      return 1
+    fi
+    aws ecr describe-image --repository-name="$repoName" --image-ids=imageTag="$imageName"
+}
 
 gen3_ecr_registry() {
   echo "$ecrReg"
