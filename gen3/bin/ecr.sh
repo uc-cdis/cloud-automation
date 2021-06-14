@@ -188,15 +188,17 @@ gen3_ecr_repolist() {
 
 # Check if the Quay image exists in ECR repository
 gen3_describe_image() {
-    local repoName="$ecrReg/gen3/$repoName"
+    local repoName="$1"
     shift
     local tagName="$2"
 
     if ! shift; then
-      gen3_log_err "use: gen3_describe_image repo_name tag_name"
+      gen3_log_err "use: gen3_describe_images repoName tagName"
       return 1
     fi
-    aws ecr describe-images --repository-name="$repoName" --image-ids=imageTag="$tagName"
+    local repo_name="$ecrReg/gen3/$repoName"
+    local tag_name="$ecrReg/gen3/$repoName:$tagName"
+    aws ecr describe-images --repository-name="$repo_name" --image-ids=imageTag="$tag_name"
 }
 
 gen3_ecr_registry() {
