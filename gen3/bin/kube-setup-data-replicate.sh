@@ -25,7 +25,7 @@ if [[ -d ${secret_folder}/apis_configs/dcf_dataservice ]]; then
   if g3kubectl get configmap project-map-manifest; then
     g3kubectl delete configmap project-map-manifest
   fi
- 
+
   if ! hostname="$(gen3 api hostname)"; then
     gen3_log_err "could not determine hostname from manifest-global - bailing out of data refresh setup"
     return 1
@@ -37,8 +37,8 @@ if [[ -d ${secret_folder}/apis_configs/dcf_dataservice ]]; then
   INDEXD_CRED=$(cat ${secret_folder}/apis_configs/dcf_dataservice/creds.json | jq '.INDEXD')
 
   cat >${secret_folder}/apis_configs/dcf_dataservice/dcf_dataservice_settings << EOL
-TOKEN = ${GDC_TOKEN}
-  
+GDC_TOKEN = ${GDC_TOKEN}
+
 INDEXD = ${INDEXD_CRED}
 
 DATA_ENDPT = "https://api.gdc.cancer.gov/data/"
