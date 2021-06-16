@@ -25,8 +25,8 @@ spec:
           - "-c"
           - |
             set +x
-            echo "running checkAllProjectsGoogleBucketAccessTest.js..."
-            INDEXD_FILTER=$INDEXD_QUERY_FILTER GEN3_SKIP_PROJ_SETUP=true npm test -- suites/google/checkAllProjectsGoogleBucketAccessTest.js
+            echo "running checkAllProjectsBucketAccessTest.js..."
+            INDEXD_FILTER=$INDEXD_QUERY_FILTER GEN3_SKIP_PROJ_SETUP=true npm test -- suites/prod/checkAllProjectsBucketAccessTest.js
             RC=$?
             if [[ $RC != 0 ]]; then
               echo "ERROR: non zero exit code: $?"
