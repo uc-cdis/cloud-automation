@@ -53,12 +53,15 @@ function main() {
 
   if ! [ ${instance} == "ALL" ];
   then
+    # cordon off old node before draining so no new pods can be started on it
+    g3kubectl cordon $instance
     drain_node ${instance}
     terminate_instance $( get_instance_id_by_name ${instance} )
     remove_node ${instance}
   else
     local nodeList=($(g3kubectl get node -o name | cut -d/ -f2))
-
+    # cordon off old nodes before draining so no new pods can be started on them
+    g3kubectl cordon $nodeList
     for i in ${!nodeList[@]};
     do
       drain_node ${nodeList[$i]}
