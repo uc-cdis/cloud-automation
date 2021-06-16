@@ -6,5 +6,5 @@ Run this script on an admin-vm in a VPC user account with `sudo` permissions.
 ## Use
 
 ```
-gen3 kube-dev-namespace $vpc_name $new_namespace_name
+gen3 kube-dev-namespace "$new_namespace_name"
 ```
