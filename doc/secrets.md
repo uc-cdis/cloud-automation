@@ -133,3 +133,45 @@ also accepts the service account key file as an argument
 delete all but the newest key for the given service account
 
 also accepts the service account key file as an argument
+
+### gen3 secrets aws $sub-command ...
+
+helper for rotating AWS keys
+
+#### gen3 secrets aws rotate $username
+
+* the `$username` argument is the username of the user whose keys you want to rotate
+* garbage collect old keys associated with the username
+* create a new key, and save the new key into a file in the secrets folder
+* `gen3 secrets commit ...`
+
+the caller is responsible updating the appropriate kubernetes secrets, and rotating services as required
+
+ex:
+
+```
+gen3 secrets aws rotate fence-bot
+```
+
+
+#### gen3 secrets aws new-key $username
+
+generate a new key for the given user
+you can list the currently available keys with:
+
+```
+aws iam list-access-keys --user-name $username
+```
+
+
+#### gen3 secrets aws list $username
+
+shortcut for:
+
+```
+aws iam list-access-keys fence-bot --user-name $username
+```
+
+#### gen3 secrets aws garbage-collect $username
+
+delete all but the newest key for the given user
