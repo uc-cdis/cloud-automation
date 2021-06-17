@@ -35,4 +35,6 @@ module "eks" {
   dual_proxy                       = "${var.dual_proxy}"
   single_az_for_jupyter            = "${var.single_az_for_jupyter}"
   sns_topic_arn                    = "${var.sns_topic_arn}"
+  activation_id                    = "${var.activation_id}"
+  customer_id                      = "${var.customer_id}"
 }

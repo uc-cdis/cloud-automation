@@ -41,11 +41,13 @@ data "template_file" "ssh_keys" {
 data "template_file" "bootstrap" {
   template = "${file("${path.module}/../../../../flavors/eks/${var.bootstrap_script}")}"
   vars {
-    eks_ca       = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
-    eks_endpoint = "${aws_eks_cluster.eks_cluster.endpoint}"
-    eks_region   = "${data.aws_region.current.name}"
-    vpc_name     = "${var.vpc_name}"
-    ssh_keys     = "${data.template_file.ssh_keys.rendered}"
-    nodepool     = "default"
+    eks_ca        = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+    eks_endpoint  = "${aws_eks_cluster.eks_cluster.endpoint}"
+    eks_region    = "${data.aws_region.current.name}"
+    vpc_name      = "${var.vpc_name}"
+    ssh_keys      = "${data.template_file.ssh_keys.rendered}"
+    nodepool      = "default"
+    activation_id = "${var.activation_id}"
+    customer_id   = "${var.customer_id}"
   }
 }
