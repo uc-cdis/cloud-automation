@@ -18,7 +18,7 @@ fi
 /etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} --apiserver-endpoint ${eks_endpoint} --b64-cluster-ca ${eks_ca}
 
 # Install qualys agent if the activtion and customer id provided
-if [[ ! -z $activation_id ]] || [[ ! -z $customer_id ]]; then
+if [[ ! -z "${activation_id}" ]] || [[ ! -z "${customer_id}" ]]; then
     aws s3 cp s3://qualys-agentpackage/QualysCloudAgent.rpm ./qualys-cloud-agent.x86_64.rpm
     sudo rpm -ivh qualys-cloud-agent.x86_64.rpm
     # Clean up rpm package after install
