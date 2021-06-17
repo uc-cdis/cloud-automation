@@ -12,7 +12,13 @@ set -xe
 # gen3 mutate-guppy-config {PR} {repoName}
 
 prNumber=$1
-repoName=$2
+shift
+repoName=$1
+
+if ! shift; then
+ gen3_log_err "use: mutate-guppy-config prNumber repoName"
+ return 1
+fi
 
 kubectl get configmap manifest-guppy -o yaml > original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_subject",$/\1"index": "'"${prNumber}"'.'"${repoName}"'.\2_subject",/' original_guppy_config.yaml
