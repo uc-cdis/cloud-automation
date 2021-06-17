@@ -17,7 +17,7 @@ repoName=$1
 
 if ! shift; then
  gen3_log_err "use: mutate-guppy-config prNumber repoName"
- return 1
+ exit 1
 fi
 
 kubectl get configmap manifest-guppy -o yaml > original_guppy_config.yaml

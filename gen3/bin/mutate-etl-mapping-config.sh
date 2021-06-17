@@ -19,12 +19,12 @@ repoName=$1
 
 if ! shift; then
  gen3_log_err "use: mutate-etl-mapping-config prNumber repoName"
- return 1
+ exit 1
 fi
 
 kubectl get cm etl-mapping -o jsonpath='{.data.etlMapping\.yaml}' > etlMapping.yaml
-sed -i 's/.*name: \(.*\)_subject$/    name: '"${prNumber}"'.'"${repoName}"'.\1_subject/' etlMapping.yaml
-sed -i 's/.*name: \(.*\)_etl$/    name: '"${prNumber}"'.'"${repoName}"'.\1_etl/' etlMapping.yaml
-sed -i 's/.*name: \(.*\)_file$/    name: '"${prNumber}"'.'"${repoName}"'.\1_file/' etlMapping.yaml
+sed -i 's/.*- name: \(.*\)_subject$/  - name: '"${prNumber}"'.'"${repoName}"'.\1_subject/' etlMapping.yaml
+sed -i 's/.*- name: \(.*\)_etl$/  - name: '"${prNumber}"'.'"${repoName}"'.\1_etl/' etlMapping.yaml
+sed -i 's/.*- name: \(.*\)_file$/  - name: '"${prNumber}"'.'"${repoName}"'.\1_file/' etlMapping.yaml
 kubectl delete configmap etl-mapping
 kubectl create configmap etl-mapping --from-file=etlMapping.yaml=etlMapping.yaml
