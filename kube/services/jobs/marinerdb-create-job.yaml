@@ -16,7 +16,7 @@ spec:
             secretName: "mariner-g3auto"
       containers:
       - name: mariner
-        GEN3_MARINER_IMAGE
+         GEN3_MARINER_IMAGE
         imagePullPolicy: Always
         env:
           - name: PYTHONPATH
