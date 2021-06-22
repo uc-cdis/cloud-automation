@@ -6,7 +6,6 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-
 setup_database() {
   gen3_log_info "setting up metadata service ..."
 
@@ -21,7 +20,7 @@ setup_database() {
   # Setup .env file that metadataservice consumes
   if [[ ! -f "$secretsFolder/metadata.env" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
     local secretsFolder="$(gen3_secrets_folder)/g3auto/metadata"
-    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then    
+    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
       if ! gen3 db setup metadata; then
         gen3_log_err "Failed setting up database for metadata service"
         return 1
@@ -31,7 +30,7 @@ setup_database() {
       gen3_log_err "dbcreds not present in Gen3Secrets/"
       return 1
     fi
-  
+
     # go ahead and rotate the password whenever we regen this file
     local password="$(gen3 random)"
     cat - > "$secretsFolder/metadata.env" <<EOM
@@ -57,6 +56,9 @@ if ! setup_database; then
   gen3_log_err "kube-setup-metadata bailing out - database failed setup"
   exit 1
 fi
+
+gen3 kube-setup-aws-es-proxy || true
+wait_for_esproxy
 
 gen3 roll metadata
 g3kubectl apply -f "${GEN3_HOME}/kube/services/metadata/metadata-service.yaml"
