@@ -27,6 +27,8 @@ module "jupyter_pool" {
   jupyter_asg_desired_capacity = "${var.jupyter_asg_desired_capacity}"
   jupyter_asg_max_size         = "${var.jupyter_asg_max_size}"
   jupyter_asg_min_size         = "${var.jupyter_asg_min_size}"
+  activation_id                = "${var.activation_id}"
+  customer_id                  = "${var.customer_id}"
 }
 
 

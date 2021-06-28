@@ -6,7 +6,6 @@ library 'cdis-jenkins-lib@master'
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 node {
-  def AVAILABLE_NAMESPACES = ciEnvsHelper.fetchCIEnvs()
   List<String> namespaces = []
   List<String> listOfSelectedTests = []
   skipUnitTests = false
@@ -16,6 +15,7 @@ node {
   kubeLocks = []
   testedEnv = "" // for manifest pipeline
   pipeConfig = pipelineHelper.setupConfig([:])
+  def AVAILABLE_NAMESPACES = ciEnvsHelper.fetchCIEnvs(pipeConfig.MANIFEST)
   pipelineHelper.cancelPreviousRunningBuilds()
   prLabels = githubHelper.fetchLabels()
 
