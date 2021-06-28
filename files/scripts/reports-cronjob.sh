@@ -45,7 +45,7 @@ if [[ $# -lt 1 || ! "$1" =~ ^vpc=.+$ ]]; then
 fi
 
 dataFolder="$(mktemp -d -p "$XDG_RUNTIME_DIR" 'reportsFolder_XXXXXX')"
-reportStartTime='20210628 00:00' # replace with 'yesterday 00:00'
+reportStartTime=$(date --date 'yesterday 00:00')
 dateTime="$(date --date "$reportStartTime" +%Y%m%d)"
 destFolder="reports/$(date --date "$reportStartTime" +%Y)/$(date --date "$reportStartTime" +%m)"
 cd "$dataFolder"
