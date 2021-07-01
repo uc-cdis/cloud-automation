@@ -45,9 +45,8 @@ if [[ $# -lt 1 || ! "$1" =~ ^vpc=.+$ ]]; then
 fi
 
 dataFolder="$(mktemp -d -p "$XDG_RUNTIME_DIR" 'reportsFolder_XXXXXX')"
-reportStartTime=$(date --date 'yesterday 00:00')
-dateTime="$(date --date "$reportStartTime" +%Y%m%d)"
-destFolder="reports/$(date --date "$reportStartTime" +%Y)/$(date --date "$reportStartTime" +%m)"
+dateTime="$(date --date 'yesterday 00:00' +%Y%m%d)"
+destFolder="reports/$(date --date 'yesterday 00:00' +%Y)/$(date --date 'yesterday 00:00' +%m)"
 cd "$dataFolder"
 for service in all fence guppy indexd peregrine sheepdog; do
   for report in rtimes codes; do
@@ -55,23 +54,23 @@ for service in all fence guppy indexd peregrine sheepdog; do
       if [[ "$service" == "all" ]]; then
         fileName="${report}-${dateTime}.json"
       fi
-      gen3 logs history $report start="$reportStartTime" end="$reportStartTime"-24 proxy="$service" "$@" | tee "${fileName}"
+      gen3 logs history $report start='yesterday 00:00' end='today 00:00' proxy="$service" "$@" | tee "${fileName}"
   done
 done
 fileName="users-${dateTime}.json"
-gen3 logs history users start="$reportStartTime" end="$reportStartTime"-24 "$@" | tee "${fileName}"
+gen3 logs history users start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
 fileName="protocol-${dateTime}.json"
-gen3 logs history protocol start="$reportStartTime" end="$reportStartTime"-24 "$@" | tee "${fileName}"
+gen3 logs history protocol start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
 fileName="loginproviders-${dateTime}.json"
-gen3 logs history loginproviders start="$reportStartTime" end="$reportStartTime"-24 "$@" | tee "${fileName}"
+gen3 logs history loginproviders start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
 fileName="oidclogins-${dateTime}.json"
-gen3 logs history oidclogins start="$reportStartTime" end="$reportStartTime"-24 "$@" | tee "${fileName}"
+gen3 logs history oidclogins start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
 fileName="ga4ghrcodes-${dateTime}.json"
-gen3 logs history ga4gs_rtimes start="$reportStartTime" end="$reportStartTime"-24 "$@" | tee "${fileName}"
+gen3 logs history ga4gs_rtimes start='yesterday 00:00' end='today 00:00' "$@" | tee "${fileName}"
 
 csvToJson="$(cat - <<EOM
 BEGIN {
