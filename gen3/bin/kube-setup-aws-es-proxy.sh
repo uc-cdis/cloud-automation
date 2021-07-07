@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Deploy aws-es-proxy into existing commons
-# https://github.com/quay.io/cdis/aws-es-proxy
+# https://github.com/abutaha/aws-es-proxy
 # 
 
 
