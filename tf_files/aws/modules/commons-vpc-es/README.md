@@ -2,7 +2,7 @@
 
 The es module is intended to spin up a new AWS ElasticSearch cluster within a specific VPC. No permissions are set at all, therefore it worth nothing to leave it there all alone.
 
-Later in the process of building the kubernetes cluster, permissions would be added for a pod to access the ES cluster over a aws-es-proxy (https://github.com/abutaha/aws-es-proxy).
+Later in the process of building the kubernetes cluster, permissions would be added for a pod to access the ES cluster over a aws-es-proxy (https://github.com/quay.io/cdis/aws-es-proxy).
 
 
 ## 1. QuickStart
