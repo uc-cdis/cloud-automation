@@ -21,7 +21,7 @@ https://docs.google.com/presentation/d/1-Bl9adgDvRH7Cj2pC876Zm1D2OjSOtApIfpfNgKe
 
 ## components
 ### es proxy
-a container(https://github.com/quay.io/cdis/aws-es-proxy) deployed in the gen3 k8s cluster, has aws keypair attached to the pod, the aws keypair should be generated during es automation and have read write access to es.
+a container (https://github.com/abutaha/aws-es-proxy) deployed in the gen3 k8s cluster, has aws keypair attached to the pod, the aws keypair should be generated during es automation and have read write access to es.
 the k8s network policy should be configured to allow only the arranger api (and later etl job) to access the proxy
 ### arranger api
 a container that runs the arranger api nodejs app. configured to use es proxy as the es endpoint
