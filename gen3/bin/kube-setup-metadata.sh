@@ -39,6 +39,8 @@ DB_HOST=$(jq -r .db_host < "$secretsFolder/dbcreds.json")
 DB_USER=$(jq -r .db_username < "$secretsFolder/dbcreds.json")
 DB_PASSWORD=$(jq -r .db_password < "$secretsFolder/dbcreds.json")
 DB_DATABASE=$(jq -r .db_database < "$secretsFolder/dbcreds.json")
+USE_AGG_MDS=false
+AGG_MDS_NAMESPACE=$(gen3 db namespace)
 ADMIN_LOGINS=gateway:$password
 EOM
     # make it easy for nginx to get the Authorization header ...
@@ -57,8 +59,11 @@ if ! setup_database; then
   exit 1
 fi
 
-gen3 kube-setup-aws-es-proxy || true
-wait_for_esproxy
+if grep "USE_AGG_MDS=true" "$(gen3_secrets_folder)/g3auto/metadata/metadata.env" > /dev/null 2>&1; then
+  gen3_log_info "kube-setup-metadata setting up aws-es-proxy dependency"
+  gen3 kube-setup-aws-es-proxy || true
+  wait_for_esproxy
+fi
 
 gen3 roll metadata
 g3kubectl apply -f "${GEN3_HOME}/kube/services/metadata/metadata-service.yaml"
