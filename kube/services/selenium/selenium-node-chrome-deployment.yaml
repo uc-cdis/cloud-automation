@@ -30,7 +30,7 @@ spec:
           value: "4443"
         - name: SE_NODE_MAX_CONCURRENT_SESSIONS
           value: "3"
-        image: quay.io/cdis/selenium-node-chrome:4.0.0-beta-1-prerelease-20201202
+        image: quay.io/cdis/selenium-node-chrome:4.0.0
         imagePullPolicy: Always
         name: node-chrome
       terminationGracePeriodSeconds: 30
