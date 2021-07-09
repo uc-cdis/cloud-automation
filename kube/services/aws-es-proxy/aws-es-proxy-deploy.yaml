@@ -29,7 +29,7 @@ spec:
             secretName: "aws-es-proxy"
       containers:
       - name: esproxy
-        GEN3_AWS-ES-PROXY_IMAGE|-image: abutaha/aws-es-proxy:0.8-|
+        GEN3_AWS-ES-PROXY_IMAGE|-image: quay.io/cdis/aws-es-proxy:0.8-|
         imagePullPolicy: Always
         ports:
         - containerPort: 9200
