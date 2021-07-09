@@ -36,16 +36,18 @@ RUN apt-get update \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
 # install Ruby.
-RUN sudo apt-get install -y ruby-full
+RUN apt-get install -y ruby-full
 
-# install GIT
-RUN sudo apt-get install git
+# install GIT from buster-backports
+RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/buster-backports.list \
+  && apt-get update \
+  && apt-get -t=buster-backports -y install git=1:2.30.*
 
 # install k6 to run load tests
-RUN sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 \
-  && echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list \
-  && sudo apt-get update \
-  && sudo apt-get install k6
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 \
+  && echo "deb https://dl.k6.io/deb stable main" | tee /etc/apt/sources.list.d/k6.list \
+  && apt-get update \
+  && apt-get install k6
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
