@@ -45,7 +45,7 @@ spec:
       #   https://estl.tech/accessing-docker-from-a-kubernetes-pod-68996709c04b
       #
       - name: jenkins-worker
-        image: "quay.io/cdis/gen3-qa-worker:master"
+        image: "quay.io/cdis/gen3-ci-worker:master"
         ports:
         - containerPort: 8080
         env:
