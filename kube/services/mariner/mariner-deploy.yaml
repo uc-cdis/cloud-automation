@@ -58,6 +58,7 @@ spec:
               secretKeyRef:
                 name: "workflow-bot-g3auto"
                 key: "awsusercreds.json"
+                optional: true
           - name: GEN3_NAMESPACE
             valueFrom:
               fieldRef:
