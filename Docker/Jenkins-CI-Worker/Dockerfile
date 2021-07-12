@@ -1,3 +1,9 @@
+FROM jenkins/jnlp-slave:4.3-1
+
+USER root
+
+ENV DEBIAN_FRONTEND=noninteractive
+
 # install python
 RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip python3-venv build-essential zip unzip jq less vim gettext-base
 
@@ -70,26 +76,23 @@ COPY install-python3.8.sh /root/tmp/install-python3.8.sh
 
 # Run the script responsible for installing Python 3.8.0 and link it to /usr/bin/python
 RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
-	./root/tmp/install-python3.8.sh && \
+	bash /root/tmp/install-python3.8.sh && \
 	rm -rf /root/tmp/install-python3.8.sh && \
         unlink /usr/bin/python3 && \
         ln -s /Python-3.8.0/python /usr/bin/python3
+
+RUN env
+RUN which python
+RUN which python3.8
 
 # Fix shebang for lsb_release
 RUN sed -i 's/python3/python3.5/' /usr/bin/lsb_release && \
     sed -i 's/python3/python3.5/' /usr/bin/add-apt-repository
 
 # install aws cli, poetry, pytest, etc.
-RUN set -xe && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install poetry && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade
+RUN set -xe && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
-
-# install chrome (supports headless mode)
-RUN set -xe \
-    && curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.8 -
 
 # install terraform
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
@@ -107,11 +110,6 @@ RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
   && /bin/echo -e "\n%sudo    ALL=(ALL:ALL) NOPASSWD:ALL\n" >> /etc/sudoers.bak \
   && cp /etc/sudoers.bak /etc/sudoers \
   && usermod -G sudo jenkins
-
-# add our custom start script
-COPY jenkins.sh /opt/cdis/bin/jenkins.sh
-RUN chmod -R a+rx /opt/cdis
-ENTRYPOINT ["/sbin/tini", "--", "/opt/cdis/bin/jenkins.sh"]
 
 USER jenkins
 
