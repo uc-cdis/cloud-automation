@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jenkins-worker-deployment
+  name: jenkins-ci-worker-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: jenkins-worker
+      app: jenkins-ci-worker
   template:
     metadata:
       labels:
-        app: jenkins-worker
+        app: jenkins-ci-worker
         # for network policy
         netnolimit: "yes"
     spec:
@@ -45,7 +45,7 @@ spec:
       #   https://estl.tech/accessing-docker-from-a-kubernetes-pod-68996709c04b
       #
       - name: jenkins-worker
-        image: "quay.io/cdis/gen3-qa-worker:master"
+        image: "quay.io/cdis/gen3-ci-worker:master"
         ports:
         - containerPort: 8080
         env:
@@ -54,10 +54,10 @@ spec:
           - name: JENKINS_SECRET
             valueFrom:
               secretKeyRef:
-                name: jenkins-worker-g3auto
+                name: jenkins-ci-worker-g3auto
                 key: jenkins-jnlp-agent-secret 
           - name: JENKINS_AGENT_NAME
-            value: "gen3-qa-worker"
+            value: "gen3-ci-worker"
           - name: JENKINS_TUNNEL
             value: "jenkins-agent:50000"
           - name: AWS_DEFAULT_REGION
