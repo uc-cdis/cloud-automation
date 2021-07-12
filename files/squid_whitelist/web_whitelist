@@ -60,6 +60,7 @@ ftp.linux.ncsu.edu
 ftp.sanger.ac.uk
 ftp.usf.edu
 ftp.ussg.iu.edu
+fmwww.bc.edu
 gcr.io
 gen3.org
 get.helm.sh
@@ -120,6 +121,7 @@ registry.terraform.io
 github-releases.githubusercontent.com
 releases.rancher.com
 rendersnake.googlecode.com
+repec.org
 repo-prod.prod.sagebase.org
 repo-staging.prod.sagebase.org
 repo.continuum.io
