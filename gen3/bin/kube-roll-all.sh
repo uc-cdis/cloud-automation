@@ -86,11 +86,23 @@ else
   gen3_log_info "no manifest entry for fence"
 fi
 
-if g3kubectl get cronjob etl >/dev/null 2>&1; then
+# Set a var for the cron folder path
+g3k_cron_manifest_folder="$(g3k_manifest_path | rev | cut -d '/' -f2- | rev)/manifests/cronjobs"
+# Check for file with defined cronjobs
+if [[ -f "$g3k_cron_manifest_folder/cronjobs.json" ]]; then
+  keys=$(g3k_config_lookup 'keys[]' $g3k_cron_manifest_folder/cronjobs.json)
+fi
+# Setup a cronjob with the specified schedule for each key/value in the cronjob manifest
+for key in $keys; do
+  gen3_log_info "Setting up specified $key cronjob"
+  gen3 job cron $key "$(g3k_config_lookup .\"$key\" $g3k_cron_manifest_folder/cronjobs.json)"
+done
+# Setup ETL cronjob normally if it is already there and not defined in manifest
+if [[ ! "${keys[@]}" =~ "etl" ]] && g3kubectl get cronjob etl >/dev/null 2>&1; then
     gen3 job run etl-cronjob
 fi
-
-if g3kubectl get cronjob usersync >/dev/null 2>&1; then
+# Setup usersync cronjob normally if it is already there and not defined in manifest
+if [[ ! "${keys[@]}" =~ "usersync" ]] && g3kubectl get cronjob usersync >/dev/null 2>&1; then
     # stagger usersync jobs, so they don't all hit
     # NIH at the same time
     ustart=$((20 + (RANDOM % 20)))
