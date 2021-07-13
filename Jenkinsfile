@@ -356,12 +356,12 @@ node {
     stage('Post') {
       kubeHelper.teardown(kubeLocks)
       testHelper.teardown(doNotRunTests)
+      pipelineHelper.teardown(currentBuild.result)
       if(!skipUnitTests) {
         // tear down network policies deployed by the tests
         kubeHelper.kube(kubectlNamespace, {
           sh(script: 'kubectl --namespace="' + kubectlNamespace + '" delete networkpolicies --all', returnStatus: true);
         });
-        pipelineHelper.teardown(currentBuild.result)
       }
     }
   }
