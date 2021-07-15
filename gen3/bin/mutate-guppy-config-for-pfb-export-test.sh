@@ -20,11 +20,11 @@ if ! shift; then
  exit 1
 fi
 
-kubectl get configmap manifest-guppy -o yaml > original_guppy_config.yaml
+g3kubectl get configmap manifest-guppy -o yaml > original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_subject",$/\1"index": "'"${prNumber}"'.'"${repoName}"'.\2_subject",/' original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_etl",$/\1"index": "'"${prNumber}"'.'"${repoName}"'.\2_etl",/' original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_file",$/\1"index": "'"${prNumber}"'.'"${repoName}"'.\2_file",/' original_guppy_config.yaml
 sed -i 's/\(.*\)"config_index": "\(.*\)_array-config",$/\1"config_index": "'"${prNumber}"'.'"${repoName}"'.\2_array-config",/' original_guppy_config.yaml
-kubectl delete configmap manifest-guppy
-kubectl apply -f original_guppy_config.yaml
+g3kubectl delete configmap manifest-guppy
+g3kubectl apply -f original_guppy_config.yaml
 gen3 roll guppy
