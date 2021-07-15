@@ -14,7 +14,7 @@ set -xe
 g3kubectl get configmap manifest-guppy -o yaml > original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_etl",$/\1"index": "jenkins_subject_alias",/' original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_file",$/\1"index": "jenkins_file_alias",/' original_guppy_config.yaml
-sed -i 's/\(.*\)"config_index": "\(.*\)_array-config",$/\1"config_index": "jenkins_config_alias",/' original_guppy_config.yaml
+sed -i 's/\(.*\)"config_index": "\(.*\)_array-config",$/\1"config_index": "jenkins_configs_alias",/' original_guppy_config.yaml
 g3kubectl delete configmap manifest-guppy
 g3kubectl apply -f original_guppy_config.yaml
 gen3 roll guppy
