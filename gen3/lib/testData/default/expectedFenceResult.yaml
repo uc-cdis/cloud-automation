@@ -245,7 +245,7 @@ spec:
                 echo "Running db migration: fence-create migrate"
                 fence-create migrate
               else
-                echo "Db migration disabeld in fence-config"
+                echo "Db migration disabled in fence-config"
               fi
             else
               echo "Db migration not available in this version of fence"
