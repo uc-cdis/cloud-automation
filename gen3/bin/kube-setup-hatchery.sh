@@ -29,3 +29,33 @@ if [ "$(g3kubectl get configmaps/manifest-hatchery -o yaml | grep "\"image\": .*
 then
     gen3 job cron distribute-licenses '* * * * *'
 fi
+
+policy=$( cat <<EOM
+{
+    "Version": "2012-10-17",
+    "Statement": {
+        "Effect": "Allow",
+        "Action": "sts:AssumeRole",
+        "Resource": "arn:aws:iam::*:role/csoc_adminvm*"
+    }
+}
+EOM
+)
+saName=$(echo "hatchery-service-account" | head -c63)
+echo $saName
+if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.amazonaws.com/role-arn"' > /dev/null 2>&1; then
+    role_name="${vpc_name}-${saName}-role"
+    gen3 awsrole create $role_name $saName
+    policyName="hatchery-role-sts"
+    policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hathcery to assume csoc_adminvm role in other accounts, for multi-account workspaces")
+    if [ -n "$policyInfo" ]; then
+    policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
+    else
+        echo "Unable to create policy $policyName. Assuming it already exists and continuing"
+        policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
+    fi
+
+    gen3_log_info "Attaching policy '${policyName}' to role '${role_name}'"
+    gen3 awsrole attach-policy ${policyArn} --role-name ${role_name} --force-aws-cli || exit 1
+
+fi
