@@ -40,6 +40,8 @@ if [[ -z "$JENKINS_HOME" ]]; then
   # only do this if we are running in the default namespace
   if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
     g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrolebinding-devops.yaml"
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/gitops-prometheus-viewer.yaml"
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/gitops-sa-rolebinding.yaml"
   fi
 else
   gen3_log_info "Not setting up roles in Jenkins: $JENKINS_HOME"
