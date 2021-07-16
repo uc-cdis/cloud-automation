@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: aws-es-proxy-deployment
   annotations:
-    gen3.io/network-ingress: "arranger,arranger-server,arranger-dashboard,guppy,spark,tube"
+    gen3.io/network-ingress: "arranger,arranger-server,arranger-dashboard,guppy,metadata,spark,tube"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -29,7 +29,7 @@ spec:
             secretName: "aws-es-proxy"
       containers:
       - name: esproxy
-        GEN3_AWS-ES-PROXY_IMAGE|-image: abutaha/aws-es-proxy:0.8-|
+        GEN3_AWS-ES-PROXY_IMAGE|-image: quay.io/cdis/aws-es-proxy:0.8-|
         imagePullPolicy: Always
         ports:
         - containerPort: 9200
@@ -42,7 +42,7 @@ spec:
             mountPath: "/root/.aws"
         command: ["/bin/sh"]
         # NOTE- NEED TO RUN kube-set-aws-es-proxy TO POPULATE ES_ENDPOINT - ugh!
-        # NOTE- gen3 roll aws-es-proxy WILL NOT WORK! 
+        # NOTE- gen3 roll aws-es-proxy WILL NOT WORK!
         args:
           - "-c"
           - |

@@ -49,6 +49,8 @@ spec:
         env:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: GEN3_ES_ENDPOINT
+            value: http://esproxy-service:9200
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -74,7 +76,7 @@ spec:
             memory: 512Mi
           limits:
             cpu: 1
-            memory: 2048Mi        
+            memory: 2048Mi
       initContainers:
         - name: metadata-db-migrate
           GEN3_METADATA_IMAGE
@@ -87,7 +89,7 @@ spec:
           resources:
             limits:
               cpu: 0.8
-              memory: 512Mi        
+              memory: 512Mi
           command: ["/bin/sh"]
           args:
             - "-c"
