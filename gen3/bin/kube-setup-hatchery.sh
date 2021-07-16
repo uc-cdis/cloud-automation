@@ -20,9 +20,6 @@ gen3 jupyter j-namespace setup
 #
 (g3k_kv_filter ${GEN3_HOME}/kube/services/hatchery/serviceaccount.yaml BINDING_ONE "name: hatchery-binding1-$namespace" BINDING_TWO "name: hatchery-binding2-$namespace" CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -) || true
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/hatchery/hatchery-service.yaml"
-gen3 roll hatchery
-gen3 job cron hatchery-reaper '@daily'
 
 # cron job to distribute licenses if using Stata workspaces
 if [ "$(g3kubectl get configmaps/manifest-hatchery -o yaml | grep "\"image\": .*stata.*")" ];
@@ -59,3 +56,8 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
     gen3 awsrole attach-policy ${policyArn} --role-name ${role_name} --force-aws-cli || exit 1
 
 fi
+
+
+g3kubectl apply -f "${GEN3_HOME}/kube/services/hatchery/hatchery-service.yaml"
+gen3 roll hatchery
+gen3 job cron hatchery-reaper '@daily'
