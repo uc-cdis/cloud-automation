@@ -45,11 +45,11 @@ lock() {
   # currently trying to lock to unlocked with no owner
   if ! g3kubectl get configmaps locks > /dev/null 2>&1; then
     gen3_log_info "locks configmap not detected, creating one"
-    g3kubectl create configmap locks || { gen3_log_err "Failed to create configmap for locks" && exit 1; }
-    g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0 ||  { gen3_log_err "Failed to label configmap locks with ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0" && exit 1 ; }
+    g3kubectl create configmap locks || exit 1
+    g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0 || exit 1
   else 
     if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}}") = '' ]]; then
-      g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0 || { gen3_log_err "Failed to label configmap locks with ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0" && exit 1 ; }
+      g3kubectl label configmap locks ${lockName}=false ${lockName}_owner=none ${lockName}_exp=0 || exit 1
     fi
   fi
 
@@ -58,7 +58,7 @@ lock() {
   if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "false" 
     || $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -lt $(date +%s) ]]; then
     expTime=$(($(date +%s)+$lockDurationSecs))
-    g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime || { gen3_log_err "Failed to label --overwrite configmap locks with ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime" && exit 1 ; }
+    g3kubectl label --overwrite configmap locks ${lockName}=true ${lockName}_owner=$owner ${lockName}_exp=$expTime || exit 1
     sleep $(shuf -i 1-5 -n 1)
 
     if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
@@ -69,7 +69,7 @@ lock() {
     else
       if [[ $wait = true ]]; then
         while [[ $endWaitTime -gt $(date +%s) ]]; do
-          gen3_log_info "sleep loop until the lock is released or it expires"
+          # sleep loop until the lock is released or it expires
           if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
             && $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_exp}") -gt $(date +%s) ]]; then
             sleep $(shuf -i 1-5 -n 1)
@@ -80,15 +80,12 @@ lock() {
             exit 0
           fi
         done
-        gen3_log_err "timed out waiting for lock"
         exit 1
       else 
-        gen3_log_err "Lock exists, but owner $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.${lockName}_owner}") != $owner"
         exit 1
       fi
     fi
-  else
-    set -x 
+  else 
     if [[ $wait = true ]]; then
       while [[ $endWaitTime -gt $(date +%s) ]]; do
         if [[ $(g3kubectl get configmap locks -o jsonpath="{.metadata.labels.$lockName}") = "true" 
@@ -101,12 +98,8 @@ lock() {
           exit 0
         fi
       done
-      echo "### ## wait var: $wait"
-      g3kubectl get configmap locks -o yaml
-      gen3_log_err "Lock already exists and timed out waiting for lock to unlock"
       exit 1
     else 
-      gen3_log_err "Lock already exists"
       exit 1
     fi
   fi
