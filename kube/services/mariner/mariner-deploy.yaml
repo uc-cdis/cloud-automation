@@ -21,6 +21,7 @@ spec:
       labels:
         app: mariner
         release: test
+        s3: "yes"
         netnolimit: "yes" # check
         public: "yes"
         GEN3_DATE_LABEL
