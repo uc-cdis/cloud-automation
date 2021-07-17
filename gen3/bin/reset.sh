@@ -141,6 +141,9 @@ g3kubectl delete configmap fence
 g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 /bin/rm "$useryaml"
 
+# Recreate fence-config k8s secret on every CI run
+gen3 kube-setup-secrets
+
 #
 # various weird race conditions
 # where these setup jobs setup part of a service
