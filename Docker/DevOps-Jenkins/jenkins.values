@@ -1,0 +1,35 @@
+master:
+  # Used for label app.kubernetes.io/component
+  componentName: "gen3-devops-jenkins-master-deployment"
+  image: "quay.io/cdis/gen3-devops-jenkins-master"
+  tag: "poc1"
+  serviceType: NodePort
+  NodePort: 32324
+
+  installPlugins: false
+
+  podLabels:
+    app: jenkins
+
+  additionalEnv:
+    - name: AWS_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          name: jenkins-secret
+          key: aws_access_key_id
+    - name: AWS_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          name: jenkins-secret
+          key: aws_secret_access_key
+
+  command:
+  - /bin/bash
+  args:
+  - -c
+  - |
+    /sbin/tini -- /opt/cdis/bin/jenkins.sh
+rbac:
+  create: true
+persistence:
+  size: "200Gi"
