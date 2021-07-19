@@ -16,11 +16,6 @@ sed -i 's/\(.*\)"index": "\(.*\)_etl",$/\1"index": "jenkins_subject_alias",/' or
 sed -i 's/\(.*\)"index": "\(.*\)_file",$/\1"index": "jenkins_file_alias",/' original_guppy_config.yaml
 sed -i 's/\(.*\)"config_index": "\(.*\)_array-config",$/\1"config_index": "jenkins_configs_alias",/' original_guppy_config.yaml
 
-# mutating back to expected canine config in case this runs after pfb export test
-sed -i 's/\(.*\)"index": "\(.*\)_subject_alias",$/\1"index": "'"${prNumber}"'.'"${repoName}"'.\2_subject",/' original_guppy_config.yaml
-sed -i 's/\(.*\)"index": "\(.*\)_file_alias",$/\1"index": "'"${prNumber}"'.'"${repoName}"'.\2_file",/' original_guppy_config.yaml
-sed -i 's/\(.*\)"config_index": "\(.*\)_configs_alias",$/\1"config_index": "'"${prNumber}"'.'"${repoName}"'.\2_array-config",/' original_guppy_config.yaml
-
 g3kubectl delete configmap manifest-guppy
 g3kubectl apply -f original_guppy_config.yaml
 gen3 roll guppy
