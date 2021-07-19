@@ -62,6 +62,7 @@ gen3_sqs_create_queue() {
     gen3 cd 1>&2
     cat << EOF > config.tfvars
 sqs_name="$sqsName"
+slack_webhook="$g3k_slack_webhook"
 EOF
     gen3 tfplan 1>&2 || return 1
     gen3 tfapply 1>&2 || return 1
