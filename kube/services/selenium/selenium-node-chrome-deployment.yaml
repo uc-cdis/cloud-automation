@@ -2,13 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    cluster-autoscaler.kubernetes.io/safe-to-evict: false
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
   labels:
     app: selenium-node-chrome
   name: selenium-node-chrome
   namespace: default
 spec:
-  replicas: 10
+  replicas: 20
   selector:
     matchLabels:
       app: selenium-node-chrome
