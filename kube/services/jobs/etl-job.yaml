@@ -46,6 +46,12 @@ spec:
           value: 6g
         - name: ETL_FORCED
           GEN3_ETL_FORCED|-value: "TRUE"-|
+        - name: slackWebHook
+          valueFrom:
+            configMapKeyRef:
+              name: global
+              key: slack_webhook
+              optional: true
         volumeMounts:
           - name: "creds-volume"
             readOnly: true
