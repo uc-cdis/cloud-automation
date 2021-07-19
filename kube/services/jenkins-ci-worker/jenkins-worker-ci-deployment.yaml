@@ -1,6 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: false
   name: jenkins-ci-worker-deployment
 spec:
   selector:
