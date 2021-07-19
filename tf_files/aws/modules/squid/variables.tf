@@ -4,6 +4,15 @@ variable "ami_account_id" {
   default = "707767160287"
 }
 
+# the region containing the public source AMI
+variable "ami_region" {
+  default = "us-east-1"
+}
+
+# the name (pattern) of the public source AMI
+variable "ami_name" {
+  default = "ubuntu16-squid-1.0.2-*"
+}
 
 variable "csoc_cidr" {
   default = "10.128.0.0/20"
