@@ -122,6 +122,15 @@ g3k_environment() {
 g3k_hostname > /dev/null 2>&1 || true
 g3k_environment > /dev/null 2>&1 || true
 
+#
+# Lookup and cache slack_webhook 
+#
+g3k_slack_webhook() {
+  if [[ -z "$GEN3_SLACK_WEBHOOK" ]]; then
+    GEN3_CACHE_SLACK_WEBHOOK="$(g3kubectl get configmaps global -ojsonpath='{ .data.slack_webhook }')" || return 1
+  fi
+  echo "$GEN3_CACHE_SLACK_WEBHOOK"
+}
 
 #
 # Get the path to the manifest appropriate for this commons
