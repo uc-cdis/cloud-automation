@@ -29,17 +29,17 @@ gen3_shutdown_namespace() {
   for namespace in "${namespaceList[@]}"; do
     (
       export KUBECTL_NAMESPACE="$namespace"
-      g3kubectl delete --all deployments --now
+      g3kubectl delete --all deployments --now &
       # ssjdispatcher leaves jobs laying around when undeployed
-      g3kubectl delete --all "jobs" --now
+      g3kubectl delete --all "jobs" --now & 
       # ssjdispatcher leaves jobs laying around when undeployed
       if ! [ ${namespace}  == "default" ];
       then
-        g3kubectl delete --all "cronjobs" --now
+        g3kubectl delete --all "cronjobs" --now &
       fi
 
       # just delete every damn thing
-      g3kubectl delete --all "pods" --now
+      g3kubectl delete --all "pods" --now &
     )
   done
 }
