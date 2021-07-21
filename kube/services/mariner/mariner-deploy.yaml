@@ -56,8 +56,8 @@ spec:
             cpu: 0.4
             memory: 1200Mi
           limits:
-            memory: "256Mi"
-            cpu: "250m"
+            memory: 2400Mi
+            cpu: 0.8
         env:
           - name: AWSCREDS
             valueFrom:
@@ -78,17 +78,17 @@ spec:
             readOnly: true
             mountPath: "/var/www/mariner/dbcreds.json"
             subPath: dbcreds.json
-          command: ["/bin/bash"]
-          args:
-            - "-c"
-            - |
-              # set env vars
-              export PGDATABASE=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_database')
-              export PGUSER=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_username')
-              export PGPASSWORD=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_password')
-              export PGHOST=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_host')
-              export PGPORT="5432"
-              export PGSSLMODE="disable"
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            # set env vars
+            export PGDATABASE=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_database')
+            export PGUSER=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_username')
+            export PGPASSWORD=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_password')
+            export PGHOST=$(cat /var/www/mariner/dbcreds.json | jq -r '.db_host')
+            export PGPORT="5432"
+            export PGSSLMODE="disable"
 
               # TODO: bring db schema up to latest version
               #/go/src/github.com/uc-cdis/mariner/migrations/latest
