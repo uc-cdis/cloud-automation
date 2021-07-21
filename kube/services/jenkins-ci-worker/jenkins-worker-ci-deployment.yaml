@@ -103,8 +103,8 @@ spec:
                 key: google_app_creds.json
         resources:
           limits:
-            cpu: 0.6
-            memory: 2048Mi
+            cpu: 0.9
+            memory: 4096Mi
         imagePullPolicy: Always
         volumeMounts:
         - name: "cert-volume"
