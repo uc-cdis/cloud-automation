@@ -1,8 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
   name: jenkins-worker-deployment
 spec:
   selector:
@@ -15,6 +13,8 @@ spec:
         app: jenkins-worker
         # for network policy
         netnolimit: "yes"
+      annotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
       serviceAccountName: jenkins-service
       securityContext:
