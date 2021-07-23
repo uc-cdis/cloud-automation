@@ -1,8 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
   labels:
     app: selenium-node-chrome
   name: selenium-node-chrome
@@ -21,6 +19,8 @@ spec:
     metadata:
       labels:
         app: selenium-node-chrome
+      annotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
       containers:
       - env:
