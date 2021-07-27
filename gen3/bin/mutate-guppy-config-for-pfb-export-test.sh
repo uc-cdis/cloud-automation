@@ -33,6 +33,8 @@ g3kubectl get configmap manifest-guppy -o yaml > original_guppy_config.yaml
 # mutating permanent jenkins config
 sed -i 's/\(.*\)"index": "\(.*\)_subject",$/\1"index": '"${etl_mapping_subject}"',/' original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_etl",$/\1"index": '"${etl_mapping_subject}"',/' original_guppy_config.yaml
+# exclusive for bloodpac-like envs
+sed -i 's/\(.*\)"index": "\(.*\)_study",$/\1"index": '"${etl_mapping_subject}"',/' original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_file",$/\1"index": '"${etl_mapping_file}"',/' original_guppy_config.yaml
 sed -i 's/\(.*\)"config_index": "\(.*\)_array-config",$/\1"config_index": '"${etl_config}"',/' original_guppy_config.yaml
 
