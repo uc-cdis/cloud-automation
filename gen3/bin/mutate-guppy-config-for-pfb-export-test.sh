@@ -26,7 +26,7 @@ etl_mapping_subject=$(g3kubectl get cm etl-mapping -o jsonpath='{.data.etlMappin
 echo "### ## etl_mapping_subject: ${etl_mapping_subject}"
 etl_mapping_file=$(g3kubectl get cm etl-mapping -o jsonpath='{.data.etlMapping\.yaml}' | yq .mappings[1].name)
 echo "echo "### ## etl_mapping_file: ${etl_mapping_file}"
-etl_config=$(echo $etl_mapping_subject | sed 's/\(.*\)_etl/\1_array-config/')
+etl_config=$(echo $etl_mapping_subject | sed 's/\(.*\)_\(.*\)$/\1_array-config/')
 echo "### ## etl_config: ${etl_config}"
 
 g3kubectl get configmap manifest-guppy -o yaml > original_guppy_config.yaml
@@ -35,6 +35,8 @@ sed -i 's/\(.*\)"index": "\(.*\)_subject",$/\1"index": '"${etl_mapping_subject}"
 sed -i 's/\(.*\)"index": "\(.*\)_etl",$/\1"index": '"${etl_mapping_subject}"',/' original_guppy_config.yaml
 # exclusive for bloodpac-like envs
 sed -i 's/\(.*\)"index": "\(.*\)_study",$/\1"index": '"${etl_mapping_subject}"',/' original_guppy_config.yaml
+# the pre-defined Canine index works with subject ONLY (never case)
+sed -i 's/\(.*\)"type": "case"$/\1"type": "subject"/' original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_file",$/\1"index": '"${etl_mapping_file}"',/' original_guppy_config.yaml
 sed -i 's/\(.*\)"config_index": "\(.*\)_array-config",$/\1"config_index": '"${etl_config}"',/' original_guppy_config.yaml
 
