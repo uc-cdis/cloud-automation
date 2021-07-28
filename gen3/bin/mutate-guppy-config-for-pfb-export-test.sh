@@ -26,7 +26,7 @@ etl_mapping_subject=$(g3kubectl get cm etl-mapping -o jsonpath='{.data.etlMappin
 echo "### ## etl_mapping_subject: ${etl_mapping_subject}"
 etl_mapping_file=$(g3kubectl get cm etl-mapping -o jsonpath='{.data.etlMapping\.yaml}' | yq .mappings[1].name)
 echo "echo "### ## etl_mapping_file: ${etl_mapping_file}"
-etl_config=$(echo $etl_mapping_subject | sed 's/\(.*\)_\(.*\)$/\1_array-config/')
+etl_config=$(echo $etl_mapping_subject | tr -d '"' | sed 's/\(.*\)_\(.*\)$/\1_array-config/')
 echo "### ## etl_config: ${etl_config}"
 
 g3kubectl get configmap manifest-guppy -o yaml > original_guppy_config.yaml
@@ -38,12 +38,14 @@ sed -i 's/\(.*\)"index": "\(.*\)_study",$/\1"index": '"${etl_mapping_subject}"',
 # the pre-defined Canine index works with subject ONLY (never case)
 sed -i 's/\(.*\)"type": "case"$/\1"type": "subject"/' original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_file",$/\1"index": '"${etl_mapping_file}"',/' original_guppy_config.yaml
-sed -i 's/\(.*\)"config_index": "\(.*\)_array-config",$/\1"config_index": '"${etl_config}"',/' original_guppy_config.yaml
+# note: including double-quotes around etl_config here
+sed -i 's/\(.*\)"config_index": "\(.*\)_array-config",$/\1"config_index": "'"${etl_config}"'",/' original_guppy_config.yaml
 
 # mutating after guppy test (pre-defined canine config) and some qa-* env guppy configs
 sed -i 's/\(.*\)"index": "\(.*\)_subject_alias",$/\1"index": '"${etl_mapping_subject}"',/' original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "\(.*\)_file_alias",$/\1"index": '"${etl_mapping_file}"',/' original_guppy_config.yaml
-sed -i 's/\(.*\)"config_index": "\(.*\)_configs_alias",$/\1"config_index": '"${etl_config}"',/' original_guppy_config.yaml
+# note: including double-quotes around etl_config here
+sed -i 's/\(.*\)"config_index": "\(.*\)_configs_alias",$/\1"config_index": "'"${etl_config}"'",/' original_guppy_config.yaml
 
 g3kubectl delete configmap manifest-guppy
 g3kubectl apply -f original_guppy_config.yaml
