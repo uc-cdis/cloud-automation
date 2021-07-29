@@ -51,5 +51,6 @@ else
   g3kubectl create secret generic portal-sponsor-config
 fi
 
+dataUploadBucketName=$(gen3 secrets decode fence-config fence-config.yaml | yq -r .DATA_UPLOAD_BUCKET)
 g3kubectl apply -f "${GEN3_HOME}/kube/services/portal/portal-service.yaml"
-gen3 roll portal
+gen3 roll portal GEN3_DATA_UPLOAD_BUCKET $dataUploadBucketName

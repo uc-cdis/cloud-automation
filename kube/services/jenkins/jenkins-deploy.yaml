@@ -1,8 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
   name: jenkins-deployment
 spec:
   selector:
@@ -23,6 +21,8 @@ spec:
         # for network policy
         netnolimit: "yes"
         GEN3_DATE_LABEL
+      annotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
       serviceAccountName: jenkins-service
       securityContext:
