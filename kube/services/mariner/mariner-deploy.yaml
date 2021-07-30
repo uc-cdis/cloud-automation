@@ -4,7 +4,7 @@ kind: Deployment
 metadata:
   name: mariner-deployment
   annotations:
-    gen3.io/network-ingress: "fence,presigned-url-fence,fenceshib,peregrine,sheepdog,ssjdispatcherjob,metadata"
+    gen3.io/network-ingress: "mariner-engine,fence,presigned-url-fence,fenceshib,peregrine,sheepdog,ssjdispatcherjob,metadata"
 spec:
   selector:
     # Only select pods based on the 'app' label
