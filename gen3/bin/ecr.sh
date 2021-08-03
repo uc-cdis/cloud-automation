@@ -5,29 +5,7 @@ gen3_load "gen3/gen3setup"
 
 # constants -----------------------
 
-repoList=(
-arborist
-fence
-indexd
-peregrine
-pidgin
-nginx
-sheepdog
-data-portal
-gen3-spark
-tube
-guppy
-sower
-hatchery
-workspace-token-service
-manifestservice
-gen3-statics
-metadata-service
-requestor
-audit-service
-)
-# ambassador
-#repoList=( fence )
+repoList=$(aws ecr describe-repositories | jq -r .repositories[].repositoryName)
 
 accountList=(
 053927701465
@@ -51,6 +29,7 @@ accountList=(
 830067555646
 895962626746
 980870151884
+205252583234
 )
 
 principalStr=""
@@ -101,7 +80,7 @@ gen3_quay_login() {
     if gen3_time_since quay-login is 36000; then
       cat ~/Gen3Secrets/quay/login | docker login --username cdis+gen3 --password-stdin quay.io
     fi
-  else
+  else 
     gen3_log_err "Place credentials for the quay robot account (cdis+gen3) in this file ~/Gen3Secrets/quay/login"
     exit 1
   fi
@@ -116,7 +95,7 @@ gen3_quay_login() {
 gen3_ecr_copy_image() {
   local srcTag="$1"
   local destTag="$2"
-  if [[ "$destTag" == *"quay.io"* ]]; then
+  if [[ "$destTag" == *"quay.io"* ]]; then 
     gen3_quay_login || return 1
   else
     gen3_ecr_login || return 1
@@ -179,11 +158,25 @@ gen3_ecr_update_policy() {
   aws ecr set-repository-policy --repository-name "$repoName" --policy-text "$policy"
 }
 
+
 #
 # List the `gen3/` repository names (in the current account)
 #
 gen3_ecr_repolist() {
   aws ecr describe-repositories | jq -r '.repositories[] | .repositoryName' | grep '^gen3/'
+}
+
+
+gen3_ecr_registry() {
+  echo "$ecrReg"
+}
+
+gen3_ecr_update_all() {
+  repoList=$(gen3_ecr_repolist)
+  echo $repoList
+  for repo in $repoList; do
+    gen3_ecr_update_policy $repo
+  done 
 }
 
 # Check if the Quay image exists in ECR repository
@@ -203,9 +196,6 @@ gen3_ecr_describe_image() {
     aws ecr describe-images --repository-name ${repoName} --image-ids imageTag=${tagName}
 }
 
-gen3_ecr_registry() {
-  echo "$ecrReg"
-}
 
 # main -----------------------
 
@@ -225,6 +215,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "update-policy")
       gen3_ecr_update_policy "$@"
+      ;;
+    "update-all")
+      gen3_ecr_update_all "$@"
       ;;
     "copy")
       gen3_ecr_copy_image "$@"

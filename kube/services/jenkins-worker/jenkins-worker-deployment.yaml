@@ -13,6 +13,8 @@ spec:
         app: jenkins-worker
         # for network policy
         netnolimit: "yes"
+      annotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
       serviceAccountName: jenkins-service
       securityContext:
@@ -45,7 +47,7 @@ spec:
       #   https://estl.tech/accessing-docker-from-a-kubernetes-pod-68996709c04b
       #
       - name: jenkins-worker
-        image: "registry.hub.docker.com/jenkins/jnlp-slave:4.3-1"
+        image: "quay.io/cdis/gen3-qa-worker:master"
         ports:
         - containerPort: 8080
         env:

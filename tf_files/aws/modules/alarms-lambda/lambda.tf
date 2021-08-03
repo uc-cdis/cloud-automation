@@ -58,7 +58,7 @@ resource "aws_lambda_function" "lambda" {
   function_name    = "cloudwatch-lambda-${var.vpc_name}"
   role             = "${aws_iam_role.lambda_role.arn}"
   handler          = "lambda_function.processMessage"
-  runtime          = "ruby2.5"
+  runtime          = "ruby2.7"
   source_code_hash = "${data.archive_file.cloudwatch_lambda.output_base64sha256}"
   environment {
     variables = {
