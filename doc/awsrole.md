@@ -42,13 +42,15 @@ Options:
 
 ### attach-policy
 
-Attaches a policy to a role
+Attaches a policy to a user or role
 ```
-  gen3 awsrole attach-policy <rolename> <policyARN>
+  gen3 awsrole attach-policy <policyARN> --role-name <rolename>
+  gen3 awsrole attach-policy <policyARN> --user-name <username>
 ```
 Options:
-  - rolename: name of role to attach policy to
   - policyARN: arn of policy to attach to role
+  - rolename/username: name of entity to attach policy to
+  - --force-aws-cli: use the AWS CLI even when a Terraform module exists
 
 
 ### sa-ar-policy $serviceAccountName
