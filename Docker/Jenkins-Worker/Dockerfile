@@ -63,6 +63,20 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
 # Install jq 1.6
 RUN wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x jq-linux64 && mv jq-linux64 /usr/bin/jq
 
+#
+# install docker tools:
+#  * https://docs.docker.com/install/linux/docker-ce/debian/#install-docker-ce-1
+#  * https://docs.docker.com/compose/install/#install-compose
+#
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
+    && /usr/bin/add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian \
+    $(lsb_release -c -s) \
+    stable" \
+    && apt-get update \
+    && apt-get install -y docker-ce \
+    && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+    && chmod a+rx /usr/local/bin/docker-compose
+
 # Copy sh script responsible for installing Python
 COPY install-python3.8.sh /root/tmp/install-python3.8.sh
 
@@ -85,22 +99,6 @@ RUN sed -i 's/python3/python3.5/' /usr/bin/lsb_release && \
 RUN set -xe && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade
 
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.8 -
-
-#
-# install docker tools:
-#  * https://docs.docker.com/install/linux/docker-ce/debian/#install-docker-ce-1
-#  * https://docs.docker.com/compose/install/#install-compose
-#
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
-    && add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/debian \
-   $(lsb_release -cs) \
-   stable" \
-   && apt-get update \
-   && apt-get install -y docker-ce \
-   && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-   && chmod a+rx /usr/local/bin/docker-compose
-
 
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
