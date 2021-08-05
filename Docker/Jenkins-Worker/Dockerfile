@@ -96,6 +96,14 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/
 RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
 RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
 
+# add psql: https://www.postgresql.org/download/linux/debian/
+RUN DISTRO="$(lsb_release -c -s)"  \
+      && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+      && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+      && apt-get update \
+      && apt-get install -y postgresql-client-9.6 \
+      && rm -rf /var/lib/apt/lists/*
+
 # Copy sh script responsible for installing Python
 COPY install-python3.8.sh /root/tmp/install-python3.8.sh
 
@@ -120,14 +128,6 @@ RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
   && /bin/echo -e "\n%sudo    ALL=(ALL:ALL) NOPASSWD:ALL\n" >> /etc/sudoers.bak \
   && cp /etc/sudoers.bak /etc/sudoers \
   && usermod -G sudo jenkins
-
-# add psql: https://www.postgresql.org/download/linux/debian/
-RUN DISTRO="$(lsb_release -c -s)"  \
-      && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
-      && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-      && apt-get update \
-      && apt-get install -y postgresql-client-9.6 \
-      && rm -rf /var/lib/apt/lists/*
 
 USER jenkins
 
