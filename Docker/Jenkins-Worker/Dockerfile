@@ -112,11 +112,15 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
         bash /root/tmp/install-python3.8.sh && \
         rm -rf /root/tmp/install-python3.8.sh && \
         unlink /usr/bin/python3 && \
-        ln -s /Python-3.8.0/python /usr/bin/python3
+        ln -s /usr/local/bin/python3.8 /usr/bin/python3
 
 RUN env
 RUN which python
 RUN which python3.8
+
+# Fix shebang for lsb_release
+RUN sed -i 's/python3/python3.7/' /usr/bin/lsb_release && \
+    sed -i 's/python3/python3.7/' /usr/bin/add-apt-repository
 
 # install aws cli, poetry, pytest, etc.
 RUN set -xe && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade
