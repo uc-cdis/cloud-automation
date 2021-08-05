@@ -23,3 +23,9 @@ gen3 jupyter j-namespace setup
 g3kubectl apply -f "${GEN3_HOME}/kube/services/hatchery/hatchery-service.yaml"
 gen3 roll hatchery
 gen3 job cron hatchery-reaper '@daily'
+
+# cron job to distribute licenses if using Stata workspaces
+if [ "$(g3kubectl get configmaps/manifest-hatchery -o yaml | grep "\"image\": .*stata.*")" ];
+then
+    gen3 job cron distribute-licenses '* * * * *'
+fi

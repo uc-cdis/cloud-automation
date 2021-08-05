@@ -73,7 +73,7 @@ setup_access_backend() {
 
     local saName=$(echo "access-${hostname//./-}" | head -c63)
     if ! g3kubectl get sa "$saName" > /dev/null 2>&1; then
-      local role_name
+      local roleName
       if ! g3kubectl get sa access-backend-sa > /dev/null 2>&1; then
         roleName="$(gen3 api safe-name access-backend)"
         gen3 awsrole create "$roleName" access-backend-sa
@@ -103,10 +103,10 @@ EOM
         aws iam create-policy --policy-name $roleName --policy-document "$policy"
         accountNumber=$(aws sts get-caller-identity | jq -r .Account)
         sleep 15
-        gen3 awsrole attach-policy $roleName arn:aws:iam::$accountNumber:policy/$roleName
+        gen3 awsrole attach-policy arn:aws:iam::$accountNumber:policy/$roleName --role-name $roleName
       fi
       gen3_log_info "created service account '${saName}' with dynamodb access"
-      gen3_log_info "created role name '${role_name}'"
+      gen3_log_info "created role name '${roleName}'"
       # TODO do I need the following: ???
       # gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${role_name}"
       # gen3_log_info "attached read-write bucket policy to '${bucketName}' for role '${role_name}'"

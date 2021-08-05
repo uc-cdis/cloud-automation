@@ -86,7 +86,7 @@ case "$test" in
           g3kubectl logs $(gen3 pod gen3qa-check-bucket-access) -c gen3qa-check-bucket-access -f
           echo "press ctrl+C to quit..."
           # TODO: This hack is necessary due to the nature of the Selenium sidecar
-          # CodeceptJS has a hard dependency on a running Selenium so that is the only way to run suites/google/checkAllProjectsGoogleBucketAccessTest.js
+          # CodeceptJS has a hard dependency on a running Selenium so that is the only way to run suites/prod/checkAllProjectsBucketAccessTest.js
           # We should create a selenium-standlone wrapper docker img with a proper kill switch 
 	  trap terminate_pod SIGINT
 	  sleep infinity

@@ -2,21 +2,21 @@
 
 ## Fence Database
 
-### Get All User Access by Username and Project.auth_id
+### Get All User Access by Username and Project.auth_id, include Authorization Source name
 ```sql
-select "User".username, project.auth_id from access_privilege INNER JOIN "User" on access_privilege.user_id="User".id INNER JOIN project on access_privilege.project_id=project.id ORDER BY "User".username;
+select "User".username, project.auth_id, authorization_provider.name from access_privilege INNER JOIN "User" on access_privilege.user_id="User".id INNER JOIN project on access_privilege.project_id=project.id INNER JOIN authorization_provider on access_privilege.provider_id=authorization_provider.id ORDER BY "User".username;
 ```
 
 Example output:
 ```console
-             username             |  auth_id
-----------------------------------+-----------
- USER_A                           | test1
- USER_A                           | test2
- USER_B                           | test1
- USER_B                           | test2
- USER_B                           | test3
- USER_C                           | test2
+             username             |  auth_id  | name 
+----------------------------------+-----------+-------
+ USER_A                           | test1     | fence
+ USER_A                           | test2     | dbGaP
+ USER_B                           | test1     | fence
+ USER_B                           | test2     | fence
+ USER_B                           | test3     | dbGaP
+ USER_C                           | test2     | dbGaP
 
 ```
 

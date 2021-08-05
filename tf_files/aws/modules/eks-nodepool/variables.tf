@@ -72,3 +72,11 @@ variable "jupyter_asg_max_size" {
 variable "jupyter_asg_min_size" {
   default = 0
 }
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}

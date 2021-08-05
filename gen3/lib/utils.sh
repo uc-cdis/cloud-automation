@@ -1,6 +1,6 @@
 #
 # Helpers for both `gen3` and `g3k`.
-# Test with `gen3 testsuite` - see ../bin/testsuite.sh 
+# Test with `gen3 testsuite` - see ../bin/testsuite.sh
 #
 
 # Jenkins friendly
@@ -45,7 +45,7 @@ gen3_secrets_folder() {
     if [[ ! -d "$filePath" ]]; then
       mkdir -p -m 0700 "$filePath"
     fi
-  done    
+  done
 )
 
 # MacOS has 'md5', linux has 'md5sum'
@@ -137,7 +137,7 @@ fi
 
 
 #
-# Little helper for interactive debugging - 
+# Little helper for interactive debugging -
 # clears the GEN3_SOURCED_SCRIPTS flags,
 # and re-source gen3setup.sh
 #
@@ -206,7 +206,7 @@ function random_alphanumeric() {
 }
 
 #
-# Little helper returns true (0 exit code) if time since the last call to 
+# Little helper returns true (0 exit code) if time since the last call to
 # ${operation} is greater than ${periodSecs} seconds.
 # If the time period has expired, then also touches the file
 # under the assumption that the caller will go on to perform the operation:
@@ -332,12 +332,12 @@ gen3_is_number() {
 gen3_encode_uri_component() {
   local codes=(
     "%" "%25"
-    " " "%20" 
-    "=" "%3D" 
-    "[" "%5B" 
-    "]" "%5D" 
-    "{" "%7B" 
-    "}" "%7D" 
+    " " "%20"
+    "=" "%3D"
+    "[" "%5B"
+    "]" "%5D"
+    "{" "%7B"
+    "}" "%7D"
     '"' "%22"
     '\?' "%3F"
     "&" "%26"
@@ -392,4 +392,45 @@ check_terraform_module() {
     gen3_log_info "Moving on with terraform 0.11.x"
   fi
   echo "${tversion}"
+}
+
+#
+# Util for checking if an entity already has a policy attached to them
+#
+# @param entityType: aws entity type (e.g. user, role...)
+# @param entityName
+# @param policyArn
+#
+_entity_has_policy() {
+  # returns true if entity already has policy, false otherwise
+  local entityType=$1
+  local entityName=$2
+  local policyArn=$3
+  # fetch policies attached to entity and check if bucket policy is already attached
+  local currentAttachedPolicies
+  currentAttachedPolicies=$(gen3_aws_run aws iam list-attached-${entityType}-policies --${entityType}-name $entityName 2>&1)
+  if [[ $? != 0 ]]; then
+    return 1
+  fi
+
+  if [[ ! -z $(echo $currentAttachedPolicies | jq '.AttachedPolicies[] | select(.PolicyArn == "'"${policyArn}"'")') ]]; then
+    echo "true"
+    return 0
+  fi
+
+  echo "false"
+  return 0
+}
+
+wait_for_esproxy() {
+  COUNT=0
+  while [[ 'true' != $(g3kubectl get pods --selector=app=esproxy -o json | jq -r '.items[].status.containerStatuses[0].ready' | tr -d '\n') ]]; do
+    if [[ COUNT -gt 50 ]]; then
+      echo "wait too long for esproxy"
+      exit 1
+    fi
+    echo "waiting for esproxy to be ready"
+    sleep 5
+    let COUNT+=1
+  done
 }

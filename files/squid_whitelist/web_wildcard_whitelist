@@ -3,6 +3,7 @@
 .amazonaws.com
 .amazoncognito.com
 .anaconda.com
+.anaconda.org
 .apache.org
 .qg3.apps.qualys.com
 .archive.canonical.com
@@ -25,6 +26,7 @@
 .covidtracking.com
 .cpan.org
 .datacommons.io
+.datadoghq.com
 .datastage.io
 .docker.com
 .docker.io
@@ -48,6 +50,7 @@
 .letsencrypt.org
 .maven.org
 .metacpan.org
+.midrc.org
 .newrelic.com
 .niaiddata.org
 .nih.gov
