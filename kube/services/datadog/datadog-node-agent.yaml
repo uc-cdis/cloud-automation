@@ -406,16 +406,20 @@ subjects:
 apiVersion: v1
 kind: Service
 metadata:
-  name: datadog-agent-cluster-agent
+  name: datadog-agent
   labels: {}
 spec:
   type: ClusterIP
   selector:
-    app: datadog-agent-cluster-agent
+    app: datadog-agent
   ports:
   - port: 5005
     name: agentport
     protocol: TCP
+  - name: agentstatsdport
+    port: 8125
+    protocol: UDP
+    targetPort: 8125
 ---
 # Source: datadog/templates/daemonset.yaml
 apiVersion: apps/v1
