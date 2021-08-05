@@ -39,8 +39,6 @@ DB_HOST=$(jq -r .db_host < "$secretsFolder/dbcreds.json")
 DB_USER=$(jq -r .db_username < "$secretsFolder/dbcreds.json")
 DB_PASSWORD=$(jq -r .db_password < "$secretsFolder/dbcreds.json")
 DB_DATABASE=$(jq -r .db_database < "$secretsFolder/dbcreds.json")
-USE_AGG_MDS=false
-AGG_MDS_NAMESPACE=$(gen3 db namespace)
 ADMIN_LOGINS=gateway:$password
 EOM
     # make it easy for nginx to get the Authorization header ...
@@ -57,6 +55,14 @@ fi
 if ! setup_database; then
   gen3_log_err "kube-setup-metadata bailing out - database failed setup"
   exit 1
+fi
+
+aggregateConfigFile="$(dirname $(g3k_manifest_path))/metadata/aggregate_config.json"
+if [ -f "${aggregateConfigFile}" ]; then
+  if g3kubectl get secrets metadata-config > /dev/null 2>&1; then
+    g3kubectl delete secret metadata-config
+  fi
+  g3kubectl create secret generic metadata-config --from-file="${aggregateConfigFile}"
 fi
 
 if grep "USE_AGG_MDS=true" "$(gen3_secrets_folder)/g3auto/metadata/metadata.env" > /dev/null 2>&1; then
