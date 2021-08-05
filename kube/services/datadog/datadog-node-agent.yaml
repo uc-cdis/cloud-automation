@@ -406,7 +406,7 @@ subjects:
 apiVersion: v1
 kind: Service
 metadata:
-  name: datadog-agent
+  name: datadog-agent-cluster-agent
   labels: {}
 spec:
   type: ClusterIP
