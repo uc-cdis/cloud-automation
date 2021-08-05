@@ -8,7 +8,7 @@ set -xe
 # script for mutating the guppy configuration on jenkins env
 
 # how to run:
-# gen3 mutate-guppy-config-for-guppy-test
+# gen3 mutate-guppy-config-for-study-viewer-test
 
 g3kubectl get configmap manifest-guppy -o yaml > original_guppy_config.yaml
 sed -i 's/\(.*\)"index": "jenkins_cmc_alias",$/\1"index": "jenkins_cmc_permanent_alias",/' original_guppy_config.yaml
