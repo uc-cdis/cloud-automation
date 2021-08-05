@@ -77,25 +77,6 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
     && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod a+rx /usr/local/bin/docker-compose
 
-# Copy sh script responsible for installing Python
-COPY install-python3.8.sh /root/tmp/install-python3.8.sh
-
-# Run the script responsible for installing Python 3.8.0 and link it to /usr/bin/python
-RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
-        bash /root/tmp/install-python3.8.sh && \
-        rm -rf /root/tmp/install-python3.8.sh && \
-        unlink /usr/bin/python3 && \
-        ln -s /Python-3.8.0/python /usr/bin/python3
-
-RUN env
-RUN which python
-RUN which python3.8
-
-# install aws cli, poetry, pytest, etc.
-RUN set -xe && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade
-
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.8 -
-
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get update && apt-get install -y nodejs
@@ -114,6 +95,25 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/
 # install packer
 RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
 RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
+
+# Copy sh script responsible for installing Python
+COPY install-python3.8.sh /root/tmp/install-python3.8.sh
+
+# Run the script responsible for installing Python 3.8.0 and link it to /usr/bin/python
+RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
+        bash /root/tmp/install-python3.8.sh && \
+        rm -rf /root/tmp/install-python3.8.sh && \
+        unlink /usr/bin/python3 && \
+        ln -s /Python-3.8.0/python /usr/bin/python3
+
+RUN env
+RUN which python
+RUN which python3.8
+
+# install aws cli, poetry, pytest, etc.
+RUN set -xe && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade
+
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.8 -
 
 # update /etc/sudoers
 RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
