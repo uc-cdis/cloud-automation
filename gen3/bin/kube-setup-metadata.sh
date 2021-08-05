@@ -65,7 +65,7 @@ if [ -f "${aggregateConfigFile}" ]; then
   g3kubectl create secret generic metadata-config --from-file="${aggregateConfigFile}"
 fi
 
-if grep "USE_AGG_MDS=true" "$(gen3_secrets_folder)/g3auto/metadata/metadata.env" > /dev/null 2>&1; then
+if g3kubectl get configmap manifest-metadata -o json | jq '.data.USE_AGG_MDS == "true"' > /dev/null 2>&1; then
   gen3_log_info "kube-setup-metadata setting up aws-es-proxy dependency"
   gen3 kube-setup-aws-es-proxy || true
   wait_for_esproxy
