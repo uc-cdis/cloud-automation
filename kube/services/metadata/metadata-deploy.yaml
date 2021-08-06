@@ -103,6 +103,13 @@ spec:
           limits:
             cpu: 1
             memory: 2048Mi
+        lifecycle:
+          # Run the agg mds import as a post start command. Aggregare MDS may refer back to its _own_ non-aggregate MDS as a data source
+          # and so we must wait for the app to be running locally if needed.
+          postStart:
+            exec:
+              # This command will check environment variables and exit cleanly if this should not actually run.
+              command: ["python", "/src/src/mds/populate.py", "--config", "/aggregate_config.json", "--hostname", "esproxy-service", "--port", "9200"]
       initContainers:
         - name: metadata-db-migrate
           GEN3_METADATA_IMAGE
@@ -121,49 +128,3 @@ spec:
             - "-c"
             - |
               /env/bin/alembic upgrade head
-        - name: metadata-aggregate-mds-pull
-          GEN3_METADATA_IMAGE
-          imagePullPolicy: Always
-          volumeMounts:
-            - name: config-volume-g3auto
-              readOnly: true
-              mountPath: /src/.env
-              subPath: metadata.env
-            - name: config-volume
-              readOnly: true
-              mountPath: /aggregate_config.json
-              subPath: aggregate_config.json
-          env:
-            - name: GEN3_DEBUG
-              GEN3_DEBUG_FLAG|-value: "False"-|
-            - name: GEN3_ES_ENDPOINT
-              value: http://esproxy-service:9200
-            - name: USE_AGG_MDS
-              valueFrom:
-                configMapKeyRef:
-                  name: manifest-metadata
-                  key: USE_AGG_MDS
-                  optional: true
-            - name: AGG_MDS_NAMESPACE
-              valueFrom:
-                configMapKeyRef:
-                  name: manifest-metadata
-                  key: AGG_MDS_NAMESPACE
-                  optional: true
-          resources:
-            limits:
-              cpu: 0.8
-              memory: 512Mi
-          command: ["/bin/sh"]
-          args:
-            - "-c"
-            - |
-              if [ "${USE_AGG_MDS}" != "true" ]; then
-                echo "agg mds not enabled"
-                exit 0
-              fi
-              if [ ! -f /aggregate_config.json ]; then
-                echo "no agg mds config file found"
-                exit 0
-              fi
-              python /src/src/mds/populate.py --config /aggregate_config.json --hostname esproxy-service --port 9200
