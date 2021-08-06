@@ -43,12 +43,18 @@ spec:
         - name: config-volume-g3auto
           secret:
             secretName: metadata-g3auto
+        # This volume may or may not be needed or available. See kube-setup-metadata.sh and note that this
+        # is only available if a <manifest dir>/metadata directory exists.
         - name: config-volume
           secret:
             secretName: metadata-config
+            optional: true
+        # This volume may or may not be needed or available. See kube-setup-metadata.sh and note that this
+        # may not exist if the commons does not have any metadata manifest configuration.
         - name: config-manifest
           configMap:
             name: manifest-metadata
+            optional: true
       containers:
       - name: metadata
         GEN3_METADATA_IMAGE
