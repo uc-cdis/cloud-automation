@@ -103,13 +103,6 @@ spec:
           limits:
             cpu: 1
             memory: 2048Mi
-        lifecycle:
-          # Run the agg mds import as a post start command. Aggregare MDS may refer back to its _own_ non-aggregate MDS as a data source
-          # and so we must wait for the app to be running locally if needed.
-          postStart:
-            exec:
-              # This command will check environment variables and exit cleanly if this should not actually run.
-              command: ["python", "/src/src/mds/populate.py", "--config", "/aggregate_config.json", "--hostname", "esproxy-service", "--port", "9200"]
       initContainers:
         - name: metadata-db-migrate
           GEN3_METADATA_IMAGE
