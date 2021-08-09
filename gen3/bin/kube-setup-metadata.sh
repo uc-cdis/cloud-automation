@@ -59,28 +59,26 @@ fi
 
 # The metadata-config secret is a collection of arbitrary files at <manifest dir>/metadata
 # Today, we only care about that secret if the directory exists. See metadata-deploy and that
-# this secret will be marked as optional for the pod.
+# this secret will be marked as optional for the pod, so it is OK if this secret is not created.
 if [ -d "$(dirname $(g3k_manifest_path))/metadata" ]; then
   if g3kubectl get secrets metadata-config > /dev/null 2>&1; then
     # We want to re-create this on every setup to pull the latest state.
     g3kubectl delete secret metadata-config
   fi
 
-  # Individual files within the metadata directory that we care about for the metadata-config secret.
+  # Use the aggregate_config.json file in the metadata-config secret if that file exists.
   aggregateConfigFile="$(dirname $(g3k_manifest_path))/metadata/aggregate_config.json"
   if [ -f "${aggregateConfigFile}" ]; then
     g3kubectl create secret generic metadata-config --from-file="${aggregateConfigFile}"
   fi
 fi
 
-# Create the metadata manifest configmap if it doesn't exist.
-if ! kubectl get configmap manifest-metadata > /dev/null 2>&1; then
-  # This may not actually create a manifest-metadata config map if the user did not specify any metadata
-  # keys in their manifest configuration.
-  gen3 gitops configmaps
-fi
+# Sync the manifest config from manifest.json (or manifests/metadata.json) to the k8s config map.
+# This may not actually create the manifest-metadata config map if the user did not specify any metadata
+# keys in their manifest configuration.
+gen3 gitops configmaps
 
-# Check the metadata manifest configmap to see if the agg mds is enabled
+# Check the manifest-metadata configmap to see if the aggregate mds feature is enabled.
 if g3kubectl get configmap manifest-metadata -o json | jq -r '.data.json' | jq '.USE_AGG_MDS == true' > /dev/null 2>&1; then
   gen3_log_info "kube-setup-metadata setting up aws-es-proxy dependency"
   gen3 kube-setup-aws-es-proxy || true
