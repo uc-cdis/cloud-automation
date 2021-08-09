@@ -2,7 +2,11 @@
 
 ## `ConfigMap`s
 
-`webapi.conf` file as `ohdsi-atlas-nginx-webapi`:
+### `webapi.conf` file as `ohdsi-atlas-nginx-webapi`
+
+```
+kubectl create configmap ohdsi-atlas-nginx-webapi --from-file=webapi.conf
+```
 
 ```
     resolver kube-dns.kube-system.svc.cluster.local ipv6=off;
@@ -19,7 +23,11 @@
     }
 ```
 
-`config-local.js` file as `ohdsi-atlas-config-local`:
+### `config-local.js` file as `ohdsi-atlas-config-local`
+
+```
+kubectl create configmap ohdsi-atlas-config-local --from-file=config-local.js
+```
 
 ```
 define([], function () {
@@ -42,7 +50,11 @@ define([], function () {
 });
 ```
 
-`ohdsi-webapi-config.yaml`:
+### `ohdsi-webapi-config.yaml`
+
+```
+kubectl apply -f ohdsi-webapi-config.yaml
+```
 
 ```
 apiVersion: v1
