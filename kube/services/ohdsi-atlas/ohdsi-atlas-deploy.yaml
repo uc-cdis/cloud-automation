@@ -37,6 +37,9 @@ spec:
         - name: ohdsi-atlas-config-local
           configMap:
             name: ohdsi-atlas-config-local
+        - name: ohdsi-atlas-nginx-webapi
+          configMap:
+            name: ohdsi-atlas-nginx-webapi
       containers:
         - name: ohdsi-atlas
           GEN3_OHDSI_ATLAS_IMAGE|-image: quay.io/cdis/ohdsi-atlas:latest-|
@@ -58,6 +61,10 @@ spec:
               readOnly: true
               mountPath: /usr/share/nginx/html/atlas/js/config-local.js
               subPath: config-local.js
+            - name: ohdsi-atlas-nginx-webapi
+              readOnly: true
+              mountPath: /etc/nginx/conf.d/custom-conf/webapi.conf
+              subPath: webapi.conf
           imagePullPolicy: Always
           resources:
             requests:
