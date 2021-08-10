@@ -35,6 +35,7 @@ RUN set -xe && apt-get update \
      tk-dev \
      zlib1g-dev \
      zsh \
+     ca-certificates-java \
      openjdk-11-jre-headless \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
