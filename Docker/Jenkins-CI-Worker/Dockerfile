@@ -15,6 +15,8 @@ RUN set -xe && apt-get update \
      gnupg2 \
      libffi-dev \
      libssl-dev \
+     libghc-regex-pcre-dev \
+     linux-headers-amd64 \
      libcurl4-openssl-dev \
      libncurses5-dev \
      libncursesw5-dev \
@@ -33,6 +35,7 @@ RUN set -xe && apt-get update \
      tk-dev \
      zlib1g-dev \
      zsh \
+     openjdk-11-jre-headless \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
 # install google tools
