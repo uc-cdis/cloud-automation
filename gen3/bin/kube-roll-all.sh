@@ -273,6 +273,12 @@ else
   gen3_log_info "not deploying ws-storage - no manifest entry for '.versions[\"ws-storage\"]'"
 fi
 
+if g3k_manifest_lookup '.sower[] | select( .name=="batch-export" )' 2> /dev/null; then
+  gen3 kube-setup-batch-export &
+else
+  gen3_log_info "not deploying batch-export - no manifest entry for '.versions[\"batch-export\"]'"
+fi
+
 if g3k_manifest_lookup .versions.portal 2> /dev/null; then
   gen3 kube-setup-portal &
 else
