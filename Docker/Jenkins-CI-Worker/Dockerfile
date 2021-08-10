@@ -105,6 +105,12 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/
 RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
 RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
 
+# Install google chrome
+RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64]  http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get -y update \
+    && apt-get -y install google-chrome-stable
+
 # update /etc/sudoers
 RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
   && /bin/echo -e "\n%sudo    ALL=(ALL:ALL) NOPASSWD:ALL\n" >> /etc/sudoers.bak \
