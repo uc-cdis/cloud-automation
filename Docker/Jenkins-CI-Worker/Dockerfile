@@ -39,6 +39,10 @@ RUN set -xe && apt-get update \
      openjdk-11-jre-headless \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
+# Use jdk11
+ENV JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
+ENV PATH="$JAVA_HOME/bin:$PATH"
+
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
     && echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list \
