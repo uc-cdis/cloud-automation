@@ -15,6 +15,8 @@ RUN set -xe && apt-get update \
      gnupg2 \
      libffi-dev \
      libssl-dev \
+     libghc-regex-pcre-dev \
+     linux-headers-amd64 \
      libcurl4-openssl-dev \
      libncurses5-dev \
      libncursesw5-dev \
@@ -33,7 +35,13 @@ RUN set -xe && apt-get update \
      tk-dev \
      zlib1g-dev \
      zsh \
+     ca-certificates-java \
+     openjdk-11-jre-headless \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
+
+# Use jdk11
+ENV JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
@@ -104,6 +112,12 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/
 # install packer
 RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
 RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
+
+# Install google chrome
+RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64]  http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get -y update \
+    && apt-get -y install google-chrome-stable
 
 # update /etc/sudoers
 RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
