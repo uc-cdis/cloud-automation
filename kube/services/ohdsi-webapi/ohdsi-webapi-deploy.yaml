@@ -35,7 +35,7 @@ spec:
       automountServiceAccountToken: false
       containers:
         - name: ohdsi-webapi
-          GEN3_OHDSI_WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
+          GEN3_OHDSI-WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
           # livenessProbe:
           #   httpGet:
           #     path: /WebAPI/source/sources

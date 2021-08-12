@@ -42,7 +42,7 @@ spec:
             name: ohdsi-atlas-nginx-webapi
       containers:
         - name: ohdsi-atlas
-          GEN3_OHDSI_ATLAS_IMAGE|-image: quay.io/cdis/ohdsi-atlas:latest-|
+          GEN3_OHDSI-ATLAS_IMAGE|-image: quay.io/cdis/ohdsi-atlas:latest-|
           livenessProbe:
             httpGet:
               path: /
