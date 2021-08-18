@@ -838,6 +838,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "list")
       gen3_db_list "$@"
       ;;
+    "init")
+      gen3_db_init "$@"
+      ;;
     "namespace") #simplify testing
       gen3_db_namespace
       ;;
