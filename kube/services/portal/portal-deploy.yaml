@@ -81,11 +81,11 @@ spec:
         - containerPort: 80
         - containerPort: 443
         command: ["/bin/sh"]
-            args:
-            - "-c"
-            - |
-                # set env vars
-                while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"
+        args:
+          - "-c"
+          - |
+            # set env vars
+            while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"
         env:
           - name: HOSTNAME
             value: revproxy-service
