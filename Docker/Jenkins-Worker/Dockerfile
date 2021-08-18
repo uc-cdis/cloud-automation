@@ -23,6 +23,7 @@ RUN apt-get update \
      libreadline-dev \
      libsqlite3-dev \
      libgdbm-dev \
+     libgit2 \
      libdb5.3-dev \
      libbz2-dev \
      libexpat1-dev \
