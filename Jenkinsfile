@@ -261,7 +261,7 @@ spec:
                     try {
                         if(!skipUnitTests) {
                             dir('cloud-automation/Docker/python-nginx/python2.7-alpine3.7') {
-                                sh 'sh dockerrun.sh --dryrun=Tru
+                                sh 'sh dockerrun.sh --dryrun=True'
                         } else {
                             Utils.markStageSkippedForConditional(STAGE_NAME)
                         }
@@ -280,7 +280,7 @@ spec:
                     try {
                         if(!skipUnitTests) {
                             dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
-                                sh 'sh dockerrun.sh --dryrun=Tr
+                                sh 'sh dockerrun.sh --dryrun=True'
                         } else {
                             Utils.markStageSkippedForConditional(STAGE_NAME)
                         }
@@ -300,7 +300,7 @@ spec:
                         if(!skipQuayImgBuildWait) {
                             quayHelper.waitForBuild(
                                 "awshelper",
-                                pipeConfig['currentBranchFormatted'
+                                pipeConfig['currentBranchFormatted']
                         } else {
                             Utils.markStageSkippedForConditional(STAGE_NAME)
                         }
