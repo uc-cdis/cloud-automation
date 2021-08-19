@@ -7,7 +7,6 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
 
 def config = [:]
-body.resolveStrategy = Closure.DELEGATE_FIRST
 
 // Our CI Pipeline is heavily parameterized based on Pull Request labels
 // giving a chance for auto-label gh actions to catch up
