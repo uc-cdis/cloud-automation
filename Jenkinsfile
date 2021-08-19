@@ -163,10 +163,10 @@ spec:
                             println('populating namespaces with list of available namespaces...')
                             namespaces = AVAILABLE_NAMESPACES
                         }
-         	        // If a specific test suite is not specified, run them all
-         	        if (selectedTests.size == 0) {
-         		    selectedTests.add("all")
-         	        }
+                        // If a specific test suite is not specified, run them all
+                        if (listOfSelectedTests.isEmpty()) {
+                            listOfSelectedTests.add("all")
+                        }
                     } catch (ex) {
          	        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
                         pipelineHelper.handleError(ex)
