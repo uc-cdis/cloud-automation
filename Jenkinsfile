@@ -166,7 +166,7 @@ spec:
          	        }
                     } catch (ex) {
          	        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-         	        throw ex
+                        pipelineHelper.handleError(e)
          	    }
          	    metricsHelper.writeMetricWithResult(STAGE_NAME, true)
 	        }
@@ -185,7 +185,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)                   
                 }
@@ -203,7 +203,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -228,7 +228,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -248,7 +248,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -268,7 +268,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -288,7 +288,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -309,7 +309,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -328,7 +328,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     currentBuild.displayName = "#${BUILD_NUMBER} - ${kubectlNamespace}"
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
@@ -351,7 +351,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)                                               
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -377,7 +377,7 @@ spec:
                             kubeHelper.sendSlackNotification(kubectlNamespace, "false")
                             kubeHelper.saveLogs(kubectlNamespace)
                         }
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -396,7 +396,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                    }
                    metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                }
@@ -415,7 +415,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -433,7 +433,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -458,7 +458,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -476,7 +476,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -497,16 +497,12 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        throw ex
+                        pipelineHelper.handleError(e)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
             }
         }
-    }
-    catch (e) {
-        pipelineHelper.handleError(e)
-        throw e
     }
     finally {
         stage('Post') {
