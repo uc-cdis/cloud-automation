@@ -503,9 +503,7 @@ spec:
                 }
             }
         }
-    }
-    finally {
-        stage('Post') {
+        post {
             always {
                 script {
                     kubeHelper.teardown(kubeLocks)
