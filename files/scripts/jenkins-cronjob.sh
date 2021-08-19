@@ -54,7 +54,7 @@ else
     aws sns publish --topic-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message 'qaplanetv1 jenkins-cronjob complete'
   fi
   if [[ "$command" == "go" && ! -z "$jcipod" ]]; then
-    g3kubectl exec -c jenkins "$jcipod" -- bash -c " sudo find /home/jenkins/agent/workspace/ -name "GitHub_Org_*" -type d -mtime +5 -prune -print -exec /bin/rm -rf '{}' ';'"
+    g3kubectl exec -c jenkins-worker "$jcipod" -- bash -c " sudo find /home/jenkins/agent/workspace/ -name "GitHub_Org_*" -type d -mtime +5 -prune -print -exec /bin/rm -rf '{}' ';'"
     gen3 roll jenkins-ci-worker
     aws sns publish --topic-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message 'qaplanetv1 jenkins-ci-cronjob complete'
   fi
