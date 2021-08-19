@@ -18,6 +18,8 @@ def pipeConfig = pipelineHelper.setupConfig(config)
 
 List<String> namespaces = []
 List<String> selectedTests = []
+skipUnitTests = false
+skipQuayImgBuildWait = false
 doNotRunTests = false
 runParallelTests = false
 isGen3Release = "false"
