@@ -158,10 +158,11 @@ spec:
          			    break
          		    }
          	        }
-         	        // If none of the jenkins envs. have been selected pick one at random
-         	        if (namespaces.size == 0) {
-         		    namespaces = AVAILABLE_NAMESPACES
-         	        }
+                        // If none of the jenkins envs. have been selected pick one at random
+                        if (namespaces.isEmpty()) {
+                            println('populating namespaces with list of available namespaces...')
+                            namespaces = AVAILABLE_NAMESPACES
+                        }
          	        // If a specific test suite is not specified, run them all
          	        if (selectedTests.size == 0) {
          		    selectedTests.add("all")
