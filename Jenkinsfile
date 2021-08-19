@@ -444,8 +444,8 @@ spec:
                                 kubectlNamespace,
                                 pipeConfig.serviceTesting.name,
                                 testedEnv,
-                                "true",
-                                "false",
+                                isGen3Release,
+                                isNightlyBuild,
                                 listOfSelectedTests
                             )
                         } else {
