@@ -63,7 +63,7 @@ for pod in "${array_of_pods[@]}"; do
     # grabbing list of all containers and initContainers
     # and then save all the logs
     container_names=$(g3kubectl get pod ${pod_name} -o jsonpath='{.spec.containers[*].name} {.spec.initContainers[*].name}')
-    for container_name in container_names; do
+    for container_name in $container_names; do
       gen3_log_info "Saving log for ${container_name}"
       g3kubectl logs $pod_name -c ${container_name} | tail -n10
       # TODO: this is not being archived by pipelineHelper.teardown for some reason :/
