@@ -345,6 +345,7 @@ spec:
                                 kubeHelper.getHostname(kubectlNamespace),
                                 "awshelper",
                                 pipeConfig.serviceTesting.branch
+                            )
                         } else {
                             Utils.markStageSkippedForConditional(STAGE_NAME)
                         }
