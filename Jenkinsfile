@@ -241,7 +241,7 @@ spec:
                     try {
                         if(!skipUnitTests) {
                             dir('cloud-automation/kube/services/revproxy') {
-                                sh 'npx jasmine helpersTest.j  
+                                sh 'npx jasmine helpersTest.js'
                          } else {
                             Utils.markStageSkippedForConditional(STAGE_NAME)
                         }
