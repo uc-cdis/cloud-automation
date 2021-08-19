@@ -242,7 +242,8 @@ spec:
                         if(!skipUnitTests) {
                             dir('cloud-automation/kube/services/revproxy') {
                                 sh 'npx jasmine helpersTest.js'
-                         } else {
+                            }
+                        } else {
                             Utils.markStageSkippedForConditional(STAGE_NAME)
                         }
                     } catch (ex) {
