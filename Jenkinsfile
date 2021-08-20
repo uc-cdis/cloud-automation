@@ -438,7 +438,7 @@ spec:
             steps {
                 script {
                     try {
-                        if(!donotRunTests) {    
+                        if(!doNotRunTests) {    
                             testHelper.simulateData(kubectlNamespace)
                         } else {
                             Utils.markStageSkippedForConditional(STAGE_NAME)
