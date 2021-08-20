@@ -17,7 +17,7 @@ config['prLabels'] = prLabels
 def pipeConfig = pipelineHelper.setupConfig(config)
 
 List<String> namespaces = []
-List<String> selectedTests = []
+List<String> listOfSelectedTests = []
 skipUnitTests = false
 skipQuayImgBuildWait = false
 doNotRunTests = false
@@ -119,7 +119,7 @@ spec:
 				    selectedTestLabel = label['name'].split("-")
         	                    println "selected test: suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
           	                    selectedTest = "suites/" + selectedTestLabel[1] + "/" + selectedTestLabel[2] + ".js"
-                                    selectedTests.add(selectedTest)
+                                    listOfSelectedTests.add(selectedTest)
                                     break
                                 case "skip-gen3-helper-tests":
                                     println('Skipping unit tests assuming they have been verified in a previous PR check iteration...')
