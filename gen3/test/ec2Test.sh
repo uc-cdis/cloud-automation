@@ -11,6 +11,9 @@ test_ec2_init() {
 test_ec2_filter() {
   test_ec2_init
   local filter
+  
+  sleep 5000
+
   filter="$(gen3 ec2 filters --private-ip $EC2_TEST_IP)"; because $? "private IP filter works"
   [[ "$filter" =~ ^--filter ]]; because $? "ec2 filter starts with --filter"
   (gen3 ec2 describe --private-ip $EC2_TEST_IP || echo ERROR) | jq -r . > /dev/null
