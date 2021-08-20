@@ -42,6 +42,8 @@ metadata:
   labels:
     app: ephemeral-ci-run
     netnolimit: "yes"
+  annotations:
+    "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
 spec:
   containers:
   - name: shell
@@ -71,8 +73,33 @@ spec:
         secretKeyRef:
           name: jenkins-g3auto
           key: google_app_creds.json
+    volumeMounts:
+    - name: "cert-volume"
+      readOnly: true
+      mountPath: "/mnt/ssl/service.crt"
+      subPath: "service.crt"
+    - name: "cert-volume"
+      readOnly: true
+      mountPath: "/mnt/ssl/service.key"
+      subPath: "service.key"
+    - name: "ca-volume"
+      readOnly: true
+      mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
+      subPath: "ca.pem"
+    - name: dockersock
+      mountPath: "/var/run/docker.sock"
   serviceAccount: jenkins-service
   serviceAccountName: jenkins-service
+  volumes:
+  - name: cert-volume
+    secret:
+      secretName: "cert-jenkins-service"
+  - name: ca-volume
+    secret:
+      secretName: "service-ca"
+  - name: dockersock
+    hostPath:
+      path: /var/run/docker.sock
 '''
         defaultContainer 'shell'
         }
