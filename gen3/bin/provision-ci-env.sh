@@ -36,7 +36,7 @@ fi
 
 # TODO: Make this more generic
 # grep -rl $originalHostname ~/cdis-manifest/$newHostname | xargs sed -i "s/$originalHostname/$newHostname/g"
-#cp -R cdis-manifest/jenkins-new.planx-pla.net cdis-manifest/ci-env-3.planx-ci.io
+#cp -R cdis-manifest/jenkins-new.planx-pla.net cdis-manifest/${ciEnvName}.planx-ci.io
 #sed -i 's/'$ciEnvName'.planx-pla.net/'$ciEnvName'.planx-ci.io/' cdis-manifest/${ciEnvName}.planx-ci.io/manifests/hatchery/hatchery.json
 #sed -i 's/jenkins-new/'$ciEnvName'/' cdis-manifest/${ciEnvName}.planx-ci.io/manifests/hatchery/hatchery.json
 
@@ -50,7 +50,7 @@ fi
 # Step 2 - Copy artifacts from an existing CI env folder and replace the k8s namespace and hostname references
 
 newHostname="${ciEnvName}.planx-ci.io"
-cp -R cdis-manifest/jenkins-new.planx-pla.net cdis-manifest/ci-env-3.planx-ci.io
+cp -R cdis-manifest/jenkins-new.planx-pla.net cdis-manifest/${ciEnvName}.planx-ci.io
 
 # get new subdomain
 newSubdomain=$(echo $newHostname | cut -d '.' -f 1)
@@ -61,7 +61,7 @@ grep -rl "jenkins-new" ~/cdis-manifest/$newHostname | xargs sed -i 's/jenkins-ne
 
 # we are creating the new env. folder in qaplanetv<n>
 # but the folder must exist in its own user space
-sudo cp -R cdis-manifest/ci-env-3.planx-ci.io /home/ci-env-3/cdis-manifest/
+sudo cp -R cdis-manifest/${ciEnvName}.planx-ci.io /home/${ciEnvName}/cdis-manifest/
 
 # Step 3 - apply the ZERO configmap to initialize the config for this new env.
 # BEAR IN MIND that the revproxy ARN points to a planx-pla.net ACM certificate
@@ -74,7 +74,7 @@ sudo sed -i 's/planx-pla.net/planx-ci.io/g' /home/${ciEnvName}/Gen3Secrets/00con
 sed -i 's/\(.*\)revproxy_arn:[[:space:]]\(.*\)/\1revproxy_arn: arn:aws:acm:us-east-1:707767160287:certificate\/47bc0e46-7e92-4b09-81eb-10afb7add907/' /home/${ciEnvName}/Gen3Secrets/00configmap.yaml
 
 # set new planx-ci.io certificate to manifest.json
-sed -i 's/\(.*\)"revproxy_arn":[[:space:]]\(.*\)/\1"revproxy_arn": "arn:aws:acm:us-east-1:707767160287:certificate\/47bc0e46-7e92-4b09-81eb-10afb7add907",/' /home/ci-env-3/cdis-manifest/ci-env-3.planx-ci.io/manifest.json
+sed -i 's/\(.*\)"revproxy_arn":[[:space:]]\(.*\)/\1"revproxy_arn": "arn:aws:acm:us-east-1:707767160287:certificate\/47bc0e46-7e92-4b09-81eb-10afb7add907",/' /home/${ciEnvName}/cdis-manifest/${ciEnvName}.planx-ci.io/manifest.json
 
 g3kubectl apply -f /home/${ciEnvName}/Gen3Secrets/00configmap.yaml
 
