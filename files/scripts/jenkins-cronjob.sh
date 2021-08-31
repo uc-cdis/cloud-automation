@@ -42,17 +42,20 @@ EOM
 fi
 
 jpod="$(gen3 pod jenkins)"
-if [[ -z "$jpod" && "$command" != "test" ]]; then
-  gen3_log_info "exiting - it looks like jenkins is not running"
-  exit 1
-fi
-
+jcipod="$(gen3 pod jenkins-ci)"
 if [[ "$command" == "test" ]]; then
   gen3_log_info "exiting test without touching jenkins pod: $jpod"
   exit 0
-elif [[ "$command" == "go" ]]; then
-  g3kubectl exec -c jenkins "$jpod" -- bash -c 'sudo /bin/rm -rf /tmp/* /var/jenkins_home/workspace/*'
-  g3kubectl exec -c jenkins "$jpod" -- bash -c "sudo find /var/jenkins_home/jobs/ -name builds -type d -mtime +5 -prune -print -exec /bin/rm -rf '{}' ';'"
-  gen3 roll jenkins
-  aws sns publish --topic-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message 'qaplanetv1 jenkins-cronjob complete'
+else
+  if [[ "$command" == "go" && ! -z "$jpod" ]]; then
+    g3kubectl exec -c jenkins "$jpod" -- bash -c 'sudo /bin/rm -rf /tmp/* /var/jenkins_home/workspace/*'
+    g3kubectl exec -c jenkins "$jpod" -- bash -c "sudo find /var/jenkins_home/jobs/ -name builds -type d -mtime +5 -prune -print -exec /bin/rm -rf '{}' ';'"
+    gen3 roll jenkins
+    aws sns publish --topic-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message 'qaplanetv1 jenkins-cronjob complete'
+  fi
+  if [[ "$command" == "go" && ! -z "$jcipod" ]]; then
+    g3kubectl exec -c jenkins-worker "$jcipod" -- bash -c " sudo find /home/jenkins/agent/workspace/ -name "GitHub_Org_*" -type d -mtime +5 -prune -print -exec /bin/rm -rf '{}' ';'"
+    gen3 roll jenkins-ci-worker
+    aws sns publish --topic-arn arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic --message 'qaplanetv1 jenkins-ci-cronjob complete'
+  fi
 fi
