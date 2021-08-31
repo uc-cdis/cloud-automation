@@ -20,9 +20,9 @@ EOM
 gen3_log_info "capturing and archiving logs from failed pods (if any)..."
 
 # image pull errors
-array_of_img_pull_errors=($(g3kubectl get pods | grep -E "ErrImagePull|ImagePullBackOff" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
+array_of_img_pull_errors=($(g3kubectl get pods | grep -E "ErrImagePull|ImagePullBackOff|CreateContainerConfigError" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
 
-gen3_log_info "looking for pods with ErrImagePull or ImagePullBackOff..."
+gen3_log_info "looking for pods with ErrImagePull, ImagePullBackOff or CreateContainerConfigError..."
 
 for pod in "${array_of_img_pull_errors[@]}"; do
   pod_name=$(echo $pod | xargs)

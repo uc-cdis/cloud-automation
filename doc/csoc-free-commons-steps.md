@@ -269,7 +269,7 @@ mkdir -p ${HOME}/cdis-manifest/commons-test.planx-pla.net
   ],
   "versions": {
     "arborist": "quay.io/cdis/arborist:master",
-    "aws-es-proxy": "abutaha/aws-es-proxy:0.8",
+    "aws-es-proxy": "quay.io/cdis/aws-es-proxy:0.8",
     "fence": "quay.io/cdis/fence:master",
     "fluentd": "fluent/fluentd-kubernetes-daemonset:v1.2-debian-cloudwatch",
     "indexd": "quay.io/cdis/indexd:master",

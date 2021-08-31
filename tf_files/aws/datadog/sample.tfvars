@@ -76,5 +76,15 @@ actions=[
     "tag:GetTagKeys",
     "tag:GetTagValues",
     "xray:BatchGetTraces",
-    "xray:GetTraceSummaries"
+    "xray:GetTraceSummaries",
+    "config:DescribeConfigurationRecorderStatus",
+    "iam:GenerateCredentialReport",
+    "iam:ListServerCertificates",
+    "iam:ListVirtualMFADevices",
+    "iam:ListUsers",
+    "config:DescribeConfigurationRecorders",
+    "iam:ListRoles",
+    "acm:ListCertificates",
+    "iam:GetAccountSummary",
+    "iam:ListPolicies"
 ]
