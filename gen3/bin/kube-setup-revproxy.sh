@@ -77,8 +77,12 @@ confFileList+=("--from-file" "$scriptDir/gen3.nginx.conf/README.md")
 # add new nginx conf to route ga4gh access requests to fence instead of indexd for
 #    - any branch of fence (technically it's just looking that the image doesn't START with a number)
 #    - semver >= 5.5.0
+#    - monthly release >= 2021.10
 fence_image_version=$( [[ $(g3k_manifest_lookup .versions.fence) =~ \:(.*) ]] && echo "${BASH_REMATCH[1]}")
-if [[ "$fence_image_version" =~ ^[[:alpha:]] ]] || ( [[ "$fence_image_version" =~ ^[[:digit:]] ]] && semver_ge "$fence_image_version" "5.5.0" ); then
+if [[         "$fence_image_version" =~ ^[[:alpha:]] ]] \
+      || ( [[ "$fence_image_version" =~ ^[[:digit:]] ]] && semver_ge "$fence_image_version" "5.5.0" ) \
+      || ( [[ "$fence_image_version" =~ ^[[:digit:]] ]] && semver_ge "$fence_image_version" "2021.10" ) \
+    ; then
   filePath="$scriptDir/gen3.nginx.conf/fence-service-ga4gh.conf"
   if [[ -f "$filePath" ]]; then
     echo "$filePath being added to nginx conf file list"
