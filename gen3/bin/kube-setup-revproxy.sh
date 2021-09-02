@@ -73,11 +73,21 @@ declare -a confFileList=()
 confFileList+=("--from-file" "$scriptDir/gen3.nginx.conf/README.md")
 
 # load priority confs first (who need to fallback on later confs)
-# TODO
+
+# add new nginx conf to route ga4gh access requests to fence instead of indexd for
+#    - master branch of fence
+#    - semver >= 5.5.0
+fence_image_version=$([[ $(g3k_manifest_lookup .versions.fence) =~ \:(.*) ]] && echo "${BASH_REMATCH[1]}")
+if [[ "$fence_image_version"=="master" || ( $(fence_image_version =~ ^[[:digit:]]) && $(semver_ge "$fence_image_version" "5.5.0") ) ]]; then
+  filePath="$scriptDir/gen3.nginx.conf/fence-service-ga4gh.conf"
+  if [[ -f "$filePath" ]]; then
+    confFileList+=("--from-file" "$filePath")
+  fi
+fi
 
 service_names=$(kubectl get services -o json | jq -r '.items[] | .metadata.name')
-# ensure the output from "get services" is sorted (so proper nginx location
-# fallback can occur cross service alphabetically if necessary)
+# ensure the output from "get services" is sorted (so we can rely on nginx location
+# fallback across services alphabetically if necessary)
 IFS=$'\n' sorted_service_names=($(sort <<<"${service_names[*]}")); unset IFS
 for name in "${sorted_service_names[@]}"; do
   filePath="$scriptDir/gen3.nginx.conf/${name}.conf"
