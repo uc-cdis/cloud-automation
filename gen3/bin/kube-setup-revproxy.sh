@@ -68,12 +68,15 @@ if g3k_manifest_lookup .versions.indexd 2> /dev/null; then
   setup_indexd_gateway
 fi
 
+# pick up docker-nginx (revproxy) version from the manifest.json / versions block.
 manifestPath=$(g3k_manifest_path)
 deployVersion="$(jq -r ".[\"revproxy\"]" < "$manifestPath")"
 
-git clone --branch --branch <branchname>  https://github.com/uc-cdis/docker-nginx.git
+# pull ingress config from the docker-nginx (revproxy) repo
+git clone --branch $deployVersion  https://github.com/uc-cdis/docker-nginx.git
 
-cp docker-nginx/ingress-conf/* ${GEN3_HOME}/kube/services/revproxy
+# copy files into the kube revproxy folder
+cp docker-nginx/ingress-config/* ${GEN3_HOME}/kube/services/revproxy/gen3.nginx.conf
 
 scriptDir="${GEN3_HOME}/kube/services/revproxy"
 declare -a confFileList=()
