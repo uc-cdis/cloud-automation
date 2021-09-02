@@ -68,6 +68,13 @@ if g3k_manifest_lookup .versions.indexd 2> /dev/null; then
   setup_indexd_gateway
 fi
 
+manifestPath=$(g3k_manifest_path)
+deployVersion="$(jq -r ".[\"revproxy\"]" < "$manifestPath")"
+
+git clone --branch --branch <branchname>  https://github.com/uc-cdis/docker-nginx.git
+
+cp docker-nginx/ingress-conf/* ${GEN3_HOME}/kube/services/revproxy
+
 scriptDir="${GEN3_HOME}/kube/services/revproxy"
 declare -a confFileList=()
 confFileList+=("--from-file" "$scriptDir/gen3.nginx.conf/README.md")
