@@ -75,10 +75,10 @@ confFileList+=("--from-file" "$scriptDir/gen3.nginx.conf/README.md")
 # load priority confs first (who need to fallback on later confs)
 
 # add new nginx conf to route ga4gh access requests to fence instead of indexd
-if isServiceVersionGreaterOrEqual "fence" "5.5.0" "2021.11"; then
+if isServiceVersionGreaterOrEqual "fence" "5.5.0" "2021.10"; then
   filePath="$scriptDir/gen3.nginx.conf/fence-service-ga4gh.conf"
   if [[ -f "$filePath" ]]; then
-    echo "$filePath being added to nginx conf file list b/c fence >= 5.4.0 or 2021.11"
+    echo "$filePath being added to nginx conf file list b/c fence >= 5.4.0 or 2021.10"
     confFileList+=("--from-file" "$filePath")
   fi
 fi
