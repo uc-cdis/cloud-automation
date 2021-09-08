@@ -23,6 +23,7 @@ spec:
         prometheus.io/path: /aggregated_metrics
         prometheus.io/port: "6567"
       labels:
+        netnolimit: "yes"
         app: indexd
         release: production
         public: "yes"
