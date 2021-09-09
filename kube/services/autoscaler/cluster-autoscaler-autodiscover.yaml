@@ -155,6 +155,7 @@ spec:
             - --skip-nodes-with-local-storage=false
             - --expander=least-waste
             - --scale-down-delay-after-add=7m
+            - --aws-use-static-instance-list=true
             - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-type/eks,kubernetes.io/cluster/VPC_NAME
           volumeMounts:
             - name: ssl-certs
