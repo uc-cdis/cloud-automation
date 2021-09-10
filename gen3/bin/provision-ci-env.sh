@@ -76,14 +76,14 @@ sudo chown -R ${ciEnvName} /home/${ciEnvName}/
 
 export KUBECTL_NAMESPACE="$ciEnvName"
 sudo sed -i 's/planx-pla.net/planx-ci.io/g' /home/${ciEnvName}/Gen3Secrets/00configmap.yaml
+
+# set new planx-ci.io certificate to configmap zero
+sed -i 's/\(.*\)revproxy_arn:[[:space:]]\(.*\)/\1revproxy_arn: arn:aws:acm:us-east-1:707767160287:certificate\/47bc0e46-7e92-4b09-81eb-10afb7add907/' /home/${ciEnvName}/Gen3Secrets/00configmap.yaml
 RC=$?
 if [[ $RC -ne 0 ]]; then
   echo "Certificate ARN was not replaced correctly. Abort..."
   exit 1
 fi
-
-# set new planx-ci.io certificate to configmap zero
-sed -i 's/\(.*\)revproxy_arn:[[:space:]]\(.*\)/\1revproxy_arn: arn:aws:acm:us-east-1:707767160287:certificate\/47bc0e46-7e92-4b09-81eb-10afb7add907/' /home/${ciEnvName}/Gen3Secrets/00configmap.yaml
 
 # set new planx-ci.io certificate to manifest.json
 sed -i 's/\(.*\)"revproxy_arn":[[:space:]]\(.*\)/\1"revproxy_arn": "arn:aws:acm:us-east-1:707767160287:certificate\/47bc0e46-7e92-4b09-81eb-10afb7add907",/' /home/${ciEnvName}/cdis-manifest/${ciEnvName}.planx-ci.io/manifest.json
