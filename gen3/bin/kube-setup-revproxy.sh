@@ -83,11 +83,7 @@ if isServiceVersionGreaterOrEqual "fence" "5.5.0" "2021.10"; then
   fi
 fi
 
-service_names=$(kubectl get services -o json | jq -r '.items[] | .metadata.name')
-# ensure the output from "get services" is sorted (so we can rely on nginx location
-# fallback across services alphabetically if necessary)
-IFS=$'\n' sorted_service_names=($(sort <<<"${service_names[*]}")); unset IFS
-for name in "${sorted_service_names[@]}"; do
+for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'); do
   filePath="$scriptDir/gen3.nginx.conf/${name}.conf"
   #echo "$filePath"
   if [[ -f "$filePath" ]]; then
