@@ -20,6 +20,11 @@ ciEnvName=$1
 
 set -x
 
+# TODO: Step 0
+# Make sure qaplanetv1 is healthy
+# Create health check mechanism (?)
+# Fail fast ( don't create new envs if the source env is broken)
+
 # step 1 - Create new workspace by cloning qaplanetv1
 workspaceAlreadyExist=$(g3kubectl get ns | awk '{ print $1 }' | grep -v NAME | grep $ciEnvName)
 if [ -z "$workspaceAlreadyExist" ]; then
