@@ -172,7 +172,7 @@ gen3 workon cdistest commons-test_eks
 ```
 
   Note: The third argument of the above command (cdistest) refers to the profile in the config file setup in step five of the first part.
-        The forth argument would be the name of the commons you want to use; only lowercase letters and hyphens are permitted. You must add `_eks` to the name in order to invoke the EKS module.
+        The forth argument would be the name of the commons you want to use; only lowercase letters and hyphens are permitted. You must add `_eks` to the name in order to invoke the EKS module. Do the same for ES too, here are the config options: https://github.com/uc-cdis/cloud-automation/tree/master/tf_files/aws/modules/commons-vpc-es
 
 2. Go to the terraform workspace folder
 ```bash
