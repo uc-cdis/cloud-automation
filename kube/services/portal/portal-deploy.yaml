@@ -129,6 +129,12 @@ spec:
                 name: manifest-global
                 key: tier_access_limit
                 optional: true
+          - name: REACT_APP_GA_TRACKING_ID
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: react_app_ga_tracking_id
+                optional: true
           - name: FENCE_URL
             valueFrom:
               configMapKeyRef:
