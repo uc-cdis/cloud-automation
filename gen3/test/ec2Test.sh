@@ -11,6 +11,24 @@ test_ec2_init() {
 test_ec2_filter() {
   test_ec2_init
   local filter
+  
+  # not sure why the config file was no longer showing up.
+  if [ -f "~/.aws/config" ]; then
+    echo "aws config file exists"
+  else
+    echo "aws config file does not exist, create it now"
+    mkdir -p ~/.aws
+    cat <<- EOF > ~/.aws/config
+[default]
+output = json
+region = us-east-1
+
+[profile jenkins]
+output = json
+region = us-east-1
+EOF
+  fi
+
   filter="$(gen3 ec2 filters --private-ip $EC2_TEST_IP)"; because $? "private IP filter works"
   [[ "$filter" =~ ^--filter ]]; because $? "ec2 filter starts with --filter"
   (gen3 ec2 describe --private-ip $EC2_TEST_IP || echo ERROR) | jq -r . > /dev/null

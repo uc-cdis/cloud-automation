@@ -62,6 +62,11 @@ spec:
         ports:
         - containerPort: 8000
         env:
+          - name: HOSTNAME
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: hostname
           - name: POD_NAMESPACE
             valueFrom:
               fieldRef:
