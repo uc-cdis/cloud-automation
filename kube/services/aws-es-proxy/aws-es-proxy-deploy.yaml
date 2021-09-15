@@ -29,7 +29,7 @@ spec:
             secretName: "aws-es-proxy"
       containers:
       - name: esproxy
-        GEN3_AWS-ES-PROXY_IMAGE|-image: quay.io/cdis/aws-es-proxy:0.8-|
+        GEN3_AWS-ES-PROXY_IMAGE|-image: quay.io/cdis/aws-es-proxy:1.1-|
         imagePullPolicy: Always
         ports:
         - containerPort: 9200
@@ -55,7 +55,7 @@ spec:
               # 0.8
               BINARY=/go/src/github.com/abutaha/aws-es-proxy/aws-es-proxy
             fi
-            ${BINARY} -endpoint "https://$ES_ENDPOINT" -verbose -listen ":9200"
+            ${BINARY} -endpoint "https://$ES_ENDPOINT" -verbose -listen ":9200" -timeout 30
         resources:
           limits:
             cpu: 0.3
