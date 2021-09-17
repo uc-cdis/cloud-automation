@@ -240,7 +240,6 @@ if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   gen3 kube-setup-kube-dns-autoscaler &
   gen3 kube-setup-metrics deploy || true
   gen3 kube-setup-tiller || true
-  gen3 kube-setup-prometheus || true
   #
   gen3 kube-setup-networkpolicy disable &
   gen3 kube-setup-networkpolicy &
