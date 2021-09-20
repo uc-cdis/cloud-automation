@@ -82,7 +82,7 @@ case "$test" in
       jobPodStatus=$(g3kubectl get pod $podName -o jsonpath='{.status.phase}')
       echo "Pod ${podName} status is: ${jobPodStatus}"
       if [ "$jobPodStatus" == "Running" ]; then
-        if (g3kubectl logs $podName -c selenium | grep "from DOWN to UP") > /dev/null 2>&1; then
+        if (g3kubectl logs $podName -c gen3qa-check-bucket-access | grep "from DOWN to UP") > /dev/null 2>&1; then
           g3kubectl logs $(gen3 pod gen3qa-check-bucket-access) -c gen3qa-check-bucket-access -f
           echo "press ctrl+C to quit..."
           # TODO: This hack is necessary due to the nature of the Selenium sidecar
