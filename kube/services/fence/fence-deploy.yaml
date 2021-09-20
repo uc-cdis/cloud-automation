@@ -96,6 +96,9 @@ spec:
         - name: yaml-merge
           configMap:
             name: "fence-yaml-merge"
+        - name: fence-dd-submit-metrics
+          configMap:
+            name: "fence-dd-submit-metrics"
       securityContext:
         # nginx group in current images
         fsGroup: 101
@@ -205,6 +208,10 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/yaml_merge.py"
             subPath: yaml_merge.py
+          - name: "fence-dd-submit-metrics"
+            readOnly: true
+            mountPath: "/var/www/fence/datadog_submit_metrics.py"
+            subPath: datadog_submit_metrics.py
           - name: "fence-google-app-creds-secret-volume"
             readOnly: true
             mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
