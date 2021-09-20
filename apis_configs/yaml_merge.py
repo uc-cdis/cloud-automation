@@ -27,12 +27,15 @@ if config1 != None:
   for key in config1.keys():
     config2[key] = config1[key]
 
-feature_flags = []
+# only execute the next instructions if DataDog metrics are enabled
+if DD_ENV in os.environ:
+  feature_flags = []
 
-for k,v in config2.items():
-  if type(v) is bool:
-    feature_flags.append(f"{k}:{v}")
+  for k,v in config2.items():
+    if type(v) is bool:
+      feature_flags.append(f"{k}:{v}")
 
-send_metric("feature_flags", feature_flags)
+  send_metric("feature_flags", feature_flags)
+
 
 print(json.dumps(config2, indent=2))
