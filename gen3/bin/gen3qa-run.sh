@@ -75,7 +75,7 @@ case "$test" in
     echo "Found pod ${podName}. Creation date: ${jobPodCreationDate}"
 
     attempt=0
-    maxAttempts=12
+    maxAttempts=36
 
     while true
     do
