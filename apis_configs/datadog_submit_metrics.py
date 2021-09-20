@@ -23,4 +23,4 @@ def send_metric(metric, tags=None):
 
 if __name__ == '__main__':
   # quick test
-  send_metric("feature_flags", 1, ["MOCK_GOOGLE_AUTH:true"])
+  send_metric("feature_flags", ["MOCK_GOOGLE_AUTH:true"])
