@@ -25,6 +25,8 @@ spec:
         # for network policy
         netnolimit: "yes"
         tags.datadoghq.com/service: "object-management"
+        GEN3_ENV_LABEL
+        GEN3_METADATA_IMAGE
         GEN3_DATE_LABEL
     spec:
       affinity:
