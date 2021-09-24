@@ -54,8 +54,11 @@ fi
 
 # Step 2 - Copy artifacts from an existing CI env folder and replace the k8s namespace and hostname references
 
+# TODO: make sure you are running this in qaplanetv<n> (default cluster account)
+# whoami == qaplanetv1
+
 newHostname="${ciEnvName}.planx-ci.io"
-cp -R cdis-manifest/jenkins-new.planx-pla.net cdis-manifest/${ciEnvName}.planx-ci.io
+cp -R ~/cdis-manifest/jenkins-new.planx-pla.net ~/cdis-manifest/${ciEnvName}.planx-ci.io
 
 # get new subdomain
 newSubdomain=$(echo $newHostname | cut -d '.' -f 1)
@@ -66,7 +69,7 @@ grep -rl "jenkins-new" ~/cdis-manifest/$newHostname | xargs sed -i 's/jenkins-ne
 
 # we are creating the new env. folder in qaplanetv<n>
 # but the folder must exist in its own user space
-sudo cp -R cdis-manifest/${ciEnvName}.planx-ci.io /home/${ciEnvName}/cdis-manifest/
+sudo cp -R ~/cdis-manifest/${ciEnvName}.planx-ci.io /home/${ciEnvName}/cdis-manifest/
 # set correct permissions to the new user and its respective home folder (and all sub folders)
 sudo chown -R ${ciEnvName} /home/${ciEnvName}/
 
