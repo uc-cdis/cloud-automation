@@ -100,7 +100,7 @@ g3kubectl apply -f /home/${ciEnvName}/Gen3Secrets/00configmap.yaml
 
 # Step 4 - Stand up the new environment
 # export BASH_SOURCE="/home/${ciEnvName}/cloud-automation/gen3/bin/kube-roll-all.sh"
-  sudo su - ${ciEnvName} -c "export KUBECONFIG=/home/${ciEnvName}/Gen3Secrets/kubeconfig; export GEN3_HOME=/home/${ciEnvName}/cloud-automation && source \"$GEN3_HOME/gen3/gen3setup.sh\"; source ~/.bashrc; gen3 roll all --fast"
+  sudo su - ${ciEnvName} -c "export KUBECONFIG=/home/${ciEnvName}/Gen3Secrets/kubeconfig; export GEN3_HOME=/home/${ciEnvName}/cloud-automation && source \"$GEN3_HOME/gen3/gen3setup.sh\"; source ~/.bashrc; gen3 roll all"
 
 # Step 5 - start polling logic to capture the reproxy ELB CNAME
 revProxyCheckCounter=0
