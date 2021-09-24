@@ -19,6 +19,7 @@ spec:
   template:
     metadata:
       labels:
+        netnolimit: "yes"
         app: indexd
         release: production
         public: "yes"
@@ -115,6 +116,10 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 80
         ports:
         - containerPort: 80
         - containerPort: 443

@@ -5,7 +5,7 @@ USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 # install python and pip and aws cli
-RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential zip unzip less vim gettext-base
+RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential libgit2-dev zip unzip less vim gettext-base
 RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade && python -m pip install lxml --upgrade
 RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade
 RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade && python3 -m pip install pandas --upgrade
@@ -14,6 +14,7 @@ RUN apt-get update \
   && apt-get install -y lsb-release \
      apt-transport-https \
      r-base \
+     libffi-dev \
      libssl-dev \
      libcurl4-openssl-dev \
      zlib1g-dev \
@@ -36,16 +37,18 @@ RUN apt-get update \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
 # install Ruby.
-RUN sudo apt-get install -y ruby-full
+RUN apt-get install -y ruby-full
 
-# install GIT
-RUN sudo apt-get -t=2.28.0 install git
+# install GIT from buster-backports
+RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/buster-backports.list \
+  && apt-get update \
+  && apt-get -t=buster-backports -y install git=1:2.30.*
 
 # install k6 to run load tests
-RUN sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 \
-  && echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list \
-  && sudo apt-get update \
-  && sudo apt-get install k6
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 \
+  && echo "deb https://dl.k6.io/deb stable main" | tee /etc/apt/sources.list.d/k6.list \
+  && apt-get update \
+  && apt-get install k6
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
@@ -60,36 +63,19 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
 # Install jq 1.6
 RUN wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x jq-linux64 && mv jq-linux64 /usr/bin/jq
 
-# Copy sh script responsible for installing Python
-COPY install-python3.6.sh /tmp/install-python3.6.sh
-
-# Run the script responsible for installing Python 3.6.1 and link it to /usr/bin/python3
-RUN chmod +x /tmp/install-python3.6.sh; sync && \
-        /tmp/install-python3.6.sh && \
-	rm -rf /tmp/install-python3.6.sh && \
-	ln -s /Python-3.6.1/python /usr/bin/python3.6
-
-# Install pip3 for Python 3.6.1
-RUN rm -rf /usr/local/lib/python3.6/site-packages/pip* && \
-	wget https://bootstrap.pypa.io/get-pip.py && \
-	python3.6 get-pip.py && \
-	rm get-pip.py
-
 #
 # install docker tools:
 #  * https://docs.docker.com/install/linux/docker-ce/debian/#install-docker-ce-1
 #  * https://docs.docker.com/compose/install/#install-compose
 #
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
-    && add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/debian \
-   $(lsb_release -cs) \
-   stable" \
-   && apt-get update \
-   && apt-get install -y docker-ce \
-   && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-   && chmod a+rx /usr/local/bin/docker-compose
-
+    && /usr/bin/add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian \
+    $(lsb_release -c -s) \
+    stable" \
+    && apt-get update \
+    && apt-get install -y docker-ce \
+    && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
+    && chmod a+rx /usr/local/bin/docker-compose
 
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
@@ -110,12 +96,6 @@ RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/
 RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
 RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
 
-# update /etc/sudoers
-RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
-  && /bin/echo -e "\n%sudo    ALL=(ALL:ALL) NOPASSWD:ALL\n" >> /etc/sudoers.bak \
-  && cp /etc/sudoers.bak /etc/sudoers \
-  && usermod -G sudo jenkins
-
 # add psql: https://www.postgresql.org/download/linux/debian/
 RUN DISTRO="$(lsb_release -c -s)"  \
       && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
@@ -123,6 +103,35 @@ RUN DISTRO="$(lsb_release -c -s)"  \
       && apt-get update \
       && apt-get install -y postgresql-client-9.6 \
       && rm -rf /var/lib/apt/lists/*
+
+# Copy sh script responsible for installing Python
+COPY install-python3.8.sh /root/tmp/install-python3.8.sh
+
+# Run the script responsible for installing Python 3.8.0 and link it to /usr/bin/python
+RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
+        bash /root/tmp/install-python3.8.sh && \
+        rm -rf /root/tmp/install-python3.8.sh && \
+        unlink /usr/bin/python3 && \
+        ln -s /usr/local/bin/python3.8 /usr/bin/python3
+
+RUN env
+RUN which python
+RUN which python3.8
+
+# Fix shebang for lsb_release
+RUN sed -i 's/python3/python3.7/' /usr/bin/lsb_release && \
+    sed -i 's/python3/python3.7/' /usr/bin/add-apt-repository
+
+# install aws cli, poetry, pytest, etc.
+RUN set -xe && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade
+
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.8 -
+
+# update /etc/sudoers
+RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
+  && /bin/echo -e "\n%sudo    ALL=(ALL:ALL) NOPASSWD:ALL\n" >> /etc/sudoers.bak \
+  && cp /etc/sudoers.bak /etc/sudoers \
+  && usermod -G sudo jenkins
 
 USER jenkins
 

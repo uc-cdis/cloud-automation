@@ -20,9 +20,9 @@ EOM
 gen3_log_info "capturing and archiving logs from failed pods (if any)..."
 
 # image pull errors
-array_of_img_pull_errors=($(g3kubectl get pods | grep -E "ErrImagePull|ImagePullBackOff" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
+array_of_img_pull_errors=($(g3kubectl get pods | grep -E "ErrImagePull|ImagePullBackOff|CreateContainerConfigError" | xargs -I {} echo {} | awk '{ print $1 }' | tr "\n" " "))
 
-gen3_log_info "looking for pods with ErrImagePull or ImagePullBackOff..."
+gen3_log_info "looking for pods with ErrImagePull, ImagePullBackOff or CreateContainerConfigError..."
 
 for pod in "${array_of_img_pull_errors[@]}"; do
   pod_name=$(echo $pod | xargs)
@@ -60,11 +60,16 @@ for pod in "${array_of_pods[@]}"; do
 
   if [[ $restart_count -gt 0 ]]; then
     gen3_log_info "Pod $pod_name restarted $restart_count times... let us capture some logs."
-    container_name=$(g3kubectl get pod ${pod_name} -o jsonpath='{.spec.containers[0].name}')
-    g3kubectl logs $pod_name -c ${container_name} | tail -n10
-    # TODO: this is not being archived by pipelineHelper.teardown for some reason :/
-    g3kubectl logs $pod_name -c ${container_name} > svc_startup_error_${pod_name}.log
-    realpath svc_startup_error_${pod_name}.log
+    # grabbing list of all containers and initContainers
+    # and then save all the logs
+    container_names=$(g3kubectl get pod ${pod_name} -o jsonpath='{.spec.containers[*].name} {.spec.initContainers[*].name}')
+    for container_name in $container_names; do
+      gen3_log_info "Saving log for ${container_name}"
+      g3kubectl logs $pod_name -c ${container_name} | tail -n10
+      # TODO: this is not being archived by pipelineHelper.teardown for some reason :/
+      g3kubectl logs $pod_name -c ${container_name} > svc_startup_error_${pod_name}_${container_name}.log
+      realpath svc_startup_error_${pod_name}.log
+    done
   fi
 done
 
