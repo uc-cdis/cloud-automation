@@ -210,7 +210,7 @@ update_rules() {
     gen3_log_err "use: update deployment-name min max (optional) targetCpu"
     return 1
   fi
-  local deploymentName="$1"
+  local deploymentName="$1-deployment"
   local min="$2"
   local max="$3"
   if [[ -z $4 ]]; then
