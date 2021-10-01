@@ -40,7 +40,8 @@ policy=$( cat <<EOM
             "Effect": "Allow",
             "Action": "ec2:*",
             "Resource": "*"
-        },
+        }
+    ]
 }
 EOM
 )
