@@ -30,11 +30,17 @@ fi
 policy=$( cat <<EOM
 {
     "Version": "2012-10-17",
-    "Statement": {
-        "Effect": "Allow",
-        "Action": "sts:AssumeRole",
-        "Resource": "arn:aws:iam::*:role/csoc_adminvm*"
-    }
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "sts:AssumeRole",
+            "Resource": "arn:aws:iam::*:role/csoc_adminvm*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ec2:*",
+            "Resource": "*"
+        },
 }
 EOM
 )
@@ -54,7 +60,7 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
 
     gen3_log_info "Attaching policy '${policyName}' to role '${role_name}'"
     gen3 awsrole attach-policy ${policyArn} --role-name ${role_name} --force-aws-cli || exit 1
-
+    gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${role_name} --force-aws-cli || exit 1
 fi
 
 
