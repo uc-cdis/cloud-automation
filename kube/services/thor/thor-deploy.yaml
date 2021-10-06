@@ -36,4 +36,12 @@ spec:
       - name: thor
         image: quay.io/cdis/thor:master
         imagePullPolicy: Always
-
+        volumeMounts:
+          - name: config-volume-g3auto
+            readOnly: true
+            mountPath: /src/.env
+            subPath: metadata.env
+      volumes:
+        - name: config-volume-g3auto
+          secret:
+            secretName: thor-g3auto

@@ -17,6 +17,7 @@ spec:
   template:
     metadata:
       labels:
+        netnolimit: "yes"
         app: sheepdog
         release: production
         public: "yes"
