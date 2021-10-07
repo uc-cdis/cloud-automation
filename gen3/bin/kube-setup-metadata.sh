@@ -79,7 +79,7 @@ fi
 gen3 gitops configmaps
 
 # Check the manifest-metadata configmap to see if the aggregate mds feature is enabled. Skip aws-es-proxysetup if configmap doesn't exist.
-if g3kubectl get configmap manifest-metadata; then
+if g3kubectl get configmap manifest-metadata > /dev/null 2>&1; then
   if g3kubectl get configmap manifest-metadata -o json | jq -r '.data.json' | jq '.USE_AGG_MDS == true' > /dev/null 2>&1; then
     gen3_log_info "kube-setup-metadata setting up aws-es-proxy dependency"
     gen3 kube-setup-aws-es-proxy || true
