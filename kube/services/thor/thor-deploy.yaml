@@ -59,8 +59,8 @@ spec:
         volumeMounts:
           - name: config-volume-g3auto
             readOnly: true
-            mountPath: /src/.env
-            subPath: metadata.env
+            mountPath: /src/thor.env
+            subPath: thor.env
       volumes:
         - name: config-volume-g3auto
           secret:
