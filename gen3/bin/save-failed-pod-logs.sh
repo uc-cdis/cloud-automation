@@ -41,7 +41,7 @@ for pod in "${array_of_svc_startup_errors[@]}"; do
   container_name=$(g3kubectl get pod ${pod_name} -o jsonpath='{.spec.containers[0].name}')
   g3kubectl logs $pod_name -c ${container_name} > svc_startup_error_${pod_name}.log
   gen3_log_info "capturing kube events..."
-  g3kubectl get events > kubectl_get_events.log
+  g3kubectl get events --sort-by=.metadata.creationTimestamp > kubectl_get_events.log
 done
 
 gen3_log_info "looking for pods with restarting containers..."
