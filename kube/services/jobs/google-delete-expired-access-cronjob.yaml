@@ -2,7 +2,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: google-delete-expired-google-access
+  name: google-delete-expired-access
 spec:
   schedule: "*/5 * * * *"
   successfulJobsHistoryLimit: 2
@@ -103,11 +103,11 @@ spec:
                   exit 0
                 fi
                 if ! [ -f /mnt/shared/success ]; then
-                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: google-delete-expired-google-access failed for ${gen3Env} \"}" "${slackWebHook}"
+                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: google-delete-expired-access failed for ${gen3Env} \"}" "${slackWebHook}"
                 else
                   HOUR=$(TZ='America/Chicago' date "+%H")
                   if [ ${HOUR} -eq 09 ]; then
-                    curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: google-delete-expired-google-access succeeded for ${gen3Env} \"}" "${slackWebHook}"
+                    curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: google-delete-expired-access succeeded for ${gen3Env} \"}" "${slackWebHook}"
                   fi
                 fi
           restartPolicy: Never

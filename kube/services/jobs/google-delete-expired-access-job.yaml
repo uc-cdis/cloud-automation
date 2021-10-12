@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: google-delete-expired-google-access
+  name: google-delete-expired-access
 spec:
   template:
     metadata:
