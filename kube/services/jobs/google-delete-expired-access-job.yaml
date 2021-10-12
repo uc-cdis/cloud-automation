@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: google-delete-expired-service-account
+  name: google-delete-expired-google-access
 spec:
   template:
     metadata:
@@ -59,7 +59,7 @@ spec:
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
-            fence-create expired-service-account-delete
+            fence-create delete-expired-google-access
             if [[ $? != 0 ]]; then
               echo "WARNING: non zero exit code: $?"
             fi
