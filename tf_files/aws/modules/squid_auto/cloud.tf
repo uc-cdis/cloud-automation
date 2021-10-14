@@ -150,7 +150,7 @@ if [[ ! -z "${var.activation_id}" ]] || [[ ! -z "${var.customer_id}" ]]; then
     sudo rpm -ivh qualys-cloud-agent.x86_64.rpm
     # Clean up rpm package after install
     rm qualys-cloud-agent.x86_64.rpm
-    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${activation_id} CustomerId=${customer_id}
+    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${var.activation_id} CustomerId=${var.customer_id}
 fi
 EOF
 
