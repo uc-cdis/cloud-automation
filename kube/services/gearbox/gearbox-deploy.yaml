@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gearbox-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: gearbox
+      release: production
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: gearbox
+        release: production
+        public: "yes"
+        # allow access from workspaces
+        userhelper: "yes"
+        # for network policy
+        netnolimit: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - gearbox
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: config-volume-g3auto
+          secret:
+            secretName: gearbox-g3auto
+        # This volume may or may not be needed or available. See kube-setup-gearbox.sh and note that this
+        # is only available if a <manifest dir>/gearbox directory exists.
+        - name: config-volume
+          secret:
+            secretName: gearbox-config
+            optional: true
+        # This volume may or may not be needed or available. See kube-setup-gearbox.sh and note that this
+        # may not exist if the commons does not have any gearbox manifest configuration.
+        - name: config-manifest
+          configMap:
+            name: manifest-gearbox
+            optional: true
+      containers:
+      - name: gearbox
+        GEN3_GEARBOX_IMAGE
+        env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: GEN3_ES_ENDPOINT
+            value: http://esproxy-service:9200
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: 80
+        ports:
+        - containerPort: 80
+        volumeMounts:
+          - name: config-volume-g3auto
+            readOnly: true
+            mountPath: /src/.env
+            subPath: gearbox.env
+          - name: config-volume
+            readOnly: true
+            mountPath: /aggregate_config.json
+            subPath: aggregate_config.json
+          - name: config-manifest
+            readOnly: true
+            mountPath: /gearbox.json
+            subPath: json
+        resources:
+          requests:
+            cpu: 0.4
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 2048Mi
+      initContainers:
+        - name: gearbox-db-migrate
+          GEN3_GEARBOX_IMAGE
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: config-volume-g3auto
+              readOnly: true
+              mountPath: /src/.env
+              subPath: gearbox.env
+          resources:
+            limits:
+              cpu: 0.8
+              memory: 512Mi
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              /env/bin/alembic upgrade head

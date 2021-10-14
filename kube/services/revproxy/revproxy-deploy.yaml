@@ -134,6 +134,12 @@ spec:
                 name: metadata-g3auto
                 key: base64Authz.txt
                 optional: true  
+          - name: GEARBOX_AUTHZ
+            valueFrom:
+              secretKeyRef:
+                name: gearbox-g3auto
+                key: base64Authz.txt
+                optional: true 
         volumeMounts:
           - name: "revproxy-conf"
             readOnly: true
