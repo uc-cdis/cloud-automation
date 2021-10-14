@@ -113,6 +113,8 @@ RUN rm /etc/nginx/conf.d/default.conf
 # Copy the base uWSGI ini file to enable default dynamic uwsgi process number
 COPY uwsgi.ini /etc/uwsgi/
 
+COPY uwsgi.conf /etc/nginx/sites-available/
+
 RUN ln -s /etc/nginx/sites-available/uwsgi.conf /etc/nginx/conf.d/uwsgi.conf
 
 # Install Supervisord
