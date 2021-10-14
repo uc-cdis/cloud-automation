@@ -143,6 +143,15 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
   cd $CLOUD_AUTOMATION
   git checkout master
 ) > /var/log/bootstrapping_script.log
+
+# Install qualys agent if the activtion and customer id provided
+if [[ ! -z "${var.activation_id}" ]] || [[ ! -z "${var.customer_id}" ]]; then
+    aws s3 cp s3://qualys-agentpackage/QualysCloudAgent.rpm ./qualys-cloud-agent.x86_64.rpm
+    sudo rpm -ivh qualys-cloud-agent.x86_64.rpm
+    # Clean up rpm package after install
+    rm qualys-cloud-agent.x86_64.rpm
+    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${activation_id} CustomerId=${customer_id}
+fi
 EOF
 
 lifecycle {

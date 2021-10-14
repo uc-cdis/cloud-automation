@@ -36,7 +36,9 @@ module "squid_auto" {
   cluster_min_size           = "${var.cluster_min_size}"
   network_expansion          = "${var.network_expansion}"
   branch                     = "${var.branch}"
-  
+  activation_id              = "${var.activation_id}"
+  customer_id                = "${var.customer_id}"  
+
   # put other variables here ...
 }
 
