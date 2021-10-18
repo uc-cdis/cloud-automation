@@ -77,6 +77,14 @@ data "aws_iam_policy_document" "squid_policy_document" {
     effect    = "Allow"
     resources = ["*"]
   }
+  statement {
+    actions = [
+      "s3:Get*",
+      "s3:List*"
+    ]
+    effect    = "Allow"
+    resources = ["arn:aws:s3:::qualys-agentpackage", "arn:aws:s3:::qualys-agentpackage/*"]
+  }
 }
 
 ##################
