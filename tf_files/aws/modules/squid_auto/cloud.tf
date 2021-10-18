@@ -83,7 +83,7 @@ data "aws_iam_policy_document" "squid_policy_document" {
       "s3:List*"
     ]
     effect    = "Allow"
-    resource  = ["arn:aws:s3:::qualys-agentpackage", "arn:aws:s3:::qualys-agentpackage/*"]
+    resources = ["arn:aws:s3:::qualys-agentpackage", "arn:aws:s3:::qualys-agentpackage/*"]
   }
 }
 
