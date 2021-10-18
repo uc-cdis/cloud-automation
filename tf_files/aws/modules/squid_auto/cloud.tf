@@ -142,6 +142,15 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
   bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${var.env_log_group};${join(";",var.extra_vars)}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
+  # Install qualys agent if the activtion and customer id provided
+  if [[ ! -z "${var.activation_id}" ]] || [[ ! -z "${var.customer_id}" ]]; then
+    apt install awscli -y
+    aws s3 cp s3://qualys-agentpackage/QualysCloudAgent.deb ./qualys-cloud-agent.x86_64.deb
+    dpkg -i ./qualys-cloud-agent.x86_64.deb
+    # Clean up deb package after install
+    rm qualys-cloud-agent.x86_64.deb
+    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${var.activation_id} CustomerId=${var.customer_id}
+  fi
 ) > /var/log/bootstrapping_script.log
 EOF
 

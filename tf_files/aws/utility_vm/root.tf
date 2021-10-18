@@ -27,6 +27,8 @@ module "utility_vm" {
   organization_name          = "${var.organization_name}"
   branch                     = "${var.branch}"
   user_policy                = "${var.user_policy}"
+  activation_id              = "${var.activation_id}"
+  customer_id                = "${var.customer_id}"
 
   # put other variables here ...
 }
