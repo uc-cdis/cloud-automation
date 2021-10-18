@@ -62,6 +62,11 @@ spec:
         ports:
         - containerPort: 8000
         env:
+          - name: GEN3_VPCID
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: environment
           - name: GEN3_ENDPOINT
             valueFrom:
               configMapKeyRef:
