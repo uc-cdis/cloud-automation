@@ -187,6 +187,8 @@ authz:
   - name: open
   - description: commons /mds-admin
     name: mds_gateway
+  - description: commons /gearbox-admin
+    name: gearbox_gateway
   - name: services
     subresources:
     - name: sheepdog
@@ -276,6 +278,12 @@ authz:
     - /mds_gateway
     role_ids:
     - mds_user
+  - description: be able to use gearbox service
+    id: gearbox_admin
+    resource_paths:
+    - /gearbox_gateway
+    role_ids:
+    - gearbox_user
   - description: CRUD access to programs and projects
     id: services.sheepdog-admin
     resource_paths:
@@ -369,6 +377,12 @@ authz:
         method: access
         service: mds_gateway
       id: mds_access
+  - id: gearbox_user
+    permissions:
+    - action:
+        method: access
+        service: gearbox_gateway
+      id: gearbox_access
   - description: sheepdog admin role for program project crud
     id: sheepdog_admin
     permissions:

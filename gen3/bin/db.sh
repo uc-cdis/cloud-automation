@@ -588,6 +588,7 @@ gen3_db_encrypt() {
   gen3 db backup gdcapi  > $dumpDir/gdcapidb-backup.sql
   gen3 db backup arborist  > $dumpDir/arborist-backup.sql
   gen3 db backup metadata  > $dumpDir/metadata-backup.sql
+  gen3 db backup gearbox > $dumpDir/gearbox-backup.sql
   gen3 db backup wts  > $dumpDir/wts-backup.sql
   gen3 db backup requestor  > $dumpDir/requestor-backup.sql
   gen3 db backup audit  > $dumpDir/audit-backup.sql
@@ -616,7 +617,7 @@ gen3_db_encrypt() {
   gen3 tfplan
   gen3 tfapply
 
-  # Use sed to update all secrets, remove the arborist and metadata g3auto folders to recreate those db's then run kube-setup-secrets 
+  # Use sed to update all secrets, remove the arborist, gearbox and metadata g3auto folders to recreate those db's then run kube-setup-secrets 
   local newFenceDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-fencedb"]}' | jq -r .DBInstances[0].Endpoint.Address)
   local newAmanuensisDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-amanuensisdb"]}' | jq -r .DBInstances[0].Endpoint.Address)  
   local newIndexdDbUrl=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$vpc_name'-encrypted-indexddb"]}' | jq -r .DBInstances[0].Endpoint.Address)
@@ -635,6 +636,7 @@ gen3_db_encrypt() {
   g3kubectl delete cronjob gitops-sync
   mv "$(gen3_secrets_folder)"/g3auto/arborist "$(gen3_secrets_folder)"/g3auto/arb-backup
   mv "$(gen3_secrets_folder)"/g3auto/metadata "$(gen3_secrets_folder)"/g3auto/mtdta-backup
+  mv "$(gen3_secrets_folder)"/g3auto/gearbox "$(gen3_secrets_folder)"/g3auto/gear-backup
   mv "$(gen3_secrets_folder)"/g3auto/wts "$(gen3_secrets_folder)"/g3auto/wts-backup
   mv "$(gen3_secrets_folder)"/g3auto/requestor "$(gen3_secrets_folder)"/g3auto/requestor-backup
   mv "$(gen3_secrets_folder)"/g3auto/audit "$(gen3_secrets_folder)"/g3auto/audit-backup
@@ -646,6 +648,10 @@ gen3_db_encrypt() {
   if [[ -d "$(gen3_secrets_folder)"/g3auto/mtdta-backup ]]; then
     g3kubectl delete secret metadata-g3auto
     gen3 db setup metadata
+  fi
+  if [[ -d "$(gen3_secrets_folder)"/g3auto/gear-backup ]]; then
+    g3kubectl delete secret gearbox-g3auto
+    gen3 db setup gearbox
   fi
   if [[ -d "$(gen3_secrets_folder)"/g3auto/wts-backup ]]; then
     g3kubectl delete secret wts-g3auto
@@ -677,6 +683,9 @@ gen3_db_encrypt() {
   gen3_log_info "restoring metadata db"
   gen3_db_reset "metadata"
   gen3 psql metadata  < $dumpDir/metadata-backup.sql
+  gen3_log_info "restoring gearbox db"
+  gen3_db_reset "gearbox"
+  gen3 psql gearbox  < $dumpDir/gearbox-backup.sql
   gen3_log_info "restoring wts db"
   gen3_db_reset "wts"
   gen3 psql wts  < $dumpDir/wts-backup.sql
