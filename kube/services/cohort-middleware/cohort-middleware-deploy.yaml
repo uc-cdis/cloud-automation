@@ -38,10 +38,10 @@ spec:
       volumes:
         - name: cohort-middleware-config
           secret:
-            name: cohort-middleware-config
+            secretName: cohort-middleware-config
       containers:
         - name: cohort-middleware
-          GEN3_OHDSI-WEBAPI_IMAGE|-image: quay.io/cdis/cohort-middleware:latest-|
+          GEN3_COHORT-MIDDLEWARE_IMAGE|-image: quay.io/cdis/cohort-middleware:latest-|
           livenessProbe:
             httpGet:
               path: /_health
