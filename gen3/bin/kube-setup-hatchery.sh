@@ -20,13 +20,6 @@ gen3 jupyter j-namespace setup
 #
 (g3k_kv_filter ${GEN3_HOME}/kube/services/hatchery/serviceaccount.yaml BINDING_ONE "name: hatchery-binding1-$namespace" BINDING_TWO "name: hatchery-binding2-$namespace" CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -) || true
 
-
-# cron job to distribute licenses if using Stata workspaces
-if [ "$(g3kubectl get configmaps/manifest-hatchery -o yaml | grep "\"image\": .*stata.*")" ];
-then
-    gen3 job cron distribute-licenses '* * * * *'
-fi
-
 policy=$( cat <<EOM
 {
     "Version": "2012-10-17",
@@ -64,6 +57,17 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
     gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${role_name} --force-aws-cli || exit 1
 fi
 
+
+gen3_log_info "check hatchery licenses secret"
+if ! g3kubectl get secrets hatchery-licenses  > /dev/null 2>&1; then
+
+    local licensesPath="$(gen3_secrets_folder)/g3auto/hatchery-licenses/"
+    if [ -d "$licensesPath" ]; then
+        gen3 secrets sync
+    fi
+    mkdir -p licensesPath
+    gen3 secrets sync
+fi
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/hatchery/hatchery-service.yaml"
 gen3 roll hatchery
