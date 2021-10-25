@@ -59,7 +59,7 @@ fi
 
 
 gen3_log_info "check hatchery licenses secret"
-if ! g3kubectl get secrets hatchery-licenses  > /dev/null 2>&1; then
+if [ ! $(g3kubectl get secrets hatchery-licenses > /dev/null 2>&1) ]; then
 
     licensesPath="$(gen3_secrets_folder)/g3auto/hatchery-licenses"
     mkdir -p licensesPath
