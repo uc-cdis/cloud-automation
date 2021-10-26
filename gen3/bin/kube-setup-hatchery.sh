@@ -58,11 +58,14 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
 fi
 
 
-gen3_log_info "check hatchery licenses secret"
-if [ ! $(g3kubectl get secrets  | grep hatchery-licenses > /dev/null 2>&1) ]; then
 
-    licensesPath="$(gen3_secrets_folder)/g3auto/hatchery-licenses"
-    mkdir -p licensesPath
+gen3_log_info "check hatchery licenses secret"
+licensesPath="$(gen3_secrets_folder)/hatchery-licenses"
+mkdir -p licensesPath
+    
+
+if [ ! "$(g3kubectl get secret hatchery-licenses 2> /dev/null)" ]; then
+    g3kubectl create secret generic hatchery-licenses --from-file=$licensesPath
     gen3 secrets sync
 fi
 

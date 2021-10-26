@@ -117,5 +117,5 @@ spec:
             mountPath: /hatchery-more-configs
           - name: hatchery-licenses
             readOnly: false
-            mountPath: /licenses
+            mountPath: /licenses/
             
