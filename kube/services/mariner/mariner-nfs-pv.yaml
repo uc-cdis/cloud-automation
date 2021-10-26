@@ -3,13 +3,11 @@ kind: PersistentVolume
 metadata:
   name: mariner-nfs-pv
 spec:
-  storageClassName: ""
-  claimRef:
-    name: mariner-nfs-pvc
+  persistentVolumeReclaimPolicy: Delete
   capacity:
-    storage: 10GB
+    storage: 100Gi
   accessModes:
     - ReadWriteMany
   nfs:
-    server: 172.24.211.63
+    server: GEN3_AWSSTORAGEGATEWAY_MARINER_IP
     path: "/newstoragegw-poc"
