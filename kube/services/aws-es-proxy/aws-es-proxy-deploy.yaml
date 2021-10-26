@@ -58,5 +58,5 @@ spec:
             ${BINARY} -endpoint "https://$ES_ENDPOINT" -verbose -listen ":9200"
         resources:
           limits:
-            cpu: 0.3
-            memory: 256Mi
+            cpu: 1
+            memory: 2Gi
