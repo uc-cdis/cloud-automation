@@ -119,5 +119,4 @@ spec:
           - name: hatchery-licenses-mount
             readOnly: false
             mountPath: /licenses
-            secret: 
-              secretName: hatchery-licenses
+            
