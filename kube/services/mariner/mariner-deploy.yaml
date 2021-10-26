@@ -34,6 +34,9 @@ spec:
             items:
               - key: json
                 path: mariner-config.json
+        - name: nfs-commons-data-volume
+          persistentVolumeClaim:
+            claimName: mariner-nfs-pvc
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -74,5 +77,7 @@ spec:
           - name: mariner-config
             readOnly: true
             mountPath: /mariner-config
+          - name: nfs-commons-data-volume
+            mountPath: "/mnt/pvc"
         ports:
         - containerPort: 80
