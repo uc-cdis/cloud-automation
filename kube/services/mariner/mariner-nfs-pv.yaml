@@ -7,7 +7,7 @@ spec:
   claimRef:
     name: mariner-nfs-pvc
   capacity:
-    storage: 10GB
+    storage: 100Gi
   accessModes:
     - ReadWriteMany
   nfs:
