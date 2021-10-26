@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mariner-nfs-pv
+spec:
+  storageClassName: ""
+  claimRef:
+    name: mariner-nfs-pvc
+  capacity:
+    storage: 10GB
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 172.24.211.63
+    path: "/newstoragegw-poc"
