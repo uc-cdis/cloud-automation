@@ -36,6 +36,24 @@ get_mariner_bucketname() {
 }
 
 #
+# sets up mariner persistent volume and persisten volume claims if they do not exist
+#
+setup_mariner_pv_and_pvc() {
+  local pvExists="$(g3kubectl get pv mariner-nfs-pv 2>&1)"
+  local pvcExists="$(g3kubectl get pvc mariner-nfs-pvc 2>&1)"
+
+  gen3_log_info "setting up mariner persistent volume if it doesn't exist"
+  if grep -q 'NotFound' <<< "$pvExists"; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/mariner/mariner-nfs-pv.yaml"
+  fi
+  
+  gen3_log_info "setting up mariner persistent volume claim if it doesn't exist"
+  if grep -q 'NotFound' <<< "$pvcExists"; then
+    g3kubectl apply -f "${GEN3_HOME}/kube/services/mariner/mariner-nfs-pvc.yaml"
+  fi
+}
+
+#
 # kube-setup-ws-storage also calls this - the
 # ws-storage service and mariner both access the
 # same underlying bucket
@@ -109,6 +127,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
   setup_mariner_service
+  setup_mariner_pv_and_pvc
   gen3 roll mariner 
   g3kubectl apply -f "${GEN3_HOME}/kube/services/mariner/mariner-service.yaml"
 
