@@ -3,11 +3,8 @@ kind: PersistentVolume
 metadata:
   name: mariner-nfs-pv
 spec:
-  storageClassName: ""
-  claimRef:
-    name: mariner-nfs-pvc
   capacity:
-    storage: 10GB
+    storage: 100Gi
   accessModes:
     - ReadWriteMany
   nfs:
