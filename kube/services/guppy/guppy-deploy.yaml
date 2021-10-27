@@ -77,6 +77,8 @@ spec:
             value: esproxy-service:9200
           - name: PUBLIC_KEY_PATH
             value: /guppy/jwt_public_key.pem
+          - name: SERVICE_NAME
+            value: guppy
           - name: GEN3_ARBORIST_ENDPOINT
             valueFrom:
               configMapKeyRef:
@@ -115,7 +117,6 @@ spec:
               readOnly: true
               mountPath: "/guppy/jwt_public_key.pem"
               subPath: "jwt_public_key.pem"
-
           imagePullPolicy: Always
           resources:
             requests:

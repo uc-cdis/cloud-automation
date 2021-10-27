@@ -137,8 +137,6 @@ fi
 cd "$(gen3_secrets_folder)"
 mkdir -p jwt-keys
 mkdir -p ssh-keys
-mkdir -p analysis-jwt-keys
-mkdir -p g3auto/analysis-jwt-keys
 
 # Create keypairs for fence. Following the requirements from fence, the
 # keypairs go in subdirectories of the base keys directory, where the
@@ -186,32 +184,43 @@ if ! g3kubectl get configmaps/fence > /dev/null 2>&1; then
   g3kubectl create configmap fence --from-file=apis_configs/user.yaml
 fi
 
-# Analysis jwt keys
+# Generate private and public keys for each service listed (except fence)
+services_list=( "analysis" "amanuensis" )
+
 # make directories for temporary credentials
 timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-# generate private and public key for pcdcanalysistool
 yearMonth="$(date +%Y-%m)"
-if [[ ! -d ./analysis-jwt-keys ]] || ! (ls ./analysis-jwt-keys | grep "$yearMonth" > /dev/null 2>&1); then
-  echo "Generating analysis OAUTH key pairs - analysis-jwt-keys"
-  mkdir -p analysis-jwt-keys/${timestamp}
+# Create key sets for each service
+for service_name in "${services_list[@]}"; do
 
-  openssl genpkey -algorithm RSA -out analysis-jwt-keys/${timestamp}/jwt_private_key.pem \
-        -pkeyopt rsa_keygen_bits:2048
-  openssl rsa -pubout -in analysis-jwt-keys/${timestamp}/jwt_private_key.pem \
-        -out analysis-jwt-keys/${timestamp}/jwt_public_key.pem
-  chmod -R a+rx analysis-jwt-keys
+  service_key_dir="${service_name}-jwt-keys"
+  gen3auto_service_key_dir="g3auto/${service_key_dir}"
 
-  cp analysis-jwt-keys/${timestamp}/jwt_private_key.pem analysis-jwt-keys/jwt_private_key.pem
-  cp analysis-jwt-keys/${timestamp}/jwt_public_key.pem analysis-jwt-keys/jwt_public_key.pem
+  mkdir -p ${service_key_dir}
+  mkdir -p ${gen3auto_service_key_dir}
 
-  # TODO unclear why these needs to go in the g3auto folder instead of staying in the main directory with the other ? 
-  cp analysis-jwt-keys/jwt_private_key.pem ./g3auto/analysis-jwt-keys/jwt_private_key.pem
-  cp analysis-jwt-keys/jwt_public_key.pem ./g3auto/analysis-jwt-keys/jwt_public_key.pem
+  if [[ ! -d ./$service_key_dir ]] || ! (ls ./$service_key_dir | grep "$yearMonth" > /dev/null 2>&1); then
+    echo "Generating analysis OAUTH key pairs - $service_key_dir"
+    mkdir -p $service_key_dir/${timestamp}
 
-  gen3 secrets sync 'chore(analysis-jwt-keys): initial setup'
-  # TODO you can probably remove the following line or add an if statment checking if it find somethign or not
-  gen3 secrets decode analysis-jwt-keys-g3auto
-fi
+    openssl genpkey -algorithm RSA -out ${service_key_dir}/${timestamp}/jwt_private_key.pem \
+            -pkeyopt rsa_keygen_bits:2048
+    openssl rsa -pubout -in ${service_key_dir}/${timestamp}/jwt_private_key.pem \
+        -out ${service_key_dir}/${timestamp}/jwt_public_key.pem
+    chmod -R a+rx ${service_key_dir}
+
+    cp ${service_key_dir}/${timestamp}/jwt_private_key.pem ${service_key_dir}/jwt_private_key.pem
+    cp ${service_key_dir}/${timestamp}/jwt_public_key.pem ${service_key_dir}/jwt_public_key.pem 
+
+    # TODO unclear why these needs to go in the g3auto folder instead of staying in the main directory with the other ? 
+    cp ${service_key_dir}/jwt_private_key.pem ./${gen3auto_service_key_dir}/jwt_private_key.pem
+    cp ${service_key_dir}/jwt_public_key.pem ./${gen3auto_service_key_dir}/jwt_public_key.pem
+
+    gen3 secrets sync 'chore(${service_key_dir}): initial setup'
+    # TODO you can probably remove the following line or add an if statment checking if it find something or not
+    gen3 secrets decode ${service_key_dir}-g3auto
+  fi
+done
 
 # old fence cfg method uses fence-secret and fence-json-secret
 if ! g3kubectl get secrets/fence-secret > /dev/null 2>&1; then

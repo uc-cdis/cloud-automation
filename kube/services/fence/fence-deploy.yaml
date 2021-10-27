@@ -90,6 +90,12 @@ spec:
         - name: yaml-merge
           configMap:
             name: "fence-yaml-merge"
+        - name: amanuensis-jwt-keys
+          secret:
+            secretName: "amanuensis-jwt-keys-g3auto"
+            items:
+              - key: jwt_public_key.pem
+                path: jwt_public_key.pem
       securityContext:
         # nginx group in current images
         fsGroup: 101
@@ -135,6 +141,8 @@ spec:
           value: regional
         - name: PYTHONPATH
           value: /var/www/fence
+        - name: SERVICE_NAME
+          value: fence          
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
         - name: FENCE_PUBLIC_CONFIG
@@ -222,6 +230,10 @@ spec:
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
+          - name: "amanuensis-jwt-keys"
+            readOnly: true
+            mountPath: "/amanuensis/jwt_public_key.pem"
+            subPath: "jwt_public_key.pem"          
         resources:
             requests:
               cpu: 0.4
