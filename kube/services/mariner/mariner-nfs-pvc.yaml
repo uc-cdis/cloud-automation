@@ -3,8 +3,6 @@ kind: PersistentVolumeClaim
 metadata:
   name: mariner-nfs-pvc
 spec:
-  storageClassName: ""
-  volumeName: mariner-nfs-pv
   accessModes:
     - ReadWriteMany
   storageClassName: ""
