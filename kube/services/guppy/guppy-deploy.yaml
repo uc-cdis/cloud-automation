@@ -18,6 +18,7 @@ spec:
       labels:
         app: guppy
         public: "yes"
+        netnolimit: "yes"
         tags.datadoghq.com/service: "guppy"
         GEN3_GUPPY_VERSION
         GEN3_ENV_LABEL
