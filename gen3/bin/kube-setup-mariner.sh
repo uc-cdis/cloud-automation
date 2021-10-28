@@ -35,7 +35,6 @@ get_mariner_bucketname() {
   echo "$bucketName"
 }
 
-
 #
 # sets up mariner persistent volume and persisten volume claims if they do not exist
 #
