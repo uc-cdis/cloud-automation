@@ -21,7 +21,7 @@ spec:
         netnolimit: "yes"
         userhelper: "yes"
         tags.datadoghq.com/service: "hatchery"
-        tags.datadoghq.com/version: "master"
+        GEN3_HATCHERY_VERSION
         GEN3_ENV_LABEL
         GEN3_DATE_LABEL
     spec:
