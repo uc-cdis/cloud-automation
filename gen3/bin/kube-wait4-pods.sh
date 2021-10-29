@@ -48,7 +48,7 @@ fi
       
       if [[ "$OK_COUNT" -lt 2 ]]; then
         gen3_log_info ------------
-        gen3_log_info "Waiting for pods to exit Pending state"
+        gen3_log_info "Waiting for pods to exit Pending state (${COUNT}/${MAX_RETRIES})"
         let COUNT+=1
         if [[ COUNT -gt "$MAX_RETRIES" ]]; then
           gen3_log_err "pods still not ready after $((MAX_RETRIES * 10)) seconds - bailing out"

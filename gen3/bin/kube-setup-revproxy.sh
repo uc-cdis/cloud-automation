@@ -225,7 +225,17 @@ export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_a
 #  revproxy deployment using http proxy protocol.
 #
 # port 81 == proxy-protocol listener - main service entry
-export TARGET_PORT_HTTPS=81
+MTLS=$(g3kubectl get configmap manifest-global --output=jsonpath='{.data.mtls}')
+if [[ "$MTLS" == "on" ]]; then
+  export TARGET_PORT_HTTPS=443
+  MORE_ELB_CONFIG="$(cat - <<EOM
+$MORE_ELB_CONFIG
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
+EOM
+  )"
+else
+  export TARGET_PORT_HTTPS=81
+fi
 # port 82 == proxy-protocol listener - redirects to https
 export TARGET_PORT_HTTP=82
 
