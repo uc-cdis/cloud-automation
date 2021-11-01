@@ -85,8 +85,6 @@ spec:
         env:
           - name: JWKS_ENDPOINT
             value: "http://fence-service/.well-known/jwks"
-          - name: SERVICE_NAME
-            value: arborist
         livenessProbe:
           httpGet:
             path: /health

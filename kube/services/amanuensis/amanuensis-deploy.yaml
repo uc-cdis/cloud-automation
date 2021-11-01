@@ -81,10 +81,6 @@ spec:
           value: regional
         - name: PYTHONPATH
           value: /var/www/amanuensis
-        - name: SERVICE_NAME
-          value: amanuensis
-        - name: PRIVATE_KEY_PATH
-          value: /var/www/amanuensis/jwt_private_key.pem
         - name: GEN3_DEBUG
           GEN3_DEBUG_FLAG|-value: "False"-|
         - name: AMANUENSIS_PUBLIC_CONFIG

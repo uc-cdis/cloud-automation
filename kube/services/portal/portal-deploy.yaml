@@ -95,8 +95,6 @@ spec:
               configMapKeyRef:
                 name: manifest-global
                 key: portal_app
-          - name: SERVICE_NAME
-            value: portal
           - name: GEN3_BUNDLE
             valueFrom:
               configMapKeyRef:
