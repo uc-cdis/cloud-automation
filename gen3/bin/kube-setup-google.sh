@@ -19,7 +19,7 @@ goog_launch() {
   local path
 
   # add cronjob for removing cached google access for fence versions
-  # supporting Passports -> DRS
+  # supporting Passports to DRS
   if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2021.12"; then
     filePath="${GEN3_HOME}/kube/services/jobs/google-delete-expired-access-cronjob.yaml"
     if [[ -f "$filePath" ]]; then
