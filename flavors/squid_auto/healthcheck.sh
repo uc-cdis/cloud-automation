@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-slack_webhook='$(cat /slackWebhook)'
+slack_webhook=$(cat /slackWebhook)
 
 # Should check docker is installed, so it won't run healthcheck during initialization
 docker_check=$(which docker)
