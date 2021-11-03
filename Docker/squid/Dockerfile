@@ -15,8 +15,10 @@ RUN apt update \
     && apt install -y build-essential wget libssl1.0-dev
 
 COPY ./entrypoint.sh /usr/sbin/entrypoint.sh
+COPY ./certfix.sh /certfix.sh
 
 RUN chmod +x /usr/sbin/entrypoint.sh
+RUN chmod +x /certfix.sh
 
 RUN (cd /tmp \
     && wget ${SQUID_DOWNLOAD_URL}${SQUID_VERSION}.tar.xz \
@@ -55,5 +57,7 @@ EXPOSE 3129/tcp
 EXPOSE 3130/tcp
 
 VOLUME ${SQUID_LOG_DIR} ${SQUID_CACHE_DIR} ${SQUID_PID_DIR} ${SQUID_SYSCONFIG_DIR}
+
+RUN bash /certfix.sh
 
 ENTRYPOINT ["/usr/sbin/entrypoint.sh"]
