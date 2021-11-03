@@ -299,7 +299,7 @@ EOF
 
   if ! grep 'GEN3_HOME=' ${WORKSPACE}/.${RC_FILE} > /dev/null; then
     cat - >>${WORKSPACE}/.${RC_FILE} <<EOF
-export GEN3_HOME=${WORKSPACE}/cloud-automation
+export GEN3_HOME=${GEN3_HOME}
 if [ -f "\${GEN3_HOME}/gen3/gen3setup.sh" ]; then
   source "\${GEN3_HOME}/gen3/gen3setup.sh"
 fi
