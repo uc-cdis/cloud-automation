@@ -62,7 +62,7 @@ spec:
         ports:
         - containerPort: 8000
         env:
-          - name: HOSTNAME
+          - name: GEN3_ENDPOINT
             valueFrom:
               configMapKeyRef:
                 name: manifest-global

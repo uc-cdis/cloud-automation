@@ -350,6 +350,11 @@ gen3_gitops_sync() {
     portalDiffs="$portalDiffs \nDiff in manifest global.portal_app"
     portal_roll=true
   fi
+  if [[ "$(_check_manifest_global_diff data_release_version)" == "true" ]]; then
+    gen3_log_info "Diff in manifest global.data_release_version"
+    portalDiffs="$portalDiffs \nDiff in manifest global.data_release_version"
+    portal_roll=true
+  fi
   if [[ "$(_check_manifest_global_diff tier_access_level)" == "true" ]]; then
     gen3_log_info "Diff in manifest global.tier_access_level"
     portalDiffs="$portalDiffs \nDiff in manifest global.tier_access_level"

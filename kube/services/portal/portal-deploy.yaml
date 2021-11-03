@@ -113,6 +113,12 @@ spec:
                 name: manifest-global
                 key: workspace_timeout_in_minutes
                 optional: true
+          - name: DATA_RELEASE_VERSION
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: data_release_version
+                optional: true
           - name: TIER_ACCESS_LEVEL
             valueFrom:
               configMapKeyRef:
