@@ -29,6 +29,12 @@
       "max": 4,
       "targetCpu": 40
     },
+    "gearbox": {
+      "strategy": "auto",
+      "min": 1,
+      "max": 4,
+      "targetCpu": 40
+    },
     "peregrine": {
       "strategy": "auto",
       "min": 2,

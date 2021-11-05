@@ -227,6 +227,8 @@ fi
 
 gen3 kube-setup-metadata &
 
+gen3 kube-setup-gearbox &
+
 if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
   gen3 kube-setup-ssjdispatcher &
 fi
