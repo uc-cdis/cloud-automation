@@ -1,5 +1,5 @@
 # https://github.com/tiangolo/uwsgi-nginx-docker/blob/master/docker-images/python3.6.dockerfile
-FROM quay.io/pcdc/python_3.8.12-buster:latest
+FROM quay.io/pcdc/python_3.8.12-buster:1.0.0
 
 # https://github.com/nginxinc/docker-nginx/blob/f958fbacada447737319e979db45a1da49123142/mainline/debian/Dockerfile
 ENV NGINX_VERSION   1.21.1
