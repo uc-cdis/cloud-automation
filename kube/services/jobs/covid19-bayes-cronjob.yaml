@@ -47,7 +47,7 @@ spec:
               resources:
                 requests:
                   cpu: 4
-                  memory: 20Gi
+                  memory: 12Gi
                 limits:
                   cpu: 4
-                  memory: 20Gi # guess on upper bound
+                  memory: 12Gi # guess on upper bound
