@@ -483,3 +483,11 @@ variable "indexd_max_allocated_storage" {
   description = "Maximum allocated storage for autosacaling"
   default     = 0
 }
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}

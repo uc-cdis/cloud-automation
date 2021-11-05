@@ -217,7 +217,7 @@ spec:
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
                         pipelineHelper.handleError(ex)
                     }
-                    metricsHelper.writeMetricWithResult(STAGE_NAME, true)                   
+                    metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
             }
         }
@@ -305,12 +305,32 @@ spec:
             }
         }
 
-        stage('python 3 base image dockerrun.sh test') {
+        stage('python 3 legacy alpine base image dockerrun.sh test') {
             steps {
                 script {
                     try {
                         if(!skipUnitTests) {
                             dir('cloud-automation/Docker/python-nginx/python3.6-alpine3.7') {
+                                sh 'sh dockerrun.sh --dryrun=True'
+                            }
+                        } else {
+                            Utils.markStageSkippedForConditional(STAGE_NAME)
+                        }
+                    } catch (ex) {
+                        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+                        pipelineHelper.handleError(ex)
+                    }
+                    metricsHelper.writeMetricWithResult(STAGE_NAME, true)
+                }
+            }
+        }
+
+        stage('python 3 buster base image dockerrun.sh test') {
+            steps {
+                script {
+                    try {
+                        if(!skipUnitTests) {
+                            dir('cloud-automation/Docker/python-nginx/python3.6-buster') {
                                 sh 'sh dockerrun.sh --dryrun=True'
                             }
                         } else {
@@ -345,7 +365,7 @@ spec:
                 }
             }
         }
-        
+
         stage('SelectNamespace') {
             steps {
                 script {
@@ -381,7 +401,7 @@ spec:
                         }
                     } catch (ex) {
                         metricsHelper.writeMetricWithResult(STAGE_NAME, false)
-                        pipelineHelper.handleError(ex)                                               
+                        pipelineHelper.handleError(ex)
                     }
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
@@ -412,7 +432,7 @@ spec:
                     metricsHelper.writeMetricWithResult(STAGE_NAME, true)
                 }
             }
-        }    
+        }
 
         stage('VerifyClusterHealth') {
             steps {
@@ -438,7 +458,7 @@ spec:
             steps {
                 script {
                     try {
-                        if(!doNotRunTests) {    
+                        if(!doNotRunTests) {
                             testHelper.simulateData(kubectlNamespace)
                         } else {
                             Utils.markStageSkippedForConditional(STAGE_NAME)
