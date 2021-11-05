@@ -200,7 +200,7 @@ for service_name in "${services_list[@]}"; do
   mkdir -p ${gen3auto_service_key_dir}
 
   if [[ ! -d ./$service_key_dir ]] || ! (ls ./$service_key_dir | grep "$yearMonth" > /dev/null 2>&1); then
-    echo "Generating analysis OAUTH key pairs - $service_key_dir"
+    echo "Generating OAUTH key pairs - $service_key_dir"
     mkdir -p $service_key_dir/${timestamp}
 
     openssl genpkey -algorithm RSA -out ${service_key_dir}/${timestamp}/jwt_private_key.pem \
