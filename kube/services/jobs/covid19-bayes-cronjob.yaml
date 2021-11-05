@@ -50,4 +50,4 @@ spec:
                   memory: 12Gi
                 limits:
                   cpu: 4
-                  memory: 12Gi # guess on upper bound
+                  memory: 12Gi
