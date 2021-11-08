@@ -112,3 +112,15 @@ variable "network_expansion" {
   description = "let k8s workers run on a /22 subnet"
   default     = false
 }
+
+variable "squid_depends_on" { 
+  default = "" 
+}
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}

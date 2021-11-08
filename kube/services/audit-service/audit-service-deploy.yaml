@@ -28,6 +28,7 @@ spec:
         netnolimit: "yes"
         GEN3_DATE_LABEL
     spec:
+      serviceAccountName: audit-service-sa
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

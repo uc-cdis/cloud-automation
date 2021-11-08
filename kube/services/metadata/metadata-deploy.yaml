@@ -40,15 +40,41 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
+        - name: config-volume-g3auto
+          secret:
+            secretName: metadata-g3auto
+        # This volume may or may not be needed or available. See kube-setup-metadata.sh and note that this
+        # is only available if a <manifest dir>/metadata directory exists.
         - name: config-volume
           secret:
-            secretName: "metadata-g3auto"
+            secretName: metadata-config
+            optional: true
+        # This volume may or may not be needed or available. See kube-setup-metadata.sh and note that this
+        # may not exist if the commons does not have any metadata manifest configuration.
+        - name: config-manifest
+          configMap:
+            name: manifest-metadata
+            optional: true
       containers:
       - name: metadata
         GEN3_METADATA_IMAGE
         env:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: GEN3_ES_ENDPOINT
+            value: http://esproxy-service:9200
+          - name: USE_AGG_MDS
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-metadata
+                key: USE_AGG_MDS
+                optional: true
+          - name: AGG_MDS_NAMESPACE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-metadata
+                key: AGG_MDS_NAMESPACE
+                optional: true
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -64,30 +90,38 @@ spec:
         ports:
         - containerPort: 80
         volumeMounts:
-          - name: "config-volume"
+          - name: config-volume-g3auto
             readOnly: true
-            mountPath: "/src/.env"
-            subPath: "metadata.env"
+            mountPath: /src/.env
+            subPath: metadata.env
+          - name: config-volume
+            readOnly: true
+            mountPath: /aggregate_config.json
+            subPath: aggregate_config.json
+          - name: config-manifest
+            readOnly: true
+            mountPath: /metadata.json
+            subPath: json
         resources:
           requests:
             cpu: 0.4
             memory: 512Mi
           limits:
             cpu: 1
-            memory: 2048Mi        
+            memory: 2048Mi
       initContainers:
         - name: metadata-db-migrate
           GEN3_METADATA_IMAGE
           imagePullPolicy: Always
           volumeMounts:
-            - name: "config-volume"
+            - name: config-volume-g3auto
               readOnly: true
-              mountPath: "/src/.env"
-              subPath: "metadata.env"
+              mountPath: /src/.env
+              subPath: metadata.env
           resources:
             limits:
               cpu: 0.8
-              memory: 512Mi        
+              memory: 512Mi
           command: ["/bin/sh"]
           args:
             - "-c"

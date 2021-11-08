@@ -1,4 +1,10 @@
 #!/bin/bash
+# TODO: Experiencing the following error:
+# [31mERROR: 21:00:30 - Lock already exists and timed out waiting for lock to unlock[39m
+# + exit 1
+# Needs further investigation. Commenting out the next line for now
+# set -e
+
 #
 # script to reset kubernetes namespace gen3 objects/services
 #
@@ -105,9 +111,20 @@ clear_wts_clientId() {
   gen3_log_info "All clear for wts"
 }
 
+#
+# `set -e` can result in locked environment, because on error it will exit without unlocking the environment
+#
+cleanup() {
+  ARG=$?
+  gen3 klock unlock reset-lock "$LOCK_USER"
+  exit $ARG
+}
+trap cleanup EXIT
+
 # main ---------------------------
 
 gen3_user_verify "about to drop all service deployments"
+gen3_log_info "gen3 klock lock reset-lock "$LOCK_USER" 3600 -w 60"
 gen3 klock lock reset-lock "$LOCK_USER" 3600 -w 60
 gen3 shutdown namespace
 # also clean out network policies
@@ -140,6 +157,9 @@ EOM
 g3kubectl delete configmap fence
 g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 /bin/rm "$useryaml"
+
+# Recreate fence-config k8s secret on every CI run
+gen3 kube-setup-secrets
 
 #
 # various weird race conditions

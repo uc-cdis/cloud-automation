@@ -3,6 +3,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mariner-deployment
+  annotations:
+    gen3.io/network-ingress: "mariner-engine,fence,presigned-url-fence,fenceshib,peregrine,sheepdog,ssjdispatcherjob,metadata"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -19,6 +21,7 @@ spec:
       labels:
         app: mariner
         release: test
+        s3: "yes"
         netnolimit: "yes" # check
         public: "yes"
         GEN3_DATE_LABEL
@@ -53,11 +56,14 @@ spec:
             memory: "256Mi"
             cpu: "250m"
         env:
+          - name: AWS_STS_REGIONAL_ENDPOINTS
+            value: regional
           - name: AWSCREDS
             valueFrom:
               secretKeyRef:
                 name: "workflow-bot-g3auto"
                 key: "awsusercreds.json"
+                optional: true
           - name: GEN3_NAMESPACE
             valueFrom:
               fieldRef:

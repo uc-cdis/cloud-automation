@@ -17,10 +17,6 @@ spec:
       maxUnavailable: 0
   template:
     metadata:
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/path: /aggregated_metrics
-        prometheus.io/port: "6567"
       labels:
         app: fence
         release: production
@@ -30,8 +26,12 @@ spec:
         netnolimit: "yes"
         public: "yes"
         userhelper: "yes"
+        tags.datadoghq.com/service: "fence"
+        tags.datadoghq.com/env: null
+        tags.datadoghq.com/version: 'master'
         date: "1579711361"
     spec:
+      serviceAccountName: fence-sa
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -50,8 +50,6 @@ spec:
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
 # -----------------------------------------------------------------------------
-        - name: logs-folder
-          emptyDir: {}
         - name: old-config-volume
           secret:
             secretName: "fence-secret"
@@ -99,12 +97,40 @@ spec:
       - name: fence
         image: quay.io/cdis/fence:master
         env:
+        - name: DD_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: dd_enabled
+              optional: true
+        - name: DD_ENV
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/env']
+        - name: DD_SERVICE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/service']
+        - name: DD_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/version']
+        - name: DD_LOGS_INJECTION
+          value: "true"
+        - name: DD_PROFILING_ENABLED
+          value: "true"
+        - name: DD_TRACE_SAMPLE_RATE
+          value: "1"
         - name: GEN3_UWSGI_TIMEOUT
           valueFrom:
             configMapKeyRef:
               name: manifest-global
               key: uwsgi-timeout
               optional: true
+        - name: DD_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         - name: AWS_STS_REGIONAL_ENDPOINTS
           value: regional
         - name: PYTHONPATH
@@ -138,8 +164,6 @@ spec:
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
 # -----------------------------------------------------------------------------
-          - name: logs-folder
-            mountPath: "/var/log/nginx/"
           - name: "old-config-volume"
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
@@ -211,48 +235,7 @@ spec:
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
-            bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then /dockerrun.sh; fi
-      - name: nginx-prometheus-exporter-wrapper
-        image: quay.io/cdis/nginx-prometheus-exporter-wrapper:pybase3-1.4.0
-        command: ["/bin/bash"]
-        args:
-          - "-c"
-          - |
-            attempt=0
-            maxAttempts=12
-            while true
-            do
-              nginx_status_response=$(curl -L -s -o /dev/null -w "%{http_code}" -X GET http://localhost/nginx_status)
-              echo "initializing nginx-prometheus-exporter..."
-              echo "nginx_status_response: $nginx_status_response"
-              if [ "$nginx_status_response" == 200 ]; then
-                echo "nginx_status is finally up and running. Proceed with the metrics exporting..."
-                /usr/bin/exporter -nginx.scrape-uri http://127.0.0.1/nginx_status
-              else
-                echo "The nginx_status endpoint is not ready yet... attempt #${attempt}"
-                sleep 5
-                if [ $attempt -eq $maxAttempts ];then
-                  echo "The nginx_status endpoint was never initialized properly, keep the sidecar running in sleep mode to prevent the entire pod from failing..."
-                  sleep infinity
-                fi
-              fi
-              attempt=$(( $attempt + 1 ));
-            done
-        ports:
-        - containerPort: 9113
-      - name: uwsgi-exporter
-        image: registry.hub.docker.com/timonwong/uwsgi-exporter:v1.0.0
-        args: ["--stats.uri", "http://127.0.0.1/uwsgi_status"]
-        ports:
-        - containerPort: 9117
-      - name: nginx-logs-exporter
-        image: quay.io/martinhelmich/prometheus-nginxlog-exporter:v1.7.1
-        args: ["/mnt/nginxlogs/access_not_json.log"]
-        ports:
-        - containerPort: 4040
-        volumeMounts:
-        - name: logs-folder
-          mountPath: "/mnt/nginxlogs/"
+            bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then bash /dockerrun.sh; fi
       initContainers:
       - name: fence-init
         image: quay.io/cdis/fence:master
@@ -294,7 +277,7 @@ spec:
                 echo "Running db migration: fence-create migrate"
                 fence-create migrate
               else
-                echo "Db migration disabeld in fence-config"
+                echo "Db migration disabled in fence-config"
               fi
             else
               echo "Db migration not available in this version of fence"
