@@ -196,6 +196,10 @@ spec:
             readOnly: true
             mountPath: "/etc/shibboleth/inc-md-cert.pem"
             subPath: "inc-md-cert.pem"
+          - name: "fenceshib-config"
+            readOnly: true
+            mountPath: "/etc/shibboleth/metadata.xml"
+            subPath: "metadata.xml"
           - name: "fenceshib-secret"
             readOnly: true
             mountPath: "/etc/ssl/private/incommon-login.bionimbus.org.key"

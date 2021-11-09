@@ -183,6 +183,7 @@ data:
                 <MetadataProvider type="XML" uri="http://mdq.incommon.org/entities/idps/all"  reloadInterval="7200" legacyOrgNames="true">
                     <SignatureMetadataFilter certificate="/etc/shibboleth/inc-md-cert.pem"/>
                 </MetadataProvider>
+                <MetadataProvider type="XML" path="/etc/shibboleth/metadata.xml"  reloadInterval="7200" legacyOrgNames="true"></MetadataProvider>
             </MetadataProvider>
 
             <!-- Map to extract attributes from SAML assertions. -->
@@ -395,3 +396,64 @@ data:
     xk4LnXgjHOT93dBAJhVYJkykDHwyvHUvsBHoP6lfjrt5P8zunK2mdP/AZKik+Rdt
     1GGlErV2AyWShTOaDLW6NxdP
     -----END CERTIFICATE-----
+  metadata.xml: |
+   <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+   <EntityDescriptor entityID="https://auth.nih.gov/IDP" xmlns="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:alg="urn:oasis:names:tc:SAML:metadata:algsupport" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:icmd="http://id.incommon.org/metadata" xmlns:idpdisc="urn:oasis:names:tc:SAML:profiles:SSO:idp-discovery-protocol" xmlns:init="urn:oasis:names:tc:SAML:profiles:SSO:request-init" xmlns:mdattr="urn:oasis:names:tc:SAML:metadata:attribute" xmlns:mdrpi="urn:oasis:names:tc:SAML:metadata:rpi" xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui" xmlns:remd="http://refeds.org/metadata" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" xmlns:shibmd="urn:mace:shibboleth:metadata:1.0" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+       <IDPSSODescriptor WantAuthnRequestsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+          <Extensions>
+             <shibmd:Scope regexp="false">auth.nih.gov</shibmd:Scope>
+             <mdui:UIInfo>
+                 <mdui:DisplayName xml:lang="en">National Institutes of Health (NIH)</mdui:DisplayName>
+                 <mdui:Description xml:lang="en">The NIH Identity Provider (IdP) allows NIH staff to access resources for scientific research and collaboration at organizations across the United States and around the world.  (About NIH: The National Institutes of Health (NIH), an agency in the U.S. Department of Health and Human Services (HHS), is the medical research agency of the United States — making important discoveries that improve health and save lives.)</mdui:Description>
+                 <mdui:PrivacyStatementURL xml:lang="en">https://www.nih.gov/web-policies-notices</mdui:PrivacyStatementURL>
+                 <mdui:Logo height="150" width="150" xml:lang="en">https://auth.nih.gov/images/nih-logo-thumbnail.png</mdui:Logo>
+             </mdui:UIInfo>
+           </Extensions>
+           <KeyDescriptor use="signing">
+               <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                   <ds:X509Data>
+                       <ds:X509Certificate>
+   MIIGeDCCBWCgAwIBAgITKwAE3xjJ0BmsXYl8hwAAAATfGDANBgkqhkiG9w0BAQsF
+   ADBOMRUwEwYKCZImiZPyLGQBGRYFTE9DQUwxHDAaBgoJkiaJk/IsZAEZFgxESEhT
+   U0VDVVJJVFkxFzAVBgNVBAMTDk5JSC1EUEtJLUNBLTFBMB4XDTIxMDMyMzEwMjMz
+   MloXDTIzMDMyMzEwMjMzMlowcDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAk1EMREw
+   DwYDVQQHEwhCZXRoZXNkYTEMMAoGA1UEChMDSEhTMQwwCgYDVQQLEwNOSUgxJTAj
+   BgNVBAMTHHdhbXNpZ25pbmdmZWRlcmF0aW9uLm5paC5nb3YwggEiMA0GCSqGSIb3
+   DQEBAQUAA4IBDwAwggEKAoIBAQDrng8ItLe/PdN7+GT50g0xd4Kc5zVLk5JhHV/M
+   C0ICo3ulYpNnK8f0vGYvKXhG9B4gyYjjAVgY8dHL1Yi9Vw4OCMHiAhT80qidFhah
+   xdcz8EaKWueqlMV+SZ8/6luahSmYYjKHAxICMg253gHsG6A64pWBsf58fzOYeEV/
+   HIItkthIJ7Rh71gXeZwmcir3fAve1sQXrgXsRb265yFQaxLrRI+QA7k+Tiemlt4+
+   7wBOXdROm0kxGJT6u6+IG8g2Qdbc1JWaAmwROGCByREQzfMNUVpXCXJHhKSrHype
+   z8Z0o4p2sLXyOysbBAmNoShMhvaaPlsrJt7PyDN5uj6KaXNNAgMBAAGjggMrMIID
+   JzAdBgNVHQ4EFgQUb/4wTaSXJ6P1tAmI8mWJhMv1VHowHwYDVR0jBBgwFoAUeWw4
+   jBnSyRkHcaYQ+YnwrdCDBZMwggESBgNVHR8EggEJMIIBBTCCAQGggf6ggfuGgcFs
+   ZGFwOi8vL0NOPU5JSC1EUEtJLUNBLTFBLENOPU5JSERQS0lDQVNWQyxDTj1DRFAs
+   Q049UHVibGljJTIwS2V5JTIwU2VydmljZXMsQ049U2VydmljZXMsQ049Q29uZmln
+   dXJhdGlvbixEQz1ESEhTU0VDVVJJVFksREM9TE9DQUw/Y2VydGlmaWNhdGVSZXZv
+   Y2F0aW9uTGlzdD9iYXNlP29iamVjdENsYXNzPWNSTERpc3RyaWJ1dGlvblBvaW50
+   hjVodHRwOi8vTklIRFBLSUNSTC5OSUguR09WL0NlcnREYXRhL05JSC1EUEtJLUNB
+   LTFBLmNybDCCATkGCCsGAQUFBwEBBIIBKzCCAScwgbQGCCsGAQUFBzAChoGnbGRh
+   cDovLy9DTj1OSUgtRFBLSS1DQS0xQSxDTj1BSUEsQ049UHVibGljJTIwS2V5JTIw
+   U2VydmljZXMsQ049U2VydmljZXMsQ049Q29uZmlndXJhdGlvbixEQz1ESEhTU0VD
+   VVJJVFksREM9TE9DQUw/Y0FDZXJ0aWZpY2F0ZT9iYXNlP29iamVjdENsYXNzPWNl
+   cnRpZmljYXRpb25BdXRob3JpdHkwQQYIKwYBBQUHMAKGNWh0dHA6Ly9OSUhEUEtJ
+   Q1JMLk5JSC5HT1YvQ2VydERhdGEvTklILURQS0ktQ0EtMUEuY3J0MCsGCCsGAQUF
+   BzABhh9odHRwOi8vTklIRFBLSU9DU1AuTklILkdPVi9vY3NwMAsGA1UdDwQEAwIF
+   oDA9BgkrBgEEAYI3FQcEMDAuBiYrBgEEAYI3FQiHscIohpH8F4b5jwiG7rxzgbud
+   JR2F39lChY/gIQIBZQIBJDAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwEw
+   JwYJKwYBBAGCNxUKBBowGDAKBggrBgEFBQcDAjAKBggrBgEFBQcDATANBgkqhkiG
+   9w0BAQsFAAOCAQEAkgyJY5Pdyz7hF83hu9BsijKHOdMWe8fDyN7GsDR1O0URBuJW
+   oK7FsemmITwMCiDhH+NDkrRWM27EQhuv4w4yIUIFVqPeJS+Ff3gKyqB/VNcrDbfc
+   1RU7Q0qyxwpItm/cEUTTTnfNppf/O6wn/FUbpvPbHMNukqhjtbiYJrmKcO1U0lEu
+   i7FlnPW6rRmEbhp/bChVJMkxw8sBH4K3Vrx9c15nPuBgv4E1cFLe1rwrt3wEeRlU
+   OaWMTbLwYBaBo2BC3iDHzWioSl4OtzItEkT5XxNOhViuoty09Tu5zd7byqiV7To3
+   YVc+Yi/VBubgB+osvPXPAv0AQCLo88dO7MBWQg==
+                       </ds:X509Certificate>
+                   </ds:X509Data>
+               </ds:KeyInfo>
+           </KeyDescriptor>        
+           <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</NameIDFormat>
+           <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
+   		<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
+    </IDPSSODescriptor>
+   </EntityDescriptor> 
