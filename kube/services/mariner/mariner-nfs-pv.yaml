@@ -9,5 +9,5 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    server: GEN3_AWSSTORAGEGATEWAY_MARINER_IP
-    path: "/newstoragegw-poc"
+    server: GEN3_AWSSTORAGEGATEWAY_MARINER_PROD_IP
+    path: GEN3_AWSSTORAGEGATEWAY_S3_BUCKET
