@@ -3,6 +3,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wts-deployment
+  annotations:
+    gen3.io/network-ingress: "mariner"
 spec:
   selector:
     # Only select pods based on the 'app' label
