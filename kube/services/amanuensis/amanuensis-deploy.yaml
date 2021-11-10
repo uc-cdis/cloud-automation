@@ -58,6 +58,12 @@ spec:
         - name: amanuensis-volume
           secret:
             secretName: "amanuensis-creds"
+        - name: amanuensis-jwt-keys
+          secret:
+            secretName: "amanuensis-jwt-keys-g3auto"
+            items:
+              - key: jwt_private_key.pem
+                path: jwt_private_key.pem
       securityContext:
         # nginx group in current images
         fsGroup: 101
@@ -116,6 +122,10 @@ spec:
             readOnly: true
             mountPath: "/var/www/amanuensis/creds.json"
             subPath: creds.json
+          - name: "amanuensis-jwt-keys"
+            readOnly: true
+            mountPath: "/var/www/amanuensis/jwt_private_key.pem"
+            subPath: "jwt_private_key.pem"
         resources:
             requests:
               cpu: 0.4

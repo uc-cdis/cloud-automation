@@ -147,7 +147,6 @@ spec:
               readOnly: true
               mountPath: "/guppy/jwt_public_key.pem"
               subPath: "jwt_public_key.pem"
-
           imagePullPolicy: Always
           resources:
             requests:
