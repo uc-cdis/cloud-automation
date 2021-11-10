@@ -118,3 +118,7 @@ variable "activation_id" {
 variable "customer_id" {
   default = ""
 }
+
+variable "slack_webhook" {
+  default = ""
+}

@@ -40,6 +40,7 @@ module "cdis_vpc" {
   network_expansion              = "${var.network_expansion}"
   activation_id                  = "${var.activation_id}"
   customer_id                    = "${var.customer_id}"
+  slack_webhook                  = "${var.slack_webhook}"
 }
 
 # logs bucket for elb logs
