@@ -55,6 +55,7 @@ fi
 
 function install_basics(){
   apt -y install atop
+  apt -y install jq
 }
 
 function install_docker(){

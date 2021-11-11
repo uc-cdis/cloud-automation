@@ -32,7 +32,7 @@ cd ${HOME}
 #####################
 
 apt-get update
-apt-get install -y build-essential wget libssl1.0-dev
+apt-get install -y build-essential wget libssl1.0-dev jq
 wget http://www.squid-cache.org/Versions/v4/${SQUID_VERSION}.tar.xz
 tar -xJf ${SQUID_VERSION}.tar.xz
 mkdir squid-build
