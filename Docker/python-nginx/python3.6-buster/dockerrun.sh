@@ -86,7 +86,7 @@ if [ -f ./wsgi.py ] && [ "$GEN3_DEBUG" = "True" ]; then
   printf "\napplication.debug=True\n\n" >> ./wsgi.py
 fi
 
-if [[ -z $DD_ENABLED ]]; then
+if [ -z $DD_ENABLED ]; then
 (
   run uwsgi --ini /etc/uwsgi/uwsgi.ini
 ) &
