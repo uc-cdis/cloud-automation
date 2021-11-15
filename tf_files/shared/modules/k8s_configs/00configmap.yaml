@@ -9,5 +9,6 @@ data:
   kube_bucket: ${kube_bucket}
   logs_bucket: ${logs_bucket}
   # Set up hook at https://yourslack.slack.com/apps/manage/custom-integrations
-  slack_webhook: 'None'
+  slack_alert_webhook: 'None'
+  slack_alarm_webhook: 'None'
   gitops_path: "https://github.com/uc-cdis/cdis-manifest.git"
