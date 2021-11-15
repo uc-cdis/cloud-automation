@@ -4,6 +4,11 @@
 #
 #####
 
+locals{
+  # if AZs are explicitly defined as a variable, use those. Otherwise use all the AZs of the current region
+  # NOTE: the syntax should improve with Terraform 12
+  azs = "${split(",", length(var.availability_zones) != 0 ? join(",", var.availability_zones) : join(",", data.aws_availability_zones.available.names))}"
+}
 
 module "jupyter_pool" {
   source                       = "../eks-nodepool/"
@@ -79,8 +84,9 @@ resource "random_shuffle" "az" {
   #input = ["${data.aws_autoscaling_group.squid_auto.availability_zones}"]
   #input = ["${data.aws_availability_zones.available.names}"]
   #input = "${length(var.availability_zones) > 0 ? var.availability_zones : data.aws_autoscaling_group.squid_auto.availability_zones }"
-  input = "${var.availability_zones}"
-  result_count = 3
+  #input = "${var.availability_zones}"
+  input = "${local.azs}"
+  result_count = "${length(local.azs)}"
   count = 1
 }
 
