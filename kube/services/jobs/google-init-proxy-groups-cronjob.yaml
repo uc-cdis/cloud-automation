@@ -129,7 +129,7 @@ spec:
                 valueFrom:
                     configMapKeyRef:
                       name: global
-                      key: slack_alarm_webhook
+                      key: slack_alert_webhook
               - name: gen3Env
                 valueFrom:
                     configMapKeyRef:
