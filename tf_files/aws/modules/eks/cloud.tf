@@ -85,7 +85,7 @@ resource "random_shuffle" "az" {
   #input = ["${data.aws_availability_zones.available.names}"]
   #input = "${length(var.availability_zones) > 0 ? var.availability_zones : data.aws_autoscaling_group.squid_auto.availability_zones }"
   #input = "${var.availability_zones}"
-  input = "${local.azs}"
+  input = ["${local.azs}"]
   result_count = "${length(local.azs)}"
   count = 1
 }
