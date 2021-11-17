@@ -182,9 +182,12 @@ chown -R sftpuser. /home/sftpuser
 
 cp  ${SUB_FOLDER}flavors/squid_auto/updatewhitelist.sh /home/ubuntu
 chmod +x /home/ubuntu/updatewhitelist.sh
+cp  ${SUB_FOLDER}flavors/squid_auto/healthcheck.sh /home/ubuntu
+chmod +x /home/ubuntu/healthcheck.sh
 
 
 crontab -l > file; echo '*/15 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file
+echo '*/1 * * * * /home/ubuntu/healthcheck.sh >/dev/null 2>&1' >> file
 sudo chown -R ubuntu. /home/ubuntu/
 crontab file
 

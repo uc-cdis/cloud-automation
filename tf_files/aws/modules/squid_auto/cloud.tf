@@ -146,7 +146,12 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
   apt autoclean
 
   cd $USER_HOME
-
+  
+  # Create a file with the slack webhook, so that the healtcheck script can access it
+  if [[ ! -z "${var.slack_webhook}" ]]; then
+    echo "${var.slack_webhook}" > /slackWebhook
+  fi
+  
   bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${var.env_log_group};${join(";",var.extra_vars)}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
