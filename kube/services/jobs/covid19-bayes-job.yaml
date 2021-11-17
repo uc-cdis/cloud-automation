@@ -32,8 +32,8 @@ spec:
           GEN3_S3_BUCKET
         resources:
           requests:
-            cpu: 8
+            cpu: 4
             memory: 12Gi
           limits:
-            cpu: 8
+            cpu: 4
             memory: 12Gi
