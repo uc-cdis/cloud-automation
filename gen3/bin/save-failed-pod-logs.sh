@@ -40,8 +40,9 @@ for pod in "${array_of_svc_startup_errors[@]}"; do
   gen3_log_info "storing kubectl logs output into svc_startup_error_${pod_name}.log..."
   container_name=$(g3kubectl get pod ${pod_name} -o jsonpath='{.spec.containers[0].name}')
   g3kubectl logs $pod_name -c ${container_name} > svc_startup_error_${pod_name}.log
+  g3kubectl describe pod $pod_name > describe_pod_${pod_name}.log
   gen3_log_info "capturing kube events..."
-  g3kubectl get events > kubectl_get_events.log
+  g3kubectl get events --sort-by=.metadata.creationTimestamp > kubectl_get_events.log
 done
 
 gen3_log_info "looking for pods with restarting containers..."
@@ -63,11 +64,12 @@ for pod in "${array_of_pods[@]}"; do
     # grabbing list of all containers and initContainers
     # and then save all the logs
     container_names=$(g3kubectl get pod ${pod_name} -o jsonpath='{.spec.containers[*].name} {.spec.initContainers[*].name}')
-    for container_name in container_names; do
+    for container_name in $container_names; do
       gen3_log_info "Saving log for ${container_name}"
       g3kubectl logs $pod_name -c ${container_name} | tail -n10
       # TODO: this is not being archived by pipelineHelper.teardown for some reason :/
       g3kubectl logs $pod_name -c ${container_name} > svc_startup_error_${pod_name}_${container_name}.log
+      g3kubectl describe pod $pod_name > describe_pod_${pod_name}.log
       realpath svc_startup_error_${pod_name}.log
     done
   fi

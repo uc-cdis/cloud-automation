@@ -1,7 +1,7 @@
 FROM quay.io/cdis/ubuntu:18.04
 
-ENV SQUID_VERSION="squid-4.14" \
-    SQUID_DOWNLOAD_URL="http://www.squid-cache.org/Versions/v4/" \
+ENV SQUID_VERSION="squid-5.1" \
+    SQUID_DOWNLOAD_URL="http://www.squid-cache.org/Versions/v5/" \  
     SQUID_USER="proxy" \
     SQUID_CACHE_DIR="/var/cache/squid" \
     SQUID_LOG_DIR="/var/log/squid" \

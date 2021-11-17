@@ -38,6 +38,9 @@ module "cdis_vpc" {
   squid_extra_vars               = "${var.ha-squid_extra_vars}"
   single_squid_instance_type     = "${var.single_squid_instance_type}"
   network_expansion              = "${var.network_expansion}"
+  activation_id                  = "${var.activation_id}"
+  customer_id                    = "${var.customer_id}"
+  slack_webhook                  = "${var.slack_webhook}"
 }
 
 # logs bucket for elb logs
