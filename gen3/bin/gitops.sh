@@ -263,20 +263,20 @@ gen3_gitops_sync() {
     dict_roll=true
   fi
 
-  # cronjob image check
+  # covid19-cronjob image check
   echo "checking cronjobs versions."
-  echo "checking if env manifest consists covid19-notebookietl service"
+  echo "checking if env manifest consists covid19-notebook-etl service"
   if g3k_config_lookup '.versions."covid19-notebook-etl"'; then
     echo "it does ... !"
     if g3kubectl get configmap manifest-versions; then
-      oldImage=$(g3kubectl get configmap manifest-versions -o=json | jq '.data."covid19-notebook-etl"')
+      oldImage=$(g3kubectl get configmap manifest-versions -o=json | jq '.data."covid19-notebook-etl"' | tr -d \" )
     fi
   fi
   newImage=$(g3k_config_lookup '.versions."covid19-notebook-etl"')
   echo "old image is: $oldImage"
   echo "new image is: $newImage"
   if [[ $newImage == $oldImage ]]; then
-    echo "The images are same, skipping dictionary update"
+    echo "The images are same, skipping covid19-etl-cronjob update"
   else
     echo "Images are different, updating cronjobs"
     cronjob_roll=true
@@ -414,6 +414,11 @@ gen3_gitops_sync() {
           gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
           gen3 job run etl --wait ETL_FORCED TRUE
       fi
+      if [[ "$cronjob_roll" = true ]]; then
+          s3Bucket_url=$(kubectl get cm manifest-global -o json | jq .data.covid19_etl_bucket | tr -d \" )
+          echo "##S3BUCKET_URL : ${s3Bucket_url}"
+          gen3 job run covid19-notebook-etl S3_BUCKET s3://${s3Bucket_url}
+      fi    
       gen3 kube-roll-all
       rollRes=$?
       # send result to slack
