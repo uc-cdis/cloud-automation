@@ -415,7 +415,7 @@ gen3_gitops_sync() {
           gen3 job run etl --wait ETL_FORCED TRUE
       fi
       if [[ "$cronjob_roll" = true ]]; then
-          s3Bucket_url=$(kubectl get configmap manifest-global -o json | jq .data.covid19_etl_bucket | tr -d \" )
+          s3Bucket_url=$(kubectl get configmap manifest-global -o json | jq .data.covid19_data_bucket | tr -d \" )
           echo "##S3BUCKET_URL : ${s3Bucket_url}"
           gen3 job run covid19-notebook-etl S3_BUCKET s3://${s3Bucket_url}
       fi    
