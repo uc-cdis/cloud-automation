@@ -263,7 +263,7 @@ gen3_gitops_sync() {
     dict_roll=true
   fi
 
-  # covid19-cronjob image check
+  # covid19-cronjob image check 
   echo "checking cronjobs versions."
   echo "checking if env manifest consists covid19-notebook-etl service"
   if g3k_config_lookup '.versions."covid19-notebook-etl"'; then
