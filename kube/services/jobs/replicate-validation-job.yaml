@@ -43,6 +43,8 @@ spec:
             GEN3_MANIFEST_FILES
           - name: OUT_FILES
             GEN3_OUT_FILES
+          - name: FORCE_CREATE_MANIFEST
+            GEN3_FORCE_CREATE_MANIFEST
           - name: LOG_BUCKET
             GEN3_LOG_BUCKET
         volumeMounts:
