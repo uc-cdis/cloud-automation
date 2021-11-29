@@ -220,6 +220,7 @@ gen3_gitops_sync() {
   local versions_roll=false
   local portal_roll=false
   local etl_roll=false
+  local covid_cronjob_roll=false
   local slack=false
   local tmpHostname
   local resStr
@@ -260,6 +261,25 @@ gen3_gitops_sync() {
       echo "Could not get current url from manifest-global configmap, applying new url from manifest and rolling"
     fi
     dict_roll=true
+  fi
+
+  # covid19-cronjob image check 
+  echo "checking cronjobs versions."
+  echo "checking if env manifest consists covid19-notebook-etl service"
+  if g3k_config_lookup '.versions."covid19-notebook-etl"'; then
+    echo "it does ... !"
+    if g3kubectl get configmap manifest-versions; then
+      oldImage=$(g3kubectl get configmap manifest-versions -o=json | jq '.data."covid19-notebook-etl"' | tr -d \" )
+    fi
+  fi
+  newImage=$(g3k_config_lookup '.versions."covid19-notebook-etl"')
+  echo "old image is: $oldImage"
+  echo "new image is: $newImage"
+  if [[ $newImage == $oldImage ]]; then
+    echo "The images are same, skipping covid19-etl-cronjob update"
+  else
+    echo "Images are different, updating cronjobs"
+    covid_cronjob_roll=true
   fi
 
   # image versions check
@@ -387,13 +407,23 @@ gen3_gitops_sync() {
     echo "DRYRUN flag detected, not rolling"
     gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll; etl_roll: $etl_roll"
   else
-    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true ) ]]; then
+    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true )  || ( "$covid_cronjob_roll" = true ) ]]; then
       echo "changes detected, rolling"
       # run etl job before roll all so guppy can pick up changes
       if [[ "$etl_roll" = true ]]; then
           gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
           gen3 job run etl --wait ETL_FORCED TRUE
       fi
+      if [[ "$covid_cronjob_roll" = true ]]; then
+        if g3k_config_lookup '.global."covid19_data_bucket"'; then
+          s3Bucket_url=$(kubectl get configmap manifest-global -o json | jq .data.covid19_data_bucket | tr -d \" )
+          echo "##S3BUCKET_URL : ${s3Bucket_url}"
+          gen3 job run covid19-notebook-etl S3_BUCKET s3://${s3Bucket_url}
+        else 
+          echo "The global block does not contain the covid19 databucket URL"
+          echo "not running the covid19-notebook-etl job ..."
+        fi
+      fi    
       gen3 kube-roll-all
       rollRes=$?
       # send result to slack
