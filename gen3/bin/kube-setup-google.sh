@@ -20,10 +20,10 @@ goog_launch() {
 
   # add cronjob for removing cached google access for fence versions
   # supporting Passports to DRS
-  if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2021.12"; then
+  if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.02"; then
     filePath="${GEN3_HOME}/kube/services/jobs/google-delete-expired-access-cronjob.yaml"
     if [[ -f "$filePath" ]]; then
-      echo "$filePath being added as a cronjob b/c fence >= 6.0.0 or 2021.12"
+      echo "$filePath being added as a cronjob b/c fence >= 6.0.0 or 2022.02"
       cronList+=("--from-file" "$filePath")
     fi
   fi
@@ -41,10 +41,10 @@ goog_stop() {
 
   # add cronjob for removing cached google access for fence versions
   # supporting Passports -> DRS
-  if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2021.12"; then
+  if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.02"; then
     filePath="${GEN3_HOME}/kube/services/jobs/google-delete-expired-access-cronjob.yaml"
     if [[ -f "$filePath" ]]; then
-      echo "$filePath being added as a cronjob b/c fence >= 6.0.0 or 2021.12"
+      echo "$filePath being added as a cronjob b/c fence >= 6.0.0 or 2022.02"
       cronList+=("--from-file" "$filePath")
     fi
   fi
