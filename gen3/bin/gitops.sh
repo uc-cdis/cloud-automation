@@ -264,23 +264,26 @@ gen3_gitops_sync() {
   fi
 
   # covid19-cronjob image check 
-  echo "checking cronjobs versions."
-  echo "checking if env manifest consists covid19-notebook-etl service"
+  gen3_log_info "checking cronjobs versions."
+  gen3_log_info "checking if env manifest consists covid19-notebook-etl service"
   if g3k_config_lookup '.versions."covid19-notebook-etl"'; then
-    echo "it does ... !"
+    gen3_log_info "it does ... !"
     if g3kubectl get configmap manifest-versions; then
       oldImage=$(g3kubectl get configmap manifest-versions -o=json | jq '.data."covid19-notebook-etl"' | tr -d \" )
     fi
-  fi
-  newImage=$(g3k_config_lookup '.versions."covid19-notebook-etl"')
-  echo "old image is: $oldImage"
-  echo "new image is: $newImage"
-  if [[ $newImage == $oldImage ]]; then
-    echo "The images are same, skipping covid19-etl-cronjob update"
+    newImage=$(g3k_config_lookup '.versions."covid19-notebook-etl"')
+    gen3_log_info "old image is: $oldImage"
+    gen3_log_info "new image is: $newImage"
+    if [[ $newImage == $oldImage ]]; then
+      gen3_log_info "The images are same, skipping covid19-etl-cronjob update"
+    else
+      gen3_log_info "Images are different, updating cronjobs"
+      covid_cronjob_roll=true
+    fi
   else
-    echo "Images are different, updating cronjobs"
-    covid_cronjob_roll=true
+    gen3_log_info "it doesn't ... skipping covid19-notebook-etl roll!"
   fi
+
 
   # image versions check
   if g3kubectl get configmap manifest-versions; then
@@ -447,7 +450,10 @@ gen3_gitops_sync() {
         if [[ "$etl_roll" = true ]]; then
           etlAttachment="\"title\": \"ETL Diffs\", \"text\": \"${etlDiffs}\", \"color\": \"${color}\""
         fi
-        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}, {${etlAttachment}}]}" "${slackWebHook}"
+        if [[ "$covid_cronjob_roll" = true ]]; then
+          covidAttachment="\"title\": \"Covid Cronjob update\", \"text\": \"Updated covid19 notebook etl version\", \"color\": \"${color}\""
+        fi
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}, {${etlAttachment}}, {${covidAttachment}}]}" "${slackWebHook}"
       fi
     else
       echo "no changes detected, not rolling"
