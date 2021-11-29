@@ -49,7 +49,7 @@ spec:
             if [ -f /aws-es-proxy ];
             then
               # 1.3 needs this PR: https://github.com/uc-cdis/aws-es-proxy/pull/2
-              BINARY=/aws-es-proxy -timeout 30
+              BINARY=/aws-es-proxy -timeout 180
             elif [ -f /usr/local/bin/aws-es-proxy ];
             then
               # 0.9
