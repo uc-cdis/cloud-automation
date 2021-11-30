@@ -421,7 +421,7 @@ gen3_gitops_sync() {
         if g3k_config_lookup '.global."covid19_data_bucket"'; then
           s3Bucket_url=$(kubectl get configmap manifest-global -o json | jq .data.covid19_data_bucket | tr -d \" )
           echo "##S3BUCKET_URL : ${s3Bucket_url}"
-          gen3 job run covid19-notebook-etl S3_BUCKET s3://${s3Bucket_url}
+          gen3 job run covid19-notebook-etl-cronjob S3_BUCKET s3://${s3Bucket_url}
         else 
           echo "The global block does not contain the covid19 databucket URL"
           echo "not running the covid19-notebook-etl job ..."
