@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dicom-viewer-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: orthanc
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: orthanc
+        public: "yes"
+        netnolimit: "yes"
+        tags.datadoghq.com/service: "guppy"
+        GEN3_GUPPY_VERSION
+        GEN3_ENV_LABEL
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - guppy
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+        - name: guppy-config
+          configMap:
+            name: manifest-guppy
+            items:
+              - key: json
+                path: guppy_config.json
+        - name: cert-volume
+          secret:
+            secretName: "cert-arranger-service"
+        - name: ca-volume
+          secret:
+            secretName: "service-ca"
+      containers:
+        - name: viewer
+          GEN3_GUPPY_IMAGE|-image: quay.io/cdis/ohif-viewer
+          livenessProbe:
+            httpGet:
+              path: /_status
+              port: 8080:80
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /_status
+              port: 8000
+          ports:
+          - containerPort: 8080:80
+          env:
+          - name: GUPPY_PORT
+            value: "8000"
+          - name: GUPPY_CONFIG_FILEPATH
+            value: /guppy/guppy_config.json
+          - name: GEN3_ES_ENDPOINT
+            value: esproxy-service:9200
+          - name: GEN3_ARBORIST_ENDPOINT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: arborist_url
+                optional: true
+          - name: TIER_ACCESS_LEVEL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                # acceptable values for `tier_access_level` are: `libre`, `regular` and `private`. If omitted, by default common will be treated as `private`
+                key: tier_access_level
+                # for now making it optional so won't break anything
+                optional: true
+          - name: TIER_ACCESS_LIMIT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: tier_access_limit
+                optional: true
+          - name: DD_TRACE_ENABLED
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: dd_enabled
+                optional: true
+          - name: DD_ENV
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['tags.datadoghq.com/env']
+          - name: DD_SERVICE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['tags.datadoghq.com/service']
+          - name: DD_VERSION
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['tags.datadoghq.com/version']
+          - name: DD_LOGS_INJECTION
+            value: "true"
+          - name: DD_PROFILING_ENABLED
+            value: "true"
+          - name: DD_TRACE_SAMPLE_RATE
+            value: "1"
+          - name: DD_TRACE_AGENT_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+          volumeMounts:
+            - name: guppy-config
+              readOnly: true
+              mountPath: /guppy/guppy_config.json
+              subPath: guppy_config.json
+            - name: "cert-volume"
+              readOnly: true
+              mountPath: "/mnt/ssl/service.crt"
+              subPath: "service.crt"
+            - name: "ca-volume"
+              # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
+              readOnly: true
+              mountPath: "/usr/local/share/ca-certificates/cdis-ca.crt"
+              subPath: "ca.pem"
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 0.5
+              memory: 1024Mi
+            limits:
+              cpu: 1
+              memory: 2400Mi  
