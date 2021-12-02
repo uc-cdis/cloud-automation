@@ -4,7 +4,7 @@ metadata:
   name: pcdcanalysistools-deployment
 spec:
   selector:
-    # Only select pods based on the 'app' label
+    # Only select pods based on the 'app' label  
     matchLabels:
       app: pcdcanalysistools
       release: production
