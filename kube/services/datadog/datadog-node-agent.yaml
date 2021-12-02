@@ -750,7 +750,7 @@ spec:
         - name: DD_LOG_LEVEL
           value: "INFO"
         - name: DD_COMPLIANCE_CONFIG_ENABLED
-          value: "true"
+          value: "false"
         - name: DD_COMPLIANCE_CONFIG_CHECK_INTERVAL
           value: "20m"
         - name: HOST_ROOT
