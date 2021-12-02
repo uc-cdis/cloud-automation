@@ -27,7 +27,7 @@ fi
 
 cd /home/ubuntu
 apt-get update
-apt-get install -y build-essential wget libssl1.0-dev
+apt-get install -y build-essential wget libssl1.0-dev jq
 wget http://www.squid-cache.org/Versions/v4/squid-4.0.24.tar.xz
 tar -xJf squid-4.0.24.tar.xz
 mkdir squid-build
