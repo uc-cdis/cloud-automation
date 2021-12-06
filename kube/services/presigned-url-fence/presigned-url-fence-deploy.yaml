@@ -97,6 +97,8 @@ spec:
       - name: fence
         GEN3_FENCE_IMAGE
         env:
+        - name: GEN3_UWSGI_TIMEOUT
+          value: "300"
         - name: DD_ENABLED
           valueFrom:
             configMapKeyRef:
