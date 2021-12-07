@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ohdsi-webapi-deployment
+  annotations:
+    gen3.io/network-ingress: "ohdsi-atlas"
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: ohdsi-webapi
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: ohdsi-webapi
+        public: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - ohdsi-webapi
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      containers:
+        - name: ohdsi-webapi
+          GEN3_OHDSI-WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
+          # livenessProbe:
+          #   httpGet:
+          #     path: /WebAPI/source/sources
+          #     port: 8080
+          #   initialDelaySeconds: 30
+          #   periodSeconds: 60
+          #   timeoutSeconds: 30
+          # readinessProbe:
+          #   httpGet:
+          #     path: /WebAPI/source/sources
+          #     port: 8080
+          ports:
+          - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: ohdsi-webapi-config
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 1
+              memory: 1Gi
+            limits:
+              cpu: 1
+              memory: 1Gi  

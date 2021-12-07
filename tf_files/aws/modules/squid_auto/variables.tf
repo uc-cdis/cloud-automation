@@ -116,3 +116,15 @@ variable "network_expansion" {
 variable "squid_depends_on" { 
   default = "" 
 }
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}
+
+variable "slack_webhook" {
+  default = ""
+}

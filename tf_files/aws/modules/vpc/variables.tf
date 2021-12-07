@@ -110,3 +110,15 @@ variable "network_expansion" {
   description = "Let k8s wokers use /22 subnets per AZ"
   default     = false
 }
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}
+
+variable "slack_webhook" {
+  default = ""
+}
