@@ -38,7 +38,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: global
-              key: slack_webhook
+              key: slack_alert_webhook
         volumeMounts:
           - name: cred-volume
             mountPath: "/secrets/credentials"

@@ -29,7 +29,7 @@ spec:
               valueFrom:
                   configMapKeyRef:
                     name: global
-                    key: slack_webhook
+                    key: slack_alert_webhook
                     optional: true
           command: ["/bin/bash" ]
           args:

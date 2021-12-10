@@ -26,7 +26,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: global
-                  key: slack_webhook
+                  key: slack_alert_webhook
                   optional: true
             - name: gen3Hostname
               valueFrom:
