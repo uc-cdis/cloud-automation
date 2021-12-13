@@ -3,11 +3,24 @@
 # Deploy cogwheel service (Set up db and secrets if not already)
 #
 
+set -e
+
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 
 mkdir -p $(gen3_secrets_folder)/g3auto/cogwheel
+
+
+curl_and_check() {
+  url=$1
+  output_file=$2
+  http_code=$(curl --silent --output $output_file --write-out "%{http_code}" "$url")
+  if [[ ${http_code} -lt 200 || ${http_code} -gt 299 ]] ; then
+    echo failed to curl $url: http code ${http_code}
+    exit 1
+  fi
+}
 
 
 # Set up database if it does not already exist, along with Fence client
@@ -52,7 +65,7 @@ cd $(gen3_secrets_folder)/g3auto/cogwheel
 # Download InCommon Metadata Service signing certificate and check fingerprint
 if [[ ! -f "mdqsigner.pem" ]]; then
         gen3_log_info "Downloading InCommon Metadata Service signing cert mdqsigner.pem..."
-        curl https://md.incommon.org/certs/inc-md-cert-mdq.pem > mdqsigner.pem
+        curl_and_check https://md.incommon.org/certs/inc-md-cert-mdq.pem mdqsigner.pem
         gen3_log_info "Checking certificate fingerprint..."
         if [ "$(cat mdqsigner.pem | openssl x509 -sha256 -noout -fingerprint)" != "SHA256 Fingerprint=60:49:74:D6:1F:E0:D7:F4:D6:3D:6C:8D:B9:8A:85:7E:64:2A:B9:B4:70:E3:E8:5D:D5:4D:66:3D:04:96:F9:00" ]; then
                 gen3_log_err "Signing cert had unexpected fingerprint."
@@ -81,7 +94,7 @@ fi
 # Prepare oauth2_metadata.json
 if [[ ! -f "oauth2_metadata.json" ]]; then
         gen3_log_info "Downloading and editing template oauth2_metadata.json..."
-        curl https://raw.githubusercontent.com/uc-cdis/cogwheel/master/template.oauth2_metadata.json > oauth2_metadata.json
+        curl_and_check https://raw.githubusercontent.com/uc-cdis/cogwheel/master/template.oauth2_metadata.json oauth2_metadata.json
         sed -i "s/localhost:1234/$GEN3_CACHE_HOSTNAME\/cogwheel/g" oauth2_metadata.json
         sed -i "/issuer/s/cogwheel\//cogwheel/" oauth2_metadata.json
         gen3_log_info "Generated oauth2_metadata.json."
@@ -93,7 +106,7 @@ fi
 # Prepare ssl.conf
 if [[ ! -f "ssl.conf" ]]; then
         gen3_log_info "Downloading and editing template ssl.conf..."
-        curl https://raw.githubusercontent.com/uc-cdis/cogwheel/master/template.ssl.conf > ssl.conf
+        curl_and_check https://raw.githubusercontent.com/uc-cdis/cogwheel/master/template.ssl.conf ssl.conf
         sed -i "s/^#ServerName www.example.com:443/ServerName $GEN3_CACHE_HOSTNAME/" ssl.conf
 
         sed -i "/ShibRequestSetting requireSession 1/a\ \ ShibRequestSetting REMOTE_ADDR \"X-Forwarded-For\"" ssl.conf
@@ -130,7 +143,7 @@ fi
 # Download template shibboleth2.xml and log instructions to edit it
 if [[ ! -f "shibboleth2.xml" ]]; then
         gen3_log_info "Downloading template shibboleth2.xml..."
-        curl https://raw.githubusercontent.com/uc-cdis/cogwheel/master/template.shibboleth2.xml > shibboleth2.xml
+        curl_and_check https://raw.githubusercontent.com/uc-cdis/cogwheel/master/template.shibboleth2.xml shibboleth2.xml
         sed -i "s/<Sessions /<Sessions handlerURL=\"\/cogwheel\/Shibboleth.sso\" /" shibboleth2.xml
 
         gen3_log_warn "Downloaded template shibboleth2.xml. You must edit this file with at least your SP EntityID! See Cogwheel README for instructions."
