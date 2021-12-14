@@ -12,6 +12,7 @@ spec:
         app: cogwheel
         GEN3_DATE_LABEL
     spec:
+      # TODO add a status endpoint and livenessProbe/readinessProbe
       volumes:
       - name: cogwheel-g3auto
         secret:

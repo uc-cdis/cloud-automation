@@ -13,13 +13,14 @@ mkdir -p $(gen3_secrets_folder)/g3auto/cogwheel
 
 
 curl_and_check() {
-  url=$1
-  output_file=$2
-  http_code=$(curl --silent --output $output_file --write-out "%{http_code}" "$url")
-  if [[ ${http_code} -lt 200 || ${http_code} -gt 299 ]] ; then
-    echo failed to curl $url: http code ${http_code}
-    exit 1
-  fi
+        url=$1
+        output_file=$2
+        http_code=$(curl --silent --output $output_file --write-out "%{http_code}" "$url")
+        if [[ ${http_code} -lt 200 || ${http_code} -gt 299 ]] ; then
+                echo failed to curl $url: http code ${http_code}
+                rm $2
+                exit 1
+        fi
 }
 
 
