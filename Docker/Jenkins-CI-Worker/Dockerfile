@@ -5,12 +5,12 @@ USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 # install python
-RUN set -xe && apt-get update  && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip python3-venv build-essential zip unzip jq less vim gettext-base
+RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip python3-venv build-essential zip unzip jq less vim gettext-base
 
 RUN set -xe && apt-get update \
   && apt-get install -y lsb-release \
      apt-transport-https \
-     ca-certificates  \
+     ca-certificates \
      curl \
      gnupg2 \
      libffi-dev \
@@ -78,7 +78,7 @@ RUN apt-get update && apt-get install -y nodejs
 # add psql: https://www.postgresql.org/download/linux/debian/
 RUN DISTRO="$(lsb_release -c -s)"  \
       && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
-      && wget -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+      && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
       && apt-get update \
       && apt-get install -y postgresql-client-13 libpq-dev \
       && rm -rf /var/lib/apt/lists/*
