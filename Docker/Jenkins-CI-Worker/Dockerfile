@@ -10,7 +10,7 @@ RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python py
 RUN set -xe && apt-get update \
   && apt-get install -y lsb-release \
      apt-transport-https \
-     ca-certificates \
+     ca-certificates  \
      curl \
      gnupg2 \
      libffi-dev \
