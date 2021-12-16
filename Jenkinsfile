@@ -1,7 +1,7 @@
 #!groovy
 
 // See 'Loading libraries dynamically' here: https://jenkins.io/doc/book/pipeline/shared-libraries/
-library 'cdis-jenkins-lib@master'
+library 'cdis-jenkins-lib@chore/use_localhost_gen3_qa_in_a_box'
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
