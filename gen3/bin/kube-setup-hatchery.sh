@@ -77,7 +77,7 @@ EOM
     ddbPolicyName="hatchery-role-ddb-policy"
     ddbPolicyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$ddbPolicyName" --policy-document "$ddbPolicy" --description "Allow hathcery access to DynamoDB")
     if [ -n "$ddbPolicyInfo" ]; then
-    ddbPolicyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $ddbPolicyInfo"; return 1; }
+    ddbPolicyArn="$(jq -e -r '.["Policy"].Arn' <<< "$ddbPolicyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $ddbPolicyInfo"; return 1; }
     else
         echo "Unable to create policy $ddbPolicyName. Assuming it already exists and continuing"
         ddbPolicyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$ddbPolicyArn'].Arn" --output text)
