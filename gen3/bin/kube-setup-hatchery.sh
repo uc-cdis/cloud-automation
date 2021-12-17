@@ -33,7 +33,16 @@ policy=$( cat <<EOM
             "Effect": "Allow",
             "Action": "ec2:*",
             "Resource": "*"
-        }
+        },
+        {
+            "Sid": "GlobalDynamodbAdmin",
+            "Effect": "Allow",
+            "Action": "dynamodb:*",
+            "Resource": [
+                "arn:aws:dynamodb:::table/*",
+                "arn:aws:dynamodb:*:*:table/*"
+            ]
+        },
     ]
 }
 EOM
