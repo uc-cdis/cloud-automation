@@ -83,7 +83,7 @@ EOM
         ddbPolicyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$ddbPolicyArn'].Arn" --output text)
     fi
 
-    gen3_log_info "Attaching policy '${ddbPolicyName}' to role '${role_name}'"
+    gen3_log_info "Attaching policy '${ddbPolicyName}' with arn ${ddbPolicyArn} to role '${role_name}'"
     gen3 awsrole attach-policy ${ddbPolicyArn} --role-name ${role_name} --force-aws-cli || exit 1
     
 fi
