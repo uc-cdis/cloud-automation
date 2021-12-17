@@ -68,7 +68,7 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
                     "arn:aws:dynamodb:::table/*",
                     "arn:aws:dynamodb:*:*:table/*"
                 ]
-            },
+            }
         ]
 }
 EOM
