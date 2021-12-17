@@ -101,7 +101,7 @@ RUN DISTRO="$(lsb_release -c -s)"  \
       && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
       && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
       && apt-get update \
-      && apt-get install -y postgresql-client-9.6 \
+      && apt-get install -y postgresql-client-13 \
       && rm -rf /var/lib/apt/lists/*
 
 # Copy sh script responsible for installing Python
