@@ -5,12 +5,12 @@ USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 # install python
-RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip python3-venv build-essential zip unzip jq less vim gettext-base
+RUN set -xe && apt-get update  && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip python3-venv build-essential zip unzip jq less vim gettext-base
 
 RUN set -xe && apt-get update \
   && apt-get install -y lsb-release \
      apt-transport-https \
-     ca-certificates \
+     ca-certificates  \
      curl \
      gnupg2 \
      libffi-dev \
@@ -42,6 +42,10 @@ RUN set -xe && apt-get update \
 # Use jdk11
 ENV JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
 ENV PATH="$JAVA_HOME/bin:$PATH"
+
+COPY ./certfix.sh /certfix.sh
+RUN chmod +x /certfix.sh
+RUN bash /certfix.sh
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
@@ -76,7 +80,7 @@ RUN DISTRO="$(lsb_release -c -s)"  \
       && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
       && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
       && apt-get update \
-      && apt-get install -y postgresql-client-9.6 libpq-dev \
+      && apt-get install -y postgresql-client-13 libpq-dev \
       && rm -rf /var/lib/apt/lists/*
 
 # Copy sh script responsible for installing Python
