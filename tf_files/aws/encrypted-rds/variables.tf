@@ -64,15 +64,15 @@ variable "indexd_snapshot" {
 }
 
 variable "fence_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 variable "sheepdog_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 variable "indexd_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 # id of AWS account that owns the public AMI's
