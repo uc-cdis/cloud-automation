@@ -947,10 +947,10 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         exit 1
       fi
       ;;
-    *)
     "upgrade")
       gen3_db_upgrade "$@"
       ;;
+    *)
       gen3_db_help
       ;;
   esac
