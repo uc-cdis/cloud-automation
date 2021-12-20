@@ -63,7 +63,7 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
             {
                 "Sid": "GlobalDynamodbAdmin",
                 "Effect": "Allow",
-                "Action": "dynamodb:*",
+                "Action": "sts:AssumeRoleWithWebIdentity",
                 "Resource": [
                     "arn:aws:dynamodb:::table/*",
                     "arn:aws:dynamodb:*:*:table/*"
