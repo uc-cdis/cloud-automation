@@ -256,5 +256,20 @@ variable "aws_db_subnet_group_name" {
 }
 
 variable "db_pg_name" {
-  default = "dbPgName"
+  default = ""
+}
+
+variable "fence_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
+}
+
+variable "sheepdog_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
+}
+
+variable "indexd_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
 }
