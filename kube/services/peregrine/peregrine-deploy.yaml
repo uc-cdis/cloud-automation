@@ -19,6 +19,7 @@ spec:
   template:
     metadata:
       labels:
+        netnolimit: "yes"
         app: peregrine
         release: production
         public: "yes"
@@ -67,6 +68,8 @@ spec:
           - containerPort: 80
           - containerPort: 443
           env:
+          - name: GEN3_UWSGI_TIMEOUT
+            value: "600"
           - name: DD_ENABLED
             valueFrom:
               configMapKeyRef:

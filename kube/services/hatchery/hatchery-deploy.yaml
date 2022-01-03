@@ -21,7 +21,7 @@ spec:
         netnolimit: "yes"
         userhelper: "yes"
         tags.datadoghq.com/service: "hatchery"
-        tags.datadoghq.com/version: "master"
+        GEN3_HATCHERY_VERSION
         GEN3_ENV_LABEL
         GEN3_DATE_LABEL
     spec:
@@ -62,7 +62,12 @@ spec:
         ports:
         - containerPort: 8000
         env:
-          - name: HOSTNAME
+          - name: GEN3_VPCID
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: environment
+          - name: GEN3_ENDPOINT
             valueFrom:
               configMapKeyRef:
                 name: manifest-global

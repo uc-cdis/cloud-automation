@@ -116,3 +116,11 @@ variable "user_policy" {
 }
   POLICY
 }
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}

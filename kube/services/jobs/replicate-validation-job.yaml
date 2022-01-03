@@ -43,6 +43,8 @@ spec:
             GEN3_MANIFEST_FILES
           - name: OUT_FILES
             GEN3_OUT_FILES
+          - name: FORCE_CREATE_MANIFEST
+            GEN3_FORCE_CREATE_MANIFEST
           - name: LOG_BUCKET
             GEN3_LOG_BUCKET
         volumeMounts:
@@ -70,5 +72,5 @@ spec:
             gcloud auth activate-service-account --key-file=/secrets/google_service_account_creds
             export GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_service_account_creds
             gsutil cp $IGNORED_FILE /dcf-dataservice/ignored_files_manifest.csv
-            python replicate.py validate --global_config "{\"release\": \"$RELEASE\", \"manifest_files\":\"$MANIFEST_FILES\", \"out_manifests\": \"$OUT_FILES\", \"log_bucket\": \"$LOG_BUCKET\", \"save_copied_objects\": 1}"
+            python replicate.py validate --global_config "{\"release\": \"$RELEASE\", \"manifest_files\":\"$MANIFEST_FILES\", \"out_manifests\": \"$OUT_FILES\", \"FORCE_CREATE_MANIFEST\": \"$FORCE_CREATE_MANIFEST\", \"log_bucket\": \"$LOG_BUCKET\", \"save_copied_objects\": 1}"
       restartPolicy: Never

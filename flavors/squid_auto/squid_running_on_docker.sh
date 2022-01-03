@@ -55,6 +55,7 @@ fi
 
 function install_basics(){
   apt -y install atop
+  apt -y install jq
 }
 
 function install_docker(){
@@ -170,8 +171,11 @@ EOF
   # Copy the updatewhitelist.sh script to the home directory 
   cp  ${SUB_FOLDER}/flavors/squid_auto/updatewhitelist-docker.sh ${HOME_FOLDER}/updatewhitelist.sh
   chmod +x ${HOME_FOLDER}/updatewhitelist.sh
-  
+  cp  ${SUB_FOLDER}/flavors/squid_auto/healthcheck.sh /home/ubuntu
+  chmod +x /home/ubuntu/healthcheck.sh  
+
   crontab -l > crontab_file; echo "*/15 * * * * ${HOME_FOLDER}/updatewhitelist.sh >/dev/null 2>&1" >> crontab_file
+  echo '*/1 * * * * /home/ubuntu/healthcheck.sh >/dev/null 2>&1' >> crontab_file
   #chown -R ${WORK_USER}. ${HOME_FOLDER}
   crontab crontab_file
 

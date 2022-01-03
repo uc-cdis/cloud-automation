@@ -5,6 +5,7 @@
 .anaconda.com
 .anaconda.org
 .apache.org
+.azureedge.net
 .qg3.apps.qualys.com
 .archive.canonical.com
 .bioconductor.org
@@ -39,6 +40,7 @@
 .extjs.com
 .fedoraproject.org
 .github.com
+.githubusercontent.com
 .gitlab.com
 .googleapis.com
 .googleusercontent.com
@@ -77,6 +79,7 @@
 .sa-update.pccc.com
 .sencha.com
 .sks-keyservers.net
+.slack.com
 .slack-msgs.com
 .sourceforge.net
 .southsideweekly.com
@@ -93,3 +96,6 @@
 .gstatic.com
 .visitdata.org
 .yarnpkg.com
+.nesi.org.nz
+.agdr.org.nz
+.agha.umccr.org
