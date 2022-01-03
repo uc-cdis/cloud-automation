@@ -17,3 +17,11 @@ variable "size" {
 variable "cache_size" {
   default = 150
 }
+
+variable "s3_bucket" {
+  default = ""
+}
+
+variable "key_name" {
+  default = ""
+}

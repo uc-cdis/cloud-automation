@@ -17,7 +17,8 @@ resource "aws_instance" "storage-gw-server" {
   instance_type = "m4.xlarge"
   associate_public_ip_address = false
   # Need to provide subnet in var for now
-  subnet_id = "${var.subnet}"
+  subnet_id = "${data.aws_subnet.public_kube.id}"
+  key_name  = "${var.key_name}"
   vpc_security_group_ids = ["${aws_security_group.storage-gateway-sg.id}"]
   root_block_device {
     # Get volume size from var permanently
@@ -46,7 +47,7 @@ resource "aws_volume_attachment" "disk-attach" {
 
 resource "aws_security_group" "storage-gateway-sg" {
   name = "storage-gateway-sg"
-  vpc_id = "${local.vpcid}"
+  vpc_id = "${data.aws_vpc.the_vpc.id}"
   # Add tags later
   ingress {
     protocol = "tcp"
@@ -197,11 +198,12 @@ resource "aws_iam_policy_attachment" "attach-policies" {
   name = "storageGW-attachment"
   roles = ["${aws_iam_role.transfer-role.name}"]
   policy_arn = "${aws_iam_policy.transfer-policy-sg.arn}"
+  depends_on = ["aws_iam_policy.transfer-policy"]
 }
 
 
 resource "aws_s3_bucket" "transfer-bucket" {
-  bucket = "test-gw-bucket"
+  bucket = "${var.s3_bucket}"
   acl    = "private"
 
   server_side_encryption_configuration {
