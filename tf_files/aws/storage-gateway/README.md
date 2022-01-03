@@ -14,7 +14,7 @@ gen3 workon <profile> <commons-mane>__storage-gateway
 Ex:
 
 ```bash
-gen3 workon cdistest generic-commons__storage-gatewat
+gen3 workon cdistest generic-commons__storage-gateway
 ```
 
 
