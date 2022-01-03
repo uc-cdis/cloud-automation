@@ -198,7 +198,7 @@ resource "aws_iam_policy_attachment" "attach-policies" {
   name = "storageGW-attachment"
   roles = ["${aws_iam_role.transfer-role.name}"]
   policy_arn = "${aws_iam_policy.transfer-policy-sg.arn}"
-  depends_on = ["aws_iam_policy.transfer-policy"]
+  depends_on = ["aws_iam_policy.transfer-policy-sg"]
 }
 
 
