@@ -201,7 +201,6 @@ gen3_ecr_describe_image() {
 # @param repoName
 gen3_ecr_create_repo() {
   local repoName="gen3/$1"
-  shift || return 1
   aws ecr create-repository --repository-name ${repoName} --image-scanning-configuration scanOnPush=true 
 }
 
