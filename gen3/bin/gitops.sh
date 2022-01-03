@@ -428,7 +428,7 @@ gen3_gitops_sync() {
       # update fence ConfigMap before roll-all
       if [[ "$fence_roll" = true ]]; then
           gen3 update_config manifest-fence "$(gen3 gitops folder)/manifests/fence/fence-config-public.yaml"
-          #gen3 kube-setup-fence ?
+
       fi
       gen3 kube-roll-all
       rollRes=$?
