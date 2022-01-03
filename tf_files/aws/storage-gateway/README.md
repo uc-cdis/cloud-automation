@@ -26,7 +26,6 @@ gen3 workon cdistest generic-commons__storage-gateway
 - [4. Variables](#4-variables)
   - [4.1 Required Variables](#41-required-variables)
   - [4.2 Optional Variables](#42-optional-variables)
-- [5. Considerations](#5-considerations)
 
 
 ## 3. Overview
@@ -35,7 +34,7 @@ Once you workon the workspace, you may want to edit the config.tfvars accordingl
 
 There are mandatory variables, and there are a few other optionals that are set by default in the variables.tf file, but you could change them accordingly. This also uses the main commons template file, so ensure you remove the unnecessary variables, or at least the ones that will cause a syntax error.
 
-Once the terraform is run you will need to add the ip to the noproxy list in your .bashrc file. From there you will want to connect to the storage gateway ip address. This is becuase you need to setup the storage gateway to use the proxy. Once that is setup you should be able to rerun the terraform to let it finish.
+Once the terraform is run you will need to add the ip to the noproxy list in your .bashrc file, you can find it from the output of the terraform run. From there you will want to connect to the storage gateway ip address. To connect you will need to make sure the key pair provided is your key pair, or one you have access to so you can ssh using your key, and connect to the admin user. Once connected, you need to setup the storage gateway to use the proxy, press 1, the type cloud-proxy.internal.io, then 3128 for the port. Once that is setup you should be able to rerun the terraform to let it finish.
 
 
 
@@ -56,10 +55,3 @@ Once the terraform is run you will need to add the ip to the noproxy list in you
 | size | The size of the storage gateway server | int | 80 |
 | cache_size | AZs for the cluster | int | 150 |
 
-
-
-## 5. Output
-
-| Name | Description |
-|------|-------------|
-| storage_gateway_url | The url for the storage gateway |
