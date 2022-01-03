@@ -170,7 +170,6 @@ resource "aws_iam_policy" "transfer-policy-sg" {
       "s3:ListBucketVersions",
       "s3:ListBucketMultipartUploads"
     ],
-  # Make an s3 bucket for this and get name from it
     "Resource": "arn:aws:s3:::${aws_s3_bucket.transfer-bucket.bucket}",
     "Effect": "Allow"
   },
