@@ -609,7 +609,6 @@ gen3_db_encrypt() {
   echo "$configFile">>config.tfvars
   echo "security_group_local_id=\"$securityGroupId\"" >> config.tfvars
   echo "aws_db_subnet_group_name=\"$dbSubnet\"" >> config.tfvars
-  echo "db_pg_name=\"$dbParameterGroupName\"" >> config.tfvars
   gen3 tfplan
   gen3 tfapply
 
