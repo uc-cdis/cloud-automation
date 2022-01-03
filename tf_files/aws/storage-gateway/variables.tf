@@ -6,10 +6,6 @@ variable "ami_id" {
   default = ""
 }
 
-variable "subnet"{
-  default = ""
-}
-
 variable "size" {
   default = 80
 }
