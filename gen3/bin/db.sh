@@ -609,6 +609,7 @@ gen3_db_encrypt() {
   echo "$configFile">>config.tfvars
   echo "security_group_local_id=\"$securityGroupId\"" >> config.tfvars
   echo "aws_db_subnet_group_name=\"$dbSubnet\"" >> config.tfvars
+  echo "db_pg_name=\"$dbParameterGroupName\"" >> config.tfvars
   gen3 tfplan
   gen3 tfapply
 
@@ -845,7 +846,6 @@ gen3_db_upgrade() {
   echo "vpc_name = \"$vpc-psql$(echo $version| cut -d '.' -f 1)\"" >> config.tfvars
   echo "security_group_local_id=\"$securityGroupId\"" >> config.tfvars
   echo "aws_db_subnet_group_name=\"$dbSubnet\"" >> config.tfvars
-  echo "db_pg_name=\"$dbParameterGroupName\"" >> config.tfvars
   echo "fence_snapshot = \"fence-psql-upgrade-snapshot-$(date -u +%Y%m%d)\"" >> config.tfvars
   echo "indexd_snapshot = \"indexd-psql-upgrade-snapshot-$(date -u +%Y%m%d)\"" >> config.tfvars
   echo "gdcapi_snapshot = \"gdcapi-psql-upgrade-snapshot-$(date -u +%Y%m%d)\"" >> config.tfvars
