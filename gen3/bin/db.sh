@@ -609,6 +609,7 @@ gen3_db_encrypt() {
   echo "$configFile">>config.tfvars
   echo "security_group_local_id=\"$securityGroupId\"" >> config.tfvars
   echo "aws_db_subnet_group_name=\"$dbSubnet\"" >> config.tfvars
+  echo "db_pg_name=\"$dbParameterGroupName\"" >> config.tfvars
   gen3 tfplan
   gen3 tfapply
 
@@ -822,9 +823,9 @@ gen3_db_upgrade() {
   local dbParameterGroupName=$(aws rds describe-db-instances --filters '{"Name": "db-instance-id", "Values": ["'$originalFenceDb'"]}' | jq -r .DBInstances[0].DBParameterGroups[0].DBParameterGroupName)
   # Create snapshots of old db's asap, so that can complete while we work on terraform
   gen3_log_info "Creating db snapshots"
-  aws rds create-db-snapshot --db-snapshot-identifier fence-psql-upgrade-snapshot-$(date -u +%Y%m%d) --db-instance-identifier $originalFenceDb
-  aws rds create-db-snapshot --db-snapshot-identifier indexd-psql-upgrade-snapshot-$(date -u +%Y%m%d) --db-instance-identifier $originalIndexdDb
-  aws rds create-db-snapshot --db-snapshot-identifier gdcapi-psql-upgrade-snapshot-$(date -u +%Y%m%d) --db-instance-identifier $originalGdcApiDb
+  aws rds create-db-snapshot --db-snapshot-identifier fence-psql-upgrade-snapshot-$2-$(date -u +%Y%m%d) --db-instance-identifier $originalFenceDb
+  aws rds create-db-snapshot --db-snapshot-identifier indexd-psql-upgrade-snapshot-$2-$(date -u +%Y%m%d) --db-instance-identifier $originalIndexdDb
+  aws rds create-db-snapshot --db-snapshot-identifier gdcapi-psql-upgrade-snapshot-$2-$(date -u +%Y%m%d) --db-instance-identifier $originalGdcApiDb
   # Workon old module so we can grab the config.tfvars from it
   gen3 workon $account $profile
   gen3 cd
@@ -845,19 +846,20 @@ gen3_db_upgrade() {
   echo "vpc_name = \"$vpc-psql$(echo $version| cut -d '.' -f 1)\"" >> config.tfvars
   echo "security_group_local_id=\"$securityGroupId\"" >> config.tfvars
   echo "aws_db_subnet_group_name=\"$dbSubnet\"" >> config.tfvars
-  echo "db_pg_name=\"$dbParameterGroupName\"" >> config.tfvars
-  echo "fence_snapshot = \"fence-psql-upgrade-snapshot-$(date -u +%Y%m%d)\"" >> config.tfvars
-  echo "indexd_snapshot = \"indexd-psql-upgrade-snapshot-$(date -u +%Y%m%d)\"" >> config.tfvars
-  echo "gdcapi_snapshot = \"gdcapi-psql-upgrade-snapshot-$(date -u +%Y%m%d)\"" >> config.tfvars
+  echo "fence_snapshot = \"fence-psql-upgrade-snapshot-$2-$(date -u +%Y%m%d)\"" >> config.tfvars
+  echo "indexd_snapshot = \"indexd-psql-upgrade-snapshot-$2-$(date -u +%Y%m%d)\"" >> config.tfvars
+  echo "gdcapi_snapshot = \"gdcapi-psql-upgrade-snapshot-$2-$(date -u +%Y%m%d)\"" >> config.tfvars
   echo "fence_engine_version = \"$version\"" >> config.tfvars
   echo "indexd_engine_version = \"$version\"" >> config.tfvars
   echo "sheepdog_engine_version = \"$version\"" >> config.tfvars
   # Wait for the snapshots to finish being taken
-  while [[ "$(aws rds describe-db-snapshots --db-snapshot-identifier fence-psql-upgrade-snapshot-$(date -u +%Y%m%d) | jq -r .DBSnapshots[0].Status)" != "available" ]] && [[ "$(aws rds describe-db-snapshots --db-snapshot-identifier indexd-psql-upgrade-snapshot-$(date -u +%Y%m%d) | jq -r .DBSnapshots[0].Status)" != "available" ]] && [[ "$(aws rds describe-db-snapshots --db-snapshot-identifier gdcapi-psql-upgrade-snapshot-$(date -u +%Y%m%d) | jq -r .DBSnapshots[0].Status)" != "available" ]]; do
+  while [[ "$(aws rds describe-db-snapshots --db-snapshot-identifier fence-psql-upgrade-snapshot-$2-$(date -u +%Y%m%d) | jq -r .DBSnapshots[0].Status)" != "available" ]] && [[ "$(aws rds describe-db-snapshots --db-snapshot-identifier indexd-psql-upgrade-snapshot-$2-$(date -u +%Y%m%d) | jq -r .DBSnapshots[0].Status)" != "available" ]] && [[ "$(aws rds describe-db-snapshots --db-snapshot-identifier gdcapi-psql-upgrade-snapshot-$2-$(date -u +%Y%m%d) | jq -r .DBSnapshots[0].Status)" != "available" ]]; do
     gen3_log_info "Waiting for snapshots to become ready"
     sleep 60
   done
   gen3_log_info "Snapshots ready, standing up new databases using the new snapshots"
+  # Put in an extra sleep becuase somtimes snapshots are not fully ready when they say they are and tf will fail
+  sleep 180
   # Stand up the new db's
   gen3 tfplan
   gen3 tfapply
