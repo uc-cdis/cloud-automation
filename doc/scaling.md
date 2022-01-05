@@ -73,3 +73,13 @@ gen3 scaling apply rule '{ "key": "fence", "value": { "strategy": "pin", "num": 
 ### gen3 scaling replicas serviceName count
 
 Set the replicas on the given service's deployment to the specified count.
+
+
+### gen3 scaling update deploymentName min max (optional targetCpu)
+
+Update horizontal pod autoscaling rules on the fly. 
+
+Ex:
+```
+gen3 scaling update fence 1 2 50
+```
