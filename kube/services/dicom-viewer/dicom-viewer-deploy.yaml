@@ -19,7 +19,7 @@ spec:
         app: orthanc
         public: "yes"
         netnolimit: "yes"
-        tags.datadoghq.com/service: "guppy"
+        tags.datadoghq.com/service: "orthanc"
         GEN3_GUPPY_VERSION
         GEN3_ENV_LABEL
         GEN3_DATE_LABEL
@@ -34,65 +34,26 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - guppy
+                  - orthanc
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
-      volumes:
-        - name: guppy-config
-          configMap:
-            name: manifest-guppy
-            items:
-              - key: json
-                path: guppy_config.json
-        - name: cert-volume
-          secret:
-            secretName: "cert-arranger-service"
-        - name: ca-volume
-          secret:
-            secretName: "service-ca"
       containers:
         - name: viewer
-          GEN3_GUPPY_IMAGE|-image: quay.io/cdis/ohif-viewer
-          livenessProbe:
-            httpGet:
-              path: /_status
-              port: 8080:80
-            initialDelaySeconds: 30
-            periodSeconds: 60
-            timeoutSeconds: 30
-          readinessProbe:
-            httpGet:
-              path: /_status
-              port: 8000
+          GEN3_ORTHANC_IMAGE|-image: quay.io/cdis/ohif-viewer
+          # livenessProbe:
+          #   httpGet:
+          #     path: /_status
+          #     port: 8080:80
+          #   initialDelaySeconds: 30
+          #   periodSeconds: 60
+          #   timeoutSeconds: 30
+          # readinessProbe:
+          #   httpGet:
+          #     path: /_status
+          #     port: 8000
           ports:
           - containerPort: 8080:80
           env:
-          - name: GUPPY_PORT
-            value: "8000"
-          - name: GUPPY_CONFIG_FILEPATH
-            value: /guppy/guppy_config.json
-          - name: GEN3_ES_ENDPOINT
-            value: esproxy-service:9200
-          - name: GEN3_ARBORIST_ENDPOINT
-            valueFrom:
-              configMapKeyRef:
-                name: manifest-global
-                key: arborist_url
-                optional: true
-          - name: TIER_ACCESS_LEVEL
-            valueFrom:
-              configMapKeyRef:
-                name: manifest-global
-                # acceptable values for `tier_access_level` are: `libre`, `regular` and `private`. If omitted, by default common will be treated as `private`
-                key: tier_access_level
-                # for now making it optional so won't break anything
-                optional: true
-          - name: TIER_ACCESS_LIMIT
-            valueFrom:
-              configMapKeyRef:
-                name: manifest-global
-                key: tier_access_limit
-                optional: true
           - name: DD_TRACE_ENABLED
             valueFrom:
               configMapKeyRef:
@@ -121,20 +82,6 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
-          volumeMounts:
-            - name: guppy-config
-              readOnly: true
-              mountPath: /guppy/guppy_config.json
-              subPath: guppy_config.json
-            - name: "cert-volume"
-              readOnly: true
-              mountPath: "/mnt/ssl/service.crt"
-              subPath: "service.crt"
-            - name: "ca-volume"
-              # See https://askubuntu.com/questions/645818/how-to-install-certificates-for-command-line
-              readOnly: true
-              mountPath: "/usr/local/share/ca-certificates/cdis-ca.crt"
-              subPath: "ca.pem"
           imagePullPolicy: Always
           resources:
             requests:
