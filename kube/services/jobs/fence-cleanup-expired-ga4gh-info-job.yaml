@@ -17,12 +17,6 @@ spec:
         - name: config-volume
           secret:
             secretName: "fence-config"
-        - name: fence-google-app-creds-secret-volume
-          secret:
-            secretName: "fence-google-app-creds-secret"
-        - name: fence-google-storage-creds-secret-volume
-          secret:
-            secretName: "fence-google-storage-creds-secret"
       containers:
       - name: fence
         GEN3_FENCE_IMAGE
@@ -45,14 +39,6 @@ spec:
             readOnly: true
             mountPath: "/var/www/fence/yaml_merge.py"
             subPath: yaml_merge.py
-          - name: "fence-google-app-creds-secret-volume"
-            readOnly: true
-            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
-            subPath: fence_google_app_creds_secret.json
-          - name: "fence-google-storage-creds-secret-volume"
-            readOnly: true
-            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
-            subPath: fence_google_storage_creds_secret.json
         command: ["/bin/bash"]
         args:
           - "-c"
