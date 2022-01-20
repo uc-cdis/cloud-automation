@@ -144,7 +144,6 @@ authz:
   all_users_policies:
   - open_data_reader
   - sower
-  - workspace
   anonymous_policies:
   - open_data_reader
 
