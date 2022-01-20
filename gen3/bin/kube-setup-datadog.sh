@@ -21,6 +21,10 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
         g3kubectl delete namespace datadog
         g3kubectl create namespace datadog
       fi
+      # create namespace if it doens't exist
+      if (! g3kubectl get namespace datadog > /dev/null 2>&1); then
+        g3kubectl create namespace datadog
+      fi
       export KUBECTL_NAMESPACE=datadog
       if [[ -f "$(gen3_secrets_folder)/datadog/apikey" ]]; then
         if (g3kubectl get secret datadog-agent > /dev/null 2>&1); then 
