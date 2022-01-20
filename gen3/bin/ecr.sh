@@ -196,6 +196,14 @@ gen3_ecr_describe_image() {
     aws ecr describe-images --repository-name ${repoName} --image-ids imageTag=${tagName}
 }
 
+# Create a new repository in AWS ECR
+#
+# @param repoName
+gen3_ecr_create_repo() {
+  local repoName="gen3/$1"
+  aws ecr create-repository --repository-name ${repoName} --image-scanning-configuration scanOnPush=true 
+}
+
 
 # main -----------------------
 
@@ -230,6 +238,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "quay-sync")
       gen3_ecr_quay_sync "$@"
+      ;;
+    "create-repository")
+      gen3_ecr_create_repo "$@"
       ;;
     "dh-quay")
       gen3_dh_quay_sync "$@"

@@ -45,6 +45,7 @@ module "squid-auto" {
   squid_depends_on               = "${aws_nat_gateway.nat_gw.id}"
   activation_id                  = "${var.activation_id}"
   customer_id                    = "${var.customer_id}"
+  slack_webhook                  = "${var.slack_webhook}"
 }
 
 module "data-bucket" {

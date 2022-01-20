@@ -12,6 +12,7 @@ spec:
       - revproxy
       - ambassador-gen3
       - auspice
+      - ohdsi-atlas
   ingress:
     - from:
       - ipBlock:

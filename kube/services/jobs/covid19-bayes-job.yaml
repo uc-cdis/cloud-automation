@@ -1,9 +1,8 @@
-# gen3 job run nb-etl S3_BUCKET <S3_BUCKET>
-# deprecated; replaced by covid19-nb-etl-job.yaml; delete once we're ready
+# gen3 job run covid19-bayes S3_BUCKET <S3_BUCKET>
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: nb-etl
+  name: covid19-bayes
 spec:
   template:
     metadata:
@@ -12,22 +11,13 @@ spec:
     spec:
       serviceAccountName: s3-access-opencdn-databucket-gen3
       restartPolicy: Never
-      nodeSelector:
-        role: "jupyter"
-      tolerations:
-        - key: "role"
-          operator: "Equal"
-          value: "jupyter"
-          effect: "NoSchedule"
       containers:
-      - name: nb-etl
+      - name: covid19-bayes
         imagePullPolicy: Always
-        GEN3_NB-ETL_IMAGE
+        GEN3_COVID19-BAYES_IMAGE
         ports:
         - containerPort: 80
         env:
-        - name: doSlack
-          GEN3_DO_SLACK|-value: "true"-|
         - name: slackWebHook
           valueFrom:
             configMapKeyRef:
@@ -43,7 +33,7 @@ spec:
         resources:
           requests:
             cpu: 4
-            memory: 16Gi
+            memory: 12Gi
           limits:
             cpu: 4
-            memory: 16Gi # guess on upper bound
+            memory: 12Gi

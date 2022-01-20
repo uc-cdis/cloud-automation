@@ -68,7 +68,7 @@ spec:
           timeoutSeconds: 30
           # portal sometimes takes a long time to come up ... -
           # has to fetch the dictionary, relay compile, etc
-          failureThreshold: 6
+          failureThreshold: 10
         resources:
           requests:
             cpu: 0.6

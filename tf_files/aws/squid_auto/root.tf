@@ -38,6 +38,7 @@ module "squid_auto" {
   branch                     = "${var.branch}"
   activation_id              = "${var.activation_id}"
   customer_id                = "${var.customer_id}"  
+  slack_webhook              = "${var.slack_webhook}"
   
   # put other variables here ...
 }

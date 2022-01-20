@@ -13,12 +13,12 @@ dataguids.org
 api.immport.org
 api.login.yahoo.com
 api.snapcraft.io
+argoproj.github.io
 archive.cloudera.com
 archive.linux.duke.edu
 bay.uchicago.edu
 bionimbus.tabix.oicrsofteng.org
 bits.netbeans.org
-cdis.slack.com
 centos.chicago.waneq.com
 centos.firehosted.com
 centos.mirror.ndchost.com
@@ -26,6 +26,7 @@ centos.mirrors.hoobly.com
 centos.mirrors.tds.net
 centos.mirrors.wvstateu.edu
 cernvm.cern.ch
+charts.bitnami.com
 charts.helm.sh
 cloud.r-project.org
 coreos.com
@@ -65,13 +66,11 @@ fmwww.bc.edu
 gcr.io
 gen3.org
 get.helm.sh
-gist.githubusercontent.com
 git.io
 go.googlesource.com
 golang.org
 gopkg.in
 grafana.com
-hooks.slack.com
 http.us.debian.org
 ifconfig.io
 internet2.edu
@@ -115,11 +114,9 @@ orcid.org
 pgp.mit.edu
 ppa.launchpad.net
 pubmirrors.dal.corespace.com
-raw.githubusercontent.com
 reflector.westga.edu
 registry.npmjs.org
 registry.terraform.io
-github-releases.githubusercontent.com
 releases.rancher.com
 rendersnake.googlecode.com
 repec.org

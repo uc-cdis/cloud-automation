@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: arborist-rm-expired-access
 spec:
-  schedule: "@hourly"
+  schedule: "*/5 * * * *"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   concurrencyPolicy: Forbid
