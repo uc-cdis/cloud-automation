@@ -14,15 +14,17 @@ ctx="$(g3kubectl config current-context)"
 ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
 # only do this if we are running in the default namespace
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
-  if (! g3kubectl --namespace=datadog get deployment datadog-cluster-agent > /dev/null 2>&1) || (! g3kubectl --namespace=datadog get daemonset datadog-agent > /dev/null 2>&1)  || [[ "$1" == "--force" ]]; then
+  if (! helm status datadog -n datadog 2>/dev/null )  || [[ "$1" == "--force" ]]; then
     ( # subshell
       # clean up any manual deployment
-      if ( g3kubectl get namespace datadog > /dev/null 2>&1 && ! helm status datadog -n datadog); then
+      if ( g3kubectl get namespace datadog > /dev/null 2>&1 && ! helm status datadog -n datadog 2>/dev/null); then
+        gen3_log_info "Deleting old namespace, as it is not deployed via helm"
         g3kubectl delete namespace datadog
         g3kubectl create namespace datadog
       fi
       # create namespace if it doens't exist
       if (! g3kubectl get namespace datadog > /dev/null 2>&1); then
+        gen3_log_info "Creating namespace datadog"
         g3kubectl create namespace datadog
       fi
       export KUBECTL_NAMESPACE=datadog
