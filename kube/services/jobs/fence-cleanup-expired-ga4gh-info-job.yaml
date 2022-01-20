@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: cleanup-expired-ga4gh-information
+  name: fence-cleanup-expired-ga4gh-info
 spec:
   template:
     metadata:
