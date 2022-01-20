@@ -2,7 +2,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: cleanup-expired-ga4gh-information
+  name: fence-cleanup-expired-ga4gh-info
 spec:
   schedule: "*/5 * * * *"
   successfulJobsHistoryLimit: 2
@@ -89,11 +89,11 @@ spec:
                   exit 0
                 fi
                 if ! [ -f /mnt/shared/success ]; then
-                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: cleanup-expired-ga4gh-information failed for ${gen3Env} \"}" "${slackWebHook}"
+                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: fence-cleanup-expired-ga4gh-info failed for ${gen3Env} \"}" "${slackWebHook}"
                 else
                   HOUR=$(TZ='America/Chicago' date "+%H")
                   if [ ${HOUR} -eq 09 ]; then
-                    curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: cleanup-expired-ga4gh-information succeeded for ${gen3Env} \"}" "${slackWebHook}"
+                    curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: fence-cleanup-expired-ga4gh-info succeeded for ${gen3Env} \"}" "${slackWebHook}"
                   fi
                 fi
           restartPolicy: Never
