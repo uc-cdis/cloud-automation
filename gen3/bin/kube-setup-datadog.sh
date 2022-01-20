@@ -16,8 +16,10 @@ ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.na
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
   if (! g3kubectl --namespace=datadog get deployment datadog-cluster-agent > /dev/null 2>&1) || (! g3kubectl --namespace=datadog get daemonset datadog-agent > /dev/null 2>&1)  || [[ "$1" == "--force" ]]; then
     ( # subshell
-      if (! g3kubectl get namespace datadog > /dev/null 2>&1); then
-        g3kubectl apply -f "${GEN3_HOME}/kube/services/datadog/datadog-namespace.yaml"
+      # clean up any manual deployment
+      if ( g3kubectl get namespace datadog > /dev/null 2>&1 && ! helm status datadog -n datadog); then
+        g3kubectl delete namespace datadog
+        g3kubectl create namespace datadog
       fi
       export KUBECTL_NAMESPACE=datadog
       if [[ -f "$(gen3_secrets_folder)/datadog/apikey" ]]; then
