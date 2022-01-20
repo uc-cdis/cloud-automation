@@ -82,6 +82,6 @@ gen3 kube-setup-google
 #   # Setup db cleanup cronjob
 #   if g3kubectl get cronjob cleanup-expired-ga4gh-information >/dev/null 2>&1; then
 #       echo "cleanup-expired-ga4gh-information being added as a cronjob b/c fence >= 6.0.0 or 2022.02"
-#       gen3 job cron cleanup-expired-ga4gh-information "*/5 * * * *"
+#       gen3 job cron cleanup-expired-ga4gh-info "*/5 * * * *"
 #   fi
 # fi
