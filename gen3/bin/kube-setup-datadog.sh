@@ -35,6 +35,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
         g3kubectl create secret --namespace datadog generic datadog-agent-cluster-agent --from-literal=token="$TOKEN"
       fi
       helm repo add datadog https://helm.datadoghq.com --force-update
+      helm repo update
       helm upgrade --install datadog -f "$GEN3_HOME/kube/services/datadog/values.yaml" datadog/datadog -n datadog --version 2.28.13
     )
   else
