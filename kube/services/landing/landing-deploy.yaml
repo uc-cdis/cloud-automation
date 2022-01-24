@@ -13,12 +13,12 @@ spec:
     rollingUpdate:
       maxSurge: 2
       maxUnavailable: 25%
-  template:
-    metadata:
-      labels:
-        app: landing
-        public: "yes"
-        GEN3_DATE_LABEL
+  # template:
+  #   metadata:
+  #     labels:
+  #       app: landing
+  #       public: "yes"
+  #       GEN3_DATE_LABEL
     spec:
       affinity:
         podAntiAffinity:
@@ -51,7 +51,7 @@ spec:
           secretName: "cert-landing-service"
       containers:
       - name: landing
-        GEN3_LANDING_IMAGE
+        image: quay.io/cdis/heal-landing:init
         readinessProbe:
           httpGet:
             path: /
