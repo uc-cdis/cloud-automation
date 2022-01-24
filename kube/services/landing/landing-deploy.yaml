@@ -13,7 +13,7 @@ spec:
     rollingUpdate:
       maxSurge: 2
       maxUnavailable: 25%
-  # template:
+  template:
   #   metadata:
   #     labels:
   #       app: landing
