@@ -48,7 +48,7 @@ spec:
           name: "privacy-policy"
       - name: cert-volume
         secret:
-          secretName: "cert-landing-service"
+          secretName: "cert-portal-service"
       containers:
       - name: landing
         image: quay.io/cdis/heal-landing:init
