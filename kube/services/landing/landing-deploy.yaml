@@ -179,9 +179,9 @@ spec:
                 name: landing-datadog-config
                 key: datadog_client_token
                 optional: true
-          - name: DATA_UPLOAD_BUCKET
+          # - name: DATA_UPLOAD_BUCKET
             # S3 bucket name for data upload, for setting up CSP
-            GEN3_DATA_UPLOAD_BUCKET|-value: ""-|
+            # GEN3_DATA_UPLOAD_BUCKET|-value: ""-|
         volumeMounts:
           - name: "cert-volume"
             readOnly: true
