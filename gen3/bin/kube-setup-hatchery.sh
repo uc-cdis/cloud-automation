@@ -20,6 +20,13 @@ gen3 jupyter j-namespace setup
 #
 (g3k_kv_filter ${GEN3_HOME}/kube/services/hatchery/serviceaccount.yaml BINDING_ONE "name: hatchery-binding1-$namespace" BINDING_TWO "name: hatchery-binding2-$namespace" CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -) || true
 
+
+# cron job to distribute licenses if using Stata workspaces
+if [ "$(g3kubectl get configmaps/manifest-hatchery -o yaml | grep "\"image\": .*stata.*")" ];
+then
+    gen3 job cron distribute-licenses '* * * * *'
+fi
+
 policy=$( cat <<EOM
 {
     "Version": "2012-10-17",
@@ -55,65 +62,8 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
     gen3_log_info "Attaching policy '${policyName}' to role '${role_name}'"
     gen3 awsrole attach-policy ${policyArn} --role-name ${role_name} --force-aws-cli || exit 1
     gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${role_name} --force-aws-cli || exit 1
-
-    ddbPolicy=$( cat <<EOM
-{
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Sid": "GlobalDynamodbAdmin",
-                "Effect": "Allow",
-                "Action": "sts:AssumeRoleWithWebIdentity",
-                "Resource": [
-                    "arn:aws:dynamodb:::table/*",
-                    "arn:aws:dynamodb:*:*:table/*"
-                ]
-            }
-        ]
-}
-EOM
-    )
-    
-    ddbPolicyName="hatchery-role-ddb-policy"
-    ddbPolicyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$ddbPolicyName" --policy-document "$ddbPolicy" --description "Allow hathcery access to DynamoDB")
-    if [ -n "$ddbPolicyInfo" ]; then
-    ddbPolicyArn="$(jq -e -r '.["Policy"].Arn' <<< "$ddbPolicyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $ddbPolicyInfo"; return 1; }
-    else
-        echo "Unable to create policy $ddbPolicyName. Assuming it already exists and continuing"
-        ddbPolicyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$ddbPolicyArn'].Arn" --output text)
-    fi
-
-    gen3_log_info "Attaching policy '${ddbPolicyName}' with arn ${ddbPolicyArn} to role '${role_name}'"
-    gen3 awsrole attach-policy ${ddbPolicyArn} --role-name ${role_name} --force-aws-cli || exit 1
-    
 fi
 
-
-role_name="${vpc_name}-${saName}-role"
-gen3 awsrole create $role_name $saName
-policyName="hatchery-role-sts"
-    policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hathcery to assume csoc_adminvm role in other accounts, for multi-account workspaces")
-    if [ -n "$policyInfo" ]; then
-    policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
-    else
-        echo "Unable to create policy $policyName. Assuming it already exists and continuing"
-        policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
-    fi
-
-    gen3_log_info "Attaching policy '${policyName}' to role '${role_name}'"
-    gen3 awsrole attach-policy ${policyArn} --role-name ${role_name} --force-aws-cli || exit 1
-    gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${role_name} --force-aws-cli || exit 1
-
-
-# gen3_log_info "check hatchery licenses secret"
-# licensesPath="$(gen3_secrets_folder)/hatchery-licenses"
-# mkdir -p licensesPath
-    
-
-# if [ ! "$(g3kubectl get secret hatchery-licenses 2> /dev/null)" ]; then
-#     g3kubectl create secret generic hatchery-licenses --from-file=$licensesPath
-#     gen3 secrets sync
-# fi
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/hatchery/hatchery-service.yaml"
 gen3 roll hatchery
