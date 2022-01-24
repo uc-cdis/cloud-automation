@@ -85,11 +85,11 @@ spec:
             value: revproxy-service
           - name: NPM_CONFIG_UPDATE_NOTIFIER
             value: "false"
-          - name: APP
-            valueFrom:
-              configMapKeyRef:
-                name: manifest-global
-                key: landing_app
+          # - name: APP
+          #   valueFrom:
+          #     configMapKeyRef:
+          #       name: manifest-global
+          #       key: landing_app
           - name: GEN3_BUNDLE
             valueFrom:
               configMapKeyRef:
