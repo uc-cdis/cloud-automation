@@ -44,9 +44,6 @@ spec:
         - name: hatchery-config
           configMap:
             name: manifest-hatchery
-        - name: hatchery-licenses
-          secret:
-            secretName: "hatchery-licenses"
       containers:
       - name: hatchery
         GEN3_HATCHERY_IMAGE
@@ -115,7 +112,3 @@ spec:
           - name: hatchery-config
             readOnly: true
             mountPath: /hatchery-more-configs
-          - name: hatchery-licenses
-            readOnly: false
-            mountPath: /licenses/
-            
