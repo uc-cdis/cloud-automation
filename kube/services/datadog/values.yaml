@@ -60,7 +60,7 @@ datadog:
     # datadog.processAgent.enabled -- Set this to true to enable live process monitoring agent
     ## Note: /etc/passwd is automatically mounted to allow username resolution.
     ## ref: https://docs.datadoghq.com/graphing/infrastructure/process/#kubernetes-daemonset
-    enabled: false
+    enabled: true
 
     # datadog.processAgent.processCollection -- Set this to true to enable process collection in process monitoring agent
     ## Requires processAgent.enabled to be set to true to have any effect
