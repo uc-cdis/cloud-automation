@@ -1,10 +1,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: landing-service 
+  name: frontend-framework-service 
 spec:
   selector:
-    app: landing 
+    app: frontend-framework 
   ports:
     - protocol: TCP
       port: 80
