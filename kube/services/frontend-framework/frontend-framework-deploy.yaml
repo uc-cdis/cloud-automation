@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: landing-deployment
+  name: frontend-framework-deployment
 spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: landing
+      app: frontend-framework
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -16,7 +16,7 @@ spec:
   template:
     metadata:
       labels:
-        app: landing
+        app: frontend-framework
         public: "yes"
   #       GEN3_DATE_LABEL
     spec:
@@ -30,7 +30,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - landing
+                  - frontend-framework
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
@@ -39,10 +39,10 @@ spec:
           secretName: "service-ca"
       - name: config-volume
         secret:
-          secretName: "landing-config"
+          secretName: "frontend-framework-config"
       - name: sponsor-img-volume
         secret:
-          secretName: "landing-sponsor-config"
+          secretName: "frontend-framework-sponsor-config"
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
@@ -50,7 +50,7 @@ spec:
         secret:
           secretName: "cert-portal-service"
       containers:
-      - name: landing
+      - name: frontend-framework
         image: quay.io/cdis/heal-landing:init
         readinessProbe:
           httpGet:
@@ -169,14 +169,14 @@ spec:
             # Optional application ID for Datadog
             valueFrom:
               secretKeyRef:
-                name: landing-datadog-config
+                name: frontend-framework-datadog-config
                 key: datadog_application_id
                 optional: true
           - name: DATADOG_CLIENT_TOKEN
             # Optional client token for Datadog
             valueFrom:
               secretKeyRef:
-                name: landing-datadog-config
+                name: frontend-framework-datadog-config
                 key: datadog_client_token
                 optional: true
           # - name: DATA_UPLOAD_BUCKET
