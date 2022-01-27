@@ -84,4 +84,10 @@ gen3 kube-setup-google
 #       echo "fence-cleanup-expired-ga4gh-info being added as a cronjob b/c fence >= 6.0.0 or 2022.02"
 #       gen3 job cron fence-cleanup-expired-ga4gh-info "*/5 * * * *"
 #   fi
+#
+#   # Setup visa update cronjob
+#   if g3kubectl get cronjob fence-visa-update >/dev/null 2>&1; then
+#       echo "fence-visa-update being added as a cronjob b/c fence >= 6.0.0 or 2022.02"
+#       gen3 job cron fence-visa-update "30 * * * *"
+#   fi
 # fi
