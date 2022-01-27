@@ -4,7 +4,6 @@ metadata:
   name: frontend-framework-deployment
 spec:
   selector:
-    # Only select pods based on the 'app' label
     matchLabels:
       app: frontend-framework
   revisionHistoryLimit: 2
@@ -51,8 +50,7 @@ spec:
           secretName: "cert-portal-service"
       containers:
       - name: frontend-framework
-        # image: quay.io/cdis/heal-landing:init
-        GEN3_FENCE_IMAGE
+        GEN3_FRONTEND-FRAMEWORK_IMAGE
         readinessProbe:
           httpGet:
             path: /ff
