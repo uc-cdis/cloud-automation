@@ -76,7 +76,9 @@ spec:
         ports:
         - containerPort: 3000
         command: 
-          - /gen3/dockerrun.sh
+          - npm
+          - run
+          - start
         env:
           - name: HOSTNAME
             value: revproxy-service
