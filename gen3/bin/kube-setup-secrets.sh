@@ -126,6 +126,21 @@ if ! g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   rm "$credsFile"
 fi
 
+# We also want to update the metadata-config secret if such manifest file exists
+# So that metadata-aggregate-sync can run more seamlessly
+if g3kubectl get secrets metadata-config > /dev/null 2>&1; then
+  # We want to re-create this on every setup to pull the latest state.
+  g3kubectl delete secret metadata-config
+fi
+
+if [ -d "$(dirname $(g3k_manifest_path))/metadata" ]; then
+  # Use the aggregate_config.json file in the metadata-config secret if that file exists.
+  aggregateConfigFile="$(dirname $(g3k_manifest_path))/metadata/aggregate_config.json"
+  if [ -f "${aggregateConfigFile}" ]; then
+    g3kubectl create secret generic metadata-config --from-file="${aggregateConfigFile}"
+  fi
+fi
+
 
 if gen3_time_since secrets_sync is 120; then
   gen3_log_info "gen3 secrets sync"
