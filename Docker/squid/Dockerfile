@@ -15,8 +15,11 @@ RUN apt update \
     && apt install -y build-essential wget libssl1.0-dev
 
 COPY ./entrypoint.sh /usr/sbin/entrypoint.sh
+COPY ./certfix.sh /certfix.sh
 
 RUN chmod +x /usr/sbin/entrypoint.sh
+RUN chmod +x /certfix.sh
+RUN bash /certfix.sh
 
 RUN (cd /tmp \
     && wget ${SQUID_DOWNLOAD_URL}${SQUID_VERSION}.tar.xz \
