@@ -94,7 +94,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       fi
       wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
       sudo -E apt-get update
-      sudo -E apt-get install -y postgresql-client-9.6
+      sudo -E apt-get install -y postgresql-client-13
     )
   fi
   # gen3sdk currently requires this

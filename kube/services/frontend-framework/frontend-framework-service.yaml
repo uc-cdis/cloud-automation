@@ -1,0 +1,19 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: frontend-framework-service 
+spec:
+  selector:
+    app: frontend-framework 
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000 
+      name: http
+      nodePort: null
+    - protocol: TCP 
+      port: 443 
+      targetPort: 3000 
+      name: https
+      nodePort: null
+  type: ClusterIP

@@ -53,12 +53,21 @@ resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
 ###############################################################
 # AMI
 ###############################################################
+
+# configure a dedicated aws provider for the region that contains
+# the public source AMI. This allows the usage of other base regions.
+provider "aws" {
+  alias  = "ami-source-region"
+  region = "${var.ami_region}"
+}
+
+
 resource "aws_ami_copy" "squid_ami" {
   count             = "${var.deploy_single_proxy ? 1 : 0 }"
-  name              = "ub16-squid-crypt-${var.env_vpc_name}-1.0.2"
-  description       = "A copy of ubuntu16-squid-1.0.2"
+  name              = "${var.env_vpc_name}-${data.aws_ami.public_squid_ami.name}-crypt"
+  description       = "An encrypted copy of ${data.aws_ami.public_squid_ami.name}"
   source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
-  source_ami_region = "us-east-1"
+  source_ami_region = "${var.ami_region}"
   encrypted         = true
 
   tags = {
@@ -76,12 +85,13 @@ resource "aws_ami_copy" "squid_ami" {
 }
 
 data "aws_ami" "public_squid_ami" {
+  provider = "aws.ami-source-region"
   count       = "${var.deploy_single_proxy ? 1 : 0 }"
   most_recent = true
 
   filter {
     name   = "name"
-    values = ["ubuntu16-squid-1.0.2-*"]
+    values = ["${var.ami_name}"]
   }
 
   owners = ["${var.ami_account_id}"]
@@ -232,7 +242,7 @@ systemctl restart awslogs
 EOF
 
   lifecycle {
-    ignore_changes = ["ami", "key_name"],
+    ignore_changes = ["ami", "key_name"]
     create_before_destroy = true
   }
 }

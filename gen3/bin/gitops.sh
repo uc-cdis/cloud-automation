@@ -220,6 +220,8 @@ gen3_gitops_sync() {
   local versions_roll=false
   local portal_roll=false
   local etl_roll=false
+  local covid_cronjob_roll=false
+  local fence_roll=false
   local slack=false
   local tmpHostname
   local resStr
@@ -228,6 +230,7 @@ gen3_gitops_sync() {
   local versionsAttachment
   local commonsManifestDir
   local portalDiffs
+  local fenceDiffs
   local etlDiffs
 
   if [[ $1 = '--slack' ]]; then
@@ -261,6 +264,28 @@ gen3_gitops_sync() {
     fi
     dict_roll=true
   fi
+
+  # covid19-cronjob image check 
+  gen3_log_info "checking cronjobs versions."
+  gen3_log_info "checking if env manifest consists covid19-notebook-etl service"
+  if g3k_config_lookup '.versions."covid19-notebook-etl"'; then
+    gen3_log_info "it does ... !"
+    if g3kubectl get configmap manifest-versions; then
+      oldImage=$(g3kubectl get configmap manifest-versions -o=json | jq '.data."covid19-notebook-etl"' | tr -d \" )
+    fi
+    newImage=$(g3k_config_lookup '.versions."covid19-notebook-etl"')
+    gen3_log_info "old image is: $oldImage"
+    gen3_log_info "new image is: $newImage"
+    if [[ $newImage == $oldImage ]]; then
+      gen3_log_info "The images are same, skipping covid19-etl-cronjob update"
+    else
+      gen3_log_info "Images are different, updating cronjobs"
+      covid_cronjob_roll=true
+    fi
+  else
+    gen3_log_info "it doesn't ... skipping covid19-notebook-etl roll!"
+  fi
+
 
   # image versions check
   if g3kubectl get configmap manifest-versions; then
@@ -356,6 +381,33 @@ gen3_gitops_sync() {
     portal_roll=true
   fi
 
+  # fence manifest directory config check
+  if [[ ! -f "${commonsManifestDir}/manifests/fence/fence-config-public.yaml" ]]; then
+    gen3_log_info "Fence Manifests file not found, skipping fence update"
+  else
+    local fenceConfigFilename
+    local fenceConfigMapFile
+    local fenceCommonsFilepath
+    local fenceComparingFile
+    local fenceDiffMsg
+    FenceDiffMsg=""
+    fenceConfigFilename="fence-config-public.yaml"
+    fenceCommonsFilepath="${commonsManifestDir}/manifests/fence/$fenceConfigFilename"
+    fenceConfigMapFile=$(g3kubectl get cm manifest-fence -o json | jq -r '.data."'"$fenceConfigFilename"'"' | tr -d '\n')
+    # get file contents from default file or commons's file
+    fenceComparingFile=$(cat $fenceCommonsFilepath | tr -d '\n')
+    # check for a diff
+    if [[ "${fenceConfigMapFile}" = null ]]; then
+      FenceDiffMsg="Diff in fence-config/${fenceConfigFilename} - file not found in secret"
+    elif [[ "${fenceConfigMapFile}" != "${fenceComparingFile}" ]]; then
+      FenceDiffMsg="Diff in fence-config/${fenceConfigFilename} - difference between file and secret"
+    fi
+    if [[ -n "${FenceDiffMsg}" ]]; then
+      fenceDiffs="${fenceDiffs} \n${FenceDiffMsg}"
+      gen3_log_info "$FenceDiffMsg"
+      fence_roll=true
+    fi
+  fi
   if [[ ! -f "${commonsManifestDir}/etlMapping.yaml" ]]; then
     gen3_log_info "etl mapping file not found, skipping etl update"
   else
@@ -385,15 +437,31 @@ gen3_gitops_sync() {
   echo "DRYRUN flag is: $GEN3_DRY_RUN"
   if [ "$GEN3_DRY_RUN" = true ]; then
     echo "DRYRUN flag detected, not rolling"
-    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll; etl_roll: $etl_roll"
+    gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll; etl_roll: $etl_roll; fence_roll: $fence_roll"
   else
-    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true ) ]]; then
+    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true )  || ( "$covid_cronjob_roll" = true ) || ("fence_roll" = true) ]]; then
       echo "changes detected, rolling"
       # run etl job before roll all so guppy can pick up changes
       if [[ "$etl_roll" = true ]]; then
           gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
           gen3 job run etl --wait ETL_FORCED TRUE
       fi
+
+      # update fence ConfigMap before roll-all
+      if [[ "$fence_roll" = true ]]; then
+          gen3 update_config manifest-fence "$(gen3 gitops folder)/manifests/fence/fence-config-public.yaml"
+      fi
+
+      if [[ "$covid_cronjob_roll" = true ]]; then
+        if g3k_config_lookup '.global."covid19_data_bucket"'; then
+          s3Bucket_url=$(kubectl get configmap manifest-global -o json | jq .data.covid19_data_bucket | tr -d \" )
+          echo "##S3BUCKET_URL : ${s3Bucket_url}"
+          gen3 job run covid19-notebook-etl-cronjob S3_BUCKET s3://${s3Bucket_url}
+        else 
+          echo "The global block does not contain the covid19 databucket URL"
+          echo "not running the covid19-notebook-etl job ..."
+        fi
+      fi    
       gen3 kube-roll-all
       rollRes=$?
       # send result to slack
@@ -414,10 +482,16 @@ gen3_gitops_sync() {
         if [[ "$portal_roll" = true ]]; then
           portalAttachment="\"title\": \"Portal Diffs\", \"text\": \"${portalDiffs}\", \"color\": \"${color}\""
         fi
+        if [[ "$fence_roll" = true ]]; then
+          fenceAttachment="\"title\": \"Fence Diffs\", \"text\": \"${fenceDiffs}\", \"color\": \"${color}\""
+        fi
         if [[ "$etl_roll" = true ]]; then
           etlAttachment="\"title\": \"ETL Diffs\", \"text\": \"${etlDiffs}\", \"color\": \"${color}\""
         fi
-        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}, {${etlAttachment}}]}" "${slackWebHook}"
+        if [[ "$covid_cronjob_roll" = true ]]; then
+          covidAttachment="\"title\": \"Covid Cronjob update\", \"text\": \"Updated covid19 notebook etl version\", \"color\": \"${color}\""
+        fi
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}, {${fenceAttachment}}, {${etlAttachment}}, {${covidAttachment}}]}" "${slackWebHook}"
       fi
     else
       echo "no changes detected, not rolling"

@@ -32,7 +32,7 @@ cd ${HOME}
 #####################
 
 apt-get update
-apt-get install -y build-essential wget libssl1.0-dev
+apt-get install -y build-essential wget libssl1.0-dev jq
 wget http://www.squid-cache.org/Versions/v4/${SQUID_VERSION}.tar.xz
 tar -xJf ${SQUID_VERSION}.tar.xz
 mkdir squid-build
@@ -173,9 +173,11 @@ chown -R sftpuser. /home/sftpuser
 
 cp  ${SUB_FOLDER}flavors/squid_auto/updatewhitelist.sh /home/ubuntu
 chmod +x /home/ubuntu/updatewhitelist.sh
-
+cp  ${SUB_FOLDER}flavors/squid_auto/healthcheck.sh /home/ubuntu
+chmod +x /home/ubuntu/healthcheck.sh
 
 crontab -l > file; echo '*/15 * * * * /home/ubuntu/updatewhitelist.sh >/dev/null 2>&1' >> file
+echo '*/1 * * * * /home/ubuntu/healthcheck.sh >/dev/null 2>&1' >> file
 sudo chown -R ubuntu. /home/ubuntu/
 crontab file
 

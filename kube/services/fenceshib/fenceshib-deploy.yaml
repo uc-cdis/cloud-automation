@@ -85,6 +85,9 @@ spec:
         - name: fenceshib-secret
           secret:
             secretName: "fenceshib-g3auto"
+        - name: fenceshib-config
+          configMap:
+            name: "fenceshib-config"
       containers:
       - name: fenceshib
         GEN3_FENCESHIB_IMAGE
@@ -181,10 +184,22 @@ spec:
             readOnly: true
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
-          - name: "fenceshib-secret"
+          - name: "fenceshib-config"
             readOnly: true
             mountPath: "/etc/shibboleth/shibboleth2.xml"
             subPath: "shibboleth2.xml"
+          - name: "fenceshib-config"
+            readOnly: true
+            mountPath: "/etc/shibboleth/attribute-map.xml"
+            subPath: "attribute-map.xml"
+          - name: "fenceshib-config"
+            readOnly: true
+            mountPath: "/etc/shibboleth/inc-md-cert.pem"
+            subPath: "inc-md-cert.pem"
+          - name: "fenceshib-config"
+            readOnly: true
+            mountPath: "/etc/shibboleth/metadata.xml"
+            subPath: "metadata.xml"
           - name: "fenceshib-secret"
             readOnly: true
             mountPath: "/etc/ssl/private/incommon-login.bionimbus.org.key"
@@ -193,10 +208,6 @@ spec:
             readOnly: true
             mountPath: "/etc/ssl/certs/incommon-login.bionimbus.org.crt"
             subPath: "incommon-login.bionimbus.org.crt"
-          - name: "fenceshib-secret"
-            readOnly: true
-            mountPath: "/etc/shibboleth/inc-md-cert.pem"
-            subPath: "inc-md-cert.pem"
         resources:
             requests:
               cpu: 0.8

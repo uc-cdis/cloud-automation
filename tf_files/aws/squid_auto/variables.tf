@@ -111,3 +111,15 @@ variable "network_expansion" {
 variable "deploy_ha_squid" {
   default = true
 }
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}
+
+variable "slack_webhook" {
+  default = ""
+}

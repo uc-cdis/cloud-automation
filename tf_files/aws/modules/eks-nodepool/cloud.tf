@@ -110,7 +110,9 @@ resource "aws_iam_policy" "access_to_kernels" {
             ],
             "Resource": [
                 "arn:aws:s3:::gen3-kernels/*",
-                "arn:aws:s3:::gen3-kernels"
+                "arn:aws:s3:::gen3-kernels",
+                "arn:aws:s3:::qualys-agentpackage",
+                "arn:aws:s3:::qualys-agentpackage/*"
             ]
         }
     ]

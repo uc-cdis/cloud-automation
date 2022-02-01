@@ -240,7 +240,6 @@ if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   gen3 kube-setup-kube-dns-autoscaler &
   gen3 kube-setup-metrics deploy || true
   gen3 kube-setup-tiller || true
-  gen3 kube-setup-prometheus || true
   #
   gen3 kube-setup-networkpolicy disable &
   gen3 kube-setup-networkpolicy &
@@ -271,6 +270,12 @@ if g3k_manifest_lookup '.versions["ws-storage"]' 2> /dev/null; then
   gen3 kube-setup-ws-storage &
 else
   gen3_log_info "not deploying ws-storage - no manifest entry for '.versions[\"ws-storage\"]'"
+fi
+
+if g3k_manifest_lookup '.sower[] | select( .name=="batch-export" )' 2> /dev/null; then
+  gen3 kube-setup-batch-export &
+else
+  gen3_log_info "not deploying batch-export - no manifest entry for '.versions[\"batch-export\"]'"
 fi
 
 if g3k_manifest_lookup .versions.portal 2> /dev/null; then
