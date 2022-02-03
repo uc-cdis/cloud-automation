@@ -15,6 +15,12 @@ Use:
 EOM
 }
 
+terminate_pod() {
+  echo "terminating gen3qa-check-bucket-access pod..."
+  g3kubectl delete job gen3qa-check-bucket-access
+  exit 0
+}
+
 test="${GEN3QA_TEST:-"access-check"}"
 indexdQueryFilter="${indexdQueryFilter:-"all"}"
 username="${username:-"marceloc@uchicago.edu"}"
@@ -69,16 +75,21 @@ case "$test" in
     echo "Found pod ${podName}. Creation date: ${jobPodCreationDate}"
 
     attempt=0
-    maxAttempts=12
+    maxAttempts=36
 
     while true
     do
       jobPodStatus=$(g3kubectl get pod $podName -o jsonpath='{.status.phase}')
       echo "Pod ${podName} status is: ${jobPodStatus}"
       if [ "$jobPodStatus" == "Running" ]; then
-        if (g3kubectl logs $podName -c selenium | grep "from DOWN to UP") > /dev/null 2>&1; then
+        if (g3kubectl logs $podName -c gen3qa-check-bucket-access | grep "from DOWN to UP") > /dev/null 2>&1; then
           g3kubectl logs $(gen3 pod gen3qa-check-bucket-access) -c gen3qa-check-bucket-access -f
-          break
+          echo "press ctrl+C to quit..."
+          # TODO: This hack is necessary due to the nature of the Selenium sidecar
+          # CodeceptJS has a hard dependency on a running Selenium so that is the only way to run suites/prod/checkAllProjectsBucketAccessTest.js
+          # We should create a selenium-standlone wrapper docker img with a proper kill switch 
+	  trap terminate_pod SIGINT
+	  sleep infinity
 	fi
       fi
 

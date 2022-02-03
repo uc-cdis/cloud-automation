@@ -77,6 +77,14 @@ data "aws_iam_policy_document" "squid_policy_document" {
     effect    = "Allow"
     resources = ["*"]
   }
+  statement {
+    actions = [
+      "s3:Get*",
+      "s3:List*"
+    ]
+    effect    = "Allow"
+    resources = ["arn:aws:s3:::qualys-agentpackage", "arn:aws:s3:::qualys-agentpackage/*"]
+  }
 }
 
 ##################
@@ -138,10 +146,24 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
   apt autoclean
 
   cd $USER_HOME
-
+  
+  # Create a file with the slack webhook, so that the healtcheck script can access it
+  if [[ ! -z "${var.slack_webhook}" ]]; then
+    echo "${var.slack_webhook}" > /slackWebhook
+  fi
+  
   bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${var.env_log_group};${join(";",var.extra_vars)}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
+  # Install qualys agent if the activtion and customer id provided
+  if [[ ! -z "${var.activation_id}" ]] || [[ ! -z "${var.customer_id}" ]]; then
+    apt install awscli -y
+    aws s3 cp s3://qualys-agentpackage/QualysCloudAgent.deb ./qualys-cloud-agent.x86_64.deb
+    dpkg -i ./qualys-cloud-agent.x86_64.deb
+    # Clean up deb package after install
+    rm qualys-cloud-agent.x86_64.deb
+    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${var.activation_id} CustomerId=${var.customer_id}
+  fi
 ) > /var/log/bootstrapping_script.log
 EOF
 
@@ -152,6 +174,14 @@ lifecycle {
 
 }
 
+resource "null_resource" "service_depends_on" {
+  triggers = {
+    # This reference creates an implicit dependency on the variable, and thus
+    # transitively on everything the variable itself depends on.
+    deps = "${jsonencode(var.squid_depends_on)}"
+  }
+}
+
 resource "aws_autoscaling_group" "squid_auto" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
   name = "${var.env_squid_name}"
@@ -160,7 +190,7 @@ resource "aws_autoscaling_group" "squid_auto" {
   min_size = "${var.cluster_min_size}"
   vpc_zone_identifier = ["${aws_subnet.squid_pub0.*.id}"] 
   launch_configuration = "${aws_launch_configuration.squid_auto.name}"
-
+  depends_on           = ["null_resource.service_depends_on", "aws_route_table_association.squid_auto0"]
   tag {
     key                 = "Name"
     value               = "${var.env_squid_name}-grp-member"

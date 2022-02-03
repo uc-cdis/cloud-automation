@@ -115,3 +115,11 @@ variable "sns_topic_arn" {
   description = "SNS topic ARN for alerts"
   default     = "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
 }
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}

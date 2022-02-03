@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: qabot-deployment
@@ -33,6 +33,11 @@ spec:
             secretKeyRef:
               name: qabot-g3auto
               key: "githubtoken.json"
+        - name: JIRA_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qabot-g3auto
+              key: "jira_api_token.json"
         - name: JENKINS_JOB_TOKEN
           valueFrom:
             secretKeyRef:

@@ -38,6 +38,9 @@ module "cdis_vpc" {
   squid_extra_vars               = "${var.ha-squid_extra_vars}"
   single_squid_instance_type     = "${var.single_squid_instance_type}"
   network_expansion              = "${var.network_expansion}"
+  activation_id                  = "${var.activation_id}"
+  customer_id                    = "${var.customer_id}"
+  slack_webhook                  = "${var.slack_webhook}"
 }
 
 # logs bucket for elb logs
@@ -107,15 +110,6 @@ module "cdis_alarms" {
   db_indexd                   = "${aws_db_instance.db_indexd.identifier}"
   db_gdcapi                   = "${aws_db_instance.db_gdcapi.identifier}"
 }
-
-/*
-resource "aws_vpc_endpoint" "k8s-s3" {
-  vpc_id                      = "${module.cdis_vpc.vpc_id}"
-
-  service_name                = "${data.aws_vpc_endpoint_service.s3.service_name}"
-  route_table_ids             = ["${aws_route_table.private_kube.id}"]
-}
-*/
 
 
 resource "aws_route_table" "private_kube" {

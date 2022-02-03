@@ -221,34 +221,6 @@ _fetch_bucket_policy_arn() {
 }
 
 #
-# Util for checking if an entity already has a policy attached to them
-#
-# @param entityType: aws entity type (e.g. user, role...)
-# @param entityName
-# @param policyArn
-#
-_entity_has_policy() {
-  # returns true if entity already has policy, false otherwise
-  local entityType=$1
-  local entityName=$2
-  local policyArn=$3
-  # fetch policies attached to entity and check if bucket policy is already attached
-  local currentAttachedPolicies
-  currentAttachedPolicies=$(gen3_aws_run aws iam list-attached-${entityType}-policies --${entityType}-name $entityName 2>&1)
-  if [[ $? != 0 ]]; then
-    return 1
-  fi
-
-  if [[ ! -z $(echo $currentAttachedPolicies | jq '.AttachedPolicies[] | select(.PolicyArn == "'"${policyArn}"'")') ]]; then
-    echo "true"
-    return 0
-  fi
-
-  echo "false"
-  return 0
-}
-
-#
 # Attaches a bucket's read/write policy to a role
 #
 # @param bucket-name

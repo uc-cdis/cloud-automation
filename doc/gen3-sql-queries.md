@@ -2,21 +2,21 @@
 
 ## Fence Database
 
-### Get All User Access by Username and Project.auth_id
+### Get All User Access by Username and Project.auth_id, include Authorization Source name and Identity Provider
 ```sql
-select "User".username, project.auth_id from access_privilege INNER JOIN "User" on access_privilege.user_id="User".id INNER JOIN project on access_privilege.project_id=project.id ORDER BY "User".username;
+select "User".username, project.auth_id, authorization_provider.name as authz_provider, identity_provider.name as idp from access_privilege INNER JOIN "User" on access_privilege.user_id="User".id INNER JOIN project on access_privilege.project_id=project.id INNER JOIN authorization_provider on access_privilege.provider_id=authorization_provider.id INNER JOIN identity_provider on "User".idp_id=identity_provider.id ORDER BY "User".username;
 ```
 
 Example output:
 ```console
-             username             |  auth_id
-----------------------------------+-----------
- USER_A                           | test1
- USER_A                           | test2
- USER_B                           | test1
- USER_B                           | test2
- USER_B                           | test3
- USER_C                           | test2
+             username             |  auth_id  |  authz_provider  |  idp   |
+----------------------------------+-----------+------------------+--------+
+ USER_A                           | test1     | fence            | ras    |
+ USER_A                           | test2     | dbGaP            | ras    |
+ USER_B                           | test1     | fence            | google |
+ USER_B                           | test2     | fence            | google |
+ USER_B                           | test3     | dbGaP            | google |
+ USER_C                           | test2     | dbGaP            | ras    |
 
 ```
 
@@ -90,4 +90,34 @@ Example output:
  test@gmail.com          | data_file
  test@gmail.com          | programs.jnkns
  test@gmail.com          | programs.jnkns.projects.jenkins
+```
+
+## Indexd Database
+
+### Update Prefixes
+
+The did is set as a foreign key in multiple tables, so you can't just update the index_record table, since other tables reference did. To update the did's in the other tables there needs to be a reference to the new did in the index_record table. The easiest way to do this is to create a temporary table, where you can update the did, then copy the updated contents back into the original table. Because the new did now exists in the original index_record table you can update the did in the child tables, then delete the old did from the index_record table.
+
+```sql
+BEGIN;
+CREATE TEMP TABLE index_record_tmp ON COMMIT DROP AS
+SELECT * FROM index_record where did like 'dg.XXXX/%';
+UPDATE index_record_tmp SET did = replace(did, 'dg.XXXX/', 'dg.YYYY/');
+INSERT INTO index_record TABLE index_record_tmp;
+update index_record_hash set did = replace(did, 'dg.XXXX/', 'dg.YYYY/');
+update index_record_ace set did = replace(did, 'dg.XXXX/', 'dg.YYYY/');
+update index_record_authz set did = replace(did, 'dg.XXXX/', 'dg.YYYY/');
+update index_record_url set did = replace(did, 'dg.XXXX/', 'dg.YYYY/');
+update index_record_alias set did = replace(did, 'dg.XXXX/', 'dg.YYYY/');
+commit;
+```
+
+Replace dg.XXXX with the original prefix and dg.YYYY with the new prefix.
+
+### Find All Buckets in Indexd
+
+If you want to find all the buckets currently configured in indexd you can run the following. It is tailored for s3, but can be done for gs as well, if you replace the s3 with gs.
+
+```sql
+select distinct(regexp_replace(regexp_replace(url,'s3://', ''), '/.*', '')) from index_record_url where url like 's3://%';
 ```

@@ -17,7 +17,7 @@ gen3_secrets_init_git() {
     (
       # issue git commands in the secrets folder
       cd "$(gen3_secrets_folder)"
-    
+
       # initialize secrets folder as a git repo
       if [[ ! -d "$(gen3_secrets_folder)/.git" ]]; then
         gen3_log_info "Initializing $(gen3_secrets_folder) directory as git repo"
@@ -142,7 +142,7 @@ gen3_secrets_sync() {
       g3kubectl create secret generic "$secretName" "--from-file=${secretFileName}=${secretValueFile}"
       rm "$secretValueFile"
     done
-  
+
     #---------------------------
     # now try to process the g3auto/ folder
     #

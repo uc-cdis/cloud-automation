@@ -277,6 +277,41 @@ class UniqueUsersHandler {
   }
 }
 
+/**
+ * Handler for download by provider report
+ */
+export class ESAggregationsHandler {
+  constructor(service) {
+    this.service = service;
+  }
+
+  buildPathDateList(dateRange) {
+    let prefix = `${this.service}`;
+    return basicBuildPathList(prefix, dateRange);
+  }
+
+  fetchData(pathDateList) {
+    return fetchBucketsSummary(pathDateList, "aggs"
+      ).then(
+        (data) => {
+          return {
+            reportType: `${this.service}`,
+            service: 'all',
+            data
+          };
+        }
+      );
+  }
+
+  massageData(fetchedData) {
+    return {
+      ... fetchedData,
+      massage: addPercentColumn(
+        Object.entries(fetchedData.data).sort((a,b) => numCompare(a[0],b[0]))
+      )
+    };
+  }
+}
 
 /**
  * Handler for result codes report
@@ -421,6 +456,18 @@ const reportHandlers = {
   },
   projects: {
     all: new PassThroughHandler('projects')
+  },
+  protocol: {
+    all: new ESAggregationsHandler('protocol')
+  },
+  loginproviders: {
+    all: new ESAggregationsHandler('loginproviders')
+  },
+  oidclogins: {
+    all: new ESAggregationsHandler('oidclogins')
+  },
+  ga4ghrcodes: {
+    all: new ESAggregationsHandler('ga4ghrcodes')
   }
 };
 
@@ -441,4 +488,3 @@ export function fetchRecentData(reportType, reportGroup='all', dateRange=10) {
       }
     );
 }
-

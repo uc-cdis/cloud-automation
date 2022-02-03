@@ -68,7 +68,7 @@ spec:
           timeoutSeconds: 30
           # portal sometimes takes a long time to come up ... -
           # has to fetch the dictionary, relay compile, etc
-          failureThreshold: 6
+          failureThreshold: 10
         resources:
           requests:
             cpu: 0.6
@@ -86,6 +86,10 @@ spec:
         env:
           - name: HOSTNAME
             value: revproxy-service
+          # disable npm 7's brand new update notifier to prevent Portal from stuck at starting up
+          # see https://github.com/npm/cli/issues/3163
+          - name: NPM_CONFIG_UPDATE_NOTIFIER
+            value: "false"
           - name: APP
             valueFrom:
               configMapKeyRef:
@@ -166,6 +170,23 @@ spec:
                 name: global
                 key: mapbox_token
                 optional: true
+          - name: DATADOG_APPLICATION_ID
+            # Optional application ID for Datadog
+            valueFrom:
+              secretKeyRef:
+                name: portal-datadog-config
+                key: datadog_application_id
+                optional: true
+          - name: DATADOG_CLIENT_TOKEN
+            # Optional client token for Datadog
+            valueFrom:
+              secretKeyRef:
+                name: portal-datadog-config
+                key: datadog_client_token
+                optional: true
+          - name: DATA_UPLOAD_BUCKET
+            # S3 bucket name for data upload, for setting up CSP
+            GEN3_DATA_UPLOAD_BUCKET|-value: ""-|
         volumeMounts:
           - name: "cert-volume"
             readOnly: true

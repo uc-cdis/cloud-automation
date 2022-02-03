@@ -144,6 +144,39 @@ gen3_jupyter_pv_clear() {
 
 
 #
+# Fetch a jupyter metric
+#
+# @param metricName [runtime|memory] default to "runtime"
+# @param tokenKey default to ""
+#
+gen3_jupyter_metrics() {
+  local metricName="runtime"
+  local namespace
+  local tokenKey
+  jnamespace="$(gen3 jupyter j-namespace)" || return 1
+
+  metricName="${1:-runtime}"
+  if shift; then
+    tokenKey="$1"
+  fi
+  local timeQuery='max_over_time(timestamp(kube_pod_status_phase{namespace="'"$jnamespace"'", phase="Running"} > 0)[24h:]) - ignoring(phase) max_over_time(kube_pod_start_time{namespace="'"$jnamespace"'"}[24h])'
+  local memQuery='max_over_time(container_memory_usage_bytes{namespace="'"$jnamespace"'"}[24h])'
+  local query="$timeQuery"
+
+  if [[ "$metricName" == "memory" ]]; then
+    query="$memQuery"
+  fi
+
+#promQuery='max_over_time(timestamp(kube_pod_status_phase{namespace="zlchitty", phase="Running"} > 0)[24h:])'
+#promQuery2='max_over_time(kube_pod_start_time{namespace="zlchitty"}[24h])'
+#promQuery3='max_over_time(timestamp(kube_pod_status_phase{namespace="zlchitty", phase="Running"} > 0)[24h:]) - ignoring(phase) max_over_time(kube_pod_start_time{namespace="zlchitty"}[24h])'
+#promQuery4='max_over_time(container_memory_usage_bytes{namespace="zlchitty"}[24h])'
+
+  gen3 prometheus query "$query" "$tokenKey"
+}
+
+
+#
 # Try to identify the hatchery pods that have been idle for
 # over 12 hours, so we can shut them down.
 # This works by querying prometheus for the request rate
@@ -234,6 +267,9 @@ case "$command" in
     ;;
   "idle")
     gen3_jupyter_idle_pods "$@"
+    ;;
+  "metrics")
+    gen3_jupyter_metrics "$@"
     ;;
   "prepuller")
     gen3_jupyter_prepuller "$@"

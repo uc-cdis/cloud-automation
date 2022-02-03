@@ -1,5 +1,3 @@
-# Ops team so far
-# diw  emalinowski  fauzi  jmazzone  phillis  rarya  rarya.old  reubenonrye  rpowell1  seapasulli  zflamig
 - hosts: "{{ _hosts }}"
   tasks:
   - authorized_key:
@@ -8,13 +6,7 @@
       manage_dir: true
       key: '{{ lookup(''file'', item) }}'
     loop:
-       - ../keys/fauzi
-       - ../keys/diw
        - ../keys/emalinowski
        - ../keys/jmazzone
-       - ../keys/rpowell1
-       - ../keys/seapasulli
+       - ../keys/qureshi
        - ../keys/rarya
-       - ../keys/zflamig
-       - ../keys/phillis
-       - ../keys/reubenonrye

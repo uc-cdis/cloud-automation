@@ -1,6 +1,6 @@
 #
 # Helpers for both `gen3` and `g3k`.
-# Test with `gen3 testsuite` - see ../bin/testsuite.sh 
+# Test with `gen3 testsuite` - see ../bin/testsuite.sh
 #
 
 # Jenkins friendly
@@ -45,7 +45,7 @@ gen3_secrets_folder() {
     if [[ ! -d "$filePath" ]]; then
       mkdir -p -m 0700 "$filePath"
     fi
-  done    
+  done
 )
 
 # MacOS has 'md5', linux has 'md5sum'
@@ -103,6 +103,67 @@ semver_ge() {
   ) 1>&2
 }
 
+# Takes 2 required and 1 optional arguments:
+#   $1 service name
+#   $2 version of service where tests apply >=
+#   $3 version of service where tests apply >=, in monthly release (2020.xx) format
+#
+# ex: isServiceVersionGreaterOrEqual "fence" "3.0.0"
+# or: isServiceVersionGreaterOrEqual "fence" "3.0.0" "2020.01"
+isServiceVersionGreaterOrEqual() {
+  # make sure args provided
+  if [[ -z "$1" || -z "$2" ]]; then
+    return 0
+  fi
+
+  local currentVersion
+  currentVersion=$( [[ $(g3k_manifest_lookup ".versions.${1}") =~ \:(.*) ]] && echo "${BASH_REMATCH[1]}")
+
+  # check if currentVersion is actually a number
+  # NOTE: this assumes that all releases are tagged with actual numbers like:
+  #       2.8.0, 3.0.0, 3.0, 0.2, 0.2.1.5, etc
+  re='[0-9]+([.][0-9])+'
+  if ! [[ $currentVersion =~ $re ]] ; then
+    # force non-version numbers (e.g. branches and master)
+    # to be some arbitrary large number, so that it will
+    # cause next comparison to run the optional test.
+    # NOTE: The assumption here is that branches and master should run all the tests,
+    #       if you've branched off an old version that actually should NOT run the tests..
+    #       this script cannot currently handle that
+    # hopefully our service versions are never "OVER 9000!"
+    versionAsNumber=9000
+  else
+    # version is actually a pinned number, not a branch name or master
+    versionAsNumber=$currentVersion
+  fi
+
+  min=$(printf "2020\n$versionAsNumber\n" | sort -V | head -n1)
+  if [[ "$min" = "2020" && -n "$3" ]]; then
+    # 1. versionAsNumber >=2020, so assume it is a monthly release (or it was a branch
+    #    and is now 9000, in which case it will still pass the check as expected)
+    # 2. monthly release version arg was provided
+    # So, do the version comparison based on monthly release version arg
+    min=$(printf "$3\n$versionAsNumber\n" | sort -V | head -n1)
+    if [ "$min" = "$3" ]; then
+      echo "$1 version ($currentVersion) is greater than $3"
+    else
+      echo "$1 version ($currentVersion) is less than $3"
+      return 1
+    fi
+  else
+    # versionAsNumber is normal semver tag
+    min=$(printf "$2\n$versionAsNumber\n" | sort -V | head -n1)
+    if [ "$min" = "$2" ]; then
+      echo "$1 version ($currentVersion) is greater than $2"
+    else
+      echo "$1 version ($currentVersion) is less than $2"
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
 # vt100 escape sequences - don't forget to pass -e to 'echo -e'
 RED_COLOR="\x1B[31m"
 DEFAULT_COLOR="\x1B[39m"
@@ -137,7 +198,7 @@ fi
 
 
 #
-# Little helper for interactive debugging - 
+# Little helper for interactive debugging -
 # clears the GEN3_SOURCED_SCRIPTS flags,
 # and re-source gen3setup.sh
 #
@@ -206,7 +267,7 @@ function random_alphanumeric() {
 }
 
 #
-# Little helper returns true (0 exit code) if time since the last call to 
+# Little helper returns true (0 exit code) if time since the last call to
 # ${operation} is greater than ${periodSecs} seconds.
 # If the time period has expired, then also touches the file
 # under the assumption that the caller will go on to perform the operation:
@@ -332,12 +393,12 @@ gen3_is_number() {
 gen3_encode_uri_component() {
   local codes=(
     "%" "%25"
-    " " "%20" 
-    "=" "%3D" 
-    "[" "%5B" 
-    "]" "%5D" 
-    "{" "%7B" 
-    "}" "%7D" 
+    " " "%20"
+    "=" "%3D"
+    "[" "%5B"
+    "]" "%5D"
+    "{" "%7B"
+    "}" "%7D"
     '"' "%22"
     '\?' "%3F"
     "&" "%26"
@@ -392,4 +453,45 @@ check_terraform_module() {
     gen3_log_info "Moving on with terraform 0.11.x"
   fi
   echo "${tversion}"
+}
+
+#
+# Util for checking if an entity already has a policy attached to them
+#
+# @param entityType: aws entity type (e.g. user, role...)
+# @param entityName
+# @param policyArn
+#
+_entity_has_policy() {
+  # returns true if entity already has policy, false otherwise
+  local entityType=$1
+  local entityName=$2
+  local policyArn=$3
+  # fetch policies attached to entity and check if bucket policy is already attached
+  local currentAttachedPolicies
+  currentAttachedPolicies=$(gen3_aws_run aws iam list-attached-${entityType}-policies --${entityType}-name $entityName 2>&1)
+  if [[ $? != 0 ]]; then
+    return 1
+  fi
+
+  if [[ ! -z $(echo $currentAttachedPolicies | jq '.AttachedPolicies[] | select(.PolicyArn == "'"${policyArn}"'")') ]]; then
+    echo "true"
+    return 0
+  fi
+
+  echo "false"
+  return 0
+}
+
+wait_for_esproxy() {
+  COUNT=0
+  while [[ -z $(kubectl get pods --selector=app=esproxy -o go-template='{{range $index, $element := .items}}{{range .status.containerStatuses}}{{if .ready}}{{$element.metadata.name}}{{"\n"}}{{end}}{{end}}{{end}}') ]]; do
+    if [[ COUNT -gt 50 ]]; then
+      echo "wait too long for esproxy"
+      exit 1
+    fi
+    echo "waiting for esproxy to be ready"
+    sleep 5
+    let COUNT+=1
+  done
 }

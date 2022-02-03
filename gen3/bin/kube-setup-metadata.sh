@@ -6,7 +6,6 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-
 setup_database() {
   gen3_log_info "setting up metadata service ..."
 
@@ -21,7 +20,7 @@ setup_database() {
   # Setup .env file that metadataservice consumes
   if [[ ! -f "$secretsFolder/metadata.env" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
     local secretsFolder="$(gen3_secrets_folder)/g3auto/metadata"
-    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then    
+    if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
       if ! gen3 db setup metadata; then
         gen3_log_err "Failed setting up database for metadata service"
         return 1
@@ -31,7 +30,7 @@ setup_database() {
       gen3_log_err "dbcreds not present in Gen3Secrets/"
       return 1
     fi
-  
+
     # go ahead and rotate the password whenever we regen this file
     local password="$(gen3 random)"
     cat - > "$secretsFolder/metadata.env" <<EOM
@@ -58,6 +57,35 @@ if ! setup_database; then
   exit 1
 fi
 
+# The metadata-config secret is a collection of arbitrary files at <manifest dir>/metadata
+# Today, we only care about that secret if the directory exists. See metadata-deploy and that
+# this secret will be marked as optional for the pod, so it is OK if this secret is not created.
+if [ -d "$(dirname $(g3k_manifest_path))/metadata" ]; then
+  if g3kubectl get secrets metadata-config > /dev/null 2>&1; then
+    # We want to re-create this on every setup to pull the latest state.
+    g3kubectl delete secret metadata-config
+  fi
+
+  # Use the aggregate_config.json file in the metadata-config secret if that file exists.
+  aggregateConfigFile="$(dirname $(g3k_manifest_path))/metadata/aggregate_config.json"
+  if [ -f "${aggregateConfigFile}" ]; then
+    g3kubectl create secret generic metadata-config --from-file="${aggregateConfigFile}"
+  fi
+fi
+
+# Sync the manifest config from manifest.json (or manifests/metadata.json) to the k8s config map.
+# This may not actually create the manifest-metadata config map if the user did not specify any metadata
+# keys in their manifest configuration.
+gen3 gitops configmaps
+
+# Check the manifest-metadata configmap to see if the aggregate mds feature is enabled. Skip aws-es-proxysetup if configmap doesn't exist.
+if g3kubectl get configmap manifest-metadata > /dev/null 2>&1; then
+  if g3kubectl get configmap manifest-metadata -o json | jq -r '.data.json' | jq '.USE_AGG_MDS == true' > /dev/null 2>&1; then
+    gen3_log_info "kube-setup-metadata setting up aws-es-proxy dependency"
+    gen3 kube-setup-aws-es-proxy || true
+    wait_for_esproxy
+  fi
+fi
 gen3 roll metadata
 g3kubectl apply -f "${GEN3_HOME}/kube/services/metadata/metadata-service.yaml"
 

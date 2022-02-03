@@ -16,9 +16,9 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-kubeproxy=${kubeproxy:-1.16.15}
+kubeproxy=${kubeproxy:-1.16.13}
 coredns=${coredns:-1.6.6}
-cni=${cni:-1.6}
+cni=${cni:-1.7.5}
 calico=${calico:-1.7.5}
 
 
@@ -30,9 +30,9 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kubeproxy}"
+kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kubeproxy}-eksbuild.1"
 coredns_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/coredns:v${coredns}"
-cni_image="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/release-${cni}/config/v${cni}/aws-k8s-cni.yaml"
+cni_image="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v${cni}/config/v1.7/aws-k8s-cni.yaml"
 calico_yaml="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v${calico}/config/v$(echo ${calico} | sed -e 's/\.[0-9]\+$//')/calico.yaml"
 
 g3kubectl set image daemonset.apps/kube-proxy -n kube-system kube-proxy=${kube_proxy_image}
@@ -54,4 +54,17 @@ g3kubectl apply -f ${calico_yaml}
     gen3_log_warn "Failed to retrieve coredns configmap from kube-system namespace"
   fi
   rm "$tempFile"
+)
+
+#
+# Manage kube-proxy deployment 
+# see: https://docs.aws.amazon.com/eks/latest/userguide/update-cluster.html#1-16-prerequisites
+(
+  tempFile="$(mktemp "$XDG_RUNTIME_DIR/kube-proxy-daemonset.yaml_XXXXXXX")" 
+  # We need to determine the kubernetes cluster endpoint to properly configure kube-proxy
+  gen3_log_info "Updating kube-proxy"
+  KUBE_SERVER_ENDPOINT=$(aws eks describe-cluster --name $vpc_name --query 'cluster.endpoint' --output text) \
+  kube_proxy_image=${kube_proxy_image} \
+  envsubst < $GEN3_HOME/kube/services/kube-proxy/kube-proxy-daemonset.yaml > $tempFile
+  g3kubectl apply -f $tempFile
 )

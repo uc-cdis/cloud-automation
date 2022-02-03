@@ -1,4 +1,3 @@
-# gen3 job run etl ETL_FORCED TRUE
 apiVersion: batch/v1
 kind: Job
 metadata:

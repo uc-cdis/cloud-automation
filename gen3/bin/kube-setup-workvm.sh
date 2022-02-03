@@ -94,7 +94,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       fi
       wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
       sudo -E apt-get update
-      sudo -E apt-get install -y postgresql-client-9.6
+      sudo -E apt-get install -y postgresql-client-13
     )
   fi
   # gen3sdk currently requires this
@@ -119,7 +119,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   
   ( # in a subshell - install terraform
     install_terraform() {
-      curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.14/terraform_0.11.14_linux_amd64.zip
+      curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip
       sudo /bin/rm -rf /usr/local/bin/terraform > /dev/null 2>&1 || true
       sudo unzip "${XDG_RUNTIME_DIR}/terraform.zip" -d /usr/local/bin;
       /bin/rm "${XDG_RUNTIME_DIR}/terraform.zip"
@@ -127,7 +127,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
 
     install_terraform12() {
       mkdir "${XDG_RUNTIME_DIR}/t12"
-      curl -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.29/terraform_0.12.29_linux_amd64.zip
+      curl -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip
       sudo /bin/rm -rf /usr/local/bin/terraform12 > /dev/null 2>&1 || true
       unzip "${XDG_RUNTIME_DIR}/t12/terraform12.zip" -d "${XDG_RUNTIME_DIR}/t12";
       sudo cp "${XDG_RUNTIME_DIR}/t12/terraform" "/usr/local/bin/terraform12"
@@ -138,7 +138,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       install_terraform  
     else
       TERRAFORM_VERSION=$(terraform --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
-      if ! semver_ge "$TERRAFORM_VERSION" "0.11.14"; then
+      if ! semver_ge "$TERRAFORM_VERSION" "0.11.15"; then
         install_terraform
       fi
     fi
@@ -146,7 +146,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       install_terraform12  
     else
       T12_VERSION=$(terraform12 --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
-      if ! semver_ge "$T12_VERSION" "0.12.29"; then
+      if ! semver_ge "$T12_VERSION" "0.12.31"; then
         install_terraform12
       fi
     fi

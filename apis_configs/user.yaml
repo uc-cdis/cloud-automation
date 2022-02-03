@@ -45,17 +45,6 @@ users:
     - auth_id: DEV
       privilege: [create, read, update, delete, upload, read-storage]
       resource: /programs/DEV
-  diw@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload, read-storage]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
   dmiller15@uchicago.edu:
     admin: true
     projects:
@@ -63,17 +52,6 @@ users:
       privilege: [create, read, update, delete, upload]
     - auth_id: test
       privilege: [create, read, update, delete, upload]
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  giangbui@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-      resource: /programs/QA/projects/test
     - auth_id: DEV
       privilege: [create, read, update, delete, upload, read-storage]
       resource: /programs/DEV
@@ -87,29 +65,7 @@ users:
     - auth_id: DEV
       privilege: [create, read, update, delete, upload, read-storage]
       resource: /programs/DEV
-  fauzi@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload, read-storage]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
   qshu@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload, read-storage]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  reubenonrye@uchicago.edu:
     admin: true
     projects:
     - auth_id: QA
@@ -131,28 +87,6 @@ users:
     - auth_id: DEV
       privilege: [create, read, update, delete, upload, read-storage]
       resource: /programs/DEV
-  rudyardrichter@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-      resource: /programs/QA
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  scui729@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
   thanhnd@uchicago.edu:
     admin: true
     projects:
@@ -166,28 +100,6 @@ users:
       resource: /programs/DEV
   trevars@uchicago.edu:
     admin: false
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  vivilin@uchicago.edu:
-    admin: false
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload, read-storage]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  yajingt@uchicago.edu:
-    admin: true
     projects:
     - auth_id: QA
       privilege: [create, read, update, delete, upload]

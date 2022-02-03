@@ -1,6 +1,7 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
+  annotations:
   name: selenium-hub-nodes-policy
   namespace: default
 spec:
@@ -15,6 +16,8 @@ spec:
     - port: 4442
       protocol: TCP
     - port: 4443
+      protocol: TCP
+    - port: 5555
       protocol: TCP
   podSelector:
     matchLabels:

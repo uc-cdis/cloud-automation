@@ -1,7 +1,7 @@
-FROM ubuntu:18.04
+FROM quay.io/cdis/ubuntu:18.04
 
-ENV SQUID_VERSION="squid-4.10" \
-    SQUID_DOWNLOAD_URL="http://www.squid-cache.org/Versions/v4/" \
+ENV SQUID_VERSION="squid-5.1" \
+    SQUID_DOWNLOAD_URL="http://www.squid-cache.org/Versions/v5/" \  
     SQUID_USER="proxy" \
     SQUID_CACHE_DIR="/var/cache/squid" \
     SQUID_LOG_DIR="/var/log/squid" \
@@ -15,8 +15,11 @@ RUN apt update \
     && apt install -y build-essential wget libssl1.0-dev
 
 COPY ./entrypoint.sh /usr/sbin/entrypoint.sh
+COPY ./certfix.sh /certfix.sh
 
 RUN chmod +x /usr/sbin/entrypoint.sh
+RUN chmod +x /certfix.sh
+RUN bash /certfix.sh
 
 RUN (cd /tmp \
     && wget ${SQUID_DOWNLOAD_URL}${SQUID_VERSION}.tar.xz \

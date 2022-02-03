@@ -2,7 +2,6 @@
 version: '3.5'
 services:
   wetty-sshd:
-    #image: sshd:reuben
     image: quay.io/cdis/ws-sshd:2020.09.1
     network_mode: service:nginx
     container_name: 'wetty-sshd'
