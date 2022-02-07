@@ -38,8 +38,8 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       containers:
-        - name: viewer
-          GEN3_ORTHANC_IMAGE|-image: quay.io/cdis/ohif-viewer
+      - name: viewer
+        GEN3_ORTHANC_IMAGE|-image: quay.io/cdis/ohif-viewer
           # livenessProbe:
           #   httpGet:
           #     path: /_status
@@ -51,9 +51,9 @@ spec:
           #   httpGet:
           #     path: /_status
           #     port: 8000
-          ports:
-          - containerPort: 8080:80
-          env:
+        ports:
+        - containerPort: 8080:80
+        env:
           - name: DD_TRACE_ENABLED
             valueFrom:
               configMapKeyRef:
