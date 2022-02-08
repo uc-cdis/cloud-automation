@@ -76,9 +76,8 @@ spec:
         ports:
         - containerPort: 3000
         command: 
-          - npm
-          - run
-          - start
+          - /bin/bash
+          - ./start.sh
         env:
           - name: HOSTNAME
             value: revproxy-service
