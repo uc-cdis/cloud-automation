@@ -38,6 +38,10 @@ spec:
       - name: orthanc 
         GEN3_ORTHANC_IMAGE
         imagePullPolicy: Always
+        resources:
+            limits:
+              cpu: 1
+              memory: 2400Mi  
         ports:
         - containerPort: 8080:80
         env:
@@ -47,10 +51,4 @@ spec:
                name: manifest-global
                key: dd_enabled
                optional: true
-          resources:
-            requests:
-              cpu: 0.5
-              memory: 1024Mi
-            limits:
-              cpu: 1
-              memory: 2400Mi  
+          
