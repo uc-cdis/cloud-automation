@@ -1,10 +1,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: dicom-viewer-service
+  name: orthanc-service
 spec:
   selector:
-    app: viewer
+    app: orthanc
   ports:
     - protocol: TCP
       port: 80
