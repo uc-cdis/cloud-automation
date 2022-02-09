@@ -6,7 +6,7 @@ spec:
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
-      app: ohif-viewer
+      app: viewer
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -16,10 +16,10 @@ spec:
   template:
     metadata:
       labels:
-        app: ohif-viewer
+        app: viewer
         public: "yes"
         netnolimit: "yes"
-        tags.datadoghq.com/service: "ohif-viewer"
+        tags.datadoghq.com/service: "viewer"
     spec:
       affinity:
         podAntiAffinity:
@@ -31,12 +31,12 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - ohif-viewer
+                  - viewer
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       containers:
-      - name: ohif-viewer 
-        GEN3_OHIF-VIEWER_IMAGE
+      - name: viewer 
+        GEN3_VIEWER_IMAGE
         imagePullPolicy: Always
         resources:
             limits:

@@ -1,10 +1,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: ohif-viewer-service
+  name: viewer-service
 spec:
   selector:
-    app: orthanc
+    app: viewer
   ports:
     - protocol: TCP
       port: 80
