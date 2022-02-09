@@ -43,7 +43,7 @@ spec:
               cpu: 1
               memory: 2400Mi  
         ports:
-        - containerPort: 8080:80
+        - containerPort: 80
         env:
         - name: DD_TRACE_ENABLED
           valueFrom:
