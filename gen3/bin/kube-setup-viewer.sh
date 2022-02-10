@@ -5,7 +5,7 @@ gen3_load "gen3/lib/kube-setup-init"
 
 
 
-gen3 roll orthanc
+gen3 roll viewer
 g3kubectl apply -f "${GEN3_HOME}/kube/services/orthanc/orthanc-service.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/orthanc/viewer-service.yaml"
 
