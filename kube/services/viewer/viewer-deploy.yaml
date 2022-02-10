@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ohif-viewer-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: viewer
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: viewer
+        public: "yes"
+        netnolimit: "yes"
+        tags.datadoghq.com/service: "viewer"
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - viewer
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      containers:
+      - name: viewer 
+        GEN3_VIEWER_IMAGE
+        imagePullPolicy: Always
+        resources:
+            limits:
+              cpu: 1
+              memory: 2400Mi  
+        ports:
+        - containerPort: 80
+        env:
+        - name: DD_TRACE_ENABLED
+          valueFrom:
+            configMapKeyRef:
+               name: manifest-global
+               key: dd_enabled
+               optional: true
+          
