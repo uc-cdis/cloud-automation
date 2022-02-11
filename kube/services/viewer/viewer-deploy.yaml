@@ -35,7 +35,7 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
-        - name: orthanc-secret
+        - name: viewer-secret
           secret:
             secretName: "orthanc-g3auto"
       containers:
