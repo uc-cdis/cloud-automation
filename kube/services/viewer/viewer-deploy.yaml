@@ -34,6 +34,10 @@ spec:
                   - viewer
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
+      volumes:
+        - name: orthanc-secret
+          secret:
+            secretName: "orthanc-g3auto"
       containers:
       - name: viewer 
         GEN3_VIEWER_IMAGE
