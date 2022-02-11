@@ -1,3 +1,7 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: viewer-service
 services:
   viewer:
     image: quay.io/cdis/ohif-viewer
