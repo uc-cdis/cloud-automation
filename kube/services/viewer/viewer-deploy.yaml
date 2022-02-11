@@ -48,6 +48,20 @@ spec:
               memory: 2400Mi  
         ports:
         - containerPort: 80
+        volumeMounts:
+        - name: "viewer-secret"
+          readOnly: true
+          mountPath: "/var/www/orthanc/dbcreds.json"
+          subPath: dbcreds.json
+        command: ["sh"]
+        args:
+          - "-c"
+          - |
+            # set env vars
+            export POSTGRES_DB=$(cat /var/www/orthanc/dbcreds.json | jq -r '.db_database')
+            export POSTGRES_USER=$(cat /var/www/orthanc/dbcreds.json | jq -r '.db_username')
+            export POSTGRES_PASSWORD=$(cat /var/www/orthanc/dbcreds.json | jq -r '.db_password')
+            export POSTGRES_HOST=$(cat /var/www/orthanc/dbcreds.json | jq -r '.db_host')
         env:
         - name: DD_TRACE_ENABLED
           valueFrom:
