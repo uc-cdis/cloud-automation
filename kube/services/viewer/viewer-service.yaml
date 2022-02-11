@@ -1,4 +1,3 @@
-version: '3.6'
 services:
   viewer:
     image: quay.io/cdis/ohif-viewer
