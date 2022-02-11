@@ -206,11 +206,11 @@ datadog:
 clusterAgent:
   # clusterAgent.enabled -- Set this to false to disable Datadog Cluster Agent
   enabled: true
+  # Enable the metricsProvider to be able to scale based on metrics in Datadog
   metricsProvider:
+    # clusterAgent.metricsProvider.enabled
+    # Set this to true to enable Metrics Provider
     enabled: true
-    # clusterAgent.metricsProvider.useDatadogMetrics
-    # Enable usage of DatadogMetric CRD to autoscale on arbitrary Datadog queries
-    useDatadogMetrics: true
 
   ## Define the Datadog Cluster-Agent image to work with
   image:
