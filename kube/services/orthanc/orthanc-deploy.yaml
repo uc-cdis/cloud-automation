@@ -19,4 +19,5 @@ spec:
         image: osimis/orthanc
         ports:
         - containerPort: 80
+        
 

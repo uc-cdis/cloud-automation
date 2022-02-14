@@ -19,3 +19,4 @@ spec:
         image: ohif/viewer
         ports:
         - containerPort: 80
+        
