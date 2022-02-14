@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: viewer
-        image: ohif/viewer
+        image: quay.io/cdis/ohif-viewer
         ports:
         - containerPort: 80
