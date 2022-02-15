@@ -269,3 +269,7 @@ variable "indexd_max_allocated_storage" {
   description = "Maximum allocated storage for autosacaling"
   default     = 0
 }
+
+variable "fips" {
+  default = false
+}

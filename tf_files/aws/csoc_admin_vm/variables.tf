@@ -44,3 +44,7 @@ variable "vpc_cidr_list" {
 variable "ssh_key_name" {
   default = "rarya_id_rsa"
 }
+
+variable "fips" {
+  default = false
+}

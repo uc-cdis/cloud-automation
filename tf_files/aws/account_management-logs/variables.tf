@@ -8,3 +8,7 @@ variable "account_name" {}
 variable "alarm_actions" {
   type = "list"
 }
+
+variable "fips" {
+  default = false
+}

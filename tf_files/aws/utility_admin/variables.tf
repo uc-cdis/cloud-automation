@@ -78,3 +78,7 @@ variable "organization_name" {
 variable "branch" {
   default = "master"
 }
+
+variable "fips" {
+  default = false
+}

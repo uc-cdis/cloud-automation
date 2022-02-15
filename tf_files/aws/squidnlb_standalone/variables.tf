@@ -67,3 +67,6 @@ variable "commons_internal_dns_zone_id"{
 }
 
 
+variable "fips" {
+  default = false
+}

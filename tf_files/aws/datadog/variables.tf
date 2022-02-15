@@ -90,3 +90,7 @@ variable "actions" {
         "iam:ListPolicies"
     ]
 }
+
+variable "fips" {
+  default = false
+}

@@ -177,3 +177,7 @@ variable "source_buckets" {
   description = "Where is the data that this cluster is going to access in s3"
   type        = list
 }
+
+variable "fips" {
+  default = false
+}

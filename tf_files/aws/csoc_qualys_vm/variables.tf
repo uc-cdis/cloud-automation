@@ -52,3 +52,7 @@ variable "instance_type" {
   description = "Instance type for the VM"
   default     = "t3.medium"
 }
+
+variable "fips" {
+  default = false
+}

@@ -10,3 +10,7 @@ variable "instance_count" {
 
 variable "ssh_public_key" {
 }
+
+variable "fips" {
+  default = false
+}

@@ -12,3 +12,7 @@ variable "emails" {
 variable "topic_display" {
   default = "cronjob manitor"
 }
+
+variable "fips" {
+  default = false
+}

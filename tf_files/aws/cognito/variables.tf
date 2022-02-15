@@ -61,3 +61,7 @@ variable "tags" {
     "Environment"  = "CSOC"
   }
 }
+
+variable "fips" {
+  default = false
+}

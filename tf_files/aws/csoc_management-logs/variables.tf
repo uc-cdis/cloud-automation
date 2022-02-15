@@ -7,3 +7,7 @@ variable "accounts_id" {
 variable "elasticsearch_domain" {
   default = "commons-logs"
 }
+
+variable "fips" {
+  default = false
+}

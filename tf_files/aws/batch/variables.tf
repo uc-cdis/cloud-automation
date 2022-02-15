@@ -82,3 +82,7 @@ variable "sqs_queue_name" {
 variable "output_bucket_name" {
   description = "output bucket"
 }
+
+variable "fips" {
+  default = false
+}

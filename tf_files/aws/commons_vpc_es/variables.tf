@@ -38,3 +38,7 @@ variable "es_linked_role" {
   description = "Whether or no to deploy a linked roll for ES"
   default     = true
 }
+
+variable "fips" {
+  default = false
+}

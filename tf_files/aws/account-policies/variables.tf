@@ -8,3 +8,7 @@ variable "roles" {
   default     = ["devopsdirector", "bsdisocyber", "projectmanagerplanx", "devopsplanx", "devplanx"]
 }
 
+
+variable "fips" {
+  default = false
+}

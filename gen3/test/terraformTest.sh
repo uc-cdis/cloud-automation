@@ -200,7 +200,10 @@ test_custom_workspace() {
     sourceFolder="../../../../cloud-automation/tf_files/aws/modules/s3-bucket"
   fi
   cat - > bucket.tf <<EOM
-provider "aws" {}
+provider "aws" {
+  # AWS provider 4 introduces breaking changes for s3
+  version = "~> 3.74.1"
+}
 
 module "s3_bucket" {
   bucket_name       = "frickjack-crazy-test"

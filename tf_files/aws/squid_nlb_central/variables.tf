@@ -58,12 +58,10 @@ variable "bootstrap_script" {
   default = "squidvm.sh"
 }
 
-
 variable "csoc_internal_dns_zone_id"{
   #default = "ZA1HVV5W0QBG1"
 }
 
-
-
-
-
+variable "fips" {
+  default = false
+}

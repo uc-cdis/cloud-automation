@@ -12,3 +12,7 @@ variable "fence_rds_id" {}
 
 # rds instance id
 variable "sheepdog_rds_id" {}
+
+variable "fips" {
+  default = false
+}

@@ -30,3 +30,7 @@ variable "instance_type" {
   description = "Instance type for the squid instance"
   default     = "t2.micro"
 }
+
+variable "fips" {
+  default = false
+}

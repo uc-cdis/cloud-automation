@@ -290,3 +290,8 @@ variable "rds_instance_backup_bucket_name" {
   description = "The bucket to send bacups to"
   default     = ""
 }
+
+
+variable "fips" {
+  default = false
+}

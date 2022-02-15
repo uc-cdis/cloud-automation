@@ -34,3 +34,7 @@ variable "ami" {
 
 variable "vm_name" {
 }
+
+variable "fips" {
+  default = false
+}

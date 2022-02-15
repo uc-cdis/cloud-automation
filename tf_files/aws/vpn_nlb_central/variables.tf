@@ -88,3 +88,7 @@ variable "branch" {
 variable "cwl_group_name" {
   default     = "csoc-prod-vpn.planx-pla.net_log_group"
 }
+
+variable "fips" {
+  default = false
+}

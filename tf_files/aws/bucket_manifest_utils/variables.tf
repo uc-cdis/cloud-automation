@@ -68,3 +68,6 @@ variable "lambda_function_subnets_id" {
 }
 
 
+variable "fips" {
+  default = false
+}

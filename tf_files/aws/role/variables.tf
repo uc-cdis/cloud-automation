@@ -28,3 +28,8 @@ variable "ar_policy" {
 
 EOR
 }
+
+
+variable "fips" {
+  default = false
+}

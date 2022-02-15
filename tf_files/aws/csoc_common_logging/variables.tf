@@ -43,3 +43,7 @@ variable "timeout" {
 variable "memory_size" {
   default = 512
 }
+
+variable "fips" {
+  default = false
+}
