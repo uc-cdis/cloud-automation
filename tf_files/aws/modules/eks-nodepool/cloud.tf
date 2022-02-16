@@ -38,6 +38,12 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
   role       = "${aws_iam_role.eks_control_plane_role.name}"
 }
 
+# Amazon SSM Policy 
+resource "aws_iam_role_policy_attachment" "eks-policy-AmazonSSMManagedInstanceCore" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = "${aws_iam_role.eks_control_plane_role.name}"
+}
+
 
 
 ###############################################
