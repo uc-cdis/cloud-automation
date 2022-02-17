@@ -37,6 +37,7 @@ registration job (cogwheel-register-client).
 Add these creds to your commons Fence config `OPENID_CONNECT` section, using the 'cognito' IdP.
 The `discovery_url` is
 `https://you.planx-pla.net/cogwheel/.well-known/oauth-authorization-server`.
+`http://cogwheel-service/.well-known/oauth-authorization-server`.
 Also configure a UI button in the `LOGIN_OPTIONS` section if needed.
 
 

@@ -2,6 +2,7 @@
 #
 # Deploy cogwheel service (Set up db and secrets if not already)
 #
+# TODO add cogwheel to roll all
 
 set -e
 
