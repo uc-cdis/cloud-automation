@@ -38,7 +38,7 @@ sysctl -w net.ipv4.route.flush=1
 echo "Protocol 2" >> /etc/ssh/sshd_config
 
 ## Ensure SSH root login is disabled
-echo "ermitRootLogin no" >> /etc/ssh/sshd_config
+echo "PermitRootLogin no" >> /etc/ssh/sshd_config
 
 ## Ensure only strong ciphers are used
 echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" >> /etc/ssh/sshd_config
