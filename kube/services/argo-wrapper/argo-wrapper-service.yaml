@@ -4,7 +4,7 @@ metadata:
   name: argo-wrapper-service
 spec:
   selector:
-    app: argo
+    app: argo-wrapper
   ports:
     - protocol: TCP
       port: 8000
