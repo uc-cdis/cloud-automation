@@ -34,6 +34,8 @@ spec:
             configMapKeyRef:
               name: global
               key: slack_webhook
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/secrets/credentials/default.json"
         - name: gen3Env
           valueFrom:
             configMapKeyRef:
@@ -48,9 +50,3 @@ spec:
           limits:
             cpu: 0.5
             memory: 512Mi
-        command: ["/bin/bash" ]
-        args:
-          - "-c"
-          - |
-            export GOOGLE_APPLICATION_CREDENTIALS=/secrets/credentials/default.json
-            bash /src/covid19-notebook-etl-run-with-slack.sh
