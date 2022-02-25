@@ -482,7 +482,7 @@ resource "aws_security_group_rule" "nodes_interpool_communications" {
 }
 
 # Let's allow the two polls talk to each other
-resource "aws_security_group_rule" "nodes_interpool_communications" {
+resource "aws_security_group_rule" "workflow_nodes_interpool_communications" {
   type                     = "ingress"
   from_port                = 0
   to_port                  = 0
