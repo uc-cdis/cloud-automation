@@ -481,6 +481,17 @@ resource "aws_security_group_rule" "nodes_interpool_communications" {
   source_security_group_id = "${module.jupyter_pool.nodepool_sg}"
 }
 
+# Let's allow the two polls talk to each other
+resource "aws_security_group_rule" "nodes_interpool_communications" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  description              = "allow workflow nodes to talk to the default"
+  security_group_id        = "${aws_security_group.eks_nodes_sg.id}"
+  source_security_group_id = "${module.workflow_pool.nodepool_sg}"
+}
+
 
 ## Worker Node AutoScaling Group
 # Now we have everything in place to create and manage EC2 instances that will serve as our worker nodes
@@ -617,6 +628,11 @@ data:
         - system:bootstrappers
         - system:nodes
     - rolearn: ${module.jupyter_pool.nodepool_role}
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
+    - rolearn: ${module.workflow_pool.nodepool_role}
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
