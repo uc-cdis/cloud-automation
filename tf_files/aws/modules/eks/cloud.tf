@@ -36,11 +36,11 @@ module "jupyter_pool" {
   customer_id                  = "${var.customer_id}"
 }
 
-module "workflow_pool1" {
+module "workflow_pool" {
   source                       = "../eks-nodepool/"
   ec2_keyname                  = "${var.ec2_keyname}"
   users_policy                 = "${var.users_policy}"
-  nodepool                     = "workflow1"
+  nodepool                     = "workflow"
   vpc_name                     = "${var.vpc_name}"
   csoc_cidr                    = "${var.peering_cidr}"
   eks_cluster_endpoint         = "${aws_eks_cluster.eks_cluster.endpoint}"
