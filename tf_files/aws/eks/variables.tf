@@ -13,6 +13,10 @@ variable "jupyter_instance_type"{
   default = "t3.large"
 }
 
+variable "workflow_instance_type"{
+  default = "t3.2xlarge"
+}
+
 variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
@@ -52,6 +56,14 @@ variable "jupyter_worker_drive_size" {
   default = 30
 }
 
+variable "workflow_bootstrap_script" {
+  default =  "bootstrap.sh"
+}
+
+variable "workflow_worker_drive_size" {
+  default = 30
+}
+
 variable "cidrs_to_route_to_gw" {
   default = []
 }
@@ -72,6 +84,18 @@ variable "jupyter_asg_min_size" {
   default = 0
 }
 
+variable "workflow_asg_desired_capacity" {
+  default = 0
+}
+
+variable "workflow_asg_max_size" {
+  default = 50
+}
+
+variable "workflow_asg_min_size" {
+  default = 0
+}
+
 variable "iam-serviceaccount" {
   default = true
 }
@@ -83,6 +107,11 @@ variable "domain_test" {
 
 variable "ha_squid" {
   description = "Is HA squid deployed?"
+  default     = false
+}
+
+variable "deploy_workflow" {
+  description = "Deploy workflow nodepool?"
   default     = false
 }
 

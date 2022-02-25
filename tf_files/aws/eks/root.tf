@@ -37,4 +37,11 @@ module "eks" {
   sns_topic_arn                    = "${var.sns_topic_arn}"
   activation_id                    = "${var.activation_id}"
   customer_id                      = "${var.customer_id}"
+  workflow_instance_type           = "${var.workflow_instance_type}"
+  workflow_bootstrap_script        = "${var.workflow_bootstrap_script}"
+  workflow_worker_drive_size       = "${var.workflow_worker_drive_size}"
+  workflow_asg_desired_capacity    = "${var.workflow_asg_desired_capacity}"
+  workflow_asg_max_size            = "${var.workflow_asg_max_size}"
+  workflow_asg_min_size            = "${var.workflow_asg_min_size}"
+  deploy_workflow                  = "${var.deploy_workflow}"
 }
