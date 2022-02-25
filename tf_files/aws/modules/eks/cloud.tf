@@ -36,6 +36,31 @@ module "jupyter_pool" {
   customer_id                  = "${var.customer_id}"
 }
 
+module "workflow_pool" {
+  count                        = "${var.deploy_workflow ? 1 : 0}"
+  source                       = "../eks-nodepool/"
+  ec2_keyname                  = "${var.ec2_keyname}"
+  users_policy                 = "${var.users_policy}"
+  nodepool                     = "workflow"
+  vpc_name                     = "${var.vpc_name}"
+  csoc_cidr                    = "${var.peering_cidr}"
+  eks_cluster_endpoint         = "${aws_eks_cluster.eks_cluster.endpoint}"
+  eks_cluster_ca               = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+  eks_private_subnets          = "${aws_subnet.eks_private.*.id}"
+  control_plane_sg             = "${aws_security_group.eks_control_plane_sg.id}"
+  default_nodepool_sg          = "${aws_security_group.eks_nodes_sg.id}"
+  eks_version                  = "${var.eks_version}"
+  jupyter_instance_type        = "${var.workflow_instance_type}"
+  kernel                       = "${var.kernel}"
+  bootstrap_script             = "${var.workflow_bootstrap_script}"
+  jupyter_worker_drive_size    = "${var.workflow_worker_drive_size}"
+  organization_name            = "${var.organization_name}"
+  nodepool_asg_desired_capacity = "${var.workflow_asg_desired_capacity}"
+  nodepool_asg_max_size         = "${var.workflow_asg_max_size}"
+  nodepool_asg_min_size         = "${var.workflow_asg_min_size}"
+  activation_id                = "${var.activation_id}"
+  customer_id                  = "${var.customer_id}"
+}
 
 
 

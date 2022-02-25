@@ -9,7 +9,7 @@ variable "instance_type" {
   default = "t3.large"
 }
 
-variable "jupyter_instance_type"{
+variable "nodepool_instance_type"{
   default = "t3.large"
 }
 
@@ -39,7 +39,7 @@ variable "control_plane_sg" {}
 
 variable "default_nodepool_sg" {}
 
-variable "deploy_jupyter_pool" {
+variable "deploy_nodepool_pool" {
   default = "no"
 }
 
@@ -53,7 +53,7 @@ variable "bootstrap_script" {
   default = "bootstrap-2.0.0.sh"
 }
 
-variable "jupyter_worker_drive_size" {
+variable "nodepool_worker_drive_size" {
   default = 30
 }
 
@@ -61,15 +61,15 @@ variable "organization_name" {
   default = "Basic Service"
 }
 
-variable "jupyter_asg_desired_capacity" {
+variable "nodepool_asg_desired_capacity" {
   default = 0
 }
 
-variable "jupyter_asg_max_size" {
+variable "nodepool_asg_max_size" {
   default = 10
 }
 
-variable "jupyter_asg_min_size" {
+variable "nodepool_asg_min_size" {
   default = 0
 }
 
