@@ -97,9 +97,9 @@ if [[ $current_namespace == "default" ]];
 then
   if g3kubectl get namespace argo > /dev/null 2>&1;
   then
-    for argo-argo-workflows-server in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
+    for argo in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
     do
-      filePath="$scriptDir/gen3.nginx.conf/argo-argo-workflows-server.conf"
+      filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
       if [[ -f "$filePath" ]]; then
         confFileList+=("--from-file" "$filePath")
       fi
