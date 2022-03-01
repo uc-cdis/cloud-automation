@@ -35,7 +35,7 @@ controller:
   priorityClassName: ""
 
 server:
-  baseHref: "/argo"
+  baseHref: "/argo/"
   # -- Extra arguments to provide to the Argo server binary, such as for disabling authentication.
   extraArgs:
   - --auth-mode=server 
