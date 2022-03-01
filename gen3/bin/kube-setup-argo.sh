@@ -39,9 +39,10 @@ EOF
     return 1
   fi
 
+
   # try to come up with a unique but composable bucket name
   bucketName="gen3-argo-${accountNumber}-${environment//_/-}"
-
+  userName="gen3-argo-${environment//_/-}-user"
   if ! secret="$(g3kubectl get secret argo-s3-creds -n argo 2> /dev/null)"; then
     gen3_log_info "setting up bucket $bucketName"
 
@@ -53,15 +54,15 @@ EOF
     fi
 
 
-    gen3_log_info "Creating IAM user argo-user"
-    if ! aws iam get-user --user-name argo-user > /dev/null 2>&1; then 
-      aws iam create-user --user-name argo-user
-      aws iam put-user-policy --user-name argo-user --policy-name argo-bucket-policy --policy-document file://$policyFile
+    gen3_log_info "Creating IAM user ${userName}"
+    if ! aws iam get-user --user-name ${userName} > /dev/null 2>&1; then 
+      aws iam create-user --user-name ${userName}
+      aws iam put-user-policy --user-name ${userName} --policy-name argo-bucket-policy --policy-document file://$policyFile
     else 
-      gen3_log_info "IAM user argo-user already exits.."
+      gen3_log_info "IAM user ${userName} already exits.."
     fi 
 
-    secret=$(aws iam create-access-key --user-name argo-user)
+    secret=$(aws iam create-access-key --user-name ${userName})
     if ! g3kubectl get namespace argo > /dev/null 2>&1; then 
       gen3_log_info "Creating argo namespace"
       g3kubectl create namespace argo
