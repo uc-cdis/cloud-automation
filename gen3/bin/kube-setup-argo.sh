@@ -70,6 +70,7 @@ EOF
     if ! g3kubectl get namespace argo > /dev/null 2>&1; then 
       gen3_log_info "Creating argo namespace"
       g3kubectl create namespace argo
+      g3kubectl label namespace argo app=argo
       g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n argo
     fi
 
