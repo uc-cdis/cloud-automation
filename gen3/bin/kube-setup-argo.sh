@@ -14,21 +14,7 @@ function setup_argo_buckets {
   local accountNumber
   local environment
   local policyFile="$XDG_RUNTIME_DIR/policy_$$.json"
-  cat > "$policyFile" <<EOF
-{
-   "Version":"2012-10-17",
-   "Statement":[
-      {
-         "Effect":"Allow",
-         "Action":[
-            "s3:PutObject",
-            "s3:GetObject"
-         ],
-         "Resource":"arn:aws:s3:::$bucketName/*"
-      }
-   ]
-}
-EOF
+  
 
   if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
     gen3_log_err "could not determine account numer"
@@ -45,7 +31,25 @@ EOF
   userName="gen3-argo-${environment//_/-}-user"
   if ! secret="$(g3kubectl get secret argo-s3-creds -n argo 2> /dev/null)"; then
     gen3_log_info "setting up bucket $bucketName"
-
+    if g3k_config_lookup '.argo."s3-bucket"'; then
+      bucketName=$(g3k_config_lookup '.argo."s3-bucket"')
+      gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
+    fi
+    cat > "$policyFile" <<EOF
+{
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Effect":"Allow",
+         "Action":[
+            "s3:PutObject",
+            "s3:GetObject"
+         ],
+         "Resource":"arn:aws:s3:::$bucketName/*"
+      }
+   ]
+}
+EOF
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
       gen3_log_info "${bucketName} s3 bucket already exists"
       # continue on ...
