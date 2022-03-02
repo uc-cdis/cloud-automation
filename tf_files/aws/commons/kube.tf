@@ -203,14 +203,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "kube_bucket" {
   }
 }
 
-resource "aws_s3_bucket_lifecycle" "kube_bucket" {
-  bucket = aws_s3_bucket.kube_bucket.id
-  lifecycle {
-    # allow same bucket between stacks
-    ignore_changes = ["tags", "bucket"]
-  }
-}
-
 
 resource "aws_s3_bucket_public_access_block" "kube_bucket_privacy" {
   bucket                      = "${aws_s3_bucket.kube_bucket.id}"
