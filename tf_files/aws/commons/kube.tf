@@ -196,11 +196,9 @@ resource "aws_s3_bucket_acl" "kube_bucket" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "kube_bucket" {
   bucket = aws_s3_bucket.kube_bucket.id
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
 }

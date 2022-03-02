@@ -18,21 +18,17 @@ resource "aws_s3_bucket_acl" "data_bucket" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "data_bucket" {
   bucket = aws_s3_bucket.data_bucket.id
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
 }
 
 resource "aws_s3_bucket_logging" "data_bucket" {
-  bucket = aws_s3_bucket.data_bucket.id
-  logging {
-    target_bucket = "${aws_s3_bucket.log_bucket.id}"
-    target_prefix = "log/${var.vpc_name}-data-bucket/"
-  }
+  bucket        = aws_s3_bucket.data_bucket.id
+  target_bucket = "${aws_s3_bucket.log_bucket.id}"
+  target_prefix = "log/${var.vpc_name}-data-bucket/"
 }
 
 resource "aws_s3_bucket_lifecycle" "data_bucket" {
@@ -84,11 +80,9 @@ resource "aws_s3_bucket_acl" "log_bucket" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
   bucket = aws_s3_bucket.log_bucket.id
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
 }

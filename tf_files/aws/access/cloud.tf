@@ -18,11 +18,15 @@ resource "aws_s3_bucket_cors_rule" "access" {
   }
 }
 
-resource "aws_s3_bucket_acl_website" "access" {
+resource "aws_s3_bucket_website_configuration" "access" {
   bucket = "aws_s3_bucket.access.id"
-  website {
-    index_document = "index.html"
-    error_document = "index.html"
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "index.html"
   }
 }
 
@@ -32,7 +36,7 @@ locals {
 
 resource "aws_cloudfront_distribution" "access" {
   origin {
-    domain_name = "${aws_s3_bucket.access.website_endpoint}"
+    domain_name = "${aws_s3_bucket_website_configuration.access.website_endpoint}"
     origin_id   = "${local.s3_origin_id}"
     custom_origin_config {
       http_port              = "80"

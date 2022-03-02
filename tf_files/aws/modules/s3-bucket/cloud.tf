@@ -20,11 +20,9 @@ resource "aws_s3_bucket_acl" "mybucket" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "mybucket" {
   bucket = aws_s3_bucket.mybucket.id
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
 }
@@ -39,10 +37,8 @@ resource "aws_s3_bucket_lifecycle_rule" "mybucket" {
 
 resource "aws_s3_bucket_logging" "mybucket" {
   bucket = aws_s3_bucket.mybucket.id
-  logging {
-    target_bucket = "${module.cdis_s3_logs.log_bucket_name}"
-    target_prefix = "log/${local.clean_bucket_name}/"
-  }
+  target_bucket = "${module.cdis_s3_logs.log_bucket_name}"
+  target_prefix = "log/${local.clean_bucket_name}/"
 }
 
 resource "aws_iam_role" "mybucket_reader" {
