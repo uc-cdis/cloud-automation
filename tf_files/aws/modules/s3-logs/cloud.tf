@@ -21,19 +21,21 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
   }
 }
 
-resource "aws_s3_bucket_lifecycle_rule" "log_bucket" {
+resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
   bucket = aws_s3_bucket.log_bucket.id
-  lifecycle_rule {
+  rule {
     id      = "log"
-    enabled = true
-
-    prefix = "/"
-
-    tags = {
-      rule      = "log"
-      autoclean = "true"
+    status  = "Enabled"
+    
+    filter {
+      and {
+        prefix = "/"
+        tags = {
+          rule      = "log"
+          autoclean = "true"
+        }
+      }
     }
-
     expiration {
       # 5 years
       days = 1825

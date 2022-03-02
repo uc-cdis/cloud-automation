@@ -27,11 +27,17 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "mybucket" {
   }
 }
 
-resource "aws_s3_bucket_lifecycle_rule" "mybucket" {
+resource "aws_s3_bucket_lifecycle_configuration" "mybucket" {
   bucket = aws_s3_bucket.mybucket.id
-  lifecycle_rule {
-    enabled = true
-    abort_incomplete_multipart_upload_days = 7
+  rule {
+    id = "Delete old incomplete multi-part uploads"
+    status = "Enabled"
+    filter {
+      prefix = ""
+    }
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
   }
 }
 

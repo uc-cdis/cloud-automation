@@ -31,13 +31,6 @@ resource "aws_s3_bucket_logging" "data_bucket" {
   target_prefix = "log/${var.vpc_name}-data-bucket/"
 }
 
-resource "aws_s3_bucket_lifecycle" "data_bucket" {
-  bucket = aws_s3_bucket.data_bucket.id
-  lifecycle = {
-    ignore_changes = ["cors_rule"]
-  }
-}
-
 resource "aws_s3_bucket_public_access_block" "data_bucket_privacy" {
   bucket                      = "${aws_s3_bucket.data_bucket.id}"
 
@@ -87,17 +80,20 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
   }
 }
 
-resource "aws_s3_bucket_lifecycle_rule" "log_bucket" {
+resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
   bucket = aws_s3_bucket.log_bucket.id
-  lifecycle_rule {
+  rule {
     id      = "log"
-    enabled = true
-
-    prefix = "/"
-
-    tags = {
-      "rule"      = "log"
-      "autoclean" = "true"
+    status  = "Enabled"
+    
+    filter {
+      and {
+        prefix = "/"
+        tags = {
+          "rule"      = "log"
+          "autoclean" = "true"          
+        }
+      }
     }
 
     expiration {

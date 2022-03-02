@@ -23,17 +23,21 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "commons_logging_b
   }
 }
 
-resource "aws_s3_bucket_lifecycle_rule" "commons_logging_bucket" {
+resource "aws_s3_bucket_lifecycle_configuration" "commons_logging_bucket" {
   bucket = aws_s3_bucket.common_logging_bucket.id
-  lifecycle_rule {
+  rule {
     id      = "forwarded"
-    enabled = true
+    status  = "Enabled"
+    
+    filter {
+      and {
+        prefix = "forwarded*/"
 
-    prefix = "forwarded*/"
-
-    tags = {
-      rule      = "log"
-      autoclean = "true"
+        tags = {
+          rule      = "log"
+          autoclean = "true"
+        }
+      }
     }
 
     transition {
