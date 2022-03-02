@@ -40,6 +40,9 @@ server:
   extraArgs:
   - --auth-mode=server 
   - --auth-mode=client
+  extraEnv:
+  - name: ARGO_HTTP1
+    value: "true"
 
 # -- Influences the creation of the ConfigMap for the workflow-controller itself.
 useDefaultArtifactRepo: true
