@@ -6,8 +6,20 @@ module "cdis_s3_logs" {
 
 resource "aws_s3_bucket" "mybucket" {
   bucket = "${local.clean_bucket_name}"
-  acl    = "private"
+  tags = {
+    Name        = "${local.clean_bucket_name}"
+    Environment = "${var.environment}"
+    Purpose     = "data bucket"
+  }
+}
 
+resource "aws_s3_bucket_acl" "mybucket" {
+  bucket = aws_s3_bucket.mybucket.id
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "mybucket" {
+  bucket = aws_s3_bucket.mybucket.id
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
@@ -15,21 +27,21 @@ resource "aws_s3_bucket" "mybucket" {
       }
     }
   }
+}
 
+resource "aws_s3_bucket_lifecycle_rule" "mybucket" {
+  bucket = aws_s3_bucket.mybucket.id
   lifecycle_rule {
     enabled = true
     abort_incomplete_multipart_upload_days = 7
   }
+}
 
+resource "aws_s3_bucket_logging" "mybucket" {
+  bucket = aws_s3_bucket.mybucket.id
   logging {
     target_bucket = "${module.cdis_s3_logs.log_bucket_name}"
     target_prefix = "log/${local.clean_bucket_name}/"
-  }
-
-  tags = {
-    Name        = "${local.clean_bucket_name}"
-    Environment = "${var.environment}"
-    Purpose     = "data bucket"
   }
 }
 

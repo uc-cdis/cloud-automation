@@ -1,7 +1,19 @@
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "${local.clean_bucket_name}"
-  acl    = "log-delivery-write"
+  tags = {
+    Name        = "${local.clean_bucket_name}"
+    Environment = "${var.environment}"
+    Purpose     = "logs bucket"
+  }
+}
 
+resource "aws_s3_bucket_acl" "log_bucket" {
+  bucket = aws_s3_bucket.log_bucket.id
+  acl    = "log-delivery-write"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
+  bucket = aws_s3_bucket.log_bucket.id
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
@@ -9,7 +21,10 @@ resource "aws_s3_bucket" "log_bucket" {
       }
     }
   }
+}
 
+resource "aws_s3_bucket_lifecycle_rule" "log_bucket" {
+  bucket = aws_s3_bucket.log_bucket.id
   lifecycle_rule {
     id      = "log"
     enabled = true
@@ -26,14 +41,7 @@ resource "aws_s3_bucket" "log_bucket" {
       days = 1825
     }
   }
-
-  tags = {
-    Name        = "${local.clean_bucket_name}"
-    Environment = "${var.environment}"
-    Purpose     = "logs bucket"
-  }
 }
-
 
 resource "aws_s3_bucket_public_access_block" "s3-log_bucket_privacy" {
   bucket                      = "${aws_s3_bucket.log_bucket.id}"

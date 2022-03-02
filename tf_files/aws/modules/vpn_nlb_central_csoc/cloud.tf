@@ -485,20 +485,6 @@ resource "aws_route53_record" "vpn-nlb" {
 
 resource "aws_s3_bucket" "vpn-certs-and-files" {
   bucket = "vpn-certs-and-files-${var.env_vpn_nlb_name}"
-  acl    = "private"
-
-  versioning {
-    enabled = true
-  }
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
   tags = {
     Name        = "vpn-certs-and-files-${var.env_vpn_nlb_name}"
     Environment = "${var.env_vpn_nlb_name}"
@@ -506,3 +492,26 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
   }
 }
 
+
+resource "aws_s3_bucket_acl" "vpn-certs-and-files" {
+  bucket = aws_s3_bucket.vpn-certs-and-files.id
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "vpn-certs-and-files" {
+  bucket = aws_s3_bucket.vpn-certs-and-files.id
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "vpn-certs-and-files" {
+  bucket = aws_s3_bucket.vpn-certs-and-files.id
+  versioning {
+    enabled = true
+  }
+}

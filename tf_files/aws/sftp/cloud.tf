@@ -10,6 +10,9 @@ provider "aws" {}
 
 resource "aws_s3_bucket" "sftp_bucket" {
   bucket = var.s3_bucket_name
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "sftp_bucket" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
@@ -18,8 +21,6 @@ resource "aws_s3_bucket" "sftp_bucket" {
     }
   }
 }
-
-
 resource "aws_iam_role" "sftp_role" {
   name = "sftp_role"
 

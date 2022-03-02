@@ -3,8 +3,21 @@
 
 resource "aws_s3_bucket" "data_bucket" {
   bucket = "${var.vpc_name}-data-bucket"
-  acl    = "private"
+  tags = {
+    Name        = "${var.vpc_name}-data-bucket"
+    Environment = "${var.environment}"
+    Purpose     = "data bucket"
+  }
+}
 
+
+resource "aws_s3_bucket_acl" "data_bucket" {
+  bucket = aws_s3_bucket.data_bucket.id
+   acl    = "private"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "data_bucket" {
+  bucket = aws_s3_bucket.data_bucket.id
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
@@ -12,23 +25,22 @@ resource "aws_s3_bucket" "data_bucket" {
       }
     }
   }
+}
 
+resource "aws_s3_bucket_logging" "data_bucket" {
+  bucket = aws_s3_bucket.data_bucket.id
   logging {
     target_bucket = "${aws_s3_bucket.log_bucket.id}"
     target_prefix = "log/${var.vpc_name}-data-bucket/"
   }
+}
 
-  tags = {
-    Name        = "${var.vpc_name}-data-bucket"
-    Environment = "${var.environment}"
-    Purpose     = "data bucket"
-  }
-
+resource "aws_s3_bucket_lifecycle" "data_bucket" {
+  bucket = aws_s3_bucket.data_bucket.id
   lifecycle = {
     ignore_changes = ["cors_rule"]
   }
 }
-
 
 resource "aws_s3_bucket_public_access_block" "data_bucket_privacy" {
   bucket                      = "${aws_s3_bucket.data_bucket.id}"
@@ -56,10 +68,22 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "${var.vpc_name}-data-bucket-logs"
-  acl    = "bucket-owner-full-control" #log-delivery-write
+  tags = {
+    Name        = "${var.vpc_name}"
+    Environment = "${var.environment}"
+    Purpose     = "logs bucket"
+  }
+}
+
+
+resource "aws_s3_bucket_acl" "log_bucket" {
+  bucket = aws_s3_bucket.log_bucket.id
+  #acl   = "bucket-owner-full-control"
   acl    = "log-delivery-write"
+}
 
-
+resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
+  bucket = aws_s3_bucket.log_bucket.id
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
@@ -67,7 +91,10 @@ resource "aws_s3_bucket" "log_bucket" {
       }
     }
   }
+}
 
+resource "aws_s3_bucket_lifecycle_rule" "log_bucket" {
+  bucket = aws_s3_bucket.log_bucket.id
   lifecycle_rule {
     id      = "log"
     enabled = true
@@ -83,14 +110,7 @@ resource "aws_s3_bucket" "log_bucket" {
       days = 120
     }
   }
-
-  tags = {
-    Name        = "${var.vpc_name}"
-    Environment = "${var.environment}"
-    Purpose     = "logs bucket"
-  }
 }
-
 
 resource "aws_s3_bucket_public_access_block" "data_bucket_logs_privacy" {
   bucket                      = "${aws_s3_bucket.log_bucket.id}"

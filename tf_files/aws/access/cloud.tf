@@ -1,6 +1,14 @@
 resource "aws_s3_bucket" "access" {
   bucket = "${var.access_url}"
+}
+
+resource "aws_s3_bucket_acl" "access" {
+  bucket = "aws_s3_bucket.access.id"
   acl = "public-read"
+}
+
+resource "aws_s3_bucket_cors_rule" "access" {
+  bucket = "aws_s3_bucket.access.id"
   cors_rule {
       allowed_headers = ["*"]
       allowed_methods = ["PUT","POST"]
@@ -8,6 +16,10 @@ resource "aws_s3_bucket" "access" {
       expose_headers = ["ETag"]
       max_age_seconds = 3000
   }
+}
+
+resource "aws_s3_bucket_acl_website" "access" {
+  bucket = "aws_s3_bucket.access.id"
   website {
     index_document = "index.html"
     error_document = "index.html"
