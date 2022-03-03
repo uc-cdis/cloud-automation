@@ -235,11 +235,6 @@ resource "aws_security_group" "squidauto_in" {
     cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}"]
   }
 
-  tags = {
-    Environment  = "${var.env_squid_name}"
-    Organization = "${var.organization_name}"
-  }
-
   ingress {
     from_port   = 80
     to_port     = 80
@@ -252,11 +247,6 @@ resource "aws_security_group" "squidauto_in" {
     to_port     = 443
     protocol    = "TCP"
     cidr_blocks = ["${var.env_vpc_cidr}"]
-  }
-
-  tags = {
-    Environment  = "${var.env_squid_name}"
-    Organization = "${var.organization_name}"
   }
 
   lifecycle {
