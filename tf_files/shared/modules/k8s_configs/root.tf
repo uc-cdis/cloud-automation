@@ -1,7 +1,7 @@
 data "template_file" "creds" {
   template = "${file("${path.module}/creds.tpl")}"
 
-  vars {
+  vars = {
     fence_host  = "${var.db_fence_address}"
     fence_user  = "${var.db_fence_username}"
     fence_pwd   = "${var.db_fence_password}"
@@ -42,7 +42,7 @@ data "template_file" "creds" {
 data "template_file" "configmap" {
   template = "${file("${path.module}/00configmap.yaml")}"
 
-  vars {
+  vars = {
     vpc_name       = "${var.vpc_name}"
     hostname       = "${var.hostname}"
     kube_bucket    = "${var.kube_bucket_name}"
@@ -57,7 +57,7 @@ data "template_file" "configmap" {
 #data "template_file" "kube_vars" {
 #  template = "${file("${path.module}/kube-vars.sh.tpl")}"
 
-#  vars {
+#  vars = {
 #    vpc_name  = "${var.vpc_name}"
 #    s3_bucket = "${var.kube_bucket_name}"
 #  }
