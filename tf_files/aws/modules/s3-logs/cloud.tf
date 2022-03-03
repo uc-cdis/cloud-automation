@@ -8,12 +8,12 @@ resource "aws_s3_bucket" "log_bucket" {
 }
 
 resource "aws_s3_bucket_acl" "log_bucket" {
-  bucket = aws_s3_bucket.log_bucket.id
+  bucket = "${aws_s3_bucket.log_bucket.id}"
   acl    = "log-delivery-write"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
-  bucket = aws_s3_bucket.log_bucket.id
+  bucket = "${aws_s3_bucket.log_bucket.id}"
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
@@ -22,7 +22,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
-  bucket = aws_s3_bucket.log_bucket.id
+  bucket = "${aws_s3_bucket.log_bucket.id}"
   rule {
     id      = "log"
     status  = "Enabled"
