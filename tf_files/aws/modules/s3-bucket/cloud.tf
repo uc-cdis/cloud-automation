@@ -14,12 +14,12 @@ resource "aws_s3_bucket" "mybucket" {
 }
 
 resource "aws_s3_bucket_acl" "mybucket" {
-  bucket = aws_s3_bucket.mybucket.id
+  bucket = "${aws_s3_bucket.mybucket.id}"
   acl    = "private"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "mybucket" {
-  bucket = aws_s3_bucket.mybucket.id
+  bucket = "${aws_s3_bucket.mybucket.id}"
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
@@ -28,7 +28,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "mybucket" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "mybucket" {
-  bucket = aws_s3_bucket.mybucket.id
+  bucket = "${aws_s3_bucket.mybucket.id}"
   rule {
     id = "Delete old incomplete multi-part uploads"
     status = "Enabled"
@@ -42,7 +42,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "mybucket" {
 }
 
 resource "aws_s3_bucket_logging" "mybucket" {
-  bucket = aws_s3_bucket.mybucket.id
+  bucket = "${aws_s3_bucket.mybucket.id}"
   target_bucket = "${module.cdis_s3_logs.log_bucket_name}"
   target_prefix = "log/${local.clean_bucket_name}/"
 }

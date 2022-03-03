@@ -494,12 +494,12 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
 
 
 resource "aws_s3_bucket_acl" "vpn-certs-and-files" {
-  bucket = aws_s3_bucket.vpn-certs-and-files.id
+  bucket = "${aws_s3_bucket.vpn-certs-and-files.id}"
   acl    = "private"
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "vpn-certs-and-files" {
-  bucket = aws_s3_bucket.vpn-certs-and-files.id
+  bucket = "${aws_s3_bucket.vpn-certs-and-files.id}"
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
@@ -508,7 +508,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "vpn-certs-and-fil
 }
 
 resource "aws_s3_bucket_versioning" "vpn-certs-and-files" {
-  bucket = aws_s3_bucket.vpn-certs-and-files.id
+  bucket = "${aws_s3_bucket.vpn-certs-and-files.id}"
   versioning {
     enabled = true
   }

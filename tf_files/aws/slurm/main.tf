@@ -160,6 +160,16 @@ resource "aws_iam_instance_profile" "slurm_nodes_instance_profile" {
 
 resource "aws_s3_bucket" "data_bucket" {
   bucket = "${var.vpc_name}-slurm-data-bucket"
+  acl    = "private"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
   tags  = {
     Name         = "${var.vpc_name}-data-bucket"
     Organization = var.organization_name
@@ -167,21 +177,6 @@ resource "aws_s3_bucket" "data_bucket" {
   }
 
 }
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "data_bucket" {
-  bucket = aws_s3_bucket.data_bucket.id
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-resource "aws_s3_bucket_acl" "data_bucket" {
-  bucket = aws_s3_bucket.data_bucket.id
-  acl    = "private"
-}
-
 
 
 resource "aws_s3_bucket_public_access_block" "data_bucket_privacy" {

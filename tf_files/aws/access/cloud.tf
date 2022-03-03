@@ -3,12 +3,12 @@ resource "aws_s3_bucket" "access" {
 }
 
 resource "aws_s3_bucket_acl" "access" {
-  bucket = "aws_s3_bucket.access.id"
+  bucket = "${aws_s3_bucket.access.id}"
   acl = "public-read"
 }
 
 resource "aws_s3_bucket_cors_rule" "access" {
-  bucket = "aws_s3_bucket.access.id"
+  bucket = "${aws_s3_bucket.access.id}"
   cors_rule {
       allowed_headers = ["*"]
       allowed_methods = ["PUT","POST"]
@@ -19,8 +19,7 @@ resource "aws_s3_bucket_cors_rule" "access" {
 }
 
 resource "aws_s3_bucket_website_configuration" "access" {
-  bucket = "aws_s3_bucket.access.id"
-
+  bucket = "${aws_s3_bucket.access.id}"
   index_document {
     suffix = "index.html"
   }
