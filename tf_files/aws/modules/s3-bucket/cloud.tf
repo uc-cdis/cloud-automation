@@ -6,45 +6,31 @@ module "cdis_s3_logs" {
 
 resource "aws_s3_bucket" "mybucket" {
   bucket = "${local.clean_bucket_name}"
+  acl    = "private"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+
+  lifecycle_rule {
+    enabled = true
+    abort_incomplete_multipart_upload_days = 7
+  }
+
+  logging {
+    target_bucket = "${module.cdis_s3_logs.log_bucket_name}"
+    target_prefix = "log/${local.clean_bucket_name}/"
+  }
+
   tags = {
     Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "data bucket"
   }
-}
-
-resource "aws_s3_bucket_acl" "mybucket" {
-  bucket = "${aws_s3_bucket.mybucket.id}"
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_server_side_encryption_configuration" "mybucket" {
-  bucket = "${aws_s3_bucket.mybucket.id}"
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-resource "aws_s3_bucket_lifecycle_configuration" "mybucket" {
-  bucket = "${aws_s3_bucket.mybucket.id}"
-  rule {
-    id = "Delete old incomplete multi-part uploads"
-    status = "Enabled"
-    filter {
-      prefix = ""
-    }
-    abort_incomplete_multipart_upload {
-      days_after_initiation = 7
-    }
-  }
-}
-
-resource "aws_s3_bucket_logging" "mybucket" {
-  bucket = "${aws_s3_bucket.mybucket.id}"
-  target_bucket = "${module.cdis_s3_logs.log_bucket_name}"
-  target_prefix = "log/${local.clean_bucket_name}/"
 }
 
 resource "aws_iam_role" "mybucket_reader" {
