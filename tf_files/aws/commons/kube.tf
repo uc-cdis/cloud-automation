@@ -182,25 +182,24 @@ resource "aws_key_pair" "automation_dev" {
 resource "aws_s3_bucket" "kube_bucket" {
   # S3 buckets are in a global namespace, so dns style naming
   bucket                      = "kube-${replace(var.vpc_name,"_", "-")}-gen3"
-  acl                         = "private"
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
   tags = {
     Name                      = "kube-${replace(var.vpc_name,"_", "-")}-gen3"
     Environment               = "${var.vpc_name}"
     Organization              = "${var.organization_name}"
   }
+}
 
-  lifecycle {
-    # allow same bucket between stacks
-    ignore_changes = ["tags", "bucket"]
+resource "aws_s3_bucket_acl" "kube_bucket" {
+  bucket = "${aws_s3_bucket.kube_bucket.id}"
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "kube_bucket" {
+  bucket = "${aws_s3_bucket.kube_bucket.id}"
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
   }
 }
 

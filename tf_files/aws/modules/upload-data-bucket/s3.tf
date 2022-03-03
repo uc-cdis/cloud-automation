@@ -3,32 +3,33 @@
 
 resource "aws_s3_bucket" "data_bucket" {
   bucket = "${var.vpc_name}-data-bucket"
-  acl    = "private"
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
-  logging {
-    target_bucket = "${aws_s3_bucket.log_bucket.id}"
-    target_prefix = "log/${var.vpc_name}-data-bucket/"
-  }
-
   tags = {
     Name        = "${var.vpc_name}-data-bucket"
     Environment = "${var.environment}"
     Purpose     = "data bucket"
   }
+}
 
-  lifecycle = {
-    ignore_changes = ["cors_rule"]
+
+resource "aws_s3_bucket_acl" "data_bucket" {
+  bucket = "${aws_s3_bucket.data_bucket.id}"
+   acl    = "private"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "data_bucket" {
+  bucket = "${aws_s3_bucket.data_bucket.id}"
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
   }
 }
 
+resource "aws_s3_bucket_logging" "data_bucket" {
+  bucket        = "${aws_s3_bucket.data_bucket.id}"
+  target_bucket = "${aws_s3_bucket.log_bucket.id}"
+  target_prefix = "log/${var.vpc_name}-data-bucket/"
+}
 
 resource "aws_s3_bucket_public_access_block" "data_bucket_privacy" {
   bucket                      = "${aws_s3_bucket.data_bucket.id}"
@@ -56,34 +57,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "${var.vpc_name}-data-bucket-logs"
-  acl    = "bucket-owner-full-control" #log-delivery-write
-  acl    = "log-delivery-write"
-
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
-  lifecycle_rule {
-    id      = "log"
-    enabled = true
-
-    prefix = "/"
-
-    tags = {
-      "rule"      = "log"
-      "autoclean" = "true"
-    }
-
-    expiration {
-      days = 120
-    }
-  }
-
   tags = {
     Name        = "${var.vpc_name}"
     Environment = "${var.environment}"
@@ -91,6 +64,43 @@ resource "aws_s3_bucket" "log_bucket" {
   }
 }
 
+
+resource "aws_s3_bucket_acl" "log_bucket" {
+  bucket = "${aws_s3_bucket.log_bucket.id}"
+  #acl   = "bucket-owner-full-control"
+  acl    = "log-delivery-write"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
+  bucket = "${aws_s3_bucket.log_bucket.id}"
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
+  bucket = "${aws_s3_bucket.log_bucket.id}"
+  rule {
+    id      = "log"
+    status  = "Enabled"
+    
+    filter {
+      and {
+        prefix = "/"
+        tags = {
+          "rule"      = "log"
+          "autoclean" = "true"          
+        }
+      }
+    }
+
+    expiration {
+      days = 120
+    }
+  }
+}
 
 resource "aws_s3_bucket_public_access_block" "data_bucket_logs_privacy" {
   bucket                      = "${aws_s3_bucket.log_bucket.id}"
