@@ -1,3 +1,13 @@
+terraform {
+  backend "s3" {
+    encrypt = "true"
+  }
+
+  required_providers {
+    aws = "~> 2.41"
+  }
+}
+
 module "cdis_s3_logs" {
   source          = "../s3-logs"
   log_bucket_name = "s3logs-${local.clean_bucket_name}"
