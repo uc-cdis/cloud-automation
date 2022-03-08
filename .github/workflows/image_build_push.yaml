@@ -3,13 +3,13 @@ name: Build Python Base Images and Push to Quay/ECR
 on:
   push:
     paths:
-      - './Docker/python-nginx/**'
+      - 'Docker/python-nginx/**'
 
 jobs:
-  python-3.9:
+  python_3-9:
     name: Python 3.9 Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
-    inputs:
+    with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.9-buster/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.9-buster"
       OVERRIDE_REPO_NAME: "python3.9-buster"
@@ -18,10 +18,10 @@ jobs:
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
-  python-3.10:
+  python_3-10:
     name: Python 3.10 Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
-    inputs:
+    with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.10-buster/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.10-buster"
       OVERRIDE_REPO_NAME: "python3.10-buster"
