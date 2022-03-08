@@ -3,7 +3,7 @@ name: Build Python Base Images and Push to Quay/ECR
 on:
   push:
     paths:
-      - 'Docker/python-nginx/**'
+      - './Docker/python-nginx/*'
 
 jobs:
   python_3-9:
