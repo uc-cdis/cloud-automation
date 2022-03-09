@@ -1,4 +1,12 @@
+terraform {
+  backend "s3" {
+    encrypt = "true"
+  }
 
+  required_providers {
+    aws = "~> 4.0"
+  }
+}
 #
 # Only create db_fence if var.db_password_fence is set.
 # Sort of a hack during userapi to fence switch over.
