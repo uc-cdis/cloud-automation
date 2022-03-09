@@ -66,7 +66,7 @@ resource "aws_ami_copy" "squid_ami" {
   count             = "${var.deploy_single_proxy ? 1 : 0 }"
   name              = "${var.env_vpc_name}-${data.aws_ami.public_squid_ami[*].name}-crypt"
   description       = "An encrypted copy of ${data.aws_ami.public_squid_ami[*].name}"
-  source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
+  source_ami_id     = "${data.aws_ami.public_squid_ami[*].id}"
   source_ami_region = "${var.ami_region}"
   encrypted         = true
 

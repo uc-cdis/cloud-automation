@@ -3,7 +3,7 @@ terraform {
     encrypt = "true"
   }
   required_providers {
-    aws = "~> 2.41"
+    aws = "~> 4.0"
   }
 }
 

@@ -69,7 +69,7 @@ data "template_file" "configmap" {
 # instead just publish output variables
 #
 resource "null_resource" "config_setup" {
-  triggers {
+  triggers = {
     creds_change  = "${data.template_file.creds.rendered}"
     config_change = "${data.template_file.configmap.rendered}"
 #    kube_change   = "${data.template_file.kube_vars.rendered}"
