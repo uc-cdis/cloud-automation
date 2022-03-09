@@ -46,15 +46,15 @@ EOF
 resource "aws_iam_role_policy" "squid_policy" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
   name   = "${var.env_squid_name}_policy"
-  policy = "${data.aws_iam_policy_document.squid_policy_document[count.index].json}"
-  role   = "${aws_iam_role.squid-auto_role[count.index].id}"
+  policy = "${data.aws_iam_policy_document.squid_policy_document[*].json}"
+  role   = "${aws_iam_role.squid-auto_role[*].id}"
 }
 
 
 resource "aws_iam_instance_profile" "squid-auto_role_profile" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
   name = "${var.env_vpc_name}_squid-auto_role_profile"
-  role = "${aws_iam_role.squid-auto_role[count.index].id}"
+  role = "${aws_iam_role.squid-auto_role[*].id}"
 }
 
 data "aws_iam_policy_document" "squid_policy_document" {
