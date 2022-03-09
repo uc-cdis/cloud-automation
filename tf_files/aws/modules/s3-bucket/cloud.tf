@@ -1,3 +1,9 @@
+terraform {
+  required_providers {
+    aws = "~> 4.0"
+  }
+}
+
 module "cdis_s3_logs" {
   source          = "../s3-logs"
   log_bucket_name = "s3logs-${local.clean_bucket_name}"
