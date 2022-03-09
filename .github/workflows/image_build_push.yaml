@@ -9,7 +9,8 @@ jobs:
     with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.9-buster/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.9-buster"
-      OVERRIDE_REPO_NAME: "python3.9-buster"
+      OVERRIDE_REPO_NAME: "python"
+      OVERRIDE_TAG_NAME: "python3.9-buster-$(echo ${GITHUB_REF#refs/*/} | tr / _)"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
@@ -21,7 +22,8 @@ jobs:
     with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.10-buster/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.10-buster"
-      OVERRIDE_REPO_NAME: "python3.10-buster"
+      OVERRIDE_REPO_NAME: "python"
+      OVERRIDE_TAG_NAME: "python3.10-buster-$(echo ${GITHUB_REF#refs/*/} | tr / _)"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
