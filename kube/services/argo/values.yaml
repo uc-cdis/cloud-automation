@@ -1,0 +1,64 @@
+controller:
+  parallelism: 10
+  metricsConfig:
+    # -- Enables prometheus metrics server
+    enabled: false
+
+  # -- enable persistence using postgres
+  persistence: 
+    postgresql:
+      host: GEN3_ARGO_DB_HOST
+      port: 5432
+      database: GEN3_ARGO_DB_NAME
+      tableName: argo_workflows
+  #   # the database secrets must be in the same namespace of the controller
+      userNameSecret:
+        name: argo-db-creds
+        key: db_username
+      passwordSecret:
+        name: argo-db-creds
+        key: db_password
+
+  workflowDefaults: 
+    spec:
+      archiveLogs: true
+
+  # -- [Node selector]
+  nodeSelector:
+    kubernetes.io/os: linux
+  # -- [Tolerations] for use with node taints
+  tolerations: []
+  # -- Assign custom [affinity] rules
+  affinity: {}
+  # -- Leverage a PriorityClass to ensure your pods survive resource shortages.
+  ## ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+  priorityClassName: ""
+
+server:
+  baseHref: "/argo/"
+  # -- Extra arguments to provide to the Argo server binary, such as for disabling authentication.
+  extraArgs:
+  - --auth-mode=server 
+  - --auth-mode=client
+  extraEnv:
+  - name: ARGO_HTTP1
+    value: "true"
+
+# -- Influences the creation of the ConfigMap for the workflow-controller itself.
+useDefaultArtifactRepo: true
+
+artifactRepository:
+  # -- Archive the main container logs as an artifact
+  archiveLogs: true
+  # -- Store artifact in a S3-compliant object store
+  s3:
+    # Note the `key` attribute is not the actual secret, it's the PATH to
+    # the contents in the associated secret, as defined by the `name` attribute.
+    accessKeySecret:
+      name: argo-s3-creds
+      key: AccessKeyId
+    secretKeySecret:
+      name: argo-s3-creds
+      key: SecretAccessKey
+    bucket: GEN3_ARGO_BUCKET
+    endpoint: s3.amazonaws.com
