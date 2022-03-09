@@ -38,14 +38,14 @@ EOF
 resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
   count  = "${var.deploy_single_proxy ? 1 : 0 }"
   name   = "${var.env_vpc_name}_cluster_logging_cloudwatch"
-  policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
-  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+  policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch[count.index].ijson}"
+  role   = "${aws_iam_role.cluster_logging_cloudwatch[count.index].id}"
 }
 
 resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
   count  = "${var.deploy_single_proxy ? 1 : 0 }"
   name   = "${var.env_vpc_name}_cluster_logging_cloudwatch"
-  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+  role   = "${aws_iam_role.cluster_logging_cloudwatch[count.index].id}"
 }
 
 
@@ -64,8 +64,8 @@ provider "aws" {
 
 resource "aws_ami_copy" "squid_ami" {
   count             = "${var.deploy_single_proxy ? 1 : 0 }"
-  name              = "${var.env_vpc_name}-${data.aws_ami.public_squid_ami.name}-crypt"
-  description       = "An encrypted copy of ${data.aws_ami.public_squid_ami.name}"
+  name              = "${var.env_vpc_name}-${data.aws_ami.public_squid_ami[count.index].name}-crypt"
+  description       = "An encrypted copy of ${data.aws_ami.public_squid_ami[count.index].name}"
   source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
   source_ami_region = "${var.ami_region}"
   encrypted         = true
