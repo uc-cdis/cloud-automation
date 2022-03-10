@@ -200,15 +200,15 @@ resource "aws_eip_association" "squid_eip" {
 ###############################################################
 resource "aws_instance" "proxy" {
   count                  = "${var.deploy_single_proxy ? 1 : 0 }"
-  ami                    = "${aws_ami_copy.squid_ami.id}"
+  ami                    = "${aws_ami_copy.squid_ami[*].id}"
   subnet_id              = "${var.env_public_subnet_id}"
   instance_type          = "${var.instance_type}"
   monitoring             = true
   source_dest_check      = false
   key_name               = "${var.ssh_key_name}"
-  vpc_security_group_ids = ["${aws_security_group.proxy.id}", "${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
+  vpc_security_group_ids = ["${aws_security_group.proxy[*].id}", "${aws_security_group.login-ssh[*].id}", "${aws_security_group.out[*].id}"]
 #  iam_instance_profile   = "${var.env_instance_profile}" 
-  iam_instance_profile   = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+  iam_instance_profile   = "${aws_iam_instance_profile.cluster_logging_cloudwatch[*].name}"
 
   tags = {
     Name         = "${var.env_vpc_name} HTTP Proxy"
