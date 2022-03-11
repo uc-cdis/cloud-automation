@@ -5,7 +5,7 @@ on: push
 jobs:
   python_3-9:
     name: Python 3.9 Build and Push
-    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@fix/override-repo-name
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.9-buster/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.9-buster"
@@ -18,7 +18,7 @@ jobs:
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   python_3-10:
     name: Python 3.10 Build and Push
-    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@fix/override-repo-name
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.10-buster/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.10-buster"
