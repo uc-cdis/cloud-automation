@@ -138,6 +138,11 @@ variable "ami_account_id" {
   default = "707767160287"
 }
 
+variable "squid_image_search_criteria" {
+  description = "Search criteria for squid AMI look up"
+  default     = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
+}
+
 variable "peering_vpc_id" {
   default = "vpc-e2b51d99"
 }

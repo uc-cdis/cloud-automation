@@ -4,7 +4,11 @@
 ###############################################################
 # variables
 ###############################################################
+DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
 WORK_USER="ubuntu"
+if [[ $DISTRO == "Amazon Linux" ]]; then
+  WORK_USER="ec2-user"
+fi
 HOME_FOLDER="/home/${WORK_USER}"
 SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
@@ -54,8 +58,9 @@ fi
 
 
 function install_basics(){
-  apt -y install atop
-  apt -y install jq
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    apt -y install atop
+  fi
 }
 
 function install_docker(){
@@ -193,8 +198,12 @@ function install_awslogs {
   ###############################################################
   # download and install awslogs
   ###############################################################
-  wget ${AWSLOGS_DOWNLOAD_URL} -O amazon-cloudwatch-agent.deb
-  dpkg -i -E ./amazon-cloudwatch-agent.deb
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    wget ${AWSLOGS_DOWNLOAD_URL} -O amazon-cloudwatch-agent.deb
+    dpkg -i -E ./amazon-cloudwatch-agent.deb
+  else
+    sudo yum install amazon-cloudwatch-agent -y
+  fi
   
   # Configure the AWS logs
   
