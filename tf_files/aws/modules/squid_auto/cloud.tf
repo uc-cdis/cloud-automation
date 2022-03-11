@@ -50,6 +50,11 @@ resource "aws_iam_role_policy" "squid_policy" {
   role   = "${aws_iam_role.squid-auto_role.id}"
 }
 
+# Amazon SSM Policy 
+resource "aws_iam_role_policy_attachment" "eks-policy-AmazonSSMManagedInstanceCore" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role   = "${aws_iam_role.squid-auto_role.id}"
+}
 
 resource "aws_iam_instance_profile" "squid-auto_role_profile" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
