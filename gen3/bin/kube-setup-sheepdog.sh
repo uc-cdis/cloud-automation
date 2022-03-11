@@ -69,5 +69,5 @@ gen3 roll sheepdog-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/sheepdog/sheepdog-canary-service.yaml"
 
 cat <<EOM
-The sheepdog services has been deployed onto the k8s cluster.
+The sheepdog service has been deployed onto the k8s cluster.
 EOM

@@ -64,6 +64,6 @@ fi
 )
 
 cat <<EOM
-The sftp services has been deployed onto the k8s cluster.
+The sftp service has been deployed onto the k8s cluster.
 EOM
 g3kubectl get services -o wide

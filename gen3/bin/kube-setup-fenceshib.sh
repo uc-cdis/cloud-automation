@@ -37,5 +37,5 @@ gen3 roll fenceshib-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fenceshib/fenceshib-canary-service.yaml"
 
 cat <<EOM
-The fenceshib services has been deployed onto the k8s cluster.
+The fenceshib service has been deployed onto the k8s cluster.
 EOM
