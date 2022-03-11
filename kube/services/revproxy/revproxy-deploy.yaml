@@ -18,7 +18,6 @@ spec:
   template:
     metadata:
       labels:
-        netnolimit: "yes"
         app: revproxy
         # allow access from workspaces
         userhelper: "yes"
