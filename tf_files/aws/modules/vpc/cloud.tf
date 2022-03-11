@@ -28,6 +28,7 @@ module "squid-auto" {
   squid_proxy_subnet             = "${var.network_expansion ? cidrsubnet(var.vpc_cidr_block,5,3) : cidrsubnet(var.vpc_cidr_block,4,1)}"
   organization_name              = "${var.organization_name}"
   ssh_key_name                   = "${var.ssh_key_name}"
+  ami_account_id                 = "${var.ami_account_id}"
   image_name_search_criteria     = "${var.squid_image_search_criteria}"
   squid_instance_drive_size      = "${var.squid_instance_drive_size}"
   squid_availability_zones       = "${var.availability_zones}"
