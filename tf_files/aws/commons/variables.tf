@@ -135,7 +135,7 @@ variable "gdcapi_oauth2_client_secret" {
 
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
-  default = "707767160287"
+  default = "099720109477"
 }
 
 variable "squid_image_search_criteria" {
