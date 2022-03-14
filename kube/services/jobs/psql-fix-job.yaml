@@ -11,8 +11,8 @@ spec:
     spec:
       serviceAccountName: jenkins-service
       containers:
-        - name: usersync-disable
-          image: quay.io/cdis/awshelper:feat_fips-script
+        - name: fix
+          image: quay.io/cdis/awshelper:master
           imagePullPolicy: Always
           env:
             - name: gen3Env
@@ -21,9 +21,9 @@ spec:
                   name: global
                   key: environment
             - name: JENKINS_HOME
-              value: ""
-            - name: GEN3_NOPROXY
-              value: none
+              value: "devterm"
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
           command: [ "/bin/bash" ]
           args:
             - "-c"
