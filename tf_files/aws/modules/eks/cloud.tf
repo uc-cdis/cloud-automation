@@ -529,14 +529,28 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   }
 }
 
+resource "aws_iam_service_linked_role" "autoscaling" {
+  aws_service_name = "autoscaling.amazonaws.com"
+  custom_suffix = "CMK"
+}
+
+resource "aws_kms_grant" "kms" {
+  name              = "kms-cmk-eks"
+  key_id            = "arn:aws:kms:us-east-1:707767160287:key/mrk-697897f040ef45b0aa3cebf38a916f99"
+  grantee_principal = "${aws_iam_service_linked_role.autoscaling.arn}"
+  operations        = ["Encrypt", "Decrypt", "ReEncryptFrom", "ReEncryptTo", "GenerateDataKey", "GenerateDataKeyWithoutPlaintext", "DescribeKey", "CreateGrant"]
+}
+
+
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
-  desired_capacity     = 2
-  launch_configuration = "${aws_launch_configuration.eks_launch_configuration.id}"
-  max_size             = 10
-  min_size             = 2
-  name                 = "eks-worker-node-${var.vpc_name}"
-  vpc_zone_identifier  = ["${aws_subnet.eks_private.*.id}"]
+  service_linked_role_arn = "${aws_iam_service_linked_role.autoscaling.arn}"
+  desired_capacity        = 2
+  launch_configuration    = "${aws_launch_configuration.eks_launch_configuration.id}"
+  max_size                = 10
+  min_size                = 2
+  name                    = "eks-worker-node-${var.vpc_name}"
+  vpc_zone_identifier     = ["${aws_subnet.eks_private.*.id}"]
 
   tag {
     key                 = "Environment"
