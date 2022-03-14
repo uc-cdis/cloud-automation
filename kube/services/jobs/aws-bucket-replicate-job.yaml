@@ -65,6 +65,7 @@ spec:
         args:
           - "-c"
           - |
+            cat /secrets/dcf_dataservice_settings > ./scripts/settings.py
             echo """
             [default]
             region: us-east-1
