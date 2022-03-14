@@ -1,0 +1,32 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: psql-fix
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: jenkins-service
+      containers:
+        - name: usersync-disable
+          image: quay.io/cdis/awshelper:feat_fips-script
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: ""
+            - name: GEN3_NOPROXY
+              value: none
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              bash ~/cloud-automation/files/scripts/psql-fips-fix.sh
+      restartPolicy: Never

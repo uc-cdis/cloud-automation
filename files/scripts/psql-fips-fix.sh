@@ -1,4 +1,5 @@
-source "${GEN3_HOME}/gen3/gen3setup.sh"
+source "${GEN3_HOME}/gen3/lib/utils.sh"
+gen3_load "gen3/gen3setup"
 
 # Update the passwords hashing algorithm to something supported by FIPS
 update_pass() {
