@@ -4,9 +4,6 @@ kind: Job
 metadata:
   name: fence-visa-update
 spec:
-  successfulJobsHistoryLimit: 2
-  failedJobsHistoryLimit: 2
-  concurrencyPolicy: Forbid
   template:
     metadata:
       labels:
