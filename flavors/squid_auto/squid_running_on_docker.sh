@@ -202,7 +202,7 @@ function install_awslogs {
     wget ${AWSLOGS_DOWNLOAD_URL} -O amazon-cloudwatch-agent.deb
     dpkg -i -E ./amazon-cloudwatch-agent.deb
   else
-    sudo yum install amazon-cloudwatch-agent -y
+    sudo yum install amazon-cloudwatch-agent nc -y
   fi
   
   # Configure the AWS logs
