@@ -1,42 +1,11 @@
 terraform {
-  backend "s3" {
-    encrypt = "true"
-  }
   required_providers {
-    aws = "~> 2.41"
+    aws = "~> 4.0"
   }
-
 }
 
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "${local.clean_bucket_name}"
-  acl    = "log-delivery-write"
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
-
-  lifecycle_rule {
-    id      = "log"
-    enabled = true
-
-    prefix = "/"
-
-    tags = {
-      rule      = "log"
-      autoclean = "true"
-    }
-
-    expiration {
-      # 5 years
-      days = 1825
-    }
-  }
-
   tags = {
     Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
@@ -44,6 +13,41 @@ resource "aws_s3_bucket" "log_bucket" {
   }
 }
 
+resource "aws_s3_bucket_acl" "log_bucket" {
+  bucket = "${aws_s3_bucket.log_bucket.id}"
+  acl    = "log-delivery-write"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
+  bucket = "${aws_s3_bucket.log_bucket.id}"
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
+  bucket = "${aws_s3_bucket.log_bucket.id}"
+  rule {
+    id      = "log"
+    status  = "Enabled"
+    
+    filter {
+      and {
+        prefix = "/"
+        tags = {
+          rule      = "log"
+          autoclean = "true"
+        }
+      }
+    }
+    expiration {
+      # 5 years
+      days = 1825
+    }
+  }
+}
 
 resource "aws_s3_bucket_public_access_block" "s3-log_bucket_privacy" {
   bucket                      = "${aws_s3_bucket.log_bucket.id}"

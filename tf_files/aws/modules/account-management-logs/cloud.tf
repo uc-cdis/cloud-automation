@@ -10,39 +10,49 @@
 
 resource "aws_s3_bucket" "management-logs_bucket" {
   bucket = "${var.account_name}-management-logs"
-  acl    = "private"
-
   tags = {
     Environment  = "${var.account_name}"
     Organization = "CTDS"
   }
+}
 
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+resource "aws_s3_bucket_acl" "management-logs_bucket" {
+  bucket = "${aws_s3_bucket.management-logs_bucket.id}"
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "management-logs_bucket" {
+  bucket = "${aws_s3_bucket.management-logs_bucket.id}"
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
+}
 
-  lifecycle_rule {
+resource "aws_s3_bucket_lifecycle_configuration" "management-logs_bucket" {
+  bucket = "${aws_s3_bucket.management-logs_bucket.id}"
+  rule {
     id      = "management-logs"
-    enabled = true
+    status  = "Enabled"
+    
+    filter {
+      and {  
+        prefix = "management-logs/"
 
-    prefix = "management-logs/"
-
-    tags = {
-      "rule"      = "log"
-      "autoclean" = "true"
+        tags = {
+          "rule"      = "log"
+          "autoclean" = "true"
+        }
+      }
     }
-
     # ONEZONE_IA should be suffice since we have the logs already in CSOC
     transition {
       days          = 30
       storage_class = "ONEZONE_IA" # or "STANDARD_IA" or "INTELLIGENT_TIERING"
     }
 
-    # Reduse some costs after 60 days 
+    # Reduse some costs after 60 days
     transition {
       days          = 60
       storage_class = "GLACIER"
@@ -54,7 +64,6 @@ resource "aws_s3_bucket" "management-logs_bucket" {
     }
   }
 }
-
 
 locals {
   bucket_policy = <<POLICY

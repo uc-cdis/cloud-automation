@@ -15,6 +15,9 @@
 #  bucket        = "${data.aws_caller_identity.current.account_id}-cloudtrail"
 #  force_destroy = true
 #
+#}
+#resource "aws_s3_bucket_policy" "cloudtrail"
+#  bucket = "aws_s3_bucket.cloudtrail.id"
 #  policy = <<POLICY
 #{
 #    "Version": "2012-10-17",

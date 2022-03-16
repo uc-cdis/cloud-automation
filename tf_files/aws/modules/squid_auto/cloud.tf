@@ -46,15 +46,15 @@ EOF
 resource "aws_iam_role_policy" "squid_policy" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
   name   = "${var.env_squid_name}_policy"
-  policy = "${data.aws_iam_policy_document.squid_policy_document.json}"
-  role   = "${aws_iam_role.squid-auto_role.id}"
+  policy = "${data.aws_iam_policy_document.squid_policy_document[*].json}"
+  role   = "${aws_iam_role.squid-auto_role[*].id}"
 }
 
 
 resource "aws_iam_instance_profile" "squid-auto_role_profile" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
   name = "${var.env_vpc_name}_squid-auto_role_profile"
-  role = "${aws_iam_role.squid-auto_role.id}"
+  role = "${aws_iam_role.squid-auto_role[*].id}"
 }
 
 data "aws_iam_policy_document" "squid_policy_document" {
@@ -105,9 +105,9 @@ resource "aws_launch_configuration" "squid_auto" {
   name_prefix                 = "${var.env_squid_name}_autoscaling_launch_config"
   image_id                    = "${data.aws_ami.public_squid_ami.id}"
   instance_type               = "${var.squid_instance_type}"
-  security_groups             = ["${aws_security_group.squidauto_in.id}", "${aws_security_group.squidauto_out.id}"]
+  security_groups             = ["${aws_security_group.squidauto_in[*].id}", "${aws_security_group.squidauto_out[*].id}"]
   key_name                    = "${var.ssh_key_name}"
-  iam_instance_profile        = "${aws_iam_instance_profile.squid-auto_role_profile.id}"
+  iam_instance_profile        = "${aws_iam_instance_profile.squid-auto_role_profile[*].id}"
   associate_public_ip_address = true
   root_block_device {
     volume_size = "${var.squid_instance_drive_size}"
@@ -235,11 +235,6 @@ resource "aws_security_group" "squidauto_in" {
     cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}"]
   }
 
-  tags = {
-    Environment  = "${var.env_squid_name}"
-    Organization = "${var.organization_name}"
-  }
-
   ingress {
     from_port   = 80
     to_port     = 80
@@ -252,11 +247,6 @@ resource "aws_security_group" "squidauto_in" {
     to_port     = 443
     protocol    = "TCP"
     cidr_blocks = ["${var.env_vpc_cidr}"]
-  }
-
-  tags = {
-    Environment  = "${var.env_squid_name}"
-    Organization = "${var.organization_name}"
   }
 
   lifecycle {

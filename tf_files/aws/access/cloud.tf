@@ -1,6 +1,14 @@
 resource "aws_s3_bucket" "access" {
   bucket = "${var.access_url}"
+}
+
+resource "aws_s3_bucket_acl" "access" {
+  bucket = "${aws_s3_bucket.access.id}"
   acl = "public-read"
+}
+
+resource "aws_s3_bucket_cors_rule" "access" {
+  bucket = "${aws_s3_bucket.access.id}"
   cors_rule {
       allowed_headers = ["*"]
       allowed_methods = ["PUT","POST"]
@@ -8,9 +16,16 @@ resource "aws_s3_bucket" "access" {
       expose_headers = ["ETag"]
       max_age_seconds = 3000
   }
-  website {
-    index_document = "index.html"
-    error_document = "index.html"
+}
+
+resource "aws_s3_bucket_website_configuration" "access" {
+  bucket = "${aws_s3_bucket.access.id}"
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "index.html"
   }
 }
 
@@ -20,7 +35,7 @@ locals {
 
 resource "aws_cloudfront_distribution" "access" {
   origin {
-    domain_name = "${aws_s3_bucket.access.website_endpoint}"
+    domain_name = "${aws_s3_bucket_website_configuration.access.website_endpoint}"
     origin_id   = "${local.s3_origin_id}"
     custom_origin_config {
       http_port              = "80"

@@ -3,34 +3,46 @@
 
 resource "aws_s3_bucket" "common_logging_bucket" {
   bucket = "${var.common_name}-logging"
-  acl    = "private"
-
   tags = {
     Environment  = "${var.common_name}"
     Organization = "Basic Service"
   }
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+}
+
+resource "aws_s3_bucket_acl" "commons_logging_bucket" {
+  bucket = "${aws_s3_bucket.common_logging_bucket.id}"
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "commons_logging_bucket" {
+  bucket = "${aws_s3_bucket.common_logging_bucket.id}"
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
+}
 
-  lifecycle_rule {
+resource "aws_s3_bucket_lifecycle_configuration" "commons_logging_bucket" {
+  bucket = "${aws_s3_bucket.common_logging_bucket.id}"
+  rule {
     id      = "forwarded"
-    enabled = true
+    status  = "Enabled"
+    
+    filter {
+      and {
+        prefix = "forwarded*/"
 
-    prefix = "forwarded*/"
-
-    tags = {
-      rule      = "log"
-      autoclean = "true"
+        tags = {
+          rule      = "log"
+          autoclean = "true"
+        }
+      }
     }
 
     transition {
       days          = 60
-      storage_class = "STANDARD_IA" 
+      storage_class = "STANDARD_IA"
     }
 
     transition {

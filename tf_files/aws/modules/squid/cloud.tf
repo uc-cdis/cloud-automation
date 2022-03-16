@@ -38,14 +38,14 @@ EOF
 resource "aws_iam_role_policy" "cluster_logging_cloudwatch" {
   count  = "${var.deploy_single_proxy ? 1 : 0 }"
   name   = "${var.env_vpc_name}_cluster_logging_cloudwatch"
-  policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch.json}"
-  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+  policy = "${data.aws_iam_policy_document.cluster_logging_cloudwatch[*].json}"
+  role   = "${aws_iam_role.cluster_logging_cloudwatch[*].id}"
 }
 
 resource "aws_iam_instance_profile" "cluster_logging_cloudwatch" {
   count  = "${var.deploy_single_proxy ? 1 : 0 }"
   name   = "${var.env_vpc_name}_cluster_logging_cloudwatch"
-  role   = "${aws_iam_role.cluster_logging_cloudwatch.id}"
+  role   = "${aws_iam_role.cluster_logging_cloudwatch[*].id}"
 }
 
 
@@ -64,9 +64,9 @@ provider "aws" {
 
 resource "aws_ami_copy" "squid_ami" {
   count             = "${var.deploy_single_proxy ? 1 : 0 }"
-  name              = "${var.env_vpc_name}-${data.aws_ami.public_squid_ami.name}-crypt"
-  description       = "An encrypted copy of ${data.aws_ami.public_squid_ami.name}"
-  source_ami_id     = "${data.aws_ami.public_squid_ami.id}"
+  name              = "${var.env_vpc_name}-${data.aws_ami.public_squid_ami[*].name}-crypt"
+  description       = "An encrypted copy of ${data.aws_ami.public_squid_ami[*].name}"
+  source_ami_id     = "${data.aws_ami.public_squid_ami[*].id}"
   source_ami_region = "${var.ami_region}"
   encrypted         = true
 
@@ -200,15 +200,15 @@ resource "aws_eip_association" "squid_eip" {
 ###############################################################
 resource "aws_instance" "proxy" {
   count                  = "${var.deploy_single_proxy ? 1 : 0 }"
-  ami                    = "${aws_ami_copy.squid_ami.id}"
+  ami                    = "${aws_ami_copy.squid_ami[*].id}"
   subnet_id              = "${var.env_public_subnet_id}"
   instance_type          = "${var.instance_type}"
   monitoring             = true
   source_dest_check      = false
   key_name               = "${var.ssh_key_name}"
-  vpc_security_group_ids = ["${aws_security_group.proxy.id}", "${aws_security_group.login-ssh.id}", "${aws_security_group.out.id}"]
+  vpc_security_group_ids = ["${aws_security_group.proxy[*].id}", "${aws_security_group.login-ssh[*].id}", "${aws_security_group.out[*].id}"]
 #  iam_instance_profile   = "${var.env_instance_profile}" 
-  iam_instance_profile   = "${aws_iam_instance_profile.cluster_logging_cloudwatch.name}"
+  iam_instance_profile   = "${aws_iam_instance_profile.cluster_logging_cloudwatch[*].name}"
 
   tags = {
     Name         = "${var.env_vpc_name} HTTP Proxy"

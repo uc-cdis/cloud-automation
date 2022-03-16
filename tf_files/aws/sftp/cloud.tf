@@ -3,7 +3,7 @@ terraform {
     encrypt = "true"
   }
   required_providers {
-    aws = "~> 2.41"
+    aws = "~> 4.0"
   }
 }
 
@@ -13,16 +13,16 @@ provider "aws" {}
 
 resource "aws_s3_bucket" "sftp_bucket" {
   bucket = var.s3_bucket_name
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm     = "AES256"
-      }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "sftp_bucket" {
+  bucket = aws_s3_bucket.sftp_bucket.id 
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "AES256"
     }
   }
 }
-
-
 resource "aws_iam_role" "sftp_role" {
   name = "sftp_role"
 
