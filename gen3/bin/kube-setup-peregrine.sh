@@ -30,5 +30,5 @@ gen3 roll peregrine-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-canary-service.yaml"
 
 cat <<EOM
-The peregrine services has been deployed onto the k8s cluster.
+The peregrine service has been deployed onto the k8s cluster.
 EOM

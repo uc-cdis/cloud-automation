@@ -205,6 +205,21 @@ scaling_apply_all() {
   done
 }
 
+update_rules() {
+  if [[ $# -lt 3 ]]; then
+    gen3_log_err "use: update deployment-name min max (optional) targetCpu"
+    return 1
+  fi
+  local deploymentName="$1-deployment"
+  local min="$2"
+  local max="$3"
+  if [[ -z $4 ]]; then
+    g3kubectl apply -f - <<<"$(scaling_hpa_template "$deploymentName" "$min" "$max" "40")"
+  else
+    g3kubectl apply -f - <<<"$(scaling_hpa_template "$deploymentName" "$min" "$max" "$4")"
+  fi
+}
+
 #
 # CLI processor
 #
@@ -237,6 +252,9 @@ scaling_cli() {
         ;;
       "replicas")
         scaling_replicas "$@"
+        ;;
+      "update")
+        update_rules "$@"
         ;;
       *)
         gen3_log_err "unknown scaling sub-command: $command"

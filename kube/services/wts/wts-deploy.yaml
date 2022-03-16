@@ -25,7 +25,10 @@ spec:
         public: "yes"
         netnolimit: "yes"
         userhelper: "yes"
+        tags.datadoghq.com/service: "token-service"
         GEN3_DATE_LABEL
+        GEN3_WTS_VERSION
+        GEN3_ENV_LABEL
     spec:
       affinity:
         podAntiAffinity:
@@ -57,6 +60,40 @@ spec:
           value: "/var/www/wts/appcreds.json"
         - name: AUTH_PLUGINS
           value: k8s
+        - name: DD_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: dd_enabled
+              optional: true
+        - name: DD_ENV
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/env']
+        - name: DD_SERVICE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/service']
+        - name: DD_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/version']
+        - name: DD_LOGS_INJECTION
+          value: "true"
+        - name: DD_PROFILING_ENABLED
+          value: "true"
+        - name: DD_TRACE_SAMPLE_RATE
+          value: "1"
+        - name: GEN3_UWSGI_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: uwsgi-timeout
+              optional: true
+        - name: DD_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
         volumeMounts:
         - name: "wts-secret"
           readOnly: true
@@ -93,9 +130,15 @@ spec:
             readOnly: true
             mountPath: "/var/www/wts/dbcreds.json"
             subPath: dbcreds.json
+          - name: "wts-secret"
+            readOnly: true
+            mountPath: "/var/www/wts/appcreds.json"
+            subPath: appcreds.json
           env:
           - name: POSTGRES_CREDS_FILE
             value: "/var/www/wts/dbcreds.json"
+          - name: SECRET_CONFIG
+            value: "/var/www/wts/appcreds.json"
           resources:
             limits:
               cpu: 0.8

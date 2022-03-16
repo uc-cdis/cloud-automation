@@ -4,6 +4,9 @@ terraform {
   backend "s3" {
     encrypt = "true"
   }
+  required_providers {
+    aws = "~> 2.41"
+  }
 }
 
 # Inject credentials via the AWS_PROFILE environment variable and shared credentials file and/or EC2 metadata service

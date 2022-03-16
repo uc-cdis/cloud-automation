@@ -50,7 +50,10 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
         if [[ -f /usr/local/bin/aws ]] && ! semver_ge "$version" "2.0.0"; then
           sudo rm /usr/local/bin/aws
         fi
-        cd "$XDG_RUNTIME_DIR"
+        cd $HOME
+        temp_dir="aws_install-$(date +%m%d%Y)"
+        mkdir $temp_dir
+        cd $temp_dir
         curl -o awscli.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
         unzip awscli.zip
         if semver_ge "$version" "2.0.0"; then
@@ -59,7 +62,8 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
           yes | sudo ./aws/install
         fi
         # cleanup
-        rm -rf aws
+        cd $HOME
+        rm -rf $temp_dir
       )
     }
 
@@ -94,7 +98,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       fi
       wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
       sudo -E apt-get update
-      sudo -E apt-get install -y postgresql-client-9.6
+      sudo -E apt-get install -y postgresql-client-13
     )
   fi
   # gen3sdk currently requires this

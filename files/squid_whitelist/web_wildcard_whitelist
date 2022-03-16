@@ -5,8 +5,8 @@
 .anaconda.com
 .anaconda.org
 .apache.org
+.azureedge.net
 .qg3.apps.qualys.com
-.archive.canonical.com
 .bioconductor.org
 .bionimbus.org
 .bitbucket.org
@@ -15,6 +15,7 @@
 .bsc.es
 .cancer.gov
 .caninedc.org
+.canonical.com
 .census.gov
 .centos.org
 .ceph.com
@@ -27,9 +28,9 @@
 .cpan.org
 .datacommons.io
 .data-commons.org
-.va.data-commons.org
 .datadoghq.com
 .datastage.io
+.diseasedatahub.org
 .docker.com
 .docker.io
 .dockerproject.org
@@ -39,6 +40,7 @@
 .extjs.com
 .fedoraproject.org
 .github.com
+.githubusercontent.com
 .gitlab.com
 .googleapis.com
 .googleusercontent.com
@@ -77,6 +79,7 @@
 .sa-update.pccc.com
 .sencha.com
 .sks-keyservers.net
+.slack.com
 .slack-msgs.com
 .sourceforge.net
 .southsideweekly.com
@@ -93,3 +96,6 @@
 .gstatic.com
 .visitdata.org
 .yarnpkg.com
+.nesi.org.nz
+.agdr.org.nz
+.agha.umccr.org

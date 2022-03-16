@@ -52,7 +52,7 @@ if ! [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
   fi
 fi
 
-# run db migration job - disable, because this still causes locking in dcf 
+# run db migration job - disable, because this still causes locking in dcf
 if false; then
   gen3_log_info "Launching db migrate job"
   gen3 job run fence-db-migrate -w || true
@@ -75,3 +75,13 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-canary-service.yaml"
 gen3_log_info "The fence service has been deployed onto the k8s cluster."
 
 gen3 kube-setup-google
+
+# add cronjob for removing expired ga4gh info for required fence versions
+# TODO: WILL UNCOMMENT THIS ONCE FEATURE IN FENCE IS RELEASED
+# if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.02"; then
+#   # Setup db cleanup cronjob
+#   if g3kubectl get cronjob fence-cleanup-expired-ga4gh-info >/dev/null 2>&1; then
+#       echo "fence-cleanup-expired-ga4gh-info being added as a cronjob b/c fence >= 6.0.0 or 2022.02"
+#       gen3 job cron fence-cleanup-expired-ga4gh-info "*/5 * * * *"
+#   fi
+# fi
