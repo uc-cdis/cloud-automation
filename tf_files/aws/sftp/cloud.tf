@@ -2,6 +2,9 @@ terraform {
   backend "s3" {
     encrypt = "true"
   }
+  required_providers {
+    aws = "~> 2.41"
+  }
 }
 
 provider "aws" {}

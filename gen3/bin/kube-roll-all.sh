@@ -284,6 +284,12 @@ else
   gen3_log_info "not deploying portal - no manifest entry for .versions.portal"
 fi
 
+if g3k_manifest_lookup '.versions["frontend-framework"]' 2> /dev/null; then
+  gen3 kube-setup-frontend-framework &
+else
+  gen3_log_info "not deploying frontend-framework - no manifest entry for '.versions[\"frontend-framework\"]'"
+fi
+
 gen3_log_info "enable network policy"
 gen3 kube-setup-networkpolicy "enable" || true &
 
