@@ -50,6 +50,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
         if [[ -f /usr/local/bin/aws ]] && ! semver_ge "$version" "2.0.0"; then
           sudo rm /usr/local/bin/aws
         fi
+        cd $HOME
         temp_dir="aws_install-$(date +%m%d%Y)"
         mkdir $temp_dir
         cd $temp_dir
