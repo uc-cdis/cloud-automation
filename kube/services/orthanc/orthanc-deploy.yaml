@@ -1,9 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    kompose.cmd: /home/ramunerella/dicom-viewer/ohif-orthanc-app-example/kompose convert
-    kompose.version: 1.22.0 (955b78124)
   creationTimestamp: null
   labels:
     app: nginx      
@@ -17,9 +14,6 @@ spec:
   strategy: {}
   template:
     metadata:
-      annotations:
-        kompose.cmd: /home/ramunerella/dicom-viewer/ohif-orthanc-app-example/kompose convert
-        kompose.version: 1.22.0 (955b78124)
       creationTimestamp: null
       labels:
         io.kompose.service: orthanc
