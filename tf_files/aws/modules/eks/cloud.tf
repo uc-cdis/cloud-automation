@@ -400,6 +400,12 @@ resource "aws_iam_role_policy_attachment" "bucket_read" {
   role       = "${aws_iam_role.eks_node_role.name}"
 }
 
+# Amazon SSM Policy 
+resource "aws_iam_role_policy_attachment" "eks-policy-AmazonSSMManagedInstanceCore" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+
 resource "aws_iam_instance_profile" "eks_node_instance_profile" {
   name = "${var.vpc_name}_EKS_workers"
   role = "${aws_iam_role.eks_node_role.name}"
