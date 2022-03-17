@@ -45,4 +45,6 @@ module "eks" {
   workflow_asg_min_size            = "${var.workflow_asg_min_size}"
   deploy_workflow                  = "${var.deploy_workflow}"
   fips                             = "${var.fips}"
+  fips_ami_kms                     = "${var.fips_ami_kms}"
+  fips_enabled_ami                 = "${var.fips_enabled_ami}"
 }
