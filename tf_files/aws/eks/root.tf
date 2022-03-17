@@ -44,4 +44,5 @@ module "eks" {
   workflow_asg_max_size            = "${var.workflow_asg_max_size}"
   workflow_asg_min_size            = "${var.workflow_asg_min_size}"
   deploy_workflow                  = "${var.deploy_workflow}"
+  fips                             = "${var.fips}"
 }
