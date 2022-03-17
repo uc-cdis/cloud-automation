@@ -16,7 +16,8 @@ spec:
     spec:
       containers:
       - name: viewer
-        image: ohif/viewer
+        GEN3_VIEWER_IMAGE
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         

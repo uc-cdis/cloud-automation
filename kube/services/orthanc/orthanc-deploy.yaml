@@ -23,12 +23,13 @@ spec:
         secret:
           secretName: orthanc-g3auto
       containers:
-        - name: orthanc
-          image: jodogne/orthanc-plugins
-          ports:
-          - containerPort: 8042
-          volumeMounts:
-          - name: config-volume-g3auto
-            readOnly: true
-            mountPath: /etc/orthanc/orthanc_postgres.json
-            subPath: orthanc_postgres.json
+      - name: orthanc
+        GEN3_ORTHANC_IMAGE
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8042
+        volumeMounts:
+        - name: config-volume-g3auto
+          readOnly: true
+          mountPath: /etc/orthanc/orthanc_postgres.json
+          subPath: orthanc_postgres.json

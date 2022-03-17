@@ -1,7 +1,6 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-
 setup_database_and_config() {
   gen3_log_info "setting up orthanc DB and config"
 
@@ -56,11 +55,6 @@ fi
 gen3 roll orthanc
 g3kubectl apply -f "${GEN3_HOME}/kube/services/orthanc/orthanc-service.yaml"
 
-# TODO dicom-viewer setup in its own file
-#gen3 roll viewer
-#g3kubectl apply -f "${GEN3_HOME}/kube/services/viewer/viewer-service.yaml"
-
 cat <<EOM
 The orthanc service has been deployed onto the k8s cluster.
 EOM
-
