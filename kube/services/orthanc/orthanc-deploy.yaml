@@ -1,23 +1,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: orthanc-deployment
+  annotations:
+    kompose.cmd: /home/ramunerella/dicom-viewer/ohif-orthanc-app-example/kompose convert
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
   labels:
-    app: nginx
+    app: nginx      
+    io.kompose.service: orthanc
+  name: orthanc
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: orthanc
+      io.kompose.service: orthanc
+  strategy: {}
   template:
     metadata:
+      annotations:
+        kompose.cmd: /home/ramunerella/dicom-viewer/ohif-orthanc-app-example/kompose convert
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
       labels:
-        app: orthanc
+        io.kompose.service: orthanc
     spec:
+      volumes:
+      - name: config-volume-g3auto
+        secret:
+          secretName: orthanc-g3auto
       containers:
-      - name: orthanc
-        image: osimis/orthanc
-        ports:
-        - containerPort: 80
-        
-
+        - name: orthanc
+          image: jodogne/orthanc-plugins
+          ports:
+          - containerPort: 8042
+          volumeMounts:
+          - name: config-volume-g3auto
+            readOnly: true
+            mountPath: /etc/orthanc/orthanc_postgres.json
+            subPath: orthanc_postgres.json
