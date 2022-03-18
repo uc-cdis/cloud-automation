@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: viewer-deployment
+  name: dicom-viewer-deployment
   labels:
     app: nginx
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: viewer
+      app: dicom-viewer
   template:
     metadata:
       labels:
-        app: viewer
+        app: dicom-viewer
     spec:
       containers:
-      - name: viewer
-        GEN3_VIEWER_IMAGE
+      - name: dicom-viewer
+        GEN3_DICOM-VIEWER_IMAGE
         imagePullPolicy: Always
         ports:
         - containerPort: 80

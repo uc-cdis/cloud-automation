@@ -296,10 +296,10 @@ else
   gen3_log_info "not deploying orthanc - no manifest entry for .versions.orthanc"
 fi
 
-if g3k_manifest_lookup '.versions["viewer"]' 2> /dev/null; then
-  gen3 kube-setup-viewer &
+if g3k_manifest_lookup '.versions["dicom-viewer"]' 2> /dev/null; then
+  gen3 kube-setup-dicom-viewer &
 else
-  gen3_log_info "not deploying viewer - no manifest entry for '.versions[\"viewer\"]'"
+  gen3_log_info "not deploying dicom-viewer - no manifest entry for '.versions[\"dicom-viewer\"]'"
 fi
 
 gen3_log_info "enable network policy"

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: nginx      
     io.kompose.service: orthanc
-  name: orthanc
+  name: orthanc-deployment
 spec:
   replicas: 1
   selector:
