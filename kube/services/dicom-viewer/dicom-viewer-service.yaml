@@ -1,10 +1,10 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: viewer-service
+  name: dicom-viewer-service
 spec:
   selector:
-    app: viewer
+    app: dicom-viewer
   ports:
     - protocol: TCP
       port: 80

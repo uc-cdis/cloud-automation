@@ -3,16 +3,18 @@ kind: Deployment
 metadata:
   name: dicom-viewer-deployment
   labels:
-    app: nginx
+    app: dicom-viewer
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: dicom-viewer
+      release: production
   template:
     metadata:
       labels:
         app: dicom-viewer
+        release: production
+        GEN3_DATE_LABEL
     spec:
       containers:
       - name: dicom-viewer

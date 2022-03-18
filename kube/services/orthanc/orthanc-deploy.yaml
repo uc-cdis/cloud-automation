@@ -1,22 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
-  labels:
-    app: nginx      
-    io.kompose.service: orthanc
   name: orthanc-deployment
+  labels:
+    app: orthanc
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: orthanc
-  strategy: {}
+      app: orthanc
+      release: production
   template:
     metadata:
-      creationTimestamp: null
       labels:
-        io.kompose.service: orthanc
+        app: orthanc
+        release: production
+        GEN3_DATE_LABEL
     spec:
       volumes:
       - name: config-volume-g3auto
