@@ -31,7 +31,8 @@ setup_database_and_config() {
     # "SslEnabled": true,
     # "SslCertificate": ""
     cat - > "$secretsFolder/orthanc_postgres.json" <<EOM
-{
+{ 
+  "AuthenticationEnabled": false,  
   "PostgreSQL": {
     "EnableIndex": true,
     "EnableStorage": true,
