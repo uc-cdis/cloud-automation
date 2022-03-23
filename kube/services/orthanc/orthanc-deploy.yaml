@@ -30,5 +30,5 @@ spec:
         volumeMounts:
         - name: config-volume-g3auto
           readOnly: true
-          mountPath: /etc/orthanc/orthanc_postgres.json
-          subPath: orthanc_postgres.json
+          mountPath: /etc/orthanc/orthanc_config_overwrites.json
+          subPath: orthanc_config_overwrites.json

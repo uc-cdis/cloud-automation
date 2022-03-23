@@ -15,7 +15,7 @@ setup_database_and_config() {
 
   # Setup config file that orthanc consumes
   local secretsFolder="$(gen3_secrets_folder)/g3auto/orthanc"
-  if [[ ! -f "$secretsFolder/orthanc_postgres.json" ]]; then
+  if [[ ! -f "$secretsFolder/orthanc_config_overwrites.json" ]]; then
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
       if ! gen3 db setup orthanc; then
         gen3_log_err "Failed setting up database for orthanc"
@@ -30,7 +30,7 @@ setup_database_and_config() {
     # TODO: generate and mount a cert
     # "SslEnabled": true,
     # "SslCertificate": ""
-    cat - > "$secretsFolder/orthanc_postgres.json" <<EOM
+    cat - > "$secretsFolder/orthanc_config_overwrites.json" <<EOM
 { 
   "AuthenticationEnabled": false,  
   "PostgreSQL": {
