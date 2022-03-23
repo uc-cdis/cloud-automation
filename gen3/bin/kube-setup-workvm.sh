@@ -113,7 +113,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   if [[ ! -z "${server_version// }" ]]; then
     (
       install_version=$(apt-cache madison kubectl | awk  '$3 ~ /'$server_version'/ {print $3}'| head -n 1)
-      sudo -E apt-get install -y kubectl=$install_version
+      sudo -E apt-get install -y kubectl=$install_version --allow-downgrades
     )
   else
     sudo -E apt-get install -y kubectl
