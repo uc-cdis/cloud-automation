@@ -13,7 +13,6 @@ spec:
       - ambassador-gen3
       - auspice
       - ohdsi-atlas
-      - orthanc
   ingress:
     - from:
       - ipBlock:
