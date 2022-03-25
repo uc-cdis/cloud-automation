@@ -132,9 +132,12 @@ USER_HOME="/home/$USER"
 CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
 (
   cd $USER_HOME
+  if [[ ! -z "${var.slack_webhook}" ]]; then
+    echo "${var.slack_webhook}" > /slackWebhook
+  fi
   if [[ $DISTRO == "Amazon Linux" ]]; then
     sudo yum update -y
-    sudo yum install git -y
+    sudo yum install git lsof -y
   fi
   git clone https://github.com/uc-cdis/cloud-automation.git
   cd $CLOUD_AUTOMATION
@@ -168,7 +171,7 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
   # https://success.qualys.com/discussions/s/question/0D52L00004TnwvgSAB/installing-qualys-cloud-agent-on-amazon-linux-2-instances
   if [[ $DISTRO == "Ubuntu" ]]; then
     if [[ ! -z "${var.activation_id}" ]] || [[ ! -z "${var.customer_id}" ]]; then
-      apt install awscli -y
+      apt install awscli jq -y
       aws s3 cp s3://qualys-agentpackage/QualysCloudAgent.deb ./qualys-cloud-agent.x86_64.deb
       dpkg -i ./qualys-cloud-agent.x86_64.deb
       # Clean up deb package after install
