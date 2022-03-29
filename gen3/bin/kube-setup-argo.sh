@@ -36,7 +36,7 @@ function setup_argo_buckets {
       gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
     fi
     if g3k_config_lookup '.argo."internal-s3-bucket"'; then
-      internalBucketName=$(g3k_config_lookup '.argo."s3-bucket"')
+      internalBucketName=$(g3k_config_lookup '.argo."internal-s3-bucket"')
       gen3_log_info "Using internal S3 bucket found in manifest: ${internalBucketName}"
       local internalBucketPolicyFile="$XDG_RUNTIME_DIR/internal_bucket_policy_$$.json"
       cat > "$internalBucketPolicyFile" <<EOF
