@@ -1,0 +1,7 @@
+{
+  "environment": "",
+  "service": "nginx",
+  "operation_name_override": "nginx.handle",
+  "agent_host": "HOST_IP",
+  "agent_port": 8126
+}
