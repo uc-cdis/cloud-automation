@@ -19,7 +19,7 @@ module "squid_proxy" {
 module "squid-auto" {
   source                         = "../squid_auto"
   peering_cidr                   = "${var.peering_cidr}"
-  secondary_cidr                 = "${var.secondary_cidr}"
+  secondary_cidr_block           = "${var.secondary_cidr_block}"
   env_vpc_name                   = "${var.vpc_name}"
   env_vpc_cidr                   = "${aws_vpc.main.cidr_block}"
   env_vpc_id                     = "${aws_vpc.main.id}"

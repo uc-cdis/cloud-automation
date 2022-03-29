@@ -21,7 +21,7 @@ variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
-variable "secondary_cidr" {
+variable "secondary_cidr_block" {
   default = ""
 }
 

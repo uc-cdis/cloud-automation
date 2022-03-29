@@ -235,7 +235,7 @@ resource "aws_security_group" "squidauto_in" {
     #
     # Do not do this - fence may ssh-bridge out for sftp access
     #
-    cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}", "${var.secondary_cidr}"]
+    cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}", "${var.secondary_cidr_block}"]
   }
 
   tags = {
