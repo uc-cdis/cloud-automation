@@ -35,6 +35,36 @@ function setup_argo_buckets {
       bucketName=$(g3k_config_lookup '.argo."s3-bucket"')
       gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
     fi
+    if g3k_config_lookup '.argo."internal-s3-bucket"'; then
+      internalBucketName=$(g3k_config_lookup '.argo."s3-bucket"')
+      gen3_log_info "Using internal S3 bucket found in manifest: ${internalBucketName}"
+      local internalBucketPolicyFile="$XDG_RUNTIME_DIR/internal_bucket_policy_$$.json"
+      cat > "$internalBucketPolicyFile" <<EOF
+{
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Effect":"Allow",
+         "Action":[
+            "s3:PutObject",
+            "s3:GetObject"
+         ],
+         "Resource":"arn:aws:s3:::$internalBucketName/*"
+      },
+      {
+         "Action": [
+            "s3:List*",
+            "s3:Get*"
+         ],
+         "Effect": "Allow",
+         "Resource": [
+            "arn:aws:s3:::$internalBucketName"
+         ]
+      }
+   ]
+}
+EOF
+    fi    
     cat > "$policyFile" <<EOF
 {
    "Version":"2012-10-17",
@@ -46,10 +76,23 @@ function setup_argo_buckets {
             "s3:GetObject"
          ],
          "Resource":"arn:aws:s3:::$bucketName/*"
+      },
+      {
+         "Action": [
+            "s3:List*",
+            "s3:Get*"
+         ],
+         "Effect": "Allow",
+         "Resource": [
+            "arn:aws:s3:::$bucketName"
+         ]
       }
    ]
 }
 EOF
+
+
+
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
       gen3_log_info "${bucketName} s3 bucket already exists"
       # continue on ...
@@ -62,6 +105,9 @@ EOF
     if ! aws iam get-user --user-name ${userName} > /dev/null 2>&1; then 
       aws iam create-user --user-name ${userName}
       aws iam put-user-policy --user-name ${userName} --policy-name argo-bucket-policy --policy-document file://$policyFile
+      if [[ ! -z $internalBucketPolicyFile ]]; then
+        aws iam put-user-policy --user-name ${userName} --policy-name argo-internal-bucket-policy --policy-document file://$internalBucketPolicyFile
+      fi
     else 
       gen3_log_info "IAM user ${userName} already exits.."
     fi 
@@ -75,10 +121,30 @@ EOF
     fi
 
     gen3_log_info "Creating s3 creds secret in argo namespace"
-    g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName}
+    if [[ -z $internalBucketName ]]; then
+      g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName}
+    else
+      g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} --from-literal=internbucketname=${internalBucketName}
+    fi
   else 
     gen3_log_info "Argo S3 setup already completed" 
   fi
+
+  gen3_log_info "Adding indexd and fence creds to argo namespace"
+  for serviceName in indexd fence; do
+    secretName="${serviceName}-creds"
+    g3kubectl delete secret "$secretName" -n argo > /dev/null 2>&1
+  done
+  sleep 1  # I think delete is async - give backend a second to finish
+  local secretFileName
+  for serviceName in indexd fence; do
+    secretFileName="creds.json"
+    secretName="${serviceName}-creds"
+    secretValueFile="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXX")"
+    jq -r ".[\"$serviceName\"]" > "$secretValueFile" < "$credsFile"
+    g3kubectl create secret generic "$secretName" "--from-file=${secretFileName}=${secretValueFile}" -n argo
+    rm "$secretValueFile"
+  done
 }
 
 function setup_argo_db() {
