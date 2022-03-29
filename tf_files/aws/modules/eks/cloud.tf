@@ -46,7 +46,7 @@ module "workflow_pool" {
   csoc_cidr                    = "${var.peering_cidr}"
   eks_cluster_endpoint         = "${aws_eks_cluster.eks_cluster.endpoint}"
   eks_cluster_ca               = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
-  eks_private_subnets          = "${var.secondary_cidr_block != "" ? aws_subnet.aws_secondary_cidr.id : aws_subnet.eks_private.*.id}"
+  eks_private_subnets          = "${var.secondary_cidr_block != "" ? aws_subnet.eks_secondary_subnet.id : aws_subnet.eks_private.*.id}"
   control_plane_sg             = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg          = "${aws_security_group.eks_nodes_sg.id}"
   eks_version                  = "${var.eks_version}"
@@ -142,7 +142,7 @@ resource "aws_subnet" "eks_private" {
 }
 
 # The subnet for secondary CIDR block utilization
-resource "aws_subnet" "eks_secondary_cidr" {
+resource "aws_subnet" "eks_secondary_subnet" {
   count                   = "${var.secondary_cidr_block != "" ? 1 : 0}"
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
   cidr_block              = "${var.secondary_cidr_block}"
