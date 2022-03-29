@@ -9,6 +9,10 @@ variable "vpc_cidr_block" {
   default = "172.24.17.0/20"
 }
 
+variable "secondary_cidr_block" {
+  default = ""
+}
+
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {}
 

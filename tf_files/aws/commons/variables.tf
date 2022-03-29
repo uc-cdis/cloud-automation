@@ -6,6 +6,10 @@ variable "vpc_cidr_block" {
   default = "172.24.17.0/20"
 }
 
+variable "secondary_cidr" {
+  default = ""
+}
+
 variable "aws_region" {
   default = "us-east-1"
 }
