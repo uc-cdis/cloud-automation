@@ -133,10 +133,15 @@ EOF
   gen3_log_info "Adding indexd and fence creds to argo namespace"
   for serviceName in indexd fence; do
     secretName="${serviceName}-creds"
-    g3kubectl delete secret "$secretName" -n argo > /dev/null 2>&1
+    # Only delete if secret is found to prevent early exits
+    if [[ ! -z $(g3kubectl get secrets -n argo | grep $secretName) ]]; then
+      g3kubectl delete secret "$secretName" -n argo > /dev/null 2>&1
+    fi
   done
   sleep 1  # I think delete is async - give backend a second to finish
   local secretFileName
+  local credsFile
+  credsFile="$(gen3_secrets_folder)/creds.json"
   for serviceName in indexd fence; do
     secretFileName="creds.json"
     secretName="${serviceName}-creds"
