@@ -29,7 +29,6 @@ variable "peering_cidr" {
 }
 
 variable "secondary_cidr_block" {
-  default = ""
 }
 
 ## variable for the bootstrap 

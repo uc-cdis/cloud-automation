@@ -1,4 +1,6 @@
-
+locals{
+  cidrs = "${split(",", var.secondary_cidr_block != "" ? join(",", list(var.env_vpc_cidr, var.peering_cidr, var.secondary_cidr_block)) : join(",", list(var.env_vpc_cidr, var.peering_cidr)))}"
+}
 
 #Launching the public subnets for the squid VMs
 # If squid is launched in PROD 172.X.Y+5.0/24 subnet is used; For QA/DEV 172.X.Y+1.0/24 subnet is used
@@ -235,7 +237,7 @@ resource "aws_security_group" "squidauto_in" {
     #
     # Do not do this - fence may ssh-bridge out for sftp access
     #
-    cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}", "${var.secondary_cidr_block}"]
+    cidr_blocks  = ["${local.cidrs}"]
   }
 
   tags = {
