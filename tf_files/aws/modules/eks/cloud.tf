@@ -9,6 +9,7 @@ locals{
   # NOTE: the syntax should improve with Terraform 12
   azs = "${split(",", length(var.availability_zones) != 0 ? join(",", var.availability_zones) : join(",", data.aws_availability_zones.available.names))}"
   ami = "${var.fips ? var.fips_enabled_ami : data.aws_ami.eks_worker.id}"
+  eks_priv_subnets = "${split(",", var.secondary_cidr_block != "" ? join(",", aws_subnet.eks_secondary_subnet.*.id) : join(",", aws_subnet.eks_private.*.id))}"
 }
 
 module "jupyter_pool" {
@@ -46,7 +47,7 @@ module "workflow_pool" {
   csoc_cidr                    = "${var.peering_cidr}"
   eks_cluster_endpoint         = "${aws_eks_cluster.eks_cluster.endpoint}"
   eks_cluster_ca               = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
-  eks_private_subnets          = "${var.secondary_cidr_block != "" ? aws_subnet.eks_secondary_subnet.id : aws_subnet.eks_private.*.id}"
+  eks_private_subnets          = "${local.eks_priv_subnets}"
   control_plane_sg             = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg          = "${aws_security_group.eks_nodes_sg.id}"
   eks_version                  = "${var.eks_version}"
