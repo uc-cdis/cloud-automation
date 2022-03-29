@@ -82,7 +82,7 @@ resource "aws_vpc" "main" {
 
 
 resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
-  count      = "${var.secondary_cidr_block ? 1 : 0}"
+  count      = "${var.secondary_cidr_block != "" ? 1 : 0}"
   vpc_id     = "${aws_vpc.main.id}"
   cidr_block = "${var.secondary_cidr_block}"
 }
