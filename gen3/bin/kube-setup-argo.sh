@@ -130,8 +130,8 @@ EOF
     gen3_log_info "Argo S3 setup already completed" 
   fi
 
-  gen3_log_info "Adding indexd and fence creds to argo namespace"
-  for serviceName in indexd fence; do
+  gen3_log_info "Adding indexd creds to argo namespace"
+  for serviceName in indexd; do
     secretName="${serviceName}-creds"
     # Only delete if secret is found to prevent early exits
     if [[ ! -z $(g3kubectl get secrets -n argo | grep $secretName) ]]; then
@@ -142,7 +142,7 @@ EOF
   local secretFileName
   local credsFile
   credsFile="$(gen3_secrets_folder)/creds.json"
-  for serviceName in indexd fence; do
+  for serviceName in indexd; do
     secretFileName="creds.json"
     secretName="${serviceName}-creds"
     secretValueFile="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXX")"
