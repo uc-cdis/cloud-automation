@@ -110,7 +110,7 @@ EOF
 resource "aws_iam_role_policy" "example" {
   count = "${var.vpc_flow_logs ? 1 : 0}"
   name  = "${var.vpc_name}_flow_logs_policy"
-  role = aws_iam_role.flow_logs.id
+  role = "${aws_iam_role.flow_logs.id}"
 
   policy = <<EOF
 {
