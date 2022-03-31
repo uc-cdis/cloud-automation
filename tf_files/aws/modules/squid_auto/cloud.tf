@@ -197,9 +197,26 @@ resource "null_resource" "service_depends_on" {
   }
 }
 
+# Create a new iam service linked role that we can grant access to KMS keys in other accounts
+# Needed if we need to bring up custom AMI's that have been encrypted using a kms key
+resource "aws_iam_service_linked_role" "squidautoscaling" {
+  aws_service_name = "autoscaling.amazonaws.com"
+  custom_suffix = "${var.env_vpc_name}"
+}
+
+# Remember to grant access to the account in the KMS key policy too
+resource "aws_kms_grant" "kms" {
+  count = "${var.fips ? 1 : 0}"
+  name              = "kms-cmk-eks"
+  key_id            = "${var.fips_ami_kms}"
+  grantee_principal = "${aws_iam_service_linked_role.squidautoscaling.arn}"
+  operations        = ["Encrypt", "Decrypt", "ReEncryptFrom", "ReEncryptTo", "GenerateDataKey", "GenerateDataKeyWithoutPlaintext", "DescribeKey", "CreateGrant"]
+}
+
 resource "aws_autoscaling_group" "squid_auto" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
   name = "${var.env_squid_name}"
+  service_linked_role_arn = "${aws_iam_service_linked_role.squidautoscaling.arn}"
   desired_capacity = "${var.cluster_desired_capasity}"
   max_size = "${var.cluster_max_size}"
   min_size = "${var.cluster_min_size}"

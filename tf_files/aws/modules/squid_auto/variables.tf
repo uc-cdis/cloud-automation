@@ -128,3 +128,13 @@ variable "customer_id" {
 variable "slack_webhook" {
   default = ""
 }
+
+# the key that was used to encrypt the FIPS enabled AMI
+# This is needed so ASG can decrypt the ami
+variable "fips_ami_kms" {
+  default = "arn:aws:kms:us-east-1:707767160287:key/mrk-697897f040ef45b0aa3cebf38a916f99"
+}
+
+variable "fips" {
+  default = false
+}
