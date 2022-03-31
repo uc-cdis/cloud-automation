@@ -83,7 +83,7 @@ resource "aws_flow_log" "main" {
   iam_role_arn    = "${aws_iam_role.flow_logs.arn}"
   log_destination = "${aws_cloudwatch_log_group.main_log_group.arn}"
   traffic_type    = "${var.vpc_flow_traffic}"
-  vpc_id          = aws_vpc.main.id
+  vpc_id          = "${aws_vpc.main.id}"
 }
 
 resource "aws_iam_role" "flow_logs" {
