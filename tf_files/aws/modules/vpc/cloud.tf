@@ -47,6 +47,7 @@ module "squid-auto" {
   activation_id                  = "${var.activation_id}"
   customer_id                    = "${var.customer_id}"
   slack_webhook                  = "${var.slack_webhook}"
+  fips                           = "${var.fips}"
 }
 
 module "data-bucket" {

@@ -439,3 +439,7 @@ variable "activation_id" {
 variable "customer_id" {
   default = ""
 }
+
+variable "fips" {
+  default = false
+}

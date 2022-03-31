@@ -130,3 +130,7 @@ variable "customer_id" {
 variable "slack_webhook" {
   default = ""
 }
+
+variable "fips" {
+  default = false
+}
