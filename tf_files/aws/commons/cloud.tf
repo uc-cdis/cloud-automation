@@ -26,6 +26,8 @@ module "cdis_vpc" {
 
   csoc_managed                   = "${var.csoc_managed}"
   peering_vpc_id                 = "${var.peering_vpc_id}"
+  vpc_flow_logs                  = "${var.vpc_flow_logs}"
+  vpc_flow_traffic               = "${var.vpc_flow_traffic}"
 
   #private_kube_route             = "${aws_route_table.private_kube.id}"
   branch                         = "${var.branch}"
