@@ -202,6 +202,9 @@ resource "null_resource" "service_depends_on" {
 resource "aws_iam_service_linked_role" "squidautoscaling" {
   aws_service_name = "autoscaling.amazonaws.com"
   custom_suffix = "${var.env_vpc_name}_squid"
+  lifecycle {
+    ignore_changes = ["custom_suffix"]
+  }
 }
 
 # Remember to grant access to the account in the KMS key policy too
