@@ -201,7 +201,7 @@ resource "null_resource" "service_depends_on" {
 # Needed if we need to bring up custom AMI's that have been encrypted using a kms key
 resource "aws_iam_service_linked_role" "squidautoscaling" {
   aws_service_name = "autoscaling.amazonaws.com"
-  custom_suffix = "${var.env_vpc_name}"
+  custom_suffix = "${var.env_vpc_name}_squid"
 }
 
 # Remember to grant access to the account in the KMS key policy too
