@@ -9,6 +9,7 @@ spec:
     matchLabels:
       app: dicom-viewer
       release: production
+      public: "yes"
   template:
     metadata:
       labels:
