@@ -9,12 +9,12 @@ spec:
     matchLabels:
       app: dicom-viewer
       release: production
-      public: "yes"
   template:
     metadata:
       labels:
         app: dicom-viewer
         release: production
+        public: "yes"
         GEN3_DATE_LABEL
     spec:
       containers:
