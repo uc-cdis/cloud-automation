@@ -26,9 +26,11 @@ spec:
       - name: datareplicate
         GEN3_DATAREPLICATE_IMAGE
         resources:
+          limits:
+            memory: "32Gi"
           requests:
-            cpu: "2"
-            memory: "4Gi"
+            cpu: "14"
+            memory: "24Gi"
         imagePullPolicy: Always
         env:
           - name: PROJECT

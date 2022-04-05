@@ -50,6 +50,12 @@ resource "aws_iam_role_policy" "squid_policy" {
   role   = "${aws_iam_role.squid-auto_role.id}"
 }
 
+# Amazon SSM Policy 
+resource "aws_iam_role_policy_attachment" "eks-policy-AmazonSSMManagedInstanceCore" {
+  count = "${var.deploy_ha_squid ? 1 : 0}"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role   = "${aws_iam_role.squid-auto_role.id}"
+}
 
 resource "aws_iam_instance_profile" "squid-auto_role_profile" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
@@ -117,12 +123,22 @@ resource "aws_launch_configuration" "squid_auto" {
 
 user_data = <<EOF
 #!/bin/bash
-
+DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
 USER="ubuntu"
+if [[ $DISTRO == "Amazon Linux" ]]; then
+  USER="ec2-user"
+fi
 USER_HOME="/home/$USER"
 CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
 (
   cd $USER_HOME
+  if [[ ! -z "${var.slack_webhook}" ]]; then
+    echo "${var.slack_webhook}" > /slackWebhook
+  fi
+  if [[ $DISTRO == "Amazon Linux" ]]; then
+    sudo yum update -y
+    sudo yum install git lsof -y
+  fi
   git clone https://github.com/uc-cdis/cloud-automation.git
   cd $CLOUD_AUTOMATION
   git pull
@@ -133,36 +149,35 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
     git checkout "${var.branch}"
     git pull
   fi
-  chown -R ubuntu. $CLOUD_AUTOMATION
+  chown -R $USER. $CLOUD_AUTOMATION
 
   echo "127.0.1.1 ${var.env_squid_name}" | tee --append /etc/hosts
   hostnamectl set-hostname ${var.env_squid_name}
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    apt -y update
+    DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade 
 
-  apt -y update
-  DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade 
-
-  apt autoremove -y
-  apt clean
-  apt autoclean
-
-  cd $USER_HOME
-  
-  # Create a file with the slack webhook, so that the healtcheck script can access it
-  if [[ ! -z "${var.slack_webhook}" ]]; then
-    echo "${var.slack_webhook}" > /slackWebhook
+    apt autoremove -y
+    apt clean
+    apt autoclean
   fi
-  
+  cd $USER_HOME
+
   bash "${var.bootstrap_path}${var.bootstrap_script}" "cwl_group=${var.env_log_group};${join(";",var.extra_vars)}" 2>&1
   cd $CLOUD_AUTOMATION
   git checkout master
   # Install qualys agent if the activtion and customer id provided
-  if [[ ! -z "${var.activation_id}" ]] || [[ ! -z "${var.customer_id}" ]]; then
-    apt install awscli -y
-    aws s3 cp s3://qualys-agentpackage/QualysCloudAgent.deb ./qualys-cloud-agent.x86_64.deb
-    dpkg -i ./qualys-cloud-agent.x86_64.deb
-    # Clean up deb package after install
-    rm qualys-cloud-agent.x86_64.deb
-    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${var.activation_id} CustomerId=${var.customer_id}
+  # Amazon Linux does not support qualys agent (?)
+  # https://success.qualys.com/discussions/s/question/0D52L00004TnwvgSAB/installing-qualys-cloud-agent-on-amazon-linux-2-instances
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    if [[ ! -z "${var.activation_id}" ]] || [[ ! -z "${var.customer_id}" ]]; then
+      apt install awscli jq -y
+      aws s3 cp s3://qualys-agentpackage/QualysCloudAgent.deb ./qualys-cloud-agent.x86_64.deb
+      dpkg -i ./qualys-cloud-agent.x86_64.deb
+      # Clean up deb package after install
+      rm qualys-cloud-agent.x86_64.deb
+      sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${var.activation_id} CustomerId=${var.customer_id}
+    fi
   fi
 ) > /var/log/bootstrapping_script.log
 EOF
@@ -182,9 +197,29 @@ resource "null_resource" "service_depends_on" {
   }
 }
 
+# Create a new iam service linked role that we can grant access to KMS keys in other accounts
+# Needed if we need to bring up custom AMI's that have been encrypted using a kms key
+resource "aws_iam_service_linked_role" "squidautoscaling" {
+  aws_service_name = "autoscaling.amazonaws.com"
+  custom_suffix = "${var.env_vpc_name}_squid"
+  lifecycle {
+    ignore_changes = ["custom_suffix"]
+  }
+}
+
+# Remember to grant access to the account in the KMS key policy too
+resource "aws_kms_grant" "kms" {
+  count = "${var.fips ? 1 : 0}"
+  name              = "kms-cmk-eks"
+  key_id            = "${var.fips_ami_kms}"
+  grantee_principal = "${aws_iam_service_linked_role.squidautoscaling.arn}"
+  operations        = ["Encrypt", "Decrypt", "ReEncryptFrom", "ReEncryptTo", "GenerateDataKey", "GenerateDataKeyWithoutPlaintext", "DescribeKey", "CreateGrant"]
+}
+
 resource "aws_autoscaling_group" "squid_auto" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
   name = "${var.env_squid_name}"
+  service_linked_role_arn = "${aws_iam_service_linked_role.squidautoscaling.arn}"
   desired_capacity = "${var.cluster_desired_capasity}"
   max_size = "${var.cluster_max_size}"
   min_size = "${var.cluster_min_size}"

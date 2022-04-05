@@ -37,7 +37,7 @@ gen3_logs_snapshot_container() {
 #
 gen3_logs_snapshot_all() {
   g3kubectl get pods -o json | \
-    jq -r '.items | map( {pod: .metadata.name, containers: .spec.containers | map(.name) } ) | map( .pod as $pod | .containers | map( { pod: $pod, cont: .})[]) | map(select(.cont != "pause" and .cont != "jupyterhub"))[] | .pod + "  " + .cont' | \
+    jq -r '.items | map(select(.status.phase != "Pending" and .status.phase != "Unknown")) | map( {pod: .metadata.name, containers: .spec.containers | map(.name) } ) | map( .pod as $pod | .containers | map( { pod: $pod, cont: .})[]) | map(select(.cont != "pause" and .cont != "jupyterhub"))[] | .pod + "  " + .cont' | \
     while read -r line; do
       gen3_logs_snapshot_container $line
     done

@@ -4,6 +4,9 @@ terraform {
   backend "s3" {
     encrypt = "true"
   }
+  required_providers {
+    aws = "~> 2.41"
+  }
 }
 
 # Inject credentials via the AWS_PROFILE environment variable and shared credentials file and/or EC2 metadata service
@@ -12,6 +15,7 @@ provider "aws" {}
 
 module "cdis_vpc" {
   ami_account_id                 = "${var.ami_account_id}"
+  squid_image_search_criteria    = "${var.squid_image_search_criteria}"
   source                         = "../modules/vpc"
   vpc_cidr_block                 = "${var.vpc_cidr_block}"
   vpc_name                       = "${var.vpc_name}"
@@ -22,6 +26,8 @@ module "cdis_vpc" {
 
   csoc_managed                   = "${var.csoc_managed}"
   peering_vpc_id                 = "${var.peering_vpc_id}"
+  vpc_flow_logs                  = "${var.vpc_flow_logs}"
+  vpc_flow_traffic               = "${var.vpc_flow_traffic}"
 
   #private_kube_route             = "${aws_route_table.private_kube.id}"
   branch                         = "${var.branch}"
@@ -37,6 +43,7 @@ module "cdis_vpc" {
   squid_bootstrap_script         = "${var.ha-squid_bootstrap_script}"
   squid_extra_vars               = "${var.ha-squid_extra_vars}"
   single_squid_instance_type     = "${var.single_squid_instance_type}"
+  fips                           = "${var.fips}"
   network_expansion              = "${var.network_expansion}"
   activation_id                  = "${var.activation_id}"
   customer_id                    = "${var.customer_id}"

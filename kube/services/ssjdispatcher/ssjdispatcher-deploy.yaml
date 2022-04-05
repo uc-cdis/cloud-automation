@@ -69,7 +69,6 @@ spec:
               configMapKeyRef:
                 name: manifest-ssjdispatcher
                 key: job_images
-                optional: true
         livenessProbe:
           httpGet:
             path: /_status

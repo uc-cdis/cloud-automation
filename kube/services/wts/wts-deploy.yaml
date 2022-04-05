@@ -130,9 +130,15 @@ spec:
             readOnly: true
             mountPath: "/var/www/wts/dbcreds.json"
             subPath: dbcreds.json
+          - name: "wts-secret"
+            readOnly: true
+            mountPath: "/var/www/wts/appcreds.json"
+            subPath: appcreds.json
           env:
           - name: POSTGRES_CREDS_FILE
             value: "/var/www/wts/dbcreds.json"
+          - name: SECRET_CONFIG
+            value: "/var/www/wts/appcreds.json"
           resources:
             limits:
               cpu: 0.8

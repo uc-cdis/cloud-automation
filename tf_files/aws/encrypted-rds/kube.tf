@@ -150,6 +150,12 @@ resource "aws_db_parameter_group" "rds-cdis-pg" {
     value = "0.7"
   }
 
+  # Set the scram password encryption so that connecting with FIPs enabled works
+  parameter {
+    name  = "password_encryption"
+    value = "scram-sha-256"
+  }
+
   lifecycle {
     ignore_changes  = ["*"]
   }

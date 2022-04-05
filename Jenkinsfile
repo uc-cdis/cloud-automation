@@ -345,6 +345,26 @@ spec:
             }
         }
 
+        stage('python 3.9 buster base image dockerrun.sh test') {
+            steps {
+                script {
+                    try {
+                        if(!skipUnitTests) {
+                            dir('cloud-automation/Docker/python-nginx/python3.9-buster') {
+                                sh 'sh dockerrun.sh --dryrun=True'
+                            }
+                        } else {
+                            Utils.markStageSkippedForConditional(STAGE_NAME)
+                        }
+                    } catch (ex) {
+                        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+                        pipelineHelper.handleError(ex)
+                    }
+                    metricsHelper.writeMetricWithResult(STAGE_NAME, true)
+                }
+            }
+        }
+
         stage('python 3.10 buster base image dockerrun.sh test') {
             steps {
                 script {
