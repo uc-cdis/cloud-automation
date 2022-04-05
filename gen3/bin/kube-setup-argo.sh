@@ -139,17 +139,8 @@ EOF
     fi
   done
   sleep 1  # I think delete is async - give backend a second to finish
-  local secretFileName
-  local credsFile
-  credsFile="$(gen3_secrets_folder)/creds.json"
-  for serviceName in indexd; do
-    secretFileName="creds.json"
-    secretName="${serviceName}-creds"
-    secretValueFile="$(mktemp "$XDG_RUNTIME_DIR/creds.json_XXXXX")"
-    jq -r ".[\"$serviceName\"]" > "$secretValueFile" < "$credsFile"
-    g3kubectl create secret generic "$secretName" "--from-file=${secretFileName}=${secretValueFile}" -n argo
-    rm "$secretValueFile"
-  done
+  indexdFencePassword=$(cat $(gen3_secrets_folder)/creds.json | jq -r .indexd.user_db.fence)
+  g3kubectl create secret generic "indexd-creds" --from-literal=user=fence --from-literal=password=$indexdFencePassword -n argo
 }
 
 function setup_argo_db() {
