@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: revproxy-ingress
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/tags: Environment=$vpc_name,Team=test
+    alb.ingress.kubernetes.io/certificate-arn: $ARN
+    alb.ingress.kubernetes.io/group.name: "$vpc_name"
+spec:
+  ingressClassName: alb
+  rules:
+    - host: $GEN3_CACHE_HOSTNAME
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: revproxy-service
+                port:
+                  number: 80
