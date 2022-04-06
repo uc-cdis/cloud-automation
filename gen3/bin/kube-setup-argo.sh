@@ -196,7 +196,11 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
   if (! helm status argo -n argo > /dev/null 2>&1 )  || [[ "$1" == "--force" ]]; then
     DBHOST=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_host | base64 -d)
     DBNAME=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_database | base64 -d)
-    BUCKET=$(kubectl get secrets -n argo argo-s3-creds -o json | jq -r .data.bucketname | base64 -d)
+    if [[ -z $(kubectl get secrets -n argo argo-s3-creds -o json | jq -r .data.internalbucketname | base64 -d) ]]; then
+      BUCKET=$(kubectl get secrets -n argo argo-s3-creds -o json | jq -r .data.bucketname | base64 -d)
+    else
+      BUCKET=$(kubectl get secrets -n argo argo-s3-creds -o json | jq -r .data.internalbucketname | base64 -d)
+    fi
     valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
     valuesTemplate="${GEN3_HOME}/kube/services/argo/values.yaml"
 
