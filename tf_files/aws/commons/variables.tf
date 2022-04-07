@@ -6,6 +6,10 @@ variable "vpc_cidr_block" {
   default = "172.24.17.0/20"
 }
 
+variable "secondary_cidr_block" {
+  default = ""
+}
+  
 variable "vpc_flow_logs" {
   default = false
 }

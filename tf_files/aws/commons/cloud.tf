@@ -18,6 +18,7 @@ module "cdis_vpc" {
   squid_image_search_criteria    = "${var.squid_image_search_criteria}"
   source                         = "../modules/vpc"
   vpc_cidr_block                 = "${var.vpc_cidr_block}"
+  secondary_cidr_block           = "${var.secondary_cidr_block}"
   vpc_name                       = "${var.vpc_name}"
   ssh_key_name                   = "${aws_key_pair.automation_dev.key_name}"
   peering_cidr                   = "${var.peering_cidr}"
