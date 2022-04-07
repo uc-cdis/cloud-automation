@@ -1,3 +1,8 @@
+locals{
+  cidrs = "${split(",", var.secondary_cidr_block != "" ? join(",", list(var.vpc_cidr_block, var.peering_cidr, var.secondary_cidr_block)) : join(",", list(var.vpc_cidr_block, var.peering_cidr)))}"
+  cidrs_no_peering = "${split(",", var.secondary_cidr_block != "" ? join(",", list(var.vpc_cidr_block, var.secondary_cidr_block)) : join(",", list(var.vpc_cidr_block)))}"
+}
+
 resource "aws_security_group" "local" {
   name        = "local"
   description = "security group that only allow internal tcp traffics"
@@ -7,7 +12,7 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${var.vpc_cidr_block}", "${var.peering_cidr}"]
+    cidr_blocks = ["${local.cidrs}"]
   }
 
   egress {
@@ -17,7 +22,7 @@ resource "aws_security_group" "local" {
 
     # 54.224.0.0/12 logs.us-east-1.amazonaws.com
     #cidr_blocks = ["${var.vpc_cidr_block}", "54.224.0.0/12"]
-    cidr_blocks = ["${var.vpc_cidr_block}"]
+    cidr_blocks = ["${local.cidrs_no_peering}"]
   }
 
   tags = {
@@ -58,7 +63,7 @@ resource "aws_security_group" "proxy" {
     from_port   = 0
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["${var.vpc_cidr_block}", "${var.peering_cidr}"]
+    cidr_blocks = ["${local.cidrs}"]
   }
 
   tags = {

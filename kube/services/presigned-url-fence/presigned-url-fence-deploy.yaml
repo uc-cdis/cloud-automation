@@ -97,9 +97,6 @@ spec:
       - name: fence
         GEN3_FENCE_IMAGE
         env:
-        # TODO remove GEN3_UWSGI_TIMEOUT after performance improvements to GA4GH DRS endpoint
-        - name: GEN3_UWSGI_TIMEOUT
-          value: "60"
         - name: DD_ENABLED
           valueFrom:
             configMapKeyRef:
