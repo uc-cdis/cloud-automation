@@ -163,3 +163,9 @@ variable "fips_ami_kms" {
 variable "fips_enabled_ami" {
   default = "ami-0de87e3680dcb13ec"
 }
+
+variable "availability_zones" {
+  description = "AZ to be used by EKS nodes"
+  type        = "list"
+  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
+}
