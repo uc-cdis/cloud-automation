@@ -9,6 +9,14 @@ variable "vpc_cidr_block" {
 variable "secondary_cidr_block" {
   default = ""
 }
+  
+variable "vpc_flow_logs" {
+  default = false
+}
+
+variable "vpc_flow_traffic" {
+  default = "ALL"
+}
 
 variable "aws_region" {
   default = "us-east-1"
@@ -434,4 +442,8 @@ variable "activation_id" {
 
 variable "customer_id" {
   default = ""
+}
+
+variable "fips" {
+  default = false
 }

@@ -9,8 +9,17 @@ variable "vpc_cidr_block" {
   default = "172.24.17.0/20"
 }
 
+
 variable "secondary_cidr_block" {
   default = ""
+}
+
+variable "vpc_flow_logs" {
+  default = false
+}
+
+variable "vpc_flow_traffic" {
+  default = "ALL"
 }
 
 # name of aws_key_pair ssh key to attach to VM's
@@ -125,4 +134,8 @@ variable "customer_id" {
 
 variable "slack_webhook" {
   default = ""
+}
+
+variable "fips" {
+  default = false
 }
