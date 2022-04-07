@@ -21,6 +21,10 @@ variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
+variable "secondary_cidr_block" {
+  default = ""
+}
+
 variable "peering_vpc_id" {
   default = "vpc-e2b51d99"
 }
@@ -142,4 +146,20 @@ variable "activation_id" {
 
 variable "customer_id" {
   default = ""
+}
+
+# This controls whether or not we use FIPS enabled AMI's
+variable "fips" {
+  default = false
+}
+
+# the key that was used to encrypt the FIPS enabled AMI
+# This is needed to ASG can decrypt the ami 
+variable "fips_ami_kms" {
+  default = "arn:aws:kms:us-east-1:707767160287:key/mrk-697897f040ef45b0aa3cebf38a916f99"
+}
+
+# This is the FIPS enabled AMI in cdistest account.
+variable "fips_enabled_ami" {
+  default = "ami-0de87e3680dcb13ec"
 }

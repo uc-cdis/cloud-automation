@@ -33,6 +33,10 @@ spec:
       - namespaceSelector:
           matchLabels:
             app: grafana
+    - to: 
+      - namespaceSelector:
+          matchLabels:
+            app: argo
   policyTypes:
    - Ingress
    - Egress
