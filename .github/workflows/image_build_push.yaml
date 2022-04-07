@@ -34,7 +34,6 @@ jobs:
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/awshelper/Dockerfile"
-      DOCKERFILE_BUILD_CONTEXT: "./Docker/awshelper"
       OVERRIDE_REPO_NAME: "awshelper"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
