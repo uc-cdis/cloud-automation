@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: orthanc-deployment
+  name: dicom-server-deployment
   labels:
-    app: orthanc
+    app: dicom-server
 spec:
   selector:
     matchLabels:
-      app: orthanc
+      app: dicom-server
       release: production
   template:
     metadata:
       labels:
-        app: orthanc
+        app: dicom-server
         release: production
         public: "yes"
         GEN3_DATE_LABEL
@@ -20,15 +20,15 @@ spec:
       volumes:
       - name: config-volume-g3auto
         secret:
-          secretName: orthanc-g3auto
+          secretName: dicom-server-g3auto
       containers:
-      - name: orthanc
-        GEN3_ORTHANC_IMAGE
+      - name: dicom-server
+        GEN3_dicom-server_IMAGE
         imagePullPolicy: Always
         ports:
         - containerPort: 8042
         volumeMounts:
         - name: config-volume-g3auto
           readOnly: true
-          mountPath: /etc/orthanc/orthanc_config_overwrites.json
-          subPath: orthanc_config_overwrites.json
+          mountPath: /etc/dicom-server/dicom-server_config_overwrites.json
+          subPath: dicom-server_config_overwrites.json
