@@ -24,7 +24,7 @@ $ gen3 workon cdistest test-commons_eks
   - [4.2 Optional Variables](#42-optional-variables)
 - [5. Outputs](#5-outputs)
 - [6. Considerations](#6-considerations)
-
+- [7. Adding a Secondary Subnet](#7-adding-a-seconday-subnet)
 
 
 ## 3. Overview
@@ -62,6 +62,7 @@ users_policy = "test-commons"
 | availability_zones | AZs where to deploy the kubernetes worker nodes. Could be automated. | list |  ["us-east-1a","us-east-1d","us-east-1d"] |
 | worker_drive_size | Volume size for the k8s workers | string | 30GB |
 | jupyter_instance_type | For k8s jupyter workers | string | t3.medium |
+| workflow_instance_type | For k8s workflow workers | string | t3.2xlarge |
 | bootstrap_script | Script to initialize the workers | string | [bootstrap.sh](https://github.com/uc-cdis/cloud-automation/tree/master/flavors/eks) |
 | jupyter_bootstrap_script | Script to initialize the jupyter workers | string | [bootstrap.sh](https://github.com/uc-cdis/cloud-automation/tree/master/flavors/eks) |
 | jupyter_worker_drive_size | Drive Size for jupyter workers | string | 30GB |
@@ -69,6 +70,9 @@ users_policy = "test-commons"
 | jupyter_asg_desired_capacity | # of jupyter workers | number | 0 |
 | jupyter_asg_max_size | Max # of jupyter workers | number | 10 |
 | jupyter_asg_min_size | Min # of jupyter workers | number | 0 |
+| workflow_asg_desired_capacity | # of jupyter workers | number | 0 |
+| workflow_asg_max_size | Max # of jupyter workers | number | 50 |
+| workflow_asg_min_size | Min # of jupyter workers | number | 0 |
 | iam-serviceaccount | iam/service account to your cluster | boolean | false |
 | cidrs_to_route_to_gw | CIDR you want to skip the proxy when going out | list | [] |
 | workers_subnet_size | Whether you want your workers on a /24 or /23 subnet, /22 is available, but the VPC module should have been deployed using the `network_expansion = true` variable, otherwise wks will fail | number | 24 |
@@ -77,7 +81,7 @@ users_policy = "test-commons"
 | ha_squid | If enabled, this should be set to true | boolean | false |
 | dual_proxy | If migrating from single to ha, set to true, should not disrrupt connectivity | boolean | false |
 | sns_topic_arn | SNS topic ARN for alerts | string | "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic" |
-
+| secondary_cidr_block | A secondary CIDR range that will get allocated the the workflow autoscaling group | string | "" |
 
 ## 5. Outputs
 
@@ -101,3 +105,7 @@ Said AMIs uses amazon linux, which default user is `ec2-user`.
 These outputs are also saved into a file in terraform space. You can access it by running `gen3 cd`, there is a `<commons-name>_output_eks` folder that  contains the files in question.
 
 * `iam-serviceaccount` must only be used with EKS 1.13+, if you are running 1.12 or bellow, you must upgrade first. Additionally, you won't be able to enable this on the same run for upgrading out of 1.12. Upgrade must come first.
+
+## 7. Adding a Secondary subnet
+
+If you are running workflow nodes and running into IP exhaustion issues, you can add a secondary CIDR range to create a new subnet for the workflow nodes to run in. You will need to add/run it in the VPC/commons module and then here, as the VPC/commons module will attach the new CIDR range to the VPC, and this module will update the autoscaling groups to use it. Some functionality, like checking logs, will not work for up to 4 hours after the change, as the EKS api needs to run a job to refresh the whitelisted CIDR ranges. However, the pods should still be able to come up and work as usual during this time.
