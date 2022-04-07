@@ -2,10 +2,10 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 setup_database_and_config() {
-  gen3_log_info "setting up orthanc DB and config"
+  gen3_log_info "setting up dicom-server DB and config"
 
-  if g3kubectl describe secret orthanc-g3auto > /dev/null 2>&1; then
-    gen3_log_info "orthanc-g3auto secret already configured"
+  if g3kubectl describe secret dicom-server-g3auto > /dev/null 2>&1; then
+    gen3_log_info "dicom-server-g3auto secret already configured"
     return 0
   fi
   if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
@@ -13,12 +13,12 @@ setup_database_and_config() {
     return 0
   fi
 
-  # Setup config file that orthanc consumes
-  local secretsFolder="$(gen3_secrets_folder)/g3auto/orthanc"
+  # Setup config file that dicom-server consumes
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/dicom-server"
   if [[ ! -f "$secretsFolder/orthanc_config_overwrites.json" ]]; then
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
       if ! gen3 db setup orthanc; then
-        gen3_log_err "Failed setting up database for orthanc"
+        gen3_log_err "Failed setting up orthanc database for dicom-server"
         return 1
       fi
     fi
@@ -45,17 +45,17 @@ setup_database_and_config() {
 }
 EOM
   fi
-  gen3 secrets sync 'setup orthanc-g3auto secrets'
+  gen3 secrets sync 'setup dicom-server-g3auto secrets'
 }
 
 if ! setup_database_and_config; then
-  gen3_log_err "kube-setup-orthanc bailing out - database/config failed setup"
+  gen3_log_err "kube-setup-dicom-server bailing out - database/config failed setup"
   exit 1
 fi
 
-gen3 roll orthanc
-g3kubectl apply -f "${GEN3_HOME}/kube/services/orthanc/orthanc-service.yaml"
+gen3 roll dicom-server
+g3kubectl apply -f "${GEN3_HOME}/kube/services/dicom-server/dicom-server-service.yaml"
 
 cat <<EOM
-The orthanc service has been deployed onto the k8s cluster.
+The dicom-server service has been deployed onto the k8s cluster.
 EOM
