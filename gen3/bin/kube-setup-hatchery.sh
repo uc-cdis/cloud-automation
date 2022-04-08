@@ -67,7 +67,7 @@ saName=$(echo "hatchery-service-account" | head -c63)
 echo $saName
 if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.amazonaws.com/role-arn"' > /dev/null 2>&1; then
     roleName="$(gen3 api safe-name hatchery-sa)"
-    gen3 awsrole create $role_name $saName
+    gen3 awsrole create $roleName $saName
     policyName="hatchery-role-sts"
     policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hathcery to assume csoc_adminvm role in other accounts, for multi-account workspaces")
     if [ -n "$policyInfo" ]; then
@@ -77,9 +77,9 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
         policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
     fi
 
-    gen3_log_info "Attaching policy '${policyName}' to role '${role_name}'"
-    gen3 awsrole attach-policy ${policyArn} --role-name ${role_name} --force-aws-cli || exit 1
-    gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${role_name} --force-aws-cli || exit 1
+    gen3_log_info "Attaching policy '${policyName}' to role '${roleName}'"
+    gen3 awsrole attach-policy ${policyArn} --role-name ${roleName} --force-aws-cli || exit 1
+    gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${roleName} --force-aws-cli || exit 1
 fi
 
 
