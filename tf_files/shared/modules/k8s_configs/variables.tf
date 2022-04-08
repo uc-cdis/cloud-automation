@@ -20,14 +20,6 @@ variable "ssl_certificate_id" {
   default = "AWS-CERTIFICATE-ID"
 }
 
-variable "dictionary_url" {
-  # ex: https://s3.amazonaws.com/dictionary-artifacts/datadictionary/develop/schema.json
-}
-
-variable "portal_app" {
-  # configuration key for data-portal - ex: dev, bloodpac, ...  #
-}
-
 variable "config_folder" {
   # Object folder of user.yaml file - ex: s3://cdis-gen3-users/${config_folder}/user.yaml
 }
