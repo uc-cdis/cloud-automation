@@ -601,13 +601,13 @@ resource "aws_kms_grant" "kms" {
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
   service_linked_role_arn = "${aws_iam_service_linked_role.autoscaling.arn}"
   desired_capacity     = 2
-  launch_configuration = "${var.enable_spot_instances}" ? "" : "${aws_launch_configuration.eks_launch_configuration.id}"
+  launch_configuration = "${var.enable_spot_instances ? "" : aws_launch_configuration.eks_launch_configuration.id}"
   max_size             = 10
   min_size             = 2
   name                 = "eks-worker-node-${var.vpc_name}"
   vpc_zone_identifier  = ["${aws_subnet.eks_private.*.id}"]
-  mixed_instances_policy = "${var.enable_spot_instances}" ? "${local.mixed_setup}" : {}
-  capacity_rebalance     = "${var.enable_spot_instances}" ? true : false
+  mixed_instances_policy = "${var.enable_spot_instances ? local.mixed_setup : {}}"
+  capacity_rebalance     = "${var.enable_spot_instances ? true : false}"
   tag {
     key                 = "Environment"
     value               = "${var.vpc_name}"
