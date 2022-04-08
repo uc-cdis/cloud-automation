@@ -180,3 +180,7 @@ variable "minimum_on_demand_nodes" {
 variable "enable_spot_instances" {
   default = false
 }
+
+variable "enable_on_demand_instances" {
+  default = true
+}

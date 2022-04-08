@@ -10,19 +10,6 @@ locals{
   azs = "${split(",", length(var.availability_zones) != 0 ? join(",", var.availability_zones) : join(",", data.aws_availability_zones.available.names))}"
   ami = "${var.fips ? var.fips_enabled_ami : data.aws_ami.eks_worker.id}"
   eks_priv_subnets = "${split(",", var.secondary_cidr_block != "" ? join(",", aws_subnet.eks_secondary_subnet.*.id) : join(",", aws_subnet.eks_private.*.id))}"
-  mixed_setup = "${var.enable_spot_instances ? (
-  {
-    instances_distribution {
-      on_demand_base_capacity                  = "${var.minimum_on_demand_nodes}"
-      spot_allocation_strategy                 = "lowest-price"
-    }
-
-    launch_template {
-      launch_template_specification {
-        launch_template_id = "${aws_launch_configuration.eks_launch_configuration.id}"
-      }
-    }
-  }): {} }"
 }
 
 module "jupyter_pool" {
@@ -562,6 +549,7 @@ resource "aws_security_group_rule" "workflow_nodes_interpool_communications" {
 
 
 resource "aws_launch_configuration" "eks_launch_configuration" {
+  count                       = "${var.enable_on_demand_instances ? 1 : 0}"
   associate_public_ip_address = false
   iam_instance_profile        = "${aws_iam_instance_profile.eks_node_instance_profile.name}"
   image_id                    = "${local.ami}"
@@ -578,6 +566,31 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   lifecycle {
     create_before_destroy = true
     #ignore_changes  = ["user_data_base64"]
+  }
+}
+
+resource "aws_launch_template" "eks_launch_template" {
+  count                                = "${var.enable_spot_instances ? 1 : 0}"
+  name                                 = "eks-${var.vpc_name}-launch-configuration"
+  instance_type                        = "${var.instance_type}"
+  image_id                             = "${local.ami}"
+  key_name                             = "${var.ec2_keyname}"
+  #vpc_security_group_ids               = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
+  user_data                            = "${base64encode(data.template_file.bootstrap.rendered)}"
+  instance_initiated_shutdown_behavior = "terminate"
+  block_device_mappings {
+    device_name = "/dev/sda1"
+
+    ebs {
+      volume_size = "${var.worker_drive_size}"
+    }
+  }
+  network_interfaces {
+    associate_public_ip_address = false
+    security_groups             = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
+  }
+  iam_instance_profile {
+    name = "${aws_iam_instance_profile.eks_node_instance_profile.name}"
   }
 }
 
@@ -598,15 +611,14 @@ resource "aws_kms_grant" "kms" {
 }
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
+  count                   = "${var.enable_on_demand_instances ? 1 : 0}"
   service_linked_role_arn = "${aws_iam_service_linked_role.autoscaling.arn}"
   desired_capacity     = 2
-  launch_configuration = "${var.enable_spot_instances ? "" : aws_launch_configuration.eks_launch_configuration.id}"
+  launch_configuration = "${aws_launch_configuration.eks_launch_configuration.id}"
   max_size             = 10
   min_size             = 2
   name                 = "eks-worker-node-${var.vpc_name}"
   vpc_zone_identifier  = ["${aws_subnet.eks_private.*.id}"]
-  mixed_instances_policy = local.mixed_setup
-  capacity_rebalance     = "${var.enable_spot_instances ? true : false}"
   tag {
     key                 = "Environment"
     value               = "${var.vpc_name}"
@@ -647,6 +659,72 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
   lifecycle {
     ignore_changes = ["desired_capacity","max_size","min_size"]
   }
+}
+
+
+resource "aws_autoscaling_group" "eks_mixed_autoscaling_group" {
+  count = "${var.enable_spot_instances ? 1 : 0}"
+  service_linked_role_arn = "${aws_iam_service_linked_role.autoscaling.arn}"
+  desired_capacity     = 2
+  max_size             = 10
+  min_size             = 2
+  name                 = "eks-mixed-worker-node-${var.vpc_name}"
+  vpc_zone_identifier  = ["${aws_subnet.eks_private.*.id}"]
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_base_capacity                  = "${var.minimum_on_demand_nodes}"
+      spot_allocation_strategy                 = "lowest-price"
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = "${aws_launch_template.eks_launch_template.id}"
+        version = "$Latest"
+      }
+    }
+  }
+
+  tag {
+    key                 = "Environment"
+    value               = "${var.vpc_name}"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "eks-${var.vpc_name}"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "kubernetes.io/cluster/${var.vpc_name}"
+    value               = "owned"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "k8s.io/cluster-autoscaler/enabled"
+    value               = ""
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "k8s.io/cluster-type/eks"
+    value               = ""
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "k8s.io/nodepool/default"
+    value               = ""
+    propagate_at_launch = true
+  }
+
+# Avoid unnecessary changes for existing commons running on EKS
+  lifecycle {
+    ignore_changes = ["desired_capacity","max_size","min_size"]
+  }
+    depends_on      = ["aws_launch_template.eks_launch_template"]
 }
 
 
@@ -738,10 +816,6 @@ resource "null_resource" "config_setup" {
   provisioner "local-exec" {
     command = "bash ${var.vpc_name}_output_EKS/init_cluster.sh"
   }
-
-  depends_on = [
-    "aws_autoscaling_group.eks_autoscaling_group",
-  ]
 }
 
 
