@@ -169,3 +169,12 @@ variable "availability_zones" {
   type        = "list"
   default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
 }
+
+# The minimum amount of on demand nodes
+variable "minimum_on_demand_nodes" {
+  default = 3
+}
+
+variable "enable_spot_instances" {
+  default = false
+}
