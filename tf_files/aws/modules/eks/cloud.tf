@@ -10,7 +10,7 @@ locals{
   azs = "${split(",", length(var.availability_zones) != 0 ? join(",", var.availability_zones) : join(",", data.aws_availability_zones.available.names))}"
   ami = "${var.fips ? var.fips_enabled_ami : data.aws_ami.eks_worker.id}"
   eks_priv_subnets = "${split(",", var.secondary_cidr_block != "" ? join(",", aws_subnet.eks_secondary_subnet.*.id) : join(",", aws_subnet.eks_private.*.id))}"
-  mixed_setup = <<EOM
+  mixed_setup = "${var.enable_spot_instances ? (
   {
     instances_distribution {
       on_demand_base_capacity                  = "${var.minimum_on_demand_nodes}"
@@ -22,8 +22,7 @@ locals{
         launch_template_id = "${aws_launch_configuration.eks_launch_configuration.id}"
       }
     }
-  }
-  EOM
+  }): {} }"
 }
 
 module "jupyter_pool" {
@@ -606,7 +605,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
   min_size             = 2
   name                 = "eks-worker-node-${var.vpc_name}"
   vpc_zone_identifier  = ["${aws_subnet.eks_private.*.id}"]
-  mixed_instances_policy = "${var.enable_spot_instances ? local.mixed_setup : {}}"
+  mixed_instances_policy = local.mixed_setup
   capacity_rebalance     = "${var.enable_spot_instances ? true : false}"
   tag {
     key                 = "Environment"
