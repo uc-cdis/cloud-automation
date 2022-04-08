@@ -87,8 +87,6 @@ module "config_files" {
 
   kube_bucket_name            = "${aws_s3_bucket.kube_bucket.id}"
   logs_bucket_name            = "${module.elb_logs.log_bucket_name}"
-  dictionary_url              = "${var.dictionary_url}"
-  portal_app                  = "${var.portal_app}"
   config_folder               = "${var.config_folder}"
 
   ssl_certificate_id          = "${var.aws_cert_name}"

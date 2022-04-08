@@ -48,8 +48,6 @@ data "template_file" "configmap" {
     kube_bucket    = "${var.kube_bucket_name}"
     logs_bucket    = "${var.logs_bucket_name}"
     revproxy_arn   = "${var.ssl_certificate_id}"
-    dictionary_url = "${var.dictionary_url}"
-    portal_app     = "${var.portal_app}"
     config_folder  = "${var.config_folder}"
   }
 }
