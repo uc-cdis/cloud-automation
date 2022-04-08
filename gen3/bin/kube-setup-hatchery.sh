@@ -40,6 +40,24 @@ policy=$( cat <<EOM
             "Effect": "Allow",
             "Action": "ec2:*",
             "Resource": "*"
+        },
+        {
+            "Sid": "DynamoDB",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:BatchGet*",
+                "dynamodb:DescribeStream",
+                "dynamodb:DescribeTable",
+                "dynamodb:Get*",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:BatchWrite*",
+                "dynamodb:CreateTable",
+                "dynamodb:Delete*",
+                "dynamodb:Update*",
+                "dynamodb:PutItem"
+            ],
+            "Resource": "arn:aws:dynamodb:*:*:table/*"
         }
     ]
 }
@@ -48,7 +66,7 @@ EOM
 saName=$(echo "hatchery-service-account" | head -c63)
 echo $saName
 if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.amazonaws.com/role-arn"' > /dev/null 2>&1; then
-    role_name="${vpc_name}-${saName}-role"
+    roleName="$(gen3 api safe-name hatchery-sa)"
     gen3 awsrole create $role_name $saName
     policyName="hatchery-role-sts"
     policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hathcery to assume csoc_adminvm role in other accounts, for multi-account workspaces")
