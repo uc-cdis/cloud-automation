@@ -68,7 +68,7 @@ echo $saName
 if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.amazonaws.com/role-arn"' > /dev/null 2>&1; then
     roleName="$(gen3 api safe-name hatchery-sa)"
     gen3 awsrole create $roleName $saName
-    policyName="hatchery-role-sts"
+    policyName="$(gen3 api safe-name hatchery-policy)"
     policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hathcery to assume csoc_adminvm role in other accounts, for multi-account workspaces")
     if [ -n "$policyInfo" ]; then
     policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
