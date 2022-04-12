@@ -12,6 +12,7 @@ spec:
       - revproxy
       - cohort-middleware
       - wts
+      - indexd
   ingress:
     - from:
       - ipBlock:
