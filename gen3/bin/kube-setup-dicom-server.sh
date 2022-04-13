@@ -40,7 +40,8 @@ setup_database_and_config() {
     "Host": "$(jq -r .db_host < $secretsFolder/dbcreds.json)",
     "Database": "$(jq -r .db_database < $secretsFolder/dbcreds.json)",
     "Username": "$(jq -r .db_username < $secretsFolder/dbcreds.json)",
-    "Password": "$(jq -r .db_password < $secretsFolder/dbcreds.json)"
+    "Password": "$(jq -r .db_password < $secretsFolder/dbcreds.json)",
+    "IndexConnectionsCount": 5
   }
 }
 EOM
