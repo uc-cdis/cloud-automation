@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dicom-viewer-deployment
+  labels:
+    app: dicom-viewer
+spec:
+  selector:
+    matchLabels:
+      app: dicom-viewer
+      release: production
+  template:
+    metadata:
+      labels:
+        app: dicom-viewer
+        release: production
+        public: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      containers:
+      - name: dicom-viewer
+        GEN3_DICOM-VIEWER_IMAGE
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        

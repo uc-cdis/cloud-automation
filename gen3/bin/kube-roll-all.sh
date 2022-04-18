@@ -290,6 +290,18 @@ else
   gen3_log_info "not deploying frontend-framework - no manifest entry for '.versions[\"frontend-framework\"]'"
 fi
 
+if g3k_manifest_lookup '.versions["dicom-server"]' 2> /dev/null; then
+  gen3 kube-setup-dicom-server &
+else
+  gen3_log_info "not deploying dicom-server - no manifest entry for '.versions[\"dicom-server\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["dicom-viewer"]' 2> /dev/null; then
+  gen3 kube-setup-dicom-viewer &
+else
+  gen3_log_info "not deploying dicom-viewer - no manifest entry for '.versions[\"dicom-viewer\"]'"
+fi
+
 gen3_log_info "enable network policy"
 gen3 kube-setup-networkpolicy "enable" || true &
 

@@ -2,6 +2,14 @@
 # https://github.com/DataDog/helm-charts/tree/main/charts/datadog
 
 datadog:
+  ## dogstatsd configuration
+  ## ref: https://docs.datadoghq.com/agent/kubernetes/dogstatsd/
+  ## To emit custom metrics from your Kubernetes application, use DogStatsD.
+  dogstatsd:
+    port: 8125
+    useHostPort: true
+    nonLocalTraffic: true
+
   # datadog.apiKeyExistingSecret -- Use existing Secret which stores API key instead of creating a new one. The value should be set with the `api-key` key inside the secret.
   ## If set, this parameter takes precedence over "apiKey".
   apiKeyExistingSecret:  "datadog-agent"
@@ -250,6 +258,18 @@ agents:
   ## get guaranteed delivery of the metrics in Datadog-per-namespace setup!
   #
   enabled: true
+  
+  # agents.tolerations -- Allow the DaemonSet to schedule on tainted nodes (requires Kubernetes >= 1.6)
+  tolerations:
+  - effect: NoSchedule
+    key: role
+    operator: Equal
+    value: workflow
+  - effect: NoSchedule
+    key: role
+    operator: Equal
+    value: jupyter
+
 
   ## Define the Datadog image to work with
   image:
