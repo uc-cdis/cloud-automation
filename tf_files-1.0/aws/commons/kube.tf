@@ -203,7 +203,7 @@ resource "aws_s3_bucket_acl" "kube_bucket" {
   acl    = "private"
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" {
+resource "aws_s3_bucket_server_side_encryption_configuration" "kube_bucket" {
   bucket = aws_s3_bucket.kube_bucket.bucket
 
   rule {
