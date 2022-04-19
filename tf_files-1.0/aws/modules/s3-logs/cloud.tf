@@ -46,7 +46,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
           autoclean = "true"
         }
       }
-
+    }
     expiration {
       # 5 years
       days = 1825
