@@ -1,6 +1,6 @@
 locals{
-  cidrs  = split(",", var.secondary_cidr_block != "" ? join(",", list(var.env_vpc_cidr, var.peering_cidr, var.secondary_cidr_block)) : join(",", list(var.env_vpc_cidr, var.peering_cidr)))
-  cidrs2 = split(",", var.secondary_cidr_block != "" ? join(",", list(var.env_vpc_cidr, var.secondary_cidr_block)) : join(",", list(var.env_vpc_cidr)))
+  cidrs  = var.secondary_cidr_block != "" ? [var.env_vpc_cidr, var.peering_cidr, var.secondary_cidr_block] : [var.env_vpc_cidr, var.peering_cidr]
+  cidrs2 = var.secondary_cidr_block != "" ? [var.env_vpc_cidr, var.secondary_cidr_block] : [var.env_vpc_cidr]
 }
 
 #Launching the public subnets for the squid VMs
@@ -249,7 +249,7 @@ resource "aws_security_group" "squidauto_in" {
     #
     # Do not do this - fence may ssh-bridge out for sftp access
     #
-    cidr_blocks  = [local.cidrs]
+    cidr_blocks  = local.cidrs
   }
 
   tags = {
@@ -261,21 +261,21 @@ resource "aws_security_group" "squidauto_in" {
     from_port    = 3128
     to_port      = 3128
     protocol     = "TCP"
-    cidr_blocks  = [local.cidrs]
+    cidr_blocks  = local.cidrs
   }
 
   ingress {
     from_port    = 80
     to_port      = 80
     protocol     = "TCP"
-    cidr_blocks  = [local.cidrs2]
+    cidr_blocks  = local.cidrs2
   }
 
   ingress {
     from_port    = 443
     to_port      = 443
     protocol     = "TCP"
-    cidr_blocks  = [local.cidrs2]
+    cidr_blocks  = local.cidrs2
   }
 
   lifecycle {

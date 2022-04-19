@@ -1,6 +1,6 @@
 locals{
-  cidrs = split(",", var.secondary_cidr_block != "" ? join(",", list(var.vpc_cidr_block, var.peering_cidr, var.secondary_cidr_block)) : join(",", list(var.vpc_cidr_block, var.peering_cidr)))
-  cidrs_no_peering = split(",", var.secondary_cidr_block != "" ? join(",", list(var.vpc_cidr_block, var.secondary_cidr_block)) : join(",", list(var.vpc_cidr_block)))
+  cidrs = var.secondary_cidr_block != "" ? [var.vpc_cidr_block, var.peering_cidr, var.secondary_cidr_block] : [var.vpc_cidr_block, var.peering_cidr]
+  cidrs_no_peering = var.secondary_cidr_block != "" ? [var.vpc_cidr_block, var.secondary_cidr_block] : [var.vpc_cidr_block]
 }
 
 resource "aws_security_group" "local" {
@@ -12,7 +12,7 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [local.cidrs]
+    cidr_blocks = local.cidrs
   }
 
   egress {
@@ -22,7 +22,7 @@ resource "aws_security_group" "local" {
 
     # 54.224.0.0/12 logs.us-east-1.amazonaws.com
     #cidr_blocks = ["${var.vpc_cidr_block}", "54.224.0.0/12"]
-    cidr_blocks = [local.cidrs_no_peering]
+    cidr_blocks = local.cidrs_no_peering
   }
 
   tags = {
@@ -63,7 +63,7 @@ resource "aws_security_group" "proxy" {
     from_port   = 0
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = [local.cidrs]
+    cidr_blocks = local.cidrs
   }
 
   tags = {

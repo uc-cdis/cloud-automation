@@ -19,7 +19,7 @@ resource "aws_db_instance" "db_fence" {
   db_subnet_group_name        = aws_db_subnet_group.private_group.id
   vpc_security_group_ids      = [module.cdis_vpc.security_group_local_id]
   allow_major_version_upgrade = var.fence_allow_major_version_upgrade
-  final_snapshot_identifier   = replace(var.vpc_name,"_", "-")-fencedb
+  final_snapshot_identifier   = "${replace(var.vpc_name,"_", "-")}-fencedb"
   maintenance_window          = var.fence_maintenance_window
   backup_retention_period     = var.fence_backup_retention_period
   backup_window               = var.fence_backup_window
