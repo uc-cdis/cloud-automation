@@ -33,7 +33,8 @@ output "sheepdog_rds_id" {
 }
 
 output "fence-bot_user_secret" {
-  value = module.cdis_vpc.fence-bot_secret
+  value     = module.cdis_vpc.fence-bot_secret
+  sensitive = false
 }
 
 output "fence-bot_user_id" {
