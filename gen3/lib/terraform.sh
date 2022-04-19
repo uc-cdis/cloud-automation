@@ -55,7 +55,7 @@ if $GEN3_DRY_RUN; then DRY_RUN_STR="--dryrun"; fi
 # an AWS project
 #
 gen3_terraform() {
-  local tversion=$(check_terraform_module ${GEN3_TFSCRIPT_FOLDER})
+  local tversion="1X"
   if [[ "$GEN3_FLAVOR" == "AWS" ]]; then
     cat - 1>&2 <<EOM
 gen3_aws_run terraform${tversion} $@
