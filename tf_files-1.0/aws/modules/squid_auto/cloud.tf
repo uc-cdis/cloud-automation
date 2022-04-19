@@ -218,7 +218,7 @@ resource "aws_autoscaling_group" "squid_auto" {
   desired_capacity        = var.cluster_desired_capasity
   max_size                = var.cluster_max_size
   min_size                = var.cluster_min_size
-  vpc_zone_identifier     = [aws_subnet.squid_pub0.*.id]
+  vpc_zone_identifier     = aws_subnet.squid_pub0.*.id
   launch_configuration    = aws_launch_configuration.squid_auto.name
   depends_on              = [null_resource.service_depends_on, aws_route_table_association.squid_auto0]
   tag {
