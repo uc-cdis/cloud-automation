@@ -144,7 +144,7 @@ resource "aws_subnet" "private_kube" {
   cidr_block                  = var.network_expansion ? cidrsubnet(var.vpc_cidr_block,5,0) : cidrsubnet(var.vpc_cidr_block,4,2)
   map_public_ip_on_launch     = false
   availability_zone           = data.aws_availability_zones.available.names[0]
-  tags                        = map("Name", "int_services", "Organization", var.organization_name, "Environment", var.vpc_name )
+  tags                        = tomap("Name", "int_services", "Organization", var.organization_name, "Environment", var.vpc_name )
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster

@@ -28,8 +28,8 @@ output "fence_rds_id" {
   value = aws_db_instance.db_fence.*.id
 }
 
-output "gdcapi_rds_id" {
-  value = aws_db_instance.db_gdcapi.*.id
+output "sheepdog_rds_id" {
+  value = aws_db_instance.db_sheepdog.*.id
 }
 
 output "fence-bot_user_secret" {

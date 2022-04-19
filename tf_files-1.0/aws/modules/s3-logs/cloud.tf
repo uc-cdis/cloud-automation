@@ -32,16 +32,20 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
 
 resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
   bucket = aws_s3_bucket.log_bucket.id
-  
-  rule {
-    id      = "log"
-    enabled = true
-    prefix  = "/"
 
-    tags = {
-      rule      = "log"
-      autoclean = "true"
-    }
+  rule {
+    status  = "Enabled"
+    id      = "log"
+
+    filter {
+      and {
+        prefix = "log/"
+
+        tags = {
+          rule      = "log"
+          autoclean = "true"
+        }
+      }
 
     expiration {
       # 5 years

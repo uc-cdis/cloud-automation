@@ -70,7 +70,6 @@ variable "squid_instance_drive_size" {
 
 variable "squid_availability_zones" {
   description = "AZs on wich to associate the routes for the squid proxies"
-  type        = "list"
 }
 
 variable "main_public_route" {

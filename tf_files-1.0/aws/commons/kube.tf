@@ -117,7 +117,7 @@ resource "aws_db_instance" "db_indexd" {
 
 resource "aws_db_parameter_group" "rds-cdis-pg" {
   name   = "${var.vpc_name}-rds-cdis-pg"
-  family = "postgres${var.psql_version}"
+  family = "postgres${var.engine_version}"
 
   # make index searches cheaper per row
   parameter {

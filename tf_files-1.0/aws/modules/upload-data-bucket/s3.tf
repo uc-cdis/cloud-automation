@@ -9,10 +9,6 @@ resource "aws_s3_bucket" "data_bucket" {
     Environment = "${var.environment}"
     Purpose     = "data bucket"
   }
-
-  lifecycle = {
-    ignore_changes = [cors_rule]
-  }
 }
 
 resource "aws_s3_bucket_acl" "data_bucket" {
@@ -88,13 +84,18 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
 resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
   bucket = aws_s3_bucket.log_bucket.bucket
   rule {
+      status  = "Enabled"
       id      = "log"
-      enabled = true
-      prefix  = "/"
 
-      tags = {
-        "rule"      = "log"
-        "autoclean" = "true"
+      filter {
+        and {
+          prefix = "/"
+
+          tags = {
+            rule      = "log"
+            autoclean = "true"
+          }
+        }
       }
 
       expiration {

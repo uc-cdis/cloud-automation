@@ -14,7 +14,7 @@ variable "db_indexd_size" {
   default = "10"
 }
 
-variable "db_gdcapi_size" {
+variable "db_sheepdog_size" {
   default = "10"
 }
 
@@ -34,6 +34,6 @@ variable "db_indexd" {
   default = ""
 }
 
-variable "db_gdcapi" {
+variable "db_sheepdog" {
   default = ""
 }

@@ -124,24 +124,28 @@ variable "google_client_secret" {}
 # 32 alphanumeric characters
 variable "hmac_encryption_key" {}
 
-variable "gdcapi_secret_key" {}
+variable "sheepdog_secret_key" {}
 
 # password for write access to indexd
-variable "gdcapi_indexd_password" {}
+variable "sheepdog_indexd_password" {}
 
 #
 # DEPRECATED - should no longer be necessary
 # gdcapi's oauth2 client id (fence as oauth2 provider)
 #
-variable "gdcapi_oauth2_client_id" {
+variable "sheepdog_oauth2_client_id" {
   default = ""
+}
+
+variable "config_folder" {
+  # Object folder of user.yaml file - ex: s3://cdis-gen3-users/${config_folder}/user.yaml
 }
 
 #
 # DEPRECATED - should no longer be necessary
 # gdcapi's oauth2 client id (fence as oauth2 provider)
 #
-variable "gdcapi_oauth2_client_secret" {
+variable "sheepdogZ_oauth2_client_secret" {
   default = ""
 }
 
@@ -445,10 +449,10 @@ variable "prevent_fence_destroy" {
 variable "prevent_sheepdog_destroy" {
   default = true
 }
-variables "prevent_indexd_destroy" {
+variable "prevent_indexd_destroy" {
   default = true
 }
 
-variables "deploy_alarms" {
+variable "deploy_alarms" {
   default = true
 }

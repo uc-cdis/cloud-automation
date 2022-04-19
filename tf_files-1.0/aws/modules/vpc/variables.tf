@@ -89,7 +89,6 @@ variable "branch" {
 
 variable "fence-bot_bucket_access_arns" {
   description = "When fence bot has to access another bucket that wasn't created by the VPC module"
-  type        = "list"
   #default     = []
 }
 
