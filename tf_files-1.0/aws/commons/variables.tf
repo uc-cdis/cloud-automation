@@ -145,7 +145,7 @@ variable "config_folder" {
 # DEPRECATED - should no longer be necessary
 # gdcapi's oauth2 client id (fence as oauth2 provider)
 #
-variable "sheepdogZ_oauth2_client_secret" {
+variable "sheepdog_oauth2_client_secret" {
   default = ""
 }
 

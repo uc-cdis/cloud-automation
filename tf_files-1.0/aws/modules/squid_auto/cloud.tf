@@ -14,7 +14,7 @@ resource "aws_subnet" "squid_pub0" {
   vpc_id                  = var.env_vpc_id
   cidr_block              = var.network_expansion ? cidrsubnet(var.squid_proxy_subnet,2,count.index) : cidrsubnet(var.squid_proxy_subnet,3,count.index )
   availability_zone       = var.squid_availability_zones[count.index]
-  tags                    = map("Name", "${var.env_squid_name}_pub${count.index}", "Organization", var.organization_name, "Environment", var.env_squid_name)
+  tags                    = tomap({"Name" = "${var.env_squid_name}_pub${count.index}", "Organization" = var.organization_name, "Environment" = var.env_squid_name})
 }
 
 

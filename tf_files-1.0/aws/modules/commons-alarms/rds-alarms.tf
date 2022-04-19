@@ -33,18 +33,18 @@ resource "aws_cloudwatch_metric_alarm" "fence_db_alarm" {
   }
 }
 
-resource "aws_cloudwatch_metric_alarm" "gdcapi_db_alarm" {
-  alarm_name                = "db_disk_space_gdcapi_alarm-${var.vpc_name}"
+resource "aws_cloudwatch_metric_alarm" "sheepdog_db_alarm" {
+  alarm_name                = "db_disk_space_sheepdog_alarm-${var.vpc_name}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
   evaluation_periods        = "1"
   threshold                 = var.alarm_threshold
-  alarm_description         = "gdcapi db for ${var.vpc_name} storage usage over ${var.alarm_threshold}"
+  alarm_description         = "sheepdog db for ${var.vpc_name} storage usage over ${var.alarm_threshold}"
   insufficient_data_actions = []
   alarm_actions             = [module.alarms-lambda.sns-topic]
   metric_query {
     id = "storageSpacePercentage"
-    expression = "100 - freeDiskSpace/(${var.db_gdcapi_size}*10000000)"
-    label = "Free Disk Space gdcapi ${var.vpc_name}"
+    expression = "100 - freeDiskSpace/(${var.db_sheepdog_size}*10000000)"
+    label = "Free Disk Space sheepdog ${var.vpc_name}"
     return_data = "true"
   }
   metric_query {
@@ -55,7 +55,7 @@ resource "aws_cloudwatch_metric_alarm" "gdcapi_db_alarm" {
       period      = "120"
       stat        = "Average"
       dimensions = {
-        DBInstanceIdentifier = var.db_gdcapi,
+        DBInstanceIdentifier = var.db_sheepdog,
       }
     }
   }

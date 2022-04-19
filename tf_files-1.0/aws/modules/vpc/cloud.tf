@@ -65,7 +65,7 @@ resource "aws_vpc" "main" {
 
 resource "aws_flow_log" "main" {
   count           = var.vpc_flow_logs ? 1 : 0
-  iam_role_arn    = aws_iam_role.flow_logs.arn[count.index]
+  iam_role_arn    = aws_iam_role.flow_logs[count.index].arn[count.index]
   log_destination = aws_cloudwatch_log_group.main_log_group.arn
   traffic_type    = var.vpc_flow_traffic
   vpc_id          = aws_vpc.main.id
@@ -95,7 +95,7 @@ EOF
 resource "aws_iam_role_policy" "example" {
   count = var.vpc_flow_logs ? 1 : 0
   name  = "${var.vpc_name}_flow_logs_policy"
-  role  = aws_iam_role.flow_logs.id
+  role  = aws_iam_role.flow_logs[count.index].id[count.index]
 
   policy = <<EOF
 {
@@ -213,7 +213,7 @@ resource "aws_subnet" "public" {
   # kube_ subnets are in availability zone [0], so put this in [1]
   availability_zone = data.aws_availability_zones.available.names[1]
 
-  tags = map("Name", "public", "Organization", var.organization_name, "Environment", var.vpc_name)
+  tags = tomap({"Name" = "public", "Organization" = var.organization_name, "Environment" = var.vpc_name})
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
@@ -282,7 +282,7 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
 
 resource "aws_route" "default_csoc" {
   count                     = var.csoc_managed ? 0 : 1
-  route_table_id            = data.aws_route_tables.control_routing_table.ids[count.index]
+  route_table_id            = data.aws_route_tables.control_routing_table[count.index].ids
   destination_cidr_block    = var.vpc_cidr_block
   vpc_peering_connection_id = aws_vpc_peering_connection.vpcpeering.id
 }
