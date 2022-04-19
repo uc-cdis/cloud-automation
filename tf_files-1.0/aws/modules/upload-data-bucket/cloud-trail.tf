@@ -26,7 +26,7 @@ resource "aws_cloudtrail" "logger_trail" {
   }
 
   lifecycle {
-    ignore_changes = ["*"]
+    ignore_changes = all
   }
 }
 

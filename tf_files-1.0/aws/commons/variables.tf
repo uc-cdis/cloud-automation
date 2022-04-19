@@ -335,7 +335,6 @@ variable "ha-squid_bootstrap_script" {
 
 variable "ha-squid_extra_vars" {
   description = "additional variables to pass along with the bootstrapscript"
-  type        = "list"
   #default     = ["squid_image=master", "squid_version=squid-4.8"]
   default     = ["squid_image=master"]
 }
@@ -347,7 +346,6 @@ variable "branch" {
 
 variable "fence-bot_bucket_access_arns" {
   description = "When fence bot has to access another bucket that wasn't created by the VPC module"
-  type        = "list"
   default     = []
 }
 
@@ -428,23 +426,23 @@ variable "fips" {
   default = false
 }
 
-variables "ignore_fence_changes" {
+variable "ignore_fence_changes" {
   default = ["engine_version","storage_encrypted","identifier"]
 }
 
-variables "ignore_sheepdog_changes" {
+variable "ignore_sheepdog_changes" {
   default = ["engine_version","storage_encrypted","identifier"]
 }
 
-variables "ignore_indexd_changes" {
+variable "ignore_indexd_changes" {
   default = ["engine_version","storage_encrypted","identifier"]
 }
 
-variables "prevent_fence_destroy" {
+variable "prevent_fence_destroy" {
   default = true
 }
 
-variables "prevent_sheepdog_destroy" {
+variable "prevent_sheepdog_destroy" {
   default = true
 }
 variables "prevent_indexd_destroy" {

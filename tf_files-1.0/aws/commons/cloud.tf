@@ -148,7 +148,7 @@ resource "aws_subnet" "private_kube" {
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["tags", "availability_zone"]
+    ignore_changes = [tags, availability_zone]
   }
 }
 
@@ -166,7 +166,7 @@ resource "aws_subnet" "private_db_alt" {
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["tags", "availability_zone"]
+    ignore_changes = [tags, availability_zone]
   }
 }
 

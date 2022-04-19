@@ -44,7 +44,7 @@ EOF
 
 
   lifecycle {
-    ignore_changes = ["policy"]
+    ignore_changes = [policy]
   }
 
 }

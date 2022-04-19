@@ -88,7 +88,6 @@ variable "branch" {
 
 variable "extra_vars" {
   description = "additional variables to pass along with the bootstrapscript"
-  type        = "list"
   default     = ["squid_image=master"]
 }
 

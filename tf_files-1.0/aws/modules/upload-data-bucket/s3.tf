@@ -11,7 +11,7 @@ resource "aws_s3_bucket" "data_bucket" {
   }
 
   lifecycle = {
-    ignore_changes = ["cors_rule"]
+    ignore_changes = [cors_rule]
   }
 }
 

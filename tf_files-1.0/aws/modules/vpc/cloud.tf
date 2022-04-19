@@ -213,11 +213,11 @@ resource "aws_subnet" "public" {
   # kube_ subnets are in availability zone [0], so put this in [1]
   availability_zone = data.aws_availability_zones.available.names[1]
 
-  tags = "${map("Name", "public", "Organization", var.organization_name, "Environment", var.vpc_name)}"
+  tags = map("Name", "public", "Organization", var.organization_name, "Environment", var.vpc_name)
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = ["tags", "availability_zone"]
+    ignore_changes = [tags, availability_zone]
   }
 }
 
@@ -246,7 +246,7 @@ resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
   lifecycle {
     # terraform keeps trying to remove the distribution even after it is properly set, there is no reason
     # to no to ignore this
-    ignore_changes = ["distribution"]
+    ignore_changes = [distribution]
   }
 }
 

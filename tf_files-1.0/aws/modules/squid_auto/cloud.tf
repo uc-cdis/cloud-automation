@@ -199,7 +199,7 @@ resource "aws_iam_service_linked_role" "squidautoscaling" {
   custom_suffix    = "${var.env_vpc_name}_squid"
 
   lifecycle {
-    ignore_changes = ["custom_suffix"]
+    ignore_changes = [custom_suffix]
   }
 }
 
@@ -279,7 +279,7 @@ resource "aws_security_group" "squidauto_in" {
   }
 
   lifecycle {
-    ignore_changes = ["description"]
+    ignore_changes = [description]
   }
 }
 

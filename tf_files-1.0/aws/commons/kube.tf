@@ -33,10 +33,10 @@ resource "aws_db_instance" "db_fence" {
     Organization              = var.organization_name
   } 
 
-  lifecycle {
-    prevent_destroy = var.prevent_fence_destroy
-    ignore_changes = var.ignore_fence_changes
-  }
+  #lifecycle {
+  #  prevent_destroy = var.prevent_fence_destroy
+  #  ignore_changes = var.ignore_fence_changes
+  #}
 }
 
 resource "aws_db_instance" "db_sheepdog" {
@@ -69,10 +69,10 @@ resource "aws_db_instance" "db_sheepdog" {
     Organization              = var.organization_name
   }
 
-  lifecycle {
-    prevent_destroy = var.prevent_sheepdog_destroy
-    ignore_changes = var.ignore_sheepdog_changes
-  }
+  #lifecycle {
+  #  prevent_destroy = var.prevent_sheepdog_destroy
+  #  ignore_changes = var.ignore_sheepdog_changes
+  #}
 }
 
 resource "aws_db_instance" "db_indexd" {
@@ -105,10 +105,10 @@ resource "aws_db_instance" "db_indexd" {
     Organization              = var.organization_name
   }
 
-  lifecycle {
-    prevent_destroy = var.prevent_indexd_destroy
-    ignore_changes = var.ignore_indexd_changes
-  }
+  #lifecycle {
+  #  prevent_destroy = var.prevent_indexd_destroy
+  #  ignore_changes = var.ignore_indexd_changes
+  #}
 }
 
 # See https://www.postgresql.org/docs/9.6/static/runtime-config-logging.html
@@ -158,7 +158,7 @@ resource "aws_db_parameter_group" "rds-cdis-pg" {
   }
 
   lifecycle {
-    ignore_changes  = ["*"]
+    ignore_changes  = all
   }
 }
 
@@ -194,7 +194,7 @@ resource "aws_s3_bucket" "kube_bucket" {
 
   lifecycle {
     # allow same bucket between stacks
-    ignore_changes = ["tags", "bucket"]
+    ignore_changes = [tags, bucket]
   }
 }
 
@@ -242,6 +242,6 @@ resource "aws_iam_policy" "configbucket_reader" {
   description                 = "Read cdis-gen3-users/${var.config_folder}"
   policy                      = data.aws_iam_policy_document.configbucket_reader.json
   lifecycle {
-    ignore_changes = ["policy"]
+    ignore_changes = [policy]
   }
 }
