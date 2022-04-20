@@ -64,18 +64,18 @@ module "elb_logs" {
 module "config_files" {
   source                        = "../../shared/modules/k8s_configs"
   vpc_name                      = var.vpc_name
-  db_fence_address              = aws_db_instance.db_fence[*].address
+  db_fence_address              = var.deploy_fence_db ? aws_db_instance.db_fence[0].address : ""
   db_fence_password             = var.db_password_fence
-  db_fence_name                 = aws_db_instance.db_fence[*].name
-  db_sheepdog_address           = aws_db_instance.db_sheepdog[*].address
-  db_sheepdog_username          = aws_db_instance.db_sheepdog[*].username
+  db_fence_name                 = var.deploy_fence_db ?aws_db_instance.db_fence[0].name : ""
+  db_sheepdog_address           = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].address : ""
+  db_sheepdog_username          = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].username : ""
   db_sheepdog_password          = var.db_password_sheepdog
-  db_sheepdog_name              = aws_db_instance.db_sheepdog[*].name
+  db_sheepdog_name              = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].name : ""
   db_peregrine_password         = var.db_password_peregrine
-  db_indexd_address             = aws_db_instance.db_indexd[*].address
-  db_indexd_username            = aws_db_instance.db_indexd[*].username
+  db_indexd_address             = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].address : ""
+  db_indexd_username            = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].username : ""
   db_indexd_password            = var.db_password_indexd
-  db_indexd_name                = aws_db_instance.db_indexd[*].name
+  db_indexd_name                = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].name : ""
   hostname                      = var.hostname
   google_client_secret          = var.google_client_secret
   google_client_id              = var.google_client_id
@@ -107,12 +107,12 @@ module "cdis_alarms" {
   secondary_slack_webhook     = var.secondary_slack_webhook
   vpc_name                    = var.vpc_name
   alarm_threshold             = var.alarm_threshold
-  db_fence_size               = aws_db_instance.db_fence[*].allocated_storage
-  db_indexd_size              = aws_db_instance.db_indexd[*].allocated_storage
-  db_sheepdog_size            = aws_db_instance.db_sheepdog[*].allocated_storage
-  db_fence                    = aws_db_instance.db_fence[*].identifier
-  db_indexd                   = aws_db_instance.db_indexd[*].identifier
-  db_sheepdog                 = aws_db_instance.db_sheepdog[*].identifier
+  db_fence_size               = var.deploy_fence_db ? aws_db_instance.db_fence[0].allocated_storage : 0
+  db_indexd_size              = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].allocated_storage : 0
+  db_sheepdog_size            = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].allocated_storage: 0
+  db_fence                    = var.deploy_fence_db ? aws_db_instance.db_fence[0].identifier : ""
+  db_indexd                   = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].identifier : ""
+  db_sheepdog                 = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].identifier : ""
 }
 
 
