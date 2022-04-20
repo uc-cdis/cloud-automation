@@ -19,6 +19,7 @@ module "squid_proxy" {
 module "squid-auto" {
   source                         = "../squid_auto"
   peering_cidr                   = "${var.peering_cidr}"
+  secondary_cidr_block           = "${var.secondary_cidr_block}"
   env_vpc_name                   = "${var.vpc_name}"
   env_vpc_cidr                   = "${aws_vpc.main.cidr_block}"
   env_vpc_id                     = "${aws_vpc.main.id}"
@@ -66,6 +67,7 @@ module "fence-bot-user" {
 
 resource "aws_vpc" "main" {
   cidr_block           = "${var.vpc_cidr_block}"
+
   enable_dns_hostnames = true
 
   tags = {
@@ -134,6 +136,12 @@ EOF
 }
 
 
+
+resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
+  count      = "${var.secondary_cidr_block != "" ? 1 : 0}"
+  vpc_id     = "${aws_vpc.main.id}"
+  cidr_block = "${var.secondary_cidr_block}"
+}
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.main.id}"

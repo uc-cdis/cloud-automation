@@ -9,6 +9,7 @@ locals{
   # NOTE: the syntax should improve with Terraform 12
   azs = "${split(",", length(var.availability_zones) != 0 ? join(",", var.availability_zones) : join(",", data.aws_availability_zones.available.names))}"
   ami = "${var.fips ? var.fips_enabled_ami : data.aws_ami.eks_worker.id}"
+  eks_priv_subnets = "${split(",", var.secondary_cidr_block != "" ? join(",", aws_subnet.eks_secondary_subnet.*.id) : join(",", aws_subnet.eks_private.*.id))}"
 }
 
 module "jupyter_pool" {
@@ -46,7 +47,7 @@ module "workflow_pool" {
   csoc_cidr                    = "${var.peering_cidr}"
   eks_cluster_endpoint         = "${aws_eks_cluster.eks_cluster.endpoint}"
   eks_cluster_ca               = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
-  eks_private_subnets          = "${aws_subnet.eks_private.*.id}"
+  eks_private_subnets          = "${local.eks_priv_subnets}"
   control_plane_sg             = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg          = "${aws_security_group.eks_nodes_sg.id}"
   eks_version                  = "${var.eks_version}"
@@ -141,6 +142,30 @@ resource "aws_subnet" "eks_private" {
   }
 }
 
+# The subnet for secondary CIDR block utilization
+resource "aws_subnet" "eks_secondary_subnet" {
+  count                   = "${var.secondary_cidr_block != "" ? 1 : 0}"
+  vpc_id                  = "${data.aws_vpc.the_vpc.id}"
+  cidr_block              = "${var.secondary_cidr_block}"
+  availability_zone       = "${random_shuffle.az.result[count.index]}"
+  map_public_ip_on_launch = false
+
+  tags = "${
+    map(
+     "Name", "eks_secondary_cidr_subnet",
+     "Environment", "${var.vpc_name}",
+     "Organization", "${var.organization_name}",
+     "kubernetes.io/cluster/${var.vpc_name}", "owned",
+     "kubernetes.io/role/internal-elb", "1",
+    )
+  }"
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["tags", "availability_zone"]
+  }
+}
+
 
 # for the ELB to talk to the worker nodes
 resource "aws_subnet" "eks_public" {
@@ -214,6 +239,13 @@ resource "aws_route_table_association" "private_kube" {
   subnet_id      = "${aws_subnet.eks_private.*.id[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   depends_on     = ["aws_subnet.eks_private"]
+}
+
+resource "aws_route_table_association" "secondary_subnet_kube" {
+  count          = "${var.secondary_cidr_block != "" ? 1 : 0}"
+  subnet_id      = "${aws_subnet.eks_secondary_subnet.id}"
+  route_table_id = "${aws_route_table.eks_private.id}"
+  depends_on     = ["aws_subnet.eks_secondary_subnet"]
 }
 
 

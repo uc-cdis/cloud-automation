@@ -6,7 +6,7 @@ update_pass() {
   db=$1
   username=$2
   password=$3
-  gen3 psql $db -c "SET password_encryption  = 'scram-sha-256'; ALTER USER "$username" with password '$password';"
+  gen3 psql $db -c "SET password_encryption  = 'scram-sha-256'; ALTER USER \""$username"\" with password '$password';"
   #gen3 psql $db -c "ALTER USER "$username" with password '$password';"
 }
 

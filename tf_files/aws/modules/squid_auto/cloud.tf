@@ -1,4 +1,7 @@
-
+locals{
+  cidrs  = "${split(",", var.secondary_cidr_block != "" ? join(",", list(var.env_vpc_cidr, var.peering_cidr, var.secondary_cidr_block)) : join(",", list(var.env_vpc_cidr, var.peering_cidr)))}"
+  cidrs2 = "${split(",", var.secondary_cidr_block != "" ? join(",", list(var.env_vpc_cidr, var.secondary_cidr_block)) : join(",", list(var.env_vpc_cidr)))}"
+}
 
 #Launching the public subnets for the squid VMs
 # If squid is launched in PROD 172.X.Y+5.0/24 subnet is used; For QA/DEV 172.X.Y+1.0/24 subnet is used
@@ -17,7 +20,7 @@ resource "aws_subnet" "squid_pub0" {
 
 
 
-# Instance profile role and policies, we need the proxy to be able to talk to cloudwatchlogs groups 
+# Instance profile role and policies, we need the proxy to be able to talk to cloudwatchlogs groups
 #
 ##########################
 resource "aws_iam_role" "squid-auto_role" {
@@ -50,7 +53,7 @@ resource "aws_iam_role_policy" "squid_policy" {
   role   = "${aws_iam_role.squid-auto_role.id}"
 }
 
-# Amazon SSM Policy 
+# Amazon SSM Policy
 resource "aws_iam_role_policy_attachment" "eks-policy-AmazonSSMManagedInstanceCore" {
   count = "${var.deploy_ha_squid ? 1 : 0}"
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -155,7 +158,7 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
   hostnamectl set-hostname ${var.env_squid_name}
   if [[ $DISTRO == "Ubuntu" ]]; then
     apt -y update
-    DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade 
+    DEBIAN_FRONTEND='noninteractive' apt-get -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' upgrade
 
     apt autoremove -y
     apt clean
@@ -223,7 +226,7 @@ resource "aws_autoscaling_group" "squid_auto" {
   desired_capacity = "${var.cluster_desired_capasity}"
   max_size = "${var.cluster_max_size}"
   min_size = "${var.cluster_min_size}"
-  vpc_zone_identifier = ["${aws_subnet.squid_pub0.*.id}"] 
+  vpc_zone_identifier = ["${aws_subnet.squid_pub0.*.id}"]
   launch_configuration = "${aws_launch_configuration.squid_auto.name}"
   depends_on           = ["null_resource.service_depends_on", "aws_route_table_association.squid_auto0"]
   tag {
@@ -236,7 +239,7 @@ resource "aws_autoscaling_group" "squid_auto" {
     value = "${var.organization_name}"
     propagate_at_launch = true
   }
-  
+
 }
 
 
@@ -255,7 +258,7 @@ resource "aws_security_group" "squidauto_in" {
     #
     # Do not do this - fence may ssh-bridge out for sftp access
     #
-    cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}"]
+    cidr_blocks  = ["${local.cidrs}"]
   }
 
   tags = {
@@ -267,31 +270,21 @@ resource "aws_security_group" "squidauto_in" {
     from_port   = 3128
     to_port     = 3128
     protocol    = "TCP"
-    cidr_blocks = ["${var.peering_cidr}", "${var.env_vpc_cidr}"]
-  }
-
-  tags = {
-    Environment  = "${var.env_squid_name}"
-    Organization = "${var.organization_name}"
+    cidr_blocks  = ["${local.cidrs}"]
   }
 
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "TCP"
-    cidr_blocks = ["${var.env_vpc_cidr}"]
+    cidr_blocks  = ["${local.cidrs2}"]
   }
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "TCP"
-    cidr_blocks = ["${var.env_vpc_cidr}"]
-  }
-
-  tags = {
-    Environment  = "${var.env_squid_name}"
-    Organization = "${var.organization_name}"
+    cidr_blocks  = ["${local.cidrs2}"]
   }
 
   lifecycle {
@@ -318,4 +311,3 @@ resource "aws_security_group" "squidauto_out" {
     Organization = "${var.organization_name}"
   }
 }
-
