@@ -182,6 +182,7 @@ gen3_workon_aws(){
     export GEN3_TFSCRIPT_FOLDER="${GEN3_WORKDIR}"
   fi
 
+  export TF_DATA_DIR="${GEN3_WORKDIR}"
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
   return 0
 }
