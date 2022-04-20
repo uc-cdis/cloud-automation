@@ -10,7 +10,7 @@ fi
 $GEN3_DRY_RUN && gen3_log_info "Running in DRY_RUN mode ..."
 
 gen3_log_info "Running: terraform apply plan.terraform"
-if ! ($GEN3_DRY_RUN || gen3_terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" apply plan.terraform); then
+if ! ($GEN3_DRY_RUN || gen3_terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" apply "${GEN3_WORKDIR}/plan.terraform"); then
   gen3_log_err "apply failed, bailing out"
   exit 1
 fi
