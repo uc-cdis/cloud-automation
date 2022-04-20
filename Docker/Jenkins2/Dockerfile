@@ -115,7 +115,7 @@ RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
   && usermod -G sudo jenkins
 
 # add our custom start script
-COPY jenkins.sh /opt/cdis/bin/jenkins2.sh
+COPY jenkins2.sh /opt/cdis/bin/jenkins2.sh
 RUN chmod -R a+rx /opt/cdis
 ENTRYPOINT ["/sbin/tini", "--", "/opt/cdis/bin/jenkins2.sh"]
 
