@@ -12,7 +12,7 @@ resource "aws_db_instance" "db_fence" {
   engine_version              = var.engine_version
   parameter_group_name        = aws_db_parameter_group.rds-cdis-pg.name
   instance_class              = var.fence_db_instance
-  name                        = var.fence_database_name
+  db_name                        = var.fence_database_name
   username                    = var.fence_db_username
   password                    = var.db_password_fence
   snapshot_identifier         = var.fence_snapshot
@@ -48,7 +48,7 @@ resource "aws_db_instance" "db_sheepdog" {
   engine_version              = var.engine_version
   parameter_group_name        = aws_db_parameter_group.rds-cdis-pg.name
   instance_class              = var.sheepdog_db_instance
-  name                        = var.sheepdog_database_name
+  db_name                        = var.sheepdog_database_name
   username                    = var.sheepdog_db_username
   password                    = var.db_password_sheepdog
   snapshot_identifier         = var.sheepdog_snapshot
@@ -84,7 +84,7 @@ resource "aws_db_instance" "db_indexd" {
   engine_version              = var.engine_version
   parameter_group_name        = aws_db_parameter_group.rds-cdis-pg.name
   instance_class              = var.indexd_db_instance
-  name                        = var.indexd_database_name
+  db_name                        = var.indexd_database_name
   username                    = var.indexd_db_username
   password                    = var.db_password_indexd
   snapshot_identifier         = var.indexd_snapshot

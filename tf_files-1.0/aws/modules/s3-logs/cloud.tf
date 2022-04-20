@@ -1,10 +1,3 @@
-terraform {
-  backend "s3" {
-    encrypt = "true"
-  }
-
-}
-
 resource "aws_s3_bucket" "log_bucket" {
   bucket = local.clean_bucket_name
 
