@@ -112,8 +112,8 @@ resource "random_shuffle" "az" {
   #input = ["${data.aws_availability_zones.available.names}"]
   #input = "${length(var.availability_zones) > 0 ? var.availability_zones : data.aws_autoscaling_group.squid_auto.availability_zones }"
   #input = "${var.availability_zones}"
-  input = [element(local.azs)]
-  result_count = length(local.azs)
+  input = [element(local.azs, count.index)]
+  result_count = length(local.azs, count.index)
   count = 1
 }
 
@@ -660,7 +660,7 @@ resource "aws_security_group" "ssh" {
 # To output an IAM Role authentication ConfigMap from your Terraform configuration:
 
 locals {
-  config-map-aws-auth  = deploy_workflow ? local.cm1 : local.cm2
+  config-map-aws-auth  = var.eploy_workflow ? local.cm1 : local.cm2
   cm1 = <<CONFIGMAPAWSAUTH
 apiVersion: v1
 kind: ConfigMap
