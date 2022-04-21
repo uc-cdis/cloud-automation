@@ -284,7 +284,7 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = var.eks_version
 
   vpc_config {
-    subnet_ids              = [aws_subnet.eks_private.*.id]
+    subnet_ids              = [element(aws_subnet.eks_private[*].id, count.index)]
     security_group_ids      = [aws_security_group.eks_control_plane_sg.id]
     endpoint_private_access = "true"
   }
@@ -513,6 +513,7 @@ resource "aws_security_group_rule" "nodes_interpool_communications" {
 
 # Let's allow the two polls talk to each other
 resource "aws_security_group_rule" "workflow_nodes_interpool_communications" {
+  count                    = var.deploy_workflow ? 1 : 0
   type                     = "ingress"
   from_port                = 0
   to_port                  = 0
@@ -679,7 +680,7 @@ data:
       groups:
         - system:bootstrappers
         - system:nodes
-    - rolearn: ${module.workflow_pool[0].nodepool_role}
+    - rolearn: ${var.deploy_workflow ? module.workflow_pool[0].nodepool_role : ""}
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
