@@ -87,7 +87,7 @@ resource "aws_lambda_function" "gw_checks" {
   description   = "Checks for internet access from the worker nodes subnets"
 
   vpc_config {
-    subnet_ids         = [aws_subnet.eks_private.*.id]
+    subnet_ids         = flatten([aws_subnet.eks_private.*.id])
     security_group_ids = [aws_security_group.eks_nodes_sg.id]
   }
 

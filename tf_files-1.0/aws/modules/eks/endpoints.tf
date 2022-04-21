@@ -21,7 +21,7 @@ resource "aws_vpc_endpoint" "sts" {
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [data.aws_security_group.local_traffic.id]
   private_dns_enabled = true
-  subnet_ids          = [aws_subnet.eks_private[*].id]
+  subnet_ids          = flatten([aws_subnet.eks_private[*].id])
   tags = {
     Name         = "to sts"
     Environment  = var.vpc_name
@@ -36,7 +36,7 @@ resource "aws_vpc_endpoint" "autoscaling" {
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [data.aws_security_group.local_traffic.id]
   private_dns_enabled = true
-  subnet_ids          = [aws_subnet.eks_private[*].id]
+  subnet_ids          = flatten([aws_subnet.eks_private[*].id])
   tags = {
     Name         = "to autoscaling"
     Environment  = var.vpc_name
@@ -51,7 +51,7 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [data.aws_security_group.local_traffic.id]
   private_dns_enabled = true
-  subnet_ids       = [aws_subnet.eks_private[*].id]
+  subnet_ids       = flatten([aws_subnet.eks_private[*].id])
   tags = {
     Name         = "to ecr dkr"
     Environment  = var.vpc_name
@@ -66,7 +66,7 @@ resource "aws_vpc_endpoint" "ecr-api" {
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [data.aws_security_group.local_traffic.id]
   private_dns_enabled = true
-  subnet_ids       = [aws_subnet.eks_private[*].id]
+  subnet_ids       = flatten([aws_subnet.eks_private[*].id])
   tags = {
     Name         = "to ecr api"
     Environment  = var.vpc_name
@@ -81,7 +81,7 @@ resource "aws_vpc_endpoint" "ebs" {
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [data.aws_security_group.local_traffic.id]
   private_dns_enabled = true
-  subnet_ids       = [aws_subnet.eks_private[*].id]
+  subnet_ids       = flatten([aws_subnet.eks_private[*].id])
   tags = {
     Name         = "to ebs"
     Environment  = var.vpc_name
@@ -110,7 +110,7 @@ resource "aws_vpc_endpoint" "k8s-logs" {
   vpc_endpoint_type   = "Interface"
   security_group_ids  = [data.aws_security_group.local_traffic.id]
   private_dns_enabled = true
-  subnet_ids          = [aws_subnet.eks_private[*].id]
+  subnet_ids          = flatten([aws_subnet.eks_private[*].id])
   lifecycle {
     #ignore_changes = ["subnet_ids"]
   }
