@@ -284,7 +284,7 @@ resource "aws_eks_cluster" "eks_cluster" {
   version  = var.eks_version
 
   vpc_config {
-    subnet_ids              = [element(aws_subnet.eks_private[*].id, count.index)]
+    subnet_ids              = [aws_subnet.eks_private[*].id]
     security_group_ids      = [aws_security_group.eks_control_plane_sg.id]
     endpoint_private_access = "true"
   }
