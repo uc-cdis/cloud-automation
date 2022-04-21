@@ -390,7 +390,7 @@ EOF
 resource "aws_iam_role_policy" "csoc_alert_sns_access" {
   count  = var.sns_topic_arn != "" ? 1 : 0
   name   = "${var.vpc_name}_CSOC_alert_SNS_topic_acess"
-  policy = data.aws_iam_policy_document.planx-csoc-alerts-topic_access.json
+  policy = data.aws_iam_policy_document.planx-csoc-alerts-topic_access[count.index].json
   role   = aws_iam_role.eks_node_role.id
 }
 
@@ -473,7 +473,7 @@ resource "aws_security_group_rule" "https_nodes_to_plane" {
   protocol                 = "tcp"
   security_group_id        = aws_security_group.eks_control_plane_sg.id
   source_security_group_id = aws_security_group.eks_nodes_sg.id
-  depends_on               = ["aws_security_group.eks_nodes_sg", "aws_security_group.eks_control_plane_sg" ]
+  depends_on               = [aws_security_group.eks_nodes_sg, aws_security_group.eks_control_plane_sg]
   description              = "from the workers to the control plane"
 }
 
@@ -546,7 +546,7 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   instance_type               = var.instance_type
   name_prefix                 = "eks-${var.vpc_name}"
   security_groups             = [aws_security_group.eks_nodes_sg.id, aws_security_group.ssh.id]
-  user_data_base64            = base64encode(data.template_file.bootstrap.rendered)
+  user_data_base64            = base64encode(templatefile("${path.module}/../../../../flavors/eks/${var.bootstrap_script}", {eks_ca = aws_eks_cluster.eks_cluster.certificate_authority.0.data, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_region = data.aws_region.current.name, vpc_name = var.vpc_name, ssh_keys = templatefile(file("${path.module}/../../../../files/authorized_keys/ops_team"), {}), nodepool = "default", activation_id = var.activation_id, customer_id = var.customer_id}))
   key_name                    = var.ec2_keyname
 
   root_block_device {
@@ -673,12 +673,12 @@ data:
       groups:
         - system:bootstrappers
         - system:nodes
-    - rolearn: ${module.jupyter_pool.nodepool_role}
+    - rolearn: ${module.jupyter_pool[0].nodepool_role}
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
         - system:nodes
-    - rolearn: ${module.workflow_pool.nodepool_role}
+    - rolearn: ${module.workflow_pool[0].nodepool_role}
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
@@ -696,12 +696,12 @@ CONFIGMAPAWSAUTH
 #
 resource "null_resource" "config_setup" {
    triggers {
-    kubeconfig_change  = data.template_file.kube_config.rendered
+    kubeconfig_change  =   templatefile(file("${path.module}/kubeconfig.tpl"), {vpc_name = var.vpc_name, eks_name = aws_eks_cluster.eks_cluster.id, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_cert = aws_eks_cluster.eks_cluster.certificate_authority.0.data,})
     configmap_change   = local.config-map-aws-auth
   }
 
   provisioner "local-exec" {
-    command = "mkdir -p ${var.vpc_name}_output_EKS; echo '${data.template_file.kube_config.rendered}' >${var.vpc_name}_output_EKS/kubeconfig"
+    command = "mkdir -p ${var.vpc_name}_output_EKS; echo '${templatefile(file("${path.module}/kubeconfig.tpl"), {vpc_name = var.vpc_name, eks_name = aws_eks_cluster.eks_cluster.id, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_cert = aws_eks_cluster.eks_cluster.certificate_authority.0.data,})}' >${var.vpc_name}_output_EKS/kubeconfig"
   }
 
   provisioner "local-exec" {
@@ -709,16 +709,14 @@ resource "null_resource" "config_setup" {
   }
 
   provisioner "local-exec" {
-    command = "echo \"${data.template_file.init_cluster.rendered}\" > ${var.vpc_name}_output_EKS/init_cluster.sh"
+    command = "echo \"${  templatefile(file("${path.module}/init_cluster.sh"), { vpc_name = var.vpc_name, kubeconfig_path = "${var.vpc_name}_output_EKS/kubeconfig", auth_configmap = "${var.vpc_name}_output_EKS/aws-auth-cm.yaml"})}\" > ${var.vpc_name}_output_EKS/init_cluster.sh"
   }
 
   provisioner "local-exec" {
     command = "bash ${var.vpc_name}_output_EKS/init_cluster.sh"
   }
 
-  depends_on = [
-    "aws_autoscaling_group.eks_autoscaling_group",
-  ]
+  depends_on = [aws_autoscaling_group.eks_autoscaling_group]
 }
 
 
@@ -732,6 +730,6 @@ resource "aws_iam_openid_connect_provider" "identity_provider" {
 
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = "${var.oidc_eks_thumbprint}"
-  depends_on      = ["aws_eks_cluster.eks_cluster"]
+  depends_on      = [aws_eks_cluster.eks_cluster]
 }
 
