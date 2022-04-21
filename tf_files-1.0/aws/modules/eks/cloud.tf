@@ -120,11 +120,11 @@ resource "random_shuffle" "az" {
 
 # The subnet where our cluster will live in
 resource "aws_subnet" "eks_private" {
-  count                   = random_shuffle[count.index].az.result_count
+  count                   = random_shuffle.az[0].result_count
   vpc_id                  = data.aws_vpc.the_vpc.id
   #cidr_block              = "${var.workers_subnet_size == 23 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 3 , ( 2 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index )) }"
   cidr_block              = var.workers_subnet_size == 22 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 2 , ( 1 + count.index )) : var.workers_subnet_size == 23 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 3 , ( 2 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index )) 
-  availability_zone       = random_shuffle[count.index].az.result[count.index]
+  availability_zone       = random_shuffle.az[0].result[count.index]
   map_public_ip_on_launch = false
 
   tags = tomap({
@@ -145,7 +145,7 @@ resource "aws_subnet" "eks_secondary_subnet" {
   count                   = var.secondary_cidr_block != "" ? 1 : 0
   vpc_id                  = data.aws_vpc.the_vpc.id
   cidr_block              = var.secondary_cidr_block
-  availability_zone       = random_shuffle[count.index].az.result[count.index]
+  availability_zone       = random_shuffle.az[0].result[count.index]
   map_public_ip_on_launch = false
 
   tags = tomap({
@@ -166,11 +166,11 @@ resource "aws_subnet" "eks_secondary_subnet" {
 # for the ELB to talk to the worker nodes
 resource "aws_subnet" "eks_public" {
   #count                   = 3
-  count                   = random_shuffle[count.index].az.result_count
+  count                   = random_shuffle.az[0].result_count
   vpc_id                  = data.aws_vpc.the_vpc.id
   cidr_block              = var.workers_subnet_size == 22 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 5 , ( 4 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 10 + count.index ))
   map_public_ip_on_launch = true
-  availability_zone       = random_shuffle[count.index].az.result[count.index]
+  availability_zone       = random_shuffle.az[0].result[count.index]
 
   # Note: KubernetesCluster tag is required by kube-aws to identify the public subnet for ELBs
 
