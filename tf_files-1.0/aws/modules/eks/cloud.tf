@@ -228,7 +228,7 @@ resource "aws_route" "public_access" {
 }
 
 resource "aws_route_table_association" "private_kube" {
-  count          = random_shuffle.az.result_count
+  count          = random_shuffle.az[0].result_count
   subnet_id      = aws_subnet.eks_private.*.id[count.index]
   route_table_id = aws_route_table.eks_private.id
   depends_on     = [aws_subnet.eks_private]
@@ -265,7 +265,7 @@ resource "aws_security_group" "eks_control_plane_sg" {
 
 
 resource "aws_route_table_association" "public_kube" {
-  count          = random_shuffle.az.result_count
+  count          = random_shuffle.az[0].result_count
   subnet_id      = aws_subnet.eks_public.*.id[count.index]
   route_table_id = data.aws_route_table.public_kube.id
 
@@ -546,7 +546,7 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   instance_type               = var.instance_type
   name_prefix                 = "eks-${var.vpc_name}"
   security_groups             = [aws_security_group.eks_nodes_sg.id, aws_security_group.ssh.id]
-  user_data_base64            = base64encode(templatefile("${path.module}/../../../../flavors/eks/${var.bootstrap_script}", {eks_ca = aws_eks_cluster.eks_cluster.certificate_authority.0.data, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_region = data.aws_region.current.name, vpc_name = var.vpc_name, ssh_keys = templatefile(file("${path.module}/../../../../files/authorized_keys/ops_team"), {}), nodepool = "default", activation_id = var.activation_id, customer_id = var.customer_id}))
+  user_data_base64            = base64encode(templatefile("${path.module}/../../../../flavors/eks/${var.bootstrap_script}", {eks_ca = aws_eks_cluster.eks_cluster.certificate_authority.0.data, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_region = data.aws_region.current.name, vpc_name = var.vpc_name, ssh_keys = templatefile("${path.module}/../../../../files/authorized_keys/ops_team", {}), nodepool = "default", activation_id = var.activation_id, customer_id = var.customer_id}))
   key_name                    = var.ec2_keyname
 
   root_block_device {

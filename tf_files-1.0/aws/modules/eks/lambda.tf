@@ -125,15 +125,15 @@ resource "aws_cloudwatch_event_rule" "gw_checks_rule" {
 
 resource "aws_cloudwatch_event_target" "cw_to_lambda" {
   count     = var.ha_squid ? 1 : 0
-  rule      = aws_cloudwatch_event_rule.gw_checks_rule.name
-  arn       = aws_lambda_function.gw_checks.arn
+  rule      = aws_cloudwatch_event_rule.gw_checks_rule[count.index].name
+  arn       = aws_lambda_function.gw_check[count.index]s.arn
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch" {
   count         = var.ha_squid ? 1 : 0
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.gw_checks.function_name
+  function_name = aws_lambda_function.gw_checks[count.index].function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.gw_checks_rule.arn
+  source_arn    = aws_cloudwatch_event_rule.gw_checks_rule[count.index].arn
 }
