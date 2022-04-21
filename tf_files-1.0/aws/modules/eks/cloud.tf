@@ -583,7 +583,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
   max_size                = 10
   min_size                = 2
   name                    = "eks-worker-node-${var.vpc_name}"
-  vpc_zone_identifier     = [aws_subnet.eks_private.*.id]
+  vpc_zone_identifier     = flatten([aws_subnet.eks_private.*.id])
 
   tag {
     key                 = "Environment"
