@@ -46,7 +46,7 @@ output "data-bucket_name" {
 }
 
 output "kubeconfig" {
-  value = module.eks.kubeconfig
+  value = module.eks[0].kubeconfig
 }
 
 output "config_map_aws_auth" {

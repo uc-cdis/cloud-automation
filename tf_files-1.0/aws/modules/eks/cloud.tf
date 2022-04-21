@@ -236,7 +236,7 @@ resource "aws_route_table_association" "private_kube" {
 
 resource "aws_route_table_association" "secondary_subnet_kube" {
   count          = var.secondary_cidr_block != "" ? 1 : 0
-  subnet_id      = aws_subnet.eks_secondary_subnet.id
+  subnet_id      = aws_subnet.eks_secondary_subnet[count.index].id
   route_table_id = aws_route_table.eks_private.id
   depends_on     = [aws_subnet.eks_secondary_subnet]
 }
@@ -695,13 +695,13 @@ CONFIGMAPAWSAUTH
 # instead just publish output variables
 #
 resource "null_resource" "config_setup" {
-   triggers {
+   triggers = {
     kubeconfig_change  =   templatefile(file("${path.module}/kubeconfig.tpl"), {vpc_name = var.vpc_name, eks_name = aws_eks_cluster.eks_cluster.id, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_cert = aws_eks_cluster.eks_cluster.certificate_authority.0.data,})
     configmap_change   = local.config-map-aws-auth
   }
 
   provisioner "local-exec" {
-    command = "mkdir -p ${var.vpc_name}_output_EKS; echo '${templatefile(file("${path.module}/kubeconfig.tpl"), {vpc_name = var.vpc_name, eks_name = aws_eks_cluster.eks_cluster.id, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_cert = aws_eks_cluster.eks_cluster.certificate_authority.0.data,})}' >${var.vpc_name}_output_EKS/kubeconfig"
+    command = "mkdir -p ${var.vpc_name}_output_EKS; echo '${templatefile("${path.module}/kubeconfig.tpl", {vpc_name = var.vpc_name, eks_name = aws_eks_cluster.eks_cluster.id, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_cert = aws_eks_cluster.eks_cluster.certificate_authority.0.data,})}' >${var.vpc_name}_output_EKS/kubeconfig"
   }
 
   provisioner "local-exec" {
