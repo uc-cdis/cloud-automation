@@ -126,7 +126,7 @@ resource "aws_cloudwatch_event_rule" "gw_checks_rule" {
 resource "aws_cloudwatch_event_target" "cw_to_lambda" {
   count     = var.ha_squid ? 1 : 0
   rule      = aws_cloudwatch_event_rule.gw_checks_rule[count.index].name
-  arn       = aws_lambda_function.gw_check[count.index]s.arn
+  arn       = aws_lambda_function.gw_checks[count.index].arn
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch" {
