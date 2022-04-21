@@ -709,7 +709,7 @@ resource "null_resource" "config_setup" {
   }
 
   provisioner "local-exec" {
-    command = "echo \"${  templatefile(file("${path.module}/init_cluster.sh"), { vpc_name = var.vpc_name, kubeconfig_path = "${var.vpc_name}_output_EKS/kubeconfig", auth_configmap = "${var.vpc_name}_output_EKS/aws-auth-cm.yaml"})}\" > ${var.vpc_name}_output_EKS/init_cluster.sh"
+    command = "echo \"${templatefile("${path.module}/init_cluster.sh", { vpc_name = var.vpc_name, kubeconfig_path = "${var.vpc_name}_output_EKS/kubeconfig", auth_configmap = "${var.vpc_name}_output_EKS/aws-auth-cm.yaml"})}\" > ${var.vpc_name}_output_EKS/init_cluster.sh"
   }
 
   provisioner "local-exec" {
