@@ -112,7 +112,7 @@ resource "random_shuffle" "az" {
   #input = ["${data.aws_availability_zones.available.names}"]
   #input = "${length(var.availability_zones) > 0 ? var.availability_zones : data.aws_autoscaling_group.squid_auto.availability_zones }"
   #input = "${var.availability_zones}"
-  input = [local.azs]
+  input = [element(local.azs)]
   result_count = length(local.azs)
   count = 1
 }
@@ -660,7 +660,8 @@ resource "aws_security_group" "ssh" {
 # To output an IAM Role authentication ConfigMap from your Terraform configuration:
 
 locals {
-  config-map-aws-auth = <<CONFIGMAPAWSAUTH
+  config-map-aws-auth  = deploy_workflow ? local.cm1 : local.cm2
+  cm1 = <<CONFIGMAPAWSAUTH
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -684,6 +685,25 @@ data:
         - system:bootstrappers
         - system:nodes
 CONFIGMAPAWSAUTH
+  cm2 = <<CONFIGMAPAWSAUTH2
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+    - rolearn: ${aws_iam_role.eks_node_role.arn}
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
+    - rolearn: ${module.jupyter_pool[0].nodepool_role}
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
+CONFIGMAPAWSAUTH2
 }
 
 

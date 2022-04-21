@@ -7,7 +7,7 @@ data "aws_region" "current" {}
 
 # Assuming that there is only one VPC with the vpc_name
 data "aws_vpc" "the_vpc" {
-  id = data.aws_vpcs.vpcs.ids
+  id = data.aws_vpcs.vpcs[0].ids
 }
 
 # Let's get the availability zones for the region we are working on
