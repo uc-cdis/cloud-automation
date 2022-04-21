@@ -59,21 +59,21 @@ resource "aws_iam_role_policy" "lambda_policy_resources" {
   count                 = var.ha_squid ? 1 : 0
   name                  = "resources_acces"
   policy                = data.aws_iam_policy_document.with_resources.json
-  role                  = module.iam_role.role_id
+  role                  = module.iam_role[0].role_id
 }
 
 resource "aws_iam_role_policy" "lambda_policy_no_resources" {
   count                 = var.ha_squid ? 1 : 0
   name                  = "no_resources_acces"
   policy                = data.aws_iam_policy_document.without_resources.json
-  role                  = module.iam_role.role_id
+  role                  = module.iam_role[0].role_id
 }
 
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
   count      = var.ha_squid ? 1 : 0
-  role       = module.iam_role.role_id
-  policy_arn = module.iam_policy.arn
+  role       = module.iam_role[0].role_id
+  policy_arn = module.iam_policy[0].arn
 }
 
 
@@ -81,7 +81,7 @@ resource "aws_lambda_function" "gw_checks" {
   count         = var.ha_squid ? 1 : 0
   filename      = "lambda_function_payload.zip"
   function_name = "${var.vpc_name}-gw-checks-lambda"
-  role          = "${module.iam_role.role_arn}" 
+  role          = "${module.iam_role[0].role_arn}" 
   handler       = "lambda_function.lambda_handler"
   timeout       = 45
   description   = "Checks for internet access from the worker nodes subnets"
