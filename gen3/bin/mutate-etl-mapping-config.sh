@@ -21,6 +21,6 @@ if ! shift; then
 fi
 
 g3kubectl get cm etl-mapping -o jsonpath='{.data.etlMapping\.yaml}' > etlMapping.yaml
-yq -i '.mappings[].name |= "'"${prNumber}.${repoName}."'" + .' etlMapping.yaml
+yq -yi '.mappings[].name |= "'"${prNumber}.${repoName}."'" + .' etlMapping.yaml
 g3kubectl delete configmap etl-mapping
 g3kubectl create configmap etl-mapping --from-file=etlMapping.yaml=etlMapping.yaml
