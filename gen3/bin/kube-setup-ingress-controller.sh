@@ -268,18 +268,15 @@ EOM
    
    #  # TODO: Move to values.yaml file
     helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=$(gen3 api environment) --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller 2> >(grep -v 'This is insecure' >&2)
-
-    # TODO: Export env vars if required
-    export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
-    g3kubectl apply -f "${GEN3_HOME}/kube/services/revproxy/revproxy-service.yaml"
-    envsubst <$scriptDir/ingress.yaml | g3kubectl apply -f -
   else
     gen3_log_info "kube-setup-ingress-controller exiting - ingress-controller already deployed, use --force to redeploy"
   fi
-else
-  gen3_log_warn "kube-setup-ingress-controller only deploys system resources from default namespace"
 fi
 
 
+gen3_log_info "Applying ingress resource"
+export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
+g3kubectl apply -f "${GEN3_HOME}/kube/services/revproxy/revproxy-service.yaml"
+envsubst <$scriptDir/ingress.yaml | g3kubectl apply -f -
 
 
