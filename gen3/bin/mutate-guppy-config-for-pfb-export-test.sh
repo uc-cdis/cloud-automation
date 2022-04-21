@@ -25,5 +25,5 @@ newGuppyConfig="$(jq '.indices[].index |= "'"${prNumber}.${repoName}."'" + .' <<
 newGuppyConfig="$(jq '.config_index |= "'"${prNumber}.${repoName}."'" + .' <<< "$newGuppyConfig")"
 
 g3kubectl delete configmap manifest-guppy
-gen3 configmaps-from-json manifest-guppy "$newGuppyConfig"
+gen3 gitops configmaps-from-json manifest-guppy "$newGuppyConfig"
 gen3 roll guppy
