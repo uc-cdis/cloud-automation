@@ -136,3 +136,7 @@ variable "slack_webhook" {
 variable "fips" {
   default = false
 }
+
+variable "deploy_cloud_trail" {
+  default = true
+}

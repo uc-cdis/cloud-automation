@@ -1,12 +1,3 @@
-terraform {
-  backend "s3" {
-    encrypt = "true"
-  }
-}
-
-provider "aws" {}
-
-
 module "eks" {
   count                            = var.deploy_eks ? 1 : 0
   source                           = "../modules/eks"
@@ -33,7 +24,7 @@ module "eks" {
   iam-serviceaccount               = var.iam-serviceaccount
   oidc_eks_thumbprint              = var.oidc_eks_thumbprint
   domain_test                      = var.domain_test
-  ha_squid                         = var.ha_squid
+  ha_squid                         = var.deploy_ha_squid
   dual_proxy                       = var.dual_proxy
   single_az_for_jupyter            = var.single_az_for_jupyter
   sns_topic_arn                    = var.sns_topic_arn
@@ -50,4 +41,5 @@ module "eks" {
   fips_ami_kms                     = var.fips_ami_kms
   fips_enabled_ami                 = var.fips_enabled_ami
   availability_zones               = var.availability_zones
+  depends_on                       = [module.cdis_vpc]
 }

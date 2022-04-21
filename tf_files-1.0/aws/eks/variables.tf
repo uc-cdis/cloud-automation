@@ -119,6 +119,11 @@ variable "deploy_workflow" {
   default     = false
 }
 
+variable "deploy_jupyter" {
+  description = "Deploy workflow nodepool?"
+  default     = true
+}
+
 variable "dual_proxy" {
   description = "Single instance and HA"
   default     = false
@@ -166,6 +171,9 @@ variable "fips_enabled_ami" {
 
 variable "availability_zones" {
   description = "AZ to be used by EKS nodes"
-  type        = "list"
   default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
+}
+
+variable "deploy_eks" {
+  default = true
 }

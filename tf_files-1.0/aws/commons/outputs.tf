@@ -44,3 +44,11 @@ output "fence-bot_user_id" {
 output "data-bucket_name" {
   value = module.cdis_vpc.data-bucket_name
 }
+
+output "kubeconfig" {
+  value = module.eks.kubeconfig
+}
+
+output "config_map_aws_auth" {
+  value = module.eks.config_map_aws_auth
+}

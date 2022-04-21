@@ -109,13 +109,11 @@ variable "iam-serviceaccount" {
 
 variable "oidc_eks_thumbprint" {
   description = "Thumbprint for the AWS OIDC identity provider"
-  type        = "list"
   default     = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
 }
 
 variable "availability_zones" {
   description = "AZ to be used by EKS nodes"
-  type        = "list"
   default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
 }
 
@@ -132,6 +130,11 @@ variable "ha_squid" {
 variable "deploy_workflow" {
   description = "Deploy workflow nodepool?"
   default     = false
+}
+
+variable "deploy_jupyter" {
+  description = "Deploy workflow nodepool?"
+  default     = true
 }
 
 variable "dual_proxy" {

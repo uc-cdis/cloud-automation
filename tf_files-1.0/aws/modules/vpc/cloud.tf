@@ -39,6 +39,7 @@ module "data-bucket" {
   vpc_name             = var.vpc_name
   cloudwatchlogs_group = aws_cloudwatch_log_group.main_log_group.arn
   environment          = var.vpc_name
+  deploy_cloud_trail   = var.deploy_cloud_trail
 }
 
 #done

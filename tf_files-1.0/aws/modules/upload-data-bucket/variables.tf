@@ -14,3 +14,7 @@ variable "environment" {
 variable "cloudwatchlogs_group" {
   #value 
 }
+
+variable "deploy_cloud_trail" {
+  default = true
+}

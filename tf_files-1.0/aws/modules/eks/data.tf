@@ -7,7 +7,7 @@ data "aws_region" "current" {}
 
 # Assuming that there is only one VPC with the vpc_name
 data "aws_vpc" "the_vpc" {
-  id = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
+  id = element(data.aws_vpcs.vpcs.ids, count.index)
 }
 
 # Let's get the availability zones for the region we are working on
@@ -19,7 +19,7 @@ data "aws_availability_zones" "available" {
 # Let's grab the vpc we already created in the VPC module.
 data "aws_vpcs" "vpcs" {
   tags = {
-    Name = "${var.vpc_name}"
+    Name = var.vpc_name
   }
 }
 
@@ -30,7 +30,7 @@ data "aws_vpcs" "vpcs" {
 # Also we want to access AWS stuff directly though an existing 
 # nat gateway instead than going through the proxy
 data "aws_nat_gateway" "the_gateway" {
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
+  vpc_id = data.aws_vpc.the_vpc.id
 
   tags = {
     Name = "${var.vpc_name}-ngw"
@@ -42,7 +42,7 @@ data "aws_nat_gateway" "the_gateway" {
 # Also let's allow comminication through the peering
 
 data "aws_vpc_peering_connection" "pc" {
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
+  vpc_id = data.aws_vpc.the_vpc.id
   status = "active"
 }
 
@@ -80,7 +80,7 @@ data "aws_vpc_endpoint_service" "sts" {
 
 # get the route to public kube 
 data "aws_route_table" "public_kube" {
-  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+  vpc_id      = data.aws_vpc.the_vpc.id
   tags = {
     Name = "main"
   }
@@ -102,19 +102,19 @@ data "aws_ami" "eks_worker" {
 
 # grab the local traffic sec group
 data "aws_security_group" "local_traffic" {
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
+  vpc_id = data.aws_vpc.the_vpc.id
   name   = "local"
 }
 
 # we are going to use the same AZs used for the squid autoscaling group
 
 data "aws_autoscaling_group" "squid_auto" {
-  count         = "${var.ha_squid ? 1 : 0}"
-  name = "squid-auto-${var.vpc_name}"
+  count = var.ha_squid ? 1 : 0
+  name  = "squid-auto-${var.vpc_name}"
 }
 
 data "aws_instances" "squid_proxy" {
-  count         = "${var.ha_squid ? var.dual_proxy ? 1 : 0 : 1}"
+  count         = var.ha_squid ? var.dual_proxy ? 1 : 0 : 1
   instance_tags = {
     Name = "${var.vpc_name}${var.proxy_name}"
   }
@@ -123,7 +123,7 @@ data "aws_instances" "squid_proxy" {
 
 # get the private kube table id
 data "aws_route_table" "private_kube_route_table" {
-  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+  vpc_id      = data.aws_vpc.the_vpc.id
   tags = {
     Name = "private_kube"
   }
@@ -132,7 +132,7 @@ data "aws_route_table" "private_kube_route_table" {
 #get the internal zone id
 data "aws_route53_zone" "vpczone" {
   name        = "internal.io."
-  vpc_id      = "${data.aws_vpc.the_vpc.id}"
+  vpc_id      = data.aws_vpc.the_vpc.id
 }
 
 # let terraform compress our code and serve to lambda
@@ -190,10 +190,10 @@ data "aws_iam_policy_document" "without_resources" {
 
 # Policy for access to CSOC sns
 data "aws_iam_policy_document" "planx-csoc-alerts-topic_access" {
-  count = "${var.sns_topic_arn != "" ? 1 : 0 }"
+  count = var.sns_topic_arn != "" ? 1 : 0 
   statement {
-    actions   = [ "sns:Publish" ]
+    actions   = ["sns:Publish"]
     effect    = "Allow"
-    resources = [ "${var.sns_topic_arn}" ]
+    resources = [var.sns_topic_arn]
   }
 }

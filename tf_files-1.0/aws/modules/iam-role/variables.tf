@@ -10,7 +10,6 @@ variable "role_assume_role_policy" {
 
 variable "role_tags" {
   description = "Tags for the role"
-  type        = "map"
   default     = {}
 }
 
