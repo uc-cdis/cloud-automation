@@ -294,7 +294,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
   max_size             = var.nodepool_asg_max_size
   min_size             = var.nodepool_asg_min_size
   name                 = "eks-${var.nodepool}worker-node-${var.vpc_name}"
-  vpc_zone_identifier  = [var.eks_private_subnets]
+  vpc_zone_identifier  = flatten([var.eks_private_subnets])
 
   tag {
     key                 = "Environment"
