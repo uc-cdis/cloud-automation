@@ -13,7 +13,7 @@ data "aws_vpcs" "vpcs" {
 
 # Assuming that there is only one VPC with the vpc_name
 data "aws_vpc" "the_vpc" {
-  id = flatten(data.aws_vpcs.vpcs.ids[0])
+  id = data.aws_vpcs.vpcs.ids[0]
 }
 
 
