@@ -9,21 +9,13 @@ set -xe
 # the incoming PR's guppy configuration is mutated to Jenkins environment
 
 # how to run:
-# gen3 mutate-guppy-config-for-pfb-export-test {PR} {repoName}
+# gen3 mutate-guppy-config-for-pfb-export-test
 
-prNumber=$1
-shift
-repoName=$1
-
-if ! shift; then
- gen3_log_err "use: mutate-guppy-config prNumber repoName"
- exit 1
-fi
-
-oldGuppyConfig="$(g3kubectl get configmap manifest-guppy -o jsonpath='{.data.json}')"
-newGuppyConfig="$(jq '.indices[].index |= "'"${prNumber}.${repoName}."'" + .' <<< "$oldGuppyConfig")"
-newGuppyConfig="$(jq '.config_index |= "'"${prNumber}.${repoName}."'" + .' <<< "$newGuppyConfig")"
+etlMapping="$(g3kubectl get cm etl-mapping -o jsonpath='{.data.etlMapping\.yaml}')"
+guppyConfig="$(yq '{indices:[.mappings[]|{index:.name,type:.doc_type}],auth_filter_field:"auth_resource_path"}' <<< "$etlMapping")"
+configIndex="$(jq -r '.indices[0].index' <<< "$guppyConfig" | rev | cut -d_ -f2- | rev)_array-config"
+guppyConfig="$(jq --arg configIndex "$configIndex" '. += {config_index:$configIndex}' <<< "$guppyConfig")"
 
 g3kubectl delete configmap manifest-guppy
-gen3 gitops configmaps-from-json manifest-guppy "$newGuppyConfig"
+gen3 gitops configmaps-from-json manifest-guppy "$guppyConfig"
 gen3 roll guppy
