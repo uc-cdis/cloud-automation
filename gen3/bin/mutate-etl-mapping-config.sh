@@ -21,6 +21,13 @@ if ! shift; then
 fi
 
 g3kubectl get cm etl-mapping -o jsonpath='{.data.etlMapping\.yaml}' > etlMapping.yaml
-yq -yi '.mappings[].name |= "'"${prNumber}.${repoName}."'" + .' etlMapping.yaml
+
+prefix="${prNumber}.${repoName}."
+if ! grep "$prefix" etlMapping.yaml; then
+ gen3_log_info "ETL Mapping has already been mutated by a previous run of this script"
+ exit 0
+fi
+
+yq -yi '.mappings[].name |= "'"${prefix}"'" + .' etlMapping.yaml
 g3kubectl delete configmap etl-mapping
 g3kubectl create configmap etl-mapping --from-file=etlMapping.yaml=etlMapping.yaml
