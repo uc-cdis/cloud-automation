@@ -112,7 +112,7 @@ resource "random_shuffle" "az" {
   #input = ["${data.aws_availability_zones.available.names}"]
   #input = "${length(var.availability_zones) > 0 ? var.availability_zones : data.aws_autoscaling_group.squid_auto.availability_zones }"
   #input = "${var.availability_zones}"
-  input = [element(local.azs, count.index)]
+  input = local.azs
   result_count = length(local.azs)
   count = 1
 }
@@ -224,7 +224,7 @@ resource "aws_route" "public_access" {
   count                  = var.ha_squid ? var.dual_proxy ? 1 : 0 : 1
   destination_cidr_block = "0.0.0.0/0"
   route_table_id         = aws_route_table.eks_private.id
-  instance_id            = data.aws_instances.squid_proxy[count.index].ids[0]
+  network_interface_id            = data.aws_instances.squid_proxy[count.index].ids[0]
 }
 
 resource "aws_route_table_association" "private_kube" {
@@ -485,7 +485,7 @@ resource "aws_security_group_rule" "communication_plane_to_nodes" {
   protocol                 = "tcp"
   security_group_id        = aws_security_group.eks_nodes_sg.id
   source_security_group_id = aws_security_group.eks_control_plane_sg.id
-  depends_on               = ["aws_security_group.eks_nodes_sg", "aws_security_group.eks_control_plane_sg" ]
+  depends_on               = [aws_security_group.eks_nodes_sg, aws_security_group.eks_control_plane_sg]
   description              = "from the control plane to the nodes"
 }
 
