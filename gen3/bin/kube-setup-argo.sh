@@ -209,7 +209,14 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
     helm repo add argo https://argoproj.github.io/argo-helm --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
     # pin the version of chart to 0.13.1 since the latest version 0.14.0 will cause workflows to not run
-    helm upgrade --install argo argo/argo-workflows -n argo -f ${valuesFile} --version 0.13.1
+    local helmVersion="0.13.1"
+    if [[ ! -z $(g3k_config_lookup '.argo."helm-chart-version"') ]]; then
+      helmVersion=$(g3k_config_lookup '.argo."helm-chart-version"')
+    fi
+    if [[ ! -z $(g3k_config_lookup '."helm-chart-version"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
+      helmVersion=$(g3k_config_lookup '."helm-chart-version"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
+    fi
+    helm upgrade --install argo argo/argo-workflows -n argo -f ${valuesFile} --version $helmVersion
   else
     gen3_log_info "kube-setup-argo exiting - argo already deployed, use --force to redeploy"
   fi
