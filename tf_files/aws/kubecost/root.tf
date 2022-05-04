@@ -42,7 +42,7 @@ resource "aws_s3_bucket" "cur-bucket" {
 
   tags = {
     Name        = "${var.vpc_name}-cur-bucket"
-    Environment = "${var.environment}"
+    Environment = "${var.vpc_name}"
     Purpose     = "Cost and Usage report bucket for use by Kubecost"
   }
 
@@ -98,7 +98,7 @@ resource "aws_iam_user" "kubecost-user" {
   name = "${var.vpc_name}-kubecost-user"
 
   tags = {
-    Environment = "${var.environment}"
+    Environment = "${var.vpc_name}"
     Purpose     = "Kubecost user with access to Cost and Usage report"
   }
 }
