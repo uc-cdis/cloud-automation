@@ -81,7 +81,7 @@ spec:
         env:
           - name: HOSTNAME
             value: revproxy-service
-          - name: PORTAL_BASENAME
+          - name: NEXT_PUBLIC_PORTAL_BASENAME
             value: /portal
         volumeMounts:
           - name: "cert-volume"
