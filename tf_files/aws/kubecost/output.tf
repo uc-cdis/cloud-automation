@@ -12,11 +12,11 @@ output "athena_table_name" {
 }
 
 output "athena_result_bucket" {
-  value = "s3://aws-athena-query-results-${data.aws_caller_identity.current.account_id}-${data.aws_region_current.name}/"
+  value = "s3://aws-athena-query-results-${local.account_id}-${local.region}/"
 }
 
 output "aws_account_id" {
-  value = data.aws_caller_identity.current.account_id
+  value = local.account_id
 }
 
 output "kubectcost-user-id" {
