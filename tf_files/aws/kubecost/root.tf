@@ -158,7 +158,7 @@ resource "aws_iam_user_policy_attachment" "kubecost-user-policy-attachment" {
 # Role for the glue crawler
 resource "aws_iam_role" "glue-crawler-role" {
   name = "AWSCURCrawlerComponentFunction-${var.vpc_name}"
-  managed_policy_arns = ["AWSGlueServiceRole"]
+  managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
