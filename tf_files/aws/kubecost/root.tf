@@ -21,7 +21,7 @@ resource "aws_cur_report_definition" "kubecost-cur" {
   format                     = "Parquet"
   compression                = "Parquet"
   additional_schema_elements = ["RESOURCES"]
-  s3_bucket                  = "${aws_s3_bucket.cur-bucket.name}"
+  s3_bucket                  = "${aws_s3_bucket.cur-bucket.id}"
   s3_region                  = "us-east-1"
   additional_artifacts       = ["ATHENA"]
   report_versioning          = "OVERWRITE_REPORT"
@@ -344,7 +344,7 @@ resource "aws_lambda_function" "cur-initializer-lambda" {
   role             = aws_iam_role.cur-initializer-lambda-role.arn
   handler          = "index.handler"
   timeout          = "30"
-  source_code_hash = filebase64sha256("AWSCURInitializer.zip")
+  source_code_hash = filebase64sha256("${path.module}/AWSCURInitializer.zip")
   runtime          = "nodejs12.x"
 }
 
@@ -361,7 +361,7 @@ resource "aws_lambda_function" "cur-s3-notification-lambda" {
   role             = aws_iam_role.cur-s3-notification-lambda-role.arn
   handler          = "index.handler"
   timeout          = "30"
-  source_code_hash = filebase64sha256("AWSS3CURNotification.zip")
+  source_code_hash = filebase64sha256("${path.module}/AWSS3CURNotification.zip")
   runtime          = "nodejs12.x"
 
   environment {
