@@ -8,14 +8,14 @@ gen3_load "gen3/lib/kube-setup-init"
 if [[ -z $1 ]]; then
   gen3_log_err "Please provide token and use this like gen3 kube-setup-kubecost <kubecost token>"
 else
-  local kubecostToken="$1"
+  kubecostToken="$1"
 fi
 if [[ $2 == "setupSA" ]]; then
-  local setupSA=true
+  setupSA=true
 fi
-local ctx="$(g3kubectl config current-context)"
-local ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
-local accountID=$(aws sts get-caller-identity --output text --query 'Account')
+ctx="$(g3kubectl config current-context)"
+ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
+accountID=$(aws sts get-caller-identity --output text --query 'Account')
 
 setup_kubecost_infrastructure() {
   gen3 workon default "${vpc_name}__kubecost"
@@ -23,6 +23,7 @@ setup_kubecost_infrastructure() {
   echo "vpc_name=$vpc_name" > config.tfvars
   gen3 tfplan 2>&1
   gen3 tfapply 2>&1
+}
 
 setup_kubecost_service_account() {
   roleName="emalinowskiv1-kubecost-user"
