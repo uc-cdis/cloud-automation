@@ -5,7 +5,7 @@ terraform {
     encrypt = "true"
   }
   required_providers {
-    aws = "~> 2.41"
+    aws = "<= 3.37.0"
   }
 }
 
@@ -15,8 +15,8 @@ locals {
 
 # The Cost and Usage report
 resource "aws_cur_report_definition" "kubecost-cur" {
-  report_name                = "${var.vpc_name}-CUR"
-  prefix                     = "${var.vpc_name}"
+  report_name                = "${var.vpc_name}-cur"
+  s3_prefix                  = "${var.vpc_name}"
   time_unit                  = "HOURLY"
   format                     = "Parquet"
   compression                = "Parquet"
@@ -46,9 +46,6 @@ resource "aws_s3_bucket" "cur-bucket" {
     Purpose     = "Cost and Usage report bucket for use by Kubecost"
   }
 
-  lifecycle = {
-    ignore_changes = ["cors_rule"]
-  }
 }
 
 
@@ -66,7 +63,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
           Service = "billingreports.amazonaws.com"
         }
         Action = ["s3:GetBucketAcl","s3:GetBucketPolicy"]
-        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.name}"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id}"
         Condition = {
         StringEquals = {
           "aws:SourceArn" = "arn:aws:cur:us-east-1:${local.account_id}:definition/*"
@@ -81,7 +78,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
           Service = "billingreports.amazonaws.com"
         }
         Action = "s3:PutObject"
-        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.name}/*"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id}/*"
         Condition = {
           StringEquals = {
             "aws:SourceArn" = "arn:aws:cur:us-east-1:${local.account_id}:definition/*"
@@ -141,7 +138,7 @@ resource "aws_iam_policy" "kubecost-user-policy" {
         Sid = "S3ReadAccessToAwsBillingData"
         Effect = "Allow"
         Action = ["s3:Get*","s3:List*"]
-        Resource = ["arn:aws:s3:::${aws_s3_bucket.cur-bucket.name}*"]
+        Resource = ["arn:aws:s3:::${aws_s3_bucket.cur-bucket.id}*"]
       }
     ]
   })
@@ -149,7 +146,6 @@ resource "aws_iam_policy" "kubecost-user-policy" {
 
 # Policy attachment of the kubecost user policy to the kubecost user
 resource "aws_iam_user_policy_attachment" "kubecost-user-policy-attachment" {
-  name       = "kubecost-user-policy-attachment"
   user       = aws_iam_user.kubecost-user.name
   policy_arn = aws_iam_policy.kubecost-user-policy.arn
 }
@@ -194,7 +190,7 @@ resource "aws_iam_role" "glue-crawler-role" {
         },
         {
           Action = ["s3:GetObject","s3:PutObject"]
-          Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.name}/${var.vpc_name}/${var.vpc_name}-CUR/test-cur*"
+          Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id}/${var.vpc_name}/${var.vpc_name}-cur/test-cur*"
           Effect = "Allow"
         }
       ]
@@ -286,7 +282,7 @@ resource "aws_iam_role" "cur-s3-notification-lambda-role" {
         },
         {
           Action = ["s3:PutBucketNotification"]
-          Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.name}"
+          Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id}"
           Effect = "Allow"
         }
       ]
@@ -309,7 +305,7 @@ resource "aws_glue_crawler" "cur-glue-crawler" {
   role          = aws_iam_role.glue-crawler-role.arn
 
   s3_target {
-    path = "s3://${aws_s3_bucket.cur-bucket.name}/${var.vpc_name}/${var.vpc_name}-CUR/test-cur"
+    path = "s3://${aws_s3_bucket.cur-bucket.id}/${var.vpc_name}/${var.vpc_name}-cur/test-cur"
     exclusions = ["**.json","**.yml","**.sql","**.csv","**.gz","**.zip"]
   }
 }
@@ -317,12 +313,12 @@ resource "aws_glue_crawler" "cur-glue-crawler" {
 # Glue catalog table
 resource "aws_glue_catalog_table" "cur-glue-catalog" {
   database_name = aws_glue_catalog_database.cur-glue-database.name
-  name          = "${var.vpc_name}-CUR"
+  name          = "${var.vpc_name}-cur"
   table_type    = "EXTERNAL_TABLE"
 
 
   storage_descriptor {
-    location      = "s3://${aws_s3_bucket.cur-bucket.name}/${var.vpc_name}/${var.vpc_name}-CUR/test-cur"
+    location      = "s3://${aws_s3_bucket.cur-bucket.id}/${var.vpc_name}/${var.vpc_name}-cur/test-cur"
     input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
 
