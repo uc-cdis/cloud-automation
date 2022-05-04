@@ -25,6 +25,7 @@ resource "aws_cur_report_definition" "kubecost-cur" {
   s3_region                  = "us-east-1"
   additional_artifacts       = ["ATHENA"]
   report_versioning          = "OVERWRITE_REPORT"
+  depends_on                 = [aws_s3_bucket_policy.cur-bucket-policy]
 }
 
 # The bucket used by the Cost and Usage report
@@ -339,7 +340,7 @@ resource "aws_glue_catalog_table" "cur-glue-catalog" {
 
 # Lambdas for the CUR to run
 resource "aws_lambda_function" "cur-initializer-lambda" {
-  filename         = "AWSCURInitializer.zip"
+  filename         = "${path.module}/AWSCURInitializer.zip"
   function_name    = "${var.vpc_name}-AWSCURInitializer"
   role             = aws_iam_role.cur-initializer-lambda-role.arn
   handler          = "index.handler"
@@ -356,7 +357,7 @@ resource "aws_lambda_permission" "cur-initializer-lambda-permission" {
 }
 
 resource "aws_lambda_function" "cur-s3-notification-lambda" {
-  filename         = "AWSS3CURNotification.zip"
+  filename         = "${path.module}/AWSS3CURNotification.zip"
   function_name    = "${var.vpc_name}-AWSCURInitializer"
   role             = aws_iam_role.cur-s3-notification-lambda-role.arn
   handler          = "index.handler"
