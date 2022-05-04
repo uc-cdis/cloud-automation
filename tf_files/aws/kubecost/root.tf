@@ -358,7 +358,7 @@ resource "aws_lambda_permission" "cur-initializer-lambda-permission" {
 
 resource "aws_lambda_function" "cur-s3-notification-lambda" {
   filename         = "${path.module}/AWSS3CURNotification.zip"
-  function_name    = "${var.vpc_name}-AWSCURInitializer"
+  function_name    = "${var.vpc_name}-AWSS3CURNotification"
   role             = aws_iam_role.cur-s3-notification-lambda-role.arn
   handler          = "index.handler"
   timeout          = "30"
