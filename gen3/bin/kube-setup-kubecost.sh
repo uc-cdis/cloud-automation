@@ -45,9 +45,9 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
     valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
     valuesTemplate="${GEN3_HOME}/kube/services/kubecost/values.yaml"
     if $setupSA; then
-      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" GEN3_ARGO_DB_HOST "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$roleName"
+      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$roleName"
     else
-      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" GEN3_ARGO_DB_HOST "{}"
+      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "{}"
     fi
 
     helm repo add kubecost https://kubecost.github.io/cost-analyzer/ --force-update 2> >(grep -v 'This is insecure' >&2)
