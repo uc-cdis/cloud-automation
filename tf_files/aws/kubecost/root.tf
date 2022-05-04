@@ -31,8 +31,9 @@ resource "aws_cur_report_definition" "kubecost-cur" {
 
 # The bucket used by the Cost and Usage report
 resource "aws_s3_bucket" "cur-bucket" {
-  bucket = "${var.vpc_name}-cur-bucket"
-  acl    = "private"
+  bucket        = "${var.vpc_name}-cur-bucket"
+  acl           = "private"
+  force_destroy = true
 
   server_side_encryption_configuration {
     rule {
