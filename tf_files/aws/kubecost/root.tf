@@ -295,7 +295,6 @@ resource "aws_iam_role" "cur-s3-notification-lambda-role" {
 # Glue database
 resource "aws_glue_catalog_database" "cur-glue-database" {
   name          = "athenacurcfn_${var.vpc_name}"
-  
 }
 
 # Glue crawler
