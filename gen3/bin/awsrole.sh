@@ -70,22 +70,31 @@ EOF
 #
 # @param saName
 # @param roleName
+# @param Optional - namespace
 #
 gen3_awsrole_sa_annotate() {
+  local ctxNamespace=$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$(g3kubectl config current-context)\")) | .[0] | .context.namespace")
   local saName="$1"
   shift || return 1
   local roleName="$1"
   shift || return 1
+  if [[ ! -z $1 ]]; then
+    local namespace=$1
+  elif [[ -z $ctxNamespace ]]; then
+    local namespace="default"
+  else
+    local namespace=$ctxNamespace
+  fi
   local roleArn
   local roleInfo
   roleInfo="$(aws iam get-role --role-name "$roleName")" || return 1
   roleArn="$(jq -e -r .Role.Arn <<< "$roleInfo")"
 
-  if ! g3kubectl get sa "$saName" > /dev/null; then
-    g3kubectl create sa "$saName" || return 1
+  if ! g3kubectl get sa "$saName"--namespace=$namespace  > /dev/null; then
+    g3kubectl create sa "$saName" --namespace=$namespace || return 1
   fi
 
-  g3kubectl annotate --overwrite sa "$saName" "eks.amazonaws.com/role-arn=$roleArn"
+  g3kubectl annotate --overwrite sa "$saName" "eks.amazonaws.com/role-arn=$roleArn" --namespace=$namespace
 }
 
 #
@@ -170,6 +179,7 @@ gen3_awsrole_create() {
     gen3_log_err "use: gen3 awsrole create roleName saName"
     return 1
   fi
+  local namespace="$1"
   # do simple validation of name
   local regexp="^[a-z][a-z0-9\-]*$"
   if [[ ! $rolename =~ $regexp ]];then
@@ -190,7 +200,7 @@ EOF
     # That name is already used.
     if [[ "$entity_type" =~ role ]]; then
       gen3_log_info "A role with that name already exists"
-      gen3_awsrole_sa_annotate "$saName" "$rolename"
+      gen3_awsrole_sa_annotate "$saName" "$rolename" "$namespace"
       return $?
     else
       gen3_log_err "A $entity_type with that name already exists"
@@ -206,7 +216,7 @@ EOF
     return 1
   fi
 
-  gen3_awsrole_sa_annotate "$saName" "$rolename"
+  gen3_awsrole_sa_annotate "$saName" "$rolename" "$namespace"
 }
 
 #
