@@ -16,12 +16,12 @@ locals {
 # The Cost and Usage report
 resource "aws_cur_report_definition" "kubecost-cur" {
   report_name                = "${var.vpc_name}-cur"
-  s3_prefix                  = "${var.vpc_name}"
+  s3_prefix                  = var.vpc_name
   time_unit                  = "HOURLY"
   format                     = "Parquet"
   compression                = "Parquet"
   additional_schema_elements = ["RESOURCES"]
-  s3_bucket                  = "${aws_s3_bucket.cur-bucket.id}"
+  s3_bucket                  = aws_s3_bucket.cur-bucket.id
   s3_region                  = "us-east-1"
   additional_artifacts       = ["ATHENA"]
   report_versioning          = "OVERWRITE_REPORT"
@@ -42,7 +42,7 @@ resource "aws_s3_bucket" "cur-bucket" {
 
   tags = {
     Name        = "${var.vpc_name}-cur-bucket"
-    Environment = "${var.vpc_name}"
+    Environment = var.vpc_name
     Purpose     = "Cost and Usage report bucket for use by Kubecost"
   }
 
@@ -51,7 +51,7 @@ resource "aws_s3_bucket" "cur-bucket" {
 
 # The Policy attached to the Cost and Usage report
 resource "aws_s3_bucket_policy" "cur-bucket-policy" {
-  bucket = "${aws_s3_bucket.cur-bucket.id}"
+  bucket = aws_s3_bucket.cur-bucket.id
   policy =jsonencode({
     Version = "2008-10-17"
     Id = "Policy1335892530063"
@@ -67,7 +67,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
         Condition = {
         StringEquals = {
           "aws:SourceArn" = "arn:aws:cur:us-east-1:${local.account_id}:definition/*"
-          "aws:SourceAccount" = "${local.account_id}"
+          "aws:SourceAccount" = local.account_id
           }
         }
       },
@@ -82,7 +82,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
         Condition = {
           StringEquals = {
             "aws:SourceArn" = "arn:aws:cur:us-east-1:${local.account_id}:definition/*"
-            "aws:SourceAccount" = "${local.account_id}"
+            "aws:SourceAccount" = local.account_id
           }
         }
       }
@@ -95,14 +95,14 @@ resource "aws_iam_user" "kubecost-user" {
   name = "${var.vpc_name}-kubecost-user"
 
   tags = {
-    Environment = "${var.vpc_name}"
+    Environment = var.vpc_name
     Purpose     = "Kubecost user with access to Cost and Usage report"
   }
 }
 
 # Access Key for the user
 resource "aws_iam_access_key" "kubecost-user-key" {
-  user = "${aws_iam_user.kubecost-user.name}"
+  user = aws_iam_user.kubecost-user.name
 }
 
 # Policy to attach to the user
