@@ -11,8 +11,6 @@ set -xe
 # how it is executed?
 # gen3 mutate-etl-mapping-config {PR} {repoName}
 
-echo "hello world"
-
 prNumber=$1
 shift
 repoName=$1
@@ -23,8 +21,13 @@ if ! shift; then
 fi
 
 g3kubectl get cm etl-mapping -o jsonpath='{.data.etlMapping\.yaml}' > etlMapping.yaml
-sed -i 's/^[[:space:]][[:space:]]- name: \(.*\)_subject$/  - name: '"${prNumber}"'.'"${repoName}"'.\1_subject/' etlMapping.yaml
-sed -i 's/^[[:space:]][[:space:]]- name: \(.*\)_etl$/  - name: '"${prNumber}"'.'"${repoName}"'.\1_etl/' etlMapping.yaml
-sed -i 's/^[[:space:]][[:space:]]- name: \(.*\)_file$/  - name: '"${prNumber}"'.'"${repoName}"'.\1_file/' etlMapping.yaml
+
+prefix="${prNumber}.${repoName}."
+if grep "$prefix" etlMapping.yaml; then
+ gen3_log_info "ETL Mapping has already been mutated by a previous run of this script"
+ exit 0
+fi
+
+yq -yi '.mappings[].name |= "'"${prefix}"'" + .' etlMapping.yaml
 g3kubectl delete configmap etl-mapping
 g3kubectl create configmap etl-mapping --from-file=etlMapping.yaml=etlMapping.yaml
