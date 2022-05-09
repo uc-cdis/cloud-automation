@@ -19,8 +19,8 @@ setup_database() {
     return 0
   fi
   # Setup config file that requestor consumes
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/requestor"
   if [[ ! -f "$secretsFolder/requestor-config.yaml" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
-    local secretsFolder="$(gen3_secrets_folder)/g3auto/requestor"
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then    
       if ! gen3 db setup requestor; then
         gen3_log_err "Failed setting up database for requestor service"

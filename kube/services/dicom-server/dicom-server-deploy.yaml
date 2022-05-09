@@ -20,7 +20,7 @@ spec:
       volumes:
       - name: config-volume-g3auto
         secret:
-          secretName: dicom-server-g3auto
+          secretName: orthanc-g3auto
       containers:
       - name: dicom-server
         GEN3_DICOM-SERVER_IMAGE
