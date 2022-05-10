@@ -4,8 +4,8 @@ gen3_load "gen3/gen3setup"
 setup_database_and_config() {
   gen3_log_info "setting up dicom-server DB and config"
 
-  if g3kubectl describe secret dicom-server-g3auto > /dev/null 2>&1; then
-    gen3_log_info "dicom-server-g3auto secret already configured"
+  if g3kubectl describe secret orthanc-g3auto > /dev/null 2>&1; then
+    gen3_log_info "orthanc-g3auto secret already configured"
     return 0
   fi
   if [[ -n "$JENKINS_HOME" || ! -f "$(gen3_secrets_folder)/creds.json" ]]; then
@@ -13,8 +13,8 @@ setup_database_and_config() {
     return 0
   fi
 
-  # Setup config file that dicom-server consumes
-  local secretsFolder="$(gen3_secrets_folder)/g3auto/dicom-server"
+  # Setup config files that dicom-server consumes
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/orthanc"
   if [[ ! -f "$secretsFolder/orthanc_config_overwrites.json" ]]; then
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then
       if ! gen3 db setup orthanc; then
@@ -46,7 +46,7 @@ setup_database_and_config() {
 }
 EOM
   fi
-  gen3 secrets sync 'setup dicom-server-g3auto secrets'
+  gen3 secrets sync 'setup orthanc-g3auto secrets'
 }
 
 if ! setup_database_and_config; then
