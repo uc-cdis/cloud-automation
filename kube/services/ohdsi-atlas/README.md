@@ -23,32 +23,14 @@ kubectl create configmap ohdsi-atlas-nginx-webapi --from-file=webapi.conf
     }
 ```
 
-### `config-local.js` file as `ohdsi-atlas-config-local`
+### store `config-local.js` file as `ohdsi-atlas-config-local` configmap
+
+See `./config-local.js` in this folder. Add it as a configmap using:
 
 ```
 kubectl create configmap ohdsi-atlas-config-local --from-file=config-local.js
 ```
 
-```
-define([], function () {
-	var configLocal = {};
-	// WebAPI
-	configLocal.api = {
-		name: 'Gen3',
-		url: 'https://atlas-qa-mickey.planx-pla.net/WebAPI/'
-	};
-	configLocal.authProviders = [{
-		"name": "Fence",
-		"url": "user/login/openid",
-		"ajax": false,
-		"icon": "fa fa-openid"
-	}];
-	configLocal.cohortComparisonResultsEnabled = false;
-	configLocal.userAuthenticationEnabled = true;
-	configLocal.plpResultsEnabled = false;
-	return configLocal;
-});
-```
 
 ### `ohdsi-webapi-config.yaml`
 
