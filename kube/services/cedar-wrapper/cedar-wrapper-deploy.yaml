@@ -85,6 +85,6 @@ spec:
             subPath: "ca.pem"
           - name: "cedar-service-api-key"
             readOnly: true
-            mountPath: "/src/apikey.txt"
+            mountPath: "/src/"
             subPath: "apikey.txt"
         imagePullPolicy: Always
