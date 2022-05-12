@@ -73,7 +73,7 @@ spec:
         ports:
         - containerPort: 8000
         command: 
-          - /bin/bash
+          # - /bin/bash
           - sleep 
           - "10000"
           # - /src/start.sh
