@@ -6,6 +6,18 @@ variable "vpc_cidr_block" {
   default = "172.24.17.0/20"
 }
 
+variable "secondary_cidr_block" {
+  default = ""
+}
+  
+variable "vpc_flow_logs" {
+  default = false
+}
+
+variable "vpc_flow_traffic" {
+  default = "ALL"
+}
+
 variable "aws_region" {
   default = "us-east-1"
 }
@@ -81,15 +93,15 @@ variable "indexd_snapshot" {
 }
 
 variable "fence_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 variable "sheepdog_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 variable "indexd_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 variable "hostname" {
@@ -135,7 +147,12 @@ variable "gdcapi_oauth2_client_secret" {
 
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
-  default = "707767160287"
+  default = "099720109477"
+}
+
+variable "squid_image_search_criteria" {
+  description = "Search criteria for squid AMI look up"
+  default     = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 }
 
 variable "peering_vpc_id" {
@@ -238,15 +255,15 @@ variable "indexd_backup_window" {
 }
 
 variable "fence_engine_version" {
-  default = "9.6.11" 
+  default = "13.3" 
 }
 
 variable "sheepdog_engine_version" {
-  default = "9.6.11"
+  default = "13.3"
 }
 
 variable "indexd_engine_version" {
-  default = "9.6.11" 
+  default = "13.3" 
 }
 
 variable "fence_auto_minor_version_upgrade" {
@@ -425,4 +442,8 @@ variable "activation_id" {
 
 variable "customer_id" {
   default = ""
+}
+
+variable "fips" {
+  default = false
 }

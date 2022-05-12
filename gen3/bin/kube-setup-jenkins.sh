@@ -55,6 +55,8 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/clusterrolebinding-devops
 
 # Note: requires Jenkins entry in cdis-manifest
 gen3 roll jenkins
+gen3 roll jenkins-worker
+gen3 roll jenkins-ci-worker
 
 #
 # Get the ARN of the SSL certificate for the commons -

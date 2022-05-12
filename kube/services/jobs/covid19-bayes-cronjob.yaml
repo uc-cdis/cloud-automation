@@ -1,12 +1,11 @@
-# gen3 job run nb-etl-cronjob S3_BUCKET <S3_BUCKET>
-# deprecated; replaced by covid19-nb-etl-cronjob.yaml; delete once we're ready
+# gen3 job run covid19-bayes-cronjob S3_BUCKET <S3_BUCKET>
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: nb-etl
+  name: covid19-bayes
 spec:
-  # Weekly Thursday 6:00PM Chicago time == Friday 12:00AM UTC
-  schedule: "0 0 * * 5"
+  # Weekly Sunday, Wednesday 6:00PM Chicago time == Monday, Thursday 12:00AM UTC
+  schedule: "0 0 * * 1,4"
   successfulJobsHistoryLimit: 2
   failedJobsHistoryLimit: 2
   concurrencyPolicy: Forbid
@@ -27,16 +26,12 @@ spec:
               value: "jupyter"
               effect: "NoSchedule"
           containers:
-            - name: nb-etl
+            - name: covid19-bayes
               imagePullPolicy: Always
               ports:
               - containerPort: 80
-              GEN3_NB-ETL_IMAGE
+              GEN3_COVID19-BAYES_IMAGE
               env:
-              - name: S3_BUCKET
-                GEN3_S3_BUCKET
-              - name: doSlack
-                GEN3_DO_SLACK|-value: "true"-|
               - name: slackWebHook
                 valueFrom:
                   configMapKeyRef:
@@ -47,10 +42,12 @@ spec:
                   configMapKeyRef:
                     name: manifest-global
                     key: hostname
+              - name: S3_BUCKET
+                GEN3_S3_BUCKET
               resources:
                 requests:
                   cpu: 4
-                  memory: 16Gi
+                  memory: 12Gi
                 limits:
                   cpu: 4
-                  memory: 16Gi # guess on upper bound
+                  memory: 12Gi

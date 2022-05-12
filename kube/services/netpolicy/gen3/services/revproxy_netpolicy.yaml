@@ -12,6 +12,7 @@ spec:
       - revproxy
       - ambassador-gen3
       - auspice
+      - ohdsi-atlas
   ingress:
     - from:
       - ipBlock:
@@ -32,6 +33,10 @@ spec:
       - namespaceSelector:
           matchLabels:
             app: grafana
+    - to: 
+      - namespaceSelector:
+          matchLabels:
+            app: argo
   policyTypes:
    - Ingress
    - Egress

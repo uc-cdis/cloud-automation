@@ -12,5 +12,5 @@ gen3 roll pidgin
 g3kubectl apply -f "${GEN3_HOME}/kube/services/pidgin/pidgin-service.yaml"
 
 cat <<EOM
-The pidgin services has been deployed onto the k8s cluster.
+The pidgin service has been deployed onto the k8s cluster.
 EOM

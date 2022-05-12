@@ -3,7 +3,12 @@
 ###############################################################
 # variables
 ###############################################################
-MAIN_HOME="/home/ubuntu"
+DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
+USER="ubuntu"
+if [[ $DISTRO == "Amazon Linux" ]]; then
+  USER="ec2-user"
+fi
+MAIN_HOME="/home/$USER"
 SFTP_HOME="/home/sftpuser"
 declare -a WHITELIST_FILES
 WHITELIST_FILES=( "web_whitelist" "web_wildcard_whitelist" "ftp_whitelist")

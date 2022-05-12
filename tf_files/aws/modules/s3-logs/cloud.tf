@@ -1,3 +1,13 @@
+terraform {
+  backend "s3" {
+    encrypt = "true"
+  }
+  required_providers {
+    aws = "~> 2.41"
+  }
+
+}
+
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "${local.clean_bucket_name}"
   acl    = "log-delivery-write"

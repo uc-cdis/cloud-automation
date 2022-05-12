@@ -52,4 +52,4 @@ g3kubectl -n "$(gen3 jupyter j-namespace)" apply -f - <<< "$roleBinding"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/tty/tty-service.yaml"  
 gen3 roll tty
 
-gen3_log_info "The tty services has been deployed onto the k8s cluster."
+gen3_log_info "The tty service has been deployed onto the k8s cluster."

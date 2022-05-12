@@ -52,7 +52,7 @@ if arborist:
         "postgresql+psycopg2://{usr}:{psw}@{pghost}:{pgport}/{db}".format(
             usr=usr, psw=psw, pghost=pghost, pgport=pgport, db=db
         ),
-        arborist="http://arborist-service/",  # uncomment if you're using arborist
+        arborist="http://arborist-service/",
     )
 else:
     AUTH = SQLAlchemyAuthDriver(

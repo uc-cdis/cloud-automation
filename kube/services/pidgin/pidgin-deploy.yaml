@@ -18,6 +18,7 @@ spec:
       labels:
         app: pidgin
         public: "yes"
+        netnolimit: "yes"
         tags.datadoghq.com/service: "pidgin"
         GEN3_ENV_LABEL
         GEN3_PIDGIN_VERSION

@@ -231,6 +231,18 @@ else
   gen3_log_info "not deploying audit-service - no manifest entry for .versions.audit-service"
 fi
 
+if g3k_manifest_lookup '.versions["dicom-server"]' 2> /dev/null; then
+  gen3 kube-setup-dicom-server &
+else
+  gen3_log_info "not deploying dicom-server - no manifest entry for '.versions[\"dicom-server\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["dicom-viewer"]' 2> /dev/null; then
+  gen3 kube-setup-dicom-viewer &
+else
+  gen3_log_info "not deploying dicom-viewer - no manifest entry for '.versions[\"dicom-viewer\"]'"
+fi
+
 gen3 kube-setup-revproxy &
 
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
@@ -282,6 +294,12 @@ if g3k_manifest_lookup .versions.portal 2> /dev/null; then
   gen3 kube-setup-portal &
 else
   gen3_log_info "not deploying portal - no manifest entry for .versions.portal"
+fi
+
+if g3k_manifest_lookup '.versions["frontend-framework"]' 2> /dev/null; then
+  gen3 kube-setup-frontend-framework &
+else
+  gen3_log_info "not deploying frontend-framework - no manifest entry for '.versions[\"frontend-framework\"]'"
 fi
 
 gen3_log_info "enable network policy"

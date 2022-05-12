@@ -4,6 +4,13 @@
 #
 #####
 
+locals{
+  # if AZs are explicitly defined as a variable, use those. Otherwise use all the AZs of the current region
+  # NOTE: the syntax should improve with Terraform 12
+  azs = "${split(",", length(var.availability_zones) != 0 ? join(",", var.availability_zones) : join(",", data.aws_availability_zones.available.names))}"
+  ami = "${var.fips ? var.fips_enabled_ami : data.aws_ami.eks_worker.id}"
+  eks_priv_subnets = "${split(",", var.secondary_cidr_block != "" ? join(",", aws_subnet.eks_secondary_subnet.*.id) : join(",", aws_subnet.eks_private.*.id))}"
+}
 
 module "jupyter_pool" {
   source                       = "../eks-nodepool/"
@@ -19,18 +26,42 @@ module "jupyter_pool" {
   control_plane_sg             = "${aws_security_group.eks_control_plane_sg.id}"
   default_nodepool_sg          = "${aws_security_group.eks_nodes_sg.id}"
   eks_version                  = "${var.eks_version}"
-  jupyter_instance_type        = "${var.jupyter_instance_type}"
+  nodepool_instance_type        = "${var.jupyter_instance_type}"
   kernel                       = "${var.kernel}"
   bootstrap_script             = "${var.jupyter_bootstrap_script}"
-  jupyter_worker_drive_size    = "${var.jupyter_worker_drive_size}"
+  nodepool_worker_drive_size    = "${var.jupyter_worker_drive_size}"
   organization_name            = "${var.organization_name}"
-  jupyter_asg_desired_capacity = "${var.jupyter_asg_desired_capacity}"
-  jupyter_asg_max_size         = "${var.jupyter_asg_max_size}"
-  jupyter_asg_min_size         = "${var.jupyter_asg_min_size}"
+  nodepool_asg_desired_capacity = "${var.jupyter_asg_desired_capacity}"
+  nodepool_asg_max_size         = "${var.jupyter_asg_max_size}"
+  nodepool_asg_min_size         = "${var.jupyter_asg_min_size}"
   activation_id                = "${var.activation_id}"
   customer_id                  = "${var.customer_id}"
 }
 
+module "workflow_pool" {
+  source                       = "../eks-nodepool/"
+  ec2_keyname                  = "${var.ec2_keyname}"
+  users_policy                 = "${var.users_policy}"
+  nodepool                     = "workflow"
+  vpc_name                     = "${var.vpc_name}"
+  csoc_cidr                    = "${var.peering_cidr}"
+  eks_cluster_endpoint         = "${aws_eks_cluster.eks_cluster.endpoint}"
+  eks_cluster_ca               = "${aws_eks_cluster.eks_cluster.certificate_authority.0.data}"
+  eks_private_subnets          = "${local.eks_priv_subnets}"
+  control_plane_sg             = "${aws_security_group.eks_control_plane_sg.id}"
+  default_nodepool_sg          = "${aws_security_group.eks_nodes_sg.id}"
+  eks_version                  = "${var.eks_version}"
+  nodepool_instance_type        = "${var.workflow_instance_type}"
+  kernel                       = "${var.kernel}"
+  bootstrap_script             = "${var.workflow_bootstrap_script}"
+  nodepool_worker_drive_size    = "${var.workflow_worker_drive_size}"
+  organization_name            = "${var.organization_name}"
+  nodepool_asg_desired_capacity = "${var.workflow_asg_desired_capacity}"
+  nodepool_asg_max_size         = "${var.workflow_asg_max_size}"
+  nodepool_asg_min_size         = "${var.workflow_asg_min_size}"
+  activation_id                = "${var.activation_id}"
+  customer_id                  = "${var.customer_id}"
+}
 
 
 
@@ -79,8 +110,9 @@ resource "random_shuffle" "az" {
   #input = ["${data.aws_autoscaling_group.squid_auto.availability_zones}"]
   #input = ["${data.aws_availability_zones.available.names}"]
   #input = "${length(var.availability_zones) > 0 ? var.availability_zones : data.aws_autoscaling_group.squid_auto.availability_zones }"
-  input = "${var.availability_zones}"
-  result_count = 3
+  #input = "${var.availability_zones}"
+  input = ["${local.azs}"]
+  result_count = "${length(local.azs)}"
   count = 1
 }
 
@@ -97,6 +129,30 @@ resource "aws_subnet" "eks_private" {
   tags = "${
     map(
      "Name", "eks_private_${count.index}",
+     "Environment", "${var.vpc_name}",
+     "Organization", "${var.organization_name}",
+     "kubernetes.io/cluster/${var.vpc_name}", "owned",
+     "kubernetes.io/role/internal-elb", "1",
+    )
+  }"
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = ["tags", "availability_zone"]
+  }
+}
+
+# The subnet for secondary CIDR block utilization
+resource "aws_subnet" "eks_secondary_subnet" {
+  count                   = "${var.secondary_cidr_block != "" ? 1 : 0}"
+  vpc_id                  = "${data.aws_vpc.the_vpc.id}"
+  cidr_block              = "${var.secondary_cidr_block}"
+  availability_zone       = "${random_shuffle.az.result[count.index]}"
+  map_public_ip_on_launch = false
+
+  tags = "${
+    map(
+     "Name", "eks_secondary_cidr_subnet",
      "Environment", "${var.vpc_name}",
      "Organization", "${var.organization_name}",
      "kubernetes.io/cluster/${var.vpc_name}", "owned",
@@ -183,6 +239,13 @@ resource "aws_route_table_association" "private_kube" {
   subnet_id      = "${aws_subnet.eks_private.*.id[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   depends_on     = ["aws_subnet.eks_private"]
+}
+
+resource "aws_route_table_association" "secondary_subnet_kube" {
+  count          = "${var.secondary_cidr_block != "" ? 1 : 0}"
+  subnet_id      = "${aws_subnet.eks_secondary_subnet.id}"
+  route_table_id = "${aws_route_table.eks_private.id}"
+  depends_on     = ["aws_subnet.eks_secondary_subnet"]
 }
 
 
@@ -369,6 +432,12 @@ resource "aws_iam_role_policy_attachment" "bucket_read" {
   role       = "${aws_iam_role.eks_node_role.name}"
 }
 
+# Amazon SSM Policy 
+resource "aws_iam_role_policy_attachment" "eks-policy-AmazonSSMManagedInstanceCore" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+
 resource "aws_iam_instance_profile" "eks_node_instance_profile" {
   name = "${var.vpc_name}_EKS_workers"
   role = "${aws_iam_role.eks_node_role.name}"
@@ -451,6 +520,17 @@ resource "aws_security_group_rule" "nodes_interpool_communications" {
   source_security_group_id = "${module.jupyter_pool.nodepool_sg}"
 }
 
+# Let's allow the two polls talk to each other
+resource "aws_security_group_rule" "workflow_nodes_interpool_communications" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  description              = "allow workflow nodes to talk to the default"
+  security_group_id        = "${aws_security_group.eks_nodes_sg.id}"
+  source_security_group_id = "${module.workflow_pool.nodepool_sg}"
+}
+
 
 ## Worker Node AutoScaling Group
 # Now we have everything in place to create and manage EC2 instances that will serve as our worker nodes
@@ -471,7 +551,7 @@ resource "aws_security_group_rule" "nodes_interpool_communications" {
 resource "aws_launch_configuration" "eks_launch_configuration" {
   associate_public_ip_address = false
   iam_instance_profile        = "${aws_iam_instance_profile.eks_node_instance_profile.name}"
-  image_id                    = "${data.aws_ami.eks_worker.id}"
+  image_id                    = "${local.ami}"
   instance_type               = "${var.instance_type}"
   name_prefix                 = "eks-${var.vpc_name}"
   security_groups             = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
@@ -488,8 +568,24 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   }
 }
 
+# Create a new iam service linked role that we can grant access to KMS keys in other accounts
+# Needed if we need to bring up custom AMI's that have been encrypted using a kms key
+resource "aws_iam_service_linked_role" "autoscaling" {
+  aws_service_name = "autoscaling.amazonaws.com"
+  custom_suffix = "${var.vpc_name}"
+}
+
+# Remember to grant access to the account in the KMS key policy too
+resource "aws_kms_grant" "kms" {
+  count = "${var.fips ? 1 : 0}"
+  name              = "kms-cmk-eks"
+  key_id            = "${var.fips_ami_kms}"
+  grantee_principal = "${aws_iam_service_linked_role.autoscaling.arn}"
+  operations        = ["Encrypt", "Decrypt", "ReEncryptFrom", "ReEncryptTo", "GenerateDataKey", "GenerateDataKeyWithoutPlaintext", "DescribeKey", "CreateGrant"]
+}
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
+  service_linked_role_arn = "${aws_iam_service_linked_role.autoscaling.arn}"
   desired_capacity     = 2
   launch_configuration = "${aws_launch_configuration.eks_launch_configuration.id}"
   max_size             = 10
@@ -587,6 +683,11 @@ data:
         - system:bootstrappers
         - system:nodes
     - rolearn: ${module.jupyter_pool.nodepool_role}
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
+    - rolearn: ${module.workflow_pool.nodepool_role}
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argo-wrapper-deployment
+  annotations:
+    gen3.io/network-ingress: "argo-wrapper"
+spec:
+  selector:
+    matchLabels:
+      app: argo-wrapper
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: argo-wrapper
+        tags.datadoghq.com/service: "argo-wrapper"
+        netnolimit: "yes"
+        public: "yes"
+        GEN3_ARGO-WRAPPER_VERSION
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - argo-wrapper
+              topologyKey: "kubernetes.io/hostname"
+      volumes:
+        - name: argo-config
+          configMap:
+            name: manifest-argo
+          
+      containers:
+      - name: argo-wrapper
+        GEN3_ARGO-WRAPPER_IMAGE
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+          - name: argo-config
+            readOnly: true
+            mountPath: /argo.json
+            subPath: argo.json
