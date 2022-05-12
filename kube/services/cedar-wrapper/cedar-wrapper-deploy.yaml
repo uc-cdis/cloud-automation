@@ -74,7 +74,7 @@ spec:
         - containerPort: 8000
         command: 
           - /bin/bash
-          - ./start.sh
+          - /src/start.sh
         env:
           - name: HOSTNAME
             value: revproxy-service
