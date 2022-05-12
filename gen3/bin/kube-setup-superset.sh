@@ -96,12 +96,15 @@ setup_secrets() {
 
 setup_ingress() {
   local hostname=$(gen3 api hostname)
-  certs=$(aws acm list-certificates --certificate-statuses ISSUED | jq -c '.CertificateSummaryList[] | select(.DomainName | contains("*.${hostname}"))')
+  certs=$(aws acm list-certificates --certificate-statuses ISSUED | jq --arg hostname $hostname -c '.CertificateSummaryList[] | select(.DomainName | contains("*."+$hostname))')
   if [ "$certs" = "" ]; then 
     gen3_log_info "no certs found for *.${hostname}. exiting"
     exit 22
   fi
-  gen3_log_info $certs
+  gen3_log_info "Found ACM certificate for *.$hostname"
+  export ARN=$(jq -r .CertificateArn <<< $certs)
+  export superset_hostname="superset.${hostname}"
+  envsubst <${GEN3_HOME}/kube/services/superset/superset-ingress.yaml  | g3kubectl apply -f -
 }
 
 setup_redis() {
@@ -113,13 +116,16 @@ setup_redis() {
 if [[ $# -gt 0 && "$1" == "new-client" ]]; then
   new_client
   exit $?
+elif [[ $# -gt 0 && "$1" == "ingress" ]]; then
+  setup_ingress
+  exit $?
 fi
 
 setup_redis
 setup_creds
 
 setup_secrets
-
+setup_ingress
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/superset/superset-deploy.yaml"  
 
