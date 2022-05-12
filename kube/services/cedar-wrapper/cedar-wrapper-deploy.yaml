@@ -74,7 +74,8 @@ spec:
         - containerPort: 8000
         command: 
           - /bin/bash
-          - sleep 10000
+          - sleep 
+          - 10000
           # - /src/start.sh
         env:
           - name: HOSTNAME
