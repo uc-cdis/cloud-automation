@@ -75,7 +75,7 @@ spec:
         command: 
           - /bin/bash
           - sleep 
-          - 10000
+          - "10000"
           # - /src/start.sh
         env:
           - name: HOSTNAME
