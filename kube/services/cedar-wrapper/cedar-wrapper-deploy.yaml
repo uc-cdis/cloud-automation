@@ -42,9 +42,9 @@ spec:
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
-      - name: cert-volume
+      - name: cedar-service-api-key
         secret:
-          secretName: "cert-portal-service"
+          secretName: "cedar-service-api-key"
       containers:
       - name: cedar-wrapper
         GEN3_CEDAR-WRAPPER_IMAGE
@@ -91,4 +91,8 @@ spec:
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
+          - name: "api-key-volume"
+            readOnly: true
+            mountPath: "/src/apikey.txt"
+            subPath: "apikey.txt"
         imagePullPolicy: Always
