@@ -88,5 +88,4 @@ spec:
           - name: "cedar-service-api-key"
             readOnly: true
             mountPath: "/mnt/secrets/"
-            subPath: "cedar_api_key.txt"
         imagePullPolicy: Always
