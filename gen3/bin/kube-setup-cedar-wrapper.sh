@@ -4,7 +4,7 @@ gen3_load "gen3/lib/kube-setup-init"
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 
 
-cedar_api_key_file="$(gen3_secrets_folder)/g3auto/cedar/apikey.txt"
+cedar_api_key_file="$(gen3_secrets_folder)/cedar_api_key.txt"
 
 if [[ ! -f cedar_api_key_file ]]; then
     gen3_log_err "No CEDAR api key present in ${cedar_api_key_file}"
