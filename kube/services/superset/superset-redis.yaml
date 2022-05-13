@@ -185,8 +185,6 @@ metadata:
     helm.sh/chart: redis-16.3.1
     app.kubernetes.io/instance: superset
     app.kubernetes.io/managed-by: Helm
-  annotations:
-    
 spec:
   type: ClusterIP
   clusterIP: None
@@ -216,7 +214,6 @@ spec:
     - name: tcp-redis
       port: 6379
       targetPort: redis
-      nodePort: null
   selector:
     app.kubernetes.io/name: redis
     app.kubernetes.io/instance: superset
