@@ -100,3 +100,18 @@ stringData:
   logging_level_org_ohdsi: info
   logging_level_org_apache_shiro: info
 ```
+
+## Making changes and redeploying to QA
+
+Example: we have some changes in `kube/services/ohdsi-atlas/config-local.js`.
+
+To redeploy to QA, follow these steps:
+- delete old configmap `kubectl delete configmap ohdsi-atlas-config-local`
+- get a copy of `config-local.js` into the current folder
+- run the `kubectl create configmap ohdsi-atlas-config-local --from-file=config-local.js` on QA server
+- assess results with `kubectl describe configmap ohdsi-atlas-config-local`
+- and then restart Atlas with `gen3 roll ohdsi-atlas`
+- watch pod status with `kubectl get pods -l app=ohdsi-atlas`
+
+To clear the browser cache (when making .js changes):
+- go to https://atlas-qa-mickey.planx-pla.net/atlas/js/config-local.js and force-reload it to clear old code from browser cache
