@@ -9,6 +9,7 @@ RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python py
 RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade && python -m pip install lxml --upgrade
 RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade
 RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade && python3 -m pip install pandas --upgrade
+RUN set -xe && apt-get install golang
 
 RUN apt-get update \
   && apt-get install -y lsb-release \
@@ -49,6 +50,11 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747
   && echo "deb https://dl.k6.io/deb stable main" | tee /etc/apt/sources.list.d/k6.list \
   && apt-get update \
   && apt-get install k6
+
+# install xk6-browser
+RUN go install go.k6.io/xk6/cmd/xk6@latest \
+  && xk6 build --output xk6-browser --with github.com/grafana/xk6-browser \
+  && mv ./xk6-browser /usr/local/bin/xk6-browser
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
