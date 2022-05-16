@@ -11,7 +11,7 @@ gen3_load "gen3/lib/kube-setup-init"
 ctx="$(g3kubectl config current-context)"
 ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
 
-scriptDir="${GEN3_HOME}/kube/services/ingress-controller"
+scriptDir="${GEN3_HOME}/kube/services/ingress"
 
 # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/deploy/installation/
 # https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.1/docs/install/iam_policy.json
@@ -269,7 +269,7 @@ EOM
    #  # TODO: Move to values.yaml file
     helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=$(gen3 api environment) --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller 2> >(grep -v 'This is insecure' >&2)
   else
-    gen3_log_info "kube-setup-ingress-controller exiting - ingress-controller already deployed, use --force to redeploy"
+    gen3_log_info "kube-setup-ingress exiting - ingress already deployed, use --force to redeploy"
   fi
 fi
 
