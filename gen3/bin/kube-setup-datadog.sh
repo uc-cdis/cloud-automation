@@ -42,9 +42,9 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
         TOKEN=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
         g3kubectl create secret --namespace datadog generic datadog-agent-cluster-agent --from-literal=token="$TOKEN"
       fi
-      helm repo add datadog https://helm.datadoghq.com --force-update 2>/dev/null
-      helm repo update 2>/dev/null
-      helm upgrade --install datadog -f "$GEN3_HOME/kube/services/datadog/values.yaml" datadog/datadog -n datadog --version 2.28.13 2>/dev/null
+      helm repo add datadog https://helm.datadoghq.com --force-update 2> >(grep -v 'This is insecure' >&2)
+      helm repo update 2> >(grep -v 'This is insecure' >&2)
+      helm upgrade --install datadog -f "$GEN3_HOME/kube/services/datadog/values.yaml" datadog/datadog -n datadog --version 2.28.13 2> >(grep -v 'This is insecure' >&2)
     )
   else
     gen3_log_info "kube-setup-datadog exiting - datadog already deployed, use --force to redeploy"

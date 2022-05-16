@@ -28,6 +28,9 @@ variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
+variable "secondary_cidr_block" {
+}
+
 ## variable for the bootstrap 
 variable "bootstrap_path" {
   default = "cloud-automation/flavors/squid_auto/"

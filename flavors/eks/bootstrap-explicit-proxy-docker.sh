@@ -32,7 +32,7 @@ echo "export HTTPS_PROXY=$PROXY" |tee -a /etc/sysconfig/docker
 echo "export NO_PROXY=localhost,127.0.0.1,169.254.169.254,.internal.io,kibana.planx-pla.net,.amazonaws.com,.amazon.com" |tee -a /etc/sysconfig/docker
 
 
-if [[ ${nodepool} == jupyter ]];
+if [[ ${nodepool} != default ]];
 then
     KUBELET_EXTRA_ARGUMENTS="$KUBELET_EXTRA_ARGUMENTS --register-with-taints=role=${nodepool}:NoSchedule"
 fi

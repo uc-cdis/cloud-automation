@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: cohort-middleware
+        dbatlas: "yes"
+        dbomop-data: "yes"
         public: "yes"
         tags.datadoghq.com/service: "cohort-middleware"
         GEN3_ENV_LABEL
@@ -99,8 +101,8 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: "0.5"
-              memory: 256Mi
+              cpu: 500m
+              memory: 4Gi
             limits:
-              cpu: "0.5"
-              memory: 256Mi
+              cpu: 500m
+              memory: 4Gi

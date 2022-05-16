@@ -26,6 +26,8 @@ spec:
         env:
           - name: "INFLUXDB_DATA_MAX_VALUES_PER_TAG"
             value: "0"
+          - name: "INFLUXDB_DATA_MAX_SERIES_PER_DATABASE"
+            value: "0"
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

@@ -103,4 +103,4 @@ fi
 g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-service.yaml"  
 gen3 roll wts
 
-gen3_log_info "The wts services has been deployed onto the k8s cluster."
+gen3_log_info "The wts service has been deployed onto the k8s cluster."
