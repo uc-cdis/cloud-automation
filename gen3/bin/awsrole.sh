@@ -24,6 +24,9 @@ gen3_awsrole_help() {
 function gen3_awsrole_ar_policy() {
   local serviceAccount="$1"
   shift || return 1
+  local namespace="$1"
+  shift
+  [ -z "$namespace" ] && namespace=$(gen3 db namespace)
   local issuer_url
   local account_id
   local vpc_name
@@ -56,7 +59,7 @@ function gen3_awsrole_ar_policy() {
       "Condition": {
         "StringEquals": {
           "${issuer_url}:aud": "sts.amazonaws.com",
-          "${issuer_url}:sub": "system:serviceaccount:$(gen3 db namespace):${serviceAccount}"
+          "${issuer_url}:sub": "system:serviceaccount:${namespace}:${serviceAccount}"
         }
       }
     }
@@ -76,15 +79,18 @@ gen3_awsrole_sa_annotate() {
   shift || return 1
   local roleName="$1"
   shift || return 1
+  local namespace="$1"
+  shift
+  # If namespace is supplied set KUBECTL_NAMESPACE
+  [[ ! -z "$namespace" ]] && KUBECTL_NAMESPACE=$namespace
+  
   local roleArn
   local roleInfo
   roleInfo="$(aws iam get-role --role-name "$roleName")" || return 1
   roleArn="$(jq -e -r .Role.Arn <<< "$roleInfo")"
-
   if ! g3kubectl get sa "$saName" > /dev/null; then
     g3kubectl create sa "$saName" || return 1
   fi
-
   g3kubectl annotate --overwrite sa "$saName" "eks.amazonaws.com/role-arn=$roleArn"
 }
 
