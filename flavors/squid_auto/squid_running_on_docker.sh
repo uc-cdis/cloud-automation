@@ -4,7 +4,11 @@
 ###############################################################
 # variables
 ###############################################################
+DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
 WORK_USER="ubuntu"
+if [[ $DISTRO == "Amazon Linux" ]]; then
+  WORK_USER="ec2-user"
+fi
 HOME_FOLDER="/home/${WORK_USER}"
 SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
@@ -54,8 +58,9 @@ fi
 
 
 function install_basics(){
-  apt -y install atop
-  apt -y install jq
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    apt -y install atop
+  fi
 }
 
 function install_docker(){
@@ -171,11 +176,11 @@ EOF
   # Copy the updatewhitelist.sh script to the home directory 
   cp  ${SUB_FOLDER}/flavors/squid_auto/updatewhitelist-docker.sh ${HOME_FOLDER}/updatewhitelist.sh
   chmod +x ${HOME_FOLDER}/updatewhitelist.sh
-  cp  ${SUB_FOLDER}/flavors/squid_auto/healthcheck.sh /home/ubuntu
-  chmod +x /home/ubuntu/healthcheck.sh  
+  cp  ${SUB_FOLDER}/flavors/squid_auto/healthcheck.sh ${HOME_FOLDER}/healtcheck.sh
+  chmod +x ${HOME_FOLDER}/healthcheck.sh  
 
   crontab -l > crontab_file; echo "*/15 * * * * ${HOME_FOLDER}/updatewhitelist.sh >/dev/null 2>&1" >> crontab_file
-  echo '*/1 * * * * /home/ubuntu/healthcheck.sh >/dev/null 2>&1' >> crontab_file
+  echo "*/1 * * * * ${HOME_FOLDER}/healthcheck.sh >/dev/null 2>&1" >> crontab_file
   #chown -R ${WORK_USER}. ${HOME_FOLDER}
   crontab crontab_file
 
@@ -193,8 +198,12 @@ function install_awslogs {
   ###############################################################
   # download and install awslogs
   ###############################################################
-  wget ${AWSLOGS_DOWNLOAD_URL} -O amazon-cloudwatch-agent.deb
-  dpkg -i -E ./amazon-cloudwatch-agent.deb
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    wget ${AWSLOGS_DOWNLOAD_URL} -O amazon-cloudwatch-agent.deb
+    dpkg -i -E ./amazon-cloudwatch-agent.deb
+  else
+    sudo yum install amazon-cloudwatch-agent nc -y
+  fi
   
   # Configure the AWS logs
   

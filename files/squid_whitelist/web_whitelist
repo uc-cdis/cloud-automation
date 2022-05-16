@@ -4,13 +4,14 @@
 192.170.230.164
 accounts.google.com
 achecker.ca
+apache.github.io
 api.monqcle.com
 biodata-integration-tests.net
 biorender.com
 clinicaltrials.gov
 ctds-planx.atlassian.net
+data.cityofchicago.org
 dataguids.org
-api.immport.org
 api.login.yahoo.com
 api.snapcraft.io
 apt.kubernetes.io
@@ -78,6 +79,7 @@ ifconfig.io
 internet2.edu
 k8s.gcr.io
 ks.osdc.io
+kubecost.github.io
 kubernetes.github.io
 lib.stat.cmu.edu
 login.mathworks.com
@@ -139,6 +141,7 @@ sa-update.space-pro.be
 security.debian.org
 services.mathworks.com
 streaming.stat.iastate.edu
+us-central1-docker.pkg.dev
 www.google.com
 www.icpsr.umich.edu
 www.mathworks.com

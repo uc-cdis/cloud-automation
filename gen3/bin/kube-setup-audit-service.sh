@@ -20,8 +20,8 @@ setup_database_and_config() {
   fi
 
   # Setup config file that audit-service consumes
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/audit"
   if [[ ! -f "$secretsFolder/audit-service-config.yaml" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
-    local secretsFolder="$(gen3_secrets_folder)/g3auto/audit"
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then    
       if ! gen3 db setup audit; then
         gen3_log_err "Failed setting up database for audit-service"
