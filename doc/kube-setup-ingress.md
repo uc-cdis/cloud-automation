@@ -15,20 +15,21 @@ The script deploys the `aws-load-balancer-controller` when run in the `default` 
 Deploy the aws-load-balancer-controller from https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html.
 Only works in the `default` namespace.
 
+If ran from a non-default namespace it will only deploy the k8s ingress resource. 
+
 ```
 gen3 kube-setup-ingress
 ```
 
 ### check
 
-Check if the metrics server has been deployed and is healthy by
-polling the status of k8s API's:
+Check if the ingress has been deployed by running 
+
 ```
-g3kubectl get apiservices.apiregistration.k8s.io
+helm status aws-load-balancer-controller -n kube-system
 ```
 
-ex:
+Update your DNS records to the ADDRESS field from the output of 
 ```
-if gen3 kube-setup-metrics check; then
-    ... deploy some horizontal autoscaler ...
+kubectl get ingress revproxy-ingress
 ```
