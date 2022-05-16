@@ -20,7 +20,7 @@ wait_for_pods_down() {
     podsDownFlag=1
     while [[ podsDownFlag -ne 0 ]]; do
         g3kubectl get pods
-        if [[ 0 == "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.labels.app } ] | map(select(.name=="fence" or .name=="sheepdog" or .name=="peregrine" or .name=="indexd")) | length')" ]]; then
+        if [[ 0 == "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.labels.app } ] | length')" ]]; then
             gen3_log_info "pods are down, ready to drop databases"
             podsDownFlag=0
         else
