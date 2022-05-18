@@ -77,7 +77,8 @@ gen3_log_info "The fence service has been deployed onto the k8s cluster."
 gen3 kube-setup-google
 
 # add cronjob for removing expired ga4gh info for required fence versions
-if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.07"; then
+currentFenceVersion=$( [[ $(g3k_manifest_lookup ".versions.fence") =~ \:(.*) ]] && echo "${BASH_REMATCH[1]}")
+if isRepoCommitGreaterOrEqual "fence" ${currentFenceVersion} "6.0.0" "2022.07"; then
   # Setup db cleanup cronjob
   if ! g3kubectl get cronjob fence-cleanup-expired-ga4gh-info >/dev/null 2>&1; then
       echo "fence-cleanup-expired-ga4gh-info being added as a cronjob b/c fence >= 6.0.0 or 2022.07"

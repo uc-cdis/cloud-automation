@@ -103,65 +103,56 @@ semver_ge() {
   ) 1>&2
 }
 
-# Takes 2 required and 1 optional arguments:
-#   $1 service name
-#   $2 version of service where tests apply >=
-#   $3 version of service where tests apply >=, in monthly release (2020.xx) format
 #
-# ex: isServiceVersionGreaterOrEqual "fence" "3.0.0"
-# or: isServiceVersionGreaterOrEqual "fence" "3.0.0" "2020.01"
-isServiceVersionGreaterOrEqual() {
-  # make sure args provided
+# Return 0 if repoCommit is greater than or equal to at least one possible
+# ancestor commit. Otherwise, return 1
+#
+# @param repoName
+# @param repoCommit
+# @param ... possible ancestor commits
+#
+# ex: isRepoCommitGreatorOrEqual "fence" "2022.07" "3.0.0"
+# or: isRepoCommitGreatorOrEqual "fence" "2022.07" "3.0.0" "2020.02"
+isRepoCommitGreaterOrEqual() {
   if [[ -z "$1" || -z "$2" ]]; then
-    return 0
+    gen3_log_err "isRepoCommitGreatorOrEqual" "requires repoName and repoCommit as its first two arguments"
+    return 1
+  fi
+  local repoName="$1"; shift
+  local repoCommit="$1"; shift
+  if [[ $# -eq 0 ]]; then
+    gen3_log_err "isRepoCommitGreatorOrEqual" "requires at least one possible ancestor commit"
+    return 1
   fi
 
-  local currentVersion
-  currentVersion=$( [[ $(g3k_manifest_lookup ".versions.${1}") =~ \:(.*) ]] && echo "${BASH_REMATCH[1]}")
-
-  # check if currentVersion is actually a number
-  # NOTE: this assumes that all releases are tagged with actual numbers like:
-  #       2.8.0, 3.0.0, 3.0, 0.2, 0.2.1.5, etc
-  re='[0-9]+([.][0-9])+'
-  if ! [[ $currentVersion =~ $re ]] ; then
-    # force non-version numbers (e.g. branches and master)
-    # to be some arbitrary large number, so that it will
-    # cause next comparison to run the optional test.
-    # NOTE: The assumption here is that branches and master should run all the tests,
-    #       if you've branched off an old version that actually should NOT run the tests..
-    #       this script cannot currently handle that
-    # hopefully our service versions are never "OVER 9000!"
-    versionAsNumber=9000
-  else
-    # version is actually a pinned number, not a branch name or master
-    versionAsNumber=$currentVersion
+  yes | rm -r ~/temp_${repoName}
+  git clone https://github.com/uc-cdis/${repoName}.git --no-checkout ~/temp_${repoName}
+  cd ~/temp_${repoName}
+  # this is an extra necessary step for when repoCommit is a branch, otherwise `git merge-base ...`
+  # below wouldn't recognize it as a valid object name
+  if ! git checkout ${repoCommit}; then
+    gen3_log_err "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${repoCommit}"
+    return 1
   fi
 
-  min=$(printf "2020\n$versionAsNumber\n" | sort -V | head -n1)
-  if [[ "$min" = "2020" && -n "$3" ]]; then
-    # 1. versionAsNumber >=2020, so assume it is a monthly release (or it was a branch
-    #    and is now 9000, in which case it will still pass the check as expected)
-    # 2. monthly release version arg was provided
-    # So, do the version comparison based on monthly release version arg
-    min=$(printf "$3\n$versionAsNumber\n" | sort -V | head -n1)
-    if [ "$min" = "$3" ]; then
-      echo "$1 version ($currentVersion) is greater than $3"
-    else
-      echo "$1 version ($currentVersion) is less than $3"
+  local exitCode=1
+  for possibleAncestorCommit in $@; do
+    # this is an extra necessary step for when possibleAncestorCommit is a branch, otherwise `git merge-base ...`
+    # below wouldn't recognize it as a valid object name
+    if ! git checkout ${possibleAncestorCommit}; then
+      gen3_log_err "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${possibleAncestorCommit}"
       return 1
     fi
-  else
-    # versionAsNumber is normal semver tag
-    min=$(printf "$2\n$versionAsNumber\n" | sort -V | head -n1)
-    if [ "$min" = "$2" ]; then
-      echo "$1 version ($currentVersion) is greater than $2"
-    else
-      echo "$1 version ($currentVersion) is less than $2"
-      return 1
+    if git merge-base --is-ancestor ${possibleAncestorCommit} ${repoCommit}; then
+      gen3_log_info "for ${repoName} repo, ${repoCommit} is greater than or equal to ${possibleAncestorCommit}"
+      exitCode=$?
+      break
     fi
-  fi
+  done
 
-  return 0
+  cd -
+  yes | rm -r ~/temp_${repoName}
+  return $exitCode
 }
 
 # vt100 escape sequences - don't forget to pass -e to 'echo -e'
