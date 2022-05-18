@@ -109,11 +109,11 @@ semver_ge() {
 # @param imageTag
 #
 # examples:
-#   - `convertImageTagToGitBranch "feat_passport"` returns "feat/passport"
-#   - `convertImageTagToGitBranch "chore_passport"` returns "chore/passport"
-#   - `convertImageTagToGitBranch "feat_passport_extra_info"` returns "feat/passport_extra_info"
-#   - `convertImageTagToGitBranch "passport"` returns "passport"
-#   - `convertImageTagToGitBranch "passport_extra_info"` returns "passport_extra_info"
+#   - `convertImageTagToGitBranch "feat_passport"` evaluates to "feat/passport"
+#   - `convertImageTagToGitBranch "chore_passport"` evaluates to "chore/passport"
+#   - `convertImageTagToGitBranch "feat_passport_extra_info"` evaluates to "feat/passport_extra_info"
+#   - `convertImageTagToGitBranch "passport"` evaluates to "passport"
+#   - `convertImageTagToGitBranch "passport_extra_info"` evaluates to "passport_extra_info"
 convertImageTagToGitBranch() {
   if [[ -z "$1" ]]; then
     gen3_log_err "convertImageTagToBranch" "requires imageTag as its only argument"
@@ -129,11 +129,12 @@ convertImageTagToGitBranch() {
     branchPrefix=${prefixes[$imagePrefix]}
     if grep "^${imagePrefix}" <<< $imageTag; then
       newBranch=$(sed "s/${imagePrefix}/${branchPrefix}/" <<< $imageTag)
-      return $newBranch
+      echo $newBranch
+      return 0
     fi
   done
 
-  return $imageTag
+  echo $imageTag
 }
 
 #
