@@ -104,6 +104,39 @@ semver_ge() {
 }
 
 #
+# Convert Docker image tag name to original Git branch name for common prefixes ("feat_", "chore_", etc.)
+#
+# @param imageTag
+#
+# examples:
+#   - `convertImageTagToGitBranch "feat_passport"` returns "feat/passport"
+#   - `convertImageTagToGitBranch "chore_passport"` returns "chore/passport"
+#   - `convertImageTagToGitBranch "feat_passport_extra_info"` returns "feat/passport_extra_info"
+#   - `convertImageTagToGitBranch "passport"` returns "passport"
+#   - `convertImageTagToGitBranch "passport_extra_info"` returns "passport_extra_info"
+convertImageTagToGitBranch() {
+  if [[ -z "$1" ]]; then
+    gen3_log_err "convertImageTagToBranch" "requires imageTag as its only argument"
+    return 1
+  fi
+  local imageTag="$1"
+  if [[ $(echo ${imageTag} | tr -cd '_' | wc -c) -ge 2 ]]; then
+    gen3_log_warn "convertImageTagToGitBranch" "imageTag ${imageTag} has >=2 underscores, so conversion will be attempted but resulting branch may not be accurate"
+  fi
+
+  declare -A prefixes=(["feat_"]="feat\/" ["fix_"]="fix\/" ["chore_"]="chore\/" ["doc_"]="doc\/")
+  for imagePrefix in ${!prefixes[@]}; do
+    branchPrefix=${prefixes[$imagePrefix]}
+    if grep "^${imagePrefix}" <<< $imageTag; then
+      newBranch=$(sed "s/${imagePrefix}/${branchPrefix}/" <<< $imageTag)
+      return $newBranch
+    fi
+  done
+
+  return $imageTag
+}
+
+#
 # Return 0 if repoCommit is greater than or equal to at least one possible
 # ancestor commit. Otherwise, return 1
 #
