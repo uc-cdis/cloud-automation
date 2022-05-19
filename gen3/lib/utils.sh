@@ -111,7 +111,7 @@ getRepoFromService(){
 
   local service="$1"
   declare -A serviceToRepo=(["metadata"]="metadata-service" ["portal"]="data-portal" ["spark"]="gen3-spark" ["wts"]="workspace-token-service")
-  echo ${serviceToRepo["$service"]:-"$service"}
+  echo "${serviceToRepo["$service"]:-"$service"}"
 }
 
 isServiceVersionGreaterOrEqual() {
@@ -124,14 +124,14 @@ isServiceVersionGreaterOrEqual() {
   local repo=$(getRepoFromService "$service")
   local currentServiceTag=$( [[ $(g3k_manifest_lookup ".versions.${1}") =~ \:(.*) ]] && echo "${BASH_REMATCH[1]}")
   shift
-  if [[ $(echo ${currentServiceTag} | tr -cd '_' | wc -c) -ge 2 ]]; then
+  if [[ $(echo "$currentServiceTag" | tr -cd '_' | wc -c) -ge 2 ]]; then
     gen3_log_warn "isServiceVersionGreaterOrEqual" "currentServiceTag ${currentServiceTag} has >=2 underscores, so conversion will be attempted but resulting branch may not be accurate"
   fi
   local currentRepoCommit=$(convertImageTagToGitBranch "$currentServiceTag")
 
   local possibleAncestorCommits=()
-  for possibleAncestorTag in $@; do
-    if [[ $(echo ${possibleAncestorTag} | tr -cd '_' | wc -c) -ge 2 ]]; then
+  for possibleAncestorTag in "$@"; do
+    if [[ $(echo "$possibleAncestorTag" | tr -cd '_' | wc -c) -ge 2 ]]; then
       gen3_log_warn "isServiceVersionGreaterOrEqual" "possibleAncestorTag ${possibleAncestorTag} has >=2 underscores, so conversion will be attempted but resulting branch may not be accurate"
     fi
     possibleAncestorCommits+=( $(convertImageTagToGitBranch "$possibleAncestorTag") )
@@ -220,16 +220,16 @@ convertImageTagToGitBranch() {
   local imageTag="$1"
 
   declare -A prefixes=(["feat_"]="feat\/" ["fix_"]="fix\/" ["chore_"]="chore\/" ["doc_"]="doc\/")
-  for imagePrefix in ${!prefixes[@]}; do
-    branchPrefix=${prefixes[$imagePrefix]}
-    if grep "^${imagePrefix}" -q <<< $imageTag; then
-      newBranch=$(sed "s/${imagePrefix}/${branchPrefix}/" <<< $imageTag)
-      echo $newBranch
+  for imagePrefix in "${!prefixes[@]}"; do
+    branchPrefix="${prefixes["$imagePrefix"]}"
+    if grep "^${imagePrefix}" -q <<< "$imageTag"; then
+      newBranch="$(sed "s/${imagePrefix}/${branchPrefix}/" <<< "$imageTag")"
+      echo "$newBranch"
       return 0
     fi
   done
 
-  echo $imageTag
+  echo "$imageTag"
 }
 
 #
@@ -254,29 +254,25 @@ isRepoCommitGreaterOrEqual() {
     return 1
   fi
 
-  yes | rm -r ~/temp_${repoName}
-  git clone https://github.com/uc-cdis/${repoName}.git --no-checkout ~/temp_${repoName}
-  cd ~/temp_${repoName}
+  yes | rm -r "~/temp_${repoName}"
+  git clone "https://github.com/uc-cdis/${repoName}.git" --no-checkout "~/temp_${repoName}"
+  cd "~/temp_${repoName}"
   # this is an extra necessary step for when repoCommit is a branch, otherwise `git merge-base ...`
   # below wouldn't recognize it as a valid object name
-  if ! git checkout ${repoCommit}; then
+  if ! git checkout "${repoCommit}"; then
     gen3_log_warn "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${repoCommit}"
     cd -
-    yes | rm -r ~/temp_${repoName}
+    yes | rm -r "~/temp_${repoName}"
     return 1
   fi
 
   local exitCode=1
-  for possibleAncestorCommit in $@; do
+  for possibleAncestorCommit in "$@"; do
     # this is an extra necessary step for when possibleAncestorCommit is a branch, otherwise `git merge-base ...`
     # below wouldn't recognize it as a valid object name
-    if ! git checkout ${possibleAncestorCommit}; then
+    if ! git checkout "${possibleAncestorCommit}"; then
       gen3_log_warn "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${possibleAncestorCommit}"
-      cd -
-      yes | rm -r ~/temp_${repoName}
-      return 1
-    fi
-    if git merge-base --is-ancestor ${possibleAncestorCommit} ${repoCommit}; then
+    elif git merge-base --is-ancestor "${possibleAncestorCommit}" "${repoCommit}"; then
       gen3_log_info "for ${repoName} repo, ${repoCommit} is greater than or equal to ${possibleAncestorCommit}"
       exitCode=$?
       break
@@ -284,7 +280,7 @@ isRepoCommitGreaterOrEqual() {
   done
 
   cd -
-  yes | rm -r ~/temp_${repoName}
+  yes | rm -r "~/temp_${repoName}"
   return $exitCode
 }
 
