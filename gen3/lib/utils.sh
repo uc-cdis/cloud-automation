@@ -103,64 +103,6 @@ semver_ge() {
   ) 1>&2
 }
 
-#
-# Given the name of a service as it is listed in the manifest,
-# determine the corresponding uc-cdis repo for the service.
-#
-# @param service
-#
-getRepoFromService(){
-  if [[ -z "$1" ]]; then
-    gen3_log_err "getRepoFromService" "requires service as its single argument"
-    return 1
-  fi
-
-  local service="$1"
-  declare -A serviceToRepo=(["metadata"]="metadata-service" ["portal"]="data-portal" ["spark"]="gen3-spark" ["wts"]="workspace-token-service")
-  echo "${serviceToRepo["$service"]:-"$service"}"
-}
-
-#
-# Return 0 if the current image tag for service is greater than or equal to at
-# least one possible ancestor image tag. Otherwise, return 1.
-
-# Note that as this function utilizes getRepoFromService,
-# isServiceVersionGreaterOrEqual is intended for services having a repository
-# in the uc-cdis Github organization (i.e. for services such as revproxy not
-# having a correpsonding uc-cdis repo, please use
-# legacyIsServiceVersionGreaterOrEqual)
-#
-# @param service
-# @param ... possible ancestor image tags
-#
-# ex: isServiceVersionGreaterOrEqual "fence" "3.0.0"
-# or: isServiceVersionGreaterOrEqual "fence" "3.0.0" "2020.01"
-isServiceVersionGreaterOrEqual() {
-  if [[ -z "$1" || -z "$2" ]]; then
-    gen3_log_err "isServiceVersionGreaterOrEqual" "requires service and an image tag as its first two arguments"
-    return 1
-  fi
-
-  local service="$1";
-  local repo=$(getRepoFromService "$service")
-  local currentServiceTag=$( [[ $(g3k_manifest_lookup ".versions.${1}") =~ \:(.*) ]] && echo "${BASH_REMATCH[1]}")
-  shift
-  if [[ $(echo "$currentServiceTag" | tr -cd '_' | wc -c) -ge 2 ]]; then
-    gen3_log_warn "isServiceVersionGreaterOrEqual" "currentServiceTag ${currentServiceTag} has >=2 underscores, so conversion will be attempted but resulting branch may not be accurate"
-  fi
-  local currentRepoCommit=$(convertImageTagToGitBranch "$currentServiceTag")
-
-  local possibleAncestorCommits=()
-  for possibleAncestorTag in "$@"; do
-    if [[ $(echo "$possibleAncestorTag" | tr -cd '_' | wc -c) -ge 2 ]]; then
-      gen3_log_warn "isServiceVersionGreaterOrEqual" "possibleAncestorTag ${possibleAncestorTag} has >=2 underscores, so conversion will be attempted but resulting branch may not be accurate"
-    fi
-    possibleAncestorCommits+=( $(convertImageTagToGitBranch "$possibleAncestorTag") )
-  done
-
-  isRepoCommitGreaterOrEqual "$repo" "$currentRepoCommit" "${possibleAncestorCommits[@]/#/}"
-}
-
 # Takes 2 required and 1 optional arguments:
 #   $1 service name
 #   $2 version of service where tests apply >=
@@ -168,10 +110,10 @@ isServiceVersionGreaterOrEqual() {
 #
 # ex: isServiceVersionGreaterOrEqual "fence" "3.0.0"
 # or: isServiceVersionGreaterOrEqual "fence" "3.0.0" "2020.01"
-legacyIsServiceVersionGreaterOrEqual() {
+isServiceVersionGreaterOrEqual() {
   # make sure args provided
   if [[ -z "$1" || -z "$2" ]]; then
-    return 1
+    return 0
   fi
 
   local currentVersion
@@ -220,89 +162,6 @@ legacyIsServiceVersionGreaterOrEqual() {
   fi
 
   return 0
-}
-
-#
-# Convert Docker image tag name to original Git branch name for common prefixes ("feat_", "chore_", etc.)
-#
-# @param imageTag
-#
-# examples:
-#   - `convertImageTagToGitBranch "feat_passport"` evaluates to "feat/passport"
-#   - `convertImageTagToGitBranch "chore_passport"` evaluates to "chore/passport"
-#   - `convertImageTagToGitBranch "feat_passport_extra_info"` evaluates to "feat/passport_extra_info"
-#   - `convertImageTagToGitBranch "passport"` evaluates to "passport"
-#   - `convertImageTagToGitBranch "passport_extra_info"` evaluates to "passport_extra_info"
-convertImageTagToGitBranch() {
-  if [[ -z "$1" ]]; then
-    gen3_log_err "convertImageTagToBranch" "requires imageTag as its only argument"
-    return 1
-  fi
-  local imageTag="$1"
-
-  declare -A prefixes=(["feat_"]="feat\/" ["fix_"]="fix\/" ["chore_"]="chore\/" ["doc_"]="doc\/")
-  for imagePrefix in "${!prefixes[@]}"; do
-    branchPrefix="${prefixes["$imagePrefix"]}"
-    if grep "^${imagePrefix}" -q <<< "$imageTag"; then
-      newBranch="$(sed "s/${imagePrefix}/${branchPrefix}/" <<< "$imageTag")"
-      echo "$newBranch"
-      return 0
-    fi
-  done
-
-  echo "$imageTag"
-}
-
-#
-# Return 0 if repoCommit is greater than or equal to at least one possible
-# ancestor commit. Otherwise, return 1
-#
-# @param repoName
-# @param repoCommit
-# @param ... possible ancestor commits
-#
-# ex: isRepoCommitGreatorOrEqual "fence" "2022.07" "3.0.0"
-# or: isRepoCommitGreatorOrEqual "fence" "2022.07" "3.0.0" "2020.02"
-isRepoCommitGreaterOrEqual() {
-  if [[ -z "$1" || -z "$2" ]]; then
-    gen3_log_err "isRepoCommitGreatorOrEqual" "requires repoName and repoCommit as its first two arguments"
-    return 1
-  fi
-  local repoName="$1"; shift
-  local repoCommit="$1"; shift
-  if [[ $# -eq 0 ]]; then
-    gen3_log_err "isRepoCommitGreatorOrEqual" "requires at least one possible ancestor commit"
-    return 1
-  fi
-
-  yes | rm -r "~/temp_${repoName}"
-  git clone "https://github.com/uc-cdis/${repoName}.git" --no-checkout "~/temp_${repoName}"
-  cd "~/temp_${repoName}"
-  # this is an extra necessary step for when repoCommit is a branch, otherwise `git merge-base ...`
-  # below wouldn't recognize it as a valid object name
-  if ! git checkout "${repoCommit}"; then
-    gen3_log_warn "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${repoCommit}"
-    cd -
-    yes | rm -r "~/temp_${repoName}"
-    return 1
-  fi
-
-  local exitCode=1
-  for possibleAncestorCommit in "$@"; do
-    # this is an extra necessary step for when possibleAncestorCommit is a branch, otherwise `git merge-base ...`
-    # below wouldn't recognize it as a valid object name
-    if ! git checkout "${possibleAncestorCommit}"; then
-      gen3_log_warn "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${possibleAncestorCommit}"
-    elif git merge-base --is-ancestor "${possibleAncestorCommit}" "${repoCommit}"; then
-      gen3_log_info "for ${repoName} repo, ${repoCommit} is greater than or equal to ${possibleAncestorCommit}"
-      exitCode=$?
-      break
-    fi
-  done
-
-  cd -
-  yes | rm -r "~/temp_${repoName}"
-  return $exitCode
 }
 
 # vt100 escape sequences - don't forget to pass -e to 'echo -e'
