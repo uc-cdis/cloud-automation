@@ -103,6 +103,22 @@ semver_ge() {
   ) 1>&2
 }
 
+serviceToRepo(){
+  if [[ $(echo ${imageTag} | tr -cd '_' | wc -c) -ge 2 ]]; then
+    gen3_log_warn "convertImageTagToGitBranch" "imageTag ${imageTag} has >=2 underscores, so conversion will be attempted but resulting branch may not be accurate"
+  fi
+  # awshelper
+  # revproxy
+  # metadata
+  # portal
+  # fluentd
+  # spark
+  # ambassador
+  # wts
+  # dashboard
+  declare -A serviceToRepo=(["awshelper"]="feat\/" ["fix_"]="fix\/" ["chore_"]="chore\/" ["doc_"]="doc\/")
+}
+
 #
 # Convert Docker image tag name to original Git branch name for common prefixes ("feat_", "chore_", etc.)
 #
@@ -120,14 +136,11 @@ convertImageTagToGitBranch() {
     return 1
   fi
   local imageTag="$1"
-  if [[ $(echo ${imageTag} | tr -cd '_' | wc -c) -ge 2 ]]; then
-    gen3_log_warn "convertImageTagToGitBranch" "imageTag ${imageTag} has >=2 underscores, so conversion will be attempted but resulting branch may not be accurate"
-  fi
 
   declare -A prefixes=(["feat_"]="feat\/" ["fix_"]="fix\/" ["chore_"]="chore\/" ["doc_"]="doc\/")
   for imagePrefix in ${!prefixes[@]}; do
     branchPrefix=${prefixes[$imagePrefix]}
-    if grep "^${imagePrefix}" <<< $imageTag; then
+    if grep "^${imagePrefix}" -q <<< $imageTag; then
       newBranch=$(sed "s/${imagePrefix}/${branchPrefix}/" <<< $imageTag)
       echo $newBranch
       return 0
