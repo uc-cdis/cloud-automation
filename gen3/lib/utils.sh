@@ -137,7 +137,7 @@ isServiceVersionGreaterOrEqual() {
     possibleAncestorCommits+=( $(convertImageTagToGitBranch "$possibleAncestorTag") )
   done
 
-  isRepoCommitGreaterOrEqual "$repo" "$currentServiceCommit" "${possibleAncestorCommits[@]/#/-}"
+  isRepoCommitGreaterOrEqual "$repo" "$currentRepoCommit" "${possibleAncestorCommits[@]/#/-}"
 }
 
 # Takes 2 required and 1 optional arguments:
