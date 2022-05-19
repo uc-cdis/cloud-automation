@@ -137,7 +137,7 @@ isServiceVersionGreaterOrEqual() {
     possibleAncestorCommits+=( $(convertImageTagToGitBranch "$possibleAncestorTag") )
   done
 
-  isRepoCommitGreaterOrEqual "$repo" "$currentRepoCommit" "${possibleAncestorCommits[@]/#/-}"
+  isRepoCommitGreaterOrEqual "$repo" "$currentRepoCommit" "${possibleAncestorCommits[@]/#/}"
 }
 
 # Takes 2 required and 1 optional arguments:
@@ -261,6 +261,8 @@ isRepoCommitGreaterOrEqual() {
   # below wouldn't recognize it as a valid object name
   if ! git checkout ${repoCommit}; then
     gen3_log_warn "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${repoCommit}"
+    cd -
+    yes | rm -r ~/temp_${repoName}
     return 1
   fi
 
@@ -270,6 +272,8 @@ isRepoCommitGreaterOrEqual() {
     # below wouldn't recognize it as a valid object name
     if ! git checkout ${possibleAncestorCommit}; then
       gen3_log_warn "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${possibleAncestorCommit}"
+      cd -
+      yes | rm -r ~/temp_${repoName}
       return 1
     fi
     if git merge-base --is-ancestor ${possibleAncestorCommit} ${repoCommit}; then
