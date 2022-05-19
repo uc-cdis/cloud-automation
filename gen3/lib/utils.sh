@@ -103,6 +103,12 @@ semver_ge() {
   ) 1>&2
 }
 
+#
+# Given the name of a service as it is listed in the manifest,
+# determine the corresponding uc-cdis repo for the service.
+#
+# @param service
+#
 getRepoFromService(){
   if [[ -z "$1" ]]; then
     gen3_log_err "getRepoFromService" "requires service as its single argument"
@@ -114,9 +120,24 @@ getRepoFromService(){
   echo "${serviceToRepo["$service"]:-"$service"}"
 }
 
+#
+# Return 0 if the current image tag for service is greater than or equal to at
+# least one possible ancestor image tag. Otherwise, return 1.
+
+# Note that as this function utilizes getRepoFromService,
+# isServiceVersionGreaterOrEqual is intended for services having a repository
+# in the uc-cdis Github organization (i.e. for services such as revproxy not
+# having a correpsonding uc-cdis repo, please use
+# legacyIsServiceVersionGreaterOrEqual)
+#
+# @param service
+# @param ... possible ancestor image tags
+#
+# ex: isServiceVersionGreaterOrEqual "fence" "3.0.0"
+# or: isServiceVersionGreaterOrEqual "fence" "3.0.0" "2020.01"
 isServiceVersionGreaterOrEqual() {
   if [[ -z "$1" || -z "$2" ]]; then
-    gen3_log_err "isServiceVersionGreaterOrEqual" "requires service and  as its first two arguments"
+    gen3_log_err "isServiceVersionGreaterOrEqual" "requires service and an image tag as its first two arguments"
     return 1
   fi
 
