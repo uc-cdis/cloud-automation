@@ -103,20 +103,41 @@ semver_ge() {
   ) 1>&2
 }
 
-serviceToRepo(){
-  if [[ $(echo ${imageTag} | tr -cd '_' | wc -c) -ge 2 ]]; then
-    gen3_log_warn "convertImageTagToGitBranch" "imageTag ${imageTag} has >=2 underscores, so conversion will be attempted but resulting branch may not be accurate"
+getRepoFromService(){
+  if [[ -z "$1" ]]; then
+    gen3_log_err "getRepoFromService" "requires service as its single argument"
+    return 1
   fi
-  # awshelper
-  # revproxy
-  # metadata
-  # portal
-  # fluentd
-  # spark
-  # ambassador
-  # wts
-  # dashboard
-  declare -A serviceToRepo=(["awshelper"]="feat\/" ["fix_"]="fix\/" ["chore_"]="chore\/" ["doc_"]="doc\/")
+
+  local service="$1"
+  declare -A serviceToRepo=(["metadata"]="metadata-service" ["portal"]="data-portal" ["spark"]="gen3-spark" ["wts"]="workspace-token-service")
+  echo ${serviceToRepo["$service"]:-"$service"}
+}
+
+isServiceVersionGreaterOrEqual() {
+  if [[ -z "$1" || -z "$2" ]]; then
+    gen3_log_err "isServiceVersionGreaterOrEqual" "requires service and  as its first two arguments"
+    return 1
+  fi
+
+  local service="$1";
+  local repo=$(getRepoFromService "$service")
+  local currentServiceTag=$( [[ $(g3k_manifest_lookup ".versions.${1}") =~ \:(.*) ]] && echo "${BASH_REMATCH[1]}")
+  shift
+  if [[ $(echo ${currentServiceTag} | tr -cd '_' | wc -c) -ge 2 ]]; then
+    gen3_log_warn "isServiceVersionGreaterOrEqual" "currentServiceTag ${currentServiceTag} has >=2 underscores, so conversion will be attempted but resulting branch may not be accurate"
+  fi
+  local currentRepoCommit=$(convertImageTagToGitBranch "$currentServiceTag")
+
+  local possibleAncestorCommits=()
+  for possibleAncestorTag in $@; do
+    if [[ $(echo ${possibleAncestorTag} | tr -cd '_' | wc -c) -ge 2 ]]; then
+      gen3_log_warn "isServiceVersionGreaterOrEqual" "possibleAncestorTag ${possibleAncestorTag} has >=2 underscores, so conversion will be attempted but resulting branch may not be accurate"
+    fi
+    possibleAncestorCommits+=( $(convertImageTagToGitBranch "$possibleAncestorTag") )
+  done
+
+  isRepoCommitGreaterOrEqual "$repo" "$currentServiceCommit" "${possibleAncestorCommits[@]/#/-}"
 }
 
 # Takes 2 required and 1 optional arguments:
@@ -126,10 +147,10 @@ serviceToRepo(){
 #
 # ex: isServiceVersionGreaterOrEqual "fence" "3.0.0"
 # or: isServiceVersionGreaterOrEqual "fence" "3.0.0" "2020.01"
-isServiceVersionGreaterOrEqual() {
+legacyIsServiceVersionGreaterOrEqual() {
   # make sure args provided
   if [[ -z "$1" || -z "$2" ]]; then
-    return 0
+    return 1
   fi
 
   local currentVersion
@@ -239,7 +260,7 @@ isRepoCommitGreaterOrEqual() {
   # this is an extra necessary step for when repoCommit is a branch, otherwise `git merge-base ...`
   # below wouldn't recognize it as a valid object name
   if ! git checkout ${repoCommit}; then
-    gen3_log_err "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${repoCommit}"
+    gen3_log_warn "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${repoCommit}"
     return 1
   fi
 
@@ -248,7 +269,7 @@ isRepoCommitGreaterOrEqual() {
     # this is an extra necessary step for when possibleAncestorCommit is a branch, otherwise `git merge-base ...`
     # below wouldn't recognize it as a valid object name
     if ! git checkout ${possibleAncestorCommit}; then
-      gen3_log_err "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${possibleAncestorCommit}"
+      gen3_log_warn "isRepoCommitGreaterOrEqual" "something went wrong with checking out ${possibleAncestorCommit}"
       return 1
     fi
     if git merge-base --is-ancestor ${possibleAncestorCommit} ${repoCommit}; then
