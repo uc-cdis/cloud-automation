@@ -81,7 +81,7 @@ gen3_db_reset() {
   fi
 
   local result
-  echo "DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;" | gen3 psql "$serverName"
+  echo "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = \"${dbname}\" AND pid <> pg_backend_pid();DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;" | gen3 psql "$serverName"
   result=$?
   if [[ "$serviceName" == "sheepdog" ]]; then 
     # special case - peregrine shares the database
