@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins-worker-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: jenkins-worker
+  template:
+    metadata:
+      labels:
+        app: jenkins-worker
+        # for network policy
+        netnolimit: "yes"
+      annotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
+    spec:
+      serviceAccountName: jenkins-service
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 1000
+      initContainers:
+      - args:
+        - -c
+        - |
+          # fix permissions for /var/run/docker.sock
+          chmod 666 /var/run/docker.sock
+          echo "done"
+        command:
+        - /bin/bash
+        image: quay.io/cdis/awshelper:master
+        imagePullPolicy: Always
+        name: awshelper
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 0
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/run/docker.sock
+          name: dockersock
+      containers:
+      #
+      # See for details on running docker in a pod:
+      #   https://estl.tech/accessing-docker-from-a-kubernetes-pod-68996709c04b
+      #
+      - name: jenkins-worker
+        image: "quay.io/cdis/gen3-qa-worker:master"
+        ports:
+        - containerPort: 8080
+        env:
+          - name: JENKINS_URL
+            value: "https://jenkins2.planx-pla.net"
+          - name: JENKINS_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: jenkins-worker-g3auto
+                key: jenkins-jnlp-agent-secret 
+          - name: JENKINS_AGENT_NAME
+            value: "gen3-qa-worker"
+          - name: JENKINS_TUNNEL
+            value: "jenkins-agent:50000"
+          - name: AWS_DEFAULT_REGION
+            value: us-east-1
+          - name: JAVA_OPTS
+            value: "-Xmx3072m"
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: jenkins-secret
+                key: aws_access_key_id
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: jenkins-secret
+                key: aws_secret_access_key
+          - name: GOOGLE_EMAIL_AUX1
+            valueFrom:
+              secretKeyRef:
+                name: google-acct1
+                key: email
+          - name: GOOGLE_PASSWORD_AUX1
+            valueFrom:
+              secretKeyRef:
+                name: google-acct1
+                key: password
+          - name: GOOGLE_EMAIL_AUX2
+            valueFrom:
+              secretKeyRef:
+                name: google-acct2
+                key: email
+          - name: GOOGLE_PASSWORD_AUX2
+            valueFrom:
+              secretKeyRef:
+                name: google-acct2
+                key: password
+          - name: GOOGLE_APP_CREDS_JSON
+            valueFrom:
+              secretKeyRef:
+                name: jenkins-g3auto
+                key: google_app_creds.json
+          - name: DD_AGENT_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
+        resources:
+          limits:
+            cpu: 0.6
+            memory: 2048Mi
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: "cert-volume"
+          readOnly: true
+          mountPath: "/mnt/ssl/service.crt"
+          subPath: "service.crt"
+        - name: "cert-volume"
+          readOnly: true
+          mountPath: "/mnt/ssl/service.key"
+          subPath: "service.key"
+        - name: "ca-volume"
+          readOnly: true
+          mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
+          subPath: "ca.pem"
+        - name: dockersock
+          mountPath: "/var/run/docker.sock"
+        imagePullPolicy: Always
+      volumes:
+      - name: cert-volume
+        secret:
+          secretName: "cert-jenkins-service"
+      - name: ca-volume
+        secret:
+          secretName: "service-ca"
+      - name: dockersock
+        hostPath:
+          path: /var/run/docker.sock

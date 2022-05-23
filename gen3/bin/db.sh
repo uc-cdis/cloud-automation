@@ -33,6 +33,7 @@ gen3_db_farm_json() {
 #
 gen3_db_reset() {
   local serviceName
+  local force
   if [[ $# -lt 1 || -z "$1" ]]; then
     gen3_log_err "gen3_db_reset" "must specify serviceName"
     return 1
@@ -43,6 +44,8 @@ gen3_db_reset() {
     gen3_log_err "gen3_db_reset" "may not reset peregrine - only sheepdog"
     return 1
   fi
+  shift
+  force=$1
 
   # connect as the admin user for the db server associated with the service
   local credsTemp="$(mktemp "$XDG_RUNTIME_DIR/credsTemp.json_XXXXXX")"
@@ -81,6 +84,11 @@ gen3_db_reset() {
   fi
 
   local result
+  if [[ $force == "--force" ]]; then 
+    gen3_log_warn "--force flag applied - Dropping all connections to the db before dropping"
+    echo "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname='${dbname}' AND pid <> pg_backend_pid();" | gen3 psql "$serverName"
+    result=$?
+  fi
   echo "DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;" | gen3 psql "$serverName"
   result=$?
   if [[ "$serviceName" == "sheepdog" ]]; then 

@@ -33,6 +33,7 @@ jenkins-blood
 jenkins-brain
 jenkins-dcp
 jenkins-new
+jenkins-perf
 EOF
 
 cat - > jenkins-envs-releases.txt <<EOF
@@ -42,6 +43,7 @@ jenkins-blood
 jenkins-brain
 jenkins-dcp
 jenkins-new
+jenkins-perf
 EOF
 
 aws s3 cp jenkins-envs-services.txt s3://cdistest-public-test-bucket/jenkins-envs-services.txt

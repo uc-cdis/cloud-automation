@@ -1053,6 +1053,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "configmaps")
       gen3_gitops_configmaps "$@"
       ;;
+    "configmaps-from-json")
+      gen3_gitops_json_to_configmap "$@"
+      ;;
     "configmaps-list")
       gen3_gitops_configmaps_list "$@"
       ;;

@@ -11,7 +11,7 @@ sysctl -w fs.inotify.max_user_watches=12000
 
 KUBELET_EXTRA_ARGUMENTS="--node-labels=role=${nodepool}"
 
-if [[ ${nodepool} == jupyter ]];
+if [[ ${nodepool} != default ]];
 then
     KUBELET_EXTRA_ARGUMENTS="$KUBELET_EXTRA_ARGUMENTS --register-with-taints=role=${nodepool}:NoSchedule"
 fi
