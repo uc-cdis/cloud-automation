@@ -50,7 +50,7 @@ gen3_setup_kubecost() {
     valuesTemplate="${GEN3_HOME}/kube/services/kubecost/values.yaml"
     thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
     thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost/object-store.yaml"
-    if [[ $deployment == "slave"]]; then
+    if [[ $deployment == "slave" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-slave/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
@@ -127,10 +127,10 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                 fi
                 ;;
             esac
-            ;;
           done
           if [[ -z $slaveKubecostRole || -z $slaveAccountId || -z $kubecostToken || -z $slaveALB ]]; then
             gen3_log_err "Please ensure you set the required flags."
+            exit 1
           fi
           gen3_setup_kubecost "$@"    
           ;;
@@ -172,10 +172,10 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                 fi
                 ;;
             esac
-            ;;
           done
           if [[ -z $s3Bucket || -z $parentAccountId || -z $kubecostToken ]]; then
             gen3_log_err "Please ensure you set the required flags."
+            exit 1
           fi
           gen3_setup_kubecost "$@"    
           ;;
@@ -211,10 +211,10 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                 fi
                 ;;
             esac
-            ;;
           done
-          if [[ -z $kubecostToken]]; then
+          if [[ -z $kubecostToken ]]; then
             gen3_log_err "Please ensure you set the required flags."
+            exit 1
           fi
           gen3_setup_kubecost "$@" 
           ;;
