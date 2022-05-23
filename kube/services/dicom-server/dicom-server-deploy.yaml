@@ -27,14 +27,14 @@ spec:
         imagePullPolicy: Always
         readinessProbe:
           httpGet:
-            path: /
+            path: /system
             port: 8042
           initialDelaySeconds: 5
           periodSeconds: 20
           timeoutSeconds: 30
         livenessProbe:
           httpGet:
-            path: /
+            path: /system
             port: 8042
           initialDelaySeconds: 5
           periodSeconds: 60
