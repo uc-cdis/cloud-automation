@@ -12,7 +12,7 @@ terraform {
 locals {
     account_id = data.aws_caller_identity.current.account_id
     region     = data.aws_region.current.name
-    cur_bucket = var.cur_s3_bucket ?  var.cur_s3_bucket : aws_s3_bucket.cur-bucket.id[count.index]
+    cur_bucket = var.cur_s3_bucket ?  var.cur_s3_bucket : aws_s3_bucket.cur-bucket[count.index].id
 }
 
 # The Cost and Usage report, create in any configuration
@@ -56,7 +56,7 @@ resource "aws_s3_bucket" "cur-bucket" {
 # The Policy attached to the Cost and Usage report bucket, Will attach permissions to each for master/slave account and allow permissions to root slave account so SA's can read/write to bucket
 resource "aws_s3_bucket_policy" "cur-bucket-policy" {
   count  = var.cur_s3_bucket ?  0 : 1
-  bucket = aws_s3_bucket.cur-bucket.id[count.index]
+  bucket = aws_s3_bucket.cur-bucket[count.index].id
   policy =jsonencode({
     Version = "2008-10-17"
     Id = "Policy1335892530063"
@@ -68,7 +68,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
           Service = "billingreports.amazonaws.com"
         }
         Action = ["s3:GetBucketAcl","s3:GetBucketPolicy"]
-        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket[count.index].id}"
         Condition = {
         StringEquals = {
           "aws:SourceArn" = "arn:aws:cur:us-east-1:${local.account_id}:definition/*"
@@ -83,7 +83,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
           Service = "billingreports.amazonaws.com"
         }
         Action = "s3:PutObject"
-        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}/*"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket[count.index].id}/*"
         Condition = {
           StringEquals = {
             "aws:SourceArn" = "arn:aws:cur:us-east-1:${local.account_id}:definition/*"
@@ -98,7 +98,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
           Service = "billingreports.amazonaws.com"
         }
         Action = ["s3:GetBucketAcl","s3:GetBucketPolicy"]
-        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket[count.index].id}"
         Condition = {
         StringEquals = {
           "aws:SourceArn" = "arn:aws:cur:us-east-1:${var.slave_account_id ? var.slave_account_id  : local.account_id}}:definition/*"
@@ -113,7 +113,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
           Service = "billingreports.amazonaws.com"
         }
         Action = "s3:PutObject"
-        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}/*"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket[count.index].id}/*"
         Condition = {
           StringEquals = {
             "aws:SourceArn" = "arn:aws:cur:us-east-1:${var.slave_account_id ? var.slave_account_id  : local.account_id}:definition/*"
@@ -128,7 +128,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
           AWS = "arn:aws:iam::${var.slave_account_id ? var.slave_account_id  : local.account_id}:root"
         }
         Action = ["s3:GetBucketAcl","s3:GetBucketPolicy","s3:PutObject","s3:ListBucket","s3:GetObject","s3:DeleteObject","s3:PutObjectAcl"]
-        Resource = ["arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}/*","arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}"]
+        Resource = ["arn:aws:s3:::${aws_s3_bucket.cur-bucket[count.index].id}/*","arn:aws:s3:::${aws_s3_bucket.cur-bucket[count.index].id}"]
       }
     ]
   })
