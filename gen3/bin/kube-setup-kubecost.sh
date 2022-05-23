@@ -118,7 +118,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
               "--kubecost-token")
                 kubecostToken="$1"
                 ;;
-              "--kubecost-token")
+              "--slave-alb")
                 slaveALB="$1"
                 ;;
               "--force")
