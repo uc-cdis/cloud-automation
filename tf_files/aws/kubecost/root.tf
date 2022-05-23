@@ -12,7 +12,7 @@ terraform {
 locals {
     account_id = data.aws_caller_identity.current.account_id
     region     = data.aws_region.current.name
-    cur_bucket = var.cur_s3_bucket != "" ?  var.cur_s3_bucket : aws_s3_bucket.cur-bucket.id
+    cur_bucket = var.cur_s3_bucket != "" ?  var.cur_s3_bucket : aws_s3_bucket.cur-bucket.0.id
 }
 
 # The Cost and Usage report, create in any configuration
