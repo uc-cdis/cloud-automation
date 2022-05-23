@@ -12,9 +12,10 @@ terraform {
 locals {
     account_id = data.aws_caller_identity.current.account_id
     region     = data.aws_region.current.name
+    cur_bucket = var.cur_s3_bucket ?  var.cur_s3_bucket : aws_s3_bucket.cur-bucket.id[count.index]
 }
 
-# The Cost and Usage report
+# The Cost and Usage report, create in any configuration
 resource "aws_cur_report_definition" "kubecost-cur" {
   report_name                = "${var.vpc_name}-cur"
   s3_prefix                  = var.vpc_name
@@ -22,16 +23,16 @@ resource "aws_cur_report_definition" "kubecost-cur" {
   format                     = "Parquet"
   compression                = "Parquet"
   additional_schema_elements = ["RESOURCES"]
-  s3_bucket                  = aws_s3_bucket.cur-bucket.id
+  s3_bucket                  = local.cur_bucket
   s3_region                  = "us-east-1"
   additional_artifacts       = ["ATHENA"]
   report_versioning          = "OVERWRITE_REPORT"
-  depends_on                 = [aws_s3_bucket_policy.cur-bucket-policy]
 }
 
-# The bucket used by the Cost and Usage report
+# The bucket used by the Cost and Usage report, will be created in master/standalone setup
 resource "aws_s3_bucket" "cur-bucket" {
-  bucket        = "${var.vpc_name}-cur-bucket"
+  count         = var.cur_s3_bucket ?  0 : 1
+  bucket        = "${var.vpc_name}-kubecost-bucket"
   acl           = "private"
   force_destroy = true
 
@@ -44,17 +45,18 @@ resource "aws_s3_bucket" "cur-bucket" {
   }
 
   tags = {
-    Name        = "${var.vpc_name}-cur-bucket"
+    Name        = "${var.vpc_name}-kubecost-bucket"
     Environment = var.vpc_name
-    Purpose     = "Cost and Usage report bucket for use by Kubecost"
+    Purpose     = "Bucket for use by Kubecost, CUR and Thanos"
   }
 
 }
 
 
-# The Policy attached to the Cost and Usage report
+# The Policy attached to the Cost and Usage report bucket, Will attach permissions to each for master/slave account and allow permissions to root slave account so SA's can read/write to bucket
 resource "aws_s3_bucket_policy" "cur-bucket-policy" {
-  bucket = aws_s3_bucket.cur-bucket.id
+  count  = var.cur_s3_bucket ?  0 : 1
+  bucket = aws_s3_bucket.cur-bucket.id[count.index]
   policy =jsonencode({
     Version = "2008-10-17"
     Id = "Policy1335892530063"
@@ -66,7 +68,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
           Service = "billingreports.amazonaws.com"
         }
         Action = ["s3:GetBucketAcl","s3:GetBucketPolicy"]
-        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id}"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}"
         Condition = {
         StringEquals = {
           "aws:SourceArn" = "arn:aws:cur:us-east-1:${local.account_id}:definition/*"
@@ -81,19 +83,63 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
           Service = "billingreports.amazonaws.com"
         }
         Action = "s3:PutObject"
-        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id}/*"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}/*"
         Condition = {
           StringEquals = {
             "aws:SourceArn" = "arn:aws:cur:us-east-1:${local.account_id}:definition/*"
             "aws:SourceAccount" = local.account_id
           }
         }
+      },
+      {
+        Sid = "Stmt1335892150623"
+        Effect = "Allow"
+        Principal = {
+          Service = "billingreports.amazonaws.com"
+        }
+        Action = ["s3:GetBucketAcl","s3:GetBucketPolicy"]
+        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}"
+        Condition = {
+        StringEquals = {
+          "aws:SourceArn" = "arn:aws:cur:us-east-1:${var.slave_account_id ? var.slave_account_id  : local.account_id}}:definition/*"
+          "aws:SourceAccount" = var.slave_account_id
+          }
+        }
+      },
+      {
+        Sid = "Stmt1335892526598"
+        Effect = "Allow"
+        Principal = {
+          Service = "billingreports.amazonaws.com"
+        }
+        Action = "s3:PutObject"
+        Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}/*"
+        Condition = {
+          StringEquals = {
+            "aws:SourceArn" = "arn:aws:cur:us-east-1:${var.slave_account_id ? var.slave_account_id  : local.account_id}:definition/*"
+            "aws:SourceAccount" = local.account_id
+          }
+        }
+      },
+      {
+        Sid = "Stmt1335892526597"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${var.slave_account_id ? var.slave_account_id  : local.account_id}:root"
+        }
+        Action = ["s3:GetBucketAcl","s3:GetBucketPolicy","s3:PutObject","s3:ListBucket","s3:GetObject","s3:DeleteObject","s3:PutObjectAcl"]
+        Resource = ["arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}/*","arn:aws:s3:::${aws_s3_bucket.cur-bucket.id[count.index]}"]
       }
     ]
   })
 }
 
-# An IAM user used to connect kubecost to CUR/Glue/Athena
+
+
+
+
+
+# An IAM user used to connect kubecost to CUR/Glue/Athena, not used for SA setup
 resource "aws_iam_user" "kubecost-user" {
   name = "${var.vpc_name}-kubecost-user"
 
@@ -108,7 +154,7 @@ resource "aws_iam_access_key" "kubecost-user-key" {
   user = aws_iam_user.kubecost-user.name
 }
 
-# Policy to attach to the user
+# Policy to attach to the user, will attach permissions to terraform created bucket if master/standalone or to specified bucket if slave
 resource "aws_iam_policy" "kubecost-user-policy" {
   name        = "${var.vpc_name}-Kubecost-CUR-policy"
   path        = "/"
@@ -141,11 +187,33 @@ resource "aws_iam_policy" "kubecost-user-policy" {
         Sid = "S3ReadAccessToAwsBillingData"
         Effect = "Allow"
         Action = ["s3:Get*","s3:List*"]
-        Resource = ["arn:aws:s3:::${aws_s3_bucket.cur-bucket.id}*"]
+        Resource = ["arn:aws:s3:::${local.cur_bucket}*"]
       }
     ]
   })
 }
+
+# Policy to attach to the user, will attach permissions to terraform created bucket if master/standalone or to specified bucket if slave
+resource "aws_iam_policy" "kubecost-user-policy" {
+  name        = "${var.vpc_name}-Kubecost-Thanos-policy"
+  path        = "/"
+  description = "Policy for Thanos to have access to centralized bucket."
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid = "Statement",
+        Effect = "Allow",
+        Action = ["s3:ListBucket","s3:GetObject","s3:DeleteObject","s3:PutObject","s3:PutObjectAcl"],
+        Resource = ["arn:aws:s3:::${local.cur_bucket}/*","arn:aws:s3:::${local.cur_bucket}"]
+      }
+    ]
+  })
+}
+
 
 # Policy attachment of the kubecost user policy to the kubecost user
 resource "aws_iam_user_policy_attachment" "kubecost-user-policy-attachment" {
@@ -157,7 +225,11 @@ resource "aws_iam_user_policy_attachment" "kubecost-user-policy-attachment" {
 
 
 
-# Role for the glue crawler
+
+
+
+
+# Role for the glue crawler, used for every configuration, s3 bucket will either be from terraform, or specified master bucket
 resource "aws_iam_role" "glue-crawler-role" {
   name = "AWSCURCrawlerComponentFunction-${var.vpc_name}"
   managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole"]
@@ -193,7 +265,7 @@ resource "aws_iam_role" "glue-crawler-role" {
         },
         {
           Action = ["s3:GetObject","s3:PutObject"]
-          Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id}/${var.vpc_name}/${var.vpc_name}-cur/test-cur*"
+          Resource = "arn:aws:s3:::${local.cur_bucket}/${var.vpc_name}/${var.vpc_name}-cur*"
           Effect = "Allow"
         }
       ]
@@ -217,7 +289,7 @@ resource "aws_iam_role" "glue-crawler-role" {
 }
 
 
-# Role for the cur initializer lambda
+# Role for the cur initializer lambda, used for every configuration
 resource "aws_iam_role" "cur-initializer-lambda-role" {
   name = "AWSCURCrawlerLambdaExecutor-${var.vpc_name}"
 
@@ -255,7 +327,7 @@ resource "aws_iam_role" "cur-initializer-lambda-role" {
   }
 }
 
-# Role for the s3 notification lambda
+# Role for the s3 notification lambda, used for every configuration, s3 bucket will either be from terraform, or specified master bucket
 resource "aws_iam_role" "cur-s3-notification-lambda-role" {
   name = "AWSS3CURLambdaExecutor-${var.vpc_name}"
 
@@ -285,7 +357,7 @@ resource "aws_iam_role" "cur-s3-notification-lambda-role" {
         },
         {
           Action = ["s3:PutBucketNotification"]
-          Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket.id}"
+          Resource = "arn:aws:s3:::${local.cur_bucket}"
           Effect = "Allow"
         }
       ]
@@ -294,12 +366,12 @@ resource "aws_iam_role" "cur-s3-notification-lambda-role" {
 }
 
 
-# Glue database
+# Glue database, used for every configuration
 resource "aws_glue_catalog_database" "cur-glue-database" {
   name          = "athenacurcfn_${var.vpc_name}"
 }
 
-# Glue crawler
+# Glue crawler, used for every configuration, s3 bucket will either be from terraform, or specified master bucket
 resource "aws_glue_crawler" "cur-glue-crawler" {
   database_name = aws_glue_catalog_database.cur-glue-database.name
   name          = "${var.vpc_name}-AWSCURCrawler"
@@ -307,12 +379,12 @@ resource "aws_glue_crawler" "cur-glue-crawler" {
   role          = aws_iam_role.glue-crawler-role.arn
 
   s3_target {
-    path = "s3://${aws_s3_bucket.cur-bucket.id}/${var.vpc_name}/${var.vpc_name}-cur/test-cur"
+    path = "s3://${local.cur_bucket}/${var.vpc_name}/${var.vpc_name}-cur"
     exclusions = ["**.json","**.yml","**.sql","**.csv","**.gz","**.zip"]
   }
 }
 
-# Glue catalog table
+# Glue catalog table, used for every configuration, s3 bucket will either be from terraform, or specified master bucket
 resource "aws_glue_catalog_table" "cur-glue-catalog" {
   database_name = aws_glue_catalog_database.cur-glue-database.name
   name          = "${var.vpc_name}-cur"
@@ -320,7 +392,7 @@ resource "aws_glue_catalog_table" "cur-glue-catalog" {
 
 
   storage_descriptor {
-    location      = "s3://${aws_s3_bucket.cur-bucket.id}/${var.vpc_name}/${var.vpc_name}-cur/test-cur"
+    location      = "s3://${local.cur_bucket}/${var.vpc_name}/${var.vpc_name}-cur"
     input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
 
@@ -339,7 +411,7 @@ resource "aws_glue_catalog_table" "cur-glue-catalog" {
   }
 }
 
-# Lambdas for the CUR to run
+# Lambdas for the CUR to run, used for every configuration
 resource "aws_lambda_function" "cur-initializer-lambda" {
   filename         = "${path.module}/AWSCURInitializer.zip"
   function_name    = "${var.vpc_name}-AWSCURInitializer"
@@ -350,13 +422,15 @@ resource "aws_lambda_function" "cur-initializer-lambda" {
   runtime          = "nodejs12.x"
 }
 
+# permissions for lambda, used for every configuration, s3 bucket will either be from terraform, or specified master bucket
 resource "aws_lambda_permission" "cur-initializer-lambda-permission" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.cur-initializer-lambda.function_name
   principal     = "s3.amazonaws.com"
-  source_arn    = aws_s3_bucket.cur-bucket.arn
+  source_arn    = local.cur_bucket
 }
 
+# Lambda for CUR to run, used for every configuration
 resource "aws_lambda_function" "cur-s3-notification-lambda" {
   filename         = "${path.module}/AWSS3CURNotification.zip"
   function_name    = "${var.vpc_name}-AWSS3CURNotification"
@@ -371,4 +445,12 @@ resource "aws_lambda_function" "cur-s3-notification-lambda" {
       crawlerName = aws_glue_crawler.cur-glue-crawler.name
     }
   }
+}
+
+# Peering connection to a parent account, if the parent account ID is specified, ie. this is a master/slave configuration
+resource "aws_vpc_peering_connection" "kubecost-peering-connection" {
+  count = var.parent_account_id ? 1 : 0
+  peer_owner_id = var.parent_account_id
+  peer_vpc_id   = var.parent_account_id
+  vpc_id        = local.account_id
 }

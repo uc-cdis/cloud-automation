@@ -1,8 +1,0 @@
-## Full values listed here, https://github.com/kubecost/cost-analyzer-helm-chart/blob/master/cost-analyzer/values.yaml
-
-kubecostToken: KUBECOST_TOKEN
-
-serviceAccount:
-  create: true # Set this to false if you're bringing your own service account.
-  annotations: 
-    KUBECOST_SA
