@@ -12,7 +12,7 @@ terraform {
 locals {
     account_id = data.aws_caller_identity.current.account_id
     region     = data.aws_region.current.name
-    cur_bucket = var.cur_s3_bucket != "" ?  var.cur_s3_bucket : aws_s3_bucket.cur-bucket[count.index].id
+    cur_bucket = var.cur_s3_bucket != "" ?  var.cur_s3_bucket : aws_s3_bucket.cur-bucket.id
 }
 
 # The Cost and Usage report, create in any configuration
@@ -427,7 +427,7 @@ resource "aws_lambda_permission" "cur-initializer-lambda-permission" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.cur-initializer-lambda.function_name
   principal     = "s3.amazonaws.com"
-  source_arn    = local.cur_bucket
+  source_arn    = "arn:aws:s3:::${local.cur_bucket}"
 }
 
 # Lambda for CUR to run, used for every configuration
