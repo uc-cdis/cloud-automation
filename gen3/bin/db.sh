@@ -86,7 +86,7 @@ gen3_db_reset() {
   local result
   if [[ $force == "--force" ]]; then 
     gen3_log_warn "--force flag applied - Dropping all connections to the db before dropping"
-    echo "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname='${dbname}' AND pid <> pg_backend_pid();" #| gen3 psql "$serverName"
+    echo "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname='${dbname}' AND pid <> pg_backend_pid();" | gen3 psql "$serverName"
     result=$?
   fi
   echo "DROP DATABASE \"${dbname}\"; CREATE DATABASE \"${dbname}\"; GRANT ALL ON DATABASE \"$dbname\" TO \"$username\" WITH GRANT OPTION;" | gen3 psql "$serverName"
