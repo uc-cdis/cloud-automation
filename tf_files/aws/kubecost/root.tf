@@ -140,19 +140,19 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
 
 
 # An IAM user used to connect kubecost to CUR/Glue/Athena, not used for SA setup
-resource "aws_iam_user" "kubecost-user" {
-  name = "${var.vpc_name}-kubecost-user"
-
-  tags = {
-    Environment = var.vpc_name
-    Purpose     = "Kubecost user with access to Cost and Usage report"
-  }
-}
+#resource "aws_iam_user" "kubecost-user" {
+#  name = "${var.vpc_name}-kubecost-user"
+#
+#  tags = {
+#    Environment = var.vpc_name
+#    Purpose     = "Kubecost user with access to Cost and Usage report"
+#  }
+#}
 
 # Access Key for the user
-resource "aws_iam_access_key" "kubecost-user-key" {
-  user = aws_iam_user.kubecost-user.name
-}
+#resource "aws_iam_access_key" "kubecost-user-key" {
+#  user = aws_iam_user.kubecost-user.name
+#}
 
 # Policy to attach to the user, will attach permissions to terraform created bucket if master/standalone or to specified bucket if slave
 resource "aws_iam_policy" "thanos-user-policy" {

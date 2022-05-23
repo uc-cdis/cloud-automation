@@ -44,7 +44,9 @@ gen3_setup_kubecost_service_account() {
 gen3_setup_kubecost() {
   gen3_setup_kubecost_infrastructure
   # Change the SA permissions based on slave/master/standalone
-  gen3_setup_kubecost_service_account
+  if [[ -z $(kubectl get sa -n kubecost | grep $vpc_name-kubecost-user) ]]; then
+    gen3_setup_kubecost_service_account
+  fi
   if (! helm status kubecost -n kubecost > /dev/null 2>&1 )  || [[ ! -z "$FORCE" ]]; then
     
     ## Need to find vars to add to this, probably kubecost token, and SA info

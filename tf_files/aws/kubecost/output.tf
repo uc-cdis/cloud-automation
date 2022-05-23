@@ -23,10 +23,10 @@ output "kubecost-SA" {
   value = aws_iam_user.kubecost-user.arn
 }
 
-output "kubectcost-user-id" {
-  value = "${aws_iam_access_key.kubecost-user-key.id}"
-}
+#output "kubectcost-user-id" {
+#  value = "${aws_iam_access_key.kubecost-user-key.id}"
+#}
 
-output "kubecost-user-secret" {
-  value = "${aws_iam_access_key.kubecost-user-key.secret}"
-}
+#output "kubecost-user-secret" {
+#  value = "${aws_iam_access_key.kubecost-user-key.secret}"
+#}
