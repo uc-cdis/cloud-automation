@@ -46,5 +46,5 @@ networkCosts:
 thanos:
   store:
     serviceAccount: THANOS_SA
-  comap: 
+  compact: 
     serviceAccount: THANOS_SA
