@@ -35,7 +35,7 @@ prometheus:
   serviceAccounts:
     server:
       create: false
-      name: THANOS_SA
+      name: "THANOS_SA"
   server:
     global:
       external_labels:
@@ -45,6 +45,6 @@ networkCosts:
   enabled: true
 thanos:
   store:
-    serviceAccount: THANOS_SA
+    serviceAccount: "THANOS_SA"
   compact: 
-    serviceAccount: THANOS_SA
+    serviceAccount: "THANOS_SA"
