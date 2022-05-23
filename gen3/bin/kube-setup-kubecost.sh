@@ -242,6 +242,3 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
   esac
 fi
-
-
-gen3 kube-setup-kubecost master create --slave-account-id 707767160287 --slave-kubecost-role kubecost-cost-analyzer --kubecost-token bmFyYWt1ZmFuMDJAeWFob28uY29txm343yadf98 --slave-alb k8s-kubecost-kubecost-e0b5240e10-1308298590.us-east-1.elb.amazonaws.com
