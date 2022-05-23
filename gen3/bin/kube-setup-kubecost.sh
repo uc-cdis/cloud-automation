@@ -171,7 +171,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
               "--parent-vpc")
                 parentVPC="$1"
                 ;;
-              "--chile-vpc")
+              "--child-vpc")
                 childVPC="$1"
                 ;;
               "--force")
