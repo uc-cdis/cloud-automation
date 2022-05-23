@@ -12,6 +12,10 @@ variable "parent_vpc" {
   default = ""
 }
 
+variable "child_vpc" {
+  default = ""
+}
+
 variable "cur_s3_bucket" {
   default = ""
 }
