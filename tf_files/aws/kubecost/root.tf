@@ -216,10 +216,10 @@ resource "aws_iam_policy" "kubecost-user-policy" {
 
 
 # Policy attachment of the kubecost user policy to the kubecost user
-resource "aws_iam_user_policy_attachment" "kubecost-user-policy-attachment" {
-  user       = aws_iam_user.kubecost-user.name
-  policy_arn = aws_iam_policy.kubecost-user-policy.arn
-}
+#resource "aws_iam_user_policy_attachment" "kubecost-user-policy-attachment" {
+#  user       = aws_iam_user.kubecost-user.name
+#  policy_arn = aws_iam_policy.kubecost-user-policy.arn
+#}
 
 
 
