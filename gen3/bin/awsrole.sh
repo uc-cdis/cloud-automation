@@ -90,7 +90,7 @@ gen3_awsrole_sa_annotate() {
   roleInfo="$(aws iam get-role --role-name "$roleName")" || return 1
   roleArn="$(jq -e -r .Role.Arn <<< "$roleInfo")"
 
-  if ! g3kubectl get sa "$saName"--namespace=$namespace  > /dev/null; then
+  if ! g3kubectl get sa "$saName" --namespace=$namespace  > /dev/null; then
     g3kubectl create sa "$saName" --namespace=$namespace || return 1
   fi
 
