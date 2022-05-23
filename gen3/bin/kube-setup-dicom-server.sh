@@ -32,7 +32,7 @@ setup_database_and_config() {
     # "SslCertificate": ""
     cat - > "$secretsFolder/orthanc_config_overwrites.json" <<EOM
 { 
-  "AuthenticationEnabled": false,  
+  "AuthenticationEnabled": false,
   "PostgreSQL": {
     "EnableIndex": true,
     "EnableStorage": true,
@@ -41,8 +41,10 @@ setup_database_and_config() {
     "Database": "$(jq -r .db_database < $secretsFolder/dbcreds.json)",
     "Username": "$(jq -r .db_username < $secretsFolder/dbcreds.json)",
     "Password": "$(jq -r .db_password < $secretsFolder/dbcreds.json)",
-    "IndexConnectionsCount": 5
-  }
+    "IndexConnectionsCount": 5,
+    "Lock": false
+  },
+  "PythonScript": "/etc/orthanc/authz_filter.py"
 }
 EOM
   fi
