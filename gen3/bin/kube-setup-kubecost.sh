@@ -79,7 +79,9 @@ gen3_setup_kubecost() {
     fi
     g3k_kv_filter $thanosValuesTemplate AWS_REGION $awsRegion KUBECOST_S3_BUCKET $s3Bucket
     # Need to setup thanos config
-    kubectl delete secret -n kubecost kubecost-thanos
+    if [[ ! -z $(kubectl get secrets -n kubecost | grep kubecost-thanos) ]]; then
+      kubectl delete secret -n kubecost kubecost-thanos
+    fi
     kubectl create secret generic kubecost-thanos -n kubecost --from-file=$thanosValuesFile
 
     helm repo add kubecost https://kubecost.github.io/cost-analyzer/ --force-update 2> >(grep -v 'This is insecure' >&2)
