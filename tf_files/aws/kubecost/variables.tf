@@ -8,6 +8,10 @@ variable "parent_account_id" {
   default = ""
 }
 
+variable "parent_vpc" {
+  default = ""
+}
+
 variable "cur_s3_bucket" {
   default = ""
 }

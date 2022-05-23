@@ -15,6 +15,7 @@ gen3_setup_kubecost_infrastructure() {
   if [[ $deployment == "slave" ]]; then
     echo "cur_s3_bucket=\"$s3Bucket\"" >> config.tfvars
     echo "parent_account_id=\"$parentAccountId\"" >> config.tfvars
+    echo "parent_vpc\"$parentVPC\"" >> config.tfvars
   elif [[ $deployment == "master" ]]; then
     echo "slave_account_id=\"$slaveAccountId\"" >> config.tfvars
     echo "slave_kubecost_role=\"$slaveKubecostRole\"" >> config.tfvars
@@ -166,6 +167,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
               "--kubecost-token")
                 kubecostToken="$1"
                 ;;
+              "--parent-vpc")
+                parentVPC="$1"
+                ;;
               "--force")
                 if [[ $(echo $1 | tr '[:upper:]' '[:lower:]') == "true" ]]; then
                   FORCE=true
@@ -232,3 +236,6 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
   esac
 fi
+
+
+gen3 kube-setup-kubecost master create --slave-account-id 707767160287 --slave-kubecost-role kubecost-cost-analyzer --kubecost-token bmFyYWt1ZmFuMDJAeWFob28uY29txm343yadf98 --slave-alb k8s-kubecost-kubecost-e0b5240e10-1308298590.us-east-1.elb.amazonaws.com

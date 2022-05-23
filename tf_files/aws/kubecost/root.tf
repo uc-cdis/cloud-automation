@@ -451,6 +451,6 @@ resource "aws_lambda_function" "cur-s3-notification-lambda" {
 resource "aws_vpc_peering_connection" "kubecost-peering-connection" {
   count = var.parent_account_id != "" ? 1 : 0
   peer_owner_id = var.parent_account_id
-  peer_vpc_id   = var.parent_account_id
+  peer_vpc_id   = var.parent_vpc
   vpc_id        = local.account_id
 }
