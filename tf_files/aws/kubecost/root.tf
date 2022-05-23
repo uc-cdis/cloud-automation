@@ -31,7 +31,7 @@ resource "aws_cur_report_definition" "kubecost-cur" {
 
 # The bucket used by the Cost and Usage report, will be created in master/standalone setup
 resource "aws_s3_bucket" "cur-bucket" {
-  count         = var.cur_s3_bucket ?  0 : 1
+  count         = var.cur_s3_bucket != "" ?  0 : 1
   bucket        = "${var.vpc_name}-kubecost-bucket"
   acl           = "private"
   force_destroy = true
@@ -55,7 +55,7 @@ resource "aws_s3_bucket" "cur-bucket" {
 
 # The Policy attached to the Cost and Usage report bucket, Will attach permissions to each for master/slave account and allow permissions to root slave account so SA's can read/write to bucket
 resource "aws_s3_bucket_policy" "cur-bucket-policy" {
-  count  = var.cur_s3_bucket ?  0 : 1
+  count  = var.cur_s3_bucket != "" ?  0 : 1
   bucket = aws_s3_bucket.cur-bucket[count.index].id
   policy =jsonencode({
     Version = "2008-10-17"
@@ -101,7 +101,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
         Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket[count.index].id}"
         Condition = {
         StringEquals = {
-          "aws:SourceArn" = "arn:aws:cur:us-east-1:${var.slave_account_id ? var.slave_account_id  : local.account_id}}:definition/*"
+          "aws:SourceArn" = "arn:aws:cur:us-east-1:${var.slave_account_id != "" ? var.slave_account_id  : local.account_id}}:definition/*"
           "aws:SourceAccount" = var.slave_account_id
           }
         }
@@ -116,7 +116,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
         Resource = "arn:aws:s3:::${aws_s3_bucket.cur-bucket[count.index].id}/*"
         Condition = {
           StringEquals = {
-            "aws:SourceArn" = "arn:aws:cur:us-east-1:${var.slave_account_id ? var.slave_account_id  : local.account_id}:definition/*"
+            "aws:SourceArn" = "arn:aws:cur:us-east-1:${var.slave_account_id != "" ? var.slave_account_id  : local.account_id}:definition/*"
             "aws:SourceAccount" = local.account_id
           }
         }
@@ -125,7 +125,7 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
         Sid = "Stmt1335892526597"
         Effect = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${var.slave_account_id ? var.slave_account_id  : local.account_id}:root"
+          AWS = "arn:aws:iam::${var.slave_account_id != "" ? var.slave_account_id  : local.account_id}:root"
         }
         Action = ["s3:GetBucketAcl","s3:GetBucketPolicy","s3:PutObject","s3:ListBucket","s3:GetObject","s3:DeleteObject","s3:PutObjectAcl"]
         Resource = ["arn:aws:s3:::${aws_s3_bucket.cur-bucket[count.index].id}/*","arn:aws:s3:::${aws_s3_bucket.cur-bucket[count.index].id}"]
@@ -449,7 +449,7 @@ resource "aws_lambda_function" "cur-s3-notification-lambda" {
 
 # Peering connection to a parent account, if the parent account ID is specified, ie. this is a master/slave configuration
 resource "aws_vpc_peering_connection" "kubecost-peering-connection" {
-  count = var.parent_account_id ? 1 : 0
+  count = var.parent_account_id != "" ? 1 : 0
   peer_owner_id = var.parent_account_id
   peer_vpc_id   = var.parent_account_id
   vpc_id        = local.account_id
