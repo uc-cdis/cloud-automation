@@ -1,13 +1,23 @@
-variable "vpc_name" {}
+variable "vpc_name" {
+  default = ""
+}
 
 # If slave setup
 
-variable "parent_account_id" {}
+variable "parent_account_id" {
+  default = ""
+}
 
-variable "cur_s3_bucket" {}
+variable "cur_s3_bucket" {
+  default = ""
+}
 
 # If master setup
 
-variable "slave_account_id" {}
+variable "slave_account_id" {
+  default = ""
+}
 
-variable "slave_kubecost_role" {}
+variable "slave_kubecost_role" {
+  default = ""
+}
