@@ -49,28 +49,23 @@ gen3_setup_kubecost() {
   fi
   if (! helm status kubecost -n kubecost > /dev/null 2>&1 )  || [[ ! -z "$FORCE" ]]; then
     
-    ## Need to find vars to add to this, probably kubecost token, and SA info
-    valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
-    valuesTemplate="${GEN3_HOME}/kube/services/kubecost/values.yaml"
-    thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
-    thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost/object-store.yaml"
     if [[ $deployment == "slave" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-slave/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
-      thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-slave/object-store.yaml"
+      thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-slave/object-store_$$.yaml"
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$roleName" THANOS_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$thanosRoleName" ATHENA_BUCKET "aws-athena-query-results-$accountID-$awsRegion" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "$vpc_name-cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion"
     elif [[ $deployment == "master" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
-      thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store.yaml"
+      thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store_$$.yaml"
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$roleName" THANOS_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$thanosRoleName" ATHENA_BUCKET "aws-athena-query-results-$accountID-$awsRegion" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "$vpc_name-cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" KUBECOST_SLAVE_ALB "$slaveALB"
     else
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
-      thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store.yaml"
+      thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store_$$.yaml"
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "{}"
     fi
     # If master setup and s3 bucket not supplied, set terraform master s3 bucket name for thanos secret
