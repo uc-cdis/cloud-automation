@@ -83,6 +83,9 @@ gen3_setup_kubecost() {
     if [[ ! -z $(kubectl get secrets -n kubecost | grep kubecost-thanos) ]]; then
       kubectl delete secret -n kubecost kubecost-thanos
     fi
+    if [[ ! -z $(kubectl get secrets -n kubecost | grep thanos) ]]; then
+      kubectl delete secret -n kubecost thanos
+    fi
     kubectl create secret generic kubecost-thanos -n kubecost --from-file=$thanosValuesFile
     kubectl create secret generic thanos -n kubecost --from-file=$thanosValuesFile
     helm repo add kubecost https://kubecost.github.io/cost-analyzer/ --force-update 2> >(grep -v 'This is insecure' >&2)
