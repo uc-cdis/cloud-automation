@@ -24,6 +24,8 @@ gen3_awsrole_help() {
 function gen3_awsrole_ar_policy() {
   local serviceAccount="$1"
   shift || return 1
+  local namespace="$1"
+  shift || return 1
   local issuer_url
   local account_id
   local vpc_name
@@ -56,7 +58,7 @@ function gen3_awsrole_ar_policy() {
       "Condition": {
         "StringEquals": {
           "${issuer_url}:aud": "sts.amazonaws.com",
-          "${issuer_url}:sub": "system:serviceaccount:$(gen3 db namespace):${serviceAccount}"
+          "${issuer_url}:sub": "system:serviceaccount:${namespace}:${serviceAccount}"
         }
       }
     }
@@ -73,18 +75,11 @@ EOF
 # @param Optional - namespace
 #
 gen3_awsrole_sa_annotate() {
-  local ctxNamespace=$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$(g3kubectl config current-context)\")) | .[0] | .context.namespace")
   local saName="$1"
   shift || return 1
   local roleName="$1"
   shift || return 1
-  if [[ ! -z $1 ]]; then
-    local namespace=$1
-  elif [[ -z $ctxNamespace ]]; then
-    local namespace="default"
-  else
-    local namespace=$ctxNamespace
-  fi
+  local namespace="$1"
   local roleArn
   local roleInfo
   roleInfo="$(aws iam get-role --role-name "$roleName")" || return 1
@@ -125,8 +120,9 @@ _tfplan_role() {
   shift || return 1
   local saName="$1"
   shift || return 1
+  local namespace="$1"
   local arDoc
-  arDoc="$(gen3_awsrole_ar_policy "$saName")" || return 1
+  arDoc="$(gen3_awsrole_ar_policy "$saName" "$namespace")" || return 1
   gen3 workon default "${rolename}_role"
   gen3 cd
   cat << EOF > config.tfvars
@@ -169,6 +165,7 @@ _tfapply_role() {
 # @param serviceAccountName
 #
 gen3_awsrole_create() {
+  local ctxNamespace=$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$(g3kubectl config current-context)\")) | .[0] | .context.namespace")
   local rolename="$1"
   if ! shift || [[ -z "$rolename" ]]; then
     gen3_log_err "use: gen3 awsrole create roleName saName"
@@ -179,7 +176,13 @@ gen3_awsrole_create() {
     gen3_log_err "use: gen3 awsrole create roleName saName"
     return 1
   fi
-  local namespace="$1"
+  if [[ ! -z $1 ]]; then
+    local namespace=$1
+  elif [[ -z $ctxNamespace ]]; then
+    local namespace="default"
+  else
+    local namespace=$ctxNamespace
+  fi
   # do simple validation of name
   local regexp="^[a-z][a-z0-9\-]*$"
   if [[ ! $rolename =~ $regexp ]];then
@@ -209,7 +212,7 @@ EOF
   fi
 
   TF_IN_AUTOMATION="true"
-  if ! _tfplan_role $rolename $saName; then
+  if ! _tfplan_role $rolename $saName $namespace; then
     return 1
   fi
   if ! _tfapply_role $rolename; then

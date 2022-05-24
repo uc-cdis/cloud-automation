@@ -84,7 +84,7 @@ gen3_setup_kubecost() {
       kubectl delete secret -n kubecost kubecost-thanos
     fi
     kubectl create secret generic kubecost-thanos -n kubecost --from-file=$thanosValuesFile
-
+    kubectl create secret generic thanos -n kubecost --from-file=$thanosValuesFile
     helm repo add kubecost https://kubecost.github.io/cost-analyzer/ --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
     helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} -f $thanosValues
