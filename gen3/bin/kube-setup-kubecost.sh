@@ -54,22 +54,25 @@ gen3_setup_kubecost() {
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-slave/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-slave/object-store.yaml"
+      thanosValues="${GEN3_HOME}/kube/services/kubecost-slave/values-thanos.yaml"
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "aws-athena-query-results-$accountID-$awsRegion" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "$vpc_name-cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" > $valuesFile
-      kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-slave/kubecost-alb.yaml"
+      kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-slave/kubecost-alb.yaml" -n kubecost
     elif [[ $deployment == "master" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store.yaml"
+      thanosValues="${GEN3_HOME}/kube/services/kubecost-master/values-thanos.yaml"
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "aws-athena-query-results-$accountID-$awsRegion" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "$vpc_name-cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" KUBECOST_SLAVE_ALB "$slaveALB" > $valuesFile
-      kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-master/kubecost-alb.yaml"
+      kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-master/kubecost-alb.yaml" -n kubecost
     else
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store.yaml"
+      thanosValues="${GEN3_HOME}/kube/services/kubecost-master/values-thanos.yaml"
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "{}" > $valuesFile
-      kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-master/kubecost-alb.yaml"
+      kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-master/kubecost-alb.yaml" -n kubecost
     fi
     # If master setup and s3 bucket not supplied, set terraform master s3 bucket name for thanos secret
     if [[ -z $s3Bucket ]]; then
@@ -84,7 +87,7 @@ gen3_setup_kubecost() {
 
     helm repo add kubecost https://kubecost.github.io/cost-analyzer/ --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
-    helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile}
+    helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} -f $thanosValues
   else
     gen3_log_info "kube-setup-kubecost exiting - kubecost already deployed, use --force true to redeploy"
   fi

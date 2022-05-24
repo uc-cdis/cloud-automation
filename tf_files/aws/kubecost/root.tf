@@ -379,7 +379,7 @@ resource "aws_glue_crawler" "cur-glue-crawler" {
   role          = aws_iam_role.glue-crawler-role.arn
 
   s3_target {
-    path = "s3://${local.cur_bucket}/${var.vpc_name}/${var.vpc_name}-cur"
+    path = "s3://${local.cur_bucket}/${var.vpc_name}/${var.vpc_name}-cur/${var.vpc_name}-cur/"
     exclusions = ["**.json","**.yml","**.sql","**.csv","**.gz","**.zip"]
   }
 }
@@ -387,12 +387,12 @@ resource "aws_glue_crawler" "cur-glue-crawler" {
 # Glue catalog table, used for every configuration, s3 bucket will either be from terraform, or specified master bucket
 resource "aws_glue_catalog_table" "cur-glue-catalog" {
   database_name = aws_glue_catalog_database.cur-glue-database.name
-  name          = "${var.vpc_name}-cur"
+  name          = "${var.vpc_name}-cost_and_usage_data_status"
   table_type    = "EXTERNAL_TABLE"
 
 
   storage_descriptor {
-    location      = "s3://${local.cur_bucket}/${var.vpc_name}/${var.vpc_name}-cur"
+    location      = "s3://${local.cur_bucket}/${var.vpc_name}/${var.vpc_name}-cur/cost_and_usage_data_status/"
     input_format  = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat"
     output_format = "org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat"
 
