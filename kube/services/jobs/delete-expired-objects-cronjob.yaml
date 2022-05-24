@@ -1,0 +1,34 @@
+# run with 
+# gen3 job run jobs/delete-expired-objects-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: delete-expired-objects
+spec:
+  # Run once a week on Sunday, 6:00PM Chicago time == Monday, 12:00AM UTC
+  schedule: "0 0 * * 1"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          volumes:
+            - name: profile-creds-volume
+              secret:
+                secretName: "delete-expired-objects-g3auto"
+          containers:
+          - name: delete-expired-objects
+            GEN3_DELETE-EXPIRED-OBJECTS_IMAGE
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: profile-creds-volume
+                mountPath: /mnt
+            command: ["python" ]
+            args: 
+              - delete_temp_objects_job.py
+          restartPolicy: Never
