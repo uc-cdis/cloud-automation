@@ -80,13 +80,13 @@ gen3 kube-setup-google
 # TODO: WILL UNCOMMENT THIS ONCE FEATURE IN FENCE IS RELEASED
 # if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.04"; then
 #   # Setup db cleanup cronjob
-#   if g3kubectl get cronjob fence-cleanup-expired-ga4gh-info >/dev/null 2>&1; then
+#   if ! g3kubectl get cronjob fence-cleanup-expired-ga4gh-info >/dev/null 2>&1; then
 #       echo "fence-cleanup-expired-ga4gh-info being added as a cronjob b/c fence >= 6.0.0 or 2022.04"
 #       gen3 job cron fence-cleanup-expired-ga4gh-info "*/5 * * * *"
 #   fi
 #
 #   # Setup visa update cronjob
-#   if g3kubectl get cronjob fence-visa-update >/dev/null 2>&1; then
+#   if ! g3kubectl get cronjob fence-visa-update >/dev/null 2>&1; then
 #       echo "fence-visa-update being added as a cronjob b/c fence >= 6.0.0 or 2022.04"
 #       gen3 job cron fence-visa-update "30 * * * *"
 #   fi
