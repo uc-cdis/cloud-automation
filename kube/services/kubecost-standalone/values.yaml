@@ -18,23 +18,16 @@ kubecostProductConfigs:
   projectID: AWS_ACCOUNT_ID
   # awsSpotDataRegion: AWS_kubecostProductConfigs_awsSpotDataRegion
   # awsSpotDataBucket: AWS_kubecostProductConfigs_awsSpotDataBucket
-kubecostModel:
-  warmCache: false
-  warmSavingsCache: false
-  etl: false
-global:
-  grafana:
-    enabled: false
-    proxy: false
-  alertmanager:
-    enabled: false
+
 prometheus:
   serviceAccounts:
     server:
       create: false
       name: "THANOS_SA"
+
 networkCosts:
   enabled: true
+  
 thanos:
   store:
     serviceAccount: "THANOS_SA"

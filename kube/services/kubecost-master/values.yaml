@@ -21,16 +21,7 @@ kubecostProductConfigs:
   clusters: 
   - name: "slave-cluster"
     address: KUBECOST_SLAVE_ALB
-kubecostModel:
-  warmCache: false
-  warmSavingsCache: false
-  etl: false
-global:
-  grafana:
-    enabled: false
-    proxy: false
-  alertmanager:
-    enabled: false
+
 prometheus:
   serviceAccounts:
     server:
@@ -41,8 +32,10 @@ prometheus:
       external_labels:
         # Slave cluster name
         cluster_id: "slave-cluster"
+        
 networkCosts:
   enabled: true
+
 thanos:
   store:
     serviceAccount: "THANOS_SA"

@@ -16,16 +16,19 @@ kubecostProductConfigs:
   athenaProjectID: AWS_ACCOUNT_ID
   #serviceKeySecretName: aws-service-key , might work with SA attached instead
   projectID: AWS_ACCOUNT_ID
+
 kubecostModel:
   warmCache: false
   warmSavingsCache: false
   etl: false
+
 global:
   grafana:
     enabled: false
     proxy: false
   alertmanager:
     enabled: false
+
 prometheus:
   serviceAccounts:
     server:
@@ -36,8 +39,10 @@ prometheus:
       external_labels:
         # Slave cluster name
         cluster_id: "slave-cluster"
+
 networkCosts:
   enabled: true
+  
 thanos:
   store:
     serviceAccount: THANOS_SA
