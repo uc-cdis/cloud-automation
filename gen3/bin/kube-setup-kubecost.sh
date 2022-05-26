@@ -19,7 +19,6 @@ gen3_setup_kubecost_infrastructure() {
     echo "child_vpc=\"$childVPC\"" >> config.tfvars
   elif [[ $deployment == "master" ]]; then
     echo "slave_account_id=\"$slaveAccountId\"" >> config.tfvars
-    echo "slave_kubecost_role=\"$slaveKubecostRole\"" >> config.tfvars
   fi
   gen3 tfplan 2>&1
   gen3 tfapply 2>&1
@@ -141,9 +140,6 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
               shift
             fi
             case "$flag" in
-              "--slave-kubecost-role")
-                slaveKubecostRole="$1"
-                ;;
               "--slave-account-id")
                 slaveAccountId="$1"
                 ;;
@@ -160,7 +156,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                 ;;
             esac
           done
-          if [[ -z $slaveKubecostRole || -z $slaveAccountId || -z $kubecostToken || -z $slaveALB ]]; then
+          if [[ -z $slaveAccountId || -z $kubecostToken || -z $slaveALB ]]; then
             gen3_log_err "Please ensure you set the required flags."
             exit 1
           fi

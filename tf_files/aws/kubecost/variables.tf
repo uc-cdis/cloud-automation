@@ -25,7 +25,3 @@ variable "cur_s3_bucket" {
 variable "slave_account_id" {
   default = ""
 }
-
-variable "slave_kubecost_role" {
-  default = ""
-}
