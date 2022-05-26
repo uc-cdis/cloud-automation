@@ -102,30 +102,19 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     )
   fi
   # gen3sdk currently requires this
-  sudo -E apt-get install -y libpq-dev apt-transport-https ca-certificates curl
-  sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-  ##kubernetes-xenial packages are supported in Bionic and Focal.
-  echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
-  sudo -E apt-get update
-  #client_version=$(kubectl version --short --client=true | awk -F[v.] '{print $2"."$3}')
-  server_version=$(kubectl version --short | awk -F[v.] '/Server/ {print $3"."$4}')
-
-  if [[ ! -z "${server_version// }" ]]; then
-    (
-      install_version=$(apt-cache madison kubectl | awk  '$3 ~ /'$server_version'/ {print $3}'| head -n 1)
-      sudo -E apt-get install -y kubectl=$install_version --allow-downgrades
-    )
-  else
-    sudo -E apt-get install -y kubectl
-  fi  
-
-  if [[ -f /usr/local/bin/kubectl && -f /usr/bin/kubectl ]]; then  # pref dpkg managed kubectl
-    sudo -E /bin/rm /usr/local/bin/kubectl
-  fi
+  sudo -E apt-get install -y libpq-dev
   if ! which gcloud > /dev/null 2>&1; then
     (
+      export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+      sudo -E bash -c "echo 'deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main' > /etc/apt/sources.list.d/google-cloud-sdk.list"
+      curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo -E apt-key add -
+      sudo -E apt-get update
       sudo -E apt-get install -y google-cloud-sdk \
-          google-cloud-sdk-cbt
+          google-cloud-sdk-cbt \
+          kubectl
+      if [[ -f /usr/local/bin/kubectl && -f /usr/bin/kubectl ]]; then  # pref dpkg managed kubectl
+        sudo -E /bin/rm /usr/local/bin/kubectl
+      fi
     )
   fi
 
