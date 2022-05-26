@@ -78,8 +78,8 @@ gen3_setup_kubecost() {
   if [[ -z $s3Bucket ]]; then
     s3Bucket="$vpc_name-kubecost-bucket"
   fi
+  kubectl create namespace kubecost || true
   if (! helm status kubecost -n kubecost > /dev/null 2>&1 )  || [[ ! -z "$FORCE" ]]; then
-    kubectl create namespace kubecost || true
     if [[ $deployment == "slave" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-slave/values.yaml"
