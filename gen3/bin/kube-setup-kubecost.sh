@@ -100,12 +100,8 @@ gen3_setup_kubecost() {
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/object-store.yaml"
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET $s3Bucket ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "$vpc_name-cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" KUBECOST_SLAVE_ALB "$slaveALB" > $valuesFile
     fi
-    if [[ ! -z $(kubectl get secrets -n kubecost | grep kubecost-thanos) ]]; then
-      kubectl delete secret -n kubecost kubecost-thanos
-    fi
-    if [[ ! -z $(kubectl get secrets -n kubecost | grep thanos) ]]; then
-      kubectl delete secret -n kubecost thanos
-    fi
+    kubectl delete secret -n kubecost kubecost-thanos || true
+    kubectl delete secret -n kubecost thanos || true
     g3k_kv_filter $thanosValuesTemplate AWS_REGION $awsRegion KUBECOST_S3_BUCKET $s3Bucket > $thanosValuesFile
     kubectl create secret generic kubecost-thanos -n kubecost --from-file=$thanosValuesFile
     kubectl create secret generic thanos -n kubecost --from-file=$thanosValuesFile
