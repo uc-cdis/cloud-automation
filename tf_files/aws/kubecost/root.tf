@@ -47,7 +47,7 @@ resource "aws_s3_bucket" "cur-bucket" {
   tags = {
     Name        = "${var.vpc_name}-kubecost-bucket"
     Environment = var.vpc_name
-    Purpose     = "Bucket for use by Kubecost, CUR and Thanos"
+    Purpose     = "data bucket"
   }
 
 }
