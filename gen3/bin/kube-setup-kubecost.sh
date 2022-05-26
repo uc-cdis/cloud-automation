@@ -25,6 +25,15 @@ gen3_setup_kubecost_infrastructure() {
   gen3 tfapply 2>&1
 }
 
+gen3_destroy_kubecost_infrastructure() {
+  gen3 workon default "${vpc_name}__kubecost"
+  gen3 tfplan --destroy 2>&1
+  gen3 tfapply 2>&1
+  gen3 cd
+  cd ..
+  rm -rf "${vpc_name}__kubecost"
+}
+
 gen3_setup_kubecost_service_account() {
   # Kubecost SA
   roleName="$vpc_name-kubecost-user"
@@ -32,13 +41,28 @@ gen3_setup_kubecost_service_account() {
   gen3 awsrole create "$roleName" "$saName" "kubecost" || return 1
   aws iam attach-role-policy --role-name "$roleName" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-CUR-policy" 1>&2
   gen3 awsrole sa-annotate "$saName" "$roleName" "kubecost"
-
-  # Thanos SA
   thanosRoleName="$vpc_name-thanos-user"
   thanosSaName="thanos-service-account"
   gen3 awsrole create "$thanosRoleName" "$thanosSaName" "kubecost" || return 1
   aws iam attach-role-policy --role-name "$thanosRoleName" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-Thanos-policy" 1>&2
-  gen3 awsrole sa-annotate "$thanosSaName" "$thanosRoleName" "kubecost"  
+  gen3 awsrole sa-annotate "$thanosSaName" "$thanosRoleName" "kubecost" 
+}
+
+gen3_delete_kubecost_service_account() {
+  aws iam detach-role-policy --role-name "${vpc_name}-kubecost-user_role" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-CUR-policy" 1>&2
+  aws iam detach-role-policy --role-name "${vpc_name}-thanos-user_role" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-Thanos-policy" 1>&2 
+  gen3 workon default "${vpc_name}-kubecost-user_role"
+  gen3 tfplan --destroy 2>&1
+  gen3 tfapply 2>&1
+  gen3 workon default "${vpc_name}-thanos-user_role"
+  gen3 tfplan --destroy 2>&1
+  gen3 tfapply 2>&1  
+}
+
+gen3_delete_kubecost() {
+  gen3_destroy_kubecost_infrastructure
+  gen3_delete_kubecost_service_account
+  helm delete --purge kubecost
 }
 
 gen3_setup_kubecost() {
@@ -56,41 +80,39 @@ gen3_setup_kubecost() {
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-slave/object-store.yaml"
       thanosValues="${GEN3_HOME}/kube/services/kubecost-slave/values-thanos.yaml"
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "aws-athena-query-results-$accountID-$awsRegion" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "$vpc_name-cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" > $valuesFile
-      kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-slave/kubecost-alb.yaml" -n kubecost
+      kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-slave/kubecost-alb.yaml" -n kubecost   
     elif [[ $deployment == "master" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store.yaml"
-      thanosValues="${GEN3_HOME}/kube/services/kubecost-master/values-thanos.yaml"
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "aws-athena-query-results-$accountID-$awsRegion" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "$vpc_name-cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" KUBECOST_SLAVE_ALB "$slaveALB" > $valuesFile
       kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-master/kubecost-alb.yaml" -n kubecost
     else
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
-      valuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/values.yaml"
+      valuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
-      thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store.yaml"
-      thanosValues="${GEN3_HOME}/kube/services/kubecost-master/values-thanos.yaml"
-      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "{}" > $valuesFile
-      kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-master/kubecost-alb.yaml" -n kubecost
+      thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/object-store.yaml"
+      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "aws-athena-query-results-$accountID-$awsRegion" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "$vpc_name-cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" KUBECOST_SLAVE_ALB "$slaveALB" > $valuesFile
+      kubectl apply -f "${GEN3_HOME}/kube/services/kubecost-standalone/kubecost-alb.yaml" -n kubecost
     fi
     # If master setup and s3 bucket not supplied, set terraform master s3 bucket name for thanos secret
     if [[ -z $s3Bucket ]]; then
       s3Bucket="$vpc_name-kubecost-bucket"
     fi
-    g3k_kv_filter $thanosValuesTemplate AWS_REGION $awsRegion KUBECOST_S3_BUCKET $s3Bucket > $thanosValuesFile
-    # Need to setup thanos config
     if [[ ! -z $(kubectl get secrets -n kubecost | grep kubecost-thanos) ]]; then
       kubectl delete secret -n kubecost kubecost-thanos
     fi
     if [[ ! -z $(kubectl get secrets -n kubecost | grep thanos) ]]; then
       kubectl delete secret -n kubecost thanos
     fi
+    g3k_kv_filter $thanosValuesTemplate AWS_REGION $awsRegion KUBECOST_S3_BUCKET $s3Bucket > $thanosValuesFile
     kubectl create secret generic kubecost-thanos -n kubecost --from-file=$thanosValuesFile
     kubectl create secret generic thanos -n kubecost --from-file=$thanosValuesFile
+    # Need to setup thanos config
     helm repo add kubecost https://kubecost.github.io/cost-analyzer/ --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
-    helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} -f $thanosValues
+    helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} -f https://raw.githubusercontent.com/kubecost/cost-analyzer-helm-chart/develop/cost-analyzer/values-thanos.yaml
   else
     gen3_log_info "kube-setup-kubecost exiting - kubecost already deployed, use --force true to redeploy"
   fi
@@ -145,7 +167,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           gen3_setup_kubecost "$@"    
           ;;
         "delete")
-          echo "Will be implemented"
+          gen3_delete_kubecost
           ;;
         *)
           gen3_log_err "gen3_logs" "invalid history subcommand $subcommand - try: gen3 help logs"
@@ -196,7 +218,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           gen3_setup_kubecost "$@"    
           ;;
         "delete")
-          echo "Will be implemented"
+          gen3_delete_kubecost
           ;;
         *)
           gen3_log_err "gen3_logs" "invalid history subcommand $subcommand - try: gen3 help logs"
@@ -235,7 +257,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           gen3_setup_kubecost "$@" 
           ;;
         "delete")
-          echo "Will be implemented"
+          gen3_delete_kubecost
           ;;
         *)
           gen3_log_err "gen3_logs" "invalid history subcommand $subcommand - try: gen3 help logs"

@@ -1,3 +1,0 @@
-global:
-  thanos:
-    enabled: true
