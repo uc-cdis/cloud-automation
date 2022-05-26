@@ -69,6 +69,7 @@ gen3_kubecost_create_alb() {
 }
 
 gen3_setup_kubecost() {
+  kubectl create namespace kubecost || true
   gen3_setup_kubecost_infrastructure
   # Change the SA permissions based on slave/master/standalone
   if [[ -z $(kubectl get sa -n kubecost | grep $vpc_name-kubecost-user) ]]; then
@@ -78,7 +79,6 @@ gen3_setup_kubecost() {
   if [[ -z $s3Bucket ]]; then
     s3Bucket="$vpc_name-kubecost-bucket"
   fi
-  kubectl create namespace kubecost || true
   if (! helm status kubecost -n kubecost > /dev/null 2>&1 )  || [[ ! -z "$FORCE" ]]; then
     if [[ $deployment == "slave" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
