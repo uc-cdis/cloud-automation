@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-framework-deployment
+spec:
+  selector:
+    matchLabels:
+      app: frontend-framework
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: frontend-framework
+        public: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - frontend-framework
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+      - name: ca-volume
+        secret:
+          secretName: "service-ca"
+      - name: config-volume
+        secret:
+          secretName: "frontend-framework-config"
+      - name: sponsor-img-volume
+        secret:
+          secretName: "frontend-framework-sponsor-config"
+      - name: privacy-policy
+        configMap:
+          name: "privacy-policy"
+      - name: cert-volume
+        secret:
+          secretName: "cert-portal-service"
+      containers:
+      - name: frontend-framework
+        GEN3_FRONTEND-FRAMEWORK_IMAGE
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 30
+          failureThreshold: 6
+        resources:
+          requests:
+            cpu: 0.6
+            memory: 512Mi
+          limits:
+            cpu: 2
+            memory: 4096Mi
+        ports:
+        - containerPort: 3000
+        command: 
+          - /bin/bash
+          - ./start.sh
+        env:
+          - name: HOSTNAME
+            value: revproxy-service
+          - name: NEXT_PUBLIC_PORTAL_BASENAME
+            value: /portal
+        volumeMounts:
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.crt"
+            subPath: "service.crt"
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.key"
+            subPath: "service.key"
+          - name: "ca-volume"
+            readOnly: true
+            mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
+            subPath: "ca.pem"
+        imagePullPolicy: Always
