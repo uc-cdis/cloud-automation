@@ -1,5 +1,5 @@
 # run with 
-# gen3 job run jobs/delete-expired-objects-job.yaml
+# gen3 job run delete-expired-objects-cronjob
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -28,7 +28,4 @@ spec:
             volumeMounts:
               - name: profile-creds-volume
                 mountPath: /mnt
-            command: ["python" ]
-            args: 
-              - delete_temp_objects_job.py
           restartPolicy: Never
