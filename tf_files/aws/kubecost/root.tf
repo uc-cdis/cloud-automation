@@ -181,13 +181,13 @@ resource "aws_iam_policy" "thanos-user-policy" {
         Sid = "AthenaQueryResultsOutput"
         Effect = "Allow"
         Action = ["s3:GetBucketLocation","s3:GetObject","s3:ListBucket","s3:ListBucketMultipartUploads","s3:ListMultipartUploadParts","s3:AbortMultipartUpload","s3:CreateBucket","s3:PutObject"]
-        Resource = ["arn:aws:s3:::aws-athena-query-results-*"]
+        Resource = ["arn:aws:s3:::${local.cur_bucket}","arn:aws:s3:::${local.cur_bucket}/*"]
       },
       {
         Sid = "S3ReadAccessToAwsBillingData"
         Effect = "Allow"
         Action = ["s3:Get*","s3:List*"]
-        Resource = ["arn:aws:s3:::${local.cur_bucket}*"]
+        Resource = ["arn:aws:s3:::${local.cur_bucket},arn:aws:s3:::${local.cur_bucket}/*"]
       }
     ]
   })
