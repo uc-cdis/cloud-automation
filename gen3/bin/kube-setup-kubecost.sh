@@ -61,7 +61,7 @@ gen3_delete_kubecost_service_account() {
 gen3_delete_kubecost() {
   gen3_destroy_kubecost_infrastructure
   gen3_delete_kubecost_service_account
-  helm delete --purge kubecost
+  helm delete kubecost -n kubecost
 }
 
 gen3_kubecost_create_alb() {
