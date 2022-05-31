@@ -5,7 +5,7 @@ kubecostToken: KUBECOST_TOKEN
 serviceAccount:
   create: true # Set this to false if you're bringing your own service account.
   annotations: 
-    KUBECOST_SA
+    name: KUBECOST_SA
 
 kubecostProductConfigs:
   clusterName: slave-cluster

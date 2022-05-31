@@ -5,7 +5,7 @@ kubecostToken: KUBECOST_TOKEN
 serviceAccount:
   create: false # Set this to false if you're bringing your own service account.
   annotations: 
-    KUBECOST_SA
+    name: KUBECOST_SA
 
 kubecostProductConfigs:
   athenaBucketName: ATHENA_BUCKET
