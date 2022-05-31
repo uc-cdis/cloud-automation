@@ -31,7 +31,7 @@ prometheus:
     global:
       external_labels:
         # Slave cluster name
-        cluster_id: "slave-cluster"
+        cluster_id: "master-cluster"
         
 networkCosts:
   enabled: true
