@@ -39,7 +39,7 @@ gen3_setup_kubecost_service_account() {
   saName="kubecost-cost-analyzer"
   gen3 awsrole create "$roleName" "$saName" "kubecost" || return 1
   aws iam attach-role-policy --role-name "$roleName" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-CUR-policy" 1>&2
-  gen3 awsrole sa-annotate "$saName" "$roleName" "kubecost"
+  #gen3 awsrole sa-annotate "$saName" "$roleName" "kubecost"
   thanosRoleName="$vpc_name-thanos-user"
   thanosSaName="thanos-service-account"
   gen3 awsrole create "$thanosRoleName" "$thanosSaName" "kubecost" || return 1
