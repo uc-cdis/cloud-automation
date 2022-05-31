@@ -108,7 +108,11 @@ gen3_setup_kubecost() {
     # Need to setup thanos config
     helm repo add kubecost https://kubecost.github.io/cost-analyzer/ --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
-    helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} -f https://raw.githubusercontent.com/kubecost/cost-analyzer-helm-chart/develop/cost-analyzer/values-thanos.yaml
+    if [[ -z $disablePrometheus ]]; then
+      helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} -f https://raw.githubusercontent.com/kubecost/cost-analyzer-helm-chart/develop/cost-analyzer/values-thanos.yaml
+    else
+      helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} -f https://raw.githubusercontent.com/kubecost/cost-analyzer-helm-chart/develop/cost-analyzer/values-thanos.yaml --set prometheus.fqdn=http://$prometheusService.$prometheusNamespace.svc --set prometheus.enabled=false
+    fi
     gen3_kubecost_create_alb
   else
     gen3_log_info "kube-setup-kubecost exiting - kubecost already deployed, use --force true to redeploy"
@@ -151,11 +155,25 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                 if [[ $(echo $1 | tr '[:upper:]' '[:lower:]') == "true" ]]; then
                   FORCE=true
                 fi
+              "--disable-prometheus")
+                if [[ $(echo $1 | tr '[:upper:]' '[:lower:]') == "true" ]]; then
+                  disablePrometheus=true
+                fi
+                ;;
+              "--prometheus-namespace")
+                prometheusNamespace="$1"
+                ;;
+              "--prometheus-service")
+                prometheusService="$1"
                 ;;
             esac
           done
           if [[ -z $slaveAccountId || -z $kubecostToken || -z $slaveALB ]]; then
             gen3_log_err "Please ensure you set the required flags."
+            exit 1
+          fi
+          if [[ $disablePrometheus == true && -z $prometheusNamespace && -z $prometheusService ]]; then
+            gen3_log_err "If you disable prometheus, set the flags for the local prometheus namespace and service name."
             exit 1
           fi
           gen3_setup_kubecost "$@"    
@@ -203,10 +221,25 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                   FORCE=true
                 fi
                 ;;
+              "--disable-prometheus")
+                if [[ $(echo $1 | tr '[:upper:]' '[:lower:]') == "true" ]]; then
+                  disablePrometheus=true
+                fi
+                ;;
+              "--prometheus-namespace")
+                prometheusNamespace="$1"
+                ;;
+              "--prometheus-service")
+                prometheusService="$1"
+                ;;
             esac
           done
           if [[ -z $s3Bucket || -z $parentAccountId || -z $kubecostToken || -z $parentVPC || -z $childVPC ]]; then
             gen3_log_err "Please ensure you set the required flags."
+            exit 1
+          fi
+          if [[ $disablePrometheus == true && -z $prometheusNamespace && -z $prometheusService ]]; then
+            gen3_log_err "If you disable prometheus, set the flags for the local prometheus namespace and service name."
             exit 1
           fi
           gen3_setup_kubecost "$@"    
@@ -242,10 +275,25 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                   FORCE=true
                 fi
                 ;;
+              "--disable-prometheus")
+                if [[ $(echo $1 | tr '[:upper:]' '[:lower:]') == "true" ]]; then
+                  disablePrometheus=true
+                fi
+                ;;
+              "--prometheus-namespace")
+                prometheusNamespace="$1"
+                ;;
+              "--prometheus-service")
+                prometheusService="$1"
+                ;;
             esac
           done
           if [[ -z $kubecostToken ]]; then
             gen3_log_err "Please ensure you set the required flags."
+            exit 1
+          fi
+          if [[ $disablePrometheus == true && -z $prometheusNamespace && -z $prometheusService ]]; then
+            gen3_log_err "If you disable prometheus, set the flags for the local prometheus namespace and service name."
             exit 1
           fi
           gen3_setup_kubecost "$@" 
