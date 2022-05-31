@@ -187,7 +187,7 @@ resource "aws_iam_policy" "thanos-user-policy" {
         Sid = "S3ReadAccessToAwsBillingData"
         Effect = "Allow"
         Action = ["s3:Get*","s3:List*"]
-        Resource = ["arn:aws:s3:::${local.cur_bucket},arn:aws:s3:::${local.cur_bucket}/*"]
+        Resource = ["arn:aws:s3:::${local.cur_bucket}","arn:aws:s3:::${local.cur_bucket}/*"]
       }
     ]
   })
