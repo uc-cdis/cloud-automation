@@ -85,6 +85,18 @@ fi
 
 for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'); do
   filePath="$scriptDir/gen3.nginx.conf/${name}.conf"
+
+  if [[ $name == "portal-service" || $name == "frontend-framework-service" ]]; then
+    FRONTEND_ROOT=$(g3kubectl get configmap manifest-global --output=jsonpath='{.data.frontend_root}')
+    if [[ $FRONTEND_ROOT == "gen3ff" ]]; then
+      #echo "setup gen3ff as root frontend service"
+      filePath="$scriptDir/gen3.nginx.conf/gen3ff-as-root/${name}.conf"
+    else
+      #echo "setup windmill as root frontend service"
+      filePath="$scriptDir/gen3.nginx.conf/portal-as-root/${name}.conf"
+    fi
+  fi
+
   #echo "$filePath"
   if [[ -f "$filePath" ]]; then
     #echo "$filePath exists in $BASHPID!"
