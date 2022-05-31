@@ -155,6 +155,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                 if [[ $(echo $1 | tr '[:upper:]' '[:lower:]') == "true" ]]; then
                   FORCE=true
                 fi
+                ;;
               "--disable-prometheus")
                 if [[ $(echo $1 | tr '[:upper:]' '[:lower:]') == "true" ]]; then
                   disablePrometheus=true
