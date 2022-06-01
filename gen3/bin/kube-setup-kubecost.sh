@@ -60,8 +60,8 @@ gen3_delete_kubecost_service_account() {
 }
 
 gen3_delete_kubecost() {
-  gen3_destroy_kubecost_infrastructure
   gen3_delete_kubecost_service_account
+  gen3_destroy_kubecost_infrastructure
   helm delete kubecost -n kubecost
 }
 
