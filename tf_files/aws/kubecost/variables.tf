@@ -8,18 +8,6 @@ variable "parent_account_id" {
   default = ""
 }
 
-variable "parent_vpc" {
-  default = ""
-}
-
-variable "child_vpc" {
-  default = ""
-}
-
-variable "cur_s3_bucket" {
-  default = ""
-}
-
 # If master setup
 
 variable "slave_account_id" {

@@ -14,9 +14,6 @@ gen3_setup_kubecost_infrastructure() {
   echo "vpc_name=\"$vpc_name\"" > config.tfvars
   if [[ $deployment == "slave" ]]; then
     echo "cur_s3_bucket=\"$s3Bucket\"" >> config.tfvars
-    echo "parent_account_id=\"$parentAccountId\"" >> config.tfvars
-    echo "parent_vpc=\"$parentVPC\"" >> config.tfvars
-    echo "child_vpc=\"$childVPC\"" >> config.tfvars
   elif [[ $deployment == "master" ]]; then
     echo "slave_account_id=\"$slaveAccountId\"" >> config.tfvars
   fi
@@ -204,17 +201,8 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
               "--s3-bucket")
                 s3Bucket="$1"
                 ;;
-              "--parent-account-id")
-                parentAccountId="$1"
-                ;;
               "--kubecost-token")
                 kubecostToken="$1"
-                ;;
-              "--parent-vpc")
-                parentVPC="$1"
-                ;;
-              "--child-vpc")
-                childVPC="$1"
                 ;;
               "--force")
                 if [[ $(echo $1 | tr '[:upper:]' '[:lower:]') == "true" ]]; then
@@ -234,7 +222,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                 ;;
             esac
           done
-          if [[ -z $s3Bucket || -z $parentAccountId || -z $kubecostToken || -z $parentVPC || -z $childVPC ]]; then
+          if [[ -z $s3Bucket || -z $kubecostToken ]]; then
             gen3_log_err "Please ensure you set the required flags."
             exit 1
           fi

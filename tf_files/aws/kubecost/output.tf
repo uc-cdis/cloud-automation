@@ -18,15 +18,3 @@ output "athena_result_bucket" {
 output "aws_account_id" {
   value = local.account_id
 }
-
-#output "kubecost-SA" {
-#  value = aws_iam_user.kubecost-user.arn
-#}
-
-#output "kubectcost-user-id" {
-#  value = "${aws_iam_access_key.kubecost-user-key.id}"
-#}
-
-#output "kubecost-user-secret" {
-#  value = "${aws_iam_access_key.kubecost-user-key.secret}"
-#}

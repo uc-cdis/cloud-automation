@@ -34,7 +34,6 @@ resource "aws_s3_bucket" "cur-bucket" {
   count         = var.cur_s3_bucket != "" ?  0 : 1
   bucket        = "${var.vpc_name}-kubecost-bucket"
   acl           = "private"
-  force_destroy = true
 
   server_side_encryption_configuration {
     rule {
@@ -447,10 +446,3 @@ resource "aws_lambda_function" "cur-s3-notification-lambda" {
   }
 }
 
-# Peering connection to a parent account, if the parent account ID is specified, ie. this is a master/slave configuration
-resource "aws_vpc_peering_connection" "kubecost-peering-connection" {
-  count = var.parent_account_id != "" ? 1 : 0
-  peer_owner_id = var.parent_account_id
-  peer_vpc_id   = var.parent_vpc
-  vpc_id        = var.child_vpc
-}
