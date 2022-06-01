@@ -18,9 +18,6 @@ kubecostProductConfigs:
   projectID: AWS_ACCOUNT_ID
   # awsSpotDataRegion: AWS_kubecostProductConfigs_awsSpotDataRegion
   # awsSpotDataBucket: AWS_kubecostProductConfigs_awsSpotDataBucket
-  clusters: 
-  - name: "slave-cluster"
-    address: KUBECOST_SLAVE_ALB
 
 prometheus:
   serviceAccounts:

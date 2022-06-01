@@ -93,13 +93,15 @@ gen3_setup_kubecost() {
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store.yaml"
-      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "s3://$s3Bucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${vpc_name}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" KUBECOST_SLAVE_ALB "$slaveALB" > $valuesFile
+      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "s3://$s3Bucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${vpc_name}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion"  > $valuesFile
+      gen3_kubecost_create_alb
     else
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/object-store.yaml"
-      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "s3://$s3Bucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${vpc_name}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" KUBECOST_SLAVE_ALB "$slaveALB" > $valuesFile
+      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "s3://$s3Bucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${vpc_name}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" > $valuesFile
+      gen3_kubecost_create_alb
     fi
     kubectl delete secret -n kubecost kubecost-thanos || true
     kubectl delete secret -n kubecost thanos || true
@@ -114,7 +116,6 @@ gen3_setup_kubecost() {
     else
       helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} -f https://raw.githubusercontent.com/kubecost/cost-analyzer-helm-chart/develop/cost-analyzer/values-thanos.yaml --set prometheus.fqdn=http://$prometheusService.$prometheusNamespace.svc --set prometheus.enabled=false
     fi
-    gen3_kubecost_create_alb
   else
     gen3_log_info "kube-setup-kubecost exiting - kubecost already deployed, use --force true to redeploy"
   fi
@@ -149,9 +150,6 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
               "--kubecost-token")
                 kubecostToken="$1"
                 ;;
-              "--slave-alb")
-                slaveALB="$1"
-                ;;
               "--force")
                 if [[ $(echo $1 | tr '[:upper:]' '[:lower:]') == "true" ]]; then
                   FORCE=true
@@ -170,7 +168,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                 ;;
             esac
           done
-          if [[ -z $slaveAccountId || -z $kubecostToken || -z $slaveALB ]]; then
+          if [[ -z $slaveAccountId || -z $kubecostToken  ]]; then
             gen3_log_err "Please ensure you set the required flags."
             exit 1
           fi
@@ -246,9 +244,6 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           fi
           gen3_setup_kubecost "$@"    
           ;;
-        "alb")
-          gen3_kubecost_create_alb
-          ;;
         *)
           gen3_log_err "gen3_logs" "invalid history subcommand $subcommand - try: gen3 help kube-setup-kubecost"
           ;;
@@ -313,7 +308,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     *)
       gen3_log_err "gen3_logs" "invalid command $command"
-      gen3_logs_help
+      gen3_kubecost_help
       ;;
   esac
 fi
