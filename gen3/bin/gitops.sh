@@ -1020,6 +1020,12 @@ gen3_roll_path() {
   local templatePath
   cleanName="${depName%[-_]deploy*}"
   serviceName="${cleanName/-canary/}"
+  # roll the correct root frontend service
+  frontend_root="$(g3k_config_lookup ".global.frontend_root" "$manifestPath")"
+  if [[ ($serviceName == "frontend-framework" && $frontend_root == "gen3ff") || ($serviceName == "portal" && $frontend_root != "gen3ff") ]]; then
+    cleanName="$cleanName-root"
+  fi
+
   templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy.yaml"
   if [[ -n "$deployVersion" && "$deployVersion" != null ]]; then
     templatePath="${GEN3_HOME}/kube/services/${serviceName}/${cleanName}-deploy-${deployVersion}.yaml"
@@ -1052,6 +1058,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
       ;;
     "configmaps")
       gen3_gitops_configmaps "$@"
+      ;;
+    "configmaps-from-json")
+      gen3_gitops_json_to_configmap "$@"
       ;;
     "configmaps-list")
       gen3_gitops_configmaps_list "$@"

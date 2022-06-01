@@ -10,6 +10,7 @@ biodata-integration-tests.net
 biorender.com
 clinicaltrials.gov
 ctds-planx.atlassian.net
+data.cityofchicago.org
 dataguids.org
 api.login.yahoo.com
 api.snapcraft.io
@@ -78,6 +79,7 @@ ifconfig.io
 internet2.edu
 k8s.gcr.io
 ks.osdc.io
+kubecost.github.io
 kubernetes.github.io
 lib.stat.cmu.edu
 login.mathworks.com
