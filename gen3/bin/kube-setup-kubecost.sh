@@ -49,8 +49,8 @@ gen3_setup_kubecost_service_account() {
 }
 
 gen3_delete_kubecost_service_account() {
-  aws iam detach-role-policy --role-name "${vpc_name}-kubecost-user_role" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-CUR-policy" 1>&2
-  aws iam detach-role-policy --role-name "${vpc_name}-thanos-user_role" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-Thanos-policy" 1>&2 
+  aws iam detach-role-policy --role-name "${vpc_name}-kubecost-user" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-CUR-policy" 1>&2
+  aws iam detach-role-policy --role-name "${vpc_name}-thanos-user" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-Thanos-policy" 1>&2 
   gen3 workon default "${vpc_name}-kubecost-user_role"
   gen3 tfplan --destroy 2>&1
   gen3 tfapply 2>&1
