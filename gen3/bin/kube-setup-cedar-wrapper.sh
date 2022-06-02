@@ -6,7 +6,7 @@ gen3_load "gen3/lib/kube-setup-init"
 
 cedar_api_key_file="$(gen3_secrets_folder)/cedar_api_key.txt"
 
-if [[ ! -f cedar_api_key_file ]]; then
+if [[ ! -f "$cedar_api_key_file" ]]; then
     gen3_log_err "No CEDAR api key present in ${cedar_api_key_file}"
 else
     g3kubectl create secret generic "cedar-service-api-key" --from-file=cedar_api_key.txt=${cedar_api_key_file}
