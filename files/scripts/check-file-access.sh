@@ -1,6 +1,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+
 head_object_task() {
   file=$(echo $1 | rev | cut -d '/' -f 1 | rev)
   aws s3api head-object --bucket "$2" --key "$1" --profile "$3" > /dev/null 2>&1
