@@ -77,7 +77,7 @@ initialize_creds() {
     touch ~/.aws/credentials
   fi
   for key in $(gen3 secrets decode fence-config fence-config.yaml | yq -r '.AWS_CREDENTIALS | keys | .[]'); do
-    gen3_log_info "Created aws profile for $key"
+    gen3_log_info "Creating aws profile for $key"
     cat <<- EOF >> ~/.aws/credentials
 [$key]
 aws_access_key_id=$(gen3 secrets decode fence-config fence-config.yaml | yq -r '.AWS_CREDENTIALS.'\"$key\"'.aws_access_key_id')
@@ -87,7 +87,7 @@ EOF
   cmRoleArns=$(kubectl get cm manifest-fence -o json | jq -r '.data."fence-config-public.yaml"' | yq -r '.S3_BUCKETS[] | select(."role-arn" != null) | ."role-arn"' 2>/dev/null | sort  | uniq)
   secretRoleArns=$(gen3 secrets decode fence-config fence-config.yaml | yq -r '.S3_BUCKETS[] |  select(."role-arn" != null) | ."role-arn"' 2>/dev/null | sort  | uniq)
   for key in $cmRoleArns; do
-    echo $key
+    gen3_log_info "Creating aws profile for $key"
     cred=$(kubectl get cm manifest-fence -o json | jq -r '.data."fence-config-public.yaml"' | yq -r '.S3_BUCKETS[] | select(."role-arn" != null) | select(."role-arn" == '\"$key\"').cred' | sort | uniq)
     profileName=$(echo $key | rev | cut -d '/' -f 1 | rev)
     cat <<- EOF >> ~/.aws/credentials
@@ -97,7 +97,7 @@ source_profile=$cred
 EOF
   done
   for key in $secretRoleArns; do
-    echo $key
+    gen3_log_info "Creating aws profile for $key"
     cred=$(gen3 secrets decode fence-config fence-config.yaml | yq -r '.S3_BUCKETS[] | select(."role-arn" != null) | select(."role-arn" == '\"$key\"').cred' | sort | uniq)
     profileName=$(echo $key | rev | cut -d '/' -f 1 | rev)
     cat <<- EOF >> ~/.aws/credentials
