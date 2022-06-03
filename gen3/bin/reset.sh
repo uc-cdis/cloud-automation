@@ -20,7 +20,7 @@ wait_for_pods_down() {
     podsDownFlag=1
     while [[ podsDownFlag -ne 0 ]]; do
         g3kubectl get pods
-        if [[ 0 == "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.labels.app } ] | map(select(.name=="fence" or .name=="sheepdog" or .name=="peregrine" or .name=="indexd")) | length')" ]]; then
+        if [[ 0 == "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.labels.app } ] | length')" ]]; then
             gen3_log_info "pods are down, ready to drop databases"
             podsDownFlag=0
         else
@@ -130,13 +130,15 @@ gen3 shutdown namespace
 # also clean out network policies
 g3kubectl delete networkpolicies --all
 wait_for_pods_down
-
+# Give it 30 seconds to ensure connections gets drained
+sleep 30
 #
 # Reset our databases
 #
 for serviceName in $(gen3 db services); do
   if [[ "$serviceName" != "peregrine" ]]; then  # sheepdog and peregrine share the same db
-    gen3 db reset "$serviceName"
+    # --force will also drop connections to the database to ensure database gets dropped
+    gen3 db reset "$serviceName" --force
   fi
 done
 

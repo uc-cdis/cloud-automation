@@ -21,6 +21,20 @@ spec:
       - name: dicom-viewer
         GEN3_DICOM-VIEWER_IMAGE
         imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 20
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 60
+          timeoutSeconds: 30
         ports:
         - containerPort: 80
         
