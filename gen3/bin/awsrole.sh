@@ -24,7 +24,11 @@ gen3_awsrole_help() {
 function gen3_awsrole_ar_policy() {
   local serviceAccount="$1"
   shift || return 1
-  local namespace="$1"
+  if [[ ! -z $1 ]]; then
+    local namespace=$1
+  else
+    local namespace=$(gen3 db namespace)
+  fi
   shift || return 1
   local issuer_url
   local account_id
@@ -79,7 +83,11 @@ gen3_awsrole_sa_annotate() {
   shift || return 1
   local roleName="$1"
   shift || return 1
-  local namespace="$1"
+  if [[ ! -z $1 ]]; then
+    local namespace=$1
+  else
+    local namespace=$(gen3 db namespace)
+  fi
   local roleArn
   local roleInfo
   roleInfo="$(aws iam get-role --role-name "$roleName")" || return 1
@@ -137,7 +145,7 @@ EOF
 }
 
 #
-# Util for applying tfplan 
+# Util for applying tfplan
 #
 _tfapply_role() {
   local rolename=$1
@@ -165,7 +173,6 @@ _tfapply_role() {
 # @param serviceAccountName
 #
 gen3_awsrole_create() {
-  local ctxNamespace=$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$(g3kubectl config current-context)\")) | .[0] | .context.namespace")
   local rolename="$1"
   if ! shift || [[ -z "$rolename" ]]; then
     gen3_log_err "use: gen3 awsrole create roleName saName"
@@ -178,10 +185,8 @@ gen3_awsrole_create() {
   fi
   if [[ ! -z $1 ]]; then
     local namespace=$1
-  elif [[ -z $ctxNamespace ]]; then
-    local namespace="default"
   else
-    local namespace=$ctxNamespace
+    local namespace=$(gen3 db namespace)
   fi
   # do simple validation of name
   local regexp="^[a-z][a-z0-9\-]*$"
