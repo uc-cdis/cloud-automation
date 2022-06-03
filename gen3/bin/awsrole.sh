@@ -29,7 +29,6 @@ function gen3_awsrole_ar_policy() {
   else
     local namespace=$(gen3 db namespace)
   fi
-  shift || return 1
   local issuer_url
   local account_id
   local vpc_name
