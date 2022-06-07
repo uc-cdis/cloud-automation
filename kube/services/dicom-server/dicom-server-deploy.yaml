@@ -25,6 +25,20 @@ spec:
       - name: dicom-server
         GEN3_DICOM-SERVER_IMAGE
         imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /system
+            port: 8042
+          initialDelaySeconds: 5
+          periodSeconds: 20
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /system
+            port: 8042
+          initialDelaySeconds: 5
+          periodSeconds: 60
+          timeoutSeconds: 30
         ports:
         - containerPort: 8042
         volumeMounts:

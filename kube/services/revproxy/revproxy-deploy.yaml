@@ -95,6 +95,12 @@ spec:
                 name: manifest-global
                 key: maintenance_mode
                 optional: true
+          - name: FRONTEND_ROOT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: frontend_root
+                optional: true
           - name: ORIGINS_ALLOW_CREDENTIALS
             valueFrom:
               configMapKeyRef:
