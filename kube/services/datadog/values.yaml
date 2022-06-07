@@ -221,7 +221,7 @@ clusterAgent:
     name: cluster-agent
 
     # clusterAgent.image.tag -- Cluster Agent image tag to use
-    tag: 1.16.0
+    # tag: 1.16.0
 
     # clusterAgent.image.repository -- Override default registry + image.name for Cluster Agent
     repository:
@@ -278,7 +278,7 @@ agents:
     name: agent
 
     # agents.image.tag -- Define the Agent version to use
-    tag: 7.32.4
+    # tag: 7.32.4
 
     # agents.image.tagSuffix -- Suffix to append to Agent tag
     ## Ex:
