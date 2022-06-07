@@ -248,13 +248,9 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
 EOM
   if ! gen3 awsrole info "$roleName" > /dev/null; then # setup role
     gen3_log_info "creating IAM role for ingress: $roleName, linking to sa $saName"
-   # This doesn't work creating SA + role in kube-system namespace :( 
-   #  gen3 awsrole create "$roleName" "$saName" || return 1
-   
-   gen3 awsrole ar-policy $saName kube-system > $arPolicyFile
-   role=$(aws iam create-role --role-name $roleName --assume-role-policy-document file://"${arPolicyFile}" 1>&2)
-   aws iam put-role-policy --role-name "$roleName" --policy-document file://${ingressPolicy} --policy-name "$policyName" 1>&2
-   gen3 awsrole sa-annotate $saName $roleName kube-system
+    gen3 awsrole create "$roleName" "$saName" || return 1
+    aws iam put-role-policy --role-name "$roleName" --policy-document file://${ingressPolicy} --policy-name "$policyName" 1>&2
+    gen3 awsrole sa-annotate $saName $roleName kube-system
   else
     # update the annotation - just to be thorough
     gen3 awsrole sa-annotate "$saName" "$roleName" kube-system
