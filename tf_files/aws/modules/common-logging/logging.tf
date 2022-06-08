@@ -236,7 +236,7 @@ resource "aws_cloudwatch_log_group" "csoc_common_log_group" {
     Environment = "${var.common_name}"
     Organization = "Basic Services"
   }
-  retention_in_days = 2190
+  retention_in_days = 2192
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
