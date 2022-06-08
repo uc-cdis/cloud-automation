@@ -239,42 +239,9 @@ resource "aws_cloudwatch_log_group" "csoc_common_log_group" {
   retention_in_days = 2192
 }
 
-resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
-  name           = "firehose_to_ES"
-  log_group_name = "${aws_cloudwatch_log_group.csoc_common_log_group.name}"
-}
-
 resource "aws_cloudwatch_log_stream" "firehose_to_S3" {
   name           = "firehose_to_S3"
   log_group_name = "${aws_cloudwatch_log_group.csoc_common_log_group.name}"
-}
-
-resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
-  name        = "${var.common_name}_firehose_to_es"
-  destination = "elasticsearch"
-
-  s3_configuration {
-    role_arn        = "${aws_iam_role.firehose_role.arn}"
-    bucket_arn      = "${aws_s3_bucket.common_logging_bucket.arn}"
-    buffer_size     = 10
-    buffer_interval = 400
-
-  }
-
-  elasticsearch_configuration {
-    domain_arn = "arn:aws:es:${var.aws_region}:${var.csoc_account_id}:domain/${var.elasticsearch_domain}"
-
-    role_arn              = "${aws_iam_role.firehose_role.arn}"
-    index_name            = "${var.common_name}"
-    type_name             = "${var.common_name}"
-    index_rotation_period = "OneWeek"
-
-    cloudwatch_logging_options {
-      enabled         = true
-      log_group_name  = "${var.common_name}"
-      log_stream_name = "firehose_to_ES"
-    }
-  }
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "firehose_to_s3" {
@@ -349,7 +316,6 @@ data "aws_iam_policy_document" "lambda_policy_document" {
     effect = "Allow"
 
     resources = [
-      "${aws_kinesis_firehose_delivery_stream.firehose_to_es.arn}",
       "${aws_kinesis_firehose_delivery_stream.firehose_to_s3.arn}",
     ]
   }
