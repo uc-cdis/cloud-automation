@@ -13,7 +13,6 @@ module "logging" {
   csoc_account_id      = "${var.csoc_account_id}"
   threshold            = "${var.threshold}"
   slack_webhook        = "${var.slack_webhook}"
-  log_dna_function     = "${var.log_dna_function}"
   memory_size          = "${var.memory_size}"
   timeout              = "${var.timeout}"
   aws_region           = "${var.aws_region}"

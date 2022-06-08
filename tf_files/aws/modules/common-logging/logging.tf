@@ -353,18 +353,6 @@ data "aws_iam_policy_document" "lambda_policy_document" {
       "${aws_kinesis_firehose_delivery_stream.firehose_to_s3.arn}",
     ]
   }
-
-  statement {
-    actions = [
-      "lambda:InvokeFunction"
-    ]
-
-    resources = [
-       "${var.log_dna_function}"
-    ]
-
-    effect = "Allow"
-  }
 }
 
 resource "aws_iam_role_policy" "lambda_policy" {
@@ -407,7 +395,7 @@ resource "aws_lambda_function" "logs_decodeding" {
   }
 
   environment {
-    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}", log_dna_function = "${var.log_dna_function}" }
+    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}" }
   }
 
   #lifecycle {
