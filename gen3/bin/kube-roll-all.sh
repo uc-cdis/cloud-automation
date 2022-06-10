@@ -302,6 +302,12 @@ else
   gen3_log_info "not deploying frontend-framework - no manifest entry for '.versions[\"frontend-framework\"]'"
 fi
 
+if g3k_manifest_lookup '.versions["cedar-wrapper"]' 2> /dev/null; then
+  gen3 kube-setup-cedar-wrapper &
+else
+  gen3_log_info "not deploying cedar-wrapper - no manifest entry for '.versions[\"cedar-wrapper\"]'"
+fi
+
 gen3_log_info "enable network policy"
 gen3 kube-setup-networkpolicy "enable" || true &
 
