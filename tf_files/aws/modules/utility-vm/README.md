@@ -1,4 +1,4 @@
-# TL;DR
+ TL;DR
 
 UtilityVM is intended to make the spin up of new VMs more easily. The whole idea is to offload any package installation to a file within the cloud-automation folder.
 
@@ -78,3 +78,5 @@ This variables are not initialized but you can change them if needed.
 | authorized_keys | Path to file containing ssh keys that will be copied to `/home/ubuntu/.ssh/authorized_keys`. | string | "files/authorized_keys/ops_team" |
 | branch | For testing purposes | string | "master" |
 | user_policy | additional policy for the role | string | "" |
+| cloud-automation_repository | the source repository for cloud-automation | string | "https://github.com/uc-cdis/cloud-automation.git" | 
+
