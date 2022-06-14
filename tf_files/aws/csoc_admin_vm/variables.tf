@@ -12,6 +12,10 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
+variable "cloud-automation_repository" {
+  default = "https://github.com/uc-cdis/cloud-automation.git"
+}
+
 variable "csoc_vpc_id" {
   default = "vpc-e2b51d99"
 }
