@@ -208,7 +208,7 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
 (
   source /etc/profile.d/99-proxy.sh
   cd $USER_HOME
-  git clone https://github.com/uc-cdis/cloud-automation.git
+  git clone "${var.cloud-automation_repository}"
   cd $CLOUD_AUTOMATION
   git pull
   cat $CLOUD_AUTOMATION/${var.authorized_keys} | sudo tee --append $USER_HOME/.ssh/authorized_keys
