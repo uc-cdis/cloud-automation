@@ -195,7 +195,7 @@ resource "aws_launch_configuration" "squid_nlb" {
 user_data = <<EOF
 #!/bin/bash
 cd /home/ubuntu
-sudo git clone https://github.com/uc-cdis/cloud-automation.git
+sudo git clone "${var.cloud-automation_repository}"
 sudo chown -R ubuntu. /home/ubuntu/cloud-automation
 cd /home/ubuntu/cloud-automation
 git pull
