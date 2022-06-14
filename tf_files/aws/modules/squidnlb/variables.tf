@@ -45,8 +45,9 @@ variable "ssh_key_name" {
   default = "rarya_id_rsa"
 }
 
-
-
+variable "cloud-automation_repository" {
+  default = "https://github.com/uc-cdis/cloud-automation.git"
+}
 
 variable "allowed_principals_list" {
   type = "list"
