@@ -70,6 +70,8 @@ There are mandatory variables, and there are a few other optionals that are set 
 | squid_cluster_min_size | If ha squid is enabled and you want to set your own min size | int | 1 |
 | squid_cluster_max_size | If ha squid is enabled and you want to set your own max size | int | 3 | 
 | branch | For development purposes only | string | master |
+| cloud-automation_repository | the source repository for cloud-automation | string | "https://github.com/uc-cdis/cloud-automation.git" | 
+
 
 
 

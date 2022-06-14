@@ -81,6 +81,10 @@ variable "route_53_zone_id" {
   description = "DNS zone for .internal.io"
 }
 
+variable "cloud-automation_repository" {
+  default = "https://github.com/uc-cdis/cloud-automation.git"
+}
+
 variable "branch" {
   description = "branch to use in bootstrap script"
   default     = "master"
