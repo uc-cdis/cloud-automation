@@ -134,6 +134,11 @@ variable "gdcapi_secret_key" {}
 # password for write access to indexd
 variable "gdcapi_indexd_password" {}
 
+variable "availability_zones" {
+  type = "list"
+  default = ["us-east-1a","us-east-1b","us-east-1c"]
+}
+
 #
 # DEPRECATED - should no longer be necessary
 # gdcapi's oauth2 client id (fence as oauth2 provider)

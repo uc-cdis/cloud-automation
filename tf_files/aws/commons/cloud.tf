@@ -31,6 +31,7 @@ module "cdis_vpc" {
   vpc_flow_logs                  = "${var.vpc_flow_logs}"
   vpc_flow_traffic               = "${var.vpc_flow_traffic}"
 
+  availability_zones             = "${var.availability_zones}"
   #private_kube_route             = "${aws_route_table.private_kube.id}"
   branch                         = "${var.branch}"
   fence-bot_bucket_access_arns   = "${var.fence-bot_bucket_access_arns}"
