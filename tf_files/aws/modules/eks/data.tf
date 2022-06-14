@@ -57,6 +57,18 @@ data "aws_vpc_endpoint_service" "ec2" {
   service = "ec2"
 }
 
+data "aws_vpc_endpoint_service" "ssm" {
+  service = "ssm"
+}
+
+data "aws_vpc_endpoint_service" "ssmmessages" {
+  service = "ssmmessages"
+}
+
+data "aws_vpc_endpoint_service" "ec2messages" {
+  service = "ec2messages"
+}
+
 data "aws_vpc_endpoint_service" "autoscaling" {
   service = "autoscaling"
 }

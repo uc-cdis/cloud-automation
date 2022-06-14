@@ -31,6 +31,9 @@ variable "peering_vpc_id" {
 
 variable "users_policy" {}
 
+variable "deploy_ssm" {
+  default = false
+}
 
 variable "worker_drive_size" {
   default = 30

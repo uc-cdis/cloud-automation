@@ -18,6 +18,61 @@ resource "aws_vpc_endpoint" "ec2" {
   }
 }
 
+# SSM endpoint
+resource "aws_vpc_endpoint" "ssm" {
+  count               = "${var.deploy_ssm ? 1 : 0}"
+  vpc_id              = "${data.aws_vpc.the_vpc.id}"
+  service_name        = "${data.aws_vpc_endpoint_service.ssm.service_name}"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [
+    "${data.aws_security_group.local_traffic.id}"
+  ]
+
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  tags = {
+    Name         = "to ssm"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
+}
+
+resource "aws_vpc_endpoint" "ssmmessages" {
+  count               = "${var.deploy_ssm ? 1 : 0}"
+  vpc_id       = "${data.aws_vpc.the_vpc.id}"
+  service_name    = "${data.aws_vpc_endpoint_service.ssmmessages.service_name}"
+  vpc_endpoint_type = "Interface"
+  security_group_ids  = [
+    "${data.aws_security_group.local_traffic.id}"
+  ]
+
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  tags = {
+    Name         = "to ssmmessages"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
+}
+
+resource "aws_vpc_endpoint" "ec2messages" {
+  count               = "${var.deploy_ssm ? 1 : 0}"
+  vpc_id       = "${data.aws_vpc.the_vpc.id}"
+  service_name    = "${data.aws_vpc_endpoint_service.ec2messages.service_name}"
+  vpc_endpoint_type = "Interface"
+  security_group_ids  = [
+    "${data.aws_security_group.local_traffic.id}"
+  ]
+
+  private_dns_enabled = true
+  subnet_ids       = ["${aws_subnet.eks_private.*.id}"]
+  tags = {
+    Name         = "to ec2messages"
+    Environment  = "${var.vpc_name}"
+    Organization = "${var.organization_name}"
+  }
+}
+
 # Required for sa-linked IAM roles
 resource "aws_vpc_endpoint" "sts" {
   vpc_id       = "${data.aws_vpc.the_vpc.id}"

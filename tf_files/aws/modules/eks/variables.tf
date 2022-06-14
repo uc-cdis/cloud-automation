@@ -103,6 +103,10 @@ variable "workflow_asg_min_size" {
   default = 0
 }
 
+variable "deploy_ssm" { 
+  default = false
+}
+
 variable "iam-serviceaccount" {
   default = false
 }
