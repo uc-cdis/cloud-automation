@@ -20,6 +20,10 @@ variable "child_account_id" {
   # default = "707767160287"
 }
 
+variable "cloud-automation_repository" {
+  default = "https://github.com/uc-cdis/cloud-automation.git"
+}
+
 variable "child_name" {
   # name of child account - ex: kidsfirst, cdistest  # default = "cdistest"
 }
