@@ -32,6 +32,7 @@ module "cdis_vpc" {
   vpc_flow_traffic               = "${var.vpc_flow_traffic}"
 
   #private_kube_route             = "${aws_route_table.private_kube.id}"
+  cloud-automation_repository    = "${var.cloud-automation_repository}"
   branch                         = "${var.branch}"
   fence-bot_bucket_access_arns   = "${var.fence-bot_bucket_access_arns}"
   deploy_ha_squid                = "${var.deploy_ha_squid}"
