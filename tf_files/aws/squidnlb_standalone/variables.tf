@@ -33,6 +33,9 @@ variable "csoc_cidr" {
   default = "10.128.0.0/20"
 }
 
+variable "cloud-automation_repository" {
+  default = "https://github.com/uc-cdis/cloud-automation.git"
+}
 
 
 variable "env_public_subnet_routetable_id" {

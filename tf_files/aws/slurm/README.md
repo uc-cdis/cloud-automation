@@ -166,6 +166,8 @@ source_buckets = ["sorce1","source3"]
 | controller_info | extra information about the controllers | map |
 | woker_info | extra information about the workers | map |
 | source_bucket | should the cluster have access to buckets, which ones | list |
+| cloud-automation_repository | the source repository for cloud-automation | string | "https://github.com/uc-cdis/cloud-automation.git" | 
+
 
 
 ## 5. Outputs

@@ -10,6 +10,7 @@ module "admin_vm" {
   ami_account_id   = "${var.ami_account_id}"
   source           = "../modules/admin-vm"
   child_account_id = "${var.child_account_id}"
+  cloud-automation_repository = "${var.cloud-automation_repository}"
   child_name       = "${var.child_name}"
   vpc_cidr_list    = "${var.vpc_cidr_list}"
   csoc_account_id  = "${var.csoc_account_id}"

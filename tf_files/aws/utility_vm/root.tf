@@ -25,6 +25,7 @@ module "utility_vm" {
   proxy                      = "${var.proxy}"
   authorized_keys            = "${var.authorized_keys}"
   organization_name          = "${var.organization_name}"
+  cloud-automation_repository = "${var.cloud-automation_repository}"
   branch                     = "${var.branch}"
   user_policy                = "${var.user_policy}"
   activation_id              = "${var.activation_id}"

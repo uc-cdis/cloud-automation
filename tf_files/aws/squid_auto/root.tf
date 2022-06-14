@@ -37,6 +37,7 @@ module "squid_auto" {
   cluster_min_size           = "${var.cluster_min_size}"
   network_expansion          = "${var.network_expansion}"
   branch                     = "${var.branch}"
+  cloud-automation_repository = "${var.cloud-automation_repository}"
   activation_id              = "${var.activation_id}"
   customer_id                = "${var.customer_id}"  
   slack_webhook              = "${var.slack_webhook}"
