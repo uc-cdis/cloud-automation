@@ -453,6 +453,10 @@ variable "customer_id" {
   default = ""
 }
 
+variable "users_bucket_kms_key_arn" {
+  default = ""
+}
+
 variable "fips" {
   default = false
 }
