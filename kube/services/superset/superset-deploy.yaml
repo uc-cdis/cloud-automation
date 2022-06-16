@@ -237,6 +237,7 @@ spec:
       labels:
         app: superset-worker
         release: superset
+        netnolimit: "yes"
     spec:
       securityContext:
         runAsUser: 0
@@ -321,6 +322,7 @@ spec:
       labels:
         app: superset
         release: superset
+        netnolimit: "yes"
     spec:
       securityContext:
         runAsUser: 0
@@ -390,6 +392,8 @@ spec:
   template:
     metadata:
       name: superset-init-db
+      labels:
+        netnolimit: "yes"
     spec:
       securityContext:
         runAsUser: 0
