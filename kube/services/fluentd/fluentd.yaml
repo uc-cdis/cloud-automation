@@ -40,7 +40,7 @@ spec:
           - name:  LOG_GROUP_NAME
             GEN3_LOG_GROUP_NAME
           - name: AWS_REGION
-            value: "us-east-1"
+            GEN3_AWS_REGION
           - name: FLUENTD_CONF
             value: "gen3.conf"
         resources:
