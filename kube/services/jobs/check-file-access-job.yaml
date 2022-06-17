@@ -9,6 +9,7 @@ spec:
       labels:
         app: gen3job
     spec:
+      serviceAccountName: jenkins-service
       containers:
         - name: check-access
           image: quay.io/cdis/awshelper:master
