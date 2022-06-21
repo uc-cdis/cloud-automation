@@ -122,7 +122,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       sudo -E apt-get install -y kubectl=$install_version --allow-downgrades
   else
       # install kubectl
-      sudo -E apt-get install -y kubectl=1.21.14-00
+      sudo -E apt-get install -y kubectl=1.21.14-00 --allow-downgrades
   fi
 
   mkdir -p ~/.config
