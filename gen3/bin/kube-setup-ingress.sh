@@ -1,28 +1,33 @@
 #!/bin/bash
-#
-
-
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/kube-setup-init"
+gen3_load "gen3/lib/g3k_manifest"
 
+# Deploy WAF if flag set in manifest
+manifestPath=$(g3k_manifest_path)
+deployWaf="$(jq -r ".[\"global\"][\"waf_enabled\"]" < "$manifestPath" | tr '[:upper:]' '[:lower:]')"
 
 ctx="$(g3kubectl config current-context)"
 ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
 
 scriptDir="${GEN3_HOME}/kube/services/ingress"
 
+gen3_ingress_setup_waf() {
+    gen3_log_info "To Implement later"
+}
+
+
+gen3_ingress_setup_role() {
 # https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.4/deploy/installation/
 # https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.1/docs/install/iam_policy.json
 # only do this if we are running in the default namespace
-if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
-  saName="aws-load-balancer-controller"
-  roleName=$(gen3 api safe-name ingress)
-  policyName=$(gen3 api safe-name ingress-policy)
-  ingressPolicy="$(mktemp "$XDG_RUNTIME_DIR/ingressPolicy.json_XXXXXX")"
-  arPolicyFile="$(mktemp "$XDG_RUNTIME_DIR/arPolicy.json_XXXXXX")"
-  
+  local saName="aws-load-balancer-controller"
+  local roleName=$(gen3 api safe-name ingress)
+  local policyName=$(gen3 api safe-name ingress-policy)
+  local ingressPolicy="$(mktemp "$XDG_RUNTIME_DIR/ingressPolicy.json_XXXXXX")"
+  local arPolicyFile="$(mktemp "$XDG_RUNTIME_DIR/arPolicy.json_XXXXXX")"
 
   # Create an inline policy for the ingress-controller
   cat - > "$ingressPolicy" <<EOM
@@ -246,7 +251,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
     ]
 }
 EOM
-  if ! gen3 awsrole info "$roleName" > /dev/null; then # setup role
+  if ! gen3 awsrole info "$roleName" "kube-system" > /dev/null; then # setup role
     gen3_log_info "creating IAM role for ingress: $roleName, linking to sa $saName"
     gen3 awsrole create "$roleName" "$saName" "kube-system" || return 1
     aws iam put-role-policy --role-name "$roleName" --policy-document file://${ingressPolicy} --policy-name "$policyName" 1>&2
@@ -255,17 +260,30 @@ EOM
     # update the annotation - just to be thorough
     gen3 awsrole sa-annotate "$saName" "$roleName" kube-system
   fi
-  
+}
+
+gen3_ingress_deploy_helm_chart() {
   kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
-  
   if (! helm status aws-load-balancer-controller -n kube-system > /dev/null 2>&1 )  || [[ "$1" == "--force" ]]; then
     helm repo add eks https://aws.github.io/eks-charts 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
-   
+
    #  # TODO: Move to values.yaml file
     helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=$(gen3 api environment) --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller 2> >(grep -v 'This is insecure' >&2)
   else
     gen3_log_info "kube-setup-ingress exiting - ingress already deployed, use --force to redeploy"
+  fi
+}
+
+if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
+  # Create role/SA for the alb's
+  gen3_ingress_setup_role
+  # Deploy the aws-load-balancer-controller helm chart and upgrade if --force flag applied
+  gen3_ingress_deploy_helm_chart $1
+else
+  if [[ -z $(kubectl get sa -n kube-system | grep aws-load-balancer-controller) ]]; then
+    gen3_log_err "Please run this in the default namespace first to setup the necessary roles"
+    exit 1
   fi
 fi
 
@@ -274,5 +292,6 @@ gen3_log_info "Applying ingress resource"
 export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')
 g3kubectl apply -f "${GEN3_HOME}/kube/services/revproxy/revproxy-service.yaml"
 envsubst <$scriptDir/ingress.yaml | g3kubectl apply -f -
-
-
+if [ "$deployWaf" = true ]; then
+  gen3_ingress_setup_waf
+fi
