@@ -22,6 +22,7 @@ RUN apt-get update && apt-get upgrade -y \
       libpq-dev \
       lsb-release \
       netcat-openbsd \
+      networkd-dispatcher \
       net-tools \
       openssh-client \
       openssh-server \
