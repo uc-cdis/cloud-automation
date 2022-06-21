@@ -57,6 +57,11 @@ variable "indexd_prefix" {
   default = "dg.XXXX/"
 }
 
+variable "availability_zones" {
+  type = "list"
+  default = ["us-east-1a","us-east-1b","us-east-1c"]
+}
+
 variable "db_password_peregrine" {}
 
 variable "db_password_sheepdog" {}
