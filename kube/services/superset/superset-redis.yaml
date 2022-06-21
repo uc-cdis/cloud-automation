@@ -223,6 +223,8 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
+  annotations:
+    gen3.io/network-ingress: "superset,superset-worker"
   name: superset-redis-master
   labels:
     app.kubernetes.io/name: redis
@@ -244,6 +246,8 @@ spec:
   template:
     metadata:
       labels:
+        app: superset-redis-master
+        dbomop-data: "yes"
         app.kubernetes.io/name: redis
         helm.sh/chart: redis-16.3.1
         app.kubernetes.io/instance: superset
