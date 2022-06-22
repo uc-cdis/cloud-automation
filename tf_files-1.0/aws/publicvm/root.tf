@@ -2,6 +2,12 @@ terraform {
   backend "s3" {
     encrypt = "true"
   }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
 }
 
 provider "aws" {}
@@ -127,7 +133,7 @@ EOM
   export DEBIAN_FRONTEND=noninteractive
     
   if which hostnamectl > /dev/null; then
-    hostnamectl set-hostname 'lab${count.index}'
+    hostnamectl set-hostname 'lab'
   fi
   mkdir -p -m 0755 /var/lib/gen3
   cd /var/lib/gen3
