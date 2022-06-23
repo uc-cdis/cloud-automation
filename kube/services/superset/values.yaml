@@ -169,7 +169,7 @@ configOverrides:
     # The default user self registration role
     AUTH_USER_REGISTRATION_ROLE = 'Public'
 
-    # AUTH_USER_REGISTRATION_ROLE_JMESPATH = "contains(['@uchicago.edu'], email) && 'Admin' || 'Public'"
+    AUTH_USER_REGISTRATION_ROLE_JMESPATH = "contains(['@uchicago.edu'], email) && 'Admin' || 'Public'"
   secret: |
     # Generate your own secret key for encryption. Use openssl rand -base64 42 to generate a good key
     SECRET_KEY = 'PLACEHOLDER_RANDOM'

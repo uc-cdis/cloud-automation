@@ -200,6 +200,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  annotations:
+    gen3.io/network-ingress: "superset,superset-worker"
   name: superset-redis-master
   labels:
     app.kubernetes.io/name: redis

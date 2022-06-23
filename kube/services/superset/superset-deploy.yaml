@@ -119,7 +119,7 @@ stringData:
     AUTH_USER_REGISTRATION = True
     
     # The default user self registration role
-    AUTH_USER_REGISTRATION_ROLE = "Admin"
+    AUTH_USER_REGISTRATION_ROLE = "Public"
     
     
   superset_init.sh: |
