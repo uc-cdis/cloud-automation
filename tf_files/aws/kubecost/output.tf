@@ -18,3 +18,11 @@ output "athena_result_bucket" {
 output "aws_account_id" {
   value = local.account_id
 }
+
+output "aws_user_key" {
+  value = aws_iam_access_key.kubecost-user-key.id
+}
+
+output "aws_user_secret" {
+  value = aws_iam_access_key.kubecost-user-key.secret
+}

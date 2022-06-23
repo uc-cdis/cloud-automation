@@ -12,8 +12,16 @@ variable "cur_s3_bucket" {
   default = ""
 }
 
+variable "master_bucket" {
+  default = ""
+}
+
 # If master setup
 
 variable "slave_account_id" {
+  default = ""
+}
+
+variable "cur_bucket" {
   default = ""
 }

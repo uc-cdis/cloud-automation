@@ -8,12 +8,7 @@ serviceAccount:
     KUBECOST_SA
 
 kubecostProductConfigs:
-  clusterName: slave-cluster
-  athenaBucketName: ATHENA_BUCKET
-  athenaRegion: AWS_REGION
-  athenaDatabase: ATHENA_DATABASE
-  athenaTable: ATHENA_TABLE
-  athenaProjectID: AWS_ACCOUNT_ID
+  clusterName: VPC_NAME
   #serviceKeySecretName: aws-service-key , might work with SA attached instead
   projectID: AWS_ACCOUNT_ID
 
@@ -38,7 +33,7 @@ prometheus:
     global:
       external_labels:
         # Slave cluster name
-        cluster_id: "slave-cluster"
+        cluster_id: VPC_NAME
 
 networkCosts:
   enabled: true

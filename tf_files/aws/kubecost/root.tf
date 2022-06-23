@@ -9,10 +9,16 @@ terraform {
   }
 }
 
+
+#### To be cleaned up 
+# cur_bucket should be created every time, so remove or repurpose that var as the thanos_bucket var
+# remove counts on the s3 bucket/policy
+
 locals {
-    account_id = data.aws_caller_identity.current.account_id
-    region     = data.aws_region.current.name
-    cur_bucket = var.cur_s3_bucket != "" ?  var.cur_s3_bucket : aws_s3_bucket.cur-bucket.0.id
+    account_id    = data.aws_caller_identity.current.account_id
+    region        = data.aws_region.current.name
+    cur_bucket    = var.cur_s3_bucket != "" ? var.cur_s3_bucket : aws_s3_bucket.cur-bucket.0.id
+    thanos_bucket = var.master_bucket != "" ? var.master_bucket : aws_s3_bucket.cur-bucket.0.id
 }
 
 # The Cost and Usage report, create in any configuration
@@ -134,27 +140,23 @@ resource "aws_s3_bucket_policy" "cur-bucket-policy" {
 }
 
 
-
-
-
-
 # An IAM user used to connect kubecost to CUR/Glue/Athena, not used for SA setup
-#resource "aws_iam_user" "kubecost-user" {
-#  name = "${var.vpc_name}-kubecost-user"
-#
-#  tags = {
-#    Environment = var.vpc_name
-#    Purpose     = "Kubecost user with access to Cost and Usage report"
-#  }
-#}
+resource "aws_iam_user" "kubecost-user" {
+  name = "${var.vpc_name}-kubecost-user"
+
+  tags = {
+    Environment = var.vpc_name
+    Purpose     = "Kubecost user with access to Cost and Usage report"
+  }
+}
 
 # Access Key for the user
-#resource "aws_iam_access_key" "kubecost-user-key" {
-#  user = aws_iam_user.kubecost-user.name
-#}
+resource "aws_iam_access_key" "kubecost-user-key" {
+  user = aws_iam_user.kubecost-user.name
+}
 
 # Policy to attach to the user, will attach permissions to terraform created bucket if master/standalone or to specified bucket if slave
-resource "aws_iam_policy" "thanos-user-policy" {
+resource "aws_iam_policy" "kubecost-user-policy" {
   name        = "${var.vpc_name}-Kubecost-CUR-policy"
   path        = "/"
   description = "Policy for Kubecost to access CUR report and resources associated with it."
@@ -180,20 +182,20 @@ resource "aws_iam_policy" "thanos-user-policy" {
         Sid = "AthenaQueryResultsOutput"
         Effect = "Allow"
         Action = ["s3:GetBucketLocation","s3:GetObject","s3:ListBucket","s3:ListBucketMultipartUploads","s3:ListMultipartUploadParts","s3:AbortMultipartUpload","s3:CreateBucket","s3:PutObject"]
-        Resource = ["arn:aws:s3:::${local.cur_bucket}","arn:aws:s3:::${local.cur_bucket}/*"]
+        Resource = ["arn:aws:s3:::${local.cur_bucket}","arn:aws:s3:::${local.cur_bucket}/*","arn:aws:s3:::${local.thanos_bucket}","arn:aws:s3:::${local.thanos_bucket}/*"]
       },
       {
         Sid = "S3ReadAccessToAwsBillingData"
         Effect = "Allow"
         Action = ["s3:Get*","s3:List*"]
-        Resource = ["arn:aws:s3:::${local.cur_bucket}","arn:aws:s3:::${local.cur_bucket}/*"]
+        Resource = ["arn:aws:s3:::${local.cur_bucket}","arn:aws:s3:::${local.cur_bucket}/*","arn:aws:s3:::${local.thanos_bucket}","arn:aws:s3:::${local.thanos_bucket}/*"]
       }
     ]
   })
 }
 
 # Policy to attach to the user, will attach permissions to terraform created bucket if master/standalone or to specified bucket if slave
-resource "aws_iam_policy" "kubecost-user-policy" {
+resource "aws_iam_policy" "thanos-user-policy" {
   name        = "${var.vpc_name}-Kubecost-Thanos-policy"
   path        = "/"
   description = "Policy for Thanos to have access to centralized bucket."
@@ -207,7 +209,7 @@ resource "aws_iam_policy" "kubecost-user-policy" {
         Sid = "Statement",
         Effect = "Allow",
         Action = ["s3:ListBucket","s3:GetObject","s3:DeleteObject","s3:PutObject","s3:PutObjectAcl"],
-        Resource = ["arn:aws:s3:::${local.cur_bucket}/*","arn:aws:s3:::${local.cur_bucket}"]
+        Resource = ["arn:aws:s3:::${local.thanos_bucket}/*","arn:aws:s3:::${local.thanos_bucket}"]
       }
     ]
   })
@@ -215,18 +217,10 @@ resource "aws_iam_policy" "kubecost-user-policy" {
 
 
 # Policy attachment of the kubecost user policy to the kubecost user
-#resource "aws_iam_user_policy_attachment" "kubecost-user-policy-attachment" {
-#  user       = aws_iam_user.kubecost-user.name
-#  policy_arn = aws_iam_policy.kubecost-user-policy.arn
-#}
-
-
-
-
-
-
-
-
+resource "aws_iam_user_policy_attachment" "kubecost-user-policy-attachment" {
+  user       = aws_iam_user.kubecost-user.name
+  policy_arn = aws_iam_policy.kubecost-user-policy.arn
+}
 
 # Role for the glue crawler, used for every configuration, s3 bucket will either be from terraform, or specified master bucket
 resource "aws_iam_role" "glue-crawler-role" {

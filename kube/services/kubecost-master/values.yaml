@@ -8,16 +8,10 @@ serviceAccount:
     KUBECOST_SA
 
 kubecostProductConfigs:
-  athenaBucketName: ATHENA_BUCKET
-  athenaRegion: AWS_REGION
-  athenaDatabase: ATHENA_DATABASE
-  athenaTable: ATHENA_TABLE
-  athenaProjectID: AWS_ACCOUNT_ID
+  cloudIntegrationSecret: cloud-integration
   clusterName: master-cluster
-  #serviceKeySecretName: aws-service-key , might work with SA attached instead
   projectID: AWS_ACCOUNT_ID
-  # awsSpotDataRegion: AWS_kubecostProductConfigs_awsSpotDataRegion
-  # awsSpotDataBucket: AWS_kubecostProductConfigs_awsSpotDataBucket
+
 
 prometheus:
   serviceAccounts:
@@ -27,7 +21,7 @@ prometheus:
   server:
     global:
       external_labels:
-        # Slave cluster name
+        # Master cluster name
         cluster_id: "master-cluster"
         
 networkCosts:

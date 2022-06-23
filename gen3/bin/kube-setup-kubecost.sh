@@ -1,6 +1,15 @@
 #!/bin/bash
 #
 
+### Todo 
+# slave write to its own bucket
+# slave thanos writes to prod bucket
+# slave thanos access to prod bucket
+# master bucket gives permissions for thanos to write to it, probably set
+
+
+
+
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/kube-setup-init"
@@ -13,7 +22,7 @@ gen3_setup_kubecost_infrastructure() {
   gen3 cd
   echo "vpc_name=\"$vpc_name\"" > config.tfvars
   if [[ $deployment == "slave" ]]; then
-    echo "cur_s3_bucket=\"$s3Bucket\"" >> config.tfvars
+    echo "master_s3_bucket=\"$s3Bucket\"" >> config.tfvars
   elif [[ $deployment == "master" ]]; then
     echo "slave_account_id=\"$slaveAccountId\"" >> config.tfvars
   fi
@@ -78,26 +87,33 @@ gen3_setup_kubecost() {
     s3Bucket="$vpc_name-kubecost-bucket"
   fi
   if (! helm status kubecost -n kubecost > /dev/null 2>&1 )  || [[ ! -z "$FORCE" ]]; then
+    # Replace - with _ on the vpc name for athena table which doesn't allow dashes and converts to underscores
+    safeVpcName=$(echo $vpc_name | tr - _)
     if [[ $deployment == "slave" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-slave/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-slave/object-store.yaml"
       thanosValues="${GEN3_HOME}/kube/services/kubecost-slave/values-thanos.yaml"
-      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "s3://$s3Bucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${vpc_name}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" > $valuesFile
+      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" AWS_ACCOUNT_ID "$accountID" VPC_NAME "$vpc_name" > $valuesFile
     elif [[ $deployment == "master" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/values.yaml"
+      integrationFile="$XDG_RUNTIME_DIR/cloud_integration_$$.json"
+      integrationTemplate="${GEN3_HOME}/kube/services/kubecost-master/cloud-integration.json"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store.yaml"
-      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "s3://$s3Bucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${vpc_name}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion"  > $valuesFile
+      # Replace - with _ on the slave vpc name as well
+      safeSlaveVpcName=$(echo $slaveVpcName | tr - _)
+      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" AWS_ACCOUNT_ID "$accountID" > $valuesFile
+      g3k_kv_filter $integrationTemplate MASTER_ATHENA_BUCKET "s3://$s3Bucket" REGION "$awsRegion" MASTER_ATHENA_DB "athenacurcfn_$vpc_name" MASTER_ATHENA_TABLE "${safeVpcName}_cur" MASTER_ACCOUNT_ID "$accountID" SLAVE_ATHENA_BUCKET "s3://$slaveVpcName-kubecost-bucket" SLAVE_ATHENA_DB "athenacurcfn_$slaveVpcName" SLAVE_ATHENA_TABLE "${safeSlaveVpcName}_cur" SLAVE_ACCOUNT_ID "$slaveAccountID" SLAVE_USER_KEY "$slaveUserKey" SLAVE_USER_SECRET "$slaveUserSecret"      
       gen3_kubecost_create_alb
     else
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/values.yaml"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/object-store.yaml"
-      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "s3://$s3Bucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${vpc_name}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" > $valuesFile
+      g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "s3://$s3Bucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${safeVpcName}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" > $valuesFile
       gen3_kubecost_create_alb
     fi
     kubectl delete secret -n kubecost kubecost-thanos || true
@@ -144,6 +160,15 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
               "--slave-account-id")
                 slaveAccountId="$1"
                 ;;
+              "--slave-vpc-name")
+                slaveVpcName="$1"
+                ;;
+              "--slave-user-key")
+                slaveUserKey="$1"
+                ;;
+              "--slave-user-secret")
+                slaveUserSecret="$1"
+                ;;                                
               "--kubecost-token")
                 kubecostToken="$1"
                 ;;
@@ -165,7 +190,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                 ;;
             esac
           done
-          if [[ -z $slaveAccountId || -z $kubecostToken  ]]; then
+          if [[ -z $slaveAccountId || -z $kubecostToken || -z $slaveVpcName || -z $slaveUserKey || -z $slaveUserSecret  ]]; then
             gen3_log_err "Please ensure you set the required flags."
             exit 1
           fi

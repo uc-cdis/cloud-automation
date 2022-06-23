@@ -1,0 +1,20 @@
+{
+  "aws": [
+      {
+          "athenaBucketName": "MASTER_ATHENA_BUCKET",
+          "athenaRegion": "REGION",
+          "athenaDatabase": "MASTER_ATHENA_DB",
+          "athenaTable": "MASTER_ATHENA_TABLE",
+          "projectID": "MASTER_ACCOUNT_ID"
+      },
+      {
+          "athenaBucketName": "SLAVE_ATHENA_BUCKET",
+          "athenaRegion": "REGION",
+          "athenaDatabase": "SLAVE_ATHENA_DB",
+          "athenaTable": "SLAVE_ATHENA_TABLE",
+          "projectID": "SLAVE_ACCOUNT_ID",
+          "serviceKeyName": "SLAVE_USER_KEY",
+          "serviceKeySecret": "SLAVE_USER_SECRET"
+      }
+  ]
+}

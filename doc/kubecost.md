@@ -13,6 +13,9 @@ Requires the following `key value` arguments
 
 * `--slave-account-id` - the account id of the slave kubecost cluster
 * `--kubecost-token` - The token for the kubecost cluster
+* `--slave-vpc-name` - The VPC name of the slave cluster
+* `--slave-user-key` - The AWS_ACCESS_KEY of the user created in the slave setup
+* `--slave-user-secret` - The AWS_SECRET_ACCESS_KEY of the user created in the slave setup
 
 Optional `key value` arguments
 
@@ -24,7 +27,7 @@ Optional `key value` arguments
 Ex:
 
 ``` bash
-gen3 kube-setup-kubecost master create --slave-account-id 1234567890 --kubecost-token abcdefghijklmnop12345 --force true
+gen3 kube-setup-kubecost master create --slave-account-id 1234567890 --kubecost-token abcdefghijklmnop12345 --slave-vpc-name test-vpc --slave-user-key AKIAZBCDEFG --slave-user-secret abcdefghigjlmnop --force true
 ```
 
 ### `gen3 kube-setup-kubecost slave create`
@@ -34,7 +37,7 @@ Creates a slave kubecost cluster
 
 Requires the following `key value` arguments
 
-* `--s3-bucket` - the centralized s3 bucket of the master kubecost cluster 
+* `--s3-bucket` - the centralized s3 bucket of the master kubecost cluster
 * `--kubecost-token` - The token for the kubecost cluster
 
 Optional `key value` arguments
