@@ -90,7 +90,7 @@ setup_secrets() {
     export FENCE_CLIENT_SECRET=$(jq -r ".FENCE_CLIENT_SECRET" <<< "$appcreds" )
     export SECRET_KEY=$(random_alphanumeric 32)
     if secret_key="$(gen3 secrets decode superset-env SECRET_KEY)"; then
-      export PREVIOUS_SECRET_KEY="    PREVIOUS_SECRET_KEY: $(gen3 secrets decode superset-env SECRET_KEY)"
+      export PREVIOUS_SECRET_KEY="PREVIOUS_SECRET_KEY: $(gen3 secrets decode superset-env SECRET_KEY)"
     else
       export PREVIOUS_SECRET_KEY=""
     fi
