@@ -1,15 +1,6 @@
 #!/bin/bash
 #
 
-### Todo 
-# slave write to its own bucket
-# slave thanos writes to prod bucket
-# slave thanos access to prod bucket
-# master bucket gives permissions for thanos to write to it, probably set
-
-
-
-
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/kube-setup-init"
