@@ -99,7 +99,7 @@ gen3_setup_kubecost() {
     elif [[ $deployment == "master" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/values.yaml"
-      integrationFile="$XDG_RUNTIME_DIR/cloud_integration.json"
+      integrationFile="$XDG_RUNTIME_DIR/cloud-integration.json"
       integrationTemplate="${GEN3_HOME}/kube/services/kubecost-master/cloud-integration.json"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store.yaml"
