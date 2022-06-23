@@ -157,7 +157,7 @@ resource "aws_iam_access_key" "kubecost-user-key" {
 
 # Policy to attach to the user, will attach permissions to terraform created bucket if master/standalone or to specified bucket if slave
 resource "aws_iam_policy" "kubecost-user-policy" {
-  name        = "${var.vpc_name}-Kubecost-CUR-policy"
+  name        = "${var.vpc_name}-kubecost-CUR-policy"
   path        = "/"
   description = "Policy for Kubecost to access CUR report and resources associated with it."
 
@@ -196,7 +196,7 @@ resource "aws_iam_policy" "kubecost-user-policy" {
 
 # Policy to attach to the user, will attach permissions to terraform created bucket if master/standalone or to specified bucket if slave
 resource "aws_iam_policy" "thanos-user-policy" {
-  name        = "${var.vpc_name}-Kubecost-Thanos-policy"
+  name        = "${var.vpc_name}-kubecost-thanos-policy"
   path        = "/"
   description = "Policy for Thanos to have access to centralized bucket."
 
