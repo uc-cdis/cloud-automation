@@ -99,14 +99,14 @@ gen3_setup_kubecost() {
     elif [[ $deployment == "master" ]]; then
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/values.yaml"
-      integrationFile="$XDG_RUNTIME_DIR/cloud_integration_$$.json"
+      integrationFile="$XDG_RUNTIME_DIR/cloud_integration.json"
       integrationTemplate="${GEN3_HOME}/kube/services/kubecost-master/cloud-integration.json"
       thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
       thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-master/object-store.yaml"
       # Replace - with _ on the slave vpc name as well
       safeSlaveVpcName=$(echo $slaveVpcName | tr - _)
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" AWS_ACCOUNT_ID "$accountID" > $valuesFile
-      g3k_kv_filter $integrationTemplate MASTER_ATHENA_BUCKET "s3://$s3Bucket" REGION "$awsRegion" MASTER_ATHENA_DB "athenacurcfn_$vpc_name" MASTER_ATHENA_TABLE "${safeVpcName}_cur" MASTER_ACCOUNT_ID "$accountID" SLAVE_ATHENA_BUCKET "s3://$slaveVpcName-kubecost-bucket" SLAVE_ATHENA_DB "athenacurcfn_$slaveVpcName" SLAVE_ATHENA_TABLE "${safeSlaveVpcName}_cur" SLAVE_ACCOUNT_ID "$slaveAccountID" SLAVE_USER_KEY "$slaveUserKey" SLAVE_USER_SECRET "$slaveUserSecret" > $integrationFile
+      g3k_kv_filter $integrationTemplate MASTER_ATHENA_BUCKET "s3://$s3Bucket" REGION "$awsRegion" MASTER_ATHENA_DB "athenacurcfn_$vpc_name" MASTER_ATHENA_TABLE "${safeVpcName}_cur" MASTER_ACCOUNT_ID "$accountID" SLAVE_ATHENA_BUCKET "s3://$slaveVpcName-kubecost-bucket" SLAVE_ATHENA_DB "athenacurcfn_$slaveVpcName" SLAVE_ATHENA_TABLE "${safeSlaveVpcName}_cur" SLAVE_ACCOUNT_ID "$slaveAccountId" SLAVE_USER_KEY "$slaveUserKey" SLAVE_USER_SECRET "$slaveUserSecret" > $integrationFile
       kubectl delete secret -n kubecost cloud-integration || true
       kubectl create secret generic cloud-integration -n kubecost --from-file=$integrationFile
       gen3_kubecost_create_alb
