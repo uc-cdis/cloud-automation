@@ -22,7 +22,7 @@ gen3_setup_kubecost_infrastructure() {
   gen3 cd
   echo "vpc_name=\"$vpc_name\"" > config.tfvars
   if [[ $deployment == "slave" ]]; then
-    echo "master_s3_bucket=\"$s3Bucket\"" >> config.tfvars
+    echo "master_bucket=\"$s3Bucket\"" >> config.tfvars
   elif [[ $deployment == "master" ]]; then
     echo "slave_account_id=\"$slaveAccountId\"" >> config.tfvars
   fi
