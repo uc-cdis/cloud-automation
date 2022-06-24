@@ -140,7 +140,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
 
     install_terraform1.2() {
       mkdir "${XDG_RUNTIME_DIR}/t1.2"
-      curl -o "${XDG_RUNTIME_DIR}/t1_2/terraform1.2.zip" https://releases.hashicorp.com/terraform/1.2.3/terraform_1.2.3_linux_amd64.zip
+      curl -o "${XDG_RUNTIME_DIR}/t1.2/terraform1.2.zip" https://releases.hashicorp.com/terraform/1.2.3/terraform_1.2.3_linux_amd64.zip
       sudo /bin/rm -rf /usr/local/bin/terraform1.2 > /dev/null 2>&1 || true
       unzip "${XDG_RUNTIME_DIR}/t1.2/terraform1.2.zip" -d "${XDG_RUNTIME_DIR}/t1.2";
       sudo cp "${XDG_RUNTIME_DIR}/t1.2/terraform" "/usr/local/bin/terraform1.2"
