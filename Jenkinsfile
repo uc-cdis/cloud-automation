@@ -1,7 +1,7 @@
 #!groovy
 
 // See 'Loading libraries dynamically' here: https://jenkins.io/doc/book/pipeline/shared-libraries/
-library 'cdis-jenkins-lib@fix/check_latest_commit_in_right_branch'
+library 'cdis-jenkins-lib@master'
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
