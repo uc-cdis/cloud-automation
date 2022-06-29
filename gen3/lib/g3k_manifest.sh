@@ -242,6 +242,7 @@ g3k_manifest_filter() {
   declare -a kvList=()
 
   kvList+=('GEN3_DATE_LABEL' "date: \"$(date +%s)\"")
+  kvList+=('GEN3_AWS_REGION' "value: \"${AWS_REGION}\"")
 
   for key in $(g3k_config_lookup '.versions | keys[]' "$manifestPath"); do
     value="$(g3k_config_lookup ".versions[\"$key\"]" "$manifestPath")"

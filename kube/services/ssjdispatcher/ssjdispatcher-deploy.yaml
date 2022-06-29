@@ -52,7 +52,7 @@ spec:
             subPath: credentials.json
         env:
           - name: AWS_REGION
-            value: us-east-1
+            GEN3_AWS_REGION
           - name: AWS_STS_REGIONAL_ENDPOINTS
             value: regional  
           - name: GEN3_NAMESPACE
