@@ -54,7 +54,7 @@ spec:
                   key: AGG_MDS_NAMESPACE
                   optional: true
           imagePullPolicy: Always
-          command: ["/bin/ash"]
+          command: ["/bin/bash"]
           args:
             - "-c"
             - |
