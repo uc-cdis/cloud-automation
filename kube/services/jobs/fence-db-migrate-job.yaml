@@ -1,3 +1,4 @@
+# TODO deprecate this job once everyone uses Fence with Alembic
 ---
 apiVersion: batch/v1
 kind: Job
