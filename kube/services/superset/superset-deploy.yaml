@@ -1,0 +1,429 @@
+---
+# Source: superset/templates/secret-superset-config.yaml
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+apiVersion: v1
+kind: Secret
+metadata:
+  name: superset-config
+  labels:
+    app: superset
+    chart: superset-0.6.1
+    release: "superset"
+    heritage: "Helm"
+type: Opaque
+stringData:
+  superset_config.py: |
+    
+    import os
+    from cachelib.redis import RedisCache
+    
+    def env(key, default=None):
+        return os.getenv(key, default)
+    
+    MAPBOX_API_KEY = env('MAPBOX_API_KEY', '')
+    CACHE_CONFIG = {
+          'CACHE_TYPE': 'redis',
+          'CACHE_DEFAULT_TIMEOUT': 300,
+          'CACHE_KEY_PREFIX': 'superset_',
+          'CACHE_REDIS_HOST': env('REDIS_HOST'),
+          'CACHE_REDIS_PORT': env('REDIS_PORT'),
+          'CACHE_REDIS_PASSWORD': env('REDIS_PASSWORD'),
+          'CACHE_REDIS_DB': env('REDIS_DB', 1),
+    }
+    DATA_CACHE_CONFIG = CACHE_CONFIG
+    
+    SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{env('DB_USER')}:{env('DB_PASS')}@{env('DB_HOST')}:{env('DB_PORT')}/{env('DB_NAME')}"
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    SECRET_KEY = env('SECRET_KEY', '')
+    
+    # Flask-WTF flag for CSRF
+    WTF_CSRF_ENABLED = True
+    # Add endpoints that need to be exempt from CSRF protection
+    WTF_CSRF_EXEMPT_LIST = []
+    # A CSRF token that expires in 1 year
+    WTF_CSRF_TIME_LIMIT = 60 * 60 * 24 * 365
+    class CeleryConfig(object):
+      CELERY_IMPORTS = ('superset.sql_lab', )
+      CELERY_ANNOTATIONS = {'tasks.add': {'rate_limit': '10/s'}}
+      BROKER_URL = f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/0"
+      CELERY_RESULT_BACKEND = f"redis://{env('REDIS_HOST')}:{env('REDIS_PORT')}/0"
+    
+    CELERY_CONFIG = CeleryConfig
+    RESULTS_BACKEND = RedisCache(
+          host=env('REDIS_HOST'),
+          port=env('REDIS_PORT'),
+          key_prefix='superset_results'
+    )
+    
+    
+    # Overrides
+    # enable_proxy_fix
+    # This will make sure the redirect_uri is properly computed, even with SSL offloading
+    ENABLE_PROXY_FIX = True
+    
+    # oauth2Override
+    import logging
+    from superset.security import SupersetSecurityManager
+    
+    class CustomSsoSecurityManager(SupersetSecurityManager):
+    
+        def oauth_user_info(self, provider, response=None):
+            logging.info("Oauth2 provider: {0}.".format(provider))
+            if provider == 'fence':
+                # As example, this line request a GET to base_url + '/' + userDetails with Bearer  Authentication,
+        # and expects that authorization server checks the token, and response with user details
+                me = self.appbuilder.sm.oauth_remotes[provider].get(env('FENCE_URL')).json()
+                logging.info("user_data: {0}".format(me))
+                # logging.info("user_data as dir: {0}".format(dir(me)))
+                return { 'name' : me['name'], 'email' : me['email'], 'id' : me['email'], 'username' : me['email'], 'first_name':'', 'last_name':''}
+    
+    CUSTOM_SECURITY_MANAGER = CustomSsoSecurityManager
+    
+    from flask_appbuilder.security.manager import AUTH_OAUTH
+    AUTH_TYPE = AUTH_OAUTH
+    OAUTH_PROVIDERS = [
+        {   'name':'fence',
+            'token_key':'access_token', # Name of the token in the response of access_token_url
+            'icon':'fa-address-card',   # Icon for the provider
+            'remote_app': {
+                'client_id': env('FENCE_CLIENT_ID'),  # Client Id (Identify Superset application)
+                'client_secret': env('FENCE_CLIENT_SECRET'), # Secret for this Client Id (Identify Superset application)
+                'client_kwargs':{
+                    'scope': 'openid user data'
+                },
+                'server_metadata_url': env('FENCE_METADATA_URL')
+            }
+        }
+    ]
+    
+    # Map Authlib roles to superset roles
+    AUTH_ROLE_ADMIN = 'Admin'
+    AUTH_ROLE_PUBLIC = 'Public'
+    
+    # Will allow user self registration, allowing to create Flask users from Authorized User
+    AUTH_USER_REGISTRATION = True
+    
+    # The default user self registration role
+    AUTH_USER_REGISTRATION_ROLE = "Public"
+    
+    
+  superset_init.sh: |
+    #!/bin/sh
+    set -eu
+    echo "Upgrading DB schema..."
+    superset db upgrade
+    echo "Initializing roles..."
+    superset init
+    
+    echo "Creating admin user..."
+    superset fab create-admin \
+                    --username admin \
+                    --firstname Superset \
+                    --lastname Admin \
+                    --email admin@superset.com \
+                    --password admin \
+                    || true
+    
+    if [ -f "/app/configs/import_datasources.yaml" ]; then
+      echo "Importing database connections.... "
+      superset import_datasources -p /app/configs/import_datasources.yaml
+    fi
+  superset_bootstrap.sh: |
+    #!/bin/bash
+    rm -rf /var/lib/apt/lists/* && \
+    pip install \
+      sqlalchemy-trino==0.4.1 \
+      pymssql==2.2.5 \
+      Authlib==1.0.1 \
+      psycopg2-binary==2.9.1 \
+      redis==3.5.3 && \
+    if [ ! -f ~/bootstrap ]; then echo "Running Superset with uid 0" > ~/bootstrap; fi
+---
+# Source: superset/templates/service.yaml
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: superset
+  labels:
+    app: superset
+    chart: superset-0.6.1
+    release: superset
+    heritage: Helm
+spec:
+  type: NodePort
+  ports:
+    - port: 8088
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: superset
+    release: superset
+---
+# Source: superset/templates/deployment-worker.yaml
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: superset-worker
+  labels:
+    app: superset-worker
+    chart: superset-0.6.1
+    release: superset
+    heritage: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: superset-worker
+      release: superset
+  template:
+    metadata:
+      annotations:
+        checksum/superset_config.py: 44092ea9a5a0d886f392d2804bb2af8fb356a891351005bee3b868b114036f01
+        checksum/connections: a91716d6d1088e870fbe02159dc0b066dd011885aa08a22fbe60ea1cd4720f82
+        checksum/extraConfigs: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+        checksum/extraSecrets: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+        checksum/extraSecretEnv: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+        checksum/configOverrides: fdad02b1a387b3699858d0e2c9bd002705d72ccc3df97e969f1b7ff910b7b352
+        checksum/configOverridesFiles: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+        
+      labels:
+        app: superset-worker
+        release: superset
+        netnolimit: "yes"
+    spec:
+      securityContext:
+        runAsUser: 0
+      initContainers:
+      - command:
+        - /bin/sh
+        - -c
+        - until nc -zv $DB_HOST $DB_PORT -w1; do echo 'waiting for db'; sleep 1; done
+        envFrom:
+        - secretRef:
+            name: 'superset-env'
+        image: 'busybox:latest'
+        imagePullPolicy: 'IfNotPresent'
+        name: wait-for-postgres
+      containers:
+        - name: superset
+          image: "apache/superset:latest"
+          imagePullPolicy: Always
+          command: ["/bin/sh","-c",". /app/pythonpath/superset_bootstrap.sh; celery --app=superset.tasks.celery_app:app worker"]
+          env:
+            - name: "SUPERSET_PORT"
+              value: "8088"
+          envFrom:
+            - secretRef:
+                name: "superset-env"
+          volumeMounts:
+            - name: superset-config
+              mountPath: "/app/pythonpath"
+              readOnly: true
+          resources:
+            {}
+      volumes:
+        - name: superset-config
+          secret:
+            secretName: superset-config
+---
+# Source: superset/templates/deployment.yaml
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: superset
+  labels:
+    app: superset
+    chart: superset-0.6.1
+    release: superset
+    heritage: Helm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: superset
+      release: superset
+  template:
+    metadata:
+      annotations:
+        # Force reload on config changes
+        checksum/superset_config.py: 44092ea9a5a0d886f392d2804bb2af8fb356a891351005bee3b868b114036f01
+        checksum/superset_init.sh: e6b1e8eac1f7a79a07a6c72a0e2ee6e09654eeb439c6bbe61bfd676917c41e02
+        checksum/superset_bootstrap.sh: a6edf034118d68cef7203cc3181bb6c72b6244cdedf270ee4accc9ae9ff92b2e
+        checksum/connections: a91716d6d1088e870fbe02159dc0b066dd011885aa08a22fbe60ea1cd4720f82
+        checksum/extraConfigs: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+        checksum/extraSecrets: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+        checksum/extraSecretEnv: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+        checksum/configOverrides: fdad02b1a387b3699858d0e2c9bd002705d72ccc3df97e969f1b7ff910b7b352
+        checksum/configOverridesFiles: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+      labels:
+        app: superset
+        release: superset
+        netnolimit: "yes"
+    spec:
+      securityContext:
+        runAsUser: 0
+      initContainers:
+      - command:
+        - /bin/sh
+        - -c
+        - until nc -zv $DB_HOST $DB_PORT -w1; do echo 'waiting for db'; sleep 1; done
+        envFrom:
+        - secretRef:
+            name: 'superset-env'
+        image: 'busybox:latest'
+        imagePullPolicy: 'IfNotPresent'
+        name: wait-for-postgres
+      containers:
+        - name: superset
+          image: "apache/superset:latest"
+          imagePullPolicy: Always
+          command: ["/bin/sh","-c",". /app/pythonpath/superset_bootstrap.sh; /usr/bin/run-server.sh"]
+          env:
+            - name: "SUPERSET_PORT"
+              value: "8088"
+          envFrom:
+            - secretRef:
+                name: "superset-env"
+          volumeMounts:
+            - name: superset-config
+              mountPath: "/app/pythonpath"
+              readOnly: true
+          ports:
+            - name: http
+              containerPort: 8088
+              protocol: TCP
+          resources:
+            {}
+
+      volumes:
+        - name: superset-config
+          secret:
+            secretName: superset-config
+---
+# Source: superset/templates/init-job.yaml
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: superset-init-db
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+spec:
+  template:
+    metadata:
+      name: superset-init-db
+      labels:
+        netnolimit: "yes"
+    spec:
+      securityContext:
+        runAsUser: 0
+      initContainers:
+      - command:
+        - /bin/sh
+        - -c
+        - until nc -zv $DB_HOST $DB_PORT -w1; do echo 'waiting for db'; sleep 1; done
+        envFrom:
+        - secretRef:
+            name: 'superset-env'
+        image: 'busybox:latest'
+        imagePullPolicy: 'IfNotPresent'
+        name: wait-for-postgres
+      containers:
+      - name: superset-init-db
+        image: "apache/superset:latest"
+        envFrom:
+          - secretRef:
+              name: superset-env
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: superset-config
+            mountPath: "/app/pythonpath"
+            readOnly: true
+        command: ["/bin/sh","-c",". /app/pythonpath/superset_bootstrap.sh; . /app/pythonpath/superset_init.sh"]
+        resources:
+          {}
+      volumes:
+        - name: superset-config
+          secret:
+            secretName: superset-config
+      restartPolicy: Never
