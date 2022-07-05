@@ -20,4 +20,4 @@ fi
 accessToken=$(gen3 api access-token "$userEmail") 
 export GEN3_HOME="${GEN3_HOME:-"$HOME/cloud-automation"}"
 
-python ${GEN3_HOME}/files/scripts/healdata/script.py --access_token $accessToken --directory $directoryID
+python ${GEN3_HOME}/files/scripts/healdata/heal-cedar-data-ingest.py --access_token $accessToken --directory $directoryID

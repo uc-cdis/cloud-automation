@@ -3,10 +3,6 @@ import json
 import requests
 import os
 
-from gen3.auth import Gen3Auth
-from gen3.metadata import Gen3Metadata
-from requests.auth import HTTPBasicAuth
-
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--directory", "-d", help="Cedar Directory ID for registering ")
