@@ -454,10 +454,100 @@ EOM
   if [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
       commonsName=${GEN3_WORKSPACE//_eks/}
       cat - <<EOM
+### New Variables Synced From variables.tf###
+
+## General variables
+# VPC name, only alphanumeric characters. This VPC must exists arelady.
 vpc_name      = "${commonsName}"
-instance_type = "t3.xlarge"
-ec2_keyname   = "someone@uchicago.edu"
+# an existing key pair in EC2 that we want in the k8s worker nodes.
+ec2_keyname   ="someone@uchicago.edu"
 users_policy  = "${commonsName}"
+
+## Optional Variables
+# EC2 Instance type for k8s workers
+instance_type = "t3.xlarge"
+# EC2 Instance type for k8s jupyter workers
+jupyter_instance_type = "t3.large"
+# EC2 Instance type for k8s workflow workers
+workflow_instance_type = "t3.2xlarge"
+
+# the CIDR were your adminVM belongs to.
+peering_cidr = "10.128.0.0/20"
+
+# A secondary CIDR range that will get allocated the the workflow autoscaling group
+secondary_cidr_block = ""
+peering_vpc_id = "vpc-e2b51d99"
+
+# Volume size for the k8s workers
+worker_drive_size = 30
+
+# Version for EKS cluster
+eks_version = "1.16"
+
+# VPC module should have been deployed using the network_expansion = true variable, otherwise wks will fail
+workers_subnet_size = 24
+
+kernel = "N/A"
+
+# Script to initialize the workers
+bootstrap_script = "bootstrap.sh"
+# Script to initialize the jupyter workers
+jupyter_bootstrap_script = "bootstrap.sh"
+
+# Volume size for the k8s jupyter workers
+jupyter_worker_drive_size = 30
+
+# Script to initialize the workflow  workers
+workflow_bootstrap_script = "bootstrap.sh"
+workflow_worker_drive_size = 30
+
+# CIDR you want to skip the proxy when going out
+cidrs_to_route_to_gw = ""
+
+organization_name = "Basic Services"
+proxy_name = "HTTP Proxy"
+
+# number of jupyter workers
+jupyter_asg_desired_capacity = 0
+jupyter_asg_max_size = 10
+jupyter_asg_min_size = 0
+single_az_for_jupyter = false
+
+# number of workflow  workers
+workflow_asg_desired_capacity = 0
+workflow_asg_max_size = 50
+workflow_asg_min_size = 0
+deploy_workflow = false
+
+# iam/service account to your cluster
+iam-serviceaccount = false
+
+# OIDC to use for service account intergration
+oidc_eks_thumbprint = [""]
+
+# SNS topic ARN for alerts
+sns_topic_arn = "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
+
+# for QualysAgent deployment
+activation_id = ""
+customer_id = ""
+
+# Enable/Disable Federal Information Processing Standards (FIPS) in EKS nodes. You need to have FIPS enabled AMI to enable this.
+fips = false
+fips_ami_kms = "arn:aws:kms:us-east-1:707767160287:key/mrk-697897f040ef45b0aa3cebf38a916f99"
+fips_enabled_ami = "ami-0de87e3680dcb13ec"
+
+# AZs where to deploy the kubernetes worker nodes.
+availability_zones = ["us-east-1a", "us-east-1c", "us-east-1d"]
+
+# If ha-proxy a domain to check internet access
+domain_test = "www.google.com"
+
+# If HA Squid is enabled, this should be set to true. ha-squid environment is comprised by at least two squid proxy instances in an autoscaling group.
+ha_squid = false
+
+######
+
 EOM
       return 0
   fi
