@@ -308,6 +308,12 @@ else
   gen3_log_info "not deploying cedar-wrapper - no manifest entry for '.versions[\"cedar-wrapper\"]'"
 fi
 
+if g3k_manifest_lookup '.versions["kayako-wrapper"]' 2> /dev/null; then
+  gen3 kube-setup-kayako-wrapper &
+else
+  gen3_log_info "not deploying kayako-wrapper - no manifest entry for '.versions[\"kayako-wrapper\"]'"
+fi
+
 gen3_log_info "enable network policy"
 gen3 kube-setup-networkpolicy "enable" || true &
 
