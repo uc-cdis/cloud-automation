@@ -9,11 +9,11 @@ kayako_secret_key_file="$(gen3_secrets_folder)/kayako_secret_key.txt"
 
 if [[ ! -f "$kayako_api_key_file" ]]; then
     gen3_log_err "No kayako api key present in ${kayako_api_key_file}, not rolling kayako wrapper"
-    exit(1)
+    exit 1
 fi
 if [[ ! -f "$kayako_secret_key_file" ]]; then
     gen3_log_err "No kayako secret key present in ${kayako_secret_key_file}, not rolling kayako wrapper"
-    exit(1)
+    exit 1
 fi
 
 if g3kubectl get secret kayako-service-api-key > /dev/null 2>&1; then

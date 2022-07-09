@@ -44,12 +44,13 @@ spec:
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
-      - name: kayako-service-api-key
-        secret:
-          secretName: "kayako-service-api-key"
-      - name: kayako-service-secret-key
-        secret:
-          secretName: "kayako-service-secret-key"
+      - name: kayako-service-secrets
+        projected:
+          sources:
+          - secret:
+              name: kayako-service-api-key
+          - secret:
+              name: kayako-service-secret-key
       containers:
       - name: kayako-wrapper
         GEN3_KAYAKO-WRAPPER_IMAGE
@@ -91,7 +92,7 @@ spec:
           - name: "kayako-service-api-key"
             readOnly: true
             mountPath: "/mnt/secrets/"
-          - name: "kayako-service-secret-key"
+          - name: "kayako-service-secrets"
             readOnly: true
-            mountPath: "/mnt/secrets"
+            mountPath: "/mnt/secrets/"
         imagePullPolicy: Always
