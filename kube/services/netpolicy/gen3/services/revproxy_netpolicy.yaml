@@ -13,6 +13,9 @@ spec:
       - ambassador-gen3
       - auspice
       - ohdsi-atlas
+      - superset
+      - superset-worker
+      - superset-redis-master
   ingress:
     - from:
       - ipBlock:
@@ -24,6 +27,7 @@ spec:
          - port: 81
          - port: 82
          - port: 443
+         - port: 8088
   egress:
     - to:
       - namespaceSelector:

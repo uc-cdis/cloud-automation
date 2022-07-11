@@ -1,0 +1,42 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netpolicy-egress-to-superset-redis-master
+spec:
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: superset-redis-master
+
+  podSelector:
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+      - superset
+      - superset-worker
+  policyTypes:
+  - Egress
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netpolicy-ingress-to-superset-redis-master
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchExpressions:
+        - key: app
+          operator: In
+          values:
+          - superset
+          - superset-worker
+  podSelector:
+    matchLabels:
+      app: superset-redis-master
+  policyTypes:
+  - Ingress
