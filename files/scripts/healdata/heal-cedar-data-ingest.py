@@ -31,11 +31,12 @@ if cedar.status_code == 200:
 
 	metadata_return = cedar.json()
 
-	for i in metadata_return:
-		print(i["Metadata Location"]["Metadata Location - Details"]["nih_application_id"])
+	for record in metadata_return:
+		cedar_record = record["Metadata Location"]["Metadata Location - Details"]["nih_application_id"]
+		print(cedar_record)
 
 		# Get the metadata record for the nih_application_id
-		mds = requests.get("http://revproxy-service/mds/metadata/" + i["Metadata Location"]["Metadata Location - Details"]["nih_application_id"],
+		mds = requests.get("http://revproxy-service/mds/metadata/" + cedar_record,
 			headers=token_header
 		)
 		if mds.status_code == 200:
@@ -43,17 +44,19 @@ if cedar.status_code == 200:
 			if mds_res["_guid_type"] == "discovery_metadata":
 				print("Metadata is already registered. Skipping this instance")
 			elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
-				mds_res["_guid_type"] = "discovery_metadata"
+				mds_cedar_register = {}
+				mds_cedar_register["_guid_type"] = "discovery_metadata"
+				mds_cedar_register["gen3_discovery"] = record
 
 				print("Metadata is now being registered.")
-				mds_put = requests.put("http://revproxy-service/mds/metadata/" + i["Metadata Location"]["Metadata Location - Details"]["nih_application_id"]+"?merge=true", 
+				mds_put = requests.put("http://revproxy-service/mds/metadata/" + cedar_record+"?merge=true", 
 					headers=token_header,
-					data = mds_res
+					data = mds_cedar_register
 				)
 				if mds_put.status_code == 200:
-					Print("Successfully registered: ", i["Metadata Location"]["Metadata Location - Details"]["nih_application_id"])
+					Print("Successfully registered: ", cedar_record)
 				else:
-					Print("Failed to register: ", i["Metadata Location"]["Metadata Location - Details"]["nih_application_id"], " Might not be MDS admin")
+					Print("Failed to register: ", cedar_record, " Might not be MDS admin")
 		else:
 			print("Failed to get information from MDS", mds.status_code)
 else:
