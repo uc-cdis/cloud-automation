@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kayako-wrapper-deployment
+spec:
+  selector:
+    matchLabels:
+      app: kayako-wrapper
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: kayako-wrapper
+        public: "yes"
+        netnolimit: "yes"
+        userhelper: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - kayako-wrapper
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+      - name: ca-volume
+        secret:
+          secretName: "service-ca"
+      - name: config-volume
+        secret:
+          secretName: "kayako-wrapper-config"
+      - name: privacy-policy
+        configMap:
+          name: "privacy-policy"
+      - name: kayako-service-secrets
+        projected:
+          sources:
+          - secret:
+              name: kayako-service-api-key
+          - secret:
+              name: kayako-service-secret-key
+      containers:
+      - name: kayako-wrapper
+        GEN3_KAYAKO-WRAPPER_IMAGE
+        readinessProbe:
+          httpGet:
+            path: /_status/
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /_status/
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 30
+          failureThreshold: 6
+        resources:
+          requests:
+            cpu: 0.6
+            memory: 512Mi
+          limits:
+            cpu: 2
+            memory: 4096Mi
+        ports:
+        - containerPort: 8000
+        command: 
+          - /bin/bash
+          - /src/start.sh
+        env:
+          - name: HOSTNAME
+            value: revproxy-service
+        volumeMounts:
+          - name: "ca-volume"
+            readOnly: true
+            mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
+            subPath: "ca.pem"
+          - name: "kayako-service-secrets"
+            readOnly: true
+            mountPath: "/mnt/secrets/"
+        imagePullPolicy: Always
