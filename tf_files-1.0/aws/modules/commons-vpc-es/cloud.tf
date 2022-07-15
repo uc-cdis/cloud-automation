@@ -1,22 +1,22 @@
 
 module "elasticsearch_alarms" {
   source                    = "../elasticsearch-alarms"
-  slack_webhook             = "${var.slack_webhook}"
-  secondary_slack_webhook   = "${var.secondary_slack_webhook}"
+  slack_webhook             = var.slack_webhook
+  secondary_slack_webhook   = var.secondary_slack_webhook
   vpc_name                  = "${var.vpc_name}_es"
   es_domain_name            = "${aws_elasticsearch_domain.gen3_metadata.domain_name}"
   ebs_volume_size           = "${aws_elasticsearch_domain.gen3_metadata.ebs_options.0.volume_size}"
 }
 
-resource "aws_iam_service_linked_role" "es" {
-  count            = "${var.es_linked_role ? 1 : 0}"
-  aws_service_name = "es.amazonaws.com"
-}
+#resource "aws_iam_service_linked_role" "es" {
+#  count            = var.es_linked_role ? 1 : 0
+#  aws_service_name = "es.amazonaws.com"
+#}
 
 resource "aws_security_group" "private_es" {
   name        = "private_es"
   description = "security group that allow es port out"
-  vpc_id      = "${element(data.aws_vpcs.vpcs.ids, count.index)}"
+  vpc_id      = data.aws_vpc.the_vpc.id
 
   ingress {
     from_port   = 0
@@ -33,8 +33,8 @@ resource "aws_security_group" "private_es" {
   }
 
   tags = {
-    Environment  = "${var.vpc_name}"
-    Organization = "${var.organization_name}"
+    Environment  = var.vpc_name
+    Organization = var.organization_name
   }
 }
 
@@ -55,7 +55,7 @@ resource "aws_cloudwatch_log_resource_policy" "es_logs" {
         "logs:PutLogEventsBatch",
         "logs:CreateLogStream"
       ],
-      "Resource": "${data.aws_cloudwatch_log_group.logs_group.arn}"
+      "Resource": "${data.aws_cloudwatch_log_group.logs_group.arn}:*"
     }
   ]
 }
@@ -65,34 +65,34 @@ CONFIG
 
 resource "aws_elasticsearch_domain" "gen3_metadata" {
   domain_name           = "${var.vpc_name}-gen3-metadata"
-  elasticsearch_version = "${var.es_version}"
+  elasticsearch_version = var.es_version
   encrypt_at_rest {
     # For small instance type like t2.medium, encryption is not available
-    enabled = "${var.encryption}"
+    enabled = var.encryption
   }
   vpc_options {
-    security_group_ids = ["${aws_security_group.private_es.id}"]
-    subnet_ids = ["${data.aws_subnet_ids.private.ids}"]
+    security_group_ids = [aws_security_group.private_es.id]
+    subnet_ids = data.aws_subnet_ids.private.ids
   }
   cluster_config {
-    instance_type = "${var.instance_type}"
-    instance_count = "${var.instance_count}"
+    instance_type = var.instance_type
+    instance_count = var.instance_count
   }
   ebs_options {
     ebs_enabled = "true"
-    volume_size = "${var.ebs_volume_size_gb}"
+    volume_size = var.ebs_volume_size_gb
   }
 
   log_publishing_options {
     log_type = "ES_APPLICATION_LOGS"
-    cloudwatch_log_group_arn = "${data.aws_cloudwatch_log_group.logs_group.arn}"
+    cloudwatch_log_group_arn = "${data.aws_cloudwatch_log_group.logs_group.arn}:*"
     enabled = "true"
   }
 
-  advanced_options {
+  advanced_options = {
     "rest.action.multi.allow_explicit_index" = "true"
   }
-  depends_on = ["aws_iam_service_linked_role.es"]
+  #depends_on = [aws_iam_service_linked_role.es]
 
   snapshot_options {
     automated_snapshot_start_hour = 23
@@ -100,11 +100,11 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
 
   tags = {
     Name         = "gen3_metadata"
-    Environment  = "${var.vpc_name}"
-    Organization = "${var.organization_name}"
+    Environment  = var.vpc_name
+    Organization = var.organization_name
 
   }
-   access_policies = <<CONFIG
+  access_policies = <<CONFIG
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -123,7 +123,7 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
 CONFIG
 
   lifecycle {
-    ignore_changes = ["elasticsearch_version"]
+    ignore_changes = [elasticsearch_version]
   }
-  depends_on = ["aws_cloudwatch_log_resource_policy.es_logs"]
+  depends_on = [aws_cloudwatch_log_resource_policy.es_logs]
 }
