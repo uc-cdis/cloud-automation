@@ -8,6 +8,7 @@ locals{
   # if AZs are explicitly defined as a variable, use those. Otherwise use all the AZs of the current region
   # NOTE: the syntax should improve with Terraform 12
   azs = "${split(",", length(var.availability_zones) != 0 ? join(",", var.availability_zones) : join(",", data.aws_availability_zones.available.names))}"
+  secondary_azs = "${split(",", length(var.secondary_availability_zones) != 0 ? join(",", var.secondary_availability_zones) : join(",", data.aws_availability_zones.available.names))}"
   ami = "${var.fips ? var.fips_enabled_ami : data.aws_ami.eks_worker.id}"
   eks_priv_subnets = "${split(",", var.secondary_cidr_block != "" ? join(",", aws_subnet.eks_secondary_subnet.*.id) : join(",", aws_subnet.eks_private.*.id))}"
 }
@@ -116,6 +117,15 @@ resource "random_shuffle" "az" {
   count = 1
 }
 
+resource "random_shuffle" "secondary_az" {
+  #input = ["${data.aws_autoscaling_group.squid_auto.availability_zones}"]
+  #input = ["${data.aws_availability_zones.available.names}"]
+  #input = "${length(var.availability_zones) > 0 ? var.availability_zones : data.aws_autoscaling_group.squid_auto.availability_zones }"
+  #input = "${var.availability_zones}"
+  input = ["${local.secondary_azs}"]
+  result_count = "${length(local.secondary_azs)}"
+  count = 1
+}
 
 # The subnet where our cluster will live in
 resource "aws_subnet" "eks_private" {
@@ -144,15 +154,15 @@ resource "aws_subnet" "eks_private" {
 
 # The subnet for secondary CIDR block utilization
 resource "aws_subnet" "eks_secondary_subnet" {
-  count                   = "${var.secondary_cidr_block != "" ? 1 : 0}"
+  count                   = "${var.secondary_cidr_block != "" ? 4 : 0}"
   vpc_id                  = "${data.aws_vpc.the_vpc.id}"
-  cidr_block              = "${var.secondary_cidr_block}"
-  availability_zone       = "${random_shuffle.az.result[count.index]}"
+  cidr_block              = "${cidrsubnet(var.secondary_cidr_block, 2 , count.index)}"
+  availability_zone       = "${random_shuffle.secondary_az.result[count.index]}"
   map_public_ip_on_launch = false
 
   tags = "${
     map(
-     "Name", "eks_secondary_cidr_subnet",
+     "Name", "eks_secondary_cidr_subnet_${count.index}",
      "Environment", "${var.vpc_name}",
      "Organization", "${var.organization_name}",
      "kubernetes.io/cluster/${var.vpc_name}", "owned",
@@ -243,7 +253,7 @@ resource "aws_route_table_association" "private_kube" {
 
 resource "aws_route_table_association" "secondary_subnet_kube" {
   count          = "${var.secondary_cidr_block != "" ? 1 : 0}"
-  subnet_id      = "${aws_subnet.eks_secondary_subnet.id}"
+  subnet_id      = "${aws_subnet.eks_secondary_subnet.*.id[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   depends_on     = ["aws_subnet.eks_secondary_subnet"]
 }
