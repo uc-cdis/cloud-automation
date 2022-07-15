@@ -8,10 +8,10 @@ module "elasticsearch_alarms" {
   ebs_volume_size           = "${aws_elasticsearch_domain.gen3_metadata.ebs_options.0.volume_size}"
 }
 
-#resource "aws_iam_service_linked_role" "es" {
-#  count            = var.es_linked_role ? 1 : 0
-#  aws_service_name = "es.amazonaws.com"
-#}
+resource "aws_iam_service_linked_role" "es" {
+  count            = var.es_linked_role ? 1 : 0
+  aws_service_name = "es.amazonaws.com"
+}
 
 resource "aws_security_group" "private_es" {
   name        = "private_es"
@@ -92,7 +92,7 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
   advanced_options = {
     "rest.action.multi.allow_explicit_index" = "true"
   }
-  #depends_on = [aws_iam_service_linked_role.es]
+  depends_on = [aws_iam_service_linked_role.es]
 
   snapshot_options {
     automated_snapshot_start_hour = 23
