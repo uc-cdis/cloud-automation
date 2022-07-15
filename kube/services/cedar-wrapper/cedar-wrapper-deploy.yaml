@@ -44,9 +44,6 @@ spec:
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
-      - name: cedar-service-api-key
-        secret:
-          secretName: "cedar-service-api-key"
       containers:
       - name: cedar-wrapper
         GEN3_CEDAR-WRAPPER_IMAGE
@@ -80,12 +77,14 @@ spec:
         env:
           - name: HOSTNAME
             value: revproxy-service
+          - name: API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: cedar-g3auto
+                key: "cedar_api_key.txt"
         volumeMounts:
           - name: "ca-volume"
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
-          - name: "cedar-service-api-key"
-            readOnly: true
-            mountPath: "/mnt/secrets/"
         imagePullPolicy: Always
