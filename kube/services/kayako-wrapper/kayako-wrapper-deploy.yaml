@@ -44,13 +44,6 @@ spec:
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
-      - name: kayako-service-secrets
-        projected:
-          sources:
-          - secret:
-              name: kayako-service-api-key
-          - secret:
-              name: kayako-service-secret-key
       containers:
       - name: kayako-wrapper
         GEN3_KAYAKO-WRAPPER_IMAGE
@@ -84,12 +77,19 @@ spec:
         env:
           - name: HOSTNAME
             value: revproxy-service
+          - name: API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: kayako-g3auto
+                key: "kayako_api_key.txt"
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: kayako-g3auto
+                key: "kayako_secret_key.txt"
         volumeMounts:
           - name: "ca-volume"
             readOnly: true
             mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
             subPath: "ca.pem"
-          - name: "kayako-service-secrets"
-            readOnly: true
-            mountPath: "/mnt/secrets/"
         imagePullPolicy: Always
