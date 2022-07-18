@@ -110,12 +110,19 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo -E apt-key add -
       sudo -E apt-get update
       sudo -E apt-get install -y google-cloud-sdk \
-          google-cloud-sdk-cbt \
-          kubectl
-      if [[ -f /usr/local/bin/kubectl && -f /usr/bin/kubectl ]]; then  # pref dpkg managed kubectl
-        sudo -E /bin/rm /usr/local/bin/kubectl
-      fi
+          google-cloud-sdk-cbt 
     )
+  fi
+
+  k8s_server_version=$(kubectl version --short | awk -F[v.] '/Server/ {print $3"."$4}')
+  if [[ ! -z "${k8s_server_version// }" ]]; then
+      # install kubectl
+      install_version=$(apt-cache madison kubectl | awk  '$3 ~ /'$k8s_server_version'/ {print $3}'| head -n 1)
+      gen3_log_info "Installing kubectl version $install_version"
+      sudo -E apt-get install -y kubectl=$install_version --allow-downgrades
+  else
+      # install kubectl
+      sudo -E apt-get install -y kubectl=1.21.14-00 --allow-downgrades
   fi
 
   mkdir -p ~/.config
