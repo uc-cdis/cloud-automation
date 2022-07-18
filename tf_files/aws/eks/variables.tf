@@ -169,3 +169,10 @@ variable "availability_zones" {
   type        = "list"
   default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
 }
+
+variable "secondary_availability_zones" {
+  description = "AZ to be used by EKS nodes in the secondary subnet"
+  type        = "list"
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+}
+
