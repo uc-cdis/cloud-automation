@@ -105,18 +105,15 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
   fi
 done
 
-if [[ $current_namespace == "default" ]];
+if g3kubectl get namespace argo > /dev/null 2>&1;
 then
-  if g3kubectl get namespace argo > /dev/null 2>&1;
-  then
-    for argo in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
-    do
-      filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
-      if [[ -f "$filePath" ]]; then
-        confFileList+=("--from-file" "$filePath")
-      fi
-    done
-  fi
+  for argo in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
+  do
+    filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
+  done
 fi
 
 if [[ $current_namespace == "default" ]];
