@@ -597,3 +597,7 @@ variable "availability_zones" {
 variable "deploy_eks" {
   default = true
 }
+
+variable "deploy_es" {
+  default = true
+}

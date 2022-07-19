@@ -1,12 +1,3 @@
-terraform {
-  backend "s3" {
-    encrypt = "true"
-  }
-}
-
-provider "aws" {}
-
-
 module "commons_vpc_es" {
   count                   = var.deploy_es ? 1 : 0
   source                  = "../modules/commons-vpc-es"
