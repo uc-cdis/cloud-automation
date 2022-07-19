@@ -56,9 +56,10 @@ if cedar.status_code == 200:
 				data = mds_cedar_register
 			)
 			if mds_put.status_code == 200:
-				Print("Successfully registered: ", cedar_record)
+				print("Successfully registered: ", cedar_record)
 			else:
-				Print("Failed to register: ", cedar_record, " Might not be MDS admin")
+				print("Failed to register: ", cedar_record, " Might not be MDS admin")
+				print("Status from MDS:", mds_put.status_code)
 		else:
 			print("Failed to get information from MDS", mds.status_code)
 else:
