@@ -149,6 +149,12 @@ if [[ $current_namespace == "default" ]]; then
   fi
 fi
 
+
+documentUrl="$(g3k_manifest_lookup .global.document_url)"
+if [[ "$documentUrl" != null ]]; then
+  filePath="$scriptDir/gen3.nginx.conf/documentation-site/documentation-site.conf"
+  confFileList+=("--from-file" "$filePath")
+fi
 #
 # Funny hook to load the portal-workspace-parent nginx config
 #
