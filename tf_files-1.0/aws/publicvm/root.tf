@@ -2,6 +2,12 @@ terraform {
   backend "s3" {
     encrypt = "true"
   }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
 }
 
 provider "aws" {}
@@ -26,32 +32,32 @@ data "aws_ami" "ubuntu" {
 data "aws_vpc" "vpc" {
     filter {
         name   = "tag:Name"
-        values = ["${var.vpc_name}"]
+        values = [var.vpc_name]
     }
 }
 
 data "aws_subnet" "public" {
   filter {
       name   = "tag:Name"
-      values = ["${var.subnet_name}"]
+      values = [var.subnet_name]
   }
-  vpc_id = "${data.aws_vpc.vpc.id}"
+  vpc_id = data.aws_vpc.vpc.id
 }
 
 data "aws_security_group" "ssh_in" {
   filter {
       name   = "group-name"
-      values = ["${var.ssh_in_secgroup}"]
+      values = [var.ssh_in_secgroup]
   }
-  vpc_id = "${data.aws_vpc.vpc.id}"
+  vpc_id = data.aws_vpc.vpc.id
 }
 
 data "aws_security_group" "egress" {
   filter {
       name   = "group-name"
-      values = ["${var.egress_secgroup}"]
+      values = [var.egress_secgroup]
   }
-  vpc_id = "${data.aws_vpc.vpc.id}"
+  vpc_id = data.aws_vpc.vpc.id
 }
 
 
@@ -82,27 +88,27 @@ EOF
 
 resource "aws_iam_instance_profile" "profile" {
   name = "${var.vm_name}-${var.vpc_name}-public_instance-profile"
-  role = "${aws_iam_role.role.name}"
+  role = aws_iam_role.role.name
 }
 
 
 resource "aws_iam_policy_attachment" "profile-attach" {
-  count      = "${length(var.policies)}"
+  count      = length(var.policies)
   name       = "${var.vm_name}-${var.vpc_name}-public-${count.index}"
-  roles      = ["${aws_iam_role.role.name}"]
-  policy_arn = "${element(var.policies,count.index)}"
+  roles      = [aws_iam_role.role.name]
+  policy_arn = element(var.policies,count.index)
 }
 
 
 resource "aws_instance" "cluster" {
-  ami                    = "${var.ami == "" ? data.aws_ami.ubuntu.id : var.ami}"
-  instance_type          = "${var.instance_type}"
+  ami                    = var.ami == "" ? data.aws_ami.ubuntu.id : var.ami
+  instance_type          = var.instance_type
   monitoring             = false
-  vpc_security_group_ids = ["${data.aws_security_group.ssh_in.id}", "${data.aws_security_group.egress.id}"]
-  subnet_id              = "${data.aws_subnet.public.id}"
-  iam_instance_profile   = "${aws_iam_instance_profile.profile.name}"
+  vpc_security_group_ids = [data.aws_security_group.ssh_in.id, data.aws_security_group.egress.id]
+  subnet_id              = data.aws_subnet.public.id
+  iam_instance_profile   = aws_iam_instance_profile.profile.name
   root_block_device {
-    volume_size = "${var.volume_size}"
+    volume_size = var.volume_size
     encrypted = true
   }
 
@@ -127,7 +133,7 @@ EOM
   export DEBIAN_FRONTEND=noninteractive
     
   if which hostnamectl > /dev/null; then
-    hostnamectl set-hostname 'lab${count.index}'
+    hostnamectl set-hostname 'lab'
   fi
   mkdir -p -m 0755 /var/lib/gen3
   cd /var/lib/gen3
@@ -163,12 +169,12 @@ EOM
   tags = {
     Name        = "${var.vm_name}-${var.vpc_name}-public"
     Terraform   = "true"
-    Environment = "${var.vpc_name}"
+    Environment = var.vpc_name
   }
 }
 
 resource "aws_eip" "ips" {
-  instance = "${aws_instance.cluster.id}"
+  instance = aws_instance.cluster.id
   vpc      = true
 }
 
