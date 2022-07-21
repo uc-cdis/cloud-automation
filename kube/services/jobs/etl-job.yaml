@@ -46,6 +46,11 @@ spec:
           value: 6g
         - name: ETL_FORCED
           GEN3_ETL_FORCED|-value: "TRUE"-|
+        - name: gen3Env
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: hostname
         - name: slackWebHook
           valueFrom:
             configMapKeyRef:

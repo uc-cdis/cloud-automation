@@ -108,7 +108,7 @@ EXPOSE 443
 # install uwsgi
 # https://uwsgi-docs.readthedocs.io/en/latest/Install.html
 RUN python -m pip install --upgrade pip
-RUN pip install uwsgi
+RUN pip install uwsgi ddtrace
 
 # Remove default configuration from Nginx
 RUN rm /etc/nginx/conf.d/default.conf

@@ -1,0 +1,224 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: portal
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: portal
+        public: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - portal
+              topologyKey: "kubernetes.io/hostname"
+      automountServiceAccountToken: false
+      volumes:
+      - name: ca-volume
+        secret:
+          secretName: "service-ca"
+      - name: config-volume
+        secret:
+          secretName: "portal-config"
+      - name: sponsor-img-volume
+        secret:
+          secretName: "portal-sponsor-config"
+      - name: privacy-policy
+        configMap:
+          name: "privacy-policy"
+      - name: cert-volume
+        secret:
+          secretName: "cert-portal-service"
+      containers:
+      - name: portal
+        GEN3_PORTAL_IMAGE
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 30
+          # portal sometimes takes a long time to come up ... -
+          # has to fetch the dictionary, relay compile, etc
+          failureThreshold: 10
+        resources:
+          requests:
+            cpu: 0.6
+            memory: 512Mi
+          limits:
+            # portal pigs out on resources at startup, then settles down
+            cpu: 2
+            memory: 4096Mi
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        command:
+          - /bin/bash
+          - ./dockerStart.sh
+        env:
+          - name: HOSTNAME
+            value: revproxy-service
+          # disable npm 7's brand new update notifier to prevent Portal from stuck at starting up
+          # see https://github.com/npm/cli/issues/3163
+          - name: NPM_CONFIG_UPDATE_NOTIFIER
+            value: "false"
+          - name: APP
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: portal_app
+          - name: GEN3_BUNDLE
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-portal
+                key: GEN3_BUNDLE
+                optional: true
+          - name: LOGOUT_INACTIVE_USERS
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: logout_inactive_users
+                optional: true
+          - name: WORKSPACE_TIMEOUT_IN_MINUTES
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: workspace_timeout_in_minutes
+                optional: true
+          - name: TIER_ACCESS_LEVEL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                # acceptable values for `tier_access_level` are: `libre`, `regular` and `private`. If omitted, by default common will be treated as `private`
+                key: tier_access_level
+                # for now making it optional so won't break anything
+                optional: true
+          - name: TIER_ACCESS_LIMIT
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: tier_access_limit
+                optional: true
+          - name: FENCE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: fence_url
+                optional: true
+          - name: INDEXD_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: indexd_url
+                optional: true
+          - name: WORKSPACE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: workspace_url
+                optional: true
+          - name: MANIFEST_SERVICE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: manifest_service_url
+                optional: true
+          - name: WTS_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: wts_url
+                optional: true
+          - name: PRIVACY_POLICY_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: privacy_policy_url
+                optional: true
+          - name: MAPBOX_API_TOKEN
+            # Optional token for mapbox api
+            valueFrom:
+              configMapKeyRef:
+                name: global
+                key: mapbox_token
+                optional: true
+          - name: DATADOG_APPLICATION_ID
+            # Optional application ID for Datadog
+            valueFrom:
+              secretKeyRef:
+                name: portal-datadog-config
+                key: datadog_application_id
+                optional: true
+          - name: DATADOG_CLIENT_TOKEN
+            # Optional client token for Datadog
+            valueFrom:
+              secretKeyRef:
+                name: portal-datadog-config
+                key: datadog_client_token
+                optional: true
+          - name: DATA_UPLOAD_BUCKET
+            # S3 bucket name for data upload, for setting up CSP
+            GEN3_DATA_UPLOAD_BUCKET|-value: ""-|
+        volumeMounts:
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.crt"
+            subPath: "service.crt"
+          - name: "cert-volume"
+            readOnly: true
+            mountPath: "/mnt/ssl/service.key"
+            subPath: "service.key"
+          - name: "ca-volume"
+            readOnly: true
+            mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
+            subPath: "ca.pem"
+          - name: "config-volume"
+            mountPath: "/data-portal/data/config/gitops.json"
+            subPath: "gitops.json"
+          - name: "config-volume"
+            mountPath: "/data-portal/custom/logo/gitops-logo.png"
+            subPath: "gitops-logo.png"
+          - name: "config-volume"
+            mountPath: "/data-portal/custom/createdby/gitops.png"
+            subPath: "gitops-createdby.png"
+          - name: "config-volume"
+            mountPath: "/data-portal/custom/favicon/gitops-favicon.ico"
+            subPath: "gitops-favicon.ico"
+          - name: "config-volume"
+            mountPath: "/data-portal/custom/css/gitops.css"
+            subPath: "gitops.css"
+          - name: "sponsor-img-volume"
+            mountPath: "/data-portal/custom/sponsors/gitops-sponsors"
+          - name: "privacy-policy"
+            readOnly: true
+            mountPath: "/data-portal/custom/privacy_policy.md"
+            subPath: "privacy_policy.md"
+        imagePullPolicy: Always
