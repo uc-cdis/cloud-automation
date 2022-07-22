@@ -32,10 +32,6 @@ variable "slack_webhook" {
  default = ""
 }
 
-variable "log_dna_function" {
-  default = "arn:aws:lambda:us-east-1:433568766270:function:logdna_cloudwatch"
-}
-
 variable "timeout" {
   default = 300
 }

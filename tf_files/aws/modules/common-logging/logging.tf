@@ -236,45 +236,12 @@ resource "aws_cloudwatch_log_group" "csoc_common_log_group" {
     Environment = "${var.common_name}"
     Organization = "Basic Services"
   }
-  retention_in_days = 2190
-}
-
-resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
-  name           = "firehose_to_ES"
-  log_group_name = "${aws_cloudwatch_log_group.csoc_common_log_group.name}"
+  retention_in_days = 2192
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_to_S3" {
   name           = "firehose_to_S3"
   log_group_name = "${aws_cloudwatch_log_group.csoc_common_log_group.name}"
-}
-
-resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
-  name        = "${var.common_name}_firehose_to_es"
-  destination = "elasticsearch"
-
-  s3_configuration {
-    role_arn        = "${aws_iam_role.firehose_role.arn}"
-    bucket_arn      = "${aws_s3_bucket.common_logging_bucket.arn}"
-    buffer_size     = 10
-    buffer_interval = 400
-
-  }
-
-  elasticsearch_configuration {
-    domain_arn = "arn:aws:es:${var.aws_region}:${var.csoc_account_id}:domain/${var.elasticsearch_domain}"
-
-    role_arn              = "${aws_iam_role.firehose_role.arn}"
-    index_name            = "${var.common_name}"
-    type_name             = "${var.common_name}"
-    index_rotation_period = "OneWeek"
-
-    cloudwatch_logging_options {
-      enabled         = true
-      log_group_name  = "${var.common_name}"
-      log_stream_name = "firehose_to_ES"
-    }
-  }
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "firehose_to_s3" {
@@ -319,7 +286,7 @@ resource "aws_iam_role" "lambda_role" {
 EOF
 }
 
-data "aws_iam_policy_document" "lamda_policy_document" {
+data "aws_iam_policy_document" "lambda_policy_document" {
   statement {
     actions = [
       "logs:*",
@@ -349,27 +316,14 @@ data "aws_iam_policy_document" "lamda_policy_document" {
     effect = "Allow"
 
     resources = [
-      "${aws_kinesis_firehose_delivery_stream.firehose_to_es.arn}",
       "${aws_kinesis_firehose_delivery_stream.firehose_to_s3.arn}",
     ]
-  }
-
-  statement {
-    actions = [
-      "lambda:InvokeFunction"
-    ]
-
-    resources = [
-       "${var.log_dna_function}"
-    ]
-
-    effect = "Allow"
   }
 }
 
 resource "aws_iam_role_policy" "lambda_policy" {
   name   = "${var.common_name}_lambda_policy"
-  policy = "${data.aws_iam_policy_document.lamda_policy_document.json}"
+  policy = "${data.aws_iam_policy_document.lambda_policy_document.json}"
   role   = "${aws_iam_role.lambda_role.id}"
 }
 
@@ -407,7 +361,7 @@ resource "aws_lambda_function" "logs_decodeding" {
   }
 
   environment {
-    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}", log_dna_function = "${var.log_dna_function}" }
+    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}" }
   }
 
   #lifecycle {
