@@ -75,6 +75,10 @@ variable "organization_name" {
   default     = "Basic Service"
 }
 
+variable "cloud-automation_repository" {
+  default = "https://github.com/uc-cdis/cloud-automation.git"
+}
+
 variable "branch" {
   default = "master"
 }

@@ -38,6 +38,7 @@ module "squid-auto" {
   squid_instance_type            = "${var.squid_instance_type}"
   bootstrap_script               = "${var.squid_bootstrap_script}"
   extra_vars                     = "${var.squid_extra_vars}"
+  cloud-automation_repository    = "${var.cloud-automation_repository}"
   branch                         = "${var.branch}"
   deploy_ha_squid                = "${var.deploy_ha_squid}"
   cluster_max_size               = "${var.squid_cluster_max_size}"

@@ -130,6 +130,10 @@ variable "main_os_user" {
   default     = "ubuntu"
 }
 
+variable "cloud-automation_repository" {
+  default = "https://github.com/uc-cdis/cloud-automation.git"
+}
+
 variable "branch" {
   description = "for testing purposes"
   default     = "master"

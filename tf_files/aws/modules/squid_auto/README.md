@@ -63,6 +63,8 @@ There are mandatory variables, and there are a few other optionals that are set 
 | organization_name | For tagging purposes  | string | Basic Services  |
 | squid_instance_drive_size | Volume size for the root partition  | integer | 8 |
 | extra_vars | Additional information to be bassed on the bootstrap script | list | ["squid_image=master"] |
+| branch | Branch to checkout from cloud-automation repository | string | "master" | 
+| cloud-automation_repository | the source repository for cloud-automation | string | "https://github.com/uc-cdis/cloud-automation.git" |  
 | deploy_ha_squid | If to deploy this module | boolean | true |
 
 

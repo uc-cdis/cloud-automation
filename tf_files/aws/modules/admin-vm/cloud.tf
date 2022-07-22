@@ -176,7 +176,7 @@ sudo hostnamectl set-hostname '${var.child_name}'_admin
 
 #Requirements for cloud-automation
 cd /home/ubuntu
-sudo git clone https://github.com/uc-cdis/cloud-automation.git 
+sudo git clone "${var.cloud-automation_repository}"
 sudo apt install -y unzip
 sudo apt-get -y install jq
 #sudo wget -O /tmp/terraform.zip  \$(echo "https://releases.hashicorp.com/terraform/$(curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r -M '.current_version')/terraform_\$(curl -s https://checkpoint-api.hashicorp.com/v1/check/terraform | jq -r -M '.current_version')_linux_amd64.zip")

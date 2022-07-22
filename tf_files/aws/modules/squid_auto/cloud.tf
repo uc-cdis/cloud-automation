@@ -142,7 +142,7 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
     sudo yum update -y
     sudo yum install git lsof -y
   fi
-  git clone https://github.com/uc-cdis/cloud-automation.git
+  git clone "${var.cloud-automation_repository}"
   cd $CLOUD_AUTOMATION
   git pull
 
