@@ -38,23 +38,6 @@ spec:
         env:
         - name: RUNNING_IN_QAPLANETV1
           value: "true"
-        - name: JENKINS_USERNAME
-          value: "PlanXCyborg"
-        - name: JENKINS_API_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: thor-g3auto
-              key: "jenkins_api_token.json"
-        - name: JENKINS2_API_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: thor-g3auto
-              key: "jenkins2_api_token.json"
-        - name: JENKINS_JOB_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: thor-g3auto
-              key: "jenkins_job_token.json"
         imagePullPolicy: Always
         volumeMounts:
           - name: config-volume-g3auto
