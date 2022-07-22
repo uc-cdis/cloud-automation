@@ -65,6 +65,7 @@ users_policy = "test-commons"
 | workflow_instance_type | For k8s workflow workers | string | t3.2xlarge |
 | bootstrap_script | Script to initialize the workers | string | [bootstrap.sh](https://github.com/uc-cdis/cloud-automation/tree/master/flavors/eks) |
 | jupyter_bootstrap_script | Script to initialize the jupyter workers | string | [bootstrap.sh](https://github.com/uc-cdis/cloud-automation/tree/master/flavors/eks) |
+| deploy_ssm | Should the endpoints to allow amazon SSM from the subnet be created | boolean | false |
 | jupyter_worker_drive_size | Drive Size for jupyter workers | string | 30GB |
 | peering_cidr | AdminVM's CIDR for peering connections | string | 10.128.0.0/20 (PlanX CSOC) |
 | jupyter_asg_desired_capacity | # of jupyter workers | number | 0 |

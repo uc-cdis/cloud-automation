@@ -20,6 +20,7 @@ module "eks" {
   jupyter_instance_type            = "${var.jupyter_instance_type}"
   workers_subnet_size              = "${var.workers_subnet_size}"
   bootstrap_script                 = "${var.bootstrap_script}"
+  deploy_ssm                       = "${var.deploy_ssm}"
   jupyter_bootstrap_script         = "${var.jupyter_bootstrap_script}"
   kernel                           = "${var.kernel}"
   jupyter_worker_drive_size        = "${var.jupyter_worker_drive_size}"
