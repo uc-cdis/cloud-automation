@@ -26,7 +26,7 @@ spec:
       serviceAccountName: default
       containers:
       - name: awshelper
-        image: quay.io/cdis/awshelper:master
+        image: quay.io/cdis/awshelper:feat_heal-cedar-injest-job
         imagePullPolicy: Always
         ports:
         - containerPort: 80
