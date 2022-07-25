@@ -39,10 +39,12 @@ cedar = requests.get(f"https://{hostname}/cedar/get-instance-by-directory/{dir_i
 
 # If we get metadata back now register with MDS
 if cedar.status_code == 200:
-    print("Successfully got records from CEDAR directory")
-
     metadata_return = cedar.json(object_pairs_hook=none_to_empty_str)
+    if "metadata" not in metadata_return:
+        print("Got 200 from CEDAR wrapper but no metadata in body, something is not right!")
+        exit(1)
 
+    print(f"Successfully got {len(metadata_return['metadata'])} record(s) from CEDAR directory")
     for cedar_record in metadata_return["metadata"]:
         if "appl_id" not in cedar_record:
             print("This record doesn't have appl_id, skipping...")
