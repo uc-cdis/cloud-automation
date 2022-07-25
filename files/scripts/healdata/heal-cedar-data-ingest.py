@@ -7,7 +7,7 @@ import os
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--directory", help="Cedar Directory ID for registering ")
+parser.add_argument("--directory", help="CEDAR Directory ID for registering ")
 parser.add_argument("--access_token", help="User access token")
 parser.add_argument("--hostname", help="Hostname")
 
@@ -76,8 +76,8 @@ if cedar.status_code == 200:
                 print(f"Successfully registered: {cedar_record_id}")
             else:
                 print(f"Failed to register: {cedar_record_id}. Might not be MDS admin")
-                print(f"Status from MDS:{mds_put.status_code}")
+                print(f"Status from MDS: {mds_put.status_code}")
         else:
             print(f"Failed to get information from MDS: {mds.status_code}")
 else:
-    print(f"Failed to get information from cedar wrapper service: {cedar.status_code}")
+    print(f"Failed to get information from CEDAR wrapper service: {cedar.status_code}")
