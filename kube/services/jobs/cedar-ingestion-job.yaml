@@ -5,10 +5,11 @@
 # CEDAR_DIRECTORY_ID $cedar_directory_id \
 #
 # SUBMISSION_USER(optional)
-#    e-mail of user-account to submit the data to MDS, must have MDS admin policy granted. Default: "cdis.autotest@gmail.com"
+#    e-mail of user-account to submit the data to MDS, must have MDS admin and CEDAR polices granted. Default: "cdis.autotest@gmail.com"
 #
 # CEDAR_DIRECTORY_ID
 #   ID of CEDAR directory where instances will be pulled from, only needs its UUID part. For example: "123e4567-e89b-12d3-a456-426614174000"
+#   The deployed CEDAR wrapper services must be able to read from this directory.
 #
 # Example
 # gen3 job run cedar-ingestion CEDAR_DIRECTORY_ID 123e4567-e89b-12d3-a456-426614174000 SUBMISSION_USER cdis.autotest@gmail.com

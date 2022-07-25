@@ -67,7 +67,7 @@ if cedar.status_code == 200:
 
             print("Metadata is now being registered.")
             print(mds_cedar_register_data_body)
-            mds_put = requests.put(f"http://{hostname}/mds/metadata/{cedar_record_id}?merge=True",
+            mds_put = requests.put(f"http://{hostname}/mds/metadata/{cedar_record_id}",
                 headers=token_header,
                 json = mds_cedar_register_data_body
             )
