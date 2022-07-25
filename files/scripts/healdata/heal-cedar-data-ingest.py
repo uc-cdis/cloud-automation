@@ -55,19 +55,21 @@ if cedar.status_code == 200:
         )
         if mds.status_code == 200:
             mds_res = mds.json()
-            mds_cedar_register = {}
+            mds_cedar_register_data_body = {}
+            mds_discovery_data_body = {}
             if mds_res["_guid_type"] == "discovery_metadata":
                 print("Metadata is already registered. Updating MDS record")
             elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
                 print("Metadata is has not been registered. Registering it in MDS record")
-            mds_cedar_register["_guid_type"] = "discovery_metadata"
-            mds_cedar_register["gen3_discovery"] = pydash.merge(mds_cedar_register, mds_res["gen3_discovery"], cedar_record)
+            pydash.merge(mds_discovery_data_body, mds_res["gen3_discovery"], cedar_record)
+            mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
+            mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
             print("Metadata is now being registered.")
-            print(mds_cedar_register)
+            print(mds_cedar_register_data_body)
             mds_put = requests.put(f"http://{hostname}/mds/metadata/{cedar_record_id}?merge=True",
                 headers=token_header,
-                json = mds_cedar_register
+                json = mds_cedar_register_data_body
             )
             if mds_put.status_code == 200:
                 print(f"Successfully registered: {cedar_record_id}")
