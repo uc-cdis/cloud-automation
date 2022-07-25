@@ -6,8 +6,8 @@ gen3_load "gen3/gen3setup"
 userEmail="$1"
 shift
 directoryID="$1"
-shift
-hostname="$1"
+# shift
+# hostname="$1"
 
 if [[ -z "$userEmail" ]]; then
 	echo -e "Use: gen3 cedar-register user-email directory hostname" 1>&2
@@ -19,12 +19,12 @@ if [[ -z "$directoryID" ]]; then
 	exit 1
 fi
 
-if [[ -z "$hostname" ]]; then
-	echo -e "Use: gen3 cedar-register user-email directory hostname" 1>&2
-	exit 1
-fi
+# if [[ -z "$hostname" ]]; then
+# 	echo -e "Use: gen3 cedar-register user-email directory hostname" 1>&2
+# 	exit 1
+# fi
 
-
+hostname="$(g3kubectl get configmaps global -ojsonpath='{ .data.hostname }')" || return 1
 accessToken=$(gen3 api access-token "$userEmail") 
 export GEN3_HOME="${GEN3_HOME:-"$HOME/cloud-automation"}"
 

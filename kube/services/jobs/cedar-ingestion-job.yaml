@@ -1,0 +1,65 @@
+#
+# run with:
+# gen3 job run cedar-ingestion \
+# SUBMISSION_USER $submission_user \
+# CEDAR_DIRECTORY_ID $cedar_directory_id \
+#
+# SUBMISSION_USER(optional)
+#    e-mail of user-account to submit the data to MDS, must have MDS admin policy granted. Default: "cdis.autotest@gmail.com"
+#
+# CEDAR_DIRECTORY_ID
+#   ID of CEDAR directory where instances will be pulled from, only needs its UUID part. For example: "123e4567-e89b-12d3-a456-426614174000"
+#
+# Example
+# gen3 job run cedar-ingestion CEDAR_DIRECTORY_ID 123e4567-e89b-12d3-a456-426614174000 SUBMISSION_USER cdis.autotest@gmail.com
+#
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cedar-ingestion
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: default
+      containers:
+      - name: awshelper
+        image: quay.io/cdis/awshelper:master
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+          - name: gen3Env
+            valueFrom:
+            configMapKeyRef:
+              name: global
+              key: environment
+          - name: KUBECTL_NAMESPACE
+            valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+          - name: SUBMISSION_USER
+            GEN3_SUBMISSION_USER|-value: "cdis.autotest@gmail.com"-|
+          - name: CEDAR_DIRECTORY_ID
+            GEN3_CEDAR_DIRECTORY_ID|-value: ""-|
+        resources:
+          limits:
+            cpu: 1
+            memory: 5Gi
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+            pip install pydash
+            export GEN3_HOME="$HOME/cloud-automation"
+            source "$GEN3_HOME/gen3/gen3setup.sh"
+            if [[ -z "$CEDAR_DIRECTORY_ID" ]]; then
+              echo -e "CEDAR_DIRECTORY_ID is required" 1>&2
+              exit 1
+            fi
+            accessToken=$(gen3 api access-token "$SUBMISSION_USER") || exit 1
+            python ${GEN3_HOME}/files/scripts/healdata/heal-cedar-data-ingest.py --access_token $accessToken --directory $directoryID
+            echo "All done - exit status $?"
+      restartPolicy: Never
