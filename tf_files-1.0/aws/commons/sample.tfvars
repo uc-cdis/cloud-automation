@@ -112,7 +112,7 @@ peering_cidr="10.128.0.0/20"
 # The vpc of the CSOC
 peering_vpc_id="vpc-e2b51d99" 
 # Whether the commons has a CSOC or not.
-csoc_manage=true 
+csoc_manage=false 
 ### Variables that be used to populate template files that can be updated later.
 ## Specific files are not listed but can mostly be found here https://github.com/uc-cdis/cloud-automation/tree/master/tf_files/shared/modules/k8s_configs.
 # The region your aws account is in.

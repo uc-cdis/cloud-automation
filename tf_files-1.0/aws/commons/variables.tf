@@ -187,7 +187,7 @@ variable "alarm_threshold" {
 
 
 variable "csoc_managed" {
-  default = true
+  default = false
 }
 
 ## Mailgun variable defaults/definitions.
