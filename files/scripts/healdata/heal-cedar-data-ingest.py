@@ -68,7 +68,6 @@ if cedar.status_code == 200:
             mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
             print("Metadata is now being registered.")
-            print(mds_cedar_register_data_body)
             mds_put = requests.put(f"https://{hostname}/mds/metadata/{cedar_record_id}",
                 headers=token_header,
                 json = mds_cedar_register_data_body
