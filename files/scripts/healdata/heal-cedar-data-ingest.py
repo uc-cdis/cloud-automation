@@ -28,9 +28,6 @@ dir_id = args.directory
 access_token = args.access_token
 hostname = args.hostname
 
-# def none_to_empty_str(items):
-#     return {k: v if v is not None else '' for k, v in items}
-
 token_header = {"Authorization": 'bearer ' + access_token}
 
 # Get the metadata from cedar to register
@@ -39,7 +36,6 @@ cedar = requests.get(f"https://{hostname}/cedar/get-instance-by-directory/{dir_i
 
 # If we get metadata back now register with MDS
 if cedar.status_code == 200:
-    # metadata_return = cedar.json(object_pairs_hook=none_to_empty_str)
     metadata_return = cedar.json()
     if "metadata" not in metadata_return:
         print("Got 200 from CEDAR wrapper but no metadata in body, something is not right!")
