@@ -4,22 +4,21 @@
 vpc_name= ""
 
 #
-#TODO Figure out what this is
+#The ID of the AMI (Amazon Machine Image) used by machines spun up by this module
 ami_id = ""
 
-#
-#TODO Figure out what this is the size of, and the units
+#The size of the storage gateway machine's root storage, in GiB
 size = 80
 
 #
 #TODO Figure out what is being cached, and the units
 cache_size = 150
 
-#The name of an S3 bucket for
+#The name of an S3 bucket for transfers
 #TODO Figure out what this is for
 s3_bucket = ""
 
-#
-#TODO Figure out what this is
+#The name of an AWS SSH key pair to attach to EC2 instances. For more information,
+#see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
 key_name = ""
 

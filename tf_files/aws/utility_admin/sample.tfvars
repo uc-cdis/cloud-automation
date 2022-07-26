@@ -4,8 +4,7 @@
 #TODO Figure out what this actually means
 ami_account_id = "099720109477"
 
-#
-#TODO Figure out what this actually is
+#Account ID of where the VM would be spun up. By default we use CSOC's.
 aws_account_id = "433568766270"
 
 #The AWS region to spin up this resource in
@@ -17,24 +16,22 @@ vpc_id = "vpc-e2b51d99"
 #The ID of the subnet to spin up this resource in
 vpc_subnet_id = "subnet-6127013c"
 
-#
-#TODO Figure out what this actually is
+#List of CIDRs to overpass the proxy
 vpc_cidr_list = ["10.128.0.0/20", "54.0.0.0/8", "52.0.0.0/8"]
 
-#The name of the aws_key_pair SSH key to attach to VMs
-#TODO Figure out what service this correlates to
+#The name of an AWS SSH key pair to attach to EC2 instances. For more information,
+#see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
 ssh_key_name= ""
 
-#The name of the environment this runs in
-#TODO Figure out a better description for this
+#The name of the environment this runs in, for tagging purposes
 environment = "CSOC"
 
-#The EC2 instance type to run this VM on
-#TODO Add documentation on EC2 instance types
+#The EC2 instance type to use for VM(s) spun up from this module. For more information on EC2 instance types, see:
+#https://aws.amazon.com/ec2/instance-types/
 instance_type = "t3.micro"
 
-#
-#TODO Figure out what exactly this is
+#A filter to apply against the names of AMIs when searching. We search, rather than specifying a specific image,
+#to ensure that all of the latest security updates are present.
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 
 #Extra variables that can be applied
@@ -48,7 +45,6 @@ bootstrap_path = "cloud-automation/flavors/nginx/"
 bootstrap_script = "es_revproxy.sh"
 
 #The name to be given to this VM
-#TODO Figure out if this its AWS name or something else
 vm_name = "nginx_server"
 
 #The hostname to be given to this VM
@@ -65,6 +61,5 @@ authorized_keys = "files/authorized_keys/ops_team"
 organization_name = "Basic Service"
 
 #The branch of the repo to use
-#TODO Confirm that the repo that this is using is cloud-automation
 branch = "master"
 

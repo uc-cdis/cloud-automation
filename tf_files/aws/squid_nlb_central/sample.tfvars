@@ -3,7 +3,7 @@
 #ID of the account that will own the NLB
 aws_account_id = "433568766270"
 
-#
+#The third octet (number) of the CIDR block for this VPC
 #TODO Figure out what the hell this is
 env_vpc_octet3 = "4"
 
@@ -11,23 +11,21 @@ env_vpc_octet3 = "4"
 env_vpc_id = "vpc-e2b51d99"
 
 #The name to be assigned to this NLB
-#TODO Ensure that this is accurate
 env_nlb_name = "squid_nlb"
 
 #ID of the AWS account that owns the public AMIs
 #TODO Figure out what this actually means
 ami_account_id = "099720109477"
 
-#
-#TODO Figure out what this actually means
+#A filter to apply against the names of AMIs when searching. We search, rather than specifying a specific image,
+#to ensure that all of the latest security updates are present.
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
 
-#
-#TODO Figure out what this is
+#The ID of a route table to use on the public subnet
 env_pub_subnet_routetable_id = "rtb-1cb66860"
 
-#The name of the aws_key_pair SSH key to attach to VMs
-#TODO Get better documentation on this
+#The name of an AWS SSH key pair to attach to EC2 instances. For more information,
+#see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
 ssh_key_name = "rarya_id_rsa"
 
 #The path where the bootstrap script is located
@@ -40,10 +38,9 @@ bootstrap_script = "squidvm.sh"
 #TODO Figure out what this is
 csoc_internal_dns_zone_id = "ZA1HVV5W0QBG1"
 
-#
-#TODO Figure out what this is
+#The CIDR block the admin VM resides on. This is used to allow SSH access to these machines.
 csoc_cidr = "10.128.0.0/20"
 
-#A list of principals allowed to: 
-#TODO figure out what the principals are allowed to
+#The ARNs of one or more principals allowed to discover the endpoint service. For more information on the endpoint service,
+#see: https://docs.aws.amazon.com/vpc/latest/privatelink/privatelink-share-your-services.html
 allowed_principals_list = ["arn:aws:iam::707767160287:root"]

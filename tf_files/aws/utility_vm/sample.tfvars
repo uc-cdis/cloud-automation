@@ -4,8 +4,7 @@
 #TODO Figure out what this means
 ami_account_id = "099720109477"
 
-#
-#TODO Figure out what this is
+#Account ID of where the VM would be spun up. By default we use CSOC's.
 aws_account_id = "433568766270"
 
 #What AWS region to deploy this VM in
@@ -17,24 +16,22 @@ vpc_id = "vpc-e2b51d99"
 #The ID of the subnet to deploy this VM in
 vpc_subnet_id = "subnet-6127013c"
 
-#
-#TODO Figure out what this is
+#List of CIDRs to overpass the proxy
 vpc_cidr_list = ["10.128.0.0/20", "54.0.0.0/8", "52.0.0.0/8"]
 
-#Name of the aws_key_pair SSH key to attach to VMs
-#TODO Figure out what service this correlates to
+#The name of an AWS SSH key pair to attach to EC2 instances. For more information,
+#see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
 ssh_key_name= ""
 
-#The name of the environment, for tracking and tagging purposes
-#TODO Confirm this is just a tag
+#The name of the environment this runs in, for tagging purposes
 environment = "CSOC"
 
 #The EC2 instance type to use for this VM
 #TODO Add documentation on EC2 instance types
 instance_type = "t2.micro"
 
-#
-#TODO Figure out what this is
+#The EC2 instance type to use for VM(s) spun up from this module. For more information on EC2 instance types, see:
+#https://aws.amazon.com/ec2/instance-types/
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
 
 #
@@ -48,7 +45,6 @@ bootstrap_path = "cloud-automation/flavors/nginx/"
 bootstrap_script = "es_revproxy.sh"
 
 #The name given to the VM in AWS
-#TODO Make sure this is accurate
 vm_name = "nginx_server"
 
 #The hostname given to the Vm
@@ -67,8 +63,7 @@ organization_name = "Basic Service"
 #The branch of cloud-automation to use for this VM
 branch = "master"
 
-#
-#TODO Figure out what exactly this is
+#A policy to allow the user to pull log events
 user_policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -85,11 +80,9 @@ user_policy = <<POLICY
 }
 POLICY
 
-#
-#TODO Figure out what this is 
+#Used for Qualys monitoring
 activation_id = ""
 
-#F
-#TODO Figure out what this is
+#Used for Qualys monitoring
 customer_id = ""
 

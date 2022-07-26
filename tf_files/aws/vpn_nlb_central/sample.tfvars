@@ -15,36 +15,31 @@ vpn_server_subnet = "10.128.5.0/25"
 #The ID for the VPC this NLB will reside on
 env_vpc_id = "vpc-e2b51d99"
 
-#The name of the NLB. It should be the same as FQDN
-#TODO Figure out what the hell FQDN is
+#The name of the network load balancer, which should be the same as the fully-qualified domain name. 
 env_vpn_nlb_name = "csoc-prod-vpn"
 
-#
-#TODO Figure out if this is the name of the VPC or something else
+#The hostname of the NLB
 env_cloud_name = "planxprod"
 
 #ID of the AWS account that owns the public AMIs
 #TODO Figure out what this actually means
 ami_account_id = "099720109477"
 
-#
-#TODO Figure out what this actually means
+#A filter to apply against the names of AMIs when searching. We search, rather than specifying a specific image,
+#to ensure that all of the latest security updates are present.
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
 
-#
-#TODO Figure out what this means
+#The CIDR of the VPC in which the admin VM is running, for peering and connection purposes
 csoc_cidr = "10.128.0.0/20"
 
-#
-#TODO Figure out what this means
+#The ID of a route table to use on the public subnet
 env_pub_subnet_routetable_id = "rtb-1cb66860"
 
-#
-#TODO Figure out what this means
+#Route53 host zone id to use for adding the vpn hostname.
 csoc_planx_dns_zone_id = "ZG153R4AYDHHK"
 
-#The name of the aws_key_pair SSH key to attach to VMs
-#TODO Figure out what service this correlates with
+#The name of an AWS SSH key pair to attach to EC2 instances. For more information,
+#see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
 ssh_key_name = "rarya_id_rsa"
 
 #The directory holding the bootstrap script
@@ -61,10 +56,8 @@ csoc_account_id = "433568766270"
 organization_name = "Basic Service"
 
 #Which branch to use
-#TODO Figure out which repo this is from
 branch = "master"
 
-#
-#TODO Figure out what this means
+#Logs group name for instances logs
 cwl_group_name = "csoc-prod-vpn.planx-pla.net_log_group"
 

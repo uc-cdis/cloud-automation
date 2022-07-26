@@ -4,8 +4,7 @@
 #TODO Figure out what exactly this is
 ami_account_id = "707767160287"
 
-#
-#TODO Figure out the best way to frame this, and the best way to define environment
+#The name of the environment, and the virtual cloud these VM(s) are to be brought up in
 env_vpc_name ="csoc_main"
 
 #The ID of the public subnet for this environment
@@ -21,7 +20,7 @@ env_vpc_cidr = "10.128.0.0/20"
 #The ID of the VPC this VM will run on
 env_vpc_id = "vpc-e2b51d99"
 
-#The EC2 instance type for the Squid VM
-#TODO Add documentation on EC2 instance types
+#The EC2 instance type to use for VM(s) spun up from this module. For more information on EC2 instance types, see:
+#https://aws.amazon.com/ec2/instance-types/
 instance_type = "t2.micro"
 

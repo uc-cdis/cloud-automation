@@ -1,15 +1,12 @@
 #Automatically generated from a corresponding variables.tf on 2022-07-13 12:13:48.803420
 
-#
-#TODO Figure out what this is
+#The first octet (number) of the CIDR block for this VPC
 env_vpc_octet1 = "10"
 
-#
-#TODO Figure out what this is
+#The second octet (number) of the CIDR block for this VPC
 env_vpc_octet2 = "128"
 
-#
-#TODO Figure out what this is
+##The third octet (number) of the CIDR block for this VPC
 env_vpc_octet3 = "4"
 
 #The ID of the VPC this NLB will reside on
@@ -22,22 +19,22 @@ env_nlb_name = "squid_nlb"
 #TODO Figure out what this is
 ami_account_id = "099720109477"
 
-#
-#TODO Figure out what this is
+#A filter to apply against the names of AMIs when searching. We search, rather than specifying a specific image,
+#to ensure that all of the latest security updates are present.
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
 
 #Figure out what this is
 csoc_cidr = "10.128.0.0/20"
 
-#The ID of the public subnet
-#TODO Figure out what this actually is
+#The ID of a route table to use on the public subnet
 env_public_subnet_routetable_id = "rtb-23b6685f"
 
-#Name of the aws_key_pair SSH key to attach to VMs
+#The name of an AWS SSH key pair to attach to EC2 instances. For more information,
+#see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html
 ssh_key_name = "rarya_id_rsa"
 
-#A list of principals allowed to
-#TODO Figure out what the principals are allowed to do
+#The ARNs of one or more principals allowed to discover the endpoint service. For more information on the endpoint service,
+#see: https://docs.aws.amazon.com/vpc/latest/privatelink/privatelink-share-your-services.html
 allowed_principals_list = ["arn:aws:iam::707767160287:root"]
 
 #The directory in which the bootstrap script is located
