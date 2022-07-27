@@ -17,7 +17,7 @@ function helm_repository()
 {
   if ! helm repo list > /dev/null 2>&1; then
     # helm3 has no default repo, need to add it manually
-    helm repo add stable https://charts.helm.sh/stable --force-update
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm repo update
   fi
 }
@@ -55,21 +55,22 @@ function deploy_prometheus()
   # but we only have one prometheus.
   #
   helm_repository
-  if (! g3kubectl --namespace=prometheus get deployment prometheus-server > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
-    if (! g3kubectl get namespace prometheus > /dev/null 2>&1);
+  if (! g3kubectl --namespace=monitoring get deployment prometheus-server > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
+    if (! g3kubectl get namespace monitoring> /dev/null 2>&1);
     then
-      g3kubectl create namespace prometheus
-      g3kubectl label namespace prometheus app=prometheus
+      g3kubectl create namespace monitoring
+      g3kubectl label namespace namespace app=prometheus
     fi
 
-    if (g3kubectl --namespace=prometheus get deployment prometheus-server > /dev/null 2>&1);
+    if (g3kubectl --namespace=monitoring get deployment prometheus-kube-prometheus-operator > /dev/null 2>&1);
     then
-      delete_prometheus
+      #delete_prometheus
+      echo "skipping delete"
     fi
     if ! g3kubectl get storageclass prometheus > /dev/null 2>&1; then
       g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/prometheus-storageclass.yaml"
     fi
-    gen3 arun helm upgrade --install prometheus stable/prometheus --namespace prometheus -f "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" 
+    gen3 arun helm upgrade --install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring -f "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml"
   else
     gen3_log_info "Prometheus is already installed, use --force to try redeploying"
   fi
@@ -96,10 +97,10 @@ function deploy_grafana()
     then
       delete_grafana
     fi
-    
+
     local HOSTNAME
     HOSTNAME=$(gen3 api hostname)
-    
+
     g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm upgrade --install grafana stable/grafana  --namespace grafana -f -
     gen3 kube-setup-revproxy
   else
