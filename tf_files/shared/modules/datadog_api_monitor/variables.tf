@@ -17,12 +17,6 @@ variable commons_name {}
 #configuration data such as timeout, method, and notification information
 variable test_definitions {}
 
-#The status that we want the API to return. 
-variable target_status_code {}
-
-#The maximum allowable response time, in ms
-variable target_response_time {}
-
 #A list of locations to run the tests from. For more information,
 #see: https://docs.datadoghq.com/synthetics/api_tests/#request
 variable locations {}
