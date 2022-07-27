@@ -1,8 +1,3 @@
-#Left to do: Split up commons URL and endpoints. x
-#Add per-test config of time and response code x
-#Add notifications
-#Figure out locations
-
 terraform {
   required_providers {
     datadog = {
