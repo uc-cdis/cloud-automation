@@ -27,7 +27,7 @@ variable target_response_time {}
 #see: https://docs.datadoghq.com/synthetics/api_tests/#request
 variable locations {}
 
-#A list of tags, to make it easier to look up this test
+#A list of strings representing tags, to make it easier to look up this test
 variable tags {}
 
 #The status of the monitor, i.e., whether or not it is running

@@ -16,92 +16,105 @@ test_definitions = [
     {
         endpoint = "/api/v0/submission/_dictionary/_all"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "Submission health check for: "
+        message = "@slack-gpe-alarms The submission health check failed for: "
     },
     
     {
         endpoint = "/mds/aggregate/metadata?data=True&limit=1000&offset=0"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "Metadata health check for: "
+        message = "@slack-gpe-alarms The metadata health check failed for: "
     },
 
     {
         endpoint = "/mds/metadata?data=True&_guid_type=unregistered_discovery_metadata&limit=1000&offset=0"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "Metadata health check 2 for: "
+        message = "@slack-gpe-alarms The metadata health check failed for: "
     },
 
     {
         endpoint = "/index/index"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "Indexd health check for: "
+        message = "@slack-gpe-alarms The indexd health check failed for: "    
     },
 
     {
         endpoint = "/user/login"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "Login page health check for: "
+        message = "@slack-gpe-alarms The login page health check failed for: "    
     },
 
     {
         endpoint = "/portal/discovery"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = ""
+        message = ""    
     },
 
     {
         endpoint = "/user/_status"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = ""
+        message = ""    
     },
 
     {
         endpoint = "/peregrine/_status"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "Peregrine health check for: "
+        message = "@slack-gpe-alarms The peregrine health check failed for: "    
     },
 
     {
         endpoint = "/_status"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "Commons health check for: "
+        message = "@slack-gpe-alarms The commons health check failed for: "    
     },
 
     {
         endpoint = "/requestor/_status"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "Requestor health check for: "
+        message = "@slack-gpe-alarms The requestor health check failed for: "    
     },
 
     {
         endpoint = "/wts/_status"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "WTS health check for: "
+        message = "@slack-gpe-alarms The WTS health check failed for: "    
     },
 
     {
         endpoint = "/audit/_status"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "Audit health check for: "
+        message = "@slack-gpe-alarms The audit health check failed for: "    
     },
 
     {
         endpoint = "/api/_status"
         target_status_code = "200"
-        target_response_time = "4000"
-    
+        target_response_time = "2000"
+        name = "API health check for: "
+        message = "@slack-gpe-alarms The API health check failed for: "    
     }
 ]
 
@@ -121,7 +134,7 @@ name = "API Test"
 #The message to attach to the synthetic test
 message = "An API test message"
 
-#A list of tags, to make it easier to look up this test
+#A list of strings representing tags, to make it easier to look up this test
 tags = []
 
 #The status of the monitor, i.e., whether or not it is running
