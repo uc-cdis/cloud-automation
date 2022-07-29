@@ -9,7 +9,6 @@ description="Role created with gen3 awsrole"
 path="/gen3_service/"
 
 #Assume-role policy to attach to the role
-#TODO Figure out what an assume-role policy is
 ar_policy = <<EOR
 {
   "Version": "2012-10-17",

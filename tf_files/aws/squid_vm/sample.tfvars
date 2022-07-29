@@ -8,7 +8,6 @@ ami_account_id = "707767160287"
 env_vpc_name ="csoc_main"
 
 #The ID of the public subnet for this environment
-#TODO Figure out what exactly this is
 env_public_subnet_id ="subnet-da2c0a87"
 
 #The name of the aws_key_pair SSH key to attach to VMs

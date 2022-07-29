@@ -6,8 +6,7 @@ csoc_account_id = "433568766270"
 #The AWS region this infrastructure will be spun up in
 aws_region = "us-east-1"
 
-#
-#TODO Figure out what this is exactly
+#The child account that will be set as the owner of the resources created by this module
 child_account_id = "707767160287"
 
 #The region in which the child account exists
@@ -19,8 +18,7 @@ common_name = "cdistest"
 #The name of the Elastic Search cluster
 elasticsearch_domain = "commons-logs"
 
-#A cutoff for how long of a response time is accepted, in
-#TODO Figure out the units for this are
+#A cutoff for how long of a response time is accepted, in milliseconds
 threshold = "65.0"
 
 #A webhook to send alerts to a Slack channel

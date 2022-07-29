@@ -15,7 +15,6 @@ instance_type = "t3.large"
 jupyter_instance_type = "t3.large"
 
 #The type of instance to use for nodes running workflows
-#TODO Explain what "workflow" means in this context
 workflow_instance_type = "t3.2xlarge"
 
 #This is the CIDR of the network your adminVM is on. Since the commons creates its own VPC, you need to pair them up to allow communication between them later.
@@ -86,7 +85,7 @@ workflow_asg_max_size = 50
 #The minimum number of Jupyter workers
 workflow_asg_min_size = 0
 
-#TODO Figure out what this is, and if it should be a boolean
+#Whether to add a service account to your cluster
 iam-serviceaccount = true
 
 #URL for the lambda function to use to check for the proxy
@@ -110,11 +109,10 @@ oidc_eks_thumbprint = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
 #The ARN of an SNS topic that will be used to send alerts
 sns_topic_arn = "arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-topic"
 
-#
-#TODO Figure out what this is
+#Used for authenticating Qualys software, which is used to perform security scans
 activation_id = ""
 
-#Figure out what this is
+#Used for authenticating Qualys software, which is used to perform security scans
 customer_id = ""
 
 #This controls whether or not we use FIPS enabled AMIs

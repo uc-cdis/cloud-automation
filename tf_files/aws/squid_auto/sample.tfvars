@@ -16,15 +16,14 @@ env_squid_name = "commons_squid_auto"
 #TODO Figure out a better description for this
 ami_account_id = "099720109477"
 
-#
-#TODO Figure out what this is 
+#A filter to apply against the names of AMIs when searching. We search, rather than specifying a specific image,
+#to ensure that all of the latest security updates are present.
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 
 #The CIDR block of the VPC where you are running the gen3 command
 peering_cidr = "10.128.0.0/20"
 
 #A secondary CIDR block, if you require an expanded subnet
-#TODO Figure out what someone would need an expanded subnet for
 secondary_cidr_block= ""
 
 #The path to the bootstrap script to start up Squid instances
@@ -80,19 +79,16 @@ cluster_max_size = 3
 #The minimum number of Squid instances allowed on the cluster
 cluster_min_size = 1
 
-#
-#TODO Figure out what this is
+#Whether or not to provide an expanded network
 network_expansion = true
 
 #Whether or not to deploy Squid in a high-availability (i.e., multi-node) configuration
 deploy_ha_squid = true
 
-#
-#TODO Figure out what this is
+#Used to register with Qualys, which provides security scanning services
 activation_id = ""
 
-#
-#TODO Figure out what this is
+#Used to register with Qualys, which provides security scanning services
 customer_id = ""
 
 #A webhook used to send alarms to a Slack channel

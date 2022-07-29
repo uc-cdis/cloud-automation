@@ -17,15 +17,13 @@ csoc_vpc_id = "vpc-e2b51d99"
 #The ID of the subnet on which to bring up this VM
 csoc_subnet_id = "subnet-6127013c"
 
-#The ID of the child account
-#TODO Figure out what this actually means
+#The ID of the child account. 
 child_account_id = "707767160287"
 
 #The region for the child account
 child_account_region = "us-east-1"
 
-#
-#TODO CANDIDATE FOR DELETION
+#NOT CURRENTLY USED
 child_name = "cdistest"
 
 #The name of the Elastic Search cluster 

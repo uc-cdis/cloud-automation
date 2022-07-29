@@ -35,7 +35,6 @@ instance_type = "t3.micro"
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 
 #Extra variables that can be applied
-#TODO Figure out what these can be applied to, they may just be tags
 extra_vars = ["hostname=stuff","accountid=34534534534"]
 
 #The directory in which the bootstrap script is located
@@ -50,8 +49,7 @@ vm_name = "nginx_server"
 #The hostname to be given to this VM
 vm_hostname = "csoc_nginx_server"
 
-#Whether or not to use a proxy for
-#TODO Figure out what we would be using a proxy for
+#If the VM will be behind a proxy
 proxy = true
 
 #A file containing keys authorized to access this VM

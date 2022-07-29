@@ -20,7 +20,6 @@ peering_cidr = "10.128.0.0/20"
 fence_db_size = 10
 
 #The size, in GB, of the Sheepdog DB
-#TODO Ensure that the unit is GB
 sheepdog_db_size = 10
 
 #The size, in GB, of the Indexd DB
@@ -30,7 +29,6 @@ indexd_db_size = 10
 db_password_fence= ""
 
 #The password for the GDCAPI DB
-#TODO Make sure we still need this
 db_password_gdcapi = ""
 
 #The password for the Peregrine DB
@@ -198,8 +196,7 @@ indexd_engine = "postgres"
 #The security group to add the DB instances to
 security_group_local_id = "securityGroupId"
 
-#
-#TODO Figure out what this is
+#The subnet group for databases that this DB should be spun up in
 aws_db_subnet_group_name = "subnetName"
 
 #Maximum allocated storage for autoscaling

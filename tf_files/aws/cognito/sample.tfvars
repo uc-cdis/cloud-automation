@@ -1,14 +1,11 @@
 
 #A list of allowed OAuth Flows
-#TODO Get better documentation around options
-#We probably support the defaults: Reach out to Alex or one of the Fence devs
 cognito_oauth_flows = ["code", "implicit"]
 
 #A user directory for Amazon Cognito, which handles sign-on for users. This is generally given the same name as the 
 #name of the app using the service.
 cognito_user_pool_name = "fence"
 
-#TODO See if we have any other identity provider types that we support, or if its SAML-only
 #The identity provider types that Cognito will use. An identity provider is a service that stores and manages 
 #identities. See: https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateIdentityProvider.html#CognitoUserPools-CreateIdentityProvider-request-ProviderType
 cognito_provider_type = "SAML"
@@ -24,7 +21,7 @@ cognito_attribute_mapping = {
 #you will need to consult the documentation for your identity provider to determine what scopes are necessary and valid
 cognito_oauth_scopes = ["email", "openid"]
 
-#TODO get a better understanding of provider details
+#Details about the auth provider, for this module most likely the MetadataURL or MetadataFILE
 cognito_provider_details = {}
 
 #The name of the VPC that the Cognito pool will be created in

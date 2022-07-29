@@ -10,12 +10,10 @@ ami_id = ""
 #The size of the storage gateway machine's root storage, in GiB
 size = 80
 
-#
-#TODO Figure out what is being cached, and the units
+#The size of the caching disk, in GiB
 cache_size = 150
 
 #The name of an S3 bucket for transfers
-#TODO Figure out what this is for
 s3_bucket = ""
 
 #The name of an AWS SSH key pair to attach to EC2 instances. For more information,

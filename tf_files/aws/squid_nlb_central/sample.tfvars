@@ -4,7 +4,6 @@
 aws_account_id = "433568766270"
 
 #The third octet (number) of the CIDR block for this VPC
-#TODO Figure out what the hell this is
 env_vpc_octet3 = "4"
 
 #The ID of the VPC this NLB will be spun up in
@@ -34,8 +33,8 @@ bootstrap_path = "cloud-automation/flavors/squid_nlb_central/"
 #The name of the bootstrap script
 bootstrap_script = "squidvm.sh"
 
-#
-#TODO Figure out what this is
+#The ID of an internal DNS zone. For more information, see:
+#https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/hosted-zones-private.html
 csoc_internal_dns_zone_id = "ZA1HVV5W0QBG1"
 
 #The CIDR block the admin VM resides on. This is used to allow SSH access to these machines.

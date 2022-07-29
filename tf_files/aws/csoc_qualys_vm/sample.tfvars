@@ -1,7 +1,7 @@
 #Automatically generated from a corresponding variables.tf on 2022-07-12 12:32:59.347063
 
-#The name to use for the Qualys VM. This field is mandatory
-#TODO One sentence on what the Qualys VM is
+#The name to use for the Qualys VM. This field is mandatory. This VM will be used
+#to run Qualys, a security application.
 vm_name = "qualys_scanner_prod"
 
 #The ID of the VPC to spin up this VM
@@ -20,12 +20,12 @@ ssh_key_name = "rarya_id_rsa"
 #The code used to register with Qualys. This field is mandatory
 user_perscode ="20079167409920"
 
-#Search criteria to search for AMI
-#TODO Figure out what this is
+#A filter to apply against the names of AMIs when searching. We search, rather than specifying a specific image,
+#to ensure that all of the latest security updates are present.
 image_name_search_criteria = "a04e299c-fb8e-4ee2-9a75-94b76cf20fb2"
 
-#Search criteria to search for AMI, based on the description
-#TODO Figure out what this is
+#A filter to apply against the descriptions of AMIs when searching. We search, rather than specifying a specific image,
+#to ensure that all of the latest security updates are present.
 image_desc_search_criteria = ""
 
 #Account id of the AMI owner, which is used to further filter the search for an AMI

@@ -7,11 +7,10 @@ vpc_name = "vadcprod"
 #https://aws.amazon.com/ec2/instance-types/
 instance_type = "t3.small"
 
-#TODO figure out what this is. You can likely check this file in GitHub to find the original things written.
+#Security group for SSH
 ssh_in_secgroup = "ssh_eks_vadcprod"
 
 #The name of the security group for egress. This should already exist
-#TODO Figure out how to explain this better
 egress_secgroup = "out"
 
 #The public subnet located under vpc_name. By default is set to public

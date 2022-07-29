@@ -26,16 +26,14 @@ ssh_key_name= ""
 #The name of the environment this runs in, for tagging purposes
 environment = "CSOC"
 
-#The EC2 instance type to use for this VM
-#TODO Add documentation on EC2 instance types
+#The EC2 instance type to use for VM(s) spun up from this module. For more information on EC2 instance types, see:
+#https://aws.amazon.com/ec2/instance-types/
 instance_type = "t2.micro"
 
 #The EC2 instance type to use for VM(s) spun up from this module. For more information on EC2 instance types, see:
 #https://aws.amazon.com/ec2/instance-types/
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
 
-#
-#TODO Figure out what these extra variables are actually used for
 extra_vars = ["hostname=stuff","accountid=34534534534"]
 
 #The full name of the directory in which the bootstrap script is located
@@ -50,8 +48,7 @@ vm_name = "nginx_server"
 #The hostname given to the Vm
 vm_hostname = "csoc_nginx_server"
 
-#Whether or not to use a proxy for
-#TODO Figure out what we would use a proxy for
+#If the VM will be behind a proxy
 proxy = true
 
 #The location of a file that has all the keys authorized to access this VM
