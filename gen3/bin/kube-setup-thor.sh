@@ -60,6 +60,23 @@ if ! setup_database; then
   exit 1
 fi
 
+# create tables if not exist
+echo "CREATE TABLE IF NOT EXISTS releases (
+        release_id SERIAL NOT NULL,
+        version VARCHAR,
+        result VARCHAR,
+        PRIMARY KEY (release_id)
+    );" | gen3 psql thor
+echo "CREATE TABLE IF NOT EXISTS tasks (
+        task_id SERIAL NOT NULL,
+        task_name VARCHAR,
+        status VARCHAR,
+        release_id INTEGER,
+        step_num INTEGER,
+        PRIMARY KEY (task_id),
+        FOREIGN KEY(release_id) REFERENCES releases (release_id)
+    );" | gen3 psql thor
+
 gen3 roll thor
 g3kubectl apply -f "${GEN3_HOME}/kube/services/thor/thor-service.yaml"
 
