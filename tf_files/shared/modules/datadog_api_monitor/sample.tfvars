@@ -10,6 +10,13 @@ api_url = "https://api.datadoghq.com/"
 #The root URL of the commons, i.e. https://healdata.org, etc
 commons_url = ""
 
+#The name of the commons, for use in messages and test names
+commons_name = ""
+
+#Second channel to send notifications to. By default, this module sends notifications to a platform engineering 
+#channel, and can also be set to send one to a project-specific alerts channel
+project_slack_channel = ""
+
 #A list of test definitions, that contain the endpoint to test, which will be concatenated to the commons_url, as well as 
 #configuration data such as timeout, method, and notification information
 test_definitions = [

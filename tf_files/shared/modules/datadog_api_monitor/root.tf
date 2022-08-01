@@ -37,12 +37,13 @@ resource "datadog_synthetics_test" "api_tester" {
 
   options_list {
     tick_every = var.test_run_frequency_secs
+    min_failure_duration = 300
   }
 
   locations = var.locations
 
   name = "${each.value.name}${var.commons_name}"
-  message = "${each.value.message}${var.commons_name}"
+  message = "${each.value.message}${var.commons_name} ${var.project_slack_channel}"
   
   tags = var.tags
 
