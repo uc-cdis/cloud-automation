@@ -1,8 +1,6 @@
 #The name of the VPC that the commons will reside on
 vpc_name = "Commons1"
 
-#TODO Actually convert this one, I can't stomach doing it today
-
 #The CIDR block to be allocated to this VPC
 #TODO come up with a better way to word this
 vpc_cidr_block = "172.24.17.0/20"
