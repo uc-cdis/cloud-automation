@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cedar-wrapper-deployment
+  name: kayako-wrapper-deployment
 spec:
   selector:
     matchLabels:
-      app: cedar-wrapper
+      app: kayako-wrapper
   revisionHistoryLimit: 2
   strategy:
     type: RollingUpdate
@@ -15,7 +15,7 @@ spec:
   template:
     metadata:
       labels:
-        app: cedar-wrapper
+        app: kayako-wrapper
         public: "yes"
         netnolimit: "yes"
         userhelper: "yes"
@@ -31,7 +31,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - cedar-wrapper
+                  - kayako-wrapper
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
@@ -40,13 +40,13 @@ spec:
           secretName: "service-ca"
       - name: config-volume
         secret:
-          secretName: "cedar-wrapper-config"
+          secretName: "kayako-wrapper-config"
       - name: privacy-policy
         configMap:
           name: "privacy-policy"
       containers:
-      - name: cedar-wrapper
-        GEN3_CEDAR-WRAPPER_IMAGE
+      - name: kayako-wrapper
+        GEN3_KAYAKO-WRAPPER_IMAGE
         readinessProbe:
           httpGet:
             path: /_status/
@@ -80,8 +80,13 @@ spec:
           - name: API_KEY
             valueFrom:
               secretKeyRef:
-                name: cedar-g3auto
-                key: "cedar_api_key.txt"
+                name: kayako-g3auto
+                key: "kayako_api_key.txt"
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: kayako-g3auto
+                key: "kayako_secret_key.txt"
         volumeMounts:
           - name: "ca-volume"
             readOnly: true
