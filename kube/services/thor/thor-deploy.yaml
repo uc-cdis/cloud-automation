@@ -43,6 +43,11 @@ spec:
             secretKeyRef:
               name: thor-g3auto
               key: "github_token.json"
+        - name: JIRA_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: thor-g3auto
+              key: "jira_api_token.json"
         imagePullPolicy: Always
         volumeMounts:
           - name: config-volume-g3auto

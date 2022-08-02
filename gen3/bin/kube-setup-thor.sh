@@ -48,9 +48,14 @@ EOM
 }
 
 github_token="$(cat $(gen3_secrets_folder)/g3auto/thor/github_token.json)" # pragma: allowlist secret
+jira_api_token="$(cat $(gen3_secrets_folder)/g3auto/thor/jira_api_token.json)" # pragma: allowlist secret
 
 if [[ -z "$github_token" ]]; then
   gen3_log_err "missing github credential for thor"
+  exit 1
+fi
+if [[ -z "$jira_api_token" ]]; then
+  gen3_log_err "missing jira credential for thor"
   exit 1
 fi
 
