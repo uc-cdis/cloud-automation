@@ -38,6 +38,11 @@ spec:
         env:
         - name: RUNNING_IN_QAPLANETV1
           value: "true"
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: thor-g3auto
+              key: "github_token.json"
         imagePullPolicy: Always
         volumeMounts:
           - name: config-volume-g3auto

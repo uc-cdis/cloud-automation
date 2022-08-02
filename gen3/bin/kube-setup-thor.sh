@@ -47,13 +47,12 @@ EOM
   gen3 secrets sync 'setup thor-g3auto secrets'
 }
 
-#github_username="$(cat $(gen3_secrets_folder)/g3auto/thor/github_username.json)"
-#github_password="$(cat $(gen3_secrets_folder)/g3auto/thor/github_password.json)" # pragma: allowlist secret
+github_token="$(cat $(gen3_secrets_folder)/g3auto/thor/github_token.json)" # pragma: allowlist secret
 
-#if [[ -z "$github_username" || -z "$github_password" ]]; then
-#  gen3_log_err "missing github credential for thor"
-#  exit 1
-#fi
+if [[ -z "$github_token" ]]; then
+  gen3_log_err "missing github credential for thor"
+  exit 1
+fi
 
 if ! setup_database; then
   gen3_log_err "kube-setup-thor bailing out - database failed setup"
