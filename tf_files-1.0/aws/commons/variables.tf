@@ -44,11 +44,6 @@ variable "indexd_db_size" {
 
 variable "db_password_fence" {}
 
-variable "db_password_gdcapi" {
-  # gdcapi now deprecated in favor of sheepdog + peregrine
-  default = ""
-}
-
 variable "indexd_prefix" {
   default = "dg.XXXX/"
 }
@@ -69,10 +64,6 @@ variable "portal_app" {
 }
 
 variable "fence_snapshot" {
-  default = ""
-}
-
-variable "gdcapi_snapshot" {
   default = ""
 }
 
@@ -596,6 +587,36 @@ variable "availability_zones" {
 
 variable "deploy_eks" {
   default = true
+}
+
+variable "deploy_es" {
+  default = true
+}
+
+variable "ebs_volume_size_gb" {
+  default = 20
+}
+
+variable "encryption" {
+  default = "true"
+}
+
+variable "es_instance_type" {
+  default = "m4.large.elasticsearch"
+}
+
+variable "es_instance_count" {
+  default = 3
+}
+
+variable "es_version" {
+  description = "What version to use when deploying ES"
+  default     = "6.8"
+}
+
+variable "es_linked_role" {
+  description = "Whether or no to deploy a linked roll for ES"
+  default     = true
 }
 
 variable "deploy_es" {

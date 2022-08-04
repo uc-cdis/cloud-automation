@@ -33,10 +33,11 @@ resource "aws_db_instance" "db_fence" {
     Organization              = var.organization_name
   } 
 
-  #lifecycle {
-  #  prevent_destroy = var.prevent_fence_destroy
-  #  ignore_changes = var.ignore_fence_changes
-  #}
+  lifecycle {
+    prevent_destroy = true
+    #ignore_changes  = ["*"]
+    ignore_changes = [engine_version,storage_encrypted,identifier]
+  }
 }
 
 resource "aws_db_instance" "db_sheepdog" {
@@ -69,10 +70,11 @@ resource "aws_db_instance" "db_sheepdog" {
     Organization              = var.organization_name
   }
 
-  #lifecycle {
-  #  prevent_destroy = var.prevent_sheepdog_destroy
-  #  ignore_changes = var.ignore_sheepdog_changes
-  #}
+  lifecycle {
+    prevent_destroy = true
+    #ignore_changes  = ["*"]
+    ignore_changes = [engine_version,storage_encrypted,identifier]
+  }
 }
 
 resource "aws_db_instance" "db_indexd" {
@@ -105,19 +107,23 @@ resource "aws_db_instance" "db_indexd" {
     Organization              = var.organization_name
   }
 
-  #lifecycle {
-  #  prevent_destroy = var.prevent_indexd_destroy
-  #  ignore_changes = var.ignore_indexd_changes
-  #}
+  lifecycle {
+    prevent_destroy = true
+    #ignore_changes  = ["*"]
+    ignore_changes = [engine_version,storage_encrypted,identifier]
+  }
 }
 
 # See https://www.postgresql.org/docs/9.6/static/runtime-config-logging.html
 # and https://www.postgresql.org/docs/9.6/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE
 # for detail parameter descriptions
+locals {
+  pg_family_version = "${replace( var.indexd_engine_version ,"/\\.[0-9]/", "" )}"
+}
 
 resource "aws_db_parameter_group" "rds-cdis-pg" {
   name   = "${var.vpc_name}-rds-cdis-pg"
-  family = "postgres${var.engine_version}"
+  family = "postgres${local.pg_family_version}"
 
   # make index searches cheaper per row
   parameter {

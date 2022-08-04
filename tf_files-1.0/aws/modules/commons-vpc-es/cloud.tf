@@ -4,8 +4,8 @@ module "elasticsearch_alarms" {
   slack_webhook             = var.slack_webhook
   secondary_slack_webhook   = var.secondary_slack_webhook
   vpc_name                  = "${var.vpc_name}_es"
-  es_domain_name            = "${aws_elasticsearch_domain.gen3_metadata.domain_name}"
-  ebs_volume_size           = "${aws_elasticsearch_domain.gen3_metadata.ebs_options.0.volume_size}"
+  es_domain_name            = aws_elasticsearch_domain.gen3_metadata.domain_name
+  ebs_volume_size           = aws_elasticsearch_domain.gen3_metadata.ebs_options.0.volume_size
 }
 
 resource "aws_iam_service_linked_role" "es" {
@@ -22,14 +22,14 @@ resource "aws_security_group" "private_es" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
+    cidr_blocks = [data.aws_vpc.the_vpc.cidr_block]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
+    cidr_blocks = [data.aws_vpc.the_vpc.cidr_block]
   }
 
   tags = {
@@ -92,7 +92,6 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
   advanced_options = {
     "rest.action.multi.allow_explicit_index" = "true"
   }
-  depends_on = [aws_iam_service_linked_role.es]
 
   snapshot_options {
     automated_snapshot_start_hour = 23
@@ -125,5 +124,5 @@ CONFIG
   lifecycle {
     ignore_changes = [elasticsearch_version]
   }
-  depends_on = [aws_cloudwatch_log_resource_policy.es_logs]
+  depends_on = [aws_cloudwatch_log_resource_policy.es_logs, aws_iam_service_linked_role.es]
 }
