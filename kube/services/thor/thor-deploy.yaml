@@ -58,3 +58,17 @@ spec:
         - name: config-volume-g3auto
           secret:
             secretName: thor-g3auto
+      initContainers:
+        - name: thor-db-create
+          image: quay.io/cdis/thor:master
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: config-volume-g3auto
+              readOnly: true
+              mountPath: /src/thor.env
+              subPath: thor.env
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              /env/bin/python /src/thor/create_all_tables.py
