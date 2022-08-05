@@ -16,12 +16,9 @@ resource "aws_security_group" "local" {
   }
 
   egress {
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-
-    # 54.224.0.0/12 logs.us-east-1.amazonaws.com
-    #cidr_blocks = ["${var.vpc_cidr_block}", "54.224.0.0/12"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = local.cidrs_no_peering
   }
 
@@ -31,7 +28,6 @@ resource "aws_security_group" "local" {
     Name         = "${var.vpc_name}-local-sec-group"
   }
 }
-
 
 resource "aws_security_group" "out" {
   name        = "out"
@@ -51,7 +47,6 @@ resource "aws_security_group" "out" {
     Name         = "${var.vpc_name}-outbound-traffic"
   }
 }
-
 
 resource "aws_security_group" "proxy" {
   count       = "${var.deploy_single_proxy ? 1 : 0 }"

@@ -1,4 +1,3 @@
-
 variable "vpc_name" {}
 
 variable "ec2_keyname" {
@@ -139,7 +138,6 @@ variable "deploy_jupyter" {
 
 variable "dual_proxy" {
   description = "Single instance and HA"
-  #default     = false
 }
 
 variable "single_az_for_jupyter" {

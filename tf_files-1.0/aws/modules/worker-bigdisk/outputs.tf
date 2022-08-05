@@ -1,4 +1,3 @@
 output "vm_name" {
-  value = "${lookup(data.aws_instance.worker.tags,"Name")}"
+  value = lookup(data.aws_instance.worker.tags,"Name")
 }
-

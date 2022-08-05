@@ -1,9 +1,10 @@
 data "aws_ami" "public_ami" {
   most_recent = true
+  owners      = [var.ami_account_id]
 
   filter {
     name   = "name"
-    values = ["${var.image_name_search_criteria}"] 
+    values = [var.image_name_search_criteria]
   }
 
   filter {
@@ -15,8 +16,6 @@ data "aws_ami" "public_ami" {
     name   = "root-device-type"
     values = ["ebs"]
   }
-
-  owners = ["${var.ami_account_id}"]
 }
 
 #
@@ -38,6 +37,5 @@ data "aws_iam_policy_document" "vm_policy_document" {
     resources = ["*"]
   }
 }
-
 
 data "aws_region" "current" {}

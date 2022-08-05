@@ -1,4 +1,3 @@
-
 output "role_id" {
   value = aws_iam_role.the_role.id
 }

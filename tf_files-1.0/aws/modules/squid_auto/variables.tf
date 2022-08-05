@@ -1,19 +1,12 @@
 variable "env_vpc_cidr"{
   description = "CIDR of the VPC where this cluster will reside"
-  #default     = 172.24.192.0/20
 }
 
-variable "squid_proxy_subnet"{
-  #default = 172.24.197.0/24
-}
+variable "squid_proxy_subnet"{}
 
-variable "env_vpc_name" {
-  #default = "raryav1"
-}
+variable "env_vpc_name" {}
 
-variable "env_squid_name" {
-  #default = "commons_squid_auto"
-}
+variable "env_squid_name" {}
 
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {

@@ -26,19 +26,18 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
     topic_arn     = aws_sns_topic.user_updates.arn
     events        = ["s3:ObjectCreated:Put", "s3:ObjectCreated:Post", "s3:ObjectCreated:Copy", "s3:ObjectCreated:CompleteMultipartUpload" ]
   }
+
   lifecycle {
     # ignore manual changes
     ignore_changes = [topic]
   }
-
 }
 
 
 ##sqs policy
 resource "aws_sqs_queue_policy" "subscribe_sns" {
   queue_url = aws_sqs_queue.user_updates_queue.id
-
-  policy = <<POLICY
+  policy    = <<POLICY
 {
   "Version": "2012-10-17",
   "Id": "sqspolicy",
@@ -64,39 +63,4 @@ POLICY
 resource "aws_sns_topic_policy" "default" {
   arn    = aws_sns_topic.user_updates.arn
   policy = data.aws_iam_policy_document.sns-topic-policy.json
-}
-
-
-data "aws_iam_policy_document" "sns-topic-policy" {
-  policy_id = "__default_policy_ID"
-
-  statement {
-    actions = [
-      "SNS:Subscribe",
-      "SNS:Receive",
-      "SNS:Publish",
-      "SNS:ListSubscriptionsByTopic",
-      "SNS:GetTopicAttributes",
-    ]
-
-    condition {
-      test     = "ArnLike"
-      variable = "aws:SourceArn"
-      values    = [
-        "arn:aws:s3:*:*:${var.bucket_name}",
-      ]
-    }
-    effect = "Allow"
-
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-
-    resources = [
-      aws_sns_topic.user_updates.arn,
-    ]
-
-    sid = "__default_statement_ID"
-  }
 }

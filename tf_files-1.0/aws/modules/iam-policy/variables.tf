@@ -1,4 +1,3 @@
-
 variable "policy_name" {
   description = "Name for the policy"
 }
@@ -15,5 +14,3 @@ variable "policy_description" {
 variable "policy_json" {
   description = "Basically the actual policy in JSON"
 }
-
-

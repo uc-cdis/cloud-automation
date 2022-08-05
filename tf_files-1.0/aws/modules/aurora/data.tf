@@ -13,7 +13,7 @@ data "aws_vpcs" "vpcs" {
 
 data "aws_security_group" "private" {
   vpc_id = data.aws_vpc.the_vpc.id
-  name = "local"
+  name   = "local"
 }
 
 data "aws_vpc" "the_vpc" {

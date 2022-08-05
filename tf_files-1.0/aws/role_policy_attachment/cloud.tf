@@ -2,12 +2,14 @@ terraform {
   backend "s3" {
     encrypt = "true"
   }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
 }
-
-provider "aws" {}
-
 resource "aws_iam_role_policy_attachment" "new_attach" {
-  role       = "${var.role}"
-  policy_arn = "${var.policy_arn}"
+  role       = var.role
+  policy_arn = var.policy_arn
 }
-

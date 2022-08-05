@@ -1,5 +1,3 @@
-#Removed old squid, migrate to squid-auto before tf1.X upgrade
-#done
 module "squid-auto" {
   source                         = "../squid_auto"
   peering_cidr                   = var.peering_cidr
@@ -33,7 +31,6 @@ module "squid-auto" {
   fips                           = var.fips
 }
 
-#done
 module "data-bucket" {
   source               = "../upload-data-bucket"
   vpc_name             = var.vpc_name
@@ -42,7 +39,6 @@ module "data-bucket" {
   deploy_cloud_trail   = var.deploy_cloud_trail
 }
 
-#done
 module "fence-bot-user" {
   source               = "../fence-bot-user"
   vpc_name             = var.vpc_name
@@ -53,6 +49,7 @@ module "fence-bot-user" {
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr_block
   enable_dns_hostnames = true
+
   tags = {
     Name         = var.vpc_name
     Environment  = var.vpc_name
@@ -73,9 +70,8 @@ resource "aws_flow_log" "main" {
 }
 
 resource "aws_iam_role" "flow_logs" {
-  count = var.vpc_flow_logs ? 1 : 0
-  name  = "${var.vpc_name}_flow_logs_role"
-
+  count              = var.vpc_flow_logs ? 1 : 0
+  name               = "${var.vpc_name}_flow_logs_role"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -94,10 +90,9 @@ EOF
 }
 
 resource "aws_iam_role_policy" "example" {
-  count = var.vpc_flow_logs ? 1 : 0
-  name  = "${var.vpc_name}_flow_logs_policy"
-  role  = aws_iam_role.flow_logs[count.index].id[count.index]
-
+  count  = var.vpc_flow_logs ? 1 : 0
+  name   = "${var.vpc_name}_flow_logs_policy"
+  role   = aws_iam_role.flow_logs[count.index].id[count.index]
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -171,6 +166,7 @@ resource "aws_route_table" "public" {
 
 resource "aws_eip" "nat_gw" {
   vpc = true
+
   tags = {
     Name         = "${var.vpc_name}-ngw-eip"
     Environment  = var.vpc_name
@@ -210,11 +206,9 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.network_expansion ? cidrsubnet(var.vpc_cidr_block,5,2) : cidrsubnet(var.vpc_cidr_block,4,0)
   map_public_ip_on_launch = true
-
   # kube_ subnets are in availability zone [0], so put this in [1]
-  availability_zone = data.aws_availability_zones.available.names[1]
-
-  tags = tomap({"Name" = "public", "Organization" = var.organization_name, "Environment" = var.vpc_name})
+  availability_zone       = data.aws_availability_zones.available.names[1]
+  tags                    = tomap({"Name" = "public", "Organization" = var.organization_name, "Environment" = var.vpc_name})
 
   lifecycle {
     # allow user to change tags interactively - ex - new kube-aws cluster
@@ -244,6 +238,7 @@ resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
   destination_arn   = "arn:aws:logs:${data.aws_region.current.name}:${var.csoc_managed ? var.csoc_account_id : data.aws_caller_identity.current.account_id}:destination:${var.vpc_name}_logs_destination"
   log_group_name    = var.vpc_name
   filter_pattern    = ""
+
   lifecycle {
     # terraform keeps trying to remove the distribution even after it is properly set, there is no reason
     # to no to ignore this
@@ -251,17 +246,17 @@ resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
   }
 }
 
-
 resource "aws_route53_zone" "main" {
   name    = "internal.io"
   comment = "internal dns server for ${var.vpc_name}"
+
   vpc {
-    vpc_id  = "${aws_vpc.main.id}"
+    vpc_id  = aws_vpc.main.id
   }
   
   tags = {
-    Environment  = "${var.vpc_name}"
-    Organization = "${var.organization_name}"
+    Environment  = var.vpc_name
+    Organization = var.organization_name
   }
 }
 
@@ -279,8 +274,6 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
   }
 }
 
-
-
 resource "aws_route" "default_csoc" {
   count                     = var.csoc_managed ? 0 : 1
   route_table_id            = data.aws_route_tables.control_routing_table[count.index].ids
@@ -291,6 +284,7 @@ resource "aws_route" "default_csoc" {
 ##to be used by arranger when accessing the ES
 resource "aws_iam_user" "es_user" {
   name = "${var.vpc_name}_es_user"
+
   tags = {
     Environment  = var.vpc_name
     Organization = var.organization_name
@@ -300,5 +294,3 @@ resource "aws_iam_user" "es_user" {
 resource "aws_iam_access_key" "es_user_key" {
   user = aws_iam_user.es_user.name
 }
-
-

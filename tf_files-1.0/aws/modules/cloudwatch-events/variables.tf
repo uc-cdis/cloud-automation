@@ -1,4 +1,3 @@
-
 variable "cwe_rule_name" {
   description = "Name of the rule"
 }
@@ -21,4 +20,3 @@ variable "cwe_target_id" {
 variable "cwe_target_arn" {
   description = "ARN of the target that this event will trigger"
 }
-

@@ -18,7 +18,6 @@ variable "env_nlb_name" {
   default = "csoc_squid_nlb"
 }
 
-
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
   default = "099720109477"
@@ -32,24 +31,16 @@ variable "csoc_cidr" {
   default = "10.128.0.0/20"
 }
 
-
-
 variable "env_public_subnet_routetable_id" {
   default = "rtb-23b6685f"
 }
-
-
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {
   default = "rarya_id_rsa"
 }
 
-
-
-
 variable "allowed_principals_list" {
-  type = "list"
   default = ["arn:aws:iam::707767160287:root"]
 }
 
@@ -65,11 +56,3 @@ variable "bootstrap_script" {
 variable "commons_internal_dns_zone_id"{
   #default = "ZA1HVV5W0QBG1"
 }
-
-
-
-
-
-
-
-

@@ -1,4 +1,3 @@
-
 resource "aws_cloudwatch_log_group" "csoc_log_group" {
   name              = var.vm_hostname
   retention_in_days = 1827
@@ -16,24 +15,21 @@ resource "aws_ami_copy" "cdis_ami" {
   source_ami_region = var.aws_region
   encrypted         = true
 
-  tags = {
-    Name        = "cdis"
-    Environment = var.environment
-  }
-
   lifecycle {
-    
     # Do not force update when new ami becomes available.
     # We still need to improve our mechanism for tracking .ssh/authorized_keys
     # User can use 'terraform state taint' to trigger update.
     #
     ignore_changes = [source_ami_id]
   }
+
+  tags = {
+    Name        = "cdis"
+    Environment = var.environment
+  }
 }
 
-
-# Allo SSH Access 
-
+# Allow SSH Access 
 resource "aws_security_group" "ssh" {
   name        = "ssh_${var.vm_name}"
   description = "security group that only enables ssh"
@@ -53,9 +49,7 @@ resource "aws_security_group" "ssh" {
   }
 }
 
-
 # Security group for local traffic
-
 resource "aws_security_group" "local" {
   name        = "local_${var.vm_name}"
   description = "security group that only allow internal tcp traffics"
@@ -88,9 +82,8 @@ resource "aws_security_group" "local" {
 # basic Role
 #
 resource "aws_iam_role" "vm_role" {
-  name = "${var.vm_name}_role"
-  path = "/"
-
+  name               = "${var.vm_name}_role"
+  path               = "/"
   # https://www.terraform.io/docs/providers/aws/r/iam_role_policy.html
   assume_role_policy = <<EOF
 {
@@ -115,7 +108,6 @@ EOF
   }
 }
 
-
 resource "aws_iam_role_policy" "vm_policy" {
   name   = "${var.vm_name}_policy"
   policy = data.aws_iam_policy_document.vm_policy_document.json
@@ -125,10 +117,8 @@ resource "aws_iam_role_policy" "vm_policy" {
 resource "aws_iam_role_policy" "vm_user_policy" {
   name   = "${var.vm_name}_user_policy"
   role   = aws_iam_role.vm_role.id
-  #policy = var.user_policy
   policy = var.user_policy
 }
-
 
 resource "aws_iam_instance_profile" "vm_role_profile" {
   name = "${var.vm_name}_role_profile"
@@ -162,40 +152,8 @@ resource "aws_instance" "utility_vm" {
   monitoring             = true
   key_name               = var.ssh_key_name
   vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.local.id]
-
-  iam_instance_profile = aws_iam_instance_profile.vm_role_profile.name
-
-  tags = {
-    Name         = var.vm_name
-    Environment  = var.environment
-    Organization = var.organization_name
-  }
-
-  lifecycle {
-    ignore_changes = [ami, key_name]
-  }
-
-  provisioner "file" {
-    content     = var.proxy ? local.proxy_config_apt : ""
-    destination = "/tmp/01proxy"
-    connection {
-      type     = "ssh"
-      user     = "ubuntu"
-      host     = self.private_ip
-    }
-  }
-
-  provisioner "file" {
-    content     = var.proxy ? local.profile_d : ""
-    destination = "/tmp/99-proxy.sh"
-    connection {
-      type     = "ssh"
-      user     = "ubuntu"
-      host     = self.private_ip
-    }
-  }
-
-  user_data = <<EOF
+  iam_instance_profile   = aws_iam_instance_profile.vm_role_profile.name
+   user_data             = <<EOF
 #!/bin/bash 
 
 cat /tmp/01proxy | tee -a /etc/apt/apt.conf.d/01proxy
@@ -247,4 +205,34 @@ if [[ ! -z "${var.activation_id}" ]] || [[ ! -z "${var.customer_id}" ]]; then
     sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${var.activation_id} CustomerId=${var.customer_id}
 fi
 EOF
+
+  provisioner "file" {
+    content     = var.proxy ? local.proxy_config_apt : ""
+    destination = "/tmp/01proxy"
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+      host     = self.private_ip
+    }
+  }
+
+  provisioner "file" {
+    content     = var.proxy ? local.profile_d : ""
+    destination = "/tmp/99-proxy.sh"
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+      host     = self.private_ip
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [ami, key_name]
+  }
+
+  tags = {
+    Name         = var.vm_name
+    Environment  = var.environment
+    Organization = var.organization_name
+  }
 }

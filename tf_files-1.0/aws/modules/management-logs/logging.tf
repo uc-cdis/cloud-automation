@@ -3,35 +3,48 @@
 
 resource "aws_s3_bucket" "management-logs_bucket" {
   bucket = "management-logs-remote-accounts"
-  acl    = "private"
 
   tags = {
     Environment  = "ALL"
     Organization = "CTDS"
   }
+}
 
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+resource "aws_s3_bucket_server_side_encryption_configuration" "management-logs_bucket" {
+  bucket = aws_s3_bucket.data_bucket.management-logs_bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
+}
 
-  lifecycle_rule {
+resource "aws_s3_bucket_acl" "management-logs_bucket" {
+  bucket = aws_s3_bucket.data_bucket.management-logs_bucket
+  acl    = "private"
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "management-logs_bucket" {
+  bucket = aws_s3_bucket.log_bucket.management-logs_bucket
+  rule {
+    status  = "Enabled"
     id      = "forwarded"
-    enabled = true
 
-    prefix = "forwarded*/"
+    filter {
+      and {
+        prefix = "forwarded*/"
 
-    tags = {
-      "rule"      = "log"
-      "autoclean" = "true"
+        tags = {
+          rule      = "log"
+          autoclean = "true"
+        }
+      }
     }
 
     transition {
       days          = 60
-      storage_class = "STANDARD_IA" # or "ONEZONE_IA"
+      storage_class = "STANDARD_IA"
     }
 
     transition {
@@ -44,6 +57,7 @@ resource "aws_s3_bucket" "management-logs_bucket" {
     }
   }
 }
+
 
 ############################ Start Kinesis Stream and destination #################
 
@@ -76,62 +90,22 @@ resource "aws_iam_role" "management-logs_kinesis_role" {
 EOF
 }
 
-# lets allow incoming logs to assume the role that logs can push stuff into kinesis
-#
-data "aws_iam_policy_document" "management-logs_kinesis_policy" {
-  statement {
-    actions   = ["kinesis:PutRecord"]
-    effect    = "Allow"
-    resources = ["${aws_kinesis_stream.management-logs_stream.arn}"]
-
-  }
-
-  statement {
-    actions   = ["iam:PassRole"]
-    effect    = "Allow"
-    resources = ["${aws_iam_role.management-logs_kinesis_role.arn}"]
-
-  }
-}
-
 resource "aws_iam_role_policy" "management-logs_kinesis_policy" {
   name   = "management-logs_kinesis_policy"
-  policy = "${data.aws_iam_policy_document.management-logs_kinesis_policy.json}"
-  role   = "${aws_iam_role.management-logs_kinesis_role.id}"
+  policy = data.aws_iam_policy_document.management-logs_kinesis_policy.json
+  role   = aws_iam_role.management-logs_kinesis_role.id
 }
 
 # Let's create the destination for the logs to come and put them into kinesis
 resource "aws_cloudwatch_log_destination" "management-logs_logs_destination" {
   name       = "management-logs_logs_destination"
-  role_arn   = "${aws_iam_role.management-logs_kinesis_role.arn}"
-  target_arn = "${aws_kinesis_stream.management-logs_stream.arn}"
-}
-
-data "aws_iam_policy_document" "management-logs_logs_destination_policy" {
-  statement {
-    effect = "Allow"
-
-    principals = {
-      type = "AWS"
-
-      identifiers = [
-        "${var.accounts_id}"
-      ]
-    }
-
-    actions = [
-      "logs:PutSubscriptionFilter",
-    ]
-
-    resources = [
-      "${aws_cloudwatch_log_destination.management-logs_logs_destination.arn}",
-    ]
-  }
+  role_arn   = aws_iam_role.management-logs_kinesis_role.arn
+  target_arn = aws_kinesis_stream.management-logs_stream.arn
 }
 
 resource "aws_cloudwatch_log_destination_policy" "management-logs_logs_destination_policy" {
-  destination_name = "${aws_cloudwatch_log_destination.management-logs_logs_destination.name}"
-  access_policy    = "${data.aws_iam_policy_document.management-logs_logs_destination_policy.json}"
+  destination_name = aws_cloudwatch_log_destination.management-logs_logs_destination.name
+  access_policy    = data.aws_iam_policy_document.management-logs_logs_destination_policy.json
 }
 
 ############################ End Kinesis Stream and destination #################
@@ -140,9 +114,8 @@ resource "aws_cloudwatch_log_destination_policy" "management-logs_logs_destinati
 
 
 resource "aws_iam_role" "firehose_role" {
-  name = "management-logs_firehose_role"
-  path = "/"
-
+  name               = "management-logs_firehose_role"
+  path               = "/"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -167,47 +140,28 @@ EOF
 
 data "aws_iam_policy_document" "firehose_policy_document" {
   statement {
-    actions = [
-      "s3:ListBucketMultipartUploads",
-      "s3:ListBucket",
-      "s3:PutObject",
-      "s3:GetObject",
-      "s3:AbortMultipartUpload",
-      "s3:GetBucketLocation",
-    ]
-
+    actions = ["s3:ListBucketMultipartUploads","s3:ListBucket","s3:PutObject","s3:GetObject","s3:AbortMultipartUpload","s3:GetBucketLocation"]
     effect = "Allow"
-
-    resources = [
-      "${aws_s3_bucket.management-logs_bucket.arn}",
-      "${aws_s3_bucket.management-logs_bucket.arn}/*",
-    ]
+    resources = [aws_s3_bucket.management-logs_bucket.arn, "${aws_s3_bucket.management-logs_bucket.arn}/*"]
   }
 
   statement {
-    actions = [
-      "logs:*",
-    ]
-
+    actions = ["logs:*"]
     effect    = "Allow"
     resources = ["*"]
-
   }
 
   statement {
-    actions = [
-      "es:*",
-    ]
+    actions = ["es:*"]
     effect = "Allow"
     resources = ["*"]
   }
-
 }
 
 resource "aws_iam_role_policy" "firehose_policy" {
   name   = "management-logs_firehose_policy"
-  policy = "${data.aws_iam_policy_document.firehose_policy_document.json}"
-  role   = "${aws_iam_role.firehose_role.id}"
+  policy = data.aws_iam_policy_document.firehose_policy_document.json
+  role   = aws_iam_role.firehose_role.id
 }
 
 # Need these guys because the firehose resource is not that smart to create it if it doesn't exist
@@ -215,21 +169,22 @@ resource "aws_iam_role_policy" "firehose_policy" {
 
 resource "aws_cloudwatch_log_group" "management-logs_group" {
   name = "management-logs"
+  retention_in_days = 1827
+
   tags = {
     Environment = "ALL"
     Organization = "CTDS"
   }
-  retention_in_days = 1827
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
   name           = "firehose_to_ES"
-  log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
+  log_group_name = aws_cloudwatch_log_group.management-logs_group.name
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_to_S3" {
   name           = "firehose_to_S3"
-  log_group_name = "${aws_cloudwatch_log_group.management-logs_group.name}"
+  log_group_name = aws_cloudwatch_log_group.management-logs_group.name
 }
 
 ## The current requirement is to send these logs onto S3 only, but just commenting in case we want to enable later
@@ -238,15 +193,15 @@ resource "aws_kinesis_firehose_delivery_stream" "firehose_to_es" {
   destination = "elasticsearch"
 
   s3_configuration {
-    role_arn        = "${aws_iam_role.firehose_role.arn}"
-    bucket_arn      = "${aws_s3_bucket.management-logs_bucket.arn}"
+    role_arn        = aws_iam_role.firehose_role.arn
+    bucket_arn      = aws_s3_bucket.management-logs_bucket.arn
     buffer_size     = 10
     buffer_interval = 400
   }
 
   elasticsearch_configuration {
-    domain_arn = "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${var.elasticsearch_domain}"
-    role_arn              = "${aws_iam_role.firehose_role.arn}"
+    domain_arn            = "arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${var.elasticsearch_domain}"
+    role_arn              = aws_iam_role.firehose_role.arn
     index_name            = "management_logs"
     type_name             = "management_logs"
     index_rotation_period = "OneWeek"
@@ -265,10 +220,9 @@ resource "aws_kinesis_firehose_delivery_stream" "firehose_to_s3" {
   destination = "s3"
 
   s3_configuration {
-    role_arn   = "${aws_iam_role.firehose_role.arn}"
-    bucket_arn = "${aws_s3_bucket.management-logs_bucket.arn}"
-
-    prefix = "forwarded_"
+    role_arn   = aws_iam_role.firehose_role.arn
+    bucket_arn = aws_s3_bucket.management-logs_bucket.arn
+    prefix     = "forwarded_"
 
     cloudwatch_logging_options {
       enabled         = true
@@ -283,8 +237,7 @@ resource "aws_kinesis_firehose_delivery_stream" "firehose_to_s3" {
 ############################ Begin Lambda function  #############################
 
 resource "aws_iam_role" "lambda_role" {
-  name = "management-logs_lambda_role"
-
+  name               = "management-logs_lambda_role"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -302,72 +255,28 @@ resource "aws_iam_role" "lambda_role" {
 EOF
 }
 
-data "aws_iam_policy_document" "lamda_policy_document" {
-  statement {
-    actions = [
-      "logs:*",
-    ]
-
-    effect = "Allow"
-    resources = ["*"]
-  }
-
-  statement {
-    actions = [
-      "kinesis:Get*",
-      "kinesis:List*",
-      "kinesis:Describe*",
-    ]
-
-    effect    = "Allow"
-    resources = ["${aws_kinesis_stream.management-logs_stream.arn}"]
-  }
-
-  statement {
-    actions = [
-      "firehose:PutRecordBatch",
-      "firehose:PutRecord",
-    ]
-
-    effect = "Allow"
-
-    resources = [
-      "${aws_kinesis_firehose_delivery_stream.firehose_to_es.arn}",
-      "${aws_kinesis_firehose_delivery_stream.firehose_to_s3.arn}",
-    ]
-  }
-}
-
 resource "aws_iam_role_policy" "lambda_policy" {
   name   = "management-logs_lambda_policy"
-  policy = "${data.aws_iam_policy_document.lamda_policy_document.json}"
-  role   = "${aws_iam_role.lambda_role.id}"
+  policy = data.aws_iam_policy_document.lamda_policy_document.json
+  role   = aws_iam_role.lambda_role.id
 }
 
 resource "aws_lambda_event_source_mapping" "event_source_mapping" {
   batch_size        = 100
-  event_source_arn  = "${aws_kinesis_stream.management-logs_stream.arn}"
+  event_source_arn  = aws_kinesis_stream.management-logs_stream.arn
   enabled           = true
-  function_name     = "${aws_lambda_function.logs_decoding.arn}"
+  function_name     = aws_lambda_function.logs_decoding.arn
   starting_position = "TRIM_HORIZON"
 }
 
 # Let's not use the zip file and have teraraform zip it for us on the fly
 
-data "archive_file" "lambda_function" {
-  type        = "zip"
-  source_file = "${path.module}/lambda_function.py"
-  output_path = "lambda_function_payload.zip"
-}
-
 resource "aws_lambda_function" "logs_decoding" {
-  filename = "${data.archive_file.lambda_function.output_path}"
-
-  function_name = "management-logs_lambda_function"
-  role          = "${aws_iam_role.lambda_role.arn}"
-  handler       = "lambda_function.handler"
-
-  source_code_hash = "${data.archive_file.lambda_function.output_base64sha256}"
+  filename         = data.archive_file.lambda_function.output_path
+  function_name    = "management-logs_lambda_function"
+  role             = aws_iam_role.lambda_role.arn
+  handler          = "lambda_function.handler"
+  source_code_hash = data.archive_file.lambda_function.output_base64sha256
   description      = "Decode incoming stream"
   runtime          = "python3.6"
   timeout          = 60
@@ -384,4 +293,3 @@ resource "aws_lambda_function" "logs_decoding" {
 }
 
 ############################ End Lambda function  ############################
-

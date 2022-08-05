@@ -28,17 +28,13 @@ variable "child_account_region" {
   default = "us-east-1"
 }
 
-variable "child_name" {
-  # name of child account - ex: kidsfirst, cdistest  #default = "cdistest"
-}
+variable "child_name" {}
 
 variable "elasticsearch_domain" {
   default = "commons-logs"
 }
 
-variable "vpc_cidr_list" {
-  type = "list"
-}
+variable "vpc_cidr_list" {}
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {

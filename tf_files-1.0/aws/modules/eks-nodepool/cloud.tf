@@ -1,9 +1,5 @@
-
-## First thing we need to create is the role that would spin up resources for us
-
 resource "aws_iam_role" "eks_control_plane_role" {
-  name = "${var.vpc_name}_EKS_${var.nodepool}_role"
-
+  name               = "${var.vpc_name}_EKS_${var.nodepool}_role"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -21,7 +17,6 @@ resource "aws_iam_role" "eks_control_plane_role" {
 EOF
 }
 
-# Attach policies for said role
 resource "aws_iam_role_policy_attachment" "eks-policy-AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
   role       = aws_iam_role.eks_control_plane_role.name
@@ -32,7 +27,6 @@ resource "aws_iam_role_policy_attachment" "eks-policy-AmazonEKSServicePolicy" {
   role       = aws_iam_role.eks_control_plane_role.name
 }
 
-# This one must have been created when we deployed the VPC resources
 resource "aws_iam_role_policy_attachment" "bucket_write" {
   policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/bucket_writer_logs-${var.vpc_name}-gen3"
   role       = aws_iam_role.eks_control_plane_role.name
@@ -51,10 +45,8 @@ resource "aws_iam_role_policy_attachment" "eks-policy-AmazonSSMManagedInstanceCo
 
 
 ## Role
-
 resource "aws_iam_role" "eks_node_role" {
-  name = "eks_${var.vpc_name}_nodepool_${var.nodepool}_role"
-
+  name               = "eks_${var.vpc_name}_nodepool_${var.nodepool}_role"
   assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -77,7 +69,7 @@ POLICY
 resource "aws_iam_policy" "cwl_access_policy" {
     name        = "${var.vpc_name}_EKS_nodepool_${var.nodepool}_access_to_cloudwatchlogs"
     description = "In order to avoid the creation of users and keys, we are using roles and policies."
-    policy = <<EOF
+    policy      = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -103,7 +95,7 @@ EOF
 resource "aws_iam_policy" "access_to_kernels" {
     name        = "${var.vpc_name}_EKS_nodepool_${var.nodepool}_kernel_access"
     description = "To access custom Kernels"
-    policy = <<EOF
+    policy      = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -131,7 +123,7 @@ EOF
 resource "aws_iam_policy" "asg_access" {
     name        = "${var.vpc_name}_EKS_nodepool_${var.nodepool}_autoscaling_access"
     description = "Allow the deployment cluster-autoscaler to add or terminate instances accordingly"
-    policy = <<EOF
+    policy      = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -187,10 +179,8 @@ resource "aws_iam_instance_profile" "eks_node_instance_profile" {
   role = aws_iam_role.eks_node_role.name
 }
 
-
 ## Worker Node Security Group
 ## This security group controls networking access to the Kubernetes worker nodes.
-
 
 resource "aws_security_group" "eks_nodes_sg" {
   name        = "${var.vpc_name}_EKS_nodepool_${var.nodepool}_sg"
@@ -223,7 +213,6 @@ resource "aws_security_group_rule" "https_nodes_to_plane" {
   protocol                 = "tcp"
   security_group_id        = var.control_plane_sg
   source_security_group_id = aws_security_group.eks_nodes_sg.id
-  #depends_on              = [aws_security_group.eks_nodes_sg, aws_security_group.eks_control_plane_sg]
   depends_on               = [aws_security_group.eks_nodes_sg]
 }
 
@@ -235,7 +224,6 @@ resource "aws_security_group_rule" "communication_plane_to_nodes" {
   protocol                 = "tcp"
   security_group_id        = aws_security_group.eks_nodes_sg.id
   source_security_group_id = var.control_plane_sg
-  #depends_on              = [aws_security_group.eks_nodes_sg, aws_security_group.eks_control_plane_sg]
   depends_on               = [aws_security_group.eks_nodes_sg]
 }
 
@@ -280,13 +268,11 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
     volume_size = var.nodepool_worker_drive_size
   }
 
-
   lifecycle {
     create_before_destroy = true
     #ignore_changes  = [user_data_base64]
   }
 }
-
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
   desired_capacity     = var.nodepool_asg_desired_capacity

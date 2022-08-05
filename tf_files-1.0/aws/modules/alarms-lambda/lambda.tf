@@ -3,8 +3,7 @@ resource "aws_sns_topic" "cloudwatch-alarms" {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name = "cloudwatch_lambda_${var.vpc_name}"
-
+  name               = "cloudwatch_lambda_${var.vpc_name}"
   assume_role_policy = <<EOF
 {
   "Version": "2008-10-17",

@@ -4,14 +4,9 @@ variable "csoc_account_id" {
   default = "433568766270"
 }
 
-variable "child_account_id" {
-  # default = "707767160287"
-}
+variable "child_account_id" {}
 
-variable "common_name" {
-  # name of child account - ex: kidsfirst, cdistest
- # default = "fauziv1"
-}
+variable "common_name" {}
 
 variable "child_account_region" {
   default = "us-east-1"
@@ -33,9 +28,7 @@ variable "aws_secret_key"{
   default = ""
 }
 
-variable "threshold"{
-#  default = ""
-}
+variable "threshold"{}
 
 variable "slack_webhook"{
   default = ""

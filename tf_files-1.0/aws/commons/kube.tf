@@ -1,8 +1,8 @@
-
 #
 # Only create db_fence if var.db_password_fence is set.
 # Sort of a hack during userapi to fence switch over.
 #
+
 resource "aws_db_instance" "db_fence" {
   count                       = var.deploy_fence_db ? 1 : 0
   allocated_storage           = var.fence_db_size
@@ -118,7 +118,7 @@ resource "aws_db_instance" "db_indexd" {
 # and https://www.postgresql.org/docs/9.6/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE
 # for detail parameter descriptions
 locals {
-  pg_family_version = "${replace( var.indexd_engine_version ,"/\\.[0-9]/", "" )}"
+  pg_family_version = replace( var.indexd_engine_version ,"/\\.[0-9]/", "" )
 }
 
 resource "aws_db_parameter_group" "rds-cdis-pg" {
@@ -220,11 +220,11 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "kube_bucket" {
 }
 
 resource "aws_s3_bucket_public_access_block" "kube_bucket_privacy" {
-  bucket                      = aws_s3_bucket.kube_bucket.id
-  block_public_acls           = true
-  block_public_policy         = true
-  ignore_public_acls          = true
-  restrict_public_buckets     = true
+  bucket                  = aws_s3_bucket.kube_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
 
@@ -233,20 +233,17 @@ resource "aws_s3_bucket_public_access_block" "kube_bucket_privacy" {
 #   modify the permissions there as necessary.  Ugh.
 data "aws_iam_policy_document" "configbucket_reader" {
   statement {
-    actions = [
-      "s3:Get*",
-      "s3:List*",
-    ]
-
+    actions = ["s3:Get*","s3:List*"]
     effect    = "Allow"
     resources = ["arn:aws:s3:::${var.users_bucket_name}", "arn:aws:s3:::${var.users_bucket_name}/${var.config_folder}/*", "arn:aws:s3:::qualys-agentpackage", "arn:aws:s3:::qualys-agentpackage/*"]
   }
 }
 
 resource "aws_iam_policy" "configbucket_reader" {
-  name                        = "bucket_reader_cdis-gen3-users_${var.vpc_name}"
-  description                 = "Read cdis-gen3-users/${var.config_folder}"
-  policy                      = data.aws_iam_policy_document.configbucket_reader.json
+  name        = "bucket_reader_cdis-gen3-users_${var.vpc_name}"
+  description = "Read cdis-gen3-users/${var.config_folder}"
+  policy      = data.aws_iam_policy_document.configbucket_reader.json
+
   lifecycle {
     ignore_changes = [policy]
   }

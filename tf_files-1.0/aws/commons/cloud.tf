@@ -16,7 +16,6 @@ terraform {
 #
 provider "aws" {}
 
-#done
 module "cdis_vpc" {
   source                         = "../modules/vpc"
   ami_account_id                 = var.ami_account_id
@@ -52,7 +51,6 @@ module "cdis_vpc" {
 }
 
 # logs bucket for elb logs
-#done
 module "elb_logs" {
   source          = "../modules/s3-logs"
   log_bucket_name = "logs-${var.vpc_name}-gen3"
@@ -60,7 +58,6 @@ module "elb_logs" {
 }
 
 
-#done
 module "config_files" {
   source                        = "../../shared/modules/k8s_configs"
   vpc_name                      = var.vpc_name
@@ -91,15 +88,12 @@ module "config_files" {
   aws_user_key                  = module.cdis_vpc.es_user_key
   aws_user_key_id               = module.cdis_vpc.es_user_key_id
   indexd_prefix                 = var.indexd_prefix
-
-## mailgun creds
-  mailgun_api_key             = var.mailgun_api_key
-  mailgun_api_url             = var.mailgun_api_url
-  mailgun_smtp_host           = var.mailgun_smtp_host
+  mailgun_api_key               = var.mailgun_api_key
+  mailgun_api_url               = var.mailgun_api_url
+  mailgun_smtp_host             = var.mailgun_smtp_host
 
 }
 
-#done
 module "cdis_alarms" {
   count                       = var.deploy_alarms ? 1 : 0
   source                      = "../modules/commons-alarms"
@@ -173,13 +167,12 @@ resource "aws_subnet" "private_db_alt" {
 resource "aws_db_subnet_group" "private_group" {
   name                        = "${var.vpc_name}_private_group"
   subnet_ids                  = [aws_subnet.private_kube.id, aws_subnet.private_db_alt.id]
+  description                 = "Private subnet group"
 
   tags = {
     Name                      = "Private subnet group"
     Environment               = var.vpc_name
     Organization              = var.organization_name
   }
-
-  description                 = "Private subnet group"
 }
 

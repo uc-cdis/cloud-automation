@@ -1,4 +1,3 @@
-
 module "elasticsearch_alarms" {
   source                    = "../elasticsearch-alarms"
   slack_webhook             = var.slack_webhook
@@ -40,7 +39,7 @@ resource "aws_security_group" "private_es" {
 
 
 resource "aws_cloudwatch_log_resource_policy" "es_logs" {
-  policy_name = "es_logs_for_${var.vpc_name}"
+  policy_name     = "es_logs_for_${var.vpc_name}"
   policy_document = <<CONFIG
 {
   "Version": "2012-10-17",
@@ -66,44 +65,7 @@ CONFIG
 resource "aws_elasticsearch_domain" "gen3_metadata" {
   domain_name           = "${var.vpc_name}-gen3-metadata"
   elasticsearch_version = var.es_version
-  encrypt_at_rest {
-    # For small instance type like t2.medium, encryption is not available
-    enabled = var.encryption
-  }
-  vpc_options {
-    security_group_ids = [aws_security_group.private_es.id]
-    subnet_ids = data.aws_subnet_ids.private.ids
-  }
-  cluster_config {
-    instance_type = var.instance_type
-    instance_count = var.instance_count
-  }
-  ebs_options {
-    ebs_enabled = "true"
-    volume_size = var.ebs_volume_size_gb
-  }
-
-  log_publishing_options {
-    log_type = "ES_APPLICATION_LOGS"
-    cloudwatch_log_group_arn = "${data.aws_cloudwatch_log_group.logs_group.arn}:*"
-    enabled = "true"
-  }
-
-  advanced_options = {
-    "rest.action.multi.allow_explicit_index" = "true"
-  }
-
-  snapshot_options {
-    automated_snapshot_start_hour = 23
-  }
-
-  tags = {
-    Name         = "gen3_metadata"
-    Environment  = var.vpc_name
-    Organization = var.organization_name
-
-  }
-  access_policies = <<CONFIG
+  access_policies       = <<CONFIG
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -121,8 +83,50 @@ resource "aws_elasticsearch_domain" "gen3_metadata" {
 }
 CONFIG
 
+  encrypt_at_rest {
+    # For small instance type like t2.medium, encryption is not available
+    enabled = var.encryption
+  }
+
+  vpc_options {
+    security_group_ids = [aws_security_group.private_es.id]
+    subnet_ids         = data.aws_subnet_ids.private.ids
+  }
+
+  cluster_config {
+    instance_type  = var.instance_type
+    instance_count = var.instance_count
+  }
+
+  ebs_options {
+    ebs_enabled = "true"
+    volume_size = var.ebs_volume_size_gb
+  }
+
+  log_publishing_options {
+    log_type                 = "ES_APPLICATION_LOGS"
+    cloudwatch_log_group_arn = "${data.aws_cloudwatch_log_group.logs_group.arn}:*"
+    enabled                  = "true"
+  }
+
+  advanced_options = {
+    "rest.action.multi.allow_explicit_index" = "true"
+  }
+
+  snapshot_options {
+    automated_snapshot_start_hour = 23
+  }
+
   lifecycle {
     ignore_changes = [elasticsearch_version]
   }
+
+  tags = {
+    Name         = "gen3_metadata"
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+
+  }
+
   depends_on = [aws_cloudwatch_log_resource_policy.es_logs, aws_iam_service_linked_role.es]
 }

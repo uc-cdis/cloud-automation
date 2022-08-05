@@ -82,13 +82,11 @@ variable "final_snapshot_identifier" {
   default     = "aurora-cluster-snapshot-final"
 }
 
-
 variable "backup_retention_period" {
   type        = number
   description = "The days to retain backups for"
   default     = 10
 }
-
 
 variable "preferred_backup_window" {
   description = "The daily time range during which automated backups are created if automated backups are enabled using the BackupRetentionPeriod parameter"

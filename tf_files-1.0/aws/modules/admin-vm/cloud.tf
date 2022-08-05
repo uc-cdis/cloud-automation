@@ -1,37 +1,18 @@
 resource "aws_cloudwatch_log_group" "csoc_log_group" {
-  name              = "${var.child_name}"
+  name              = var.child_name
   retention_in_days = 1827
 
   tags = {
-    Environment  = "${var.child_name}"
+    Environment  = var.child_name
     Organization = "Basic Services"
   }
 }
-
-# https://www.andreagrandi.it/2017/08/25/getting-latest-ubuntu-ami-with-terraform/
-data "aws_ami" "ubuntu" {
-    most_recent = true
-
-    filter {
-        name   = "name"
-        values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
-    }
-
-    filter {
-        name   = "virtualization-type"
-        values = ["hvm"]
-    }
-
-    owners = ["099720109477"] # Canonical
-}
-
-
 
 # Security group to access peered networks from the csoc admin VM
 resource "aws_security_group" "ssh" {
   name        = "ssh_${var.child_name}"
   description = "security group that only enables ssh"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = var.csoc_vpc_id
 
   ingress {
     from_port   = 22
@@ -41,7 +22,7 @@ resource "aws_security_group" "ssh" {
   }
 
   tags = {
-    Environment  = "${var.child_name}"
+    Environment  = var.child_name
     Organization = "Basic Service"
   }
 }
@@ -49,7 +30,7 @@ resource "aws_security_group" "ssh" {
 resource "aws_security_group" "local" {
   name        = "local_${var.child_name}"
   description = "security group that only allow internal tcp traffics"
-  vpc_id      = "${var.csoc_vpc_id}"
+  vpc_id      = var.csoc_vpc_id
 
   ingress {
     from_port   = 0
@@ -62,11 +43,11 @@ resource "aws_security_group" "local" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["10.128.0.0/20", "54.224.0.0/12", "${var.vpc_cidr_list}"]
+    cidr_blocks = ["10.128.0.0/20", "54.224.0.0/12", var.vpc_cidr_list]
   }
 
   tags = {
-    Environment = "${var.child_name}"
+    Environment = var.child_name
   }
 }
 
@@ -99,71 +80,26 @@ resource "aws_iam_role" "child_role" {
 EOF
 }
 
-#
-# child_role can only STS assume another role (probably the admin role of the child account),
-# plus cloudwatch logs ...
-#
-data "aws_iam_policy_document" "child_policy_document" {
-  statement {
-    actions = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:GetLogEvents",
-      "logs:PutLogEvents",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutRetentionPolicy",
-    ]
-
-    effect    = "Allow"
-    resources = ["*"]
-  }
-
-  statement {
-    # see https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html
-    actions = ["sts:AssumeRole"]
-
-    effect    = "Allow"
-    resources = ["arn:aws:iam::${var.child_account_id}:role/csoc_adminvm"]
-  }
-}
-
 resource "aws_iam_role_policy" "child_policy" {
   name   = "${var.child_name}_child_policy"
-  policy = "${data.aws_iam_policy_document.child_policy_document.json}"
-  role   = "${aws_iam_role.child_role.id}"
+  policy = data.aws_iam_policy_document.child_policy_document.json
+  role   = aws_iam_role.child_role.id
 }
 
 resource "aws_iam_instance_profile" "child_role_profile" {
   name = "${var.child_name}_child_role_profile"
-  role = "${aws_iam_role.child_role.id}"
+  role = aws_iam_role.child_role.id
 }
 
 resource "aws_instance" "login" {
-  ami                    = "${data.aws_ami.ubuntu.id}"
-  subnet_id              = "${var.csoc_subnet_id}"
+  ami                    = data.aws_ami.ubuntu.id
+  subnet_id              = var.csoc_subnet_id
   instance_type          = "t2.micro"
   monitoring             = true
-  key_name               = "${var.ssh_key_name}"
-  vpc_security_group_ids = ["${aws_security_group.ssh.id}", "${aws_security_group.local.id}"]
-  #vpc_security_group_ids = ["${var.secgroup_adminvms}"]
-  iam_instance_profile = "${aws_iam_instance_profile.child_role_profile.name}"
-  
-  root_block_device  {
-    volume_size = 24
-    encrypted   = true
-  }
-
-  tags = {
-    Name        = "${var.child_name}_admin"
-    Environment = "${var.child_name}"
-  }
-
-  lifecycle {
-    ignore_changes = ["ami", "key_name", "root_block_device"]
-  }
-
-  user_data = <<EOF
+  key_name               = var.ssh_key_name
+  vpc_security_group_ids = [aws_security_group.ssh.id, aws_security_group.local.id]
+  iam_instance_profile   = aws_iam_instance_profile.child_role_profile.name
+  user_data              = <<EOF
 #!/bin/bash 
 #Proxy configuration and hostname assigment for the adminVM
 echo http_proxy=http://cloud-proxy.internal.io:3128 >> /etc/environment
@@ -228,4 +164,18 @@ chmod 755 /etc/init.d/awslogs
 systemctl enable awslogs
 systemctl restart awslogs
 EOF
+
+  root_block_device  {
+    volume_size = 24
+    encrypted   = true
+  }
+
+  lifecycle {
+    ignore_changes = [ami, key_name, root_block_device]
+  }
+
+  tags = {
+    Name        = "${var.child_name}_admin"
+    Environment = var.child_name
+  }
 }

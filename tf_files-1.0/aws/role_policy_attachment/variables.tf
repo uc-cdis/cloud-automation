@@ -5,4 +5,3 @@ variable "role" {
 variable "policy_arn" {
   description = "arn of policy to attach to role"
 }
-

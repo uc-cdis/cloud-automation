@@ -56,17 +56,17 @@ resource "aws_cloudwatch_log_group" "gwl_group" {
 }
 
 resource "aws_iam_role_policy" "lambda_policy_resources" {
-  count                 = var.ha_squid ? 1 : 0
-  name                  = "resources_acces"
-  policy                = data.aws_iam_policy_document.with_resources.json
-  role                  = module.iam_role[0].role_id
+  count  = var.ha_squid ? 1 : 0
+  name   = "resources_acces"
+  policy = data.aws_iam_policy_document.with_resources.json
+  role   = module.iam_role[0].role_id
 }
 
 resource "aws_iam_role_policy" "lambda_policy_no_resources" {
-  count                 = var.ha_squid ? 1 : 0
-  name                  = "no_resources_acces"
-  policy                = data.aws_iam_policy_document.without_resources.json
-  role                  = module.iam_role[0].role_id
+  count  = var.ha_squid ? 1 : 0
+  name   = "no_resources_acces"
+  policy = data.aws_iam_policy_document.without_resources.json
+  role   = module.iam_role[0].role_id
 }
 
 
@@ -78,28 +78,21 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 
 
 resource "aws_lambda_function" "gw_checks" {
-  count         = var.ha_squid ? 1 : 0
-  filename      = "lambda_function_payload.zip"
-  function_name = "${var.vpc_name}-gw-checks-lambda"
-  role          = "${module.iam_role[0].role_arn}" 
-  handler       = "lambda_function.lambda_handler"
-  timeout       = 45
-  description   = "Checks for internet access from the worker nodes subnets"
+  count            = var.ha_squid ? 1 : 0
+  filename         = "lambda_function_payload.zip"
+  function_name    = "${var.vpc_name}-gw-checks-lambda"
+  role             = "${module.iam_role[0].role_arn}" 
+  handler          = "lambda_function.lambda_handler"
+  timeout          = 45
+  description      = "Checks for internet access from the worker nodes subnets"
+  depends_on       = [aws_cloudwatch_log_group.gwl_group]
+  source_code_hash = data.archive_file.lambda_function.output_base64sha256
+  runtime          = "python3.8"
 
   vpc_config {
     subnet_ids         = flatten([aws_subnet.eks_private.*.id])
     security_group_ids = [aws_security_group.eks_nodes_sg.id]
   }
-
-  tags = {
-    Environment  = var.vpc_name
-    Organization = var.organization_name
-  }
-
-
-  source_code_hash = data.archive_file.lambda_function.output_base64sha256
-
-  runtime = "python3.8"
 
   environment {
     variables = {
@@ -107,7 +100,11 @@ resource "aws_lambda_function" "gw_checks" {
       domain_test = var.domain_test
     }
   }
-  depends_on = [aws_cloudwatch_log_group.gwl_group]
+
+  tags = {
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+  }  
 }
 
 
@@ -117,6 +114,7 @@ resource "aws_cloudwatch_event_rule" "gw_checks_rule" {
   name                = "${var.vpc_name}-GW-checks-job"
   description         = "Check if the gateway is working every minute"
   schedule_expression = "rate(1 minute)"
+  
   tags = {
     Environment  = var.vpc_name
     Organization = var.organization_name

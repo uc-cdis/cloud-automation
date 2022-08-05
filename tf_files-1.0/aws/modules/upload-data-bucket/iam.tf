@@ -1,6 +1,4 @@
-
 ## Role and Policies for the bucket
-
 resource "aws_iam_role" "data_bucket" {
   name = "${var.vpc_name}-data-bucket-access"
   path = "/"
@@ -22,34 +20,6 @@ resource "aws_iam_role" "data_bucket" {
 EOF
 }
 
-
-## Policies data 
-
-data "aws_iam_policy_document" "data_bucket_reader" {
-  statement {
-    actions = [
-      "s3:Get*",
-      "s3:List*"
-    ]
-
-    effect    = "Allow"
-    resources = [aws_s3_bucket.data_bucket.arn, "${aws_s3_bucket.data_bucket.arn}/*"]
-  }
-}
-
-data "aws_iam_policy_document" "data_bucket_writer" {
-  statement {
-    actions = [
-      "s3:PutObject"
-    ]
-
-    effect    = "Allow"
-    resources = [aws_s3_bucket.data_bucket.arn, "${aws_s3_bucket.data_bucket.arn}/*"]
-  }
-}
-
-
-
 ## Polcies
 
 resource "aws_iam_policy" "data_bucket_reader" {
@@ -64,10 +34,7 @@ resource "aws_iam_policy" "data_bucket_writer" {
   policy      = data.aws_iam_policy_document.data_bucket_reader.json
 }
 
-
-
 ## Policies attached to roles
-
 resource "aws_iam_role_policy_attachment" "data_bucket_reader" {
   role       = aws_iam_role.data_bucket.name
   policy_arn = aws_iam_policy.data_bucket_reader.arn
@@ -76,37 +43,6 @@ resource "aws_iam_role_policy_attachment" "data_bucket_reader" {
 resource "aws_iam_role_policy_attachment" "data_bucket_writer" {
   role       = aws_iam_role.data_bucket.name
   policy_arn = aws_iam_policy.data_bucket_writer.arn
-}
-
-
-
-
-
-## Role and policies for the log bucket
-
-data "aws_iam_policy_document" "log_bucket_writer" {
-  statement {
-    actions = [
-      "s3:Get*",
-      "s3:List*",
-    ]
-
-    effect    = "Allow"
-    resources = [aws_s3_bucket.log_bucket.arn, "${aws_s3_bucket.log_bucket.arn}/*"]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "s3:PutObject",
-      "s3:GetObject",
-      "s3:DeleteObject",
-    ]
-
-    resources = ["${aws_s3_bucket.log_bucket.arn}/*"]
-  }
-
 }
 
 resource "aws_iam_policy" "log_bucket_writer" {

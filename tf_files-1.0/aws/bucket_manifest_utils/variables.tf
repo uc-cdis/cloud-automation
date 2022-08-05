@@ -39,13 +39,11 @@ variable "lambda_function_memory_size" {
 
 variable "lambda_function_env" {
   description = "Environmental variables for the funtion"
-  type        = "map"
   default     = {}
 }
 
 variable "lambda_function_tags" {
   description = "Tags for the function"
-  type        = "map"
   default     = {}
 }
 
@@ -57,14 +55,10 @@ variable "lambda_function_with_vpc" {
 
 variable "lambda_function_security_groups" {
   description = "Security groups for the lambda function with a vpc"
-  type        = "list"
   default     = []
 }
 
 variable "lambda_function_subnets_id" {
   description = "Subnets for the lambda function with a vpc"
-  type        = "list"
   default     = []
 }
-
-

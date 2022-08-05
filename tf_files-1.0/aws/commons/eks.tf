@@ -1,6 +1,6 @@
 module "eks" {
-  count                            = var.deploy_eks ? 1 : 0
   source                           = "../modules/eks"
+  count                            = var.deploy_eks ? 1 : 0
   vpc_name                         = var.vpc_name
   ec2_keyname                      = var.ec2_keyname
   instance_type                    = var.instance_type
