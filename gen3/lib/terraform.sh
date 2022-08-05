@@ -57,19 +57,28 @@ if $GEN3_DRY_RUN; then DRY_RUN_STR="--dryrun"; fi
 gen3_terraform() {
   local tversion=$(check_terraform_module ${GEN3_TFSCRIPT_FOLDER})
   if [[ ! -z $USE_TF_1  ]]; then
-    local tversion="1X"
+    local tversion="1.2"
   else
     local tversion=$(check_terraform_module ${GEN3_TFSCRIPT_FOLDER})
   fi
-  if [[ "$GEN3_FLAVOR" == "AWS" ]]; then
-    cat - 1>&2 <<EOM
-gen3_aws_run terraform${tversion} $@
+
+  if [[ "$GEN3_FLAVOR" == "AWS" && "${tversion}" != "1.2" ]]; then
+    cat - 1>&2 <<EOM 
+gen3_aws_run terraform${tversion} $@ 
 EOM
     gen3_aws_run terraform${tversion} "$@"
+
+  elif [[ "$GEN3_FLAVOR" == "AWS" && "${tversion}" == "1.2" ]]; then
+     cat - 1>&2 <<EOM 
+gen3_aws_run terraform${tversion} -chdir=$(echo $@ | awk '{print $3}') $(echo $@ | awk '{print $1,$2}')
+EOM
+gen3_aws_run terraform${tversion} -chdir=$(echo $@ | awk '{print $3}') $(echo $@ | awk '{print $1,$2}')
+
   elif [[ "$GEN3_FLAVOR" == "ONPREM" ]]; then
-    cat - 1>&2 <<EOM
+    cat - 1>&2 <<EOM 
 ONPREM NOOP terraform${tversion} $@
 EOM
+
   else
       cat - 1>&2 <<EOM
 terraform $@
@@ -77,7 +86,6 @@ EOM
     terraform${tversion} "$@"
   fi
 }
-
 
 #
 # To help us out with a smooth transition into terraform 12
