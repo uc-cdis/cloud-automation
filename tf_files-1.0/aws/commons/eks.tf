@@ -41,4 +41,7 @@ module "eks" {
   fips_ami_kms                     = var.fips_ami_kms
   fips_enabled_ami                 = var.fips_enabled_ami
   availability_zones               = var.availability_zones
+  minimum_on_demand_nodes          = var.minimum_on_demand_nodes
+  enable_spot_instances            = var.enable_spot_instances
+  enable_on_demand_instances       = var.enable_on_demand_instances
 }

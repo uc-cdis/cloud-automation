@@ -4,7 +4,7 @@
 #
 
 resource "aws_db_instance" "db_fence" {
-  count                       = var.deploy_fence_db ? 1 : 0
+  count                       = var.deploy_fence_db && var.deploy_rds ? 1 : 0
   allocated_storage           = var.fence_db_size
   identifier                  = "${var.vpc_name}-fencedb"
   storage_type                = "gp2"
@@ -41,7 +41,7 @@ resource "aws_db_instance" "db_fence" {
 }
 
 resource "aws_db_instance" "db_sheepdog" {
-  count                       = var.deploy_sheepdog_db ? 1 : 0
+  count                       = var.deploy_sheepdog_db && var.deploy_rds ? 1 : 0
   allocated_storage           = var.sheepdog_db_size
   identifier                  = "${var.vpc_name}-sheepdog"
   storage_type                = "gp2"
@@ -78,7 +78,7 @@ resource "aws_db_instance" "db_sheepdog" {
 }
 
 resource "aws_db_instance" "db_indexd" {
-  count                       = var.deploy_indexd_db ? 1 : 0
+  count                       = var.deploy_indexd_db && var.deploy_rds ? 1 : 0
   allocated_storage           = var.indexd_db_size
   identifier                  = "${var.vpc_name}-indexddb"
   storage_type                = "gp2"

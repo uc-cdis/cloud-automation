@@ -12,9 +12,12 @@ terraform {
   }
 }
 
-# Inject credentials via the AWS_PROFILE environment variable and shared credentials file and/or EC2 metadata service
-#
-provider "aws" {}
+locals{
+  db_fence_address = var.deploy_aurora ? module.aurora[0].aws_rds_cluster.postgresql.endpoint : var.deploy_fence_db && var.deploy_rds ? aws_db_instance.db_fence[0].address : ""
+  db_indexd_address = var.deploy_aurora ? module.aurora[0].aws_rds_cluster.postgresql.endpoint : var.deploy_indexd_db && var.deploy_rds ? aws_db_instance.db_indexd[0].address : ""
+  db_sheepdog_address = var.deploy_aurora ? module.aurora[0].aws_rds_cluster.postgresql.endpoint : var.deploy_sheepdog_db && var.deploy_rds ? aws_db_instance.db_sheepdog[0].address : ""
+  db_peregrine_address = var.deploy_aurora ? module.aurora[0].aws_rds_cluster.postgresql.endpoint : var.deploy_sheepdog_db && var.deploy_rds ? aws_db_instance.db_sheepdog[0].address : ""
+}
 
 module "cdis_vpc" {
   source                         = "../modules/vpc"
@@ -61,18 +64,18 @@ module "elb_logs" {
 module "config_files" {
   source                        = "../../shared/modules/k8s_configs"
   vpc_name                      = var.vpc_name
-  db_fence_address              = var.deploy_fence_db ? aws_db_instance.db_fence[0].address : ""
+  db_fence_address              = local.db_fence_address
   db_fence_password             = var.db_password_fence
-  db_fence_name                 = var.deploy_fence_db ?aws_db_instance.db_fence[0].name : ""
-  db_sheepdog_address           = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].address : ""
-  db_sheepdog_username          = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].username : ""
+  db_fence_name                 = var.db_fence_name
+  db_sheepdog_address           = local.db_sheepdog_address
+  db_sheepdog_username          = var.sheepdog_db_username
   db_sheepdog_password          = var.db_password_sheepdog
-  db_sheepdog_name              = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].name : ""
+  db_sheepdog_name              = var.sheepdog_database_name
   db_peregrine_password         = var.db_password_peregrine
-  db_indexd_address             = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].address : ""
-  db_indexd_username            = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].username : ""
+  db_indexd_address             = local.db_indexd_address
+  db_indexd_username            = var.indexd_db_username
   db_indexd_password            = var.db_password_indexd
-  db_indexd_name                = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].name : ""
+  db_indexd_name                = var.indexd_database_name
   hostname                      = var.hostname
   google_client_secret          = var.google_client_secret
   google_client_id              = var.google_client_id

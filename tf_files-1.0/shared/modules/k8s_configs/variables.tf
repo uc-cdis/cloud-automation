@@ -92,6 +92,9 @@ variable "db_sheepdog_name" {
 
 variable "db_sheepdog_address" {}
 
+variable "db_peregrine_address" {}
+
+
 variable "aws_user_key" {}
 
 variable "aws_user_key_id" {}
