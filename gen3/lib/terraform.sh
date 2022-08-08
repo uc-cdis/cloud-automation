@@ -61,6 +61,7 @@ gen3_terraform() {
   else
     local tversion=$(check_terraform_module ${GEN3_TFSCRIPT_FOLDER})
   fi
+  args=("$@")
 
   if [[ "$GEN3_FLAVOR" == "AWS" && "${tversion}" != "1.2" ]]; then
     cat - 1>&2 <<EOM 
@@ -70,9 +71,9 @@ EOM
 
   elif [[ "$GEN3_FLAVOR" == "AWS" && "${tversion}" == "1.2" ]]; then
      cat - 1>&2 <<EOM 
-gen3_aws_run terraform${tversion} -chdir=$(echo $@ | awk '{print $3}') $(echo $@ | awk '{print $1,$2}')
+gen3_aws_run terraform${tversion} -chdir="${args[-1]}" "${args[@]:0:${#args[@]}-1}"
 EOM
-gen3_aws_run terraform${tversion} -chdir=$(echo $@ | awk '{print $3}') $(echo $@ | awk '{print $1,$2}')
+gen3_aws_run terraform${tversion} -chdir="${args[-1]}" "${args[@]:0:${#args[@]}-1}"
 
   elif [[ "$GEN3_FLAVOR" == "ONPREM" ]]; then
     cat - 1>&2 <<EOM 
