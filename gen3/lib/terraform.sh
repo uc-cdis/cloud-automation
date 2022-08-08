@@ -70,9 +70,9 @@ EOM
 
   elif [[ "$GEN3_FLAVOR" == "AWS" && "${tversion}" == "1.2" ]]; then
      cat - 1>&2 <<EOM 
-gen3_aws_run terraform${tversion} -chdir=$(echo $@ | awk '{print $3}') $(echo $@ | awk '{print $1,$2}')
+gen3_aws_run terraform${tversion} $@
 EOM
-gen3_aws_run terraform${tversion} -chdir=$(echo $@ | awk '{print $3}') $(echo $@ | awk '{print $1,$2}')
+gen3_aws_run terraform${tversion} $@
 
   elif [[ "$GEN3_FLAVOR" == "ONPREM" ]]; then
     cat - 1>&2 <<EOM 

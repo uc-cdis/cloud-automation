@@ -27,8 +27,13 @@ done
 cd $GEN3_WORKDIR
 /bin/rm -f plan.terraform
 
-echo "Running terraform plan $destroyFlag "${targetList[@]}" --var-file ./config.tfvars -out plan.terraform $GEN3_TFSCRIPT_FOLDER/"
-gen3_terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" plan $destroyFlag "${targetList[@]}" --var-file="${GEN3_WORKDIR}/config.tfvars" -out="${GEN3_WORKDIR}/plan.terraform" 2>&1 | tee plan.log
+if [[ ! -z "$USE_TF_1" ]]; then
+  echo "Running terraform plan $destroyFlag "${targetList[@]}" --var-file ./config.tfvars -out plan.terraform $GEN3_TFSCRIPT_FOLDER/"
+  gen3_terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" plan $destroyFlag "${targetList[@]}" --var-file="${GEN3_WORKDIR}/config.tfvars" -out="${GEN3_WORKDIR}/plan.terraform" 2>&1 | tee plan.log
+else
+  echo "Running terraform plan $destroyFlag "${targetList[@]}" --var-file ./config.tfvars -out plan.terraform $GEN3_TFSCRIPT_FOLDER/"
+  gen3_terraform plan $destroyFlag "${targetList[@]}" --var-file ./config.tfvars -out plan.terraform "$GEN3_TFSCRIPT_FOLDER/" 2>&1 | tee plan.log
+fi
 let exitCode=${PIPESTATUS[0]}
 if [[ $exitCode -ne 0 ]]; then
   echo -e "${RED_COLOR}non zero exit code from terraform plan: ${exitCode}${DEFAULT_COLOR}"
