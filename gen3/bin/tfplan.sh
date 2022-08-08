@@ -27,7 +27,7 @@ done
 cd $GEN3_WORKDIR
 /bin/rm -f plan.terraform
 
-if [[ ! -z "$USE_TF_1" ]]; then
+if [[ ! -z $USE_TF_1 ]]; then
   echo "Running terraform plan $destroyFlag "${targetList[@]}" --var-file ./config.tfvars -out plan.terraform $GEN3_TFSCRIPT_FOLDER/"
   gen3_terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" plan $destroyFlag "${targetList[@]}" --var-file="${GEN3_WORKDIR}/config.tfvars" -out="${GEN3_WORKDIR}/plan.terraform" 2>&1 | tee plan.log
 else

@@ -131,7 +131,7 @@ gen3_workon_aws(){
   fi
 
   # terraform stack - based on VPC name
-  if [[ ! -z $USE_TF_1  ]]; then
+  if [[ ! -z $USE_TF_1 ]]; then
     tversion="-1.0"
   fi
   export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/commons"
