@@ -130,7 +130,6 @@ gen3_workon_aws(){
     fi
   fi
 
-  local tversion=""
   # terraform stack - based on VPC name
   if [[ ! -z $USE_TF_1  ]]; then
     tversion="-1.0"
