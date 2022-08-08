@@ -1,12 +1,3 @@
-terraform {
-  backend "s3" {
-    encrypt = "true"
-  }
-}
-
-provider "aws" {}
-
-
 module "aurora" {
   source				                    = "../modules/aurora"
   count					                    = var.deploy_aurora ? 1 : 0

@@ -618,10 +618,6 @@ variable "es_linked_role" {
   default     = true
 }
 
-variable "deploy_es" {
-  default = true
-}
-
 ### Aurora
 
 variable "cluster_identifier" {
