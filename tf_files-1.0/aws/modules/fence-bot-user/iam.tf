@@ -1,5 +1,3 @@
-
-
 # Fence bot
 
 ## Fence bot user
@@ -14,9 +12,8 @@ resource "aws_iam_access_key" "fence-bot_user_key" {
 
 ## Fence bot access policy
 resource "aws_iam_user_policy" "fence-bot_policy" {
-  name = "${var.vpc_name}_fence-bot_policy"
-  user = aws_iam_user.fence-bot.name
-
+  name   = "${var.vpc_name}_fence-bot_policy"
+  user   = aws_iam_user.fence-bot.name
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -42,17 +39,15 @@ resource "aws_iam_user_policy" "fence-bot_policy" {
 }
 EOF
 
-
   lifecycle {
     ignore_changes = [policy]
   }
-
 }
 
 resource "aws_iam_user_policy" "fence-bot_extra_policy" {
-  count = length(var.bucket_access_arns)
-  name  = "${var.vpc_name}_fence-bot_policy_${count.index}"
-  user  = aws_iam_user.fence-bot.name
+  count  = length(var.bucket_access_arns)
+  name   = "${var.vpc_name}_fence-bot_policy_${count.index}"
+  user   = aws_iam_user.fence-bot.name
   policy = <<EOF
 {
   "Version": "2012-10-17",

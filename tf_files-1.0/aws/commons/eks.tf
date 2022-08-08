@@ -1,6 +1,6 @@
 module "eks" {
-  count                            = var.deploy_eks ? 1 : 0
   source                           = "../modules/eks"
+  count                            = var.deploy_eks ? 1 : 0
   vpc_name                         = var.vpc_name
   ec2_keyname                      = var.ec2_keyname
   instance_type                    = var.instance_type
@@ -41,4 +41,7 @@ module "eks" {
   fips_ami_kms                     = var.fips_ami_kms
   fips_enabled_ami                 = var.fips_enabled_ami
   availability_zones               = var.availability_zones
+  minimum_on_demand_nodes          = var.minimum_on_demand_nodes
+  enable_spot_instances            = var.enable_spot_instances
+  enable_on_demand_instances       = var.enable_on_demand_instances
 }

@@ -10,61 +10,9 @@ terraform {
   }
 }
 
-provider "aws" {}
-
-# https://www.andreagrandi.it/2017/08/25/getting-latest-ubuntu-ami-with-terraform/
-data "aws_ami" "ubuntu" {
-    most_recent = true
-
-    filter {
-        name   = "name"
-        values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
-    }
-
-    filter {
-        name   = "virtualization-type"
-        values = ["hvm"]
-    }
-
-    owners = ["099720109477"] # Canonical
-}
-
-data "aws_vpc" "vpc" {
-    filter {
-        name   = "tag:Name"
-        values = [var.vpc_name]
-    }
-}
-
-data "aws_subnet" "public" {
-  filter {
-      name   = "tag:Name"
-      values = [var.subnet_name]
-  }
-  vpc_id = data.aws_vpc.vpc.id
-}
-
-data "aws_security_group" "ssh_in" {
-  filter {
-      name   = "group-name"
-      values = [var.ssh_in_secgroup]
-  }
-  vpc_id = data.aws_vpc.vpc.id
-}
-
-data "aws_security_group" "egress" {
-  filter {
-      name   = "group-name"
-      values = [var.egress_secgroup]
-  }
-  vpc_id = data.aws_vpc.vpc.id
-}
-
-
-
 resource "aws_iam_role" "role" {
-  name = "${var.vm_name}-${var.vpc_name}-public_role"
-  path = "/"
+  name               = "${var.vm_name}-${var.vpc_name}-public_role"
+  path               = "/"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -107,12 +55,7 @@ resource "aws_instance" "cluster" {
   vpc_security_group_ids = [data.aws_security_group.ssh_in.id, data.aws_security_group.egress.id]
   subnet_id              = data.aws_subnet.public.id
   iam_instance_profile   = aws_iam_instance_profile.profile.name
-  root_block_device {
-    volume_size = var.volume_size
-    encrypted = true
-  }
-
-  user_data = <<EOF
+  user_data              = <<EOF
 #!/bin/bash 
 
 (
@@ -160,12 +103,18 @@ EOM
 ) 2>&1 | tee /var/log/gen3boot.log
   EOF
   
+  root_block_device {
+    volume_size = var.volume_size
+    encrypted   = true
+  }
+
   lifecycle {
     # Due to several known issues in Terraform AWS provider related to arguments of aws_instance:
     # (eg, https://github.com/terraform-providers/terraform-provider-aws/issues/2036)
     # we have to ignore changes in the following arguments
-    ignore_changes = ["private_ip", "root_block_device", "ebs_block_device", "user_data"]
+    ignore_changes = [private_ip, root_block_device, ebs_block_device, user_data]
   }
+
   tags = {
     Name        = "${var.vm_name}-${var.vpc_name}-public"
     Terraform   = "true"
@@ -177,4 +126,3 @@ resource "aws_eip" "ips" {
   instance = aws_instance.cluster.id
   vpc      = true
 }
-

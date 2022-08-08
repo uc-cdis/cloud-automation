@@ -1,4 +1,5 @@
-## Helper script for 'gen3 workon' - see ../README.md and ../gen3setup.sh
+#
+# Helper script for 'gen3 workon' - see ../README.md and ../gen3setup.sh
 #
 
 source "$GEN3_HOME/gen3/lib/utils.sh"
@@ -156,6 +157,10 @@ EOM
 fi
 
 cd "${GEN3_WORKDIR}/"
-gen3_log_info "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/ in $(pwd)"
-#gen3_terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" init --backend-config="${GEN3_WORKDIR}/backend.tfvars"
-gen3_terraform init --backend-config="${GEN3_WORKDIR}/backend.tfvars" "$GEN3_TFSCRIPT_FOLDER"
+if [[ ! -z $USE_TF_1 ]]; then
+  gen3_log_info "Running: terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" init --backend-config ./backend.tfvars in $(pwd)"
+  gen3_terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" init --backend-config="${GEN3_WORKDIR}/backend.tfvars"
+else
+  gen3_log_info "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/ in $(pwd)"
+  gen3_terraform init --backend-config="${GEN3_WORKDIR}/backend.tfvars" "$GEN3_TFSCRIPT_FOLDER"
+fi

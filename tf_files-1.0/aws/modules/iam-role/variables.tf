@@ -1,5 +1,3 @@
-
-
 variable "role_name" {
   description = "Name for the role to be created"
 }
@@ -22,4 +20,3 @@ variable "role_description" {
   description = "Description for the role"
   default     = ""
 }
-

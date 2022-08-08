@@ -28,7 +28,6 @@ variable "vpc_subnet_id" {
 
 variable "vpc_cidr_list" {
   description = "CIDRs that will skip the proxy"
-  type        = list
   default     = ["10.128.0.0/20", "54.0.0.0/8", "52.0.0.0/8"]
 }
 
@@ -54,33 +53,26 @@ variable "image_name_search_criteria" {
 
 variable "extra_vars" {
   description = "List of variables that terraform will send to the bootstrapscript"
-  type        = list
-  #default     = ["hostname=stuff","accountid=34534534534"]
 }
 
 variable "bootstrap_path" {
   description = "Path where the bootstrap script it'll run after user_data portion is complete"
-  #default     = "cloud-automation/flavors/nginx/"
 }
 
 variable "bootstrap_script" {
   description = "The actual bootstrap script"
-  #default     = "es_revproxy.sh"
 }
 
 variable "vm_name" {
   description = "Name for the VM"
-  #default     = "nginx_server"
 }
 
 variable "vm_hostname" {
   description = "Hostname for the VM"
-  #default = "csoc_nginx_server"
 }
 
 variable "proxy" {
   description = "if the VM is going to be behind a proxy"
-#  type        = "Boolean"
   default     = true
 }
 

@@ -1,7 +1,7 @@
 variable "bucket_name" {}
-variable "environment" {
-  # value for 'Environment' key to tag the new resources with
-}
+
+variable "environment" {}
+
 variable "cloud_trail_count" {
   # this variable is used to conditionally create a cloud trail
   # Using this module to create another bucket in the same "environment" with nonzero
@@ -12,5 +12,5 @@ variable "cloud_trail_count" {
 }
 
 locals {
-  clean_bucket_name = "${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
+  clean_bucket_name = replace(replace(var.bucket_name, "_", "-"),".", "-")
 }

@@ -69,7 +69,7 @@ gen3_tf_migrate_move_resources() {
   gen3 tform state mv module.cdis_alarms.module.alarms-lambda.aws_sns_topic_subscription.cloudwatch_lambda module.cdis_alarms[0].module.alarms-lambda.aws_sns_topic_subscription.cloudwatch_lambda
   gen3 tform state mv module.cdis_alarms.module.alarms-lambda.data.archive_file.cloudwatch_lambda module.cdis_alarms[0].module.alarms-lambda.data.archive_file.cloudwatch_lambda
   gen3 tform state mv module.cdis_alarms.module.alarms-lambda.data.aws_iam_policy_document.cloudwatch-lambda-policy module.cdis_alarms[0].module.alarms-lambda.data.aws_iam_policy_document.cloudwatch-lambda-policy
-  gen3 tform state mv module.eks.aws_autoscaling_group.eks_autoscaling_group module.eks[0].aws_autoscaling_group.eks_autoscaling_group
+  gen3 tform state mv module.eks.aws_autoscaling_group.eks_autoscaling_group module.eks[0].aws_autoscaling_group.eks_autoscaling_group[0]
   gen3 tform state mv module.eks.aws_cloudwatch_event_rule.gw_checks_rule module.eks[0].aws_cloudwatch_event_rule.gw_checks_rule[0]
   gen3 tform state mv module.eks.aws_cloudwatch_event_target.cw_to_lambda module.eks[0].aws_cloudwatch_event_target.cw_to_lambda[0]
   gen3 tform state mv module.eks.aws_cloudwatch_log_group.gwl_group module.eks[0].aws_cloudwatch_log_group.gwl_group[0]
@@ -97,7 +97,7 @@ gen3_tf_migrate_move_resources() {
   gen3 tform state mv module.eks.aws_iam_service_linked_role.autoscaling module.eks[0].aws_iam_service_linked_role.autoscaling
   gen3 tform state mv module.eks.aws_lambda_function.gw_checks module.eks[0].aws_lambda_function.gw_checks[0]
   gen3 tform state mv module.eks.aws_lambda_permission.allow_cloudwatch module.eks[0].aws_lambda_permission.allow_cloudwatch[0]
-  gen3 tform state mv module.eks.aws_launch_configuration.eks_launch_configuration module.eks[0].aws_launch_configuration.eks_launch_configuration
+  gen3 tform state mv module.eks.aws_launch_configuration.eks_launch_configuration module.eks[0].aws_launch_configuration.eks_launch_configuration[0]
   gen3 tform state mv module.eks.aws_route.for_peering module.eks[0].aws_route.for_peering
   gen3 tform state mv module.eks.aws_route_table_association.private_kube[0] module.eks[0].aws_route_table_association.private_kube[0]
   gen3 tform state mv module.eks.aws_route_table_association.private_kube[1] module.eks[0].aws_route_table_association.private_kube[1]
@@ -292,7 +292,6 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     fi
     case "$command" in
       "--old-workspace")
-	echo "$1"
         oldWorkspace="$1"
         ;;
       "--new-workspace")

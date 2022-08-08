@@ -2,8 +2,8 @@
 #Basics
 
 data "aws_caller_identity" "current" {}
-data "aws_region" "current" {}
 
+data "aws_region" "current" {}
 
 # Assuming that there is only one VPC with the vpc_name
 data "aws_vpc" "the_vpc" {
@@ -15,7 +15,6 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-
 # Let's grab the vpc we already created in the VPC module.
 data "aws_vpcs" "vpcs" {
   tags = {
@@ -23,10 +22,7 @@ data "aws_vpcs" "vpcs" {
   }
 }
 
-
 # Since we need to access the internet through the proxy, let's find it
-
-
 # Also we want to access AWS stuff directly though an existing 
 # nat gateway instead than going through the proxy
 data "aws_nat_gateway" "the_gateway" {
@@ -40,15 +36,12 @@ data "aws_nat_gateway" "the_gateway" {
 }
 
 # Also let's allow comminication through the peering
-
 data "aws_vpc_peering_connection" "pc" {
   vpc_id = data.aws_vpc.the_vpc.id
   status = "active"
 }
 
-
 # data resources for endpoints 
-
 data "aws_vpc_endpoint_service" "logs" {
   service = "logs"
 }
@@ -77,7 +70,6 @@ data "aws_vpc_endpoint_service" "sts" {
   service = "sts"
 }
 
-
 # get the route to public kube 
 data "aws_route_table" "public_kube" {
   vpc_id      = data.aws_vpc.the_vpc.id
@@ -86,10 +78,8 @@ data "aws_route_table" "public_kube" {
   }
 }
 
-
 # let's create a data source to fetch the latest Amazon Machine Image (AMI) that Amazon provides with
 # EKS compatible Kubernetes baked in.
-
 data "aws_ami" "eks_worker" {
   filter {
     name   = "name"
@@ -107,7 +97,6 @@ data "aws_security_group" "local_traffic" {
 }
 
 # we are going to use the same AZs used for the squid autoscaling group
-
 data "aws_autoscaling_group" "squid_auto" {
   count = var.ha_squid ? 1 : 0
   name  = "squid-auto-${var.vpc_name}"
@@ -119,7 +108,6 @@ data "aws_instances" "squid_proxy" {
     Name = "${var.vpc_name}${var.proxy_name}"
   }
 }
-
 
 # get the private kube table id
 data "aws_route_table" "private_kube_route_table" {

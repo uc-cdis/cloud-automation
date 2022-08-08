@@ -1,14 +1,8 @@
-variable "csoc_vpn_subnet"{
-  #default = "192.168.1.0/24"
-}
+variable "csoc_vpn_subnet"{}
 
-variable "csoc_vm_subnet"{
- # default = "10.128.2.0/24"
-}
+variable "csoc_vm_subnet"{}
 
-variable "vpn_server_subnet"{
- # default = "10.128.5.0/25"
-}
+variable "vpn_server_subnet"{}
 
 variable "env_vpc_id" {
   default = "vpc-e2b51d99"
@@ -24,7 +18,6 @@ variable "env_cloud_name" {
   default = "planxprod"
 }
 
-
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
   default = "099720109477"
@@ -38,14 +31,9 @@ variable "csoc_cidr" {
   default = "10.128.0.0/20"
 }
 
-
-
 variable "env_pub_subnet_routetable_id" {
-  #default = "rtb-23b6685f"
   default = "rtb-1cb66860"
 }
-
-
 
 variable "csoc_planx_dns_zone_id" {
   default = "ZG153R4AYDHHK"
@@ -56,7 +44,6 @@ variable "ssh_key_name" {
   default = "rarya_id_rsa"
 }
 
-
 ## variable for the bootstrap 
 variable "bootstrap_path" {
   default = "cloud-automation/flavors/vpn_nlb_central/"
@@ -66,19 +53,12 @@ variable "bootstrap_script" {
   default = "vpnvm.sh"
 }
 
-#variable "environment" {
-#  default = "CSOC"
-#}
-
-
 variable "csoc_account_id" {
   default = "433568766270"
 }
 
-
-
 variable "organization_name" {
-  default = "Basic Service"
+  default = "Basic Services"
 }
 
 variable "branch" {

@@ -1,12 +1,11 @@
 
 ## The actual data bucket
-
 resource "aws_s3_bucket" "data_bucket" {
   bucket = "${var.vpc_name}-data-bucket"
 
   tags = {
     Name        = "${var.vpc_name}-data-bucket"
-    Environment = "${var.environment}"
+    Environment = var.environment
     Purpose     = "data bucket"
   }
 }
@@ -27,11 +26,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "data_bucket" {
 }
 
 resource "aws_s3_bucket_logging" "data_bucket" {
-  bucket = aws_s3_bucket.data_bucket.id
+  bucket        = aws_s3_bucket.data_bucket.id
   target_bucket = aws_s3_bucket.log_bucket.id
   target_prefix = "log/${var.vpc_name}-data-bucket/"
 }
-
 
 resource "aws_s3_bucket_public_access_block" "data_bucket_privacy" {
   bucket                      = aws_s3_bucket.data_bucket.id
@@ -40,7 +38,6 @@ resource "aws_s3_bucket_public_access_block" "data_bucket_privacy" {
   ignore_public_acls          = true
   restrict_public_buckets     = true
 }
-
 
 ##create an event for SNS
 resource "aws_s3_bucket_notification" "bucket_notification" {
@@ -54,8 +51,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 
 ## Log bucket, where access to the avobe bucket will be logged
-
-
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "${var.vpc_name}-data-bucket-logs"
 
@@ -83,6 +78,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log_bucket" {
 
 resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
   bucket = aws_s3_bucket.log_bucket.bucket
+
   rule {
       status  = "Enabled"
       id      = "log"
@@ -106,11 +102,11 @@ resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
 
 
 resource "aws_s3_bucket_public_access_block" "data_bucket_logs_privacy" {
-  bucket                      = aws_s3_bucket.log_bucket.id
-  block_public_acls           = true
-  block_public_policy         = true
-  ignore_public_acls          = true
-  restrict_public_buckets     = true
+  bucket                  = aws_s3_bucket.log_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 
 ## We want could trail to put additional logs in this log bucket

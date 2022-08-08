@@ -1,4 +1,3 @@
-
 variable "alarm_actions" {
   description = "Action for when alarms go into and ALERT state"
   default = ["arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-for-bsd-security"]

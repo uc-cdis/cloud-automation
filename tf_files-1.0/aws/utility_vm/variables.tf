@@ -21,7 +21,6 @@ variable "vpc_subnet_id" {
 }
 
 variable "vpc_cidr_list" {
-  type = list
   default = ["10.128.0.0/20", "54.0.0.0/8", "52.0.0.0/8"]
 }
 
@@ -41,26 +40,15 @@ variable "image_name_search_criteria" {
   default = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
 }
 
-variable "extra_vars" {
-  type = list
-  #default = ["hostname=stuff","accountid=34534534534"]
-}
+variable "extra_vars" {}
 
-variable "bootstrap_path" {
-  #default = "cloud-automation/flavors/nginx/"
-}
+variable "bootstrap_path" {}
 
-variable "bootstrap_script" {
-  #default = "es_revproxy.sh"
-}
+variable "bootstrap_script" {}
 
-variable "vm_name" {
-  #default = "nginx_server"
-}
+variable "vm_name" {}
 
-variable "vm_hostname" {
-  #default = "csoc_nginx_server"
-}
+variable "vm_hostname" {}
 
 variable "proxy" {
   default = true

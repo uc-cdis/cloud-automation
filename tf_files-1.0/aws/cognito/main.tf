@@ -1,12 +1,17 @@
 terraform {
-  backend "s3" {}
+  backend "s3" {
+    encrypt = "true"
+  }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
 }
-
-provider "aws" {}
 
 resource "aws_cognito_user_pool" "pool" {
   name = "${var.vpc_name}_user_pool"
-
   tags = var.tags
 }
 
@@ -16,8 +21,6 @@ resource "aws_cognito_user_pool_domain" "main" {
   user_pool_id = aws_cognito_user_pool.pool.id
 }
 
-
-
 resource "aws_cognito_identity_provider" "provider" {
   user_pool_id      = aws_cognito_user_pool.pool.id
   provider_name     = var.cognito_provider_name
@@ -26,11 +29,9 @@ resource "aws_cognito_identity_provider" "provider" {
   provider_details  = var.cognito_provider_details
 }
 
-
 resource "aws_cognito_user_pool_client" "client" {
   name                                 = var.cognito_user_pool_name
   user_pool_id                         = aws_cognito_user_pool.pool.id
-
   callback_urls                        = var.cognito_callback_urls
   allowed_oauth_flows_user_pool_client = true
   generate_secret                      = true

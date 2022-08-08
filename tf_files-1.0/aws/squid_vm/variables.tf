@@ -5,26 +5,18 @@ variable "ami_account_id" {
 }
 
 #pass on the environment name
-variable "env_vpc_name" {
-  #default="csoc_main"
-}
+variable "env_vpc_name" {}
 
-variable "env_public_subnet_id" {
-  # default="subnet-da2c0a87"
-}
+variable "env_public_subnet_id" {}
 
 # name of aws_key_pair ssh key to attach to VM's
 variable "ssh_key_name" {
   default = "rarya_id_rsa"
 }
 
-variable "env_vpc_cidr" {
-  #default = "10.128.0.0/20"
-}
+variable "env_vpc_cidr" {}
 
-variable "env_vpc_id" {
-  #default = "vpc-e2b51d99"
-}
+variable "env_vpc_id" {}
 
 variable "instance_type" {
   description = "Instance type for the squid instance"

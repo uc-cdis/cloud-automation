@@ -1,4 +1,3 @@
-
 variable "vpc_name" {}
 
 variable "slack_webhook" {

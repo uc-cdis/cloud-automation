@@ -3,6 +3,7 @@
 #Basics
 
 data "aws_caller_identity" "current" {}
+
 data "aws_region" "current" {}
 
 data "aws_ami" "public_squid_ami" {
@@ -24,4 +25,30 @@ data "aws_ami" "public_squid_ami" {
 
   owners = [var.ami_account_id]
 
+}
+
+data "aws_iam_policy_document" "squid_policy_document" {
+  statement {
+    actions = [
+      "ec2:*",
+      "route53:*",
+      "autoscaling:*",
+      "sts:AssumeRole",
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:GetLogEvents",
+      "logs:PutLogEvents",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+      "logs:PutRetentionPolicy",
+    ]
+
+    effect    = "Allow"
+    resources = ["*"]
+  }
+  statement {
+    actions = ["s3:Get*","s3:List*"]
+    effect    = "Allow"
+    resources = ["arn:aws:s3:::qualys-agentpackage", "arn:aws:s3:::qualys-agentpackage/*"]
+  }
 }

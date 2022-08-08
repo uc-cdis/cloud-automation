@@ -10,22 +10,19 @@ locals{
 # FOR PROD ENVIRONMENT:
 
 resource "aws_subnet" "squid_pub0" {
-  count                   = length(var.squid_availability_zones)
-  vpc_id                  = var.env_vpc_id
-  cidr_block              = var.network_expansion ? cidrsubnet(var.squid_proxy_subnet,2,count.index) : cidrsubnet(var.squid_proxy_subnet,3,count.index )
-  availability_zone       = var.squid_availability_zones[count.index]
-  tags                    = tomap({"Name" = "${var.env_squid_name}_pub${count.index}", "Organization" = var.organization_name, "Environment" = var.env_squid_name})
+  count             = length(var.squid_availability_zones)
+  vpc_id            = var.env_vpc_id
+  cidr_block        = var.network_expansion ? cidrsubnet(var.squid_proxy_subnet,2,count.index) : cidrsubnet(var.squid_proxy_subnet,3,count.index )
+  availability_zone = var.squid_availability_zones[count.index]
+  tags              = tomap({"Name" = "${var.env_squid_name}_pub${count.index}", "Organization" = var.organization_name, "Environment" = var.env_squid_name})
 }
-
-
 
 # Instance profile role and policies, we need the proxy to be able to talk to cloudwatchlogs groups
 #
 ##########################
 resource "aws_iam_role" "squid-auto_role" {
-  name  = "${var.env_squid_name}_role"
-  path  = "/"
-
+  name               = "${var.env_squid_name}_role"
+  path               = "/"
   assume_role_policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -43,7 +40,6 @@ resource "aws_iam_role" "squid-auto_role" {
 EOF
 }
 
-
 resource "aws_iam_role_policy" "squid_policy" {
   name   = "${var.env_squid_name}_policy"
   policy = data.aws_iam_policy_document.squid_policy_document.json
@@ -59,35 +55,6 @@ resource "aws_iam_role_policy_attachment" "eks-policy-AmazonSSMManagedInstanceCo
 resource "aws_iam_instance_profile" "squid-auto_role_profile" {
   name = "${var.env_vpc_name}_squid-auto_role_profile"
   role = aws_iam_role.squid-auto_role.id
-}
-
-data "aws_iam_policy_document" "squid_policy_document" {
-  statement {
-    actions = [
-      "ec2:*",
-      "route53:*",
-      "autoscaling:*",
-      "sts:AssumeRole",
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:GetLogEvents",
-      "logs:PutLogEvents",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
-      "logs:PutRetentionPolicy",
-    ]
-
-    effect    = "Allow"
-    resources = ["*"]
-  }
-  statement {
-    actions = [
-      "s3:Get*",
-      "s3:List*"
-    ]
-    effect    = "Allow"
-    resources = ["arn:aws:s3:::qualys-agentpackage", "arn:aws:s3:::qualys-agentpackage/*"]
-  }
 }
 
 ##################
@@ -110,13 +77,7 @@ resource "aws_launch_configuration" "squid_auto" {
   key_name                    = var.ssh_key_name
   iam_instance_profile        = aws_iam_instance_profile.squid-auto_role_profile.id
   associate_public_ip_address = true
-  root_block_device {
-    volume_size = var.squid_instance_drive_size
-  }
-
-
-
-user_data = <<EOF
+  user_data                   = <<EOF
 #!/bin/bash
 DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
 USER="ubuntu"
@@ -177,11 +138,15 @@ CLOUD_AUTOMATION="$USER_HOME/cloud-automation"
 ) > /var/log/bootstrapping_script.log
 EOF
 
-lifecycle {
+  root_block_device {
+    volume_size = var.squid_instance_drive_size
+  }
+
+  lifecycle {
     create_before_destroy = true
   }
-  depends_on = [aws_iam_instance_profile.squid-auto_role_profile]
 
+  depends_on = [aws_iam_instance_profile.squid-auto_role_profile]
 }
 
 resource "null_resource" "service_depends_on" {
@@ -221,17 +186,18 @@ resource "aws_autoscaling_group" "squid_auto" {
   vpc_zone_identifier     = aws_subnet.squid_pub0.*.id
   launch_configuration    = aws_launch_configuration.squid_auto.name
   depends_on              = [null_resource.service_depends_on, aws_route_table_association.squid_auto0]
+
   tag {
     key                 = "Name"
     value               = "${var.env_squid_name}-grp-member"
     propagate_at_launch = true
   }
+
   tag {
     key                 = "Environment"
     value               = var.organization_name
     propagate_at_launch = true
   }
-
 }
 
 

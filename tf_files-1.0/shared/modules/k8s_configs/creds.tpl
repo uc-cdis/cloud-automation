@@ -30,7 +30,7 @@
         "fence_username": "${fence_user}",
         "fence_password": "${fence_pwd}",
         "fence_database": "${fence_db}",
-        "db_host": "${sheepdog_host}",
+        "db_host": "${peregrine_host}",
         "db_username": "peregrine",
         "db_password": "${peregrine_pwd}",
         "db_database": "${sheepdog_db}",

@@ -3,21 +3,24 @@ terraform {
     encrypt = "true"
   }
   required_providers {
-    aws = "~> 2.41"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
   }
 }
 
-provider "aws" {}
-
-
-
 resource "aws_s3_bucket" "sftp_bucket" {
   bucket = var.s3_bucket_name
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm     = "AES256"
-      }
+}
+
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "sftp_bucket" {
+  bucket = aws_s3_bucket.data_bucket.sftp_bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
 }
@@ -74,9 +77,9 @@ resource "aws_transfer_server" "sftp_server" {
 }
 
 resource "aws_transfer_user" "sftp_user" {
-  server_id = aws_transfer_server.sftp_server.id
-  user_name = "sftp_user"
-  role      = aws_iam_role.sftp_role.arn
+  server_id      = aws_transfer_server.sftp_server.id
+  user_name      = "sftp_user"
+  role           = aws_iam_role.sftp_role.arn
   home_directory = "/${aws_s3_bucket.sftp_bucket.bucket}/sftp_user"
 }
 

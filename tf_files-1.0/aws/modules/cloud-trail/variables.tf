@@ -1,19 +1,9 @@
-variable "vpc_name" {
+variable "vpc_name" {}
 
-}
+variable "environment" {}
 
-variable "environment" {
-  
-}
+variable "cloudwatchlogs_group" {}
 
-variable "cloudwatchlogs_group" {
-  
-}
+variable "bucket_arn" {}
 
-variable "bucket_arn" {
-  
-}
-
-variable "bucket_id" {
-  
-}
+variable "bucket_id" {}

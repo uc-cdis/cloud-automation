@@ -1,138 +1,158 @@
-# Inject credentials via the AWS_PROFILE environment variable and shared credentials file
-# and/or EC2 metadata service
 terraform {
   backend "s3" {
     encrypt = "true"
   }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
 }
-
-# Inject credentials via the AWS_PROFILE environment variable and shared credentials file and/or EC2 metadata service
-#
-provider "aws" {}
 
 
 resource "aws_instance" "storage-gw-server" {
   # Need to get the ami in var for now
-  ami = "${var.ami_id}"
-  instance_type = "m4.xlarge"
+  ami                         = var.ami_id
+  instance_type               = "m4.xlarge"
   associate_public_ip_address = false
   # Need to provide subnet in var for now
-  subnet_id = "${data.aws_subnet.public_kube.id}"
-  key_name  = "${var.key_name}"
-  vpc_security_group_ids = ["${aws_security_group.storage-gateway-sg.id}"]
+  subnet_id                   = data.aws_subnet.public_kube.id
+  key_name                    = var.key_name
+  vpc_security_group_ids      = [aws_security_group.storage-gateway-sg.id]
+
   root_block_device {
     # Get volume size from var permanently
-    volume_size = "${var.size}"
+    volume_size = var.size
     volume_type = "gp2"
     encrypted   = true
   }
-  # add tags later
+
+  tags = {
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+  } 
 }
 
 resource "aws_ebs_volume" "cache-disk" {
-  availability_zone = "${aws_instance.storage-gw-server.availability_zone}"
+  availability_zone = aws_instance.storage-gw-server.availability_zone
   # Get volume size from var permanently
-  size = "${var.cache_size}"
-  encrypted = true
-  type = "gp2"
-  # add tags later
+  size              = var.cache_size
+  encrypted         = true
+  type              = "gp2"
+
+  tags = {
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+  } 
 }
 
 resource "aws_volume_attachment" "disk-attach" {
-  device_name = "/dev/xvdb"
-  volume_id = "${aws_ebs_volume.cache-disk.id}"
-  instance_id = "${aws_instance.storage-gw-server.id}"
+  device_name  = "/dev/xvdb"
+  volume_id    = aws_ebs_volume.cache-disk.id
+  instance_id  = aws_instance.storage-gw-server.id
   force_detach = true
 }
 
 resource "aws_security_group" "storage-gateway-sg" {
-  name = "storage-gateway-sg"
-  vpc_id = "${data.aws_vpc.the_vpc.id}"
+  name   = "storage-gateway-sg"
+  vpc_id = data.aws_vpc.the_vpc.id
+  
   # Add tags later
   ingress {
-    protocol = "tcp"
-    from_port = 80
-    to_port = 80
+    protocol    = "tcp"
+    from_port   = 80
+    to_port     = 80
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    protocol = "tcp"
-    from_port = 20048
-    to_port = 20048
+    protocol    = "tcp"
+    from_port   = 20048
+    to_port     = 20048
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    protocol = "udp"
-    from_port = 20048
-    to_port = 20048
+    protocol    = "udp"
+    from_port   = 20048
+    to_port     = 20048
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    protocol = "tcp"
-    from_port = 22
-    to_port = 22
+    protocol    = "tcp"
+    from_port   = 22
+    to_port     = 22
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    protocol = "tcp"
-    from_port = 111
-    to_port = 111
+    protocol    = "tcp"
+    from_port   = 111
+    to_port     = 111
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    protocol = "udp"
-    from_port = 111
-    to_port = 111
+    protocol    = "udp"
+    from_port   = 111
+    to_port     = 111
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    protocol = "tcp"
-    from_port = 2049
-    to_port = 2049
+    protocol    = "tcp"
+    from_port   = 2049
+    to_port     = 2049
     cidr_blocks = ["0.0.0.0/0"]
   }
   ingress {
-    protocol = "udp"
-    from_port = 2049
-    to_port = 2049
+    protocol    = "udp"
+    from_port   = 2049
+    to_port     = 2049
     cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
-    protocol = "tcp"
-    from_port = 0
-    to_port = 65535
+    protocol    = "tcp"
+    from_port   = 0
+    to_port     = 65535
     cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
-    protocol = "udp"
-    from_port = 0
-    to_port = 65535
+    protocol    = "udp"
+    from_port   = 0
+    to_port     = 65535
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+  } 
 }
 
 resource "aws_storagegateway_gateway" "storage-gateway" {
-  gateway_ip_address = "${aws_instance.storage-gw-server.private_ip}"
-  gateway_name = "storage-gateway"
-  gateway_timezone = "GMT"
-  gateway_type = "FILE_S3"
-}
+  gateway_ip_address = aws_instance.storage-gw-server.private_ip
+  gateway_name       = "storage-gateway"
+  gateway_timezone   = "GMT"
+  gateway_type       = "FILE_S3"
 
-data "aws_storagegateway_local_disk" "storage-gateway-data" {
-  disk_path = "${aws_volume_attachment.disk-attach.device_name}"
-  gateway_arn = "${aws_storagegateway_gateway.storage-gateway.arn}"
+  tags = {
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+  } 
 }
 
 resource "aws_storagegateway_cache" "storage-gateway-cache" {
-  disk_id = "${data.aws_storagegateway_local_disk.storage-gateway-data.id}"
-  gateway_arn = "${aws_storagegateway_gateway.storage-gateway.arn}"
+  disk_id     = data.aws_storagegateway_local_disk.storage-gateway-data.id
+  gateway_arn = aws_storagegateway_gateway.storage-gateway.arn
 }
 
 resource "aws_storagegateway_nfs_file_share" "nfs_share" {
-  client_list = ["0.0.0.0/0"]
-  gateway_arn = "${aws_storagegateway_gateway.storage-gateway.arn}"
-  location_arn = "${aws_s3_bucket.transfer-bucket.arn}"
-  role_arn = "${aws_iam_role.transfer-role.arn}"
+  client_list  = ["0.0.0.0/0"]
+  gateway_arn  = aws_storagegateway_gateway.storage-gateway.arn
+  location_arn = aws_s3_bucket.transfer-bucket.arn
+  role_arn     = aws_iam_role.transfer-role.arn
+
+  tags = {
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+  }  
 }
 
 resource "aws_iam_role" "transfer-role" {
@@ -152,12 +172,17 @@ resource "aws_iam_role" "transfer-role" {
   ]
 }
 EOF
+
+  tags = {
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+  } 
 }
 
 resource "aws_iam_policy" "transfer-policy-sg" {
-  name = "transfer-policy-sg"
+  name        = "transfer-policy-sg"
   description = "Allows access to storage gateway"
-  policy = <<EOF
+  policy      = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -194,22 +219,33 @@ EOF
 }
 
 resource "aws_iam_policy_attachment" "attach-policies" {
-  name = "storageGW-attachment"
-  roles = ["${aws_iam_role.transfer-role.name}"]
-  policy_arn = "${aws_iam_policy.transfer-policy-sg.arn}"
+  name       = "storageGW-attachment"
+  roles      = [aws_iam_role.transfer-role.name]
+  policy_arn = aws_iam_policy.transfer-policy-sg.arn
   depends_on = ["aws_iam_policy.transfer-policy-sg"]
 }
 
 
 resource "aws_s3_bucket" "transfer-bucket" {
-  bucket = "${var.s3_bucket}"
-  acl    = "private"
+  bucket = var.s3_bucket
 
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "AES256"
-      }
+  tags = {
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+  } 
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "transfer-bucket" {
+  bucket = aws_s3_bucket.data_bucket.transfer-bucket
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
     }
   }
+}
+
+resource "aws_s3_bucket_acl" "data_bucket" {
+  bucket = aws_s3_bucket.data_bucket.transfer-bucket
+  acl    = "private"
 }

@@ -1,8 +1,3 @@
-
-
-
-
-
 output "zone_zid" {
   value = aws_route53_zone.main.zone_id
 }
@@ -31,11 +26,9 @@ output "gateway_id" {
   value = aws_internet_gateway.gw.id
 }
 
-
 output "public_subnet_id" {
   value = aws_subnet.public.id
 }
-
 
 output "security_group_local_id" {
   value = aws_security_group.local.id

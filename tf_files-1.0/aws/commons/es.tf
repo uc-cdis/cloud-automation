@@ -1,6 +1,6 @@
 module "commons_vpc_es" {
-  count                   = var.deploy_es ? 1 : 0
   source                  = "../modules/commons-vpc-es"
+  count                   = var.deploy_es ? 1 : 0
   vpc_name                = "${var.vpc_name}"
   slack_webhook           = "${var.slack_webhook}"
   secondary_slack_webhook = "${var.secondary_slack_webhook}"

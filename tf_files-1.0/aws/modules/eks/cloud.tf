@@ -64,13 +64,10 @@ module "workflow_pool" {
   customer_id                   = var.customer_id
 }
 
-
-
 ## First thing we need to create is the role that would spin up resources for us
 
 resource "aws_iam_role" "eks_control_plane_role" {
-  name = "${var.vpc_name}_EKS_role"
-
+  name               = "${var.vpc_name}_EKS_role"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -105,27 +102,24 @@ resource "aws_iam_role_policy_attachment" "bucket_write" {
   role       = aws_iam_role.eks_control_plane_role.name
 }
 
-
-
 resource "random_shuffle" "az" {
-  #input = ["${data.aws_autoscaling_group.squid_auto.availability_zones}"]
-  #input = ["${data.aws_availability_zones.available.names}"]
-  #input = "${length(var.availability_zones) > 0 ? var.availability_zones : data.aws_autoscaling_group.squid_auto.availability_zones }"
-  #input = "${var.availability_zones}"
+  count = 1
   input = local.azs
   result_count = length(local.azs)
-  count = 1
 }
-
 
 # The subnet where our cluster will live in
 resource "aws_subnet" "eks_private" {
   count                   = random_shuffle.az[0].result_count
   vpc_id                  = data.aws_vpc.the_vpc.id
-  #cidr_block              = "${var.workers_subnet_size == 23 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 3 , ( 2 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index )) }"
   cidr_block              = var.workers_subnet_size == 22 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 2 , ( 1 + count.index )) : var.workers_subnet_size == 23 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 3 , ( 2 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index )) 
   availability_zone       = random_shuffle.az[0].result[count.index]
   map_public_ip_on_launch = false
+
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = [tags, availability_zone]
+  }  
 
   tags = tomap({
      "Name": "eks_private_${count.index}",
@@ -133,11 +127,6 @@ resource "aws_subnet" "eks_private" {
      "Organization": var.organization_name,
      "kubernetes.io/cluster/${var.vpc_name}": "owned",
      "kubernetes.io/role/internal-elb": "1"})
-
-  lifecycle {
-    # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = [tags, availability_zone]
-  }
 }
 
 # The subnet for secondary CIDR block utilization
@@ -148,6 +137,11 @@ resource "aws_subnet" "eks_secondary_subnet" {
   availability_zone       = random_shuffle.az[0].result[count.index]
   map_public_ip_on_launch = false
 
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = [tags, availability_zone]
+  }  
+
   tags = tomap({
      "Name": "eks_secondary_cidr_subnet",
      "Environment": var.vpc_name,
@@ -155,24 +149,21 @@ resource "aws_subnet" "eks_secondary_subnet" {
      "kubernetes.io/cluster/${var.vpc_name}": "owned",
      "kubernetes.io/role/internal-elb": "1"
     })
-
-  lifecycle {
-    # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = [tags, availability_zone]
-  }
 }
 
 
 # for the ELB to talk to the worker nodes
 resource "aws_subnet" "eks_public" {
-  #count                   = 3
   count                   = random_shuffle.az[0].result_count
   vpc_id                  = data.aws_vpc.the_vpc.id
   cidr_block              = var.workers_subnet_size == 22 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 5 , ( 4 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 10 + count.index ))
   map_public_ip_on_launch = true
   availability_zone       = random_shuffle.az[0].result[count.index]
 
-  # Note: KubernetesCluster tag is required by kube-aws to identify the public subnet for ELBs
+  lifecycle {
+    # allow user to change tags interactively - ex - new kube-aws cluster
+    ignore_changes = [tags, availability_zone]
+  }  
 
   tags = tomap({
      "Name": "eks_public_${count.index}",
@@ -182,25 +173,20 @@ resource "aws_subnet" "eks_public" {
      "kubernetes.io/role/elb": "1",
      "KubernetesCluster": "${var.vpc_name}",
     })
-
-  lifecycle {
-    # allow user to change tags interactively - ex - new kube-aws cluster
-    ignore_changes = [tags, availability_zone]
-  }
 }
 
 
 resource "aws_route_table" "eks_private" {
   vpc_id = data.aws_vpc.the_vpc.id
 
+  lifecycle {
+    #ignore_changes = ["*"]
+  }  
+
   tags = {
     Name         = "eks_private"
     Environment  = var.vpc_name
     Organization = var.organization_name
-  }
-
-  lifecycle {
-    #ignore_changes = ["*"]
   }
 }
 
@@ -224,7 +210,7 @@ resource "aws_route" "public_access" {
   count                  = var.ha_squid ? var.dual_proxy ? 1 : 0 : 1
   destination_cidr_block = "0.0.0.0/0"
   route_table_id         = aws_route_table.eks_private.id
-  network_interface_id            = data.aws_instances.squid_proxy[count.index].ids[0]
+  network_interface_id   = data.aws_instances.squid_proxy[count.index].ids[0]
 }
 
 resource "aws_route_table_association" "private_kube" {
@@ -310,12 +296,7 @@ resource "aws_eks_cluster" "eks_cluster" {
 ## Role
 
 resource "aws_iam_role" "eks_node_role" {
-  name = "eks_${var.vpc_name}_workers_role"
-  tags = {
-    Environment  = var.vpc_name
-    Organization = var.organization_name
-  }
-
+  name               = "eks_${var.vpc_name}_workers_role"
   assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -330,6 +311,11 @@ resource "aws_iam_role" "eks_node_role" {
   ]
 }
 POLICY
+
+  tags = {
+    Environment  = var.vpc_name
+    Organization = var.organization_name
+  }
 }
 
 
@@ -338,7 +324,7 @@ POLICY
 resource "aws_iam_policy" "cwl_access_policy" {
     name        = "${var.vpc_name}_EKS_workers_access_to_cloudwatchlogs"
     description = "In order to avoid the creation of users and keys, we are using roles and policies."
-    policy = <<EOF
+    policy      = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -366,7 +352,7 @@ EOF
 resource "aws_iam_policy" "asg_access" {
     name        = "${var.vpc_name}_EKS_workers_autoscaling_access"
     description = "Allow the deployment cluster-autoscaler to add or terminate instances accordingly"
-    policy = <<EOF
+    policy      = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -541,6 +527,7 @@ resource "aws_security_group_rule" "workflow_nodes_interpool_communications" {
 
 
 resource "aws_launch_configuration" "eks_launch_configuration" {
+  count                       = var.enable_on_demand_instances ? 1 : 0
   associate_public_ip_address = false
   iam_instance_profile        = aws_iam_instance_profile.eks_node_instance_profile.name
   image_id                    = local.ami
@@ -557,6 +544,31 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   lifecycle {
     create_before_destroy = true
     #ignore_changes  = ["user_data_base64"]
+  }
+}
+
+resource "aws_launch_template" "eks_launch_template" {
+  count                                = var.enable_spot_instances ? 1 : 0
+  name                                 = "eks-${var.vpc_name}-launch-configuration"
+  instance_type                        = var.instance_type
+  image_id                             = local.ami
+  key_name                             = var.ec2_keyname
+  #vpc_security_group_ids              = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
+  user_data                            = base64encode(data.template_file.bootstrap.rendered)
+  instance_initiated_shutdown_behavior = "terminate"
+  block_device_mappings {
+    device_name = "/dev/sda1"
+
+    ebs {
+      volume_size = var.worker_drive_size
+    }
+  }
+  network_interfaces {
+    associate_public_ip_address = false
+    security_groups             = [aws_security_group.eks_nodes_sg.id, aws_security_group.ssh.id]
+  }
+  iam_instance_profile {
+    name = aws_iam_instance_profile.eks_node_instance_profile.name
   }
 }
 
@@ -577,6 +589,7 @@ resource "aws_kms_grant" "kms" {
 }
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
+  count                   = var.enable_on_demand_instances ? 1 : 0
   service_linked_role_arn = aws_iam_service_linked_role.autoscaling.arn
   desired_capacity        = 2
   launch_configuration    = aws_launch_configuration.eks_launch_configuration.id
@@ -627,6 +640,68 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
   }
 }
 
+resource "aws_autoscaling_group" "eks_mixed_autoscaling_group" {
+  count                   = var.enable_spot_instances ? 1 : 0
+  capacity_rebalance      = true
+  service_linked_role_arn = aws_iam_service_linked_role.autoscaling.arn
+  desired_capacity        = 2
+  max_size                = 10
+  min_size                = 2
+  name                    = "eks-mixed-worker-node-${var.vpc_name}"
+  vpc_zone_identifier     = [aws_subnet.eks_private.*.id]
+
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_base_capacity                  = var.minimum_on_demand_nodes
+      spot_allocation_strategy                 = "lowest-price"
+    }
+
+    launch_template {
+      launch_template_specification {
+        launch_template_id = aws_launch_template.eks_launch_template.id
+        version = "$Latest"
+      }
+    }
+  }
+
+  tag {
+    key                 = "Environment"
+    value               = "${var.vpc_name}"
+    propagate_at_launch = true
+  }
+  tag {
+    key                 = "Name"
+    value               = "eks-${var.vpc_name}"
+    propagate_at_launch = true
+  }
+  tag {
+    key                 = "kubernetes.io/cluster/${var.vpc_name}"
+    value               = "owned"
+    propagate_at_launch = true
+  }
+  tag {
+    key                 = "k8s.io/cluster-autoscaler/enabled"
+    value               = ""
+    propagate_at_launch = true
+  }
+  tag {
+    key                 = "k8s.io/cluster-type/eks"
+    value               = ""
+    propagate_at_launch = true
+  }
+  tag {
+    key                 = "k8s.io/nodepool/default"
+    value               = ""
+    propagate_at_launch = true
+  }
+# Avoid unnecessary changes for existing commons running on EKS
+  lifecycle {
+    ignore_changes = [desired_capacity,max_size,min_size]
+  }
+
+  depends_on     = [aws_launch_template.eks_launch_template]
+}
+
 
 # Let's allow ssh just in case
 resource "aws_security_group" "ssh" {
@@ -639,7 +714,6 @@ resource "aws_security_group" "ssh" {
     to_port     = 22
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
-    #cidr_blocks = ["${data.aws_vpc.the_vpc.cidr_block}"]
   }
 
   tags = {
@@ -717,8 +791,8 @@ CONFIGMAPAWSAUTH2
 #
 resource "null_resource" "config_setup" {
    triggers = {
-    kubeconfig_change  =   templatefile("${path.module}/kubeconfig.tpl", {vpc_name = var.vpc_name, eks_name = aws_eks_cluster.eks_cluster.id, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_cert = aws_eks_cluster.eks_cluster.certificate_authority.0.data,})
-    configmap_change   = local.config-map-aws-auth
+    kubeconfig_change = templatefile("${path.module}/kubeconfig.tpl", {vpc_name = var.vpc_name, eks_name = aws_eks_cluster.eks_cluster.id, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_cert = aws_eks_cluster.eks_cluster.certificate_authority.0.data,})
+    configmap_change  = local.config-map-aws-auth
   }
 
   provisioner "local-exec" {
@@ -740,17 +814,13 @@ resource "null_resource" "config_setup" {
   depends_on = [aws_autoscaling_group.eks_autoscaling_group]
 }
 
-
-
 #--------------------------------------------------------------
 # let's work towards EKS IAM-ServiceAccount integration
 
 resource "aws_iam_openid_connect_provider" "identity_provider" {
   count              = "${var.iam-serviceaccount ? var.eks_version == "1.12" ? 0 : 1 : 0}"
   url             = "${aws_eks_cluster.eks_cluster.identity.0.oidc.0.issuer}"
-
   client_id_list  = ["sts.amazonaws.com"]
   thumbprint_list = "${var.oidc_eks_thumbprint}"
   depends_on      = [aws_eks_cluster.eks_cluster]
 }
-

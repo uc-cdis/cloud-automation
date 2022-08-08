@@ -13,14 +13,17 @@ resource "aws_cloudwatch_metric_alarm" "fence_db_alarm" {
   alarm_description         = "fence db for ${var.vpc_name} storage usage over ${var.alarm_threshold}"
   insufficient_data_actions = []
   alarm_actions             = [module.alarms-lambda.sns-topic]
+
   metric_query {
     id = "storageSpacePercentage"
     expression = "100 - freeDiskSpace/(${var.db_fence_size}*10000000)"
     label = "Free Disk Space fence ${var.vpc_name}"
     return_data = "true"
   }
+
   metric_query {
     id = "freeDiskSpace"
+
     metric {
       metric_name = "FreeStorageSpace"
       namespace   = "AWS/RDS"
@@ -41,14 +44,17 @@ resource "aws_cloudwatch_metric_alarm" "sheepdog_db_alarm" {
   alarm_description         = "sheepdog db for ${var.vpc_name} storage usage over ${var.alarm_threshold}"
   insufficient_data_actions = []
   alarm_actions             = [module.alarms-lambda.sns-topic]
+
   metric_query {
     id = "storageSpacePercentage"
     expression = "100 - freeDiskSpace/(${var.db_sheepdog_size}*10000000)"
     label = "Free Disk Space sheepdog ${var.vpc_name}"
     return_data = "true"
   }
+
   metric_query {
     id = "freeDiskSpace"
+
     metric {
       metric_name = "FreeStorageSpace"
       namespace   = "AWS/RDS"
@@ -69,20 +75,23 @@ resource "aws_cloudwatch_metric_alarm" "indexd_db_alarm" {
   alarm_description         = "indexd db for ${var.vpc_name} storage usage over ${var.alarm_threshold}"
   insufficient_data_actions = []
   alarm_actions             = [module.alarms-lambda.sns-topic]
+
   metric_query {
-    id = "storageSpacePercentage"
-    expression = "100 - freeDiskSpace/(${var.db_indexd_size}*10000000)"
-    label = "Free Disk Space indexd ${var.vpc_name}"
+    id          = "storageSpacePercentage"
+    expression  = "100 - freeDiskSpace/(${var.db_indexd_size}*10000000)"
+    label       = "Free Disk Space indexd ${var.vpc_name}"
     return_data = "true"
   }
+
   metric_query {
     id = "freeDiskSpace"
+    
     metric {
       metric_name = "FreeStorageSpace"
       namespace   = "AWS/RDS"
       period      = "120"
       stat        = "Average"
-      dimensions = {
+      dimensions  = {
         DBInstanceIdentifier = var.db_indexd,
       }
     }

@@ -17,23 +17,23 @@ resource "aws_cloudtrail" "logger_trail" {
       values = ["${var.bucket_arn}/"]
     }
   }
-  tags = {
-    Name        = "${var.vpc_name}_data-bucket"
-    Environment = var.environment
-    Purpose     = "trail_for_${var.vpc_name}_data_bucket"
-  }
 
   lifecycle {
     ignore_changes = all
   }
+  
+  tags = {
+    Name        = "${var.vpc_name}_data-bucket"
+    Environment = var.environment
+    Purpose     = "trail_for_${var.vpc_name}_data_bucket"
+  }  
 }
 
 ## CloudwatchLog access
 
 resource "aws_iam_role" "cloudtrail_to_cloudwatch_writer" {
-  name = "${var.vpc_name}_data-bucket_ct_to_cwl_writer"
-  path = "/"
-
+  name               = "${var.vpc_name}_data-bucket_ct_to_cwl_writer"
+  path               = "/"
   assume_role_policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -49,21 +49,6 @@ resource "aws_iam_role" "cloudtrail_to_cloudwatch_writer" {
     ]
 }
 EOF
-}
-
-data "aws_iam_policy_document" "trail_policy" {
-  statement {
-    effect    = "Allow"
-
-    actions = [
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-    ]
-
-    #resources = ["${data.aws_cloudwatch_log_group.logs_destination.arn}"]
-    resources = [var.cloudwatchlogs_group]
-  }
-
 }
 
 resource "aws_iam_policy" "trail_writer" {

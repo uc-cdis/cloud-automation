@@ -2,10 +2,13 @@ terraform {
   backend "s3" {
     encrypt = "true"
   }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
 }
-
-provider "aws" {}
-
 
 module "commons_vpc_es" {
   count                   = var.deploy_es ? 1 : 0

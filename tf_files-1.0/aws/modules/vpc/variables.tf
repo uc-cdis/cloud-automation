@@ -9,7 +9,6 @@ variable "vpc_cidr_block" {
   default = "172.24.17.0/20"
 }
 
-
 variable "secondary_cidr_block" {
   default = ""
 }
@@ -61,7 +60,6 @@ variable "squid_instance_drive_size" {
   default     = 8
 }
 
-
 variable "squid_instance_type" {
   description = "Instance type for HA squid instances"
   default     = "t3.medium"
@@ -79,7 +77,6 @@ variable  "deploy_single_proxy" {
 
 variable "squid_extra_vars" {
   description = "additional variables to pass along with the bootstrapscript"
-  #default     = ["squid_image=master"]
 }
 
 variable "branch" {
@@ -89,7 +86,6 @@ variable "branch" {
 
 variable "fence-bot_bucket_access_arns" {
   description = "When fence bot has to access another bucket that wasn't created by the VPC module"
-  #default     = []
 }
 
 variable "deploy_ha_squid" {

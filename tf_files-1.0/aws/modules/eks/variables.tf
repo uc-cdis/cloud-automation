@@ -1,4 +1,3 @@
-
 variable "vpc_name" {}
 
 variable "ec2_keyname" {
@@ -36,7 +35,7 @@ variable "worker_drive_size" {
 }
 
 variable "eks_version" {
-  default = "1.16"
+  default = "1.21"
 }
 
 variable "workers_subnet_size" {
@@ -139,7 +138,6 @@ variable "deploy_jupyter" {
 
 variable "dual_proxy" {
   description = "Single instance and HA"
-  #default     = false
 }
 
 variable "single_az_for_jupyter" {
@@ -174,3 +172,16 @@ variable "fips_ami_kms" {
 variable "fips_enabled_ami" {
   default = "ami-0de87e3680dcb13ec"
 }
+
+# The minimum amount of on demand nodes
+variable "minimum_on_demand_nodes" {
+  default = 3
+}
+
+variable "enable_spot_instances" {
+  default = false
+}
+
+variable "enable_on_demand_instances" {
+  default = true
+} 

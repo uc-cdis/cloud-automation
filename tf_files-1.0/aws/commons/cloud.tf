@@ -12,11 +12,13 @@ terraform {
   }
 }
 
-# Inject credentials via the AWS_PROFILE environment variable and shared credentials file and/or EC2 metadata service
-#
-provider "aws" {}
+locals{
+  db_fence_address = var.deploy_aurora ? module.aurora[0].aws_rds_cluster.postgresql.endpoint : var.deploy_fence_db && var.deploy_rds ? aws_db_instance.db_fence[0].address : ""
+  db_indexd_address = var.deploy_aurora ? module.aurora[0].aws_rds_cluster.postgresql.endpoint : var.deploy_indexd_db && var.deploy_rds ? aws_db_instance.db_indexd[0].address : ""
+  db_sheepdog_address = var.deploy_aurora ? module.aurora[0].aws_rds_cluster.postgresql.endpoint : var.deploy_sheepdog_db && var.deploy_rds ? aws_db_instance.db_sheepdog[0].address : ""
+  db_peregrine_address = var.deploy_aurora ? module.aurora[0].aws_rds_cluster.postgresql.endpoint : var.deploy_sheepdog_db && var.deploy_rds ? aws_db_instance.db_sheepdog[0].address : ""
+}
 
-#done
 module "cdis_vpc" {
   source                         = "../modules/vpc"
   ami_account_id                 = var.ami_account_id
@@ -52,7 +54,6 @@ module "cdis_vpc" {
 }
 
 # logs bucket for elb logs
-#done
 module "elb_logs" {
   source          = "../modules/s3-logs"
   log_bucket_name = "logs-${var.vpc_name}-gen3"
@@ -60,22 +61,21 @@ module "elb_logs" {
 }
 
 
-#done
 module "config_files" {
   source                        = "../../shared/modules/k8s_configs"
   vpc_name                      = var.vpc_name
-  db_fence_address              = var.deploy_fence_db ? aws_db_instance.db_fence[0].address : ""
+  db_fence_address              = local.db_fence_address
   db_fence_password             = var.db_password_fence
-  db_fence_name                 = var.deploy_fence_db ?aws_db_instance.db_fence[0].name : ""
-  db_sheepdog_address           = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].address : ""
-  db_sheepdog_username          = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].username : ""
+  db_fence_name                 = var.db_fence_name
+  db_sheepdog_address           = local.db_sheepdog_address
+  db_sheepdog_username          = var.sheepdog_db_username
   db_sheepdog_password          = var.db_password_sheepdog
-  db_sheepdog_name              = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].name : ""
+  db_sheepdog_name              = var.sheepdog_database_name
   db_peregrine_password         = var.db_password_peregrine
-  db_indexd_address             = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].address : ""
-  db_indexd_username            = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].username : ""
+  db_indexd_address             = local.db_indexd_address
+  db_indexd_username            = var.indexd_db_username
   db_indexd_password            = var.db_password_indexd
-  db_indexd_name                = var.deploy_indexd_db ? aws_db_instance.db_indexd[0].name : ""
+  db_indexd_name                = var.indexd_database_name
   hostname                      = var.hostname
   google_client_secret          = var.google_client_secret
   google_client_id              = var.google_client_id
@@ -91,15 +91,12 @@ module "config_files" {
   aws_user_key                  = module.cdis_vpc.es_user_key
   aws_user_key_id               = module.cdis_vpc.es_user_key_id
   indexd_prefix                 = var.indexd_prefix
-
-## mailgun creds
-  mailgun_api_key             = var.mailgun_api_key
-  mailgun_api_url             = var.mailgun_api_url
-  mailgun_smtp_host           = var.mailgun_smtp_host
+  mailgun_api_key               = var.mailgun_api_key
+  mailgun_api_url               = var.mailgun_api_url
+  mailgun_smtp_host             = var.mailgun_smtp_host
 
 }
 
-#done
 module "cdis_alarms" {
   count                       = var.deploy_alarms ? 1 : 0
   source                      = "../modules/commons-alarms"
@@ -173,13 +170,12 @@ resource "aws_subnet" "private_db_alt" {
 resource "aws_db_subnet_group" "private_group" {
   name                        = "${var.vpc_name}_private_group"
   subnet_ids                  = [aws_subnet.private_kube.id, aws_subnet.private_db_alt.id]
+  description                 = "Private subnet group"
 
   tags = {
     Name                      = "Private subnet group"
     Environment               = var.vpc_name
     Organization              = var.organization_name
   }
-
-  description                 = "Private subnet group"
 }
 
