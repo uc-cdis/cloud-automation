@@ -17,7 +17,6 @@ data "aws_iam_policy_document" "squid_policy_document" {
 
 data "aws_availability_zones" "available" {}
 
-
 data "aws_ami" "public_squid_ami" {
   most_recent = true
 

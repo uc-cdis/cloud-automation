@@ -1,13 +1,4 @@
 # this module would create a new ebs volume and attach it to a particular instance
-
-
-data "aws_instance" "worker" {
-  filter {
-    name   = "network-interface.addresses.private-ip-address"
-    values = [var.instance_ip]
-  }
-}
-
 resource "aws_ebs_volume" "worker_extra_drive" {
     availability_zone = data.aws_instance.worker.availability_zone
     encrypted         = true

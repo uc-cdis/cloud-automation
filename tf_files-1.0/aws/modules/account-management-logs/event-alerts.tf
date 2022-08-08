@@ -1,5 +1,3 @@
-
-
 module "cloudwatch-events" {
   source               = "../cloudwatch-events/"
   cwe_rule_name        = "${var.account_name}-cloudtrail-StopLogging"
@@ -18,7 +16,6 @@ module "cloudwatch-events" {
 }
 EOP
 }
-
 
 module "alerting-lambda" {
   source                       = "../lambda-function/"
@@ -50,50 +47,6 @@ module "role-for-lambda" {
 }
 EOP
 }
-
-data "aws_iam_policy_document" "sns_access" {
-  statement {
-    actions = [
-      "SNS:Publish",
-      "SNS:GetTopicAttributes",
-    ]
-    effect = "Allow"
-    #resources = ["arn:aws:sns:us-east-1:433568766270:planx-csoc-alerts-for-bsd-securitys"]
-    resources = ["*"]
-  }
-}
-
-
-data "aws_iam_policy_document" "cloudtrail_access" {
-
-  statement {
-    actions = [
-      "cloudtrail:DescribeTrails",
-      "cloudtrail:LookupEvents",
-      "cloudtrail:GetTrailStatus",
-      "cloudtrail:ListTags",
-      "cloudtrail:StartLogging"
-    ]
-    effect = "Allow"
-    resources = ["*"]
-  }
-}
-
-data "aws_iam_policy_document" "cloudwatchlogs_access" {
-
-  statement {
-    actions = [
-      "logs:List*",
-      "logs:Get*",
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ]
-    effect = "Allow"
-    resources = ["*"]
-  }
-}
-
 
 resource "aws_lambda_permission" "allow_cloudwatch" {
   statement_id  = "AllowExecutionFromCloudWatch"
