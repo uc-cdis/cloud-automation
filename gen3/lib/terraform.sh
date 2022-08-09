@@ -63,17 +63,11 @@ gen3_terraform() {
   fi
   args=("$@")
 
-  if [[ "$GEN3_FLAVOR" == "AWS" && "${tversion}" != "1.2" ]]; then
+  if [[ "$GEN3_FLAVOR" == "AWS" ]]; then
     cat - 1>&2 <<EOM 
 gen3_aws_run terraform${tversion} $@ 
 EOM
     gen3_aws_run terraform${tversion} "$@"
-
-  elif [[ "$GEN3_FLAVOR" == "AWS" && "${tversion}" == "1.2" ]]; then
-     cat - 1>&2 <<EOM 
-gen3_aws_run terraform${tversion} -chdir="${args[-1]}" "${args[@]:0:${#args[@]}-1}"
-EOM
-gen3_aws_run terraform${tversion} -chdir="${args[-1]}" "${args[@]:0:${#args[@]}-1}"
 
   elif [[ "$GEN3_FLAVOR" == "ONPREM" ]]; then
     cat - 1>&2 <<EOM 
