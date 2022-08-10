@@ -95,23 +95,23 @@ gen3_setup_kubecost() {
     else
       valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
       valuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/values.yaml"
-      thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
-      thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/object-store.yaml"
+      #thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
+      #thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/object-store.yaml"
       g3k_kv_filter $valuesTemplate KUBECOST_TOKEN "${kubecostToken}" KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" THANOS_SA "$thanosSaName" ATHENA_BUCKET "s3://$s3Bucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${vpc_name}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" > $valuesFile
       gen3_kubecost_create_alb
     fi
-    kubectl delete secret -n kubecost kubecost-thanos || true
-    kubectl delete secret -n kubecost thanos || true
-    g3k_kv_filter $thanosValuesTemplate AWS_REGION $awsRegion KUBECOST_S3_BUCKET $s3Bucket > $thanosValuesFile
-    kubectl create secret generic kubecost-thanos -n kubecost --from-file=$thanosValuesFile
-    kubectl create secret generic thanos -n kubecost --from-file=$thanosValuesFile
+    #kubectl delete secret -n kubecost kubecost-thanos || true
+    #kubectl delete secret -n kubecost thanos || true
+    #g3k_kv_filter $thanosValuesTemplate AWS_REGION $awsRegion KUBECOST_S3_BUCKET $s3Bucket > $thanosValuesFile
+    #kubectl create secret generic kubecost-thanos -n kubecost --from-file=$thanosValuesFile
+    #kubectl create secret generic thanos -n kubecost --from-file=$thanosValuesFile
     # Need to setup thanos config
     helm repo add kubecost https://kubecost.github.io/cost-analyzer/ --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
     if [[ -z $disablePrometheus ]]; then
-      helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} -f https://raw.githubusercontent.com/kubecost/cost-analyzer-helm-chart/develop/cost-analyzer/values-thanos.yaml
+      helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} 
     else
-      helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile} -f https://raw.githubusercontent.com/kubecost/cost-analyzer-helm-chart/develop/cost-analyzer/values-thanos.yaml --set prometheus.fqdn=http://$prometheusService.$prometheusNamespace.svc --set prometheus.enabled=false
+      helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile}
     fi
   else
     gen3_log_info "kube-setup-kubecost exiting - kubecost already deployed, use --force true to redeploy"

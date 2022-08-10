@@ -1,0 +1,6 @@
+type: s3
+config:
+  bucket: manifest-emalinowskiv1-planx-pla-net
+  endpoint: s3.us-east-1.amazonaws.com
+  access_key: <access key>
+  secret_key: <access secret>

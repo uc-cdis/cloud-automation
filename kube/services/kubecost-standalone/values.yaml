@@ -2,6 +2,11 @@
 
 kubecostToken: KUBECOST_TOKEN
 
+global:
+  prometheus:
+    enabled: false
+    fqdn: http://prometheus-operated.monitoring.svc:9090
+
 serviceAccount:
   create: true # Set this to false if you're bringing your own service account.
   annotations: 
