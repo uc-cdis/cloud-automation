@@ -45,7 +45,7 @@ spec:
             secretKeyRef:
               name: thor-g3auto
               key: "jenkins_api_token.json"
-         - name: JENKINS_JOB_TOKEN
+        - name: JENKINS_JOB_TOKEN
           valueFrom:
             secretKeyRef:
               name: thor-g3auto
@@ -83,4 +83,4 @@ spec:
           args:
             - "-c"
             - |
-              /env/bin/python /src/thor/create_all_tables.py
+              /env/bin/python /src/src/thor/create_all_tables.py
