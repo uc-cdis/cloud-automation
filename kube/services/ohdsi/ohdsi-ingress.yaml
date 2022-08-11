@@ -22,11 +22,11 @@ spec:
               service:
                 name: ohdsi-atlas-service
                 port:
-                  number: 8088
+                  number: 80
           - path: /WebAPI
             pathType: Prefix
             backend:
               service:
                 name: ohdsi-webapi-service
                 port:
-                  number: 8088
+                  number: 80
