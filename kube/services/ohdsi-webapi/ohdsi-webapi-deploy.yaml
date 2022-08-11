@@ -19,7 +19,6 @@ spec:
     metadata:
       labels:
         app: ohdsi-webapi
-        dbatlas: "yes"
         public: "yes"
         GEN3_DATE_LABEL
     spec:
