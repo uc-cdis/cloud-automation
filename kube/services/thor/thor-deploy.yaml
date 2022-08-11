@@ -60,6 +60,11 @@ spec:
             secretKeyRef:
               name: thor-g3auto
               key: "jira_api_token.json"
+        - name: SLACK_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: thor-g3auto
+              key: "slacktoken.json"
         imagePullPolicy: Always
         volumeMounts:
           - name: config-volume-g3auto
