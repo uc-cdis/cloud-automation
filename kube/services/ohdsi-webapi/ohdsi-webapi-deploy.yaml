@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: ohdsi-webapi
+        dbohdsi-webapi: "yes"
+        dbomop-data: "yes"
         public: "yes"
         GEN3_DATE_LABEL
     spec:

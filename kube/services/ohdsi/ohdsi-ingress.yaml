@@ -16,7 +16,7 @@ spec:
     - host: $ohdsi_hostname
       http:
         paths:
-          - path: /
+          - path: /atlas
             pathType: Prefix
             backend:
               service:
