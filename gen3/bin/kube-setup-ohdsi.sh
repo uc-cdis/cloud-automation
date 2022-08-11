@@ -3,8 +3,8 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-hostname=$(gen3 api hostname)
-namespace=$(gen3 api namespace)
+export hostname=$(gen3 api hostname)
+export namespace=$(gen3 api namespace)
 
 setup_ingress() {
   certs=$(aws acm list-certificates --certificate-statuses ISSUED | jq --arg hostname $hostname -c '.CertificateSummaryList[] | select(.DomainName | contains("*."+$hostname))')
