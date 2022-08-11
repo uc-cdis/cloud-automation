@@ -12,7 +12,7 @@ setup_ingress() {
   fi
   gen3_log_info "Found ACM certificate for *.$hostname"
   export ARN=$(jq -r .CertificateArn <<< $certs)
-  export ohdsi_hostname="atlas.${hostname}"
+  export ohdsi_hostname="atlas-${hostname}"
   envsubst <${GEN3_HOME}/kube/services/ohdsi/ohdsi-ingress.yaml | g3kubectl apply -f -
 }
 
