@@ -38,7 +38,7 @@ EOM
 }
 
 setup_creds() {
-
+    :
 }
 
 setup_secrets() {
