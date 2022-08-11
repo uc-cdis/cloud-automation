@@ -38,7 +38,30 @@ EOM
 }
 
 setup_creds() {
-    :
+  gen3_log_info "check ohdsi secret"
+  if ! g3kubectl describe secret ohdsi-g3auto | grep appcreds.json > /dev/null 2>&1; then
+      local credsPath="$(gen3_secrets_folder)/g3auto/ohdsi/appcreds.json"
+      if [ -f "$credsPath" ]; then
+          gen3 secrets sync
+          return 0
+      fi
+      mkdir -p "$(dirname "$credsPath")"
+      if ! new_client > "$credsPath"; then
+        gen3_log_err "Failed to setup ohdsi fence client"
+        rm "$credsPath" || true
+        return 1
+      fi
+      gen3 secrets sync
+  fi
+
+  if ! g3kubectl describe secret ohdsi-g3auto | grep dbcreds.json > /dev/null 2>&1; then
+      gen3_log_info "create database"
+      if ! gen3 db setup ohdsi; then
+          gen3_log_err "Failed setting up database for ohdsi service"
+          return 1
+      fi
+      gen3 secrets sync
+  fi
 }
 
 setup_secrets() {
