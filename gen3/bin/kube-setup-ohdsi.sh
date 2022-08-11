@@ -3,8 +3,10 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
+hostname=$(gen3 api hostname)
+namespace=$(gen3 api namespace)
+
 setup_ingress() {
-  local hostname=$(gen3 api hostname)
   certs=$(aws acm list-certificates --certificate-statuses ISSUED | jq --arg hostname $hostname -c '.CertificateSummaryList[] | select(.DomainName | contains("*."+$hostname))')
   if [ "$certs" = "" ]; then 
     gen3_log_info "no certs found for *.${hostname}. exiting"
@@ -17,6 +19,8 @@ setup_ingress() {
 }
 
 setup_ingress
+
+envsubst <${GEN3_HOME}/kube/services/ohdsi/ohdsi-configmap.yaml | g3kubectl apply -f -
 
 gen3 roll ohdsi-webapi
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi-webapi/ohdsi-webapi-service.yaml"
