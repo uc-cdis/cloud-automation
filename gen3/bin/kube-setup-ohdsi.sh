@@ -18,10 +18,10 @@ setup_ingress() {
 
 setup_ingress
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi/ohdsi-webapi-deploy.yaml"
+gen3 roll ohdsi-webapi
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi/ohdsi-webapi-service.yaml"
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi/ohdsi-atlas-deploy.yaml"
+gen3 roll ohdsi-atlas
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi/ohdsi-atlas-service.yaml"
 
 cat <<EOM
