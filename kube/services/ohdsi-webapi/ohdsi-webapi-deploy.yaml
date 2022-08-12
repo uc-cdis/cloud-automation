@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ohdsi-webapi-deployment
-  annotations:
-    gen3.io/network-ingress: "ohdsi-atlas"
 spec:
   selector:
     # Only select pods based on the 'app' label
@@ -19,7 +17,9 @@ spec:
     metadata:
       labels:
         app: ohdsi-webapi
-        dbatlas: "yes"
+        dbohdsi-webapi: "yes"
+        dbomop-data: "yes"
+        internet: "yes"
         public: "yes"
         GEN3_DATE_LABEL
     spec:
@@ -39,17 +39,17 @@ spec:
       containers:
         - name: ohdsi-webapi
           GEN3_OHDSI-WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
-          # livenessProbe:
-          #   httpGet:
-          #     path: /WebAPI/source/sources
-          #     port: 8080
-          #   initialDelaySeconds: 30
-          #   periodSeconds: 60
-          #   timeoutSeconds: 30
-          # readinessProbe:
-          #   httpGet:
-          #     path: /WebAPI/source/sources
-          #     port: 8080
+          livenessProbe:
+            httpGet:
+              path: /WebAPI/info/
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /WebAPI/info/
+              port: 8080
           ports:
           - containerPort: 8080
           envFrom:
