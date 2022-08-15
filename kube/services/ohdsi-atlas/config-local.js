@@ -3,7 +3,7 @@ define([], function () {
 	// WebAPI
 	configLocal.api = {
 		name: 'Gen3',
-		url: 'https://atlas-qa-mickey.planx-pla.net/WebAPI/'
+		url: 'https://HOSTNAME/WebAPI/'
 	};
 	configLocal.authProviders = [{
 		"name": "Fence",
