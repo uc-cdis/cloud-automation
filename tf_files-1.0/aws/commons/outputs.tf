@@ -59,22 +59,22 @@ output "config_map_aws_auth" {
 
 output "aurora_cluster_writer_endpoint" {
   description = "Aurora cluster writer instance endpoint"
-  value       = module.aurora.aurora_cluster_writer_endpoint
+  value       = one(module.aurora[*].aurora_cluster_writer_endpoint)
 }
 
 output "aurora_cluster_reader_endpoint" {
   description = "Aurora cluster reader endpoint"
-  value       = module.aurora.aurora_cluster_reader_endpoint
+  value       = one(module.aurora[*].aurora_cluster_reader_endpoint)
 }
 
 
 output "aurora_cluster_master_username" {
   description = "Aurora cluster master username"
-  value       = module.aurora.aurora_cluster_master_username
+  value       = one(module.aurora[*].aurora_cluster_master_username)
 }
 
 output "aurora_cluster_master_password" {
   description = "Aurora cluster master user's password"
-  value       = module.aurora.aurora_cluster_master_password
+  value       = one(module.aurora[*].aurora_cluster_master_password)
   sensitive   = true
 }

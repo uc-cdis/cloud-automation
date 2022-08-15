@@ -118,7 +118,7 @@ resource "aws_db_instance" "db_indexd" {
 # and https://www.postgresql.org/docs/9.6/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE
 # for detail parameter descriptions
 locals {
-  pg_family_version = replace( var.indexd_engine_version ,"/\\.[0-9]/", "" )
+  pg_family_version = replace( var.engine_version ,"/\\.[0-9]/", "" )
 }
 
 resource "aws_db_parameter_group" "rds-cdis-pg" {

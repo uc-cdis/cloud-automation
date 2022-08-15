@@ -66,7 +66,7 @@ module "config_files" {
   vpc_name                      = var.vpc_name
   db_fence_address              = local.db_fence_address
   db_fence_password             = var.db_password_fence
-  db_fence_name                 = var.db_fence_name
+  db_fence_name                 = var.fence_database_name
   db_sheepdog_address           = local.db_sheepdog_address
   db_sheepdog_username          = var.sheepdog_db_username
   db_sheepdog_password          = var.db_password_sheepdog

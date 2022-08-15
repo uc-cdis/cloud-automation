@@ -554,7 +554,7 @@ resource "aws_launch_template" "eks_launch_template" {
   image_id                             = local.ami
   key_name                             = var.ec2_keyname
   #vpc_security_group_ids              = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
-  user_data                            = base64encode(data.template_file.bootstrap.rendered)
+  user_data                            = base64encode(templatefile("${path.module}/../../../../flavors/eks/${var.bootstrap_script}", {eks_ca = aws_eks_cluster.eks_cluster.certificate_authority.0.data, eks_endpoint = aws_eks_cluster.eks_cluster.endpoint, eks_region = data.aws_region.current.name, vpc_name = var.vpc_name, ssh_keys = templatefile("${path.module}/../../../../files/authorized_keys/ops_team", {}), nodepool = "default", activation_id = var.activation_id, customer_id = var.customer_id}))
   instance_initiated_shutdown_behavior = "terminate"
   block_device_mappings {
     device_name = "/dev/sda1"
@@ -592,7 +592,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
   count                   = var.enable_on_demand_instances ? 1 : 0
   service_linked_role_arn = aws_iam_service_linked_role.autoscaling.arn
   desired_capacity        = 2
-  launch_configuration    = aws_launch_configuration.eks_launch_configuration.id
+  launch_configuration    = aws_launch_configuration.eks_launch_configuration[0].id
   max_size                = 10
   min_size                = 2
   name                    = "eks-worker-node-${var.vpc_name}"
@@ -658,7 +658,7 @@ resource "aws_autoscaling_group" "eks_mixed_autoscaling_group" {
 
     launch_template {
       launch_template_specification {
-        launch_template_id = aws_launch_template.eks_launch_template.id
+        launch_template_id = aws_launch_template.eks_launch_template[0].id
         version = "$Latest"
       }
     }
