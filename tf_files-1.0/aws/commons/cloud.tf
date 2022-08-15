@@ -71,6 +71,7 @@ module "config_files" {
   db_sheepdog_username          = var.sheepdog_db_username
   db_sheepdog_password          = var.db_password_sheepdog
   db_sheepdog_name              = var.sheepdog_database_name
+  db_peregrine_address          = local.db_peregrine_address
   db_peregrine_password         = var.db_password_peregrine
   db_indexd_address             = local.db_indexd_address
   db_indexd_username            = var.indexd_db_username
