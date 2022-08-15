@@ -31,7 +31,7 @@ spec:
             - name: DB_ENGINE
               GEN3_DB_ENGINE|-value: "postgres"-|
             - name: DB_PORT
-              GEN3_DB_PORT|-value: "5432"-|                                                        
+              GEN3_DB_PORT|-value: "5432"-|
             - name: JENKINS_HOME
               value: "devterm"
             - name: GEN3_HOME
@@ -40,12 +40,13 @@ spec:
           args:
             - "-c"
             - |
+              source "${GEN3_HOME}/gen3/lib/utils.sh"
+              gen3_load "gen3/gen3setup"
               echo "y" | gen3 db reset "atlas" --force
               echo "y" | gen3 db reset "omop" --force
               g3k_kv_filter ${GEN3_HOME}/files/ohdsi/test_data_atlas.sql DB_HOSTNAME "$DB_HOSTNAME" DB_NAME "$DB_NAME" DB_USERNAME "$DB_USERNAME" DB_PASSWORD "$DB_PASSWORD" DB_ENGINE "$DB_ENGINE" DB_PORT "$DB_PORT" > $XDG_RUNTIME_DIR/test_data_atlas.sql
-              gen3 psql atlas -f $XDG_RUNTIME_DIR/test_data_atlas.sql
               gen3 psql atlas -f cloud-automation/files/ohdsi/ddl_atlas.sql
+              gen3 psql atlas -f $XDG_RUNTIME_DIR/test_data_atlas.sql
               gen3 psql omop -f cloud-automation/files/ohdsi/ddl_results_and_cdm.sql
-              gen3 psql omop -f cloud-automation/files/ohdsi/test_data_results_and_cdm.sql            
-
+              gen3 psql omop -f cloud-automation/files/ohdsi/test_data_results_and_cdm.sql
       restartPolicy: Never

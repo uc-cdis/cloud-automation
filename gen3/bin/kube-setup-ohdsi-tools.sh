@@ -66,6 +66,15 @@ setup_creds() {
   fi
 }
 
+  NAMESPACE="$(gen3 db namespace)"
+  HOSTNAME=$(gen3 api hostname)
+  DB_HOSTNAME=$(gen3 secrets decode atlas-g3auto dbcreds.json | jq -r .db_host)
+  DB_NAME=$(gen3 secrets decode atlas-g3auto dbcreds.json | jq -r .db_database)
+  DB_USERNAME=$(gen3 secrets decode atlas-g3auto dbcreds.json | jq -r .db_username)
+  DB_PASSWORD=$(gen3 secrets decode atlas-g3auto dbcreds.json | jq -r .db_password)
+  OID_CLIENT=$(gen3 secrets decode atlas-g3auto appcreds.json | jq -r .oidc_client_id)
+  OID_SECRET=$(gen3 secrets decode atlas-g3auto appcreds.json | jq -r .oidc_client_secret)
+  DB_PORT="5432"
 if [[ -z "$JENKINS_HOME" ]]; then
   if ! g3kubectl describe secret atlas-g3auto | grep dbcreds.json > /dev/null 2>&1 || ! g3kubectl describe secret omop-g3auto | grep dbcreds.json > /dev/null 2>&1; then
     setup_creds
@@ -75,14 +84,6 @@ if [[ -z "$JENKINS_HOME" ]]; then
     new_client > "$secretsPath"
   fi
 
-  NAMESPACE="$(gen3 db namespace)"
-  HOSTNAME=$(gen3 api hostname)
-  DB_HOSTNAME=$(gen3 secrets decode atlas-g3auto dbcreds.json | jq -r .db_host)
-  DB_NAME=$(gen3 secrets decode atlas-g3auto dbcreds.json | jq -r .db_database)
-  DB_USERNAME=$(gen3 secrets decode atlas-g3auto dbcreds.json | jq -r .db_username)
-  DB_PASSWORD=$(gen3 secrets decode atlas-g3auto dbcreds.json | jq -r .db_password)
-  OID_CLIENT=$(gen3 secrets decode atlas-g3auto appcreds.json | jq -r .oidc_client_id)
-  OID_SECRET=$(gen3 secrets decode atlas-g3auto appcreds.json | jq -r .oidc_client_secret)
 
   #kubectl create configmap ohdsi-atlas-config-local --from-file=config-local.js
   g3kubectl delete configmap ohdsi-atlas-config-local || true
@@ -100,7 +101,7 @@ else
     gen3_log_err "Environment not setup for atlas, initialize env in adminvm"
     return 1
   fi
-  gen3 job run atlas-omop-db-reset
+  gen3 job run atlas-omop-db-reset DB_HOSTNAME "$DB_HOSTNAME" DB_NAME "$DB_NAME" DB_USERNAME "$DB_USERNAME" DB_PASSWORD "$DB_PASSWORD" DB_ENGINE "postgres" DB_PORT "$DB_PORT"
 fi
 
 gen3 roll ohdsi-webapi
@@ -112,3 +113,4 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi-atlas/ohdsi-atlas-service-e
 cat <<EOM
 The Atlas/WebAPI service has been deployed onto the k8s cluster.
 EOM
+
