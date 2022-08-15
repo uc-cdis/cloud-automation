@@ -15,7 +15,7 @@ resource "aws_s3_bucket" "mybucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "mybucket" {
-  bucket = aws_s3_bucket.data_bucket.mybucket
+  bucket = aws_s3_bucket.mybucket.id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -25,23 +25,23 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "mybucket" {
 }
 
 resource "aws_s3_bucket_acl" "mybucket" {
-  bucket = aws_s3_bucket.data_bucket.mybucket
+  bucket = aws_s3_bucket.mybucket.id
   acl    = "private"
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "mybucket" {
-  bucket = aws_s3_bucket.log_bucket.mybucket
+  bucket = aws_s3_bucket.mybucket.id
   rule {
       status  = "Enabled"
       id      = "mybucket"
-      abort_incomplete_multipart_upload_days {
+      abort_incomplete_multipart_upload {
         days_after_initiation = 7
       }
   }
 }
 
 resource "aws_s3_bucket_logging" "mybucket" {
-  bucket        = aws_s3_bucket.log_bucket.mybucket
+  bucket        = aws_s3_bucket.mybucket.id
   target_bucket = module.cdis_s3_logs.log_bucket_name
   target_prefix = "log/${local.clean_bucket_name}/"
 }
@@ -123,7 +123,7 @@ resource "aws_iam_instance_profile" "mybucket_writer" {
   role = aws_iam_role.mybucket_writer.id
 }
 
-# create the policy and role for the role that will be attached to 
+# create the policy and role for the role that will be attached to
 # the trail so it can write cloudwatch
 
 resource "aws_iam_role" "cloudtrail_writer" {
@@ -181,7 +181,7 @@ resource "aws_cloudtrail" "logger_trail" {
       values = ["${aws_s3_bucket.mybucket.arn}/"]
     }
   }
-  
+
   tags = {
     Name        = local.clean_bucket_name
     Environment = var.environment
