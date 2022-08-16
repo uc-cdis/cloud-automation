@@ -36,6 +36,10 @@ spec:
                   - ohdsi-webapi
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
+      volumes:
+        - name: ohdsi-webapi-reverse-proxy-config
+          configMap:
+            name: ohdsi-webapi-reverse-proxy-config
       containers:
         - name: ohdsi-webapi
           GEN3_OHDSI-WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
