@@ -63,3 +63,20 @@ spec:
             limits:
               cpu: 1
               memory: 1Gi  
+        - name: ohdsi-webapi-reverse-proxy
+          image: nginx:1.23
+          ports:
+          - containerPort: 80
+          volumeMounts:
+            - name: ohdsi-webapi-reverse-proxy-config
+              readOnly: true
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 1
+              memory: 1Gi
+            limits:
+              cpu: 1
+              memory: 1Gi
