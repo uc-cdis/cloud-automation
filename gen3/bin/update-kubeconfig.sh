@@ -14,9 +14,7 @@ if ! semver_ge "$aws_version" "2.7.0"; then
     exit 0
 fi 
 
-kubectl_version=""
 namespace=$(gen3 api namespace)
-
 
 if [ ! -z "$KUBECONFIG" ]; then
     gen3_log_info "Backing up existing kubeconfig located at $KUBECONFIG"
