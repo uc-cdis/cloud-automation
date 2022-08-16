@@ -1,9 +1,15 @@
 # TL;DR
 
+kubectl 1.24.0 introduces a breaking change, so the older kubeconfig doesn't work anymore.
+
+https://github.com/aws/aws-cli/issues/6920
+
 Updates Kubeconfig API version, args, and command to get rid of the following error: 
 error: exec plugin: invalid apiVersion "client.authentication.k8s.io/v1alpha1"
 
 This error occurs when the client kubectl version is updated and the kubeconfig remains the same. 
+
+This requires AWS cli v2.7.0 or higher.
 
 ## Use
 
@@ -12,35 +18,7 @@ This error occurs when the client kubectl version is updated and the kubeconfig 
 gen3 update-kubeconfig
 ```
 
-### Replaces API Version, args, and command in Kubeconfig
-```
-  - name: aws
-    user:
-      exec:
--       apiVersion: client.authentication.k8s.io/v1alpha1
--       command: heptio-authenticator-aws
--       args:
--         - "token"
--         - "-i"
--         - "oadc"
--         #- "-r"
--         #- "<role ARN>"
--       #env:
--         #- name: AWS_PROFILE
--         #  value: "<profile>"
 
-  - name: aws
-    user:
-      exec:
-+       apiVersion: client.authentication.k8s.io/v1beta1
-+       args:
-+       - --region
-+       - us-east-1
-+       - eks
-+       - get-token
-+       - --cluster-name
-+       - oadc
-+       command: aws
+This command backs up existing kubeconfig file and regenerates a valid kubeconfig file using AWS cli. Also persists the current namespace to the context.
 
-```
 

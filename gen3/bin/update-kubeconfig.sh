@@ -3,12 +3,30 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-export KUBECTL_VERSION=$(kubectl version 2>&1)
-
 cd "${HOME}/Gen3Secrets/"
 
-if [[ $KUBECTL_VERSION == 'error: exec plugin: invalid apiVersion "client.authentication.k8s.io/v1alpha1"' ]]; then
-    yq -yi '.users[0].user.exec.apiVersion = "client.authentication.k8s.io/v1beta1" | .users[0].user.exec.command = "aws" | .users[0].user.exec.args=[ "--region","us-east-1","eks","get-token","--cluster-name","oadc"]' kubeconfig
-else
-    echo "error not present- skipping"
+aws_version="0.0.0"
+if aws --version 2>&1 > /dev/null; then
+    aws_version="$(aws --version | awk '{ print $1 }' | awk -F / '{ print $2 }')"
 fi
+if ! semver_ge "$aws_version" "2.7.0"; then
+    gen3_log_err "awscli is on version $aws_version. Please update to latest version before running this command again. \nHint: 'gen3 kube-setup-workvm' can take care of that for you."
+    exit 0
+fi 
+
+kubectl_version=""
+namespace=$(gen3 api namespace)
+
+
+if [ ! -z "$KUBECONFIG" ]; then
+    gen3_log_info "Backing up existing kubeconfig located at $KUBECONFIG"
+    mv "$KUBECONFIG" "$KUBECONFIG.backup"
+else
+    gen3_log_warn "KUBECONFIG env var is not set. Cannot take backup of existing kubeconfig."
+fi 
+
+gen3_log_info "Updating kubeconfig by running 'aws eks update-kubeconfig --name $(gen3 api environment)'"
+aws eks update-kubeconfig --name $(gen3 api environment)
+
+gen3_log_info "Setting namespace to $namespace. ('kubectl config set-context --current --namespace=$namespace')"
+kubectl config set-context --current --namespace=$namespace
