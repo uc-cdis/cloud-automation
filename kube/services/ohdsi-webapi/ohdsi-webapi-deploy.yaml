@@ -62,10 +62,10 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 1
+              cpu: '0.5'
               memory: 1Gi
             limits:
-              cpu: 1
+              cpu: '0.5'
               memory: 1Gi  
         - name: ohdsi-webapi-reverse-proxy
           image: nginx:1.23
@@ -79,8 +79,8 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 1
+              cpu: '0.5'
               memory: 1Gi
             limits:
-              cpu: 1
+              cpu: '0.5'
               memory: 1Gi
