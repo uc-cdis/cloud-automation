@@ -64,11 +64,11 @@ spec:
             path: /portal/
             port: 80
           initialDelaySeconds: 60
-          periodSeconds: 60
+          periodSeconds: 30
           timeoutSeconds: 30
           # portal sometimes takes a long time to come up ... -
           # has to fetch the dictionary, relay compile, etc
-          failureThreshold: 10
+          failureThreshold: 30
         resources:
           requests:
             cpu: 0.6

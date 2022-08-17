@@ -110,12 +110,19 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo -E apt-key add -
       sudo -E apt-get update
       sudo -E apt-get install -y google-cloud-sdk \
-          google-cloud-sdk-cbt \
-          kubectl
-      if [[ -f /usr/local/bin/kubectl && -f /usr/bin/kubectl ]]; then  # pref dpkg managed kubectl
-        sudo -E /bin/rm /usr/local/bin/kubectl
-      fi
+          google-cloud-sdk-cbt 
     )
+  fi
+
+  k8s_server_version=$(kubectl version --short | awk -F[v.] '/Server/ {print $3"."$4}')
+  if [[ ! -z "${k8s_server_version// }" ]]; then
+      # install kubectl
+      install_version=$(apt-cache madison kubectl | awk  '$3 ~ /'$k8s_server_version'/ {print $3}'| head -n 1)
+      gen3_log_info "Installing kubectl version $install_version"
+      sudo -E apt-get install -y kubectl=$install_version --allow-downgrades
+  else
+      # install kubectl
+      sudo -E apt-get install -y kubectl=1.21.14-00 --allow-downgrades
   fi
 
   mkdir -p ~/.config
@@ -138,6 +145,15 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       /bin/rm -rf "${XDG_RUNTIME_DIR}/t12"
     }
 
+    install_terraform1.2() {
+      mkdir "${XDG_RUNTIME_DIR}/t1.2"
+      curl -o "${XDG_RUNTIME_DIR}/t1.2/terraform1.2.zip" https://releases.hashicorp.com/terraform/1.2.3/terraform_1.2.3_linux_amd64.zip
+      sudo /bin/rm -rf /usr/local/bin/terraform1.2 > /dev/null 2>&1 || true
+      unzip "${XDG_RUNTIME_DIR}/t1.2/terraform1.2.zip" -d "${XDG_RUNTIME_DIR}/t1.2";
+      sudo cp "${XDG_RUNTIME_DIR}/t1.2/terraform" "/usr/local/bin/terraform1.2"
+      /bin/rm -rf "${XDG_RUNTIME_DIR}/t1.2"
+    }
+
     if ! which terraform > /dev/null 2>&1; then
       install_terraform  
     else
@@ -151,6 +167,14 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     else
       T12_VERSION=$(terraform12 --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
       if ! semver_ge "$T12_VERSION" "0.12.31"; then
+        install_terraform12
+      fi
+    fi
+    if ! which terraform1.2 > /dev/null 2>&1; then
+      install_terraform1.2  
+    else
+      T12_VERSION=$(terraform1.2 --version | head -1 | awk '{ print $2 }' | sed 's/^[^0-9]*//')
+      if ! semver_ge "$T12_VERSION" "1.2.3"; then
         install_terraform12
       fi
     fi

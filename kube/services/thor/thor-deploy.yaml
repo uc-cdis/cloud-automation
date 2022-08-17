@@ -45,16 +45,26 @@ spec:
             secretKeyRef:
               name: thor-g3auto
               key: "jenkins_api_token.json"
-        - name: JENKINS2_API_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: thor-g3auto
-              key: "jenkins2_api_token.json"
         - name: JENKINS_JOB_TOKEN
           valueFrom:
             secretKeyRef:
               name: thor-g3auto
               key: "jenkins_job_token.json"
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: thor-g3auto
+              key: "github_token.json"
+        - name: JIRA_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: thor-g3auto
+              key: "jira_api_token.json"
+        - name: SLACK_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: thor-g3auto
+              key: "slacktoken.json"
         imagePullPolicy: Always
         volumeMounts:
           - name: config-volume-g3auto
@@ -65,3 +75,17 @@ spec:
         - name: config-volume-g3auto
           secret:
             secretName: thor-g3auto
+      initContainers:
+        - name: thor-db-create
+          image: quay.io/cdis/thor:master
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: config-volume-g3auto
+              readOnly: true
+              mountPath: /src/thor.env
+              subPath: thor.env
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              /env/bin/python /src/src/thor/create_all_tables.py
