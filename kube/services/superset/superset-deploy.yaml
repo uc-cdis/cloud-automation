@@ -22,7 +22,7 @@ metadata:
   name: superset-config
   labels:
     app: superset
-    chart: superset-0.6.1
+    chart: superset-0.7.1
     release: "superset"
     heritage: "Helm"
 type: Opaque
@@ -86,7 +86,7 @@ stringData:
             logging.info("Oauth2 provider: {0}.".format(provider))
             if provider == 'fence':
                 # As example, this line request a GET to base_url + '/' + userDetails with Bearer  Authentication,
-        # and expects that authorization server checks the token, and response with user details
+                # and expects that authorization server checks the token, and response with user details
                 me = self.appbuilder.sm.oauth_remotes[provider].get(env('FENCE_URL')).json()
                 logging.info("user_data: {0}".format(me))
                 # logging.info("user_data as dir: {0}".format(dir(me)))
@@ -97,13 +97,13 @@ stringData:
     from flask_appbuilder.security.manager import AUTH_OAUTH
     AUTH_TYPE = AUTH_OAUTH
     OAUTH_PROVIDERS = [
-        {   'name':'fence',
-            'token_key':'access_token', # Name of the token in the response of access_token_url
-            'icon':'fa-address-card',   # Icon for the provider
+        {   'name': 'fence',
+            'token_key': 'access_token', # Name of the token in the response of access_token_url
+            'icon': 'fa fa-openid',   # Icon for the provider
             'remote_app': {
                 'client_id': env('FENCE_CLIENT_ID'),  # Client Id (Identify Superset application)
                 'client_secret': env('FENCE_CLIENT_SECRET'), # Secret for this Client Id (Identify Superset application)
-                'client_kwargs':{
+                'client_kwargs': {
                     'scope': 'openid user data'
                 },
                 'server_metadata_url': env('FENCE_METADATA_URL')
@@ -119,7 +119,9 @@ stringData:
     AUTH_USER_REGISTRATION = True
     
     # The default user self registration role
-    AUTH_USER_REGISTRATION_ROLE = "Public"
+    AUTH_USER_REGISTRATION_ROLE = 'Public'
+    
+    AUTH_USER_REGISTRATION_ROLE_JMESPATH = "contains(['@uchicago.edu'], email) && 'Admin' || 'Public'"
     
     
   superset_init.sh: |
@@ -130,14 +132,6 @@ stringData:
     echo "Initializing roles..."
     superset init
     
-    echo "Creating admin user..."
-    superset fab create-admin \
-                    --username admin \
-                    --firstname Superset \
-                    --lastname Admin \
-                    --email admin@superset.com \
-                    --password admin \
-                    || true
     
     if [ -f "/app/configs/import_datasources.yaml" ]; then
       echo "Importing database connections.... "
@@ -177,7 +171,7 @@ metadata:
   name: superset
   labels:
     app: superset
-    chart: superset-0.6.1
+    chart: superset-0.7.1
     release: superset
     heritage: Helm
 spec:
@@ -214,7 +208,7 @@ metadata:
   name: superset-worker
   labels:
     app: superset-worker
-    chart: superset-0.6.1
+    chart: superset-0.7.1
     release: superset
     heritage: Helm
 spec:
@@ -226,18 +220,20 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/superset_config.py: 44092ea9a5a0d886f392d2804bb2af8fb356a891351005bee3b868b114036f01
-        checksum/connections: a91716d6d1088e870fbe02159dc0b066dd011885aa08a22fbe60ea1cd4720f82
+        checksum/superset_config.py: 955c3e88940f522fe4d9ad60d105ab4537e290697d135703c8a01aeb6c1a3d8d
+        checksum/connections: c44da43c5f3426c3c4a25f3235e3e23452ce1cf713ad059eaef7767e175a5eb4
         checksum/extraConfigs: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
         checksum/extraSecrets: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
         checksum/extraSecretEnv: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
-        checksum/configOverrides: fdad02b1a387b3699858d0e2c9bd002705d72ccc3df97e969f1b7ff910b7b352
+        checksum/configOverrides: 4b1ff4f862a95242ea509b5dc5f7d87c47faf1815de5ea21a46b3fde8e576bf4
         checksum/configOverridesFiles: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
         
       labels:
         app: superset-worker
         release: superset
         netnolimit: "yes"
+        dbsuperset: "yes"
+        public: "yes"
     spec:
       securityContext:
         runAsUser: 0
@@ -249,12 +245,12 @@ spec:
         envFrom:
         - secretRef:
             name: 'superset-env'
-        image: 'busybox:latest'
+        image: 'busybox:1.35'
         imagePullPolicy: 'IfNotPresent'
         name: wait-for-postgres
       containers:
         - name: superset
-          image: "apache/superset:latest"
+          image: "apache/superset:2.0.0"
           imagePullPolicy: Always
           command: ["/bin/sh","-c",". /app/pythonpath/superset_bootstrap.sh; celery --app=superset.tasks.celery_app:app worker"]
           env:
@@ -268,7 +264,9 @@ spec:
               mountPath: "/app/pythonpath"
               readOnly: true
           resources:
-            {}
+            limits:
+              cpu: 1
+              memory: 1Gi
       volumes:
         - name: superset-config
           secret:
@@ -297,7 +295,7 @@ metadata:
   name: superset
   labels:
     app: superset
-    chart: superset-0.6.1
+    chart: superset-0.7.1
     release: superset
     heritage: Helm
 spec:
@@ -310,19 +308,21 @@ spec:
     metadata:
       annotations:
         # Force reload on config changes
-        checksum/superset_config.py: 44092ea9a5a0d886f392d2804bb2af8fb356a891351005bee3b868b114036f01
-        checksum/superset_init.sh: e6b1e8eac1f7a79a07a6c72a0e2ee6e09654eeb439c6bbe61bfd676917c41e02
+        checksum/superset_config.py: 955c3e88940f522fe4d9ad60d105ab4537e290697d135703c8a01aeb6c1a3d8d
+        checksum/superset_init.sh: ff251d03d362c4a3ff1451d24893d5d12811f67edc84efa39484a84c59c3f883
         checksum/superset_bootstrap.sh: a6edf034118d68cef7203cc3181bb6c72b6244cdedf270ee4accc9ae9ff92b2e
-        checksum/connections: a91716d6d1088e870fbe02159dc0b066dd011885aa08a22fbe60ea1cd4720f82
+        checksum/connections: c44da43c5f3426c3c4a25f3235e3e23452ce1cf713ad059eaef7767e175a5eb4
         checksum/extraConfigs: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
         checksum/extraSecrets: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
         checksum/extraSecretEnv: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
-        checksum/configOverrides: fdad02b1a387b3699858d0e2c9bd002705d72ccc3df97e969f1b7ff910b7b352
+        checksum/configOverrides: 4b1ff4f862a95242ea509b5dc5f7d87c47faf1815de5ea21a46b3fde8e576bf4
         checksum/configOverridesFiles: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
       labels:
         app: superset
         release: superset
         netnolimit: "yes"
+        dbsuperset: "yes"
+        public: "yes"
     spec:
       securityContext:
         runAsUser: 0
@@ -334,12 +334,12 @@ spec:
         envFrom:
         - secretRef:
             name: 'superset-env'
-        image: 'busybox:latest'
+        image: 'busybox:1.35'
         imagePullPolicy: 'IfNotPresent'
         name: wait-for-postgres
       containers:
         - name: superset
-          image: "apache/superset:latest"
+          image: "apache/superset:2.0.0"
           imagePullPolicy: Always
           command: ["/bin/sh","-c",". /app/pythonpath/superset_bootstrap.sh; /usr/bin/run-server.sh"]
           env:
@@ -356,8 +356,28 @@ spec:
             - name: http
               containerPort: 8088
               protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+            failureThreshold: 3
+            periodSeconds: 15
+            successThreshold: 1
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+            failureThreshold: 3
+            periodSeconds: 15
+            successThreshold: 1
           resources:
-            {}
+            limits:
+              cpu: '0.25'
+              memory: 256Mi
 
       volumes:
         - name: superset-config
@@ -405,12 +425,12 @@ spec:
         envFrom:
         - secretRef:
             name: 'superset-env'
-        image: 'busybox:latest'
+        image: 'busybox:1.35'
         imagePullPolicy: 'IfNotPresent'
         name: wait-for-postgres
       containers:
       - name: superset-init-db
-        image: "apache/superset:latest"
+        image: "apache/superset:2.0.0"
         envFrom:
           - secretRef:
               name: superset-env
@@ -421,7 +441,9 @@ spec:
             readOnly: true
         command: ["/bin/sh","-c",". /app/pythonpath/superset_bootstrap.sh; . /app/pythonpath/superset_init.sh"]
         resources:
-          {}
+          limits:
+            cpu: '0.25'
+            memory: 256Mi
       volumes:
         - name: superset-config
           secret:
