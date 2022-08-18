@@ -11,6 +11,11 @@ variable "cloud_trail_count" {
   description = "Number of cloud trails to create - Limited to 5 trails per region"
 }
 
+variable "lifecycle_count" {
+  # this variable is used to conditionally create a lifecycle rule that will simply expire obects after 30.
+  default = "0"
+}
+
 locals {
   clean_bucket_name = "${replace(replace(var.bucket_name, "_", "-"),".", "-")}"
 }
