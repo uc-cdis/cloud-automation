@@ -109,6 +109,7 @@ g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi-webapi/ohdsi-webapi-service
 gen3 roll ohdsi-atlas
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi-atlas/ohdsi-atlas-service.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi-atlas/ohdsi-atlas-service-elb.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/cohort-middleware/cohort-middleware-service.yaml"
 
 cat <<EOM
 The Atlas/WebAPI service has been deployed onto the k8s cluster.
