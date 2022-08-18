@@ -26,11 +26,6 @@ resource "aws_s3_bucket" "mybucket" {
     }
   }
 
-  lifecycle_rule {
-    enabled = true
-    abort_incomplete_multipart_upload_days = 7
-  }
-
   logging {
     target_bucket = "${module.cdis_s3_logs.log_bucket_name}"
     target_prefix = "log/${local.clean_bucket_name}/"
@@ -40,6 +35,44 @@ resource "aws_s3_bucket" "mybucket" {
     Name        = "${local.clean_bucket_name}"
     Environment = "${var.environment}"
     Purpose     = "data bucket"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "abort_incomplete_upload" {
+  bucket = aws_s3_bucket.mybucket.id
+
+  rule {
+    id = "abort_incomplete_upload"
+
+    filter {}
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation  = 7
+    }
+
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "30_expiration" {
+  bucket = aws_s3_bucket.mybucket.id
+  count = var.lifecycle_count ? 1 : 0
+
+
+  rule {
+    id = "30_expiration"
+
+    filter {}
+
+    noncurrent_version_expiration {
+      noncurrent_days = 14
+    }
+
+    expiration {
+      days = 30
+    }
+
+    status = "Enabled"
   }
 }
 
