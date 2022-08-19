@@ -1,3 +1,4 @@
+---
 # Source: superset/charts/redis/templates/serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -185,6 +186,8 @@ metadata:
     helm.sh/chart: redis-16.3.1
     app.kubernetes.io/instance: superset
     app.kubernetes.io/managed-by: Helm
+  annotations:
+    {}
 spec:
   type: ClusterIP
   clusterIP: None
@@ -216,6 +219,7 @@ spec:
     - name: tcp-redis
       port: 6379
       targetPort: redis
+      nodePort: null
   selector:
     app.kubernetes.io/name: redis
     app.kubernetes.io/instance: superset
@@ -256,9 +260,9 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: master
       annotations:
-        checksum/configmap: b765300878bf502421423c6a14a4c4ea2fa093089a9649b698e6301f5c5815b2
-        checksum/health: f25ecd3c820553a892da51cdc4ae25d85969f58033bdf527cd9a2bb05fcbcb83
-        checksum/scripts: 6a772f276bc7b11f7beaf7add93416a2438de881b4085cf2b9c8e09453cf37e5
+        checksum/configmap: 5fb78a3f5ce9ca1af5b7223f9cebe42f832ebc64f37e09a2fc8c8b29bb7101b0
+        checksum/health: 2ea27c28e44af78b1d3dc1373aa2ac24ba2b215f788de4a0f0c9e02cbb79c533
+        checksum/scripts: c351ebe638f6967b5bc76c2f38c28e2f7f65bc93846a1cd7786e2cbff9d51620
         checksum/secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
     spec:
       
@@ -276,8 +280,6 @@ spec:
                     app.kubernetes.io/name: redis
                     app.kubernetes.io/instance: superset
                     app.kubernetes.io/component: master
-                namespaces:
-                  - "qa-mickey"
                 topologyKey: kubernetes.io/hostname
               weight: 1
         nodeAffinity:
