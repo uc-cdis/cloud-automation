@@ -116,14 +116,14 @@ spec:
                 fi
               fi
               echo "generate access token"
-              echo "fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client --exp $TOKEN_EXPIRATION"
+              echo "fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,data --exp $TOKEN_EXPIRATION"
               tempFile="$(mktemp -p /tmp token.txt_XXXXXX)"
               success=false
               count=0
               sleepTime=10
               # retry loop
               while [[ $count -lt 3 && $success == false ]]; do
-                if fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client --exp $TOKEN_EXPIRATION > "$tempFile"; then
+                if fence-create --path fence token-create --type access_token --username $TEST_OPERATOR --scopes openid,user,test-client,data --exp $TOKEN_EXPIRATION > "$tempFile"; then
                   echo "fence-create success!"
                   tail -1 "$tempFile" > /mnt/shared/access_token.txt
                   # base64 --decode complains about invalid characters - don't know why
