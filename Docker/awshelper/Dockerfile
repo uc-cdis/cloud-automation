@@ -52,7 +52,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     && /bin/rm -rf awscliv2.zip ./aws
 
 # From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
-RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
+RUN export CLOUD_SDK_REPO="cloud-sdk" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
     curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
