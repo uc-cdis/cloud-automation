@@ -207,6 +207,7 @@ module "s3_bucket" {
   environment       = "qaplanetv1"
   source            = "$sourceFolder"
   cloud_trail_count = "0"
+  lifecycle_count = "0"
 }
 EOM
   gen3 workon . .
