@@ -139,6 +139,19 @@ EOF
     g3kubectl delete secret -n argo argo-s3-creds
   fi
 
+  #To create the buckets
+    if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
+      gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace"
+      # continue on ...
+    elif ! gen3 s3 create "${bucketName}"; then
+      gen3_log_err "maybe failed to create bucket ${bucketName}, but maybe not, because the terraform script is flaky"
+    fi
+    if aws s3 ls --page-size 1 "s3://${internalBucketName}" > /dev/null 2>&1; then
+      gen3_log_info "${internalBucketName} s3 bucket already exists - probably in use by another namespace"
+      # continue on ...
+    elif ! gen3 s3 create internal "${internalBucketName}"; then
+      gen3_log_err "maybe failed to create bucket ${bucketName}, but maybe not, because the terraform script is flaky"
+    fi
 
   gen3_log_info "Creating s3 creds secret in argo namespace"
   if [[ -z $internalBucketName ]]; then
