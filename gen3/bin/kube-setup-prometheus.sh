@@ -71,6 +71,7 @@ function deploy_prometheus()
     if ! g3kubectl get storageclass prometheus > /dev/null 2>&1; then
       g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/prometheus-storageclass.yaml"
     fi
+    deploy_thanos
     gen3 arun helm upgrade --install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring -f "${GEN3_HOME}/kube/services/monitoring/values.yaml" 
   else
     gen3_log_info "Prometheus is already installed, use --force to try redeploying"
@@ -107,6 +108,19 @@ function deploy_grafana()
   else
     echo "Grafana is already installed, use --force to try redeploying"
   fi
+}
+
+function deply_thanos() {
+  if  [[ -z $vpc_name ]]; then
+    local vpc_name="$(gen3 api environment)"
+  fi
+  roleName="$vpc_name-thanos-role"
+  saName="thanos"
+  bucketName="$vpc_name-thanos-bucket"
+  gen3 s3 create "$bucketname"
+  gen3 awsrole create "$roleName" "$saName" "monitoring" || return 1
+  gen3 s3 attach-bucket-policy "$bucketname" --read-write --role-name ${roleName}
+  kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/thanos-deploy.yaml"
 }
 
 command=""

@@ -538,7 +538,7 @@ alertmanager:
     ## Time duration Alertmanager shall retain data for. Default is '120h', and must match the regular expression
     ## [0-9]+(ms|s|m|h) (milliseconds seconds minutes hours).
     ##
-    retention: 2160h
+    retention: 120h
 
     ## Storage is the definition of how storage will be used by the Alertmanager instances.
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/storage.md
@@ -720,7 +720,7 @@ grafana:
   ##
   defaultDashboardsTimezone: utc
 
-  adminPassword: prom-operator # pragma: allowlist secret
+  adminPassword: prom-operator #pragma: allowlist secret
 
   rbac:
     ## If true, Grafana PSPs will be created
@@ -1893,8 +1893,8 @@ prometheus:
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
   ##
   serviceAccount:
-    create: true
-    name: ""
+    create: false
+    name: "thanos"
     annotations: {}
 
   # Service for thanos service discovery on sidecar
@@ -2481,7 +2481,7 @@ prometheus:
 
     ## How long to retain metrics
     ##
-    retention: 10d
+    retention: 2d
 
     ## Maximum size of metrics
     ##
@@ -2581,17 +2581,17 @@ prometheus:
     ## Prometheus StorageSpec for persistent data
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/storage.md
     ##
-    storageSpec: {}
+    storageSpec:
     ## Using PersistentVolumeClaim
     ##
-    #  volumeClaimTemplate:
-    #    spec:
-    #      storageClassName: gluster
-    #      accessModes: ["ReadWriteOnce"]
-    #      resources:
-    #        requests:
-    #          storage: 50Gi
-    #    selector: {}
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 500Gi
+              #selector: {}
 
     ## Using tmpfs volume
     ##
@@ -2616,7 +2616,7 @@ prometheus:
     ## The scrape configuration example below will find master nodes, provided they have the name .*mst.*, relabel the
     ## port to 2379 and allow etcd scraping provided it is running on all Kubernetes master nodes
     ##
-    additionalScrapeConfigs: 
+    additionalScrapeConfigs:
     - job_name: statsd_ambassador_gen3
       metrics_path: '/metrics'
       static_configs:
@@ -2625,19 +2625,17 @@ prometheus:
     - job_name: prometheus
       static_configs:
       - targets:
-        - localhost:9090    
+        - localhost:9090
     - job_name: kubecost
       honor_labels: true
       scrape_interval: 1m
       scrape_timeout: 10s
       metrics_path: /metrics
       scheme: http
-      dns_sd_configs:
-      - names:
-        - kubecost-cost-analyzer.kubecost
-        type: 'A'
-        port: 9003
-    
+      static_configs:
+      - targets:
+        - kubecost-cost-analyzer.kubecost.svc.cluster.local:9003
+
     # If scrape config contains a repetitive section, you may want to use a template.
     # In the following example, you can see how to define `gce_sd_configs` for multiple zones
 
@@ -2761,7 +2759,14 @@ prometheus:
     ## This is experimental and may change significantly without backward compatibility in any release.
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#thanosspec
     ##
-    thanos: {}
+    thanos:
+      objectStorageConfig:
+        key: thanos.yaml
+        name: thanos-objstore-config
+      image: quay.io/thanos/thanos:v0.25.2
+      #image: thanosio/thanos:v0.24.0
+      version: v0.25.2
+      tag: v0.25.2
     #      secretProviderClass:
     #     provider: s3
     #     parameters:
@@ -3007,7 +3012,7 @@ thanosRuler:
 
   ## Deploy thanosRuler
   ##
-  enabled: true
+  enabled: false
 
   ## Annotations for ThanosRuler
   ##

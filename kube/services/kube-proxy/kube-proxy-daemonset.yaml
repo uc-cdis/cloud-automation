@@ -154,7 +154,7 @@ spec:
         - containerPort: 10249
           hostPort: 10249
           name: metrics
-          protocol: TCP        
+          protocol: TCP
         resources:
           requests:
             cpu: 100m
