@@ -77,7 +77,7 @@ spec:
             secretName: thor-g3auto
       initContainers:
         - name: thor-db-create
-          image: quay.io/cdis/thor:master
+          GEN3_THOR_IMAGE
           imagePullPolicy: Always
           volumeMounts:
             - name: config-volume-g3auto
