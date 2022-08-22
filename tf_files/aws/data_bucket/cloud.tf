@@ -11,4 +11,5 @@ module "s3_bucket" {
   environment       = "${var.environment}"
   source            = "../modules/s3-bucket"
   cloud_trail_count = "${var.cloud_trail_count}"
+  lifecycle_count   = "${var.lifecycle_count}"
 }
