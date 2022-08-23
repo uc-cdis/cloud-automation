@@ -123,7 +123,9 @@ function deploy_thanos() {
   thanosValuesFile="$XDG_RUNTIME_DIR/thanos.yaml"
   thanosValuesTemplate="${GEN3_HOME}/kube/services/monitoring/thanos.yaml"
   g3k_kv_filter $thanosValuesTemplate S3_BUCKET $bucketName > $thanosValuesFile
+  g3kubectl delete secret -n monitoring thanos-objstore-config || true
   g3kubectl create secret generic -n monitoring thanos-objstore-config --from-file="$thanosValuesFile"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/thanos-deploy.yaml"
 }
 
 command=""
