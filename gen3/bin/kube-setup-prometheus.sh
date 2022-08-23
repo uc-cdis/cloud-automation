@@ -110,7 +110,7 @@ function deploy_grafana()
   fi
 }
 
-function deply_thanos() {
+function deploy_thanos() {
   if  [[ -z $vpc_name ]]; then
     local vpc_name="$(gen3 api environment)"
   fi
