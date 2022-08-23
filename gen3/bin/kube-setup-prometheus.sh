@@ -117,7 +117,7 @@ function deploy_thanos() {
   roleName="$vpc_name-thanos-role"
   saName="thanos"
   bucketName="$vpc_name-thanos-bucket"
-  gen3 s3 create "$bucketname"
+  gen3 s3 create "$bucketName"
   gen3 awsrole create "$roleName" "$saName" "monitoring" || return 1
   gen3 s3 attach-bucket-policy "$bucketname" --read-write --role-name ${roleName}
   thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
