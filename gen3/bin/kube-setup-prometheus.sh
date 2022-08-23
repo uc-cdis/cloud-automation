@@ -119,7 +119,7 @@ function deploy_thanos() {
   bucketName="$vpc_name-thanos-bucket"
   gen3 s3 create "$bucketName"
   gen3 awsrole create "$roleName" "$saName" "monitoring" || return 1
-  gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name ${roleName}
+  gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name ${roleName} || true
   thanosValuesFile="$XDG_RUNTIME_DIR/thanos.yaml"
   thanosValuesTemplate="${GEN3_HOME}/kube/services/monitoring/thanos.yaml"
   g3k_kv_filter $thanosValuesTemplate S3_BUCKET $bucketName > $thanosValuesFile
