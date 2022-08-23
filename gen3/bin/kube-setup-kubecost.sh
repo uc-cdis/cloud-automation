@@ -107,7 +107,7 @@ gen3_setup_kubecost() {
     #kubectl create secret generic thanos -n kubecost --from-file=$thanosValuesFile
     # Need to setup thanos config
     gen3 kube-setup-certs
-    g3kubectl create secret generic "cert-$name" "--from-file=tls.crt=credentials/${name}.crt" "--from-file=tls.key=credentials/${name}.key" -n kubecost
+    g3kubectl create secret generic "cert-kubecost-cost-analyzer" "--from-file=tls.crt=$(gen3_secrets_folder)/credentials/kubecost-cost-analyzer-service.crt" "--from-file=tls.key=$(gen3_secrets_folder)/credentials/kubecost-cost-analyzer-service.key" -n kubecost
     helm repo add kubecost https://kubecost.github.io/cost-analyzer/ --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
     if [[ -z $disablePrometheus ]]; then

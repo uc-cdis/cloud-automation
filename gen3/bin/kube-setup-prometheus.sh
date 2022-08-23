@@ -120,7 +120,10 @@ function deply_thanos() {
   gen3 s3 create "$bucketname"
   gen3 awsrole create "$roleName" "$saName" "monitoring" || return 1
   gen3 s3 attach-bucket-policy "$bucketname" --read-write --role-name ${roleName}
-  kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/thanos-deploy.yaml"
+  thanosValuesFile="$XDG_RUNTIME_DIR/object-store.yaml"
+  thanosValuesTemplate="${GEN3_HOME}/kube/services/kubecost-standalone/object-store.yaml"
+  g3k_kv_filter $thanosValuesTemplate S3_BUCKET $bucketName > $thanosValuesFile
+  g3kubectl apply -f "$thanosValuesFile" -n monitoring
 }
 
 command=""
