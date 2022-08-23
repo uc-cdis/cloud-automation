@@ -34,7 +34,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: thor
-        image: quay.io/cdis/thor:master
+        GEN3_THOR_IMAGE
         env:
         - name: RUNNING_IN_QAPLANETV1
           value: "true"
