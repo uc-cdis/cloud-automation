@@ -13,6 +13,7 @@ spec:
       - ambassador-gen3
       - auspice
       - ohdsi-atlas
+      - ohdsi-webapi
       - superset
       - superset-worker
       - superset-redis-master
