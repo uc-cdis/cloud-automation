@@ -265,6 +265,12 @@ fi
 #
 gen3 kube-wait4-pods || true
 
+if g3k_manifest_lookup '.versions["cohort-middleware"]' 2> /dev/null; then
+  gen3 kube-setup-cohort-middleware
+else
+  gen3_log_info "not deploying cohort-middleware - no manifest entry for '.versions[\"cohort-middleware\"]'"
+fi
+
 if g3k_manifest_lookup .versions.wts 2> /dev/null; then
   # this tries to kubectl exec into fence
   gen3 kube-setup-wts &
