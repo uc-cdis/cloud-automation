@@ -65,6 +65,11 @@ spec:
             secretKeyRef:
               name: thor-g3auto
               key: "slacktoken.json"
+        - name: SLACK_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              name: thor-g3auto
+              key: "slack_webhook.json"
         imagePullPolicy: Always
         volumeMounts:
           - name: config-volume-g3auto
