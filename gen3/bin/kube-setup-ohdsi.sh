@@ -91,6 +91,8 @@ setup_secrets() {
     export FENCE_CLIENT_ID=$(jq -r ".FENCE_CLIENT_ID" <<< "$appcreds")
     export FENCE_CLIENT_SECRET=$(jq -r ".FENCE_CLIENT_SECRET" <<< "$appcreds")
     envsubst <"${GEN3_HOME}/kube/services/ohdsi/ohdsi-secrets.yaml"  | g3kubectl apply -f -
+
+    envsubst '$hostname' <"${GEN3_HOME}/kube/services/ohdsi-webapi/ohdsi-webapi-reverse-proxy-config.yaml"  | g3kubectl apply -f -
   )
 }
 
