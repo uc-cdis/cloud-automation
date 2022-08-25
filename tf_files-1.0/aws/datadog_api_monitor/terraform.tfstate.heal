@@ -1,0 +1,1135 @@
+{
+  "version": 4,
+  "terraform_version": "1.2.5",
+  "serial": 42,
+  "lineage": "fd0f89fa-01a5-17c1-f813-e1b169b03d60",
+  "outputs": {},
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "datadog_synthetics_test",
+      "name": "api_tester",
+      "provider": "provider[\"registry.terraform.io/datadog/datadog\"]",
+      "instances": [
+        {
+          "index_key": "/_status",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "chw-hgk-8rc",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The commons health check failed for: HEAL Commons ",
+            "monitor_id": 78399880,
+            "name": "Commons health check for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/_status"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/api/_status",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "aur-hpg-52h",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The API health check failed for: HEAL Commons ",
+            "monitor_id": 78399885,
+            "name": "API health check for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/api/_status"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/api/v0/submission/_dictionary/_all",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "i3q-4ak-w2z",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The submission health check failed for: HEAL Commons ",
+            "monitor_id": 78399883,
+            "name": "Submission health check for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/api/v0/submission/_dictionary/_all"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/audit/_status",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "kpt-22r-jj9",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The audit health check failed for: HEAL Commons ",
+            "monitor_id": 78399878,
+            "name": "Audit health check for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/audit/_status"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/index/index",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "fti-bkk-b6n",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The indexd health check failed for: HEAL Commons ",
+            "monitor_id": 78399882,
+            "name": "Indexd health check for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/index/index"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/mds/aggregate/metadata?data=True\u0026limit=1000\u0026offset=0",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "77i-g28-gjc",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The metadata health check failed for: HEAL Commons ",
+            "monitor_id": 78399877,
+            "name": "Metadata health check for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/mds/aggregate/metadata?data=True\u0026limit=1000\u0026offset=0"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/mds/metadata?data=True\u0026_guid_type=unregistered_discovery_metadata\u0026limit=1000\u0026offset=0",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "89f-9t5-hxg",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The metadata health check failed for: HEAL Commons ",
+            "monitor_id": 78399881,
+            "name": "Metadata health check 2 for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/mds/metadata?data=True\u0026_guid_type=unregistered_discovery_metadata\u0026limit=1000\u0026offset=0"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/peregrine/_status",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "gzw-mbx-csr",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The peregrine health check failed for: HEAL Commons ",
+            "monitor_id": 78399884,
+            "name": "Peregrine health check for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/peregrine/_status"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/portal/discovery",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "d9y-dgt-xjp",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "HEAL Commons ",
+            "monitor_id": 78399889,
+            "name": "HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/portal/discovery"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/requestor/_status",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "dzg-w6k-xzt",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The requestor health check failed for: HEAL Commons ",
+            "monitor_id": 78399886,
+            "name": "Requestor health check for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/requestor/_status"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/user/_status",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "w8s-8cm-94n",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "HEAL Commons ",
+            "monitor_id": 78399879,
+            "name": "HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/user/_status"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/user/login",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "9b7-2w4-utd",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The login page health check failed for: HEAL Commons ",
+            "monitor_id": 78399887,
+            "name": "Login page health check for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/user/login"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        },
+        {
+          "index_key": "/wts/_status",
+          "schema_version": 0,
+          "attributes": {
+            "api_step": [],
+            "assertion": [
+              {
+                "operator": "is",
+                "property": "",
+                "target": "200",
+                "targetjsonpath": [],
+                "type": "statusCode"
+              },
+              {
+                "operator": "lessThan",
+                "property": "",
+                "target": "2000",
+                "targetjsonpath": [],
+                "type": "responseTime"
+              }
+            ],
+            "browser_step": [],
+            "browser_variable": [],
+            "config_variable": [],
+            "device_ids": [],
+            "id": "pc9-mrq-gpy",
+            "locations": [
+              "aws:us-east-1"
+            ],
+            "message": "@slack-gpe-alarms The WTS health check failed for: HEAL Commons ",
+            "monitor_id": 78399891,
+            "name": "WTS health check for: HEAL Commons",
+            "options_list": [
+              {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "check_certificate_revocation": false,
+                "ci": [],
+                "follow_redirects": false,
+                "min_failure_duration": 300,
+                "min_location_failed": 1,
+                "monitor_name": "",
+                "monitor_options": [],
+                "monitor_priority": 0,
+                "no_screenshot": false,
+                "restricted_roles": [],
+                "retry": [],
+                "rum_settings": [],
+                "tick_every": 60
+              }
+            ],
+            "request_basicauth": [],
+            "request_client_certificate": [],
+            "request_definition": [
+              {
+                "body": "",
+                "dns_server": "",
+                "dns_server_port": 0,
+                "host": "",
+                "message": "",
+                "method": "GET",
+                "no_saving_response_body": false,
+                "number_of_packets": 0,
+                "port": 0,
+                "servername": "",
+                "should_track_hops": false,
+                "timeout": 0,
+                "url": "https://healdata.org/wts/_status"
+              }
+            ],
+            "request_headers": {},
+            "request_proxy": [],
+            "request_query": {},
+            "set_cookie": null,
+            "status": "live",
+            "subtype": "http",
+            "tags": [
+              "env:healprod",
+              "heal",
+              "HEAL"
+            ],
+            "type": "api"
+          },
+          "sensitive_attributes": [],
+          "private": "bnVsbA=="
+        }
+      ]
+    }
+  ]
+}
