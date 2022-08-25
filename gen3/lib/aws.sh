@@ -131,57 +131,61 @@ gen3_workon_aws(){
   fi
 
   # terraform stack - based on VPC name
-  export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons"
+  if [[ ! -z $USE_TF_1 ]]; then
+    tversion="-1.0"
+  fi
+  export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/commons"
   if [[ "$GEN3_WORKSPACE" =~ _user$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/user_vpc"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/user_vpc"
   elif [[ "$GEN3_WORKSPACE" =~ _usergeneric$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/user_generic"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/user_generic"
   elif [[ "$GEN3_WORKSPACE" =~ _snapshot$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/rds_snapshot"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/rds_snapshot"
   elif [[ "$GEN3_WORKSPACE" =~ _adminvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_admin_vm"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/csoc_admin_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _logging$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_common_logging"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/csoc_common_logging"
   elif [[ "$GEN3_WORKSPACE" =~ _databucket$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/data_bucket"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/data_bucket"
   elif [[ "$GEN3_WORKSPACE" =~ _demolab$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/demolab"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/demolab"
   elif [[ "$GEN3_WORKSPACE" =~ _squidvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_vm"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/squid_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _utilityvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/utility_vm"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/utility_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _bigdisk$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/worker_bigdisk"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/worker_bigdisk"
   elif [[ "$GEN3_WORKSPACE" =~ _squidnlbcentral$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_nlb_central"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/squid_nlb_central"
   elif [[ "$GEN3_WORKSPACE" =~ _vpnnlbcentral$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/vpn_nlb_central"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/vpn_nlb_central"
   elif [[ "$GEN3_WORKSPACE" =~ _squidnlb$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squidnlb_standalone"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/squidnlb_standalone"
   elif [[ "$GEN3_WORKSPACE" =~ _es$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons_vpc_es"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/commons_vpc_es"
   elif [[ "$GEN3_WORKSPACE" =~ _qualysvm$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_qualys_vm"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/csoc_qualys_vm"
   elif [[ "$GEN3_WORKSPACE" =~ _eks$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/eks"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/eks"
   elif [[ "$GEN3_WORKSPACE" =~ _sns$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/commons_sns"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/commons_sns"
   elif [[ "$GEN3_WORKSPACE" == "management-logs" ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/csoc_management-logs"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/csoc_management-logs"
   elif [[ "$GEN3_WORKSPACE" =~ _management-logs$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/account_management-logs"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/account_management-logs"
   elif [[ "$GEN3_WORKSPACE" =~ _squidauto$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/squid_auto"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/squid_auto"
   elif [[ "$GEN3_WORKSPACE" =~ _role$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/role"
   elif [[ "$GEN3_WORKSPACE" =~ _role_policy_attachment$ ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/role_policy_attachment"
-  elif [[ -d "${GEN3_HOME}/tf_files/aws/${GEN3_WORKSPACE#*__}" ]]; then
-    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files/aws/${GEN3_WORKSPACE#*__}"
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/role_policy_attachment"
+  elif [[ -d "${GEN3_HOME}/tf_files$tversion/aws/${GEN3_WORKSPACE#*__}" ]]; then
+    export GEN3_TFSCRIPT_FOLDER="${GEN3_HOME}/tf_files$tversion/aws/${GEN3_WORKSPACE#*__}"
   elif [[ "${GEN3_WORKSPACE}" =~ __custom$ ]]; then
     export GEN3_TFSCRIPT_FOLDER="${GEN3_WORKDIR}"
   fi
 
+  export TF_DATA_DIR="${GEN3_WORKDIR}"
   PS1="gen3/${GEN3_WORKSPACE}:$GEN3_PS1_OLD"
   return 0
 }
