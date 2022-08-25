@@ -23,7 +23,7 @@ spec:
             secretName: cogwheel-g3auto
       containers:
         - name: cogwheel
-          GEN3_COGWHEEL_IMAGE
+          GEN3_COGWHEEL_IMAGE|-image: quay.io/cdis/cogwheel:master-|
           imagePullPolicy: Always
           env:
           - name: HOSTNAME
