@@ -164,9 +164,10 @@ EOF
   fi
   # if bucket already exists- check for its state file
   if [[ $(_bucket_exists $bucketName) -eq 0 ]]; then
-  # checks for tf state
-  s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/terraform.tfstate" #how to say if this exists, do xyz because state only exists remotely
-  exists=gen3_aws_run aws s3 ls "$s3Path"
+    # checks for tf state
+    s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/terraform.tfstate" #how to say if this exists, do xyz because state only exists remotely
+    exists=gen3_aws_run aws s3 ls "$s3Path"
+  fi
   # if no state exists, create a new workspace. 
   if [[ -z "$exists" ]]; then
     gen3_log_info "No terraform state for bucket. Creating a new workspace."
@@ -189,7 +190,7 @@ EOF
             encrypt = "true"
         }
     }
-    EOM
+EOM
       else
         cat - > "$GEN3_WORKDIR/root.tf" <<EOM
     #
@@ -197,7 +198,7 @@ EOF
     # root.tf is required for *terraform output*, *terraform taint*, etc
     # @see https://github.com/hashicorp/terraform/issues/15761
     #
-    EOM
+EOM
       fi
     fi
 
@@ -277,8 +278,9 @@ EOF
   # if bucket already exists- check for its state file
   if [[ $(_bucket_exists $InternalBucketName) -eq 0 ]]; then
   # checks for tf state
-  s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/terraform.tfstate" #how to say if this exists, do xyz because state only exists remotely
-  exists=gen3_aws_run aws s3 ls "$s3Path"
+    s3Path="s3://${GEN3_S3_BUCKET}/${GEN3_WORKSPACE}/terraform.tfstate" #how to say if this exists, do xyz because state only exists remotely
+    exists=gen3_aws_run aws s3 ls "$s3Path"
+  fi
   # if no state exists, create a new workspace. 
   if [[ -z "$exists" ]]; then
     gen3_log_info "No terraform state for bucket. Creating a new workspace."
@@ -301,7 +303,7 @@ EOF
             encrypt = "true"
         }
     }
-    EOM
+EOM
       else
         cat - > "$GEN3_WORKDIR/root.tf" <<EOM
     #
@@ -309,7 +311,7 @@ EOF
     # root.tf is required for *terraform output*, *terraform taint*, etc
     # @see https://github.com/hashicorp/terraform/issues/15761
     #
-    EOM
+EOM
       fi
     fi
 
@@ -541,4 +543,3 @@ gen3_s3() {
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   gen3_s3 "$@"
 fi
-
