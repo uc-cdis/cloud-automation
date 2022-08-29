@@ -54,13 +54,13 @@ resource "aws_s3_bucket_lifecycle_configuration" "abort_incomplete_upload" {
   }
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "30_expiration" {
+resource "aws_s3_bucket_lifecycle_configuration" "thirty_day_expiration" {
   bucket = aws_s3_bucket.mybucket.id
   count = var.lifecycle_count ? 1 : 0
 
 
   rule {
-    id = "30_expiration"
+    id = "thirty_day_expiration"
 
     filter {}
 
