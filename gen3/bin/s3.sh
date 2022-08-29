@@ -165,7 +165,7 @@ EOF
   # if bucket already exists- check for its state file
   if [[ $(_bucket_exists $bucketName) -eq 0 ]]; then
     # checks for tf state
-    s3Path="s3://${GEN3_S3_BUCKET}/$bucketName_databucket/terraform.tfstate" #how to say if this exists, do xyz because state only exists remotely
+    s3Path="s3://${GEN3_S3_BUCKET}/'${bucketName}_databucket'/terraform.tfstate" #how to say if this exists, do xyz because state only exists remotely
     exists=gen3_aws_run aws s3 ls "$s3Path"
     echo $s3Path
   fi
@@ -173,9 +173,9 @@ EOF
   if [[ -z "$exists" ]]; then
     gen3_log_info "No terraform state for bucket. Creating a new workspace."
     # use the workon script to create a new workspace
-    gen3 workon default $bucketName_databucket
+    gen3 workon default '${bucketName}_databucket'
     # now that workspace is created, import the bucket. 
-    terraform import module.$bucketName_databucket.aws_s3_bucket.mybucket $bucketName 
+    terraform import module.'${bucketName}_databucket'.aws_s3_bucket.mybucket $bucketName 
 
     # run a plan and apply
     _tfplan_s3_internal $bucketName $environmentName
@@ -236,7 +236,7 @@ EOF
   # if bucket already exists- check for its state file
   if [[ $(_bucket_exists $InternalBucketName) -eq 0 ]]; then
   # checks for tf state
-    s3Path="s3://${GEN3_S3_BUCKET}/$bucketName_databucket/terraform.tfstate" #how to say if this exists, do xyz because state only exists remotely
+    s3Path="s3://${GEN3_S3_BUCKET}/'${bucketName}_databucket'/terraform.tfstate" #how to say if this exists, do xyz because state only exists remotely
     exists=gen3_aws_run aws s3 ls "$s3Path"
     echo $s3Path
   fi
@@ -244,9 +244,9 @@ EOF
   if [[ -z "$exists" ]]; then
     gen3_log_info "No terraform state for bucket. Creating a new workspace."
     # use the workon script to create a new workspace
-    gen3 workon default $bucketName_databucket
+    gen3 workon default '${bucketName}_databucket'
     # now that workspace is created, import the bucket. 
-    terraform import module.$bucketName_databucketaws_s3_bucket.mybucket $InternalBucketName 
+    terraform import module.'${bucketName}_databucket'.aws_s3_bucket.mybucket $InternalBucketName 
 
     # run a plan and apply
     _tfplan_s3_internal $InternalBucketName $environmentName
