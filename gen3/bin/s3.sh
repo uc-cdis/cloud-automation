@@ -166,8 +166,8 @@ EOF
   if [[ $(_bucket_exists $bucketName) -eq 0 ]]; then
     # checks for tf state
     s3Path="s3://${GEN3_S3_BUCKET}/'${bucketName}_databucket'/terraform.tfstate" #how to say if this exists, do xyz because state only exists remotely
-    exists=gen3_aws_run aws s3 ls "$s3Path"
-    echo $s3Path
+    exists=gen3_aws_run aws s3 ls "${s3Path}"
+    gen3_log_info "s3 Path: ${s3Path}"
   fi
   # if no state exists, create a new workspace. 
   if [[ -z "$exists" ]]; then
@@ -237,8 +237,8 @@ EOF
   if [[ $(_bucket_exists $InternalBucketName) -eq 0 ]]; then
   # checks for tf state
     s3Path="s3://${GEN3_S3_BUCKET}/'${bucketName}_databucket'/terraform.tfstate" #how to say if this exists, do xyz because state only exists remotely
-    exists=gen3_aws_run aws s3 ls "$s3Path"
-    echo $s3Path
+    exists=gen3_aws_run aws s3 ls "${s3Path}"
+    gen3_log_info "s3 Path: ${s3Path}"
   fi
   # if no state exists, create a new workspace. 
   if [[ -z "$exists" ]]; then
