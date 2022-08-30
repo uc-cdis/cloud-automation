@@ -40,14 +40,14 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       if aws --version; then
         version="$(aws --version | awk '{ print $1 }' | awk -F / '{ print $2 }')"
       fi
-      if semver_ge "$version" "2.1.15"; then
+      if semver_ge "$version" "2.7.0"; then
         gen3_log_info "awscli up to date"
         return 0
       fi
       # update to latest version
       ( # subshell
         export DEBIAN_FRONTEND=noninteractive
-        if [[ -f /usr/local/bin/aws ]] && ! semver_ge "$version" "2.0.0"; then
+        if [[ -f /usr/local/bin/aws ]] && ! semver_ge "$version" "2.7.0"; then
           sudo rm /usr/local/bin/aws
         fi
         cd $HOME
@@ -56,7 +56,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
         cd $temp_dir
         curl -o awscli.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
         unzip awscli.zip
-        if semver_ge "$version" "2.0.0"; then
+        if semver_ge "$version" "2.7.0"; then
           yes | sudo ./aws/install --update
         else
           yes | sudo ./aws/install

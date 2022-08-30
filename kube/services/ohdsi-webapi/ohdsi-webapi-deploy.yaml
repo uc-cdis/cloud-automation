@@ -36,6 +36,10 @@ spec:
                   - ohdsi-webapi
               topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
+      volumes:
+        - name: ohdsi-webapi-reverse-proxy-config
+          configMap:
+            name: ohdsi-webapi-reverse-proxy-config
       containers:
         - name: ohdsi-webapi
           GEN3_OHDSI-WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
@@ -58,8 +62,25 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 1
+              cpu: '0.5'
               memory: 1Gi
             limits:
-              cpu: 1
+              cpu: '0.5'
               memory: 1Gi  
+        - name: ohdsi-webapi-reverse-proxy
+          image: nginx:1.23
+          ports:
+          - containerPort: 80
+          volumeMounts:
+            - name: ohdsi-webapi-reverse-proxy-config
+              readOnly: true
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: '0.5'
+              memory: 1Gi
+            limits:
+              cpu: '0.5'
+              memory: 1Gi
