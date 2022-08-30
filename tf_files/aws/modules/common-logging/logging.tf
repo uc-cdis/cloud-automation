@@ -353,16 +353,6 @@ data "aws_iam_policy_document" "lambda_policy_document" {
       "${aws_kinesis_firehose_delivery_stream.firehose_to_s3.arn}",
     ]
   }
-
-  statement {
-    actions = [
-      "lambda:InvokeFunction"
-    ]
-
-    resources = []
-
-    effect = "Allow"
-  }
 }
 
 resource "aws_iam_role_policy" "lambda_policy" {
