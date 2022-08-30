@@ -34,7 +34,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: thor
-        image: quay.io/cdis/thor:master
+        GEN3_THOR_IMAGE
         env:
         - name: RUNNING_IN_QAPLANETV1
           value: "true"
@@ -65,6 +65,11 @@ spec:
             secretKeyRef:
               name: thor-g3auto
               key: "slacktoken.json"
+        - name: SLACK_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              name: thor-g3auto
+              key: "slack_webhook.json"
         imagePullPolicy: Always
         volumeMounts:
           - name: config-volume-g3auto
@@ -77,7 +82,7 @@ spec:
             secretName: thor-g3auto
       initContainers:
         - name: thor-db-create
-          image: quay.io/cdis/thor:master
+          GEN3_THOR_IMAGE
           imagePullPolicy: Always
           volumeMounts:
             - name: config-volume-g3auto

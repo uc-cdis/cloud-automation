@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
       - name: gen3qa-check-bucket-access
-        GEN3_GEN3_QA_CONTROLLER_IMAGE|-image: quay.io/cdis/gen3-qa-controller:0.5-|
+        GEN3_GEN3_QA_CONTROLLER_IMAGE|-image: quay.io/cdis/gen3-qa-controller:fix_gen3qa_get_check-|
         workingDir: /var/sdet_home
         imagePullPolicy: Always
         env:
