@@ -38,7 +38,7 @@ variable "instance_type" {
 }
 
 variable "image_name_search_criteria" {
-  default = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
+  default = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 }
 
 variable "extra_vars" {
