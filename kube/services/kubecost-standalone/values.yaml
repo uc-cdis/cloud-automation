@@ -2,6 +2,11 @@
 
 kubecostToken: KUBECOST_TOKEN
 
+global:
+  prometheus:
+    enabled: false
+    fqdn: http://prometheus-operated.monitoring.svc:9090
+
 serviceAccount:
   create: true # Set this to false if you're bringing your own service account.
   annotations: 
@@ -19,17 +24,12 @@ kubecostProductConfigs:
   # awsSpotDataRegion: AWS_kubecostProductConfigs_awsSpotDataRegion
   # awsSpotDataBucket: AWS_kubecostProductConfigs_awsSpotDataBucket
 
-prometheus:
-  serviceAccounts:
-    server:
-      create: false
-      name: "THANOS_SA"
+kubecostFrontend:
+  tls: 
+    enabled: true
+    secretName: "cert-kubecost-cost-analyzer"
+
 
 networkCosts:
   enabled: true
   
-thanos:
-  store:
-    serviceAccount: "THANOS_SA"
-  compact: 
-    serviceAccount: "THANOS_SA"
