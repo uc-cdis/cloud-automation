@@ -72,15 +72,15 @@ datadog:
 
     # datadog.processAgent.processCollection -- Set this to true to enable process collection in process monitoring agent
     ## Requires processAgent.enabled to be set to true to have any effect
-    processCollection: false
+    processCollection: true
 
     # datadog.processAgent.stripProcessArguments -- Set this to scrub all arguments from collected processes
     ## Requires processAgent.enabled and processAgent.processCollection to be set to true to have any effect
     ## ref: https://docs.datadoghq.com/infrastructure/process/?tab=linuxwindows#process-arguments-scrubbing
-    stripProcessArguments: false
+    stripProcessArguments: true
 
     # datadog.processAgent.processDiscovery -- Enables or disables autodiscovery of integrations
-    processDiscovery: false
+    processDiscovery: true
 
   ## Enable systemProbe agent and provide custom configs
   systemProbe:
