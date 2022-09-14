@@ -120,7 +120,7 @@ RUN cd ./cloud-automation \
     && npm ci \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/901bdf0491005f1b3db41947d0d938da6838ecb9/get-poetry.py | python3 -
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
