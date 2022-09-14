@@ -38,8 +38,6 @@ RUN apt-get update && apt-get upgrade -y \
       wget \
       gettext-base
 
-RUN apt-get install --reinstall python3-distutils
-
 RUN  python3 -m pip install --upgrade pip \
     && python3 -m pip install --upgrade setuptools \
     && python3 -m pip install -U crcmod \
@@ -122,7 +120,7 @@ RUN cd ./cloud-automation \
     && npm ci \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
-RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && curl -sSL https://install.python-poetry.org | python3 -
 
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
