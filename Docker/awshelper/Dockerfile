@@ -30,7 +30,6 @@ RUN apt-get update && apt-get upgrade -y \
       python3-dev \
       python3-pip \
       python3-setuptools \
-      python3-distutils \
       ssh \
       sudo \
       tmux \
@@ -38,6 +37,8 @@ RUN apt-get update && apt-get upgrade -y \
       vim \
       wget \
       gettext-base
+
+RUN apt-get install --reinstall python3-distutils
 
 RUN  python3 -m pip install --upgrade pip \
     && python3 -m pip install --upgrade setuptools \
