@@ -116,7 +116,9 @@ EOM
     gen3_aws_run aws s3api create-bucket --acl private --bucket "$GEN3_S3_BUCKET"
     sleep 5 # Avoid race conditions
     if gen3_aws_run aws s3api put-bucket-encryption --bucket "$GEN3_S3_BUCKET" --server-side-encryption-configuration "$S3_POLICY"; then
-      touch "$bucketCheckFlag"
+      if gen3_aws_run aws s3api put-bucket-versioning --bucket "$GEN3_S3_BUCKET" --versioning-configuration MFADelete=Disabled,Status=Enabled; then
+        touch "$bucketCheckFlag"
+      fi
     fi
   else
     touch "$bucketCheckFlag"
