@@ -30,6 +30,7 @@ RUN apt-get update && apt-get upgrade -y \
       python3-dev \
       python3-pip \
       python3-setuptools \
+      python3-distutils \
       ssh \
       sudo \
       tmux \
