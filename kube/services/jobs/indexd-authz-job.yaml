@@ -81,8 +81,6 @@ spec:
               echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/indexd/fence-config-public.yaml"
               python /var/www/indexd/yaml_merge.py /var/www/indexd/fence-config-public.yaml /var/www/indexd/fence-config-secret.yaml > /var/www/indexd/fence-config.yaml
 
-              cat /var/www/indexd/fence-config.yaml
-
               flags="--path /var/www/indexd/ --arborist-url http://arborist-service --fence-config-path /var/www/indexd/fence-config.yaml"
               if [[ "$USE_SHEEPDOG" == "true" ]]; then
                 db_uri=$(python - <<- EOF
