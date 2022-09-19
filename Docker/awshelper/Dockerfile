@@ -120,7 +120,7 @@ RUN cd ./cloud-automation \
     && npm ci \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
-RUN export POETRY_VERSION=1.1.15 && curl -sSL https://install.python-poetry.org | python3 -
+RUN pip install poetry
 
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
