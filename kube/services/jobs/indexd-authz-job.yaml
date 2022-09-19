@@ -13,6 +13,12 @@ spec:
         - name: config-volume
           secret:
             secretName: "indexd-secret"
+        - name: fence-config-volume
+          secret:
+            secretName: "fence-config"
+        - name: yaml-merge
+          configMap:
+            name: "fence-yaml-merge"
         - name: "sheepdog-creds-volume"
           secret:
             secretName: "sheepdog-creds"
@@ -36,7 +42,21 @@ spec:
               GEN3_START_DID|-value: ""-|
             - name: USE_SHEEPDOG
               GEN3_USE_SHEEPDOG|-value: "true"-|
+            - name: FENCE_PUBLIC_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-fence
+                  key: fence-config-public.yaml
+                  optional: true
           volumeMounts:
+            - name: "fence-config-volume"
+              readOnly: true
+              mountPath: "/var/www/indexd/fence-config-secret.yaml"
+              subPath: fence-config.yaml
+            - name: "yaml-merge"
+              readOnly: true
+              mountPath: "/var/www/indexd/yaml_merge.py"
+              subPath: yaml_merge.py
             - name: "config-volume"
               readOnly: true
               mountPath: "/var/www/indexd/local_settings.py"
@@ -58,7 +78,12 @@ spec:
           args:
             - "-c"
             - |
-              flags="--path /var/www/indexd/ --arborist-url http://arborist-service"
+              echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/indexd/fence-config-public.yaml"
+              python /var/www/indexd/yaml_merge.py /var/www/indexd/fence-config-public.yaml /var/www/indexd/fence-config-secret.yaml > /var/www/indexd/fence-config.yaml
+
+              cat /var/www/indexd/fence-config.yaml
+
+              flags="--path /var/www/indexd/ --arborist-url http://arborist-service --fence-config-path /var/www/indexd/fence-config.yaml"
               if [[ "$USE_SHEEPDOG" == "true" ]]; then
                 db_uri=$(python - <<- EOF
               from base64 import b64decode
