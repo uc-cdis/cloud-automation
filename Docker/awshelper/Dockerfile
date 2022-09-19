@@ -75,6 +75,13 @@ RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc| gpg --dearmor
     apt-get update && \
     apt-get install -y postgresql-client-13
 
+# install terraform
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
+   && unzip /tmp/terraform.zip -d /usr/local/bin && /bin/rm /tmp/terraform.zip
+
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip \
+   && unzip /tmp/terraform.zip -d /tmp && mv /tmp/terraform /usr/local/bin/terraform12 && /bin/rm /tmp/terraform.zip
+
 RUN useradd -m -s /bin/bash ubuntu && \
     ( echo "ubuntu:gen3" | chpasswd )
 
@@ -113,7 +120,7 @@ RUN cd ./cloud-automation \
     && npm ci \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+RUN export POETRY_VERSION=1.1.15 && curl -sSL https://install.python-poetry.org | python3 -
 
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
