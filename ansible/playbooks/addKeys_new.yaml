@@ -9,7 +9,6 @@
 
 
 ---
-#- import_playbook: opsKeysInHost.yaml
 - hosts: "{{ _hosts }}"
   tasks:
   - authorized_key:
