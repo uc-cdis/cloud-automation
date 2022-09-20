@@ -43,6 +43,12 @@ all:
           ansible_host: vhdc.csoc
         covid19_admin:
           ansible_host: covid19.csoc
+        midrc_admin: 
+          ansible_host: midrc.csoc
+        heal_admin: 
+          ansible_host: heal.csoc
+        brh_admin: 
+          ansible_host: brh.csoc
       vars:
         ansible_user: ubuntu
         ansible_python_interpreter: /usr/bin/python3
@@ -125,6 +131,9 @@ all:
         oadc_commons:
           ansible_user: oadc
           ansible_host: oadc.csoc
+        neuro_commons:
+          ansible_user: neuro
+          ansible_host: oadc.csoc
         vhdcprod_commons:
           ansible_user: vhdcprod
           ansible_host: vhdc.csoc
@@ -134,6 +143,15 @@ all:
         bdcatprod_commons:
           ansible_user: bdcatprod
           ansible_host: gtex.csoc
+        midrc_commons:
+          ansible_user: midrcprod
+          ansible_host: midrc.csoc
+        heal_commons:
+          ansible_user: healprod
+          ansible_host: heal.csoc
+        brh_commons:
+          ansible_user: brhprod
+          ansible_host: brh.csoc
       vars:
         ansible_python_interpreter: /usr/bin/python3
 
@@ -151,6 +169,12 @@ all:
         bhcstaging_commons:
           ansible_user: bhcstaging
           ansible_host: braincommons.csoc
+        midrcstaging_commons:
+          ansible_user: staging-validate
+          ansible_host: midrc.csoc
+        brhstaging_commons:
+          ansible_user: brhstaging
+          ansible_host: brh.csoc
       vars:
         ansible_python_interpreter: /usr/bin/python3
     namespaces:
@@ -167,6 +191,9 @@ all:
         flu_commons:
           ansible_user: flu
           ansible_host: niaiddh.csoc
+        clinicaltrial_commons:
+          ansible_user: clincialtrial
+          ansible_host: niaiddh.csoc
         preprod_commons:
           ansible_user: bdcat-internalstaging
           ansible_host: gtex.csoc
@@ -179,6 +206,15 @@ all:
         va-testing_commons:
           ansible_user: va-testing
           ansible_host: vhdc.csoc
+        validate_commons:
+          ansible_user: validate
+          ansible_host: midrc.csoc
+        healpreprod_commons:
+          ansible_user: healpreprod
+          ansible_host: heal.csoc
+        healworkspaces_commons:
+          ansible_user: healworkspaces
+          ansible_host: heal.csoc
       vars:
         ansible_python_interpreter: /usr/bin/python3
 
@@ -192,6 +228,9 @@ all:
           ansible_host: cdistest.csoc
         cdistest_qav2:
           ansible_user: qaplanetv2
+          ansible_host: cdistest.csoc
+        cdistest_emalinowskiv1:
+          ansible_user: emalinowskiv1
           ansible_host: cdistest.csoc
       vars:
         ansible_python_interpreter: /usr/bin/python3
@@ -220,6 +259,9 @@ all:
       hosts:
         ncicrdc_demo:
           ansible_user: ncicrdcdemo
+          ansible_host: ncicrdc.csoc
+        brh_demo:
+          ansible_user: brhdemo
           ansible_host: ncicrdc.csoc
 
     csoc:
