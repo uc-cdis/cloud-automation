@@ -6,7 +6,7 @@ gen3_load "gen3/gen3setup"
 
 
 #export GEN3_PROMHOST="${GEN3_PROMHOST:-"http://prometheus-server.prometheus.svc.cluster.local"}"
-export GEN3_PROMHOST="${GEN3_PROMHOST:-"http://prometheus-operated.monitoring.svc.cluster.local"}"
+export GEN3_PROMHOST="${GEN3_PROMHOST:-"http://prometheus-operated.monitoring.svc.cluster.local:9090"}"
 
 gen3_prom_help() {
   gen3 help prometheus
@@ -16,7 +16,7 @@ function gen3_prom_curl() {
   local urlBase="$1"
   shift || return 1
   local hostOrKey="${1:-${GEN3_PROMHOST}}"
-  local urlPath="prometheus/api/v1/$urlBase"
+  local urlPath="api/v1/$urlBase"
     
   if [[ "$hostOrKey" =~ ^http ]]; then
     gen3_log_info "fetching $hostOrKey/$urlPath"
