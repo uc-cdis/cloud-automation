@@ -314,11 +314,3 @@ all:
           ansible_user: generic-commons
       vars:
         ansible_python_interpreter: /usr/bin/python3
-    dummi:
-      hosts:
-        dummi1:
-          ansible_host: 10.128.5.142
-          ansible_user: ubuntu
-        emalinowskiv1:
-          ansible_host: cdistest.csoc
-          ansible_user: emalinowskiv1
