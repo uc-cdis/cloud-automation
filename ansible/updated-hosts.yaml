@@ -98,9 +98,6 @@ all:
         niaidprod_commons:
           ansible_user: niaidprod
           ansible_host: niaiddh.csoc
-        stageprod_commons:
-          ansible_user: stageprod
-          ansible_host: gtex.csoc
         dataguis_commons:
           ansible_user: dataguids
           ansible_host: gtex.csoc
