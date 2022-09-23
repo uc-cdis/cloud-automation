@@ -10,7 +10,6 @@
 
 ---
 - hosts: "{{ _hosts }}"
-  gather_facts: no
   tasks:
   - authorized_key:
       user: "{{ ansible_user_id }}"
