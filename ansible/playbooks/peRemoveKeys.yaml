@@ -15,4 +15,4 @@
       user: "{{ ansible_user_id }}"
       state: absent
       key: "{{ lookup('file', item) }}"
-    with_fileglob: 'oldPeKeys/*'
+    with_fileglob: '../oldPeKeys/*'
