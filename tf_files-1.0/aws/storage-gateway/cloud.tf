@@ -222,7 +222,7 @@ resource "aws_iam_policy_attachment" "attach-policies" {
   name       = "storageGW-attachment"
   roles      = [aws_iam_role.transfer-role.name]
   policy_arn = aws_iam_policy.transfer-policy-sg.arn
-  depends_on = ["aws_iam_policy.transfer-policy-sg"]
+  depends_on = [aws_iam_policy.transfer-policy-sg]
 }
 
 
@@ -236,7 +236,7 @@ resource "aws_s3_bucket" "transfer-bucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "transfer-bucket" {
-  bucket = aws_s3_bucket.data_bucket.transfer-bucket
+  bucket = aws_s3_bucket.transfer-bucket.id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -246,6 +246,6 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "transfer-bucket" 
 }
 
 resource "aws_s3_bucket_acl" "data_bucket" {
-  bucket = aws_s3_bucket.data_bucket.transfer-bucket
+  bucket = aws_s3_bucket.transfer-bucket.id
   acl    = "private"
 }

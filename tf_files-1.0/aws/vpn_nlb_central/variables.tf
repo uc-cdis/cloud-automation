@@ -27,10 +27,6 @@ variable "image_name_search_criteria" {
   default = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
 }
 
-variable "csoc_cidr" {
-  default = "10.128.0.0/20"
-}
-
 variable "env_pub_subnet_routetable_id" {
   default = "rtb-1cb66860"
 }
@@ -51,10 +47,6 @@ variable "bootstrap_path" {
 
 variable "bootstrap_script" {
   default = "vpnvm.sh"
-}
-
-variable "csoc_account_id" {
-  default = "433568766270"
 }
 
 variable "organization_name" {

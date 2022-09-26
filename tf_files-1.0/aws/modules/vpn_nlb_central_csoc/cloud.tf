@@ -273,7 +273,7 @@ resource "aws_security_group" "vpnnlb_in" {
   }
 
   lifecycle {
-    ignore_changes = ["description"]
+    ignore_changes = [description]
   }
 
   tags = {

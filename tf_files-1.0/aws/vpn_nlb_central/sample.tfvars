@@ -25,10 +25,7 @@ ami_account_id = "099720109477"
 
 #A filter to apply against the names of AMIs when searching. We search, rather than specifying a specific image,
 #to ensure that all of the latest security updates are present.
-image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
-
-#The CIDR of the VPC in which the admin VM is running, for peering and connection purposes
-csoc_cidr = "10.128.0.0/20"
+image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 
 #The ID of a route table to use on the public subnet
 env_pub_subnet_routetable_id = "rtb-1cb66860"
@@ -45,10 +42,6 @@ bootstrap_path = "cloud-automation/flavors/vpn_nlb_central/"
 
 #The name of the bootstrap script
 bootstrap_script = "vpnvm.sh"
-
-#
-#TODO Figure out what this covers
-csoc_account_id = "433568766270"
 
 #The name of the organization, for tracking and tagging purposes in AWS
 organization_name = "Basic Service"

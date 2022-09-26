@@ -16,7 +16,7 @@ resource "aws_s3_bucket" "sftp_bucket" {
 
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "sftp_bucket" {
-  bucket = aws_s3_bucket.data_bucket.sftp_bucket
+  bucket = aws_s3_bucket.sftp_bucket.id
 
   rule {
     apply_server_side_encryption_by_default {

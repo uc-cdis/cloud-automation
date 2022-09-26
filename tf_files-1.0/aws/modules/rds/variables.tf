@@ -32,7 +32,6 @@ variable "rds_instance_name" {
 
 variable "rds_instance_identifier" {
   description = "The name of the RDS instance, if omitted, Terraform will assign a random, unique identifier"
-  type        = "string"
 }
 
 variable "rds_instance_username" {
@@ -77,12 +76,10 @@ variable "rds_instance_backup_window" {
 
 variable "rds_instance_db_subnet_group_name" {
   description = "Name of DB subnet group. DB instance will be created in the VPC associated with the DB subnet group"
-  type        = "string"
 }
 
 variable "rds_instance_maintenance_window" {
   description = "The window to perform maintenance in"
-  type        = "string"
   default     = "Mon:00:00-Mon:03:00"
 }
 
@@ -93,7 +90,6 @@ variable "rds_instance_multi_az" {
 
 variable "rds_instance_option_group_name" {
   description = "Name of the DB option group to associate"
-  type        = "string" 
   default     = ""
 }
 
@@ -124,12 +120,10 @@ variable "rds_instance_tags" {
 
 variable "rds_instance_port" {
   description = "The port on which the DB accepts connections"
-  type        = "string"
 }
 
 variable "rds_instance_license_model" {
   description = "License model information for this DB instance"
-  type        = "string"
   default     = ""
 }
 
@@ -210,7 +204,6 @@ variable "rds_instance_iam_database_authentication_enabled" {
 
 variable "rds_instance_timezone" {
   description = "(Optional) Time zone of the DB instance. timezone is currently only supported by Microsoft SQL Server. The timezone can only be set on creation. See MSSQL User Guide for more information."
-  type        = "string"
   default     = ""
 }
 
@@ -221,13 +214,11 @@ variable "rds_instance_monitoring_interval" {
 
 variable "rds_instance_snapshot_identifier" {
   description = "Specifies whether or not to create this database from a snapshot. This correlates to the snapshot ID you'd find in the RDS console, e.g: rds:production-2015-06-26-06-05."
-  type        = "string"
   default     = ""
 }
 
 variable "rds_instance_replicate_source_db" {
   description = "Specifies that this resource is a Replicate database, and to use this value as the source database. This correlates to the identifier of another Amazon RDS Database to replicate."
-  type        = "string"
   default     = ""
 }
 
@@ -238,7 +229,6 @@ variable "rds_instance_create_monitoring_role" {
 
 variable "rds_instance_character_set_name" {
   description = "(Optional) The character set name to use for DB encoding in Oracle instances. This can't be changed. See Oracle Character Sets Supported in Amazon RDS for more information"
-  type        = "string"
   default     = ""
 }
 

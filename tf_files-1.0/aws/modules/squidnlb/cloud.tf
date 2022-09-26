@@ -50,21 +50,21 @@ resource "aws_subnet" "squid_pub0" {
   vpc_id            = var.env_vpc_id
   cidr_block        = "${var.env_vpc_octet1}.${var.env_vpc_octet2}.${var.env_vpc_octet3 + 15}.0/27"
   availability_zone = data.aws_availability_zones.available.names[0]
-  tags              = map("Name", "${var.env_nlb_name}_pub0", "Organization", "Basic Service", "Environment", var.env_nlb_name)
+  tags              = tomap({"Name" = "${var.env_nlb_name}_pub0", "Organization" = "Basic Service", "Environment" = var.env_nlb_name})
 }
 
 resource "aws_subnet" "squid_pub1" {
   vpc_id            = var.env_vpc_id
   cidr_block        = "${var.env_vpc_octet1}.${var.env_vpc_octet2}.${var.env_vpc_octet3 + 15}.32/27"
   availability_zone = data.aws_availability_zones.available.names[1]
-  tags              = map("Name", "${var.env_nlb_name}_pub1", "Organization", "Basic Service", "Environment", var.env_nlb_name)
+  tags              = tomap({"Name" = "${var.env_nlb_name}_pub1", "Organization" = "Basic Service", "Environment" = var.env_nlb_name})
 }
 
 resource "aws_subnet" "squid_pub2" {
   vpc_id            = var.env_vpc_id
   cidr_block        = "${var.env_vpc_octet1}.${var.env_vpc_octet2}.${var.env_vpc_octet3 + 15}.64/27"
   availability_zone = data.aws_availability_zones.available.names[2]
-  tags              = map("Name", "${var.env_nlb_name}_pub2", "Organization", "Basic Service", "Environment", var.env_nlb_name)
+  tags              = tomap({"Name" = "${var.env_nlb_name}_pub2", "Organization" = "Basic Service", "Environment" = var.env_nlb_name})
 }
 
 resource "aws_route_table_association" "squid_nlb0" {
@@ -232,7 +232,7 @@ resource "aws_security_group" "squidnlb_in" {
   }
 
   lifecycle {
-    ignore_changes = ["description"]
+    ignore_changes = [description]
   }
 }
 

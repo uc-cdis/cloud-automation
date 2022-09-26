@@ -15,7 +15,6 @@ module "vpn_nlb" {
   env_vpc_id                   = var.env_vpc_id
   env_vpn_nlb_name             = var.env_vpn_nlb_name
   ami_account_id               = var.ami_account_id
-  csoc_cidr                    = var.csoc_cidr
   env_pub_subnet_routetable_id = var.env_pub_subnet_routetable_id
   ssh_key_name                 = var.ssh_key_name
   bootstrap_path               = var.bootstrap_path
@@ -23,7 +22,6 @@ module "vpn_nlb" {
   image_name_search_criteria   = var.image_name_search_criteria
   csoc_planx_dns_zone_id       = var.csoc_planx_dns_zone_id
   #environment                 = var.environment
-  csoc_account_id              = var.csoc_account_id
   csoc_vpn_subnet              = var.csoc_vpn_subnet
   csoc_vm_subnet               = var.csoc_vm_subnet
   vpn_server_subnet            = var.vpn_server_subnet

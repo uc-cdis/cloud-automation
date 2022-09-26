@@ -131,7 +131,7 @@ resource "aws_cloudwatch_log_destination" "common_logs_destination" {
 data "aws_iam_policy_document" "common_logs_destination_policy" {
   statement {
     effect = "Allow"
-    principals = {
+    principals {
       type = "AWS"
       identifiers = [var.child_account_id]
     }
@@ -192,7 +192,7 @@ resource "aws_iam_role_policy" "firehose_policy" {
 
 resource "aws_cloudwatch_log_group" "csoc_common_log_group" {
   name              = var.common_name
-  retention_in_days = 2190
+  retention_in_days = 3653
 
   tags = {
     Environment  = var.common_name

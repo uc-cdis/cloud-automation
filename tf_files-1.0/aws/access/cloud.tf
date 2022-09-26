@@ -53,6 +53,8 @@ resource "aws_cloudfront_distribution" "access" {
   is_ipv6_enabled     = true
   default_root_object = "index.html"
   aliases             = [var.access_url]
+  price_class         = "PriceClass_200"
+
 
   origin {
     domain_name = aws_s3_bucket.access.website_endpoint
@@ -73,7 +75,6 @@ resource "aws_cloudfront_distribution" "access" {
     min_ttl                = 0
     default_ttl            = 3600
     max_ttl                = 86400
-    price_class            = "PriceClass_200"
 
     forwarded_values {
       query_string = false
