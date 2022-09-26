@@ -216,7 +216,7 @@ resource "aws_autoscaling_group" "vpn_nlb" {
   max_size             = 1
   min_size             = 1
   target_group_arns    = [aws_lb_target_group.vpn_nlb-tcp.arn,aws_lb_target_group.vpn_nlb-qr.arn,aws_lb_target_group.vpn_nlb-ssh.arn]
-  vpc_zone_identifier  = [aws_subnet.vpn_pub0.*.id]
+  vpc_zone_identifier  = aws_subnet.vpn_pub0.*.id
   launch_configuration = aws_launch_configuration.vpn_nlb.name
 
   tag {

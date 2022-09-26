@@ -172,7 +172,7 @@ test_batch_workspace() {
   GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}__batch"
   test_workspace
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/batch" ]]; because $? "a __batch workspace should use the ./aws/batch resources: $GEN3_TFSCRIPT_FOLDER"
-    cat << EOF > test-job-definition.json
+    cat << EOF > ./test-job-definition.json
 {
     "image": "quay.io/cdis/object_metadata:master",
     "memory": 256,
@@ -190,7 +190,7 @@ EOF
   cat - > config.tfvars <<EOM
 job_id                           = "test" 
 prefix                           = "test"
-container_properties             = "./test-job-definition.json"
+container_properties             = "$TF_DATA_DIR/test-job-definition.json"
 iam_instance_role                = "test-iam_ins_role"
 iam_instance_profile_role        = "test-iam_ins_profile_rol"
 aws_batch_service_role           = "test-aws_service_role"
@@ -457,7 +457,7 @@ test_rds_workspace() {
   cat - > config.tfvars <<EOM
 rds_instance_allocated_storage            = 20
 rds_instance_engine                       = "postgres"
-rds_instance_engine_version               = "13"
+rds_instance_engine_version               = "10.14"
 rds_instance_username                     = "jenkins"
 rds_instance_db_subnet_group_name         = "qaplanetv1_private_group"
 rds_instance_identifier                   = "jenkins"
@@ -477,7 +477,7 @@ test_role_workspace() {
 rolename="jenkins_testsuite"
 description="Role created with gen3 awsrole"
 path="/gen3_service/"
-arpolicy=<<EDOC
+ar_policy=<<EDOC
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -679,7 +679,7 @@ vpc_cidr_list = ["172.26.128.0/20", "52.0.0.0/8", "54.0.0.0/8"]
 aws_account_id = "707767160287"
 instance_type = "t3.micro"
 ssh_key_name = "emalinowski"
-extra_vars = ""
+extra_vars = ["account_id=707767160287"]
 EOM
 
   gen3 tfplan; because $? "tfplan __utility_vm should run ok"
@@ -699,13 +699,11 @@ env_vpn_nlb_name = "csoc-prod-vpn"
 env_cloud_name = "planxprod"
 ami_account_id = "099720109477"
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
-csoc_cidr = "10.128.0.0/20"
 env_pub_subnet_routetable_id = "rtb-1cb66860"
 csoc_planx_dns_zone_id = "ZG153R4AYDHHK"
 ssh_key_name = "rarya_id_rsa"
 bootstrap_path = "cloud-automation/flavors/vpn_nlb_central/"
 bootstrap_script = "vpnvm.sh"
-csoc_account_id = "433568766270"
 organization_name = "Basic Service"
 branch = "master"
 cwl_group_name = "csoc-prod-vpn.planx-pla.net_log_group"

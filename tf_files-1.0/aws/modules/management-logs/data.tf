@@ -1,5 +1,5 @@
 data "aws_region" "current" {
-  provider = "aws"
+  provider = aws
 }
 
 data "aws_caller_identity" "current" {}
@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "management-logs_logs_destination_policy" {
 
     principals {
       type        = "AWS"
-      identifiers = [var.accounts_id]
+      identifiers = var.accounts_id
     }
 
     actions   = ["logs:PutSubscriptionFilter"]

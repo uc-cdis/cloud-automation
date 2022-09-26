@@ -1,5 +1,5 @@
 data "aws_region" "current" {
-  provider = "aws"
+  provider = aws
 }
 
 data "aws_iam_policy_document" "cloudtrail_to_cloudwatch_policy_document" {
