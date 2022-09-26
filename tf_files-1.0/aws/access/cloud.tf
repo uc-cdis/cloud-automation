@@ -20,12 +20,12 @@ locals {
 
 
 resource "aws_s3_bucket_acl" "access" {
-  bucket = aws_s3_bucket.access
+  bucket = aws_s3_bucket.access.id
   acl    = "public-read"
 }
 
 resource "aws_s3_bucket_cors_configuration" "access" {
-  bucket = aws_s3_bucket.access
+  bucket = aws_s3_bucket.access.id
 
   cors_rule {
       allowed_headers = ["*"]
@@ -37,7 +37,7 @@ resource "aws_s3_bucket_cors_configuration" "access" {
 }
 
 resource "aws_s3_bucket_website_configuration" "access" {
-  bucket = aws_s3_bucket.access
+  bucket = aws_s3_bucket.access.id
 
   index_document {
     suffix = "index.html"

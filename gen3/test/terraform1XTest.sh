@@ -132,7 +132,7 @@ test_access_workspace() {
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/access" ]]; because $? "a __access workspace should use the ./aws/access resources: $GEN3_TFSCRIPT_FOLDER"
   cat - > config.tfvars <<EOM
 access_url  = "https://access.planx-pla.net"
-access_cert = "arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
+access_cert = "arn:aws:acm:us-east-1:707767160287:certificate/CERT-ID"
 EOM
   gen3 tfplan; because $? "tfplan __access should run ok"  workspace_cleanup
   workspace_cleanup
