@@ -1,3 +1,8 @@
+locals {
+  vpc_id = var.vpc_id ? var.vpc_id : data.aws_vpc.the_vpc.id
+}
+
+
 module "elasticsearch_alarms" {
   source                    = "../elasticsearch-alarms"
   slack_webhook             = var.slack_webhook
@@ -15,7 +20,7 @@ resource "aws_iam_service_linked_role" "es" {
 resource "aws_security_group" "private_es" {
   name        = "private_es"
   description = "security group that allow es port out"
-  vpc_id      = data.aws_vpc.the_vpc.id
+  vpc_id      = local.vpc_id
 
   ingress {
     from_port   = 0

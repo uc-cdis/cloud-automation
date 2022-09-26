@@ -2,6 +2,7 @@ module "eks" {
   source                           = "../modules/eks"
   count                            = var.deploy_eks ? 1 : 0
   vpc_name                         = var.vpc_name
+  vpc_id                           = module.cdis_vpc.vpc_id
   ec2_keyname                      = var.ec2_keyname
   instance_type                    = var.instance_type
   peering_cidr                     = var.peering_cidr

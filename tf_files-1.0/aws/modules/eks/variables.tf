@@ -1,5 +1,7 @@
 variable "vpc_name" {}
 
+variable "vpc_id" {}
+
 variable "ec2_keyname" {
   default = "someone@uchicago.edu"
 }

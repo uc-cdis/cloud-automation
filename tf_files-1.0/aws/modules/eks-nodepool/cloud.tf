@@ -1,3 +1,7 @@
+locals {
+  vpc_id = var.vpc_id ? var.vpc_id : data.aws_vpc.the_vpc.id
+}
+
 resource "aws_iam_role" "eks_control_plane_role" {
   name               = "${var.vpc_name}_EKS_${var.nodepool}_role"
   assume_role_policy = <<EOF
@@ -185,7 +189,7 @@ resource "aws_iam_instance_profile" "eks_node_instance_profile" {
 resource "aws_security_group" "eks_nodes_sg" {
   name        = "${var.vpc_name}_EKS_nodepool_${var.nodepool}_sg"
   description = "Security group for all nodes in pool ${var.nodepool} in the EKS cluster [${var.vpc_name}] "
-  vpc_id      = data.aws_vpc.the_vpc.id
+  vpc_id      = local.vpc_id
 
   egress {
     from_port       = 0
@@ -341,7 +345,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
 resource "aws_security_group" "ssh" {
   name        = "ssh_eks_${var.vpc_name}-nodepool-${var.nodepool}"
   description = "security group that only enables ssh"
-  vpc_id      = data.aws_vpc.the_vpc.id
+  vpc_id      = local.vpc_id
 
   ingress {
     from_port   = 22

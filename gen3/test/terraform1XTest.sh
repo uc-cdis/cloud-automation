@@ -256,7 +256,7 @@ test_commons_workspace() {
   test_workspace
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/commons" ]]; because $? "a __commons workspace should use the ./aws/commons resources: $GEN3_TFSCRIPT_FOLDER"
   cat - > config.tfvars <<EOM
-vpc_name="testVPC"
+vpc_name="testvpc"
 vpc_cidr_block="172.26.0.0/20"
 ami_account_id="099720109477"
 users_bucket_name="cdis-gen3-users"

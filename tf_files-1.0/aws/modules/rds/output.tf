@@ -16,6 +16,7 @@ locals {
 output "rds_instance_password" {
   description = "The password for the user for the database"
   value       = local.this_db_instance_password
+  sensitive   = true
 }
 
 output "rds_instance_address" {

@@ -3,7 +3,8 @@ output "rds_instance_username" {
 }
 
 output "rds_instance_password" {
-  value = module.aws_rds.rds_instance_password
+  value     = module.aws_rds.rds_instance_password
+  sensitive = true
 }
 
 output "rds_instance_endpoint" {

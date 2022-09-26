@@ -7,9 +7,10 @@
 locals{
   # if AZs are explicitly defined as a variable, use those. Otherwise use all the AZs of the current region
   # NOTE: the syntax should improve with Terraform 12
-  azs = var.availability_zones != 0 ? var.availability_zones : data.aws_availability_zones.available.names
-  ami = var.fips ? var.fips_enabled_ami : data.aws_ami.eks_worker.id
+  azs              = var.availability_zones != 0 ? var.availability_zones : data.aws_availability_zones.available.names
+  ami              = var.fips ? var.fips_enabled_ami : data.aws_ami.eks_worker.id
   eks_priv_subnets = var.secondary_cidr_block != "" ? aws_subnet.eks_secondary_subnet.*.id : aws_subnet.eks_private.*.id
+  vpc_id           = var.vpc_id ? var.vpc_id : data.aws_vpc.the_vpc.id
 }
 
 module "jupyter_pool" {
@@ -36,6 +37,7 @@ module "jupyter_pool" {
   nodepool_asg_min_size         = var.jupyter_asg_min_size
   activation_id                 = var.activation_id
   customer_id                   = var.customer_id
+  vpc_id                        = local.vpc_id
 }
 
 module "workflow_pool" {
@@ -62,6 +64,7 @@ module "workflow_pool" {
   nodepool_asg_min_size         = var.workflow_asg_min_size
   activation_id                 = var.activation_id
   customer_id                   = var.customer_id
+  vpc_id                        = local.vpc_id
 }
 
 ## First thing we need to create is the role that would spin up resources for us
@@ -111,7 +114,7 @@ resource "random_shuffle" "az" {
 # The subnet where our cluster will live in
 resource "aws_subnet" "eks_private" {
   count                   = random_shuffle.az[0].result_count
-  vpc_id                  = data.aws_vpc.the_vpc.id
+  vpc_id                  = local.vpc_id
   cidr_block              = var.workers_subnet_size == 22 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 2 , ( 1 + count.index )) : var.workers_subnet_size == 23 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 3 , ( 2 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 7 + count.index )) 
   availability_zone       = random_shuffle.az[0].result[count.index]
   map_public_ip_on_launch = false
@@ -132,7 +135,7 @@ resource "aws_subnet" "eks_private" {
 # The subnet for secondary CIDR block utilization
 resource "aws_subnet" "eks_secondary_subnet" {
   count                   = var.secondary_cidr_block != "" ? 1 : 0
-  vpc_id                  = data.aws_vpc.the_vpc.id
+  vpc_id                  = local.vpc_id
   cidr_block              = var.secondary_cidr_block
   availability_zone       = random_shuffle.az[0].result[count.index]
   map_public_ip_on_launch = false
@@ -155,7 +158,7 @@ resource "aws_subnet" "eks_secondary_subnet" {
 # for the ELB to talk to the worker nodes
 resource "aws_subnet" "eks_public" {
   count                   = random_shuffle.az[0].result_count
-  vpc_id                  = data.aws_vpc.the_vpc.id
+  vpc_id                  = local.vpc_id
   cidr_block              = var.workers_subnet_size == 22 ? cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 5 , ( 4 + count.index )) : cidrsubnet(data.aws_vpc.the_vpc.cidr_block, 4 , ( 10 + count.index ))
   map_public_ip_on_launch = true
   availability_zone       = random_shuffle.az[0].result[count.index]
@@ -177,7 +180,7 @@ resource "aws_subnet" "eks_public" {
 
 
 resource "aws_route_table" "eks_private" {
-  vpc_id = data.aws_vpc.the_vpc.id
+  vpc_id = local.vpc_id
 
   lifecycle {
     #ignore_changes = ["*"]
@@ -231,7 +234,7 @@ resource "aws_route_table_association" "secondary_subnet_kube" {
 resource "aws_security_group" "eks_control_plane_sg" {
   name        = "${var.vpc_name}-control-plane"
   description = "Cluster communication with worker nodes [${var.vpc_name}]"
-  vpc_id      = data.aws_vpc.the_vpc.id
+  vpc_id      = local.vpc_id
 
   egress {
     from_port       = 0
@@ -430,7 +433,7 @@ resource "aws_iam_instance_profile" "eks_node_instance_profile" {
 resource "aws_security_group" "eks_nodes_sg" {
   name        =  "${var.vpc_name}_EKS_workers_sg"
   description = "Security group for all nodes in the EKS cluster [${var.vpc_name}] "
-  vpc_id      = data.aws_vpc.the_vpc.id
+  vpc_id      = local.vpc_id
 
   egress {
     from_port       = 0
@@ -707,7 +710,7 @@ resource "aws_autoscaling_group" "eks_mixed_autoscaling_group" {
 resource "aws_security_group" "ssh" {
   name        = "ssh_eks_${var.vpc_name}"
   description = "security group that only enables ssh"
-  vpc_id      = data.aws_vpc.the_vpc.id
+  vpc_id      = local.vpc_id
 
   ingress {
     from_port   = 22
