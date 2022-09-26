@@ -256,36 +256,114 @@ test_commons_workspace() {
   test_workspace
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/commons" ]]; because $? "a __commons workspace should use the ./aws/commons resources: $GEN3_TFSCRIPT_FOLDER"
   cat - > config.tfvars <<EOM
-vpc_name="devplanetv2"
-vpc_cidr_block="172.24.64.0/20"
-dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
-portal_app="dev"
-aws_cert_name="arn:aws:acm:REGION:ACCOUNT-NUMBER:certificate/CERT-ID"
+vpc_name="testVPC"
+vpc_cidr_block="172.26.0.0/20	"
+ami_account_id="099720109477"
+users_bucket_name="cdis-gen3-users"
+config_folder="dev"
+dictionary_url="test"
+deploy_ha_squid=true
+ha-squid_instance_type="t3.medium"
+ha-squid_instance_drive_size=8
+ha-squid_cluster_desired_capasity= 2
+ha-squid_cluster_min_size=1
+ha-squid_cluster_max_size=3
+squid_image_search_criteria="ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
+ha-squid_bootstrap_script="squid_running_on_docker.sh"
+ha-squid_extra_vars=["squid_image=master"]
+deploy_sheepdog_db=true
+deploy_fence_db=true
+deploy_indexd_db=true
 fence_db_size    = 10
 sheepdog_db_size = 10
 indexd_db_size   = 10
-fence_db_instance    = "db.t2.micro"
-sheepdog_db_instance = "db.t2.micro"
-indexd_db_instance   = "db.t2.micro"
-hostname="YOUR.API.HOSTNAME"
-config_folder="PUT-SOMETHING-HERE"
-google_client_secret="YOUR.GOOGLE.SECRET" # pragma: allowlist secret
-google_client_id="YOUR.GOOGLE.CLIENT"
-hmac_encryption_key="whatever="
-sheepdog_secret_key="whatever"
-db_password_fence="whatever"
-db_password_sheepdog="whatever"
-db_password_peregrine="whatever"
-db_password_indexd="whatever"
-sheepdog_indexd_password="whatever" # pragma: allowlist secret
+fence_db_instance    = "db.t3.small"
+sheepdog_db_instance = "db.t3.small"
+indexd_db_instance   = "db.t3.small"
+fence_engine_version="13"
+sheepdog_engine_version="13"
+indexd_engine_version="13"
+sheepdog_engine="postgres"
+fence_engine="postgres"
+indexd_engine="postgres"
+fence_database_name="fence"
+sheepdog_database_name="sheepdog"
+indexd_database_name="indexd"
+fence_db_username="fence_user"
+sheepdog_db_username="sheepdog"
+indexd_db_username="indexd_user"
+fence_allow_major_version_upgrade="true"
+sheepdog_allow_major_version_upgrade="true"
+indexd_allow_major_version_upgrade="true"
+fence_auto_minor_version_upgrade="true"
+indexd_auto_minor_version_upgrade="true"
+sheepdog_auto_minor_version_upgrade="true"
 fence_snapshot=""
 sheepdog_snapshot=""
 indexd_snapshot=""
+fence_maintenance_window="SAT:09:00-SAT:09:59"
+sheepdog_maintenance_window="SAT:10:00-SAT:10:59"
+indexd_maintenance_window="SAT:11:00-SAT:11:59"
+fence_backup_window="06:00-06:59"
+sheepdog_backup_window="07:00-07:59"
+indexd_backup_window="08:00-08:59"
+fence_backup_retention_period="4"
+sheepdog_backup_retention_period="4"
+indexd_backup_retention_period="4"
+db_password_fence="test1test1"
+db_password_peregrine="test1test1"
+db_password_indexd="test1test1"
+db_password_sheepdog="test1test1"
+csoc_account_id="433568766270"
+peering_cidr="10.128.0.0/20"
+peering_vpc_id="vpc-e2b51d99"
+csoc_manage=true
+aws_region="us-east-1"
+aws_cert_name="arn:aws:acm:us-east-1:707767160287:certificate/CERT-ID"
+hostname="test.planx-pla.net"
+kube_ssh_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDBFbx4eZLZEOTUc4d9kP8B2fg3HPA8phqJ7FKpykg87w300H8uTsupBPggxoPMPnpCKpG4aYqgKC5aHzv2TwiHyMnDN7CEtBBBDglWJpBFCheU73dDl66z/vny5tRHWs9utQNzEBPLxSqsGgZmmN8TtIxrMKZ9eX4/1d7o+8msikCYrKr170x0zXtSx5UcWj4yK1al5ZcZieZ4KVWk9/nPkD/k7Sa6JM1QxAVZObK/Y9oA6fjEFuRGdyUMxYx3hyR8ErNCM7kMf8Yn78ycNoKB5CDlLsVpPLcQlqALnBAg1XAowLduCCuOo8HlenM7TQqohB0DO9MCDyZPoiy0kieMBLBcaC7xikBXPDoV9lxgvJf1zbEdQVfWllsb1dNsuYNyMfwYRK+PttC/W37oJT64HJVWJ1O3cl63W69V1gDGUnjfayLjvbyo9llkqJetprfLhu2PfSDJ5jBlnKYnEj2+fZQb8pUrgyVOrhZJ3aKJAC3c665avfEFRDO3EV/cStzoAnHVYVpbR/EXyufYTh7Uvkej8l7g/CeQzxTq+0UovNjRA8UEXGaMWaLq1zZycc6Dx/m7HcZuNFdamM3eGWV+ZFPVBZhXHwZ1Ysq2mpBEYoMcKdoHe3EvFu3eKyrIzaqCLT5LQPfaPJaOistXBJNxDqL6vUhAtETmM5UjKGKZaQ== emalinowski@uchicago.edu"
+indexd_prefix="dg.XXXX/"
+google_client_secret="YOUR.GOOGLE.SECRET" # pragma: allowlist secret
+google_client_id="YOUR.GOOGLE.CLIENT"
+hmac_encryption_key="1234567812345678123567812345678"
+sheepdog_secret_key="test"
+sheepdog_indexd_password="test"
 mailgun_api_key=""
-mailgun_api_url=""
 mailgun_smtp_host=""
-kube_ssh_key=""
-users_policy="test"
+mailgun_api_url=""
+secondary_cidr_block=""
+vpc_flow_logs=false
+vpc_flow_traffic="ALL"
+organization_name="Basic Service"
+slack_webhook=""
+secondary_slack_webhook=""
+alarm_threshold="85"
+fence_ha=false
+sheepdog_ha=false
+indexd_ha=false
+network_expansion=true
+rds_instance_storage_encrypted=true
+fence_max_allocated_storage=0
+sheepdog_max_allocated_storage=0
+indexd_max_allocated_storage=0
+fips=false
+branch="master"
+fence-bot_bucket_access_arns=[]
+sheepdog_oauth2_client_id=""
+sheepdog_oauth2_client_secret=""
+deploy_cloud_trail=false
+instance_type = "t3.2xlarge"
+ec2_keyname   = "emalinowski@uchicago.edu"
+users_policy  = "emalinowskiv1"
+iam-serviceaccount           = true
+worker_drive_size         = 35
+eks_version               = "1.21"
+deploy_jupyter_pool       = "yes"
+deploy_workflow_pool       = "no"
+cidrs_to_route_to_gw = ["192.170.230.192/26", "192.170.230.160/27"]
+url_test                     = "www.google.com"
+domain_test                  = "www.google.com"
+deploy_eks = true
 EOM
 
   [[ "$(pwd)" =~ "/$GEN3_WORKSPACE"$ ]]; because $? "commons workspace should have base $GEN3_WORKSPACE - $(pwd)"
@@ -459,8 +537,8 @@ rds_instance_allocated_storage            = 20
 rds_instance_engine                       = "postgres"
 rds_instance_engine_version               = "10.14"
 rds_instance_username                     = "jenkins"
-rds_instance_db_subnet_group_name         = "qaplanetv1_private_group"
-rds_instance_identifier                   = "jenkins"
+rds_instance_db_subnet_group_name         = "qaplanet_private_group"
+rds_instance_identifier                   = "jenkins-test"
 rds_instance_port                         = 5432
 rds_instance_create_monitoring_role       = true
 EOM
@@ -738,10 +816,8 @@ shunit_runtest "test_sftp_workspace"  "terraform1X"
 shunit_runtest "test_sqs_workspace"  "terraform1X"
 shunit_runtest "test_squid_auto_workspace"  "terraform1X"
 shunit_runtest "test_squid_nlb_central_workspace"  "terraform1X"
-shunit_runtest "test_squid_vm_workspace"  "terraform1X"
 shunit_runtest "test_squidnlb_standalone_workspace"  "terraform1X"
 shunit_runtest "test_storage-gateway_workspace"  "terraform1X"
 shunit_runtest "test_user_generic_workspace"  "terraform1X"
-shunit_runtest "test_user_vpc_workspace"  "terraform1X"
 shunit_runtest "test_utility_vm_workspace"  "terraform1X"
 shunit_runtest "test_vpn_nlb_central_workspace"  "terraform1X"

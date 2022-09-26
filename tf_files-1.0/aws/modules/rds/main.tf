@@ -90,7 +90,7 @@ resource "aws_db_instance" "this" {
   password                              = var.rds_instance_password == "" ? random_string.randomother.*.result[count.index] : var.rds_instance_password
   port                                  = var.rds_instance_port
   iam_database_authentication_enabled   = var.rds_instance_iam_database_authentication_enabled
-  replicate_source_db                   = var.rds_instance_replicate_source_db
+  #replicate_source_db                   = var.rds_instance_replicate_source_db
   snapshot_identifier                   = var.rds_instance_snapshot_identifier
   vpc_security_group_ids                = var.rds_instance_vpc_security_group_ids
   db_subnet_group_name                  = var.rds_instance_db_subnet_group_name
@@ -142,7 +142,7 @@ resource "aws_db_instance" "this_mssql" {
   password                              = var.rds_instance_password == "" ? random_string.randommssql.*.result[count.index] : var.rds_instance_password
   port                                  = var.rds_instance_port
   iam_database_authentication_enabled   = var.rds_instance_iam_database_authentication_enabled
-  replicate_source_db                   = var.rds_instance_replicate_source_db
+  #replicate_source_db                   = var.rds_instance_replicate_source_db
   snapshot_identifier                   = var.rds_instance_snapshot_identifier
   vpc_security_group_ids                = var.rds_instance_vpc_security_group_ids
   db_subnet_group_name                  = var.rds_instance_db_subnet_group_name
