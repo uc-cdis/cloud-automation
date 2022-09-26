@@ -4,6 +4,7 @@ config:
   endpoint: "s3.amazonaws.com"
   region: AWS_REGION
   insecure: false
+  aws_sdk_auth: true
   signature_version2: false
   put_user_metadata:
       "X-Amz-Acl": "bucket-owner-full-control"
@@ -14,3 +15,5 @@ config:
   trace:
     enable: true
   part_size: 134217728
+  sse_config:
+    type: "SSE-S3"
