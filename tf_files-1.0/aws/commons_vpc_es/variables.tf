@@ -1,6 +1,10 @@
 
 variable "vpc_name" {}
 
+variable "vpc_id" {
+  default = ""
+}
+
 variable "slack_webhook" {
   default = ""
 }

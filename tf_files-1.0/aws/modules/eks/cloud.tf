@@ -10,7 +10,7 @@ locals{
   azs              = var.availability_zones != 0 ? var.availability_zones : data.aws_availability_zones.available.names
   ami              = var.fips ? var.fips_enabled_ami : data.aws_ami.eks_worker.id
   eks_priv_subnets = var.secondary_cidr_block != "" ? aws_subnet.eks_secondary_subnet.*.id : aws_subnet.eks_private.*.id
-  vpc_id           = var.vpc_id ? var.vpc_id : data.aws_vpc.the_vpc.id
+  vpc_id           = var.vpc_id != "" ? var.vpc_id : data.aws_vpc.the_vpc.id
 }
 
 module "jupyter_pool" {

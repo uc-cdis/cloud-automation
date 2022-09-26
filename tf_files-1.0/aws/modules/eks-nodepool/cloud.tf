@@ -1,5 +1,5 @@
 locals {
-  vpc_id = var.vpc_id ? var.vpc_id : data.aws_vpc.the_vpc.id
+  vpc_id = var.vpc_id != "" ? var.vpc_id : data.aws_vpc.the_vpc.id
 }
 
 resource "aws_iam_role" "eks_control_plane_role" {
