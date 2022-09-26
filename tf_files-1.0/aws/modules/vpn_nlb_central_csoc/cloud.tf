@@ -55,7 +55,7 @@ resource "aws_subnet" "vpn_pub0" {
   vpc_id            = var.env_vpc_id
   cidr_block        = cidrsubnet("${var.vpn_server_subnet}",3,count.index)
   availability_zone = data.aws_availability_zones.available.names[count.index]
-  tags              = map("Name", "${var.env_vpn_nlb_name}_pub_${count.index}", "Organization", var.organization_name, "Environment", var.env_vpn_nlb_name)
+  tags              = tomap({"Name" = "${var.env_vpn_nlb_name}_pub_${count.index}", "Organization" = var.organization_name, "Environment" = var.env_vpn_nlb_name})
 }
 
 resource "aws_route_table_association" "vpn_nlb0" {
@@ -320,7 +320,7 @@ resource "aws_s3_bucket" "vpn-certs-and-files" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "vpn-certs-and-files" {
-  bucket = aws_s3_bucket.data_bucket.vpn-certs-and-files
+  bucket = aws_s3_bucket.vpn-certs-and-files.id
 
   rule {
     apply_server_side_encryption_by_default {
@@ -330,12 +330,12 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "vpn-certs-and-fil
 }
 
 resource "aws_s3_bucket_acl" "vpn-certs-and-files" {
-  bucket = aws_s3_bucket.data_bucket.vpn-certs-and-files
+  bucket = aws_s3_bucket.vpn-certs-and-files.id
   acl    = "private"
 }
 
 resource "aws_s3_bucket_versioning" "vpn-certs-and-files" {
-  bucket = aws_s3_bucket.data_bucket.vpn-certs-and-files
+  bucket = aws_s3_bucket.vpn-certs-and-files.id
 
   versioning_configuration {
     status = "Enabled"

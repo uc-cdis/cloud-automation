@@ -179,6 +179,8 @@ test_batch_workspace() {
   test_workspace
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/batch" ]]; because $? "a __batch workspace should use the ./aws/batch resources: $GEN3_TFSCRIPT_FOLDER"
   cat - > config.tfvars <<EOM
+job_id                           = "test" 
+prefix                           = "test"
 container_properties             = "./test-job-definition.json"
 iam_instance_role                = "test-iam_ins_role"
 iam_instance_profile_role        = "test-iam_ins_profile_rol"
@@ -200,7 +202,7 @@ test_bucket_manifest_utils_workspace() {
   test_workspace
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/bucket_manifest_utils" ]]; because $? "a __bucket_manifest_utils workspace should use the ./aws/bucket_manifest_utils resources: $GEN3_TFSCRIPT_FOLDER"
   cat - > config.tfvars <<EOM
-lambda_function_file = "test.py"
+lambda_function_file = "../../../files/lambda/test-security_alerts.py"
 lambda_function_name = "test"
 lambda_function_description = "test"
 lambda_function_handler = "lambda_function.handler"
@@ -284,16 +286,18 @@ EOM
 }
 
 test_commons_vpc_es_workspace() {
-  GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}__commons_vpc_es"
+  GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}_es"
   test_workspace
-  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/commons_vpc_es" ]]; because $? "a __commons_vpc_es workspace should use the ./aws/commons_vpc_es resources: $GEN3_TFSCRIPT_FOLDER"
+  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/commons_vpc_es" ]]; because $? "a _es workspace should use the ./aws/commons_vpc_es resources: $GEN3_TFSCRIPT_FOLDER"
   cat - > config.tfvars <<EOM
 vpc_name = "devplanetv1"
+instance_type = "t3.medium.elasticsearch"
+ebs_volume_size_gb = 20
 slack_webhook = "https://test.com/test1"
 secondary_slack_webhook = "https://test.com/test2"
 EOM
 
-  gen3 tfplan; because $? "tfplan __commons_vpc_es should run ok"  workspace_cleanup
+  gen3 tfplan; because $? "tfplan _es should run ok"  workspace_cleanup
   workspace_cleanup
 }
 
@@ -341,15 +345,15 @@ EOM
 }
 
 test_csoc_management-logs_workspace() {
-  GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}_management-logs"
+  GEN3_TEST_WORKSPACE="management-logs"
   test_workspace
-  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/csoc_management-logs" ]]; because $? "a _management-logs workspace should use the ./aws/csoc_management-logs resources: $GEN3_TFSCRIPT_FOLDER"
+  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/csoc_management-logs" ]]; because $? "a management-logs workspace should use the ./aws/csoc_management-logs resources: $GEN3_TFSCRIPT_FOLDER"
   cat - > config.tfvars <<EOM
 accounts_id = ["830067555646", "474789003679", "655886864976", "663707118480", "728066667777", "433568766270", "733512436101", "584476192960", "236835632492", "662843554732", "803291393429", "446046036926", "980870151884", "562749638216", "707767160287", "302170346065", "636151780898", "895962626746", "222487244010", "369384647397", "547481746681"]
 elasticsearch_domain = "commons-logs"
 log_bucket_name = "management-logs-remote-accounts"
 EOM
-  gen3 tfplan; because $? "tfplan __csoc_management-logs should run ok"  workspace_cleanup
+  gen3 tfplan; because $? "tfplan management-logs should run ok"  workspace_cleanup
   workspace_cleanup
 }
 
@@ -562,8 +566,8 @@ env_vpc_id = "test"
 main_public_route = "test"
 private_kube_route = "test"
 route_53_zone_id = "test"
-secondary_cidr_block = ''
-squid_availability_zones = ['us-east-1a', 'us-east-1b', 'us-east-1d']
+secondary_cidr_block = ""
+squid_availability_zones = ["us-east-1a", "us-east-1b", "us-east-1d"]
 ssh_key_name = emalinowskiv1
 EOM
 
@@ -579,7 +583,7 @@ test_squid_nlb_central_workspace() {
 aws_account_id = "433568766270"
 env_vpc_octet3 = "4"
 env_vpc_id = "vpc-e2b51d99"
-env_nlb_name = "squid_nlb"
+env_nlb_name = "squid-nlb"
 ami_account_id = "099720109477"
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-18.04-amd64-server-*"
 env_pub_subnet_routetable_id = "rtb-1cb66860"
@@ -604,7 +608,7 @@ env_vpc_octet1 = "10"
 env_vpc_octet2 = "128"
 env_vpc_octet3 = "4"
 env_vpc_id = "vpc-e2b51d99"
-env_nlb_name = "squid_nlb"
+env_nlb_name = "squid-nlb"
 ami_account_id = "099720109477"
 image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-18.04-amd64-server-*"
 csoc_cidr = "10.128.0.0/20"
@@ -666,7 +670,7 @@ vpc_cidr_list = ["172.26.128.0/20", "52.0.0.0/8", "54.0.0.0/8"]
 aws_account_id = "707767160287"
 instance_type = "t3.micro"
 ssh_key_name = "emalinowski"
-extra_vars = "test"
+extra_vars = ""
 EOM
 
   gen3 tfplan; because $? "tfplan __utility_vm should run ok"

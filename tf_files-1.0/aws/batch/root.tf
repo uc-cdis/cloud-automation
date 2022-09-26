@@ -34,7 +34,7 @@ resource "aws_internet_gateway" "gw" {
 resource "aws_subnet" "new_subnet" {
   vpc_id                  = aws_vpc.new_vpc.id
   map_public_ip_on_launch = true
-  cidr_block              = "10.1.1.0/21"
+  cidr_block              = "10.1.0.0/21"
 
   tags = {
     Organization = "gen3",
@@ -234,7 +234,7 @@ resource "aws_s3_bucket" "new_bucket" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "new_bucket" {
-  bucket = aws_s3_bucket.data_bucket.new_bucket
+  bucket = aws_s3_bucket.new_bucket.id
 
   rule {
     apply_server_side_encryption_by_default {

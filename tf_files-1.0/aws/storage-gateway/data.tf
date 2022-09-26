@@ -1,7 +1,7 @@
 
 # Assuming that there is only one VPC with the vpc_name
 data "aws_vpc" "the_vpc" {
-  id = element(data.aws_vpcs.vpcs.ids, count.index)
+  id = data.aws_vpcs.vpcs.ids[0]
 }
 
 # Let's grab the vpc we already created in the VPC module.
