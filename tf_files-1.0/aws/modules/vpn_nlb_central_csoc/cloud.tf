@@ -69,7 +69,7 @@ resource "aws_lb" "vpn_nlb" {
   name                             = "${var.env_vpn_nlb_name}-prod"
   internal                         = false
   load_balancer_type               = "network"
-  subnets                          = [aws_subnet.vpn_pub0.*.id]
+  subnets                          = aws_subnet.vpn_pub0.*.id
   enable_deletion_protection       = true
   enable_cross_zone_load_balancing = true
 

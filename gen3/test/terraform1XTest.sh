@@ -247,7 +247,7 @@ test_commons_workspace() {
   test_workspace
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/commons" ]]; because $? "a __commons workspace should use the ./aws/commons resources: $GEN3_TFSCRIPT_FOLDER"
   cat - > config.tfvars <<EOM
-vpc_name="devplanetv1"
+vpc_name="devplanetv2"
 vpc_cidr_block="172.24.64.0/20"
 dictionary_url="https://s3.amazonaws.com/dictionary-artifacts/YOUR/DICTIONARY/schema.json"
 portal_app="dev"
@@ -568,7 +568,7 @@ private_kube_route = "test"
 route_53_zone_id = "test"
 secondary_cidr_block = ""
 squid_availability_zones = ["us-east-1a", "us-east-1b", "us-east-1d"]
-ssh_key_name = emalinowskiv1
+ssh_key_name = "emalinowskiv1"
 EOM
 
   gen3 tfplan; because $? "tfplan __squid_auto should run ok"  workspace_cleanup
@@ -581,11 +581,11 @@ test_squid_nlb_central_workspace() {
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/squid_nlb_central" ]]; because $? "a __squid_nlb_central workspace should use the ./aws/squid_nlb_central resources: $GEN3_TFSCRIPT_FOLDER"
   cat - > config.tfvars <<EOM
 aws_account_id = "433568766270"
-env_vpc_octet3 = "4"
+env_vpc_octet3 = "0"
 env_vpc_id = "vpc-e2b51d99"
 env_nlb_name = "squid-nlb"
 ami_account_id = "099720109477"
-image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-18.04-amd64-server-*"
+image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 env_pub_subnet_routetable_id = "rtb-1cb66860"
 ssh_key_name = "rarya_id_rsa"
 bootstrap_path = "cloud-automation/flavors/squid_nlb_central/"
@@ -606,11 +606,11 @@ test_squidnlb_standalone_workspace() {
   cat - > config.tfvars <<EOM
 env_vpc_octet1 = "10"
 env_vpc_octet2 = "128"
-env_vpc_octet3 = "4"
+env_vpc_octet3 = "0"
 env_vpc_id = "vpc-e2b51d99"
 env_nlb_name = "squid-nlb"
 ami_account_id = "099720109477"
-image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-18.04-amd64-server-*"
+image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 csoc_cidr = "10.128.0.0/20"
 env_public_subnet_routetable_id = "rtb-23b6685f"
 ssh_key_name = "rarya_id_rsa"
@@ -689,7 +689,7 @@ env_vpc_id = "vpc-e2b51d99"
 env_vpn_nlb_name = "csoc-prod-vpn"
 env_cloud_name = "planxprod"
 ami_account_id = "099720109477"
-image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-xenial-18.04-amd64-server-*"
+image_name_search_criteria = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 csoc_cidr = "10.128.0.0/20"
 env_pub_subnet_routetable_id = "rtb-1cb66860"
 csoc_planx_dns_zone_id = "ZG153R4AYDHHK"
