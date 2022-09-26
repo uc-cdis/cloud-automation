@@ -6,7 +6,7 @@ resource "aws_iam_role" "enhanced_monitoring" {
   count              = var.rds_instance_create_monitoring_role ? 1 : 0
   name               = var.rds_instance_monitoring_role_name
   assume_role_policy = data.aws_iam_policy_document.enhanced_monitoring.json
-  tags               = merge(map("Name", format("%s", var.rds_instance_monitoring_role_name)), var.rds_instance_tags )
+  tags               = merge(tomap({"Name" =  var.rds_instance_monitoring_role_name }), var.rds_instance_tags )
 }
 
 resource "aws_iam_role_policy_attachment" "enhanced_monitoring" {
@@ -33,7 +33,7 @@ resource "aws_db_option_group" "rds_instance_new_option_group" {
   option_group_description = "Additional options to the database"
   engine_name              = var.rds_instance_engine
   major_engine_version     = local.is_mssql ? substr(var.rds_instance_engine_version,0,5) : var.rds_instance_engine_version
-  tags                     = merge(map("Name", format("%s", var.rds_instance_monitoring_role_name)), var.rds_instance_tags )
+  tags                     = merge(tomap({"Name" = var.rds_instance_monitoring_role_name }), var.rds_instance_tags )
 
   option {
     option_name = "SQLSERVER_BACKUP_RESTORE"
@@ -51,7 +51,7 @@ resource "aws_db_option_group" "rds_instance_new_option_group" {
 
 resource "aws_iam_role" "rds_backup_role" {
   name              = "${var.rds_instance_identifier}-backup-role"
-  tags              = merge(map("Name", format("%s", var.rds_instance_monitoring_role_name)), var.rds_instance_tags )
+  tags              = merge(tomap({"Name" = var.rds_instance_monitoring_role_name}), var.rds_instance_tags )
   assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -117,7 +117,7 @@ resource "aws_db_instance" "this" {
   character_set_name                    = var.rds_instance_character_set_name
   enabled_cloudwatch_logs_exports       = var.rds_instance_enabled_cloudwatch_logs_exports
   deletion_protection                   = var.rds_instance_deletion_protection
-  tags                                  = merge(map("Name", format("%s", var.rds_instance_identifier)), var.rds_instance_tags )
+  tags                                  = merge(tomap({"Name" = var.rds_instance_identifier}), var.rds_instance_tags )
 
   timeouts {
     create = lookup(var.rds_instance_timeouts, "create", "")
@@ -169,7 +169,7 @@ resource "aws_db_instance" "this_mssql" {
   timezone                              = var.rds_instance_timezone
   enabled_cloudwatch_logs_exports       = var.rds_instance_enabled_cloudwatch_logs_exports
   deletion_protection                   = var.rds_instance_deletion_protection
-  tags                                  = merge(map("Name", format("%s", var.rds_instance_identifier)), var.rds_instance_tags )
+  tags                                  = merge(tomap({"Name" = var.rds_instance_identifier}), var.rds_instance_tags )
 
   timeouts {
     create = lookup(var.rds_instance_timeouts, "create", "")

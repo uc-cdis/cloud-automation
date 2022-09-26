@@ -12,12 +12,6 @@ USE_TF_1=true
 # Little macos/linux stat wrapper
 #
 
-test_gcp_workspace() {
-  GEN3_TEST_PROFILE="gcp-dcf-integration"
-  test_workspace
-  workspace_cleanup
-}
-
 test_onprem_workspace() {
   GEN3_TEST_PROFILE="onprem-${GEN3_TEST_PROFILE}"
   test_workspace
@@ -178,6 +172,21 @@ test_batch_workspace() {
   GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}__batch"
   test_workspace
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files-1.0/aws/batch" ]]; because $? "a __batch workspace should use the ./aws/batch resources: $GEN3_TFSCRIPT_FOLDER"
+    cat << EOF > test-job-definition.json
+{
+    "image": "quay.io/cdis/object_metadata:master",
+    "memory": 256,
+    "vcpus": 1,
+    "environment": [
+        {"name": "ACCESS_KEY_ID", "value": "test"},
+        {"name": "SECRET_ACCESS_KEY", "value": "test"},
+        {"name": "AWS_SESSION_TOKEN", "value": "test"},
+        {"name": "BUCKET", "value": "test"},
+        {"name": "SQS_NAME", "value": "test"}
+    ]
+}
+EOF
+
   cat - > config.tfvars <<EOM
 job_id                           = "test" 
 prefix                           = "test"
@@ -723,7 +732,6 @@ shunit_runtest "test_data_bucket_workspace"  "terraform1X"
 shunit_runtest "test_data_bucket_queue_workspace"  "terraform1X"
 shunit_runtest "test_datadog_workspace"  "terraform1X"
 shunit_runtest "test_eks_workspace"  "terraform1X"
-shunit_runtest "test_modules_workspace"  "terraform1X"
 shunit_runtest "test_publicvm_workspace"  "terraform1X"
 shunit_runtest "test_rds_workspace"  "terraform1X"
 shunit_runtest "test_role_workspace"  "terraform1X"
@@ -739,8 +747,3 @@ shunit_runtest "test_user_generic_workspace"  "terraform1X"
 shunit_runtest "test_user_vpc_workspace"  "terraform1X"
 shunit_runtest "test_utility_vm_workspace"  "terraform1X"
 shunit_runtest "test_vpn_nlb_central_workspace"  "terraform1X"
-
-if [[ -z "$JENKINS_HOME" ]]; then
-  # jenkins does not have Google configurations yet
-  shunit_runtest "test_gcp_workspace" "terraform1X"
-fi

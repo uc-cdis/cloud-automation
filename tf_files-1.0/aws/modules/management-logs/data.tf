@@ -26,7 +26,7 @@ data "aws_iam_policy_document" "management-logs_logs_destination_policy" {
   statement {
     effect = "Allow"
 
-    principals = {
+    principals {
       type        = "AWS"
       identifiers = [var.accounts_id]
     }
