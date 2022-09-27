@@ -9,8 +9,6 @@ all:
           ansible_host: anvil.csoc
         vadc_admin:
           ansible_host: vadc.csoc
-        braincommons_admin:
-          ansible_host: braincommons.csoc
         dcfqa_admin:
           ansible_host: dcfqa.csoc
         dcfprod_admin:
@@ -43,6 +41,12 @@ all:
           ansible_host: vhdc.csoc
         covid19_admin:
           ansible_host: covid19.csoc
+        midrc_admin: 
+          ansible_host: midrc.csoc
+        heal_admin: 
+          ansible_host: heal.csoc
+        brh_admin: 
+          ansible_host: brh.csoc
       vars:
         ansible_user: ubuntu
         ansible_python_interpreter: /usr/bin/python3
@@ -51,12 +55,14 @@ all:
       hosts:
         canine_admin:
           ansible_host: canine.csoc
-        ncigdc_admin:
-          ansible_host: 10.128.2.112
+        # unreachable
+        # ncigdc_admin:
+        #   ansible_host: 10.128.2.112
         dcfbuckets_admin:
           ansible_host: 10.128.2.181
-        pdcgen3_admin:
-          ansible_host: 10.128.2.241
+        # unreachable
+        # pdcgen3_admin:
+        #   ansible_host: 10.128.2.241
       vars:
         ansible_user: ubuntu
 
@@ -71,9 +77,6 @@ all:
         vadcprod_commons:
           ansible_user: vadcprod
           ansible_host: vadc.csoc
-        bhcprodv2_commons:
-          ansible_user: bhcprodv2
-          ansible_host: braincommons.csoc
         dcfprod_commons:
           ansible_user: dcfprod
           ansible_host: dcfprod.csoc
@@ -95,9 +98,6 @@ all:
         niaidprod_commons:
           ansible_user: niaidprod
           ansible_host: niaiddh.csoc
-        stageprod_commons:
-          ansible_user: stageprod
-          ansible_host: gtex.csoc
         dataguis_commons:
           ansible_user: dataguids
           ansible_host: gtex.csoc
@@ -125,6 +125,9 @@ all:
         oadc_commons:
           ansible_user: oadc
           ansible_host: oadc.csoc
+        neuro_commons:
+          ansible_user: neuro
+          ansible_host: oadc.csoc
         vhdcprod_commons:
           ansible_user: vhdcprod
           ansible_host: vhdc.csoc
@@ -134,6 +137,15 @@ all:
         bdcatprod_commons:
           ansible_user: bdcatprod
           ansible_host: gtex.csoc
+        midrc_commons:
+          ansible_user: midrcprod
+          ansible_host: midrc.csoc
+        heal_commons:
+          ansible_user: healprod
+          ansible_host: heal.csoc
+        brh_commons:
+          ansible_user: brhprod
+          ansible_host: brh.csoc
       vars:
         ansible_python_interpreter: /usr/bin/python3
 
@@ -148,9 +160,12 @@ all:
         anvilstaging_commons:
           ansible_user: anvilstaging
           ansible_host: anvil.csoc
-        bhcstaging_commons:
-          ansible_user: bhcstaging
-          ansible_host: braincommons.csoc
+        midrcstaging_commons:
+          ansible_user: staging-validate
+          ansible_host: midrc.csoc
+        brhstaging_commons:
+          ansible_user: brhstaging
+          ansible_host: brh.csoc
       vars:
         ansible_python_interpreter: /usr/bin/python3
     namespaces:
@@ -167,18 +182,24 @@ all:
         flu_commons:
           ansible_user: flu
           ansible_host: niaiddh.csoc
+        clinicaltrial_commons:
+          ansible_user: clinicaltrial
+          ansible_host: niaiddh.csoc
         preprod_commons:
           ansible_user: bdcat-internalstaging
           ansible_host: gtex.csoc
-        bhc-datastaging_commons:
-          ansible_user: bhc-datastaging
-          ansible_host: braincommons.csoc
-        bhc-staging_commons:
-          ansible_user: staging
-          ansible_host: braincommons.csoc
         va-testing_commons:
           ansible_user: va-testing
           ansible_host: vhdc.csoc
+        validate_commons:
+          ansible_user: validate
+          ansible_host: midrc.csoc
+        healpreprod_commons:
+          ansible_user: healpreprod
+          ansible_host: heal.csoc
+        healworkspaces_commons:
+          ansible_user: healworkspaces
+          ansible_host: heal.csoc
       vars:
         ansible_python_interpreter: /usr/bin/python3
 
@@ -192,6 +213,9 @@ all:
           ansible_host: cdistest.csoc
         cdistest_qav2:
           ansible_user: qaplanetv2
+          ansible_host: cdistest.csoc
+        cdistest_emalinowskiv1:
+          ansible_user: emalinowskiv1
           ansible_host: cdistest.csoc
       vars:
         ansible_python_interpreter: /usr/bin/python3
@@ -210,9 +234,6 @@ all:
         kfqa2_qa:
           ansible_user: kfqa2
           ansible_host: gmkfqa.csoc
-        gen3testing_commons:
-          ansible_user: bhcqa
-          ansible_host: braincommons.csoc
       vars:
         ansible_python_interpreter: /usr/bin/python3
 
@@ -221,12 +242,9 @@ all:
         ncicrdc_demo:
           ansible_user: ncicrdcdemo
           ansible_host: ncicrdc.csoc
-
-    csoc:
-      hosts:
-        master:
-          ansible_host: csoc
-          ansible_user: ubuntu
+        brh_demo:
+          ansible_user: brhdemo
+          ansible_host: brh.csoc
 
     vpn:
       hosts:
@@ -255,28 +273,10 @@ all:
       hosts:
         csocsquidnlbcentral1:
           ansible_host: 10.128.4.101
-        csocsquidnlbcentral2:
-          ansible_host: 10.128.4.30
+        #unreachable
+        # csocsquidnlbcentral2:
+        #   ansible_host: 10.128.4.30
         csocsquidnlbcentral3:
           ansible_host: 10.128.4.169
       vars:
         ansible_user: ubuntu
-   
-    generic_commons:
-      hosts:
-        generic_admin:
-          ansible_host: 34.227.16.236
-          ansible_user: ubuntu
-        generic_common:
-          ansible_host: 34.227.16.236
-          ansible_user: generic-commons
-      vars:
-        ansible_python_interpreter: /usr/bin/python3
-    dummi:
-      hosts:
-        dummi1:
-          ansible_host: 10.128.5.142
-          ansible_user: ubuntu
-        emalinowskiv1:
-          ansible_host: cdistest.csoc
-          ansible_user: emalinowskiv1
