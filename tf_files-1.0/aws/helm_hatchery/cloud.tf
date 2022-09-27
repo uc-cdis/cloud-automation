@@ -17,11 +17,10 @@ resource "aws_iam_role" "hatchery-role" {
 
 
 # Iam Policy
-data.aws_iam_policy_document.example
 resource "aws_iam_policy" "hatchery-policy" {
   name        = "${var.policyname}"
   description = "${var.policydescription}"
-  policy      = data.aws_iam_policy_document.hatchery-policy-document
+  policy      = data.aws_iam_policy_document.hatchery-policy-document.json
   path        = "${var.policypath}"
 }
 
@@ -34,5 +33,5 @@ resource "aws_iam_role_policy_attachment" "hatchery-policy-attach" {
 
 resource "aws_iam_role_policy_attachment" "resource-access-attach" {
   role       = aws_iam_role.hatchery-role.name
-  policy_arn = arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess
+  policy_arn = "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess"
 }
