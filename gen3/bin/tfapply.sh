@@ -10,10 +10,16 @@ fi
 $GEN3_DRY_RUN && gen3_log_info "Running in DRY_RUN mode ..."
 
 gen3_log_info "Running: terraform apply plan.terraform"
-if ! ($GEN3_DRY_RUN || gen3_terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" apply "${GEN3_WORKDIR}/plan.terraform"); then
-  gen3_log_err "apply failed, bailing out"
-  exit 1
-fi
+if [[ ! -z $USE_TF_1 ]]; then
+  if ! ($GEN3_DRY_RUN || gen3_terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" apply "${GEN3_WORKDIR}/plan.terraform"); then
+    gen3_log_err "apply failed, bailing out"
+    exit 1
+  fi
+else
+  if ! ($GEN3_DRY_RUN || gen3_terraform  apply plan.terraform); then
+    gen3_log_err "apply failed, bailing out"
+    exit 1
+  fi
 
 if [[ -d .git ]] && ! $GEN3_DRY_RUN; then
   git add .

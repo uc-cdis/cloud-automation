@@ -265,12 +265,16 @@ resource "aws_vpc_peering_connection" "vpcpeering" {
   peer_owner_id = var.csoc_managed ? var.csoc_account_id : data.aws_caller_identity.current.account_id
   peer_vpc_id   = var.peering_vpc_id
   vpc_id        = aws_vpc.main.id
-  auto_accept   = true
+  auto_accept   = false
 
   tags = {
     Name         = "VPC Peering between ${var.vpc_name} and adminVM vpc"
     Environment  = var.vpc_name
     Organization = var.organization_name
+  }
+
+  lifecycle {
+    ignore_changes = all
   }
 }
 

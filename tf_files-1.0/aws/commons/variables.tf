@@ -305,7 +305,7 @@ variable "ha-squid_instance_type" {
 
 variable "ha-squid_instance_drive_size" {
   description = "Volume size for HA squid instances"
-  default     = 8
+  default     = 20
 }
 
 
@@ -738,4 +738,8 @@ variable "enable_spot_instances" {
 
 variable "enable_on_demand_instances" {
   default = false
+}
+
+variable "deploy_cloud_trail" {
+  default = true
 }
