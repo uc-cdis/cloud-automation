@@ -1,7 +1,5 @@
 # Terraform Migration Steps
 
-The following guide is intended to guide you through the process of bringing up a gen3 commons. This particular guide is intended for those who would build commons independently from a centralized account. Said account will be called CSOC and is used to control multiple commons and also collect logs from them for later processing. 
-
 The following guide is intended to guide you through the process of migrating terraform from 0.11/0.12 to our tf > 1.0 version. The newer terrafrom includes a number of newer features and our old modules will be deprecated eventually.
 
 # Table of contents
@@ -10,7 +8,8 @@ The following guide is intended to guide you through the process of migrating te
 - [2. Initial Setup](#initial-setup)
 - [3. Running the Change](#running-the-change)
 - [4. Post Command Steps](#post-command-steps)
-- [5. Verification of Migration](#verification-of-migration)
+- [5. Updated Variables](#updated-variables)
+- [6. Verification of Migration](#verification-of-migration)
 
 ## Requirements
 
@@ -38,8 +37,26 @@ This will will copy down the commons, EKS and ES terrafrom state files, then mer
 
 ## Post Command Steps
 
-After the command finishes it should output a list of commands to run to import new resources. You will need to first get a working config.tfvars file though, so you should go into each of the workspaces you migrated, copy their config.tfvars files and merge them. There will likely be some duplicates between the files, so ensure you delete any duplicate lines, such as vpc name, so that the terraform can run. We also started deprecated the naming of gdcapi, as sheepdog is our newer naming convention, so you should update variables containing gdcapi to contain sheepdog instead. From there you can workon your new workspace and run a gen3 tfplan to ensure it will create a plan without errors. If you can create a plan run the import commands at this point and run another plan.
+After the command finishes it should output a list of commands to run to import new resources. You will need to first get a working config.tfvars file though, so you should go into each of the workspaces you migrated, copy their config.tfvars files and merge them. There will likely be some duplicates between the files, so ensure you delete any duplicate lines, such as vpc name, so that the terraform can run. We also started deprecated the naming of gdcapi, as sheepdog is our newer naming convention, so you should update variables containing gdcapi to contain sheepdog instead. From there you should look at the updated variables section to read about any newer variables or defaults that might result in new things to add to your config.tfvars. After that run a tfplan to ensure that your state is working and if you do not get errors run the final import command listed in the output of the migration script. Newer terraform provider changes resulted in new resources that we need to manually import into our state and these commands will ensure resources are properly tracked.
+
+## Updated Variables
+
+The new deployment has new and updated variables. Some important ones to note are as follows:
+
+| variables                  | description                                                                                                                                                                                                                                                                          | default |
+|----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------|
+| es_linked_role             | Only one es linked service role can be created per AWS account. This flag is a simple implementation to prevent errors from occurring when multiple will be created. If you run into an error about an es linked service role already being setup for the account set this to false. | false   |
+| enable_on_demand_instances | Our terraform 1.X implementation allows us to set spot instances. This flag enables the classic on demand autoscaling group.                                                                                                                                                         | true    |
+| enable_spot_instances      | Our terraform 1.X implementation allows us to set spot instances. This flag enables the new spot instance autoscaling group.                                                                                                                                                         | false   |
+| csoc_managed               | This flag is used to toggle between a CSOC and CSOC-less setup. The functionality remains the same but the default has changed to false. If using a CSOC setup ensure you set the variable to true now.                                                                              | false   |
+| deploy_rds                 | Our terraform 1.X implementation allows us to use aurora. This flag enables the classic rds db instances.                                                                                                                                                                            | true    |
+| deploy_aurora              | Our terraform 1.X implementation allows us to use aurora. This flag enables the new aurora db instances.                                                                                                                                                                             | false   |
+| deploy_eks                 | Our terraform 1.x implementation simplified our structure to allow for all major resources to be spun up from a single workspace. This flag enables EKS, previously _eks workspace.                                                                                                  | true    |
+| deploy_es                  | Our terraform 1.x implementation simplified our structure to allow for all major resources to be spun up from a single workspace. This flag enables elasticsearch(opensearch), previously _es workspace.                                                                             | true    |
+| deploy_cloud_trail         | This flag allows for toggling between a cloud-trail setup and one without cloud-trail. Useful if hitting limit on cloud-trails in an AWS account.                                                                                                                                    | true    |
+
+- Something to take note of is CSOC based setups will now need to explicitly state csoc_managed=true, or else there may be issues with the migration.
 
 ## Verification of Migration
 
-At this point all of the resources should be migrated. There may be some smaller changes that happen as a result of our merging of modules and standardizing variables as well as standard commons updates. Look out for things like organization name tag changes as well as things like updating the launch configuration for the autoscaling groups etc. However, if you notice a big change like destroying a database or EKS cluster, do not run the change and instead reach out to Edward Malinowski on slack for troubleshooting. If all looks good though, run a gen3 tfapply and your migration to tf >1.0 should be completed. From this point on you should use this new workspace for all future terraform changes, as it will use our newer modules which will be the only ones updated moving forward.
+To verify the migration is successful you should run a tfplan. There may be some smaller changes that happen as a result of our merging of modules and standardizing variables as well as standard commons updates. Look out for things like organization name tag changes as well as things like updating the launch configuration for the autoscaling groups etc. However, if you notice a destructive change, like destroying a database, EKS cluster/ASG or subnet, do not run the change and instead reach out to Edward Malinowski on slack for troubleshooting. If the changes seem non-destructive, run a gen3 tfapply and your migration to tf >1.0 should be completed. From this point on you should use this new workspace for all future terraform changes, as it will use our newer modules which will be the only ones updated moving forward.

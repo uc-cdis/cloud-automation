@@ -737,7 +737,7 @@ variable "enable_spot_instances" {
 }
 
 variable "enable_on_demand_instances" {
-  default = false
+  default = true
 }
 
 variable "deploy_cloud_trail" {
