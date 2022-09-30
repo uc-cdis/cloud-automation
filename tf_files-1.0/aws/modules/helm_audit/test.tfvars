@@ -1,0 +1,5 @@
+sqs_name = "test"
+slack_webhook="slack-hook"
+role_name = "sqs-role"
+policy_name = "test_policy"
+policy_path = "test_path"
