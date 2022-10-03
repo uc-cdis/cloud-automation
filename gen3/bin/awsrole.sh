@@ -24,9 +24,11 @@ gen3_awsrole_help() {
 function gen3_awsrole_ar_policy() {
   local serviceAccount="$1"
   shift || return 1
-  local namespace="$1"
-  shift
-  [ -z "$namespace" ] && namespace=$(gen3 db namespace)
+  if [[ ! -z $1 ]]; then
+    local namespace=$1
+  else
+    local namespace=$(gen3 db namespace)
+  fi
   local issuer_url
   local account_id
   local vpc_name
@@ -73,25 +75,28 @@ EOF
 #
 # @param saName
 # @param roleName
+# @param Optional - namespace
 #
 gen3_awsrole_sa_annotate() {
   local saName="$1"
   shift || return 1
   local roleName="$1"
   shift || return 1
-  local namespace="$1"
-  shift
-  # If namespace is supplied set KUBECTL_NAMESPACE
-  [[ ! -z "$namespace" ]] && KUBECTL_NAMESPACE=$namespace
-  
+  if [[ ! -z $1 ]]; then
+    local namespace=$1
+  else
+    local namespace=$(gen3 db namespace)
+  fi
   local roleArn
   local roleInfo
   roleInfo="$(aws iam get-role --role-name "$roleName")" || return 1
   roleArn="$(jq -e -r .Role.Arn <<< "$roleInfo")"
-  if ! g3kubectl get sa "$saName" > /dev/null; then
-    g3kubectl create sa "$saName" || return 1
+
+  if ! g3kubectl get sa "$saName" --namespace=$namespace  > /dev/null; then
+    g3kubectl create sa "$saName" --namespace=$namespace || return 1
   fi
-  g3kubectl annotate --overwrite sa "$saName" "eks.amazonaws.com/role-arn=$roleArn"
+
+  g3kubectl annotate --overwrite sa "$saName" "eks.amazonaws.com/role-arn=$roleArn" --namespace=$namespace
 }
 
 #
@@ -122,8 +127,9 @@ _tfplan_role() {
   shift || return 1
   local saName="$1"
   shift || return 1
+  local namespace="$1"
   local arDoc
-  arDoc="$(gen3_awsrole_ar_policy "$saName")" || return 1
+  arDoc="$(gen3_awsrole_ar_policy "$saName" "$namespace")" || return 1
   gen3 workon default "${rolename}_role"
   gen3 cd
   cat << EOF > config.tfvars
@@ -138,7 +144,7 @@ EOF
 }
 
 #
-# Util for applying tfplan 
+# Util for applying tfplan
 #
 _tfapply_role() {
   local rolename=$1
@@ -176,6 +182,11 @@ gen3_awsrole_create() {
     gen3_log_err "use: gen3 awsrole create roleName saName"
     return 1
   fi
+  if [[ ! -z $1 ]]; then
+    local namespace=$1
+  else
+    local namespace=$(gen3 db namespace)
+  fi
   # do simple validation of name
   local regexp="^[a-z][a-z0-9\-]*$"
   if [[ ! $rolename =~ $regexp ]];then
@@ -196,7 +207,7 @@ EOF
     # That name is already used.
     if [[ "$entity_type" =~ role ]]; then
       gen3_log_info "A role with that name already exists"
-      gen3_awsrole_sa_annotate "$saName" "$rolename"
+      gen3_awsrole_sa_annotate "$saName" "$rolename" "$namespace"
       return $?
     else
       gen3_log_err "A $entity_type with that name already exists"
@@ -205,14 +216,14 @@ EOF
   fi
 
   TF_IN_AUTOMATION="true"
-  if ! _tfplan_role $rolename $saName; then
+  if ! _tfplan_role $rolename $saName $namespace; then
     return 1
   fi
   if ! _tfapply_role $rolename; then
     return 1
   fi
 
-  gen3_awsrole_sa_annotate "$saName" "$rolename"
+  gen3_awsrole_sa_annotate "$saName" "$rolename" "$namespace"
 }
 
 #
