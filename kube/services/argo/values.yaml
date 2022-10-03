@@ -5,7 +5,11 @@ controller:
     enabled: false
 
   # -- enable persistence using postgres
-  persistence: 
+  persistence:
+    archive: true
+    archiveLabelSelector:
+      matchLabels:
+        workflows.argoproj.io/archive-strategy: "true"
     postgresql:
       host: GEN3_ARGO_DB_HOST
       port: 5432
