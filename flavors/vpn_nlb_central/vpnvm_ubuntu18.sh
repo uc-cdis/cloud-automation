@@ -13,7 +13,7 @@ PUBLIC_IPV4=$(curl -s ${MAGIC_URL}public-ipv4)
 REGION=$(echo ${AVAILABILITY_ZONE::-1})
 #DOCKER_DOWNLOAD_URL="https://download.docker.com/linux/ubuntu"
 AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
-#TERRAFORM_DOWNLOAD_URL="https://releases.hashicorp.com/terraform/0.11.14/terraform_0.11.14_linux_amd64.zip"
+#TERRAFORM_DOWNLOAD_URL="https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip"
 OPENVPN_INSTALL_SCRIPT="install_ovpn_ubuntu18.sh"
 
 

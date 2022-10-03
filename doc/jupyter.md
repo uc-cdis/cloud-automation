@@ -27,7 +27,22 @@ Ex:
 off-cluster $ KUBECTL_NAMESPACE=my-namespace gen3 jupyter idle defaultNamespaceKey.json
 ```
 
+### gen3 jupyter metrics [runtime|memory] [apikey]
 
+Query prometheus for metrics (runtime or memory) for pods
+that have run in the jupyter namespace over the past 24 hours.
+The default metric is `runtime`.
+
+Accepts an optional `gen3 api curl` api
+key - otherwise assumes the call is running on cluster with
+a direct route to prometheus.  Note that only the `default`
+namespace exposes a public (guarded by `arborist` policy) `/prometheus/` route.
+
+Ex:
+```
+on-cluster $ gen3 jupyter metrics
+on-cluster $ gen3 jupyter metrics memory
+```
 
 ### gen3 jupyter j-namespace
 

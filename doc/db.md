@@ -121,3 +121,12 @@ Used to encrypt the rds databases. You should use the profile/workspace from gen
 ex.
 gen3 db encrypt cdistest emalinowskiv1 </mnt/extravolume>
 ```
+
+### gen3 db upgrade profile workspace version
+
+Used to upgrade the rds engine version. You should use the profile/workspace from gen3 workon used to setup the vpc/rds then provide the engine version you want to upgrade to. It will upgrade the databases then update the terraform module supplied to use the new db's. Please ensure the config.tfvars has the most up to date information about the db's though, ie the correct storage size.
+
+```bash
+ex.
+gen3 db upgrade cdistest emalinowskiv1 13.3
+```

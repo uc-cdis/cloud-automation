@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ohdsi-atlas-service
+spec:
+  type: NodePort
+  selector:
+    app: ohdsi-atlas
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      name: http

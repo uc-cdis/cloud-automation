@@ -28,6 +28,10 @@ variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
+variable "secondary_cidr_block" {
+  default = ""
+}
+
 ## variable for the bootstrap 
 variable "bootstrap_path" {
   default = "cloud-automation/flavors/squid_auto/"
@@ -111,4 +115,30 @@ variable "cluster_min_size" {
 variable "network_expansion" {
   description = "let k8s workers run on a /22 subnet"
   default     = false
+}
+
+variable "squid_depends_on" { 
+  default = "" 
+}
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}
+
+variable "slack_webhook" {
+  default = ""
+}
+
+# the key that was used to encrypt the FIPS enabled AMI
+# This is needed so ASG can decrypt the ami
+variable "fips_ami_kms" {
+  default = "arn:aws:kms:us-east-1:707767160287:key/mrk-697897f040ef45b0aa3cebf38a916f99"
+}
+
+variable "fips" {
+  default = false
 }

@@ -6,7 +6,7 @@ metadata:
   name: selenium-node-chrome
   namespace: default
 spec:
-  replicas: 10
+  replicas: 20
   selector:
     matchLabels:
       app: selenium-node-chrome
@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: selenium-node-chrome
+      annotations:
+        "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
       containers:
       - env:
@@ -30,7 +32,7 @@ spec:
           value: "4443"
         - name: SE_NODE_MAX_CONCURRENT_SESSIONS
           value: "3"
-        image: selenium/node-chrome:4
+        image: quay.io/cdis/selenium-node-chrome:4.0.0
         imagePullPolicy: Always
         name: node-chrome
       terminationGracePeriodSeconds: 30

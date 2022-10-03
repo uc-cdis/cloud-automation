@@ -98,6 +98,27 @@ test_arp_workspace() {
   workspace_cleanup
 }
 
+test_cognito_workspace() {
+  GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}__cognito"
+  test_workspace
+  cat - > config.tfvars <<EOM
+vpc_name                 = "qaplanetv1"
+cognito_provider_name    = "bogus.federation.tld"
+cognito_domain_name      = "qaplanetv1"
+cognito_callback_urls    = ["https://qa.planx-pla.net/","https://qa.planx-pla.net/login/cognito/login/","https://qa.planx-pla.net/user/login/cognito/login/"]
+cognito_provider_details = {"MetadataURL"="https://bogus.federation.tld/federationmetadata/2007-06/federationmetadata.xml"}
+
+tags                     = {
+  "Organization" = "PlanX"
+  "Environment"  = "qaplanetv1"
+}
+EOM
+  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/cognito" ]]; because $? "a __cognito workspace should use the ./aws/congnito resources: $GEN3_TFSCRIPT_FOLDER"
+  gen3 tfplan; because $? "tfplan cognito should run ok"
+  workspace_cleanup
+}
+
+
 test_commons_workspace() {
   test_workspace
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/commons" ]]; because $? "a generic workspace should use the ./aws/commons resources: $GEN3_TFSCRIPT_FOLDER"
@@ -208,6 +229,7 @@ rds_instance_create_monitoring_role       = true
 EOM
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/rds" ]]; because $? "a __rds workspace should use the ./aws/rds resources: $GEN3_TFSCRIPT_FOLDER"
   gen3 tfplan; because $? "tfplan rds should run ok"
+  workspace_cleanup
 }
 
 test_role_workspace() {
@@ -245,7 +267,8 @@ arpolicy=<<EDOC
 EDOC
 EOM
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/role" ]]; because $? "a _role workspace should use the ./aws/role resources: $GEN3_TFSCRIPT_FOLDER"
-  gen3 tfplan; because $? "tfplan encrypted-rds should run ok"
+  gen3 tfplan; because $? "tfplan role should run ok"
+  workspace_cleanup
 }
 
 test_eks_workspace() {
@@ -277,6 +300,7 @@ jupyter_asg_min_size = 0
 EOM
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/eks" ]]; because $? "a _eks workspace should use the ./aws/eks resources: $GEN3_TFSCRIPT_FOLDER"
   gen3 tfplan; because $? "tfplan eks should run ok"
+  workspace_cleanup
 }
 
 test_encrypted-rds_workspace() {
@@ -291,6 +315,7 @@ db_password_indexd = "indexd"
 EOM
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/encrypted-rds" ]]; because $? "a __encrypted-rds workspace should use the ./aws/encrypted-rds resources: $GEN3_TFSCRIPT_FOLDER"
   gen3 tfplan; because $? "tfplan encrypted-rds should run ok"
+  workspace_cleanup
 }
 
 test_dbq_workspace() {
@@ -301,6 +326,7 @@ bucket_name="qaplanetv1-data-bucket"
 EOM
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/data-bucket-queue" ]]; because $? "a __data-bucket-queue workspace should use the ./aws/data-bucket-queue resources: $GEN3_TFSCRIPT_FOLDER"
   gen3 tfplan; because $? "tfplan data-bucket-queue should run ok"
+  workspace_cleanup
 }
 
 test_sftp_workspace() {
@@ -312,6 +338,7 @@ s3_bucket_name = "test-bucket"
 EOM
   [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/sftp" ]]; because $? "a __sftp workspace should use the ./aws/sftp resources: $GEN3_TFSCRIPT_FOLDER"
   gen3 tfplan; because $? "tfplan sftp should run ok"
+  workspace_cleanup
 }
 
 test_gcp_workspace() {
@@ -323,6 +350,52 @@ test_gcp_workspace() {
 test_onprem_workspace() {
   GEN3_TEST_PROFILE="onprem-${GEN3_TEST_PROFILE}"
   test_workspace
+  workspace_cleanup
+}
+
+test_utilityvm_workspace() {
+  GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}_utilityvm"
+  test_workspace
+  test_workspace
+  cat - > config.tfvars <<EOM
+bootstrap_path = "cloud-automation/flavors/adminvm/"
+bootstrap_script = "ubuntu-18-init.sh"
+vm_name = "jenkinstest"
+vm_hostname = "jenkinstest"
+vpc_id = "vpc-00d2fc7e8fd84fce8"
+vpc_subnet_id = "subnet-07929c80bc1a6619e"
+# secgroup egress whitelist
+vpc_cidr_list = ["172.26.128.0/20", "52.0.0.0/8", "54.0.0.0/8"]
+aws_account_id = "707767160287"
+extra_vars = []
+instance_type = "t3.micro"
+ssh_key_name = "reubenplanetv1_automation_dev"
+EOM
+  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/utility_vm" ]]; because $? "a __sftp workspace should use the ./aws/sftp resources: $GEN3_TFSCRIPT_FOLDER"
+  gen3 tfplan; because $? "tfplan utility_vm should run ok"
+  workspace_cleanup
+}
+
+test_utilityadmin_workspace() {
+  GEN3_TEST_WORKSPACE="${GEN3_TEST_WORKSPACE}__utility_admin"
+  test_workspace
+  test_workspace
+  cat - > config.tfvars <<EOM
+bootstrap_path = "cloud-automation/flavors/adminvm/"
+bootstrap_script = "ubuntu-18-init.sh"
+vm_name = "admintest"
+vm_hostname = "admintest"
+vpc_id = "vpc-00d2fc7e8fd84fce8"
+vpc_subnet_id = "subnet-07929c80bc1a6619e"
+# secgroup egress whitelist
+vpc_cidr_list = ["172.26.128.0/20", "52.0.0.0/8", "54.0.0.0/8"]
+aws_account_id = "707767160287"
+extra_vars = []
+instance_type = "t3.micro"
+ssh_key_name = "reubenplanetv1_automation_dev"
+EOM
+  [[ "$GEN3_TFSCRIPT_FOLDER" == "$GEN3_HOME/tf_files/aws/utility_admin" ]]; because $? "a __sftp workspace should use the ./aws/sftp resources: $GEN3_TFSCRIPT_FOLDER"
+  gen3 tfplan; because $? "tfplan utility_admin should run ok"
   workspace_cleanup
 }
 
@@ -363,8 +436,9 @@ test_tfoutput() {
 
 shunit_runtest "test_workspace" "terraform"
 shunit_runtest "test_arp_workspace" "terraform"
-shunit_runtest "test_custom_workspace" "terraform"
+shunit_runtest "test_cognito_workspace" "terraform"
 shunit_runtest "test_commons_workspace" "terraform"
+shunit_runtest "test_custom_workspace" "terraform"
 shunit_runtest "test_databucket_workspace" "terraform"
 shunit_runtest "test_eks_workspace" "terraform"
 shunit_runtest "test_encrypted-rds_workspace" "terraform"
@@ -373,6 +447,8 @@ shunit_runtest "test_role_workspace" "terraform"
 shunit_runtest "test_snapshot_workspace" "terraform"
 shunit_runtest "test_usergeneric_workspace" "terraform"
 shunit_runtest "test_uservpc_workspace" "terraform"
+shunit_runtest "test_utilityvm_workspace" "terraform"
+shunit_runtest "test_utilityadmin_workspace" "terraform"
 if [[ -z "$JENKINS_HOME" ]]; then
   # jenkins does not have Google configurations yet
   shunit_runtest "test_gcp_workspace" "terraform"

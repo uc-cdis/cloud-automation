@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: metadata-aggregate-sync
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+        - name: config-volume-g3auto
+          secret:
+            secretName: metadata-g3auto
+        - name: config-volume
+          secret:
+            secretName: metadata-config
+            optional: true
+        - name: config-manifest
+          configMap:
+            name: manifest-metadata
+            optional: true
+      containers:
+        - name: metadata
+          GEN3_METADATA_IMAGE
+          volumeMounts:
+            - name: config-volume-g3auto
+              readOnly: true
+              mountPath: /src/.env
+              subPath: metadata.env
+            - name: config-volume
+              readOnly: true
+              mountPath: /aggregate_config.json
+              subPath: aggregate_config.json
+            - name: config-manifest
+              readOnly: true
+              mountPath: /metadata.json
+              subPath: json
+          env:
+            - name: GEN3_DEBUG
+              GEN3_DEBUG_FLAG|-value: "False"-|
+            - name: GEN3_ES_ENDPOINT
+              value: http://esproxy-service:9200
+            - name: USE_AGG_MDS
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-metadata
+                  key: USE_AGG_MDS
+                  optional: true
+            - name: AGG_MDS_NAMESPACE
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-metadata
+                  key: AGG_MDS_NAMESPACE
+                  optional: true
+          imagePullPolicy: Always
+          command: ["/bin/sh"]
+          args:
+            - "-c"
+            - |
+              /env/bin/python /src/src/mds/populate.py --config /aggregate_config.json
+      restartPolicy: Never

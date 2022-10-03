@@ -119,7 +119,9 @@ spec:
           - name: PYTHONPATH
             value: /var/www/fence
           - name: SUBMISSION_USER
-            GEN3_SUBMISSION_USER|-value: "reubenonrye@uchicago.edu"-|
+            GEN3_SUBMISSION_USER|-value: "cdis.autotest@gmail.com"-|
+          - name: TOKEN_EXPIRATION
+            GEN3_TOKEN_EXPIRATION|-value: "3600"-|
           - name: FENCE_PUBLIC_CONFIG
             valueFrom:
               configMapKeyRef:
@@ -177,14 +179,14 @@ spec:
                 fi
               fi
               echo "generate access token"
-              echo "fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600"
+              echo "fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp $TOKEN_EXPIRATION"
               tempFile="$(mktemp -p /tmp token.txt_XXXXXX)"
               success=false
               count=0
               sleepTime=10
               # retry loop
               while [[ $count -lt 3 && $success == false ]]; do
-                if fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp 3600 > "$tempFile"; then
+                if fence-create --path fence token-create --type access_token --username $SUBMISSION_USER  --scopes openid,user,test-client --exp $TOKEN_EXPIRATION > "$tempFile"; then
                   echo "fence-create success!"
                   tail -1 "$tempFile" > /mnt/shared/access_token.txt
                   # base64 --decode complains about invalid characters - don't know why

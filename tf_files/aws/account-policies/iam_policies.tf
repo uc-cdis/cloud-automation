@@ -1,7 +1,7 @@
 locals  {
   all_iam_policies = [
     # admin policy attachments
-    { role = "admin", policy = "arn:aws:iam::aws:policy/AdministratorAccess" },
+    { role = "admins", policy = "arn:aws:iam::aws:policy/AdministratorAccess" },
     # bsdisocyber policy attachments
     { role = "bsdisocyber", policy = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/Config_Read_List" },
     { role = "bsdisocyber", policy = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/Logs_Read" },

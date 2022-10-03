@@ -1,12 +1,25 @@
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
-  default = "707767160287"
+  default = "099720109477"
 }
 
 variable "vpc_name" {}
 
 variable "vpc_cidr_block" {
   default = "172.24.17.0/20"
+}
+
+
+variable "secondary_cidr_block" {
+  default = ""
+}
+
+variable "vpc_flow_logs" {
+  default = false
+}
+
+variable "vpc_flow_traffic" {
+  default = "ALL"
 }
 
 # name of aws_key_pair ssh key to attach to VM's
@@ -25,6 +38,12 @@ variable "peering_vpc_id" {
 }
 
 variable "csoc_managed" {
+  default = true
+}
+
+# controls whether or not to setup the cloudwatch subscription filter to send logs to CSOC for long term storage
+# CTDS uses datadog and this is no longer needed for us.
+variable "send_logs_to_csoc" {
   default = true
 }
 
@@ -109,4 +128,20 @@ variable "single_squid_instance_type" {
 variable "network_expansion" {
   description = "Let k8s wokers use /22 subnets per AZ"
   default     = false
+}
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}
+
+variable "slack_webhook" {
+  default = ""
+}
+
+variable "fips" {
+  default = false
 }

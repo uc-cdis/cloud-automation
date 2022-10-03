@@ -5,28 +5,7 @@ gen3_load "gen3/gen3setup"
 
 # constants -----------------------
 
-repoList=(
-arborist
-fence
-indexd
-peregrine
-pidgin
-nginx
-sheepdog
-data-portal
-gen3-spark
-tube
-guppy
-sower
-hatchery
-workspace-token-service
-manifestservice
-gen3-statics
-metadata-service
-requestor
-)
-# ambassador
-#repoList=( fence )
+repoList=$(aws ecr describe-repositories | jq -r .repositories[].repositoryName)
 
 accountList=(
 053927701465
@@ -50,6 +29,8 @@ accountList=(
 830067555646
 895962626746
 980870151884
+205252583234
+885078588865
 )
 
 principalStr=""
@@ -191,6 +172,40 @@ gen3_ecr_registry() {
   echo "$ecrReg"
 }
 
+gen3_ecr_update_all() {
+  repoList=$(gen3_ecr_repolist)
+  echo $repoList
+  for repo in $repoList; do
+    gen3_ecr_update_policy $repo
+  done 
+}
+
+# Check if the Quay image exists in ECR repository
+#
+# @param repoName
+# @param tagName
+#
+gen3_ecr_describe_image() {
+    local repoName="gen3/$1"
+    shift
+    local tagName="$1"
+
+    if ! shift; then
+      gen3_log_err "use: gen3_ecr_describe_image repoName tagName"
+      return 1
+    fi
+    aws ecr describe-images --repository-name ${repoName} --image-ids imageTag=${tagName}
+}
+
+# Create a new repository in AWS ECR
+#
+# @param repoName
+gen3_ecr_create_repo() {
+  local repoName="gen3/$1"
+  aws ecr create-repository --repository-name ${repoName} --image-scanning-configuration scanOnPush=true 
+}
+
+
 # main -----------------------
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
@@ -210,14 +225,23 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "update-policy")
       gen3_ecr_update_policy "$@"
       ;;
+    "update-all")
+      gen3_ecr_update_all "$@"
+      ;;
     "copy")
       gen3_ecr_copy_image "$@"
+      ;;
+    "describe-image")
+      gen3_ecr_describe_image "$@"
       ;;
     "registry")
       gen3_ecr_registry "$@"
       ;;
     "quay-sync")
       gen3_ecr_quay_sync "$@"
+      ;;
+    "create-repository")
+      gen3_ecr_create_repo "$@"
       ;;
     "dh-quay")
       gen3_dh_quay_sync "$@"

@@ -2,7 +2,7 @@
 #
 # Reverse proxy needs to deploy last in order for nginx
 # to be able to resolve the DNS domains of all the services
-# at startup.  
+# at startup.
 # Unfortunately - the data-portal wants to connect to the reverse-proxy
 # at startup time, so there's a chicken-egg thing going on, so
 # will probably need to restart the data-portal pods first time
@@ -17,7 +17,7 @@ gen3_load "gen3/gen3setup"
 #
 # Setup indexd basic-auth gateway user creds enforced
 # by the revproxy to grant indexd_admin policy users update
-# access to indexd.  
+# access to indexd.
 # That authz flow is deprecated in favor of centralized-auth
 # indexd policies.
 #
@@ -71,8 +71,32 @@ fi
 scriptDir="${GEN3_HOME}/kube/services/revproxy"
 declare -a confFileList=()
 confFileList+=("--from-file" "$scriptDir/gen3.nginx.conf/README.md")
+
+# load priority confs first (who need to fallback on later confs)
+
+# add new nginx conf to route ga4gh access requests to fence instead of indexd
+if isServiceVersionGreaterOrEqual "fence" "5.5.0" "2021.10"; then
+  filePath="$scriptDir/gen3.nginx.conf/fence-service-ga4gh.conf"
+  if [[ -f "$filePath" ]]; then
+    echo "$filePath being added to nginx conf file list b/c fence >= 5.4.0 or 2021.10"
+    confFileList+=("--from-file" "$filePath")
+  fi
+fi
+
 for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'); do
   filePath="$scriptDir/gen3.nginx.conf/${name}.conf"
+
+  if [[ $name == "portal-service" || $name == "frontend-framework-service" ]]; then
+    FRONTEND_ROOT=$(g3kubectl get configmap manifest-global --output=jsonpath='{.data.frontend_root}')
+    if [[ $FRONTEND_ROOT == "gen3ff" ]]; then
+      #echo "setup gen3ff as root frontend service"
+      filePath="$scriptDir/gen3.nginx.conf/gen3ff-as-root/${name}.conf"
+    else
+      #echo "setup windmill as root frontend service"
+      filePath="$scriptDir/gen3.nginx.conf/portal-as-root/${name}.conf"
+    fi
+  fi
+
   #echo "$filePath"
   if [[ -f "$filePath" ]]; then
     #echo "$filePath exists in $BASHPID!"
@@ -80,6 +104,17 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
     #echo "${confFileList[@]}"
   fi
 done
+
+if g3kubectl get namespace argo > /dev/null 2>&1;
+then
+  for argo in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
+  do
+    filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
+  done
+fi
 
 if [[ $current_namespace == "default" ]];
 then
@@ -114,6 +149,13 @@ if [[ $current_namespace == "default" ]]; then
   fi
 fi
 
+if g3k_manifest_lookup .global.document_url  > /dev/null 2>&1; then
+  documentUrl="$(g3k_manifest_lookup .global.document_url)"
+  if [[ "$documentUrl" != null ]]; then
+    filePath="$scriptDir/gen3.nginx.conf/documentation-site/documentation-site.conf"
+    confFileList+=("--from-file" "$filePath")
+  fi
+fi
 #
 # Funny hook to load the portal-workspace-parent nginx config
 #
@@ -178,7 +220,7 @@ EOM
 fi
 
 #
-# Set 
+# Set
 #    global.lb_type: "internal"
 # in the manifest for internal (behind a VPN) load balancer
 #

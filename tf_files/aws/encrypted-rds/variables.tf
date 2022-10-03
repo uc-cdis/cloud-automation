@@ -64,15 +64,15 @@ variable "indexd_snapshot" {
 }
 
 variable "fence_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 variable "sheepdog_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 variable "indexd_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 # id of AWS account that owns the public AMI's
@@ -158,15 +158,15 @@ variable "indexd_backup_window" {
 }
 
 variable "fence_engine_version" {
-  default = "9.6.11"
+  default = "13.3"
 }
 
 variable "sheepdog_engine_version" {
-  default = "9.6.11"
+  default = "13.3"
 }
 
 variable "indexd_engine_version" {
-  default = "9.6.11"
+  default = "13.3"
 }
 
 variable "fence_auto_minor_version_upgrade" {
@@ -255,6 +255,17 @@ variable "aws_db_subnet_group_name" {
   default = "subnetName"
 }
 
-variable "db_pg_name" {
-  default = "dbPgName"
+variable "fence_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
+}
+
+variable "sheepdog_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
+}
+
+variable "indexd_max_allocated_storage" {
+  description = "Maximum allocated storage for autosacaling"
+  default     = 0
 }

@@ -11,7 +11,7 @@ sysctl -w fs.inotify.max_user_watches=12000
 
 KUBELET_EXTRA_ARGUMENTS="--node-labels=role=${nodepool}"
 
-if [[ ${nodepool} == jupyter ]];
+if [[ ${nodepool} != default ]];
 then
     KUBELET_EXTRA_ARGUMENTS="$KUBELET_EXTRA_ARGUMENTS --register-with-taints=role=${nodepool}:NoSchedule"
 fi
@@ -38,7 +38,7 @@ sysctl -w net.ipv4.route.flush=1
 echo "Protocol 2" >> /etc/ssh/sshd_config
 
 ## Ensure SSH root login is disabled
-echo "ermitRootLogin no" >> /etc/ssh/sshd_config
+echo "PermitRootLogin no" >> /etc/ssh/sshd_config
 
 ## Ensure only strong ciphers are used
 echo "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" >> /etc/ssh/sshd_config
@@ -68,3 +68,11 @@ chmod +x /etc/cron.daily/filesystem_integrity
 $(command -v aide) --init
 mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
 
+# Install qualys agent if the activtion and customer id provided
+if [[ ! -z "${activation_id}" ]] || [[ ! -z "${customer_id}" ]]; then
+    aws s3 cp s3://qualys-agentpackage/QualysCloudAgent.rpm ./qualys-cloud-agent.x86_64.rpm
+    sudo rpm -ivh qualys-cloud-agent.x86_64.rpm
+    # Clean up rpm package after install
+    rm qualys-cloud-agent.x86_64.rpm
+    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${activation_id} CustomerId=${customer_id}
+fi

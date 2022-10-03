@@ -6,6 +6,18 @@ variable "vpc_cidr_block" {
   default = "172.24.17.0/20"
 }
 
+variable "secondary_cidr_block" {
+  default = ""
+}
+  
+variable "vpc_flow_logs" {
+  default = false
+}
+
+variable "vpc_flow_traffic" {
+  default = "ALL"
+}
+
 variable "aws_region" {
   default = "us-east-1"
 }
@@ -81,15 +93,15 @@ variable "indexd_snapshot" {
 }
 
 variable "fence_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 variable "sheepdog_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 variable "indexd_db_instance" {
-  default = "db.t2.small"
+  default = "db.t3.small"
 }
 
 variable "hostname" {
@@ -135,7 +147,12 @@ variable "gdcapi_oauth2_client_secret" {
 
 # id of AWS account that owns the public AMI's
 variable "ami_account_id" {
-  default = "707767160287"
+  default = "099720109477"
+}
+
+variable "squid_image_search_criteria" {
+  description = "Search criteria for squid AMI look up"
+  default     = "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"
 }
 
 variable "peering_vpc_id" {
@@ -168,6 +185,12 @@ variable "alarm_threshold" {
 
 
 variable "csoc_managed" {
+  default = true
+}
+
+# controls whether or not to setup the cloudwatch subscription filter to send logs to CSOC for long term storage
+# CTDS uses datadog and this is no longer needed for us.
+variable "send_logs_to_csoc" {
   default = true
 }
 
@@ -238,15 +261,15 @@ variable "indexd_backup_window" {
 }
 
 variable "fence_engine_version" {
-  default = "9.6.11" 
+  default = "13.3" 
 }
 
 variable "sheepdog_engine_version" {
-  default = "9.6.11"
+  default = "13.3"
 }
 
 variable "indexd_engine_version" {
-  default = "9.6.11" 
+  default = "13.3" 
 }
 
 variable "fence_auto_minor_version_upgrade" {
@@ -417,4 +440,16 @@ variable "sheepdog_max_allocated_storage" {
 variable "indexd_max_allocated_storage" {
   description = "Maximum allocated storage for autosacaling"
   default     = 0
+}
+
+variable "activation_id" {
+  default = ""
+}
+
+variable "customer_id" {
+  default = ""
+}
+
+variable "fips" {
+  default = false
 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Deploy the metdata service.
+# Deploy the requestor service.
 #
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
@@ -8,7 +8,7 @@ gen3_load "gen3/gen3setup"
 
 
 setup_database() {
-  gen3_log_info "setting up requestor service ..."
+  gen3_log_info "setting up requestor service..."
 
   if g3kubectl describe secret requestor-g3auto > /dev/null 2>&1; then
     gen3_log_info "requestor-g3auto secret already configured"
@@ -19,8 +19,8 @@ setup_database() {
     return 0
   fi
   # Setup config file that requestor consumes
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/requestor"
   if [[ ! -f "$secretsFolder/requestor-config.yaml" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
-    local secretsFolder="$(gen3_secrets_folder)/g3auto/requestor"
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then    
       if ! gen3 db setup requestor; then
         gen3_log_err "Failed setting up database for requestor service"
@@ -35,7 +35,7 @@ setup_database() {
     cat - > "$secretsFolder/requestor-config.yaml" <<EOM
 # Server
 
-DEBUG: false
+DEBUG: true
 
 # Database
 

@@ -1,4 +1,10 @@
 #!/bin/bash
+# TODO: Experiencing the following error:
+# [31mERROR: 21:00:30 - Lock already exists and timed out waiting for lock to unlock[39m
+# + exit 1
+# Needs further investigation. Commenting out the next line for now
+# set -e
+
 #
 # script to reset kubernetes namespace gen3 objects/services
 #
@@ -14,7 +20,7 @@ wait_for_pods_down() {
     podsDownFlag=1
     while [[ podsDownFlag -ne 0 ]]; do
         g3kubectl get pods
-        if [[ 0 == "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.labels.app } ] | map(select(.name=="fence" or .name=="sheepdog" or .name=="peregrine" or .name=="indexd")) | length')" ]]; then
+        if [[ 0 == "$(g3kubectl get pods -o json | jq -r '[.items[] | { name: .metadata.labels.app } ] | length')" ]]; then
             gen3_log_info "pods are down, ready to drop databases"
             podsDownFlag=0
         else
@@ -38,7 +44,7 @@ run_setup_jobs() {
   done
   gen3_log_info "Waiting for jobs to finish, and late starting services to come up"
   sleep 5
-  gen3 kube-wait4-pods
+  gen3 kube-wait4-pods default true
   for jobName in gdcdb-create indexd-userdb fence-db-migrate; do
     gen3_log_info "--------------------"
     gen3_log_info "Logs for $jobName"
@@ -57,7 +63,7 @@ run_post_roll_jobs() {
   done
   gen3_log_info "Waiting for jobs to finish, and late starting services to come up"
   sleep 5
-  gen3 kube-wait4-pods
+  gen3 kube-wait4-pods default true
   for jobName in gdcdb-create indexd-userdb usersync; do
     gen3_log_info "--------------------"
     gen3_log_info "Logs for $jobName"
@@ -67,7 +73,7 @@ run_post_roll_jobs() {
 
 LOCK_USER="gen3-reset-$$"
 
-# 
+#
 # Prompt the user with a given message, bail out if user does not reply "yes"
 gen3_user_verify() {
   local message="$1"
@@ -105,21 +111,34 @@ clear_wts_clientId() {
   gen3_log_info "All clear for wts"
 }
 
+#
+# `set -e` can result in locked environment, because on error it will exit without unlocking the environment
+#
+cleanup() {
+  ARG=$?
+  gen3 klock unlock reset-lock "$LOCK_USER"
+  exit $ARG
+}
+trap cleanup EXIT
+
 # main ---------------------------
 
 gen3_user_verify "about to drop all service deployments"
+gen3_log_info "gen3 klock lock reset-lock "$LOCK_USER" 3600 -w 60"
 gen3 klock lock reset-lock "$LOCK_USER" 3600 -w 60
 gen3 shutdown namespace
 # also clean out network policies
 g3kubectl delete networkpolicies --all
 wait_for_pods_down
-
+# Give it 30 seconds to ensure connections gets drained
+sleep 30
 #
 # Reset our databases
 #
 for serviceName in $(gen3 db services); do
   if [[ "$serviceName" != "peregrine" ]]; then  # sheepdog and peregrine share the same db
-    gen3 db reset "$serviceName"
+    # --force will also drop connections to the database to ensure database gets dropped
+    gen3 db reset "$serviceName" --force
   fi
 done
 
@@ -141,6 +160,9 @@ g3kubectl delete configmap fence
 g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 /bin/rm "$useryaml"
 
+# Recreate fence-config k8s secret on every CI run
+gen3 kube-setup-secrets
+
 #
 # various weird race conditions
 # where these setup jobs setup part of a service
@@ -148,6 +170,10 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 # so run_setup_jobs both before and after roll all to
 # try to make reset more reliable - especially in Jenkins
 #
+if g3kubectl get secret ssjdispatcher-creds > /dev/null 2>&1; then
+    aws sqs purge-queue --queue-url="$(gen3 secrets decode ssjdispatcher-creds credentials.json | jq -r .SQS.url)"
+fi
+
 run_setup_jobs
 clear_wts_clientId
 

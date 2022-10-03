@@ -117,10 +117,13 @@ resource "aws_db_instance" "db_indexd" {
 # See https://www.postgresql.org/docs/9.6/static/runtime-config-logging.html
 # and https://www.postgresql.org/docs/9.6/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE
 # for detail parameter descriptions
+locals {
+  pg_family_version = "${replace( var.indexd_engine_version ,"/\\.[0-9]/", "" )}"
+}
 
 resource "aws_db_parameter_group" "rds-cdis-pg" {
   name   = "${var.vpc_name}-rds-cdis-pg"
-  family = "postgres9.6"
+  family = "postgres${local.pg_family_version}"
 
   # make index searches cheaper per row
   parameter {
@@ -152,6 +155,12 @@ resource "aws_db_parameter_group" "rds-cdis-pg" {
   parameter {
     name  = "random_page_cost"
     value = "0.7"
+  }
+
+  # Set the scram password encryption so that connecting with FIPs enabled works
+  parameter {
+    name  = "password_encryption"
+    value = "scram-sha-256"
   }
 
   lifecycle {
@@ -226,7 +235,7 @@ data "aws_iam_policy_document" "configbucket_reader" {
     ]
 
     effect    = "Allow"
-    resources = ["arn:aws:s3:::${var.users_bucket_name}", "arn:aws:s3:::${var.users_bucket_name}/${var.config_folder}/*"]
+    resources = ["arn:aws:s3:::${var.users_bucket_name}", "arn:aws:s3:::${var.users_bucket_name}/${var.config_folder}/*", "arn:aws:s3:::qualys-agentpackage", "arn:aws:s3:::qualys-agentpackage/*"]
   }
 }
 

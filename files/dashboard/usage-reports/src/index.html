@@ -30,8 +30,35 @@
     <main>
       <section id="daterange">
         <h3>Report Window</h3>
-
         <g3r-window-sizer></g3r-window-sizer>
+      </section>
+      <section id="downloadprotocol" class="g3reports-datapanel g3reports-downloadprotocol">
+        <h3>Signed Urls</h3>
+        <p>
+          Number of signed urls generated, split by protocol.
+        </p>
+        <g3r-table></g3r-table>
+      </section>
+      <section id="loginproviders" class="g3reports-datapanel g3reports-loginproviders">
+        <h3>Logins by provider</h3>
+        <p>
+          Number of login events, split by login provider. 
+        </p>
+        <g3r-table></g3r-table>
+      </section>
+      <section id="loginproviders" class="g3reports-datapanel g3reports-drsrcodes">
+        <h3>DRS URI Response Codes</h3>
+        <p>
+          Response codes DRS URI endpoints (/ga4gh/drs/v1/objects) from indexd service.
+        </p>
+        <g3r-table></g3r-table>
+      </section>
+      <section id="oidclogins" class="g3reports-datapanel g3reports-oidclogins">
+        <h3>Logins via Fence as an OIDC client</h3>
+        <p>
+          Number of logins via Fence as an OIDC client
+        </p>
+        <g3r-table></g3r-table>
       </section>
       <section id="users" class="g3reports-datapanel g3reports-users">
         <h3>Unique Users</h3>

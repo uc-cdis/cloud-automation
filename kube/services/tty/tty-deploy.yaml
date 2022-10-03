@@ -75,6 +75,17 @@ spec:
             cpu: 0.5
             memory: 500Mi
         imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /tty/admin/
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /tty/admin/
+            port: 3000
+
       - name: awshelper
         GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
         imagePullPolicy: Always
@@ -89,3 +100,11 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+        livenessProbe:
+          tcpSocket:
+            port: 2222
+          initialDelaySeconds: 10
+          periodSeconds: 60
+        readinessProbe:
+          tcpSocket:
+            port: 2222

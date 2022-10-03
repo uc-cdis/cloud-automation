@@ -19,6 +19,7 @@ module "squid_proxy" {
 module "squid-auto" {
   source                         = "../squid_auto"
   peering_cidr                   = "${var.peering_cidr}"
+  secondary_cidr_block           = "${var.secondary_cidr_block}"
   env_vpc_name                   = "${var.vpc_name}"
   env_vpc_cidr                   = "${aws_vpc.main.cidr_block}"
   env_vpc_id                     = "${aws_vpc.main.id}"
@@ -28,6 +29,7 @@ module "squid-auto" {
   squid_proxy_subnet             = "${var.network_expansion ? cidrsubnet(var.vpc_cidr_block,5,3) : cidrsubnet(var.vpc_cidr_block,4,1)}"
   organization_name              = "${var.organization_name}"
   ssh_key_name                   = "${var.ssh_key_name}"
+  ami_account_id                 = "${var.ami_account_id}"
   image_name_search_criteria     = "${var.squid_image_search_criteria}"
   squid_instance_drive_size      = "${var.squid_instance_drive_size}"
   squid_availability_zones       = "${var.availability_zones}"
@@ -42,6 +44,11 @@ module "squid-auto" {
   cluster_min_size               = "${var.squid_cluster_min_size}"
   cluster_desired_capasity       = "${var.squid_cluster_desired_capasity}"
   network_expansion              = "${var.network_expansion}"
+  squid_depends_on               = "${aws_nat_gateway.nat_gw.id}"
+  activation_id                  = "${var.activation_id}"
+  customer_id                    = "${var.customer_id}"
+  slack_webhook                  = "${var.slack_webhook}"
+  fips                           = "${var.fips}"
 }
 
 module "data-bucket" {
@@ -60,6 +67,7 @@ module "fence-bot-user" {
 
 resource "aws_vpc" "main" {
   cidr_block           = "${var.vpc_cidr_block}"
+
   enable_dns_hostnames = true
 
   tags = {
@@ -73,6 +81,67 @@ resource "aws_vpc" "main" {
   }
 }
 
+resource "aws_flow_log" "main" {
+  count           = "${var.vpc_flow_logs ? 1 : 0}"
+  iam_role_arn    = "${aws_iam_role.flow_logs.arn}"
+  log_destination = "${aws_cloudwatch_log_group.main_log_group.arn}"
+  traffic_type    = "${var.vpc_flow_traffic}"
+  vpc_id          = "${aws_vpc.main.id}"
+}
+
+resource "aws_iam_role" "flow_logs" {
+  count = "${var.vpc_flow_logs ? 1 : 0}"
+  name  = "${var.vpc_name}_flow_logs_role"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "vpc-flow-logs.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "example" {
+  count = "${var.vpc_flow_logs ? 1 : 0}"
+  name  = "${var.vpc_name}_flow_logs_policy"
+  role = "${aws_iam_role.flow_logs.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+
+
+resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
+  count      = "${var.secondary_cidr_block != "" ? 1 : 0}"
+  vpc_id     = "${aws_vpc.main.id}"
+  cidr_block = "${var.secondary_cidr_block}"
+}
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.main.id}"
@@ -188,9 +257,9 @@ resource "aws_cloudwatch_log_group" "main_log_group" {
 
 #This needs vars from other branches, so hopefully will work just fine when they are merge
 resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
-  count             = "${var.csoc_managed ? 1 : 0}"
+  count             = "${var.csoc_managed ? var.send_logs_to_csoc : 0}"
   name              = "${var.vpc_name}_subscription"
-  #destination_arn   = "arn:aws:logs:${data.aws_region.current.name}:${var.csoc_account_id}:destination:${var.vpc_name}_logs_destination"
+  
   destination_arn   = "arn:aws:logs:${data.aws_region.current.name}:${var.csoc_managed ? var.csoc_account_id : data.aws_caller_identity.current.account_id}:destination:${var.vpc_name}_logs_destination"
   log_group_name    = "${var.vpc_name}"
   filter_pattern    = ""
