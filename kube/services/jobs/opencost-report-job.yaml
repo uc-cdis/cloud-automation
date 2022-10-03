@@ -1,0 +1,36 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: opencost-report
+  namespace: kubecost
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: report-service-account
+      containers:
+        - name: send-report
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: "devterm"
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
+            - name: bucketName
+              GEN3_BUCKET_NAME|-value: ""-|
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              curl -k "https://kubecost-cost-analyzer.kubecost/model/allocation/summary?aggregate=label%3Agen3username&window=7d&accumulate=true&shareIdle=false&idleByNode=false&shareTenancyCosts=true&shareNamespaces=&shareLabels=&shareCost=NaN&shareSplit=weighted" | jq -r . > "report-$(date +"%m-%d-%y").json"
+              aws s3 cp ./report*.json s3://$bucketName
+      restartPolicy: Never
