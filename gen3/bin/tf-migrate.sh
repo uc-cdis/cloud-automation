@@ -57,6 +57,8 @@ gen3_tf_migrate_update_providers() {
 gen3_tf_migrate_move_resources() {
   # Workon the profile again to ensure that the terraform state changes have been pushed up and new providers have been downloaded correctly
   gen3 workon $profile $newWorkspace
+  # Remove random shuffle resources because of problems with upgrade
+  gen3 tform state rm module.eks[0].random_shuffle.az[0] module.eks[0].random_shuffle.secondary_az[0]
   # Move all resources that have changed between versions
   gen3 tform state mv module.cdis_alarms.aws_cloudwatch_metric_alarm.fence_db_alarm module.cdis_alarms[0].aws_cloudwatch_metric_alarm.fence_db_alarm
   gen3 tform state mv module.cdis_alarms.aws_cloudwatch_metric_alarm.gdcapi_db_alarm module.cdis_alarms[0].aws_cloudwatch_metric_alarm.gdcapi_db_alarm
@@ -223,8 +225,6 @@ gen3_tf_migrate_move_resources() {
   gen3 tform state mv module.eks.module.workflow_pool.data.template_file.bootstrap module.eks[0].module.workflow_pool[0].data.template_file.bootstrap
   gen3 tform state mv module.eks.module.workflow_pool.data.template_file.ssh_keys module.eks[0].module.workflow_pool[0].data.template_file.ssh_keys
   gen3 tform state mv module.eks.null_resource.config_setup module.eks[0].null_resource.config_setup
-  gen3 tform state mv module.eks.random_shuffle.az module.eks[0].random_shuffle.az[0]
-  gen3 tform state mv module.eks.random_shuffle.secondary_az module.eks[0].random_shuffle.secondary_az[0]
   gen3 tform state mv aws_db_instance.db_fence aws_db_instance.db_fence[0]
   gen3 tform state mv aws_db_instance.db_indexd aws_db_instance.db_indexd[0]
   gen3 tform state mv aws_db_instance.db_gdcapi aws_db_instance.db_sheepdog[0]
@@ -234,6 +234,14 @@ gen3_tf_migrate_move_resources() {
   gen3 tform state mv module.cdis_vpc.module.data-bucket.aws_iam_policy.trail_writer module.cdis_vpc.module.data-bucket.module.cloud-trail[0].aws_iam_policy.trail_writer
   gen3 tform state mv module.cdis_vpc.module.data-bucket.aws_iam_role.cloudtrail_to_clouodwatch_writer module.cdis_vpc.module.data-bucket.module.cloud-trail[0].aws_iam_role.cloudtrail_to_cloudwatch_writer
   gen3 tform state mv module.cdis_vpc.module.data-bucket.aws_iam_role_policy_attachment.trail_writer_role module.cdis_vpc.module.data-bucket.module.cloud-trail[0].aws_iam_role_policy_attachment.trail_writer_role
+  gen3 tform state mv module.eks.aws_subnet.eks_secondary_subnet[3] module.eks[0].aws_subnet.eks_secondary_subnet[3]
+  gen3 tform state mv module.eks.aws_subnet.eks_secondary_subnet[2] module.eks[0].aws_subnet.eks_secondary_subnet[2]
+  gen3 tform state mv module.eks.aws_subnet.eks_secondary_subnet[1] module.eks[0].aws_subnet.eks_secondary_subnet[1]
+  gen3 tform state mv module.eks.aws_subnet.eks_secondary_subnet[0] module.eks[0].aws_subnet.eks_secondary_subnet[0]
+  gen3 tform state mv module.eks.aws_route_table_association.secondary_subnet_kube[3] module.eks[0].aws_route_table_association.secondary_subnet_kube[3]
+  gen3 tform state mv module.eks.aws_route_table_association.secondary_subnet_kube[2] module.eks[0].aws_route_table_association.secondary_subnet_kube[2]
+  gen3 tform state mv module.eks.aws_route_table_association.secondary_subnet_kube[1] module.eks[0].aws_route_table_association.secondary_subnet_kube[1]
+  gen3 tform state mv module.eks.aws_route_table_association.secondary_subnet_kube[0] module.eks[0].aws_route_table_association.secondary_subnet_kube[0]
   if [[ $migrateEs ]]; then
     gen3 tform state mv module.commons_vpc_es.aws_cloudwatch_log_resource_policy.es_logs module.commons_vpc_es[0].aws_cloudwatch_log_resource_policy.es_logs
     gen3 tform state mv module.commons_vpc_es.aws_elasticsearch_domain.gen3_metadata module.commons_vpc_es[0].aws_elasticsearch_domain.gen3_metadata
@@ -259,7 +267,7 @@ gen3_tf_migrate_post_steps() {
   # After files have been merged user will need to run the following commands to import the resources needed for the new AWS provider version
   gen3_log_warn "Run the following to workon your new workspace."
   echo "gen3 workon $profile $newWorkspace"
-  gen3_log_warn "After doing so run gen3 tfplan to ensure the migration was successful then run the following to import the resources needed for the new AWS provider version"
+  gen3_log_warn "After doing so run gen3 tfplan to ensure the migration was successful then run the following to import the resources needed for the new AWS provider version(commands are backed up at postMigrationCommands)"
   commands="$(cat - <<EOM
   gen3 tform import --var-file="${GEN3_WORKDIR}/config.tfvars" aws_s3_bucket_acl.kube_bucket kube-${vpc_name}-gen3,private
   gen3 tform import --var-file="${GEN3_WORKDIR}/config.tfvars" aws_s3_bucket_server_side_encryption_configuration.kube_bucket kube-${vpc_name}-gen3
@@ -276,7 +284,7 @@ gen3_tf_migrate_post_steps() {
   gen3 tform import --var-file="${GEN3_WORKDIR}/config.tfvars" module.cdis_vpc.module.data-bucket.aws_s3_bucket_server_side_encryption_configuration.log_bucket ${vpc_name}-data-bucket-logs
 EOM
 )"
-  echo "$commands"
+  echo "$commands" | tee ~/postMigrationCommands
 }
 
 
@@ -324,6 +332,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   if [[ -z $vpc_name ]]; then
     vpc_name=$(gen3 api environment)
   fi
+  
   gen3_tf_migrate_prep_tfstate
   gen3_tf_migrate_update_providers
   gen3_tf_migrate_move_resources

@@ -543,6 +543,11 @@ variable "deploy_workflow" {
   default     = false
 }
 
+variable "secondary_availability_zones" {
+  description = "AZ to be used by EKS nodes in the secondary subnet"
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+}
+
 variable "deploy_jupyter" {
   description = "Deploy workflow nodepool?"
   default     = true

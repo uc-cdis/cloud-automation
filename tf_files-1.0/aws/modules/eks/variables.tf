@@ -4,6 +4,10 @@ variable "vpc_id" {
   default = ""
 }
 
+variable "csoc_account_id" {
+  default = "433568766270"
+}
+
 variable "ec2_keyname" {
   default = "someone@uchicago.edu"
 }
@@ -133,6 +137,11 @@ variable "ha_squid" {
 variable "deploy_workflow" {
   description = "Deploy workflow nodepool?"
   default     = false
+}
+
+variable "secondary_availability_zones" {
+  description = "AZ to be used by EKS nodes in the secondary subnet"
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
 }
 
 variable "deploy_jupyter" {
