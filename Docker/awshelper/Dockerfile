@@ -1,7 +1,7 @@
 # Build from root of cloud-automation/ repo:
 #   docker build -f Docker/awshelper/Dockerfile 
 #
-FROM quay.io/cdis/ubuntu:18.04
+FROM quay.io/cdis/ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -26,7 +26,6 @@ RUN apt-get update && apt-get upgrade -y \
       net-tools \
       openssh-client \
       openssh-server \
-      postgresql-client \
       python3 \
       python3-dev \
       python3-pip \
@@ -52,7 +51,7 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     && /bin/rm -rf awscliv2.zip ./aws
 
 # From  https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
-RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
+RUN export CLOUD_SDK_REPO="cloud-sdk" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
     curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
@@ -69,6 +68,19 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     kubectl version --client && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/log/*
+
+# Install postgres 13 client
+RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc| gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list && \
+    apt-get update && \
+    apt-get install -y postgresql-client-13
+
+# install terraform
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
+   && unzip /tmp/terraform.zip -d /usr/local/bin && /bin/rm /tmp/terraform.zip
+
+RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip \
+   && unzip /tmp/terraform.zip -d /tmp && mv /tmp/terraform /usr/local/bin/terraform12 && /bin/rm /tmp/terraform.zip
 
 RUN useradd -m -s /bin/bash ubuntu && \
     ( echo "ubuntu:gen3" | chpasswd )
@@ -108,7 +120,7 @@ RUN cd ./cloud-automation \
     && npm ci \
     && cat ./Docker/awshelper/bashrc_suffix.sh >> ~/.bashrc
 
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl -sSL https://install.python-poetry.org | python3 -
 
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
