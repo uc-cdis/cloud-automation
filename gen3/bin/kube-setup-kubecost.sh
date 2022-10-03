@@ -38,11 +38,11 @@ gen3_setup_kubecost_service_account() {
   aws iam attach-role-policy --role-name "$roleName" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-CUR-policy" 1>&2
   #gen3 awsrole sa-annotate "$saName" "$roleName" "kubecost"
   kubectl delete sa -n kubecost $saName
-  #thanosRoleName="$vpc_name-thanos-user"
-  #thanosSaName="thanos-service-account"
-  #gen3 awsrole create "$thanosRoleName" "$thanosSaName" "kubecost" || return 1
-  #aws iam attach-role-policy --role-name "$thanosRoleName" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-Thanos-policy" 1>&2
-  #gen3 awsrole sa-annotate "$thanosSaName" "$thanosRoleName" "kubecost" 
+  reportsRoleName="$vpc_name-opencost-report-role"
+  reportsSaName="reports-service-account"
+  gen3 awsrole create "$reportsRoleName" "$reportsSaName" "kubecost" || return 1
+  aws iam attach-role-policy --role-name "$reportsRoleName" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-Thanos-policy" 1>&2
+  gen3 awsrole sa-annotate "$reportsSaName" "$reportsRoleName" "kubecost" 
 }
 
 gen3_delete_kubecost_service_account() {
@@ -120,6 +120,11 @@ gen3_setup_kubecost() {
   else
     gen3_log_info "kube-setup-kubecost exiting - kubecost already deployed, use --force true to redeploy"
   fi
+  gen3_setup_reports_cronjob
+}
+
+gen3_setup_reports_cronjob {
+  gen3 job cron opencost-report '0 0 * * 0' BUCKET_NAME $s3Bucket
 }
 
 if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
@@ -289,6 +294,36 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
           ;;
         "alb")
           gen3_kubecost_create_alb
+          ;;
+        *)
+          gen3_log_err "gen3_logs" "invalid history subcommand $subcommand - try: gen3 help kube-setup-kubecost"
+          ;;
+      esac
+      ;;
+    "cronjob")
+      subcommand=""
+      if [[ $# -gt 0 ]]; then
+        subcommand="$1"
+        shift
+      fi
+      case "$subcommand" in
+        "create")
+          for flag in $@; do
+            if [[ $# -gt 0 ]]; then
+              flag="$1"
+              shift
+            fi
+            case "$flag" in
+              "--s3-bucket")
+                s3Bucket="$1"
+                ;;
+            esac
+          done
+          if [[ -z $s3Bucket ]]; then
+            gen3_log_err "Please ensure you set the s3Bucket for setting up cronjob without full opencost deployment."
+            exit 1
+          fi
+          gen3_setup_reports_cronjob
           ;;
         *)
           gen3_log_err "gen3_logs" "invalid history subcommand $subcommand - try: gen3 help kube-setup-kubecost"

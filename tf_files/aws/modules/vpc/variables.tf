@@ -41,6 +41,12 @@ variable "csoc_managed" {
   default = true
 }
 
+# controls whether or not to setup the cloudwatch subscription filter to send logs to CSOC for long term storage
+# CTDS uses datadog and this is no longer needed for us.
+variable "send_logs_to_csoc" {
+  default = true
+}
+
 variable "organization_name" {
   description = "for tagging purposes"
   default     = "Basic Service"

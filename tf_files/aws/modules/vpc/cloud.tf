@@ -257,9 +257,9 @@ resource "aws_cloudwatch_log_group" "main_log_group" {
 
 #This needs vars from other branches, so hopefully will work just fine when they are merge
 resource "aws_cloudwatch_log_subscription_filter" "csoc_subscription" {
-  count             = "${var.csoc_managed ? 1 : 0}"
+  count             = "${var.csoc_managed ? var.send_logs_to_csoc : 0}"
   name              = "${var.vpc_name}_subscription"
-  #destination_arn   = "arn:aws:logs:${data.aws_region.current.name}:${var.csoc_account_id}:destination:${var.vpc_name}_logs_destination"
+  
   destination_arn   = "arn:aws:logs:${data.aws_region.current.name}:${var.csoc_managed ? var.csoc_account_id : data.aws_caller_identity.current.account_id}:destination:${var.vpc_name}_logs_destination"
   log_group_name    = "${var.vpc_name}"
   filter_pattern    = ""
