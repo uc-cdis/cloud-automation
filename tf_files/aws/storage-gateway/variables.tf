@@ -1,6 +1,4 @@
-
 variable "vpc_name" {}
-
 
 variable "ami_id" {
   default = ""

@@ -1,10 +1,9 @@
-
 variable "env_vpc_cidr"{
-  #default = 172.24.192.0/20
+  default = "172.24.192.0/20"
 }
 
 variable "squid_proxy_subnet"{
-  #default = 172.24.197.0/24
+  default = "172.24.197.0/24"
 }
 
 variable "env_vpc_name" {
@@ -16,6 +15,7 @@ variable "env_squid_name" {
 }
 
 # id of AWS account that owns the public AMI's
+
 variable "ami_account_id" {
   default = "099720109477"
 }
@@ -32,6 +32,7 @@ variable "secondary_cidr_block" {
 }
 
 ## variable for the bootstrap 
+
 variable "bootstrap_path" {
   default = "cloud-automation/flavors/squid_auto/"
 }
