@@ -161,6 +161,11 @@ resource "aws_route_table" "public" {
     Environment  = var.vpc_name
     Organization = var.organization_name
   }
+
+  lifecycle {
+    # ignore changes
+    ignore_changes = all
+  }
 }
 
 
