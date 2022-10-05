@@ -37,7 +37,7 @@ data "aws_iam_policy_document" "management-logs_logs_destination_policy" {
 }
 
 
-data "aws_iam_policy_document" "lamda_policy_document" {
+data "aws_iam_policy_document" "lambda_policy_document" {
   statement {
     actions = ["logs:*"]
     effect = "Allow"

@@ -8,7 +8,7 @@ data "aws_iam_policy_document" "trail_policy" {
     ]
 
     #resources = ["${data.aws_cloudwatch_log_group.logs_destination.arn}"]
-    resources = [var.cloudwatchlogs_group]
+    resources = ["${var.cloudwatchlogs_group}:*"]
   }
 
 }

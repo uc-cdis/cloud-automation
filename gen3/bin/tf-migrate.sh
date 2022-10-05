@@ -10,19 +10,19 @@ gen3_tf_migrate_prep_tfstate() {
   gen3 workon $profile $oldWorkspace
   gen3 cd
   config=$(cat config.tfvars)
-  tfBucket=$(cat .terraform/terraform.tfstate  | jq -r .backend.config.bucket)
-  tfKey=$(cat .terraform/terraform.tfstate  | jq -r .backend.config.key)
+  tfBucket=$(cat backend.tfvars | grep bucket | cut -d '"' -f 2)
+  tfKey=$(cat backend.tfvars | grep key | cut -d '"' -f 2)
   # Workon the old EKS module to gather where the tfstate file is located
   gen3 workon $profile "${oldWorkspace}_eks"
   gen3 cd
-  tfBucketEKS=$(cat .terraform/terraform.tfstate  | jq -r .backend.config.bucket)
-  tfKeyEKS=$(cat .terraform/terraform.tfstate  | jq -r .backend.config.key)
+  tfBucketEKS=$(cat backend.tfvars | grep bucket | cut -d '"' -f 2)
+  tfKeyEKS=$(cat backend.tfvars | grep key | cut -d '"' -f 2)
   # Workon the old ES module to gather where the tfstate file is located
   if [[ $migrateEs ]]; then
     gen3 workon $profile "${oldWorkspace}_es"
     gen3 cd
-    tfBucketES=$(cat .terraform/terraform.tfstate  | jq -r .backend.config.bucket)
-    tfKeyES=$(cat .terraform/terraform.tfstate  | jq -r .backend.config.key)
+    tfBucketES=$(cat backend.tfvars | grep bucket | cut -d '"' -f 2)
+    tfKeyES=$(cat backend.tfvars | grep key | cut -d '"' -f 2)
   fi
   # Workon the new module to start the migration
   gen3 workon $profile $newWorkspace
@@ -58,7 +58,7 @@ gen3_tf_migrate_move_resources() {
   # Workon the profile again to ensure that the terraform state changes have been pushed up and new providers have been downloaded correctly
   gen3 workon $profile $newWorkspace
   # Remove random shuffle resources because of problems with upgrade
-  gen3 tform state rm module.eks[0].random_shuffle.az[0] module.eks[0].random_shuffle.secondary_az[0]
+  gen3 tform state rm module.eks.random_shuffle.az module.eks.random_shuffle.secondary_az
   # Move all resources that have changed between versions
   gen3 tform state mv module.cdis_alarms.aws_cloudwatch_metric_alarm.fence_db_alarm module.cdis_alarms[0].aws_cloudwatch_metric_alarm.fence_db_alarm
   gen3 tform state mv module.cdis_alarms.aws_cloudwatch_metric_alarm.gdcapi_db_alarm module.cdis_alarms[0].aws_cloudwatch_metric_alarm.gdcapi_db_alarm

@@ -32,7 +32,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "log_bucket" {
 
     filter {
       and {
-        prefix = "log/"
+        prefix = "/"
 
         tags = {
           rule      = "log"

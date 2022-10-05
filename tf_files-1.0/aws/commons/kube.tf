@@ -35,8 +35,8 @@ resource "aws_db_instance" "db_fence" {
 
   lifecycle {
     prevent_destroy = true
-    #ignore_changes  = ["*"]
-    ignore_changes = [engine_version,storage_encrypted,identifier]
+    ignore_changes  = all
+    #ignore_changes = [engine_version,storage_encrypted,identifier]
   }
 }
 
@@ -72,8 +72,8 @@ resource "aws_db_instance" "db_sheepdog" {
 
   lifecycle {
     prevent_destroy = true
-    #ignore_changes  = ["*"]
-    ignore_changes = [engine_version,storage_encrypted,identifier]
+    ignore_changes  = all
+    #ignore_changes = [engine_version,storage_encrypted,identifier]
   }
 }
 
@@ -109,8 +109,8 @@ resource "aws_db_instance" "db_indexd" {
 
   lifecycle {
     prevent_destroy = true
-    #ignore_changes  = ["*"]
-    ignore_changes = [engine_version,storage_encrypted,identifier]
+    ignore_changes  = all
+    #ignore_changes = [engine_version,storage_encrypted,identifier]
   }
 }
 

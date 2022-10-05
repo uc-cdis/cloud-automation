@@ -278,7 +278,7 @@ EOF
 
 resource "aws_iam_role_policy" "lambda_policy" {
   name   = "${var.common_name}_lambda_policy"
-  policy = data.aws_iam_policy_document.lamda_policy_document.json
+  policy = data.aws_iam_policy_document.lambda_policy_document.json
   role   = aws_iam_role.lambda_role.id
 }
 
@@ -286,7 +286,7 @@ resource "aws_lambda_event_source_mapping" "event_source_mapping" {
   batch_size        = 100
   event_source_arn  = aws_kinesis_stream.common_stream.arn
   enabled           = true
-  function_name     = aws_lambda_function.logs_decodeding.arn
+  function_name     = aws_lambda_function.logs_decoding.arn
   starting_position = "TRIM_HORIZON"
 }
 
@@ -298,7 +298,7 @@ data "archive_file" "lambda_function" {
   output_path = "lambda_function_payload.zip"
 }
 
-resource "aws_lambda_function" "logs_decodeding" {
+resource "aws_lambda_function" "logs_decoding" {
   filename         = data.archive_file.lambda_function.output_path
   function_name    = "${var.common_name}_lambda_function"
   role             = aws_iam_role.lambda_role.arn
@@ -314,7 +314,7 @@ resource "aws_lambda_function" "logs_decodeding" {
   }
 
   environment {
-    variables = { stream_name = "${var.common_name}_firehose", threshold = var.threshold, slack_webhook = var.slack_webhook, log_dna_function = var.log_dna_function }
+    variables = { stream_name = "${var.common_name}_firehose", threshold = var.threshold, slack_webhook = var.slack_webhook, s3 = var.s3, es = var.es }
   }
 
 }

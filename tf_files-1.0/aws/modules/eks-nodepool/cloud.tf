@@ -336,6 +336,7 @@ resource "aws_autoscaling_group" "eks_autoscaling_group" {
 
 # Avoid unnecessary changes for existing commons running on EKS
   lifecycle {
+    ignore_changes = [desired_capacity]
     #ignore_changes = [desired_capacity,max_size,min_size]
   }
 }

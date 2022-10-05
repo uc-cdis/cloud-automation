@@ -20,7 +20,7 @@ else
     gen3_log_err "apply failed, bailing out"
     exit 1
   fi
-
+fi
 if [[ -d .git ]] && ! $GEN3_DRY_RUN; then
   git add .
   git commit -n -m 'pre-apply auto-commit' 1>&2

@@ -136,3 +136,7 @@ variable "fips" {
 variable "deploy_cloud_trail" {
   default = true
 }
+
+variable "send_logs_to_csoc" {
+  default = true
+}

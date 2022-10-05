@@ -257,7 +257,7 @@ EOF
 
 resource "aws_iam_role_policy" "lambda_policy" {
   name   = "management-logs_lambda_policy"
-  policy = data.aws_iam_policy_document.lamda_policy_document.json
+  policy = data.aws_iam_policy_document.lambda_policy_document.json
   role   = aws_iam_role.lambda_role.id
 }
 
