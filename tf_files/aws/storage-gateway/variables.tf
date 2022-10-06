@@ -19,3 +19,11 @@ variable "s3_bucket" {
 variable "key_name" {
   default = ""
 }
+
+variable "instance_type" {
+  default = "i4i.4xlarge"
+}
+
+variable "gateway_vpc_endpoint" {
+  default = ""
+}
