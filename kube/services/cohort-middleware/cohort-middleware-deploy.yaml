@@ -19,8 +19,8 @@ spec:
     metadata:
       labels:
         app: cohort-middleware
-        dbatlas: "yes"
-        dbomop-data: "yes"
+        dbohdsi: "yes"
+        dbomop: "yes"
         public: "yes"
         tags.datadoghq.com/service: "cohort-middleware"
         GEN3_ENV_LABEL
