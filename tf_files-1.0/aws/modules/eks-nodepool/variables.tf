@@ -81,3 +81,8 @@ variable "activation_id" {
 variable "customer_id" {
   default = ""
 }
+
+variable "deploy_workflow" {
+  description = "Deploy workflow nodepool?"
+  default     = false
+}
