@@ -1,0 +1,19 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: kayako-wrapper-service 
+spec:
+  selector:
+    app: kayako-wrapper 
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000 
+      name: http
+      nodePort: null
+    - protocol: TCP 
+      port: 443 
+      targetPort: 8000 
+      name: https
+      nodePort: null
+  type: ClusterIP

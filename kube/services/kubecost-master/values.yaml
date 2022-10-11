@@ -1,0 +1,40 @@
+## Full values listed here, https://github.com/kubecost/cost-analyzer-helm-chart/blob/master/cost-analyzer/values.yaml
+
+kubecostToken: KUBECOST_TOKEN
+
+serviceAccount:
+  create: true # Set this to false if you're bringing your own service account.
+  annotations: 
+    KUBECOST_SA
+
+kubecostProductConfigs:
+  athenaBucketName: ATHENA_BUCKET
+  athenaRegion: AWS_REGION
+  athenaDatabase: ATHENA_DATABASE
+  athenaTable: ATHENA_TABLE
+  athenaProjectID: AWS_ACCOUNT_ID
+  clusterName: master-cluster
+  #serviceKeySecretName: aws-service-key , might work with SA attached instead
+  projectID: AWS_ACCOUNT_ID
+  # awsSpotDataRegion: AWS_kubecostProductConfigs_awsSpotDataRegion
+  # awsSpotDataBucket: AWS_kubecostProductConfigs_awsSpotDataBucket
+
+prometheus:
+  serviceAccounts:
+    server:
+      create: false
+      name: "THANOS_SA"
+  server:
+    global:
+      external_labels:
+        # Slave cluster name
+        cluster_id: "master-cluster"
+        
+networkCosts:
+  enabled: true
+
+thanos:
+  store:
+    serviceAccount: "THANOS_SA"
+  compact: 
+    serviceAccount: "THANOS_SA"
