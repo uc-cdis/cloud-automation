@@ -278,79 +278,14 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   }
 }
 
-resource "aws_autoscaling_group" "eks_autoscaling_group_workflow" {
-  count                 = var.deploy_workflow ? 1 : 0
-  protect_from_scale_in = true
+resource "aws_autoscaling_group" "eks_autoscaling_group" {
   desired_capacity      = var.nodepool_asg_desired_capacity
+  protect_from_scale_in = var.scale_in_protection
   launch_configuration  = aws_launch_configuration.eks_launch_configuration.id
   max_size              = var.nodepool_asg_max_size
   min_size              = var.nodepool_asg_min_size
   name                  = "eks-${var.nodepool}worker-node-${var.vpc_name}"
   vpc_zone_identifier   = flatten([var.eks_private_subnets])
-
-  tag {
-    key                 = "Environment"
-    value               = var.vpc_name
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "Name"
-    value               = "eks-${var.vpc_name}-${var.nodepool}"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "kubernetes.io/cluster/${var.vpc_name}"
-    value               = "owned"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "k8s.io/cluster-autoscaler/enabled"
-    value               = ""
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "k8s.io/cluster-type/eks"
-    value               = ""
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "k8s.io/nodepool/${var.nodepool}"
-    value               = ""
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "k8s.io/cluster-autoscaler/node-template/label/role"
-    value               = "${var.nodepool}"
-    propagate_at_launch = true
-  }
-
-  tag {
-    key                 = "k8s.io/cluster-autoscaler/node-template/taint/role"
-    value               = "${var.nodepool}:NoSchedule"
-    propagate_at_launch = true
-  }
-
-# Avoid unnecessary changes for existing commons running on EKS
-  lifecycle {
-    ignore_changes = [desired_capacity]
-    #ignore_changes = [desired_capacity,max_size,min_size]
-  }
-}
-
-resource "aws_autoscaling_group" "eks_autoscaling_group" {
-  count                = var.deploy_workflow ? 0 : 1
-  desired_capacity     = var.nodepool_asg_desired_capacity
-  launch_configuration = aws_launch_configuration.eks_launch_configuration.id
-  max_size             = var.nodepool_asg_max_size
-  min_size             = var.nodepool_asg_min_size
-  name                 = "eks-${var.nodepool}worker-node-${var.vpc_name}"
-  vpc_zone_identifier  = flatten([var.eks_private_subnets])
 
   tag {
     key                 = "Environment"
