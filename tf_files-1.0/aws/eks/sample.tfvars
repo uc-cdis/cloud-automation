@@ -124,3 +124,6 @@ fips_enabled_ami = "ami-0de87e3680dcb13ec"
 
 #A list of AZs to be used by EKS nodes
 availability_zones = ["us-east-1a", "us-east-1c", "us-east-1d"]
+
+#This determines if the ASG has scale-in protection enabled
+scale_in_protection = false

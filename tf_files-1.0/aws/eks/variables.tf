@@ -180,3 +180,8 @@ variable "availability_zones" {
 variable "deploy_eks" {
   default = true
 }
+
+variable "scale_in_protection" {
+  description = "set scale-in protection on ASG"
+  default     = false
+}

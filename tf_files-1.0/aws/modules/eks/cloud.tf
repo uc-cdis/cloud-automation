@@ -16,6 +16,7 @@ locals{
 
 module "jupyter_pool" {
   count                         = var.deploy_jupyter ? 1 : 0
+  scale_in_protection           = true
   source                        = "../eks-nodepool/"
   ec2_keyname                   = var.ec2_keyname
   users_policy                  = var.users_policy
