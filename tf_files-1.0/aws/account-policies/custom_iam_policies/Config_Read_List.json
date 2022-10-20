@@ -1,0 +1,37 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "config:GetComplianceSummaryByConfigRule",
+                "config:GetAggregateComplianceDetailsByConfigRule",
+                "config:DescribeConfigurationAggregators",
+                "config:GetComplianceSummaryByResourceType",
+                "config:DescribeDeliveryChannels",
+                "config:BatchGetResourceConfig",
+                "config:GetComplianceDetailsByResource",
+                "config:DescribeConfigurationAggregatorSourcesStatus",
+                "config:ListDiscoveredResources",
+                "config:GetComplianceDetailsByConfigRule",
+                "config:DescribeConfigRules",
+                "config:DescribePendingAggregationRequests",
+                "config:DeliverConfigSnapshot",
+                "config:DescribeConfigRuleEvaluationStatus",
+                "config:GetAggregateConfigRuleComplianceSummary",
+                "config:DescribeDeliveryChannelStatus",
+                "config:DescribeAggregateComplianceByConfigRules",
+                "config:GetResourceConfigHistory",
+                "config:DescribeConfigurationRecorderStatus",
+                "config:DescribeAggregationAuthorizations",
+                "config:GetTagKeys",
+                "config:DescribeComplianceByConfigRule",
+                "config:DescribeConfigurationRecorders",
+                "config:GetResources",
+                "config:DescribeComplianceByResource"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

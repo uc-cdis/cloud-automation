@@ -1,0 +1,26 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "cloudtrail:LookupEvents",
+                "cloudwatch:GetDashboard",
+                "cloudwatch:GetMetricData",
+                "cloudtrail:GetTrailStatus",
+                "cloudtrail:GetEventSelectors",
+                "cloudwatch:GetMetricStatistics",
+                "cloudwatch:ListMetrics",
+                "cloudtrail:DescribeTrails",
+                "cloudwatch:DescribeAlarmHistory",
+                "cloudwatch:DescribeAlarmsForMetric",
+                "cloudtrail:ListPublicKeys",
+                "cloudwatch:ListDashboards",
+                "cloudtrail:ListTags",
+                "cloudwatch:DescribeAlarms"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

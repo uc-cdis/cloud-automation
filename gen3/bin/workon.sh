@@ -116,7 +116,9 @@ EOM
     gen3_aws_run aws s3api create-bucket --acl private --bucket "$GEN3_S3_BUCKET" --create-bucket-configuration ‘{“LocationConstraint”:“‘$(aws configure get $GEN3_PROFILE.region)‘“}’
     sleep 5 # Avoid race conditions
     if gen3_aws_run aws s3api put-bucket-encryption --bucket "$GEN3_S3_BUCKET" --server-side-encryption-configuration "$S3_POLICY"; then
-      touch "$bucketCheckFlag"
+      if gen3_aws_run aws s3api put-bucket-versioning --bucket "$GEN3_S3_BUCKET" --versioning-configuration MFADelete=Disabled,Status=Enabled; then
+        touch "$bucketCheckFlag"
+      fi
     fi
   else
     touch "$bucketCheckFlag"
@@ -156,5 +158,11 @@ EOM
   )
 fi
 
-gen3_log_info "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/ in $(pwd)"
-gen3_terraform init --backend-config ./backend.tfvars "$GEN3_TFSCRIPT_FOLDER/"
+cd "${GEN3_WORKDIR}/"
+if [[ ! -z $USE_TF_1 ]]; then
+  gen3_log_info "Running: terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" init --backend-config ./backend.tfvars in $(pwd)"
+  gen3_terraform -chdir="$GEN3_TFSCRIPT_FOLDER/" init --backend-config="${GEN3_WORKDIR}/backend.tfvars"
+else
+  gen3_log_info "Running: terraform init --backend-config ./backend.tfvars $GEN3_TFSCRIPT_FOLDER/ in $(pwd)"
+  gen3_terraform init --backend-config="${GEN3_WORKDIR}/backend.tfvars" "$GEN3_TFSCRIPT_FOLDER"
+fi

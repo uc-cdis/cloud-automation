@@ -1,0 +1,24 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "kinesisanalytics:*",
+                "iam:CreatePolicy",
+                "es:*",
+                "iam:DetachRolePolicy",
+                "firehose:*",
+                "lambda:*",
+                "iam:AttachRolePolicy",
+                "kinesis:*",
+                "tag:*",
+                "iam:PutRolePolicy",
+                "iam:CreatePolicyVersion",
+                "eks:*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

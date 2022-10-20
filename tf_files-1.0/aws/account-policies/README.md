@@ -1,0 +1,4 @@
+- Setup roles and identity provider for our Grouper integration
+- Enable basic cloud trail
+- Enable EBS encryption by default
+- Enable account level S3 policies to prevent public buckets
