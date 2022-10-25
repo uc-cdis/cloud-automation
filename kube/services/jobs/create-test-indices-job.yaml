@@ -12,7 +12,7 @@ spec:
       serviceAccountName: jenkins-service
       containers:
         - name: create-indices
-          image: quay.io/cdis/awshelper:master
+          image: quay.io/cdis/awshelper:feat_GPE-572
           imagePullPolicy: Always
           env:
             - name: gen3Env
