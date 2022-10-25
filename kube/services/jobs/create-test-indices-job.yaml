@@ -31,5 +31,5 @@ spec:
           args:
             - "-c"
             - |
-              bash ~/cloud-automation/files/scripts/create-test-indices.sh
+              bash ~/cloud-automation/files/scripts/test-indices/create-test-indices.sh
       restartPolicy: Never
