@@ -7,5 +7,5 @@ gen3_load "gen3/gen3setup"
 export ESHOST="${ESHOST:-"esproxy-service:9200"}"
 
 #create dev_case index with data and mappings
-gen3 nrun elasticdump --input dev_case__mapping.json --output=/dev_case --type data
-gen3 nrun elasticdump --input dev_case__data.json --output=esproxy-service:9200/dev_case --type data
+gen3 nrun elasticdump --input ~/cloud-automation/files/scripts/dev_case__mapping.json --output=/dev_case --type data
+gen3 nrun elasticdump --input ~/cloud-automation/files/scripts/dev_case__data.json --output=esproxy-service:9200/dev_case --type data
