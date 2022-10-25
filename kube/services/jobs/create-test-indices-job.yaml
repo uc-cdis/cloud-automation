@@ -9,7 +9,10 @@ spec:
       labels:
         app: gen3job
     spec:
-      serviceAccountName: jenkins-service
+      restartPolicy: Never
+      serviceAccountName: gitops-sa
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: create-indices
           image: quay.io/cdis/awshelper:feat_GPE-572
