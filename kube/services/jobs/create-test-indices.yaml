@@ -1,0 +1,28 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-indices
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: jenkins-service
+      containers:
+        - name: create-indices
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              bash ~/cloud-automation/files/scripts/create-test-indices.sh
+      restartPolicy: Never
