@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: test-indices
+  name: create-test-indices
 spec:
   template:
     metadata:
@@ -20,6 +20,10 @@ spec:
                 configMapKeyRef:
                   name: global
                   key: environment
+            - name: JENKINS_HOME
+              value: "devterm"
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
           command: [ "/bin/bash" ]
           args:
             - "-c"
