@@ -11,9 +11,9 @@ gen3 nrun elasticdump --input /home/ubuntu/cloud-automation/files/scripts/test-i
 gen3 nrun elasticdump --input /home/ubuntu/cloud-automation/files/scripts/test-indices/dev_case__data.json --output=http://esproxy-service:9200/dev_case --type data
 
 #create dev_file index with data and mappings
-gen3 nrun elasticdump --input /home/ubuntu/cloud-automation/files/scripts/test-indices/dev_file__mapping.json --output=http://esproxy-service:9200/dev_case --type mapping
-gen3 nrun elasticdump --input /home/ubuntu/cloud-automation/files/scripts/test-indices/dev_file__data.json --output=http://esproxy-service:9200/dev_case --type data
+gen3 nrun elasticdump --input /home/ubuntu/cloud-automation/files/scripts/test-indices/dev_file__mapping.json --output=http://esproxy-service:9200/dev_file --type mapping
+gen3 nrun elasticdump --input /home/ubuntu/cloud-automation/files/scripts/test-indices/dev_file__data.json --output=http://esproxy-service:9200/dev_file --type data
 
 #create dev_case-array-config index with data and mappings
-gen3 nrun elasticdump --input /home/ubuntu/cloud-automation/files/scripts/test-indices/dev_case-array-config__mapping.json --output=http://esproxy-service:9200/dev_case --type mapping
-gen3 nrun elasticdump --input /home/ubuntu/cloud-automation/files/scripts/test-indices/dev_case-array-config__data.json --output=http://esproxy-service:9200/dev_case --type data
+gen3 nrun elasticdump --input /home/ubuntu/cloud-automation/files/scripts/test-indices/dev_case-array-config__mapping.json --output=http://esproxy-service:9200/dev_case-array-config --type mapping
+gen3 nrun elasticdump --input /home/ubuntu/cloud-automation/files/scripts/test-indices/dev_case-array-config__data.json --output=http://esproxy-service:9200/dev_case-array-config --type data
