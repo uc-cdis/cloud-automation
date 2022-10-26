@@ -345,6 +345,26 @@ spec:
             }
         }
 
+        stage('python 3.9 buster base image dockerrun.sh test') {
+            steps {
+                script {
+                    try {
+                        if(!skipUnitTests) {
+                            dir('cloud-automation/Docker/python-nginx/python3.9-buster') {
+                                sh 'sh dockerrun.sh --dryrun=True'
+                            }
+                        } else {
+                            Utils.markStageSkippedForConditional(STAGE_NAME)
+                        }
+                    } catch (ex) {
+                        metricsHelper.writeMetricWithResult(STAGE_NAME, false)
+                        pipelineHelper.handleError(ex)
+                    }
+                    metricsHelper.writeMetricWithResult(STAGE_NAME, true)
+                }
+            }
+        }
+
         stage('python 3.10 buster base image dockerrun.sh test') {
             steps {
                 script {
@@ -366,6 +386,9 @@ spec:
         }
 
         stage('WaitForQuayBuild') {
+	    options {
+                timeout(time: 30, unit: 'MINUTES')   // timeout on this stage
+            }
             steps {
                 script {
                     try {
@@ -429,6 +452,9 @@ spec:
         }
 
         stage('K8sReset') {
+	    options {
+                timeout(time: 1, unit: 'HOURS')   // timeout on this stage
+            }
             steps {
                 script {
                     try {
@@ -511,6 +537,9 @@ spec:
         }
 
         stage('RunTests') {
+	    options {
+                timeout(time: 3, unit: 'HOURS')   // timeout on this stage
+            }
             steps {
                 script {
                     try {

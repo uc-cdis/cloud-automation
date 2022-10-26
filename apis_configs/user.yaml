@@ -1,144 +1,187 @@
+authz:
+  # policies automatically given to anyone, even if they are not authenticated
+  anonymous_policies:
+  - open_data_reader
+
+  # policies automatically given to authenticated users (in addition to their other policies)
+  all_users_policies: []
+
+  groups:
+  # can CRUD programs and projects and upload data files
+  - name: data_submitters
+    policies:
+    - services.sheepdog-admin
+    - data_upload
+    users:
+    - username1@gmail.com
+
+  # can create/update/delete indexd records
+  - name: indexd_admins
+    policies:
+    - indexd_admin
+    users:
+    - username1@gmail.com
+
+  resources:
+  - name: workspace
+  - name: data_file
+  - name: services
+    subresources:
+    - name: sheepdog
+      subresources:
+      - name: submission
+        subresources:
+        - name: program
+        - name: project
+    - name: 'indexd'
+      subresources:
+        - name: 'admin'
+    - name: audit
+      subresources:
+        - name: presigned_url
+        - name: login
+  - name: open
+  - name: programs
+    subresources:
+    - name: MyProgram
+      subresources:
+      - name: projects
+        subresources:
+        - name: MyProject
+
+  policies:
+  - id: workspace
+    description: be able to use workspace
+    resource_paths:
+    - /workspace
+    role_ids:
+    - workspace_user
+  - id: data_upload
+    description: upload raw data files to S3
+    role_ids:
+    - file_uploader
+    resource_paths:
+    - /data_file
+  - id: services.sheepdog-admin
+    description: CRUD access to programs and projects
+    role_ids:
+      - sheepdog_admin
+    resource_paths:
+      - /services/sheepdog/submission/program
+      - /services/sheepdog/submission/project
+  - id: indexd_admin
+    description: full access to indexd API
+    role_ids:
+      - indexd_admin
+    resource_paths:
+      - /programs
+  - id: open_data_reader
+    role_ids:
+      - reader
+      - storage_reader
+    resource_paths:
+    - /open
+  - id: all_programs_reader
+    role_ids:
+    - reader
+    - storage_reader
+    resource_paths:
+    - /programs
+  - id: MyProject_submitter
+    role_ids:
+    - reader
+    - creator
+    - updater
+    - deleter
+    - storage_reader
+    - storage_writer
+    resource_paths:
+    - /programs/MyProgram/projects/MyProject
+
+  roles:
+  - id: file_uploader
+    permissions:
+    - id: file_upload
+      action:
+        service: fence
+        method: file_upload
+  - id: workspace_user
+    permissions:
+    - id: workspace_access
+      action:
+        service: jupyterhub
+        method: access
+  - id: sheepdog_admin
+    description: CRUD access to programs and projects
+    permissions:
+    - id: sheepdog_admin_action
+      action:
+        service: sheepdog
+        method: '*'
+  - id: indexd_admin
+    description: full access to indexd API
+    permissions:
+    - id: indexd_admin
+      action:
+        service: indexd
+        method: '*'
+  - id: admin
+    permissions:
+      - id: admin
+        action:
+          service: '*'
+          method: '*'
+  - id: creator
+    permissions:
+      - id: creator
+        action:
+          service: '*'
+          method: create
+  - id: reader
+    permissions:
+      - id: reader
+        action:
+          service: '*'
+          method: read
+  - id: updater
+    permissions:
+      - id: updater
+        action:
+          service: '*'
+          method: update
+  - id: deleter
+    permissions:
+      - id: deleter
+        action:
+          service: '*'
+          method: delete
+  - id: storage_writer
+    permissions:
+      - id: storage_creator
+        action:
+          service: '*'
+          method: write-storage
+  - id: storage_reader
+    permissions:
+      - id: storage_reader
+        action:
+          service: '*'
+          method: read-storage
+
+clients:
+  wts:
+    policies:
+    - all_programs_reader
+    - open_data_reader
+
+users:
+  username1@gmail.com: {}
+  username2:
+    tags:
+      name: John Doe
+      email: johndoe@gmail.com
+    policies:
+    - MyProject_submitter
+
 cloud_providers: {}
 groups: {}
-resources:
-- name: programs
-  subresources:
-  - name: QA
-    subresources:
-    - name: projects
-      subresources:
-      - {name: test}
-  - name: DEV
-    subresources:
-    - name: projects
-      subresources:
-      - {name: test}
-users:
-  aprokh@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload, read-storage]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  avantol@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  cgmeyer@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  dmiller15@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  kbrennen@uchicago.edu:
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload, read-storage]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  qshu@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload, read-storage]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  ribeyre@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  thanhnd@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  trevars@uchicago.edu:
-    admin: false
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  yilinxu@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload, read-storage]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  mlukowski@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV
-  zflamig@uchicago.edu:
-    admin: true
-    projects:
-    - auth_id: QA
-      privilege: [create, read, update, delete, upload]
-    - auth_id: test
-      privilege: [create, read, update, delete, upload]
-      resource: /programs/QA/projects/test
-    - auth_id: DEV
-      privilege: [create, read, update, delete, upload, read-storage]
-      resource: /programs/DEV

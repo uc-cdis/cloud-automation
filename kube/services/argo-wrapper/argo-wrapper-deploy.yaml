@@ -19,7 +19,11 @@ spec:
       labels:
         app: argo-wrapper
         tags.datadoghq.com/service: "argo-wrapper"
+        netnolimit: "yes"
+        public: "yes"
+        GEN3_ENV_LABEL
         GEN3_ARGO-WRAPPER_VERSION
+        GEN3_DATE_LABEL
     spec:
       affinity:
         podAntiAffinity:
@@ -33,9 +37,19 @@ spec:
                   values:
                   - argo-wrapper
               topologyKey: "kubernetes.io/hostname"
+      volumes:
+        - name: argo-config
+          configMap:
+            name: manifest-argo
+          
       containers:
       - name: argo-wrapper
         GEN3_ARGO-WRAPPER_IMAGE
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        volumeMounts:
+          - name: argo-config
+            readOnly: true
+            mountPath: /argo.json
+            subPath: argo.json

@@ -1,0 +1,32 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: psql-fix
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: jenkins-service
+      containers:
+        - name: fix
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: "devterm"
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              bash ~/cloud-automation/files/scripts/psql-fips-fix.sh
+      restartPolicy: Never

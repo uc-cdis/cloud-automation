@@ -21,6 +21,10 @@ variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
+variable "secondary_cidr_block" {
+  default = ""
+}
+
 variable "peering_vpc_id" {
   default = "vpc-e2b51d99"
 }
@@ -115,6 +119,12 @@ variable "availability_zones" {
   default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
 }
 
+variable "secondary_availability_zones" {
+  description = "AZ to be used by EKS nodes in the secondary subnet"
+  type        = "list"
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+}
+
 variable "domain_test" {
   description = "Domain for the lambda function to check for the proxy"
   default     = "www.google.com"
@@ -151,4 +161,19 @@ variable "activation_id" {
 
 variable "customer_id" {
   default = ""
+}
+
+variable "fips" {
+  default = false
+}
+
+# the key that was used to encrypt the FIPS enabled AMI
+# This is needed to ASG can decrypt the ami 
+variable "fips_ami_kms" {
+  default = "arn:aws:kms:us-east-1:707767160287:key/mrk-697897f040ef45b0aa3cebf38a916f99"
+}
+
+# This is the FIPS enabled AMI in cdistest account.
+variable "fips_enabled_ami" {
+  default = "ami-0de87e3680dcb13ec"
 }
