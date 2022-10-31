@@ -41,7 +41,7 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   jenkins:
-    name: AwsHelper Build and Push
+    name: Jenkins Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/Jenkins/Dockerfile"
@@ -52,7 +52,7 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   jenkins-ci-worker:
-    name: AwsHelper Build and Push
+    name: Jenkins-CI-Worker Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/Jenkins-CI-Worker/Dockerfile"
@@ -63,7 +63,7 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   jenkins-qa-worker:
-    name: AwsHelper Build and Push
+    name: Jenkins-QA-Worker Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/Jenkins-Worker/Dockerfile"
