@@ -25,7 +25,6 @@ RUN set -xe && apt-get update \
      libbz2-dev \
      libexpat1-dev \
      liblzma-dev \
-     python-virtualenv \
      lua5.3 \
      r-base \
      software-properties-common \
