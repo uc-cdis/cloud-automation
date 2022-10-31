@@ -72,7 +72,7 @@ RUN DISTRO="$(lsb_release -c -s)"  \
       && rm -rf /var/lib/apt/lists/*
 
 # Copy sh script responsible for installing Python
-COPY install-python3.8.sh /root/tmp/install-python3.8.sh
+COPY cloud-automation/Docker/Jenkins/install-python3.8.sh /root/tmp/install-python3.8.sh
 
 # Run the script responsible for installing Python 3.8.0 and link it to /usr/bin/python
 RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
@@ -115,7 +115,7 @@ RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
   && usermod -G sudo jenkins
 
 # add our custom start script
-COPY jenkins.sh /opt/cdis/bin/jenkins.sh
+COPY cloud-automation/Docker/Jenkins/jenkins.sh /opt/cdis/bin/jenkins.sh
 RUN chmod -R a+rx /opt/cdis
 ENTRYPOINT ["/sbin/tini", "--", "/opt/cdis/bin/jenkins.sh"]
 
