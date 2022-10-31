@@ -45,6 +45,7 @@ jobs:
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/Jenkins/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/Jenkins"
       OVERRIDE_REPO_NAME: "jenkins"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
@@ -56,6 +57,7 @@ jobs:
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/Jenkins-CI-Worker/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/Jenkins-CI-Worker"
       OVERRIDE_REPO_NAME: "jenkins-ci-worker"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
@@ -67,6 +69,7 @@ jobs:
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/Jenkins-Worker/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/Jenkins-Worker"
       OVERRIDE_REPO_NAME: "jenkins-qa-worker"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
