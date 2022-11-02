@@ -82,6 +82,15 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
     gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${roleName} --force-aws-cli || exit 1
 fi
 
+if [[ -f "$(gen3_secrets_folder)/prisma/apikey.json" ]]; then
+    ACCESSKEYID=$(jq -r .AccessKeyID "$(gen3_secrets_folder)/prisma/apikey.json")
+    SECRETKEY=$(jq -r .SecretKey "$(gen3_secrets_folder)/prisma/apikey.json")
+    if [[ ! -z "$ACCESSKEYID" && ! -z "$SECRETKEY" ]]; then
+        gen3_log_info "Found prisma apikey, creating kubernetes secret so hatchery can do prismacloud stuff.."
+        g3kubectl delete secret prisma-secret --ignore-not-found
+        g3kubectl create secret generic prisma-secret --from-literal=AccessKeyId=$ACCESSKEYID --from-literal=SecretKey=$SECRETKEY
+    fi
+fi
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/hatchery/hatchery-service.yaml"
 gen3 roll hatchery
