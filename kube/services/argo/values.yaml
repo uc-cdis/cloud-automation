@@ -2,7 +2,35 @@ controller:
   parallelism: 10
   metricsConfig:
     # -- Enables prometheus metrics server
-    enabled: false
+    enabled: true
+  
+  podAnnotations:
+    ad.datadoghq.com/<CONTAINER_IDENTIFIER>.checks: |
+      {
+        "openmetrics": {
+          "init_config": {},
+          "instances": [
+            {
+              "openmetrics_endpoint": "http://argo.argo-argo-workflows-server:8080/metrics",
+              "namespace": "argo",
+              "metrics": [
+                "argo_pod_missing",
+                "argo_workflows_count",
+                "argo_workflows_error_count",
+                "argo_workflows_k8s_request_total",
+                "argo_workflows_operation_duration_seconds",
+                "argo_workflows_pods_count",
+                "argo_workflows_queue_adds_count",
+                "argo_workflows_queue_depth_count",
+                "argo_workflows_queue_latency",
+                "argo_workflows_workers_busy",
+                "argo_workflows_workflow_condition",
+                "argo_workflows_workflows_processed_count"
+                ]
+            }
+          ]
+        }
+      }      
 
   # -- enable persistence using postgres
   persistence:
