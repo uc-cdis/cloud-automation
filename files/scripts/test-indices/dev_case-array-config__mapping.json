@@ -1,1 +1,0 @@
-{"dev_case-array-config":{"mappings":{"_doc":{"properties":{"array":{"type":"keyword"},"timestamp":{"type":"date"}}}}}}
