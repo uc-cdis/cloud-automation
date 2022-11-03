@@ -14,5 +14,5 @@ aws s3 cp s3://gen3-dummy-data/dbindexd.backup .
 #Backup the dbs from the dump files
 psql -h postgres-postgresql.postgres.svc.cluster.local -d indexd -U postgres dbindexd.backup
 
-
+#test
 rm db*
