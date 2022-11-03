@@ -26,7 +26,7 @@ controller:
                 "argo_workflows_workers_busy",
                 "argo_workflows_workflow_condition",
                 "argo_workflows_workflows_processed_count"
-                ]
+              ]
             }
           ]
         }
