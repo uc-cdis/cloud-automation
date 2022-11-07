@@ -19,7 +19,7 @@ spec:
     metadata:
       labels:
         app: cohort-middleware
-        dbatlas: "yes"
+        dbohdsi: "yes"
         dbomop-data: "yes"
         public: "yes"
         tags.datadoghq.com/service: "cohort-middleware"
