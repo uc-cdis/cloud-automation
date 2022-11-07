@@ -14,7 +14,7 @@ provider "aws" {}
 resource "aws_instance" "storage-gw-server" {
   # Need to get the ami in var for now
   ami = "${var.ami_id}"
-  instance_type = "m4.xlarge"
+  instance_type = "${var.instance_type}"
   associate_public_ip_address = false
   # Need to provide subnet in var for now
   subnet_id = "${data.aws_subnet.public_kube.id}"
@@ -29,21 +29,23 @@ resource "aws_instance" "storage-gw-server" {
   # add tags later
 }
 
-resource "aws_ebs_volume" "cache-disk" {
-  availability_zone = "${aws_instance.storage-gw-server.availability_zone}"
-  # Get volume size from var permanently
-  size = "${var.cache_size}"
-  encrypted = true
-  type = "gp2"
-  # add tags later
-}
 
-resource "aws_volume_attachment" "disk-attach" {
-  device_name = "/dev/xvdb"
-  volume_id = "${aws_ebs_volume.cache-disk.id}"
-  instance_id = "${aws_instance.storage-gw-server.id}"
-  force_detach = true
-}
+### Remove this in favor of new non EBS setup
+#resource "aws_ebs_volume" "cache-disk" {
+#  availability_zone = "${aws_instance.storage-gw-server.availability_zone}"
+#  # Get volume size from var permanently
+#  size = "${var.cache_size}"
+#  encrypted = true
+#  type = "gp2"
+#  # add tags later
+#}
+
+#resource "aws_volume_attachment" "disk-attach" {
+#  device_name = "/dev/xvdb"
+#  volume_id = "${aws_ebs_volume.cache-disk.id}"
+#  instance_id = "${aws_instance.storage-gw-server.id}"
+#  force_detach = true
+#}
 
 resource "aws_security_group" "storage-gateway-sg" {
   name = "storage-gateway-sg"
@@ -114,26 +116,29 @@ resource "aws_security_group" "storage-gateway-sg" {
 resource "aws_storagegateway_gateway" "storage-gateway" {
   gateway_ip_address = "${aws_instance.storage-gw-server.private_ip}"
   gateway_name = "storage-gateway"
-  gateway_timezone = "GMT"
+  gateway_timezone = "GMT-6:00"
   gateway_type = "FILE_S3"
+  gateway_vpc_endpoint = "${var.sgw_vpc_endpoint}"
 }
 
-data "aws_storagegateway_local_disk" "storage-gateway-data" {
-  disk_path = "${aws_volume_attachment.disk-attach.device_name}"
-  gateway_arn = "${aws_storagegateway_gateway.storage-gateway.arn}"
-}
 
-resource "aws_storagegateway_cache" "storage-gateway-cache" {
-  disk_id = "${data.aws_storagegateway_local_disk.storage-gateway-data.id}"
-  gateway_arn = "${aws_storagegateway_gateway.storage-gateway.arn}"
-}
+#### Remove this for a non EBS setup that can be setup manually
+#data "aws_storagegateway_local_disk" "storage-gateway-data" {
+#  disk_path = "${aws_volume_attachment.disk-attach.device_name}"
+#  gateway_arn = "${aws_storagegateway_gateway.storage-gateway.arn}"
+#}
 
-resource "aws_storagegateway_nfs_file_share" "nfs_share" {
-  client_list = ["0.0.0.0/0"]
-  gateway_arn = "${aws_storagegateway_gateway.storage-gateway.arn}"
-  location_arn = "${aws_s3_bucket.transfer-bucket.arn}"
-  role_arn = "${aws_iam_role.transfer-role.arn}"
-}
+#resource "aws_storagegateway_cache" "storage-gateway-cache" {
+#  disk_id = "${data.aws_storagegateway_local_disk.storage-gateway-data.id}"
+#  gateway_arn = "${aws_storagegateway_gateway.storage-gateway.arn}"
+#}
+
+#resource "aws_storagegateway_nfs_file_share" "nfs_share" {
+#  client_list = ["0.0.0.0/0"]
+#  gateway_arn = "${aws_storagegateway_gateway.storage-gateway.arn}"
+#  location_arn = "${aws_s3_bucket.transfer-bucket.arn}"
+#  role_arn = "${aws_iam_role.transfer-role.arn}"
+#}
 
 resource "aws_iam_role" "transfer-role" {
   name = "transfer-role"

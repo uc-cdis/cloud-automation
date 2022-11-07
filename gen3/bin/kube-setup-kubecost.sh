@@ -40,9 +40,9 @@ gen3_setup_kubecost_service_account() {
   kubectl delete sa -n kubecost $saName
   reportsRoleName="$vpc_name-opencost-report-role"
   reportsSaName="reports-service-account"
-  gen3 awsrole create "$reportsRoleName" "$reportsSaName" "kubecost" || return 1
+  gen3 awsrole create "$reportsRoleName" "$reportsSaName" || return 1
   aws iam attach-role-policy --role-name "$reportsRoleName" --policy-arn "arn:aws:iam::$accountID:policy/$vpc_name-Kubecost-Thanos-policy" 1>&2
-  gen3 awsrole sa-annotate "$reportsSaName" "$reportsRoleName" "kubecost" 
+  gen3 awsrole sa-annotate "$reportsSaName" "$reportsRoleName"
 }
 
 gen3_delete_kubecost_service_account() {
@@ -123,7 +123,7 @@ gen3_setup_kubecost() {
   gen3_setup_reports_cronjob
 }
 
-gen3_setup_reports_cronjob {
+gen3_setup_reports_cronjob() {
   gen3 job cron opencost-report '0 0 * * 0' BUCKET_NAME $s3Bucket
 }
 
@@ -279,6 +279,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
                 ;;
               "--prometheus-service")
                 prometheusService="$1"
+                ;;
+              "--s3-bucket")
+                s3Bucket="$1"
                 ;;
             esac
           done

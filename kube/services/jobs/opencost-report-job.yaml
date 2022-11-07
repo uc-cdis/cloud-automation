@@ -3,14 +3,13 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: opencost-report
-  namespace: kubecost
 spec:
   template:
     metadata:
       labels:
         app: gen3job
     spec:
-      serviceAccountName: report-service-account
+      serviceAccountName: reports-service-account
       containers:
         - name: send-report
           image: quay.io/cdis/awshelper:master
@@ -31,6 +30,6 @@ spec:
           args:
             - "-c"
             - |
-              curl -k "https://kubecost-cost-analyzer.kubecost/model/allocation/summary?aggregate=label%3Agen3username&window=7d&accumulate=true&shareIdle=false&idleByNode=false&shareTenancyCosts=true&shareNamespaces=&shareLabels=&shareCost=NaN&shareSplit=weighted" | jq -r . > "report-$(date +"%m-%d-%y").json"
-              aws s3 cp ./report*.json s3://$bucketName
+              curl -k "https://kubecost-cost-analyzer.kubecost/model/allocation/compute?aggregate=label%3Agen3username&window=7d&accumulate=true&shareIdle=false&idleByNode=false&shareTenancyCosts=true&shareNamespaces=&shareLabels=&shareCost=NaN&shareSplit=weighted" | jq -r . > "report-$(date +"%m-%d-%y").json"
+              aws s3 cp ./report*.json s3://$bucketName  --acl bucket-owner-full-control
       restartPolicy: Never
