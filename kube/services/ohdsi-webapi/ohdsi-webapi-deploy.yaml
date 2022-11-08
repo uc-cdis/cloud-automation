@@ -17,7 +17,7 @@ spec:
     metadata:
       labels:
         app: ohdsi-webapi
-        dbohdsi-webapi: "yes"
+        dbohdsi: "yes"
         dbomop-data: "yes"
         internet: "yes"
         public: "yes"

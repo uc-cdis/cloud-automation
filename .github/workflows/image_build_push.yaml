@@ -40,3 +40,39 @@ jobs:
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
+  jenkins:
+    name: Jenkins Build and Push
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/Jenkins/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/Jenkins"
+      OVERRIDE_REPO_NAME: "jenkins"
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
+  jenkins-ci-worker:
+    name: Jenkins-CI-Worker Build and Push
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/Jenkins-CI-Worker/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/Jenkins-CI-Worker"
+      OVERRIDE_REPO_NAME: "jenkins-ci-worker"
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
+  jenkins-qa-worker:
+    name: Jenkins-QA-Worker Build and Push
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/Jenkins-Worker/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/Jenkins-Worker"
+      OVERRIDE_REPO_NAME: "jenkins-qa-worker"
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
