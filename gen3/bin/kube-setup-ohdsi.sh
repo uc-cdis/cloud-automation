@@ -123,7 +123,7 @@ setup_creds
 setup_secrets
 setup_ingress
 
-envsubst <${GEN3_HOME}/kube/services/ohdsi/ohdsi-atlas-config-local.yaml | g3kubectl apply -f -
+envsubst <${GEN3_HOME}/kube/services/ohdsi-atlas/ohdsi-atlas-config-local.yaml | g3kubectl apply -f -
 
 gen3 roll ohdsi-webapi
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi-webapi/ohdsi-webapi-service.yaml"
