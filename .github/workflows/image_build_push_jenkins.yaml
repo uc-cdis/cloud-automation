@@ -1,6 +1,9 @@
 name: Build Python Base Images and Push to Quay and ECR
 
-on: push
+on: 
+  push:
+    paths:
+      - Docker/jenkins/**
 
 jobs:
   jenkins:
