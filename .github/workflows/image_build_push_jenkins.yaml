@@ -1,40 +1,45 @@
 name: Build Python Base Images and Push to Quay and ECR
 
-on: push
+on: 
+  push:
+    paths:
+      - Docker/jenkins/**
 
 jobs:
-  python_3-9:
-    name: Python 3.9 Build and Push
+  jenkins:
+    name: Jenkins Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
-      DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.9-buster/Dockerfile"
-      DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.9-buster"
-      OVERRIDE_REPO_NAME: "python"
-      OVERRIDE_TAG_NAME: "python3.9-buster-$(echo ${GITHUB_REF#refs/*/} | tr / _)"
+      DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins"
+      OVERRIDE_REPO_NAME: "jenkins"
+      USE_QUAY_ONLY: true
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}    
+  jenkins-ci-worker:
+    name: Jenkins-CI-Worker Build and Push
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins-CI-Worker/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins-CI-Worker"
+      OVERRIDE_REPO_NAME: "jenkins-ci-worker"
+      USE_QUAY_ONLY: true
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
-  python_3-10:
-    name: Python 3.10 Build and Push
+  jenkins-qa-worker:
+    name: Jenkins-QA-Worker Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
-      DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.10-buster/Dockerfile"
-      DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.10-buster"
-      OVERRIDE_REPO_NAME: "python"
-      OVERRIDE_TAG_NAME: "python3.10-buster-$(echo ${GITHUB_REF#refs/*/} | tr / _)"
-    secrets:
-      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
-      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
-      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
-      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
-  awshelper:
-    name: AwsHelper Build and Push
-    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
-    with:
-      DOCKERFILE_LOCATION: "./Docker/awshelper/Dockerfile"
-      OVERRIDE_REPO_NAME: "awshelper"
+      DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins-Worker/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins-Worker"
+      OVERRIDE_REPO_NAME: "jenkins-qa-worker"
+      USE_QUAY_ONLY: true
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
