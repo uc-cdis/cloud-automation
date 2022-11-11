@@ -19,6 +19,19 @@ jobs:
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}    
+  jenkins2:
+    name: Jenkins2 Build and Push
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins2/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins2"
+      OVERRIDE_REPO_NAME: "jenkins2"
+      USE_QUAY_ONLY: true
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   jenkins-ci-worker:
     name: Jenkins-CI-Worker Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
