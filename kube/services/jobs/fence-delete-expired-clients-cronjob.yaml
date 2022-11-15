@@ -2,7 +2,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: fence-delete-expired-clients-job
+  name: fence-delete-expired-clients
 spec:
   schedule: "0 7 * * *"  # daily
   successfulJobsHistoryLimit: 2
@@ -91,7 +91,11 @@ spec:
               - |
                 if [[ ! "$slackWebHook" =~ ^http ]]; then
                   echo "Slack webhook not set"
-                  exit 0
+                  if ! [ -f /mnt/shared/success ]; then
+                    exit 1
+                  else
+                    exit 0
+                  fi
                 fi
                 if ! [ -f /mnt/shared/success ]; then
                   curl -X POST --data-urlencode "payload={\"attachments\": [{\"text\": \"JOBFAIL: fence-delete-expired-clients failed for ${gen3Env}\", \"color\": \"#ff0000\"}]}" "${slackWebHook}"s
