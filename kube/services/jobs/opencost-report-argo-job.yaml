@@ -28,7 +28,7 @@ spec:
       serviceAccountName: reports-service-account
       containers:
         - name: send-report
-          image: quay.io/cdis/proto-opencost-reporter:fix_ssl_noverify
+          GEN3_OPENCOST-REPORTER_IMAGE|-image: quay.io/cdis/proto-opencost-reporter:master-|
           imagePullPolicy: Always
           env:
             - name: OPENCOST_URL
