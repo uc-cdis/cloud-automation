@@ -89,20 +89,22 @@ spec:
             args:
               - "-c"
               - |
-                if [[ ! "$slackWebHook" =~ ^http ]]; then
-                  echo "Slack webhook not set"
+                if [[ "$slackWebHook" =~ ^http ]]; then
                   if ! [ -f /mnt/shared/success ]; then
-                    exit 1
+                    curl -X POST --data-urlencode "payload={\"attachments\": [{\"text\": \"JOBFAIL: fence-delete-expired-clients failed for ${gen3Env}\", \"color\": \"#ff0000\"}]}" "${slackWebHook}"s
                   else
-                    exit 0
+                    HOUR=$(TZ='America/Chicago' date "+%H")
+                    if [ ${HOUR} -eq 09 ]; then
+                      curl -X POST --data-urlencode "payload={\"attachments\": [{\"text\": \"JOB SUCCESS: fence-delete-expired-clients succeeded for ${gen3Env}\", \"color\": \"#2EB67D\"}]}" "${slackWebHook}"
+                    fi
                   fi
-                fi
-                if ! [ -f /mnt/shared/success ]; then
-                  curl -X POST --data-urlencode "payload={\"attachments\": [{\"text\": \"JOBFAIL: fence-delete-expired-clients failed for ${gen3Env}\", \"color\": \"#ff0000\"}]}" "${slackWebHook}"s
                 else
-                  HOUR=$(TZ='America/Chicago' date "+%H")
-                  if [ ${HOUR} -eq 09 ]; then
-                    curl -X POST --data-urlencode "payload={\"attachments\": [{\"text\": \"JOB SUCCESS: fence-delete-expired-clients succeeded for ${gen3Env}\", \"color\": \"#2EB67D\"}]}" "${slackWebHook}"
-                  fi
+                  echo "Slack webhook not set"
+                fi
+
+                if ! [ -f /mnt/shared/success ]; then
+                  exit 1
+                else
+                  exit 0
                 fi
           restartPolicy: Never
