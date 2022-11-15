@@ -14,7 +14,9 @@
 #
 # Example
 # gen3 job run opencost-report-argo BUCKET_NAME opencost-report-bucket
-#
+# 
+# Cronjob Example
+# gen3 job cron opencost-report-argo @daily BUCKET_NAME opencost-report-bucket
 apiVersion: batch/v1
 kind: Job
 metadata:
