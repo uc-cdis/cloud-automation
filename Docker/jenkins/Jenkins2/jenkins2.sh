@@ -57,7 +57,8 @@ if [ ! -d "$JENKINS_HOME/jobs" ]; then # restore from s3 is necessary
     echo "Jenkins home not in expected location: /var/jenkins_home"
   fi
 fi
-
+sed -i 's/jenkins.planx-pla.net/jenkins2.planx-pla.net/g' /var/jenkins_home/jenkins.model.JenkinsLocationConfiguration.xml
+ 
 if [ -f /usr/local/bin/jenkins.sh ]; then
   source /usr/local/bin/jenkins.sh
 else
