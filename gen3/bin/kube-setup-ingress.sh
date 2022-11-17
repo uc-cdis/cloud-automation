@@ -15,7 +15,42 @@ ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.na
 scriptDir="${GEN3_HOME}/kube/services/ingress"
 
 gen3_ingress_setup_waf() {
-    gen3_log_info "To Implement later"
+    gen3_log_info "Starting GPE-312 waf setup"
+    #variable to see if WAF already exists
+    export waf=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains("devplanetv1")).Name'`
+if [[ -z $waf ]]; then
+    gen3_log_info "Creating Web ACL. This may take a few minutes."
+    aws wafv2 create-web-acl\
+        --name $vpc_name-waf \
+        --scope REGIONAL \
+        --default-action Allow={} \
+        --visibility-config SampledRequestsEnabled=true,CloudWatchMetricsEnabled=true,MetricName=GPE-312WebAclMetrics \
+        --rules file://waf-rules-GPE-312.json \
+        --region us-east-1
+    #Need to sleep to avoid "WAFUnavailableEntityException" error since the waf takes a bit to spin up
+    sleep 240
+else
+    gen3_log_info "WAF already exists. Skipping..."
+fi
+    gen3_log_info "Attaching ACL to ALB."
+    export acl_arn=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains("devplanetv1")).ARN'`
+    export alb_name=`kubectl get ingress gen3-ingress | awk '{print $4}' | tail +2 |  sed 's/^\([A-Za-z0-9]*-[A-Za-z0-9]*-[A-Za-z0-9]*\).*/\1/;q'`
+    export alb_arn=`aws elbv2 describe-load-balancers --name $alb_name | yq -r .LoadBalancers[0].LoadBalancerArn`
+    export association=`aws wafv2 list-resources-for-web-acl --web-acl-arn $acl_arn | grep $alb_arn| sed -e 's/^[ \t]*//' | sed -e 's/^"//' -e 's/"$//'`
+    #variable to see if the association already exists
+    echo "acl_arn: $acl_arn"
+    echo "alb_arn: $alb_arn"
+if [[ $association != $alb_arn ]]; then
+    aws wafv2 associate-web-acl\
+        --web-acl-arn $acl_arn \
+        --resource-arn $alb_arn \
+        --region us-east-1
+
+    gen3_log_info "Add ACL arn annotation to ALB ingress"
+    kubectl annotate ingress gen3-ingress "alb.ingress.kubernetes.io/wafv2-acl-arn=$acl_arn"
+else
+    gen3_log_info "ALB is already associated with ACL. Skipping..."
+fi
 }
 
 
