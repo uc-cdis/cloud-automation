@@ -21,13 +21,10 @@ jobs:
       if: steps.delta.outputs.files == 'true'
       run: echo "Files have been updated"
 
-    
-
   python_3-9:
     name: Python 3.9 Build and Push
     needs: verify-changes
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
-    if: steps.delta.outputs.files == 'true'
     with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.9-buster/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.9-buster"
