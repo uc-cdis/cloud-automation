@@ -1,0 +1,18 @@
+#
+# Playbook to handle keys in a particular host
+#
+# @variables:
+#   _hosts => hosts in which you want the playbook to be applied
+#             it must exists in hosts.yaml
+
+#This playbook will loop around each public key file in the keys/ directory and will add them to the specified vms
+
+
+---
+- hosts: "{{ _hosts }}"
+  tasks:
+  - authorized_key:
+      user: "{{ ansible_user_id }}"
+      state: present
+      key: "{{ lookup('file', item) }}"
+    with_fileglob: '../peKeys/*'

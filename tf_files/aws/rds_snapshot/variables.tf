@@ -5,10 +5,13 @@ variable "aws_region" {
 variable "vpc_name" {}
 
 # rds instance id
+
 variable "indexd_rds_id" {}
 
 # rds instance id
+
 variable "fence_rds_id" {}
 
 # rds instance id
+
 variable "sheepdog_rds_id" {}

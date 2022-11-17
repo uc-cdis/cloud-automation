@@ -236,7 +236,7 @@ resource "aws_cloudwatch_log_group" "csoc_common_log_group" {
     Environment = "${var.common_name}"
     Organization = "Basic Services"
   }
-  retention_in_days = 2190
+  retention_in_days = 2192
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_to_ES" {
@@ -319,7 +319,7 @@ resource "aws_iam_role" "lambda_role" {
 EOF
 }
 
-data "aws_iam_policy_document" "lamda_policy_document" {
+data "aws_iam_policy_document" "lambda_policy_document" {
   statement {
     actions = [
       "logs:*",
@@ -353,23 +353,11 @@ data "aws_iam_policy_document" "lamda_policy_document" {
       "${aws_kinesis_firehose_delivery_stream.firehose_to_s3.arn}",
     ]
   }
-
-  statement {
-    actions = [
-      "lambda:InvokeFunction"
-    ]
-
-    resources = [
-       "${var.log_dna_function}"
-    ]
-
-    effect = "Allow"
-  }
 }
 
 resource "aws_iam_role_policy" "lambda_policy" {
   name   = "${var.common_name}_lambda_policy"
-  policy = "${data.aws_iam_policy_document.lamda_policy_document.json}"
+  policy = "${data.aws_iam_policy_document.lambda_policy_document.json}"
   role   = "${aws_iam_role.lambda_role.id}"
 }
 
@@ -407,7 +395,7 @@ resource "aws_lambda_function" "logs_decodeding" {
   }
 
   environment {
-    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}", log_dna_function = "${var.log_dna_function}" }
+    variables = { stream_name = "${var.common_name}_firehose", threshold = "${var.threshold}", slack_webhook = "${var.slack_webhook}", s3 = "${var.s3}", es = "${var.es}" }
   }
 
   #lifecycle {

@@ -95,6 +95,12 @@ spec:
                 name: manifest-global
                 key: maintenance_mode
                 optional: true
+          - name: DOCUMENT_URL
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: document_url
+                optional: true
           - name: FRONTEND_ROOT
             valueFrom:
               configMapKeyRef:
