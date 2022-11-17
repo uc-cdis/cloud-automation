@@ -4,7 +4,7 @@ on:
  push:
 
 jobs:
-  paths-filter:
+  verify-changes:
     runs-on: ubuntu-latest
     outputs:
       output1: ${{ steps.delta.outputs.files }}
@@ -16,9 +16,16 @@ jobs:
         filters: |
           files:
             - 'Docker/**/*'
+    
+    - name: changes
+      if: steps.delta.outputs.files == 'true'
+      run: echo "Files have been updated"
+
+    
 
   python_3-9:
     name: Python 3.9 Build and Push
+    needs: verify-changes
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.9-buster/Dockerfile"
