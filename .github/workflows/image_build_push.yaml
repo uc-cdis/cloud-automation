@@ -18,7 +18,6 @@ jobs:
             - 'Docker/**/*'
 
   python_3-9:
-    if: steps.delta.outputs.files == 'true'
     name: Python 3.9 Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
@@ -33,7 +32,6 @@ jobs:
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   
   python_3-10:
-    if: steps.delta.outputs.files == 'true'
     name: Python 3.10 Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
@@ -48,7 +46,6 @@ jobs:
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   
   awshelper:
-    if: steps.delta.outputs.files == 'true'
     name: AwsHelper Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
