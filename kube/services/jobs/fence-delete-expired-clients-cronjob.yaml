@@ -62,14 +62,18 @@ spec:
                 echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
                 python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
                 echo 'options use-vc' >> /etc/resolv.conf
-                fence-create client-delete-expired --slack-webhook $slackWebHook --warning-days 7
+                if [[ "$slackWebHook" =~ ^http ]]; then
+                  fence-create client-delete-expired --slack-webhook $slackWebHook --warning-days 7
+                else
+                  fence-create client-delete-expired
+                fi
                 if [[ $? != 0 ]]; then
                   echo "WARNING: non zero exit code: $?"
                 else
                   touch /mnt/shared/success
                 fi
           containers:
-          - name: awshelper
+          - name: slackposter
             env:
               - name: slackWebHook
                 valueFrom:
