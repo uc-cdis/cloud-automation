@@ -67,5 +67,5 @@ spec:
               cpu: 10m
               memory: 128Mi
             limits:
-              cpu: 600mi
+              cpu: 600m
               memory: 1024Mi  

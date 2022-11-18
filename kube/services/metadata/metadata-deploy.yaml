@@ -104,10 +104,10 @@ spec:
             subPath: json
         resources:
           requests:
-            cpu: 10mi
+            cpu: 10m
             memory: 128Mi
           limits:
-            cpu: 500mi
+            cpu: 500m
             memory: 512Mi
       initContainers:
         - name: metadata-db-migrate

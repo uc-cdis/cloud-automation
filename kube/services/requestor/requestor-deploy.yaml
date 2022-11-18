@@ -76,10 +76,10 @@ spec:
             subPath: "requestor-config.yaml"
         resources:
           requests:
-            cpu: 10mi
+            cpu: 10m
             memory: 100Mi
           limits:
-            cpu: 300mi
+            cpu: 300m
             memory: 300Mi
       initContainers:
         - name: requestor-db-migrate

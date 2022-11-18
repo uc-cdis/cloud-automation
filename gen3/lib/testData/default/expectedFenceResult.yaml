@@ -191,12 +191,12 @@ spec:
             mountPath: "/fence/jwt-keys.tar"
             subPath: "jwt-keys.tar"
         resources:
-          requests:
-            cpu: 0.4
-            memory: 1200Mi
-          limits:
-            cpu: 1.0
-            memory: 2400Mi      
+            requests:
+              cpu: 10m
+              memory: 500Mi
+            limits:
+              cpu: 500m
+              memory: 1000Mi    
         command: ["/bin/bash"]
         args:
           - "-c"

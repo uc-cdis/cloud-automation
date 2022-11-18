@@ -64,10 +64,10 @@ spec:
           failureThreshold: 6
         resources:
           requests:
-            cpu: 10mi
+            cpu: 10m
             memory: 64Mi
           limits:
-            cpu: 1000mi
+            cpu: 1000m
             memory: 4096Mi
         ports:
         - containerPort: 8000

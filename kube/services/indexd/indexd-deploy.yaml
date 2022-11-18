@@ -152,8 +152,8 @@ spec:
             subPath: "ca.pem"
         resources:
           requests:
-            cpu: 10mi
+            cpu: 10m
             memory: 512Mi
           limits:
-            cpu: 500mi
+            cpu: 500m
             memory: 1024Mi
