@@ -1,0 +1,55 @@
+#
+# run with:
+# gen3 job run opencost-report-argo \
+# BUCKET_NAME $GEN3_BUCKET_NAME \
+# OPENCOST_URL $OPENCOST_URL \
+#
+# BUCKET_NAME(required)
+#   Name of the bucket to upload the generated reports to. 
+#   Make sure that there is a service account called "reports-service-account" with access to this bucket.
+#
+# OPENCOST_URL(optional)
+#   URL to query OpenCost API's. Default is https://kubecost-cost-analyzer.kubecost
+#   
+#
+# Example
+# gen3 job run opencost-report-argo BUCKET_NAME opencost-report-bucket
+# 
+# Cronjob Example
+# gen3 job cron opencost-report-argo @daily BUCKET_NAME opencost-report-bucket
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: opencost-report-argo
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: reports-service-account
+      containers:
+        - name: send-report
+          GEN3_OPENCOST-REPORTER_IMAGE|-image: quay.io/cdis/proto-opencost-reporter:master-|
+          imagePullPolicy: Always
+          env:
+            - name: OPENCOST_URL
+              GEN3_OPENCOST_URL|-value: https://kubecost-cost-analyzer.kubecost-|
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: BUCKET_NAME
+              GEN3_BUCKET_NAME|-value: ""-|
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+             proto-opencost-reporter GetAllocationReport \
+              --from_days_before 9 \
+              --to_days_before 1 \
+              --aggregate_by label:gen3username \
+              --filter_namespaces argo \
+              --share_idle_by_node
+      restartPolicy: Never
