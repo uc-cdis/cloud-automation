@@ -38,7 +38,7 @@ jobs:
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins-CI-Worker/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins-CI-Worker"
-      OVERRIDE_REPO_NAME: "jenkins-ci-worker"
+      OVERRIDE_REPO_NAME: "gen3-ci-worker"
       USE_QUAY_ONLY: true
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
@@ -51,7 +51,7 @@ jobs:
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins-Worker/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins-Worker"
-      OVERRIDE_REPO_NAME: "jenkins-qa-worker"
+      OVERRIDE_REPO_NAME: "gen3-qa-worker"
       USE_QUAY_ONLY: true
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
