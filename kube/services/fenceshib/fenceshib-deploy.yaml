@@ -210,11 +210,11 @@ spec:
             subPath: "incommon-login.bionimbus.org.crt"
         resources:
             requests:
-              cpu: 0.8
-              memory: 2400Mi
+              cpu: 10mi
+              memory: 500Mi
             limits:
-              cpu: 2.0
-              memory: 6400Mi
+              cpu: 1000mi
+              memory: 2400Mi
         command: ["/bin/bash"]
         args:
           - "-c"
