@@ -1,3 +1,5 @@
+# Delete all expired Fence OIDC clients and optionally post about expired clients on Slack.
+# To set up as a daily cronjob: `gen3 job cron fence-delete-expired-clients "0 7 * * *"`
 ---
 apiVersion: batch/v1
 kind: Job
