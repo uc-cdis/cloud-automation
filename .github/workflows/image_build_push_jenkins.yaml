@@ -1,4 +1,4 @@
-name: Build Jenkins Images
+name: Build Jenkins images and push to Quay
 
 on: 
   push:
