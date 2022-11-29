@@ -47,8 +47,8 @@ spec:
             - "-c"
             - |
              proto-opencost-reporter GetAllocationReport \
-              --from_days_before 3 \
-              --to_days_before 2 \
+              --from_days_before 2 \
+              --to_days_before 1 \
               --aggregate_by label:gen3username label:workflows.argoproj.io/workflow \
               --filter_namespaces argo \
               --share_idle_by_node
