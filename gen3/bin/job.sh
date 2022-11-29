@@ -60,7 +60,7 @@ g3k_job2cronjson(){
 
   local cronScript="$(cat - <<EOM
 {
-  "apiVersion": "batch/v1beta1",
+  "apiVersion": "batch/v1",
   "kind": "CronJob",
   "metadata": {
     "name": "$jobName"
