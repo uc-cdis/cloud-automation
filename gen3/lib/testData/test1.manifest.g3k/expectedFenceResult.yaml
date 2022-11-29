@@ -275,6 +275,7 @@ spec:
             if fence-create migrate --help > /dev/null 2>&1; then
               if ! grep -E 'ENABLE_DB_MIGRATION"?: *false' /var/www/fence/fence-config.yaml; then
                 echo "Running db migration: fence-create migrate"
+                cd /fence
                 fence-create migrate
               else
                 echo "Db migration disabled in fence-config"

@@ -176,7 +176,7 @@ EOF
   # Copy the updatewhitelist.sh script to the home directory 
   cp  ${SUB_FOLDER}/flavors/squid_auto/updatewhitelist-docker.sh ${HOME_FOLDER}/updatewhitelist.sh
   chmod +x ${HOME_FOLDER}/updatewhitelist.sh
-  cp  ${SUB_FOLDER}/flavors/squid_auto/healthcheck.sh ${HOME_FOLDER}/healtcheck.sh
+  cp  ${SUB_FOLDER}/flavors/squid_auto/healthcheck.sh ${HOME_FOLDER}/healthcheck.sh
   chmod +x ${HOME_FOLDER}/healthcheck.sh  
 
   crontab -l > crontab_file; echo "*/15 * * * * ${HOME_FOLDER}/updatewhitelist.sh >/dev/null 2>&1" >> crontab_file

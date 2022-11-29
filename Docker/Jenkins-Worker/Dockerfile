@@ -8,7 +8,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential libgit2-dev zip unzip less vim gettext-base
 RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade && python -m pip install lxml --upgrade
 RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade
-RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade && python3 -m pip install pandas --upgrade
+RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade
+RUN set -xe && python3 -m pip install pandas --upgrade
 
 RUN apt-get update \
   && apt-get install -y lsb-release \
@@ -49,6 +50,11 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747
   && echo "deb https://dl.k6.io/deb stable main" | tee /etc/apt/sources.list.d/k6.list \
   && apt-get update \
   && apt-get install k6
+
+# install xk6-browser
+RUN cd /opt && wget --quiet https://github.com/grafana/xk6-browser/releases/download/v0.3.0/xk6-browser-v0.3.0-linux-amd64.tar.gz \
+  && tar -xvzf /opt/xk6-browser-v0.3.0-linux-amd64.tar.gz
+ENV PATH="/opt/xk6-browser-v0.3.0-linux-amd64:${PATH}"
 
 # install google tools
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
@@ -99,9 +105,9 @@ RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
 # add psql: https://www.postgresql.org/download/linux/debian/
 RUN DISTRO="$(lsb_release -c -s)"  \
       && echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
-      && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+      && wget --quiet --no-check-certificate -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
       && apt-get update \
-      && apt-get install -y postgresql-client-13 \
+      && apt-get install -y postgresql-client-13 libpq-dev \
       && rm -rf /var/lib/apt/lists/*
 
 # Copy sh script responsible for installing Python

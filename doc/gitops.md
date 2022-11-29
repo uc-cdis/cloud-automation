@@ -45,6 +45,14 @@ Note: if a key exists both under the `manifests/` folder and in `manifest.json`,
 
 Note: also as a random help updates the `etl-mapping` configmap from `etlMapping.yaml`
 
+### configmaps-from-json
+
+Create a `manifest-` configmap from the given json blob.
+
+```
+gen3 gitops configmaps-from-json manifest-guppy "$guppyConfig"
+```
+
 ### enforce
 
 Force the local `cdis-manifest/` and `cloud-automation/` folders to sync with github.

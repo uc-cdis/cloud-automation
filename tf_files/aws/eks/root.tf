@@ -48,5 +48,6 @@ module "eks" {
   fips                             = "${var.fips}"
   fips_ami_kms                     = "${var.fips_ami_kms}"
   fips_enabled_ami                 = "${var.fips_enabled_ami}"
-  availability_zones                = "${var.availability_zones}"
+  availability_zones               = "${var.availability_zones}"
+  secondary_availability_zones     = "${var.secondary_availability_zones}"
 }

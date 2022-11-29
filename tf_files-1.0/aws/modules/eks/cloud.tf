@@ -589,6 +589,9 @@ resource "aws_launch_template" "eks_launch_template" {
 resource "aws_iam_service_linked_role" "autoscaling" {
   aws_service_name = "autoscaling.amazonaws.com"
   custom_suffix = var.vpc_name
+  lifecycle {
+    ignore_changes  = ["custom_suffix"]
+  }
 }
 
 # Remember to grant access to the account in the KMS key policy too
