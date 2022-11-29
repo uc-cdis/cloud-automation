@@ -49,7 +49,7 @@ spec:
              proto-opencost-reporter GetAllocationReport \
               --from_days_before 9 \
               --to_days_before 1 \
-              --aggregate_by label:gen3username \
+              --aggregate_by label:gen3username label:workflows.argoproj.io/workflow \
               --filter_namespaces argo \
               --share_idle_by_node
       restartPolicy: Never
