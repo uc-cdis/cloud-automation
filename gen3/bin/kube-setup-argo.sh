@@ -20,7 +20,7 @@ function setup_argo_buckets {
     gen3_log_err "could not determine account numer"
     return 1
   fi
-  if ! environment="$(g3kubectl get configmap manifest-global -o json | jq -r .data.environment)"; then
+  if ! environment="$(g3k_environment)"; then
     gen3_log_err "could not determine environment from manifest-global - bailing out of argo setup"
     return 1
   fi
@@ -141,10 +141,21 @@ EOF
 
 
   gen3_log_info "Creating s3 creds secret in argo namespace"
-  if [[ -z $internalBucketName ]]; then
-    g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName}
+  if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
+    if [[ -z $internalBucketName ]]; then
+      g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName}
+      g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName}
+
+    else
+      g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} --from-literal=internalbucketname=${internalBucketName}
+      g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName}
+    fi
   else
-    g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} --from-literal=internalbucketname=${internalBucketName}
+    if [[ -z $internalBucketName ]]; then
+      g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName}
+    else
+      g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} --from-literal=internalbucketname=${internalBucketName}
+    fi
   fi
 
 
@@ -189,9 +200,9 @@ function setup_argo_db() {
   fi
 }
 
+  setup_argo_buckets
 # only do this if we are running in the default namespace
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
-  setup_argo_buckets
   setup_argo_db
   if (! helm status argo -n argo > /dev/null 2>&1 )  || [[ "$1" == "--force" ]]; then
     DBHOST=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_host | base64 -d)
