@@ -10513,11 +10513,7 @@ spec:
               name: argocd-cmd-params-cm
               optional: true
         - name: ARGOCD_SERVER_BASEHREF
-          valueFrom:
-            configMapKeyRef:
-              key: server.basehref
-              name: argocd-cmd-params-cm
-              optional: true
+          value: "/argocd/"
         - name: ARGOCD_SERVER_ROOTPATH
           valueFrom:
             configMapKeyRef:
