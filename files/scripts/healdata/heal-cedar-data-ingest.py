@@ -1,9 +1,38 @@
 import argparse
-import json
+import sys
 import requests
 import pydash
-import os
 
+FILTER_FIELD_MAPPINGS = {
+    "Study Type.study_stage": "Study Type",
+    "Data.data_type": "Data Type",
+    "Study Type.study_subject_type": "Subject Type",
+    "Human Subject Applicability.gender_applicability": "Gender",
+    "Human Subject Applicability.age_applicability": "Age"
+}
+SPECIAL_VALUE_MAPPINGS = {
+    "Interview/Focus Group - structured": "Interview/Focus Group",
+    "Interview/Focus Group - semi-structured": "Interview/Focus Group",
+    "Interview/Focus Group - unstructured": "Interview/Focus Group",
+    "Questionnaire/Survey/Assessment - validated instrument": "Questionnaire/Survey/Assessment",
+    "Questionnaire/Survey/Assessment - unvalidated instrument": "Questionnaire/Survey/Assessment"
+}
+
+def update_filter_metadata(metadata_to_update):
+    filter_metadata = []
+    for metadata_field_key, filter_field_key in FILTER_FIELD_MAPPINGS.items():
+        filter_field_values = pydash.get(metadata_to_update, metadata_field_key)
+        if filter_field_values:
+            if isinstance(filter_field_values, str):
+                filter_field_values = [filter_field_values]
+            if not isinstance(filter_field_values, list):
+                print(f"Found neither a string nor a list for field {metadata_field_key}, value is {filter_field_values}")
+            for filter_field_value in filter_field_values:
+                if filter_field_value in SPECIAL_VALUE_MAPPINGS:
+                    filter_field_value = SPECIAL_VALUE_MAPPINGS[filter_field_value]
+                filter_metadata.append({"key": filter_field_key, "value": filter_field_value})
+    metadata_to_update["advSearchFilters"] = filter_metadata
+    return metadata_to_update
 
 parser = argparse.ArgumentParser()
 
@@ -39,7 +68,7 @@ if cedar.status_code == 200:
     metadata_return = cedar.json()
     if "metadata" not in metadata_return:
         print("Got 200 from CEDAR wrapper but no metadata in body, something is not right!")
-        exit(1)
+        sys.exit(1)
 
     print(f"Successfully got {len(metadata_return['metadata'])} record(s) from CEDAR directory")
     for cedar_record in metadata_return["metadata"]:
@@ -61,6 +90,7 @@ if cedar.status_code == 200:
             elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
                 print("Metadata is has not been registered. Registering it in MDS record")
             pydash.merge(mds_discovery_data_body, mds_res["gen3_discovery"], cedar_record)
+            mds_discovery_data_body = update_filter_metadata(mds_discovery_data_body)
             mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
             mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
