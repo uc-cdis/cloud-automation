@@ -3,6 +3,7 @@ import sys
 import requests
 import pydash
 
+# Defines how a field in metadata is going to be mapped into a key in filters
 FILTER_FIELD_MAPPINGS = {
     "Study Type.study_stage": "Study Type",
     "Data.data_type": "Data Type",
@@ -10,6 +11,8 @@ FILTER_FIELD_MAPPINGS = {
     "Human Subject Applicability.gender_applicability": "Gender",
     "Human Subject Applicability.age_applicability": "Age"
 }
+
+# Defines how to handle special cases for values in filters
 SPECIAL_VALUE_MAPPINGS = {
     "Interview/Focus Group - structured": "Interview/Focus Group",
     "Interview/Focus Group - semi-structured": "Interview/Focus Group",
