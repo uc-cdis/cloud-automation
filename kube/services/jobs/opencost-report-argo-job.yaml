@@ -11,8 +11,9 @@
 # OPENCOST_URL(optional)
 #   URL to query OpenCost API's. Default is https://kubecost-cost-analyzer.kubecost
 #
-# Channel(optional)
-#   The slack channel that the alert will get sent to
+# CHANNEL(optional)
+#   The slack channel ID that the alert will get sent to. Easiest way to find is to open slack in a browser, navigate to
+#   the webpage and copy down the ID at the end of the URL that begins with a C.
 #
 # Example
 # gen3 job run opencost-report-argo BUCKET_NAME opencost-report-bucket
@@ -56,7 +57,7 @@ spec:
           args:
             - "-c"
             - |
-             proto-opencost-reporter GetAllocationReport \
+              proto-opencost-reporter GetAllocationReport \
               --from_days_before 2 \
               --to_days_before 1 \
               --aggregate_by label:gen3username label:workflows.argoproj.io/workflow \
@@ -65,9 +66,9 @@ spec:
               rc=$?
               if [[ "${slackWebHook}" != 'None' ]]; then
                 if [ $rc != 0 ]; then
-                  curl -X POST --data-urlencode "payload={\"text\": \"OPENCOST-REPORT-JOB-FAILED: Opencost report job failed to create a report\", \"channel\": \"${channel}\"}" "${slackWebHook}";
+                  curl -X POST --data-urlencode "payload={\"text\": \"OPENCOST-REPORT-JOB-FAILED: <!here> Opencost report job failed to create a report\", \"channel\": \"${channel}\", \"username\": \"opencost-report-job\"}}" "${slackWebHook}";
                 else
-                  curl -X POST --data-urlencode "payload={\"text\": \"OPENCOST-REPORT-JOB-SUCCEEDED: Opencost report job created report\", \"channel\": \"${channel}\"}}" "${slackWebHook}"
+                  curl -X POST --data-urlencode "payload={\"text\": \"OPENCOST-REPORT-JOB-SUCCEEDED: Opencost report job created report\", \"channel\": \"${channel}\", \"username\": \"opencost-report-job\"}}" "${slackWebHook}"
                 fi
               fi
       restartPolicy: Never
