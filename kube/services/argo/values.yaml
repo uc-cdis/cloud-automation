@@ -2,7 +2,13 @@ controller:
   parallelism: 10
   metricsConfig:
     # -- Enables prometheus metrics server
-    enabled: false
+    enabled: true
+    servicePort: 9090
+  
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9090"
 
   # -- enable persistence using postgres
   persistence:
