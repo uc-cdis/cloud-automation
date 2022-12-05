@@ -1,0 +1,35 @@
+name: Build AWSHelper Base Images and Push to Quay and ECR
+
+on: 
+ push:
+
+jobs:
+  verify-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      awshelper: ${{ steps.delta.outputs.files }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v2
+      id: delta
+      with:
+        filters: |
+          files:
+            - 'Docker/awshelper/*'
+    
+    - name: changes
+      if: steps.delta.outputs.files == 'true'
+      run: echo "AWSHelper files have been updated"
+
+  awshelper:
+    needs: verify-changes
+    name: AwsHelper Build and Push
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/awshelper/Dockerfile"
+      OVERRIDE_REPO_NAME: "awshelper"
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}

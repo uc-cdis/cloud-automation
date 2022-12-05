@@ -1,0 +1,54 @@
+name: Build Python Base Images and Push to Quay and ECR
+
+on: 
+ push:
+
+jobs:
+  verify-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      python: ${{ steps.delta.outputs.files }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v2
+      id: delta
+      with:
+        filters: |
+          files:
+            - 'Docker/python-nginx/*'
+    
+    - name: changes
+      if: steps.delta.outputs.files == 'true'
+      run: echo "Files have been updated"
+
+  python_3-9:
+    name: Python 3.9 Build and Push
+    needs: verify-changes
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.9-buster/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.9-buster"
+      OVERRIDE_REPO_NAME: "python"
+      OVERRIDE_TAG_NAME: "python3.9-buster-$(echo ${GITHUB_REF#refs/*/} | tr / _)"
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
+  
+  python_3-10:
+    needs: verify-changes
+    name: Python 3.10 Build and Push
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.10-buster/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.10-buster"
+      OVERRIDE_REPO_NAME: "python"
+      OVERRIDE_TAG_NAME: "python3.10-buster-$(echo ${GITHUB_REF#refs/*/} | tr / _)"
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
+  
+  
