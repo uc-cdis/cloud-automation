@@ -19,13 +19,12 @@ stringData:
   flyway_datasource_username: $DB_USER
   flyway_datasource_password: $DB_PASS
   flyway_locations: classpath:db/migration/postgresql
-  # Zoe testing Atlas-Fence
+
   security_cors_enabled: "true"
   security_origin: "*"
   security_token_expiration: "43200"
   security_ssl_enabled: "false"
 
-#  security_provider: DisabledSecurity
   security_provider: AtlasRegularSecurity
 
   security_auth_windows_enabled: "false"
@@ -50,6 +49,7 @@ stringData:
   security_oid_url: https://$hostname/.well-known/openid-configuration
   security_oid_redirectUrl: https://atlas.$hostname/atlas/#/welcome
   security_oid_logoutUrl: https://atlas.$hostname/atlas/#/home
+  security_oid_extraScopes: user
 
   security_oauth_callback_ui: https://atlas.$hostname/atlas/#/welcome
   security_oauth_callback_api: https://atlas.$hostname/WebAPI/user/oauth/callback

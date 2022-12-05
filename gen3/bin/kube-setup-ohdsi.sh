@@ -90,7 +90,7 @@ setup_secrets() {
     export FENCE_METADATA_URL="https://${hostname}/.well-known/openid-configuration"
     export FENCE_CLIENT_ID=$(jq -r ".FENCE_CLIENT_ID" <<< "$appcreds")
     export FENCE_CLIENT_SECRET=$(jq -r ".FENCE_CLIENT_SECRET" <<< "$appcreds")
-    envsubst <"${GEN3_HOME}/kube/services/ohdsi/ohdsi-secrets.yaml"  | g3kubectl apply -f -
+    envsubst <"${GEN3_HOME}/kube/services/ohdsi-webapi/ohdsi-webapi-config.yaml"  | g3kubectl apply -f -
 
     envsubst '$hostname' <"${GEN3_HOME}/kube/services/ohdsi-webapi/ohdsi-webapi-reverse-proxy-config.yaml"  | g3kubectl apply -f -
   )
@@ -123,7 +123,7 @@ setup_creds
 setup_secrets
 setup_ingress
 
-envsubst <${GEN3_HOME}/kube/services/ohdsi/ohdsi-configmap.yaml | g3kubectl apply -f -
+envsubst <${GEN3_HOME}/kube/services/ohdsi-atlas/ohdsi-atlas-config-local.yaml | g3kubectl apply -f -
 
 gen3 roll ohdsi-webapi
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi-webapi/ohdsi-webapi-service.yaml"
