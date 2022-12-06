@@ -1,4 +1,4 @@
-name: Build Python Base Images and Push to Quay and ECR
+name: Jenkins Build and Push to Quay and ECR
 
 on: 
   push:
@@ -22,8 +22,10 @@ jobs:
     - name: changes
       if: steps.delta.outputs.files == 'true'
       run: echo "Files have been updated"
+  
   jenkins:
     name: Jenkins Build and Push
+    needs: verify-changes
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins/Dockerfile"
@@ -35,8 +37,10 @@ jobs:
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}    
+  
   jenkins-ci-worker:
     name: Jenkins-CI-Worker Build and Push
+    needs: verify-changes
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins-CI-Worker/Dockerfile"
