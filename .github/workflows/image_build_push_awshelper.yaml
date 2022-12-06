@@ -22,6 +22,7 @@ jobs:
       run: echo "AWSHelper files have been updated"
 
   awshelper:
+    if: steps.delta.outputs.files == 'true'
     needs: verify-changes
     name: AwsHelper Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
