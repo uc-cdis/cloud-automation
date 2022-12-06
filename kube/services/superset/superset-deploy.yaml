@@ -235,6 +235,16 @@ spec:
         dbsuperset: "yes"
         public: "yes"
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT         
       securityContext:
         runAsUser: 0
       initContainers:

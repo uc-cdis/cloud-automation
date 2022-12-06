@@ -34,6 +34,15 @@ spec:
                 matchLabels:
                   service: ambassador
               topologyKey: kubernetes.io/hostname
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT                   
       serviceAccountName: ambassador
       containers:
       - name: ambassador

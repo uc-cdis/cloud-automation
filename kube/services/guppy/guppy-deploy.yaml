@@ -36,6 +36,17 @@ spec:
                   values:
                   - guppy
               topologyKey: "kubernetes.io/hostname"
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - aws-es-proxy
+              topologyKey: "kubernetes.io/hostname"
       automountServiceAccountToken: false
       volumes:
         - name: guppy-config

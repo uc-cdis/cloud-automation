@@ -33,6 +33,13 @@ spec:
                   values:
                   - kayako-wrapper
               topologyKey: "kubernetes.io/hostname"
+          - weight: 50
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT                     
       automountServiceAccountToken: false
       volumes:
       - name: ca-volume

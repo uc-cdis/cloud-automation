@@ -33,6 +33,15 @@ spec:
                   values:
                   - cedar-wrapper
               topologyKey: "kubernetes.io/hostname"
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT              
       automountServiceAccountToken: false
       volumes:
       - name: ca-volume

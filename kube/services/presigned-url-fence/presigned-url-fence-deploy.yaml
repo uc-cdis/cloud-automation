@@ -44,6 +44,16 @@ spec:
                   values:
                   - presigned-url-fence
               topologyKey: "kubernetes.io/hostname"
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT                   
       automountServiceAccountToken: false
       volumes:
         - name: yaml-merge
