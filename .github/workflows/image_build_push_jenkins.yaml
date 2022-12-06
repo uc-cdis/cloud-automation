@@ -6,6 +6,22 @@ on:
       - Docker/jenkins/**
 
 jobs:
+  verify-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      jenkins: ${{ steps.delta.outputs.files }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: dorny/paths-filter@v2
+      id: delta
+      with:
+        filters: |
+          files:
+            - 'Docker/jenkins/**'
+    
+    - name: changes
+      if: steps.delta.outputs.files == 'true'
+      run: echo "Files have been updated"
   jenkins:
     name: Jenkins Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master

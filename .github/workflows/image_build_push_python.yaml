@@ -15,7 +15,7 @@ jobs:
       with:
         filters: |
           files:
-            - 'Docker/python-nginx/*'
+            - 'Docker/python-nginx/**'
     
     - name: changes
       if: steps.delta.outputs.files == 'true'
