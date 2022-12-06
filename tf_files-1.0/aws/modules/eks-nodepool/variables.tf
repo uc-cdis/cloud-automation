@@ -81,3 +81,8 @@ variable "activation_id" {
 variable "customer_id" {
   default = ""
 }
+
+variable "scale_in_protection" {
+  description = "set scale-in protection on ASG"
+  default     = false
+}

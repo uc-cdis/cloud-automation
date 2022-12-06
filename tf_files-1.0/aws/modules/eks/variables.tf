@@ -198,3 +198,8 @@ variable "enable_spot_instances" {
 variable "enable_on_demand_instances" {
   default = true
 } 
+
+variable "scale_in_protection" {
+  description = "set scale-in protection on ASG"
+  default     = false
+}

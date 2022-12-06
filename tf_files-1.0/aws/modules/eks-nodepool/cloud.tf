@@ -279,12 +279,13 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
 }
 
 resource "aws_autoscaling_group" "eks_autoscaling_group" {
-  desired_capacity     = var.nodepool_asg_desired_capacity
-  launch_configuration = aws_launch_configuration.eks_launch_configuration.id
-  max_size             = var.nodepool_asg_max_size
-  min_size             = var.nodepool_asg_min_size
-  name                 = "eks-${var.nodepool}worker-node-${var.vpc_name}"
-  vpc_zone_identifier  = flatten([var.eks_private_subnets])
+  desired_capacity      = var.nodepool_asg_desired_capacity
+  protect_from_scale_in = var.scale_in_protection
+  launch_configuration  = aws_launch_configuration.eks_launch_configuration.id
+  max_size              = var.nodepool_asg_max_size
+  min_size              = var.nodepool_asg_min_size
+  name                  = "eks-${var.nodepool}worker-node-${var.vpc_name}"
+  vpc_zone_identifier   = flatten([var.eks_private_subnets])
 
   tag {
     key                 = "Environment"
