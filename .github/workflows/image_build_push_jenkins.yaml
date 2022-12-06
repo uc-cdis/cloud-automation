@@ -24,6 +24,7 @@ jobs:
       run: echo "Files have been updated"
   
   jenkins:
+    if: steps.delta.outputs.files == 'true'
     name: Jenkins Build and Push
     needs: verify-changes
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
@@ -39,6 +40,7 @@ jobs:
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}    
   
   jenkins-ci-worker:
+    if: steps.delta.outputs.files == 'true'
     name: Jenkins-CI-Worker Build and Push
     needs: verify-changes
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
