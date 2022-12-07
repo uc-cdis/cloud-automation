@@ -44,7 +44,7 @@ spec:
                   values:
                   - fence
               topologyKey: "kubernetes.io/hostname"
-        nodeAntiAffinity:
+        nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -52,7 +52,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT                                
+                - ONDEMAND                                
       automountServiceAccountToken: false
       volumes:
 # -----------------------------------------------------------------------------

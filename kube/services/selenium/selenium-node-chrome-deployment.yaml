@@ -23,7 +23,7 @@ spec:
         "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
       affinity:
-        nodeAntiAffinity:
+        nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -31,7 +31,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT           
+                - ONDEMAND           
       containers:
       - env:
         - name: SE_EVENT_BUS_HOST
