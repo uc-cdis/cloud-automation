@@ -25,7 +25,7 @@ spec:
         "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
       affinity:
-        podAntiAffinity:
+        nodeAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -33,7 +33,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT    
+                - SPOT   
       serviceAccountName: jenkins-service
       securityContext:
         runAsUser: 1000

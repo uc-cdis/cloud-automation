@@ -9,7 +9,7 @@ spec:
         app: gen3job
     spec:
       affinity:
-        podAntiAffinity:
+        nodeAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -17,7 +17,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT         
+                - SPOT      
       containers:
       - name: gen3qa-check-bucket-access
         GEN3_GEN3_QA_CONTROLLER_IMAGE|-image: quay.io/cdis/gen3-qa-controller:fix_gen3qa_get_check-|

@@ -31,7 +31,7 @@ spec:
                   values:
                   - arranger
               topologyKey: "kubernetes.io/hostname"
-        podAffinity:
+        nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:

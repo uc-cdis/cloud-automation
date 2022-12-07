@@ -35,13 +35,15 @@ spec:
                   values:
                   - tty
               topologyKey: "kubernetes.io/hostname"
-          - weight: 50
+        nodeAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
             preference:
               matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT                     
+                - SPOT                 
       serviceAccountName: tty-sa
       securityContext:
         fsGroup: 1000

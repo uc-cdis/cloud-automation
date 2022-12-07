@@ -12,7 +12,7 @@ spec:
         app: gen3job
     spec:
       affinity:
-        podAntiAffinity:
+        nodeAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -20,7 +20,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT         
+                - SPOT       
       volumes:
       - name: yaml-merge
         configMap:

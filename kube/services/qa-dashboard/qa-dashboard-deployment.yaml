@@ -20,7 +20,7 @@ spec:
         netnolimit: "yes"
     spec:
       affinity:
-        podAntiAffinity:
+        nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -28,7 +28,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT         
+                - SPOT                   
       containers:
       - name: qa-metrics
         image: "quay.io/cdis/qa-metrics:latest"

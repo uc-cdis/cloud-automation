@@ -19,7 +19,7 @@ spec:
         GEN3_DATE_LABEL
     spec:
       affinity:
-        podAntiAffinity:
+        nodeAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -27,7 +27,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT         
+                - SPOT    
       serviceAccountName: jupyter-service
       volumes:
         - name: config-volume

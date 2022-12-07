@@ -31,13 +31,15 @@ spec:
                   values:
                   - thor
               topologyKey: "kubernetes.io/hostname"
-          - weight: 50
+        nodeAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
             preference:
               matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT                     
+                - SPOT              
       automountServiceAccountToken: false
       containers:
       - name: thor

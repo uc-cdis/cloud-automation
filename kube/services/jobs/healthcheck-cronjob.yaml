@@ -16,7 +16,7 @@ spec:
             app: gen3job
         spec:
           affinity:
-            podAntiAffinity:
+            nodeAntiAffinity:
               preferredDuringSchedulingIgnoredDuringExecution:
               - weight: 100
                 preference:

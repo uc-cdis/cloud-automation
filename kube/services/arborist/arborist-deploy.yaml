@@ -37,7 +37,7 @@ spec:
                   values:
                   - arborist
               topologyKey: "kubernetes.io/hostname"
-        podAffinity:
+        nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:

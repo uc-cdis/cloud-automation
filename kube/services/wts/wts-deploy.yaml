@@ -42,7 +42,7 @@ spec:
                   values:
                   - wts
               topologyKey: "kubernetes.io/hostname"
-        podAffinity:
+        nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -50,7 +50,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT                 
+                - SPOT                           
       terminationGracePeriodSeconds: 10
       volumes:
         - name: wts-secret
@@ -164,3 +164,4 @@ spec:
                 # WTS < 0.3.0 does not have the DB migration setup
                 echo "Alembic not installed - not running DB migration"
               fi
+s

@@ -16,7 +16,7 @@ spec:
         app: influxdb
     spec:
       affinity:
-        podAntiAffinity:
+        nodeAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -24,7 +24,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT    
+                - SPOT             
       containers:
       - image: docker.io/influxdb:1.8.0
         imagePullPolicy: IfNotPresent

@@ -35,7 +35,7 @@ spec:
                   values:
                   - tube
               topologyKey: "kubernetes.io/hostname"
-        podAffinity:
+        nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -43,7 +43,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT                 
+                - SPOT                         
       automountServiceAccountToken: false
       volumes:
         - name: creds-volume

@@ -44,7 +44,7 @@ spec:
                   values:
                   - ws-storage
               topologyKey: "kubernetes.io/hostname"
-        podAffinity:
+        nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -52,7 +52,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT                 
+                - SPOT                           
       volumes:
         - name: config-volume
           secret:

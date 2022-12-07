@@ -37,6 +37,15 @@ spec:
                   values:
                   - argo-wrapper
               topologyKey: "kubernetes.io/hostname"
+        nodeAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT                           
       volumes:
         - name: argo-config
           configMap:

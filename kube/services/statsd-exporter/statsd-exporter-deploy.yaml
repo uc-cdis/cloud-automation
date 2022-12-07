@@ -23,7 +23,7 @@ spec:
         GEN3_DATE_LABEL
     spec:
       affinity:
-        podAntiAffinity:
+        nodeAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             preference:
@@ -31,7 +31,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT         
+                - SPOT       
       containers:
       - name: "statsd-exporter"
         GEN3_STATSD-EXPORTER_IMAGE|-image: prom/statsd-exporter:v0.15.0-|
