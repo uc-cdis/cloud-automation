@@ -42,5 +42,7 @@ EOM
 
 setup_config
 
+gen3_log_warn "!!! The 'metadata-delete-expired-objects-job' client must be granted access to (resource=/mds_gateway, method=access, service=mds_gateway) and (resource=/programs, method=delete, service=fence)"
+
 # Run once a week on Sunday, 6:00PM Chicago time == Monday, 12:00AM UTC
-gen3 job cron metadata-delete-expired-objects "0 0 * * 1"`
+gen3 job cron metadata-delete-expired-objects "0 0 * * 1"

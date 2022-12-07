@@ -27,5 +27,4 @@ spec:
           - name: config-volume
             readOnly: true
             mountPath: /mnt
-            subPath: config.json
       restartPolicy: Never
