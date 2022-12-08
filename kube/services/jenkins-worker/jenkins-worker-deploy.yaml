@@ -18,14 +18,13 @@ spec:
     spec:
       affinity:
         nodeAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            preference:
-              matchExpressions:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - ONDEMAND    
+                - ONDEMAND     
       serviceAccountName: jenkins-service
       securityContext:
         runAsUser: 1000
