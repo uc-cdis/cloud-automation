@@ -9,7 +9,7 @@ EFO
 
 sysctl fs.inotify.max_user_watches=12000
 
-KUBELET_EXTRA_ARGUMENTS="--node-labels=role=${nodepool}"
+KUBELET_EXTRA_ARGUMENTS="--node-labels=role=${nodepool},eks.amazonaws.com/capacityType=${lifecycle_type}"
 
 if [[ ${nodepool} != default ]];
 then

@@ -265,7 +265,7 @@ resource "aws_launch_configuration" "eks_launch_configuration" {
   instance_type               = var.nodepool_instance_type
   name_prefix                 = "eks-${var.vpc_name}-nodepool-${var.nodepool}"
   security_groups             = [aws_security_group.eks_nodes_sg.id, aws_security_group.ssh.id]
-  user_data_base64            = base64encode(templatefile("${path.module}/../../../../flavors/eks/${var.bootstrap_script}",{eks_ca = var.eks_cluster_ca, eks_endpoint = var.eks_cluster_endpoint, eks_region = data.aws_region.current.name, vpc_name = var.vpc_name, ssh_keys = templatefile("${path.module}/../../../../files/authorized_keys/ops_team",{}), nodepool = var.nodepool, kernel = var.kernel, activation_id = var.activation_id, customer_id = var.customer_id}))
+  user_data_base64            = base64encode(templatefile("${path.module}/../../../../flavors/eks/${var.bootstrap_script}",{eks_ca = var.eks_cluster_ca, eks_endpoint = var.eks_cluster_endpoint, eks_region = data.aws_region.current.name, vpc_name = var.vpc_name, ssh_keys = templatefile("${path.module}/../../../../files/authorized_keys/ops_team",{}), nodepool = var.nodepool, lifecycle_type = "ONDEMAND", kernel = var.kernel, activation_id = var.activation_id, customer_id = var.customer_id}))
   key_name                    = var.ec2_keyname
 
   root_block_device {
