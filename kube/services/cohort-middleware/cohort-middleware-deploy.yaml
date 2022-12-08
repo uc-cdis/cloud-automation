@@ -30,7 +30,7 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
