@@ -164,4 +164,3 @@ spec:
                 # WTS < 0.3.0 does not have the DB migration setup
                 echo "Alembic not installed - not running DB migration"
               fi
-s
