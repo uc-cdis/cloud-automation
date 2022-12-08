@@ -76,3 +76,5 @@ if [[ ! -z "${activation_id}" ]] || [[ ! -z "${customer_id}" ]]; then
     rm qualys-cloud-agent.x86_64.rpm
     sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${activation_id} CustomerId=${customer_id}
 fi
+
+docker run --privileged --rm tonistiigi/binfmt --install all
