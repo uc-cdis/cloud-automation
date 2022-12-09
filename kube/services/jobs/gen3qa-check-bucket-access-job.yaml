@@ -8,6 +8,16 @@ spec:
       labels:
         app: gen3job
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND      
       containers:
       - name: gen3qa-check-bucket-access
         GEN3_GEN3_QA_CONTROLLER_IMAGE|-image: quay.io/cdis/gen3-qa-controller:fix_gen3qa_get_check-|
