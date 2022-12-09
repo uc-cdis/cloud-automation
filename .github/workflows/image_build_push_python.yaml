@@ -22,7 +22,6 @@ jobs:
       run: echo "Files have been updated"
 
   python_3-9:
-    if: steps.delta.outputs.files == 'true'
     name: Python 3.9 Build and Push
     needs: verify-changes
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
@@ -38,7 +37,6 @@ jobs:
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   
   python_3-10:
-    if: steps.delta.outputs.files == 'true'
     needs: verify-changes
     name: Python 3.10 Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
