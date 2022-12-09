@@ -40,7 +40,6 @@ USER elasticsearch
 WORKDIR /usr/share/elasticsearch
 
 # push custom conf
-
 RUN echo "#  --------------------------------- CUSTOM -----------------------------------"                                    >> /etc/elasticsearch/elasticsearch.yml
 RUN echo ""                                                                                                                   >> /etc/elasticsearch/elasticsearch.yml
 RUN echo "#  X-Pack features are not supported in ARM, disable X-Pack"                                                        >> /etc/elasticsearch/elasticsearch.yml
