@@ -27,6 +27,10 @@ spec:
         operator: "Equal"
         value: "jupyter"
         effect: "NoSchedule"
+      - key: "role"
+        operator: "Equal"
+        value: "workflow"
+        effect: "NoSchedule"
       containers:
       - name: fluentd
         GEN3_FLUENTD_IMAGE
