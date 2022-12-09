@@ -122,6 +122,14 @@ then
   done
 fi
 
+if g3kubectl get namespace argocd > /dev/null 2>&1;
+then
+    filePath="$scriptDir/gen3.nginx.conf/argocd-server.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
+fi
+
 if [[ $current_namespace == "default" ]];
 then
   if g3kubectl get namespace prometheus > /dev/null 2>&1;

@@ -24,6 +24,15 @@ spec:
       annotations:
         "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND     
       serviceAccountName: jenkins-service
       securityContext:
         runAsUser: 1000
