@@ -235,6 +235,16 @@ spec:
         dbsuperset: "yes"
         public: "yes"
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND        
       securityContext:
         runAsUser: 0
       initContainers:

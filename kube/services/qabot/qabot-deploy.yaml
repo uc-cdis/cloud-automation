@@ -19,6 +19,16 @@ spec:
         app: qabot
         netnolimit: "yes"
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND        
       containers:
       - name: qabot
         image: "quay.io/cdis/qa-bot:latest"

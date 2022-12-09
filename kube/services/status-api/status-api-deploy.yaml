@@ -19,6 +19,16 @@ spec:
         app: status-api
         netnolimit: "yes"
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND       
       containers:
       - name: status-api
         image: "quay.io/cdis/status-dashboard:latest"

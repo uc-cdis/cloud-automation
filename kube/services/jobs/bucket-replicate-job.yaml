@@ -17,6 +17,16 @@ spec:
       labels:
         app: gen3job
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND   
       serviceAccountName: batch-operations-account
       securityContext:
         fsGroup: 1000

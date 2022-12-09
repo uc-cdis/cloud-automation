@@ -20,6 +20,16 @@ spec:
         dbfence: "yes"
         GEN3_DATE_LABEL
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND                 
       automountServiceAccountToken: false
       volumes:
         - name: yaml-merge
