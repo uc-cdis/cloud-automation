@@ -80,3 +80,7 @@ variable "activation_id" {
 variable "customer_id" {
   default = ""
 }
+
+variable "ami" {
+  default = ""
+}
