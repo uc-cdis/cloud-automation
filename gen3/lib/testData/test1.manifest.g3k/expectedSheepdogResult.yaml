@@ -48,7 +48,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - ONDEMAND
+                - SPOT
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
