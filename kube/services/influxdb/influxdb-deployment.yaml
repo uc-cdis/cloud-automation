@@ -15,6 +15,16 @@ spec:
       labels:
         app: influxdb
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND             
       containers:
       - image: docker.io/influxdb:1.8.0
         imagePullPolicy: IfNotPresent
