@@ -14,15 +14,31 @@ source "$GEN3_HOME/gen3/lib/utils.sh"
 gen3_load "gen3/lib/terraform"
 
 destroyFlag=""
-if [[ "$1" =~ ^-+destroy ]]; then
-  destroyFlag="-destroy"
-  shift
-fi
 declare -a targetList=()
-while [[ "$1" =~ ^-+target ]]; do
-  targetList+=( "$1" )
-  shift
-done
+if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
+  for flag in $@; do
+    gen3_log_info "$flag"
+    case "$flag" in
+      --destroy)
+        destroyFlag="-destroy";
+        shift
+        ;;
+      --target)
+        shift
+        targetList+=( "--target=$1" )
+        shift
+        ;;
+      --target*)
+        targetList+=( "$1" )
+        shift
+        ;;
+      --tf1)
+        USE_TF_1="True"
+        shift
+        ;;
+    esac
+  done
+fi
 
 cd $GEN3_WORKDIR
 /bin/rm -f plan.terraform
@@ -50,3 +66,5 @@ WARNING: applying this plan will change your infrastructure.
 EOM
 fi
 echo "Use 'gen3 tfapply' to apply this plan, and backup the configuration variables"
+
+

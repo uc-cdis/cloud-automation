@@ -1,6 +1,18 @@
 source "$GEN3_HOME/gen3/lib/utils.sh"
 gen3_load "gen3/lib/terraform"
 
+if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
+  for flag in $@; do
+    gen3_log_info "$flag"
+    case "$flag" in
+      --tf1)
+        USE_TF_1="True"
+        shift
+        ;;
+    esac
+  done
+fi
+
 cd "$GEN3_WORKDIR"
 if [[ ! -f plan.terraform ]]; then
   gen3_log_err "plan.terraform does not exist in workspace - run 'gen3 tfplan'"

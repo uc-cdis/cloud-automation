@@ -44,6 +44,19 @@ refreshFromBackend() {
 
 # main -----------------------
 
+if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
+  for flag in $@; do
+    gen3_log_info "$flag"
+    case "$flag" in
+      --tf1)
+        USE_TF_1="True"
+        shift
+        ;;
+    esac
+  done
+fi
+
+
 #
 # Create any missing files
 #
