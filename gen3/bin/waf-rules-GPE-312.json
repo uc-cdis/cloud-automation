@@ -59,24 +59,6 @@
       }
     },
     {
-      "Name": "AWS-AWSManagedRulesAnonymousIpList",
-      "Priority": 3,
-      "Statement": {
-        "ManagedRuleGroupStatement": {
-          "VendorName": "AWS",
-          "Name": "AWSManagedRulesAnonymousIpList"
-        }
-      },
-      "OverrideAction": {
-        "None": {}
-      },
-      "VisibilityConfig": {
-        "SampledRequestsEnabled": true,
-        "CloudWatchMetricsEnabled": true,
-        "MetricName": "AWS-AWSManagedRulesAnonymousIpList"
-      }
-    },
-    {
       "Name": "AWS-AWSManagedRulesCommonRuleSet",
       "Priority": 4,
       "Statement": {
