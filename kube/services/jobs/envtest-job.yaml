@@ -19,7 +19,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - ONDEMAND      
+                - SPOT    
       restartPolicy: Never
       automountServiceAccountToken: false
       containers:
