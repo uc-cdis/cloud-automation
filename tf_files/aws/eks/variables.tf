@@ -162,7 +162,7 @@ variable "fips_ami_kms" {
 # This is the FIPS enabled AMI in cdistest account.
 
 variable "fips_enabled_ami" {
-  default = "ami-0de87e3680dcb13ec"
+  default = "ami-074d352c8e753fc93"
 }
 
 variable "availability_zones" {
