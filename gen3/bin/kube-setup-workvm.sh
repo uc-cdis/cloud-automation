@@ -6,6 +6,7 @@
 #
 
 s3_bucket="${s3_bucket:-${2:-unknown}}"
+export DEBIAN_FRONTEND=noninteractive
 
 # Make it easy to run this directly ...
 _setup_workvm_dir="$(dirname -- "${BASH_SOURCE:-$0}")"
@@ -29,15 +30,16 @@ fi
 
 if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   # -E passes through *_proxy environment
-  sudo -E apt-get update
-  sudo -E apt-get install -y git jq pwgen python-dev python-pip unzip python3-dev python3-pip python3-venv 
+  gen3_log_info "Install git jq pwgen unzip python3-dev python3-pip python3-venv libpq-dev apt-transport-https ca-certificates gnupg apt-utils"
+  sudo -E apt-get update -qq
+  sudo -E apt-get install -qq -y git jq pwgen unzip python3-dev python3-pip python3-venv libpq-dev apt-transport-https ca-certificates gnupg apt-utils > /dev/null
   
   ( # subshell
     # install aws cli v2 - https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html
     # increase min version periodically - see https://github.com/aws/aws-cli/blob/v2/CHANGELOG.rst
     update_awscli() {
       local version="0.0.0"
-      if aws --version; then
+      if aws --version > /dev/null 2>&1; then
         version="$(aws --version | awk '{ print $1 }' | awk -F / '{ print $2 }')"
       fi
       if semver_ge "$version" "2.7.0"; then
@@ -46,6 +48,7 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
       fi
       # update to latest version
       ( # subshell
+        gen3_log_info "Installing aws cli"
         export DEBIAN_FRONTEND=noninteractive
         if [[ -f /usr/local/bin/aws ]] && ! semver_ge "$version" "2.7.0"; then
           sudo rm /usr/local/bin/aws
@@ -54,13 +57,14 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
         temp_dir="aws_install-$(date +%m%d%Y)"
         mkdir $temp_dir
         cd $temp_dir
-        curl -o awscli.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
-        unzip awscli.zip
+        curl -s -o awscli.zip https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m || "x86_64").zip
+        unzip -qq awscli.zip
         if semver_ge "$version" "2.7.0"; then
           yes | sudo ./aws/install --update
         else
           yes | sudo ./aws/install
         fi
+        aws --version
         # cleanup
         cd $HOME
         rm -rf $temp_dir
@@ -70,18 +74,23 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     update_awscli
   )
 
-  sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install --upgrade pip
+  gen3_log_info "Upgrading pip.."
+  sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install -q --upgrade pip
+  
+  gen3_log_info "Installing jinja2 via pip"
+
   # jinja2 needed by render_creds.py
-  sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install jinja2
-  # yq === jq for yaml
-  sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install yq
+  sudo -E XDG_CACHE_HOME=/var/cache python3 -m pip install -q jinja2 yq --ignore-installed
+
 
   # install nodejs
-  if ! which node > /dev/null 2>&1; then
-    curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-    sudo -E apt-get update
-    sudo -E apt-get install -y nodejs
-  fi
+  gen3_log_info "Install node js 16"
+  curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - > /dev/null
+  sudo apt install -qq -y nodejs > /dev/null 
+  
+  gen3_log_info "Node: Version $(node --version)"
+
+
   if [[ ! -f /etc/apt/sources.list.d/google-cloud-sdk.list ]]; then
     # might need to uninstall gcloud installed from ubuntu repo
     if which gcloud > /dev/null 2>&1; then
@@ -89,7 +98,8 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
     fi
   fi
   if ! which psql > /dev/null 2>&1; then
-    (
+    ( 
+      gen3_log_info "Install postgres-client"
       # use the postgres dpkg server
       # https://www.postgresql.org/download/linux/ubuntu/
       DISTRO="$(lsb_release -c -s)"  # ex - xenial
@@ -97,32 +107,31 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
         echo "deb http://apt.postgresql.org/pub/repos/apt/ ${DISTRO}-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
       fi
       wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-      sudo -E apt-get update
-      sudo -E apt-get install -y postgresql-client-13
-    )
-  fi
-  # gen3sdk currently requires this
-  sudo -E apt-get install -y libpq-dev
-  if ! which gcloud > /dev/null 2>&1; then
-    (
-      export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
-      sudo -E bash -c "echo 'deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main' > /etc/apt/sources.list.d/google-cloud-sdk.list"
-      curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo -E apt-key add -
-      sudo -E apt-get update
-      sudo -E apt-get install -y google-cloud-sdk \
-          google-cloud-sdk-cbt 
+      sudo -E apt-get -qq update
+      sudo -E apt-get install -qq -y postgresql-client-13 > /dev/null
     )
   fi
 
-  k8s_server_version=$(kubectl version --short | awk -F[v.] '/Server/ {print $3"."$4}')
-  if [[ ! -z "${k8s_server_version// }" ]]; then
-      # install kubectl
-      install_version=$(apt-cache madison kubectl | awk  '$3 ~ /'$k8s_server_version'/ {print $3}'| head -n 1)
-      gen3_log_info "Installing kubectl version $install_version"
-      sudo -E apt-get install -y kubectl=$install_version --allow-downgrades
-  else
-      # install kubectl
-      sudo -E apt-get install -y kubectl=1.21.14-00 --allow-downgrades
+  if ! which gcloud > /dev/null 2>&1; then
+    (
+      gen3_log_info "Install google cloud cli"
+      sudo -E bash -c "echo 'deb https://packages.cloud.google.com/apt cloud-sdk main' | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list"
+      curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo -E apt-key add -
+      curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+      sudo -E apt-get update -qq
+      sudo -E apt-get install -qq -y google-cloud-sdk \
+          google-cloud-sdk-cbt  > /dev/null
+      
+    )
+
+  fi
+
+  if ! which kubectl > /dev/null 2>&1; then
+    gen3_log_info "Installing kubectl"
+    sudo -E apt-get install -qq -y kubectl > /dev/null
+  else 
+    gen3_log_info "Upgrading kubectl"
+    sudo -E apt-get upgrade -qq -y kubectl > /dev/null
   fi
 
   mkdir -p ~/.config
@@ -130,26 +139,29 @@ if sudo -n true > /dev/null 2>&1 && [[ $(uname -s) == "Linux" ]]; then
   
   ( # in a subshell - install terraform
     install_terraform() {
-      curl -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip
+      gen3_log_info "Installing terraform 0.11"
+      curl -s -o "${XDG_RUNTIME_DIR}/terraform.zip" https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip
       sudo /bin/rm -rf /usr/local/bin/terraform > /dev/null 2>&1 || true
-      sudo unzip "${XDG_RUNTIME_DIR}/terraform.zip" -d /usr/local/bin;
+      sudo unzip -qq "${XDG_RUNTIME_DIR}/terraform.zip" -d /usr/local/bin;
       /bin/rm "${XDG_RUNTIME_DIR}/terraform.zip"
     }
 
     install_terraform12() {
+      gen3_log_info "Installing terraform 0.12"
       mkdir "${XDG_RUNTIME_DIR}/t12"
-      curl -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip
+      curl -s -o "${XDG_RUNTIME_DIR}/t12/terraform12.zip" https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip
       sudo /bin/rm -rf /usr/local/bin/terraform12 > /dev/null 2>&1 || true
-      unzip "${XDG_RUNTIME_DIR}/t12/terraform12.zip" -d "${XDG_RUNTIME_DIR}/t12";
+      unzip -qq "${XDG_RUNTIME_DIR}/t12/terraform12.zip" -d "${XDG_RUNTIME_DIR}/t12";
       sudo cp "${XDG_RUNTIME_DIR}/t12/terraform" "/usr/local/bin/terraform12"
       /bin/rm -rf "${XDG_RUNTIME_DIR}/t12"
     }
 
     install_terraform1.2() {
+      gen3_log_info "Installing terraform 1.2"
       mkdir "${XDG_RUNTIME_DIR}/t1.2"
-      curl -o "${XDG_RUNTIME_DIR}/t1.2/terraform1.2.zip" https://releases.hashicorp.com/terraform/1.2.3/terraform_1.2.3_linux_amd64.zip
+      curl -s -o "${XDG_RUNTIME_DIR}/t1.2/terraform1.2.zip" https://releases.hashicorp.com/terraform/1.2.3/terraform_1.2.3_linux_amd64.zip
       sudo /bin/rm -rf /usr/local/bin/terraform1.2 > /dev/null 2>&1 || true
-      unzip "${XDG_RUNTIME_DIR}/t1.2/terraform1.2.zip" -d "${XDG_RUNTIME_DIR}/t1.2";
+      unzip -qq "${XDG_RUNTIME_DIR}/t1.2/terraform1.2.zip" -d "${XDG_RUNTIME_DIR}/t1.2";
       sudo cp "${XDG_RUNTIME_DIR}/t1.2/terraform" "/usr/local/bin/terraform1.2"
       /bin/rm -rf "${XDG_RUNTIME_DIR}/t1.2"
     }
@@ -213,8 +225,9 @@ EOM
     )
   fi
   if ! which packer > /dev/null 2>&1; then
-    curl -o "${XDG_RUNTIME_DIR}/packer.zip" https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
-    sudo unzip "${XDG_RUNTIME_DIR}/packer.zip" -d /usr/local/bin
+    gen3_log_info "Installing packer"
+    curl -s -o "${XDG_RUNTIME_DIR}/packer.zip" https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
+    sudo unzip -qq "${XDG_RUNTIME_DIR}/packer.zip" -d /usr/local/bin
     /bin/rm "${XDG_RUNTIME_DIR}/packer.zip"
   fi
   # https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
@@ -222,23 +235,16 @@ EOM
     (
       gen3_log_info "installing aws-iam-authenticator"
       cd /usr/local/bin
-      sudo curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.8/2020-09-18/bin/linux/amd64/aws-iam-authenticator
+      sudo curl -s -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.8/2020-09-18/bin/linux/amd64/aws-iam-authenticator
       sudo chmod a+rx ./aws-iam-authenticator
-      sudo rm /usr/local/bin/heptio-authenticator-aws || true
-      # link heptio-authenticator-aws for backward compatability with old scripts
-      sudo ln -s /usr/local/bin/aws-iam-authenticator heptio-authenticator-aws
     )
   fi
   ( # in a subshell install helm
     install_helm() {
       helm_release_URL="https://get.helm.sh/helm-v3.4.0-linux-amd64.tar.gz"
-      curl -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
+      curl -s -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
       tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
       sudo mv -f "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin
-
-      # helm3 has no default repo, need to add it manually
-      helm repo add stable https://charts.helm.sh/stable --force-update
-      helm repo update
     }
 
     migrate_helm() {
@@ -354,3 +360,5 @@ fi
     npm install || true
   fi
 )
+
+source ${WORKSPACE}/.${RC_FILE}
