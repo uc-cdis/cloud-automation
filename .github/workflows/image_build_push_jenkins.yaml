@@ -1,4 +1,4 @@
-name: Build Python Base Images and Push to Quay and ECR
+name: Build Jenkins images and push to Quay
 
 on: 
   push:
@@ -19,13 +19,26 @@ jobs:
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}    
+  jenkins2:
+    name: Jenkins2 Build and Push
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins2/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins2"
+      OVERRIDE_REPO_NAME: "jenkins2"
+      USE_QUAY_ONLY: true
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   jenkins-ci-worker:
     name: Jenkins-CI-Worker Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins-CI-Worker/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins-CI-Worker"
-      OVERRIDE_REPO_NAME: "jenkins-ci-worker"
+      OVERRIDE_REPO_NAME: "gen3-ci-worker"
       USE_QUAY_ONLY: true
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
@@ -38,7 +51,7 @@ jobs:
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins-Worker/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins-Worker"
-      OVERRIDE_REPO_NAME: "jenkins-qa-worker"
+      OVERRIDE_REPO_NAME: "gen3-qa-worker"
       USE_QUAY_ONLY: true
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
