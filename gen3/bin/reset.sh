@@ -1,5 +1,9 @@
 #!/bin/bash
-set -e
+# TODO: Experiencing the following error:
+# [31mERROR: 21:00:30 - Lock already exists and timed out waiting for lock to unlock[39m
+# + exit 1
+# Needs further investigation. Commenting out the next line for now
+# set -e
 
 #
 # script to reset kubernetes namespace gen3 objects/services
