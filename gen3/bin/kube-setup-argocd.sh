@@ -11,7 +11,7 @@ then
     gen3_log_info "ArgoCD is already deployed. Skipping..."
 else
     kubectl create namespace argocd
-    kubectl annotate namespace argocd app="argocd"
+    kubectl label namespace argocd app="argocd"
     kubectl apply -f "${GEN3_HOME}/kube/services/argocd/install.yaml" -n argocd
     gen3 kube-setup-revproxy
     export argocdsecret=`kubectl get secret argocd-initial-admin-secret -n argocd -o json | jq .data.password -r | base64 -d` # pragma: allowlist secret
