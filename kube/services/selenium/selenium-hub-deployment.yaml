@@ -17,6 +17,16 @@ spec:
       annotations:
         "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND       
       containers:
       - env:
         - name: GRID_MAX_SESSION

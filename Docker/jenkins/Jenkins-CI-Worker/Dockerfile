@@ -72,7 +72,7 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
    && chmod a+rx /usr/local/bin/docker-compose
 
 # install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 
 # add psql: https://www.postgresql.org/download/linux/debian/

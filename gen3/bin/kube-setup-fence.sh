@@ -90,3 +90,11 @@ if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.07"; then
       gen3 job cron fence-visa-update "30 * * * *"
   fi
 fi
+
+# add cronjob for removing expired OIDC clients for required fence versions
+if isServiceVersionGreaterOrEqual "fence" "6.2.0" "2023.01"; then
+  if ! g3kubectl get cronjob fence-delete-expired-clients >/dev/null 2>&1; then
+      echo "fence-delete-expired-clients being added as a cronjob b/c fence >= 6.2.0 or 2023.01"
+      gen3 job cron fence-delete-expired-clients "0 7 * * *"
+  fi
+fi
