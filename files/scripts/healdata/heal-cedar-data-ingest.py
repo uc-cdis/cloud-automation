@@ -18,7 +18,19 @@ SPECIAL_VALUE_MAPPINGS = {
     "Interview/Focus Group - semi-structured": "Interview/Focus Group",
     "Interview/Focus Group - unstructured": "Interview/Focus Group",
     "Questionnaire/Survey/Assessment - validated instrument": "Questionnaire/Survey/Assessment",
-    "Questionnaire/Survey/Assessment - unvalidated instrument": "Questionnaire/Survey/Assessment"
+    "Questionnaire/Survey/Assessment - unvalidated instrument": "Questionnaire/Survey/Assessment",
+    "Cis Male": "Male",
+    "Cis Female": "Female",
+    "Trans Male": "Female-to-male transsexual",
+    "Trans Female": "Male-to-female transsexual",
+    "Agender, Non-binary, gender non-conforming": "Other",
+    "Gender Queer": "Other",
+    "Intersex": "Intersexed"
+}
+
+# Defines field that we don't want to include in the filters
+OMITTED_VALUES_MAPPING = {
+    "Human Subject Applicability.gender_applicability": "Not applicable"
 }
 
 def update_filter_metadata(metadata_to_update):
@@ -29,11 +41,15 @@ def update_filter_metadata(metadata_to_update):
             if isinstance(filter_field_values, str):
                 filter_field_values = [filter_field_values]
             if not isinstance(filter_field_values, list):
-                print(f"Found neither a string nor a list for field {metadata_field_key}, value is {filter_field_values}")
+                print(filter_field_values)
+                raise TypeError("Neither a string nor a list")
             for filter_field_value in filter_field_values:
+                if (metadata_field_key, filter_field_value) in OMITTED_VALUES_MAPPING.items():
+                    continue
                 if filter_field_value in SPECIAL_VALUE_MAPPINGS:
                     filter_field_value = SPECIAL_VALUE_MAPPINGS[filter_field_value]
                 filter_metadata.append({"key": filter_field_key, "value": filter_field_value})
+    filter_metadata = pydash.uniq(filter_metadata)
     metadata_to_update["advSearchFilters"] = filter_metadata
     return metadata_to_update
 
