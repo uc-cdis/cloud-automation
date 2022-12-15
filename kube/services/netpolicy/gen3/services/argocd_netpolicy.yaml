@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: netpolicy-revproxy
+  name: netpolicy-argocd
 spec:
   podSelector:
     matchExpressions:
@@ -10,13 +10,8 @@ spec:
       operator: In
       values:
       - revproxy
-      - ambassador-gen3
-      - auspice
-      - ohdsi-atlas
-      - ohdsi-webapi
-      - superset
-      - superset-worker
-      - superset-redis-master
+      - cohort-middleware
+      - wts
   ingress:
     - from:
       - ipBlock:
@@ -28,21 +23,8 @@ spec:
          - port: 81
          - port: 82
          - port: 443
-         - port: 8088
   egress:
     - to:
-      - namespaceSelector:
-          matchLabels:
-            app: prometheus
-    - to: 
-      - namespaceSelector:
-          matchLabels:
-            app: grafana
-    - to: 
-      - namespaceSelector:
-          matchLabels:
-            app: argo
-    - to: 
       - namespaceSelector:
           matchLabels:
             app: argocd
