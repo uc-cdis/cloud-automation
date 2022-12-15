@@ -12,7 +12,7 @@ gen3_load "gen3/gen3setup"
 g3kubectl patch serviceaccount default -p 'automountServiceAccountToken: false'
 g3kubectl patch serviceaccount --namespace "$(gen3 jupyter j-namespace)" default -p 'automountServiceAccountToken: false' > /dev/null || true
 
-local namespace="$(gen3 api namespace)"
+namespace="$(gen3 api namespace)"
 
 # Don't do this in a Jenkins job
 if [[ -z "$JENKINS_HOME" ]]; then
