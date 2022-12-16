@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 
+          fetch-depth: 1 
 
       - name: Get changed files 
         id: delta
@@ -19,7 +19,7 @@ jobs:
           files: |
             Docker/awshelper/*
 
-      - name: Run step if any file(s) in the docs folder change
+      - name: Run if file changed
         if: steps.delta.outputs.any_changed == 'true'
         run: |
           ls -al
@@ -27,6 +27,7 @@ jobs:
   
   awshelper:
     needs: verify-changes
+    if: needs.delta.outputs.any_changed == 'true'
     name: AwsHelper Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
