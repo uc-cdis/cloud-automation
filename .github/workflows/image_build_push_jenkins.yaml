@@ -27,9 +27,10 @@ jobs:
           echo "Files changed: ${{ steps.delta.outputs.all_changed_files }}"
   
   jenkins:
-    name: Jenkins Build and Push
+    
     needs: verify-changes
     if: needs.delta.outputs.any_changed == 'true'
+    name: Jenkins Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins/Dockerfile"

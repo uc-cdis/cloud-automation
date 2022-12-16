@@ -25,9 +25,9 @@ jobs:
           echo "Files changed: ${{ steps.delta.outputs.all_changed_files }}"
 
   python_3-9:
-    name: Python 3.9 Build and Push
     needs: verify-changes
     if: steps.delta.outputs.any_changed == 'true'
+    name: Python 3.9 Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.9-buster/Dockerfile"
