@@ -28,7 +28,7 @@ if [[ -z $waf ]]; then
         --rules file://${GEN3_HOME}/gen3/bin/waf-rules-GPE-312.json \
         --region us-east-1
     #Need to sleep to avoid "WAFUnavailableEntityException" error since the waf takes a bit to spin up
-    sleep 240
+    sleep 300
 else
     gen3_log_info "WAF already exists. Skipping..."
 fi
