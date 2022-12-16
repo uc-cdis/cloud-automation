@@ -26,7 +26,7 @@ jobs:
 
   python_3-9:
     needs: verify-changes
-    if: steps.delta.outputs.any_changed == 'true'
+    if: needs.verify-changes.outputs.any_changed == 'true'
     name: Python 3.9 Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
@@ -42,7 +42,7 @@ jobs:
   
   python_3-10:
     needs: verify-changes
-    if: steps.delta.outputs.any_changed == 'true'
+    if: needs.verify-changes.outputs.any_changed == 'true'
     name: Python 3.10 Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:

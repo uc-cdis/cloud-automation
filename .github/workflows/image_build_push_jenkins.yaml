@@ -29,7 +29,7 @@ jobs:
   jenkins:
     
     needs: verify-changes
-    if: needs.delta.outputs.any_changed == 'true'
+    if: needs.verify-changes.outputs.any_changed == 'true'
     name: Jenkins Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
