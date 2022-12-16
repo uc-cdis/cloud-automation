@@ -64,13 +64,13 @@ args = parser.parse_args()
 
 if not args.directory:
     print("Directory ID is required!")
-    sys.exit(0)
+    sys.exit(1)
 if not args.access_token:
     print("User access token is required!")
-    sys.exit(0)
+    sys.exit(1)
 if not args.hostname:
     print("Hostname is required!")
-    sys.exit(0)
+    sys.exit(1)
 
 dir_id = args.directory
 access_token = args.access_token
@@ -87,7 +87,7 @@ if cedar.status_code == 200:
     metadata_return = cedar.json()
     if "metadata" not in metadata_return:
         print("Got 200 from CEDAR wrapper but no metadata in body, something is not right!")
-        sys.exit(0)
+        sys.exit(1)
 
     print(f"Successfully got {len(metadata_return['metadata'])} record(s) from CEDAR directory")
     for cedar_record in metadata_return["metadata"]:
