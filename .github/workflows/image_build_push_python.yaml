@@ -17,7 +17,7 @@ jobs:
         uses: tj-actions/changed-files@v34
         with:
           files: |
-            Docker/python-nginx/**
+            Docker/python-nginx/*
 
       - name: Run if files changed
         if: steps.delta.outputs.any_changed == 'true'
