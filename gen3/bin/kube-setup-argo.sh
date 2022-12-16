@@ -14,6 +14,7 @@ function setup_argo_buckets {
   local accountNumber
   local environment
   local policyFile="$XDG_RUNTIME_DIR/policy_$$.json"
+  local bucketLifecyclePolicyFile="$XDG_RUNTIME_DIR/bucket_lifecycle_policy_$$.json"
 
 
   if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
@@ -98,6 +99,21 @@ EOF
    ]
 }
 EOF
+    cat > "$bucketLifecyclePolicyFile" <<EOF
+{
+  "Rules": [
+    {
+      "ID": "Store objects in Glacier after about 6 months",
+      "Prefix": "",
+      "Status": "Enabled",
+      "Transition": {
+        "Days": 190,
+        "StorageClass": "GLACIER"
+      }
+    }
+  ]
+}
+EOF
   if ! secret="$(g3kubectl get secret argo-s3-creds -n argo 2> /dev/null)"; then
     gen3_log_info "setting up bucket $bucketName"
 
@@ -107,7 +123,8 @@ EOF
     elif ! aws s3 mb "s3://${bucketName}"; then
       gen3_log_err "failed to create bucket ${bucketName}"
     fi
-
+    gen3_log_info "Creating bucket lifecycle policy"
+    aws s3api put-bucket-lifecycle --bucket ${bucketName} --lifecycle-configuration file://$bucketLifecyclePolicyFile
 
     gen3_log_info "Creating IAM user ${userName}"
     if ! aws iam get-user --user-name ${userName} > /dev/null 2>&1; then
