@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 1 
+          fetch-depth: 0 
 
       - name: Get changed files 
         id: delta
@@ -19,10 +19,9 @@ jobs:
           files: |
             Docker/awshelper/*
 
-      - name: Run if file changed
+      - name: Run if files changed
         if: steps.delta.outputs.any_changed == 'true'
         run: |
-          ls -al
           echo "Files changed: ${{ steps.delta.outputs.all_changed_files }}"
   
   awshelper:
