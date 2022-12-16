@@ -17,8 +17,8 @@ scriptDir="${GEN3_HOME}/kube/services/ingress"
 gen3_ingress_setup_waf() {
     gen3_log_info "Starting GPE-312 waf setup"
     #variable to see if WAF already exists
+    export vpc_name_quotes=`echo $vpc_name | sed 's/^/"/;s/$/"/'`
     export waf=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains("$vpc_name_quotes")).Name'`
-    export vpc_name_quotes='"$vpc_name"'
 if [[ -z $waf ]]; then
     gen3_log_info "Creating Web ACL. This may take a few minutes."
     aws wafv2 create-web-acl\
