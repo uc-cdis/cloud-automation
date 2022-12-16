@@ -103,11 +103,11 @@ EOF
 {
   "Rules": [
     {
-      "ID": "Store objects in Glacier after about 6 months",
+      "ID": "Store objects in Glacier after 4 months",
       "Prefix": "",
       "Status": "Enabled",
       "Transition": {
-        "Days": 190,
+        "Days": 120,
         "StorageClass": "GLACIER"
       }
     }
