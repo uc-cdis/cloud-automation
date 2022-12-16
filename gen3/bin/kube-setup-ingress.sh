@@ -17,8 +17,7 @@ scriptDir="${GEN3_HOME}/kube/services/ingress"
 gen3_ingress_setup_waf() {
     gen3_log_info "Starting GPE-312 waf setup"
     #variable to see if WAF already exists
-    export vpc_name_quotes=`echo $vpc_name | sed 's/^/"/;s/$/"/'`
-    export waf=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains("$vpc_name_quotes")).Name'`
+    export waf=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains(env.vpc_name)).Name'`
 if [[ -z $waf ]]; then
     gen3_log_info "Creating Web ACL. This may take a few minutes."
     aws wafv2 create-web-acl\
@@ -34,7 +33,7 @@ else
     gen3_log_info "WAF already exists. Skipping..."
 fi
     gen3_log_info "Attaching ACL to ALB."
-    export acl_arn=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains("$vpc_name_quotes")).ARN'`
+    export acl_arn=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains(env.vpc_name)).ARN'`
     export alb_name=`kubectl get ingress gen3-ingress | awk '{print $4}' | tail +2 |  sed 's/^\([A-Za-z0-9]*-[A-Za-z0-9]*-[A-Za-z0-9]*\).*/\1/;q'`
     export alb_arn=`aws elbv2 describe-load-balancers --name $alb_name | yq -r .LoadBalancers[0].LoadBalancerArn`
     export association=`aws wafv2 list-resources-for-web-acl --web-acl-arn $acl_arn | grep $alb_arn| sed -e 's/^[ \t]*//' | sed -e 's/^"//' -e 's/"$//'`
