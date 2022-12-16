@@ -123,8 +123,6 @@ EOF
     elif ! aws s3 mb "s3://${bucketName}"; then
       gen3_log_err "failed to create bucket ${bucketName}"
     fi
-    gen3_log_info "Creating bucket lifecycle policy"
-    aws s3api put-bucket-lifecycle --bucket ${bucketName} --lifecycle-configuration file://$bucketLifecyclePolicyFile
 
     gen3_log_info "Creating IAM user ${userName}"
     if ! aws iam get-user --user-name ${userName} > /dev/null 2>&1; then
@@ -156,6 +154,8 @@ EOF
     g3kubectl delete secret -n argo argo-s3-creds
   fi
 
+  gen3_log_info "Creating bucket lifecycle policy"
+  aws s3api put-bucket-lifecycle --bucket ${bucketName} --lifecycle-configuration file://$bucketLifecyclePolicyFile
 
   gen3_log_info "Creating s3 creds secret in argo namespace"
   if [[ -z $internalBucketName ]]; then
