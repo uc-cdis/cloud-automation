@@ -15,7 +15,7 @@ spec:
       releaseName: datadog
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: datadog-test
+    namespace: datadog
   syncPolicy:
     automated:
       prune: true
