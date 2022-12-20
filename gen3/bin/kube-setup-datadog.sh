@@ -44,7 +44,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
       fi
       helm repo add datadog https://helm.datadoghq.com --force-update 2> >(grep -v 'This is insecure' >&2)
       helm repo update 2> >(grep -v 'This is insecure' >&2)
-      g3kubectl apply -f "$GEN3_HOME/kube/services/datadog/argocd-appliction.yaml"
+      g3kubectl apply -f "$GEN3_HOME/kube/services/datadog/argocd-application.yaml"
     )
   else
     gen3_log_info "kube-setup-datadog exiting - datadog already deployed, use --force to redeploy"
