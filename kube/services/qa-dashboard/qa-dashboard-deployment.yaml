@@ -19,6 +19,16 @@ spec:
         public: "yes"
         netnolimit: "yes"
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT                   
       containers:
       - name: qa-metrics
         image: "quay.io/cdis/qa-metrics:latest"

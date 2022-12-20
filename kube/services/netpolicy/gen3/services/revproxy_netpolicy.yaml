@@ -42,6 +42,10 @@ spec:
       - namespaceSelector:
           matchLabels:
             app: argo
+    - to: 
+      - namespaceSelector:
+          matchLabels:
+            app: argocd
   policyTypes:
    - Ingress
    - Egress

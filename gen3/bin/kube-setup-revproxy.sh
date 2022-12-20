@@ -13,6 +13,12 @@ set -e
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
+gen3_load "gen3/lib/g3k_manifest"
+
+# Deploy ELB Service if flag set in manifest
+manifestPath=$(g3k_manifest_path)
+deployELB="$(jq -r ".[\"global\"][\"deploy_elb\"]" < "$manifestPath" | tr '[:upper:]' '[:lower:]')"
+
 
 #
 # Setup indexd basic-auth gateway user creds enforced
@@ -114,6 +120,14 @@ then
       confFileList+=("--from-file" "$filePath")
     fi
   done
+fi
+
+if g3kubectl get namespace argocd > /dev/null 2>&1;
+then
+    filePath="$scriptDir/gen3.nginx.conf/argocd-server.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
 fi
 
 if [[ $current_namespace == "default" ]];
@@ -255,6 +269,9 @@ export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_a
 #  revproxy deployment using http proxy protocol.
 #
 # port 81 == proxy-protocol listener - main service entry
+
+gen3_deploy_revproxy_elb() {
+gen3_log_info "Deploying revproxy-service-elb..."
 export TARGET_PORT_HTTPS=81
 # port 82 == proxy-protocol listener - redirects to https
 export TARGET_PORT_HTTP=82
@@ -280,6 +297,10 @@ else
   envsubst <$scriptDir/revproxy-service-elb.yaml
   gen3_log_info "DRY RUN"
 fi
-
+}
 # Don't automatically apply this right now
 #kubectl apply -f $scriptDir/revproxy-service.yaml
+
+if [ "$deployELB" = true ]; then
+  gen3_deploy_revproxy_elb
+fi 
