@@ -37,7 +37,7 @@ setup_config() {
 }
 EOM
     gen3 secrets sync
-    fi
+  fi
 }
 
 setup_config
