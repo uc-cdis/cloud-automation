@@ -6,8 +6,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://prometheus-community.github.io/helm-charts'
-    chart: kube-prometheus-stack
+    repoURL: https://prometheus-community.github.io/helm-charts
+    chart: rometheus
     targetRevision: 15.10.4
     helm:
       valueFiles: 
