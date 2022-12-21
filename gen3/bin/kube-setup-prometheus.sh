@@ -60,7 +60,7 @@ function deploy_prometheus()
     if (! g3kubectl get namespace monitoring> /dev/null 2>&1);
     then
       g3kubectl create namespace monitoring
-      g3kubectl label namespace app=prometheus
+      g3kubectl label namespace monitoring app=prometheus
     fi
 
     if (g3kubectl --namespace=monitoring get deployment prometheus-server > /dev/null 2>&1);
