@@ -7,7 +7,8 @@ spec:
   project: default
   source:
     chart: prometheus-community/kube-prometheus-stack 
-    repoURL: 'https://prometheus-community.github.io/helm-charts'
+    targetRevision: 2.36.2
+    repoURL: 'https://github.com/prometheus-community/helm-charts/'
     helm:
       valueFiles: 
       - https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/kube/services/monitoring/values.yaml
