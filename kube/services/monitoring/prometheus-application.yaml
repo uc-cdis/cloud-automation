@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://prometheus-community.github.io/helm-charts'
     chart: kube-prometheus-stack
-    targetRevision: prometheus-15.10.4
+    targetRevision: 15.10.4
     helm:
       valueFiles: 
       - https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/kube/services/monitoring/values.yaml
