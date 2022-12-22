@@ -56,51 +56,12 @@ RUN cd /opt && wget --quiet https://github.com/grafana/xk6-browser/releases/down
   && tar -xvzf /opt/xk6-browser-v0.3.0-linux-amd64.tar.gz
 ENV PATH="/opt/xk6-browser-v0.3.0-linux-amd64:${PATH}"
 
-# install google tools
-RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
-    && echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list \
-    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
-    && apt-get update \
-    && apt-get install -y google-cloud-sdk \
-          google-cloud-sdk-cbt \
-          kubectl \
-          zsh
-
 # Install jq 1.6
 RUN wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && chmod +x jq-linux64 && mv jq-linux64 /usr/bin/jq
-
-#
-# install docker tools:
-#  * https://docs.docker.com/install/linux/docker-ce/debian/#install-docker-ce-1
-#  * https://docs.docker.com/compose/install/#install-compose
-#
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
-    && /usr/bin/add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian \
-    $(lsb_release -c -s) \
-    stable" \
-    && apt-get update \
-    && apt-get install -y docker-ce \
-    && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-    && chmod a+rx /usr/local/bin/docker-compose
 
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
 RUN apt-get update && apt-get install -y nodejs
-
-# install chrome (supports headless mode)
-RUN set -xe \
-    && curl -fsSL https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable
-
-# install terraform
-RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
-   && unzip /tmp/terraform.zip -d /usr/local/bin && /bin/rm /tmp/terraform.zip
-
-# install packer
-RUN curl -o /tmp/packer.zip https://releases.hashicorp.com/packer/1.5.1/packer_1.5.1_linux_amd64.zip
-RUN unzip /tmp/packer.zip -d /usr/local/bin; /bin/rm /tmp/packer.zip
 
 # add psql: https://www.postgresql.org/download/linux/debian/
 RUN DISTRO="$(lsb_release -c -s)"  \

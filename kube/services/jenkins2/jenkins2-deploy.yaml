@@ -74,7 +74,7 @@ spec:
           - name: JENKINS_S3_PATH
             # Just hard code for now
             # Bucket in cdistest account used for backups
-            value: "s3://cdis-terraform-state/Jenkins3Backup"
+            value: "s3://cdis-terraform-state/Jenkins2Backup"
           - name: GOOGLE_EMAIL_AUX1
             valueFrom:
               secretKeyRef:
