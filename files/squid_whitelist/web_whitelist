@@ -82,6 +82,7 @@ k8s.gcr.io
 ks.osdc.io
 kubecost.github.io
 kubernetes.github.io
+kubernetes-sigs.github.io
 lib.stat.cmu.edu
 login.mathworks.com
 login.microsoftonline.com
@@ -119,6 +120,7 @@ opportunityinsights.org
 orcid.org
 pgp.mit.edu
 ppa.launchpad.net
+prometheus-community.github.io
 public.ecr.aws
 pubmirrors.dal.corespace.com
 reflector.westga.edu
