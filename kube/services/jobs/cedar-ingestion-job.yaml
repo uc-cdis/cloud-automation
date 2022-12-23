@@ -107,7 +107,6 @@ spec:
             export ACCESS_TOKEN="$(cat /mnt/shared/access_token.txt)"
             python ${GEN3_HOME}/files/scripts/healdata/heal-cedar-data-ingest.py --access_token $ACCESS_TOKEN --directory $CEDAR_DIRECTORY_ID --hostname $HOSTNAME
             echo "All done - exit status $?"
-        restartPolicy: Never
       - name: fence
         GEN3_FENCE_IMAGE
         imagePullPolicy: Always
