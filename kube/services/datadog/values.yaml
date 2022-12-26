@@ -10,6 +10,11 @@ datadog:
     useHostPort: true
     nonLocalTraffic: true
 
+  #Enables Optional Universal Service Monitoring
+  ## ref: https://docs.datadoghq.com/tracing/universal_service_monitoring/?tab=helm
+  serviceMonitoring:
+    enabled: true
+
   # datadog.apiKeyExistingSecret -- Use existing Secret which stores API key instead of creating a new one. The value should be set with the `api-key` key inside the secret.
   ## If set, this parameter takes precedence over "apiKey".
   apiKeyExistingSecret:  "datadog-agent"
