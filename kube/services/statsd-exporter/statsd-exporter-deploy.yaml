@@ -22,6 +22,16 @@ spec:
         app: "statsd-exporter"
         GEN3_DATE_LABEL
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND       
       containers:
       - name: "statsd-exporter"
         GEN3_STATSD-EXPORTER_IMAGE|-image: prom/statsd-exporter:v0.15.0-|

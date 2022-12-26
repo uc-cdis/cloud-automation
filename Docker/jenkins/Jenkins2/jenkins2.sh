@@ -16,14 +16,25 @@ if [ -z "$JENKINS_S3_PATH" ]; then
   JENKINS_S3_PATH="s3://cdis-terraform-state/Jenkins2Backup"
 fi
 
+#
 # Setup ~/.aws to support cloud-automation/gen3 
+# terraform stuff wants a profile to query
+# 
 mkdir -p ~/.aws
 cat - > ~/.aws/config <<EOM
+[default]
+output = json
+region = us-east-1
+
 [profile jenkins]
 output = json
 region = us-east-1
 EOM
 cat - > ~/.aws/credentials <<EOM
+[default]
+aws_access_key_id = $AWS_ACCESS_KEY_ID
+aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+
 [jenkins]
 aws_access_key_id = $AWS_ACCESS_KEY_ID
 aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
@@ -46,7 +57,8 @@ if [ ! -d "$JENKINS_HOME/jobs" ]; then # restore from s3 is necessary
     echo "Jenkins home not in expected location: /var/jenkins_home"
   fi
 fi
-
+sed -i 's/jenkins.planx-pla.net/jenkins2.planx-pla.net/g' /var/jenkins_home/jenkins.model.JenkinsLocationConfiguration.xml
+ 
 if [ -f /usr/local/bin/jenkins.sh ]; then
   source /usr/local/bin/jenkins.sh
 else

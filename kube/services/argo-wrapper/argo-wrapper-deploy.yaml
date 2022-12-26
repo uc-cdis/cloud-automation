@@ -21,12 +21,14 @@ spec:
         tags.datadoghq.com/service: "argo-wrapper"
         netnolimit: "yes"
         public: "yes"
+        GEN3_ENV_LABEL
         GEN3_ARGO-WRAPPER_VERSION
+        GEN3_DATE_LABEL
     spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -35,6 +37,15 @@ spec:
                   values:
                   - argo-wrapper
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND                           
       volumes:
         - name: argo-config
           configMap:
