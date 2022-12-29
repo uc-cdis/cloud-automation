@@ -76,9 +76,9 @@ spec:
               rc=$?
               if [[ "${slackWebHook}" != 'None' ]]; then
                 if [ $rc != 0 ]; then
-                  curl -X POST --data-urlencode "payload={\"text\": \"OPENCOST-REPORT-JOB-FAILED: <!here> Opencost report job failed to create a report\", \"channel\": \"${channel}\", \"username\": \"opencost-report-job\"}}" "${slackWebHook}";
+                  curl -X POST --data-urlencode "payload={\"text\": \"OPENCOST-REPORT-JOB-FAILED: <!here> Opencost report job failed to create a report\", \"channel\": \"${channel}\", \"username\": \"opencost-report-job\"}" "${slackWebHook}";
                 else
-                  curl -X POST --data-urlencode "payload={\"text\": \"OPENCOST-REPORT-JOB-SUCCEEDED: Opencost report job created report\", \"channel\": \"${channel}\", \"username\": \"opencost-report-job\"}}" "${slackWebHook}"
+                  curl -X POST --data-urlencode "payload={\"text\": \"OPENCOST-REPORT-JOB-SUCCEEDED: Opencost report job created report\", \"channel\": \"${channel}\", \"username\": \"opencost-report-job\"}" "${slackWebHook}"
                 fi
               fi
       restartPolicy: Never
