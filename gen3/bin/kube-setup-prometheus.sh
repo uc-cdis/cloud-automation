@@ -75,12 +75,12 @@ function deploy_prometheus()
     if ! g3kubectl get storageclass prometheus > /dev/null 2>&1; then
       g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/prometheus-storageclass.yaml"
     fi
-    deploy_thanos
     if [ "$argocd" = true ]; then
     g3kubectl apply -f "$GEN3_HOME/kube/services/monitoring/prometheus-application.yaml" --namespace=argocd
     else
     gen3 arun helm upgrade --install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring -f "${GEN3_HOME}/kube/services/monitoring/values.yaml" 
     fi
+    deploy_thanos
   else
     gen3_log_info "Prometheus is already installed, use --force to try redeploying"
   fi
