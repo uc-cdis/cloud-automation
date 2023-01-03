@@ -2899,7 +2899,7 @@ prometheus:
       objectStorageConfig:
         key: thanos.yaml
         name: thanos-objstore-config
-      image: thanos/thanos:v0.25.2
+      image: quay.io/thanos/thanos:v0.25.2
       #image: thanosio/thanos:v0.24.0
       version: v0.25.2
       tag: v0.25.2
