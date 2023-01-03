@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
+    chart: kube-prometheus-stack
     repoURL: https://prometheus-community.github.io/helm-charts
-    chart: rometheus
-    targetRevision: 15.10.4
+    targetRevision: 0.59.1
     helm:
       valueFiles: 
       - https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/kube/services/monitoring/values.yaml
