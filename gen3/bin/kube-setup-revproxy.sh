@@ -138,7 +138,6 @@ then
       if [[ -f "$filePath" ]]; then
         confFileList+=("--from-file" "$filePath")
       fi
-    done
   fi
 fi
 
