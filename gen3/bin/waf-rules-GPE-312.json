@@ -60,7 +60,7 @@
     },
     {
       "Name": "AWS-AWSManagedRulesCommonRuleSet",
-      "Priority": 4,
+      "Priority": 3,
       "Statement": {
         "ManagedRuleGroupStatement": {
           "VendorName": "AWS",
@@ -89,7 +89,7 @@
     },
     {
       "Name": "AWS-AWSManagedRulesKnownBadInputsRuleSet",
-      "Priority": 5,
+      "Priority": 4,
       "Statement": {
         "ManagedRuleGroupStatement": {
           "VendorName": "AWS",
