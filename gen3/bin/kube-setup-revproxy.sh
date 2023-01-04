@@ -132,15 +132,12 @@ fi
 
 if [[ $current_namespace == "default" ]];
 then
-  if g3kubectl get namespace prometheus > /dev/null 2>&1;
+  if g3kubectl get namespace monitoring > /dev/null 2>&1;
   then
-    for prometheus in $(g3kubectl get services -n prometheus -o jsonpath='{.items[*].metadata.name}');
-    do
-      filePath="$scriptDir/gen3.nginx.conf/${prometheus}.conf"
+      filePath="$scriptDir/gen3.nginx.conf/prometheus-server.conf"
       if [[ -f "$filePath" ]]; then
         confFileList+=("--from-file" "$filePath")
       fi
-    done
   fi
 fi
 
