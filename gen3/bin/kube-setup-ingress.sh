@@ -304,7 +304,7 @@ gen3_ingress_deploy_helm_chart() {
     helm repo update 2> >(grep -v 'This is insecure' >&2)
 
    #  # TODO: Move to values.yaml file
-    helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=$(gen3 api environment) --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller 2> >(grep -v 'This is insecure' >&2)
+    helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=$(gen3 api environment) --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller --set region=$AWS_REGION 2> >(grep -v 'This is insecure' >&2)
   else
     gen3_log_info "kube-setup-ingress exiting - ingress already deployed, use --force to redeploy"
   fi

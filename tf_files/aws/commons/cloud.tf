@@ -15,6 +15,7 @@ provider "aws" {}
 
 module "cdis_vpc" {
   ami_account_id                 = "${var.ami_account_id}"
+  availability_zones             = "${var.availability_zones}"
   squid_image_search_criteria    = "${var.squid_image_search_criteria}"
   source                         = "../modules/vpc"
   vpc_cidr_block                 = "${var.vpc_cidr_block}"
