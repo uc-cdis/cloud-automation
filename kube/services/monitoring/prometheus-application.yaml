@@ -11,7 +11,7 @@ spec:
     targetRevision: 43.1.3
     helm:
       valueFiles: 
-      - https://raw.githubusercontent.com/uc-cdis/cloud-automation/ec6bde6d1818a1572720f5471db462954de137b9/kube/services/monitoring/prometheus-values.yaml
+      - https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/kube/services/monitoring/prometheus-values.yaml
       releaseName: prometheus
   destination:
     server: 'https://kubernetes.default.svc'
