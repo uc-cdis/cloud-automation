@@ -47,7 +47,7 @@ alertmanager:
   ##
   extraArgs: [
    web.external-url: https://elise.planx-pla.net/prometheus,
-   web.route-prefix: /
+   web.route-prefix: /prometheus
   ]
 # {}
 
