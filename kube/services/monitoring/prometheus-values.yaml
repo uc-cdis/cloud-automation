@@ -45,10 +45,7 @@ alertmanager:
 
   ## Additional alertmanager container arguments
   ##
-  extraArgs: [
-   web.external-url: https://elise.planx-pla.net/prometheus,
-   web.route-prefix: /prometheus
-  ]
+  extraArgs: []
 # {}
 
   ## The URL prefix at which the container can be accessed. Useful in the case the '-web.external-url' includes a slug
@@ -579,9 +576,10 @@ server:
 
   ## Additional Prometheus server container arguments
   ##
-  extraArgs: []
-#    web.external-url: https://localhost/prometheus
-#    web.route-prefix: /prometheus
+  extraArgs: [
+    web.external-url: https://elise.planx-pla.net/prometheus,
+    web.route-prefix: /prometheus
+  ]
 
   ## Additional Prometheus server Volume mounts
   ##
