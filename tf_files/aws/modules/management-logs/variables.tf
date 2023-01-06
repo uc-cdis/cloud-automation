@@ -7,3 +7,7 @@ variable "accounts_id" {
 variable "elasticsearch_domain" {
   default = "commons-logs"
 }
+
+variable "log_bucket_name" {
+  default = "management-logs-remote-accounts"
+}

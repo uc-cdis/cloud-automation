@@ -13,6 +13,7 @@ module "eks" {
   ec2_keyname                      = "${var.ec2_keyname}"
   instance_type                    = "${var.instance_type}"
   peering_cidr                     = "${var.peering_cidr}"
+  secondary_cidr_block             = "${var.secondary_cidr_block}"
   users_policy                     = "${var.users_policy}"
   worker_drive_size                = "${var.worker_drive_size}"
   eks_version                      = "${var.eks_version}"
@@ -44,4 +45,9 @@ module "eks" {
   workflow_asg_max_size            = "${var.workflow_asg_max_size}"
   workflow_asg_min_size            = "${var.workflow_asg_min_size}"
   deploy_workflow                  = "${var.deploy_workflow}"
+  fips                             = "${var.fips}"
+  fips_ami_kms                     = "${var.fips_ami_kms}"
+  fips_enabled_ami                 = "${var.fips_enabled_ami}"
+  availability_zones               = "${var.availability_zones}"
+  secondary_availability_zones     = "${var.secondary_availability_zones}"
 }

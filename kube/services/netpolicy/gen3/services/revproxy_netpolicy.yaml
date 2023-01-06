@@ -13,6 +13,10 @@ spec:
       - ambassador-gen3
       - auspice
       - ohdsi-atlas
+      - ohdsi-webapi
+      - superset
+      - superset-worker
+      - superset-redis-master
   ingress:
     - from:
       - ipBlock:
@@ -24,6 +28,7 @@ spec:
          - port: 81
          - port: 82
          - port: 443
+         - port: 8088
   egress:
     - to:
       - namespaceSelector:
@@ -37,6 +42,10 @@ spec:
       - namespaceSelector:
           matchLabels:
             app: argo
+    - to: 
+      - namespaceSelector:
+          matchLabels:
+            app: argocd
   policyTypes:
    - Ingress
    - Egress

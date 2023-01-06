@@ -77,11 +77,24 @@ gen3_log_info "The fence service has been deployed onto the k8s cluster."
 gen3 kube-setup-google
 
 # add cronjob for removing expired ga4gh info for required fence versions
-# TODO: WILL UNCOMMENT THIS ONCE FEATURE IN FENCE IS RELEASED
-# if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.02"; then
-#   # Setup db cleanup cronjob
-#   if g3kubectl get cronjob fence-cleanup-expired-ga4gh-info >/dev/null 2>&1; then
-#       echo "fence-cleanup-expired-ga4gh-info being added as a cronjob b/c fence >= 6.0.0 or 2022.02"
-#       gen3 job cron fence-cleanup-expired-ga4gh-info "*/5 * * * *"
-#   fi
-# fi
+if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.07"; then
+  # Setup db cleanup cronjob
+  if ! g3kubectl get cronjob fence-cleanup-expired-ga4gh-info >/dev/null 2>&1; then
+      echo "fence-cleanup-expired-ga4gh-info being added as a cronjob b/c fence >= 6.0.0 or 2022.07"
+      gen3 job cron fence-cleanup-expired-ga4gh-info "*/5 * * * *"
+  fi
+
+  # Setup visa update cronjob
+  if ! g3kubectl get cronjob fence-visa-update >/dev/null 2>&1; then
+      echo "fence-visa-update being added as a cronjob b/c fence >= 6.0.0 or 2022.07"
+      gen3 job cron fence-visa-update "30 * * * *"
+  fi
+fi
+
+# add cronjob for removing expired OIDC clients for required fence versions
+if isServiceVersionGreaterOrEqual "fence" "6.2.0" "2023.01"; then
+  if ! g3kubectl get cronjob fence-delete-expired-clients >/dev/null 2>&1; then
+      echo "fence-delete-expired-clients being added as a cronjob b/c fence >= 6.2.0 or 2023.01"
+      gen3 job cron fence-delete-expired-clients "0 7 * * *"
+  fi
+fi

@@ -26,7 +26,7 @@ $ gen3 workon cdistest test-commons
   - [4.2 Optional Variables](#42-optional-variables)
 - [5. Outputs](#5-outputs)
 - [6. Considerations](#6-considerations)
-
+- [7. Adding a Secondary Subnet](#7-adding-a-seconday-subnet)
 
 ## 3. Overview
 
@@ -184,6 +184,7 @@ gdcapi_indexd_password="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 | fence_max_allocated_storage | Maximum storage allocation for autoscaling | number | 0 |
 | sheepdog_max_allocated_storage | Maximum storage allocation for autoscaling | number | 0 |
 | indexd_max_allocated_storage | Maximum storage allocation for autoscaling | number | 0 |
+| secondary_cidr_block | A secondary CIDR range that will get allocated the the workflow autoscaling group | string | "" | 
 
 
 ## 5. Outputs
@@ -205,3 +206,6 @@ gdcapi_indexd_password="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 If you want later on deploy EKS using a /22 subnet for the workers private network, set `network_expansion=true` this re-arranges the entire network subnets, so it will destroy the databases to make room for the new subnets.
 
+## 7. Adding a Secondary subnet
+
+If you are running workflow nodes and running into IP exhaustion issues, you can add a secondary CIDR range to create a new subnet for the workflow nodes to run in. You will need to add/run it here and then in the EKS module, as this module will attach the new CIDR range to the VPC, and that module will update the autoscaling groups to use it. Will also need to be aware that some functionality, like checking logs, will not work for up to 4 hours after the change, as the EKS api needs to run a job to refresh the whitelisted CIDR ranges. However, the pods should still be able to come up and work as usual during this time.

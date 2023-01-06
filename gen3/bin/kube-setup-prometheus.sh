@@ -17,7 +17,8 @@ function helm_repository()
 {
   if ! helm repo list > /dev/null 2>&1; then
     # helm3 has no default repo, need to add it manually
-    helm repo add stable https://charts.helm.sh/stable --force-update
+    #helm repo add stable https://charts.helm.sh/stable --force-update
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm repo update
   fi
 }
@@ -55,21 +56,23 @@ function deploy_prometheus()
   # but we only have one prometheus.
   #
   helm_repository
-  if (! g3kubectl --namespace=prometheus get deployment prometheus-server > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
-    if (! g3kubectl get namespace prometheus > /dev/null 2>&1);
+  if (! g3kubectl --namespace=monitoring get deployment prometheus-server > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
+    if (! g3kubectl get namespace monitoring> /dev/null 2>&1);
     then
-      g3kubectl create namespace prometheus
-      g3kubectl label namespace prometheus app=prometheus
+      g3kubectl create namespace monitoring
+      g3kubectl label namespace namespace app=prometheus
     fi
 
-    if (g3kubectl --namespace=prometheus get deployment prometheus-server > /dev/null 2>&1);
+    if (g3kubectl --namespace=monitoring get deployment prometheus-server > /dev/null 2>&1);
     then
-      delete_prometheus
+      #delete_prometheus
+      echo "skipping delete"
     fi
     if ! g3kubectl get storageclass prometheus > /dev/null 2>&1; then
       g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/prometheus-storageclass.yaml"
     fi
-    gen3 arun helm upgrade --install prometheus stable/prometheus --namespace prometheus -f "${GEN3_HOME}/kube/services/monitoring/prometheus-values.yaml" 
+    deploy_thanos
+    gen3 arun helm upgrade --install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring -f "${GEN3_HOME}/kube/services/monitoring/values.yaml" 
   else
     gen3_log_info "Prometheus is already installed, use --force to try redeploying"
   fi
@@ -105,6 +108,24 @@ function deploy_grafana()
   else
     echo "Grafana is already installed, use --force to try redeploying"
   fi
+}
+
+function deploy_thanos() {
+  if  [[ -z $vpc_name ]]; then
+    local vpc_name="$(gen3 api environment)"
+  fi
+  roleName="$vpc_name-thanos-role"
+  saName="thanos"
+  bucketName="$vpc_name-thanos-bucket"
+  gen3 s3 create "$bucketName"
+  gen3 awsrole create "$roleName" "$saName" "monitoring" || return 1
+  gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name ${roleName} || true
+  thanosValuesFile="$XDG_RUNTIME_DIR/thanos.yaml"
+  thanosValuesTemplate="${GEN3_HOME}/kube/services/monitoring/thanos.yaml"
+  g3k_kv_filter $thanosValuesTemplate S3_BUCKET $bucketName > $thanosValuesFile
+  g3kubectl delete secret -n monitoring thanos-objstore-config || true
+  g3kubectl create secret generic -n monitoring thanos-objstore-config --from-file="$thanosValuesFile"
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/thanos-deploy.yaml"
 }
 
 command=""

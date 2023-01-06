@@ -213,7 +213,7 @@ else
   gen3_log_info "not deploying requestor - no manifest entry for .versions.requestor"
 fi
 
-gen3 kube-setup-metadata &
+gen3 kube-setup-metadata
 
 if g3k_manifest_lookup .versions.ssjdispatcher 2>&1 /dev/null; then
   gen3 kube-setup-ssjdispatcher &
@@ -231,7 +231,19 @@ else
   gen3_log_info "not deploying audit-service - no manifest entry for .versions.audit-service"
 fi
 
-gen3 kube-setup-revproxy &
+if g3k_manifest_lookup '.versions["dicom-server"]' 2> /dev/null; then
+  gen3 kube-setup-dicom-server &
+else
+  gen3_log_info "not deploying dicom-server - no manifest entry for '.versions[\"dicom-server\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["dicom-viewer"]' 2> /dev/null; then
+  gen3 kube-setup-dicom-viewer &
+else
+  gen3_log_info "not deploying dicom-viewer - no manifest entry for '.versions[\"dicom-viewer\"]'"
+fi
+
+gen3 kube-setup-revproxy
 
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   # Internal k8s systems
@@ -288,6 +300,36 @@ if g3k_manifest_lookup '.versions["frontend-framework"]' 2> /dev/null; then
   gen3 kube-setup-frontend-framework &
 else
   gen3_log_info "not deploying frontend-framework - no manifest entry for '.versions[\"frontend-framework\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["cedar-wrapper"]' 2> /dev/null; then
+  gen3 kube-setup-cedar-wrapper &
+else
+  gen3_log_info "not deploying cedar-wrapper - no manifest entry for '.versions[\"cedar-wrapper\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["kayako-wrapper"]' 2> /dev/null; then
+  gen3 kube-setup-kayako-wrapper &
+else
+  gen3_log_info "not deploying kayako-wrapper - no manifest entry for '.versions[\"kayako-wrapper\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["argo-wrapper"]' 2> /dev/null; then
+  gen3 kube-setup-argo-wrapper &
+else
+  gen3_log_info "not deploying argo-wrapper - no manifest entry for '.versions[\"argo-wrapper\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["cohort-middleware"]' 2> /dev/null; then
+  gen3 roll cohort-middleware &
+else
+  gen3_log_info "not deploying cohort-middleware - no manifest entry for '.versions[\"cohort-middleware\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["ohdsi-atlas"]' && g3k_manifest_lookup '.versions["ohdsi-webapi"]' 2> /dev/null; then
+  gen3 kube-setup-ohdsi &
+else
+  gen3_log_info "not deploying OHDSI tools - no manifest entry for '.versions[\"ohdsi-atlas\"]' and '.versions[\"ohdsi-webapi\"]'"
 fi
 
 gen3_log_info "enable network policy"

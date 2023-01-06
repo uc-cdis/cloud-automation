@@ -8,6 +8,16 @@ spec:
       labels:
         app: gen3job
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND       
       volumes:
         - name: config-volume-g3auto
           secret:
@@ -54,7 +64,7 @@ spec:
                   key: AGG_MDS_NAMESPACE
                   optional: true
           imagePullPolicy: Always
-          command: ["/bin/ash"]
+          command: ["/bin/sh"]
           args:
             - "-c"
             - |

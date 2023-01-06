@@ -19,6 +19,8 @@ spec:
     metadata:
       labels:
         app: cohort-middleware
+        dbohdsi: "yes"
+        dbomop-data: "yes"
         public: "yes"
         tags.datadoghq.com/service: "cohort-middleware"
         GEN3_ENV_LABEL
@@ -28,7 +30,7 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -37,6 +39,15 @@ spec:
                   values:
                   - cohort-middleware
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT                           
       automountServiceAccountToken: false
       volumes:
         - name: cohort-middleware-config
@@ -99,8 +110,8 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: "0.5"
-              memory: 256Mi
+              cpu: 500m
+              memory: 4Gi
             limits:
-              cpu: "0.5"
-              memory: 256Mi
+              cpu: 500m
+              memory: 4Gi

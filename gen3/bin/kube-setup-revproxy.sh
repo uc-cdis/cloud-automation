@@ -13,6 +13,12 @@ set -e
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
+gen3_load "gen3/lib/g3k_manifest"
+
+# Deploy ELB Service if flag set in manifest
+manifestPath=$(g3k_manifest_path)
+deployELB="$(jq -r ".[\"global\"][\"deploy_elb\"]" < "$manifestPath" | tr '[:upper:]' '[:lower:]')"
+
 
 #
 # Setup indexd basic-auth gateway user creds enforced
@@ -85,6 +91,18 @@ fi
 
 for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'); do
   filePath="$scriptDir/gen3.nginx.conf/${name}.conf"
+
+  if [[ $name == "portal-service" || $name == "frontend-framework-service" ]]; then
+    FRONTEND_ROOT=$(g3kubectl get configmap manifest-global --output=jsonpath='{.data.frontend_root}')
+    if [[ $FRONTEND_ROOT == "gen3ff" ]]; then
+      #echo "setup gen3ff as root frontend service"
+      filePath="$scriptDir/gen3.nginx.conf/gen3ff-as-root/${name}.conf"
+    else
+      #echo "setup windmill as root frontend service"
+      filePath="$scriptDir/gen3.nginx.conf/portal-as-root/${name}.conf"
+    fi
+  fi
+
   #echo "$filePath"
   if [[ -f "$filePath" ]]; then
     #echo "$filePath exists in $BASHPID!"
@@ -93,18 +111,23 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
   fi
 done
 
-if [[ $current_namespace == "default" ]];
+if g3kubectl get namespace argo > /dev/null 2>&1;
 then
-  if g3kubectl get namespace argo > /dev/null 2>&1;
-  then
-    for argo in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
-    do
-      filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
-      if [[ -f "$filePath" ]]; then
-        confFileList+=("--from-file" "$filePath")
-      fi
-    done
-  fi
+  for argo in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
+  do
+    filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
+  done
+fi
+
+if g3kubectl get namespace argocd > /dev/null 2>&1;
+then
+    filePath="$scriptDir/gen3.nginx.conf/argocd-server.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
 fi
 
 if [[ $current_namespace == "default" ]];
@@ -140,6 +163,13 @@ if [[ $current_namespace == "default" ]]; then
   fi
 fi
 
+if g3k_manifest_lookup .global.document_url  > /dev/null 2>&1; then
+  documentUrl="$(g3k_manifest_lookup .global.document_url)"
+  if [[ "$documentUrl" != null ]]; then
+    filePath="$scriptDir/gen3.nginx.conf/documentation-site/documentation-site.conf"
+    confFileList+=("--from-file" "$filePath")
+  fi
+fi
 #
 # Funny hook to load the portal-workspace-parent nginx config
 #
@@ -239,6 +269,9 @@ export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_a
 #  revproxy deployment using http proxy protocol.
 #
 # port 81 == proxy-protocol listener - main service entry
+
+gen3_deploy_revproxy_elb() {
+gen3_log_info "Deploying revproxy-service-elb..."
 export TARGET_PORT_HTTPS=81
 # port 82 == proxy-protocol listener - redirects to https
 export TARGET_PORT_HTTP=82
@@ -264,6 +297,10 @@ else
   envsubst <$scriptDir/revproxy-service-elb.yaml
   gen3_log_info "DRY RUN"
 fi
-
+}
 # Don't automatically apply this right now
 #kubectl apply -f $scriptDir/revproxy-service.yaml
+
+if [ "$deployELB" = true ]; then
+  gen3_deploy_revproxy_elb
+fi 

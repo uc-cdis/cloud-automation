@@ -45,6 +45,15 @@ metadata:
   annotations:
     "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
 spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: eks.amazonaws.com/capacityType
+            operator: In
+            values:
+            - ONDEMAND
   containers:
   - name: shell
     image: quay.io/cdis/gen3-ci-worker:master
@@ -386,6 +395,9 @@ spec:
         }
 
         stage('WaitForQuayBuild') {
+	    options {
+                timeout(time: 30, unit: 'MINUTES')   // timeout on this stage
+            }
             steps {
                 script {
                     try {
@@ -449,6 +461,9 @@ spec:
         }
 
         stage('K8sReset') {
+	    options {
+                timeout(time: 1, unit: 'HOURS')   // timeout on this stage
+            }
             steps {
                 script {
                     try {
@@ -531,6 +546,9 @@ spec:
         }
 
         stage('RunTests') {
+	    options {
+                timeout(time: 3, unit: 'HOURS')   // timeout on this stage
+            }
             steps {
                 script {
                     try {

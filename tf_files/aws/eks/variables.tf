@@ -1,4 +1,3 @@
-
 variable "vpc_name" {}
 
 variable "ec2_keyname" {
@@ -21,19 +20,22 @@ variable "peering_cidr" {
   default = "10.128.0.0/20"
 }
 
+variable "secondary_cidr_block" {
+  default = ""
+}
+
 variable "peering_vpc_id" {
   default = "vpc-e2b51d99"
 }
 
 variable "users_policy" {}
 
-
 variable "worker_drive_size" {
   default = 30
 }
 
 variable "eks_version" {
-  default = "1.16"
+  default = "1.21"
 }
 
 variable "workers_subnet_size" {
@@ -143,3 +145,35 @@ variable "activation_id" {
 variable "customer_id" {
   default = ""
 }
+
+# This controls whether or not we use FIPS enabled AMI's
+
+variable "fips" {
+  default = false
+}
+
+# the key that was used to encrypt the FIPS enabled AMI
+# This is needed to ASG can decrypt the ami 
+
+variable "fips_ami_kms" {
+  default = "arn:aws:kms:us-east-1:707767160287:key/mrk-697897f040ef45b0aa3cebf38a916f99"
+}
+
+# This is the FIPS enabled AMI in cdistest account.
+
+variable "fips_enabled_ami" {
+  default = "ami-074d352c8e753fc93"
+}
+
+variable "availability_zones" {
+  description = "AZ to be used by EKS nodes"
+  type        = "list"
+  default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
+}
+
+variable "secondary_availability_zones" {
+  description = "AZ to be used by EKS nodes in the secondary subnet"
+  type        = "list"
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+}
+

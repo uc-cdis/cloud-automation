@@ -17,6 +17,7 @@ module "squid_auto" {
   env_squid_name             = "${var.env_squid_name}"
   ami_account_id             = "${var.ami_account_id}"
   peering_cidr               = "${var.peering_cidr}"
+  secondary_cidr_block       = "${var.secondary_cidr_block}"
   bootstrap_path             = "${var.bootstrap_path}"
   bootstrap_script           = "${var.bootstrap_script}"
   image_name_search_criteria = "${var.image_name_search_criteria}"
