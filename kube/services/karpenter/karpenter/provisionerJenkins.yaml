@@ -1,0 +1,19 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: default
+spec:
+  requirements:
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["on-demand"]
+  taints:
+    - key: role
+      value: jupyter
+      effect: NoSchedule       
+  limits:
+    resources:
+      cpu: 1000
+  providerRef:
+    name: default
+  ttlSecondsAfterEmpty: 30

@@ -1,0 +1,60 @@
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: default
+spec:
+  subnetSelector:
+    karpenter.sh/discovery: "true"
+  securityGroupSelector:
+    karpenter.sh/discovery: emalinowskiv1
+  tags:
+    karpenter.sh/discovery: emalinowskiv1
+  userData: |
+    MIME-Version: 1.0
+    Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+    --BOUNDARY
+    Content-Type: text/x-shellscript; charset="us-ascii"
+
+    #!/bin/bash -xe
+
+    # User data for our EKS worker nodes basic arguments to call the bootstrap script for EKS images
+    # More info https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html
+
+    cat >> /home/ec2-user/.ssh/authorized_keys <<EFO
+    GEN3_SSH_KEYS
+    EFO
+
+    sysctl -w fs.inotify.max_user_watches=12000
+
+    ## Ensure source routed packets are not accepted
+    sysctl -w net.ipv4.conf.all.accept_source_route=0
+    sysctl -w net.ipv4.conf.default.accept_source_route=0
+    sysctl -w net.ipv6.conf.all.accept_source_route=0
+    sysctl -w net.ipv6.conf.default.accept_source_route=0
+    sysctl -w net.ipv4.route.flush=1
+    sysctl -w net.ipv6.route.flush=1
+
+
+    ## Ensure Reverse Path Filtering is enabled
+    sysctl -w net.ipv4.conf.all.rp_filter=1
+    sysctl -w net.ipv4.conf.default.rp_filter=1
+    sysctl -w net.ipv4.route.flush=1
+
+    ## Ensure SSH Protocol is set to 2
+    echo "Protocol 2" >> /etc/ssh/sshd_config
+
+    ## Ensure SSH Idle Timeout Interval is configured
+    echo "ClientAliveInterval 300" >> /etc/ssh/sshd_config
+    echo "ClientAliveCountMax 0" >> /etc/ssh/sshd_config
+
+    # Install qualys agent if the activtion and customer id provided
+
+    --BOUNDARY--
+  blockDeviceMappings:
+    - deviceName: /dev/xvda
+      ebs:
+        volumeSize: 50Gi
+        volumeType: gp2
+        encrypted: true
+        deleteOnTermination: true

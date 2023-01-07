@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# cluster-autoscaler allow a kubernetes cluste scale out or in depending on the 
+# cluster-autoscaler allow a kubernetes cluste scale out or in depending on the
 # specification set in deployment. It'll talk to the ASG where the worker nodes are
 # and send a signal to add or remove instances based upon requirements.
 #
@@ -82,18 +82,36 @@ function deploy() {
 
 }
 
+function remove() {
+
+  if ( g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1); then
+    if ! [ -z ${CAS_VERSION} ];
+    then
+      casv=${CAS_VERSION}
+    else
+      casv="$(get_autoscaler_version)" # cas stands for ClusterAutoScaler
+    fi
+    echo "Removing cluster autoscaler ${casv} in ${vpc_name}"
+    g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/cluster-autoscaler-autodiscover.yaml" VPC_NAME "${vpc_name}" CAS_VERSION ${casv} | g3kubectl "--namespace=kube-system" delete -f -
+  else
+    echo "kube-setup-autoscaler exiting - cluster-autoscaler not deployed"
+  fi
+
+}
+
 
 function HELP(){
-  echo "Usage: $SCRIPT [-v] <version> [-f] "
+  echo "Usage: $SCRIPT [-v] <version> [-f] [-r]"
   echo "Options:"
   echo "No option is mandatory, however you can provide the following:"
   echo "        -v num       --version num       --create=num        Cluster autoscaler version number"
   echo "        -f           --force                                 Force and update if it is already installed"
+  echo "        -r           --remove                                remove deployment if already installed"
 }
 
 #echo $(get_autoscaler_version)
 
-OPTSPEC="hfv:-:"
+OPTSPEC="hfvr:-:"
 while getopts "$OPTSPEC" optchar; do
   case "${optchar}" in
     -)
@@ -106,6 +124,10 @@ while getopts "$OPTSPEC" optchar; do
           ;;
         version=*)
           CAS_VERSION=${OPTARG#*=}
+          ;;
+        remove)
+          remove
+          exit 0
           ;;
         *)
           if [ "$OPTERR" = 1 ] && [ "${OPTSPEC:0:1}" != ":" ]; then
@@ -120,6 +142,10 @@ while getopts "$OPTSPEC" optchar; do
       ;;
     v)
       CAS_VERSION=${OPTARG}
+      ;;
+    r)
+      remove
+      exit 0
       ;;
     *)
       if [ "$OPTERR" != 1 ] || [ "${OPTSPEC:0:1}" = ":" ]; then

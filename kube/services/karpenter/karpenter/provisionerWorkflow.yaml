@@ -1,0 +1,19 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: workflow
+spec:
+  requirements:
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["on-demand"]
+  taints:
+    - key: role
+      value: workflow
+      effect: NoSchedule       
+  limits:
+    resources:
+      cpu: 1000
+  providerRef:
+    name: workflow
+  ttlSecondsAfterEmpty: 30
