@@ -8,7 +8,10 @@ gen3_load "gen3/gen3setup"
 
 gen3_deploy_karpenter() {
   # If the karpenter namespace doesn't exist or the force flag isn't in place then deploy
-  if [[ -z $(g3kubectl get namespaces | grep karpenter) ]]  || [[ "$1" == "--force" ]]; then
+  if [[ -z $(g3kubectl get namespaces | grep karpenter) ]]  || [[ $FORCE ]]; then
+    # Ensure the spot instance service linked role is setup
+    # It is required for running spot instances
+    aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
     karpenter=${karpenter:-v0.22.0}
     echo '{
         "Statement": [
@@ -60,11 +63,14 @@ gen3_deploy_karpenter() {
     subnets=$(aws ec2 describe-subnets --filter 'Name=tag:Environment,Values='$vpc_name'' 'Name=tag:Name,Values=eks_private_*' --query 'Subnets[].SubnetId' --output text)
     security_groups=$(aws ec2 describe-security-groups --filter 'Name=tag:Name,Values='$vpc_name'-nodes-sg,ssh_eks_'$vpc_name'' --query 'SecurityGroups[].GroupId' --output text)
     security_groups_jupyter=$(aws ec2 describe-security-groups --filter 'Name=tag:Name,Values='$vpc_name'-nodes-sg-jupyter,ssh_eks_'$vpc_name'-nodepool-jupyter' --query 'SecurityGroups[].GroupId' --output text)
+    security_groups_workflow=$(aws ec2 describe-security-groups --filter 'Name=tag:Name,Values='$vpc_name'-nodes-sg-workflow,ssh_eks_'$vpc_name'-nodepool-workflow' --query 'SecurityGroups[].GroupId' --output text)    
     cluster_endpoint="$(aws eks describe-cluster --name ${vpc_name} --query "cluster.endpoint" --output text)"
 
     aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}" --resources ${security_groups}
-    aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=true" --resources ${subnets}
+    aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}" --resources ${subnets}
     aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-jupyter" --resources ${security_groups_jupyter}
+    aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-worfklow" --resources ${security_groups_workflow}
+
     helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version ${karpenter} --namespace karpenter \
         --set settings.aws.defaultInstanceProfile=${vpc_name}_EKS_workers \
         --set settings.aws.clusterEndpoint="${cluster_endpoint}" \
@@ -72,12 +78,22 @@ gen3_deploy_karpenter() {
         --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::$(aws sts get-caller-identity --output text --query 'Account'):role/gen3_service/karpenter-controller-role-${vpc_name}"
    # sleep for a little bit so CRD's can be created for the provisioner/node template
    sleep 10
+   # Deploy AWS node termination handler so that spot instances can be preemptively spun up before old instances stop
+   kubectl apply -f https://github.com/aws/aws-node-termination-handler/releases/download/v1.18.1/all-resources.yaml
   fi
   gen3 kube-setup-autoscaler --remove
   g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateDefault.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
   g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateJupyter.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
-  g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerDefault.yaml
+  g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateWofklow.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
+  if [[ $ARM ]]; then
+    # Deploy binfmt daemonset so the emulation tools run on arm nodes
+    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/binfmt.yaml
+    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerArm.yaml
+  else
+    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerDefault.yaml    
+  fi
   g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerJupyter.yaml
+  g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerWorkflow.yaml
 }
 
 gen3_remove_karpenter() {
@@ -96,6 +112,20 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   shift
   case "$command" in
     "deploy")
+      for flag in $@; do
+        if [[ $# -gt 0 ]]; then
+          flag="$1"
+          shift
+        fi
+        case "$flag" in
+          "--force")
+            FORCE=true
+            ;;
+          "--arm")
+            ARM=true
+            ;;
+        esac
+      done
       gen3_deploy_karpenter
       ;;
     "remove")
