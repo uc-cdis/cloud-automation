@@ -84,7 +84,7 @@ gen3_deploy_karpenter() {
   gen3 kube-setup-autoscaler --remove
   g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateDefault.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
   g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateJupyter.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
-  g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateWofklow.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
+  g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateWorkflow.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
   if [[ $ARM ]]; then
     # Deploy binfmt daemonset so the emulation tools run on arm nodes
     g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/binfmt.yaml
