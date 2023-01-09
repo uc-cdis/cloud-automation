@@ -248,16 +248,6 @@ gen3 kube-setup-revproxy
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   # Internal k8s systems
   gen3 kube-setup-fluentd &
-
-
-if g3k_manifest_lookup .global.document_url  > /dev/null 2>&1; then
-  documentUrl="$(g3k_manifest_lookup .global.document_url)"
-  if [[ "$documentUrl" != null ]]; then
-    filePath="$scriptDir/gen3.nginx.conf/documentation-site/documentation-site.conf"
-    confFileList+=("--from-file" "$filePath")
-  fi
-fi
-
   # If there is an entry for karpenter in the manifest setup karpenter
   if g3k_manifest_lookup .global.karpenter 2> /dev/null; then
     if [[ "$(g3k_manifest_lookup .global.karpenter)" != "arm" ]]; then
