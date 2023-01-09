@@ -13,6 +13,8 @@ spec:
     - key: role
       value: jupyter
       effect: NoSchedule       
+  labels:
+    role: jupyter
   # Set a limit of 1000 vcpus      
   limits:
     resources:
@@ -25,5 +27,3 @@ spec:
     enabled: true
   # Kill nodes after 30 days to ensure they stay up to date
   ttlSecondsUntilExpired: 2592000
-  # Kill nodes 30 seconds after the last non-daemonset pod is removed    
-  ttlSecondsAfterEmpty: 30

@@ -4,11 +4,13 @@ metadata:
   name: default
 spec:
   subnetSelector:
-    karpenter.sh/discovery: "true"
+    karpenter.sh/discovery: VPC_NAME
   securityGroupSelector:
-    karpenter.sh/discovery: GEN3_VPC_NAME
+    karpenter.sh/discovery: VPC_NAME
   tags:
-    karpenter.sh/discovery: GEN3_VPC_NAME
+    karpenter.sh/discovery: VPC_NAME
+    Environment: VPC_NAME
+    Name: eks-VPC_NAME-karpenter
   userData: |
     MIME-Version: 1.0
     Content-Type: multipart/mixed; boundary="BOUNDARY"
