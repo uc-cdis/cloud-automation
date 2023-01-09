@@ -85,7 +85,7 @@ spec:
           limits:
             # portal pigs out on resources at startup, then settles down
             cpu: 2
-            memory: 4096Mi
+            memory: 6144Mi
         ports:
         - containerPort: 80
         - containerPort: 443
