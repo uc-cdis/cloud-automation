@@ -2343,7 +2343,7 @@ prometheus:
     ## Allows setting additional arguments for the Prometheus container
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.Prometheus
     additionalArgs: [
-      external-url: /prometheus/
+      web.external-url: /prometheus/
     ]
 
     ## Interval between consecutive scrapes.
