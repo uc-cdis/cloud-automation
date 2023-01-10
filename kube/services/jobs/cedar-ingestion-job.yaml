@@ -19,11 +19,22 @@ kind: Job
 metadata:
   name: cedar-ingestion
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:
         app: gen3job
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND        
       serviceAccountName: useryaml-job
       volumes:
         - name: yaml-merge
