@@ -46,6 +46,8 @@ alertmanager:
   ## Additional alertmanager container arguments
   ##
   extraArgs: []
+#    web.external-url: https://localhost/prometheus
+#    web.route-prefix: /prometheus
 # {}
 
   ## The URL prefix at which the container can be accessed. Useful in the case the '-web.external-url' includes a slug
@@ -530,11 +532,11 @@ server:
   ## The URL prefix at which the container can be accessed. Useful in the case the '-web.external-url' includes a slug
   ## so that the various internal URLs are still able to access as they are in the default case.
   ## (Optional)
-  prefixURL: "http://localhost/prometheus/"
+  prefixURL: "http://localhost/prometheus"
 
   ## External URL which can access alertmanager
   ## Maybe same with Ingress host name
-  baseURL: "/prometheus/"
+  baseURL: "/prometheus"
 
   ## Additional server container environment variables
   ##
@@ -576,10 +578,9 @@ server:
 
   ## Additional Prometheus server container arguments
   ##
-  extraArgs: [
-    web.external-url: https://elise.planx-pla.net/prometheus,
-    web.route-prefix: /prometheus
-  ]
+  extraArgs: []
+#    web.external-url: https://localhost/prometheus
+#    web.route-prefix: /prometheus
 
   ## Additional Prometheus server Volume mounts
   ##
