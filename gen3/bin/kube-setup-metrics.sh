@@ -17,7 +17,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-DESIRED_VERSION=0.3.7
+DESIRED_VERSION=0.6.2
 CURRENT_VERSION=$(kubectl get deployment -n kube-system metrics-server -o json | jq -r .spec.template.spec.containers[0].image | awk -F :v '{print $2}')
 
 gen3_metrics_deploy() {
