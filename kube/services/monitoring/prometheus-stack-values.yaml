@@ -2342,9 +2342,7 @@ prometheus:
 
     ## Allows setting additional arguments for the Prometheus container
     ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.Prometheus
-    additionalArgs: [
-      web.external-url: /prometheus/
-    ]
+    additionalArgs: []
 
     ## Interval between consecutive scrapes.
     ## Defaults to 30s.
@@ -2456,7 +2454,7 @@ prometheus:
 
     ## External URL at which Prometheus will be reachable.
     ##
-    externalUrl: ""
+    externalUrl: "/prometheus/"
 
     ## Define which Nodes the Pods are scheduled on.
     ## ref: https://kubernetes.io/docs/user-guide/node-selection/
