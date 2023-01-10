@@ -107,7 +107,7 @@ configs:
     annotations: {}
 
     # -- Argo CD's externally facing base URL (optional). Required when configuring SSO
-    url: "/argocd/"
+    url: ""
 
     # -- The name of tracking label used by Argo CD for resource pruning
     # @default -- Defaults to app.kubernetes.io/instance
@@ -188,7 +188,7 @@ configs:
     # -- Value for base href in index.html. Used if Argo CD is running behind reverse proxy under subpath different from /
     server.basehref: "/argocd/"
     # -- Used if Argo CD is running behind reverse proxy under subpath different from /
-    server.rootpath: "/argocd/"
+    server.rootpath: ""
     # -- Directory path that contains additional static assets
     server.staticassets: /shared/app
     # -- Disable Argo CD RBAC for user authentication
@@ -1900,7 +1900,7 @@ repoServer:
   podLabels: {}
 
   # -- Resource limits and requests for the repo server pods
-  resources: {}
+  resources:
    limits:
      cpu: 50m
      memory: 128Mi
