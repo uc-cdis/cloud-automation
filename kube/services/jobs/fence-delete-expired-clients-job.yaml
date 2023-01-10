@@ -1,0 +1,61 @@
+# Delete all expired Fence OIDC clients and optionally post about expired clients on Slack.
+# To set up as a daily cronjob: `gen3 job cron fence-delete-expired-clients "0 7 * * *"`
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fence-delete-expired-clients
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      serviceAccountName: useryaml-job
+      volumes:
+        - name: yaml-merge
+          configMap:
+            name: "fence-yaml-merge"
+        - name: config-volume
+          secret:
+            secretName: "fence-config"
+      containers:
+      - name: fence
+        GEN3_FENCE_IMAGE
+        imagePullPolicy: Always
+        env:
+          - name: PYTHONPATH
+            value: /var/www/fence
+          - name: FENCE_PUBLIC_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-fence
+                key: fence-config-public.yaml
+                optional: true
+          - name: slackWebHook
+            valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: slack_webhook
+        volumeMounts:
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
+            subPath: fence-config.yaml
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            if [[ "$slackWebHook" =~ ^http ]]; then
+              fence-create client-delete-expired --slack-webhook $slackWebHook --warning-days 7
+            else
+              fence-create client-delete-expired
+            fi
+            exit $?
+      restartPolicy: Never
