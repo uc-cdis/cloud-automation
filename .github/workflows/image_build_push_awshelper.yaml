@@ -1,4 +1,4 @@
-name: Build Python Base Images and Push to Quay and ECR
+name: Build AWS Base Images and Push to Quay and ECR
 
 on: push
 
