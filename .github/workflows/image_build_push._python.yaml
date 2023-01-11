@@ -53,16 +53,3 @@ jobs:
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
-  awshelper:
-    needs: verify-changes
-    if: needs.verify-changes.outputs.any_changed == 'true'
-    name: AwsHelper Build and Push
-    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
-    with:
-      DOCKERFILE_LOCATION: "./Docker/awshelper/Dockerfile"
-      OVERRIDE_REPO_NAME: "awshelper"
-    secrets:
-      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
-      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
-      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
-      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
