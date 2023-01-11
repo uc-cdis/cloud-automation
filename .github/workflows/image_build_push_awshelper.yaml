@@ -1,0 +1,38 @@
+name: Build Python Base Images and Push to Quay and ECR
+
+on: push
+
+jobs:
+  verify-changes:
+    runs-on: ubuntu-latest 
+    name: Test changed-files
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 
+
+      - name: Get changed files 
+        id: delta
+        uses: tj-actions/changed-files@v34
+        with:
+          files: |
+            Docker/awshelper/**
+
+      - name: Run if files changed
+        if: steps.delta.outputs.any_changed == 'true'
+        run: |
+          echo "Files changed: ${{ steps.delta.outputs.all_changed_files }}"
+
+  awshelper:
+    needs: verify-changes
+    if: needs.verify-changes.outputs.any_changed == 'true'
+    name: AwsHelper Build and Push
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/awshelper/Dockerfile"
+      OVERRIDE_REPO_NAME: "awshelper"
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}

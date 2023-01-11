@@ -3,7 +3,29 @@ name: Build Python Base Images and Push to Quay and ECR
 on: push
 
 jobs:
+  verify-changes:
+    runs-on: ubuntu-latest 
+    name: Test changed-files
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 
+
+      - name: Get changed files 
+        id: delta
+        uses: tj-actions/changed-files@v34
+        with:
+          files: |
+            Docker/python-nginx/**
+
+      - name: Run if files changed
+        if: steps.delta.outputs.any_changed == 'true'
+        run: |
+          echo "Files changed: ${{ steps.delta.outputs.all_changed_files }}"
+
   python_3-9:
+    needs: verify-changes
+    if: needs.verify-changes.outputs.any_changed == 'true'
     name: Python 3.9 Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
@@ -17,6 +39,8 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   python_3-10:
+    needs: verify-changes
+    if: needs.verify-changes.outputs.any_changed == 'true'
     name: Python 3.10 Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
@@ -30,6 +54,8 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   awshelper:
+    needs: verify-changes
+    if: needs.verify-changes.outputs.any_changed == 'true'
     name: AwsHelper Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
