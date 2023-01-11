@@ -44,9 +44,9 @@ jobs:
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}    
   
   jenkins-ci-worker:
-    if: steps.delta.outputs.files == 'true'
-    name: Jenkins-CI-Worker Build and Push
     needs: verify-changes
+    if: needs.verify-changes.outputs.any_changed == 'true'
+    name: Jenkins-CI-Worker Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins-CI-Worker/Dockerfile"
@@ -59,6 +59,8 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   jenkins-qa-worker:
+    needs: verify-changes
+    if: needs.verify-changes.outputs.any_changed == 'true'
     name: Jenkins-QA-Worker Build and Push
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
