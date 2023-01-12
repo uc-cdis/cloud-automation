@@ -11,20 +11,20 @@ help() {
       in the 'waiting' state.
       Use to wait till all launched services
       are up and healthy before performing some action.
-      Waits for up to 15 minutes.  Non-zero exit code
-      if 15 minutes expires, and pods are still not ready.
+      Waits for up to 60 minutes.  Non-zero exit code
+      if 60 minutes expires, and pods are still not ready.
 EOM
   return 0
 }
 
 
-MAX_RETRIES=${1:-180}
+MAX_RETRIES=${1:-360}
 IS_K8S_RESET="${2:-false}"
 
 if [[ ! "$MAX_RETRIES" =~ ^[0-9]+$ ]];
 then
   gen3_log_err "ignoring invalid retry count: $1"
-  MAX_RETRIES=180
+  MAX_RETRIES=360
 fi
 
 if [[ ! "$IS_K8S_RESET" =~ ^(true$|false$) ]];

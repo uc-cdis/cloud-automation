@@ -47,7 +47,7 @@ gen3_healthcheck() {
   # refer to k8s api docs for pod status info
   # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#podstatus-v1-core
   gen3_log_info "Getting all pods..."
-        
+
   local allPods=$(g3kubectl get pods --all-namespaces -o json | \
     jq -r '[
       .items[] | {
@@ -117,7 +117,7 @@ gen3_healthcheck() {
   if [[ "$statusCode" -lt 200 || "$statusCode" -ge 400 ]]; then
     internetAccess=false
   fi
- 
+
   # check internet access with explicit proxy
   gen3_log_info "Checking explicit proxy internet access..."
   local http_proxy="http://cloud-proxy.internal.io:3128"
@@ -151,7 +151,7 @@ gen3_healthcheck() {
   }
 EOM
   )
-  
+
   if ! jq -r . <<<"$healthJson" > /dev/null; then
     gen3_log_err "failed to assemble valid json data: $healthJson"
     return 1
@@ -205,4 +205,10 @@ EOM
   fi
 }
 
+clear_evicted_pods() {
+  g3kubectl get pods -A -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubectl delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c  2> /dev/null || true
+}
+
 gen3_healthcheck "$@"
+
+clear_evicted_pods
