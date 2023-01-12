@@ -1,3 +1,9 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY"
+
+--BOUNDARY
+Content-Type: text/x-shellscript; charset="us-ascii"
+
 #!/bin/bash -xe
 
 # User data for our EKS worker nodes basic arguments to call the bootstrap script for EKS images 
@@ -25,3 +31,15 @@ if [[ ! -z "${activation_id}" ]] || [[ ! -z "${customer_id}" ]]; then
     rm qualys-cloud-agent.x86_64.rpm
     sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${activation_id} CustomerId=${customer_id}
 fi
+
+--BOUNDARY
+Content-Type: text/cloud-config; charset="us-ascii"
+
+power_state:
+    delay: now
+    mode: reboot
+    message: Powering off
+    timeout: 2
+    condition: true
+
+--BOUNDARY--
