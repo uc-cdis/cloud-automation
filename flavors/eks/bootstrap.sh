@@ -32,6 +32,12 @@ if [[ ! -z "${activation_id}" ]] || [[ ! -z "${customer_id}" ]]; then
     sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${activation_id} CustomerId=${customer_id}
 fi
 
+sudo yum update -y
+sudo yum install -y dracut-fips openssl >> /opt/fips-install.log
+sudo  dracut -f
+# configure grub
+sudo /sbin/grubby --update-kernel=ALL --args="fips=1"
+
 --BOUNDARY
 Content-Type: text/cloud-config; charset="us-ascii"
 
