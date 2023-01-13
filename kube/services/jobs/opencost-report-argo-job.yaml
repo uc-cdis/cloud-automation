@@ -39,7 +39,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - ONDEMAND   
+                - ONDEMAND
       serviceAccountName: reports-service-account
       containers:
         - name: send-report
