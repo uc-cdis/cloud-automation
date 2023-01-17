@@ -40,6 +40,7 @@ rules:
   - ""
   resources:
   - nodes/metrics
+  - nodes/stats
   verbs:
   - get
 - apiGroups:
@@ -47,6 +48,8 @@ rules:
   resources:
   - pods
   - nodes
+  - namespaces
+  - configmaps
   verbs:
   - get
   - list
