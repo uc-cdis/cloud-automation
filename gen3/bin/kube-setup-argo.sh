@@ -152,7 +152,8 @@ EOF
     fi
   else
     g3kubectl create sa argo || true
-    g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default || true
+    # Grant admin access within the current namespace to the argo SA in the current namespace
+    g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=$(gen3 db namespace):argo -n $(gen3 db namespace) || true
     aws iam put-user-policy --user-name ${userName} --policy-name argo-bucket-policy --policy-document file://$policyFile
     if [[ -z $internalBucketName ]]; then
       aws iam put-user-policy --user-name ${userName} --policy-name argo-internal-bucket-policy --policy-document file://$internalBucketPolicyFile
