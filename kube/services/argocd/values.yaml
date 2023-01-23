@@ -1902,14 +1902,14 @@ repoServer:
   # -- Resource limits and requests for the repo server pods
   resources:
    limits:
-     cpu: 50m
-     memory: 128Mi
-     ephemeral-storage: 1Gi
+     cpu: 100m
+     memory: 2Gi
+     ephemeral-storage: 2Gi
    requests:
-     cpu: 10m
-     memory: 64Mi
-     ephemeral-storage: 1Gi
-
+     cpu: 100m
+     memory: 2Gi
+     ephemeral-storage: 2Gi
+     
   # -- Configures the repo server port
   containerPort: 8081
 
