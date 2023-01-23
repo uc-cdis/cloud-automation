@@ -77,6 +77,7 @@ function install_docker(){
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/docker-daemon.json /etc/docker/daemon.json
   chmod -R 0644 /etc/docker
   usermod -a -G docker ${WORK_USER}
+  $(command -v docker) run --privileged --rm tonistiigi/binfmt --install all
 }
 
 function set_squid_config(){
@@ -147,7 +148,7 @@ fi
 
 iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3129
 iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 3130
-  
+
 $(command -v docker) run --name squid --network=host -d \
     --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
     --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
