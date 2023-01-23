@@ -98,7 +98,20 @@ function set_squid_config(){
   #####################
   openssl genrsa -out ${SQUID_CONFIG_DIR}/ssl/squid.key 2048
   openssl req -new -key ${SQUID_CONFIG_DIR}/ssl/squid.key -out ${SQUID_CONFIG_DIR}/ssl/squid.csr -subj '/C=XX/ST=XX/L=squid/O=squid/CN=squid'
-  opedocker.conf /etc/iptables.conf
+  openssl x509 -req -days 3650 -in ${SQUID_CONFIG_DIR}/ssl/squid.csr -signkey ${SQUID_CONFIG_DIR}/ssl/squid.key -out ${SQUID_CONFIG_DIR}/ssl/squid.crt
+  cat ${SQUID_CONFIG_DIR}/ssl/squid.key ${SQUID_CONFIG_DIR}/ssl/squid.crt | sudo tee ${SQUID_CONFIG_DIR}/ssl/squid.pem
+  mkdir -p ${SQUID_LOGS_DIR} ${SQUID_CACHE_DIR}
+  chown -R nobody:nogroup ${SQUID_LOGS_DIR} ${SQUID_CACHE_DIR} ${SQUID_CONFIG_DIR}
+}
+
+
+
+function configure_iptables(){
+
+  ###############################################################
+  # firewall or basically iptables 
+  ###############################################################
+  cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/iptables-docker.conf /etc/iptables.conf
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/iptables-rules /etc/network/if-up.d/iptables-rules
   
   chown root: /etc/network/if-up.d/iptables-rules
@@ -134,7 +147,7 @@ fi
 
 iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 80 -j REDIRECT --to-ports 3129
 iptables -t nat -A PREROUTING ! -i docker0 -p tcp -m tcp --dport 443 -j REDIRECT --to-ports 3130
-
+  
 $(command -v docker) run --name squid --network=host -d \
     --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
     --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
