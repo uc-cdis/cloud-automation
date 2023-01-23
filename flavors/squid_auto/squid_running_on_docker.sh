@@ -77,7 +77,6 @@ function install_docker(){
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/docker-daemon.json /etc/docker/daemon.json
   chmod -R 0644 /etc/docker
   usermod -a -G docker ${WORK_USER}
-  $(command -v docker) run --privileged --rm tonistiigi/binfmt --install all
 }
 
 function set_squid_config(){
@@ -99,20 +98,7 @@ function set_squid_config(){
   #####################
   openssl genrsa -out ${SQUID_CONFIG_DIR}/ssl/squid.key 2048
   openssl req -new -key ${SQUID_CONFIG_DIR}/ssl/squid.key -out ${SQUID_CONFIG_DIR}/ssl/squid.csr -subj '/C=XX/ST=XX/L=squid/O=squid/CN=squid'
-  openssl x509 -req -days 3650 -in ${SQUID_CONFIG_DIR}/ssl/squid.csr -signkey ${SQUID_CONFIG_DIR}/ssl/squid.key -out ${SQUID_CONFIG_DIR}/ssl/squid.crt
-  cat ${SQUID_CONFIG_DIR}/ssl/squid.key ${SQUID_CONFIG_DIR}/ssl/squid.crt | sudo tee ${SQUID_CONFIG_DIR}/ssl/squid.pem
-  mkdir -p ${SQUID_LOGS_DIR} ${SQUID_CACHE_DIR}
-  chown -R nobody:nogroup ${SQUID_LOGS_DIR} ${SQUID_CACHE_DIR} ${SQUID_CONFIG_DIR}
-}
-
-
-
-function configure_iptables(){
-
-  ###############################################################
-  # firewall or basically iptables 
-  ###############################################################
-  cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/iptables-docker.conf /etc/iptables.conf
+  opedocker.conf /etc/iptables.conf
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/iptables-rules /etc/network/if-up.d/iptables-rules
   
   chown root: /etc/network/if-up.d/iptables-rules
@@ -287,6 +273,7 @@ function main(){
   init
   # If we don't restart the service, iptables might not load properly sometimes
   systemctl restart docker
+  $(command -v docker) run --privileged --rm tonistiigi/binfmt --install all
   $(command -v docker) run --name squid --network=host -d \
       --volume ${SQUID_LOGS_DIR}:${SQUID_LOGS_DIR} \
       --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
