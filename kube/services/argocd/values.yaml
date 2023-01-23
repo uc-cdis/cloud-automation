@@ -1903,13 +1903,13 @@ repoServer:
   resources:
    limits:
      cpu: 100m
-     memory: 2Gi
+     memory: 256Mi
      ephemeral-storage: 2Gi
    requests:
      cpu: 100m
-     memory: 2Gi
+     memory: 256Mi
      ephemeral-storage: 2Gi
-     
+
   # -- Configures the repo server port
   containerPort: 8081
 
