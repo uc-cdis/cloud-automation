@@ -20,7 +20,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - ONDEMAND       
+                - ONDEMAND
       serviceAccountName: useryaml-job
       volumes:
         - name: yaml-merge

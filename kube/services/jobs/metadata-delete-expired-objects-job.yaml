@@ -1,0 +1,33 @@
+# Delete all expired MDS objects.
+#
+# Run `gen3 kube-setup-metadata-delete-expired-objects-job` to configure this job
+# and set it up as a cronjob.
+#
+# Add the job image to the manifest:
+# `"metadata-delete-expired-objects": "quay.io/cdis/metadata-delete-expired-objects:master"`
+#
+# Once set up, the job can be run with `gen3 job run metadata-delete-expired-objects-job`.
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: metadata-delete-expired-objects
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      volumes:
+        - name: config-volume
+          secret:
+            secretName: "metadata-delete-expired-objects-g3auto"
+      containers:
+      - name: metadata-delete-expired-objects
+        GEN3_METADATA-DELETE-EXPIRED-OBJECTS_IMAGE
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: config-volume
+            readOnly: true
+            mountPath: /mnt
+      restartPolicy: Never
