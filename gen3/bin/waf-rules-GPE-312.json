@@ -1,26 +1,28 @@
-{
-  "Name": "AWS-AWSManagedRulesAmazonIpReputationList",
-  "Priority": 0,
-  "Statement": {
-    "ManagedRuleGroupStatement": {
-      "VendorName": "AWS",
-      "Name": "AWSManagedRulesAmazonIpReputationList",
-      "RuleActionOverrides": [
-        {
-          "Name": "AWSManagedReconnaissanceList",
-          "ActionToUse": {
-            "Count": {}
-          }
+[
+    {
+      "Name": "AWS-AWSManagedRulesAmazonIpReputationList",
+      "Priority": 0,
+      "Statement": {
+        "ManagedRuleGroupStatement": {
+          "VendorName": "AWS",
+          "Name": "AWSManagedRulesAmazonIpReputationList",
+          "RuleActionOverrides": [
+            {
+              "Name": "AWSManagedReconnaissanceList",
+              "ActionToUse": {
+                "Count": {}
+              }
+            }
+          ]
         }
-      ]
+      },
+      "OverrideAction": {
+        "None": {}
+      },
+      "VisibilityConfig": {
+        "SampledRequestsEnabled": true,
+        "CloudWatchMetricsEnabled": true,
+        "MetricName": "AWS-AWSManagedRulesAmazonIpReputationList"
+      }
     }
-  },
-  "OverrideAction": {
-    "None": {}
-  },
-  "VisibilityConfig": {
-    "SampledRequestsEnabled": true,
-    "CloudWatchMetricsEnabled": true,
-    "MetricName": "AWS-AWSManagedRulesAmazonIpReputationList"
-  }
-}
+]
