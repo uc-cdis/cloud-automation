@@ -46,10 +46,6 @@ spec:
       - namespaceSelector:
           matchLabels:
             app: argocd
-    - to: 
-      - namespaceSelector:
-          matchLabels:
-            app: prometheus
   policyTypes:
    - Ingress
    - Egress
