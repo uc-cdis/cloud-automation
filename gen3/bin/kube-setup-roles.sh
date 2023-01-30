@@ -12,6 +12,8 @@ gen3_load "gen3/gen3setup"
 g3kubectl patch serviceaccount default -p 'automountServiceAccountToken: false'
 g3kubectl patch serviceaccount --namespace "$(gen3 jupyter j-namespace)" default -p 'automountServiceAccountToken: false' > /dev/null || true
 
+namespace="$(gen3 api namespace)"
+
 # Don't do this in a Jenkins job
 if [[ -z "$JENKINS_HOME" ]]; then
   if ! g3kubectl get serviceaccounts/useryaml-job > /dev/null 2>&1; then
@@ -29,10 +31,10 @@ if [[ -z "$JENKINS_HOME" ]]; then
     roleName="$(gen3 api safe-name gitops)"
     gen3 awsrole create "$roleName" gitops-sa
     # do this here, since we added the new role to this binding
-    g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml"
+    g3k_kv_filter ${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml CURRENT_NAMESPACE "namespace: $namespace"|g3kubectl apply -f -
   fi
   if ! g3kubectl get rolebindings/devops-binding > /dev/null 2>&1; then
-    g3kubectl apply -f "${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml"
+    g3k_kv_filter ${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml CURRENT_NAMESPACE "namespace: $namespace"|g3kubectl apply -f -
   fi
 
   ctx="$(g3kubectl config current-context)"
