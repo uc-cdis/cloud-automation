@@ -195,6 +195,25 @@ gen3_helm_migrate() {
 }
 
 
+gen3_helm_s3_upload() {
+    local BUCKET_NAME="$(gen3 api environment)-$(gen3 db namespace)-datadump"
+    local ENV=$(gen3 api environment)
+    if aws s3api head-bucket --bucket ${BUCKET_NAME}; then
+        #// Check if the bucket exists
+        echo 'Bucket already exists'
+    else
+        # Create the bucket if it does not exist
+        aws s3api create-bucket --bucket ${BUCKET_NAME} 
+        aws s3api put-bucket-versioning --bucket ${BUCKET_NAME} --versioning-configuration Status=Enabled
+        echo 'Bucket created'
+    fi
+
+
+    aws s3 cp --recursive ${GEN3_HELM_MIGRATE_FOLDER}/pgdumps/ s3://${BUCKET_NAME}/${ENV}/pgdumps/
+    aws s3 cp --recursive ${GEN3_HELM_MIGRATE_FOLDER}/elasticsearch/ s3://${BUCKET_NAME}/${ENV}/elasticsearch/
+
+}
+
 # main -----------------------------
 
 # Support sourcing this file for test suite
@@ -213,6 +232,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
         ;;
         "fence")
             gen3_fence_config "$@"
+        ;;
+        "s3")
+            gen3_helm_s3_upload "$@"
         ;;
         *)
             gen3_db_help
