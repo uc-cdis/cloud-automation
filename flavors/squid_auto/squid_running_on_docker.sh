@@ -153,7 +153,7 @@ $(command -v docker) run --name squid --network=host -d \
     --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
     --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
     --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
-    quay.io/cdis/squid:${SQUID_IMAGE_TAG}
+    quay.io/cdis/squid:arm-test
 exit 0
   
 EOF
@@ -292,7 +292,7 @@ function main(){
       --volume ${SQUID_PID_DIR}:${SQUID_PID_DIR} \
       --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
       --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
-       quay.io/cdis/squid:${SQUID_IMAGE_TAG}
+       quay.io/cdis/squid:arm-test
 }
 
 main
