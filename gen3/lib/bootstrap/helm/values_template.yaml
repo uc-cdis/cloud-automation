@@ -1,0 +1,111 @@
+global:
+  environment: ${vpc_name}
+  aws: 
+    enabled: true
+  hostname: $(gen3 api hostname)
+  revproxyArn: $(g3k_config_lookup .global.revproxy_arn)
+
+
+arborist: 
+  enabled: $(if g3k_config_lookup .versions.arborist > /dev/null; then echo "true"; else echo "false"; fi)
+  image: 
+    repository: $(g3k_config_lookup .versions.arborist | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.arborist | awk -F ':' '{print $2}')
+
+
+ambassador:
+  enabled: $(if g3k_config_lookup .versions.ambassador > /dev/null; then echo "true"; else echo "false"; fi)
+  image: 
+    repository: $(g3k_config_lookup .versions.ambassador | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.ambassador | awk -F ':' '{print $2}')
+
+argo-wrapper:
+  enabled: $(if g3k_config_lookup '.versions."argo-wrapper"' > /dev/null; then echo "true"; else echo "false"; fi)
+  image: 
+    repository: $(g3k_config_lookup '.versions."argo-wrapper"' | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup '.versions."argo-wrapper"' | awk -F ':' '{print $2}')
+
+
+aws-es-proxy:
+  enabled: $(if g3k_config_lookup '.versions."aws-es-proxy"' > /dev/null; then echo "true"; else echo "false"; fi)
+  image: 
+    repository: $(g3k_config_lookup '.versions."aws-es-proxy"' | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup '.versions."aws-es-proxy"' | awk -F ':' '{print $2}')
+
+fence:
+  image: 
+    repository: $(g3k_config_lookup .versions.fence | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.fence | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.fence > /dev/null; then echo "true"; else echo "false"; fi)
+  FENCE_CONFIG:
+    OPENID_CONNECT:
+      google:
+        client_id: $(gen3 secrets decode fence-config fence-config.yaml | yq -r .OPENID_CONNECT.google.client_id)
+        client_secret: $(gen3 secrets decode fence-config fence-config.yaml | yq -r .OPENID_CONNECT.google.client_secret)
+
+
+guppy:
+  image: 
+    repository: $(g3k_config_lookup .versions.guppy | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.guppy | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.guppy > /dev/null; then echo "true"; else echo "false"; fi)
+
+hatchery:
+  image: 
+    repository: $(g3k_config_lookup .versions.hatchery | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.hatchery | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.hatchery > /dev/null; then echo "true"; else echo "false"; fi)
+
+manifestservice:
+  image: 
+    repository: $(g3k_config_lookup .versions.manifestservice | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.manifestservice | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.manifestservice > /dev/null; then echo "true"; else echo "false"; fi)
+
+metadata:
+  image: 
+    repository: $(g3k_config_lookup .versions.metadata | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.metadata | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.metadata > /dev/null; then echo "true"; else echo "false"; fi)
+
+peregrine:
+  image: 
+    repository: $(g3k_config_lookup .versions.peregrine | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.peregrine | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.peregrine > /dev/null; then echo "true"; else echo "false"; fi)
+
+portal:
+  image: 
+    repository: $(g3k_config_lookup .versions.portal | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.portal | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.portal > /dev/null; then echo "true"; else echo "false"; fi)
+
+requestor:
+  image: 
+    repository: $(g3k_config_lookup .versions.requestor | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.requestor | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.requestor > /dev/null; then echo "true"; else echo "false"; fi)
+
+revproxy:
+  image: 
+    repository: $(g3k_config_lookup .versions.revproxy | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.revproxy | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.revproxy > /dev/null; then echo "true"; else echo "false"; fi)
+
+sheepdog:
+  image: 
+    repository: $(g3k_config_lookup .versions.sheepdog | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.sheepdog | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.sheepdog > /dev/null; then echo "true"; else echo "false"; fi)
+
+ssjdispatcher:
+  image: 
+    repository: $(g3k_config_lookup .versions.ssjdispatcher | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.ssjdispatcher | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.ssjdispatcher > /dev/null; then echo "true"; else echo "false"; fi)
+
+wts:
+  image: 
+    repository: $(g3k_config_lookup .versions.wts | awk -F ':' '{print $1}')
+    tag: $(g3k_config_lookup .versions.wts | awk -F ':' '{print $2}')
+  enabled: $(if g3k_config_lookup .versions.wts > /dev/null; then echo "true"; else echo "false"; fi)
