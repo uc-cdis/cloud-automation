@@ -26,9 +26,9 @@ if ! g3kubectl describe secret pelicanservice-g3auto | grep config.json > /dev/n
     access_key=$(jq -r .secret <<< $user)
 
     # setup fence OIDC client with client_credentials grant for access to MDS API
-    local hostname=$(gen3 api hostname)
+    hostname=$(gen3 api hostname)
     gen3_log_info "kube-setup-sower-jobs" "creating fence oidc client for $hostname"
-    local secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1)
+    secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1)
     # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
     if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
         # try delete client
@@ -39,8 +39,8 @@ if ! g3kubectl describe secret pelicanservice-g3auto | grep config.json > /dev/n
             return 1
         fi
     fi
-    local pelican_export_client_id="${BASH_REMATCH[2]}"
-    local pelican_export_client_secret="${BASH_REMATCH[3]}"
+    pelican_export_client_id="${BASH_REMATCH[2]}"
+    pelican_export_client_secret="${BASH_REMATCH[3]}"
 
     cat - > "$credsFile" <<EOM
 {
