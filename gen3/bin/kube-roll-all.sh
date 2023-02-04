@@ -248,7 +248,17 @@ gen3 kube-setup-revproxy
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   # Internal k8s systems
   gen3 kube-setup-fluentd &
-  gen3 kube-setup-autoscaler &
+  # If there is an entry for karpenter in the manifest setup karpenter
+  if g3k_manifest_lookup .global.karpenter 2> /dev/null; then
+    if [[ "$(g3k_manifest_lookup .global.karpenter)" != "arm" ]]; then
+      gen3 kube-setup-karpenter deploy &
+    else
+      gen3 kube-setup-karpenter deploy --arm &
+    fi
+  # Otherwise, setup the cluster autoscaler
+  else
+    gen3 kube-setup-autoscaler &
+  fi
   gen3 kube-setup-kube-dns-autoscaler &
   gen3 kube-setup-metrics deploy || true
   gen3 kube-setup-tiller || true
