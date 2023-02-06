@@ -27,19 +27,13 @@ fi
 source "${GEN3_HOME}/gen3/gen3setup.sh"
 
 cat - > jenkins-envs-services.txt <<EOF
-jenkins-genomel
-jenkins-niaid
 jenkins-blood
 jenkins-brain
-jenkins-dcp
-jenkins-new
 EOF
 
 cat - > jenkins-envs-releases.txt <<EOF
 jenkins-genomel
 jenkins-niaid
-jenkins-blood
-jenkins-brain
 jenkins-dcp
 jenkins-new
 EOF
