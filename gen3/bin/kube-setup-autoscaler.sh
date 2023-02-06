@@ -72,20 +72,20 @@ function get_autoscaler_version(){
 
 
 function deploy() {
-
-  if [[((! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1) || "$FORCE" == true) && ("$ctxNamespace" == "default" || "$ctxNamespace" == "null")]]; then
-    if ! [ -z ${CAS_VERSION} ];
-    then
-      casv=${CAS_VERSION}
+  if [["$ctxNamespace" == "default" || "$ctxNamespace" == "null"]]; then
+    if (! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1) || [[ "$FORCE" == true]]; then
+      if ! [ -z ${CAS_VERSION} ];
+      then
+        casv=${CAS_VERSION}
+      else
+        casv="$(get_autoscaler_version)" # cas stands for ClusterAutoScaler
+      fi
+      echo "Deploying cluster autoscaler ${casv} in ${vpc_name}"
+      g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/cluster-autoscaler-autodiscover.yaml" VPC_NAME "${vpc_name}" CAS_VERSION ${casv} | g3kubectl "--namespace=kube-system" apply -f -
     else
-      casv="$(get_autoscaler_version)" # cas stands for ClusterAutoScaler
+      echo "kube-setup-autoscaler exiting - cluster-autoscaler already deployed, use --force to redeploy"
     fi
-    echo "Deploying cluster autoscaler ${casv} in ${vpc_name}"
-    g3k_kv_filter "${GEN3_HOME}/kube/services/autoscaler/cluster-autoscaler-autodiscover.yaml" VPC_NAME "${vpc_name}" CAS_VERSION ${casv} | g3kubectl "--namespace=kube-system" apply -f -
-  else
-    echo "kube-setup-autoscaler exiting - cluster-autoscaler already deployed, use --force to redeploy"
   fi
-
 }
 
 function remove() {
