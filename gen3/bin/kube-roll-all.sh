@@ -8,6 +8,9 @@ set -e
 _roll_all_dir="$(dirname -- "${BASH_SOURCE:-$0}")"
 export GEN3_HOME="${GEN3_HOME:-$(cd "${_roll_all_dir}/../.." && pwd)}"
 
+ctx="$(g3kubectl config current-context)"
+ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
+
 if [[ "$1" =~ ^-*fast$ ]]; then
   GEN3_ROLL_FAST=true
   shift
@@ -245,7 +248,7 @@ fi
 
 gen3 kube-setup-revproxy
 
-if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
+if [[ "$GEN3_ROLL_FAST" != "true" || "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
   # Internal k8s systems
   gen3 kube-setup-fluentd &
   # If there is an entry for karpenter in the manifest setup karpenter
