@@ -11,6 +11,9 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
+ctx="$(g3kubectl config current-context)"
+ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
+
 if [[ -n "$JENKINS_HOME" ]]; then
   echo "Jenkins skipping fluentd setup: $JENKINS_HOME"
   exit 0
@@ -70,7 +73,7 @@ function get_autoscaler_version(){
 
 function deploy() {
 
-  if (! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1) || [[ "$FORCE" == true ]]; then
+  if (! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1) || [[ "$FORCE" == true || "$ctxNamespace" == "default" || "$ctxNamespace" == "null"]]; then
     if ! [ -z ${CAS_VERSION} ];
     then
       casv=${CAS_VERSION}
