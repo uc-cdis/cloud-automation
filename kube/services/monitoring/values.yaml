@@ -756,7 +756,7 @@ grafana:
     hosts: []
 
     ## Path for grafana ingress
-    path: /
+    path: /grafana/
 
     ## TLS configuration for grafana Ingress
     ## Secret must be manually created in the namespace
@@ -2362,7 +2362,7 @@ prometheus:
 
     ## External URL at which Prometheus will be reachable.
     ##
-    externalUrl: ""
+    externalUrl: "/prometheus/"
 
     ## Define which Nodes the Pods are scheduled on.
     ## ref: https://kubernetes.io/docs/user-guide/node-selection/
