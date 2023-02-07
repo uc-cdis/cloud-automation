@@ -5,15 +5,17 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+ctx="$(g3kubectl config current-context)"
+ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
 
 gen3_deploy_karpenter() {
   # If the karpenter namespace doesn't exist or the force flag isn't in place then deploy
-  if [[ -z $(g3kubectl get namespaces | grep karpenter) ]]  || [[ $FORCE ]]; then
+  if [[( -z $(g3kubectl get namespaces | grep karpenter) || $FORCE ) && ("$ctxNamespace" == "default" || "$ctxNamespace" == "null")]]; then
     # Ensure the spot instance service linked role is setup
     # It is required for running spot instances
     aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
     karpenter=${karpenter:-v0.22.0}
-    echo '{
+    echo '{b
         "Statement": [
             {
                 "Action": [
