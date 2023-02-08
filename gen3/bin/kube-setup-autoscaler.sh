@@ -73,7 +73,7 @@ function get_autoscaler_version(){
 
 function deploy() {
   if [["$ctxNamespace" == "default" || "$ctxNamespace" == "null"]]; then
-    if (! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1) || [[ "$FORCE" == true]]; then
+    if (! g3kubectl --namespace=kube-system get deployment cluster-autoscaler > /dev/null 2>&1 ||  "${FORCE}" == true); then
       if ! [ -z ${CAS_VERSION} ];
       then
         casv=${CAS_VERSION}
