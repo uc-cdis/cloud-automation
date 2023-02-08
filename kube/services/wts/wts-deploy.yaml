@@ -125,7 +125,7 @@ spec:
             port: 80
         resources:
           requests:
-            cpu: 10m
+            cpu: 100m
             memory: 200Mi
           limits:
             cpu: 100m

@@ -71,7 +71,7 @@ spec:
             mountPath: "/etc/gen3"
         resources:
           requests:
-            cpu: 10m
+            cpu: 100m
             memory: 20Mi
           limits:
             cpu: 200m
