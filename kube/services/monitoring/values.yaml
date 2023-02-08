@@ -251,7 +251,10 @@ alertmanager:
     # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
     ingressClassName: nginx
 
-    annotations: {}
+    annotations: 
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
+      nginx.ingress.kubernetes.io/use-regex: "true"
 
     labels: {}
 
@@ -260,8 +263,8 @@ alertmanager:
 
     ## Hosts must be provided if Ingress is enabled.
     ##
-    hosts:
     #- prometheus.emalinowskiv1.planx-pla.net
+    hosts:
       - data.bloodpac.org
 
     ## Paths to use for ingress rules - one path should match the alertmanagerSpec.routePrefix
