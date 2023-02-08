@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: thanos-query
-          image: quay.io/thanos/thanos:v0.23.0
+          image: quay.io/thanos/thanos:v0.25.2
           args:
             - 'query'
             - '--log.level=debug'
@@ -98,9 +98,10 @@ spec:
       labels:
         app: thanos-store
     spec:
+      serviceAccount: thanos
       containers:
         - name: thanos-store
-          image: quay.io/thanos/thanos:v0.23.0
+          image: quay.io/thanos/thanos:v0.25.2
           args:
             - 'store'
             - '--log.level=debug'
@@ -162,9 +163,10 @@ spec:
       labels:
         app: thanos-compactor
     spec:
+      serviceAccount: thanos
       containers:
         - name: thanos-compactor
-          image: quay.io/thanos/thanos:v0.23.0
+          image: quay.io/thanos/thanos:v0.25.2
           args:
             - 'compact'
             - '--log.level=debug'

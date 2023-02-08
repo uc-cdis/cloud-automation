@@ -1,0 +1,40 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: jupyter
+spec:
+  # Only allow on demand instance        
+  requirements:
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["on-demand"]
+    - key: kubernetes.io/arch
+      operator: In
+      values:
+      - amd64
+    - key: karpenter.k8s.aws/instance-category
+      operator: In
+      values:
+      - c
+      - m
+      - r
+      - t       
+  # Set a taint for jupyter pods
+  taints:
+    - key: role
+      value: jupyter
+      effect: NoSchedule       
+  labels:
+    role: jupyter
+  # Set a limit of 1000 vcpus      
+  limits:
+    resources:
+      cpu: 1000
+  # Use the jupyter node template      
+  providerRef:
+    name: jupyter
+  # Allow pods to be rearranged
+  consolidation:
+    enabled: true
+  # Kill nodes after 30 days to ensure they stay up to date
+  ttlSecondsUntilExpired: 2592000

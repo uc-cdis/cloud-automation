@@ -19,6 +19,7 @@ kind: Job
 metadata:
   name: cedar-ingestion
 spec:
+  backoffLimit: 0
   template:
     metadata:
       labels:

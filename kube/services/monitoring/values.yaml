@@ -452,7 +452,7 @@ alertmanager:
     ## Image of Alertmanager
     ##
     image:
-      repository: quay.io/prometheus/alertmanager
+      repository: prometheus/alertmanager
       tag: v0.24.0
       sha: ""
 
@@ -756,7 +756,7 @@ grafana:
     hosts: []
 
     ## Path for grafana ingress
-    path: /
+    path: /grafana/
 
     ## TLS configuration for grafana Ingress
     ## Secret must be manually created in the namespace
@@ -1608,7 +1608,7 @@ prometheusOperator:
     patch:
       enabled: true
       image:
-        repository: k8s.gcr.io/ingress-nginx/kube-webhook-certgen
+        repository: ingress-nginx/kube-webhook-certgen
         tag: v1.1.1
         sha: ""
         pullPolicy: IfNotPresent
@@ -1838,7 +1838,7 @@ prometheusOperator:
   ## Prometheus-operator image
   ##
   image:
-    repository: quay.io/prometheus-operator/prometheus-operator
+    repository: prometheus-operator/prometheus-operator
     tag: v0.57.0
     sha: ""
     pullPolicy: IfNotPresent
@@ -1856,7 +1856,7 @@ prometheusOperator:
   prometheusConfigReloader:
     # image to use for config and rule reloading
     image:
-      repository: quay.io/prometheus-operator/prometheus-config-reloader
+      repository: prometheus-operator/prometheus-config-reloader
       tag: v0.57.0
       sha: ""
 
@@ -1872,7 +1872,7 @@ prometheusOperator:
   ## Thanos side-car image when configured
   ##
   thanosImage:
-    repository: quay.io/thanos/thanos
+    repository: thanos/thanos
     tag: v0.25.2
     sha: ""
 
@@ -2297,7 +2297,7 @@ prometheus:
     ## Image of Prometheus.
     ##
     image:
-      repository: quay.io/prometheus/prometheus
+      repository: prometheus/prometheus
       tag: v2.36.1
       sha: ""
 
@@ -2362,7 +2362,7 @@ prometheus:
 
     ## External URL at which Prometheus will be reachable.
     ##
-    externalUrl: ""
+    externalUrl: "/prometheus/"
 
     ## Define which Nodes the Pods are scheduled on.
     ## ref: https://kubernetes.io/docs/user-guide/node-selection/
@@ -3293,7 +3293,7 @@ thanosRuler:
     ## Image of ThanosRuler
     ##
     image:
-      repository: quay.io/thanos/thanos
+      repository: thanos/thanos
       tag: v0.24.0
       sha: ""
 

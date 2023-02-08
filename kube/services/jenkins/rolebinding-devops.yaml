@@ -20,7 +20,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: gitops-sa
-  namespace: default
+  CURRENT_NAMESPACE
   apiGroup: ""
 roleRef:
   kind: ClusterRole

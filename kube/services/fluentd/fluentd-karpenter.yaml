@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: fluentd
+  name: fluentd-karpenter
   namespace: logging
   labels:
-    k8s-app: fluentd-logging
+    k8s-app: fluentd-karpenter-logging
     version: v1
     GEN3_DATE_LABEL
     kubernetes.io/cluster-service: "true"
 spec:
   selector:
     matchLabels:
-      k8s-app: fluentd-logging
+      k8s-app: fluentd-karpenter-logging
       version: v1
   template:
     metadata:
       labels:
-        k8s-app: fluentd-logging
+        k8s-app: fluentd-karpenter-logging
         version: v1
         kubernetes.io/cluster-service: "true"
     spec:
@@ -27,7 +27,7 @@ spec:
             nodeSelectorTerms:
             - matchExpressions:
               - key: karpenter.sh/initialized
-                operator: NotIn
+                operator: In
                 values:
                 - "true"
       tolerations:
@@ -57,6 +57,8 @@ spec:
             value: "us-east-1"
           - name: FLUENTD_CONF
             value: "gen3.conf"
+          - name: FLUENT_CONTAINER_TAIL_PARSER_TYPE
+            value: "cri"
         resources:
           limits:
             memory: 1Gi
