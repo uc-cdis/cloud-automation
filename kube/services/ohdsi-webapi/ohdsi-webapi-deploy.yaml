@@ -74,7 +74,6 @@ spec:
               cpu: 100m
               memory: 1500Mi
             limits:
-              cpu: 500m
               memory: 4Gi  
         - name: ohdsi-webapi-reverse-proxy
           image: nginx:1.23
@@ -91,5 +90,4 @@ spec:
               cpu: 100m
               memory: 100Mi
             limits:
-              cpu: 500m
               memory: 500Mi

@@ -76,7 +76,6 @@ spec:
             cpu: 100m
             memory: 64Mi
           limits:
-            cpu: 1000m
             memory: 4096Mi
         ports:
         - containerPort: 8000
