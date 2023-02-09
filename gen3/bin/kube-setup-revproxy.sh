@@ -130,15 +130,12 @@ then
     fi
 fi
 
-if [[ $current_namespace == "default" ]];
+if g3kubectl get namespace monitoring > /dev/null 2>&1;
 then
-  if g3kubectl get namespace monitoring > /dev/null 2>&1;
-  then
-      filePath="$scriptDir/gen3.nginx.conf/prometheus-server.conf"
-      if [[ -f "$filePath" ]]; then
-        confFileList+=("--from-file" "$filePath")
-      fi
-  fi
+    filePath="$scriptDir/gen3.nginx.conf/prometheus-server.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
 fi
 
 #echo "${confFileList[@]}" $BASHPID
