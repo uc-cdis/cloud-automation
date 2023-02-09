@@ -98,8 +98,6 @@ gen3_deploy_karpenter() {
    # sleep for a little bit so CRD's can be created for the provisioner/node template
    sleep 10
    gen3_log_info "Deploy AWS node termination handler so that spot instances can be preemptively spun up before old instances stop"
-   # Deploy AWS node termination handler so that spot instances can be preemptively spun up before old instances stop
-   kubectl apply -f https://github.com/aws/aws-node-termination-handler/releases/download/v1.18.1/all-resources.yaml
   fi
 
   gen3_log_info "Remove cluster-autoscaler"
@@ -116,6 +114,15 @@ gen3_deploy_karpenter() {
     g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerArm.yaml
   else
     g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerDefault.yaml    
+  fi
+  if [[ $GPU ]]; then
+    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerGPU.yaml
+    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/nodeTemplateGPU.yaml
+    helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
+    helm repo update
+    helm upgrade -i nvdp nvdp/nvidia-device-plugin \
+      --namespace nvidia-device-plugin \
+      --create-namespace -f nvdp.yaml
   fi
   g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerJupyter.yaml
   g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerWorkflow.yaml
