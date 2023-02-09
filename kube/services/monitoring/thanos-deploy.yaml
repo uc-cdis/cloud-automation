@@ -25,6 +25,8 @@ spec:
             - '--log.level=debug'
             - '--query.replica-label=prometheus_replica'
             - '--store=prometheus-kube-prometheus-thanos-discovery.monitoring.svc:10901'
+            - '--web.external-prefix=/thanos-query/'
+            - '--web.route-prefix=/thanos-query/'
           resources:
             requests:
               cpu: '100m'
@@ -173,6 +175,7 @@ spec:
             - '--data-dir=/var/thanos/store'
             - '--objstore.config-file=/config/thanos.yaml'
             - '--wait'
+            - '--web.external-prefix=/thanos-compactor/'
           ports:
             - name: http
               containerPort: 10902
