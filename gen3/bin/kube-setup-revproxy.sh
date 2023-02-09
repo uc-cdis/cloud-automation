@@ -130,35 +130,32 @@ then
     fi
 fi
 
-if [[ $current_namespace == "default" ]];
+if g3kubectl get namespace monitoring > /dev/null 2>&1;
 then
-  if g3kubectl get namespace monitoring > /dev/null 2>&1;
-  then
-      filePath="$scriptDir/gen3.nginx.conf/prometheus-server.conf"
-      if [[ -f "$filePath" ]]; then
-        confFileList+=("--from-file" "$filePath")
-      fi
-  fi
+    filePath="$scriptDir/gen3.nginx.conf/prometheus-server.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
 fi
 
-#echo "${confFileList[@]}" $BASHPID
-if [[ $current_namespace == "default" ]]; then
-  if g3kubectl get namespace grafana > /dev/null 2>&1; then
-    for grafana in $(g3kubectl get services -n grafana -o jsonpath='{.items[*].metadata.name}');
-    do
-      filePath="$scriptDir/gen3.nginx.conf/${grafana}.conf"
-      touch "${XDG_RUNTIME_DIR}/${grafana}.conf"
-      tmpCredsFile="${XDG_RUNTIME_DIR}/${grafana}.conf"
-      adminPass=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
-      adminCred=$(echo -n "admin:${adminPass}" | base64 --wrap=0)
-      sed "s/CREDS/${adminCred}/" ${filePath} > ${tmpCredsFile}
-      if [[ -f "${tmpCredsFile}" ]]; then
-        confFileList+=("--from-file" "${tmpCredsFile}")
-      fi
-      #rm -f ${tmpCredsFile}
-    done
-  fi
-fi
+# #echo "${confFileList[@]}" $BASHPID
+# if [[ $current_namespace == "default" ]]; then
+#   if g3kubectl get namespace grafana > /dev/null 2>&1; then
+#     for grafana in $(g3kubectl get services -n grafana -o jsonpath='{.items[*].metadata.name}');
+#     do
+#       filePath="$scriptDir/gen3.nginx.conf/${grafana}.conf"
+#       touch "${XDG_RUNTIME_DIR}/${grafana}.conf"
+#       tmpCredsFile="${XDG_RUNTIME_DIR}/${grafana}.conf"
+#       adminPass=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
+#       adminCred=$(echo -n "admin:${adminPass}" | base64 --wrap=0)
+#       sed "s/CREDS/${adminCred}/" ${filePath} > ${tmpCredsFile}
+#       if [[ -f "${tmpCredsFile}" ]]; then
+#         confFileList+=("--from-file" "${tmpCredsFile}")
+#       fi
+#       #rm -f ${tmpCredsFile}
+#     done
+#   fi
+# fi
 
 if g3k_manifest_lookup .global.document_url  > /dev/null 2>&1; then
   documentUrl="$(g3k_manifest_lookup .global.document_url)"
