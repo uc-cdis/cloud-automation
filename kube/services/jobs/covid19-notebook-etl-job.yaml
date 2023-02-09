@@ -15,10 +15,17 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - ONDEMAND    
+                - ONDEMAND
       serviceAccountName: s3-access-opencdn-databucket-gen3
       volumes:
         - name: cred-volume
