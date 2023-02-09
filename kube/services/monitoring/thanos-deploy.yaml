@@ -176,7 +176,6 @@ spec:
             - '--objstore.config-file=/config/thanos.yaml'
             - '--wait'
             - '--web.external-prefix=/thanos-compactor/'
-            - '--web.route-prefix=/thanos-compactor/'
           ports:
             - name: http
               containerPort: 10902
