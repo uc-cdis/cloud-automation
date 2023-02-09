@@ -752,8 +752,8 @@ grafana:
     ##
     # hosts:
     #   - grafana.domain.com
-    hosts: 
-      - data.bloodpac.org
+    hosts: []
+      # - data.bloodpac.org
 
     ## Path for grafana ingress
     path: /grafana/?(.*)
