@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Deploy the metdata service.
+# Deploy the metadata service.
 #
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"

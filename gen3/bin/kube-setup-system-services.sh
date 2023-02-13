@@ -16,10 +16,10 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-kubeproxy=${kubeproxy:-1.16.13}
-coredns=${coredns:-1.6.6}
+kubeproxy=${kubeproxy:-1.22.11}
+coredns=${coredns:-1.8.7}
 kubednsautoscaler=${kubednsautoscaler:-1.8.6}
-cni=${cni:-1.11.0}
+cni=${cni:-1.12.0}
 calico=${calico:-1.7.8}
 
 
@@ -31,7 +31,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kubeproxy}-eksbuild.1"
+kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kubeproxy}-eksbuild.2"
 coredns_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/coredns:v${coredns}"
 kubednsautoscaler_image="k8s.gcr.io/cpa/cluster-proportional-autoscaler:${kubednsautoscaler}"
 cni_image="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v${cni}/config/master/aws-k8s-cni.yaml"

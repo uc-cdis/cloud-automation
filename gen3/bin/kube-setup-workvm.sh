@@ -241,7 +241,7 @@ EOM
   fi
   ( # in a subshell install helm
     install_helm() {
-      helm_release_URL="https://get.helm.sh/helm-v3.4.0-linux-amd64.tar.gz"
+      helm_release_URL="https://get.helm.sh/helm-v3.9.4-linux-amd64.tar.gz"
       curl -s -o "${XDG_RUNTIME_DIR}/helm.tar.gz" ${helm_release_URL}
       tar xf "${XDG_RUNTIME_DIR}/helm.tar.gz" -C ${XDG_RUNTIME_DIR}
       sudo mv -f "${XDG_RUNTIME_DIR}/linux-amd64/helm" /usr/local/bin

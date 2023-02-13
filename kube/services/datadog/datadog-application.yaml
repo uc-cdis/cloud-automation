@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: datadog-application
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: datadog
+    repoURL: 'https://helm.datadoghq.com'
+    targetRevision: 3.6.4
+    helm:
+      valueFiles: 
+      - https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/kube/services/datadog/values.yaml
+      releaseName: datadog
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: datadog
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
