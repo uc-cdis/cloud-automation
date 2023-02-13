@@ -10,6 +10,20 @@ controller:
     prometheus.io/path: /metrics
     prometheus.io/port: "9090"
 
+    ad.datadoghq.com/controller.checks: |
+      {
+        "openmetrics": {
+          "init_config": {},
+          "instances": [
+            {
+              "openmetrics_endpoint": "http://%%host%%:%%port%%/metrics ",
+              "namespace": "argo",
+              "metrics": ["*"]
+            }
+          ]
+        }
+      }      
+
   # -- enable persistence using postgres
   persistence:
     archive: true
