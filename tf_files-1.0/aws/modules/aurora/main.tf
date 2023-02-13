@@ -28,7 +28,7 @@ resource "aws_rds_cluster" "postgresql" {
   final_snapshot_identifier       = var.final_snapshot_identifier
   backup_retention_period         = var.backup_retention_period
   preferred_backup_window         = var.preferred_backup_window
-  db_cluster_parameter_group_name =  aws_db_parameter_group.aurora_cdis_pg.name
+  db_cluster_parameter_group_name =  aws_rds_cluster_parameter_group.aurora_cdis_pg.name
 
   serverlessv2_scaling_configuration {
     max_capacity = var.serverlessv2_scaling_max_capacity
@@ -78,7 +78,7 @@ locals {
   pg_family_version = replace( var.cluster_engine_version ,"/\\.[0-9]/", "" )
 }
 
-resource "aws_db_parameter_group" "aurora_cdis_pg" {
+resource "aws_rds_cluster_parameter_group" "aurora_cdis_pg" {
   name   = "${var.vpc_name}-aurora-cdis-pg"
   family = "aurora-postgresql${local.pg_family_version}"
 
