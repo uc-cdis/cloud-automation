@@ -25,4 +25,8 @@ spec:
       port: 80
       targetPort: $TARGET_PORT_HTTP
       name: http
+    - protocol: TCP
+      port: 81
+      targetPort: 18080
+      name: status
   type: LoadBalancer
