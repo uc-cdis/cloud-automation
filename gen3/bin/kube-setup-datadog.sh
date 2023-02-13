@@ -5,6 +5,10 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/kube-setup-init"
 
+# Deploy Datadog with argocd if flag is set in the manifest path
+manifestPath=$(g3k_manifest_path)
+argocd="$(jq -r ".[\"global\"][\"argocd\"]" < "$manifestPath" | tr '[:upper:]' '[:lower:]')"
+
 if [[ -n "$JENKINS_HOME" ]]; then
   gen3_log_info "Jenkins skipping datadog setup: $JENKINS_HOME"
   exit 0
@@ -44,7 +48,11 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
       fi
       helm repo add datadog https://helm.datadoghq.com --force-update 2> >(grep -v 'This is insecure' >&2)
       helm repo update 2> >(grep -v 'This is insecure' >&2)
+      if [ "$argocd" = true ]; then
+      g3kubectl apply -f "$GEN3_HOME/kube/services/datadog/datadog-application.yaml" --namespace=argocd
+      else
       helm upgrade --install datadog -f "$GEN3_HOME/kube/services/datadog/values.yaml" datadog/datadog -n datadog --version 3.6.4 2> >(grep -v 'This is insecure' >&2)
+      fi
     )
   else
     gen3_log_info "kube-setup-datadog exiting - datadog already deployed, use --force to redeploy"

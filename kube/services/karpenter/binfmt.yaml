@@ -1,0 +1,42 @@
+# Run binfmt setup on any new node
+# https://kubernetes.io/docs/concepts/workloads/controllers/daemonset
+# https://github.com/docker/buildx/issues/342#issuecomment-680715762
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: binfmt
+  # namespace: kube-system
+  labels:
+    app: binfmt-setup
+spec:
+  selector:
+    matchLabels:
+      name: binfmt
+  # https://kubernetes.io/docs/concepts/workloads/pods/#pod-templates
+  template:
+    metadata:
+      labels:
+        name: binfmt
+    spec:
+      nodeSelector:
+       kubernetes.io/arch: "arm64"
+      initContainers:
+        - name: binfmt
+          image: tonistiigi/binfmt
+          # command: []
+          args: ["--install", "all"]
+          # Run the container with the privileged flag
+          # https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+          # https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#securitycontext-v1-core
+          securityContext:
+            privileged: true
+      containers:
+        - name: pause
+          image: gcr.io/google_containers/pause:3.2
+          resources:
+            limits:
+              cpu: 50m
+              memory: 50Mi
+            requests:
+              cpu: 50m
+              memory: 50Mi
