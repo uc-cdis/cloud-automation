@@ -46,6 +46,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
         g3kubectl "--namespace=logging" delete daemonset fluentd
       fi
       (unset KUBECTL_NAMESPACE; gen3 gitops filter "${GEN3_HOME}/kube/services/fluentd/fluentd.yaml" GEN3_LOG_GROUP_NAME "${vpc_name}") | g3kubectl "--namespace=logging" apply -f -
+      (unset KUBECTL_NAMESPACE; gen3 gitops filter "${GEN3_HOME}/kube/services/fluentd/fluentd-karpenter.yaml" GEN3_LOG_GROUP_NAME "${vpc_name}") | g3kubectl "--namespace=logging" apply -f -
       # We need this serviceaccount to be in the default namespace for the job and cronjob to properly work
       g3kubectl apply -f "${GEN3_HOME}/kube/services/fluentd/fluent-jobs-serviceaccount.yaml" -n default
       if [ ${fluentdVersion} == "v1.10.2-debian-cloudwatch-1.0" ];
