@@ -14,10 +14,17 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - ONDEMAND      
+                - ONDEMAND
       containers:
       - name: gen3qa-check-bucket-access
         GEN3_GEN3_QA_CONTROLLER_IMAGE|-image: quay.io/cdis/gen3-qa-controller:fix_gen3qa_get_check-|

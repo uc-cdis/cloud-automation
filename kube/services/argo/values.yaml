@@ -6,6 +6,10 @@ controller:
 
   # -- enable persistence using postgres
   persistence:
+    connectionPool:
+      maxIdleConns: 100
+      maxOpenConns: 0
+      connMaxLifetime: 300s
     archive: true
     archiveLabelSelector:
       matchLabels:
