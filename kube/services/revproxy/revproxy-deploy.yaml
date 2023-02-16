@@ -100,7 +100,6 @@ spec:
         - containerPort: 80
         - containerPort: 443
         - containerPort: 6567
-        - containerPort: 18080
         env:
           - name: POD_NAMESPACE
             valueFrom:
