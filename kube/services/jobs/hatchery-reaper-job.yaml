@@ -58,6 +58,46 @@ spec:
             - |
               export GEN3_HOME="$HOME/cloud-automation"
               source "$GEN3_HOME/gen3/gen3setup.sh"
+              # 60 minute idle timeout max
+              limit=3600
+              remote_users=$(kubectl get svc -n jupyter-pods  -o json | jq -r . | jq -r '.items[].metadata.annotations."getambassador.io/config"' |  yq -r .headers.remote_user)
+
+              # helper function to construct service name 
+              function escape() {
+                  string="$1"
+                  shift
+                  safeBytes="abcdefghijklmnopqrstuvwxyz0123456789"
+                  retString=""
+                  while read -n 1 char ; do
+                      if [[ $safeBytes == *"$char"* ]]; then
+                        retString+=$char
+                      else
+                        hex=$(printf "%02x" "'${char}'")
+                        retString+="-"$hex
+                      fi
+                  done <<< "$string"
+                echo $retString
+              }
+
+              for user in $remote_users; do
+                  echo $user
+                  status=$(curl -s -H "REMOTE_USER: $user" hatchery-service/status | jq -r .status)
+                  if [[ $status == "Running" ]]; then
+                      echo "$user has workspace that is $status"
+                      serviceName=h-$(escape $user)-s
+                      service=$(kubectl get svc -n jupyter-pods $serviceName  -o json | jq -r '.metadata.annotations."getambassador.io/config"' | yq -r .service)
+                      last_activity=$(curl -s -H "REMOTE_USER: $user" $service/lw-workspace/proxy/api/status | jq -r .last_activity )
+                      now=$(date +%s)
+                      delta=$(expr $now - $(date -d "$last_activity" +%s))
+                      echo Workspace for $user has been idle for $delta seconds
+                      if [ "$delta" -gt "$limit" ]; then
+                        echo "Workspace for $user has been running for $delta seconds, which is higher than the $limit... Terminating"
+                        curl -XPOST -s -H "REMOTE_USER: $user" hatchery-service/terminate
+                      fi
+                  fi
+              done
+
+              # legacy reaper code
               if appList="$(gen3 jupyter idle none "$(gen3 db namespace)" kill)" && [[ -n "$appList" && -n "$slackWebHook" && "$slackWebHook" != "None" ]]; then
                 curl -X POST --data-urlencode "payload={\"text\": \"hatchery-reaper in $gen3Hostname: \n\`\`\`\n${appList}\n\`\`\`\"}" "${slackWebHook}"
               fi
