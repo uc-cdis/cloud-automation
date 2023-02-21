@@ -87,7 +87,7 @@ spec:
           failureThreshold: 30
         resources:
           requests:
-            cpu: 0.6
+            cpu: 2
             memory: 512Mi
           limits:
             # portal pigs out on resources at startup, then settles down
