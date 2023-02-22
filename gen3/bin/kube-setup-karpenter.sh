@@ -15,6 +15,7 @@ gen3_deploy_karpenter() {
     gen3_log_info "Ensuring that the spot instance service linked role is setup"
     # Ensure the spot instance service linked role is setup
     # It is required for running spot instances
+    gen3_create_karpenter_sqs_eventbridge
     aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
     karpenter=${karpenter:-v0.22.0}
     echo '{
@@ -44,6 +45,17 @@ gen3_deploy_karpenter() {
                 "Sid": "Karpenter"
             },
             {
+                "Action": [
+                    "sqs:DeleteMessage",
+                    "sqs:GetQueueAttributes",
+                    "sqs:GetQueueUrl",
+                    "sqs:ReceiveMessage"
+                ],
+                "Effect": "Allow",
+                "Resource": "arn:aws:sqs:*:'$(aws sts get-caller-identity --output text --query "Account")':karpenter-sqs-${vpc_name}",
+                "Sid": "Karpenter"
+            },
+            {
                 "Action": "ec2:TerminateInstances",
                 "Condition": {
                     "StringLike": {
@@ -68,10 +80,8 @@ gen3_deploy_karpenter() {
     gen3_log_info "Have to delete SA because helm chart will create the SA and there will be a conflict"
     g3kubectl delete sa karpenter -n karpenter
 
-
     gen3_log_info "aws iam put-role-policy --role-name "karpenter-controller-role-$vpc_name" --policy-document file://controller-policy.json --policy-name "karpenter-controller-policy" 1>&2 || true"
     aws iam put-role-policy --role-name "karpenter-controller-role-$vpc_name" --policy-document file://controller-policy.json --policy-name "karpenter-controller-policy" 1>&2 || true
-    
     gen3_log_info "Need to tag the subnets/sg's so that karpenter can discover them automatically"
     # Need to tag the subnets/sg's so that karpenter can discover them automatically
     subnets=$(aws ec2 describe-subnets --filter 'Name=tag:Environment,Values='$vpc_name'' 'Name=tag:Name,Values=eks_private_*' --query 'Subnets[].SubnetId' --output text)
@@ -87,15 +97,12 @@ gen3_deploy_karpenter() {
     aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-jupyter" --resources ${security_groups_jupyter} || true
     aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-worfklow" --resources ${security_groups_workflow} || true
 
-
     gen3_log_info "Installing karpenter using helm"
-
     helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version ${karpenter} --namespace karpenter \
         --set settings.aws.defaultInstanceProfile=${vpc_name}_EKS_workers \
         --set settings.aws.clusterEndpoint="${cluster_endpoint}" \
         --set settings.aws.clusterName=${vpc_name} \
         --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::$(aws sts get-caller-identity --output text --query 'Account'):role/gen3_service/karpenter-controller-role-${vpc_name}"
-   
    gen3_log_info "sleep for a little bit so CRD's can be created for the provisioner/node template"
    # sleep for a little bit so CRD's can be created for the provisioner/node template
    sleep 10
@@ -129,6 +136,26 @@ gen3_deploy_karpenter() {
   fi
   g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerJupyter.yaml
   g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerWorkflow.yaml
+}
+
+gen3_create_karpenter_sqs_eventbridge() {
+  local queue_name="karpenter-sqs-${vpc_name}"
+  local eventbridge_rule_name="karpenter-eventbridge-${vpc_name}"
+  gen3 sqs create-queue-if-not-exist $queue_name >> "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json"
+  local queue_url=$(cat "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json" | jq -r '.url')
+  local queue_arn=$(cat "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json" | jq -r '.arn')
+  # Create eventbridge rules
+  aws events put-rule --name "Karpenter-${vpc_name}-SpotInterruptionRule" --event-pattern '{"source": ["aws.ec2"], "detail-type": ["EC2 Spot Instance Interruption Warning"]}'
+  aws events put-rule --name "Karpenter-${vpc_name}-RebalanceRule" --event-pattern '{"source": ["aws.ec2"], "detail-type": ["EC2 Instance Rebalance Recommendation"]}'
+  aws events put-rule --name "Karpenter-${vpc_name}-ScheduledChangeRule" --event-pattern '{"source": ["aws.health"], "detail-type": ["AWS Health Event"]}'
+  aws events put-rule --name "Karpenter-${vpc_name}-InstanceStateChangeRule" --event-pattern '{"source": ["aws.ec2"], "detail-type": ["EC2 Instance State-change Notification"]}'
+  # Add SQS as a target for the eventbridge rules
+  aws events put-targets --rule "Karpenter-${vpc_name}-SpotInterruptionRule" --targets "Id"="1","Arn"="${queue_arn}"
+  aws events put-targets --rule "Karpenter-${vpc_name}-RebalanceRule" --targets "Id"="1","Arn"="${queue_arn}"
+  aws events put-targets --rule "Karpenter-${vpc_name}-ScheduledChangeRule" --targets "Id"="1","Arn"="${queue_arn}"
+  aws events put-targets --rule "Karpenter-${vpc_name}-InstanceStateChangeRule" --targets "Id"="1","Arn"="${queue_arn}"
+  aws sqs set-queue-attributes --queue-url "${queue_url}" --attributes "Policy"="$(aws sqs get-queue-attributes --queue-url "${queue_url}" --attribute-names "Policy" --query "Attributes.Policy" --output text | jq -r '.Statement += [{"Sid": "AllowKarpenter", "Effect": "Allow", "Principal": {"Service": ["sqs.amazonaws.com","events.amazonaws.com"]}, "Action": "sqs:SendMessage", "Resource": "'${queue_arn}'"}]')"
+  g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/karpenter-global-settings.yaml SQS_NAME ${queue_name} | g3kubectl apply -f -
 }
 
 gen3_remove_karpenter() {
