@@ -117,12 +117,13 @@ gen3_deploy_karpenter() {
   fi
   if [[ $GPU ]]; then
     g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerGPU.yaml
+    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerGPUShared.yaml
     g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/nodeTemplateGPU.yaml
     helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
     helm repo update
     helm upgrade -i nvdp nvdp/nvidia-device-plugin \
       --namespace nvidia-device-plugin \
-      --create-namespace -f nvdp.yaml
+      --create-namespace -f ${GEN3_HOME}/kube/services/karpenter/nvdp.yaml
   fi
   g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerJupyter.yaml
   g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerWorkflow.yaml
