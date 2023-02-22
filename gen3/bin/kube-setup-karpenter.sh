@@ -112,30 +112,39 @@ gen3_deploy_karpenter() {
   gen3_log_info "Remove cluster-autoscaler"
   gen3 kube-setup-autoscaler --remove
 
-  gen3_log_info "Adding node templates for karpenter"
-  g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateDefault.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
-  g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateJupyter.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
-  g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateWorkflow.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
-  if [[ $ARM ]]; then
-    gen3_log_info "Deploy binfmt daemonset so the emulation tools run on arm nodes"
-    # Deploy binfmt daemonset so the emulation tools run on arm nodes
-    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/binfmt.yaml
-    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerArm.yaml
+  # depoloy node templates and provisioners if not set in manifest
+  if [[ -d $(g3k_manifest_init)/$(g3k_hostname)/manifests/karpenter ]]; then
+    gen3_log_info "karpenter manifest found, skipping node template and provisioner deployment"
+    # apply each manifest in the karpenter folder
+    for manifest in $(g3k_manifest_init)/$(g3k_hostname)/manifests/karpenter/*.yaml; do
+      g3kubectl apply -f $manifest
+    done
   else
-    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerDefault.yaml    
+    gen3_log_info "Adding node templates for karpenter"
+    g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateDefault.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
+    g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateJupyter.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
+    g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateWorkflow.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
+    if [[ $ARM ]]; then
+      gen3_log_info "Deploy binfmt daemonset so the emulation tools run on arm nodes"
+      # Deploy binfmt daemonset so the emulation tools run on arm nodes
+      g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/binfmt.yaml
+      g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerArm.yaml
+    else
+      g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerDefault.yaml    
+    fi
+    if [[ $GPU ]]; then
+      g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerGPU.yaml
+      g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerGPUShared.yaml
+      g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/nodeTemplateGPU.yaml
+      helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
+      helm repo update
+      helm upgrade -i nvdp nvdp/nvidia-device-plugin \
+        --namespace nvidia-device-plugin \
+        --create-namespace -f ${GEN3_HOME}/kube/services/karpenter/nvdp.yaml
+    fi
+    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerJupyter.yaml
+    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerWorkflow.yaml
   fi
-  if [[ $GPU ]]; then
-    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerGPU.yaml
-    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerGPUShared.yaml
-    g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/nodeTemplateGPU.yaml
-    helm repo add nvdp https://nvidia.github.io/k8s-device-plugin
-    helm repo update
-    helm upgrade -i nvdp nvdp/nvidia-device-plugin \
-      --namespace nvidia-device-plugin \
-      --create-namespace -f ${GEN3_HOME}/kube/services/karpenter/nvdp.yaml
-  fi
-  g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerJupyter.yaml
-  g3kubectl apply -f ${GEN3_HOME}/kube/services/karpenter/provisionerWorkflow.yaml
 }
 
 gen3_create_karpenter_sqs_eventbridge() {
