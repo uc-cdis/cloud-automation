@@ -74,7 +74,7 @@ spec:
             secretName: "fence-jwt-keys"
       containers:
       - name: awshelper
-        image: quay.io/cdis/awshelper:master
+        image: quay.io/cdis/awshelper:fix_cedar-typo
         imagePullPolicy: Always
         ports:
         - containerPort: 80
