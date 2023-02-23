@@ -7,6 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # install python
 RUN set -xe && apt-get update  && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip python3-venv build-essential zip unzip jq less vim gettext-base wget
 
+# update and install
 RUN set -xe && apt-get update \
   && apt-get install -y lsb-release \
      apt-transport-https \
