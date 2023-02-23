@@ -58,7 +58,7 @@ RUN export CLOUD_SDK_REPO="cloud-sdk" && \
     apt-get update && \
     apt-get install -y kubectl && \
     apt-get install -y --no-install-recommends nodejs && \
-    rm -rf /var/lib/apt/lists/* \
+    rm -rf /var/lib/apt/lists/*  &&\
     kubectl version --client && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/log/*
