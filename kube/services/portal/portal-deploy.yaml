@@ -87,11 +87,11 @@ spec:
           failureThreshold: 30
         resources:
           requests:
-            cpu: 1
-            memory: 1Gi
+            cpu: 2
+            memory: 2Gi
           limits:
             # portal pigs out on resources at startup, then settles down
-            cpu: 2
+            cpu: 4
             memory: 4096Mi
         ports:
         - containerPort: 80
