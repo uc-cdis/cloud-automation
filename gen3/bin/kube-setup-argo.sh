@@ -39,7 +39,7 @@ function setup_argo_buckets {
     fi
   fi
 
-  if [[ ! -z $(g3k_config_lookup '."internal-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
+  if [[ ! -z $(g3k_config_lookup '."internal-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo."internal-s3-bucket"')]]; then
     if [[ ! -z $(g3k_config_lookup '."internal-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
       gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
       internalBucketName=$(g3k_config_lookup '."internal-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
