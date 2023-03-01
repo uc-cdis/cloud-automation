@@ -149,3 +149,9 @@ Sync [aggregate metadata](https://github.com/uc-cdis/metadata-service#aggregatio
 * Update the configuration as specified in the metadata service docs
 * `gen3 kube-setup-metadata` to update k8s configMaps and secrets as needed
 * `gen3 job run metadata-aggregate-sync`
+
+### metadata-aggregate-sync-cronjob
+
+Same as above but run on a schedule.
+
+The cronjob uses the `metadata/aggregate_config.json` config file in the manifest directory.
