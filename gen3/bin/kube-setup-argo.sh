@@ -31,10 +31,10 @@ function setup_argo_buckets {
 
   if [[ ! -z $(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo."s3-bucket"') ]]; then
     if [[ ! -z $(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
-      gen3_log_info "Using S3 bucket found in manifest: ${bucketName}1"
+      gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
       bucketName=$(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
     else
-      gen3_log_info "Using S3 bucket found in manifest: ${bucketName}2"
+      gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
       bucketName=$(g3k_config_lookup '.argo."s3-bucket"')
     fi
   fi
