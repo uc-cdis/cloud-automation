@@ -258,6 +258,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
     helm repo add argo https://argoproj.github.io/argo-helm --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
     helm upgrade --install argo argo/argo-workflows -n argo -f ${valuesFile} --version $argo_version
+
   else
     gen3_log_info "kube-setup-argo exiting - argo already deployed, use --force to redeploy"
   fi

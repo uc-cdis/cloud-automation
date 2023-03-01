@@ -13,7 +13,7 @@ datadog:
   #Enables Optional Universal Service Monitoring
   ## ref: https://docs.datadoghq.com/tracing/universal_service_monitoring/?tab=helm
   serviceMonitoring:
-    enabled: true
+    enabled: false
 
   # datadog.apiKeyExistingSecret -- Use existing Secret which stores API key instead of creating a new one. The value should be set with the `api-key` key inside the secret.
   ## If set, this parameter takes precedence over "apiKey".
@@ -89,6 +89,13 @@ datadog:
 
   ## Enable systemProbe agent and provide custom configs
   systemProbe:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 200Mi
+      limits:
+        cpu: 100m
+        memory: 200Mi
 
     # datadog.systemProbe.debugPort -- Specify the port to expose pprof and expvar for system-probe agent
     debugPort: 0
@@ -161,7 +168,7 @@ datadog:
 
   networkMonitoring:
     # datadog.networkMonitoring.enabled -- Enable network performance monitoring
-    enabled: true
+    enabled: false
 
 
   ## Enable security agent and provide custom configs
