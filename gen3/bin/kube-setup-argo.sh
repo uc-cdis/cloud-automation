@@ -214,8 +214,6 @@ EOF
     indexdFencePassword=$(cat $(gen3_secrets_folder)/creds.json | jq -r .indexd.user_db.$indexd_admin_user)
     g3kubectl create secret generic "indexd-creds" --from-literal=user=$indexd_admin_user --from-literal=password=$indexdFencePassword -n argo
   fi
-
-  echo "Exiting. If we get to this, I'm throwing my laptop off this goddamn balcony."
 }
 
 function setup_argo_db() {
