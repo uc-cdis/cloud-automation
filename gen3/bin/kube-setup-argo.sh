@@ -225,7 +225,7 @@ function setup_argo_db() {
   fi
 }
 
-  #setup_argo_buckets
+  setup_argo_buckets
 
 # only do this if we are running in the default namespace
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
