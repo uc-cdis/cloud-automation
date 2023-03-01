@@ -1,4 +1,3 @@
-#  gen3 job run metadata-aggregate-sync-cronjob 
 apiVersion: batch/v1
 kind: CronJob
 metadata:
