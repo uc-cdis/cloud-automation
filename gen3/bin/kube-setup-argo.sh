@@ -229,7 +229,7 @@ function setup_argo_db() {
 
 # only do this if we are running in the default namespace
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
-  #setup_argo_db
+  setup_argo_db
   if (! helm status argo -n argo > /dev/null 2>&1 )  || [[ "$1" == "--force" ]]; then
     DBHOST=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_host | base64 -d)
     DBNAME=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_database | base64 -d)
