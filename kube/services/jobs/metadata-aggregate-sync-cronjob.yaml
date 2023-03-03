@@ -118,8 +118,14 @@ spec:
                     exit 0
                   fi
                   if ! [ -f /mnt/shared/success ]; then
-                    curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: metadata-aggregate-sync cron failed for ${gen3Env} \"}" "${slackWebHook}"
+                    success="FAILED"
+                    color="ff0000"
                   else
-                    curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: metadata-aggregate-sync cron succeeded for ${gen3Env} \"}" "${slackWebHook}"
+                    success="SUCCESS"
+                    color="2EB67D"
                   fi
+                  echo "Sending ${success} message to slack..."
+                  payload="{\"attachments\": [{\"fallback\": \"JOB ${success}: metadata-aggregate-sync cronjob on ${gen3Env}\",\"color\": \"#${color}\",\"title\": \"JOB ${success}: metadata-aggregate-sync cronjob on ${gen3Env}\",\"text\": \"Pod name: ${HOSTNAME}\",\"ts\": \"$(date +%s)\"}]}"
+                  echo "Payload=${payload}"
+                  curl -X POST --data-urlencode "payload={$payload}" "${slackWebHook}"
           restartPolicy: Never
