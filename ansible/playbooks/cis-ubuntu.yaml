@@ -1,5 +1,5 @@
 ---
-- name: Apply CIS Ubuntu Benchmark
+- name: Apply CIS Linux 2 Benchmark
   hosts: ec2-ubuntu-host
   gather_facts: yes
   tasks:
