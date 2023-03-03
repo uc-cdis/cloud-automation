@@ -113,7 +113,7 @@ spec:
               args:
                 - "-c"
                 - |
-                  if [ ! "$slackWebHook" =~ ^http ]; then
+                  if [[ ! "$slackWebHook" =~ ^http ]]; then
                     echo "Slack webhook not set"
                     exit 0
                   fi
