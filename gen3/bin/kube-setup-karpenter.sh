@@ -104,7 +104,8 @@ gen3_deploy_karpenter() {
 
   gen3_log_info "Remove cluster-autoscaler"
   gen3 kube-setup-autoscaler --remove
-
+  # Ensure that fluentd is updated if karpenter is deployed to prevent containerd logging issues
+  gen3 kube-setup-fluentd
   gen3_log_info "Adding node templates for karpenter"
   g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateDefault.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
   g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateJupyter.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
