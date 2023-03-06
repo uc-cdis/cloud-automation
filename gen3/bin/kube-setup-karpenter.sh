@@ -16,7 +16,12 @@ gen3_deploy_karpenter() {
     # Ensure the spot instance service linked role is setup
     # It is required for running spot instances
     aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
-    karpenter=${karpenter:-v0.22.0}
+    export clusterversion=`kubectl version --short -o json | jq -r .serverVersion.minor`
+      if [ "${clusterversion}" = "24+" ]; then
+      karpenter=${karpenter:-v0.24.0}
+      else
+      karpenter=${karpenter:-v0.22.0}
+      fi    
     echo '{
         "Statement": [
             {
