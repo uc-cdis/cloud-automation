@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: fluentd-eks-1.24
+  name: fluentd
   namespace: logging
   labels:
-    k8s-app: fluentd--ks-1.24-logging
+    k8s-app: fluentd-eks-1.24-logging
     version: v1
     GEN3_DATE_LABEL
     kubernetes.io/cluster-service: "true"
