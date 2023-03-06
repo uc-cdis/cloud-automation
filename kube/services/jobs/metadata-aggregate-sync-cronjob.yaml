@@ -127,5 +127,5 @@ spec:
                   echo "Sending ${success} message to slack..."
                   payload="{\"attachments\": [{\"fallback\": \"JOB ${success}: metadata-aggregate-sync cronjob on ${gen3Env}\",\"color\": \"#${color}\",\"title\": \"JOB ${success}: metadata-aggregate-sync cronjob on ${gen3Env}\",\"text\": \"Pod name: ${HOSTNAME}\",\"ts\": \"$(date +%s)\"}]}"
                   echo "Payload=${payload}"
-                  curl -X POST --data-urlencode "payload={$payload}" "${slackWebHook}"
+                  curl -X POST --data-urlencode "payload=${payload}" "${slackWebHook}"
           restartPolicy: Never
