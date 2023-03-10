@@ -1,4 +1,3 @@
-
 ## First thing we need to create is the role that would spin up resources for us
 
 resource "aws_iam_role" "eks_control_plane_role" {
@@ -273,7 +272,7 @@ resource "aws_security_group_rule" "nodes_interpool_communications" {
 resource "aws_launch_configuration" "eks_launch_configuration" {
   associate_public_ip_address = false
   iam_instance_profile        = "${aws_iam_instance_profile.eks_node_instance_profile.name}"
-  image_id                    = "${data.aws_ami.eks_worker.id}"
+  image_id                    = "${var.ami}"
   instance_type               = "${var.nodepool_instance_type}"
   name_prefix                 = "eks-${var.vpc_name}-nodepool-${var.nodepool}"
   security_groups             = ["${aws_security_group.eks_nodes_sg.id}", "${aws_security_group.ssh.id}"]
