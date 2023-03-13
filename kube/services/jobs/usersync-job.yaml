@@ -92,7 +92,7 @@ spec:
           configMap:
             name: "projects"
       containers:
-      - name: fence
+      - name: usersync
         GEN3_FENCE_IMAGE
         imagePullPolicy: Always
         env:
