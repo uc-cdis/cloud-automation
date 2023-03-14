@@ -22,10 +22,10 @@ gen3 jupyter j-namespace setup
 
 
 # cron job to distribute licenses if using Stata workspaces
-# if [ "$(g3kubectl get configmaps/manifest-hatchery -o yaml | grep "\"image\": .*stata.*")" ];
-# then
-#     gen3 job cron distribute-licenses '* * * * *'
-# fi
+if [ "$(g3kubectl get configmaps/manifest-hatchery -o yaml | grep "\"image\": .*stata.*")" ];
+then
+    gen3 job cron distribute-licenses '* * * * *'
+fi
 
 policy=$( cat <<EOM
 {
