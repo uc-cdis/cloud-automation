@@ -32,25 +32,25 @@ function delete_prometheus()
   gen3 arun helm delete prometheus --namespace prometheus
 }
 
-function delete_grafana()
-{
-  gen3 arun helm delete grafana --namespace grafana
-}
+# function delete_grafana()
+# {
+#   gen3 arun helm delete grafana --namespace grafana
+# }
 
-function create_grafana_secrets()
-{
-  if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
-    credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
-    creds="$(base64 /dev/urandom | head -c 12)"
-    if [[ "$creds" != null ]]; then
-      echo ${creds} >> "$credsFile"
-      g3kubectl create secret generic grafana-admin "--from-file=credentials=${credsFile}"
-      rm -f ${credsFile}
-    else
-      echo "WARNING: there was an error creating the secrets for grafana"
-    fi
-  fi
-}
+# function create_grafana_secrets()
+# {
+#   if ! g3kubectl get secrets/grafana-admin > /dev/null 2>&1; then
+#     credsFile=$(mktemp -p "$XDG_RUNTIME_DIR" "creds.json_XXXXXX")
+#     creds="$(base64 /dev/urandom | head -c 12)"
+#     if [[ "$creds" != null ]]; then
+#       echo ${creds} >> "$credsFile"
+#       g3kubectl create secret generic grafana-admin "--from-file=credentials=${credsFile}"
+#       rm -f ${credsFile}
+#     else
+#       echo "WARNING: there was an error creating the secrets for grafana"
+#     fi
+#   fi
+# }
 
 function deploy_prometheus()
 {
@@ -87,36 +87,36 @@ function deploy_prometheus()
 }
 
 
-function deploy_grafana()
-{
-  helm_repository
-  if (! g3kubectl get namespace grafana > /dev/null 2>&1);
-  then
-    g3kubectl create namespace grafana
-    g3kubectl label namespace grafana app=grafana
-  fi
+# function deploy_grafana()
+# {
+#   helm_repository
+#   if (! g3kubectl get namespace grafana > /dev/null 2>&1);
+#   then
+#     g3kubectl create namespace grafana
+#     g3kubectl label namespace grafana app=grafana
+#   fi
 
-  #create_grafana_secrets
-  TMPGRAFANAVALUES=$(mktemp -p "$XDG_RUNTIME_DIR" "grafana.json_XXXXXX")
-  ADMINPASS=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
-  yq '.adminPassword = "'${ADMINPASS}'"' "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" --yaml-output > ${TMPGRAFANAVALUES}
-  # curl -o grafana-values.yaml https://raw.githubusercontent.com/helm/charts/master/stable/grafana/values.yaml
+#   #create_grafana_secrets
+#   TMPGRAFANAVALUES=$(mktemp -p "$XDG_RUNTIME_DIR" "grafana.json_XXXXXX")
+#   ADMINPASS=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
+#   yq '.adminPassword = "'${ADMINPASS}'"' "${GEN3_HOME}/kube/services/monitoring/grafana-values.yaml" --yaml-output > ${TMPGRAFANAVALUES}
+#   # curl -o grafana-values.yaml https://raw.githubusercontent.com/helm/charts/master/stable/grafana/values.yaml
 
-  if (! g3kubectl --namespace=grafana get deployment grafana > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
-    if ( g3kubectl --namespace=grafana get deployment grafana > /dev/null 2>&1);
-    then
-      delete_grafana
-    fi
+#   if (! g3kubectl --namespace=grafana get deployment grafana > /dev/null 2>&1) || [[ "$1" == "--force" ]]; then
+#     if ( g3kubectl --namespace=grafana get deployment grafana > /dev/null 2>&1);
+#     then
+#       delete_grafana
+#     fi
     
-    local HOSTNAME
-    HOSTNAME=$(gen3 api hostname)
+#     local HOSTNAME
+#     HOSTNAME=$(gen3 api hostname)
     
-    g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm upgrade --install grafana stable/grafana  --namespace grafana -f -
-    gen3 kube-setup-revproxy
-  else
-    echo "Grafana is already installed, use --force to try redeploying"
-  fi
-}
+#     g3k_kv_filter "${TMPGRAFANAVALUES}" DOMAIN ${HOSTNAME} |  gen3 arun helm upgrade --install grafana stable/grafana  --namespace grafana -f -
+#     gen3 kube-setup-revproxy
+#   else
+#     echo "Grafana is already installed, use --force to try redeploying"
+#   fi
+# }
 
 function deploy_thanos() {
   if  [[ -z $vpc_name ]]; then
@@ -145,11 +145,11 @@ case "$command" in
   prometheus)
     deploy_prometheus "$@"
     ;;
-  grafana)
-    deploy_grafana "$@"
-    ;;
+  # grafana)
+  #   deploy_grafana "$@"
+  #   ;;
   *)
     deploy_prometheus "$@"
-    deploy_grafana "$@"
+    # deploy_grafana "$@"
     ;;
 esac
