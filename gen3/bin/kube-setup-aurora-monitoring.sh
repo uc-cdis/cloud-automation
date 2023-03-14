@@ -1,11 +1,28 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-# Verify that the DB is set up correctly. We'll need to either abort, or fix it ourselves if we can.
+databaseArray=()
+databaseFarmArray=()
 
-# Create the Datadog user
-datadogPsqlPassword="$(jq -r .datadog_db_password < $(gen3_secrets_folder)/datadog/datadog_db_user.json)"
-if [[ -z "$datadogPsqlPassword" ]]; then
+# This function is going to retrieve and return all the top-level entries from creds.json, that has the db items we want.
+# This way, we can use this information while we're creating schemas and the like
+get_all_dbs() {
+  databases=$(jq 'to_entries[] | select (.value.db_password) | .key' $(gen3_secrets_folder)/creds.json)
+
+  OLD_IFS=$IFS
+  IFS=$'\n' databaseArray=($databases)
+  IFS=$OLD_IFS
+}
+
+get_all_dbs_db_farm() {
+  databases=$(jq 'to_entries[] | .key' $(gen3_secrets_folder)/g3auto/dbfarm/servers.json)
+
+  OLD_IFS=$IFS
+  IFS=$'\n' databaseFarmArray=($databases)
+  IFS=$OLD_IFS
+}
+
+create_new_datadog_user() {
   # Generate a new password for the datadog user in psql
   datadogPsqlPassword=$(random_alphanumeric)
 
@@ -13,46 +30,61 @@ if [[ -z "$datadogPsqlPassword" ]]; then
   if [ ! -d "$(gen3_secrets_folder)/datadog" ]
   then
     mkdir "$(gen3_secrets_folder)/datadog"
+    echo "{}" > "$(gen3_secrets_folder)/datadog/datadog_db_users.json"
   fi
 
-  cp "$GEN3_HOME/kube/services/datadog/datadog_db_user.json" "$(gen3_secrets_folder)/datadog/datadog_db_user.json"
-  jq ".datadog_db_password=\"$datadogPsqlPassword\"" "$GEN3_HOME/kube/services/datadog/datadog_db_user.json" > "$(gen3_secrets_folder)/datadog/datadog_db_user.json"
+  output=$(jq --arg host "$1" --arg password "$datadogPsqlPassword" '.[$host].datadog_db_password=$password' "$(gen3_secrets_folder)/datadog/datadog_db_users.json")
+  echo "$output" > "$(gen3_secrets_folder)/datadog/datadog_db_users.json"
+
+
+  # Instead of grabbing username, password, and all that, and doing our connection, we'll just figure out 
+  # which short name (i.e., server1, server2, etc) corresponds to our host, and connect that way.
+  # Saves a few lines of code.
+  shortname=$(jq --arg host "$1" 'to_entries[] | select (.value.db_host == $host) | .key' $(gen3_secrets_folder)/g3auto/dbfarm/servers.json | tr -d '"')
 
   # Create the Datadog user in the database
-  gen3 psql server1 -c "CREATE USER datadog WITH password $datadogPsqlPassword;"
-fi
+  gen3 psql $shortname -c "CREATE USER datadog WITH password '$datadogPsqlPassword';"
 
-# Get all of the DBs, so that we can create the necessary components in all of them
-databases=$(gen3 psql server1 -c "SELECT datname FROM pg_database;")
-databases=$(echo $databases | cut -c 47-)
-# For an explanation of this one, it uses parameter expansion: https://mywiki.wooledge.org/BashGuide/Parameters#Parameter_Expansion
-# This matches the pattern, (* rows), against the end of the databases string, and deletes the shortest match
-databases="${databases%(* rows)}"
+  echo $datadogPsqlPassword
+}
 
-# Now we turn it into an array
-databaseArray=($databases)
+get_datadog_db_password() {
+  # Create the Datadog user
+  datadogPsqlPassword="$(jq --arg host "$1" '.[$host].db_password' < $(gen3_secrets_folder)/datadog/datadog_db_users.json)"
+  if [[ -z "$datadogPsqlPassword" ]]
+  then
+    datadogPsqlPassword=$(create_new_datadog_user $1)
+  fi
 
+  echo $datadogPsqlPassword
+}
 
-# Loop through every database, creating the schema and function
+create_schema_and_function() {
+  svc=$(echo $1 | tr -d '"')
+  host=$(jq --arg service "$svc" '.[$service].db_host' $(gen3_secrets_folder)/creds.json | tr -d '"')
+  database=$(jq --arg service "$svc" '.[$service].db_database' $(gen3_secrets_folder)/creds.json | tr -d '"')
 
-for db in "${databaseArray[@]}"
-do
-  echo "gen3 psql server1 -d $db -t  <<SQL |
+  username=$(jq --arg host "$host" 'map(select(.db_host==$host))[0] | .db_username' $(gen3_secrets_folder)/g3auto/dbfarm/servers.json | tr -d '"')
+  password=$(jq --arg host "$host" 'map(select(.db_host==$host))[0] | .db_password' $(gen3_secrets_folder)/g3auto/dbfarm/servers.json | tr -d '"')
+
+  ddPass=$(get_datadog_db_password $host)
+
+  PGPASSWORD=$password psql -h $host -U $username -d $database -t <<SQL |
     CREATE SCHEMA datadog; 
       GRANT USAGE ON SCHEMA datadog TO datadog; 
       GRANT USAGE ON SCHEMA public TO datadog;
       GRANT pg_monitor TO datadog;
       CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
-SQL"
+SQL
 
-  echo "gen3 psql server1 -d $DB -t <<SQL |
+  PGPASSWORD=$password psql -h $host -U $username -d $database -t <<SQL |
     CREATE OR REPLACE FUNCTION datadog.explain_statement(
       l_query TEXT,
       OUT explain JSON
     )
    
     RETURNS SETOF JSON AS
-    $$
+    \$\$
     DECLARE
     curs REFCURSOR;
     plan JSON;
@@ -63,11 +95,21 @@ SQL"
       CLOSE curs;
       RETURN QUERY SELECT plan;
     END;
-    $$
+    \$\$
     LANGUAGE 'plpgsql'
     RETURNS NULL ON NULL INPUT
     SECURITY DEFINER;
-SQL"
+SQL
+
+  gen3_log_info "Succesfully added the function and schema"
+}
+
+get_all_dbs databaseArray
+
+# Loop through every database, creating the schema and function
+for db in "${databaseArray[@]}"
+do
+  create_schema_and_function $db
 done
 
 # Set up the agent
@@ -82,12 +124,15 @@ instances=$(aws rds describe-db-instances --filters "Name=db-cluster-id,Values=$
 postgresString=""
 for instance in "${instances[@]}" 
 do
-  datadogUserPassword=$(jq .datadog_db_password $(gen3_secrets_folder)/datadog/datadog_db_user.json)
+  datadogUserPassword=$(jq .datadog_db_password $(gen3_secrets_folder)/datadog/datadog_db_users.json)
   instanceArray=($instance)
   postgresString+=$(cat /home/aidan/cloud-automation/kube/services/datadog/postgres.yaml | yq --arg url ${instanceArray[0]} '.instances[0].host = $url' | yq --arg password $datadogUserPassword --yaml-output '.instances[0].password = $password')
 done
 
-echo "$(cat kube/services/datadog/values.yaml | yq --arg endpoints "$postgresString" --yaml-output '.datadog.confd."postgres.yaml" = $endpoints')"
 
+(cat kube/services/datadog/values.yaml | yq --arg endpoints "$postgresString" --yaml-output '.datadog.confd."postgres.yaml" = $endpoints') > $(gen3_secrets_folder)/datadog_values.yaml
+helm repo add datadog https://helm.datadoghq.com --force-update 2> >(grep -v 'This is insecure' >&2)
+helm repo update 2> >(grep -v 'This is insecure' >&2)
+helm upgrade --install datadog -f "$(gen3_secrets_folder)/datadog_values.yaml" datadog/datadog -n datadog --version 3.6.4 2> >(grep -v 'This is insecure' >&2)
 
 # Check that everything is working
