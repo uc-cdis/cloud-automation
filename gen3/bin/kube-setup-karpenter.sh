@@ -16,7 +16,12 @@ gen3_deploy_karpenter() {
     # Ensure the spot instance service linked role is setup
     # It is required for running spot instances
     aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
-    karpenter=${karpenter:-v0.22.0}
+    export clusterversion=`kubectl version --short -o json | jq -r .serverVersion.minor`
+      if [ "${clusterversion}" = "24+" ]; then
+      karpenter=${karpenter:-v0.24.0}
+      else
+      karpenter=${karpenter:-v0.22.0}
+      fi    
     echo '{
         "Statement": [
             {
@@ -105,7 +110,7 @@ gen3_deploy_karpenter() {
   gen3_log_info "Remove cluster-autoscaler"
   gen3 kube-setup-autoscaler --remove
   # Ensure that fluentd is updated if karpenter is deployed to prevent containerd logging issues
-  gen3 kube-setup-fluentd
+  gen3 kube-setup-fluentd --force
   gen3_log_info "Adding node templates for karpenter"
   g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateDefault.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
   g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/nodeTemplateJupyter.yaml VPC_NAME ${vpc_name} | g3kubectl apply -f -
