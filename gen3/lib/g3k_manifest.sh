@@ -304,21 +304,9 @@ g3k_config_lookup() {
     configPath="$1"
   fi
   if [[ "$configPath" =~ .json$ ]]; then
-    output=$(jq -r -e "$queryStr" < "$configPath")
-    
-    if [[ "$output" == "null" ]]; then
-      echo ""
-    else
-      echo "$output"
-    fi
+    jq -r -e "$queryStr" < "$configPath"
   elif [[ "$configPath" =~ .yaml ]]; then
-    output=$(yq -r -e "$queryStr" < "$configPath")
-    
-    if [[ "$output" == "null" ]]; then
-      echo ""
-    else
-      echo "$output"
-    fi
+    yq -r -e "$queryStr" < "$configPath"
   else
     gen3_log_err "file is not .json or .yaml: $configPath"
     return 1
