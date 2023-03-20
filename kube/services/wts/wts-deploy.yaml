@@ -132,11 +132,10 @@ spec:
             port: 80
         resources:
           requests:
-            cpu: 0.8
-            memory: 512Mi
+            cpu: 100m
+            memory: 200Mi
           limits:
-            cpu: 2
-            memory: 2048Mi
+            memory: 512Mi
       initContainers:
         - name: wts-db-migrate
           GEN3_WTS_IMAGE

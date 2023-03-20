@@ -120,11 +120,10 @@ spec:
             subPath: json
         resources:
           requests:
-            cpu: 0.4
-            memory: 512Mi
+            cpu: 100m
+            memory: 128Mi
           limits:
-            cpu: 1
-            memory: 2048Mi
+            memory: 512Mi
       initContainers:
         - name: metadata-db-migrate
           GEN3_METADATA_IMAGE
