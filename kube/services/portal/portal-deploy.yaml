@@ -37,10 +37,17 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - ONDEMAND              
+                - ONDEMAND
       automountServiceAccountToken: false
       volumes:
       - name: ca-volume
@@ -80,12 +87,8 @@ spec:
           failureThreshold: 30
         resources:
           requests:
-            cpu: 0.6
-            memory: 512Mi
-          limits:
-            # portal pigs out on resources at startup, then settles down
-            cpu: 2
-            memory: 4096Mi
+            cpu: 1
+            memory: 1Gi
         ports:
         - containerPort: 80
         - containerPort: 443

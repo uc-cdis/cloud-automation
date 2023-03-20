@@ -4,32 +4,23 @@ metadata:
   name: fluentd
   namespace: logging
   labels:
-    k8s-app: fluentd-logging
+    k8s-app: fluentd-eks-1.24-logging
     version: v1
     GEN3_DATE_LABEL
     kubernetes.io/cluster-service: "true"
 spec:
   selector:
     matchLabels:
-      k8s-app: fluentd-logging
+      k8s-app: fluentd-eks-1.24-logging
       version: v1
   template:
     metadata:
       labels:
-        k8s-app: fluentd-logging
+        k8s-app: fluentd-eks-1.24-logging
         version: v1
         kubernetes.io/cluster-service: "true"
     spec:
       priorityClassName: system-cluster-critical
-      affinity:
-        nodeAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
-              - key: karpenter.sh/initialized
-                operator: NotIn
-                values:
-                - "true"
       tolerations:
       - key: node-role.kubernetes.io/master
         effect: NoSchedule
@@ -43,7 +34,7 @@ spec:
         effect: "NoSchedule"
       containers:
       - name: fluentd
-        # Hardcode fluentd version to match karpenter daemonset
+        # Hardcode fluentd version to ensure we don't run into containerd logging issues
         image: fluent/fluentd-kubernetes-daemonset:v1.15.3-debian-cloudwatch-1.0
         env:
           # See https://github.com/fabric8io/fluent-plugin-kubernetes_metadata_filter#environment-variables-for-kubernetes
@@ -58,6 +49,8 @@ spec:
             value: "us-east-1"
           - name: FLUENTD_CONF
             value: "gen3.conf"
+          - name: FLUENT_CONTAINER_TAIL_PARSER_TYPE
+            value: "cri"
         resources:
           limits:
             memory: 1Gi

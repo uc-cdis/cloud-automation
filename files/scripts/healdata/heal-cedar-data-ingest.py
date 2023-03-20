@@ -25,7 +25,8 @@ SPECIAL_VALUE_MAPPINGS = {
     "Trans Female": "Male-to-female transsexual",
     "Agender, Non-binary, gender non-conforming": "Other",
     "Gender Queer": "Other",
-    "Intersex": "Intersexed"
+    "Intersex": "Intersexed",
+    "Buisness Development": "Business Development"
 }
 
 # Defines field that we don't want to include in the filters

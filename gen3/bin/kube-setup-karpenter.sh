@@ -20,7 +20,12 @@ gen3_deploy_karpenter() {
     if g3k_config_lookup .global.karpenter_version; then
       karpenter=$(g3k_config_lookup .global.karpenter_version)
     fi
-    karpenter=${karpenter:-v0.22.0}
+    export clusterversion=`kubectl version --short -o json | jq -r .serverVersion.minor`
+    if [ "${clusterversion}" = "24+" ]; then
+      karpenter=${karpenter:-v0.24.0}
+    else
+      karpenter=${karpenter:-v0.22.0}
+    fi    
     echo '{
         "Statement": [
             {
@@ -127,13 +132,14 @@ gen3_deploy_karpenter() {
         --set settings.aws.clusterName=${vpc_name} \
         --set serviceAccount.name=karpenter \
         --set serviceAccount.create=false \
-	--set controller.env[0].name=AWS_REGION \
-	--set controller.env[0].value=us-east-1
+	      --set controller.env[0].name=AWS_REGION \
+	      --set controller.env[0].value=us-east-1
   fi
   gen3_log_info "Remove cluster-autoscaler"
   gen3 kube-setup-autoscaler --remove
+  # Ensure that fluentd is updated if karpenter is deployed to prevent containerd logging issues
+  gen3 kube-setup-fluentd --force
   gen3_update_karpenter_configs
-
 }
 
 gen3_update_karpenter_configs() {
