@@ -11,6 +11,11 @@ spec:
     Environment: VPC_NAME
     Name: eks-VPC_NAME-workflow-karpenter
     karpenter.sh/discovery: VPC_NAME
+  metadataOptions:
+    httpEndpoint: enabled
+    httpProtocolIPv6: disabled
+    httpPutResponseHopLimit: 2
+    httpTokens: optional
   userData: |
     MIME-Version: 1.0
     Content-Type: multipart/mixed; boundary="BOUNDARY"
@@ -19,7 +24,9 @@ spec:
     Content-Type: text/x-shellscript; charset="us-ascii"
 
     #!/bin/bash -xe
-
+    instanceId=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .instanceId)
+    curl https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/files/authorized_keys/ops_team >> /home/ec2-user/.ssh/authorized_keys
+    aws ec2 create-tags --resources $instanceId --tags 'Key="instanceId",Value='$instanceId''
     curl https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/files/authorized_keys/ops_team >> /home/ec2-user/.ssh/authorized_keys
 
     sysctl -w fs.inotify.max_user_watches=12000
