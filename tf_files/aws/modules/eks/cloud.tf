@@ -398,6 +398,12 @@ resource "aws_iam_policy" "asg_access" {
                 "autoscaling:DescribeLaunchConfigurations"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "ec2:CreateTags",
+            "Resource": "arn:aws:ec2:*:${data.aws_caller_identity.current.account_id}:instance/*"
         }
     ]
 }

@@ -196,11 +196,10 @@ spec:
             subPath: "ca.pem"
         resources:
           requests:
-            cpu: 0.5
-            memory: 1024Mi
+            cpu: 100m
+            memory: 100Mi
           limits:
-            cpu: 1.0
-            memory: 2048Mi    
+            memory: 800Mi 
         command: ["/bin/sh" ]
         args:
           - "-c"
