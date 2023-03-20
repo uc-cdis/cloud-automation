@@ -37,7 +37,9 @@ spec:
           configMap:
             name: manifest-metadata
             optional: true
-      containers:
+        - name: shared-data
+          emptyDir: {}
+      initContainers:
         - name: metadata
           GEN3_METADATA_IMAGE
           volumeMounts:
@@ -53,6 +55,8 @@ spec:
               readOnly: true
               mountPath: /metadata.json
               subPath: json
+            - name: shared-data
+              mountPath: /mnt/shared
           env:
             - name: GEN3_DEBUG
               GEN3_DEBUG_FLAG|-value: "False"-|
@@ -76,4 +80,45 @@ spec:
             - "-c"
             - |
               /env/bin/python /src/src/mds/populate.py --config /aggregate_config.json
+              if [ $? -ne 0 ]; then
+                echo "WARNING: non zero exit code: $?"
+              else
+                touch /mnt/shared/success
+              fi
+      containers:
+        - name: awshelper
+          env:
+            - name: slackWebHook
+              valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: slack_webhook
+            - name: gen3Env
+              valueFrom:
+                  configMapKeyRef:
+                    name: manifest-global
+                    key: hostname
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          volumeMounts:
+            - name: shared-data
+              mountPath: /mnt/shared
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - |
+              if [[ ! "$slackWebHook" =~ ^http ]]; then
+                echo "Slack webhook not set"
+                exit 0
+              fi
+              if ! [ -f /mnt/shared/success ]; then
+                success="FAILED"
+                color="ff0000"
+              else
+                success="SUCCESS"
+                color="2EB67D"
+              fi
+              echo "Sending ${success} message to slack..."
+              payload="{\"attachments\": [{\"fallback\": \"JOB ${success}: metadata-aggregate-sync cronjob on ${gen3Env}\",\"color\": \"#${color}\",\"title\": \"JOB ${success}: metadata-aggregate-sync cronjob on ${gen3Env}\",\"text\": \"Pod name: ${HOSTNAME}\",\"ts\": \"$(date +%s)\"}]}"
+              echo "Payload=${payload}"
+              curl -X POST --data-urlencode "payload=${payload}" "${slackWebHook}"
       restartPolicy: Never

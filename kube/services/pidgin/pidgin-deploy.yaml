@@ -123,6 +123,8 @@ spec:
               subPath: "ca.pem"
           imagePullPolicy: Always
           resources:
+            requests:
+              cpu: 100m
+              memory: 50Mi
             limits:
-              cpu: 0.8
               memory: 512Mi
