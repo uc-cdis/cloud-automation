@@ -81,7 +81,7 @@ token_header = {"Authorization": 'bearer ' + access_token}
 
 # Get the metadata from cedar to register
 print("Querying CEDAR...")
-cedar = requests.get(f"https://{hostname}/cedar/get-instance-by-directory/{dir_id}", headers=token_header)
+cedar = requests.get(f"http://revproxy-service/cedar/get-instance-by-directory/{dir_id}", headers=token_header)
 
 # If we get metadata back now register with MDS
 if cedar.status_code == 200:
@@ -98,7 +98,7 @@ if cedar.status_code == 200:
         cedar_record_id = str(cedar_record["appl_id"])
 
         # Get the metadata record for the nih_application_id
-        mds = requests.get(f"https://{hostname}/mds/metadata/{cedar_record_id}",
+        mds = requests.get(f"http://revproxy-service/mds/metadata/{cedar_record_id}",
             headers=token_header
         )
         if mds.status_code == 200:
@@ -116,7 +116,7 @@ if cedar.status_code == 200:
             mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
             print("Metadata is now being registered.")
-            mds_put = requests.put(f"https://{hostname}/mds/metadata/{cedar_record_id}",
+            mds_put = requests.put(f"http://revproxy-service/mds/metadata/{cedar_record_id}",
                 headers=token_header,
                 json = mds_cedar_register_data_body
             )
