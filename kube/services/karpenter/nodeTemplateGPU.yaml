@@ -1,16 +1,16 @@
 apiVersion: karpenter.k8s.aws/v1alpha1
 kind: AWSNodeTemplate
 metadata:
-  name: default
+  name: gpu
 spec:
   subnetSelector:
     karpenter.sh/discovery: VPC_NAME
   securityGroupSelector:
-    karpenter.sh/discovery: VPC_NAME
+    karpenter.sh/discovery: VPC_NAME-gpu
   tags:
-    karpenter.sh/discovery: VPC_NAME
     Environment: VPC_NAME
-    Name: eks-VPC_NAME-karpenter
+    Name: eks-VPC_NAME-gpu-karpenter
+    karpenter.sh/discovery: VPC_NAME
   metadataOptions:
     httpEndpoint: enabled
     httpProtocolIPv6: disabled
@@ -47,12 +47,11 @@ spec:
       timeout: 2
       condition: true
 
-
     --BOUNDARY--
   blockDeviceMappings:
     - deviceName: /dev/xvda
       ebs:
-        volumeSize: 50Gi
+        volumeSize: 200Gi
         volumeType: gp2
         encrypted: true
         deleteOnTermination: true
