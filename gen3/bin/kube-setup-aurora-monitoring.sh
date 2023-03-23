@@ -30,12 +30,15 @@ create_new_datadog_user() {
   if [ ! -d "$(gen3_secrets_folder)/datadog" ]
   then
     mkdir "$(gen3_secrets_folder)/datadog"
+  fi
+
+  if [ ! -s "$(gen3_secrets_folder)/datadog/datadog_db_users" ]
+  then
     echo "{}" > "$(gen3_secrets_folder)/datadog/datadog_db_users.json"
   fi
 
   output=$(jq --arg host "$1" --arg password "$datadogPsqlPassword" '.[$host].datadog_db_password=$password' "$(gen3_secrets_folder)/datadog/datadog_db_users.json")
   echo "$output" > "$(gen3_secrets_folder)/datadog/datadog_db_users.json"
-
 
   # Instead of grabbing username, password, and all that, and doing our connection, we'll just figure out 
   # which short name (i.e., server1, server2, etc) corresponds to our host, and connect that way.
@@ -43,14 +46,19 @@ create_new_datadog_user() {
   shortname=$(jq --arg host "$1" 'to_entries[] | select (.value.db_host == $host) | .key' $(gen3_secrets_folder)/g3auto/dbfarm/servers.json | tr -d '"')
 
   # Create the Datadog user in the database
-  gen3 psql $shortname -c "CREATE USER datadog WITH password '$datadogPsqlPassword';"
+  if [ gen3 psql $shortname -c "SELECT 1 FROM pg_roles WHERE rolname='datadog'" | grep -q 1 ]
+  then 
+    gen3 psql $shortname -c "CREATE USER datadog WITH password '$datadogPsqlPassword';"
+  else
+    gen3 psql $shortname -c "ALTER USER datadog WITH password '$datadogPsqlPassword';"
+  fi
 
   echo $datadogPsqlPassword
 }
 
 get_datadog_db_password() {
   # Create the Datadog user
-  datadogPsqlPassword="$(jq --arg host "$1" '.[$host].db_password' < $(gen3_secrets_folder)/datadog/datadog_db_users.json)"
+  datadogPsqlPassword="$(jq --arg host "$1" '.[$host].datadog_db_password' < $(gen3_secrets_folder)/datadog/datadog_db_users.json)"
   if [[ -z "$datadogPsqlPassword" ]]
   then
     datadogPsqlPassword=$(create_new_datadog_user $1)
@@ -119,20 +127,39 @@ done
   # We'll take the name of the cluster as the first argument, so we won't need to go digging for that. Instead, we'll just
   # pull out connection strings and ports for each instance
 
-instances=$(aws rds describe-db-instances --filters "Name=db-cluster-id,Values=$1" --no-paginate | jq '.DBInstances[].Endpoint.Address,.DBInstances[].Endpoint.Port')
+instances=$(aws rds describe-db-instances --filters "Name=db-cluster-id,Values=$1" --no-paginate | jq '.DBInstances[].Endpoint.Address,.DBInstances[].Endpoint.Port' | tr -d '"')
+clusterEndpoint=$(aws rds describe-db-cluster-endpoints --db-cluster-identifier "$1" | jq ' .DBClusterEndpoints[0].Endpoint' | tr -d '"')
 
 postgresString=""
 for instance in "${instances[@]}" 
 do
-  datadogUserPassword=$(jq .datadog_db_password $(gen3_secrets_folder)/datadog/datadog_db_users.json)
-  instanceArray=($instance)
+  instanceArray=($instance)L
+  datadogUserPassword=$(jq --arg instance "$clusterEndpoint" '.[$instance].datadog_db_password' $(gen3_secrets_folder)/datadog/datadog_db_users.json | tr -d '"')
   postgresString+=$(cat /home/aidan/cloud-automation/kube/services/datadog/postgres.yaml | yq --arg url ${instanceArray[0]} '.instances[0].host = $url' | yq --arg password $datadogUserPassword --yaml-output '.instances[0].password = $password')
 done
 
+#We'll need two ways to do this, one for commons where Datadog is managed by ArgoCD, and another for commons where 
+#it's directly installed
 
-(cat kube/services/datadog/values.yaml | yq --arg endpoints "$postgresString" --yaml-output '.datadog.confd."postgres.yaml" = $endpoints') > $(gen3_secrets_folder)/datadog_values.yaml
-helm repo add datadog https://helm.datadoghq.com --force-update 2> >(grep -v 'This is insecure' >&2)
-helm repo update 2> >(grep -v 'This is insecure' >&2)
-helm upgrade --install datadog -f "$(gen3_secrets_folder)/datadog_values.yaml" datadog/datadog -n datadog --version 3.6.4 2> >(grep -v 'This is insecure' >&2)
+if kubectl get applications.argoproj.io -n argocd datadog-application &> /dev/null
+then
+  gen3_log_info "We detected an ArgoCD application named 'datadog-application,' so we're modifying that"
+  
+  if kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq 'select(.spec.source.helm.parameters != null) | .spec.source.helm.parameters[] | select(.name == "datadog.confd.postgres.yaml")' &> /dev/null
+  then
+    kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq --arg endpoints "$postgresString" '.spec.source.helm.parameters = (.spec.source.helm.parameters[] | if .name == "datadog.confd.postgres.yaml" then .value = $endpoints else . end)' | kubectl replace -f -
+    gen3_log_info "The 'datadog.confd.postgres.yaml' parameter was updated in the 'datadog-application' ArgoCD application"
+  else
+    kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq --arg endpoints "$postgresString" '.spec.source.helm.parameters += [{"name": "datadog.confd.postgres.yaml", "value": $endpoints}]' | kubectl replace -f -
+    gen3_log_info "The 'datadog.confd.postgres.yaml' parameter was added to the 'datadog-application' ArgoCD application"
+  fi
 
-# Check that everything is working
+
+else
+  gen3_log_info "We didn't detect an ArgoCD application named 'datadog-application,' so we're going to reinstall the DD Helm chart"
+  
+  (cat kube/services/datadog/values.yaml | yq --arg endpoints "$postgresString" --yaml-output '.datadog.confd."postgres.yaml" = $endpoints') > $(gen3_secrets_folder)/datadog/datadog_values.yaml
+  helm repo add datadog https://helm.datadoghq.com --force-update 2> >(grep -v 'This is insecure' >&2)
+  helm repo update 2> >(grep -v 'This is insecure' >&2)
+  helm upgrade --install datadog -f "$(gen3_secrets_folder)/datadog/datadog_values.yaml" datadog/datadog -n datadog --version 3.6.4 2> >(grep -v 'This is insecure' >&2)
+fi
