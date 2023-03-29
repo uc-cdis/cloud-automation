@@ -37,6 +37,7 @@ module "jupyter_pool" {
   nodepool_asg_min_size         = "${var.jupyter_asg_min_size}"
   activation_id                = "${var.activation_id}"
   customer_id                  = "${var.customer_id}"
+  fips_enabled_ami             = "${local.ami}"
 }
 
 module "workflow_pool" {
@@ -62,6 +63,7 @@ module "workflow_pool" {
   nodepool_asg_min_size         = "${var.workflow_asg_min_size}"
   activation_id                = "${var.activation_id}"
   customer_id                  = "${var.customer_id}"
+  fips_enabled_ami             = "${local.ami}"
 }
 
 
