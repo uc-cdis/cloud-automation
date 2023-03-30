@@ -37,6 +37,11 @@ spec:
     # configure grub
     sudo /sbin/grubby --update-kernel=ALL --args="fips=1"
 
+    yum install update libpng libtasn1 git freetype curl sqlite kernel vim-minimal krb5-libs curl python3-libs unzip
+
+    amazon-linux-extras disable kernel-5.4
+    amazon-linux-extras install kernel-5.10 -y
+
     --BOUNDARY
     Content-Type: text/cloud-config; charset="us-ascii"
 
