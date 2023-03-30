@@ -60,7 +60,7 @@ gen3_deploy_karpenter() {
                     "sqs:ReceiveMessage"
                 ],
                 "Effect": "Allow",
-		"Resource": "arn:aws:sqs:*:'$(aws sts get-caller-identity --output text --query "Account")':karpenter-sqs-$(echo vpc_name)",
+		"Resource": "arn:aws:sqs:*:'$(aws sts get-caller-identity --output text --query "Account")':karpenter-sqs-'$(echo vpc_name)'",
                 "Sid": "Karpenter2"
             },
             {
@@ -83,7 +83,7 @@ gen3_deploy_karpenter() {
 
     gen3_log_info "Creating karpenter AWS role and k8s service accounts"
     gen3 awsrole create "karpenter-controller-role-$vpc_name" karpenter "karpenter" || true
-    gen3 awsrole sa-annotate "karpenter-controller-role-$vpc_name" karpenter "karpenter" || true
+    gen3 awsrole sa-annotate karpenter "karpenter-controller-role-$vpc_name" karpenter || true
     # Have to delete SA because helm chart will create the SA and there will be a conflict
 
     gen3_log_info "Have to delete SA because helm chart will create the SA and there will be a conflict"
@@ -112,7 +112,7 @@ gen3_deploy_karpenter() {
           "Effect": "Allow",
           "Condition": {
             "ArnLike": {
-	      "aws:SourceArn": "arn:aws:eks:us-east-1:707767160287:fargateprofile/$(echo $vpc_name)/*"
+	      "aws:SourceArn": "arn:aws:eks:us-east-1:'$(aws sts get-caller-identity --output text --query "Account")':fargateprofile/'$(echo $vpc_name)'/*"
             }
           },
             "Principal": {
@@ -124,7 +124,9 @@ gen3_deploy_karpenter() {
     }' > $XDG_RUNTIME_DIR/fargate-policy.json
     aws iam create-role   --role-name AmazonEKSFargatePodExecutionRole-${vpc_name} --assume-role-policy-document file://"$XDG_RUNTIME_DIR/fargate-policy.json" || true
     aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy  --role-name AmazonEKSFargatePodExecutionRole-${vpc_name} || true
-    aws eks create-fargate-profile --fargate-profile-name karpenter-profile --cluster-name $vpc_name --pod-execution-role-arn arn:aws:iam::707767160287:role/AmazonEKSFargatePodExecutionRole-${vpc_name} --subnets $subnets --selectors '{"namespace": "karpenter"}' || true
+    # Wait for IAM changes to take effect
+    sleep 15
+    aws eks create-fargate-profile --fargate-profile-name karpenter-profile --cluster-name $vpc_name --pod-execution-role-arn arn:aws:iam::$(aws sts get-caller-identity --output text --query "Account"):role/AmazonEKSFargatePodExecutionRole-${vpc_name} --subnets $subnets --selectors '{"namespace": "karpenter"}' || true
     gen3_log_info "Installing karpenter using helm"
     helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version ${karpenter} --namespace karpenter --wait \
         --set settings.aws.defaultInstanceProfile=${vpc_name}_EKS_workers \
