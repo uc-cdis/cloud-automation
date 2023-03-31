@@ -1,0 +1,377 @@
+# Create/rotate client-credentials and optionally store in kubernetes secret.
+# Can be run as job or as cron-job.
+# gen3 job run client-create-rotate
+#
+# The minimum addition to the manifest.json would be the client_name.
+# Other fields are optional.
+#
+# Example manifest.json entry:
+# "client-create-rotate": {
+#   "client_name_config": "vlmd_client",
+#   "client_expires_in": "1",
+#   "client_warning_days": "7",
+#   "save_client_secret": "true",
+#   "namespace_for_secret": "georget",
+#   "client_creds_secret_name": "georget-client-secret",
+#   "client_id_config": "ClientIdKey",
+#   "client_secret_config": "ClientSecretKey"
+# },
+#
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: client-create-rotate
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      volumes:
+      - name: shared-data
+        emptyDir: {}
+      - name: yaml-merge
+        configMap:
+          name: "fence-yaml-merge"
+# -----------------------------------------------------------------------------
+# DEPRECATED! Remove when all commons are no longer using local_settings.py
+#             for fence.
+# -----------------------------------------------------------------------------
+      - name: creds-volume
+        secret:
+          secretName: "fence-creds"
+      - name: old-config-volume
+        secret:
+          secretName: "fence-secret"
+      - name: config-helper
+        configMap:
+          name: config-helper
+      - name: json-secret-volume
+        secret:
+          secretName: "fence-json-secret"
+# -----------------------------------------------------------------------------
+      - name: config-volume
+        secret:
+          secretName: "fence-config"
+      - name: fence-google-app-creds-secret-volume
+        secret:
+          secretName: "fence-google-app-creds-secret"
+      - name: fence-google-storage-creds-secret-volume
+        secret:
+          secretName: "fence-google-storage-creds-secret"
+      initContainers:
+      - name: fence
+        image: quay.io/cdis/fence:master
+        imagePullPolicy: Always
+        env:
+            - name: PYTHONPATH
+              value: /var/www/fence
+            - name: FIELD_NAME
+              GEN3_FIELD_NAME|-value: ""-|
+            - name: ADD
+              GEN3_ADD|-value: ""-|
+            - name: FENCE_PUBLIC_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-fence
+                  key: fence-config-public.yaml
+                  optional: true
+            - name: CLIENT_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-client-create-rotate
+                  key: client_name_config
+                  optional: true
+                # value: "vlmd_client"
+            - name: EXPIRES_IN
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-client-create-rotate
+                  key: client_expires_in
+                  optional: true         
+              # value: "1"
+            - name: WARNING_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-client-create-rotate
+                  key: client_warning_days
+                  optional: true 
+              # value: "7"
+            - name: SAVE_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-client-create-rotate
+                  key: save_client_secret
+                  optional: true 
+              # value: "true"
+        volumeMounts:
+# -----------------------------------------------------------------------------
+# DEPRECATED! Remove when all commons are no longer using local_settings.py
+#             for fence.
+# -----------------------------------------------------------------------------
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+            subPath: creds.json
+          - name: "old-config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/local_settings.py"
+            subPath: local_settings.py
+          - name: "config-helper"
+            readOnly: true
+            mountPath: "/var/www/fence/config_helper.py"
+            subPath: config_helper.py
+          - name: "json-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_credentials.json"
+            subPath: fence_credentials.json
+# -----------------------------------------------------------------------------
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+            subPath: yaml_merge.py      
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence-config-secret.yaml"
+            subPath: fence-config.yaml
+          - name: shared-data
+            mountPath: /mnt/shared
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          - |
+
+            echo "Starting fence container"
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"         
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+
+            # Defaults
+            if [[ -z "$EXPIRES_IN" ]]; then
+              EXPIRES_IN="30"
+            fi
+            if [[ -z "$WARNING_DAYS" ]]; then
+              WARNING_DAYS="7"
+            fi
+
+            echo "Expires in $EXPIRES_IN"
+            echo "Client name $CLIENT_NAME"
+            echo "Save secret $SAVE_CLIENT_SECRET"
+
+            # get count of client in client-list
+            if [[ -z $CLIENT_NAME ]]; then
+              echo "Missing configuration for CLIENT_NAME"
+              CLIENT_COUNT=""
+              FENCE_COMMAND=""
+            else
+              echo "Checking existence of client ${CLIENT_NAME}"     
+              CLIENT_LIST=$(fence-create client-list)
+              # echo "Client list ${CLIENT_LIST}"
+              CLIENT_COUNT=$(echo "$CLIENT_LIST" | grep -cE "'name':.*'${CLIENT_NAME}'")
+              echo "Client count = ${CLIENT_COUNT}"
+
+              echo "CLient name=$CLIENT_NAME"
+              echo "Client count=$CLIENT_COUNT"
+              # generate the fence command 
+              if [[ $CLIENT_COUNT -eq 0 ]]; then
+                  echo "Client ${CLIENT_NAME} does not exist. Creating client-create command."
+                  FENCE_COMMAND="fence-create client-create --client ${CLIENT_NAME} --grant-types client_credentials --expires-in ${EXPIRES_IN}"
+
+              elif [[ $CLIENT_COUNT -ge 1 ]]; then   
+                  echo "Client ${CLIENT_NAME} exists. Checking if expired or about to expire."
+                  if [[ $CLIENT_COUNT -gt 1 ]]; then
+                      echo "Found more than 1 entry for client ${CLIENT_NAME} in client list."
+                  fi
+                  CLIENT_EXPIRES_OUTPUT=$(fence-create client-delete-expired --warning-days $WARNING_DAYS)
+                  CLIENT_HAS_EXPIRED=$(echo $CLIENT_EXPIRES_OUTPUT | grep -cE ".*Client '${CLIENT_NAME}' \(ID .*\) expired at .*")
+                  CLIENT_EXPIRES_SOON=$(echo $CLIENT_EXPIRES_OUTPUT | grep -cE ".*Client '${CLIENT_NAME}' \(ID .*\) expires at .*")
+
+                  if [[ $CLIENT_EXPIRES_SOON -ge 1 ]]; then
+                      echo "Client ${CLIENT_NAME} is about to expire. Rotating client credentials"
+                      FENCE_COMMAND="fence-create client-rotate --client $CLIENT_NAME --expires-in $EXPIRES_IN"
+                  elif [[ $CLIENT_HAS_EXPIRED -ge 1 ]]; then
+                      echo "Client ${CLIENT_NAME} has expired. Creating new client credentials."
+                      FENCE_COMMAND="fence-create client-create --client ${CLIENT_NAME} --grant-types client_credentials --expires-in $EXPIRES_IN"
+                  else
+                      echo "Credentials do not need to rotate." 
+                      FENCE_COMMAND=""
+                  fi
+              fi
+            fi
+
+            # run fence-create command (client-create or client-rotate)
+            if [[ ! -z $FENCE_COMMAND ]]; then
+                echo "Fence command: ${FENCE_COMMAND}"
+                FENCE_OUTPUT=$($FENCE_COMMAND)
+                if [[ "$?" -ne 0 ]]; then
+                    echo "Error in fence command. Status = $?"
+                else
+                    echo "Setting temp file /mnt/shared/client_success."
+                    if [[ "$SAVE_CLIENT_SECRET" == "true" ]]; then
+                        echo "Saving creds."
+                        # echo "Raw fence output: ${FENCE_OUTPUT}"
+                        echo "${FENCE_OUTPUT}" | tail -1 > /mnt/shared/client_success
+                    else
+                        echo "Setting success status."
+                        touch /mnt/shared/client_success
+                    fi
+                    ls -l /mnt/shared
+                fi
+            fi
+
+      containers:
+      - name: awshelper
+        env:
+          - name: slackWebHook
+            valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: slack_webhook
+          - name: gen3Env
+            valueFrom:
+                configMapKeyRef:
+                  name: manifest-global
+                  key: hostname
+          - name: CLIENT_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-client-create-rotate
+                key: client_name_config
+                optional: true
+          - name: SAVE_CLIENT_SECRET
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-client-create-rotate
+                key: save_client_secret 
+                optional: true
+            # value: "true"
+          - name: CLIENT_CREDS_SECRET_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-client-create-rotate
+                key: client_creds_secret_name 
+                optional: true
+          - name: CLIENT_ID_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-client-create-rotate
+                key: client_id_config
+                optional: true
+          - name: CLIENT_SECRET_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-client-create-rotate
+                key: client_secret_config 
+                optional: true
+            # value: "vlmd_client"
+          - name: NAMESPACE_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: manifest-client-create-rotate
+                key: namespace_for_secret 
+                optional: true
+            # value: "argo"
+            # value: "georget"
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+        volumeMounts:
+          - name: shared-data
+            mountPath: /mnt/shared
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+
+            echo "Starting awshelper container"
+            ls -l /mnt/shared
+
+            echo "Client name = $CLIENT_NAME"
+
+            # check if we are saving the secret in kubernetes namespace
+            if [[ "$SAVE_CLIENT_SECRET" == "true" ]]; then
+              echo "Saving credentials as kubernetes secret."
+              # check if required variables were set
+              if [[ -z $CLIENT_CREDS_SECRET_NAME ]] || [[ -z $CLIENT_ID_CONFIG ]] || [[ -z $CLIENT_SECRET_CONFIG ]]; then
+                echo "Missing configuration for kubernetes secret: CLIENT_CREDS_SECRET_NAME or CLIENT_ID_CONFIG or CLIENT_SECRET_CONFIG"
+              else
+                # check if the client-credentials were created.
+                if [[ -f /mnt/shared/client_success ]]; then
+                  echo "Getting client-credentials created by fence."
+                  # capture the line with the "<id>, <secret>" between parentheses and strip out parens
+                  FENCE_OUTPUT=$(cat  /mnt/shared/client_success) 
+                  FENCE_OUTPUT=$(echo "$FENCE_OUTPUT"| grep -E "^\(.*,.*\)" | tr -d '()')
+                  CLIENT_ID=$(echo $FENCE_OUTPUT | awk -F, '{print $1}')
+                  CLIENT_SECRET=$(echo $FENCE_OUTPUT | awk -F, '{print $2}')
+                  CLIENT_SECRET="${CLIENT_SECRET/ /}"
+                  if [[ -z $CLIENT_ID ]] || [[ -z $CLIENT_SECRET ]]; then
+                    echo "Could not parse CLIENT_ID or CLIENT_SECRET from client-credentials."
+                  else
+                    # check if namespace was defined
+                    if ! [[ -z $NAMESPACE_CONFIG ]]; then
+                      NAMESPACE_PARAM="-n $NAMESPACE_CONFIG"
+                    else
+                      NAMESPACE_PARAM=""
+                    fi
+                    echo "NAMESPACE_PARAM = $NAMESPACE_PARAM"
+
+                    # run kubectl command to save secret
+                    # kube_command="kubectl $NAMESPACE_PARAM create secret generic $CLIENT_CREDS_SECRET_NAME --from-literal=$CLIENT_ID_CONFIG=$CLIENT_ID --from-literal=$CLIENT_SECRET_CONFIG=$CLIENT_SECRET"
+                    # echo "Kube command $kube_command"
+                    # kubectl $NAMESPACE_PARAM create secret generic $CLIENT_CREDS_SECRET_NAME --from-literal=$CLIENT_ID_CONFIG=$CLIENT_ID --from-literal=$CLIENT_SECRET_CONFIG=$CLIENT_SECRET
+                    
+                    config_view=$(kubectl config view)
+                    echo "Config view = $config_view"
+                    pods=$(kubectl get pods)
+                    RESULT_CODE="$?"
+
+                    if [[ "$RESULT_CODE" -ne 0 ]]; then
+                      echo "Error in kubectl command. Status = $RESULT_CODE"
+                      SAVE_SUCCESS=""
+                    else
+                      echo "Created secret ${CLIENT_CREDS_SECRET_NAME}."
+                      SAVE_SUCCESS="true"
+                    fi
+                  fi
+                else
+                  echo "Did not get client-credentials from fence."
+                fi
+              fi
+            else
+              echo "Skipping the kubernetes secret."
+            fi
+
+            echo "SAVE_SUCCESS = $SAVE_SUCCESS"
+            if [ ! -f /mnt/shared/client_success ] || { [ "$SAVE_CLIENT_SECRET" == "true" ] && [ -z $SAVE_SUCCESS ]; }; then
+              success="FAILED"
+              color="ff0000"
+            else
+              success="SUCCESS"
+              color="2EB67D"
+            fi                      
+
+            echo "Sending ${success} message to slack..."
+            payload="{\"attachments\": [{\"fallback\": \"JOB ${success}: client-create-rotate job on ${gen3Env}\",\"color\": \"#${color}\",\"title\": \"JOB ${success}: client-create-rotate job on ${gen3Env}\",\"text\": \"Pod name: ${HOSTNAME}\",\"ts\": \"$(date +%s)\"}]}"
+            echo "Payload=${payload}"
+            if [[ ! "$slackWebHook" =~ ^http ]]; then
+              echo "Slack webhook not set."
+            else
+              echo "Sending payload to slack."
+              # curl -X POST --data-urlencode "payload=${payload}" "${slackWebHook}"
+            fi
+            
+      restartPolicy: Never
