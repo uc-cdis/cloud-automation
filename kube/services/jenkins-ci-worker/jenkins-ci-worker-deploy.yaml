@@ -119,6 +119,7 @@ spec:
           limits:
             cpu: 0.9
             memory: 4096Mi
+            ephemeral-storage: 100Mi
         imagePullPolicy: Always
         volumeMounts:
         - name: "cert-volume"
