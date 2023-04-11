@@ -3,6 +3,22 @@
 External facing services are accessed through this reverse proxy at
 different URL paths under the same domain.
 
+### 4/11/23: Updates to Revproxy Setup
+The `kube-setup-revproxy` script has changed a little bit, and so have the files in this service. If you've been here before, you may notice two new directories, `custom-nginx-image` and `vanilla-nginx-image`. As their names suggest, the `custom-nginx-image` folder contains configuration files for the custom build of Nginx we had been using to run revproxy, while `vanilla-nginx-image`'s files are for the mainline Nginx image. By default, the script still operates as it did in the past, but if you want to update to using the vanilla Nginx image, you can take the following steps:
+
+1. Go into the manifest.json for your environment, and update the version for revproxy. Rather than saying quay.io/cdis/revproxy:<yourtag>, 
+it should say quay.io/csid/nginx:stable-perl
+
+2. Add this block to your manifest.json, at the same level as other service-specific configurations:   
+        "revproxy": {
+            "use_vanilla_nginx_image": true
+        },
+    This will let the revproxy setup script know to use the configurations for the vanilla image, and not the custom one.
+
+3. Run gen3 kube-setup-revproxy, which will roll the service, and reinstall all your configurations. gen3 roll revproxy won't work in this case, since that will just restart the service, 
+
+4. Check that revproxy is running and healthy, using whatever method you think best, or using `kubectl get pod | grep revproxy`. 
+
 ### Run reverse proxy in AWS
 
 The `revproxy-service-elb` k8s LoadBalancer service manifests itself
