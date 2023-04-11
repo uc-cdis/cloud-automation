@@ -10,10 +10,12 @@ The `kube-setup-revproxy` script has changed a little bit, and so have the files
 it should say quay.io/cdis/nginx:stable-perl
 
 2. Add this block to your manifest.json, at the same level as other service-specific configurations:   
+```
         "revproxy": {
             "use_vanilla_nginx_image": true
-        },
-    This will let the revproxy setup script know to use the configurations for the vanilla image, and not the custom one.
+},
+```
+This will let the revproxy setup script know to use the configurations for the vanilla image, and not the custom one.
 
 3. Run gen3 kube-setup-revproxy, which will roll the service, and reinstall all your configurations. gen3 roll revproxy won't work in this case, since that will just restart the service, 
 
