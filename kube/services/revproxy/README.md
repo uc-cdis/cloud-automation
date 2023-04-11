@@ -7,7 +7,7 @@ different URL paths under the same domain.
 The `kube-setup-revproxy` script has changed a little bit, and so have the files in this service. If you've been here before, you may notice two new directories, `custom-nginx-image` and `vanilla-nginx-image`. As their names suggest, the `custom-nginx-image` folder contains configuration files for the custom build of Nginx we had been using to run revproxy, while `vanilla-nginx-image`'s files are for the mainline Nginx image. By default, the script still operates as it did in the past, but if you want to update to using the vanilla Nginx image, you can take the following steps:
 
 1. Go into the manifest.json for your environment, and update the version for revproxy. Rather than saying quay.io/cdis/revproxy:\<yourtag\>, 
-it should say quay.io/csid/nginx:stable-perl
+it should say quay.io/cdis/nginx:stable-perl
 
 2. Add this block to your manifest.json, at the same level as other service-specific configurations:   
         "revproxy": {
