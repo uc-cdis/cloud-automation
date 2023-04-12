@@ -46,11 +46,11 @@ create_new_datadog_user() {
   shortname=$(jq --arg host "$1" 'to_entries[] | select (.value.db_host == $host) | .key' $(gen3_secrets_folder)/g3auto/dbfarm/servers.json | tr -d '"')
 
   # Create the Datadog user in the database
-  if [ gen3 psql $shortname -c "SELECT 1 FROM pg_roles WHERE rolname='datadog'" | grep -q 1 ]
+  if gen3 psql $shortname -c "SELECT 1 FROM pg_roles WHERE rolname='datadog'" | grep -q 1;
   then 
-    gen3 psql $shortname -c "CREATE USER datadog WITH password '$datadogPsqlPassword';"
-  else
     gen3 psql $shortname -c "ALTER USER datadog WITH password '$datadogPsqlPassword';"
+  else
+    gen3 psql $shortname -c "CREATE USER datadog WITH password '$datadogPsqlPassword';"
   fi
 
   echo $datadogPsqlPassword
@@ -112,13 +112,20 @@ SQL
   gen3_log_info "Succesfully added the function and schema"
 }
 
+if [ $# -eq 0 ]; then
+    echo "Error: No argument provided. You must provide the name of the Aurora cluster to operate against"
+    exit 1
+fi
+
 get_all_dbs databaseArray
 
 # Loop through every database, creating the schema and function
-for db in "${databaseArray[@]}"
-do
-  create_schema_and_function $db
-done
+# for db in "${databaseArray[@]}"
+# do
+#   create_schema_and_function $db
+# done
+
+create_schema_and_function ${databaseArray[0]}
 
 # Set up the agent
 #==============================
@@ -133,10 +140,12 @@ clusterEndpoint=$(aws rds describe-db-cluster-endpoints --db-cluster-identifier 
 postgresString=""
 for instance in "${instances[@]}" 
 do
-  instanceArray=($instance)L
+  instanceArray=($instance)
   datadogUserPassword=$(jq --arg instance "$clusterEndpoint" '.[$instance].datadog_db_password' $(gen3_secrets_folder)/datadog/datadog_db_users.json | tr -d '"')
   postgresString+=$(cat /home/aidan/cloud-automation/kube/services/datadog/postgres.yaml | yq --arg url ${instanceArray[0]} '.instances[0].host = $url' | yq --arg password $datadogUserPassword --yaml-output '.instances[0].password = $password')
 done
+
+echo $postgresString
 
 #We'll need two ways to do this, one for commons where Datadog is managed by ArgoCD, and another for commons where 
 #it's directly installed
@@ -145,13 +154,13 @@ if kubectl get applications.argoproj.io -n argocd datadog-application &> /dev/nu
 then
   gen3_log_info "We detected an ArgoCD application named 'datadog-application,' so we're modifying that"
   
-  if kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq 'select(.spec.source.helm.parameters != null) | .spec.source.helm.parameters[] | select(.name == "datadog.confd.postgres.yaml")' &> /dev/null
+  if kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq '.spec.source.helm.parameters[] | select(.name == "datadog.confd.postgres.yaml")' &> /dev/null
   then
-    kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq --arg endpoints "$postgresString" '.spec.source.helm.parameters = (.spec.source.helm.parameters[] | if .name == "datadog.confd.postgres.yaml" then .value = $endpoints else . end)' | kubectl replace -f -
+    kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq --yaml-output --arg endpoints "$postgresString" '.spec.source.helm.parameters = (.spec.source.helm.parameters[] | if .name == "datadog.confd.postgres.yaml" then .value = $endpoints else . end)' | kubectl replace -f -
     gen3_log_info "The 'datadog.confd.postgres.yaml' parameter was updated in the 'datadog-application' ArgoCD application"
   else
     kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq --arg endpoints "$postgresString" '.spec.source.helm.parameters += [{"name": "datadog.confd.postgres.yaml", "value": $endpoints}]' | kubectl replace -f -
-    gen3_log_info "The 'datadog.confd.postgres.yaml' parameter was added to the 'datadog-application' ArgoCD application"
+    gen3_log_info "The 'datadog.confd.postgres.yaml' parameter was added to the 'datadog-application' ArgoCD application  "
   fi
 
 
