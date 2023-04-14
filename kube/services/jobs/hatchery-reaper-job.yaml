@@ -60,7 +60,8 @@ spec:
               source "$GEN3_HOME/gen3/gen3setup.sh"
               # 60 minute idle timeout max
               limit=3600
-              remote_users=$(kubectl get svc -n jupyter-pods  -o json | jq -r . | jq -r '.items[].metadata.annotations."getambassador.io/config"' |  yq -r .headers.remote_user)
+              namespace=$(gen3 jupyter j-namespace)
+              remote_users=$(kubectl get svc -n $namespace  -o json | jq -r . | jq -r '.items[].metadata.annotations."getambassador.io/config"' |  yq -r .headers.remote_user)
 
               # helper function to construct service name 
               function escape() {
@@ -79,26 +80,38 @@ spec:
                 echo $retString
               }
 
-              for user in $remote_users; do
-                  echo $user
+              for user in $remote_users; do 
+                  gen3_log_info "Checking possible workspaces to reap for $user" 
                   status=$(curl -s -H "REMOTE_USER: $user" hatchery-service/status | jq -r .status)
-                  if [[ $status == "Running" ]]; then
-                      echo "$user has workspace that is $status"
-                      serviceName=h-$(escape $user)-s
-                      service=$(kubectl get svc -n jupyter-pods $serviceName  -o json | jq -r '.metadata.annotations."getambassador.io/config"' | yq -r .service)
-                      last_activity=$(curl -s -H "REMOTE_USER: $user" $service/lw-workspace/proxy/api/status | jq -r .last_activity )
+                  if [ "$status" == "Running" ] || [ "$status" == "Launching" ]; then
+                    gen3_log_info "$user has workspace that is $status"
+                    serviceName=h-$(escape $user)-s
+                    service="ambassador-service"
+                    status_code=$(curl -s -w '%{http_code}' -o status.json -H "REMOTE_USER: $user" $service/api/status)
+                    if [ "$status_code" == "200" ]; then
+                      last_activity=$(curl -s -H "REMOTE_USER: $user" $service/api/status | jq -r .last_activity )
                       now=$(date +%s)
                       delta=$(expr $now - $(date -d "$last_activity" +%s))
-                      echo Workspace for $user has been idle for $delta seconds
+                      gen3_log_info "Workspace for $user has been idle for $delta seconds"
                       if [ "$delta" -gt "$limit" ]; then
-                        echo "Workspace for $user has been running for $delta seconds, which is higher than the $limit... Terminating"
+                        gen3_log_info "Workspace for $user has been running for $delta seconds, which is higher than the $limit... Terminating"
                         curl -XPOST -s -H "REMOTE_USER: $user" hatchery-service/terminate
                       fi
+                    else
+                      gen3_log_err "Error: Got HTTP status $status_code trying to get last_activity for $user. Not able to reap workspace"
+                    fi
+                    gen3_log_info "Checking if paymodel for $user is above limit"
+                    pm_status=$(curl -s -H "REMOTE_USER: $user" hatchery-service/paymodels | jq -r .request_status)
+                    if [ "$pm_status" == "above limit" ]; then
+                      gen3_log_warn "Paymodel status is above limit for user: $user. Reaping the workspace"
+                      curl -XPOST -s -H "REMOTE_USER: $user" hatchery-service/terminate
+                    fi
                   fi
               done
 
               # legacy reaper code
+              gen3_log_info "Running legacy reaper job (based on local cluster/ prometheus)"
               if appList="$(gen3 jupyter idle none "$(gen3 db namespace)" kill)" && [[ -n "$appList" && -n "$slackWebHook" && "$slackWebHook" != "None" ]]; then
                 curl -X POST --data-urlencode "payload={\"text\": \"hatchery-reaper in $gen3Hostname: \n\`\`\`\n${appList}\n\`\`\`\"}" "${slackWebHook}"
               fi
-              echo "All Done!"
+              gen3_log_info "All Done!"
