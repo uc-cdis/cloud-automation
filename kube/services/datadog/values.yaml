@@ -277,10 +277,6 @@ agents:
   - effect: NoSchedule
     key: role
     operator: Equal
-    value: workflow
-  - effect: NoSchedule
-    key: role
-    operator: Equal
     value: jupyter
 
 
