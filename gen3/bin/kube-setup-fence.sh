@@ -97,7 +97,7 @@ if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.07"; then
           gen3 job cron fence-visa-update "30 * * * *"
       fi
   else
-      echo "ENABLE_FENCE_VISA_UPDATE_CRON has an unexpected value in the configmap manifest-fence. Skipping fence-visa-update cronjob setup"
+      echo "ENABLE_FENCE_VISA_UPDATE_CRON has an unexpected value in the configmap manifest-fence. Skipping fence-visa-update cronjob setup."
   fi
 fi
 
