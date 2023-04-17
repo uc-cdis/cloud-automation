@@ -8,7 +8,7 @@ on:
 jobs:
   squid:
     name: Squid Build and Push
-    uses: uc-cdis/.github/.github/workflows/self_hosted_build_push@test/self-hosted-runners
+    uses: uc-cdis/.github/.github/workflows/self_hosted_build_push.yaml@test/self-hosted-runners
     with:
       DOCKERFILE_LOCATION: "./Docker/squid/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/squid"
