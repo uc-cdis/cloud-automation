@@ -13,7 +13,6 @@ jobs:
       DOCKERFILE_LOCATION: "./Docker/squid/Dockerfile"
       DOCKERFILE_BUILD_CONTEXT: "./Docker/squid"
       OVERRIDE_REPO_NAME: "squid"
-      USE_QUAY_ONLY: true
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
