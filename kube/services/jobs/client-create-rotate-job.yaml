@@ -189,14 +189,17 @@ spec:
                       echo "Found more than 1 entry for client ${CLIENT_NAME} in client list."
                   fi
                   CLIENT_EXPIRES_OUTPUT=$(fence-create client-delete-expired --warning-days $WARNING_DAYS)
-                  CLIENT_HAS_EXPIRED=$(echo $CLIENT_EXPIRES_OUTPUT | grep -cE ".*Client '${CLIENT_NAME}' \(ID .*\) expired at .*")
-                  CLIENT_EXPIRES_SOON=$(echo $CLIENT_EXPIRES_OUTPUT | grep -cE ".*Client '${CLIENT_NAME}' \(ID .*\) expires at .*")
+                  CLIENT_HAS_EXPIRED=$(echo $CLIENT_EXPIRES_OUTPUT | grep -cE ".*Client '${CLIENT_NAME}' \(ID '.*'\) expired at .*")
+                  CLIENT_EXPIRES_SOON=$(echo $CLIENT_EXPIRES_OUTPUT | grep -cE ".*Client '${CLIENT_NAME}' \(ID '.*'\) expires at .*")
+                  LIST_AFTER_DELETE=$(fence-create client-list)
+                  COUNT_AFTER_DELETE=$(echo "$LIST_AFTER_DELETE" | grep -cE "'name':.*'${CLIENT_NAME}'")
+                  echo "Client count after delete = ${COUNT_AFTER_DELETE}"
 
                   if [[ $CLIENT_EXPIRES_SOON -ge 1 ]]; then
                       echo "Client ${CLIENT_NAME} is about to expire. Rotating client credentials"
                       FENCE_COMMAND="fence-create client-rotate --client $CLIENT_NAME --expires-in $EXPIRES_IN"
-                  elif [[ $CLIENT_HAS_EXPIRED -ge 1 ]]; then
-                      echo "Client ${CLIENT_NAME} has expired. Creating new client credentials."
+                  elif [[ $CLIENT_HAS_EXPIRED -ge 1 ]] && [[ $COUNT_AFTER_DELETE -eq 0 ]]; then
+                      echo "All client-credentials have expired. Creating new credentials."
                       FENCE_COMMAND="fence-create client-create --client ${CLIENT_NAME} --grant-types client_credentials --expires-in $EXPIRES_IN"
                   else
                       echo "Credentials do not need to rotate." 
