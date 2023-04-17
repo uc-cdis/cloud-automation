@@ -193,7 +193,7 @@ spec:
                   CLIENT_EXPIRES_SOON=$(echo $CLIENT_EXPIRES_OUTPUT | grep -cE ".*Client '${CLIENT_NAME}' \(ID '.*'\) expires at .*")
                   LIST_AFTER_DELETE=$(fence-create client-list)
                   COUNT_AFTER_DELETE=$(echo "$LIST_AFTER_DELETE" | grep -cE "'name':.*'${CLIENT_NAME}'")
-                  echo "Client count after delete = ${COUNT_AFTER_DELETE}"
+                  echo "Client count after delete-expired = ${COUNT_AFTER_DELETE}"
 
                   if [[ $CLIENT_EXPIRES_SOON -ge 1 ]]; then
                       echo "Client ${CLIENT_NAME} is about to expire. Rotating client credentials"
