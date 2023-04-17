@@ -22,7 +22,11 @@ controller:
             }
           ]
         }
-      }      
+      }  
+
+  resourceRateLimit:
+    limit: 40
+    burst: 4    
 
   # -- enable persistence using postgres
   persistence:
