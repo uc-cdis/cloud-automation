@@ -80,3 +80,8 @@ variable "activation_id" {
 variable "customer_id" {
   default = ""
 }
+
+# This is the FIPS enabled AMI in cdistest account.
+variable "fips_enabled_ami" {
+  default = "ami-074d352c8e753fc93"
+}
