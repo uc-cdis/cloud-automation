@@ -1,4 +1,4 @@
-FROM quay.io/cdis/ubuntu:18.04
+FROM ubuntu:18.04
 
 ENV SQUID_VERSION="squid-5.1" \
     SQUID_DOWNLOAD_URL="http://www.squid-cache.org/Versions/v5/" \  
