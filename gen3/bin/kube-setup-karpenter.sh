@@ -137,6 +137,7 @@ gen3_deploy_karpenter() {
 	      --set controller.env[0].name=AWS_REGION \
 	      --set controller.env[0].value=us-east-1
   fi
+  gen3 awsrole sa-annotate karpenter "karpenter-controller-role-$vpc_name" karpenter
   gen3_log_info "Remove cluster-autoscaler"
   gen3 kube-setup-autoscaler --remove
   # Ensure that fluentd is updated if karpenter is deployed to prevent containerd logging issues
