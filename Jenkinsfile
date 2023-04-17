@@ -55,7 +55,7 @@ spec:
             operator: In
             values:
             - ONDEMAND
-	- matchExpressions:
+        - matchExpressions:
           - key: karpenter.sh/capacity-type
             operator: In
             values:
