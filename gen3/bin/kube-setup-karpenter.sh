@@ -9,140 +9,143 @@ ctx="$(g3kubectl config current-context)"
 ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
 
 gen3_deploy_karpenter() {
-  gen3_log_info "Deploying karpenter"
-  # If the karpenter namespace doesn't exist or the force flag isn't in place then deploy
-  if [[ ( -z $(g3kubectl get namespaces | grep karpenter) || $FORCE == "true" ) && ("$ctxNamespace" == "default" || "$ctxNamespace" == "null") ]]; then
-    gen3_log_info "Ensuring that the spot instance service linked role is setup"
-    # Ensure the spot instance service linked role is setup
-    # It is required for running spot instances
-    gen3_create_karpenter_sqs_eventbridge
-    aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
-    if g3k_config_lookup .global.karpenter_version; then
-      karpenter=$(g3k_config_lookup .global.karpenter_version)
-    fi
-    export clusterversion=`kubectl version --short -o json | jq -r .serverVersion.minor`
-    if [ "${clusterversion}" = "24+" ]; then
-      karpenter=${karpenter:-v0.24.0}
-    else
-      karpenter=${karpenter:-v0.22.0}
-    fi    
-    echo '{
+  # Only do cluster level changes in the default namespace to prevent conflicts
+  if [[ ("$ctxNamespace" == "default" || "$ctxNamespace" == "null") ]]; then
+    gen3_log_info "Deploying karpenter"
+    # If the karpenter namespace doesn't exist or the force flag isn't in place then deploy
+    if [[ ( -z $(g3kubectl get namespaces | grep karpenter) || $FORCE == "true" ) ]]; then
+      gen3_log_info "Ensuring that the spot instance service linked role is setup"
+      # Ensure the spot instance service linked role is setup
+      # It is required for running spot instances
+      gen3_create_karpenter_sqs_eventbridge
+      aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
+      if g3k_config_lookup .global.karpenter_version; then
+        karpenter=$(g3k_config_lookup .global.karpenter_version)
+      fi
+      export clusterversion=`kubectl version --short -o json | jq -r .serverVersion.minor`
+      if [ "${clusterversion}" = "24+" ]; then
+        karpenter=${karpenter:-v0.24.0}
+      else
+        karpenter=${karpenter:-v0.22.0}
+      fi    
+      echo '{
+          "Statement": [
+              {
+                  "Action": [
+                      "ssm:GetParameter",
+                      "iam:PassRole",
+                      "ec2:DescribeImages",
+                      "ec2:RunInstances",
+                      "ec2:DescribeSubnets",
+                      "ec2:DescribeSecurityGroups",
+                      "ec2:DescribeLaunchTemplates",
+                      "ec2:DescribeInstances",
+                      "ec2:DescribeInstanceTypes",
+                      "ec2:DescribeInstanceTypeOfferings",
+                      "ec2:DescribeAvailabilityZones",
+                      "ec2:DeleteLaunchTemplate",
+                      "ec2:CreateTags",
+                      "ec2:CreateLaunchTemplate",
+                      "ec2:CreateFleet",
+                      "ec2:DescribeSpotPriceHistory",
+                      "pricing:GetProducts"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                  "Sid": "Karpenter"
+              },
+              {
+                  "Action": [
+                      "sqs:DeleteMessage",
+                      "sqs:GetQueueAttributes",
+                      "sqs:GetQueueUrl",
+                      "sqs:ReceiveMessage"
+                  ],
+                  "Effect": "Allow",
+      "Resource": "arn:aws:sqs:*:'$(aws sts get-caller-identity --output text --query "Account")':karpenter-sqs-'$(echo vpc_name)'",
+                  "Sid": "Karpenter2"
+              },
+              {
+                  "Action": "ec2:TerminateInstances",
+                  "Condition": {
+                      "StringLike": {
+                          "ec2:ResourceTag/Name": "*karpenter*"
+                      }
+                  },
+                  "Effect": "Allow",
+                  "Resource": "*",
+                  "Sid": "ConditionalEC2Termination"
+              }
+          ],
+          "Version": "2012-10-17"
+      }' > $XDG_RUNTIME_DIR/controller-policy.json
+
+      gen3_log_info "Creating karpenter namespace"
+      g3kubectl create namespace karpenter 2> /dev/null || true
+
+      gen3_log_info "Creating karpenter AWS role and k8s service accounts"
+      gen3 awsrole create "karpenter-controller-role-$vpc_name" karpenter "karpenter" || true
+      gen3 awsrole sa-annotate karpenter "karpenter-controller-role-$vpc_name" karpenter || true
+      # Have to delete SA because helm chart will create the SA and there will be a conflict
+
+      gen3_log_info "Have to delete SA because helm chart will create the SA and there will be a conflict"
+      #g3kubectl delete sa karpenter -n karpenter
+
+      gen3_log_info "aws iam put-role-policy --role-name "karpenter-controller-role-$vpc_name" --policy-document file://$XDG_RUNTIME_DIR/controller-policy.json --policy-name "karpenter-controller-policy" 1>&2 || true"
+      aws iam put-role-policy --role-name "karpenter-controller-role-$vpc_name" --policy-document file://$XDG_RUNTIME_DIR/controller-policy.json --policy-name "karpenter-controller-policy" 1>&2 || true
+      gen3_log_info "Need to tag the subnets/sg's so that karpenter can discover them automatically"
+      # Need to tag the subnets/sg's so that karpenter can discover them automatically
+      subnets=$(aws ec2 describe-subnets --filter 'Name=tag:Environment,Values='$vpc_name'' 'Name=tag:Name,Values=eks_private_*' --query 'Subnets[].SubnetId' --output text)
+      # Will apprend secondary CIDR block subnets to be tagged as well, and if none are found then will not append anything to list
+      subnets+=" $(aws ec2 describe-subnets --filter 'Name=tag:Environment,Values='$vpc_name'' 'Name=tag:Name,Values=eks_secondary_cidr_subnet_*' --query 'Subnets[].SubnetId' --output text)"
+      security_groups=$(aws ec2 describe-security-groups --filter 'Name=tag:Name,Values='$vpc_name'-nodes-sg,ssh_eks_'$vpc_name'' --query 'SecurityGroups[].GroupId' --output text) || true
+      security_groups_jupyter=$(aws ec2 describe-security-groups --filter 'Name=tag:Name,Values='$vpc_name'-nodes-sg-jupyter,ssh_eks_'$vpc_name'-nodepool-jupyter' --query 'SecurityGroups[].GroupId' --output text) || true
+      security_groups_workflow=$(aws ec2 describe-security-groups --filter 'Name=tag:Name,Values='$vpc_name'-nodes-sg-workflow,ssh_eks_'$vpc_name'-nodepool-workflow' --query 'SecurityGroups[].GroupId' --output text) || true
+      cluster_endpoint="$(aws eks describe-cluster --name ${vpc_name} --query "cluster.endpoint" --output text)"
+
+      aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}" --resources ${security_groups} || true
+      aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}" --resources ${subnets} || true
+      aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-jupyter" --resources ${security_groups_jupyter} || true
+      aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-worfklow" --resources ${security_groups_workflow} || true
+      echo '{
+        "Version": "2012-10-17",
         "Statement": [
-            {
-                "Action": [
-                    "ssm:GetParameter",
-                    "iam:PassRole",
-                    "ec2:DescribeImages",
-                    "ec2:RunInstances",
-                    "ec2:DescribeSubnets",
-                    "ec2:DescribeSecurityGroups",
-                    "ec2:DescribeLaunchTemplates",
-                    "ec2:DescribeInstances",
-                    "ec2:DescribeInstanceTypes",
-                    "ec2:DescribeInstanceTypeOfferings",
-                    "ec2:DescribeAvailabilityZones",
-                    "ec2:DeleteLaunchTemplate",
-                    "ec2:CreateTags",
-                    "ec2:CreateLaunchTemplate",
-                    "ec2:CreateFleet",
-                    "ec2:DescribeSpotPriceHistory",
-                    "pricing:GetProducts"
-                ],
-                "Effect": "Allow",
-                "Resource": "*",
-                "Sid": "Karpenter"
+          {
+            "Effect": "Allow",
+            "Condition": {
+              "ArnLike": {
+          "aws:SourceArn": "arn:aws:eks:us-east-1:'$(aws sts get-caller-identity --output text --query "Account")':fargateprofile/'$(echo $vpc_name)'/*"
+              }
             },
-            {
-                "Action": [
-                    "sqs:DeleteMessage",
-                    "sqs:GetQueueAttributes",
-                    "sqs:GetQueueUrl",
-                    "sqs:ReceiveMessage"
-                ],
-                "Effect": "Allow",
-		"Resource": "arn:aws:sqs:*:'$(aws sts get-caller-identity --output text --query "Account")':karpenter-sqs-'$(echo vpc_name)'",
-                "Sid": "Karpenter2"
+              "Principal": {
+              "Service": "eks-fargate-pods.amazonaws.com"
             },
-            {
-                "Action": "ec2:TerminateInstances",
-                "Condition": {
-                    "StringLike": {
-                        "ec2:ResourceTag/Name": "*karpenter*"
-                    }
-                },
-                "Effect": "Allow",
-                "Resource": "*",
-                "Sid": "ConditionalEC2Termination"
-            }
-        ],
-        "Version": "2012-10-17"
-    }' > $XDG_RUNTIME_DIR/controller-policy.json
-
-    gen3_log_info "Creating karpenter namespace"
-    g3kubectl create namespace karpenter 2> /dev/null || true
-
-    gen3_log_info "Creating karpenter AWS role and k8s service accounts"
-    gen3 awsrole create "karpenter-controller-role-$vpc_name" karpenter "karpenter" || true
-    gen3 awsrole sa-annotate karpenter "karpenter-controller-role-$vpc_name" karpenter || true
-    # Have to delete SA because helm chart will create the SA and there will be a conflict
-
-    gen3_log_info "Have to delete SA because helm chart will create the SA and there will be a conflict"
-    #g3kubectl delete sa karpenter -n karpenter
-
-    gen3_log_info "aws iam put-role-policy --role-name "karpenter-controller-role-$vpc_name" --policy-document file://$XDG_RUNTIME_DIR/controller-policy.json --policy-name "karpenter-controller-policy" 1>&2 || true"
-    aws iam put-role-policy --role-name "karpenter-controller-role-$vpc_name" --policy-document file://$XDG_RUNTIME_DIR/controller-policy.json --policy-name "karpenter-controller-policy" 1>&2 || true
-    gen3_log_info "Need to tag the subnets/sg's so that karpenter can discover them automatically"
-    # Need to tag the subnets/sg's so that karpenter can discover them automatically
-    subnets=$(aws ec2 describe-subnets --filter 'Name=tag:Environment,Values='$vpc_name'' 'Name=tag:Name,Values=eks_private_*' --query 'Subnets[].SubnetId' --output text)
-    # Will apprend secondary CIDR block subnets to be tagged as well, and if none are found then will not append anything to list
-    subnets+=" $(aws ec2 describe-subnets --filter 'Name=tag:Environment,Values='$vpc_name'' 'Name=tag:Name,Values=eks_secondary_cidr_subnet_*' --query 'Subnets[].SubnetId' --output text)"
-    security_groups=$(aws ec2 describe-security-groups --filter 'Name=tag:Name,Values='$vpc_name'-nodes-sg,ssh_eks_'$vpc_name'' --query 'SecurityGroups[].GroupId' --output text) || true
-    security_groups_jupyter=$(aws ec2 describe-security-groups --filter 'Name=tag:Name,Values='$vpc_name'-nodes-sg-jupyter,ssh_eks_'$vpc_name'-nodepool-jupyter' --query 'SecurityGroups[].GroupId' --output text) || true
-    security_groups_workflow=$(aws ec2 describe-security-groups --filter 'Name=tag:Name,Values='$vpc_name'-nodes-sg-workflow,ssh_eks_'$vpc_name'-nodepool-workflow' --query 'SecurityGroups[].GroupId' --output text) || true
-    cluster_endpoint="$(aws eks describe-cluster --name ${vpc_name} --query "cluster.endpoint" --output text)"
-
-    aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}" --resources ${security_groups} || true
-    aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}" --resources ${subnets} || true
-    aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-jupyter" --resources ${security_groups_jupyter} || true
-    aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-worfklow" --resources ${security_groups_workflow} || true
-    echo '{
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Effect": "Allow",
-          "Condition": {
-            "ArnLike": {
-	      "aws:SourceArn": "arn:aws:eks:us-east-1:'$(aws sts get-caller-identity --output text --query "Account")':fargateprofile/'$(echo $vpc_name)'/*"
-            }
-          },
-            "Principal": {
-            "Service": "eks-fargate-pods.amazonaws.com"
-          },
-          "Action": "sts:AssumeRole"
-        }
-      ]
-    }' > $XDG_RUNTIME_DIR/fargate-policy.json
-    aws iam create-role   --role-name AmazonEKSFargatePodExecutionRole-${vpc_name} --assume-role-policy-document file://"$XDG_RUNTIME_DIR/fargate-policy.json" || true
-    aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy  --role-name AmazonEKSFargatePodExecutionRole-${vpc_name} || true
-    # Wait for IAM changes to take effect
-    sleep 15
-    aws eks create-fargate-profile --fargate-profile-name karpenter-profile --cluster-name $vpc_name --pod-execution-role-arn arn:aws:iam::$(aws sts get-caller-identity --output text --query "Account"):role/AmazonEKSFargatePodExecutionRole-${vpc_name} --subnets $subnets --selectors '{"namespace": "karpenter"}' || true
-    gen3_log_info "Installing karpenter using helm"
-    helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version ${karpenter} --namespace karpenter --wait \
-        --set settings.aws.defaultInstanceProfile=${vpc_name}_EKS_workers \
-        --set settings.aws.clusterEndpoint="${cluster_endpoint}" \
-        --set settings.aws.clusterName=${vpc_name} \
-        --set serviceAccount.name=karpenter \
-        --set serviceAccount.create=false \
-	      --set controller.env[0].name=AWS_REGION \
-	      --set controller.env[0].value=us-east-1
+            "Action": "sts:AssumeRole"
+          }
+        ]
+      }' > $XDG_RUNTIME_DIR/fargate-policy.json
+      aws iam create-role   --role-name AmazonEKSFargatePodExecutionRole-${vpc_name} --assume-role-policy-document file://"$XDG_RUNTIME_DIR/fargate-policy.json" || true
+      aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy  --role-name AmazonEKSFargatePodExecutionRole-${vpc_name} || true
+      # Wait for IAM changes to take effect
+      sleep 15
+      aws eks create-fargate-profile --fargate-profile-name karpenter-profile --cluster-name $vpc_name --pod-execution-role-arn arn:aws:iam::$(aws sts get-caller-identity --output text --query "Account"):role/AmazonEKSFargatePodExecutionRole-${vpc_name} --subnets $subnets --selectors '{"namespace": "karpenter"}' || true
+      gen3_log_info "Installing karpenter using helm"
+      helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version ${karpenter} --namespace karpenter --wait \
+          --set settings.aws.defaultInstanceProfile=${vpc_name}_EKS_workers \
+          --set settings.aws.clusterEndpoint="${cluster_endpoint}" \
+          --set settings.aws.clusterName=${vpc_name} \
+          --set serviceAccount.name=karpenter \
+          --set serviceAccount.create=false \
+          --set controller.env[0].name=AWS_REGION \
+          --set controller.env[0].value=us-east-1
+    fi
+    gen3 awsrole sa-annotate karpenter "karpenter-controller-role-$vpc_name" karpenter
+    gen3_log_info "Remove cluster-autoscaler"
+    gen3 kube-setup-autoscaler --remove
+    # Ensure that fluentd is updated if karpenter is deployed to prevent containerd logging issues
+    gen3 kube-setup-fluentd --force
+    gen3_update_karpenter_configs
   fi
-  gen3 awsrole sa-annotate karpenter "karpenter-controller-role-$vpc_name" karpenter
-  gen3_log_info "Remove cluster-autoscaler"
-  gen3 kube-setup-autoscaler --remove
-  # Ensure that fluentd is updated if karpenter is deployed to prevent containerd logging issues
-  gen3 kube-setup-fluentd --force
-  gen3_update_karpenter_configs
 }
 
 gen3_update_karpenter_configs() {
