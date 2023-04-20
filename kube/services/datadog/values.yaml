@@ -218,7 +218,7 @@ datadog:
       #   - send_distribution_buckets: true
       #     timeout: 5
 
-  containerExcludeLogs: "kube_namespace:logging kube_namespace:argo name:usersync"
+  containerExcludeLogs: "kube_namespace:logging kube_namespace:argo"
 
 ## This is the Datadog Cluster Agent implementation that handles cluster-wide
 ## metrics more cleanly, separates concerns for better rbac, and implements
