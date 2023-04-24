@@ -160,7 +160,7 @@ function add_policy_to_role(){
   gen3_log_info "  ${role_name}"
 
   local result
-  if [[ ${policy} =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]]
+  if [[ ${policy} =~ arn:aws:iam::(aws|[0-9]{12}):policy/[a-zA-Z0-9]+ ]]
   then
     gen3_log_info "    by ARN"
     gen3_log_info "    aws iam attach-role-policy --role-name "${role_name}" --policy-arn "${policy}""
@@ -247,7 +247,7 @@ function check_policy() {
       echo 0
       return 1
     fi
-  elif [[ ${policy_provided} =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]];
+  elif [[ ${policy_provided} =~ arn:aws:iam::(aws|[0-9]{12}):policy/[a-zA-Z0-9]+ ]];
   then
     if policy_arn=$(aws iam get-policy --policy-arn ${policy_provided} |jq  '.Policy.Arn' -r)
     then
@@ -258,7 +258,7 @@ function check_policy() {
     fi
   else
     if policy_arn="$(aws iam list-policies --scope Local --only-attached | jq '.Policies[] | select( .PolicyName == "'${policy_provided}'") | .Arn' -r)" \
-      && [ -n ${policy_arn} ] && [[ ${policy_arn}  =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]];
+      && [ -n ${policy_arn} ] && [[ ${policy_arn}  =~ arn:aws:iam::(aws|[0-9]{12}):policy/[a-zA-Z0-9]+ ]];
     then
       echo ${policy_arn}
     else
@@ -308,7 +308,7 @@ function delete_policy_in_role(){
   local role_name="${2}"
 
   gen3_log_info "Entering delete_policy_in_role"
-  if [[ ${policy} =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]];
+  if [[ ${policy} =~ arn:aws:iam::(aws|[0-9]{12}):policy/[a-zA-Z0-9]+ ]];
   then
     gen3_log_info "  aws iam detach-role-policy --role-name ${role_name} --policy-arn ${policy}"
     aws iam detach-role-policy --role-name "${role_name}" --policy-arn "${policy}" 1>&2
