@@ -20,7 +20,7 @@ SQUID_CONFIG_DIR="/etc/squid"
 SQUID_LOGS_DIR="/var/log/squid"
 SQUID_CACHE_DIR="/var/cache/squid"
 SQUID_PID_DIR="/var/run/squid"
-SQUID_IMAGE_TAG="squid-5.3" #"feat_ha-squid"
+SQUID_IMAGE_TAG="master" #"feat_ha-squid"
 #SQUID_VERSION="squid-4.14"
 
 HOSTNAME=$(command -v hostname)
