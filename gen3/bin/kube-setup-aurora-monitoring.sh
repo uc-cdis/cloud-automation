@@ -142,10 +142,13 @@ for instance in "${instances[@]}"
 do
   instanceArray=($instance)
   datadogUserPassword=$(jq --arg instance "$clusterEndpoint" '.[$instance].datadog_db_password' $(gen3_secrets_folder)/datadog/datadog_db_users.json | tr -d '"')
-  postgresString+=$(cat /home/aidan/cloud-automation/kube/services/datadog/postgres.yaml | yq --arg url ${instanceArray[0]} '.instances[0].host = $url' | yq --arg password $datadogUserPassword --yaml-output '.instances[0].password = $password')
+  postgresString+=$(cat /home/aidan/cloud-automation/kube/services/datadog/postgres.yaml | yq --arg url ${instanceArray[0]} --yaml-output '.instances[0].host = $url' | yq --arg password $datadogUserPassword --yaml-output '.instances[0].password = $password')
 done
 
-echo $postgresString
+echo "$postgresString"
+exit
+
+confd=$(yq -n --yaml-output --arg postgres "$postgresString" '.datadog.confd."postgres.yaml" = $postgres')
 
 #We'll need two ways to do this, one for commons where Datadog is managed by ArgoCD, and another for commons where 
 #it's directly installed
@@ -153,16 +156,12 @@ echo $postgresString
 if kubectl get applications.argoproj.io -n argocd datadog-application &> /dev/null
 then
   gen3_log_info "We detected an ArgoCD application named 'datadog-application,' so we're modifying that"
-  
-  if kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq '.spec.source.helm.parameters[] | select(.name == "datadog.confd.postgres.yaml")' &> /dev/null
-  then
-    kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq --yaml-output --arg endpoints "$postgresString" '.spec.source.helm.parameters = (.spec.source.helm.parameters[] | if .name == "datadog.confd.postgres.yaml" then .value = $endpoints else . end)' | kubectl replace -f -
-    gen3_log_info "The 'datadog.confd.postgres.yaml' parameter was updated in the 'datadog-application' ArgoCD application"
-  else
-    kubectl -n argocd get applications.argoproj.io datadog-application -o yaml | yq --arg endpoints "$postgresString" '.spec.source.helm.parameters += [{"name": "datadog.confd.postgres.yaml", "value": $endpoints}]' | kubectl replace -f -
-    gen3_log_info "The 'datadog.confd.postgres.yaml' parameter was added to the 'datadog-application' ArgoCD application  "
-  fi
 
+  patch=$(yq -n --yaml-output --arg confd "$confd" '.spec.source.helm.values = $confd')
+  
+  echo "$patch" > /tmp/confd.yaml
+
+  kubectl patch applications.argoproj.io datadog-application --type merge -n argocd --patch-file /tmp/confd.yaml
 
 else
   gen3_log_info "We didn't detect an ArgoCD application named 'datadog-application,' so we're going to reinstall the DD Helm chart"
