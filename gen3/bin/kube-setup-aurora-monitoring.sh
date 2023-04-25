@@ -120,12 +120,11 @@ fi
 get_all_dbs databaseArray
 
 # Loop through every database, creating the schema and function
-# for db in "${databaseArray[@]}"
-# do
-#   create_schema_and_function $db
-# done
+for db in "${databaseArray[@]}"
+do
+  create_schema_and_function $db
+done
 
-create_schema_and_function ${databaseArray[0]}
 
 # Set up the agent
 #==============================
@@ -144,9 +143,6 @@ do
   datadogUserPassword=$(jq --arg instance "$clusterEndpoint" '.[$instance].datadog_db_password' $(gen3_secrets_folder)/datadog/datadog_db_users.json | tr -d '"')
   postgresString+=$(cat /home/aidan/cloud-automation/kube/services/datadog/postgres.yaml | yq --arg url ${instanceArray[0]} --yaml-output '.instances[0].host = $url' | yq --arg password $datadogUserPassword --yaml-output '.instances[0].password = $password')
 done
-
-echo "$postgresString"
-exit
 
 confd=$(yq -n --yaml-output --arg postgres "$postgresString" '.datadog.confd."postgres.yaml" = $postgres')
 
