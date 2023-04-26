@@ -74,7 +74,12 @@ if g3k_manifest_lookup .versions.indexd 2> /dev/null; then
   setup_indexd_gateway
 fi
 
-scriptDir="${GEN3_HOME}/kube/services/revproxy"
+if g3k_manifest_lookup .revproxy.use_vanilla_nginx_image 2> /dev/null; then
+  scriptDir="${GEN3_HOME}/kube/services/revproxy/vanilla-nginx-image"
+else
+  scriptDir="${GEN3_HOME}/kube/services/revproxy/custom-nginx-image"
+fi
+
 declare -a confFileList=()
 confFileList+=("--from-file" "$scriptDir/gen3.nginx.conf/README.md")
 
