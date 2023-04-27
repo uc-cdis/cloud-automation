@@ -75,6 +75,7 @@ gen3_setup_kubecost() {
     reportBucket=$curBucket
   fi    
   gen3_setup_kubecost_infrastructure
+  aws ec2 create-spot-datafeed-subscription --bucket $curBucket --prefix spot-feed || true
   # Change the SA permissions based on slave/master/standalone
   if [[ -z $(kubectl get sa -n kubecost | grep $vpc_name-kubecost-user) ]]; then
     gen3_setup_kubecost_service_account
