@@ -25,7 +25,6 @@ affinity: {}
 # If true, creates a PriorityClass to be used by the cost-analyzer pod
 priority:
   enabled: false
-    value: 1000000
 
 # If true, enable creation of NetworkPolicy resources.
 networkPolicy:
@@ -77,23 +76,6 @@ persistentVolume:
   enabled: true # Note that setting this to false means configurations will be wiped out on pod restart.
   # storageClass: "-" #
   # existingClaim: kubecost-cost-analyzer # a claim in the same namespace as kubecost
-
-ingress:
-  enabled: true
-    className: nginx
-  annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/scheme: internal
-    kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  paths: ["/"] # There's no need to route specifically to the pods-- we have an nginx deployed that handles routing
-  hosts:
-    - cost-analyzer.local
-  tls: []
-  #  - secretName: cost-analyzer-tls
-  #    hosts:
-  #      - cost-analyzer.local
 
 service:
   type: ClusterIP

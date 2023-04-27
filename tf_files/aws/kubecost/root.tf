@@ -387,8 +387,3 @@ resource "aws_lambda_function" "cur-s3-notification-lambda" {
     }
   }
 }
-
-resource "aws_spot_datafeed_subscription" "spot-feed" {
-  bucket = local.cur_bucket
-  prefix = "spot-feed"
-}
