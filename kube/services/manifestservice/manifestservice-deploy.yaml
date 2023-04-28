@@ -41,10 +41,17 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT                            
+                - SPOT
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
@@ -92,10 +99,9 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 0.5
-              memory: 512Mi
+              cpu: 100m
+              memory: 300Mi
             limits:
-              cpu: 1
               memory: 1024Mi
           livenessProbe:
             httpGet:

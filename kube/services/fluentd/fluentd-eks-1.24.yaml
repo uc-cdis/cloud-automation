@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: fluentd
+  namespace: logging
+  labels:
+    k8s-app: fluentd-eks-1.24-logging
+    version: v1
+    GEN3_DATE_LABEL
+    kubernetes.io/cluster-service: "true"
+spec:
+  selector:
+    matchLabels:
+      k8s-app: fluentd-eks-1.24-logging
+      version: v1
+  template:
+    metadata:
+      labels:
+        k8s-app: fluentd-eks-1.24-logging
+        version: v1
+        kubernetes.io/cluster-service: "true"
+    spec:
+      priorityClassName: system-cluster-critical
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      - key: "role"
+        operator: "Equal"
+        value: "jupyter"
+        effect: "NoSchedule"
+      - key: "role"
+        operator: "Equal"
+        value: "workflow"
+        effect: "NoSchedule"
+      containers:
+      - name: fluentd
+        # Hardcode fluentd version to ensure we don't run into containerd logging issues
+        image: fluent/fluentd-kubernetes-daemonset:v1.15.3-debian-cloudwatch-1.0
+        env:
+          # See https://github.com/fabric8io/fluent-plugin-kubernetes_metadata_filter#environment-variables-for-kubernetes
+          - name: K8S_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          # Deploy with kube-setup-fluentd.sh ...
+          - name:  LOG_GROUP_NAME
+            GEN3_LOG_GROUP_NAME
+          - name: AWS_REGION
+            value: "us-east-1"
+          - name: FLUENTD_CONF
+            value: "gen3.conf"
+          - name: FLUENT_CONTAINER_TAIL_PARSER_TYPE
+            value: "cri"
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 1Gi
+        volumeMounts:
+        - name: fluentd-gen3
+          mountPath: /fluentd/etc/gen3.conf
+          subPath: gen3.conf
+        - name: varlog
+          mountPath: /var/log
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        command: ["/bin/bash" ]
+        args:
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
+          - |
+            /fluentd/entrypoint.sh
+      terminationGracePeriodSeconds: 30
+      serviceAccountName: fluentd
+      volumes:
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+      - name: fluentd-gen3
+        configMap:
+          name: fluentd-gen3

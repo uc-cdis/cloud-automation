@@ -25,10 +25,17 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT                   
+                - SPOT
       containers:
       - name: qa-metrics
         image: "quay.io/cdis/qa-metrics:latest"

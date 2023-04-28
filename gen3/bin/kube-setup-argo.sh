@@ -14,13 +14,14 @@ function setup_argo_buckets {
   local accountNumber
   local environment
   local policyFile="$XDG_RUNTIME_DIR/policy_$$.json"
+  local bucketLifecyclePolicyFile="$XDG_RUNTIME_DIR/bucket_lifecycle_policy_$$.json"
 
 
   if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
     gen3_log_err "could not determine account numer"
     return 1
   fi
-  if ! environment="$(g3kubectl get configmap manifest-global -o json | jq -r .data.environment)"; then
+  if ! environment="$(g3k_environment)"; then
     gen3_log_err "could not determine environment from manifest-global - bailing out of argo setup"
     return 1
   fi
@@ -98,6 +99,21 @@ EOF
    ]
 }
 EOF
+    cat > "$bucketLifecyclePolicyFile" <<EOF
+{
+  "Rules": [
+    {
+      "ID": "Store objects in Glacier after 4 months",
+      "Prefix": "",
+      "Status": "Enabled",
+      "Transition": {
+        "Days": 120,
+        "StorageClass": "GLACIER"
+      }
+    }
+  ]
+}
+EOF
   if ! secret="$(g3kubectl get secret argo-s3-creds -n argo 2> /dev/null)"; then
     gen3_log_info "setting up bucket $bucketName"
 
@@ -108,10 +124,9 @@ EOF
       gen3_log_err "failed to create bucket ${bucketName}"
     fi
 
-
     gen3_log_info "Creating IAM user ${userName}"
     if ! aws iam get-user --user-name ${userName} > /dev/null 2>&1; then
-      aws iam create-user --user-name ${userName}
+      aws iam create-user --user-name ${userName} || true
     else
       gen3_log_info "IAM user ${userName} already exits.."
     fi
@@ -119,9 +134,9 @@ EOF
     secret=$(aws iam create-access-key --user-name ${userName})
     if ! g3kubectl get namespace argo > /dev/null 2>&1; then
       gen3_log_info "Creating argo namespace"
-      g3kubectl create namespace argo
-      g3kubectl label namespace argo app=argo
-      g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n argo
+      g3kubectl create namespace argo || true
+      g3kubectl label namespace argo app=argo || true
+      g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n argo || true
     fi
   else
     # Else we want to recreate the argo-s3-creds secret so make a temp file with the current creds and delete argo-s3-creds secret
@@ -136,22 +151,42 @@ EOF
 }
 EOF
     secret=$(cat $secretFile)
-    g3kubectl delete secret -n argo argo-s3-creds
   fi
 
-
   gen3_log_info "Creating s3 creds secret in argo namespace"
-  if [[ -z $internalBucketName ]]; then
-    g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName}
+  if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
+    if [[ -z $internalBucketName ]]; then
+      g3kubectl delete secret -n argo argo-s3-creds || true
+      g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} || true
+      g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} || true
+    else
+      g3kubectl delete secret -n argo argo-s3-creds || true
+      g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} --from-literal=internalbucketname=${internalBucketName} || true
+      g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} || true
+    fi
   else
-    g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} --from-literal=internalbucketname=${internalBucketName}
+    g3kubectl create sa argo || true
+    # Grant admin access within the current namespace to the argo SA in the current namespace
+    g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=$(gen3 db namespace):argo -n $(gen3 db namespace) || true
+    aws iam put-user-policy --user-name ${userName} --policy-name argo-bucket-policy --policy-document file://$policyFile || true
+    if [[ -z $internalBucketName ]]; then
+      aws iam put-user-policy --user-name ${userName} --policy-name argo-internal-bucket-policy --policy-document file://$internalBucketPolicyFile || true
+      g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} || true
+    else
+      g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} --from-literal=internalbucketname=${internalBucketName} || true
+
+    fi
   fi
 
 
   ## if new bucket then do the following
   # Get the aws keys from secret
+  # Create and attach lifecycle policy
   # Set bucket policies
   # Update secret to have new bucket
+
+  gen3_log_info "Creating bucket lifecycle policy"
+  aws s3api put-bucket-lifecycle --bucket ${bucketName} --lifecycle-configuration file://$bucketLifecyclePolicyFile
 
   # Always update the policy, in case manifest buckets change
   aws iam put-user-policy --user-name ${userName} --policy-name argo-bucket-policy --policy-document file://$policyFile
@@ -189,9 +224,9 @@ function setup_argo_db() {
   fi
 }
 
+  setup_argo_buckets
 # only do this if we are running in the default namespace
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
-  setup_argo_buckets
   setup_argo_db
   if (! helm status argo -n argo > /dev/null 2>&1 )  || [[ "$1" == "--force" ]]; then
     DBHOST=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_host | base64 -d)
@@ -208,7 +243,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
 
     helm repo add argo https://argoproj.github.io/argo-helm --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
-    helm upgrade --install argo argo/argo-workflows -n argo -f ${valuesFile}
+    helm upgrade --install argo argo/argo-workflows -n argo -f ${valuesFile} --version 0.22.11
   else
     gen3_log_info "kube-setup-argo exiting - argo already deployed, use --force to redeploy"
   fi

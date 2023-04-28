@@ -37,10 +37,17 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - ONDEMAND                 
+                - ONDEMAND           
       automountServiceAccountToken: false
       containers:
         - name: auspice
@@ -73,8 +80,7 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 0.5
-              memory: 1024Mi
+              cpu: 100m
+              memory: 128Mi
             limits:
-              cpu: 1
-              memory: 2400Mi  
+              memory: 1024Mi  

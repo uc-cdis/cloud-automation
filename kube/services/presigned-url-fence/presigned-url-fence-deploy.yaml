@@ -49,10 +49,17 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT                            
+                - SPOT 
       automountServiceAccountToken: false
       volumes:
         - name: yaml-merge
@@ -228,11 +235,10 @@ spec:
             subPath: "jwt-keys.tar"
         resources:
             requests:
-              cpu: 0.4
-              memory: 1200Mi
+              cpu: 100m
+              memory: 600Mi
             limits:
-              cpu: 1.0
-              memory: 2400Mi  
+              memory: 1024Mi  
         command: ["/bin/bash"]
         args:
           - "-c"
