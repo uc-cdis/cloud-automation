@@ -144,7 +144,7 @@ do
   postgresString+=$(cat /home/aidan/cloud-automation/kube/services/datadog/postgres.yaml | yq --arg url ${instanceArray[0]} --yaml-output '.instances[0].host = $url' | yq --arg password $datadogUserPassword --yaml-output '.instances[0].password = $password')
 done
 
-confd=$(yq -n --yaml-output --arg postgres "$postgresString" '.datadog.confd."postgres.yaml" = $postgres')
+confd=$(yq -n --yaml-output --arg postgres "$postgresString" '.clusterAgent.confd."postgres.yaml" = $postgres | .clusterChecksRunner.enabled = true')
 
 #We'll need two ways to do this, one for commons where Datadog is managed by ArgoCD, and another for commons where 
 #it's directly installed
@@ -162,7 +162,7 @@ then
 else
   gen3_log_info "We didn't detect an ArgoCD application named 'datadog-application,' so we're going to reinstall the DD Helm chart"
   
-  (cat kube/services/datadog/values.yaml | yq --arg endpoints "$postgresString" --yaml-output '.datadog.confd."postgres.yaml" = $endpoints') > $(gen3_secrets_folder)/datadog/datadog_values.yaml
+  (cat kube/services/datadog/values.yaml | yq --arg endpoints "$postgresString" --yaml-output '.clusterAgent.confd."postgres.yaml" = $endpoints | .clusterChecksRunner.enabled = true') > $(gen3_secrets_folder)/datadog/datadog_values.yaml
   helm repo add datadog https://helm.datadoghq.com --force-update 2> >(grep -v 'This is insecure' >&2)
   helm repo update 2> >(grep -v 'This is insecure' >&2)
   helm upgrade --install datadog -f "$(gen3_secrets_folder)/datadog/datadog_values.yaml" datadog/datadog -n datadog --version 3.6.4 2> >(grep -v 'This is insecure' >&2)
