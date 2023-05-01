@@ -43,6 +43,7 @@ metadata:
     app: ephemeral-ci-run
     netnolimit: "yes"
   annotations:
+    karpenter.sh/do-not-evict: true
     "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
 spec:
   affinity:
@@ -54,6 +55,11 @@ spec:
             operator: In
             values:
             - ONDEMAND
+        - matchExpressions:
+          - key: karpenter.sh/capacity-type
+            operator: In
+            values:
+            - on-demand
   containers:
   - name: shell
     image: quay.io/cdis/gen3-ci-worker:master
