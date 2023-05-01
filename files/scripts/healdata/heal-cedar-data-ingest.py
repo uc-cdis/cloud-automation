@@ -104,7 +104,17 @@ while((limit + offset <= total)):
             if "appl_id" not in cedar_record:
                 print("This record doesn't have appl_id, skipping...")
                 continue
-            cedar_record_id = str(cedar_record["appl_id"])
+
+            cedar_appl_id = str(cedar_record["appl_id"])
+            # have to query the mds to find the cedar record id
+            query = requests.get(f"http://revproxy-service/mds/metadata?gen3_discovery.appl_id={cedar_appl_id}")
+            if query.status_code == 200:
+                cedar_json = query.json()
+                cedar_record_id = cedar_json[0]
+            else:
+                print("Could not find appl id: ", cedar_appl_id, "in MDS")
+                continue
+
 
             # Get the metadata record for the nih_application_id
             mds = requests.get(f"http://revproxy-service/mds/metadata/{cedar_record_id}",
