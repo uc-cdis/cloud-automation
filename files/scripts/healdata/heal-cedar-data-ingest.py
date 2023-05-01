@@ -97,7 +97,7 @@ while((limit + offset <= total)):
             print("Got 200 from CEDAR wrapper but no metadata in body, something is not right!")
             sys.exit(1)
 
-        total = metadata_return["totalCount"]
+        total = metadata_return["metadata"]["totalCount"]
         returned_records = len(metadata_return["metadata"]["records"])
         print(f"Successfully got {returned_records} record(s) from CEDAR directory")
         for cedar_record in metadata_return["metadata"]["records"]:
