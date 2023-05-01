@@ -167,7 +167,7 @@ serviceAccount:
    KUBECOST_SA
 
 kubecostProductConfigs:
-  athenaBucketName: ATHENA_BUCKET
+  athenaBucketName: s3://ATHENA_BUCKET
   athenaRegion: AWS_REGION
   athenaDatabase: ATHENA_DATABASE
   athenaTable: ATHENA_TABLE

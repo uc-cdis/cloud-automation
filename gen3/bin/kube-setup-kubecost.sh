@@ -83,7 +83,7 @@ gen3_setup_kubecost() {
   if (! helm status kubecost -n kubecost > /dev/null 2>&1 )  || [[ ! -z "$FORCE" ]]; then
     valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
     valuesTemplate="${GEN3_HOME}/kube/services/kubecost/values.yaml"
-    g3k_kv_filter $valuesTemplate KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" ATHENA_BUCKET "s3://$curBucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${vpc_name}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" > $valuesFile
+    g3k_kv_filter $valuesTemplate KUBECOST_SA "eks.amazonaws.com/role-arn: arn:aws:iam::$accountID:role/gen3_service/$roleName" ATHENA_BUCKET "$curBucket" ATHENA_DATABASE "athenacurcfn_$vpc_name" ATHENA_TABLE "${vpc_name}_cur" AWS_ACCOUNT_ID "$accountID" AWS_REGION "$awsRegion" > $valuesFile
     helm repo add kubecost https://kubecost.github.io/cost-analyzer/ --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
     helm upgrade --install kubecost kubecost/cost-analyzer -n kubecost -f ${valuesFile}
