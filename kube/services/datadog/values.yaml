@@ -13,7 +13,7 @@ datadog:
   #Enables Optional Universal Service Monitoring
   ## ref: https://docs.datadoghq.com/tracing/universal_service_monitoring/?tab=helm
   serviceMonitoring:
-    enabled: true
+    enabled: false
 
   # datadog.apiKeyExistingSecret -- Use existing Secret which stores API key instead of creating a new one. The value should be set with the `api-key` key inside the secret.
   ## If set, this parameter takes precedence over "apiKey".
@@ -168,7 +168,7 @@ datadog:
 
   networkMonitoring:
     # datadog.networkMonitoring.enabled -- Enable network performance monitoring
-    enabled: true
+    enabled: false
 
 
   ## Enable security agent and provide custom configs
