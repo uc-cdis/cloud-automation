@@ -3,7 +3,6 @@
 
 resource "aws_s3_bucket" "data_bucket" {
   bucket = "${var.vpc_name}-data-bucket"
-  acl    = "private"
 
   server_side_encryption_configuration {
     rule {
@@ -56,9 +55,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 resource "aws_s3_bucket" "log_bucket" {
   bucket = "${var.vpc_name}-data-bucket-logs"
-  acl    = "bucket-owner-full-control" #log-delivery-write
-  acl    = "log-delivery-write"
-
 
   server_side_encryption_configuration {
     rule {
