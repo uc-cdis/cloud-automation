@@ -106,7 +106,7 @@ prometheus:
       scrape_timeout: 10s
       evaluation_interval: 1m
       external_labels:
-        cluster_id: vhdcprod # Each cluster should have a unique ID
+        cluster_id: kubecost
     persistentVolume:
       size: 32Gi
       enabled: true
