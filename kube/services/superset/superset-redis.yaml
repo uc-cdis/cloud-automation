@@ -4,10 +4,10 @@ apiVersion: v1
 kind: ServiceAccount
 automountServiceAccountToken: true
 metadata:
-  name: superset-redis
+  name: redis
   labels:
     app.kubernetes.io/name: redis
-    helm.sh/chart: redis-16.3.1
+    helm.sh/chart: redis-17.9.4
     app.kubernetes.io/instance: superset
     app.kubernetes.io/managed-by: Helm
 ---
@@ -18,7 +18,7 @@ metadata:
   name: superset-redis-configuration
   labels:
     app.kubernetes.io/name: redis
-    helm.sh/chart: redis-16.3.1
+    helm.sh/chart: redis-17.9.4
     app.kubernetes.io/instance: superset
     app.kubernetes.io/managed-by: Helm
 data:
@@ -37,7 +37,6 @@ data:
     # End of master configuration
   replica.conf: |-
     dir /data
-    slave-read-only yes
     # User-supplied replica configuration:
     rename-command FLUSHDB ""
     rename-command FLUSHALL ""
@@ -50,7 +49,7 @@ metadata:
   name: superset-redis-health
   labels:
     app.kubernetes.io/name: redis
-    helm.sh/chart: redis-16.3.1
+    helm.sh/chart: redis-17.9.4
     app.kubernetes.io/instance: superset
     app.kubernetes.io/managed-by: Helm
 data:
@@ -60,13 +59,13 @@ data:
     [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
     [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
     response=$(
-      timeout -s 3 $1 \
+      timeout -s 15 $1 \
       redis-cli \
         -h localhost \
         -p $REDIS_PORT \
         ping
     )
-    if [ $? == 124 ]; then
+    if [ "$?" -eq "124" ]; then
       echo "Timed out"
       exit 1
     fi
@@ -80,13 +79,13 @@ data:
     [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
     [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
     response=$(
-      timeout -s 3 $1 \
+      timeout -s 15 $1 \
       redis-cli \
         -h localhost \
         -p $REDIS_PORT \
         ping
     )
-    if [ $? == 124 ]; then
+    if [ "$?" -eq "124" ]; then
       echo "Timed out"
       exit 1
     fi
@@ -101,13 +100,13 @@ data:
     [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
     [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
     response=$(
-      timeout -s 3 $1 \
+      timeout -s 15 $1 \
       redis-cli \
         -h $REDIS_MASTER_HOST \
         -p $REDIS_MASTER_PORT_NUMBER \
         ping
     )
-    if [ $? == 124 ]; then
+    if [ "$?" -eq "124" ]; then
       echo "Timed out"
       exit 1
     fi
@@ -121,13 +120,13 @@ data:
     [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
     [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
     response=$(
-      timeout -s 3 $1 \
+      timeout -s 15 $1 \
       redis-cli \
         -h $REDIS_MASTER_HOST \
         -p $REDIS_MASTER_PORT_NUMBER \
         ping
     )
-    if [ $? == 124 ]; then
+    if [ "$?" -eq "124" ]; then
       echo "Timed out"
       exit 1
     fi
@@ -156,7 +155,7 @@ metadata:
   name: superset-redis-scripts
   labels:
     app.kubernetes.io/name: redis
-    helm.sh/chart: redis-16.3.1
+    helm.sh/chart: redis-17.9.4
     app.kubernetes.io/instance: superset
     app.kubernetes.io/managed-by: Helm
 data:
@@ -164,10 +163,10 @@ data:
     #!/bin/bash
 
     [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
-    if [[ ! -f /opt/bitnami/redis/etc/master.conf ]];then
+    if [[ -f /opt/bitnami/redis/mounted-etc/master.conf ]];then
         cp /opt/bitnami/redis/mounted-etc/master.conf /opt/bitnami/redis/etc/master.conf
     fi
-    if [[ ! -f /opt/bitnami/redis/etc/redis.conf ]];then
+    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
         cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
     fi
     ARGS=("--port" "${REDIS_PORT}")
@@ -183,7 +182,7 @@ metadata:
   name: superset-redis-headless
   labels:
     app.kubernetes.io/name: redis
-    helm.sh/chart: redis-16.3.1
+    helm.sh/chart: redis-17.9.4
     app.kubernetes.io/instance: superset
     app.kubernetes.io/managed-by: Helm
   annotations:
@@ -208,13 +207,14 @@ metadata:
   name: superset-redis-master
   labels:
     app.kubernetes.io/name: redis
-    helm.sh/chart: redis-16.3.1
+    helm.sh/chart: redis-17.9.4
     app.kubernetes.io/instance: superset
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: master
 spec:
   type: ClusterIP
-  
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
   ports:
     - name: tcp-redis
       port: 6379
@@ -225,7 +225,7 @@ spec:
     app.kubernetes.io/instance: superset
     app.kubernetes.io/component: master
 ---
-# Source: superset/charts/redis/templates/master/statefulset.yaml
+# Source: superset/charts/redis/templates/master/application.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -234,7 +234,7 @@ metadata:
   name: superset-redis-master
   labels:
     app.kubernetes.io/name: redis
-    helm.sh/chart: redis-16.3.1
+    helm.sh/chart: redis-17.9.4
     app.kubernetes.io/instance: superset
     app.kubernetes.io/managed-by: Helm
     app.kubernetes.io/component: master
@@ -247,7 +247,6 @@ spec:
       app.kubernetes.io/component: master
   serviceName: superset-redis-headless
   updateStrategy:
-    rollingUpdate: {}
     type: RollingUpdate
   template:
     metadata:
@@ -255,23 +254,23 @@ spec:
         app: superset-redis-master
         dbomop-data: "yes"
         app.kubernetes.io/name: redis
-        helm.sh/chart: redis-16.3.1
+        helm.sh/chart: redis-17.9.4
         app.kubernetes.io/instance: superset
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: master
       annotations:
-        checksum/configmap: 5fb78a3f5ce9ca1af5b7223f9cebe42f832ebc64f37e09a2fc8c8b29bb7101b0
-        checksum/health: 2ea27c28e44af78b1d3dc1373aa2ac24ba2b215f788de4a0f0c9e02cbb79c533
-        checksum/scripts: c351ebe638f6967b5bc76c2f38c28e2f7f65bc93846a1cd7786e2cbff9d51620
-        checksum/secret: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+        checksum/configmap: 3e37ce809cf97cf1904e4f06e78108dba34472423e16c5e416026bcb192895fb
+        checksum/health: ad98a9690e1f9c5784f1914c5b8e04b1ae2c1ddb7071d05acd6e7c7f0afa6e8f
+        checksum/scripts: 9b0e8fa5fffccc8a213cd402a29a8124753f879a5370299258cb762861c6fb8a
+        checksum/secret: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
     spec:
-      
+
       securityContext:
         fsGroup: 1001
       serviceAccountName: superset-redis
       affinity:
         podAffinity:
-          
+
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
@@ -283,11 +282,11 @@ spec:
                 topologyKey: kubernetes.io/hostname
               weight: 1
         nodeAffinity:
-          
+
       terminationGracePeriodSeconds: 30
       containers:
         - name: redis
-          image: docker.io/bitnami/redis:6.2.6-debian-10-r120
+          image: docker.io/bitnami/redis:7.0.10-debian-11-r4
           imagePullPolicy: "IfNotPresent"
           securityContext:
             runAsUser: 1001
@@ -343,7 +342,6 @@ spec:
               mountPath: /health
             - name: redis-data
               mountPath: /data
-              subPath: 
             - name: config
               mountPath: /opt/bitnami/redis/mounted-etc
             - name: redis-tmp-conf
