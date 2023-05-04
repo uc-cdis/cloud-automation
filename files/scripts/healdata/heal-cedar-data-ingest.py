@@ -105,30 +105,20 @@ while((limit + offset <= total)):
                 print("This record doesn't have appl_id, skipping...")
                 continue
 
+            # get the appl id from cedar for querying in our MDS
             cedar_appl_id = str(cedar_record["appl_id"])
-            # have to query the mds to find the cedar record id
-            # query = requests.get(f"http://revproxy-service/mds/metadata?gen3_discovery.appl_id={cedar_appl_id}&data=true")
-            # if query.status_code == 200:
-            #     cedar_json = query.json()
-            #     if len(cedar_json) == 0:
-            #         print("Query returned nothing for ", cedar_appl_id, "appl id")
-            #         continue
-            #     cedar_record_id = cedar_json[0]
-            # else:
-            #     print("Could not find appl id: ", cedar_appl_id, "in MDS")
-            #     continue
-            # print("this is the applid", cedar_appl_id)
-
 
             # Get the metadata record for the nih_application_id
             mds = requests.get(f"http://revproxy-service/mds/metadata?gen3_discovery.appl_id={cedar_appl_id}&data=true")
             if mds.status_code == 200:
                 mds_res = mds.json()
 
+                # the query result key is the record of the metadata. If it doesn't return anything then our query failed.
                 if len(list(mds_res.keys())) == 0:
                     print("Query returned nothing for ", cedar_appl_id, "appl id")
                     continue
-                    
+
+                # get the key for our mds record
                 cedar_record_id = list(mds_res.keys())[0]
 
                 mds_res = mds_res[cedar_record_id]
@@ -139,8 +129,6 @@ while((limit + offset <= total)):
                 elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
                     print("Metadata is has not been registered. Registering it in MDS record")
                     continue
-
-                # cedar_record_id = mds_res["gen3_discovery"]["_hdp_uid"]
 
                 pydash.merge(mds_discovery_data_body, mds_res["gen3_discovery"], cedar_record)
                 mds_discovery_data_body = update_filter_metadata(mds_discovery_data_body)
