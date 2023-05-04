@@ -121,7 +121,7 @@ while((limit + offset <= total)):
 
 
             # Get the metadata record for the nih_application_id
-            mds = requests.get(f"http://revproxy-service/mds/metadata/?gen3_discovery.appl_id={cedar_appl_id}&data=true")
+            mds = requests.get(f"http://revproxy-service/mds/metadata?gen3_discovery.appl_id={cedar_appl_id}&data=true")
             if mds.status_code == 200:
                 mds_res = mds.json()
                 mds_cedar_register_data_body = {}
