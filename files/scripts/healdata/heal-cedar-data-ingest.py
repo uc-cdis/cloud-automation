@@ -117,6 +117,7 @@ while((limit + offset <= total)):
             # else:
             #     print("Could not find appl id: ", cedar_appl_id, "in MDS")
             #     continue
+            print("this is the applid", cedar_appl_id)
 
 
             # Get the metadata record for the nih_application_id
