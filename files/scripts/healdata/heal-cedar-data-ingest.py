@@ -132,6 +132,9 @@ while((limit + offset <= total)):
                 elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
                     print("Metadata is has not been registered. Registering it in MDS record")
                     continue
+
+                cedar_record_id = mds_res["gen3_discovery"]["_hdp_uid"]
+
                 pydash.merge(mds_discovery_data_body, mds_res["gen3_discovery"], cedar_record)
                 mds_discovery_data_body = update_filter_metadata(mds_discovery_data_body)
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
