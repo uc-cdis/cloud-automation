@@ -117,13 +117,15 @@ while((limit + offset <= total)):
             # else:
             #     print("Could not find appl id: ", cedar_appl_id, "in MDS")
             #     continue
-            print("this is the applid", cedar_appl_id)
+            # print("this is the applid", cedar_appl_id)
 
 
             # Get the metadata record for the nih_application_id
             mds = requests.get(f"http://revproxy-service/mds/metadata?gen3_discovery.appl_id={cedar_appl_id}&data=true")
             if mds.status_code == 200:
                 mds_res = mds.json()
+                cedar_record_id = list(mds_res.keys())[0]
+                mds_res = mds_res[cedar_record_id]
                 mds_cedar_register_data_body = {}
                 mds_discovery_data_body = {}
                 if mds_res["_guid_type"] == "discovery_metadata":
@@ -132,7 +134,7 @@ while((limit + offset <= total)):
                     print("Metadata is has not been registered. Registering it in MDS record")
                     continue
 
-                cedar_record_id = mds_res["gen3_discovery"]["_hdp_uid"]
+                # cedar_record_id = mds_res["gen3_discovery"]["_hdp_uid"]
 
                 pydash.merge(mds_discovery_data_body, mds_res["gen3_discovery"], cedar_record)
                 mds_discovery_data_body = update_filter_metadata(mds_discovery_data_body)
