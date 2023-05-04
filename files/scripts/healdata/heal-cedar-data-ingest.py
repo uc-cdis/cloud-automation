@@ -124,7 +124,13 @@ while((limit + offset <= total)):
             mds = requests.get(f"http://revproxy-service/mds/metadata?gen3_discovery.appl_id={cedar_appl_id}&data=true")
             if mds.status_code == 200:
                 mds_res = mds.json()
+
+                if len(list(mds_res.keys())) == 0:
+                    print("Query returned nothing for ", cedar_appl_id, "appl id")
+                    continue
+                    
                 cedar_record_id = list(mds_res.keys())[0]
+
                 mds_res = mds_res[cedar_record_id]
                 mds_cedar_register_data_body = {}
                 mds_discovery_data_body = {}
