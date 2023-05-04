@@ -268,6 +268,7 @@ if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   #
   gen3 kube-setup-networkpolicy disable &
   gen3 kube-setup-networkpolicy &
+  gen3 kube-setup-pdb
 else
   gen3_log_info "roll fast mode - skipping k8s base services and netpolicy setup"
 fi
