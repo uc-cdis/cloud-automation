@@ -94,4 +94,4 @@ fi
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/hatchery/hatchery-service.yaml"
 gen3 roll hatchery
-gen3 job cron hatchery-reaper '@daily'
+gen3 job cron hatchery-reaper "*/5 * * * *"
