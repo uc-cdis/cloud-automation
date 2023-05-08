@@ -3,6 +3,7 @@ controller:
   metricsConfig:
     # -- Enables prometheus metrics server
     enabled: true
+    servicePort: 9090
 
   podAnnotations:
     prometheus.io/scrape: "true"
