@@ -138,6 +138,14 @@ then
     fi
 fi
 
+if g3kubectl get namespace kubecost > /dev/null 2>&1;
+then
+    filePath="$scriptDir/gen3.nginx.conf/kubecost-service.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
+fi
+
 # #echo "${confFileList[@]}" $BASHPID
 # if [[ $current_namespace == "default" ]]; then
 #   if g3kubectl get namespace grafana > /dev/null 2>&1; then
