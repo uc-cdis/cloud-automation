@@ -57,7 +57,7 @@ spec:
                   valueFrom:
                       configMapKeyRef:
                         name: global
-                        key: environment
+                        key: hostname
                 - name: SOURCE_BUCKET
                   GEN3_SOURCE_BUCKET
                 - name: TARGET_BUCKET

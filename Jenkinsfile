@@ -60,7 +60,35 @@ spec:
             operator: In
             values:
             - on-demand
+  initContainers:
+  - name: wait-for-jenkins-connection
+    image: quay.io/cdis/gen3-ci-worker:master
+    command: ["/bin/sh","-c"]
+    args: ["while [ $(curl -sw '%{http_code}' http://jenkins-master-service:8080/tcpSlaveAgentListener/ -o /dev/null) -ne 200 ]; do sleep 5; echo 'Waiting for jenkins connection ...'; done"]
   containers:
+  - name: jnlp
+    command: ["/bin/sh","-c"]
+    args: ["sleep 30; /usr/local/bin/jenkins-agent"]
+    resources:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+        ephemeral-storage: 500Mi
+  - name: selenium
+    image: selenium/standalone-chrome:112.0
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 4444
+    readinessProbe:
+      httpGet:
+        path: /status
+        port: 4444
+      timeoutSeconds: 60
+    resources:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+        ephemeral-storage: 500Mi
   - name: shell
     image: quay.io/cdis/gen3-ci-worker:master
     imagePullPolicy: Always
@@ -68,6 +96,11 @@ spec:
     - sleep
     args:
     - infinity
+    resources:
+      requests:
+        cpu: 0.2
+        memory: 200Mi
+        ephemeral-storage: 200Mi
     env:
     - name: AWS_DEFAULT_REGION
       value: us-east-1
