@@ -10,6 +10,9 @@ datadog:
     useHostPort: true
     nonLocalTraffic: true
 
+  #This is used to configure a lot of checks that Datadog does. Normally, we would annotate a service, but since we
+  #use aurora, we'll have to configure from confd instead
+
   #Enables Optional Universal Service Monitoring
   ## ref: https://docs.datadoghq.com/tracing/universal_service_monitoring/?tab=helm
   serviceMonitoring:
