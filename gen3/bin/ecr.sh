@@ -71,18 +71,34 @@ ecrReg="707767160287.dkr.ecr.us-east-1.amazonaws.com"
 # lib -------------------------------
 
 gen3_ecr_login() {
-  if gen3_time_since ecr-login is 36000; then
+  if [[ -S /var/run/docker.sock ]]; then
+    if gen3_time_since ecr-login is 36000; then
     # re-authenticate every 10 hours
-    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin "707767160287.dkr.ecr.us-east-1.amazonaws.com" 1>&2 || exit 1
+      aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin "707767160287.dkr.ecr.us-east-1.amazonaws.com" 1>&2 || exit 1
+    fi
+  elif [[ -S /var/run/containerd/containerd.sock ]]; then
+    gen3_log_info "Containerd found, logging in during each ctr command"
+    loginCommand="-u AWS:$(aws ecr get-login-password --region us-east-1)"
+  else
+    gen3_log_err "No container runtime found. Exiting"
+    exit 1
   fi
 }
 
 gen3_quay_login() {
   if [[ -f ~/Gen3Secrets/quay/login ]]; then
-    if gen3_time_since quay-login is 36000; then
-      cat ~/Gen3Secrets/quay/login | docker login --username cdis+gen3 --password-stdin quay.io
+    if [[ -S /var/run/docker.sock ]]; then
+      if gen3_time_since quay-login is 36000; then
+        cat ~/Gen3Secrets/quay/login | docker login --username cdis+gen3 --password-stdin quay.io
+      fi
+    elif [[ -S /var/run/containerd/containerd.sock ]]; then
+      gen3_log_info "Containerd found, logging in during each ctr command"
+      loginCommand="-u \"cdis+gen3\":\"$(cat ~/Gen3Secrets/quay/login)\""
+    else
+      gen3_log_err "No container runtime found. Exiting"
+      exit 1
     fi
-  else 
+  else
     gen3_log_err "Place credentials for the quay robot account (cdis+gen3) in this file ~/Gen3Secrets/quay/login"
     exit 1
   fi
@@ -97,7 +113,8 @@ gen3_quay_login() {
 gen3_ecr_copy_image() {
   local srcTag="$1"
   local destTag="$2"
-  if [[ "$destTag" == *"quay.io"* ]]; then 
+  loginCommand=""
+  if [[ "$destTag" == *"quay.io"* ]]; then
     gen3_quay_login || return 1
   else
     gen3_ecr_login || return 1
@@ -108,12 +125,23 @@ gen3_ecr_copy_image() {
   fi
   shift
   shift
-  (docker pull "$srcTag" && \
-    docker tag "$srcTag" "$destTag" && \
-    docker push "$destTag"
-  ) || return 1
+  if [[ -S /var/run/docker.sock ]]; then
+    (docker pull "$srcTag" && \
+      docker tag "$srcTag" "$destTag" && \
+      docker push "$destTag"
+    ) || return 1
+    docker image rm "$srcTag" "$destTag"
+  elif [[ -S /var/run/containerd/containerd.sock ]]; then
+    (ctr image pull "$srcTag" $loginCommand && \
+      ctr image tag "$srcTag" "$destTag" && \
+      ctr image push "$destTag" $loginCommand
+    ) || return 1
+    ctr image rm "$srcTag" "$destTag"
+  else
+    gen3_log_err "No container runtime found. Exiting"
+    exit 1
+  fi
   # save disk space
-  docker image rm "$srcTag" "$destTag"
   return 0
 }
 
@@ -178,7 +206,7 @@ gen3_ecr_update_all() {
   echo $repoList
   for repo in $repoList; do
     gen3_ecr_update_policy $repo
-  done 
+  done
 }
 
 # Check if the Quay image exists in ECR repository
@@ -203,7 +231,7 @@ gen3_ecr_describe_image() {
 # @param repoName
 gen3_ecr_create_repo() {
   local repoName="gen3/$1"
-  aws ecr create-repository --repository-name ${repoName} --image-scanning-configuration scanOnPush=true 
+  aws ecr create-repository --repository-name ${repoName} --image-scanning-configuration scanOnPush=true
 }
 
 
