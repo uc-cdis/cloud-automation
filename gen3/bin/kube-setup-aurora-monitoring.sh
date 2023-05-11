@@ -40,17 +40,15 @@ create_new_datadog_user() {
   output=$(jq --arg host "$1" --arg password "$datadogPsqlPassword" '.[$host].datadog_db_password=$password' "$(gen3_secrets_folder)/datadog/datadog_db_users.json")
   echo "$output" > "$(gen3_secrets_folder)/datadog/datadog_db_users.json"
 
-  # Instead of grabbing username, password, and all that, and doing our connection, we'll just figure out 
-  # which short name (i.e., server1, server2, etc) corresponds to our host, and connect that way.
-  # Saves a few lines of code.
-  shortname=$(jq --arg host "$1" 'to_entries[] | select (.value.db_host == $host) | .key' $(gen3_secrets_folder)/g3auto/dbfarm/servers.json | tr -d '"')
+  username=$(jq --arg host "$1" 'map(select(.db_host==$host))[0] | .db_username' $(gen3_secrets_folder)/g3auto/dbfarm/servers.json | tr -d '"')
+  password=$(jq --arg host "$1" 'map(select(.db_host==$host))[0] | .db_password' $(gen3_secrets_folder)/g3auto/dbfarm/servers.json | tr -d '"')
 
   # Create the Datadog user in the database
-  if gen3 psql $shortname -c "SELECT 1 FROM pg_roles WHERE rolname='datadog'" | grep -q 1;
-  then 
-    gen3 psql $shortname -c "ALTER USER datadog WITH password '$datadogPsqlPassword';"
+  if PGPASSWORD=$password psql -h "$1" -U "$username" -c "SELECT 1 FROM pg_roles WHERE rolname='datadog'" | grep -q 1;
+  then
+    PGPASSWORD=$password psql -h "$1" -U "$username" -c "ALTER USER datadog WITH password '$datadogPsqlPassword';"
   else
-    gen3 psql $shortname -c "CREATE USER datadog WITH password '$datadogPsqlPassword';"
+    PGPASSWORD=$password psql -h "$1" -U "$username" -c "CREATE USER datadog WITH password '$datadogPsqlPassword';"
   fi
 
   echo $datadogPsqlPassword
@@ -141,7 +139,7 @@ for instance in "${instances[@]}"
 do
   instanceArray=($instance)
   datadogUserPassword=$(jq --arg instance "$clusterEndpoint" '.[$instance].datadog_db_password' $(gen3_secrets_folder)/datadog/datadog_db_users.json | tr -d '"')
-  postgresString+=$(cat /home/aidan/cloud-automation/kube/services/datadog/postgres.yaml | yq --arg url ${instanceArray[0]} --yaml-output '.instances[0].host = $url' | yq --arg password $datadogUserPassword --yaml-output '.instances[0].password = $password')
+  postgresString+=$(cat ${GEN3_HOME}/kube/services/datadog/postgres.yaml | yq --arg url ${instanceArray[0]} --yaml-output '.instances[0].host = $url' | yq --arg password $datadogUserPassword --yaml-output '.instances[0].password = $password')
 done
 
 confd=$(yq -n --yaml-output --arg postgres "$postgresString" '.clusterAgent.confd."postgres.yaml" = $postgres | .clusterChecksRunner.enabled = true')
