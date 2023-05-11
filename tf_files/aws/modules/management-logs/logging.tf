@@ -3,7 +3,6 @@
 
 resource "aws_s3_bucket" "management-logs_bucket" {
   bucket = "${var.log_bucket_name}"
-  acl    = "private"
 
   tags = {
     Environment  = "ALL"
