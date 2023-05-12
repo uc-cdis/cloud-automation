@@ -66,7 +66,7 @@ EOM
   },
   "PostgreSQL": {
     "EnableIndex": true,
-    "EnableStorage": false,
+    "EnableStorage": true,
     "Port": 5432,
     "Host": "$(jq -r .db_host < $secretsFolder/dbcreds.json)",
     "Database": "$(jq -r .db_database < $secretsFolder/dbcreds.json)",
