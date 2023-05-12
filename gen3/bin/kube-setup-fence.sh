@@ -84,10 +84,20 @@ if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.07"; then
       gen3 job cron fence-cleanup-expired-ga4gh-info "*/5 * * * *"
   fi
 
-  # Setup visa update cronjob
-  if ! g3kubectl get cronjob fence-visa-update >/dev/null 2>&1; then
-      echo "fence-visa-update being added as a cronjob b/c fence >= 6.0.0 or 2022.07"
-      gen3 job cron fence-visa-update "30 * * * *"
+  # Extract the value of ENABLE_VISA_UPDATE_CRON from the configmap manifest-fence (fence-config-public.yaml)
+  ENABLE_VISA_UPDATE_CRON=$(kubectl get cm manifest-fence -o=jsonpath='{.data.fence-config-public\.yaml}' | yq -r .ENABLE_VISA_UPDATE_CRON)
+
+  # Delete the fence-visa-update cronjob if ENABLE_VISA_UPDATE_CRON is set to false or not set or null  in the configmap manifest-fence
+  if [[ "$ENABLE_VISA_UPDATE_CRON" == "false" ]] || [[ -z "$ENABLE_VISA_UPDATE_CRON" ]]; then
+      echo "Deleting fence-visa-update cronjob"
+      kubectl delete cronjob fence-visa-update
+  elif [[ "$ENABLE_VISA_UPDATE_CRON" == "true" ]]; then
+      if ! g3kubectl get cronjob fence-visa-update >/dev/null 2>&1; then
+          echo "fence-visa-update being added as a cronjob b/c fence >= 6.0.0 or 2022.07"
+          gen3 job cron fence-visa-update "30 * * * *"
+      fi
+  else
+      echo "ENABLE_VISA_UPDATE_CRON has an unexpected value in the configmap manifest-fence. Skipping fence-visa-update cronjob setup."
   fi
 fi
 
