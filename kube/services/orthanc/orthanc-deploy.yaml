@@ -37,7 +37,7 @@ spec:
       volumes:
       - name: config-volume-g3auto
         secret:
-          secretName: orthanc-g3auto
+          secretName: orthanc-s3-g3auto
       containers:
       - name: orthanc
         GEN3_ORTHANC_IMAGE
