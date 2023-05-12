@@ -29,13 +29,14 @@ source "${GEN3_HOME}/gen3/gen3setup.sh"
 cat - > jenkins-envs-services.txt <<EOF
 jenkins-blood
 jenkins-brain
+jenkins-dcp
 EOF
 
 cat - > jenkins-envs-releases.txt <<EOF
 jenkins-genomel
 jenkins-niaid
-jenkins-dcp
 jenkins-new
+jenkins-new-1
 EOF
 
 aws s3 cp jenkins-envs-services.txt s3://cdistest-public-test-bucket/jenkins-envs-services.txt
