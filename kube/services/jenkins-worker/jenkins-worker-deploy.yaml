@@ -39,7 +39,7 @@ spec:
         - -c
         - |
           # fix permissions for docker and containerd
-          chmod 666 /var/run/containerd.sock
+          chmod 666 /var/run/containerd/containerd.sock
           chmod 666 /var/run/docker.sock
           echo "done"
         command:
@@ -54,7 +54,7 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         volumeMounts:
-        - mountPath: /var/run/containerd.sock
+        - mountPath: /var/run/containerd/containerd.sock
           name: containerdsock
         - mountPath: /var/run/docker.sock
           name: dockersock
@@ -143,7 +143,7 @@ spec:
         - name: dockersock
           mountPath: "/var/run/docker.sock"
         - name: containerdsock
-          mountPath: "/var/run/containerd.sock"
+          mountPath: "/var/run/containerd/containerd.sock"
       volumes:
       - name: cert-volume
         secret:
@@ -156,4 +156,4 @@ spec:
           path: /var/run/docker.sock
       - name: containerdsock
         hostPath:
-          path: "/var/run/containerd.sock"
+          path: "/var/run/containerd/containerd.sock"
