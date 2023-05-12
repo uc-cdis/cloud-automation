@@ -56,7 +56,7 @@ EOM
     fi
 
     cat - > "$secretsFolder/orthanc_config_overwrites.json" <<EOM
-{ 
+{
   "AuthenticationEnabled": false,
   "AwsS3Storage" : {
     "BucketName": "$(jq -r .bucket < $secretsFolder/s3creds.json)",
@@ -83,21 +83,21 @@ EOM
 }
 
 if ! setup_database_and_config; then
-  gen3_log_err "kube-setup-dicom-server bailing out - database/config failed setup"
+  gen3_log_err "kube-setup-orthanc bailing out - database/config failed setup"
   exit 1
 fi
 
-gen3 roll dicom-server
-g3kubectl apply -f "${GEN3_HOME}/kube/services/dicom-server/dicom-server-service.yaml"
+gen3 roll orthanc
+g3kubectl apply -f "${GEN3_HOME}/kube/services/orthanc/orthanc-service.yaml"
 
 cat <<EOM
-The dicom-server service has been deployed onto the k8s cluster.
+The orthanc service has been deployed onto the k8s cluster.
 EOM
 
 # Deploy the dicom-viewer service
-gen3 roll dicom-viewer
-g3kubectl apply -f "${GEN3_HOME}/kube/services/dicom-viewer/dicom-viewer-service.yaml"
+gen3 roll ohif-viewer
+g3kubectl apply -f "${GEN3_HOME}/kube/services/ohif-viewer/ohif-viewer-service.yaml"
 
 cat <<EOM
-The dicom-viewer service has been deployed onto the k8s cluster.
+The ohif-viewer service has been deployed onto the k8s cluster.
 EOM
