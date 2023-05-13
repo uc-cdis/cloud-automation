@@ -105,10 +105,52 @@ EXPOSE 80
 # # Expose 443, in case of LTS / HTTPS
 EXPOSE 443
 
+# install PYPY
+ENV url https://downloads.python.org/pypy/pypy3.9-v7.3.11-linux64.tar.bz2
+RUN wget -O pypy.tar.bz2 "$url" --progress=dot:giga
+RUN mkdir /opt/pypy
+RUN tar -xjC /opt/pypy --strip-components=1 -f pypy.tar.bz2
+RUN ln -sv '/opt/pypy/bin/pypy3' /usr/local/bin/
+
+# smoke test for pypy
+RUN pypy3 --version
+
+ENV PYTHON_GET_PIP_URL https://github.com/pypa/get-pip/raw/3843bff3a0a61da5b63ea0b7d34794c5c51a2f11/get-pip.py
+# ENV PYTHON_GET_PIP_SHA256 95c5ee602b2f3cc50ae053d716c3c89bea62c58568f64d7d25924d399b2d5218
+
+RUN wget -O get-pip.py "$PYTHON_GET_PIP_URL"
+
+RUN set -ex; \
+    \
+    wget -O get-pip.py "$PYTHON_GET_PIP_URL"; \
+    \
+    pipVersion="$(pypy3 -c 'import ensurepip; print(ensurepip._PIP_VERSION)')"; \
+    setuptoolsVersion="$(pypy3 -c 'import ensurepip; print(ensurepip._SETUPTOOLS_VERSION)')"; \
+    \
+    pypy3 get-pip.py \
+        --disable-pip-version-check \
+        --no-cache-dir \
+        "pip == $pipVersion" \
+        "setuptools == $setuptoolsVersion" \
+    ; \
+# smoke test
+    pip --version; \
+    \
+    find /opt/pypy -depth \
+        \( \
+            \( -type d -a \( -name test -o -name tests \) \) \
+            -o \
+            \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
+        \) -exec rm -rf '{}' +; \
+    rm -f get-pip.py
+
+
 # install uwsgi
 # https://uwsgi-docs.readthedocs.io/en/latest/Install.html
-RUN python -m pip install --upgrade pip
+# RUN python -m pip install --upgrade pip
 RUN pip install uwsgi ddtrace
+
+
 
 # Remove default configuration from Nginx
 RUN rm /etc/nginx/conf.d/default.conf
@@ -127,6 +169,9 @@ COPY supervisord.ini /etc/supervisor.d/supervisord.ini
 
 # Which uWSGI .ini file should be used, to make it customizable
 ENV UWSGI_INI /app/uwsgi.ini
+
+# Try to install uwsgi using pypy
+# ENV UWSGI_PROFILE=pypy make
 
 # By default, disable uwsgi cheaper mode and run 2 processes.
 # If UWSGI_CHEAPER=N and UWSGI_PROCESSES=M, N is the min and M is the max
