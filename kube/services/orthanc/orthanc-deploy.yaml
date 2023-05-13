@@ -68,6 +68,10 @@ spec:
               fieldPath: status.hostIP
         - name: DICOM_WEB_PLUGIN_ENABLED
           value: "true"
+        - name: TCIA_PLUGIN_ENABLED
+          value: "true"
+        - name: ORTHANC_EXPLORER_2_ENABLED
+          value: "false"
         imagePullPolicy: Always
         readinessProbe:
           httpGet:
