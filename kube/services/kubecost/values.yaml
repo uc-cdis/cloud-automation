@@ -97,7 +97,7 @@ prometheus:
       tag: v2.35.0
     resources:
       requests:
-        memory: 30Gi
+        memory: 3Gi
     # requests:
     #   cpu: 500m
     #   memory: 30Gi
