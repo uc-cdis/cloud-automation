@@ -241,9 +241,20 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
 
     g3k_kv_filter $valuesTemplate GEN3_ARGO_BUCKET "${BUCKET}" GEN3_ARGO_DB_HOST "${DBHOST}" GEN3_ARGO_DB_NAME "${DBNAME}" > ${valuesFile}
 
+    manifest_version=$(g3k_manifest_lookup .argo.helm_version 2> /dev/null)
+
+    if $manifest_version; then
+      version=$manifest_verison
+    else
+      version="0.27"
+    fi
+
+    echo "$version"
+    exit
+
     helm repo add argo https://argoproj.github.io/argo-helm --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
-    helm upgrade --install argo argo/argo-workflows -n argo -f ${valuesFile} --version 0.22.11
+    helm upgrade --install argo argo/argo-workflows -n argo -f ${valuesFile} --version $version
   else
     gen3_log_info "kube-setup-argo exiting - argo already deployed, use --force to redeploy"
   fi
