@@ -22,8 +22,8 @@ if (! (g3kubectl describe secret manifestservice-g3auto 2> /dev/null | grep conf
 then
   gen3_log_info "kube-setup-manifestservice" "setting up manifest-service resources"
   gen3 s3 create "$bucketname"
-  gen3 awsuser create ${username}
-  gen3 s3 attach-bucket-policy "$bucketname" --read-write --user-name ${username}
+  gen3 awsrole create ${username} manifestservice-sa
+  gen3 s3 attach-bucket-policy "$bucketname" --read-write --role-name ${rolename}
   gen3_log_info "initializing manifestservice config.json"
   user=$(gen3 secrets decode ${username}-g3auto awsusercreds.json)
   key_id=$(jq -r .id <<< $user)
@@ -32,8 +32,6 @@ then
 {
   "manifest_bucket_name": "$bucketname",
   "hostname": "$hostname",
-  "aws_access_key_id": "$key_id",
-  "aws_secret_access_key": "$access_key",
   "prefix": "$hostname"
 }
 EOM
