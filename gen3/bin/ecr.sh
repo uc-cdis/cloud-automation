@@ -132,7 +132,7 @@ gen3_ecr_copy_image() {
     ) || return 1
     docker image rm "$srcTag" "$destTag"
   elif [[ -S /var/run/containerd/containerd.sock ]]; then
-    (ctr image pull "$srcTag" $loginCommand && \
+    (ctr image pull "$srcTag" --all-platforms $loginCommand && \
       ctr image tag "$srcTag" "$destTag" && \
       ctr image push "$destTag" $loginCommand
     ) || return 1

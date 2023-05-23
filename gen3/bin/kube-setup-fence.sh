@@ -88,7 +88,7 @@ if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.07"; then
   ENABLE_VISA_UPDATE_CRON=$(kubectl get cm manifest-fence -o=jsonpath='{.data.fence-config-public\.yaml}' | yq -r .ENABLE_VISA_UPDATE_CRON)
 
   # Delete the fence-visa-update cronjob if ENABLE_VISA_UPDATE_CRON is set to false or not set or null  in the configmap manifest-fence
-  if [[ "$ENABLE_VISA_UPDATE_CRON" == "false" ]] || [[ -z "$ENABLE_VISA_UPDATE_CRON" ]]; then
+  if [[ "$ENABLE_VISA_UPDATE_CRON" == "false" ]] || [[ "$ENABLE_VISA_UPDATE_CRON" == "null" ]] || [[ -z "$ENABLE_VISA_UPDATE_CRON" ]]; then
       echo "Deleting fence-visa-update cronjob"
       kubectl delete cronjob fence-visa-update
   elif [[ "$ENABLE_VISA_UPDATE_CRON" == "true" ]]; then
