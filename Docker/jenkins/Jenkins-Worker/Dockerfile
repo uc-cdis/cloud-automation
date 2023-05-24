@@ -111,25 +111,25 @@ RUN DISTRO="$(lsb_release -c -s)"  \
       && rm -rf /var/lib/apt/lists/*
 
 # Copy sh script responsible for installing Python
-COPY install-python3.8.sh /root/tmp/install-python3.8.sh
+COPY install-python3.9.sh /root/tmp/install-python3.9.sh
 
-# Run the script responsible for installing Python 3.8.0 and link it to /usr/bin/python
-RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
-        bash /root/tmp/install-python3.8.sh && \
-        rm -rf /root/tmp/install-python3.8.sh && \
+# Run the script responsible for installing Python 3.9.0 and link it to /usr/bin/python
+RUN chmod +x /root/tmp/install-python3.9.sh; sync && \
+        bash /root/tmp/install-python3.9.sh && \
+        rm -rf /root/tmp/install-python3.9.sh && \
         unlink /usr/bin/python3 && \
-        ln -s /usr/local/bin/python3.8 /usr/bin/python3
+        ln -s /usr/local/bin/python3.9 /usr/bin/python3
 
 RUN env
 RUN which python
-RUN which python3.8
+RUN which python3.9
 
 # Fix shebang for lsb_release
-RUN sed -i 's/python3/python3.7/' /usr/bin/lsb_release && \
-    sed -i 's/python3/python3.7/' /usr/bin/add-apt-repository
+RUN sed -i 's/python3/python3.9/' /usr/bin/lsb_release && \
+    sed -i 's/python3/python3.9/' /usr/bin/add-apt-repository
 
 # install aws cli, poetry, pytest, etc.
-RUN set -xe && python3.8 -m pip install --upgrade pip && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade
+RUN set -xe && python3.9 -m pip install --upgrade pip && python3.9 -m pip install awscli --upgrade && python3.9 -m pip install pytest --upgrade && python3.9 -m pip install poetry && python3.9 -m pip install PyYAML --upgrade && python3.9 -m pip install lxml --upgrade && python3.9 -m pip install yq --upgrade
 
 # update /etc/sudoers
 RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \

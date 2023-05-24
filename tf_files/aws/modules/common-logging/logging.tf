@@ -3,7 +3,6 @@
 
 resource "aws_s3_bucket" "common_logging_bucket" {
   bucket = "${var.common_name}-logging"
-  acl    = "private"
 
   tags = {
     Environment  = "${var.common_name}"
