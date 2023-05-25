@@ -1,0 +1,69 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: psql-db-prep-dump
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      serviceAccountName: ajo-dbbackup-sa
+      serviceAccountName: jenkins-service
+      containers:
+        - name: pgdump
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: "devterm"
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              source "${GEN3_HOME}/gen3/lib/utils.sh"
+              gen3_load "gen3/gen3setup"
+              # Default bucket name
+              accountId=$(aws sts get-caller-identity --query "Account" --output text)
+              DEFAULT_BUCKET_NAME="gen3-db-backups-${accountId}"
+              # Default databases
+              DEFAULT_DATABASES=("indexd" "sheepdog" "metadata")
+              S3_DIR="$(date +"%Y-%m-%d-%H-%M-%S")"
+              # Set default values for missing variables
+              DATABASES=("${DEFAULT_DATABASES[@]}")
+              BUCKET_NAME=$DEFAULT_BUCKET_NAME
+              # Backup databases and upload to S3 bucket
+              for database in "${DATABASES[@]}"; do
+               echo "Starting database backup for ${database}"
+               gen3 db backup "${database}" > "${database}.sql"
+               echo "Uploading backup file ${database}.sql to s3://${BUCKET_NAME}/${S3_DIR}/${database}.sql"
+               aws s3 cp "${database}.sql" "s3://${BUCKET_NAME}/${S3_DIR}/${database}.sql"
+               echo "deleting temporary backup file ${database}.sql"
+              done
+              sleep 600
+      restartPolicy: Never
