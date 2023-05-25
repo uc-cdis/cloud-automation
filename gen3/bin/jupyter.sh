@@ -241,8 +241,15 @@ gen3_jupyter_idle_pods() {
     if jq -r --arg cluster "$clusterName" 'select(.cluster | startswith($cluster))' < "$tempClusterFile" | grep "$clusterName" > /dev/null; then
       echo "$name"
       if [[ "$command" == "kill" ]]; then
-        gen3_log_info "try to kill pod $name in $jnamespace"
-        g3kubectl delete pod --namespace "$jnamespace" "$name" 1>&2
+        pod_creation=$(date -d $(g3kubectl get pod "$name" -n "$jnamespace" -o jsonpath='{.metadata.creationTimestamp}') +%s)
+        current_time=$(date +%s)
+        age=$((current_time - pod_creation))
+
+        # potential workspaces to be reaped for inactivity must be at least 60 minutes old
+        if ((age >= 3600)); then
+          gen3_log_info "try to kill pod $name in $jnamespace"
+          g3kubectl delete pod --namespace "$jnamespace" "$name" 1>&2
+        fi
       fi
     else
       gen3_log_info "$clusterName not in $(cat $tempClusterFile)"
