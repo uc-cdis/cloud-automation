@@ -1,6 +1,6 @@
 
 resource "aws_secretsmanager_secret" "secret" {
-  name = "${var.vpc_name}_${var.secret_name}"
+  name = "${var.vpc_name}_${var.secret}"
 }
 
 resource "aws_secretsmanager_secret_policy" "policy" {
@@ -10,5 +10,5 @@ resource "aws_secretsmanager_secret_policy" "policy" {
 
 resource "aws_secretsmanager_secret_version" "secret" {
   secret_id     = aws_secretsmanager_secret.secret.id
-  secret_string = jsonencode(var.example)
+  secret_string = var.secret
 }
