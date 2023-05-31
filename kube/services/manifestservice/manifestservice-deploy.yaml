@@ -24,6 +24,7 @@ spec:
         userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
+      serviceAccountName: manifestservice-sa
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
