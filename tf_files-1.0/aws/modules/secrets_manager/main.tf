@@ -1,6 +1,6 @@
 
 resource "aws_secretsmanager_secret" "secret" {
-  name = "${var.vpc_name}_${var.secret}"
+  name = "${var.vpc_name}_${var.secret_name}"
 }
 
 resource "aws_secretsmanager_secret_policy" "policy" {
