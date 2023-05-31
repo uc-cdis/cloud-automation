@@ -48,6 +48,10 @@ spec:
             configMapKeyRef:
               name: manifest-hatchery
               key: "user-namespace"
+        - name: GEN3_LICENSE_SECRET_NAME
+          value: gen3-license-secret
+        - name: GEN3_LICENSE_KEY
+          value: licenseSecrets
         command: ["python"]
         args: 
           - "-c"
@@ -96,15 +100,23 @@ spec:
             used_licenses.sort()
             print(f"Licenses currently in use: {used_licenses}")
 
-            # This is a free trial license for demo purposes only
-            # Todo: store, mount licenses secret
-            license_file = """
-            501709301583!$n1d p$53 zvqe 2sfz jzft 7aei e8yL 8ue$ j38b!snic!first line!second line!2100!
-            501709301583!$n1d p$53 zvqe 2sfz jzft 7aei e8yL 8ue$ j38b!snic!first line!second line!2100!
-            501709301583!$n1d p$53 zvqe 2sfz jzft 7aei e8yL 8ue$ j38b!snic!first line!second line!2100!
-            """.strip()
+            # The license keys should be stored in a kubernetes secret.
+            # The format of the secret is one license string per line.
+            # The license strings are generated with 'stinit' using the information in a license PDF.
+            # The secret can be generated from a temporary file with a kubectl command, eg
+            # kubectl create secret generic GEN3_LICENSE_SECRET_NAME --from-file=GEN3_LICENSE_KEY=/path/to/file.lic
 
-            licenses = license_file.split("\n")
+            # Get license from kubernetes secret
+            print("Ready to read secret")
+            secret_name = os.environ['GEN3_LICENSE_SECRET_NAME']
+            secret_key = os.environ['GEN3_LICENSE_KEY']
+            license_secrets = os.popen(
+              f"kubectl get secret {secret_name} --template={{{{.data.{secret_key}}}}} | base64 -d"
+            ).read()
+            license_secrets = license_secrets.strip()
+
+            licenses = license_secrets.split("\n")
+            print(f"Number of licenses = {len(licenses)}")
             available_license_ids = [
               license_id for license_id, license in enumerate(licenses)
               if license_id not in used_licenses
