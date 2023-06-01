@@ -107,7 +107,7 @@ gen3_deploy_karpenter() {
       aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}" --resources ${security_groups} || true
       aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}" --resources ${subnets} || true
       aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-jupyter" --resources ${security_groups_jupyter} || true
-      aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-worfklow" --resources ${security_groups_workflow} || true
+      aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-workflow" --resources ${security_groups_workflow} || true
       echo '{
         "Version": "2012-10-17",
         "Statement": [
