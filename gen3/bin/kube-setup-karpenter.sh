@@ -28,6 +28,7 @@ gen3_deploy_karpenter() {
       else
         karpenter=${karpenter:-v0.22.0}
       fi    
+      local queue_name="karpenter-sqs-${vpc_name}"
       echo '{
           "Statement": [
               {
@@ -106,7 +107,7 @@ gen3_deploy_karpenter() {
       aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}" --resources ${security_groups} || true
       aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}" --resources ${subnets} || true
       aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-jupyter" --resources ${security_groups_jupyter} || true
-      aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-worfklow" --resources ${security_groups_workflow} || true
+      aws ec2 create-tags --tags "Key=karpenter.sh/discovery,Value=${vpc_name}-workflow" --resources ${security_groups_workflow} || true
       echo '{
         "Version": "2012-10-17",
         "Statement": [
@@ -134,6 +135,7 @@ gen3_deploy_karpenter() {
           --set settings.aws.defaultInstanceProfile=${vpc_name}_EKS_workers \
           --set settings.aws.clusterEndpoint="${cluster_endpoint}" \
           --set settings.aws.clusterName=${vpc_name} \
+          --set settings.aws.interruptionQueueName="${queue_name}" \
           --set serviceAccount.name=karpenter \
           --set serviceAccount.create=false \
           --set controller.env[0].name=AWS_REGION \
@@ -201,7 +203,7 @@ gen3_create_karpenter_sqs_eventbridge() {
   aws events put-targets --rule "Karpenter-${vpc_name}-ScheduledChangeRule" --targets "Id"="1","Arn"="${queue_arn}" 2> /dev/null || true
   aws events put-targets --rule "Karpenter-${vpc_name}-InstanceStateChangeRule" --targets "Id"="1","Arn"="${queue_arn}" 2> /dev/null || true
   aws sqs set-queue-attributes --queue-url "${queue_url}" --attributes "Policy"="$(aws sqs get-queue-attributes --queue-url "${queue_url}" --attribute-names "Policy" --query "Attributes.Policy" --output text | jq -r '.Statement += [{"Sid": "AllowKarpenter", "Effect": "Allow", "Principal": {"Service": ["sqs.amazonaws.com","events.amazonaws.com"]}, "Action": "sqs:SendMessage", "Resource": "'${queue_arn}'"}]')" 2> /dev/null || true
-  g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/karpenter-global-settings.yaml SQS_NAME ${queue_name} | g3kubectl apply -f -
+  #g3k_kv_filter ${GEN3_HOME}/kube/services/karpenter/karpenter-global-settings.yaml SQS_NAME ${queue_name} | g3kubectl apply -f -
 }
 
 gen3_remove_karpenter() {
