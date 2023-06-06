@@ -136,6 +136,15 @@ while((limit + offset <= total)):
 
                 pydash.merge(mds_res["gen3_discovery"]["study_metadata"], mds_res["gen3_discovery"]["study_metadata"], cedar_record)
 
+                # merge data from cedar that is not study level metadata into a level higher
+                deleted_keys = []
+                for key, value in mds_res["gen3_discovery"]["study_metadata"].items():
+                    if not isinstance(value, dict):
+                        mds_res["gen3_discovery"][key] = value
+                        deleted_keys.append(key)
+                for key in deleted_keys:
+                    del mds_res["gen3_discovery"]["study_metadata"][key]
+
                 mds_discovery_data_body = mds_res["gen3_discovery"]
                 mds_discovery_data_body = update_filter_metadata(mds_discovery_data_body)
 
