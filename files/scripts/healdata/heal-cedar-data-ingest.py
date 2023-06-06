@@ -109,7 +109,7 @@ while((limit + offset <= total)):
             cedar_appl_id = str(cedar_record["appl_id"])
 
             # Get the metadata record for the nih_application_id
-            mds = requests.get(f"http://revproxy-service/mds/metadata?gen3_discovery.appl_id={cedar_appl_id}&data=true")
+            mds = requests.get(f"http://revproxy-service/mds/metadata?gen3_discovery.study_metadata.metadata_location.nih_application_id={cedar_appl_id}&data=true")
             if mds.status_code == 200:
                 mds_res = mds.json()
 
@@ -124,15 +124,26 @@ while((limit + offset <= total)):
                 mds_res = mds_res[cedar_record_id]
                 mds_cedar_register_data_body = {}
                 mds_discovery_data_body = {}
+                mds_clinical_trials = {}
                 if mds_res["_guid_type"] == "discovery_metadata":
                     print("Metadata is already registered. Updating MDS record")
                 elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
                     print("Metadata is has not been registered. Registering it in MDS record")
-                    continue
 
-                pydash.merge(mds_discovery_data_body, mds_res["gen3_discovery"], cedar_record)
+                if "clinicaltrials_gov" in cedar_record:
+                    mds_clinical_trials = cedar_record["clinicaltrials_gov"]
+                    del cedar_record["clinicaltrials_gov"]
+
+                pydash.merge(mds_res["gen3_discovery"]["study_metadata"], mds_res["gen3_discovery"]["study_metadata"], cedar_record)
+
+                mds_discovery_data_body = mds_res["gen3_discovery"]
                 mds_discovery_data_body = update_filter_metadata(mds_discovery_data_body)
+
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
+                mds_cedar_register_data_body["nih_reporter"] = mds_res["nih_reporter"]
+                if mds_clinical_trials:
+                    mds_cedar_register_data_body["clinicaltrials_gov"] = mds_clinical_trials
+
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
                 print("Metadata is now being registered.")
