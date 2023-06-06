@@ -106,10 +106,10 @@ while((limit + offset <= total)):
                 continue
 
             # get the appl id from cedar for querying in our MDS
-            cedar_appl_id = str(cedar_record["nih_reporter"]["appl_id"])
+            cedar_appl_id = str(cedar_record["Metadata Location"]["nih_application_id"])
 
             # Get the metadata record for the nih_application_id
-            mds = requests.get(f"http://revproxy-service/mds/metadata?gen3_discovery.study_metadata.metadata_location.nih_application_id={cedar_appl_id}&data=true")
+            mds = requests.get(f"http://revproxy-service/mds/metadata?nih_reporter.appl_id={cedar_appl_id}&data=true")
             if mds.status_code == 200:
                 mds_res = mds.json()
 
