@@ -101,7 +101,7 @@ while((limit + offset <= total)):
         returned_records = len(metadata_return["metadata"]["records"])
         print(f"Successfully got {returned_records} record(s) from CEDAR directory")
         for cedar_record in metadata_return["metadata"]["records"]:
-            if "appl_id" not in cedar_record:
+            if "nih_application_id" not in cedar_record["Metadata Location"]:
                 print("This record doesn't have appl_id, skipping...")
                 continue
 
