@@ -24,6 +24,7 @@ spec:
         userhelper: "yes"
         GEN3_DATE_LABEL
     spec:
+      serviceAccountName: manifestservice-sa
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -99,10 +100,9 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 0.5
-              memory: 512Mi
+              cpu: 100m
+              memory: 300Mi
             limits:
-              cpu: 1
               memory: 1024Mi
           livenessProbe:
             httpGet:

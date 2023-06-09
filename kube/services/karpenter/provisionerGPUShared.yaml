@@ -1,0 +1,30 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: gpu-shared
+spec:
+  ttlSecondsAfterEmpty: 300
+  labels:
+    jina.ai/node-type: gpu-shared
+    jina.ai/gpu-type: nvidia
+    nvidia.com/device-plugin.config: shared_gpu
+  requirements:
+    - key: karpenter.k8s.aws/instance-family
+      operator: In
+      values: ["g4dn", "g5","p4","p3"]
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["spot", "on-demand"]
+    - key: kubernetes.io/arch
+      operator: In
+      values: ["amd64"]
+  taints:
+    - key: nvidia.com/gpu-shared
+      effect: "NoSchedule"
+  limits:
+    resources:
+      cpu: 1000
+  # Use the default node template
+  providerRef:
+    name: gpu
+  ttlSecondsAfterEmpty: 30

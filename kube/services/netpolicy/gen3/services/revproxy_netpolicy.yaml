@@ -29,6 +29,7 @@ spec:
          - port: 82
          - port: 443
          - port: 8088
+         - port: 9090
   egress:
     - to:
       - namespaceSelector:
@@ -46,6 +47,10 @@ spec:
       - namespaceSelector:
           matchLabels:
             app: argocd
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: kubecost
   policyTypes:
    - Ingress
    - Egress
