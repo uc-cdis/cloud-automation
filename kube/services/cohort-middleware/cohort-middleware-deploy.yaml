@@ -60,6 +60,7 @@ spec:
         - name: cohort-middleware-config
           secret:
             secretName: cohort-middleware-config
+            optional: true
       containers:
         - name: cohort-middleware
           GEN3_COHORT-MIDDLEWARE_IMAGE|-image: quay.io/cdis/cohort-middleware:latest-|
