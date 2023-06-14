@@ -50,6 +50,7 @@ controller:
       passwordSecret:
         name: argo-db-creds
         key: db_password
+    nodeStatusOffLoad: true
 
   workflowDefaults: 
     spec:
