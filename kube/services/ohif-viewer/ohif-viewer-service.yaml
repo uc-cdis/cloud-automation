@@ -14,4 +14,3 @@ spec:
       nodePort: null
       name: http
   type: ClusterIP
-  
