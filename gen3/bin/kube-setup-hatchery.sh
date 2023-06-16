@@ -58,6 +58,37 @@ policy=$( cat <<EOM
                 "dynamodb:PutItem"
             ],
             "Resource": "arn:aws:dynamodb:*:*:table/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "batch:DescribeComputeEnvironments",
+                "batch:CreateComputeEnvironment",
+                "batch:CreateJobQueue",
+                "batch:TagResource",
+                "iam:ListPolicies",
+                "iam:CreatePolicy",
+                "iam:TagPolicy",
+                "iam:ListRoles",
+                "iam:CreateRole",
+                "iam:TagRole",
+                "iam:AttachRolePolicy",
+                "iam:CreateUser",
+                "iam:TagUser",
+                "iam:AttachUserPolicy",
+                "iam:ListAccessKeys",
+                "iam:CreateAccessKey",
+                "iam:DeleteAccessKey",
+                "s3:CreateBucket"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": [
+                "arn:aws:iam::*:role/ecsInstanceRole"
+            ]
         }
     ]
 }
@@ -69,7 +100,7 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
     roleName="$(gen3 api safe-name hatchery-sa)"
     gen3 awsrole create $roleName $saName
     policyName="$(gen3 api safe-name hatchery-policy)"
-    policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hathcery to assume csoc_adminvm role in other accounts, for multi-account workspaces")
+    policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hatchery to assume csoc_adminvm role in other accounts and manage dynamodb for multi-account workspaces, and to create resources for nextflow workspaces")
     if [ -n "$policyInfo" ]; then
     policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
     else
