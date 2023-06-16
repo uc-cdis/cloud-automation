@@ -104,8 +104,14 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
     if [ -n "$policyInfo" ]; then
     policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
     else
-        echo "Unable to create policy $policyName. Assuming it already exists and continuing"
+        # failed to create the policy - assume it already exists, so delete it and recreate it to update it
         policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
+        gen3_aws_run aws iam delete-policy --policy-arn $policyArn
+        policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hatchery to assume csoc_adminvm role in other accounts and manage dynamodb for multi-account workspaces, and to create resources for nextflow workspaces")
+        if [ -n "$policyInfo" ]; then
+            policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
+        else
+            echo "Unable to create policy $policyName. Assuming it already exists and continuing"
     fi
 
     gen3_log_info "Attaching policy '${policyName}' to role '${roleName}'"
