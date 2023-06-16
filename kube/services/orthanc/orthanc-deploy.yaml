@@ -15,6 +15,7 @@ spec:
         app: orthanc
         release: production
         public: "yes"
+        s3: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
