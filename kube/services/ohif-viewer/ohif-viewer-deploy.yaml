@@ -66,6 +66,8 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
+        - name: PORT
+          value: "8080"
         imagePullPolicy: Always
         readinessProbe:
           httpGet:
