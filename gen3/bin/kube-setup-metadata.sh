@@ -76,7 +76,7 @@ fi
 # Sync the manifest config from manifest.json (or manifests/metadata.json) to the k8s config map.
 # This may not actually create the manifest-metadata config map if the user did not specify any metadata
 # keys in their manifest configuration.
-gen3 gitops configmaps
+[[ -z "$GEN3_ROLL_ALL" ]] && gen3 gitops configmaps
 
 # Check the manifest-metadata configmap to see if the aggregate mds feature is enabled. Skip aws-es-proxysetup if configmap doesn't exist.
 if g3kubectl get configmap manifest-metadata > /dev/null 2>&1; then
