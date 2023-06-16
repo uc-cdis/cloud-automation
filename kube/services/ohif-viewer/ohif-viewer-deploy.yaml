@@ -68,6 +68,8 @@ spec:
               fieldPath: status.hostIP
         - name: PORT
           value: "8080"
+        - name: PUBLIC_URL
+          value: "/ohif-viewer/"
         imagePullPolicy: Always
         readinessProbe:
           httpGet:
