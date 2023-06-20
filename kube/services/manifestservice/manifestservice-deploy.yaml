@@ -22,6 +22,7 @@ spec:
         s3: "yes"
         public: "yes"
         userhelper: "yes"
+        netvpc: "yes"
         GEN3_DATE_LABEL
     spec:
       serviceAccountName: manifestservice-sa
