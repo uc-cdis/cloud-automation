@@ -1,0 +1,24 @@
+
+fence:
+  FENCE_CONFIG:
+    ENCRYPTION_KEY: ${encryption_key}
+
+    DEBUG: True
+    OPENID_CONNECT:
+      # For google login, please setup a google oauth client and add it's credentials here
+      google:
+        client_id: "<google client id>"
+        client_secret: "<google client secret>" #pragma: allowlist secret
+
+    AWS_CREDENTIALS:
+      'fence-bot':
+        aws_access_key_id: '${fence_bot_key}' #pragma: allowlist secret
+        aws_secret_access_key: '${fence_bot_secret}' #pragma: allowlist secret
+
+    S3_BUCKETS:
+      # Name of the actual s3 bucket
+      ${upload_bucket}:
+        cred: 'fence-bot'
+        region: us-east-1
+    
+    DATA_UPLOAD_BUCKET: '${upload_bucket}'

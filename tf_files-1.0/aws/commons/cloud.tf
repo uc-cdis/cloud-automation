@@ -115,6 +115,17 @@ module "cdis_alarms" {
   db_sheepdog                 = var.deploy_sheepdog_db ? aws_db_instance.db_sheepdog[0].identifier : ""
 }
 
+module "helm_config" {
+  hostname         = var.hostname
+  vpc_name         = var.vpc_name
+  db_hostname      = module.aurora[0].aws_rds_cluster.postgresql.endpoint
+  db_username      = module.aurora[0].aurora_cluster_master_username
+  db_password      = module.aurora[0].aurora_cluster_master_password
+  encryption_key   = var.hmac_encryption_key
+  fence_bot_key    = module.cdis_vpc.fence-bot_id
+  fence_bot_secret = module.cdis_vpc.fence-bot_secret
+  upload_bucket    = module.cdis_vpc.data-bucket_name
+}
 
 resource "aws_route_table" "private_kube" {
   vpc_id                      = module.cdis_vpc.vpc_id
