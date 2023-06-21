@@ -57,7 +57,11 @@ EOM
 
     cat - > "$secretsFolder/orthanc_config_overwrites.json" <<EOM
 {
-  "AuthenticationEnabled": false,
+  "RemoteAccessAllowed" : true,
+  "AuthenticationEnabled": true,
+  "RegisteredUsers" : {
+    "public" : "hello"
+  },
   "AwsS3Storage" : {
     "BucketName": "$(jq -r .bucket < $secretsFolder/s3creds.json)",
     "Region" : "$(jq -r .region < $secretsFolder/s3creds.json)",
@@ -66,7 +70,7 @@ EOM
   },
   "PostgreSQL": {
     "EnableIndex": true,
-    "EnableStorage": true,
+    "EnableStorage": false,
     "Port": 5432,
     "Host": "$(jq -r .db_host < $secretsFolder/dbcreds.json)",
     "Database": "$(jq -r .db_database < $secretsFolder/dbcreds.json)",
@@ -74,8 +78,7 @@ EOM
     "Password": "$(jq -r .db_password < $secretsFolder/dbcreds.json)",
     "IndexConnectionsCount": 5,
     "Lock": false
-  },
-  "PythonScript": "/etc/orthanc/authz_filter.py"
+  }
 }
 EOM
   fi
