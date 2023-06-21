@@ -1,5 +1,5 @@
-apiVersion: apps/v1
 kind: Deployment
+apiVersion: apps/v1
 metadata:
   name: orthanc-deployment
   labels:
@@ -78,6 +78,9 @@ spec:
           httpGet:
             path: /system
             port: 8042
+            httpHeaders:
+              - name: Authorization
+                value: Basic cHVibGljOmhlbGxv
           initialDelaySeconds: 5
           periodSeconds: 20
           timeoutSeconds: 30
@@ -85,6 +88,9 @@ spec:
           httpGet:
             path: /system
             port: 8042
+            httpHeaders:
+              - name: Authorization
+                value: Basic cHVibGljOmhlbGxv
           initialDelaySeconds: 5
           periodSeconds: 60
           timeoutSeconds: 30
