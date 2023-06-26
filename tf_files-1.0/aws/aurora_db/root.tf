@@ -53,7 +53,7 @@ resource "random_password" "db_password" {
 resource "null_resource" "db_setup" {
     provisioner "local-exec" {
         command = "psql -h ${data.aws_db_instance.database.address} -U ${var.admin_database_username} -d ${var.admin_database_name} -f ${templatefile("${path.module}/secrets_manager.tftpl", {
-          hostname = data.aws_db_instance.your_database_instance.address
+          hostname = data.aws_db_instance.database.address
           database = var.database_name ? var.database_name : "${var.service}_${var.namespace}"
           username = var.username ? var.username : "${var.service}_${var.namespace}"
           password = var.password ? var.password : random_password.db_password[0].result
