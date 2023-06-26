@@ -39,8 +39,8 @@ resource "aws_iam_role" "role" {
 
 resource "aws_iam_role_policy_attachment" "new_attach" {
   count      = var.secrets_manager_enabled ? 1 : 0
-  role       = var.role != "" ? var.role : data.aws_iam_role.role.name
-  policy_arn = aws_iam_policy.secrets_manager_policy.arn
+  role       = var.role != "" ? var.role : aws_iam_role.role.name
+  policy_arn = aws_iam_policy.secrets_manager_policy[0].arn
 }
 
 resource "random_password" "db_password" {
