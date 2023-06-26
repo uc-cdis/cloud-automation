@@ -44,7 +44,7 @@ resource "aws_iam_role_policy_attachment" "new_attach" {
 }
 
 resource "random_password" "db_password" {
-  count            = var.password != "" ? 1 : 0
+  count            = var.password = "" ? 1 : 0
   length           = 16
   special          = true
   override_special = "_%@"
@@ -56,7 +56,7 @@ resource "null_resource" "db_setup" {
           hostname = data.aws_db_instance.database.address
           database = var.database_name != "" ? var.database_name : "${var.service}_${var.namespace}"
           username = var.username != "" ? var.username : "${var.service}_${var.namespace}"
-          password = var.password != ""? var.password : random_password.db_password[0].result
+          password = var.password != "" ? var.password : random_password.db_password[0].result
         })}"  
         environment = {
           # for instance, postgres would need the password here:
