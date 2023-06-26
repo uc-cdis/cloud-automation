@@ -5,7 +5,7 @@ data "aws_eks_cluster" "eks" {
 }
 
 data "aws_secretsmanager_secret" "aurora-master-password" {
-  name = "${vpc_name}-aurora-master-password"
+  name = "${var.vpc_name}-aurora-master-password"
 }
 
 
@@ -21,7 +21,7 @@ data "aws_iam_policy_document" "policy" {
     ]
 
     resources = [
-      module.secrets_manager.secret-arn,
+      module.secrets_manager[0].secret-arn,
     ]
   }
 }
@@ -42,7 +42,7 @@ data "aws_iam_policy_document" "sa_policy" {
       test     = "StringEquals"
       variable = "${local.eks_oidc_issuer}:sub"
       values = [
-        "system:serviceaccount:${local.sa_namesapce}:${local.sa_name}"
+        "system:serviceaccount:${local.sa_namespace}:${local.sa_name}"
       ]
     }
   }
