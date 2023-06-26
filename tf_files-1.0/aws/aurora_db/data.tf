@@ -49,5 +49,5 @@ data "aws_iam_policy_document" "sa_policy" {
 }
 
 data "aws_db_instance" "database" {
-  db_instance_identifier = "${var.vpc_name}-aurora-cluster"
+  db_instance_identifier = "${var.vpc_name}-aurora-cluster-instance"
 }
