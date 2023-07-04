@@ -122,11 +122,6 @@ spec:
             secretKeyRef:
               name: guacamole-secret
               key: OPENID_CLIENT_ID
-        envFrom:
-        - configMapRef:
-          name: guacamole-configmap
-        - secretRef:
-          name: guacamole-secret
         resources:
           requests:
             memory: "256Mi"
