@@ -11,12 +11,12 @@ export namespace=$(gen3 api namespace)
 new_client() {
   gen3_log_info "kube-setup-apache-guacamole" "creating fence oidc client for Apache Guacamole"
   local fence_client="guacamole"
-  local secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client $fence_client --urls https://va.data-commons.org/guacamole/ --username guacamole --auto-approve --public --external --allowed-scopes openid profile email user | tail -1)
+  local secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client $fence_client --urls https://${hostname}/guac/guacamole/#/ --username guacamole --auto-approve --public --external --allowed-scopes openid profile email user | tail -1)
   # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
   if [[ ! $secrets =~ (\'(.*)\', None) ]]; then
       # try delete client
       g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client $fence_client > /dev/null 2>&1
-      secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client $fence_client --urls https://va.data-commons.org/guacamole/ --username guacamole --auto-approve --public --external --allowed-scopes openid profile email user | tail -1)
+      secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client $fence_client --urls https://${hostname}/guac/guacamole/#/ --username guacamole --auto-approve --public --external --allowed-scopes openid profile email user | tail -1)
       if [[ ! $secrets =~ (\'(.*)\', None) ]]; then
           gen3_log_err "kube-setup-apache-guacamole" "Failed generating oidc client for guacamole: $secrets"
           return 1
