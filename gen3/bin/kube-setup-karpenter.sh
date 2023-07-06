@@ -17,7 +17,8 @@ gen3_deploy_karpenter() {
       gen3_log_info "Ensuring that the spot instance service linked role is setup"
       # Ensure the spot instance service linked role is setup
       # It is required for running spot instances
-      gen3_create_karpenter_sqs_eventbridge
+      #### Uncomment this when we fix the sqs helper to allow for usage by more than one service
+      #gen3_create_karpenter_sqs_eventbridge
       aws iam create-service-linked-role --aws-service-name spot.amazonaws.com || true
       if g3k_config_lookup .global.karpenter_version; then
         karpenter=$(g3k_config_lookup .global.karpenter_version)
@@ -189,7 +190,7 @@ gen3_update_karpenter_configs() {
 gen3_create_karpenter_sqs_eventbridge() {
   local queue_name="karpenter-sqs-${vpc_name}"
   local eventbridge_rule_name="karpenter-eventbridge-${vpc_name}"
-  gen3 sqs create-queue-if-not-exist $queue_name >> "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json"
+  #gen3 sqs create-queue-if-not-exist $queue_name >> "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json"
   local queue_url=$(cat "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json" | jq -r '.url')
   local queue_arn=$(cat "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json" | jq -r '.arn')
   # Create eventbridge rules

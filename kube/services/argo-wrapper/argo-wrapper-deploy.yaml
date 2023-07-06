@@ -57,6 +57,7 @@ spec:
         - name: argo-config
           configMap:
             name: manifest-argo
+            optional: true
           
       containers:
       - name: argo-wrapper
