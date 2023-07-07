@@ -207,8 +207,8 @@ while((limit + offset <= total)):
     else:
         print(f"Failed to get information from CEDAR wrapper service: {cedar.status_code}")
 
-    # if offset + limit == total:
-    #     break
+    if offset + limit == total:
+        break
 
     offset = offset + limit
     if (offset + limit) > total:
