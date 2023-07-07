@@ -191,7 +191,6 @@ while((limit + offset <= total)):
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
                 print(f"Metadata {mds_record_guid} is now being registered.")
-                break
                 # mds_put = requests.put(f"http://revproxy-service/mds/metadata/{mds_record_guid}",
                 #     headers=token_header,
                 #     json = mds_cedar_register_data_body
@@ -207,9 +206,9 @@ while((limit + offset <= total)):
     else:
         print(f"Failed to get information from CEDAR wrapper service: {cedar.status_code}")
 
-    if offset + limit == total:
-        break
+    # if offset + limit == total:
+    #     break
 
     offset = offset + limit
     if (offset + limit) > total:
-        limit = (offset + limit) - total
+        limit = total - offset
