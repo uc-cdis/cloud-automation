@@ -102,10 +102,20 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
     policyName="$(gen3 api safe-name hatchery-policy)"
     policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hatchery to assume csoc_adminvm role in other accounts and manage dynamodb for multi-account workspaces, and to create resources for nextflow workspaces")
     if [ -n "$policyInfo" ]; then
-    policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
+        policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
     else
-        echo "Unable to create policy $policyName. Assume it already exists and create a new version to update the permissions..."
+        echo "Unable to create policy '$policyName'. Assume it already exists and create a new version to update the permissions..."
         policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
+
+        # there can only be up to 5 versions, so delete old versions
+        versions="$(aws iam list-policy-versions --policy-arn $policyArn | jq -r '.Versions[].VersionId')"
+        versions=(${versions}) # string to array
+        for v in "${versions[@]:1}"; do # skip 1st item (current version)
+            echo "Deleting old version '$v'"
+            aws iam delete-policy-version --policy-arn $policyArn --version-id $v
+        done
+
+        # create the new version
         gen3_aws_run aws iam create-policy-version --policy-arn "$policyArn" --policy-document "$policy" --set-as-default
     fi
 
