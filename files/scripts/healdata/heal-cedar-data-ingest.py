@@ -184,7 +184,8 @@ while((limit + offset <= total)):
                 mds_discovery_data_body = update_filter_metadata(mds_discovery_data_body)
 
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
-                mds_cedar_register_data_body["nih_reporter"] = mds_res["nih_reporter"]
+                if "nih_reporter" in mds_res:
+                    mds_cedar_register_data_body["nih_reporter"] = mds_res["nih_reporter"]
                 if mds_clinical_trials:
                     mds_cedar_register_data_body["clinicaltrials_gov"] = mds_clinical_trials
 
