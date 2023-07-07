@@ -157,7 +157,7 @@ while((limit + offset <= total)):
                 mds_record_guid = list(mds_res.keys())[0]
 
                 mds_res = mds_res[mds_record_guid]
-                mds_cedar_register_data_body = {}
+                mds_cedar_register_data_body = {**mds_res}
                 mds_discovery_data_body = {}
                 mds_clinical_trials = {}
                 if mds_res["_guid_type"] == "discovery_metadata":
@@ -169,25 +169,23 @@ while((limit + offset <= total)):
                     mds_clinical_trials = cedar_record["clinicaltrials_gov"]
                     del cedar_record["clinicaltrials_gov"]
 
-                pydash.merge(mds_res["gen3_discovery"], cedar_record)
+                pydash.merge(mds_res["gen3_discovery"]["study_metadata"], cedar_record)
 
                 # merge data from cedar that is not study level metadata into a level higher
-                # deleted_keys = []
-                # for key, value in mds_res["gen3_discovery"]["study_metadata"].items():
-                #     if not isinstance(value, dict):
-                #         mds_res["gen3_discovery"][key] = value
-                #         deleted_keys.append(key)
-                # for key in deleted_keys:
-                #     del mds_res["gen3_discovery"]["study_metadata"][key]
+                deleted_keys = []
+                for key, value in mds_res["gen3_discovery"]["study_metadata"].items():
+                    if not isinstance(value, dict):
+                        mds_res["gen3_discovery"][key] = value
+                        deleted_keys.append(key)
+                for key in deleted_keys:
+                    del mds_res["gen3_discovery"]["study_metadata"][key]
 
                 mds_discovery_data_body = mds_res["gen3_discovery"]
                 mds_discovery_data_body = update_filter_metadata(mds_discovery_data_body)
 
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
-                if "nih_reporter" in mds_res:
-                    mds_cedar_register_data_body["nih_reporter"] = mds_res["nih_reporter"]
                 if mds_clinical_trials:
-                    mds_cedar_register_data_body["clinicaltrials_gov"] = mds_clinical_trials
+                    mds_cedar_register_data_body["clinicaltrials_gov"] = {**mds_cedar_register_data_body["clinicaltrials_gov"], **mds_clinical_trials}
 
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
