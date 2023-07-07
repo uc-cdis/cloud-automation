@@ -180,16 +180,15 @@ while((limit + offset <= total)):
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
                 print(f"Metadata {mds_record_guid} is now being registered.")
-                if mds_record_guid == "HDP00576":
-                    mds_put = requests.put(f"http://revproxy-service/mds/metadata/{mds_record_guid}",
-                        headers=token_header,
-                        json = mds_cedar_register_data_body
-                    )
-                    if mds_put.status_code == 200:
-                        print(f"Successfully registered: {mds_record_guid}")
-                    else:
-                        print(f"Failed to register: {mds_record_guid}. Might not be MDS admin")
-                        print(f"Status from MDS: {mds_put.status_code}")
+                mds_put = requests.put(f"http://revproxy-service/mds/metadata/{mds_record_guid}",
+                    headers=token_header,
+                    json = mds_cedar_register_data_body
+                )
+                if mds_put.status_code == 200:
+                    print(f"Successfully registered: {mds_record_guid}")
+                else:
+                    print(f"Failed to register: {mds_record_guid}. Might not be MDS admin")
+                    print(f"Status from MDS: {mds_put.status_code}")
             else:
                 print(f"Failed to get information from MDS: {mds.status_code}")
     
