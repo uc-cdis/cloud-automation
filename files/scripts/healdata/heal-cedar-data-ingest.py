@@ -163,7 +163,7 @@ while((limit + offset <= total)):
                 if mds_res["_guid_type"] == "discovery_metadata":
                     print("Metadata is already registered. Updating MDS record")
                 elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
-                    print("Metadata is has not been registered. Registering it in MDS record")
+                    print("Metadata has not been registered. Registering it in MDS record")
 
                 if "clinicaltrials_gov" in cedar_record:
                     mds_clinical_trials = cedar_record["clinicaltrials_gov"]
@@ -191,6 +191,7 @@ while((limit + offset <= total)):
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
                 print(f"Metadata {mds_record_guid} is now being registered.")
+                break
                 # mds_put = requests.put(f"http://revproxy-service/mds/metadata/{mds_record_guid}",
                 #     headers=token_header,
                 #     json = mds_cedar_register_data_body
@@ -202,6 +203,9 @@ while((limit + offset <= total)):
                 #     print(f"Status from MDS: {mds_put.status_code}")
             else:
                 print(f"Failed to get information from MDS: {mds.status_code}")
+    
+    else:
+        print(f"Failed to get information from CEDAR wrapper service: {cedar.status_code}")
 
     if offset + limit == total:
         break
@@ -209,7 +213,3 @@ while((limit + offset <= total)):
     offset = offset + limit
     if (offset + limit) > total:
         limit = (offset + limit) - total
-
-
-else:
-    print(f"Failed to get information from CEDAR wrapper service: {cedar.status_code}")
