@@ -127,16 +127,6 @@ while((limit + offset <= total)):
         returned_records = len(metadata_return["metadata"]["records"])
         print(f"Successfully got {returned_records} record(s) from CEDAR directory")
         for cedar_record in metadata_return["metadata"]["records"]:
-            # updated_cedar_record = {}
-            # keys = cedar_record.keys()
-            # for key in keys:
-            #     if " " in key:
-            #         new_key = key.replace(" ", "_").lower()
-            #         updated_cedar_record[new_key] = cedar_record[key]
-            #     else:
-            #         updated_cedar_record[key.lower()] = cedar_record[key]
-            # cedar_record = updated_cedar_record
-
             # get the appl id from cedar for querying in our MDS
             cedar_appl_id = pydash.get(cedar_record, "metadata_location.nih_application_id")
             if cedar_appl_id is None:
@@ -190,7 +180,7 @@ while((limit + offset <= total)):
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
                 print(f"Metadata {mds_record_guid} is now being registered.")
-                if mds_record_guid == "HDP01065":
+                if mds_record_guid == "HDP00576":
                     mds_put = requests.put(f"http://revproxy-service/mds/metadata/{mds_record_guid}",
                         headers=token_header,
                         json = mds_cedar_register_data_body
