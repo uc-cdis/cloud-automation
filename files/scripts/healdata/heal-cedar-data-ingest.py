@@ -2,7 +2,7 @@ import argparse
 import sys
 import requests
 import pydash
-import json
+from uuid import UUID
 
 # Defines how a field in metadata is going to be mapped into a key in filters
 FILTER_FIELD_MAPPINGS = {
@@ -34,6 +34,27 @@ SPECIAL_VALUE_MAPPINGS = {
 OMITTED_VALUES_MAPPING = {
     "study_metadata.human_subject_applicability.gender_applicability": "Not applicable"
 }
+
+def is_valid_uuid(uuid_to_test, version=4):
+    """
+    Check if uuid_to_test is a valid UUID.
+    
+     Parameters
+    ----------
+    uuid_to_test : str
+    version : {1, 2, 3, 4}
+    
+     Returns
+    -------
+    `True` if uuid_to_test is a valid UUID, otherwise `False`.
+    
+    """
+    
+    try:
+        uuid_obj = UUID(uuid_to_test, version=version)
+    except ValueError:
+        return False
+    return str(uuid_obj) == uuid_to_test
 
 def update_filter_metadata(metadata_to_update):
     filter_metadata = []
@@ -85,6 +106,10 @@ offset = 0
 
 # initialize this to be bigger than our initial call so we can go through while loop
 total = 100
+
+if not is_valid_uuid(dir_id):
+    print("Directory ID is not in UUID format!")
+    sys.exit(1)
 
 while((limit + offset <= total)):
     # Get the metadata from cedar to register
