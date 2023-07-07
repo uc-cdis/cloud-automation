@@ -185,7 +185,7 @@ while((limit + offset <= total)):
 
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
                 if mds_clinical_trials:
-                    mds_cedar_register_data_body["clinicaltrials_gov"] = {**mds_cedar_register_data_body["clinicaltrials_gov"], **mds_clinical_trials}
+                    mds_cedar_register_data_body["clinicaltrials_gov"] = {**mds_cedar_register_data_body.get("clinicaltrials_gov", {}), **mds_clinical_trials}
 
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
