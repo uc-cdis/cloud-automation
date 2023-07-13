@@ -16,10 +16,10 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-kubeproxy=${kubeproxy:-1.22.11}
+kubeproxy=${kubeproxy:-1.24.7}
 coredns=${coredns:-1.8.7}
 kubednsautoscaler=${kubednsautoscaler:-1.8.6}
-cni=${cni:-1.12.0}
+cni=${cni:-1.12.2}
 calico=${calico:-1.7.8}
 
 
