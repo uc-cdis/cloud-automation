@@ -49,7 +49,7 @@ spec:
               name: manifest-hatchery
               key: "user-namespace"
         - name: GEN3_LICENSE_SECRET_NAME
-          value: gen3-license-secret
+          value: stata-workspace-gen3-license
         - name: GEN3_LICENSE_KEY
           value: licenseSecrets
         command: ["python"]
