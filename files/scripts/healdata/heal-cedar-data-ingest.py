@@ -160,7 +160,12 @@ while((limit + offset <= total)):
                     mds_clinical_trials = cedar_record["clinicaltrials_gov"]
                     del cedar_record["clinicaltrials_gov"]
 
-                pydash.merge(mds_res["gen3_discovery"]["study_metadata"], cedar_record)
+                # some special handing for this field, because its parent will be deleted before we merging the CEDAR and MDS SLMD to avoid duplicated values
+                cedar_record_other_study_websites = cedar_record.get("metadata_location", {}).get("other_study_websites", [])
+                del cedar_record["metadata_location"]
+
+                mds_res["gen3_discovery"]["study_metadata"].update(cedar_record)
+                mds_res["gen3_discovery"]["study_metadata"]["metadata_location"]["other_study_websites"] = cedar_record_other_study_websites
 
                 # merge data from cedar that is not study level metadata into a level higher
                 deleted_keys = []
