@@ -159,7 +159,7 @@ while((limit + offset <= total)):
                     mds_clinical_trials = cedar_record["clinicaltrials_gov"]
                     del cedar_record["clinicaltrials_gov"]
 
-                pydash.merge(mds_res["gen3_discovery"]["study_metadata"], cedar_record)
+                mds_res["gen3_discovery"]["study_metadata"] = pydash.merge(mds_res["gen3_discovery"]["study_metadata"], cedar_record)
 
                 # merge data from cedar that is not study level metadata into a level higher
                 deleted_keys = []
