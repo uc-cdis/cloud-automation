@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guacamole-configmap
+  labels:
+    app: guacamole
+data:
+  EXTENSIONS: openid
+  EXTENSION_PRIORITY: '*, openid'
+  GUACD_HOSTNAME: guacd-service
+  POSTGRESQL_AUTO_CREATE_ACCOUNTS: 'true'
+  OPENID_AUTHORIZATION_ENDPOINT: https://va.data-commons.org/user/oauth2/authorize
+  OPENID_JWKS_ENDPOINT: https://va.data-commons.org/user/.well-known/jwks
+  OPENID_REDIRECT_URI: https://va.data-commons.org/guac/guacamole/#/
+  OPENID_ISSUER: https://va.data-commons.org/user
+  OPENID_USERNAME_CLAIM_TYPE: sub
+  OPENID_SCOPE: openid profile email
