@@ -1,4 +1,5 @@
 import argparse
+import json
 import sys
 import requests
 import pydash
@@ -146,6 +147,9 @@ while((limit + offset <= total)):
                 # get the key for our mds record
                 mds_record_guid = list(mds_res.keys())[0]
 
+                if mds_record_guid != "HDP00004":
+                    continue
+
                 mds_res = mds_res[mds_record_guid]
                 mds_cedar_register_data_body = {**mds_res}
                 mds_discovery_data_body = {}
@@ -159,7 +163,8 @@ while((limit + offset <= total)):
                     mds_clinical_trials = cedar_record["clinicaltrials_gov"]
                     del cedar_record["clinicaltrials_gov"]
 
-                mds_res["gen3_discovery"]["study_metadata"] = pydash.merge(mds_res["gen3_discovery"]["study_metadata"], cedar_record)
+                pydash.merge(mds_res["gen3_discovery"]["study_metadata"], cedar_record)
+                print(json.dumps(mds_res["gen3_discovery"]["study_metadata"], indent=4))
 
                 # merge data from cedar that is not study level metadata into a level higher
                 deleted_keys = []
@@ -170,8 +175,7 @@ while((limit + offset <= total)):
                 for key in deleted_keys:
                     del mds_res["gen3_discovery"]["study_metadata"][key]
 
-                mds_discovery_data_body = mds_res["gen3_discovery"]
-                mds_discovery_data_body = update_filter_metadata(mds_discovery_data_body)
+                mds_discovery_data_body = update_filter_metadata(mds_res["gen3_discovery"])
 
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
                 if mds_clinical_trials:
@@ -180,6 +184,7 @@ while((limit + offset <= total)):
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
                 print(f"Metadata {mds_record_guid} is now being registered.")
+                print(json.dumps(mds_cedar_register_data_body, indent=4))
                 mds_put = requests.put(f"http://revproxy-service/mds/metadata/{mds_record_guid}",
                     headers=token_header,
                     json = mds_cedar_register_data_body
