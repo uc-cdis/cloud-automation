@@ -147,8 +147,8 @@ while((limit + offset <= total)):
                 # get the key for our mds record
                 mds_record_guid = list(mds_res.keys())[0]
 
-                if mds_record_guid != "HDP00004":
-                    continue
+                # if mds_record_guid != "HDP00004":
+                #     continue
 
                 mds_res = mds_res[mds_record_guid]
                 mds_cedar_register_data_body = {**mds_res}
@@ -164,7 +164,7 @@ while((limit + offset <= total)):
                     del cedar_record["clinicaltrials_gov"]
 
                 pydash.merge(mds_res["gen3_discovery"]["study_metadata"], cedar_record)
-                print(json.dumps(mds_res["gen3_discovery"]["study_metadata"], indent=4))
+                # print(json.dumps(mds_res["gen3_discovery"]["study_metadata"], indent=4))
 
                 # merge data from cedar that is not study level metadata into a level higher
                 deleted_keys = []
@@ -184,7 +184,7 @@ while((limit + offset <= total)):
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
                 print(f"Metadata {mds_record_guid} is now being registered.")
-                print(json.dumps(mds_cedar_register_data_body, indent=4))
+                # print(json.dumps(mds_cedar_register_data_body, indent=4))
                 mds_put = requests.put(f"http://revproxy-service/mds/metadata/{mds_record_guid}",
                     headers=token_header,
                     json = mds_cedar_register_data_body
