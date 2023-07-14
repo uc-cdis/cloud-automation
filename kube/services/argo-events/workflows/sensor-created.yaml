@@ -1,0 +1,76 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: argo-workflow-created-sensor
+  namespace: argo-events
+spec:
+  template:
+    serviceAccountName: default
+    container:
+      env:
+        - name: DEBUG_LOG
+          value: "true"
+  dependencies:
+    - name: workflow-created-event
+      eventSourceName: argo-workflow-created-source
+      eventName: workflow-created
+  triggers:
+    - template:
+        name: log-event
+        log:
+          intervalSeconds: 10
+    - template:
+        name: argo-workflow
+        k8s:
+          operation: create
+          parameters:
+            - src:
+                dependencyName: workflow-created-event
+                dataKey: body.metadata.name
+              dest: spec.template.spec.containers.0.env.0.value
+            - src:
+                dependencyName: workflow-created-event
+                dataKey: body.metadata.name
+              dest: metadata.labels.workflow
+            - src:
+                dependencyName: workflow-created-event
+                dataKey: body.metadata.labels.gen3username
+              dest: spec.template.spec.containers.0.env.1.value
+          source:
+            resource:
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                generateName: create-karpenter-resources-
+                namespace: argo-events
+                labels:
+                  workflow: ""
+              spec:
+                completions: 1
+                ttlSecondsAfterFinished: 900
+                parallelism: 1
+                template:
+                  spec:
+                    restartPolicy: Never
+                    containers:
+                      - name: karpenter-resource-creator
+                        image: quay.io/cdis/awshelper
+                        command: ["/bin/sh"]
+                        args: 
+                        - "-c"
+                        - |
+                          for file in /home/manifests/*.yaml; do envsubst < $file | kubectl apply -f -; done
+                        env:
+                        - name: WORKFLOW_NAME
+                          value: ""
+                        - name: GEN3_USERNAME
+                          value: ""
+                        volumeMounts:
+                          - name: karpenter-templates-volume
+                            mountPath: /home/manifests
+                    volumes:
+                      - name: karpenter-templates-volume
+                        configMap:
+                          name: karpenter-templates
+                backoffLimit: 0
+
