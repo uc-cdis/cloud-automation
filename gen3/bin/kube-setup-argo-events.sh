@@ -43,7 +43,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" || "$override_na
   if kubectl get statefulset eventbus-default-stan -n argo-events >/dev/null 2>&1; then
     gen3_log_info "Detected eventbus installation. To reinstall, please delete the eventbus first. You will need to delete any EventSource and Sensors currently in use"
   else
-    kubectl apply -n argo-events -f https://raw.githubusercontent.com/argoproj/argo-events/stable/examples/eventbus/native.yaml
+    kubectl apply -f ${GEN3_HOME}/kube/services/argo-events/eventbus.yaml
   fi 
 else
   gen3_log_info "Not running in default namespace, will not install argo-events helm chart"
