@@ -1,4 +1,4 @@
-FROM al2base
+FROM quay.io/cdis/amazonlinux:latest
 
 RUN pip3 install gunicorn ddtrace
 
