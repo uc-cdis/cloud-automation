@@ -76,7 +76,7 @@ spec:
               
                 for container in pod.get('spec', {}).get('containers', []):    
               
-                  if "stata-heal" in container['image']:
+                  if "jupyter-pystata-gen3-licensed" in container['image']:
               
                     existing_license_id = pod.get("metadata", {}).get("annotations", {}).get("stata-license")
               
