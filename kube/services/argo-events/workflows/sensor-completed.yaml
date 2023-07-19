@@ -1,0 +1,60 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: argo-workflow-ended-sensor
+  namespace: argo-events
+spec:
+  template:
+    serviceAccountName: default
+    container:
+      env:
+        - name: DEBUG_LOG
+          value: "true"
+  dependencies:
+    - name: argo-workflow-ended
+      eventSourceName: argo-workflow-ended-source
+      eventName: workflow-ended
+  triggers:
+    - template:
+        name: log-event
+        log:
+          intervalSeconds: 10
+    - template:
+        name: argo-workflow
+        k8s:
+          operation: create
+          parameters:
+            - src:
+                dependencyName: argo-workflow-ended
+                dataKey: body.metadata.name
+              dest: spec.template.spec.containers.0.env.0.value
+          source:
+            resource:
+              apiVersion: batch/v1
+              kind: Job
+              metadata:
+                generateName: delete-karpenter-resources-
+                namespace: argo-events
+                labels:
+                  workflow: ""
+              spec:
+                ttlSecondsAfterFinished: 900
+                completions: 1
+                parallelism: 1
+                template:
+                  spec:
+                    restartPolicy: Never
+                    containers:
+                      - name: karpenter-resource-creator
+                        image: quay.io/cdis/awshelper
+                        command: ["/bin/sh"]
+                        args: 
+                          - "-c"
+                          - |
+                            kubectl delete awsnodetemplate workflow-$WORKFLOW_NAME
+                            kubectl delete provisioners workflow-$WORKFLOW_NAME
+                        env:
+                        - name: WORKFLOW_NAME
+                          value: ""
+                backoffLimit: 0
+
