@@ -4,8 +4,6 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
-[[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
-
 setup_secrets() {
   gen3_log_info "Deploying secrets for cohort-middleware"
   # subshell

@@ -1,9 +1,0 @@
----
-arborist_endpoint: 'http://arborist-service'
-atlas_db:
-  host: $DB_HOST
-  port: '5432'
-  username: $DB_USER
-  password: $DB_PASS
-  db: $DB_NAME
-  schema: ohdsi
