@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ohif-viewer-service
+  labels:
+    app: ohif-viewer
+spec:
+  selector:
+    app: ohif-viewer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      nodePort: null
+      name: http
+  type: ClusterIP
