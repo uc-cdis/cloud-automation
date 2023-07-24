@@ -56,7 +56,7 @@ gen3_sqs_create_queue() {
     return 1
   fi
   gen3_log_info "Creating SQS '$sqsName'"
-  local prefix="$(gen3 api safe-name sqs-create)"
+  local prefix="$(gen3 api safe-name $sqsName"
   ( # subshell - do not pollute parent environment
     gen3 workon default ${prefix}__sqs 1>&2
     gen3 cd 1>&2
