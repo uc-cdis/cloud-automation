@@ -1,4 +1,4 @@
-FROM jenkins/jnlp-slave:4.13.3-1-jdk11
+FROM jenkins/inbound-agent:jdk11
 
 USER root
 
@@ -113,23 +113,19 @@ RUN DISTRO="$(lsb_release -c -s)"  \
 # Copy sh script responsible for installing Python
 COPY install-python3.9.sh /root/tmp/install-python3.9.sh
 
-# Run the script responsible for installing Python 3.9.0 and link it to /usr/bin/python
+# Run the script responsible for installing Python 3.9.16 and link it to /usr/bin/python
 RUN chmod +x /root/tmp/install-python3.9.sh; sync && \
         bash /root/tmp/install-python3.9.sh && \
         rm -rf /root/tmp/install-python3.9.sh && \
         unlink /usr/bin/python3 && \
-        ln -s /usr/local/bin/python3.9 /usr/bin/python3
+        ln -s /Python-3.9.16/python /usr/bin/python3
 
 RUN env
 RUN which python
-RUN which python3.9
-
-# Fix shebang for lsb_release
-RUN sed -i 's/python3/python3.9/' /usr/bin/lsb_release && \
-    sed -i 's/python3/python3.9/' /usr/bin/add-apt-repository
+RUN which python3
 
 # install aws cli, poetry, pytest, etc.
-RUN set -xe && python3.9 -m pip install --upgrade pip && python3.9 -m pip install awscli --upgrade && python3.9 -m pip install pytest --upgrade && python3.9 -m pip install poetry && python3.9 -m pip install PyYAML --upgrade && python3.9 -m pip install lxml --upgrade && python3.9 -m pip install yq --upgrade
+RUN set -xe && python3 -m pip install --upgrade pip && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install poetry && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade
 
 # update /etc/sudoers
 RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
