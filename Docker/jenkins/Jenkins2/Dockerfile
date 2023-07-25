@@ -80,9 +80,6 @@ RUN chmod +x /root/tmp/install-python3.9.sh; sync && \
         unlink /usr/bin/python3 && \
         ln -s /Python-3.9.16/python /usr/bin/python3
 
-#can remove once https://github.com/yaml/pyyaml/issues/724 is solved
-RUN pip install pyyaml==5.3.1
-
 # install aws cli, poetry, pytest, etc.
 RUN set -xe && python3 -m pip install --upgrade pip && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install poetry && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade
 

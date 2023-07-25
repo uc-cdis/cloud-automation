@@ -5,7 +5,7 @@ USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 # install python and pip and aws cli
-RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential libgit2-dev zip unzip less vim gettext-base wget
+RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python3 python3-pip build-essential libgit2-dev zip unzip less vim gettext-base wget
 RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade && python -m pip install lxml --upgrade
 RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade
 RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade
@@ -123,9 +123,6 @@ RUN chmod +x /root/tmp/install-python3.9.sh; sync && \
 RUN env
 RUN which python
 RUN which python3
-
-#can remove once https://github.com/yaml/pyyaml/issues/724 is solved
-RUN pip install pyyaml==5.3.1
 
 # install aws cli, poetry, pytest, etc.
 RUN set -xe && python3 -m pip install --upgrade pip && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install poetry && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade
