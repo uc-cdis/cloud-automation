@@ -1,4 +1,4 @@
-FROM quay.io/cdis/amazonlinux:latest
+FROM quay.io/cdis/amazonlinux:feat_GPE-788
 
 RUN pip3 install gunicorn ddtrace
 
