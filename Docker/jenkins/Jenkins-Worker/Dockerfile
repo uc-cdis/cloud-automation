@@ -65,15 +65,13 @@ RUN wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && c
 
 #
 # install docker tools:
-#  * https://docs.docker.com/install/linux/docker-ce/debian/#install-docker-ce-1
-#  * https://docs.docker.com/compose/install/#install-compose
 #
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
     && /usr/bin/add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian \
     $(lsb_release -c -s) \
     stable" \
     && apt-get update \
-    && apt-get install -y docker-ce \
+    && apt-get install -y docker-ce-cli \
     && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod a+rx /usr/local/bin/docker-compose
 
@@ -112,6 +110,7 @@ RUN chmod +x /root/tmp/install-python3.9.sh; sync && \
         bash /root/tmp/install-python3.9.sh && \
         rm -rf /root/tmp/install-python3.9.sh && \
         unlink /usr/bin/python3 && \
+        ln -s /usr/local/bin/python3.9 /usr/bin/python && \
         ln -s /usr/local/bin/python3.9 /usr/bin/python3
 
 RUN env

@@ -43,8 +43,6 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
 
 #
 # install docker tools:
-#  * https://docs.docker.com/install/linux/docker-ce/debian/#install-docker-ce-1
-#  * https://docs.docker.com/compose/install/#install-compose
 #
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
     && add-apt-repository \
@@ -52,7 +50,7 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
    $(lsb_release -cs) \
    stable" \
    && apt-get update \
-   && apt-get install -y docker-ce \
+   && apt-get install -y docker-ce-cli \
    && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
    && chmod a+rx /usr/local/bin/docker-compose
 
