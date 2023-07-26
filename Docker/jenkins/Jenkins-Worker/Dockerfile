@@ -28,6 +28,7 @@ RUN apt-get update \
      lua5.3 \
      software-properties-common \
      sudo \
+     wget \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
 # install Ruby.

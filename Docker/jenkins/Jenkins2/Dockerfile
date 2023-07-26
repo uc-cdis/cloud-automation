@@ -27,6 +27,7 @@ RUN set -xe && apt-get update \
      software-properties-common \
      sudo \
      tk-dev \
+     wget \
      zlib1g-dev \
      zsh \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
