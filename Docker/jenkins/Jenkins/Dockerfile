@@ -44,15 +44,10 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
 #
 # install docker tools:
 #
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
-    && add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/debian \
-   $(lsb_release -cs) \
-   stable" \
-   && apt-get update \
-   && apt-get install -y docker-ce-cli \
-   && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-   && chmod a+rx /usr/local/bin/docker-compose
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - \
+  && sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu `lsb_release -cs` stable" \
+  && sudo apt update \
+  && sudo apt install docker-ce
 
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
