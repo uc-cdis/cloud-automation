@@ -28,6 +28,7 @@ RUN set -xe && apt-get update \
      software-properties-common \
      sudo \
      tk-dev \
+     wget \
      zlib1g-dev \
      zsh \
      ca-certificates-java \
