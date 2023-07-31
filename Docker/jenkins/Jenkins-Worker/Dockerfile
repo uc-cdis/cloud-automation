@@ -4,6 +4,8 @@ USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils build-essential zip unzip jq less vim gettext-base
+
 RUN apt-get update \
   && apt-get install -y lsb-release \
      apt-transport-https \
