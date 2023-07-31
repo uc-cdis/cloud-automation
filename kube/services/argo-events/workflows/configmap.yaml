@@ -54,8 +54,9 @@ data:
         Environment: vhdcperf
         Name: eks-vhdcperf-workflow-karpenter
         karpenter.sh/discovery: vhdcperf
-        workflow-name: $WORKFLOW_NAME
-        gen3-username: $GEN3_USERNAME
+        workflowname: $WORKFLOW_NAME
+        gen3username: $GEN3_USERNAME
+        gen3service: argo-workflows
       metadataOptions:
         httpEndpoint: enabled
         httpProtocolIPv6: disabled
