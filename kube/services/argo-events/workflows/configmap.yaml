@@ -56,7 +56,7 @@ data:
         karpenter.sh/discovery: vhdcperf
         workflowname: $WORKFLOW_NAME
         gen3username: $GEN3_USERNAME
-        gen33service: argo-workflows
+        gen3service: argo-workflows
       metadataOptions:
         httpEndpoint: enabled
         httpProtocolIPv6: disabled
