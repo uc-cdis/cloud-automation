@@ -14,6 +14,7 @@ jobs:
       DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins"
       OVERRIDE_REPO_NAME: "jenkins"
       USE_QUAY_ONLY: true
+      BUILD_PLATFORMS: "linux/amd64"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
@@ -27,6 +28,7 @@ jobs:
       DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins2"
       OVERRIDE_REPO_NAME: "jenkins2"
       USE_QUAY_ONLY: true
+      BUILD_PLATFORMS: "linux/amd64"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
@@ -40,6 +42,7 @@ jobs:
       DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins-CI-Worker"
       OVERRIDE_REPO_NAME: "gen3-ci-worker"
       USE_QUAY_ONLY: true
+      BUILD_PLATFORMS: "linux/amd64"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
@@ -53,6 +56,7 @@ jobs:
       DOCKERFILE_BUILD_CONTEXT: "./Docker/jenkins/Jenkins-Worker"
       OVERRIDE_REPO_NAME: "gen3-qa-worker"
       USE_QUAY_ONLY: true
+      BUILD_PLATFORMS: "linux/amd64"
     secrets:
       ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
       ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
