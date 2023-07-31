@@ -1,15 +1,10 @@
-FROM jenkins/jnlp-slave:4.13.3-1-jdk11
+FROM jenkins/inbound-agent:jdk11
 
 USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# install python and pip and aws cli
-RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python-pip python3 python3-pip build-essential libgit2-dev zip unzip less vim gettext-base wget
-RUN set -xe && python -m pip install awscli --upgrade && python -m pip install pytest --upgrade && python -m pip install PyYAML --upgrade && python -m pip install lxml --upgrade
-RUN set -xe && python3 -m pip install pytest --upgrade && python3 -m pip install PyYAML --upgrade
-RUN set -xe && python -m pip install yq --upgrade && python3 -m pip install yq --upgrade
-RUN set -xe && python3 -m pip install pandas --upgrade
+RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils build-essential zip unzip jq less vim gettext-base
 
 RUN apt-get update \
   && apt-get install -y lsb-release \
@@ -35,6 +30,7 @@ RUN apt-get update \
      lua5.3 \
      software-properties-common \
      sudo \
+     wget \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
 # install Ruby.
@@ -45,11 +41,17 @@ RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sou
   && apt-get update \
   && apt-get -t=buster-backports -y install git=1:2.30.*
 
-# install k6 to run load tests
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 \
-  && echo "deb https://dl.k6.io/deb stable main" | tee /etc/apt/sources.list.d/k6.list \
-  && apt-get update \
-  && apt-get install k6
+#
+# install docker tools:
+#
+RUN sudo install -m 0755 -d /etc/apt/keyrings \
+  && curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+  && sudo chmod a+r /etc/apt/keyrings/docker.gpg \
+  && echo \
+    "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+    "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null \
+  && apt-get update && apt-get install -y docker-ce
 
 # install xk6-browser
 RUN cd /opt && wget --quiet https://github.com/grafana/xk6-browser/releases/download/v0.3.0/xk6-browser-v0.3.0-linux-amd64.tar.gz \
@@ -71,15 +73,13 @@ RUN wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 && c
 
 #
 # install docker tools:
-#  * https://docs.docker.com/install/linux/docker-ce/debian/#install-docker-ce-1
-#  * https://docs.docker.com/compose/install/#install-compose
 #
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
     && /usr/bin/add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian \
     $(lsb_release -c -s) \
     stable" \
     && apt-get update \
-    && apt-get install -y docker-ce \
+    && apt-get install -y docker-ce-cli \
     && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod a+rx /usr/local/bin/docker-compose
 
@@ -118,6 +118,7 @@ RUN chmod +x /root/tmp/install-python3.9.sh; sync && \
         bash /root/tmp/install-python3.9.sh && \
         rm -rf /root/tmp/install-python3.9.sh && \
         unlink /usr/bin/python3 && \
+        ln -s /usr/local/bin/python3.9 /usr/bin/python && \
         ln -s /usr/local/bin/python3.9 /usr/bin/python3
 
 RUN env
