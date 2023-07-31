@@ -53,25 +53,6 @@ spec:
         - name: ohdsi-atlas-config-local
           configMap:
             name: ohdsi-atlas-config-local
-      initContainers:
-        - name: ohdsi-atlas-init
-          image: amazonlinux:2
-          volumeMounts:
-            - name: ohdsi-atlas-config-local
-              readOnly: true
-              mountPath: /init/usr/share/nginx/html/atlas/js/config-local.js
-              subPath: config-local.js
-          imagePullPolicy: Always
-          resources:
-            requests:
-              cpu: 100m
-              memory: 50Mi
-            limits:
-              memory: 100Mi
-          command: ["/bin/bash", "-c"]
-          args:
-            - |
-              cp /init/usr/share/nginx/html/atlas/js/config-local.js /usr/share/nginx/html/atlas/js/config-local.js
       containers:
         - name: ohdsi-atlas
           GEN3_OHDSI-ATLAS_IMAGE|-image: quay.io/cdis/ohdsi-atlas:latest-|
@@ -88,10 +69,15 @@ spec:
               port: 8080
           ports:
           - containerPort: 8080
+          volumeMounts:
+            - name: ohdsi-atlas-config-local
+              readOnly: true
+              mountPath: /etc/atlas/config-local.js
+              subPath: config-local.js
           imagePullPolicy: Always
           resources:
             requests:
               cpu: 100m
               memory: 100Mi
             limits:
-              memory: 500Mi  
+              memory: 500Mi
