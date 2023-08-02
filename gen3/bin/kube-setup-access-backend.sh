@@ -210,8 +210,10 @@ authz:
     - /programs/tutorial
     - /programs/open_access
     role_ids:
-    - reader
-    - storage_reader
+    - guppy_reader
+    - fence_reader
+    - peregrine_reader
+    - sheepdog_reader
   - description: full access to indexd API
     id: indexd_admin
     resource_paths:
@@ -226,18 +228,22 @@ authz:
     - /programs/open_access
     role_ids:
     - creator
-    - reader
+    - guppy_reader
+    - fence_reader
+    - peregrine_reader
+    - sheepdog_reader
     - updater
     - deleter
     - storage_writer
-    - storage_reader
   - description: ''
     id: all_programs_reader
     resource_paths:
     - /programs
     role_ids:
-    - reader
-    - storage_reader
+    - guppy_reader
+    - fence_reader
+    - peregrine_reader
+    - sheepdog_reader
   - id: 'all_programs_writer'
     description: ''
     role_ids:
@@ -328,12 +334,37 @@ authz:
         service: '*'
       id: creator
   - description: ''
-    id: reader
+    id: guppy_reader
     permissions:
     - action:
         method: read
-        service: '*'
-      id: reader
+        service: 'guppy'
+      id: guppy_reader
+  - description: ''
+    id: fence_reader
+    permissions:
+    - action:
+        method: read
+        service: 'fence'
+      id: fence_reader
+    - action:
+        method: read-storage
+        service: 'fence'
+      id: fence_storage_reader
+  - description: ''
+    id: peregrine_reader
+    permissions:
+    - action:
+        method: read
+        service: 'peregrine'
+      id: peregrine_reader
+  - description: ''
+    id: sheepdog_reader
+    permissions:
+    - action:
+        method: read
+        service: 'sheepdog'
+      id: sheepdog_reader
   - description: ''
     id: updater
     permissions:
@@ -355,13 +386,6 @@ authz:
         method: write-storage
         service: '*'
       id: storage_creator
-  - description: ''
-    id: storage_reader
-    permissions:
-    - action:
-        method: read-storage
-        service: '*'
-      id: storage_reader
   - id: mds_user
     permissions:
     - action:
