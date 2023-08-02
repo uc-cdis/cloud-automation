@@ -4,8 +4,6 @@ terraform {
   }
 }
 
-provider "aws" {}
-
 locals {
   sa_name         = "${var.service}-sa"
   sa_namespace    = var.namespace
