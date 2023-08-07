@@ -51,8 +51,8 @@ resource "random_password" "db_password" {
 
 resource "null_resource" "db_setup" {
     provisioner "local-exec" {
-        command = "psql -h ${data.aws_db_instance.database.address} -U ${var.admin_database_username} -d ${var.admin_database_name} -c \"CREATE DATABASE \"${service}-${namespace}\";\" -c \"${templatefile("${path.module}/db_setup.tftpl", {
-          service     = var.vpc_name
+        command = "psql -h ${data.aws_db_instance.database.address} -U ${var.admin_database_username} -d ${var.admin_database_name} -c \"CREATE DATABASE \"${var.service}-${var.namespace}\";\" -c \"${templatefile("${path.module}/db_setup.tftpl", {
+          service     = var.service
           namespace           = var.namespace
           password      = var.password != "" ? var.password : random_password.db_password[0].result
         })}\""
