@@ -1,3 +1,2 @@
 CREATE USER \"${service}-${namespace}\" WITH PASSWORD '${password}'; 
-CREATE DATABASE \"${service}-${namespace}\";
 GRANT ALL ON DATABASE \"${service}-${namespace}\" TO \"${service}-${namespace}\" WITH GRANT OPTION;
