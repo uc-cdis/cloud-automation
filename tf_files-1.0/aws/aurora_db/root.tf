@@ -51,11 +51,11 @@ resource "random_password" "db_password" {
 
 resource "null_resource" "db_setup" {
     provisioner "local-exec" {
-        command = "psql -h ${data.aws_db_instance.database.address} -U ${var.admin_database_username} -d ${var.admin_database_name} -f ${templatefile("${path.module}/db_setup.tftpl", {
+        command = "psql -h ${data.aws_db_instance.database.address} -U ${var.admin_database_username} -d ${var.admin_database_name} -c \"${templatefile("${path.module}/db_setup.tftpl", {
           service     = var.vpc_name
           namespace           = var.namespace
           password      = var.password != "" ? var.password : random_password.db_password[0].result
-        })}"  
+        })}\""
         environment = {
           # for instance, postgres would need the password here:
           PGPASSWORD = var.admin_database_password != "" ? var.admin_database_password : data.aws_secretsmanager_secret_version.aurora-master-password.secret_string
