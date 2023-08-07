@@ -14,10 +14,11 @@ module "secrets_manager" {
   count       = var.secrets_manager_enabled ? 1 : 0
   source	    = "../modules/secrets_manager"
   vpc_name    = var.vpc_name
-  secret	    = templatefile("${path.module}/db_setup.tftpl", {
-    service     = var.vpc_name
-    namespace		= var.namespace
-    password	  = var.password != "" ? var.password : random_password.db_password[0].result 
+  secret	    = templatefile("${path.module}/secrets_manager.tftpl", {
+    hostname = data.aws_db_instance.database.address
+    database = var.database_name != "" ? var.database_name : "${var.service}_${var.namespace}"
+    username = var.username != "" ? var.username : "${var.service}_${var.namespace}"
+    password = var.password != "" ? var.password : random_password.db_password[0].result
   })
   secret_name = "${var.vpc_name}-${var.service}-creds"
 }
@@ -50,11 +51,10 @@ resource "random_password" "db_password" {
 
 resource "null_resource" "db_setup" {
     provisioner "local-exec" {
-        command = "psql -h ${data.aws_db_instance.database.address} -U ${var.admin_database_username} -d ${var.admin_database_name} -f ${templatefile("${path.module}/secrets_manager.tftpl", {
-          hostname = data.aws_db_instance.database.address
-          database = var.database_name != "" ? var.database_name : "${var.service}_${var.namespace}"
-          username = var.username != "" ? var.username : "${var.service}_${var.namespace}"
-          password = var.password != "" ? var.password : random_password.db_password[0].result
+        command = "psql -h ${data.aws_db_instance.database.address} -U ${var.admin_database_username} -d ${var.admin_database_name} -f ${templatefile("${path.module}/db_setup.tftpl", {
+          service     = var.vpc_name
+          namespace           = var.namespace
+          password      = var.password != "" ? var.password : random_password.db_password[0].result
         })}"  
         environment = {
           # for instance, postgres would need the password here:
