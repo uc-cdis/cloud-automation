@@ -46,17 +46,17 @@ EOM
     fi
 
     gen3 secrets sync "initialize cohort-middleware/development.yaml"
-
-    # envsubst <"${GEN3_HOME}/kube/services/cohort-middleware/development.yaml" | g3kubectl create secret generic cohort-middleware-config --from-file=development.yaml=/dev/stdin
   )
 }
 
 # main --------------------------------------
-setup_secrets
 
-gen3 roll cohort-middleware
-g3kubectl apply -f "${GEN3_HOME}/kube/services/cohort-middleware/cohort-middleware-service.yaml"
-
-cat <<EOM
+if setup_secrets; then
+  gen3 roll cohort-middleware
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/cohort-middleware/cohort-middleware-service.yaml"
+  cat <<EOM
 The cohort-middleware service has been deployed onto the k8s cluster.
 EOM
+else
+  gen3_log_err "unable to find db creds for ohdsi service (was Atlas deployed?)"
+fi
