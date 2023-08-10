@@ -55,7 +55,8 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
           kubectl
 
 # install go - https://go.dev/doc/install
-RUN rm -rf /usr/local/go \
+RUN wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz \
+    && rm -rf /usr/local/go \
     && tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
 ENV PATH="$PATH:/usr/local/go/bin"
 RUN go version
