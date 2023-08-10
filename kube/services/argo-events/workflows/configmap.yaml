@@ -75,6 +75,8 @@ data:
         aws ec2 create-tags --resources $instanceId --tags 'Key="instanceId",Value='$instanceId''
         curl https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/files/authorized_keys/ops_team >> /home/ec2-user/.ssh/authorized_keys
 
+        # set registryPullQPS
+        echo "$(jq '.registryPullQPS=0' /etc/kubernetes/kubelet/kubelet-config.json)" > /etc/kubernetes/kubelet/kubelet-config.json
         sysctl -w fs.inotify.max_user_watches=12000
 
         sudo yum update -y
