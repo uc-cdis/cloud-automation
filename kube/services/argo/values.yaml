@@ -5,6 +5,12 @@ controller:
     enabled: true
     servicePort: 9090
 
+  resources:
+    requests:
+      memory: 8Gi
+    limits:
+      memory: 8Gi
+
   podAnnotations:
     prometheus.io/scrape: "true"
     prometheus.io/path: /metrics
@@ -76,6 +82,11 @@ server:
   extraEnv:
   - name: ARGO_HTTP1
     value: "true"
+  resources:
+    requests:
+      memory: 8Gi
+    limits:
+      memory: 8Gi
 
 # -- Influences the creation of the ConfigMap for the workflow-controller itself.
 useDefaultArtifactRepo: true
