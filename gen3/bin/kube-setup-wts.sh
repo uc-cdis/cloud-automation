@@ -42,6 +42,8 @@ new_client() {
     "oidc_client_id": "$client_id",
     "oidc_client_secret": "$client_secret",
 
+    "aggregate_endpoint_allowlist": ["/authz/mapping"],
+
     "external_oidc": []
 }
 EOM

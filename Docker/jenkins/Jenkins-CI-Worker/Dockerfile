@@ -54,6 +54,13 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
           google-cloud-sdk-cbt \
           kubectl
 
+# install go - https://go.dev/doc/install
+RUN wget https://go.dev/dl/go1.21.0.linux-amd64.tar.gz \
+    && rm -rf /usr/local/go \
+    && tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+ENV PATH="$PATH:/usr/local/go/bin"
+RUN go version
+
 #
 # install docker tools:
 #
