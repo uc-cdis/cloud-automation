@@ -267,6 +267,6 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
 else
   gen3_log_info "kube-setup-argo exiting - only deploys from default namespace"
 fi
-
+sleep 60
 g3kubectl annotate serviceaccount argo-argo-workflows-server eks.amazonaws.com/role-arn=${roleArn}
 g3kubectl annotate serviceaccount argo-argo-workflows-workflow-controller eks.amazonaws.com/role-arn=${roleArn}
