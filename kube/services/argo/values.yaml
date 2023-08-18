@@ -95,14 +95,14 @@ artifactRepository:
   # -- Archive the main container logs as an artifact
   archiveLogs: true
   # -- Store artifact in a S3-compliant object store
-  s3:
-    # Note the `key` attribute is not the actual secret, it's the PATH to
-    # the contents in the associated secret, as defined by the `name` attribute.
-    accessKeySecret:
-      name: argo-s3-creds
-      key: AccessKeyId
-    secretKeySecret:
-      name: argo-s3-creds
-      key: SecretAccessKey
-    bucket: GEN3_ARGO_BUCKET
-    endpoint: s3.amazonaws.com
+  # s3:
+  #   # Note the `key` attribute is not the actual secret, it's the PATH to
+  #   # the contents in the associated secret, as defined by the `name` attribute.
+  #   accessKeySecret:
+  #     name: argo-s3-creds
+  #     key: AccessKeyId
+  #   secretKeySecret:
+  #     name: argo-s3-creds
+  #     key: SecretAccessKey
+  #   bucket: GEN3_ARGO_BUCKET
+  #   endpoint: s3.amazonaws.com
