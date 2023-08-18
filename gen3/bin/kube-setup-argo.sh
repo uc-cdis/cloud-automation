@@ -261,11 +261,12 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
     helm repo add argo https://argoproj.github.io/argo-helm --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
     helm upgrade --install argo argo/argo-workflows -n argo -f ${valuesFile} --version 0.29.1
-    g3kubectl annotate serviceaccount argo-argo-workflows-server eks.amazonaws.com/role-arn=${roleArn}
-    g3kubectl annotate serviceaccount argo-argo-workflows-workflow-controller eks.amazonaws.com/role-arn=${roleArn}
   else
     gen3_log_info "kube-setup-argo exiting - argo already deployed, use --force to redeploy"
   fi
 else
   gen3_log_info "kube-setup-argo exiting - only deploys from default namespace"
 fi
+
+g3kubectl annotate serviceaccount argo-argo-workflows-server eks.amazonaws.com/role-arn=${roleArn}
+g3kubectl annotate serviceaccount argo-argo-workflows-workflow-controller eks.amazonaws.com/role-arn=${roleArn}
