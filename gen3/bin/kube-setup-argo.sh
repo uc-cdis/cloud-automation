@@ -115,8 +115,6 @@ EOF
   ]
 }
 EOF
-  # if ! secret="$(g3kubectl get secret argo-s3-creds -n argo 2> /dev/null)"; then
-  #   gen3_log_info "setting up bucket $bucketName"
 
   if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
     gen3_log_info "${bucketName} s3 bucket already exists"
@@ -125,71 +123,29 @@ EOF
     gen3_log_err "failed to create bucket ${bucketName}"
   fi
 
-# gen3_log_info "Creating IAM user ${userName}"
-# if ! aws iam get-user --user-name ${userName} > /dev/null 2>&1; then
-#   aws iam create-user --user-name ${userName} || true
-# else
-#   gen3_log_info "IAM user ${userName} already exits.."
-# fi
   gen3_log_info "Creating IAM role ${roleName}"
   if ! aws iam get-role --role-name ${roleName} > /dev/null 2>&1; then
-    aws iam create-role --role-name ${roleName} --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ec2.amazonaws.com"},"Action":"sts:AssumeRole"}]}' || true
+    aws iam create-role --role-name ${roleName} || true
+    saName="argo-argo-workflows-workflow-controller"
+    gen3 awsrole create $roleName $saName
   else
     gen3_log_info "IAM role ${roleName} already exists.."
   fi
   roleArn=$(aws iam get-role --role-name ${roleName} --query 'Role.Arn' --output text)
-  # secret=$(aws iam create-access-key --user-name ${userName})
   if ! g3kubectl get namespace argo > /dev/null 2>&1; then
     gen3_log_info "Creating argo namespace"
     g3kubectl create namespace argo || true
     g3kubectl label namespace argo app=argo || true
     g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n argo || true
   fi
-#   else
-#     # Else we want to recreate the argo-s3-creds secret so make a temp file with the current creds and delete argo-s3-creds secret
-#     gen3_log_info "Argo S3 setup already completed"
-#     local secretFile="$XDG_RUNTIME_DIR/temp_key_file_$$.json"
-#     cat > "$secretFile" <<EOF
-# {
-#   "AccessKey": {
-#     "AccessKeyId": "$(g3kubectl -n argo get secrets argo-s3-creds -o json | jq -r .data.AccessKeyId | base64 -d)",
-#     "SecretAccessKey": "$(g3kubectl -n argo get secrets argo-s3-creds -o json | jq -r .data.SecretAccessKey | base64 -d)"
-#   }
-# }
-# EOF
-#     secret=$(cat $secretFile)
-#   fi
 
-  # gen3_log_info "Creating s3 creds secret in argo namespace"
-  # if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
-  #   if [[ -z $internalBucketName ]]; then
-  #     g3kubectl delete secret -n argo argo-s3-creds || true
-  #     g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} || true
-  #     g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} || true
-  #   else
-  #     g3kubectl delete secret -n argo argo-s3-creds || true
-  #     g3kubectl create secret -n argo generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} --from-literal=internalbucketname=${internalBucketName} || true
-  #     g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} || true
-  #   fi
-  # else
   g3kubectl create sa argo || true
   # Grant admin access within the current namespace to the argo SA in the current namespace
   g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=$(gen3 db namespace):argo -n $(gen3 db namespace) || true
-  # aws iam put-user-policy --user-name ${userName} --policy-name argo-bucket-policy --policy-document file://$policyFile || true
-  # if [[ -z $internalBucketName ]]; then
-  #   aws iam put-user-policy --user-name ${userName} --policy-name argo-internal-bucket-policy --policy-document file://$internalBucketPolicyFile || true
   aws iam put-role-policy --role-name ${roleName} --policy-name argo-bucket-policy --policy-document file://$policyFile || true
   if [[ -z $internalBucketName ]]; then
     aws iam put-role-policy --role-name ${roleName} --policy-name argo-internal-bucket-policy --policy-document file://$internalBucketPolicyFile || true
   fi
-
-    #   g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} || true
-    # else
-    #   g3kubectl create secret generic argo-s3-creds --from-literal=AccessKeyId=$(echo $secret  | jq -r .AccessKey.AccessKeyId) --from-literal=SecretAccessKey=$(echo $secret  | jq -r .AccessKey.SecretAccessKey) --from-literal=bucketname=${bucketName} --from-literal=internalbucketname=${internalBucketName} || true
-
-    # fi
-  # fi
-
 
   ## if new bucket then do the following
   # Get the aws keys from secret
@@ -200,11 +156,6 @@ EOF
   gen3_log_info "Creating bucket lifecycle policy"
   aws s3api put-bucket-lifecycle --bucket ${bucketName} --lifecycle-configuration file://$bucketLifecyclePolicyFile
 
-  # Always update the policy, in case manifest buckets change
-  # aws iam put-user-policy --user-name ${userName} --policy-name argo-bucket-policy --policy-document file://$policyFile
-  # if [[ ! -z $internalBucketPolicyFile ]]; then
-  #   aws iam put-user-policy --user-name ${userName} --policy-name argo-internal-bucket-policy --policy-document file://$internalBucketPolicyFile
-  # fi
   # Always update the policy, in case manifest buckets change
   aws iam put-role-policy --role-name ${roleName} --policy-name argo-bucket-policy --policy-document file://$policyFile
   if [[ ! -z $internalBucketPolicyFile ]]; then
@@ -248,11 +199,14 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
   if (! helm status argo -n argo > /dev/null 2>&1 )  || [[ "$1" == "--force" ]]; then
     DBHOST=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_host | base64 -d)
     DBNAME=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_database | base64 -d)
-    if [[ -z $(kubectl get secrets -n argo argo-s3-creds -o json | jq -r .data.internalbucketname | base64 -d) ]]; then
-      BUCKET=$(kubectl get secrets -n argo argo-s3-creds -o json | jq -r .data.bucketname | base64 -d)
+    echo "internal: $internalBucketName"
+    echo "not internal: $bucketName"
+    if [[ -z $internalBucketName ]]; then
+      BUCKET=$bucketName
     else
-      BUCKET=$(kubectl get secrets -n argo argo-s3-creds -o json | jq -r .data.internalbucketname | base64 -d)
+      BUCKET=$internalBucketName
     fi
+
     valuesFile="$XDG_RUNTIME_DIR/values_$$.yaml"
     valuesTemplate="${GEN3_HOME}/kube/services/argo/values.yaml"
 
@@ -267,6 +221,4 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
 else
   gen3_log_info "kube-setup-argo exiting - only deploys from default namespace"
 fi
-# sleep 60
-g3kubectl annotate serviceaccount argo-argo-workflows-server eks.amazonaws.com/role-arn=${roleArn} -n argo
 g3kubectl annotate serviceaccount argo-argo-workflows-workflow-controller eks.amazonaws.com/role-arn=${roleArn} -n argo
