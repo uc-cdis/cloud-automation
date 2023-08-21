@@ -125,9 +125,10 @@ EOF
 
   gen3_log_info "Creating IAM role ${roleName}"
   if ! aws iam get-role --role-name ${roleName} > /dev/null 2>&1; then
-    aws iam create-role --role-name ${roleName} || true
+    # aws iam create-role --role-name ${roleName} || true
     saName="argo-argo-workflows-workflow-controller"
-    gen3 awsrole create $roleName $saName
+    nameSpace="argo"
+    gen3 awsrole create $roleName $saName $nameSpace
   else
     gen3_log_info "IAM role ${roleName} already exists.."
   fi
@@ -199,8 +200,6 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
   if (! helm status argo -n argo > /dev/null 2>&1 )  || [[ "$1" == "--force" ]]; then
     DBHOST=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_host | base64 -d)
     DBNAME=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_database | base64 -d)
-    echo "internal: $internalBucketName"
-    echo "not internal: $bucketName"
     if [[ -z $internalBucketName ]]; then
       BUCKET=$bucketName
     else
