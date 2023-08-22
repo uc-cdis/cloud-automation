@@ -28,8 +28,8 @@ function setup_argo_buckets {
 
   # try to come up with a unique but composable bucket name
   bucketName="gen3-argo-${accountNumber}-${environment//_/-}"
-  # userName="gen3-argo-${environment//_/-}-user"
-  roleName="gen3-argo-${environment//_/-}-role"
+  roleName="gen3-argo-${gen3 db namespace}-${environment//_/-}-role"
+  nameSpace="$(gen3 db namespace)"
   if [[ ! -z $(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo."s3-bucket"') ]]; then
     if [[ ! -z $(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
       gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
@@ -122,25 +122,22 @@ EOF
   elif ! aws s3 mb "s3://${bucketName}"; then
     gen3_log_err "failed to create bucket ${bucketName}"
   fi
-
-  gen3_log_info "Creating IAM role ${roleName}"
-  if ! aws iam get-role --role-name ${roleName} > /dev/null 2>&1; then
-    # aws iam create-role --role-name ${roleName} || true
-    saName="argo-argo-workflows-workflow-controller"
-    nameSpace="argo"
-    gen3 awsrole create $roleName $saName $nameSpace
-  else
-    gen3_log_info "IAM role ${roleName} already exists.."
-  fi
-  roleArn=$(aws iam get-role --role-name ${roleName} --query 'Role.Arn' --output text)
   if ! g3kubectl get namespace argo > /dev/null 2>&1; then
     gen3_log_info "Creating argo namespace"
     g3kubectl create namespace argo || true
     g3kubectl label namespace argo app=argo || true
     g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n argo || true
   fi
+  gen3_log_info "Creating IAM role ${roleName}"
+  if ! aws iam get-role --role-name ${roleName} > /dev/null 2>&1; then
+    gen3 awsrole create $roleName argo $nameSpace
+  else
+    gen3_log_info "IAM role ${roleName} already exists.."
+  fi
+  roleArn=$(aws iam get-role --role-name ${roleName} --query 'Role.Arn' --output text)
 
   g3kubectl create sa argo || true
+  g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
   # Grant admin access within the current namespace to the argo SA in the current namespace
   g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=$(gen3 db namespace):argo -n $(gen3 db namespace) || true
   aws iam put-role-policy --role-name ${roleName} --policy-name argo-bucket-policy --policy-document file://$policyFile || true
@@ -220,4 +217,3 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
 else
   gen3_log_info "kube-setup-argo exiting - only deploys from default namespace"
 fi
-g3kubectl annotate serviceaccount argo-argo-workflows-workflow-controller eks.amazonaws.com/role-arn=${roleArn} -n argo
