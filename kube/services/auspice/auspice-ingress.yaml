@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: auspice-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"  # Adjust this if using a different ingress controller
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  tls:
+    - hosts:
+        - your-domain.com  # Replace with your actual domain
+      secretName: see-kube-setup-auspice  # Replace with your SSL certificate secret name
+  rules:
+    - host: your-domain.com  # Replace with your actual domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: auspice-service-elb
+                port:
+                  number: 443
