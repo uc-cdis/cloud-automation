@@ -69,6 +69,9 @@ policy=$( cat <<EOM
                 "iam:ListPolicies",
                 "iam:CreatePolicy",
                 "iam:TagPolicy",
+                "iam:ListPolicyVersions",
+                "iam:CreatePolicyVersion",
+                "iam:DeletePolicyVersion",
                 "iam:ListRoles",
                 "iam:CreateRole",
                 "iam:TagRole",
@@ -107,12 +110,12 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
         echo "Unable to create policy '$policyName'. Assume it already exists and create a new version to update the permissions..."
         policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
 
-        # there can only be up to 5 versions, so delete old versions
-        versions="$(aws iam list-policy-versions --policy-arn $policyArn | jq -r '.Versions[].VersionId')"
+        # there can only be up to 5 versions, so delete old versions (except the current default one)
+        versions="$(gen3_aws_run aws iam list-policy-versions --policy-arn $policyArn | jq -r '.Versions[] | select(.IsDefaultVersion != true) | .VersionId')"
         versions=(${versions}) # string to array
-        for v in "${versions[@]:1}"; do # skip 1st item (current version)
+        for v in "${versions[@]}"; do
             echo "Deleting old version '$v'"
-            aws iam delete-policy-version --policy-arn $policyArn --version-id $v
+            gen3_aws_run aws iam delete-policy-version --policy-arn $policyArn --version-id $v
         done
 
         # create the new version
