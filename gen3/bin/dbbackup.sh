@@ -9,7 +9,7 @@
 #   command provided, it will either initiate a database dump or perform a restore.
 #
 # Usage:
-#   ./dbdump.sh [dump|restore]
+#   gen3 dbbackup [dump|restore]
 #
 #   dump    - Initiates a database dump, creating the essential AWS resources if they are absent.
 #             The dump operation is intended to be executed from the namespace/commons that requires
