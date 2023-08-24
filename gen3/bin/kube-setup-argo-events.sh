@@ -46,7 +46,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" || "$override_na
     kubectl apply -f ${GEN3_HOME}/kube/services/argo-events/eventbus.yaml
   fi 
 else
-  gen3_log_info "Not running in default namespace, will not install argo-events helm chart"
+  gen3_log_info "Not running in default namespace, will not install argo-events helm chart. This behavior can be overwritten with the --override-namespace flag"
 fi
 
 if [[ "$create_workflow_resources" == true ]]; then
@@ -57,4 +57,5 @@ if [[ "$create_workflow_resources" == true ]]; then
   #Creating rolebindings to allow Argo Events to create jobs, and allow those jobs to manage Karpenter resources
   kubectl create rolebinding argo-events-job-admin-binding --role=job-admin --serviceaccount=argo-events:default --namespace=argo-events
   kubectl create clusterrolebinding karpenter-admin-binding --clusterrole=karpenter-admin --serviceaccount=argo-events:default
+  kubectl create clusterrolebinding argo-workflows-view-binding --clusterrole=argo-argo-workflows-view --serviceaccount=argo-events:default
 fi 
