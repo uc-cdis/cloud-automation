@@ -68,7 +68,7 @@ spec:
                           - name: ENVIRONMENT
                             valueFrom:
                               configMapKeyRef:
-                                name: global
+                                name: environment
                                 key: environment
                         volumeMounts:
                           - name: karpenter-templates-volume
