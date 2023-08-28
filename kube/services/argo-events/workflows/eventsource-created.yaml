@@ -14,5 +14,3 @@ spec:
       resource: workflows
       eventTypes:
         - ADD
-      filter:
-        afterStart: true
