@@ -1,0 +1,90 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: psql-db-prep-restore
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      serviceAccountName: dbbackup-sa
+      containers:
+        - name: pgrestore
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: "devterm"
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              source "${GEN3_HOME}/gen3/lib/utils.sh"
+              gen3_load "gen3/gen3setup"
+              account_id=$(aws sts get-caller-identity --query "Account" --output text)
+              default_bucket_name="gen3-db-backups-${account_id}"
+              default_databases=("indexd" "sheepdog" "metadata")
+              backup_directories=$(aws s3 ls "s3://${default_bucket_name}/")
+              newest_directory=$(echo "$backup_directories" | awk '/PRE/ {if ($2 > max) max = $2} END {print max}')
+              databases=("${default_databases[@]}")
+              bucket_name=$default_bucket_name
+              namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+              date_str=$(date -u +%y%m%d_%H%M%S)
+              gen3_log_info "Database backup location in S3: ${bucket_name}/${newest_directory}"
+              gen3_log_info "namespace: $namespace \n\n"
+
+              for database in "${databases[@]}"; do
+               gen3_log_info "Downloading database backup file s3://${default_bucket_name}/${newest_directory}${database}.sql"
+               aws s3 cp "s3://${default_bucket_name}/${newest_directory}${database}.sql" "${database}.sql"
+               server=$(gen3 db creds "$database" | jq -r '.g3FarmServer')
+               username=$(gen3 db creds "$database" | jq -r '.db_username')
+               db_name="${namespace}_${database}_${date_str}"
+               if [[ -z "$server" || -z "$username" ]]; then
+                  gen3_log_info "Error: Unable to extract server name or username."
+                  return 1
+               fi
+               gen3 psql $database -c "create database $db_name;" 2>&1 | grep -q "permission denied"
+               if [ $? -eq 0 ]; then
+                  gen3_log_info "User does not have permission to create database. Granting required permission..."
+                  gen3 psql $server -c "alter user $username createdb;"
+                  gen3 psql $database -c "create database $db_name;"
+                  if [ $? -eq 0 ]; then
+                     gen3_log_info "Database $db_name created successfully!"
+                  else
+                     gen3_log_info "Error creating database $db_name after granting permission."
+                  fi
+                else
+                   gen3_log_info "Database $db_name created successfully!"
+                fi
+               gen3_log_info "Starting database restore for ${database} to database $db_name"
+               gen3 psql "$database" -d "$db_name" -f "${database}.sql" 1>&2
+               gen3_log_info "cleanup temporary backup file ${database}.sql \n\n\n"
+              done
+              sleep 600
+      restartPolicy: Never
