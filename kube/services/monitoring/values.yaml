@@ -1540,6 +1540,11 @@ prometheus-node-exporter:
     - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
   service:
     portName: http-metrics
+  tolerations:
+    - key: eks.amazonaws.com/compute-type
+      operator: Equal
+      value: fargate
+      effect: NoSchedule
   prometheus:
     monitor:
       enabled: true
