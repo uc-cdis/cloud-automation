@@ -1,0 +1,144 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: psql-db-aurora-migration
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      serviceAccountName: dbbackup-sa
+      containers:
+        - name: pgdump
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: "devterm"
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
+          command: [ "/bin/bash" ]
+          args:
+            - "-c"
+            - |
+              source "${GEN3_HOME}/gen3/lib/utils.sh"
+              gen3_load "gen3/gen3setup"
+              #set -x
+              namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+              default_databases=($(echo -e "$(gen3 db services)" | sort -r))
+              date_str=$(date -u +%y%m%d_%H%M%S)
+              databases=("${default_databases[@]}")
+              gen3_log_info "databases: $databases"
+              # find Aurora Server credentials
+              aurora_creds=$(gen3 secrets decode dbfarm-g3auto servers.json)
+              aurora_server_name=$(gen3 secrets decode dbfarm-g3auto servers.json | jq -r 'keys[0]')
+              aurora_host_name=$(echo $aurora_creds | jq -r '.[] | select(.db_host | contains("aurora-cluster")) | .db_host')
+              aurora_master_username=$(echo $aurora_creds | jq -r '.[] | select(.db_host | contains("aurora-cluster")) | .db_username')
+              aurora_master_password=$(echo $aurora_creds | jq -r '.[] | select(.db_host | contains("aurora-cluster")) | .db_password')
+              aurora_master_database=$(echo $aurora_creds | jq -r '.[] | select(.db_host | contains("aurora-cluster")) | .db_database')
+              gen3_log_info "Aurora Creds: \n server_name: $aurora_server_name \n aurora_host_name: $aurora_host_name \n aurora_master_username: $aurora_master_username \n aurora_master_database: $aurora_master_database"
+              new_resources=""
+
+              # Looping through each database to:
+              # - Extract the database credentials.
+              # - Check if the user already exists, if not, create the user.
+              # - Grant required privileges.
+              # - Create the database.
+              # - Backup and restore the database on the Aurora Cluster.
+              for database in "${databases[@]}"; do
+                  for secret_name in "${database}-creds creds.json" "$database-g3auto dbcreds.json"; do
+                      creds="$(gen3 secrets decode $secret_name)"
+                      if [ $? -eq 0 ] && [ ! -z "$creds" ]; then
+                          db_hostname=$(echo $creds | jq -r .db_host)
+                          db_username=$(echo $creds | jq -r .db_username)
+                          db_password=$(echo $creds | jq -r .db_password)
+                          db_database=$(echo $creds | jq -r .db_database)
+                          gen3_log_info "$secret_name: \n $creds"
+                          break
+                      fi
+                  done
+
+                  if [ -z "$db_hostname" ] || [ -z "$db_username" ] || [ -z "$db_password" ] || [ -z "$db_database" ]; then
+                      gen3_log_err "Failed to extract database credentials for $database"
+                      continue
+                  fi
+
+                  # Try to connect to the Aurora database with the extracted credentials.
+                  # If the connection is successful, it means the user already exists.
+                  # If not, create the user.
+
+                  PGPASSWORD=${db_password} psql -h $aurora_host_name -U "${database}_user_${namespace}" -d postgres -c "\q"
+                  if [ $? -eq 0 ]; then
+                    gen3_log_info "User ${database}_user_${namespace}, password already exists"
+                  else
+                    gen3 psql "$aurora_server_name" -c "CREATE USER \"${database}_user_${namespace}\" WITH PASSWORD '$db_password' CREATEDB"
+                    if [ $? -ne 0 ]; then
+                      gen3_log_err "Failed to create user for $database"
+                      continue
+                    else
+                      gen3_log_info "Database user ${database}_user_${namespace} created successfully"
+                    fi
+                  fi
+
+                  if [ "$database" == "peregrine" ]; then
+                      gen3 psql "$aurora_server_name" -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO \"${database}_user_${namespace}\""
+                      if [ $? -ne 0 ]; then
+                        gen3_log_err "Failed to grant access to sheepdog tables for peregrine user"
+                        continue
+                      else
+                        gen3_log_info "Access to sheepdog tables granted successfully for peregrine user"
+                        new_resources="${new_resources}\nUser: ${database}_user_${namespace}, Password: $aurora_master_password"
+                        continue
+                      fi
+                  fi
+
+                  # Create the database with a unique name by appending namespace and date.
+                  PGPASSWORD=${db_password} psql -h $aurora_host_name -U "${database}_user_${namespace}" -d postgres -c "CREATE DATABASE ${database}_${namespace}_${date_str}"
+                  if [ $? -ne 0 ]; then
+                      gen3_log_err "Failed to create database for $database"
+                      continue
+                  else
+                    gen3_log_info "Database ${database}_${namespace}_${date_str} created successfully"
+                    new_resources="${new_resources}\nDatabase: ${database}_${namespace}_${date_str}, User: ${database}_user_${namespace}, Password: $db_password"
+                  fi
+
+                  # Backup the current database and restore it to the newly created database.
+                  gen3 db backup $database | PGPASSWORD=${db_password} psql -h $aurora_host_name -U "${database}_user_${namespace}" -d "${database}_${namespace}_${date_str}"
+                  if [ $? -ne 0 ]; then
+                    gen3_log_err "Failed to backup and restore database for $database"
+                  else
+                    gen3_log_info "Database $database restored successfully to ${database}_${namespace}_${date_str}"
+                    new_resources="${new_resources}\nRestored Database: ${database}_${namespace}_${date_str}"
+                  fi
+              done
+
+              # Logging the newly created resources, sleep for 600 seconds.
+              # The sleep is provided to keep the pod running for a while after the job is finished
+              # to allow the user to check the logs.
+              gen3_log_info "New resources created:\n$new_resources"
+              sleep 600
+      restartPolicy: Never
