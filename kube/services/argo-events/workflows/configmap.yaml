@@ -69,7 +69,7 @@ data:
         --BOUNDARY
         Content-Type: text/x-shellscript; charset="us-ascii"
 
-        #!/bin/bash
+        #!/bin/bash -x
         instanceId=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .instanceId)
         curl https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/files/authorized_keys/ops_team >> /home/ec2-user/.ssh/authorized_keys
 
