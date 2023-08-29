@@ -15,4 +15,4 @@ spec:
       eventTypes:
         - ADD
       filter:
-        afterStart: false
+        afterStart: true

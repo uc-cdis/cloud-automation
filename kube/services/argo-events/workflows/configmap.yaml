@@ -47,13 +47,13 @@ data:
       name: workflow-$WORKFLOW_NAME
     spec:
       subnetSelector:
-        karpenter.sh/discovery: vhdcperf
+        karpenter.sh/discovery: $ENVIRONMENT
       securityGroupSelector:
-        karpenter.sh/discovery: vhdcperf-workflow
+        karpenter.sh/discovery: $ENVIRONMENT-workflow
       tags:
-        Environment: vhdcperf
-        Name: eks-vhdcperf-workflow-karpenter
-        karpenter.sh/discovery: vhdcperf
+        Environment: $ENVIRONMENT
+        Name: eks-$ENVIRONMENT-workflow-karpenter
+        karpenter.sh/discovery: $ENVIRONMENT
         workflowname: $WORKFLOW_NAME
         gen3username: $GEN3_USERNAME
         gen3service: argo-workflows
