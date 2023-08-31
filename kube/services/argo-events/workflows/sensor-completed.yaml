@@ -56,4 +56,4 @@ spec:
                         env:
                           - name: WORKFLOW_NAME
                             value: ""
-                backoffLimit: 0
+                backoffLimit: 20

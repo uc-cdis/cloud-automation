@@ -77,4 +77,4 @@ spec:
                       - name: karpenter-templates-volume
                         configMap:
                           name: karpenter-templates
-                backoffLimit: 0
+                backoffLimit: 20
