@@ -43,18 +43,17 @@ spec:
                 parallelism: 1
                 template:
                   spec:
-                    restartPolicy: Never
+                    restartPolicy: OnFailure
                     containers:
                       - name: karpenter-resource-creator
                         image: quay.io/cdis/awshelper
                         command: ["/bin/sh"]
-                        args: 
+                        args:
                           - "-c"
                           - |
                             kubectl delete awsnodetemplate workflow-$WORKFLOW_NAME
                             kubectl delete provisioners workflow-$WORKFLOW_NAME
                         env:
-                        - name: WORKFLOW_NAME
-                          value: ""
-                backoffLimit: 0
-
+                          - name: WORKFLOW_NAME
+                            value: ""
+                backoffLimit: 20

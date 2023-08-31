@@ -51,7 +51,7 @@ spec:
                 parallelism: 1
                 template:
                   spec:
-                    restartPolicy: Never
+                    restartPolicy: OnFailure
                     containers:
                       - name: karpenter-resource-creator
                         image: quay.io/cdis/awshelper
@@ -77,4 +77,4 @@ spec:
                       - name: karpenter-templates-volume
                         configMap:
                           name: karpenter-templates
-                backoffLimit: 0
+                backoffLimit: 20
