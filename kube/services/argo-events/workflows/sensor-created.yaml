@@ -51,7 +51,7 @@ spec:
                 parallelism: 1
                 template:
                   spec:
-                    restartPolicy: Never
+                    restartPolicy: OnFailure
                     containers:
                       - name: karpenter-resource-creator
                         image: quay.io/cdis/awshelper
