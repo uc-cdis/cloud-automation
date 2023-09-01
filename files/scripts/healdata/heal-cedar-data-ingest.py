@@ -75,6 +75,9 @@ def update_filter_metadata(metadata_to_update):
                 filter_metadata.append({"key": filter_field_key, "value": filter_field_value})
     filter_metadata = pydash.uniq(filter_metadata)
     metadata_to_update["advSearchFilters"] = filter_metadata
+    metadata_to_update["tags"] = [
+        {"name": f["value"], "category": f["key"]} for f in filter_metadata
+    ]
     return metadata_to_update
 
 parser = argparse.ArgumentParser()
