@@ -29,7 +29,9 @@ function setup_argo_buckets {
   # try to come up with a unique but composable bucket name
   bucketName="gen3-argo-${accountNumber}-${environment//_/-}"
   nameSpace="$(gen3 db namespace)"
-  roleName="gen3-argo-${nameSpace}-${environment//_/-}-role"
+  roleName="gen3-argo-${environment//_/-}-role"
+  bucketPolicy="argo-bucket-policy-${nameSpace}"
+  internalBucketPolicy="argo-internal-bucket-policy-${nameSpace}"
   if [[ ! -z $(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo."s3-bucket"') ]]; then
     if [[ ! -z $(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
       gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
@@ -128,26 +130,27 @@ EOF
     g3kubectl label namespace argo app=argo || true
     g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n argo || true
   fi
+  gen3_log_info "Creating argo service account"
+  g3kubectl create sa argo -n argo || true
   gen3_log_info "Creating IAM role ${roleName}"
   if aws iam get-role --role-name "${roleName}" > /dev/null 2>&1; then
       gen3_log_info "IAM role ${roleName} already exists.."
+      roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
+      gen3_log_info "Role annotate"
+      g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} -n argo
   else
       if [[ "${ctxNamespace}" == "default" || "${ctxNamespace}" == "null" ]]; then
           gen3 awsrole create "$roleName" argo argo
-          g3kubectl create sa argo -n argo || true
-      elif [[ "$ctxNamespace" != "default" && "$ctxNamespace" != "null" ]]; then
-          gen3 awsrole create "$roleName" argo "$nameSpace"
-          g3kubectl create sa argo -n "$nameSpace" || true
+        roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
+        g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} -n argo
       fi
-      roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
-      # g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
   fi
 
   # Grant admin access within the current namespace to the argo SA in the current namespace
   g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=$(gen3 db namespace):argo -n $(gen3 db namespace) || true
-  aws iam put-role-policy --role-name ${roleName} --policy-name argo-bucket-policy --policy-document file://$policyFile || true
+  aws iam put-role-policy --role-name ${roleName} --policy-name ${bucketPolicy} --policy-document file://$policyFile || true
   if [[ -z $internalBucketName ]]; then
-    aws iam put-role-policy --role-name ${roleName} --policy-name argo-internal-bucket-policy --policy-document file://$internalBucketPolicyFile || true
+    aws iam put-role-policy --role-name ${roleName} --policy-name ${internalBucketPolicy} --policy-document file://$internalBucketPolicyFile || true
   fi
 
   ## if new bucket then do the following
@@ -160,9 +163,9 @@ EOF
   aws s3api put-bucket-lifecycle --bucket ${bucketName} --lifecycle-configuration file://$bucketLifecyclePolicyFile
 
   # Always update the policy, in case manifest buckets change
-  aws iam put-role-policy --role-name ${roleName} --policy-name argo-bucket-policy --policy-document file://$policyFile
+  aws iam put-role-policy --role-name ${roleName} --policy-name ${bucketPolicy} --policy-document file://$policyFile
   if [[ ! -z $internalBucketPolicyFile ]]; then
-    aws iam put-role-policy --role-name ${roleName} --policy-name argo-internal-bucket-policy --policy-document file://$internalBucketPolicyFile
+    aws iam put-role-policy --role-name ${roleName} --policy-name ${internalBucketPolicy} --policy-document file://$internalBucketPolicyFile
   fi
   if [[ ! -z $(g3k_config_lookup '.indexd_admin_user' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo.indexd_admin_user') ]]; then
     if [[ ! -z $(g3k_config_lookup '.indexd_admin_user' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
