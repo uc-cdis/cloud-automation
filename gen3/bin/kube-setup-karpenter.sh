@@ -140,7 +140,11 @@ gen3_deploy_karpenter() {
           --set serviceAccount.name=karpenter \
           --set serviceAccount.create=false \
           --set controller.env[0].name=AWS_REGION \
-          --set controller.env[0].value=us-east-1
+          --set controller.env[0].value=us-east-1 \
+          --set controller.resources.requests.memory="2Gi" \
+          --set controller.resources.requests.cpu="2" \
+          --set controller.resources.limits.memory="2Gi" \
+          --set controller.resources.limits.cpu="2"
     fi
     gen3 awsrole sa-annotate karpenter "karpenter-controller-role-$vpc_name" karpenter
     gen3_log_info "Remove cluster-autoscaler"

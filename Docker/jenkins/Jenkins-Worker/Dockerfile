@@ -53,6 +53,12 @@ RUN sudo install -m 0755 -d /etc/apt/keyrings \
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null \
   && apt-get update && apt-get install -y docker-ce
 
+# install k6 to run load tests
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69 \
+  && echo "deb https://dl.k6.io/deb stable main" | tee /etc/apt/sources.list.d/k6.list \
+  && apt-get update \
+  && apt-get install k6
+  
 # install xk6-browser
 RUN cd /opt && wget --quiet https://github.com/grafana/xk6-browser/releases/download/v0.3.0/xk6-browser-v0.3.0-linux-amd64.tar.gz \
   && tar -xvzf /opt/xk6-browser-v0.3.0-linux-amd64.tar.gz

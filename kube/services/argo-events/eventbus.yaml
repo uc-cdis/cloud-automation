@@ -2,6 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: EventBus
 metadata:
   name: default
+  namespace: argo-events
 spec:
   nats:
     native:
