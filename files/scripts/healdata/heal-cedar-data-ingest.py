@@ -11,7 +11,8 @@ FILTER_FIELD_MAPPINGS = {
     "study_metadata.data.data_type": "Data Type",
     "study_metadata.study_type.study_subject_type": "Subject Type",
     "study_metadata.human_subject_applicability.gender_applicability": "Gender",
-    "study_metadata.human_subject_applicability.age_applicability": "Age"
+    "study_metadata.human_subject_applicability.age_applicability": "Age",
+    "research_program": "Research Program"
 }
 
 # Defines how to handle special cases for values in filters
