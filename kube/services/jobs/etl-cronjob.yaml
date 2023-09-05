@@ -79,7 +79,7 @@ spec:
                 valueFrom:
                     configMapKeyRef:
                       name: global
-                      key: environment
+                      key: hostname
               volumeMounts:
               - name: "creds-volume"
                 readOnly: true

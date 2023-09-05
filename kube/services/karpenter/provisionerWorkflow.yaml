@@ -21,7 +21,9 @@ spec:
   taints:
     - key: role
       value: workflow
-      effect: NoSchedule       
+      effect: NoSchedule
+  labels:
+    role: workflow
   limits:
     resources:
       cpu: 1000

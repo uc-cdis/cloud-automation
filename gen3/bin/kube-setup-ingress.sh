@@ -298,7 +298,7 @@ EOM
 }
 
 gen3_ingress_deploy_helm_chart() {
-  kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+  kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller/crds?ref=master"
   if (! helm status aws-load-balancer-controller -n kube-system > /dev/null 2>&1 )  || [[ "$1" == "--force" ]]; then
     helm repo add eks https://aws.github.io/eks-charts 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)

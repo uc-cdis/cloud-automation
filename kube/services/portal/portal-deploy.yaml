@@ -87,8 +87,8 @@ spec:
           failureThreshold: 30
         resources:
           requests:
-            cpu: 1
-            memory: 1Gi
+            cpu: 2
+            memory: 3Gi
         ports:
         - containerPort: 80
         - containerPort: 443

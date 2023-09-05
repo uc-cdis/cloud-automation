@@ -48,6 +48,11 @@ spec:
             configMapKeyRef:
               name: manifest-hatchery
               key: "user-namespace"
+        - name: GEN3_STATA_LICENSE
+          valueFrom:
+            secretKeyRef:
+              name: stata-workspace-gen3-license-g3auto
+              key: "stata_license.txt"
         command: ["python"]
         args: 
           - "-c"
@@ -72,7 +77,7 @@ spec:
               
                 for container in pod.get('spec', {}).get('containers', []):    
               
-                  if "stata-heal" in container['image']:
+                  if "jupyter-pystata-gen3-licensed" in container['image']:
               
                     existing_license_id = pod.get("metadata", {}).get("annotations", {}).get("stata-license")
               
@@ -96,15 +101,14 @@ spec:
             used_licenses.sort()
             print(f"Licenses currently in use: {used_licenses}")
 
-            # This is a free trial license for demo purposes only
-            # Todo: store, mount licenses secret
-            license_file = """
-            501709301583!$n1d p$53 zvqe 2sfz jzft 7aei e8yL 8ue$ j38b!snic!first line!second line!2100!
-            501709301583!$n1d p$53 zvqe 2sfz jzft 7aei e8yL 8ue$ j38b!snic!first line!second line!2100!
-            501709301583!$n1d p$53 zvqe 2sfz jzft 7aei e8yL 8ue$ j38b!snic!first line!second line!2100!
-            """.strip()
+            # The Gen3 Stata license strings should be stored in a kubernetes secret using g3auto.
+            # The format of the secret is one license string per line.
+            # The license strings are generated with 'stinit' using the information in a license PDF.
+            license_secrets = os.environ['GEN3_STATA_LICENSE']
+            license_secrets = license_secrets.strip()
 
-            licenses = license_file.split("\n")
+            licenses = license_secrets.split("\n")
+            print(f"Number of licenses = {len(licenses)}")
             available_license_ids = [
               license_id for license_id, license in enumerate(licenses)
               if license_id not in used_licenses

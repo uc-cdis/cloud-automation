@@ -38,7 +38,8 @@ spec:
       - args:
         - -c
         - |
-          # fix permissions for /var/run/docker.sock
+          # fix permissions for docker and containerd
+          chmod 666 /var/run/containerd/containerd.sock
           chmod 666 /var/run/docker.sock
           echo "done"
         command:
@@ -53,6 +54,8 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         volumeMounts:
+        - mountPath: /var/run/containerd/containerd.sock
+          name: containerdsock
         - mountPath: /var/run/docker.sock
           name: dockersock
       containers:
@@ -121,7 +124,7 @@ spec:
                 fieldPath: status.hostIP
         resources:
           limits:
-            cpu: 0.6
+            cpu: "0.6"
             memory: 2048Mi
         imagePullPolicy: Always
         volumeMounts:
@@ -139,7 +142,8 @@ spec:
           subPath: "ca.pem"
         - name: dockersock
           mountPath: "/var/run/docker.sock"
-        imagePullPolicy: Always
+        - name: containerdsock
+          mountPath: "/var/run/containerd/containerd.sock"
       volumes:
       - name: cert-volume
         secret:
@@ -150,3 +154,6 @@ spec:
       - name: dockersock
         hostPath:
           path: /var/run/docker.sock
+      - name: containerdsock
+        hostPath:
+          path: "/var/run/containerd/containerd.sock"

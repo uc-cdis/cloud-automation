@@ -1,9 +1,15 @@
 controller:
-  parallelism: 10
+  parallelism: 5
   metricsConfig:
     # -- Enables prometheus metrics server
     enabled: true
     servicePort: 9090
+
+  resources:
+    requests:
+      memory: 8Gi
+    limits:
+      memory: 8Gi
 
   podAnnotations:
     prometheus.io/scrape: "true"
@@ -22,7 +28,11 @@ controller:
             }
           ]
         }
-      }      
+      }  
+
+  resourceRateLimit:
+    limit: 40
+    burst: 4    
 
   # -- enable persistence using postgres
   persistence:
@@ -46,6 +56,7 @@ controller:
       passwordSecret:
         name: argo-db-creds
         key: db_password
+    nodeStatusOffLoad: true
 
   workflowDefaults: 
     spec:
@@ -71,6 +82,11 @@ server:
   extraEnv:
   - name: ARGO_HTTP1
     value: "true"
+  resources:
+    requests:
+      memory: 8Gi
+    limits:
+      memory: 8Gi
 
 # -- Influences the creation of the ConfigMap for the workflow-controller itself.
 useDefaultArtifactRepo: true
