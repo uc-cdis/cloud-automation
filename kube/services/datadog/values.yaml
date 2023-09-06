@@ -358,4 +358,25 @@ agents:
 
     # agents.rbac.serviceAccountAnnotations -- Annotations to add to the ServiceAccount if agents.rbac.create is true
     serviceAccountAnnotations: {}
+  
+  # agents.useConfigMap -- Configures a configmap to provide the agent configuration. Use this in combination with the `agents.customAgentConfig` parameter.
+  useConfigMap:  true
+
+  # agents.customAgentConfig -- Specify custom contents for the datadog agent config (datadog.yaml)
+  ## ref: https://docs.datadoghq.com/agent/guide/agent-configuration-files/?tab=agentv6
+  ## ref: https://github.com/DataDog/datadog-agent/blob/main/pkg/config/config_template.yaml
+  ## Note the `agents.useConfigMap` needs to be set to `true` for this parameter to be taken into account.
+  customAgentConfig:
+    additional_endpoints:
+      "https://app.ddog-gov.com":
+      - ENC[file@/etc/secret-volume/ddgov-apikey] 
+
+    logs_config:
+      use_http: true
+      additional_endpoints:
+      - api_key: ENC[file@/etc/secret-volume/ddgov-apikey] 
+        Host: "agent-http-intake.logs.ddog-gov.com"
+        Port: 443
+        is_reliable: true
+
 
