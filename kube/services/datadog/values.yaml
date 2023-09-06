@@ -254,7 +254,7 @@ clusterAgent:
   volumes:
     - name: secret-volume
       secret:
-        secretName: ddgov-apiKey
+        secretName: ddgov-apikey
   #   - hostPath:
   #       path: <HOST_PATH>
   #     name: <VOLUME_NAME>
@@ -268,8 +268,8 @@ clusterAgent:
     orchestrator_explorer:
       orchestrator_additional_endpoints:
         "https://ctds.ddog-gov.com":
-        - ENC[file@/etc/secret-volume/ddgov-apiKey] 
-  
+        - ENC[file@/etc/secret-volume/ddgov-apikey] 
+
   # clusterAgent.replicas -- Specify the of cluster agent replicas, if > 1 it allow the cluster agent to work in HA mode.
   replicas: 1
 
