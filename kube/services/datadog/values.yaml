@@ -249,8 +249,27 @@ clusterAgent:
     ## See https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
     pullSecrets: []
     #   - name: "<REG_SECRET>"
+  
+  # clusterAgent.volumes -- Specify additional volumes to mount in the cluster-agent container
+  volumes:
+    - name: secret-volume
+      secret:
+        secretName: ddgov-apiKey
+  #   - hostPath:
+  #       path: <HOST_PATH>
+  #     name: <VOLUME_NAME>
 
+  # clusterAgent.volumeMounts -- Specify additional volumes to mount in the cluster-agent container
+  volumeMounts:
+    - name: secret-volume
+      mountPath: /etc/secret-volume
 
+  datadog_cluster_yaml:
+    orchestrator_explorer:
+      orchestrator_additional_endpoints:
+        "https://ctds.ddog-gov.com":
+        - ENC[file@/etc/secret-volume/ddgov-apiKey] 
+  
   # clusterAgent.replicas -- Specify the of cluster agent replicas, if > 1 it allow the cluster agent to work in HA mode.
   replicas: 1
 
