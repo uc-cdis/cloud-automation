@@ -231,48 +231,48 @@ data:
         few exceptions for newer attributes where the name is the same for both versions. You will
         usually want to uncomment or map the names for both SAML versions as a unit.
         -->
-        
+
         <!-- First some useful eduPerson attributes that many sites might use. -->
-        
+
         <Attribute name="urn:mace:dir:attribute-def:eduPersonPrincipalName" id="eppn">
             <AttributeDecoder xsi:type="ScopedAttributeDecoder"/>
         </Attribute>
         <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.6" id="eppn">
             <AttributeDecoder xsi:type="ScopedAttributeDecoder"/>
         </Attribute>
-        
+
         <Attribute name="urn:mace:dir:attribute-def:eduPersonScopedAffiliation" id="affiliation">
             <AttributeDecoder xsi:type="ScopedAttributeDecoder" caseSensitive="false"/>
         </Attribute>
         <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.9" id="affiliation">
             <AttributeDecoder xsi:type="ScopedAttributeDecoder" caseSensitive="false"/>
         </Attribute>
-        
+
         <Attribute name="urn:mace:dir:attribute-def:eduPersonAffiliation" id="unscoped-affiliation">
             <AttributeDecoder xsi:type="StringAttributeDecoder" caseSensitive="false"/>
         </Attribute>
         <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.1" id="unscoped-affiliation">
             <AttributeDecoder xsi:type="StringAttributeDecoder" caseSensitive="false"/>
         </Attribute>
-        
+
         <Attribute name="urn:mace:dir:attribute-def:eduPersonEntitlement" id="entitlement"/>
         <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.7" id="entitlement"/>
 
         <!-- A persistent id attribute that supports personalized anonymous access. -->
-        
+
         <!-- First, the deprecated/incorrect version, decoded as a scoped string: -->
         <Attribute name="urn:mace:dir:attribute-def:eduPersonTargetedID" id="targeted-id">
             <AttributeDecoder xsi:type="ScopedAttributeDecoder"/>
             <!-- <AttributeDecoder xsi:type="NameIDFromScopedAttributeDecoder" formatter="$NameQualifier!$SPNameQualifier!$Name" defaultQualifiers="true"/> -->
         </Attribute>
-        
+
         <!-- Second, an alternate decoder that will decode the incorrect form into the newer form. -->
         <!--
         <Attribute name="urn:mace:dir:attribute-def:eduPersonTargetedID" id="persistent-id">
             <AttributeDecoder xsi:type="NameIDFromScopedAttributeDecoder" formatter="$NameQualifier!$SPNameQualifier!$Name" defaultQualifiers="true"/>
         </Attribute>
         -->
-        
+
         <!-- Third, the new version (note the OID-style name): -->
         <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.10" id="persistent-id">
             <AttributeDecoder xsi:type="NameIDAttributeDecoder" formatter="$NameQualifier!$SPNameQualifier!$Name" defaultQualifiers="true"/>
@@ -286,7 +286,7 @@ data:
         <!-- THIS is the attribute we are using in login.bionimbus.org so remember to update the SHIBBOLETH_HEADER to cn in fence-config  -->
         <Attribute name="urn:oid:2.5.4.3" nameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:uri" id="cn"/>
 
-        
+
         <!-- Some more eduPerson attributes, uncomment these to use them... -->
         <!--
         <Attribute name="urn:mace:dir:attribute-def:eduPersonPrimaryAffiliation" id="primary-affiliation">
@@ -306,9 +306,9 @@ data:
         <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.3" id="org-dn"/>
 
         <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.1.1.11" id="assurance"/>
-        
+
         <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.5.1.1" id="member"/>
-        
+
         <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.6.1.1" id="eduCourseOffering"/>
         <Attribute name="urn:oid:1.3.6.1.4.1.5923.1.6.1.2" id="eduCourseMember"/>
         -->
@@ -416,47 +416,51 @@ data:
                <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
                    <ds:X509Data>
                        <ds:X509Certificate>
-   MIIGeDCCBWCgAwIBAgITKwAE3xjJ0BmsXYl8hwAAAATfGDANBgkqhkiG9w0BAQsF
-   ADBOMRUwEwYKCZImiZPyLGQBGRYFTE9DQUwxHDAaBgoJkiaJk/IsZAEZFgxESEhT
-   U0VDVVJJVFkxFzAVBgNVBAMTDk5JSC1EUEtJLUNBLTFBMB4XDTIxMDMyMzEwMjMz
-   MloXDTIzMDMyMzEwMjMzMlowcDELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAk1EMREw
-   DwYDVQQHEwhCZXRoZXNkYTEMMAoGA1UEChMDSEhTMQwwCgYDVQQLEwNOSUgxJTAj
-   BgNVBAMTHHdhbXNpZ25pbmdmZWRlcmF0aW9uLm5paC5nb3YwggEiMA0GCSqGSIb3
-   DQEBAQUAA4IBDwAwggEKAoIBAQDrng8ItLe/PdN7+GT50g0xd4Kc5zVLk5JhHV/M
-   C0ICo3ulYpNnK8f0vGYvKXhG9B4gyYjjAVgY8dHL1Yi9Vw4OCMHiAhT80qidFhah
-   xdcz8EaKWueqlMV+SZ8/6luahSmYYjKHAxICMg253gHsG6A64pWBsf58fzOYeEV/
-   HIItkthIJ7Rh71gXeZwmcir3fAve1sQXrgXsRb265yFQaxLrRI+QA7k+Tiemlt4+
-   7wBOXdROm0kxGJT6u6+IG8g2Qdbc1JWaAmwROGCByREQzfMNUVpXCXJHhKSrHype
-   z8Z0o4p2sLXyOysbBAmNoShMhvaaPlsrJt7PyDN5uj6KaXNNAgMBAAGjggMrMIID
-   JzAdBgNVHQ4EFgQUb/4wTaSXJ6P1tAmI8mWJhMv1VHowHwYDVR0jBBgwFoAUeWw4
-   jBnSyRkHcaYQ+YnwrdCDBZMwggESBgNVHR8EggEJMIIBBTCCAQGggf6ggfuGgcFs
-   ZGFwOi8vL0NOPU5JSC1EUEtJLUNBLTFBLENOPU5JSERQS0lDQVNWQyxDTj1DRFAs
-   Q049UHVibGljJTIwS2V5JTIwU2VydmljZXMsQ049U2VydmljZXMsQ049Q29uZmln
-   dXJhdGlvbixEQz1ESEhTU0VDVVJJVFksREM9TE9DQUw/Y2VydGlmaWNhdGVSZXZv
-   Y2F0aW9uTGlzdD9iYXNlP29iamVjdENsYXNzPWNSTERpc3RyaWJ1dGlvblBvaW50
-   hjVodHRwOi8vTklIRFBLSUNSTC5OSUguR09WL0NlcnREYXRhL05JSC1EUEtJLUNB
-   LTFBLmNybDCCATkGCCsGAQUFBwEBBIIBKzCCAScwgbQGCCsGAQUFBzAChoGnbGRh
-   cDovLy9DTj1OSUgtRFBLSS1DQS0xQSxDTj1BSUEsQ049UHVibGljJTIwS2V5JTIw
-   U2VydmljZXMsQ049U2VydmljZXMsQ049Q29uZmlndXJhdGlvbixEQz1ESEhTU0VD
-   VVJJVFksREM9TE9DQUw/Y0FDZXJ0aWZpY2F0ZT9iYXNlP29iamVjdENsYXNzPWNl
-   cnRpZmljYXRpb25BdXRob3JpdHkwQQYIKwYBBQUHMAKGNWh0dHA6Ly9OSUhEUEtJ
-   Q1JMLk5JSC5HT1YvQ2VydERhdGEvTklILURQS0ktQ0EtMUEuY3J0MCsGCCsGAQUF
-   BzABhh9odHRwOi8vTklIRFBLSU9DU1AuTklILkdPVi9vY3NwMAsGA1UdDwQEAwIF
-   oDA9BgkrBgEEAYI3FQcEMDAuBiYrBgEEAYI3FQiHscIohpH8F4b5jwiG7rxzgbud
-   JR2F39lChY/gIQIBZQIBJDAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwEw
-   JwYJKwYBBAGCNxUKBBowGDAKBggrBgEFBQcDAjAKBggrBgEFBQcDATANBgkqhkiG
-   9w0BAQsFAAOCAQEAkgyJY5Pdyz7hF83hu9BsijKHOdMWe8fDyN7GsDR1O0URBuJW
-   oK7FsemmITwMCiDhH+NDkrRWM27EQhuv4w4yIUIFVqPeJS+Ff3gKyqB/VNcrDbfc
-   1RU7Q0qyxwpItm/cEUTTTnfNppf/O6wn/FUbpvPbHMNukqhjtbiYJrmKcO1U0lEu
-   i7FlnPW6rRmEbhp/bChVJMkxw8sBH4K3Vrx9c15nPuBgv4E1cFLe1rwrt3wEeRlU
-   OaWMTbLwYBaBo2BC3iDHzWioSl4OtzItEkT5XxNOhViuoty09Tu5zd7byqiV7To3
-   YVc+Yi/VBubgB+osvPXPAv0AQCLo88dO7MBWQg==
+   MIIGrDCCBZSgAwIBAgITKwAL5UokKuFiZ7VPlQAAAAvlSjANBgkqhkiG9w0B
+   AQsFADBOMRUwEwYKCZImiZPyLGQBGRYFTE9DQUwxHDAaBgoJkiaJk/IsZAEZ
+   FgxESEhTU0VDVVJJVFkxFzAVBgNVBAMTDk5JSC1EUEtJLUNBLTFBMB4XDTIy
+   MTIwNjE2NTUzNloXDTI0MTIwNTE2NTUzNlowgaMxCzAJBgNVBAYTAlVTMREw
+   DwYDVQQIEwhNYXJ5bGFuZDERMA8GA1UEBxMIQmV0aGVzZGExDDAKBgNVBAoT
+   A05JSDEMMAoGA1UECxMDQ0lUMSUwIwYDVQQDExx3YW1zaWduaW5nZmVkZXJh
+   dGlvbi5uaWguZ292MSswKQYJKoZIhvcNAQkBFhxuaWhsb2dpbnN1cHBvcnRA
+   bWFpbC5uaWguZ292MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
+   o3aHcoq0SAof+GXCl6aZOw9w8CrWTSxz3hxEvG2RaJ4Bm0+UQEcQHArCiQ+Y
+   Wjmx8eORRwOblQKmcozpQAOxNRu7fbJn8msdryKdju+nBJg/gn0Ygn44EJEq
+   pZmBn+FBRgH/lADRdpLM8uO654i1x5Pr8TQtNMevGNot8oiacOZkB1A5N6+l
+   4guxToA2ZuNhHRhwrpd1wIyq6sgY3J8XpWlx54HjDc8bZvia0bEhJns/qZpM
+   mAh5wvIP1I2JngqJ55mpl/btbIXX+uTn3tIomWre3KKjDKh9ZjUQom8VqTzp
+   oGYHSjTExuopsHnnVpC1HTW0QJoxFa5yR1f2fiUTZwIDAQABo4IDKzCCAycw
+   HQYDVR0OBBYEFMqGnTB0W0rFy8tD2y6JnApAzRCyMB8GA1UdIwQYMBaAFHls
+   OIwZ0skZB3GmEPmJ8K3QgwWTMIIBEgYDVR0fBIIBCTCCAQUwggEBoIH+oIH7
+   hoHBbGRhcDovLy9DTj1OSUgtRFBLSS1DQS0xQSxDTj1OSUhEUEtJQ0FTVkMs
+   Q049Q0RQLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZpY2Vz
+   LENOPUNvbmZpZ3VyYXRpb24sREM9REhIU1NFQ1VSSVRZLERDPUxPQ0FMP2Nl
+   cnRpZmljYXRlUmV2b2NhdGlvbkxpc3Q/YmFzZT9vYmplY3RDbGFzcz1jUkxE
+   aXN0cmlidXRpb25Qb2ludIY1aHR0cDovL05JSERQS0lDUkwuTklILkdPVi9D
+   ZXJ0RGF0YS9OSUgtRFBLSS1DQS0xQS5jcmwwggE5BggrBgEFBQcBAQSCASsw
+   ggEnMIG0BggrBgEFBQcwAoaBp2xkYXA6Ly8vQ049TklILURQS0ktQ0EtMUEs
+   Q049QUlBLENOPVB1YmxpYyUyMEtleSUyMFNlcnZpY2VzLENOPVNlcnZpY2Vz
+   LENOPUNvbmZpZ3VyYXRpb24sREM9REhIU1NFQ1VSSVRZLERDPUxPQ0FMP2NB
+   Q2VydGlmaWNhdGU/YmFzZT9vYmplY3RDbGFzcz1jZXJ0aWZpY2F0aW9uQXV0
+   aG9yaXR5MEEGCCsGAQUFBzAChjVodHRwOi8vTklIRFBLSUNSTC5OSUguR09W
+   L0NlcnREYXRhL05JSC1EUEtJLUNBLTFBLmNydDArBggrBgEFBQcwAYYfaHR0
+   cDovL05JSERQS0lPQ1NQLk5JSC5HT1Yvb2NzcDALBgNVHQ8EBAMCBaAwPQYJ
+   KwYBBAGCNxUHBDAwLgYmKwYBBAGCNxUIh7HCKIaR/BeG+Y8Ihu68c4G7nSUd
+   gZOnCYKOiSECAWQCAUwwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC
+   MCcGCSsGAQQBgjcVCgQaMBgwCgYIKwYBBQUHAwEwCgYIKwYBBQUHAwIwDQYJ
+   KoZIhvcNAQELBQADggEBAGxvrAxX3RUmFXeUa1UewCWfzWCnI3wTMKkqvmI2
+   CySFEOniXNXC/hhu0i000QD9mS527u+lGqgN6eaUaEaSDXMszYR753whJ1Wf
+   xJ50zji2mvUWDyzdRbcvxbVfYe6h6+TzQl0gd8z1DjAxkUWydv9aAFYHNiIY
+   BbhPqvrlOT+oV8CYI8ghEg7qyxo1mso99aVGCbnBA+6IC+jt8lvwQYFISW8J
+   lxJbz5P9fyAbQFuMvcvSkx1WWCCK+d3WsLzU2JETjmYNoID5skFaIfrq+rV1
+   nBqQfCSKApojRaUMwn83IRcosSu0Y3dhpmxz2oDkOURbwOkuPJRgYnZRLBDn
+   e50=
                        </ds:X509Certificate>
                    </ds:X509Data>
                </ds:KeyInfo>
-           </KeyDescriptor>        
+           </KeyDescriptor>
            <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</NameIDFormat>
            <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
    		<SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://auth.nih.gov/affwebservices/public/saml2sso"/>
     </IDPSSODescriptor>
-   </EntityDescriptor> 
+   </EntityDescriptor>
