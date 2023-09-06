@@ -279,7 +279,7 @@ clusterAgent:
   datadog_cluster_yaml:
     orchestrator_explorer:
       orchestrator_additional_endpoints:
-        "https://ctds.ddog-gov.com":
+        "https://orchestrator.ddog-gov.com":
         - ENC[file@/etc/secret-volume/ddgov-apikey] 
 
   # clusterAgent.replicas -- Specify the of cluster agent replicas, if > 1 it allow the cluster agent to work in HA mode.
