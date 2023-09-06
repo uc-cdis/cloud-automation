@@ -362,6 +362,15 @@ agents:
   # agents.useConfigMap -- Configures a configmap to provide the agent configuration. Use this in combination with the `agents.customAgentConfig` parameter.
   useConfigMap:  true
 
+  volumes:
+    - name: secret-volume
+      secret:
+        secretName: ddgov-apikey
+
+  volumeMounts:
+    - name: secret-volume
+      mountPath: /etc/secret-volume
+
   # agents.customAgentConfig -- Specify custom contents for the datadog agent config (datadog.yaml)
   ## ref: https://docs.datadoghq.com/agent/guide/agent-configuration-files/?tab=agentv6
   ## ref: https://github.com/DataDog/datadog-agent/blob/main/pkg/config/config_template.yaml
