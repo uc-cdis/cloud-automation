@@ -130,19 +130,17 @@ EOF
     g3kubectl label namespace argo app=argo || true
     g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n argo || true
   fi
-  gen3_log_info "Creating argo service account"
-  g3kubectl create sa argo -n argo || true
   gen3_log_info "Creating IAM role ${roleName}"
   if aws iam get-role --role-name "${roleName}" > /dev/null 2>&1; then
       gen3_log_info "IAM role ${roleName} already exists.."
       roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
       gen3_log_info "Role annotate"
-      g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} -n argo
+      g3kubectl annotate serviceaccount defualt eks.amazonaws.com/role-arn=${roleArn} -n argo
   else
       if [[ "${ctxNamespace}" == "default" || "${ctxNamespace}" == "null" ]]; then
-          gen3 awsrole create "$roleName" argo argo
+          gen3 awsrole create "$roleName" default argo
         roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
-        g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} -n argo
+        g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
       fi
   fi
 
