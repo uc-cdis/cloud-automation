@@ -47,13 +47,13 @@ data:
       name: workflow-$WORKFLOW_NAME
     spec:
       subnetSelector:
-        karpenter.sh/discovery: vhdcperf
+        karpenter.sh/discovery: $ENVIRONMENT
       securityGroupSelector:
-        karpenter.sh/discovery: vhdcperf-workflow
+        karpenter.sh/discovery: $ENVIRONMENT-workflow
       tags:
-        Environment: vhdcperf
-        Name: eks-vhdcperf-workflow-karpenter
-        karpenter.sh/discovery: vhdcperf
+        Environment: $ENVIRONMENT
+        Name: eks-$ENVIRONMENT-workflow-karpenter
+        karpenter.sh/discovery: $ENVIRONMENT
         workflowname: $WORKFLOW_NAME
         gen3username: $GEN3_USERNAME
         gen3service: argo-workflows
@@ -69,11 +69,11 @@ data:
         --BOUNDARY
         Content-Type: text/x-shellscript; charset="us-ascii"
 
-        #!/bin/bash -xe
+        #!/bin/bash -x
         instanceId=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .instanceId)
         curl https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/files/authorized_keys/ops_team >> /home/ec2-user/.ssh/authorized_keys
-        aws ec2 create-tags --resources $instanceId --tags 'Key="instanceId",Value='$instanceId''
-        curl https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/files/authorized_keys/ops_team >> /home/ec2-user/.ssh/authorized_keys
+
+        echo "$(jq '.registryPullQPS=0' /etc/kubernetes/kubelet/kubelet-config.json)" > /etc/kubernetes/kubelet/kubelet-config.json
 
         sysctl -w fs.inotify.max_user_watches=12000
 
