@@ -59,7 +59,7 @@ function gen3_awsrole_ar_policy() {
       },
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
-        "StringEquals": {
+        "StringLike": {
           "${issuer_url}:aud": "sts.amazonaws.com",
           "${issuer_url}:sub": "system:serviceaccount:${namespace}:${serviceAccount}"
         }
