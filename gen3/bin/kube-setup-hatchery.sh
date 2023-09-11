@@ -42,7 +42,7 @@ policy=$( cat <<EOM
             "Resource": "*"
         },
         {
-            "Sid": "DynamoDB",
+            "Sid": "ManageDynamoDB",
             "Effect": "Allow",
             "Action": [
                 "dynamodb:BatchGet*",
@@ -60,6 +60,7 @@ policy=$( cat <<EOM
             "Resource": "arn:aws:dynamodb:*:*:table/*"
         },
         {
+            "Sid": "CreateNextflowBatchWorkspaces",
             "Effect": "Allow",
             "Action": [
                 "batch:DescribeComputeEnvironments",
@@ -82,6 +83,10 @@ policy=$( cat <<EOM
                 "iam:ListAccessKeys",
                 "iam:CreateAccessKey",
                 "iam:DeleteAccessKey",
+                "iam:GetInstanceProfile",
+                "iam:CreateInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "iam:PassRole",
                 "s3:CreateBucket"
             ],
             "Resource": "*"
@@ -90,7 +95,7 @@ policy=$( cat <<EOM
             "Effect": "Allow",
             "Action": "iam:PassRole",
             "Resource": [
-                "arn:aws:iam::*:role/ecsInstanceRole"
+                "arn:aws:iam::*:role/*ecsInstanceRole"
             ]
         }
     ]
