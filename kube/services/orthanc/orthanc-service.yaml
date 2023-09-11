@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: orthanc-service
+  labels:
+    app: orthanc
+spec:
+  selector:
+    app: orthanc
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8042
+      nodePort: null
+      name: http
+  type: ClusterIP

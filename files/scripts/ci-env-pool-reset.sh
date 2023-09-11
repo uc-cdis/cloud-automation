@@ -30,13 +30,16 @@ cat - > jenkins-envs-services.txt <<EOF
 jenkins-blood
 jenkins-brain
 jenkins-dcp
+jenkins-genomel
+jenkins-niaid
 EOF
 
 cat - > jenkins-envs-releases.txt <<EOF
-jenkins-genomel
-jenkins-niaid
 jenkins-new
 jenkins-new-1
+jenkins-new-2
+jenkins-new-3
+jenkins-new-4
 EOF
 
 aws s3 cp jenkins-envs-services.txt s3://cdistest-public-test-bucket/jenkins-envs-services.txt
