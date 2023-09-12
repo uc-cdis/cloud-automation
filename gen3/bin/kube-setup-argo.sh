@@ -140,15 +140,13 @@ EOF
       g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
   else
       if [[ "${ctxNamespace}" == "default" || "${ctxNamespace}" == "null" ]]; then
-        gen3 awsrole create $roleName default -f all_namespaces
+        gen3 awsrole create $roleName default $nameSpace --flag all_namespaces
         roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
         g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
         g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
       fi
   fi
 
-  # Grant admin access within the current namespace to the argo SA in the current namespace
-  g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=$(gen3 db namespace):argo -n $(gen3 db namespace) || true
   aws iam put-role-policy --role-name ${roleName} --policy-name ${bucketPolicy} --policy-document file://$policyFile || true
   if [[ -z $internalBucketName ]]; then
     aws iam put-role-policy --role-name ${roleName} --policy-name ${internalBucketPolicy} --policy-document file://$internalBucketPolicyFile || true

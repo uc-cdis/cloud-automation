@@ -25,13 +25,6 @@ gen3_awsrole_help() {
 function gen3_awsrole_ar_policy() {
   local serviceAccount="$1"
   shift || return 1
-  local flag=""
-  # Check if the "all_namespaces" flag is provided
-  if [[ "$1" == "-f" || "$1" == "--flag" ]]; then
-    flag="$2"
-    shift 2
-  fi
-
   if [[ ! -z $1 ]]; then
     local namespace=$1
   else
@@ -40,6 +33,9 @@ function gen3_awsrole_ar_policy() {
   local issuer_url
   local account_id
   local vpc_name
+  shift || return 1
+  local flag="$1"
+
   vpc_name="$(gen3 api environment)" || return 1
   issuer_url="$(aws eks describe-cluster \
                        --name ${vpc_name} \
@@ -71,7 +67,7 @@ function gen3_awsrole_ar_policy() {
       "Condition": {
         "StringLike": {
           "${issuer_url}:aud": "sts.amazonaws.com",
-          "${issuer_url}:sub": "system:serviceaccount:"*":${serviceAccount}"
+          "${issuer_url}:sub": "system:serviceaccount:*:${serviceAccount}"
         }
       }
     }
@@ -81,9 +77,6 @@ EOF
   else
     # Use default policy
     cat - <<EOF
-
-
-  cat - <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -109,6 +102,7 @@ EOF
   ]
 }
 EOF
+  fi
 }
 
 
@@ -170,6 +164,7 @@ _tfplan_role() {
   local saName="$1"
   shift || return 1
   local namespace="$1"
+  shift || return 1
   local flag=""
   # Check if the "all_namespaces" flag is provided
   if [[ "$1" == "-f" || "$1" == "--flag" ]]; then
@@ -230,12 +225,6 @@ gen3_awsrole_create() {
     gen3_log_err "use: gen3 awsrole create roleName saName"
     return 1
   fi
-  local flag=""
-  # Check if the "all_namespaces" flag is provided
-  if [[ "$1" == "-f" || "$1" == "--flag" ]]; then
-    flag="$2"
-    shift 2
-  fi
   if [[ ! -z $1 ]]; then
     local namespace=$1
   else
@@ -252,6 +241,13 @@ EOF
     )
     gen3_log_err $errMsg
     return 1
+  fi
+  shift || return 1
+  local flag=""
+  # Check if the "all_namespaces" flag is provided
+  if [[ "$1" == "-f" || "$1" == "--flag" ]]; then
+    flag="$2"
+    shift 2
   fi
 
   # check if the name is already used by another entity
@@ -270,7 +266,7 @@ EOF
   fi
 
   TF_IN_AUTOMATION="true"
-  if ! _tfplan_role $rolename $saName $namespace $flag; then
+  if ! _tfplan_role $rolename $saName $namespace --flag $flag; then
     return 1
   fi
   if ! _tfapply_role $rolename; then
