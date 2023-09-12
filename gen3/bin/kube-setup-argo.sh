@@ -140,7 +140,7 @@ EOF
       g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
   else
       if [[ "${ctxNamespace}" == "default" || "${ctxNamespace}" == "null" ]]; then
-        gen3 awsrole create "$roleName" "*" argo
+        gen3 awsrole create $roleName default -f all_namespaces
         roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
         g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
         g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace

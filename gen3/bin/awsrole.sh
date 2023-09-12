@@ -20,10 +20,18 @@ gen3_awsrole_help() {
 # NOTE: service-account to role is 1 to 1
 #
 # @param serviceAccount to link to the role
+# @param flag (optional) - specify a flag to use a different trust policy
 #
 function gen3_awsrole_ar_policy() {
   local serviceAccount="$1"
   shift || return 1
+  local flag=""
+  # Check if the "all_namespaces" flag is provided
+  if [[ "$1" == "-f" || "$1" == "--flag" ]]; then
+    flag="$2"
+    shift 2
+  fi
+
   if [[ ! -z $1 ]]; then
     local namespace=$1
   else
@@ -42,7 +50,9 @@ function gen3_awsrole_ar_policy() {
 
   local provider_arn="arn:aws:iam::${account_id}:oidc-provider/${issuer_url}"
 
-  cat - <<EOF
+  if [[ "$flag" == "all_namespaces" ]]; then
+    # Use a trust policy that allows role to be used by multiple namespaces.
+    cat - <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -61,6 +71,37 @@ function gen3_awsrole_ar_policy() {
       "Condition": {
         "StringLike": {
           "${issuer_url}:aud": "sts.amazonaws.com",
+          "${issuer_url}:sub": "system:serviceaccount:"*":${serviceAccount}"
+        }
+      }
+    }
+  ]
+}
+EOF
+  else
+    # Use default policy
+    cat - <<EOF
+
+
+  cat - <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {"Service": "ec2.amazonaws.com"},
+      "Action": "sts:AssumeRole"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${provider_arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "${issuer_url}:aud": "sts.amazonaws.com",
           "${issuer_url}:sub": "system:serviceaccount:${namespace}:${serviceAccount}"
         }
       }
@@ -69,6 +110,7 @@ function gen3_awsrole_ar_policy() {
 }
 EOF
 }
+
 
 #
 # Annotate the given service account with the given IAM role
@@ -128,8 +170,14 @@ _tfplan_role() {
   local saName="$1"
   shift || return 1
   local namespace="$1"
+  local flag=""
+  # Check if the "all_namespaces" flag is provided
+  if [[ "$1" == "-f" || "$1" == "--flag" ]]; then
+    flag="$2"
+    shift 2
+  fi
   local arDoc
-  arDoc="$(gen3_awsrole_ar_policy "$saName" "$namespace")" || return 1
+  arDoc="$(gen3_awsrole_ar_policy "$saName" "$namespace" "$flag")" || return 1
   gen3 workon default "${rolename}_role"
   gen3 cd
   cat << EOF > config.tfvars
@@ -182,6 +230,12 @@ gen3_awsrole_create() {
     gen3_log_err "use: gen3 awsrole create roleName saName"
     return 1
   fi
+  local flag=""
+  # Check if the "all_namespaces" flag is provided
+  if [[ "$1" == "-f" || "$1" == "--flag" ]]; then
+    flag="$2"
+    shift 2
+  fi
   if [[ ! -z $1 ]]; then
     local namespace=$1
   else
@@ -216,7 +270,7 @@ EOF
   fi
 
   TF_IN_AUTOMATION="true"
-  if ! _tfplan_role $rolename $saName $namespace; then
+  if ! _tfplan_role $rolename $saName $namespace $flag; then
     return 1
   fi
   if ! _tfapply_role $rolename; then
