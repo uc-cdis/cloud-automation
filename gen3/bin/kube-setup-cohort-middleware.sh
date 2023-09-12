@@ -17,7 +17,7 @@ setup_secrets() {
     mkdir -p $(gen3_secrets_folder)/g3auto/cohort-middleware
     credsFile="$(gen3_secrets_folder)/g3auto/cohort-middleware/development.yaml"
 
-    if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
+    if [[ (! -f "$credsFile") ]]; then
       DB_NAME=$(jq -r ".db_database" <<< "$dbcreds")
       export DB_NAME
       DB_USER=$(jq -r ".db_username" <<< "$dbcreds")
