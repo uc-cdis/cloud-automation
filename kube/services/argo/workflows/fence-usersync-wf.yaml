@@ -1,0 +1,257 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: fence-usersync-workflow
+spec:
+  volumeClaimTemplates:
+  - metadata:
+      name: shared-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+  serviceAccountName: argo
+  entrypoint: fence-usersync
+  arguments:
+    parameters:
+      - name: ADD_DBGAP
+        value: "false"
+      - name: ONLY_DBGAP
+        value: "false"
+  templates:
+    - name: fence-usersync
+      steps:
+        - - name: wait-for-fence
+            template: wait-for-fence
+        - - name: awshelper
+            template: awshelper
+        - - name: usersyncer
+            template: usersyncer
+
+    - name: wait-for-fence
+      container:
+        image: curlimages/curl:latest
+        command: ["/bin/sh","-c"]
+        args: ["while [ $(curl -sw '%{http_code}' http://fence-service -o /dev/null) -ne 200 ]; do sleep 5; echo 'Waiting for fence...'; done"]
+
+    - name: awshelper
+      container:
+        image: quay.io/cdis/awshelper:master
+        imagePullPolicy: Always
+        securityContext:
+          runAsUser: 0
+        env:
+        - name: gen3Env
+          valueFrom:
+              configMapKeyRef:
+                name: global
+                key: hostname
+        - name: userYamlS3Path
+          valueFrom:
+              configMapKeyRef:
+                name: manifest-global
+                key: useryaml_s3path
+        - name: slackWebHook
+          value: None
+        volumeMounts:
+          - name: shared-data
+            mountPath: /mnt/shared
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            GEN3_HOME=/home/ubuntu/cloud-automation
+            source "${GEN3_HOME}/gen3/lib/utils.sh"
+            gen3_load "gen3/gen3setup"
+
+            if [ "${userYamlS3Path}" = 'none' ]; then
+              # echo "using local user.yaml"
+              # cp /var/www/fence/user.yaml /mnt/shared/user.yaml
+                echo "s3 yaml not provided - bailing out"
+                exit 1
+            else
+              # -----------------
+              echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/user.yaml"
+              n=0
+              until [ $n -ge 5 ]; do
+                echo "Download attempt $n"
+                aws s3 cp "${userYamlS3Path}" /mnt/shared/user.yaml && break
+                n=$[$n+1]
+                sleep 2
+              done
+            fi
+            if [[ ! -f /mnt/shared/user.yaml ]]; then
+              echo "awshelper failed to retrieve /mnt/shared/user.yaml"
+              exit 1
+            fi
+            #-----------
+            echo "awshelper updating etl configmap"
+            if ! gen3 gitops etl-convert < /mnt/shared/user.yaml > /tmp/user.yaml; then
+              echo "ERROR: failed to generate ETL config"
+              exit 1
+            fi
+            # kubectl delete configmap fence > /dev/null 2>&1
+            # kubectl create configmap fence --from-file=/tmp/user.yaml
+            if [ "${slackWebHook}" != 'None' ]; then
+              curl -X POST --data-urlencode "payload={\"text\": \"AWSHelper: Syncing users on ${gen3Env}\"}" "${slackWebHook}"
+            fi
+            echo "Helper exit ok"
+
+    - name: usersyncer
+      volumes:
+        - name: yaml-merge
+          configMap:
+            name: "fence-yaml-merge"
+        - name: config-volume
+          secret:
+            secretName: "fence-config"
+        - name: creds-volume
+          secret:
+            secretName: "fence-creds"
+        - name: fence-google-app-creds-secret-volume
+          secret:
+            secretName: "fence-google-app-creds-secret"
+        - name: fence-google-storage-creds-secret-volume
+          secret:
+            secretName: "fence-google-storage-creds-secret"
+        - name: fence-ssh-keys
+          secret:
+            secretName: "fence-ssh-keys"
+            defaultMode: 0400
+        - name: fence-sshconfig
+          configMap:
+            name: "fence-sshconfig"
+        - name: projects
+          configMap:
+            name: "projects"
+      container:
+        image: quay.io/cdis/fence:master
+        imagePullPolicy: Always
+        env:
+        - name: PYTHONPATH
+          value: /var/www/fence
+        - name: SYNC_FROM_DBGAP
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: sync_from_dbgap
+        - name: ADD_DBGAP
+          value: "{{workflow.parameters.ADD_DBGAP}}"
+        - name: ONLY_DBGAP
+          value: "{{workflow.parameters.ONLY_DBGAP}}"
+        - name: SLACK_SEND_DBGAP
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: slack_send_dbgap
+              optional: true
+        - name: slackWebHook
+          valueFrom:
+              configMapKeyRef:
+                name: global
+                key: slack_webhook
+                optional: true
+        - name: gen3Env
+          valueFrom:
+              configMapKeyRef:
+                name: global
+                key: hostname
+        - name: FENCE_PUBLIC_CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-fence
+              key: fence-config-public.yaml
+              optional: true
+        volumeMounts:
+          - name: shared-data
+            mountPath: /mnt/shared
+          - name: "config-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence-config.yaml"
+            subPath: fence-config.yaml
+          - name: "creds-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/creds.json"
+          - name: "yaml-merge"
+            readOnly: true
+            mountPath: "/var/www/fence/yaml_merge.py"
+          - name: "fence-google-app-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_app_creds_secret.json"
+            subPath: fence_google_app_creds_secret.json
+          - name: "fence-google-storage-creds-secret-volume"
+            readOnly: true
+            mountPath: "/var/www/fence/fence_google_storage_creds_secret.json"
+            subPath: fence_google_storage_creds_secret.json
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa"
+            subPath: "id_rsa"
+          - name: "fence-ssh-keys"
+            mountPath: "/root/.ssh/id_rsa.pub"
+            subPath: "id_rsa.pub"
+          - name: "fence-sshconfig"
+            mountPath: "/root/.ssh/config"
+            subPath: "config"
+          - name: "projects"
+            mountPath: "/var/www/fence/projects.yaml"
+            subPath: "projects.yaml"
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          # Script always succeeds if it runs (echo exits with 0)
+          - |
+            echo "${ADD_DBGAP}"
+            echo "${ONLY_DBGAP}"
+            echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            echo 'options use-vc' >> /etc/resolv.conf
+            let count=0
+            while [[ ! -f /mnt/shared/user.yaml && $count -lt 50 ]]; do
+              echo "fence container waiting for /mnt/shared/user.yaml";
+              sleep 2
+              let count=$count+1
+            done
+            if [[ "$SYNC_FROM_DBGAP" != True && "$ADD_DBGAP" != "true" ]]; then
+              if [[ -f /mnt/shared/user.yaml ]]; then
+                echo "running fence-create"
+                time fence-create sync --arborist http://arborist-service --yaml /mnt/shared/user.yaml
+              else
+                echo "/mnt/shared/user.yaml did not appear within timeout :-("
+                false  # non-zero exit code
+              fi
+              exitcode=$?
+            else
+              output=$(mktemp "/tmp/fence-create-output_XXXXXX")
+              if [[ -f /mnt/shared/user.yaml && "$ONLY_DBGAP" != "true" ]]; then
+                echo "Running fence-create dbgap-sync with user.yaml - see $output"
+                time fence-create sync --arborist http://arborist-service --sync_from_dbgap "True" --projects /var/www/fence/projects.yaml --yaml /mnt/shared/user.yaml 2>&1 | tee "$output"
+              else
+                echo "Running fence-create dbgap-sync without user.yaml - see $output"
+                time fence-create sync --arborist http://arborist-service --sync_from_dbgap "True" --projects /var/www/fence/projects.yaml 2>&1 | tee "$output"
+              fi
+              exitcode="${PIPESTATUS[0]}"
+              echo "$output"
+              # Echo what files we are seeing on dbgap ftp to Slack
+              # We only do this step every 12 hours and not on weekends to reduce noise
+              if [[ -n "$SLACK_SEND_DBGAP" && "$SLACK_SEND_DBGAP" = True ]]; then
+                files=$(grep "Reading file" "$output")
+                let hour=$(date -u +10#%H)
+                let dow=$(date -u +10#%u)
+                if ! (( hour % 12 )) && (( dow < 6 )); then
+                  if [ "${slackWebHook}" != 'None' ]; then
+                    curl -X POST --data-urlencode "payload={\"text\": \"FenceHelper: \n\`\`\`\n${files}\n\`\`\`\"}" "${slackWebHook}"
+                  fi
+                fi
+              fi
+            fi
+            if [[ $exitcode -ne 0 && "${slackWebHook}" != 'None' ]]; then
+              emptyfile=$(grep "EnvironmentError:" "$output")
+              if [ ! -z "$emptyfile" ]; then
+                curl -X POST --data-urlencode "payload={\"text\": \"JOBSKIPPED: User sync skipped on ${gen3Env} ${emptyfile}\"}" "${slackWebHook}";
+              else
+                curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: User sync failed on ${gen3Env}\"}" "${slackWebHook}"
+              fi
+            fi
+            echo "Exit code: $exitcode"
+            exit "$exitcode"

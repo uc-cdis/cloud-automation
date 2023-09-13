@@ -1,0 +1,9 @@
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflowTemplate
+metadata:
+  name: fence-usersync-cron
+spec:
+  schedule: "*/2 * * * *"
+  workflowSpec:
+    workflowTemplateRef:
+      name: fence-usersync-workflow
