@@ -144,6 +144,8 @@ EOF
         g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
   fi
 
+  # Grant admin access within the current namespace to the default SA in the current namespace
+  g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=$(gen3 db namespace):default -n $(gen3 db namespace) || true
   aws iam put-role-policy --role-name ${roleName} --policy-name ${bucketPolicy} --policy-document file://$policyFile || true
   if [[ -z $internalBucketName ]]; then
     aws iam put-role-policy --role-name ${roleName} --policy-name ${internalBucketPolicy} --policy-document file://$internalBucketPolicyFile || true
