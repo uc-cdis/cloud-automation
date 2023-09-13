@@ -142,7 +142,6 @@ EOF
         gen3 awsrole create $roleName default $nameSpace --flag all_namespaces
         roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
         g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
-        g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
   fi
 
   aws iam put-role-policy --role-name ${roleName} --policy-name ${bucketPolicy} --policy-document file://$policyFile || true
