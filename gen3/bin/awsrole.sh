@@ -266,7 +266,7 @@ EOF
   fi
 
   TF_IN_AUTOMATION="true"
-  if ! _tfplan_role $rolename $saName $namespace --flag $flag; then
+  if ! _tfplan_role $rolename $saName $namespace -f $flag; then
     return 1
   fi
   if ! _tfapply_role $rolename; then
