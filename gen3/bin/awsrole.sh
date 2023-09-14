@@ -48,66 +48,62 @@ function gen3_awsrole_ar_policy() {
 
   if [[ "$flag" == "all_namespaces" ]]; then
     # Use a trust policy that allows role to be used by multiple namespaces.
-    cat - <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {"Service": "ec2.amazonaws.com"},
-      "Action": "sts:AssumeRole"
-    },
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "${provider_arn}"
+      cat - <<EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": {"Service": "ec2.amazonaws.com"},
+        "Action": "sts:AssumeRole"
       },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "ForAllValues:StringLike": {
-          "${issuer_url}:aud": "sts.amazonaws.com",
-          "StringEqualsIfExists": {
-            "${issuer_url}:sub": "system:serviceaccount:*:${serviceAccount}"
-          },
-          "StringEqualsIfExists": {
+      {
+        "Sid": "",
+        "Effect": "Allow",
+        "Principal": {
+          "Federated": "${provider_arn}"
+        },
+        "Action": "sts:AssumeRoleWithWebIdentity",
+        "Condition": {
+          "ForAllValues:StringLike": {
+            "${issuer_url}:aud": "sts.amazonaws.com",
+            "${issuer_url}:sub": "system:serviceaccount:*:${serviceAccount}",
             "${issuer_url}:sub": "system:serviceaccount:argo:default"
           }
         }
       }
-  ]
-}
-EOF
+    ]
+  }
+  EOF
   else
     # Use default policy
-    cat - <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {"Service": "ec2.amazonaws.com"},
-      "Action": "sts:AssumeRole"
-    },
-    {
-      "Sid": "",
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "${provider_arn}"
+      cat - <<EOF
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Principal": {"Service": "ec2.amazonaws.com"},
+        "Action": "sts:AssumeRole"
       },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "${issuer_url}:aud": "sts.amazonaws.com",
-          "${issuer_url}:sub": "system:serviceaccount:${namespace}:${serviceAccount}"
+      {
+        "Sid": "",
+        "Effect": "Allow",
+        "Principal": {
+          "Federated": "${provider_arn}"
+        },
+        "Action": "sts:AssumeRoleWithWebIdentity",
+        "Condition": {
+          "StringEquals": {
+            "${issuer_url}:aud": "sts.amazonaws.com",
+            "${issuer_url}:sub": "system:serviceaccount:${namespace}:${serviceAccount}"
+          }
         }
       }
-    }
-  ]
-}
-EOF
+    ]
+  }
+  EOF
   fi
-}
 
 
 #
