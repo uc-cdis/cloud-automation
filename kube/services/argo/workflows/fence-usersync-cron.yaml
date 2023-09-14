@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
-kind: CronWorkflowTemplate
+kind: CronWorkflow
 metadata:
   name: fence-usersync-cron
 spec:
   serviceAccountName: argo
-  schedule: "*/2 * * * *"
+  schedule: "*/30 * * * *"
   workflowSpec:
     workflowTemplateRef:
       name: fence-usersync-workflow
