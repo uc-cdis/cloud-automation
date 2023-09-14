@@ -131,7 +131,7 @@ EOF
     g3kubectl create namespace argo || true
     g3kubectl label namespace argo app=argo || true
     # Grant admin access within the argo namespace to the default SA in the argo namespace
-    g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=default:argo -n argo || true
+    g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n argo || true
   fi
   gen3_log_info "Creating IAM role ${roleName}"
   if aws iam get-role --role-name "${roleName}" > /dev/null 2>&1; then
