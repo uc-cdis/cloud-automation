@@ -128,8 +128,8 @@ EOF
     gen3_log_info "Creating argo namespace"
     g3kubectl create namespace argo || true
     g3kubectl label namespace argo app=argo || true
-    g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n argo || true
-    g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n $nameSpace || true
+    # Grant admin access within the argo namespace to the default SA in the argo namespace
+    g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=default:argo -n argo || true
   fi
   gen3_log_info "Creating IAM role ${roleName}"
   if aws iam get-role --role-name "${roleName}" > /dev/null 2>&1; then
@@ -137,15 +137,15 @@ EOF
       roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
       gen3_log_info "Role annotate"
       g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
-      g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
+      g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
   else
-        gen3 awsrole create $roleName default $nameSpace --flag all_namespaces
+        gen3 awsrole create $roleName argo $nameSpace --flag all_namespaces
         roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
         g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
   fi
 
-  # Grant admin access within the current namespace to the default SA in the current namespace
-  g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=$(gen3 db namespace):default -n $(gen3 db namespace) || true
+  # Grant admin access within the current namespace to the argo SA in the current namespace
+  g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=$nameSpace:argo -n $nameSpace || true
   aws iam put-role-policy --role-name ${roleName} --policy-name ${bucketPolicy} --policy-document file://$policyFile || true
   if [[ -z $internalBucketName ]]; then
     aws iam put-role-policy --role-name ${roleName} --policy-name ${internalBucketPolicy} --policy-document file://$internalBucketPolicyFile || true
