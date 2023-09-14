@@ -34,7 +34,7 @@ function gen3_awsrole_ar_policy() {
   local account_id
   local vpc_name
   shift || return 1
-  local flag="$1"
+  local flag="all_namespaces"
 
   vpc_name="$(gen3 api environment)" || return 1
   issuer_url="$(aws eks describe-cluster \
@@ -65,13 +65,16 @@ function gen3_awsrole_ar_policy() {
       },
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
-        "StringLike": {
+        "ForAllValues:StringLike": {
           "${issuer_url}:aud": "sts.amazonaws.com",
-          "${issuer_url}:sub": "system:serviceaccount:*:${serviceAccount}",
-          "${issuer_url}:sub": "system:serviceaccount:argo:default"
+          "StringEqualsIfExists": {
+            "${issuer_url}:sub": "system:serviceaccount:*:${serviceAccount}"
+          },
+          "StringEqualsIfExists": {
+            "${issuer_url}:sub": "system:serviceaccount:argo:default"
+          }
         }
       }
-    }
   ]
 }
 EOF
