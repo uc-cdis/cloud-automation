@@ -34,7 +34,7 @@ function gen3_awsrole_ar_policy() {
   local account_id
   local vpc_name
   shift || return 1
-  local flag="all_namespaces"
+  local flag=$1
 
   vpc_name="$(gen3 api environment)" || return 1
   issuer_url="$(aws eks describe-cluster \
@@ -48,62 +48,67 @@ function gen3_awsrole_ar_policy() {
 
   if [[ "$flag" == "all_namespaces" ]]; then
     # Use a trust policy that allows role to be used by multiple namespaces.
-      cat - <<EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Principal": {"Service": "ec2.amazonaws.com"},
-        "Action": "sts:AssumeRole"
+    cat - <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
       },
-      {
-        "Sid": "",
-        "Effect": "Allow",
-        "Principal": {
-          "Federated": "${provider_arn}"
-        },
-        "Action": "sts:AssumeRoleWithWebIdentity",
-        "Condition": {
-          "ForAllValues:StringLike": {
-            "${issuer_url}:aud": "sts.amazonaws.com",
-            "${issuer_url}:sub": "system:serviceaccount:*:${serviceAccount}",
-            "${issuer_url}:sub": "system:serviceaccount:argo:default"
-          }
+      "Action": "sts:AssumeRole"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${provider_arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "ForAllValues:StringLike": {
+          "${issuer_url}:aud": "sts.amazonaws.com",
+          "${issuer_url}:sub": [
+            "system:serviceaccount:*:${serviceAccount}",
+            "system:serviceaccount:argo:default"
+          ]
         }
       }
-    ]
-  }
-  EOF
+    }
+  ]
+}
+EOF
   else
     # Use default policy
-      cat - <<EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Principal": {"Service": "ec2.amazonaws.com"},
-        "Action": "sts:AssumeRole"
+    cat - <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {"Service": "ec2.amazonaws.com"},
+      "Action": "sts:AssumeRole"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${provider_arn}"
       },
-      {
-        "Sid": "",
-        "Effect": "Allow",
-        "Principal": {
-          "Federated": "${provider_arn}"
-        },
-        "Action": "sts:AssumeRoleWithWebIdentity",
-        "Condition": {
-          "StringEquals": {
-            "${issuer_url}:aud": "sts.amazonaws.com",
-            "${issuer_url}:sub": "system:serviceaccount:${namespace}:${serviceAccount}"
-          }
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "${issuer_url}:aud": "sts.amazonaws.com",
+          "${issuer_url}:sub": "system:serviceaccount:${namespace}:${serviceAccount}"
         }
       }
-    ]
-  }
-  EOF
+    }
+  ]
+}
+EOF
   fi
+}
 
 
 #
