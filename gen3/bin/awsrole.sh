@@ -68,7 +68,7 @@ function gen3_awsrole_ar_policy() {
         "StringLike": {
           "${issuer_url}:aud": "sts.amazonaws.com",
           "${issuer_url}:sub": "system:serviceaccount:*:${serviceAccount}",
-          "${issuer_url}:sub": "system:serviceaccount:argo:default,
+          "${issuer_url}:sub": "system:serviceaccount:argo:default
         }
       }
     }
