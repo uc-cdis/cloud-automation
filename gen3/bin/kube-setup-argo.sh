@@ -117,7 +117,9 @@ EOF
   ]
 }
 EOF
-
+  # Create argo SA within the current namespace
+  gen3_log_info "Creating argo SA in the current namespace"
+  g3kubectl create sa argo -n $nameSpace | true
   if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
     gen3_log_info "${bucketName} s3 bucket already exists"
     # continue on ...
@@ -139,7 +141,7 @@ EOF
       g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
       g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
   else
-        gen3 awsrole create $roleName argo $nameSpace --flag all_namespaces
+        gen3 awsrole create $roleName argo $nameSpace -f all_namespaces
         roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
         g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
   fi
