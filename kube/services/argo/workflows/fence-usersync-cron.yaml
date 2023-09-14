@@ -3,6 +3,7 @@ kind: CronWorkflowTemplate
 metadata:
   name: fence-usersync-cron
 spec:
+  serviceAccountName: argo
   schedule: "*/2 * * * *"
   workflowSpec:
     workflowTemplateRef:
