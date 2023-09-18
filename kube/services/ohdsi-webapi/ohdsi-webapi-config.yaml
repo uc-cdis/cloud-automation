@@ -26,6 +26,7 @@ stringData:
   security_ssl_enabled: "false"
 
   security_provider: AtlasRegularSecurity
+  security_ohdsi_custom_authorization_mode: "teamproject"
 
   security_auth_windows_enabled: "false"
   security_auth_kerberos_enabled: "false"
