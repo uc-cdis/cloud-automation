@@ -20,7 +20,7 @@ datadog:
 
   # datadog.apiKeyExistingSecret -- Use existing Secret which stores API key instead of creating a new one. The value should be set with the `api-key` key inside the secret.
   ## If set, this parameter takes precedence over "apiKey".
-  apiKeyExistingSecret:  "datadog-agent"
+  apiKeyExistingSecret:  "ddgov-apikey"
 
   # datadog.site -- The site of the Datadog intake to send Agent data to.
   # (documentation: https://docs.datadoghq.com/getting_started/site/)
