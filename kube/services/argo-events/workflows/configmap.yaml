@@ -31,7 +31,7 @@ data:
         role: $WORKFLOW_NAME
       limits:
         resources:
-          cpu: 1000
+          cpu: 2000
       providerRef:
         name: workflow-$WORKFLOW_NAME
       # Allow pods to be rearranged
