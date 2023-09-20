@@ -14,7 +14,7 @@ spec:
       - $values/kube/services/datadog/values.yaml
       releaseName: datadog
   - repoURL: 'https://github.com/uc-cdis/cloud-automation.git'
-    targetRevision: feat/dd-gov
+    targetRevision: master
     ref: values
   destination:
     server: 'https://kubernetes.default.svc'
