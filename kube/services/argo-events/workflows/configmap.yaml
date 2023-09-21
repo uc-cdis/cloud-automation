@@ -95,7 +95,7 @@ data:
       blockDeviceMappings:
         - deviceName: /dev/xvda
           ebs:
-            volumeSize: 50Gi
+            volumeSize: 100Gi
             volumeType: gp2
             encrypted: true
             deleteOnTermination: true
