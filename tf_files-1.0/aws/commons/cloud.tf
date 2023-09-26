@@ -53,6 +53,7 @@ module "cdis_vpc" {
   slack_webhook                  = var.slack_webhook
   deploy_cloud_trail             = var.deploy_cloud_trail
   send_logs_to_csoc              = var.send_logs_to_csoc
+  commons_log_retention          = var.commons_log_retention
 }
 
 # logs bucket for elb logs

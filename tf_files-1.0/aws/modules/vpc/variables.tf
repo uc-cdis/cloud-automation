@@ -140,3 +140,7 @@ variable "deploy_cloud_trail" {
 variable "send_logs_to_csoc" {
   default = true
 }
+
+variable "commons_log_retention" {
+  default = "3650"
+}

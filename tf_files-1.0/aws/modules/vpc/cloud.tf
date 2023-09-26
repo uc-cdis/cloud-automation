@@ -228,7 +228,7 @@ resource "aws_subnet" "public" {
 #
 resource "aws_cloudwatch_log_group" "main_log_group" {
   name              = var.vpc_name
-  retention_in_days = "1827"
+  retention_in_days = var.commons_log_retention
 
   tags = {
     Environment  = var.vpc_name
