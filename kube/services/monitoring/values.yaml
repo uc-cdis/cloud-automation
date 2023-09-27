@@ -214,9 +214,7 @@ prometheus:
 
 
 grafana:
-  grafana.ini: |
+  grafana.ini: |-
     [auth.anonymous]
     enabled = true
     org_role = Admin
-
-
