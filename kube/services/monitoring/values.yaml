@@ -215,6 +215,8 @@ prometheus:
 
 grafana:
   grafana.ini:
+    auth.basic:
+      enabled: false
     auth.anonymous:
       enabled: true
       org_name: Main Org.
