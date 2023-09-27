@@ -1,4 +1,3 @@
-# TL;DR
 
 This code supports automation of several PlanX processes:
 
