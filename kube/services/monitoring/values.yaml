@@ -214,7 +214,9 @@ prometheus:
 
 
 grafana:
-  grafana.ini:
-    server:
-      domain: 'gen3.datacommons.io'
-      root_url: '%(protocol)s://%(domain)s/grafana/'
+  grafana.ini: |
+    [auth.anonymous]
+    enabled = true
+    org_role = Admin
+
+
