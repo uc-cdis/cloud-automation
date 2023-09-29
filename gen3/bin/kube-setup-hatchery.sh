@@ -92,6 +92,7 @@ policy=$( cat <<EOM
             "Resource": "*"
         },
         {
+            "Sid": "PassRoleForNextflowBatchWorkspaces",
             "Effect": "Allow",
             "Action": "iam:PassRole",
             "Resource": [
