@@ -39,6 +39,7 @@ data:
         enabled: true
       # Kill nodes after 30 days to ensure they stay up to date
       ttlSecondsUntilExpired: 2592000
+      ttlSecondsAfterEmpty: 10
 
   nodetemplate.yaml: |
     apiVersion: karpenter.k8s.aws/v1alpha1
