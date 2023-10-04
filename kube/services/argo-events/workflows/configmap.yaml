@@ -34,9 +34,6 @@ data:
           cpu: 2000
       providerRef:
         name: workflow-$WORKFLOW_NAME
-      # Allow pods to be rearranged
-      consolidation:
-        enabled: true
       # Kill nodes after 30 days to ensure they stay up to date
       ttlSecondsUntilExpired: 2592000
       ttlSecondsAfterEmpty: 10
