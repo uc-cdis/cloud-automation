@@ -42,7 +42,7 @@ policy=$( cat <<EOM
             "Resource": "*"
         },
         {
-            "Sid": "DynamoDB",
+            "Sid": "ManageDynamoDB",
             "Effect": "Allow",
             "Action": [
                 "dynamodb:BatchGet*",
@@ -58,6 +58,46 @@ policy=$( cat <<EOM
                 "dynamodb:PutItem"
             ],
             "Resource": "arn:aws:dynamodb:*:*:table/*"
+        },
+        {
+            "Sid": "CreateNextflowBatchWorkspaces",
+            "Effect": "Allow",
+            "Action": [
+                "batch:DescribeComputeEnvironments",
+                "batch:CreateComputeEnvironment",
+                "batch:CreateJobQueue",
+                "batch:TagResource",
+                "iam:ListPolicies",
+                "iam:CreatePolicy",
+                "iam:TagPolicy",
+                "iam:ListPolicyVersions",
+                "iam:CreatePolicyVersion",
+                "iam:DeletePolicyVersion",
+                "iam:ListRoles",
+                "iam:CreateRole",
+                "iam:TagRole",
+                "iam:AttachRolePolicy",
+                "iam:CreateUser",
+                "iam:TagUser",
+                "iam:AttachUserPolicy",
+                "iam:ListAccessKeys",
+                "iam:CreateAccessKey",
+                "iam:DeleteAccessKey",
+                "iam:GetInstanceProfile",
+                "iam:CreateInstanceProfile",
+                "iam:AddRoleToInstanceProfile",
+                "iam:PassRole",
+                "s3:CreateBucket"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "PassRoleForNextflowBatchWorkspaces",
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": [
+                "arn:aws:iam::*:role/*ecsInstanceRole"
+            ]
         }
     ]
 }
@@ -69,12 +109,23 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
     roleName="$(gen3 api safe-name hatchery-sa)"
     gen3 awsrole create $roleName $saName
     policyName="$(gen3 api safe-name hatchery-policy)"
-    policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hathcery to assume csoc_adminvm role in other accounts, for multi-account workspaces")
+    policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hatchery to assume csoc_adminvm role in other accounts and manage dynamodb for multi-account workspaces, and to create resources for nextflow workspaces")
     if [ -n "$policyInfo" ]; then
-    policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
+        policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
     else
-        echo "Unable to create policy $policyName. Assuming it already exists and continuing"
+        echo "Unable to create policy '$policyName'. Assume it already exists and create a new version to update the permissions..."
         policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
+
+        # there can only be up to 5 versions, so delete old versions (except the current default one)
+        versions="$(gen3_aws_run aws iam list-policy-versions --policy-arn $policyArn | jq -r '.Versions[] | select(.IsDefaultVersion != true) | .VersionId')"
+        versions=(${versions}) # string to array
+        for v in "${versions[@]}"; do
+            echo "Deleting old version '$v'"
+            gen3_aws_run aws iam delete-policy-version --policy-arn $policyArn --version-id $v
+        done
+
+        # create the new version
+        gen3_aws_run aws iam create-policy-version --policy-arn "$policyArn" --policy-document "$policy" --set-as-default
     fi
 
     gen3_log_info "Attaching policy '${policyName}' to role '${roleName}'"
