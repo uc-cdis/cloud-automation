@@ -11,6 +11,7 @@ spec:
     Environment: VPC_NAME
     Name: eks-VPC_NAME-gpu-karpenter
     karpenter.sh/discovery: VPC_NAME
+    purpose: gpu
   metadataOptions:
     httpEndpoint: enabled
     httpProtocolIPv6: disabled

@@ -11,6 +11,7 @@ spec:
     Environment: VPC_NAME
     Name: eks-VPC_NAME-jupyter-karpenter
     karpenter.sh/discovery: VPC_NAME
+    purpose: jupyter
   metadataOptions:
     httpEndpoint: enabled
     httpProtocolIPv6: disabled
