@@ -18,11 +18,12 @@ data:
           operator: In
           values:
           - amd64
-        - key: karpenter.k8s.aws/instance-category
+        - key: karpenter.k8s.aws/instance-family
           operator: In
           values:
-          - c
-          - t
+          - c6i
+          - c7i
+          - m7i
       taints:
         - key: role
           value: $WORKFLOW_NAME
@@ -34,9 +35,6 @@ data:
           cpu: 2000
       providerRef:
         name: workflow-$WORKFLOW_NAME
-      # Allow pods to be rearranged
-      consolidation:
-        enabled: true
       # Kill nodes after 30 days to ensure they stay up to date
       ttlSecondsUntilExpired: 2592000
       ttlSecondsAfterEmpty: 10
@@ -98,7 +96,7 @@ data:
       blockDeviceMappings:
         - deviceName: /dev/xvda
           ebs:
-            volumeSize: 50Gi
+            volumeSize: 100Gi
             volumeType: gp2
             encrypted: true
             deleteOnTermination: true
