@@ -85,6 +85,8 @@ def update_filter_metadata(metadata_to_update):
     ]
     # Add any new tags from advSearchFilters
     for f in metadata_to_update["advSearchFilters"]:
+        if f["key"] == "Gender":
+            continue
         tag = {"name": f["value"], "category": f["key"]}
         if tag not in tags:
             tags.append(tag)
