@@ -56,6 +56,7 @@ data:
         workflowname: $WORKFLOW_NAME
         gen3username: $GEN3_USERNAME
         gen3service: argo-workflows
+        purpose: workflow
       metadataOptions:
         httpEndpoint: enabled
         httpProtocolIPv6: disabled
