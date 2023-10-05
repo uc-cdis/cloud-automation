@@ -7,6 +7,7 @@ spec:
   labels:
     jina.ai/node-type: gpu
     jina.ai/gpu-type: nvidia
+    purpose: gpu
   requirements:
     - key: node.kubernetes.io/instance-type
       operator: In
@@ -26,4 +27,3 @@ spec:
   # Use the default node template
   providerRef:
     name: gpu
-  ttlSecondsAfterEmpty: 30
