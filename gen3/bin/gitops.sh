@@ -291,9 +291,15 @@ gen3_gitops_sync() {
   if g3kubectl get configmap manifest-versions; then
     oldJson=$(g3kubectl get configmap manifest-versions -o=json | jq ".data")
   fi
-  newJson=$(g3k_config_lookup ".versions")
   echo "old JSON is: $oldJson"
-  echo "new JSON is: $newJson"
+  newJson=$(g3k_config_lookup ".versions")
+  # Make sure the script exits if newJSON contains invalid JSON 
+  if [ $? -ne 0 ]; then
+    echo "Error: g3k_config_lookup command failed- invalid JSON"
+    exit 1
+  else
+    echo "new JSON is: $newJson"
+  fi
   if [[ -z $newJson ]]; then
     echo "Manifest does not have versions section. Unable to get new versions, skipping version update."
   elif [[ -z $oldJson ]]; then
