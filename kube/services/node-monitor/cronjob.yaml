@@ -11,7 +11,7 @@ spec:
         spec:
           containers:
             - name: kubectl
-              image: bitnami/kubectl
+              image: quay.io/cdis/awshelper
               env:
                 # This is the label we want to monitor, probably will never need to change
                 - name: NODE_LABEL
