@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kubectl-cron
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: kubectl
+              image: bitnami/kubectl
+              command: |
+                #!/bin/bash
+                # Define slack webhook
+                SLACK_WEBHOOK_URL="https://hooks.slack.com/services/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"
+
+                # Define k8s node label
+                NODE_LABEL="purpose=workflow"
+
+                # Time in seconds that represents 3 hours
+                THRESHOLD_TIME=$((3*3600))
+
+                # Get all nodes with specific label and check their age
+                kubectl get nodes -l "$NODE_LABEL" -o json | jq -c '.items[] | {name: .metadata.name, creationTimestamp: .metadata.creationTimestamp}' | while read node_info; do
+                    NODE_NAME=$(echo $node_info | jq -r '.name')
+                    CREATION_TIMESTAMP=$(echo $node_info | jq -r '.creationTimestamp')
+
+                    # Convert creation timestamp to Unix Epoch time
+                    CREATION_EPOCH=$(date -d "$CREATION_TIMESTAMP" +%s)
+
+                    # Get current Unix Epoch time
+                    CURRENT_EPOCH=$(date +%s)
+
+                    # Calculate node age in seconds
+                    NODE_AGE=$(($CURRENT_EPOCH - $CREATION_EPOCH))
+
+                    # Check if node age is greater than threshold
+                    if [ "$NODE_AGE" -gt "$THRESHOLD_TIME" ]; then
+                        # Send alert to Slack
+                        curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Node \`${NODE_NAME}\` is older than 3 hours!\"}" $SLACK_WEBHOOK_URL
+                    fi
+                done
+
+          restartPolicy: OnFailure
