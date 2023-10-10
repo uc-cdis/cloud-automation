@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/uc-cdis/cloud-automation.git
-    targetRevision: feat/node-monitor
+    targetRevision: master
     path: kube/services/node-monitor
     directory:
       exclude: "application.yaml"
