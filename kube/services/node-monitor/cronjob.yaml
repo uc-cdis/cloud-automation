@@ -9,6 +9,7 @@ spec:
     spec:
       template:
         spec:
+          serviceAccountName: node-monitor
           containers:
             - name: kubectl
               image: quay.io/cdis/awshelper
