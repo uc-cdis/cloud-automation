@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: node-monitor-cron
+  namespace: default
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          serviceAccountName: node-monitor
+          containers:
+            - name: kubectl
+              image: quay.io/cdis/awshelper
+              env:
+                # This is the label we want to monitor, probably will never need to change
+                - name: NODE_LABEL
+                  value: purpose=workflow
+                  # This is 3 * 3600, or 3 hours
+                - name: THRESHOLD_TIME
+                  value: "10800"
+                - name: SLACK_WEBHOOK_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
+
+              command: ["/bin/bash"]
+              args:
+                - "-c"
+                - |
+                  #!/bin/bash
+                  # Get all nodes with specific label and check their age
+                  kubectl get nodes -l "$NODE_LABEL" -o json | jq -c '.items[] | {name: .metadata.name, creationTimestamp: .metadata.creationTimestamp}' | while read node_info; do
+                      NODE_NAME=$(echo $node_info | jq -r '.name')
+                      CREATION_TIMESTAMP=$(echo $node_info | jq -r '.creationTimestamp')
+
+                      # Convert creation timestamp to Unix Epoch time
+                      CREATION_EPOCH=$(date -d "$CREATION_TIMESTAMP" +%s)
+
+                      # Get current Unix Epoch time
+                      CURRENT_EPOCH=$(date +%s)
+
+                      # Calculate node age in seconds
+                      NODE_AGE=$(($CURRENT_EPOCH - $CREATION_EPOCH))
+
+                      # Check if node age is greater than threshold
+                      if [ "$NODE_AGE" -gt "$THRESHOLD_TIME" ]; then
+                          echo "Node $NODE_NAME has been around too long, sending an alert"
+                          # Send alert to Slack
+                          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Node \`${NODE_NAME}\` is older than 3 hours!\"}" $SLACK_WEBHOOK_URL
+                      fi
+                  done
+          restartPolicy: OnFailure
