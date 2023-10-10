@@ -50,6 +50,7 @@ spec:
 
                       # Check if node age is greater than threshold
                       if [ "$NODE_AGE" -gt "$THRESHOLD_TIME" ]; then
+                          echo "Node $NODE_NAME has been around too long, sending an alert"
                           # Send alert to Slack
                           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Node \`${NODE_NAME}\` is older than 3 hours!\"}" $SLACK_WEBHOOK_URL
                       fi
