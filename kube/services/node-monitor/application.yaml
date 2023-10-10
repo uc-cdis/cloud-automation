@@ -14,3 +14,9 @@ spec:
     path: kube/services/node-monitor
     directory:
       exclude: "application.yaml"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
