@@ -50,5 +50,6 @@ spec:
                           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Node \`${NODE_NAME}\` is older than 3 hours!\"}" $SLACK_WEBHOOK_URL
                       fi
                   done
+                  sleep 500
 
           restartPolicy: OnFailure
