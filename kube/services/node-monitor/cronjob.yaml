@@ -24,7 +24,6 @@ spec:
                     configMapKeyRef:
                       name: global
                       key: slack_webhook
-                      required: true
 
               command: ["/bin/bash"]
               args:
