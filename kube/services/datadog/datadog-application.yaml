@@ -6,18 +6,18 @@ metadata:
 spec:
   project: default
   sources:
-  - chart: datadog
-    repoURL: 'https://helm.datadoghq.com'
-    targetRevision: 3.6.4
-    helm:
-      valueFiles:
-      - $values/kube/services/datadog/values.yaml
-      releaseName: datadog
-  - repoURL: 'https://github.com/uc-cdis/cloud-automation.git'
-    targetRevision: master
-    ref: values
+    - chart: datadog
+      repoURL: "https://helm.datadoghq.com"
+      targetRevision: 3.6.4
+      helm:
+        valueFiles:
+          - $values/kube/services/datadog/values.yaml
+        releaseName: datadog
+    - repoURL: "https://github.com/uc-cdis/cloud-automation.git"
+      targetRevision: master
+      ref: values
   destination:
-    server: 'https://kubernetes.default.svc'
+    server: "https://kubernetes.default.svc"
     namespace: datadog
   syncPolicy:
     automated:

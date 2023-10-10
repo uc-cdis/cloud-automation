@@ -8,11 +8,10 @@ spec:
     jina.ai/node-type: gpu-shared
     jina.ai/gpu-type: nvidia
     nvidia.com/device-plugin.config: shared_gpu
-    purpose: workflow
   requirements:
     - key: karpenter.k8s.aws/instance-family
       operator: In
-      values: ["g4dn", "g5", "p4", "p3"]
+      values: ["g4dn", "g5","p4","p3"]
     - key: karpenter.sh/capacity-type
       operator: In
       values: ["spot", "on-demand"]
@@ -28,3 +27,4 @@ spec:
   # Use the default node template
   providerRef:
     name: gpu
+  ttlSecondsAfterEmpty: 30
