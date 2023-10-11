@@ -169,6 +169,9 @@ while((limit + offset <= total)):
                     print("Metadata is already registered. Updating MDS record")
                 elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
                     print("Metadata has not been registered. Registering it in MDS record")
+                else:
+                    print(f"This metadata data record has a special GUID type \"{mds_res['_guid_type']}\" and will be skipped")
+                    continue
 
                 if "clinicaltrials_gov" in cedar_record:
                     mds_clinical_trials = cedar_record["clinicaltrials_gov"]
