@@ -1,0 +1,14 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: aws-logging
+  namespace: aws-observability
+data:
+  output.conf: |
+    [OUTPUT]
+        Name cloudwatch_logs
+        Match   *
+        region us-east-1
+        log_group_name fluent-bit-eks-cloudwatch
+        log_stream_prefix from-fluent-bit-
+        auto_create_group On
