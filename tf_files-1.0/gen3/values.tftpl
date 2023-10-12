@@ -1,0 +1,155 @@
+global:
+  aws:
+    enabled: true
+
+  dev: false
+  postgres:
+    dbCreate: false
+    master:
+      username: "${aurora_username}"
+      password: "${aurora_password}"
+      host: "${aurora_hostname}"
+      port: "5432"
+  environment: "${vpc_name}"
+  hostname: "${hostname}"
+  revproxyArn: "${revproxy_arn}"
+  dictionaryUrl: "${dictionary_url}"
+  portalApp: gitops
+  publicDataSets: ${public_datasets}
+  tierAccessLevel: "${tier_access_level}"
+  tierAccessLimit: ${tier_access_limit}
+  netPolicy: ${netpolicy_enabled}
+  dispatcherJobNum: "${dispatcher_job_number}"
+  ddEnabled: ${dd_enabled}
+
+ambassador:
+  enabled: ${ambassador_enabled}
+
+arborist:
+  enabled: ${arborist_enabled}
+
+argo-wrapper:
+  enabled: ${argo_enabled}
+
+audit:
+  enabled: ${audit_enabled}
+
+
+aws-es-proxy:
+  enabled: ${aws-es-proxy_enabled}
+  esEndpoint: ${es_endpoint}
+  secrets:
+    awsAccessKeyId: ${es_user_key}
+    awsSecretAccessKey: ${es_user_secret}
+
+fence:
+  enabled: ${fence_enabled}
+
+  FENCE_CONFIG: 
+    ${fence_config}
+
+  USER_YAML: |
+    ${user_yaml}
+
+  usersync:
+    usersync: ${usersync_enabled}
+    schedule: "${usersync_schedule}"
+    syncFromDbgap: ${dbgap_enabled}
+    userYamlS3Path: "${useryaml_s3_path}"
+    slack_webhook: "${slack_webhook}"
+    slack_send_dbgap: ${slack_send_dbgap}
+
+guppy:
+  enabled: ${guppy_enabled}
+
+hatchery:
+  enabled: ${hatchery_enabled}
+
+  hatchery:
+    sidecarContainer:
+      cpu-limit: '0.1'
+      memory-limit: 256Mi
+      image: quay.io/cdis/ecs-ws-sidecar:master
+      env:
+        NAMESPACE: "{{ .Release.Namespace }}"
+        HOSTNAME: "{{ .Values.global.hostname }}"
+      args: []
+      command:
+      - "/bin/bash"
+      - "./sidecar.sh"
+      lifecycle-pre-stop:
+      - su
+      - "-c"
+      - echo test
+      - "-s"
+      - "/bin/sh"
+      - root
+    containers:
+      -
+        target-port: 8888
+        cpu-limit: '1.0'
+        memory-limit: 2Gi
+        name: "(Tutorials) Example Analysis Jupyter Lab Notebooks"
+        image: quay.io/cdis/heal-notebooks:combined_tutorials__latest
+        env:
+          FRAME_ANCESTORS: https://{{ .Values.global.hostname }}
+        args:
+        - "--NotebookApp.base_url=/lw-workspace/proxy/"
+        - "--NotebookApp.default_url=/lab"
+        - "--NotebookApp.password=''"
+        - "--NotebookApp.token=''"
+        - "--NotebookApp.shutdown_no_activity_timeout=5400"
+        - "--NotebookApp.quit_button=False"
+        command:
+        - start-notebook.sh
+        path-rewrite: "/lw-workspace/proxy/"
+        use-tls: 'false'
+        ready-probe: "/lw-workspace/proxy/"
+        lifecycle-post-start:
+        - "/bin/sh"
+        - "-c"
+        - export IAM=`whoami`; rm -rf /home/$IAM/pd/dockerHome; rm -rf /home/$IAM/pd/lost+found;
+          ln -s /data /home/$IAM/pd/; true
+        user-uid: 1000
+        fs-gid: 100
+        user-volume-location: "/home/jovyan/pd"
+        gen3-volume-location: "/home/jovyan/.gen3"
+
+
+indexd:
+  enabled: ${indexd_enabled}
+  defaultPrefix: ${indexd_prefix}
+
+
+manifestservice:
+  enabled: ${manifestservice_enabled}
+
+metadata:
+  enabled: ${metadata_enabled}
+
+peregrine:
+  enabled: ${peregrine_enabled}
+
+pidgin:
+  enabled: ${pidgin_enabled}
+
+portal:
+  enabled: ${portal_enabled}
+  gitops:
+  json: | 
+    ${gitops_file}
+
+requestor:
+  enabled: ${requestor_enabled}
+
+revproxy:
+  enabled: ${revproxy_enabled}
+
+sheepdog:
+  enabled: ${sheepdog_enabled}
+
+ssjdispatcher:
+  enabled: ${ssjdispatcher_enabled}
+
+wts:
+  enabled: ${wts_enabled}

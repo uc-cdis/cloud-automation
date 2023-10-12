@@ -1,0 +1,19 @@
+DO
+\$do\$
+BEGIN
+   IF EXISTS (
+      SELECT FROM pg_catalog.pg_user
+      WHERE  usename = '${username}') THEN
+      ALTER USER \"${username}\" WITH PASSWORD '${password}';
+      RAISE NOTICE 'User \"${username}\" already exists. Updating password.';
+   ELSE
+      BEGIN   -- nested block
+         CREATE USER \"${username}\" LOGIN PASSWORD '${password}';
+      EXCEPTION
+         WHEN duplicate_object THEN
+            RAISE NOTICE 'User \"${username}\" was just created by a concurrent transaction. Skipping.';
+      END;
+   END IF;
+END
+\$do\$;
+GRANT ALL ON DATABASE \"${database}\" TO \"${username}\" WITH GRANT OPTION;

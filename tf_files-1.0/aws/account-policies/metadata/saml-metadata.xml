@@ -1,0 +1,127 @@
+<!-- University of Chicago -->
+<!-- Grabbed from here https://uchicago.service-now.com/it?id=kb_article&kb=KB06001762  -->
+<EntityDescriptor entityID="urn:mace:incommon:uchicago.edu" xmlns="urn:oasis:names:tc:SAML:2.0:metadata"
+                  xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:shibmd="urn:mace:shibboleth:metadata:1.0"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="urn:mace:shibboleth:metadata:1.0 ">
+    <IDPSSODescriptor
+            protocolSupportEnumeration="urn:mace:shibboleth:1.0 urn:oasis:names:tc:SAML:1.1:protocol urn:oasis:names:tc:SAML:2.0:protocol">
+        <Extensions>
+            <shibmd:Scope regexp="false">uchicago.edu</shibmd:Scope>
+            <mdui:UIInfo xmlns:mdui="urn:oasis:names:tc:SAML:metadata:ui">
+                <mdui:DisplayName xml:lang="en">University of Chicago</mdui:DisplayName>
+                <mdui:Description xml:lang="en">The University of Chicago Web Single Sign-On servce</mdui:Description>
+                <mdui:Logo height="83" width="350" xml:lang="en">
+                    https://shibboleth2.uchicago.edu/idp/shib_img/idplogo.png
+                </mdui:Logo>
+            </mdui:UIInfo>
+        </Extensions>
+        <KeyDescriptor use="signing">
+            <ds:KeyInfo>
+                <ds:X509Data>
+                    <!-- Serial No. 451590089624257211629954119648006166668584246362, expires on Apr 6 16:52:52 2023 GMT -->
+                    <ds:X509Certificate>
+                        MIIDJzCCAg+gAwIBAgIUTxn//hoDQS7t6P7L6s2IFF3pXFowDQYJKoZIhvcNAQEL
+                        BQAwIzEhMB8GA1UEAwwYc2hpYmJvbGV0aDIudWNoaWNhZ28uZWR1MB4XDTIxMDQw
+                        NjE2NTI1MloXDTIzMDQwNjE2NTI1MlowIzEhMB8GA1UEAwwYc2hpYmJvbGV0aDIu
+                        dWNoaWNhZ28uZWR1MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5j6C
+                        3tfCBvL9kT4YaONJiVBQSftS1e7ruwnx+fmy3xb83AXA5W2beafSMF6mSPo9WFIb
+                        mNURhtbIIHrDasomvvT8K5d0stJ1G4TUYOdBT4Fwq+8lG9UN7ExEs796YKPIiTvB
+                        f4tYcyS+KvQFB30U9RoY8s4o/oRfSjgQuIR67Qw/PwlgZTChYZFHMKvEieDbRDnJ
+                        dESKvhfCyqPtOjRtlKrvZTbvDPMq9w8Ez9rlVxIBdce39JQdvh7uZZUYLVph1mJR
+                        KcmTE7p73hmctx0+ulTVj6liXx2tnANfDBVVcGeII5KKU+tPQ1rmHcBUaB2w1iGK
+                        KwsKwZSYAnRc0cCDyQIDAQABo1MwUTAdBgNVHQ4EFgQUKWirGRFrZ+NA6OSIqiIJ
+                        aHWoBAUwHwYDVR0jBBgwFoAUKWirGRFrZ+NA6OSIqiIJaHWoBAUwDwYDVR0TAQH/
+                        BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAcdLdaXZpDQus+C12fqdyK4hNa+ub
+                        BAh9isArXpNchocdRkgYjX7q2F7bs395ucYQlW4ZDo54Z/6T3cP9+nIuSM9kEh3a
+                        tpNgTv+yUiSQu6lae7xkXUYs7GLAFuWEMb3QaLE+WzPpb903q9TPKEjwC++rZROm
+                        W6ueGX5xvHcbBBj1FSOKPye/B+GDYjmKuxyaOhbKgPogJmwB7741drIJZndHcP24
+                        nbDOjymgwD+kHATkm648/W2EhZbPdMpDb5hc0HX4Kv7E6wuN5vXtNyNrRLDNk0CC
+                        xn4KtX8sdZycdR13NQiwCEoSTlMamHjjDDV/TXlDPxQF8MHXkX6BZKXRmg==
+                    </ds:X509Certificate>
+                </ds:X509Data>
+            </ds:KeyInfo>
+        </KeyDescriptor>
+        <ArtifactResolutionService Binding="urn:oasis:names:tc:SAML:1.0:bindings:SOAP-binding"
+                                   Location="https://shibboleth2.uchicago.edu:8443/idp/profile/SAML1/SOAP/ArtifactResolution"
+                                   index="1"/>
+        <ArtifactResolutionService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+                                   Location="https://shibboleth2.uchicago.edu:8443/idp/profile/SAML2/SOAP/ArtifactResolution"
+                                   index="2"/>
+        <SingleSignOnService Binding="urn:mace:shibboleth:1.0:profiles:AuthnRequest"
+                             Location="https://shibboleth2.uchicago.edu/idp/profile/Shibboleth/SSO"/>
+        <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                             Location="https://shibboleth2.uchicago.edu/idp/profile/SAML2/POST/SSO"/>
+        <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST-SimpleSign"
+                             Location="https://shibboleth2.uchicago.edu/idp/profile/SAML2/POST-SimpleSign/SSO"/>
+        <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+                             Location="https://shibboleth2.uchicago.edu/idp/profile/SAML2/Redirect/SSO"/>
+        <SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+                             Location="https://shibboleth2.uchicago.edu/idp/profile/SAML2/SOAP/ECP"/>
+    </IDPSSODescriptor>
+    <AttributeAuthorityDescriptor
+            protocolSupportEnumeration="urn:oasis:names:tc:SAML:1.1:protocol urn:oasis:names:tc:SAML:2.0:protocol">
+        <Extensions>
+            <shibmd:Scope regexp="false">uchicago.edu</shibmd:Scope>
+        </Extensions>
+        <KeyDescriptor use="signing">
+            <ds:KeyInfo>
+                <ds:X509Data>
+                    <!-- Serial No. 451590089624257211629954119648006166668584246362, expires on Apr 6 16:52:52 2023 GMT -->
+                    <ds:X509Certificate>
+                        MIIDJzCCAg+gAwIBAgIUTxn//hoDQS7t6P7L6s2IFF3pXFowDQYJKoZIhvcNAQEL
+                        BQAwIzEhMB8GA1UEAwwYc2hpYmJvbGV0aDIudWNoaWNhZ28uZWR1MB4XDTIxMDQw
+                        NjE2NTI1MloXDTIzMDQwNjE2NTI1MlowIzEhMB8GA1UEAwwYc2hpYmJvbGV0aDIu
+                        dWNoaWNhZ28uZWR1MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5j6C
+                        3tfCBvL9kT4YaONJiVBQSftS1e7ruwnx+fmy3xb83AXA5W2beafSMF6mSPo9WFIb
+                        mNURhtbIIHrDasomvvT8K5d0stJ1G4TUYOdBT4Fwq+8lG9UN7ExEs796YKPIiTvB
+                        f4tYcyS+KvQFB30U9RoY8s4o/oRfSjgQuIR67Qw/PwlgZTChYZFHMKvEieDbRDnJ
+                        dESKvhfCyqPtOjRtlKrvZTbvDPMq9w8Ez9rlVxIBdce39JQdvh7uZZUYLVph1mJR
+                        KcmTE7p73hmctx0+ulTVj6liXx2tnANfDBVVcGeII5KKU+tPQ1rmHcBUaB2w1iGK
+                        KwsKwZSYAnRc0cCDyQIDAQABo1MwUTAdBgNVHQ4EFgQUKWirGRFrZ+NA6OSIqiIJ
+                        aHWoBAUwHwYDVR0jBBgwFoAUKWirGRFrZ+NA6OSIqiIJaHWoBAUwDwYDVR0TAQH/
+                        BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAcdLdaXZpDQus+C12fqdyK4hNa+ub
+                        BAh9isArXpNchocdRkgYjX7q2F7bs395ucYQlW4ZDo54Z/6T3cP9+nIuSM9kEh3a
+                        tpNgTv+yUiSQu6lae7xkXUYs7GLAFuWEMb3QaLE+WzPpb903q9TPKEjwC++rZROm
+                        W6ueGX5xvHcbBBj1FSOKPye/B+GDYjmKuxyaOhbKgPogJmwB7741drIJZndHcP24
+                        nbDOjymgwD+kHATkm648/W2EhZbPdMpDb5hc0HX4Kv7E6wuN5vXtNyNrRLDNk0CC
+                        xn4KtX8sdZycdR13NQiwCEoSTlMamHjjDDV/TXlDPxQF8MHXkX6BZKXRmg==
+                    </ds:X509Certificate>
+                </ds:X509Data>
+            </ds:KeyInfo>
+        </KeyDescriptor>
+        <AttributeService Binding="urn:oasis:names:tc:SAML:1.0:bindings:SOAP-binding"
+                          Location="https://shibboleth2.uchicago.edu:8443/idp/profile/SAML1/SOAP/AttributeQuery"/>
+        <AttributeService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
+                          Location="https://shibboleth2.uchicago.edu:8443/idp/profile/SAML2/SOAP/AttributeQuery"/>
+    </AttributeAuthorityDescriptor>
+    <Organization>
+        <OrganizationName xml:lang="en">University of Chicago</OrganizationName>
+        <OrganizationDisplayName xml:lang="en">University of Chicago</OrganizationDisplayName>
+        <OrganizationURL xml:lang="en">http://www.uchicago.edu/</OrganizationURL>
+    </Organization>
+    <ContactPerson contactType="administrative">
+        <GivenName>Tom Barton</GivenName>
+        <EmailAddress>tbarton@uchicago.edu</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="administrative">
+        <GivenName>David Langenberg</GivenName>
+        <EmailAddress>davel@uchicago.edu</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="support">
+        <GivenName>IT Services Support</GivenName>
+        <EmailAddress>support@uchicago.edu</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="other">
+        <GivenName>IT Security</GivenName>
+        <EmailAddress>security@uchicago.edu</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="technical">
+        <GivenName>Joao Cassamano</GivenName>
+        <EmailAddress>cassamanojc@uchicago.edu</EmailAddress>
+    </ContactPerson>
+    <ContactPerson contactType="technical">
+        <GivenName>Esmail Sharafuddin</GivenName>
+        <EmailAddress>esmailsh@uchicago.edu</EmailAddress>
+    </ContactPerson>
+</EntityDescriptor>

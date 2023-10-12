@@ -1,0 +1,21 @@
+BASE_URL: 'https://${hostname}/user'
+    ENCRYPTION_KEY: testtest
+
+    DEBUG: True
+    OPENID_CONNECT:
+      google:
+        client_id: "${google_client_id}"
+        client_secret: "${google_client_secret}"
+
+    AWS_CREDENTIALS:
+      'fence-bot':
+        aws_access_key_id: '${fence_access_key}'
+        aws_secret_access_key: '${fence_secret_key}'
+
+    S3_BUCKETS:
+      # Name of the actual s3 bucket
+      ${upload_bucket}:
+        cred: 'fence-bot'
+        region: us-east-1
+    
+    DATA_UPLOAD_BUCKET: '${upload_bucket}'
