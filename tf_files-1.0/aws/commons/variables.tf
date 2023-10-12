@@ -1033,5 +1033,5 @@ variable "ci_run" {
 
 variable "commons_log_retention" {
   description = "value in days for the cloudwatch log retention period"
-  default = "3650"
+  default = "3653"
 }
