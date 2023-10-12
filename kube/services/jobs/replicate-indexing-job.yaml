@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: aws-bucket-replicate
+  name: replicate-indexing
 spec:
   # not yet supported - backOffLimit: 3
   template:
@@ -14,6 +14,9 @@ spec:
         - name: aws-cred-volume
           secret:
             secretName: "aws-creds-secret"
+        - name: gs-cred-volume
+          secret:
+            secretName: "google-creds-secret"
         - name: setting-volume
           secret:
             secretName: "dataservice-settings-secrets"
@@ -24,12 +27,6 @@ spec:
       - name: datareplicate
         GEN3_DATAREPLICATE_IMAGE
         imagePullPolicy: Always
-        resources:
-          limits:
-            memory: "32Gi"
-          requests:
-            cpu: "14"
-            memory: "24Gi"
         env:
           - name: RELEASE
             GEN3_RELEASE
@@ -43,6 +40,9 @@ spec:
           - name: aws-cred-volume
             mountPath: "/root/.aws/credentials"
             subPath: credentials
+          - name: gs-cred-volume
+            mountPath: "/secrets/google_service_account_creds"
+            subPath: google_service_account_creds
           - name: "setting-volume"
             mountPath: "/secrets/dataservice_settings.json"
             subPath: "dataservice_settings.json"
@@ -50,14 +50,15 @@ spec:
             mountPath: "/secrets/dcf_dataservice_settings.json"
             subPath: "dcf_dataservice_settings.json"
         command: ["/bin/bash" ]
-        args:
+        args: 
           - "-c"
           - |
             echo """
             [default]
             region: us-east-1
             """ > ~/.aws/config
-            aws configure set default.s3.max_concurrent_requests 1000
-            aws configure set default.s3.max_queue_size 10000
-            python run.py aws_replicate --release $RELEASE --thread_num $THREAD_NUM --skip_to $SKIP_TO --dry_run $dry_run --global_config "{\"release\": \"$RELEASE\", \"thread_num\": \"$THREAD_NUM\", \"skip_to\": \"$SKIP_TO\", \"dry_run\": \"$DRY_RUN\"}"
+            gcloud auth activate-service-account --key-file=/secrets/google_service_account_creds
+            export GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_service_account_creds
+            aws s3 cp $IGNORED_FILE_S3 /dcf-dataservice/ignored_files_manifest.csv
+            python run.py index --release $RELEASE --thread_num $THREAD_NUM --skip_to $SKIP_TO --dry_run $dry_run --global_config "{\"release\": \"$RELEASE\", \"thread_num\": \"$THREAD_NUM\", \"skip_to\": \"$SKIP_TO\", \"dry_run\": \"$DRY_RUN\"}"
       restartPolicy: Never

@@ -1,5 +1,4 @@
-# run with
-# Ex. gen3 job run jobs/replicate-validation-job.yaml RELEASE DR16 IGNORED_FILE gs://data-flow-code/ignored/ignored_files_manifest.csv MANIFEST_FILES 's3://giang816test/GDC_full_sync_legacy_manifest_20190326_post_DR16.0.tsv' OUT_FILES 'GDC_full_sync_legacy_manifest_20190326_post_DR16_DCF.tsv' LOG_BUCKET 'xssxs'
+# Documentation: https://github.com/uc-cdis/cdis-wiki/blob/cf5e68f417993676f6e8c8d8c744e29b984ed7a0/ops/Data-refresh.md
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -14,16 +13,16 @@ spec:
       volumes:
         - name: aws-cred-volume
           secret:
-            secretName: "dcf-aws-creds-secret"
-        - name: cred-volume
+            secretName: "aws-creds-secret"
+        - name: gs-cred-volume
           secret:
             secretName: "google-creds-secret"
         - name: setting-volume
           secret:
-            secretName: "dcf-dataservice-settings-secrets"
-        - name: creds-json-volume
+            secretName: "dataservice-settings-secrets"
+        - name: dcf-setting-volume
           secret:
-            secretName: "dcf-dataservice-json-secret"
+            secretName: "dcf-dataservice-settings-secrets"
       containers:
       - name: datareplicate
         GEN3_DATAREPLICATE_IMAGE
@@ -37,29 +36,23 @@ spec:
         env:
           - name: RELEASE
             GEN3_RELEASE
-          - name: IGNORED_FILE
-            GEN3_IGNORED_FILE
-          - name: MANIFEST_FILES
-            GEN3_MANIFEST_FILES
-          - name: OUT_FILES
-            GEN3_OUT_FILES
-          - name: FORCE_CREATE_MANIFEST
-            GEN3_FORCE_CREATE_MANIFEST
-          - name: LOG_BUCKET
-            GEN3_LOG_BUCKET
+          - name: SKIP_TO
+            GEN3_SKIP_TO
+          - name: DRY_RUN
+            GEN3_DRY_RUN|-value: "False"-|
         volumeMounts:
           - name: aws-cred-volume
             mountPath: "/root/.aws/credentials"
             subPath: credentials
-          - name: cred-volume
+          - name: gs-cred-volume
             mountPath: "/secrets/google_service_account_creds"
             subPath: google_service_account_creds
           - name: "setting-volume"
-            mountPath: "/secrets/dcf_dataservice_settings"
-            subPath: "dcf_dataservice_settings"
-          - name: "creds-json-volume"
-            mountPath: "/secrets/dcf_dataservice_credentials.json"
-            subPath: "dcf_dataservice_credentials.json"
+            mountPath: "/secrets/dataservice_settings.json"
+            subPath: "dataservice_settings.json"
+          - name: "dcf-setting-volume"
+            mountPath: "/secrets/dcf_dataservice_settings.json"
+            subPath: "dcf_dataservice_settings.json"
         command: ["/bin/bash" ]
         args:
           - "-c"
@@ -68,9 +61,8 @@ spec:
             [default]
             region: us-east-1
             """ > ~/.aws/config
-            cat /secrets/dcf_dataservice_settings > ./scripts/settings.py
             gcloud auth activate-service-account --key-file=/secrets/google_service_account_creds
             export GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_service_account_creds
             gsutil cp $IGNORED_FILE /dcf-dataservice/ignored_files_manifest.csv
-            python replicate.py validate --global_config "{\"release\": \"$RELEASE\", \"manifest_files\":\"$MANIFEST_FILES\", \"out_manifests\": \"$OUT_FILES\", \"FORCE_CREATE_MANIFEST\": \"$FORCE_CREATE_MANIFEST\", \"log_bucket\": \"$LOG_BUCKET\", \"save_copied_objects\": 1}"
+            python run.py validate --release $RELEASE --skip_to $SKIP_TO --dry_run $dry_run --global_config "{\"release\": \"$RELEASE\", \"skip_to\": \"$SKIP_TO\", \"dry_run\": \"$DRY_RUN\"}"
       restartPolicy: Never
