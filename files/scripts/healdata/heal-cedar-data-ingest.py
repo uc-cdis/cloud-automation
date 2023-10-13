@@ -97,7 +97,6 @@ def get_client_token(client_id: str, client_secret: str):
         token_url = f"http://revproxy-service/user/oauth2/token"
         headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         params = {'grant_type': 'client_credentials'}
-        # CEDAR job has openid, user, test-client
         data = 'scope=openid user data'
 
         token_result = requests.post(
