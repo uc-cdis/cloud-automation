@@ -11,6 +11,7 @@ spec:
     karpenter.sh/discovery: VPC_NAME
     Environment: VPC_NAME
     Name: eks-VPC_NAME-karpenter
+    purpose: default
   metadataOptions:
     httpEndpoint: enabled
     httpProtocolIPv6: disabled
