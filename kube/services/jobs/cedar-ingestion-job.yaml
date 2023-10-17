@@ -71,11 +71,12 @@ spec:
             secretKeyRef:
               name: cedar-g3auto
               key: "directory_id.txt"
+        - name:  CEDAR_CLIENT_CREDENTIALS
+          valueFrom:
+            secretKeyRef:
+              name: cedar-g3auto
+              key: "cedar_client_credentials.json"
         volumeMounts:
-        - name: cedar-client-volume-g3auto
-          readOnly: true
-          mountPath: /tmp/cedar_client_credentials.json
-          subPath: cedar_client_credentials.json
         - name: shared-data
           mountPath: /mnt/shared
         resources:
@@ -99,9 +100,9 @@ spec:
               echo "CEDAR_DIRECTORY_ID is from command line parameter"
             fi
 
-            if [[ -f /tmp/cedar_client_credentials.json ]]; then
-              export CEDAR_CLIENT_ID=$(cat /tmp/cedar_client_credentials.json | jq -r .client_id)
-              export CEDAR_CLIENT_SECRET=$(cat /tmp/cedar_client_credentials.json | jq -r .client_secret)
+            if [[ ! -z "$CEDAR_CLIENT_CREDENTIALS" ]]; then
+              export CEDAR_CLIENT_ID=$(echo $CEDAR_CLIENT_CREDENTIALS | jq -r .client_id)
+              export CEDAR_CLIENT_SECRET=$(echo $CEDAR_CLIENT_CREDENTIALS | jq -r .client_secret)
             else
               echo -e "Could not read cedar-client credentials" 1>&2
               exit 0
@@ -110,8 +111,13 @@ spec:
             pip install pydash
             export GEN3_HOME="$HOME/cloud-automation"
             python ${GEN3_HOME}/files/scripts/healdata/heal-cedar-data-ingest.py --directory $CEDAR_DIRECTORY_ID --client_id $CEDAR_CLIENT_ID --client_secret $CEDAR_CLIENT_SECRET --hostname $HOSTNAME
-            echo "All done - exit status $?"
-            touch /mnt/shared/success
+            status=$?
+            if [[ $status -ne 0 ]]; then
+              echo "WARNING: non zero exit code: $status"
+            else
+              echo "All done - exit code: $status"
+              touch /mnt/shared/success
+            fi
       containers:
         - name: awshelper
           env:
