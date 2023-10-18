@@ -20,7 +20,18 @@ datadog:
 
   # datadog.apiKeyExistingSecret -- Use existing Secret which stores API key instead of creating a new one. The value should be set with the `api-key` key inside the secret.
   ## If set, this parameter takes precedence over "apiKey".
-  apiKeyExistingSecret:  "datadog-agent"
+  apiKeyExistingSecret:  "ddgov-apikey"
+
+  # datadog.site -- The site of the Datadog intake to send Agent data to.
+  # (documentation: https://docs.datadoghq.com/getting_started/site/)
+
+  ## Set to 'datadoghq.com' to send data to the US1 site (default).
+  ## Set to 'datadoghq.eu' to send data to the EU site.
+  ## Set to 'us3.datadoghq.com' to send data to the US3 site.
+  ## Set to 'us5.datadoghq.com' to send data to the US5 site.
+  ## Set to 'ddog-gov.com' to send data to the US1-FED site.
+  ## Set to 'ap1.datadoghq.com' to send data to the AP1 site.
+  site: ddog-gov.com
 
   # datadog.kubeStateMetricsEnabled -- If true, deploys the kube-state-metrics deployment
   ## ref: https://github.com/kubernetes/kube-state-metrics/tree/kube-state-metrics-helm-chart-2.13.2/charts/kube-state-metrics
@@ -59,11 +70,13 @@ datadog:
   apm:
     # datadog.apm.socketEnabled -- Enable APM over Socket (Unix Socket or windows named pipe)
     ## ref: https://docs.datadoghq.com/agent/kubernetes/apm/
-    socketEnabled: true
+    socketEnabled: false
 
     # datadog.apm.portEnabled -- Enable APM over TCP communication (port 8126 by default)
     ## ref: https://docs.datadoghq.com/agent/kubernetes/apm/
-    portEnabled: true
+    portEnabled: false
+
+    enabled: false
 
     # datadog.apm.port -- Override the trace Agent port
     ## Note: Make sure your client is sending to the same UDP port.
@@ -80,15 +93,15 @@ datadog:
 
     # datadog.processAgent.processCollection -- Set this to true to enable process collection in process monitoring agent
     ## Requires processAgent.enabled to be set to true to have any effect
-    processCollection: true
+    processCollection: false
 
     # datadog.processAgent.stripProcessArguments -- Set this to scrub all arguments from collected processes
     ## Requires processAgent.enabled and processAgent.processCollection to be set to true to have any effect
     ## ref: https://docs.datadoghq.com/infrastructure/process/?tab=linuxwindows#process-arguments-scrubbing
-    stripProcessArguments: true
+    stripProcessArguments: false
 
     # datadog.processAgent.processDiscovery -- Enables or disables autodiscovery of integrations
-    processDiscovery: true
+    processDiscovery: false
 
   ## Enable systemProbe agent and provide custom configs
   systemProbe:
@@ -327,4 +340,3 @@ agents:
 
     # agents.rbac.serviceAccountAnnotations -- Annotations to add to the ServiceAccount if agents.rbac.create is true
     serviceAccountAnnotations: {}
-

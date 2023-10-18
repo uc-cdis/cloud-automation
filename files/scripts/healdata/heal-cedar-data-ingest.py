@@ -76,6 +76,19 @@ def update_filter_metadata(metadata_to_update):
                 filter_metadata.append({"key": filter_field_key, "value": filter_field_value})
     filter_metadata = pydash.uniq(filter_metadata)
     metadata_to_update["advSearchFilters"] = filter_metadata
+    # Retain these from existing tags
+    save_tags = ["Data Repository"]
+    tags = [
+        tag
+        for tag in metadata_to_update["tags"]
+        if tag["category"] in save_tags
+    ]
+    # Add any new tags from advSearchFilters
+    for f in metadata_to_update["advSearchFilters"]:
+        tag = {"name": f["value"], "category": f["key"]}
+        if tag not in tags:
+            tags.append(tag)
+    metadata_to_update["tags"] = tags
     return metadata_to_update
 
 parser = argparse.ArgumentParser()
@@ -156,6 +169,9 @@ while((limit + offset <= total)):
                     print("Metadata is already registered. Updating MDS record")
                 elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
                     print("Metadata has not been registered. Registering it in MDS record")
+                else:
+                    print(f"This metadata data record has a special GUID type \"{mds_res['_guid_type']}\" and will be skipped")
+                    continue
 
                 if "clinicaltrials_gov" in cedar_record:
                     mds_clinical_trials = cedar_record["clinicaltrials_gov"]
