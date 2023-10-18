@@ -12,7 +12,7 @@
 # ACCESS TOKENS
 #  Access tokens will be generated for an existing fence-client, cedar_ingest_client.
 #  The client_id and client_secret will be read from
-#  'cedar_client_credentials.json' in the 'cedar-g3auto' seccret.
+#  'cedar_client_credentials.json' in the 'cedar-g3auto' secret.
 #
 #  The fence-client must have MDS admin and CEDAR polices granted.
 #
@@ -110,7 +110,7 @@ spec:
 
             pip install pydash
             export GEN3_HOME="$HOME/cloud-automation"
-            python ${GEN3_HOME}/files/scripts/healdata/heal-cedar-data-ingest.py --directory $CEDAR_DIRECTORY_ID --client_id $CEDAR_CLIENT_ID --client_secret $CEDAR_CLIENT_SECRET --hostname $HOSTNAME
+            python ${GEN3_HOME}/files/scripts/healdata/heal-cedar-data-ingest.py --directory $CEDAR_DIRECTORY_ID --cedar_client_id $CEDAR_CLIENT_ID --cedar_client_secret $CEDAR_CLIENT_SECRET --hostname $HOSTNAME
             status=$?
             if [[ $status -ne 0 ]]; then
               echo "WARNING: non zero exit code: $status"
