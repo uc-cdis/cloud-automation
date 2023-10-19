@@ -91,10 +91,29 @@ def update_filter_metadata(metadata_to_update):
     metadata_to_update["tags"] = tags
     return metadata_to_update
 
+
+def get_client_token(client_id: str, client_secret: str):
+    try:
+        token_url = f"http://revproxy-service/user/oauth2/token"
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        params = {'grant_type': 'client_credentials'}
+        data = 'scope=openid user data'
+
+        token_result = requests.post(
+            token_url, params=params, headers=headers, data=data,
+            auth=(client_id, client_secret),
+        )
+        token =  token_result.json()["access_token"]
+    except:
+        raise Exception("Could not get token")
+    return token
+
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--directory", help="CEDAR Directory ID for registering ")
-parser.add_argument("--access_token", help="User access token")
+parser.add_argument("--cedar_client_id", help="The CEDAR client id")
+parser.add_argument("--cedar_client_secret", help="The CEDAR client secret")
 parser.add_argument("--hostname", help="Hostname")
 
 
@@ -103,17 +122,23 @@ args = parser.parse_args()
 if not args.directory:
     print("Directory ID is required!")
     sys.exit(1)
-if not args.access_token:
-    print("User access token is required!")
+if not args.cedar_client_id:
+    print("CEDAR client id is required!")
+    sys.exit(1)
+if not args.cedar_client_secret:
+    print("CEDAR client secret is required!")
     sys.exit(1)
 if not args.hostname:
     print("Hostname is required!")
     sys.exit(1)
 
 dir_id = args.directory
-access_token = args.access_token
+client_id = args.cedar_client_id
+client_secret = args.cedar_client_secret
 hostname = args.hostname
 
+print("Getting CEDAR client access token")
+access_token = get_client_token(client_id, client_secret)
 token_header = {"Authorization": 'bearer ' + access_token}
 
 limit = 10
