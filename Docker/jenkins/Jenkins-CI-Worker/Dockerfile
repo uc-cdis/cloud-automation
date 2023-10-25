@@ -93,6 +93,8 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
         unlink /usr/bin/python3 && \
         ln -s /usr/local/bin/python3.8 /usr/bin/python3
 
+RUN apt-get install python3-distutils
+
 # Fix shebang for lsb_release
 RUN sed -i 's/python3/python3.8/' /usr/bin/lsb_release && \
     sed -i 's/python3/python3.8/' /usr/bin/add-apt-repository
