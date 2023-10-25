@@ -49,7 +49,7 @@ EOM
   gen3 secrets sync 'setup gen3-discovery-ai-g3auto secrets'
 }
 
-if ! g3k_manifest_lookup .versions.gen3-discovery-ai 2> /dev/null; then
+if ! g3k_manifest_lookup '.versions."gen3-discovery-ai"' 2> /dev/null; then
   gen3_log_info "kube-setup-gen3-discovery-ai exiting - gen3-discovery-ai service not in manifest"
   exit 0
 fi
