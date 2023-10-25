@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gen3-discovery-ai-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: gen3-discovery-ai
+      release: production
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: gen3-discovery-ai
+        release: production
+    spec:
+      volumes:
+        - name: config-volume-g3auto
+          secret:
+            secretName: gen3-discovery-ai-g3auto
+        - name: gen3-discovery-ai-knowledge-library
+          mountPath: /
+      containers:
+      - name: gen3-discovery-ai
+        image: "quay.io/cdis/gen3-discovery-ai:latest"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+        volumeMounts:
+          - name: config-volume-g3auto
+            readOnly: true
+            mountPath: /.env
+            subPath: gen3-discovery-ai.env
+          - name: gen3-discovery-ai-knowledge-library
+            readOnly: false
+            configMap:
+              name: knowledge
+              items:
+                - key: knowledge
+                  path: knowledge
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+            memory: 512Mi
