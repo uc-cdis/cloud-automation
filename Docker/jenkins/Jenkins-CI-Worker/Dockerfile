@@ -34,11 +34,10 @@ RUN set -xe && apt-get update \
      zlib1g-dev \
      zsh \
      ca-certificates-java \
-     openjdk-11-jre-headless \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
 # Use jdk11
-ENV JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
+ENV JAVA_HOME="/opt/java/openjdk"
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
 COPY ./certfix.sh /certfix.sh
@@ -93,7 +92,7 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
         unlink /usr/bin/python3 && \
         ln -s /usr/local/bin/python3.8 /usr/bin/python3
 
-RUN apt-get install python3-distutils
+RUN apt-get install -y python3-distutils
 
 # Fix shebang for lsb_release
 RUN sed -i 's/python3/python3.8/' /usr/bin/lsb_release && \
