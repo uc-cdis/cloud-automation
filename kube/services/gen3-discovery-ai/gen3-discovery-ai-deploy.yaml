@@ -21,10 +21,10 @@ spec:
         GEN3_DATE_LABEL
     spec:
       volumes:
-        - name: config-volume-g3auto
+        - name: gen3-discovery-ai-g3auto-volume
           secret:
             secretName: gen3-discovery-ai-g3auto
-        - name: gen3-discovery-ai-knowledge-library
+        - name: gen3-discovery-ai-knowledge-library-volume
           configMap:
             name: gen3-discovery-ai-knowledge-library
       containers:
@@ -37,11 +37,11 @@ spec:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
         volumeMounts:
-          - name: config-volume-g3auto
+          - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
             mountPath: /.env
             subPath: env
-          - name: gen3-discovery-ai-knowledge-library
+          - name: gen3-discovery-ai-knowledge-library-volume
             readOnly: false
             mountPath: /knowledge
         imagePullPolicy: Always
