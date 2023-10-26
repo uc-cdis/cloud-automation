@@ -1,10 +1,10 @@
-name: Build Python Base Images and Push to Quay and ECR
+name: Build Python Base Images
 
 on: push
 
 jobs:
   python_3-9:
-    name: Python 3.9 Build and Push
+    name: Python 3.9
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.9-buster/Dockerfile"
@@ -17,7 +17,7 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   python_3-10:
-    name: Python 3.10 Build and Push
+    name: Python 3.10
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.10-buster/Dockerfile"
@@ -30,7 +30,7 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   awshelper:
-    name: AwsHelper Build and Push
+    name: AwsHelper
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/awshelper/Dockerfile"
