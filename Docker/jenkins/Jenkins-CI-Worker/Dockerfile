@@ -34,11 +34,10 @@ RUN set -xe && apt-get update \
      zlib1g-dev \
      zsh \
      ca-certificates-java \
-     openjdk-11-jre-headless \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
 # Use jdk11
-ENV JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
+ENV JAVA_HOME="/opt/java/openjdk"
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
 COPY ./certfix.sh /certfix.sh
