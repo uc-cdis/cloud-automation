@@ -39,11 +39,11 @@ spec:
         volumeMounts:
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
-            mountPath: /.env
+            mountPath: /gen3discoveryai/.env
             subPath: env
           - name: gen3-discovery-ai-knowledge-library-volume
             readOnly: false
-            mountPath: /knowledge
+            mountPath: /gen3discoveryai/knowledge
         imagePullPolicy: Always
         resources:
           requests:
