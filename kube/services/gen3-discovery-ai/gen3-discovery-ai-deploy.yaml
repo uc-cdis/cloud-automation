@@ -39,7 +39,7 @@ spec:
           - name: config-volume-g3auto
             readOnly: true
             mountPath: /.env
-            subPath: gen3-discovery-ai.env
+            subPath: env
           - name: gen3-discovery-ai-knowledge-library
             readOnly: false
             mountPath: /knowledge
