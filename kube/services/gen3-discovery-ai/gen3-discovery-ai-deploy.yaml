@@ -25,10 +25,7 @@ spec:
             secretName: gen3-discovery-ai-g3auto
         - name: gen3-discovery-ai-knowledge-library
           configMap:
-            name: knowledge
-            items:
-              - key: knowledge
-                path: knowledge
+            name: gen3-discovery-ai-knowledge-library
       containers:
       - name: gen3-discovery-ai
         image: "quay.io/cdis/gen3-discovery-ai:latest"
