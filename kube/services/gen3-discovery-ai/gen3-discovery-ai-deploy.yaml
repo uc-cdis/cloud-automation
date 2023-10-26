@@ -24,9 +24,46 @@ spec:
         - name: gen3-discovery-ai-g3auto-volume
           secret:
             secretName: gen3-discovery-ai-g3auto
-        - name: gen3-discovery-ai-knowledge-library-volume
+        - name: tmp-readonly-configmap-knowledge-library
           configMap:
             name: gen3-discovery-ai-knowledge-library
+        - name: gen3-discovery-ai-knowledge-library-volume
+          emptyDir: {}
+      initContainers:
+      # configmaps mount to read-only volumes and chromadb's persisted disk 
+      # excepts the ability to write.
+      #
+      # Solution: utilize emptyDir as a writable space.
+      #
+      # Procedure: in init container, mount configmap into readonly space, copy files to writable
+      #            space in emptyDir, use files from writable in final container
+      - name: gen3-discovery-ai
+        GEN3_GEN3-DISCOVERY-AI_IMAGE
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+        volumeMounts:
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/.env
+            subPath: env
+          - name: gen3-discovery-ai-knowledge-library-volume
+            mountPath: /gen3discoveryai/knowledge
+          - name: tmp-readonly-configmap-knowledge-library
+            mountPath: /tmp/readonly
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+            memory: 512Mi
+        commands: [
+          'sh', '-c', 'cp -R /tmp/readonly /gen3discoveryai/knowledge'
+        ]
       containers:
       - name: gen3-discovery-ai
         GEN3_GEN3-DISCOVERY-AI_IMAGE
@@ -42,7 +79,6 @@ spec:
             mountPath: /gen3discoveryai/.env
             subPath: env
           - name: gen3-discovery-ai-knowledge-library-volume
-            readOnly: false
             mountPath: /gen3discoveryai/knowledge
         imagePullPolicy: Always
         resources:
