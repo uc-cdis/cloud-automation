@@ -92,14 +92,12 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
         unlink /usr/bin/python3 && \
         ln -s /usr/local/bin/python3.8 /usr/bin/python3
 
-RUN apt-get install -y python3-distutils
-
 # Fix shebang for lsb_release
 RUN sed -i 's/python3/python3.8/' /usr/bin/lsb_release && \
     sed -i 's/python3/python3.8/' /usr/bin/add-apt-repository
 
 # install aws cli, poetry, pytest, etc.
-RUN set -xe && python3.8 -m pip install --upgrade pip && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade && python3.8 -m pip install datadog --upgrade
+RUN set -xe && python3.8 -m pip install --upgrade pip setuptools && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade && python3.8 -m pip install datadog --upgrade
 
 # install terraform
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
