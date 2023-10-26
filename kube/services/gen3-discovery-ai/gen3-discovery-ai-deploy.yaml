@@ -61,7 +61,7 @@ spec:
           limits:
             cpu: 2
             memory: 512Mi
-        commands: [
+        command: [
           'sh', '-c', 'cp -R /tmp/readonly /gen3discoveryai/knowledge'
         ]
       containers:
