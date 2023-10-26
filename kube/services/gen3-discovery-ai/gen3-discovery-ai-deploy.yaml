@@ -24,7 +24,11 @@ spec:
           secret:
             secretName: gen3-discovery-ai-g3auto
         - name: gen3-discovery-ai-knowledge-library
-          mountPath: /
+          configMap:
+            name: knowledge
+            items:
+              - key: knowledge
+                path: knowledge
       containers:
       - name: gen3-discovery-ai
         image: "quay.io/cdis/gen3-discovery-ai:latest"
@@ -41,11 +45,7 @@ spec:
             subPath: gen3-discovery-ai.env
           - name: gen3-discovery-ai-knowledge-library
             readOnly: false
-            configMap:
-              name: knowledge
-              items:
-                - key: knowledge
-                  path: knowledge
+            mountPath: /knowledge
         imagePullPolicy: Always
         resources:
           requests:
