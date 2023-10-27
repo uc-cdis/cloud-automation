@@ -50,6 +50,10 @@ spec:
             readOnly: true
             mountPath: /gen3discoveryai/.env
             subPath: env
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/storage_config.json
+            subPath: /gen3discoveryai/storage_config.json
           - name: gen3-discovery-ai-knowledge-library-volume
             mountPath: /gen3discoveryai/knowledge
         imagePullPolicy: Always
@@ -63,7 +67,7 @@ spec:
         args:
           - "-c"
           - |
-            bucketName="$( (gen3 secrets decode gen3-discovery-ai-g3auto storage_config.json || echo ERROR) | jq -r .bucket)" 
+            bucketName=$(grep -o "\"bucket\": *\"[^\"]*\"" /gen3discoveryai/storage_config.json | awk -F'"' '{print $4}')
             echo "BUCKET: $bucketName
             echo
             echo BEFORE aws s3 ls $bucketName
