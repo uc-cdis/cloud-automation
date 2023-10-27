@@ -68,7 +68,7 @@ spec:
           - "-c"
           - |
             bucketName=$(grep -o "\"bucket\": *\"[^\"]*\"" /gen3discoveryai/storage_config.json | awk -F'"' '{print $4}')
-            echo "BUCKET: $bucketName
+            echo BUCKET: "$bucketName"
             echo
             echo BEFORE aws s3 ls "$bucketName"
             aws s3 ls "$bucketName" 
