@@ -53,7 +53,7 @@ spec:
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
             mountPath: /gen3discoveryai/storage_config.json
-            subPath: /gen3discoveryai/storage_config.json
+            subPath: storage_config.json
           - name: gen3-discovery-ai-knowledge-library-volume
             mountPath: /gen3discoveryai/knowledge
         imagePullPolicy: Always
