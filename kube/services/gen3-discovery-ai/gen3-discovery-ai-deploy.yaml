@@ -70,8 +70,8 @@ spec:
             bucketName=$(grep -o "\"bucket\": *\"[^\"]*\"" /gen3discoveryai/storage_config.json | awk -F'"' '{print $4}')
             echo "BUCKET: $bucketName
             echo
-            echo BEFORE aws s3 ls $bucketName
-            aws s3 ls $bucketName 
+            echo BEFORE aws s3 ls "$bucketName"
+            aws s3 ls "$bucketName" 
             echo
             echo BEFORE /gen3discoveryai/knowledge  
             ls -Ra /gen3discoveryai/knowledge 
@@ -79,8 +79,8 @@ spec:
             echo RUN aws s3 sync "s3://${bucketName}/chromadb" "/gen3discoveryai/knowledge"
             aws s3 sync "s3://${bucketName}/chromadb" "/gen3discoveryai/knowledge"
             echo
-            echo AFTER aws s3 ls $bucketName 
-            aws s3 ls $bucketName 
+            echo AFTER aws s3 ls "$bucketName" 
+            aws s3 ls "$bucketName" 
             echo
             echo AFTER /gen3discoveryai/knowledge 
             ls -Ra /gen3discoveryai/knowledge
