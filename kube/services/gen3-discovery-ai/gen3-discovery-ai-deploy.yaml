@@ -45,6 +45,8 @@ spec:
         env:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: ANONYMIZED_TELEMETRY
+            value: False
         volumeMounts:
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
@@ -73,6 +75,8 @@ spec:
         env:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: ANONYMIZED_TELEMETRY
+            value: False
         volumeMounts:
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
