@@ -127,8 +127,8 @@ fi
 
 
 if [ -d "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb" ]; then
-    bucketName="$( (gen3 secrets decode gen3-discovery-ai-g3auto storage_config.json || echo ERROR) | jq -r .bucket)" || return 1
-    aws s3 sync "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/" "s3://$(bucketName)/chromadb"
+  bucketName="$( (gen3 secrets decode gen3-discovery-ai-g3auto storage_config.json || echo ERROR) | jq -r .bucket)" || exit 1
+  aws s3 sync "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/" "s3://$bucketName/chromadb"
 fi
 
 gen3 roll gen3-discovery-ai
