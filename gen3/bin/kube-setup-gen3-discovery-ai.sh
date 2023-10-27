@@ -97,7 +97,7 @@ setup_storage() {
 
     # try to come up with a unique but composable bucket name
     bucketName="gen3-discovery-ai-${accountNumber}-${environment//_/-}"
-    
+
     gen3_log_info "bucketName: ${bucketName}"
 
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
@@ -116,7 +116,7 @@ setup_storage() {
     roleName="$(gen3 api safe-name gen3-discovery-ai)" || return 1
       
     if ! gen3 awsrole info "$roleName" > /dev/null; then # setup role
-      bucketName="$( (gen3 secrets decode gen3-discovery-ai-g3auto storage_config.json || echo ERROR) | jq -r .bucket)" || return 1
+      bucketName="$( (gen3 secrets decode 'gen3-discovery-ai-g3auto' 'storage_config.json' || echo ERROR) | jq -r .bucket)" || return 1
       gen3 awsrole create "$roleName" "$saName" || return 1
       gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${roleName}"
       # try to give the gitops role read/write permissions on the bucket
@@ -125,16 +125,18 @@ setup_storage() {
       gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${gitopsRoleName}"
     fi
   fi
+
+  return 0
 }
 
-if ! setup_storage; then
+if ! setup_storage(); then
   gen3_log_err "kube-setup-gen3-discovery-ai bailing out - storage failed setup"
   exit 1
 fi
 
 
 if [ -d "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb" ]; then
-  bucketName="$( (gen3 secrets decode gen3-discovery-ai-g3auto storage_config.json || echo ERROR) | jq -r .bucket)" || exit 1
+  bucketName="$( (gen3 secrets decode 'gen3-discovery-ai-g3auto' 'storage_config.json' || echo ERROR) | jq -r .bucket)" || exit 1
   aws s3 sync "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/" "s3://$bucketName/chromadb"
 fi
 
