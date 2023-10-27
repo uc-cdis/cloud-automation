@@ -129,11 +129,12 @@ setup_storage() {
   return 0
 }
 
-if ! setup_storage(); then
+if ! setup_storage; then
   gen3_log_err "kube-setup-gen3-discovery-ai bailing out - storage failed setup"
   exit 1
 fi
 
+gen3_log_info "Setup completed, syncing configuration to bucket"
 
 if [ -d "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb" ]; then
   bucketName="$( (gen3 secrets decode 'gen3-discovery-ai-g3auto' 'storage_config.json' || echo ERROR) | jq -r .bucket)" || exit 1
