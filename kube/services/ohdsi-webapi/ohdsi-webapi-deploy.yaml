@@ -61,6 +61,7 @@ spec:
           GEN3_OHDSI-WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
           env:
             - name: ARBORIST_URL
+              value: http://arborist-service
               valueFrom:
                 configMapKeyRef:
                   name: manifest-global
