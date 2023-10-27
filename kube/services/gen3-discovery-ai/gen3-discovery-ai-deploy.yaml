@@ -20,13 +20,11 @@ spec:
         release: production
         GEN3_DATE_LABEL
     spec:
+      serviceAccountName: gen3-discovery-ai-sa
       volumes:
         - name: gen3-discovery-ai-g3auto-volume
           secret:
             secretName: gen3-discovery-ai-g3auto
-        - name: tmp-readonly-configmap-knowledge-library
-          configMap:
-            name: gen3-discovery-ai-knowledge-library
         - name: gen3-discovery-ai-knowledge-library-volume
           emptyDir: {}
       initContainers:
@@ -54,8 +52,6 @@ spec:
             subPath: env
           - name: gen3-discovery-ai-knowledge-library-volume
             mountPath: /gen3discoveryai/knowledge
-          - name: tmp-readonly-configmap-knowledge-library
-            mountPath: /tmp/readonly
         imagePullPolicy: Always
         resources:
           requests:
@@ -63,9 +59,27 @@ spec:
           limits:
             cpu: 2
             memory: 512Mi
-        command: [
-          'sh', '-c', 'echo BEFORE /tmp/readonly && ls -Ra /tmp/readonly && echo BEFORE /gen3discoveryai/knowledge  && ls -Ra /gen3discoveryai/knowledge && echo RUN cp -r /tmp/readonly /gen3discoveryai/knowledge && cp -r /tmp/readonly /gen3discoveryai/knowledge && echo AFTER /tmp/readonly && ls -Ra /tmp/readonly && echo AFTER /gen3discoveryai/knowledge && ls -Ra /gen3discoveryai/knowledge'
-        ]
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            bucketName="$( (gen3 secrets decode gen3-discovery-ai-g3auto storage_config.json || echo ERROR) | jq -r .bucket)" 
+            echo "BUCKET: $bucketName
+            echo
+            echo BEFORE aws s3 ls $bucketName
+            aws s3 ls $bucketName 
+            echo
+            echo BEFORE /gen3discoveryai/knowledge  
+            ls -Ra /gen3discoveryai/knowledge 
+            echo
+            echo RUN aws s3 sync "s3://$(bucketName)/chromadb" "/gen3discoveryai/knowledge"
+            aws s3 sync "s3://$(bucketName)/chromadb" "/gen3discoveryai/knowledge"
+            echo
+            echo AFTER aws s3 ls $bucketName 
+            aws s3 ls $bucketName 
+            echo
+            echo AFTER /gen3discoveryai/knowledge 
+            ls -Ra /gen3discoveryai/knowledge
       containers:
       - name: gen3-discovery-ai
         GEN3_GEN3-DISCOVERY-AI_IMAGE

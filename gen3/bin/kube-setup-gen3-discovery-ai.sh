@@ -61,16 +61,75 @@ fi
 #   exit 1
 # fi
 
+setup_storage() {
+  local saName="gen3-discovery-ai-sa"
+  g3kubectl create sa "$saName" > /dev/null 2>&1 || true
 
-if [ -d "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb" ]; then
-    g3kubectl delete configmap gen3-discovery-ai-knowledge-library 
-    g3kubectl create configmap gen3-discovery-ai-knowledge-library --from-file "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb"
+  local secret
+  local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3-discovery-ai"
+  if ! secret="$(g3kubectl get secret gen3-discovery-ai-g3auto -o json 2> /dev/null)" \
+    || "false" == "$(jq -r '.data | has("storage_config.json")' <<< "$secret")"; then
+
+    gen3_log_info "setting up storage for gen3-discovery-ai service"
+    #
+    # gen3-discovery-ai-g3auto secret still does not exist
+    # we need to setup an S3 bucket and IAM creds
+    # let's avoid creating multiple buckets for different
+    # deployments to the same k8s cluseter (dev, etc)
+    #
+    local bucketName
+    local accountNumber
+    local environment
+
+    if ! accountNumber="$(aws sts get-caller-identity --output text --query 'Account')"; then
+      gen3_log_err "could not determine account numer"
+      return 1
+    fi
+
+    if ! environment="$(g3kubectl get configmap manifest-global -o json | jq -r .data.environment)"; then
+      gen3_log_err "could not determine environment from manifest-global - bailing out of gen3-discovery-ai setup"
+      return 1
+    fi
+
+    # try to come up with a unique but composable bucket name
+    bucketName="gen3-discovery-ai-${accountNumber}-${environment//_/-}"
+    if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
+      gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/gen3-discovery-ai"
+      # continue on ...
+    elif ! gen3 s3 create "${bucketName}"; then
+      gen3_log_err "maybe failed to create bucket ${bucketName}, but maybe not, because the terraform script is flaky"
+    fi
+
+    local hostname
+    hostname="$(gen3 api hostname)"
+    jq -r -n --arg bucket "${bucketName}" --arg hostname "${hostname}" '.bucket=$bucket | .prefix=$hostname' > "${secretsFolder}/storage_config.json"
+    gen3 secrets sync 'setup gen3-discovery-ai credentials'
+
+    local roleName
+    roleName="$(gen3 api safe-name gen3-discovery-ai)" || return 1
+      
+    if ! gen3 awsrole info "$roleName" > /dev/null; then # setup role
+      bucketName="$( (gen3 secrets decode gen3-discovery-ai-g3auto storage_config.json || echo ERROR) | jq -r .bucket)" || return 1
+      gen3 awsrole create "$roleName" "$saName" || return 1
+      gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${roleName}"
+      # try to give the gitops role read/write permissions on the bucket
+      local gitopsRoleName
+      gitopsRoleName="$(gen3 api safe-name gitops)"
+      gen3 s3 attach-bucket-policy "$bucketName" --read-write --role-name "${gitopsRoleName}"
+    fi
+  fi
+}
+
+if ! setup_storage; then
+  gen3_log_err "kube-setup-gen3-discovery-ai bailing out - storage failed setup"
+  exit 1
 fi
 
-# Sync the manifest config from manifest.json (or manifests/gen3-discovery-ai.json) to the k8s config map.
-# This may not actually create the manifest-gen3-discovery-ai config map if the user did not specify any gen3-discovery-ai
-# keys in their manifest configuration.
-[[ -z "$GEN3_ROLL_ALL" ]] && gen3 gitops configmaps
+
+if [ -d "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb" ]; then
+    bucketName="$( (gen3 secrets decode gen3-discovery-ai-g3auto storage_config.json || echo ERROR) | jq -r .bucket)" || return 1
+    aws s3 sync "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/" "s3://$(bucketName)/chromadb"
+fi
 
 gen3 roll gen3-discovery-ai
 g3kubectl apply -f "${GEN3_HOME}/kube/services/gen3-discovery-ai/gen3-discovery-ai-service.yaml"
