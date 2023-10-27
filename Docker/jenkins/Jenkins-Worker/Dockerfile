@@ -8,6 +8,7 @@ RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils build-ess
 
 RUN apt-get update \
   && apt-get install -y lsb-release \
+      git \
      apt-transport-https \
      r-base \
      libffi-dev \
@@ -35,11 +36,6 @@ RUN apt-get update \
 
 # install Ruby.
 RUN apt-get install -y ruby-full
-
-# install GIT from buster-backports
-RUN echo "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/buster-backports.list \
-  && apt-get update \
-  && apt-get -t=buster-backports -y install git=1:2.30.*
 
 #
 # install docker tools:

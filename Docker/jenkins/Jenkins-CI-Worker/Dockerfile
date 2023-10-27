@@ -34,11 +34,10 @@ RUN set -xe && apt-get update \
      zlib1g-dev \
      zsh \
      ca-certificates-java \
-     openjdk-11-jre-headless \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
 
 # Use jdk11
-ENV JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
+ENV JAVA_HOME="/opt/java/openjdk"
 ENV PATH="$JAVA_HOME/bin:$PATH"
 
 COPY ./certfix.sh /certfix.sh
@@ -75,7 +74,7 @@ RUN sudo install -m 0755 -d /etc/apt/keyrings \
 
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
-RUN apt-get update && apt-get install -y nodejs
+RUN apt-get update && apt-get install -y nodejs npm
 
 # Install postgres 13 client
 RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc| gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg && \
@@ -98,7 +97,7 @@ RUN sed -i 's/python3/python3.8/' /usr/bin/lsb_release && \
     sed -i 's/python3/python3.8/' /usr/bin/add-apt-repository
 
 # install aws cli, poetry, pytest, etc.
-RUN set -xe && python3.8 -m pip install --upgrade pip && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade && python3.8 -m pip install datadog --upgrade
+RUN set -xe && python3.8 -m pip install --upgrade pip setuptools && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade && python3.8 -m pip install datadog --upgrade
 
 # install terraform
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
