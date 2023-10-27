@@ -64,7 +64,7 @@ spec:
             cpu: 2
             memory: 512Mi
         command: [
-          'sh', '-c', 'echo BEFORE /tmp/readonly && ls -Ra /tmp/readonly && echo BEFORE /gen3discoveryai/knowledge  && ls -Ra /gen3discoveryai/knowledge && echo RUN cp -r /tmp/readonly /gen3discoveryai/knowledge && cp -R /tmp/readonly /gen3discoveryai/knowledge && echo AFTER /tmp/readonly && ls -Ra /tmp/readonly && echo AFTER /gen3discoveryai/knowledge && ls -Ra /gen3discoveryai/knowledge'
+          'sh', '-c', 'echo BEFORE /tmp/readonly && ls -Ra /tmp/readonly && echo BEFORE /gen3discoveryai/knowledge  && ls -Ra /gen3discoveryai/knowledge && echo RUN mv /tmp/readonly /gen3discoveryai/knowledge && mv /tmp/readonly /gen3discoveryai/knowledge && echo AFTER /tmp/readonly && ls -Ra /tmp/readonly && echo AFTER /gen3discoveryai/knowledge && ls -Ra /gen3discoveryai/knowledge'
         ]
       containers:
       - name: gen3-discovery-ai
