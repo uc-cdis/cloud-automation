@@ -75,9 +75,8 @@ spec:
             echo BEFORE /gen3discoveryai/knowledge  
             ls -Ra /gen3discoveryai/knowledge 
             echo
-            aws s3 sync "s3://${bucketName}" "/gen3discoveryai/knowledge/tmp"
-            mv /gen3discoveryai/knowledge/tmp/chromadb/.* /gen3discoveryai/knowledge
-            rm -r /gen3discoveryai/knowledge/tmp
+            echo RUN aws s3 sync "s3://${bucketName}/chromadb" "/gen3discoveryai/knowledge"
+            aws s3 sync "s3://${bucketName}/chromadb" "/gen3discoveryai/knowledge"
             echo
             echo AFTER aws s3 ls "$bucketName" 
             aws s3 ls "$bucketName" 
