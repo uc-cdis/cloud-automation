@@ -67,9 +67,12 @@ setup_storage() {
 
   local secret
   local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3-discovery-ai"
-  if ! secret="$(g3kubectl get secret gen3-discovery-ai-g3auto -o json 2> /dev/null)" \
-    || "false" == "$(jq -r '.data | has("storage_config.json")' <<< "$secret")"; then
 
+  secret="$(g3kubectl get secret gen3-discovery-ai-g3auto -o json 2> /dev/null)"
+  local hasStorageCfg
+  hasStorageCfg=$(jq -r '.data | has("storage_config.json")' <<< "$secret")
+
+  if [ "$hasStorageCfg" = "false" ]; then
     gen3_log_info "setting up storage for gen3-discovery-ai service"
     #
     # gen3-discovery-ai-g3auto secret still does not exist
@@ -134,7 +137,7 @@ if ! setup_storage; then
   exit 1
 fi
 
-gen3_log_info "Setup completed, syncing configuration to bucket"
+gen3_log_info "Setup complete, syncing configuration to bucket"
 
 if [ -d "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb" ]; then
   bucketName="$( (gen3 secrets decode 'gen3-discovery-ai-g3auto' 'storage_config.json' || echo ERROR) | jq -r .bucket)" || exit 1
