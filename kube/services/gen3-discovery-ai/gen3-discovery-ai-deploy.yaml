@@ -28,15 +28,14 @@ spec:
         - name: gen3-discovery-ai-knowledge-library-volume
           emptyDir: {}
       initContainers:
-      # configmaps mount to read-only volumes and chromadb's persisted disk 
-      # excepts the ability to write.
+      # chromadb's persisted disk expects the ability to write.
       #
       # Solution: utilize emptyDir as a writable space.
       #
-      # Procedure: in init container, mount configmap into readonly space, copy files to writable
+      # Procedure: in init container, copy files from s3 to writable
       #            space in emptyDir, use files from writable in final container
       - name: gen3-discovery-ai-init
-        GEN3_GEN3-DISCOVERY-AI_IMAGE
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
