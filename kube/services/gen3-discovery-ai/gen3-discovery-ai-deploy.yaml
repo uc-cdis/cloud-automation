@@ -72,8 +72,8 @@ spec:
             echo BEFORE /gen3discoveryai/knowledge  
             ls -Ra /gen3discoveryai/knowledge 
             echo
-            echo RUN aws s3 sync "s3://$(bucketName)/chromadb" "/gen3discoveryai/knowledge"
-            aws s3 sync "s3://$(bucketName)/chromadb" "/gen3discoveryai/knowledge"
+            echo RUN aws s3 sync "s3://${bucketName}/chromadb" "/gen3discoveryai/knowledge"
+            aws s3 sync "s3://${bucketName}/chromadb" "/gen3discoveryai/knowledge"
             echo
             echo AFTER aws s3 ls $bucketName 
             aws s3 ls $bucketName 

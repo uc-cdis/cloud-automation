@@ -86,13 +86,20 @@ setup_storage() {
       return 1
     fi
 
+    gen3_log_info "accountNumber: ${accountNumber}"
+
     if ! environment="$(g3kubectl get configmap manifest-global -o json | jq -r .data.environment)"; then
       gen3_log_err "could not determine environment from manifest-global - bailing out of gen3-discovery-ai setup"
       return 1
     fi
 
+    gen3_log_info "environment: ${environment}"
+
     # try to come up with a unique but composable bucket name
     bucketName="gen3-discovery-ai-${accountNumber}-${environment//_/-}"
+    
+    gen3_log_info "bucketName: ${bucketName}"
+
     if aws s3 ls --page-size 1 "s3://${bucketName}" > /dev/null 2>&1; then
       gen3_log_info "${bucketName} s3 bucket already exists - probably in use by another namespace - copy the creds from there to $(gen3_secrets_folder)/g3auto/gen3-discovery-ai"
       # continue on ...
