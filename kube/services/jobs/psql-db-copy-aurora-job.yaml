@@ -47,7 +47,6 @@ spec:
             - |
               source "${GEN3_HOME}/gen3/lib/utils.sh"
               gen3_load "gen3/gen3setup"
-              set -x
               namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
               # Define the default databases to be copied
               default_databases=( "indexd" "sheepdog" "metadata")
