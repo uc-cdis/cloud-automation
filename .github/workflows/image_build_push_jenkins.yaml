@@ -1,13 +1,14 @@
-name: Build Jenkins images and push to Quay
+name: Build Jenkins images
 
 on: 
   push:
     paths:
+      - .github/workflows/image_build_push_jenkins.yaml
       - Docker/jenkins/**
 
 jobs:
   jenkins:
-    name: Jenkins Build and Push
+    name: Jenkins
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins/Dockerfile"
@@ -21,7 +22,7 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}    
   jenkins2:
-    name: Jenkins2 Build and Push
+    name: Jenkins2
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins2/Dockerfile"
@@ -35,7 +36,7 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   jenkins-ci-worker:
-    name: Jenkins-CI-Worker Build and Push
+    name: Jenkins-CI-Worker
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins-CI-Worker/Dockerfile"
@@ -49,7 +50,7 @@ jobs:
       QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
       QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
   jenkins-qa-worker:
-    name: Jenkins-QA-Worker Build and Push
+    name: Jenkins-QA-Worker
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/jenkins/Jenkins-Worker/Dockerfile"

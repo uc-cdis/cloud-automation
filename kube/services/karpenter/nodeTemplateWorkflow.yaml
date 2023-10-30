@@ -11,6 +11,7 @@ spec:
     Environment: VPC_NAME
     Name: eks-VPC_NAME-workflow-karpenter
     karpenter.sh/discovery: VPC_NAME
+    purpose: workflow
   metadataOptions:
     httpEndpoint: enabled
     httpProtocolIPv6: disabled

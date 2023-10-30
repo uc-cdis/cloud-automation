@@ -25,11 +25,11 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
       export KUBECTL_NAMESPACE=logging
 
       # lets check the the version of fluentd, and use the right configuration
-      # as of 2020-05-06 the latest version is v1.10.2
-      if [ ${fluentdVersion} == "v1.10.2-debian-cloudwatch-1.0" ];
+      # if we are using newer versions of fluentd, assume we are using containerd which needs the newer config
+      if [ ${fluentdVersion} == "v1.15.3-debian-cloudwatch-1.0" ];
       then
         fluentdConfigmap="${XDG_RUNTIME_DIR}/gen3.conf"
-        cat ${GEN3_HOME}/kube/services/fluentd/gen3-1.10.2.conf | tee ${fluentdConfigmap} > /dev/null
+        cat ${GEN3_HOME}/kube/services/fluentd/gen3-1.15.3.conf | tee ${fluentdConfigmap} > /dev/null
         gen3 update_config fluentd-gen3 "${fluentdConfigmap}"
         rm ${fluentdConfigmap}
       else
@@ -54,7 +54,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
       fi
       # We need this serviceaccount to be in the default namespace for the job and cronjob to properly work
       g3kubectl apply -f "${GEN3_HOME}/kube/services/fluentd/fluent-jobs-serviceaccount.yaml" -n default
-      if [ ${fluentdVersion} == "v1.10.2-debian-cloudwatch-1.0" ];
+      if [ ${fluentdVersion} == "v1.15.3-debian-cloudwatch-1.0" ];
       then
       (
         unset KUBECTL_NAMESPACE
