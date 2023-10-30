@@ -18,12 +18,27 @@ data:
           operator: In
           values:
           - amd64
-        - key: karpenter.k8s.aws/instance-family
+        - key: node.kubernetes.io/instance-type
           operator: In
           values:
-          - c6i
-          - c7i
-          - m7i
+          - c6i.large
+          - c6i.xlarge
+          - c6i.2xlarge
+          - c6i.4xlarge
+          - c6i.8xlarge
+          - c6i.12xlarge
+          - c7i.large
+          - c7i.xlarge
+          - c7i.2xlarge
+          - c7i.4xlarge
+          - c7i.8xlarge
+          - c7i.12xlarge
+          - m7i.large
+          - m7i.xlarge
+          - m7i.2xlarge
+          - m7i.4xlarge
+          - m7i.8xlarge
+          - m7i.12xlarge
       taints:
         - key: role
           value: $WORKFLOW_NAME
