@@ -139,10 +139,8 @@ fi
 
 gen3_log_info "Setup complete, syncing configuration to bucket"
 
-if [ -d "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb" ]; then
-  bucketName="$( (gen3 secrets decode 'gen3-discovery-ai-g3auto' 'storage_config.json' || echo ERROR) | jq -r .bucket)" || exit 1
-  aws s3 sync "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb" "s3://$bucketName/chromadb"  --delete
-fi
+bucketName="$( (gen3 secrets decode 'gen3-discovery-ai-g3auto' 'storage_config.json' || echo ERROR) | jq -r .bucket)" || exit 1
+aws s3 sync "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb" "s3://$bucketName/chromadb" --delete
 
 gen3 roll gen3-discovery-ai
 g3kubectl apply -f "${GEN3_HOME}/kube/services/gen3-discovery-ai/gen3-discovery-ai-service.yaml"
