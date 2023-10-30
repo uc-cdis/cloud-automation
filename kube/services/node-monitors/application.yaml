@@ -13,9 +13,7 @@ spec:
     targetRevision: master
     path: kube/services/node-monitors/
     directory:
-      exclude: 
-        - "application.yaml"
-        - "argo-node-age"
+      exclude: "application.yaml"
   syncPolicy:
     automated:
       prune: true
