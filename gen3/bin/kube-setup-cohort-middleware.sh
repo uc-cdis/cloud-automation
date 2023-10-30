@@ -7,6 +7,10 @@ gen3_load "gen3/lib/kube-setup-init"
 setup_secrets() {
   gen3_log_info "Deploying secrets for cohort-middleware"
   # subshell
+  if [[ -n "$JENKINS_HOME" ]]; then
+    gen3_log_err "skipping secrets setup in non-adminvm environment"
+    return 0
+  fi
 
   (
     if ! dbcreds="$(gen3 db creds ohdsi)"; then
@@ -17,7 +21,7 @@ setup_secrets() {
     mkdir -p $(gen3_secrets_folder)/g3auto/cohort-middleware
     credsFile="$(gen3_secrets_folder)/g3auto/cohort-middleware/development.yaml"
 
-    if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
+    if [[ (! -f "$credsFile") ]]; then
       DB_NAME=$(jq -r ".db_database" <<< "$dbcreds")
       export DB_NAME
       DB_USER=$(jq -r ".db_username" <<< "$dbcreds")

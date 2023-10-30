@@ -1,13 +1,14 @@
-name: Build Squid images and push to Quay
+name: Build Squid images
 
 on: 
   push:
     paths:
+      - .github/workflows/image_build_push_squid.yaml
       - Docker/squid/**
 
 jobs:
   squid:
-    name: Squid Build and Push
+    name: Squid image
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/squid/Dockerfile"
