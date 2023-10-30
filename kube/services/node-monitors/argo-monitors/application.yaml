@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: node-monitor-application
+  name: node-monitor-argo-application
   namespace: argocd
 spec:
   destination:
@@ -11,9 +11,9 @@ spec:
   source:
     repoURL: https://github.com/uc-cdis/cloud-automation.git
     targetRevision: master
-    path: kube/services/node-monitors/
+    path: kube/services/node-monitors/argo-monitors/
     directory:
-      exclude: ["application.yaml", "argo-node-age/"]
+      exclude: "application.yaml"
   syncPolicy:
     automated:
       prune: true
