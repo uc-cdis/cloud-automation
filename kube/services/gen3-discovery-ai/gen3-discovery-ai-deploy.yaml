@@ -32,9 +32,11 @@ spec:
       #
       # Solution: utilize emptyDir as a writable space.
       #
-      # Procedure: in init container, copy files from s3 to writable
-      #            space in emptyDir, use files from writable in final container
-      - name: gen3-discovery-ai-init
+      # Procedure: in init containers, copy files from s3 to writable
+      #            temporary space in emptyDir, use files from writable space
+      #            to load into knowledge libary, move final knowledge library
+      #            files into top-level emptyDir and make available in final container
+      - name: gen3-discovery-ai-aws-init
         GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
         imagePullPolicy: Always
         ports:
@@ -69,14 +71,53 @@ spec:
             bucketName=$(grep -o "\"bucket\": *\"[^\"]*\"" /gen3discoveryai/storage_config.json | awk -F'"' '{print $4}')
             echo BUCKET: "$bucketName"
             echo
-            echo BEFORE aws s3 ls "$bucketName"
-            aws s3 ls "$bucketName" 
+            echo BEFORE /gen3discoveryai/knowledge  
+            ls -Ra /gen3discoveryai/knowledge 
+            echo
+            echo syncing from s3
+            aws s3 sync "s3://${bucketName}/tsvs" "/gen3discoveryai/knowledge/tmp"
+            mv /gen3discoveryai/knowledge/tmp/ /gen3discoveryai/knowledge/
+            rm -r /gen3discoveryai/knowledge/tmp/
+            echo
+            echo AFTER /gen3discoveryai/knowledge 
+            ls -Ra /gen3discoveryai/knowledge
+      - name: gen3-discovery-ai-knowledge-init
+        GEN3_GEN3-DISCOVERY-AI_IMAGE
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: ANONYMIZED_TELEMETRY
+            value: "False"
+        volumeMounts:
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/.env
+            subPath: env
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/storage_config.json
+            subPath: storage_config.json
+          - name: gen3-discovery-ai-knowledge-library-volume
+            mountPath: /gen3discoveryai/knowledge
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+            memory: 512Mi
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
             echo
             echo BEFORE /gen3discoveryai/knowledge  
             ls -Ra /gen3discoveryai/knowledge 
             echo
-            echo syncing from s3, running load_into_knowledge_store.py
-            aws s3 sync "s3://${bucketName}/tsvs" "/gen3discoveryai/knowledge/tmp"
+            echo running load_into_knowledge_store.py
             python3 /gen3discoveryai/bin/load_into_knowledge_store.py /gen3discoveryai/knowledge/tmp
             mv /gen3discoveryai/knowledge/tmp/ /gen3discoveryai/knowledge/
             rm -r /gen3discoveryai/knowledge/tmp/
