@@ -76,8 +76,6 @@ spec:
             echo
             echo syncing from s3
             aws s3 sync "s3://${bucketName}/tsvs" "/gen3discoveryai/knowledge/tmp"
-            mv /gen3discoveryai/knowledge/tmp/ /gen3discoveryai/knowledge/
-            rm -r /gen3discoveryai/knowledge/tmp/
             echo
             echo AFTER /gen3discoveryai/knowledge 
             ls -Ra /gen3discoveryai/knowledge

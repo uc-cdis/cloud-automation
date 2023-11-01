@@ -140,6 +140,7 @@ fi
 gen3_log_info "Setup complete, syncing configuration to bucket"
 
 bucketName="$( (gen3 secrets decode 'gen3-discovery-ai-g3auto' 'storage_config.json' || echo ERROR) | jq -r .bucket)" || exit 1
+# NOTE: loading chromadb files directly like this causes some issues...
 aws s3 sync "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/chromadb" "s3://$bucketName/chromadb" --delete
 aws s3 sync "$(dirname $(g3k_manifest_path))/gen3-discovery-ai/knowledge/tsvs" "s3://$bucketName/tsvs" --delete
 
