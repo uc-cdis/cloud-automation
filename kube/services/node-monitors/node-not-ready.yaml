@@ -22,6 +22,11 @@ spec:
                     configMapKeyRef:
                       name: global
                       key: slack_webhook
+                - name: ENVIRONMENT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: environment
 
               command: ["/bin/bash"]
               args:
@@ -36,7 +41,7 @@ spec:
                     echo "Nodes reporting 'NodeStatusNeverUpdated', sending an alert:"
                     echo "$NODES"
                     # Send alert to Slack
-                    curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Node \`${NODES}\` is stuck in "NotReady"!\"}" $SLACK_WEBHOOK_URL
+                    curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Node \`${NODES}\` is stuck in "NotReady" in \`${ENVIRONMENT}\`! \"}" $SLACK_WEBHOOK_URL
                   else
                     echo "No nodes reporting 'NodeStatusNeverUpdated'"
                   fi
