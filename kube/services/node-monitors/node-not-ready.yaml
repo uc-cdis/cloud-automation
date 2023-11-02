@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: node-not-ready-cron
+  namespace: default
+spec:
+  schedule: "*/30 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          serviceAccountName: node-monitor
+          containers:
+            - name: kubectl
+              image: quay.io/cdis/awshelper
+              env:
+                - name: SLACK_WEBHOOK_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
+
+              command: ["/bin/bash"]
+              args:
+                - "-c"
+                - |
+                  #!/bin/sh
+
+                  # Get nodes that show "NodeStatusNeverUpdated"
+                  NODES=$(kubectl get nodes -o json | jq -r '.items[] | select(.status.conditions[] | select(.type == "Ready" and .status == "Unknown")) | .metadata.name')
+
+                  if [ -n "$NODES" ]; then
+                    echo "Nodes reporting 'NodeStatusNeverUpdated', sending an alert:"
+                    echo "$NODES"
+                    # Send alert to Slack
+                    curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Node \`${NODES}\` is stuck in "NotReady"!\"}" $SLACK_WEBHOOK_URL
+                  else
+                    echo "No nodes reporting 'NodeStatusNeverUpdated'"
+                  fi
+          restartPolicy: OnFailure

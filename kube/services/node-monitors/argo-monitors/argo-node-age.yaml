@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: node-monitor-cron
+  name: argo-node-age
   namespace: default
 spec:
   schedule: "*/5 * * * *"

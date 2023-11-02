@@ -116,6 +116,9 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     && apt-get -y update \
     && apt-get -y install google-chrome-stable
 
+# data-simulator needs "/usr/share/dict/words" to generate data that isn't random strings
+RUN apt-get install --reinstall wamerican
+
 # update /etc/sudoers
 RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \
   && /bin/echo -e "\n%sudo    ALL=(ALL:ALL) NOPASSWD:ALL\n" >> /etc/sudoers.bak \

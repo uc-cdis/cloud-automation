@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://github.com/uc-cdis/cloud-automation.git
     targetRevision: master
-    path: kube/services/node-monitor
+    path: kube/services/node-monitors/
     directory:
       exclude: "application.yaml"
   syncPolicy:
