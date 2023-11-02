@@ -87,6 +87,8 @@ setup_secrets() {
     export DB_HOST=$(jq -r ".db_host" <<< "$dbcreds")
 
     export FENCE_URL="https://${hostname}/user/user"
+    # get arborist_url from manifest.json:
+    export ARBORIST_URL=$(g3k_manifest_lookup .global.arborist_url)
     export FENCE_METADATA_URL="https://${hostname}/.well-known/openid-configuration"
     export FENCE_CLIENT_ID=$(jq -r ".FENCE_CLIENT_ID" <<< "$appcreds")
     export FENCE_CLIENT_SECRET=$(jq -r ".FENCE_CLIENT_SECRET" <<< "$appcreds")

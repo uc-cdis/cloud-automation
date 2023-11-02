@@ -59,13 +59,6 @@ spec:
       containers:
         - name: ohdsi-webapi
           GEN3_OHDSI-WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
-          env:
-            - name: ARBORIST_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: manifest-global
-                  key: arborist_url
-                  optional: true
           livenessProbe:
             httpGet:
               path: /WebAPI/info/
