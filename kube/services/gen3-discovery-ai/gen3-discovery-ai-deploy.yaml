@@ -47,7 +47,7 @@ spec:
         volumeMounts:
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
-            mountPath: /gen3discoveryai/storage_config.json
+            mountPath: /gen3discoveryai/
             subPath: storage_config.json
           - name: gen3-discovery-ai-knowledge-library-volume
             mountPath: /gen3discoveryai/knowledge
@@ -88,7 +88,7 @@ spec:
         volumeMounts:
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
-            mountPath: /gen3discoveryai/.env
+            mountPath: /gen3discoveryai/
             subPath: env
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
@@ -96,7 +96,7 @@ spec:
             subPath: credentials.json
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
-            mountPath: /gen3discoveryai/storage_config.json
+            mountPath: /gen3discoveryai/
             subPath: storage_config.json
           - name: gen3-discovery-ai-knowledge-library-volume
             mountPath: /gen3discoveryai/knowledge
@@ -137,7 +137,7 @@ spec:
         volumeMounts:
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
-            mountPath: /gen3discoveryai/.env
+            mountPath: /gen3discoveryai/
             subPath: env
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
