@@ -46,11 +46,18 @@ spec:
             GEN3_DEBUG_FLAG|-value: "False"-|
           - name: ANONYMIZED_TELEMETRY
             value: "False"
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /gen3discoveryai/credentials.json
         volumeMounts:
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
             mountPath: /gen3discoveryai/.env
             subPath: env
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/credentials.json
+            subPath: credentials.json
+            optional: true
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
             mountPath: /gen3discoveryai/storage_config.json
