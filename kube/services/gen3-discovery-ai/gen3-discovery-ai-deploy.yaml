@@ -141,7 +141,7 @@ spec:
             subPath: env
           - name: gen3-discovery-ai-g3auto-volume
             readOnly: true
-            mountPath: /gen3discoveryai/credentials.json
+            mountPath: /gen3discoveryai/
             subPath: credentials.json
           - name: gen3-discovery-ai-knowledge-library-volume
             mountPath: /gen3discoveryai/knowledge
