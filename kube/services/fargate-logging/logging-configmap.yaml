@@ -10,5 +10,4 @@ data:
         Match   *
         region us-east-1
         log_group_name fluent-bit-eks-cloudwatch
-        log_stream_prefix from-fluent-bit-
-        auto_create_group on
+        log_stream_prefix from-fluent-bit-xe
