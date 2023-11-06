@@ -6,10 +6,18 @@ metadata:
 spec:
   project: default
   sources:
+  - chart: loki-stack
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: 2.9.11
+    helm:
+      releaseName: loki
   - chart: kube-prometheus-stack
     repoURL: https://prometheus-community.github.io/helm-charts
     targetRevision: 51.1.0
     helm:
+      parameters:
+        - name: nodeExporter.enabled
+          value: "False"
       valueFiles:
       - $values/kube/services/monitoring/values.yaml
       releaseName: prometheus
