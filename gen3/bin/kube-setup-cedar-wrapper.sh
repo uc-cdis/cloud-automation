@@ -18,7 +18,7 @@ create_client_and_secret() {
         cat - <<EOM
 {
   "client_id": "$client_id",
-  "client_secret": "$client_secret",
+  "client_secret": "$client_secret"
 }
 EOM
     fi
