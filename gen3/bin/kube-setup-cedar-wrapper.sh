@@ -21,7 +21,6 @@ create_client_and_secret() {
   "client_secret": "$client_secret",
 }
 EOM
-
     fi
 }
 
@@ -38,7 +37,7 @@ setup_creds() {
     local client_name="cedar_ingest_client"
     local client_list=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-list)
     local client_count=$(echo "$client_list=" | grep -cE "'name':.*'${client_name}'")
-    gen3_log_info "CEDAR Client count = ${client_count}"
+    gen3_log_info "CEDAR client count = ${client_count}"
 
     if [[ -z $have_cedar_client_secret ]] || [[ ${client_count} -lt 1 ]]; then
         gen3_log_info "Creating new cedar-ingest client and secret"
