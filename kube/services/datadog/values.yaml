@@ -1,4 +1,4 @@
-# values yaml for datadog 
+# values yaml for datadog
 # https://github.com/DataDog/helm-charts/tree/main/charts/datadog
 
 datadog:
@@ -20,7 +20,7 @@ datadog:
 
   # datadog.apiKeyExistingSecret -- Use existing Secret which stores API key instead of creating a new one. The value should be set with the `api-key` key inside the secret.
   ## If set, this parameter takes precedence over "apiKey".
-  apiKeyExistingSecret:  "ddgov-apikey"
+  apiKeyExistingSecret: "ddgov-apikey"
 
   # datadog.site -- The site of the Datadog intake to send Agent data to.
   # (documentation: https://docs.datadoghq.com/getting_started/site/)
@@ -42,14 +42,12 @@ datadog:
     ## ref: https://docs.datadoghq.com/integrations/kubernetes_state_core
     enabled: true
 
-
   ## Manage Cluster checks feature
   ## ref: https://docs.datadoghq.com/agent/autodiscovery/clusterchecks/
   ## Autodiscovery via Kube Service annotations is automatically enabled
   clusterChecks:
     # datadog.clusterChecks.enabled -- Enable the Cluster Checks feature on both the cluster-agents and the daemonset
     enabled: true
-
 
   ## Enable logs agent and provide custom configs
   logs:
@@ -81,8 +79,6 @@ datadog:
     # datadog.apm.port -- Override the trace Agent port
     ## Note: Make sure your client is sending to the same UDP port.
     port: 8126
-
-
 
   ## Enable process agent and provide custom configs
   processAgent:
@@ -164,7 +160,7 @@ datadog:
     maxTrackedConnections: 131072
 
     # datadog.systemProbe.conntrackMaxStateSize -- the maximum size of the userspace conntrack cache
-    conntrackMaxStateSize: 131072  # 2 * maxTrackedConnections by default, per  https://github.com/DataDog/datadog-agent/blob/d1c5de31e1bba72dfac459aed5ff9562c3fdcc20/pkg/process/config/config.go#L229
+    conntrackMaxStateSize: 131072 # 2 * maxTrackedConnections by default, per  https://github.com/DataDog/datadog-agent/blob/d1c5de31e1bba72dfac459aed5ff9562c3fdcc20/pkg/process/config/config.go#L229
 
     # datadog.systemProbe.conntrackInitTimeout -- the time to wait for conntrack to initialize before failing
     conntrackInitTimeout: 10s
@@ -185,7 +181,6 @@ datadog:
   networkMonitoring:
     # datadog.networkMonitoring.enabled -- Enable network performance monitoring
     enabled: false
-
 
   ## Enable security agent and provide custom configs
   securityAgent:
@@ -211,7 +206,6 @@ datadog:
         # datadog.securityAgent.runtime.syscallMonitor.enabled -- Set to true to enable the Syscall monitoring (recommended for troubleshooting only)
         enabled: false
 
-
   ## Configure prometheus scraping autodiscovery
   ## ref: https://docs.datadoghq.com/agent/kubernetes/prometheus/
   prometheusScrape:
@@ -220,7 +214,8 @@ datadog:
     # datadog.prometheusScrape.serviceEndpoints -- Enable generating dedicated checks for service endpoints.
     serviceEndpoints: false
     # datadog.prometheusScrape.additionalConfigs -- Allows adding advanced openmetrics check configurations with custom discovery rules. (Requires Agent version 7.27+)
-    additionalConfigs: []
+    additionalConfigs:
+      []
       # -
       #   autodiscovery:
       #     kubernetes_annotations:
@@ -235,7 +230,9 @@ datadog:
       #     timeout: 5
 
   containerExcludeLogs: "kube_namespace:logging kube_namespace:argo name:pelican-export* name:job-task"
-  containerExclude: "kube_namespace:logging kube_namespace:kube-system kube_namespace:kubecost kube_namespace:argo kube_namespace:cortex-xdr kube_namespace:monitoring kube_namespace:datadog" 
+  containerExclude: "kube_namespace:logging kube_namespace:kube-system kube_namespace:kubecost kube_namespace:argo kube_namespace:cortex-xdr kube_namespace:monitoring kube_namespace:datadog"
+  containerInclude: "kube_namespace:argo-events"
+  containerIncludeLogs: "kube_namespace:argo-events"
 ## This is the Datadog Cluster Agent implementation that handles cluster-wide
 ## metrics more cleanly, separates concerns for better rbac, and implements
 ## the external metrics API so you can autoscale HPAs based on datadog metrics
@@ -263,7 +260,6 @@ clusterAgent:
     pullSecrets: []
     #   - name: "<REG_SECRET>"
 
-
   # clusterAgent.replicas -- Specify the of cluster agent replicas, if > 1 it allow the cluster agent to work in HA mode.
   replicas: 1
 
@@ -287,14 +283,13 @@ agents:
   ## get guaranteed delivery of the metrics in Datadog-per-namespace setup!
   #
   enabled: true
-  
+
   # agents.tolerations -- Allow the DaemonSet to schedule on tainted nodes (requires Kubernetes >= 1.6)
   tolerations:
-  - effect: NoSchedule
-    key: role
-    operator: Equal
-    value: jupyter
-
+    - effect: NoSchedule
+      key: role
+      operator: Equal
+      value: jupyter
 
   ## Define the Datadog image to work with
   image:
@@ -320,7 +315,7 @@ agents:
     ## This boolean permits to completely skip this check.
     ## This is useful, for example, for custom tags that are not
     ## respecting semantic versioning
-    doNotCheckTag:  # false
+    doNotCheckTag: # false
 
     # agents.image.pullPolicy -- Datadog Agent image pull policy
     pullPolicy: IfNotPresent
