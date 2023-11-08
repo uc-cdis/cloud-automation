@@ -11,6 +11,7 @@ create_client_and_secret() {
     # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
     if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
         gen3_log_err "kube-setup-cedar-wrapper" "Failed generating ${client_name}: $secrets"
+        return 1
     else
         local client_id="${BASH_REMATCH[2]}"
         local client_secret="${BASH_REMATCH[3]}"
@@ -44,6 +45,7 @@ setup_creds() {
         local credsPath="$(gen3_secrets_folder)/g3auto/cedar/${cedar_creds_file}"
         if ! create_client_and_secret > $credsPath; then
             gen3_log_err "Failed to setup cedar-ingest secret"
+            return 1
         else
             gen3 secrets sync
             gen3 job run usersync
