@@ -21,9 +21,19 @@ data:
         - key: karpenter.k8s.aws/instance-family
           operator: In
           values:
+          - c7a.xlarge
+          - c7a.2xlarge
+          - c7a.4xlarge
+          - c7a.8xlarge
+          - c7i.xlarge
+          - c7i.2xlarge
+          - c7i.4xlarge
           - c7i.8xlarge
-          - c7i.12xlarge
-          - c7i.16xlarge
+          - m7a.4xlarge
+          - m7a.8xlarge
+          - m7a.12xlarge
+          - m7a.16xlarge
+          - m7i.4xlarge
           - m7i.8xlarge
           - m7i.12xlarge
           - m7i.16xlarge
