@@ -447,6 +447,11 @@ gen3_gitops_sync() {
   else
     if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true )  || ( "$covid_cronjob_roll" = true ) || ("fence_roll" = true) ]]; then
       echo "changes detected, rolling"
+      tmpHostname=$(gen3 api hostname)
+      if [[ $slack = true ]]; then
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: Changes detected on ${tmpHostname} - rolling...\"}" "${slackWebHook}"
+      fi
+
       # run etl job before roll all so guppy can pick up changes
       if [[ "$etl_roll" = true ]]; then
           gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
@@ -472,7 +477,6 @@ gen3_gitops_sync() {
       rollRes=$?
       # send result to slack
       if [[ $slack = true ]]; then
-        tmpHostname=$(gen3 api hostname)
         resStr="SUCCESS"
         color="#1FFF00"
         if [[ $rollRes != 0 ]]; then
