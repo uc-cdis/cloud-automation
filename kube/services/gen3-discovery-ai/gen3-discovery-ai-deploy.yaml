@@ -111,7 +111,7 @@ spec:
             echo
             echo AFTER /gen3discoveryai/knowledge 
             ls -Ra /gen3discoveryai/knowledge
-            while true
+            while :; do echo 'Press <CTRL+C> to exit.'; sleep 1; done
       containers:
       - name: gen3-discovery-ai
         GEN3_GEN3-DISCOVERY-AI_IMAGE
@@ -141,4 +141,4 @@ spec:
         args:
           - "-c"
           - |
-            while true
+            while :; do echo 'Press <CTRL+C> to exit.'; sleep 1; done
