@@ -445,7 +445,7 @@ gen3_gitops_sync() {
     echo "DRYRUN flag detected, not rolling"
     gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll; etl_roll: $etl_roll; fence_roll: $fence_roll"
   else
-    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true )  || ( "$covid_cronjob_roll" = true ) || ("fence_roll" = true) ]]; then
+    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true )  || ( "$covid_cronjob_roll" = true ) || ("$fence_roll" = true) ]]; then
       echo "changes detected, rolling"
       tmpHostname=$(gen3 api hostname)
       if [[ $slack = true ]]; then
