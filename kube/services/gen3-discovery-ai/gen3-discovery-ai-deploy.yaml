@@ -106,7 +106,7 @@ spec:
             ls -Ra /gen3discoveryai/knowledge 
             echo
             echo running load_into_knowledge_store.py
-            python /gen3discoveryai/bin/load_into_knowledge_store.py /gen3discoveryai/knowledge/tmp
+            poetry run python /gen3discoveryai/bin/load_into_knowledge_store.py /gen3discoveryai/knowledge/tmp
             rm -r /gen3discoveryai/knowledge/tmp/
             echo
             echo AFTER /gen3discoveryai/knowledge 
