@@ -168,7 +168,7 @@ gen3_secrets_sync() {
               # in subshell now - forget about local
               flags=""
               for secretValueFile in *; do
-                if [[ -f "$secretValueFile" && (("$secretValueFile" == ".env") || ("$secretValueFile" =~ ^[a-zA-Z0-9][^\ ]*[a-zA-Z0-9]$ && ! "$secretValueFile" =~ \.swp$)) ]]; then
+                if [[ -f "$secretValueFile" && "$secretValueFile" =~ ^[a-zA-Z0-9][^\ ]*[a-zA-Z0-9]$ && ! "$secretValueFile" =~ \.swp$ ]]; then
                   flags="$flags --from-file=$secretValueFile"
                 else
                   gen3_log_info "gen3_secrets_sync" "ignoring funny secrets file g3auto/$serviceName/$secretValueFile"
