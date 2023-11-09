@@ -105,8 +105,13 @@ spec:
             echo BEFORE /gen3discoveryai/knowledge  
             ls -Ra /gen3discoveryai/knowledge 
             echo
+            echo --------------------------------------------
             pwd
+            echo --------------------------------------------
+            ls
+            echo --------------------------------------------
             ls -Ra .
+            echo --------------------------------------------
             echo running load_into_knowledge_store.py
             poetry run python /gen3discoveryai/bin/load_into_knowledge_store.py /gen3discoveryai/knowledge/tmp
             rm -r /gen3discoveryai/knowledge/tmp/
