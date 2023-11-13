@@ -30,6 +30,10 @@ spec:
                     values:
                       - amd64
                       - arm64
+                  - key: role
+                    operator: In
+                    values:
+                      - workflow
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - podAffinityTerm:
