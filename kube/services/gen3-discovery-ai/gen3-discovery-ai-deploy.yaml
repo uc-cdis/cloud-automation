@@ -163,8 +163,3 @@ spec:
           limits:
             cpu: 2
             memory: 512Mi
-        command: ["/bin/bash"]
-        args:
-          - "-c"
-          - |
-            while :; do echo 'Press <CTRL+C> to exit.'; sleep 1; done
