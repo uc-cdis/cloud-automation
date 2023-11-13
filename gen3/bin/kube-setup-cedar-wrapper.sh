@@ -10,7 +10,7 @@ create_client_and_secret() {
     local secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client ${client_name} --grant-types client_credentials | tail -1)
     # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
     if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
-        gen3_log_err "kube-setup-cedar-wrapper" "Failed generating ${client_name}: $secrets"
+        gen3_log_err "kube-setup-cedar-wrapper" "Failed generating ${client_name}"
         return 1
     else
         local client_id="${BASH_REMATCH[2]}"
