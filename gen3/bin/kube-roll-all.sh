@@ -243,6 +243,12 @@ else
   gen3_log_info "not deploying dicom-viewer - no manifest entry for '.versions[\"dicom-viewer\"]'"
 fi
 
+if g3k_manifest_lookup '.versions["gen3-discovery-ai"]' 2> /dev/null; then
+  gen3 kube-setup-gen3-discovery-ai &
+else
+  gen3_log_info "not deploying gen3-discovery-ai - no manifest entry for '.versions[\"gen3-discovery-ai\"]'"
+fi
+
 gen3 kube-setup-revproxy
 
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
