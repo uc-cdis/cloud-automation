@@ -16,8 +16,6 @@ spec:
         eks.amazonaws.com/component: coredns
         k8s-app: kube-dns
     spec:
-      tolerations:
-        - operator: "Exists"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -110,10 +108,14 @@ spec:
       serviceAccountName: coredns
       terminationGracePeriodSeconds: 30
       tolerations:
+        - operator: Exists
         - effect: NoSchedule
           key: node-role.kubernetes.io/master
         - key: CriticalAddonsOnly
           operator: Exists
+        - key: role
+          value: workflow
+          operator: Equals
       volumes:
         - emptyDir: {}
           name: tmp
