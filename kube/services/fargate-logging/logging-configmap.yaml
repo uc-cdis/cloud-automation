@@ -11,3 +11,5 @@ data:
         region us-east-1
         log_group_name fluent-bit-eks-cloudwatch
         log_stream_prefix from-fluent-bit-xe
+        auto_create_group true
+        log_retention_days 1
