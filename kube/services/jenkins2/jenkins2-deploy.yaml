@@ -48,7 +48,7 @@ spec:
       #   https://estl.tech/accessing-docker-from-a-kubernetes-pod-68996709c04b
       #
       - name: jenkins
-        GEN3_JENKINS_IMAGE
+        GEN3_JENKINS2_IMAGE
         ports:
         - containerPort: 8080
           name: http
