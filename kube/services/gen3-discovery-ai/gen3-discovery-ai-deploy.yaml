@@ -28,7 +28,8 @@ spec:
         - name: gen3-discovery-ai-knowledge-library-volume
           emptyDir: {}
       initContainers:
-      # chromadb's persisted disk expects the ability to write.
+      # chromadb's persisted disk support requires the ability to write. We don't technically need this ability
+      # since we're populating the entirety of the database from configured files (no live updates).
       #
       # Solution: utilize emptyDir as a writable space.
       #
