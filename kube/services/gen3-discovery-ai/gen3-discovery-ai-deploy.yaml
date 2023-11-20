@@ -163,4 +163,5 @@ spec:
             cpu: 1
           limits:
             cpu: 2
+            # NOTE: If the configured data for the knowledge library (vector database) is large, you may need to bump this
             memory: 512Mi
