@@ -77,6 +77,17 @@ gen3_deploy_karpenter() {
                   "Effect": "Allow",
                   "Resource": "*",
                   "Sid": "ConditionalEC2Termination"
+              },
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "logs:CreateLogStream",
+                  "logs:CreateLogGroup",
+                  "logs:DescribeLogStreams",
+                  "logs:PutLogEvents",
+                  "logs:PutRetentionPolicy"
+                ],
+                "Resource": "*"
               }
           ],
           "Version": "2012-10-17"
