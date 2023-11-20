@@ -78,7 +78,7 @@ setup_storage() {
     # gen3-discovery-ai-g3auto secret still does not exist
     # we need to setup an S3 bucket and IAM creds
     # let's avoid creating multiple buckets for different
-    # deployments to the same k8s cluseter (dev, etc)
+    # deployments to the same k8s cluster (dev, etc)
     #
     local bucketName
     local accountNumber
