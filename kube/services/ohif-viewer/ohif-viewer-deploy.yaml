@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ohif-viewer-deployment
+  labels:
+    app: ohif-viewer
+spec:
+  selector:
+    matchLabels:
+      app: ohif-viewer
+      release: production
+  template:
+    metadata:
+      labels:
+        app: ohif-viewer
+        release: production
+        public: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
+      volumes:
+      - name: config-volume-g3auto
+        secret:
+          secretName: orthanc-s3-g3auto
+      containers:
+      - name: ohif-viewer
+        GEN3_OHIF-VIEWER_IMAGE
+        env:
+        - name: DD_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: dd_enabled
+              optional: true
+        - name: DD_ENV
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/env']
+        - name: DD_SERVICE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/service']
+        - name: DD_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/version']
+        - name: DD_LOGS_INJECTION
+          value: "true"
+        - name: DD_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: PORT
+          value: "8080"
+        - name: PUBLIC_URL
+          value: "/ohif-viewer/"
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 20
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 60
+          timeoutSeconds: 30
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: config-volume-g3auto
+          readOnly: true
+          mountPath: /usr/share/nginx/html/app-config.js
+          subPath: app-config.js

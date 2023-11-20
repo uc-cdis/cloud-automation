@@ -10,6 +10,7 @@ api.monqcle.com
 biodata-integration-tests.net
 marketing.biorender.com
 clinicaltrials.gov
+charts.bitnami.com
 ctds-planx.atlassian.net
 data.cityofchicago.org
 dataguids.org
@@ -70,11 +71,13 @@ ftp.ussg.iu.edu
 fmwww.bc.edu
 gcr.io
 get.helm.sh
+ghcr.io
 git.io
 go.googlesource.com
 golang.org
 gopkg.in
 grafana.com
+grafana.github.io
 http.us.debian.org
 ifconfig.io
 ingress.coralogix.us
@@ -124,6 +127,7 @@ orcid.org
 pgp.mit.edu
 ppa.launchpad.net
 prometheus-community.github.io
+proxy.golang.org
 public.ecr.aws
 pubmirrors.dal.corespace.com
 reflector.westga.edu
@@ -139,8 +143,10 @@ repo.dimenoc.com
 repos.mia.quadranet.com
 repos.redrockhost.com
 repos.sensuapp.org
+repo.vmware.com
 repository.cloudera.com
 resource.metadatacenter.org
+rmq.n3c.ncats.io
 rules.emergingthreats.net
 rweb.quant.ku.edu
 sa-update.dnswl.org

@@ -57,9 +57,9 @@ spec:
                 - SPOT                      
       automountServiceAccountToken: false
       volumes:
-        - name: cohort-middleware-config
+        - name: cohort-middleware-g3auto
           secret:
-            secretName: cohort-middleware-config
+            secretName: cohort-middleware-g3auto
             optional: true
       containers:
         - name: cohort-middleware
@@ -111,7 +111,7 @@ spec:
           ports:
           - containerPort: 8080
           volumeMounts:
-            - name: cohort-middleware-config
+            - name: cohort-middleware-g3auto
               readOnly: true
               mountPath: /config/development.yaml
               subPath: development.yaml

@@ -260,7 +260,7 @@ spec:
               exit 1
             fi
             #-----------------
-            echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
+            echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/user.yaml";
             n=0
             until [ $n -ge 5 ]; do
               echo "Download attempt $n"

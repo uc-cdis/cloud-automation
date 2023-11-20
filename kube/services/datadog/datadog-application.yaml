@@ -5,14 +5,17 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    chart: datadog
+  sources:
+  - chart: datadog
     repoURL: 'https://helm.datadoghq.com'
     targetRevision: 3.6.4
     helm:
-      valueFiles: 
-      - https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/kube/services/datadog/values.yaml
+      valueFiles:
+      - $values/kube/services/datadog/values.yaml
       releaseName: datadog
+  - repoURL: 'https://github.com/uc-cdis/cloud-automation.git'
+    targetRevision: master
+    ref: values
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: datadog

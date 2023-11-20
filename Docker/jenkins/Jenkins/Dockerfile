@@ -1,11 +1,10 @@
-FROM jenkins/jenkins:2.375
+FROM jenkins/jenkins:2.415-jdk11
 
 USER root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# install python
-RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils python python-setuptools python-dev python3 python3-pip python3-venv build-essential zip unzip jq less vim gettext-base wget
+RUN set -xe && apt-get update && apt-get install -y apt-utils dnsutils build-essential zip unzip jq less vim gettext-base
 
 RUN set -xe && apt-get update \
   && apt-get install -y lsb-release \
@@ -30,6 +29,7 @@ RUN set -xe && apt-get update \
      software-properties-common \
      sudo \
      tk-dev \
+     wget \
      zlib1g-dev \
      zsh \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua
@@ -45,18 +45,15 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" \
 
 #
 # install docker tools:
-#  * https://docs.docker.com/install/linux/docker-ce/debian/#install-docker-ce-1
-#  * https://docs.docker.com/compose/install/#install-compose
 #
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - \
-    && add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/debian \
-   $(lsb_release -cs) \
-   stable" \
-   && apt-get update \
-   && apt-get install -y docker-ce \
-   && curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
-   && chmod a+rx /usr/local/bin/docker-compose
+RUN sudo install -m 0755 -d /etc/apt/keyrings \
+  && curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+  && sudo chmod a+r /etc/apt/keyrings/docker.gpg \
+  && echo \
+    "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+    "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null \
+  && apt-get update && apt-get install -y docker-ce
 
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash -
@@ -81,8 +78,8 @@ RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
         ln -s /Python-3.8.0/python /usr/bin/python3
 
 # Fix shebang for lsb_release
-RUN sed -i 's/python3/python3.5/' /usr/bin/lsb_release && \
-    sed -i 's/python3/python3.5/' /usr/bin/add-apt-repository
+RUN sed -i 's/python3/python3.8/' /usr/bin/lsb_release && \
+    sed -i 's/python3/python3.8/' /usr/bin/add-apt-repository
 
 # install aws cli, poetry, pytest, etc.
 RUN set -xe && python3 -m pip install --upgrade pip && python3 -m pip install awscli --upgrade && python3 -m pip install pytest --upgrade && python3 -m pip install poetry && python3 -m pip install PyYAML --upgrade && python3 -m pip install lxml --upgrade && python3 -m pip install yq --upgrade

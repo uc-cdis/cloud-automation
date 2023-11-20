@@ -249,6 +249,18 @@ else
   gen3_log_info "not deploying gen3-discovery-ai - no manifest entry for '.versions[\"gen3-discovery-ai\"]'"
 fi
 
+if g3k_manifest_lookup '.versions["ohdsi-atlas"]' && g3k_manifest_lookup '.versions["ohdsi-webapi"]' 2> /dev/null; then
+  gen3 kube-setup-ohdsi &
+else
+  gen3_log_info "not deploying OHDSI tools - no manifest entry for '.versions[\"ohdsi-atlas\"]' and '.versions[\"ohdsi-webapi\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["cohort-middleware"]' 2> /dev/null; then
+  gen3 kube-setup-cohort-middleware
+else
+  gen3_log_info "not deploying cohort-middleware - no manifest entry for .versions[\"cohort-middleware\"]"
+fi
+
 gen3 kube-setup-revproxy
 
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
@@ -338,18 +350,6 @@ if g3k_manifest_lookup '.versions["argo-wrapper"]' 2> /dev/null; then
   gen3 kube-setup-argo-wrapper &
 else
   gen3_log_info "not deploying argo-wrapper - no manifest entry for '.versions[\"argo-wrapper\"]'"
-fi
-
-if g3k_manifest_lookup '.versions["cohort-middleware"]' 2> /dev/null; then
-  gen3 roll cohort-middleware &
-else
-  gen3_log_info "not deploying cohort-middleware - no manifest entry for '.versions[\"cohort-middleware\"]'"
-fi
-
-if g3k_manifest_lookup '.versions["ohdsi-atlas"]' && g3k_manifest_lookup '.versions["ohdsi-webapi"]' 2> /dev/null; then
-  gen3 kube-setup-ohdsi &
-else
-  gen3_log_info "not deploying OHDSI tools - no manifest entry for '.versions[\"ohdsi-atlas\"]' and '.versions[\"ohdsi-webapi\"]'"
 fi
 
 gen3_log_info "enable network policy"
