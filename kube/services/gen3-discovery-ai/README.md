@@ -7,10 +7,10 @@ Expects secrets setup in `g3auto/gen3-discovery-ai` folder
  - `credentials.json`: Google service account key if using a topic with Google Vertex AI
  - `env`: .env file contents for service configuration (see service repo for a default one)
 
-## Populating Disc for In-Memory Vectordb Chromadb
+## Populating Disk for In-Memory Vectordb Chromadb
 
 In order to setup pre-configured topics, we need to load a bunch of data 
-into Chromadb (which is an inmem vectordb with an option to persist to disk).
+into Chromadb (which is an in-mem vectordb with an option to persist to disk).
 
 To load topics consistently, we setup an S3 bucket to house the persisted 
 data for the vectordb.
@@ -31,5 +31,5 @@ See the Gen3 Discovery AI service repo README for more info.
 ### Getting data from S3 in mem
 
 We specify a path for Chromadb to use for persisted data and when it sees 
-data there, it loads it in. So the deployment automation aws syncs the bucket
-and then calls a script to load the files into the in-mem vectorstore from there. 
+data there, it loads it in. So the deployment automation: 1. aws syncs the bucket
+and then 2. calls a script to load the files into the in-mem vectorstore from there. 
