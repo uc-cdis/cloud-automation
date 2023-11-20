@@ -77,17 +77,6 @@ gen3_deploy_karpenter() {
                   "Effect": "Allow",
                   "Resource": "*",
                   "Sid": "ConditionalEC2Termination"
-              },
-              {
-                "Effect": "Allow",
-                "Action": [
-                  "logs:CreateLogStream",
-                  "logs:CreateLogGroup",
-                  "logs:DescribeLogStreams",
-                  "logs:PutLogEvents",
-                  "logs:PutRetentionPolicy"
-                ],
-                "Resource": "*"
               }
           ],
           "Version": "2012-10-17"
@@ -137,8 +126,28 @@ gen3_deploy_karpenter() {
           }
         ]
       }' > $XDG_RUNTIME_DIR/fargate-policy.json
+
+      echo '{
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+              "Effect": "Allow",
+              "Action": [
+                  "logs:CreateLogStream",
+                  "logs:CreateLogGroup",
+                  "logs:DescribeLogStreams",
+                  "logs:PutLogEvents",
+                  "logs:PutRetentionPolicy"
+              ],
+              "Resource": "*"
+          }
+        ]
+      }' > $XDG_RUNTIME_DIR/fargate-cloudwatch-policy.json
       aws iam create-role   --role-name AmazonEKSFargatePodExecutionRole-${vpc_name} --assume-role-policy-document file://"$XDG_RUNTIME_DIR/fargate-policy.json" || true
       aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy  --role-name AmazonEKSFargatePodExecutionRole-${vpc_name} || true
+      #This is us attaching the new role inline
+      gen3_log_info "aws iam put-role-policy --role-name AmazonEKSFargatePodExecutionRole-$vpc_name --policy-document file://$XDG_RUNTIME_DIR/fargate-cloudwatch-policy.json --policy-name "fargate-cloudwatch-logs" 1>&2 || true"
+      aws iam put-role-policy --role-name AmazonEKSFargatePodExecutionRole-${vpc_name} --policy-document file://$XDG_RUNTIME_DIR/fargate-cloudwatch-policy.json --policy-name "fargate-cloudwatch-logs" 1>&2 || true
       # Wait for IAM changes to take effect
       sleep 15
       aws eks create-fargate-profile --fargate-profile-name karpenter-profile --cluster-name $vpc_name --pod-execution-role-arn arn:aws:iam::$(aws sts get-caller-identity --output text --query "Account"):role/AmazonEKSFargatePodExecutionRole-${vpc_name} --subnets $subnets --selectors '{"namespace": "karpenter"}' || true
