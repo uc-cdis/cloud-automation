@@ -2,15 +2,6 @@ kind: Service
 apiVersion: v1
 metadata:
   name: gen3-discovery-ai-service
-  annotations:
-    getambassador.io/config: |
-      ---
-      apiVersion: ambassador/v1
-      ambassador_id: "gen3"
-      kind:  Mapping
-      name:  gen3-discovery-ai_mapping
-      prefix: /index/
-      service: http://gen3-discovery-ai-service:80
 spec:
   selector:
     app: gen3-discovery-ai
