@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Deploy the gen3-discovery-ai service.
+# Deploy the gen3-discovery-ai service
 #
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
