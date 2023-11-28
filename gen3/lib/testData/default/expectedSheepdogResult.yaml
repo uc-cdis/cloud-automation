@@ -17,6 +17,7 @@ spec:
   template:
     metadata:
       labels:
+        netnolimit: "yes"
         app: sheepdog
         release: production
         public: "yes"
@@ -41,10 +42,17 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - ONDEMAND   
+                - SPOT   
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
