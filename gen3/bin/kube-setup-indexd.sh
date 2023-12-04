@@ -24,8 +24,8 @@ g3kubectl create secret generic indexd-secret --from-file=local_settings.py="${G
 gen3 roll indexd
 g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-service.yaml"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-nginx.conf"
-g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/main-nginx.conf"
 g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-gunicorn.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/nginx-sidecar/nginx.conf"
 gen3 roll indexd-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/indexd/indexd-canary-service.yaml"
 

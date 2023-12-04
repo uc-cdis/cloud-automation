@@ -78,10 +78,10 @@ spec:
             name: indexd-wsgi
         - name: nginx-config
           configMap:
-            name: indexd-nginx 
-        - name: indexd-nginx-main
+            name: indexd-nginx-configmap
+        - name: nginx-main-config
           configMap:
-            name: indexd-nginx-main    
+            name: sidcar-nginx-main    
       containers:
       - name: indexd
         GEN3_INDEXD_IMAGE
@@ -191,7 +191,7 @@ spec:
             containerPort: 80
             protocol: TCP
         volumeMounts:
-          - name: "indexd-nginx-main"
+          - name: "nginx-main-config"
             mountPath: "/etc/nginx/nginx.conf"
             subPath: "nginx.conf"
           - name: "nginx-config"
