@@ -32,6 +32,7 @@ data:
           effect: NoSchedule
       labels:
         role: $WORKFLOW_NAME
+        workflow: "true"
       limits:
         resources:
           cpu: 2000

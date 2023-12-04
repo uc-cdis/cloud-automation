@@ -111,7 +111,7 @@ spec:
         prometheus.io/scrape: "true"
     spec:
       nodeSelector:
-        role: workflow
+        workflow: "true"
       priorityClassName: system-node-critical
       serviceAccountName: node-local-dns
       hostNetwork: true
@@ -123,6 +123,10 @@ spec:
           operator: "Exists"
         - effect: "NoSchedule"
           operator: "Exists"
+        - key: "role"
+          operator: "Equal"
+          value: "workflow"
+          effect: "NoSchedule"
       containers:
         - name: node-cache
           image: registry.k8s.io/dns/k8s-dns-node-cache:1.22.23
