@@ -10,6 +10,8 @@ data:
     metadata:
       name: workflow-$WORKFLOW_NAME
     spec:
+      kubeletConfiguration:
+        clusterDNS: ["169.254.20.10"]
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
@@ -29,7 +31,7 @@ data:
           value: $WORKFLOW_NAME
           effect: NoSchedule
       labels:
-        role: $WORKFLOW_NAME
+        role: workflow
       limits:
         resources:
           cpu: 2000
