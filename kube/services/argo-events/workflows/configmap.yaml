@@ -28,10 +28,10 @@ data:
           - m7i
       taints:
         - key: role
-          value: $WORKFLOW_NAME
+          value: workflow
           effect: NoSchedule
       labels:
-        role: workflow
+        role: $WORKFLOW_NAME
       limits:
         resources:
           cpu: 2000
