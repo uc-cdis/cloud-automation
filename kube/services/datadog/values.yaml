@@ -235,7 +235,7 @@ datadog:
       #     timeout: 5
 
   containerExcludeLogs: "kube_namespace:logging kube_namespace:argo name:pelican-export* name:job-task"
-
+  containerExclude: "kube_namespace:logging kube_namespace:kube-system kube_namespace:kubecost kube_namespace:argo kube_namespace:cortex-xdr kube_namespace:monitoring kube_namespace:datadog" 
 ## This is the Datadog Cluster Agent implementation that handles cluster-wide
 ## metrics more cleanly, separates concerns for better rbac, and implements
 ## the external metrics API so you can autoscale HPAs based on datadog metrics
