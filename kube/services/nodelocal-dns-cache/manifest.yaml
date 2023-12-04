@@ -110,6 +110,8 @@ spec:
         prometheus.io/port: "9253"
         prometheus.io/scrape: "true"
     spec:
+      nodeSelector:
+        role: workflow
       priorityClassName: system-node-critical
       serviceAccountName: node-local-dns
       hostNetwork: true
