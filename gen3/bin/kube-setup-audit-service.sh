@@ -103,6 +103,9 @@ fi
 
 gen3 roll audit-service
 g3kubectl apply -f "${GEN3_HOME}/kube/services/audit-service/audit-service-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/audit-service/audit-nginx.conf"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/audit-service/audit-gunicorn.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/nginx-sidecar/nginx.conf"
 
 if [[ -z "$GEN3_ROLL_ALL" ]]; then
   gen3 kube-setup-networkpolicy

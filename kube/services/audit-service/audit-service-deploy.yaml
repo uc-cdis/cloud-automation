@@ -29,6 +29,10 @@ spec:
         GEN3_DATE_LABEL
     spec:
       serviceAccountName: audit-service-sa
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -62,6 +66,15 @@ spec:
         - name: config-volume
           secret:
             secretName: "audit-g3auto"
+        - name: wsgi-config
+          configMap:
+            name: audit-wsgi
+        - name: nginx-config
+          configMap:
+            name: audit-nginx-configmap
+        - name: nginx-main-config
+          configMap:
+            name: sidcar-nginx-main 
       containers:
       - name: audit-service
         GEN3_AUDIT-SERVICE_IMAGE
@@ -78,27 +91,47 @@ spec:
         livenessProbe:
           httpGet:
             path: /_status
-            port: 80
+            port: 8000
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
         readinessProbe:
           httpGet:
             path: /_status
-            port: 80
+            port: 8000
         ports:
-        - containerPort: 80
+        - containerPort: 8000
         volumeMounts:
           - name: "config-volume"
             readOnly: true
             mountPath: "/src/audit-service-config.yaml"
             subPath: "audit-service-config.yaml"
+          - name: "wsgi-config"
+            mountPath: "/audit/deployment/wsgi/gunicorn.conf.py"
+            subPath: gunicorn.conf.py
         resources:
           requests:
             cpu: 100m
             memory: 100Mi
           limits:
             memory: 512Mi
+      - name: sidecar-nginx
+        image: quay.io/cdis/nginx-sidecar:nginx-sidecar-feat_nginx-sidecar
+        imagePullPolicy: IfNotPresent
+        ports:
+          - name: http
+            containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: http
+        volumeMounts:
+          - name: "nginx-main-config"
+            mountPath: "/etc/nginx/nginx.conf"
+            subPath: "nginx.conf"
+          - name: "nginx-config"
+            mountPath: "/etc/nginx/conf.d/default.conf"
+            subPath: default.conf
       initContainers:
         - name: audit-db-migrate
           GEN3_AUDIT-SERVICE_IMAGE
@@ -116,4 +149,4 @@ spec:
           args:
             - "-c"
             - |
-              /env/bin/alembic upgrade head
+              alembic upgrade head
