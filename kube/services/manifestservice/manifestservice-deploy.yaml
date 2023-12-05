@@ -95,6 +95,9 @@ spec:
           - name: GEN3_DEBUG
             GEN3_DEBUG_FLAG|-value: "False"-|
           volumeMounts:
+            - name: "wsgi-config"
+              mountPath: "/manifestservice/deployment/wsgi/gunicorn.conf.py"
+              subPath: gunicorn.conf.py
             - name: "config-volume"
               readOnly: true
               mountPath: "/var/gen3/config/"  
