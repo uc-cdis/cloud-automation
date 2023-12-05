@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: high-performance-dns-application
+  name: karpenter-reconciler-application
   namespace: argocd
 spec:
   destination:

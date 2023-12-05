@@ -9,6 +9,7 @@ spec:
     spec:
       template:
         spec:
+          serviceAccount: karpenter-reconciler
           volumes:
             - name: karpenter-templates-volume
               configMap:
@@ -48,7 +49,6 @@ spec:
                   while IFS= read -r line; do
                     WORKFLOW_ARRAY+=("$line")
                   done <<< "$WORKFLOWS"
-
 
                   for workflow in "${WORKFLOW_ARRAY[@]}"
                   do
