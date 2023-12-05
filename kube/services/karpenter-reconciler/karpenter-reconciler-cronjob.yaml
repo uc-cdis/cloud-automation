@@ -8,6 +8,9 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          labels:
+            app: gen3job
         spec:
           serviceAccount: karpenter-reconciler
           volumes:
