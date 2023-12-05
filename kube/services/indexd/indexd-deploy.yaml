@@ -28,6 +28,10 @@ spec:
         GEN3_INDEXD_VERSION
         GEN3_DATE_LABEL
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -137,17 +141,16 @@ spec:
         livenessProbe:
           httpGet:
             path: /_status
-            port: 80
+            port: 8000
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
         readinessProbe:
           httpGet:
             path: /_status
-            port: 80
+            port: 8000
         ports:
-        - containerPort: 80
-        - containerPort: 443
+        - containerPort: 8000
         - containerPort: 6567
         volumeMounts:
           - name: "config-volume"
@@ -185,11 +188,15 @@ spec:
           limits:
             memory: 1024Mi
       - name: sidecar-nginx
-        image: quay.io/cdis/nginx 
+        image: quay.io/cdis/nginx-sidecar:nginx-sidecar-feat_nginx-sidecar
+        imagePullPolicy: IfNotPresent
         ports:
           - name: http
-            containerPort: 80
-            protocol: TCP
+            containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: http
         volumeMounts:
           - name: "nginx-main-config"
             mountPath: "/etc/nginx/nginx.conf"
