@@ -68,7 +68,7 @@ spec:
             name: metadata-nginx-configmap
         - name: nginx-main-config
           configMap:
-            name: sidcar-nginx-main 
+            name: sidecar-nginx-main 
         - name: config-volume-g3auto
           secret:
             secretName: metadata-g3auto

@@ -74,7 +74,7 @@ spec:
             name: audit-nginx-configmap
         - name: nginx-main-config
           configMap:
-            name: sidcar-nginx-main 
+            name: sidecar-nginx-main 
       containers:
       - name: audit-service
         GEN3_AUDIT-SERVICE_IMAGE

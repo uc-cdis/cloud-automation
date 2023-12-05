@@ -85,7 +85,7 @@ spec:
             name: indexd-nginx-configmap
         - name: nginx-main-config
           configMap:
-            name: sidcar-nginx-main    
+            name: sidecar-nginx-main
       containers:
       - name: indexd
         GEN3_INDEXD_IMAGE

@@ -68,7 +68,7 @@ spec:
             name: manifestservice-nginx-configmap
         - name: nginx-main-config
           configMap:
-            name: sidcar-nginx-main   
+            name: sidecar-nginx-main   
         - name: config-volume
           secret:
             secretName: "manifestservice-g3auto"
