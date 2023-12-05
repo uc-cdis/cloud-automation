@@ -124,14 +124,14 @@ spec:
           livenessProbe:
             httpGet:
               path: /_status
-              port: 80
+              port: 8000
             initialDelaySeconds: 10
             periodSeconds: 60
             timeoutSeconds: 30
           readinessProbe:
             httpGet:
               path: /_status
-              port: 80
+              port: 8000
         - name: sidecar-nginx
           image: quay.io/cdis/nginx-sidecar:nginx-sidecar-feat_nginx-sidecar
           imagePullPolicy: IfNotPresent

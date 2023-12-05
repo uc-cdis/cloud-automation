@@ -88,6 +88,9 @@ if g3kubectl get configmap manifest-metadata > /dev/null 2>&1; then
 fi
 gen3 roll metadata
 g3kubectl apply -f "${GEN3_HOME}/kube/services/metadata/metadata-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/metadata/metadata-nginx.conf"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/metadata/metadata-gunicorn.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/nginx-sidecar/nginx.conf"
 
 if [[ -z "$GEN3_ROLL_ALL" ]]; then
   gen3 kube-setup-networkpolicy
