@@ -27,5 +27,18 @@ subjects:
     namespace: default
 roleRef:
   kind: ClusterRole
-  name: argo-workflows-view
+  name: argo-argo-workflows-view
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: viewer-reconciler
+subjects:
+  - kind: ServiceAccount
+    name: karpenter-reconciler
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: system:aggregate-to-view
   apiGroup: rbac.authorization.k8s.io
