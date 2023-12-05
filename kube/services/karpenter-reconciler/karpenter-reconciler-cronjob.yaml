@@ -1,0 +1,71 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: karpenter-reconciler-cronjob
+  namespace: argo-events
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          serviceAccount: karpenter-reconciler
+          volumes:
+            - name: karpenter-templates-volume
+              configMap:
+                name: karpenter-templates
+          containers:
+            - name: karpenter-reconciler
+              image: quay.io/cdis/awshelper
+              volumeMounts:
+                - name: karpenter-templates-volume
+                  mountPath: /manifests
+              env:
+                - name: PROVISIONER_TEMPLATE
+                  value: /manifests/provisioner.yaml
+                - name: AWSNODETEMPLATE_TEMPLATE
+                  value: /manifests/nodetemplate.yaml
+              command: ["/bin/bash"]
+              args:
+                - "-c"
+                - |
+                  #!/bin/bash
+                  if [ -z "$PROVISIONER_TEMPLATE" ]; then
+                    PROVISIONER_TEMPLATE="provisioner.yaml"
+                  fi
+
+                  if [ -z "$AWSNODETEMPLATE_TEMPLATE" ]; then
+                    AWSNODETEMPLATE_TEMPLATE="nodetemplate.yaml"
+                  fi
+
+                  ENVIRONMENT=$(kubectl get configmap global -o jsonpath="{.data.environment}")
+
+                  RAW_WORKFLOWS=$(kubectl get workflows -n argo -o yaml)
+
+                  WORKFLOWS=$(echo "${RAW_WORKFLOWS}" | yq -r '.items[] | [.metadata.name, .metadata.labels.gen3username] | join(" ")')
+
+                  WORKFLOW_ARRAY=()
+
+                  while IFS= read -r line; do
+                    WORKFLOW_ARRAY+=("$line")
+                  done <<< "$WORKFLOWS"
+
+                  for workflow in "${WORKFLOW_ARRAY[@]}"
+                  do
+                    workflow_name=$(echo "$workflow" | awk '{print $1}')
+                    workflow_user=$(echo "$workflow" | awk '{print $2}')
+
+                    if ! kubectl get awsnodetemplate workflow-$workflow_name >/dev/null 2>&1; then
+                      echo "No awsnodetemplate found for ${workflow_name}, creating one"
+                      sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USER_NAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$AWSNODETEMPLATE_TEMPLATE" | kubectl apply -f -
+                    fi
+
+                    if ! kubectl get provisioner workflow-$workflow_name >/dev/null 2>&1; then
+                      echo "No provisioner found for ${workflow_name}, creating one"
+                      sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USER_NAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$PROVISIONER_TEMPLATE" | kubectl apply -f -
+                    fi
+                  done
+          restartPolicy: OnFailure
