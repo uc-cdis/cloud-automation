@@ -8,16 +8,16 @@ spec:
     spec:
       template:
         spec:
+          volumes:
+            - name: karpenter-templates-volume
+              configMap:
+                name: karpenter-templates
           containers:
             - name: karpenter-reconciler
               image: quay.io/cdis/awshelper
               volumeMounts:
                 - name: karpenter-templates-volume
                   mountPath: /manifests
-              volumes:
-                - name: karpenter-templates-volume
-                  configMap:
-                    name: karpenter-templates
               env:
                 - name: PROVISIONER_TEMPLATE
                   value: /manifests/provisioner.yaml
