@@ -107,7 +107,7 @@ spec:
             mountPath: "/src/audit-service-config.yaml"
             subPath: "audit-service-config.yaml"
           - name: "wsgi-config"
-            mountPath: "/audit/deployment/wsgi/gunicorn.conf.py"
+            mountPath: "/audit-service/deployment/wsgi/gunicorn.conf.py"
             subPath: gunicorn.conf.py
         resources:
           requests:
