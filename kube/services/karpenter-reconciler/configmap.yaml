@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: karpenter-templates
-  namespace: argo-events
+  namespace: default
 data:
   provisioner.yaml: |
     apiVersion: karpenter.sh/v1alpha5
