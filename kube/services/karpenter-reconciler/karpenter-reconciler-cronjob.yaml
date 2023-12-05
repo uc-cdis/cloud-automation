@@ -26,6 +26,7 @@ spec:
                   value: /manifests/nodetemplate.yaml
               command: ["/bin/bash"]
               args:
+                - "-c"
                 - |
                   #!/bin/bash
                   source$ $GEN3_HOME/gen3/lib/utils.sh
