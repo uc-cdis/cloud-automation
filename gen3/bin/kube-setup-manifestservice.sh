@@ -38,6 +38,9 @@ fi
 # deploy manifest-service
 gen3 roll manifestservice
 g3kubectl apply -f "${GEN3_HOME}/kube/services/manifestservice/manifestservice-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/manifestservice/manifestservice-nginx.conf"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/manifestservice/manifestservice-gunicorn.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/nginx-sidecar/nginx.conf"
 
 cat <<EOM
 The manifest service has been deployed onto the k8s cluster.
