@@ -21,9 +21,28 @@ data:
         - key: karpenter.k8s.aws/instance-family
           operator: In
           values:
-          - c6i
-          - c7i
-          - m7i
+          - c6a.large
+          - c6a.xlarge
+          - c6a.2xlarge
+          - c6a.4xlarge
+          - c6a.8xlarge
+          - c6a.12xlarge
+          - c6i.large
+          - c6i.xlarge
+          - c6i.2xlarge
+          - c6i.4xlarge
+          - c6i.8xlarge
+          - c6i.12xlarge
+          - m6a.2xlarge
+          - m6a.4xlarge
+          - m6a.8xlarge
+          - m6a.12xlarge
+          - m6a.16xlarge
+          - m6i.2xlarge
+          - m6i.4xlarge
+          - m6i.8xlarge
+          - m6i.12xlarge
+          - m6i.16xlarge
       taints:
         - key: role
           value: $WORKFLOW_NAME
