@@ -29,11 +29,6 @@ spec:
                 - "-c"
                 - |
                   #!/bin/bash
-                  source$ $GEN3_HOME/gen3/lib/utils.sh
-
-                  gen3_load "gen3/gen3setup"
-                  gen3_load "gen3/lib/kube-setup-init"
-
                   if [ -z "$PROVISIONER_TEMPLATE" ]; then
                     PROVISIONER_TEMPLATE="provisioner.yaml"
                   fi
@@ -62,12 +57,12 @@ spec:
 
                     if ! kubectl get awsnodetemplate workflow-$workflow_name >/dev/null 2>&1; then
                       echo "No awsnodetemplate found for ${workflow_name}, creating one"
-                      g3k_kv_filter "$AWSNODETEMPLATE_TEMPLATE"  WORKFLOW_NAME "$workflow_name" | kubectl apply -f -
+                      sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USER_NAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$AWSNODETEMPLATE_TEMPLATE" | kubectl apply -f -
                     fi
 
                     if ! kubectl get provisioner workflow-$workflow_name >/dev/null 2>&1; then
                       echo "No provisioner found for ${workflow_name}, creating one"
-                      g3k_kv_filter "$PROVISIONER_TEMPLATE" WORKFLOW_NAME "$workflow_name" USER_NAME "$workflow_user" ENVIRONMENT "$ENVIRONMENT" | kubectl apply -f -
+                      sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USER_NAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$PROVISIONER_TEMPLATE" | kubectl apply -f -
                     fi
                   done
           restartPolicy: OnFailure
