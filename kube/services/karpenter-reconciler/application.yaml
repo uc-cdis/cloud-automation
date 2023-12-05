@@ -6,8 +6,8 @@ metadata:
 spec:
   destination:
     namespace: kube-system
-    server: https://kubernetes.default.svc
-  project: default
+    server: https://kubernetes.argo-events.svc
+  project: argo-events
   source:
     repoURL: https://github.com/uc-cdis/cloud-automation.git
     targetRevision: master

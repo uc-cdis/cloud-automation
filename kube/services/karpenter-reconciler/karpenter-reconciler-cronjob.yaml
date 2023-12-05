@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: karpenter-reconciler-cronjob
-  namespace: default
+  namespace: argo-events
 spec:
   schedule: "*/5 * * * *"
   jobTemplate:
