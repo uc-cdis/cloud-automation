@@ -74,7 +74,6 @@ spec:
             # Script always succeeds if it runs (echo exits with 0)
             # indexd image does not include jq, so use python 
             - |
-              source .venv/bin/activate
               eval $(python3 2> /dev/null <<EOM
               import json
 

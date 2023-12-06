@@ -75,7 +75,6 @@ spec:
           args:
             - "-c"
             - |
-              source .venv/bin/activate
               flags="--path /var/www/indexd/ --arborist-url http://arborist-service"
               if [[ "$USE_SHEEPDOG" == "true" ]]; then
                 db_uri=$(python3 - <<- EOF
