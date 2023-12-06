@@ -66,6 +66,7 @@ spec:
                     if ! kubectl get provisioner workflow-$workflow_name >/dev/null 2>&1; then
                       echo "No provisioner found for ${workflow_name}, creating one"
                       sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$PROVISIONER_TEMPLATE" | kubectl apply -f -
+
                     fi
                   done
           restartPolicy: OnFailure
