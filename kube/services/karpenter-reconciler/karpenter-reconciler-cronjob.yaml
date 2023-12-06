@@ -41,7 +41,7 @@ spec:
                     AWSNODETEMPLATE_TEMPLATE="nodetemplate.yaml"
                   fi
 
-                  ENVIRONMENT=$(kubectl get configmap global -o jsonpath="{.data.environment}")
+                  ENVIRONMENT=$(kubectl -n default get configmap global -o jsonpath="{.data.environment}")
 
                   RAW_WORKFLOWS=$(kubectl get workflows -n argo -o yaml)
 
