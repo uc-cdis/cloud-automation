@@ -8,7 +8,7 @@ data:
     apiVersion: karpenter.sh/v1alpha5
     kind: Provisioner
     metadata:
-      name: workflow-$WORKFLOW_NAME
+      name: workflow-WORKFLOW_NAME
     spec:
       requirements:
         - key: karpenter.sh/capacity-type
@@ -18,7 +18,7 @@ data:
           operator: In
           values:
           - amd64
-        - key: karpenter.k8s.aws/instance-family
+        - key: node.kubernetes.io/instance-type
           operator: In
           values:
           - c6a.large
@@ -45,15 +45,15 @@ data:
           - m6i.16xlarge
       taints:
         - key: role
-          value: $WORKFLOW_NAME
+          value: WORKFLOW_NAME
           effect: NoSchedule
       labels:
-        role: $WORKFLOW_NAME
+        role: WORKFLOW_NAME
       limits:
         resources:
           cpu: 2000
       providerRef:
-        name: workflow-$WORKFLOW_NAME
+        name: workflow-WORKFLOW_NAME
       # Kill nodes after 30 days to ensure they stay up to date
       ttlSecondsUntilExpired: 2592000
       ttlSecondsAfterEmpty: 10
@@ -62,18 +62,18 @@ data:
     apiVersion: karpenter.k8s.aws/v1alpha1
     kind: AWSNodeTemplate
     metadata:
-      name: workflow-$WORKFLOW_NAME
+      name: workflow-WORKFLOW_NAME
     spec:
       subnetSelector:
-        karpenter.sh/discovery: $ENVIRONMENT
+        karpenter.sh/discovery: ENVIRONMENT
       securityGroupSelector:
-        karpenter.sh/discovery: $ENVIRONMENT-workflow
+        karpenter.sh/discovery: ENVIRONMENT-workflow
       tags:
-        Environment: $ENVIRONMENT
-        Name: eks-$ENVIRONMENT-workflow-karpenter
-        karpenter.sh/discovery: $ENVIRONMENT
-        workflowname: $WORKFLOW_NAME
-        gen3username: $GEN3_USERNAME
+        Environment: ENVIRONMENT
+        Name: eks-ENVIRONMENT-workflow-karpenter
+        karpenter.sh/discovery: ENVIRONMENT
+        workflowname: WORKFLOW_NAME
+        gen3username: GEN3_USERNAME
         gen3service: argo-workflows
         purpose: workflow
       metadataOptions:
