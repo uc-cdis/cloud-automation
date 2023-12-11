@@ -63,9 +63,11 @@ spec:
                         args:
                           - "-c"
                           - |
-                            if [ "-n '$GEN3_USERNAME' and -n '$BILLING_ID'" ]; then
+                            if [ -n "$GEN3_USERNAME" ]; then
+                              if [ -n "$BILLING_ID"]; then
                                 echo "This should be pinging on Slack"
                                 exit 1
+                              fi
                             fi
 
                             if [ ! -z "$GEN3_USERNAME" ]; then
