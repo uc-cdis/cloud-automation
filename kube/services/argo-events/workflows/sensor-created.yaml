@@ -36,6 +36,10 @@ spec:
                 dependencyName: workflow-created-event
                 dataKey: body.metadata.labels.gen3username
               dest: spec.template.spec.containers.0.env.1.value
+            - src:
+                dependencyName: workflow-created-event
+                dataKey: body.metadata.labels.billing_id
+              dest: spec.template.spec.containers.0.env.2.value
           source:
             resource:
               apiVersion: batch/v1
@@ -59,7 +63,7 @@ spec:
                         args:
                           - "-c"
                           - |
-                            if [ "! -z '$GEN3_USERNAME' and ! -z '$BILLING_ID" ]; then
+                            if [ "-n '$GEN3_USERNAME' and -n '$BILLING_ID" ]; then
                                 echo "This should be pinging on Slack"
                                 exit 1
                             fi
