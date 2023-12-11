@@ -59,26 +59,45 @@ spec:
                         args:
                           - "-c"
                           - |
+                            if [ "! -z '$GEN3_USERNAME' and ! -z '$BILLING_ID" ]; then
+                                echo "This should be pinging on Slack"
+                                exit 1
+                            fi
+
+                            if [ ! -z "$GEN3_USERNAME" ]; then
+                                yq '.spec.tags.gen3username = "GEN3_USERNAME"' /manifests/nodetemplate.yaml > "/tmp/$WORKFLOW_NAME-template.yaml"
+                                export AWSNODETEMPLATE_TEMPLATE="/tmp/$WORKFLOW_NAME-template.yaml"
+                            fi
+
+                            if [ ! -z "BILLING_ID" ]; then
+                                yq '.spec.tags.billing_id = "BILLING_ID"' /manifests/nodetemplate.yaml > "/tmp/$WORKFLOW_NAME-template.yaml"
+                                export AWSNODETEMPLATE_TEMPLATE="/tmp/$WORKFLOW_NAME-template.yaml"
+                            fi
+
                             if ! kubectl get awsnodetemplate workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/"  | kubectl apply -f - 
+                              sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/g" -e "s/BILLING_ID/$BILLING_ID/g" -e "s/GEN3_USERNAME/$GEN3_USERNAME/g" -e "s/ENVIRONMENT/$ENVIRONMENT/g" "$AWSNODETEMPLATE_TEMPLATE"  | kubectl apply -f - 
                             fi
 
                             if ! kubectl get provisioner workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/"  | kubectl apply -f - 
+                              sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/g" -e "s/BILLING_ID/$BILLING_ID/g" -e "s/GEN3_USERNAME/$GEN3_USERNAME/g" -e "s/ENVIRONMENT/$ENVIRONMENT/g" "$PROVISIONER_TEMPLATE" | kubectl apply -f - 
                             fi
                         env:
                           - name: WORKFLOW_NAME
                             value: ""
                           - name: GEN3_USERNAME
                             value: ""
+                          - name: BILLING_ID
+                            value: ""
                           - name: ENVIRONMENT
                             valueFrom:
                               configMapKeyRef:
                                 name: environment
                                 key: environment
+                          - name: PROVISIONER_TEMPLATE
+                            value: /manifests/provisioner.yaml
                         volumeMounts:
                           - name: karpenter-templates-volume
-                            mountPath: /home/manifests
+                            mountPath: /manifests
                     volumes:
                       - name: karpenter-templates-volume
                         configMap:

@@ -73,7 +73,6 @@ data:
         Name: eks-ENVIRONMENT-workflow-karpenter
         karpenter.sh/discovery: ENVIRONMENT
         workflowname: WORKFLOW_NAME
-        gen3username: GEN3_USERNAME
         gen3service: argo-workflows
         purpose: workflow
       metadataOptions:
