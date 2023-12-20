@@ -83,7 +83,7 @@ spec:
             limits:
               memory: 4Gi  
         - name: ohdsi-webapi-reverse-proxy
-          image: nginx:1.23
+          image: 707767160287.dkr.ecr.us-east-1.amazonaws.com/gen3/nginx:1.23
           ports:
           - containerPort: 80
           volumeMounts:
