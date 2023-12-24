@@ -1,4 +1,4 @@
-FROM jenkins/inbound-agent:jdk21
+FROM jenkins/inbound-agent:jdk11
 
 USER root
 
