@@ -4,8 +4,6 @@ controller:
     # -- Enables prometheus metrics server
     enabled: true
     servicePort: 9090
-  logging:
-    format: json
 
   resources:
     requests:
