@@ -37,6 +37,7 @@ spec:
     sudo  dracut -f
     # configure grub
     sudo /sbin/grubby --update-kernel=ALL --args="fips=1"
+    sudo mount -t bpf bpffs /sys/fs/bpf
 
     --BOUNDARY
     Content-Type: text/cloud-config; charset="us-ascii"
