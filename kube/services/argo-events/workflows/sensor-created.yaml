@@ -51,6 +51,7 @@ spec:
                   workflow: ""
               spec:
                 completions: 1
+                backoffLimit: 20
                 ttlSecondsAfterFinished: 900
                 parallelism: 1
                 template:
@@ -71,12 +72,12 @@ spec:
                             fi
 
                             if [ ! -z "$GEN3_USERNAME" ]; then
-                                yq '.spec.tags.gen3username = "GEN3_USERNAME"' /manifests/nodetemplate.yaml > "/tmp/$WORKFLOW_NAME-template.yaml"
+                                yq --arg gen3_username "$GEN3_USERNAME" '.spec.tags.gen3username = $gen3_username' /manifests/nodetemplate.yaml > "/tmp/$WORKFLOW_NAME-template.yaml"
                                 export AWSNODETEMPLATE_TEMPLATE="/tmp/$WORKFLOW_NAME-template.yaml"
                             fi
 
                             if [ ! -z "BILLING_ID" ]; then
-                                yq '.spec.tags.billing_id = "BILLING_ID"' /manifests/nodetemplate.yaml > "/tmp/$WORKFLOW_NAME-template.yaml"
+                                yq --arg billing_id '.spec.tags.billing_id = $billing_id' /manifests/nodetemplate.yaml > "/tmp/$WORKFLOW_NAME-template.yaml"
                                 export AWSNODETEMPLATE_TEMPLATE="/tmp/$WORKFLOW_NAME-template.yaml"
                             fi
 
@@ -87,6 +88,7 @@ spec:
                             if ! kubectl get provisioner workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
                               sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/g" -e "s/BILLING_ID/$BILLING_ID/g" -e "s/GEN3_USERNAME/$GEN3_USERNAME/g" -e "s/ENVIRONMENT/$ENVIRONMENT/g" "$PROVISIONER_TEMPLATE" | kubectl apply -f - 
                             fi
+                            sleep 5000000
                         env:
                           - name: WORKFLOW_NAME
                             value: ""
@@ -108,4 +110,3 @@ spec:
                       - name: karpenter-templates-volume
                         configMap:
                           name: karpenter-templates
-                backoffLimit: 20
