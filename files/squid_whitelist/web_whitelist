@@ -77,6 +77,7 @@ golang.org
 gopkg.in
 grafana.com
 grafana.github.io
+helm.elastic.co
 http.us.debian.org
 ifconfig.io
 ingress.coralogix.us
