@@ -19,7 +19,7 @@ gen3_load "gen3/gen3setup"
 kubeproxy=${kubeproxy:-1.24.7}
 coredns=${coredns:-1.8.7}
 kubednsautoscaler=${kubednsautoscaler:-1.8.6}
-cni=${cni:-1.12.2}
+cni=${cni:-1.14.1}
 calico=${calico:-1.7.8}
 
 

@@ -40,6 +40,7 @@ else
     --vpc-options "SubnetIds=${subnet_ids[*]},SecurityGroupIds=${security_groups[*]}" \
     --access-policies "$access_policies" \
     --encryption-at-rest-options "Enabled=true,KmsKeyId=$kms_key_id"\
+    --node-to-node-encryption-options "Enabled=true"
     > /dev/null 2>&1
 
     # Wait for the new cluster to be available
