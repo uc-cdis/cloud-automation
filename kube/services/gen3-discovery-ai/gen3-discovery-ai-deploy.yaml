@@ -78,7 +78,7 @@ spec:
             ls -Ra /gen3discoveryai/knowledge 
             echo
             echo syncing from s3
-            aws s3 sync "s3://${bucketName}/tsvs" "/gen3discoveryai/knowledge/tmp"
+            aws s3 sync "s3://${bucketName}" "/gen3discoveryai/knowledge/tmp"
             echo
             echo AFTER /gen3discoveryai/knowledge 
             ls -Ra /gen3discoveryai/knowledge
@@ -124,7 +124,21 @@ spec:
             echo BEFORE /gen3discoveryai/knowledge  
             ls -Ra /gen3discoveryai/knowledge 
             echo running load_into_knowledge_store.py
-            poetry run python /gen3discoveryai/bin/load_into_knowledge_store.py /gen3discoveryai/knowledge/tmp
+            poetry run python /gen3discoveryai/bin/load_into_knowledge_store.py tsvs /gen3discoveryai/knowledge/tmp/tsvs
+            
+            if [ -d "/gen3discoveryai/knowledge/tmp/markdown" ]; then
+                for dir in "/gen3discoveryai/knowledge/tmp/markdown"/*; do
+                    if [ -d "$dir" ]; then
+                        dir_name=$(basename "$dir")
+
+                        echo "Processing directory: $dir_name. Full path: $dir"
+                        poetry run python /gen3discoveryai/bin/load_into_knowledge_store.py markdown --topic $dir_name $dir
+                    fi
+                done
+            else
+                echo "Not syncing markdown, directory not found: /gen3discoveryai/knowledge/tmp/markdown"
+            fi
+
             rm -r /gen3discoveryai/knowledge/tmp/
             echo
             echo AFTER /gen3discoveryai/knowledge 

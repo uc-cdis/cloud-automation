@@ -1,7 +1,27 @@
 # Gen3 Discovery AI Configuration
 
-Expects configuration in a `gen3-discovery-ai` folder relative to 
+Expects data in a `gen3-discovery-ai` folder relative to 
 where the `manifest.json` is. 
+
+Basic setup:
+
+`{{dir where manifest.json is}}/gen3-discovery-ai/knowledge/`
+
+- `tsvs` folder
+    - tsvs with topic_name at beginning of file
+- `markdown` folder
+    - {{topic_name_1}}
+        - markdown file(s)
+    - {{topic_name_2}}
+        - markdown file(s)
+
+The `kube-setup-gen3-discovery-ai` script syncs the above `/knowledge` folder to
+an S3 bucket. The service configuration then pulls from the S3 bucket and runs load commands 
+to get the data into chromadb.
+
+> Note: See the `gen3-discovery-ai` service repo docs and README for more details on data load capabilities.
+
+Check the `gen3-discovery-ai-deploy.yaml` for what commands are being run in the automation.
 
 Expects secrets setup in `g3auto/gen3-discovery-ai` folder
  - `credentials.json`: Google service account key if using a topic with Google Vertex AI
@@ -14,19 +34,6 @@ into Chromadb (which is an in-mem vectordb with an option to persist to disk).
 
 To load topics consistently, we setup an S3 bucket to house the persisted 
 data for the vectordb.
-
-### Getting data into S3
-
-We could support more than TSVs in the future, but for now that's the only automated support.
-
-Move TSVs of data into the configuration in cdis-manifest. The expectation is that for Chromadb loading, the 
-files are placed in a `gen3-discovery-ai/knowledge/tsvs` folder relative to 
-where the `manifest.json` is. For example:
-`~/cdis-manifest/avantol.planx-pla.net/gen3-discovery-ai/gen3-discovery-ai/knowledge/tsvs`
-
-You can rsync from local if you have files locally.
-
-See the Gen3 Discovery AI service repo README for more info.
 
 ### Getting data from S3 in mem
 
