@@ -24,7 +24,9 @@ gen3_deploy_karpenter() {
         karpenter=$(g3k_config_lookup .global.karpenter_version)
       fi
       export clusterversion=`kubectl version --short -o json | jq -r .serverVersion.minor`
-      if [ "${clusterversion}" = "24+" ]; then
+      if [ "${clusterversion}" = "25+" ]; then
+        karpenter=${karpenter:-v0.27.0}
+      elif [ "${clusterversion}" = "24+" ]; then
         karpenter=${karpenter:-v0.24.0}
       else
         karpenter=${karpenter:-v0.22.0}
