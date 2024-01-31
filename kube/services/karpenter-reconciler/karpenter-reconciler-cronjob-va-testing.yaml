@@ -45,7 +45,6 @@ spec:
                   echo "Environment: $ENVIRONMENT"
                   
                   RAW_WORKFLOWS=$(kubectl get workflows -n argo-va-testing -o yaml)
-                  echo "Raw Workflows: $RAW_WORKFLOWS"
 
 
                   WORKFLOWS=$(echo "${RAW_WORKFLOWS}" | yq -r '.items[] | [.metadata.name, .metadata.labels.gen3username] | join(" ")')
