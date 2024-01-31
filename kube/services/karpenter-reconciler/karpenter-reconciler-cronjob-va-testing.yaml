@@ -42,10 +42,14 @@ spec:
                   fi
 
                   ENVIRONMENT=$(kubectl -n va-testing get configmap global -o jsonpath="{.data.environment}")
-
+                  echo "Environment: $ENVIRONMENT"
+                  
                   RAW_WORKFLOWS=$(kubectl get workflows -n argo-va-testing -o yaml)
+                  echo "Raw Workflows: $RAW_WORKFLOWS"
+
 
                   WORKFLOWS=$(echo "${RAW_WORKFLOWS}" | yq -r '.items[] | [.metadata.name, .metadata.labels.gen3username] | join(" ")')
+                  echo "Workflows: $WORKFLOWS"
 
                   WORKFLOW_ARRAY=()
 
@@ -55,6 +59,7 @@ spec:
 
                   for workflow in "${WORKFLOW_ARRAY[@]}"
                   do
+                    echo "Running loop for workflow: $workflow"
                     workflow_name=$(echo "$workflow" | awk '{print $1}')
                     workflow_user=$(echo "$workflow" | awk '{print $2}')
 
