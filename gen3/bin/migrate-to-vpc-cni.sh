@@ -13,7 +13,7 @@ CLUSTER_NAME=`gen3 api environment`
 gen3_log_info "Pulling the latest from Cloud-Auto"
 cd /home/$CLUSTER_NAME/cloud-automation || { gen3_log_err "Cloud-automation repo not found"; exit 1; }
 #### Change to master
-git checkout feat/GPE-1140 || { gen3_log_err "Failed to checkout master branch"; exit 1; }
+git checkout master || { gen3_log_err "Failed to checkout master branch"; exit 1; }
 git pull || { gen3_log_err "Failed to pull from the repository"; exit 1; }
 
 # Update the Karpenter Node Template
