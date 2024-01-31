@@ -3,11 +3,18 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+#Get the K8s NS
+ctx="$(g3kubectl config current-context)"
+ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
+
 # Set the cluster name variable
 CLUSTER_NAME=`gen3 api environment`
 
 # Check if in default ns
-[ "$(kubectl config view --minify --output 'jsonpath={..namespace}')" != "default" ] && { gen3_log_err "Error: You must be in the default namespace"; exit 1; }
+if [[ ("$ctxNamespace" != "default" && "$ctxNamespace" != "null") ]]; then
+    gen3_log_err "Namespace must be default"
+    exit 1
+fi
 
 # Cd into Cloud-automation repo and pull the latest from master
 gen3_log_info "Pulling the latest from Cloud-Auto"
@@ -106,10 +113,9 @@ fi
 gen3_log_info "Enabling NetworkPolicies in VPC CNI Configmap"
 kubectl patch configmap -n kube-system amazon-vpc-cni --type merge -p '{"data":{"enable-network-policy-controller":"true"}}' || { gen3_log_err "Configmap patch failed"; exit 1; }
 
-
 # Edit the aws-node daemonset
 gen3_log_info "Enabling NetworkPolicies in aws-node Daemonset"
-kubectl patch daemonset aws-node -n kube-system --type json -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/args", "value": ["--enable-network-policy=true"]}]' || { gen3_log_err "Daemonset edit failed"; exit 1; }
+kubectl patch daemonset aws-node -n kube-system --type=json -p='[{"op": "add", "path": "/spec/template/spec/containers/1/args", "value": ["--enable-network-policy=true", "--enable-ipv6=false", "--enable-cloudwatch-logs=false", "--metrics-bind-addr=:8162", "--health-probe-bind-addr=:8163"]}]' || { gen3_log_err "Daemonset edit failed"; exit 1; }
 
 # Ensure all the aws-nodes are running
 kubectl get pods -n kube-system | grep aws
