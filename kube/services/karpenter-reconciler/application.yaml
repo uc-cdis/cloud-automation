@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/uc-cdis/cloud-automation.git
-    targetRevision: master
+    targetRevision: feat/argo-reconciler-va-testing
     path: kube/services/karpenter-reconciler
     directory:
       exclude: "application.yaml"
