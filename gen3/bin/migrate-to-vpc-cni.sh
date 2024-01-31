@@ -48,39 +48,17 @@ else
     gen3 kube-setup-karpenter deploy --force || { gen3_log_err "kube-setup-karpenter failed"; exit 1; }
 fi
 
-# Cordon all the nodes before running gen3 roll all
-gen3_log_info "Cordoning all nodes"
-kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v '^fargate' | xargs -I{} kubectl cordon {}
-
 # Backup and update CoreDNS
 kubectl get deployment coredns -n kube-system -o yaml > aws-k8s-coredns-old.yaml
 kubectl set image deployment.apps/coredns -n kube-system  coredns=602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/coredns:v1.9.3-eksbuild.10
 
-# Run a "gen3 roll all" so all nodes use the new mounted BPF File System
-gen3_log_info "Cycling all the nodes by running gen3 roll all"
-gen3 roll all --fast || exit 1
-
-# Confirm that all nodes have been rotated
-while true; do
-    read -p "Roll all complete. Have all cordoned nodes been rotated? (yes/no): " yn
-    case $yn in
-        [Yy]* ) 
-            gen3_log_info "Continuing with script..."
-            break
-            ;;
-        [Nn]* ) 
-            gen3_log_info "Please drain any remaining nodes with 'kubectl drain <node_name> --ignore-daemonsets --delete-emptydir-data'"
-            ;;
-        * ) 
-            gen3_log_info "Please answer yes or no."
-            ;;
-    esac
-done
-
+# Cordon all the nodes before running gen3 roll all
+gen3_log_info "Cordoning all nodes"
+kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v '^fargate' | xargs -I{} kubectl cordon {}
 
 # Delete all existing network policies
 gen3_log_info "Deleting networkpolicies"
-kubectl delete networkpolicies --all
+kubectl delete networkpolicies --all -A 
 
 # Delete all Calico related resources from the “kube-system” namespace
 gen3_log_info "Deleting all Calico related resources"
@@ -120,6 +98,27 @@ kubectl patch configmap -n kube-system amazon-vpc-cni --type merge -p '{"data":{
 # Edit the aws-node daemonset
 gen3_log_info "Enabling NetworkPolicies in aws-node Daemonset"
 kubectl patch daemonset aws-node -n kube-system --type=json -p='[{"op": "add", "path": "/spec/template/spec/containers/1/args", "value": ["--enable-network-policy=true", "--enable-ipv6=false", "--enable-cloudwatch-logs=false", "--metrics-bind-addr=:8162", "--health-probe-bind-addr=:8163"]}]' || { gen3_log_err "Daemonset edit failed"; exit 1; }
+
+# Run a "gen3 roll all" so all nodes use the new mounted BPF File System
+gen3_log_info "Cycling all the nodes by running gen3 roll all"
+gen3 roll all --fast || exit 1
+
+# Confirm that all nodes have been rotated
+while true; do
+    read -p "Roll all complete. Have all cordoned nodes been rotated? (yes/no): " yn
+    case $yn in
+        [Yy]* ) 
+            gen3_log_info "Continuing with script..."
+            break
+            ;;
+        [Nn]* ) 
+            gen3_log_info "Please drain any remaining nodes with 'kubectl drain <node_name> --ignore-daemonsets --delete-emptydir-data'"
+            ;;
+        * ) 
+            gen3_log_info "Please answer yes or no."
+            ;;
+    esac
+done
 
 # Ensure all the aws-nodes are running
 kubectl get pods -n kube-system | grep aws
