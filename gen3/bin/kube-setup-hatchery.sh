@@ -37,6 +37,11 @@ function exists_or_create_gen3_license_table() {
         echo "Target table already exists in dynamoDB: $FOUND_TABLE"
     else
         echo "Creating table ${TARGET_TABLE}"
+        GSI=`g3kubectl get configmaps/manifest-hatchery -o json | jq -r '.data."license-user-maps-global-secondary-index"'`
+        if [[ -z "$GSI" || "$GSI" == "null" ]]; then
+            echo "Error: No global-secondary-index in configuration"
+            return 0
+        fi
         aws dynamodb create-table \
             --no-cli-pager \
             --table-name "$TARGET_TABLE" \
@@ -49,7 +54,7 @@ function exists_or_create_gen3_license_table() {
             --global-secondary-indexes \
                 "[
                     {
-                        \"IndexName\": \"activeUsersIndex\",
+                        \"IndexName\": \""$GSI"\",
                         \"KeySchema\": [{\"AttributeName\":\"environment\",\"KeyType\":\"HASH\"},
                             {\"AttributeName\":\"isActive\",\"KeyType\":\"RANGE\"}],
                         \"Projection\":{
@@ -65,7 +70,7 @@ function exists_or_create_gen3_license_table() {
     fi
 }
 
-TARGET_TABLE=`g3kubectl get configmaps/manifest-hatchery -o json | jq -r '.data."gen3-license-user-maps-dynamodb-table"'`
+TARGET_TABLE=`g3kubectl get configmaps/manifest-hatchery -o json | jq -r '.data."license-user-maps-dynamodb-table"'`
 if [[ -z "$TARGET_TABLE" || "$TARGET_TABLE" == "null" ]]; then
    echo "No gen3-license table in configuration"
 else
