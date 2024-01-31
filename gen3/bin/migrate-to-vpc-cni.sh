@@ -48,9 +48,13 @@ else
     gen3 kube-setup-karpenter deploy --force || { gen3_log_err "kube-setup-karpenter failed"; exit 1; }
 fi
 
-# Cordon all the nodes before running gen3 roll all"
+# Cordon all the nodes before running gen3 roll all
 gen3_log_info "Cordoning all nodes"
 kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v '^fargate' | xargs -I{} kubectl cordon {}
+
+# Backup and update CoreDNS
+kubectl get deployment coredns -n kube-system -o yaml > aws-k8s-coredns-old.yaml
+kubectl set image deployment.apps/coredns -n kube-system  coredns=602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/coredns:v1.9.3-eksbuild.10
 
 # Run a "gen3 roll all" so all nodes use the new mounted BPF File System
 gen3_log_info "Cycling all the nodes by running gen3 roll all"
