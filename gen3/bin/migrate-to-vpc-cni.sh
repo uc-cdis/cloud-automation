@@ -50,7 +50,6 @@ gen3_log_info "Cycling all the nodes by running gen3 roll all"
 gen3 roll all --fast || exit 1
 
 # Confirm that all nodes have been rotated
-##### kubectl get nodes
 while true; do
     read -p "Roll all complete. Have all cordoned nodes been rotated? (yes/no): " yn
     case $yn in
@@ -114,7 +113,6 @@ kubectl patch daemonset aws-node -n kube-system --type json -p='[{"op": "replace
 
 # Ensure all the aws-nodes are running
 kubectl get pods -n kube-system | grep aws
-##### kubectl get nodes
 while true; do
     read -p "Do all the aws-node pods in the kube-system ns have 2/2 containers running? (yes/no): " yn
     case $yn in
