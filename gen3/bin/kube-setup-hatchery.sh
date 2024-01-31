@@ -54,7 +54,7 @@ function exists_or_create_gen3_license_table() {
             --global-secondary-indexes \
                 "[
                     {
-                        \"IndexName\": \""$GSI"\",
+                        \"IndexName\": \"$GSI\",
                         \"KeySchema\": [{\"AttributeName\":\"environment\",\"KeyType\":\"HASH\"},
                             {\"AttributeName\":\"isActive\",\"KeyType\":\"RANGE\"}],
                         \"Projection\":{
