@@ -1,3 +1,39 @@
+#!/bin/bash -xe
+
+# User data for our EKS worker nodes basic arguments to call the bootstrap script for EKS images 
+# More info https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html
+ 
+cat >> /home/ec2-user/.ssh/authorized_keys <<EFO
+${ssh_keys}
+EFO
+
+sysctl fs.inotify.max_user_watches=12000
+
+KUBELET_EXTRA_ARGUMENTS="--node-labels=role=${nodepool}"
+
+if [[ ${nodepool} != default ]];
+then
+    KUBELET_EXTRA_ARGUMENTS="$KUBELET_EXTRA_ARGUMENTS --register-with-taints=role=${nodepool}:NoSchedule"
+fi
+/etc/eks/bootstrap.sh --kubelet-extra-args "$KUBELET_EXTRA_ARGUMENTS" ${vpc_name} --apiserver-endpoint ${eks_endpoint} --b64-cluster-ca ${eks_ca}
+
+# Install qualys agent if the activtion and customer id provided
+if [[ ! -z "${activation_id}" ]] || [[ ! -z "${customer_id}" ]]; then
+    aws s3 cp s3://qualys-agentpackage/QualysCloudAgent.rpm ./qualys-cloud-agent.x86_64.rpm
+    sudo rpm -ivh qualys-cloud-agent.x86_64.rpm
+    # Clean up rpm package after install
+    rm qualys-cloud-agent.x86_64.rpm
+    sudo /usr/local/qualys/cloud-agent/bin/qualys-cloud-agent.sh ActivationId=${activation_id} CustomerId=${customer_id}
+fi
+
+sudo yum update -y
+sudo yum install -y dracut-fips openssl >> /opt/fips-install.log
+sudo  dracut -f
+# configure grub
+sudo /sbin/grubby --update-kernel=ALL --args="fips=1"
+
+
+
 #!/bin/bash
 
 
@@ -8,6 +44,9 @@ DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
 WORK_USER="ubuntu"
 if [[ $DISTRO == "Amazon Linux" ]]; then
   WORK_USER="ec2-user"
+  if [[ $(awk -F '[="]*' '/^VERSION_ID/ { print $2 }' < /etc/os-release) == "2023" ]]; then
+    DISTRO="al2023"
+  fi
 fi
 HOME_FOLDER="/home/${WORK_USER}"
 SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
@@ -201,8 +240,10 @@ function install_awslogs {
   if [[ $DISTRO == "Ubuntu" ]]; then
     wget ${AWSLOGS_DOWNLOAD_URL} -O amazon-cloudwatch-agent.deb
     dpkg -i -E ./amazon-cloudwatch-agent.deb
-  else
+  elif [[ $DISTRO == "Amazon Linux" ]]; then
     sudo yum install amazon-cloudwatch-agent nc -y
+  elif [[ $DISTRO == "al2023" ]]; then
+    sudo dnf install amazon-cloudwatch-agent nc -y
   fi
   
   # Configure the AWS logs
