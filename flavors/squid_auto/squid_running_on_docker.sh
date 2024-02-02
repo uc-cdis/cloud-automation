@@ -343,6 +343,7 @@ function main(){
       docker restart squid
     else
       echo "Squid healthy"
+      break
     fi
   done
 }
