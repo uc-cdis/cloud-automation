@@ -8,6 +8,9 @@ DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
 WORK_USER="ubuntu"
 if [[ $DISTRO == "Amazon Linux" ]]; then
   WORK_USER="ec2-user"
+  if [[ $(awk -F '[="]*' '/^VERSION_ID/ { print $2 }' < /etc/os-release) == "2023" ]]; then
+    DISTRO="al2023"
+  fi
 fi
 HOME_FOLDER="/home/${WORK_USER}"
 SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
@@ -201,8 +204,10 @@ function install_awslogs {
   if [[ $DISTRO == "Ubuntu" ]]; then
     wget ${AWSLOGS_DOWNLOAD_URL} -O amazon-cloudwatch-agent.deb
     dpkg -i -E ./amazon-cloudwatch-agent.deb
-  else
+  elif [[ $DISTRO == "Amazon Linux" ]]; then
     sudo yum install amazon-cloudwatch-agent nc -y
+  elif [[ $DISTRO == "al2023" ]]; then
+    sudo dnf install amazon-cloudwatch-agent nc -y
   fi
   
   # Configure the AWS logs
@@ -292,6 +297,19 @@ function main(){
       --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
       --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
        quay.io/cdis/squid:${SQUID_IMAGE_TAG}
+
+  max_attempts=3
+  attempt_counter=0
+  while [ $attempt_counter -lt $max_attempts ]; do
+    sleep 10
+    if [[ -z "$(sudo lsof -i:3128)" ]]; then
+      echo "Squid not healthy, restarting."
+      docker restart squid
+    else
+      echo "Squid healthy"
+      break
+    fi
+  done
 }
 
 main
