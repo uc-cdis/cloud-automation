@@ -66,6 +66,7 @@ kubectl get deployments -n kube-system | grep calico | awk '{print $1}' | xargs 
 kubectl get daemonsets -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete daemonset -n kube-system
 kubectl get services -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete service -n kube-system
 kubectl get replicasets -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete replicaset -n kube-system
+kubectl get crds -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete replicaset -n kube-system
 
 # Backup the current VPC CNI configuration in case of rollback
 gen3_log_info "Backing up current VPC CNI Configuration..."
