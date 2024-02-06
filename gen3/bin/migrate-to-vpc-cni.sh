@@ -82,12 +82,12 @@ fi
 
 # Apply the new VPC CNI Version
 gen3_log_info "Applying new version of VPC CNI"
-g3kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v1.14.1/config/master/aws-k8s-cni.yaml || { gen3_log_err "Failed to apply new VPC CNI version"; exit 1; }
+g3kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v1.16.2/config/master/aws-k8s-cni.yaml || { gen3_log_err "Failed to apply new VPC CNI version"; exit 1; }
 
 # Check the version to make sure it updated
 NEW_VERSION=$(kubectl describe daemonset aws-node --namespace kube-system | grep amazon-k8s-cni: | cut -d : -f 3)
 gen3_log_info "Current version of aws-k8s-cni is: $NEW_VERSION"
-if [ "$NEW_VERSION" != "v1.14.1" ]; then
+if [ "$NEW_VERSION" != "v1.16.2" ]; then
     gen3_log_info "The version of aws-k8s-cni has not been updated correctly."
     exit 1
 fi
