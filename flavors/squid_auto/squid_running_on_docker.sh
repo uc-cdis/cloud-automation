@@ -63,6 +63,8 @@ fi
 function install_basics(){
   if [[ $DISTRO == "Ubuntu" ]]; then
     apt -y install atop
+  elif [[ $DISTRO == "al2023" ]]; then
+    sudo dnf install cronie nc -y
   fi
 }
 
@@ -207,7 +209,7 @@ function install_awslogs {
   elif [[ $DISTRO == "Amazon Linux" ]]; then
     sudo yum install amazon-cloudwatch-agent nc -y
   elif [[ $DISTRO == "al2023" ]]; then
-    sudo dnf install amazon-cloudwatch-agent nc -y
+    sudo dnf install amazon-cloudwatch-agent -y
   fi
   
   # Configure the AWS logs
