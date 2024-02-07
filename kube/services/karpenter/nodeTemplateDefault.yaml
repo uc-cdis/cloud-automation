@@ -38,11 +38,11 @@ spec:
     # configure grub
     sudo /sbin/grubby --update-kernel=ALL --args="fips=1"
 
-    --BOUNDARY
-    Content-Type: text/cloud-config; charset="us-ascii"
+    # --BOUNDARY
+    # Content-Type: text/cloud-config; charset="us-ascii"
 
-    mounts:
-      - ['fstype': 'bpf', 'mountpoint': '/sys/fs/bpf', 'opts': 'rw,relatime']
+    # mounts:
+    #   - ['fstype': 'bpf', 'mountpoint': '/sys/fs/bpf', 'opts': 'rw,relatime']
 
     --BOUNDARY
 
