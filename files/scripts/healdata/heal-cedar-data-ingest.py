@@ -24,11 +24,14 @@ SPECIAL_VALUE_MAPPINGS = {
     "Questionnaire/Survey/Assessment - unvalidated instrument": "Questionnaire/Survey/Assessment",
     "Cis Male": "Male",
     "Cis Female": "Female",
-    "Trans Male": "Female-to-male transsexual",
-    "Trans Female": "Male-to-female transsexual",
-    "Agender, Non-binary, gender non-conforming": "Other",
-    "Gender Queer": "Other",
-    "Intersex": "Intersexed",
+    "Trans Male": "Transgender man/trans man/female-to-male (FTM)",
+    "Female-to-male transsexual": "Transgender man/trans man/female-to-male (FTM)",
+    "Trans Female": "Transgender woman/trans woman/male-to-female (MTF)",
+    "Male-to-female transsexual": "Transgender woman/trans woman/male-to-female (MTF)",
+    "Agender, Non-binary, gender non-conforming": "Genderqueer/gender nonconforming/neither exclusively male nor female",
+    "Gender Queer": "Genderqueer/gender nonconforming/neither exclusively male nor female",
+    "Intersex": "Genderqueer/gender nonconforming/neither exclusively male nor female",
+    "Intersexed": "Genderqueer/gender nonconforming/neither exclusively male nor female",
     "Buisness Development": "Business Development"
 }
 

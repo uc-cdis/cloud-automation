@@ -34,6 +34,7 @@ cernvm.cern.ch
 charts.bitnami.com
 charts.helm.sh
 cloud.r-project.org
+coredns.github.io
 coreos.com
 covidstoplight.org
 cpan.mirrors.tds.net
@@ -77,6 +78,7 @@ golang.org
 gopkg.in
 grafana.com
 grafana.github.io
+helm.elastic.co
 http.us.debian.org
 ifconfig.io
 ingress.coralogix.us
