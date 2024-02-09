@@ -274,7 +274,7 @@ if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   else
     gen3 kube-setup-autoscaler &
   fi
-  gen3 kube-setup-kube-dns-autoscaler &
+  #gen3 kube-setup-kube-dns-autoscaler &
   gen3 kube-setup-metrics deploy || true
   gen3 kube-setup-tiller || true
   #
