@@ -111,26 +111,19 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
   fi
 done
 
-if g3kubectl get namespace argo > /dev/null 2>&1;
-then
-  for argo in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
-  do
-    filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
-    if [[ -f "$filePath" ]]; then
-      confFileList+=("--from-file" "$filePath")
-    fi
-  done
-fi
+if g3k_manifest_lookup .argo.argo_namespace 2> /dev/null; then
+  argo_namespace=$(g3k_manifest_lookup .argo.argo_namespace)
 
-if g3kubectl get namespace argo-va-testing > /dev/null 2>&1;
-then
-  for argo in $(g3kubectl get services -n argo-va-testing -o jsonpath='{.items[*].metadata.name}');
-  do
-    filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
-    if [[ -f "$filePath" ]]; then
-      confFileList+=("--from-file" "$filePath")
-    fi
-  done
+  if g3kubectl get namespace "$argo_namespace" > /dev/null 2>&1;
+    then 
+      for service in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
+      do
+        filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
+        if [[ -f "$filePath" ]]; then
+          confFileList+=("--from-file" "$filePath")
+        fi
+      done
+  fi
 fi
 
 if g3kubectl get namespace argocd > /dev/null 2>&1;
