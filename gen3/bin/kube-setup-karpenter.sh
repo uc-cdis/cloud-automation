@@ -81,14 +81,6 @@ gen3_deploy_karpenter() {
                   "Sid": "ConditionalEC2Termination"
               },
               {
-                  "Action": [
-                      "kms:*"
-                  ],
-                  "Effect": "Allow",
-                  "Resource": "*",
-                  "Sid": "Karpenter"
-              },
-              {
                   "Sid": "VisualEditor0",
                   "Effect": "Allow",
                   "Action": [
