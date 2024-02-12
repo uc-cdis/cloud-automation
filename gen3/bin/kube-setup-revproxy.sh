@@ -111,15 +111,14 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
   fi
 done
 
-if g3kubectl get namespace argo > /dev/null 2>&1;
-then
-  for argo in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
-  do
-    filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
-    if [[ -f "$filePath" ]]; then
-      confFileList+=("--from-file" "$filePath")
-    fi
-  done
+
+if g3k_manifest_lookup .argo.argo_server_service_url 2> /dev/null; then
+  argo_server_service_url=$(g3k_manifest_lookup .argo.argo_server_service_url)
+  g3k_kv_filter "${scriptDir}/gen3.nginx.conf/argo-server.conf" SERVICE_URL "${argo_server_service_url}" > /tmp/argo-server-with-url.conf
+  filePath="/tmp/argo-server-with-url.conf"
+  if [[ -f "$filePath" ]]; then
+    confFileList+=("--from-file" "$filePath")
+  fi 
 fi
 
 if g3kubectl get namespace argocd > /dev/null 2>&1;
