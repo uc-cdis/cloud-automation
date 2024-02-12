@@ -114,11 +114,9 @@ done
 if g3k_manifest_lookup .argo.argo_namespace 2> /dev/null; then
   argo_namespace=$(g3k_manifest_lookup .argo.argo_namespace)
 
-  echo "$argo_namespace"
-
   if g3kubectl get namespace "$argo_namespace" > /dev/null 2>&1;
     then 
-      for service in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
+      for service in $(g3kubectl get services -n "$argo_namespace" -o jsonpath='{.items[*].metadata.name}');
       do
         filePath="$scriptDir/gen3.nginx.conf/${service}.conf"
         if [[ -f "$filePath" ]]; then
