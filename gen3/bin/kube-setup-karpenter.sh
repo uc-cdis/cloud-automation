@@ -79,6 +79,37 @@ gen3_deploy_karpenter() {
                   "Effect": "Allow",
                   "Resource": "*",
                   "Sid": "ConditionalEC2Termination"
+              },
+              {
+                  "Action": [
+                      "kms:*"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": "*",
+                  "Sid": "Karpenter"
+              },
+              {
+                  "Sid": "VisualEditor0",
+                  "Effect": "Allow",
+                  "Action": [
+                      "kms:GetPublicKey",
+                      "kms:ListKeyPolicies",
+                      "kms:ListRetirableGrants",
+                      "kms:PutKeyPolicy",
+                      "kms:GetKeyPolicy",
+                      "kms:ListResourceTags",
+                      "kms:RetireGrant",
+                      "kms:ListGrants",
+                      "kms:GetParametersForImport",
+                      "kms:DescribeCustomKeyStores",
+                      "kms:ListKeys",
+                      "kms:GetKeyRotationStatus",
+                      "kms:ListAliases",
+                      "kms:RevokeGrant",
+                      "kms:DescribeKey",
+                      "kms:CreateGrant"
+                  ],
+                  "Resource": "*"
               }
           ],
           "Version": "2012-10-17"
