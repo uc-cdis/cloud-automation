@@ -122,6 +122,17 @@ then
   done
 fi
 
+if g3kubectl get namespace argo-va-testing > /dev/null 2>&1;
+then
+  for argo in $(g3kubectl get services -n argo-va-testing -o jsonpath='{.items[*].metadata.name}');
+  do
+    filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
+  done
+fi
+
 if g3kubectl get namespace argocd > /dev/null 2>&1;
 then
     filePath="$scriptDir/gen3.nginx.conf/argocd-server.conf"
