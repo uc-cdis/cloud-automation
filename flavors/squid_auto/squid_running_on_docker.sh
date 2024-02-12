@@ -303,6 +303,7 @@ function main(){
   max_attempts=10
   attempt_counter=0
   while [ $attempt_counter -lt $max_attempts ]; do
+    #((attempt_counter++))
     sleep 10
     if [[ -z "$(sudo lsof -i:3128)" ]]; then
       echo "Squid not healthy, restarting."
