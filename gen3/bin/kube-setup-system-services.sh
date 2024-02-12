@@ -39,7 +39,7 @@ calico_yaml="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v${calico}
 
 g3kubectl set image daemonset.apps/kube-proxy -n kube-system kube-proxy=${kube_proxy_image}
 g3kubectl set image --namespace kube-system deployment.apps/coredns coredns=${coredns_image}
-g3k_kv_filter "${GEN3_HOME}/kube/services/kube-dns-autoscaler/dns-horizontal-autoscaler.yaml" SERVICE "coredns" IMAGE "$kubednsautoscaler_image" | g3kubectl apply -f -
+#g3k_kv_filter "${GEN3_HOME}/kube/services/kube-dns-autoscaler/dns-horizontal-autoscaler.yaml" SERVICE "coredns" IMAGE "$kubednsautoscaler_image" | g3kubectl apply -f -
 g3kubectl apply -f ${cni_image}
 g3kubectl apply -f ${calico_yaml}
 
