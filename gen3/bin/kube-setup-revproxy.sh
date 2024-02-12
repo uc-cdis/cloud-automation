@@ -114,7 +114,7 @@ done
 
 if g3k_manifest_lookup .argo.argo_server_service_url 2> /dev/null; then
   argo_server_service_url=$(g3k_manifest_lookup .argo.argo_server_service_url)
-  g3k_kv_filter "${scriptDir}/gen3.nginx.conf/argo-server.conf" SERVICE_URL "${argo_server_service_url}" > /tmp/argo-server-with-url.yaml
+  g3k_kv_filter "${scriptDir}/gen3.nginx.conf/argo-server.conf" SERVICE_URL "${argo_server_service_url}" > /tmp/argo-server-with-url.conf
   filePath="/tmp/argo-server-with-url.yaml"
   if [[ -f "$filePath" ]]; then
     confFileList+=("--from-file" "$filePath")
