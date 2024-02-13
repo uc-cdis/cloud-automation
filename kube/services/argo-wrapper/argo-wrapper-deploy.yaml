@@ -61,7 +61,6 @@ spec:
         - name: argo-wrapper-namespace-config
           configMap:
             name: argo-wrapper-namespace-config
-            optional: true
 
       containers:
       - name: argo-wrapper

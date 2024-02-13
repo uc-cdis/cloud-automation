@@ -26,6 +26,7 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     export ARGO_NAMESPACE=argo-$(gen3 db namespace)
     envsubst <"${GEN3_HOME}/kube/services/argo-wrapper/config.ini" > /tmp/config.ini
     
+    g3kubectl delete configmap argo-wrapper-namespace-config
     g3kubectl create configmap argo-wrapper-namespace-config --from-file /tmp/config.ini
   fi
 
