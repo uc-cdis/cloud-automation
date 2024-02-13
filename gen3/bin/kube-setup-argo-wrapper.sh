@@ -24,7 +24,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
 
     export ARGO_HOST=${argo_server_service_url}
     export ARGO_NAMESPACE=argo-$(gen3 db namespace)
-    envsubst <"${GEN3_HOME}/kube/services/argo-wrapper/config.ini" | g3kubectl apply -f -
+    envsubst <"${GEN3_HOME}/kube/services/argo-wrapper/config.ini" > /tmp/argo-wrapper-namespace-config.yaml
+    
+    g3kubectl create configmap argo-wrapper-namespace-config --from-file /tmp/argo-wrapper-namespace-config.yaml
   fi
 
   gen3_log_info "the argo-wrapper service has been deployed onto the kubernetes cluster"
