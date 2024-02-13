@@ -20,13 +20,6 @@ gen3 jupyter j-namespace setup
 #
 (g3k_kv_filter ${GEN3_HOME}/kube/services/hatchery/serviceaccount.yaml BINDING_ONE "name: hatchery-binding1-$namespace" BINDING_TWO "name: hatchery-binding2-$namespace" CURRENT_NAMESPACE "namespace: $namespace" | g3kubectl apply -f -) || true
 
-# TODO: disable this cron-job after hatchery is updated to the dynamoDB version
-# cron job to distribute licenses if using Stata workspaces
-if [ "$(g3kubectl get configmaps/manifest-hatchery -o yaml | grep "\"image\": .*stata.*")" ];
-then
-    gen3 job cron distribute-licenses '* * * * *'
-fi
-
 function exists_or_create_gen3_license_table() {
     # Create dynamodb table for gen3-license if it does not exist.
     TARGET_TABLE="$1"
@@ -72,7 +65,12 @@ function exists_or_create_gen3_license_table() {
 
 TARGET_TABLE=`g3kubectl get configmaps/manifest-hatchery -o json | jq -r '.data."license-user-maps-dynamodb-table"'`
 if [[ -z "$TARGET_TABLE" || "$TARGET_TABLE" == "null" ]]; then
-   echo "No gen3-license table in configuration"
+    echo "No gen3-license table in configuration"
+    # cron job to distribute licenses if using Stata workspaces but not using dynamoDB
+    if [ "$(g3kubectl get configmaps/manifest-hatchery -o yaml | grep "\"image\": .*stata.*")" ];
+    then
+        gen3 job cron distribute-licenses '* * * * *'
+    fi
 else
     echo "Found gen3-license table in configuration: $TARGET_TABLE"
     exists_or_create_gen3_license_table "$TARGET_TABLE"
