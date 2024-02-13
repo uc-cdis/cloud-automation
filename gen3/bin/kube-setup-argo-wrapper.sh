@@ -19,5 +19,13 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
   gen3 roll argo-wrapper
   g3kubectl apply -f "${GEN3_HOME}/kube/services/argo-wrapper/argo-wrapper-service.yaml"
 
+  if g3k_manifest_lookup .argo.argo_server_service_url 2> /dev/null; then
+    argo_server_service_url=$(g3k_manifest_lookup .argo.argo_server_service_url)
+
+    export ARGO_HOST=${argo_server_service_url}
+    export ARGO_NAMESPACE=argo-$(gen3 db namespace)
+    envsubst <"${GEN3_HOME}/kube/services/argo-wrapper/config.ini" | g3kubectl apply -f -
+  fi
+
   gen3_log_info "the argo-wrapper service has been deployed onto the kubernetes cluster"
 fi
