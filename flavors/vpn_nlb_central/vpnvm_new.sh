@@ -4,8 +4,6 @@
 # variables
 ###############################################################
 
-HOME_FOLDER="/home/${WORK_USER}"
-SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
 AVAILABILITY_ZONE=$(curl -s ${MAGIC_URL}placement/availability-zone)
 PRIVATE_IPV4=$(curl -s ${MAGIC_URL}local-ipv4)
@@ -21,6 +19,8 @@ if $DISTRO == "Ubuntu"; then
 else
   WORK_USER="ec2-user"
 fi
+HOME_FOLDER="/home/${WORK_USER}"
+SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
 
 OPENVPN_PATH='/etc/openvpn'
 BIN_PATH="${OPENVPN_PATH}/bin"
@@ -97,6 +97,7 @@ function install_basics() {
     debconf-set-selections <<< "postfix postfix/mailname string planx-pla.net"
     debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
   else
+    amazon-linux-extras install epel 
     yum -y install epel-release
     yum -y install python3-pip python3-devel gcc sipcalc wget curl jq ca-certificates software-properties-common fail2ban libyaml-dev
     yum -y install postfix mailutils python-virtualenv uuid-runtime lighttpd net-tools
@@ -495,7 +496,7 @@ function main() {
   configure_awscli
   configure_basics
 
-  if $DISTRO == "Ubuntu"; then
+  if [[ $DISTRO == "Ubuntu" ]]; then
     install_awslogs
   fi
   install_openvpn
