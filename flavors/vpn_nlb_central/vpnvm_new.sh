@@ -12,7 +12,6 @@ REGION=$(echo ${AVAILABILITY_ZONE::-1})
 #DOCKER_DOWNLOAD_URL="https://download.docker.com/linux/ubuntu"
 AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
 #TERRAFORM_DOWNLOAD_URL="https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip"
-OPENVPN_INSTALL_SCRIPT="install_ovpn_ubuntu18.sh"
 DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
 if $DISTRO == "Ubuntu"; then
   WORK_USER="ubuntu"
@@ -122,7 +121,6 @@ function configure_basics() {
   sed -i "s/WHICHVPN/${S3_BUCKET}\/${VPN_NLB_NAME}/" ${dest_path}/push_to_s3.sh
   sed -i "s/WHICHVPN/${S3_BUCKET}\/${VPN_NLB_NAME}/" ${dest_path}/recover_from_s3.sh
   sed -i "s/WHICHVPN/${S3_BUCKET}\/${VPN_NLB_NAME}/" ${dest_path}/send_email.sh
-  sed -i "s/WHICHVPN/${S3_BUCKET}\/${VPN_NLB_NAME}/" ${dest_path}/${OPENVPN_INSTALL_SCRIPT}
 
   # Replace the User variable for hostname, VPN subnet and VM subnet
   #sed -i "s/SERVERNAME/${VPN_NLB_NAME}/" ${dest_path}/csoc_vpn_user_variable
@@ -275,7 +273,6 @@ function install_openvpn() {
   echo "${FQDN} -- ${cloud} -- ${SERVER_PEM} -- ${VPN_SUBNET} -- ${VPN_SUBNET_BASE} -- ${VPN_SUBNET_MASK_BITS} --/ ${VM_SUBNET} -- ${VM_SUBNET_BASE} -- ${VM_SUBNET_MASK_BITS}"
   echo "*******"
   #export FQDN="$SERVERNAME.planx-pla.net"; export cloud="$CLOUDNAME"; export SERVER_PEM="/root/server.pem"; 
-  #bash ${dest_path}/${OPENVPN_INSTALL_SCRIPT}
 
   #cp /etc/openvpn/bin/templates/lighttpd.conf.template  /etc/lighttpd/lighttpd.conf
   #mkdir -p --mode=750 /var/www/qrcode
