@@ -25,4 +25,6 @@ set_var EASYRSA_REQ_CN          "#KEY_NAME#"
 # Optionally, to sign all keys with the same Common Name, you could set this:
 # set_var EASYRSA_REQ_CN       "CommonName"
 
+set_var EASYRSA_BATCH       "1"
+
 # Note: Do not leave any of the fields blank as it may cause the script to fail.
