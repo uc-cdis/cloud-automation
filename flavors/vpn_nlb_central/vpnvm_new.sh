@@ -151,7 +151,7 @@ function configure_awscli() {
 
   logs_helper "Configuring AWS"
   mkdir -p ${HOME_FOLDER}/.aws
-  cat <<EOT  >> ${HOME_FOLDER}/.aws/config
+  cat <<EOT  > ${HOME_FOLDER}/.aws/config
 [default]
 output = json
 region = us-east-1
@@ -162,7 +162,7 @@ region = us-east-1
 EOT
 
   mkdir -p /root/.aws
-  cat >> /root/.aws/config <<EOF
+  cat > /root/.aws/config <<EOF
 [default]
 output = json
 region = us-east-1
@@ -355,14 +355,14 @@ build_PKI() {
 
   logs_helper "building pki"
     cd $EASYRSA_PATH
-    source $VARS_PATH ## execute your new vars file
     ln -s openssl-1.0.0.cnf openssl.cnf
-    touch .rnd
     echo "This is long"
-    ./clean-all  ## Setup the easy-rsa directory (Deletes all keys)
-    ./build-dh  ## takes a while consider backgrounding
-    ./pkitool --initca ## creates ca cert and key
-    ./pkitool --server $EXTHOST ## creates a server cert and key
+    ./easyrsa clean-all
+    ./easyrsa init-pki
+    ./easyrsa build-ca nopass
+    ./easyrsa gen-dh
+    ./easyrsa gen-crl
+    ./easyrsa gen-req $EXTHOST nopass
     openvpn --genkey --secret ta.key
     mv ta.key $EASYRSA_PATH/keys/ta.key
 
