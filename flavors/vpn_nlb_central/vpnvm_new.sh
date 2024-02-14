@@ -357,7 +357,7 @@ build_PKI() {
     cd $EASYRSA_PATH
     # ln -s openssl-1.0.0.cnf openssl.cnf
     echo "This is long"
-    ./easyrsa clean-all
+    # ./easyrsa clean-all nopass
     ./easyrsa init-pki
     ./easyrsa build-ca nopass
     ./easyrsa gen-dh
