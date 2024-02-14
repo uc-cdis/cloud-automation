@@ -290,6 +290,11 @@ function install_openvpn() {
 function install_easyrsa() {
 
   logs_helper "Installing easyRSA"
+  if [[ -f $EASYRSA_PATH/easyrsa ]];
+  then
+    logs_helper "easyRSA already installed"
+    return
+  fi
   easyRsaVer="3.1.7"
   wget https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.7/EasyRSA-${easyRsaVer}.tgz
   # extract to a folder called easyrsa
@@ -364,7 +369,7 @@ build_PKI() {
     ./easyrsa gen-crl
     ./easyrsa gen-req $EXTHOST nopass
     openvpn --genkey --secret ta.key
-    mv ta.key $EASYRSA_PATH/keys/ta.key
+    mv ta.key $EASYRSA_PATH/pki/ta.key
 
     #This will error but thats fine, the crl.pem was created (without it openvpn server crashes)
     set +e
