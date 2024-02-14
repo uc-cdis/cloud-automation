@@ -15,6 +15,7 @@ REGION=$(echo ${AVAILABILITY_ZONE::-1})
 AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
 #TERRAFORM_DOWNLOAD_URL="https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip"
 OPENVPN_INSTALL_SCRIPT="install_ovpn_ubuntu18.sh"
+DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
 
 
 OPENVPN_PATH='/etc/openvpn'
@@ -84,14 +85,19 @@ function logs_helper(){
 function install_basics() {
 
   logs_helper "Installing Basics"
-  apt -y install python3-pip build-essential sipcalc wget curl jq apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev
-  pip3 install awscli
-
-  # For openVPN
-  debconf-set-selections <<< "postfix postfix/mailname string planx-pla.net"
-  debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-  apt -y install postfix mailutils python-virtualenv uuid-runtime lighttpd
-  apt -y install openvpn bridge-utils libssl-dev openssl zlib1g-dev easy-rsa haveged zip mutt sipcalc python-dev python3-venv
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    apt -y install python3-pip build-essential sipcalc wget curl jq apt-transport-https ca-certificates software-properties-common fail2ban libyaml-dev
+    apt -y install postfix mailutils python-virtualenv uuid-runtime lighttpd net-tools
+    apt -y install openvpn bridge-utils libssl-dev openssl zlib1g-dev easy-rsa haveged zip mutt sipcalc python-dev python3-venv
+    # For openVPN
+    debconf-set-selections <<< "postfix postfix/mailname string planx-pla.net"
+    debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+  else if [[ $DISTRO == "Amazon Linux" ]]; then
+    yum -y install python3-pip python3-devel gcc sipcalc wget curl jq ca-certificates software-properties-common fail2ban libyaml-dev
+    yum -y install postfix mailutils python-virtualenv uuid-runtime lighttpd net-tools
+    yum -y install openvpn bridge-utils openssl zlib1g-dev easy-rsa haveged zip mutt sipcalc python-dev python3-venv
+  fi
+  pip3 install awscli  
   useradd  --shell /bin/nologin --system openvpn
 
   logs_helper "Basics installed"
@@ -285,7 +291,8 @@ function install_easyrsa() {
   wget https://github.com/OpenVPN/easy-rsa/releases/download/v3.1.7/EasyRSA-${easyRsaVer}.tgz
   # extract to a folder called easyrsa
   tar xvf EasyRSA-${easyRsaVer}.tgz
-  cp -pr EasyRSA-${easyRsaVer} $EASYRSA_PATH
+  mv EasyRSA-${easyRsaVer}/ $EASYRSA_PATH
+  rm EasyRSA-${easyRsaVer}.tgz
   cp "$OPENVPN_PATH/bin/templates/vars.template" $VARS_PATH
 
 #  local easy_rsa_dir="$EASYRSA_PATH"
@@ -367,20 +374,20 @@ build_PKI() {
 configure_ovpn() {
 
   logs_helper "configuring openvpn"
-    OVPNCONF_PATH="/etc/openvpn/openvpn.conf"
-    cp "$OPENVPN_PATH/bin/templates/openvpn.conf.template-ubuntu18" "$OVPNCONF_PATH"
+  OVPNCONF_PATH="/etc/openvpn/openvpn.conf"
+  cp "$OPENVPN_PATH/bin/templates/openvpn.conf.template-ubuntu18" "$OVPNCONF_PATH"
 
-    perl -p -i -e "s|#FQDN#|$FQDN|" $OVPNCONF_PATH
+  perl -p -i -e "s|#FQDN#|$FQDN|" $OVPNCONF_PATH
 
-    perl -p -i -e "s|#VPN_SUBNET_BASE#|$VPN_SUBNET_BASE|" $OVPNCONF_PATH
-    perl -p -i -e "s|#VPN_SUBNET_MASK#|$VPN_SUBNET_MASK|" $OVPNCONF_PATH
+  perl -p -i -e "s|#VPN_SUBNET_BASE#|$VPN_SUBNET_BASE|" $OVPNCONF_PATH
+  perl -p -i -e "s|#VPN_SUBNET_MASK#|$VPN_SUBNET_MASK|" $OVPNCONF_PATH
 
-    perl -p -i -e "s|#VM_SUBNET_BASE#|$VM_SUBNET_BASE|" $OVPNCONF_PATH
-    perl -p -i -e "s|#VM_SUBNET_MASK#|$VM_SUBNET_MASK|" $OVPNCONF_PATH
+  perl -p -i -e "s|#VM_SUBNET_BASE#|$VM_SUBNET_BASE|" $OVPNCONF_PATH
+  perl -p -i -e "s|#VM_SUBNET_MASK#|$VM_SUBNET_MASK|" $OVPNCONF_PATH
 
-    perl -p -i -e "s|#PROTO#|$PROTO|" $OVPNCONF_PATH
+  perl -p -i -e "s|#PROTO#|$PROTO|" $OVPNCONF_PATH
 
-    systemctl restart openvpn
+  systemctl restart openvpn
 
   logs_helper "openvpn configured"
 }
@@ -452,18 +459,17 @@ misc() {
 
   logs_helper "installing misc"
     cd $OPENVPN_PATH
-    mkdir -p easy-rsa/keys/ovpn_files
-    mkdir -p easy-rsa/keys/user_certs
-    ln -sfn easy-rsa/keys/ovpn_files
+    mkdir -p easy-rsa/pki/ovpn_files
+    ln -sfn easy-rsa/pki/ovpn_files
 
     #If openvpn fails to start its cause perms. Init needs root rw to start, but service needs openvpn  rw to work
     mkdir --mode 775 -p clients.d/
     mkdir --mode 775 -p clients.d/tmp/
     chown root:openvpn  clients.d/tmp/
 
-    mkdir -p easy-rsa/keys/ovpn_files_seperated/
-    mkdir -p easy-rsa/keys/ovpn_files_systemd/
-    mkdir -p easy-rsa/keys/ovpn_files_resolvconf/
+    mkdir -p easy-rsa/pki/ovpn_files_seperated/
+    mkdir -p easy-rsa/pki/ovpn_files_systemd/
+    mkdir -p easy-rsa/pki/ovpn_files_resolvconf/
 
     touch user_passwd.csv
 
@@ -483,7 +489,10 @@ function main() {
   install_basics
   configure_awscli
   configure_basics
-  install_awslogs
+  
+  if $DISTRO == "Ubuntu"; then
+    install_awslogs
+  fi
   install_openvpn
 
   set -e

@@ -43,7 +43,7 @@ generate_qr_code() {
     uuid=$(uuidgen)
     qrcode_out=/var/www/qrcode/${uuid}.png
     string=$( python -c "import pyotp; print( pyotp.totp.TOTP('$totp_secret').provisioning_uri('$vpn_username', issuer_name='$CLOUD_NAME') )" )
-    $( python -c "import qrcode; qrcode.make('$string').save('${qrcode_out}', scale=8)" )
+    $( python -c "import qrcode; qrcode.make('$string').save('${qrcode_out}')" )
     vpn_creds_url="https://${FQDN}/$uuid.svg"
 }
 
