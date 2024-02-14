@@ -3,7 +3,7 @@
 ###############################################################
 # variables
 ###############################################################
-WORK_USER="ubuntu"
+
 HOME_FOLDER="/home/${WORK_USER}"
 SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
 MAGIC_URL="http://169.254.169.254/latest/meta-data/"
@@ -16,7 +16,11 @@ AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd
 #TERRAFORM_DOWNLOAD_URL="https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip"
 OPENVPN_INSTALL_SCRIPT="install_ovpn_ubuntu18.sh"
 DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
-
+if $DISTRO == "Ubuntu"; then
+  WORK_USER="ubuntu"
+else
+  WORK_USER="ec2-user"
+fi
 
 OPENVPN_PATH='/etc/openvpn'
 BIN_PATH="${OPENVPN_PATH}/bin"
@@ -489,7 +493,7 @@ function main() {
   install_basics
   configure_awscli
   configure_basics
-  
+
   if $DISTRO == "Ubuntu"; then
     install_awslogs
   fi
