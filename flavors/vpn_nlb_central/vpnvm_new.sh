@@ -355,7 +355,7 @@ build_PKI() {
 
   logs_helper "building pki"
     cd $EASYRSA_PATH
-    ln -s openssl-1.0.0.cnf openssl.cnf
+    # ln -s openssl-1.0.0.cnf openssl.cnf
     echo "This is long"
     ./easyrsa clean-all
     ./easyrsa init-pki
