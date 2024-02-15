@@ -8,7 +8,7 @@ gen3_load "gen3/lib/kube-setup-init"
 
 ctx="$(g3kubectl config current-context)"
 ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
-argoNamespace=argo-$(gen3 db namespace)
+
 
 function setup_argo_buckets {
   local accountNumber
