@@ -30,8 +30,8 @@ username=${username// /_}
 # now, clean out anything that's not alphanumeric or an underscore
 username=${username//[^a-zA-Z0-9_-.]/}
 
-USER_CERT_PATH="$KEY_PATH/$1.crt"
-USER_KEY_PATH="$KEY_PATH/$1.key"
+USER_CERT_PATH="$KEY_PATH/issued/$1.crt"
+USER_KEY_PATH="$KEY_PATH/private/$1.key"
 
 #make a temp dir
 TEMP_NAME="$username-$CLOUD_NAME-seperated"
