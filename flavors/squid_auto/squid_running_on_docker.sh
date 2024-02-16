@@ -74,10 +74,18 @@ function install_docker(){
   # Docker
   ###############################################################
   # Install docker from sources
-  curl -fsSL ${DOCKER_DOWNLOAD_URL}/gpg | sudo apt-key add -
-  add-apt-repository "deb [arch=amd64] ${DOCKER_DOWNLOAD_URL} $(lsb_release -cs) stable"
-  apt update
-  apt install -y docker-ce
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    curl -fsSL ${DOCKER_DOWNLOAD_URL}/gpg | sudo apt-key add -
+    add-apt-repository "deb [arch=amd64] ${DOCKER_DOWNLOAD_URL} $(lsb_release -cs) stable"
+    apt update
+    apt install -y docker-ce
+  else
+    sudo yum update -y
+    sudo yum install -y docker   
+    # Start and enable Docker service
+    sudo systemctl start docker
+    sudo systemctl enable docker
+  fi
   mkdir -p /etc/docker
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/docker-daemon.json /etc/docker/daemon.json
   chmod -R 0644 /etc/docker
