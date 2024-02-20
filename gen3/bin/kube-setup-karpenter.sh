@@ -79,6 +79,14 @@ gen3_deploy_karpenter() {
                   "Effect": "Allow",
                   "Resource": "*",
                   "Sid": "ConditionalEC2Termination"
+              },
+              {
+                  "Sid": "VisualEditor0",
+                  "Effect": "Allow",
+                  "Action": [
+                      "kms:*"
+                  ],
+                  "Resource": "*"
               }
           ],
           "Version": "2012-10-17"

@@ -58,7 +58,10 @@ spec:
           configMap:
             name: manifest-argo
             optional: true
-          
+        - name: argo-wrapper-namespace-config
+          configMap:
+            name: argo-wrapper-namespace-config
+
       containers:
       - name: argo-wrapper
         GEN3_ARGO-WRAPPER_IMAGE
@@ -70,3 +73,7 @@ spec:
             readOnly: true
             mountPath: /argo.json
             subPath: argo.json
+          - name: argo-wrapper-namespace-config
+            readOnly: true
+            mountPath: /src/config.ini
+            subPath: config.ini
