@@ -97,7 +97,7 @@ function install_basics() {
     debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
   else
     amazon-linux-extras install epel 
-    yum -y -q install epel-release
+    yum -y -q install epel-release iptables-services
     yum -y -q install python3-pip python3-devel gcc sipcalc wget curl jq ca-certificates software-properties-common fail2ban libyaml-dev
     yum -y -q install postfix mailutils python-virtualenv uuid-runtime lighttpd net-tools
     yum -y -q install openvpn bridge-utils openssl zlib1g-dev easy-rsa haveged zip mutt sipcalc python-dev python3-venv
@@ -383,8 +383,12 @@ build_PKI() {
 configure_ovpn() {
 
   logs_helper "configuring openvpn"
-  OVPNCONF_PATH="/etc/openvpn/openvpn.conf"
-  cp "$OPENVPN_PATH/bin/templates/openvpn.conf.template-ubuntu18" "$OVPNCONF_PATH"
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    OVPNCONF_PATH="/etc/openvpn/openvpn.conf"
+  else
+    OVPNCONF_PATH="/etc/openvpn/server/server.conf"
+  fi
+  cp "$OPENVPN_PATH/bin/templates/openvpn.conf" "$OVPNCONF_PATH"
 
   perl -p -i -e "s|#FQDN#|$FQDN|" $OVPNCONF_PATH
 
@@ -396,7 +400,12 @@ configure_ovpn() {
 
   perl -p -i -e "s|#PROTO#|$PROTO|" $OVPNCONF_PATH
 
-  systemctl restart openvpn
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    systemctl restart openvpn
+  else 
+    systemctl enable openvpn-server@server
+    systemctl start openvpn-server@server
+  fi
 
   logs_helper "openvpn configured"
 }
@@ -404,37 +413,26 @@ configure_ovpn() {
 tweak_network() {
 
   logs_helper "tweaking network"
-    local nettweaks_path="$OPENVPN_PATH/bin/network_tweaks.sh"
-    cp "$OPENVPN_PATH/bin/templates/network_tweaks.sh.template" "${nettweaks_path}"
-    perl -p -i -e "s|#VPN_SUBNET#|$VPN_SUBNET|" ${nettweaks_path}
-    perl -p -i -e "s|#VM_SUBNET#|$VM_SUBNET|" ${nettweaks_path}
-    perl -p -i -e "s|#PROTO#|$PROTO|" ${nettweaks_path}
+  local nettweaks_path="$OPENVPN_PATH/bin/network_tweaks.sh"
+  cp "$OPENVPN_PATH/bin/templates/network_tweaks.sh.template" "${nettweaks_path}"
+  perl -p -i -e "s|#VPN_SUBNET#|$VPN_SUBNET|" ${nettweaks_path}
+  perl -p -i -e "s|#VM_SUBNET#|$VM_SUBNET|" ${nettweaks_path}
+  perl -p -i -e "s|#PROTO#|$PROTO|" ${nettweaks_path}
 
-    chmod +x ${nettweaks_path}
-    ${nettweaks_path}
-    #cp /etc/rc.local /etc/rc.local.bak
-    #sed -i 's/^exit/#exit/' /etc/rc.local
-    #echo /etc/openvpn/bin/network_tweaks.sh >> /etc/rc.local
-    #echo exit 0 >> /etc/rc.local
+  chmod +x ${nettweaks_path}
+  ${nettweaks_path}
 
-    cat > /etc/systemd/system/openvpn_boot.service <<EOF
-[Unit]
-Description=OpenVPN boot up script
+  # Disable firewall in amazonlinux 
+  systemctl stop firewalld
+  systemctl disable firewalld
 
-[Service]
-ExecStart=/etc/openvpn/bin/network_tweaks.sh
+  #cp /etc/rc.local /etc/rc.local.bak
+  #sed -i 's/^exit/#exit/' /etc/rc.local
+  #echo /etc/openvpn/bin/network_tweaks.sh >> /etc/rc.local
+  #echo exit 0 >> /etc/rc.local
 
-[Install]
-WantedBy=multi-user.target
-EOF
-
-  chmod +x /etc/systemd/system/openvpn_boot.service
-  systemctl enable openvpn_boot
 
   logs_helper "network tweaked"
-  #maybe not neccessary, but ...
-  #systemctl enable rc-local.service || true
-
 
 }
 
