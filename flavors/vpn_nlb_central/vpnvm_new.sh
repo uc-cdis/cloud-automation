@@ -97,10 +97,10 @@ function install_basics() {
     debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
   else
     amazon-linux-extras install epel 
-    yum -y install epel-release
-    yum -y install python3-pip python3-devel gcc sipcalc wget curl jq ca-certificates software-properties-common fail2ban libyaml-dev
-    yum -y install postfix mailutils python-virtualenv uuid-runtime lighttpd net-tools
-    yum -y install openvpn bridge-utils openssl zlib1g-dev easy-rsa haveged zip mutt sipcalc python-dev python3-venv
+    yum -y -q install epel-release
+    yum -y -q install python3-pip python3-devel gcc sipcalc wget curl jq ca-certificates software-properties-common fail2ban libyaml-dev
+    yum -y -q install postfix mailutils python-virtualenv uuid-runtime lighttpd net-tools
+    yum -y -q install openvpn bridge-utils openssl zlib1g-dev easy-rsa haveged zip mutt sipcalc python-dev python3-venv
   fi
   pip3 install awscli  
   useradd  --shell /bin/nologin --system openvpn
