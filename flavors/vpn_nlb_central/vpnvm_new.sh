@@ -367,7 +367,7 @@ build_PKI() {
     ./easyrsa build-ca nopass
     ./easyrsa gen-dh
     ./easyrsa gen-crl
-    ./easyrsa build-server-full $VPN_NLB_NAME.planx-pla.net nopass
+    ./easyrsa build-server-full $VPN_NLB_NAME nopass
     # ./easyrsa gen-req $VPN_NLB_NAME.planx-pla.net nopass
     openvpn --genkey --secret ta.key
     mv ta.key $EASYRSA_PATH/pki/ta.key
