@@ -135,7 +135,7 @@ spec:
       mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
       subPath: "ca.pem"
     - name: dockersock
-      mountPath: "/var/run/docker/docker.sock"
+      mountPath: "/var/run/"
   serviceAccount: jenkins-service
   serviceAccountName: jenkins-service
   volumes:
