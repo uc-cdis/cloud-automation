@@ -21,6 +21,7 @@ spec:
         app: revproxy
         # allow access from workspaces
         userhelper: "yes"
+        internet: "yes"
         GEN3_DATE_LABEL
     spec:
       affinity:
