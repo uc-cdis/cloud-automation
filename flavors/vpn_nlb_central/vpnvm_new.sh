@@ -487,7 +487,7 @@ misc() {
     #ahhem.
     chown :root /etc/openvpn/clients.d/tmp
     chmod g+rwx /etc/openvpn/clients.d/tmp
-    systemctl restart openvpn
+    # systemctl restart openvpn
 
     logs_helper "misc done"
 }
