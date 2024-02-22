@@ -11,6 +11,7 @@ force=false
 for arg in "${@}"; do
   if [ "$arg" == "--override-namespace" ]; then
     override_namespace=true
+    echo "$override_namespace"
   elif [ "$arg" == "--force" ]; then
     force=true
   else 
