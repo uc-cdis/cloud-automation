@@ -92,8 +92,10 @@ spec:
   - name: shell
     image: quay.io/cdis/gen3-ci-worker:master
     imagePullPolicy: Always
-    command: ["/bin/sh"]
-    args: ["-c", "sudo chown root:sudo /run/containerd/containerd.sock && sleep infinity"]
+    command:
+    - sleep
+    args:
+    - infinity
     resources:
       requests:
         cpu: 0.2
