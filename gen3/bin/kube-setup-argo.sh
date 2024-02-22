@@ -220,6 +220,7 @@ function setup_argo_template_secret() {
     if [[ ! -z $(g3kubectl get secret argo-template-values-secret -n $argo_namespace) ]]; then
       gen3_log_info "Argo template values secret already exists, assuming it's stale and deleting"
       g3kubectl delete secret argo-template-values-secret -n $argo_namespace
+    fi
 
   g3kubectl create secret generic argo-template-values-secret --from-literal=DOWNLOADABLE_BUCKET=$downloadable_bucket_name -n $argo_namespace 
 }
