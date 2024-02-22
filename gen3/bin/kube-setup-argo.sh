@@ -215,19 +215,21 @@ function setup_argo_db() {
 }
 
 function setup_argo_template_secret() {
+  echo "Started the template secret process"
   downloadable_bucket_name=$(g3k_config_lookup '.downloadable-s3-bucket' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
   # Check if the secret already exists
     if [[ ! -z $(g3kubectl get secret argo-template-values-secret -n $argo_namespace) ]]; then
       gen3_log_info "Argo template values secret already exists, assuming it's stale and deleting"
       g3kubectl delete secret argo-template-values-secret -n $argo_namespace
     fi
-
+  gen3_log_info "Creating argo template values secret"
   g3kubectl create secret generic argo-template-values-secret --from-literal=DOWNLOADABLE_BUCKET=$downloadable_bucket_name -n $argo_namespace 
 }
 
   setup_argo_buckets
 # only do this if we are running in the default namespace
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" || "$override_namespace" == true ]]; then
+  echo "Overrode namespace"
   setup_argo_db
   setup_argo_template_secret 
   if (! helm status argo -n $argo_namespace > /dev/null 2>&1 )  || [[ "$force" == true ]]; then
