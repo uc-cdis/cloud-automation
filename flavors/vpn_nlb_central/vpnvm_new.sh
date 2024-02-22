@@ -388,7 +388,7 @@ configure_ovpn() {
   else
     OVPNCONF_PATH="/etc/openvpn/server/server.conf"
   fi
-  cp "$OPENVPN_PATH/bin/templates/openvpn.conf" "$OVPNCONF_PATH"
+  cp "$OPENVPN_PATH/bin/templates/openvpn.conf.template" "$OVPNCONF_PATH"
 
   perl -p -i -e "s|#FQDN#|$FQDN|" $OVPNCONF_PATH
 
