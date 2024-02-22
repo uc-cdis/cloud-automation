@@ -275,9 +275,9 @@ case "$command" in
   "idle")
     gen3_jupyter_idle_pods "$@"
     ;;
-  "metrics")
-    gen3_jupyter_metrics "$@"
-    ;;
+  # "metrics")
+  #   gen3_jupyter_metrics "$@"
+  #   ;;
   "prepuller")
     gen3_jupyter_prepuller "$@"
     ;;
