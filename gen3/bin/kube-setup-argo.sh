@@ -10,7 +10,6 @@ force=false
 
 
 for arg in "${@}"; do
-
   if [ "$arg" == "--override-namespace" ]; then
     override_namespace=true
   elif [ "$arg" == "--force" ]; then
@@ -20,6 +19,7 @@ for arg in "${@}"; do
     gen3_log_info "Usage: gen3 kube-setup-argo [--override-namespace]"
     exit 1
   fi
+done
 
 ctx="$(g3kubectl config current-context)"
 ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
