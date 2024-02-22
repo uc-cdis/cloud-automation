@@ -225,8 +225,8 @@ function setup_argo_template_secret() {
   g3kubectl create secret generic argo-template-values-secret --from-literal=DOWNLOADABLE_BUCKET=$downloadable_bucket_name -n $argo_namespace 
 }
 
-  setup_argo_buckets
-  echo "$override_namespace"
+setup_argo_buckets
+echo "$override_namespace"
 # only do this if we are running in the default namespace
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" || "$override_namespace" == true ]]; then
   echo "Overrode namespace"
