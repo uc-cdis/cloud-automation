@@ -24,7 +24,6 @@ ctx="$(g3kubectl config current-context)"
 ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
 
 argo_namespace=$(g3k_config_lookup '.argo_namespace' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
-echo "Argo namespace: $argo_namespace"
 
 function setup_argo_buckets {
   local accountNumber
@@ -227,10 +226,8 @@ function setup_argo_template_secret() {
 }
 
 setup_argo_buckets
-gen3_log_info "$override_namespace"
 # only do this if we are running in the default namespace
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" || "$override_namespace" == true ]]; then
-  gen3_log_info "Overrode namespace"
   setup_argo_db
   setup_argo_template_secret 
   if (! helm status argo -n $argo_namespace > /dev/null 2>&1 )  || [[ "$force" == true ]]; then
