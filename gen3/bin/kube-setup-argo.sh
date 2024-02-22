@@ -8,7 +8,6 @@ gen3_load "gen3/lib/kube-setup-init"
 override_namespace=false
 force=false
 
-
 for arg in "${@}"; do
   if [ "$arg" == "--override-namespace" ]; then
     override_namespace=true
@@ -16,7 +15,7 @@ for arg in "${@}"; do
     force=true
   else 
     #Print usage info and exit
-    gen3_log_info "Usage: gen3 kube-setup-argo [--override-namespace]"
+    gen3_log_info "Usage: gen3 kube-setup-argo [--override-namespace] [--force]"
     exit 1
   fi
 done
@@ -227,6 +226,7 @@ function setup_argo_template_secret() {
 }
 
   setup_argo_buckets
+  echo "$override_namespace"
 # only do this if we are running in the default namespace
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" || "$override_namespace" == true ]]; then
   echo "Overrode namespace"
