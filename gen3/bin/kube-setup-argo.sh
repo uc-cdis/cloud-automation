@@ -24,7 +24,7 @@ ctx="$(g3kubectl config current-context)"
 ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
 
 argo_namespace=$(g3k_config_lookup '.argo_namespace' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
-echo "$argo_namespace"
+echo "Argo namespace: $argo_namespace"
 
 function setup_argo_buckets {
   local accountNumber
