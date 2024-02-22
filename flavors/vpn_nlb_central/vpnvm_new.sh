@@ -441,7 +441,11 @@ install_webserver() {
 
   logs_helper "installing webserver"
     #Webserver used for QRCodes
-#    apt -y install lighttpd
+    if [[ $DISTRO == "Ubuntu" ]]; then
+      apt -y install lighttpd
+    else
+      yum -y install lighttpd
+    fi
     cp "$OPENVPN_PATH/bin/templates/lighttpd.conf.template"  /etc/lighttpd/lighttpd.conf
 
     mkdir -p --mode=750 /var/www/qrcode
@@ -524,17 +528,8 @@ function main() {
   install_cron
   
 
-
-  cp /etc/openvpn/bin/templates/lighttpd.conf.template  /etc/lighttpd/lighttpd.conf
   mkdir -p --mode=750 /var/www/qrcode
-  chown openvpn:www-data /var/www/qrcode
-  mkdir -p /etc/lighttpd/certs
-  cp /root/server.pem /etc/lighttpd/certs/server.pem
 
-#  service lighttpd restart
-  systemctl restart lighttpd
-
-  systemctl restart openvpn
 
 }
 
