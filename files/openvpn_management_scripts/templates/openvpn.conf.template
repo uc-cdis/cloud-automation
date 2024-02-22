@@ -19,7 +19,7 @@ crl-verify /etc/openvpn/easy-rsa/pki/crl.pem # Revocation files
 
 #Password script
 auth-user-pass-verify  /etc/openvpn/bin/auth-user-pass-verify.sh via-env
-script-security 3 execve
+script-security 3 # execve
 
 #Cipher suite
 cipher AES-256-CBC
