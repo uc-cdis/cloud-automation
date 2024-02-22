@@ -13,7 +13,7 @@ REGION=$(echo ${AVAILABILITY_ZONE::-1})
 AWSLOGS_DOWNLOAD_URL="https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
 #TERRAFORM_DOWNLOAD_URL="https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip"
 DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
-if $DISTRO == "Ubuntu"; then
+if [[ $DISTRO == "Ubuntu" ]]; then
   WORK_USER="ubuntu"
 else
   WORK_USER="ec2-user"
@@ -359,6 +359,8 @@ install_settings() {
 build_PKI() {
 
   logs_helper "building pki"
+    echo "FQDN: $FQDN"
+    return 0
     cd $EASYRSA_PATH
     # ln -s openssl-1.0.0.cnf openssl.cnf
     echo "This is long"
@@ -367,7 +369,7 @@ build_PKI() {
     ./easyrsa build-ca nopass
     ./easyrsa gen-dh
     ./easyrsa gen-crl
-    ./easyrsa build-server-full $FQDN nopass
+    ./easyrsa build-server-full $CLOUD_NAME nopass
     # ./easyrsa gen-req $VPN_NLB_NAME.planx-pla.net nopass
     openvpn --genkey --secret ta.key
     mv ta.key $EASYRSA_PATH/pki/ta.key
@@ -526,6 +528,7 @@ function main() {
 
   mkdir -p --mode=750 /var/www/qrcode
 
+  logs_helper "openvpn setup complete"
 
 }
 
