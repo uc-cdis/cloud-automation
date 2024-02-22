@@ -71,7 +71,7 @@ ecrReg="707767160287.dkr.ecr.us-east-1.amazonaws.com"
 # lib -------------------------------
 
 gen3_ecr_login() {
-  if [[ -e /var/run/docker.sock ]]; then
+  if [[ -S /var/run/docker.sock ]]; then
     if gen3_time_since ecr-login is 36000; then
     # re-authenticate every 10 hours
       aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin "707767160287.dkr.ecr.us-east-1.amazonaws.com" 1>&2 || exit 1
@@ -87,7 +87,7 @@ gen3_ecr_login() {
 
 gen3_quay_login() {
   if [[ -f ~/Gen3Secrets/quay/login ]]; then
-    if [[ -e /var/run/docker.sock ]]; then
+    if [[ -S /var/run/docker.sock ]]; then
       if gen3_time_since quay-login is 36000; then
         cat ~/Gen3Secrets/quay/login | docker login --username cdis+gen3 --password-stdin quay.io
       fi
@@ -125,7 +125,7 @@ gen3_ecr_copy_image() {
   fi
   shift
   shift
-  if [[ -e /var/run/docker.sock ]]; then
+  if [[ -S /var/run/docker.sock ]]; then
     (docker pull "$srcTag" && \
       docker tag "$srcTag" "$destTag" && \
       docker push "$destTag"
