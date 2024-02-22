@@ -5,6 +5,21 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/kube-setup-init"
 
+override_namespace=false
+force=false
+
+
+for arg in "${@}"; do
+
+  if [ "$arg" == "--override-namespace" ]; then
+    override_namespace=true
+  elif [ "$arg" == "--force" ]; then
+    force=true
+  else 
+    #Print usage info and exit
+    gen3_log_info "Usage: gen3 kube-setup-argo [--override-namespace]"
+    exit 1
+  fi
 
 ctx="$(g3kubectl config current-context)"
 ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
@@ -214,7 +229,7 @@ function setup_argo_template_secret() {
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
   setup_argo_db
   setup_argo_template_secret 
-  if (! helm status argo -n $argo_namespace > /dev/null 2>&1 )  || [[ "$1" == "--force" ]]; then
+  if (! helm status argo -n $argo_namespace > /dev/null 2>&1 )  || [[ "$force" == true ]]; then
     DBHOST=$(kubectl get secrets -n $argo_namespace argo-db-creds -o json | jq -r .data.db_host | base64 -d)
     DBNAME=$(kubectl get secrets -n $argo_namespace argo-db-creds -o json | jq -r .data.db_database | base64 -d)
     if [[ -z $internalBucketName ]]; then
