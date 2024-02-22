@@ -521,10 +521,6 @@ function main() {
   configure_ovpn
   tweak_network
 
-  if [ -f "$SERVER_PEM" ]
-  then
-    install_webserver
-  fi
   install_cron
   
 
