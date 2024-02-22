@@ -11,7 +11,6 @@ force=false
 for arg in "${@}"; do
   if [ "$arg" == "--override-namespace" ]; then
     override_namespace=true
-    echo "$override_namespace"
   elif [ "$arg" == "--force" ]; then
     force=true
   else 
@@ -215,7 +214,7 @@ function setup_argo_db() {
 }
 
 function setup_argo_template_secret() {
-  echo "Started the template secret process"
+  gen3_log_info "Started the template secret process"
   downloadable_bucket_name=$(g3k_config_lookup '.downloadable-s3-bucket' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
   # Check if the secret already exists
     if [[ ! -z $(g3kubectl get secret argo-template-values-secret -n $argo_namespace) ]]; then
@@ -227,10 +226,10 @@ function setup_argo_template_secret() {
 }
 
 setup_argo_buckets
-echo "$override_namespace"
+gen3_log_info "$override_namespace"
 # only do this if we are running in the default namespace
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" || "$override_namespace" == true ]]; then
-  echo "Overrode namespace"
+  gen3_log_info "Overrode namespace"
   setup_argo_db
   setup_argo_template_secret 
   if (! helm status argo -n $argo_namespace > /dev/null 2>&1 )  || [[ "$force" == true ]]; then
