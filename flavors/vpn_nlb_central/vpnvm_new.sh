@@ -513,7 +513,7 @@ function main() {
   # if [! -d "/etc/openvpn/easy-rsa"]; then
   aws s3 ls s3://${S3_BUCKET}/${VPN_NLB_NAME}/ || build_PKI
   #fi
-
+  misc
   configure_ovpn
   tweak_network
 
@@ -522,7 +522,7 @@ function main() {
     install_webserver
   fi
   install_cron
-  misc
+  
 
 
   cp /etc/openvpn/bin/templates/lighttpd.conf.template  /etc/lighttpd/lighttpd.conf
