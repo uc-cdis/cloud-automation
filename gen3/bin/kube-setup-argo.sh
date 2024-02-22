@@ -5,9 +5,6 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/kube-setup-init"
 
-echo "Test"
-gen3_log_info "Test"
-
 override_namespace=false
 force=false
 
@@ -228,6 +225,7 @@ function setup_argo_template_secret() {
   g3kubectl create secret generic argo-template-values-secret --from-literal=DOWNLOADABLE_BUCKET=$downloadable_bucket_name -n $argo_namespace 
 }
 
+gen3_log_info "$override_namespace"
 setup_argo_buckets
 gen3_log_info "$override_namespace"
 # only do this if we are running in the default namespace
