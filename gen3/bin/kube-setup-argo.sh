@@ -153,8 +153,8 @@ EOF
       gen3_log_info "IAM role ${roleName} already exists.."
       roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
       gen3_log_info "Role annotate"
-      g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n $argo_namespace
-      g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
+      g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} --overwrite -n $argo_namespace
+      g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} --overwrite -n $nameSpace
   else
         gen3 awsrole create $roleName argo $nameSpace -f all_namespaces
         roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
