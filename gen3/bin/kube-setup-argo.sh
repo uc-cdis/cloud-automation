@@ -48,13 +48,13 @@ function setup_argo_buckets {
   roleName="gen3-argo-${environment//_/-}-role"
   bucketPolicy="argo-bucket-policy-${nameSpace}"
   internalBucketPolicy="argo-internal-bucket-policy-${nameSpace}"
-  if [[ ! -z $(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo."s3-bucket"') ]]; then
-    if [[ ! -z $(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
+  if [[ ! -z $(g3k_config_lookup '."downloadable-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo."downloadable-s3-bucket"') ]]; then
+    if [[ ! -z $(g3k_config_lookup '."downloadable-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
       gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
-      bucketName=$(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
+      bucketName=$(g3k_config_lookup '."downloadable-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
     else
       gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
-      bucketName=$(g3k_config_lookup '.argo."s3-bucket"')
+      bucketName=$(g3k_config_lookup '.argo."downloadable-s3-bucket"')
     fi
   fi
   if [[ ! -z $(g3k_config_lookup '."internal-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo."internal-s3-bucket"') ]]; then
@@ -133,8 +133,6 @@ EOF
   ]
 }
 EOF
-  # TODO remove this
-  echo "Past the buckets policies"
   # Create argo SA within the current namespace
   gen3_log_info "Creating argo SA in the current namespace"
   g3kubectl create sa argo -n $nameSpace | true
@@ -163,8 +161,7 @@ EOF
         roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
         g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n $argo_namespace
   fi
-  # TODO remove this
-  echo "Past the IAM role creation"
+
   # Grant admin access within the current namespace to the argo SA in the current namespace
   g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=$nameSpace:argo -n $nameSpace || true
   aws iam put-role-policy --role-name ${roleName} --policy-name ${bucketPolicy} --policy-document file://$policyFile || true
@@ -180,8 +177,7 @@ EOF
 
   gen3_log_info "Creating bucket lifecycle policy"
   aws s3api put-bucket-lifecycle --bucket ${bucketName} --lifecycle-configuration file://$bucketLifecyclePolicyFile
-  # TODO remove this
-  echo "Past the service account creation"
+
   # Always update the policy, in case manifest buckets change
   aws iam put-role-policy --role-name ${roleName} --policy-name ${bucketPolicy} --policy-document file://$policyFile
   if [[ ! -z $internalBucketPolicyFile ]]; then
@@ -205,8 +201,6 @@ EOF
     indexdFencePassword=$(cat $(gen3_secrets_folder)/creds.json | jq -r .indexd.user_db.$indexd_admin_user)
     g3kubectl create secret generic "indexd-creds" --from-literal=user=$indexd_admin_user --from-literal=password=$indexdFencePassword -n $argo_namespace
   fi
-  # TODO remove this
-  echo "End of function... what now?"
 }
 
 function setup_argo_db() {
