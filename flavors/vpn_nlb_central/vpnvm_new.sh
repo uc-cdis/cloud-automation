@@ -359,8 +359,6 @@ install_settings() {
 build_PKI() {
 
   logs_helper "building pki"
-    echo "FQDN: $FQDN"
-    return 0
     cd $EASYRSA_PATH
     # ln -s openssl-1.0.0.cnf openssl.cnf
     echo "This is long"
