@@ -68,11 +68,8 @@ send_welcome_letter_png() {
     # do some garbage collection
     aws s3 rm --recursive "s3://${S3BUCKET}/userzips/$(date +%Y/%m -d '40 days ago')/"
     local s3Path="s3://${S3BUCKET}/userzips/$(date +%Y/%m)/${vpn_username}_$(date +%Y%m%d%H%M%S).zip"
-    local s3PathQR="s3://${S3BUCKET}/qrcodes/$(date +%Y/%m)/${vpn_username}_$(date +%Y%m%d%H%M%S).png"
     local signedUrl
-    local signedUrlQR
     aws s3 cp --sse AES256 "$TEMP_ROOT/$vpn_username.zip" "$s3Path" || return 1
-    aws s3 cp --sse AES256 "$TEMP_ROOT/$vpn_username.png" "$s3PathQR" || return 1
     signedUrl="$(aws s3 presign "$s3Path" --expires-in "$((60*60*48))")"
     echo -e "\nSend the following as an OTP to $vpn_email\n------------------\n"
     ( cat "$VPN_BIN_ROOT/templates/creds_template.txt" | SIGNED_URL="$signedUrl" envsubst )
