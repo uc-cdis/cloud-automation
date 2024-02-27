@@ -2,7 +2,7 @@
 
 ### How to run
 
-Configure `global.ecr-access-job-role-arn` to the ARN of the `EcrRepoPolicyUpdateRole` role (described beloow) in the `manifest.json` file.
+Configure `global.ecr-access-job-role-arn` to the ARN of the `EcrRepoPolicyUpdateRole` role (described below) in the `manifest.json` file.
 
 Run `gen3 kube-setup-ecr-access-cronjob` to set up the ECR access cronjob.
 
