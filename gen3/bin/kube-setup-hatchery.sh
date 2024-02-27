@@ -35,15 +35,17 @@ if [ -z "$imagebuilderRoleArn" ]; then
     gen3_log_info "No 'nexftlow-global.imagebuilder-reader-role-arn' in Hatchery configuration, not granting AssumeRole"
 else
     gen3_log_info "Found 'nexftlow-global.imagebuilder-reader-role-arn' in Hatchery configuration,granting AssumeRole"
-    assumeImageBuilderRolePolicyBlock="""{
-        "Sid": "AssumeImageBuilderReaderRole",
-        "Effect": "Allow",
-        "Action": [
-            "sts:AssumeRole"
-        ],
-        "Resource": "$imagebuilderRoleArn"
-    },
-    """
+    assumeImageBuilderRolePolicyBlock=$( cat <<EOM
+        {
+            "Sid": "AssumeImageBuilderReaderRole",
+            "Effect": "Allow",
+            "Action": [
+                "sts:AssumeRole"
+            ],
+            "Resource": "$imagebuilderRoleArn"
+        },
+EOM
+)
 fi
 
 policy=$( cat <<EOM
@@ -56,7 +58,7 @@ policy=$( cat <<EOM
             "Action": "sts:AssumeRole",
             "Resource": "arn:aws:iam::*:role/csoc_adminvm*"
         },
-        $assumeImageBuilderRolePolicyBlock
+$assumeImageBuilderRolePolicyBlock
         {
             "Effect": "Allow",
             "Action": "ec2:*",
@@ -124,7 +126,7 @@ policy=$( cat <<EOM
 }
 EOM
 )
-echo $policy
+
 saName=$(echo "hatchery-service-account" | head -c63)
 echo "Service account name:" $saName
 if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.amazonaws.com/role-arn"' > /dev/null 2>&1; then
