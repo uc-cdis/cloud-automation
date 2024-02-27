@@ -32,7 +32,7 @@ export KEY_CN=$username
 (
     cd $EASYRSA_PATH
     ./easyrsa revoke $username
-
+    ./easyrsa gen-crl
 )
 
 sed -i "/${username},/d" $USER_PW_FILE || echo -e "${RED}${BOLD}${BLINK}Failed to remove $username from file ${USER_PW_FILE}${CLEAR}"
