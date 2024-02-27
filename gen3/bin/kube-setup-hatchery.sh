@@ -34,7 +34,7 @@ assumeImageBuilderRolePolicyBlock=""
 if [ -z "$imagebuilderRoleArn" ]; then
     gen3_log_info "No 'nexftlow-global.imagebuilder-reader-role-arn' in Hatchery configuration, not granting AssumeRole"
 else
-    gen3_log_info "Found 'nexftlow-global.imagebuilder-reader-role-arn' in Hatchery configuration,granting AssumeRole"
+    gen3_log_info "Found 'nexftlow-global.imagebuilder-reader-role-arn' in Hatchery configuration, granting AssumeRole"
     assumeImageBuilderRolePolicyBlock=$( cat <<EOM
         {
             "Sid": "AssumeImageBuilderReaderRole",
@@ -128,34 +128,35 @@ EOM
 )
 
 saName=$(echo "hatchery-service-account" | head -c63)
-echo "Service account name:" $saName
-if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.amazonaws.com/role-arn"' > /dev/null 2>&1; then
-    roleName="$(gen3 api safe-name hatchery-sa)"
-    gen3 awsrole create $roleName $saName
-    policyName="$(gen3 api safe-name hatchery-policy)"
-    policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hatchery to assume csoc_adminvm role in other accounts and manage dynamodb for multi-account workspaces, and to create resources for nextflow workspaces")
-    if [ -n "$policyInfo" ]; then
-        policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
-    else
-        echo "Unable to create policy '$policyName'. Assume it already exists and create a new version to update the permissions..."
-        policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
+echo Service account name: $saName
+echo Policy document: $policy
 
-        # there can only be up to 5 versions, so delete old versions (except the current default one)
-        versions="$(gen3_aws_run aws iam list-policy-versions --policy-arn $policyArn | jq -r '.Versions[] | select(.IsDefaultVersion != true) | .VersionId')"
-        versions=(${versions}) # string to array
-        for v in "${versions[@]}"; do
-            echo "Deleting old version '$v'"
-            gen3_aws_run aws iam delete-policy-version --policy-arn $policyArn --version-id $v
-        done
+# we attempt to create the SA / update the policy every time we run kube-setup-hatchery, because the policy
+# has changed and must be updated
+roleName="$(gen3 api safe-name hatchery-sa)"
+gen3 awsrole create $roleName $saName
+policyName="$(gen3 api safe-name hatchery-policy)"
+policyInfo=$(gen3_aws_run aws iam create-policy --policy-name "$policyName" --policy-document "$policy" --description "Allow hatchery to assume csoc_adminvm role in other accounts and manage dynamodb for multi-account workspaces, and to create resources for nextflow workspaces")
+if [ -n "$policyInfo" ]; then
+    policyArn="$(jq -e -r '.["Policy"].Arn' <<< "$policyInfo")" || { echo "Cannot get 'Policy.Arn' from output: $policyInfo"; return 1; }
+else
+    echo "Unable to create policy '$policyName'. Assume it already exists and create a new version to update the permissions..."
+    policyArn=$(gen3_aws_run aws iam list-policies --query "Policies[?PolicyName=='$policyName'].Arn" --output text)
 
-        # create the new version
-        gen3_aws_run aws iam create-policy-version --policy-arn "$policyArn" --policy-document "$policy" --set-as-default
-    fi
+    # there can only be up to 5 versions, so delete old versions (except the current default one)
+    versions="$(gen3_aws_run aws iam list-policy-versions --policy-arn $policyArn | jq -r '.Versions[] | select(.IsDefaultVersion != true) | .VersionId')"
+    versions=(${versions}) # string to array
+    for v in "${versions[@]}"; do
+        echo "Deleting old version '$v'"
+        gen3_aws_run aws iam delete-policy-version --policy-arn $policyArn --version-id $v
+    done
 
-    gen3_log_info "Attaching policy '${policyName}' to role '${roleName}'"
-    gen3 awsrole attach-policy ${policyArn} --role-name ${roleName} --force-aws-cli || exit 1
-    gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${roleName} --force-aws-cli || exit 1
+    # create the new version
+    gen3_aws_run aws iam create-policy-version --policy-arn "$policyArn" --policy-document "$policy" --set-as-default
 fi
+gen3_log_info "Attaching policy '${policyName}' to role '${roleName}'"
+gen3 awsrole attach-policy ${policyArn} --role-name ${roleName} --force-aws-cli || exit 1
+gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${roleName} --force-aws-cli || exit 1
 
 if [[ -f "$(gen3_secrets_folder)/prisma/apikey.json" ]]; then
     ACCESSKEYID=$(jq -r .AccessKeyID "$(gen3_secrets_folder)/prisma/apikey.json")
