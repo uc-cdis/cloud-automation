@@ -32,8 +32,9 @@ fi
 imagebuilderRoleArn=$(g3kubectl get configmap manifest-hatchery -o jsonpath={.data.nextflow-global} | jq '."imagebuilder-reader-role-arn"')
 assumeImageBuilderRolePolicyBlock=""
 if [ -z "$imagebuilderRoleArn" ]; then
-    gen3_log_err "Info: No 'nexftlow-global.imagebuilder-reader-role-arn' configuration in Hatchery configuration, not granting AssumeRole"
+    gen3_log_info "No 'nexftlow-global.imagebuilder-reader-role-arn' in Hatchery configuration, not granting AssumeRole"
 else
+    gen3_log_info "Found 'nexftlow-global.imagebuilder-reader-role-arn' in Hatchery configuration,granting AssumeRole"
     assumeImageBuilderRolePolicyBlock="""{
         "Sid": "AssumeImageBuilderReaderRole",
         "Effect": "Allow",
@@ -123,8 +124,9 @@ policy=$( cat <<EOM
 }
 EOM
 )
+echo $policy
 saName=$(echo "hatchery-service-account" | head -c63)
-echo $saName
+echo "Service account name:" $saName
 if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.amazonaws.com/role-arn"' > /dev/null 2>&1; then
     roleName="$(gen3 api safe-name hatchery-sa)"
     gen3 awsrole create $roleName $saName
