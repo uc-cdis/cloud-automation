@@ -351,7 +351,7 @@ install_settings() {
     cp "$OPENVPN_PATH/bin/templates/settings.sh.template" "$SETTINGS_PATH"
     perl -p -i -e "s|#FQDN#|$FQDN|" $SETTINGS_PATH
     perl -p -i -e "s|#EMAIL#|$EMAIL|" $SETTINGS_PATH
-    perl -p -i -e "s|#CLOUD_NAME#|${cloud}-vpn|" $SETTINGS_PATH
+    perl -p -i -e "s|#CLOUD_NAME#|${cloud}|" $SETTINGS_PATH
 
   logs_helper "settings installed"
 }
