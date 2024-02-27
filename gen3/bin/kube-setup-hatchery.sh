@@ -29,7 +29,7 @@ fi
 
 # if `nextflow-global.imagebuilder-reader-role-arn` is set in hatchery config, allow hatchery
 # to assume the configured role
-imagebuilderRoleArn=$(g3kubectl get configmap manifest-hatchery -o jsonpath={.data.nextflow-global} | jq '."imagebuilder-reader-role-arn"')
+imagebuilderRoleArn=$(g3kubectl get configmap manifest-hatchery -o jsonpath={.data.nextflow-global} | jq -r '."imagebuilder-reader-role-arn"')
 assumeImageBuilderRolePolicyBlock=""
 if [ -z "$imagebuilderRoleArn" ]; then
     gen3_log_info "No 'nexftlow-global.imagebuilder-reader-role-arn' in Hatchery configuration, not granting AssumeRole"
