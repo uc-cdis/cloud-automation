@@ -27,15 +27,35 @@ then
     gen3 job cron distribute-licenses '* * * * *'
 fi
 
+# if `nextflow-global.imagebuilder-reader-role-arn` is set in hatchery config, allow hatchery
+# to assume the configured role
+imagebuilderRoleArn=$(g3kubectl get configmap manifest-hatchery -o jsonpath={.data.nextflow-global} | jq '."imagebuilder-reader-role-arn"')
+assumeImageBuilderRolePolicyBlock=""
+if [ -z "$imagebuilderRoleArn" ]; then
+    gen3_log_err "Info: No 'nexftlow-global.imagebuilder-reader-role-arn' configuration in Hatchery configuration, not granting AssumeRole"
+else
+    assumeImageBuilderRolePolicyBlock="""{
+        "Sid": "AssumeImageBuilderReaderRole",
+        "Effect": "Allow",
+        "Action": [
+            "sts:AssumeRole"
+        ],
+        "Resource": "$imagebuilderRoleArn"
+    },
+    """
+fi
+
 policy=$( cat <<EOM
 {
     "Version": "2012-10-17",
     "Statement": [
         {
+            "Sid": "AssumeCsocAdminRole",
             "Effect": "Allow",
             "Action": "sts:AssumeRole",
             "Resource": "arn:aws:iam::*:role/csoc_adminvm*"
         },
+        $assumeImageBuilderRolePolicyBlock
         {
             "Effect": "Allow",
             "Action": "ec2:*",
