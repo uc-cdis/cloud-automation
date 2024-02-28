@@ -75,5 +75,5 @@ spec:
             subPath: argo.json
           - name: argo-wrapper-namespace-config
             readOnly: true
-            mountPath: /src/config.ini
+            mountPath: /argowrapper/config.ini
             subPath: config.ini
