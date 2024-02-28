@@ -35,6 +35,16 @@ SPECIAL_VALUE_MAPPINGS = {
     "Buisness Development": "Business Development"
 }
 
+# repository links
+REPOSITORY_STUDY_ID_LINK_TEMPLATE = {
+    "NIDDK Central": "https://repository.niddk.nih.gov/studies/<STUDY_ID>/",
+    "NIDA Data Share": "https://datashare.nida.nih.gov/study/<STUDY_ID>",
+    "NICHD DASH": "https://dash.nichd.nih.gov/study/<STUDY_ID>",
+    "ICPSR": "https://www.icpsr.umich.edu/web/ICPSR/studies/<STUDY_ID>",
+    "BioSystics-AP": "https://biosystics-ap.com/assays/assaystudy/<STUDY_ID>/",
+}
+
+
 # Defines field that we don't want to include in the filters
 OMITTED_VALUES_MAPPING = {
     "study_metadata.human_subject_applicability.gender_applicability": "Not applicable"
@@ -244,16 +254,6 @@ while((limit + offset <= total)):
                 mds_res["gen3_discovery"]["study_metadata"]["citation"]["heal_platform_citation"] = doi_citation
 
 
-                # repository links
-                REPOSITORY_STUDY_ID_LINK_TEMPLATE = {
-                    "NIDDK Central": "https://repository.niddk.nih.gov/studies/<STUDY_ID>/",
-                    "NIDA Data Share": "https://datashare.nida.nih.gov/study/<STUDY_ID>",
-                    "NICHD DASH": "https://dash.nichd.nih.gov/study/<STUDY_ID>",
-                    "ICPSR": "https://www.icpsr.umich.edu/web/ICPSR/studies/<STUDY_ID>",
-                    "BioSystics-AP": "https://biosystics-ap.com/assays/assaystudy/<STUDY_ID>/",
-                }
-
-
                 # setup repository_study_link
                 data_repositories = (
                     mds_res.get("study_metadata", {})
@@ -297,6 +297,10 @@ while((limit + offset <= total)):
                     )
                 except Exception:
                     print(f"Unable to get serial number for study")
+
+                if serial_num == None:
+                    print(f"Unable to get serial number for study")
+
                 related_study_result = get_related_studies(serial_num, hostname)
                 existing_related_study_result = mds_res.get("related_studies", [])
                 for related_study in related_study_result:
