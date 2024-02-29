@@ -67,7 +67,7 @@ data:
       subnetSelector:
         karpenter.sh/discovery: ENVIRONMENT
       securityGroupSelector:
-        karpenter.sh/discovery: ENVIRONMENT-workflow
+        karpenter.sh/discovery: ENVIRONMENT
       tags:
         Environment: ENVIRONMENT
         Name: eks-ENVIRONMENT-workflow-karpenter
