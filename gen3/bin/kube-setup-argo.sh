@@ -5,10 +5,25 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 gen3_load "gen3/lib/kube-setup-init"
 
+override_namespace=false
+force=false
+
+for arg in "${@}"; do
+  if [ "$arg" == "--override-namespace" ]; then
+    override_namespace=true
+  elif [ "$arg" == "--force" ]; then
+    force=true
+  else 
+    #Print usage info and exit
+    gen3_log_info "Usage: gen3 kube-setup-argo [--override-namespace] [--force]"
+    exit 1
+  fi
+done
 
 ctx="$(g3kubectl config current-context)"
 ctxNamespace="$(g3kubectl config view -ojson | jq -r ".contexts | map(select(.name==\"$ctx\")) | .[0] | .context.namespace")"
 
+argo_namespace=$(g3k_config_lookup '.argo_namespace' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
 
 function setup_argo_buckets {
   local accountNumber
@@ -32,13 +47,13 @@ function setup_argo_buckets {
   roleName="gen3-argo-${environment//_/-}-role"
   bucketPolicy="argo-bucket-policy-${nameSpace}"
   internalBucketPolicy="argo-internal-bucket-policy-${nameSpace}"
-  if [[ ! -z $(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo."s3-bucket"') ]]; then
-    if [[ ! -z $(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
+  if [[ ! -z $(g3k_config_lookup '."downloadable-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo."downloadable-s3-bucket"') ]]; then
+    if [[ ! -z $(g3k_config_lookup '."downloadable-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) ]]; then
       gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
-      bucketName=$(g3k_config_lookup '."s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
+      bucketName=$(g3k_config_lookup '."downloadable-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
     else
       gen3_log_info "Using S3 bucket found in manifest: ${bucketName}"
-      bucketName=$(g3k_config_lookup '.argo."s3-bucket"')
+      bucketName=$(g3k_config_lookup '.argo."downloadable-s3-bucket"')
     fi
   fi
   if [[ ! -z $(g3k_config_lookup '."internal-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json) || ! -z $(g3k_config_lookup '.argo."internal-s3-bucket"') ]]; then
@@ -131,19 +146,19 @@ EOF
     g3kubectl create namespace argo || true
     g3kubectl label namespace argo app=argo || true
     # Grant admin access within the argo namespace to the default SA in the argo namespace
-    g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n argo || true
+    g3kubectl create rolebinding argo-admin --clusterrole=admin --serviceaccount=argo:default -n $argo_namespace || true
   fi
   gen3_log_info "Creating IAM role ${roleName}"
   if aws iam get-role --role-name "${roleName}" > /dev/null 2>&1; then
       gen3_log_info "IAM role ${roleName} already exists.."
       roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
       gen3_log_info "Role annotate"
-      g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
-      g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} -n $nameSpace
+      g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} --overwrite -n $argo_namespace
+      g3kubectl annotate serviceaccount argo eks.amazonaws.com/role-arn=${roleArn} --overwrite -n $nameSpace
   else
         gen3 awsrole create $roleName argo $nameSpace -f all_namespaces
         roleArn=$(aws iam get-role --role-name "${roleName}" --query 'Role.Arn' --output text)
-        g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n argo
+        g3kubectl annotate serviceaccount default eks.amazonaws.com/role-arn=${roleArn} -n $argo_namespace
   fi
 
   # Grant admin access within the current namespace to the argo SA in the current namespace
@@ -177,34 +192,47 @@ EOF
     for serviceName in indexd; do
       secretName="${serviceName}-creds"
       # Only delete if secret is found to prevent early exits
-      if [[ ! -z $(g3kubectl get secrets -n argo | grep $secretName) ]]; then
-        g3kubectl delete secret "$secretName" -n argo > /dev/null 2>&1
+      if [[ ! -z $(g3kubectl get secrets -n $argo_namespace | grep $secretName) ]]; then
+        g3kubectl delete secret "$secretName" -n $argo_namespace > /dev/null 2>&1
       fi
     done
     sleep 1  # I think delete is async - give backend a second to finish
     indexdFencePassword=$(cat $(gen3_secrets_folder)/creds.json | jq -r .indexd.user_db.$indexd_admin_user)
-    g3kubectl create secret generic "indexd-creds" --from-literal=user=$indexd_admin_user --from-literal=password=$indexdFencePassword -n argo
+    g3kubectl create secret generic "indexd-creds" --from-literal=user=$indexd_admin_user --from-literal=password=$indexdFencePassword -n $argo_namespace
   fi
 }
 
 function setup_argo_db() {
-  if ! secret="$(g3kubectl get secret argo-db-creds -n argo 2> /dev/null)"; then
+  if ! secret="$(g3kubectl get secret argo-db-creds -n $argo_namespace 2> /dev/null)"; then
     gen3_log_info "Setting up argo db persistence"
     gen3 db setup argo || true
     dbCreds=$(gen3 secrets decode argo-g3auto dbcreds.json)
-    g3kubectl create secret -n argo generic argo-db-creds --from-literal=db_host=$(echo $dbCreds  | jq -r .db_host) --from-literal=db_username=$(echo $dbCreds  | jq -r .db_username) --from-literal=db_password=$(echo $dbCreds  | jq -r .db_password) --from-literal=db_database=$(echo $dbCreds  | jq -r .db_database)
+    g3kubectl create secret -n $argo_namespace generic argo-db-creds --from-literal=db_host=$(echo $dbCreds  | jq -r .db_host) --from-literal=db_username=$(echo $dbCreds  | jq -r .db_username) --from-literal=db_password=$(echo $dbCreds  | jq -r .db_password) --from-literal=db_database=$(echo $dbCreds  | jq -r .db_database)
   else
     gen3_log_info "Argo DB setup already completed"
   fi
 }
 
-  setup_argo_buckets
+function setup_argo_template_secret() {
+  gen3_log_info "Started the template secret process"
+  downloadable_bucket_name=$(g3k_config_lookup '."downloadable-s3-bucket"' $(g3k_manifest_init)/$(g3k_hostname)/manifests/argo/argo.json)
+  # Check if the secret already exists
+    if [[ ! -z $(g3kubectl get secret argo-template-values-secret -n $argo_namespace) ]]; then
+      gen3_log_info "Argo template values secret already exists, assuming it's stale and deleting"
+      g3kubectl delete secret argo-template-values-secret -n $argo_namespace
+    fi
+  gen3_log_info "Creating argo template values secret"
+  g3kubectl create secret generic argo-template-values-secret --from-literal=DOWNLOADABLE_BUCKET=$downloadable_bucket_name -n $argo_namespace 
+}
+
+setup_argo_buckets
 # only do this if we are running in the default namespace
-if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
+if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" || "$override_namespace" == true ]]; then
   setup_argo_db
-  if (! helm status argo -n argo > /dev/null 2>&1 )  || [[ "$1" == "--force" ]]; then
-    DBHOST=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_host | base64 -d)
-    DBNAME=$(kubectl get secrets -n argo argo-db-creds -o json | jq -r .data.db_database | base64 -d)
+  setup_argo_template_secret 
+  if (! helm status argo -n $argo_namespace > /dev/null 2>&1 )  || [[ "$force" == true ]]; then
+    DBHOST=$(kubectl get secrets -n $argo_namespace argo-db-creds -o json | jq -r .data.db_host | base64 -d)
+    DBNAME=$(kubectl get secrets -n $argo_namespace argo-db-creds -o json | jq -r .data.db_database | base64 -d)
     if [[ -z $internalBucketName ]]; then
       BUCKET=$bucketName
     else
@@ -218,7 +246,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" ]]; then
 
     helm repo add argo https://argoproj.github.io/argo-helm --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
-    helm upgrade --install argo argo/argo-workflows -n argo -f ${valuesFile} --version 0.29.1
+    helm upgrade --install argo argo/argo-workflows -n $argo_namespace -f ${valuesFile} --version 0.29.1
   else
     gen3_log_info "kube-setup-argo exiting - argo already deployed, use --force to redeploy"
   fi
