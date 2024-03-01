@@ -1,5 +1,5 @@
 import argparse
-import copy
+import json
 import sys
 import requests
 import pydash
