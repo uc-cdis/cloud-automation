@@ -293,8 +293,8 @@ spec:
                 script {
                     try {
                         if(!skipUnitTests) {
-                            sh '/usr/bin/pip3 install boto3 --upgrade --user'
-                            sh '/usr/bin/pip3 install kubernetes --upgrade --user'
+                            sh 'pip3 install boto3 --upgrade --user'
+                            sh 'pip3 install kubernetes --upgrade --user'
                             sh 'python3 -m pytest cloud-automation/apis_configs/'
                             sh 'python3 -m pytest cloud-automation/gen3/lib/dcf/'
                             sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
