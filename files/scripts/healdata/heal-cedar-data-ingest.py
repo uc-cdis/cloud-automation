@@ -128,7 +128,7 @@ def get_related_studies(serial_num, hostname):
     related_study_result = []
 
     if serial_num:
-        mds = requests.get(f"http://revproxy-service/mds/metadata?nih_reporter.project_num_split.serial_num={serial_num}&data=true&limit=2000")
+        mds = requests.get(f"https://revproxy-service/mds/metadata?nih_reporter.project_num_split.serial_num={serial_num}&data=true&limit=2000")
         if mds.status_code == 200:
             related_study_metadata = mds.json()
 
