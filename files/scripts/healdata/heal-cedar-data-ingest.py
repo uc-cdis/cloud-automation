@@ -1,5 +1,5 @@
 import argparse
-import json
+import copy
 import sys
 import requests
 import pydash
@@ -24,13 +24,26 @@ SPECIAL_VALUE_MAPPINGS = {
     "Questionnaire/Survey/Assessment - unvalidated instrument": "Questionnaire/Survey/Assessment",
     "Cis Male": "Male",
     "Cis Female": "Female",
-    "Trans Male": "Female-to-male transsexual",
-    "Trans Female": "Male-to-female transsexual",
-    "Agender, Non-binary, gender non-conforming": "Other",
-    "Gender Queer": "Other",
-    "Intersex": "Intersexed",
+    "Trans Male": "Transgender man/trans man/female-to-male (FTM)",
+    "Female-to-male transsexual": "Transgender man/trans man/female-to-male (FTM)",
+    "Trans Female": "Transgender woman/trans woman/male-to-female (MTF)",
+    "Male-to-female transsexual": "Transgender woman/trans woman/male-to-female (MTF)",
+    "Agender, Non-binary, gender non-conforming": "Genderqueer/gender nonconforming/neither exclusively male nor female",
+    "Gender Queer": "Genderqueer/gender nonconforming/neither exclusively male nor female",
+    "Intersex": "Genderqueer/gender nonconforming/neither exclusively male nor female",
+    "Intersexed": "Genderqueer/gender nonconforming/neither exclusively male nor female",
     "Buisness Development": "Business Development"
 }
+
+# repository links
+REPOSITORY_STUDY_ID_LINK_TEMPLATE = {
+    "NIDDK Central": "https://repository.niddk.nih.gov/studies/<STUDY_ID>/",
+    "NIDA Data Share": "https://datashare.nida.nih.gov/study/<STUDY_ID>",
+    "NICHD DASH": "https://dash.nichd.nih.gov/study/<STUDY_ID>",
+    "ICPSR": "https://www.icpsr.umich.edu/web/ICPSR/studies/<STUDY_ID>",
+    "BioSystics-AP": "https://biosystics-ap.com/assays/assaystudy/<STUDY_ID>/",
+}
+
 
 # Defines field that we don't want to include in the filters
 OMITTED_VALUES_MAPPING = {
@@ -109,6 +122,31 @@ def get_client_token(client_id: str, client_secret: str):
     except:
         raise Exception("Could not get token")
     return token
+
+
+def get_related_studies(serial_num, hostname):
+    related_study_result = []
+
+    if serial_num:
+        mds = requests.get(f"http://revproxy-service/mds/metadata?nih_reporter.project_num_split.serial_num={serial_num}&data=true&limit=2000")
+        if mds.status_code == 200:
+            related_study_metadata = mds.json()
+
+            for (
+                related_study_metadata_key,
+                related_study_metadata_value,
+            ) in related_study_metadata.items():
+                title = (
+                    related_study_metadata_value.get(
+                        "gen3_discovery", {}
+                    )
+                    .get("study_metadata", {})
+                    .get("minimal_info", {})
+                    .get("study_name", "")
+                )
+                link = f"https://{hostname}/portal/discovery/{related_study_metadata_key}/"
+                related_study_result.append({"title": title, "link": link})
+    return related_study_result
 
 
 parser = argparse.ArgumentParser()
@@ -210,6 +248,67 @@ while((limit + offset <= total)):
 
                 mds_res["gen3_discovery"]["study_metadata"].update(cedar_record)
                 mds_res["gen3_discovery"]["study_metadata"]["metadata_location"]["other_study_websites"] = cedar_record_other_study_websites
+
+                # setup citations
+                doi_citation = mds_res["gen3_discovery"]["study_metadata"].get("doi_citation", "")
+                mds_res["gen3_discovery"]["study_metadata"]["citation"]["heal_platform_citation"] = doi_citation
+
+
+                # setup repository_study_link
+                data_repositories = (
+                    mds_res.get("study_metadata", {})
+                    .get("metadata_location", {})
+                    .get("data_repositories", [])
+                )
+                repository_citation = "Users must also include a citation to the data as specified by the local repository."
+                repository_citation_additional_text = ' The link to the study page at the local repository can be found in the "Data" tab.'
+                for repository in data_repositories:
+                    if (
+                        repository["repository_name"]
+                        and repository["repository_name"]
+                        in REPOSITORY_STUDY_ID_LINK_TEMPLATE
+                        and repository["repository_study_ID"]
+                    ):
+                        repository_study_link = REPOSITORY_STUDY_ID_LINK_TEMPLATE[
+                            repository["repository_name"]
+                        ].replace("<STUDY_ID>", repository["repository_study_ID"])
+                        repository.update({"repository_study_link": repository_study_link})
+                        if repository_citation_additional_text not in repository_citation:
+                            repository_citation += repository_citation_additional_text
+                if len(data_repositories):
+                    data_repositories[0] = {
+                        **data_repositories[0],
+                        "repository_citation": repository_citation,
+                    }
+                mds_res["gen3_discovery"]["study_metadata"][
+                    "metadata_location"
+                ]["data_repositories"] = data_repositories
+
+
+
+                # set up related studies
+                serial_num = None
+                try:
+                    serial_num = (
+                        mds_res
+                        .get("nih_reporter", {})
+                        .get("project_num_split", {})
+                        .get("serial_num", None)
+                    )
+                except Exception:
+                    print(f"Unable to get serial number for study")
+
+                if serial_num == None:
+                    print(f"Unable to get serial number for study")
+
+                related_study_result = get_related_studies(serial_num, hostname)
+                existing_related_study_result = mds_res.get("related_studies", [])
+                for related_study in related_study_result:
+                    if related_study not in existing_related_study_result:
+                        existing_related_study_result.append(copy.deepcopy(related_study))
+                mds_res["gen3_discovery"][
+                    "related_studies"
+                ] = copy.deepcopy(existing_related_study_result)
 
                 # merge data from cedar that is not study level metadata into a level higher
                 deleted_keys = []

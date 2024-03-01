@@ -23,8 +23,10 @@ gen3_deploy_karpenter() {
       if g3k_config_lookup .global.karpenter_version; then
         karpenter=$(g3k_config_lookup .global.karpenter_version)
       fi
-      export clusterversion=`kubectl version --short -o json | jq -r .serverVersion.minor`
-      if [ "${clusterversion}" = "24+" ]; then
+      export clusterversion=`kubectl version -o json | jq -r .serverVersion.minor`
+      if [ "${clusterversion}" = "25+" ]; then
+        karpenter=${karpenter:-v0.27.0}
+      elif [ "${clusterversion}" = "24+" ]; then
         karpenter=${karpenter:-v0.24.0}
       else
         karpenter=${karpenter:-v0.22.0}
@@ -77,6 +79,14 @@ gen3_deploy_karpenter() {
                   "Effect": "Allow",
                   "Resource": "*",
                   "Sid": "ConditionalEC2Termination"
+              },
+              {
+                  "Sid": "VisualEditor0",
+                  "Effect": "Allow",
+                  "Action": [
+                      "kms:*"
+                  ],
+                  "Resource": "*"
               }
           ],
           "Version": "2012-10-17"
