@@ -258,7 +258,7 @@ while((limit + offset <= total)):
                 # setup repository_study_link
                 data_repositories = (
                     mds_res
-                    .get("gen3_discovery")
+                    .get("gen3_discovery", {})
                     .get("study_metadata", {})
                     .get("metadata_location", {})
                     .get("data_repositories", [])
