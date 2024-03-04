@@ -137,6 +137,10 @@ gen3_healthcheck() {
     internetAccessExplicitProxy=false
   fi
 
+  gen3_log_info "Clearing Evicted pods"
+  sleep 5
+  clear_evicted_pods
+
   local healthJson=$(cat - <<EOM
   {
     "pendingTimeoutPods": $pendingTimeoutPods,
@@ -206,9 +210,7 @@ EOM
 }
 
 clear_evicted_pods() {
-  g3kubectl get pods -A -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubectl delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c ' "$@" > /dev/null 2>&1' _ 2> /dev/null || true
+  g3kubectl get pods -A -o json | jq '.items[] | select(.status.reason!=null) | select(.status.reason | contains("Evicted")) | "kubectl delete pods \(.metadata.name) -n \(.metadata.namespace)"' | xargs -n 1 bash -c  2> /dev/null || true
 }
 
 gen3_healthcheck "$@"
-
-clear_evicted_pods
