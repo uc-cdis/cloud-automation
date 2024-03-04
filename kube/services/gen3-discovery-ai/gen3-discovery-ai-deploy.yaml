@@ -1,0 +1,181 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gen3-discovery-ai-deployment
+spec:
+  selector:
+    # Only select pods based on the 'app' label
+    matchLabels:
+      app: gen3-discovery-ai
+      release: production
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: gen3-discovery-ai
+        release: production
+        GEN3_DATE_LABEL
+    spec:
+      serviceAccountName: gen3-discovery-ai-sa
+      volumes:
+        - name: gen3-discovery-ai-g3auto-volume
+          secret:
+            secretName: gen3-discovery-ai-g3auto
+        - name: gen3-discovery-ai-knowledge-library-volume
+          emptyDir: {}
+      initContainers:
+      # chromadb's persisted disk support requires the ability to write. We don't technically need this ability
+      # since we're populating the entirety of the database from configured files (no live updates).
+      #
+      # Solution: utilize emptyDir as a writable space.
+      #
+      # Procedure: in init containers, copy files from s3 to writable
+      #            temporary space in emptyDir, use files from writable space
+      #            to load into knowledge libary, move final knowledge library
+      #            files into top-level emptyDir and make available in final container
+      - name: gen3-discovery-ai-aws-init
+        GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+        volumeMounts:
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/.env
+            subPath: env
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/credentials.json
+            subPath: credentials.json
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/storage_config.json
+            subPath: storage_config.json
+          - name: gen3-discovery-ai-knowledge-library-volume
+            mountPath: /gen3discoveryai/knowledge
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+            memory: 512Mi
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            bucketName=$(grep -o "\"bucket\": *\"[^\"]*\"" /gen3discoveryai/storage_config.json | awk -F'"' '{print $4}')
+            echo BUCKET: "$bucketName"
+            echo
+            echo BEFORE /gen3discoveryai/knowledge  
+            ls -Ra /gen3discoveryai/knowledge 
+            echo
+            echo syncing from s3
+            aws s3 sync "s3://${bucketName}" "/gen3discoveryai/knowledge/tmp"
+            echo
+            echo AFTER /gen3discoveryai/knowledge 
+            ls -Ra /gen3discoveryai/knowledge
+      - name: gen3-discovery-ai-knowledge-init
+        GEN3_GEN3-DISCOVERY-AI_IMAGE
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: ANONYMIZED_TELEMETRY
+            value: "False"
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /gen3discoveryai/credentials.json
+        volumeMounts:
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/.env
+            subPath: env
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/credentials.json
+            subPath: credentials.json
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/storage_config.json
+            subPath: storage_config.json
+          - name: gen3-discovery-ai-knowledge-library-volume
+            mountPath: /gen3discoveryai/knowledge
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+            memory: 512Mi
+        command: ["/bin/bash"]
+        args:
+          - "-c"
+          - |
+            echo
+            echo BEFORE /gen3discoveryai/knowledge  
+            ls -Ra /gen3discoveryai/knowledge 
+            echo running load_into_knowledge_store.py
+            poetry run python /gen3discoveryai/bin/load_into_knowledge_store.py tsvs /gen3discoveryai/knowledge/tmp/tsvs
+            
+            if [ -d "/gen3discoveryai/knowledge/tmp/markdown" ]; then
+                for dir in "/gen3discoveryai/knowledge/tmp/markdown"/*; do
+                    if [ -d "$dir" ]; then
+                        dir_name=$(basename "$dir")
+
+                        echo "Processing directory: $dir_name. Full path: $dir"
+                        poetry run python /gen3discoveryai/bin/load_into_knowledge_store.py markdown --topic $dir_name $dir
+                    fi
+                done
+            else
+                echo "Not syncing markdown, directory not found: /gen3discoveryai/knowledge/tmp/markdown"
+            fi
+
+            rm -r /gen3discoveryai/knowledge/tmp/
+            echo
+            echo AFTER /gen3discoveryai/knowledge 
+            ls -Ra /gen3discoveryai/knowledge
+      containers:
+      - name: gen3-discovery-ai
+        GEN3_GEN3-DISCOVERY-AI_IMAGE
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+          - name: GEN3_DEBUG
+            GEN3_DEBUG_FLAG|-value: "False"-|
+          - name: ANONYMIZED_TELEMETRY
+            value: "False"
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /gen3discoveryai/credentials.json
+        volumeMounts:
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/.env
+            subPath: env
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/credentials.json
+            subPath: credentials.json
+          - name: gen3-discovery-ai-g3auto-volume
+            readOnly: true
+            mountPath: /gen3discoveryai/storage_config.json
+            subPath: storage_config.json
+          - name: gen3-discovery-ai-knowledge-library-volume
+            mountPath: /gen3discoveryai/knowledge
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 2
+            # NOTE: If the configured data for the knowledge library (vector database) is large, you may need to bump this
+            memory: 512Mi
