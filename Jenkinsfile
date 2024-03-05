@@ -99,8 +99,8 @@ spec:
     resources:
       requests:
         cpu: 0.2
-        memory: 200Mi
-        ephemeral-storage: 200Mi
+        memory: 400Mi
+        ephemeral-storage: 1Gi
     env:
     - name: AWS_DEFAULT_REGION
       value: us-east-1
