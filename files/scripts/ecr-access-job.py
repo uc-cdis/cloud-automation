@@ -145,10 +145,13 @@ def update_access_in_ecr(repo_to_account_ids: List[dict], ecr_role_arn: str) -> 
         # which the script was run most recently. eg QA and Staging can't use the same ECR repos.
         # Appending is not possible since this code will eventually rely on Arborist for authorization information
         # and we'll need to overwrite in order to remove expired access.
-        response = ecr.set_repository_policy(
-            repositoryName=repo,
-            policyText=json.dumps(policy),
-        )
+        try:
+            ecr.set_repository_policy(
+                repositoryName=repo,
+                policyText=json.dumps(policy),
+            )
+        except Exception as e:
+            print(f"Unable to allow AWS accounts {account_ids} to use ECR repository '{repo}' - skipping it: {e}")
 
 
 def main() -> None:
