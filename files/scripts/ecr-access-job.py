@@ -118,8 +118,6 @@ def update_access_in_ecr(repo_to_account_ids: List[dict], ecr_role_arn: str) -> 
 
     # for each ECR repo, whitelist the account IDs so users can access the repo
     for repo, account_ids in repo_to_account_ids.items():
-        if "ribeyre" not in repo:
-            continue  # TODO remove
         print(f"Allowing AWS accounts {account_ids} to use ECR repository '{repo}'")
         policy = {
             "Version": "2008-10-17",
@@ -142,9 +140,11 @@ def update_access_in_ecr(repo_to_account_ids: List[dict], ecr_role_arn: str) -> 
                 }
             ],
         }
-        # TODO: this adds brh staging access, and removes brh qa access (since dynamodb tables are different but
-        # ECR repos are the same). We need to use different ECR repos, or to append instead of overwriting here.
-        # Appending won't work once we rely on Arborist: we need to be able to remove access.
+        # Note that this is overwriting the repo policy, not appending to it. This means we can't have 2 dynamodb
+        # tables pointing at the same set of ECR repos: the repos would only allow the accounts in the table for
+        # which the script was run most recently. eg QA and Staging can't use the same ECR repos.
+        # Appending is not possible since this code will eventually rely on Arborist for authorization information
+        # and we'll need to overwrite in order to remove expired access.
         response = ecr.set_repository_policy(
             repositoryName=repo,
             policyText=json.dumps(policy),
