@@ -151,7 +151,7 @@ def update_access_in_ecr(repo_to_account_ids: List[dict], ecr_role_arn: str) -> 
                 policyText=json.dumps(policy),
             )
         except Exception as e:
-            print(f"Unable to allow AWS accounts {account_ids} to use ECR repository '{repo}' - skipping it: {e}")
+            print(f"  Unable to update '{repo}'; skipping it: {e}")
 
 
 def main() -> None:
