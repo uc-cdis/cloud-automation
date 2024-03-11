@@ -134,8 +134,8 @@ spec:
       readOnly: true
       mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
       subPath: "ca.pem"
-    - name: dockersock
-      mountPath: "/var/run/docker.sock"
+    - name: containerdsock
+      mountPath: "/var/run/containerd/containerd.sock"
   serviceAccount: jenkins-service
   serviceAccountName: jenkins-service
   volumes:
@@ -145,9 +145,9 @@ spec:
   - name: ca-volume
     secret:
       secretName: "service-ca"
-  - name: dockersock
+  - name: containerdsock
     hostPath:
-      path: /var/run/docker.sock
+      path: /var/run/containerd/containerd.sock
 '''
         defaultContainer 'shell'
         }
@@ -293,8 +293,8 @@ spec:
                 script {
                     try {
                         if(!skipUnitTests) {
-                            sh '/usr/bin/pip3 install boto3 --upgrade --user'
-                            sh '/usr/bin/pip3 install kubernetes --upgrade --user'
+                            sh '/usr/local/bin/pip3 install boto3 --upgrade --user'
+                            sh '/usr/local/bin/pip3 install kubernetes --upgrade --user'
                             sh 'python3 -m pytest cloud-automation/apis_configs/'
                             sh 'python3 -m pytest cloud-automation/gen3/lib/dcf/'
                             sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'
