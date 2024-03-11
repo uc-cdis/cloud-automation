@@ -343,15 +343,7 @@ while limit + offset <= total:
                 related_study_result = get_related_studies(
                     serial_num, mds_record_guid, hostname
                 )
-                existing_related_study_result = mds_res.get("related_studies", [])
-                for related_study in related_study_result:
-                    if related_study not in existing_related_study_result:
-                        existing_related_study_result.append(
-                            copy.deepcopy(related_study)
-                        )
-                mds_res["gen3_discovery"]["related_studies"] = copy.deepcopy(
-                    existing_related_study_result
-                )
+                mds_res["gen3_discovery"]["related_studies"] = copy.deepcopy(related_study_result)
 
                 # merge data from cedar that is not study level metadata into a level higher
                 deleted_keys = []
