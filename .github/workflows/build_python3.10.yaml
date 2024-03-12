@@ -8,7 +8,7 @@ on:
 
 jobs:
   python_3-10:
-    name: Build and push
+    name: Python 3.10
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.10-buster/Dockerfile"

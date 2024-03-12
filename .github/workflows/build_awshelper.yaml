@@ -8,7 +8,7 @@ on:
 
 jobs:
   awshelper:
-    name: Build and push
+    name: awshelper
     uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
     with:
       DOCKERFILE_LOCATION: "./Docker/awshelper/Dockerfile"
