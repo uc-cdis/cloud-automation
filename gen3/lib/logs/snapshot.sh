@@ -39,7 +39,7 @@ gen3_logs_snapshot_all() {
   # For each pod for which we can list the containers, get the pod name and get its list of containers
   # (container names + initContainers names). Diplay them as lines of "<pod name>  <container name>".
   g3kubectl get pods -o json | \
-    jq -r '.items | map(select(.status.phase != "Pending" and .status.phase != "Unknown")) | map( {pod: .metadata.name, containers: [(.spec.containers | select(.!=null) | map(.name)), (.spec.initContainers | select(.!=null) | map(.name)) | add ] } ) | map( .pod as $pod | .containers | map( { pod: $pod, cont: .})[]) | map(select(.cont != "pause" and .cont != "jupyterhub"))[] | .pod + "  " + .cont' | \
+    jq -r '.items | map(select(.status.phase != "Pending" and .status.phase != "Unknown")) | .[] | .metadata.name as $pod | (.spec.containers + .spec.initContainers) | map(select(.name != "pause" and .name != "jupyterhub")) | .[] | {pod: $pod, cont: .name} | "\(.pod)  \(.cont)"' | \
     while read -r line; do
       gen3_logs_snapshot_container $line
     done

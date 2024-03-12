@@ -10,8 +10,8 @@ test_ecr_login() {
 
 test_ecr_setup() {
   if [[ -n "$JENKINS_HOME" ]]; then
-    # give ourselves read/write permissions on /var/run/docker.sock
-    sudo chmod a+rw /var/run/docker.sock; because $? "ecr_setup modified docker.sock"
+    # give ourselves permissions on /run/containerd/containerd.sock
+    sudo chown root:sudo /run/containerd/containerd.sock; because $? "ecr_setup modified containerd.sock"
   fi
 }
 

@@ -1,0 +1,85 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ecr-access
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: karpenter.sh/capacity-type
+                    operator: In
+                    values:
+                      - on-demand
+            - weight: 99
+              preference:
+                matchExpressions:
+                  - key: eks.amazonaws.com/capacityType
+                    operator: In
+                    values:
+                      - ONDEMAND
+      restartPolicy: Never
+      serviceAccountName: ecr-access-job-sa
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: awshelper
+          GEN3_AWSHELPER_IMAGE|-image: quay.io/cdis/awshelper:master-|
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 0.5
+              memory: 1Gi
+          env:
+            - name: SLACK_WEBHOOK
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: slack_webhook
+                  optional: true
+            - name: HOSTNAME
+              valueFrom:
+                  configMapKeyRef:
+                    name: global
+                    key: hostname
+            - name: PAY_MODELS_DYNAMODB_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-hatchery
+                  key: pay-models-dynamodb-table
+                  optional: true
+            - name: ECR_ACCESS_JOB_ARN
+              valueFrom:
+                configMapKeyRef:
+                  name: manifest-global
+                  key: ecr-access-job-role-arn
+                  optional: true
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - |
+              set -e
+
+              cd cloud-automation/files/scripts/
+              echo Installing requirements...
+              pip3 install -r ecr-access-job-requirements.txt
+              python3 ecr-access-job.py
+              exitcode=$?
+
+              if [[ "${SLACK_WEBHOOK}" != 'None' ]]; then
+                if [[ $exitcode == 1 ]]; then
+                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: ECR access job on ${HOSTNAME}\"}" "${SLACK_WEBHOOK}"
+                else
+                  curl -X POST --data-urlencode "payload={\"text\": \"SUCCESS: ECR access job on ${HOSTNAME}\"}" "${SLACK_WEBHOOK}"
+                fi
+              fi
+
+              echo "Exit code: $exitcode"
+              exit "$exitcode"
