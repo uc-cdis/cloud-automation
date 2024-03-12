@@ -1,10 +1,8 @@
 name: Build awshelper image
 
-on:
-  push:
-    paths:
-    - .github/workflows/build_awshelper.yaml
-    - Docker/awshelper/**
+# Always build this image because it contains all the cloud-automation files.
+# Some jobs depend on arbitrary files and we need to test them with updated awshelper images.
+on: push
 
 jobs:
   awshelper:
