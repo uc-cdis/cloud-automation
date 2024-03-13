@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: requestor-deployment
 spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
   selector:
     # Only select pods based on the 'app' label
     matchLabels:
@@ -59,6 +63,15 @@ spec:
         - name: config-volume
           secret:
             secretName: "requestor-g3auto"
+        - name: wsgi-config
+          configMap:
+            name: requestor-wsgi
+        - name: nginx-config
+          configMap:
+            name: requestor-nginx-configmap
+        - name: nginx-main-config
+          configMap:
+            name: sidecar-nginx-main 
       containers:
       - name: requestor
         GEN3_REQUESTOR_IMAGE
@@ -75,27 +88,47 @@ spec:
         livenessProbe:
           httpGet:
             path: /_status
-            port: 80
+            port: 8000
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
         readinessProbe:
           httpGet:
             path: /_status
-            port: 80
+            port: 8000
         ports:
-        - containerPort: 80
+        - containerPort: 8000
         volumeMounts:
           - name: "config-volume"
             readOnly: true
             mountPath: "/src/requestor-config.yaml"
             subPath: "requestor-config.yaml"
+          - name: "wsgi-config"
+            mountPath: "/requestor/deployment/wsgi/gunicorn.conf.py"
+            subPath: gunicorn.conf.py
         resources:
           requests:
             cpu: 100m
             memory: 100Mi
           limits:
             memory: 300Mi
+      - name: sidecar-nginx
+        image: quay.io/cdis/nginx-sidecar:nginx-sidecar-feat_nginx-sidecar
+        imagePullPolicy: IfNotPresent
+        ports:
+          - name: http
+            containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: http
+        volumeMounts:
+          - name: "nginx-main-config"
+            mountPath: "/etc/nginx/nginx.conf"
+            subPath: "nginx.conf"
+          - name: "nginx-config"
+            mountPath: "/etc/nginx/conf.d/default.conf"
+            subPath: default.conf
       initContainers:
         - name: requestor-db-migrate
           GEN3_REQUESTOR_IMAGE
