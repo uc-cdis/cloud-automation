@@ -13,7 +13,7 @@ FILTER_FIELD_MAPPINGS = {
     "study_metadata.study_type.study_subject_type": "Subject Type",
     "study_metadata.human_subject_applicability.gender_applicability": "Gender",
     "study_metadata.human_subject_applicability.age_applicability": "Age",
-    "research_program": "Research Program"
+    "research_program": "Research Program",
 }
 
 # Defines how to handle special cases for values in filters
@@ -33,7 +33,7 @@ SPECIAL_VALUE_MAPPINGS = {
     "Gender Queer": "Genderqueer/gender nonconforming/neither exclusively male nor female",
     "Intersex": "Genderqueer/gender nonconforming/neither exclusively male nor female",
     "Intersexed": "Genderqueer/gender nonconforming/neither exclusively male nor female",
-    "Buisness Development": "Business Development"
+    "Buisness Development": "Business Development",
 }
 
 # Defines field that we don't want to include in the filters
@@ -54,23 +54,24 @@ REPOSITORY_STUDY_ID_LINK_TEMPLATE = {
 def is_valid_uuid(uuid_to_test, version=4):
     """
     Check if uuid_to_test is a valid UUID.
-    
+
      Parameters
     ----------
     uuid_to_test : str
     version : {1, 2, 3, 4}
-    
+
      Returns
     -------
     `True` if uuid_to_test is a valid UUID, otherwise `False`.
-    
+
     """
-    
+
     try:
         uuid_obj = UUID(uuid_to_test, version=version)
     except ValueError:
         return False
     return str(uuid_obj) == uuid_to_test
+
 
 def update_filter_metadata(metadata_to_update):
     filter_metadata = []
@@ -83,20 +84,21 @@ def update_filter_metadata(metadata_to_update):
                 print(filter_field_values)
                 raise TypeError("Neither a string nor a list")
             for filter_field_value in filter_field_values:
-                if (metadata_field_key, filter_field_value) in OMITTED_VALUES_MAPPING.items():
+                if (
+                    metadata_field_key,
+                    filter_field_value,
+                ) in OMITTED_VALUES_MAPPING.items():
                     continue
                 if filter_field_value in SPECIAL_VALUE_MAPPINGS:
                     filter_field_value = SPECIAL_VALUE_MAPPINGS[filter_field_value]
-                filter_metadata.append({"key": filter_field_key, "value": filter_field_value})
+                filter_metadata.append(
+                    {"key": filter_field_key, "value": filter_field_value}
+                )
     filter_metadata = pydash.uniq(filter_metadata)
     metadata_to_update["advSearchFilters"] = filter_metadata
     # Retain these from existing tags
     save_tags = ["Data Repository"]
-    tags = [
-        tag
-        for tag in metadata_to_update["tags"]
-        if tag["category"] in save_tags
-    ]
+    tags = [tag for tag in metadata_to_update["tags"] if tag["category"] in save_tags]
     # Add any new tags from advSearchFilters
     for f in metadata_to_update["advSearchFilters"]:
         if f["key"] == "Gender":
@@ -111,25 +113,30 @@ def update_filter_metadata(metadata_to_update):
 def get_client_token(client_id: str, client_secret: str):
     try:
         token_url = f"http://revproxy-service/user/oauth2/token"
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        params = {'grant_type': 'client_credentials'}
-        data = 'scope=openid user data'
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        params = {"grant_type": "client_credentials"}
+        data = "scope=openid user data"
 
         token_result = requests.post(
-            token_url, params=params, headers=headers, data=data,
+            token_url,
+            params=params,
+            headers=headers,
+            data=data,
             auth=(client_id, client_secret),
         )
-        token =  token_result.json()["access_token"]
+        token = token_result.json()["access_token"]
     except:
         raise Exception("Could not get token")
     return token
 
 
-def get_related_studies(serial_num, hostname):
+def get_related_studies(serial_num, guid, hostname):
     related_study_result = []
 
     if serial_num:
-        mds = requests.get(f"http://revproxy-service/mds/metadata?nih_reporter.project_num_split.serial_num={serial_num}&data=true&limit=2000")
+        mds = requests.get(
+            f"http://revproxy-service/mds/metadata?nih_reporter.project_num_split.serial_num={serial_num}&data=true&limit=2000"
+        )
         if mds.status_code == 200:
             related_study_metadata = mds.json()
 
@@ -137,15 +144,22 @@ def get_related_studies(serial_num, hostname):
                 related_study_metadata_key,
                 related_study_metadata_value,
             ) in related_study_metadata.items():
+                if related_study_metadata_key == guid or (
+                    related_study_metadata_value["_guid_type"] != "discovery_metadata"
+                    and related_study_metadata_value["_guid_type"]
+                    != "unregistered_discovery_metadata"
+                ):
+                    # do nothing for self, or for archived studies
+                    continue
                 title = (
-                    related_study_metadata_value.get(
-                        "gen3_discovery", {}
-                    )
+                    related_study_metadata_value.get("gen3_discovery", {})
                     .get("study_metadata", {})
                     .get("minimal_info", {})
                     .get("study_name", "")
                 )
-                link = f"https://{hostname}/portal/discovery/{related_study_metadata_key}/"
+                link = (
+                    f"https://{hostname}/portal/discovery/{related_study_metadata_key}/"
+                )
                 related_study_result.append({"title": title, "link": link})
     return related_study_result
 
@@ -180,7 +194,7 @@ hostname = args.hostname
 
 print("Getting CEDAR client access token")
 access_token = get_client_token(client_id, client_secret)
-token_header = {"Authorization": 'bearer ' + access_token}
+token_header = {"Authorization": "bearer " + access_token}
 
 limit = 10
 offset = 0
@@ -192,16 +206,21 @@ if not is_valid_uuid(dir_id):
     print("Directory ID is not in UUID format!")
     sys.exit(1)
 
-while((limit + offset <= total)):
+while limit + offset <= total:
     # Get the metadata from cedar to register
     print("Querying CEDAR...")
-    cedar = requests.get(f"http://revproxy-service/cedar/get-instance-by-directory/{dir_id}?limit={limit}&offset={offset}", headers=token_header)
+    cedar = requests.get(
+        f"http://revproxy-service/cedar/get-instance-by-directory/{dir_id}?limit={limit}&offset={offset}",
+        headers=token_header,
+    )
 
     # If we get metadata back now register with MDS
     if cedar.status_code == 200:
         metadata_return = cedar.json()
         if "metadata" not in metadata_return:
-            print("Got 200 from CEDAR wrapper but no metadata in body, something is not right!")
+            print(
+                "Got 200 from CEDAR wrapper but no metadata in body, something is not right!"
+            )
             sys.exit(1)
 
         total = metadata_return["metadata"]["totalCount"]
@@ -209,13 +228,17 @@ while((limit + offset <= total)):
         print(f"Successfully got {returned_records} record(s) from CEDAR directory")
         for cedar_record in metadata_return["metadata"]["records"]:
             # get the appl id from cedar for querying in our MDS
-            cedar_appl_id = pydash.get(cedar_record, "metadata_location.nih_application_id")
+            cedar_appl_id = pydash.get(
+                cedar_record, "metadata_location.nih_application_id"
+            )
             if cedar_appl_id is None:
                 print("This record doesn't have appl_id, skipping...")
                 continue
 
             # Get the metadata record for the nih_application_id
-            mds = requests.get(f"http://revproxy-service/mds/metadata?gen3_discovery.study_metadata.metadata_location.nih_application_id={cedar_appl_id}&data=true")
+            mds = requests.get(
+                f"http://revproxy-service/mds/metadata?gen3_discovery.study_metadata.metadata_location.nih_application_id={cedar_appl_id}&data=true"
+            )
             if mds.status_code == 200:
                 mds_res = mds.json()
 
@@ -234,9 +257,13 @@ while((limit + offset <= total)):
                 if mds_res["_guid_type"] == "discovery_metadata":
                     print("Metadata is already registered. Updating MDS record")
                 elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
-                    print("Metadata has not been registered. Registering it in MDS record")
+                    print(
+                        "Metadata has not been registered. Registering it in MDS record"
+                    )
                 else:
-                    print(f"This metadata data record has a special GUID type \"{mds_res['_guid_type']}\" and will be skipped")
+                    print(
+                        f"This metadata data record has a special GUID type \"{mds_res['_guid_type']}\" and will be skipped"
+                    )
                     continue
 
                 if "clinicaltrials_gov" in cedar_record:
@@ -244,21 +271,27 @@ while((limit + offset <= total)):
                     del cedar_record["clinicaltrials_gov"]
 
                 # some special handing for this field, because its parent will be deleted before we merging the CEDAR and MDS SLMD to avoid duplicated values
-                cedar_record_other_study_websites = cedar_record.get("metadata_location", {}).get("other_study_websites", [])
+                cedar_record_other_study_websites = cedar_record.get(
+                    "metadata_location", {}
+                ).get("other_study_websites", [])
                 del cedar_record["metadata_location"]
 
                 mds_res["gen3_discovery"]["study_metadata"].update(cedar_record)
-                mds_res["gen3_discovery"]["study_metadata"]["metadata_location"]["other_study_websites"] = cedar_record_other_study_websites
+                mds_res["gen3_discovery"]["study_metadata"]["metadata_location"][
+                    "other_study_websites"
+                ] = cedar_record_other_study_websites
 
                 # setup citations
-                doi_citation = mds_res["gen3_discovery"]["study_metadata"].get("doi_citation", "")
-                mds_res["gen3_discovery"]["study_metadata"]["citation"]["heal_platform_citation"] = doi_citation
-
+                doi_citation = mds_res["gen3_discovery"]["study_metadata"].get(
+                    "doi_citation", ""
+                )
+                mds_res["gen3_discovery"]["study_metadata"]["citation"][
+                    "heal_platform_citation"
+                ] = doi_citation
 
                 # setup repository_study_link
                 data_repositories = (
-                    mds_res
-                    .get("gen3_discovery", {})
+                    mds_res.get("gen3_discovery", {})
                     .get("study_metadata", {})
                     .get("metadata_location", {})
                     .get("data_repositories", [])
@@ -275,8 +308,13 @@ while((limit + offset <= total)):
                         repository_study_link = REPOSITORY_STUDY_ID_LINK_TEMPLATE[
                             repository["repository_name"]
                         ].replace("<STUDY_ID>", repository["repository_study_ID"])
-                        repository.update({"repository_study_link": repository_study_link})
-                        if repository_citation_additional_text not in repository_citation:
+                        repository.update(
+                            {"repository_study_link": repository_study_link}
+                        )
+                        if (
+                            repository_citation_additional_text
+                            not in repository_citation
+                        ):
                             repository_citation += repository_citation_additional_text
                 if len(data_repositories):
                     data_repositories[0] = {
@@ -284,36 +322,28 @@ while((limit + offset <= total)):
                         "repository_citation": repository_citation,
                     }
 
-                mds_res["gen3_discovery"]["study_metadata"][
-                    "metadata_location"
-                ]["data_repositories"] = copy.deepcopy(data_repositories)
-
-
+                mds_res["gen3_discovery"]["study_metadata"]["metadata_location"][
+                    "data_repositories"
+                ] = copy.deepcopy(data_repositories)
 
                 # set up related studies
                 serial_num = None
                 try:
                     serial_num = (
-                        mds_res
-                        .get("nih_reporter", {})
+                        mds_res.get("nih_reporter", {})
                         .get("project_num_split", {})
                         .get("serial_num", None)
                     )
                 except Exception:
-                    print(f"Unable to get serial number for study")
+                    print("Unable to get serial number for study")
 
-                if serial_num == None:
-                    print(f"Unable to get serial number for study")
+                if serial_num is None:
+                    print("Unable to get serial number for study")
 
-                related_study_result = get_related_studies(serial_num, hostname)
-                existing_related_study_result = mds_res.get("related_studies", [])
-                for related_study in related_study_result:
-                    if related_study not in existing_related_study_result:
-                        existing_related_study_result.append(copy.deepcopy(related_study))
-                mds_res["gen3_discovery"][
-                    "related_studies"
-                ] = copy.deepcopy(existing_related_study_result)
-
+                related_study_result = get_related_studies(
+                    serial_num, mds_record_guid, hostname
+                )
+                mds_res["gen3_discovery"]["related_studies"] = copy.deepcopy(related_study_result)
 
                 # merge data from cedar that is not study level metadata into a level higher
                 deleted_keys = []
@@ -324,29 +354,39 @@ while((limit + offset <= total)):
                 for key in deleted_keys:
                     del mds_res["gen3_discovery"]["study_metadata"][key]
 
-                mds_discovery_data_body = update_filter_metadata(mds_res["gen3_discovery"])
+                mds_discovery_data_body = update_filter_metadata(
+                    mds_res["gen3_discovery"]
+                )
 
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
                 if mds_clinical_trials:
-                    mds_cedar_register_data_body["clinicaltrials_gov"] = {**mds_cedar_register_data_body.get("clinicaltrials_gov", {}), **mds_clinical_trials}
+                    mds_cedar_register_data_body["clinicaltrials_gov"] = {
+                        **mds_cedar_register_data_body.get("clinicaltrials_gov", {}),
+                        **mds_clinical_trials,
+                    }
 
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
                 print(f"Metadata {mds_record_guid} is now being registered.")
-                mds_put = requests.put(f"http://revproxy-service/mds/metadata/{mds_record_guid}",
+                mds_put = requests.put(
+                    f"http://revproxy-service/mds/metadata/{mds_record_guid}",
                     headers=token_header,
-                    json = mds_cedar_register_data_body
+                    json=mds_cedar_register_data_body,
                 )
                 if mds_put.status_code == 200:
                     print(f"Successfully registered: {mds_record_guid}")
                 else:
-                    print(f"Failed to register: {mds_record_guid}. Might not be MDS admin")
+                    print(
+                        f"Failed to register: {mds_record_guid}. Might not be MDS admin"
+                    )
                     print(f"Status from MDS: {mds_put.status_code}")
             else:
                 print(f"Failed to get information from MDS: {mds.status_code}")
-    
+
     else:
-        print(f"Failed to get information from CEDAR wrapper service: {cedar.status_code}")
+        print(
+            f"Failed to get information from CEDAR wrapper service: {cedar.status_code}"
+        )
 
     if offset + limit == total:
         break
