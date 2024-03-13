@@ -62,6 +62,9 @@ fi
 # deploy fence
 gen3 roll fence
 g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-nginx.conf"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/fence/fence-gunicorn.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/nginx-sidecar/nginx.conf"
 
 portalApp="$(g3k_manifest_lookup .global.portal_app)"
 if ! [[ "$portalApp" =~ ^GEN3-WORKSPACE ]]; then
