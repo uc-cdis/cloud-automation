@@ -26,6 +26,9 @@ if [[ "$(g3kubectl get service peregrine-service -o json | jq -r .spec.type)" ==
 fi
 
 g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-nginx.conf"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-gunicorn.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/nginx-sidecar/nginx.conf"
 gen3 roll peregrine-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/peregrine/peregrine-canary-service.yaml"
 
