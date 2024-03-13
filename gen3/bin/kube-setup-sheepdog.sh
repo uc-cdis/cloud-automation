@@ -65,6 +65,9 @@ fi
 # deploy sheepdog 
 gen3 roll sheepdog
 g3kubectl apply -f "${GEN3_HOME}/kube/services/sheepdog/sheepdog-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/sheepdog/sheepdog-nginx.conf"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/sheepdog/sheepdog-gunicorn.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/nginx-sidecar/nginx.conf"
 gen3 roll sheepdog-canary || true
 g3kubectl apply -f "${GEN3_HOME}/kube/services/sheepdog/sheepdog-canary-service.yaml"
 
