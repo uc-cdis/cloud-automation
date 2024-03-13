@@ -102,7 +102,10 @@ elif ! g3kubectl describe secret wts-g3auto | grep appcreds.json > /dev/null 2>&
   fi
 fi
 
-g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-service.yaml"  
+g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-service.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-nginx.conf"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/wts/wts-gunicorn.yaml"
+g3kubectl apply -f "${GEN3_HOME}/kube/services/nginx-sidecar/nginx.conf"
 gen3 roll wts
 
 gen3_log_info "The wts service has been deployed onto the k8s cluster."
