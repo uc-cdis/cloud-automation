@@ -65,21 +65,19 @@ spec:
           args:
             - "-c"
             - |
-              set -e
-
               cd cloud-automation/files/scripts/
               echo Installing requirements...
               pip3 install -r ecr-access-job-requirements.txt
-              python3 ecr-access-job.py
-              exitcode=$?
-
-              if [[ "${SLACK_WEBHOOK}" != 'None' ]]; then
-                if [[ $exitcode == 1 ]]; then
-                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: ECR access job on ${HOSTNAME}\"}" "${SLACK_WEBHOOK}"
-                else
+              if python3 ecr-access-job.py; then
+                echo "Success - Exit code: $?"
+                if [[ "${SLACK_WEBHOOK}" != 'None' ]]; then
                   curl -X POST --data-urlencode "payload={\"text\": \"SUCCESS: ECR access job on ${HOSTNAME}\"}" "${SLACK_WEBHOOK}"
                 fi
+              else
+                exitcode=$?
+                echo "Failure - Exit code: $exitcode"
+                if [[ "${SLACK_WEBHOOK}" != 'None' ]]; then
+                  curl -X POST --data-urlencode "payload={\"text\": \"JOBFAIL: ECR access job on ${HOSTNAME}\"}" "${SLACK_WEBHOOK}"
+                fi
+                exit $exitcode
               fi
-
-              echo "Exit code: $exitcode"
-              exit "$exitcode"
