@@ -237,6 +237,17 @@ data "aws_iam_policy_document" "configbucket_reader" {
     effect    = "Allow"
     resources = ["arn:aws:s3:::${var.users_bucket_name}", "arn:aws:s3:::${var.users_bucket_name}/${var.config_folder}/*", "arn:aws:s3:::qualys-agentpackage", "arn:aws:s3:::qualys-agentpackage/*"]
   }
+
+  statement {
+    actions = [
+      "kms:Decrypt",
+      "kms:Encrypt",
+      "kms:DescribeKey"
+    ]
+
+    effect    = "Allow"
+    resources = ["${var.users_bucket_kms_key_arn}"]
+  }
 }
 
 resource "aws_iam_policy" "configbucket_reader" {
