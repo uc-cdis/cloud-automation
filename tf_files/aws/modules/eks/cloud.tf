@@ -254,7 +254,7 @@ resource "aws_route_table_association" "private_kube" {
 }
 
 resource "aws_route_table_association" "secondary_subnet_kube" {
-  count          = "${var.secondary_cidr_block != "" ? 1 : 0}"
+  count          = "${var.secondary_cidr_block != "" ? 4 : 0}"
   subnet_id      = "${aws_subnet.eks_secondary_subnet.*.id[count.index]}"
   route_table_id = "${aws_route_table.eks_private.id}"
   depends_on     = ["aws_subnet.eks_secondary_subnet"]
