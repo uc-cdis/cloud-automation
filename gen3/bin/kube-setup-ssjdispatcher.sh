@@ -122,6 +122,9 @@ EOM
   fi
   local ssjConfig="$(cat - <<EOM
 {
+    "AWS": {
+      "region": "${AWS_REGION}"
+    },
     "SQS": {
       "url": "${sqsUrl}"
     },
