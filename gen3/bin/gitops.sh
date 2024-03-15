@@ -285,6 +285,7 @@ gen3_gitops_sync() {
   else
     gen3_log_info "it doesn't ... skipping covid19-notebook-etl roll!"
   fi
+  
 
 
   # image versions check
