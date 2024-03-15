@@ -203,6 +203,12 @@ else
   gen3_log_info "Ensure the commons DNS references the -elb revproxy which support http proxy protocol"
 fi
 
+
+if ! g3kubectl get services revproxy-status-service > /dev/null 2>&1; then
+  g3kubectl apply -f "$scriptDir/revproxy-status-service.yaml"
+  gen3_log_info "Create the revproxy status service so that Datadog can read the nginx status"
+fi
+
 #
 # If set do not actually apply the revproxy service.yaml -
 # just process the template and echo the yaml that would
