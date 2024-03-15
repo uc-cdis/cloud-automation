@@ -113,7 +113,7 @@ if [[ ! -f "$bucketCheckFlag" && "$GEN3_FLAVOR" == "AWS" ]]; then
   }
 EOM
 )
-    gen3_aws_run aws s3api create-bucket --acl private --bucket "$GEN3_S3_BUCKET" --create-bucket-configuration ‘{“LocationConstraint”:“‘$(aws configure get $GEN3_PROFILE.region)‘“}’
+    gen3_aws_run aws s3api create-bucket --acl private --bucket "$GEN3_S3_BUCKET" $([[ $(aws configure get $GEN3_PROFILE.region) = "us-east-1" ]] && echo "" || echo --create-bucket-configuration LocationConstraint="$(aws configure get $GEN3_PROFILE.region)")
     sleep 5 # Avoid race conditions
     if gen3_aws_run aws s3api put-bucket-encryption --bucket "$GEN3_S3_BUCKET" --server-side-encryption-configuration "$S3_POLICY"; then
       touch "$bucketCheckFlag"
