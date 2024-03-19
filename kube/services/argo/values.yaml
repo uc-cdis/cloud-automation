@@ -1,5 +1,5 @@
 controller:
-  parallelism: 8
+  parallelism: 13
   namespaceParallelism: 3
   metricsConfig:
     # -- Enables prometheus metrics server
