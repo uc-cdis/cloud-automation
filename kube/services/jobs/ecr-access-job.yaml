@@ -65,8 +65,6 @@ spec:
           args:
             - "-c"
             - |
-              set -e
-
               cd cloud-automation/files/scripts/
               echo Installing requirements...
               pip3 install -r ecr-access-job-requirements.txt
