@@ -4,7 +4,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: psql-db-prep-dump
+  name: psql-db-dump-va-testing
 spec:
   template:
     metadata:
