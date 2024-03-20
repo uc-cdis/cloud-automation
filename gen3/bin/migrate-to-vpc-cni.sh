@@ -48,9 +48,57 @@ else
     gen3 kube-setup-karpenter deploy --force || { gen3_log_err "kube-setup-karpenter failed"; exit 1; }
 fi
 
-# Cordon all the nodes before running gen3 roll all"
+# Backup and update CoreDNS
+kubectl get deployment coredns -n kube-system -o yaml > aws-k8s-coredns-old.yaml
+kubectl set image deployment.apps/coredns -n kube-system  coredns=602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/coredns:v1.9.3-eksbuild.10
+
+# Cordon all the nodes before running gen3 roll all
 gen3_log_info "Cordoning all nodes"
 kubectl get nodes --no-headers -o custom-columns=":metadata.name" | grep -v '^fargate' | xargs -I{} kubectl cordon {}
+
+# Delete all existing network policies
+gen3_log_info "Deleting networkpolicies"
+kubectl delete networkpolicies --all -A 
+
+# Delete all Calico related resources from the “kube-system” namespace
+gen3_log_info "Deleting all Calico related resources"
+kubectl get deployments -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete deployment -n kube-system
+kubectl get daemonsets -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete daemonset -n kube-system
+kubectl get services -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete service -n kube-system
+kubectl get replicasets -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete replicaset -n kube-system
+kubectl get crds -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete replicaset -n kube-system
+
+# Backup the current VPC CNI configuration in case of rollback
+gen3_log_info "Backing up current VPC CNI Configuration..."
+kubectl get daemonset aws-node -n kube-system -o yaml > aws-k8s-cni-old.yaml || { gen3_log_err "Error backig up VPC CNI configuration"; exit 1; }
+
+# Check to ensure we are not using an AWS plugin to manage the VPC CNI Plugin
+if aws eks describe-addon --cluster-name "$CLUSTER_NAME" --addon-name vpc-cni --query addon.addonVersion --output text 2>/dev/null; then
+    gen3_log_err "Error: VPC CNI Plugin is managed by AWS. Please log into the AWS UI and delete the VPC CNI Plugin in Amazon EKS, then re-run this script."
+    exit 1
+else
+    gen3_log_info "No managed VPC CNI Plugin found, proceeding with the script."
+fi
+
+# Apply the new VPC CNI Version
+gen3_log_info "Applying new version of VPC CNI"
+g3kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v1.16.2/config/master/aws-k8s-cni.yaml || { gen3_log_err "Failed to apply new VPC CNI version"; exit 1; }
+
+# Check the version to make sure it updated
+NEW_VERSION=$(kubectl describe daemonset aws-node --namespace kube-system | grep amazon-k8s-cni: | cut -d : -f 3)
+gen3_log_info "Current version of aws-k8s-cni is: $NEW_VERSION"
+if [ "$NEW_VERSION" != "v1.16.2" ]; then
+    gen3_log_info "The version of aws-k8s-cni has not been updated correctly."
+    exit 1
+fi
+
+# Edit the amazon-vpc-cni configmap to enable network policy controller
+gen3_log_info "Enabling NetworkPolicies in VPC CNI Configmap"
+kubectl patch configmap -n kube-system amazon-vpc-cni --type merge -p '{"data":{"enable-network-policy-controller":"true"}}' || { gen3_log_err "Configmap patch failed"; exit 1; }
+
+# Edit the aws-node daemonset
+gen3_log_info "Enabling NetworkPolicies in aws-node Daemonset"
+kubectl patch daemonset aws-node -n kube-system --type=json -p='[{"op": "add", "path": "/spec/template/spec/containers/1/args", "value": ["--enable-network-policy=true", "--enable-ipv6=false", "--enable-cloudwatch-logs=false", "--metrics-bind-addr=:8162", "--health-probe-bind-addr=:8163"]}]' || { gen3_log_err "Daemonset edit failed"; exit 1; }
 
 # Run a "gen3 roll all" so all nodes use the new mounted BPF File System
 gen3_log_info "Cycling all the nodes by running gen3 roll all"
@@ -72,50 +120,6 @@ while true; do
             ;;
     esac
 done
-
-
-# Delete all existing network policies
-gen3_log_info "Deleting networkpolicies"
-kubectl delete networkpolicies --all
-
-# Delete all Calico related resources from the “kube-system” namespace
-gen3_log_info "Deleting all Calico related resources"
-kubectl get deployments -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete deployment -n kube-system
-kubectl get daemonsets -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete daemonset -n kube-system
-kubectl get services -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete service -n kube-system
-kubectl get replicasets -n kube-system | grep calico | awk '{print $1}' | xargs kubectl delete replicaset -n kube-system
-
-# Backup the current VPC CNI configuration in case of rollback
-gen3_log_info "Backing up current VPC CNI Configuration..."
-kubectl get daemonset aws-node -n kube-system -o yaml > aws-k8s-cni-old.yaml || { gen3_log_err "Error backig up VPC CNI configuration"; exit 1; }
-
-# Check to ensure we are not using an AWS plugin to manage the VPC CNI Plugin
-if aws eks describe-addon --cluster-name "$CLUSTER_NAME" --addon-name vpc-cni --query addon.addonVersion --output text 2>/dev/null; then
-    gen3_log_err "Error: VPC CNI Plugin is managed by AWS. Please log into the AWS UI and delete the VPC CNI Plugin in Amazon EKS, then re-run this script."
-    exit 1
-else
-    gen3_log_info "No managed VPC CNI Plugin found, proceeding with the script."
-fi
-
-# Apply the new VPC CNI Version
-gen3_log_info "Applying new version of VPC CNI"
-g3kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v1.14.1/config/master/aws-k8s-cni.yaml || { gen3_log_err "Failed to apply new VPC CNI version"; exit 1; }
-
-# Check the version to make sure it updated
-NEW_VERSION=$(kubectl describe daemonset aws-node --namespace kube-system | grep amazon-k8s-cni: | cut -d : -f 3)
-gen3_log_info "Current version of aws-k8s-cni is: $NEW_VERSION"
-if [ "$NEW_VERSION" != "v1.14.1" ]; then
-    gen3_log_info "The version of aws-k8s-cni has not been updated correctly."
-    exit 1
-fi
-
-# Edit the amazon-vpc-cni configmap to enable network policy controller
-gen3_log_info "Enabling NetworkPolicies in VPC CNI Configmap"
-kubectl patch configmap -n kube-system amazon-vpc-cni --type merge -p '{"data":{"enable-network-policy-controller":"true"}}' || { gen3_log_err "Configmap patch failed"; exit 1; }
-
-# Edit the aws-node daemonset
-gen3_log_info "Enabling NetworkPolicies in aws-node Daemonset"
-kubectl patch daemonset aws-node -n kube-system --type=json -p='[{"op": "add", "path": "/spec/template/spec/containers/1/args", "value": ["--enable-network-policy=true", "--enable-ipv6=false", "--enable-cloudwatch-logs=false", "--metrics-bind-addr=:8162", "--health-probe-bind-addr=:8163"]}]' || { gen3_log_err "Daemonset edit failed"; exit 1; }
 
 # Ensure all the aws-nodes are running
 kubectl get pods -n kube-system | grep aws
