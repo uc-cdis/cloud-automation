@@ -12,13 +12,13 @@ VARS_PATH="$EASYRSA_PATH/vars"
 
 #EASY-RSA Vars
 
-    KEY_SIZE=4096
-    COUNTRY="US"
-    STATE="IL"
-    CITY="Chicago"
-    ORG="CDIS" 
-    EMAIL='support\@datacommons.io'
-    KEY_EXPIRE=365
+KEY_SIZE=4096
+COUNTRY="US"
+STATE="IL"
+CITY="Chicago"
+ORG="CDIS" 
+EMAIL='support\@datacommons.io'
+KEY_EXPIRE=365
 
 
 #OpenVPN

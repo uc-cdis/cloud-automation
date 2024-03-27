@@ -40,11 +40,15 @@ update_password_file() {
 }
 
 generate_qr_code() {
-    uuid=$(uuidgen)
-    qrcode_out=/var/www/qrcode/${uuid}.svg
+    mkdir -p /etc/openvpn/pki/qrcodes
+    qrcode_out=/etc/openvpn/pki/qrcodes/${vpn_username}.png
     string=$( python -c "import pyotp; print( pyotp.totp.TOTP('$totp_secret').provisioning_uri('$vpn_username', issuer_name='$CLOUD_NAME') )" )
-    $( python -c "import pyqrcode; pyqrcode.create('$string').svg('${qrcode_out}', scale=8)" )
-    vpn_creds_url="https://${FQDN}/$uuid.svg"
+    $( python -c "import qrcode; qrcode.make('$string').save('${qrcode_out}')" )
+    # vpn_creds_url="https://${FQDN}/$uuid.svg"
+    s3Path="s3://${S3BUCKET}/qrcodes/${vpn_username}.png"
+    aws s3 cp ${qrcode_out} ${s3Path}
+    signedUrl="$(aws s3 presign "$s3Path" --expires-in "$((60*60*48))")"
+    vpn_creds_url=${signedUrl}
 }
 
 print_info() {

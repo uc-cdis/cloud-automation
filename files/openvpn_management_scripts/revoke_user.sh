@@ -25,18 +25,15 @@ set -e
 
 username=${1}
 
-#Source the settings for EASY RSA
-source $EASYRSA_PATH/vars
 
 #Override exports
 export KEY_CN=$username
 
-set +e
-#revoke-full $username || echo -e "${RED}${BOLD}${BLINK}FAILED TO REVOKE ${username}${CLEAR}"
-revoke-full $username
-#Apparently it doesn't exist like I expected, and says failed even when it succeeded.
-
-set -e
+(
+    cd $EASYRSA_PATH
+    ./easyrsa revoke $username
+    ./easyrsa gen-crl
+)
 
 sed -i "/${username},/d" $USER_PW_FILE || echo -e "${RED}${BOLD}${BLINK}Failed to remove $username from file ${USER_PW_FILE}${CLEAR}"
 /etc/openvpn/bin/push_to_s3.sh

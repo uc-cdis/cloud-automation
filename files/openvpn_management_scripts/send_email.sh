@@ -14,7 +14,7 @@ RED="\033[31m"
 
 echo -e "Entering ${BOLD}$_${CLEAR}"
 
-S3BUCKET=WHICHVPN
+export S3BUCKET=WHICHVPN
 
 if [ "${1}" == "" ] 
 then
