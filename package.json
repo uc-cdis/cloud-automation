@@ -11,7 +11,7 @@
     "async": "^3.2.2",
     "aws-sdk": "^2.814.0",
     "elasticdump": "^6.84.1",
-    "express": "^4.17.1",
+    "express": "^4.19.2",
     "json-schema": "^0.4.0",
     "minimatch": "^3.0.5",
     "minimist": "^1.2.6",
