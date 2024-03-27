@@ -14,13 +14,8 @@ new_client() {
   local secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client atlas --urls https://${atlas_hostname}/WebAPI/user/oauth/callback?client_name=OidcClient --username atlas --allowed-scopes openid profile email user | tail -1)
   # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
   if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
-      # try delete client
-      g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client atlas > /dev/null 2>&1
-      secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client atlas --urls https://${atlas_hostname}/WebAPI/user/oauth/callback?client_name=OidcClient --username atlas --allowed-scopes openid profile email user | tail -1)
-      if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
-          gen3_log_err "kube-setup-ohdsi" "Failed generating oidc client for atlas: $secrets"
-          return 1
-      fi
+    gen3_log_err "kube-setup-ohdsi" "Failed generating oidc client for atlas: $secrets"
+    return 1
   fi
   local FENCE_CLIENT_ID="${BASH_REMATCH[2]}"
   local FENCE_CLIENT_SECRET="${BASH_REMATCH[3]}"
