@@ -12,7 +12,7 @@ setup_ecr_access_job() {
       return 1
     fi
 
-    local saName="ecr-access-job-sa"
+    local saName=$(gen3 api safe-name ecr-access-job-sa | head -c63)
     if ! g3kubectl get sa "$saName" > /dev/null 2>&1; then
       tempFile="ecr-access-job-policy.json"
       cat - > $tempFile <<EOM
