@@ -38,8 +38,8 @@ setup_ecr_access_job() {
   ]
 }
 EOM
-      local role_name
-      if ! role_name="$(gen3 iam-serviceaccount -c "${saName}" -p $tempFile)" || [[ -z "$role_name" ]]; then
+      local safe_role_name=$(gen3 api safe-name ${saName}-role | head -c63)
+      if ! role_name="$(gen3 iam-serviceaccount -c "${saName}" -p $tempFile --role-name $safe_role_name)" || [[ -z "$role_name" ]]; then
         gen3_log_err "Failed to create iam service account"
         rm $tempFile
         return 1
