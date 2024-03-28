@@ -12,7 +12,7 @@ setup_ecr_access_job() {
       return 1
     fi
 
-    local saName=$(gen3 api safe-name ecr-access-job-sa | head -c63)
+    local saName="ecr-access-job-sa"
     if ! g3kubectl get sa "$saName" > /dev/null 2>&1; then
       tempFile="ecr-access-job-policy.json"
       cat - > $tempFile <<EOM
@@ -38,8 +38,8 @@ setup_ecr_access_job() {
   ]
 }
 EOM
-      local role_name
-      if ! role_name="$(gen3 iam-serviceaccount -c "${saName}" -p $tempFile)" || [[ -z "$role_name" ]]; then
+      local safe_role_name=$(gen3 api safe-name ${saName}-role | head -c63)
+      if ! role_name="$(gen3 iam-serviceaccount -c "${saName}" -p $tempFile --role-name $safe_role_name)" || [[ -z "$role_name" ]]; then
         gen3_log_err "Failed to create iam service account"
         rm $tempFile
         return 1
