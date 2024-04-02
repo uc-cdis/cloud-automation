@@ -195,8 +195,8 @@ spec:
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
 # -----------------------------------------------------------------------------
-          - mountPath: /var/www/fence
-            name: "fence"
+          - name: "fence"
+            mountPath: "/var/www/fence"
           - name: "old-config-volume"
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
@@ -271,13 +271,7 @@ spec:
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
             python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
-            cd /fence
-            tar xvf jwt-keys.tar
-            mkdir -p keys
-            mv jwt-keys/* keys/
-            rm -rf /fence/keys/key/
-            gunicorn -c deployment/wsgi/gunicorn.conf.py
-            #bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then bash /dockerrun.sh; fi
+            bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then bash /dockerrun.sh; fi
       - name: sidecar-nginx
         image: quay.io/cdis/nginx-sidecar:nginx-sidecar-feat_nginx-sidecar
         imagePullPolicy: IfNotPresent

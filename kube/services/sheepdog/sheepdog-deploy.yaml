@@ -86,6 +86,8 @@ spec:
         - name: nginx-main-config
           configMap:
             name: sidecar-nginx-main 
+        - name: sheepdog
+          emptyDir: {}
       # sheepdog transactions take forever -
       # try to let the complete before termination
       terminationGracePeriodSeconds: 50
@@ -211,6 +213,8 @@ spec:
             - name: "wsgi-config"
               mountPath: "/sheepdog/deployment/wsgi/gunicorn.conf.py"
               subPath: gunicorn.conf.py
+            - name: "sheepdog"
+              mountPath: "/var/www/sheepdog"
           imagePullPolicy: Always
           resources:
             requests:

@@ -106,6 +106,8 @@ spec:
         - name: privacy-policy
           configMap:
             name: "privacy-policy"
+        - name: fence
+          emptyDir: {}    
       securityContext:
         # nginx group in current images
         fsGroup: 101
@@ -175,6 +177,8 @@ spec:
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
 #             for fence.
 # -----------------------------------------------------------------------------
+          - name: "fence"
+            mountPath: "/var/www/fence"
           - name: "old-config-volume"
             readOnly: true
             mountPath: "/var/www/fence/local_settings.py"
