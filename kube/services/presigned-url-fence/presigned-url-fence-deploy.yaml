@@ -112,6 +112,15 @@ spec:
             name: "privacy-policy"
         - name: fence
           emptyDir: {}
+        - name: wsgi-config
+          configMap:
+            name: fence-wsgi
+        - name: nginx-config
+          configMap:
+            name: fence-nginx-configmap
+        - name: nginx-main-config
+          configMap:
+            name: sidecar-nginx-main
       securityContext:
         # nginx group in current images
         fsGroup: 101
