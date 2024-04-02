@@ -32,6 +32,10 @@ spec:
         GEN3_DATE_LABEL
     spec:
       serviceAccountName: fence-sa
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -59,7 +63,7 @@ spec:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
-                - SPOT 
+                - SPOT
       automountServiceAccountToken: false
       volumes:
         - name: yaml-merge
@@ -107,7 +111,7 @@ spec:
           configMap:
             name: "privacy-policy"
         - name: fence
-          emptyDir: {}    
+          emptyDir: {}
       securityContext:
         # nginx group in current images
         fsGroup: 101
@@ -139,6 +143,12 @@ spec:
           value: "true"
         - name: DD_TRACE_SAMPLE_RATE
           value: "1"
+        - name: GEN3_UWSGI_TIMEOUT
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: uwsgi-timeout
+              optional: true
         - name: DD_AGENT_HOST
           valueFrom:
             fieldRef:
@@ -161,16 +171,16 @@ spec:
         livenessProbe:
           httpGet:
             path: /_status
-            port: 80
+            port: 8000
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
         readinessProbe:
           httpGet:
             path: /_status
-            port: 80
+            port: 8000
         ports:
-        - containerPort: 80
+        - containerPort: 8000
         - containerPort: 443
         volumeMounts:
 # -----------------------------------------------------------------------------
@@ -242,18 +252,29 @@ spec:
               cpu: 100m
               memory: 600Mi
             limits:
-              memory: 1024Mi  
+              cpu: 1.0
+              memory: 2400Mi
         command: ["/bin/bash"]
         args:
           - "-c"
           - |
             echo "${FENCE_PUBLIC_CONFIG:-""}" > "/var/www/fence/fence-config-public.yaml"
-            echo -e "ENABLE_DB_MIGRATION: false" > "/var/www/fence/fence-config-bonus1.yaml"
-            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config-step1.yaml
-            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-bonus1.yaml /var/www/fence/fence-config-step1.yaml > /var/www/fence/fence-config.yaml
-            nginx_limit=$(cat /var/www/fence/fence-config.yaml | sed -n -e 's/^.*\"OVERRIDE_NGINX_RATE_LIMIT\": //p' | sed 's/.$//')
-            if [ -z "$nginx_limit" ]; then
-              nginx_limit=$(cat /fence/fence/config-default.yaml | sed -n -e 's/^.*OVERRIDE_NGINX_RATE_LIMIT: //p')
-            fi
-            export OVERRIDE_NGINX_RATE_LIMIT="$nginx_limit"
-            ([[ ! -f /entrypoint.sh ]] || bash /entrypoint.sh) && /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then bash /dockerrun.sh; fi
+            python /var/www/fence/yaml_merge.py /var/www/fence/fence-config-public.yaml /var/www/fence/fence-config-secret.yaml > /var/www/fence/fence-config.yaml
+            bash /fence/dockerrun.bash && if [[ -f /dockerrun.sh ]]; then bash /dockerrun.sh; fi
+      - name: sidecar-nginx
+        image: quay.io/cdis/nginx-sidecar:nginx-sidecar-feat_nginx-sidecar
+        imagePullPolicy: IfNotPresent
+        ports:
+          - name: http
+            containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /_status
+            port: http
+        volumeMounts:
+          - name: "nginx-main-config"
+            mountPath: "/etc/nginx/nginx.conf"
+            subPath: "nginx.conf"
+          - name: "nginx-config"
+            mountPath: "/etc/nginx/conf.d/default.conf"
+            subPath: default.conf
