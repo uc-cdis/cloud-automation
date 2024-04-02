@@ -6,7 +6,8 @@ data:
   gunicorn.conf.py: |
     wsgi_app = "deployment.wsgi.wsgi:application"
     bind = "0.0.0.0:8000"
-    workers = 1
+    workers = 3
+    preload_app = True    
     user = 'gen3'
     group = 'gen3'
     timeout = 300

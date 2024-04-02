@@ -90,6 +90,8 @@ spec:
         - name: nginx-main-config
           configMap:
             name: sidecar-nginx-main 
+        - name: peregrine
+          emptyDir: {}
       containers:
         - name: peregrine
           GEN3_PEREGRINE_IMAGE
@@ -196,6 +198,8 @@ spec:
             - name: "wsgi-config"
               mountPath: "/peregrine/deployment/wsgi/gunicorn.conf.py"
               subPath: gunicorn.conf.py
+            - name: "peregrine"
+              mountPat: "/var/www/peregrine"
           imagePullPolicy: Always
           resources:
             requests:
