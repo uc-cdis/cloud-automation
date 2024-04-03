@@ -76,15 +76,38 @@ else
     exists_or_create_gen3_license_table "$TARGET_TABLE"
 fi
 
+# if `nextflow-global.imagebuilder-reader-role-arn` is set in hatchery config, allow hatchery
+# to assume the configured role
+imagebuilderRoleArn=$(g3kubectl get configmap manifest-hatchery -o jsonpath={.data.nextflow-global} | jq -r '."imagebuilder-reader-role-arn"')
+assumeImageBuilderRolePolicyBlock=""
+if [ -z "$imagebuilderRoleArn" ]; then
+    gen3_log_info "No 'nexftlow-global.imagebuilder-reader-role-arn' in Hatchery configuration, not granting AssumeRole"
+else
+    gen3_log_info "Found 'nexftlow-global.imagebuilder-reader-role-arn' in Hatchery configuration, granting AssumeRole"
+    assumeImageBuilderRolePolicyBlock=$( cat <<EOM
+        {
+            "Sid": "AssumeImageBuilderReaderRole",
+            "Effect": "Allow",
+            "Action": [
+                "sts:AssumeRole"
+            ],
+            "Resource": "$imagebuilderRoleArn"
+        },
+EOM
+)
+fi
+
 policy=$( cat <<EOM
 {
     "Version": "2012-10-17",
     "Statement": [
         {
+            "Sid": "AssumeCsocAdminRole",
             "Effect": "Allow",
             "Action": "sts:AssumeRole",
             "Resource": "arn:aws:iam::*:role/csoc_adminvm*"
         },
+$assumeImageBuilderRolePolicyBlock
         {
             "Effect": "Allow",
             "Action": "ec2:*",
@@ -152,8 +175,13 @@ policy=$( cat <<EOM
 }
 EOM
 )
+
 saName=$(echo "hatchery-service-account" | head -c63)
-echo $saName
+echo Service account name: $saName
+echo Policy document: $policy
+
+# if the policy has changed and must be updated, run:
+# `kubectl delete sa hatchery-service-account && gen3 kube-setup-hatchery`
 if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.amazonaws.com/role-arn"' > /dev/null 2>&1; then
     roleName="$(gen3 api safe-name hatchery-sa)"
     gen3 awsrole create $roleName $saName
@@ -176,7 +204,6 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
         # create the new version
         gen3_aws_run aws iam create-policy-version --policy-arn "$policyArn" --policy-document "$policy" --set-as-default
     fi
-
     gen3_log_info "Attaching policy '${policyName}' to role '${roleName}'"
     gen3 awsrole attach-policy ${policyArn} --role-name ${roleName} --force-aws-cli || exit 1
     gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${roleName} --force-aws-cli || exit 1
