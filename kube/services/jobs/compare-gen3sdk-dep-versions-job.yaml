@@ -1,15 +1,15 @@
 #
 # run with:
-# gen3 job run compare-gen3sdk-dep-versions [VERBOSE true] [ALL_DEPS true]
+# gen3 job run compare-gen3sdk-dep-versions [VERBOSE true] [SHOW_VERSIONS all|mismatched|mismatched_major]
 #
 # VERBOSE true
 #   Log standard output from 'pip install' and 'poetry show' commands.
 #   Default is to log only the different/all dependency versions in csv format.
 #
-# ALL_DEPS true
-#  Log versions of all installed dependencies.
-#  Default is to log only the different versions.
-#
+# SHOW VERSIONS
+#  all - all dependency versions.
+#  mismatched - dependencies with different versions.
+#  mismatched_major - dependencies with different major versions.
 
 apiVersion: batch/v1
 kind: Job
@@ -52,8 +52,8 @@ spec:
         env:
         - name: VERBOSE
           GEN3_VERBOSE|-value: ""-|
-        - name: ALL_DEPS
-          GEN3_ALL_DEPS|-value: ""-|
+        - name: SHOW_VERSIONS
+          GEN3_SHOW_VERSIONS|-value: ""-|
         volumeMounts:
         - name: shared-data
           mountPath: /mnt/shared
@@ -77,10 +77,23 @@ spec:
                 cat pip_freeze.tsv
             fi
 
-            # poetry - show versions from lock file
-            GITHUB_REPO="raw.githubusercontent.com/uc-cdis/gen3sdk-python"
-            curl -OJLs https://${GITHUB_REPO}/master/poetry.lock
-            curl -OJLs https://${GITHUB_REPO}/master/pyproject.toml
+            # get the gen3sdk version stored in pypi
+            GEN3_PYPI_VERSION=`grep 'gen3\s' pip_freeze.tsv | awk '{print$2}'`
+            if [ "$VERBOSE" = true ]; then
+                echo "Gen3sdk version in PyPI: ${GEN3_PYPI_VERSION}"
+            fi
+            if [ -z "${GEN3_PYPI_VERSION}" ]; then
+                echo -e "ERROR: could not get gen3sdk version from pip freeze output"
+                exit 0
+            fi
+
+            # poetry - use poetry lock file for gen3sdk repo tag that matches pypi version
+            GITHUB_REPO="raw.githubusercontent.com/uc-cdis/gen3sdk-python/${GEN3_PYPI_VERSION}"
+            if [ "$VERBOSE" = true ]; then
+                echo "Using github repo: ${GITHUB_REPO}"
+            fi
+            curl -OJLs https://${GITHUB_REPO}/poetry.lock
+            curl -OJLs https://${GITHUB_REPO}/pyproject.toml
             if [[ ! -f poetry.lock || ! -f pyproject.toml ]]; then
                 echo -e "ERROR: could not get poetry.lock or pyproject.toml file from ${GITHUB_REPO}"
                 exit 0
@@ -99,26 +112,43 @@ spec:
                 pip install poetry=="$POETRY_VERSION"
                 PATH=$PATH:~/.local/bin
                 poetry --version
-                poetry env info
             else
                 pip install poetry=="$POETRY_VERSION" > /dev/null 2>&1
                 PATH=$PATH:~/.local/bin
             fi
-            poetry show  | sed 's/(\!)//' | awk '{print $1"\t"$2}' | sort > poetry_show.tsv
+            poetry show 2>/dev/null | sed 's/(\!)//' | awk '{print $1"\t"$2}' | sort > poetry_show.tsv
             if [ "$VERBOSE" = true ]; then
                 echo "Poetry-show file"
                 cat poetry_show.tsv
+                echo ""
             fi            
 
             # compare
-            join -j 1 -o 1.1,1.2,2.2 poetry_show.tsv pip_freeze.tsv > join.txt
-            echo "package,poetry-version,pip-version" > gen3_deps_versions.csv
-            cat join.txt | awk '{print $1","$2","$3}' >> gen3_deps_versions.csv
-            # filter out the different versions
+            join -j 1 -o 1.1,1.2,2.2 poetry_show.tsv pip_freeze.tsv | awk '{print $1","$2","$3}' > gen3_deps_versions.csv
             cat gen3_deps_versions.csv | awk -F ',' '$2 != $3' > mismatched_versions.csv
 
-            if [ "$ALL_VERSIONS" = true ]; then
-                cat gen3_deps_versions.csv
+            if [ "${SHOW_VERSIONS}" = "mismatched_major" ]; then
+                while read v; do
+                rx='.+,([0-9]+)\.[0-9]+\.?.*,([0-9]+)\.[0-9]+\.?.*'
+                if [[ "$v" =~ $rx ]]; then
+                    POE_VER=${BASH_REMATCH[1]}
+                    PIP_VER=${BASH_REMATCH[2]}
+                    DIFF=$((${PIP_VER} - ${POE_VER}))
+                    # get differences in major versions, skip calvers
+                    if [[ ${DIFF#-} -ge 1 && ${POE_VER} -le 2020 && ${PIP_VER} -le 2020 ]]; then
+                        touch /mnt/shared/found_major_version_diffs
+                        echo "${v}" >> mismatched_major_versions.csv
+                    fi
+                fi
+                done < mismatched_versions.csv
+            fi
+
+            echo "package,poetry-version,pip-version"
+            echo "gen3,${GEN3_PYPI_VERSION},${GEN3_PYPI_VERSION}"
+            if [ "${SHOW_VERSIONS}" = "all" ]; then
+                cat gen3_libs_versions.csv
+            elif [ "${SHOW_VERSIONS}" = "mismatched_major" ]; then
+                cat mismatched_major_versions.csv
             else
                 cat mismatched_versions.csv
             fi
