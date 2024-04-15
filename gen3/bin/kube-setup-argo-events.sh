@@ -31,11 +31,22 @@ if ! kubectl get namespace argo-events > /dev/null 2>&1; then
   kubectl create namespace argo-events
 fi
 
+# Check if target configmap exists
+if ! kubectl get configmap environment -n argo-events > /dev/null 2>&1; then
+
+  # Get value from source configmap
+  VALUE=$(kubectl get configmap global -n default -o jsonpath="{.data.environment}")
+
+  # Create target configmap
+  kubectl create configmap environment -n argo-events --from-literal=environment=$VALUE
+
+fi
+
 if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" || "$override_namespace" == true ]]; then
   if (! helm status argo -n argo-events > /dev/null 2>&1 )  || [[ "$force" == true ]]; then
     helm repo add argo https://argoproj.github.io/argo-helm --force-update 2> >(grep -v 'This is insecure' >&2)
     helm repo update 2> >(grep -v 'This is insecure' >&2)
-    helm upgrade --install argo argo/argo-events -n argo-events --version "2.1.3"
+    helm upgrade --install argo-events argo/argo-events -n argo-events --version "2.1.3"
   else
     gen3_log_info "argo-events Helm chart already installed. To force reinstall, run with --force"
   fi
@@ -46,7 +57,7 @@ if [[ "$ctxNamespace" == "default" || "$ctxNamespace" == "null" || "$override_na
     kubectl apply -f ${GEN3_HOME}/kube/services/argo-events/eventbus.yaml
   fi 
 else
-  gen3_log_info "Not running in default namespace, will not install argo-events helm chart"
+  gen3_log_info "Not running in default namespace, will not install argo-events helm chart. This behavior can be overwritten with the --override-namespace flag"
 fi
 
 if [[ "$create_workflow_resources" == true ]]; then
@@ -57,4 +68,5 @@ if [[ "$create_workflow_resources" == true ]]; then
   #Creating rolebindings to allow Argo Events to create jobs, and allow those jobs to manage Karpenter resources
   kubectl create rolebinding argo-events-job-admin-binding --role=job-admin --serviceaccount=argo-events:default --namespace=argo-events
   kubectl create clusterrolebinding karpenter-admin-binding --clusterrole=karpenter-admin --serviceaccount=argo-events:default
+  kubectl create clusterrolebinding argo-workflows-view-binding --clusterrole=argo-argo-workflows-view --serviceaccount=argo-events:default
 fi 

@@ -72,7 +72,7 @@ spec:
           volumeMounts:
             - name: ohdsi-atlas-config-local
               readOnly: true
-              mountPath: /usr/share/nginx/html/atlas/js/config-local.js
+              mountPath: /etc/atlas/config-local.js
               subPath: config-local.js
           imagePullPolicy: Always
           resources:
@@ -80,4 +80,4 @@ spec:
               cpu: 100m
               memory: 100Mi
             limits:
-              memory: 500Mi  
+              memory: 500Mi

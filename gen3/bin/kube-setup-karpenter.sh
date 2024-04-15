@@ -23,8 +23,10 @@ gen3_deploy_karpenter() {
       if g3k_config_lookup .global.karpenter_version; then
         karpenter=$(g3k_config_lookup .global.karpenter_version)
       fi
-      export clusterversion=`kubectl version --short -o json | jq -r .serverVersion.minor`
-      if [ "${clusterversion}" = "24+" ]; then
+      export clusterversion=`kubectl version -o json | jq -r .serverVersion.minor`
+      if [ "${clusterversion}" = "25+" ]; then
+        karpenter=${karpenter:-v0.27.0}
+      elif [ "${clusterversion}" = "24+" ]; then
         karpenter=${karpenter:-v0.24.0}
       else
         karpenter=${karpenter:-v0.22.0}
@@ -77,6 +79,14 @@ gen3_deploy_karpenter() {
                   "Effect": "Allow",
                   "Resource": "*",
                   "Sid": "ConditionalEC2Termination"
+              },
+              {
+                  "Sid": "VisualEditor0",
+                  "Effect": "Allow",
+                  "Action": [
+                      "kms:*"
+                  ],
+                  "Resource": "*"
               }
           ],
           "Version": "2012-10-17"
@@ -140,7 +150,11 @@ gen3_deploy_karpenter() {
           --set serviceAccount.name=karpenter \
           --set serviceAccount.create=false \
           --set controller.env[0].name=AWS_REGION \
-          --set controller.env[0].value=us-east-1
+          --set controller.env[0].value=us-east-1 \
+          --set controller.resources.requests.memory="2Gi" \
+          --set controller.resources.requests.cpu="2" \
+          --set controller.resources.limits.memory="2Gi" \
+          --set controller.resources.limits.cpu="2"
     fi
     gen3 awsrole sa-annotate karpenter "karpenter-controller-role-$vpc_name" karpenter
     gen3_log_info "Remove cluster-autoscaler"

@@ -7,6 +7,10 @@ gen3_load "gen3/lib/kube-setup-init"
 setup_secrets() {
   gen3_log_info "Deploying secrets for cohort-middleware"
   # subshell
+  if [[ -n "$JENKINS_HOME" ]]; then
+    gen3_log_err "skipping secrets setup in non-adminvm environment"
+    return 0
+  fi
 
   (
     if ! dbcreds="$(gen3 db creds ohdsi)"; then
@@ -17,7 +21,7 @@ setup_secrets() {
     mkdir -p $(gen3_secrets_folder)/g3auto/cohort-middleware
     credsFile="$(gen3_secrets_folder)/g3auto/cohort-middleware/development.yaml"
 
-    if [[ (! -f "$credsFile") && -z "$JENKINS_HOME" ]]; then
+    if [[ (! -f "$credsFile") ]]; then
       DB_NAME=$(jq -r ".db_database" <<< "$dbcreds")
       export DB_NAME
       DB_USER=$(jq -r ".db_username" <<< "$dbcreds")
@@ -46,17 +50,17 @@ EOM
     fi
 
     gen3 secrets sync "initialize cohort-middleware/development.yaml"
-
-    # envsubst <"${GEN3_HOME}/kube/services/cohort-middleware/development.yaml" | g3kubectl create secret generic cohort-middleware-config --from-file=development.yaml=/dev/stdin
   )
 }
 
 # main --------------------------------------
-setup_secrets
 
-gen3 roll cohort-middleware
-g3kubectl apply -f "${GEN3_HOME}/kube/services/cohort-middleware/cohort-middleware-service.yaml"
-
-cat <<EOM
+if setup_secrets; then
+  gen3 roll cohort-middleware
+  g3kubectl apply -f "${GEN3_HOME}/kube/services/cohort-middleware/cohort-middleware-service.yaml"
+  cat <<EOM
 The cohort-middleware service has been deployed onto the k8s cluster.
 EOM
+else
+  gen3_log_err "unable to find db creds for ohdsi service (was Atlas deployed?)"
+fi

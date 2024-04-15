@@ -25,7 +25,6 @@ deploy_api_gateway() {
     return 0
   fi
   gen3 roll ambassador-gen3
-  g3k_kv_filter "${GEN3_HOME}/kube/services/ambassador-gen3/ambassador-gen3-service-elb.yaml" GEN3_ARN "$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_arn}')" | g3kubectl apply -f -
 
   local luaYamlTemp="$(mktemp "$XDG_RUNTIME_DIR/lua.yaml.XXXXXX")"
   cat - > "$luaYamlTemp" <<EOM

@@ -46,6 +46,13 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
@@ -136,6 +143,7 @@ spec:
         ports:
         - containerPort: 80
         - containerPort: 443
+        - containerPort: 6567
         volumeMounts:
 # -----------------------------------------------------------------------------
 # DEPRECATED! Remove when all commons are no longer using local_settings.py
