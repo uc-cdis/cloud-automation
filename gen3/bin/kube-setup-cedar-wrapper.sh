@@ -62,7 +62,6 @@ fi
 
 if [[ -n "$JENKINS_HOME" ]]; then
     gen3_log_info "Skipping cedar-client creds setup in non-adminvm environment"
-
 else
     gen3_log_info "Checking cedar-client creds"
     setup_creds
