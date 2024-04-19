@@ -1,0 +1,80 @@
+---
+# NOTE: This job was created specifically to dump all the databases in va-testing, in preparation for a move to second cluster
+# If you aren't doing that, this probably is not the job you're looking for
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: psql-db-dump-va-testing
+spec:
+  template:
+    metadata:
+      labels:
+        app: gen3job
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: karpenter.sh/capacity-type
+                    operator: In
+                    values:
+                      - on-demand
+            - weight: 99
+              preference:
+                matchExpressions:
+                  - key: eks.amazonaws.com/capacityType
+                    operator: In
+                    values:
+                      - ONDEMAND
+      serviceAccountName: dbbackup-sa
+      containers:
+        - name: pgdump
+          image: quay.io/cdis/awshelper:master
+          imagePullPolicy: Always
+          env:
+            - name: gen3Env
+              valueFrom:
+                configMapKeyRef:
+                  name: global
+                  key: environment
+            - name: JENKINS_HOME
+              value: "devterm"
+            - name: GEN3_HOME
+              value: /home/ubuntu/cloud-automation
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - |
+              source "${GEN3_HOME}/gen3/lib/utils.sh"
+              gen3_load "gen3/gen3setup"
+              account_id=$(aws sts get-caller-identity --query "Account" --output text)
+              default_bucket_name="gen3-db-backups-${account_id}"
+              default_databases=("fence" "indexd" "sheepdog" "peregrine" "arborist" "argo" "atlas" "metadata" "ohdsi" "omop-data" "wts")
+              s3_dir="va-testing-$(date +"%Y-%m-%d-%H-%M-%S")"
+              databases=("${default_databases[@]}")
+              bucket_name=$default_bucket_name
+
+              for database in "${databases[@]}"; do
+                gen3_log_info "Starting database backup for ${database}"
+                gen3 db backup "${database}" > "${database}.sql"
+
+                if [ $? -eq 0 ] && [ -f "${database}.sql" ]; then
+                  gen3_log_info "Uploading backup file ${database}.sql to s3://${bucket_name}/${s3_dir}/${database}.sql"
+                  aws s3 cp "${database}.sql" "s3://${bucket_name}/${s3_dir}/${database}.sql"
+
+                  if [ $? -eq 0 ]; then
+                    gen3_log_info "Successfully uploaded ${database}.sql to S3"
+                  else
+                    gen3_log_err "Failed to upload ${database}.sql to S3"
+                  fi
+                  gen3_log_info "Deleting temporary backup file ${database}.sql"
+                  rm -f "${database}.sql"
+                else
+                  gen3_log_err "Backup operation failed for ${database}"
+                  rm -f "${database}.sql"
+                fi
+              done
+              sleep 600
+      restartPolicy: Never

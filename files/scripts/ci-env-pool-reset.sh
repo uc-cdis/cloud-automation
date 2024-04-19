@@ -29,6 +29,7 @@ source "${GEN3_HOME}/gen3/gen3setup.sh"
 cat - > jenkins-envs-services.txt <<EOF
 jenkins-blood
 jenkins-brain
+jenkins-dcp
 jenkins-genomel
 jenkins-niaid
 EOF

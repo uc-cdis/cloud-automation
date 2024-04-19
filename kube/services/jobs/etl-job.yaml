@@ -2,6 +2,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
+  annotations:
+    karpenter.sh/do-not-evict: "true"
   name: etl
 spec:
   backoffLimit: 0
