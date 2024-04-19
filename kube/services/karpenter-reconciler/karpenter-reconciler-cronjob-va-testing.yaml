@@ -43,7 +43,7 @@ spec:
 
                   ENVIRONMENT=$(kubectl -n va-testing get configmap global -o jsonpath="{.data.environment}")
                   echo "Environment: $ENVIRONMENT"
-                  
+
                   RAW_WORKFLOWS=$(kubectl get workflows -n argo-va-testing -o yaml)
 
 
@@ -64,12 +64,12 @@ spec:
 
                     if ! kubectl get awsnodetemplate workflow-$workflow_name >/dev/null 2>&1; then
                       echo "No awsnodetemplate found for ${workflow_name}, creating one"
-                      sed -e "s/\$WORKFLOW_NAME/$workflow_name/" -e "s/\$GEN3_USERNAME/$workflow_user/" -e "s/\$ENVIRONMENT/$ENVIRONMENT/" "$AWSNODETEMPLATE_TEMPLATE" | kubectl apply -f -
+                      sed -e "s/\WORKFLOW_NAME/$workflow_name/" -e "s/\GEN3_USERNAME/$workflow_user/" -e "s/\ENVIRONMENT/$ENVIRONMENT/" "$AWSNODETEMPLATE_TEMPLATE" | kubectl apply -f -
                     fi
 
                     if ! kubectl get provisioner workflow-$workflow_name >/dev/null 2>&1; then
                       echo "No provisioner found for ${workflow_name}, creating one"
-                      sed -e "s/\$WORKFLOW_NAME/$workflow_name/" -e "s/\$GEN3_USERNAME/$workflow_user/" -e "s/\$ENVIRONMENT/$ENVIRONMENT/" "$PROVISIONER_TEMPLATE" | kubectl apply -f -
+                      sed -e "s/\WORKFLOW_NAME/$workflow_name/" -e "s/\GEN3_USERNAME/$workflow_user/" -e "s/\ENVIRONMENT/$ENVIRONMENT/" "$PROVISIONER_TEMPLATE" | kubectl apply -f -
 
                     fi
                   done
