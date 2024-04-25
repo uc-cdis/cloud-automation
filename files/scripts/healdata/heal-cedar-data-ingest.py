@@ -244,7 +244,7 @@ while limit + offset <= total:
 
                 # the query result key is the record of the metadata. If it doesn't return anything then our query failed.
                 if len(list(mds_res.keys())) == 0 or len(list(mds_res.keys())) > 1:
-                    print("Query returned nothing for", cedar_instance_id, "CEDAR instance id")
+                    print(f"Query returned nothing for template_instance_ID={cedar_instance_id}&data=true")
                     continue
 
                 # get the key for our mds record
@@ -394,3 +394,6 @@ while limit + offset <= total:
     offset = offset + limit
     if (offset + limit) > total:
         limit = total - offset
+
+    if limit < 0:
+        break
