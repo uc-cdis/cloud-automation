@@ -12,10 +12,8 @@ if ! g3kubectl get secrets | grep batch-export-g3auto /dev/null 2>&1; then
   ref_hostname=$(echo "$hostname" | sed 's/\./-/g')
   bucket_name="${ref_hostname}-batch-export-bucket"
   sa_name="batch-export-sa"
-  mkdir -p $(gen3_secrets_folder)/g3auto/batch-export
-  creds_file="$(gen3_secrets_folder)/g3auto/batch-export/config.json"
-  
-  gen3_log_info "Creating batch export secret"
+
+  gen3_log_info "Creating batch export bucket"
 
   if [[ -z "$JENKINS_HOME" ]]; then
     gen3 s3 create $bucket_name
