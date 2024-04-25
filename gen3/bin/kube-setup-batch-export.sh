@@ -52,6 +52,6 @@ EOM
     fi
 
   gen3_log_info "creating batch-export-g3auto configmap"
-  kubectl create configmap batch-export-g3auto --from-literal=bucket_name="$sa_name"
+  kubectl create configmap batch-export-g3auto --from-literal=bucket_name="$bucket_name"
   fi
 fi
