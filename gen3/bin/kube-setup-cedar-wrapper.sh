@@ -60,8 +60,12 @@ if ! g3kubectl get secrets/cedar-g3auto > /dev/null 2>&1; then
     return 1
 fi
 
-gen3_log_info "Checking cedar-client creds"
-setup_creds
+if [[ -n "$JENKINS_HOME" ]]; then
+    gen3_log_info "Skipping cedar-client creds setup in non-adminvm environment"
+else
+    gen3_log_info "Checking cedar-client creds"
+    setup_creds
+fi
 
 if ! gen3 secrets decode cedar-g3auto cedar_api_key.txt > /dev/null 2>&1; then
     gen3_log_err "No CEDAR api key present in cedar-g3auto secret, not rolling CEDAR wrapper"
