@@ -40,6 +40,7 @@ gen3_deploy_karpenter() {
                   "Action": [
                       "ssm:GetParameter",
                       "iam:PassRole",
+                      "iam:*InstanceProfile",
                       "ec2:DescribeImages",
                       "ec2:RunInstances",
                       "ec2:DescribeSubnets",
