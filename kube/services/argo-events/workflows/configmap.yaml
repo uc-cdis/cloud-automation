@@ -27,22 +27,48 @@ data:
           - c6a.4xlarge
           - c6a.8xlarge
           - c6a.12xlarge
+          - c7a.large
+          - c7a.xlarge
+          - c7a.2xlarge
+          - c7a.4xlarge
+          - c7a.8xlarge
+          - c7a.12xlarge
           - c6i.large
           - c6i.xlarge
           - c6i.2xlarge
           - c6i.4xlarge
           - c6i.8xlarge
           - c6i.12xlarge
+          - c7i.large
+          - c7i.xlarge
+          - c7i.2xlarge
+          - c7i.4xlarge
+          - c7i.8xlarge
+          - c7i.12xlarge
           - m6a.2xlarge
           - m6a.4xlarge
           - m6a.8xlarge
           - m6a.12xlarge
           - m6a.16xlarge
+          - m6a.24xlarge
+          - m7a.2xlarge
+          - m7a.4xlarge
+          - m7a.8xlarge
+          - m7a.12xlarge
+          - m7a.16xlarge
+          - m7a.24xlarge
           - m6i.2xlarge
           - m6i.4xlarge
           - m6i.8xlarge
           - m6i.12xlarge
           - m6i.16xlarge
+          - m6i.24xlarge
+          - m7i.2xlarge
+          - m7i.4xlarge
+          - m7i.8xlarge
+          - m7i.12xlarge
+          - m7i.16xlarge
+          - m7i.24xlarge
       taints:
         - key: role
           value: WORKFLOW_NAME
