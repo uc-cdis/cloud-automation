@@ -1,0 +1,19 @@
+name: Build awshelper image
+
+# Always build this image because it contains all the cloud-automation files.
+# Some jobs depend on arbitrary files and we need to test them with updated awshelper images.
+on: push
+
+jobs:
+  awshelper:
+    name: awshelper
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/awshelper/Dockerfile"
+      OVERRIDE_REPO_NAME: "awshelper"
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
+

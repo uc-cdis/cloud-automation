@@ -137,6 +137,10 @@ gen3_healthcheck() {
     internetAccessExplicitProxy=false
   fi
 
+  gen3_log_info "Clearing Evicted pods"
+  sleep 5
+  clear_evicted_pods
+
   local healthJson=$(cat - <<EOM
   {
     "pendingTimeoutPods": $pendingTimeoutPods,
@@ -210,5 +214,3 @@ clear_evicted_pods() {
 }
 
 gen3_healthcheck "$@"
-
-clear_evicted_pods

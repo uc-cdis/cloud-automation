@@ -31,7 +31,7 @@ gen3_deploy_karpenter() {
       else
         karpenter=${karpenter:-v0.22.0}
       fi    
-      local queue_name="karpenter-sqs-${vpc_name}"
+      local queue_name="$(gen3 api safe-name karpenter-sqs)"
       echo '{
           "Statement": [
               {
@@ -202,9 +202,9 @@ gen3_update_karpenter_configs() {
 }
 
 gen3_create_karpenter_sqs_eventbridge() {
-  local queue_name="karpenter-sqs-${vpc_name}"
+  local queue_name="$(gen3 api safe-name karpenter-sqs)"
   local eventbridge_rule_name="karpenter-eventbridge-${vpc_name}"
-  #gen3 sqs create-queue-if-not-exist $queue_name >> "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json"
+  gen3 sqs create-queue-if-not-exist karpenter-sqs >> "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json"
   local queue_url=$(cat "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json" | jq -r '.url')
   local queue_arn=$(cat "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json" | jq -r '.arn')
   # Create eventbridge rules
