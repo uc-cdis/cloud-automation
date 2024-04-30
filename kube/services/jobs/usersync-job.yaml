@@ -31,6 +31,23 @@ spec:
       labels:
         app: gen3job
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       serviceAccountName: useryaml-job
       volumes:
         - name: yaml-merge
@@ -75,7 +92,7 @@ spec:
           configMap:
             name: "projects"
       containers:
-      - name: fence
+      - name: usersync
         GEN3_FENCE_IMAGE
         imagePullPolicy: Always
         env:
@@ -108,7 +125,7 @@ spec:
             valueFrom:
                 configMapKeyRef:
                   name: global
-                  key: environment
+                  key: hostname
           - name: FENCE_PUBLIC_CONFIG
             valueFrom:
               configMapKeyRef:
@@ -243,7 +260,7 @@ spec:
               exit 1
             fi
             #-----------------
-            echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/useryaml";
+            echo "awshelper downloading ${userYamlS3Path} to /mnt/shared/user.yaml";
             n=0
             until [ $n -ge 5 ]; do
               echo "Download attempt $n"
@@ -277,7 +294,7 @@ spec:
             valueFrom:
               configMapKeyRef:
                 name: global
-                key: environment
+                key: hostname
           - name: slackWebHook
             valueFrom:
               configMapKeyRef:

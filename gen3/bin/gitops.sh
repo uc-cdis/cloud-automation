@@ -291,9 +291,15 @@ gen3_gitops_sync() {
   if g3kubectl get configmap manifest-versions; then
     oldJson=$(g3kubectl get configmap manifest-versions -o=json | jq ".data")
   fi
-  newJson=$(g3k_config_lookup ".versions")
   echo "old JSON is: $oldJson"
-  echo "new JSON is: $newJson"
+  newJson=$(g3k_config_lookup ".versions")
+  # Make sure the script exits if newJSON contains invalid JSON 
+  if [ $? -ne 0 ]; then
+    echo "Error: g3k_config_lookup command failed- invalid JSON"
+    exit 1
+  else
+    echo "new JSON is: $newJson"
+  fi
   if [[ -z $newJson ]]; then
     echo "Manifest does not have versions section. Unable to get new versions, skipping version update."
   elif [[ -z $oldJson ]]; then
@@ -439,8 +445,13 @@ gen3_gitops_sync() {
     echo "DRYRUN flag detected, not rolling"
     gen3_log_info "dict_roll: $dict_roll; versions_roll: $versions_roll; portal_roll: $portal_roll; etl_roll: $etl_roll; fence_roll: $fence_roll"
   else
-    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true )  || ( "$covid_cronjob_roll" = true ) || ("fence_roll" = true) ]]; then
+    if [[ ( "$dict_roll" = true ) || ( "$versions_roll" = true ) || ( "$portal_roll" = true )|| ( "$etl_roll" = true )  || ( "$covid_cronjob_roll" = true ) || ("$fence_roll" = true) ]]; then
       echo "changes detected, rolling"
+      tmpHostname=$(gen3 api hostname)
+      if [[ $slack = true ]]; then
+        curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: Changes detected on ${tmpHostname} - rolling...\"}" "${slackWebHook}"
+      fi
+
       # run etl job before roll all so guppy can pick up changes
       if [[ "$etl_roll" = true ]]; then
           gen3 update_config etl-mapping "$(gen3 gitops folder)/etlMapping.yaml"
@@ -466,7 +477,6 @@ gen3_gitops_sync() {
       rollRes=$?
       # send result to slack
       if [[ $slack = true ]]; then
-        tmpHostname=$(gen3 api hostname)
         resStr="SUCCESS"
         color="#1FFF00"
         if [[ $rollRes != 0 ]]; then

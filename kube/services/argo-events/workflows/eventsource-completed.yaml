@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: argo-workflow-ended-source
+  namespace: argo-events
+spec:
+  template:
+    serviceAccountName: default
+  resource:
+    workflow-ended:
+      namespace: argo
+      group: argoproj.io
+      version: v1alpha1
+      resource: workflows
+      eventTypes:
+        - UPDATE
+      filter:
+        labels: 
+          - key: workflows.argoproj.io/completed
+            value: "true"

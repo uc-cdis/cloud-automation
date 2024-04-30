@@ -42,8 +42,8 @@ if [[ -z "$JENKINS_HOME" && -f "$(gen3_secrets_folder)/creds.json" ]]; then
   if gen3_time_since postgres_checkup is 120; then
     # Grant permissions to peregrine
     sqlList=(
-      "GRANT SELECT ON ALL TABLES IN SCHEMA public TO $peregrine_db_user;"
-      "ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO $peregrine_db_user;"
+      "GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"$peregrine_db_user\";"
+      "ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO \"$peregrine_db_user\";"
     );
     for sql in "${sqlList[@]}"; do
       gen3_log_info "Running: $sql"

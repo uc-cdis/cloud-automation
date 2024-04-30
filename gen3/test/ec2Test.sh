@@ -1,6 +1,6 @@
 
 
-if ! EC2_TEST_IP="$(g3kubectl get nodes -o json | jq -r -e '.items[0].status.addresses[] | select(.type == "InternalIP") | .address')" || [[ -z "$EC2_TEST_IP" ]]; then
+if ! EC2_TEST_IP="$(g3kubectl get nodes -o json | jq -r -e '.items[3].status.addresses[] | select(.type == "InternalIP") | .address')" || [[ -z "$EC2_TEST_IP" ]]; then
   gen3_log_err "ec2Test failed to acquire IP address of a k8s node to test against"
 fi
 

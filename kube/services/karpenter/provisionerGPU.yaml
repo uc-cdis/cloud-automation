@@ -1,0 +1,29 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: gpu
+spec:
+  ttlSecondsAfterEmpty: 300
+  labels:
+    jina.ai/node-type: gpu
+    jina.ai/gpu-type: nvidia
+  requirements:
+    - key: node.kubernetes.io/instance-type
+      operator: In
+      values: ["g4dn.xlarge", "g4dn.2xlarge", "g4dn.4xlarge", "g4dn.12xlarge"]
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["spot", "on-demand"]
+    - key: kubernetes.io/arch
+      operator: In
+      values: ["amd64"]
+  taints:
+    - key: nvidia.com/gpu
+      effect: "NoSchedule"
+  limits:
+    resources:
+      cpu: 1000
+  # Use the default node template
+  providerRef:
+    name: gpu
+  ttlSecondsAfterEmpty: 30

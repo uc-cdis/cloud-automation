@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: karpenter-reconciler
+  namespace: argo-events
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: karpenter-admin-binding-reconciler
+subjects:
+  - kind: ServiceAccount
+    name: karpenter-reconciler
+    namespace: argo-events
+roleRef:
+  kind: ClusterRole
+  name: karpenter-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: workflow-viewer-reconciler
+subjects:
+  - kind: ServiceAccount
+    name: karpenter-reconciler
+    namespace: argo-events
+roleRef:
+  kind: ClusterRole
+  name: argo-argo-workflows-view
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: viewer-reconciler
+subjects:
+  - kind: ServiceAccount
+    name: karpenter-reconciler
+    namespace: argo-events
+roleRef:
+  kind: ClusterRole
+  name: system:aggregate-to-view
+  apiGroup: rbac.authorization.k8s.io

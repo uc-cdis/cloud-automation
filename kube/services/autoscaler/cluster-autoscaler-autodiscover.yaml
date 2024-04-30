@@ -35,6 +35,7 @@ rules:
   - apiGroups: [""]
     resources:
       - "pods"
+      - "namespaces"
       - "services"
       - "replicationcontrollers"
       - "persistentvolumeclaims"
@@ -152,7 +153,6 @@ spec:
           name: cluster-autoscaler
           resources:
             limits:
-              cpu: 1000m
               memory: 1600Mi
             requests:
               cpu: 100m

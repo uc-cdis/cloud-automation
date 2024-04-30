@@ -37,6 +37,7 @@ module "jupyter_pool" {
   nodepool_asg_min_size         = "${var.jupyter_asg_min_size}"
   activation_id                = "${var.activation_id}"
   customer_id                  = "${var.customer_id}"
+  fips_enabled_ami             = "${local.ami}"
 }
 
 module "workflow_pool" {
@@ -62,6 +63,7 @@ module "workflow_pool" {
   nodepool_asg_min_size         = "${var.workflow_asg_min_size}"
   activation_id                = "${var.activation_id}"
   customer_id                  = "${var.customer_id}"
+  fips_enabled_ami             = "${local.ami}"
 }
 
 
@@ -398,6 +400,12 @@ resource "aws_iam_policy" "asg_access" {
                 "autoscaling:DescribeLaunchConfigurations"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "ec2:CreateTags",
+            "Resource": "arn:aws:ec2:*:${data.aws_caller_identity.current.account_id}:instance/*"
         }
     ]
 }
@@ -418,6 +426,11 @@ resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKSWorkerNodePolicy" {
 
 resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKS_CNI_Policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = "${aws_iam_role.eks_node_role.name}"
+}
+
+resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKSCSIDriverPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   role       = "${aws_iam_role.eks_node_role.name}"
 }
 
