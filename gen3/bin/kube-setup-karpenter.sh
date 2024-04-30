@@ -25,13 +25,13 @@ gen3_deploy_karpenter() {
       fi
       export clusterversion=`kubectl version -o json | jq -r .serverVersion.minor`
       if [ "${clusterversion}" = "28+" ]; then
-        karpenter=${karpenter:-v0.32.0}
+        karpenter=${karpenter:-v0.32.9}
       elif [ "${clusterversion}" = "25+" ]; then
         karpenter=${karpenter:-v0.27.0}
       elif [ "${clusterversion}" = "24+" ]; then
         karpenter=${karpenter:-v0.24.0}
       else
-        karpenter=${karpenter:-v0.32.0}
+        karpenter=${karpenter:-v0.32.9}
       fi
       local queue_name="$(gen3 api safe-name karpenter-sqs)"
       echo '{
