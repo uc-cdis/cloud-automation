@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: node-monitor-application
+  name: argo-workflow-age-monitor-application
   namespace: argocd
 spec:
   destination:

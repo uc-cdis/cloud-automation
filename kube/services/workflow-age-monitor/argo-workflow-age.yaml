@@ -12,7 +12,7 @@ spec:
           labels:
             app: gen3job
         spec:
-          serviceAccountName: workflow-monitor
+          serviceAccountName: argo-workflow-monitor
           containers:
             - name: kubectl
               image: quay.io/cdis/awshelper
