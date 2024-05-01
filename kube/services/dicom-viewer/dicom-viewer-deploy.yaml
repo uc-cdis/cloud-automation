@@ -66,17 +66,17 @@ spec:
         readinessProbe:
           httpGet:
             path: /
-            port: 8080
+            port: 80
           initialDelaySeconds: 5
           periodSeconds: 20
           timeoutSeconds: 30
         livenessProbe:
           httpGet:
             path: /
-            port: 8080
+            port: 80
           initialDelaySeconds: 5
           periodSeconds: 60
           timeoutSeconds: 30
         ports:
-        - containerPort: 8080
+        - containerPort: 80
         
