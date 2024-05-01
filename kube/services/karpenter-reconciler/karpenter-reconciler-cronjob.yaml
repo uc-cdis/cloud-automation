@@ -58,7 +58,7 @@ spec:
                     workflow_name=$(echo "$workflow" | awk '{print $1}')
                     workflow_user=$(echo "$workflow" | awk '{print $2}')
 
-                    if [ -n "$workflow_name" ]; then
+                    if [ ! -z "$workflow_name" ]; then
                       if ! kubectl get awsnodetemplate workflow-$workflow_name >/dev/null 2>&1; then
                         echo "No awsnodetemplate found for ${workflow_name}, creating one"
                         sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$AWSNODETEMPLATE_TEMPLATE" | kubectl apply -f -
