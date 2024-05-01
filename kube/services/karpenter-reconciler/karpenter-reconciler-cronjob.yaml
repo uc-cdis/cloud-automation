@@ -43,15 +43,15 @@ spec:
 
                   ENVIRONMENT=$(kubectl -n default get configmap global -o jsonpath="{.data.environment}")
 
-                  RAW_WORKFLOWS=$(kubectl get workflows -n argo -o yaml)
-
-                  WORKFLOWS=$(echo "${RAW_WORKFLOWS}" | yq -r '.items[] | [.metadata.name, .metadata.labels.gen3username] | join(" ")')
+                  WORKFLOWS=$(kubectl get workflows -n argo -o=jsonpath='{range .items[*]}{.metadata.name}{" "}{.metadata.labels.gen3username}{"\n"}')
 
                   WORKFLOW_ARRAY=()
 
                   while IFS= read -r line; do
                     WORKFLOW_ARRAY+=("$line")
                   done <<< "$WORKFLOWS"
+
+                  echo $WORKFLOWS
 
                   for workflow in "${WORKFLOW_ARRAY[@]}"
                   do
