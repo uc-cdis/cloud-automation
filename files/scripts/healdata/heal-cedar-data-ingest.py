@@ -227,24 +227,24 @@ while limit + offset <= total:
         returned_records = len(metadata_return["metadata"]["records"])
         print(f"Successfully got {returned_records} record(s) from CEDAR directory")
         for cedar_record in metadata_return["metadata"]["records"]:
-            # get the appl id from cedar for querying in our MDS
-            cedar_appl_id = pydash.get(
-                cedar_record, "metadata_location.nih_application_id"
+            # get the CEDAR instance id from cedar for querying in our MDS
+            cedar_instance_id = pydash.get(
+                cedar_record, "metadata_location.cedar_study_level_metadata_template_instance_ID"
             )
-            if cedar_appl_id is None:
-                print("This record doesn't have appl_id, skipping...")
+            if cedar_instance_id is None:
+                print("This record doesn't have CEDAR instance id, skipping...")
                 continue
 
-            # Get the metadata record for the nih_application_id
+            # Get the metadata record for the CEDAR instance id
             mds = requests.get(
-                f"http://revproxy-service/mds/metadata?gen3_discovery.study_metadata.metadata_location.nih_application_id={cedar_appl_id}&data=true"
+                f"http://revproxy-service/mds/metadata?gen3_discovery.study_metadata.metadata_location.cedar_study_level_metadata_template_instance_ID={cedar_instance_id}&data=true"
             )
             if mds.status_code == 200:
                 mds_res = mds.json()
 
                 # the query result key is the record of the metadata. If it doesn't return anything then our query failed.
                 if len(list(mds_res.keys())) == 0 or len(list(mds_res.keys())) > 1:
-                    print("Query returned nothing for", cedar_appl_id, "appl id")
+                    print(f"Query returned nothing for template_instance_ID={cedar_instance_id}&data=true")
                     continue
 
                 # get the key for our mds record
@@ -394,3 +394,6 @@ while limit + offset <= total:
     offset = offset + limit
     if (offset + limit) > total:
         limit = total - offset
+
+    if limit < 0:
+        break
