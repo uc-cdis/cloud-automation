@@ -83,12 +83,12 @@ EOM
 EOM
   fi
 
-  if g3k_manifest_lookup .versions["dicom-server"] > /dev/null 2>&1; then
+  if g3k_manifest_lookup '.versions["dicom-server"]' > /dev/null 2>&1; then
     export DICOM_SERVER_URL="/dicom-server"
     gen3_log_info "attaching ohif viewer to old dicom-server (orthanc w/ aurora)"
   fi
 
-  if g3k_manifest_lookup .versions["orthanc"] > /dev/null 2>&1; then
+  if g3k_manifest_lookup .versions.orthanc > /dev/null 2>&1; then
     export DICOM_SERVER_URL="/orthanc"
     gen3_log_info "attaching ohif viewer to new dicom-server (orthanc w/ s3)"
   fi
