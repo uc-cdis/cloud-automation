@@ -86,7 +86,7 @@ spec:
           periodSeconds: 60
           timeoutSeconds: 30
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         volumeMounts:
         - name: config-volume-g3auto
           readOnly: true
