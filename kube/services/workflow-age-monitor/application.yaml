@@ -10,7 +10,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/uc-cdis/cloud-automation.git
-    targetRevision: feat/long-running-workflow-alert
+    targetRevision: master
     path: kube/services/workflow-age-monitor/
     directory:
       exclude: "application.yaml"
