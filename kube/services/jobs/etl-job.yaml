@@ -43,6 +43,10 @@ spec:
       - name: tube
         imagePullPolicy: Always
         GEN3_TUBE_IMAGE
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: 2
         ports:
         - containerPort: 80
         env:

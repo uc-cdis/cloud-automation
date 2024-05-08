@@ -21,6 +21,7 @@ if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
     if ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names ${envname}-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)" \
         && [[ -n "${ES_ENDPOINT}" && -n "${envname}" ]]; then
       gen3 roll aws-es-proxy GEN3_ES_ENDPOINT "${ES_ENDPOINT}"
+           g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-priority-class.yaml" 
       g3kubectl apply -f "${GEN3_HOME}/kube/services/aws-es-proxy/aws-es-proxy-service.yaml"
       gen3_log_info "kube-setup-aws-es-proxy" "The aws-es-proxy service has been deployed onto the k8s cluster."
     else
