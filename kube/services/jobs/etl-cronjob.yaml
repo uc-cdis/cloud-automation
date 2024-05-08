@@ -49,6 +49,10 @@ spec:
               ports:
               - containerPort: 80
               GEN3_TUBE_IMAGE
+              resources:
+              requests:
+                memory: 2Gi
+                cpu: 2
               env:
               - name: DICTIONARY_URL
                 valueFrom:
