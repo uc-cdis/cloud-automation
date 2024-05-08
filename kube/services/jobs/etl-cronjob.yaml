@@ -96,7 +96,7 @@ spec:
               resources:
                 limits:
                   cpu: 2
-                  memory: 15Gi
+                  memory: 10Gi
                 requests:
                   cpu: 2
               command: ["/bin/bash"]
