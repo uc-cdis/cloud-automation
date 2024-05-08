@@ -1,7 +1,7 @@
 #!groovy
 
 // See 'Loading libraries dynamically' here: https://jenkins.io/doc/book/pipeline/shared-libraries/
-library 'cdis-jenkins-lib@master'
+library 'cdis-jenkins-lib@feat/GPE-1309'
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 
