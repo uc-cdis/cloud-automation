@@ -1,0 +1,2 @@
+# TODO: Move chart to gen3-helm and add values here to be used by chart and /or app
+# Long term this should be in gen3-gitop
