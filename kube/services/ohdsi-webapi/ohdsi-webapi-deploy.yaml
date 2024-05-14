@@ -59,13 +59,6 @@ spec:
       containers:
         - name: ohdsi-webapi
           GEN3_OHDSI-WEBAPI_IMAGE|-image: quay.io/cdis/ohdsi-webapi:latest-|
-          env:
-            - name: ARBORIST_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: manifest-global
-                  key: arborist_url
-                  optional: true
           livenessProbe:
             httpGet:
               path: /WebAPI/info/
@@ -90,7 +83,7 @@ spec:
             limits:
               memory: 4Gi  
         - name: ohdsi-webapi-reverse-proxy
-          image: nginx:1.23
+          image: 707767160287.dkr.ecr.us-east-1.amazonaws.com/gen3/nginx:1.23
           ports:
           - containerPort: 80
           volumeMounts:

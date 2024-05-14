@@ -173,6 +173,10 @@ db_restore() {
     gen3 job run psql-db-prep-restore
 }
 
+va_testing_db_dump() {
+  gen3 job run psql-db-dump-va-testing
+}
+
 
 # main function to determine whether dump or restore
 main() {
@@ -191,8 +195,15 @@ main() {
             create_s3_bucket
             db_restore
             ;;
+        va-dump)
+            gen3_log_info "Running a va-testing DB dump..."
+            create_policy
+            create_service_account_and_role
+            create_s3_bucket
+            va_testing_db_dump
+            ;;
         *)
-            echo "Invalid command. Usage: gen3 dbbackup [dump|restore]"
+            echo "Invalid command. Usage: gen3 dbbackup [dump|restore|va-dump]"
             return 1
             ;;
     esac

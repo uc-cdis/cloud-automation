@@ -7,6 +7,7 @@ achecker.ca
 apache.github.io
 api.epigraphdb.org
 api.monqcle.com
+awslabs.github.io
 biodata-integration-tests.net
 marketing.biorender.com
 clinicaltrials.gov
@@ -15,7 +16,6 @@ ctds-planx.atlassian.net
 data.cityofchicago.org
 dataguids.org
 api.login.yahoo.com
-api.snapcraft.io
 apt.kubernetes.io
 argoproj.github.io
 archive.cloudera.com
@@ -34,6 +34,7 @@ cernvm.cern.ch
 charts.bitnami.com
 charts.helm.sh
 cloud.r-project.org
+coredns.github.io
 coreos.com
 covidstoplight.org
 cpan.mirrors.tds.net
@@ -76,6 +77,8 @@ go.googlesource.com
 golang.org
 gopkg.in
 grafana.com
+grafana.github.io
+helm.elastic.co
 http.us.debian.org
 ifconfig.io
 ingress.coralogix.us
@@ -144,6 +147,7 @@ repos.sensuapp.org
 repo.vmware.com
 repository.cloudera.com
 resource.metadatacenter.org
+rmq.n3c.ncats.io
 rules.emergingthreats.net
 rweb.quant.ku.edu
 sa-update.dnswl.org
@@ -162,3 +166,5 @@ www.rabbitmq.com
 www.uniprot.org
 vpodc.org
 yahoo.com
+idp.stage.qdr.org
+stage.qdr.org

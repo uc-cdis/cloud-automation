@@ -8,6 +8,9 @@ DISTRO=$(awk -F '[="]*' '/^NAME/ { print $2 }' < /etc/os-release)
 WORK_USER="ubuntu"
 if [[ $DISTRO == "Amazon Linux" ]]; then
   WORK_USER="ec2-user"
+  if [[ $(awk -F '[="]*' '/^VERSION_ID/ { print $2 }' < /etc/os-release) == "2023" ]]; then
+    DISTRO="al2023"
+  fi
 fi
 HOME_FOLDER="/home/${WORK_USER}"
 SUB_FOLDER="${HOME_FOLDER}/cloud-automation"
@@ -60,6 +63,8 @@ fi
 function install_basics(){
   if [[ $DISTRO == "Ubuntu" ]]; then
     apt -y install atop
+  elif [[ $DISTRO == "al2023" ]]; then
+    sudo dnf install cronie nc -y
   fi
 }
 
@@ -69,10 +74,18 @@ function install_docker(){
   # Docker
   ###############################################################
   # Install docker from sources
-  curl -fsSL ${DOCKER_DOWNLOAD_URL}/gpg | sudo apt-key add -
-  add-apt-repository "deb [arch=amd64] ${DOCKER_DOWNLOAD_URL} $(lsb_release -cs) stable"
-  apt update
-  apt install -y docker-ce
+  if [[ $DISTRO == "Ubuntu" ]]; then
+    curl -fsSL ${DOCKER_DOWNLOAD_URL}/gpg | sudo apt-key add -
+    add-apt-repository "deb [arch=amd64] ${DOCKER_DOWNLOAD_URL} $(lsb_release -cs) stable"
+    apt update
+    apt install -y docker-ce
+  else
+    sudo yum update -y
+    sudo yum install -y docker   
+    # Start and enable Docker service
+    sudo systemctl start docker
+    sudo systemctl enable docker
+  fi
   mkdir -p /etc/docker
   cp ${SUB_FOLDER}/flavors/squid_auto/startup_configs/docker-daemon.json /etc/docker/daemon.json
   chmod -R 0644 /etc/docker
@@ -201,8 +214,10 @@ function install_awslogs {
   if [[ $DISTRO == "Ubuntu" ]]; then
     wget ${AWSLOGS_DOWNLOAD_URL} -O amazon-cloudwatch-agent.deb
     dpkg -i -E ./amazon-cloudwatch-agent.deb
-  else
+  elif [[ $DISTRO == "Amazon Linux" ]]; then
     sudo yum install amazon-cloudwatch-agent nc -y
+  elif [[ $DISTRO == "al2023" ]]; then
+    sudo dnf install amazon-cloudwatch-agent -y
   fi
   
   # Configure the AWS logs
@@ -292,6 +307,19 @@ function main(){
       --volume ${SQUID_CACHE_DIR}:${SQUID_CACHE_DIR} \
       --volume ${SQUID_CONFIG_DIR}:${SQUID_CONFIG_DIR}:ro \
        quay.io/cdis/squid:${SQUID_IMAGE_TAG}
+
+  max_attempts=10
+  attempt_counter=0
+  while [ $attempt_counter -lt $max_attempts ]; do
+    #((attempt_counter++))
+    sleep 10
+    if [[ -z "$(sudo lsof -i:3128)" ]]; then
+      echo "Squid not healthy, restarting."
+      docker restart squid
+    else
+      echo "Squid healthy"
+    fi
+  done
 }
 
 main
