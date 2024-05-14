@@ -1,6 +1,6 @@
 # TL;DR
 
-We deploy [prometheus](https://prometheus.io) onto a kubernetes cluster with `kube-setup-prometheus`.
+We deploy [prometheus](https://prometheus.io) like database called mimir onto a kubernetes cluster with `kube-setup-monitoring`.
 
 ## Overview
 
