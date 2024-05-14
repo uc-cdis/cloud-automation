@@ -53,7 +53,7 @@ function delete_prometheus()
 
 function cleanup_old_monitoring() {
   gen3_log_info "cleaning up old monitoring set up"
-  if $argocd; then
+  if [ "$argocd" == "true" ]; then
     if (kubectl get app -n argocd prometheus-application > /dev/null 2>&1); then
       gen3_log_info "Deleting old prometheus set up"
       g3kubectl delete app prometheus-application -n argocd &
@@ -84,7 +84,7 @@ function setup_s3_backend () {
 
 function deploy_lgtma() {
   gen3_log_info "Deploying LGTM stack from grafana for monitoring/observability"
-  if $argocd; then
+  if [ "$argocd" == "true" ]; then
     gen3_log_info "ArgoCD has been enabled, will deploy the LGTMA stack as argocd app"
     g3kubectl apply -f "${GEN3_HOME}/kube/services/monitoring/lgtma-app.yaml"
     environment="$(gen3 api environment)"
