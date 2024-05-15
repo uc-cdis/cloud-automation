@@ -23,9 +23,9 @@ data:
       // permissions. By default, this is set to true
       configLocal.enablePermissionManagement = true;  // Default is false
       // If the enablePermissionManagement is set to true, you can specify
-      // an ID for  specific role to use for concept set and cohort definition permission
-      // management. Leave blank if all users should have that ability
-      configLocal.permissionManagementRoleId = '1020';  // Default is '' - all users can share
+      // if this capability should be limited to only users that have a
+      // specific permission for this. Leave false if all users should have that ability.
+      configLocal.limitedPermissionManagement = true;  // Default is false all users can share
       configLocal.cohortComparisonResultsEnabled = false;
       configLocal.userAuthenticationEnabled = true;
       configLocal.plpResultsEnabled = false;
