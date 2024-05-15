@@ -115,6 +115,10 @@ function deploy_monitoring()
   # Deploy loki (logs), grafana (frontend), tempo (tracing), mimir (metrics) and alloy (agent)
   deploy_lgtma
 
+  # kube-setup-revproxy
+  if [[ -z "$GEN3_ROLL_ALL" ]]; then
+  gen3 kube-setup-revproxy
+fi
 
 }
 
