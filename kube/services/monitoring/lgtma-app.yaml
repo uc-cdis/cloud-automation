@@ -112,8 +112,11 @@ spec:
                       bucketnames: CURRENT_ENV-observability-bucket
 
           grafana:
+            persistence:
+              enabled: true
+              size: 10Gi
             image:
-              tag: 11.0.0-preview
+              tag: 11.0.0
             dashboardProviders:
               dashboardproviders.yaml:
                 apiVersion: 1
