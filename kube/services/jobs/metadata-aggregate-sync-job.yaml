@@ -76,10 +76,10 @@ spec:
                   optional: true
             - name: AGG_MDS_DEFAULT_DATA_DICT_FIELD
               valueFrom:
-              configMapKeyRef:
-                name: manifest-metadata
-                key: AGG_MDS_DEFAULT_DATA_DICT_FIELD
-                optional: true
+                configMapKeyRef:
+                  name: manifest-metadata
+                  key: AGG_MDS_DEFAULT_DATA_DICT_FIELD
+                  optional: true
           imagePullPolicy: Always
           command: ["/bin/sh"]
           args:
