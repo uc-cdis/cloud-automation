@@ -57,10 +57,23 @@ function cleanup_old_monitoring() {
     if (kubectl get app -n argocd prometheus-application > /dev/null 2>&1); then
       gen3_log_info "Deleting old prometheus set up"
       g3kubectl delete app prometheus-application -n argocd &
-      g3kubectl patch app prometheus-application  -p '{"metadata": {"finalizers": ["resources-finalizer.argocd.argoproj.io"]}}' --type merge -n argocd
+      # Have argocd not to wait for the app to be deleted
+      g3kubectl patch app prometheus-application  -p '{"metadata": {"finalizers": ["resources-finalizer.argocd.argoproj.io"]}}' --type merge -n argocd || true
     fi
-  # else 
-  # TODO: Delete helm deployment if it exists of the old apps
+  else 
+    # Check if the 'prometheus' release exists in the 'monitoring' namespace
+    if helm list -n monitoring -q | grep -qw "prometheus"; then
+        echo "Helm release 'prometheus' found in 'monitoring' namespace. Deleting..."
+        # Attempt to delete the 'prometheus' release
+        helm uninstall prometheus -n monitoring
+        if [ $? -eq 0 ]; then
+            echo "Helm release 'prometheus' successfully deleted."
+        else
+            echo "Failed to delete Helm release 'prometheus'."
+        fi
+    else
+        echo "No 'prometheus' release found in 'monitoring' namespace."
+    fi
   fi
 
   # Delete thanos resources
