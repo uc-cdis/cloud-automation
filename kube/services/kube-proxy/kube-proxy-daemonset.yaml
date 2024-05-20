@@ -150,6 +150,11 @@ spec:
       containers:
       - name: kube-proxy
         image: ${kube_proxy_image}
+        ports:
+        - containerPort: 10249
+          hostPort: 10249
+          name: metrics
+          protocol: TCP
         resources:
           requests:
             cpu: 100m

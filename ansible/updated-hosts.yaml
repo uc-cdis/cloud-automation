@@ -1,0 +1,282 @@
+---
+all:
+  children:
+    adminvms:
+      hosts:
+        account_admin:
+          ansible_host: account.csoc
+        anvil_admin:
+          ansible_host: anvil.csoc
+        vadc_admin:
+          ansible_host: vadc.csoc
+        dcfqa_admin:
+          ansible_host: dcfqa.csoc
+        dcfprod_admin:
+          ansible_host: dcfprod.csoc
+        genomel_admin:
+          ansible_host: genomel.csoc
+        ibdgc_admin:
+          ansible_host: ibdgc.csoc
+        occ_admin:
+          ansible_host: occ.csoc
+        occ-edc_admin:
+          ansible_host: occ-edc.csoc
+        niaiddh_admin:
+          ansible_host: niaiddh.csoc
+        gtex_admin:
+          ansible_host: gtex.csoc
+        kf_admin:
+          ansible_host: kf.csoc
+        gmkfqa_admin:
+          ansible_host: gmkfqa.csoc
+        ncicrdc_admin:
+          ansible_host: ncicrdc.csoc
+        cdistest_admin:
+          ansible_host: cdistest.csoc
+        jcoin_admin:
+          ansible_host: jcoin.csoc
+        oadc_admin:
+          ansible_host: oadc.csoc
+        vhdc_admin:
+          ansible_host: vhdc.csoc
+        covid19_admin:
+          ansible_host: covid19.csoc
+        midrc_admin: 
+          ansible_host: midrc.csoc
+        heal_admin: 
+          ansible_host: heal.csoc
+        brh_admin: 
+          ansible_host: brh.csoc
+      vars:
+        ansible_user: ubuntu
+        ansible_python_interpreter: /usr/bin/python3
+
+    other_admins:
+      hosts:
+        canine_admin:
+          ansible_host: canine.csoc
+        # unreachable
+        # ncigdc_admin:
+        #   ansible_host: 10.128.2.112
+        dcfbuckets_admin:
+          ansible_host: 10.128.2.181
+        # unreachable
+        # pdcgen3_admin:
+        #   ansible_host: 10.128.2.241
+      vars:
+        ansible_user: ubuntu
+
+    commons:
+      hosts:
+        accountprod_commons:
+          ansible_user: accountprod
+          ansible_host: account.csoc
+        anvilprod_commons:
+          ansible_user: anvilprod
+          ansible_host: anvil.csoc
+        vadcprod_commons:
+          ansible_user: vadcprod
+          ansible_host: vadc.csoc
+        dcfprod_commons:
+          ansible_user: dcfprod
+          ansible_host: dcfprod.csoc
+        qa-biologin_commons:
+          ansible_user: qa-biologin
+          ansible_host: genomel.csoc
+        genomelprod_commons:
+          ansible_user: genomelprod
+          ansible_host: genomel.csoc
+        ibdgc_commons:
+          ansible_user: ibdgc
+          ansible_host: ibdgc.csoc
+        bloodv2_commons:
+          ansible_user: bloodv2
+          ansible_host: occ.csoc
+        edcprodv2_commons:
+          ansible_user: edcprodv2
+          ansible_host: occ-edc.csoc
+        niaidprod_commons:
+          ansible_user: niaidprod
+          ansible_host: niaiddh.csoc
+        dataguis_commons:
+          ansible_user: dataguids
+          ansible_host: gtex.csoc
+        prodv1_commons:
+          ansible_user: prodv1
+          ansible_host: kf.csoc
+        loginbionimbus_commons:
+          ansible_user: loginbionimbus
+          ansible_host: genomel.csoc
+        canineprod_commons:
+          ansible_user: canineprod
+          ansible_host: canine.csoc
+        icgc_commons:
+          ansible_user: icgc
+          ansible_host: genomel.csoc
+        niaiddata_commons:
+          ansible_user: niaiddata
+          ansible_host: niaiddh.csoc
+        jcoinprod_commons:
+          ansible_user: jcoinprod
+          ansible_host: jcoin.csoc
+        fitbirprod_commons:
+          ansible_user: fitbirprod
+          ansible_host: oadc.csoc
+        oadc_commons:
+          ansible_user: oadc
+          ansible_host: oadc.csoc
+        neuro_commons:
+          ansible_user: neuro
+          ansible_host: oadc.csoc
+        vhdcprod_commons:
+          ansible_user: vhdcprod
+          ansible_host: vhdc.csoc
+        covid19prod_commons:
+          ansible_user: covid19prod
+          ansible_host: covid19.csoc
+        bdcatprod_commons:
+          ansible_user: bdcatprod
+          ansible_host: gtex.csoc
+        midrc_commons:
+          ansible_user: midrcprod
+          ansible_host: midrc.csoc
+        heal_commons:
+          ansible_user: healprod
+          ansible_host: heal.csoc
+        brh_commons:
+          ansible_user: brhprod
+          ansible_host: brh.csoc
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
+    staging:
+      hosts:
+        stagingdatastage_commons:
+          ansible_user: stagingdatastage
+          ansible_host: gtex.csoc
+        dcfstaging_commons:
+          ansible_user: staging
+          ansible_host: dcfprod.csoc
+        anvilstaging_commons:
+          ansible_user: anvilstaging
+          ansible_host: anvil.csoc
+        midrcstaging_commons:
+          ansible_user: staging-validate
+          ansible_host: midrc.csoc
+        brhstaging_commons:
+          ansible_user: brhstaging
+          ansible_host: brh.csoc
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+    namespaces:
+      hosts:
+        charlie_commons:
+          ansible_user: charlie
+          ansible_host: niaiddh.csoc
+        tb_commons:
+          ansible_user: tb
+          ansible_host: niaiddh.csoc
+        microbiome_commons:
+          ansible_user: microbiome
+          ansible_host: niaiddh.csoc
+        flu_commons:
+          ansible_user: flu
+          ansible_host: niaiddh.csoc
+        clinicaltrial_commons:
+          ansible_user: clinicaltrial
+          ansible_host: niaiddh.csoc
+        preprod_commons:
+          ansible_user: bdcat-internalstaging
+          ansible_host: gtex.csoc
+        va-testing_commons:
+          ansible_user: va-testing
+          ansible_host: vhdc.csoc
+        validate_commons:
+          ansible_user: validate
+          ansible_host: midrc.csoc
+        healpreprod_commons:
+          ansible_user: healpreprod
+          ansible_host: heal.csoc
+        healworkspaces_commons:
+          ansible_user: healworkspaces
+          ansible_host: heal.csoc
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
+    dev:
+      hosts:
+        cdistest_dev:
+          ansible_user: devplanetv1
+          ansible_host: cdistest.csoc
+        cdistest_qav1:
+          ansible_user: qaplanetv1
+          ansible_host: cdistest.csoc
+        cdistest_qav2:
+          ansible_user: qaplanetv2
+          ansible_host: cdistest.csoc
+        cdistest_emalinowskiv1:
+          ansible_user: emalinowskiv1
+          ansible_host: cdistest.csoc
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
+    qa:
+      hosts:
+        qa_biologin:
+          ansible_user: qa-biologin
+          ansible_host: genomel.csoc
+        kfqa_qa:
+          ansible_user: kfqa
+          ansible_host: gmkfqa.csoc
+        gmkfqa_qa:
+          ansible_user: skfqa
+          ansible_host: gmkfqa.csoc
+        kfqa2_qa:
+          ansible_user: kfqa2
+          ansible_host: gmkfqa.csoc
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+
+    demo:
+      hosts:
+        ncicrdc_demo:
+          ansible_user: ncicrdcdemo
+          ansible_host: ncicrdc.csoc
+        brh_demo:
+          ansible_user: brhdemo
+          ansible_host: brh.csoc
+
+    vpn:
+      hosts:
+        vpn_prod:
+          ansible_host: csoc-prod-vpn.planx-pla.net
+          ansible_user: ubuntu
+        vpn_dev:
+          ansible_host: csoc-dev-vpn.planx-pla.net
+          ansible_user: ubuntu
+    revproxy:
+      hosts:
+        es_a:
+          ansible_host: 10.128.7.8
+        es_b:
+          ansible_host: 10.128.7.23
+      vars:
+        ansible_user: ubuntu
+
+    cdistest:
+      hosts:
+        cdistest_fauzi:
+          ansible_host: cdistest.csoc 
+          ansible_user: fauziv1
+
+    csoc_squids:
+      hosts:
+        csocsquidnlbcentral1:
+          ansible_host: 10.128.4.101
+        #unreachable
+        # csocsquidnlbcentral2:
+        #   ansible_host: 10.128.4.30
+        csocsquidnlbcentral3:
+          ansible_host: 10.128.4.169
+      vars:
+        ansible_user: ubuntu

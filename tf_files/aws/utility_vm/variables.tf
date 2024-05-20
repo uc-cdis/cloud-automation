@@ -1,4 +1,5 @@
 # id of AWS account that owns the public AMI's
+
 variable "ami_account_id" {
   # by default lets use canonical stuff only
   default = "099720109477"
@@ -26,6 +27,7 @@ variable "vpc_cidr_list" {
 }
 
 # name of aws_key_pair ssh key to attach to VM's
+
 variable "ssh_key_name" {
 }
 
@@ -38,7 +40,7 @@ variable "instance_type" {
 }
 
 variable "image_name_search_criteria" {
-  default = "ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-2018*"
+  default = "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-2022*"
 }
 
 variable "extra_vars" {

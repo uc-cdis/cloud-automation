@@ -20,13 +20,22 @@ gen3_awsrole_help() {
 # NOTE: service-account to role is 1 to 1
 #
 # @param serviceAccount to link to the role
+# @param flag (optional) - specify a flag to use a different trust policy
 #
 function gen3_awsrole_ar_policy() {
   local serviceAccount="$1"
   shift || return 1
+  if [[ -z $1 ]] || [[ $1 == -* ]]; then
+    namespace=$(gen3 db namespace)
+  else
+    namespace=$1
+    shift
+  fi
   local issuer_url
   local account_id
   local vpc_name
+  local flag=$flag
+
   vpc_name="$(gen3 api environment)" || return 1
   issuer_url="$(aws eks describe-cluster \
                        --name ${vpc_name} \
@@ -37,7 +46,42 @@ function gen3_awsrole_ar_policy() {
 
   local provider_arn="arn:aws:iam::${account_id}:oidc-provider/${issuer_url}"
 
-  cat - <<EOF
+  if [[ "$flag" == "-all_namespaces" ]]; then
+    # Use a trust policy that allows role to be used by multiple namespaces.
+    cat - <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${provider_arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "ForAllValues:StringLike": {
+          "${issuer_url}:aud": "sts.amazonaws.com",
+          "${issuer_url}:sub": [
+            "system:serviceaccount:*:${serviceAccount}",
+            "system:serviceaccount:argo:default"
+          ]
+        }
+      }
+    }
+  ]
+}
+EOF
+  else
+    # Use default policy
+    cat - <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -56,13 +100,14 @@ function gen3_awsrole_ar_policy() {
       "Condition": {
         "StringEquals": {
           "${issuer_url}:aud": "sts.amazonaws.com",
-          "${issuer_url}:sub": "system:serviceaccount:$(gen3 db namespace):${serviceAccount}"
+          "${issuer_url}:sub": "system:serviceaccount:${namespace}:${serviceAccount}"
         }
       }
     }
   ]
 }
 EOF
+  fi
 }
 
 #
@@ -70,22 +115,28 @@ EOF
 #
 # @param saName
 # @param roleName
+# @param Optional - namespace
 #
 gen3_awsrole_sa_annotate() {
   local saName="$1"
   shift || return 1
   local roleName="$1"
   shift || return 1
+  if [[ ! -z $1 ]]; then
+    local namespace=$1
+  else
+    local namespace=$(gen3 db namespace)
+  fi
   local roleArn
   local roleInfo
   roleInfo="$(aws iam get-role --role-name "$roleName")" || return 1
   roleArn="$(jq -e -r .Role.Arn <<< "$roleInfo")"
 
-  if ! g3kubectl get sa "$saName" > /dev/null; then
-    g3kubectl create sa "$saName" || return 1
+  if ! g3kubectl get sa "$saName" --namespace=$namespace  > /dev/null; then
+    g3kubectl create sa "$saName" --namespace=$namespace || return 1
   fi
 
-  g3kubectl annotate --overwrite sa "$saName" "eks.amazonaws.com/role-arn=$roleArn"
+  g3kubectl annotate --overwrite sa "$saName" "eks.amazonaws.com/role-arn=$roleArn" --namespace=$namespace
 }
 
 #
@@ -110,14 +161,19 @@ _get_entity_type() {
 #
 # @param rolename
 # @param saName for assume-role policy document
+# @param flag (optional) - specify a flag to use a different trust policy
 #
 _tfplan_role() {
   local rolename="$1"
   shift || return 1
   local saName="$1"
   shift || return 1
+  local namespace="$1"
   local arDoc
-  arDoc="$(gen3_awsrole_ar_policy "$saName")" || return 1
+  local flag=$flag
+
+  arDoc="$(gen3_awsrole_ar_policy "$saName" "$namespace" "$flag")" || return 1
+
   gen3 workon default "${rolename}_role"
   gen3 cd
   cat << EOF > config.tfvars
@@ -132,7 +188,7 @@ EOF
 }
 
 #
-# Util for applying tfplan 
+# Util for applying tfplan
 #
 _tfapply_role() {
   local rolename=$1
@@ -170,6 +226,15 @@ gen3_awsrole_create() {
     gen3_log_err "use: gen3 awsrole create roleName saName"
     return 1
   fi
+  if [[ -z $1 ]] || [[ $1 == -* ]]; then
+    namespace=$(gen3 db namespace)
+  else
+    namespace=$1
+    shift
+  fi
+  if [[ ! -z $1 ]]; then
+    flag=$1
+  fi
   # do simple validation of name
   local regexp="^[a-z][a-z0-9\-]*$"
   if [[ ! $rolename =~ $regexp ]];then
@@ -183,6 +248,7 @@ EOF
     return 1
   fi
 
+
   # check if the name is already used by another entity
   local entity_type
   entity_type=$(_get_entity_type $rolename)
@@ -190,7 +256,7 @@ EOF
     # That name is already used.
     if [[ "$entity_type" =~ role ]]; then
       gen3_log_info "A role with that name already exists"
-      gen3_awsrole_sa_annotate "$saName" "$rolename"
+      gen3_awsrole_sa_annotate "$saName" "$rolename" "$namespace"
       return $?
     else
       gen3_log_err "A $entity_type with that name already exists"
@@ -199,14 +265,16 @@ EOF
   fi
 
   TF_IN_AUTOMATION="true"
-  if ! _tfplan_role $rolename $saName; then
+
+  if ! _tfplan_role $rolename $saName $namespace $flag; then
     return 1
   fi
+
   if ! _tfapply_role $rolename; then
     return 1
   fi
 
-  gen3_awsrole_sa_annotate "$saName" "$rolename"
+  gen3_awsrole_sa_annotate "$saName" "$rolename" "$namespace"
 }
 
 #

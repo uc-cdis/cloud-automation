@@ -6,7 +6,6 @@ variable "instance_type" {
   default = "t3.small"
 }
 
-
 variable "ssh_in_secgroup" {
   default = "ssh_eks_vadcprod"
 }

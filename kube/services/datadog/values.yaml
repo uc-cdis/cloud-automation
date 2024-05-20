@@ -10,9 +10,28 @@ datadog:
     useHostPort: true
     nonLocalTraffic: true
 
+  #This is used to configure a lot of checks that Datadog does. Normally, we would annotate a service, but since we
+  #use aurora, we'll have to configure from confd instead
+
+  #Enables Optional Universal Service Monitoring
+  ## ref: https://docs.datadoghq.com/tracing/universal_service_monitoring/?tab=helm
+  serviceMonitoring:
+    enabled: false
+
   # datadog.apiKeyExistingSecret -- Use existing Secret which stores API key instead of creating a new one. The value should be set with the `api-key` key inside the secret.
   ## If set, this parameter takes precedence over "apiKey".
-  apiKeyExistingSecret:  "datadog-agent"
+  apiKeyExistingSecret:  "ddgov-apikey"
+
+  # datadog.site -- The site of the Datadog intake to send Agent data to.
+  # (documentation: https://docs.datadoghq.com/getting_started/site/)
+
+  ## Set to 'datadoghq.com' to send data to the US1 site (default).
+  ## Set to 'datadoghq.eu' to send data to the EU site.
+  ## Set to 'us3.datadoghq.com' to send data to the US3 site.
+  ## Set to 'us5.datadoghq.com' to send data to the US5 site.
+  ## Set to 'ddog-gov.com' to send data to the US1-FED site.
+  ## Set to 'ap1.datadoghq.com' to send data to the AP1 site.
+  site: ddog-gov.com
 
   # datadog.kubeStateMetricsEnabled -- If true, deploys the kube-state-metrics deployment
   ## ref: https://github.com/kubernetes/kube-state-metrics/tree/kube-state-metrics-helm-chart-2.13.2/charts/kube-state-metrics
@@ -51,11 +70,13 @@ datadog:
   apm:
     # datadog.apm.socketEnabled -- Enable APM over Socket (Unix Socket or windows named pipe)
     ## ref: https://docs.datadoghq.com/agent/kubernetes/apm/
-    socketEnabled: true
+    socketEnabled: false
 
     # datadog.apm.portEnabled -- Enable APM over TCP communication (port 8126 by default)
     ## ref: https://docs.datadoghq.com/agent/kubernetes/apm/
-    portEnabled: true
+    portEnabled: false
+
+    enabled: false
 
     # datadog.apm.port -- Override the trace Agent port
     ## Note: Make sure your client is sending to the same UDP port.
@@ -84,6 +105,13 @@ datadog:
 
   ## Enable systemProbe agent and provide custom configs
   systemProbe:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 200Mi
+      limits:
+        cpu: 100m
+        memory: 200Mi
 
     # datadog.systemProbe.debugPort -- Specify the port to expose pprof and expvar for system-probe agent
     debugPort: 0
@@ -156,7 +184,7 @@ datadog:
 
   networkMonitoring:
     # datadog.networkMonitoring.enabled -- Enable network performance monitoring
-    enabled: true
+    enabled: false
 
 
   ## Enable security agent and provide custom configs
@@ -206,7 +234,8 @@ datadog:
       #   - send_distribution_buckets: true
       #     timeout: 5
 
-
+  containerExcludeLogs: "kube_namespace:logging kube_namespace:argo name:pelican-export* name:job-task"
+  containerExclude: "kube_namespace:logging kube_namespace:kube-system kube_namespace:kubecost kube_namespace:argo kube_namespace:cortex-xdr kube_namespace:monitoring kube_namespace:datadog" 
 ## This is the Datadog Cluster Agent implementation that handles cluster-wide
 ## metrics more cleanly, separates concerns for better rbac, and implements
 ## the external metrics API so you can autoscale HPAs based on datadog metrics
@@ -221,7 +250,7 @@ clusterAgent:
     name: cluster-agent
 
     # clusterAgent.image.tag -- Cluster Agent image tag to use
-    tag: 1.16.0
+    # tag: 1.16.0
 
     # clusterAgent.image.repository -- Override default registry + image.name for Cluster Agent
     repository:
@@ -264,10 +293,6 @@ agents:
   - effect: NoSchedule
     key: role
     operator: Equal
-    value: workflow
-  - effect: NoSchedule
-    key: role
-    operator: Equal
     value: jupyter
 
 
@@ -278,7 +303,7 @@ agents:
     name: agent
 
     # agents.image.tag -- Define the Agent version to use
-    tag: 7.32.4
+    # tag: 7.32.4
 
     # agents.image.tagSuffix -- Suffix to append to Agent tag
     ## Ex:
@@ -315,4 +340,3 @@ agents:
 
     # agents.rbac.serviceAccountAnnotations -- Annotations to add to the ServiceAccount if agents.rbac.create is true
     serviceAccountAnnotations: {}
-

@@ -1,11 +1,46 @@
 controller:
   parallelism: 10
+  namespaceParallelism: 5
   metricsConfig:
     # -- Enables prometheus metrics server
-    enabled: false
+    enabled: true
+    servicePort: 9090
+
+  resources:
+    requests:
+      memory: 8Gi
+    limits:
+      memory: 8Gi
+
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9090"
+
+    ad.datadoghq.com/controller.checks: |
+      {
+        "openmetrics": {
+          "init_config": {},
+          "instances": [
+            {
+              "openmetrics_endpoint": "http://%%host%%:%%port%%/metrics ",
+              "namespace": "argo",
+              "metrics": ["*"]
+            }
+          ]
+        }
+      }
+
+  resourceRateLimit:
+    limit: 40
+    burst: 4
 
   # -- enable persistence using postgres
   persistence:
+    connectionPool:
+      maxIdleConns: 100
+      maxOpenConns: 0
+      connMaxLifetime: 300s
     archive: true
     archiveLabelSelector:
       matchLabels:
@@ -15,15 +50,16 @@ controller:
       port: 5432
       database: GEN3_ARGO_DB_NAME
       tableName: argo_workflows
-  #   # the database secrets must be in the same namespace of the controller
+      #   # the database secrets must be in the same namespace of the controller
       userNameSecret:
         name: argo-db-creds
         key: db_username
       passwordSecret:
         name: argo-db-creds
         key: db_password
+    nodeStatusOffLoad: true
 
-  workflowDefaults: 
+  workflowDefaults:
     spec:
       archiveLogs: true
 
@@ -42,11 +78,16 @@ server:
   baseHref: "/argo/"
   # -- Extra arguments to provide to the Argo server binary, such as for disabling authentication.
   extraArgs:
-  - --auth-mode=server 
-  - --auth-mode=client
+    - --auth-mode=server
+    - --auth-mode=client
   extraEnv:
-  - name: ARGO_HTTP1
-    value: "true"
+    - name: ARGO_HTTP1
+      value: "true"
+  resources:
+    requests:
+      memory: 8Gi
+    limits:
+      memory: 8Gi
 
 # -- Influences the creation of the ConfigMap for the workflow-controller itself.
 useDefaultArtifactRepo: true

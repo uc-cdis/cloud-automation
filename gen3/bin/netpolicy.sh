@@ -192,7 +192,7 @@ gen3_net_db_access() {
   local ip
   serviceName="$1"
   hostname="$(gen3 db creds "$serviceName" | jq -r .db_host)"
-  ip="$(dig +short "$hostname")"
+  ip="$(dig +short "$hostname" | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}')"
   if ! gen3_net_isIp "$ip"; then
     gen3_log_err "gen3_net_db_access" "unable to determine address of $serviceName database"
     return 1

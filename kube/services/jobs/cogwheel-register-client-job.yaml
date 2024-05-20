@@ -17,13 +17,30 @@ spec:
       labels:
         app: gen3job
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       volumes:
         - name: cogwheel-g3auto
           secret:
             secretName: cogwheel-g3auto
       containers:
         - name: cogwheel
-          GEN3_COGWHEEL_IMAGE
+          GEN3_COGWHEEL_IMAGE|-image: quay.io/cdis/cogwheel:master-|
           imagePullPolicy: Always
           env:
           - name: HOSTNAME

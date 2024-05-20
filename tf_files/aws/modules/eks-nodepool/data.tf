@@ -22,21 +22,6 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-
-# First, let us create a data source to fetch the latest Amazon Machine Image (AMI) that Amazon provides with an
-# EKS compatible Kubernetes baked in.
-
-data "aws_ami" "eks_worker" {
-  filter {
-    name   = "name"
-    # values = ["${var.eks_version == "1.10" ? "amazon-eks-node-1.10*" : "amazon-eks-node-1.11*"}"]
-    values = ["amazon-eks-node-${var.eks_version}*"]
-  }
-
-  most_recent = true
-  owners      = ["602401143452"] # Amazon Account ID
-}
-
 #data "aws_eks_cluster" "eks_cluster" {
 #  name = "${var.vpc_name}"
 #}

@@ -26,6 +26,7 @@ module "cdis_vpc" {
   organization_name              = "${var.organization_name}"
 
   csoc_managed                   = "${var.csoc_managed}"
+  send_logs_to_csoc              = "${var.send_logs_to_csoc}"
   peering_vpc_id                 = "${var.peering_vpc_id}"
   vpc_flow_logs                  = "${var.vpc_flow_logs}"
   vpc_flow_traffic               = "${var.vpc_flow_traffic}"

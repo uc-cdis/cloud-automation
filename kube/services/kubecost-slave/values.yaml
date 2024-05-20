@@ -1,0 +1,50 @@
+## Full values listed here, https://github.com/kubecost/cost-analyzer-helm-chart/blob/master/cost-analyzer/values.yaml
+
+kubecostToken: KUBECOST_TOKEN
+
+serviceAccount:
+  create: true # Set this to false if you're bringing your own service account.
+  annotations: 
+    KUBECOST_SA
+
+kubecostProductConfigs:
+  clusterName: slave-cluster
+  athenaBucketName: ATHENA_BUCKET
+  athenaRegion: AWS_REGION
+  athenaDatabase: ATHENA_DATABASE
+  athenaTable: ATHENA_TABLE
+  athenaProjectID: AWS_ACCOUNT_ID
+  #serviceKeySecretName: aws-service-key , might work with SA attached instead
+  projectID: AWS_ACCOUNT_ID
+
+kubecostModel:
+  warmCache: false
+  warmSavingsCache: false
+  etl: false
+
+global:
+  grafana:
+    enabled: false
+    proxy: false
+  alertmanager:
+    enabled: false
+
+prometheus:
+  serviceAccounts:
+    server:
+      create: false
+      name: THANOS_SA
+  server:
+    global:
+      external_labels:
+        # Slave cluster name
+        cluster_id: "slave-cluster"
+
+networkCosts:
+  enabled: true
+  
+thanos:
+  store:
+    serviceAccount: THANOS_SA
+  compact: 
+    serviceAccount: THANOS_SA

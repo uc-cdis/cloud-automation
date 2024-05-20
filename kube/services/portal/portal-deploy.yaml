@@ -23,7 +23,7 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -32,6 +32,22 @@ spec:
                   values:
                   - portal
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       automountServiceAccountToken: false
       volumes:
       - name: ca-volume
@@ -54,29 +70,25 @@ spec:
         GEN3_PORTAL_IMAGE
         readinessProbe:
           httpGet:
-            path: /
+            path: /portal/
             port: 80
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
         livenessProbe:
           httpGet:
-            path: /
+            path: /portal/
             port: 80
           initialDelaySeconds: 60
-          periodSeconds: 60
+          periodSeconds: 30
           timeoutSeconds: 30
           # portal sometimes takes a long time to come up ... -
           # has to fetch the dictionary, relay compile, etc
-          failureThreshold: 10
+          failureThreshold: 30
         resources:
           requests:
-            cpu: 0.6
-            memory: 512Mi
-          limits:
-            # portal pigs out on resources at startup, then settles down
             cpu: 2
-            memory: 4096Mi
+            memory: 3Gi
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -187,6 +199,8 @@ spec:
           - name: DATA_UPLOAD_BUCKET
             # S3 bucket name for data upload, for setting up CSP
             GEN3_DATA_UPLOAD_BUCKET|-value: ""-|
+          - name: BASENAME
+            value: /portal
         volumeMounts:
           - name: "cert-volume"
             readOnly: true

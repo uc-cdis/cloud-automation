@@ -1,4 +1,5 @@
 # id of AWS account that owns the public AMI's
+
 variable "ami_account_id" {
   # by default lets use canonical stuff only
   default = "099720109477"
@@ -26,6 +27,7 @@ variable "vpc_cidr_list" {
 }
 
 # name of aws_key_pair ssh key to attach to VM's
+
 variable "ssh_key_name" {
 }
 

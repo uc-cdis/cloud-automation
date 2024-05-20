@@ -35,6 +35,7 @@ rules:
   - apiGroups: [""]
     resources:
       - "pods"
+      - "namespaces"
       - "services"
       - "replicationcontrollers"
       - "persistentvolumeclaims"
@@ -62,6 +63,16 @@ rules:
     resourceNames: ["cluster-autoscaler"]
     resources: ["leases"]
     verbs: ["get", "update"]
+  - apiGroups: ["storage.k8s.io"]
+    resources:
+     - storageclasses
+     - csinodes
+     - csidrivers
+     - csistoragecapacities
+    verbs:
+     - watch
+     - list
+     - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -142,8 +153,7 @@ spec:
           name: cluster-autoscaler
           resources:
             limits:
-              cpu: 100m
-              memory: 600Mi
+              memory: 1600Mi
             requests:
               cpu: 100m
               memory: 300Mi

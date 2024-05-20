@@ -41,10 +41,6 @@ variable "slack_webhook"{
   default = ""
 }
 
-variable "log_dna_function"{
-  description = "Lambda function ARN for logDNA"
-  default     = ""
-}
 
 variable "timeout" {
   description = "Timeout threshold for the function"
@@ -54,4 +50,15 @@ variable "timeout" {
 variable "memory_size" {
   description = "Memory allocation for the function"
   default     = 128
+}
+
+
+variable "es" {
+  description = "Persist logs to elasticsearch"
+  default = true
+}
+
+variable "s3" {
+  description = "Persist logs to s3"
+  default = true
 }

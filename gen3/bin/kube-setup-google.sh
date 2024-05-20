@@ -19,15 +19,14 @@ goog_launch() {
   local path
 
   # add cronjob for removing cached google access for fence versions
-  # supporting Passports to DRS(
-  # TODO: WILL UNCOMMENT THIS ONCE FEATURE IN FENCE IS RELEASED
-#   if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.02"; then
-#     filePath="${GEN3_HOME}/kube/services/jobs/google-delete-expired-access-cronjob.yaml"
-#     if [[ -f "$filePath" ]]; then
-#       echo "$filePath being added as a cronjob b/c fence >= 6.0.0 or 2022.02"
-#       cronList+=("--from-file" "$filePath")
-#     fi
-#   fi
+  # supporting Passports to DRS
+  if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.07"; then
+    filePath="${GEN3_HOME}/kube/services/jobs/google-delete-expired-access-cronjob.yaml"
+    if [[ -f "$filePath" ]]; then
+      echo "$filePath being added as a cronjob b/c fence >= 6.0.0 or 2022.07"
+      cronList+=("--from-file" "$filePath")
+    fi
+  fi
 
   for path in "${cronList[@]}"; do
     gen3 job run "$path"
@@ -42,14 +41,13 @@ goog_stop() {
 
   # add cronjob for removing cached google access for fence versions
   # supporting Passports -> DRS
-  # TODO: WILL UNCOMMENT THIS ONCE FEATURE IN FENCE IS RELEASED
-#   if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.02"; then
-#     filePath="${GEN3_HOME}/kube/services/jobs/google-delete-expired-access-cronjob.yaml"
-#     if [[ -f "$filePath" ]]; then
-#       echo "$filePath being added as a cronjob b/c fence >= 6.0.0 or 2022.02"
-#       cronList+=("--from-file" "$filePath")
-#     fi
-#   fi
+  if isServiceVersionGreaterOrEqual "fence" "6.0.0" "2022.07"; then
+    filePath="${GEN3_HOME}/kube/services/jobs/google-delete-expired-access-cronjob.yaml"
+    if [[ -f "$filePath" ]]; then
+      echo "$filePath being added as a cronjob b/c fence >= 6.0.0 or 2022.07"
+      cronList+=("--from-file" "$filePath")
+    fi
+  fi
 
   for path in "${cronList[@]}"; do
     if jobName="$(gen3 gitops filter "$path" | yq -r .metadata.name)" && [[ -n "$jobName" ]]; then

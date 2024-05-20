@@ -1,0 +1,131 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guacd
+spec:
+  selector:
+    matchLabels:
+      app: guacd
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: guacd
+        netnolimit: "yes"
+        public: "yes"
+    spec:
+      containers:
+      - name: guacd
+        image: guacamole/guacd:latest
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guacamole
+spec:
+  selector:
+    matchLabels:
+      app: guacamole
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: guacamole
+        dbguacamole: "yes"
+        netnolimit: "yes"
+        public: "yes"
+    spec:
+      containers:
+      - name: guacamole
+        image: guacamole/guacamole:latest
+        env:
+        - name: EXTENSIONS
+          valueFrom:
+            configMapKeyRef:
+              name: guacamole-configmap
+              key: EXTENSIONS
+        - name: EXTENSION_PRIORITY
+          valueFrom:
+            configMapKeyRef:
+              name: guacamole-configmap
+              key: EXTENSION_PRIORITY
+        - name: GUACD_HOSTNAME
+          valueFrom:
+            configMapKeyRef:
+              name: guacamole-configmap
+              key: GUACD_HOSTNAME
+        - name: POSTGRESQL_AUTO_CREATE_ACCOUNTS
+          valueFrom:
+            configMapKeyRef:
+              name: guacamole-configmap
+              key: POSTGRESQL_AUTO_CREATE_ACCOUNTS
+        - name: OPENID_AUTHORIZATION_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: guacamole-configmap
+              key: OPENID_AUTHORIZATION_ENDPOINT
+        - name: OPENID_JWKS_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: guacamole-configmap
+              key: OPENID_JWKS_ENDPOINT
+        - name: OPENID_REDIRECT_URI
+          valueFrom:
+            configMapKeyRef:
+              name: guacamole-configmap
+              key: OPENID_REDIRECT_URI
+        - name: OPENID_ISSUER
+          valueFrom:
+            configMapKeyRef:
+              name: guacamole-configmap
+              key: OPENID_ISSUER
+        - name: OPENID_USERNAME_CLAIM_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: guacamole-configmap
+              key: OPENID_USERNAME_CLAIM_TYPE
+        - name: OPENID_SCOPE
+          valueFrom:
+            configMapKeyRef:
+              name: guacamole-configmap
+              key: OPENID_SCOPE
+        - name: POSTGRES_HOSTNAME
+          valueFrom:
+            secretKeyRef:
+              name: guacamole-secret
+              key: POSTGRES_HOSTNAME
+        - name: POSTGRES_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: guacamole-secret
+              key: POSTGRES_DATABASE
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: guacamole-secret
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: guacamole-secret
+              key: POSTGRES_PASSWORD
+        - name: OPENID_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: guacamole-secret
+              key: OPENID_CLIENT_ID
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

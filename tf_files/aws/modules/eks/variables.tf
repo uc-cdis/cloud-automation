@@ -119,6 +119,12 @@ variable "availability_zones" {
   default     = ["us-east-1a", "us-east-1c", "us-east-1d"]
 }
 
+variable "secondary_availability_zones" {
+  description = "AZ to be used by EKS nodes in the secondary subnet"
+  type        = "list"
+  default     = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+}
+
 variable "domain_test" {
   description = "Domain for the lambda function to check for the proxy"
   default     = "www.google.com"
@@ -169,5 +175,5 @@ variable "fips_ami_kms" {
 
 # This is the FIPS enabled AMI in cdistest account.
 variable "fips_enabled_ami" {
-  default = "ami-0de87e3680dcb13ec"
+  default = "ami-074d352c8e753fc93"
 }

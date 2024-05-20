@@ -115,7 +115,6 @@ For more deep info of what comes in and how it is formatted, please checkout the
 | elasticsearch_domain | ElasticSearch domain where logs will be sent | string | "commons-logs" |
 | threshold | Threshold for how long response time is accepted, otherwise an alert is triggered. This threshold is a value within the actual lambda function that process logs | string | "" |
 | slack_webhook | Where to send alerts | string | "" |
-| log_dna_function | Lambda function to send logs onto logDNA | string | "" |
 | timeout | Timeout threshold for the lambda function to wait before exiting | number | 300 |
 | memory_size | Memory allocation for the lambda function | number | 128 |
 

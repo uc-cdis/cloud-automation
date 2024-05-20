@@ -117,10 +117,13 @@ resource "aws_db_instance" "db_indexd" {
 # See https://www.postgresql.org/docs/9.6/static/runtime-config-logging.html
 # and https://www.postgresql.org/docs/9.6/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE
 # for detail parameter descriptions
+locals {
+  pg_family_version = "${replace( var.indexd_engine_version ,"/\\.[0-9]/", "" )}"
+}
 
 resource "aws_db_parameter_group" "rds-cdis-pg" {
   name   = "${var.vpc_name}-rds-cdis-pg"
-  family = "postgres9.6"
+  family = "postgres${local.pg_family_version}"
 
   # make index searches cheaper per row
   parameter {

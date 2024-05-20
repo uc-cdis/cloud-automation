@@ -69,7 +69,7 @@ gen3_roll() {
 
   # Get the service name, so we can verify it's in the manifest
   local serviceName
-  serviceName="$(basename "$templatePath" | sed 's/-deploy.*yaml$//')"
+  serviceName="$(basename "$templatePath" | sed 's/\(-root\)*-deploy.*yaml$//')"
 
   if g3k_config_lookup ".versions[\"$serviceName\"]" < "$manifestPath" > /dev/null 2>&1; then
     if ! (g3k_manifest_filter "$templatePath" "" "$@" | g3kubectl apply -f -); then

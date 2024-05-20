@@ -28,7 +28,7 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -37,6 +37,22 @@ spec:
                   values:
                   - hatchery
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       serviceAccountName: hatchery-service-account
       securityContext:
         fsGroup: 1001
@@ -104,6 +120,18 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.hostIP
+          - name: PRISMA_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: prisma-secret
+                key: AccessKeyId 
+                optional: true
+          - name: PRISMA_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: prisma-secret
+                key: SecretKey
+                optional: true
         volumeMounts:
           - name: hatchery-config
             readOnly: true
