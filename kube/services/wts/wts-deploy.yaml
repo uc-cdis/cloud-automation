@@ -33,7 +33,7 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -42,6 +42,22 @@ spec:
                   values:
                   - wts
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
       terminationGracePeriodSeconds: 10
       volumes:
         - name: wts-secret
@@ -116,11 +132,10 @@ spec:
             port: 80
         resources:
           requests:
-            cpu: 0.8
-            memory: 512Mi
+            cpu: 100m
+            memory: 200Mi
           limits:
-            cpu: 2
-            memory: 2048Mi
+            memory: 512Mi
       initContainers:
         - name: wts-db-migrate
           GEN3_WTS_IMAGE

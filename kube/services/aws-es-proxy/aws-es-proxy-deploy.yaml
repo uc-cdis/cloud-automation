@@ -22,11 +22,29 @@ spec:
         netvpc: "yes"
         GEN3_DATE_LABEL
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
       automountServiceAccountToken: false
       volumes:
         - name: credentials
           secret:
             secretName: "aws-es-proxy"
+      priorityClassName: aws-es-proxy-high-priority
       containers:
       - name: esproxy
         GEN3_AWS-ES-PROXY_IMAGE|-image: quay.io/cdis/aws-es-proxy:0.8-|
@@ -67,5 +85,5 @@ spec:
             cpu: 250m
             memory: 256Mi
           limits:
-            cpu: 1
+            cpu: 1000m
             memory: 2Gi

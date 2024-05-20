@@ -249,9 +249,7 @@ alertmanager:
 
     # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
     # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
-    # ingressClassName: nginx
-
-    annotations: {}
+    #ingressClassName: nginx
 
     labels: {}
 
@@ -261,8 +259,8 @@ alertmanager:
     ## Hosts must be provided if Ingress is enabled.
     ##
     hosts: []
-    #- prometheus.emalinowskiv1.planx-pla.net
-      # - alertmanager.domain.com
+      #- prometheus.emalinowskiv1.planx-pla.net
+        # - alertmanager.domain.com
 
     ## Paths to use for ingress rules - one path should match the alertmanagerSpec.routePrefix
     ##
@@ -452,7 +450,7 @@ alertmanager:
     ## Image of Alertmanager
     ##
     image:
-      repository: quay.io/prometheus/alertmanager
+      repository: prometheus/alertmanager
       tag: v0.24.0
       sha: ""
 
@@ -562,7 +560,7 @@ alertmanager:
     ## The route prefix Alertmanager registers HTTP handlers for. This is useful, if using ExternalURL and a proxy is rewriting HTTP routes of a request, and the actual ExternalURL is still true,
     ## but the server serves requests under a different route prefix. For example for use with kubectl proxy.
     ##
-    routePrefix: /
+    routePrefix: /alertmanager/
 
     ## If set to true all actions on the underlying managed objects are not going to be performed, except for delete actions.
     ##
@@ -731,18 +729,19 @@ grafana:
   ingress:
     ## If true, Grafana Ingress will be created
     ##
-    enabled: false
+    enabled: true
 
     ## IngressClassName for Grafana Ingress.
     ## Should be provided if Ingress is enable.
     ##
-    # ingressClassName: nginx
+    ingressClassName: nginx
 
     ## Annotations for Grafana Ingress
     ##
-    annotations: {}
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
+    annotations: 
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
+      nginx.ingress.kubernetes.io/use-regex: "true"
 
     ## Labels to be added to the Ingress
     ##
@@ -754,9 +753,14 @@ grafana:
     # hosts:
     #   - grafana.domain.com
     hosts: []
+      # - data.bloodpac.org
 
     ## Path for grafana ingress
-    path: /
+    path: /grafana/?(.*)
+
+  grafana.ini:
+    server:
+      root_url: http://localhost:3000/grafana # this host can be localhost
 
     ## TLS configuration for grafana Ingress
     ## Secret must be manually created in the namespace
@@ -1536,6 +1540,15 @@ prometheus-node-exporter:
     - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
   service:
     portName: http-metrics
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: "eks.amazonaws.com/compute-type"
+                operator: NotIn
+                values:
+                  - fargate
   prometheus:
     monitor:
       enabled: true
@@ -1608,7 +1621,7 @@ prometheusOperator:
     patch:
       enabled: true
       image:
-        repository: k8s.gcr.io/ingress-nginx/kube-webhook-certgen
+        repository: ingress-nginx/kube-webhook-certgen
         tag: v1.1.1
         sha: ""
         pullPolicy: IfNotPresent
@@ -1838,7 +1851,7 @@ prometheusOperator:
   ## Prometheus-operator image
   ##
   image:
-    repository: quay.io/prometheus-operator/prometheus-operator
+    repository: prometheus-operator/prometheus-operator
     tag: v0.57.0
     sha: ""
     pullPolicy: IfNotPresent
@@ -1856,7 +1869,7 @@ prometheusOperator:
   prometheusConfigReloader:
     # image to use for config and rule reloading
     image:
-      repository: quay.io/prometheus-operator/prometheus-config-reloader
+      repository: prometheus-operator/prometheus-config-reloader
       tag: v0.57.0
       sha: ""
 
@@ -1872,7 +1885,7 @@ prometheusOperator:
   ## Thanos side-car image when configured
   ##
   thanosImage:
-    repository: quay.io/thanos/thanos
+    repository: thanos/thanos
     tag: v0.25.2
     sha: ""
 
@@ -2297,7 +2310,7 @@ prometheus:
     ## Image of Prometheus.
     ##
     image:
-      repository: quay.io/prometheus/prometheus
+      repository: prometheus/prometheus
       tag: v2.36.1
       sha: ""
 
@@ -2362,7 +2375,7 @@ prometheus:
 
     ## External URL at which Prometheus will be reachable.
     ##
-    externalUrl: ""
+    externalUrl: "/prometheus/"
 
     ## Define which Nodes the Pods are scheduled on.
     ## ref: https://kubernetes.io/docs/user-guide/node-selection/
@@ -2591,7 +2604,7 @@ prometheus:
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 500Gi
+              storage: 80Gi
               #selector: {}
 
     ## Using tmpfs volume
@@ -3293,7 +3306,7 @@ thanosRuler:
     ## Image of ThanosRuler
     ##
     image:
-      repository: quay.io/thanos/thanos
+      repository: thanos/thanos
       tag: v0.24.0
       sha: ""
 
@@ -3361,12 +3374,12 @@ thanosRuler:
 
     ## The external URL the Thanos Ruler instances will be available under. This is necessary to generate correct URLs. This is necessary if Thanos Ruler is not served from root of a DNS name. string false
     ##
-    externalPrefix:
+    externalPrefix: /thanos
 
     ## The route prefix ThanosRuler registers HTTP handlers for. This is useful, if using ExternalURL and a proxy is rewriting HTTP routes of a request, and the actual ExternalURL is still true,
     ## but the server serves requests under a different route prefix. For example for use with kubectl proxy.
     ##
-    routePrefix: /
+    routePrefix:
 
     ## ObjectStorageConfig configures object storage in Thanos. Alternative to
     ## ObjectStorageConfigFile, and lower order priority.

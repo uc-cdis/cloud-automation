@@ -20,7 +20,7 @@ setup_database() {
   fi
   # Setup config file that requestor consumes
   local secretsFolder="$(gen3_secrets_folder)/g3auto/requestor"
-  if [[ ! -f "$secretsFolder/requestor-config.yaml" || ! -f "$secretsFolder/base64Authz.txt" ]]; then
+  if [[ ! -f "$secretsFolder/requestor-config.yaml" ]]; then
     if [[ ! -f "$secretsFolder/dbcreds.json" ]]; then    
       if ! gen3 db setup requestor; then
         gen3_log_err "Failed setting up database for requestor service"
@@ -44,8 +44,6 @@ DB_USER: $(jq -r .db_username < "$secretsFolder/dbcreds.json")
 DB_PASSWORD: $(jq -r .db_password < "$secretsFolder/dbcreds.json")
 DB_DATABASE: $(jq -r .db_database < "$secretsFolder/dbcreds.json")
 EOM
-    # make it easy for nginx to get the Authorization header ...
-    # echo -n "gateway:$password" | base64 > "$secretsFolder/base64Authz.txt"
   fi
   gen3 secrets sync 'setup requestor-g3auto secrets'
 }

@@ -10,16 +10,16 @@ persist-key
 persist-tun
 
 #certificates
-ca easy-rsa/keys/ca.crt
-cert easy-rsa/keys/#FQDN#.crt
-key easy-rsa/keys/#FQDN#.key  # This file should be kept secret
-dh easy-rsa/keys/dh4096.pem
-tls-auth easy-rsa/keys/ta.key 0 # This file is secret
-crl-verify easy-rsa/keys/crl.pem # Revocation files
+ca /etc/openvpn/easy-rsa/pki/ca.crt
+cert /etc/openvpn/easy-rsa/pki/issued/#FQDN#.crt
+key /etc/openvpn/easy-rsa/pki/private/#FQDN#.key  # This file should be kept secret
+dh /etc/openvpn/easy-rsa/pki/dh.pem
+tls-auth /etc/openvpn/easy-rsa/pki/ta.key 0 # This file is secret
+crl-verify /etc/openvpn/easy-rsa/pki/crl.pem # Revocation files
 
 #Password script
-auth-user-pass-verify  bin/auth-user-pass-verify.sh via-env
-script-security 3 execve
+auth-user-pass-verify  /etc/openvpn/bin/auth-user-pass-verify.sh via-env
+script-security 3 # execve
 
 #Cipher suite
 cipher AES-256-CBC

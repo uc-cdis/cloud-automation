@@ -16,6 +16,20 @@ spec:
       annotations:
         "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+            - matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand                
       serviceAccountName: jenkins-service
       securityContext:
         runAsUser: 1000
@@ -105,6 +119,7 @@ spec:
           limits:
             cpu: 0.9
             memory: 4096Mi
+            ephemeral-storage: 500Mi
         imagePullPolicy: Always
         volumeMounts:
         - name: "cert-volume"
