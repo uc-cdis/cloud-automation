@@ -14,13 +14,8 @@ new_client() {
   local secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client atlas --urls https://${atlas_hostname}/WebAPI/user/oauth/callback?client_name=OidcClient --username atlas --allowed-scopes openid profile email user | tail -1)
   # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
   if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
-      # try delete client
-      g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client atlas > /dev/null 2>&1
-      secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client atlas --urls https://${atlas_hostname}/WebAPI/user/oauth/callback?client_name=OidcClient --username atlas --allowed-scopes openid profile email user | tail -1)
-      if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
-          gen3_log_err "kube-setup-ohdsi" "Failed generating oidc client for atlas: $secrets"
-          return 1
-      fi
+    gen3_log_err "kube-setup-ohdsi" "Failed generating oidc client for atlas: $secrets"
+    return 1
   fi
   local FENCE_CLIENT_ID="${BASH_REMATCH[2]}"
   local FENCE_CLIENT_SECRET="${BASH_REMATCH[3]}"
@@ -87,10 +82,12 @@ setup_secrets() {
     export DB_HOST=$(jq -r ".db_host" <<< "$dbcreds")
 
     export FENCE_URL="https://${hostname}/user/user"
+    # get arborist_url from manifest.json:
+    export ARBORIST_URL=$(g3k_manifest_lookup .global.arborist_url)
     export FENCE_METADATA_URL="https://${hostname}/.well-known/openid-configuration"
     export FENCE_CLIENT_ID=$(jq -r ".FENCE_CLIENT_ID" <<< "$appcreds")
     export FENCE_CLIENT_SECRET=$(jq -r ".FENCE_CLIENT_SECRET" <<< "$appcreds")
-    envsubst <"${GEN3_HOME}/kube/services/ohdsi/ohdsi-secrets.yaml"  | g3kubectl apply -f -
+    envsubst <"${GEN3_HOME}/kube/services/ohdsi-webapi/ohdsi-webapi-config.yaml"  | g3kubectl apply -f -
 
     envsubst '$hostname' <"${GEN3_HOME}/kube/services/ohdsi-webapi/ohdsi-webapi-reverse-proxy-config.yaml"  | g3kubectl apply -f -
   )
@@ -123,7 +120,7 @@ setup_creds
 setup_secrets
 setup_ingress
 
-envsubst <${GEN3_HOME}/kube/services/ohdsi/ohdsi-configmap.yaml | g3kubectl apply -f -
+envsubst <${GEN3_HOME}/kube/services/ohdsi-atlas/ohdsi-atlas-config-local.yaml | g3kubectl apply -f -
 
 gen3 roll ohdsi-webapi
 g3kubectl apply -f "${GEN3_HOME}/kube/services/ohdsi-webapi/ohdsi-webapi-service.yaml"

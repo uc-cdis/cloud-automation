@@ -24,14 +24,36 @@ if ! g3kubectl describe secret pelicanservice-g3auto | grep config.json > /dev/n
     user=$(gen3 secrets decode $awsuser-g3auto awsusercreds.json)
     key_id=$(jq -r .id <<< $user)
     access_key=$(jq -r .secret <<< $user)
+
+    # setup fence OIDC client with client_credentials grant for access to MDS API
+    hostname=$(gen3 api hostname)
+    gen3_log_info "kube-setup-sower-jobs" "creating fence oidc client for $hostname"
+    secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1)
+    # secrets looks like ('CLIENT_ID', 'CLIENT_SECRET')
+    if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
+        # try delete client
+        g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-delete --client pelican-export-job > /dev/null 2>&1
+        secrets=$(g3kubectl exec -c fence $(gen3 pod fence) -- fence-create client-create --client pelican-export-job --grant-types client_credentials | tail -1)
+        if [[ ! $secrets =~ (\'(.*)\', \'(.*)\') ]]; then
+            gen3_log_err "kube-setup-sower-jobs" "Failed generating oidc client: $secrets"
+            return 1
+        fi
+    fi
+    pelican_export_client_id="${BASH_REMATCH[2]}"
+    pelican_export_client_secret="${BASH_REMATCH[3]}"
+
     cat - > "$credsFile" <<EOM
 {
   "manifest_bucket_name": "$bucketname",
   "hostname": "$hostname",
   "aws_access_key_id": "$key_id",
-  "aws_secret_access_key": "$access_key"
+  "aws_secret_access_key": "$access_key",
+  "fence_client_id": "$pelican_export_client_id",
+  "fence_client_secret": "$pelican_export_client_secret"
 }
 EOM
     gen3 secrets sync "initialize pelicanservice/config.json"
   fi
 fi
+
+gen3_log_warn "!!! The 'pelican-export-job' client must be granted access to (resource=/mds_gateway, method=access, service=mds_gateway) for the Pelican Export job to function"

@@ -29,7 +29,7 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -38,6 +38,22 @@ spec:
                   values:
                   - requestor
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
@@ -76,11 +92,10 @@ spec:
             subPath: "requestor-config.yaml"
         resources:
           requests:
-            cpu: 0.4
-            memory: 512Mi
+            cpu: 100m
+            memory: 100Mi
           limits:
-            cpu: 0.8
-            memory: 1024Mi
+            memory: 300Mi
       initContainers:
         - name: requestor-db-migrate
           GEN3_REQUESTOR_IMAGE

@@ -1,4 +1,4 @@
-
+#TODO this one will require more investigation and merging
 vpc_name          = "PUT SOMETHING HERE, usually ${vpc_name}"
 organization_name = "For taggin purposes"
 cwlg_name         = "which CloudWatch Log group you want logs to be sent over"

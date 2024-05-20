@@ -38,6 +38,9 @@ RUN apt-get update && apt-get upgrade -y \
       wget \
       gettext-base
 
+#can remove once https://github.com/yaml/pyyaml/issues/724 is solved
+RUN pip install pyyaml==5.3.1
+
 RUN  python3 -m pip install --upgrade pip \
     && python3 -m pip install --upgrade setuptools \
     && python3 -m pip install -U crcmod \
@@ -56,15 +59,9 @@ RUN export CLOUD_SDK_REPO="cloud-sdk" && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
     curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
     apt-get update && \
-    apt-get install -y google-cloud-sdk \
-        google-cloud-sdk-cbt \
-        kubectl && \
+    apt-get install -y kubectl && \
     apt-get install -y --no-install-recommends nodejs && \
-    rm -rf /var/lib/apt/lists/* \
-    gcloud config set core/disable_usage_reporting true && \
-    gcloud config set component_manager/disable_update_check true && \
-    gcloud config set metrics/environment github_docker_image && \
-    gcloud --version && \
+    rm -rf /var/lib/apt/lists/* && \
     kubectl version --client && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/log/*

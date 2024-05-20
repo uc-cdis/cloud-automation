@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: netpolicy-datadog
+spec:
+  podSelector:
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+      - cohort-middleware
+  ingress:
+    - from:
+      - ipBlock:
+           cidr: 0.0.0.0/0
+      ports:
+         - port: 8126
+  egress:
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            app: datadog
+  policyTypes:
+   - Ingress
+   - Egress
