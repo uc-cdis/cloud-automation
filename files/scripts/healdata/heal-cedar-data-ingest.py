@@ -74,7 +74,9 @@ def is_valid_uuid(uuid_to_test, version=4):
 
 
 def update_filter_metadata(metadata_to_update):
-    filter_metadata = []
+    # Retain these from existing filters
+    save_filters = ["Common Data Elements"]
+    filter_metadata = [filter for filter in metadata_to_update["advSearchFilters"] if filter["key"] in save_filters]
     for metadata_field_key, filter_field_key in FILTER_FIELD_MAPPINGS.items():
         filter_field_values = pydash.get(metadata_to_update, metadata_field_key)
         if filter_field_values:
@@ -97,7 +99,7 @@ def update_filter_metadata(metadata_to_update):
     filter_metadata = pydash.uniq(filter_metadata)
     metadata_to_update["advSearchFilters"] = filter_metadata
     # Retain these from existing tags
-    save_tags = ["Data Repository"]
+    save_tags = ["Data Repository", "Common Data Elements"]
     tags = [tag for tag in metadata_to_update["tags"] if tag["category"] in save_tags]
     # Add any new tags from advSearchFilters
     for f in metadata_to_update["advSearchFilters"]:
