@@ -50,15 +50,15 @@ EOM
 # @sqsName
 #
 gen3_sqs_create_queue() {
-  local sqsName=$1
-  if ! shift || [[ -z "$sqsName" ]]; then
-    gen3_log_err "Must provide 'sqsName' to 'gen3_sqs_create_queue'"
+  local serviceName=$1
+  if ! shift || [[ -z "$serviceName" ]]; then
+    gen3_log_err "Must provide 'serviceName' to 'gen3_sqs_create_queue'"
     return 1
   fi
+  local sqsName="$(gen3 api safe-name $serviceName)"
   gen3_log_info "Creating SQS '$sqsName'"
-  local prefix="$(gen3 api safe-name sqs-create)"
   ( # subshell - do not pollute parent environment
-    gen3 workon default ${prefix}__sqs 1>&2
+    gen3 workon default ${sqsName}__sqs 1>&2
     gen3 cd 1>&2
     cat << EOF > config.tfvars
 sqs_name="$sqsName"
@@ -76,7 +76,8 @@ EOF
 # @sqsName
 #
 gen3_sqs_create_queue_if_not_exist() {
-  local sqsName=$1
+  local serviceName=$1
+  local sqsName="$(gen3 api safe-name $serviceName)"
   if ! shift || [[ -z "$sqsName" ]]; then
     gen3_log_err "Must provide 'sqsName' to 'gen3_sqs_create_queue'"
     return 1
@@ -90,7 +91,7 @@ gen3_sqs_create_queue_if_not_exist() {
     gen3_log_info "The '$sqsName' SQS already exists"
   else
     # create the queue
-    sqsInfo="$(gen3_sqs_create_queue $sqsName)" || exit 1
+    sqsInfo="$(gen3_sqs_create_queue $serviceName)" || exit 1
     sqsUrl="$(jq -e -r '.["sqs-url"].value' <<< "$sqsInfo")" || { echo "Cannot get 'sqs-url' from output: $sqsInfo"; exit 1; }
     sqsArn="$(jq -e -r '.["sqs-arn"].value' <<< "$sqsInfo")" || { echo "Cannot get 'sqs-arn' from output: $sqsInfo"; exit 1; }
   fi

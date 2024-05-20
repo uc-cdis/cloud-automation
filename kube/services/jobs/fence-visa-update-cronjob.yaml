@@ -1,4 +1,4 @@
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: fence-visa-update
@@ -15,6 +15,23 @@ spec:
           labels:
             app: gen3job
         spec:
+          affinity:
+            nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                preference:
+                  matchExpressions:
+                  - key: karpenter.sh/capacity-type
+                    operator: In
+                    values:
+                    - on-demand
+              - weight: 99
+                preference:
+                  matchExpressions:
+                  - key: eks.amazonaws.com/capacityType
+                    operator: In
+                    values:
+                    - ONDEMAND
           serviceAccountName: useryaml-job
           volumes:
             - name: yaml-merge
@@ -56,7 +73,7 @@ spec:
                   valueFrom:
                       configMapKeyRef:
                         name: global
-                        key: environment
+                        key: hostname
                 - name: FENCE_PUBLIC_CONFIG
                   valueFrom:
                     configMapKeyRef:

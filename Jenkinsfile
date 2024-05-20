@@ -43,9 +43,52 @@ metadata:
     app: ephemeral-ci-run
     netnolimit: "yes"
   annotations:
+    karpenter.sh/do-not-evict: true
     "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
 spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: eks.amazonaws.com/capacityType
+            operator: In
+            values:
+            - ONDEMAND
+        - matchExpressions:
+          - key: karpenter.sh/capacity-type
+            operator: In
+            values:
+            - on-demand
+  initContainers:
+  - name: wait-for-jenkins-connection
+    image: quay.io/cdis/gen3-ci-worker:master
+    command: ["/bin/sh","-c"]
+    args: ["while [ $(curl -sw '%{http_code}' http://jenkins-master-service:8080/tcpSlaveAgentListener/ -o /dev/null) -ne 200 ]; do sleep 5; echo 'Waiting for jenkins connection ...'; done"]
   containers:
+  - name: jnlp
+    command: ["/bin/sh","-c"]
+    args: ["sleep 30; /usr/local/bin/jenkins-agent"]
+    resources:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+        ephemeral-storage: 500Mi
+  - name: selenium
+    image: selenium/standalone-chrome:112.0
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 4444
+    readinessProbe:
+      httpGet:
+        path: /status
+        port: 4444
+      timeoutSeconds: 60
+    resources:
+      requests:
+        cpu: 500m
+        memory: 500Mi
+        ephemeral-storage: 500Mi
   - name: shell
     image: quay.io/cdis/gen3-ci-worker:master
     imagePullPolicy: Always
@@ -53,6 +96,11 @@ spec:
     - sleep
     args:
     - infinity
+    resources:
+      requests:
+        cpu: 0.2
+        memory: 400Mi
+        ephemeral-storage: 1Gi
     env:
     - name: AWS_DEFAULT_REGION
       value: us-east-1
@@ -86,8 +134,8 @@ spec:
       readOnly: true
       mountPath: "/usr/local/share/ca-certificates/cdis/cdis-ca.crt"
       subPath: "ca.pem"
-    - name: dockersock
-      mountPath: "/var/run/docker.sock"
+    - name: containerdsock
+      mountPath: "/var/run/containerd/containerd.sock"
   serviceAccount: jenkins-service
   serviceAccountName: jenkins-service
   volumes:
@@ -97,9 +145,9 @@ spec:
   - name: ca-volume
     secret:
       secretName: "service-ca"
-  - name: dockersock
+  - name: containerdsock
     hostPath:
-      path: /var/run/docker.sock
+      path: /var/run/containerd/containerd.sock
 '''
         defaultContainer 'shell'
         }
@@ -245,8 +293,8 @@ spec:
                 script {
                     try {
                         if(!skipUnitTests) {
-                            sh '/usr/bin/pip3 install boto3 --upgrade --user'
-                            sh '/usr/bin/pip3 install kubernetes --upgrade --user'
+                            sh '/usr/local/bin/pip3 install boto3 --upgrade --user'
+                            sh '/usr/local/bin/pip3 install kubernetes --upgrade --user'
                             sh 'python3 -m pytest cloud-automation/apis_configs/'
                             sh 'python3 -m pytest cloud-automation/gen3/lib/dcf/'
                             sh 'cd cloud-automation/tf_files/aws/modules/common-logging && python3 -m pytest testLambda.py'

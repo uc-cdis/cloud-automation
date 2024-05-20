@@ -17,6 +17,7 @@ spec:
   template:
     metadata:
       labels:
+        netnolimit: "yes"
         app: sheepdog
         release: production
         public: "yes"
@@ -27,7 +28,7 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
+          - weight: 25
             podAffinityTerm:
               labelSelector:
                 matchExpressions:
@@ -36,6 +37,22 @@ spec:
                   values:
                   - sheepdog
               topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT   
       automountServiceAccountToken: false
       volumes:
         - name: config-volume
@@ -148,8 +165,7 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 0.8
-              memory: 1024Mi
+              cpu: 100m
+              memory: 200Mi
             limits:
-              cpu: 2
-              memory: 2048Mi
+              memory: 800Mi

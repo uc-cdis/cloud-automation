@@ -115,7 +115,7 @@ EOF
 # @return the resulting json from awscli
 ##
 function create_role(){
-  local role_name="${vpc_name}-${SERVICE_ACCOUNT_NAME}-role"
+  local role_name="${1}"
   if [[ ${#role_name} -gt 63 ]]; then
     role_name=$(echo "$role_name" | head -c63)
     gen3_log_warning "Role name has been truncated, due to amazon role name 64 character limit. New role name is $role_name"
@@ -123,8 +123,8 @@ function create_role(){
   local assume_role_policy_path="$(create_assume_role_policy)"
 
   gen3_log_info "Entering create_role"
-  gen3_log_info "  ${role_name}"
-  gen3_log_info "  ${assume_role_policy_path}"
+  gen3_log_info "  Role: ${role_name}"
+  gen3_log_info "  Policy path: ${assume_role_policy_path}"
 
   local role_json
   role_json=$(aws iam create-role \
@@ -156,8 +156,8 @@ function add_policy_to_role(){
   local role_name="${2}"
 
   gen3_log_info "Entering add_policy_to_role"
-  gen3_log_info "  ${policy}"
-  gen3_log_info "  ${role_name}"
+  gen3_log_info "  Policy: ${policy}"
+  gen3_log_info "  Role: ${role_name}"
 
   local result
   if [[ ${policy} =~ arn:aws:iam::aws:policy/[a-zA-Z0-9]+ ]]
@@ -198,8 +198,8 @@ function create_role_with_policy() {
   local role_name="${2}"
 
   gen3_log_info "Entering create_role_with_policy"
-  gen3_log_info "  ${policy}"
-  gen3_log_info "  ${role_name}"
+  gen3_log_info "  Policy: ${policy}"
+  gen3_log_info "  Role: ${role_name}"
 
   local created_role_json
   created_role_json="$(create_role ${role_name})" || return $?
@@ -357,7 +357,10 @@ function main() {
 
   local policy_validation
   local policy_source
-  local role_name="${vpc_name}-${SERVICE_ACCOUNT_NAME}-role"
+  local role_name=$ROLE_NAME
+  if [ -z "${role_name}" ]; then
+    role_name="${vpc_name}-${SERVICE_ACCOUNT_NAME}-role"
+  fi
 
   if [ -z ${NAMESPACE_SCRIPT} ];
   then
@@ -480,6 +483,12 @@ while getopts "$OPTSPEC" optchar; do
         create=*)
           ACTION="c"
           SERVICE_ACCOUNT_NAME=${OPTARG#*=}
+          ;;
+        role-name)
+          ROLE_NAME="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+          ;;
+        role-name=*)
+          ROLE_NAME=${OPTARG#*=}
           ;;
         list)
           ACTION="l"

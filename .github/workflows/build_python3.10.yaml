@@ -1,0 +1,23 @@
+name: Build Python 3.10 image
+
+on:
+  push:
+    paths:
+    - .github/workflows/build_python3.10.yaml
+    - Docker/python-nginx/python3.10-buster/**
+
+jobs:
+  python_3-10:
+    name: Python 3.10
+    uses: uc-cdis/.github/.github/workflows/image_build_push.yaml@master
+    with:
+      DOCKERFILE_LOCATION: "./Docker/python-nginx/python3.10-buster/Dockerfile"
+      DOCKERFILE_BUILD_CONTEXT: "./Docker/python-nginx/python3.10-buster"
+      OVERRIDE_REPO_NAME: "python"
+      OVERRIDE_TAG_NAME: "python3.10-buster-$(echo ${GITHUB_REF#refs/*/} | tr / _)"
+    secrets:
+      ECR_AWS_ACCESS_KEY_ID: ${{ secrets.ECR_AWS_ACCESS_KEY_ID }}
+      ECR_AWS_SECRET_ACCESS_KEY: ${{ secrets.ECR_AWS_SECRET_ACCESS_KEY }}
+      QUAY_USERNAME: ${{ secrets.QUAY_USERNAME }}
+      QUAY_ROBOT_TOKEN: ${{ secrets.QUAY_ROBOT_TOKEN }}
+
