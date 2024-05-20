@@ -10,6 +10,8 @@ as an AWS ELB that terminates HTTPS requests (using an AWS Certificate Manager s
 forwards http and https traffic to the
 revproxy deployment using http proxy protocol.
 
+Update: The revproxy-service-elb and WAF is now only applied if you set/add the "waf_enabled" flag to true in the manifest-global configmap (set via the global section of the manifest.json). We now recommend using the ALB Ingress via the kube-setup-ingress script detailed here: https://github.com/uc-cdis/cloud-automation/blob/master/doc/kube-setup-ingress.md
+
 - Create a cert in AWS Certificate Manager, and register it in the global config map.  This will require the admin for the domain approve it through email
 - `gen3 kube-setup-revproxy` - deploys the service - creating an AWS ELB
 - update DNS to point at the ELB

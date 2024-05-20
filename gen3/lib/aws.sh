@@ -535,7 +535,7 @@ customer_id = ""
 # Enable/Disable Federal Information Processing Standards (FIPS) in EKS nodes. You need to have FIPS enabled AMI to enable this.
 fips = false
 fips_ami_kms = "arn:aws:kms:us-east-1:707767160287:key/mrk-697897f040ef45b0aa3cebf38a916f99"
-fips_enabled_ami = "ami-0de87e3680dcb13ec"
+fips_enabled_ami = "ami-074d352c8e753fc93"
 
 # AZs where to deploy the kubernetes worker nodes.
 availability_zones = ["us-east-1a", "us-east-1c", "us-east-1d"]

@@ -2,7 +2,9 @@
 
 Setup the aws-load-balancer-controller and an ALB. 
 
-This is a replacement for the revproxy-service-elb
+This is a replacement for the revproxy-service-elb and WAF 
+
+PLEASE NOTE: This script will now also deploy AWS WAF which will be associated with the ALB. This can be deployed by setting/adding the "waf_enabled" flag to true in the manifest-global configmap (set via the global section of the manifest.json).
 
 ## Overview
 

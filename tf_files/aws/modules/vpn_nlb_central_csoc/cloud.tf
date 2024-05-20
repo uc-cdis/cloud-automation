@@ -485,7 +485,6 @@ resource "aws_route53_record" "vpn-nlb" {
 
 resource "aws_s3_bucket" "vpn-certs-and-files" {
   bucket = "vpn-certs-and-files-${var.env_vpn_nlb_name}"
-  acl    = "private"
 
   versioning {
     enabled = true

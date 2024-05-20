@@ -3,7 +3,6 @@ kind: NetworkPolicy
 metadata:
   name: netpolicy-sowerjob
 spec:
-  spec:
   podSelector:
     matchLabels:
       app: sowerjob

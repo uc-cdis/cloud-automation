@@ -122,7 +122,7 @@ fips = false
 fips_ami_kms = "arn:aws:kms:us-east-1:707767160287:key/mrk-697897f040ef45b0aa3cebf38a916f99"
 
 #This is the FIPS enabled AMI in cdistest account
-fips_enabled_ami = "ami-0de87e3680dcb13ec"
+fips_enabled_ami = "ami-074d352c8e753fc93"
 
 #A list of AZs to be used by EKS nodes
 availability_zones = ["us-east-1a", "us-east-1c", "us-east-1d"]

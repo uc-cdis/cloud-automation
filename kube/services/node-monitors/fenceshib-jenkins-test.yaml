@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: fenceshib-service-check
+  namespace: default
+spec:
+  schedule: "0 */4 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          serviceAccountName: node-monitor
+          containers:
+            - name: kubectl
+              image: quay.io/cdis/awshelper
+              env:
+                - name: SLACK_WEBHOOK_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
+              command: ["/bin/bash"]
+              args:
+                - "-c"
+                - |
+                  #!/bin/bash
+
+                  fenceshib=$(kubectl get services -A | grep "fenceshib-service" | awk '{print $2}')
+
+                  # Check if there are any fenceshib services
+                  if [[ ! -z "$fenceshib" ]]; then
+                      echo "Alert: Service fenceshib-service found with output: $fenceshib"
+                      curl -X POST -H 'Content-type: application/json' --data "{\"text\": \"WARNING: Fenceshib service discovered in qaplanetv1 cluster. This could cause issues with future CI runs. Please delete this service if it is not needed. Run the following in qaplanetv1 to see which namespace it is in: \`kubectl get services -A | grep "fenceshib-service"\`\"}" $SLACK_WEBHOOK_URL
+                  else
+                      echo "Fenceshib Service Not Found"
+                  fi
+          restartPolicy: OnFailure

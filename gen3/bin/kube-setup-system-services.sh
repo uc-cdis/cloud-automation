@@ -16,10 +16,10 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-kubeproxy=${kubeproxy:-1.16.13}
-coredns=${coredns:-1.6.6}
+kubeproxy=${kubeproxy:-1.24.7}
+coredns=${coredns:-1.8.7}
 kubednsautoscaler=${kubednsautoscaler:-1.8.6}
-cni=${cni:-1.11.0}
+cni=${cni:-1.14.1}
 calico=${calico:-1.7.8}
 
 
@@ -31,7 +31,7 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kubeproxy}-eksbuild.1"
+kube_proxy_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/kube-proxy:v${kubeproxy}-eksbuild.2"
 coredns_image="602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/coredns:v${coredns}"
 kubednsautoscaler_image="k8s.gcr.io/cpa/cluster-proportional-autoscaler:${kubednsautoscaler}"
 cni_image="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v${cni}/config/master/aws-k8s-cni.yaml"
@@ -39,7 +39,7 @@ calico_yaml="https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v${calico}
 
 g3kubectl set image daemonset.apps/kube-proxy -n kube-system kube-proxy=${kube_proxy_image}
 g3kubectl set image --namespace kube-system deployment.apps/coredns coredns=${coredns_image}
-g3k_kv_filter "${GEN3_HOME}/kube/services/kube-dns-autoscaler/dns-horizontal-autoscaler.yaml" SERVICE "coredns" IMAGE "$kubednsautoscaler_image" | g3kubectl apply -f -
+#g3k_kv_filter "${GEN3_HOME}/kube/services/kube-dns-autoscaler/dns-horizontal-autoscaler.yaml" SERVICE "coredns" IMAGE "$kubednsautoscaler_image" | g3kubectl apply -f -
 g3kubectl apply -f ${cni_image}
 g3kubectl apply -f ${calico_yaml}
 

@@ -13,6 +13,12 @@ set -e
 
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
+gen3_load "gen3/lib/g3k_manifest"
+
+# Deploy ELB Service if flag set in manifest
+manifestPath=$(g3k_manifest_path)
+deployELB="$(jq -r ".[\"global\"][\"deploy_elb\"]" < "$manifestPath" | tr '[:upper:]' '[:lower:]')"
+
 
 #
 # Setup indexd basic-auth gateway user creds enforced
@@ -105,49 +111,58 @@ for name in $(g3kubectl get services -o json | jq -r '.items[] | .metadata.name'
   fi
 done
 
-if g3kubectl get namespace argo > /dev/null 2>&1;
+
+if g3k_manifest_lookup .argo.argo_server_service_url 2> /dev/null; then
+  argo_server_service_url=$(g3k_manifest_lookup .argo.argo_server_service_url)
+  g3k_kv_filter "${scriptDir}/gen3.nginx.conf/argo-server.conf" SERVICE_URL "${argo_server_service_url}" > /tmp/argo-server-with-url$(gen3 db namespace).conf
+  filePath="/tmp/argo-server-with-url$(gen3 db namespace).conf"
+  if [[ -f "$filePath" ]]; then
+    confFileList+=("--from-file" "$filePath")
+  fi 
+fi
+
+if g3kubectl get namespace argocd > /dev/null 2>&1;
 then
-  for argo in $(g3kubectl get services -n argo -o jsonpath='{.items[*].metadata.name}');
-  do
-    filePath="$scriptDir/gen3.nginx.conf/${argo}.conf"
+    filePath="$scriptDir/gen3.nginx.conf/argocd-server.conf"
     if [[ -f "$filePath" ]]; then
       confFileList+=("--from-file" "$filePath")
     fi
-  done
 fi
 
-if [[ $current_namespace == "default" ]];
+if g3kubectl get namespace monitoring > /dev/null 2>&1;
 then
-  if g3kubectl get namespace prometheus > /dev/null 2>&1;
-  then
-    for prometheus in $(g3kubectl get services -n prometheus -o jsonpath='{.items[*].metadata.name}');
-    do
-      filePath="$scriptDir/gen3.nginx.conf/${prometheus}.conf"
-      if [[ -f "$filePath" ]]; then
-        confFileList+=("--from-file" "$filePath")
-      fi
-    done
-  fi
+    filePath="$scriptDir/gen3.nginx.conf/prometheus-server.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
 fi
 
-#echo "${confFileList[@]}" $BASHPID
-if [[ $current_namespace == "default" ]]; then
-  if g3kubectl get namespace grafana > /dev/null 2>&1; then
-    for grafana in $(g3kubectl get services -n grafana -o jsonpath='{.items[*].metadata.name}');
-    do
-      filePath="$scriptDir/gen3.nginx.conf/${grafana}.conf"
-      touch "${XDG_RUNTIME_DIR}/${grafana}.conf"
-      tmpCredsFile="${XDG_RUNTIME_DIR}/${grafana}.conf"
-      adminPass=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
-      adminCred=$(echo -n "admin:${adminPass}" | base64 --wrap=0)
-      sed "s/CREDS/${adminCred}/" ${filePath} > ${tmpCredsFile}
-      if [[ -f "${tmpCredsFile}" ]]; then
-        confFileList+=("--from-file" "${tmpCredsFile}")
-      fi
-      #rm -f ${tmpCredsFile}
-    done
-  fi
+if g3kubectl get namespace kubecost > /dev/null 2>&1;
+then
+    filePath="$scriptDir/gen3.nginx.conf/kubecost-service.conf"
+    if [[ -f "$filePath" ]]; then
+      confFileList+=("--from-file" "$filePath")
+    fi
 fi
+
+# #echo "${confFileList[@]}" $BASHPID
+# if [[ $current_namespace == "default" ]]; then
+#   if g3kubectl get namespace grafana > /dev/null 2>&1; then
+#     for grafana in $(g3kubectl get services -n grafana -o jsonpath='{.items[*].metadata.name}');
+#     do
+#       filePath="$scriptDir/gen3.nginx.conf/${grafana}.conf"
+#       touch "${XDG_RUNTIME_DIR}/${grafana}.conf"
+#       tmpCredsFile="${XDG_RUNTIME_DIR}/${grafana}.conf"
+#       adminPass=$(g3kubectl get secrets grafana-admin -o json |jq .data.credentials -r |base64 -d)
+#       adminCred=$(echo -n "admin:${adminPass}" | base64 --wrap=0)
+#       sed "s/CREDS/${adminCred}/" ${filePath} > ${tmpCredsFile}
+#       if [[ -f "${tmpCredsFile}" ]]; then
+#         confFileList+=("--from-file" "${tmpCredsFile}")
+#       fi
+#       #rm -f ${tmpCredsFile}
+#     done
+#   fi
+# fi
 
 if g3k_manifest_lookup .global.document_url  > /dev/null 2>&1; then
   documentUrl="$(g3k_manifest_lookup .global.document_url)"
@@ -255,6 +270,9 @@ export ARN=$(g3kubectl get configmap global --output=jsonpath='{.data.revproxy_a
 #  revproxy deployment using http proxy protocol.
 #
 # port 81 == proxy-protocol listener - main service entry
+
+gen3_deploy_revproxy_elb() {
+gen3_log_info "Deploying revproxy-service-elb..."
 export TARGET_PORT_HTTPS=81
 # port 82 == proxy-protocol listener - redirects to https
 export TARGET_PORT_HTTP=82
@@ -280,6 +298,10 @@ else
   envsubst <$scriptDir/revproxy-service-elb.yaml
   gen3_log_info "DRY RUN"
 fi
-
+}
 # Don't automatically apply this right now
 #kubectl apply -f $scriptDir/revproxy-service.yaml
+
+if [ "$deployELB" = true ]; then
+  gen3_deploy_revproxy_elb
+fi

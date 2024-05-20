@@ -51,18 +51,18 @@ fi
 
 gen3 kube-setup-networkpolicy disable
 #
-# Hopefull core secrets/config in place - start bringing up services
+# Hopefully core secrets/config in place - start bringing up services
 #
-if g3k_manifest_lookup .versions.indexd 2> /dev/null; then
-  gen3 kube-setup-indexd &
-else
-  gen3_log_info "no manifest entry for indexd"
-fi
-
 if g3k_manifest_lookup .versions.arborist 2> /dev/null; then
   gen3 kube-setup-arborist || gen3_log_err "arborist setup failed?"
 else
   gen3_log_info "no manifest entry for arborist"
+fi
+
+if g3k_manifest_lookup .versions.indexd 2> /dev/null; then
+  gen3 kube-setup-indexd &
+else
+  gen3_log_info "no manifest entry for indexd"
 fi
 
 if g3k_manifest_lookup '.versions["audit-service"]' 2> /dev/null; then
@@ -243,18 +243,50 @@ else
   gen3_log_info "not deploying dicom-viewer - no manifest entry for '.versions[\"dicom-viewer\"]'"
 fi
 
+if g3k_manifest_lookup '.versions["gen3-discovery-ai"]' 2> /dev/null; then
+  gen3 kube-setup-gen3-discovery-ai &
+else
+  gen3_log_info "not deploying gen3-discovery-ai - no manifest entry for '.versions[\"gen3-discovery-ai\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["ohdsi-atlas"]' && g3k_manifest_lookup '.versions["ohdsi-webapi"]' 2> /dev/null; then
+  gen3 kube-setup-ohdsi &
+else
+  gen3_log_info "not deploying OHDSI tools - no manifest entry for '.versions[\"ohdsi-atlas\"]' and '.versions[\"ohdsi-webapi\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["cohort-middleware"]' 2> /dev/null; then
+  gen3 kube-setup-cohort-middleware
+else
+  gen3_log_info "not deploying cohort-middleware - no manifest entry for .versions[\"cohort-middleware\"]"
+fi
+
 gen3 kube-setup-revproxy
 
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
+  if g3k_manifest_lookup .global.argocd 2> /dev/null; then
+    gen3 kube-setup-prometheus
+  fi
   # Internal k8s systems
   gen3 kube-setup-fluentd &
-  gen3 kube-setup-autoscaler &
-  gen3 kube-setup-kube-dns-autoscaler &
+  # If there is an entry for karpenter in the manifest setup karpenter
+  if g3k_manifest_lookup .global.karpenter 2> /dev/null; then
+    if [[ "$(g3k_manifest_lookup .global.karpenter)" != "arm" ]]; then
+      gen3 kube-setup-karpenter deploy &
+    else
+      gen3 kube-setup-karpenter deploy --arm &
+    fi
+  # Otherwise, setup the cluster autoscaler
+  else
+    gen3 kube-setup-autoscaler &
+  fi
+  #gen3 kube-setup-kube-dns-autoscaler &
   gen3 kube-setup-metrics deploy || true
   gen3 kube-setup-tiller || true
   #
   gen3 kube-setup-networkpolicy disable &
   gen3 kube-setup-networkpolicy &
+  gen3 kube-setup-pdb
 else
   gen3_log_info "roll fast mode - skipping k8s base services and netpolicy setup"
 fi
@@ -312,6 +344,12 @@ if g3k_manifest_lookup '.versions["kayako-wrapper"]' 2> /dev/null; then
   gen3 kube-setup-kayako-wrapper &
 else
   gen3_log_info "not deploying kayako-wrapper - no manifest entry for '.versions[\"kayako-wrapper\"]'"
+fi
+
+if g3k_manifest_lookup '.versions["argo-wrapper"]' 2> /dev/null; then
+  gen3 kube-setup-argo-wrapper &
+else
+  gen3_log_info "not deploying argo-wrapper - no manifest entry for '.versions[\"argo-wrapper\"]'"
 fi
 
 gen3_log_info "enable network policy"
