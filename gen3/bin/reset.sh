@@ -137,7 +137,7 @@ sleep 30
 #
 for serviceName in $(gen3 db services); do
   if [[ "$serviceName" != "peregrine" ]]; then  # sheepdog and peregrine share the same db
-    if [[ "$serviceName" != "argo"]]; then
+    if [[ "$serviceName" != "argo" ]]; then
       # --force will also drop connections to the database to ensure database gets dropped
       gen3 db reset "$serviceName" --force
     else
