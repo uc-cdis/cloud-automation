@@ -14,3 +14,5 @@ iptables -I FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 # Masquerade
 iptables -t nat -A POSTROUTING -s #VPN_SUBNET#  -d #VM_SUBNET# -o $vpnserver_int -j MASQUERADE
 echo 1 > /proc/sys/net/ipv4/ip_forward
+
+service iptables save

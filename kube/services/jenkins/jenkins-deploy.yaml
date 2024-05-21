@@ -38,6 +38,10 @@ spec:
                 operator: In
                 values:
                 - on-demand                
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                - us-east-1a
       serviceAccountName: jenkins-service
       securityContext:
         runAsUser: 1000
@@ -111,8 +115,8 @@ spec:
             port: 8080
         resources:
           limits:
-            cpu: 0.9
-            memory: 8192Mi
+            cpu: 2
+            memory: 6Gi
         imagePullPolicy: Always
         volumeMounts:
         - name: datadir

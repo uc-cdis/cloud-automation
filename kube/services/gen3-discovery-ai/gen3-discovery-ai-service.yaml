@@ -1,0 +1,21 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: gen3-discovery-ai-service
+spec:
+  selector:
+    app: gen3-discovery-ai
+    release: production
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8089
+      name: http
+      nodePort: null
+    - protocol: TCP
+      port: 443
+      targetPort: 443
+      name: https
+      nodePort: null
+  type: ClusterIP
+

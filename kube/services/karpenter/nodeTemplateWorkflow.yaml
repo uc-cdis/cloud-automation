@@ -11,6 +11,12 @@ spec:
     Environment: VPC_NAME
     Name: eks-VPC_NAME-workflow-karpenter
     karpenter.sh/discovery: VPC_NAME
+    purpose: workflow
+  metadataOptions:
+    httpEndpoint: enabled
+    httpProtocolIPv6: disabled
+    httpPutResponseHopLimit: 2
+    httpTokens: optional
   userData: |
     MIME-Version: 1.0
     Content-Type: multipart/mixed; boundary="BOUNDARY"
@@ -18,9 +24,11 @@ spec:
     --BOUNDARY
     Content-Type: text/x-shellscript; charset="us-ascii"
 
-    #!/bin/bash -xe
-
+    #!/bin/bash -x
+    instanceId=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .instanceId)
     curl https://raw.githubusercontent.com/uc-cdis/cloud-automation/master/files/authorized_keys/ops_team >> /home/ec2-user/.ssh/authorized_keys
+
+    echo "$(jq '.registryPullQPS=0' /etc/kubernetes/kubelet/kubelet-config.json)" > /etc/kubernetes/kubelet/kubelet-config.json
 
     sysctl -w fs.inotify.max_user_watches=12000
 
@@ -29,6 +37,12 @@ spec:
     sudo  dracut -f
     # configure grub
     sudo /sbin/grubby --update-kernel=ALL --args="fips=1"
+
+    # --BOUNDARY
+    # Content-Type: text/cloud-config; charset="us-ascii"
+
+    # mounts:
+    #   - ['fstype': 'bpf', 'mountpoint': '/sys/fs/bpf', 'opts': 'rw,relatime']
 
     --BOUNDARY
     Content-Type: text/cloud-config; charset="us-ascii"

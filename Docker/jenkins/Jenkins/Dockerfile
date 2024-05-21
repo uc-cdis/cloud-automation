@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:2.375
+FROM jenkins/jenkins:2.426.3-lts-jdk21
 
 USER root
 
@@ -29,6 +29,7 @@ RUN set -xe && apt-get update \
      software-properties-common \
      sudo \
      tk-dev \
+     wget \
      zlib1g-dev \
      zsh \
   && ln -s /usr/bin/lua5.3 /usr/local/bin/lua

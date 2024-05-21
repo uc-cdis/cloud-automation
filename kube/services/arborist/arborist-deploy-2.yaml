@@ -87,11 +87,10 @@ spec:
           subPath: dbcreds.json
         resources:
           requests:
-            cpu: 0.4
-            memory: 1200Mi
+            cpu: 100m
+            memory: 200Mi
           limits:
-            cpu: 0.8
-            memory: 2400Mi
+            memory: 1000Mi
         command: ["sh"]
         args:
           - "-c"

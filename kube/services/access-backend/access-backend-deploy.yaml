@@ -80,8 +80,7 @@ spec:
             subPath: "user.yaml"
         resources:
           requests:
-            cpu: 0.4
-            memory: 512Mi
+            cpu: 100m
+            memory: 128Mi
           limits:
-            cpu: 1
             memory: 2048Mi

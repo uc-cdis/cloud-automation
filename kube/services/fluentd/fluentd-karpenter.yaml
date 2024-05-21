@@ -43,7 +43,8 @@ spec:
         effect: "NoSchedule"
       containers:
       - name: fluentd
-        GEN3_FLUENTD_IMAGE
+        # Hardcode fluentd version to ensure we don't run into containerd logging issues
+        image: fluent/fluentd-kubernetes-daemonset:v1.15.3-debian-cloudwatch-1.0
         env:
           # See https://github.com/fabric8io/fluent-plugin-kubernetes_metadata_filter#environment-variables-for-kubernetes
           - name: K8S_NODE_NAME

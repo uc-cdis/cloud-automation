@@ -15,14 +15,37 @@ roleRef:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: argo-role-binding
+  name: argo-role-binding-CURRENT_NAMESPACE
   namespace: argo
 subjects:
 - kind: ServiceAccount
   name: gitops-sa
-  CURRENT_NAMESPACE
+  namespace: CURRENT_NAMESPACE
   apiGroup: ""
 roleRef:
   kind: ClusterRole
   name: admin
   apiGroup: ""
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitops-cluster-role-CURRENT_NAMESPACE
+rules:
+- apiGroups: [""]
+  resources: ["namespaces","services"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gitops-cluster-binding-CURRENT_NAMESPACE
+subjects:
+- kind: ServiceAccount
+  name: gitops-sa
+  namespace: CURRENT_NAMESPACE
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: gitops-cluster-role-CURRENT_NAMESPACE
+  apiGroup: rbac.authorization.k8s.io

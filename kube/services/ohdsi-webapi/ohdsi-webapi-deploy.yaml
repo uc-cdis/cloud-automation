@@ -78,13 +78,12 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 250m
-              memory: 500Mi
+              cpu: 100m
+              memory: 1500Mi
             limits:
-              cpu: 500m
               memory: 4Gi  
         - name: ohdsi-webapi-reverse-proxy
-          image: nginx:1.23
+          image: 707767160287.dkr.ecr.us-east-1.amazonaws.com/gen3/nginx:1.23
           ports:
           - containerPort: 80
           volumeMounts:
@@ -98,5 +97,4 @@ spec:
               cpu: 100m
               memory: 100Mi
             limits:
-              cpu: 500m
               memory: 500Mi

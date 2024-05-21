@@ -16,7 +16,6 @@ module "cdis_s3_logs" {
 
 resource "aws_s3_bucket" "mybucket" {
   bucket = "${local.clean_bucket_name}"
-  acl    = "private"
 
   server_side_encryption_configuration {
     rule {

@@ -1,5 +1,5 @@
 # gen3 job run covid19-bayes-cronjob S3_BUCKET <S3_BUCKET>
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: covid19-bayes

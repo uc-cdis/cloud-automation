@@ -78,10 +78,9 @@ spec:
             mountPath: "/etc/gen3"
         resources:
           requests:
-            cpu: 0.3
-            memory: 200Mi
+            cpu: 100m
+            memory: 20Mi
           limits:
-            cpu: 0.5
             memory: 500Mi
         imagePullPolicy: Always
         livenessProbe:

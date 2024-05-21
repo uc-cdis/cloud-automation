@@ -49,6 +49,13 @@ spec:
           - weight: 100
             preference:
               matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
               - key: eks.amazonaws.com/capacityType
                 operator: In
                 values:
@@ -236,7 +243,7 @@ spec:
             cpu: 0.4
             memory: 1200Mi
           limits:
-            cpu: 1.0
+            cpu: 2.0
             memory: 2400Mi
         command: ["/bin/bash"]
         args:

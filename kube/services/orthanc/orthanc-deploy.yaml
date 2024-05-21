@@ -1,0 +1,103 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: orthanc-deployment
+  labels:
+    app: orthanc
+spec:
+  selector:
+    matchLabels:
+      app: orthanc
+      release: production
+  template:
+    metadata:
+      labels:
+        app: orthanc
+        release: production
+        public: "yes"
+        s3: "yes"
+        GEN3_DATE_LABEL
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - spot
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - SPOT
+      volumes:
+      - name: config-volume-g3auto
+        secret:
+          secretName: orthanc-s3-g3auto
+      containers:
+      - name: orthanc
+        GEN3_ORTHANC_IMAGE
+        env:
+        - name: DD_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: dd_enabled
+              optional: true
+        - name: DD_ENV
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/env']
+        - name: DD_SERVICE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/service']
+        - name: DD_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tags.datadoghq.com/version']
+        - name: DD_LOGS_INJECTION
+          value: "true"
+        - name: DD_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: DICOM_WEB_PLUGIN_ENABLED
+          value: "true"
+        - name: TCIA_PLUGIN_ENABLED
+          value: "true"
+        - name: ORTHANC_EXPLORER_2_ENABLED
+          value: "false"
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /system
+            port: 8042
+            httpHeaders:
+              - name: Authorization
+                value: Basic cHVibGljOmhlbGxv
+          initialDelaySeconds: 5
+          periodSeconds: 20
+          timeoutSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /system
+            port: 8042
+            httpHeaders:
+              - name: Authorization
+                value: Basic cHVibGljOmhlbGxv
+          initialDelaySeconds: 5
+          periodSeconds: 60
+          timeoutSeconds: 30
+        ports:
+        - containerPort: 8042
+        volumeMounts:
+        - name: config-volume-g3auto
+          readOnly: true
+          mountPath: /etc/orthanc/orthanc_config_overwrites.json
+          subPath: orthanc_config_overwrites.json

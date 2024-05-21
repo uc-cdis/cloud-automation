@@ -1,6 +1,6 @@
 ---
-# Note: change to batch/v1beta1 once we bump to k8s 1.8
-apiVersion: batch/v1beta1
+# Note: change to batch/v1 once we bump to k8s 1.8
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: google-manage-keys

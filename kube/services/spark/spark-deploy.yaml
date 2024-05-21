@@ -80,9 +80,9 @@ spec:
           volumeMounts:
           imagePullPolicy: Always
           resources:
-            limits:
-              cpu: 0.5
-              memory: 2Gi
+            requests:
+              cpu: 3
+              memory: 4Gi
           command: ["/bin/bash" ]
           args: 
             - "-c"

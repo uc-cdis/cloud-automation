@@ -31,10 +31,10 @@ if [[ -z "$JENKINS_HOME" ]]; then
     roleName="$(gen3 api safe-name gitops)"
     gen3 awsrole create "$roleName" gitops-sa
     # do this here, since we added the new role to this binding
-    g3k_kv_filter ${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml CURRENT_NAMESPACE "namespace: $namespace"|g3kubectl apply -f -
+    g3k_kv_filter ${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml CURRENT_NAMESPACE "$namespace"|g3kubectl apply -f -
   fi
   if ! g3kubectl get rolebindings/devops-binding > /dev/null 2>&1; then
-    g3k_kv_filter ${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml CURRENT_NAMESPACE "namespace: $namespace"|g3kubectl apply -f -
+    g3k_kv_filter ${GEN3_HOME}/kube/services/jenkins/rolebinding-devops.yaml CURRENT_NAMESPACE "$namespace"|g3kubectl apply -f -
   fi
 
   ctx="$(g3kubectl config current-context)"

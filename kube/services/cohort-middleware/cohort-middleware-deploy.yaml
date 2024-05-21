@@ -57,9 +57,10 @@ spec:
                 - SPOT                      
       automountServiceAccountToken: false
       volumes:
-        - name: cohort-middleware-config
+        - name: cohort-middleware-g3auto
           secret:
-            secretName: cohort-middleware-config
+            secretName: cohort-middleware-g3auto
+            optional: true
       containers:
         - name: cohort-middleware
           GEN3_COHORT-MIDDLEWARE_IMAGE|-image: quay.io/cdis/cohort-middleware:latest-|
@@ -110,15 +111,14 @@ spec:
           ports:
           - containerPort: 8080
           volumeMounts:
-            - name: cohort-middleware-config
+            - name: cohort-middleware-g3auto
               readOnly: true
               mountPath: /config/development.yaml
               subPath: development.yaml
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 500m
-              memory: 4Gi
+              cpu: 100m
+              memory: 128Mi
             limits:
-              cpu: 500m
               memory: 4Gi
