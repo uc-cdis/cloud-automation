@@ -1,6 +1,7 @@
 export VPN_SETTINGS_LOADED="1"
 export CLOUD_NAME='#CLOUD_NAME#'
 export FQDN="#FQDN#"
+export EXTHOST='#CLOUD_NAME#.planx-pla.net'
 ## EXTHOST is set in the easy-rsa/vars env settings.  I think these values have to maych so removing from here
 
 #sendemail vars
@@ -28,7 +29,7 @@ export OPENVPN_MY_BIN="/etc/openvpn/bin"
 
 #CDIS OpenVPN scripts contants
 export TEMPLATE_DIR="/etc/openvpn/bin/templates"
-export KEY_PATH="/etc/openvpn/easy-rsa/keys/"
+export KEY_PATH="/etc/openvpn/easy-rsa/pki/"
 export CA_PATH="$KEY_PATH/ca.crt"
 export TA_KEY_PATH="$KEY_PATH/ta.key"
 export ARCHIVE_CERT_DIR="$KEY_DIR/user_certs/"
@@ -37,6 +38,6 @@ export USER_PW_FILE="/etc/openvpn/user_passwd.csv"
 export VPN_BIN_ROOT="/etc/openvpn/bin"
 export VPN_USER_CSV="/etc/openvpn/user_passwd.csv"
 export VPN_FILE_ATTACHMENTS="-a$VPN_BIN_ROOT/OpenVPN_for_PLANX_Installation_Guide.pdf"
-
+export KEY_DIR="$EASYRSA_PATH/pki"
 export PATH=$PATH:$EASYRSA_PATH:$OPENVPN_MY_BIN
 source /etc/openvpn/bin/.venv/bin/activate

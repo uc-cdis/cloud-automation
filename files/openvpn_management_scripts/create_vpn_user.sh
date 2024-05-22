@@ -49,13 +49,16 @@ export KEY_EMAIL=$email
 export KEY_ALTNAMES="DNS:${KEY_CN}"
 
 #This create the key's for the road warrior
-echo -e "running ${YELLOW} build-batch-key"
-build-key-batch  $username &>/dev/null && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR 
+echo -e "running ${YELLOW} easyrsa build-client-full"
+(
+	cd $EASYRSA_PATH
+	easyrsa build-client-full $username nopass &>/dev/null && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
+)
 #&& echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
 
-echo "Backup certs so we can revoke them if ever needed"
-[ -d  $KEY_DIR/user_certs/ ]  || mkdir  $KEY_DIR/user_certs/
-cp $KEY_DIR/$username.crt $KEY_DIR/user_certs/$username.crt-$(date +%F-%T) && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
+# echo "Backup certs so we can revoke them if ever needed"
+# [ -d  $KEY_DIR/user_certs/ ]  || mkdir  $KEY_DIR/user_certs/
+# cp $KEY_DIR/$username.crt $KEY_DIR/user_certs/$username.crt-$(date +%F-%T) && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
 
 echo "Create the OVPN file for $username"
 $VPN_BIN_ROOT/create_ovpn.sh $KEY_CN $KEY_EMAIL > $KEY_DIR/ovpn_files/${username}-${CLOUD_NAME}.ovpn 2> /dev/null && echo -e "${GREEN}success!" || echo -e "${RED}failure";echo -e $CLEAR
