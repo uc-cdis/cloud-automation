@@ -26,7 +26,7 @@ spec:
                 operator: In
                 values:
                 - ONDEMAND
-      serviceAccountName: dbbackup-sa
+      serviceAccountName: psql-db-copy-sa
       containers:
         - name: pgdump
           image: quay.io/cdis/awshelper:master
@@ -41,50 +41,96 @@ spec:
               value: "devterm"
             - name: GEN3_HOME
               value: /home/ubuntu/cloud-automation
+            - name: SOURCE_NAMESPACE
+              GEN3_SOURCE_NAMESPACE|-value: "staging"-| # Default value, should be overwritten by the environment variable
           command: [ "/bin/bash" ]
           args:
             - "-c"
             - |
+              # This script copies specified databases from a source namespace to the current namespace on the same Aurora RDS instance.
+              #
+              # This script requires the following to work properly:
+              #
+              # 1. Aurora server credentials must be present in the Gen3Secrets/creds.json file.
+              #    These credentials should be present as a Kubernetes secret named "aurora-creds".
+              #    This secret should contain the keys: db_host, db_username, db_password, and db_database.
+              #
+              # 2. The "gen3 psql aurora" command should be available to connect to the Aurora server.
+              #
+              # 3. The "gen3 secrets decode aurora-creds creds.json" command should work, allowing the script to decode the necessary secrets.
+              #
+              # 4. The source and the destination databases should be on the same Aurora instance.
+              #
+              # How to run the script:
+              #    gen3 job run psql-db-copy-aurora -v SOURCE_NAMESPACE <source-namespace>
+              #
+
               source "${GEN3_HOME}/gen3/lib/utils.sh"
               gen3_load "gen3/gen3setup"
               namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
-              # Define the default databases to be copied
-              default_databases=( "indexd" "sheepdog" "metadata")
               date_str=$(date -u +%y%m%d_%H%M%S)
-              databases=("${default_databases[@]}")
-              gen3_log_info "databases to be processed: $databases"
-              source_namespace="ajo"
+              # Define the default databases to be copied
+              databases=( "indexd" "sheepdog" "metadata")
+              gen3_log_info "databases to be processed: ${databases[@]}"
+              source_namespace=$SOURCE_NAMESPACE
+              gen3_log_info "Source Namespace: $source_namespace"
+
               # find Aurora Server credentials
-              aurora_creds=$(gen3 secrets decode dbfarm-g3auto servers.json)
-              aurora_server_name=$(gen3 secrets decode dbfarm-g3auto servers.json | jq -r 'keys[0]')
-              aurora_host_name=$(echo $aurora_creds | jq -r '.[] | select(.db_host | contains("aurora-cluster")) | .db_host')
-              aurora_master_username=$(echo $aurora_creds | jq -r '.[] | select(.db_host | contains("aurora-cluster")) | .db_username')
-              aurora_master_password=$(echo $aurora_creds | jq -r '.[] | select(.db_host | contains("aurora-cluster")) | .db_password')
+              aurora_host_name=$(gen3 secrets decode aurora-creds creds.json | jq -r '.db_host')
+              aurora_master_username=$(gen3 secrets decode aurora-creds creds.json | jq -r '.db_username')
+              aurora_master_password=$(gen3 secrets decode aurora-creds creds.json | jq -r '.db_password')
+              aurora_database=$(gen3 secrets decode aurora-creds creds.json | jq -r '.db_database')
+
+              # Verify important variables are present
+              if [ -z "$aurora_host_name" ] || [ -z "$aurora_master_username" ] || [ -z "$aurora_master_password" ] || [ -z "$aurora_database" ]; then
+                gen3_log_err "Aurora credentials are missing. Exiting."
+                exit 1
+              fi
+
               # Function to decode Kubernetes secrets
               function secrets_decode() {
-              local namespace=$1
-              local secret=$2
-              local key=$3
-              secrets_value=$(kubectl get secret -n $namespace $secret -o json | jq -r --arg key $key '.data[$key]' | base64 --decode --ignore-garbage)
-              echo $secrets_value
+                local namespace=$1
+                local secret=$2
+                local key=$3
+                local secrets_value
+
+                secrets_value=$(kubectl get secret -n $namespace $secret -o json 2>/dev/null | jq -r --arg key "$key" '.data[$key]' | base64 --decode --ignore-garbage 2>/dev/null)
+                if [ $? -ne 0 ] || [ -z "$secrets_value" ]; then
+                  echo "Secret $secret in namespace $namespace not found or failed to decode" >&2
+                  return 1
+                else
+                  echo "$secrets_value"
+                fi
               }
 
-              # Looping through each database to:
-              # - Extract the database credentials.
-              # - Grant required privileges.
-              # - terminate existing connections to the source database
-              # - Create a new database with the same structure as the source database.
-              # - Alter the owner of all tables to the destination user.
+              # Array to hold the names of newly created databases
+              new_databases=()
 
+              # Looping through each database
               for database in "${databases[@]}"; do
-                # Try to get the source and destination credentials with the "-g3auto" suffix and key "dbcreds.json"
-                source_creds="$(secrets_decode $source_namespace ${database}-g3auto dbcreds.json)"
-                creds="$(secrets_decode $namespace ${database}-g3auto dbcreds.json)"
+                source_creds=""
+                creds=""
 
-                # If the "-g3auto" suffix didn't work for both source_creds and creds, try without the suffix "creds" and key "creds.json"
+                # Try to get the source and destination credentials with the "-g3auto" suffix and key "dbcreds.json"
+                source_creds=$(secrets_decode $source_namespace ${database}-g3auto dbcreds.json)
+                if [ $? -ne 0 ]; then
+                  source_creds=""
+                fi
+                creds=$(secrets_decode $namespace ${database}-g3auto dbcreds.json)
+                if [ $? -ne 0 ]; then
+                  creds=""
+                fi
+
+                # If the "-g3auto" suffix didn't work for both source_creds and creds, try with the suffix "creds" and key "creds.json"
                 if [ -z "$source_creds" ] && [ -z "$creds" ]; then
-                  source_creds="$(secrets_decode $source_namespace ${database}-creds creds.json)"
-                  creds="$(secrets_decode $namespace ${database}-creds creds.json)"
+                  source_creds=$(secrets_decode $source_namespace ${database}-creds creds.json)
+                  if [ $? -ne 0 ]; then
+                    source_creds=""
+                  fi
+                  creds=$(secrets_decode $namespace ${database}-creds creds.json)
+                  if [ $? -ne 0 ]; then
+                    creds=""
+                  fi
                 fi
 
                 # If we still couldn't get the credentials, log an error and continue to the next database
@@ -97,37 +143,35 @@ spec:
                 db_username=$(echo $creds | jq -r .db_username)
                 db_database=$(echo $creds | jq -r .db_database)
 
-                gen3_log_info "source_creds: $source_creds"
-                gen3_log_info "creds: $creds"
+                if [ -z "$source_db_database" ] || [ -z "$db_username" ] || [ -z "$db_database" ]; then
+                  gen3_log_err "One or more required credentials are missing for $database. Skipping."
+                  continue
+                fi
+
+                gen3_log_info "Processing database: $database"
+                gen3_log_info "Source DB: $source_db_database, Username: $db_username, Current DB: $db_database, Target DB: ${database}_${namespace}_${date_str}"
 
                 # DB commands
-                gen3 psql "$aurora_server_name" -c "GRANT $db_username TO $aurora_master_username"
-                gen3 psql "$aurora_server_name" -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = \"$source_db_database\" AND pid <> pg_backend_pid()"
-                gen3 psql "$aurora_server_name" -c "CREATE DATABASE ${database}_${namespace}_${date_str} WITH TEMPLATE $source_db_database OWNER $db_username"
-                #gen3 psql "$aurora_server_name" -c "DO $$ DECLARE tbl record; BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO $db_username;'; END LOOP; END $$;"
-                #gen3 psql "$aurora_server_name" -c "DO $$ DECLARE tbl record; BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO ' || '$db_username;'; END LOOP; END $$;"
-                #gen3 psql "$aurora_server_name" -c "DO $$ DECLARE tbl record; BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO metadata_ajo;'; END LOOP; END $$;"
-                #gen3 psql "$aurora_server_name" -c "DO $$ DECLARE tbl record; BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO metadata_ajo;'; END LOOP; END $$;"
-                #gen3 psql "$aurora_server_name" -c "DO $$ DECLARE tbl record; BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO ' || '$db_username;'; END LOOP; END $$;"
-                #gen3 psql "$aurora_server_name" -c "DO $$ DECLARE tbl record; BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO ' || quote_literal('$db_username') || ';'; END LOOP; END $$;"
-                #gen3 psql "$aurora_server_name" -c "DO $$ BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO ' || quote_literal('$db_username') || ';'; END LOOP; END $$;"
-                #gen3 psql server1 -c 'DO $$ BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = '\''public'\'') LOOP EXECUTE '\''ALTER TABLE '\'' || tbl.full_table_name || '\'' OWNER TO '\'' || quote_literal('\''metadata_ajo'\'') || '\'';'\''; END LOOP; END $$;'
-                #gen3 psql server1 -c "SELECT 'ALTER TABLE ' || table_schema || '.' || table_name || ' OWNER TO metadata_ajo;' FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';" | psql
-                #psql -d $DATABASE -t -c "SELECT 'ALTER TABLE ' || quote_ident(schemaname) || '.' || quote_ident(tablename) || ' OWNER TO ' || quote_literal('$NEW_OWNER') || ';' FROM pg_tables WHERE schemaname = 'public'" | psql -d $DATABASE
-                #PGPASSWORD=${db_password} psql -h $aurora_host_name -U "${database}_user_${namespace}" -d "${database}_${namespace}_${date_str}"
-                #PGPASSWORD=${aurora_master_password} psql -h $aurora_host_name -U $aurora_master_username -d "${database}_${namespace}_${date_str}" -c
-                #pg_command="DO $$ DECLARE tbl record; BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO $db_username;'; END LOOP; END $$;"
+                gen3 psql aurora -c "GRANT $db_username TO $aurora_master_username"
+                gen3 psql aurora -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$source_db_database' AND pid <> pg_backend_pid()"
+                gen3 psql aurora -c "CREATE DATABASE ${database}_${namespace}_${date_str} WITH TEMPLATE $source_db_database OWNER $db_username"
                 pg_command="DO \$\$ DECLARE tbl record; BEGIN FOR tbl IN (SELECT table_schema || '.' || table_name AS full_table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP EXECUTE 'ALTER TABLE ' || tbl.full_table_name || ' OWNER TO $db_username;'; END LOOP; END \$\$;"
                 PGPASSWORD=${aurora_master_password} psql -h $aurora_host_name -U $aurora_master_username -d "${database}_${namespace}_${date_str}" -c "$pg_command"
+                if [ $? -eq 0 ]; then
+                  gen3_log_info "Successfully processed $database"
+                  new_databases+=("${database}_${namespace}_${date_str}")
+                else
+                  gen3_log_err "Failed to process $database"
+                fi
+              done
 
+              gen3_log_info "Job Completed"
 
+              # Print the list of newly created databases
+              gen3_log_info "Newly created Database Names::"
+              for new_db in "${new_databases[@]}"; do
+                gen3_log_info "$new_db"
+              done
 
-               done
-
-              # Logging the newly created resources, sleep for 600 seconds.
-              # The sleep is provided to keep the pod running for a while after the job is finished
-              # to allow the user to check the logs.
-              gen3_log_info "Done"
               sleep 600
       restartPolicy: Never
-
