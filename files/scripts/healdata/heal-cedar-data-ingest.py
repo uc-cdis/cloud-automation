@@ -255,7 +255,6 @@ while limit + offset <= total:
                 mds_res = mds_res[mds_record_guid]
                 mds_cedar_register_data_body = {**mds_res}
                 mds_discovery_data_body = {}
-                mds_clinical_trials = {}
                 if mds_res["_guid_type"] == "discovery_metadata":
                     print("Metadata is already registered. Updating MDS record")
                 elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
@@ -267,10 +266,6 @@ while limit + offset <= total:
                         f"This metadata data record has a special GUID type \"{mds_res['_guid_type']}\" and will be skipped"
                     )
                     continue
-
-                if "clinicaltrials_gov" in cedar_record:
-                    mds_clinical_trials = cedar_record["clinicaltrials_gov"]
-                    del cedar_record["clinicaltrials_gov"]
 
                 # some special handing for this field, because its parent will be deleted before we merging the CEDAR and MDS SLMD to avoid duplicated values
                 cedar_record_other_study_websites = cedar_record.get(
@@ -361,11 +356,6 @@ while limit + offset <= total:
                 )
 
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
-                if mds_clinical_trials:
-                    mds_cedar_register_data_body["clinicaltrials_gov"] = {
-                        **mds_cedar_register_data_body.get("clinicaltrials_gov", {}),
-                        **mds_clinical_trials,
-                    }
 
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
