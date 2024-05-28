@@ -61,6 +61,12 @@ spec:
               #
               # 4. The source and the destination databases should be on the same Aurora instance.
               #
+              # 5. The ServiceAccount, roles, and role binding must be set up using the script psql-db-copy-aurora-sa.yaml.
+              #    The psql-db-copy-aurora-sa.yaml script is configured for the default namespace. 
+              #    Modify the namespace as needed before applying it where the script will run.
+              #    These can be created by executing the command:
+              #    kubectl apply -f ${GEN3_HOME}/kube/services/jobs/psql-db-copy-aurora-sa.yaml
+              #
               # How to run the script:
               #    gen3 job run psql-db-copy-aurora -v SOURCE_NAMESPACE <source-namespace>
               #
