@@ -114,7 +114,7 @@ def update_filter_metadata(metadata_to_update):
 
 def get_client_token(client_id: str, client_secret: str):
     try:
-        token_url = f"http://revproxy-service/user/oauth2/token"
+        token_url = "http://revproxy-service/user/oauth2/token"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         params = {"grant_type": "client_credentials"}
         data = "scope=openid user data"
