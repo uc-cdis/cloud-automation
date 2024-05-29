@@ -45,6 +45,12 @@ spec:
           args:
             - "-c"
             - |
+              # This job migrates (takes backup and restores) the databases in a Gen3 instance to an Aurora RDS cluster.
+              # Requirements:
+              # 1. Aurora server credentials should be present in the Gen3Secrets/creds.json with name 'aurora'.
+              # 2. Ensure that `gen3 psql aurora` and `gen3 secrets decode aurora-creds` work as expected.
+              # 3. The job needs the "psql-db-copy-sa" service account with the necessary permissions to read secrets from all relevant namespaces.
+              
               source "${GEN3_HOME}/gen3/lib/utils.sh"
               gen3_load "gen3/gen3setup"
               namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
