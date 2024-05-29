@@ -1,4 +1,4 @@
-FROM nginx:1.15.6-alpine
+FROM nginx:1-alpine
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY uwsgi.conf.template /etc/nginx/gen3.conf.d/uwsgi.conf.template

@@ -44,6 +44,7 @@ spec:
         - name: credentials
           secret:
             secretName: "aws-es-proxy"
+      priorityClassName: aws-es-proxy-high-priority
       containers:
       - name: esproxy
         GEN3_AWS-ES-PROXY_IMAGE|-image: quay.io/cdis/aws-es-proxy:0.8-|

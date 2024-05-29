@@ -23,19 +23,24 @@ gen3_deploy_karpenter() {
       if g3k_config_lookup .global.karpenter_version; then
         karpenter=$(g3k_config_lookup .global.karpenter_version)
       fi
-      export clusterversion=`kubectl version --short -o json | jq -r .serverVersion.minor`
-      if [ "${clusterversion}" = "24+" ]; then
+      export clusterversion=`kubectl version -o json | jq -r .serverVersion.minor`
+      if [ "${clusterversion}" = "28+" ]; then
+        karpenter=${karpenter:-v0.32.9}
+      elif [ "${clusterversion}" = "25+" ]; then
+        karpenter=${karpenter:-v0.27.0}
+      elif [ "${clusterversion}" = "24+" ]; then
         karpenter=${karpenter:-v0.24.0}
       else
-        karpenter=${karpenter:-v0.22.0}
-      fi    
-      local queue_name="karpenter-sqs-${vpc_name}"
+        karpenter=${karpenter:-v0.32.9}
+      fi
+      local queue_name="$(gen3 api safe-name karpenter-sqs)"
       echo '{
           "Statement": [
               {
                   "Action": [
                       "ssm:GetParameter",
                       "iam:PassRole",
+                      "iam:*InstanceProfile",
                       "ec2:DescribeImages",
                       "ec2:RunInstances",
                       "ec2:DescribeSubnets",
@@ -77,6 +82,14 @@ gen3_deploy_karpenter() {
                   "Effect": "Allow",
                   "Resource": "*",
                   "Sid": "ConditionalEC2Termination"
+              },
+              {
+                  "Sid": "VisualEditor0",
+                  "Effect": "Allow",
+                  "Action": [
+                      "kms:*"
+                  ],
+                  "Resource": "*"
               }
           ],
           "Version": "2012-10-17"
@@ -132,6 +145,7 @@ gen3_deploy_karpenter() {
       sleep 15
       aws eks create-fargate-profile --fargate-profile-name karpenter-profile --cluster-name $vpc_name --pod-execution-role-arn arn:aws:iam::$(aws sts get-caller-identity --output text --query "Account"):role/AmazonEKSFargatePodExecutionRole-${vpc_name} --subnets $subnets --selectors '{"namespace": "karpenter"}' || true
       gen3_log_info "Installing karpenter using helm"
+      helm template karpenter-crd oci://public.ecr.aws/karpenter/karpenter-crd --version ${karpenter} --namespace "karpenter" | g3kubectl apply -f -
       helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter --version ${karpenter} --namespace karpenter --wait \
           --set settings.aws.defaultInstanceProfile=${vpc_name}_EKS_workers \
           --set settings.aws.clusterEndpoint="${cluster_endpoint}" \
@@ -192,9 +206,9 @@ gen3_update_karpenter_configs() {
 }
 
 gen3_create_karpenter_sqs_eventbridge() {
-  local queue_name="karpenter-sqs-${vpc_name}"
+  local queue_name="$(gen3 api safe-name karpenter-sqs)"
   local eventbridge_rule_name="karpenter-eventbridge-${vpc_name}"
-  #gen3 sqs create-queue-if-not-exist $queue_name >> "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json"
+  gen3 sqs create-queue-if-not-exist karpenter-sqs >> "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json"
   local queue_url=$(cat "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json" | jq -r '.url')
   local queue_arn=$(cat "$XDG_RUNTIME_DIR/sqs-${vpc_name}.json" | jq -r '.arn')
   # Create eventbridge rules

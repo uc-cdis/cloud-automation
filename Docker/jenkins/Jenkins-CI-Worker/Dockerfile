@@ -1,4 +1,4 @@
-FROM jenkins/inbound-agent:jdk11
+FROM jenkins/inbound-agent:jdk21
 
 USER root
 
@@ -115,6 +115,9 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
     && echo "deb [arch=amd64]  http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
     && apt-get -y update \
     && apt-get -y install google-chrome-stable
+
+# data-simulator needs "/usr/share/dict/words" to generate data that isn't random strings
+RUN apt-get install --reinstall wamerican
 
 # update /etc/sudoers
 RUN sed 's/^%sudo/#%sudo/' /etc/sudoers > /etc/sudoers.bak \

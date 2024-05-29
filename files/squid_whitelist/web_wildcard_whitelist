@@ -11,6 +11,7 @@
 .bioconductor.org
 .bionimbus.org
 .bitbucket.org
+.blob.core.windows.net
 .bloodpac.org
 .braincommons.org
 .bsc.es
@@ -39,6 +40,7 @@
 .dockerproject.org
 .dph.illinois.gov
 .elasticsearch.org
+.eramba.org
 .erlang-solutions.com
 .external-secrets.io
 .extjs.com
@@ -97,9 +99,12 @@
 .sks-keyservers.net
 .slack.com
 .slack-msgs.com
+.snapcraft.io
+.snapcraftcontent.com
 .sourceforge.net
 .southsideweekly.com
 .theanvil.io
+.tigera.io
 .twistlock.com
 .ubuntu.com
 .ucsc.edu
