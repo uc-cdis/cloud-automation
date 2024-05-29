@@ -39,6 +39,9 @@ spec:
         - name: config-helper
           configMap:
             name: config-helper
+        - name: fence-yaml
+          configMap:
+            name: fence
       containers:
         - name: indexd
           GEN3_INDEXD_IMAGE
@@ -70,12 +73,15 @@ spec:
               readOnly: true
               mountPath: "/var/www/indexd/config_helper.py"
               subPath: config_helper.py
+            - name: "fence-yaml"
+              mountPath: "/var/www/indexd/user.yaml"
+              subPath: user.yaml
           imagePullPolicy: Always
           command: ["/bin/bash"]
           args:
             - "-c"
             - |
-              flags="--path /var/www/indexd/ --arborist-url http://arborist-service"
+              flags="--path /var/www/indexd/ --arborist-url http://arborist-service --user-yaml-path /var/www/indexd/user.yaml"
               if [[ "$USE_SHEEPDOG" == "true" ]]; then
                 db_uri=$(python - <<- EOF
               from base64 import b64decode

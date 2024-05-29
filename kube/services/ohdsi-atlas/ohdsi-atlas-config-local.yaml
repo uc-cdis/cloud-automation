@@ -17,6 +17,15 @@ data:
         "ajax": false,
         "icon": "fa fa-openid"
       }];
+      // This tells Atlas to show the 'lock' icon to the user when
+      // viewing concept sets, cohort definitions, and other
+      // artifacts so that they can edit READ and WRITE
+      // permissions. By default, this is set to true
+      configLocal.enablePermissionManagement = true;  // Default is true
+      // If the enablePermissionManagement is set to true, you can specify
+      // if this capability should be limited to only users that have a
+      // specific permission for this. Leave false if all users should have that ability.
+      configLocal.limitedPermissionManagement = true;  // Default is false all users can share. If true, only users with the permission "artifact:global:share:put" get the ability to share artifacts.
       configLocal.cohortComparisonResultsEnabled = false;
       configLocal.userAuthenticationEnabled = true;
       configLocal.plpResultsEnabled = false;

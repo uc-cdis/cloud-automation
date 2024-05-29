@@ -30,8 +30,8 @@ username=${username// /_}
 # now, clean out anything that's not alphanumeric or an underscore
 username=${username//[^a-zA-Z0-9_-.]/}
 
-USER_CERT_PATH="$KEY_PATH/$1.crt"
-USER_KEY_PATH="$KEY_PATH/$1.key"
+USER_CERT_PATH="$KEY_PATH/issued/$1.crt"
+USER_KEY_PATH="$KEY_PATH/private/$1.key"
 
 #make a temp dir
 TEMP_NAME="$username-$CLOUD_NAME-seperated"
@@ -47,6 +47,7 @@ cp $USER_KEY_PATH $TEMP_DIR/client.key
 #This is because EXTHOST is a defined variable in the template
 while read r; do eval echo $r; done < $TEMPLATE_DIR/client_ovpn_seperate.settings >> $TEMP_DIR/${username}-${CLOUD_NAME}.ovpn
 
+mkdir -p $KEY_DIR/ovpn_files_seperated
 tar -C $TEMP_DIR/../ -zcvf $KEY_DIR/ovpn_files_seperated/${username}-${CLOUD_NAME}-seperated.tgz  $TEMP_NAME
 
 echo -e "Exiting ${BOLD}$_${CLEAR}"

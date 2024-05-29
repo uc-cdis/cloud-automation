@@ -5,6 +5,44 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
+function CostUsagePolicy() {
+    roleName="$(gen3 api safe-name hatchery-sa)"
+    # Cost Usage Report policy
+    curPolicy="costUsageReportPolicy"
+
+    # Use the AWS CLI to list all policies attached to the role and then grep to search for the policy name
+    policyArn=$(aws iam list-role-policies --role-name "$roleName" | grep "$curPolicy")
+
+    # Check if the policy ARN variable is empty or not
+    if [ -n "$policyArn" ]; then
+        echo "Policy $curPolicy is attached to the role $roleName."
+    else
+        echo "Policy $curPolicy is NOT attached to the role $roleName."
+        echo "Attaching policy"
+        # Define the policy document
+        policyDocument='{
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Sid": "VisualEditor0",
+                    "Effect": "Allow",
+                    "Action": "ce:GetCostAndUsage",
+                    "Resource": "*"
+                }
+            ]
+        }'
+
+        # Create an inline policy for the role
+        aws iam put-role-policy --role-name "$roleName" --policy-name "$curPolicy" --policy-document "$policyDocument"
+        if [ $? -eq 0 ]; then
+        echo "Inline policy $curPolicy has been successfully created and attached to the role $roleName."
+        else
+            echo "There was an error creating the inline policy $curPolicy."
+        fi
+
+    fi
+}
+
 # Jenkins friendly
 export WORKSPACE="${WORKSPACE:-$HOME}"
 
@@ -208,6 +246,9 @@ if ! g3kubectl get sa "$saName" -o json | jq -e '.metadata.annotations | ."eks.a
     gen3 awsrole attach-policy ${policyArn} --role-name ${roleName} --force-aws-cli || exit 1
     gen3 awsrole attach-policy "arn:aws:iam::aws:policy/AWSResourceAccessManagerFullAccess" --role-name ${roleName} --force-aws-cli || exit 1
 fi
+
+# function to setup IAM policies for CostUsageReport
+CostUsagePolicy
 
 if [[ -f "$(gen3_secrets_folder)/prisma/apikey.json" ]]; then
     ACCESSKEYID=$(jq -r .AccessKeyID "$(gen3_secrets_folder)/prisma/apikey.json")
