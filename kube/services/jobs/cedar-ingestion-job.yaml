@@ -54,7 +54,7 @@ spec:
             secretName: cedar-g3auto # the secret name in kube
       initContainers:
       - name: cedar
-        image: quay.io/cdis/awshelper:fix_ct_gov
+        image: quay.io/cdis/awshelper:master
         imagePullPolicy: Always
         ports:
         - containerPort: 80
