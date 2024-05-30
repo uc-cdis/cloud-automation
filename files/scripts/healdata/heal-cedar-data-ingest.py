@@ -271,7 +271,9 @@ while limit + offset <= total:
                 cedar_record_other_study_websites = cedar_record.get(
                     "metadata_location", {}
                 ).get("other_study_websites", [])
+                # this ensures the nih_application_id, cedar_study_level_metadata_template_instance_ID and study_name are not alterable from CEDAR side
                 del cedar_record["metadata_location"]
+                del cedar_record["minimal_info"]["study_name"]
 
                 mds_res["gen3_discovery"]["study_metadata"].update(cedar_record)
                 mds_res["gen3_discovery"]["study_metadata"]["metadata_location"][
