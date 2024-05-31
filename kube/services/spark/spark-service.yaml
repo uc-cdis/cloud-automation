@@ -1,44 +1,83 @@
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
-  name: spark-service
+  name: namenode
 spec:
-  selector:
-    app: spark
   ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
-      name: http
-      nodePort: null
-    - protocol: TCP
-      port: 9000
+    - port: 9000
       targetPort: 9000
-      name: hdfs
-      nodePort: null
-    - protocol: TCP
-      port: 8030
-      targetPort: 8030
-      name: yarn-scheduler
-      nodePort: null
-    - protocol: TCP
-      port: 8031
-      targetPort: 8031
-      name: yarn-resource-tracker
-      nodePort: null
-    - protocol: TCP
-      port: 8032
-      targetPort: 8032
-      name: yarn-address-manager
-      nodePort: null
-    - protocol: TCP
-      port: 22
-      targetPort: 22
-      name: ssl
-      nodePort: null
-    - protocol: TCP
-      port: 7077
+  clusterIP: None
+  selector:
+    app: namenode
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: datanode
+spec:
+  ports:
+    - port: 50010
+      targetPort: 50010
+  clusterIP: None
+  selector:
+    app: datanode
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: resourcemanager
+spec:
+  ports:
+    - port: 8088
+      targetPort: 8088
+  clusterIP: None
+  selector:
+    app: resourcemanager
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodemanager
+spec:
+  ports:
+    - port: 8042
+      targetPort: 8042
+  clusterIP: None
+  selector:
+    app: nodemanager
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-master
+spec:
+  ports:
+    - port: 7077
       targetPort: 7077
-      name: spark-master
-      nodePort: null
-  type: ClusterIP
+    - port: 8080
+      targetPort: 8080
+  clusterIP: None
+  selector:
+    app: spark-master
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-worker
+spec:
+  ports:
+    - port: 8081
+      targetPort: 8081
+  clusterIP: None
+  selector:
+    app: spark-worker
