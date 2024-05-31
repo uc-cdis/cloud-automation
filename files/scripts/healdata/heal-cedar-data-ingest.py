@@ -114,7 +114,7 @@ def update_filter_metadata(metadata_to_update):
 
 def get_client_token(client_id: str, client_secret: str):
     try:
-        token_url = "http://revproxy-service/user/oauth2/token"
+        token_url = "http://fence-service/oauth2/token"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         params = {"grant_type": "client_credentials"}
         data = "scope=openid user data"
@@ -137,7 +137,7 @@ def get_related_studies(serial_num, guid, hostname):
 
     if serial_num:
         mds = requests.get(
-            f"http://revproxy-service/mds/metadata?nih_reporter.project_num_split.serial_num={serial_num}&data=true&limit=2000"
+            f"http://metadata-service/metadata?nih_reporter.project_num_split.serial_num={serial_num}&data=true&limit=2000"
         )
         if mds.status_code == 200:
             related_study_metadata = mds.json()
@@ -212,7 +212,7 @@ while limit + offset <= total:
     # Get the metadata from cedar to register
     print("Querying CEDAR...")
     cedar = requests.get(
-        f"http://revproxy-service/cedar/get-instance-by-directory/{dir_id}?limit={limit}&offset={offset}",
+        f"http://cedar-wrapper-service/get-instance-by-directory/{dir_id}?limit={limit}&offset={offset}",
         headers=token_header,
     )
 
@@ -239,7 +239,7 @@ while limit + offset <= total:
 
             # Get the metadata record for the CEDAR instance id
             mds = requests.get(
-                f"http://revproxy-service/mds/metadata?gen3_discovery.study_metadata.metadata_location.cedar_study_level_metadata_template_instance_ID={cedar_instance_id}&data=true"
+                f"http://metadata-service/metadata?gen3_discovery.study_metadata.metadata_location.cedar_study_level_metadata_template_instance_ID={cedar_instance_id}&data=true"
             )
             if mds.status_code == 200:
                 mds_res = mds.json()
@@ -365,7 +365,7 @@ while limit + offset <= total:
 
                 print(f"Metadata {mds_record_guid} is now being registered.")
                 mds_put = requests.put(
-                    f"http://revproxy-service/mds/metadata/{mds_record_guid}",
+                    f"http://metadata-service/metadata/{mds_record_guid}",
                     headers=token_header,
                     json=mds_cedar_register_data_body,
                 )
