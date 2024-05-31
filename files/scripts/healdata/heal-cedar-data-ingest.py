@@ -99,7 +99,7 @@ def update_filter_metadata(metadata_to_update):
     filter_metadata = pydash.uniq(filter_metadata)
     metadata_to_update["advSearchFilters"] = filter_metadata
     # Retain these from existing tags
-    save_tags = ["Data Repository", "Common Data Elements"]
+    save_tags = ["Data Repository", "Common Data Elements", "Additional Acknowledgement"]
     tags = [tag for tag in metadata_to_update["tags"] if tag["category"] in save_tags]
     # Add any new tags from advSearchFilters
     for f in metadata_to_update["advSearchFilters"]:
