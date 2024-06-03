@@ -57,7 +57,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: spark-master
+  name: sparkmaster
 spec:
   ports:
     - port: 7077
@@ -73,7 +73,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: spark-worker
+  name: sparkworker
 spec:
   ports:
     - port: 8081
