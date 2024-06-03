@@ -24,17 +24,6 @@ spec:
         volumeMounts:
         - name: namenode-pv-storage
           mountPath: /hadoop/dfs/name
-        command: ["/bin/bash" ]
-        args: 
-          - "-c"
-          - |
-            ssh server sudo /etc/init.d/ssh start
-            update-ca-certificates
-            hdfs namenode -format
-            hdfs dfsadmin -safemode leave
-            hdfs dfs -mkdir /result
-            hdfs dfs -mkdir /jars
-            hdfs dfs -mkdir /archive
   volumeClaimTemplates:
   - metadata:
       name: namenode-pv-storage
@@ -72,17 +61,6 @@ spec:
         volumeMounts:
         - name: datanode-pv-storage
           mountPath: /hadoop/dfs/data
-        command: ["/bin/bash" ]
-        args: 
-          - "-c"
-          - |
-            ssh server sudo /etc/init.d/ssh start
-            update-ca-certificates
-            hdfs namenode -format
-            hdfs dfsadmin -safemode leave
-            hdfs dfs -mkdir /result
-            hdfs dfs -mkdir /jars
-            hdfs dfs -mkdir /archive
   volumeClaimTemplates:
   - metadata:
       name: datanode-pv-storage
@@ -314,9 +292,3 @@ spec:
         envFrom:
         - configMapRef:
             name: hadoop-spark-config
-        command: ["/bin/bash" ]
-        args: 
-          - "-c"
-          - |
-            ssh server sudo /etc/init.d/ssh start
-            update-ca-certificates
