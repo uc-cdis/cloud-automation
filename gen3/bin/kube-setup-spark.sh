@@ -9,6 +9,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
+g3kubectl create configmap hadoop-spark-config --from-file="${GEN3_HOME}/kube/services/spark/config-map.yaml"
 gen3 roll spark $@
 g3kubectl apply -f "${GEN3_HOME}/kube/services/spark/spark-service.yaml"
 
