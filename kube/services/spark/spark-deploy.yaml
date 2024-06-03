@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: namenode
-        image: "quay.io/cdis/namenode:3.3.0"
+        image: "quay.io/cdis/namenode:v3.3.0"
         ports:
         - containerPort: 9000
         envFrom:
@@ -63,7 +63,7 @@ spec:
     spec:
       containers:
       - name: datanode
-        image: "quay.io/cdis/datanode:3.3.0"
+        image: "quay.io/cdis/datanode:v3.3.0"
         ports:
         - containerPort: 50010
         envFrom:
@@ -148,7 +148,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: resourcemanager
-        image: "quay.io/cdis/resourcemanager:3.3.0"
+        image: "quay.io/cdis/resourcemanager:v3.3.0"
         ports:
         - containerPort: 8088
         envFrom:
@@ -201,7 +201,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: nodemanager
-        image: "quay.io/cdis/nodemanager:3.3.0"
+        image: "quay.io/cdis/nodemanager:v3.3.0"
         ports:
         - containerPort: 8042
         envFrom:
