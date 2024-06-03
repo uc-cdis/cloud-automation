@@ -60,9 +60,11 @@ metadata:
   name: sparkmaster
 spec:
   ports:
-    - port: 7077
+    - name: p7077
+      port: 7077
       targetPort: 7077
-    - port: 8080
+    - name: p8080
+      port: 8080
       targetPort: 8080
   clusterIP: None
   selector:
