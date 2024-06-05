@@ -75,17 +75,19 @@ spec:
                 name: manifest-global
                 key: dictionary_url
           - name: HADOOP_URL
-            value: hdfs://spark-service:9000
+            value: hdfs://namenode:9000
           - name: ES_URL
             value: esproxy-service
           - name: HADOOP_HOST
-            value: spark-service
+            value: namenode
           - name: HADOOP_CLIENT_OPTS
             value: -Xmx1g
           - name: SPARK_EXECUTOR_MEMORY
             value: 4g
           - name: SPARK_DRIVER_MEMORY
             value: 6g
+          - name: SPARK_MASTER
+            value: spark-master
           volumeMounts:
             - name: "creds-volume"
               readOnly: true
