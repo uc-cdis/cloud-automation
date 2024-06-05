@@ -24,6 +24,7 @@ spec:
         volumeMounts:
         - name: namenode-pv-storage
           mountPath: /hadoop/dfs/name
+        imagePullPolicy: Always
   volumeClaimTemplates:
   - metadata:
       name: namenode-pv-storage
@@ -61,6 +62,7 @@ spec:
         volumeMounts:
         - name: datanode-pv-storage
           mountPath: /hadoop/dfs/data
+        imagePullPolicy: Always
   volumeClaimTemplates:
   - metadata:
       name: datanode-pv-storage
@@ -79,21 +81,12 @@ metadata:
 spec:
   replicas: 1
   selector:
-    # Only select pods based on the 'app' label
     matchLabels:
-      app: spark
-  revisionHistoryLimit: 2
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+      app: resourcemanager
   template:
     metadata:
       labels:
-        app: spark
-        dbsheepdog: "yes"
-        GEN3_DATE_LABEL
+        app: resourcemanager
     spec:
       affinity:
         podAntiAffinity:
@@ -132,6 +125,7 @@ spec:
         envFrom:
         - configMapRef:
             name: hadoop-spark-config
+        imagePullPolicy: Always
 
 ---
 apiVersion: apps/v1
@@ -185,6 +179,7 @@ spec:
         envFrom:
         - configMapRef:
             name: hadoop-spark-config
+        imagePullPolicy: Always
 
 ---
 apiVersion: apps/v1
@@ -239,6 +234,7 @@ spec:
         envFrom:
         - configMapRef:
             name: hadoop-spark-config
+        imagePullPolicy: Always
 
 ---
 apiVersion: apps/v1
@@ -292,3 +288,4 @@ spec:
         envFrom:
         - configMapRef:
             name: hadoop-spark-config
+        imagePullPolicy: Always
