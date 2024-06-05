@@ -8,7 +8,7 @@ spec:
       port: 9000
       targetPort: 9000
       name: hdfs
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: namenode
 
@@ -24,7 +24,7 @@ spec:
       port: 50010
       targetPort: 50010
       name: data
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: datanode
 
@@ -40,7 +40,7 @@ spec:
       port: 8088
       targetPort: 8088
       name: resource
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: resourcemanager
 
@@ -56,7 +56,7 @@ spec:
       port: 8042
       targetPort: 8042
       name: node
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: nodemanager
 
@@ -80,7 +80,7 @@ spec:
     protocol: TCP
     port: 6066
     targetPort: 6066
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: spark-master
 
@@ -96,6 +96,6 @@ spec:
       protocol: TCP
       port: 8081
       targetPort: 8081
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: spark-worker
