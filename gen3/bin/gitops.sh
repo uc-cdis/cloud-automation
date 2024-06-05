@@ -462,41 +462,29 @@ gen3_gitops_sync() {
       if [[ "$fence_roll" = true ]]; then
           gen3 update_config manifest-fence "$(gen3 gitops folder)/manifests/fence/fence-config-public.yaml"
 
-          # Extract the fence image from the ConfigMap manifest-versions
-          fence_image=$(kubectl get cm manifest-versions -o yaml | grep -oP '(?<=fence: ).*')
 
           # List of fence-related cronjobs
-          fence_cronjobs=(
-          "fence-delete-expired-clients"
-          "fence-cleanup-expired-ga4gh-info"
-          )
+          local fence_cronjobs=("fence-delete-expired-clients" "fence-cleanup-expired-ga4gh-info")
 
           # Check and update cronjobs
           update_cronjob() {
           local cronjob_name=$1
-          local manifest_image=$2
 
           gen3_log_info "Checking cronjob $cronjob_name..."
-
-          cronjob_info=$(kubectl get cronjobs.batch $cronjob_name -o yaml)
-
-          if [[ -z "$cronjob_info" ]]; then
-          gen3_log_info "Cronjob $cronjob_name does not exist."
-          return
+          local cronjob_schedule=$(kubectl get cronjobs.batch $cronjob_name -o yaml | grep -oP '(?<=schedule: ).*')
+          if [[ -z "$cronjob_schedule" ]]; then
+            gen3_log_info "Cronjob $cronjob_name does not exist or has no schedule."
+            return
           fi
 
-          current_image=$(echo "$cronjob_info" | grep -oP '(?<=image: ).*')
-          cronjob_schedule=$(echo "$cronjob_info" | grep -oP '(?<=schedule: ).*')
-
-          if [[ "$current_image" != "$manifest_image" ]]; then
-          gen3_log_info "Updating cronjob $cronjob_name to use image $manifest_image..."
+          gen3_log_info "Updating cronjob $cronjob_name ..."
           gen3 job cron $cronjob_name "$cronjob_schedule"
           fi
           }
 
           # Loop through each fence-related cronjob and check/update if needed
           for cronjob in "${fence_cronjobs[@]}"; do
-          update_cronjob "$cronjob" "$fence_image"
+          update_cronjob "$cronjob"
           done
       fi
 
