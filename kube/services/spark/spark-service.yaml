@@ -4,9 +4,11 @@ metadata:
   name: namenode
 spec:
   ports:
-    - port: 9000
+    - protocol: TCP
+      port: 9000
       targetPort: 9000
-  clusterIP: None
+      name: hdfs
+  type: ClusterIP
   selector:
     app: namenode
 
@@ -18,9 +20,11 @@ metadata:
   name: datanode
 spec:
   ports:
-    - port: 50010
+    - protocol: TCP
+      port: 50010
       targetPort: 50010
-  clusterIP: None
+      name: data
+  type: ClusterIP
   selector:
     app: datanode
 
@@ -32,9 +36,11 @@ metadata:
   name: resourcemanager
 spec:
   ports:
-    - port: 8088
+    - protocol: TCP
+      port: 8088
       targetPort: 8088
-  clusterIP: None
+      name: resource
+  type: ClusterIP
   selector:
     app: resourcemanager
 
@@ -46,9 +52,11 @@ metadata:
   name: nodemanager
 spec:
   ports:
-    - port: 8042
+    - protocol: TCP
+      port: 8042
       targetPort: 8042
-  clusterIP: None
+      name: node
+  type: ClusterIP
   selector:
     app: nodemanager
 
@@ -57,16 +65,22 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: sparkmaster
+  name: spark-master
 spec:
   ports:
-    - name: p7077
-      port: 7077
-      targetPort: 7077
-    - name: p8080
-      port: 8080
-      targetPort: 8080
-  clusterIP: None
+  - name: web-ui
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  - name: master
+    protocol: TCP
+    port: 7077
+    targetPort: 7077
+  - name: master-rest
+    protocol: TCP
+    port: 6066
+    targetPort: 6066
+  type: ClusterIP
   selector:
     app: spark-master
 
@@ -75,11 +89,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: sparkworker
+  name: spark-worker
 spec:
   ports:
-    - port: 8081
+    - name: web-ui
+      protocol: TCP
+      port: 8081
       targetPort: 8081
-  clusterIP: None
+  type: ClusterIP
   selector:
     app: spark-worker
