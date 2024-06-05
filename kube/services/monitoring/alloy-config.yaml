@@ -1,0 +1,459 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alloy-gen3
+  namespace: monitoring
+data:
+  config: |
+
+    logging {
+      level    = "info"
+      format   = "json"
+      write_to = [loki.write.endpoint.receiver]
+    }
+
+    // OTLP START
+
+    otelcol.receiver.otlp "default" {
+      grpc {}
+      http {}
+    
+      output {
+        metrics = [otelcol.processor.batch.default.input]
+        traces = [otelcol.processor.batch.default.input]
+      }
+    }
+      
+    otelcol.processor.batch "default" {
+      output {
+        metrics = [otelcol.exporter.prometheus.default.input]
+        traces  = [otelcol.exporter.otlp.tempo.input]
+      }
+    }
+      
+    otelcol.exporter.prometheus "default" {
+      forward_to = [prometheus.remote_write.default.receiver]
+    }
+
+    otelcol.exporter.otlp "tempo" {
+      client {
+        endpoint = "http://monitoring-tempo-distributor.monitoring:4317"
+        // Configure TLS settings for communicating with the endpoint.
+        tls {
+            // The connection is insecure.
+            insecure = true
+            // Do not verify TLS certificates when connecting.
+            insecure_skip_verify = true
+        }
+      }
+    }
+
+   
+    // OTLP END
+
+    // discover all pods, to be used later in this config
+    discovery.kubernetes "pods" {
+      role = "pod"
+    }
+
+    // discover all services, to be used later in this config
+    discovery.kubernetes "services" {
+      role = "service"
+    }
+
+    // discover all nodes, to be used later in this config
+    discovery.kubernetes "nodes" {
+      role = "node"
+    }
+
+    // Generic scrape of any pod with
+    // Annotation Autodiscovery
+    discovery.relabel "annotation_autodiscovery_pods" {
+      targets = discovery.kubernetes.pods.targets
+      rule {
+        source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+        regex = "true"
+        action = "keep"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_job"]
+        action = "replace"
+        target_label = "job"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_instance"]
+        action = "replace"
+        target_label = "instance"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+        action = "replace"
+        target_label = "__metrics_path__"
+      }
+
+      // Choose the pod port
+      // The discovery generates a target for each declared container port of the pod.
+      // If the metricsPortName annotation has value, keep only the target where the port name matches the one of the annotation.
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_port_name"]
+        target_label = "__tmp_port"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_portName"]
+        regex = "(.+)"
+        target_label = "__tmp_port"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_port_name"]
+        action = "keepequal"
+        target_label = "__tmp_port"
+      }
+
+      // If the metrics port number annotation has a value, override the target address to use it, regardless whether it is
+      // one of the declared ports on that Pod.
+      rule {
+        source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_port", "__meta_kubernetes_pod_ip"]
+        regex = "(\\d+);(([A-Fa-f0-9]{1,4}::?){1,7}[A-Fa-f0-9]{1,4})"
+        replacement = "[$2]:$1" // IPv6
+        target_label = "__address__"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_port", "__meta_kubernetes_pod_ip"]
+        regex = "(\\d+);((([0-9]+?)(\\.|$)){4})" // IPv4, takes priority over IPv6 when both exists
+        replacement = "$2:$1"
+        target_label = "__address__"
+      }
+
+      rule {
+        source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scheme"]
+        action = "replace"
+        target_label = "__scheme__"
+      }
+
+
+      // add labels 
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        target_label = "pod"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_name"]
+        target_label = "container"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_controller_name"]
+        target_label = "controller"
+      }
+      
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app"]
+        target_label = "app"
+      }
+
+      // map all labels
+      rule {
+        action = "labelmap"
+        regex  = "__meta_kubernetes_pod_label_(.+)"
+      }
+    }
+
+    // Generic scrape of any service with
+    // Annotation Autodiscovery
+    discovery.relabel "annotation_autodiscovery_services" {
+      targets = discovery.kubernetes.services.targets
+      rule {
+        source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_scrape"]
+        regex = "true"
+        action = "keep"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_job"]
+        action = "replace"
+        target_label = "job"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_instance"]
+        action = "replace"
+        target_label = "instance"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_path"]
+        action = "replace"
+        target_label = "__metrics_path__"
+      }
+    
+      // Choose the service port
+      rule {
+        source_labels = ["__meta_kubernetes_service_port_name"]
+        target_label = "__tmp_port"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_portName"]
+        regex = "(.+)"
+        target_label = "__tmp_port"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_service_port_name"]
+        action = "keepequal"
+        target_label = "__tmp_port"
+      }
+    
+      rule {
+        source_labels = ["__meta_kubernetes_service_port_number"]
+        target_label = "__tmp_port"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_port"]
+        regex = "(.+)"
+        target_label = "__tmp_port"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_service_port_number"]
+        action = "keepequal"
+        target_label = "__tmp_port"
+      }
+    
+      rule {
+        source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_scheme"]
+        action = "replace"
+        target_label = "__scheme__"
+      }
+    }
+
+    prometheus.scrape "metrics" {
+      job_name   = "integrations/autodiscovery_metrics"
+      targets  = concat(discovery.relabel.annotation_autodiscovery_pods.output, discovery.relabel.annotation_autodiscovery_services.output)
+      honor_labels = true
+      clustering {
+        enabled = true
+      }
+      forward_to = [prometheus.relabel.metrics_service.receiver]
+    }
+
+
+    // Node Exporter
+    // TODO: replace with https://grafana.com/docs/alloy/latest/reference/components/prometheus.exporter.unix/
+    discovery.relabel "node_exporter" {
+      targets = discovery.kubernetes.pods.targets
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_instance"]
+        regex = "monitoring-extras"
+        action = "keep"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+        regex = "node-exporter"
+        action = "keep"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_node_name"]
+        action = "replace"
+        target_label = "instance"
+      }
+    }
+
+    prometheus.scrape "node_exporter" {
+      job_name   = "integrations/node_exporter"
+      targets  = discovery.relabel.node_exporter.output
+      scrape_interval = "60s"
+      clustering {
+        enabled = true
+      }
+      forward_to = [prometheus.relabel.node_exporter.receiver]
+    }
+
+    prometheus.relabel "node_exporter" {
+      rule {
+        source_labels = ["__name__"]
+        regex = "up|node_cpu.*|node_network.*|node_exporter_build_info|node_filesystem.*|node_memory.*|process_cpu_seconds_total|process_resident_memory_bytes"
+        action = "keep"
+      }
+      forward_to = [prometheus.relabel.metrics_service.receiver]
+    }
+
+
+    // cAdvisor
+    discovery.relabel "cadvisor" {
+      targets = discovery.kubernetes.nodes.targets
+      rule {
+        target_label = "__address__"
+        replacement  = "kubernetes.default.svc.cluster.local:443"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_node_name"]
+        regex         = "(.+)"
+        replacement   = "/api/v1/nodes/${1}/proxy/metrics/cadvisor"
+        target_label  = "__metrics_path__"
+      }
+    }
+
+    prometheus.scrape "cadvisor" {
+      job_name   = "integrations/kubernetes/cadvisor"
+      targets    = discovery.relabel.cadvisor.output
+      scheme     = "https"
+      scrape_interval = "60s"
+      bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      tls_config {
+        insecure_skip_verify = true
+      }
+      clustering {
+        enabled = true
+      }
+      forward_to = [prometheus.relabel.cadvisor.receiver]
+    }
+
+    prometheus.relabel "cadvisor" {
+      rule {
+        source_labels = ["__name__"]
+        regex = "up|container_cpu_cfs_periods_total|container_cpu_cfs_throttled_periods_total|container_cpu_usage_seconds_total|container_fs_reads_bytes_total|container_fs_reads_total|container_fs_writes_bytes_total|container_fs_writes_total|container_memory_cache|container_memory_rss|container_memory_swap|container_memory_working_set_bytes|container_network_receive_bytes_total|container_network_receive_packets_dropped_total|container_network_receive_packets_total|container_network_transmit_bytes_total|container_network_transmit_packets_dropped_total|container_network_transmit_packets_total|machine_memory_bytes"
+        action = "keep"
+      }
+      forward_to = [prometheus.relabel.metrics_service.receiver]
+    }
+
+    // Logs from all pods
+    discovery.relabel "all_pods" {
+      targets = discovery.kubernetes.pods.targets
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        target_label = "namespace"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_name"]
+        target_label = "pod"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_container_name"]
+        target_label = "container"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_pod_controller_name"]
+        target_label = "controller"
+      }
+      
+      rule {
+        source_labels = ["__meta_kubernetes_pod_label_app"]
+        target_label = "app"
+      }
+
+      // map all labels
+      rule {
+        action = "labelmap"
+        regex  = "__meta_kubernetes_pod_label_(.+)"
+      }
+
+    }
+
+    loki.source.kubernetes "pods" {
+      targets = discovery.relabel.all_pods.output
+      forward_to = [loki.write.endpoint.receiver]
+    }
+
+
+
+
+
+
+
+    // kube-state-metrics
+    discovery.relabel "relabel_kube_state_metrics" {
+      targets = discovery.kubernetes.services.targets
+      rule {
+        source_labels = ["__meta_kubernetes_namespace"]
+        regex = "monitoring"
+        action = "keep"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_service_name"]
+        regex = "monitoring-extras-kube-state-metrics"
+        action = "keep"
+      }
+    }
+
+    prometheus.scrape "kube_state_metrics" {
+      targets = discovery.relabel.relabel_kube_state_metrics.output
+      job_name = "kube-state-metrics"
+      metrics_path = "/metrics"
+      forward_to = [prometheus.remote_write.default.receiver]
+    }
+
+    // Kubelet
+    discovery.relabel "kubelet" {
+      targets = discovery.kubernetes.nodes.targets
+      rule {
+        target_label = "__address__"
+        replacement  = "kubernetes.default.svc.cluster.local:443"
+      }
+      rule {
+        source_labels = ["__meta_kubernetes_node_name"]
+        regex         = "(.+)"
+        replacement   = "/api/v1/nodes/${1}/proxy/metrics"
+        target_label  = "__metrics_path__"
+      }
+    }
+
+    prometheus.scrape "kubelet" {
+      job_name   = "integrations/kubernetes/kubelet"
+      targets  = discovery.relabel.kubelet.output
+      scheme   = "https"
+      scrape_interval = "60s"
+      bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+      tls_config {
+        insecure_skip_verify = true
+      }
+      clustering {
+        enabled = true
+      }
+      forward_to = [prometheus.relabel.kubelet.receiver]
+    }
+
+    prometheus.relabel "kubelet" {
+      rule {
+        source_labels = ["__name__"]
+        regex = "up|container_cpu_usage_seconds_total|kubelet_certificate_manager_client_expiration_renew_errors|kubelet_certificate_manager_client_ttl_seconds|kubelet_certificate_manager_server_ttl_seconds|kubelet_cgroup_manager_duration_seconds_bucket|kubelet_cgroup_manager_duration_seconds_count|kubelet_node_config_error|kubelet_node_name|kubelet_pleg_relist_duration_seconds_bucket|kubelet_pleg_relist_duration_seconds_count|kubelet_pleg_relist_interval_seconds_bucket|kubelet_pod_start_duration_seconds_bucket|kubelet_pod_start_duration_seconds_count|kubelet_pod_worker_duration_seconds_bucket|kubelet_pod_worker_duration_seconds_count|kubelet_running_container_count|kubelet_running_containers|kubelet_running_pod_count|kubelet_running_pods|kubelet_runtime_operations_errors_total|kubelet_runtime_operations_total|kubelet_server_expiration_renew_errors|kubelet_volume_stats_available_bytes|kubelet_volume_stats_capacity_bytes|kubelet_volume_stats_inodes|kubelet_volume_stats_inodes_used|kubernetes_build_info|namespace_workload_pod|rest_client_requests_total|storage_operation_duration_seconds_count|storage_operation_errors_total|volume_manager_total_volumes"
+        action = "keep"
+      }
+      forward_to = [prometheus.relabel.metrics_service.receiver]
+    }
+
+    // Alloy exporter meta/self monitoring
+    prometheus.exporter.self "default" {
+    }
+
+    prometheus.scrape "metamonitoring" {
+      targets    = prometheus.exporter.self.default.targets
+      forward_to = [prometheus.remote_write.default.receiver]
+    }
+
+    // Cluster Events
+    loki.source.kubernetes_events "cluster_events" {
+      job_name   = "integrations/kubernetes/eventhandler"
+      log_format = "logfmt"
+      forward_to = [loki.write.endpoint.receiver]
+    }
+  
+
+    // Why is this needed?
+    prometheus.relabel "metrics_service" {
+      forward_to = [prometheus.remote_write.default.receiver]
+    }
+
+
+    // Write Endpoints 
+    // prometheus write endpoint 
+    prometheus.remote_write "default" {
+      endpoint {
+        url = "http://monitoring-mimir-nginx.monitoring:80/api/v1/push"
+      }
+    }
+    
+    // loki write endpoitn
+    loki.write "endpoint" {
+      endpoint {
+        url = "http://monitoring-loki-gateway.monitoring:80/loki/api/v1/push"
+      }
+    }
+
+
+
+

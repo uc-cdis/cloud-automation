@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: monitoring
+  name: beyla
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: beyla
+rules:
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: beyla
+subjects:
+  - kind: ServiceAccount
+    name: beyla
+    namespace: monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: beyla
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: monitoring
+  name: beyla-config
+data:
+  beyla-config.yml: |
+    log_level: DEBUG
+    # this is required to enable kubernetes discovery and metadata
+    attributes:
+      kubernetes:
+        enable: true
+    # this will provide automatic routes report while minimizing cardinality
+    routes:
+      ignored_patterns:
+        - /_status
+        - /health
+      unmatched: heuristic
+    # let's instrument only the docs server
+    discovery:
+      services:
+        # - k8s_deployment_name: "^docs$"
+        - k8s_namespace: ".*"
+        # uncomment the following line to also instrument the website server
+        # - k8s_deployment_name: "^website$"
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: monitoring
+  name: beyla
+spec:
+  selector:
+    matchLabels:
+      instrumentation: beyla
+  template:
+    metadata:
+      labels:
+        instrumentation: beyla
+    spec:
+      serviceAccountName: beyla
+      hostPID: true # mandatory!
+      containers:
+        - name: beyla
+          image: grafana/beyla:1.5.2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true # mandatory!
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /config
+              name: beyla-config
+            - mountPath: /var/run/beyla
+              name: var-run-beyla
+          env:
+            - name: BEYLA_CONFIG_PATH
+              value: "/config/beyla-config.yml"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://monitoring-alloy.monitoring:4317"
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: "grpc"
+      volumes:
+        - name: beyla-config
+          configMap:
+            name: beyla-config
+        - name: var-run-beyla
+          emptyDir: {}

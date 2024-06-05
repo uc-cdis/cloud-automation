@@ -265,7 +265,7 @@ gen3 kube-setup-revproxy
 
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
   if g3k_manifest_lookup .global.argocd 2> /dev/null; then
-    gen3 kube-setup-prometheus
+    gen3 kube-setup-monitoring
   fi
   # Internal k8s systems
   gen3 kube-setup-fluentd &

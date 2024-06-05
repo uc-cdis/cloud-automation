@@ -67,12 +67,12 @@ setup_storage() {
 
   local secret
   local secretsFolder="$(gen3_secrets_folder)/g3auto/gen3-discovery-ai"
-
+  mkdir -p $secretsFolder
   secret="$(g3kubectl get secret gen3-discovery-ai-g3auto -o json 2> /dev/null)"
   local hasStorageCfg
   hasStorageCfg=$(jq -r '.data | has("storage_config.json")' <<< "$secret")
-
-  if [ "$hasStorageCfg" = "false" ]; then
+  echo $hasStorageCfg
+  if [ "$hasStorageCfg" != "true" ]; then
     gen3_log_info "setting up storage for gen3-discovery-ai service"
     #
     # gen3-discovery-ai-g3auto secret still does not exist

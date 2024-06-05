@@ -1,0 +1,217 @@
+# ARGOCD APPLICATION TO DEPLOY LGTM + ALLOY 
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: default
+  sources: 
+    - repoURL: https://github.com/jawadqur/grafana-helm-charts.git 
+      path: charts/lgtm-distributed 
+      targetRevision: main
+      helm:
+        values: |
+          tempo:
+            global_overrides:
+              metrics_generator_processors: [service-graphs, span-metrics]
+            enabled: true
+            metricsGenerator:
+              enabled:
+                true
+              config:
+                # Specifies which processors to use.
+                # Configures where the store for metrics is located.
+                storage:
+                  # WAL for metrics generation.
+                  path: /var/tempo/generator/wal
+                  # Where to remote write metrics to.
+                  remote_write:
+                    - url: http://monitoring-mimir-nginx.monitoring:80/api/v1/push  # URL of locally running Mimir instance.
+                      send_exemplars: true # Send exemplars along with their metrics.
+                traces_storage:
+                  path: /var/tempo/generator/traces
+                processor:
+                  # Span metrics create metrics based on span type, duration, name and service.
+                  span_metrics:
+                      # Configure extra dimensions to add as metric labels.
+                      dimensions:
+                        - http.method
+                        - http.target
+                        - http.status_code
+                        - service.version
+                  # Service graph metrics create node and edge metrics for determinng service interactions.
+                  service_graphs:
+                    
+                      # Configure extra dimensions to add as metric labels.
+                      dimensions:
+                        - http.method
+                        - http.target
+                        - http.status_code
+                        - service.version
+            distributor:
+              config:
+                log_received_spans:
+                  enabled: false
+            traces:
+              otlp:
+                http:
+                  enabled: true
+                grpc:
+                  enabled: true
+          mimir:
+            minio:
+              enabled: false
+            serviceAccount:
+              # -- Whether to create a service account or not. In case 'create' is false, do set 'name' to an existing service account name.
+              create: false
+              # -- Override for the generated service account name.
+              name: observability
+            ingester:
+              persistentVolume:
+                size: 50Gi
+            mimir:
+              structuredConfig: 
+                limits:
+                  max_global_series_per_user: 0
+                common:
+                  storage:
+                    backend: s3
+                    s3:
+                      endpoint: s3.us-east-1.amazonaws.com
+                      region: us-east-1
+                      bucket_name: CURRENT_ENV-observability-bucket
+                blocks_storage:
+                  storage_prefix: blocks
+                alertmanager_storage:
+                  storage_prefix: alertmanager
+                ruler_storage:
+                  storage_prefix: ruler
+
+          loki:
+            serviceAccount:
+              name: observability
+            loki:
+              schemaConfig:
+                configs:
+                  - from: 2024-04-01
+                    store: tsdb
+                    object_store: s3
+                    schema: v13
+                    index:
+                      prefix: loki_index_
+                      period: 24h
+
+              structuredConfig: 
+                common:
+                  path_prefix: /var/loki
+                  storage:
+                    filesystem: null
+                    s3: 
+                      region: us-east-1
+                      bucketnames: CURRENT_ENV-observability-bucket
+
+          grafana:
+            persistence:
+              enabled: true
+              size: 10Gi
+            image:
+              tag: 11.0.0
+            dashboardProviders:
+              dashboardproviders.yaml:
+                apiVersion: 1
+                providers:
+                - name: 'grafana-dashboards-kubernetes'
+                  orgId: 1
+                  folder: 'Kubernetes'
+                  type: file
+                  disableDeletion: true
+                  editable: true
+                  options:
+                    path: /var/lib/grafana/dashboards/grafana-dashboards-kubernetes
+            dashboards:
+              grafana-dashboards-kubernetes:
+                k8s-system-api-server:
+                  url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-api-server.json
+                  token: ''
+                k8s-system-coredns:
+                  url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-system-coredns.json
+                  token: ''
+                k8s-views-global:
+                  url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-global.json
+                  token: ''
+                k8s-views-namespaces:
+                  url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-namespaces.json
+                  token: ''
+                k8s-views-nodes:
+                  url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-nodes.json
+                  token: ''
+                k8s-views-pods:
+                  url: https://raw.githubusercontent.com/dotdc/grafana-dashboards-kubernetes/master/dashboards/k8s-views-pods.json
+                  token: ''
+            grafana.ini:
+              server:
+                root_url: /grafana/
+                serve_from_sub_path: false
+              auth.anonymous:
+                enabled: true
+                org_name: Main Org.
+                org_role: Admin 
+    - repoURL: https://grafana.github.io/helm-charts 
+      chart: alloy
+      targetRevision: 0.1.1
+      helm:
+        values: |
+          controller:
+            type: "deployment"
+          alloy:
+            stabilityLevel: "public-preview"
+            uiPathPrefix: /alloy
+            # -- Extra ports to expose on the Alloy container.
+            extraPorts: 
+              - name: "otel-grpc"
+                port: 4317
+                targetPort: 4317
+                protocol: "TCP"
+              - name: "otel-http"
+                port: 4318
+                targetPort: 4318
+                protocol: "TCP"
+            clustering:
+              enabled: true
+            # mounts:
+            #   varlog: true
+            configMap:
+              name: alloy-gen3
+              key: config
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      selfHeal: true          
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-extras
+  namespace: argocd
+spec:
+  project: default
+  sources: 
+    - repoURL: https://charts.bitnami.com/bitnami 
+      chart: node-exporter
+      targetRevision: 4.1.0
+    - repoURL: https://charts.bitnami.com/bitnami 
+      chart: kube-state-metrics
+      targetRevision: 4.0.4
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      selfHeal: true          
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring

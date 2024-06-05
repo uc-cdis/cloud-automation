@@ -5,8 +5,7 @@ source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
 
-#export GEN3_PROMHOST="${GEN3_PROMHOST:-"http://prometheus-server.prometheus.svc.cluster.local"}"
-export GEN3_PROMHOST="${GEN3_PROMHOST:-"http://prometheus-operated.monitoring.svc.cluster.local:9090"}"
+export GEN3_PROMHOST="${GEN3_PROMHOST:-"http://monitoring-mimir-nginx.monitoring.svc.cluster.local"}"
 
 gen3_prom_help() {
   gen3 help prometheus
