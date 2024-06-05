@@ -30,6 +30,8 @@ spec:
                 values:
                 - ONDEMAND
       volumes:
+      - name: signal-volume
+        emptyDir: {}
       - name: creds-volume
         secret:
           secretName: "peregrine-creds"
@@ -40,6 +42,59 @@ spec:
         configMap:
           name: fence
       containers:
+      - name: gen3-spark
+        GEN3_SPARK_IMAGE
+        ports:
+        - containerPort: 22
+        - containerPort: 9000
+        - containerPort: 8030
+        - containerPort: 8031
+        - containerPort: 8032
+        - containerPort: 7077
+        readinessProbe:
+          tcpSocket:
+            port: 9000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        env:
+        - name: DICTIONARY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: manifest-global
+              key: dictionary_url
+        - name: HADOOP_URL
+          value: hdfs://0.0.0.0:9000
+        - name: HADOOP_HOST
+          value: 0.0.0.0
+        volumeMounts:
+          - mountPath: /usr/share/pod
+            name: signal-volume
+            readOnly: true
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 3
+            memory: 4Gi
+        command: ["/bin/bash" ]
+        args: 
+          - "-c"
+          - |
+            trap 'exit 0' SIGINT SIGQUIT SIGTERM
+            # get /usr/local/share/ca-certificates/cdis-ca.crt into system bundle
+            ssh server sudo /etc/init.d/ssh start
+            # update-ca-certificates
+            python run_config.py
+            hdfs namenode -format
+            hdfs --daemon start namenode
+            hdfs --daemon start datanode
+            yarn --daemon start resourcemanager
+            yarn --daemon start nodemanager
+            hdfs dfsadmin -safemode leave
+            hdfs dfs -mkdir /result
+            hdfs dfs -mkdir /jars
+            hdfs dfs -mkdir /archive
+            /spark/sbin/start-all.sh
+            while true; do sleep 5; done
       - name: tube
         imagePullPolicy: Always
         GEN3_TUBE_IMAGE
@@ -77,6 +132,9 @@ spec:
               key: slack_webhook
               optional: true
         volumeMounts:
+            # Volume to signal when to kill spark
+          - mountPath: /usr/share/pod
+            name: signal-volume
           - name: "creds-volume"
             readOnly: true
             mountPath: "/gen3/tube/creds.json"
