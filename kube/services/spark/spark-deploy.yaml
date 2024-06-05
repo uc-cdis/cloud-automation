@@ -98,7 +98,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - spark
+                  - resourcemanager
               topologyKey: "kubernetes.io/hostname"
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -152,7 +152,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - spark
+                  - nodemanager
               topologyKey: "kubernetes.io/hostname"
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -206,7 +206,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - spark
+                  - spark-master
               topologyKey: "kubernetes.io/hostname"
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -261,7 +261,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - spark
+                  - spark-worker
               topologyKey: "kubernetes.io/hostname"
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
