@@ -235,6 +235,11 @@ spec:
         envFrom:
         - configMapRef:
             name: hadoop-spark-config
+        env:
+        - name: SPARK_MASTER
+          value: "spark-master"
+        - name: SPARK_MASTER_PORT
+          value: "7077"
         imagePullPolicy: Always
 
 ---
@@ -290,3 +295,16 @@ spec:
         - configMapRef:
             name: hadoop-spark-config
         imagePullPolicy: Always
+        env:
+        - name: SPARK_MASTER
+          value: "spark://spark-master:7077"
+        - name: SPARK_MASTER_PORT
+          value: "8081"
+        - name: SPARK_EXECUTOR_MEMORY
+          value: "3g"
+        - name: SPARK_DRIVER_MEMORY
+          value: "2g"
+        resources:
+          limits:
+            cpu: 1
+            memory: 7Gi
