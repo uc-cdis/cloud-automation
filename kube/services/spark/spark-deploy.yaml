@@ -231,6 +231,7 @@ spec:
         ports:
         - containerPort: 7077
         - containerPort: 8080
+        - containerPort: 6066
         envFrom:
         - configMapRef:
             name: hadoop-spark-config
