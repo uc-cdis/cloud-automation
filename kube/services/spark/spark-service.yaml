@@ -36,7 +36,7 @@ metadata:
   name: resourcemanager
 spec:
   ports:
-    - protocol: TCP
+    - protocol: HTTP
       port: 8088
       targetPort: 8088
       name: resource
@@ -52,7 +52,7 @@ metadata:
   name: nodemanager
 spec:
   ports:
-    - protocol: TCP
+    - protocol: HTTP
       port: 8042
       targetPort: 8042
       name: node
@@ -69,7 +69,7 @@ metadata:
 spec:
   ports:
   - name: web-ui
-    protocol: TCP
+    protocol: HTTP
     port: 8080
     targetPort: 8080
   - name: master
@@ -93,7 +93,7 @@ metadata:
 spec:
   ports:
     - name: web-ui
-      protocol: TCP
+      protocol: HTTP
       port: 8081
       targetPort: 8081
   type: ClusterIP
