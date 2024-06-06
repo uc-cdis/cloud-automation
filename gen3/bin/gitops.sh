@@ -462,14 +462,12 @@ gen3_gitops_sync() {
       if [[ "$fence_roll" = true ]]; then
           gen3 update_config manifest-fence "$(gen3 gitops folder)/manifests/fence/fence-config-public.yaml"
 
-
           # List of fence-related cronjobs
           local fence_cronjobs=("fence-delete-expired-clients" "fence-cleanup-expired-ga4gh-info")
 
           # Check and update cronjobs
           update_cronjob() {
           local cronjob_name=$1
-
           gen3_log_info "Checking cronjob $cronjob_name..."
           local cronjob_schedule=$(kubectl get cronjobs.batch $cronjob_name -o yaml | grep -oP '(?<=schedule: ).*')
           if [[ -z "$cronjob_schedule" ]]; then
@@ -479,7 +477,6 @@ gen3_gitops_sync() {
 
           gen3_log_info "Updating cronjob $cronjob_name ..."
           gen3 job cron $cronjob_name "$cronjob_schedule"
-          fi
           }
 
           # Loop through each fence-related cronjob and check/update if needed
