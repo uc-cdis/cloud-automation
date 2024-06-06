@@ -469,8 +469,8 @@ gen3_gitops_sync() {
           gen3_log_info "Checking cronjob $cronjob_name..."
           local cronjob_schedule=$(kubectl get cronjobs.batch $cronjob_name -o jsonpath='{.spec.schedule}')
           if [[ -z "$cronjob_schedule" ]]; then
-            gen3_log_info "Cronjob $cronjob_name does not exist or has no schedule."
-            return
+              gen3_log_info "Cronjob $cronjob_name does not exist or has no schedule."
+              return
           fi
           gen3_log_info "Updating cronjob $cronjob_name ..."
           gen3 job cron $cronjob_name "$cronjob_schedule"
@@ -485,7 +485,7 @@ gen3_gitops_sync() {
       # update fence ConfigMap before roll-all
       if [[ "$fence_roll" = true ]]; then
           gen3 update_config manifest-fence "$(gen3 gitops folder)/manifests/fence/fence-config-public.yaml"
-      fi      
+      fi 
 
       if [[ "$covid_cronjob_roll" = true ]]; then
         if g3k_config_lookup '.global."covid19_data_bucket"'; then
