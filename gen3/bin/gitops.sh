@@ -458,23 +458,20 @@ gen3_gitops_sync() {
           gen3 job run etl --wait ETL_FORCED TRUE
       fi
 
-      # update fence ConfigMap before roll-all
-      if [[ "$fence_roll" = true ]]; then
-          gen3 update_config manifest-fence "$(gen3 gitops folder)/manifests/fence/fence-config-public.yaml"
-
+      # update fence jobs
+      if [[ "$versions_roll" = true ]]; then
           # List of fence-related cronjobs
           local fence_cronjobs=("fence-delete-expired-clients" "fence-cleanup-expired-ga4gh-info")
 
-          # Check and update cronjobs
+          # function to check and update cronjobs
           update_cronjob() {
           local cronjob_name=$1
           gen3_log_info "Checking cronjob $cronjob_name..."
-          local cronjob_schedule=$(kubectl get cronjobs.batch $cronjob_name -o yaml | grep -oP '(?<=schedule: ).*')
+          local cronjob_schedule=$(kubectl get cronjobs.batch $cronjob_name -o jsonpath='{.spec.schedule}')
           if [[ -z "$cronjob_schedule" ]]; then
             gen3_log_info "Cronjob $cronjob_name does not exist or has no schedule."
             return
           fi
-
           gen3_log_info "Updating cronjob $cronjob_name ..."
           gen3 job cron $cronjob_name "$cronjob_schedule"
           }
@@ -484,6 +481,11 @@ gen3_gitops_sync() {
           update_cronjob "$cronjob"
           done
       fi
+
+      # update fence ConfigMap before roll-all
+      if [[ "$fence_roll" = true ]]; then
+          gen3 update_config manifest-fence "$(gen3 gitops folder)/manifests/fence/fence-config-public.yaml"
+      fi      
 
       if [[ "$covid_cronjob_roll" = true ]]; then
         if g3k_config_lookup '.global."covid19_data_bucket"'; then
