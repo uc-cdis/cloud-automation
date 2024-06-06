@@ -304,10 +304,13 @@ spec:
         - name: SPARK_MASTER_PORT
           value: "8081"
         - name: SPARK_EXECUTOR_MEMORY
-          value: 6g
+          value: 3g
         - name: SPARK_DRIVER_MEMORY
-          value: 4g
+          value: 2g
         resources:
           limits:
             cpu: 1
-            memory: 12Gi
+            memory: 7Gi
+          requests:
+            cpu: 1
+            memory: 7Gi
