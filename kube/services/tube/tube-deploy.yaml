@@ -87,7 +87,7 @@ spec:
           - name: SPARK_DRIVER_MEMORY
             value: 6g
           - name: SPARK_MASTER
-            value: spark-master
+            value: spark://spark-master:7077
           volumeMounts:
             - name: "creds-volume"
               readOnly: true
