@@ -21,6 +21,9 @@ spec:
         envFrom:
         - configMapRef:
             name: hadoop-spark-config
+        env:
+        - name: CLUSTER_NAME
+          value: "gen3"
         volumeMounts:
         - name: namenode-pv-storage
           mountPath: /hadoop/dfs/name
@@ -301,10 +304,10 @@ spec:
         - name: SPARK_MASTER_PORT
           value: "8081"
         - name: SPARK_EXECUTOR_MEMORY
-          value: "3g"
+          value: 6g
         - name: SPARK_DRIVER_MEMORY
-          value: "2g"
+          value: 4g
         resources:
           limits:
             cpu: 1
-            memory: 7Gi
+            memory: 12Gi
