@@ -98,7 +98,7 @@ data:
       name: workflow-WORKFLOW_NAME
     spec:
       amiSelector:
-        aws::ids: ami-0d3eabf74e1e2258b
+        aws::ids: ami-0d74e7059940620d8
       subnetSelector:
         karpenter.sh/discovery: ENVIRONMENT
       securityGroupSelector:
