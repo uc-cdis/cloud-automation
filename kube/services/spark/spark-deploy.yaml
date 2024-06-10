@@ -247,7 +247,20 @@ spec:
           value: "spark-master"
         - name: SPARK_MASTER_PORT
           value: "7077"
+        - name: SPARK_EXECUTOR_MEMORY
+          value: 3g
+        - name: SPARK_WORKER_MEMORY
+          value: 3g
+        - name: SPARK_DRIVER_MEMORY
+          value: 2g
         imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 2
+            memory: 10Gi
+          requests:
+            cpu: 2
+            memory: 10Gi
 
 ---
 apiVersion: apps/v1
@@ -315,8 +328,8 @@ spec:
           value: 2g
         resources:
           limits:
-            cpu: 1
+            cpu: 2
             memory: 10Gi
           requests:
-            cpu: 1
+            cpu: 2
             memory: 10Gi
