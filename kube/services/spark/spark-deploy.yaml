@@ -302,15 +302,17 @@ spec:
         - name: SPARK_MASTER
           value: "spark://spark-master:7077"
         - name: SPARK_MASTER_PORT
-          value: "8081"
+          value: "7077"
         - name: SPARK_EXECUTOR_MEMORY
+          value: 3g
+        - name: SPARK_WORKER_MEMORY
           value: 3g
         - name: SPARK_DRIVER_MEMORY
           value: 2g
         resources:
           limits:
             cpu: 1
-            memory: 7Gi
+            memory: 10Gi
           requests:
             cpu: 1
-            memory: 7Gi
+            memory: 10Gi
