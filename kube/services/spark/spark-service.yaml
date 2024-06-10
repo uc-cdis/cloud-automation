@@ -8,6 +8,10 @@ spec:
       port: 9000
       targetPort: 9000
       name: hdfs
+    - protocol: TCP
+      port: 8020
+      targetPort: 8020
+      name: core-config
   clusterIP: None
   selector:
     app: namenode
@@ -24,6 +28,10 @@ spec:
       port: 50010
       targetPort: 50010
       name: data
+    - protocol: TCP
+      port: 8020
+      targetPort: 8020
+      name: core-config
   clusterIP: None
   selector:
     app: datanode
@@ -40,6 +48,10 @@ spec:
       port: 8088
       targetPort: 8088
       name: resource
+    - protocol: TCP
+      port: 8020
+      targetPort: 8020
+      name: core-config
   clusterIP: None
   selector:
     app: resourcemanager
@@ -56,6 +68,10 @@ spec:
       port: 8042
       targetPort: 8042
       name: node
+    - protocol: TCP
+      port: 8020
+      targetPort: 8020
+      name: core-config
   clusterIP: None
   selector:
     app: nodemanager
@@ -80,6 +96,10 @@ spec:
     protocol: TCP
     port: 6066
     targetPort: 6066
+  - protocol: TCP
+    port: 8020
+    targetPort: 8020
+    name: core-config
   clusterIP: None
   selector:
     app: spark-master
@@ -96,6 +116,10 @@ spec:
       protocol: TCP
       port: 8081
       targetPort: 8081
+    - protocol: TCP
+      port: 8020
+      targetPort: 8020
+      name: core-config
   clusterIP: None
   selector:
     app: spark-worker
