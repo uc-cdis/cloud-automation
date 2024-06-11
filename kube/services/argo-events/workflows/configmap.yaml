@@ -97,6 +97,8 @@ data:
     metadata:
       name: workflow-WORKFLOW_NAME
     spec:
+      amiSelector:
+        aws::ids: ami-0d74e7059940620d8
       subnetSelector:
         karpenter.sh/discovery: ENVIRONMENT
       securityGroupSelector:
@@ -131,19 +133,9 @@ data:
 
         sudo yum update -y
         sudo yum install -y dracut-fips openssl >> /opt/fips-install.log
-        sudo  dracut -f
-        # configure grub
-        sudo /sbin/grubby --update-kernel=ALL --args="fips=1"
 
         --BOUNDARY
         Content-Type: text/cloud-config; charset="us-ascii"
-
-        power_state:
-          delay: now
-          mode: reboot
-          message: Powering off
-          timeout: 2
-          condition: true
 
         --BOUNDARY--
       blockDeviceMappings:
