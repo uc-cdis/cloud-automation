@@ -3,7 +3,6 @@ kind: NetworkPolicy
 metadata:
   name: netpolicy-ssjdispatcherjob
 spec:
-  spec:
   podSelector:
     matchLabels:
       app: ssjdispatcherjob

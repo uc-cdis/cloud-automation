@@ -51,18 +51,18 @@ fi
 
 gen3 kube-setup-networkpolicy disable
 #
-# Hopefull core secrets/config in place - start bringing up services
+# Hopefully core secrets/config in place - start bringing up services
 #
-if g3k_manifest_lookup .versions.indexd 2> /dev/null; then
-  gen3 kube-setup-indexd &
-else
-  gen3_log_info "no manifest entry for indexd"
-fi
-
 if g3k_manifest_lookup .versions.arborist 2> /dev/null; then
   gen3 kube-setup-arborist || gen3_log_err "arborist setup failed?"
 else
   gen3_log_info "no manifest entry for arborist"
+fi
+
+if g3k_manifest_lookup .versions.indexd 2> /dev/null; then
+  gen3 kube-setup-indexd &
+else
+  gen3_log_info "no manifest entry for indexd"
 fi
 
 if g3k_manifest_lookup '.versions["audit-service"]' 2> /dev/null; then
@@ -264,9 +264,9 @@ fi
 gen3 kube-setup-revproxy
 
 if [[ "$GEN3_ROLL_FAST" != "true" ]]; then
-  if g3k_manifest_lookup .global.argocd 2> /dev/null; then
-    gen3 kube-setup-prometheus
-  fi
+  # if g3k_manifest_lookup .global.argocd 2> /dev/null; then
+  #   gen3 kube-setup-prometheus
+  # fi
   # Internal k8s systems
   gen3 kube-setup-fluentd &
   # If there is an entry for karpenter in the manifest setup karpenter

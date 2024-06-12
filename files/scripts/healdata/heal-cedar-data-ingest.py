@@ -74,7 +74,9 @@ def is_valid_uuid(uuid_to_test, version=4):
 
 
 def update_filter_metadata(metadata_to_update):
-    filter_metadata = []
+    # Retain these from existing filters
+    save_filters = ["Common Data Elements"]
+    filter_metadata = [filter for filter in metadata_to_update["advSearchFilters"] if filter["key"] in save_filters]
     for metadata_field_key, filter_field_key in FILTER_FIELD_MAPPINGS.items():
         filter_field_values = pydash.get(metadata_to_update, metadata_field_key)
         if filter_field_values:
@@ -97,7 +99,7 @@ def update_filter_metadata(metadata_to_update):
     filter_metadata = pydash.uniq(filter_metadata)
     metadata_to_update["advSearchFilters"] = filter_metadata
     # Retain these from existing tags
-    save_tags = ["Data Repository"]
+    save_tags = ["Data Repository", "Common Data Elements", "RequiredIDP",  "Additional Acknowledgement"]
     tags = [tag for tag in metadata_to_update["tags"] if tag["category"] in save_tags]
     # Add any new tags from advSearchFilters
     for f in metadata_to_update["advSearchFilters"]:
@@ -112,7 +114,7 @@ def update_filter_metadata(metadata_to_update):
 
 def get_client_token(client_id: str, client_secret: str):
     try:
-        token_url = f"http://revproxy-service/user/oauth2/token"
+        token_url = "http://fence-service/oauth2/token"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         params = {"grant_type": "client_credentials"}
         data = "scope=openid user data"
@@ -135,7 +137,7 @@ def get_related_studies(serial_num, guid, hostname):
 
     if serial_num:
         mds = requests.get(
-            f"http://revproxy-service/mds/metadata?nih_reporter.project_num_split.serial_num={serial_num}&data=true&limit=2000"
+            f"http://metadata-service/metadata?nih_reporter.project_num_split.serial_num={serial_num}&data=true&limit=2000"
         )
         if mds.status_code == 200:
             related_study_metadata = mds.json()
@@ -210,7 +212,7 @@ while limit + offset <= total:
     # Get the metadata from cedar to register
     print("Querying CEDAR...")
     cedar = requests.get(
-        f"http://revproxy-service/cedar/get-instance-by-directory/{dir_id}?limit={limit}&offset={offset}",
+        f"http://cedar-wrapper-service/get-instance-by-directory/{dir_id}?limit={limit}&offset={offset}",
         headers=token_header,
     )
 
@@ -227,24 +229,24 @@ while limit + offset <= total:
         returned_records = len(metadata_return["metadata"]["records"])
         print(f"Successfully got {returned_records} record(s) from CEDAR directory")
         for cedar_record in metadata_return["metadata"]["records"]:
-            # get the appl id from cedar for querying in our MDS
-            cedar_appl_id = pydash.get(
-                cedar_record, "metadata_location.nih_application_id"
+            # get the CEDAR instance id from cedar for querying in our MDS
+            cedar_instance_id = pydash.get(
+                cedar_record, "metadata_location.cedar_study_level_metadata_template_instance_ID"
             )
-            if cedar_appl_id is None:
-                print("This record doesn't have appl_id, skipping...")
+            if cedar_instance_id is None:
+                print("This record doesn't have CEDAR instance id, skipping...")
                 continue
 
-            # Get the metadata record for the nih_application_id
+            # Get the metadata record for the CEDAR instance id
             mds = requests.get(
-                f"http://revproxy-service/mds/metadata?gen3_discovery.study_metadata.metadata_location.nih_application_id={cedar_appl_id}&data=true"
+                f"http://metadata-service/metadata?gen3_discovery.study_metadata.metadata_location.cedar_study_level_metadata_template_instance_ID={cedar_instance_id}&data=true"
             )
             if mds.status_code == 200:
                 mds_res = mds.json()
 
                 # the query result key is the record of the metadata. If it doesn't return anything then our query failed.
                 if len(list(mds_res.keys())) == 0 or len(list(mds_res.keys())) > 1:
-                    print("Query returned nothing for", cedar_appl_id, "appl id")
+                    print(f"Query returned nothing for template_instance_ID={cedar_instance_id}&data=true")
                     continue
 
                 # get the key for our mds record
@@ -253,7 +255,6 @@ while limit + offset <= total:
                 mds_res = mds_res[mds_record_guid]
                 mds_cedar_register_data_body = {**mds_res}
                 mds_discovery_data_body = {}
-                mds_clinical_trials = {}
                 if mds_res["_guid_type"] == "discovery_metadata":
                     print("Metadata is already registered. Updating MDS record")
                 elif mds_res["_guid_type"] == "unregistered_discovery_metadata":
@@ -266,15 +267,15 @@ while limit + offset <= total:
                     )
                     continue
 
-                if "clinicaltrials_gov" in cedar_record:
-                    mds_clinical_trials = cedar_record["clinicaltrials_gov"]
-                    del cedar_record["clinicaltrials_gov"]
-
                 # some special handing for this field, because its parent will be deleted before we merging the CEDAR and MDS SLMD to avoid duplicated values
                 cedar_record_other_study_websites = cedar_record.get(
                     "metadata_location", {}
                 ).get("other_study_websites", [])
+                # this ensures the nih_application_id, cedar_study_level_metadata_template_instance_ID and study_name are not alterable from CEDAR side
                 del cedar_record["metadata_location"]
+                cedar_record["minimal_info"]["study_name"] = mds_res["gen3_discovery"]["study_metadata"].get("minimal_info", {}).get(
+                    "study_name", ""
+                )
 
                 mds_res["gen3_discovery"]["study_metadata"].update(cedar_record)
                 mds_res["gen3_discovery"]["study_metadata"]["metadata_location"][
@@ -359,17 +360,12 @@ while limit + offset <= total:
                 )
 
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
-                if mds_clinical_trials:
-                    mds_cedar_register_data_body["clinicaltrials_gov"] = {
-                        **mds_cedar_register_data_body.get("clinicaltrials_gov", {}),
-                        **mds_clinical_trials,
-                    }
 
                 mds_cedar_register_data_body["_guid_type"] = "discovery_metadata"
 
                 print(f"Metadata {mds_record_guid} is now being registered.")
                 mds_put = requests.put(
-                    f"http://revproxy-service/mds/metadata/{mds_record_guid}",
+                    f"http://metadata-service/metadata/{mds_record_guid}",
                     headers=token_header,
                     json=mds_cedar_register_data_body,
                 )
@@ -394,3 +390,6 @@ while limit + offset <= total:
     offset = offset + limit
     if (offset + limit) > total:
         limit = total - offset
+
+    if limit < 0:
+        break

@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: argo-workflow-age
+  namespace: default
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          serviceAccountName: argo-workflow-monitor
+          containers:
+            - name: kubectl
+              image: quay.io/cdis/awshelper
+              env:
+                # This is 3 * 3600, or 3 hours
+                - name: THRESHOLD_TIME
+                  value: "10800"
+                - name: SLACK_WEBHOOK_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
+
+              command: ["/bin/bash"]
+              args:
+                - "-c"
+                - |
+                  #!/bin/bash
+                  # Get all workflows with specific label and check their age
+                  kubectl get workflows --all-namespaces -o json | jq -c '.items[] | {name: .metadata.name, creationTimestamp: .metadata.creationTimestamp}' | while read workflow_info; do
+                      WORKFLOW_NAME=$(echo $workflow_info | jq -r '.name')
+                      CREATION_TIMESTAMP=$(echo $workflow_info | jq -r '.creationTimestamp')
+
+                      # Convert creation timestamp to Unix Epoch time
+                      CREATION_EPOCH=$(date -d "$CREATION_TIMESTAMP" +%s)
+
+                      # Get current Unix Epoch time
+                      CURRENT_EPOCH=$(date +%s)
+
+                      # Calculate workflow age in seconds
+                      WORKFLOW_AGE=$(($CURRENT_EPOCH - $CREATION_EPOCH))
+
+                      # Check if workflow age is greater than threshold
+                      if [ "$WORKFLOW_AGE" -gt "$THRESHOLD_TIME" ]; then
+                          echo "Workflow $WORKFLOW_NAME has been running for over $THRESHOLD_TIME seconds, sending an alert"
+                          # Send alert to Slack
+                          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Workflow \`${WORKFLOW_NAME}\` has been running longer than $THRESHOLD_TIME seconds\"}" $SLACK_WEBHOOK_URL
+                      fi
+                  done
+          restartPolicy: OnFailure

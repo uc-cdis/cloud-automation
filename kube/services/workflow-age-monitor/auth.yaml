@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-workflow-monitor
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argo-workflow-monitor-binding
+subjects:
+  - kind: ServiceAccount
+    name: argo-workflow-monitor
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: argo-argo-workflows-view
+  apiGroup: rbac.authorization.k8s.io

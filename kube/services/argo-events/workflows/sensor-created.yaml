@@ -59,12 +59,22 @@ spec:
                         args:
                           - "-c"
                           - |
+                            #!/bin/bash
+                            if [ -z "$PROVISIONER_TEMPLATE" ]; then
+                              PROVISIONER_TEMPLATE="provisioner.yaml"
+                            fi
+
+                            if [ -z "$AWSNODETEMPLATE_TEMPLATE" ]; then
+                              AWSNODETEMPLATE_TEMPLATE="nodetemplate.yaml"
+                            fi
+
+
                             if ! kubectl get awsnodetemplate workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/"  | kubectl apply -f - 
+                              sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/ENVIRONMENT/$ENVIRONMENT/" "$AWSNODETEMPLATE_TEMPLATE" | kubectl apply -f - 
                             fi
 
                             if ! kubectl get provisioner workflow-$WORKFLOW_NAME >/dev/null 2>&1; then
-                              sed -e "s/WORKFLOW_NAME/$workflow_name/" -e "s/GEN3_USERNAME/$workflow_user/" -e "s/ENVIRONMENT/$ENVIRONMENT/"  | kubectl apply -f - 
+                              sed -e "s/WORKFLOW_NAME/$WORKFLOW_NAME/" -e "s/GEN3_USERNAME/$GEN3_USERNAME/" -e "s/ENVIRONMENT/$ENVIRONMENT/"  "$PROVISIONER_TEMPLATE" | kubectl apply -f - 
                             fi
                         env:
                           - name: WORKFLOW_NAME
@@ -76,9 +86,13 @@ spec:
                               configMapKeyRef:
                                 name: environment
                                 key: environment
+                          - name: PROVISIONER_TEMPLATE
+                            value: /manifests/provisioner.yaml
+                          - name: AWSNODETEMPLATE_TEMPLATE
+                            value: /manifests/nodetemplate.yaml
                         volumeMounts:
                           - name: karpenter-templates-volume
-                            mountPath: /home/manifests
+                            mountPath: /manifests
                     volumes:
                       - name: karpenter-templates-volume
                         configMap:
