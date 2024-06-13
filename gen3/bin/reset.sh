@@ -166,7 +166,7 @@ g3kubectl create configmap fence "--from-file=user.yaml=$useryaml"
 
 # Recreate fence-config k8s secret on every CI run
 gen3 kube-setup-secrets
-
+sleep 120
 #
 # various weird race conditions
 # where these setup jobs setup part of a service
