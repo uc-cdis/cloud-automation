@@ -176,3 +176,10 @@ It takes a module as argument, like: vpc, eks.
 ```
 gen3 gitops tfapply eks
 ```
+
+### update-fence-cronjobs
+Checks and updates the image for specific fence-related cronjobs (`fence-delete-expired-clients` and `fence-cleanup-expired-ga4gh-info`), if they do not match the image specified in the `manifest-versions` ConfigMap.
+
+```
+gen3 gitops update-fence-cronjobs
+```
