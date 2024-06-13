@@ -461,7 +461,7 @@ gen3_gitops_sync() {
       # update fence ConfigMap before roll-all
       if [[ "$fence_roll" = true ]]; then
           gen3 update_config manifest-fence "$(gen3 gitops folder)/manifests/fence/fence-config-public.yaml"
-      fi
+      fi 
 
       if [[ "$covid_cronjob_roll" = true ]]; then
         if g3k_config_lookup '.global."covid19_data_bucket"'; then
@@ -503,6 +503,10 @@ gen3_gitops_sync() {
         fi
         curl -X POST --data-urlencode "payload={\"text\": \"Gitops-sync Cron: ${resStr} - Syncing dict and images on ${tmpHostname}\", \"attachments\": [{${dictAttachment}}, {${versionsAttachment}}, {${portalAttachment}}, {${fenceAttachment}}, {${etlAttachment}}, {${covidAttachment}}]}" "${slackWebHook}"
       fi
+      # update fence jobs
+      if [[ "$versions_roll" = true ]]; then
+          gen3_gitops_update_fence_cron_jobs
+      fi
     else
       echo "no changes detected, not rolling"
     fi
@@ -525,6 +529,43 @@ gen3_gitops_rsync() {
     return 1
   fi
   ssh "$target" "bash -ic 'gen3 gitops sync'"
+}
+
+#
+# Update fence cronjobs
+#
+gen3_gitops_update_fence_cron_jobs() {
+  # Fetch the manifest-versions ConfigMap and extract the fence image
+  local fence_manifest_image=$(kubectl get cm manifest-versions -o jsonpath='{.data.fence}')
+
+  # List of fence-related cronjobs
+  local fence_cronjobs=("fence-delete-expired-clients" "fence-cleanup-expired-ga4gh-info")
+
+  # Function to check and update cronjobs
+  update_cronjob() {
+    local cronjob_name=$1
+    local manifest_image=$2
+
+    gen3_log_info "Checking cronjob $cronjob_name..."
+
+    # Extract cronjob schedule directly using kubectl with jsonpath
+    local cronjob_schedule=$(kubectl get cronjobs.batch $cronjob_name -o jsonpath='{.spec.schedule}')
+
+    # Check if the cronjob exists
+    if [[ -z "$cronjob_schedule" ]]; then
+      gen3_log_info "Cronjob $cronjob_name does not exist."
+      return
+    fi
+
+    # Update cronjob with the image in manifest-versions ConfigMap
+    gen3_log_info "Updating cronjob $cronjob_name to use image $manifest_image..."
+    gen3 job cron $cronjob_name "$cronjob_schedule"
+  }
+
+  # Loop through each fence-related cronjob and check/update if needed
+  for cronjob in "${fence_cronjobs[@]}"; do
+    update_cronjob "$cronjob" "$fence_manifest_image"
+  done
 }
 
 #
@@ -1105,6 +1146,9 @@ if [[ -z "$GEN3_SOURCE_ONLY" ]]; then
     "sync")
       gen3_gitops_sync "$@"
       ;;
+    "update-fence-cronjobs")
+      gen3_gitops_update_fence_cron_jobs "$@"
+      ;;      
     "taglist")
       gen3_gitops_repo_taglist "$@"
       ;;
