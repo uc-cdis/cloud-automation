@@ -1,5 +1,4 @@
-# run with 
-# gen3 job run jobs/remove-objects-from-clouds-job.yaml RELEASE DR16 MANIFEST_S3 s3://giang816test/GDC_sample_redact_manifest.tsv LOG_BUCKET log_bucket IGNORED_FILE_S3 s3://giang816test/ignored_files_manifest.csv
+# Documentation: https://github.com/uc-cdis/cdis-wiki/blob/cf5e68f417993676f6e8c8d8c744e29b984ed7a0/ops/Data-refresh.md
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -29,18 +28,18 @@ spec:
                 values:
                 - ONDEMAND
       volumes:
-        - name: cred-volume
+        - name: aws-cred-volume
           secret:
-            secretName: "dcf-aws-creds-secret"
-        - name: google-cred-volume
+            secretName: "aws-creds-secret"
+        - name: gs-cred-volume
           secret:
             secretName: "google-creds-secret"
-        - name: project-map-volume
-          configMap:
-            name: project-map-manifest
-        - name: creds-json-volume
+        - name: setting-volume
           secret:
-            secretName: "dcf-dataservice-json-secret"
+            secretName: "dataservice-settings-secrets"
+        - name: dcf-setting-volume
+          secret:
+            secretName: "dcf-dataservice-settings-secrets"
       containers:
       - name: datareplicate
         GEN3_DATAREPLICATE_IMAGE
@@ -48,27 +47,25 @@ spec:
         env:
           - name: RELEASE
             GEN3_RELEASE
-          - name: LOG_BUCKET
-            GEN3_LOG_BUCKET
-          - name: MANIFEST_S3
-            GEN3_MANIFEST_S3
-          - name: IGNORED_FILE_S3
-            GEN3_IGNORED_FILE_S3
+          - name: THREAD_NUM
+            GEN3_THREAD_NUM
+          - name: SKIP_TO
+            GEN3_SKIP_TO
           - name: DRY_RUN
-            GEN3_DRY_RUN|-value: "True"-|
+            GEN3_DRY_RUN|-value: "False"-|
         volumeMounts:
-          - name: cred-volume
+          - name: aws-cred-volume
             mountPath: "/root/.aws/credentials"
             subPath: credentials
-          - name: google-cred-volume
+          - name: gs-cred-volume
             mountPath: "/secrets/google_service_account_creds"
             subPath: google_service_account_creds
-          - name: "project-map-volume"
-            mountPath: "/dcf-dataservice/GDC_project_map.json"
-            subPath: "GDC_project_map.json"
-          - name: "creds-json-volume"
-            mountPath: "/secrets/dcf_dataservice_credentials.json"
-            subPath: "dcf_dataservice_credentials.json"
+          - name: "setting-volume"
+            mountPath: "/secrets/dataservice_settings.json"
+            subPath: "dataservice_settings.json"
+          - name: "dcf-setting-volume"
+            mountPath: "/secrets/dcf_dataservice_settings.json"
+            subPath: "dcf_dataservice_settings.json"
         command: ["/bin/bash" ]
         args: 
           - "-c"
@@ -80,5 +77,5 @@ spec:
             gcloud auth activate-service-account --key-file=/secrets/google_service_account_creds
             export GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_service_account_creds
             aws s3 cp $IGNORED_FILE_S3 /dcf-dataservice/ignored_files_manifest.csv
-            python replicate.py redact --dry_run $DRY_RUN --release $RELEASE --redact_file $MANIFEST_S3 --log_bucket $LOG_BUCKET
+            python run.py redact --release $RELEASE --thread_num $THREAD_NUM --skip_to $SKIP_TO --dry_run $dry_run --global_config "{\"release\": \"$RELEASE\", \"thread_num\": \"$THREAD_NUM\", \"skip_to\": \"$SKIP_TO\", \"dry_run\": \"$DRY_RUN\"}"
       restartPolicy: Never
