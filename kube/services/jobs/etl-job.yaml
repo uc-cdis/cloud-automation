@@ -157,6 +157,14 @@ spec:
         args:
           - "-c"
           - |
+            while ! bash -c "echo >/dev/tcp/localhost/9000"; do
+              echo "Spark is not ready on port 9000... waiting for 10 seconds."
+              sleep 10
+            done
+
+            # Port 9000 is open, continue with the rest of the script
+            echo "Port 9000 is now open. Continuing with the script..."
+
             echo 'options use-vc' >> /etc/resolv.conf
             if [[ $ETL_FORCED != "false" ]]; then
               python run_config.py && python run_etl.py --force
@@ -171,6 +179,8 @@ spec:
                 curl -X POST --data-urlencode "payload={\"text\": \"SUCCESS: ETL job on ${gen3Env}\"}" "${slackWebHook}"
               fi
             fi
+            # Kill sidecar and all processes
             echo "Exit code: $exitcode"
-            exit "$exitcode"
+            pkill -u root && exit $exitcode
+            exit "$exitcode" &
       restartPolicy: Never
