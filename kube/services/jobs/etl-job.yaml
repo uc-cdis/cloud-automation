@@ -12,6 +12,7 @@ spec:
       labels:
         app: gen3job
     spec:
+      shareProcessNamespace: true
       affinity:
         nodeAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
