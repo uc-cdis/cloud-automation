@@ -283,7 +283,7 @@ while limit + offset <= total:
                 ] = cedar_record_other_study_websites
 
                 # setup citations
-                doi_citation = mds_res["gen3_discovery"]["study_metadata"].get(
+                doi_citation = mds_res["gen3_discovery"].get(
                     "doi_citation", ""
                 )
                 mds_res["gen3_discovery"]["study_metadata"]["citation"][
