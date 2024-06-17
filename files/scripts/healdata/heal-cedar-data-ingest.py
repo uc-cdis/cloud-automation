@@ -312,11 +312,9 @@ while limit + offset <= total:
                         repository.update(
                             {"repository_study_link": repository_study_link}
                         )
-                        if (
-                            repository_citation_additional_text
-                            not in repository_citation
-                        ):
-                            repository_citation += repository_citation_additional_text
+                    if (repository["repository_study_link"] and repository_citation_additional_text
+                            not in repository_citation):
+                        repository_citation += repository_citation_additional_text
                 if len(data_repositories):
                     data_repositories[0] = {
                         **data_repositories[0],
