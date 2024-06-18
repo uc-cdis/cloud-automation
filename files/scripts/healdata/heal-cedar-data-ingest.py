@@ -227,6 +227,7 @@ def get_clinical_trials_gov_metadata(nct_id):
     try:
         time.sleep(0.5)
         ct_metadata_result = requests.get(f"https://clinicaltrials.gov/api/v2/studies/{nct_id}?fields=${'|'.join(CLINICAL_TRIALS_GOV_FIELDS)}")
+        print(json.dumps(ct_metadata_result, indent=4))
         if ct_metadata_result.status_code != 200:
             raise Exception(f"Could not get clinicaltrials.gov metadata, error code {ct_metadata_result.status_code} {ct_metadata_result.json()}")
         else:
