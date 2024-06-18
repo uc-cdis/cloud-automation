@@ -230,7 +230,7 @@ def get_clinical_trials_gov_metadata(nct_id):
         else:
             ct_metadata = ct_metadata_result.json()
     except Exception as exc:
-        raise Exception("Could not get clinicaltrials.gov metadata") from exc
+        raise Exception(f"Could not get clinicaltrials.gov metadata: {exc}") from exc
     return ct_metadata
 
 
@@ -448,7 +448,7 @@ while limit + offset <= total:
                             print(f"Got clinicaltrials.gov metadata for {mds_record_guid} with NCT ID {clinical_trials_id}")
                             mds_cedar_register_data_body["clinicaltrials_gov"] = copy.deepcopy(ct_gov_metadata)
                     except Exception as ex:
-                        print(f'Cannot get clinicaltrials.gov metadata: {ex}')
+                        print(f'{ex}')
 
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
 
