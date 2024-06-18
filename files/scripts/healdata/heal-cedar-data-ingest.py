@@ -449,6 +449,9 @@ while limit + offset <= total:
                             mds_cedar_register_data_body["clinicaltrials_gov"] = copy.deepcopy(ct_gov_metadata)
                     except Exception as ex:
                         print(f'{ex}')
+                # This means the old clinicaltrials_gov section is actually from CEDAR not clinicaltrials.gov, so remove it
+                elif mds_cedar_register_data_body["clinicaltrials_gov"]:
+                    del mds_cedar_register_data_body["clinicaltrials_gov"]
 
                 mds_cedar_register_data_body["gen3_discovery"] = mds_discovery_data_body
 
