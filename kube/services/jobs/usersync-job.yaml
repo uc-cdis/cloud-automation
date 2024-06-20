@@ -221,11 +221,11 @@ spec:
               # Echo what files we are seeing on dbgap ftp to Slack
               # We only do this step every 12 hours and not on weekends to reduce noise
               if [[ -n "$SLACK_SEND_DBGAP" && "$SLACK_SEND_DBGAP" = True ]]; then
-                files=$(grep "Reading file" "$output")
                 let hour=$(date -u +10#%H)
                 let dow=$(date -u +10#%u)
                 if ! (( hour % 12 )) && (( dow < 6 )); then
                   if [ "${slackWebHook}" != 'None' ]; then
+                    files=$(grep "Reading file" "$output")
                     curl -X POST --data-urlencode "payload={\"text\": \"FenceHelper: \n\`\`\`\n${files}\n\`\`\`\"}" "${slackWebHook}"
                   fi
                 fi
