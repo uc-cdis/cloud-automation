@@ -333,3 +333,69 @@ spec:
           requests:
             cpu: 2
             memory: 10Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-submit-deployment
+spec:
+  replicas: 2  # Adjust based on your needs
+  selector:
+    matchLabels:
+      app: spark-submit
+  template:
+    metadata:
+      labels:
+        app: spark-submit
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 25
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - spark-submit
+              topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: karpenter.sh/capacity-type
+                operator: In
+                values:
+                - on-demand
+          - weight: 99
+            preference:
+              matchExpressions:
+              - key: eks.amazonaws.com/capacityType
+                operator: In
+                values:
+                - ONDEMAND
+      automountServiceAccountToken: false
+      containers:
+      - name: spark-submit
+        image: quay.io/cdis/spark-submit:3.3.0-hadoop3.3
+        ports:
+        - containerPort: 8081
+        envFrom:
+        - configMapRef:
+            name: hadoop-spark-config
+        imagePullPolicy: Always
+        env:
+        - name: SPARK_MASTER
+          value: "spark://spark-master:7077"
+        - name: SPARK_MASTER_PORT
+          value: "7077"
+        resources:
+          limits:
+            cpu: 2
+            memory: 10Gi
+          requests:
+            cpu: 2
+            memory: 10Gi
