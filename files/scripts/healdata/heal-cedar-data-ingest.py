@@ -1,8 +1,6 @@
 import argparse
 import copy
-import json
 import sys
-import time
 import requests
 import pydash
 from uuid import UUID
