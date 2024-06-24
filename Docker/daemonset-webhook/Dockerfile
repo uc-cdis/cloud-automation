@@ -23,6 +23,6 @@ RUN go mod download
 RUN  go build -o /webhook
 
 FROM scratch
-COPY --from=build-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=build-deps /webhook /webhook
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder /webhook /webhook
 CMD ["/webhook"]
