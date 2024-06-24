@@ -283,7 +283,7 @@ while limit + offset <= total:
                 ] = cedar_record_other_study_websites
 
                 # setup citations
-                doi_citation = mds_res["gen3_discovery"]["study_metadata"].get(
+                doi_citation = mds_res["gen3_discovery"].get(
                     "doi_citation", ""
                 )
                 mds_res["gen3_discovery"]["study_metadata"]["citation"][
@@ -312,11 +312,9 @@ while limit + offset <= total:
                         repository.update(
                             {"repository_study_link": repository_study_link}
                         )
-                        if (
-                            repository_citation_additional_text
-                            not in repository_citation
-                        ):
-                            repository_citation += repository_citation_additional_text
+                    if (repository.get("repository_study_link", None) and repository_citation_additional_text
+                            not in repository_citation):
+                        repository_citation += repository_citation_additional_text
                 if len(data_repositories):
                     data_repositories[0] = {
                         **data_repositories[0],
