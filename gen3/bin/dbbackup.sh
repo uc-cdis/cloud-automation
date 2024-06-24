@@ -9,7 +9,7 @@
 #   command provided, it will either initiate a database dump or perform a restore.
 #
 # Usage:
-#   gen3 dbbackup [dump|restore]
+#   gen3 dbbackup [dump|restore|va-dump|create-sa]
 #
 #   dump    - Initiates a database dump, creating the essential AWS resources if they are absent.
 #             The dump operation is intended to be executed from the namespace/commons that requires
@@ -17,6 +17,8 @@
 #   restore - Initiates a database restore, creating the essential AWS resources if they are absent.
 #             The restore operation is meant to be executed in the target namespace, where the backup 
 #             needs to be restored.
+#   va-dump - Runs a va-testing DB dump.
+#   create-sa - Creates the necessary service account and roles for DB copy.
 #
 # Notes:
 #   This script extensively utilizes the AWS CLI and the gen3 CLI. Proper functioning demands a 
@@ -178,7 +180,41 @@ va_testing_db_dump() {
 }
 
 
-# main function to determine whether dump or restore
+# Function to create the psql-db-copy service account and roles
+create_db_copy_service_account() {
+  cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: psql-db-copy-sa
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: psql-db-copy-role
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "watch", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: psql-db-copy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: psql-db-copy-role
+subjects:
+- kind: ServiceAccount
+  name: psql-db-copy-sa
+  namespace: ${namespace}
+EOF
+}
+
+# main function to determine whether dump, restore, or create service account
 main() {
     case "$1" in
         dump)
@@ -202,8 +238,12 @@ main() {
             create_s3_bucket
             va_testing_db_dump
             ;;
+        create-sa)
+            gen3_log_info "Creating service account for DB copy..."
+            create_db_copy_service_account
+            ;;
         *)
-            echo "Invalid command. Usage: gen3 dbbackup [dump|restore|va-dump]"
+            echo "Invalid command. Usage: gen3 dbbackup [dump|restore|va-dump|create-sa]"
             return 1
             ;;
     esac
