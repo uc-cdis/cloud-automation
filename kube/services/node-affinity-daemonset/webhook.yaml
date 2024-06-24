@@ -1,0 +1,18 @@
+kind: MutatingWebhookConfiguration
+metadata:
+  name: node-affinity-daemonset
+webhooks:
+  - name: node-affinity-daemonset.k8s.io
+    clientConfig:
+      service:
+        name: node-affinity-daemonset-service
+        namespace: kube-system
+        path: "/mutate"
+      caBundle: <ca-bundle>
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        resources: ["daemonsets"]
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
