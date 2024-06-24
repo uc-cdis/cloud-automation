@@ -1,5 +1,6 @@
+module github.com/uc-cdis/cloud-automation/Docker/daemonset-webhook/node-affinity-daemonset
 
-go 1.18
+go 1.20
 
 require (
 	k8s.io/api v0.27.2
