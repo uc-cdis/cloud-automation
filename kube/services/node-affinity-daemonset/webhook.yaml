@@ -1,3 +1,4 @@
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: node-affinity-daemonset
@@ -5,7 +6,7 @@ webhooks:
   - name: node-affinity-daemonset.k8s.io
     clientConfig:
       service:
-        name: node-affinity-daemonset-service
+        name: node-affinity-daemonset
         namespace: kube-system
         path: "/mutate"
       caBundle: <ca-bundle>
