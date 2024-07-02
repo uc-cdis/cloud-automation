@@ -17,6 +17,21 @@ es7="$(jq -r ".[\"global\"][\"es7\"]" < "$manifestPath" | tr '[:upper:]' '[:lowe
 if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   envname="$(gen3 api environment)"
 
+  sa_name="es-proxy-sa"
+  if ! kubectl get serviceaccount $sa_name 2>&1; then
+    kubectl create serviceaccount $sa_name
+  fi
+
+  role_arn=$(aws iam get-role --role-name opensearch-access-role | jq .Role.Arn | tr -d '"')
+
+  if [[ "$role_arn" != "" ]]; then
+    kubectl annotate sa "$sa_name" eks.amazonaws.com/role-arn="$role_arn"
+  else
+    gen3_log_error("There is no role named 'opensearch-access-role' available. Please set one up with Terraform, then run this command")
+    exit 1
+  fi
+
+
   if [ "$es7" = true ]; then
     if ES_ENDPOINT="$(aws es describe-elasticsearch-domains --domain-names ${envname}-gen3-metadata-2 --query "DomainStatusList[*].Endpoints" --output text)" \
         && [[ -n "${ES_ENDPOINT}" && -n "${envname}" ]]; then
