@@ -17,7 +17,7 @@ es7="$(jq -r ".[\"global\"][\"es7\"]" < "$manifestPath" | tr '[:upper:]' '[:lowe
 if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   envname="$(gen3 api environment)"
 
-  sa_name="es-proxy-sa"
+  sa_name="es-proxy"
   if ! kubectl get serviceaccount $sa_name 2>&1; then
     kubectl create serviceaccount $sa_name
   fi
