@@ -1,28 +1,28 @@
 #!/bin/bash
 
 ####################################################################################################
-# Script: dbdump.sh
+# Script: dbbackup.sh
 #
 # Description:
 #   This script facilitates the management of database backups within the gen3 environment. It is
-#   equipped to establish policies, service accounts, roles, and S3 buckets. Depending on the 
-#   command provided, it will either initiate a database dump or perform a restore.
+#   equipped to establish policies, service accounts, roles, and S3 buckets. Depending on the
+#   command provided, it will either initiate a database dump, perform a restore, migrate to Aurora,
+#   or copy to Aurora.
 #
 # Usage:
-#   gen3 dbbackup [dump|restore|va-dump|create-sa]
+#   gen3 dbbackup [dump|restore|va-dump|create-sa|migrate-to-aurora|copy-to-aurora]
 #
-#   dump    - Initiates a database dump, creating the essential AWS resources if they are absent.
-#             The dump operation is intended to be executed from the namespace/commons that requires
-#             the backup.
-#   restore - Initiates a database restore, creating the essential AWS resources if they are absent.
-#             The restore operation is meant to be executed in the target namespace, where the backup 
-#             needs to be restored.
-#   va-dump - Runs a va-testing DB dump.
-#   create-sa - Creates the necessary service account and roles for DB copy.
+#   dump           - Initiates a database dump, creating the essential AWS resources if they are absent.
+#                    The dump operation is intended to be executed from the namespace/commons that requires
+#                    the backup.
+#   restore        - Initiates a database restore, creating the essential AWS resources if they are absent.
+#                    The restore operation is meant to be executed in the target namespace, where the backup
+#                    needs to be restored.
+#   va-dump        - Runs a va-testing DB dump.
+#   create-sa      - Creates the necessary service account and roles for DB copy.
+#   migrate-to-aurora - Triggers a service account creation and a job to migrate a Gen3 commons to an AWS RDS Aurora instance.
+#   copy-to-aurora    - Triggers a service account creation and a job to copy the databases Indexd, Sheepdog & Metadata to new databases within an RDS Aurora cluster.
 #
-# Notes:
-#   This script extensively utilizes the AWS CLI and the gen3 CLI. Proper functioning demands a 
-#   configured gen3 environment and the availability of the necessary CLI tools.
 #
 ####################################################################################################
 
@@ -214,6 +214,20 @@ subjects:
 EOF
 }
 
+# Function to run the Aurora migration job
+migrate_to_aurora() {
+    create_db_copy_service_account
+    sleep 30
+    gen3 job run psql-db-aurora-migration
+}
+
+# Function to run the Aurora copy job
+copy_to_aurora() {
+    create_db_copy_service_account
+    sleep 30
+    gen3 job run psql-db-copy-aurora
+}
+
 # main function to determine whether dump, restore, or create service account
 main() {
     case "$1" in
@@ -242,8 +256,16 @@ main() {
             gen3_log_info "Creating service account for DB copy..."
             create_db_copy_service_account
             ;;
+        migrate-to-aurora)
+            gen3_log_info "Migrating Gen3 commons to Aurora..."
+            migrate_to_aurora
+            ;;
+        copy-to-aurora)
+            gen3_log_info "Copying databases within Aurora..."
+            copy_to_aurora
+            ;;
         *)
-            echo "Invalid command. Usage: gen3 dbbackup [dump|restore|va-dump|create-sa]"
+            echo "Invalid command. Usage: gen3 dbbackup [dump|restore|va-dump|create-sa|migrate-to-aurora|copy-to-aurora]"
             return 1
             ;;
     esac
