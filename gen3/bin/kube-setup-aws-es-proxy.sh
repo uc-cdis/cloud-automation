@@ -27,7 +27,7 @@ if g3kubectl get secrets/aws-es-proxy > /dev/null 2>&1; then
   if [[ "$role_arn" != "" ]]; then
     kubectl annotate sa "$sa_name" eks.amazonaws.com/role-arn="$role_arn"
   else
-    gen3_log_error("There is no role named 'opensearch-access-role' available. Please set one up with Terraform, then run this command")
+    gen3_log_error "There is no role named 'opensearch-access-role' available. Please set one up with Terraform, then run this command"
     exit 1
   fi
 
