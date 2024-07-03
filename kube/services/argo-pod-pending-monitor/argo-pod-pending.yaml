@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: argo-pod-pending-monitor
+  namespace: default
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gen3job
+        spec:
+          serviceAccountName: node-monitor
+          containers:
+            - name: kubectl
+              image: quay.io/cdis/awshelper
+              env:
+                # This is the label we want to monitor, probably will never need to change
+                - name: NODE_LABEL
+                  value: purpose=workflow
+                  # This is in minutes
+                - name: SLACK_WEBHOOK_URL
+                  valueFrom:
+                    configMapKeyRef:
+                      name: global
+                      key: slack_webhook
+
+              command: ["/bin/bash"]
+              args:
+                - "-c"
+                - |
+                  #!/bin/bash
+                  pending_pods=$(kubectl get pods -n argo -o json | jq -r '.items[] | select(.status.phase == "Pending") | {name: .metadata.name, creationTimestamp: .metadata.creationTimestamp} | select(((now - (.creationTimestamp | fromdateiso8601)) / 60) > 15) | .name') 
+                  if [[ ! -z $pending_pods ]]; then
+                    echo "Pods $pending_pods has been around too long, sending an alert"
+                    curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Pods \`${pending_pods}\` are older than 15 minutes!\"}" $SLACK_WEBHOOK_URL
+                  else
+                    echo "All good here!"
+                  fi
+          restartPolicy: OnFailure
