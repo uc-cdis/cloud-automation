@@ -21,8 +21,6 @@ spec:
                 - name: NODE_LABEL
                   value: purpose=workflow
                   # This is in minutes
-                - name: THRESHOLD_TIME
-                  value: "15"
                 - name: SLACK_WEBHOOK_URL
                   valueFrom:
                     configMapKeyRef:
@@ -35,7 +33,7 @@ spec:
                 - |
                   #!/bin/bash
                   # Get all nodes with specific label and check their age
-                  pending_pods=$(kubectl get pods -n argo -o json | jq -r '.items[] | select(.status.phase == "Pending") | {name: .metadata.name, creationTimestamp: .metadata.creationTimestamp} | select(((now - (.creationTimestamp | fromdateiso8601)) / 60) > $THRESHOLD_TIME) | .name') 
+                  pending_pods=$(kubectl get pods -n argo -o json | jq -r '.items[] | select(.status.phase == "Pending") | {name: .metadata.name, creationTimestamp: .metadata.creationTimestamp} | select(((now - (.creationTimestamp | fromdateiso8601)) / 60) > 15) | .name') 
                   if [[ ! -z $pending_pods ]]; then
                     echo "Pods $pending_pods has been around too long, sending an alert"
                     curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Pods \`${pending_pods}\` are older than 15 minutes!\"}" $SLACK_WEBHOOK_URL
