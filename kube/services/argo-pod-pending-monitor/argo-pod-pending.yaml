@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: argo-node-age
+  name: argo-pod-pending-monitor
   namespace: default
 spec:
   schedule: "*/5 * * * *"
