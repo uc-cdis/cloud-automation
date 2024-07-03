@@ -40,5 +40,4 @@ spec:
                   else
                     echo "All good here!"
                   fi
-                  done
           restartPolicy: OnFailure
