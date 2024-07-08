@@ -22,6 +22,10 @@ data:
             proxy_set_header Host atlas.$hostname;
             proxy_redirect http://atlas.$hostname/ https://atlas.$hostname/;
             client_max_body_size 0;
+            # Hide the header from the backend response:
+            proxy_hide_header Access-Control-Allow-Origin;
+            # Set custom Access-Control-Allow-Origin header:
+            add_header 'Access-Control-Allow-Origin' $hostname always;
         }
       }
     }
