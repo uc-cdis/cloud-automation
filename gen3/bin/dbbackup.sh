@@ -10,7 +10,7 @@
 #   or copy to Aurora.
 #
 # Usage:
-#   gen3 dbbackup [dump|restore|va-dump|create-sa|migrate-to-aurora|copy-to-aurora]
+#   gen3 dbbackup [dump|restore|va-dump|create-sa|migrate-to-aurora|copy-to-aurora <source_namespace>]
 #
 #   dump           - Initiates a database dump, creating the essential AWS resources if they are absent.
 #                    The dump operation is intended to be executed from the namespace/commons that requires
@@ -51,7 +51,6 @@ gen3_log_info "namespace: $namespace"
 gen3_log_info "sa_name: $sa_name"
 gen3_log_info "bucket_name: $bucket_name"
 
-
 # Create an S3 access policy if it doesn't exist
 create_policy() {
   # Check if policy exists
@@ -89,7 +88,6 @@ EOM
   fi
 }
 
-
 # Create or update the Service Account and its corresponding IAM Role
 create_service_account_and_role() {
     cluster_arn=$(kubectl config current-context)
@@ -102,7 +100,6 @@ create_service_account_and_role() {
     gen3_log_info "eks_cluster: $eks_cluster"
     gen3_log_info "oidc_url: $oidc_url"
     gen3_log_info "role_name: $role_name"
-
 
   cat > ${trust_policy} <<EOF
 {
@@ -163,12 +160,10 @@ create_s3_bucket() {
   fi
 }
 
-
 # Function to trigger the database backup job
 db_dump() {
     gen3 job run psql-db-prep-dump
 }
-
 
 # Function to trigger the database backup restore job
 db_restore() {
@@ -178,7 +173,6 @@ db_restore() {
 va_testing_db_dump() {
   gen3 job run psql-db-dump-va-testing
 }
-
 
 # Function to create the psql-db-copy service account and roles
 create_db_copy_service_account() {
@@ -225,7 +219,7 @@ migrate_to_aurora() {
 copy_to_aurora() {
     create_db_copy_service_account
     sleep 30
-    gen3 job run psql-db-copy-aurora
+    gen3 job run psql-db-copy-aurora SOURCE_NAMESPACE "$1"
 }
 
 # main function to determine whether dump, restore, or create service account
@@ -261,14 +255,18 @@ main() {
             migrate_to_aurora
             ;;
         copy-to-aurora)
+            if [ -z "$2" ]; then
+                echo "Usage: $0 copy-to-aurora <source_namespace>"
+                exit 1
+            fi
             gen3_log_info "Copying databases within Aurora..."
-            copy_to_aurora
+            copy_to_aurora "$2"
             ;;
         *)
-            echo "Invalid command. Usage: gen3 dbbackup [dump|restore|va-dump|create-sa|migrate-to-aurora|copy-to-aurora]"
+            echo "Invalid command. Usage: gen3 dbbackup [dump|restore|va-dump|create-sa|migrate-to-aurora|copy-to-aurora <source_namespace>]"
             return 1
             ;;
     esac
 }
 
-main "$1"
+main "$@"
