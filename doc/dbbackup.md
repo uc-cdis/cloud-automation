@@ -44,9 +44,9 @@ gen3 dbbackup migrate-to-aurora
 
 #### copy-to-aurora
 
-Triggers a service account creation and a job to copy the databases Indexd, Sheepdog & Metadata to new databases within an RDS Aurora cluster.
+Triggers a service account creation and a job to copy the databases Indexd, Sheepdog & Metadata to new databases within an RDS Aurora cluster from another namespace <source-namespace> in same RDS cluster.
 
 ```sh
-gen3 dbbackup copy-to-aurora
+gen3 dbbackup copy-to-aurora <source-namespace>
 ```
 
