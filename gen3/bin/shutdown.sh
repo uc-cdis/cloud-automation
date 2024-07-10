@@ -30,6 +30,8 @@ gen3_shutdown_namespace() {
     (
       export KUBECTL_NAMESPACE="$namespace"
       g3kubectl delete --all deployments --now &
+      # Delete all StatefulSets
+      g3kubectl delete --all statefulsets --now &
       # ssjdispatcher leaves jobs laying around when undeployed
       g3kubectl delete --all "jobs" --now & 
       # ssjdispatcher leaves jobs laying around when undeployed
