@@ -84,7 +84,7 @@ data:
         purpose: workflow
       limits:
         resources:
-          cpu: 2000
+          cpu: 4000
       providerRef:
         name: workflow-WORKFLOW_NAME
       # Kill nodes after 30 days to ensure they stay up to date
