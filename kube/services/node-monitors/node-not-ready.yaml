@@ -21,7 +21,7 @@ spec:
                   valueFrom:
                     configMapKeyRef:
                       name: global
-                      key: slack_webhook
+                      key: slack_alarm_webhook
                 - name: ENVIRONMENT
                   valueFrom:
                     configMapKeyRef:
