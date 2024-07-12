@@ -32,11 +32,12 @@ spec:
                 - |
                   #!/bin/bash
                   # Get all workflows with specific label and check their age
-                  kubectl get workflows --all-namespaces -o json | jq -c '.items[] | {name: .metadata.name, creationTimestamp: .metadata.creationTimestamp}' | while read workflow_info; do
+                  kubectl get workflows --all-namespaces -o json | jq -c '.items[] | {name: .metadata.name, startedTimestamp: .status.startedAt}' | while read workflow_info; do
                       WORKFLOW_NAME=$(echo $workflow_info | jq -r '.name')
-                      STARTED_TIMESTAMP=$(echo $workflow_info | jq -r '.status.startedAt')
+                      STARTED_TIMESTAMP=$(echo $workflow_info | jq -r '.startedTimestamp')
 
                       echo "Checking workflow $WORKFLOW_NAME"
+                      echo "$STARTED_TIMESTAMP"
 
                       if [ "$STARTED_TIMESTAMP" != "null"  ]; then 
                         echo "Workflow $WORKFLOW_NAME started at $STARTED_TIMESTAMP"
