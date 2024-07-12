@@ -36,7 +36,10 @@ spec:
                       WORKFLOW_NAME=$(echo $workflow_info | jq -r '.name')
                       STARTED_TIMESTAMP=$(echo $workflow_info | jq -r '.status.startedAt')
 
+                      echo "Checking workflow $WORKFLOW_NAME"
+
                       if [ "$STARTED_TIMESTAMP" != "null"  ]; then 
+                        echo "Workflow $WORKFLOW_NAME started at $STARTED_TIMESTAMP"
                         # Convert creation timestamp to Unix Epoch time
                         CREATION_EPOCH=$(date -d "$STARTED_TIMESTAMP" +%s)
 
