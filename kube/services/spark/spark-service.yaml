@@ -123,19 +123,3 @@ spec:
   clusterIP: None
   selector:
     app: spark-worker
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: spark-submit
-spec:
-  ports:
-    - protocol: TCP
-      port: 7077
-      targetPort: 7077
-      name: core-config
-  clusterIP: None
-  selector:
-    app: spark-submit

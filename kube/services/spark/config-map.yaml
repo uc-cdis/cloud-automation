@@ -16,4 +16,4 @@ data:
   MAPRED_CONF_mapreduce_framework_name: yarn
   HADOOP_HOME: /hadoop
   SPARK_HOME: /spark
-  
+  SPARK_DRIVER_HOST: tube
