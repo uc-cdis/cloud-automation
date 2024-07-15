@@ -11,6 +11,8 @@ gen3_load "gen3/lib/kube-setup-init"
 [[ -z "$GEN3_ROLL_ALL" ]] && gen3 kube-setup-secrets
 g3kubectl delete configmap hadoop-spark-config
 g3kubectl create configmap hadoop-spark-config --from-file="${GEN3_HOME}/kube/services/spark/config-map.yaml"
+g3kubectl delete statefulset --all
+g3kubectl delete deployment resourcemanager-deployment nodemanager-deployment spark-master-deployment spark-worker-deployment
 gen3 roll spark $@
 g3kubectl apply -f "${GEN3_HOME}/kube/services/spark/spark-service.yaml"
 
