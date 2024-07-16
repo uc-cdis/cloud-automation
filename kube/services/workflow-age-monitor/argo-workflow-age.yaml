@@ -24,7 +24,7 @@ spec:
                   valueFrom:
                     configMapKeyRef:
                       name: global
-                      key: slack_webhook
+                      key: slack_alarm_webhook
 
               command: ["/bin/bash"]
               args:
@@ -32,24 +32,30 @@ spec:
                 - |
                   #!/bin/bash
                   # Get all workflows with specific label and check their age
-                  kubectl get workflows --all-namespaces -o json | jq -c '.items[] | {name: .metadata.name, creationTimestamp: .metadata.creationTimestamp}' | while read workflow_info; do
+                  kubectl get workflows --all-namespaces -o json | jq -c '.items[] | {name: .metadata.name, startedTimestamp: .status.startedAt}' | while read workflow_info; do
                       WORKFLOW_NAME=$(echo $workflow_info | jq -r '.name')
-                      CREATION_TIMESTAMP=$(echo $workflow_info | jq -r '.creationTimestamp')
+                      STARTED_TIMESTAMP=$(echo $workflow_info | jq -r '.startedTimestamp')
 
-                      # Convert creation timestamp to Unix Epoch time
-                      CREATION_EPOCH=$(date -d "$CREATION_TIMESTAMP" +%s)
+                      echo "Checking workflow $WORKFLOW_NAME"
+                      echo "$STARTED_TIMESTAMP"
 
-                      # Get current Unix Epoch time
-                      CURRENT_EPOCH=$(date +%s)
+                      if [ "$STARTED_TIMESTAMP" != "null"  ]; then 
+                        echo "Workflow $WORKFLOW_NAME started at $STARTED_TIMESTAMP"
+                        # Convert creation timestamp to Unix Epoch time
+                        CREATION_EPOCH=$(date -d "$STARTED_TIMESTAMP" +%s)
 
-                      # Calculate workflow age in seconds
-                      WORKFLOW_AGE=$(($CURRENT_EPOCH - $CREATION_EPOCH))
+                        # Get current Unix Epoch time
+                        CURRENT_EPOCH=$(date +%s)
 
-                      # Check if workflow age is greater than threshold
-                      if [ "$WORKFLOW_AGE" -gt "$THRESHOLD_TIME" ]; then
-                          echo "Workflow $WORKFLOW_NAME has been running for over $THRESHOLD_TIME seconds, sending an alert"
-                          # Send alert to Slack
-                          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Workflow \`${WORKFLOW_NAME}\` has been running longer than $THRESHOLD_TIME seconds\"}" $SLACK_WEBHOOK_URL
+                        # Calculate workflow age in seconds
+                        WORKFLOW_AGE=$(($CURRENT_EPOCH - $CREATION_EPOCH))
+
+                        # Check if workflow age is greater than threshold
+                        if [ "$WORKFLOW_AGE" -gt "$THRESHOLD_TIME" ]; then
+                            echo "Workflow $WORKFLOW_NAME has been running for over $THRESHOLD_TIME seconds, sending an alert"
+                            # Send alert to Slack
+                            curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"WARNING: Workflow \`${WORKFLOW_NAME}\` has been running longer than $THRESHOLD_TIME seconds\"}" $SLACK_WEBHOOK_URL
+                        fi
                       fi
                   done
           restartPolicy: OnFailure
