@@ -212,6 +212,7 @@ EOF
     exit 1
   fi
 
+  g3kubectl -n argo delete secret slack-webhook-secret
   g3kubectl -n argo create secret generic "slack-webhook-secret" --from-literal=SLACK_WEBHOOK_URL=$alarm_webhook
 
 
