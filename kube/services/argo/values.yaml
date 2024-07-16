@@ -65,7 +65,7 @@ controller:
       templates:
         - name: alert-on-timeout
           script:
-            image: alpine:latest
+            image: quay.io/cdis/amazonlinux-debug:master
             command: [sh]
             envFrom:
               - secretRef:
