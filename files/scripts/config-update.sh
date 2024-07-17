@@ -21,6 +21,11 @@ fi
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/lib/kube-setup-init"
 
+# Backup the $HOME/Gen3Secrets directory
+backup_dir="$HOME/Gen3Secrets-$(date +%Y%m%d%H%M%S)"
+cp -r "$HOME/Gen3Secrets" "$backup_dir"
+echo "Backup of Gen3Secrets created at $backup_dir"
+
 # Function to update JSON file
 update_json_config() {
     local file_path=$1
