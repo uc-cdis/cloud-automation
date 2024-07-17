@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Script Name: config-update.sh
+# Description: This script updates the gen3 config files for various services based on information 
+#              provided in a migration file migration.txt. It updates JSON configuration files and other related files 
+#              with new database host, username, and database name. The script also verifies the updates 
+#              to ensure they are applied correctly.
+
 # Ensure the GEN3_HOME variable is set to the correct path
 if [[ -z "$GEN3_HOME" ]]; then
   echo "GEN3_HOME is not set. Please set it to the path of your Gen3 installation."
