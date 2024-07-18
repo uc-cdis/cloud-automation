@@ -72,7 +72,7 @@ controller:
                   name: slack-webhook-secret
             source: |
               failure_reason=$(echo {{workflow.failures}} | jq 'any(.[]; .message == "Step exceeded its deadline")' )
-              if [ "$failure_reason" ]; then
+              if [ "$failure_reason" = "true" ]; then
                 curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"ALERT: Workflow {{workflow.name}} has been killed due to timeout\"}" "$SLACK_WEBHOOK_URL"
               fi
 
