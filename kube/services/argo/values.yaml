@@ -61,6 +61,20 @@ controller:
   workflowDefaults:
     spec:
       archiveLogs: true
+      onExit: alert-on-timeout
+      templates:
+        - name: alert-on-timeout
+          script:
+            image: quay.io/cdis/amazonlinux-debug:master
+            command: [sh]
+            envFrom:
+              - secretRef:
+                  name: slack-webhook-secret
+            source: |
+              failure_reason=$(echo {{workflow.failures}} | jq 'any(.[]; .message == "Step exceeded its deadline")' )
+              if [ "$failure_reason" = "true" ]; then
+                curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"ALERT: Workflow {{workflow.name}} has been killed due to timeout\"}" "$SLACK_WEBHOOK_URL"
+              fi
 
   # -- [Node selector]
   nodeSelector:

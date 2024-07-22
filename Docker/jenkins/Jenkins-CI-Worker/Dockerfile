@@ -83,21 +83,21 @@ RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc| gpg --dearmor
     apt-get install -y postgresql-client-13
 
 # Copy sh script responsible for installing Python
-COPY install-python3.8.sh /root/tmp/install-python3.8.sh
+COPY install-python3.9.sh /root/tmp/install-python3.9.sh
 
-# Run the script responsible for installing Python 3.8.0 and link it to /usr/bin/python
-RUN chmod +x /root/tmp/install-python3.8.sh; sync && \
-	bash /root/tmp/install-python3.8.sh && \
-	rm -rf /root/tmp/install-python3.8.sh && \
+# Run the script responsible for installing Python 3.9.19 and link it to /usr/bin/python
+RUN chmod +x /root/tmp/install-python3.9.sh; sync && \
+	bash /root/tmp/install-python3.9.sh && \
+	rm -rf /root/tmp/install-python3.9.sh && \
         unlink /usr/bin/python3 && \
-        ln -s /usr/local/bin/python3.8 /usr/bin/python3
+        ln -s /usr/local/bin/python3.9 /usr/bin/python3
 
 # Fix shebang for lsb_release
-RUN sed -i 's/python3/python3.8/' /usr/bin/lsb_release && \
-    sed -i 's/python3/python3.8/' /usr/bin/add-apt-repository
+RUN sed -i 's/python3/python3.9/' /usr/bin/lsb_release && \
+    sed -i 's/python3/python3.9/' /usr/bin/add-apt-repository
 
 # install aws cli, poetry, pytest, etc.
-RUN set -xe && python3.8 -m pip install --upgrade pip setuptools && python3.8 -m pip install awscli --upgrade && python3.8 -m pip install pytest --upgrade && python3.8 -m pip install poetry && python3.8 -m pip install PyYAML --upgrade && python3.8 -m pip install lxml --upgrade && python3.8 -m pip install yq --upgrade && python3.8 -m pip install datadog --upgrade
+RUN set -xe && python3.9 -m pip install --upgrade pip setuptools && python3.9 -m pip install awscli --upgrade && python3.9 -m pip install pytest --upgrade && python3.9 -m pip install poetry && python3.9 -m pip install PyYAML --upgrade && python3.9 -m pip install lxml --upgrade && python3.9 -m pip install yq --upgrade && python3.9 -m pip install datadog --upgrade
 
 # install terraform
 RUN curl -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.11.15/terraform_0.11.15_linux_amd64.zip \
