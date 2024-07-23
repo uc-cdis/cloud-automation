@@ -60,8 +60,12 @@ spec:
               subPath: config_helper.py
             - name: "creds-volume-bk"
               readOnly: true
-              mountPath: /var/www/indexd/creds_bk.json""
+              mountPath: "/var/www/indexd/creds_bk.json"
               subPath: creds.json
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1Gi
           imagePullPolicy: Always
           command: ["/bin/bash"]
           args:
@@ -74,3 +78,5 @@ spec:
               time python /indexd/bin/migrate_to_single_table.py $flags
               echo "Exit code: $?"
       restartPolicy: Never
+
+        
