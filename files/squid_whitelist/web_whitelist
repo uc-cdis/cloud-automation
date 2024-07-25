@@ -33,6 +33,7 @@ centos.mirrors.tds.net
 centos.mirrors.wvstateu.edu
 cernvm.cern.ch
 charts.helm.sh
+charts.s3fs-csi-driver.io
 cloud.r-project.org
 coredns.github.io
 coreos.com
