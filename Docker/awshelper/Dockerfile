@@ -98,13 +98,10 @@ RUN mkdir /var/run/sshd \
 EXPOSE 2222
 
 #------------
-
 # Install mount-s3
-RUN curl -sSL "https://s3.amazonaws.com/mount-s3/latest/mount-s3-linux-amd64.tar.gz" -o "mount-s3.tar.gz" \
-    && tar -xzf mount-s3.tar.gz \
-    && mv mount-s3 /usr/local/bin/ \
-    && chmod +x /usr/local/bin/mount-s3 \
-    && rm mount-s3.tar.gz
+RUN wget https://s3.amazonaws.com/mountpoint-s3-release/latest/x86_64/mount-s3.deb \
+    && sudo apt-get install -y ./mount-s3.deb \
+    && rm mount-s3.deb
 
 USER ubuntu
 WORKDIR /home/ubuntu
