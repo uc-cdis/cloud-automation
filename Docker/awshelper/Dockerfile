@@ -99,6 +99,13 @@ EXPOSE 2222
 
 #-------------
 
+# Install mount-s3
+RUN curl "https://s3.amazonaws.com/mount-s3/mount-s3-1.0.0-linux-amd64.tar.gz" -o "mount-s3.tar.gz" \
+    && tar -xzf mount-s3.tar.gz \
+    && mv mount-s3 /usr/local/bin/ \
+    && chmod +x /usr/local/bin/mount-s3 \
+    && rm mount-s3.tar.gz
+
 USER ubuntu
 WORKDIR /home/ubuntu
 
