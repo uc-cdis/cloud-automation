@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tube
+spec:
+  ports:
+    - protocol: TCP
+      port: 4040
+      targetPort: 4040
+      name: driver-port
+    - protocol: TCP
+      port: 7077
+      targetPort: 7077
+      name: master-port
+  clusterIP: None
+  selector:
+    app: tube
