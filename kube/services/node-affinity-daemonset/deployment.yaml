@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-affinity-daemonset
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-affinity-daemonset
+  template:
+    metadata:
+      labels:
+        app: node-affinity-daemonset
+    spec:
+      containers:
+        - name: node-affinity-daemonset
+          image: quay.io/cdis/node-affinity-daemonset:master
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /etc/webhook/certs
+              readOnly: true
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: webhook-certs #pragma: allowlist secret
