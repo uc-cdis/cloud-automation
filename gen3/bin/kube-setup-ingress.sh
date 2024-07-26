@@ -20,6 +20,8 @@ gen3_ingress_setup_waf() {
     export waf=`aws wafv2 list-web-acls --scope REGIONAL | jq -r '.WebACLs[]|select(.Name| contains(env.vpc_name)).Name'`
 if [[ -z $waf ]]; then
     gen3_log_info "Creating Web ACL. This may take a few minutes."
+    aws logs create-log-group --log-group-name aws-waf-logs-$vpc_name 
+    aws logs put-retention-policy --log-group-name aws-waf-logs-$vpc_name --retention-in-days 120
     aws wafv2 create-web-acl\
         --name $vpc_name-waf \
         --scope REGIONAL \
