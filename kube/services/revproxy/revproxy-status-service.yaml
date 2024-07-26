@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: revproxy-status-service
+spec:
+  selector:
+    app: revproxy
+  ports:
+    - protocol: TCP
+      port: 2267
+      targetPort: 2267
+      name: http
+  type: ClusterIP

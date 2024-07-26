@@ -23,6 +23,18 @@ spec:
         userhelper: "yes"
         internet: "yes"
         GEN3_DATE_LABEL
+      annotations:
+        ad.datadoghq.com/revproxy.checks: |
+          {
+            "nginx": {
+              "init_config": {},
+              "instances": [
+                {
+                  "nginx_status_url":"http://revproxy-status-service.default.svc.cluster.local:2267/nginx_status/"
+                }
+              ]
+            }
+          }
     spec:
       affinity:
         podAntiAffinity:
@@ -96,6 +108,7 @@ spec:
         - containerPort: 80
         - containerPort: 443
         - containerPort: 6567
+        - containerPort: 2267
         env:
           - name: POD_NAMESPACE
             valueFrom:
