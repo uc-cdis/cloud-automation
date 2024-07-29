@@ -88,8 +88,6 @@ RUN npm install elasticdump -g
 RUN mkdir -p /opt/usersshd \
     && chown -R ubuntu: /opt/usersshd \
     && chmod -R a+rwX /run
-# Create /backup directory and set permissions
-RUN mkdir -p /backup && chown ubuntu:ubuntu /backup
 
 RUN mkdir /var/run/sshd \
   && touch /var/log/lastlog \
@@ -98,6 +96,9 @@ RUN mkdir /var/run/sshd \
   && [ "Python 3" = "$(python --version | awk -F . '{ print $1 }')" ]
 
 EXPOSE 2222
+
+# Create /backup directory and set permissions
+RUN mkdir -p /backup && chown ubuntu:ubuntu /backup
 
 #------------
 # Install mount-s3
