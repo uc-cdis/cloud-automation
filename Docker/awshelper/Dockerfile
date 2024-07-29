@@ -88,6 +88,8 @@ RUN npm install elasticdump -g
 RUN mkdir -p /opt/usersshd \
     && chown -R ubuntu: /opt/usersshd \
     && chmod -R a+rwX /run
+# Create /backup directory and set permissions
+RUN mkdir -p /backup && chown ubuntu:ubuntu /backup
 
 RUN mkdir /var/run/sshd \
   && touch /var/log/lastlog \
@@ -125,9 +127,6 @@ RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl
 
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
-
-# Create /backup directory and set permissions
-RUN mkdir -p /backup && chown ubuntu:ubuntu /backup    
 
 # smoke test
 RUN export GEN3_HOME="$HOME/cloud-automation" \
