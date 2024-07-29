@@ -126,6 +126,9 @@ RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
 
+# Create /backup directory and set permissions
+RUN mkdir -p /backup && chown ubuntu:ubuntu /backup    
+
 # smoke test
 RUN export GEN3_HOME="$HOME/cloud-automation" \
     && bash -c 'source "$GEN3_HOME/gen3/gen3setup.sh" && gen3 help'
