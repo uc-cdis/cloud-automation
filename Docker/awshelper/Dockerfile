@@ -97,8 +97,8 @@ RUN mkdir /var/run/sshd \
 
 EXPOSE 2222
 
-# Create /backup directory and set permissions
-RUN mkdir -p /backup && chown ubuntu:ubuntu /backup
+# Create /home/ubuntu/backup directory and set permissions
+RUN mkdir -p /home/ubuntu/backup && chown ubuntu:ubuntu /home/ubuntu/backup
 
 #------------
 # Install mount-s3
