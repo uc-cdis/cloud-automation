@@ -97,8 +97,6 @@ RUN mkdir /var/run/sshd \
 
 EXPOSE 2222
 
-# Create /home/ubuntu/backup directory and set permissions
-RUN mkdir -p /home/ubuntu/backup && chown ubuntu:ubuntu /home/ubuntu/backup
 
 #------------
 # Install mount-s3
@@ -128,6 +126,9 @@ RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl
 
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
+
+# Create /home/ubuntu/backup directory and set permissions
+RUN mkdir -p /home/ubuntu/backup && chown ubuntu:ubuntu /home/ubuntu/backup
 
 # smoke test
 RUN export GEN3_HOME="$HOME/cloud-automation" \
