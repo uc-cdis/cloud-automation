@@ -14,7 +14,7 @@ spec:
     path: cluster-level-resources
     helm:
       valueFiles:
-        - CLUSTER_NAME/cluster-values/cluster-values.yaml
+        - ../CLUSTER_NAME/cluster-values/cluster-values.yaml
       releaseName: cluster-level-resources
   syncPolicy:
     automated:
