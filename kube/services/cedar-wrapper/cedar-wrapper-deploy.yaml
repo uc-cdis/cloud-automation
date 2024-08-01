@@ -98,7 +98,7 @@ spec:
                 name: cedar-g3auto
                 key: "cedar_api_key.txt"
           - name: GEN3_DEBUG
-            GEN3_DEBUG_FLAG|-value: "True"-|
+            GEN3_DEBUG_FLAG|-value: "False"-|
           - name: DD_ENABLED
             valueFrom:
               configMapKeyRef:
