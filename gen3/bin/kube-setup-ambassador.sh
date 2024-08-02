@@ -68,11 +68,9 @@ case "$command" in
     ;;
   "hatchery")
     deploy_hatchery_proxy "$@"
-    gen3 kube-setup-prometheus prometheus
     ;;
   *)
     deploy_hatchery_proxy "$@"
     deploy_api_gateway "$@"
-    gen3 kube-setup-prometheus prometheus
     ;;
 esac
