@@ -14,7 +14,7 @@ function gen3_prom_curl() {
   local urlBase="$1"
   shift || return 1
   local hostOrKey="${1:-${GEN3_PROMHOST}}"
-  local urlPath="/prometheus/api/v1/$urlBase"
+  local urlPath="prometheus/api/v1/$urlBase"
     
   if [[ "$hostOrKey" =~ ^http ]]; then
     gen3_log_info "fetching $hostOrKey/$urlPath"
