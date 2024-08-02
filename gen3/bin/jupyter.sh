@@ -191,7 +191,7 @@ gen3_jupyter_metrics() {
 # @see https://prometheus.io/docs/prometheus/latest/querying/examples/
 #
 gen3_jupyter_idle_pods() {
-  local ttl=5m
+  local ttl=12h
   local namespace="$(gen3 db namespace)"
   local tokenKey="none"
   local command="list"
@@ -212,7 +212,7 @@ gen3_jupyter_idle_pods() {
   # Get the list of idle ambassador clusters from prometheus
   local promQuery="sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{namespace=\"${namespace}\"}[${ttl}]))"
   local tempClusterFile="$(mktemp "$XDG_RUNTIME_DIR/idle_apps.json_XXXXXX")"
-  gen3 prometheus query "$promQuery" "${tokenKey#none}" | jq -e -r '.data.result[] | { "cluster": .metric.envoy_cluster_name, "rate": .value[1] }' | tee "$tempClusterFile" 1>&2
+  gen3 prometheus query "$promQuery" "${tokenKey#none}" | jq -e -r '.data.result[] | { "cluster": .metric.envoy_cluster_name, "rate": .value[1] } | select(.rate == "0")' | tee "$tempClusterFile" 1>&2
   if [[ $? != 0 ]]; then
     gen3_log_info "no idle ambassadore clusters found"
     rm "$tempClusterFile"
@@ -245,8 +245,8 @@ gen3_jupyter_idle_pods() {
         current_time=$(date +%s)
         age=$((current_time - pod_creation))
 
-        # potential workspaces to be reaped for inactivity must be at least 1 minute old- REVERT THIS CHANGE (ONLY FOR TESTING)
-        if ((age >= 60)); then
+       # potential workspaces to be reaped for inactivity must be at least 60 minutes old
+        if ((age >= 3600)); then
           gen3_log_info "try to kill pod $name in $jnamespace"
           g3kubectl delete pod --namespace "$jnamespace" "$name" 1>&2
         fi
