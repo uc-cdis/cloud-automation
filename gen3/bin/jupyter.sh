@@ -191,7 +191,7 @@ gen3_jupyter_metrics() {
 # @see https://prometheus.io/docs/prometheus/latest/querying/examples/
 #
 gen3_jupyter_idle_pods() {
-  local ttl=12h
+  local ttl=5m
   local namespace="$(gen3 db namespace)"
   local tokenKey="none"
   local command="list"
