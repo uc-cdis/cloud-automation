@@ -49,7 +49,7 @@ spec:
               # This script takes backup of Gen3 Service databases, encrypts it, and moves it to an encrypted S3 bucket.
               # Requirements:
               # 1. PGP public key must be available as a variable in the script.
-              # 2. The job needs the necessary permissions to read secrets from all relevant namespaces.
+              # 2. The job needs the necessary permissions to read secrets, config maps from the target namespace.
 
               source "${GEN3_HOME}/gen3/lib/utils.sh"
               gen3_load "gen3/gen3setup"
@@ -145,10 +145,10 @@ spec:
 
                 if [ $? -eq 0 ]; then
                   rm "${DATE_DIR}/${db_name}.sql"
-                  gen3_log_info "Successfully encrypted and removed the original file for database $db_name."
+                  gen3_log_info "Successfully encrypted and removed the original file for database $db_name. \n"
                   return 0
                 fi
-                gen3_log_err "Failed to encrypt database $db_name."
+                gen3_log_err "Failed to encrypt database $db_name.\n"
                 return 1
               }
 
@@ -156,6 +156,7 @@ spec:
               for database in "${databases[@]}"; do
                 for secret_name in "${database}-creds creds.json" "$database-g3auto dbcreds.json"; do
                   creds=$(gen3 secrets decode $secret_name 2>/dev/null)
+                  # Extracting service credentials
                   if [ $? -eq 0 ] && [ ! -z "$creds" ]; then
                     db_hostname=$(echo $creds | jq -r .db_host)
                     db_username=$(echo $creds | jq -r .db_username)
@@ -165,7 +166,8 @@ spec:
                     break
                   fi
                 done
-
+                
+                # Verify credentials are extracted
                 if [ -z "$db_hostname" ] || [ -z "$db_username" ] || [ -z "$db_password" ] || [ -z "$db_database" ]; then
                   gen3_log_err "Failed to extract database credentials for $database"
                   failed_backups="${failed_backups}\nDatabase: $database, Error: Failed to extract credentials"
@@ -193,11 +195,6 @@ spec:
                     gen3_log_err "Failed to backup $database"
                     failed_backups="${failed_backups}\nDatabase: $database, Error: Failed to backup database"
                   fi
-                fi
-
-                if [ "$database" == "peregrine" ]; then
-                  # do nothing, as peregrine service does not have its own db
-                  continue
                 fi
               done
 
