@@ -245,8 +245,8 @@ gen3_jupyter_idle_pods() {
         current_time=$(date +%s)
         age=$((current_time - pod_creation))
 
-        # potential workspaces to be reaped for inactivity must be at least 60 minutes old
-        if ((age >= 3600)); then
+        # potential workspaces to be reaped for inactivity must be at least 1 minute old- REVERT THIS CHANGE (ONLY FOR TESTING)
+        if ((age >= 60)); then
           gen3_log_info "try to kill pod $name in $jnamespace"
           g3kubectl delete pod --namespace "$jnamespace" "$name" 1>&2
         fi
