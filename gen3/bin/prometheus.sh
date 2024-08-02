@@ -4,9 +4,7 @@
 source "${GEN3_HOME}/gen3/lib/utils.sh"
 gen3_load "gen3/gen3setup"
 
-
-#export GEN3_PROMHOST="${GEN3_PROMHOST:-"http://prometheus-server.prometheus.svc.cluster.local"}"
-export GEN3_PROMHOST="${GEN3_PROMHOST:-"http://prometheus-operated.monitoring.svc.cluster.local:9090"}"
+export GEN3_PROMHOST="${GEN3_PROMHOST:-"https://mimir.planx-pla.net"}"
 
 gen3_prom_help() {
   gen3 help prometheus
@@ -16,11 +14,11 @@ function gen3_prom_curl() {
   local urlBase="$1"
   shift || return 1
   local hostOrKey="${1:-${GEN3_PROMHOST}}"
-  local urlPath="api/v1/$urlBase"
+  local urlPath="prometheus/api/v1/$urlBase"
     
   if [[ "$hostOrKey" =~ ^http ]]; then
     gen3_log_info "fetching $hostOrKey/$urlPath"
-    curl -s -H 'Accept: application/json' "$hostOrKey/$urlPath"
+    curl -s -H 'Accept: application/json' -H "X-Scope-OrgID: anonymous" "$hostOrKey/$urlPath"
   else
     gen3 api curl "$urlPath" "$hostOrKey"
   fi

@@ -110,7 +110,7 @@ spec:
               done
 
               # legacy reaper code
-              gen3_log_info "Running legacy reaper job (based on local cluster/ prometheus)"
+              gen3_log_info "Running legacy reaper job (based on Mimir)"
               if appList="$(gen3 jupyter idle none "$(gen3 db namespace)" kill)" && [[ -n "$appList" && -n "$slackWebHook" && "$slackWebHook" != "None" ]]; then
                 curl -X POST --data-urlencode "payload={\"text\": \"hatchery-reaper in $gen3Hostname: \n\`\`\`\n${appList}\n\`\`\`\"}" "${slackWebHook}"
               fi
