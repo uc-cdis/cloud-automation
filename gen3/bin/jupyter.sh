@@ -212,7 +212,7 @@ gen3_jupyter_idle_pods() {
   # Get the list of idle ambassador clusters from prometheus
   local promQuery="sum by (envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{namespace=\"${namespace}\"}[${ttl}]))"
   local tempClusterFile="$(mktemp "$XDG_RUNTIME_DIR/idle_apps.json_XXXXXX")"
-  gen3 prometheus query "$promQuery" "${tokenKey#none}" | jq -e -r '.data.result[] | { "cluster": .metric.envoy_cluster_name, "rate": .value[1] } | select(.rate == "0")' | tee "$tempClusterFile" 1>&2
+  gen3 prometheus query "$promQuery" "${tokenKey#none}" | jq -e -r '.data.result[] | { "cluster": .metric.envoy_cluster_name, "rate": .value[1] }' | tee "$tempClusterFile" 1>&2
   if [[ $? != 0 ]]; then
     gen3_log_info "no idle ambassadore clusters found"
     rm "$tempClusterFile"
