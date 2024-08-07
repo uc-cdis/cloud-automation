@@ -29,6 +29,7 @@ data:
       configLocal.cohortComparisonResultsEnabled = false;
       configLocal.userAuthenticationEnabled = true;
       configLocal.plpResultsEnabled = false;
+      configLocal.refreshTokenThreshold = 1000 * 60 * 4; // refresh auth token if it will expire within 4 minutes
       return configLocal;
     });
 

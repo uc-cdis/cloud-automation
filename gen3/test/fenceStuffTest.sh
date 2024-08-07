@@ -17,7 +17,7 @@ EOM
 C: 4
 B: 3
 EOM
-  json3="$(python3.8 "$GEN3_HOME/apis_configs/yaml_merge.py" "$yaml1" "$yaml2")"; because $? "yaml_merge should succeed"
+  json3="$(python3.9 "$GEN3_HOME/apis_configs/yaml_merge.py" "$yaml1" "$yaml2")"; because $? "yaml_merge should succeed"
   [[ "1" == "$(jq -r .A <<<"$json3")" ]]; because $? ".A should be 1"
   /bin/rm "$yaml1"
   /bin/rm "$yaml2"
