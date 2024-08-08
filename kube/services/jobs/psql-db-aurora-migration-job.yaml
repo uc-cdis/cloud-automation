@@ -154,7 +154,7 @@ spec:
                   if [ $? -eq 0 ]; then
                     gen3_log_info "User $db_user, password already exists"
                   else
-                    gen3 psql aurora -c "CREATE USER \"$db_user\" WITH PASSWORD '$db_password' CREATEDB"
+                    gen3 psql aurora -c "SET password_encryption  = 'scram-sha-256';CREATE USER \"$db_user\" WITH PASSWORD '$db_password' CREATEDB"
                     if [ $? -ne 0 ]; then
                       gen3_log_err "Failed to create user for $database"
                       failed_migrations="${failed_migrations}\nDatabase: $database, Error: Failed to create user"
