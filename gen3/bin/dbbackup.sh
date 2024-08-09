@@ -21,7 +21,7 @@
 #   va-dump        - Runs a va-testing DB dump.
 #   create-sa      - Creates the necessary service account and roles for DB copy.
 #   migrate-to-aurora - Triggers a service account creation and a job to migrate a Gen3 commons to an AWS RDS Aurora instance.
-#   copy-to-aurora    - Triggers a service account creation and a job to copy the databases Indexd, Sheepdog & Metadata to new databases within an RDS Aurora cluster.
+#   copy-to-aurora    - Triggers a service account creation and a job to copy the databases Indexd, Sheepdog & Metadata to new databases within an RDS Aurora cluster. The source_namespace must be provided. The job should be run at the destination, not at the source.
 #   encrypt        - Perform encrypted backup.
 #   setup-cron     - Set up a cronjob for encrypted backup.
 #
