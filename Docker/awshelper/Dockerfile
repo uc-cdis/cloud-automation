@@ -97,12 +97,7 @@ RUN mkdir /var/run/sshd \
 
 EXPOSE 2222
 
-
-#------------
-# Install mount-s3
-RUN wget https://s3.amazonaws.com/mountpoint-s3-release/latest/x86_64/mount-s3.deb \
-    && sudo apt-get install -y ./mount-s3.deb \
-    && rm mount-s3.deb
+#-------------
 
 USER ubuntu
 WORKDIR /home/ubuntu
@@ -126,9 +121,6 @@ RUN export DEB_PYTHON_INSTALL_LAYOUT=deb && export POETRY_VERSION=1.1.15 && curl
 
 RUN git config --global user.email gen3 \
     && git config --global user.name gen3
-
-# Create /home/ubuntu/backup directory and set permissions
-RUN mkdir -p /home/ubuntu/backup && chown ubuntu:ubuntu /home/ubuntu/backup
 
 # smoke test
 RUN export GEN3_HOME="$HOME/cloud-automation" \
